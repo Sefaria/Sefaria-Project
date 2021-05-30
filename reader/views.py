@@ -95,7 +95,7 @@ if server_coordinator:
 def render_template(request, template_name='base.html', app_props=None, template_context=None, content_type=None, status=None, using=None):
     """
     This is a general purpose custom function that serves to render all the templates in the project and provide a central point for all similar processing.
-    It can take props that area meant for the Node render of ReaderApp (and will properly combine them with base_props() and serialize
+    It can take props that are meant for the Node render of ReaderApp (and will properly combine them with base_props() and serialize
     It also takes care of adding these props to the template context
     If needed (i.e. currently, if props are passed in) it will also attempt to call render_react_component so it doesnt have to be called by the view itself.
     :param request: the request object
