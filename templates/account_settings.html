@@ -148,12 +148,10 @@
 			    let $this = $(this);
 				$this.closest(".toggleSet").find(".toggleOption").removeClass("active").attr("tabIndex","-1").attr("ariaChecked","false");
 				$this.addClass("active").attr("tabIndex","0").attr("ariaChecked","true");
-				if($this.attr("data-name") === "reading-history"){
-				    if($this.attr("data-value") == "false"){
-				        console.log("deleteing history");
+				if ($this.attr("data-name") === "reading-history") {
+				    if ($this.attr("data-value") == "false") {
 				        $('#readingHistory #reading-history-warning').text(Sefaria._("Turning this feature off will permanently delete your reading history.")).addClass('active');
-                    }else{
-				        console.log("enabling history");
+                    } else {
 				        $('#readingHistory #reading-history-warning').removeClass('active');
                     }
                 }
@@ -171,15 +169,15 @@
 
 			$("#saveAccountSettings").click(function(){
 				let profile = {
-						settings: {
-							email_notifications: $("#emailNotifications .toggleOption.active").attr("data-value"),
-							interface_language: $("#siteLanguage .toggleOption.active").attr("data-value"),
-                            textual_custom: $("#textualCustom .toggleOption.active").attr("data-value"),
-                            reading_history: $("#readingHistory .toggleOption.active").attr("data-value") === "true" ? true : false,
-                            translation_language_preference: $("#translationLanguagePreference .toggleOption.active").attr("data-value"),
-						}
+                    settings: {
+                        email_notifications: $("#emailNotifications .toggleOption.active").attr("data-value"),
+                        interface_language: $("#siteLanguage .toggleOption.active").attr("data-value"),
+                        textual_custom: $("#textualCustom .toggleOption.active").attr("data-value"),
+                        reading_history: $("#readingHistory .toggleOption.active").attr("data-value") === "true" ? true : false,
+                        translation_language_preference: $("#translationLanguagePreference .toggleOption.active").attr("data-value"),
+                    }
 				};
-
+                $.cookie("translationLanguagePreference", $("#translationLanguagePreference .toggleOption.active").attr("data-value"));  // see trans pref in cookie in case user is logged out
 				$.post("/api/profile", {json: JSON.stringify(profile)}, function(data) {
 					if ("error" in data) {
 						alert(data.error);
