@@ -362,6 +362,7 @@ Sefaria = extend(Sefaria, {
       multiple:   settings.multiple   || 0,
       wrapLinks:  ("wrapLinks" in settings) ? settings.wrapLinks : 1,
       wrapNamedEntities: ("wrapNamedEntities" in settings) ? settings.wrapNamedEntities : 1, 
+      translationLanguagePreference: Sefaria.translation_language_preference,
     };
 
     return settings;
@@ -555,7 +556,8 @@ Sefaria = extend(Sefaria, {
       pad:        settings.pad,
       wrapLinks:  settings.wrapLinks,
       wrapNamedEntities: settings.wrapNamedEntities,
-      multiple:   settings.multiple
+      multiple:   settings.multiple,
+      transLangPref: settings.translationLanguagePreference,
     });
     let url = "/api/texts/" + Sefaria.normRef(ref);
     if (settings.enVersion) { url += "&ven=" + encodeURIComponent(settings.enVersion.replace(/ /g,"_")); }
@@ -570,6 +572,7 @@ Sefaria = extend(Sefaria, {
     if (settings) {
       if (settings.enVersion) { key += "&ven=" + settings.enVersion; }
       if (settings.heVersion) { key += "&vhe=" + settings.heVersion; }
+      if (settings.translationLanguagePreference) { key += "&transLangPref=" + settings.translationLanguagePreference}
       key = settings.context ? key + "|CONTEXT" : key;
     }
     return key;
@@ -2622,6 +2625,7 @@ Sefaria.unpackDataFromProps = function(props) {
       "full_name",
       "profile_pic_url",
       "is_history_enabled",
+      "translation_language_preference",
       "following",
 
       "calendars",
