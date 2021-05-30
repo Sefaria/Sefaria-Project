@@ -1478,13 +1478,14 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
     If it is possible to get a more complete text by merging multiple versions, a merged result will be returned.
 
     :param oref: :class:`Ref`
-    :param lang: "he" or "en"
+    :param lang: "he" or "en". "he" means all rtl languages and "en" means all ltr languages
     :param vtitle: optional. Title of the version desired.
+    :param language_preference: optional. if vtitle isn't specified, prefer to find a version with ISO language `language_preference`. this will trump `lang`.
     """
 
     text_attr = "text"
 
-    def __init__(self, oref, lang="en", vtitle=None, exclude_copyrighted=False):
+    def __init__(self, oref, lang="en", vtitle=None, exclude_copyrighted=False, language_preference=None):
         """
         :param oref:
         :type oref: Ref
@@ -1522,35 +1523,41 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
                 self._versions += [v]
                 self.text = self._original_text = self.trim_text(v.content_node(self._oref.index_node))
         elif lang:
-            vset = VersionSet(self._oref.condition_query(lang), proj=self._oref.part_projection())
-
-            if len(vset) == 0:
-                if VersionSet({"title": self._oref.index.title}).count() == 0:
-                    raise NoVersionFoundError("No text record found for '{}'".format(self._oref.index.title))
-                return
-            if len(vset) == 1:
-                v = vset[0]
-                if exclude_copyrighted and v.is_copyrighted():
-                    raise InputError("Can not provision copyrighted text. {} ({}/{})".format(oref.normal(), v.versionTitle, v.language))
-                self._versions += [v]
-                self.text = self.trim_text(v.content_node(self._oref.index_node))
-                #todo: Should this instance, and the non-merge below, be made saveable?
-            else:  # multiple versions available, merge
-                if exclude_copyrighted:
-                    vset.remove(Version.is_copyrighted)
-                merged_text, sources = vset.merge(self._oref.index_node)  #todo: For commentaries, this merges the whole chapter.  It may show up as merged, even if our part is not merged.
-                self.text = self.trim_text(merged_text)
-                if len(set(sources)) == 1:
-                    for v in vset:
-                        if v.versionTitle == sources[0]:
-                            self._versions += [v]
-                            break
-                else:
-                    self.sources = sources
-                    self.is_merged = True
-                    self._versions = vset.array()
+            try:
+                assert language_preference is not None
+                self._choose_version_by_lang(oref, lang, exclude_copyrighted, language_preference)
+            except:
+                self._choose_version_by_lang(oref, lang, exclude_copyrighted)
         else:
             raise Exception("TextChunk requires a language.")
+
+    def _choose_version_by_lang(self, oref, lang: str, exclude_copyrighted: bool, actual_language: str=None) -> None:
+        vset = VersionSet(self._oref.condition_query(lang, actual_language), proj=self._oref.part_projection())
+        if len(vset) == 0:
+            if VersionSet({"title": self._oref.index.title}).count() == 0:
+                raise NoVersionFoundError("No text record found for '{}'".format(self._oref.index.title))
+            return
+        if len(vset) == 1:
+            v = vset[0]
+            if exclude_copyrighted and v.is_copyrighted():
+                raise InputError("Can not provision copyrighted text. {} ({}/{})".format(oref.normal(), v.versionTitle, v.language))
+            self._versions += [v]
+            self.text = self.trim_text(v.content_node(self._oref.index_node))
+            #todo: Should this instance, and the non-merge below, be made saveable?
+        else:  # multiple versions available, merge
+            if exclude_copyrighted:
+                vset.remove(Version.is_copyrighted)
+            merged_text, sources = vset.merge(self._oref.index_node)  #todo: For commentaries, this merges the whole chapter.  It may show up as merged, even if our part is not merged.
+            self.text = self.trim_text(merged_text)
+            if len(set(sources)) == 1:
+                for v in vset:
+                    if v.versionTitle == sources[0]:
+                        self._versions += [v]
+                        break
+            else:
+                self.sources = sources
+                self.is_merged = True
+                self._versions = vset.array()
 
     def __str__(self):
         args = "{}, {}".format(self._oref, self.lang)
@@ -2072,7 +2079,7 @@ class TextFamily(object):
         "he": "heSources"
     }
 
-    def __init__(self, oref, context=1, commentary=True, version=None, lang=None, version2=None, lang2=None, pad=True, alts=False, wrapLinks=False, stripItags=False, wrapNamedEntities=False):
+    def __init__(self, oref, context=1, commentary=True, version=None, lang=None, version2=None, lang2=None, pad=True, alts=False, wrapLinks=False, stripItags=False, wrapNamedEntities=False, translationLanguagePreference=None):
         """
         :param oref:
         :param context:
@@ -2115,16 +2122,18 @@ class TextFamily(object):
 
         # processes "en" and "he" TextChunks, and puts the text in self.text and self.he, respectively.
         for language, attr in list(self.text_attr_map.items()):
+            tc_kwargs = dict(oref=oref, lang=language)
+            if language == 'en': tc_kwargs['language_preference'] = translationLanguagePreference
             if language == lang:
-                c = TextChunk(oref, language, version)
+                c = TextChunk(vtitle=version, **tc_kwargs)
                 if len(c._versions) == 0:  # indicates `version` doesn't exist
                     self._nonExistantVersions[language] = version
             elif language == lang2:
-                c = TextChunk(oref, language, version2)
+                c = TextChunk(vtitle=version2, **tc_kwargs)
                 if len(c._versions) == 0:
                     self._nonExistantVersions[language] = version2
             else:
-                c = TextChunk(oref, language)
+                c = TextChunk(**tc_kwargs)
             self._chunks[language] = c
             text_modification_funcs = []
             if wrapNamedEntities and len(c._versions) > 0:
@@ -4135,7 +4144,7 @@ class Ref(object, metaclass=RefCacheType):
 
         return projection
 
-    def condition_query(self, lang=None):
+    def condition_query(self, lang=None, actual_language=None):
         """
         Return condition to select only versions with content at the location of this Ref.
         Usage:
@@ -4155,6 +4164,10 @@ class Ref(object, metaclass=RefCacheType):
         d = {
             "title": self.index.title,
         }
+        if actual_language:
+            import re as pyre  # pymongo can only encode re.compile objects, not regex or re2.
+            pattern = r"^(?!.*\[[a-z]{2}\]$).*" if actual_language in {'en', 'he'} else fr"\[{actual_language}\]$"
+            d.update({"versionTitle": pyre.compile(pattern)})
         if lang:
             d.update({"language": lang})
 
