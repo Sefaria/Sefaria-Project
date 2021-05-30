@@ -177,7 +177,7 @@
                         translation_language_preference: $("#translationLanguagePreference .toggleOption.active").attr("data-value"),
                     }
 				};
-                $.cookie("translationLanguagePreference", $("#translationLanguagePreference .toggleOption.active").attr("data-value"));  // see trans pref in cookie in case user is logged out
+                $.cookie("translation_language_preference", $("#translationLanguagePreference .toggleOption.active").attr("data-value"));  // see trans pref in cookie in case user is logged out
 				$.post("/api/profile", {json: JSON.stringify(profile)}, function(data) {
 					if ("error" in data) {
 						alert(data.error);
