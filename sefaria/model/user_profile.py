@@ -347,7 +347,8 @@ class UserProfile(object):
             "email_notifications": "daily",
             "interface_language": "english",
             "textual_custom" : "sephardi",
-            "reading_history" : True
+            "reading_history" : True,
+            "translation_language_preference": "english",
         }
         # dict that stores the last time an attr has been modified
         self.attr_time_stamps = {
