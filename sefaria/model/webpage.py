@@ -171,6 +171,13 @@ class WebPage(abst.AbstractMongoRecord):
             r"chiefrabbi\.org\/?(\?post_type.+)?$",  # post_type are pages that seem to by filtered lists
             r"chiefrabbi\.org\/(all-media|communities|education|maayan-programme)\/?$",
             r"chiefrabbi\.org\/(dvar-torah|media_type)\/?",  # archives
+            r"justice-in-the-city\.com\/?$",
+            r"justice-in-the-city\.com\/(category|page)\/",
+            r"aju\.edu\/(faculty|search|taxonomy)\/",
+            r"aju\.edu\/miller-intro-judaism-program\/learning-portal\/glossary\/",
+            r"aju\.edu\/ziegler-school-rabbinic-studies\/our-torah\/back-issues\/\d+$"
+            r"aju\.edu\/ziegler-school-rabbinic-studies\/torah-resource-center\/"
+            r"aju\.edu\/ziegler-school-rabbinic-studies\/blogs\/?$"
         ]
         return "({})".format("|".join(bad_urls))
 
@@ -236,7 +243,7 @@ class WebPage(abst.AbstractMongoRecord):
         title = str(self.title)
         title = title.replace("&amp;", "&")
         brands = [self.site_name] + self._site_data.get("title_branding", [])
-        separators = [("-", ' '), ("|", ' '), ("—", ' '), ("»", ' '), ("•", ' '), (":", '')]
+        separators = [("-", ' '), ("|", ' '), ("—", ' '), ("–", ' '), ("»", ' '), ("•", ' '), (":", '')]
         for separator, padding in separators:
             for brand in brands:
                 if self._site_data.get("initial_title_branding", False):
@@ -865,5 +872,17 @@ sites_data = [
     {
         "name": "Office of the Chief Rabbi",
         "domains": ["chiefrabbi.org"],
+    },
+    {
+        "name": "Sapir Journal",
+        "domains": ["sapirjournal.org"],
+    },
+    {
+        "name": "Justice in the City",
+        "domains": ["justice-in-the-city.com"],
+    },
+    {
+        "name": "American Jewish University",
+        "domains": ["aju.edu"],
     }
 ]

@@ -33,6 +33,8 @@ from sefaria.system.cache import django_cache
 from .history import record_sheet_publication, delete_sheet_publication
 from .settings import SEARCH_INDEX_ON_SAVE
 from . import search
+from sefaria.google_storage_manager import GoogleStorageManager
+import re
 
 logger = structlog.get_logger(__name__)
 
@@ -419,6 +421,20 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 		old_topics = existing.get("topics", [])
 		topics_diff = topic_list_diff(old_topics, sheet.get("topics", []))
 
+		old_media_urls = set([source["media"] for source in existing.get("sources") if "media" in source])
+		if len(old_media_urls) > 0:
+			new_media_urls = set([source["media"] for source in sheet.get("sources") if "media" in source])
+			if len(old_media_urls) != len(new_media_urls):
+				deleted_media = set(old_media_urls).difference(new_media_urls)
+				print(deleted_media)
+				for url in deleted_media:
+					if url.startswith(GoogleStorageManager.BASE_URL):
+						GoogleStorageManager.delete_filename((re.findall(r"/([^/]+)$", url)[0]), GoogleStorageManager.UGC_SHEET_BUCKET)
+
+
+
+
+
 		# Protected fields -- can't be set from outside
 		sheet["views"] = existing["views"]
 		sheet["owner"] = existing["owner"]
@@ -436,7 +452,7 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 			sheet["status"] = "unlisted"
 		sheet["owner"] = user_id
 		sheet["views"] = 1
-		
+
 		old_topics = []
 		topics_diff = topic_list_diff(old_topics, sheet.get("topics", []))
 
@@ -472,7 +488,7 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 							}).delete()
 
 	sheet["includedRefs"] = refs_in_sources(sheet.get("sources", []))
-	sheet["expandedRefs"] = model.Ref.expand_refs(sheet["includedRefs"]) 
+	sheet["expandedRefs"] = model.Ref.expand_refs(sheet["includedRefs"])
 	sheet["sheetLanguage"] = get_sheet_language(sheet)
 
 	if rebuild_nodes:
@@ -712,7 +728,7 @@ def get_sheets_for_ref(tref, uid=None, in_collection=None):
 		sheets_list = [collection.sheets for collection in collections]
 		sheets_ids = [sheet for sublist in sheets_list for sheet in sublist]
 		query["id"] = {"$in": sheets_ids}
-	
+
 	sheetsObj = db.sheets.find(query,
 		{"id": 1, "title": 1, "owner": 1, "viaOwner":1, "via":1, "dateCreated": 1, "includedRefs": 1, "expandedRefs": 1, "views": 1, "topics": 1, "status": 1, "summary":1, "attribution":1, "assigner_id":1, "likes":1, "displayedCollection":1, "options":1}).sort([["views", -1]])
 	sheetsObj.hint("expandedRefs_1")
@@ -807,12 +823,12 @@ def topic_list_diff(old, new):
 
 def update_sheet_topics(sheet_id, topics, old_topics):
 	"""
-	Sets the topic list for `sheet_id` to those listed in list `topics`, 
+	Sets the topic list for `sheet_id` to those listed in list `topics`,
 	containing fields `asTyped` and `slug`.
-	Performs some normalization of `asTyped` and creates new topic objects for new topics.  
+	Performs some normalization of `asTyped` and creates new topic objects for new topics.
 	"""
 	normalized_slug_title_pairs = set()
-	
+
 	for topic in topics:
 	# Dedupe, normalize titles, create/choose topics for any missing slugs
 		title = normalize_new_topic_title(topic["asTyped"])
@@ -869,8 +885,8 @@ def choose_existing_topic_for_title(title):
 
 
 def update_sheet_topic_links(sheet_id, new_topics, old_topics):
-	"""	
-	Adds and removes sheet topic links per differences in old and new topics list.  
+	"""
+	Adds and removes sheet topic links per differences in old and new topics list.
 	Only adds link for public sheets.
 	"""
 	topic_diff = topic_list_diff(old_topics, new_topics)
@@ -961,7 +977,7 @@ def get_last_updated_time(sheet_id):
 
 	if not sheet:
 		return None
-		
+
 	return sheet["dateModified"]
 
 
@@ -1096,7 +1112,7 @@ def make_sheet_from_text(text, sources=None, uid=1, generatedBy=None, title=None
 
 class Sheet(abstract.AbstractMongoRecord):
 	# This is here as an alternative interface - it's not yet used, generally.
-	
+
 	# Warning: this class doesn't implement all of the saving logic in save_sheet()
 	# In current form should only be used for reading or for changes that are known to be
 	# safe and without need of side effects.
