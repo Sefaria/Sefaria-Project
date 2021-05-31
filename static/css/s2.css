@@ -662,10 +662,10 @@ input.noselect {
 .header .interfaceLinks .interfaceLinks-menu.open{
   display: block;
 }
-.header .interfaceLinks .interfaceLinks-option.int-bi.int-he {
+.interface-hebrew .header .interfaceLinks .interfaceLinks-option.int-bi {
   direction: rtl;
 }
-.header .interfaceLinks .interfaceLinks-option.int-bi.int-en {
+.interface-english .header .interfaceLinks .interfaceLinks-option.int-bi {
   direction: ltr;
 }
 .header .interfaceLinks .interfaceLinks-row {
@@ -691,18 +691,22 @@ div.interfaceLinks-row a:hover {
   text-decoration: none;
 }
 
-div.interfaceLinks-row a.firstLink {
+.header .interfaceLinks .interfaceLinks-row.languages {
+  display: flex;
+}
+
+div.interfaceLinks-row a.active {
   color: #000000;
   display: flex;
   order: -1;
 }
 
-div.interfaceLinks-row a.firstLink::after {
+div.interfaceLinks-row a.active::after {
   content: "•";
   padding: 0 4px;
 }
 
-div.interfaceLinks-row a.secondLink {
+div.interfaceLinks-row a {
   color: #666666;
   display: flex;
 }
@@ -711,9 +715,6 @@ div.interfaceLinks-row a.secondLink {
   padding-top: 10px;
 }
 
-.header .interfaceLinks .interfaceLinks-row.languages {
-  display: flex;
-}
 
 .header .interfaceLinks .interfaceLinks-row.bottom {
   font-size: 14px;
