@@ -456,19 +456,17 @@ class ReaderTextTableOfContents extends Component {
   }
 }
 ReaderTextTableOfContents.propTypes = {
-  mode:             PropTypes.string.isRequired,
-  title:            PropTypes.string.isRequired,
-  category:         PropTypes.string.isRequired,
-  currentRef:       PropTypes.string.isRequired,
-  settingsLanguage: PropTypes.string.isRequired,
-  currVersions:     PropTypes.object.isRequired,
-  narrowPanel:      PropTypes.bool,
-  close:            PropTypes.func.isRequired,
-  openNav:          PropTypes.func.isRequired,
-  showBaseText:     PropTypes.func.isRequired,
-  getLicenseMap:    PropTypes.func.isRequired,
-  selectVersion:    PropTypes.func,
-  viewExtendedNotes: PropTypes.func,
+  mode:                  PropTypes.string.isRequired,
+  title:                 PropTypes.string.isRequired,
+  category:              PropTypes.string.isRequired,
+  currentRef:            PropTypes.string.isRequired,
+  settingsLanguage:      PropTypes.string.isRequired,
+  currVersions:          PropTypes.object.isRequired,
+  narrowPanel:           PropTypes.bool,
+  close:                 PropTypes.func.isRequired,
+  showBaseText:          PropTypes.func.isRequired,
+  selectVersion:         PropTypes.func,
+  viewExtendedNotes:     PropTypes.func,
   backFromExtendedNotes: PropTypes.func,
   interfaceLang:    PropTypes.string,
   extendedNotes:    PropTypes.string,
@@ -638,8 +636,25 @@ class TextTableOfContentsNavigation extends Component {
         break;
       case "commentary":
         content = <CommentatorList
+<<<<<<< HEAD
                         commentatorList={this.props.commentatorList}
                         title={this.props.title} />;
+=======
+                    commentatorList={this.props.commentatorList}
+                    title={this.props.title} />;
+
+
+        break;
+      case "versions":
+        content = <VersionsList
+                    versionsList={this.props.versions}
+                    currObjectVersions={this.props.currObjectVersions}
+                    openVersion={this.props.openVersion}
+                    title={this.props.title}
+                    currentRef={this.props.currentRef}
+                    viewExtendedNotes={this.props.viewExtendedNotes}
+                  />;
+>>>>>>> 1138a44b8... Refactor location of getLicenseMap() and remove it from being drilled down on every component
 
 
         break;
@@ -1038,8 +1053,7 @@ class VersionsList extends Component {
         firstSectionRef={"firstSectionRef" in v ? v.firstSectionRef : null}
         openVersionInReader={this.props.openVersion}
         viewExtendedNotes={this.props.viewExtendedNotes}
-        key={v.versionTitle + "/" + v.language}
-        getLicenseMap={this.props.getLicenseMap}/>
+        key={v.versionTitle + "/" + v.language}/>
      )
     );
 
@@ -1069,7 +1083,6 @@ VersionsList.propTypes = {
   title:             PropTypes.string.isRequired,
   currentRef:        PropTypes.string,
   viewExtendedNotes: PropTypes.func,
-  getLicenseMap:     PropTypes.func.isRequired,
 };
 
 
