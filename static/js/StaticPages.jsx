@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useRef} from 'react';
 import {
     SimpleInterfaceBlock,
     NewsletterSignUpForm,
@@ -1244,21 +1244,21 @@ const H2Block = ({en, he, classes}) =>
   </div>;
 
 const EducatorSubscribeButton = () => {
-  var email = Sefaria._email;
-  var lists = Sefaria.interfaceLang == "hebrew" ?
+  const email = Sefaria._email;
+  const [message, setMessage] = useState("");
+  const heActionText = useRef("הירשמו לקבלת הניוזלטר");
+  const enActionText = useRef("Get the Newsletter");
+
+  if (email.length === 0) {
+    enActionText.current = "Sign up to get updates";
+    heActionText.current = "הירשמו לקבלת עדכונים";
+  }
+  const handleClick = () => {
+    if (Sefaria.util.isValidEmailAddress(email)) {
+      setMessage("<i>Subscribing...</i>");
+      var lists = Sefaria.interfaceLang == "hebrew" ?
               "Announcements_General_Hebrew|Announcements_Edu_Hebrew"
               : "Announcements_General|Announcements_Edu"
-  const [message, setMessage] = useState("");
-  const [enActionText, setEnActionText] = useState("Get the Newsletter");
-  const [heActionText, setHeActionText] = useState("הירשמו לקבלת הניוזלטר")
-  var actionURL="https://sefaria.nationbuilder.com/subscribe"
-  const handleClick = () => {
-    if (email.length === 0) {
-      setEnActionText("Sign up to get updates");
-      setHeActionText("הירשמו לקבלת עדכונים");
-    }
-    else if (Sefaria.util.isValidEmailAddress(email)) {
-      setMessage("<i>Subscribing...</i>");
       const request = new Request(
           "/api/subscribe/" + email,
           {headers: {'X-CSRFToken': Cookies.get('csrftoken')}}
@@ -1283,16 +1283,17 @@ const EducatorSubscribeButton = () => {
       });
     }
   }
+
   return <span>
-    <div className="simpleButtonWrapper wide">
-    <div onClick={handleClick} className={classNames({button:1, flexContainer:1, "int-en":1, white: true, tall: false, rounded:true})} target="_self">
-        <span className="int-en">{enActionText}<img src="/static/img/circled-arrow-right.svg"/></span>
-    </div>
-    <div onClick={handleClick} className={classNames({button:1, flexContainer:1, "int-he":1, white: true, tall: false, rounded:true})}>
-        <span className="int-he">{heActionText}<img src="/static/img/circled-arrow-right.svg"/></span>
-    </div>
-    </div>
-    <div>{message}</div>
+      <div className="simpleButtonWrapper signUpEducators">
+        <div onClick={handleClick} className={classNames({button:1, flexContainer:1, "int-en":1, white: true, tall: false, rounded:true})}>
+          <span className="int-en">{email.length === 0 ? <a href="/register?educator=true&next=/educators">{enActionText.current}</a> : enActionText.current}<img src="/static/img/circled-arrow-right.svg"/></span>
+        </div>
+        <div onClick={handleClick} className={classNames({button:1, flexContainer:1, "int-he":1, white: true, tall: false, rounded:true})}>
+          <span className="int-he">{email.length === 0 ? <a href="/register?educator=true&next=/educators">{heActionText.current}</a> : heActionText.current}<img src="/static/img/circled-arrow-right.svg"/></span>
+        </div>
+      </div>
+      <div className="signUpEducatorsMessage">{message}</div>
   </span>
 }
 
