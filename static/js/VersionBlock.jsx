@@ -77,7 +77,7 @@ class VersionBlock extends Component {
     }
     this.setState({"error": "Saving.  Page will reload on success."});
     $.ajax({
-      url: `/api/version/flags/${this.props.title}/${v.language}/${v.versionTitle}`,
+      url: `/api/version/flags/${v.title}/${v.language}/${v.versionTitle}`,
       dataType: 'json',
       type: 'POST',
       data: {json: JSON.stringify(payloadVersion)},
@@ -96,8 +96,7 @@ class VersionBlock extends Component {
   deleteVersion() {
     if (!confirm("Are you sure you want to delete this text version?")) { return; }
 
-    const title = this.props.title;
-    const url = "/api/texts/" + title + "/" + this.props.version.language + "/" + this.props.version.versionTitle;
+    const url = "/api/texts/" + this.props.version.title + "/" + this.props.version.language + "/" + this.props.version.versionTitle;
 
     $.ajax({
       url: url,
@@ -107,7 +106,7 @@ class VersionBlock extends Component {
           alert(data.error)
         } else {
           alert("Text Version Deleted.");
-          window.location = "/" + Sefaria.normRef(title);
+          window.location = "/" + Sefaria.normRef(this.props.version.title);
         }
       }
     }).fail(function() {
@@ -126,7 +125,7 @@ class VersionBlock extends Component {
   }
   openExtendedNotes(e){
     e.preventDefault();
-    this.props.viewExtendedNotes(this.props.title, this.props.version.language, this.props.version.versionTitle);
+    this.props.viewExtendedNotes(this.props.version.title, this.props.version.language, this.props.version.versionTitle);
   }
   makeVersionLink(versionParam) {
     //versionParam - either version language (e.g. 'en') in the case when you're making a link for versions in reader
@@ -278,7 +277,7 @@ class VersionBlock extends Component {
             <div className={classNames(this.makeAttrClassNames({"versionNotes": 1}, "versionNotes", true))}>
               <span className="" dangerouslySetInnerHTML={ {__html: vnotes} } />
               <span className={`versionExtendedNotesLinks ${this.hasExtendedNotes() ? "": "n-a"}`}>
-                <a onClick={this.openExtendedNotes} href={`/${this.props.title}/${this.props.version.language}/${this.props.version.versionTitle}/notes`}>
+                <a onClick={this.openExtendedNotes} href={`/${this.props.version.title}/${this.props.version.language}/${this.props.version.versionTitle}/notes`}>
                   {Sefaria._("Read More")}
                 </a>
               </span>
@@ -336,7 +335,6 @@ class VersionBlock extends Component {
   }
 }
 VersionBlock.propTypes = {
-  title:                  PropTypes.string,
   version:                PropTypes.object.isRequired,
   currObjectVersions:     PropTypes.object.isRequired,
   currentRef:             PropTypes.string,
@@ -346,7 +344,6 @@ VersionBlock.propTypes = {
   openVersionInSidebar:   PropTypes.func,
   openVersionInReader:    PropTypes.func,
   isCurrent:              PropTypes.bool,
-  openVersion:            PropTypes.func,
   viewExtendedNotes:      PropTypes.func,
   sidebarDisplay:         PropTypes.bool,
   rendermode:             PropTypes.string,
