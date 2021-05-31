@@ -419,7 +419,7 @@ class ReaderTextTableOfContents extends Component {
                     title={this.props.title}
                     versions={versions}
                     currObjectVersions={currObjectVersions}
-                    openVersion={this.openVersion}
+                    openVersionInReader={this.openVersion}
                     currentRef={this.props.currentRef}
                     viewExtendedNotes={this.props.viewExtendedNotes}
                   />
@@ -566,7 +566,7 @@ class TextTableOfContentsNavigation extends Component {
         content = <VersionsList
                     versionsList={this.props.versions}
                     currObjectVersions={this.props.currObjectVersions}
-                    openVersion={this.props.openVersion}
+                    openVersionInReader={this.props.openVersionInReader}
                     title={this.props.title}
                     currentRef={this.props.currentRef}
                     viewExtendedNotes={this.props.viewExtendedNotes}
@@ -965,7 +965,7 @@ class VersionsList extends Component {
         currObjectVersions={this.props.currObjectVersions}
         currentRef={this.props.currentRef || this.props.title}
         firstSectionRef={"firstSectionRef" in v ? v.firstSectionRef : null}
-        openVersionInReader={this.props.openVersion}
+        openVersionInReader={this.props.openVersionInReader}
         viewExtendedNotes={this.props.viewExtendedNotes}
         key={v.versionTitle + "/" + v.language}/>
      )
