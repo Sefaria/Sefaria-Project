@@ -961,7 +961,6 @@ class VersionsList extends Component {
      versions.filter(v => v.language == lang).map(v =>
       <VersionBlock
         rendermode="version-list"
-        title={this.props.title}
         version={v}
         currObjectVersions={this.props.currObjectVersions}
         currentRef={this.props.currentRef || this.props.title}
