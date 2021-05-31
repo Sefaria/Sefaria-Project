@@ -112,6 +112,24 @@ class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject
             return False
         return True
 
+    @staticmethod
+    def get_shared_category(indexes: list):
+        """
+        Get lowest category which includes all indexes in `indexes`
+        :param list indexes: list of Index objects
+        :return: Category
+        """
+
+        from collections import defaultdict
+
+        cat_choice_dict = defaultdict(list)
+        for index in indexes:
+            for icat, cat in enumerate(index.categories):
+                cat_path = tuple(index.categories[:icat+1])
+                cat_choice_dict[(icat, cat_path)] += [index]
+        sorted_cat_options = sorted(cat_choice_dict.items(), key=lambda x: (len(x[1]), x[0][0]), reverse=True)
+        (_, cat_path), top_indexes = sorted_cat_options[0]
+        return Category().load({"path": list(cat_path)})
 
 class CategorySet(abstract.AbstractMongoSet):
     recordClass = Category

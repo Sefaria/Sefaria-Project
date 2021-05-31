@@ -35,8 +35,7 @@ const ReaderNavigationMenu = ({categories, settings, setCategories, onCompareBac
           openDisplaySettings={openDisplaySettings}
           compare={compare}
           multiPanel={multiPanel}
-          initialWidth={initialWidth}
-          contentLang={settings.language} />
+          initialWidth={initialWidth} />
       </div>
     );
   }

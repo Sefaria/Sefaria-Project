@@ -1334,7 +1334,6 @@ input.noselect {
   border-top: 80px solid #FBFBFA;
   border-bottom: 120px solid #FBFBFA;
   margin: -80px 0 0 0;
-  padding-bottom: 100px;
 }
 .singlePanel .navSidebar {
   width: 100%;
@@ -1655,9 +1654,6 @@ input.noselect {
     margin-top: 20px;
   }
 }
-.interface-hebrew .topicPanel .mainColumn {
-  padding: 0 50px 0 0;
-}
 .topicPanel .sideColumn {
   padding: 0 50px;
   background-color: #FBFBFA;
@@ -1691,7 +1687,6 @@ input.noselect {
   text-align: unset;
   text-transform: none;
   margin-bottom: 20px;
-  letter-spacing: 2px;
   height: unset;
   line-height: unset;
 }
@@ -1709,14 +1704,18 @@ input.noselect {
   font-size: 18px;
   line-height: 26px;
 }
-.topicPanel .sideColumn .sideList a {
+.topicPanel .sideColumn .sideList a.relatedTopic {
   display: block;
   color: #000;
 }
-.topicPanel .sideColumn .sideList a .int-en {
+.topicPanel .sideColumn .sideList .topicMetaData .int-en,
+.topicPanel .sideColumn .sideList .topicMetaData .int-he {
+  color: #666;
+}
+.topicPanel .sideColumn .sideList a.relatedTopic .int-en {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
-.topicPanel .sideColumn .sideList a .int-he {
+.topicPanel .sideColumn .sideList a.relatedTopic .int-he {
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 }
 .topicPanel .sideColumn .topicCategory {
@@ -1832,6 +1831,31 @@ h1 .languageToggle .he {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 22px;
 }
+.authorIndexTitle {
+  margin-top: 30px;
+  margin-bottom: 17px;
+}
+.sectionTitleText.authorIndexTitle .int-en {
+  text-transform: none;
+  letter-spacing: 0;
+}
+.authorIndexList {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.authorIndex {
+  width: 50%;
+  font-size: var(--serif-h3-font-size);
+  margin-bottom: 10px;
+  padding-right: 20px;
+  box-sizing: border-box;
+}
+.interface-hebrew .authorIndex {
+  padding-right: 0;
+  padding-left: 20px;
+}
 @media (max-width: 450px) {
   .readerNavMenu.home .tagline {
     margin-top: 29px;
@@ -1842,6 +1866,10 @@ h1 .languageToggle .he {
   }
   .readerNavMenu .tagline .he {
     font-size: 20px;
+  }
+  .authorIndex {
+    width: 100%;
+    padding: 0;
   }
 }
 .readerNavMenu .libraryMessage {
@@ -8830,6 +8858,7 @@ section.SheetSource .SheetOutsideBiText {
 .filterable-list .readerNavMenuSearchButton {
   margin: 0 10px 0 5px;
   display: inline-flex;
+  top: 0;
 }
 .interface-hebrew .filterable-list .readerNavMenuSearchButton {
   margin: 0 5px 0 10px;
@@ -9180,7 +9209,7 @@ body .homeFeedWrapper .content {
     flex-direction: column;
   }
   .topicPanel .sideColumn {
-    padding: 20px 25px 0 25px;
+    padding: 20px 25px 30px 25px;
     max-width: 100%;
     align-self: stretch;
     border: 0;
@@ -9346,6 +9375,9 @@ body .homeFeedWrapper .content {
   max-width: 100%;
   box-sizing: border-box;
   min-height: 500px;
+}
+.interface-hebrew .topicPanel .storyFeedInner {
+  padding-top: 0;
 }
 .storyByLine:hover .smallFollowButton,
 .authorByLine:hover .smallFollowButton {

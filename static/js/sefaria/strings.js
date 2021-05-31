@@ -74,8 +74,8 @@ const Strings = {
     "Trending Topics": "נושאים חמים",
     "More": "עוד",
     "Less": "פחות",
-    "All Topic A-Z": "כל הנושאים א-ת",
-    "Browse or search our complete list of topics": "עיון או חיפוש ברשימת כל הנושאים",
+    "All Topics A-Z": "כל הנושאים א-ת",
+    "Browse or search our complete list of topics.": "עיון או חיפוש ברשימת כל הנושאים.",
     "Topics bring you straight to selections of texts and user created source sheets about thousands of subjects. Sources that appear are drawn from existing indices of Jewish texts (like Aspaklaria) and from the sources our users include on their public source sheets.": "דפי נושא מביאים אותך ישירות למקורות נבחרים ולדפי מקורות של משתמשים המקורות המופיעים בדפי הנושא נלקטים ממאגרים קיימים של ספרות יהודית (דוגמת אספקלריא) ומדפי המקורות הציבוריים של משתמשי ספריא.",
 
     // All Topics
@@ -418,6 +418,11 @@ const Strings = {
     "Table of Contents": "תוכן העניינים",
     "Hebrew Versions": "בעברית",
     "English Versions": "באנגלית",
+
+    //Topics
+    "Wikipedia": "ויקיפדיה",
+    "Jewish Encyclopedia": "האנציקלופדיה היהודית",
+    "Works on Sefaria": "חיבורים וכתבים בספריא",
   },
 
   _i18nInterfaceStringsWithContext: {

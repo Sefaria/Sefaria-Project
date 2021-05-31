@@ -169,7 +169,7 @@ const AuthorStory = (props) => (
     <StoryFrame cls="authorStory" cardColor={Sefaria.palette.indexColor(props.data.example_work)}>
         <StoryTypeBlock en="Author" he="מחבר" />
         <NaturalTimeBlock timestamp={props.timestamp}/>
-        <StoryTitleBlock en={props.data.author_names.en} he={props.data.author_names.he} url={"/person/" + props.data.author_key} />
+        <StoryTitleBlock en={props.data.author_names.en} he={props.data.author_names.he} url={"/topics/" + props.data.author_key} />
         <DangerousInterfaceBlock classes="storyBody contentText" en={props.data.author_bios.en} he={props.data.author_bios.he}/>
     </StoryFrame>
 );

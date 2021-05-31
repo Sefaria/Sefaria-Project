@@ -373,7 +373,7 @@ const FilterableList = ({
   // If `getData` function is passed, load data through this effect
   useEffect(() => {
     let isMounted = true;
-    if (!rawData) { // Don't try calling getData when `data` is intially passed
+    if (!rawData && !!getData) { // Don't try calling getData when `data` is intially passed
       setLoading(true);
       getData().then(data => {
         if (isMounted) {
@@ -469,11 +469,10 @@ const FilterableList = ({
             { sortOptions.map(option =>(
               <span
                 key={option}
-                className={classNames({'sort-option': 1, noselect: 1, active: sortOption === option})}
+                className={classNames({'sans-serif': 1, 'sort-option': 1, noselect: 1, active: sortOption === option})}
                 onClick={() => onSortChange(option)}
               >
-                <span className="int-en">{ option }</span>
-                <span className="int-he">{ Sefaria._(option) }</span>
+                <InterfaceText>{option}</InterfaceText>
               </span>
             ))}
           </div>
@@ -535,7 +534,7 @@ class TabView extends Component {
   renderTab(tab, index) {
     const { currTabIndex } = typeof this.props.currTabIndex == 'undefined' ? this.state : this.props;
     return (
-      <div className={classNames({active: currTabIndex === index, justifyright: tab.justifyright})} key={tab.text} data-tab-index={index} onClick={this.onClickTab}>
+      <div className={classNames({active: currTabIndex === index, justifyright: tab.justifyright})} key={tab.id} data-tab-index={index} onClick={this.onClickTab}>
         {this.props.renderTab(tab, index)}
       </div>
     );
@@ -553,7 +552,7 @@ class TabView extends Component {
   }
 }
 TabView.propTypes = {
-  tabs: PropTypes.array.isRequired,
+  tabs: PropTypes.array.isRequired,  // array of objects of any form. only requirement is each tab has a unique 'id' field. These objects will be passed to renderTab.
   renderTab: PropTypes.func.isRequired,
   currTabIndex: PropTypes.number,  // optional. If passed, TabView will be controlled from outside
   setTab: PropTypes.func,          // optional. If passed, TabView will be controlled from outside
@@ -857,14 +856,14 @@ SimpleContentBlock.propTypes = {
 };
 
 
-const SimpleLinkedBlock = ({en, he, url, classes, aclasses, children, onClick}) => (
-        <div className={classes} onClick={onClick}>
-            <a href={url} className={aclasses}>
-              <InterfaceText text={{en, he}}/>
-            </a>
-            {children}
-        </div>
-    );
+const SimpleLinkedBlock = ({en, he, url, classes, aclasses, children, onClick, openInNewTab}) => (
+  <div className={classes} onClick={onClick}>
+    <a href={url} className={aclasses} target={openInNewTab ? "_blank" : "_self"}>
+      <InterfaceText text={{en, he}}/>
+    </a>
+    {children}
+  </div>
+);
 SimpleLinkedBlock.propTypes = {
     en: PropTypes.string,
     he: PropTypes.string,

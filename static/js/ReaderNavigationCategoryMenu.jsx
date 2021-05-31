@@ -1,7 +1,8 @@
-import React  from 'react';
+import React, { useContext }  from 'react';
 import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Sefaria  from './sefaria/sefaria';
+import { ContentLanguageContext } from './context';
 import { NavSidebar } from './NavSidebar';
 import Footer  from './Footer';
 import ComparePanelHeader from './ComparePanelHeader';
@@ -17,7 +18,7 @@ import {
 
 // Navigation Menu for a single category of texts (e.g., "Tanakh", "Bavli")
 const ReaderNavigationCategoryMenu = ({category, categories, setCategories, toggleLanguage,
-  openDisplaySettings, onCompareBack, openTextTOC, multiPanel, initialWidth, compare, contentLang}) => {
+  openDisplaySettings, onCompareBack, openTextTOC, multiPanel, initialWidth, compare }) => {
 
   // Show Talmud with Toggles
   const cats  = categories[0] === "Talmud" && categories.length === 1 ?
@@ -99,7 +100,6 @@ const ReaderNavigationCategoryMenu = ({category, categories, setCategories, togg
               setCategories={setCategories}
               openTextTOC={openTextTOC}
               initialWidth={initialWidth}
-              contentLang={contentLang}
               nestLevel={nestLevel} />
           </div>
           {!compare ? <NavSidebar modules={sidebarModules} /> : null}
@@ -115,20 +115,18 @@ ReaderNavigationCategoryMenu.propTypes = {
   setCategories:       PropTypes.func.isRequired,
   toggleLanguage:      PropTypes.func.isRequired,
   openDisplaySettings: PropTypes.func.isRequired,
-  //onCompareBack:       PropTypes.func.isRequired,
   initialWidth:        PropTypes.number,
   compare:             PropTypes.bool,
-  contentLang:         PropTypes.string,
 };
 
 
 // Inner content of Category menu (just category title and boxes of texts/subcategories)
-const ReaderNavigationCategoryMenuContents = ({category, contents, categories, contentLang, 
+const ReaderNavigationCategoryMenuContents = ({category, contents, categories, 
   setCategories, openTextTOC, initialWidth, nestLevel}) =>  {
   const content = [];
   const cats = categories || [];
-  const showInHebrew = contentLang === "hebrew" || Sefaria.interfaceLang === "hebrew";
-  const sortedContents = showInHebrew ? hebrewContentSort(contents) : contents;
+  const contentLang = useContext(ContentLanguageContext).language;
+  const sortedContents = contentLang === "hebrew" ? hebrewContentSort(contents) : contents;
 
   for (const item of sortedContents) {
 
@@ -154,7 +152,6 @@ const ReaderNavigationCategoryMenuContents = ({category, contents, categories, c
               item={chItem}
               categories={categories}
               onClick={onClick}
-              showInHebrew={showInHebrew}
               nestLevel={nestLevel} />
           );
 
@@ -163,7 +160,6 @@ const ReaderNavigationCategoryMenuContents = ({category, contents, categories, c
           content.push((
             <MenuItem
               href        = {"/texts/" + newCats.join("/")}
-              incomplete  = {showInHebrew ? !item.heComplete : !item.enComplete}
               onClick     = {(e) => {e.preventDefault(); setCategories(newCats)}}
               cats        = {newCats}
               title       = {item.category}
@@ -201,8 +197,7 @@ const ReaderNavigationCategoryMenuContents = ({category, contents, categories, c
               setCategories = {setCategories}
               openTextTOC   = {openTextTOC}
               initialWidth  = {initialWidth}
-              nestLevel     = {nestLevel + 1}
-              contentLang   = {contentLang} />
+              nestLevel     = {nestLevel + 1} />
           </div>
         );
       }
@@ -236,7 +231,6 @@ const ReaderNavigationCategoryMenuContents = ({category, contents, categories, c
             item={item}
             categories={categories}
             onClick={onClick}
-            showInHebrew={showInHebrew}
             nestLevel={nestLevel} />
         ));
     }
@@ -267,7 +261,6 @@ ReaderNavigationCategoryMenuContents.propTypes = {
   category:     PropTypes.string.isRequired,
   contents:     PropTypes.array.isRequired,
   categories:   PropTypes.array.isRequired,
-  contentLang:  PropTypes.string,
   initialWidth: PropTypes.number,
   nestLevel:    PropTypes.number
 };
@@ -276,9 +269,9 @@ ReaderNavigationCategoryMenuContents.defaultProps = {
 };
 
 
-const MenuItem = ({href, nestLevel, title, heTitle, cats, onClick, incomplete, enDesc, heDesc}) => {
+const MenuItem = ({href, nestLevel, title, heTitle, cats, onClick, enDesc, heDesc}) => {
   const keytype  = !!cats ? "cat" : "text";
-  const classes = classNames({ navBlockTitle: 1, incomplete: incomplete});
+  const classes = classNames({ navBlockTitle: 1 });
   return (
     <div className="navBlock">
       <a href={href}
@@ -297,7 +290,7 @@ const MenuItem = ({href, nestLevel, title, heTitle, cats, onClick, incomplete, e
 };
 
 
-const TextMenuItem = ({item, categories, showInHebrew, nestLevel, onClick}) => {
+const TextMenuItem = ({item, categories, nestLevel, onClick}) => {
   const [title, heTitle] = getRenderedTextTitleString(item.title, item.heTitle, categories);
   const lastPlace = Sefaria.lastPlaceForText(item.title);
   const ref =  lastPlace ? lastPlace.ref : item.firstSection ? item.firstSection : item.title;
@@ -305,7 +298,6 @@ const TextMenuItem = ({item, categories, showInHebrew, nestLevel, onClick}) => {
     <MenuItem
       href        = {"/" + Sefaria.normRef(ref)}
       onClick     = {onClick}
-      incomplete  = {showInHebrew ? !item.heComplete : !item.enComplete}
       nestLevel   = {nestLevel}
       title       = {title}
       heTitle     = {heTitle}

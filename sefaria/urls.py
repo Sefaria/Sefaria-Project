@@ -47,9 +47,9 @@ urlpatterns = [
 
 # People Pages
 urlpatterns += [
-    url(r'^person/(?P<name>.+)$', reader_views.person_page),
-    url(r'^people/Talmud/?$', reader_views.talmud_person_index),
-    url(r'^people/?$', reader_views.person_index),
+    url(r'^person/(?P<name>.+)$', reader_views.person_page_redirect),
+    url(r'^people/Talmud/?$', reader_views.talmud_person_index_redirect),
+    url(r'^people/?$', reader_views.person_index_redirect),
 ]
 
 # Visualizations / Link Explorer
@@ -242,6 +242,7 @@ urlpatterns += [
     url(r'^api/topics$', reader_views.topics_list_api),
     url(r'^api/topics-graph/(?P<topic>.+)$', reader_views.topic_graph_api),
     url(r'^api/ref-topic-links/(?P<tref>.+)$', reader_views.topic_ref_api),
+    url(r'^api/v2/topics/(?P<topic>.+)$', reader_views.topics_api, {'v2': True}),
     url(r'^api/topics/(?P<topic>.+)$', reader_views.topics_api),
     url(r'^api/bulktopics$', reader_views.bulk_topic_api),
     url(r'^api/recommend/topics(/(?P<ref_list>.+))?', reader_views.recommend_topics_api),

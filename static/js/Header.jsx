@@ -139,8 +139,9 @@ class SearchBar extends Component {
     this._searchOverridePost = '"';
     this._type_icon_map = {
       "Collection": "collection.svg",
-      "Person": "iconmonstr-pen-17.svg",
+      "AuthorTopic": "iconmonstr-pen-17.svg",
       "TocCategory": "iconmonstr-view-6.svg",
+      "PersonTopic": "iconmonstr-hashtag-1.svg",
       "Topic": "iconmonstr-hashtag-1.svg",
       "ref": "iconmonstr-book-15.svg",
       "search": "iconmonstr-magnifier-2.svg",
@@ -271,13 +272,11 @@ class SearchBar extends Component {
     this.props.onNavigate && this.props.onNavigate();
   }
   getURLForObject(type, key) {
-    if (type === "Person") {
-      return `/person/${key}`;
-    } else if (type === "Collection") {
+    if (type === "Collection") {
       return `/collections/${key}`;
     } else if (type === "TocCategory") {
       return `/texts/${key.join('/')}`;
-    } else if (type === "Topic") {
+    } else if (type in {"Topic": 1, "PersonTopic": 1, "AuthorTopic": 1}) {
       return `/topics/${key}`;
     } else if (type === "ref") {
       return `/${key.replace(/ /g, '_')}`;

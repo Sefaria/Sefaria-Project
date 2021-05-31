@@ -15,7 +15,7 @@ import structlog
 logger = structlog.get_logger(__name__)
 
 
-def get_topic(topic, with_links, annotate_links, with_refs, group_related, annotate_time_period, ref_link_type_filters):
+def get_topic(v2, topic, with_links, annotate_links, with_refs, group_related, annotate_time_period, ref_link_type_filters, with_indexes):
     topic_obj = Topic.init(topic)
     response = topic_obj.contents(annotate_time_period=annotate_time_period)
     response['primaryTitle'] = {
@@ -32,74 +32,28 @@ def get_topic(topic, with_links, annotate_links, with_refs, group_related, annot
         # can load faster by querying `topic_links` query just once
         all_links = topic_obj.link_set(_class=None)
         intra_links = [l.contents() for l in all_links if isinstance(l, IntraTopicLink)]
-        response['refs'] = [l.contents() for l in all_links if isinstance(l, RefTopicLink) and (len(ref_link_type_filters) == 0 or l.linkType in ref_link_type_filters)]
+        ref_links = [l.contents() for l in all_links if isinstance(l, RefTopicLink) and (len(ref_link_type_filters) == 0 or l.linkType in ref_link_type_filters)]
     else:
         if with_links:
             intra_links = [l.contents() for l in topic_obj.link_set(_class='intraTopic')]
         if with_refs:
             query_kwargs = {"linkType": {"$in": list(ref_link_type_filters)}} if len(ref_link_type_filters) > 0 else None
-            response['refs'] = [l.contents() for l in topic_obj.link_set(_class='refTopic', query_kwargs=query_kwargs)]
+            ref_links = [l.contents() for l in topic_obj.link_set(_class='refTopic', query_kwargs=query_kwargs)]
     if with_links:
-        response['links'] = {}
-        link_dups_by_type = defaultdict(set)  # duplicates can crop up when group_related is true
-        if len(intra_links) > 0:
-            link_topic_dict = {other_topic.slug: other_topic for other_topic in TopicSet({"$or": [{"slug": link['topic']} for link in intra_links]})}
-        else:
-            link_topic_dict = {}
-        for link in intra_links:
-            is_inverse = link['isInverse']
-            link_type = library.get_topic_link_type(link['linkType'])
-            if group_related and link_type.get('groupRelated', is_inverse, False):
-                link_type = library.get_topic_link_type(TopicLinkType.related_type)
-            link_type_slug = link_type.get('slug', is_inverse)
-            if link['topic'] in link_dups_by_type[link_type_slug]:
-                continue
-            link_dups_by_type[link_type_slug].add(link['topic'])
-
-            del link['linkType']
-            del link['class']
-            if annotate_links:
-                link = annotate_topic_link(link, link_topic_dict)
-                if link is None:
-                    continue
-            if link_type_slug in response['links']:
-                response['links'][link_type_slug]['links'] += [link]
-            else:
-                response['links'][link_type_slug] = {
-                    'links': [link],
-                    'title': link_type.get('displayName', is_inverse),
-                    'shouldDisplay': link_type.get('shouldDisplay', is_inverse, False)
-                }
-                if link_type.get('pluralDisplayName', is_inverse, False):
-                    response['links'][link_type_slug]['pluralTitle'] = link_type.get('pluralDisplayName', is_inverse)
+        response['links'] = group_links_by_type('intraTopic', intra_links, annotate_links, group_related)
     if with_refs:
-        # sort by relevance and group similar refs
-        response['refs'].sort(key=cmp_to_key(sort_refs_by_relevance))
-        subset_ref_map = defaultdict(list)
-        new_refs = []
-        for link in response['refs']:
-            del link['class']
-            del link['topic']
-            temp_subset_refs = subset_ref_map.keys() & set(link.get('expandedRefs', []))
-            for seg_ref in temp_subset_refs:
-                for index in subset_ref_map[seg_ref]:
-                    new_refs[index]['similarRefs'] += [link]
-                    if link.get('dataSource', None):
-                        data_source = library.get_topic_data_source(link['dataSource'])
-                        new_refs[index]['dataSources'][link['dataSource']] = data_source.displayName
-                        del link['dataSource']
-            if len(temp_subset_refs) == 0:
-                link['similarRefs'] = []
-                link['dataSources'] = {}
-                if link.get('dataSource', None):
-                    data_source = library.get_topic_data_source(link['dataSource'])
-                    link['dataSources'][link['dataSource']] = data_source.displayName
-                    del link['dataSource']
-                new_refs += [link]
-                for seg_ref in link.get('expandedRefs', []):
-                    subset_ref_map[seg_ref] += [len(new_refs) - 1]
+        ref_links = sort_and_group_similar_refs(ref_links)
+        if v2:
+            ref_links = group_links_by_type('refTopic', ref_links, False, False)
+        response['refs'] = ref_links
+    if with_indexes and isinstance(topic_obj, AuthorTopic):
+        response['indexes'] = [
+            {
+                "text": text_dict,
+                "url": url
+            } for (url, text_dict) in topic_obj.get_aggregated_urls_for_authors_indexes()
+        ]
 
-        response['refs'] = new_refs
     if getattr(topic_obj, 'isAmbiguous', False):
         possibility_links = topic_obj.link_set(_class="intraTopic", query_kwargs={"linkType": TopicLinkType.possibility_type})
         possibilities = []
@@ -110,6 +64,74 @@ def get_topic(topic, with_links, annotate_links, with_refs, group_related, annot
             possibilities += [possible_topic.contents(annotate_time_period=annotate_time_period)]
         response['possibilities'] = possibilities
     return response
+
+
+def group_links_by_type(link_class, links, annotate_links, group_related):
+    link_dups_by_type = defaultdict(set)  # duplicates can crop up when group_related is true
+    grouped_links = {}
+    agg_field = 'links' if link_class == 'intraTopic' else 'refs'
+
+    if link_class == 'intraTopic' and len(links) > 0 and annotate_links:
+        link_topic_dict = {other_topic.slug: other_topic for other_topic in TopicSet({"$or": [{"slug": link['topic']} for link in links]})}
+    else:
+        link_topic_dict = {}
+    for link in links:
+        is_inverse = link.get('isInverse', False)
+        link_type = library.get_topic_link_type(link['linkType'])
+        if group_related and link_type.get('groupRelated', is_inverse, False):
+            link_type = library.get_topic_link_type(TopicLinkType.related_type)
+        link_type_slug = link_type.get('slug', is_inverse)
+
+        if link_class == 'intraTopic':
+            if link['topic'] in link_dups_by_type[link_type_slug]:
+                continue
+            link_dups_by_type[link_type_slug].add(link['topic'])
+            if annotate_links:
+                link = annotate_topic_link(link, link_topic_dict)
+                if link is None:
+                    continue
+
+        del link['linkType']
+        del link['class']
+
+        if link_type_slug in grouped_links:
+            grouped_links[link_type_slug][agg_field] += [link]
+        else:
+            grouped_links[link_type_slug] = {
+                agg_field: [link],
+                'title': link_type.get('displayName', is_inverse),
+                'shouldDisplay': link_type.get('shouldDisplay', is_inverse, False)
+            }
+            if link_type.get('pluralDisplayName', is_inverse, False):
+                grouped_links[link_type_slug]['pluralTitle'] = link_type.get('pluralDisplayName', is_inverse)
+    return grouped_links
+
+
+def sort_and_group_similar_refs(ref_links):
+    ref_links.sort(key=cmp_to_key(sort_refs_by_relevance))
+    subset_ref_map = defaultdict(list)
+    new_ref_links = []
+    for link in ref_links:
+        del link['topic']
+        temp_subset_refs = subset_ref_map.keys() & set(link.get('expandedRefs', []))
+        for seg_ref in temp_subset_refs:
+            for index in subset_ref_map[seg_ref]:
+                new_ref_links[index]['similarRefs'] += [link]
+                if link.get('dataSource', None):
+                    data_source = library.get_topic_data_source(link['dataSource'])
+                    new_ref_links[index]['dataSources'][link['dataSource']] = data_source.displayName
+                    del link['dataSource']
+        if len(temp_subset_refs) == 0:
+            link['similarRefs'] = []
+            link['dataSources'] = {}
+            if link.get('dataSource', None):
+                data_source = library.get_topic_data_source(link['dataSource'])
+                link['dataSources'][link['dataSource']] = data_source.displayName
+                del link['dataSource']
+            new_ref_links += [link]
+            for seg_ref in link.get('expandedRefs', []):
+                subset_ref_map[seg_ref] += [len(new_ref_links) - 1]
+    return new_ref_links
 
 
 def annotate_topic_link(link: dict, link_topic_dict: dict) -> Union[dict, None]:
@@ -560,6 +582,7 @@ def calculate_mean_tfidf(ref_topic_links):
 
 def calculate_pagerank_scores(ref_topic_map):
     from sefaria.pagesheetrank import pagerank_rank_ref_list
+    from statistics import mean
     pr_map = {}
     pr_seg_map = {}  # keys are (topic, seg_tref). used for sheet relevance
     for topic, ref_list in tqdm(ref_topic_map.items(), desc='calculate pr'):
@@ -569,12 +592,12 @@ def calculate_pagerank_scores(ref_topic_map):
             if oref is None:
                 continue
             oref_list += [oref]
-
-        oref_pr_list = pagerank_rank_ref_list(oref_list, normalize=True)
+        seg_ref_map = {r.normal(): [rr.normal() for rr in r.all_segment_refs()] for r in oref_list}
+        oref_pr_list = pagerank_rank_ref_list(oref_list, normalize=True, seg_ref_map=seg_ref_map)
         for oref, pr in oref_pr_list:
             pr_map[(topic, oref.normal())] = pr
-            for seg_oref in oref.all_segment_refs():
-                pr_seg_map[(topic, seg_oref.normal())] = pr
+            for seg_tref in seg_ref_map[oref.normal()]:
+                pr_seg_map[(topic, seg_tref)] = pr
     return pr_map, pr_seg_map
 
 
@@ -690,7 +713,7 @@ def update_ref_topic_link_orders(sheet_source_links, sheet_topic_links):
                     'availableLangs': langs_available[key],
                     'comp_date': comp_date_map[key],
                     'order_id': order_id_map[key],
-                    'pr': pr_map[key]
+                    'pr': pr_map[key],
                 })
                 setattr(l, 'order', order)
             except KeyError:
@@ -812,8 +835,39 @@ def get_ref_safely(tref):
         print("AssertionError", tref)
     return None
 
+def calculate_popular_writings_for_authors(top_n, min_pr):
+    RefTopicLinkSet({"generatedBy": "calculate_popular_writings_for_authors"}).delete()
+    rds = RefDataSet()
+    by_author = defaultdict(list)
+    for rd in tqdm(rds, total=rds.count()):
+        try:
+            tref = rd.ref.replace('&amp;', '&')  # TODO this is a stopgap to prevent certain refs from failing
+            oref = Ref(tref)
+        except InputError as e:
+            continue
+        if getattr(oref.index, 'authors', None) is None: continue
+        for author in oref.index.authors:
+            by_author[author] += [rd.contents()]    
+    for author, rd_list in by_author.items():
+        rd_list = list(filter(lambda x: x['pagesheetrank'] > min_pr, rd_list))
+        if len(rd_list) == 0: continue
+        top_rd_indexes = sorted(range(len(rd_list)), key=lambda i: rd_list[i]['pagesheetrank'])[-top_n:]
+        top_rds = [rd_list[i] for i in top_rd_indexes]
+        for rd in top_rds:
+            RefTopicLink({
+                "toTopic": author,
+                "ref": rd['ref'],
+                "linkType": "popular-writing-of",
+                "dataSource": "sefaria",
+                "generatedBy": "calculate_popular_writings_for_authors",
+                "order": {"custom_order": rd['pagesheetrank']}
+            }).save()
+
 
 def recalculate_secondary_topic_data():
+    # run before everything else because this creates new links
+    calculate_popular_writings_for_authors(100, 300)
+
     sheet_source_links, sheet_related_links, sheet_topic_links = generate_all_topic_links_from_sheets()
     related_links = update_intra_topic_link_orders(sheet_related_links)
     all_ref_links = update_ref_topic_link_orders(sheet_source_links, sheet_topic_links)

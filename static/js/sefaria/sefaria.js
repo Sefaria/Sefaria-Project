@@ -2012,29 +2012,56 @@ _media: {},
     });
   },
   _topics: {},
-  getTopic: function(topic, {with_links=true, annotate_links=true, with_refs=true, group_related=true, annotate_time_period=false, ref_link_type_filters=['about']}={}) {
-      return this._cachedApiPromise({
-          url:   `${this.apiHost}/api/topics/${topic}?with_links=${0+with_links}&annotate_links=${0+annotate_links}&with_refs=${0+with_refs}&group_related=${0+group_related}&annotate_time_period=${0+annotate_time_period}&ref_link_type_filters=${ref_link_type_filters.join('|')}`,
-          key:   topic,
-          store: this._topics,
-          processor: this.processTopicsData,
+  _CAT_REF_LINK_TYPE_FILTER_MAP: {
+    'authors': ['popular-writing-of'],
+  },
+  getTopic: function(slug, {with_links=true, annotate_links=true, with_refs=true, group_related=true, annotate_time_period=false, ref_link_type_filters=['about', 'popular-writing-of'], with_indexes=true}={}) {
+    const cat = Sefaria.topicTocCategory(slug);
+    // overwrite ref_link_type_filters with predefined list. currently used to hide "Sources" and "Sheets" on author pages.
+    if (!!cat && !!Sefaria._CAT_REF_LINK_TYPE_FILTER_MAP[cat.slug]) {
+      ref_link_type_filters = Sefaria._CAT_REF_LINK_TYPE_FILTER_MAP[cat.slug];
+    }
+    const url = `${this.apiHost}/api/v2/topics/${slug}?with_links=${0+with_links}&annotate_links=${0+annotate_links}&with_refs=${0+with_refs}&group_related=${0+group_related}&annotate_time_period=${0+annotate_time_period}&ref_link_type_filters=${ref_link_type_filters.join('|')}&with_indexes=${0+with_indexes}`;
+    return this._cachedApiPromise({
+      url,
+      key: url,
+      store: this._topics,
+      processor: this.processTopicsData,
     });
   },
   processTopicsData: function(data) {
     if (!data) { return null; }
     if (!data.refs) { return data; }
-    // Split  `refs` in `sourceRefs` and `sheetRefs`
-    let refMap = {};
-    for (let refObj of data.refs.filter(s => !s.is_sheet)) {
-      refMap[refObj.ref] = {ref: refObj.ref, order: refObj.order, dataSources: refObj.dataSources};
+    const tabs = {};
+    for (let [linkTypeSlug, linkTypeObj] of Object.entries(data.refs)) {
+      for (let refObj of linkTypeObj.refs) {
+        let tabKey = linkTypeSlug;
+        if (tabKey == 'about') {
+          tabKey = refObj.is_sheet ? 'sheets' : 'sources';
+        }
+        if (!tabs[tabKey]) {
+          let { title } = linkTypeObj;
+          if (tabKey == 'sheets') {
+            title = {en: 'Sheets', he: Sefaria._('Sheets')};
+          } 
+          if (tabKey == 'sources') {
+            title = {en: 'Sources', he: Sefaria._('Sources')};
+          }
+          tabs[tabKey] = {
+            refMap: {},
+            title,
+            shouldDisplay: linkTypeObj.shouldDisplay,
+          };
+        }
+        const ref = refObj.is_sheet ? refObj.ref.replace('Sheet ', '') : refObj.ref;
+        tabs[tabKey].refMap[refObj.ref] = {ref, order: refObj.order, dataSources: refObj.dataSources};
+      }
     }
-    data.textRefs = Object.values(refMap);
-    let sheetMap = {};
-    for (let refObj of data.refs.filter(s => s.is_sheet)) {
-      const sid = refObj.ref.replace('Sheet ', '');
-      sheetMap[sid] = {sid, order: refObj.order};
+    for (let tabObj of Object.values(tabs)) {
+      tabObj.refs = Object.values(tabObj.refMap);
+      delete tabObj.refMap;
     }
-    data.sheetRefs = Object.values(sheetMap);
+    data.tabs = tabs;
     return data;
   },
   getTopicFromCache: function(topic) {

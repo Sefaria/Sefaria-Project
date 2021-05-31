@@ -77,6 +77,7 @@ class LexiconBox extends Component {
       with_refs: false,
       group_related: false,
       annotate_time_period: true,
+      with_indexes: false,
     }).then(data => {
       this.setState({
         loaded: true,

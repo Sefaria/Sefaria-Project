@@ -103,15 +103,18 @@ class ReaderPanel extends Component {
     this.setState({"error": message})
   }
   getContentLanguageOverride(originalLanguage, mode, menuOpen) {
-    //Determines the actual content language used inside this ReaderPanel.
-    //Because it's called in the constructor, assume state isnt necessarily defined and pass variables mode and menuOpen manually
+    // Determines the actual content language used inside this ReaderPanel.
+    // Because it's called in the constructor, assume state isnt necessarily defined and pass 
+    // variables mode and menuOpen manually
     let contentLangOverride = originalLanguage;
-    if (mode === "Connections"){
+    if (["topics", "story_editor" ].includes(menuOpen)) {
+      // Always bilingual for English interface, always Hebrew for Hebrew interface
+      contentLangOverride = (Sefaria.interfaceLang === "english") ? "bilingual" : "hebrew";
+
+    } else if (mode === "Connections" || !!menuOpen){
+      // Always Hebrew for Hebrew interface, treat bilingual as English for English interface
       contentLangOverride = (Sefaria.interfaceLang === "hebrew") ? "hebrew" : ((originalLanguage === "bilingual") ? "english" : originalLanguage);
-    } else if (["topics", "community", "story_editor" ].includes(menuOpen)) {
-      contentLangOverride = (["english", "bilingual"].includes(Sefaria.interfaceLang)) ? "bilingual" : "hebrew";
-    } else if (["text toc", "book toc"].includes(menuOpen)) {
-      contentLangOverride = (Sefaria.interfaceLang === "hebrew") ? "hebrew" : ((originalLanguage === "bilingual") ? "english" : originalLanguage);
+
     }
     return contentLangOverride;
   }
