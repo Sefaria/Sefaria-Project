@@ -459,7 +459,10 @@
             const r = XRegExp(ns.regexes[book],"xgm");
             // find the references and push them into ns.matches
             for (let i = 0; i < ns.elems.length; i++) {
+                // portions are tricky. they represent portions of a regex match. it can happen that certain criteria match only the first portion and not later portions. these objects keep track of earlier portion data.
                 const portionHasMatched = {};
+                const portionExcludedFromLinking = {};
+                const portionExcludedFromTracking = {};
                 findAndReplaceDOMText(ns.elems[i], {
                     preset: 'prose',
                     find: r,
@@ -482,14 +485,17 @@
                         else {
                             // Walk up node tree to see if this context should be excluded from linking or tracking
                             let p = portion.node;
-                            let excludeFromLinking = false;
-                            let excludeFromTracking = false;
+                            // it is possible this node doesn't fit criteria to be excluded, but an earlier portion did.
+                            let excludeFromLinking = portionExcludedFromLinking[matchKey];
+                            let excludeFromTracking = portionExcludedFromTracking[matchKey];
                             while (p) {
                                 if (p.nodeName === 'A' || (ns.excludeFromLinking && p.matches && p.matches(ns.excludeFromLinking))) {
                                     excludeFromLinking = true;
+                                    portionExcludedFromLinking[matchKey] = true;
                                 }
                                 if (ns.excludeFromTracking && p.matches && p.matches(ns.excludeFromTracking)) {
                                     excludeFromTracking = true;
+                                    portionExcludedFromTracking[matchKey] = true;
                                 }
                                 if (excludeFromTracking && excludeFromLinking) {
                                     return portion.text;
