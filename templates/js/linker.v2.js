@@ -300,7 +300,7 @@
             source.he = [].concat.apply([], source.he);
         }
 
-        for (i = 0; i < source.en.length; i++) {
+        for (i = 0; i < Math.max(source.en.length, source.he.length); i++) {
             var enBox = document.createElement('div');
             var heBox = document.createElement('div');
             enBox.innerHTML = source.en[i];
@@ -308,8 +308,8 @@
             enBox.className = "en" + (!heBox.innerHTML ? " enOnly" : "");
             heBox.className = "he" + (!enBox.innerHTML ? " heOnly" : "");
             heBox.setAttribute("dir", "rtl");
-            textBox.appendChild(heBox);
-            textBox.appendChild(enBox);
+            if (heBox.innerHTML) { textBox.appendChild(heBox); }
+            if (enBox.innerHTML) { textBox.appendChild(enBox);}
         }
 
         enTitle.textContent = source.ref;
