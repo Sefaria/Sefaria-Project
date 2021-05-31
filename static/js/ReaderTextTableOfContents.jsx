@@ -36,7 +36,6 @@ class ReaderTextTableOfContents extends Component {
       currentVersion: null,
       currObjectVersions: {en: null, he: null},
       indexDetails: null,
-      versionsDropDownOpen: false,
       dlVersionTitle: null,
       dlVersionLanguage: null,
       dlVersionFormat: null,
@@ -186,9 +185,6 @@ class ReaderTextTableOfContents extends Component {
     }
     let currObjectVersions = this.state.currObjectVersions;
 
-    let currentVersionElement = null;
-    let defaultVersionString = "Default Version"; // TODO. this var is currently unused. consider removing
-    let defaultVersionObject = null; // TODO also unused
     let versionSection = null;
     let downloadSection = null;
 
@@ -235,17 +231,6 @@ class ReaderTextTableOfContents extends Component {
               </span> }
             </div>
           </h2>
-          { this.state.versionsDropDownOpen ?
-            <VersionsList
-              versionsList={versions}
-              currObjectVersions={currObjectVersions}
-              openVersion={this.openVersion}
-              title={this.props.title}
-              currentRef={this.props.currentRef}
-              getLicenseMap={this.props.getLicenseMap}
-              viewExtendedNotes={this.props.viewExtendedNotes}
-            /> : null
-          }
         </section>
       );
     }
