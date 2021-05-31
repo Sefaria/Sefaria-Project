@@ -272,7 +272,7 @@ class SideBarEntries(SefariaTest):
             self.click_sidebar_entry(section)
             self.click_resources_on_sidebar()
 
-        self.click_sidebar_button("Other Text")
+        self.click_sidebar_button("Compare Text")
         assert self.is_sidebar_browse_title_displayed()
         assert self.is_sidebar_calendar_title_displayed()
         self.driver.find_element_by_css_selector('.readerNavMenuMenuButton').click()
@@ -283,7 +283,7 @@ class SideBarEntries(SefariaTest):
         self.click_sidebar_button("Notes")
         self.click_resources_on_sidebar()
 
-        self.click_sidebar_button("About")
+        self.click_sidebar_button("About this Text")
         msg = self.driver.find_element_by_css_selector('#panel-1 > div.readerContent > div > div > div > section > div.detailsSection > h2 > span.int-en').get_attribute('innerHTML')
         assert msg == 'About This Text'
         self.click_resources_on_sidebar()
@@ -305,9 +305,6 @@ class SideBarEntries(SefariaTest):
         self.click_resources_on_sidebar()
 
         self.click_sidebar_button("Web Pages")
-        self.click_resources_on_sidebar()
-
-        self.click_sidebar_button("Tools")
         self.click_resources_on_sidebar()
 
         self.click_sidebar_button("Share")
@@ -334,7 +331,7 @@ class SideBarEntries(SefariaTest):
         # self.click_add_translation_on_sidebar()   # Time out. Is this a bug?
         # self.back()
 
-        self.click_sidebar_button("Tools")
+        self.click_sidebar_button("Advanced")
         self.click_sidebar_button("Add Connection")
         time.sleep(1)
         assert self.is_sidebar_browse_title_displayed()
