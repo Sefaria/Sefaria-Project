@@ -173,6 +173,11 @@ class WebPage(abst.AbstractMongoRecord):
             r"chiefrabbi\.org\/(dvar-torah|media_type)\/?",  # archives
             r"justice-in-the-city\.com\/?$",
             r"justice-in-the-city\.com\/(category|page)\/",
+            r"aju\.edu\/(faculty|search|taxonomy)\/",
+            r"aju\.edu\/miller-intro-judaism-program\/learning-portal\/glossary\/",
+            r"aju\.edu\/ziegler-school-rabbinic-studies\/our-torah\/back-issues\/\d+$"
+            r"aju\.edu\/ziegler-school-rabbinic-studies\/torah-resource-center\/"
+            r"aju\.edu\/ziegler-school-rabbinic-studies\/blogs\/?$"
         ]
         return "({})".format("|".join(bad_urls))
 
@@ -875,5 +880,9 @@ sites_data = [
     {
         "name": "Justice in the City",
         "domains": ["justice-in-the-city.com"],
+    },
+    {
+        "name": "American Jewish University",
+        "domains": ["aju.edu"],
     }
 ]
