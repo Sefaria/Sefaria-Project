@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {
     SimpleInterfaceBlock,
     NewsletterSignUpForm,
@@ -7,6 +7,8 @@ import {
 } from './Misc';
 import palette from './sefaria/palette';
 import classNames from 'classnames';
+import Cookies from 'js-cookie';
+
 
 
 /*  Templates:
@@ -1235,56 +1237,97 @@ const EnBlock = ({children, padded}) => <div className={"int-en" + (padded ? " s
 const GreyBox = ({children, light}) => <div className={light ? "lightgreyBackground" : "greyBackground"}>{children}</div>;
 
 const H2Block = ({en, he, classes}) =>
-    <div className="staticPageBlockInner">
-        <h2 className="staticPageH2">
-            <SimpleInterfaceBlock en={en} he={he} />
-        </h2>
-    </div>;
+  <div className="staticPageBlockInner">
+    <h2 className="staticPageH2">
+        <SimpleInterfaceBlock en={en} he={he} />
+    </h2>
+  </div>;
 
-
+const EducatorSubscribeButton = () => {
+  var email = Sefaria._email;
+  var lists = Sefaria.interfaceLang == "hebrew" ?
+              "Announcements_General_Hebrew|Announcements_Edu_Hebrew"
+              : "Announcements_General|Announcements_Edu"
+  const [message, setMessage] = useState("");
+  const [enActionText, setEnActionText] = useState("Get the Newsletter");
+  const [heActionText, setHeActionText] = useState("הירשמו לקבלת הניוזלטר")
+  var actionURL="https://sefaria.nationbuilder.com/subscribe"
+  const handleClick = () => {
+    if (email.length === 0) {
+      setEnActionText("Sign up to get updates");
+      setHeActionText("הירשמו לקבלת עדכונים");
+    }
+    else if (Sefaria.util.isValidEmailAddress(email)) {
+      setMessage("<i>Subscribing...</i>");
+      const request = new Request(
+          "/api/subscribe/" + email,
+          {headers: {'X-CSRFToken': Cookies.get('csrftoken')}}
+      );
+      fetch(request, {
+        method: 'POST',
+        mode: 'same-origin',
+        credentials: 'same-origin',
+        body: {"lists": lists},
+      }).then(response => {
+        if (!response.ok) {
+          response.text().then(resp_text => {
+            setMessage(resp_text)
+          });
+        } else {
+          response.json().then(resp_json => {
+            setMessage(resp_json["error"])
+          });
+        }
+      }).catch(error => {
+        setMessage(error.message);
+      });
+    }
+  }
+  return <span>
+    <div className="simpleButtonWrapper wide">
+    <div onClick={handleClick} className={classNames({button:1, flexContainer:1, "int-en":1, white: true, tall: false, rounded:true})} target="_self">
+        <span className="int-en">{enActionText}<img src="/static/img/circled-arrow-right.svg"/></span>
+    </div>
+    <div onClick={handleClick} className={classNames({button:1, flexContainer:1, "int-he":1, white: true, tall: false, rounded:true})}>
+        <span className="int-he">{heActionText}<img src="/static/img/circled-arrow-right.svg"/></span>
+    </div>
+    </div>
+    <div>{message}</div>
+  </span>
+}
 
 const HeaderForEducatorsPage = () => {
-    var enTitle="Teach with Sefaria"
-    var enText="Discover the power of digital texts and tools in your classroom. Explore Sefaria’s many resources to enrich teaching and learning in your community."
-    var enImg="/static/img/mobile-landing-page/headerphone.png"
-    var enImg2="/static/img/mobile-landing-page/tablet.png"
-    var heImg="/static/img/mobile-landing-page/headerphoneHEB.png"
-    var heImg2="/static/img/mobile-landing-page/tabletHEB.png"
-    var img1class="phoneImage"
-    var img2class="tabletImage"
-    var enImgAlt="Teach with Sefaria"
-    var heTitle="Teach with Sefaria"
-    var heText="Discover the power of digital texts and tools in your classroom. Explore Sefaria’s many resources to enrich teaching and learning in your community."
-    var heImgAlt="Teach with Sefaria"
-    var enActionText="Sign up for Educator Updates"
-    var heActionText="Sign up for Educator Updates"
-    var enActionURL="https://sefaria.nationbuilder.com/subscribe"
-    var heActionURL="https://sefaria.nationbuilder.com/subscribe"
-    return <div className="staticPageHeader">
-        <div className="staticPageBlockInner flexContainer">
-            <div className="staticPageHeaderTextBox">
-                <h1>
-                    <span className="int-en">{enTitle}</span>
-                    <span className="int-he">{heTitle}</span>
-                </h1>
-                <SimpleInterfaceBlock classes="staticPageHeaderText" he={heText} en={enText}/>
-                <div className="simpleButtonWrapper wide">
-                    <a href={enActionURL} className={classNames({button:1, flexContainer:1, "int-en":1, white: true, tall: false, rounded:true})} target="_self">
-                        <span className="int-en">{enActionText}<img src="/static/img/circled-arrow-right.svg"/></span>
-                    </a>
-                    <a href={heActionURL || enActionURL} className={classNames({button:1, flexContainer:1, "int-he":1, white: true, tall: false, rounded:true})}>
-                        <span className="int-he">{heActionText}<img src="/static/img/circled-arrow-right.svg"/></span>
-                    </a>
-                </div>
-            </div>
-            <div className="staticPageHeaderImg">
-                <span className="int-en"><img className={img1class} src={enImg} alt={enImgAlt}/></span>
-                <span className="int-en"><img className={img2class} src={enImg2} alt={enImgAlt}/></span>
-                <span className="int-he"><img className={img1class} src={heImg} alt={heImgAlt}/></span>
-                <span className="int-he"><img className={img2class} src={heImg2} alt={heImgAlt}/></span>
-            </div>
-        </div>
+  var enTitle="Teach with Sefaria"
+  var enText="Discover the power of digital texts and tools in your classroom. Explore Sefaria’s many resources to enrich teaching and learning in your community."
+  var enImg="/static/img/mobile-landing-page/headerphone.png"
+  var enImg2="/static/img/mobile-landing-page/tablet.png"
+  var heImg="/static/img/mobile-landing-page/headerphoneHEB.png"
+  var heImg2="/static/img/mobile-landing-page/tabletHEB.png"
+  var img1class="phoneImage"
+  var img2class="tabletImage"
+  var enImgAlt="Teach with Sefaria"
+  var heTitle="Teach with Sefaria"
+  var heText="Discover the power of digital texts and tools in your classroom. Explore Sefaria’s many resources to enrich teaching and learning in your community."
+  var heImgAlt="Teach with Sefaria"
+
+  return <div className="staticPageHeader">
+    <div className="staticPageBlockInner flexContainer">
+      <div className="staticPageHeaderTextBox">
+        <h1>
+          <span className="int-en">{enTitle}</span>
+          <span className="int-he">{heTitle}</span>
+        </h1>
+        <SimpleInterfaceBlock classes="staticPageHeaderText" he={heText} en={enText}/>
+        <EducatorSubscribeButton/>
+      </div>
+      <div className="staticPageHeaderImg">
+        <span className="int-en"><img className={img1class} src={enImg} alt={enImgAlt}/></span>
+        <span className="int-en"><img className={img2class} src={enImg2} alt={enImgAlt}/></span>
+        <span className="int-he"><img className={img1class} src={heImg} alt={heImgAlt}/></span>
+        <span className="int-he"><img className={img2class} src={heImg2} alt={heImgAlt}/></span>
+      </div>
     </div>
+  </div>
 };
 
 const Header = ({enTitle, heTitle, enText, heText, enImg, heImg, enImgAlt, heImgAlt, enActionURL, enActionText, heActionURL, heActionText}) => {

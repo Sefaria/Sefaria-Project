@@ -231,6 +231,8 @@ const Strings = {
     "Request translation" : "בקשה לתרגום",
     "Report a bug" : "דיווח על תקלה באתר",
     "Get help" : "עזרה",
+    "Get the Newsletter": "הירשמו לקבלת הניוזלטר",
+    "Sign up to get updates": "הירשמו לקבלת עדכונים",
     "Request a feature": "בקשה להוספת אפשרות באתר",
     "Give thanks": "תודה",
     "Other": "אחר",
