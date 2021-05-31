@@ -2002,7 +2002,7 @@ class AddressTalmud(AddressType):
     }
     amud_patterns = {
         "en": "[ABabᵃᵇ]",
-        "he": '''([.:]|[,\s]+(?:\u05e2(?:"|\u05f4|''))?[\u05d0\u05d1])'''
+        "he": '''([.:]|[,\s]+(?:\u05e2(?:"|\u05f4|''|\u05de\u05d5\u05d3\s))?([\u05d0\u05d1])['\u05f3\u2018\u2019]?)'''  # Either (1) period / colon (2) some separator + (optional: Ayin for amud) + [alef or bet] + (optional: single quote of any type (really only makes sense if there's no Ayin beforehand))
     }
 
     @classmethod
@@ -2128,14 +2128,8 @@ class AddressTalmud(AddressType):
         elif lang == "he":
             num = re.split("[.:,\s]", s)[0]
             daf = decode_hebrew_numeral(num) * 2
-            if s[-1] == ":" or (
-                    s[-1] == "\u05d1"  # bet
-                    and
-                    ((len(s) > 2 and s[-2] in ", ")  # simple bet
-                     or (len(s) > 4 and s[-3] == '\u05e2')  # ayin"bet
-                     or (len(s) > 5 and s[-4] == "\u05e2")  # ayin''bet
-                    )
-                    ):
+            amud_match = re.search(self.amud_patterns["he"] + "$", s)
+            if s[-1] == ':' or (amud_match is not None and amud_match.group(2) == 'ב'):
                 return daf  # amud B
             return daf - 1
 
