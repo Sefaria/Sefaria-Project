@@ -436,7 +436,6 @@ class ReaderTextTableOfContents extends Component {
                     currObjectVersions={currObjectVersions}
                     openVersion={this.openVersion}
                     currentRef={this.props.currentRef}
-                    getLicenseMap={this.props.getLicenseMap}
                     viewExtendedNotes={this.props.viewExtendedNotes}
                   />
                 </div>
@@ -463,7 +462,6 @@ ReaderTextTableOfContents.propTypes = {
   narrowPanel:           PropTypes.bool,
   close:                 PropTypes.func.isRequired,
   showBaseText:          PropTypes.func.isRequired,
-  getLicenseMap:         PropTypes.func.isRequired,
   selectVersion:         PropTypes.func,
   viewExtendedNotes:     PropTypes.func,
   onCompareBack:         PropTypes.func,
@@ -586,7 +584,6 @@ class TextTableOfContentsNavigation extends Component {
                     openVersion={this.props.openVersion}
                     title={this.props.title}
                     currentRef={this.props.currentRef}
-                    getLicenseMap={this.props.getLicenseMap}
                     viewExtendedNotes={this.props.viewExtendedNotes}
                   />;
 
@@ -986,8 +983,7 @@ class VersionsList extends Component {
         firstSectionRef={"firstSectionRef" in v ? v.firstSectionRef : null}
         openVersionInReader={this.props.openVersion}
         viewExtendedNotes={this.props.viewExtendedNotes}
-        key={v.versionTitle + "/" + v.language}
-        getLicenseMap={this.props.getLicenseMap}/>
+        key={v.versionTitle + "/" + v.language}/>
      )
     );
 
@@ -1017,7 +1013,6 @@ VersionsList.propTypes = {
   title:             PropTypes.string.isRequired,
   currentRef:        PropTypes.string,
   viewExtendedNotes: PropTypes.func,
-  getLicenseMap:     PropTypes.func.isRequired,
 };
 
 

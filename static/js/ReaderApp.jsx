@@ -1142,16 +1142,6 @@ class ReaderApp extends Component {
       return true;
     }
   }
-  getLicenseMap() {
-    const licenseMap = {
-      "Public Domain": "https://en.wikipedia.org/wiki/Public_domain",
-      "CC0": "https://creativecommons.org/publicdomain/zero/1.0/",
-      "CC-BY": "https://creativecommons.org/licenses/by/3.0/",
-      "CC-BY-SA": "https://creativecommons.org/licenses/by-sa/3.0/",
-      "CC-BY-NC": "https://creativecommons.org/licenses/by-nc/4.0/"
-    }
-    return licenseMap;
-  }
   selectVersion(n, versionName, versionLanguage) {
     // Set the version for panel `n`.
     var panel = this.state.panels[n];
@@ -1783,7 +1773,6 @@ class ReaderApp extends Component {
                       masterPanelLanguage={panel.mode === "Connections" ? panelStates[i-1].settings.language : panel.settings.language}
                       layoutWidth={width}
                       analyticsInitialized={this.state.initialAnalyticsTracked}
-                      getLicenseMap={this.getLicenseMap}
                       openURL={this.openURL}
                       saveLastPlace={this.saveLastPlace}
                       checkIntentTimer={this.checkIntentTimer}

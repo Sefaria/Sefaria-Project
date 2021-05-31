@@ -71,7 +71,6 @@ class TranslationsBox extends Component {
           currObjectVersions={this.props.currObjectVersions}
           sortPrioritizeLanugage={"en"}
           currentRef={this.props.srefs[0]}
-          getLicenseMap={this.props.getLicenseMap}
           openVersionInReader={this.props.openVersionInReader}
           openVersionInSidebar={this.openVersionInSidebar}
           viewExtendedNotes={this.props.viewExtendedNotes}
@@ -87,7 +86,6 @@ TranslationsBox.propTypes = {
   vFilter:                  PropTypes.array,
   recentVFilters:           PropTypes.array,
   srefs:                    PropTypes.array.isRequired,
-  getLicenseMap:            PropTypes.func.isRequired,
   setConnectionsMode:       PropTypes.func.isRequired,
   setFilter:                PropTypes.func.isRequired,
   openVersionInReader:      PropTypes.func.isRequired,

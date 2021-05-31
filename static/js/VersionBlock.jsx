@@ -163,7 +163,7 @@ class VersionBlock extends Component {
     }
   }
   makeLicenseLink(){
-    const license_map = this.props.getLicenseMap();
+    const license_map = Sefaria.getLicenseMap();
     return (this.props.version.license in license_map) ? license_map[this.props.version.license] : "#";
   }
   makeSelectVersionLanguage(){
@@ -206,7 +206,7 @@ class VersionBlock extends Component {
       // Editing View
       let close_icon = (Sefaria.is_moderator)?<i className="fa fa-times-circle" aria-hidden="true" onClick={this.closeEditor}/>:"";
 
-      let licenses = Object.keys(this.props.getLicenseMap());
+      let licenses = Object.keys(Sefaria.getLicenseMap());
       licenses = licenses.includes(v.license) ? licenses : [v.license].concat(licenses);
 
       return (
@@ -345,7 +345,6 @@ VersionBlock.propTypes = {
   showNotes:              PropTypes.bool,
   openVersionInSidebar:   PropTypes.func,
   openVersionInReader:    PropTypes.func,
-  getLicenseMap:          PropTypes.func.isRequired,
   isCurrent:              PropTypes.bool,
   openVersion:            PropTypes.func,
   viewExtendedNotes:      PropTypes.func,
@@ -427,7 +426,6 @@ class VersionsBlocksList extends Component{
                       currObjectVersions={this.props.currObjectVersions}
                       currentRef={this.props.currentRef}
                       firstSectionRef={"firstSectionRef" in v ? v.firstSectionRef : null}
-                      getLicenseMap={this.props.getLicenseMap}
                       key={`${this.isVersionCurrent(v) ? "current" : ""}|${v.versionTitle}|${v.actualLanguage}`}
                       openVersionInReader={this.props.openVersionInReader}
                       openVersionInSidebar={this.props.openVersionInSidebar}
@@ -450,7 +448,6 @@ VersionsBlocksList.propTypes={
   mainVersionLanguage: PropTypes.string.isRequired,
   sortPrioritizeLanugage: PropTypes.string,
   currentRef: PropTypes.string,
-  getLicenseMap: PropTypes.func,
   openVersionInReader: PropTypes.func,
   openVersionInSidebar: PropTypes.func,
   viewExtendedNotes: PropTypes.func,

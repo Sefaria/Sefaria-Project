@@ -573,7 +573,6 @@ class ConnectionsPanel extends Component {
                   title={this.props.title}
                   srefs={this.props.srefs}
                   sectionRef={this.state.sectionRef}
-                  getLicenseMap={this.props.getLicenseMap}
                   openVersionInReader={this.props.selectVersion}
                   viewExtendedNotes={this.props.viewExtendedNotes}/>);
 
@@ -587,7 +586,6 @@ class ConnectionsPanel extends Component {
                   setFilter={this.props.setVersionFilter}
                   vFilter={this.props.versionFilter}
                   recentVFilters={this.props.recentVersionFilters}
-                  getLicenseMap={this.props.getLicenseMap}
                   srefs={this.props.srefs}
                   sectionRef={this.state.sectionRef}
                   onRangeClick={this.props.onTextClick}
@@ -662,7 +660,6 @@ ConnectionsPanel.propTypes = {
   selectedNamedEntityText: PropTypes.string,
   interfaceLang:           PropTypes.string,
   contentLang:             PropTypes.string,
-  getLicenseMap:           PropTypes.func.isRequired,
   masterPanelLanguage:     PropTypes.oneOf(["english", "bilingual", "hebrew"]),
   versionFilter:           PropTypes.array,
   recentVersionFilters:    PropTypes.array,
