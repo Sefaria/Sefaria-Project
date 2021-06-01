@@ -303,8 +303,8 @@
         for (i = 0; i < Math.max(source.en.length, source.he.length); i++) {
             var enBox = document.createElement('div');
             var heBox = document.createElement('div');
-            enBox.innerHTML = source.en[i];
-            heBox.innerHTML = source.he[i].replace(/[\u0591-\u05af\u05bd\u05bf\u05c0\u05c4\u05c5]/g, "");
+            enBox.innerHTML = source.en[i] || "";
+            heBox.innerHTML = (source.he[i] || "").replace(/[\u0591-\u05af\u05bd\u05bf\u05c0\u05c4\u05c5]/g, "");
             enBox.className = "en" + (!heBox.innerHTML ? " enOnly" : "");
             heBox.className = "he" + (!enBox.innerHTML ? " heOnly" : "");
             heBox.setAttribute("dir", "rtl");
