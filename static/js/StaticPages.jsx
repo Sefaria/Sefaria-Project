@@ -1244,6 +1244,7 @@ const H2Block = ({en, he, classes}) =>
 const EducatorSubscribeButton = () => {
   const email = Sefaria._email;
   const [message, setMessage] = useState("");
+  const [messageStyle, setMessageStyle] = useState("");
   const heActionText = useRef("הירשמו לקבלת הניוזלטר");
   const enActionText = useRef("Get the Newsletter");
 
@@ -1253,7 +1254,8 @@ const EducatorSubscribeButton = () => {
   }
   const handleClick = () => {
     if (Sefaria.util.isValidEmailAddress(email)) {
-      setMessage("<i>Subscribing...</i>");
+      setMessage("Subscribing...");
+      setMessageStyle("italics");
       var lists = Sefaria.interfaceLang == "hebrew" ?
               "Announcements_General_Hebrew|Announcements_Edu_Hebrew"
               : "Announcements_General|Announcements_Edu"
@@ -1270,14 +1272,17 @@ const EducatorSubscribeButton = () => {
         if (!response.ok) {
           response.text().then(resp_text => {
             setMessage(resp_text)
+            setMessageStyle("");
           });
         } else {
           response.json().then(resp_json => {
             if (resp_json.hasOwnProperty("status") && resp_json["status"] == "ok") {
               setMessage("Subscribed! Welcome to our list.");
+              setMessageStyle("");
             }
             else if (resp_json.hasOwnProperty("error")) {
               setMessage(resp_json["error"]);
+              setMessageStyle("");
             }
           });
         }
@@ -1296,7 +1301,7 @@ const EducatorSubscribeButton = () => {
           <span className="int-he">{email.length === 0 ? <a href="/register?educator=true&next=/educators">{heActionText.current}</a> : heActionText.current}<img src="/static/img/circled-arrow-right.svg"/></span>
         </div>
       </div>
-      <div className="signUpEducatorsMessage">{message}</div>
+      <div className={`signUpEducatorsMessage ${messageStyle}`}>{message}<br/></div>
   </span>
 }
 

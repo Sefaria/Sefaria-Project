@@ -3033,10 +3033,10 @@ display: none;
   text-decoration: none;
 }
 .staticPage .simpleButtonWrapper.signUpEducators .button {
-  padding: 17px 60px;
+  padding: 17px 50px;
 }
 .staticPage .signUpEducatorsMessage {
-  margin-left: 40px;
+  text-align: center;
 }
 .staticPage .simpleButtonWrapper {
   width: 66%;
