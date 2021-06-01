@@ -905,7 +905,19 @@ CommentatorList.propTypes = {
 
 class VersionsList extends Component {
   componentDidMount() {
-    Sefaria.versions(this.props.currentRef, false, [], true).then(versions => this.setState({versions: versions}));
+    Sefaria.versions(this.props.currentRef, false, [], true).then(this.onVersionsLoad);
+  }
+  onVersionsLoad(versions){
+    versions.sort(
+      (a, b) => {
+        if      (a.priority > b.priority)                {return -1;}
+        else if (a.priority < b.priority)                {return 1;}
+        else if (a.versionTitle < b.versionTitle)        {return -1;}
+        else if (a.versionTitle > b.versionTitle)        {return  1;}
+        else                                             {return  0;}
+      }
+    );
+    this.setState({versions: versions});
   }
   render() {
     if (!this?.state?.versions) {
