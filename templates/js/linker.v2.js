@@ -300,16 +300,16 @@
             source.he = [].concat.apply([], source.he);
         }
 
-        for (i = 0; i < source.en.length; i++) {
+        for (i = 0; i < Math.max(source.en.length, source.he.length); i++) {
             var enBox = document.createElement('div');
             var heBox = document.createElement('div');
-            enBox.innerHTML = source.en[i];
-            heBox.innerHTML = source.he[i].replace(/[\u0591-\u05af\u05bd\u05bf\u05c0\u05c4\u05c5]/g, "");
+            enBox.innerHTML = source.en[i] || "";
+            heBox.innerHTML = (source.he[i] || "").replace(/[\u0591-\u05af\u05bd\u05bf\u05c0\u05c4\u05c5]/g, "");
             enBox.className = "en" + (!heBox.innerHTML ? " enOnly" : "");
             heBox.className = "he" + (!enBox.innerHTML ? " heOnly" : "");
             heBox.setAttribute("dir", "rtl");
-            textBox.appendChild(heBox);
-            textBox.appendChild(enBox);
+            if (heBox.innerHTML) { textBox.appendChild(heBox); }
+            if (enBox.innerHTML) { textBox.appendChild(enBox);}
         }
 
         enTitle.textContent = source.ref;
@@ -459,7 +459,10 @@
             const r = XRegExp(ns.regexes[book],"xgm");
             // find the references and push them into ns.matches
             for (let i = 0; i < ns.elems.length; i++) {
+                // portions are tricky. they represent portions of a regex match. it can happen that certain criteria match only the first portion and not later portions. these objects keep track of earlier portion data.
                 const portionHasMatched = {};
+                const portionExcludedFromLinking = {};
+                const portionExcludedFromTracking = {};
                 findAndReplaceDOMText(ns.elems[i], {
                     preset: 'prose',
                     find: r,
@@ -482,14 +485,17 @@
                         else {
                             // Walk up node tree to see if this context should be excluded from linking or tracking
                             let p = portion.node;
-                            let excludeFromLinking = false;
-                            let excludeFromTracking = false;
+                            // it is possible this node doesn't fit criteria to be excluded, but an earlier portion did.
+                            let excludeFromLinking = portionExcludedFromLinking[matchKey];
+                            let excludeFromTracking = portionExcludedFromTracking[matchKey];
                             while (p) {
                                 if (p.nodeName === 'A' || (ns.excludeFromLinking && p.matches && p.matches(ns.excludeFromLinking))) {
                                     excludeFromLinking = true;
+                                    portionExcludedFromLinking[matchKey] = true;
                                 }
                                 if (ns.excludeFromTracking && p.matches && p.matches(ns.excludeFromTracking)) {
                                     excludeFromTracking = true;
+                                    portionExcludedFromTracking[matchKey] = true;
                                 }
                                 if (excludeFromTracking && excludeFromLinking) {
                                     return portion.text;

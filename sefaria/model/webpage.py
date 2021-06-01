@@ -177,7 +177,19 @@ class WebPage(abst.AbstractMongoRecord):
             r"aju\.edu\/miller-intro-judaism-program\/learning-portal\/glossary\/",
             r"aju\.edu\/ziegler-school-rabbinic-studies\/our-torah\/back-issues\/\d+$"
             r"aju\.edu\/ziegler-school-rabbinic-studies\/torah-resource-center\/"
-            r"aju\.edu\/ziegler-school-rabbinic-studies\/blogs\/?$"
+            r"aju\.edu\/ziegler-school-rabbinic-studies\/blogs\/?$",
+            r"hatanakh\.com\/?#?$",
+            r"hatanakh\.com\/\/(en|es)$",  # home page?
+            r"hatanakh\.com(\/(en|es))?\/?#?(\?.+)?$",  # a sledgehammer. gets rid of odd url params on homepage + spanish chapter pages
+            r"hatanakh\.com\/\.[^/]+$",  # strange private pages
+            r"hatanakh\.com\/((en|es)\/)?(tanach|search|taxonomy|tags|%D7%9E%D7%97%D7%91%D7%A8%D7%99%D7%9D|%D7%93%D7%9E%D7%95%D7%99%D7%95%D7%AA|%D7%A0%D7%95%D7%A9%D7%90%D7%99%D7%9D)\/",  # topic, author and character pages
+            r"hatanakh\.com\/((en|es)\/)?search",
+            r"hatanakh\.com\/\?(chapter|custom|gclid|parasha)=",  # chapter pages
+            r"hatanakh\.com\/(en|es)?\/home",  # other chapter pages?
+            r"hatanakh\.com\/((en|es)\/)?(articles|daily|node)\/?$",
+            r"hatanakh\.com\/((en|es)\/)?(articles|lessons)\?(page|arg|tanachRef(\[|%5B)\d+(\]|%5D))=",
+            r"hatanakh\.com\/((en|es)\/)?(daily)?\/?\?(chapter|custom|gclid|parasha)=",
+            r"hatanakh\.com\/es\/\?biblia=",
         ]
         return "({})".format("|".join(bad_urls))
 
@@ -884,5 +896,11 @@ sites_data = [
     {
         "name": "American Jewish University",
         "domains": ["aju.edu"],
+    },
+    {
+        "name": 'התנ"ך',
+        "domains": ["hatanakh.com"],
+        "title_branding": ["התנך"],
+        "normalization_rules": ["use https", "remove www"],
     }
 ]
