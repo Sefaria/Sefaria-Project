@@ -260,8 +260,8 @@ class VersionBlock extends Component {
                   <a className={vtitle["className"]} href={this.makeVersionLink('side')} onClick={this.onVersionTitleClick}>
                     {vtitle["text"]}
                   </a>
-                  <i className={`fa fa-pencil versionEditIcon ${(Sefaria.is_moderator && this.props.rendermode == "book-page") ? "enabled" : ""}`} aria-hidden="true" onClick={this.openEditor}/>
               </div>
+              <i className={`fa fa-pencil versionEditIcon ${(Sefaria.is_moderator && this.props.rendermode == "book-page") ? "enabled" : ""}`} aria-hidden="true" onClick={this.openEditor}/>
               <div className="versionLanguage sans-serif">{Sefaria._(Sefaria.translateISOLanguageCode(v.actualLanguage))}</div>
             </div>
             <div className="versionSelect sans-serif">

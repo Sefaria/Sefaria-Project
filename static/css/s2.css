@@ -2816,6 +2816,7 @@ a.navBlockTitle:hover {
   font-weight: normal;
   font-size: 24px;
   line-height: 29px;
+  max-inline-size: max-content;
 }
 .versionsBox .versionBlock {
   padding: 20px 0;
@@ -2855,11 +2856,18 @@ a.navBlockTitle:hover {
 }
 .versionBlock .versionTitle a{
 }
-.versionBlock .versionTitle .versionEditIcon{
+.versionBlock .versionBlockHeading .versionEditIcon{
   display: none;
 }
-.versionBlock .versionTitle .versionEditIcon.enabled{
+.versionBlock .versionBlockHeading .versionEditIcon.enabled{
   display: inline-block;
+  align-self: self-start;
+  font-size: 14px;
+  padding: 5px;
+}
+.versionBlock .versionBlockHeading .versionEditIcon.enabled:hover{
+  color: #666666;
+  cursor: pointer;
 }
 .versionBlock .versionSelect{
   margin: 10px 0;
@@ -2907,6 +2915,7 @@ a.navBlockTitle:hover {
 }
 .versionBlock .versionTitle:hover {
   text-decoration: underline;
+  cursor: pointer;
 }
 .versionBlock .versionNotes {
   font-style: normal;
