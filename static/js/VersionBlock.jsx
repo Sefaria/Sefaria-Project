@@ -271,7 +271,7 @@ class VersionBlock extends Component {
                   {this.makeSelectVersionLanguage()}
               </a>
             </div>
-            <div className={classNames(this.makeAttrClassNames({"versionNotes": 1}, "versionNotes", true))}>
+            <div className={classNames(this.makeAttrClassNames({"versionNotes": 1, "sans-serif": (this.props.rendermode == "book-page")}, "versionNotes", true))}>
               <span className="" dangerouslySetInnerHTML={ {__html: vnotes} } />
               <span className={`versionExtendedNotesLinks ${this.hasExtendedNotes() ? "": "n-a"}`}>
                 <a onClick={this.openExtendedNotes} href={`/${this.props.version.title}/${this.props.version.language}/${this.props.version.versionTitle}/notes`}>

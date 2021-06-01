@@ -2867,29 +2867,24 @@ a.navBlockTitle:hover {
 .readerTextTableOfContents .versionBlock .versionSelect, .aboutBox .currVersionSection .versionSelect{
   display: none;
 }
-.versionBlock a {
-  color: #999;
-}
 .versionBlock .versionNotes a {
-  font-family: 'HebrewInEnglish Serif Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-style: normal;
   font-weight: normal;
-  font-size: 18px;
-  line-height: 22px;
   color: #666666;
   text-decoration: underline;
 }
-.versionBlock .versionNotes span{
-  font-family: 'HebrewInEnglish Serif Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
-}
 .versionBlock .versionDetails {
-  display: inline-block;
-  font-size: 12px;
-  font-family: "Hebrew System Text", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  color: #999;
   display: flex;
   flex-flow: row;
   justify-content: space-between;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 14px;
+  line-height: 20px;
+  color: #666666;
+}
+.readerTextTableOfContents .versionBlock .versionDetails{
+  line-height: 20px;
 }
 .versionBlock .versionDetails .versionDetailsInformation{
   display: flex;
@@ -2897,14 +2892,6 @@ a.navBlockTitle:hover {
 }
 .versionBlock .versionDetails .versionDetailsImage{
   margin-top: 5px;
-}
-.versionBlock .versionDetails .versionDetailsInformation .versionDetailsElement{
-  font-family: "Hebrew System Text", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;;
-  font-style: normal;
-  font-weight: normal;
-  font-size: 13px;
-  line-height: 20px;
-  color: #999999;
 }
 .versionBlock .versionDetails .versionDetailsInformation .versionDetailsElement.versionBuyLink a{
   color: #18345D;
@@ -2922,7 +2909,6 @@ a.navBlockTitle:hover {
   text-decoration: underline;
 }
 .versionBlock .versionNotes {
-  font-family: 'HebrewInEnglish Serif Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-style: normal;
   font-weight: normal;
   font-size: 18px;
@@ -2931,17 +2917,25 @@ a.navBlockTitle:hover {
   margin: 10px 0;
   text-align: start;
 }
+.readerTextTableOfContents .versionBlock .versionNotes{
+  font-size: 16px;
+  line-height: 19px;
+  padding-bottom: 15px;
+}
 .versionBlock .versionEditIcon {
   margin: 0 7px;
   vertical-align: 1px;
 }
 .versionBlock .versionExtendedNotesLinks{
   font-style: italic;
+  display: block;
 }
 .versionBlock .versionExtendedNotesLinks.no-notes{
   display: none;
 }
-
+.versionBlock .versionExtendedNotesLinks{/*temporary because broken*/
+  display: none;
+}
 .modTools {
   width: 50%;
   margin: 0 auto;
@@ -7916,10 +7910,6 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .aboutBox .versionDetails .separator,
 .versionsBox .versionDetails .separator {
   margin: 0 3px;
-}
-.aboutBox a,
-.versionsBox a {
-  color: #999;
 }
 .aboutBox .currVersionSection, .aboutBox .alternateVersionsSection {
   padding-bottom: 30px;
