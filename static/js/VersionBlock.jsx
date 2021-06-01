@@ -173,13 +173,7 @@ class VersionBlock extends Component {
     let voc = langMap[this.props.version.actualLanguage] || "Translation";
     return this.props.isCurrent ? Sefaria._("Current " + voc) : Sefaria._("Select "+ voc);
   }
-  makeDigitizedByLanguage(){
-    if(this.props.version.digitizedBySefaria){
-      return ["versions-box", "about-box"].includes(this.props.rendermode) ? Sefaria._("Sefaria") : Sefaria._("Digitized by Sefaria");
-    }else {
-      return "";
-    }
-  }
+
   hasExtendedNotes(){
     return !!(this.props.version.extendedNotes || this.props.version.extendedNotesHebrew);
   }
@@ -193,7 +187,7 @@ class VersionBlock extends Component {
     return !!this.props.version.purchaseInformationURL ? this.props.version.purchaseInformationURL : this.props.version.versionSource;
   }
   makeImageSrc(){
-    return (["versions-box", "about-box"].includes(this.props.rendermode) && !!this.props.version.purchaseInformationImage) ? this.props.version.purchaseInformationImage : "data:,";
+    return  !!this.props.version.purchaseInformationImage ? this.props.version.purchaseInformationImage : "data:,";
   }
 
   render() {
@@ -261,13 +255,16 @@ class VersionBlock extends Component {
     else {
       return (
         <div className="versionBlock">
-            <div className="versionTitle">
-              <a className={vtitle["className"]} href={this.makeVersionLink('side')} onClick={this.onVersionTitleClick}>
-                {vtitle["text"]}
-              </a>
-              <i className={`fa fa-pencil versionEditIcon ${(Sefaria.is_moderator && this.props.rendermode == "version-list") ? "enabled" : ""}`} aria-hidden="true" onClick={this.openEditor}/>
+            <div className="versionBlockHeading">
+              <div className="versionTitle" role="heading">
+                  <a className={vtitle["className"]} href={this.makeVersionLink('side')} onClick={this.onVersionTitleClick}>
+                    {vtitle["text"]}
+                  </a>
+                  <i className={`fa fa-pencil versionEditIcon ${(Sefaria.is_moderator && this.props.rendermode == "book-page") ? "enabled" : ""}`} aria-hidden="true" onClick={this.openEditor}/>
+              </div>
+              <div className="versionLanguage sans-serif">{Sefaria._(Sefaria.translateISOLanguageCode(v.actualLanguage))}</div>
             </div>
-            <div className="versionSelect">
+            <div className="versionSelect sans-serif">
               <a className={`selectButton ${this.props.isCurrent ? "currSelectButton": ""}`}
                    href={this.makeVersionLink(v.language)}
                    onClick={this.onSelectVersionClick}>
@@ -298,7 +295,7 @@ class VersionBlock extends Component {
                     {`${Sefaria._("Digitization")}: `}
                   </span>
                   <a className="versionDetailsLink" href="/digitized-by-sefaria" target="_blank">
-                    {this.makeDigitizedByLanguage()}
+                    {Sefaria._("Sefaria")}
                   </a>
                 </div>
                 <div className={classNames(this.makeAttrClassNames({"versionLicense": 1, "versionDetailsElement": 1}, "license" ))}>
@@ -408,7 +405,7 @@ class VersionsBlocksList extends Component{
             this.state.sortedLanguages.map((lang) => (
               <div key={lang}>
                 { this.props.showLanguageHeaders ?
-                  <div className="versionLanguage">
+                  <div className="versionLanguage sans-serif">
                     {Sefaria._(Sefaria.translateISOLanguageCode(lang))}<span className="enInHe connectionsCount">{` (${this.props.versionsByLanguages[lang].length})`}</span>
                   </div>
                     :

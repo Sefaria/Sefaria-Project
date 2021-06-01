@@ -190,50 +190,6 @@ class ReaderTextTableOfContents extends Component {
 
     // Versions List
     let versions = this.getVersionsList();
-    if (versions) {
-      const numVersions = versions.reduce((prevVal, elem) => { prevVal[elem.language]++; return prevVal; }, {"en": 0, "he": 0});
-      versionSection = (
-        <section>
-          <h2
-            className="versionSectionHeader"
-            tabIndex="0"
-            role="button"
-            aria-pressed={`${this.state.versionsDropDownOpen}`}
-            onClick={this.toggleVersionsDropDownOpen}
-            onKeyPress={(e) => {e.charCode == 13 ? this.toggleVersionsDropDownOpen(e):null}}>
-            <div className="versionSectionSummary versionSectionSummaryHidden sans-serif" aria-hidden="true">
-              {Sefaria._siteSettings.TORAH_SPECIFIC ?
-              <span>
-                <InterfaceText>
-                  <EnglishText>{`${numVersions["en"]} English, ${numVersions["he"]} Hebrew`}</EnglishText>
-                  <HebrewText>{`${numVersions["he"]} עברית, ${numVersions["en"]} אנגלית`}</HebrewText>
-                </InterfaceText>
-              </span> :
-              <span>
-                  <span>{`${numVersions["en"]}`}</span>
-              </span>
-              }
-            </div>
-            <div className="versionSectionTitle sans-serif">
-              <InterfaceText text={{en:"Versions", he:"גרסאות" }}/>
-              {(this.state.versionsDropDownOpen) ? <img src="/static/img/arrow-up.png" alt=""/> : <img src="/static/img/arrow-down.png" alt=""/>}
-            </div>
-            <div className="versionSectionSummary sans-serif">
-              {Sefaria._siteSettings.TORAH_SPECIFIC ?
-              <span>
-                <InterfaceText>
-                  <EnglishText>{`${numVersions["en"]} English, ${numVersions["he"]} Hebrew`}</EnglishText>
-                  <HebrewText>{`${numVersions["he"]} עברית, ${numVersions["en"]} אנגלית`}</HebrewText>
-                </InterfaceText>
-              </span> :
-              <span>
-                <span>{`${numVersions["en"]}`}</span>
-              </span> }
-            </div>
-          </h2>
-        </section>
-      );
-    }
 
     // Downloading
     const cv = this.getCurrentVersion();
@@ -417,11 +373,13 @@ class ReaderTextTableOfContents extends Component {
                     defaultStruct={"default_struct" in this.state.indexDetails && this.state.indexDetails.default_struct in this.state.indexDetails.alts ? this.state.indexDetails.default_struct : "default"}
                     narrowPanel={this.props.narrowPanel}
                     title={this.props.title}
-                    versions={versions}
-                    currObjectVersions={currObjectVersions}
-                    openVersionInReader={this.openVersion}
-                    currentRef={this.props.currentRef}
-                    viewExtendedNotes={this.props.viewExtendedNotes}
+                    versionsTabProps={{
+                      currObjectVersions: currObjectVersions,
+                      openVersionInReader: this.openVersion,
+                      currentRef: this.props.currentRef,
+                      viewExtendedNotes : this.props.viewExtendedNotes,
+                    }}
+
                   />
                 </div>
               </div> : <LoadingMessage />}
@@ -563,16 +521,7 @@ class TextTableOfContentsNavigation extends Component {
 
         break;
       case "versions":
-        content = <VersionsList
-                    versionsList={this.props.versions}
-                    currObjectVersions={this.props.currObjectVersions}
-                    openVersionInReader={this.props.openVersionInReader}
-                    title={this.props.title}
-                    currentRef={this.props.currentRef}
-                    viewExtendedNotes={this.props.viewExtendedNotes}
-                  />;
-
-
+        content = <VersionsList {...this.props.versionsTabProps}/>;
         break;
       default:
         content = <SchemaNode
@@ -955,48 +904,42 @@ CommentatorList.propTypes = {
 
 
 class VersionsList extends Component {
+  componentDidMount() {
+    Sefaria.versions(this.props.currentRef, false, [], true).then(versions => this.setState({versions: versions}));
+  }
   render() {
-    let versions = this.props.versionsList;
-    let [heVersionBlocks, enVersionBlocks] = ["he","en"].map(lang =>
-     versions.filter(v => v.language == lang).map(v =>
+    if (!this?.state?.versions) {
+        return (
+          <div className="versionsBox">
+            <LoadingMessage />
+          </div>
+        );
+    }
+    let versions = this.state.versions;
+    let vblocks = versions.map(v =>
       <VersionBlock
-        rendermode="version-list"
+        rendermode="book-page"
         version={v}
         currObjectVersions={this.props.currObjectVersions}
-        currentRef={this.props.currentRef || this.props.title}
+        currentRef={this.props.currentRef}
         firstSectionRef={"firstSectionRef" in v ? v.firstSectionRef : null}
         openVersionInReader={this.props.openVersionInReader}
         viewExtendedNotes={this.props.viewExtendedNotes}
         key={v.versionTitle + "/" + v.language}/>
-     )
-    );
-
+     );
     return (
-      <div className="versionBlocks">
-        {(!!heVersionBlocks.length) ?
-          <div className="versionLanguageBlock sans-serif">
-            <div className="versionLanguageHeader">
-              <InterfaceText>Hebrew Versions</InterfaceText>
-            </div>
-            <div>{heVersionBlocks}</div>
-          </div> : null}
-        {(!!enVersionBlocks.length) ?
-          <div className="versionLanguageBlock sans-serif">
-            <div className="versionLanguageHeader">
-              <InterfaceText>English Versions</InterfaceText>
-            </div>
-            <div>{enVersionBlocks}</div>
-          </div>: null}
-      </div>);
+      <div className="versionsBox">
+        {vblocks}
+      </div>
+    );
   }
 }
 VersionsList.propTypes = {
-  currObjectVersions: PropTypes.object.isRequired,
-  versionsList:      PropTypes.array.isRequired,
-  openVersion:       PropTypes.func.isRequired,
-  title:             PropTypes.string.isRequired,
-  currentRef:        PropTypes.string,
-  viewExtendedNotes: PropTypes.func,
+  currentRef:                PropTypes.string,
+  currObjectVersions:        PropTypes.object,
+  openVersionInReader:       PropTypes.func,
+
+  viewExtendedNotes:         PropTypes.func,
 };
 
 
