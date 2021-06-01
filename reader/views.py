@@ -3533,7 +3533,7 @@ def saved_history_for_ref(request):
 def _get_anonymous_user_history(request):
     import urllib.parse
     history = json.loads(urllib.parse.unquote(request.COOKIES.get("user_history", '[]')))
-    return recents+history
+    return history
 
 def profile_get_user_history(request):
     """
