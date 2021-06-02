@@ -2895,9 +2895,9 @@ display: none;
 .staticPage .staticPageHeader.educators {
   background-image: url("/static/img/educators-landing-page/edu_landingpage_header.png");
   background-repeat: no-repeat;
-  background-attachment: fixed;
   background-size: cover;
-  padding-top: 40px;
+  padding: 70px 0 30px;
+  background-position: 50% 0%;
 }
 .staticPage .staticPageCallToActionFooter {
   background-color: #212E50;
@@ -3021,12 +3021,10 @@ display: none;
   position: absolute;
   margin-left: 10px;
 }
-.staticPage .simpleButtonWrapper.signUpEducators {
+.staticPage .simpleButtonWrapper.signUpEducators, .staticPage .staticPageHeaderTextBox .simpleButtonWrapper.signUpEducators {
   width: 100%;
   padding-bottom: 0px;
   font-family: "adobe-garamond-pro", Georgia, serif;
-  font-style: italic;
-  font-weight: 700;
 }
 .staticPage .simpleButtonWrapper.signUpEducators a:hover {
   color: inherit;
@@ -3038,7 +3036,7 @@ display: none;
 .staticPage .signUpEducatorsMessage {
   text-align: center;
 }
-.staticPage .simpleButtonWrapper {
+.staticPage .staticPageHeaderTextBox .simpleButtonWrapper {
   width: 66%;
   padding-bottom: 80px;
 }
