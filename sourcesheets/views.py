@@ -1118,17 +1118,24 @@ def upload_sheet_media(request):
         from io import BytesIO
         import uuid
         import base64
-
-        im = Image.open(BytesIO(base64.b64decode(request.POST.get('file'))))
-        im.thumbnail([1024, 1024], Image.ANTIALIAS)
-
-        img_file = BytesIO()
-        im.save(img_file, format="PNG")
-        img_file.seek(0)
+        import imghdr
 
         bucket_name = GoogleStorageManager.UGC_SHEET_BUCKET
+        max_img_size = [1024, 1024]
 
-        img_url = GoogleStorageManager.upload_file(img_file, f"{request.user.id}-{uuid.uuid1()}.png", bucket_name)
+        img_file_in_mem = BytesIO(base64.b64decode(request.POST.get('file')))
+
+        if imghdr.what(img_file_in_mem) == "gif":
+            img_url = GoogleStorageManager.upload_file(img_file_in_mem, f"{request.user.id}-{uuid.uuid1()}.gif", bucket_name)
+
+        else:
+            im = Image.open(img_file_in_mem)
+            img_file = BytesIO()
+            im.thumbnail(max_img_size, Image.ANTIALIAS)
+            im.save(img_file, format=im.format)
+            img_file.seek(0)
+
+            img_url = GoogleStorageManager.upload_file(img_file, f"{request.user.id}-{uuid.uuid1()}.{im.format.lower()}", bucket_name)
 
         return jsonResponse({"url": img_url})
     return jsonResponse({"error": "Unsupported HTTP method."})
