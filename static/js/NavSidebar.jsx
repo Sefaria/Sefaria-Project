@@ -62,7 +62,7 @@ const Module = ({children, blue, wide}) => {
 
 const ModuleTitle = ({children, en, he, h1}) => {
   const content = children ?
-    <InterfaceText>{children}</InterfaceText>
+    <InterfaceText context="ModuleNames">{children}</InterfaceText>
     : <InterfaceText text={{en, he}} />;
 
   return h1 ?
@@ -193,7 +193,7 @@ const AboutText = ({index, hideTitle}) => {
   return (
     <Module>
       {hideTitle ? null :
-      <h3><InterfaceText>About this Text</InterfaceText></h3>}
+          <ModuleTitle>About this Text</ModuleTitle>}
       { composed || authors.length ?
       <div className="aboutTextMetadata">
         

@@ -414,7 +414,6 @@ const Strings = {
     //TextTableofContents
     "Contents": "תוכן",
     "Download": "הורדה",
-    "Download Text": "הורדת הטקסט",
     "Table of Contents": "תוכן העניינים",
     "Hebrew Versions": "בעברית",
     "English Versions": "באנגלית",
@@ -453,7 +452,21 @@ const Strings = {
       "Unfollow": "הפסק לעקוב",
       "Following": "עקוב",
       "Follow Back": "" // TODO Hebrew
-    }
+    },
+    "BookPage": {
+      "Continue Reading": "המשך קריאה",
+      "Start Reading": "התחלת קריאה",
+    },
+    "DownloadVersions":{
+      "File Format": "סוג הקובץ",
+      "Text (with Tags)": "טקסט (עם תיוגים)",
+      "Text (without Tags)": "טקסט (ללא תיוגים)",
+    },
+    "ModuleNames":{
+      "Download Text": "הורדת טקסט",
+      "About this Text" : "אודות הטקסט",
+      "Related Topics": "נושאים קשורים",
+    },
   },
 };
 

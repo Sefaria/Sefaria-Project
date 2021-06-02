@@ -264,11 +264,11 @@ class ReaderTextTableOfContents extends Component {
     const readButton = !this.state.indexDetails || this.isTextToc() || this.props.compare ? null :
       Sefaria.lastPlaceForText(title) ? 
         <a className="button small readButton" href={"/" + Sefaria.normRef(Sefaria.lastPlaceForText(title).ref)}>
-          <InterfaceText>Continue Reading</InterfaceText>
+          <InterfaceText context="BookPage">Continue Reading</InterfaceText>
         </a>
         :
         <a className="button small readButton" href={"/" + Sefaria.normRef(this.state.indexDetails["firstSectionRef"])}>
-          <InterfaceText>Start Reading</InterfaceText>
+          <InterfaceText context="BookPage">Start Reading</InterfaceText>
         </a>   
 
     const sidebarModules = !this.state.indexDetails ? [] :
