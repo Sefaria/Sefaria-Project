@@ -137,9 +137,7 @@ class ReaderTextTableOfContents extends Component {
     this.props.selectVersion(version, language);
     this.props.close();
   }
-  toggleVersionsDropDownOpen(event) {
-    this.setState({versionsDropDownOpen: !this.state.versionsDropDownOpen});
-  }
+
   onDlVersionSelect(event) {
     let versionTitle, versionLang;
     [versionTitle, versionLang] = event.target.value.split("/");
