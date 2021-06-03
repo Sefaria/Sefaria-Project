@@ -560,7 +560,6 @@ const DownloadVersions = ({sref}) => {
         const target = event.target;
         const value = target.value;
         const name = target.name;
-        console.log(name, value);
         let newState = {};
         if(name == "dlVersionName"){
            let [versionTitle, versionLang] = value.split("/");
