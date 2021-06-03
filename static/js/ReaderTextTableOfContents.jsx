@@ -82,9 +82,6 @@ class ReaderTextTableOfContents extends Component {
     }
     return currObjectVersions;
   }
-  getVersionsList() {
-     return this.state.versions;
-  }
   getCurrentVersion() {
     // For now treat bilingual as english. TODO show attribution for 2 versions in bilingual case.
     if (this.isBookToc()) { return null; }
@@ -137,33 +134,11 @@ class ReaderTextTableOfContents extends Component {
     this.props.selectVersion(version, language);
     this.props.close();
   }
-
-  onDlVersionSelect(event) {
-    let versionTitle, versionLang;
-    [versionTitle, versionLang] = event.target.value.split("/");
-    this.setState({
-      dlVersionTitle: versionTitle,
-      dlVersionLanguage: versionLang
-    });
-  }
-  onDlFormatSelect(event) {
-    this.setState({dlVersionFormat: event.target.value});
-  }
-  versionDlLink() {
-    return `/download/version/${this.props.title} - ${this.state.dlVersionLanguage} - ${this.state.dlVersionTitle}.${this.state.dlVersionFormat}`;
-  }
-  recordDownload() {
-    Sefaria.track.event("Reader", "Version Download", `${this.props.title} / ${this.state.dlVersionTitle} / ${this.state.dlVersionLanguage} / ${this.state.dlVersionFormat}`);
-    return true;
-  }
   isBookToc() {
     return (this.props.mode == "book toc")
   }
   isTextToc() {
     return (this.props.mode == "text toc")
-  }
-  isVersionPublicDomain(v) {
-    return !(v.license && v.license.startsWith("Copyright"));
   }
   extendedNotesBack(event){
     return null;
@@ -183,98 +158,21 @@ class ReaderTextTableOfContents extends Component {
     }
     let currObjectVersions = this.state.currObjectVersions;
 
-    let versionSection = null;
-    let downloadSection = null;
-
-    // Versions List
-    let versions = this.getVersionsList();
-
-    // Downloading
-    const cv = this.getCurrentVersion();
-    const languageInHebrew = {'en': 'אנגלית', 'he': 'עברית'};
-    if (versions) {
-      let dlReady = (this.state.dlVersionTitle && this.state.dlVersionFormat && this.state.dlVersionLanguage);
-      let dl_versions = [<option key="/" value="0" dir="auto" disabled>{ Sefaria.interfaceLang == "hebrew"? "הגדרות גרסה" : "Version Settings" }</option>];
-      let pdVersions = versions.filter(this.isVersionPublicDomain);
-      let addMergedFor = pdVersions.map(v => v.language).unique(); // Only show merged option for languages we have
-      if (cv) {
-        if (cv.merged) {
-          // Add option for current merged Version
-          dl_versions = dl_versions.concat([
-            <option dir="auto" value={"merged/" + cv.language} key={"merged/" + cv.language} data-lang={cv.language}>
-                {Sefaria.interfaceLang == "hebrew" ? "גרסה משולבת נוכחית" + `(${languageInHebrew[cv.language]})` :`Current Merged Version (${cv.language})`}
-            </option>]);
-          addMergedFor = addMergedFor.filter(lang => lang !== cv.language); // Don't add option for this merged language again
-        } else {
-          // Add Option for current non-merged version
-          if (this.isVersionPublicDomain(cv)) {
-            let versionTitleInHebrew = cv.versionTitleInHebrew || cv.versionTitle;
-            dl_versions.push(
-            <option value={cv.versionTitle + "/" + cv.language} key={cv.versionTitle + "/" + cv.language}>
-              {Sefaria.interfaceLang == "hebrew" ? `${versionTitleInHebrew} (גרסה נוכחית, ${languageInHebrew[cv.language]})` : `${cv.versionTitle} (Current Version, ${cv.language})`}
-            </option>);
-          }
-        }
-        pdVersions = pdVersions.filter(v => v.language != cv.language || v.versionTitle != cv.versionTitle); // Don't show current version again
-      }
-      dl_versions = dl_versions.concat(pdVersions.map(v =>
-        <option dir="auto" value={v.versionTitle + "/" + v.language} key={v.versionTitle + "/" + v.language}>
-            {(Sefaria.interfaceLang == "hebrew" && v.versionTitleInHebrew) ? `${v.versionTitleInHebrew} (${languageInHebrew[v.language]})` : `${v.versionTitle} (${v.language})`}
-        </option>
-      ));
-      dl_versions = dl_versions.concat(addMergedFor.map(lang =>
-        <option dir="auto" value={`merged/${lang}`} key={`merged/${lang}`}>
-          {Sefaria.interfaceLang == "hebrew" ? `גרסה משולבת (${languageInHebrew[lang]})` : `Merged Version (${lang})`}
-        </option>,
-      ));
-
-      let downloadButton = <div className="versionDownloadButton">
-          <div className="downloadButtonInner">
-            <InterfaceText>Download</InterfaceText>
-          </div>
-        </div>;
-      const formatStrings = {
-        none: {english: "File Format", hebrew: "סוג הקובץ"},
-        txt: {english: "Text (with Tags)", hebrew: "טקסט (עם תיוגים)"},
-        plaintxt: {english: "Text (without Tags)", hebrew: "טקסט (ללא תיוגים)"}
-      };
-      downloadSection = (
-        <div className="dlSection sans-serif">
-          <h2 className="dlSectionTitle">
-            <InterfaceText>Download Text</InterfaceText>
-          </h2>
-          <select
-            className="dlVersionSelect dlVersionTitleSelect"
-            value={(this.state.dlVersionTitle && this.state.dlVersionLanguage) ? this.state.dlVersionTitle + "/" + this.state.dlVersionLanguage : "0"}
-            onChange={this.onDlVersionSelect}>
-            {dl_versions}
-          </select>
-          <select className="dlVersionSelect dlVersionFormatSelect" value={this.state.dlVersionFormat || "0"} onChange={this.onDlFormatSelect}>
-            <option key="none" value="0" disabled>{ formatStrings.none[Sefaria.interfaceLang] }</option>
-            <option key="txt" value="txt" >{ formatStrings.txt[Sefaria.interfaceLang] }</option>
-            <option key="plain.txt" value="plain.txt" >{ formatStrings.plaintxt[Sefaria.interfaceLang] }</option>
-            <option key="csv" value="csv" >CSV</option>
-            <option key="json" value="json" >JSON</option>
-          </select>
-          {dlReady?<a onClick={this.recordDownload} href={this.versionDlLink()} download>{downloadButton}</a>:downloadButton}
-        </div>
-      );
-    }
-
     const readButton = !this.state.indexDetails || this.isTextToc() || this.props.compare ? null :
       Sefaria.lastPlaceForText(title) ? 
         <a className="button small readButton" href={"/" + Sefaria.normRef(Sefaria.lastPlaceForText(title).ref)}>
-          <InterfaceText context="BookPage">Continue Reading</InterfaceText>
+          <InterfaceText>Continue Reading</InterfaceText>
         </a>
         :
         <a className="button small readButton" href={"/" + Sefaria.normRef(this.state.indexDetails["firstSectionRef"])}>
-          <InterfaceText context="BookPage">Start Reading</InterfaceText>
+          <InterfaceText>Start Reading</InterfaceText>
         </a>   
 
     const sidebarModules = !this.state.indexDetails ? [] :
       [
         this.props.multiPanel ? {type: "AboutText", props: {index: this.state.indexDetails}} : {type: null},
         {type: "RelatedTopics", props: { topics: this.state.indexDetails.relatedTopics}},
+        {type: "DownloadVersions", props:{sref: this.props.title}},
       ];
 
     const isDictionary = this.state.indexDetails && !!this.state.indexDetails.lexiconName;
@@ -377,7 +275,6 @@ class ReaderTextTableOfContents extends Component {
                       currentRef: this.props.currentRef,
                       viewExtendedNotes : this.props.viewExtendedNotes,
                     }}
-
                   />
                 </div>
               </div> : <LoadingMessage />}

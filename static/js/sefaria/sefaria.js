@@ -2445,6 +2445,15 @@ _media: {},
       return inputStr;
     }
   },
+  _v: function(langOptions){
+    /* Takes an object {en: "something", he: "משהו"}
+     * and returns the correct one according to interface language
+     * Convenience method for when there are two data variables in an object one wishes to return
+     * according to interface, in places where HTML is not allowed (inside <options> tag for ex.
+    */
+    const lang = Sefaria.interfaceLang.slice(0,2);
+    return langOptions[lang] ? langOptions[lang] : "";
+  },
   _getStringCaseInsensitive: function (store, inputStr){
      return inputStr in store ? store[inputStr] : inputStr.toLowerCase() in store ? store[inputStr.toLowerCase()] : null;
   },

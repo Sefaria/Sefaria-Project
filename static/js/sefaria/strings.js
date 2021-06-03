@@ -417,11 +417,20 @@ const Strings = {
     "Table of Contents": "תוכן העניינים",
     "Hebrew Versions": "בעברית",
     "English Versions": "באנגלית",
+    "Continue Reading": "המשך קריאה",
+    "Start Reading": "התחלת קריאה",
 
     //Topics
     "Wikipedia": "ויקיפדיה",
     "Jewish Encyclopedia": "האנציקלופדיה היהודית",
     "Works on Sefaria": "חיבורים וכתבים בספריא",
+
+
+
+    //Module Names
+    "Download Text": "הורדת טקסט",
+    "About this Text" : "אודות הטקסט",
+    "Related Topics": "נושאים קשורים",
   },
 
   _i18nInterfaceStringsWithContext: {
@@ -453,19 +462,11 @@ const Strings = {
       "Following": "עקוב",
       "Follow Back": "" // TODO Hebrew
     },
-    "BookPage": {
-      "Continue Reading": "המשך קריאה",
-      "Start Reading": "התחלת קריאה",
-    },
     "DownloadVersions":{
-      "File Format": "סוג הקובץ",
+      "Select Format": "בחירת פורמט הורדה",
       "Text (with Tags)": "טקסט (עם תיוגים)",
       "Text (without Tags)": "טקסט (ללא תיוגים)",
-    },
-    "ModuleNames":{
-      "Download Text": "הורדת טקסט",
-      "About this Text" : "אודות הטקסט",
-      "Related Topics": "נושאים קשורים",
+      "Select Version": "בחירת מהדורה/תרגום"
     },
   },
 };
