@@ -721,11 +721,12 @@ div.interfaceLinks-row a {
 }
 .header .interfaceLinks .interfaceLinks-row.bottom {
   font-size: 14px;
-  padding-bottom: 10px;
   text-decoration-color: #000000;
 }
 .header .interfaceLinks .interfaceLinks-menu.profile-menu .interfaceLinks-hr {
   border-top:  1px solid #CCCCCC;
+  margin-top: 0px;
+  margin-bottom: 0px;
 }
 .header .interfaceLinks .interfaceLinks-row.logout {
   font-size: 14px;
