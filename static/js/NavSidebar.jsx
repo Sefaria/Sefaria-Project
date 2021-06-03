@@ -602,8 +602,8 @@ const DownloadVersions = ({sref}) => {
         <Module>
           <ModuleTitle>Download Text</ModuleTitle>
           <div className="downloadTextModule sans-serif">
-          <select name="dlVersionName" className="dlVersionSelect dlVersionTitleSelect" onChange={handleInputChange}>
-             <option value="" disabled selected hidden>{Sefaria._( "Select Version", "DownloadVersions")}</option>
+          <select name="dlVersionName" defaultValue={"DEFAULT"} className="dlVersionSelect dlVersionTitleSelect" onChange={handleInputChange}>
+             <option value="DEFAULT" disabled hidden>{Sefaria._( "Select Version", "DownloadVersions")}</option>
             {
              versions.map(v =>
              <option dir="auto" value={v.versionTitle + "/" + v.language} key={v.versionTitle + "/" + v.language}>
@@ -617,8 +617,8 @@ const DownloadVersions = ({sref}) => {
              )
             }
           </select>
-          <select name="dlVersionFormat" className="dlVersionSelect dlVersionFormatSelect" onChange={handleInputChange}>
-            <option value="" disabled selected hidden>{Sefaria._( "Select Format", "DownloadVersions")}</option>
+          <select name="dlVersionFormat" defaultValue={"DEFAULT"} className="dlVersionSelect dlVersionFormatSelect" onChange={handleInputChange}>
+            <option value="DEFAULT" disabled  hidden>{Sefaria._( "Select Format", "DownloadVersions")}</option>
             <option key="txt" value="txt" >{Sefaria._( "Text (with Tags)", "DownloadVersions")}</option>
             <option key="plain.txt" value="plain.txt" >{Sefaria._( "Text (without Tags)", "DownloadVersions")}</option>
             <option key="csv" value="csv" >CSV</option>
