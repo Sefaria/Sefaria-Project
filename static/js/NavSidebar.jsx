@@ -602,7 +602,7 @@ const DownloadVersions = ({sref}) => {
     return(
         <Module>
           <ModuleTitle>Download Text</ModuleTitle>
-          <div className="dlSection sans-serif">
+          <div className="downloadTextModule sans-serif">
           <select name="dlVersionName" className="dlVersionSelect dlVersionTitleSelect" onChange={handleInputChange}>
              <option value="" disabled selected hidden>{Sefaria._( "Select Version", "DownloadVersions")}</option>
             {

@@ -2994,13 +2994,12 @@ a.navBlockTitle:hover {
   display: block;
 }
 
-.modTools .dlVersionSelect,
-.readerTextTableOfContents .content .dlVersionSelect {
-  width: 60%;
+select {
+  width: 100%;
   margin: 10px auto;
   background-color: white;
   font-size: 14px;
-  height: 3em;
+  height: 50px;
   border-color: #ccc;
   border-radius: 3px;
   color: #333;
@@ -6296,10 +6295,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .button {
   display: inline-block;
   color: white;
-  background-color: #212E50;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-  border-radius: 7px;
-  padding: 17px 30px;
+  background-color: var(--sefaria-blue);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+  border-radius: 6px;
+  padding: 16px 30px;
   margin: 0 2px 6px 2px;
   cursor: pointer;
   font-size: 16px;
@@ -6308,7 +6307,19 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-align: center;
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
-  width: fit-content;
+  width: 100%;
+}
+.button.disabled{
+  border: 1px solid var(--light-grey);
+  background-color: var(--lightest-grey);
+  font-size: 16px;
+  line-height: 19px;
+  text-align: center;
+  color: var(--medium-grey);
+  box-shadow: none;
+}
+.button.disabled:hover{
+  color: var(--medium-grey);
 }
 a.button {
   color: white;
@@ -6360,6 +6371,8 @@ a .button:hover {
 }
 .button.small {
   padding: 10px 14px;
+  width: -moz-fit-content;
+  width: fit-content;
 }
 .button.extraSmall {
   border-radius: 6px;
