@@ -582,13 +582,16 @@ const DownloadVersions = ({sref}) => {
     const versionDlLink = () => {
         return isReady ? `/download/version/${sref} - ${downloadSelected.dlVersionLanguage} - ${downloadSelected.dlVersionTitle}.${downloadSelected.dlVersionFormat}` : "#";
     }
-    const recordDownload = (event) => {
+    const handleClick = (event) => {
         if(!isReady) {
             event.preventDefault();
             return false;
         }
-        Sefaria.track.event("Reader", "Version Download", `${sref} / ${downloadSelected.dlVersionTitle} / ${downloadSelected.dlVersionLanguage} / ${downloadSelected.dlVersionFormat}`);
+        recordDownload();
         return true;
+    }
+    const recordDownload = () => {
+        Sefaria.track.event("Reader", "Version Download", `${sref} / ${downloadSelected.dlVersionTitle} / ${downloadSelected.dlVersionLanguage} / ${downloadSelected.dlVersionFormat}`);
     }
     useEffect(() => {
         Sefaria.versions(sref, false, [], false).then(data => {
@@ -624,7 +627,7 @@ const DownloadVersions = ({sref}) => {
             <option key="csv" value="csv" >CSV</option>
             <option key="json" value="json" >JSON</option>
           </select>
-          <a className={`button${isReady ? "" : " disabled"}`} onClick={recordDownload} href={versionDlLink()} download>{Sefaria._("Download")}</a>
+          <a className={`button${isReady ? "" : " disabled"}`} onClick={handleClick} href={versionDlLink()} download>{Sefaria._("Download")}</a>
         </div>
         </Module>
     );
