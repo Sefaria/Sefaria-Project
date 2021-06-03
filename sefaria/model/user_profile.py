@@ -755,7 +755,7 @@ def email_unread_notifications(timeframe):
         elif notifications.like_count() > 0:
             noun      = "likes" if notifications.like_count() > 1 else "like"
             subject   = "%d new %s on your Source Sheet" % (notifications.like_count(), noun)
-        from_email    = "Notifications at Sefaria <notifications@sefaria.org>"
+        from_email    = "Sefaria Notifications <notifications@sefaria.org>"
         to            = user.email
 
         msg = EmailMultiAlternatives(subject, message_html, from_email, [to])
