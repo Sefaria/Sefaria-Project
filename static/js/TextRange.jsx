@@ -500,7 +500,7 @@ class TextSegment extends Component {
       return value;
     };
     //Since our list of commentaries has titles both with single quotes and double quotes in it, because reasons, we need to escape at least one so this function doest go down in flames.
-    const escapedFilter = this.props.filter[0].replaceAll(/["]/g, '\\"'); //we know filter is defined at this point, so no need to check if its there first.
+    const escapedFilter = this.props.filter[0].replace(/["]/g, '\\"'); //we know filter is defined at this point, so no need to check if its there first.
     $newElement.find(`i[data-commentator="${escapedFilter}"]`).each(function () {
       $(this).replaceWith('<sup class="itag">' + textValue(this) + "</sup>");
     });
