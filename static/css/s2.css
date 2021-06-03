@@ -607,10 +607,15 @@ input.noselect {
 }
 
 .header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header.profile-menu {
-  padding: 10px 17px 5px 17px;
+  padding: 10px 17px 10px 17px;
   font-weight: 700;
   color: #000000;
   height: 23px;
+}
+
+.header .interfaceLinks .interfaceLinks-menu.profile-menu .profile-menu-middle {
+  margin-top: 5px;
+  margin-bottom: 5px;
 }
 
 .interface-english .header .interfaceLinks .interfaceLinks-menu {
@@ -714,20 +719,21 @@ div.interfaceLinks-row a {
 .header .interfaceLinks .interfaceLinks-row.top {
   padding-top: 10px;
 }
-
-
 .header .interfaceLinks .interfaceLinks-row.bottom {
   font-size: 14px;
   padding-bottom: 10px;
-  border-bottom: 1px solid #CCCCCC;
   text-decoration-color: #000000;
 }
-
+.header .interfaceLinks .interfaceLinks-menu.profile-menu .interfaceLinks-hr {
+  border-top:  1px solid #CCCCCC;
+}
 .header .interfaceLinks .interfaceLinks-row.logout {
   font-size: 14px;
   color: #666666;
-  padding-bottom: 10px;
-  padding-top: 10px;
+  padding-bottom: 5px;
+  padding-top: 5px;
+  margin-top: 5px;
+  margin-bottom: 5px;
 }
 
 .header .profile-menu-he {
