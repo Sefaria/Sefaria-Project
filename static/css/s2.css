@@ -1347,6 +1347,9 @@ input.noselect {
   margin-bottom: 34px;
   padding: 0 44px;
 }
+.connectionsPanel .navSidebarModule{
+  padding: initial;
+}
 .singlePanel .navSidebarModule {
   padding: 0 15px;
 }
@@ -7882,14 +7885,14 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   color: #333;
 }
 .aboutBox .aboutHeader {
-  color: #666;
+  color: var(--dark-grey);
   padding-bottom: 13px;
   margin: 0;
   margin-bottom: 15px;
   text-align: initial;
   text-transform: none;
-  font-size: 16px;
-  border-bottom: solid 1px #CCC;
+  font-size: 22px;
+  border-bottom: solid 1px var(--light-grey);
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
 }

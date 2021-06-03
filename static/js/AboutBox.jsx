@@ -4,6 +4,7 @@ import Sefaria from './sefaria/sefaria';
 import VersionBlock, {VersionsBlocksList} from './VersionBlock';
 import Component             from 'react-class';
 import {InterfaceText} from "./Misc";
+import { Modules } from './NavSidebar';
 
 
 class AboutBox extends Component {
@@ -230,6 +231,7 @@ class AboutBox extends Component {
           (<div>{versionSectionEn}{versionSectionHe}{alternateSectionHe}</div>) :
           (<div>{versionSectionHe}{versionSectionEn}{alternateSectionHe}</div>)
         }
+        <Modules type={"DownloadVersions"} props={{sref: this.props.title}} />
       </section>
     );
   }
