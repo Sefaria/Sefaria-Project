@@ -14,21 +14,23 @@ import Sefaria  from './sefaria/sefaria';
 import ReaderPanel from './ReaderPanel';
 import Component from 'react-class';
 
-const Help = () => (
+
+const HelpButton = () => (
     //hard-coding /help re-direct, also re-directs exist in sites/sefaria/urls.py
-    <div className="help">
-      <span className="int-en">
-        <a href="/collections/sefaria-faqs">
+  <div className="help">
+    <span className="int-en">
+      <a href="/collections/sefaria-faqs">
         <img src="/static/img/help.svg" alt="Help" />
-        </a>
-      </span>
-      <span className="int-he">
-        <a href="/collections/%D7%A9%D7%90%D7%9C%D7%95%D7%AA-%D7%A0%D7%A4%D7%95%D7%A6%D7%95%D7%AA-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90">
+      </a>
+    </span>
+    <span className="int-he">
+      <a href="/collections/%D7%A9%D7%90%D7%9C%D7%95%D7%AA-%D7%A0%D7%A4%D7%95%D7%A6%D7%95%D7%AA-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90">
         <img src="/static/img/help.svg" alt="עזרה" />
-        </a>
-      </span>
-    </div>
-)
+      </a>
+    </span>
+  </div>
+);
+
 
 const ProfilePicMenu = ({len, url, name}) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -52,7 +54,7 @@ const ProfilePicMenu = ({len, url, name}) => {
   }
   const handleHideDropdown = (event) => {
     if (event.key === 'Escape') {
-        setIsOpen(false);
+      setIsOpen(false);
     }
   };
   const handleClickOutside = (event) => {
@@ -60,7 +62,7 @@ const ProfilePicMenu = ({len, url, name}) => {
         wrapperRef.current &&
         !wrapperRef.current.contains(event.target)
     ) {
-        setIsOpen(false);
+      setIsOpen(false);
     }
   };
 
@@ -68,13 +70,13 @@ const ProfilePicMenu = ({len, url, name}) => {
     document.addEventListener('keydown', handleHideDropdown, true);
     document.addEventListener('click', handleClickOutside, true);
     return () => {
-        document.removeEventListener('keydown', handleHideDropdown, true);
-        document.removeEventListener('click', handleClickOutside, true);
+      document.removeEventListener('keydown', handleHideDropdown, true);
+      document.removeEventListener('click', handleClickOutside, true);
     };
   }, []);
   const getCurrentPage = () => {
     return encodeURIComponent(Sefaria.util.currentPath());
-  }
+  };
   return (
     <div ref={wrapperRef}>
         <a href="/my/profile" className="my-profile" onClick={profilePicClick}>
@@ -107,8 +109,9 @@ const ProfilePicMenu = ({len, url, name}) => {
           </div> : null}
         </div>
     </div>
-  )
-}
+  );
+};
+
 
 class Header extends Component {
   constructor(props) {
@@ -412,7 +415,7 @@ class Header extends Component {
                       :
                       <LoggedOutButtons headerMode={this.props.headerMode}/>
                   }
-                  { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ? <Help/>: null}
+                  { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ? <HelpButton/>: null}
                   { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ? <InterfaceLanguageMenu currentLang={Sefaria.interfaceLang} /> : null}
                 </div>
               </div>
@@ -450,7 +453,7 @@ Header.propTypes = {
 };
 
 
-function LoggedOutButtons({headerMode}){
+function LoggedOutButtons({headerMode}) {
   const [isClient, setIsClient] = useState(false);
   const [next, setNext] = useState("/");
   const [loginLink, setLoginLink] = useState("/login?next=/");
@@ -465,7 +468,7 @@ function LoggedOutButtons({headerMode}){
       setRegisterLink("/register?next="+next);
     }
   })
-  return(
+  return (
     <div className="accountLinks anon">
       <a className="login loginLink" href={loginLink} key={`login${isClient}`}>
          <span className="int-en">Log in</span>
@@ -480,9 +483,9 @@ function LoggedOutButtons({headerMode}){
 }
 
 
-function LoggedInButtons({headerMode}){
+function LoggedInButtons({headerMode}) {
   const [isClient, setIsClient] = useState(false);
-  useEffect(()=>{
+  useEffect(() => {
     if(headerMode){
       setIsClient(true);
     }
@@ -496,5 +499,6 @@ function LoggedInButtons({headerMode}){
     </div>
   );
 }
+
 
 export default Header;
