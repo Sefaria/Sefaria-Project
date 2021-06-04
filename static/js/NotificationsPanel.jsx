@@ -156,7 +156,7 @@ const SheetPublishNotification = ({date, content}) => {
     <>
       <a className="sheetTitle" href={"/sheets/" + content.sheet_id}>{content.sheet_title}</a>
       {content.summary ?
-      <div className="summary">
+      <div className="sheetSummary">
         {content.summary}
       </div>
       : null}
@@ -185,11 +185,6 @@ const SheetLikeNotification = ({date, content}) => {
   const body = (
     <>
       <a className="sheetTitle" href={"/sheets/" + content.sheet_id}>{content.sheet_title}</a>
-      {content.summary ?
-      <div className="sheetSummary">
-        {content.summary}
-      </div>
-      : null}
     </>
   );
 
@@ -374,4 +369,7 @@ const GeneralNotification = ({date, content}) => {
 };
 
 
-export default NotificationsPanel;
+export { 
+  NotificationsPanel,
+  Notifications,
+}

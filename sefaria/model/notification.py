@@ -126,6 +126,11 @@ class GlobalNotification(abst.AbstractMongoRecord):
 
         return d
 
+    def client_contents(self):
+        n = super(GlobalNotification, self).contents(with_string_id=True)
+        n["date"] = n["date"].timestamp()
+        return n
+
     @property
     def id(self):
         return str(self._id)
@@ -143,6 +148,9 @@ class GlobalNotificationSet(abst.AbstractMongoSet):
 
     def contents(self):
         return [n.contents() for n in self]
+
+    def client_contents(self):
+        return [n.client_contents() for n in self]
 
 
 class Notification(abst.AbstractMongoRecord):
@@ -280,6 +288,7 @@ class Notification(abst.AbstractMongoRecord):
         def annotate_sheet(n, sheet_id):
             sheet_data = get_sheet_metadata(id=sheet_id)
             n["content"]["sheet_title"] = strip_tags(sheet_data["title"], remove_new_lines=True)
+            n["content"]["summary"] = sheet_data["summary"]
 
         def annotate_collection(n, collection_slug):
             c = Collection().load({"slug": collection_slug})

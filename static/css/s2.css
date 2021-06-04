@@ -6122,14 +6122,14 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .notification .collectionName {
   --english-font: var(--english-serif-font-family);
   --hebrew-font: var(--hebrew-serif-font-family);
-  font-size: 18px;
+  font-size: 24px;
   display: block;
 }
 .notification .sheetSummary {
   --english-font: var(--english-serif-font-family);
   --hebrew-font: var(--hebrew-serif-font-family);
   color: var(--dark-grey);
-  font-size: 18px;
+  font-size: 16px;
   margin-top: 10px;
 }
 .notification .replyButton {
@@ -6162,7 +6162,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .globalUpdateForm input[type="text"] {
   padding: 5px;
-  margin: 0 0 0 15px;
+  margin: 5px 0;
+  width: 260px;
 }
 .globalUpdateForm input[type="radio"] {
   padding: 5px;
@@ -6175,6 +6176,18 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .globalUpdateForm .previewButton {
   margin-left: 85%;
   font-size: 20px;
+}
+.update {
+  position: relative;
+}
+.update .imageSection {
+  display: none;
+}
+.update .delete-update-button {
+  position: absolute;
+  top:  8px;
+  right:  0px;
+  color:  var(--dark-grey);
 }
 .story-action-button {
   display: inline-block;
@@ -6269,7 +6282,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-align: center;
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
-  width: 100%;
 }
 .button.disabled{
   border: 1px solid var(--light-grey);
