@@ -85,7 +85,7 @@ const ProfilePicMenu = ({len, url, name}) => {
           <div className="interfaceLinks-menu profile-menu" onClick={menuClick}>
             <div className="interfaceLinks-header profile-menu">{name}</div>
             <div className="profile-menu-middle">
-              <div><a className="interfaceLinks-row top" href="/my/profile">
+              <div><a className="interfaceLinks-row" href="/my/profile">
                 <InterfaceText>Profile</InterfaceText>
               </a></div>
               <div><a className="interfaceLinks-row" href="/settings/account">
