@@ -556,6 +556,10 @@ input.noselect {
   box-sizing: border-box;
   border-radius: 6px;
 }
+.header .help {
+  margin-inline-start: 23px;
+  margin-top: 8px;
+}
 .header .interfaceLinks {
   display: block;
   align-items: center;
@@ -565,7 +569,7 @@ input.noselect {
   position: relative;
   -webkit-margin-start: 20px;
   -moz-margin-start: 20px;
-  margin-inline-start: 20px;
+  margin-inline-start: 10px;
 }
 .header .interfaceLinks img {
   height: 18px;
@@ -587,32 +591,51 @@ input.noselect {
   top: 35px;
   position: absolute;
   z-index: 1;
-  position: absolute;
   width: 150px;
   background: #FBFBFA;
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
   border-radius: 6px;
-  display: none;
+  display:none;
+  overflow:hidden;
 }
-.header .interfaceLinks .interfaceLinks-menu.open {
+.header .interfaceLinks .interfaceLinks-menu.profile-menu {
+  top: 10px;
   display: block;
+}
+.header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header.profile-menu {
+  padding: 10px 17px 10px 17px;
+  font-weight: 700;
+  color: #000000;
+  height: 23px;
+}
+.header .interfaceLinks .interfaceLinks-menu.profile-menu .profile-menu-middle {
+  margin-top: 5px;
+  margin-bottom: 5px;
 }
 .interface-english .header .interfaceLinks .interfaceLinks-menu {
   right: 0px;
-  direction: ltr;
+  min-width: 150px;
+  width: max-content;
 }
-.interface-hebrew .header .interfaceLinks .interfaceLinks-menu {
+.interface-hebrew .header .interfaceLinks .interfaceLinks-menu{
   left: 0px;
-  direction: rtl;
+  min-width: 150px;
+  width: max-content;
 }
-.header .interfaceLinks .interfaceLinks-header {
+.header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header{
   font-style: normal;
   font-weight: normal;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 18px;
   color: #999999;
   padding: 12px;
   border-bottom: 1px solid #CCCCCC;
+}
+.interface-english .header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header{
+  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
+}
+.interface-hebrew .header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header{
+  font-family: "Heebo", sans-serif;
 }
 .interfaceLinks-options {
   display: flex;
@@ -631,8 +654,70 @@ input.noselect {
   padding: 5px;
   direction: ltr;
 }
-.interface-hebrew .header .interfaceLinks .interfaceLinks-option {
+.header .interfaceLinks .interfaceLinks-menu.open{
+  display: block;
+}
+.interface-hebrew .header .interfaceLinks .interfaceLinks-option.int-bi {
   direction: rtl;
+}
+.interface-english .header .interfaceLinks .interfaceLinks-option.int-bi {
+  direction: ltr;
+}
+.header .interfaceLinks .interfaceLinks-row {
+  align-items: center;
+  display: flex;
+  text-decoration: none;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 18px;
+  text-align: right;
+  color: #000000;
+  font-family: "Roboto", "Heebo", "Helvetica Neue", Ariel, sans-serif;
+  padding: 5px 17px 5px 17px;
+  font-size: 14px;
+  text-decoration-color: #666666;
+  height: 23px;
+}
+.header .interfaceLinks .interfaceLinks-row:hover {
+   background-color: #EDEDEC;
+}
+div.interfaceLinks-row a:hover {
+  text-decoration: none;
+}
+.header .interfaceLinks .interfaceLinks-row.languages {
+  display: flex;
+}
+div.interfaceLinks-row a.active {
+  color: #000000;
+  display: flex;
+  order: -1;
+}
+div.interfaceLinks-row a.active::after {
+  content: "•";
+  padding: 0 4px;
+}
+div.interfaceLinks-row a {
+  color: #666666;
+  display: flex;
+}
+.header .interfaceLinks .interfaceLinks-row.bottom {
+  font-size: 14px;
+  text-decoration-color: #000000;
+}
+.header .interfaceLinks .interfaceLinks-menu.profile-menu .interfaceLinks-hr {
+  border-top:  1px solid #CCCCCC;
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
+.header .interfaceLinks .interfaceLinks-row.logout {
+  font-size: 14px;
+  color: #666666;
+  padding-top: 5px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+.header .profile-menu-he {
+  color: #666666;
 }
 .header .interfaceLinks .interfaceLinks-option::before {
   content: "";
@@ -654,6 +739,12 @@ input.noselect {
   .header .interfaceLinks {
     display: none;
   }
+  .header .help {
+    display: none;
+  }
+  .header .profile-pic {
+    display: none;
+  }
   .header .accountLinks .login{
     padding: 5px 5px;
   }
@@ -673,6 +764,7 @@ input.noselect {
 .header .library, .header .my-profile {
   font-size: 24px;
   line-height: 24px;
+  margin-top: 2px;
 }
 .header .library .fa {
   position: relative;
