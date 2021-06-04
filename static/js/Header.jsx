@@ -14,101 +14,6 @@ import {
   LanguageToggleButton,
 } from './Misc';
 
-const Help = () => (
-    //hard-coding /help re-direct, also re-directs exist in sites/sefaria/urls.py
-    <div className="help">
-      <span className="int-en">
-        <a href="/collections/sefaria-faqs">
-        <img src="/static/img/help.svg" alt="Help" />
-        </a>
-      </span>
-      <span className="int-he">
-        <a href="/collections/%D7%A9%D7%90%D7%9C%D7%95%D7%AA-%D7%A0%D7%A4%D7%95%D7%A6%D7%95%D7%AA-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90">
-        <img src="/static/img/help.svg" alt="עזרה" />
-        </a>
-      </span>
-    </div>
-)
-
-const ProfilePicMenu = ({len, url, name}) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const wrapperRef = useRef(null);
-
-  const menuClick = (e) => {
-    var el = e.target;
-    while (el && el.nodeName !== 'A') {
-      el = el.parentNode;
-    }
-    if (el) {
-      resetOpen();
-    }
-  }
-  const profilePicClick = (e) => {
-    e.preventDefault();
-    resetOpen();
-  }
-  const resetOpen = () => {
-    setIsOpen(isOpen => !isOpen);
-  }
-  const handleHideDropdown = (event) => {
-    if (event.key === 'Escape') {
-        setIsOpen(false);
-    }
-  };
-  const handleClickOutside = (event) => {
-    if (
-        wrapperRef.current &&
-        !wrapperRef.current.contains(event.target)
-    ) {
-        setIsOpen(false);
-    }
-  };
-
-  useEffect(() => {
-    document.addEventListener('keydown', handleHideDropdown, true);
-    document.addEventListener('click', handleClickOutside, true);
-    return () => {
-        document.removeEventListener('keydown', handleHideDropdown, true);
-        document.removeEventListener('click', handleClickOutside, true);
-    };
-  }, []);
-  const getCurrentPage = () => {
-    return encodeURIComponent(Sefaria.util.currentPath());
-  }
-  return (
-    <div ref={wrapperRef}>
-        <a href="/my/profile" className="my-profile" onClick={profilePicClick}>
-          <ProfilePic len={len} url={url} name={name}/>
-        </a>
-        <div className="interfaceLinks">
-          {isOpen ?
-          <div className="interfaceLinks-menu profile-menu" onClick={menuClick}>
-            <div className="interfaceLinks-header profile-menu">{name}</div>
-            <div className="profile-menu-middle">
-              <div><a className="interfaceLinks-row" href="/my/profile">
-                <InterfaceText>Profile</InterfaceText>
-              </a></div>
-              <div><a className="interfaceLinks-row" href="/settings/account">
-                <InterfaceText>Account Settings</InterfaceText>
-              </a></div>
-              <div className="interfaceLinks-row languages">
-                <a className={`${(Sefaria.interfaceLang == 'hebrew') ? 'active':''}`} href={`/interface/hebrew?next=${getCurrentPage()}`}>עברית</a>
-                <a className={`${(Sefaria.interfaceLang == 'english') ? 'active':''}`} href={`/interface/english?next=${getCurrentPage()}`}>English</a>
-              </div>
-              <div><a className="interfaceLinks-row bottom" href="/collections/sefaria-faqs">
-                <InterfaceText>Help</InterfaceText>
-              </a></div>
-            </div>
-            <hr className="interfaceLinks-hr"/>
-            <div><a className="interfaceLinks-row logout" href="/logout">
-              <InterfaceText>Logout</InterfaceText>
-            </a></div>
-
-          </div> : null}
-        </div>
-    </div>
-  )
-}
 
 class Header extends Component {
   constructor(props) {
@@ -159,7 +64,7 @@ class Header extends Component {
             <LoggedInButtons headerMode={this.props.headerMode}/>
             : <LoggedOutButtons headerMode={this.props.headerMode}/>
           }
-          { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ? <Help/> : null}
+          { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ? <HelpButton /> : null}
           { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ? 
               <InterfaceLanguageMenu currentLang={Sefaria.interfaceLang} /> : null}
         </div>
@@ -509,9 +414,10 @@ const LoggedOutButtons = ({mobile, loginOnly}) => {
   );
 }
 
+
 const LoggedInButtons = ({headerMode}) => {
   const [isClient, setIsClient] = useState(false);
-  useEffect(()=>{
+  useEffect(() => {
     if(headerMode){
       setIsClient(true);
     }
@@ -530,6 +436,7 @@ const LoggedInButtons = ({headerMode}) => {
     </div>
   );
 }
+
 
 const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visible}) => {
   const classes = classNames({
@@ -616,6 +523,87 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
 };
 
 
+const ProfilePicMenu = ({len, url, name}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const wrapperRef = useRef(null);
+
+  const menuClick = (e) => {
+    var el = e.target;
+    while (el && el.nodeName !== 'A') {
+      el = el.parentNode;
+    }
+    if (el) {
+      resetOpen();
+    }
+  }
+  const profilePicClick = (e) => {
+    e.preventDefault();
+    resetOpen();
+  }
+  const resetOpen = () => {
+    setIsOpen(isOpen => !isOpen);
+  }
+  const handleHideDropdown = (event) => {
+    if (event.key === 'Escape') {
+      setIsOpen(false);
+    }
+  };
+  const handleClickOutside = (event) => {
+    if (
+        wrapperRef.current &&
+        !wrapperRef.current.contains(event.target)
+    ) {
+      setIsOpen(false);
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener('keydown', handleHideDropdown, true);
+    document.addEventListener('click', handleClickOutside, true);
+    return () => {
+      document.removeEventListener('keydown', handleHideDropdown, true);
+      document.removeEventListener('click', handleClickOutside, true);
+    };
+  }, []);
+  const getCurrentPage = () => {
+    return encodeURIComponent(Sefaria.util.currentPath());
+  };
+  return (
+    <div ref={wrapperRef}>
+        <a href="/my/profile" className="my-profile" onClick={profilePicClick}>
+          <ProfilePic len={len} url={url} name={name}/>
+        </a>
+        <div className="interfaceLinks">
+          {isOpen ?
+          <div className="interfaceLinks-menu profile-menu" onClick={menuClick}>
+            <div className="interfaceLinks-header profile-menu">{name}</div>
+            <div className="profile-menu-middle">
+              <div><a className="interfaceLinks-row" href="/my/profile">
+                <InterfaceText>Profile</InterfaceText>
+              </a></div>
+              <div><a className="interfaceLinks-row" href="/settings/account">
+                <InterfaceText>Account Settings</InterfaceText>
+              </a></div>
+              <div className="interfaceLinks-row languages">
+                <a className={`${(Sefaria.interfaceLang == 'hebrew') ? 'active':''}`} href={`/interface/hebrew?next=${getCurrentPage()}`}>עברית</a>
+                <a className={`${(Sefaria.interfaceLang == 'english') ? 'active':''}`} href={`/interface/english?next=${getCurrentPage()}`}>English</a>
+              </div>
+              <div><a className="interfaceLinks-row bottom" href="/collections/sefaria-faqs">
+                <InterfaceText>Help</InterfaceText>
+              </a></div>
+            </div>
+            <hr className="interfaceLinks-hr"/>
+            <div><a className="interfaceLinks-row logout" href="/logout">
+              <InterfaceText>Logout</InterfaceText>
+            </a></div>
+
+          </div> : null}
+        </div>
+    </div>
+  );
+};
+
+
 const MobileInterfaceLanguageToggle = () => {
   const currentURL = encodeURIComponent(Sefaria.util.currentPath());
   
@@ -639,5 +627,25 @@ const MobileInterfaceLanguageToggle = () => {
     </div>
   );
 };
+
+
+const HelpButton = () => (
+    //hard-coding /help re-direct, also re-directs exist in sites/sefaria/urls.py
+  <div className="help">
+    {Sefaria.interfaceLang === "hebrew" ?
+    <span className="int-he">
+      <a href="/collections/%D7%A9%D7%90%D7%9C%D7%95%D7%AA-%D7%A0%D7%A4%D7%95%D7%A6%D7%95%D7%AA-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90">
+        <img src="/static/img/help.svg" alt="עזרה" />
+      </a>
+    </span>
+    :
+    <span className="int-en">
+      <a href="/collections/sefaria-faqs">
+        <img src="/static/img/help.svg" alt="Help" />
+      </a>
+    </span>}
+  </div>
+);
+
 
 export default Header;
