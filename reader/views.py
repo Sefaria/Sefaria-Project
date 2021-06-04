@@ -211,7 +211,7 @@ def base_props(request):
             "calendars": get_todays_calendar_items(**_get_user_calendar_params(request)),
             "notificationCount": 0,
             "notifications": [],
-            "saved": [],
+            "saved": {"loaded": False, "items": []},
             "last_place": [],
             "interruptingMessage": InterruptingMessage(attrs=GLOBAL_INTERRUPTING_MESSAGE, request=request).contents(),
         }

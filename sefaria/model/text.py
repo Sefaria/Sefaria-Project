@@ -5213,7 +5213,6 @@ class Library(object):
         title = title.replace("_", " ")
         return self.get_title_node_dict(lang).get(title)
 
-
     def citing_title_list(self, lang="en"):
         """
         :param lang: "he" or "en"
@@ -5228,14 +5227,12 @@ class Library(object):
             self._full_title_lists[key] = titles
         return titles
 
-
     def full_title_list(self, lang="en", with_terms=False):
         """
         :return: list of strings of all possible titles
         :param lang: "he" or "en"
         :param with_terms: if True, includes shared titles ('terms')
         """
-
         key = lang
         key += "_terms" if with_terms else ""
         titles = self._full_title_lists.get(key)
@@ -5533,7 +5530,6 @@ class Library(object):
         return self._internal_ref_from_string(title, st, lang)
 
     def _internal_ref_from_string(self, title=None, st=None, lang=None, stIsAnchored=False, return_locations = False):
-
         node = self.get_schema_node(title, lang)
         if not isinstance(node, JaggedArrayNode):
             #TODO fix when not JaggedArrayNode
@@ -5561,7 +5557,6 @@ class Library(object):
             except (InputError, ValueError) as e:
                 continue
         return refs
-
 
     # todo: handle ranges in inline refs
     def _wrap_all_refs_in_string(self, title_node_dict=None, titles_regex=None, st=None, lang="he"):
@@ -5688,7 +5683,6 @@ class Library(object):
 
     def word_count(self, ref_or_cat, lang="he", dependents_regex=None):
         """
-
         :param ref_or_cat:
         :param lang:
         :param dependents_regex: string - filter dependents by those that have this string (treat this as a category))
