@@ -40,6 +40,7 @@ const Modules = ({type, props}) => {
     "TitledText":          TitledText,
     "Visualizations":      Visualizations,
     "JoinTheConversation": JoinTheConversation,
+    "JoinTheCommunity":    JoinTheCommunity,
     "GetTheApp":           GetTheApp,
     "StayConnected":       StayConnected,
     "AboutStudySchedules": AboutStudySchedules,
@@ -440,6 +441,24 @@ const JoinTheConversation = ({wide}) => {
         <a className="button small" href="/sheets/new">
           <img src="/static/icons/new-sheet-black.svg" alt="make a sheet icon" />
           <InterfaceText>Make a Sheet</InterfaceText>
+        </a>
+      </div>
+    </Module>
+  );
+};
+
+
+const JoinTheCommunity = ({wide}) => {
+  return (
+    <Module wide={wide}>
+      <div>
+        <ModuleTitle>Join the Conversation</ModuleTitle>
+        <InterfaceText>Learners around the world use Sefaria to create and share Torah resources. You're invited to add your voice.</InterfaceText>
+      </div>
+      <div>
+        <a className="button small" href="/community">
+          <img src="/static/icons/community-black.svg" alt="make a sheet icon" />
+          <InterfaceText>Explore the Community</InterfaceText>
         </a>
       </div>
     </Module>
