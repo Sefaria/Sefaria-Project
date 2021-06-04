@@ -254,7 +254,7 @@ class Header extends Component {
       window.location = "/texts";
       return;
     }
-    this.showLibrary();   
+    this.showLibrary();
   }
   showLibrary(categories) {
     this.props.showLibrary(categories);
@@ -449,6 +449,7 @@ Header.propTypes = {
   openTopic:                   PropTypes.func.isRequired,
 };
 
+
 function LoggedOutButtons({headerMode}){
   const [isClient, setIsClient] = useState(false);
   const [next, setNext] = useState("/");
@@ -478,6 +479,7 @@ function LoggedOutButtons({headerMode}){
   );
 }
 
+
 function LoggedInButtons({headerMode}){
   const [isClient, setIsClient] = useState(false);
   useEffect(()=>{
@@ -488,11 +490,10 @@ function LoggedInButtons({headerMode}){
   const unread = headerMode ? ((isClient && Sefaria.notificationCount > 0) ? 1 : 0) : Sefaria.notificationCount > 0 ? 1 : 0
   const notificationsClasses = classNames({notifications: 1, unread: unread});
   return(
-      <div className="accountLinks">
-          <a href="/notifications" aria-label="See New Notifications" key={`notificationCount-C-${unread}`} className={notificationsClasses}>{Sefaria.notificationCount}</a>
-        <ProfilePicMenu len={24} url={Sefaria.profile_pic_url} name={Sefaria.full_name} key={`profile-${isClient}-${Sefaria.full_name}`}/>
-
-       </div>
+    <div className="accountLinks">
+      <a href="/notifications" aria-label="See New Notifications" key={`notificationCount-C-${unread}`} className={notificationsClasses}>{Sefaria.notificationCount}</a>
+      <ProfilePicMenu len={24} url={Sefaria.profile_pic_url} name={Sefaria.full_name} key={`profile-${isClient}-${Sefaria.full_name}`}/>
+    </div>
   );
 }
 
