@@ -832,7 +832,8 @@ class EditorPagesLoad(SefariaTest):
 
 
 class ScrollToHighlight(SefariaTest):
-    every_build = True    
+    every_build = True
+    single_panel = False        # is_element_visible_in_viewport fails for mobile.
 
     def test_by_load(self, ref):
         self.load_ref(ref)

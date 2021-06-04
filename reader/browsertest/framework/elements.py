@@ -1209,6 +1209,7 @@ class SefariaTest(AbstractTest):
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".result")))
         return self
 
+    # todo: the #searchInput isn't always present on mobile.  The button to open it isn't always predsent either.  Probably need to nav to toc in that case.
     def type_in_search_box(self, query):
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#searchInput")))
         elem = self.driver.find_element_by_css_selector("#searchInput")
