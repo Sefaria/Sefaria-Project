@@ -1795,9 +1795,7 @@ class Trial(object):
         if isinstance(cap, webdriver.Remote):
             cap = cap.capabilities
         return (cap.get("deviceName") or  # sauce mobile
-                cap.get("device") or  # browserstack mobile
-                ("{} {} on {} {}".format(cap.get("browser"), cap.get("browser_version"), cap.get("os"), cap.get("os_version")) if cap.get("browser") else  # browserstack desktop
-                "{} {} on {}".format(cap.get('browserName'), cap.get("version"), cap.get('platform'))))  # sauce desktop
+                "{} {} on {}".format(cap.get('browserName'), cap.get("browserVersion"), cap.get('platform')))  # sauce desktop
 
     @staticmethod
     def cap_to_short_string(cap):
