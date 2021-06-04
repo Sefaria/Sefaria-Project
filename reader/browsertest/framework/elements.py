@@ -246,15 +246,18 @@ class SefariaTest(AbstractTest):
             return self
 
     def nav_to_account(self):
-        if self.is_logged_in():
-            self.driver.find_element_by_css_selector('.accountLinks .my-profile').click()
-        else:
+        if not self.is_logged_in():
             raise Exception("Can't nav to account.  Not logged in.")
+
+        self.driver.find_element_by_css_selector('.accountLinks .my-profile').click()
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.ID, "my-profile-link")))
+        self.driver.find_element_by_id("my-profile-link").click()
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".profile-summary")))
+
         return self
 
     def nav_to_sheets(self):
         self.nav_to_account()
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".profile-summary")))
         time.sleep(5)
         try:
             el = self.driver.find_element_by_css_selector('.sheet-header .resourcesLink')

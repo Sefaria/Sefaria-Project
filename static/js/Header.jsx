@@ -85,25 +85,24 @@ const ProfilePicMenu = ({len, url, name}) => {
           <div className="interfaceLinks-menu profile-menu" onClick={menuClick}>
             <div className="interfaceLinks-header profile-menu">{name}</div>
             <div className="profile-menu-middle">
-              <div><a className="interfaceLinks-row" href="/my/profile">
+              <div><a className="interfaceLinks-row" id="my-profile-link" href="/my/profile">
                 <InterfaceText>Profile</InterfaceText>
               </a></div>
-              <div><a className="interfaceLinks-row" href="/settings/account">
+              <div><a className="interfaceLinks-row" id="account-settings-link" href="/settings/account">
                 <InterfaceText>Account Settings</InterfaceText>
               </a></div>
               <div className="interfaceLinks-row languages">
-                <a className={`${(Sefaria.interfaceLang == 'hebrew') ? 'active':''}`} href={`/interface/hebrew?next=${getCurrentPage()}`}>עברית</a>
-                <a className={`${(Sefaria.interfaceLang == 'english') ? 'active':''}`} href={`/interface/english?next=${getCurrentPage()}`}>English</a>
+                <a className={`${(Sefaria.interfaceLang == 'hebrew') ? 'active':''}`} href={`/interface/hebrew?next=${getCurrentPage()}`} id="select-hebrew-interface-link">עברית</a>
+                <a className={`${(Sefaria.interfaceLang == 'english') ? 'active':''}`} href={`/interface/english?next=${getCurrentPage()}`} id="select-english-interface-link">English</a>
               </div>
-              <div><a className="interfaceLinks-row bottom" href="/collections/sefaria-faqs">
+              <div><a className="interfaceLinks-row bottom" id="help-link" href="/collections/sefaria-faqs">
                 <InterfaceText>Help</InterfaceText>
               </a></div>
             </div>
             <hr className="interfaceLinks-hr"/>
-            <div><a className="interfaceLinks-row logout" href="/logout">
+            <div><a className="interfaceLinks-row logout" id="logout-link" href="/logout">
               <InterfaceText>Logout</InterfaceText>
             </a></div>
-
           </div> : null}
         </div>
     </div>
