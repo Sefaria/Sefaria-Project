@@ -262,7 +262,25 @@ class SefariaTest(AbstractTest):
         return self
 
     def nav_to_login(self):
+        try:
+            self._nav_to_login_desktop()
+        except NoSuchElementException:
+            self._nav_to_login_mobile()
+        return self
+
+    def _nav_to_login_desktop(self):
         el = self.driver.find_element_by_css_selector('.accountLinks .loginLink')
+        el.click()
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#id_email")))
+        return self
+
+    def _nav_to_login_mobile(self):
+        self.nav_to_toc()
+        self.driver.execute_script(
+            "var a = document.getElementById('loginLink'); a.scrollIntoView(true);"
+        )
+        time.sleep(.50)
+        el = self.driver.find_element_by_id('loginLink')
         el.click()
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#id_email")))
         return self
