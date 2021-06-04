@@ -683,7 +683,7 @@ input.noselect {
   text-align: right;
   color: #000000;
   font-family: "Roboto", "Heebo", "Helvetica Neue", Ariel, sans-serif;
-  padding: 5px 17px 7px 17px;
+  padding: 5px 17px 8px 17px;
   font-size: 14px;
   text-decoration-color: #666666;
   height: 23px;
@@ -729,7 +729,6 @@ div.interfaceLinks-row a {
 .header .interfaceLinks .interfaceLinks-row.logout {
   font-size: 14px;
   color: #666666;
-  padding-bottom: 5px;
   padding-top: 5px;
   margin-top: 5px;
   margin-bottom: 5px;
