@@ -24,7 +24,6 @@ def move_index_into(index, cat):
 
 def rename_category(cat, en, he=None):
     """
-
     :param cat: (model.Category or List) Either a Category object or a list of category keys defining a category
     :param en:  (String)    The new English name of the category.  If `en`` is a key for a Term, the Term will be used.
     Otherwise, the `he` is required, and the two will be used to create a new Term.
@@ -153,3 +152,14 @@ def create_category(path, en=None, he=None, searchRoot=None):
     print("Creating - {}".format(" / ".join(c.path)))
     c.save(override_dependencies=True)
     return c
+
+
+def get_category_paths(path):
+    """
+    Returns a list of all of the category paths one level below `path`.
+    Used for populating rows of the Categories spreadsheet, e.g. to add all the categories that
+    appear as Tanakh Commentaries
+    """
+    from sefaria.model.category import TocCategory
+    root = library.get_toc_tree().lookup(path)
+    return [cat.full_path for cat in root.children if isinstance(cat, TocCategory)]
