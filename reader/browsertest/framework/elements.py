@@ -38,7 +38,7 @@ class AbstractTest(object):
     include = []  # List of platforms (using cap_to_short_string) to include.  If this is present, only these platforms are included
     exclude = []  # List of platforms (using cap_to_short_string) to exclude.
 
-    def __init__(self, driver, url, cap, verbose=False, **kwargs):
+    def __init__(self, url, cap, verbose=False, **kwargs):
         """
 
         :param driver:
@@ -48,10 +48,13 @@ class AbstractTest(object):
         :param kwargs:
         """
         self.base_url = url
-        self.driver = driver
         self.cap = cap
         self.isVerbose = verbose
         self._validate()
+        self.driver = None
+
+    def set_driver(self, driver):
+        self.driver = driver
 
     def _validate(self):
         if not self.multi_panel and not self.single_panel:
@@ -1694,12 +1697,12 @@ class Trial(object):
             }
 
         try:
-            driver = self._get_driver(cap)
-            test_instance = test_class(driver, self.BASE_URL, cap, mode=mode, verbose=self.isVerbose)
-
+            test_instance = test_class(self.BASE_URL, cap, mode=mode, verbose=self.isVerbose)
             if not test_instance.should_run(mode):
                 return None
 
+            driver = self._get_driver(cap)
+            test_instance.set_driver(driver)
             result = test_instance.run()
 
             if self.platform == "sauce":
