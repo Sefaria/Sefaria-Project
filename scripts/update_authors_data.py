@@ -38,7 +38,9 @@ eras = {
     "Contemporary": "CO"
 }
 
-url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSx60DLNs8Dp0l2xpsPjrxD3dBpIKASXSBiE-zjq74SvUIc-hD-mHwCxsuJpQYNVHIh7FDBwx7Pp9zR/pub?gid=0&single=true&output=csv'
+# url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSx60DLNs8Dp0l2xpsPjrxD3dBpIKASXSBiE-zjq74SvUIc-hD-mHwCxsuJpQYNVHIh7FDBwx7Pp9zR/pub?gid=0&single=true&output=csv'
+url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ5ttF7IXj8vso8dfX2P8_cFfjR-i2z5AsNGsjSSpWVKXNXLzpwPiJpdVfePbbr2K-HhPmimF2S-BPV/pub?gid=0&single=true&output=csv'  # for testing
+
 response = requests.get(url)
 data = response.content.decode("utf-8")
 cr = csv.reader(StringIO(data))
@@ -47,7 +49,8 @@ rows = list(cr)[4:]
 # Validate every slug is unique and doesn't exist as a non-author
 internal_slug_count = defaultdict(int)
 for l in rows:
-    slug = l[0].encode('ascii', errors='ignore').decode()
+    slug = l[0].encode('utf8').decode()
+    if len(slug.strip()) == 0: continue
     internal_slug_count[slug] += 1
 has_slug_issues = False
 for slug, count in internal_slug_count.items():
@@ -79,9 +82,8 @@ def _(p: Topic, attr, value):
 
 print("\n*** Updating authorTopic records ***\n")
 for irow, l in enumerate(rows):
-    slug = l[0].encode('ascii', errors='ignore').decode()
-    if not slug:
-        raise Exception(f"Slug is empty for row {irow+5}")  # +5 to make row number match gsheet
+    slug = l[0].encode('utf8').decode()
+    if len(slug.strip()) == 0: continue
     print(slug)
     p = AuthorTopic.init(slug) or AuthorTopic()
     p.slug = slug
@@ -136,12 +138,12 @@ rowmap = {
 flip_link_dir = {'taught'}
 print("\n*** Adding relationships ***\n")
 for l in rows:
-    from_slug = l[0].encode('ascii', errors='ignore').decode()
+    from_slug = l[0].encode('utf8').decode()
     p = AuthorTopic.init(from_slug)
     for i, link_type_slug in rowmap.items():
         if l[i]:
             for pkey in l[i].split(","):
-                to_slug = pkey.strip().encode('ascii', errors='ignore').decode()
+                to_slug = pkey.strip().encode('utf8').decode()
                 to_slug, from_slug = (from_slug, to_slug) if link_type_slug in flip_link_dir else (to_slug, from_slug)
                 print("{} - {}".format(from_slug, pkey))
                 if AuthorTopic.init(to_slug):

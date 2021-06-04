@@ -1898,10 +1898,10 @@ class AddressType(object):
         \p{Hebrew} ~= [\\u05d0–\\u05ea]
         """
         return r"""                                    # 1 of 3 styles:
-        ((?=[\u05d0-\u05ea]+(?:"|\u05f4|\u201d|'')[\u05d0-\u05ea])    # (1: ") Lookahead:  At least one letter, followed by double-quote, two single quotes, right fancy double quote, or gershayim, followed by  one letter
-                \u05ea*(?:"|\u05f4|\u201d|'')?				    # Many Tavs (400), maybe dbl quote
-                [\u05e7-\u05ea]?(?:"|\u05f4|\u201d|'')?	    # One or zero kuf-tav (100-400), maybe dbl quote
-                [\u05d8-\u05e6]?(?:"|\u05f4|\u201d|'')?	    # One or zero tet-tzaddi (9-90), maybe dbl quote
+        ((?=[\u05d0-\u05ea]+(?:"|\u05f4|\u201c|\u201d|'')[\u05d0-\u05ea])    # (1: ") Lookahead:  At least one letter, followed by double-quote, two single quotes, right fancy double quote, or gershayim, followed by  one letter
+                \u05ea*(?:"|\u05f4|\u201c|\u201d|'')?				    # Many Tavs (400), maybe dbl quote
+                [\u05e7-\u05ea]?(?:"|\u05f4|\u201c|\u201d|'')?	    # One or zero kuf-tav (100-400), maybe dbl quote
+                [\u05d8-\u05e6]?(?:"|\u05f4|\u201c|\u201d|'')?	    # One or zero tet-tzaddi (9-90), maybe dbl quote
                 [\u05d0-\u05d8]?					    # One or zero alef-tet (1-9)															#
             |[\u05d0-\u05ea]['\u05f3\u2018\u2019]					# (2: ') single letter, followed by a single quote, geresh, or right fancy quote
             |(?=[\u05d0-\u05ea])					    # (3: no punc) Lookahead: at least one Hebrew letter
@@ -2002,7 +2002,7 @@ class AddressTalmud(AddressType):
     }
     amud_patterns = {
         "en": "[ABabᵃᵇ]",
-        "he": '''([.:]|[,\s]+(?:\u05e2(?:"|\u05f4|''))?[\u05d0\u05d1])'''
+        "he": '''([.:]|[,\s]+(?:\u05e2(?:"|\u05f4|''|\u05de\u05d5\u05d3\s))?([\u05d0\u05d1])['\u05f3\u2018\u2019]?)'''  # Either (1) period / colon (2) some separator + (optional: Ayin for amud) + [alef or bet] + (optional: single quote of any type (really only makes sense if there's no Ayin beforehand))
     }
 
     @classmethod
@@ -2128,14 +2128,8 @@ class AddressTalmud(AddressType):
         elif lang == "he":
             num = re.split("[.:,\s]", s)[0]
             daf = decode_hebrew_numeral(num) * 2
-            if s[-1] == ":" or (
-                    s[-1] == "\u05d1"  # bet
-                    and
-                    ((len(s) > 2 and s[-2] in ", ")  # simple bet
-                     or (len(s) > 4 and s[-3] == '\u05e2')  # ayin"bet
-                     or (len(s) > 5 and s[-4] == "\u05e2")  # ayin''bet
-                    )
-                    ):
+            amud_match = re.search(self.amud_patterns["he"] + "$", s)
+            if s[-1] == ':' or (amud_match is not None and amud_match.group(2) == 'ב'):
                 return daf  # amud B
             return daf - 1
 

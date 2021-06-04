@@ -206,6 +206,8 @@ urlpatterns += [
     url(r'^api/sheets/ref/(?P<ref>[^/]+)$',                           sheets_views.sheets_by_ref_api),
     url(r'^api/sheets/all-sheets/(?P<limiter>\d+)/(?P<offset>\d+)$',  sheets_views.all_sheets_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)/export_to_drive$',            sheets_views.export_to_drive),
+    url(r'^api/sheets/upload-image$',                                 sheets_views.upload_sheet_media),
+
 ]
 
 # Unlink Google Account Subscribe
