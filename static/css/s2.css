@@ -674,6 +674,7 @@ input.noselect {
   direction: ltr;
 }
 .header .interfaceLinks .interfaceLinks-row {
+  align-items: center;
   display: flex;
   text-decoration: none;
   font-style: normal;
@@ -716,9 +717,6 @@ div.interfaceLinks-row a {
   display: flex;
 }
 
-.header .interfaceLinks .interfaceLinks-row.top {
-  padding-top: 10px;
-}
 .header .interfaceLinks .interfaceLinks-row.bottom {
   font-size: 14px;
   text-decoration-color: #000000;
