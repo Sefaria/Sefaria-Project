@@ -285,6 +285,9 @@ const Strings = {
     "Saved": "שמורים",
     "Notifications": "התראות",
 
+    "Texts and sheets that you read will be available for you to see here.": "", // TODO Hebrew
+    "Click the bookmark icon on texts or sheets to save them here.": "", // TODO Hebrew,
+
     // Study Schedules
     "Daily Study": "לימוד יומי",
     "Weekly Study": "לימוד שבועי",

@@ -97,9 +97,9 @@ InterfaceText.propTypes = {
   className: PropTypes.string
 };
 
-const ContentText = ({text, html, overrideLanguage, defaultToInterfaceOnBilingual= false}) => {
+const ContentText = ({text, html, overrideLanguage, defaultToInterfaceOnBilingual=false}) => {
   /**
-   * Renders cotnet language throughout the site (content that comes from the database and is not interface language)
+   * Renders content language throughout the site (content that comes from the database and is not interface language)
    * Gets the active content language from Context and renders only the appropriate child(ren) for given language
    * text {{text: object}} a dictionary {en: "some text", he: "some translated text"} to use for each language
    * html {{html: object}} a dictionary {en: "some html", he: "some translated html"} to use for each language in the case where it needs to be dangerously set html
@@ -1271,11 +1271,11 @@ class ProfileListing extends Component {
   render() {
     const { url, image, name, uid, is_followed, toggleSignUpModal, smallfonts, organization } = this.props;
     return (
-      <div className="authorByLine sans-serif">
+      <div className={"authorByLine sans-serif" + (smallfonts ? " small" : "")}>
         <div className="authorByLineImage">
           <a href={url}>
             <ProfilePic
-              len={40}
+              len={smallfonts ? 30 : 40}
               url={image}
               name={name}
             />
@@ -1284,7 +1284,6 @@ class ProfileListing extends Component {
         <div className="authorByLineText">
           <SimpleLinkedBlock
             classes="authorName"
-            aclasses={smallfonts?"smallText":"systemText"}
             url={url}
             en={name}
             he={name}
@@ -1296,24 +1295,23 @@ class ProfileListing extends Component {
               disableUnfollow={true}
               toggleSignUpModal={toggleSignUpModal} />
           </SimpleLinkedBlock>
-          {
-            !!organization ? <SimpleInterfaceBlock
-              classes={"authorOrganization" + (smallfonts?"smallText":"systemText")}
-              en={organization}
-              he={organization}
-            />:null
-          }
+          {!!organization ? 
+          <SimpleInterfaceBlock
+            classes="authorOrganization"
+            en={organization}
+            he={organization} />
+          :null}
         </div>
       </div>
     );
   }
 }
 ProfileListing.propTypes = {
-  uid:         PropTypes.number.isRequired,
-  url:         PropTypes.string.isRequired,
-  image:       PropTypes.string.isRequired,
-  name:        PropTypes.string.isRequired,
-  is_followed: PropTypes.bool,
+  uid:               PropTypes.number.isRequired,
+  url:               PropTypes.string.isRequired,
+  image:             PropTypes.string.isRequired,
+  name:              PropTypes.string.isRequired,
+  is_followed:       PropTypes.bool,
   toggleSignUpModal: PropTypes.func,
 };
 

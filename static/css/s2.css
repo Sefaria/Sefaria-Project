@@ -1162,9 +1162,6 @@ input.noselect {
   display: inline;
   text-align: right;
 }
-.readerPanel .recentPanel .sheetLink.recentItem {
-  font-family: var(--english-serif-font-family);
-}
 .readerPanel.hebrew .en {
   display: none;
 }
@@ -1721,29 +1718,28 @@ input.noselect {
 .topicPanel .sideColumn .topicCategory {
   margin-bottom: 30px;
 }
-.topicPanel .story .storySheetList .pageTitle span {
-  font-size: 24px;
-}
-.topicPanel .story .storySheetList .pageTitle .int-he {
-  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
-  font-size: 29px;
-}
 .topicPanel .authorOrganizationsystemText {
   font-size: 16px;
   color: #666;
 }
-.topicPanel .pageTitle span {
-  font-size: 24px;
+.story .storyTitle {
+  --english-font: var(--english-serif-font-family);
+  --hebrew-font: var(--hebrew-serif-font-family);
 }
 .story .storyTitle .int-he {
-  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   font-size: 29px;
 }
-.topicPanel .pageTitle h1 span {
+.topicPanel .story .storyTitle {
+  font-size: 24px;
+}
+.topicPanel h1 {
+  --english-font: var(--english-serif-font-family);
+  --hebrew-font: var(--hebrew-serif-font-family); 
+}
+.topicPanel h1 .int.en {
   font-size: 30px;
 }
-.topicPanel .pageTitle h1 .int-he {
-  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+.topicPanel h1 .int-he {
   font-size: 36px;
 }
 .pageTitle .topicTitleInHe .heInEn {
@@ -1923,7 +1919,6 @@ h1 .languageToggle .he {
 .readerNavSection {
   margin-bottom: 44px;
 }
-a.recentItem,
 a.resourcesLink,
 input.resourcesLink {
   white-space: nowrap;
@@ -1932,65 +1927,29 @@ input.resourcesLink {
   width: 100%;
   min-height: 60px;
 }
-.readerPanel .recentPanel .recentItem {
-  display: flex;
-  justify-content: space-between;
-  padding: 0;
-  border: 0;
-  flex-direction: row;
+.savedHistoryList .story {
+  border-top:  1px solid var(--lighter-grey);
+  padding:  20px 0;
 }
-.readerPanel .recentPanel .sideColorLeft {
-  flex: 1;
-  min-width: 0;
+.savedHistoryList .story .storyTitle {
+  font-size:  18px;
 }
-.readerPanel .recentPanel .saved .sideColorLeft {
-  max-width: 90%;
+.savedHistoryList .story .storyBody {
+  color: var(--dark-grey);
 }
-.readerPanel .recentPanel a:not(.saved) .sideColorRight {
-  margin-inline-end: 10px;
-  align-items: center;
-  justify-content: flex-end;
-  color: #999;
-  font-size: 16px;
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  width: 90px;
-  text-align: end;
+.savedHistoryList .saveButton {
+  visibility: hidden;
 }
-.interface-hebrew .recentItem:hover .sideColorRight .int-he,
-.interface-english .recentItem:hover .sideColorRight .int-en {
-  display: inline-block;
-  text-decoration: none;
+.savedHistoryList .story:hover .saveButton {
+  visibility: visible;
 }
-.readerPanel .recentPanel .sideColorLeft,
-.readerPanel .recentPanel .sideColorRight {
-  display: flex;
+.savedHistoryList .timeStamp {
+  color:  var(--medium-grey);
+  font-size: 14px;
+  margin-inline-start: 10px;
 }
-.readerPanel .recentPanel .recentItem .sideColorRight .saveButton {
-  display: none;
-}
-.readerPanel .recentPanel .recentItem:hover .sideColorRight .saveButton {
-  display: flex;
-  align-items: center;
-  padding: 0 15px;
-}
-.readerPanel .recentPanel .sideColor {
-  width: 6px;
-  min-width: 6px;
-}
-.readerPanel .recentPanel .sideColorInner {
-  display: flex;
-  align-items: center;
-  padding: 0 15px;
-  overflow: hidden;
-}
-.readerPanel .recentPanel .sideColorInner .en,
-.readerPanel .recentPanel .sideColorInner .he {
-  text-overflow: ellipsis;
-  overflow: hidden;
-  white-space: nowrap;
-}
-.readerPanel .recentPanel .sideColorInner .byLine {
-  padding: 0 10px;
+.savedHistoryMessage {
+  color: var(--dark-grey);
 }
 .readerNavCategories {
   width: 100%;
@@ -4378,10 +4337,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   background-color: inherit;
 }
 .sheetContent .segment a {
-    color: #4B71B7;
+  color: #4B71B7;
 }
 .sheetContent .segment .sourceContentText a {
-    text-decoration: underline;
+  text-decoration: underline;
 }
 .readerPanel.bilingual.stacked .sheetContent .segment.highlight .he {
   padding-bottom: 1px;
@@ -9429,14 +9388,8 @@ body .homeFeedWrapper .content {
 .mainColumn .story.publishSheetStory .saveLine .saveButton  {
   margin-top: 13px;
 }
-.mainColumn .story.publishSheetStory .storyTitle {
+.story.publishSheetStory .storyTitle {
   padding-bottom: 10px;
-}
-.mainColumn .story .storyTitle {
-  padding: 5px 0 15px;
-}
-.topicPanel .mainColumn .story .storyTitle {
-  padding: 0;
 }
 .mainColumn .story .storySubTitle {
   padding-bottom: 10px;
@@ -9479,11 +9432,12 @@ img.smallProfileImage {
   clear: both;
   margin: 10px 0;
   text-align: justify;
+  font-size: 18px;
 }
-.story .contentText .en {
+.story .storyBody .en {
   line-height: 1.6;
 }
-.story .contentText .he {
+.story .storyBody .he {
   font-size: 22px;
   line-height: 1.6;
 }
@@ -9499,17 +9453,16 @@ img.smallProfileImage {
 .story .storySheetList .sheetTitle {
   padding-bottom: 10px;
 }
-.story .storySheetList .pageTitle span {
+.story .storySheetList .storyTitle span {
   font-size: 20px;
 }
 .story .saveLine {
   display: flex;
   align-items: center;
   clear: both;
+  margin-bottom: 10px;
 }
-.story .saveLine .beforeSave {
-  width: 100%;
-}
+.story .saveLine .beforeSave {flex: 1;}
 .interface-hebrew .story .saveLine .beforeSave {
   padding-left: 10px;
 }
@@ -9518,7 +9471,6 @@ img.smallProfileImage {
 }
 .story .saveLine .saveButton {
   align-self: center;
-  padding-bottom: 10px;
 }
 .story .citationLine.contentText .int-en,
 .story .citationLine.contentText .int-he {
@@ -9550,8 +9502,11 @@ img.smallProfileImage {
   position: relative;
   bottom: 12px;
 }
-.systemText.authorOrganization span {
+.authorOrganization {
   color: #999;
+}
+.authorByLine.small {
+  font-size: 14px;
 }
 .mainColumn a:not(.button) {
   color: #000;
@@ -9990,9 +9945,6 @@ a.topicLexiconTitle.contentText {
   -webkit-transform: rotate(45deg);
   -ms-transform: rotate(45deg);
   transform: rotate(45deg);
-}
-#history-disabled-msg {
-  text-align: center;
 }
 /* start css code for loading bezel */
 .sourceLoader {

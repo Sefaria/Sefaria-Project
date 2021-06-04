@@ -59,8 +59,24 @@ def get_sheet(id=None):
 
 
 def get_sheet_metadata(id = None):
+	"""Returns only metadata on the sheet document"""
 	assert id
 	s = db.sheets.find_one({"id": int(id)}, {"title": 1, "owner": 1, "summary": 1, "ownerImageUrl": 1, "via": 1})
+	return s
+
+
+def get_sheet_listing_data(id):
+	"""Returns metadata on sheet document plus data about its author"""
+	s = get_sheet_metadata(id)
+	del s["_id"]
+	s["title"] = strip_tags(s["title"]).replace("\n", " ")
+	profile = public_user_data(s["owner"])
+	s.update({
+		"ownerName": profile["name"],
+		"ownerImageUrl": profile["imageUrl"],
+		"ownerProfileUrl": profile["profileUrl"],
+		"ownerOrganization": profile["organization"],
+	})
 	return s
 
 

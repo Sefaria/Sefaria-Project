@@ -946,7 +946,7 @@ class ReaderPanel extends Component {
           openDisplaySettings={this.openDisplaySettings}
           toggleLanguage={this.toggleLanguage}
           compare={this.state.compare}
-          interfaceLang={this.props.interfaceLang} />
+          toggleSignUpModal={this.props.toggleSignUpModal} />
       );
 
     } else if (this.state.menuOpen === "profile") {

@@ -27,6 +27,57 @@ function useDebounce(value, delay) {
   return debouncedValue;
 }
 
+
+function useScrollToLoad({scrollableRef, url, setter, itemsPreLoaded=0, pageSize=20}) {
+  // Loads data from `url` and calls `setter` on the resulting data when `scrollableRef` scrolls
+  // close to its bottom. 
+  // API endpoint must return an array of results and support params `skip` and `limit`.
+  // `itemsPreLoaded` counts the number of items already loaded, e.g. when some data was already available
+  // in the JS cache.  If `itemsPreLoaded` > 0, no initial API is made
+  // call will be made until scroll occurs, otherwise the size page is requeste immediately.
+  const [skip, setSkip] = useState(itemsPreLoaded);
+  const [loading, setLoading] = useState(false);
+  const [loadedToEnd, setLoadedToEnd] = useState(false);
+  const isFirstRender = useRef(true);
+
+  // Set a scroll handler that will update the value of `skip`.
+  useEffect(() => {
+    const $scrollable = $(scrollableRef.current);
+    const margin = 600;
+    const handleScroll = () => {
+      if (loadedToEnd || loading) { return; }
+      if ($scrollable.scrollTop() + $scrollable.innerHeight() + margin >= $scrollable[0].scrollHeight) {
+        setSkip(skip + pageSize);
+      }
+    };
+    $scrollable.on("scroll", handleScroll);
+    return (() => {$scrollable.off("scroll", handleScroll);})
+  }, [scrollableRef.current, loadedToEnd, skip, loading]);
+
+  // Load and set data whenever `skip` changes.
+  useEffect(() => {
+    if (isFirstRender.current && itemsPreLoaded > 10) {
+      return;
+    }
+    setLoading(true);
+    const nextUrl = url + (url.indexOf("?") === -1 ? "?" : "&") + "skip=" + skip + "&limit=" + pageSize;
+    $.getJSON(nextUrl, (data) => {
+      setter(data);
+      if (data.length < pageSize) {
+        setLoadedToEnd(true);
+      }
+      setLoading(false);
+    });
+  }, [skip]);
+
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+    }
+  }, [])
+}
+
+
 function usePaginatedScroll(scrollable_element_ref, url, setter, pagesPreLoaded = 0) {
   // Fetches and sets data from `url` when user scrolls to the
   // bottom of `scollable_element_ref`
@@ -68,6 +119,7 @@ function usePaginatedScroll(scrollable_element_ref, url, setter, pagesPreLoaded 
     }
   }, [])
 }
+
 
 function usePaginatedDisplay(scrollable_element_ref, input, pageSize, bottomMargin, initialRenderSize) {
   /*
@@ -119,6 +171,34 @@ function usePaginatedDisplay(scrollable_element_ref, input, pageSize, bottomMarg
   return inputUpToPage;
 }
 
+
+function useIncrementalLoad(fetchData, input, pageSize, setter, identityElement, resetValue=false) {
+  /*
+  Loads all items in `input` in `pageSize` chunks.
+  Each input chunk is passed to `fetchData`
+  fetchData: (data) => Promise(). Takes subarray from `input` and returns promise.
+  input: array of input data for `fetchData`
+  pageSize: int, chunk size
+  setter: (data) => null. Sets paginated data on component.  setter(false) clears data.
+  identityElement: a string identifying a invocation of this effect.  When it changes, pagination and processing will restart.  Old calls in processes will be dropped on landing.
+  resetValue: value to pass to `setter` to indicate that it should forget previous values and reset.
+  */
+
+  // When input changes, creates function to fetch data by page, computes number of pages
+  const [fetchDataByPage, numPages] = useMemo(() => {
+    const fetchDataByPage = (page) => {
+      if (!input) { return Promise.reject({error: "input not array", input}); }
+      const pagedInput = input.slice(page*pageSize, (page+1)*pageSize);
+      return fetchData(pagedInput);
+    };
+    const numPages = Math.ceil(input.length/pageSize);
+    return [fetchDataByPage, numPages];
+  }, [input]);
+
+  usePaginatedLoad(fetchDataByPage, setter, identityElement, numPages, resetValue);
+}
+
+
 function usePaginatedLoad(fetchDataByPage, setter, identityElement, numPages, resetValue=false) {
   /*
   See `useIncrementalLoad` docs
@@ -168,33 +248,9 @@ function usePaginatedLoad(fetchDataByPage, setter, identityElement, numPages, re
   }, [fetchPage]);
 }
 
-function useIncrementalLoad(fetchData, input, pageSize, setter, identityElement, resetValue=false) {
-  /*
-  Loads all items in `input` in `pageSize` chunks.
-  Each input chunk is passed to `fetchData`
-  fetchData: (data) => Promise(). Takes subarray from `input` and returns promise.
-  input: array of input data for `fetchData`
-  pageSize: int, chunk size
-  setter: (data) => null. Sets paginated data on component.  setter(false) clears data.
-  identityElement: a string identifying a invocation of this effect.  When it changes, pagination and processing will restart.  Old calls in processes will be dropped on landing.
-  resetValue: value to pass to `setter` to indicate that it should forget previous values and reset.
-  */
-
-  // When input changes, creates function to fetch data by page, computes number of pages
-  const [fetchDataByPage, numPages] = useMemo(() => {
-    const fetchDataByPage = (page) => {
-      if (!input) { return Promise.reject({error: "input not array", input}); }
-      const pagedInput = input.slice(page*pageSize, (page+1)*pageSize);
-      return fetchData(pagedInput);
-    };
-    const numPages = Math.ceil(input.length/pageSize);
-    return [fetchDataByPage, numPages];
-  }, [input]);
-
-  usePaginatedLoad(fetchDataByPage, setter, identityElement, numPages, resetValue);
-}
 
 export {
+  useScrollToLoad,
   usePaginatedScroll,
   usePaginatedDisplay,
   useDebounce,

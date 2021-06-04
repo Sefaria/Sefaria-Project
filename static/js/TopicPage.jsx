@@ -511,7 +511,7 @@ const TopicPageTab = ({
   scrollableElement, onDisplayedDataChange, initialRenderSize
 }) => {
   return (
-    <div className="story topicTabContents">
+    <div className="topicTabContents">
       {!!data ?
         <div className={classes}>
           <FilterableList

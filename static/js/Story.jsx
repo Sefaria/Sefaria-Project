@@ -300,7 +300,7 @@ const PublishSheetStory = (props) => (
     <StoryFrame cls="publishSheetStory">
         <StoryTypeBlock en="New Sheet" he="דף מקורות חדש" />
         <NaturalTimeBlock timestamp={props.timestamp}/>
-        <SheetBlock sheet={props.data} toggleSignUpModal={props.toggleSignUpModal} isTitle={true}/>
+        <SheetBlock sheet={props.data} toggleSignUpModal={props.toggleSignUpModal}/>
     </StoryFrame>
 );
 PublishSheetStory.propTypes = {
@@ -344,31 +344,6 @@ TextPassageStory.propTypes = {
       language: PropTypes.string
   }),
   interfaceLang:      PropTypes.string,
-  toggleSignUpModal:  PropTypes.func
-};
-
-
-const TextPassage = ({text, toggleSignUpModal, hideSave, afterSave}) => {
-  if (!text.ref) { return null; }
-  const url = "/" + Sefaria.normRef(text.ref);
-
-  return (
-    <StoryFrame cls="textPassageStory">
-      <SaveLine 
-        dref={text.ref}
-        toggleSignUpModal={toggleSignUpModal}
-        classes={"storyTitleWrapper"}
-        afterChildren={afterSave || null} >
-          <StoryTitleBlock en={text.ref} he={text.heRef} url={url}/>
-      </SaveLine>
-      <ColorBarBox tref={text.ref}>
-          <StoryBodyBlock en={text.en} he={text.he}/>
-      </ColorBarBox>
-    </StoryFrame>
-  );
-};
-TextPassage.propTypes = {
-  text: textPropType,
   toggleSignUpModal:  PropTypes.func
 };
 
@@ -478,7 +453,7 @@ const StoryTypeBlock = ({en, he}) => (
 const StoryTitleBlock = ({url, he, en, children}) => {
     const SBlock = url ? SimpleLinkedBlock : SimpleInterfaceBlock;
     return <div className="storyTitleBlock">
-        <SBlock classes="storyTitle pageTitle" url={url} he={he} en={en}/>
+        <SBlock classes="storyTitle" url={url} he={he} en={en}/>
         {children}
     </div>;
 };
@@ -490,7 +465,7 @@ const ColorBarBox = ({tref, children}) =>  (
 
 
 const StoryBodyBlock = ({en, he}) => (
-    <SimpleContentBlock classes="storyBody contentText" en={en} he={he}/>
+    <SimpleContentBlock classes="storyBody" en={en} he={he}/>
 );
 
 
@@ -525,7 +500,40 @@ StorySheetList.propTypes = {
 };
 
 
-const SheetBlock = ({sheet, compact, cozy, smallfonts, isTitle, toggleSignUpModal}) => {
+const TextPassage = ({text, afterSave, toggleSignUpModal}) => {
+  if (!text.ref) { return null; }
+  if (!text.versions) debugger;
+  const url = "/" + Sefaria.normRef(text.ref) + 
+                    Object.keys(text.versions || {})
+                        .filter(vlang=>!!text.versions[vlang])
+                        .map(vlang=>`&v${vlang}=${text.versions[vlang]}`)
+                        .join("")
+                        .replace("&","?");
+
+  return (
+    <StoryFrame cls="textPassageStory">
+      <SaveLine 
+        dref={text.ref}
+        versions={text.versions}
+        toggleSignUpModal={toggleSignUpModal}
+        classes={"storyTitleWrapper"}
+        afterChildren={afterSave || null} >
+          <StoryTitleBlock en={text.ref} he={text.heRef} url={url}/>
+      </SaveLine>
+      <ColorBarBox tref={text.ref}>
+          <StoryBodyBlock en={text.en || text.he} he={text.he || text.en}/>
+      </ColorBarBox>
+    </StoryFrame>
+  );
+};
+TextPassage.propTypes = {
+  text: textPropType,
+  afterSave: PropTypes.object,
+  toggleSignUpModal:  PropTypes.func
+};
+
+
+const SheetBlock = ({sheet, compact, cozy, smallfonts, afterSave, toggleSignUpModal}) => {
     const historyObject = {
       ref: "Sheet " + sheet.sheet_id,
       sheet_title: sheet.sheet_title,
@@ -534,12 +542,24 @@ const SheetBlock = ({sheet, compact, cozy, smallfonts, isTitle, toggleSignUpModa
     };
 
     return (
-      <div className="storySheetListItem">
-        <SaveLine historyObject={historyObject} toggleSignUpModal={toggleSignUpModal}>
-            <SimpleLinkedBlock en={sheet.sheet_title} he={sheet.sheet_title} url={"/sheets/" + sheet.sheet_id} classes={"sheetTitle" + (smallfonts?" chapterText lowercase":" pageTitle") + (isTitle ? " storyTitle" : "")}/>
+      <StoryFrame cls={"storySheetListItem" + (smallfonts ? " small" : "")}>
+        <SaveLine
+            historyObject={historyObject}
+            afterChildren={afterSave || null}
+            toggleSignUpModal={toggleSignUpModal}>
+            <SimpleLinkedBlock 
+                en={sheet.sheet_title}
+                he={sheet.sheet_title}
+                url={"/sheets/" + sheet.sheet_id}
+                classes={"sheetTitle storyTitle"}/>
         </SaveLine>
-        {(sheet.sheet_summary && !(compact || cozy))?<SimpleInterfaceBlock classes={"storyBody" + (smallfonts?" smallText":" contentText")} en={sheet.sheet_summary} he={sheet.sheet_summary}/>:null}
-        {cozy?"":<ProfileListing
+
+        {(sheet.sheet_summary && !(compact || cozy)) ? 
+        <SimpleInterfaceBlock classes={"storyBody"} en={sheet.sheet_summary} he={sheet.sheet_summary}/>
+        : null}
+        
+        {cozy ? null :
+        <ProfileListing
           uid={sheet.publisher_id}
           url={sheet.publisher_url}
           image={sheet.publisher_image}
@@ -548,16 +568,19 @@ const SheetBlock = ({sheet, compact, cozy, smallfonts, isTitle, toggleSignUpModa
           smallfonts={smallfonts}
           position={sheet.publisher_position}
           organization={sheet.publisher_organization}
-          toggleSignUpModal={toggleSignUpModal}
-        />}
-      </div>
+          toggleSignUpModal={toggleSignUpModal} />}
+      </StoryFrame>
     );
 };
-SheetBlock.propTypes = {sheet: sheetPropType.isRequired};
+SheetBlock.propTypes = {
+    sheet: sheetPropType.isRequired,
+    afterSave: PropTypes.object,
+    toggleSignUpModal:  PropTypes.func
+};
 
 
 const SaveLine = ({classes, children, historyObject, dref, versions, hideSave, afterChildren, toggleSignUpModal}) => (
-    <div className={"saveLine " + classes}>
+    <div className={"saveLine " + (classes ? classes : "")}>
         <div className="beforeSave">
             {children}
         </div>

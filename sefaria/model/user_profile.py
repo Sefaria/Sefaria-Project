@@ -131,6 +131,7 @@ class UserHistory(abst.AbstractMongoRecord):
             pass
 
     def contents(self, **kwargs):
+        from sefaria.sheets import get_sheet_listing_data
         d = super(UserHistory, self).contents(**kwargs)
         if kwargs.get("for_api", False):
             keys = {
@@ -149,11 +150,11 @@ class UserHistory(abst.AbstractMongoRecord):
             d = {
                 key: d.get(key, default) for key, default in list(keys.items())
             }
-        if kwargs.get("with_text", False):
+        if kwargs.get("annotate", False):
             try:
                 ref = Ref(d["ref"])
                 if ref.is_sheet():
-                    pass
+                    d.update(get_sheet_listing_data(d["sheet_id"]))
                 else:
                     d["text"] = {
                         "en": TextChunk(ref, "en").as_sized_string(),
@@ -194,7 +195,7 @@ class UserHistory(abst.AbstractMongoRecord):
         uh.delete()
 
     @staticmethod
-    def get_user_history(uid=None, oref=None, saved=None, secondary=None, last_place=None, sheets=None, serialized=False, limit=0, skip=0):
+    def get_user_history(uid=None, oref=None, saved=None, secondary=None, last_place=None, sheets=None, serialized=False, annotate=False, limit=0, skip=0):
         query = {}
         if uid is not None:
             query["uid"] = uid
@@ -211,7 +212,7 @@ class UserHistory(abst.AbstractMongoRecord):
         if last_place is not None:
             query["last_place"] = last_place
         if serialized:
-            return [uh.contents(for_api=True, with_text=(not last_place)) for uh in UserHistorySet(query, proj={"uid": 0, "server_time_stamp": 0}, sort=[("time_stamp", -1)], limit=limit)]
+            return [uh.contents(for_api=True, annotate=annotate) for uh in UserHistorySet(query, proj={"uid": 0, "server_time_stamp": 0}, sort=[("time_stamp", -1)], limit=limit, skip=skip)]
         return UserHistorySet(query, sort=[("time_stamp", -1)], limit=limit, skip=skip)
 
     @staticmethod
@@ -600,7 +601,7 @@ class UserProfile(object):
         else:  # history disabled do nothing.
             return None
 
-    def get_user_history(self, oref=None, saved=None, secondary=None, sheets=None, last_place=None, serialized=False, limit=0, skip=0):
+    def get_history(self, oref=None, saved=None, secondary=None, sheets=None, last_place=None, serialized=False, annotate=False, limit=0, skip=0):
         """
         personal user history
         :param oref:
@@ -614,8 +615,7 @@ class UserProfile(object):
         """
         if not self.settings.get('reading_history', True) and not saved:
             return [] if serialized else None
-        return UserHistory.get_user_history(uid=self.id, oref=oref, saved=saved, secondary=secondary, sheets=sheets,
-                                            last_place=last_place, serialized=serialized, limit=limit, skip=0)
+        return UserHistory.get_user_history(uid=self.id, oref=oref, saved=saved, secondary=secondary, sheets=sheets, last_place=last_place, serialized=serialized, annotate=annotate, limit=limit, skip=skip)
 
     def delete_user_history(self, exclude_saved=True, exclude_last_place=False):
         UserHistory.delete_user_history(uid=self.id, exclude_saved=exclude_saved, exclude_last_place=exclude_last_place)
