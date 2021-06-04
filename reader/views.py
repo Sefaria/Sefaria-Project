@@ -926,7 +926,7 @@ def texts_list(request):
     """
 
 def calendars(request):
-    title = _("Study Schedules") + " | " + _(SITE_SETTINGS["LIBRARY_NAME"]["en"])
+    title = _("Learning Schedules") + " | " + _(SITE_SETTINGS["LIBRARY_NAME"]["en"])
     desc  = _("Weekly Torah portions, Daf Yomi and other schedules for Torah learning.")
     return menu_page(request, page="calendars", title=title, desc=desc)
 

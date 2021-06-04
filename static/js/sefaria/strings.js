@@ -37,7 +37,7 @@ const Strings = {
     "Sefaria is home to 3,000 years of Jewish texts. We are a non-profit organization offering free access to texts, translations, and commentaries so that everyone can participate in the ongoing process of studying, interpreting, and creating Torah.": "ספריא היא הבית של 3,000 שנות ספרות יהודית. אנו ארגון ללא מטרות רווח המציע גישה חופשית למקורות יהודיים, לתרגומים ולפרשנויות, ומטרתנו לאפשר לכל אחד ואחת להשתתף בתהליך החי של לימוד וחידוש בתורה.",
     "Learn More": "לקריאה נוספת",
     "Explore the Library": "גלו את הספריה",
-    "Study Schedules": "לוחות זמנים ללימוד",
+    "Learning Schedules": "לוחות זמנים ללימוד",
     "Teach with Sefaria": "ללמד עם ספריא",
     "Visualizations": "הדמיות חזותיות",
     "Torah Tab": "תורה טאב (לשונית)",
@@ -55,7 +55,7 @@ const Strings = {
     "The Jewish Library": "ארון הספרים היהודי",
     "The tradition of Torah texts is a vast, interconnected network that forms a conversation across space and time. The five books of the Torah form its foundation, and each generation of later texts functions as a commentary on those that came before it.": "מסורת הלימוד היהודי ארוגה ברשת מסועפת של קשרים, היוצרים שיח מֵעבר לגבולות הזמן והמקום. חמשת חומשי התורה הם אבן היסוד של השיח הזה, וכל דור נוסף של כתיבה תורנית משמש פרשנות לכתיבה התורנית של הדורות הקודמים.",
     "Weekly Torah Portion": "פרשת השבוע",
-    "All Study Schedules": "לוחות זמנים ללימוד",
+    "All Learning Schedules": "לוחות זמנים ללימוד",
     "Sponsor A Day of Learning": "מתן חסות ליום לימוד",
     "With your help, we can add more texts and translations to the library, develop new tools for learning, and keep Sefaria accessible for Torah study anytime, anywhere.": "בעזרת התרומה שלך נוכל להוסיף מקורות ותרגומים נוספים לספרייה, לפתח כלים חדשים ללימוד ולשמור על גישה חופשית ללימוד תורה בספריא, בכל מקום ובכל זמן.",
     "Sponsor A Day": "הקדשת יום לימוד",
@@ -288,11 +288,10 @@ const Strings = {
     "Texts and sheets that you read will be available for you to see here.": "", // TODO Hebrew
     "Click the bookmark icon on texts or sheets to save them here.": "", // TODO Hebrew,
 
-    // Study Schedules
-    "Daily Study": "לימוד יומי",
-    "Weekly Study": "לימוד שבועי",
+    // Learning Schedules
+    "Daily Learning": "לימוד יומי",
+    "Weekly Learning": "לימוד שבועי",
     "Since biblical times, the Torah has been divided into sections which are read each week on a set yearly calendar. Following this practice, many other calendars have been created to help communities of learners work through specific texts together.": "מאז ימי המקרא חולקה התורה לקטעי קריאה שבועיים שנועדו לסיום הספר כולו במשך תקופת זמן של שנה. בעקבות המנהג הזה התפתחו לאורך השנים סדרי לימוד תקופתיים רבים נוספים, ובעזרתם יכולות קהילות וקבוצות של לומדים ללמוד יחד טקסטים שלמים.",
-
 
     //languages
     "English": "אנגלית",

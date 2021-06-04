@@ -469,7 +469,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
       </a>
       <a href="/calendars" onClick={close}>
         <img src="/static/icons/calendar.svg" />
-        <InterfaceText>Study Schedules</InterfaceText>
+        <InterfaceText>Learning Schedules</InterfaceText>
       </a>
       <a href="/collections" onClick={close}>
         <img src="/static/icons/collection.svg" className="blackIcon"/>

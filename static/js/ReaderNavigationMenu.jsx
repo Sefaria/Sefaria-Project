@@ -87,7 +87,7 @@ const ReaderNavigationMenu = ({categories, settings, setCategories, onCompareBac
 
   const sidebarModules = [
     multiPanel ? {type: "AboutSefaria"} : {type: null},
-    {type: "StudySchedules"},
+    {type: "LearningSchedules"},
     {type: "JoinTheCommunity"},
     {type: "Resources"},
   ];

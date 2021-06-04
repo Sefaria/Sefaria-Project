@@ -23,32 +23,32 @@ const NavSidebar = ({modules}) => {
 const Modules = ({type, props}) => {
   // Choose the appropriate module component to render by `type`
   const moduleTypes = {
-    "AboutSefaria":        AboutSefaria,
-    "Resources":           Resources,
-    "TheJewishLibrary":    TheJewishLibrary,
-    "AboutTextCategory":   AboutTextCategory,
-    "PopularTexts":        PopularTexts,
-    "AboutText":           AboutText,
-    "SupportSefaria":      SupportSefaria,
-    "SponsorADay":         SponsorADay,
-    "StudySchedules":      StudySchedules,
-    "WeeklyTorahPortion":  WeeklyTorahPortion,
-    "DafYomi":             DafYomi,
-    "AboutTopics":         AboutTopics,
-    "TrendingTopics":      TrendingTopics,
-    "RelatedTopics":       RelatedTopics,
-    "TitledText":          TitledText,
-    "Visualizations":      Visualizations,
-    "JoinTheConversation": JoinTheConversation,
-    "JoinTheCommunity":    JoinTheCommunity,
-    "GetTheApp":           GetTheApp,
-    "StayConnected":       StayConnected,
-    "AboutStudySchedules": AboutStudySchedules,
-    "AboutCollections":    AboutCollections,
-    "DownloadVersions":    DownloadVersions,
-    "WhoToFollow":         WhoToFollow,
-    "Image":               Image,
-    "Wrapper":             Wrapper,
+    "AboutSefaria":           AboutSefaria,
+    "Resources":              Resources,
+    "TheJewishLibrary":       TheJewishLibrary,
+    "AboutTextCategory":      AboutTextCategory,
+    "PopularTexts":           PopularTexts,
+    "AboutText":              AboutText,
+    "SupportSefaria":         SupportSefaria,
+    "SponsorADay":            SponsorADay,
+    "LearningSchedules":      LearningSchedules,
+    "WeeklyTorahPortion":     WeeklyTorahPortion,
+    "DafYomi":                DafYomi,
+    "AboutTopics":            AboutTopics,
+    "TrendingTopics":         TrendingTopics,
+    "RelatedTopics":          RelatedTopics,
+    "TitledText":             TitledText,
+    "Visualizations":         Visualizations,
+    "JoinTheConversation":    JoinTheConversation,
+    "JoinTheCommunity":       JoinTheCommunity,
+    "GetTheApp":              GetTheApp,
+    "StayConnected":          StayConnected,
+    "AboutLearningSchedules": AboutLearningSchedules,
+    "AboutCollections":       AboutCollections,
+    "DownloadVersions":       DownloadVersions,
+    "WhoToFollow":            WhoToFollow,
+    "Image":                  Image,
+    "Wrapper":                Wrapper,
   };
   if (!type) { return null; }
   const ModuleType = moduleTypes[type];
@@ -269,10 +269,10 @@ const DafLink = () => {
 }
 
 
-const StudySchedules = () => {
+const LearningSchedules = () => {
   return (
     <Module>
-      <ModuleTitle>Study Schedules</ModuleTitle>
+      <ModuleTitle>Learning Schedules</ModuleTitle>
       <div className="readingsSection">
         <span className="readingsSectionTitle">
           <InterfaceText>Weekly Torah Portion</InterfaceText>: <ParashahName />
@@ -292,7 +292,7 @@ const StudySchedules = () => {
         <DafLink />
       </div>
       <a href="/calendars" className="allLink">
-        <InterfaceText>All Study Schedules</InterfaceText> <InterfaceText>&rsaquo;</InterfaceText>
+        <InterfaceText>All Learning Schedules</InterfaceText> <InterfaceText>&rsaquo;</InterfaceText>
       </a>
     </Module>
   );
@@ -326,7 +326,7 @@ const WeeklyTorahPortion = () => {
 const DafYomi = () => {
   return (
     <Module>
-      <ModuleTitle>Daily Study</ModuleTitle>
+      <ModuleTitle>Daily Learning</ModuleTitle>
       <div className="readingsSection">
         <span className="readingsSectionTitle">
           <InterfaceText >Daf Yomi</InterfaceText>
@@ -511,9 +511,9 @@ const StayConnected = () => {
 };
 
 
-const AboutStudySchedules = () => (
+const AboutLearningSchedules = () => (
   <Module>
-    <ModuleTitle h1={true}>Study Schedules</ModuleTitle>
+    <ModuleTitle h1={true}>Learning Schedules</ModuleTitle>
     <InterfaceText>Since biblical times, the Torah has been divided into sections which are read each week on a set yearly calendar. Following this practice, many other calendars have been created to help communities of learners work through specific texts together.</InterfaceText>
   </Module>
 );
