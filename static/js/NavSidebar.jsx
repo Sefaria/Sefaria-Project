@@ -95,7 +95,7 @@ const Resources = () => (
     <ModuleTitle>Resources</ModuleTitle>
     <div className="linkList">
       <IconLink text="Mobile Apps" url="/mobile" icon="mobile.svg" />
-      <IconLink text="Sheets" url="/sheets" icon="sheet.svg" />
+      <IconLink text="Create with Sefaria" url="/sheets" icon="sheet.svg" />
       <IconLink text="Collections" url="/collections" icon="collection.svg" />
       <IconLink text="Teach with Sefaria" url="/educators" icon="educators.svg" />
       <IconLink text="Visualizations" url="/visualizations" icon="visualizations.svg" />
