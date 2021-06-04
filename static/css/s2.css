@@ -1344,6 +1344,9 @@ input.noselect {
   margin-bottom: 34px;
   padding: 0 44px;
 }
+.connectionsPanel .navSidebarModule{
+  padding: initial;
+}
 .singlePanel .navSidebarModule {
   padding: 0 15px;
 }
@@ -2450,12 +2453,6 @@ a.navBlockTitle:hover {
   line-height: 1.4;
   text-align: center;
 }
-.readerTextTableOfContents .currentVersionBox {
-  margin-bottom: 18px;
-}
-.readerTextTableOfContents .currentVersionBox .versionBlock {
-  margin: 0;
-}
 .readerTextTableOfContents .moderatorSection {
   margin-top: 20px;
 }
@@ -2749,9 +2746,6 @@ a.navBlockTitle:hover {
 .bilingual .readerTextTableOfContents.noLangToggleInHebrew .content .tocContent{
   direction: rtl;
 }
-.readerTextTableOfContents .versionsBox {
-  padding: 20px 0;
-}
 .readerTextTableOfContents .button.allVersionsButton {
   color: #999;
   text-transform: uppercase;
@@ -2762,46 +2756,80 @@ a.navBlockTitle:hover {
 .readerTextTableOfContents .allVersionsButton.inactive {
   background-color: transparent;
 }
-.readerTextTableOfContents .versionBlocks {
-  text-align: center;
-  border-top: 1px solid #ccc;
-  padding-top: 20px;
-}
-.readerTextTableOfContents .versionBlocks .versionLanguageBlock {
-  padding-bottom: 30px;
-  clear: both;
-}
-.readerTextTableOfContents .versionBlocks .versionLanguageHeader {
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  text-transform: uppercase;
-  letter-spacing: .2em;
-  color: #999;
-  padding: 10px 0;
-}
 .versionBlock{
   display: flex;
   flex-flow: column;
 }
-.readerTextTableOfContents .versionBlock {
-  padding: 0 30px;
-  margin: 25px 0;
-  box-sizing: border-box;
-  cursor: pointer;
-  text-align: center;
+.versionBlock .versionBlockHeading{
+  display: flex;
+  justify-content: start;
+  align-items: flex-start;
+}
+.readerTextTableOfContents .versionBlock .versionBlockHeading{
+  margin-bottom: 10px;
 }
 .versionBlock .versionTitle {
   font-size: 18px;
   color: #000;
   /*unicode-bidi: plaintext;*/
 }
-.versionBlock .versionTitle a{
-  font-family: 'HebrewInEnglish Serif Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+.readerTextTableOfContents .versionBlock .versionTitle{
+  font-style: normal;
+  font-weight: normal;
+  font-size: 24px;
+  line-height: 29px;
+  max-inline-size: max-content;
 }
-.versionBlock .versionTitle .versionEditIcon{
+.versionsBox .versionBlock {
+  padding: 20px 0;
+  border-top: solid 1px #CCC;
+}
+.readerTextTableOfContents .versionsBox .versionBlock{
+  padding-top: 20px;
+  padding-bottom: 34px;
+}
+.readerTextTableOfContents .versionsBox .versionBlock:first-child{
+  padding-top: 0;
+  border-top: none;
+}
+.singlePanel .versionsBox .versionBlock .versionTitle .he {
+    display: inline;
+}
+.versionBlock .versionTitle a {
+  color: black;
+}
+.versionBlock .versionBlockHeading .versionLanguage {
   display: none;
 }
-.versionBlock .versionTitle .versionEditIcon.enabled{
+.readerTextTableOfContents .versionBlock .versionBlockHeading .versionLanguage{
+  display: initial;
+  margin-inline-start: auto;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 14px;
+  line-height: 18px;
+  color: #666666;
+  background: #EDEDEC;
+  border-radius: 25px;
+  padding: 5px 10px;
+}
+.aboutBox .versionBlock .versionTitle:hover {
+  text-decoration: none;
+}
+.versionBlock .versionTitle a{
+}
+.versionBlock .versionBlockHeading .versionEditIcon{
+  display: none;
+}
+.versionBlock .versionBlockHeading .versionEditIcon.enabled{
   display: inline-block;
+  align-self: self-start;
+  font-size: 14px;
+  padding: 5px;
+}
+.versionBlock .versionBlockHeading .versionEditIcon.enabled:hover{
+  color: #666666;
+  cursor: pointer;
 }
 .versionBlock .versionSelect{
   margin: 10px 0;
@@ -2809,65 +2837,34 @@ a.navBlockTitle:hover {
 .readerTextTableOfContents .versionBlock .versionSelect, .aboutBox .currVersionSection .versionSelect{
   display: none;
 }
-.versionBlock a {
-  color: #999;
-}
 .versionBlock .versionNotes a {
-  font-family: 'HebrewInEnglish Serif Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-style: normal;
   font-weight: normal;
-  font-size: 18px;
-  line-height: 22px;
   color: #666666;
   text-decoration: underline;
 }
-.versionBlock .versionNotes span{
-  font-family: 'HebrewInEnglish Serif Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
-}
 .versionBlock .versionDetails {
-  display: inline-block;
-  font-size: 12px;
-  font-family: "Hebrew System Text", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  color: #999;
   display: flex;
   flex-flow: row;
   justify-content: space-between;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 14px;
+  line-height: 20px;
+  color: #666666;
 }
 .readerTextTableOfContents .versionBlock .versionDetails{
-  text-align: center;
+  line-height: 20px;
 }
 .versionBlock .versionDetails .versionDetailsInformation{
   display: flex;
   flex-flow: column;
 }
-.readerTextTableOfContents .versionBlock .versionDetails .versionDetailsInformation{
-  margin: auto;
-  flex-flow: row;
-  justify-content: space-around;
-}
 .versionBlock .versionDetails .versionDetailsImage{
   margin-top: 5px;
 }
-.versionBlock .versionDetails .versionDetailsInformation .versionDetailsElement{
-  font-family: "Hebrew System Text", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;;
-  font-style: normal;
-  font-weight: normal;
-  font-size: 13px;
-  line-height: 20px;
-  color: #999999;
-}
 .versionBlock .versionDetails .versionDetailsInformation .versionDetailsElement.versionBuyLink a{
   color: #18345D;
-}
-.readerTextTableOfContents .versionBlock .versionDetails .versionDetailsInformation .versionDetailsElement{
-  margin: 0 2px;
-}
-.readerTextTableOfContents .versionBlock .versionDetails .versionDetailsInformation .versionDetailsElement::after{
-  content: "•";
-  margin-inline-start: 4px;
-}
-.readerTextTableOfContents .versionBlock .versionDetails .versionDetailsInformation .versionDetailsElement.versionHistoryLink::after{
-  content: "›";
 }
 .versionBlock .versionDetails .versionDetailsLabel, .versionBlock .versionDetails .versionDetailsLabel:hover{
   text-decoration: none;
@@ -2875,17 +2872,14 @@ a.navBlockTitle:hover {
 .versionBlock .versionDetails .versionBuyImage .versionDetailsImageLink img{
   height: 120px;
 }
-.readerTextTableOfContents .versionBlock .versionDetails .versionBuyImage, .readerTextTableOfContents .versionBlock .versionDetails .versionBuyLink{
-  display: none;
-}
 .versionBlock .versionDetails .n-a, .versionBlock .n-a{
   display: none;
 }
 .versionBlock .versionTitle:hover {
   text-decoration: underline;
+  cursor: pointer;
 }
 .versionBlock .versionNotes {
-  font-family: 'HebrewInEnglish Serif Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-style: normal;
   font-weight: normal;
   font-size: 18px;
@@ -2894,17 +2888,25 @@ a.navBlockTitle:hover {
   margin: 10px 0;
   text-align: start;
 }
+.readerTextTableOfContents .versionBlock .versionNotes{
+  font-size: 16px;
+  line-height: 19px;
+  padding-bottom: 15px;
+}
 .versionBlock .versionEditIcon {
   margin: 0 7px;
   vertical-align: 1px;
 }
 .versionBlock .versionExtendedNotesLinks{
   font-style: italic;
+  display: block;
 }
 .versionBlock .versionExtendedNotesLinks.no-notes{
   display: none;
 }
-
+.versionBlock .versionExtendedNotesLinks{/*temporary because broken*/
+  display: none;
+}
 .modTools {
   width: 50%;
   margin: 0 auto;
@@ -2916,8 +2918,6 @@ a.navBlockTitle:hover {
   border-top: 1px solid #ccc;
 }
 .readerTextTableOfContents .content .dlSection {
-  padding-top: 50px;
-  border-top: 1px solid #ccc;
 }
 .modTools .dlSectionTitle {
     width: 60%;
@@ -2956,13 +2956,12 @@ a.navBlockTitle:hover {
   display: block;
 }
 
-.modTools .dlVersionSelect,
-.readerTextTableOfContents .content .dlVersionSelect {
-  width: 60%;
+select {
+  width: 100%;
   margin: 10px auto;
   background-color: white;
   font-size: 14px;
-  height: 3em;
+  height: 50px;
   border-color: #ccc;
   border-radius: 3px;
   color: #333;
@@ -6258,10 +6257,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .button {
   display: inline-block;
   color: white;
-  background-color: #212E50;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-  border-radius: 7px;
-  padding: 17px 30px;
+  background-color: var(--sefaria-blue);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+  border-radius: 6px;
+  padding: 16px 30px;
   margin: 0 2px 6px 2px;
   cursor: pointer;
   font-size: 16px;
@@ -6270,7 +6269,19 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-align: center;
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
-  width: fit-content;
+  width: 100%;
+}
+.button.disabled{
+  border: 1px solid var(--light-grey);
+  background-color: var(--lightest-grey);
+  font-size: 16px;
+  line-height: 19px;
+  text-align: center;
+  color: var(--medium-grey);
+  box-shadow: none;
+}
+.button.disabled:hover{
+  color: var(--medium-grey);
 }
 a.button {
   color: white;
@@ -6322,6 +6333,8 @@ a .button:hover {
 }
 .button.small {
   padding: 10px 14px;
+  width: -moz-fit-content;
+  width: fit-content;
 }
 .button.extraSmall {
   border-radius: 6px;
@@ -7831,14 +7844,14 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   color: #333;
 }
 .aboutBox .aboutHeader {
-  color: #666;
+  color: var(--dark-grey);
   padding-bottom: 13px;
   margin: 0;
   margin-bottom: 15px;
   text-align: initial;
   text-transform: none;
-  font-size: 16px;
-  border-bottom: solid 1px #CCC;
+  font-size: 22px;
+  border-bottom: solid 1px var(--light-grey);
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
@@ -7879,10 +7892,6 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .aboutBox .versionDetails .separator,
 .versionsBox .versionDetails .separator {
   margin: 0 3px;
-}
-.aboutBox a,
-.versionsBox a {
-  color: #999;
 }
 .aboutBox .currVersionSection, .aboutBox .alternateVersionsSection {
   padding-bottom: 30px;
@@ -7934,7 +7943,6 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 .versionsBox .versionLanguage {
   padding-bottom: 15px;
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   letter-spacing: 1px;
   font-style: normal;
   font-weight: normal;
@@ -7943,7 +7951,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   color: #666666;
 }
 .interface-hebrew .versionsBox .versionLanguage {
-  font-family: "Heebo", sans-serif;
+  direction: rtl;
 }
 .versionsBox div:not(:first-child) .versionLanguage {
   padding-top: 25px;
@@ -7952,7 +7960,6 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   color: #999;
 }
 .versionsBox a.selectButton {
-  font-family: "HebrewInEnglish System Font", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-style: normal;
   font-weight: normal;
   font-size: 13px;
@@ -7972,22 +7979,6 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 .versionsTextList .topFiltersInner .uppercase {
   text-transform: none;
-}
-.versionsBox .versionBlock {
-  padding: 20px 0;
-  border-top: solid 1px #CCC;
-}
-.singlePanel .versionsBox .versionBlock .versionTitle .he {
-    display: inline;
-}
-.versionBlock .versionTitle a {
-  color: black;
-}
-.interface-hebrew .versionsBox .versionLanguage {
-  direction: rtl;
-}
-.aboutBox .versionBlock .versionTitle:hover {
-  text-decoration: none;
 }
 span.purim-emoji img{
   height: 25px;

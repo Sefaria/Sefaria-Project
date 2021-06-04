@@ -546,6 +546,16 @@ Sefaria = extend(Sefaria, {
   },
   getTranslateVersionsKey: (vTitle, lang) => `${vTitle}|${lang}`,
   deconstructVersionsKey: (versionsKey) => versionsKey.split('|'),
+  getLicenseMap: function() {
+    const licenseMap = {
+      "Public Domain": "https://en.wikipedia.org/wiki/Public_domain",
+      "CC0": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "CC-BY": "https://creativecommons.org/licenses/by/3.0/",
+      "CC-BY-SA": "https://creativecommons.org/licenses/by-sa/3.0/",
+      "CC-BY-NC": "https://creativecommons.org/licenses/by-nc/4.0/"
+    }
+    return licenseMap;
+  },
   _textUrl: function(ref, settings) {
     // copy the parts of settings that are used as parameters, but not other
     const params = param({
@@ -2375,6 +2385,15 @@ _media: {},
     } else {
       return inputStr;
     }
+  },
+  _v: function(langOptions){
+    /* Takes an object {en: "something", he: "משהו"}
+     * and returns the correct one according to interface language
+     * Convenience method for when there are two data variables in an object one wishes to return
+     * according to interface, in places where HTML is not allowed (inside <options> tag for ex.
+    */
+    const lang = Sefaria.interfaceLang.slice(0,2);
+    return langOptions[lang] ? langOptions[lang] : "";
   },
   _getStringCaseInsensitive: function (store, inputStr){
      return inputStr in store ? store[inputStr] : inputStr.toLowerCase() in store ? store[inputStr.toLowerCase()] : null;

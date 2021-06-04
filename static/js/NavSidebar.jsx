@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Sefaria  from './sefaria/sefaria';
@@ -44,6 +44,7 @@ const Modules = ({type, props}) => {
     "StayConnected":       StayConnected,
     "AboutStudySchedules": AboutStudySchedules,
     "AboutCollections":    AboutCollections,
+    "DownloadVersions":    DownloadVersions,
     "WhoToFollow":         WhoToFollow,
     "Image":               Image,
     "Wrapper":             Wrapper,
@@ -193,14 +194,14 @@ const AboutText = ({index, hideTitle}) => {
   return (
     <Module>
       {hideTitle ? null :
-      <h3><InterfaceText>About this Text</InterfaceText></h3>}
+          <ModuleTitle>About this Text</ModuleTitle>}
       { composed || authors.length ?
       <div className="aboutTextMetadata">
-        
-        {authors.length ? 
+
+        {authors.length ?
         <div className="aboutTextAuthor">
           {authors.length == 1 ?
-          <InterfaceText>Author:</InterfaceText> 
+          <InterfaceText>Author:</InterfaceText>
           : <InterfaceText>Authors:</InterfaceText>}
           <span className="aboutTextAuthorText">
             &nbsp;{authors}
@@ -544,6 +545,90 @@ const IconLink = ({text, url, icon}) => (
     <a href={url}><InterfaceText>{text}</InterfaceText></a>
   </div>
 );
+
+
+const DownloadVersions = ({sref}) => {
+    //sref is generally an index title, but just in case we ever need a different resolution
+    const [versions, setVersions] = useState([]);
+    const [isReady, setIsReady] = useState(false);
+    const [downloadSelected, setDownloadSelected] = useState({dlVersionTitle: null, dlVersionFormat: null, dlVersionLanguage: null});
+
+    const isVersionPublicDomain = v => {
+        return !(v.license && v.license.startsWith("Copyright"));
+    }
+    const handleInputChange = (event) => {
+        const target = event.target;
+        const value = target.value;
+        const name = target.name;
+        let newState = {};
+        if(name == "dlVersionName"){
+           let [versionTitle, versionLang] = value.split("/");
+           newState = {
+              dlVersionTitle: versionTitle,
+              dlVersionLanguage: versionLang
+           };
+        }else{
+            newState = {[name]: value}
+        }
+        const dlstate = {...downloadSelected, ...newState};
+        setDownloadSelected(dlstate);
+        if (downloadParamsReady(dlstate)){
+            setIsReady(true);
+        }
+    }
+    const downloadParamsReady = (downloadParams) => {
+        return !Object.values(downloadParams).some(x => x === null);
+    }
+    const versionDlLink = () => {
+        return isReady ? `/download/version/${sref} - ${downloadSelected.dlVersionLanguage} - ${downloadSelected.dlVersionTitle}.${downloadSelected.dlVersionFormat}` : "#";
+    }
+    const recordDownload = (event) => {
+        if(!isReady) {
+            event.preventDefault();
+            return false;
+        }
+        Sefaria.track.event("Reader", "Version Download", `${sref} / ${downloadSelected.dlVersionTitle} / ${downloadSelected.dlVersionLanguage} / ${downloadSelected.dlVersionFormat}`);
+        return true;
+    }
+    useEffect(() => {
+        Sefaria.versions(sref, false, [], false).then(data => {
+            data = data.filter(isVersionPublicDomain);
+            data.sort((a, b) => a.versionTitle.localeCompare(b.versionTitle));
+            setVersions(data);
+        });
+    }, [sref]);
+
+    return(
+        <Module>
+          <ModuleTitle>Download Text</ModuleTitle>
+          <div className="downloadTextModule sans-serif">
+          <select name="dlVersionName" defaultValue={"DEFAULT"} className="dlVersionSelect dlVersionTitleSelect" onChange={handleInputChange}>
+             <option value="DEFAULT" disabled hidden>{Sefaria._( "Select Version", "DownloadVersions")}</option>
+            {
+             versions.map(v =>
+             <option dir="auto" value={v.versionTitle + "/" + v.language} key={v.versionTitle + "/" + v.language}>
+                 {
+                    `
+                    ${Sefaria._v({he: v.versionTitleInHebrew ? v.versionTitleInHebrew : v.versionTitle, en: v.versionTitle})}
+                    (${Sefaria._(Sefaria.translateISOLanguageCode(v.actualLanguage))})
+                    `
+                 }
+             </option>
+             )
+            }
+          </select>
+          <select name="dlVersionFormat" defaultValue={"DEFAULT"} className="dlVersionSelect dlVersionFormatSelect" onChange={handleInputChange}>
+            <option value="DEFAULT" disabled  hidden>{Sefaria._( "Select Format", "DownloadVersions")}</option>
+            <option key="txt" value="txt" >{Sefaria._( "Text (with Tags)", "DownloadVersions")}</option>
+            <option key="plain.txt" value="plain.txt" >{Sefaria._( "Text (without Tags)", "DownloadVersions")}</option>
+            <option key="csv" value="csv" >CSV</option>
+            <option key="json" value="json" >JSON</option>
+          </select>
+          <a className={`button${isReady ? "" : " disabled"}`} onClick={recordDownload} href={versionDlLink()} download>{Sefaria._("Download")}</a>
+        </div>
+        </Module>
+    );
+};
 
 
 export {

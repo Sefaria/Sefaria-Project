@@ -4220,7 +4220,7 @@ class Ref(object, metaclass=RefCacheType):
 
         :return list: each list element is an object with keys 'versionTitle' and 'language'
         """
-        fields = ["versionTitle", "versionSource", "language", "status", "license", "versionNotes",
+        fields = ["title", "versionTitle", "versionSource", "language", "status", "license", "versionNotes",
                   "digitizedBySefaria", "priority", "versionTitleInHebrew", "versionNotesInHebrew", "extendedNotes",
                   "extendedNotesHebrew", "purchaseInformationImage", "purchaseInformationURL"]
         versions = VersionSet(self.condition_query())

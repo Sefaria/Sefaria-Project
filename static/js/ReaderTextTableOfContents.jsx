@@ -35,9 +35,7 @@ class ReaderTextTableOfContents extends Component {
       versionsLoaded: false,
       currentVersion: null,
       currObjectVersions: {en: null, he: null},
-      showAllVersions: false,
       indexDetails: null,
-      versionsDropDownOpen: false,
       dlVersionTitle: null,
       dlVersionLanguage: null,
       dlVersionFormat: null,
@@ -83,9 +81,6 @@ class ReaderTextTableOfContents extends Component {
       }
     }
     return currObjectVersions;
-  }
-  getVersionsList() {
-     return this.state.versions;
   }
   getCurrentVersion() {
     // For now treat bilingual as english. TODO show attribution for 2 versions in bilingual case.
@@ -139,35 +134,11 @@ class ReaderTextTableOfContents extends Component {
     this.props.selectVersion(version, language);
     this.props.close();
   }
-  toggleVersionsDropDownOpen(event) {
-    this.setState({versionsDropDownOpen: !this.state.versionsDropDownOpen});
-  }
-  onDlVersionSelect(event) {
-    let versionTitle, versionLang;
-    [versionTitle, versionLang] = event.target.value.split("/");
-    this.setState({
-      dlVersionTitle: versionTitle,
-      dlVersionLanguage: versionLang
-    });
-  }
-  onDlFormatSelect(event) {
-    this.setState({dlVersionFormat: event.target.value});
-  }
-  versionDlLink() {
-    return `/download/version/${this.props.title} - ${this.state.dlVersionLanguage} - ${this.state.dlVersionTitle}.${this.state.dlVersionFormat}`;
-  }
-  recordDownload() {
-    Sefaria.track.event("Reader", "Version Download", `${this.props.title} / ${this.state.dlVersionTitle} / ${this.state.dlVersionLanguage} / ${this.state.dlVersionFormat}`);
-    return true;
-  }
   isBookToc() {
     return (this.props.mode == "book toc")
   }
   isTextToc() {
     return (this.props.mode == "text toc")
-  }
-  isVersionPublicDomain(v) {
-    return !(v.license && v.license.startsWith("Copyright"));
   }
   extendedNotesBack(event){
     return null;
@@ -187,142 +158,6 @@ class ReaderTextTableOfContents extends Component {
     }
     let currObjectVersions = this.state.currObjectVersions;
 
-    let currentVersionElement = null;
-    let defaultVersionString = "Default Version"; // TODO. this var is currently unused. consider removing
-    let defaultVersionObject = null; // TODO also unused
-    let versionSection = null;
-    let downloadSection = null;
-
-    // Versions List
-    let versions = this.getVersionsList();
-    if (versions) {
-      const numVersions = versions.reduce((prevVal, elem) => { prevVal[elem.language]++; return prevVal; }, {"en": 0, "he": 0});
-      versionSection = (
-        <section>
-          <h2
-            className="versionSectionHeader"
-            tabIndex="0"
-            role="button"
-            aria-pressed={`${this.state.versionsDropDownOpen}`}
-            onClick={this.toggleVersionsDropDownOpen}
-            onKeyPress={(e) => {e.charCode == 13 ? this.toggleVersionsDropDownOpen(e):null}}>
-            <div className="versionSectionSummary versionSectionSummaryHidden sans-serif" aria-hidden="true">
-              {Sefaria._siteSettings.TORAH_SPECIFIC ?
-              <span>
-                <InterfaceText>
-                  <EnglishText>{`${numVersions["en"]} English, ${numVersions["he"]} Hebrew`}</EnglishText>
-                  <HebrewText>{`${numVersions["he"]} עברית, ${numVersions["en"]} אנגלית`}</HebrewText>
-                </InterfaceText>
-              </span> :
-              <span>
-                  <span>{`${numVersions["en"]}`}</span>
-              </span>
-              }
-            </div>
-            <div className="versionSectionTitle sans-serif">
-              <InterfaceText text={{en:"Versions", he:"גרסאות" }}/>
-              {(this.state.versionsDropDownOpen) ? <img src="/static/img/arrow-up.png" alt=""/> : <img src="/static/img/arrow-down.png" alt=""/>}
-            </div>
-            <div className="versionSectionSummary sans-serif">
-              {Sefaria._siteSettings.TORAH_SPECIFIC ?
-              <span>
-                <InterfaceText>
-                  <EnglishText>{`${numVersions["en"]} English, ${numVersions["he"]} Hebrew`}</EnglishText>
-                  <HebrewText>{`${numVersions["he"]} עברית, ${numVersions["en"]} אנגלית`}</HebrewText>
-                </InterfaceText>
-              </span> :
-              <span>
-                <span>{`${numVersions["en"]}`}</span>
-              </span> }
-            </div>
-          </h2>
-          { this.state.versionsDropDownOpen ?
-            <VersionsList
-              versionsList={versions}
-              currObjectVersions={currObjectVersions}
-              openVersion={this.openVersion}
-              title={this.props.title}
-              currentRef={this.props.currentRef}
-              getLicenseMap={this.props.getLicenseMap}
-              viewExtendedNotes={this.props.viewExtendedNotes}
-            /> : null
-          }
-        </section>
-      );
-    }
-
-    // Downloading
-    const cv = this.getCurrentVersion();
-    const languageInHebrew = {'en': 'אנגלית', 'he': 'עברית'};
-    if (versions) {
-      let dlReady = (this.state.dlVersionTitle && this.state.dlVersionFormat && this.state.dlVersionLanguage);
-      let dl_versions = [<option key="/" value="0" dir="auto" disabled>{ Sefaria.interfaceLang == "hebrew"? "הגדרות גרסה" : "Version Settings" }</option>];
-      let pdVersions = versions.filter(this.isVersionPublicDomain);
-      let addMergedFor = pdVersions.map(v => v.language).unique(); // Only show merged option for languages we have
-      if (cv) {
-        if (cv.merged) {
-          // Add option for current merged Version
-          dl_versions = dl_versions.concat([
-            <option dir="auto" value={"merged/" + cv.language} key={"merged/" + cv.language} data-lang={cv.language}>
-                {Sefaria.interfaceLang == "hebrew" ? "גרסה משולבת נוכחית" + `(${languageInHebrew[cv.language]})` :`Current Merged Version (${cv.language})`}
-            </option>]);
-          addMergedFor = addMergedFor.filter(lang => lang !== cv.language); // Don't add option for this merged language again
-        } else {
-          // Add Option for current non-merged version
-          if (this.isVersionPublicDomain(cv)) {
-            let versionTitleInHebrew = cv.versionTitleInHebrew || cv.versionTitle;
-            dl_versions.push(
-            <option value={cv.versionTitle + "/" + cv.language} key={cv.versionTitle + "/" + cv.language}>
-              {Sefaria.interfaceLang == "hebrew" ? `${versionTitleInHebrew} (גרסה נוכחית, ${languageInHebrew[cv.language]})` : `${cv.versionTitle} (Current Version, ${cv.language})`}
-            </option>);
-          }
-        }
-        pdVersions = pdVersions.filter(v => v.language != cv.language || v.versionTitle != cv.versionTitle); // Don't show current version again
-      }
-      dl_versions = dl_versions.concat(pdVersions.map(v =>
-        <option dir="auto" value={v.versionTitle + "/" + v.language} key={v.versionTitle + "/" + v.language}>
-            {(Sefaria.interfaceLang == "hebrew" && v.versionTitleInHebrew) ? `${v.versionTitleInHebrew} (${languageInHebrew[v.language]})` : `${v.versionTitle} (${v.language})`}
-        </option>
-      ));
-      dl_versions = dl_versions.concat(addMergedFor.map(lang =>
-        <option dir="auto" value={`merged/${lang}`} key={`merged/${lang}`}>
-          {Sefaria.interfaceLang == "hebrew" ? `גרסה משולבת (${languageInHebrew[lang]})` : `Merged Version (${lang})`}
-        </option>,
-      ));
-
-      let downloadButton = <div className="versionDownloadButton">
-          <div className="downloadButtonInner">
-            <InterfaceText>Download</InterfaceText>
-          </div>
-        </div>;
-      const formatStrings = {
-        none: {english: "File Format", hebrew: "סוג הקובץ"},
-        txt: {english: "Text (with Tags)", hebrew: "טקסט (עם תיוגים)"},
-        plaintxt: {english: "Text (without Tags)", hebrew: "טקסט (ללא תיוגים)"}
-      };
-      downloadSection = (
-        <div className="dlSection sans-serif">
-          <h2 className="dlSectionTitle">
-            <InterfaceText>Download Text</InterfaceText>
-          </h2>
-          <select
-            className="dlVersionSelect dlVersionTitleSelect"
-            value={(this.state.dlVersionTitle && this.state.dlVersionLanguage) ? this.state.dlVersionTitle + "/" + this.state.dlVersionLanguage : "0"}
-            onChange={this.onDlVersionSelect}>
-            {dl_versions}
-          </select>
-          <select className="dlVersionSelect dlVersionFormatSelect" value={this.state.dlVersionFormat || "0"} onChange={this.onDlFormatSelect}>
-            <option key="none" value="0" disabled>{ formatStrings.none[Sefaria.interfaceLang] }</option>
-            <option key="txt" value="txt" >{ formatStrings.txt[Sefaria.interfaceLang] }</option>
-            <option key="plain.txt" value="plain.txt" >{ formatStrings.plaintxt[Sefaria.interfaceLang] }</option>
-            <option key="csv" value="csv" >CSV</option>
-            <option key="json" value="json" >JSON</option>
-          </select>
-          {dlReady?<a onClick={this.recordDownload} href={this.versionDlLink()} download>{downloadButton}</a>:downloadButton}
-        </div>
-      );
-    }
-
     const readButton = !this.state.indexDetails || this.isTextToc() || this.props.compare ? null :
       Sefaria.lastPlaceForText(title) ? 
         <a className="button small readButton" href={"/" + Sefaria.normRef(Sefaria.lastPlaceForText(title).ref)}>
@@ -337,6 +172,7 @@ class ReaderTextTableOfContents extends Component {
       [
         this.props.multiPanel ? {type: "AboutText", props: {index: this.state.indexDetails}} : {type: null},
         {type: "RelatedTopics", props: { topics: this.state.indexDetails.relatedTopics}},
+        {type: "DownloadVersions", props:{sref: this.props.title}},
       ];
 
     const isDictionary = this.state.indexDetails && !!this.state.indexDetails.lexiconName;
@@ -432,7 +268,14 @@ class ReaderTextTableOfContents extends Component {
                     alts={this.state.indexDetails.alts}
                     defaultStruct={"default_struct" in this.state.indexDetails && this.state.indexDetails.default_struct in this.state.indexDetails.alts ? this.state.indexDetails.default_struct : "default"}
                     narrowPanel={this.props.narrowPanel}
-                    title={this.props.title} />
+                    title={this.props.title}
+                    versionsTabProps={{
+                      currObjectVersions: currObjectVersions,
+                      openVersionInReader: this.openVersion,
+                      currentRef: this.props.currentRef,
+                      viewExtendedNotes : this.props.viewExtendedNotes,
+                    }}
+                  />
                 </div>
               </div> : <LoadingMessage />}
             </div>
@@ -457,7 +300,6 @@ ReaderTextTableOfContents.propTypes = {
   narrowPanel:           PropTypes.bool,
   close:                 PropTypes.func.isRequired,
   showBaseText:          PropTypes.func.isRequired,
-  getLicenseMap:         PropTypes.func.isRequired,
   selectVersion:         PropTypes.func,
   viewExtendedNotes:     PropTypes.func,
   onCompareBack:         PropTypes.func,
@@ -511,7 +353,12 @@ class TextTableOfContentsNavigation extends Component {
                 b.name == this.props.defaultStruct ? 1 : 0;
       }.bind(this));
     }
-
+    options.push({
+        name: "versions",
+        text: "Versions",
+        heText: "מהדורות",
+        onPress: this.setTab.bind(null, "versions")
+    });
     if (this.props.commentatorList.length) {
       options.push({
         name: "commentary",
@@ -522,10 +369,10 @@ class TextTableOfContentsNavigation extends Component {
     }
 
     const toggle = (this.props.isDictionary ? null :
-      <TabbedToggleSet
-        options={options}
-        active={this.state.tab}
-        narrowPanel={this.props.narrowPanel} />);
+                  <TabbedToggleSet
+                    tabOptions={options}
+                    activeTab={this.state.tab}
+                    narrowPanel={this.props.narrowPanel} />);
     
     let content;
     switch(this.state.tab) {
@@ -565,6 +412,11 @@ class TextTableOfContentsNavigation extends Component {
         content = <CommentatorList
                     commentatorList={this.props.commentatorList}
                     title={this.props.title} />;
+
+
+        break;
+      case "versions":
+        content = <VersionsList {...this.props.versionsTabProps}/>;
         break;
       default:
         content = <SchemaNode
@@ -594,29 +446,27 @@ TextTableOfContentsNavigation.propTypes = {
 };
 
 
-class TabbedToggleSet extends Component {
-  render() {
-    let options = this.props.options.map(function(option, i) {
+const TabbedToggleSet = ({tabOptions, activeTab, narrowPanel}) => {
+  let options = tabOptions.map(function(option, i) {
+    const handleClick = function(e) {
+      e.preventDefault();
+      option.onPress();
+    }.bind(this);
 
-      const handleClick = function(e) {
-        e.preventDefault();
-        option.onPress();
-      }.bind(this);
-
-      var classes = classNames({altStructToggle: 1, "sans-serif": 1, active: this.props.active === option.name});
-      var url = Sefaria.util.replaceUrlParam("tab", option.name);
-      return (
-        <div className="altStructToggleBox" key={i}>
-          <a className={classes} onClick={handleClick} href={url}>
-              <InterfaceText>{option.text}</InterfaceText>
-          </a>
-        </div>
-      );
+    let classes = classNames({altStructToggle: 1, "sans-serif": 1, active: activeTab === option.name});
+    const url = Sefaria.util.replaceUrlParam("tab", option.name);
+    return (
+      <div className="altStructToggleBox" key={i}>
+        <a className={classes} onClick={handleClick} href={url}>
+            <InterfaceText>{option.text}</InterfaceText>
+        </a>
+      </div>
+    );
     }.bind(this));
 
     let rows = [];
-    if (this.props.narrowPanel) {
-      let rowSize = options.length == 4 ? 2 : 3;
+    if (narrowPanel) {
+      const rowSize = options.length == 4 ? 2 : 3;
       for (let i = 0; i < options.length; i += rowSize) {
         rows.push(options.slice(i, i+rowSize));
       }
@@ -624,16 +474,18 @@ class TabbedToggleSet extends Component {
       rows = [options];
     }
 
-    return (<div className="structToggles">
-              {rows.map(function(row, i) {
-                return (<div className="structTogglesInner" key={i}>{row}</div>);
-              })}
-            </div>);
-  }
+    return (
+        <div className="structToggles">
+            {rows.map(function(row, i) {
+              return (<div className="structTogglesInner" key={i}>{row}</div>);
+            })}
+        </div>
+    );
+
 }
 TabbedToggleSet.propTypes = {
-  options:     PropTypes.array.isRequired, // array of object with `name`. `text`, `heText`, `onPress`
-  active:      PropTypes.string.isRequired,
+  tabOptions:     PropTypes.array.isRequired, // array of object with `name`. `text`, `heText`, `onPress`
+  activeTab:      PropTypes.string.isRequired,
   narrowPanel: PropTypes.bool
 };
 
@@ -947,51 +799,54 @@ CommentatorList.propTypes = {
 
 
 class VersionsList extends Component {
+  componentDidMount() {
+    Sefaria.versions(this.props.currentRef, false, [], true).then(this.onVersionsLoad);
+  }
+  onVersionsLoad(versions){
+    versions.sort(
+      (a, b) => {
+        if      (a.priority > b.priority)                {return -1;}
+        else if (a.priority < b.priority)                {return 1;}
+        else if (a.versionTitle < b.versionTitle)        {return -1;}
+        else if (a.versionTitle > b.versionTitle)        {return  1;}
+        else                                             {return  0;}
+      }
+    );
+    this.setState({versions: versions});
+  }
   render() {
-    let versions = this.props.versionsList;
-    let [heVersionBlocks, enVersionBlocks] = ["he","en"].map(lang =>
-     versions.filter(v => v.language == lang).map(v =>
+    if (!this?.state?.versions) {
+        return (
+          <div className="versionsBox">
+            <LoadingMessage />
+          </div>
+        );
+    }
+    let versions = this.state.versions;
+    let vblocks = versions.map(v =>
       <VersionBlock
-        rendermode="version-list"
-        title={this.props.title}
+        rendermode="book-page"
         version={v}
         currObjectVersions={this.props.currObjectVersions}
-        currentRef={this.props.currentRef || this.props.title}
+        currentRef={this.props.currentRef}
         firstSectionRef={"firstSectionRef" in v ? v.firstSectionRef : null}
-        openVersionInReader={this.props.openVersion}
+        openVersionInReader={this.props.openVersionInReader}
         viewExtendedNotes={this.props.viewExtendedNotes}
-        key={v.versionTitle + "/" + v.language}
-        getLicenseMap={this.props.getLicenseMap}/>
-     )
-    );
-
+        key={v.versionTitle + "/" + v.language}/>
+     );
     return (
-      <div className="versionBlocks">
-        {(!!heVersionBlocks.length) ?
-          <div className="versionLanguageBlock sans-serif">
-            <div className="versionLanguageHeader">
-              <InterfaceText>Hebrew Versions</InterfaceText>
-            </div>
-            <div>{heVersionBlocks}</div>
-          </div> : null}
-        {(!!enVersionBlocks.length) ?
-          <div className="versionLanguageBlock sans-serif">
-            <div className="versionLanguageHeader">
-              <InterfaceText>English Versions</InterfaceText>
-            </div>
-            <div>{enVersionBlocks}</div>
-          </div>: null}
-      </div>);
+      <div className="versionsBox">
+        {vblocks}
+      </div>
+    );
   }
 }
 VersionsList.propTypes = {
-  currObjectVersions: PropTypes.object.isRequired,
-  versionsList:      PropTypes.array.isRequired,
-  openVersion:       PropTypes.func.isRequired,
-  title:             PropTypes.string.isRequired,
-  currentRef:        PropTypes.string,
-  viewExtendedNotes: PropTypes.func,
-  getLicenseMap:     PropTypes.func.isRequired,
+  currentRef:                PropTypes.string,
+  currObjectVersions:        PropTypes.object,
+  openVersionInReader:       PropTypes.func,
+
+  viewExtendedNotes:         PropTypes.func,
 };
 
 

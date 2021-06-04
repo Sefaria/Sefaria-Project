@@ -4,6 +4,7 @@ import Sefaria from './sefaria/sefaria';
 import VersionBlock, {VersionsBlocksList} from './VersionBlock';
 import Component             from 'react-class';
 import {InterfaceText} from "./Misc";
+import { Modules } from './NavSidebar';
 
 
 class AboutBox extends Component {
@@ -181,7 +182,7 @@ class AboutBox extends Component {
           currObjectVersions={this.props.currObjectVersions}
           currentRef={this.props.srefs[0]}
           firstSectionRef={"firstSectionRef" in sourceVersion ? sourceVersion.firstSectionRef : null}
-          getLicenseMap={this.props.getLicenseMap} />
+          />
       </div>
       : null );
     const versionSectionEn =
@@ -201,7 +202,7 @@ class AboutBox extends Component {
                   currentRef={this.props.srefs[0]}
                   firstSectionRef={"firstSectionRef" in ve ? ve.firstSectionRef : null}
                   viewExtendedNotes={this.props.viewExtendedNotes}
-                  getLicenseMap={this.props.getLicenseMap} />
+                   />
               ))
           }
       </div> : null );
@@ -217,7 +218,6 @@ class AboutBox extends Component {
               currObjectVersions={this.props.currObjectVersions}
               showLanguageHeaders={false}
               currentRef={this.props.srefs[0]}
-              getLicenseMap={this.props.getLicenseMap}
               openVersionInReader={this.props.openVersionInReader}
               openVersionInSidebar={this.openVersionInSidebar}
               viewExtendedNotes={this.props.viewExtendedNotes}
@@ -231,6 +231,7 @@ class AboutBox extends Component {
           (<div>{versionSectionEn}{versionSectionHe}{alternateSectionHe}</div>) :
           (<div>{versionSectionHe}{versionSectionEn}{alternateSectionHe}</div>)
         }
+        <Modules type={"DownloadVersions"} props={{sref: this.props.title}} />
       </section>
     );
   }
@@ -240,7 +241,6 @@ AboutBox.propTypes = {
   mainVersionLanguage: PropTypes.oneOf(["english", "hebrew"]),
   title:               PropTypes.string.isRequired,
   srefs:               PropTypes.array.isRequired,
-  getLicenseMap:       PropTypes.func.isRequired,
 };
 
 

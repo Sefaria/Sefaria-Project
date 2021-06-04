@@ -87,7 +87,7 @@ class ReaderApp extends Component {
       if (panel.mode.endsWith("AndConnections")) {
         panel.highlightedRefs = panel.refs;
       }
-      return panel;  
+      return panel;
     }).map(panel => this.makePanelState(panel));
 
     const defaultVersions   = Sefaria.util.clone(props.initialDefaultVersions) || {};
@@ -229,7 +229,7 @@ class ReaderApp extends Component {
     // console.log(event.state);
     if (state) {
       this.justPopped = true;
-      
+
       // history does not preserve custom objects
       if (state.panels) {
         for (let p of state.panels) {
@@ -1000,10 +1000,10 @@ class ReaderApp extends Component {
   unsetTextHighlight(n) {
     this.setPanelState(n, { textHighlights: null });
   }
-  _getSearchStateName(type) { 
-    return `${type}SearchState`; 
+  _getSearchStateName(type) {
+    return `${type}SearchState`;
   }
-  _getSearchState(state, type) { 
+  _getSearchState(state, type) {
     return !!state && state[this._getSearchStateName(type)];
   }
   updateQuery(n, query) {
@@ -1141,16 +1141,6 @@ class ReaderApp extends Component {
     } else {
       return true;
     }
-  }
-  getLicenseMap() {
-    const licenseMap = {
-      "Public Domain": "https://en.wikipedia.org/wiki/Public_domain",
-      "CC0": "https://creativecommons.org/publicdomain/zero/1.0/",
-      "CC-BY": "https://creativecommons.org/licenses/by/3.0/",
-      "CC-BY-SA": "https://creativecommons.org/licenses/by-sa/3.0/",
-      "CC-BY-NC": "https://creativecommons.org/licenses/by-nc/4.0/"
-    }
-    return licenseMap;
   }
   selectVersion(n, versionName, versionLanguage) {
     // Set the version for panel `n`.
@@ -1477,7 +1467,7 @@ class ReaderApp extends Component {
   }
   showCommunity() {
     this.setSinglePanelState({menuOpen: "community"});
-  }  
+  }
   showSaved() {
     this.setSinglePanelState({menuOpen: "saved"});
   }
@@ -1783,7 +1773,6 @@ class ReaderApp extends Component {
                       masterPanelLanguage={panel.mode === "Connections" ? panelStates[i-1].settings.language : panel.settings.language}
                       layoutWidth={width}
                       analyticsInitialized={this.state.initialAnalyticsTracked}
-                      getLicenseMap={this.getLicenseMap}
                       openURL={this.openURL}
                       saveLastPlace={this.saveLastPlace}
                       checkIntentTimer={this.checkIntentTimer}
@@ -1813,7 +1802,7 @@ class ReaderApp extends Component {
     const sefariaModal = (
       <SignUpModal onClose={this.toggleSignUpModal} show={this.state.showSignUpModal} />
     );
-    const communityPagePreviewControls = this.props.communityPreview ? 
+    const communityPagePreviewControls = this.props.communityPreview ?
       <CommunityPagePreviewControls date={this.props.communityPreview} /> : null;
 
     var classDict = {readerApp: 1, multiPanel: this.props.multiPanel, singlePanel: !this.props.multiPanel};

@@ -77,7 +77,7 @@ class VersionBlock extends Component {
     }
     this.setState({"error": "Saving.  Page will reload on success."});
     $.ajax({
-      url: `/api/version/flags/${this.props.title}/${v.language}/${v.versionTitle}`,
+      url: `/api/version/flags/${v.title}/${v.language}/${v.versionTitle}`,
       dataType: 'json',
       type: 'POST',
       data: {json: JSON.stringify(payloadVersion)},
@@ -96,8 +96,7 @@ class VersionBlock extends Component {
   deleteVersion() {
     if (!confirm("Are you sure you want to delete this text version?")) { return; }
 
-    const title = this.props.title;
-    const url = "/api/texts/" + title + "/" + this.props.version.language + "/" + this.props.version.versionTitle;
+    const url = "/api/texts/" + this.props.version.title + "/" + this.props.version.language + "/" + this.props.version.versionTitle;
 
     $.ajax({
       url: url,
@@ -107,7 +106,7 @@ class VersionBlock extends Component {
           alert(data.error)
         } else {
           alert("Text Version Deleted.");
-          window.location = "/" + Sefaria.normRef(title);
+          window.location = "/" + Sefaria.normRef(this.props.version.title);
         }
       }
     }).fail(function() {
@@ -126,7 +125,7 @@ class VersionBlock extends Component {
   }
   openExtendedNotes(e){
     e.preventDefault();
-    this.props.viewExtendedNotes(this.props.title, this.props.version.language, this.props.version.versionTitle);
+    this.props.viewExtendedNotes(this.props.version.title, this.props.version.language, this.props.version.versionTitle);
   }
   makeVersionLink(versionParam) {
     //versionParam - either version language (e.g. 'en') in the case when you're making a link for versions in reader
@@ -137,9 +136,9 @@ class VersionBlock extends Component {
       return "#"; // there's no url for a merged version
     }
     const withParam = versionParam === 'side' ? "&with=Translation Open" : "";
-    const nonSelectedVersionParams = Object.keys(this.props.currObjectVersions)
-                                      .filter(vlang=>!!this.props.currObjectVersions[vlang] && (versionParam === 'side' || vlang !== this.props.version.language))  // in 'side' case, keep all version params
-                                      .map(vlang=>`&v${vlang}=${this.props.currObjectVersions[vlang].versionTitle.replace(/\s/g,'_')}`)
+    const nonSelectedVersionParams = Object.entries(this.props.currObjectVersions)
+                                      .filter(([vlang, version])=>!!version && (versionParam === 'side' || vlang !== this.props.version.language))  // in 'side' case, keep all version params
+                                      .map(([vlang, version])=>`&v${vlang}=${version.versionTitle.replace(/\s/g,'_')}`)
                                       .join("");
     const versionLink = nonSelectedVersionParams == "" ? null : `/${Sefaria.normRef(this.props.currentRef)}${nonSelectedVersionParams}&v${versionParam}=${this.props.version.versionTitle.replace(/\s/g,'_')}${withParam}`.replace("&","?");
     return versionLink;
@@ -163,7 +162,7 @@ class VersionBlock extends Component {
     }
   }
   makeLicenseLink(){
-    const license_map = this.props.getLicenseMap();
+    const license_map = Sefaria.getLicenseMap();
     return (this.props.version.license in license_map) ? license_map[this.props.version.license] : "#";
   }
   makeSelectVersionLanguage(){
@@ -174,13 +173,7 @@ class VersionBlock extends Component {
     let voc = langMap[this.props.version.actualLanguage] || "Translation";
     return this.props.isCurrent ? Sefaria._("Current " + voc) : Sefaria._("Select "+ voc);
   }
-  makeDigitizedByLanguage(){
-    if(this.props.version.digitizedBySefaria){
-      return ["versions-box", "about-box"].includes(this.props.rendermode) ? Sefaria._("Sefaria") : Sefaria._("Digitized by Sefaria");
-    }else {
-      return "";
-    }
-  }
+
   hasExtendedNotes(){
     return !!(this.props.version.extendedNotes || this.props.version.extendedNotesHebrew);
   }
@@ -194,7 +187,7 @@ class VersionBlock extends Component {
     return !!this.props.version.purchaseInformationURL ? this.props.version.purchaseInformationURL : this.props.version.versionSource;
   }
   makeImageSrc(){
-    return (["versions-box", "about-box"].includes(this.props.rendermode) && !!this.props.version.purchaseInformationImage) ? this.props.version.purchaseInformationImage : "data:,";
+    return  !!this.props.version.purchaseInformationImage ? this.props.version.purchaseInformationImage : "data:,";
   }
 
   render() {
@@ -206,7 +199,7 @@ class VersionBlock extends Component {
       // Editing View
       let close_icon = (Sefaria.is_moderator)?<i className="fa fa-times-circle" aria-hidden="true" onClick={this.closeEditor}/>:"";
 
-      let licenses = Object.keys(this.props.getLicenseMap());
+      let licenses = Object.keys(Sefaria.getLicenseMap());
       licenses = licenses.includes(v.license) ? licenses : [v.license].concat(licenses);
 
       return (
@@ -262,23 +255,26 @@ class VersionBlock extends Component {
     else {
       return (
         <div className="versionBlock">
-            <div className="versionTitle">
-              <a className={vtitle["className"]} href={this.makeVersionLink('side')} onClick={this.onVersionTitleClick}>
-                {vtitle["text"]}
-              </a>
-              <i className={`fa fa-pencil versionEditIcon ${(Sefaria.is_moderator && this.props.rendermode == "version-list") ? "enabled" : ""}`} aria-hidden="true" onClick={this.openEditor}/>
+            <div className="versionBlockHeading">
+              <div className="versionTitle" role="heading">
+                  <a className={vtitle["className"]} href={this.makeVersionLink('side')} onClick={this.onVersionTitleClick}>
+                    {vtitle["text"]}
+                  </a>
+              </div>
+              <i className={`fa fa-pencil versionEditIcon ${(Sefaria.is_moderator && this.props.rendermode == "book-page") ? "enabled" : ""}`} aria-hidden="true" onClick={this.openEditor}/>
+              <div className="versionLanguage sans-serif">{Sefaria._(Sefaria.translateISOLanguageCode(v.actualLanguage))}</div>
             </div>
-            <div className="versionSelect">
+            <div className="versionSelect sans-serif">
               <a className={`selectButton ${this.props.isCurrent ? "currSelectButton": ""}`}
                    href={this.makeVersionLink(v.language)}
                    onClick={this.onSelectVersionClick}>
                   {this.makeSelectVersionLanguage()}
               </a>
             </div>
-            <div className={classNames(this.makeAttrClassNames({"versionNotes": 1}, "versionNotes", true))}>
+            <div className={classNames(this.makeAttrClassNames({"versionNotes": 1, "sans-serif": (this.props.rendermode == "book-page")}, "versionNotes", true))}>
               <span className="" dangerouslySetInnerHTML={ {__html: vnotes} } />
               <span className={`versionExtendedNotesLinks ${this.hasExtendedNotes() ? "": "n-a"}`}>
-                <a onClick={this.openExtendedNotes} href={`/${this.props.title}/${this.props.version.language}/${this.props.version.versionTitle}/notes`}>
+                <a onClick={this.openExtendedNotes} href={`/${this.props.version.title}/${this.props.version.language}/${this.props.version.versionTitle}/notes`}>
                   {Sefaria._("Read More")}
                 </a>
               </span>
@@ -299,7 +295,7 @@ class VersionBlock extends Component {
                     {`${Sefaria._("Digitization")}: `}
                   </span>
                   <a className="versionDetailsLink" href="/digitized-by-sefaria" target="_blank">
-                    {this.makeDigitizedByLanguage()}
+                    {Sefaria._("Sefaria")}
                   </a>
                 </div>
                 <div className={classNames(this.makeAttrClassNames({"versionLicense": 1, "versionDetailsElement": 1}, "license" ))}>
@@ -336,7 +332,6 @@ class VersionBlock extends Component {
   }
 }
 VersionBlock.propTypes = {
-  title:                  PropTypes.string,
   version:                PropTypes.object.isRequired,
   currObjectVersions:     PropTypes.object.isRequired,
   currentRef:             PropTypes.string,
@@ -345,9 +340,7 @@ VersionBlock.propTypes = {
   showNotes:              PropTypes.bool,
   openVersionInSidebar:   PropTypes.func,
   openVersionInReader:    PropTypes.func,
-  getLicenseMap:          PropTypes.func.isRequired,
   isCurrent:              PropTypes.bool,
-  openVersion:            PropTypes.func,
   viewExtendedNotes:      PropTypes.func,
   sidebarDisplay:         PropTypes.bool,
   rendermode:             PropTypes.string,
@@ -412,7 +405,7 @@ class VersionsBlocksList extends Component{
             this.state.sortedLanguages.map((lang) => (
               <div key={lang}>
                 { this.props.showLanguageHeaders ?
-                  <div className="versionLanguage">
+                  <div className="versionLanguage sans-serif">
                     {Sefaria._(Sefaria.translateISOLanguageCode(lang))}<span className="enInHe connectionsCount">{` (${this.props.versionsByLanguages[lang].length})`}</span>
                   </div>
                     :
@@ -427,7 +420,6 @@ class VersionsBlocksList extends Component{
                       currObjectVersions={this.props.currObjectVersions}
                       currentRef={this.props.currentRef}
                       firstSectionRef={"firstSectionRef" in v ? v.firstSectionRef : null}
-                      getLicenseMap={this.props.getLicenseMap}
                       key={`${this.isVersionCurrent(v) ? "current" : ""}|${v.versionTitle}|${v.actualLanguage}`}
                       openVersionInReader={this.props.openVersionInReader}
                       openVersionInSidebar={this.props.openVersionInSidebar}
@@ -450,7 +442,6 @@ VersionsBlocksList.propTypes={
   mainVersionLanguage: PropTypes.string.isRequired,
   sortPrioritizeLanugage: PropTypes.string,
   currentRef: PropTypes.string,
-  getLicenseMap: PropTypes.func,
   openVersionInReader: PropTypes.func,
   openVersionInSidebar: PropTypes.func,
   viewExtendedNotes: PropTypes.func,

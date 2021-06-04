@@ -674,7 +674,6 @@ class ReaderPanel extends Component {
           selectedNamedEntityText={this.state.selectedNamedEntityText}
           clearSelectedWords={this.clearSelectedWords}
           clearNamedEntity={this.props.clearNamedEntity}
-          getLicenseMap={this.props.getLicenseMap}
           masterPanelLanguage={this.props.masterPanelLanguage}
           versionFilter={this.state.versionFilter}
           recentVersionFilters={this.state.recentVersionFilters}
@@ -737,8 +736,7 @@ class ReaderPanel extends Component {
                     openDisplaySettings={this.openDisplaySettings}
                     selectVersion={this.props.selectVersion}
                     viewExtendedNotes={this.props.viewExtendedNotes.bind(null, "toc")}
-                    showBaseText={this.showBaseText}
-                    getLicenseMap={this.props.getLicenseMap}/>);
+                    showBaseText={this.showBaseText}/>);
 
     } else if (this.state.menuOpen === "book toc") {
       const onCompareBack = () => {
@@ -763,7 +761,6 @@ class ReaderPanel extends Component {
                     openDisplaySettings={this.openDisplaySettings}
                     selectVersion={this.props.selectVersion}
                     showBaseText={this.showBaseText}
-                    getLicenseMap={this.props.getLicenseMap}
                     viewExtendedNotes={this.props.viewExtendedNotes.bind(null, "toc")} />);
 
     } else if (this.state.menuOpen === "extended notes" && this.state.mode !== "Connections") {
@@ -782,8 +779,7 @@ class ReaderPanel extends Component {
                     showBaseText={this.showBaseText}
                     backFromExtendedNotes={
                       this.state.mode==="Connections" ? this.closeMenus : this.backFromExtendedNotes
-                    }
-                    getLicenseMap={this.props.getLicenseMap} />);
+                    }/>);
 
     } else if (this.state.menuOpen === "search" && this.state.searchQuery) {
       menu = (<SearchPage
@@ -1085,7 +1081,6 @@ ReaderPanel.propTypes = {
   setTextListHighlight:        PropTypes.func,
   setSelectedWords:            PropTypes.func,
   analyticsInitialized:        PropTypes.bool,
-  getLicenseMap:               PropTypes.func.isRequired,
   setVersionFilter:            PropTypes.func,
   saveLastPlace:               PropTypes.func,
   checkIntentTimer:            PropTypes.func,
