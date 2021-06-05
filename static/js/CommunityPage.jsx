@@ -20,9 +20,10 @@ const CommunityPage = ({multiPanel, toggleSignUpModal, initialWidth}) => {
   const sidebarModules = [
     {type: "JoinTheConversation"},
     {type: "WhoToFollow", props: {toggleSignUpModal}},
-    {type: "StayConnected"},
+    {type: "ExploreCollections"},
     {type: "GetTheApp"},
     {type: "SupportSefaria", props: {blue: true}},
+    {type: "StayConnected"},
   ];
 
   const {parashah, calendar, discover, featured} = Sefaria.community;

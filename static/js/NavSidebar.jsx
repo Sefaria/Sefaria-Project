@@ -45,6 +45,7 @@ const Modules = ({type, props}) => {
     "StayConnected":          StayConnected,
     "AboutLearningSchedules": AboutLearningSchedules,
     "AboutCollections":       AboutCollections,
+    "ExploreCollections":     ExploreCollections,
     "DownloadVersions":       DownloadVersions,
     "WhoToFollow":            WhoToFollow,
     "Image":                  Image,
@@ -531,6 +532,20 @@ const AboutCollections = ({hideTitle}) => (
         <InterfaceText>Create a Collection</InterfaceText>
       </a>
     </div>}
+  </Module>
+);
+
+
+const ExploreCollections = () => (
+  <Module>
+    <ModuleTitle>Explore Collections</ModuleTitle>
+    <InterfaceText>Collections are curated and shared by orgranizations, communities and individuals around the world.</InterfaceText>
+    <div>
+      <a className="button small" href="/collections">
+        <img src="/static/icons/collection.svg" alt="collection icon" />
+        <InterfaceText>Explore Collections</InterfaceText>
+      </a>
+    </div>
   </Module>
 );
 
