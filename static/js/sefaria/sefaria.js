@@ -2537,6 +2537,7 @@ Sefaria.unpackDataFromProps = function(props) {
       "userHistory",
       "last_place",
       "interfaceLang",
+      "multiPanel",
       "interruptingMessage",
 
       "trendingTopics",

@@ -432,6 +432,8 @@ const RelatedTopics = ({topics}) => {
 
 
 const JoinTheConversation = ({wide}) => {
+  if (!Sefaria.multiPanel) { return null; } // Don't advertise create sheets on mobile (yet)
+
   return (
     <Module wide={wide}>
       <div>
