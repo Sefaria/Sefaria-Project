@@ -2119,14 +2119,14 @@ class FeedbackBox extends Component {
   render() {
     if (this.state.feedbackSent) {
         return (
-            <div className="feedbackBox">
+            <div className="feedbackBox sans-serif">
                 <p className="int-en">Feedback sent!</p>
                 <p className="int-he">משוב נשלח!</p>
             </div>
         )
     }
     return (
-        <div className="feedbackBox">
+        <div className="feedbackBox sans-serif">
             <p className="int-en">Have some feedback? We would love to hear it.</p>
             <p className="int-he">אנחנו מעוניינים במשוב ממך</p>
 
