@@ -192,8 +192,8 @@ def base_props(request):
             "calendars": get_todays_calendar_items(**_get_user_calendar_params(request)),
             "notificationCount": profile.unread_notification_count(),
             "notifications": profile.recent_notifications().client_contents(),
-            "saved": profile.get_user_history(saved=True, secondary=False, serialized=True),
-            "last_place": profile.get_user_history(last_place=True, secondary=False, serialized=True),
+            "saved": {"loaded": False, "items": profile.get_history(saved=True, secondary=False, serialized=True, annotate=False)}, # saved is initially loaded without text annotations so it can quickly immediately mark any texts/sheets as saved, but marks as `loaded: false` so the full annotated data will be requested if the user visits the saved/history page
+            "last_place": profile.get_history(last_place=True, secondary=False, sheets=False, serialized=True),
             "interruptingMessage": InterruptingMessage(attrs=interrupting_message_dict, request=request).contents(),
         }
     else:
@@ -211,7 +211,7 @@ def base_props(request):
             "calendars": get_todays_calendar_items(**_get_user_calendar_params(request)),
             "notificationCount": 0,
             "notifications": [],
-            "saved": [],
+            "saved": {"loaded": False, "items": []},
             "last_place": [],
             "interruptingMessage": InterruptingMessage(attrs=GLOBAL_INTERRUPTING_MESSAGE, request=request).contents(),
         }
@@ -926,7 +926,7 @@ def texts_list(request):
     """
 
 def calendars(request):
-    title = _("Study Schedules") + " | " + _(SITE_SETTINGS["LIBRARY_NAME"]["en"])
+    title = _("Learning Schedules") + " | " + _(SITE_SETTINGS["LIBRARY_NAME"]["en"])
     desc  = _("Weekly Torah portions, Daf Yomi and other schedules for Torah learning.")
     return menu_page(request, page="calendars", title=title, desc=desc)
 
@@ -935,16 +935,18 @@ def calendars(request):
 def saved(request):
     title = _("My Saved Content")
     desc = _("See your saved content on Sefaria")
-    return menu_page(request, page="saved", title=title, desc=desc)
+    profile = UserProfile(user_obj=request.user)
+    props = {"saved": {"loaded": True, "items": profile.get_history(saved=True, secondary=False, serialized=True, annotate=True, limit=20)}}
+    return menu_page(request, props, page="saved", title=title, desc=desc)
 
 
 def user_history(request):
     if request.user.is_authenticated:
         profile = UserProfile(user_obj=request.user)
-        uhistory =  profile.get_user_history(secondary=False, serialized=True) if profile.settings.get("reading_history", True) else []
+        uhistory =  profile.get_history(secondary=False, serialized=True, annotate=True, limit=20) if profile.settings.get("reading_history", True) else []
     else:
         uhistory = _get_anonymous_user_history(request)
-    props = {"userHistory": uhistory}
+    props = {"userHistory": {"loaded": True, "items": uhistory}}
     title = _("My User History")
     desc = _("See your user history on Sefaria")
     return menu_page(request, props, page="history", title=title, desc=desc)
@@ -2674,7 +2676,7 @@ def addDynamicStories(stories, user, page):
         return stories
 
         # Keep Reading Most recent
-        most_recent = user.get_user_history(last_place=True, secondary=False, limit=1)[0]
+        most_recent = user.get_history(last_place=True, secondary=False, limit=1)[0]
         if most_recent:
             if getattr(most_recent, "is_sheet", None):
                 stry = SheetListFactory().generate_story(
@@ -2689,7 +2691,7 @@ def addDynamicStories(stories, user, page):
 
     if page == 1:
         # Show an old saved story
-        saved = user.get_user_history(saved=True, secondary=False, sheets=False)
+        saved = user.get_history(saved=True, secondary=False, sheets=False)
         if len(saved) > 2:
             saved_item = choice(saved)
             stry = TextPassageStoryFactory().generate_from_user_history(saved_item,
@@ -2990,7 +2992,6 @@ def topics_page(request):
     props = {
         "initialMenu":  "topics",
         "initialTopic": None,
-        # "trendingTags": trending_tags(ntags=12),
     }
     return render_template(request, 'base.html', props, {
         "title":          _("Topics") + " | " + _("Sefaria"),
@@ -3485,7 +3486,7 @@ def profile_sync_api(request):
                     try:
                         uh = profile.process_history_item(hist, now)
                         if uh:
-                            ret["created"] += [uh.contents(for_api=True)]
+                            ret["created"] += [uh.contents(for_api=True, annotate=True)]
                     except InputError:
                         # validation failed
                         continue
@@ -3500,7 +3501,7 @@ def profile_sync_api(request):
 
             uhs = UserHistorySet({"uid": request.user.id, "server_time_stamp": {"$gt": last_sync}}, hint="uid_1_server_time_stamp_1")
             ret["last_sync"] = now
-            ret["user_history"] = [uh.contents(for_api=True) for uh in uhs.array()]
+            ret["user_history"] = [uh.contents(for_api=True, annotate=True) for uh in uhs.array()]
             ret["settings"] = profile.settings
             ret["settings"]["time_stamp"] = profile.attr_time_stamps["settings"]
             if post.get("client", "") == "web":
@@ -3542,12 +3543,14 @@ def saved_history_for_ref(request):
         return jsonResponse(UserHistory.get_user_history(oref=oref, saved=True, serialized=True))
     return jsonResponse({"error": "Unsupported HTTP method."})
 
+
 def _get_anonymous_user_history(request):
     import urllib.parse
     history = json.loads(urllib.parse.unquote(request.COOKIES.get("user_history", '[]')))
     return history
 
-def profile_get_user_history(request):
+
+def user_history_api(request):
     """
     GET API for user history for a particular user. optional URL params are
     :saved: bool. True if you only want saved items. None if you dont care
@@ -3562,7 +3565,10 @@ def profile_get_user_history(request):
             user = UserProfile(id=request.user.id)
             if "reading_history" in user.settings and not user.settings["reading_history"] and not saved:
                 return jsonResponse([])
-            return jsonResponse(user.get_user_history(oref=oref, saved=saved, secondary=secondary, serialized=True, last_place=last_place))
+            skip = int(request.GET.get("skip", 0))
+            limit = int(request.GET.get("limit", 100))
+            annotate = bool(int(request.GET.get("annotate", 0)))
+            return jsonResponse(user.get_history(oref=oref, saved=saved, secondary=secondary, serialized=True, annotate=annotate, last_place=last_place, skip=skip, limit=limit))
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 

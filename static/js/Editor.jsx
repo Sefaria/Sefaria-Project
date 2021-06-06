@@ -796,21 +796,18 @@ async function getRefInText(editor, additionalOffset=0) {
   }));
 
   for (const i of paragraphsToCheck) {
-
     const initQuery = Node.string(i[0]);
     const paragraphPath = i[1]
-    const match = (initQuery.match(/^.+|\n.+/g));
-    if (!match) {return {}}
+    const match = (initQuery.match(/^.+|\n.+|^$/g));
+    if (!match) {continue}
 
     for (const query of match) {
-      if (query.length > 50 || query.trim() == "") {return {}}
+      if (query.length > 50 || query.trim() == "") {continue}
 
       const ref = await Sefaria.getName(query)
       .then(d => {  return d    });
 
       const selectDistance = query.replace("\n","").length + additionalOffset;
-
-
 
       if (ref["is_ref"]) {
         for (const [node, path] of Node.texts(i[0])) {
@@ -838,26 +835,7 @@ async function getRefInText(editor, additionalOffset=0) {
     }
 
   }
-
   return {}
-
-
-
-  //return null if query length is too long to be a ref or if query is empty
-  // if (query.length > 50 || query == "") {return {}}
-  //
-  // const ref = await Sefaria.getName(query)
-  //     .then(d => {
-  //   // If the query isn't recognized as a ref, but only for reasons of capitalization. Resubmit with recognizable caps.
-  //   if (Sefaria.isACaseVariant(query, d)) {
-  //     this.submitSearch(Sefaria.repairCaseVariant(query, d));
-  //     return;
-  //   }
-  //
-  //   return d
-  //
-  // });
-  // return ref
 }
 
 

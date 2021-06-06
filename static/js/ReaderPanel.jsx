@@ -1,9 +1,11 @@
 import React  from 'react';
+import Component from 'react-class';
 import classNames  from 'classnames';
 import ReactDOM  from 'react-dom';
 import PropTypes  from 'prop-types';
 import extend  from 'extend';
 import Sefaria  from './sefaria/sefaria';
+import {ContentLanguageContext} from './context';
 import $  from './sefaria/sefariaJquery';
 import TextColumn  from './TextColumn';
 import ReaderNavigationMenu  from './ReaderNavigationMenu';
@@ -19,7 +21,7 @@ import TopicPageAll  from './TopicPageAll';
 import {TopicPage, TopicCategory}  from './TopicPage';
 import TopicsPage from './TopicsPage';
 import CollectionPage from "./CollectionPage"
-import NotificationsPanel  from './NotificationsPanel';
+import { NotificationsPanel } from './NotificationsPanel';
 import UserHistoryPanel  from './UserHistoryPanel';
 import UserProfile  from './UserProfile';
 import UpdatesPanel  from './UpdatesPanel';
@@ -38,8 +40,6 @@ import {
   CategoryAttribution,
   ToggleSet, ContentText,
 } from './Misc';
-import Component from 'react-class';
-import {ContentLanguageContext} from './context';
 
 
 class ReaderPanel extends Component {
@@ -942,7 +942,7 @@ class ReaderPanel extends Component {
           openDisplaySettings={this.openDisplaySettings}
           toggleLanguage={this.toggleLanguage}
           compare={this.state.compare}
-          interfaceLang={this.props.interfaceLang} />
+          toggleSignUpModal={this.props.toggleSignUpModal} />
       );
 
     } else if (this.state.menuOpen === "profile") {

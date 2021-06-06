@@ -27,10 +27,10 @@ const CalendarsPage = ({multiPanel, initialWidth}) => {
   const weeklyListings  = makeListings(weeklyCalendars);
 
   const about = multiPanel ? null :
-    <Modules type={"AboutStudySchedules"} />
+    <Modules type={"AboutLearningSchedules"} />
 
   const sidebarModules = [
-    multiPanel ? {type: "AboutStudySchedules"} : {type: null},
+    multiPanel ? {type: "AboutLearningSchedules"} : {type: null},
     {type: "StayConnected"},
     {type: "SupportSefaria"},
   ];
@@ -45,11 +45,11 @@ const CalendarsPage = ({multiPanel, initialWidth}) => {
             <div className="readerNavCategories">
               <ResponsiveNBox content={parashaListings} initialWidth={initialWidth} />
             </div>
-            <h2 className="styledH1 sans-serif"><InterfaceText>Daily Study</InterfaceText></h2>
+            <h2 className="styledH1 sans-serif"><InterfaceText>Daily Learning</InterfaceText></h2>
             <div className="readerNavCategories">
               <ResponsiveNBox content={dailyListings} initialWidth={initialWidth} />
             </div>
-            <h2 className="styledH1 sans-serif"><InterfaceText>Weekly Study</InterfaceText></h2>
+            <h2 className="styledH1 sans-serif"><InterfaceText>Weekly Learning</InterfaceText></h2>
             <div className="readerNavCategories">
               <ResponsiveNBox content={weeklyListings} initialWidth={initialWidth} />
             </div>
@@ -133,34 +133,34 @@ const calendarDescriptions = {
     he: "קטע קבוע מספרי הנביאים (אחד מחלקי התנ\"ך) הנקרא בכל שבת ומועד, ובעל קשר רעיוני לפרשת השבוע."
   },
   "Daf Yomi": {
-    en: "A study program that covers a page of Talmud a day. In this way, the entire Talmud is completed in about seven and a half years.",
+    en: "A learning program that covers a page of Talmud a day. In this way, the entire Talmud is completed in about seven and a half years.",
     he: "תוכנית לימודים לתלמוד הבבלי הכוללת לימוד של דף אחד בכל יום. הלומדים בדרך זו מסיימים את קריאת התלמוד כולו בתוך כשבע שנים וחצי.",
     enSubtitle: "(Talmud)",
   },
   "929": {
-    en: "A study program in which participants study five of the Bible’s 929 chapters a week, completing it in about three and a half years.",
+    en: "A learning program in which participants study five of the Bible’s 929 chapters a week, completing it in about three and a half years.",
     he: "תוכנית שבועית ללימוד תנ\"ך שבה נלמדים בכל שבוע חמישה פרקים מתוך 929 פרקי התנ\"ך. הלומדים בדרך זו מסיימים את קריאת התנ\"ך כולו כעבור שלוש שנים וחצי.",
     enSubtitle: "(Tanakh)"
   },
   "Daily Mishnah": {
-    en: "A program of daily study in which participants study two Mishnahs (teachings) each day in order to finish the entire Mishnah in six years.",
+    en: "A program of daily learning in which participants study two Mishnahs (teachings) each day in order to finish the entire Mishnah in six years.",
     he: "תוכנית ללימוד משנה שבמסגרתה נלמדות שתי משניות בכל יום. הלומדים בדרך זו מסיימים את קריאת המשנה כולה כעבור שש שנים."
   },
   "Daily Rambam": {
-    en: "A study program that divides Maimonides’ Mishneh Torah legal code into daily units, to complete the whole work in three years.",
+    en: "A learning program that divides Maimonides’ Mishneh Torah legal code into daily units, to complete the whole work in three years.",
     he: "תוכנית ללימוד הספר ההלכתי של הרמב\"ם, \"משנה תורה\", המחלקת את הספר ליחידות יומיות. הלומדים בדרך זו מסיימים את קריאת הספר כולו בתוך שלוש שנים."
   },
   "Daily Rambam (3 Chapters)": {
-    en: "A study program that divides Maimonides’ Mishneh Torah legal code into daily units, to complete the whole work in one year.",
+    en: "A learning program that divides Maimonides’ Mishneh Torah legal code into daily units, to complete the whole work in one year.",
     he: "תוכנית ללימוד הספר ההלכתי של הרמב\"ם, \"משנה תורה\", המחלקת את הספר ליחידות יומיות. הלומדים בדרך זו מסיימים את קריאת הספר כולו בתוך שנה אחת.",
   },
   "Daf a Week": {
-    en: "A study program  that covers a page of Talmud a week. By going at a slower pace, it facilitates greater mastery and retention.",
+    en: "A learning program  that covers a page of Talmud a week. By going at a slower pace, it facilitates greater mastery and retention.",
     he: "תוכנית שבועית ללימוד התלמוד הבבלי שבה נלמד דף תלמוד אחד בכל שבוע. קצב הלימוד האיטי מאפשר ללומדים הפנמה ושליטה רבה יותר בחומר הנלמד.",
     enSubtitle: "(Talmud)"
   },
   "Halakhah Yomit": {
-    en: "A four year daily study program in which participants study central legal texts that cover most of the daily and yearly rituals.",
+    en: "A four year daily learning program in which participants study central legal texts that cover most of the daily and yearly rituals.",
     he: "תוכנית ארבע־שנתית ללימוד מקורות הלכתיים מרכזיים העוסקים ברוב הלכות היום־יום והמועדים."
   },
 }

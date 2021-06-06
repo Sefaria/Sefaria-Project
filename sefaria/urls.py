@@ -80,7 +80,7 @@ urlpatterns += [
     url(r'^settings/account?$', reader_views.account_settings),
     url(r'^settings/profile?$', reader_views.edit_profile),
     url(r'^interface/(?P<language>english|hebrew)$', reader_views.interface_language_redirect),
-    url(r'^api/profile/user_history$', reader_views.profile_get_user_history),
+    url(r'^api/profile/user_history$', reader_views.user_history_api),
     url(r'^api/profile/sync$', reader_views.profile_sync_api),
     url(r'^api/profile/upload-photo$', reader_views.profile_upload_photo),
     url(r'^api/profile$', reader_views.profile_api),

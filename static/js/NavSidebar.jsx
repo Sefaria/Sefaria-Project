@@ -23,31 +23,33 @@ const NavSidebar = ({modules}) => {
 const Modules = ({type, props}) => {
   // Choose the appropriate module component to render by `type`
   const moduleTypes = {
-    "AboutSefaria":        AboutSefaria,
-    "Resources":           Resources,
-    "TheJewishLibrary":    TheJewishLibrary,
-    "AboutTextCategory":   AboutTextCategory,
-    "PopularTexts":        PopularTexts,
-    "AboutText":           AboutText,
-    "SupportSefaria":      SupportSefaria,
-    "SponsorADay":         SponsorADay,
-    "StudySchedules":      StudySchedules,
-    "WeeklyTorahPortion":  WeeklyTorahPortion,
-    "DafYomi":             DafYomi,
-    "AboutTopics":         AboutTopics,
-    "TrendingTopics":      TrendingTopics,
-    "RelatedTopics":       RelatedTopics,
-    "TitledText":          TitledText,
-    "Visualizations":      Visualizations,
-    "JoinTheConversation": JoinTheConversation,
-    "GetTheApp":           GetTheApp,
-    "StayConnected":       StayConnected,
-    "AboutStudySchedules": AboutStudySchedules,
-    "AboutCollections":    AboutCollections,
-    "DownloadVersions":    DownloadVersions,
-    "WhoToFollow":         WhoToFollow,
-    "Image":               Image,
-    "Wrapper":             Wrapper,
+    "AboutSefaria":           AboutSefaria,
+    "Resources":              Resources,
+    "TheJewishLibrary":       TheJewishLibrary,
+    "AboutTextCategory":      AboutTextCategory,
+    "PopularTexts":           PopularTexts,
+    "AboutText":              AboutText,
+    "SupportSefaria":         SupportSefaria,
+    "SponsorADay":            SponsorADay,
+    "LearningSchedules":      LearningSchedules,
+    "WeeklyTorahPortion":     WeeklyTorahPortion,
+    "DafYomi":                DafYomi,
+    "AboutTopics":            AboutTopics,
+    "TrendingTopics":         TrendingTopics,
+    "RelatedTopics":          RelatedTopics,
+    "TitledText":             TitledText,
+    "Visualizations":         Visualizations,
+    "JoinTheConversation":    JoinTheConversation,
+    "JoinTheCommunity":       JoinTheCommunity,
+    "GetTheApp":              GetTheApp,
+    "StayConnected":          StayConnected,
+    "AboutLearningSchedules": AboutLearningSchedules,
+    "AboutCollections":       AboutCollections,
+    "ExploreCollections":     ExploreCollections,
+    "DownloadVersions":       DownloadVersions,
+    "WhoToFollow":            WhoToFollow,
+    "Image":                  Image,
+    "Wrapper":                Wrapper,
   };
   if (!type) { return null; }
   const ModuleType = moduleTypes[type];
@@ -93,8 +95,8 @@ const Resources = () => (
   <Module>
     <ModuleTitle>Resources</ModuleTitle>
     <div className="linkList">
-      {/*<IconLink text="Study Schedules" url="/calendars" icon="calendar-black.svg" />*/}
-      <IconLink text="Sheets" url="/sheets" icon="sheet.svg" />
+      <IconLink text="Mobile Apps" url="/mobile" icon="mobile.svg" />
+      <IconLink text="Create with Sefaria" url="/sheets" icon="sheet.svg" />
       <IconLink text="Collections" url="/collections" icon="collection.svg" />
       <IconLink text="Teach with Sefaria" url="/educators" icon="educators.svg" />
       <IconLink text="Visualizations" url="/visualizations" icon="visualizations.svg" />
@@ -268,10 +270,10 @@ const DafLink = () => {
 }
 
 
-const StudySchedules = () => {
+const LearningSchedules = () => {
   return (
     <Module>
-      <ModuleTitle>Study Schedules</ModuleTitle>
+      <ModuleTitle>Learning Schedules</ModuleTitle>
       <div className="readingsSection">
         <span className="readingsSectionTitle">
           <InterfaceText>Weekly Torah Portion</InterfaceText>: <ParashahName />
@@ -291,7 +293,7 @@ const StudySchedules = () => {
         <DafLink />
       </div>
       <a href="/calendars" className="allLink">
-        <InterfaceText>All Study Schedules</InterfaceText> <InterfaceText>&rsaquo;</InterfaceText>
+        <InterfaceText>All Learning Schedules</InterfaceText> <InterfaceText>&rsaquo;</InterfaceText>
       </a>
     </Module>
   );
@@ -325,7 +327,7 @@ const WeeklyTorahPortion = () => {
 const DafYomi = () => {
   return (
     <Module>
-      <ModuleTitle>Daily Study</ModuleTitle>
+      <ModuleTitle>Daily Learning</ModuleTitle>
       <div className="readingsSection">
         <span className="readingsSectionTitle">
           <InterfaceText >Daf Yomi</InterfaceText>
@@ -430,6 +432,8 @@ const RelatedTopics = ({topics}) => {
 
 
 const JoinTheConversation = ({wide}) => {
+  if (!Sefaria.multiPanel) { return null; } // Don't advertise create sheets on mobile (yet)
+
   return (
     <Module wide={wide}>
       <div>
@@ -440,6 +444,24 @@ const JoinTheConversation = ({wide}) => {
         <a className="button small" href="/sheets/new">
           <img src="/static/icons/new-sheet-black.svg" alt="make a sheet icon" />
           <InterfaceText>Make a Sheet</InterfaceText>
+        </a>
+      </div>
+    </Module>
+  );
+};
+
+
+const JoinTheCommunity = ({wide}) => {
+  return (
+    <Module wide={wide}>
+      <div>
+        <ModuleTitle>Join the Conversation</ModuleTitle>
+        <InterfaceText>Learners around the world use Sefaria to create and share Torah resources. You're invited to add your voice.</InterfaceText>
+      </div>
+      <div>
+        <a className="button small" href="/community">
+          <img src="/static/icons/community-black.svg" alt="make a sheet icon" />
+          <InterfaceText>Explore the Community</InterfaceText>
         </a>
       </div>
     </Module>
@@ -492,9 +514,9 @@ const StayConnected = () => {
 };
 
 
-const AboutStudySchedules = () => (
+const AboutLearningSchedules = () => (
   <Module>
-    <ModuleTitle h1={true}>Study Schedules</ModuleTitle>
+    <ModuleTitle h1={true}>Learning Schedules</ModuleTitle>
     <InterfaceText>Since biblical times, the Torah has been divided into sections which are read each week on a set yearly calendar. Following this practice, many other calendars have been created to help communities of learners work through specific texts together.</InterfaceText>
   </Module>
 );
@@ -512,6 +534,20 @@ const AboutCollections = ({hideTitle}) => (
         <InterfaceText>Create a Collection</InterfaceText>
       </a>
     </div>}
+  </Module>
+);
+
+
+const ExploreCollections = () => (
+  <Module>
+    <ModuleTitle>Explore Collections</ModuleTitle>
+    <InterfaceText>Collections are curated and shared by orgranizations, communities and individuals around the world.</InterfaceText>
+    <div>
+      <a className="button small" href="/collections">
+        <img src="/static/icons/collection.svg" alt="collection icon" />
+        <InterfaceText>Explore Collections</InterfaceText>
+      </a>
+    </div>
   </Module>
 );
 

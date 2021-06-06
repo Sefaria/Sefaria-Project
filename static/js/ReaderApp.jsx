@@ -15,7 +15,8 @@ import {
   RemoteLearningPage,
   SheetsLandingPage,
   PBSC2020LandingPage,
-  RambanLandingPage
+  RambanLandingPage,
+  EducatorsPage
 } from './StaticPages';
 import {
   SignUpModal,
@@ -497,12 +498,12 @@ class ReaderApp extends Component {
             hist.mode  = "collection";
             break;          
           case "collectionsPublic":
-            hist.title =  + "Collections" + " | " + Sefaria._(siteName);
+            hist.title = Sefaria._("Collections") + " | " + Sefaria._(siteName);
             hist.url = "collections";
             hist.mode = "collcetionsPublic";
             break;
           case "calendars":
-            hist.title = Sefaria._("Study Schedules") + " | " + Sefaria._(siteName);
+            hist.title = Sefaria._("Learning Schedules") + " | " + Sefaria._(siteName);
             hist.url = "calendars";
             hist.mode = "calendars";
             break;
@@ -1877,5 +1878,6 @@ export {
   RemoteLearningPage,
   SheetsLandingPage,
   PBSC2020LandingPage,
-  RambanLandingPage
+  RambanLandingPage,
+  EducatorsPage
 };

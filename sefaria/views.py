@@ -227,6 +227,7 @@ def sefaria_js(request):
 
     return render(request, "js/sefaria.js", attrs, content_type= "text/javascript; charset=utf-8")
 
+
 def chavruta_js(request):
     """
     Javascript for chavruta [required to pass server attribute].
@@ -243,7 +244,6 @@ def chavruta_js(request):
 
 
     return render(request, "js/chavruta.js", attrs, content_type="text/javascript; charset=utf-8")
-
 
 
 def linker_js(request, linker_version=None):
@@ -337,6 +337,7 @@ def bundle_many_texts(refs, useTextFamily=False, as_sized_string=False, min_char
             # logger.warning(u"Linker failed to parse {} from {} : {}".format(tref, referer, e))
             res[tref] = {"error": 1}
     return res
+
 
 def bulktext_api(request, refs):
     """

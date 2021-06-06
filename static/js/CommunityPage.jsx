@@ -4,17 +4,14 @@ import $ from './sefaria/sefariaJquery';
 import Sefaria from './sefaria/sefaria';
 import PropTypes from 'prop-types';
 import classNames  from 'classnames';
-import {Story} from './Story';
 import { NavSidebar, Modules } from './NavSidebar';
 import Footer from'./Footer';
-import { usePaginatedScroll } from './Hooks';
 import {
-    InterfaceText,
-    LoadingMessage,
-    NBox,
-    ResponsiveNBox,
-    NewsletterSignUpForm,
-    ProfileListing,
+  InterfaceText,
+  LoadingMessage,
+  NBox,
+  ResponsiveNBox,
+  ProfileListing,
 } from './Misc';
 
 
@@ -23,9 +20,10 @@ const CommunityPage = ({multiPanel, toggleSignUpModal, initialWidth}) => {
   const sidebarModules = [
     {type: "JoinTheConversation"},
     {type: "WhoToFollow", props: {toggleSignUpModal}},
-    {type: "StayConnected"},
+    {type: "ExploreCollections"},
     {type: "GetTheApp"},
     {type: "SupportSefaria", props: {blue: true}},
+    {type: "StayConnected"},
   ];
 
   const {parashah, calendar, discover, featured} = Sefaria.community;
