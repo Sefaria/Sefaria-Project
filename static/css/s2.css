@@ -6386,6 +6386,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .button.disabled:hover{
   color: var(--medium-grey);
+  cursor: initial;
 }
 a.button {
   color: white;
