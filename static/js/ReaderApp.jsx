@@ -823,11 +823,11 @@ class ReaderApp extends Component {
     // compared to the header. This functions sets appropriate padding to compensate.
     var width = Sefaria.util.getScrollbarWidth();
     // These are the divs that actually scroll
-    var $container = $(ReactDOM.findDOMNode(this)).find(".content, .textColumn");
+    var $container = $(ReactDOM.findDOMNode(this)).find(".textColumn, .sheetsInPanel");
     if (this.state.panels.length > 1) {
       $container.css({paddingRight: "", paddingLeft: ""});
     } else {
-        $container.css({paddingRight: 0, paddingLeft: width});
+      $container.css({paddingRight: 0, paddingLeft: width});
     }
   }
   toggleSignUpModal() {
