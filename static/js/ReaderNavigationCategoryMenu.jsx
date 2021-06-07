@@ -226,7 +226,7 @@ const MenuItem = ({href, dref, nestLevel, title, heTitle, group, cats, incomplet
 const TextMenuItem = ({item, categories, showInHebrew, nestLevel}) => {
         const [title, heTitle] = getRenderedTextTitleString(item.title, item.heTitle, categories);
         const lastPlace = Sefaria.lastPlaceForText(item.title);
-        const ref =  lastPlace ? lastPlace.ref : item.firstSection;
+        const ref =  lastPlace ? lastPlace.ref : item.firstSection ? item.firstSection : item.title;
         return (
             <MenuItem
                 href        = {"/" + Sefaria.normRef(ref)}

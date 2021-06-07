@@ -21,9 +21,14 @@ import {
   InterfaceText,
   FilterableList,
   ToolTipped,
+  SimpleLinkedBlock,
 } from './Misc';
 import Footer from './Footer';
 import { useIncrementalLoad } from './Hooks';
+
+/*
+*** Helper functions
+*/
 
 
 const norm_hebrew_ref = tref => tref.replace(/[׳״]/g, '');
@@ -47,15 +52,34 @@ const fetchBulkText = inRefs =>
 
 
 const fetchBulkSheet = inSheets =>
-    Sefaria.getBulkSheets(inSheets.map(x => x.sid)).then(outSheets => {
+    Sefaria.getBulkSheets(inSheets.map(x => x.ref)).then(outSheets => {
     for (let tempSheet of inSheets) {
-      if (outSheets[tempSheet.sid]) {
-        outSheets[tempSheet.sid].order = tempSheet.order;
+      if (outSheets[tempSheet.ref]) {
+        outSheets[tempSheet.ref].order = tempSheet.order;
       }
     }
     return Object.values(outSheets);
   }
 );
+
+
+const refFilter = (currFilter, ref) => {
+  const n = text => !!text ? text.toLowerCase() : '';
+  currFilter = n(currFilter);
+  ref[1].categories = Sefaria.refCategories(ref[1].ref).join(" ");
+  for (let field of ['en', 'he', 'ref', 'categories']) {
+    if (n(ref[1][field]).indexOf(currFilter) > -1) { return true; }
+  }
+};
+
+
+const sheetFilter = (currFilter, sheet) => {
+  const n = text => !!text ? text.toLowerCase() : '';
+  currFilter = n(currFilter);
+  for (let field of ['sheet_title', 'publisher_name', 'publisher_position', 'publisher_organization']) {
+    if (n(sheet[field]).indexOf(currFilter) > -1) { return true; }
+  }
+};
 
 
 const refSort = (currSortOption, a, b, { interfaceLang }) => {
@@ -78,6 +102,7 @@ const refSort = (currSortOption, a, b, { interfaceLang }) => {
       if (bAvailLangs.indexOf('en') > -1) { return 1; }
       return 0;
     }
+    else if (a.order.custom_order !== b.order.custom_order) { return b.order.custom_order - a.order.custom_order; }  // custom_order, when present, should trump other data
     else if (a.order.pr !== b.order.pr) { return b.order.pr - a.order.pr; }
     else { return (b.order.numDatasource * b.order.tfidf) - (a.order.numDatasource * a.order.tfidf); }
   }
@@ -111,13 +136,34 @@ const sheetSort = (currSortOption, a, b, { interfaceLang }) => {
 };
 
 
+const refRenderWrapper = (toggleSignUpModal, topicData, interfaceLang) => item => (
+  <TextPassage
+    key={item[0]}
+    text={item[1]}
+    toggleSignUpModal={toggleSignUpModal}
+    topicTitle={topicData && topicData.primaryTitle}
+    interfaceLang={interfaceLang}
+  />
+);
+
+
+const sheetRenderWrapper = (toggleSignUpModal) => item => (
+  <SheetBlock key={item.sheet_id} sheet={item} compact toggleSignUpModal={toggleSignUpModal}/>
+);
+
+
+/*
+*** Components
+*/
+
+
 const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, interfaceLang, width, multiPanel, compare, hideNavHeader, contentLang, openDisplaySettings, openSearch, onClose}) => {
     
     const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(topic) || {primaryTitle: topicTitle});
     const [subtopics, setSubtopics] = useState(Sefaria.topicTocPage(topic));
 
     useEffect(() => {
-        Sefaria.getTopic(topic).then(setTopicData);
+        Sefaria.getTopic(topic, {annotate_time_period: true}).then(setTopicData);
     }, [topic]);
 
     useEffect(() => {
@@ -232,98 +278,131 @@ const TopicHeader = ({
            <span className="int-he">{ topicData.parasha ? Sefaria._('Read the Portion') : norm_hebrew_ref(topicData.ref.he) }</span>
          </a>
        : null}
+       {topicData?.indexes?.length ?
+        <div>
+          <div className="sectionTitleText authorIndexTitle"><InterfaceText>Works on Sefaria</InterfaceText></div>
+          <div className="authorIndexList">
+            {topicData.indexes.map(({text, url}) => <SimpleLinkedBlock key={url} {...text} url={url} classes="authorIndex" />)}
+          </div>
+        </div>
+       : null}
     </div>
 );}
 
 
+const TAB_DISPLAY_DATA = [
+  {
+    key: 'popular-writing-of',
+    fetcher: fetchBulkText,
+    sortOptions: ['Relevance', 'Chronological'],
+    filterFunc: refFilter,
+    sortFunc: refSort,
+    renderWrapper: refRenderWrapper,
+  },
+  {
+    key: 'sources',
+    fetcher: fetchBulkText,
+    sortOptions: ['Relevance', 'Chronological'],
+    filterFunc: refFilter,
+    sortFunc: refSort,
+    renderWrapper: refRenderWrapper,
+  },
+  {
+    key: 'sheets',
+    fetcher: fetchBulkSheet,
+    sortOptions: ['Relevance', 'Views', 'Newest'],
+    filterFunc: sheetFilter,
+    sortFunc: sheetSort,
+    renderWrapper: sheetRenderWrapper,
+  }
+]; 
 const TopicPage = ({
   tab, topic, topicTitle, setTopic, setNavTopic, openTopics, interfaceLang, multiPanel,
   hideNavHeader, showBaseText, navHome, toggleSignUpModal, openDisplaySettings,
   updateTopicsTab, onClose, openSearch
 }) => {
-    const defaultTopicData = {primaryTitle: topicTitle, textRefs: false, sheetRefs: false, isLoading: true};
+    const defaultTopicData = {primaryTitle: topicTitle, tabs: {}, isLoading: true};
     const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(topic) || defaultTopicData);
-    const [sheetData, setSheetData] = useState(topicData ? topicData.sheetData : null);
-    const [textData, setTextData]   = useState(topicData ? topicData.textData : null);
-    const [textRefsToFetch, setTextRefsToFetch] = useState(false);
-    const [sheetRefsToFetch, setSheetRefsToFetch] = useState(false);
+    const [loadedData, setLoadedData] = useState(topicData ? Object.entries(topicData.tabs).reduce((obj, [key, tabObj]) => { obj[key] = tabObj.loadedData; return obj; }, {}) : {});
+    const [refsToFetchByTab, setRefsToFetchByTab] = useState({});
     const [parashaData, setParashaData] = useState(null);
     const [showFilterHeader, setShowFilterHeader] = useState(false);
+    const [extraData, setExtraData] = useState({ interfaceLang });
+    useEffect(() => {
+      setExtraData({ interfaceLang });
+    }, [interfaceLang]);
     const scrollableElement = useRef();
-    const textRefs  = topicData ? topicData.textRefs : false;
-    const sheetRefs = topicData ? topicData.sheetRefs : false;
 
-    let textCancel, sheetCancel;
     const clearAndSetTopic = (topic, topicTitle) => {setTopic(topic, topicTitle)};
     
     // Initial Topic Data, updates when `topic` changes
     useEffect(() => {
       setTopicData(defaultTopicData); // Ensures topicTitle displays while loading
       const { promise, cancel } = Sefaria.makeCancelable((async () => {
-        const d = await Sefaria.getTopic(topic);
+        const d = await Sefaria.getTopic(topic, {annotate_time_period: true});
         if (d.parasha) { Sefaria.getParashaNextRead(d.parasha).then(setParashaData); }
         setTopicData(d);
         // Data remaining to fetch that was not already in the cache
-        const textRefsWithoutData = d.textData ? d.textRefs.slice(d.textData.length) : d.textRefs;
-        const sheetRefsWithoutData = d.sheetData ? d.sheetRefs.slice(d.sheetData.length) : d.sheetRefs;
-        if (textRefsWithoutData.length) { setTextRefsToFetch(textRefsWithoutData); }
-        else { setTextData(d.textData); }
-        if (sheetRefsWithoutData.length) { setSheetRefsToFetch(sheetRefsWithoutData); }
-        else { setSheetData(d.sheetData); }
+        for (let [tabKey, tabObj] of Object.entries(d.tabs)) {
+          const refsWithoutData = tabObj.loadedData ? tabObj.refs.slice(tabObj.loadedData.length) : tabObj.refs;
+          if (refsWithoutData.length)  {
+            setRefsToFetchByTab(prev => ({...prev, [tabKey]: refsWithoutData}));
+          } else {
+            setLoadedData(prev => ({...prev, [tabKey]: tabObj.loadedData}));
+          }
+        }
       })());
       promise.catch((error) => { if (!error.isCanceled) { console.log('TopicPage Error', error); } });
       return () => {
         cancel();
         setTopicData(false);
-        setTextData(null);
-        setSheetData(null);
-        setTextRefsToFetch(false);
-        setSheetRefsToFetch(false);
+        setLoadedData({});
+        setRefsToFetchByTab({});
       }
     }, [topic]);
 
-    // Fetching textual data in chunks
-    useIncrementalLoad(
-      fetchBulkText,
-      textRefsToFetch,
-      70,
-      data => setTextData(prev => {
-        const updatedData = (!prev || data === false) ? data : [...prev, ...data];
-        if (topicData) { topicData.textData = updatedData; } // Persist textData in cache
-        return updatedData;
-      }),
-      topic
-    );
-
-    // Fetching sheet data in chunks
-    useIncrementalLoad(
-      fetchBulkSheet,
-      sheetRefsToFetch,
-      70,
-      data => setSheetData(prev => {
-        const updatedData = (!prev || data === false) ? data : [...prev, ...data];
-        if (topicData) { topicData.sheetData = updatedData; } // Persist sheetData in cache
-        return updatedData;
-      }),
-      topic
-    );
-
-    // Set up Tabs
-    const tabs = [];
-    if (!!textRefs.length) { tabs.push({text: Sefaria._("Sources"), id: 'sources'}); }
-    if (!!sheetRefs.length) { tabs.push({text: Sefaria._("Sheets"), id: 'sheets'}); }
+    // Set up tabs and register incremental load hooks
+    const displayTabs = [];
     let onClickFilterIndex = 2;
-    if (!!textRefs.length || !!sheetRefs.length) {
-      tabs.push({text: Sefaria._("Filter"), icon: `/static/img/arrow-${showFilterHeader ? 'up' : 'down'}-bold.svg`, justifyright: true });
-      onClickFilterIndex = tabs.length - 1;
+    for (let tabObj of TAB_DISPLAY_DATA) {
+      const { key } = tabObj;
+      useIncrementalLoad(
+        tabObj.fetcher,
+        refsToFetchByTab[key] || false,
+        70,
+        data => setLoadedData(prev => {
+          const updatedData = (!prev[key] || data === false) ? data : [...prev[key], ...data];
+          if (topicData?.tabs?.[key]) { topicData.tabs[key].loadedData = updatedData; } // Persist loadedData in cache
+          return {...prev, [key]: updatedData};
+        }),
+        topic
+      );
+      if (topicData?.tabs?.[key]) {
+        displayTabs.push({
+          title: topicData.tabs[key].title,
+          id: key,
+        });
+      }
     }
-    let tabIndex = tabs.findIndex(t => t.id === tab);
-    if (tabIndex == -1 && tabs.length > 0) {
+    if (displayTabs.length) {
+      displayTabs.push({
+        title: {
+          en: "Filter",
+          he: Sefaria._("Filter")
+        },
+        id: 'filter',
+        icon: `/static/img/arrow-${showFilterHeader ? 'up' : 'down'}-bold.svg`,
+        justifyright: true
+      });
+      onClickFilterIndex = displayTabs.length - 1;      
+    }
+    let tabIndex = displayTabs.findIndex(t => t.id === tab);
+    if (tabIndex == -1 && displayTabs.length > 0) {
       tabIndex = 0;
     }
     useEffect(() => {
-      if (!!tabs[tabIndex]) {
-        updateTopicsTab(tabs[tabIndex].id);
+      if (!!displayTabs[tabIndex]) {
+        updateTopicsTab(displayTabs[tabIndex].id);
       }
     }, [tabIndex]);
 
@@ -342,85 +421,53 @@ const TopicPage = ({
             <div className="columnLayout">
                <div className="mainColumn storyFeedInner">
                     <TopicHeader topic={topic} topicData={topicData} multiPanel={multiPanel} interfaceLang={interfaceLang} setNavTopic={setNavTopic} onClose={onClose} openSearch={openSearch} openDisplaySettings={openDisplaySettings} />
-                    {!topicData.isLoading ?
+                    {(!topicData.isLoading && displayTabs.length) ?
                        <TabView
                           currTabIndex={tabIndex}
                           setTab={(tabIndex, tempTabs) => { updateTopicsTab(tempTabs[tabIndex].id); }}
-                          tabs={tabs}
+                          tabs={displayTabs}
                           renderTab={t => (
                             <div className={classNames({tab: 1, noselect: 1, filter: t.justifyright, open: t.justifyright && showFilterHeader})}>
-                              <InterfaceText>{t.text}</InterfaceText>
-                              { t.icon ? <img src={t.icon} alt={`${t.text} icon`} /> : null }
+                              <InterfaceText text={t.title} />
+                              { t.icon ? <img src={t.icon} alt={`${t.title.en} icon`} /> : null }
                             </div>
                           )}
                           onClickArray={{[onClickFilterIndex]: ()=>setShowFilterHeader(!showFilterHeader)}}
                         >
-                          { !!textRefs.length ? (
-                            <TopicPageTab
-                              scrollableElement={scrollableElement}
-                              showFilterHeader={showFilterHeader}
-                              data={textData}
-                              sortOptions={['Relevance', 'Chronological']}
-                              filterFunc={(currFilter, ref) => {
-                                const n = text => !!text ? text.toLowerCase() : '';
-                                currFilter = n(currFilter);
-                                ref[1].categories = Sefaria.refCategories(ref[1].ref).join(" ");
-                                for (let field of ['en', 'he', 'ref', 'categories']) {
-                                  if (n(ref[1][field]).indexOf(currFilter) > -1) { return true; }
-                                }
-                              }}
-                              sortFunc={refSort}
-                              onDisplayedDataChange={(data) => {
-                                topicData._textRefsDisplayed = data.length;
-                              }}
-                              initialRenderSize={topicData._textRefsDisplayed || 0}
-                              extraData={{ interfaceLang }}
-                              renderItem={item=>(
-                                <TextPassage
-                                  key={item[0]}
-                                  text={item[1]}
-                                  toggleSignUpModal={toggleSignUpModal}
-                                  topicTitle={topicData && topicData.primaryTitle}
-                                  interfaceLang={interfaceLang}
+                          {
+                            TAB_DISPLAY_DATA.map(tabObj => {
+                              const { key, sortOptions, filterFunc, sortFunc, renderWrapper } = tabObj;
+                              const displayTab = displayTabs.find(x => x.id === key);
+                              if (!displayTab) { return null; }
+                              return (
+                                <TopicPageTab
+                                  key={key}
+                                  scrollableElement={scrollableElement}
+                                  showFilterHeader={showFilterHeader}
+                                  data={loadedData[key]}
+                                  sortOptions={sortOptions}
+                                  filterFunc={filterFunc}
+                                  sortFunc={sortFunc}
+                                  onDisplayedDataChange={data => {
+                                    if (!topicData._refsDisplayedByTab) { topicData._refsDisplayedByTab = {}; }
+                                    topicData._refsDisplayedByTab[key] = data.length;
+                                  }}
+                                  initialRenderSize={(topicData._refsDisplayedByTab && topicData._refsDisplayedByTab[key]) || 0}
+                                  extraData={extraData}
+                                  renderItem={renderWrapper(toggleSignUpModal, topicData, interfaceLang)}
                                 />
-                              )}
-                              />
-                            ) : null
-                          }
-                          { !!sheetRefs.length ? (
-                            <TopicPageTab
-                              scrollableElement={scrollableElement}
-                              showFilterHeader={showFilterHeader}
-                              data={sheetData}
-                              classes={"storySheetList"}
-                              sortOptions={['Relevance', 'Views', 'Newest']}
-                              filterFunc={(currFilter, sheet) => {
-                                const n = text => !!text ? text.toLowerCase() : '';
-                                currFilter = n(currFilter);
-                                for (let field of ['sheet_title', 'publisher_name', 'publisher_position', 'publisher_organization']) {
-                                  if (n(sheet[field]).indexOf(currFilter) > -1) { return true; }
-                                }
-                              }}
-                              sortFunc={sheetSort}
-                              onDisplayedDataChange={(data) => {
-                                topicData._sheetRefsDisplayed = data.length;
-                              }}
-                              initialRenderSize={topicData._sheetRefsDisplayed || 0}
-                              extraData={{ interfaceLang }}
-                              renderItem={item=>(
-                                <SheetBlock key={item.sheet_id} sheet={item} compact toggleSignUpModal={toggleSignUpModal}/>
-                              )}
-                              />
-                            ) : null
+                              );
+                            })
                           }
                         </TabView>
-                    : <LoadingMessage /> }
+                    : (topicData.isLoading ? <LoadingMessage /> : null) }
                 </div>
                 <div className="sideColumn">
                     { topicData ?
                     <TopicSideColumn key={topic} slug={topic} links={topicData.links}
                       clearAndSetTopic={clearAndSetTopic} setNavTopic={setNavTopic}
                       parashaData={parashaData} tref={topicData.ref} interfaceLang={interfaceLang}
+                      timePeriod={topicData.timePeriod} properties={topicData.properties}
                     />
                     : null }
                 </div>
@@ -521,8 +568,7 @@ TopicLink.propTypes = {
 };
 
 
-const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, interfaceLang, setNavTopic }) => {
-  const [showMoreMap, setShowMoreMap] = useState({});
+const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, interfaceLang, setNavTopic, timePeriod, properties }) => {
   const category = Sefaria.topicTocCategory(slug);
   const linkTypeArray = links ? Object.values(links).filter(linkType => !!linkType && linkType.shouldDisplay && linkType.links.filter(l => l.shouldDisplay !== false).length > 0) : [];
   if (linkTypeArray.length === 0) {
@@ -541,6 +587,7 @@ const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, int
   const readingsComponent = (parashaData && tref) ? (
     <ReadingsComponent parashaData={parashaData} tref={tref} />
   ) : null;
+  const topicMetaData = <TopicMetaData timePeriod={timePeriod} properties={properties} />;
   const linksComponent = (
     links ?
         linkTypeArray.sort((a, b) => {
@@ -552,16 +599,18 @@ const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, int
         //alphabetical by en just to keep order consistent
         return a.title.en.localeCompare(b.title.en);
       })
-      .map(({ title, pluralTitle, links }) => (
-        <div key={title.en} className="link-section">
-          <h2>
-            <span className="int-en">{(links.length > 1 && pluralTitle) ? pluralTitle.en : title.en}</span>
-            <span className="int-he">{(links.length > 1 && pluralTitle) ? pluralTitle.he : title.he}</span>
-          </h2>
-          <div className="sideList">
+      .map(({ title, pluralTitle, links }) => {
+        const linksToDisplay = links.filter(l => l.shouldDisplay !== false);
+        const hasPlural = linksToDisplay.length > 1 && pluralTitle;
+        const pluralizedTitle = {
+          en: hasPlural ? pluralTitle.en : title.en,
+          he: hasPlural ? pluralTitle.he : title.he,
+        };
+        const hasMore = linksToDisplay.length > 10;
+        return (
+          <TopicSideSection key={title.en+title.he} title={pluralizedTitle} hasMore={hasMore}>
             {
-              links
-              .filter(l => l.shouldDisplay !== false)
+              linksToDisplay
               .sort((a, b) => {
                 const shortLang = interfaceLang == 'hebrew' ? 'he' : 'en';
                 if (!!a.title[shortLang] !== !!b.title[shortLang]) {
@@ -571,7 +620,6 @@ const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, int
                 if ((0+!!a.order) !== (0+!!b.order)) { return (0+!!b.order) - (0+!!a.order); }
                 return b.order.tfidf - a.order.tfidf;
               })
-              .slice(0, showMoreMap[title.en] ? undefined : 10)
               .map(l =>
                 TopicLink({
                   topic:l.topic, topicTitle: l.title,
@@ -581,23 +629,15 @@ const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, int
                 })
               )
             }
-          </div>
-          {
-            links.filter(l=>l.shouldDisplay !== false).length > 10 ?
-              (<div className="sideColumnMore sans-serif" onClick={() => {
-                setShowMoreMap({...showMoreMap, [title.en]: !showMoreMap[title.en]});
-              }}>
-                <InterfaceText>{ showMoreMap[title.en] ? "Less" : "More" }</InterfaceText>
-              </div>)
-            : null
-          }
-        </div>
-      ))
+          </TopicSideSection>
+        );
+      })
     : null
   );
   return (
     <div>
       { readingsComponent }
+      { topicMetaData }
       { linksComponent }
     </div>
   )
@@ -607,6 +647,30 @@ TopicSideColumn.propTypes = {
   clearAndSetTopic: PropTypes.func.isRequired,
 };
 
+
+const TopicSideSection = ({ title, children, hasMore }) => {
+  const [showMore, setShowMore] = useState(false);
+  return (
+    <div key={title.en} className="link-section">
+      <h2>
+        <span className="int-en">{title.en}</span>
+        <span className="int-he">{title.he}</span>
+      </h2>
+      <div className="sideList">
+        { React.Children.toArray(children).slice(0, showMore ? undefined : 10) }
+      </div>
+      {
+        hasMore ?
+        (
+          <div className="sideColumnMore sans-serif" onClick={() => setShowMore(!showMore)}>
+            <InterfaceText>{ showMore ? "Less" : "More" }</InterfaceText>
+          </div>
+        )
+        : null
+      }
+    </div>
+  );
+}
 
 const ReadingsComponent = ({ parashaData, tref }) => (
   <div className="readings link-section">
@@ -634,6 +698,61 @@ const ReadingsComponent = ({ parashaData, tref }) => (
   </div>
 );
 
+
+const TopicMetaData = ({ timePeriod, properties={} }) => {
+  const tpSection = !!timePeriod ? (
+    <TopicSideSection title={{en: "Lived", he: "תקופת פעילות"}}>
+      <div className="systemText topicMetaData"><InterfaceText text={timePeriod.name} /></div>
+      <div className="systemText topicMetaData"><InterfaceText text={timePeriod.yearRange} /></div>
+    </TopicSideSection>
+  ) : null;
+  const propValues = [
+    {
+      url: {
+        en: (properties['enWikiLink'] || {})['value'],
+        he: (properties['heWikiLink'] || {})['value'],
+      },
+      title: 'Wikipedia',
+    },
+    {
+      url: {
+        en: (properties['jeLink'] || {})['value'],
+        he: (properties['jeLink'] || {})['value'],
+      },
+      title: 'Jewish Encyclopedia',
+    }
+  ];
+  const hasProps = propValues.reduce((accum, curr) => accum || curr.url.en || curr.url.he, false);
+  const propsSection = hasProps ? (
+    <TopicSideSection title={{en: "Learn More", he: "לקריאה נוספת"}}>
+      {
+        propValues.map(propObj => {
+          let url, urlExists = true;
+          if (Sefaria.interfaceLang === 'hebrew') {
+            if (!propObj.url.he) { urlExists = false; }
+            url = propObj.url.he || propObj.url.en;
+          } else {
+            if (!propObj.url.en) { urlExists = false; }
+            url = propObj.url.en || propObj.url.he;            
+          }
+          if (!url) { return null; }
+          return (
+            <SimpleLinkedBlock
+              key={url} en={propObj.title + (urlExists ? "" : " (Hebrew)")} he={Sefaria._(propObj.title) + (urlExists ? "" : ` (${Sefaria._("English")})`)}
+              url={url} aclasses={"systemText topicMetaData"} openInNewTab
+            />
+          );
+        })
+      }
+    </TopicSideSection>
+  ) : null;
+  return (
+    <>
+      { tpSection }
+      { propsSection }
+    </>
+  );
+};
 
 export {
   TopicPage,

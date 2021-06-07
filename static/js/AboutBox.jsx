@@ -58,6 +58,10 @@ class AboutBox extends Component {
     }
     this.setState({versionLangMap: versionsByLang, currentVersionsByActualLangs:currentVersionsByActualLangs});
   }
+  openVersionInSidebar(versionTitle, versionLanguage) {
+    this.props.setConnectionsMode("Translation Open", {previousMode: "About"});
+    this.props.setFilter(Sefaria.getTranslateVersionsKey(versionTitle, versionLanguage));
+  }
   render() {
     const d = this.state.details;
     const sourceVersion = this.state.currentVersionsByActualLangs?.he;
@@ -98,8 +102,8 @@ class AboutBox extends Component {
       if (d.authors && d.authors.length) {
         const authorArrayEn = d.authors.filter((elem) => !!elem.en);
         const authorArrayHe = d.authors.filter((elem) => !!elem.he);
-        authorsEn = authorArrayEn.map(author => <a key={author.en} href={"/person/" + author.en}>{author.en}</a> );
-        authorsHe = authorArrayHe.map(author => <a key={author.en} href={"/person/" + author.en}>{author.he}</a> );
+        authorsEn = authorArrayEn.map(author => <a key={author.slug} href={"/topics/" + author.slug}>{author.en}</a> );
+        authorsHe = authorArrayHe.map(author => <a key={author.slug} href={"/topics/" + author.slug}>{author.he}</a> );
       }
       // use compPlaceString and compDateString if available. then use compPlace o/w use pubPlace o/w nothing
       let placeTextEn, placeTextHe;
@@ -214,6 +218,7 @@ class AboutBox extends Component {
               currentRef={this.props.srefs[0]}
               getLicenseMap={this.props.getLicenseMap}
               openVersionInReader={this.props.openVersionInReader}
+              openVersionInSidebar={this.openVersionInSidebar}
               viewExtendedNotes={this.props.viewExtendedNotes}
             />
       </div> : null );

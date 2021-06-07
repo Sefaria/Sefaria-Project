@@ -620,7 +620,7 @@ class TextIndexer(object):
             comp_start_date = 3000  # far in the future
 
         ref_data = RefData().load({"ref": tref})
-        pagesheetrank = ref_data.pagesheetrank if ref_data is not None else RefData.DEFAULT_PAGERANK * RefData.DEFAULT_SHEETRANK
+        pagesheetrank = ref_data.pagesheetrank if ref_data is not None else RefData.DEFAULT_PAGESHEETRANK
 
         return {
             "ref": tref,

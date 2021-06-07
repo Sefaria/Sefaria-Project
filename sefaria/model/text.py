@@ -123,8 +123,8 @@ class AbstractIndex(object):
         return refs
 
     def author_objects(self):
-        from . import person
-        return [person.Person().load({"key": k}) for k in getattr(self, "authors", []) if person.Person().load({"key": k})]
+        from . import topic
+        return [topic.Topic.init(slug) for slug in getattr(self, "authors", []) if topic.Topic.init(slug)]
 
     def composition_time_period(self):
         return None
@@ -262,7 +262,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         """
         authors = self.author_objects()
         if len(authors):
-            contents["authors"] = [{"en": author.primary_name("en"), "he": author.primary_name("he")} for author in authors]
+            contents["authors"] = [{"en": author.get_primary_title("en"), "he": author.get_primary_title("he"), "slug": author.slug} for author in authors]
 
         if getattr(self, "collective_title", None):
             contents["collective_title"] = {"en": self.collective_title, "he": hebrew_term(self.collective_title)}
@@ -460,8 +460,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         else:
             author = self.author_objects()[0] if len(self.author_objects()) > 0 else None
-            if author and author.mostAccurateTimePeriod():
-                tp = author.mostAccurateTimePeriod()
+            tp = author and author.most_accurate_time_period()
+            if tp is not None:
                 tpvars = vars(tp)
                 start = tp.start if "start" in tpvars else None
                 end = tp.end if "end" in tpvars else None
@@ -758,8 +758,13 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         else:  # old style commentator record are no longer supported
             raise InputError('All new Index records must have a valid schema.')
 
-        if getattr(self, "authors", None) and not isinstance(self.authors, list):
-            raise InputError('{} authors must be a list.'.format(self.title))
+        if getattr(self, "authors", None):
+            from .topic import Topic, AuthorTopic
+            if not isinstance(self.authors, list):
+                raise InputError(f'{self.title} authors must be a list.')
+            for author_slug in self.authors:
+                topic = Topic.init(author_slug)
+                assert isinstance(topic, AuthorTopic), f"Author with slug {author_slug} does not match any valid AuthorTopic instance. Make sure the slug exists in the topics collection and has the subclass 'author'."
 
         return True
 
@@ -4540,6 +4545,7 @@ class Library(object):
         self._toc_tree = None
         self._topic_toc = None
         self._topic_toc_json = None
+        self._topic_toc_category_mapping = None
         self._topic_link_types = None
         self._topic_data_sources = None
         self._category_id_dict = None
@@ -4617,6 +4623,7 @@ class Library(object):
         self._toc_json = self.get_toc_json(rebuild=True)
         self._topic_toc = self.get_topic_toc(rebuild=True)
         self._topic_toc_json = self.get_topic_toc_json(rebuild=True)
+        self._topic_toc_category_mapping = self.get_topic_toc_category_mapping(rebuild=True)
         self._category_id_dict = None
         scache.delete_template_cache("texts_list")
         scache.delete_template_cache("texts_dashboard")
@@ -4628,6 +4635,7 @@ class Library(object):
         self.get_topic_mapping(rebuild=rebuild)
         self.get_topic_toc(rebuild=rebuild)
         self.get_topic_toc_json(rebuild=rebuild)
+        self.get_topic_toc_category_mapping(rebuild=rebuild)
         self.get_text_titles_json(rebuild=rebuild)
         self.get_simple_term_mapping(rebuild=rebuild)
         self.get_simple_term_mapping_json(rebuild=rebuild)
@@ -4741,6 +4749,33 @@ class Library(object):
         if topic is None:
             return topic_json['children']
         return topic_json
+
+    def build_topic_toc_category_mapping(self) -> dict:
+        """
+        Maps every slug in topic toc to its parent slug. This is usually the top level category, but in the case of laws it is the second-level category
+        """
+        topic_toc_category_mapping = {}
+        topic_toc = self.get_topic_toc()
+        discovered_slugs = set()
+        topic_stack = [t for t in topic_toc]
+        while len(topic_stack) > 0:
+            curr_topic = topic_stack.pop()
+            if curr_topic['slug'] in discovered_slugs: continue
+            discovered_slugs.add(curr_topic['slug'])
+            for child_topic in curr_topic.get('children', []):
+                topic_stack += [child_topic]
+                topic_toc_category_mapping[child_topic['slug']] = curr_topic['slug']
+        return topic_toc_category_mapping
+
+    def get_topic_toc_category_mapping(self, rebuild=False) -> dict:
+        if rebuild or not self._topic_toc_category_mapping:
+            if not rebuild:
+                self._topic_toc_category_mapping = scache.get_shared_cache_elem('topic_toc_category_mapping')
+            if rebuild or not self._topic_toc_category_mapping:
+                self._topic_toc_category_mapping = self.build_topic_toc_category_mapping()
+                scache.set_shared_cache_elem('topic_toc_category_mapping', self._topic_toc_category_mapping)
+                self.set_last_cached_time()
+        return self._topic_toc_category_mapping
 
     def get_search_filter_toc(self):
         """
@@ -5173,7 +5208,6 @@ class Library(object):
         title = title.replace("_", " ")
         return self.get_title_node_dict(lang).get(title)
 
-
     def citing_title_list(self, lang="en"):
         """
         :param lang: "he" or "en"
@@ -5188,14 +5222,12 @@ class Library(object):
             self._full_title_lists[key] = titles
         return titles
 
-
     def full_title_list(self, lang="en", with_terms=False):
         """
         :return: list of strings of all possible titles
         :param lang: "he" or "en"
         :param with_terms: if True, includes shared titles ('terms')
         """
-
         key = lang
         key += "_terms" if with_terms else ""
         titles = self._full_title_lists.get(key)
@@ -5253,6 +5285,19 @@ class Library(object):
             q = {"categories": category, 'dependence': {'$in': [False, None]}}
         else:
             q = {"categories": category}
+
+        return IndexSet(q) if full_records else IndexSet(q).distinct("title")
+
+    def get_indexes_in_category_path(self, path: list, include_dependant=False, full_records=False) -> Union[IndexSet, list]:
+        """
+        :param list path: list of category names, starting from root.
+        :param bool include_dependant: If true includes records of Commentary and Targum
+        :param bool full_records: If True will return the actual :class: 'IndexSet' otherwise just the titles
+        :return: :class:`IndexSet` of :class:`Index` records in the specified category path
+        """
+        q = {} if include_dependant else {'dependence': {'$in': [False, None]}}
+        for icat, cat in enumerate(path):
+            q[f'categories.{icat}'] = cat
 
         return IndexSet(q) if full_records else IndexSet(q).distinct("title")
 
@@ -5480,7 +5525,6 @@ class Library(object):
         return self._internal_ref_from_string(title, st, lang)
 
     def _internal_ref_from_string(self, title=None, st=None, lang=None, stIsAnchored=False, return_locations = False):
-
         node = self.get_schema_node(title, lang)
         if not isinstance(node, JaggedArrayNode):
             #TODO fix when not JaggedArrayNode
@@ -5508,7 +5552,6 @@ class Library(object):
             except (InputError, ValueError) as e:
                 continue
         return refs
-
 
     # todo: handle ranges in inline refs
     def _wrap_all_refs_in_string(self, title_node_dict=None, titles_regex=None, st=None, lang="he"):
@@ -5635,7 +5678,6 @@ class Library(object):
 
     def word_count(self, ref_or_cat, lang="he", dependents_regex=None):
         """
-
         :param ref_or_cat:
         :param lang:
         :param dependents_regex: string - filter dependents by those that have this string (treat this as a category))

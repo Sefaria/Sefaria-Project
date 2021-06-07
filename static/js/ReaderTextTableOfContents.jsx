@@ -505,10 +505,10 @@ class TextDetails extends Component {
           <div className="tocDetail">
             <InterfaceText>
               <HebrewText>
-                מחבר: {authors.map(author => <a key={author.en} href={"/person/" + author.en}>{author.he}</a> )}
+                מחבר: {authors.map(author => <a key={author.slug} href={"/topics/" + author.slug}>{author.he}</a> )}
               </HebrewText>
               <EnglishText>
-                Author: {authors.map(author => <a key={author.en} href={"/person/" + author.en}>{author.en}</a> )}
+                Author: {authors.map(author => <a key={author.slug} href={"/topics/" + author.slug}>{author.en}</a> )}
               </EnglishText>
             </InterfaceText>
           </div>

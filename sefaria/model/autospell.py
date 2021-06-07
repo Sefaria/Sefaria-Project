@@ -29,7 +29,7 @@ letter_scope = "\u05b0\u05b1\u05b2\u05b3\u05b4\u05b5\u05b6\u05b7\u05b8\u05b9\u05
             + "\u05d0\u05d1\u05d2\u05d3\u05d4\u05d5\u05d6\u05d7\u05d8\u05d9\u05da\u05db\u05dc\u05dd\u05de\u05df" \
             + "\u05e0\u05e1\u05e2\u05e3\u05e4\u05e5\u05e6\u05e7\u05e8\u05e9\u05ea" \
             + "\u05f3\u05f4" \
-            + "\u200e\u200f\u2013\u201d\ufeff" \
+            + "\u200e\u200f\u2013\u201c\u201d\ufeff" \
             + " abcdefghijklmnopqrstuvwxyz1234567890[]`:;.-,*$()'&?/\""
 
 
@@ -47,7 +47,7 @@ class AutoCompleter(object):
     An AutoCompleter object provides completion services - it is the object in this module designed to be used by the Library.
     It instantiates objects that provide string completion according to different algorithms.
     """
-    def __init__(self, lang, lib, include_titles=True, include_people=False, include_categories=False,
+    def __init__(self, lang, lib, include_titles=True, include_categories=False,
                  include_parasha=False, include_lexicons=False, include_users=False, include_collections=False, include_topics=False, *args, **kwargs):
         """
 
@@ -96,20 +96,14 @@ class AutoCompleter(object):
             self.spell_checker.train_phrases(parasha_names)
             self.ngram_matcher.train_phrases(parasha_names, normal_parasha_names)
         if include_topics:
-            ts = TopicSet({"shouldDisplay":{"$ne":False}, "numSources":{"$gte":10}})
+            ts_gte10 = TopicSet({"shouldDisplay":{"$ne":False}, "numSources":{"$gte":10}, "subclass": {"$ne": "author"}})
+            authors = AuthorTopicSet()  # include all authors
+            ts = ts_gte10.array() + authors.array()
             tnames = [name for t in ts for name in t.get_titles(lang)]
             normal_topics_names = [self.normalizer(n) for n in tnames]
             self.title_trie.add_titles_from_set(ts, "get_titles", "get_primary_title", "slug", 4 * PAD)
             self.spell_checker.train_phrases(tnames)
             self.ngram_matcher.train_phrases(tnames, normal_topics_names)
-        if include_people:
-            eras = ["GN", "RI", "AH", "CO"]
-            ps = PersonSet({"era": {"$in": eras}})
-            person_names = [n for p in ps for n in p.all_names(lang)]
-            normal_person_names = [self.normalizer(n) for n in person_names]
-            self.title_trie.add_titles_from_set(ps, "all_names", "primary_name", "key", 5 * PAD)
-            self.spell_checker.train_phrases(person_names)
-            self.ngram_matcher.train_phrases(person_names, normal_person_names)
         if include_users:
             pipeline = [
                 {"$match": {
@@ -435,7 +429,7 @@ class Completions(object):
 
 
 class LexiconTrie(datrie.Trie):
-    dict_letter_scope = "\u05b0\u05b4\u05b5\u05b6\u05b7\u05b8\u05b9\u05bc\u05c1\u05d0\u05d1\u05d2\u05d3\u05d4\u05d5\u05d6\u05d7\u05d8\u05d9\u05da\u05db\u05dc\u05dd\u05de\u05df\u05e0\u05e1\u05e2\u05e3\u05e4\u05e5\u05e6\u05e7\u05e8\u05e9\u05ea\u05f3\u05f4\u200e\u200f\u2013\u201d\ufeff`' \""
+    dict_letter_scope = "\u05b0\u05b4\u05b5\u05b6\u05b7\u05b8\u05b9\u05bc\u05c1\u05d0\u05d1\u05d2\u05d3\u05d4\u05d5\u05d6\u05d7\u05d8\u05d9\u05da\u05db\u05dc\u05dd\u05de\u05df\u05e0\u05e1\u05e2\u05e3\u05e4\u05e5\u05e6\u05e7\u05e8\u05e9\u05ea\u05f3\u05f4\u200e\u200f\u2013\u201c\u201d\ufeff`' \""
 
     def __init__(self, lexicon_name):
         super(LexiconTrie, self).__init__(self.dict_letter_scope)

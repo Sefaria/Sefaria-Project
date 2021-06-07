@@ -3,6 +3,7 @@ import {
   GlobalWarningMessage,
   ProfilePic,
   InterfaceLanguageMenu,
+  InterfaceText, 
 } from './Misc';
 import React, { useState, useEffect, useRef} from 'react';
 import PropTypes  from 'prop-types';
@@ -23,8 +24,9 @@ class Header extends Component {
     this._searchOverridePost = '"';
     this._type_icon_map = {
       "Collection": "collection.svg",
-      "Person": "iconmonstr-pen-17.svg",
+      "AuthorTopic": "iconmonstr-pen-17.svg",
       "TocCategory": "iconmonstr-view-6.svg",
+      "PersonTopic": "iconmonstr-hashtag-1.svg",
       "Topic": "iconmonstr-hashtag-1.svg",
       "ref": "iconmonstr-book-15.svg",
       "search": "iconmonstr-magnifier-2.svg",
@@ -157,7 +159,7 @@ class Header extends Component {
       window.location = "/texts";
       return;
     }
-    this.showLibrary();   
+    this.showLibrary();
   }
   showLibrary(categories) {
     this.props.showLibrary(categories);
@@ -174,13 +176,11 @@ class Header extends Component {
     $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete("close");
   }
   getURLForObject(type, key) {
-    if (type === "Person") {
-      return `/person/${key}`;
-    } else if (type === "Collection") {
+    if (type === "Collection") {
       return `/collections/${key}`;
     } else if (type === "TocCategory") {
       return `/texts/${key.join('/')}`;
-    } else if (type === "Topic") {
+    } else if (type in {"Topic": 1, "PersonTopic": 1, "AuthorTopic": 1}) {
       return `/topics/${key}`;
     } else if (type === "ref") {
       return `/${key.replace(/ /g, '_')}`;
@@ -216,7 +216,7 @@ class Header extends Component {
           Sefaria.track.event("Search", "Search Box Navigation - Topic", query);
           this.clearSearchBox();
           this.props.openTopic(d["topic_slug"]);
-        } else if (d["type"] === "Person" || d["type"] === "Group" || d["type"] === "TocCategory") {
+        } else if (d["type"] === "Group" || d["type"] === "TocCategory") {
           this.redirectToObject(d["type"], d["key"]);
         } else {
           Sefaria.track.event("Search", "Search Box Search", query);
@@ -317,6 +317,7 @@ class Header extends Component {
                       :
                       <LoggedOutButtons headerMode={this.props.headerMode}/>
                   }
+                  { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ? <HelpButton/>: null}
                   { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ? <InterfaceLanguageMenu currentLang={Sefaria.interfaceLang} /> : null}
                 </div>
               </div>
@@ -353,7 +354,8 @@ Header.propTypes = {
   openTopic:                   PropTypes.func.isRequired,
 };
 
-function LoggedOutButtons({headerMode}){
+
+function LoggedOutButtons({headerMode}) {
   const [isClient, setIsClient] = useState(false);
   const [next, setNext] = useState("/");
   const [loginLink, setLoginLink] = useState("/login?next=/");
@@ -368,7 +370,7 @@ function LoggedOutButtons({headerMode}){
       setRegisterLink("/register?next="+next);
     }
   })
-  return(
+  return (
     <div className="accountLinks anon">
       <a className="login loginLink" href={loginLink} key={`login${isClient}`}>
          <span className="int-en">Log in</span>
@@ -382,9 +384,10 @@ function LoggedOutButtons({headerMode}){
   );
 }
 
-function LoggedInButtons({headerMode}){
+
+function LoggedInButtons({headerMode}) {
   const [isClient, setIsClient] = useState(false);
-  useEffect(()=>{
+  useEffect(() => {
     if(headerMode){
       setIsClient(true);
     }
@@ -392,13 +395,106 @@ function LoggedInButtons({headerMode}){
   const unread = headerMode ? ((isClient && Sefaria.notificationCount > 0) ? 1 : 0) : Sefaria.notificationCount > 0 ? 1 : 0
   const notificationsClasses = classNames({notifications: 1, unread: unread});
   return(
-      <div className="accountLinks">
-          <a href="/notifications" aria-label="See New Notifications" key={`notificationCount-C-${unread}`} className={notificationsClasses}>{Sefaria.notificationCount}</a>
-          <a href="/my/profile" className="my-profile">
-            <ProfilePic len={24} url={Sefaria.profile_pic_url} name={Sefaria.full_name} key={`profile-${isClient}-${Sefaria.full_name}`}/>
-          </a>
-       </div>
+    <div className="accountLinks">
+      <a href="/notifications" aria-label="See New Notifications" key={`notificationCount-C-${unread}`} className={notificationsClasses}>{Sefaria.notificationCount}</a>
+      <ProfilePicMenu len={24} url={Sefaria.profile_pic_url} name={Sefaria.full_name} key={`profile-${isClient}-${Sefaria.full_name}`}/>
+    </div>
   );
 }
+
+
+const ProfilePicMenu = ({len, url, name}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const wrapperRef = useRef(null);
+
+  const menuClick = (e) => {
+    var el = e.target;
+    while (el && el.nodeName !== 'A') {
+      el = el.parentNode;
+    }
+    if (el) {
+      resetOpen();
+    }
+  }
+  const profilePicClick = (e) => {
+    e.preventDefault();
+    resetOpen();
+  }
+  const resetOpen = () => {
+    setIsOpen(isOpen => !isOpen);
+  }
+  const handleHideDropdown = (event) => {
+    if (event.key === 'Escape') {
+      setIsOpen(false);
+    }
+  };
+  const handleClickOutside = (event) => {
+    if (
+        wrapperRef.current &&
+        !wrapperRef.current.contains(event.target)
+    ) {
+      setIsOpen(false);
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener('keydown', handleHideDropdown, true);
+    document.addEventListener('click', handleClickOutside, true);
+    return () => {
+      document.removeEventListener('keydown', handleHideDropdown, true);
+      document.removeEventListener('click', handleClickOutside, true);
+    };
+  }, []);
+  const getCurrentPage = () => {
+    return encodeURIComponent(Sefaria.util.currentPath());
+  };
+  return (
+    <div ref={wrapperRef}>
+        <a href="/my/profile" className="my-profile" onClick={profilePicClick}>
+          <ProfilePic len={len} url={url} name={name}/>
+        </a>
+        <div className="interfaceLinks">
+          {isOpen ?
+          <div className="interfaceLinks-menu profile-menu" onClick={menuClick}>
+            <div className="interfaceLinks-header profile-menu">{name}</div>
+            <div className="profile-menu-middle">
+              <div><a className="interfaceLinks-row" href="/my/profile">
+                <InterfaceText>Profile</InterfaceText>
+              </a></div>
+              <div><a className="interfaceLinks-row" href="/settings/account">
+                <InterfaceText>Account Settings</InterfaceText>
+              </a></div>
+              <div className="interfaceLinks-row languages">
+                <a className={`${(Sefaria.interfaceLang == 'hebrew') ? 'active':''}`} href={`/interface/hebrew?next=${getCurrentPage()}`}>עברית</a>
+                <a className={`${(Sefaria.interfaceLang == 'english') ? 'active':''}`} href={`/interface/english?next=${getCurrentPage()}`}>English</a>
+              </div>
+              <div><a className="interfaceLinks-row bottom" href="/collections/sefaria-faqs">
+                <InterfaceText>Help</InterfaceText>
+              </a></div>
+            </div>
+            <hr className="interfaceLinks-hr"/>
+            <div><a className="interfaceLinks-row logout" href="/logout">
+              <InterfaceText>Logout</InterfaceText>
+            </a></div>
+
+          </div> : null}
+        </div>
+    </div>
+  );
+};
+
+
+const HelpButton = () => {
+  //TODO: There's an upcoming commit that re-introduces `Sefaria._v()` as a way to return a string/data that may be a different variable between interface langs that would be a good use here.
+  const url = Sefaria.interfaceLang == "hebrew" ? "/collections/%D7%A9%D7%90%D7%9C%D7%95%D7%AA-%D7%A0%D7%A4%D7%95%D7%A6%D7%95%D7%AA-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90" : "/collections/sefaria-faqs";
+  return (
+      <div className="help">
+        <a href={url}>
+          <img src="/static/img/help.svg" alt={Sefaria._("Help")}/>
+        </a>
+      </div>
+  );
+};
+
 
 export default Header;

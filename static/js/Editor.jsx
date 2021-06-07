@@ -1,7 +1,7 @@
 import React, {useCallback, useMemo, useState, useEffect, useRef} from 'react';
 import {jsx} from 'slate-hyperscript'
 import {withHistory} from 'slate-history'
-import {Editor, createEditor, Range, Node, Transforms, Path, Text, Point} from 'slate'
+import {Editor, createEditor, Range, Node, Transforms, Path, Text, Point, Element as SlateElement} from 'slate'
 import {Slate, Editable, ReactEditor, withReact, useSlate, useSelected, useFocused} from 'slate-react'
 import isHotkey from 'is-hotkey'
 
@@ -42,7 +42,7 @@ const HOTKEYS = {
 }
 
 const ELEMENT_TAGS = {
-    A: el => ({type: 'link', url: el.getAttribute('href'), ref: el.getAttribute('data-ref')}),
+    A: el => ({type: 'link', url: el.getAttribute('href'), ref: el.getAttribute('data-ref'), target: el.getAttribute('target')}),
     BLOCKQUOTE: () => ({type: 'quote'}),
     H1: () => ({type: 'heading-one'}),
     H2: () => ({type: 'heading-two'}),
@@ -57,6 +57,9 @@ const ELEMENT_TAGS = {
     DIV: () => ({type: 'paragraph'}),
     PRE: () => ({type: 'code'}),
     UL: () => ({type: 'bulleted-list'}),
+    TABLE: () => ({type: 'table'}),
+    TR: () => ({type: 'table-row'}),
+    TD: () => ({type: 'table-cell'}),
 };
 
 const format_tag_pairs = [
@@ -89,6 +92,13 @@ const format_tag_pairs = [
         format: "small"
     },
 ];
+
+const special_styles_to_care_about = [
+  "background-color",
+  "color",
+  "text-align"
+]
+
 
 const TEXT_TAGS = format_tag_pairs.reduce((obj, item) => {
      obj[item.tag] = () => ({[item.format]: true })
@@ -166,8 +176,25 @@ export const deserialize = el => {
       const attrs = TEXT_TAGS[nodeName](el);
       return children.map(child => jsx('text', attrs, ((typeof child === "string" || Text.isText(child)) ? child : Node.string(child))))
     }
+
+    if (el.getAttribute("style")) {
+      const elStyles = el.getAttribute("style").split(';');
+      for (const elStyle of elStyles) {
+        const styleArray = elStyle.split(":");
+        if (styleArray.length == 2) {
+          const styleType = styleArray[0].trim()
+          const styleValue = styleArray[1].trim()
+          let attrs = {}
+          attrs[styleType] = styleValue
+          return children.map(child => jsx('text', attrs, ((typeof child === "string" || Text.isText(child)) ? child : Node.string(child))))
+        }
+      }
+    }
+
+
     return children
 };
+
 
 export const serialize = (content) => {
     //serialize formatting to html
@@ -178,6 +205,11 @@ export const serialize = (content) => {
                 const preTag = (tagString.preTags + "<" + htmlTag + ">");
                 const postTag = ("</" + htmlTag + ">" + tagString.postTags);
                 return {preTags: preTag.toLowerCase(), postTags: postTag.toLowerCase()}
+            }
+            else if (special_styles_to_care_about.includes(key)) {
+              const preTag = (tagString.preTags + `<span style=${key}:${content[key]}>`);
+              const postTag = ("</span>" + tagString.postTags);
+              return {preTags: preTag.toLowerCase(), postTags: postTag.toLowerCase()}
             }
             return {preTags: tagString.preTags, postTags: tagString.postTags}
         }, {preTags: "", postTags: ""});
@@ -225,6 +257,26 @@ export const serialize = (content) => {
                 }, "");
                 return `<ul>${ulHtml}</ul>`
             }
+
+            case 'table':
+              const tableHtml = content.children.reduce((acc, text) => {
+                  return (acc + serialize(text))
+              }, "");
+              return (
+                `<table><tbody>${tableHtml}</tbody></table>`
+              )
+
+            case 'table-row':
+              const trHtml = content.children.reduce((acc, text) => {
+                  return (acc + serialize(text))
+              }, "");
+              return `<tr>${trHtml}</tr>`
+
+            case 'table-cell':
+              const tdHtml = content.children.reduce((acc, text) => {
+                  return (acc + serialize(text))
+              }, "");
+              return `<td>${tdHtml}</td>`
 
             /*
                 BLOCKQUOTE: () => ({type: 'quote'}),
@@ -328,6 +380,7 @@ function renderSheetItem(source) {
             return content
         }
         default: {
+          console.log(source)
             return {
                 text: "",
             }
@@ -691,6 +744,17 @@ const Element = props => {
               {children}
             </a>
           )
+        case 'table':
+          return (
+            <table>
+              <tbody {...attributes}>{children}</tbody>
+            </table>
+          )
+        case 'table-row':
+          return <tr {...attributes}>{children}</tr>
+        case 'table-cell':
+          return <td {...attributes}>{children}</td>
+
         default:
             return <div>{children}</div>
     }
@@ -732,21 +796,18 @@ async function getRefInText(editor, additionalOffset=0) {
   }));
 
   for (const i of paragraphsToCheck) {
-
     const initQuery = Node.string(i[0]);
     const paragraphPath = i[1]
-    const match = (initQuery.match(/^.+|\n.+/g));
-    if (!match) {return {}}
+    const match = (initQuery.match(/^.+|\n.+|^$/g));
+    if (!match) {continue}
 
     for (const query of match) {
-      if (query.length > 50 || query.trim() == "") {return {}}
+      if (query.length > 50 || query.trim() == "") {continue}
 
       const ref = await Sefaria.getName(query)
       .then(d => {  return d    });
 
       const selectDistance = query.replace("\n","").length + additionalOffset;
-
-
 
       if (ref["is_ref"]) {
         for (const [node, path] of Node.texts(i[0])) {
@@ -774,26 +835,7 @@ async function getRefInText(editor, additionalOffset=0) {
     }
 
   }
-
   return {}
-
-
-
-  //return null if query length is too long to be a ref or if query is empty
-  // if (query.length > 50 || query == "") {return {}}
-  //
-  // const ref = await Sefaria.getName(query)
-  //     .then(d => {
-  //   // If the query isn't recognized as a ref, but only for reasons of capitalization. Resubmit with recognizable caps.
-  //   if (Sefaria.isACaseVariant(query, d)) {
-  //     this.submitSearch(Sefaria.repairCaseVariant(query, d));
-  //     return;
-  //   }
-  //
-  //   return d
-  //
-  // });
-  // return ref
 }
 
 
@@ -1212,6 +1254,80 @@ const insertSource = (editor, ref, path) => {
     });
 };
 
+
+const withTables = editor => {
+  const { deleteBackward, deleteForward, insertBreak } = editor
+
+  editor.deleteBackward = unit => {
+    const { selection } = editor
+
+    if (selection && Range.isCollapsed(selection)) {
+      const [cell] = Editor.nodes(editor, {
+        match: n =>
+          !Editor.isEditor(n) &&
+          SlateElement.isElement(n) &&
+          n.type === 'table-cell',
+      })
+
+      if (cell) {
+        const [, cellPath] = cell
+        const start = Editor.start(editor, cellPath)
+
+        if (Point.equals(selection.anchor, start)) {
+          return
+        }
+      }
+    }
+
+    deleteBackward(unit)
+  }
+
+  editor.deleteForward = unit => {
+    const { selection } = editor
+
+    if (selection && Range.isCollapsed(selection)) {
+      const [cell] = Editor.nodes(editor, {
+        match: n =>
+          !Editor.isEditor(n) &&
+          SlateElement.isElement(n) &&
+          n.type === 'table-cell',
+      })
+
+      if (cell) {
+        const [, cellPath] = cell
+        const end = Editor.end(editor, cellPath)
+
+        if (Point.equals(selection.anchor, end)) {
+          return
+        }
+      }
+    }
+
+    deleteForward(unit)
+  }
+
+  editor.insertBreak = () => {
+    const { selection } = editor
+
+    if (selection) {
+      const [table] = Editor.nodes(editor, {
+        match: n =>
+          !Editor.isEditor(n) &&
+          SlateElement.isElement(n) &&
+          n.type === 'table',
+      })
+
+      if (table) {
+        return
+      }
+    }
+
+    insertBreak()
+  }
+
+  return editor
+}
+
 const withLinks = editor => {
   const { insertData, insertText, isInline } = editor
 
@@ -1305,6 +1421,17 @@ const Leaf = ({attributes, children, leaf}) => {
     if (leaf.isRef) {
         children = <span className="inlineTextRef">{children}</span>
     }
+    if (leaf.color) {
+      children = <span style={{color: leaf.color}}>{children}</span>
+    }
+    if (leaf["background-color"]) {
+      children = <span style={{backgroundColor: leaf["background-color"]}}>{children}</span>
+    }
+    if (leaf["text-align"]) {
+      children = <span style={{textAlign: leaf["text-align"]}}>{children}</span>
+    }
+
+
     return <span {...attributes}>{children}</span>
 };
 
@@ -1708,7 +1835,7 @@ const SefariaEditor = (props) => {
 
 
     const editor = useMemo(
-        () => withSefariaSheet(withLinks(withHistory(withReact(createEditor())))),
+        () => withTables(withSefariaSheet(withLinks(withHistory(withReact(createEditor()))))),
         []
     );
 
