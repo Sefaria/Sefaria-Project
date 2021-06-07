@@ -221,7 +221,7 @@ class ReaderTextTableOfContents extends Component {
 
         <div className="content">
           <div className="sidebarLayout">
-            <div className="contentInner">
+            <div className="contentInner followsContentLang">
               {this.props.compare ? null :
               <div className="tocTop">
                 <div className="tocTitle" role="heading" aria-level="1">
@@ -385,7 +385,7 @@ class TextTableOfContentsNavigation extends Component {
           content = (
             <>
               <div className="torahNavSectionHeader">
-                <ContentText text={{en: "Chapters", he: Sefaria._("Chapters")}}/>
+                <ContentText text={{en: "Chapters", he: Sefaria.hebrewTranslation("Chapters")}}/>
               </div>
               <SchemaNode
                 schema={this.props.schema}
@@ -394,7 +394,7 @@ class TextTableOfContentsNavigation extends Component {
                 topLevel={true} />
 
               <div className="torahNavSectionHeader">
-                <ContentText text={{en: "Torah Portions", he: Sefaria._("Torah Portions")}}/>
+                <ContentText text={{en: "Torah Portions", he: Sefaria.hebrewTranslation("Torah Portions")}}/>
               </div>
               <div className="torahNavParshiot">
                 <SchemaNode
