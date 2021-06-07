@@ -629,23 +629,17 @@ const MobileInterfaceLanguageToggle = () => {
 };
 
 
-const HelpButton = () => (
-    //hard-coding /help re-direct, also re-directs exist in sites/sefaria/urls.py
-  <div className="help">
-    {Sefaria.interfaceLang === "hebrew" ?
-    <span className="int-he">
-      <a href="/collections/%D7%A9%D7%90%D7%9C%D7%95%D7%AA-%D7%A0%D7%A4%D7%95%D7%A6%D7%95%D7%AA-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90">
-        <img src="/static/img/help.svg" alt="עזרה" />
+const HelpButton = () => {
+  //TODO: There's an upcoming commit that re-introduces `Sefaria._v()` as a way to return a string/data that may be a different variable between interface langs that would be a good use here.
+  const url = Sefaria.interfaceLang == "hebrew" ? "/collections/%D7%A9%D7%90%D7%9C%D7%95%D7%AA-%D7%A0%D7%A4%D7%95%D7%A6%D7%95%D7%AA-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90" : "/collections/sefaria-faqs";
+  return (
+    <div className="help">
+      <a href={url}>
+        <img src="/static/img/help.svg" alt={Sefaria._("Help")}/>
       </a>
-    </span>
-    :
-    <span className="int-en">
-      <a href="/collections/sefaria-faqs">
-        <img src="/static/img/help.svg" alt="Help" />
-      </a>
-    </span>}
-  </div>
-);
+    </div>
+  );
+};
 
 
 export default Header;
