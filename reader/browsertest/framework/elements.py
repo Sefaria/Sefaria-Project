@@ -1520,19 +1520,6 @@ class TestResultSet(AbstractTestResult):
                 self._indexed_tests[(res.test_class, Trial.cap_to_short_string(res.cap))] = res
             self._aggregated = True
 
-    '''
-    def _sorted_test_classes(self):
-        test_classes = {res.test_class for res in self._test_results}
-
-        # all tests for each class
-        tests_per_class = {cls: [r for r in self._test_results if r.test_class == cls] for cls in test_classes}
-
-        # map of class to rank
-        class_rank = {cls: max([t.order_id() for t in tests_per_class[cls]]) for cls in test_classes}
-        sorted_classes = sorted(test_classes, key=class_rank.get)
-        return sorted_classes
-    '''
-
     def _results_as_matrix(self):
         self._aggregate()
         # sorted_test_classes = self._sorted_test_classes()
@@ -1685,6 +1672,7 @@ class Trial(object):
         :param cap:
         :return:
         """
+        MAX_TEST_RUNS = 2
         driver = None
         if self.is_local:
             if isinstance(cap, appium_webdriver.Remote):
@@ -1700,13 +1688,20 @@ class Trial(object):
             }
 
         try:
-            test_instance = test_class(self.BASE_URL, cap, mode=mode, verbose=self.isVerbose)
-            if not test_instance.should_run(mode):
-                return None
+            result = None
+            tries = 0
+            while (result is None or not result.success) and tries < MAX_TEST_RUNS:
+                tries += 1
+                if tries > 1:
+                    self.carp("Retrying {}/{}  ({}/{})".format(test_class.__name__,  Trial.cap_to_string(cap), tries, MAX_TEST_RUNS))
 
-            driver = self._get_driver(cap)
-            test_instance.set_driver(driver)
-            result = test_instance.run()
+                test_instance = test_class(self.BASE_URL, cap, mode=mode, verbose=self.isVerbose)
+                if not test_instance.should_run(mode):
+                    return None
+
+                driver = self._get_driver(cap)
+                test_instance.set_driver(driver)
+                result = test_instance.run()
 
             if self.platform == "sauce":
                 self.set_sauce_result(driver, result.success)
