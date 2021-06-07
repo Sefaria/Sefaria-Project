@@ -148,6 +148,9 @@ def get_calendar_item(data, date):
   else:
     sheet = None
 
+  if not sheet:
+    return None
+
   return {
     "topic": topic,
     "sheet": sheet
