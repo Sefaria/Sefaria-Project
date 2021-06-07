@@ -626,7 +626,7 @@ class UserProfile(object):
         """
         from random import choices
         options = general_follow_recommendations(n=100)
-        filtered_options = [u for u in options if not self.follows(u["id"])]
+        filtered_options = [u for u in options if not self.follows(u["uid"])]
 
         return choices(filtered_options, k=n)
 

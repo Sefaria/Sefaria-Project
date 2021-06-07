@@ -92,7 +92,7 @@ def general_follow_recommendations(lang="english", n=4):
 			user = {
 				"name": fullname,
 				"url": "/profile/" + profiles[id]["user"]["slug"],
-				"id": id,
+				"uid": id,
 				"image": profiles[id]["user"]["profile_pic_url_small"],
 				"organization": profiles[id]["user"]["organization"],
 				"sheetCount": profiles[id]["count"],  
