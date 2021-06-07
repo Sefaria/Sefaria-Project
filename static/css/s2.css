@@ -1366,6 +1366,7 @@ div.interfaceLinks-row a {
   margin-top: -30px;
 }
 .navTitle .languageToggle,
+.tocTitle .languageToggle,
 .header .languageToggle {
   text-align: center;
   color: #ccc;
@@ -2449,6 +2450,9 @@ a.navBlockTitle:hover {
 .readerTextTableOfContents.bookPage .tocTitle {
   text-align: start;
   margin-bottom: 8px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
 }
 .readerTextTableOfContents .currentSection,
 .readerTextTableOfContents .authorStatement,

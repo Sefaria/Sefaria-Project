@@ -8,7 +8,7 @@ import {
   NBox,
   ResponsiveNBox,
   InterfaceText,
-  ContentText, EnglishText, HebrewText,
+  ContentText, EnglishText, HebrewText, LanguageToggleButton,
 } from './Misc';
 import React  from 'react';
 import ReactDOM  from 'react-dom';
@@ -225,8 +225,12 @@ class ReaderTextTableOfContents extends Component {
               {this.props.compare ? null :
               <div className="tocTop">
                 <div className="tocTitle" role="heading" aria-level="1">
-                  <ContentText text={{en:title, he:heTitle}}/>
-                  {moderatorSection}
+                  <div className="tocTitleControls">
+                    <ContentText text={{en:title, he:heTitle}}/>
+                    {moderatorSection}
+                  </div>
+                  { this.props.multiPanel && this.props.toggleLanguage && Sefaria.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?
+                  <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
                 </div>
 
                 <a className="tocCategory" href={catUrl}>
