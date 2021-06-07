@@ -11,10 +11,12 @@
 .interface-hebrew .staticPage.englishOnly {
   direction:ltr;
 }
+.interface-hebrew .static .englishOnly {
+  direction:ltr;
+}
 .static {
   font-size: 16px;
   background-color: #FBFBFA;
-  font-family: "adobe-garamond-pro", Georgia, serif;
 }
 .static .inner {
   width: 90%;
@@ -25,47 +27,11 @@
 #register.static .inner {
   width: 302px;
 }
-.static .int-he {
-  font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, sans-serif;
-}
-.static .control-elem, .static .control-elem .int-en{
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-.static .control-elem .int-he {
-  font-family: "Heebo", sans-serif;
-}
-.static .control-elem .int-bi {
-  font-family: "Roboto", "Heebo", "Helvetica Neue", Ariel, sans-serif;
-}
-.static .sans .int-en, .static.sans .int-en, .static .sans {
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-.static .sans .int-he, .static.sans .int-he  {
-  font-family: "Heebo", sans-serif;
-}
 .interface-english .static .int-he, .interface-english .static .he {
   display: none;
 }
 .interface-hebrew .static .int-en, .interface-hebrew .static .en {
   display: none;
-}
-.static h2,
-.static h3,
-.static h4,
-.static h2 .int-en,
-.static h3 .int-en,
-.static h4 .int-en {
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-.interface-hebrew h1,
-.interface-hebrew h2,
-.interface-hebrew h3,
-.interface-hebrew h4,
-.static h1 .int-he,
-.static h2 .int-he,
-.static h3 .int-he,
-.static h4 .int-he {
-  font-family: "Heebo", sans-serif;
 }
 .static h1 {
   position: relative;
@@ -75,9 +41,6 @@
   font-size: 30px;
   margin: 0 0 60px 0;
   height: auto;
-}
-.static h1 .int-en {
-  font-family: "adobe-garamond-pro", Georgia, serif;
 }
 .static h2 {
   font-weight: lighter;
@@ -92,6 +55,7 @@
 }
 .static h3 {
   font-weight: normal;
+  font-size: 16px;
   text-transform: uppercase;
   color: #aaa;
   letter-spacing: 1px;
@@ -790,9 +754,6 @@ p.registration-links a:hover{
 #supportersPage .supporters p.tagline:first-child {
   margin-bottom: 20px;
 }
-#supportersPage .supporter .int-en{
-    font-family: "adobe-garamond-pro", Georgia, serif;
-}
 #supportersPage h2 {
     margin-top: 25px;
 }
@@ -1310,6 +1271,45 @@ p.registration-links a:hover{
 #jobsPage {
   font-size: 18px
 }
+#jobsPage nav{
+  margin-top: 60px;
+}
+#jobsPage nav:not(.navigationVisible){
+  display: none;
+}
+/*#jobsPage nav h3{
+  text-transform: uppercase;
+}*/
+#jobsPage nav ul{
+  display: flex;
+  flex-flow: column wrap;
+  justify-content: flex-start;
+  margin-inline: auto;
+  padding: initial;
+}
+#jobsPage nav ul li{
+  list-style: none;
+  /*border: 1px solid #ccc;
+  background-color: #EDEDEC;*/
+  text-align: center;
+  margin: 2px 0;
+  padding: 5px 0;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  /*max-width: 130px;*/
+}
+#jobsPage nav ul li a:hover{
+  background-color: #ededec;
+}
+#jobsPage nav ul li a{
+  vertical-align: middle;
+  display: inline-block;
+  line-height: 20px;
+}
+#jobsPage nav ul li a:hover{
+  text-decoration: none;
+}
 #jobsPage h1 {
   margin-bottom: 0;
 }
@@ -1317,7 +1317,6 @@ p.registration-links a:hover{
   font-size: 22px;
 }
 #jobsPage h2.anchorable {
-  padding-top: 90px;
   margin-top: 0;
 }
 #jobsPage h3 {
@@ -1329,6 +1328,30 @@ p.registration-links a:hover{
 }
 #jobsPage li {
   margin: 14px 0;
+}
+#jobsPage .apply-buttons{
+  display: block;
+  text-align: center;
+}
+#jobsPage h4.subheader{
+  margin:initial;
+  font-style: italic;
+}
+#jobsPage .job{
+  scroll-margin-top: 5em;
+  margin-top: 90px;
+  border-bottom: 4px solid #212E50;
+  /*border-image: linear-gradient(90deg, #00505E 0% 10%, #5698B4 10% 20%, #CCB37C 20% 30%, #5B9370 30% 40%, #823241 40% 50%, #5A4474 50% 60%, #AD4F66 60% 70%, #7285A6 70% 80%, #00807E 80% 90%, #4872B3 90% 100%);
+  -webkit-border-image: -webkit-linear-gradient(90deg, #00505E 0% 10%, #5698B4 10% 20%, #CCB37C 20% 30%, #5B9370 30% 40%, #823241 40% 50%, #5A4474 50% 60%, #AD4F66 60% 70%, #7285A6 70% 80%, #00807E 80% 90%, #4872B3 90% 100%);
+  -moz-border-image: -moz-linear-gradient(left, #3acfd5 0%, #3a4ed5 100%);*/
+  border-image-slice: 1;
+  padding-bottom: 30px;
+}
+#jobsPage .job:first-of-type{
+  margin-top: 90px;
+}
+#jobsPage .bold{
+  font-weight: bold;
 }
 #helpPage .section {
   margin-bottom: 60px;
@@ -2810,6 +2833,27 @@ display: none;
   justify-content: center;
   padding-bottom: 40px;
 }
+.staticPage .phoneImage{
+    position: absolute;
+    width: 207px;
+    height: 335px;
+    z-index: 1;
+    left: 550px;
+    top: 144px;
+}
+.staticPage .tabletImage{
+    position: relative;
+    width: 335px;
+    height: 419px;
+    left: 35px;
+    top: -10px;
+}
+.interface-hebrew .staticPage .phoneImage{
+    left: 205px;
+}
+.interface-hebrew .staticPage .tabletImage{
+    left: -48px;
+}
 .staticPage .staticPageBlockInner {
   width: 800px;
   margin: 0 auto;
@@ -2845,6 +2889,13 @@ display: none;
   margin-top: 60px;
   color: white;
 }
+.staticPage .staticPageHeader.educators {
+  background-image: url("/static/img/educators-landing-page/edu_landingpage_header.png");
+  background-repeat: no-repeat;
+  background-size: cover;
+  padding: 70px 0 30px;
+  background-position: 50% 0%;
+}
 .staticPage .staticPageCallToActionFooter {
   background-color: #212E50;
   color: white;
@@ -2878,7 +2929,9 @@ display: none;
 .staticPage .staticPageHeader .staticPageHeaderTextBox {
   flex: 7;
 }
-
+.staticPage .staticPageHeader .staticPageHeaderTextBox.educators {
+  flex: inherit;
+}
 .staticPage .staticPageHeader .staticPageHeaderImg {
   flex: 9;
   min-height: 290px;
@@ -2957,11 +3010,33 @@ display: none;
 .staticPage .simpleButtonWrapper {
   width: 33%;
 }
+
+.staticPage .simpleButtonWrapper.signUpEducators img {
+  height: 18px;
+  width: 18px;
+  opacity: 0.2;
+  position: absolute;
+  margin-left: 10px;
+}
+.staticPage .simpleButtonWrapper.signUpEducators, .staticPage .staticPageHeaderTextBox .simpleButtonWrapper.signUpEducators {
+  width: 100%;
+  padding-bottom: 0px;
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+.staticPage .simpleButtonWrapper.signUpEducators a:hover {
+  color: inherit;
+  text-decoration: none;
+}
+.staticPage .simpleButtonWrapper.signUpEducators .button {
+  padding: 17px 50px;
+}
+.staticPage .signUpEducatorsMessage {
+  text-align: center;
+}
 .staticPage .staticPageHeaderTextBox .simpleButtonWrapper {
   width: 66%;
   padding-bottom: 80px;
 }
-
 .staticPage .simpleButtonWrapper .button {
   border-radius: 0;
   min-height: 47px;

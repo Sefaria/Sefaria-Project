@@ -1,12 +1,8 @@
 # An example of settings needed in a local_settings.py file.
 # copy this file to sefaria/local_settings.py and provide local info to run.
-import os.path
 from datetime import timedelta
-relative_to_abs_path = lambda *x: os.path.join(os.path.dirname(
-                               os.path.realpath(__file__)), *x)
 import structlog
-import os
-import re
+import sefaria.system.logging as sefaria_logging
 
 # These are things you need to change!
 
@@ -155,16 +151,10 @@ SEFARIA_DB_PASSWORD = ''
 APSCHEDULER_NAME = "apscheduler"
 
 # ElasticSearch server
-SEARCH_HOST = "http://localhost:9200"
 SEARCH_ADMIN = "http://localhost:9200"
-SEARCH_ADMIN_USER = None  # if not None, use these credentials to access SEARCH_ADMIN
-SEARCH_ADMIN_PW = None
-SEARCH_ADMIN_K8S = "http://localhost:9200"
 SEARCH_INDEX_ON_SAVE = False  # Whether to send texts and source sheet to Search Host for indexing after save
-SEARCH_INDEX_NAME = 'sefaria'
 SEARCH_INDEX_NAME_TEXT = 'text'  # name of the ElasticSearch index to use
 SEARCH_INDEX_NAME_SHEET = 'sheet'
-SEARCH_INDEX_NAME_MERGED = 'merged'
 
 # Node Server
 USE_NODE = False
@@ -206,6 +196,10 @@ USE_VARNISH_ESI = False
 
 # Prevent modification of Index records
 DISABLE_INDEX_SAVE = False
+
+# Turns off search autocomplete suggestions, which are reinitialized on every server reload
+# which can be annoying for local development. 
+DISABLE_AUTOCOMPLETER = False
 
 # Caching with Cloudflare
 CLOUDFLARE_ZONE = ""
@@ -280,12 +274,12 @@ structlog.configure(
         structlog.stdlib.filter_by_level,
         structlog.processors.TimeStamper(fmt="iso"),
         structlog.stdlib.add_logger_name,
-        structlog.stdlib.add_log_level,
+        sefaria_logging.add_severity,
         structlog.stdlib.PositionalArgumentsFormatter(),
         structlog.processors.StackInfoRenderer(),
-        structlog.processors.format_exc_info,
+        sefaria_logging.log_exception_info,
         structlog.processors.UnicodeDecoder(),
-        structlog.processors.ExceptionPrettyPrinter(),
+        sefaria_logging.decompose_request_info,
         structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
     ],
     context_class=structlog.threadlocal.wrap_dict(dict),

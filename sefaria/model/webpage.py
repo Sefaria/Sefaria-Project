@@ -65,6 +65,7 @@ class WebPage(abst.AbstractMongoRecord):
             "remove www": lambda url: re.sub(r"^(https?://)www\.", r"\1", url),
             "remove mediawiki params": lambda url: re.sub(r"&amp;.+", "", url),
             "remove sort param": lambda url: re.sub(r"\?sort=.+", "", url),
+            "remove all params after id": lambda url: re.sub(r"(\?id=\d+).+$", r"\1", url)
         }
         global_rules = ["remove hash", "remove utm params", "remove fbclid param"]
         domain = WebPage.domain_for_url(url)
@@ -113,6 +114,8 @@ class WebPage(abst.AbstractMongoRecord):
             r"lilith\.org\/(tag\|author\|category)\/",
             r"https://torah\.org$",
             r"test\.hadran\.org\.il",
+            r"hadran\.org\.il\/he\/?$",
+            r"hadran\.org\.il\/he\/(masechet|מסכת)\/",
             r"www\.jtsa.edu\/search\/index\.php",
             r"jewschool\.com\/page\/",
             r"truah\.org\/\?s=",
@@ -141,6 +144,9 @@ class WebPage(abst.AbstractMongoRecord):
             r"jwa\.org\/encyclopedia\/author\/",  # tends to have articles by author that have snippets from article
             r"jwa\.org\/encyclopedia\/content\/",
             r"library\.yctorah\.org\/series\/",
+            r"psak\.yctorah\.org\/?$",
+            r"psak\.yctorah\.org\/(category|about|source)\/",  # archives
+            r"psak\.yctorah\.org\/sitemap_index\.xml$",
             r"reconstructingjudaism\.org\/taxonomy\/",
             r"reconstructingjudaism\.org\/search\/",
             r"askhalacha\.com\/?$",
@@ -162,6 +168,30 @@ class WebPage(abst.AbstractMongoRecord):
             r"talmudology\.com\/?$",
             r"talmudology\.com\/[^\/]+$",  # seems everything at the top level is not an article
             r"sephardi\.co\.uk\/(category|community|tag|test)\/",
+            r"theameninstitute\.com\/?$",
+            r"theameninstitute\.com\/category\/whats-new-at-the-amen-institute\/?$",
+            r"chiefrabbi\.org\/?(\?post_type.+)?$",  # post_type are pages that seem to by filtered lists
+            r"chiefrabbi\.org\/(all-media|communities|education|maayan-programme)\/?$",
+            r"chiefrabbi\.org\/(dvar-torah|media_type)\/?",  # archives
+            r"justice-in-the-city\.com\/?$",
+            r"justice-in-the-city\.com\/(category|page)\/",
+            r"aju\.edu\/(faculty|search|taxonomy)\/",
+            r"aju\.edu\/miller-intro-judaism-program\/learning-portal\/glossary\/",
+            r"aju\.edu\/ziegler-school-rabbinic-studies\/our-torah\/back-issues\/\d+$"
+            r"aju\.edu\/ziegler-school-rabbinic-studies\/torah-resource-center\/"
+            r"aju\.edu\/ziegler-school-rabbinic-studies\/blogs\/?$",
+            r"hatanakh\.com\/?#?$",
+            r"hatanakh\.com\/\/(en|es)$",  # home page?
+            r"hatanakh\.com(\/(en|es))?\/?#?(\?.+)?$",  # a sledgehammer. gets rid of odd url params on homepage + spanish chapter pages
+            r"hatanakh\.com\/\.[^/]+$",  # strange private pages
+            r"hatanakh\.com\/((en|es)\/)?(tanach|search|taxonomy|tags|%D7%9E%D7%97%D7%91%D7%A8%D7%99%D7%9D|%D7%93%D7%9E%D7%95%D7%99%D7%95%D7%AA|%D7%A0%D7%95%D7%A9%D7%90%D7%99%D7%9D)\/",  # topic, author and character pages
+            r"hatanakh\.com\/((en|es)\/)?search",
+            r"hatanakh\.com\/\?(chapter|custom|gclid|parasha)=",  # chapter pages
+            r"hatanakh\.com\/(en|es)?\/home",  # other chapter pages?
+            r"hatanakh\.com\/((en|es)\/)?(articles|daily|node)\/?$",
+            r"hatanakh\.com\/((en|es)\/)?(articles|lessons)\?(page|arg|tanachRef(\[|%5B)\d+(\]|%5D))=",
+            r"hatanakh\.com\/((en|es)\/)?(daily)?\/?\?(chapter|custom|gclid|parasha)=",
+            r"hatanakh\.com\/es\/\?biblia=",
         ]
         return "({})".format("|".join(bad_urls))
 
@@ -227,7 +257,7 @@ class WebPage(abst.AbstractMongoRecord):
         title = str(self.title)
         title = title.replace("&amp;", "&")
         brands = [self.site_name] + self._site_data.get("title_branding", [])
-        separators = [("-", ' '), ("|", ' '), ("—", ' '), ("»", ' '), ("•", ' '), (":", '')]
+        separators = [("-", ' '), ("|", ' '), ("—", ' '), ("–", ' '), ("»", ' '), ("•", ' '), (":", '')]
         for separator, padding in separators:
             for brand in brands:
                 if self._site_data.get("initial_title_branding", False):
@@ -350,7 +380,7 @@ def dedupe_identical_urls(test=True):
             "count": -1
             }
         }
-    ]);
+    ], allowDiskUse=True);
 
     url_count = 0
     removed_count = 0
@@ -637,7 +667,7 @@ sites_data = [
     {
         "name": "Yeshivat Chovevei Torah",
         "domains": ["yctorah.org"],
-        "title_branding": ["Torah Library of Yeshivat Chovevei Torah"]
+        "title_branding": ["Torah Library of Yeshivat Chovevei Torah", "Rosh Yeshiva Responds"]
     },
     {
         "name": "Rabbi Jeff Fox (Rosh ha-Yeshiva, Yeshivat Maharat)",
@@ -839,5 +869,40 @@ sites_data = [
     {
         "name": "S and P Sephardi Community",
         "domains": ["sephardi.org.uk"],
+    },
+    {
+        "name": "זיכרון בספר",
+        "domains": ["mevoot.michlala.edu"],
+        "normalization_rules": ["use https", "remove www", "remove all params after id"]
+    },
+    {
+        "name": "Evolve",
+        "domains": ["evolve.reconstructingjudaism.org"],
+    },
+    {
+        "name": "The Amen Institute",
+        "domains": ["theameninstitute.com"]
+    },
+    {
+        "name": "Office of the Chief Rabbi",
+        "domains": ["chiefrabbi.org"],
+    },
+    {
+        "name": "Sapir Journal",
+        "domains": ["sapirjournal.org"],
+    },
+    {
+        "name": "Justice in the City",
+        "domains": ["justice-in-the-city.com"],
+    },
+    {
+        "name": "American Jewish University",
+        "domains": ["aju.edu"],
+    },
+    {
+        "name": 'התנ"ך',
+        "domains": ["hatanakh.com"],
+        "title_branding": ["התנך"],
+        "normalization_rules": ["use https", "remove www"],
     }
 ]

@@ -9,7 +9,7 @@ import {
   FollowButton,
   InterfaceText,
 } from './Misc';
-import React  from 'react';
+import React, {useState}  from 'react';
 import PropTypes  from 'prop-types';
 import Sefaria  from './sefaria/sefaria';
 import { CollectionListing } from './PublicCollectionsPage';
@@ -32,19 +32,19 @@ class UserProfile extends Component {
     const showNotes = !!props.profile.id && Sefaria._uid === props.profile.id;
     const showBio = !!props.profile.bio;
     const tabs = [
-      { name: "sheets", text: Sefaria._("Sheets"), icon: "/static/img/sheet.svg" },
-      { name: "collections", text: Sefaria._("Collections"), icon: "/static/icons/collection.svg" },
-      { name: "followers", text: Sefaria._("Followers"), invisible: true },
-      { name: "following", text: Sefaria._("Following"), invisible: true },
-      { name: "torah-tracker", text: Sefaria._("Torah Tracker"), invisible: Sefaria._uid !== props.profile.id, icon: "/static/img/chart-icon.svg", href: "/torahtracker", applink: true, justifyright: true}
+      { id: "sheets", text: "Sheets", icon: "/static/img/sheet.svg" },
+      { id: "collections", text: "Collections", icon: "/static/icons/collection.svg" },
+      { id: "followers", text: "Followers", invisible: true },
+      { id: "following", text: "Following", invisible: true },
+      { id: "torah-tracker", text: "Torah Tracker", invisible: Sefaria._uid !== props.profile.id, icon: "/static/img/chart-icon.svg", href: "/torahtracker", applink: true, justifyright: true}
     ];
     if (showNotes) {
-      tabs.splice(2, 0, { name: "notes", text: Sefaria._("Notes"), icon: "/static/img/note.svg" });
+      tabs.splice(2, 0, { id: "notes", text: Sefaria._("Notes"), icon: "/static/img/note.svg" });
     }
     if (showBio) {
-      tabs.push({ name: "about", text: Sefaria._("About"), icon: "/static/img/info.svg" });
+      tabs.push({ id: "about", text: Sefaria._("About"), icon: "/static/img/info.svg" });
     }
-    let tabIndex = tabs.findIndex(t => t.name == props.tab);
+    let tabIndex = tabs.findIndex(t => t.id == props.tab);
     tabIndex = tabIndex == -1 ? 0 : tabIndex;
     return {
       showNotes,
@@ -98,7 +98,7 @@ class UserProfile extends Component {
         <div className="emptyListText">
           <InterfaceText>You can use collections to organize your sheets or public sheets you like. Collections can be shared privately or made public on Sefaria.</InterfaceText>
         </div>
-        <a href="/collections/new" className="resourcesLink">
+        <a href="/collections/new" className="resourcesLink sans-serif">
           <img src="/static/icons/collection.svg" alt="Collection icon" />
             <InterfaceText>Create a New Collection</InterfaceText>
         </a>
@@ -113,7 +113,7 @@ class UserProfile extends Component {
     if (Sefaria._uid !== this.props.profile.id) { return null; }
     return (
       <div className="sheet-header">
-        <a href="/collections/new" className="resourcesLink">
+        <a href="/collections/new" className="resourcesLink sans-serif">
           <img src="/static/icons/collection.svg" alt="Collection icon" />
             <InterfaceText>Create a New Collection</InterfaceText>
         </a>
@@ -209,7 +209,7 @@ class UserProfile extends Component {
             באפשרותכם להשתמש בדפי מקורות בכדי לארגן מקורות, ליצור טקסטים חדשים, לתכנן שיעורים, הרצאות, כתבות ועוד.
           </span>
         </div>
-        <a href="/sheets/new" className="resourcesLink">
+        <a href="/sheets/new" className="resourcesLink sans-serif">
           <img src="/static/img/sheet.svg" alt="Source sheet icon" />
           <span className="int-en">Create a New Sheet</span>
           <span className="int-he">צור דף חדש</span>
@@ -246,7 +246,7 @@ class UserProfile extends Component {
     if (Sefaria._uid !== this.props.profile.id) { return null; }
     return (
       <div className="sheet-header">
-        <a href="/sheets/new" className="resourcesLink">
+        <a href="/sheets/new" className="resourcesLink sans-serif">
           <img src="/static/img/sheet.svg" alt="Source sheet icon" />
           <span className="int-en">Create a New Sheet</span>
           <span className="int-he">יצירת דף מקורות</span>
@@ -267,15 +267,15 @@ class UserProfile extends Component {
   }
   renderFollowerHeader() {
     return (
-      <div className="follow-header">
-        {Sefaria._("Followers")} <span className="follow-count">{`(${this.props.profile.followers.length})`}</span>
+      <div className="follow-header sans-serif">
+        <InterfaceText>Followers</InterfaceText> <span className="follow-count">{`(${this.props.profile.followers.length})`}</span>
       </div>
     );
   }
   renderFollowingHeader() {
     return (
-      <div className="follow-header">
-        {Sefaria._("Following")} <span className="follow-count">{`(${this.props.profile.followees.length})`}</span>
+      <div className="follow-header sans-serif">
+        <InterfaceText>Following</InterfaceText> <span className="follow-count">{`(${this.props.profile.followees.length})`}</span>
       </div>
     );
   }
@@ -318,7 +318,7 @@ class UserProfile extends Component {
           <div className="tab">
             <a href={tab.href}>
               <img src={tab.icon} alt={`${tab.text} icon`}/>
-              {tab.text}
+              <InterfaceText>{tab.text}</InterfaceText>
             </a>
           </div>
       );
@@ -326,13 +326,13 @@ class UserProfile extends Component {
     return (
       <div className="tab">
         <img src={tab.icon} alt={`${tab.text} icon`} />
-        {tab.text}
+        <InterfaceText>{tab.text}</InterfaceText>
       </div>
     );
   }
   onTabChange(tabIndex) {
     const tab = this.state.tabs[tabIndex];
-    this.props.setProfileTab(tab.name);
+    this.props.setProfileTab(tab.id);
   }
   message(e) {
     e.preventDefault();
@@ -468,14 +468,109 @@ UserProfile.propTypes = {
 
 
 const EditorToggleHeader = ({usesneweditor}) => {
- const text = <InterfaceText>{usesneweditor ? "You are currently testing the new document editor" : "You are currently using the old document editor"}</InterfaceText>;
+ const [feedbackHeaderState, setFeedbackHeaderState] = useState("hidden")
+
+ const text = <InterfaceText>{usesneweditor ? "You are currently testing the new Sefaria editor." : "You are currently using the old Sefaria editor."}</InterfaceText>;
  const buttonText = <InterfaceText>{usesneweditor ? "Go back to old version" : "Try the new version"}</InterfaceText>;
- const buttonLink = (usesneweditor ? "/disable_new_editor" : "/enable_new_editor");
+
+ const sendFeedback = () => {
+
+   const feedback = {
+       type: "new_editor",
+       email: null,
+       msg: $("#feedbackText").val(),
+       url: "",
+       uid: Sefaria._uid || null
+   };
+   if (!feedback.msg) {
+     setFeedbackHeaderState("thanks")
+     return;
+   }
+   var postData = {json: JSON.stringify(feedback)};
+   var url = "/api/send_feedback";
+
+   $.post(url, postData, function (data) {
+       if (data.error) {
+           alert(data.error);
+       } else {
+           console.log(data);
+           $("#feedbackText").val("");
+           Sefaria.track.event("New Editor", "Send Feedback", null);
+           setFeedbackHeaderState("thanks")
+
+       }
+   }.bind(this)).fail(function (xhr, textStatus, errorThrown) {
+       alert(Sefaria._("Unfortunately, there was an error sending this feedback. Please try again or try reloading this page."));
+   });
+ }
+
+ const disableOverlayContent = (
+   <div class="sans-serif-in-hebrew">
+      <h2><InterfaceText>Request for Feedback</InterfaceText></h2>
+      <p><InterfaceText>Thank you for trying the new Sefaria editor! We’d love to hear what you thought. Please take a few minutes to give us feedback on your experience.</InterfaceText></p>
+      <p><InterfaceText>Did you encounter any issues while using the new editor? For example:</InterfaceText></p>
+      <ul>
+        <li><InterfaceText>Technical problems</InterfaceText></li>
+        <li><InterfaceText>Difficulties using the editor</InterfaceText></li>
+        <li><InterfaceText>Missing features </InterfaceText></li>
+      </ul>
+
+      <p>
+        <textarea className="feedbackText" placeholder={Sefaria._("Tell us about it...")} id="feedbackText"></textarea>
+      </p>
+      <p>
+        <a href="#" className="button" role="button" onClick={()=>sendFeedback()}>
+            <InterfaceText>Submit Feedback</InterfaceText>
+        </a>
+      </p>
+
+   </div>
+ )
+ const enableOverlayContent = (
+   <div class="sans-serif-in-hebrew">
+      <h2><InterfaceText>Thanks for Trying the New Editor!</InterfaceText></h2>
+      <p><InterfaceText>Go to your profile to create a new sheet, or edit an existing sheet, to try out the new experience. After you’ve had a chance to try it out, we would love to hear your feedback. You can reach us at</InterfaceText> <a href="mailto:hello@sefaria.org">hello@sefaria.org</a></p>
+      <div className="buttonContainer"><a href="/enable_new_editor" onClick={()=>toggleFeedbackOverlayState()} className="button" role="button"><InterfaceText>Back to Profile</InterfaceText></a></div>
+   </div>
+ )
+ const thankYouContent = (
+   <div class="sans-serif-in-hebrew">
+      <h2><InterfaceText>Thank you!</InterfaceText></h2>
+      <p><InterfaceText>Your feedback is greatly appreciated. You can now edit your sheets again using the old source sheet editor. If you have any questions or additional feedback you can reach us at</InterfaceText> <a href="mailto:hello@sefaria.org">hello@sefaria.org</a>.</p>
+      <div className="buttonContainer"><a href="/disable_new_editor" className="button" role="button"><InterfaceText>Back to Profile</InterfaceText></a></div>
+   </div>
+ )
+
+ let overlayContent;
+ switch (feedbackHeaderState) {
+   case "disableOverlay":
+     overlayContent = disableOverlayContent;
+     break;
+   case "enableOverlay":
+     overlayContent = enableOverlayContent;
+     break;
+   case "thanks":
+     overlayContent = thankYouContent;
+     break;
+ }
+
+ const toggleFeedbackOverlayState = () => {
+   if (usesneweditor) {
+     setFeedbackHeaderState("disableOverlay")
+   }
+   else {
+     setFeedbackHeaderState("enableOverlay")
+   }
+ }
+ const buttonLink = (usesneweditor ? "/disable_new_editor" : "");
 
  return (
-   <div className="editorToggleHeader">
-     {text} <a href={buttonLink} className="button white" role="button">{buttonText}</a>
+   <>
+   <div className="editorToggleHeader sans-serif">{text}
+     <a href="#" onClick={()=>toggleFeedbackOverlayState()} className="button white" role="button">{buttonText}</a>
    </div>
+   {feedbackHeaderState != "hidden" ? <div className="feedbackOverlay">{overlayContent}</div> : null}
+   </>
  )
 }
 
@@ -487,20 +582,21 @@ const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowi
   if (p.location) { infoList.push(p.location); }
   infoList = infoList.concat(p.jewish_education);
   if (p.website) {
-    infoList.push(<span><a href={p.website} target="_blank">{Sefaria._("Website")}</a></span>);
+    infoList.push(<span><a href={p.website} target="_blank"><InterfaceText>Website</InterfaceText></a></span>);
   }
   const socialList = social.filter(s => !!p[s]);
   if (socialList.length) {
     infoList = infoList.concat(
+      // we only store twitter handles so twitter needs to be hardcoded
       <span>
         {
-          socialList.map(s => (<a key={s} className="social-icon" target="_blank" href={p[s]}><img src={`/static/img/${s}.svg`} /></a>))
+          socialList.map(s => (<a key={s} className="social-icon" target="_blank" href={(s == 'twitter' ? 'https://twitter.com/' : '') + p[s]}><img src={`/static/img/${s}.svg`} /></a>))
         }
       </span>
     );
   }
   return (
-    <div className="profile-summary">
+    <div className="profile-summary sans-serif">
       <div className="summary-column profile-summary-content start">
         <div className="title pageTitle">
           <span className="int-en">{p.full_name}</span>
@@ -528,11 +624,11 @@ const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowi
         {
           Sefaria._uid === p.id ? (
           <div className="profile-actions">
-            <a href="/settings/profile" className="resourcesLink">
+            <a href="/settings/profile" className="resourcesLink sans-serif">
               <span className="int-en">Edit Profile</span>
               <span className="int-he">עריכת פרופיל</span>
             </a>
-            <a href="/settings/account" className="resourcesLink">
+            <a href="/settings/account" className="resourcesLink sans-serif">
               <img src="/static/img/settings.svg" alt="Profile Settings" />
               <span className="int-en">Settings</span>
               <span className="int-he">הגדרות</span>
@@ -549,16 +645,22 @@ const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowi
               following={Sefaria.following.indexOf(p.id) > -1}
               toggleSignUpModal={toggleSignUpModal}
             />
-            <a href="#" className="resourcesLink" onClick={message}>
+            <a href="#" className="resourcesLink sans-serif" onClick={message}>
               <span className="int-en">Message</span>
               <span className="int-he">שלח הודעה</span>
             </a>
           </div>)
         }
         <div className="follow">
-          <a href="" onClick={openFollowers}>{ `${p.followers.length} ${Sefaria._("followers")}`}</a>
+          <a href="" onClick={openFollowers}>
+            <InterfaceText>{String(p.followers.length)}</InterfaceText>&nbsp;
+            <InterfaceText>followers</InterfaceText>
+          </a>
           <span className="follow-bull">&bull;</span>
-          <a href="" onClick={openFollowing}>{ `${p.followees.length} ${Sefaria._("following")}`}</a>
+          <a href="" onClick={openFollowing}>
+            <InterfaceText>{String(p.followees.length)}</InterfaceText>&nbsp;
+            <InterfaceText>following</InterfaceText>
+          </a>
         </div>
       </div>
       <div className="summary-column end">
@@ -621,4 +723,6 @@ MessageModal.propTypes = {
   name: PropTypes.string.isRequired,
   uid:  PropTypes.number.isRequired,
 };
+
+
 export default UserProfile;

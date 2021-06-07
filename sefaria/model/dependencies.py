@@ -2,7 +2,7 @@
 dependencies.py -- list cross model dependencies and subscribe listeners to changes.
 """
 
-from . import abstract, link, note, history, schema, text, layer, version_state, timeperiod, person, garden, notification, story, collection, library, category, ref_data, user_profile, manuscript
+from . import abstract, link, note, history, schema, text, layer, version_state, timeperiod, person, garden, notification, story, collection, library, category, ref_data, user_profile, manuscript, topic
 
 from .abstract import subscribe, cascade, cascade_to_list, cascade_delete, cascade_delete_to_list
 import sefaria.system.cache as scache
@@ -25,6 +25,7 @@ subscribe(text.process_index_title_change_in_sheets,                    text.Ind
 subscribe(cascade(notification.GlobalNotificationSet, "content.index"), text.Index, "attributeChange", "title")
 subscribe(ref_data.process_index_title_change_in_ref_data,              text.Index, "attributeChange", "title")
 subscribe(user_profile.process_index_title_change_in_user_history,      text.Index, "attributeChange", "title")
+subscribe(topic.process_index_title_change_in_topic_links,              text.Index, "attributeChange", "title")
 
 # Taken care of on save
 # subscribe(text.process_index_change_in_toc,                             text.Index, "attributeChange", "title")
@@ -34,6 +35,7 @@ subscribe(user_profile.process_index_title_change_in_user_history,      text.Ind
 subscribe(text.process_index_delete_in_core_cache,                      text.Index, "delete")
 subscribe(version_state.process_index_delete_in_version_state,          text.Index, "delete")
 subscribe(link.process_index_delete_in_links,                           text.Index, "delete")
+subscribe(topic.process_index_delete_in_topic_links,                     text.Index, "delete")
 subscribe(note.process_index_delete_in_notes,                           text.Index, "delete")
 subscribe(text.process_index_delete_in_versions,                        text.Index, "delete")
 subscribe(text.process_index_delete_in_toc,                             text.Index, "delete")
@@ -81,20 +83,8 @@ Category
 """
 
 # Time
-subscribe(cascade(person.PersonSet, "era"),                                timeperiod.TimePeriod, "attributeChange", "symbol")
-subscribe(cascade(person.PersonSet, "generation"),                         timeperiod.TimePeriod, "attributeChange", "symbol")
-
-# Person key change
-subscribe(cascade(person.PersonRelationshipSet, "to_key"),                 person.Person, "attributeChange", "key")
-subscribe(cascade(person.PersonRelationshipSet, "from_key"),               person.Person, "attributeChange", "key")
-subscribe(cascade_to_list(text.IndexSet, "authors"),                       person.Person, "attributeChange", "key")
-
-subscribe(cascade(person.PersonRelationshipSet, "type"),                   person.PersonRelationshipType, "attributeChange", "key")
-
-# Person delete
-subscribe(cascade_delete(person.PersonRelationshipSet, "to_key", "key"),   person.Person, "delete")
-subscribe(cascade_delete(person.PersonRelationshipSet, "from_key", "key"), person.Person, "delete")
-subscribe(cascade_delete_to_list(text.IndexSet, "authors", "key"),         person.Person, "delete")
+subscribe(cascade(topic.PersonTopicSet, "properties.era.value"),          timeperiod.TimePeriod, "attributeChange", "symbol")
+subscribe(cascade(topic.PersonTopicSet, "properties.generation.value"),   timeperiod.TimePeriod, "attributeChange", "symbol")
 
 # Gardens
 subscribe(cascade(garden.GardenStopSet, "garden"),                         garden.Garden, "attributeChange", "key")
@@ -108,8 +98,10 @@ subscribe(cascade_delete(notification.NotificationSet, "global_id", "_id"),  not
 subscribe(cascade_delete(story.UserStorySet, "shared_story_id", "_id"), story.SharedStory, "delete")
 
 # Collections
-subscribe(collection.process_collection_slug_change_in_sheets,                         collection.Collection, "attributeChange", "slug")
-subscribe(collection.process_collection_delete_in_sheets,                              collection.Collection, "delete")
+subscribe(collection.process_collection_slug_change_in_sheets,             collection.Collection, "attributeChange", "slug")
+subscribe(collection.process_collection_delete_in_sheets,                  collection.Collection, "delete")
+subscribe(cascade_delete(notification.NotificationSet, "content.collection_slug", "slug"), collection.Collection, "delete")
+
 
 # Categories
 subscribe(category.process_category_name_change_in_categories_and_indexes,  category.Category, "attributeChange", "lastPath")

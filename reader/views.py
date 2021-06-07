@@ -51,7 +51,7 @@ from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_
 from sefaria.utils.util import short_to_long_lang_code
 import sefaria.tracker as tracker
 from sefaria.system.cache import django_cache
-from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, SEARCH_ADMIN, RTC_SERVER, MULTISERVER_REDIS_SERVER, MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB
+from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, SEARCH_ADMIN, RTC_SERVER, MULTISERVER_REDIS_SERVER, MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, DISABLE_AUTOCOMPLETER
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.helper.search import get_query_obj
@@ -66,27 +66,26 @@ logger = structlog.get_logger(__name__)
 
 #    #    #
 # Initialized cache library objects that depend on sefaria.model being completely loaded.
-logger.warning("Initializing library objects.")
-logger.warning("Initializing TOC Tree")
+logger.info("Initializing library objects.")
+logger.info("Initializing TOC Tree")
 library.get_toc_tree()
 
-
-""" """
-logger.warning("Initializing Full Auto Completer")
-library.build_full_auto_completer()
-
-logger.warning("Initializing Ref Auto Completer")
-library.build_ref_auto_completer()
-
-logger.warning("Initializing Lexicon Auto Completers")
-library.build_lexicon_auto_completers()
-
-logger.warning("Initializing Cross Lexicon Auto Completer")
-library.build_cross_lexicon_auto_completer()
-
-logger.warning("Initializing Shared Cache")
+logger.info("Initializing Shared Cache")
 library.init_shared_cache()
-""" """
+
+if not DISABLE_AUTOCOMPLETER:
+    logger.info("Initializing Full Auto Completer")
+    library.build_full_auto_completer()
+
+    logger.info("Initializing Ref Auto Completer")
+    library.build_ref_auto_completer()
+
+    logger.info("Initializing Lexicon Auto Completers")
+    library.build_lexicon_auto_completers()
+
+    logger.info("Initializing Cross Lexicon Auto Completer")
+    library.build_cross_lexicon_auto_completer()
+
 
 if server_coordinator:
     server_coordinator.connect()
@@ -347,7 +346,7 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
                 panel["connectionsMode"] = "TextList"
 
         settings_override = {}
-        panelDisplayLanguage = kwargs.get("panelDisplayLanguage")
+        panelDisplayLanguage = kwargs.get("connectionsPanelDisplayLanguage", None) if mode == "Connections" else kwargs.get("panelDisplayLanguage", None)
         aliyotOverride = kwargs.get("aliyotOverride")
         if panelDisplayLanguage:
             settings_override.update({"language" : short_to_long_lang_code(panelDisplayLanguage)})
@@ -394,11 +393,12 @@ def make_search_panel_dict(get_dict, i, **kwargs):
 def make_sheet_panel_dict(sheet_id, filter, **kwargs):
     highlighted_node = None
     if "." in sheet_id:
-        highlighted_node = sheet_id.split(".")[1]
-        sheet_id = sheet_id.split(".")[0]
+        highlighted_node = int(sheet_id.split(".")[1])
+        sheet_id = int(sheet_id.split(".")[0])
+    sheet_id = int(sheet_id)
 
-    db.sheets.update({"id": int(sheet_id)}, {"$inc": {"views": 1}})
-    sheet = get_sheet_for_panel(int(sheet_id))
+    db.sheets.update({"id": sheet_id}, {"$inc": {"views": 1}})
+    sheet = get_sheet_for_panel(sheet_id)
     if "error" in sheet:
         raise Http404
     sheet["ownerProfileUrl"] = public_user_data(sheet["owner"])["profileUrl"]
@@ -417,7 +417,7 @@ def make_sheet_panel_dict(sheet_id, filter, **kwargs):
         "sheetID": sheet_id,
         "mode": "Sheet",
         "sheet": sheet,
-        "highlightedNodes": highlighted_node
+        "highlightedNode": highlighted_node
     }
 
     ref = None
@@ -500,6 +500,11 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
             "panelDisplayLanguage": request.GET.get("lang", request.contentLang),
             'extended notes': int(request.GET.get("notes", 0)),
         }
+        if filter is not None:
+            lang1 = kwargs["panelDisplayLanguage"]
+            lang2 = request.GET.get("lang2", None)
+            if lang2:
+                kwargs["connectionsPanelDisplayLanguage"] = lang2 if lang2 in ["en", "he"] else lang1 if lang1 in ["en", "he"] else request.interfaceLang[0:2]
         if request.GET.get("aliyot", None):
             kwargs["aliyotOverride"] = "aliyotOn" if int(request.GET.get("aliyot")) == 1 else "aliyotOff"
         panels += make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_panel, **kwargs)
@@ -674,6 +679,8 @@ def topics_toc_page(request, topicCategory):
     List of topics in a category.
     """
     topic_obj = Topic.init(topicCategory)
+    if not topic_obj:
+        raise Http404
     props={
         "initialMenu": "navigation",
         "initialNavigationTopicCategory": topicCategory,
@@ -1098,7 +1105,7 @@ def edit_text(request, ref=None, lang=None, version=None):
                 text["edit_lang"] = lang if lang is not None else request.contentLang
                 text["edit_version"] = version
                 initJSON = json.dumps(text)
-        except:
+        except Exception as e:
             index = library.get_index(ref)
             if index:
                 ref = None
@@ -1443,8 +1450,8 @@ def search_autocomplete_redirecter(request):
     object_data = completions_dict['object_data']
     if ref:
         response = redirect('/{}'.format(ref.url()), permanent=False)
-    elif object_data is not None and object_data.get('type', '') == 'Person':
-        response = redirect('/person/{}'.format(object_data['key']), permanent=False)
+    elif object_data is not None and object_data.get('type', '') in {'Topic', 'PersonTopic', 'AuthorTopic'}:
+        response = redirect('/topics/{}'.format(object_data['key']), permanent=False)
     elif object_data is not None and object_data.get('type', '') == 'TocCategory':
         response = redirect('/{}'.format(object_data['key']), permanent=False)
     else:
@@ -3028,7 +3035,7 @@ def topics_list_api(request):
 
 
 @catch_error_as_json
-def topics_api(request, topic):
+def topics_api(request, topic, v2=False):
     """
     API to get data for a particular topic.
     """
@@ -3037,8 +3044,9 @@ def topics_api(request, topic):
     group_related = bool(int(request.GET.get("group_related", False)))
     with_refs = bool(int(request.GET.get("with_refs", False)))
     annotate_time_period = bool(int(request.GET.get("annotate_time_period", False)))
+    with_indexes = bool(int(request.GET.get("with_indexes", False)))
     ref_link_type_filters = set(filter(lambda x: len(x) > 0, request.GET.get("ref_link_type_filters", "").split("|")))
-    response = get_topic(topic, with_links, annotate_links, with_refs, group_related, annotate_time_period, ref_link_type_filters)
+    response = get_topic(v2, topic, with_links, annotate_links, with_refs, group_related, annotate_time_period, ref_link_type_filters, with_indexes)
     return jsonResponse(response, callback=request.GET.get("callback", None))
 
 
@@ -3070,9 +3078,13 @@ def topic_ref_api(request, tref):
     response = get_topics_for_ref(tref, annotate)
     return jsonResponse(response, callback=request.GET.get("callback", None))
 
-
+_CAT_REF_LINK_TYPE_FILTER_MAP = {
+    'authors': ['popular-writing-of'],
+}
 def _topic_data(topic):
-    response = get_topic(topic, with_links=True, annotate_links=True, with_refs=True, group_related=True, annotate_time_period=False, ref_link_type_filters=['about'])
+    cat = library.get_topic_toc_category_mapping().get(topic, None)
+    ref_link_type_filters = _CAT_REF_LINK_TYPE_FILTER_MAP.get(cat, ['about', 'popular-writing-of'])
+    response = get_topic(True, topic, with_links=True, annotate_links=True, with_refs=True, group_related=True, annotate_time_period=False, ref_link_type_filters=ref_link_type_filters, with_indexes=True) 
     return response
 
 
@@ -3521,7 +3533,7 @@ def saved_history_for_ref(request):
 def _get_anonymous_user_history(request):
     import urllib.parse
     history = json.loads(urllib.parse.unquote(request.COOKIES.get("user_history", '[]')))
-    return recents+history
+    return history
 
 def profile_get_user_history(request):
     """
@@ -4000,86 +4012,22 @@ def visualize_timeline(request):
     return render_template(request, 'timeline.html', None, {})
 
 
-def person_page(request, name):
-    person = Person().load({"key": name})
+def person_page_redirect(request, name):
+    person = PersonTopic.get_person_by_key(name)
 
     if not person:
         raise Http404
-    assert isinstance(person, Person)
 
-    template_vars = person.contents()
-    if request.interfaceLang == "hebrew":
-        template_vars["name"] = person.primary_name("he")
-        template_vars["bio"]= getattr(person, "heBio", _("Learn about %(name)s - works written, biographies, dates and more.") % {"name": person.primary_name("he")})
-    else:
-        template_vars["name"] = person.primary_name("en")
-        template_vars["bio"]= getattr(person, "enBio", _("Learn about %(name)s - works written, biographies, dates and more.")  % {"name": person.primary_name("en")})
-
-    template_vars["primary_name"] = {
-        "en": person.primary_name("en"),
-        "he": person.primary_name("he")
-    }
-    template_vars["secondary_names"] = {
-        "en": person.secondary_names("en"),
-        "he": person.secondary_names("he")
-    }
-    try:
-        tp = person.mostAccurateTimePeriod()
-
-        template_vars["time_period_name"] = {
-            "en": tp.primary_name("en"),
-            "he": tp.primary_name("he")
-        }
-        template_vars["time_period"] = {
-            "en": tp.period_string("en"),
-            "he": tp.period_string("he")
-        }
-    except AttributeError:
-        pass
-    template_vars["relationships"] = person.get_grouped_relationships()
-    template_vars["indexes"] = person.get_indexes()
-    template_vars["post_talmudic"] = person.is_post_talmudic()
-    template_vars["places"] = person.get_places()
-
-    return render_template(request,'person.html', None, template_vars)
+    url = f'/topics/{person.slug}'
+    return redirect(iri_to_uri(url), permanent=True)
 
 
-def person_index(request):
+def person_index_redirect(request):
+    return redirect(iri_to_uri('/topics/category/authors'), permanent=True)
+    
 
-    eras = ["GN", "RI", "AH", "CO"]
-    template_vars = {
-        "eras": []
-    }
-    for era in eras:
-        tp = TimePeriod().load({"symbol": era})
-        template_vars["eras"].append(
-            {
-                "name_en": tp.primary_name("en"),
-                "name_he": tp.primary_name("he"),
-                "years_en": tp.period_string("en"),
-                "years_he": tp.period_string("he"),
-                "people": [p for p in PersonSet({"era": era}, sort=[('deathYear', 1)]) if p.has_indexes()]
-            }
-        )
-
-    return render_template(request,'people.html', None, template_vars)
-
-
-def talmud_person_index(request):
-    gens = TimePeriodSet.get_generations()
-    template_vars = {
-        "gens": []
-    }
-    for gen in gens:
-        people = gen.get_people_in_generation()
-        template_vars["gens"].append({
-            "name_en": gen.primary_name("en"),
-            "name_he": gen.primary_name("he"),
-            "years_en": gen.period_string("en"),
-            "years_he": gen.period_string("he"),
-            "people": [p for p in people]
-        })
-    return render_template(request,'talmud_people.html', None, template_vars)
+def talmud_person_index_redirect(request):
+    return redirect(iri_to_uri('/topics/category/talmudic-figures'), permanent=True)
 
 
 def _get_sheet_tag_garden(tag):
@@ -4199,7 +4147,7 @@ def apple_app_site_association(request):
 def application_health_api(request):
     """
     Defines the /healthz API endpoint which responds with
-        200 if the appliation is ready for requests,
+        200 if the application is ready for requests,
         500 if the application is not ready for requests
     """
     if library.is_initialized():
@@ -4213,7 +4161,7 @@ def application_health_api_nonlibrary(request):
 def rollout_health_api(request):
     """
     Defines the /healthz-rollout API endpoint which responds with
-        200 if the services Django depends on, Redis, Multiverver, and NodeJs
+        200 if the services Django depends on, Redis, Multiserver, and NodeJs
             are available.
         500 if any of the aforementioned services are not available
 
