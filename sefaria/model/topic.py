@@ -497,7 +497,7 @@ class TopicSet(abst.AbstractMongoSet):
             # include class name of recordClass + any class names of subclasses
             query = query or {}
             subclass_names = [self.recordClass.__name__] + [klass.__name__ for klass in self.recordClass.all_subclasses()]
-            query['subclass'] = {"$in": [self.reverse_subclass_map[name] for name in subclass_names]}
+            query['subclass'] = {"$in": [self.recordClass.reverse_subclass_map[name] for name in subclass_names]}
         
         super().__init__(query=query, *args, **kwargs)
 
