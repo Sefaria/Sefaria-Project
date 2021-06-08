@@ -393,7 +393,7 @@ jobs:
       # Set Up Connection to Dev Mongo
       # 1. Auth to cluster
       # 2. Open encrypted connection
-      - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+      - uses: google-github-actions/setup-gcloud@master
         with:
           service_account_key: ${{ secrets.DEV_CLOUDBUILD_SA_KEY }}
           project_id: ${{ secrets.DEV_PROJECT }}
@@ -446,7 +446,7 @@ jobs:
           DJANGO_SETTINGS_MODULE: sefaria.settings
 
       - name: Authenticate GHA Runner to GCP
-        uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+        uses: google-github-actions/setup-gcloud@master
         with:
           service_account_key: ${{ secrets.GCS_BUILD_UPLOAD_KEY }}
           project_id: ${{ secrets.BUILD_UPLOAD_PROJECT }}
@@ -471,7 +471,7 @@ jobs:
       # Set Up Connection to Dev Mongo
       # 1. Auth to cluster
       # 2. Open encrypted connection
-      - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+      - uses: google-github-actions/setup-gcloud@master
         with:
           service_account_key: ${{ secrets.DEV_CLOUDBUILD_SA_KEY }}
           project_id: ${{ secrets.DEV_PROJECT }}
@@ -502,7 +502,7 @@ jobs:
         run: "LASTLINE=`kubectl logs --tail=1 -l ci-run=$GITHUB_RUN_ID,test-name=pytest`; STAT=${LASTLINE: -1}; exit $STAT"
 
       - name: Authenticate GHA Runner to GCP
-        uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+        uses: google-github-actions/setup-gcloud@master
         with:
           service_account_key: ${{ secrets.GCS_BUILD_UPLOAD_KEY }}
           project_id: ${{ secrets.BUILD_UPLOAD_PROJECT }}
@@ -530,7 +530,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+      - uses: google-github-actions/setup-gcloud@master
         with:
           service_account_key: ${{ secrets.DEV_CLOUDBUILD_SA_KEY }}
           project_id: ${{ secrets.DEV_PROJECT }}
@@ -554,7 +554,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Authenticate GHA Runner to GCP
-        uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+        uses: google-github-actions/setup-gcloud@master
         with:
           service_account_key: ${{ secrets.GCS_BUILD_UPLOAD_KEY }}
           project_id: ${{ secrets.BUILD_UPLOAD_PROJECT }}
