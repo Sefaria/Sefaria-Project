@@ -251,8 +251,8 @@ class SefariaTest(AbstractTest):
             raise Exception("Can't nav to account.  Not logged in.")
 
         self.driver.find_element_by_css_selector('.accountLinks .my-profile').click()
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.ID, "my-profile-link")))
-        self.driver.find_element_by_id("my-profile-link").click()
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#my-profile-link")))
+        self.driver.find_element_by_css_selector("#my-profile-link").click()
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".profile-summary")))
 
         return self
@@ -265,7 +265,7 @@ class SefariaTest(AbstractTest):
         except NoSuchElementException:
             el = self.driver.find_element_by_css_selector('.emptyList .resourcesLink')
         el.click()
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.ID, "inlineAdd")))
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#inlineAdd")))
         return self
 
     def nav_to_login(self):
@@ -287,7 +287,7 @@ class SefariaTest(AbstractTest):
             "var a = document.getElementById('loginLink'); a.scrollIntoView(true);"
         )
         time.sleep(.50)
-        el = self.driver.find_element_by_id('loginLink')
+        el = self.driver.find_element_by_css_selector('#loginLink')
         el.click()
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#id_email")))
         return self
@@ -560,24 +560,24 @@ class SefariaTest(AbstractTest):
 
     def click_footer_link_by_id(self, link_id):
         WebDriverWait(self.driver, TEMPER).until(
-            element_to_be_clickable((By.ID, link_id))
+            element_to_be_clickable((By.CSS_SELECTOR, "#" + link_id))
         )
-        link = self.driver.find_element_by_id(link_id)
+        link = self.driver.find_element_by_css_selector("#" + link_id)
         link.click()
 
     def type_in_text_box_by_id(self, obj_id, txt_to_type):
         WebDriverWait(self.driver, TEMPER).until(
-            element_to_be_clickable((By.ID, obj_id))
+            element_to_be_clickable((By.CSS_SELECTOR, "#" + obj_id))
         )
-        txt_box = self.driver.find_element_by_id(obj_id)
+        txt_box = self.driver.find_element_by_css_selector("#" + obj_id)
         txt_box.clear()
         txt_box.send_keys(txt_to_type)
 
     def get_object_by_id(self, obj_id):
         WebDriverWait(self.driver, TEMPER).until(
-            element_to_be_clickable((By.ID, obj_id))
+            element_to_be_clickable((By.CSS_SELECTOR, "#" + obj_id))
         )
-        obj_to_return = self.driver.find_element_by_id(obj_id)
+        obj_to_return = self.driver.find_element_by_css_selector("#" + obj_id)
         return obj_to_return
 
     def click_library(self):
@@ -859,16 +859,16 @@ class SefariaTest(AbstractTest):
 
     def click_object_by_id(self, id):
         WebDriverWait(self.driver, TEMPER).until(
-            presence_of_element_located((By.ID, id))
+            presence_of_element_located((By.CSS_SELECTOR, "#" + id))
         )
-        obj_to_click = self.driver.find_element_by_id(id)
+        obj_to_click = self.driver.find_element_by_css_selector("#" + id)
         obj_to_click.click()
 
     def get_object_txt_by_id(self, id):
         WebDriverWait(self.driver, TEMPER).until(
-            presence_of_element_located((By.ID, id))
+            presence_of_element_located((By.CSS_SELECTOR, "#" + id))
         )
-        obj = self.driver.find_element_by_id(id)
+        obj = self.driver.find_element_by_css_selector("#" + id)
         return obj.text
 
     def get_object_by_link_text(self, link_txt):
