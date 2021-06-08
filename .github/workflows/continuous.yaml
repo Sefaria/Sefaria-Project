@@ -378,7 +378,7 @@ jobs:
 #        if: ${{ always() }}
 
   selenium-sauce:
-    name: "Selenium: Sauce"   # This name is referenced when slacking status
+    name: "Selenium"   # This name is referenced when slacking status
     needs: sandbox-ready
     runs-on: ubuntu-latest
     steps:
