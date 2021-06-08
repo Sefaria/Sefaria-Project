@@ -10,6 +10,8 @@ from collections import defaultdict
 
 from sefaria.system.database import db
 from sefaria.model import *
+from sefaria.system.exceptions import DuplicateRecordError
+from sefaria.model.abstract import AbstractMongoRecord
 
 """
 0 key
@@ -37,10 +39,22 @@ eras = {
     "Achronim": "AH",
     "Contemporary": "CO"
 }
+era_slug_map = {
+    "GN": "geon-person",
+    "RI": "rishon-person",
+    "AH": "achron-person",
+    "CO": "modern-person",
+    "KG": "mishnaic-people",
+    "PT": "mishnaic-people",
+    "T": "mishnaic-people",
+    "A": "talmudic-people",
+}
 
-# url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSx60DLNs8Dp0l2xpsPjrxD3dBpIKASXSBiE-zjq74SvUIc-hD-mHwCxsuJpQYNVHIh7FDBwx7Pp9zR/pub?gid=0&single=true&output=csv'
-url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ5ttF7IXj8vso8dfX2P8_cFfjR-i2z5AsNGsjSSpWVKXNXLzpwPiJpdVfePbbr2K-HhPmimF2S-BPV/pub?gid=0&single=true&output=csv'  # for testing
+isa_object_aggregate_map = {
+    'tosafot': 'group-of-rishon-people'
+}
 
+url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSx60DLNs8Dp0l2xpsPjrxD3dBpIKASXSBiE-zjq74SvUIc-hD-mHwCxsuJpQYNVHIh7FDBwx7Pp9zR/pub?gid=0&single=true&output=csv'
 response = requests.get(url)
 data = response.content.decode("utf-8")
 cr = csv.reader(StringIO(data))
@@ -61,20 +75,17 @@ for slug, count in internal_slug_count.items():
     if non_author is not None:
         print(f"ERROR: slug {slug} exists as a non-author. Please update slug in sheet to be globally unique.")
         has_slug_issues = True
+    if AbstractMongoRecord.normalize_slug(slug) != slug:
+        print(f"ERROR: slug {slug} does not match slugified version which is {AbstractMongoRecord.normalize_slug(slug)}. Please slugify in the sheet.")
+        has_slug_issues = True
 if has_slug_issues:
-    raise Exception("Duplicate slugs found. See above errors.")
+    raise Exception("Issues found. See above errors.")
 
 print("*** Deleting old authorTopic relationships ***")
-for foo, symbol in eras.items():
-    people = AuthorTopicSet({"properties.era.value": symbol}).distinct("slug")
-    to_link_query = {"generatedBy": "update_authors_data", "toTopic": {"$in": people}}
-    from_link_query = to_link_query.copy()
-    from_link_query['fromTopic'] = to_link_query['toTopic']
-    print("To link", db.topic_links.count_documents(to_link_query))
-    print("From links", db.topic_links.count_documents(from_link_query))
-    db.topic_links.delete_many(to_link_query)
-    db.topic_links.delete_many(from_link_query)
-    # Dependencies take too long here.  Getting rid of relationship dependencies above.  Assumption is that we'll import works right after to handle those dependencies.
+link_query = {"generatedBy": "update_authors_data"}
+print("links to delete", db.topic_links.count_documents(link_query))
+db.topic_links.delete_many(link_query)
+# Dependencies take too long here.  Getting rid of relationship dependencies above.  Assumption is that we'll import works right after to handle those dependencies.
 
 def _(p: Topic, attr, value):
     if value:
@@ -84,7 +95,7 @@ print("\n*** Updating authorTopic records ***\n")
 for irow, l in enumerate(rows):
     slug = l[0].encode('utf8').decode()
     if len(slug.strip()) == 0: continue
-    print(slug)
+    # print(slug)
     p = AuthorTopic.init(slug) or AuthorTopic()
     p.slug = slug
     p.title_group.add_title(l[1].strip(), "en", primary=True, replace_primary=True)
@@ -124,6 +135,32 @@ for irow, l in enumerate(rows):
     _(p, "sex", l[24])
     p.save()
 
+    # metadata links
+    try:
+        IntraTopicLink({
+            "toTopic": 'authors',
+            "fromTopic": p.slug,
+            "generatedBy": "update_authors_data",
+            "dataSource": "sefaria",
+            "linkType": "displays-under"
+        }).save()
+    except DuplicateRecordError as e:
+        print(e)
+
+    if p.get_property('era'):
+        to_topic = isa_object_aggregate_map.get(p.slug, era_slug_map[p.get_property('era')])
+        itl = IntraTopicLink({
+            "toTopic": to_topic,
+            "fromTopic": p.slug,
+            "linkType": "is-a",
+            "dataSource": "sefaria",
+            "generatedBy": "update_authors_data"
+        })
+        try:
+            itl.save()
+        except DuplicateRecordError as e:
+            print(e)
+
 #Second Pass
 rowmap = {
     16: 'child-of',
@@ -145,20 +182,18 @@ for l in rows:
             for pkey in l[i].split(","):
                 to_slug = pkey.strip().encode('utf8').decode()
                 to_slug, from_slug = (from_slug, to_slug) if link_type_slug in flip_link_dir else (to_slug, from_slug)
-                print("{} - {}".format(from_slug, pkey))
-                if AuthorTopic.init(to_slug):
-                    IntraTopicLink({
-                        "toTopic": to_slug,
-                        "fromTopic": from_slug,
-                        "linkType": link_type_slug,
-                        "dataSource": "sefaria",
-                        "generatedBy" : "update_authors_data",
-                    }).save()
-
-for foo, symbol in eras.items():
-    people = AuthorTopicSet({"properties.era.value": symbol}).distinct("slug")
-    to_link_query = {"generatedBy": "update_authors_data", "toTopic": {"$in": people}}
-    from_link_query = to_link_query.copy()
-    from_link_query['fromTopic'] = to_link_query['toTopic']
-    print("To link", db.topic_links.count_documents(to_link_query))
-    print("From links", db.topic_links.count_documents(from_link_query))
+                # print("{} - {}".format(from_slug, to_slug))
+                if AuthorTopic.init(to_slug) and AuthorTopic.init(from_slug):
+                    try:
+                        IntraTopicLink({
+                            "toTopic": to_slug,
+                            "fromTopic": from_slug,
+                            "linkType": link_type_slug,
+                            "dataSource": "sefaria",
+                            "generatedBy" : "update_authors_data",
+                        }).save()
+                    except DuplicateRecordError:
+                        continue
+                
+link_query = {"generatedBy": "update_authors_data"}
+print("links created", db.topic_links.count_documents(link_query))
