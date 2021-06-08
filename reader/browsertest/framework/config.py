@@ -28,13 +28,13 @@ SAUCE_CORE_CAPS = [
     #{'browserName': "MicrosoftEdge", 'platform': "Windows 10", 'version': "latest",
     #    'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'Edg/w10'},
 
-    {'deviceName': "Android GoogleAPI Emulator", 'platformName': 'Android', 'platformVersion': '11.0',
+    {'deviceName': "Google Pixel 3a XL GoogleAPI Emulator", 'platformName': 'Android', 'platformVersion': '11.0',
      'browserName': 'Chrome', 'appiumVersion': '1.20.2', 'deviceOrientation': "portrait",
-     'sefaria_mode': 'single_panel', 'sefaria_short_name': 'And/9.0'},
+     'sefaria_mode': 'single_panel', 'sefaria_short_name': 'And/11.0'},
 
-#    {'browserName': "Safari", 'platformName': "iOS", 'deviceName': "iPhone 12 Simulator",
-#    'appiumVersion': "1.20.1", 'platformVersion': "14.3", 'deviceOrientation': "portrait",
-#     'sefaria_mode': 'single_panel', 'sefaria_short_name': 'iPh12'},
+    {'browserName': "Safari", 'platformName': "iOS", 'deviceName': "iPhone 12 Simulator",
+    'appiumVersion': "1.20.1", 'platformVersion': "14.3", 'deviceOrientation': "portrait",
+     'sefaria_mode': 'single_panel', 'sefaria_short_name': 'iPh12'},
 
 ]
 
