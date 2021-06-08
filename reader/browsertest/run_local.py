@@ -30,11 +30,22 @@ def get_ios_webdriver():
     return _get_appium_webdriver(caps)
 
 
+def get_android_webdriver():
+    caps = {
+        "platformName": 'Android',
+        "platformVersion": '10',
+        "automationName": 'uiautomator2',
+        'browserName': 'Chrome',
+        "deviceName": 'Android Emulator',
+    }
+    return _get_appium_webdriver(caps)
+
+
 def get_chrome_mobile_webdriver():
     mobile_emulation = { "deviceName": "Nexus 5" }
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_experimental_option("mobileEmulation", mobile_emulation)
-    driver = webdriver.Chrome(chrome_options=chrome_options)
+    driver = webdriver.Chrome(options=chrome_options)
     return driver
 
 
@@ -43,6 +54,7 @@ if __name__ == '__main__':
     parser = OptionParser()
     parser.add_option("-t", "--tests", dest="tests", help="Comma separated list of tests to run")
     parser.add_option("-i", "--ios", dest="ios", action='store_true', help="Run tests on Appium/iOS")
+    parser.add_option("-a", "--android", dest="android", action='store_true', help="Run tests on Appium/Android")
     parser.add_option("-c", "--chrome", dest="chrome", action='store_true', help="Run tests on Chrome")
     parser.add_option("-m", "--chrome-mobile", dest="chrome_mobile", action='store_true', help="Run tests on Chrome Mobile")
     parser.add_option("-f", "--firefox", dest="firefox", action='store_true', help="Run tests on Firefox")
@@ -59,6 +71,8 @@ if __name__ == '__main__':
     if options.ios:
         ios_webdriver = get_ios_webdriver()
         caps += [ios_webdriver]
+    if options.android:
+        caps += [get_android_webdriver()]
     if options.chrome:
         caps += [webdriver.Chrome]
     if options.firefox:

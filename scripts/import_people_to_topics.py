@@ -563,6 +563,16 @@ def reorder_toc():
         topic.displayOrder = ititle * 10
         topic.save()
 
+def refactor_isas():
+    for p in AuthorTopicSet():
+        linkset = p.link_set(query_kwargs={"linkType": "is-a", "generatedBy": "import_people_to_topics"})
+        for l in linkset:
+            l.generatedBy = "update_authors_data"
+            l.save()
+        linkset = p.link_set(query_kwargs={"linkType": "displays-under", "generatedBy": "import_people_to_topics"})
+        for l in linkset:
+            l.generatedBy = "update_authors_data"
+            l.save()
 
 if __name__ == "__main__":
     # create_csvs_to_match()
@@ -590,6 +600,7 @@ if __name__ == "__main__":
     # get_wikidata_entries()
     # get_wikipedia_links_for_wikidata_ids()
     # set_description_published()
+    # refactor_isas()
 
 """
 POD=authors-web-67cb54bf45-csc9n
