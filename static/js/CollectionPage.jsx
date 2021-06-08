@@ -11,28 +11,29 @@ import {
   DropdownModal,
   DropdownButton,
   DropdownOptionList,
+  FilterableList,
   LanguageToggleButton,
   LoadingMessage,
-  TwoOrThreeBox,
   SheetListing,
+  TabView,
+  TwoOrThreeBox,
   ProfilePic,
   SimpleLinkedBlock,
   InterfaceText,
   ContentText,
 } from './Misc';
 
+
 class CollectionPage extends Component {
   constructor(props) {
     super(props);
 
     const collectionData = Sefaria.getCollectionFromCache(props.slug);
-    const sheetSort = "date";
-    if (collectionData) { this.sortSheetData(collectionData, sheetSort); }
 
     this.state = {
+      showFilterHeader: false,
       showTopics: collectionData && !!collectionData.showTagsByDefault && !props.tag,
       sheetFilterTopic: props.tag,
-      sheetSort: sheetSort,
       displaySort: false,
       tab: "sheets",
       collectionData: collectionData,
@@ -209,11 +210,40 @@ class CollectionPage extends Component {
     if (!collection) {
       content = <LoadingMessage />;
     } else {
-      var sheets         = collection.sheets;
-      var topicList      = collection.topics;
-      var members        = this.memberList();
-      var isMember       = members && members.filter(function(x) { return x.uid == Sefaria._uid } ).length !== 0;
-      var isAdmin        = collection.admins.filter(function(x) { return x.uid == Sefaria._uid } ).length !== 0;
+      var sheets    = collection.sheets;
+      var topicList = collection.topics;
+      var members   = this.memberList();
+      var isMember  = members && members.filter(function(x) { return x.uid == Sefaria._uid } ).length !== 0;
+      var isAdmin   = collection.admins.filter(function(x) { return x.uid == Sefaria._uid } ).length !== 0;
+
+      const aboutBlock = (
+        <div className="collectionInfo sans-serif">
+          {collection.toc ?
+          <div className="navTitle">
+            <h1>
+              <ContentText text={{en: collection.toc.title, he: collection.toc.heTitle}} />
+            </h1>
+            { this.props.multiPanel && this.props.interfaceLang !== "hebrew" ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
+          </div>
+          : <h1>{collection.name}</h1> }
+
+          <a className="collectionLabel" href="/collections">
+            <InterfaceText>Collection</InterfaceText>
+          </a>
+
+          {collection.toc ?
+            <div className="collectionDescription">
+              <ContentText html={{en: collection.toc.description, he: collection.toc.heDescription}} />
+            </div>
+          : collection.description ?
+            <div className="collectionDescription"  dangerouslySetInnerHTML={ {__html: collection.description} }></div>
+          : null }
+
+          {collection.websiteUrl ?
+            <a className="collectionWebsite" target="_blank" href={collection.websiteUrl}>{collection.websiteUrl.replace(/https?:\/\//, "")}</a>
+            : null }
+        </div>
+      );
 
       const editorsBlock = (
         <div>
@@ -231,36 +261,6 @@ class CollectionPage extends Component {
         </div>
       );
 
-      topicList = topicList ? topicList.map(topic => {
-          const filterThisTag = (event) => {event.preventDefault(); this.handleTagButtonClick(topic.slug)};
-          const classes = classNames({navButton: 1, sheetButton: 1, active: this.state.sheetFilterTopic == topic.slug});
-          return (
-              <SimpleLinkedBlock onClick={filterThisTag} en={topic.en} he={topic.he} classes={classes} key={topic.slug} url={`?${topic.slug}`}>
-                <span className="enInHe">{` (${topic.count})`}</span>
-              </SimpleLinkedBlock>
-          );
-        }) : null;
-
-      sheets = this.state.sheetFilterTopic ? sheets.filter(sheet => sheet.topics && sheet.topics.reduce((accum, curr) => accum || this.state.sheetFilterTopic === curr.slug, false)) : sheets;
-      sheets = sheets.map(function(sheet) {
-        return (<SheetListing
-                  sheet={sheet}
-                  hideAuthor={true}
-                  infoUnderneath={true}
-                  showAuthorUnderneath={true}
-                  hideCollection={true}
-                  pinned={collection.pinnedSheets.indexOf(sheet.id) != -1}
-                  pinnable={isMember}
-                  editable={sheet.author == Sefaria._uid}
-                  saveable={sheet.author !== Sefaria._uid && !isMember}
-                  collectable={true}
-                  pinSheet={this.pinSheet.bind(null, sheet.id)}
-                  handleCollectionsChange={this.onDataChange}
-                  toggleSignUpModal={this.props.toggleSignUpModal}
-                  key={sheet.id} />);
-      }.bind(this));     
-
-
       if (collection.imageUrl) {
         sidebarModules.push({type: "Image", props: {url: collection.imageUrl}});
       }
@@ -269,90 +269,119 @@ class CollectionPage extends Component {
         title: "Editors",
         content: editorsBlock}});
 
-      content = <div>
-        <div className="collectionInfo sans-serif">
-            {collection.toc ?
-            <div className="navTitle">
-              <h1>
-                <ContentText text={{en: collection.toc.title, he: collection.toc.heTitle}} />
-              </h1>
-              { this.props.multiPanel && this.props.interfaceLang !== "hebrew" ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
+      const renderSheet = sheet => (
+        <SheetListing
+          sheet={sheet}
+          hideAuthor={true}
+          infoUnderneath={true}
+          showAuthorUnderneath={true}
+          hideCollection={true}
+          pinned={collection.pinnedSheets.indexOf(sheet.id) != -1}
+          pinnable={isMember}
+          editable={sheet.author == Sefaria._uid}
+          saveable={sheet.author !== Sefaria._uid && !isMember}
+          collectable={true}
+          pinSheet={this.pinSheet.bind(null, sheet.id)}
+          handleCollectionsChange={this.onDataChange}
+          toggleSignUpModal={this.props.toggleSignUpModal}
+          key={sheet.id} />
+      );
+
+      const filterFunc = (filter, sheet) => {
+        const n = text => text.toLowerCase();
+        filter = n(filter);
+        const filterText = [sheet.title.stripHtml(),
+                            sheet.topics.map(topic => topic.asTyped).join(" "),
+                            ].join(" ");
+        return n(filterText).indexOf(filter) > -1;
+      };
+
+      const sortFunc = (option, a, b) => {
+        const [ai, bi] = [a, b].map(x => collection.pinnedSheets.indexOf(x.id));
+        if (ai !== bi) {
+          return  ai < bi ? -1 : 1;
+        
+        } else if (option == "Recent") {
+          return Date.parse(b.modified) - Date.parse(a.modified);
+      
+        } else if (option === "Alphabetical") {
+          return a.title.stripHtml().trim().toLowerCase() > b.title.stripHtml().trim().toLowerCase() ? 1 : -1;
+      
+        } else if (option === "Views") {
+          return b.views - a.views;
+        }
+      };
+
+      const emptyList = () => {
+        if (isMember) {
+          return (
+            <div className="emptyMessage sans-serif">
+              <InterfaceText>You can add sheets to this collection on your profile.</InterfaceText>
+              <br />
+              <a className="button" href="/my/profile">
+                <InterfaceText>Open Profile</InterfaceText>
+              </a>
             </div>
-            : <h1>{collection.name}</h1> }
-
-          <a className="collectionLabel" href="/collections">
-            <InterfaceText>Collection</InterfaceText>
-          </a>
-
-          {collection.toc ?
-            <div className="collectionDescription">
-              <ContentText html={{en: collection.toc.description, he: collection.toc.heDescription}} />
+          );
+        } else {
+          return (
+            <div className="emptyMessage sans-serif">
+              <InterfaceText>There are no sheets in this collection yet.</InterfaceText>
             </div>
-          : collection.description ?
-            <div className="collectionDescription"  dangerouslySetInnerHTML={ {__html: collection.description} }></div>
-          : null }
+          );
+        }
+      };
 
-          {collection.websiteUrl ?
-            <a className="collectionWebsite" target="_blank" href={collection.websiteUrl}>{collection.websiteUrl.replace(/https?:\/\//, "")}</a>
-            : null }
+      const tabs = [
+        {
+          id: "sheets",
+          title: {
+            en: "Sheets",
+            he: Sefaria._("Sheets")
+          }
+        },
+        {
+          title: {
+            en: "Filter",
+            he: Sefaria._("Filter")
+        },
+        id: 'filter',
+        icon: `/static/img/arrow-${this.state.showFilterHeader ? 'up' : 'down'}-bold.svg`,
+        justifyright: true
+      }];
+      const tabClickArray = {
+        [tabs.length-1]: () => {this.setState({showFilterHeader: !this.state.showFilterHeader});}
+      }; 
+ 
+      content = (
+        <div>
+          {aboutBlock}
 
+          <TabView
+            tabs={tabs}
+            renderTab={t => (
+              <div className={classNames({tab: 1, noselect: 1, filter: t.justifyright, open: t.justifyright && this.state.showFilterHeader})}>
+                <InterfaceText text={t.title} />
+                { t.icon ? <img src={t.icon} alt={`${t.title.en} icon`} /> : null }
+              </div>
+            )}
+            containerClasses={"largeTabs"}
+            onClickArray={tabClickArray}
+          >
+            <FilterableList
+              pageSize={1e6}
+              filterFunc={filterFunc}
+              sortFunc={sortFunc}
+              renderItem={renderSheet}
+              renderEmptyList={emptyList}
+              sortOptions={["Recent", "Alphabetical", "Views"]}
+              data={sheets}
+              containerClass={"sheetList"}
+              showFilterHeader={this.state.showFilterHeader} />
+          
+          </TabView>
         </div>
-
-        { this.state.tab == "sheets" ?
-          <div className="sheetList">
-            {sheets.length ?
-            <div className="splitHeader">
-              { topicList && topicList.length ?
-              <span className="filterByTag sans-serif" onClick={this.toggleSheetTags}>
-                <span className="int-en" >Filter By Tag <i className="fa fa-angle-down"></i></span>
-                <span className="int-he">סנן לפי תווית <i className="fa fa-angle-down"></i></span>
-               </span>
-               : <div /> }
-
-              <DropdownModal close={()=>this.setState({displaySort: false})} isOpen={this.state.displaySort}>
-                <DropdownButton
-                  isOpen={this.state.displaySort}
-                  toggle={()=>this.setState({displaySort: !this.state.displaySort})}
-                  enText={"Sort"}
-                  heText={"מיון"}
-                />
-                <DropdownOptionList
-                  isOpen={this.state.displaySort}
-                  options={[{type: "date", name: "Recent", heName: "הכי חדש"}, {type: "alphabetical", name:"Alphabetical", heName: "אלפביתי"}, {type: "views", name:"Most Viewed", heName: "הכי נצפה"}]}
-                  currOptionSelected={this.state.sheetSort}
-                  handleClick={this.changeSheetSort}
-                />
-              </DropdownModal>
-            </div>
-            : null }
-
-          {collection.listed ?
-            <div className="collectionSearchBox">
-              <img className="collectionSearchIcon" src="/static/icons/iconmonstr-magnifier-2.svg" onClick={this.handleSearchButtonClick} />
-              <input
-                className="collectionSearchInput"
-                placeholder={Sefaria._("Search")}
-                onKeyUp={this.handleSearchKeyUp} />
-          </div> : null}
-
-          {this.state.showTopics ? <div className="tagsList"><TwoOrThreeBox content={topicList} width={this.props.width} /></div> : null}
-
-          {sheets.length && !this.state.showTopics ? sheets : null}
-
-          {!sheets.length ? (isMember ?
-                  <div className="emptyMessage sans-serif">
-                    <InterfaceText>You can add sheets to this collection on your profile.</InterfaceText>
-                    <br />
-                    <a className="button" href="/my/profile">
-                      <InterfaceText>Open Profile</InterfaceText>
-                    </a>
-                  </div>
-                : <div className="emptyMessage sans-serif">
-                    <InterfaceText>There are no sheets in this collection yet.</InterfaceText>
-                  </div>) : null}
-          </div>
-          : null }
-      </div>
+      );
     }
 
     return (

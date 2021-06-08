@@ -443,6 +443,7 @@ const TopicPage = ({
                               { t.icon ? <img src={t.icon} alt={`${t.title.en} icon`} /> : null }
                             </div>
                           )}
+                          containerClasses={"largeTabs"}
                           onClickArray={{[onClickFilterIndex]: ()=>setShowFilterHeader(!showFilterHeader)}}
                         >
                           {

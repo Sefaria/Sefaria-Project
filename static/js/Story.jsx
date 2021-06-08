@@ -502,11 +502,11 @@ StorySheetList.propTypes = {
 
 const TextPassage = ({text, afterSave, toggleSignUpModal}) => {
   if (!text.ref) { return null; }
-  if (!text.versions) debugger;
+  const versions = text.versions || {}
   const url = "/" + Sefaria.normRef(text.ref) + 
-                    Object.keys(text.versions || {})
-                        .filter(vlang=>!!text.versions[vlang])
-                        .map(vlang=>`&v${vlang}=${text.versions[vlang]}`)
+                    Object.keys(versions)
+                        .filter(vlang=>!!versions[vlang])
+                        .map(vlang=>`&v${vlang}=${versions[vlang]}`)
                         .join("")
                         .replace("&","?");
 
@@ -514,7 +514,7 @@ const TextPassage = ({text, afterSave, toggleSignUpModal}) => {
     <StoryFrame cls="textPassageStory">
       <SaveLine 
         dref={text.ref}
-        versions={text.versions}
+        versions={versions}
         toggleSignUpModal={toggleSignUpModal}
         classes={"storyTitleWrapper"}
         afterChildren={afterSave || null} >

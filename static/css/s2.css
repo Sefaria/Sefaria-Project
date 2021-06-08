@@ -1861,19 +1861,6 @@ div.interfaceLinks-row a {
 }
 .topicPanel .topicDescription span {
 }
-.topicPanel .tab-view .tab-list {
-    border-bottom: 1px solid #CCC;
-    margin-bottom: 18px;
-}
-.topicPanel .tab-view .filter-bar {
-  margin-bottom: 30px;
-}
-.topicPanel .tab-view .tab-list .tab {
-  font-size: 22px;
-}
-.topicPanel .tab-view .tab-list .active .tab {
-  border-bottom: 4px solid #999;
-}
 .topicPanel .resourcesLink.blue {
   padding: 8px 16px;
   font-size: 20px;
@@ -3674,20 +3661,17 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .readerNavMenu .sheet:hover{
   text-decoration: none;
 }
-.readerNavMenu .sheet:first-child {
-  padding-top: 0;
-}
 .readerNavMenu .sheet .sheetImg {
   height: 40px;
   width: 40px;
   margin: 1px 0 0 0;
   border-radius: 2px;
 }
-.readerNavMenu .sheet .sheetTextInfo{
+.readerNavMenu .sheet .sheetTextInfo {
   display: flex;
   justify-content: flex-start;
 }
-.readerNavMenu .sheet:hover .sheetTextInfo{
+.readerNavMenu .sheet:hover .sheetTextInfo {
   text-decoration: underline;
 }
 .readerNavMenu .sheet .sheetAuthTitle{
@@ -3702,17 +3686,17 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-bottom: 6px;
   letter-spacing: 1px;
 }
-.readerNavMenu .sheet .sheetTitle{
+.readerNavMenu .sheet .sheetTitle {
   overflow: hidden;
   font-size: 16px;
   unicode-bidi: plaintext;
 }
-.readerNavMenu .sheet .sheetViews{
+.readerNavMenu .sheet .sheetViews {
   color: #999;
   font-size: 13px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
-.readerNavMenu .sheet:hover .sheetViews{
+.readerNavMenu .sheet:hover .sheetViews {
   display: inline-block ;
   text-decoration: none;
 }
@@ -7119,12 +7103,6 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 .collectionPage .collectionDescription .he .dedication {
   font-size: 20px;
 }
-.collectionPage .tabs {
-  text-align: center;
-  margin-bottom: 60px;
-  --hebrew-font: var(--hebrew-sans-serif-font-family);
-  --english-font: var(--english-sans-serif-font-family);
-}
 .collectionPage .bubbleTab {
   font-size: 16px;
 }
@@ -8624,7 +8602,8 @@ section.SheetSource .SheetOutsideBiText {
   display: flex;
   align-items: center;
 }
-.tab-view .tab-list .tab.filter {
+.tab-view .tab-list .tab.filter,
+.tab-view.largeTabs .tab-list .tab.filter {
   font-size: 16px;
   margin: 0;
   padding: 6px 9px;
@@ -8651,6 +8630,19 @@ section.SheetSource .SheetOutsideBiText {
 }
 .tab-list :not(.active) .tab, .tab-list :not(.active) .tab a{
     color: #666;
+}
+.tab-view.largeTabs .tab-list {
+    border-bottom: 1px solid #CCC;
+    margin-bottom: 18px;
+}
+.tab-view.largeTabs .filter-bar {
+  margin-bottom: 30px;
+}
+.tab-view.largeTabs .tab-list .tab {
+  font-size: 22px;
+}
+.tab-view.largeTabs .tab-list .active .tab {
+  border-bottom: 4px solid #999;
 }
 .profile-page .textRange {
   font-size: 18px;

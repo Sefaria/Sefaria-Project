@@ -433,12 +433,13 @@ const Strings = {
     "Jewish Encyclopedia": "האנציקלופדיה היהודית",
     "Works on Sefaria": "חיבורים וכתבים בספריא",
 
-
-
     //Module Names
     "Download Text": "הורדת טקסט",
     "About this Text" : "אודות הטקסט",
     "Related Topics": "נושאים קשורים",
+
+    // FilterableList
+    "Sort by": "מיון לפי",
   },
 
   _i18nInterfaceStringsWithContext: {
@@ -476,6 +477,11 @@ const Strings = {
       "Text (without Tags)": "טקסט (ללא תיוגים)",
       "Select Version": "בחירת מהדורה/תרגום"
     },
+    "FilterableList": {
+      "Alphabetical": "אלפביתי",
+      "Recent": "הכי חדש",
+      "Views": "הכי נצפה",
+    }
   },
 };
 

@@ -463,8 +463,7 @@ const FilterableList = ({
           </div>
           <div className="filter-sort-wrapper">
             <span className="systemText">
-              <span className="int-en">Sort by</span>
-              <span className="int-he">מיון לפי</span>
+              <InterfaceText>Sort by</InterfaceText>
             </span>
             { sortOptions.map(option =>(
               <span
@@ -472,7 +471,7 @@ const FilterableList = ({
                 className={classNames({'sans-serif': 1, 'sort-option': 1, noselect: 1, active: sortOption === option})}
                 onClick={() => onSortChange(option)}
               >
-                <InterfaceText>{option}</InterfaceText>
+                <InterfaceText context="FilterSort">{option}</InterfaceText>
               </span>
             ))}
           </div>
@@ -540,8 +539,9 @@ class TabView extends Component {
   }
   render() {
     const { currTabIndex } = typeof this.props.currTabIndex == 'undefined' ? this.state : this.props;
+    const classes = classNames({"tab-view": 1, [this.props.containerClasses]: 1});
     return (
-      <div className="tab-view">
+      <div className={classes}>
         <div className="tab-list sans-serif">
           {this.props.tabs.map(this.renderTab)}
         </div>
