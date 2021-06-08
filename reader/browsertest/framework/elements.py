@@ -1650,11 +1650,11 @@ class Trial(object):
             assert cap is not None
             if cap.get("appiumVersion") is not None:
                 driver = appium_webdriver.Remote(
-                    command_executor='http://{}:{}@ondemand.saucelabs.com:80/wd/hub'.format(SAUCE_USERNAME, SAUCE_ACCESS_KEY),
+                    command_executor='https://{}:{}@ondemand.us-west-1.saucelabs.com:443/wd/hub'.format(SAUCE_USERNAME, SAUCE_ACCESS_KEY),
                     desired_capabilities=cap)
             else:
                 driver = webdriver.Remote(
-                    command_executor='http://{}:{}@ondemand.saucelabs.com:80/wd/hub'.format(SAUCE_USERNAME, SAUCE_ACCESS_KEY),
+                    command_executor='https://{}:{}@ondemand.us-west-1.saucelabs.com:443/wd/hub'.format(SAUCE_USERNAME, SAUCE_ACCESS_KEY),
                     desired_capabilities=cap)
         elif self.platform == "localselenium":
             assert cap is not None
