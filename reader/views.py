@@ -4181,7 +4181,7 @@ def apple_app_site_association(request):
 
 def application_health_api(request):
     """
-    Defines the /healthz API endpoint which responds with
+    Defines the /healthz  and /health-check API endpoints which responds with
         200 if the application is ready for requests,
         500 if the application is not ready for requests
     """

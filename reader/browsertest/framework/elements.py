@@ -1,15 +1,11 @@
 
 # -*- coding: utf-8 -*-
 
-from .config import TEMPER, SAUCE_CAPS, SAUCE_CORE_CAPS, SAUCE_MAX_THREADS, LOCAL_URL, REMOTE_URL, LOCAL_SELENIUM_CAPS
+from .config import TEMPER, SAUCE_CORE_CAPS, SAUCE_MAX_THREADS, LOCAL_URL, LOCAL_SELENIUM_CAPS
 from sefaria.model import *
 from pathos.multiprocessing import ProcessingPool as Pool
-import random
 import os
 import inspect
-import http.client
-import base64
-import json
 import traceback
 import sys
 
@@ -17,14 +13,13 @@ import urllib.parse
 
 from selenium import webdriver
 from appium import webdriver as appium_webdriver
-from selenium.webdriver.common.touch_actions import TouchActions
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support.expected_conditions import title_contains, presence_of_element_located, staleness_of,\
-        element_to_be_clickable, visibility_of_element_located, invisibility_of_element_located, \
-    text_to_be_present_in_element, _find_element, StaleElementReferenceException, visibility_of_any_elements_located
+from selenium.webdriver.support.expected_conditions import title_contains, presence_of_element_located, \
+    element_to_be_clickable, _find_element, visibility_of_any_elements_located
 from selenium.webdriver.common.keys import Keys
-from selenium.common.exceptions import NoSuchElementException, NoAlertPresentException, WebDriverException, ElementClickInterceptedException
+from selenium.common.exceptions import NoSuchElementException, NoAlertPresentException, WebDriverException, \
+    ElementClickInterceptedException, StaleElementReferenceException
 # http://selenium-python.readthedocs.io/waits.html
 # http://selenium-python.readthedocs.io/api.html#module-selenium.webdriver.support.expected_conditions
 
@@ -32,53 +27,141 @@ import time # import stand library below name collision in sefaria.model
 
 
 class AbstractTest(object):
-    every_build = False  # Run this test on every build?
-    single_panel = True  # run this test on mobile?
-    multi_panel = True  # run this test on desktop?
+    every_build = False     # Run this test on every build?
+    daily = False           # Run this test daily?
+    weekly = False          # Run this test weekly?
+
+    single_panel = True     # Run this test on mobile?
+    multi_panel = True      # Run this test on desktop?
 
     # Only use one of the below.
     include = []  # List of platforms (using cap_to_short_string) to include.  If this is present, only these platforms are included
     exclude = []  # List of platforms (using cap_to_short_string) to exclude.
 
-    def __init__(self, driver, url, cap, root_test=False, verbose=False, **kwargs):
+    def __init__(self, url, cap, verbose=False, **kwargs):
         """
 
         :param driver:
         :param url:
         :param cap:
-        :param root_test: Is this test being run alone (or as a parent of others)?
         :param verbose:
         :param kwargs:
         """
         self.base_url = url
-        self.driver = driver
         self.cap = cap
         self.isVerbose = verbose
-        self.is_root = root_test
+        self._validate()
+        self.driver = None
+
+    def set_driver(self, driver):
+        self.driver = driver
+
+    def _validate(self):
+        if not self.multi_panel and not self.single_panel:
+            raise Exception("Tests must run on at least one of mobile or desktop")
+        if len(self.include) and len(self.exclude):
+            raise Exception("Only one of the 'include' and 'exclude' parameters can be used in a given test")
 
     def name(self):
         return"{} / {}".format(Trial.cap_to_string(self.cap), self.__class__.__name__)
 
-    @classmethod
-    def _should_run(cls, mode, cap):
-        if (mode == "multi_panel" and not cls.multi_panel) or (mode == "single_panel" and not cls.single_panel):
+    def __str__(self):
+        return self.name()
+
+    def should_run(self, mode):
+        if (mode == "multi_panel" and not self.multi_panel) or (mode == "single_panel" and not self.single_panel):
             return False
-        if len(cls.include) and Trial.cap_to_short_string(cap) not in cls.include:
+        if len(self.include) and Trial.cap_to_short_string(self.cap) not in self.include:
             return False
-        if len(cls.exclude) and Trial.cap_to_short_string(cap) in cls.exclude:
+        if len(self.exclude) and Trial.cap_to_short_string(self.cap) in self.exclude:
             return False
         return True
 
-    def should_run(self, mode):
-        pass
+    def fail(self, msg):
+        self.carp(msg, always=True)
+        return SingleTestResult(self.__class__, self.cap, False, msg)
+
+    def succeed(self):
+        return SingleTestResult(self.__class__, self.cap, True)
 
     def run(self):
+        self.carp("\n{}\n".format(str(self)), always=True)
+        self.driver.execute_script('"**** Enter {} ****"'.format(self.name()))
+
+        try:
+            self.setup()
+        except Exception:
+            return self.fail("Exception in {}.setup()\n{}".format(self.name(), traceback.format_exc()))
+        try:
+            self.body()
+        except Exception as e:
+            try:
+                self.recover_exception(e)
+            except Exception:
+                return self.fail("Exception in {}.body()\n{}".format(self.name(), traceback.format_exc()))
+
+        try:
+            self.driver.execute_script('"**** Exit {} ****"'.format(self.name()))
+            self.teardown()
+        except Exception:
+            return self.fail("Exception in {}.teardown()\n{}".format(self.name(), traceback.format_exc()))
+
+        return self.succeed()
+
+    def setup(self):
         pass
+
+    def body(self):
+        raise Exception("body() needs to be defined for each test.")
+
+    def teardown(self):
+        pass
+
+    def recover_exception(self, e):
+        """
+        Runs max once per test to try to repair expected exceptions
+        Responsible for re-running body()
+        Throw exceptions from this method will not cause this method to re-run.  It will register as test failure.
+        By default, does no work, and rethrows exception.
+        :param e:
+        :return:
+        """
+        raise e
 
     def carp(self, msg, short_msg="", always=False):
         sys.stdout.write(msg if self.isVerbose or always else short_msg)
         sys.stdout.flush()
 
+
+class SefariaTest(AbstractTest):
+    # Component methods
+    # Methods that begin with "nav_to_" assume that the site is loaded, and do not reload a page.
+    # Methods that begin with "load_" start with a page load.
+
+    def recover_exception(self, e):
+        if isinstance(e, ElementClickInterceptedException):
+            if self.close_modal_popup():
+                self.carp("{} - Closed modal. Restarting\n".format(self.name()))
+                self.body()
+            else:
+                raise e
+        else:
+            raise e
+
+    def setup(self):
+        """
+        Runs before body of test is run
+        :return:
+        """
+        #self.driver.maximize_window()
+        #todo: don't try to resize on mobile.  It errors.
+        try:
+            self.driver.set_window_size(900, 1100)
+        except WebDriverException:
+            pass
+        self.load_toc(my_temper=60)         # holdover from when tests expected a loaded environment.  todo: have tests take care of that individually, and remove this line.
+        self.close_modal_popup()
+        self.click_accept_cookies()
 
     def is_element_visible_in_viewport(self, element) -> bool:
         return self.driver.execute_script("var elem = arguments[0],            " 
@@ -92,11 +175,6 @@ class AbstractTest(object):
                                      "  }                                      " 
                                      "return false;                            "
                                      , element)
-
-
-    # Component methods
-    # Methods that begin with "nav_to_" assume that the site is loaded, and do not reload a page.
-    # Methods that begin with "load_" start with a page load.
 
     def set_modal_cookie(self):
         # # set cookie to avoid popup interruption
@@ -153,7 +231,7 @@ class AbstractTest(object):
         if self.is_logged_in():
             return self
         self.nav_to_login()
-        try: 
+        try:
             elem = self.driver.find_element_by_css_selector("#id_email")
             elem.send_keys(user)
             elem = self.driver.find_element_by_css_selector("#id_password")
@@ -168,27 +246,48 @@ class AbstractTest(object):
         finally:
             return self
 
-    def nav_to_profile(self):
-        if self.is_logged_in():
-            self.driver.find_element_by_css_selector('.accountLinks .my-profile').click()
-        else:
+    def nav_to_account(self):
+        if not self.is_logged_in():
             raise Exception("Can't nav to account.  Not logged in.")
+
+        self.driver.find_element_by_css_selector('.accountLinks .my-profile').click()
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#my-profile-link")))
+        self.driver.find_element_by_css_selector("#my-profile-link").click()
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".profile-summary")))
+
         return self
 
     def nav_to_sheets(self):
-        self.nav_to_profile()
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".profile-summary")))
+        self.nav_to_account()
         time.sleep(5)
         try:
             el = self.driver.find_element_by_css_selector('.sheet-header .resourcesLink')
         except NoSuchElementException:
             el = self.driver.find_element_by_css_selector('.emptyList .resourcesLink')
         el.click()
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.ID, "inlineAdd")))
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#inlineAdd")))
         return self
 
     def nav_to_login(self):
+        try:
+            self._nav_to_login_desktop()
+        except NoSuchElementException:
+            self._nav_to_login_mobile()
+        return self
+
+    def _nav_to_login_desktop(self):
         el = self.driver.find_element_by_css_selector('.accountLinks .loginLink')
+        el.click()
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#id_email")))
+        return self
+
+    def _nav_to_login_mobile(self):
+        self.nav_to_toc()
+        self.driver.execute_script(
+            "var a = document.getElementById('loginLink'); a.scrollIntoView(true);"
+        )
+        time.sleep(.50)
+        el = self.driver.find_element_by_css_selector('#loginLink')
         el.click()
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#id_email")))
         return self
@@ -200,7 +299,6 @@ class AbstractTest(object):
         except NoSuchElementException:
             return False
 
-    # TOC
     def nav_to_toc(self):
         """
         This method can be called from many different initial states.
@@ -260,6 +358,13 @@ class AbstractTest(object):
         WebDriverWait(self.driver, TEMPER).until(
             presence_of_element_located((By.CSS_SELECTOR,'.readerNavCategory[data-cat*="{}"], .catLink[data-cats*="{}"]'.format(category_name, category_name)))
         )
+        self.driver.execute_script(
+            "var a = document.querySelector('.readerNavCategory[data-cat*=\"{}\"], .catLink[data-cats*=\"{}\"]'); a.scrollIntoView(true);".format(category_name, category_name)
+        )
+        e = self.driver.find_element_by_css_selector(
+            '.readerNavCategory[data-cat*="{}"], .catLink[data-cats*="{}"]'.format(category_name, category_name))
+        e.click()
+        '''
         i = 0
         while i < 3:
             try:
@@ -270,6 +375,7 @@ class AbstractTest(object):
                 i += 1
                 time.sleep(.25)
                 continue
+        '''
         elem = self.driver.find_element_by_css_selector("h1 > span.en, h2 > span.en")
         if category_name == "Talmud":
             category_name = "Talmud Bavli"
@@ -439,39 +545,39 @@ class AbstractTest(object):
     def get_sidebar_nth_version_button_text(self, n):
         return self.get_sidebar_nth_version_button(n).text
 
-    def get_sidebar_nth_version_button(self, n):
-        slctr = f"#panel-1 > div.readerContent > div > div > div > div > div:nth-child(1) >div:nth-child({n+1}) > div.versionSelect > a.selectButton"
-        return self.get_object_by_css_selector(slctr)
-
     def get_object_by_css_selector(self, selector):
         WebDriverWait(self.driver, TEMPER).until(
             element_to_be_clickable((By.CSS_SELECTOR, selector))
         )
         return self.driver.find_element_by_css_selector(selector)
 
+    def get_sidebar_nth_version_button(self, n):
+        slctr = f"#panel-1 > div.readerContent > div > div > div > div > div:nth-child(1) >div:nth-child({n+1}) > div.versionSelect > a.selectButton"
+        return self.get_object_by_css_selector(slctr)
+
     def type_in_mailing_list_email(self, str):
         self.type_in_text_box_by_id('mailingListEmail', str)
 
     def click_footer_link_by_id(self, link_id):
         WebDriverWait(self.driver, TEMPER).until(
-            element_to_be_clickable((By.ID, link_id))
+            element_to_be_clickable((By.CSS_SELECTOR, "#" + link_id))
         )
-        link = self.driver.find_element_by_id(link_id)
+        link = self.driver.find_element_by_css_selector("#" + link_id)
         link.click()
 
     def type_in_text_box_by_id(self, obj_id, txt_to_type):
         WebDriverWait(self.driver, TEMPER).until(
-            element_to_be_clickable((By.ID, obj_id))
+            element_to_be_clickable((By.CSS_SELECTOR, "#" + obj_id))
         )
-        txt_box = self.driver.find_element_by_id(obj_id)
+        txt_box = self.driver.find_element_by_css_selector("#" + obj_id)
         txt_box.clear()
         txt_box.send_keys(txt_to_type)
 
     def get_object_by_id(self, obj_id):
         WebDriverWait(self.driver, TEMPER).until(
-            element_to_be_clickable((By.ID, obj_id))
+            element_to_be_clickable((By.CSS_SELECTOR, "#" + obj_id))
         )
-        obj_to_return = self.driver.find_element_by_id(obj_id)
+        obj_to_return = self.driver.find_element_by_css_selector("#" + obj_id)
         return obj_to_return
 
     def click_library(self):
@@ -706,6 +812,13 @@ class AbstractTest(object):
     def get_current_content_title(self):
         return self.get_object_by_css_selector('#panel-0 div.readerControls.fullPanel div.readerTextToc > div > a').text
 
+    def is_object_displayed(self, css_selector):
+        try:
+            aliyot = self.driver.find_element_by_css_selector(css_selector)
+            return True # would through an exception otherwise, handled below
+        except NoSuchElementException:
+            return False
+
     def is_aliyot_displayed(self):
         time.sleep(.5)
         return self.is_object_displayed("#panel-0 > div.readerContent > div > div:nth-child(3) > div.text > div > span:nth-child(4) > div.parashahHeader.aliyah")
@@ -721,13 +834,6 @@ class AbstractTest(object):
 
     def is_sidebar_calendar_title_displayed(self):
         return self.is_object_displayed('#panel-1 > div > div.content > div > div:nth-child(3) > h2 > span.int-en')
-
-    def is_object_displayed(self, css_selector):
-        try:
-            aliyot = self.driver.find_element_by_css_selector(css_selector)
-            return True # would through an exception otherwise, handled below
-        except NoSuchElementException:
-            return False
 
     def get_content_panel(self):
         selector = '#panel-0'
@@ -753,16 +859,16 @@ class AbstractTest(object):
 
     def click_object_by_id(self, id):
         WebDriverWait(self.driver, TEMPER).until(
-            presence_of_element_located((By.ID, id))
+            presence_of_element_located((By.CSS_SELECTOR, "#" + id))
         )
-        obj_to_click = self.driver.find_element_by_id(id)
+        obj_to_click = self.driver.find_element_by_css_selector("#" + id)
         obj_to_click.click()
 
     def get_object_txt_by_id(self, id):
         WebDriverWait(self.driver, TEMPER).until(
-            presence_of_element_located((By.ID, id))
+            presence_of_element_located((By.CSS_SELECTOR, "#" + id))
         )
-        obj = self.driver.find_element_by_id(id)
+        obj = self.driver.find_element_by_css_selector("#" + id)
         return obj.text
 
     def get_object_by_link_text(self, link_txt):
@@ -833,7 +939,6 @@ class AbstractTest(object):
         chapter = self.driver.find_element_by_css_selector(chapter_selector)
         chapter.click()
 
-    # Text Panel
     def click_toc_from_text_panel(self):
         self.driver.find_element_by_css_selector(".readerTextTocBox a").click()
         WebDriverWait(self.driver, TEMPER).until(
@@ -972,7 +1077,6 @@ class AbstractTest(object):
         time.sleep(.5)    # Takes some time to reload, and not sure what next page is
         return self
 
-    # todo:
     def load_refs(self):
         pass
 
@@ -986,19 +1090,18 @@ class AbstractTest(object):
         WebDriverWait(self.driver, TEMPER * 2).until(element_to_be_clickable((By.CSS_SELECTOR, ".categoryFilter")))
         return self
 
-    def click_segment_to_close_commentary(self, ref):
-        if isinstance(ref, str):
-            ref = Ref(ref)
-        assert isinstance(ref, Ref)
-        self._perform_segment_click(ref)
-
     def _perform_segment_click(self, ref):
         selector = '.segment[data-ref="{}"]'.format(ref.normal())
         WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, selector)))
         segment = self.driver.find_element_by_css_selector(selector)
         segment.click()
 
-    # Basic navigation
+    def click_segment_to_close_commentary(self, ref):
+        if isinstance(ref, str):
+            ref = Ref(ref)
+        assert isinstance(ref, Ref)
+        self._perform_segment_click(ref)
+
     def back(self):
         # These may not work as expected...
         self.driver.back()
@@ -1009,7 +1112,6 @@ class AbstractTest(object):
         self.driver.forward()
         return self
 
-    # Scrolling
     def scroll_window_down(self, pixels):
         self.driver.execute_script("window.scrollBy(0,{});".format(pixels))
         return self
@@ -1075,7 +1177,6 @@ class AbstractTest(object):
         )
         return self
 
-    # Connections Panel
     def find_category_filter(self, name):
         WebDriverWait(self.driver, TEMPER).until(
             element_to_be_clickable((By.CSS_SELECTOR, '.categoryFilter[data-name="{}"]'.format(name))))
@@ -1104,7 +1205,6 @@ class AbstractTest(object):
         )
         return self
 
-    # Search
     def load_search_url(self, query=None):
         url = urllib.parse.urljoin(self.base_url, "/search")
         if query is not None:
@@ -1124,6 +1224,7 @@ class AbstractTest(object):
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".result")))
         return self
 
+    # todo: the #searchInput isn't always present on mobile.  The button to open it isn't always predsent either.  Probably need to nav to toc in that case.
     def type_in_search_box(self, query):
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#searchInput")))
         elem = self.driver.find_element_by_css_selector("#searchInput")
@@ -1157,10 +1258,10 @@ class AbstractTest(object):
 
     def load_people(self):
         self.driver.get(urllib.parse.urljoin(self.base_url, "/people"))
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".author")))
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".gridBoxItem")))
 
         self.driver.get(urllib.parse.urljoin(self.base_url, "/person/Meir%20Abulafia"))
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#place-map")))
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".topicDescription")))
         return self
 
     def load_my_profile(self):
@@ -1183,7 +1284,6 @@ class AbstractTest(object):
         # self.catch_js_error()
         return self
 
-    # Editing
     def load_edit(self, ref, lang, version):
         if isinstance(ref, str):
             ref = Ref(ref)
@@ -1209,7 +1309,6 @@ class AbstractTest(object):
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#newVersion")))
         return self
 
-    # Editor
     def enable_new_editor(self):
         self.driver.get(self.base_url + "/enable_new_editor")
 
@@ -1271,146 +1370,6 @@ class AbstractTest(object):
         return sheet_html
 
 
-class TestSuite(AbstractTest):
-    def __init__(self, driver, url, cap, mode=None, root_test=True, **kwargs):
-        super(TestSuite, self).__init__(driver, url, cap, root_test=root_test, **kwargs)
-        self.mode = mode
-        self.tests = [t(self.driver, self.base_url, self.cap) for t in get_atomic_tests() if t.suite_class == self.__class__ and t._should_run(self.mode, self.cap)]
-        self.result_set = TestResultSet()
-
-    def __str__(self):
-        return self.name()
-
-    def should_run(self, mode):
-        return len(self.tests)
-
-    def long_name(self):
-        return "{}\n{}".format(self.name(), self.tests_string())
-
-    def tests_string(self):
-        return ", ".join([t.__class__.__name__ for t in self.tests])
-
-    def setup(self):
-        pass
-
-    def teardown(self):
-        pass
-
-    def run(self):
-        self.carp("\n{}\n".format(str(self)), always=True)
-
-        try:
-            self.setup()
-        except Exception:
-            msg = "Exception in {}.setup()\n{}".format(self.name(), traceback.format_exc())
-            self.carp(msg, always=True)
-            return SingleTestResult(self.__class__, self.cap, False, msg)
-
-        max = None
-        for i, test in enumerate(self.tests):
-            self.carp(" * Enter {}:{}\n".format(self.name(), test.__class__.__name__))
-            result = test.run()
-            result.order = i
-            result.suite = self
-            self.result_set.include(result)
-            max = i
-
-        try:
-            self.teardown()
-        except Exception:
-            msg = "Exception in {}.teardown()\n{}".format(self.name(), traceback.format_exc())
-            self.carp(msg, always=True)
-            result = SingleTestResult(self.__class__, self.cap, False, msg)
-            result.order = max + 1
-            result.suite = self
-            self.result_set.include(result)
-
-        return self.result_set
-
-
-class AtomicTest(AbstractTest):
-    """
-    Abstract Class
-    AtomicTests are designed to be composed in any order, so as to test a wide range of orders of events
-    A concrete AtomicTest implements the run method.
-    """
-    suite_class = None  # A subclass of TestSuite
-
-    def __init__(self, driver, url, cap, root_test=False, **kwargs):
-        super(AtomicTest, self).__init__(driver, url, cap, root_test=root_test, **kwargs)
-        if not self.suite_class:
-            raise Exception("Missing required variable - suite_class")
-        if not issubclass(self.suite_class, TestSuite):
-            raise Exception("suite_class must be a child of TestSuite")
-        if not self.multi_panel and not self.single_panel:
-            raise Exception("Tests must run on at least one of mobile or desktop")
-        if len(self.include) and len(self.exclude):
-            raise Exception("Only one of the 'include' and 'exclude' parameters can be used in a given test")
-
-    def should_run(self, mode):
-        return self._should_run(mode, self.cap)
-
-    def setup(self):
-        """
-        Only run when test is root.  Can be overridden at test class level.
-        :return:
-        """
-        #self.driver.maximize_window()
-        try:
-            self.driver.set_window_size(900, 1100)
-        except WebDriverException:
-            pass
-        self.load_toc()
-
-    def teardown(self):
-        """
-        Only run when test is root
-        :return:
-        """
-        pass
-
-    def run(self):
-        err = None
-        if self.is_root:
-            try:
-                self.setup()
-            except Exception:
-                msg = "Exception in {}.setup()\n{}".format(self.name(), traceback.format_exc())
-                self.carp(msg, always=True)
-                return SingleTestResult(self.__class__, self.cap, False, msg)
-
-        try:
-            self.carp("{} - Starting\n".format(self.name()))
-            self.driver.execute_script('"**** Enter {} ****"'.format(self.name()))
-            self.body()
-            self.driver.execute_script('"**** Exit {} ****"'.format(self.name()))
-        except Exception as e:
-            if isinstance(e, ElementClickInterceptedException):
-                if self.close_modal_popup():
-                    self.carp("{} - Closed modal. Restarting\n".format(self.name()))
-                    return self.body()
-            print(e)
-            err = traceback.format_exc()
-            result = SingleTestResult(self.__class__, self.cap, False, err)
-        else:
-            result = SingleTestResult(self.__class__, self.cap, True)
-
-        if self.is_root:
-            try:
-                self.teardown()
-            except Exception:
-                msg = "Exception in {}.teardown()\n{}".format(self.name(), traceback.format_exc())
-                self.carp(msg, always=True)
-
-        self.carp("{} - {}\n".format(result.word_status(), self.name()), always=not result.success)
-        if err:
-            self.carp(err, always=True)
-
-        return result
-
-    def body(self):
-        raise Exception("body() needs to be defined for each test.")
-
 """
 
                     Test Running Infrastructure
@@ -1452,8 +1411,6 @@ class SingleTestResult(AbstractTestResult):
 
         self.test_class = test_class
         self.className = self.test_class.__name__
-        self.order = 0  # Used to track run order on a suite
-        self.suite = None
         self._cap = cap
         self._success = success
         self._message = message
@@ -1465,13 +1422,6 @@ class SingleTestResult(AbstractTestResult):
             Trial.cap_to_string(self.cap),
             ": \n{}".format(self.message) if self.message else ""
         )
-
-    def order_id(self):
-        ret = ''
-        if self.suite is not None:
-            ret += self.suite.__class__.__name__
-        ret += format(self.order, '03')
-        return ret
 
     def word_status(self):
         return "Passed" if self.success else "Failed"
@@ -1570,20 +1520,10 @@ class TestResultSet(AbstractTestResult):
                 self._indexed_tests[(res.test_class, Trial.cap_to_short_string(res.cap))] = res
             self._aggregated = True
 
-    def _sorted_test_classes(self):
-        test_classes = {res.test_class for res in self._test_results}
-
-        # all tests for each class
-        tests_per_class = {cls: [r for r in self._test_results if r.test_class == cls] for cls in test_classes}
-
-        # map of class to rank
-        class_rank = {cls: max([t.order_id() for t in tests_per_class[cls]]) for cls in test_classes}
-        sorted_classes = sorted(test_classes, key=class_rank.get)
-        return sorted_classes
-
     def _results_as_matrix(self):
         self._aggregate()
-        sorted_test_classes = self._sorted_test_classes()
+        # sorted_test_classes = self._sorted_test_classes()
+        test_classes = list({res.test_class for res in self._test_results})
 
         caps = list({Trial.cap_to_short_string(res.cap) for res in self._test_results})
 
@@ -1596,15 +1536,11 @@ class TestResultSet(AbstractTestResult):
             if res.success is False:
                 return "Fail"
 
-        current_suite = None
-
-        results = []
-        for test in sorted_test_classes:
-            if getattr(test, "suite_class", None) and test.suite_class != current_suite:
-                results += [[""] * (len(caps) + 1)]
-                results += [[" ** " + test.suite_class.__name__] + caps]
-                current_suite = test.suite_class
+        results = [[""] * (len(caps) + 1)] + \
+                  [[" ** "] + caps]
+        for test in test_classes:
             results += [[test.__name__] + [text_result(test, cap) for cap in caps]]
+
         return results
 
     def report(self):
@@ -1633,20 +1569,22 @@ class TestResultSet(AbstractTestResult):
 SAUCE_USERNAME = ""
 SAUCE_ACCESS_KEY = ""
 
+
 class Trial(object):
     global SAUCE_USERNAME, SAUCE_ACCESS_KEY 
     default_local_driver = webdriver.Chrome
     # default_local_driver = webdriver.Firefox
     # default_local_driver = webdriver.Safari
+
     def __init__(self, platform="local", build=None, tests=None, caps=None, parallel=None, verbose=False, seleniumServerHostname="", targetApplicationUrl=""):
         """
         :param caps: If local: webdriver classes, if remote, dictionaries of capabilities
-        :param platform: "sauce", "bstack", "local", "travis"
+        :param platform: "sauce", "local", "travis"
         :return:
         BASE_URL refers to the target application
         """
         global SAUCE_USERNAME, SAUCE_ACCESS_KEY
-        assert platform in ["sauce", "bstack", "local", "travis", "github", "githubnew", "localselenium"]
+        assert platform in ["sauce", "local", "travis", "githubnew", "localselenium"]
         if platform == "travis":
             SAUCE_USERNAME = os.getenv('SAUCE_USERNAME')
             SAUCE_ACCESS_KEY = os.getenv('SAUCE_ACCESS_KEY')
@@ -1666,12 +1604,6 @@ class Trial(object):
             self.is_local = False
             self.BASE_URL = os.getenv('CI_URL')
             self.caps = caps if caps else SAUCE_CORE_CAPS
-        elif platform == "github":
-            self.is_local = False
-            self.BASE_URL = targetApplicationUrl
-            self.caps = sm.SeleniumDriverManager.getCapabilities(None)
-            self.seleniumDriverManager = sm.SeleniumDriverManager(seleniumServerHostname)
-            self.parallel = False
         elif platform == "githubnew":
             SAUCE_USERNAME = os.getenv('SAUCE_USERNAME')
             SAUCE_ACCESS_KEY = os.getenv('SAUCE_ACCESS_KEY')
@@ -1684,20 +1616,14 @@ class Trial(object):
             self.caps = caps if caps else LOCAL_SELENIUM_CAPS
             self.is_local = True # 'is_local' refers to the application location
 
-        else:
-            self.is_local = False
-            self.BASE_URL = REMOTE_URL
-            self.caps = caps if caps else BS_CAPS
-
-
         self.isVerbose = verbose
         self.platform = platform
         self.build = build
-        self.tests = get_every_build_tests(get_suites()) if tests is None else tests
+        self.tests = get_every_build_tests(get_all_tests()) if tests is None else tests
         self._results = TestResultSet()
         self.parallel = parallel if parallel is not None else False if self.is_local else True
         if self.parallel:
-            self.thread_count = BS_MAX_THREADS if self.platform == "bstack" else SAUCE_MAX_THREADS
+            self.thread_count = SAUCE_MAX_THREADS
 
     def _get_driver(self, cap=None):
         """
@@ -1715,20 +1641,12 @@ class Trial(object):
             assert cap is not None
             if cap.get("appiumVersion") is not None:
                 driver = appium_webdriver.Remote(
-                    command_executor='http://{}:{}@ondemand.saucelabs.com:80/wd/hub'.format(SAUCE_USERNAME, SAUCE_ACCESS_KEY),
+                    command_executor='https://{}:{}@ondemand.us-west-1.saucelabs.com:443/wd/hub'.format(SAUCE_USERNAME, SAUCE_ACCESS_KEY),
                     desired_capabilities=cap)
             else:
                 driver = webdriver.Remote(
-                    command_executor='http://{}:{}@ondemand.saucelabs.com:80/wd/hub'.format(SAUCE_USERNAME, SAUCE_ACCESS_KEY),
+                    command_executor='https://{}:{}@ondemand.us-west-1.saucelabs.com:443/wd/hub'.format(SAUCE_USERNAME, SAUCE_ACCESS_KEY),
                     desired_capabilities=cap)
-        elif self.platform == "bstack":
-            assert cap is not None
-            driver = webdriver.Remote(
-                command_executor='http://{}:{}@hub.browserstack.com:80/wd/hub'.format(BS_USER, BS_KEY),
-                desired_capabilities=cap)
-        elif self.platform == "github":
-            assert cap is not None
-            driver = self.seleniumDriverManager.createDriver()
         elif self.platform == "localselenium":
             assert cap is not None
 
@@ -1754,6 +1672,7 @@ class Trial(object):
         :param cap:
         :return:
         """
+        MAX_TEST_RUNS = 2
         driver = None
         if self.is_local:
             if isinstance(cap, appium_webdriver.Remote):
@@ -1762,25 +1681,33 @@ class Trial(object):
                 mode = "multi_panel"  # Assuming that local isn't single panel
         else:
             mode = cap.get("sefaria_mode")
-            cap.update({
-                'name': "{} on {}".format(test_class.__name__, self.cap_to_string(cap)),
-                'build': self.build,
-            })
+            cap['sauce:options'] = {
+                "build": self.build,
+                "name": "{} on {}".format(test_class.__name__, self.cap_to_string(cap)),
+                #  "tags": ["tag1", "tag2", "tag3"]
+            }
 
         try:
-            driver = self._get_driver(cap)
-            test_instance = test_class(driver, self.BASE_URL, cap, root_test=True, mode=mode, verbose=self.isVerbose)
+            result = None
+            tries = 0
+            while (result is None or not result.success) and tries < MAX_TEST_RUNS:
+                tries += 1
+                if tries > 1:
+                    self.carp("Retrying {}/{}  ({}/{})".format(test_class.__name__,  Trial.cap_to_string(cap), tries, MAX_TEST_RUNS))
 
-            if not test_instance.should_run(mode):
-                return None
+                test_instance = test_class(self.BASE_URL, cap, mode=mode, verbose=self.isVerbose)
+                if not test_instance.should_run(mode):
+                    return None
 
-            result = test_instance.run()
+                driver = self._get_driver(cap)
+                test_instance.set_driver(driver)
+                result = test_instance.run()
 
-            if self.platform == "sauce":
-                self.set_sauce_result(driver, result.success)
+                if self.platform == "sauce":
+                    self.set_sauce_result(driver, result.success)
 
-            if not self.is_local:
-                driver.quit()
+                driver.quit()       # had been if not self.is_local:  why?
+
             return result
 
         except Exception as e:
@@ -1810,30 +1737,23 @@ class Trial(object):
         result_set = TestResultSet()
         caps = _caps or self.caps
         self.carp("\n{}: ".format(test_class.__name__))
-        exception_thrown = False
-        is_first_test = _caps is None
-        is_second_test = _caps is not None
 
-        tresults = []  # list of AbstractTest instances
+        tresults = []  # list of SingleTestResult instances
         if self.parallel:
             p = Pool(self.thread_count)
             l = len(caps)
             try:
-                print("[_test_on_all] current class {}".format(test_class))
+                self.carp("[_test_on_all] current class {}".format(test_class))
                 tresults = p.map(_test_one_worker, list(zip([self] * l, [test_class] * l, caps)))
             except Exception:
                 msg = traceback.format_exc()
                 self.carp("{} - Exception\n{}\n".format(test_class.__name__, msg), always=True)
                 tresults += [SingleTestResult(test_class, caps[0], False, msg)]
-                exception_thrown = True
         else:
             for cap in caps:
                 tresults.append(self._test_one(test_class, cap))
 
-        result_set.include([t for t in tresults if t and t.success])
-        failing_results = [t for t in tresults if t and not t.success]
-
-        result_set.include(failing_results)
+        result_set.include(tresults)
         return result_set
 
     def run(self):
@@ -1876,9 +1796,7 @@ class Trial(object):
         if isinstance(cap, webdriver.Remote):
             cap = cap.capabilities
         return (cap.get("deviceName") or  # sauce mobile
-                cap.get("device") or  # browserstack mobile
-                ("{} {} on {} {}".format(cap.get("browser"), cap.get("browser_version"), cap.get("os"), cap.get("os_version")) if cap.get("browser") else  # browserstack desktop
-                "{} {} on {}".format(cap.get('browserName'), cap.get("version"), cap.get('platform'))))  # sauce desktop
+                "{} {} on {}".format(cap.get('browserName'), cap.get("browserVersion"), cap.get('platform')))  # sauce desktop
 
     @staticmethod
     def cap_to_short_string(cap):
@@ -1903,12 +1821,9 @@ def get_subclasses(c):
     return subclasses
 
 
-def get_atomic_tests():
-    return get_subclasses(AtomicTest)
+def get_all_tests():
+    return get_subclasses(AbstractTest)
 
-
-def get_suites():
-    return get_subclasses(TestSuite)
 
 
 # Not used
