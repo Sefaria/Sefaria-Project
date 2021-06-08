@@ -3,9 +3,9 @@ body {
   margin: 0;
   -webkit-text-size-adjust: 100%;
 }
-span.ref-link-color-1 {background-color: #c7c5ea}
-span.ref-link-color-2 {background-color: #8c84ab}
-span.ref-link-color-3 {background-color: #3a11da}
+span.ref-link-color-1 {color: orange}
+span.ref-link-color-2 {color: #0cd200}
+span.ref-link-color-3 {color: blue}
 
 *::selection {
   background-color: #D2DCFF;
@@ -1975,7 +1975,6 @@ a.readerNavCategory {
   font-size: 18px;
   font-weight: 400;
   line-height: 23px;
-  background-color: white;
   cursor: pointer;
   text-align: center;
   unicode-bidi: plaintext;
