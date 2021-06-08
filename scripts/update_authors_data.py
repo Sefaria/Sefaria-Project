@@ -62,11 +62,15 @@ rows = list(cr)[4:]
 
 # Validate every slug is unique and doesn't exist as a non-author
 internal_slug_count = defaultdict(int)
+has_slug_issues = False
 for l in rows:
     slug = l[0].encode('utf8').decode()
+    primary_title = l[1].strip() if len(l[1].strip()) > 0 else l[3].strip()
+    if re.search(fr'^{re.escape(AbstractMongoRecord.normalize_slug(primary_title))}\d*$', slug) is None:
+        print(f"ERROR: slug '{slug}' does not match primary title '{primary_title}'. Expected slug '{AbstractMongoRecord.normalize_slug(primary_title)}'")
+        has_slug_issues = True
     if len(slug.strip()) == 0: continue
     internal_slug_count[slug] += 1
-has_slug_issues = False
 for slug, count in internal_slug_count.items():
     if count > 1:
         print(f"ERROR: slug {slug} appears {count} times on this sheet. Please update slug in sheet to be internally unique")
@@ -76,7 +80,7 @@ for slug, count in internal_slug_count.items():
         print(f"ERROR: slug {slug} exists as a non-author. Please update slug in sheet to be globally unique.")
         has_slug_issues = True
     if AbstractMongoRecord.normalize_slug(slug) != slug:
-        print(f"ERROR: slug {slug} does not match slugified version which is {AbstractMongoRecord.normalize_slug(slug)}. Please slugify in the sheet.")
+        print(f"ERROR: slug '{slug}' does not match slugified version which is '{AbstractMongoRecord.normalize_slug(slug)}'. Please slugify in the sheet.")
         has_slug_issues = True
 if has_slug_issues:
     raise Exception("Issues found. See above errors.")
