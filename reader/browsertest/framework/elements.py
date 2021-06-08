@@ -154,6 +154,7 @@ class SefariaTest(AbstractTest):
         :return:
         """
         #self.driver.maximize_window()
+        #todo: don't try to resize on mobile.  It errors.
         try:
             self.driver.set_window_size(900, 1100)
         except WebDriverException:
@@ -357,6 +358,13 @@ class SefariaTest(AbstractTest):
         WebDriverWait(self.driver, TEMPER).until(
             presence_of_element_located((By.CSS_SELECTOR,'.readerNavCategory[data-cat*="{}"], .catLink[data-cats*="{}"]'.format(category_name, category_name)))
         )
+        self.driver.execute_script(
+            "var a = document.querySelector('.readerNavCategory[data-cat*=\"{}\"], .catLink[data-cats*=\"{}\"]'); a.scrollIntoView(true);".format(category_name, category_name)
+        )
+        e = self.driver.find_element_by_css_selector(
+            '.readerNavCategory[data-cat*="{}"], .catLink[data-cats*="{}"]'.format(category_name, category_name))
+        e.click()
+        '''
         i = 0
         while i < 3:
             try:
@@ -367,6 +375,7 @@ class SefariaTest(AbstractTest):
                 i += 1
                 time.sleep(.25)
                 continue
+        '''
         elem = self.driver.find_element_by_css_selector("h1 > span.en, h2 > span.en")
         if category_name == "Talmud":
             category_name = "Talmud Bavli"
@@ -1703,10 +1712,10 @@ class Trial(object):
                 test_instance.set_driver(driver)
                 result = test_instance.run()
 
-            if self.platform == "sauce":
-                self.set_sauce_result(driver, result.success)
+                if self.platform == "sauce":
+                    self.set_sauce_result(driver, result.success)
 
-            driver.quit()       # had been if not self.is_local:  why?
+                driver.quit()       # had been if not self.is_local:  why?
 
             return result
 
