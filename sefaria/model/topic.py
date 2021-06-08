@@ -19,6 +19,7 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
         'person': 'PersonTopic',
         'author': 'AuthorTopic',
     }
+    reverse_subclass_map = {v: k for k, v in subclass_map.items()}
     required_attrs = [
         'slug',
         'titles',
@@ -56,6 +57,9 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
 
     def _set_derived_attributes(self):
         self.set_titles(getattr(self, "titles", None))
+        if self.__class__ != Topic:
+            # in a subclass. set appropriate "subclass" attribute
+            setattr(self, "subclass", self.reverse_subclass_map[self.__class__.__name__])
 
     def _validate(self):
         super(Topic, self)._validate()
@@ -487,6 +491,16 @@ class AuthorTopic(PersonTopic):
 
 class TopicSet(abst.AbstractMongoSet):
     recordClass = Topic
+
+    def __init__(self, query=None, *args, **kwargs):
+        if self.recordClass != Topic:
+            # include class name of recordClass + any class names of subclasses
+            query = query or {}
+            subclass_names = [self.recordClass.__name__] + [klass.__name__ for klass in self.recordClass.all_subclasses()]
+            query['subclass'] = {"$in": [self.reverse_subclass_map[name] for name in subclass_names]}
+        
+        super().__init__(query=query, *args, **kwargs)
+
     @staticmethod
     def load_by_title(title):
         query = {'titles.text': title}
@@ -501,16 +515,6 @@ class TopicSet(abst.AbstractMongoSet):
 
 class PersonTopicSet(TopicSet):
     recordClass = PersonTopic
-
-    def __init__(self, query=None, *args, **kwargs):
-        reverse_subclass_map = {v: k for k, v in Topic.subclass_map.items()}
-        query = query or {}
-
-        # include class name of recordClass + any class names of subclasses
-        subclass_names = [self.recordClass.__name__] + [klass.__name__ for klass in self.recordClass.all_subclasses()]
-        query['subclass'] = {"$in": [reverse_subclass_map[name] for name in subclass_names]}
-        
-        super().__init__(query=query, *args, **kwargs)
 
 class AuthorTopicSet(PersonTopicSet):
     recordClass = AuthorTopic
