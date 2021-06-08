@@ -1332,7 +1332,7 @@ class SchemaNode(TitledTreeNode):
 
         return traverse(self)
 
-    def text_index_map(self, tokenizer=lambda x: re.split('\s+',x), strict=True, lang='he', vtitle=None):
+    def text_index_map(self, tokenizer=lambda x: re.split(r'\s+',x), strict=True, lang='he', vtitle=None):
         """
         See TextChunk.text_index_map
         :param tokenizer:
@@ -1352,7 +1352,6 @@ class SchemaNode(TitledTreeNode):
                 index_list = [i + offset for i in index_list]
                 offset += temp_offset
             return index_list, ref_list, offset
-
 
         def callback(node):
             if not node.children:
@@ -1498,7 +1497,7 @@ class DictionaryEntryNode(TitledTreeNode):
         """
         if title and tref:
             self.title = title
-            self._ref_regex = regex.compile("^" + regex.escape(title) + "[, _]*(\S[^0-9.]*)(?:[. ](\d+))?$")
+            self._ref_regex = regex.compile("^" + regex.escape(title) + r"[, _]*(\S[^0-9.]*)(?:[. ](\d+))?$")
             self._match = self._ref_regex.match(tref)
             self.word = self._match.group(1) or ""
         elif word:
@@ -1898,10 +1897,10 @@ class AddressType(object):
         \p{Hebrew} ~= [\\u05d0–\\u05ea]
         """
         return r"""                                    # 1 of 3 styles:
-        ((?=[\u05d0-\u05ea]+(?:"|\u05f4|\u201d|'')[\u05d0-\u05ea])    # (1: ") Lookahead:  At least one letter, followed by double-quote, two single quotes, right fancy double quote, or gershayim, followed by  one letter
-                \u05ea*(?:"|\u05f4|\u201d|'')?				    # Many Tavs (400), maybe dbl quote
-                [\u05e7-\u05ea]?(?:"|\u05f4|\u201d|'')?	    # One or zero kuf-tav (100-400), maybe dbl quote
-                [\u05d8-\u05e6]?(?:"|\u05f4|\u201d|'')?	    # One or zero tet-tzaddi (9-90), maybe dbl quote
+        ((?=[\u05d0-\u05ea]+(?:"|\u05f4|\u201c|\u201d|'')[\u05d0-\u05ea])    # (1: ") Lookahead:  At least one letter, followed by double-quote, two single quotes, right fancy double quote, or gershayim, followed by  one letter
+                \u05ea*(?:"|\u05f4|\u201c|\u201d|'')?				    # Many Tavs (400), maybe dbl quote
+                [\u05e7-\u05ea]?(?:"|\u05f4|\u201c|\u201d|'')?	    # One or zero kuf-tav (100-400), maybe dbl quote
+                [\u05d8-\u05e6]?(?:"|\u05f4|\u201c|\u201d|'')?	    # One or zero tet-tzaddi (9-90), maybe dbl quote
                 [\u05d0-\u05d8]?					    # One or zero alef-tet (1-9)															#
             |[\u05d0-\u05ea]['\u05f3\u2018\u2019]					# (2: ') single letter, followed by a single quote, geresh, or right fancy quote
             |(?=[\u05d0-\u05ea])					    # (3: no punc) Lookahead: at least one Hebrew letter
@@ -1998,11 +1997,11 @@ class AddressTalmud(AddressType):
     """
     section_patterns = {
         "en": r"""(?:(?:[Ff]olios?|[Dd]af|[Pp](ages?|s?\.))?\s*)""",  # the internal ? is a hack to allow a non match, even if 'strict'
-        "he": r"(\u05d1?\u05d3\u05b7?\u05bc?[\u05e3\u05e4\u05f3\u2018\u2019'\"״]\s+)"			# Daf, spelled with peh, peh sofit, geresh, gereshayim,  or single or doublequote
+        "he": "(\u05d1?\u05d3\u05b7?\u05bc?[\u05e3\u05e4\u05f3\u2018\u2019'\"״]\\s+)"			# Daf, spelled with peh, peh sofit, geresh, gereshayim,  or single or doublequote
     }
     amud_patterns = {
         "en": "[ABabᵃᵇ]",
-        "he": '''([.:]|[,\s]+(?:\u05e2(?:"|\u05f4|''))?[\u05d0\u05d1])'''
+        "he": '''([.:]|[,\\s]+(?:\u05e2(?:"|\u05f4|''|\u05de\u05d5\u05d3\\s))?([\u05d0\u05d1])['\u05f3\u2018\u2019]?)'''  # Either (1) period / colon (2) some separator + (optional: Ayin for amud) + [alef or bet] + (optional: single quote of any type (really only makes sense if there's no Ayin beforehand))
     }
 
     @classmethod
@@ -2126,16 +2125,10 @@ class AddressTalmud(AddressType):
                 indx -= 1
             return indx
         elif lang == "he":
-            num = re.split("[.:,\s]", s)[0]
+            num = re.split(r"[.:,\s]", s)[0]
             daf = decode_hebrew_numeral(num) * 2
-            if s[-1] == ":" or (
-                    s[-1] == "\u05d1"  # bet
-                    and
-                    ((len(s) > 2 and s[-2] in ", ")  # simple bet
-                     or (len(s) > 4 and s[-3] == '\u05e2')  # ayin"bet
-                     or (len(s) > 5 and s[-4] == "\u05e2")  # ayin''bet
-                    )
-                    ):
+            amud_match = re.search(self.amud_patterns["he"] + "$", s)
+            if s[-1] == ':' or (amud_match is not None and amud_match.group(2) == 'ב'):
                 return daf  # amud B
             return daf - 1
 
@@ -2236,7 +2229,7 @@ class AddressFolio(AddressType):
             return indx
         elif lang == "he":
             # todo: This needs work
-            num = re.split("[.:,\s]", s)[0]
+            num = re.split(r"[.:,\s]", s)[0]
             daf = decode_hebrew_numeral(num) * 2
             if s[-1] == ":" or (
                     s[-1] == "\u05d1"    #bet

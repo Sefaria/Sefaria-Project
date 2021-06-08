@@ -46,9 +46,9 @@ urlpatterns = [
 
 # People Pages
 urlpatterns += [
-    url(r'^person/(?P<name>.+)$', reader_views.person_page),
-    url(r'^people/Talmud/?$', reader_views.talmud_person_index),
-    url(r'^people/?$', reader_views.person_index),
+    url(r'^person/(?P<name>.+)$', reader_views.person_page_redirect),
+    url(r'^people/Talmud/?$', reader_views.talmud_person_index_redirect),
+    url(r'^people/?$', reader_views.person_index_redirect),
 ]
 
 # Visualizations / Link Explorer
@@ -202,6 +202,8 @@ urlpatterns += [
     url(r'^api/sheets/ref/(?P<ref>[^/]+)$',                           sheets_views.sheets_by_ref_api),
     url(r'^api/sheets/all-sheets/(?P<limiter>\d+)/(?P<offset>\d+)$',  sheets_views.all_sheets_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)/export_to_drive$',            sheets_views.export_to_drive),
+    url(r'^api/sheets/upload-image$',                                 sheets_views.upload_sheet_media),
+
 ]
 
 # Unlink Google Account Subscribe
@@ -238,6 +240,7 @@ urlpatterns += [
     url(r'^api/topics$', reader_views.topics_list_api),
     url(r'^api/topics-graph/(?P<topic>.+)$', reader_views.topic_graph_api),
     url(r'^api/ref-topic-links/(?P<tref>.+)$', reader_views.topic_ref_api),
+    url(r'^api/v2/topics/(?P<topic>.+)$', reader_views.topics_api, {'v2': True}),
     url(r'^api/topics/(?P<topic>.+)$', reader_views.topics_api),
     url(r'^api/bulktopics$', reader_views.bulk_topic_api),
     url(r'^api/recommend/topics(/(?P<ref_list>.+))?', reader_views.recommend_topics_api),
@@ -308,7 +311,7 @@ urlpatterns += [
 
 # Compare Page
 urlpatterns += [
-    url(r'^compare/?((?P<secRef>[^/]+)/)?((?P<lang>en|he)/)?((?P<v1>[^/]+)/)?(?P<v2>[^/]+)?$', sefaria_views.compare)
+    url(r'^compare/?((?P<comp_ref>[^/]+)/)?((?P<lang>en|he)/)?((?P<v1>[^/]+)/)?(?P<v2>[^/]+)?$', sefaria_views.compare)
 ]
 
 # Gardens

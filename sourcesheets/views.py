@@ -23,6 +23,7 @@ from rest_framework.decorators import api_view
 
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload
+from sefaria.google_storage_manager import GoogleStorageManager
 
 from sefaria.client.util import jsonResponse, HttpResponse
 from sefaria.model import *
@@ -1106,3 +1107,35 @@ def export_to_drive(request, credential, sheet_id):
                                       fields='webViewLink').execute()
 
     return jsonResponse(new_file)
+
+
+@catch_error_as_json
+def upload_sheet_media(request):
+    if not request.user.is_authenticated:
+        return jsonResponse({"error": _("You must be logged in to access this api.")})
+    if request.method == "POST":
+        from PIL import Image
+        from io import BytesIO
+        import uuid
+        import base64
+        import imghdr
+
+        bucket_name = GoogleStorageManager.UGC_SHEET_BUCKET
+        max_img_size = [1024, 1024]
+
+        img_file_in_mem = BytesIO(base64.b64decode(request.POST.get('file')))
+
+        if imghdr.what(img_file_in_mem) == "gif":
+            img_url = GoogleStorageManager.upload_file(img_file_in_mem, f"{request.user.id}-{uuid.uuid1()}.gif", bucket_name)
+
+        else:
+            im = Image.open(img_file_in_mem)
+            img_file = BytesIO()
+            im.thumbnail(max_img_size, Image.ANTIALIAS)
+            im.save(img_file, format=im.format)
+            img_file.seek(0)
+
+            img_url = GoogleStorageManager.upload_file(img_file, f"{request.user.id}-{uuid.uuid1()}.{im.format.lower()}", bucket_name)
+
+        return jsonResponse({"url": img_url})
+    return jsonResponse({"error": "Unsupported HTTP method."})

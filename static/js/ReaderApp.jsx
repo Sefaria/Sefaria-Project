@@ -15,7 +15,8 @@ import {
   RemoteLearningPage,
   SheetsLandingPage,
   PBSC2020LandingPage,
-  RambanLandingPage
+  RambanLandingPage,
+  EducatorsPage
 } from './StaticPages';
 import {
   SignUpModal,
@@ -1698,7 +1699,7 @@ class ReaderApp extends Component {
     }
   }
   openTopic(slug) {
-    Sefaria.getTopic(slug).then(topic => {
+    Sefaria.getTopic(slug, {annotate_time_period: true}).then(topic => {
       this.setStateInHeaderOrSinglePanel({ menuOpen: "topics", navigationTopic: slug, topicTitle: topic.primaryTitle });
     });
   }
@@ -2062,5 +2063,6 @@ export {
   RemoteLearningPage,
   SheetsLandingPage,
   PBSC2020LandingPage,
-  RambanLandingPage
+  RambanLandingPage,
+  EducatorsPage
 };

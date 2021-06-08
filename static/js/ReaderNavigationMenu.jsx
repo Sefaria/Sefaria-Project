@@ -136,7 +136,7 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
                     <span className="he">אודות ספריא</span>
                   </a>),
                  (<span className='divider' key="d1">•</span>),
-                 (<a className="siteLink" key='login' href="/login">
+                 (<a className="siteLink" id='loginLink' key='login' href="/login">
                     <span className="en">Sign In</span>
                     <span className="he">התחבר</span>
                   </a>)];

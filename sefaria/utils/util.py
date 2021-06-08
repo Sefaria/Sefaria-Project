@@ -322,7 +322,7 @@ def titlecase(text):
     Words with capitalized letters in the middle (e.g. Tu B'Shvat, iTunes, etc) are left alone as well.
     """
 
-    SMALL = 'a|an|and|as|at|but|by|en|for|if|in|of|on|or|the|to|v\.?|via|vs\.?'
+    SMALL = r'a|an|and|as|at|but|by|en|for|if|in|of|on|or|the|to|v\.?|via|vs\.?'
     PUNCT = r"""!"#$%&'‘()*+,\-./:;?@[\\\]_`{|}~"""
     SMALL_WORDS = re.compile(r'^(%s)$' % SMALL, re.I)
     INLINE_PERIOD = re.compile(r'[a-z][.][a-z]', re.I)

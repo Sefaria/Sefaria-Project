@@ -373,7 +373,7 @@ const FilterableList = ({
   // If `getData` function is passed, load data through this effect
   useEffect(() => {
     let isMounted = true;
-    if (!rawData) { // Don't try calling getData when `data` is intially passed
+    if (!rawData && !!getData) { // Don't try calling getData when `data` is intially passed
       setLoading(true);
       getData().then(data => {
         if (isMounted) {
@@ -469,11 +469,10 @@ const FilterableList = ({
             { sortOptions.map(option =>(
               <span
                 key={option}
-                className={classNames({'sort-option': 1, noselect: 1, active: sortOption === option})}
+                className={classNames({'sans-serif': 1, 'sort-option': 1, noselect: 1, active: sortOption === option})}
                 onClick={() => onSortChange(option)}
               >
-                <span className="int-en">{ option }</span>
-                <span className="int-he">{ Sefaria._(option) }</span>
+                <InterfaceText>{option}</InterfaceText>
               </span>
             ))}
           </div>
@@ -535,7 +534,7 @@ class TabView extends Component {
   renderTab(tab, index) {
     const { currTabIndex } = typeof this.props.currTabIndex == 'undefined' ? this.state : this.props;
     return (
-      <div className={classNames({active: currTabIndex === index, justifyright: tab.justifyright})} key={tab.text} data-tab-index={index} onClick={this.onClickTab}>
+      <div className={classNames({active: currTabIndex === index, justifyright: tab.justifyright})} key={tab.id} data-tab-index={index} onClick={this.onClickTab}>
         {this.props.renderTab(tab, index)}
       </div>
     );
@@ -553,7 +552,7 @@ class TabView extends Component {
   }
 }
 TabView.propTypes = {
-  tabs: PropTypes.array.isRequired,
+  tabs: PropTypes.array.isRequired,  // array of objects of any form. only requirement is each tab has a unique 'id' field. These objects will be passed to renderTab.
   renderTab: PropTypes.func.isRequired,
   currTabIndex: PropTypes.number,  // optional. If passed, TabView will be controlled from outside
   setTab: PropTypes.func,          // optional. If passed, TabView will be controlled from outside
@@ -855,14 +854,14 @@ SimpleContentBlock.propTypes = {
 };
 
 
-const SimpleLinkedBlock = ({en, he, url, classes, aclasses, children, onClick}) => (
-        <div className={classes} onClick={onClick}>
-            <a href={url} className={aclasses}>
-              <InterfaceText text={{en, he}}/>
-            </a>
-            {children}
-        </div>
-    );
+const SimpleLinkedBlock = ({en, he, url, classes, aclasses, children, onClick, openInNewTab}) => (
+  <div className={classes} onClick={onClick}>
+    <a href={url} className={aclasses} target={openInNewTab ? "_blank" : "_self"}>
+      <InterfaceText text={{en, he}}/>
+    </a>
+    {children}
+  </div>
+);
 SimpleLinkedBlock.propTypes = {
     en: PropTypes.string,
     he: PropTypes.string,
@@ -1216,6 +1215,7 @@ class FollowButton extends Component {
     });
   }
   onMouseEnter() {
+    if (this.props.disableUnfollow) { return; }
     this.setState({hovering: true});
   }
   onMouseLeave() {
@@ -1224,10 +1224,10 @@ class FollowButton extends Component {
   onClick(e) {
     e.stopPropagation();
     if (!Sefaria._uid) {
-        this.props.toggleSignUpModal();
-        return;
+      this.props.toggleSignUpModal();
+      return;
     }
-    if (this.state.following) {
+    if (this.state.following && !this.props.disableUnfollow) {
       this._postUnfollow();
       this.setState({following: false});
     } else {
@@ -1243,22 +1243,19 @@ class FollowButton extends Component {
       hovering: this.state.hovering,
       smallText: true,
     });
-    const en_text = this.state.following ? this.state.hovering ? "Unfollow":"Following":"Follow";
-    const he_text = this.state.following ? this.state.hovering ? "הפסק לעקוב":"עוקב":"עקוב";
-    return <div className={classes} onMouseEnter={this.onMouseEnter} onMouseLeave={this.onMouseLeave} onClick={this.onClick}>
-            <span className="int-en">
-                {en_text}
-            </span>
-            <span className="int-he">
-                {he_text}
-            </span>
-          </div>
+    const buttonText = this.state.following ? this.state.hovering ? "Unfollow":"Following":"Follow";
+    return ( 
+      <div className={classes} onMouseEnter={this.onMouseEnter} onMouseLeave={this.onMouseLeave} onClick={this.onClick}>
+        <InterfaceText context={"FollowButton"}>{buttonText}</InterfaceText>
+      </div>
+    );
   }
 }
 FollowButton.propTypes = {
-  uid: PropTypes.number.isRequired,
-  following: PropTypes.bool,  // is this person followed already?
-  large: PropTypes.bool,
+  uid:               PropTypes.number.isRequired,
+  following:         PropTypes.bool,  // is this person followed already?
+  large:             PropTypes.bool,
+  disableUnfollow:   PropTypes.bool,
   toggleSignUpModal: PropTypes.func,
 };
 
@@ -1309,7 +1306,12 @@ class ProfileListing extends Component {
             en={name}
             he={name}
           >
-            <FollowButton large={false} uid={uid} following={is_followed} toggleSignUpModal={toggleSignUpModal}/>
+            <FollowButton 
+              large={false}
+              uid={uid}
+              following={is_followed}
+              disableUnfollow={true}
+              toggleSignUpModal={toggleSignUpModal} />
           </SimpleLinkedBlock>
           {
             !!organization ? <SimpleInterfaceBlock
