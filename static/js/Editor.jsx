@@ -278,19 +278,6 @@ export const serialize = (content) => {
               }, "");
               return `<td>${tdHtml}</td>`
 
-            /*
-                BLOCKQUOTE: () => ({type: 'quote'}),
-                H1: () => ({type: 'heading-one'}),
-                H2: () => ({type: 'heading-two'}),
-                H3: () => ({type: 'heading-three'}),
-                H4: () => ({type: 'heading-four'}),
-                H5: () => ({type: 'heading-five'}),
-                H6: () => ({type: 'heading-six'}),
-                IMG: el => ({type: 'image', url: el.getAttribute('src')}),
-                PRE: () => ({type: 'code'}),
-            */
-
-
         }
     }
 
@@ -306,7 +293,6 @@ export const serialize = (content) => {
 
 
 function renderSheetItem(source) {
-
     const sheetItemType = Object.keys(sheet_item_els).filter(key => Object.keys(source).includes(key))[0];
 
     switch (sheetItemType) {
@@ -320,6 +306,7 @@ function renderSheetItem(source) {
                     node: source.node,
                     heText: parseSheetItemHTML(source.text.he),
                     enText: parseSheetItemHTML(source.text.en),
+                    options: source.options,
                     children: [
                         {text: ""},
                     ]
@@ -331,6 +318,7 @@ function renderSheetItem(source) {
             const content = (
                 {
                     type: sheet_item_els[sheetItemType],
+                    options: source.options,
                     children: parseSheetItemHTML(source.comment),
                     node: source.node
                 }
@@ -343,6 +331,7 @@ function renderSheetItem(source) {
             const content = (
                 {
                     type: sheet_item_els[sheetItemType],
+                    options: source.options,
                     children: parseSheetItemHTML(source.outsideText),
                     node: source.node,
                     lang: lang
@@ -356,6 +345,7 @@ function renderSheetItem(source) {
                     type: sheet_item_els[sheetItemType],
                     heText: parseSheetItemHTML(source.outsideBiText.he),
                     enText: parseSheetItemHTML(source.outsideBiText.en),
+                    options: source.options,
                     children: [
                         {text: ""},
                     ],
@@ -370,6 +360,7 @@ function renderSheetItem(source) {
                     type: sheet_item_els[sheetItemType],
                     mediaUrl: source.media,
                     node: source.node,
+                    options: source.options,
                     children: [
                         {
                             text: source.media,
@@ -1528,6 +1519,7 @@ function saveSheetContent(doc, lastModified) {
                         "en": enSerializedSourceText !== "" ? enSerializedSourceText : "...",
                         "he": heSerializedSourceText !== "" ? heSerializedSourceText : "...",
                     },
+                    ...sheetItem.options && { options: sheetItem.options },
                     "node": sheetItem.node,
                 };
                 return (source);
@@ -1546,6 +1538,7 @@ function saveSheetContent(doc, lastModified) {
                         "en": enSerializedOutsideText !== "" ? enSerializedOutsideText : "...",
                         "he": heSerializedOutsideText !== "" ? heSerializedOutsideText : "...",
                     },
+                    ...sheetItem.options && { options: sheetItem.options },
                     "node": sheetItem.node,
 
                 };
@@ -1554,6 +1547,7 @@ function saveSheetContent(doc, lastModified) {
             case 'SheetComment':
                 return ({
                     "comment": serialize(sheetItem),
+                    ...sheetItem.options && { options: sheetItem.options },
                     "node": sheetItem.node,
                 });
 
@@ -1562,12 +1556,14 @@ function saveSheetContent(doc, lastModified) {
                //Add space to empty outside texts to preseve line breaks from old sheets.
                return ({
                     "outsideText": (outsideTextText=="<p></p>" || outsideTextText=="<div></div>") ? "<p> </p>" : outsideTextText,
+                    ...sheetItem.options && { options: sheetItem.options },
                     "node": sheetItem.node,
                 });
 
             case 'SheetMedia':
                 return({
                     "media": sheetItem.mediaUrl,
+                    ...sheetItem.options && { options: sheetItem.options },
                     "node": sheetItem.node,
                 });
 
