@@ -183,7 +183,7 @@ const ContestLandingPage = () => (
 
         <H2Block en="Registration" he="הרשמה"/>
         <EnBlock padded={true}>
-            <p><a href="http://sefaria.nationbuilder.com/contest2021">Click here</a> to register your interest in participating so we can keep you up to date as the contest progresses with tools and resources, including engineering office hours where you can ask questions or work out ideas 1:1 with our team. You can register as an individual or team, and sign up at any point between now and the end of the contest.</p>
+            <p>Interested in participating in the contest? <a href="http://sefaria.nationbuilder.com/contest2021">Sign up</a> for updates and resources, including office hours with the Sefaria engineering team. We'll share a link for project submissions with you in the coming weeks!</p>
         </EnBlock>
         <HeBlock padded={true}>
             <p>אם אתם מעוניינים להשתתף בתחרות, לחצו כאן להרשמה, כדי שנוכל לשלוח לכם עדכונים במהלך התחרות בנוגע לכלים ומשאבים, כולל שעות העבודה של המתכנתים שלנו, שתוכלו לשאול אותם שאלות ולהתייעץ איתם על רעיונות אחד־על־אחד. תוכלו להתמודד באופן עצמאי או כחלק מצוות, ולהירשם בכל שלב מעכשיו ועד לסיום התחרות.</p>
