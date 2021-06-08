@@ -348,11 +348,11 @@ class ChangeSiteLanguage(SefariaTest):
         self.nav_to_toc()
         self.click_ivrit_link()
         time.sleep(1)
-        assert self.driver.find_element_by_class_name('interface-hebrew') != None
+        assert self.driver.find_element_by_css_selector('.interface-hebrew') != None
         
         self.click_english_link()
         time.sleep(1)
-        assert self.driver.find_element_by_class_name('interface-english') != None
+        assert self.driver.find_element_by_css_selector('.interface-english') != None
 
 '''
 class LinkExplorer(SefariaTest):
