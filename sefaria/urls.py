@@ -315,7 +315,7 @@ urlpatterns += [
 
 # Compare Page
 urlpatterns += [
-    url(r'^compare/?((?P<secRef>[^/]+)/)?((?P<lang>en|he)/)?((?P<v1>[^/]+)/)?(?P<v2>[^/]+)?$', sefaria_views.compare)
+    url(r'^compare/?((?P<comp_ref>[^/]+)/)?((?P<lang>en|he)/)?((?P<v1>[^/]+)/)?(?P<v2>[^/]+)?$', sefaria_views.compare)
 ]
 
 # Gardens

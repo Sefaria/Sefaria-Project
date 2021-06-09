@@ -49,8 +49,8 @@ const fetchBulkText = inRefs =>
 const fetchBulkSheet = inSheets =>
     Sefaria.getBulkSheets(inSheets.map(x => x.ref)).then(outSheets => {
     for (let tempSheet of inSheets) {
-      if (outSheets[tempSheet.sid]) {
-        outSheets[tempSheet.sid].order = tempSheet.order;
+      if (outSheets[tempSheet.ref]) {
+        outSheets[tempSheet.ref].order = tempSheet.order;
       }
     }
     return Object.values(outSheets);
@@ -443,6 +443,7 @@ const TopicPage = ({
                               { t.icon ? <img src={t.icon} alt={`${t.title.en} icon`} /> : null }
                             </div>
                           )}
+                          containerClasses={"largeTabs"}
                           onClickArray={{[onClickFilterIndex]: ()=>setShowFilterHeader(!showFilterHeader)}}
                         >
                           {
@@ -516,7 +517,6 @@ const TopicPageTab = ({
         <div className={classes}>
           <FilterableList
             pageSize={20}
-            bottomMargin={800}
             scrollableElement={scrollableElement}
             showFilterHeader={showFilterHeader}
             filterFunc={filterFunc}

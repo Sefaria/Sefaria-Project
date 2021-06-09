@@ -114,6 +114,8 @@ class WebPage(abst.AbstractMongoRecord):
             r"lilith\.org\/(tag\|author\|category)\/",
             r"https://torah\.org$",
             r"test\.hadran\.org\.il",
+            r"hadran\.org\.il\/he\/?$",
+            r"hadran\.org\.il\/he\/(masechet|מסכת)\/",
             r"www\.jtsa.edu\/search\/index\.php",
             r"jewschool\.com\/page\/",
             r"truah\.org\/\?s=",

@@ -86,6 +86,7 @@ class PageLoader extends Component {
     super(props);
     this.state = {
       secRef: this.props.secRef,
+      refArray: this.props.refArray ? this.props.refArray : null,
       v1: this.props.v1,
       v2: this.props.v2,
       lang: this.props.lang,
@@ -136,11 +137,23 @@ class PageLoader extends Component {
       v2={this.props.v2 ? this.props.v2 : ""}
       formSubmit={this.formSubmit}/>
       {(this.props.secRef != null & this.props.v1 != null & this.props.v2 != null & this.props.lang != null)
-      ? <DiffTable
+      ? (this.props.refArray)
+          ?
+            this.props.refArray.map(x =>
+              <DiffTable
+                key={x}
+                secRef={x}
+                v1={this.props.v1}
+                v2={this.props.v2}
+                lang={this.props.lang}
+              />)
+          :
+          <DiffTable
           secRef={this.props.secRef}
           v1={this.props.v1}
           v2={this.props.v2}
-          lang={this.props.lang}/> : null}
+          lang={this.props.lang}/>
+          : null}
       {this.state.nextChapter
       ? <input type="button" value="Load Next Chapter" onClick={this.loadNextChapter} /> : null }
       </div>
@@ -697,5 +710,7 @@ class DiffElement extends Component {
 ReactDOM.render(<PageLoader secRef={JSON_PROPS.secRef}
                 v1={JSON_PROPS.v1}
                 v2={JSON_PROPS.v2}
-                lang={JSON_PROPS.lang}/>,
+                lang={JSON_PROPS.lang}
+                refArray={JSON_PROPS.refArray}
+                  />,
                   document.getElementById('DiffTable'));

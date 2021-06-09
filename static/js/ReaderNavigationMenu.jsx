@@ -44,6 +44,7 @@ const ReaderNavigationMenu = ({categories, settings, setCategories, onCompareBac
   let categoryListings = Sefaria.toc.map(cat => {
     const style = {"borderColor": Sefaria.palette.categoryColor(cat.category)};
     const openCat = e => {e.preventDefault(); setCategories([cat.category])};
+
     return (
       <div className="navBlock withColorLine" style={style}>
         <a href={`/texts/${cat.category}`} className="navBlockTitle" data-cat={cat.category} onClick={openCat}>
@@ -55,6 +56,7 @@ const ReaderNavigationMenu = ({categories, settings, setCategories, onCompareBac
       </div>
     );
   });
+  
   categoryListings = (
     <div className="readerNavCategories">
       <ResponsiveNBox content={categoryListings} initialWidth={initialWidth} />

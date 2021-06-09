@@ -1,4 +1,4 @@
-Appium-Python-Client==1.0.2
+Appium-Python-Client==1.2.0
 apscheduler==3.6.
 bleach==1.4.2
 boto3==1.16.6
