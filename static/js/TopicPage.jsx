@@ -517,7 +517,6 @@ const TopicPageTab = ({
         <div className={classes}>
           <FilterableList
             pageSize={20}
-            bottomMargin={800}
             scrollableElement={scrollableElement}
             showFilterHeader={showFilterHeader}
             filterFunc={filterFunc}

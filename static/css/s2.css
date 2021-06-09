@@ -7102,6 +7102,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 }
 .collectionPage .collectionDescription .he .dedication {
   font-size: 20px;
+  display: block;
 }
 .collectionPage .bubbleTab {
   font-size: 16px;
@@ -7116,28 +7117,22 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 .collectionPage .emptyMessage .button:hover {
   color: white;
 }
-.collectionPage .collectionSearchBox {
-  display: flex;
-  align-items: center;
-  border-bottom: 1px solid #ccc;
-  margin-top: 5px;
-  margin-bottom: 20px;
+.collectionContentsTab .gridBox {
+  margin-bottom:  30px;
 }
-.collectionPage .collectionSearchIcon {
-  height: 18px;
-  opacity: 0.4;
-  width: 18px;
+.collectionPage .collectionContentsSectionLabel {
+  color: var(--dark-grey);
+  size: 16px;
+  margin: 30px 0 12px 0;
 }
-.collectionPage .collectionSearchInput {
-  padding: 12px 10px;
-  flex: 1;
-  box-sizing: border-box;
-  border: none;
-  background: transparent;
-  font-size: 18px;
+.collectionPage .collectionContentsTag {
+  font-size: 24px;
 }
-.collectionPage .tagsList {
-  margin-top: 30px;
+.collectionPage .searchInCollectionLink {
+  font-size:  16px;
+  color: var(--dark-grey);
+  margin-top: 20px;
+  display: block;
 }
 .collectionInvitationBox {
   padding-bottom: 20px;

@@ -8,19 +8,19 @@ import { NavSidebar } from './NavSidebar';
 import Footer  from './Footer';
 import {
   CategoryColorLine,
+  ContentText,
   DropdownModal,
   DropdownButton,
   DropdownOptionList,
   FilterableList,
+  InterfaceText,
   LanguageToggleButton,
   LoadingMessage,
+  ProfilePic,
+  ResponsiveNBox,
   SheetListing,
   TabView,
   TwoOrThreeBox,
-  ProfilePic,
-  SimpleLinkedBlock,
-  InterfaceText,
-  ContentText,
 } from './Misc';
 
 
@@ -31,13 +31,17 @@ class CollectionPage extends Component {
     const collectionData = Sefaria.getCollectionFromCache(props.slug);
 
     this.state = {
-      showFilterHeader: false,
-      showTopics: collectionData && !!collectionData.showTagsByDefault && !props.tag,
-      sheetFilterTopic: props.tag,
-      displaySort: false,
-      tab: "sheets",
+      showFilterHeader: !!props.tag,
+      sheetFilterTopic: props.tag || '',
+      tabIndex: !!props.tag ? 1 : 0,
       collectionData: collectionData,
     };
+ 
+    this.scrollableRef = React.createRef();
+
+    /*
+    this.props.setCollectionTag(topic);
+    */
   }
   componentDidMount() {
     this.loadData();
@@ -48,132 +52,22 @@ class CollectionPage extends Component {
       this.loadData();
     }
 
-    if (!this.state.showTopics && prevState.showTopics && $(".content").scrollTop() > 570) {
-      $(".content").scrollTop(570);
-    }
-  }
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.tag !== this.state.sheetFilterTopic) {
-      this.setState({sheetFilterTopic: nextProps.tag});
-      if (this.showTagsByDefault && nextProps.tag == null) {
-        this.setState({showTopics: true});
-      }
-      if (nextProps.tag !== null) {
-        this.setState({showTopics: false});
-      }
+    if (prevState.sheetFilterTopic !== this.state.sheetFilterTopic && $(".content").scrollTop() > 260) {
+      $(".content").scrollTop(0);
     }
   }
   loadData() {
     Sefaria.getCollection(this.props.slug)
       .then(collectionData => {
-        this.sortSheetData(collectionData, this.state.sheetSort);
-        this.setState({
-          collectionData,
-          showTopics: !!collectionData.showTagsByDefault && !this.props.tag
-        });
+        this.setState({collectionData});
         this.props.updateCollectionName(collectionData.name);
       });
   }
   onDataChange() {
     this.setState({collectionData: Sefaria._collections[this.props.slug]});
   }
-  sortSheetData(collection, sheetSort) {
-    // Warning: This sorts the sheets within the cached collection item in sefaria.js
-    if (!collection.sheets) { return; }
-    const sorters = {
-      date: function(a, b) {
-        return Date.parse(b.modified) - Date.parse(a.modified);
-      },
-      alphabetical: function(a, b) {
-        return a.title.stripHtml().trim().toLowerCase() > b.title.stripHtml().trim().toLowerCase() ? 1 : -1;
-      },
-      views: function(a, b) {
-        return b.views - a.views;
-      }
-    };
-    collection.sheets.sort(sorters[sheetSort]);
-
-    if (collection.name == "גיליונות נחמה"){
-      let parshaOrder = ["Bereshit", "Noach", "Lech Lecha", "Vayera", "Chayei Sara", "Toldot", "Vayetzei", "Vayishlach", "Vayeshev", "Miketz", "Vayigash", "Vayechi", "Shemot", "Vaera", "Bo", "Beshalach", "Yitro", "Mishpatim", "Terumah", "Tetzaveh", "Ki Tisa", "Vayakhel", "Pekudei", "Vayikra", "Tzav", "Shmini", "Tazria", "Metzora", "Achrei Mot", "Kedoshim", "Emor", "Behar", "Bechukotai", "Bamidbar", "Nasso", "Beha'alotcha", "Sh'lach", "Korach", "Chukat", "Balak", "Pinchas", "Matot", "Masei", "Devarim", "Vaetchanan", "Eikev", "Re'eh", "Shoftim", "Ki Teitzei", "Ki Tavo", "Nitzavim", "Vayeilech", "Ha'Azinu", "V'Zot HaBerachah"]
-      if (this.props.interfaceLang == "english") {
-        parshaOrder = ["English"].concat(parshaOrder);
-      }
-      collection.pinnedTags = parshaOrder;
-    }
-    if (collection.pinnedSheets && collection.pinnedSheets.length > 0) {
-      this.pinSheetsToSheetList(collection);
-    }
-    if (collection.pinnedTags && collection.pinnedTags.length > 0) {
-      this.sortTags(collection);
-    }
-  }
-  pinSheetsToSheetList(collection) {
-    // Applies any pinned sheets to the sorting of sheets list
-    const sortPinned = function(a, b) {
-      const ai = collection.pinnedSheets.indexOf(a.id);
-      const bi = collection.pinnedSheets.indexOf(b.id);
-      if (ai == -1 && bi == -1) { return 0; }
-      if (ai == -1) { return 1; }
-      if (bi == -1) { return -1; }
-      return  ai < bi ? -1 : 1;
-    };
-    collection.sheets.sort(sortPinned);
-  }
-  sortTags(collection) {
-    const sortTags = function(a, b) {
-      const ai = collection.pinnedTags.indexOf(a.asTyped);
-      const bi = collection.pinnedTags.indexOf(b.asTyped);
-      if (ai == -1 && bi == -1) { return 0; }
-      if (ai == -1) { return 1; }
-      if (bi == -1) { return -1; }
-      return  ai < bi ? -1 : 1;
-    };
-    collection.topics.sort(sortTags);
-  }
-  setTab(tab) {
-    this.setState({tab: tab});
-  }
-  toggleSheetTags() {
-    if (this.state.showTopics) {
-      this.setState({showTopics: false});
-    } else {
-      this.setState({showTopics: true, sheetFilterTopic: null});
-      this.props.setCollectionTag(null);
-    }
-  }
-  setSheetTag(topic) {
-    this.setState({sheetFilterTopic: topic, showTopics: false});
-    this.props.setCollectionTag(topic);
-  }
-  handleTagButtonClick (topic) {
-    if (topic == this.state.sheetFilterTopic) {
-      this.setState({sheetFilterTopic: null, showTopics: false});
-      this.props.setCollectionTag(null);
-    } else {
-      this.setSheetTag(topic);
-    }
-  }
-  changeSheetSort(value) {
-    let collectionData = this.state.collectionData;
-    this.sortSheetData(collectionData, value);
-    this.setState({collectionData, sheetSort: value, displaySort: false});
-  }
-  searchCollection(query) {
-    this.props.searchInCollection(query, this.state.collectionData.name);
-  }
-  handleSearchKeyUp(event) {
-    if (event.keyCode === 13) {
-      var query = $(event.target).val();
-      if (query) {
-        this.searchCollection(query);
-      }
-    }
-  }
-  handleSearchButtonClick(event) {
-    var query = $(ReactDOM.findDOMNode(this)).find(".collectionSearchInput").val();
-    if (query) {
-      this.searchCollection(query);
-    }
+  setFilter(filter) {
+    this.setState({tabIndex: 1, sheetFilterTopic: filter, showFilterHeader: true});
   }
   memberList() {
     var collection = this.state.collectionData;
@@ -183,6 +77,10 @@ class CollectionPage extends Component {
     var invitations = collection.invitations.map(function(member) {member.role = "Invitation"; return member; });
 
     return admins.concat(members, invitations);
+  }
+  isMember() {
+    const members   = this.memberList();
+    return members && members.filter(function(x) { return x.uid == Sefaria._uid } ).length !== 0;
   }
   pinSheet(sheetId) {
     if (this.pinning) { return; }
@@ -201,6 +99,87 @@ class CollectionPage extends Component {
     }.bind(this));
     this.pinning = true;
   }
+  sortSheets(option, a, b) {
+    const [ai, bi] = [a, b].map(x => this.state.collectionData.pinnedSheets.indexOf(x.id));
+    if (ai !== bi) {
+      return  ai < bi ? -1 : 1;
+    
+    } else if (option == "Recent") {
+      return Date.parse(b.modified) - Date.parse(a.modified);
+  
+    } else if (option === "Alphabetical") {
+      return a.title.stripHtml().trim().toLowerCase() > b.title.stripHtml().trim().toLowerCase() ? 1 : -1;
+  
+    } else if (option === "Views") {
+      return b.views - a.views;
+    }
+  }
+  filterSheets(filter, sheet) {
+    const n = text => text.toLowerCase();
+    filter = n(filter);
+    const filterText = [sheet.title.stripHtml(),
+                        sheet.topics.map(topic => topic.asTyped).join(" "),
+                        ].join(" ");
+    return n(filterText).indexOf(filter) > -1;
+  }
+  renderSheet(sheet) {
+    return (
+      <SheetListing
+        sheet={sheet}
+        hideAuthor={true}
+        infoUnderneath={true}
+        showAuthorUnderneath={true}
+        hideCollection={true}
+        pinned={this.state.collectionData.pinnedSheets.indexOf(sheet.id) != -1}
+        pinnable={this.isMember()}
+        editable={sheet.author == Sefaria._uid}
+        saveable={sheet.author !== Sefaria._uid && !this.isMember()}
+        collectable={true}
+        pinSheet={this.pinSheet.bind(null, sheet.id)}
+        handleCollectionsChange={this.onDataChange}
+        toggleSignUpModal={this.props.toggleSignUpModal}
+        key={sheet.id} />
+    );
+  }
+  renderEmptyList({filter}) {
+    if (filter) {
+      return (
+        <div className="emptyMessage sans-serif">
+          <InterfaceText>No sheets matching</InterfaceText>&nbsp;
+          "<InterfaceText text={{en: filter, he: filter}} />".
+        </div>
+      );
+    } else if (this.isMember()) {
+      return (
+        <div className="emptyMessage sans-serif">
+          <InterfaceText>You can add sheets to this collection on your profile.</InterfaceText>
+          <br />
+          <a className="button" href="/my/profile">
+            <InterfaceText>Open Profile</InterfaceText>
+          </a>
+        </div>
+      );
+    } else {
+      return (
+        <div className="emptyMessage sans-serif">
+          <InterfaceText>There are no sheets in this collection yet.</InterfaceText>
+        </div>
+      );
+    }
+  }
+  renderSearchLink({filter}) {
+    if (!filter || !this.state.collectionData.listed) { return null; }
+    return (
+      <a className="searchInCollectionLink sans-serif" href={`/search?q=${filter}&tab=sheet&scollectionsFilters=${this.state.collectionData.name}`}
+        onClick={(e) => {
+          e.preventDefault();
+          this.props.searchInCollection(filter, this.state.collectionData.name);
+        }}>
+        <InterfaceText>Search the full text of this collection for</InterfaceText>&nbsp;
+        "<InterfaceText text={{en: filter, he: filter}} />" &raquo;
+      </a>
+    );
+  }
   render() {
     const collection = this.state.collectionData;
     const sidebarModules = [];
@@ -210,184 +189,101 @@ class CollectionPage extends Component {
     if (!collection) {
       content = <LoadingMessage />;
     } else {
-      var sheets    = collection.sheets;
-      var topicList = collection.topics;
-      var members   = this.memberList();
-      var isMember  = members && members.filter(function(x) { return x.uid == Sefaria._uid } ).length !== 0;
-      var isAdmin   = collection.admins.filter(function(x) { return x.uid == Sefaria._uid } ).length !== 0;
-
-      const aboutBlock = (
-        <div className="collectionInfo sans-serif">
-          {collection.toc ?
-          <div className="navTitle">
-            <h1>
-              <ContentText text={{en: collection.toc.title, he: collection.toc.heTitle}} />
-            </h1>
-            { this.props.multiPanel && this.props.interfaceLang !== "hebrew" ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
-          </div>
-          : <h1>{collection.name}</h1> }
-
-          <a className="collectionLabel" href="/collections">
-            <InterfaceText>Collection</InterfaceText>
-          </a>
-
-          {collection.toc ?
-            <div className="collectionDescription">
-              <ContentText html={{en: collection.toc.description, he: collection.toc.heDescription}} />
-            </div>
-          : collection.description ?
-            <div className="collectionDescription"  dangerouslySetInnerHTML={ {__html: collection.description} }></div>
-          : null }
-
-          {collection.websiteUrl ?
-            <a className="collectionWebsite" target="_blank" href={collection.websiteUrl}>{collection.websiteUrl.replace(/https?:\/\//, "")}</a>
-            : null }
-        </div>
-      );
-
-      const editorsBlock = (
-        <div>
-         {isAdmin ? <CollectionInvitationBox slug={this.props.slug} onDataChange={this.onDataChange}/> : null }
-         { members.map(function (member, i) {
-            return <CollectionMemberListing
-                    member={member}
-                    isAdmin={isAdmin}
-                    isSelf={member.uid == Sefaria._uid}
-                    slug={this.props.slug}
-                    onDataChange={this.onDataChange}
-                    key={i} />
-            }.bind(this) )
-          }
-        </div>
-      );
+      const sheets  = collection.sheets;
+      const isAdmin = collection.admins.filter(function(x) { return x.uid == Sefaria._uid } ).length !== 0;
 
       if (collection.imageUrl) {
         sidebarModules.push({type: "Image", props: {url: collection.imageUrl}});
       }
 
+      const editorsBlock = (
+        <div>
+         {isAdmin ? <CollectionInvitationBox slug={this.props.slug} onDataChange={this.onDataChange}/> : null }
+         {this.memberList().map((member, i) => (
+            <CollectionMemberListing
+              member={member}
+              isAdmin={isAdmin}
+              isSelf={member.uid == Sefaria._uid}
+              slug={this.props.slug}
+              onDataChange={this.onDataChange}
+              key={i} />
+          ))}
+        </div>
+      );
       sidebarModules.push({type: "Wrapper", props: {
         title: "Editors",
         content: editorsBlock}});
 
-      const renderSheet = sheet => (
-        <SheetListing
-          sheet={sheet}
-          hideAuthor={true}
-          infoUnderneath={true}
-          showAuthorUnderneath={true}
-          hideCollection={true}
-          pinned={collection.pinnedSheets.indexOf(sheet.id) != -1}
-          pinnable={isMember}
-          editable={sheet.author == Sefaria._uid}
-          saveable={sheet.author !== Sefaria._uid && !isMember}
-          collectable={true}
-          pinSheet={this.pinSheet.bind(null, sheet.id)}
-          handleCollectionsChange={this.onDataChange}
-          toggleSignUpModal={this.props.toggleSignUpModal}
-          key={sheet.id} />
+      const hasContentsTab = (collection.pinnedTags && collection.pinnedTags.length);
+      const tabs = !hasContentsTab ? []
+        : [{id: "contents", title: {en: "Contents", he: Sefaria._("Contents")}}];
+      tabs.push(
+        {id: "sheets", title: {en: "Sheets", he: Sefaria._("Sheets")}},
+        {
+          id: 'filter',
+          title: {en: "Filter", he: Sefaria._("Filter")},
+          icon: `/static/img/arrow-${this.state.showFilterHeader ? 'up' : 'down'}-bold.svg`,
+          justifyright: true
+        }
+      );
+      const setTab = (tabIndex) => {
+        if (tabIndex === tabs.length - 1) {
+          this.setState({showFilterHeader: !this.state.showFilterHeader});
+        } else {
+          this.setState({tabIndex, showFilterHeader: false, sheetFilterTopic: ""});
+        }
+      };
+      const renderTab = t => (
+        <div className={classNames({tab: 1, noselect: 1, filter: t.justifyright, open: t.justifyright && this.state.showFilterHeader})}>
+          <InterfaceText text={t.title} />
+          { t.icon ? <img src={t.icon} alt={`${t.title.en} icon`} /> : null }
+        </div>
       );
 
-      const filterFunc = (filter, sheet) => {
-        const n = text => text.toLowerCase();
-        filter = n(filter);
-        const filterText = [sheet.title.stripHtml(),
-                            sheet.topics.map(topic => topic.asTyped).join(" "),
-                            ].join(" ");
-        return n(filterText).indexOf(filter) > -1;
-      };
-
-      const sortFunc = (option, a, b) => {
-        const [ai, bi] = [a, b].map(x => collection.pinnedSheets.indexOf(x.id));
-        if (ai !== bi) {
-          return  ai < bi ? -1 : 1;
-        
-        } else if (option == "Recent") {
-          return Date.parse(b.modified) - Date.parse(a.modified);
-      
-        } else if (option === "Alphabetical") {
-          return a.title.stripHtml().trim().toLowerCase() > b.title.stripHtml().trim().toLowerCase() ? 1 : -1;
-      
-        } else if (option === "Views") {
-          return b.views - a.views;
-        }
-      };
-
-      const emptyList = () => {
-        if (isMember) {
-          return (
-            <div className="emptyMessage sans-serif">
-              <InterfaceText>You can add sheets to this collection on your profile.</InterfaceText>
-              <br />
-              <a className="button" href="/my/profile">
-                <InterfaceText>Open Profile</InterfaceText>
-              </a>
-            </div>
-          );
-        } else {
-          return (
-            <div className="emptyMessage sans-serif">
-              <InterfaceText>There are no sheets in this collection yet.</InterfaceText>
-            </div>
-          );
-        }
-      };
-
-      const tabs = [
-        {
-          id: "sheets",
-          title: {
-            en: "Sheets",
-            he: Sefaria._("Sheets")
-          }
-        },
-        {
-          title: {
-            en: "Filter",
-            he: Sefaria._("Filter")
-        },
-        id: 'filter',
-        icon: `/static/img/arrow-${this.state.showFilterHeader ? 'up' : 'down'}-bold.svg`,
-        justifyright: true
-      }];
-      const tabClickArray = {
-        [tabs.length-1]: () => {this.setState({showFilterHeader: !this.state.showFilterHeader});}
-      }; 
- 
       content = (
-        <div>
-          {aboutBlock}
+        <>
+          <CollectionAbout
+            collection={collection}
+            isAdmin={isAdmin}
+            toggleLanguage={this.props.toggleLanguage} />
 
           <TabView
             tabs={tabs}
-            renderTab={t => (
-              <div className={classNames({tab: 1, noselect: 1, filter: t.justifyright, open: t.justifyright && this.state.showFilterHeader})}>
-                <InterfaceText text={t.title} />
-                { t.icon ? <img src={t.icon} alt={`${t.title.en} icon`} /> : null }
-              </div>
-            )}
+            renderTab={renderTab}
             containerClasses={"largeTabs"}
-            onClickArray={tabClickArray}
-          >
+            currTabIndex={this.state.tabIndex}
+            setTab={setTab} >
+
+            {!hasContentsTab ? null :
+            <CollectionContentsTab 
+              collection={collection}
+              setFilter={this.setFilter} />}
+
             <FilterableList
-              pageSize={1e6}
-              filterFunc={filterFunc}
-              sortFunc={sortFunc}
-              renderItem={renderSheet}
-              renderEmptyList={emptyList}
+              pageSize={20}
+              filterFunc={this.filterSheets}
+              sortFunc={this.sortSheets}
+              renderItem={this.renderSheet}
+              renderEmptyList={this.renderEmptyList}
+              renderFooter={this.renderSearchLink}
               sortOptions={["Recent", "Alphabetical", "Views"]}
               data={sheets}
               containerClass={"sheetList"}
+              scrollableElement={this.scrollableRef}
+              initialRenderSize={collection._sheetsDisplayed}
+              onDisplayedDataChange={data => {collection._sheetsDisplayed = data.length}}
+              initialFilter={this.state.sheetFilterTopic}
               showFilterHeader={this.state.showFilterHeader} />
           
           </TabView>
-        </div>
+        </>
       );
     }
 
     return (
       <div className="readerNavMenu">
         <CategoryColorLine category="Sheets" />
-        <div className="content collectionPage">
+        <div className="content collectionPage" ref={this.scrollableRef}>
           <div className="sidebarLayout">
             <div className="contentInner">
               {content}
@@ -432,6 +328,78 @@ CollectionPage.propTypes = {
 
 */
 
+
+const CollectionAbout = ({collection, isAdmin, toggleLanguage}) => (
+  <div className="collectionInfo sans-serif">
+    {collection.toc ?
+    <div className="navTitle">
+      <h1>
+        <ContentText text={{en: collection.toc.title, he: collection.toc.heTitle}} />
+      </h1>
+      { Sefaria.multiPanel && Sefaria.interfaceLang !== "hebrew" ? <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null }
+    </div>
+    : <h1>{collection.name}</h1> }
+
+    <a className="collectionLabel" href="/collections">
+      <InterfaceText>Collection</InterfaceText>
+    </a>
+
+    {collection.toc ?
+      <div className="collectionDescription">
+        <ContentText html={{en: collection.toc.description, he: collection.toc.heDescription}} />
+      </div>
+    : collection.description ?
+      <div className="collectionDescription"  dangerouslySetInnerHTML={ {__html: collection.description} }></div>
+    : null }
+
+    {collection.websiteUrl ?
+      <a className="collectionWebsite" target="_blank" href={collection.websiteUrl}>{collection.websiteUrl.replace(/https?:\/\//, "")}</a>
+      : null }
+  </div>
+);
+
+
+const CollectionContentsTab = ({collection, setFilter}) => {
+  let pinnedTags = collection.pinnedTags;
+  
+  if (!pinnedTags || !pinnedTags.length) { return null; }
+
+  if (collection.name === "גיליונות נחמה" && Sefaria.interfaceLang === "english"){
+    pinnedTags = ["English"].concat(pinnedTags);
+  }
+
+  // Tags may be grouped under labels which are represented as objects in `pinnedTags`, instead of strings.
+  const groupedTags = pinnedTags.reduce((accum, tag) => {
+    if (typeof tag === "object") {
+      return accum.concat([{label: tag, contents: []}]);
+    } else if (accum.length == 0) {
+      return accum.concat([{label: null, contents: [tag]}]);
+    } else {
+      accum[accum.length -1].contents.push(tag);
+      return accum;
+    }
+  }, []);
+
+  return (
+    <div className="collectionContentsTab">
+      {groupedTags.map(tagGroup => (
+        <div key={tagGroup.label ? tagGroup.label.en : "contents"}>
+          {!tagGroup.label ? null :
+          <div className="collectionContentsSectionLabel sans-serif">
+            <InterfaceText text={tagGroup.label} />
+          </div>}
+          <ResponsiveNBox content={tagGroup.contents.map(tag => (
+            <a href={`/collections/${collection.slug}?tag=${tag}`} className="collectionContentsTag" onClick={(e) => {
+              e.preventDefault();
+              setFilter(tag);}}>
+              <InterfaceText>{tag}</InterfaceText>
+            </a>   
+          ))} />
+        </div>
+      ))}
+    </div>
+  );
+};
 
 
 class CollectionInvitationBox extends Component {

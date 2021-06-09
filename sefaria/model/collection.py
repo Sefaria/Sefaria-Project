@@ -173,7 +173,6 @@ class Collection(abst.AbstractMongoRecord):
         contents = super(Collection, self).contents()
         if with_content:
             contents["sheets"]       = self.sheet_contents(authenticated=authenticated)
-            contents["topics"]       = sheet_topics_counts({"id": {"$in": self.sheets}})
             contents["admins"]       = [public_user_data(uid) for uid in contents["admins"]]
             contents["members"]      = [public_user_data(uid) for uid in contents["members"]]
             contents["lastModified"] = str(self.lastModified)

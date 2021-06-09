@@ -228,6 +228,8 @@ const Strings = {
     "There are no sheets in this collection yet.": "לאסופה זו טרם נוספו דפי מקורות.",
     "You can add sheets to this collection on your profile.": "באפשרותך להוסיף דפי מקורות לאסופה הזאת דרך הפרופיל האישי שלך.",
     "Open Profile": "לפרופיל האישי",
+    "Search the full text of this collection for": "Search for", // TODO Hebrew
+    "No sheets matching": "No sheets matching", // TODO Hebrew
     "Pinned Sheet - click to unpin": "דף מקורות נעוץ - לחצו להסרה",
     "Pinned Sheet" : "דף מקורות נעוץ",
     "Pin Sheet" : "נעיצת דף מקורות",

@@ -351,11 +351,11 @@ ProfilePic.propTypes = {
 
 const FilterableList = ({
   filterFunc, sortFunc, renderItem, sortOptions, getData, data, renderEmptyList,
-  renderHeader, renderFooter, showFilterHeader, refreshData,
+  renderHeader, renderFooter, showFilterHeader, refreshData, initialFilter,
   scrollableElement, pageSize, onDisplayedDataChange, initialRenderSize,
   bottomMargin, containerClass
 }) => {
-  const [filter, setFilter] = useState('');
+  const [filter, setFilter] = useState(initialFilter || '');
   const [sortOption, setSortOption] = useState(sortOptions[0]);
   const [displaySort, setDisplaySort] = useState(false);
 
@@ -479,15 +479,15 @@ const FilterableList = ({
       ) : null}
       {
         loading ? <LoadingMessage /> :
-        ( dataUpToPage.length ?
-          (
-            <div className={"filter-content" + (containerClass ? " " + containerClass : "")}>
-              { !!renderHeader ? renderHeader() : null }
-              { dataUpToPage.map(renderItem) }
-              { !!renderFooter ? renderFooter() : null }
-            </div>
-          ) : ( !!renderEmptyList ? renderEmptyList() : null )
-        )
+        <div className={"filter-content" + (containerClass ? " " + containerClass : "")}>
+          {dataUpToPage.length ?
+          <>
+            { !!renderHeader ? renderHeader({filter}) : null }
+            { dataUpToPage.map(renderItem) }
+          </>
+          : <>{!!renderEmptyList ? renderEmptyList({filter}) : null}</>}
+          { !!renderFooter ? renderFooter({filter}) : null }
+        </div>
       }
     </div>
   );
@@ -551,10 +551,10 @@ class TabView extends Component {
   }
 }
 TabView.propTypes = {
-  tabs: PropTypes.array.isRequired,  // array of objects of any form. only requirement is each tab has a unique 'id' field. These objects will be passed to renderTab.
-  renderTab: PropTypes.func.isRequired,
+  tabs:         PropTypes.array.isRequired,  // array of objects of any form. only requirement is each tab has a unique 'id' field. These objects will be passed to renderTab.
+  renderTab:    PropTypes.func.isRequired,
   currTabIndex: PropTypes.number,  // optional. If passed, TabView will be controlled from outside
-  setTab: PropTypes.func,          // optional. If passed, TabView will be controlled from outside
+  setTab:       PropTypes.func,    // optional. If passed, TabView will be controlled from outside
   onClickArray: PropTypes.object,  // optional. If passed, TabView will be controlled from outside
 };
 

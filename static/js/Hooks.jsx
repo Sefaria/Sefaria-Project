@@ -127,7 +127,8 @@ function usePaginatedDisplay(scrollable_element_ref, input, pageSize, bottomMarg
   when this happens, show `pageSize` more elements from `input`.
   On initial run, return `initialRenderSize` items if greater than `pageSize`.
   */
-  initialRenderSize = Math.max(initialRenderSize, pageSize); 
+  initialRenderSize = Math.max(initialRenderSize, pageSize);
+  bottomMargin = bottomMargin || 800;
   const [page, setPage] = useState(parseInt(initialRenderSize/pageSize)-1);
   const [loadedToEnd, setLoadedToEnd] = useState(false);
   const [inputUpToPage, setInputUpToPage] = useState(input.slice(0, initialRenderSize));
