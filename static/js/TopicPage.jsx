@@ -54,8 +54,8 @@ const fetchBulkText = inRefs =>
 const fetchBulkSheet = inSheets =>
     Sefaria.getBulkSheets(inSheets.map(x => x.ref)).then(outSheets => {
     for (let tempSheet of inSheets) {
-      if (outSheets[tempSheet.sid]) {
-        outSheets[tempSheet.sid].order = tempSheet.order;
+      if (outSheets[tempSheet.ref]) {
+        outSheets[tempSheet.ref].order = tempSheet.order;
       }
     }
     return Object.values(outSheets);
@@ -727,11 +727,18 @@ const TopicMetaData = ({ timePeriod, properties={} }) => {
     <TopicSideSection title={{en: "Learn More", he: "לקריאה נוספת"}}>
       {
         propValues.map(propObj => {
-          const url = Sefaria.interfaceLang === "hebrew" ? (propObj.url.he || propObj.url.en) : (propObj.url.en || propObj.url.he);
+          let url, urlExists = true;
+          if (Sefaria.interfaceLang === 'hebrew') {
+            if (!propObj.url.he) { urlExists = false; }
+            url = propObj.url.he || propObj.url.en;
+          } else {
+            if (!propObj.url.en) { urlExists = false; }
+            url = propObj.url.en || propObj.url.he;            
+          }
           if (!url) { return null; }
           return (
             <SimpleLinkedBlock
-              key={url} en={propObj.title} he={Sefaria._(propObj.title)}
+              key={url} en={propObj.title + (urlExists ? "" : " (Hebrew)")} he={Sefaria._(propObj.title) + (urlExists ? "" : ` (${Sefaria._("English")})`)}
               url={url} aclasses={"systemText topicMetaData"} openInNewTab
             />
           );

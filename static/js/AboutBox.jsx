@@ -205,7 +205,7 @@ class AboutBox extends Component {
           }
       </div> : null );
     const alternateSectionHe =
-      (!!this.state.versionLangMap ?
+      (this.state.versionLangMap?.he?.length > 0 ?
           <div className="alternateVersionsSection">
             <h2 className="aboutHeader">
               <InterfaceText text={alternateVersionsSectionTitle} />

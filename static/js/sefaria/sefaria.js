@@ -539,10 +539,14 @@ Sefaria = extend(Sefaria, {
       return versionStore;
   },
   transformVersionObjectsToByActualLanguageKeys(versionObjects){
-    return Object.values(versionObjects)
-          .filter(v => !!v)
-          .reduce((obj, version) => {
-            obj[version.actualLanguage] = version;
+    return Object.entries(versionObjects)
+          .filter(([lang, v]) => !!v)
+          .reduce((obj, [lang, version]) => {
+              if(version?.merged){ //this would be the best guess of the merged language's version currently
+                  obj[lang] = version;
+              }else{
+                 obj[version.actualLanguage] = version;
+              }
             return obj;
           }, {});
   },
@@ -2044,7 +2048,7 @@ _media: {},
             shouldDisplay: linkTypeObj.shouldDisplay,
           };
         }
-        const ref = refObj.is_sheet ? refObj.ref.replace('Sheet ', '') : refObj.ref;
+        const ref = refObj.is_sheet ? parseInt(refObj.ref.replace('Sheet ', '')) : refObj.ref;
         tabs[tabKey].refMap[refObj.ref] = {ref, order: refObj.order, dataSources: refObj.dataSources};
       }
     }

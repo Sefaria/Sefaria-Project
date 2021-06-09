@@ -488,7 +488,7 @@ class UserProfile(object):
         or None if the profile is valid.
         """
         # Slug
-        if re.search("[^a-z0-9\-]", self.slug):
+        if re.search(r"[^a-z0-9\-]", self.slug):
             return "Profile URLs may only contain lowercase letters, numbers and hyphens."
 
         existing = db.profiles.find_one({"slug": self.slug, "_id": {"$ne": self._id}})
@@ -756,7 +756,7 @@ def email_unread_notifications(timeframe):
         elif notifications.like_count() > 0:
             noun      = "likes" if notifications.like_count() > 1 else "like"
             subject   = "%d new %s on your Source Sheet" % (notifications.like_count(), noun)
-        from_email    = "Notifications at Sefaria <notifications@sefaria.org>"
+        from_email    = "Sefaria Notifications <notifications@sefaria.org>"
         to            = user.email
 
         msg = EmailMultiAlternatives(subject, message_html, from_email, [to])

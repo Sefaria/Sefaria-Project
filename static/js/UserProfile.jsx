@@ -587,9 +587,10 @@ const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowi
   const socialList = social.filter(s => !!p[s]);
   if (socialList.length) {
     infoList = infoList.concat(
+      // we only store twitter handles so twitter needs to be hardcoded
       <span>
         {
-          socialList.map(s => (<a key={s} className="social-icon" target="_blank" href={p[s]}><img src={`/static/img/${s}.svg`} /></a>))
+          socialList.map(s => (<a key={s} className="social-icon" target="_blank" href={(s == 'twitter' ? 'https://twitter.com/' : '') + p[s]}><img src={`/static/img/${s}.svg`} /></a>))
         }
       </span>
     );

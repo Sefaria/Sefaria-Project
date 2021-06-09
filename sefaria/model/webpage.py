@@ -114,6 +114,8 @@ class WebPage(abst.AbstractMongoRecord):
             r"lilith\.org\/(tag\|author\|category)\/",
             r"https://torah\.org$",
             r"test\.hadran\.org\.il",
+            r"hadran\.org\.il\/he\/?$",
+            r"hadran\.org\.il\/he\/(masechet|מסכת)\/",
             r"www\.jtsa.edu\/search\/index\.php",
             r"jewschool\.com\/page\/",
             r"truah\.org\/\?s=",
@@ -177,7 +179,19 @@ class WebPage(abst.AbstractMongoRecord):
             r"aju\.edu\/miller-intro-judaism-program\/learning-portal\/glossary\/",
             r"aju\.edu\/ziegler-school-rabbinic-studies\/our-torah\/back-issues\/\d+$"
             r"aju\.edu\/ziegler-school-rabbinic-studies\/torah-resource-center\/"
-            r"aju\.edu\/ziegler-school-rabbinic-studies\/blogs\/?$"
+            r"aju\.edu\/ziegler-school-rabbinic-studies\/blogs\/?$",
+            r"hatanakh\.com\/?#?$",
+            r"hatanakh\.com\/\/(en|es)$",  # home page?
+            r"hatanakh\.com(\/(en|es))?\/?#?(\?.+)?$",  # a sledgehammer. gets rid of odd url params on homepage + spanish chapter pages
+            r"hatanakh\.com\/\.[^/]+$",  # strange private pages
+            r"hatanakh\.com\/((en|es)\/)?(tanach|search|taxonomy|tags|%D7%9E%D7%97%D7%91%D7%A8%D7%99%D7%9D|%D7%93%D7%9E%D7%95%D7%99%D7%95%D7%AA|%D7%A0%D7%95%D7%A9%D7%90%D7%99%D7%9D)\/",  # topic, author and character pages
+            r"hatanakh\.com\/((en|es)\/)?search",
+            r"hatanakh\.com\/\?(chapter|custom|gclid|parasha)=",  # chapter pages
+            r"hatanakh\.com\/(en|es)?\/home",  # other chapter pages?
+            r"hatanakh\.com\/((en|es)\/)?(articles|daily|node)\/?$",
+            r"hatanakh\.com\/((en|es)\/)?(articles|lessons)\?(page|arg|tanachRef(\[|%5B)\d+(\]|%5D))=",
+            r"hatanakh\.com\/((en|es)\/)?(daily)?\/?\?(chapter|custom|gclid|parasha)=",
+            r"hatanakh\.com\/es\/\?biblia=",
         ]
         return "({})".format("|".join(bad_urls))
 
@@ -484,6 +498,25 @@ def webpages_stats():
             total += len(total_in_book)
 
         print("{}: {}%".format(cat, round(covered * 100.0 / total, 2)))
+
+
+def find_sites_that_may_have_removed_linker(last_linker_activity_day=20):
+    """
+    Checks for each site whether there has been a webpage hit with the linker in the last `last_linker_activity_day` days
+    Prints an alert for each site that doesn't meet this criterion
+    """
+    from datetime import datetime, timedelta
+
+    last_active_threshold = datetime.today() - timedelta(days=last_linker_activity_day)
+    for data in sites_data:
+        for domain in data['domains']:
+            ws = WebPageSet({"url": re.compile(re.escape(domain))}, limit=1, sort=[['lastUpdated', -1]])
+            if ws.count() == 0:
+                print(f"{domain} has no pages")
+                continue
+            w = ws.array()[0]
+            if w.lastUpdated < last_active_threshold:
+                print(f"ALERT! {domain} has removed the linker!")
 
 """
 Web Pages Whitelist
@@ -884,5 +917,11 @@ sites_data = [
     {
         "name": "American Jewish University",
         "domains": ["aju.edu"],
+    },
+    {
+        "name": 'התנ"ך',
+        "domains": ["hatanakh.com"],
+        "title_branding": ["התנך"],
+        "normalization_rules": ["use https", "remove www"],
     }
 ]

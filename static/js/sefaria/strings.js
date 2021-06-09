@@ -250,6 +250,9 @@ const Strings = {
     "Request translation" : "בקשה לתרגום",
     "Report a bug" : "דיווח על תקלה באתר",
     "Get help" : "עזרה",
+    "Help": "עזרה",
+    "Get the Newsletter": "הירשמו לקבלת הניוזלטר",
+    "Sign up to get updates": "הירשמו לקבלת עדכונים",
     "Request a feature": "בקשה להוספת אפשרות באתר",
     "Give thanks": "תודה",
     "Other": "אחר",
@@ -267,9 +270,11 @@ const Strings = {
     "Stay in the know": "השארו מעודכנים",
     "Sign Up": "הרשמו לספריא",
     "Already have an account?": "כבר יש לכם חשבון?",
+    "Account Settings": "הגדרות",
     "Sign in": "התחברו",
     "Save": "שמירה",
     "Remove": "הסרה",
+    "Logout": "ניתוק",
     "Email was successfully changed!": 'כתובת הדוא"ל שונתה בהצלחה!',
     "Settings Saved": "הגדרות נשמרו",
     "Turning this feature off will permanently delete your reading history." : "כיבוי אפשרות זו תמחק לצמיתות את היסטורית הקריאה שלך.",
@@ -311,6 +316,7 @@ const Strings = {
     "Site Language": "שפת האתר",
 
     //Profile
+    "Profile": "פרופיל",
     " at ": " ב-",
     "on Sefaria": " בספריא",
 
