@@ -194,6 +194,7 @@ class VersionBlock extends Component {
     const v = this.props.version;
     const vtitle = this.makeVersionTitle();
     const vnotes = this.makeVersionNotes();
+    const showLanguagLabel = this.props.rendermode == "book-page";
 
     if (this.state.editing && Sefaria.is_moderator) {
       // Editing View
@@ -262,7 +263,7 @@ class VersionBlock extends Component {
                   </a>
               </div>
               <i className={`fa fa-pencil versionEditIcon ${(Sefaria.is_moderator && this.props.rendermode == "book-page") ? "enabled" : ""}`} aria-hidden="true" onClick={this.openEditor}/>
-              <div className="versionLanguage sans-serif">{Sefaria._(Sefaria.translateISOLanguageCode(v.actualLanguage))}</div>
+              <div className="versionLanguage sans-serif">{showLanguagLabel ? Sefaria._(Sefaria.translateISOLanguageCode(v.actualLanguage)) : ""}</div>
             </div>
             <div className="versionSelect sans-serif">
               <a className={`selectButton ${this.props.isCurrent ? "currSelectButton": ""}`}
