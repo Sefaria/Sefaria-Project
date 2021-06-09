@@ -1480,12 +1480,12 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
     :param oref: :class:`Ref`
     :param lang: "he" or "en". "he" means all rtl languages and "en" means all ltr languages
     :param vtitle: optional. Title of the version desired.
-    :param language_preference: optional. if vtitle isn't specified, prefer to find a version with ISO language `language_preference`. this will trump `lang`.
+    :param actual_lang_preference: optional. if vtitle isn't specified, prefer to find a version with ISO language `actual_lang_preference`. As opposed to `lang` which can only be "he" or "en", `actual_lang_preference` can be any valid 2 letter ISO language code.
     """
 
     text_attr = "text"
 
-    def __init__(self, oref, lang="en", vtitle=None, exclude_copyrighted=False, language_preference=None):
+    def __init__(self, oref, lang="en", vtitle=None, exclude_copyrighted=False, actual_lang_preference=None):
         """
         :param oref:
         :type oref: Ref
@@ -1524,15 +1524,15 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
                 self.text = self._original_text = self.trim_text(v.content_node(self._oref.index_node))
         elif lang:
             try:
-                assert language_preference is not None
-                self._choose_version_by_lang(oref, lang, exclude_copyrighted, language_preference)
+                assert actual_lang_preference is not None
+                self._choose_version_by_lang(oref, lang, exclude_copyrighted, actual_lang_preference)
             except:
                 self._choose_version_by_lang(oref, lang, exclude_copyrighted)
         else:
             raise Exception("TextChunk requires a language.")
 
-    def _choose_version_by_lang(self, oref, lang: str, exclude_copyrighted: bool, actual_language: str=None) -> None:
-        vset = VersionSet(self._oref.condition_query(lang, actual_language), proj=self._oref.part_projection())
+    def _choose_version_by_lang(self, oref, lang: str, exclude_copyrighted: bool, actual_lang_preference: str=None) -> None:
+        vset = VersionSet(self._oref.condition_query(lang, actual_lang_preference), proj=self._oref.part_projection())
         if len(vset) == 0:
             if VersionSet({"title": self._oref.index.title}).count() == 0:
                 raise NoVersionFoundError("No text record found for '{}'".format(self._oref.index.title))
@@ -2123,7 +2123,7 @@ class TextFamily(object):
         # processes "en" and "he" TextChunks, and puts the text in self.text and self.he, respectively.
         for language, attr in list(self.text_attr_map.items()):
             tc_kwargs = dict(oref=oref, lang=language)
-            if language == 'en': tc_kwargs['language_preference'] = translationLanguagePreference
+            if language == 'en': tc_kwargs['actual_lang_preference'] = translationLanguagePreference
             if language == lang:
                 c = TextChunk(vtitle=version, **tc_kwargs)
                 if len(c._versions) == 0:  # indicates `version` doesn't exist
@@ -4144,9 +4144,11 @@ class Ref(object, metaclass=RefCacheType):
 
         return projection
 
-    def condition_query(self, lang=None, actual_language=None):
+    def condition_query(self, lang=None, actual_lang=None):
         """
         Return condition to select only versions with content at the location of this Ref.
+        `actual_lang` is a 2 letter ISO lang code that represents the actual language of the version
+        this is as opposed to `lang` which can currently only be "he" or "en"
         Usage:
 
         ::
@@ -4164,9 +4166,9 @@ class Ref(object, metaclass=RefCacheType):
         d = {
             "title": self.index.title,
         }
-        if actual_language:
+        if actual_lang:
             import re as pyre  # pymongo can only encode re.compile objects, not regex or re2.
-            pattern = r"^(?!.*\[[a-z]{2}\]$).*" if actual_language in {'en', 'he'} else fr"\[{actual_language}\]$"
+            pattern = r"^(?!.*\[[a-z]{2}\]$).*" if actual_lang in {'en', 'he'} else fr"\[{actual_lang}\]$"
             d.update({"versionTitle": pyre.compile(pattern)})
         if lang:
             d.update({"language": lang})
