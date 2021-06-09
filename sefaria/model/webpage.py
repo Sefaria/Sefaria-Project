@@ -114,6 +114,8 @@ class WebPage(abst.AbstractMongoRecord):
             r"lilith\.org\/(tag\|author\|category)\/",
             r"https://torah\.org$",
             r"test\.hadran\.org\.il",
+            r"hadran\.org\.il\/he\/?$",
+            r"hadran\.org\.il\/he\/(masechet|מסכת)\/",
             r"www\.jtsa.edu\/search\/index\.php",
             r"jewschool\.com\/page\/",
             r"truah\.org\/\?s=",
@@ -496,6 +498,25 @@ def webpages_stats():
             total += len(total_in_book)
 
         print("{}: {}%".format(cat, round(covered * 100.0 / total, 2)))
+
+
+def find_sites_that_may_have_removed_linker(last_linker_activity_day=20):
+    """
+    Checks for each site whether there has been a webpage hit with the linker in the last `last_linker_activity_day` days
+    Prints an alert for each site that doesn't meet this criterion
+    """
+    from datetime import datetime, timedelta
+
+    last_active_threshold = datetime.today() - timedelta(days=last_linker_activity_day)
+    for data in sites_data:
+        for domain in data['domains']:
+            ws = WebPageSet({"url": re.compile(re.escape(domain))}, limit=1, sort=[['lastUpdated', -1]])
+            if ws.count() == 0:
+                print(f"{domain} has no pages")
+                continue
+            w = ws.array()[0]
+            if w.lastUpdated < last_active_threshold:
+                print(f"ALERT! {domain} has removed the linker!")
 
 """
 Web Pages Whitelist

@@ -3,7 +3,7 @@ import {
   GlobalWarningMessage,
   ProfilePic,
   InterfaceLanguageMenu,
-  InterfaceText
+  InterfaceText, 
 } from './Misc';
 import React, { useState, useEffect, useRef} from 'react';
 import PropTypes  from 'prop-types';
@@ -415,14 +415,14 @@ const ProfilePicMenu = ({len, url, name}) => {
     if (el) {
       resetOpen();
     }
-  }
+  };
   const profilePicClick = (e) => {
     e.preventDefault();
     resetOpen();
-  }
+  };
   const resetOpen = () => {
     setIsOpen(isOpen => !isOpen);
-  }
+  };
   const handleHideDropdown = (event) => {
     if (event.key === 'Escape') {
       setIsOpen(false);
@@ -458,25 +458,24 @@ const ProfilePicMenu = ({len, url, name}) => {
           <div className="interfaceLinks-menu profile-menu" onClick={menuClick}>
             <div className="interfaceLinks-header profile-menu">{name}</div>
             <div className="profile-menu-middle">
-              <div><a className="interfaceLinks-row" href="/my/profile">
+              <div><a className="interfaceLinks-row" id="my-profile-link" href="/my/profile">
                 <InterfaceText>Profile</InterfaceText>
               </a></div>
-              <div><a className="interfaceLinks-row" href="/settings/account">
+              <div><a className="interfaceLinks-row" id="account-settings-link" href="/settings/account">
                 <InterfaceText>Account Settings</InterfaceText>
               </a></div>
               <div className="interfaceLinks-row languages">
-                <a className={`${(Sefaria.interfaceLang == 'hebrew') ? 'active':''}`} href={`/interface/hebrew?next=${getCurrentPage()}`}>עברית</a>
-                <a className={`${(Sefaria.interfaceLang == 'english') ? 'active':''}`} href={`/interface/english?next=${getCurrentPage()}`}>English</a>
+                <a className={`${(Sefaria.interfaceLang == 'hebrew') ? 'active':''}`} href={`/interface/hebrew?next=${getCurrentPage()}`} id="select-hebrew-interface-link">עברית</a>
+                <a className={`${(Sefaria.interfaceLang == 'english') ? 'active':''}`} href={`/interface/english?next=${getCurrentPage()}`} id="select-english-interface-link">English</a>
               </div>
-              <div><a className="interfaceLinks-row bottom" href="/collections/sefaria-faqs">
+              <div><a className="interfaceLinks-row bottom" id="help-link" href="/collections/sefaria-faqs">
                 <InterfaceText>Help</InterfaceText>
               </a></div>
             </div>
             <hr className="interfaceLinks-hr"/>
-            <div><a className="interfaceLinks-row logout" href="/logout">
+            <div><a className="interfaceLinks-row logout" id="logout-link" href="/logout">
               <InterfaceText>Logout</InterfaceText>
             </a></div>
-
           </div> : null}
         </div>
     </div>
@@ -484,23 +483,17 @@ const ProfilePicMenu = ({len, url, name}) => {
 };
 
 
-const HelpButton = () => (
-    //hard-coding /help re-direct, also re-directs exist in sites/sefaria/urls.py
-  <div className="help">
-    {Sefaria.interfaceLang === "hebrew" ?
-    <span className="int-he">
-      <a href="/collections/%D7%A9%D7%90%D7%9C%D7%95%D7%AA-%D7%A0%D7%A4%D7%95%D7%A6%D7%95%D7%AA-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90">
-        <img src="/static/img/help.svg" alt="עזרה" />
-      </a>
-    </span>
-    :
-    <span className="int-en">
-      <a href="/collections/sefaria-faqs">
-        <img src="/static/img/help.svg" alt="Help" />
-      </a>
-    </span>}
-  </div>
-);
+const HelpButton = () => {
+  //TODO: There's an upcoming commit that re-introduces `Sefaria._v()` as a way to return a string/data that may be a different variable between interface langs that would be a good use here.
+  const url = Sefaria.interfaceLang == "hebrew" ? "/collections/%D7%A9%D7%90%D7%9C%D7%95%D7%AA-%D7%A0%D7%A4%D7%95%D7%A6%D7%95%D7%AA-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90" : "/collections/sefaria-faqs";
+  return (
+      <div className="help">
+        <a href={url}>
+          <img src="/static/img/help.svg" alt={Sefaria._("Help")}/>
+        </a>
+      </div>
+  );
+};
 
 
 export default Header;
