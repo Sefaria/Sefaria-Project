@@ -31,7 +31,8 @@ const voidElements = [
     "ProfilePic",
     "SheetMedia",
     "SheetSource",
-    "SheetOutsideBiText"
+    "SheetOutsideBiText",
+    "horizontal-line"
 ];
 
 
@@ -60,6 +61,7 @@ const ELEMENT_TAGS = {
     TABLE: () => ({type: 'table'}),
     TR: () => ({type: 'table-row'}),
     TD: () => ({type: 'table-cell'}),
+    HR: () => ({type: 'horizontal-line'}),
 };
 
 const format_tag_pairs = [
@@ -299,6 +301,9 @@ export const serialize = (content) => {
                   return (acc + serialize(text))
               }, "");
               return `<td>${tdHtml}</td>`
+
+            case 'horizontal-line':
+              return `<hr>`
 
         }
     }
@@ -768,7 +773,8 @@ const Element = props => {
           return <tr {...attributes}>{children}</tr>
         case 'table-cell':
           return <td {...attributes}>{children}</td>
-
+        case 'horizontal-line':
+          return <>{children}<hr contentEditable={false} style={{ userSelect: 'none' }} /></>
         default:
             return <div>{children}</div>
     }
