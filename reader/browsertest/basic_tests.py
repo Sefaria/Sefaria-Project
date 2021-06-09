@@ -90,10 +90,10 @@ class ChangeTextLanguage(SefariaTest):
     every_build = True
 
     def body(self):
-        self.load_ref("Genesis 1")
-        expected_heb = 'בְּרֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ׃'
-        expected_eng_closed = 'When God began to create heaven and earth—'
-        expected_eng_open = 'In the beginning God created the heaven and the earth.'
+        self.load_ref("Genesis 10")
+        expected_heb = 'וְאֵלֶּה תּוֹלְדֹת בְּנֵי־נֹחַ שֵׁם חָם וָיָפֶת וַיִּוָּלְדוּ לָהֶם בָּנִים אַחַר הַמַּבּוּל׃'
+        expected_eng_closed = 'These are the lines of Shem, Ham, and Japheth, the sons of Noah: sons were born to them after the Flood.'
+        expected_eng_open = 'Now these are the generations of the sons of Noah: Shem, Ham, and Japheth; and unto them were sons born after the flood.'
         sgmnt_eng = self.get_nth_section_english(1)
         sgmnt_heb = self.get_nth_section_hebrew(1)
         str_eng = sgmnt_eng.text.strip()
