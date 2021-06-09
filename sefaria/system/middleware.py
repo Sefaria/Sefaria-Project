@@ -102,10 +102,12 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
             content = "english"
             interface = "english"
 
+        translation_language_preference = None if profile is None else profile.settings.get("translation_language_preference", None)
+
         request.LANGUAGE_CODE = interface[0:2]
         request.interfaceLang = interface
         request.contentLang   = content
-        request.translation_language_preference = profile.settings.get("translation_language_preference", None)
+        request.translation_language_preference = translation_language_preference
 
         translation.activate(request.LANGUAGE_CODE)
 
