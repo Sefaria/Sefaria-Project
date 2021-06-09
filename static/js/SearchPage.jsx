@@ -85,48 +85,4 @@ SearchPage.propTypes = {
 };
 
 
-class SearchBar extends Component {
-    constructor(props) {
-      super(props);
-
-      this.state = {query: props.initialQuery};
-    }
-    handleKeypress(event) {
-        if (event.charCode == 13) {
-
-            this.updateQuery();
-            // Blur search input to close keyboard
-            $(ReactDOM.findDOMNode(this)).find(".readerSearch").blur();
-        }
-    }
-    updateQuery() {
-        if (this.props.updateQuery) {
-            this.props.updateQuery(this.state.query)
-        }
-    }
-    handleChange(event) {
-        this.setState({query: event.target.value});
-    }
-    render () {
-        return (
-          <div className="searchBox">
-              <ReaderNavigationMenuSearchButton onClick={this.updateQuery} />
-              <input
-                className="readerSearch"
-                  id="searchInput"
-                  title="Search for Texts or Keywords Here"
-                  value={this.state.query}
-                  onKeyPress={this.handleKeypress}
-                  onChange={this.handleChange}
-                  placeholder="Search"/>
-          </div>
-        )
-    }
-}
-SearchBar.propTypes = {
-    initialQuery: PropTypes.string,
-    updateQuery: PropTypes.func
-};
-
-
 export default SearchPage;
