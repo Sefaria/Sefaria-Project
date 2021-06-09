@@ -7676,6 +7676,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   background-color: white;
   border-radius: 4px;
   line-height: 18px;
+  cursor: pointer;
 }
 .versionsBox a.selectButton.currSelectButton {
   background-color: #212E50;
