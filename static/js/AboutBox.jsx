@@ -41,7 +41,7 @@ class AboutBox extends Component {
       Sefaria.versions(this.props.sectionRef, true, this._includeOtherVersionsLangs, false).then(this.onVersionsLoad);
   }
   componentDidUpdate(prevProps, prevState) {
-    if (prevProps.title !== this.props.title) {
+    if (prevProps.title !== this.props.title || prevProps.masterPanelLanguage != this.props.masterPanelLanguage) {
       this.setState({details: null});
       this.setTextMetaData();
       Sefaria.versions(this.props.sectionRef,true, this._includeOtherVersionsLangs, false).then(this.onVersionsLoad);
@@ -207,14 +207,13 @@ class AboutBox extends Component {
           }
       </div> : null );
     const alternateSectionHe =
-      (!!this.state.versionLangMap ?
+      (this.state.versionLangMap?.he?.length > 0 ?
           <div className="alternateVersionsSection">
             <h2 className="aboutHeader">
               <InterfaceText text={alternateVersionsSectionTitle} />
             </h2>
             <VersionsBlocksList key={`versions-${Object.values(this.props.currObjectVersions).map((v) => v?.versionTitle ?? "").join("|")}`}
               versionsByLanguages={this.state.versionLangMap}
-              mainVersionLanguage={this.props.mainVersionLanguage}
               currObjectVersions={this.props.currObjectVersions}
               showLanguageHeaders={false}
               currentRef={this.props.srefs[0]}
@@ -227,7 +226,7 @@ class AboutBox extends Component {
     return (
       <section className="aboutBox">
         {detailSection}
-        { this.props.mainVersionLanguage === "english" ?
+        { this.props.masterPanelLanguage === "english" ?
           (<div>{versionSectionEn}{versionSectionHe}{alternateSectionHe}</div>) :
           (<div>{versionSectionHe}{versionSectionEn}{alternateSectionHe}</div>)
         }
@@ -238,7 +237,7 @@ class AboutBox extends Component {
 }
 AboutBox.propTypes = {
   currObjectVersions:  PropTypes.object.isRequired,
-  mainVersionLanguage: PropTypes.oneOf(["english", "hebrew"]),
+  masterPanelLanguage: PropTypes.oneOf(["english", "hebrew", "bilingual"]),
   title:               PropTypes.string.isRequired,
   srefs:               PropTypes.array.isRequired,
 };
