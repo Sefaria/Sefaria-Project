@@ -1445,7 +1445,9 @@ def table_of_contents_api(request):
 @catch_error_as_json
 def search_autocomplete_redirecter(request):
     query = request.GET.get("q", "")
-    completions_dict = get_name_completions(query, 1, False)
+    topic_override = query.startswith('#')
+    query = query[1:] if topic_override else query
+    completions_dict = get_name_completions(query, 1, False, topic_override)
     ref = completions_dict['ref']
     object_data = completions_dict['object_data']
     if ref:
@@ -4146,7 +4148,7 @@ def apple_app_site_association(request):
 
 def application_health_api(request):
     """
-    Defines the /healthz API endpoint which responds with
+    Defines the /healthz  and /health-check API endpoints which responds with
         200 if the application is ready for requests,
         500 if the application is not ready for requests
     """

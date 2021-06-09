@@ -497,7 +497,7 @@ class TopicSet(abst.AbstractMongoSet):
             # include class name of recordClass + any class names of subclasses
             query = query or {}
             subclass_names = [self.recordClass.__name__] + [klass.__name__ for klass in self.recordClass.all_subclasses()]
-            query['subclass'] = {"$in": [self.reverse_subclass_map[name] for name in subclass_names]}
+            query['subclass'] = {"$in": [self.recordClass.reverse_subclass_map[name] for name in subclass_names]}
         
         super().__init__(query=query, *args, **kwargs)
 
@@ -660,7 +660,7 @@ class RefTopicLink(abst.AbstractMongoRecord):
 
     def _normalize(self):
         super(RefTopicLink, self)._normalize()
-        self.is_sheet = bool(re.search("Sheet \d+$", self.ref))
+        self.is_sheet = bool(re.search(r"Sheet \d+$", self.ref))
         setattr(self, "class", "refTopic")
         if self.is_sheet:
             self.expandedRefs = [self.ref]

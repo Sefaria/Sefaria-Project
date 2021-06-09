@@ -5,6 +5,8 @@ substitutions:
   _GKE_REGION: placeholder
   _SANDBOX_NAME: deadbeef
   _SANDBOX_SUBDOMAIN: placeholder
+  # _MONGO_HOST: placeholder
+  # _MONGO_DATABASE: placeholder
 
 steps:
 
