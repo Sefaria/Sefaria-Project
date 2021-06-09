@@ -1480,12 +1480,12 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
     :param oref: :class:`Ref`
     :param lang: "he" or "en". "he" means all rtl languages and "en" means all ltr languages
     :param vtitle: optional. Title of the version desired.
-    :param actual_lang_preference: optional. if vtitle isn't specified, prefer to find a version with ISO language `actual_lang_preference`. As opposed to `lang` which can only be "he" or "en", `actual_lang_preference` can be any valid 2 letter ISO language code.
+    :param actual_lang: optional. if vtitle isn't specified, prefer to find a version with ISO language `actual_lang`. As opposed to `lang` which can only be "he" or "en", `actual_lang` can be any valid 2 letter ISO language code.
     """
 
     text_attr = "text"
 
-    def __init__(self, oref, lang="en", vtitle=None, exclude_copyrighted=False, actual_lang_preference=None):
+    def __init__(self, oref, lang="en", vtitle=None, exclude_copyrighted=False, actual_lang=None):
         """
         :param oref:
         :type oref: Ref
@@ -1523,16 +1523,15 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
                 self._versions += [v]
                 self.text = self._original_text = self.trim_text(v.content_node(self._oref.index_node))
         elif lang:
-            try:
-                assert actual_lang_preference is not None
-                self._choose_version_by_lang(oref, lang, exclude_copyrighted, actual_lang_preference)
-            except:
+            if actual_lang is not None:
+                self._choose_version_by_lang(oref, lang, exclude_copyrighted, actual_lang)
+            else:
                 self._choose_version_by_lang(oref, lang, exclude_copyrighted)
         else:
             raise Exception("TextChunk requires a language.")
 
-    def _choose_version_by_lang(self, oref, lang: str, exclude_copyrighted: bool, actual_lang_preference: str=None) -> None:
-        vset = VersionSet(self._oref.condition_query(lang, actual_lang_preference), proj=self._oref.part_projection())
+    def _choose_version_by_lang(self, oref, lang: str, exclude_copyrighted: bool, actual_lang: str=None) -> None:
+        vset = VersionSet(self._oref.condition_query(lang, actual_lang), proj=self._oref.part_projection())
         if len(vset) == 0:
             if VersionSet({"title": self._oref.index.title}).count() == 0:
                 raise NoVersionFoundError("No text record found for '{}'".format(self._oref.index.title))
@@ -2123,15 +2122,17 @@ class TextFamily(object):
         # processes "en" and "he" TextChunks, and puts the text in self.text and self.he, respectively.
         for language, attr in list(self.text_attr_map.items()):
             tc_kwargs = dict(oref=oref, lang=language)
-            if language == 'en': tc_kwargs['actual_lang_preference'] = translationLanguagePreference
-            if language == lang:
-                c = TextChunk(vtitle=version, **tc_kwargs)
+            if language == 'en': tc_kwargs['actual_lang'] = translationLanguagePreference
+            if language in {lang, lang2}:
+                curr_version = version if language == lang else version2
+                c = TextChunk(vtitle=curr_version, **tc_kwargs)
                 if len(c._versions) == 0:  # indicates `version` doesn't exist
-                    self._nonExistantVersions[language] = version
-            elif language == lang2:
-                c = TextChunk(vtitle=version2, **tc_kwargs)
-                if len(c._versions) == 0:
-                    self._nonExistantVersions[language] = version2
+                    if tc_kwargs.get('actual_lang', False) and not curr_version:
+                        # actual_lang is only used if curr_version is not passed
+                        del tc_kwargs['actual_lang']
+                        c = TextChunk(vtitle=curr_version, **tc_kwargs)
+                    elif curr_version:
+                        self._nonExistantVersions[language] = curr_version
             else:
                 c = TextChunk(**tc_kwargs)
             self._chunks[language] = c

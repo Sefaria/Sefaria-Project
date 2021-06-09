@@ -63,7 +63,7 @@
 			<span class="int-he">Preferred Translation Language</span>
         </label>
 		<div class="toggleSet quadrupleOption control-elem" role="radiogroup">
-			<div role="radio" data-value="en" class="toggleOption {% if profile.settings.translation_language_preference == "en" %} active{% endif %}" tabindex="{% if profile.settings.translation_language_preference == "en" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
+			<div role="radio" data-value="en" class="toggleOption {% if profile.settings.translation_language_preference == "en" or profile.settings.translation_language_preference == null %} active{% endif %}" tabindex="{% if profile.settings.translation_language_preference == "en" or profile.settings.translation_language_preference == null %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
                 <span class="int-bi">English</span>
             </div><!--
             --><div role="radio" data-value="es" class="toggleOption {% if profile.settings.translation_language_preference == "es" %} active{% endif %}" tabindex="{% if profile.settings.translation_language_preference == "es" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
