@@ -224,8 +224,8 @@ class ConnectionsPanel extends Component {
           }
           this.setState({
               currObjectVersions: {
-                  en: (this.props.masterPanelLanguage != "hebrew" && !!data.text.length) ? this.getVersionFromData(data, "en") : null,
-                  he: (this.props.masterPanelLanguage != "english" && !!data.he.length) ? this.getVersionFromData(data, "he") : null,
+                  en: ((this.props.masterPanelLanguage != "hebrew" && !!data.text.length) || (this.props.masterPanelLanguage != "english" && !data.he.length)) ? this.getVersionFromData(data, "en") : null,
+                  he: ((this.props.masterPanelLanguage != "english" && !!data.he.length)  || (this.props.masterPanelLanguage != "hebrew" && !data.text.length)) ? this.getVersionFromData(data, "he") : null,
               },
               mainVersionLanguage: currentLanguage,
               sectionRef: data.sectionRef,
