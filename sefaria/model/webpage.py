@@ -7,6 +7,8 @@ from collections import defaultdict
 from . import abstract as abst
 from . import text
 from sefaria.system.database import db
+from sefaria.model.website import *
+
 
 import structlog
 logger = structlog.get_logger(__name__)
@@ -96,101 +98,10 @@ class WebPage(abst.AbstractMongoRecord):
 
     @staticmethod
     def excluded_pages_url_regex():
-        bad_urls = [
-            r"rabbisacks\.org\/(.+\/)?\?s=",           # Rabbi Sacks search results
-            r"halachipedia\.com\/index\.php\?search=", # Halachipedia search results
-            r"halachipedia\.com\/index\.php\?diff=",   # Halachipedia diff pages
-            r"myjewishlearning\.com\/\?post_type=evergreen", # These urls end up not working
-            r"judaism\.codidact\.com\/.+\/edit",
-            r"judaism\.codidact\.com\/.+\/history",
-            r"judaism\.codidact\.com\/.+\/suggested-edit\/",
-            r"judaism\.codidact\.com\/.+\/posts\/new\/",
-            r"judaism\.codidact\.com\/questions\/d+",  # these pages redirect to /posts
-            r"judaism\.codidact\.com\/users\/",
-            r"jewishexponent\.com\/page\/\d",
-            r"hebrewcollege\.edu\/blog\/(author\|category\|tag)\/",  # these function like indices of articles
-            r"roshyeshivamaharat.org\/(author\|category\|tag)\/",
-            r"lilith\.org\/\?gl=1\&s=",                  # Lilith Magazine search results
-            r"lilith\.org\/(tag\|author\|category)\/",
-            r"https://torah\.org$",
-            r"test\.hadran\.org\.il",
-            r"www\.jtsa.edu\/search\/index\.php",
-            r"jewschool\.com\/page\/",
-            r"truah\.org\/\?s=",
-            r"truah\.org\/(holiday|page|resource-types)\/",
-            r"clevelandjewishnews\.com$",
-            r"clevelandjewishnews\.com\/news\/",
-            r"ots\.org\.il\/news\/",
-            r"ots\.org\.il\/.+\/page\/\d+\/",
-            r"ots\.org\.il\/tag\/.+",
-            r"traditiononline\.org\/page\/\d+\/",
-            r"toravoda\.org\.il\/%D7%90%D7%99%D7%A8%D7%95%D7%A2%D7%99%D7%9D-%D7%97%D7%9C%D7%95%D7%A4%D7%99\/",  # Neemanei Torah Vavoda list of past events
-            r"929.org.il\/(lang\/en\/)?author/\d+$",  # Author index pages
-            r"rabbijohnnysolomon.com$",
-            r"rabbijohnnysolomon.com/shiurim/$",
-            r"rabbijohnnysolomon.com/shiurim/parasha/$",
-            r"rabbijohnnysolomon.com/shiurim/halacha/$",
-            r"webcache\.googleusercontent\.com",
-            r"translate\.googleusercontent\.com",
-            r"dailympails\.gq\/",
-            r"http:\/\/:localhost(:\d+)?",
-            r"jewfaq\.org\/search\.shtml", # Judaism 101, Search the Glossary and Index
-            r"avodah\.net\/(blog|category|tag)/",
-            r"hebrewcollege\.edu\/blog\/(author|tag)\/",
-            r"jewishideas\.org\/search\/",
-            r"jewishideas\.org\/articles\/",  # it seems you can write anything after articles/ and it leads to the same page?
-            r"jwa\.org\/encyclopedia\/author\/",  # tends to have articles by author that have snippets from article
-            r"jwa\.org\/encyclopedia\/content\/",
-            r"library\.yctorah\.org\/series\/",
-            r"psak\.yctorah\.org\/?$",
-            r"psak\.yctorah\.org\/(category|about|source)\/",  # archives
-            r"psak\.yctorah\.org\/sitemap_index\.xml$",
-            r"reconstructingjudaism\.org\/taxonomy\/",
-            r"reconstructingjudaism\.org\/search\/",
-            r"askhalacha\.com\/?$",
-            r"askhalacha\.com\/qas\/?$",
-            r"yeshiva\.co\/?$",
-            r"yeshiva\.co\/404\/404.asp",
-            r"yeshiva\.co\/(ask|midrash)\/?$",
-            r"yeshiva\.co\/(calendar|tags|dedication|errorpage)\/?",  # it seems anything under calendar is not an article
-            r"yeshiva\.co\/midrash\/(category|rabbi)\/?",
-            r"mayim\.org\.il\/?$",
-            r"kabbalahoftime\.com\/?$",
-            r"kabbalahoftime\.com\/\d{4}\/?$",  # page that aggregates all articles for the year
-            r"kabbalahoftime\.com\/\d{4}\/\d{2}\/?$",  # page that aggregates all articles for the month
-            r"jewishcontemplatives\.blogspot\.com\/?$",
-            r"orayta\.org\/orayta-torah\/orayta-byte-parsha-newsletter",
-            r"jewishencyclopedia\.com\/(directory|contribs|search)",
-            r"orhalev\.org\/blogs\/parasha-and-practice\/?$",
-            r"orhalev\.org\/blogs\/tag\/",
-            r"talmudology\.com\/?$",
-            r"talmudology\.com\/[^\/]+$",  # seems everything at the top level is not an article
-            r"sephardi\.co\.uk\/(category|community|tag|test)\/",
-            r"theameninstitute\.com\/?$",
-            r"theameninstitute\.com\/category\/whats-new-at-the-amen-institute\/?$",
-            r"chiefrabbi\.org\/?(\?post_type.+)?$",  # post_type are pages that seem to by filtered lists
-            r"chiefrabbi\.org\/(all-media|communities|education|maayan-programme)\/?$",
-            r"chiefrabbi\.org\/(dvar-torah|media_type)\/?",  # archives
-            r"justice-in-the-city\.com\/?$",
-            r"justice-in-the-city\.com\/(category|page)\/",
-            r"aju\.edu\/(faculty|search|taxonomy)\/",
-            r"aju\.edu\/miller-intro-judaism-program\/learning-portal\/glossary\/",
-            r"aju\.edu\/ziegler-school-rabbinic-studies\/our-torah\/back-issues\/\d+$"
-            r"aju\.edu\/ziegler-school-rabbinic-studies\/torah-resource-center\/"
-            r"aju\.edu\/ziegler-school-rabbinic-studies\/blogs\/?$",
-            r"hatanakh\.com\/?#?$",
-            r"hatanakh\.com\/\/(en|es)$",  # home page?
-            r"hatanakh\.com(\/(en|es))?\/?#?(\?.+)?$",  # a sledgehammer. gets rid of odd url params on homepage + spanish chapter pages
-            r"hatanakh\.com\/\.[^/]+$",  # strange private pages
-            r"hatanakh\.com\/((en|es)\/)?(tanach|search|taxonomy|tags|%D7%9E%D7%97%D7%91%D7%A8%D7%99%D7%9D|%D7%93%D7%9E%D7%95%D7%99%D7%95%D7%AA|%D7%A0%D7%95%D7%A9%D7%90%D7%99%D7%9D)\/",  # topic, author and character pages
-            r"hatanakh\.com\/((en|es)\/)?search",
-            r"hatanakh\.com\/\?(chapter|custom|gclid|parasha)=",  # chapter pages
-            r"hatanakh\.com\/(en|es)?\/home",  # other chapter pages?
-            r"hatanakh\.com\/((en|es)\/)?(articles|daily|node)\/?$",
-            r"hatanakh\.com\/((en|es)\/)?(articles|lessons)\?(page|arg|tanachRef(\[|%5B)\d+(\]|%5D))=",
-            r"hatanakh\.com\/((en|es)\/)?(daily)?\/?\?(chapter|custom|gclid|parasha)=",
-            r"hatanakh\.com\/es\/\?biblia=",
-        ]
+        bad_urls = []
+        for site in WebSiteSet():
+            if getattr(site, "bad_urls"):
+                bad_urls += site.bad_urls
         return "({})".format("|".join(bad_urls))
 
     @staticmethod
@@ -204,7 +115,7 @@ class WebPage(abst.AbstractMongoRecord):
 
     @staticmethod
     def site_data_for_domain(domain):
-        for site in sites_data:
+        for site in WebSiteSet({"is_whitelisted": True}):
             for site_domain in site["domains"]:
                 if site_domain == domain or domain.endswith("." + site_domain):
                     return site
