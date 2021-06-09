@@ -145,6 +145,22 @@ export const deserialize = el => {
         return null
     }
 
+    const checkForStyles = () => {
+        if (el.getAttribute("style")) {
+          const elStyles = el.getAttribute("style").split(';');
+          let addlAttrs = {}
+          for (const elStyle of elStyles) {
+            const styleArray = elStyle.split(":");
+            if (styleArray.length == 2) {
+              const styleType = styleArray[0].trim()
+              const styleValue = styleArray[1].trim()
+              addlAttrs[styleType] = styleValue
+            }
+          }
+        return addlAttrs
+        }
+    }
+
     const {nodeName} = el;
     let parent = el;
 
@@ -168,7 +184,10 @@ export const deserialize = el => {
         if(!children[0]) {
             new_children = [{'text':''}]
         }
-        const attrs = ELEMENT_TAGS[nodeName](el);
+        const attrs = {
+            ...ELEMENT_TAGS[nodeName](el),
+            ...checkForStyles()
+        };
         return jsx('element', attrs, new_children)
     }
 
@@ -234,6 +253,9 @@ export const serialize = (content) => {
                 const paragraphHTML = content.children.reduce((acc, text) => {
                     return (acc + serialize(text))
                 }, "");
+                if (content["text-align"] == "center") {
+                    return `<div style='text-align: center'>${paragraphHTML}</div>`
+                }
                 return `<div>${paragraphHTML}</div>`
             }
 
@@ -710,8 +732,9 @@ const Element = props => {
               <div className="sourceContentText">{children}</div>
             )
         case 'paragraph':
+            const pClasses = {center: element["text-align"] == "center" };
             return (
-                <div>
+                <div className={classNames(pClasses)}>
                     {element.loading ? <div className="sourceLoader"></div> : null}
                     {children}
                 </div>
@@ -1421,7 +1444,6 @@ const Leaf = ({attributes, children, leaf}) => {
     if (leaf["text-align"]) {
       children = <span style={{textAlign: leaf["text-align"]}}>{children}</span>
     }
-
 
     return <span {...attributes}>{children}</span>
 };
