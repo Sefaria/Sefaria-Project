@@ -539,7 +539,7 @@ Sefaria = extend(Sefaria, {
   },
   transformVersionObjectsToByActualLanguageKeys(versionObjects){
     return Object.values(versionObjects)
-          .filter(v => !!v)
+          .filter(v => !!v && !v?.merged)
           .reduce((obj, version) => {
             obj[version.actualLanguage] = version;
             return obj;
