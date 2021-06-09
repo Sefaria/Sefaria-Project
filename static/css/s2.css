@@ -8124,6 +8124,9 @@ span.purim-emoji img{
 .sheetContent tbody {
   width: 100%;
 }
+.sheetContent .center {
+  text-align: center;
+}
 .readerPanel .sheetItem {
   position: relative;
 }
