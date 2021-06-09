@@ -53,11 +53,11 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
             request.contentLang = "bilingual"
             return # Save looking up a UserProfile, or redirecting when not needed
 
+        profile = UserProfile(id=request.user.id) if request.user.is_authenticated else None
         # INTERFACE 
         # Our logic for setting interface lang checks (1) User profile, (2) cookie, (3) geolocation, (4) HTTP language code
         interface = None
         if request.user.is_authenticated and not interface:
-            profile = UserProfile(id=request.user.id)
             interface = profile.settings["interface_language"] if "interface_language" in profile.settings else interface 
         if not interface: 
             # Pull language setting from cookie, location (set by Cloudflare) or Accept-Lanugage header or default to english
@@ -105,6 +105,7 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
         request.LANGUAGE_CODE = interface[0:2]
         request.interfaceLang = interface
         request.contentLang   = content
+        request.translation_language_preference = profile.settings.get("translation_language_preference", None)
 
         translation.activate(request.LANGUAGE_CODE)
 

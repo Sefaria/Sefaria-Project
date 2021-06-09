@@ -359,7 +359,7 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
         if mode != "Connections":
             try:
                 text_family = TextFamily(oref, version=panel["currVersions"]["en"], lang="en", version2=panel["currVersions"]["he"], lang2="he", commentary=False,
-                                  context=True, pad=True, alts=True, wrapLinks=False).contents()
+                                  context=True, pad=True, alts=True, wrapLinks=False, translationLanguagePreference=kwargs.get("translationLanguagePreference", None)).contents()
             except NoVersionFoundError:
                 text_family = {}
             text_family["updateFromAPI"] = True
@@ -501,6 +501,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         kwargs = {
             "panelDisplayLanguage": request.GET.get("lang", request.contentLang),
             'extended notes': int(request.GET.get("notes", 0)),
+            "translationLanguagePreference": request.translation_language_preference,
         }
         if filter is not None:
             lang1 = kwargs["panelDisplayLanguage"]
@@ -554,6 +555,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
             kwargs = {
                 "panelDisplayLanguage": request.GET.get("lang{}".format(i), request.contentLang),
                 'extended notes': int(request.GET.get("notes{}".format(i), 0)),
+                "translationLanguagePreference": request.translation_language_preference,
             }
             if request.GET.get("aliyot{}".format(i), None):
                 kwargs["aliyotOverride"] = "aliyotOn" if int(request.GET.get("aliyot{}".format(i))) == 1 else "aliyotOff"
