@@ -447,7 +447,6 @@ VersionsBlocksList.propTypes={
   versionsByLanguages: PropTypes.object.isRequired,
   currObjectVersions: PropTypes.object,
   displayCurrentVersions: PropTypes.bool,
-  mainVersionLanguage: PropTypes.string.isRequired,
   sortPrioritizeLanugage: PropTypes.string,
   currentRef: PropTypes.string,
   getLicenseMap: PropTypes.func,
