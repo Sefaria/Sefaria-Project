@@ -429,6 +429,7 @@ const Strings = {
     "English Versions": "באנגלית",
     "Continue Reading": "המשך קריאה",
     "Start Reading": "התחלת קריאה",
+    "Composed": "זמן חיבור",
 
     //Topics
     "Wikipedia": "ויקיפדיה",

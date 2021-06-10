@@ -209,7 +209,7 @@ const AboutText = ({index, hideTitle}) => {
 
         {composed ?
         <div className="aboutTextComposed">
-          <InterfaceText>Composed:</InterfaceText>
+          <InterfaceText>Composed</InterfaceText>:
           <span className="aboutTextComposedText">
             &nbsp;<InterfaceText>{composed}</InterfaceText>
           </span>
