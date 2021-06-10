@@ -40,7 +40,7 @@ class WebPage(abst.AbstractMongoRecord):
             self.favicon     = "https://www.google.com/s2/favicons?domain={}".format(self.domain)
             self._site_data  = WebPage.site_data_for_domain(self.domain)
             self.site_name   = self._site_data["name"] if self._site_data else self.domain
-            self.whitelisted = bool(self._site_data)
+            self.whitelisted = self._site_data.is_whitelisted
 
     def _init_defaults(self):
         self.linkerHits = 0
@@ -71,8 +71,10 @@ class WebPage(abst.AbstractMongoRecord):
         }
         global_rules = ["remove hash", "remove utm params", "remove fbclid param"]
         domain = WebPage.domain_for_url(url)
-        site_data = WebPage.site_data_for_domain(domain) or {}
-        site_rules = global_rules + site_data.get("normalization_rules", [])
+        site_rules = global_rules
+        site_data = WebPage.site_data_for_domain(domain)
+        if site_data.is_whitelisted:
+            site_rules += getattr(site_data, "normalization_rules", [])
         for rule in site_rules:
             url = rewrite_rules[rule](url)
 
@@ -115,8 +117,8 @@ class WebPage(abst.AbstractMongoRecord):
 
     @staticmethod
     def site_data_for_domain(domain):
-        for site in WebSiteSet({"is_whitelisted": True}):
-            for site_domain in site["domains"]:
+        for site in WebSiteSet():
+            for site_domain in site.domains:
                 if site_domain == domain or domain.endswith("." + site_domain):
                     return site
         return None
