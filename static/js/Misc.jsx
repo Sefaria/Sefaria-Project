@@ -1966,9 +1966,10 @@ class Dropdown extends Component {
   render() {
     return (
         <div className="dropdown sans-serif">
-          <div className="dropdownMain noselect" onClick={this.toggle}>
-            <i className="dropdownOpenButton noselect fa fa-caret-down"></i>
+          <div className={`dropdownMain noselect${this.state.selected ? " selected":""}`} onClick={this.toggle}>
             {this.state.selected ? this.state.selected.label : this.props.placeholder }
+            <img src="/static/icons/chevron-down.svg" className="dropdownOpenButton noselect fa fa-caret-down"/>
+
           </div>
           {this.state.optionsOpen ?
             <div className="dropdownListBox noselect">
