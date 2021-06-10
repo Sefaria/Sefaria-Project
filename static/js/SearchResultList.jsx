@@ -44,8 +44,8 @@ class SearchResultList extends Component {
         while (cachedQuery) {
           // Load all pages of results that are available in cache, so if page X was 
           // previously loaded it will be returned. 
-          console.log("Loaded cached query for")
-          console.log(args);
+          //console.log("Loaded cached query for")
+          //console.log(args);
           this.state.hits[t] = this.state.hits[t].concat(cachedQuery.hits.hits);
           this.state.totals[t] = cachedQuery.hits.total;
           this.state.pagesLoaded[t] += 1;
@@ -219,7 +219,7 @@ class SearchResultList extends Component {
       const { field, fieldExact, sortType, filtersValid, appliedFilters, appliedFilterAggTypes, lastAppliedAggType } = searchState;
       const request_applied = filtersValid && appliedFilters;
       const { aggregation_field_array,  aggregation_field_lang_suffix_array } = SearchState.metadataByType[type];
-      const aggregationsToUpdate = this._getAggsToUpdate(filtersValid, aggregation_field_array, aggregation_field_lang_suffix_array, appliedFilterAggTypes, lastAppliedAggType, type, props.interfaceLang);
+      const aggregationsToUpdate = this._getAggsToUpdate(filtersValid, aggregation_field_array, aggregation_field_lang_suffix_array, appliedFilterAggTypes, lastAppliedAggType, type, Sefaria.interfaceLang);
 
       return {
         query: props.query,
@@ -356,7 +356,6 @@ class SearchResultList extends Component {
     }
 }
 SearchResultList.propTypes = {
-  interfaceLang:            PropTypes.oneOf(['english', 'hebrew']),
   query:                    PropTypes.string,
   tab:                      PropTypes.oneOf(["text", "sheet"]),
   textSearchState:          PropTypes.object,

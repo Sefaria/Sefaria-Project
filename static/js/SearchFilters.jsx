@@ -213,6 +213,7 @@ SearchFilterTabRow.propTypes = {
   changeTab: PropTypes.func.isRequired,
 }
 
+
 class SheetSearchFilterPanel extends Component {
   constructor(props) {
     super(props);
@@ -280,6 +281,7 @@ SheetSearchFilterPanel.propTypes = {
   availableFilters:    PropTypes.array.isRequired,
   closeBox:            PropTypes.func.isRequired,
 };
+
 
 class TextSearchFilterPanel extends Component {
   constructor(props) {
@@ -481,6 +483,7 @@ SearchTagFilter.propTypes = {
   updateSelected: PropTypes.func.isRequired,
   filter:         PropTypes.object.isRequired,
 }
+
 
 class SearchFilter extends Component {
   constructor(props) {

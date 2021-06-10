@@ -32,7 +32,6 @@ class SearchPage extends Component {
             {this.props.compare ?
             <ComparePanelHeader
               search={true}
-              interfaceLang={this.props.interfaceLang}
               showDisplaySettings={false}
               onCompareBack={this.props.close}
               openSearch={this.props.onQueryChange} /> : null}
@@ -45,7 +44,6 @@ class SearchPage extends Component {
                     </h1>
                     <div className="searchContent" style={style}>
                         <SearchResultList
-                          interfaceLang={this.props.interfaceLang}
                           query={this.props.query}
                           tab={this.props.tab}
                           textSearchState={this.props.textSearchState}
