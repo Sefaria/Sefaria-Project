@@ -1967,7 +1967,7 @@ class Dropdown extends Component {
     return (
         <div className="dropdown sans-serif">
           <div className={`dropdownMain noselect${this.state.selected ? " selected":""}`} onClick={this.toggle}>
-            {this.state.selected ? this.state.selected.label : this.props.placeholder }
+            <span>{this.state.selected ? this.state.selected.label : this.props.placeholder}</span>
             <img src="/static/icons/chevron-down.svg" className="dropdownOpenButton noselect fa fa-caret-down"/>
 
           </div>

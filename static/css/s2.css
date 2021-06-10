@@ -6049,6 +6049,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 18px;
   text-align: center;
 }
+.addConnectionBox .dropdown .dropdownMain{
+  justify-content: center;
+}
+.addConnectionBox .dropdown .dropdownMain span, .addConnectionBox .dropdown .dropdownMain img{
+  margin-inline-start: auto;
+}
 .addConnectionSummary {
   margin-bottom: 20px;
 }
@@ -7643,7 +7649,6 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   line-height: 19px;
 }
 .dropdown .dropdownOpenButton {
-  float: right;
   margin-inline-start: 6px;
   cursor: pointer;
   color: var(--dark-grey);
