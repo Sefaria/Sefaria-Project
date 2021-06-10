@@ -3695,9 +3695,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   color: #999;
 }
 .toggleSet {
-  display: inline-block;
+  display: flex;
   width: 48%;
-  margin: 2px auto 20px auto;
+  margin: 2px auto 0 auto;
+  padding-bottom: 20px;
   /*margin-left: 1px;*/
 }
 .toggleSet.aliyotTorah, .toggleSet .toggle-set-label {

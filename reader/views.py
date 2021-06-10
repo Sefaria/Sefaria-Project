@@ -3606,10 +3606,12 @@ def account_settings(request):
     """
     Page for managing a user's account settings.
     """
+    from babel import Locale
     profile = UserProfile(id=request.user.id)
     return render_template(request,'account_settings.html', None, {
         'user': request.user,
         'profile': profile,
+        'lang_names_and_codes': zip([Locale(lang).languages[lang].capitalize() for lang in SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES']], SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES']), 
     })
 
 

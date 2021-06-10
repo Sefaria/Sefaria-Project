@@ -12,7 +12,7 @@ from django.http import HttpResponse
 from sefaria.settings import *
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.model.user_profile import UserProfile
-from sefaria.utils.util import short_to_long_lang_code
+from sefaria.utils.util import short_to_long_lang_code, get_lang_codes_for_territory
 from sefaria.system.cache import get_shared_cache_elem, set_shared_cache_elem
 from django.utils.deprecation import MiddlewareMixin
 
@@ -102,12 +102,22 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
             content = "english"
             interface = "english"
 
+        # TRANSLATION LANGUAGE PREFERENCE
         translation_language_preference = None if profile is None else profile.settings.get("translation_language_preference", None)
+        langs_in_country = get_lang_codes_for_territory(request.META.get("HTTP_CF_IPCOUNTRY"))
+        translation_language_preference_suggestion = None
+        if translation_language_preference is None:
+            supported_translation_langs = set(SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES'])
+            for lang in langs_in_country:
+                if lang in supported_translation_langs:
+                    translation_language_preference_suggestion = lang
+                    break             
 
         request.LANGUAGE_CODE = interface[0:2]
         request.interfaceLang = interface
         request.contentLang   = content
         request.translation_language_preference = translation_language_preference
+        request.translation_language_preference_suggestion = translation_language_preference_suggestion
 
         translation.activate(request.LANGUAGE_CODE)
 
