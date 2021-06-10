@@ -39,8 +39,8 @@ class WebPage(abst.AbstractMongoRecord):
             self.domain      = WebPage.domain_for_url(self.url)
             self.favicon     = "https://www.google.com/s2/favicons?domain={}".format(self.domain)
             self._site_data  = WebPage.site_data_for_domain(self.domain)
-            self.site_name   = self._site_data["name"] if self._site_data else self.domain
-            self.whitelisted = self._site_data.is_whitelisted
+            self.site_name   = self._site_data.name if self._site_data else self.domain
+            self.whitelisted = self._site_data.is_whitelisted if self._site_data else False
 
     def _init_defaults(self):
         self.linkerHits = 0
@@ -102,8 +102,7 @@ class WebPage(abst.AbstractMongoRecord):
     def excluded_pages_url_regex():
         bad_urls = []
         for site in WebSiteSet():
-            if getattr(site, "bad_urls"):
-                bad_urls += site.bad_urls
+            bad_urls += getattr(site, "bad_urls", [])
         return "({})".format("|".join(bad_urls))
 
     @staticmethod
