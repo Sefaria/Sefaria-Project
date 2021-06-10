@@ -40,7 +40,6 @@ steps:
   #####################
   - name: "gcr.io/${PROJECT_ID}/mongo-destroy"
     id: delete mongo dbs
-    dir: k8s-admin/v2
     entrypoint: "/destroyMongo.bash"
     env:
       - 'SANDBOX_NAME=${_SANDBOX_NAME}'
