@@ -597,25 +597,22 @@ DropdownOptionList.propTypes = {
 };
 
 
-class DropdownButton extends Component {
-  render() {
-    const { isOpen, toggle, enText, heText } = this.props;
-    const filterTextClasses = classNames({ "dropdown-button": 1, active: isOpen });
-    return (
-      <div className={ filterTextClasses } tabIndex="0" onClick={toggle} onKeyPress={(e) => {e.charCode == 13 ? toggle(e):null}}>
-        <span className="int-en">{enText}</span>
-        <span className="int-he">{heText}</span>
-        {isOpen ? <img src="/static/img/arrow-up.png" alt=""/> : <img src="/static/img/arrow-down.png" alt=""/>}
-      </div>
-    )
-  }
-}
+const DropdownButton = ({isOpen, toggle, enText, heText, buttonStyle}) => {
+  const filterTextClasses = classNames({ "dropdown-button": 1, active: isOpen, buttonStyle });
+  return (
+    <div className={ filterTextClasses } tabIndex="0" onClick={toggle} onKeyPress={(e) => {e.charCode == 13 ? toggle(e):null}}>
+      <InterfaceText text={{en: enText, he: heText}} />
+      {isOpen ? <img src="/static/img/arrow-up.png" alt=""/> : <img src="/static/img/arrow-down.png" alt=""/>}
+    </div>
+  );
+};
 DropdownButton.propTypes = {
-  isOpen: PropTypes.bool.isRequired,
-  toggle: PropTypes.func.isRequired,
-  enText: PropTypes.string.isRequired,
-  heText: PropTypes.string.isRequired,
-}
+  isOpen:      PropTypes.bool.isRequired,
+  toggle:      PropTypes.func.isRequired,
+  enText:      PropTypes.string.isRequired,
+  heText:      PropTypes.string.isRequired,
+  buttonStyle: PropTypes.string,
+};
 
 
 class DropdownModal extends Component {

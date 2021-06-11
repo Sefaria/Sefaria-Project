@@ -1,20 +1,24 @@
-import React  from 'react';
-import ReactDOM  from 'react-dom';
-import PropTypes  from 'prop-types';
+import React, { useState } from 'react';
+import ReactDOM from 'react-dom';
+import PropTypes from 'prop-types';
 import Component from 'react-class';
-import extend  from 'extend';
-import classNames  from 'classnames';
-import $  from './sefaria/sefariaJquery';
-import Sefaria  from './sefaria/sefaria';
+import extend from 'extend';
+import classNames from 'classnames';
+import $ from './sefaria/sefariaJquery';
+import Sefaria from './sefaria/sefaria';
 import { FilterNode } from './sefaria/search';
-import SearchTextResult  from './SearchTextResult';
-import SearchSheetResult  from './SearchSheetResult';
-import SearchFilters  from './SearchFilters';
-import SearchState  from './sefaria/searchState';
+import SearchTextResult from './SearchTextResult';
+import SearchSheetResult from './SearchSheetResult';
+import SearchFilters from './SearchFilters';
+import SearchState from './sefaria/searchState';
 import {
+  DropdownModal,
+  DropdownButton,
+  DropdownOptionList,
   InterfaceText,
   LoadingMessage,
 } from './Misc';
+
 
 class SearchResultList extends Component {
     constructor(props) {
@@ -33,9 +37,6 @@ class SearchResultList extends Component {
         pagesLoaded:    this._typeObjDefault(0),
         hits:           this._typeObjDefault([]),
         error:          false,
-        showOverlay:    false,
-        displayFilters: false,
-        displaySort:    false,
       }
 
       // Load search results from cache so they are available for immedate render
@@ -73,9 +74,6 @@ class SearchResultList extends Component {
           totals: this._typeObjDefault(0),
           hits: this._typeObjDefault([]),
           moreToLoad: this._typeObjDefault(true),
-          displayFilters: false,
-          displaySort: false,
-          showOverlay: false
         });
         this._executeAllQueries(newProps);
       } else {
@@ -270,60 +268,42 @@ class SearchResultList extends Component {
     showTexts() {
       this.props.updateTab('text');
     }
-    showResultsOverlay(shouldShow) {
-      //overlay gives opacity to results when either filter box or sort box is open
-      this.setState({showOverlay: shouldShow});
-    }
-    toggleFilterView() {
-      this.showResultsOverlay(!this.state.displayFilters);
-      this.setState({displayFilters: !this.state.displayFilters, displaySort: false});
-    }
-    toggleSortView() {
-      this.showResultsOverlay(!this.state.displaySort);
-      this.setState({displaySort: !this.state.displaySort, displayFilters: false});
-    }
-    closeFilterView() {
-      this.showResultsOverlay(false);
-      this.setState({displayFilters: false});
-    }
-    closeSortView() {
-      this.showResultsOverlay(false);
-      this.setState({displaySort: false});
-    }
     render () {
         if (!(this.props.query)) {  // Push this up? Thought is to choose on the SearchPage level whether to show a ResultList or an EmptySearchMessage.
             return null;
         }
 
-        var { tab } = this.props;
-        var results = [];
+        const { tab }     = this.props;
+        const searchState = this._getSearchState(tab);
+        let results       = [];
 
         if (tab == "text") {
           results = Sefaria.search.mergeTextResultsVersions(this.state.hits.text);
           results = results.filter(result => !!result._source.version).map(result =>
             <SearchTextResult
-                data={result}
-                query={this.props.query}
-                key={result._id}
-                onResultClick={this.props.onResultClick} />);
+              data={result}
+              query={this.props.query}
+              key={result._id}
+              onResultClick={this.props.onResultClick} />
+          );
 
         } else if (tab == "sheet") {
           results = this.state.hits.sheet.map(result =>
-              <SearchSheetResult
-                    data={result}
-                    query={this.props.query}
-                    key={result._id}
-                    onResultClick={this.props.onResultClick} />);
+            <SearchSheetResult
+              data={result}
+              query={this.props.query}
+              key={result._id}
+              onResultClick={this.props.onResultClick} />
+          );
         }
 
-        var loadingMessage   = (<LoadingMessage message="Searching..." heMessage="מבצע חיפוש..." />);
-        var noResultsMessage = (<LoadingMessage message="0 results." heMessage="0 תוצאות." />);
+        const loadingMessage   = (<LoadingMessage message="Searching..." heMessage="מבצע חיפוש..." />);
+        const noResultsMessage = (<LoadingMessage message="0 results." heMessage="0 תוצאות." />);
 
-        var queryFullyLoaded = !this.state.moreToLoad[tab] && !this.state.isQueryRunning[tab];
-        var haveResults      = !!results.length;
-        results              = haveResults ? results : noResultsMessage;
-        //console.log(this.state);
-        //debugger;
+        const queryFullyLoaded = !this.state.moreToLoad[tab] && !this.state.isQueryRunning[tab];
+        const haveResults      = !!results.length;
+        results                = haveResults ? results : noResultsMessage;
+
         return (
           <div>
             <div className="searchTopMatter">
@@ -332,9 +312,13 @@ class SearchResultList extends Component {
                 clickSheetButton={this.showSheets}
                 textTotal={this.state.totals["text"]}
                 sheetTotal={this.state.totals["sheet"]}
-                currentTab={this.props.tab} />
+                currentTab={tab} />
+              <SearchSortBox
+                type={tab}
+                updateAppliedOptionSort={this.props.updateAppliedOptionSort}
+                sortType={searchState.sortType} />                
             </div>
-            <div className={this.state.showOverlay ? "searchResultsOverlay" : ""}>
+            <div className="searchResultList">
               { queryFullyLoaded || haveResults ? results : null }
               { this.state.isQueryRunning[tab] ? loadingMessage : null }
             </div>
@@ -358,7 +342,7 @@ SearchResultList.propTypes = {
 
 const SearchTabs = ({clickTextButton, clickSheetButton, textTotal, sheetTotal, currentTab}) => (
   <div className="type-buttons sans-serif">
-    <SearchTab label={"Texts"} total={textTotal} onClick={clickTextButton} active={currentTab === "text"} />
+    <SearchTab label={"Sources"} total={textTotal} onClick={clickTextButton} active={currentTab === "text"} />
     <SearchTab label={"Sheets"} total={sheetTotal} onClick={clickSheetButton} active={currentTab === "sheet"} />
   </div>
 );
@@ -371,7 +355,7 @@ const SearchTab = ({label, total, onClick, active}) => {
   return (
     <div className={classes} onClick={onClick} onKeyPress={e => {e.charCode === 13 ? onClick(e) : null}} role="button" tabIndex="0">
       <div className="type-button-title">
-        <InterfaceText>{label}</InterfaceText>
+        <InterfaceText>{label}</InterfaceText>&nbsp;
         <InterfaceText>{`(${total})`}</InterfaceText>
       </div>
     </div>
@@ -379,50 +363,38 @@ const SearchTab = ({label, total, onClick, active}) => {
 };
 
 
-/*
-const sort = (
-  <SearchSortBox
-    type={this.props.type}
-    toggleSortView={this.props.toggleSortView}
-    updateAppliedOptionSort={this.props.updateAppliedOptionSort}
-    closeBox={this.props.closeSortView}
-    sortType={this.props.searchState.sortType} />
-);
-*/
+const SearchSortBox = ({type, updateAppliedOptionSort, sortType}) => {
+  const [isOpen, setIsOpen] = useState(false);
 
-class SearchSortBox extends Component {
-  handleClick(sortType) {
-    if (sortType === this.props.sortType) {
+  const handleClick = (newSortType) => {
+    if (sortType === newSortType) {
       return;
     }
-    this.props.updateAppliedOptionSort(sortType);
-    this.props.toggleSortView();
+    updateAppliedOptionSort(type, newSortType);
+    setIsOpen(false);
   }
-  //<i className={(this.props.visible) ? "fa fa-caret-down fa-angle-down":"fa fa-caret-down fa-angle-up"} />
-  render() {
-    const filterTextClasses = classNames({ searchFilterToggle: 1, active: this.props.visible });
-    return (<DropdownModal close={this.props.closeBox} isOpen={this.props.visible}>
+  const filterTextClasses = classNames({ searchFilterToggle: 1, active: isOpen });
+  return (
+    <DropdownModal close={() => {setIsOpen(false)}} isOpen={isOpen}>
       <DropdownButton
-        isOpen={this.props.visible}
-        toggle={this.props.toggleSortView}
+        isOpen={isOpen}
+        toggle={() => {setIsOpen(!isOpen)}}
         enText={"Sort"}
         heText={"מיון"}
+        buttonStyle={true}
       />
       <DropdownOptionList
-        isOpen={this.props.visible}
-        options={SearchState.metadataByType[this.props.type].sortTypeArray}
-        currOptionSelected={this.props.sortType}
-        handleClick={this.handleClick}
+        isOpen={isOpen}
+        options={SearchState.metadataByType[type].sortTypeArray}
+        currOptionSelected={sortType}
+        handleClick={handleClick}
       />
-    </DropdownModal>);
-  }
+    </DropdownModal>
+  );
 }
 SearchSortBox.propTypes = {
   type:                    PropTypes.string.isRequired,
-  visible:                 PropTypes.bool,
-  toggleSortView:          PropTypes.func,
   updateAppliedOptionSort: PropTypes.func,
-  closeBox:                PropTypes.func,
   sortType:                PropTypes.string,
 };
 

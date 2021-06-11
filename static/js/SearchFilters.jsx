@@ -7,9 +7,6 @@ import classNames  from 'classnames';
 import PropTypes from 'prop-types';
 import Component from 'react-class';
 import {
-  DropdownModal,
-  DropdownButton,
-  DropdownOptionList,
   InterfaceText,
   LoadingMessage,
 } from './Misc';
@@ -123,11 +120,11 @@ SearchFilters.propTypes = {
 class TextSearchFilters extends Component {
   render() {
     return (
-      <div className="searchFilterBoxes" role="dialog">
-        <h2>
-          <InterfaceText>Text</InterfaceText>
-        </h2>
-        <div className="searchFilterTextBox">
+      <div className="searchFilterBoxes">
+        <div className="searchFilterGroup">
+          <h2>
+            <InterfaceText>Texts</InterfaceText>
+          </h2>
           {this.props.availableFilters.map(filter => {
             return (
               <SearchFilter
@@ -141,10 +138,10 @@ class TextSearchFilters extends Component {
           })}
         </div>
 
-        <h2>
-          <InterfaceText>Options</InterfaceText>
-        </h2>
-        <div className="searchFilterExactBox">
+        <div className="searchFilterGroup">
+          <h2>
+            <InterfaceText>Options</InterfaceText>
+          </h2>
           <SearchFilterExactBox
             selected={this.props.isExactSearch}
             checkBoxClick={this.props.toggleExactSearch} />
@@ -195,12 +192,14 @@ class SearchFilterExactBox extends Component {
   render() {
     return (
       <li>
-        <input type="checkbox" id="searchFilterExactBox" className="filter" checked={this.props.selected} onChange={this.handleClick}/>
-        <label tabIndex="0" onClick={this.handleClick} onKeyDown={this.handleKeyDown} onKeyPress={this.handleKeyPress}><span></span></label>
+        <div className="checkboxAndText">
+          <input type="checkbox" id="searchFilterExactBox" className="filter" checked={this.props.selected} onChange={this.handleClick}/>
+          <label tabIndex="0" onClick={this.handleClick} onKeyDown={this.handleKeyDown} onKeyPress={this.handleKeyPress}><span></span></label>
         
-        <span className={"filter-title"}>
-          <InterfaceText>Exact Matches Only</InterfaceText>
-        </span>
+         <span className={"filter-title"}>
+            <InterfaceText>Exact Matches Only</InterfaceText>
+          </span>
+        </div>
       </li>
     );
   }
@@ -337,14 +336,14 @@ SearchFilter.propTypes = {
 class SheetSearchFilters extends Component {
   render() {
     const collectionFilters = this.props.availableFilters.filter(filter => filter.aggType === 'collections' && filter.title);
-    const tagFilters = this.props.availableFilters.filter(filter => filter.aggType.match(/^topics/));
+    const tagFilters = this.props.availableFilters.filter(filter => filter.aggType.match(/^topics/) && filter.title);
 
     return (
       <div className="searchFilterBoxes" role="dialog">
-        <h2>
-          <InterfaceText>Topics</InterfaceText>
-        </h2>
-        <div className="searchFilterCategoryBox searchFilterSheetBox">
+        <div className="searchFilterGroup">
+          <h2>
+            <InterfaceText>Topics</InterfaceText>
+          </h2>
           <CollapsibleList 
             items={tagFilters.map(filter => (
               <SearchFilter
@@ -353,16 +352,15 @@ class SheetSearchFilters extends Component {
                 key={filter.aggKey} />))} />
         </div>
 
-        <h2>
-          <InterfaceText>Collections</InterfaceText>
-        </h2>
-        <div className="searchFilterCategoryBox searchFilterSheetBox">
+        <div className="searchFilterGroup">
+          <h2>
+            <InterfaceText>Collections</InterfaceText>
+          </h2>
           <CollapsibleList 
             items={collectionFilters.map(filter => (
               <SearchFilter
                 filter={filter}
                 isInFocus={false}
-                updateSelected={this.props.updateAppliedFilter}
                 key={filter.aggKey} />))} />
         </div>
       </div>
