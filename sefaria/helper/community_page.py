@@ -88,8 +88,8 @@ def get_community_page_items(date=None, language="englsih", diaspora=True, refre
 
   return {
     "parashah": get_parashah_item(data["parashah"], date=date, diaspora=diaspora),
-    "calendar": get_calendar_item(data["calendar"], date=date),
-    "discover": get_discover_item(data["discover"], date=date),
+    "calendar": get_featured_item(data["calendar"], date=date),
+    "discover": get_featured_item(data["discover"], date=date),
     "featured": get_featured_item(data["featured"], date=date),
   }
 
@@ -110,10 +110,8 @@ def get_parashah_item(data, date=None, diaspora=True, interface_lang="english"):
     sheet = sheet_with_customization(todays_data)
     if sheet:
       sheet["heading"] = {
-        "en": "This Week's Torah Portion",
-        "he": "פרשת השבוע"
-        #"en": "On " + parashah_name,
-        #"he": "על " + hebrew_parasha_name(parashah_name)
+        "en": "This Week's Torah Portion: " + parashah_name,
+        "he": "פרשת השבוע: " + hebrew_parasha_name(parashah_name)
       }
 
   if not parashah_topic and not sheet:
@@ -123,74 +121,6 @@ def get_parashah_item(data, date=None, diaspora=True, interface_lang="english"):
     "topic": parashah_topic.contents() if parashah_topic else None,
     "sheet": sheet
   }
-
-
-def get_calendar_item(data, date):
-  todays_data = get_todays_data(data, date)
-  if not todays_data or not todays_data["Topic URL"]:
-    return None
-
-  topic = topic_from_url(todays_data["Topic URL"])
-  if not topic:
-    return None
-
-  topic["date"] = todays_data["Displayed Date"]
-  if len(todays_data["Custom About Title"]):
-    topic["primaryTitle"] = {"en": todays_data["Custom About Title"], "he": todays_data["Custom About Title"]}
-
-  if todays_data["Sheet URL"]:
-    sheet = sheet_with_customization(todays_data)
-    if sheet:
-      sheet["heading"] = {
-        "en": topic["primaryTitle"]["en"],
-        "he": topic["primaryTitle"]["he"],
-      }
-  else:
-    sheet = None
-
-  if not sheet:
-    return None
-
-  return {
-    "topic": topic,
-    "sheet": sheet
-  }
-
-
-def get_discover_item(data, date):
-  todays_data = get_todays_data(data, date)
-  if not todays_data or not todays_data["Sheet URL"]:
-    return None
-
-  try:
-    oRef = Ref(todays_data["Citation"])
-    about = {
-      "title": todays_data["Description Title"],
-      "description": todays_data["Description"],
-      "ref": {
-        "url": oRef.url(),
-        "en": oRef.normal(),
-        "he": oRef.he_normal(),
-      },
-      "category": {
-        "en": oRef.index.get_primary_category(),
-        "he": hebrew_term(oRef.index.get_primary_category()),
-      }
-    }
-
-    sheet = sheet_with_customization(todays_data)
-    sheet["heading"] = {
-      "en": "On " + about["category"]["en"],
-      "he": "על ה" + about["category"]["he"],
-    }
-
-    return {
-      "about": about,
-      "sheet": sheet
-    }
-
-  except:
-    return None
 
 
 def get_featured_item(data, date):
