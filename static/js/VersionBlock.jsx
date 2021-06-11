@@ -137,9 +137,9 @@ class VersionBlock extends Component {
       return "#"; // there's no url for a merged version
     }
     const withParam = versionParam === 'side' ? "&with=Translation Open" : "";
-    const nonSelectedVersionParams = Object.keys(this.props.currObjectVersions)
-                                      .filter(vlang=>!!this.props.currObjectVersions[vlang] && (versionParam === 'side' || vlang !== this.props.version.language))  // in 'side' case, keep all version params
-                                      .map(vlang=>`&v${vlang}=${this.props.currObjectVersions[vlang].versionTitle.replace(/\s/g,'_')}`)
+    const nonSelectedVersionParams = Object.entries(this.props.currObjectVersions)
+                                      .filter(([vlang, version])=>!!version && !version?.merged && (versionParam === 'side' || vlang !== this.props.version.language))  // in 'side' case, keep all version params
+                                      .map(([vlang, version])=>`&v${vlang}=${version.versionTitle.replace(/\s/g,'_')}`)
                                       .join("");
     const versionLink = nonSelectedVersionParams == "" ? null : `/${Sefaria.normRef(this.props.currentRef)}${nonSelectedVersionParams}&v${versionParam}=${this.props.version.versionTitle.replace(/\s/g,'_')}${withParam}`.replace("&","?");
     return versionLink;
@@ -447,7 +447,6 @@ VersionsBlocksList.propTypes={
   versionsByLanguages: PropTypes.object.isRequired,
   currObjectVersions: PropTypes.object,
   displayCurrentVersions: PropTypes.bool,
-  mainVersionLanguage: PropTypes.string.isRequired,
   sortPrioritizeLanugage: PropTypes.string,
   currentRef: PropTypes.string,
   getLicenseMap: PropTypes.func,
