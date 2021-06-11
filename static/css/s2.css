@@ -7033,6 +7033,12 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 .collectionPage .collectionContentsTag {
   font-size: 24px;
 }
+.collectionPage .sheetIcon {
+  display: none;
+}
+.collectionPage .filterable-list .sheet a.sheetTitle {
+  font-size:  24px;
+}
 .collectionPage .searchInCollectionLink {
   font-size:  16px;
   color: var(--dark-grey);
@@ -7041,8 +7047,6 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 }
 .collectionInvitationBox {
   padding-bottom: 20px;
-}
-.collectionInvitationBoxInner {
 }
 .interface-hebrew .collectionInvitationBox input::placeholder {
   font-family: "Heebo", sans-serif;
