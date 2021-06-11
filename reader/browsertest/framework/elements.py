@@ -10,6 +10,7 @@ import traceback
 import sys
 
 import urllib.parse
+from urllib3.exceptions import MaxRetryError
 
 from selenium import webdriver
 from appium import webdriver as appium_webdriver
@@ -1648,14 +1649,23 @@ class Trial(object):
                 driver = cap()
         elif self.platform == "sauce":
             assert cap is not None
-            if cap.get("appiumVersion") is not None:
-                driver = appium_webdriver.Remote(
-                    command_executor='https://{}:{}@ondemand.us-west-1.saucelabs.com:443/wd/hub'.format(SAUCE_USERNAME, SAUCE_ACCESS_KEY),
-                    desired_capabilities=cap)
-            else:
-                driver = webdriver.Remote(
-                    command_executor='https://{}:{}@ondemand.us-west-1.saucelabs.com:443/wd/hub'.format(SAUCE_USERNAME, SAUCE_ACCESS_KEY),
-                    desired_capabilities=cap)
+
+            MAX_ATTEMPTS = 3
+            attempt = 0
+            while attempt < MAX_ATTEMPTS:
+                try:
+                    if cap.get("appiumVersion") is not None:
+                        driver = appium_webdriver.Remote(
+                            command_executor='https://{}:{}@ondemand.us-west-1.saucelabs.com:443/wd/hub'.format(SAUCE_USERNAME, SAUCE_ACCESS_KEY),
+                            desired_capabilities=cap)
+                    else:
+                        driver = webdriver.Remote(
+                            command_executor='https://{}:{}@ondemand.us-west-1.saucelabs.com:443/wd/hub'.format(SAUCE_USERNAME, SAUCE_ACCESS_KEY),
+                            desired_capabilities=cap)
+                    break
+                except MaxRetryError:
+                    attempt += 1
+
         elif self.platform == "localselenium":
             assert cap is not None
 
@@ -1713,7 +1723,10 @@ class Trial(object):
                 result = test_instance.run()
 
                 if self.platform == "sauce":
-                    self.set_sauce_result(driver, result.success)
+                    try:
+                        self.set_sauce_result(driver, result.success)
+                    except WebDriverException:      # Sometimes an earlier test infrastructure fail makes this throw
+                        pass
 
                 driver.quit()       # had been if not self.is_local:  why?
 
