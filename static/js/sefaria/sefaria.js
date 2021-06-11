@@ -2360,32 +2360,41 @@ _media: {},
         return name;
     }
   },
-  _r: function (inputRef) {
-    const oref = Sefaria.getRefFromCache(inputRef);
-    if (!oref) { return inputRef; }
-    return Sefaria.interfaceLang != "english" ? oref.heRef : oref.ref;
+  hebrewTranslation: function(inputStr, context = null){
+    let translatedString = null;
+    if (context && context in Sefaria._i18nInterfaceStringsWithContext){
+      let translatedString = Sefaria._getStringCaseInsensitive(Sefaria._i18nInterfaceStringsWithContext[context], inputStr);
+      if (typeof translatedString !== "undefined") return translatedString;
+    }
+    if (translatedString = Sefaria._getStringCaseInsensitive(Sefaria._i18nInterfaceStrings, inputStr)) {
+      return translatedString;
+    }
+    if ((translatedString = Sefaria.hebrewTerm(inputStr)) != inputStr) {
+      return translatedString;
+    }
+    if (inputStr.indexOf(" | ") !== -1) {
+      var inputStrs = inputStr.split(" | ");
+      return Sefaria._(inputStrs[0])+ " | " + Sefaria._(inputStrs[1]);
+    } else {
+      //console.warn("Missing Hebrew translation for: " + inputStr);
+      return inputStr;
+    }
+  },
+  translation: function(language, inputStr, context=null){
+      const translationMatrix = {
+          "he": Sefaria.hebrewTranslation
+      };
+      try {
+          return translationMatrix[language.slice(0,2)](inputStr, context);
+      }catch (e){
+          console.warn("No transaltion available for " + language)
+          return inputStr;
+      }
   },
   _: function(inputStr, context=null){
     if (!inputStr.toLowerCase) debugger;
     if(Sefaria.interfaceLang != "english"){
-        let translatedString = null;
-        if (context && context in Sefaria._i18nInterfaceStringsWithContext){
-          let translatedString = Sefaria._getStringCaseInsensitive(Sefaria._i18nInterfaceStringsWithContext[context], inputStr);
-          if (typeof translatedString !== "undefined") return translatedString;
-        }
-        if (translatedString = Sefaria._getStringCaseInsensitive(Sefaria._i18nInterfaceStrings, inputStr)) {
-          return translatedString;
-        }
-        if ((translatedString = Sefaria.hebrewTerm(inputStr)) != inputStr) {
-          return translatedString;
-        }
-        if (inputStr.indexOf(" | ") !== -1) {
-          var inputStrs = inputStr.split(" | ");
-          return Sefaria._(inputStrs[0])+ " | " + Sefaria._(inputStrs[1]);
-        } else {
-          //console.warn("Missing Hebrew translation for: " + inputStr);
-          return inputStr;
-        }
+      return Sefaria.translation(Sefaria.interfaceLang, inputStr, context);
     } else {
       return inputStr;
     }
@@ -2398,6 +2407,11 @@ _media: {},
     */
     const lang = Sefaria.interfaceLang.slice(0,2);
     return langOptions[lang] ? langOptions[lang] : "";
+  },
+  _r: function (inputRef) {
+    const oref = Sefaria.getRefFromCache(inputRef);
+    if (!oref) { return inputRef; }
+    return Sefaria.interfaceLang != "english" ? oref.heRef : oref.ref;
   },
   _getStringCaseInsensitive: function (store, inputStr){
      return inputStr in store ? store[inputStr] : inputStr.toLowerCase() in store ? store[inputStr.toLowerCase()] : null;

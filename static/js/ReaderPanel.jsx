@@ -752,6 +752,7 @@ class ReaderPanel extends Component {
                     title={this.state.bookRef}
                     currVersions={this.state.currVersions}
                     settingsLanguage={this.state.settings.language == "hebrew"?"he":"en"}
+                    toggleLanguage={this.toggleLanguage}
                     category={Sefaria.index(this.state.bookRef).primary_category}
                     currentRef={this.state.bookRef}
                     compare={this.state.compare}

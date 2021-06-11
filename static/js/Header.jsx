@@ -11,7 +11,6 @@ import {
   ProfilePic,
   InterfaceLanguageMenu,
   InterfaceText,
-  LanguageToggleButton,
 } from './Misc';
 
 
@@ -45,7 +44,7 @@ class Header extends Component {
     const headerContent = (
       <>
         <div className="headerNavSection">
-          { Sefaria._siteSettings.TORAH_SPECIFIC ? 
+          { Sefaria._siteSettings.TORAH_SPECIFIC ?
           <a className="home" href="/" >{logo}</a> : null }
           <a href="/texts" className="library"><InterfaceText>Texts</InterfaceText></a>
           <a href="/topics" className="library"><InterfaceText>Topics</InterfaceText></a>
@@ -54,7 +53,7 @@ class Header extends Component {
         </div>
 
         <div className="headerLinksSection">
-          <SearchBar 
+          <SearchBar
             onRefClick={this.props.onRefClick}
             showSearch={this.props.showSearch}
             openTopic={this.props.openTopic}
@@ -65,12 +64,12 @@ class Header extends Component {
             : <LoggedOutButtons headerMode={this.props.headerMode}/>
           }
           { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ? <HelpButton /> : null}
-          { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ? 
+          { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ?
               <InterfaceLanguageMenu currentLang={Sefaria.interfaceLang} /> : null}
         </div>
       </>
     );
-    
+
     const mobileHeaderContent = (
       <>
         <div>
@@ -78,12 +77,12 @@ class Header extends Component {
             <i className="fa fa-bars"></i>
           </button>
         </div>
-        
+
         <div className="mobileHeaderCenter">
-          { Sefaria._siteSettings.TORAH_SPECIFIC ? 
+          { Sefaria._siteSettings.TORAH_SPECIFIC ?
           <a className="home" onClick={this.props.onMobileMenuButtonClick} href="/" >{logo}</a> : null }
         </div>
-        
+
         {this.props.hasLanguageToggle ?
         <div className={this.props.firstPanelLanguage + " mobileHeaderLanguageToggle"}>
           <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} />
@@ -311,16 +310,16 @@ class SearchBar extends Component {
           this.clearSearchBox();
           this.props.onRefClick(d["ref"]);  //todo: pass an onError function through here to the panel onError function which redirects to search
           this.props.onNavigate && this.props.onNavigate();
-        
+
         } else if (!!d["topic_slug"]) {
           Sefaria.track.event("Search", "Search Box Navigation - Topic", query);
           this.clearSearchBox();
           this.props.openTopic(d["topic_slug"]);
           this.props.onNavigate && this.props.onNavigate();
-        
+
         } else if (d["type"] === "Person" || d["type"] === "Collection" || d["type"] === "TocCategory") {
           this.redirectToObject(d["type"], d["key"]);
-        
+
         } else {
           Sefaria.track.event("Search", "Search Box Search", query);
           this.closeSearchAutocomplete();
@@ -357,7 +356,7 @@ class SearchBar extends Component {
       hebrewSearch: Sefaria.interfaceLang === "hebrew"
     });
     const searchBoxClasses = classNames({searchBox: 1, searchFocused: this.state.searchFocused});
-    
+
     return (
       <div id="searchBox" className={searchBoxClasses}>
         <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
@@ -408,7 +407,7 @@ const LoggedOutButtons = ({mobile, loginOnly}) => {
       {loginOnly ? null :
       <a className="login signupLink" href={registerLink} key={`register${isClient}`}>
          {mobile ? <img src="/static/icons/register.svg" /> : null }
-         <InterfaceText>Sign up</InterfaceText> 
+         <InterfaceText>Sign up</InterfaceText>
       </a> }
     </div>
   );
@@ -428,7 +427,7 @@ const LoggedInButtons = ({headerMode}) => {
     <div className="accountLinks">
       <a href="/texts/saved" aria-label="See My Saved Texts">
         <img src="/static/icons/bookmarks.svg" />
-      </a>      
+      </a>
       <a href="/notifications" aria-label="See New Notifications" key={`notificationCount-C-${unread}`} className={notificationsClasses}>
         <img src="/static/icons/notification.svg" />
       </a>
@@ -478,7 +477,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
 
       <div className="mobileAccountLinks">
         {Sefaria._uid ?
-        <> 
+        <>
           <a href="/my/profile" onClick={close}>
             <ProfilePic len={22} url={Sefaria.profile_pic_url} name={Sefaria.full_name} />
             <InterfaceText>Profile</InterfaceText>
@@ -492,19 +491,19 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
             <InterfaceText>Notifications</InterfaceText>
           </a>
         </> : null }
-        
+
         <a href="/about">
           <img src="/static/icons/info.svg" />
           <InterfaceText>About Sefaria</InterfaceText>
         </a>
 
         <MobileInterfaceLanguageToggle />
-        
+
         <a href="/help">
           <img src="/static/icons/help.svg" />
           <InterfaceText>Get Help</InterfaceText>
         </a>
-        
+
         {Sefaria._uid ?
         <a href="/logout" className="logout">
           <img src="/static/icons/logout.svg" />
@@ -605,8 +604,8 @@ const ProfilePicMenu = ({len, url, name}) => {
 
 const MobileInterfaceLanguageToggle = () => {
   const currentURL = encodeURIComponent(Sefaria.util.currentPath());
-  
-  const links = Sefaria.interfaceLang == "hebrew" ? 
+
+  const links = Sefaria.interfaceLang == "hebrew" ?
     <>
       <a href={"/interface/hebrew?next=" + currentURL} className="int-he">תירבע</a>
       <span className="separator">•</span>

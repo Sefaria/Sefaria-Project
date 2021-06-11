@@ -1350,8 +1350,8 @@ class AddConnectionBox extends Component {
     }
   }
   getHeRefs(refs) {
-    var heRefs = refs.map( ref =>  {
-      var oRef = Sefaria.ref(ref);
+    let heRefs = refs.map( ref =>  {
+      let oRef = Sefaria.ref(ref);
       if (!oRef) {
         // If a range was selected, the ref cache may not have a Hebrew ref for us, so ask the API
         Sefaria.getRef(ref).then(this.setHeRefs);
@@ -1364,16 +1364,16 @@ class AddConnectionBox extends Component {
   setHeRefs() {
     this.setState({heRefs: this.getHeRefs(this.state.refs)});
   }
-  setType(type) {
-    this.setState({type: type});
+  setType(event) {
+    this.setState({type: event.target.value});
   }
   addConnection() {
-    var connection = {
+    let connection = {
       refs: this.props.srefs,
       type: this.state.type,
     };
-    var postData = { json: JSON.stringify(connection) };
-    var url = "/api/links/";
+    let postData = { json: JSON.stringify(connection) };
+    const url = "/api/links/";
     $.post(url, postData, function(data) {
       if (data.error) {
         alert(data.error);
@@ -1388,8 +1388,8 @@ class AddConnectionBox extends Component {
     this.setState({saving: true});
   }
   render() {
-    var refs = this.state.refs;
-    var heRefs = this.state.heRefs;
+    const refs = this.state.refs;
+    const heRefs = this.state.heRefs;
     return (<div className="addConnectionBox">
 
             { this.props.srefs.length == 1 ?
@@ -1420,6 +1420,7 @@ class AddConnectionBox extends Component {
                 </div>
 
                 <Dropdown
+                  name="connectionType"
                   options={[
                             {value: "",               label: Sefaria._("None", "AddConnectionBox")},
                             {value: "commentary",     label: Sefaria._("Commentary", "AddConnectionBox")},
@@ -1431,7 +1432,7 @@ class AddConnectionBox extends Component {
                             {value: "related",        label: Sefaria._("Related Passage", "AddConnectionBox")}
                           ]}
                   placeholder={Sefaria._("Select Type", "AddConnectionBox")}
-                  onSelect={this.setType} />
+                  onChange={this.setType} />
 
                 <div className="button fillWidth" onClick={this.addConnection}>
                   <span className="int-en">Add Connection</span>

@@ -3,10 +3,7 @@ import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Sefaria  from './sefaria/sefaria';
 import {NewsletterSignUpForm} from './Misc'
-import {
-  InterfaceText,
-  ProfileListing,
-} from './Misc';
+import {InterfaceText, ProfileListing, Dropdown} from './Misc';
 
 const NavSidebar = ({modules}) => {
   return <div className="navSidebar sans-serif">
@@ -212,7 +209,7 @@ const AboutText = ({index, hideTitle}) => {
 
         {composed ?
         <div className="aboutTextComposed">
-          <InterfaceText>Composed:</InterfaceText>
+          <InterfaceText>Composed</InterfaceText>:
           <span className="aboutTextComposedText">
             &nbsp;<InterfaceText>{composed}</InterfaceText>
           </span>
@@ -619,13 +616,16 @@ const DownloadVersions = ({sref}) => {
     const versionDlLink = () => {
         return isReady ? `/download/version/${sref} - ${downloadSelected.dlVersionLanguage} - ${downloadSelected.dlVersionTitle}.${downloadSelected.dlVersionFormat}` : "#";
     }
-    const recordDownload = (event) => {
+    const handleClick = (event) => {
         if(!isReady) {
             event.preventDefault();
             return false;
         }
-        Sefaria.track.event("Reader", "Version Download", `${sref} / ${downloadSelected.dlVersionTitle} / ${downloadSelected.dlVersionLanguage} / ${downloadSelected.dlVersionFormat}`);
+        recordDownload();
         return true;
+    }
+    const recordDownload = () => {
+        Sefaria.track.event("Reader", "Version Download", `${sref} / ${downloadSelected.dlVersionTitle} / ${downloadSelected.dlVersionLanguage} / ${downloadSelected.dlVersionFormat}`);
     }
     useEffect(() => {
         Sefaria.versions(sref, false, [], false).then(data => {
@@ -639,29 +639,29 @@ const DownloadVersions = ({sref}) => {
         <Module>
           <ModuleTitle>Download Text</ModuleTitle>
           <div className="downloadTextModule sans-serif">
-          <select name="dlVersionName" defaultValue={"DEFAULT"} className="dlVersionSelect dlVersionTitleSelect" onChange={handleInputChange}>
-             <option value="DEFAULT" disabled hidden>{Sefaria._( "Select Version", "DownloadVersions")}</option>
-            {
-             versions.map(v =>
-             <option dir="auto" value={v.versionTitle + "/" + v.language} key={v.versionTitle + "/" + v.language}>
-                 {
-                    `
-                    ${Sefaria._v({he: v.versionTitleInHebrew ? v.versionTitleInHebrew : v.versionTitle, en: v.versionTitle})}
-                    (${Sefaria._(Sefaria.translateISOLanguageCode(v.actualLanguage))})
-                    `
-                 }
-             </option>
-             )
-            }
-          </select>
-          <select name="dlVersionFormat" defaultValue={"DEFAULT"} className="dlVersionSelect dlVersionFormatSelect" onChange={handleInputChange}>
-            <option value="DEFAULT" disabled  hidden>{Sefaria._( "Select Format", "DownloadVersions")}</option>
-            <option key="txt" value="txt" >{Sefaria._( "Text (with Tags)", "DownloadVersions")}</option>
-            <option key="plain.txt" value="plain.txt" >{Sefaria._( "Text (without Tags)", "DownloadVersions")}</option>
-            <option key="csv" value="csv" >CSV</option>
-            <option key="json" value="json" >JSON</option>
-          </select>
-          <a className={`button${isReady ? "" : " disabled"}`} onClick={recordDownload} href={versionDlLink()} download>{Sefaria._("Download")}</a>
+          <Dropdown
+              name="dlVersionName"
+              options={
+                versions.map(v => ({
+                    value: `${v.versionTitle}/${v.language}`,
+                    label: `${Sefaria._v({he: v.versionTitleInHebrew ? v.versionTitleInHebrew : v.versionTitle, en: v.versionTitle})} (${Sefaria._(Sefaria.translateISOLanguageCode(v.actualLanguage))})`
+                }))
+              }
+              placeholder={Sefaria._( "Select Version", "DownloadVersions")}
+              onChange={handleInputChange}
+          />
+          <Dropdown
+              name="dlVersionFormat"
+              options={[
+                {value: "txt",       label: Sefaria._( "Text (with Tags)", "DownloadVersions")},
+                {value: "plain.txt", label: Sefaria._( "Text (without Tags)", "DownloadVersions")},
+                {value: "csv",       label: "CSV"},
+                {value: "json",      label: "JSON"},
+              ]}
+              placeholder={Sefaria._("Select Format", "DownloadVersions")}
+              onChange={handleInputChange}
+          />
+          <a className={`button fillWidth${isReady ? "" : " disabled"}`} onClick={handleClick} href={versionDlLink()} download>{Sefaria._("Download")}</a>
         </div>
         </Module>
     );

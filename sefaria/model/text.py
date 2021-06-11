@@ -3351,7 +3351,13 @@ class Ref(object, metaclass=RefCacheType):
             first_leaf = self.index_node.first_leaf()
             if not first_leaf:
                 return None
-            r = first_leaf.ref().padded_ref()
+            try:
+                r = first_leaf.ref().padded_ref()
+            except Exception as e: #VirtualNodes dont have a .ref() function so fall back to VersionState
+               if self.is_book_level():
+                   from .version_state import VersionState
+                   vs = VersionState(self.index, proj={"title": 1, "first_section_ref": 1})
+                   return Ref(vs.first_section_ref) if (vs is not None) else None
         else:
             return None
 

@@ -1961,7 +1961,8 @@ class Dropdown extends Component {
   }
   select(option) {
     this.setState({selected: option, optionsOpen: false});
-    this.props.onSelect && this.props.onSelect(option.value);
+    const event = {target: {name: this.props.name, value: option.value}}
+    this.props.onChange && this.props.onChange(event);
   }
   toggle() {
     this.setState({optionsOpen: !this.state.optionsOpen});
@@ -1969,16 +1970,17 @@ class Dropdown extends Component {
   render() {
     return (
         <div className="dropdown sans-serif">
-          <div className="dropdownMain noselect" onClick={this.toggle}>
-            <i className="dropdownOpenButton noselect fa fa-caret-down"></i>
-            {this.state.selected ? this.state.selected.label : this.props.placeholder }
+          <div className={`dropdownMain noselect${this.state.selected ? " selected":""}`} onClick={this.toggle}>
+            <span>{this.state.selected ? this.state.selected.label : this.props.placeholder}</span>
+            <img src="/static/icons/chevron-down.svg" className="dropdownOpenButton noselect fa fa-caret-down"/>
+
           </div>
           {this.state.optionsOpen ?
             <div className="dropdownListBox noselect">
               <div className="dropdownList noselect">
                 {this.props.options.map(function(option) {
-                  var onClick = this.select.bind(null, option);
-                  var classes = classNames({dropdownOption: 1, selected: this.state.selected && this.state.selected.value == option.value});
+                  const onClick = this.select.bind(null, option);
+                  const classes = classNames({dropdownOption: 1, selected: this.state.selected && this.state.selected.value == option.value});
                   return <div className={classes} onClick={onClick} key={option.value}>{option.label}</div>
                 }.bind(this))}
               </div>
@@ -1989,7 +1991,8 @@ class Dropdown extends Component {
 }
 Dropdown.propTypes = {
   options:     PropTypes.array.isRequired, // Array of {label, value}
-  onSelect:    PropTypes.func,
+  name:        PropTypes.string.isRequired,
+  onChange:    PropTypes.func,
   placeholder: PropTypes.string,
   selected:    PropTypes.string,
 };
@@ -2087,7 +2090,7 @@ class FeedbackBox extends Component {
       return
     }
 
-    var feedback = {
+    let feedback = {
         refs: this.props.srefs || null,
         type: this.state.type,
         url: this.props.url || null,
@@ -2096,8 +2099,8 @@ class FeedbackBox extends Component {
         msg: $("#feedbackText").val(),
         uid: Sefaria._uid || null
     };
-    var postData = {json: JSON.stringify(feedback)};
-    var url = "/api/send_feedback";
+    let postData = {json: JSON.stringify(feedback)};
+    const url = "/api/send_feedback";
 
     this.setState({feedbackSent: true});
 
@@ -2114,23 +2117,23 @@ class FeedbackBox extends Component {
     });
   }
   validateEmail(email) {
-    var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     return re.test(email);
   }
-  setType(type) {
-    this.setState({type: type});
+  setType(event) {
+    this.setState({type: event.target.value});
   }
   render() {
     if (this.state.feedbackSent) {
         return (
-            <div className="feedbackBox">
+            <div className="feedbackBox sans-serif">
                 <p className="int-en">Feedback sent!</p>
                 <p className="int-he">משוב נשלח!</p>
             </div>
         )
     }
     return (
-        <div className="feedbackBox">
+        <div className="feedbackBox sans-serif">
             <p className="int-en">Have some feedback? We would love to hear it.</p>
             <p className="int-he">אנחנו מעוניינים במשוב ממך</p>
 
@@ -2143,6 +2146,7 @@ class FeedbackBox extends Component {
             }
 
             <Dropdown
+              name="feedbackType"
               options={[
                         {value: "content_issue",   label: Sefaria._("Report an issue with the text")},
                         {value: "translation_request",   label: Sefaria._("Request translation")},
@@ -2153,7 +2157,7 @@ class FeedbackBox extends Component {
                         {value: "other",           label: Sefaria._("Other")},
                       ]}
               placeholder={Sefaria._("Select Type")}
-              onSelect={this.setType}
+              onChange={this.setType}
             />
 
             <textarea className="feedbackText" placeholder={Sefaria._("Describe the issue...")} id="feedbackText"></textarea>
