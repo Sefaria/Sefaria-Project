@@ -59,27 +59,6 @@ class SearchResultList extends Component {
         }
       });
     }
-    updateRunningQuery(type, ajax) {
-      this.state.runningQueries[type] = ajax;
-      this.state.isQueryRunning[type] = !!ajax;
-      this.setState(this.state);
-    }
-    updateLastAppliedAggType(aggType) {
-      this.lastAppliedAggType[this.props.tab] = aggType;
-    }
-    _typeObjDefault(defaultValue) {
-      // es6 version of dict comprehension...
-      return this.types.reduce((obj, k) => { obj[k] = defaultValue; return obj; }, {});
-    }
-    _abortRunningQueries() {
-      this.types.forEach(t => this._abortRunningQuery(t));
-    }
-    _abortRunningQuery(type) {
-      if(this.state.runningQueries[type]) {
-          this.state.runningQueries[type].abort();  //todo: make work with promises
-      }
-      this.updateRunningQuery(type, null);
-    }
     componentDidMount() {
         this._executeAllQueries();
         $(ReactDOM.findDOMNode(this)).closest(".content").on("scroll.infiteScroll", this.handleScroll);
@@ -110,8 +89,29 @@ class SearchResultList extends Component {
             this.setState(state);
             this._executeQuery(newProps, t);
           }
-        })
+        });
       }
+    }
+    updateRunningQuery(type, ajax) {
+      this.state.runningQueries[type] = ajax;
+      this.state.isQueryRunning[type] = !!ajax;
+      this.setState(this.state);
+    }
+    updateLastAppliedAggType(aggType) {
+      this.lastAppliedAggType[this.props.tab] = aggType;
+    }
+    _typeObjDefault(defaultValue) {
+      // es6 version of dict comprehension...
+      return this.types.reduce((obj, k) => { obj[k] = defaultValue; return obj; }, {});
+    }
+    _abortRunningQueries() {
+      this.types.forEach(t => this._abortRunningQuery(t));
+    }
+    _abortRunningQuery(type) {
+      if(this.state.runningQueries[type]) {
+          this.state.runningQueries[type].abort();  //todo: make work with promises
+      }
+      this.updateRunningQuery(type, null);
     }
     handleScroll() {
       var tab = this.props.tab;
@@ -207,8 +207,8 @@ class SearchResultList extends Component {
                 }
                 this.props.registerAvailableFilters(type, availableFilters, registry, orphans, args.aggregationsToUpdate);
               }
-          };
-      args.error = this._handle_error;
+            };
+      args.error = this._handleError;
 
       const runningQuery = Sefaria.search.execute_query(args);
       this.updateRunningQuery(type, runningQuery);
@@ -255,14 +255,14 @@ class SearchResultList extends Component {
       const runningNextPageQuery = Sefaria.search.execute_query(args);
       this.updateRunningQuery(type, runningNextPageQuery, false);
     }
-    _handle_error(jqXHR, textStatus, errorThrown) {
-        if (textStatus == "abort") {
-            // Abort is immediately followed by new query, above.  Worried there would be a race if we call updateCurrentQuery(null) from here
-            //this.updateCurrentQuery(null);
-            return;
-        }
-        this.setState({error: true});
-        this.updateRunningQuery(null, null);
+    _handleError(jqXHR, textStatus, errorThrown) {
+      if (textStatus == "abort") {
+        // Abort is immediately followed by new query, above.  Worried there would be a race if we call updateCurrentQuery(null) from here
+        //this.updateCurrentQuery(null);
+        return;
+      }
+      this.setState({error: true});
+      this.updateRunningQuery(null, null);
     }
     showSheets() {
       this.props.updateTab('sheet');
