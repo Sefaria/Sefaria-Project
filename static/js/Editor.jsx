@@ -805,7 +805,7 @@ const getNextSheetItemPath = (SheetItemPath) => {
     return path
 };
 
-async function getRefInText(editor, additionalOffset=0) {
+async function getRefInText(editor, returnSourceIfFound) {
 
   const closestSheetOutsideText = getClosestSheetElement(editor, editor.selection.focus.path, "SheetOutsideText")
   if (!closestSheetOutsideText) {return {}}
@@ -824,10 +824,10 @@ async function getRefInText(editor, additionalOffset=0) {
     for (const query of match) {
       if (query.length > 50 || query.trim() == "") {continue}
 
-      const ref = await Sefaria.getName(query)
+      const ref = await Sefaria.getName(query.replace(/[\.:]$/, ""))
       .then(d => {  return d    });
 
-      const selectDistance = query.replace("\n","").length + additionalOffset;
+      const selectDistance = query.replace("\n","").length;
 
       if (ref["is_ref"]) {
         for (const [node, path] of Node.texts(i[0])) {
@@ -835,7 +835,7 @@ async function getRefInText(editor, additionalOffset=0) {
         }
 
 
-        if(ref["is_segment"] || ref["is_section"]) {
+        if(returnSourceIfFound && (ref["is_segment"] || ref["is_section"])) {
           Transforms.select(editor, Editor.end(editor, paragraphPath));
           Transforms.move(editor, { distance: selectDistance, unit: 'character', reverse: true, edge: 'anchor' })
           Editor.removeMark(editor, "isRef")
@@ -924,7 +924,7 @@ const withSefariaSheet = editor => {
                 return
             }
 
-        getRefInText(editor).then(query =>{
+        getRefInText(editor, true).then(query =>{
             if(query["is_segment"] || query["is_section"]) {
               return
             }
@@ -1803,9 +1803,9 @@ const SefariaEditor = (props) => {
           }
         }
 
-        // add ref on space if end of line
-        if (event.key == " ") {
-            getRefInText(editor, 1)
+        // Add or remove ref highlighting
+        if (event.key == " " || Node.get(editor, editor.selection.focus.path).isRef) {
+            getRefInText(editor, false)
         }
     };
 
