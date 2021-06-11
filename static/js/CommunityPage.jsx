@@ -21,7 +21,6 @@ const CommunityPage = ({multiPanel, toggleSignUpModal, initialWidth}) => {
     {type: "JoinTheConversation"},
     {type: "WhoToFollow", props: {toggleSignUpModal}},
     {type: "ExploreCollections"},
-    {type: "GetTheApp"},
     {type: "SupportSefaria", props: {blue: true}},
     {type: "StayConnected"},
   ];
@@ -84,7 +83,7 @@ const RecenltyPublished = ({multiPanel, toggleSignUpModal}) => {
     </div>
   );
   if (recentSheets) {
-    recentSheetsContent.splice(2, 0, joinTheConversation);
+    recentSheetsContent.splice(6, 0, joinTheConversation);
     recentSheetsContent.push(
       <a className="button small white loadMore" onClick={loadMore}>
         <InterfaceText>Load More</InterfaceText>
