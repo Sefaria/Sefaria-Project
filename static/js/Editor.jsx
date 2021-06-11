@@ -629,7 +629,7 @@ const Element = props => {
     const sheetItemClasses = {
         sheetItem: 1,
         empty: !(Node.string(element)),
-        noPointer: element.type !== ("SheetSource" || "SheetOutsideBiText"),
+        noPointer: ["SheetSource", "SheetOutsideBiText"].indexOf(element.type) === -1,
         highlight: (useSlate().highlightedNode === element.node)
     };
 
