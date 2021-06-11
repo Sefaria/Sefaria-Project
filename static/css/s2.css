@@ -1417,7 +1417,7 @@ div.interfaceLinks-row a {
   direction: rtl;
 }
 .navSidebar {
-  width: 390px;
+  width: 420px;
   background-color: #FBFBFA;
   /* HACK: add grey background beyond bounding box of sidebar by utilizing negative margins! */
   border-top: 80px solid #FBFBFA;
@@ -3141,36 +3141,33 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item {
 body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus {
   text-decoration: underline;
 }
-.searchContentFrame h1 {
+.searchContent h1 {
   direction: ltr;
   height: 40px;
+  font-size: 30px;
+  color: #000;
+  --english-font: var(--english-serif-font-family);
+  --hebrew-font:  var(--hebrew-serif-font-family);
 }
-.searchContentFrame h1.englishQuery {
+.searchContent h1.englishQuery {
   font-size: 30px;
 }
-.searchContentFrame h1.hebrewQuery {
-  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
-  font-size: 30px;
-}
-.searchContent {
-  padding: 0 10px 100px;
+.searchContent h1.hebrewQuery {
+  font-family: var(--hebrew-serif-font-family);
 }
 .searchContent .searchTopMatter {
-  padding-bottom: 10px;
-  margin-bottom: 30px;
   position: relative;
+  border-bottom: 1px solid var(--light-grey);
 }
-.searchTopMatter .filterSortFlexbox {
-  display: flex;
-  flex-direction: row;
-  margin-bottom: 4px;  /* to vertically align with type-buttons */
-}
-.searchTopMatter .searchButtonsBar {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid #CCC;
+.searchContent .searchFilters h2 {
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: 22px;
+  text-transform: none;
+  color: var(--dark-grey);
+  border-bottom: 1px solid var(--light-grey);
+  padding-bottom: 10px;
+  margin-bottom: 10px;
 }
 .searchTopMatter .type-buttons {
   display: flex;
@@ -3178,14 +3175,15 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   align-self: flex-start;
 }
 .searchTopMatter .search-dropdown-button {
-  font-size: 18px;
+  font-size: 22px;
   color: #999;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   letter-spacing: 1px;
   cursor: pointer;
-  padding: 15px 5px;
+  padding: 15px 0;
   -webkit-touch-callout: none; /* iOS Safari */
   user-select: none;
+  margin-inline-end: 20px;
 }
 @media (max-width: 540px) {
   .searchTopMatter .search-dropdown-button,
@@ -3198,7 +3196,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   border-bottom: 4px solid #CCC;
 }
 .searchContent .searchStatusLine {
-  padding: 0 0 36px 0;
   text-align: center;
   font-size: 13px;
   height: 10px;
@@ -3208,7 +3205,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin: 5px;
   border-radius: 12px;
   border: 1px solid #DADADA;
-  display: inline-block;
   font-size: 13px;
   color: #666;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
@@ -3311,44 +3307,11 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding-left: 0;
   padding-right: 5px;
 }
-.searchContent .searchFilterBoxes {
-  margin-top: 21px;
-  background: #F5F5F5;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  position: absolute;
-  z-index: 1;
-  box-shadow: 0 1px 3px #ccc;
-  box-sizing: border-box;
-}
+.searchContent .searchFilterBoxes {}
 .interface-english .searchFilterBoxes {
-  right: 0;
 }
 .interface-hebrew .searchFilterBoxes {
   left: 0;
-}
-.searchContent .searchFilterBoxes .tag-filter-outer {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  height: 210px;
-  padding: 10px 20px;
-  box-sizing: border-box;
-}
-.searchFilterBoxes .tag-filter {
-  color: #999;
-  background-color: white;
-  border: 0;
-}
-.searchFilterBoxes .tag-filter.active {
-  background-color: #e7e7e7;
-}
-
-.searchContent .searchFilterBoxes .searchFilterBoxRow {
-  display: flex;
-  flex-direction: row;
-  width: 100%;
 }
 .searchFilterBoxes .searchFilterTabRow {
   display: flex;
@@ -3362,18 +3325,15 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchFilterTabRow .searchFilterTab.active {
   border-bottom: 4px solid #CCC;
 }
-.searchFilterBoxes.hidden{
-    display:none;
-}
 .searchContent .searchFilterBoxes li {
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   display: flex;
   justify-content: space-between;
   flex: 1 0 45%;  /* see https://stackoverflow.com/questions/29546550/flexbox-4-items-per-row */
-  padding: 15px 0 15px 15px;
+  padding: 6px 0;
   font-size: 16px;
   cursor: pointer;
   line-height: 125%;
+  color: #000;
 }
 .searchContent .searchFilterBoxes li img {
   height: 10px;
@@ -3387,66 +3347,54 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .searchFilterBoxes li .checkboxAndText {
   display: flex;
 }
-.searchContent .searchFilterBoxRow li.active,
-.searchContent .searchFilterBoxRow li:hover {
-  background-color: #e0e0e0;
+.searchContent .searchFilterBoxes li .checkboxAndText label {
+  opacity: 0.4;
 }
-.interface-hebrew .searchContent .searchFilterBoxes li {
-  font-family: "Heebo", sans-serif;
-  padding: 10px 15px 10px 0;
+.searchContent .searchFilterBoxes li .checkboxAndText label:hover {
+  opacity: 0.6;
 }
 .searchContent .searchFilterBoxes li input[type="checkbox"] {
   display: none;
 }
 .searchContent .searchFilterBoxes li input[type="checkbox"] + label span {
-    margin: 0 13px;
-    display:inline-block;
-    width: 15px;
-    height: 15px;
-    cursor:pointer;
-    background-image: url(/static/img/checkbox-unchecked.svg);
-    background-size: contain;
+  display:inline-block;
+  width: 15px;
+  height: 15px;
+  cursor:pointer;
+  background-image: url(/static/img/checkbox-unchecked.svg);
+  background-size: contain;
+  margin-inline-end: 10px;
 }
 .searchContent .searchFilterBoxes li input[type="checkbox"]:checked + label span {
-    background-image: url(/static/img/checkbox-checked.svg);
+  background-image: url(/static/img/checkbox-checked.svg);
 }
 .searchContent .searchFilterBoxes li input[type="checkbox"]:indeterminate + label span {
-    background-image: url(/static/img/checkbox-partially.svg);
+  background-image: url(/static/img/checkbox-partially.svg);
 }
-.searchContent .searchFilterBoxes li .filter-title
-.dropdown-option-list li .filter-title {
-  color: #333;
+.searchContent .searchFilterTitle:hover {
+  text-decoration: underline;
 }
 .searchContent .searchFilterBoxes li .filter-count {
-  color: #999;
+  color: var(--dark-grey);
 }
-.searchContent .searchFilterBoxes li .in-focus-arrow {
-  float: right;
-  padding-right: 20px;
-  color: #999;
+.searchContent .searchFilterBoxes li .fa {
+  color:  var(--medium-grey);
+  font-size: 20px;
 }
-.interface-hebrew .searchContent .searchFilterBoxes li .in-focus-arrow {
-  float: left;
-  padding-left: 20px;
-  padding-right: 0;
-}
-.searchFilterBoxes .searchFilterExactBox {
-  padding-top: 10px;
-  height: 200px;
-}
-.searchFilterExactBox.hidden {
-  display:none;
+.searchContent .searchFilterBooks {
+  padding-inline-start: 27px;
+  margin-top: -6px;
 }
 .dropdown-option-list {
-    margin-top: 10px;
-    background: white;
-    width: auto;
-    position: absolute;
-    z-index: 1;
-    -webkit-border-radius: 7px;
-    -moz-border-radius: 7px;
-    border-radius: 7px;
-    border: 1px solid #ccc;
+  margin-top: 10px;
+  background: white;
+  width: auto;
+  position: absolute;
+  z-index: 1;
+  -webkit-border-radius: 7px;
+  -moz-border-radius: 7px;
+  border-radius: 7px;
+  border: 1px solid #ccc;
 }
 .dropdown-option-list-label span {
   white-space: nowrap;
@@ -3458,7 +3406,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   left: 0;
 }
 .dropdown-option-list.hidden{
-    display:none;
+  display: none;
 }
 .dropdown-option-list table {
   border-collapse: collapse;
@@ -3506,30 +3454,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .dropdown-option-list tr.unselected .dropdown-option-check {
   display: none;
 }
-.searchContent .searchResultsOverlay {
-  opacity: 0.5;
-}
-.searchContent .searchFilterCategoryBox,
-.searchContent .searchFilterBookBox {
-  padding-top: 10px;
-  width: 50%;
-  height: 200px;
-  overflow-y: auto;
-}
-.searchContent .searchFilterCategoryBox.searchFilterSheetBox {
-  width: 100%;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  align-content: flex-start;
-}
-.interface-hebrew .searchContent .searchFilterCategoryBox,
-.interface-hebrew .searchContent .searchFilterBookBox {
-  /*float: right;*/
-}
 .searchContent .result {
-  border-bottom: thin solid #eee;
-  padding-bottom: 12px;
+  padding-top: 20px;
 }
 .searchContent .result a:hover {
   text-decoration: none;
@@ -3537,46 +3463,33 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .similar-results {
   padding: 0 25px;
 }
-.searchContent .similar-results .result {
-  border-top: none;
+.searchContent .similar-results .result-title {
+  display: none;
 }
-.searchContent .text_result .result-title,
-.searchContent .sheet_result .result-title {
-  color: #666;
-  font-weight: lighter;
-  padding: 20px 0 5px;
-  letter-spacing: 1px;
-  display: block;
+.searchContent .result-title {
+  font-size: 24px;
+  margin-bottom: 15px;
 }
-.searchContent .text_result .result-title .int-he,
-.searchContent .sheet_result .result-title .int-he {
+.searchContent .result-title .int-he {
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   font-size: 22px;
 }
-.searchContent .text_result .result-title .int-en,
-.searchContent .sheet_result .result-title .int-en {
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
-  font-size: 18px;
-}
-.searchContent .sheet_result .result-title {
-  font-size: 18px;
-}
-.searchContent .sheet_result .result-title.in-en {
+.searchContent .sheetResult .result-title.in-en {
   direction: ltr;
   text-align: left;
 }
-.searchContent .sheet_result .result-title.in-he {
+.searchContent .sheetResult .result-title.in-he {
   direction: rtl;
   text-align: right;
 }
-.searchContent .sheet_result .owner_name {
-  padding-bottom: 5px;
+.searchContent .sheetResult .ownerName {
+  color: #000;
 }
-.readerPanel.english .searchContent .sheet_result .owner_name.in-he {
+.readerPanel.english .searchContent .sheetResult .ownerName.in-he {
   direction: rtl;
   text-align: left;
 }
-.readerPanel.hebrew .searchContent .sheet_result .owner_name.in-en {
+.readerPanel.hebrew .searchContent .sheetResult .ownerName.in-en {
   direction: ltr;
   text-align: right;
 }
@@ -3588,10 +3501,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .bilingual .searchContent .snippet.he {
   display: block;
 }
-.searchContent .text_result .snippet {
-
-}
-.searchContent .sheet_result .snippet {
+.searchContent .snippet {
   font-size: 18px;
   color: #000;
 }
@@ -3603,19 +3513,15 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .searchContent .result .version {
   color: #999;
-  font-weight: lighter;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   letter-spacing: 1px;
   font-size: 13px;
-  margin: 8px 0;
+  margin: 15px 0 5px;
   display: flex;
   align-items: center;
 }
-.searchContent .result .version .owner-metadata {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  margin: 0 10px;
+.searchContent .result .version .ownerMetadata {
+  margin-inline-start: 10px;
 }
 .searchContent .result .similar-trigger-box {
   color: #999;
@@ -3640,7 +3546,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .sheet_result {
   height: auto;
   margin: 15px 0 20px 0;
-  padding-bottom: 30px;
 }
 .searchContent .result + .loadingMessage {
   margin-top: 30px;
@@ -9443,14 +9348,8 @@ body .homeFeedWrapper .content {
 }
 .colorBarBox {
   clear: both;
-}
-.interface-english .colorBarBox  {
-  border-left: 4px solid transparent;
-  padding-left: 30px;
-}
-.interface-hebrew .colorBarBox  {
-  border-right: 4px solid transparent;
-  padding-right: 30px;
+  border-inline-start: 4px solid transparent;
+  padding-inline-start: 20px;
 }
 .interface-english .citationLine,
 .interface-english .learnMoreLink {

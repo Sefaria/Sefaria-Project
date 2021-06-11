@@ -1,9 +1,9 @@
-import {
-  LoadingMessage,
-} from './Misc';
 import React  from 'react';
 import ReactDOM  from 'react-dom';
+import PropTypes  from 'prop-types';
+import Component from 'react-class';
 import extend  from 'extend';
+import classNames  from 'classnames';
 import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
 import { FilterNode } from './sefaria/search';
@@ -11,9 +11,10 @@ import SearchTextResult  from './SearchTextResult';
 import SearchSheetResult  from './SearchSheetResult';
 import SearchFilters  from './SearchFilters';
 import SearchState  from './sefaria/searchState';
-import PropTypes  from 'prop-types';
-import Component        from 'react-class';
-
+import {
+  InterfaceText,
+  LoadingMessage,
+} from './Misc';
 
 class SearchResultList extends Component {
     constructor(props) {
@@ -206,7 +207,7 @@ class SearchResultList extends Component {
                 }
                 this.props.registerAvailableFilters(type, availableFilters, registry, orphans, args.aggregationsToUpdate);
               }
-          }
+          };
       args.error = this._handle_error;
 
       const runningQuery = Sefaria.search.execute_query(args);
@@ -321,32 +322,18 @@ class SearchResultList extends Component {
         var queryFullyLoaded = !this.state.moreToLoad[tab] && !this.state.isQueryRunning[tab];
         var haveResults      = !!results.length;
         results              = haveResults ? results : noResultsMessage;
-        var searchFilters    = (<SearchFilters
-                                  query = {this.props.query}
-                                  searchState={this._getSearchState(this.props.tab)}
-                                  total = {this.state.totals["text"] + this.state.totals["sheet"]}
-                                  textTotal = {this.state.totals["text"]}
-                                  sheetTotal = {this.state.totals["sheet"]}
-                                  updateAppliedFilter      = {this.updateAppliedFilterByTypeMap[this.props.tab]}
-                                  updateAppliedOptionField = {this.updateAppliedOptionFieldByTypeMap[this.props.tab]}
-                                  updateAppliedOptionSort  = {this.updateAppliedOptionSortByTypeMap[this.props.tab]}
-                                  updateLastAppliedAggType={this.updateLastAppliedAggType}
-                                  isQueryRunning = {this.state.isQueryRunning[tab]}
-                                  type = {this.props.tab}
-                                  clickTextButton = {this.showTexts}
-                                  clickSheetButton = {this.showSheets}
-                                  showResultsOverlay = {this.showResultsOverlay}
-                                  displayFilters={this.state.displayFilters}
-                                  displaySort={this.state.displaySort}
-                                  toggleFilterView={this.toggleFilterView}
-                                  toggleSortView={this.toggleSortView}
-                                  closeFilterView={this.closeFilterView}
-                                  closeSortView={this.closeSortView}/>);
         //console.log(this.state);
         //debugger;
         return (
           <div>
-            { searchFilters }
+            <div className="searchTopMatter">
+              <SearchTabs
+                clickTextButton={this.showTexts}
+                clickSheetButton={this.showSheets}
+                textTotal={this.state.totals["text"]}
+                sheetTotal={this.state.totals["sheet"]}
+                currentTab={this.props.tab} />
+            </div>
             <div className={this.state.showOverlay ? "searchResultsOverlay" : ""}>
               { queryFullyLoaded || haveResults ? results : null }
               { this.state.isQueryRunning[tab] ? loadingMessage : null }
@@ -366,6 +353,77 @@ SearchResultList.propTypes = {
   updateAppliedOptionField: PropTypes.func,
   updateAppliedOptionSort:  PropTypes.func,
   registerAvailableFilters: PropTypes.func,
+};
+
+
+const SearchTabs = ({clickTextButton, clickSheetButton, textTotal, sheetTotal, currentTab}) => (
+  <div className="type-buttons sans-serif">
+    <SearchTab label={"Texts"} total={textTotal} onClick={clickTextButton} active={currentTab === "text"} />
+    <SearchTab label={"Sheets"} total={sheetTotal} onClick={clickSheetButton} active={currentTab === "sheet"} />
+  </div>
+);
+
+
+const SearchTab = ({label, total, onClick, active}) => {
+  total = total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); // add commas
+  const classes = classNames({"search-dropdown-button": 1, active});
+
+  return (
+    <div className={classes} onClick={onClick} onKeyPress={e => {e.charCode === 13 ? onClick(e) : null}} role="button" tabIndex="0">
+      <div className="type-button-title">
+        <InterfaceText>{label}</InterfaceText>
+        <InterfaceText>{`(${total})`}</InterfaceText>
+      </div>
+    </div>
+  );
+};
+
+
+/*
+const sort = (
+  <SearchSortBox
+    type={this.props.type}
+    toggleSortView={this.props.toggleSortView}
+    updateAppliedOptionSort={this.props.updateAppliedOptionSort}
+    closeBox={this.props.closeSortView}
+    sortType={this.props.searchState.sortType} />
+);
+*/
+
+class SearchSortBox extends Component {
+  handleClick(sortType) {
+    if (sortType === this.props.sortType) {
+      return;
+    }
+    this.props.updateAppliedOptionSort(sortType);
+    this.props.toggleSortView();
+  }
+  //<i className={(this.props.visible) ? "fa fa-caret-down fa-angle-down":"fa fa-caret-down fa-angle-up"} />
+  render() {
+    const filterTextClasses = classNames({ searchFilterToggle: 1, active: this.props.visible });
+    return (<DropdownModal close={this.props.closeBox} isOpen={this.props.visible}>
+      <DropdownButton
+        isOpen={this.props.visible}
+        toggle={this.props.toggleSortView}
+        enText={"Sort"}
+        heText={"מיון"}
+      />
+      <DropdownOptionList
+        isOpen={this.props.visible}
+        options={SearchState.metadataByType[this.props.type].sortTypeArray}
+        currOptionSelected={this.props.sortType}
+        handleClick={this.handleClick}
+      />
+    </DropdownModal>);
+  }
+}
+SearchSortBox.propTypes = {
+  type:                    PropTypes.string.isRequired,
+  visible:                 PropTypes.bool,
+  toggleSortView:          PropTypes.func,
+  updateAppliedOptionSort: PropTypes.func,
+  closeBox:                PropTypes.func,
+  sortType:                PropTypes.string,
 };
 
 

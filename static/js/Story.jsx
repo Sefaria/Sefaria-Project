@@ -4,6 +4,7 @@ import PropTypes  from 'prop-types';
 import {
     NBox,
     BlockLink,
+    ColorBarBox,
     SaveButton,
     SimpleInterfaceBlock,
     DangerousInterfaceBlock,
@@ -457,11 +458,6 @@ const StoryTitleBlock = ({url, he, en, children}) => {
         {children}
     </div>;
 };
-
-
-const ColorBarBox = ({tref, children}) =>  (
-    <div className="colorBarBox" style={{"borderColor": Sefaria.palette.refColor(tref)}}>{children}</div>
-);
 
 
 const StoryBodyBlock = ({en, he}) => (

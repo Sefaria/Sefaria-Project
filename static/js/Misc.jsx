@@ -818,6 +818,11 @@ LanguageToggleButton.propTypes = {
 };
 
 
+const ColorBarBox = ({tref, children}) =>  (
+  <div className="colorBarBox" style={{"borderColor": Sefaria.palette.refColor(tref)}}>{children}</div>
+);
+
+
 const DangerousInterfaceBlock = ({en, he, classes}) => (
         <div className={classes}>
           <InterfaceText html={{"en": en, "he":he}} />
@@ -870,7 +875,6 @@ SimpleLinkedBlock.propTypes = {
     classes: PropTypes.string,
     aclasses: PropTypes.string
 };
-
 
 
 class BlockLink extends Component {
@@ -2337,6 +2341,7 @@ export {
   CollectionStatement,
   CookiesNotification,
   CollectionListing,
+  ColorBarBox,
   Dropdown,
   DropdownButton,
   DropdownModal,

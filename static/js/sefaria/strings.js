@@ -83,6 +83,9 @@ const Strings = {
     "Reset": "לאתחל",
     "Search Topics": "חפש נושאים",
 
+    // Search
+    "Exact Matches Only": "חיפוש מדויק", // TODO Hebrew
+
     // Sheets
     "Source Sheets": "דפי מקורות",
     "Start a New Source Sheet": "התחלת דף מקורות חדש",

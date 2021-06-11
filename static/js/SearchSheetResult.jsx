@@ -1,12 +1,13 @@
 import React  from 'react';
 import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
-import {
-  ProfilePic,
-} from './Misc';
 import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Component      from 'react-class';
+import {
+  ColorBarBox,
+  ProfilePic,
+} from './Misc';
 
 
 class SearchSheetResult extends Component {
@@ -34,14 +35,16 @@ class SearchSheetResult extends Component {
         var clean_title = $("<span>" + s.title + "</span>").text();
         var href = "/sheets/" + s.sheetId;
         const snippetMarkup = this.get_snippet_markup(data);
-        const snippetClasses = classNames({contentText: 1, snippet: 1, en: snippetMarkup.lang == "en", he: snippetMarkup.lang == "he"});
+        const snippetClasses = classNames({snippet: 1, en: snippetMarkup.lang == "en", he: snippetMarkup.lang == "he"});
         const ownerIsHe = Sefaria.hebrew.isHebrew(s.owner_name);
         const titleIsHe = Sefaria.hebrew.isHebrew(clean_title);
         return (
-            <div className='result sheet_result'>
+            <div className='result sheetResult'>
                 <a href={href} onClick={this.handleSheetClick}>
                     <div className={classNames({'result-title': 1, 'in-en': !titleIsHe, 'in-he': titleIsHe})}>{clean_title}</div>
-                    <div className={snippetClasses} dangerouslySetInnerHTML={snippetMarkup.markup}></div>
+                    <ColorBarBox tref={"Sheet 1"}>
+                      <div className={snippetClasses} dangerouslySetInnerHTML={snippetMarkup.markup}></div>
+                    </ColorBarBox>
                 </a>
               <a href={s.profile_url} onClick={this.handleProfileClick}>
                 <div className="version">
@@ -50,12 +53,12 @@ class SearchSheetResult extends Component {
                     name={s.owner_name}
                     len={30}
                   />
-                  <span className="owner-metadata">
-                    <div className={classNames({'owner_name': 1, 'in-en': !ownerIsHe, 'in-he': ownerIsHe})}>{s.owner_name}</div>
-                    <div className='tags-views'>
-                      <div className='int-en'>{`${s.views} ${Sefaria._('Views')}${(!!s.tags && s.tags.length) ? ' • ' : ''}${!!s.tags ? s.tags.join(', ') : ''}`}</div>
-                      <div className='int-he'>{`${s.views} ${Sefaria._('Views')}${(!!s.tags && s.tags.length) ? ' • ' : ''}${!!s.tags ? s.tags.map( t => !!Sefaria.terms[t] ? Sefaria.terms[t].he : t).join(', ') : ''}`}</div>
-                    </div>
+                  <span className="ownerMetadata sans-serif">
+                    <span className={classNames({'ownerName': 1, 'in-en': !ownerIsHe, 'in-he': ownerIsHe})}>{s.owner_name}</span>
+                    <span className='tagsViews'>
+                      <span className='int-en'>{`${(!!s.tags && s.tags.length) ? ' • ' : ''}${!!s.tags ? s.tags.join(', ') : ''}`}</span>
+                      <span className='int-he'>{`${(!!s.tags && s.tags.length) ? ' • ' : ''}${!!s.tags ? s.tags.map( t => !!Sefaria.terms[t] ? Sefaria.terms[t].he : t).join(', ') : ''}`}</span>
+                    </span>
                   </span>
                 </div>
               </a>

@@ -36,6 +36,7 @@ palette.categoryColors = {
   "Responsa":           "var(--responsa-red)",
   "Quoting Commentary": "var(--responsa-red)",
   "Sheets":             "var(--sefaria-blue)",
+  "Sheet":              "var(--sefaria-blue)",
   "Targum":             "var(--miscelaneous-green)",
   "Modern Commentary":  "var(--modern-works-blue)",
   "Reference":          "var(--reference-orange)",
