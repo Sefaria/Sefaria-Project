@@ -3389,6 +3389,15 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding-inline-start: 27px;
   margin-top: -6px;
 }
+.searchContent .searchFilters .showMore {
+  display: block;
+  margin-inline-start: 27px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.searchContent .searchFilters .showMore:hover {
+  text-decoration: underline;
+}
 .dropdown-option-list {
   margin-top: 10px;
   background: white;

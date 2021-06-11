@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
 import Sefaria from './sefaria/sefaria';
 import $ from './sefaria/sefariaJquery';
@@ -345,25 +345,25 @@ class SheetSearchFilters extends Component {
           <InterfaceText>Topics</InterfaceText>
         </h2>
         <div className="searchFilterCategoryBox searchFilterSheetBox">
-          {tagFilters.map(filter => (
-          <SearchFilter
-            filter={filter}
-            updateSelected={this.props.updateAppliedFilter}
-            key={filter.aggKey} />
-          ))}
+          <CollapsibleList 
+            items={tagFilters.map(filter => (
+              <SearchFilter
+                filter={filter}
+                updateSelected={this.props.updateAppliedFilter}
+                key={filter.aggKey} />))} />
         </div>
 
         <h2>
           <InterfaceText>Collections</InterfaceText>
         </h2>
         <div className="searchFilterCategoryBox searchFilterSheetBox">
-          {collectionFilters.map(filter => (
-          <SearchFilter
-            filter={filter}
-            isInFocus={false}
-            updateSelected={this.props.updateAppliedFilter}
-            key={filter.aggKey} />
-          ))}
+          <CollapsibleList 
+            items={collectionFilters.map(filter => (
+              <SearchFilter
+                filter={filter}
+                isInFocus={false}
+                updateSelected={this.props.updateAppliedFilter}
+                key={filter.aggKey} />))} />
         </div>
       </div>
     );
@@ -372,6 +372,26 @@ class SheetSearchFilters extends Component {
 SheetSearchFilters.propTypes = {
   updateAppliedFilter: PropTypes.func.isRequired,
   availableFilters:    PropTypes.array.isRequired,
+};
+
+
+const CollapsibleList = ({items, cutoff=8}) => {
+  const [showMore, setShowMore] = useState(false);
+
+  if (showMore || items.length <= cutoff) {
+    return (
+      <>{items}</>
+    );
+  } else {
+    return (
+      <>
+        {items.slice(0,cutoff)}
+        <a href="javascript:void(0);" className="showMore sans-serif" onClick={() => {setShowMore(true);}}>
+          <InterfaceText>See More</InterfaceText>
+        </a>
+      </>
+    );
+  }
 };
 
 
