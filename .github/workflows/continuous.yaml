@@ -438,9 +438,6 @@ jobs:
           project_id: ${{ secrets.BUILD_UPLOAD_PROJECT }}
         if: ${{ always() }}
 
-      - name: Define BUILD_RESULT_SUBDIR
-        run: echo "BUILD_RESULT_SUBDIR=${GITHUB_SHA:0:8}" >> $GITHUB_ENV
-        if: ${{ always() }}
 
 
   pytest-job:
@@ -481,6 +478,7 @@ jobs:
       - name: Get Logs From Cluster
         run: kubectl logs --tail=-1 -l ci-run=$GITHUB_RUN_ID,test-name=pytest | tee /home/runner/pytestResultsPod.txt
 
+      # todo - merge this into the above
       - name: Get Success or Failure
         run: "LASTLINE=`kubectl logs --tail=1 -l ci-run=$GITHUB_RUN_ID,test-name=pytest`; STAT=${LASTLINE: -1}; exit $STAT"
 

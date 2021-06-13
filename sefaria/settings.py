@@ -316,10 +316,13 @@ GLOBAL_INTERRUPTING_MESSAGE = None
 try: 
     if os.getenv("CI_RUN"):
         from sefaria.local_settings_ci import *
+        print("Settings: local_settings_ci")
     else:
         from sefaria.local_settings import *
+        print("Settings: local_settings")
 except ImportError:
     from sefaria.local_settings_example import *
+    print("Settings: local_settings_example")
 
 # Listed after local settings are imported so CACHE can depend on DEBUG
 WEBPACK_LOADER = {
