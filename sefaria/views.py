@@ -452,7 +452,7 @@ def reset_cache(request):
 
 @staff_member_required
 def reset_websites_data(request):
-    website_set = WebSiteSet()
+    website_set = [w.contents() for w in WebSiteSet()]
     InMemoryCache().reset("websites_data", website_set)
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("in_memory_cache", "reset", ["websites_data", website_set])
