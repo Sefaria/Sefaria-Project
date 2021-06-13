@@ -161,6 +161,10 @@ class WebPage(abst.AbstractMongoRecord):
             r"yeshiva\.co\/(calendar|tags|dedication|errorpage)\/?",  # it seems anything under calendar is not an article
             r"yeshiva\.co\/midrash\/(category|rabbi)\/?",
             r"yutorah\.org\/search\/",
+            r"yutorah\.org\/searchResults\.cfm",
+            r"yutorah\.org\/\d+\/?$",  # year pages
+            r"yutorah\.org\/users\/",
+            r"yutorah\.org\/daf\.cfm\/?$",  # generic daf yomi page
             r"mayim\.org\.il\/?$",
             r"kabbalahoftime\.com\/?$",
             r"kabbalahoftime\.com\/\d{4}\/?$",  # page that aggregates all articles for the year
