@@ -3475,6 +3475,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin: 0 7px 0 0;
   user-select: none;
   cursor: pointer;
+  text-decoration: none;
+  color: inherit;
 }
 .interface-hebrew .readerControls .readerControlsInner.transLangPrefSuggBannInner .yesNoButton {
   margin: 0 0 0 7px;

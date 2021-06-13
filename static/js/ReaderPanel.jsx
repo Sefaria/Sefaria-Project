@@ -1380,12 +1380,12 @@ const TranslationLanguagePreferenceSuggestionBanner = ({}) => {
               <HebrewText> האם תעדיפו לראות <span className="bold"> גרמנית </span> כשהאפשרות קיימת </HebrewText>
           </InterfaceText>
           <div className="yesNoGroup">
-            <div className="resourcesLink yesNoButton">
+            <a className="yesNoButton">
               <InterfaceText>Yes</InterfaceText>
-            </div>
-            <div className="resourcesLink yesNoButton">
+            </a>
+            <a className="yesNoButton">
               <InterfaceText>No</InterfaceText>
-            </div>
+            </a>
           </div>
         </div>
         <ReaderNavigationMenuCloseButton onClick={()=>{}} />
