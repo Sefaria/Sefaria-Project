@@ -129,3 +129,10 @@ def get_template_cache(fragment_name='', *args):
 
 def delete_template_cache(fragment_name='', *args):
     delete_cache_elem('template.cache.%s.%s' % (fragment_name, hashlib.md5(':'.join([arg for arg in args]).encode('utf-8')).hexdigest()))
+
+
+class InMemoryCache:
+    def reset(self, key, value):
+        set_shared_cache_elem(key, value)
+
+

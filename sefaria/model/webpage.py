@@ -9,6 +9,8 @@ from . import text
 from sefaria.system.database import db
 from sefaria.model.website import *
 
+import sefaria.system.cache as scache
+
 
 import structlog
 logger = structlog.get_logger(__name__)
@@ -101,7 +103,12 @@ class WebPage(abst.AbstractMongoRecord):
     @staticmethod
     def excluded_pages_url_regex():
         bad_urls = []
-        for site in WebSiteSet():
+        sites = scache.get_shared_cache_elem("websites_data")
+        if sites is None:
+            sites = WebSiteSet()
+            scache.set_shared_cache_elem("websites_data", sites)
+            sites = scache.get_shared_cache_elem("websites_data")
+        for site in sites:
             bad_urls += getattr(site, "bad_urls", [])
         return "({})".format("|".join(bad_urls))
 
@@ -116,13 +123,22 @@ class WebPage(abst.AbstractMongoRecord):
 
     @staticmethod
     def site_data_for_domain(domain):
-        for site in WebSiteSet():
+        sites = scache.get_shared_cache_elem("websites_data")
+        if sites is None:
+            sites = WebSiteSet()
+            scache.set_shared_cache_elem("websites_data", sites)
+            sites = scache.get_shared_cache_elem("websites_data")
+        for site in sites:
             for site_domain in site.domains:
                 if site_domain == domain or domain.endswith("." + site_domain):
                     return site
         return None
 
-    def update_from_linker(self, updates):
+    def update_from_linker(self, updates, existing=False):
+        if existing and len(updates["title"]) == 0:
+            # in case we are updating an existing web page that has a title,
+            # we don't want to accidentally overwrite it with a blank title
+            updates["title"] = self.title
         self.load_from_dict(updates)
         self.linkerHits += 1
         self.lastUpdated = datetime.now()
@@ -144,7 +160,7 @@ class WebPage(abst.AbstractMongoRecord):
             if existing:
                 webpage.delete()
             return "excluded"
-        webpage.update_from_linker(data)
+        webpage.update_from_linker(data, existing)
         return "saved"
 
     def client_contents(self):
@@ -166,11 +182,11 @@ class WebPage(abst.AbstractMongoRecord):
             return self.title
         title = str(self.title)
         title = title.replace("&amp;", "&")
-        brands = [self.site_name] + self._site_data.get("title_branding", [])
+        brands = [self.site_name] + getattr(self._site_data, "title_branding", [])
         separators = [("-", ' '), ("|", ' '), ("—", ' '), ("–", ' '), ("»", ' '), ("•", ' '), (":", '')]
         for separator, padding in separators:
             for brand in brands:
-                if self._site_data.get("initial_title_branding", False):
+                if getattr(self._site_data, "initial_title_branding", False):
                     brand_str = f"{brand}{padding}{separator} "
                     if title.startswith(brand_str):
                         title = title[len(brand_str):]
@@ -179,7 +195,7 @@ class WebPage(abst.AbstractMongoRecord):
                     if title.endswith(brand_str):
                         title = title[:-len(brand_str)]
 
-        return title if len(title) else self._site_data["name"]
+        return title if len(title) else self._site_data.name
 
     def clean_description(self):
         description = self.description
@@ -208,7 +224,7 @@ def get_webpages_for_ref(tref):
         return []
     client_results = []
     for webpage in results:
-        if not webpage.whitelisted:
+        if not webpage.whitelisted or len(webpage.title) == 0:
             continue
         anchor_ref_list, anchor_ref_expanded_list = oref.get_all_anchor_refs(segment_refs, webpage.refs, webpage.expandedRefs)
         for anchor_ref, anchor_ref_expanded in zip(anchor_ref_list, anchor_ref_expanded_list):

@@ -1,5 +1,6 @@
 from . import abstract as abst
 
+
 class WebSite(abst.AbstractMongoRecord):
 	collection = 'websites'
 

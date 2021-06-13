@@ -36,6 +36,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 import sefaria.model as model
 import sefaria.system.cache as scache
+from sefaria.system.cache import InMemoryCache
 from sefaria.client.util import jsonResponse, subscribe_to_list, send_email
 from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI
 from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, relative_to_abs_path, RTC_SERVER
@@ -53,6 +54,7 @@ from sefaria.helper.text import make_versions_csv, get_library_stats, get_core_l
 from sefaria.clean import remove_old_counts
 from sefaria.search import index_sheets_by_timestamp as search_index_sheets_by_timestamp
 from sefaria.model import *
+from sefaria.model.website import *
 from sefaria.system.multiserver.coordinator import server_coordinator
 
 from reader.views import render_template
@@ -448,6 +450,13 @@ def reset_cache(request):
 
     return HttpResponseRedirect("/?m=Cache-Reset")
 
+@staff_member_required
+def reset_websites_data(request):
+    website_set = WebSiteSet()
+    InMemoryCache().reset("websites_data", website_set)
+    if MULTISERVER_ENABLED:
+        server_coordinator.publish_event("in_memory_cache", "reset", ["websites_data", website_set])
+    return HttpResponseRedirect("/?m=Website-Data-Reset")
 
 @staff_member_required
 def reset_index_cache_for_text(request, title):
