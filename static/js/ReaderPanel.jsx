@@ -1374,16 +1374,21 @@ const TranslationLanguagePreferenceSuggestionBanner = ({}) => {
   return (
     <div className="readerControls transLangPrefSuggBann">
       <div className="readerControlsInner transLangPrefSuggBannInner sans-serif">
-        <InterfaceText>
-            <EnglishText> Prefer to see <span className="bold"> German </span> translations when available? </EnglishText>
-            <HebrewText> האם תעדיפו לראות <span className="bold"> גרמנית </span> כשהאפשרות קיימת </HebrewText>
-        </InterfaceText>
-        <div className="resourcesLink sans-serif">
-          <InterfaceText>Yes</InterfaceText>
+        <div className="transLangPrefCentered">
+          <InterfaceText>
+              <EnglishText> Prefer to see <span className="bold"> German </span> translations when available? </EnglishText>
+              <HebrewText> האם תעדיפו לראות <span className="bold"> גרמנית </span> כשהאפשרות קיימת </HebrewText>
+          </InterfaceText>
+          <div className="yesNoGroup">
+            <div className="resourcesLink yesNoButton">
+              <InterfaceText>Yes</InterfaceText>
+            </div>
+            <div className="resourcesLink yesNoButton">
+              <InterfaceText>No</InterfaceText>
+            </div>
+          </div>
         </div>
-        <div className="resourcesLink sans-serif">
-          <InterfaceText>No</InterfaceText>
-        </div>
+        <ReaderNavigationMenuCloseButton onClick={()=>{}} />
       </div>
     </div>
   );

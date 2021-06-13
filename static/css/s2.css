@@ -3454,7 +3454,36 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .readerControls .readerControlsInner.transLangPrefSuggBannInner {
   justify-content: center;
+  align-items: center;
+  line-height: initial;
+  height: 100%;
   color: #666;
+}
+.readerControls.transLangPrefSuggBann .transLangPrefCentered {
+  display: flex;
+  align-items: center;
+  margin-inline-start: auto;
+}
+.readerControls .readerControlsInner.transLangPrefSuggBannInner .yesNoGroup {
+  margin: 0 10px;
+  display: flex;
+}
+.readerControls .readerControlsInner.transLangPrefSuggBannInner .yesNoButton {
+  border-radius: 6px;
+  background-color: white;
+  padding: 5px 11px;
+  margin: 0 7px 0 0;
+  user-select: none;
+  cursor: pointer;
+}
+.interface-hebrew .readerControls .readerControlsInner.transLangPrefSuggBannInner .yesNoButton {
+  margin: 0 0 0 7px;
+}
+.readerControls .readerControlsInner.transLangPrefSuggBannInner .readerNavMenuCloseButton {
+  font-size: 35px;
+  margin-inline-start: auto;
+  margin-top: -6px;
+  color: #bbb;
 }
 .singlePanel .readerControls .readerControlsInner {
   padding: 0 10px;
