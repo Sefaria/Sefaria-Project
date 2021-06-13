@@ -41,8 +41,8 @@ class WebPage(abst.AbstractMongoRecord):
             self.domain      = WebPage.domain_for_url(self.url)
             self.favicon     = "https://www.google.com/s2/favicons?domain={}".format(self.domain)
             self._site_data  = WebPage.site_data_for_domain(self.domain)
-            self.site_name   = self._site_data.name if self._site_data else self.domain
-            self.whitelisted = self._site_data.is_whitelisted if self._site_data else False
+            self.site_name   = self._site_data["name"] if self._site_data else self.domain
+            self.whitelisted = self._site_data["is_whitelisted"] if self._site_data else False
 
     def _init_defaults(self):
         self.linkerHits = 0
@@ -104,8 +104,8 @@ class WebPage(abst.AbstractMongoRecord):
     def excluded_pages_url_regex():
         bad_urls = []
         sites = scache.get_shared_cache_elem("websites_data")
-        if sites is None:
-            sites = WebSiteSet().array()
+        if sites == False:
+            sites = [w.contents() for w in WebSiteSet()]
             scache.set_shared_cache_elem("websites_data", sites)
             sites = scache.get_shared_cache_elem("websites_data")
         for site in sites:
@@ -124,12 +124,12 @@ class WebPage(abst.AbstractMongoRecord):
     @staticmethod
     def site_data_for_domain(domain):
         sites = scache.get_shared_cache_elem("websites_data")
-        if sites is None:
-            sites = WebSiteSet().array()
+        if sites == False:
+            sites = [w.contents() for w in WebSiteSet()]
             scache.set_shared_cache_elem("websites_data", sites)
             sites = scache.get_shared_cache_elem("websites_data")
         for site in sites:
-            for site_domain in site.domains:
+            for site_domain in site["domains"]:
                 if site_domain == domain or domain.endswith("." + site_domain):
                     return site
         return None
@@ -182,11 +182,11 @@ class WebPage(abst.AbstractMongoRecord):
             return self.title
         title = str(self.title)
         title = title.replace("&amp;", "&")
-        brands = [self.site_name] + getattr(self._site_data, "title_branding", [])
+        brands = [self.site_name] + self._site_data.get("title_branding", [])
         separators = [("-", ' '), ("|", ' '), ("—", ' '), ("–", ' '), ("»", ' '), ("•", ' '), (":", '')]
         for separator, padding in separators:
             for brand in brands:
-                if getattr(self._site_data, "initial_title_branding", False):
+                if self._site_data.get("initial_title_branding", False):
                     brand_str = f"{brand}{padding}{separator} "
                     if title.startswith(brand_str):
                         title = title[len(brand_str):]
@@ -195,7 +195,7 @@ class WebPage(abst.AbstractMongoRecord):
                     if title.endswith(brand_str):
                         title = title[:-len(brand_str)]
 
-        return title if len(title) else self._site_data.name
+        return title if len(title) else self._site_data["name"]
 
     def clean_description(self):
         description = self.description
