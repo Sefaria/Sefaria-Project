@@ -219,6 +219,7 @@ def base_props(request):
         "multiPanel":  not request.user_agent.is_mobile and not "mobile" in request.GET,
         "initialPath": request.get_full_path(),
         "interfaceLang": request.interfaceLang,
+        "translation_language_preference_suggestion": request.translation_language_preference_suggestion,
         "initialSettings": {
             "language":      getattr(request, "contentLang", "english"),
             "layoutDefault": request.COOKIES.get("layoutDefault", "segmented"),

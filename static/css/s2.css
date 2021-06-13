@@ -3449,6 +3449,13 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .readerControls.connectionsHeader .readerControlsInner {
   padding: 0 34px;
 }
+.readerControls.transLangPrefSuggBann {
+  background-color: #EDEDEC;
+}
+.readerControls .readerControlsInner.transLangPrefSuggBannInner {
+  justify-content: center;
+  color: #666;
+}
 .singlePanel .readerControls .readerControlsInner {
   padding: 0 10px;
 }
@@ -9598,6 +9605,9 @@ a.topicLexiconTitle.contentText {
   .headerWithButtons .end {
     text-align: center;
   }
+}
+.bold {
+  font-weight: bold; /* because apparently it isn't recommended to use <b> or <strong> to style thing https://developer.mozilla.org/en-US/docs/Web/HTML/Element/strong#usage_notes */
 }
 /* Customize checkmark inputs */
 .checkmarkLabel {

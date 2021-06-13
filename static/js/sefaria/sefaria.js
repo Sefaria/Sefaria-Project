@@ -2630,6 +2630,7 @@ Sefaria.unpackDataFromProps = function(props) {
       "profile_pic_url",
       "is_history_enabled",
       "translation_language_preference",
+      "translation_language_preference_suggestion",
       "following",
 
       "calendars",

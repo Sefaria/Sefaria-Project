@@ -37,7 +37,7 @@ import {
   SaveButton,
   CategoryColorLine,
   CategoryAttribution,
-  ToggleSet, ContentText,
+  ToggleSet, ContentText, InterfaceText, EnglishText, HebrewText,
 } from './Misc';
 import Component from 'react-class';
 import {ContentLanguageContext} from './context';
@@ -1318,7 +1318,7 @@ class ReaderControls extends Component {
           />
           <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
         </div>);
-
+    let transLangPrefSuggBann = hideHeader || connectionsHeader ? null : <TranslationLanguagePreferenceSuggestionBanner />;
     const classes = classNames({
       readerControls: 1,
       connectionsHeader: mode == "Connections",
@@ -1338,6 +1338,7 @@ class ReaderControls extends Component {
       <div>
         {connectionsHeader ? null : <CategoryColorLine category={this.props.currentCategory()} />}
         {readerControls}
+        {transLangPrefSuggBann}
       </div>
     );
   }
@@ -1367,6 +1368,26 @@ ReaderControls.propTypes = {
   toggleSignUpModal:       PropTypes.func.isRequired,
   historyObject:           PropTypes.object,
 };
+
+
+const TranslationLanguagePreferenceSuggestionBanner = ({}) => {
+  return (
+    <div className="readerControls transLangPrefSuggBann">
+      <div className="readerControlsInner transLangPrefSuggBannInner sans-serif">
+        <InterfaceText>
+            <EnglishText> Prefer to see <span className="bold"> German </span> translations when available? </EnglishText>
+            <HebrewText> האם תעדיפו לראות <span className="bold"> גרמנית </span> כשהאפשרות קיימת </HebrewText>
+        </InterfaceText>
+        <div className="resourcesLink sans-serif">
+          <InterfaceText>Yes</InterfaceText>
+        </div>
+        <div className="resourcesLink sans-serif">
+          <InterfaceText>No</InterfaceText>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 
 class ReaderDisplayOptionsMenu extends Component {
