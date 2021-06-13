@@ -230,6 +230,8 @@ const Strings = {
 
     "On": "הצג",
     "Off": "הסתר",
+    "Yes": "כן",
+    "No": "לא",
     "Show Parasha Aliyot": "עליות לתורה מוצגות",
     "Hide Parasha Aliyot": "עליות לתורה מוסתרות",
     "Language": "שפה",

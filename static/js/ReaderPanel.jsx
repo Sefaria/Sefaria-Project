@@ -1371,13 +1371,14 @@ ReaderControls.propTypes = {
 
 
 const TranslationLanguagePreferenceSuggestionBanner = ({}) => {
+  const lang = Sefaria.translateISOLanguageCode(Sefaria.translation_language_preference_suggestion);
   return (
     <div className="readerControls transLangPrefSuggBann">
       <div className="readerControlsInner transLangPrefSuggBannInner sans-serif">
         <div className="transLangPrefCentered">
           <InterfaceText>
-              <EnglishText> Prefer to see <span className="bold"> German </span> translations when available? </EnglishText>
-              <HebrewText> האם תעדיפו לראות <span className="bold"> גרמנית </span> כשהאפשרות קיימת </HebrewText>
+              <EnglishText> Prefer to see <span className="bold"> {lang} </span> translations when available? </EnglishText>
+              <HebrewText> האם תעדיפו לראות <span className="bold"> {Sefaria._(lang)} </span> כשהאפשרות קיימת </HebrewText>
           </InterfaceText>
           <div className="yesNoGroup">
             <a className="yesNoButton">
