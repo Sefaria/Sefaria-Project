@@ -57,7 +57,7 @@ class WebPage(abst.AbstractMongoRecord):
     def normalize_url(url):
         rewrite_rules = {
             "use https": lambda url: re.sub(r"^http://", "https://", url),
-            "remove hash": lambda url: re.sub(r"#.+", "", url),
+            "remove hash": lambda url: re.sub(r"#.*", "", url),
             "remove url params": lambda url: re.sub(r"\?.+", "", url),
             "remove utm params": lambda url: re.sub(r"\?utm_.+", "", url),
             "remove fbclid param": lambda url: re.sub(r"\?fbclid=.+", "", url),
@@ -116,6 +116,7 @@ class WebPage(abst.AbstractMongoRecord):
             r"test\.hadran\.org\.il",
             r"hadran\.org\.il\/he\/?$",
             r"hadran\.org\.il\/he\/(masechet|מסכת)\/",
+            r"hadran\.org\.il\/daf-yomi\/$",
             r"www\.jtsa.edu\/search\/index\.php",
             r"jewschool\.com\/page\/",
             r"truah\.org\/\?s=",
@@ -125,6 +126,9 @@ class WebPage(abst.AbstractMongoRecord):
             r"ots\.org\.il\/news\/",
             r"ots\.org\.il\/.+\/page\/\d+\/",
             r"ots\.org\.il\/tag\/.+",
+            r"ots\.org\.il\/parasha\/",
+            r"ots\.org\.il\/torah-insights\/",
+            r"ots\.org\.il\/new-home-",
             r"traditiononline\.org\/page\/\d+\/",
             r"toravoda\.org\.il\/%D7%90%D7%99%D7%A8%D7%95%D7%A2%D7%99%D7%9D-%D7%97%D7%9C%D7%95%D7%A4%D7%99\/",  # Neemanei Torah Vavoda list of past events
             r"929.org.il\/(lang\/en\/)?author/\d+$",  # Author index pages
@@ -156,6 +160,11 @@ class WebPage(abst.AbstractMongoRecord):
             r"yeshiva\.co\/(ask|midrash)\/?$",
             r"yeshiva\.co\/(calendar|tags|dedication|errorpage)\/?",  # it seems anything under calendar is not an article
             r"yeshiva\.co\/midrash\/(category|rabbi)\/?",
+            r"yutorah\.org\/search\/",
+            r"yutorah\.org\/searchResults\.cfm",
+            r"yutorah\.org\/\d+\/?$",  # year pages
+            r"yutorah\.org\/users\/",
+            r"yutorah\.org\/daf\.cfm\/?$",  # generic daf yomi page
             r"mayim\.org\.il\/?$",
             r"kabbalahoftime\.com\/?$",
             r"kabbalahoftime\.com\/\d{4}\/?$",  # page that aggregates all articles for the year
@@ -165,6 +174,7 @@ class WebPage(abst.AbstractMongoRecord):
             r"jewishencyclopedia\.com\/(directory|contribs|search)",
             r"orhalev\.org\/blogs\/parasha-and-practice\/?$",
             r"orhalev\.org\/blogs\/tag\/",
+            r"torah\.org$",
             r"talmudology\.com\/?$",
             r"talmudology\.com\/[^\/]+$",  # seems everything at the top level is not an article
             r"sephardi\.co\.uk\/(category|community|tag|test)\/",
@@ -655,7 +665,7 @@ sites_data = [
     {
         "name": "The Jewish Theological Seminary",
         "domains": ["jtsa.edu"],
-        "normalization_rules": ["remove url params"],
+        "normalization_rules": ["remove url params", "use https"],
     },
     {
         "name": "Ritualwell",
@@ -767,6 +777,7 @@ sites_data = [
     {
         "name": "T'ruah",
         "domains": ["truah.org"],
+        "normalization_rules": ["remove www"],
     },
     # Keeping off for now while we try to resolve empty titles from dynamic pages.
     # {
