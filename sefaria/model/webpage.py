@@ -105,7 +105,7 @@ class WebPage(abst.AbstractMongoRecord):
         bad_urls = []
         sites = scache.get_shared_cache_elem("websites_data")
         if sites is None:
-            sites = WebSiteSet()
+            sites = WebSiteSet().array()
             scache.set_shared_cache_elem("websites_data", sites)
             sites = scache.get_shared_cache_elem("websites_data")
         for site in sites:
@@ -125,7 +125,7 @@ class WebPage(abst.AbstractMongoRecord):
     def site_data_for_domain(domain):
         sites = scache.get_shared_cache_elem("websites_data")
         if sites is None:
-            sites = WebSiteSet()
+            sites = WebSiteSet().array()
             scache.set_shared_cache_elem("websites_data", sites)
             sites = scache.get_shared_cache_elem("websites_data")
         for site in sites:
