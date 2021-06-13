@@ -125,8 +125,8 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 MONGO_HOST = "localhost"
 MONGO_PORT = 27017
 # Name of the MongoDB database to use.
-if 'MONGO_DB_NAME' in os.environ:
-    SEFARIA_DB = os.environ['MONGO_DB_NAME']
+if os.getenv('MONGO_DB_NAME'):
+    SEFARIA_DB = os.getenv('MONGO_DB_NAME')
 else:
     SEFARIA_DB = "sefaria-vecino"
 

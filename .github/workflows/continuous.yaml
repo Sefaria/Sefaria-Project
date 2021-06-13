@@ -45,21 +45,6 @@ jobs:
         run: cat /home/runner/jestResults.json; STATUS=`jq ".numFailedTestSuites" /home/runner/jestResults.json`; exit $STATUS
         if: ${{ always() }}
 
-      - name: Authenticate GHA Runner to GCP
-        uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
-        with:
-          service_account_key: ${{ secrets.GCS_BUILD_UPLOAD_KEY }}
-          project_id: ${{ secrets.BUILD_UPLOAD_PROJECT }}
-        if: ${{ always() }}
-
-      - name: Define BUILD_RESULT_SUBDIR
-        run: echo "BUILD_RESULT_SUBDIR=${GITHUB_SHA:0:8}" >> $GITHUB_ENV
-        if: ${{ always() }}
-
-      - name: Upload Build Results
-        run: gsutil cp /home/runner/jestResults.json gs://${{secrets.GCS_BUILD_UPLOAD_BUCKET}}/${{env.BUILD_RESULT_SUBDIR}}/jestResults.json
-        if: ${{ always() }}
-
   sandbox-deploy:
     runs-on: ubuntu-latest
     steps:
@@ -433,7 +418,7 @@ jobs:
         run: pip3 install -r ./requirements.txt
 
       - name: Run Test Suite
-        run: python3 ./reader/browsertest/run_tests_on_github.py | tee /home/runner/selenium-pageloadsuite-sauce.txt #  ; echo $?
+        run: env && python3 ./reader/browsertest/run_tests_on_github.py #  ; echo $?
         shell: bash
         env:
           SAUCE_USERNAME: ${{ secrets.SAUCE_USERNAME }}
@@ -457,9 +442,6 @@ jobs:
         run: echo "BUILD_RESULT_SUBDIR=${GITHUB_SHA:0:8}" >> $GITHUB_ENV
         if: ${{ always() }}
 
-      - name: Upload Build Results
-        run: gsutil cp /home/runner/selenium-pageloadsuite-sauce.txt gs://${{secrets.GCS_BUILD_UPLOAD_BUCKET}}/${{env.BUILD_RESULT_SUBDIR}}/selenium-pageloadsuite-sauce.txt
-        if: ${{ always() }}
 
   pytest-job:
     name: "PyTest"  # This name is referenced when slacking status
@@ -502,20 +484,6 @@ jobs:
       - name: Get Success or Failure
         run: "LASTLINE=`kubectl logs --tail=1 -l ci-run=$GITHUB_RUN_ID,test-name=pytest`; STAT=${LASTLINE: -1}; exit $STAT"
 
-      - name: Authenticate GHA Runner to GCP
-        uses: google-github-actions/setup-gcloud@master
-        with:
-          service_account_key: ${{ secrets.GCS_BUILD_UPLOAD_KEY }}
-          project_id: ${{ secrets.BUILD_UPLOAD_PROJECT }}
-        if: ${{ always() }}
-
-      - name: Define BUILD_RESULT_SUBDIR
-        run: echo "BUILD_RESULT_SUBDIR=${GITHUB_SHA:0:8}" >> $GITHUB_ENV
-        if: ${{ always() }}
-
-      - name: Upload Build Results
-        run: gsutil cp /home/runner/pytestResultsPod.txt gs://${{secrets.GCS_BUILD_UPLOAD_BUCKET}}/${{env.BUILD_RESULT_SUBDIR}}/pytestResultsPod.txt
-        if: ${{ always() }}
 
   sandbox-cleanup:
     name: "Clean up CI Sandbox"
@@ -546,31 +514,4 @@ jobs:
           GKE_NAMESPACE: "${{secrets.DEV_SANDBOX_NAMESPACE}}"
           MONGO_HOST: "${{secrets.DEV_MONGO_HOST}}"
 
-  prepare-report-bucket:
-    name: "Prepare Build Report"
-    if: ${{ always() }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Authenticate GHA Runner to GCP
-        uses: google-github-actions/setup-gcloud@master
-        with:
-          service_account_key: ${{ secrets.GCS_BUILD_UPLOAD_KEY }}
-          project_id: ${{ secrets.BUILD_UPLOAD_PROJECT }}
-        if: ${{ always() }}
-
-      - name: Define BUILD_RESULT_SUBDIR
-        run: echo "BUILD_RESULT_SUBDIR=${GITHUB_SHA:0:8}" >> $GITHUB_ENV
-        if: ${{ always() }}
-
-      - name: Populate report.html template
-        if: ${{ always() }}
-        run: envsubst '${GITHUB_REPOSITORY},${GITHUB_SHA}' < ./build/ci/report.html.tmpl > ./build/ci/report.html
-        shell: bash
-
-      - name: Upload Build Results
-        run: gsutil cp ./build/ci/report.html gs://${{secrets.GCS_BUILD_UPLOAD_BUCKET}}/${{env.BUILD_RESULT_SUBDIR}}/report.html
-        if: ${{ always() }}
 ...
