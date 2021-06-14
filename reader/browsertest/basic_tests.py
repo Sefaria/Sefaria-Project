@@ -232,7 +232,7 @@ class AliyotAndCantillationToggles(SefariaTest):
     every_build = True
 
     def body(self):
-        self.browse_to_ref("Darashos HaRan 1")        
+        self.browse_to_ref("Derashot HaRan 1")
         assert not has_cantillation(self.get_nth_section_hebrew(1).text)
         assert not has_cantillation(self.get_nth_section_hebrew(1).text, False)
         self.toggle_on_text_settings()

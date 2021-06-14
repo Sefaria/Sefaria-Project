@@ -13,6 +13,7 @@ import {
     SheetTitle,
     CollectionStatement,
     ProfilePic,
+    InterfaceText,
 } from './Misc';
 
 import classNames from 'classnames';
@@ -1097,7 +1098,7 @@ const withSefariaSheet = editor => {
             }
         }
     };
-    
+
     editor.ensureEditableSpaceAtTopAndBottom = (node, path) => {
         if (node.type === "SheetContent") {
             //ensure there's always an editable space for a user to type at end and top of sheet
@@ -1936,26 +1937,28 @@ const SefariaEditor = (props) => {
 
             <button className="editorSidebarToggle" onClick={(e)=>onEditorSidebarToggleClick(e) } aria-label="Click to open the sidebar" />
 
-            <SheetMetaDataBox>
-                <SheetTitle tabIndex={0} title={sheet.title} editable={true} blurCallback={() => saveDocument(currentDocument)}/>
-                <SheetAuthorStatement
-                    authorUrl={sheet.ownerProfileUrl}
-                    authorStatement={sheet.ownerName}
-                >
-                  <ProfilePic
-                    url={sheet.ownerImageUrl}
-                    len={30}
-                    name={sheet.ownerName}
-                    outerStyle={{width: "30px", height: "30px", display: "inline-block", verticalAlign: "middle", marginRight: "10px"}}
-                  />
-                  <span>by <a href={sheet.ownerProfileUrl}>{sheet.ownerName}</a></span>
-                </SheetAuthorStatement>
-                <CollectionStatement
-                    name={sheet.collectionName}
-                    slug={sheet.displayedCollection}
-                    image={sheet.collectionImage}
-                />
-            </SheetMetaDataBox>
+        <SheetMetaDataBox>
+            <SheetTitle tabIndex={0} title={sheet.title} editable={true} blurCallback={() => saveDocument(currentDocument)}/>
+            <SheetAuthorStatement
+                authorUrl={sheet.ownerProfileUrl}
+                authorStatement={sheet.ownerName}
+            >
+              <ProfilePic
+                url={sheet.ownerImageUrl}
+                len={30}
+                name={sheet.ownerName}
+                outerStyle={{width: "30px", height: "30px", display: "inline-block", verticalAlign: "middle", marginRight: "10px"}}
+              />
+              <a href={sheet.ownerProfileUrl}>
+                <InterfaceText>{sheet.ownerName}</InterfaceText>
+              </a>
+            </SheetAuthorStatement>
+            <CollectionStatement
+                name={sheet.collectionName}
+                slug={sheet.displayedCollection}
+                image={sheet.collectionImage}
+            />
+        </SheetMetaDataBox>
 
             <Slate editor={editor} value={value} onChange={(value) => onChange(value)}>
                 <HoverMenu/>

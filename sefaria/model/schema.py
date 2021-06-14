@@ -1707,6 +1707,8 @@ class SheetNode(NumberedTitledTreeNode):
 
         self._ref_regex = regex.compile("^" + regex.escape(title) + self.after_title_delimiter_re + "([0-9]+)(?:" + self.after_address_delimiter_ref + "([0-9]+)|$)")
         self._match = self._ref_regex.match(tref)
+        if not self._match:
+            raise InputError("Could not find sheet ID in sheet ref")
         self.sheetId = int(self._match.group(1))
         if not self.sheetId:
             raise Exception
