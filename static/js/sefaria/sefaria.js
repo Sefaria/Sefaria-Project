@@ -1883,6 +1883,12 @@ _media: {},
     return Sefaria._ApiPromise(`/api/${isUnfollow ? 'un' : ''}follow/${uid}`);
   },
   */
+  editProfileAPI: (partialProfile) => {
+    const data = {json: JSON.stringify(partialProfile)};
+    return new Promise((resolve, reject) => {
+      $.post(`${Sefaria.apiHost}/api/profile`, data, resolve);
+    });
+  },
   followAPI: (slug, ftype) => {
     return Sefaria._ApiPromise(Sefaria.apiHost + `/api/profile/${slug}/${ftype}`);
   },

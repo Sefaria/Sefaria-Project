@@ -104,9 +104,10 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
 
         # TRANSLATION LANGUAGE PREFERENCE
         translation_language_preference = None if profile is None else profile.settings.get("translation_language_preference", None)
-        langs_in_country = get_lang_codes_for_territory(request.META.get("HTTP_CF_IPCOUNTRY", "FR"))
+        langs_in_country = get_lang_codes_for_territory(request.META.get("HTTP_CF_IPCOUNTRY", None))
         translation_language_preference_suggestion = None
-        if translation_language_preference is None:
+        trans_lang_pref_suggested = (profile is not None and profile.settings.get("translation_language_preference_suggested", False)) or request.COOKIES.get("translation_language_preference_suggested")
+        if translation_language_preference is None and not trans_lang_pref_suggested:
             supported_translation_langs = set(SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES'])
             for lang in langs_in_country:
                 if lang in supported_translation_langs:

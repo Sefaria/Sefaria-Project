@@ -1,4 +1,4 @@
-import React  from 'react';
+import React, {useState}  from 'react';
 import classNames  from 'classnames';
 import ReactDOM  from 'react-dom';
 import PropTypes  from 'prop-types';
@@ -1371,25 +1371,56 @@ ReaderControls.propTypes = {
 
 
 const TranslationLanguagePreferenceSuggestionBanner = ({}) => {
-  const lang = Sefaria.translateISOLanguageCode(Sefaria.translation_language_preference_suggestion);
+  const [accepted, setAccepted] = useState(false);
+  const [closed, setClosed] = useState(false);
+
+  const cookie = Sefaria._inBrowser ? $.cookie : Sefaria.util.cookie;
+  const { translation_language_preference_suggestion } = Sefaria;
+  if (closed || cookie("translation_language_preference_suggested") || !translation_language_preference_suggestion) {
+    return null;
+  }
+  const closeBanner = () => {
+    setClosed(true);
+    cookie("translation_language_preference_suggested", JSON.stringify(1), {path: "/"});
+    Sefaria.editProfileAPI({settings: {translation_language_preference_suggested: true}});
+  }
+  const accept = () => {
+    setAccepted(true);
+    cookie("translation_language_preference", translation_language_preference_suggestion);
+    cookie("translation_language_preference_suggested", JSON.stringify(1), {path: "/"});
+    Sefaria.editProfileAPI({settings: {translation_language_preference: translation_language_preference_suggestion, translation_language_preference_suggested: true}});
+  }
+  const lang = Sefaria.translateISOLanguageCode(translation_language_preference_suggestion);
+
   return (
     <div className="readerControls transLangPrefSuggBann">
       <div className="readerControlsInner transLangPrefSuggBannInner sans-serif">
-        <div className="transLangPrefCentered">
-          <InterfaceText>
-              <EnglishText> Prefer to see <span className="bold"> {lang} </span> translations when available? </EnglishText>
-              <HebrewText> האם תעדיפו לראות <span className="bold"> {Sefaria._(lang)} </span> כשהאפשרות קיימת </HebrewText>
-          </InterfaceText>
-          <div className="yesNoGroup">
-            <a className="yesNoButton">
-              <InterfaceText>Yes</InterfaceText>
-            </a>
-            <a className="yesNoButton">
-              <InterfaceText>No</InterfaceText>
-            </a>
+        {
+          accepted ? (
+            <div className="transLangPrefCentered">
+              <InterfaceText>
+                  <EnglishText> Thanks! We'll show you {lang} translations first when we have them. </EnglishText>
+                  <HebrewText> תודה! נציג<span className="bold"> {Sefaria._(lang)} </span> כשהאפשרות קיימת </HebrewText>
+              </InterfaceText>              
+            </div>
+          ) : (
+            <div className="transLangPrefCentered">
+            <InterfaceText>
+                <EnglishText> Prefer to see <span className="bold"> {lang} </span> translations when available? </EnglishText>
+                <HebrewText> האם תעדיפו לראות <span className="bold"> {Sefaria._(lang)} </span> כשהאפשרות קיימת </HebrewText>
+            </InterfaceText>
+            <div className="yesNoGroup">
+              <a className="yesNoButton" onClick={accept}>
+                <InterfaceText>Yes</InterfaceText>
+              </a>
+              <a className="yesNoButton" onClick={closeBanner}>
+                <InterfaceText>No</InterfaceText>
+              </a>
+            </div>
           </div>
-        </div>
-        <ReaderNavigationMenuCloseButton onClick={()=>{}} />
+          )
+        }
+        <ReaderNavigationMenuCloseButton onClick={closeBanner} />
       </div>
     </div>
   );
