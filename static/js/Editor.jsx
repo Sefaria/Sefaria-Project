@@ -13,6 +13,7 @@ import {
     SheetTitle,
     CollectionStatement,
     ProfilePic,
+    InterfaceText,
 } from './Misc';
 
 import classNames from 'classnames';
@@ -1889,7 +1890,9 @@ const SefariaEditor = (props) => {
                 name={sheet.ownerName}
                 outerStyle={{width: "30px", height: "30px", display: "inline-block", verticalAlign: "middle", marginRight: "10px"}}
               />
-              <span>by <a href={sheet.ownerProfileUrl}>{sheet.ownerName}</a></span>
+              <a href={sheet.ownerProfileUrl}>
+                <InterfaceText>{sheet.ownerName}</InterfaceText>
+              </a>
             </SheetAuthorStatement>
             <CollectionStatement
                 name={sheet.collectionName}
