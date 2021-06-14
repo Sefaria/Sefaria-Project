@@ -453,7 +453,7 @@ const JoinTheCommunity = ({wide}) => {
     <Module wide={wide}>
       <div>
         <ModuleTitle>Join the Conversation</ModuleTitle>
-        <InterfaceText>Learners around the world use Sefaria to create and share Torah resources. You're invited to add your voice.</InterfaceText>
+        <InterfaceText>People around the world use Sefaria to create and share Torah resources. You're invited to add your voice.</InterfaceText>
       </div>
       <div>
         <a className="button small" href="/community">

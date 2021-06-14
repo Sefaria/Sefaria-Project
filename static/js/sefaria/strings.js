@@ -24,10 +24,6 @@ const Strings = {
 
     // Home
     "Donate": "תרומות",
-    "The Torah Portion": "פרשת השבוע",
-    "The Jewish Calendar": "לוח השנה העברי",
-    "Discover ": "גלו את ה",
-    "Readings": "ענייני דיומא",
     "Recently Published": "פורסמו לאחרונה",
     "Load More": "להמשך קריאה",
     "Join the Conversation": "להצטרף לשיחה" ,
