@@ -1231,6 +1231,8 @@ const withSefariaSheet = editor => {
             }
         }
     };
+
+return editor
 };
 
 const parseMediaLink = (url) => {
