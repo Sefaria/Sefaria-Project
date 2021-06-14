@@ -54,8 +54,8 @@ const fetchBulkText = inRefs =>
 const fetchBulkSheet = inSheets =>
     Sefaria.getBulkSheets(inSheets.map(x => x.ref)).then(outSheets => {
     for (let tempSheet of inSheets) {
-      if (outSheets[tempSheet.sid]) {
-        outSheets[tempSheet.sid].order = tempSheet.order;
+      if (outSheets[tempSheet.ref]) {
+        outSheets[tempSheet.ref].order = tempSheet.order;
       }
     }
     return Object.values(outSheets);

@@ -5,9 +5,17 @@ import pprint
 from sefaria.model import *
 from sefaria.system.exceptions import InputError
 
-
 class Test_Schema(object):
     # This needs a bunch of hebrew titles to validate
+
+    @classmethod
+    def setup_class(cls):
+        pass
+
+    @classmethod
+    def teardown_class(cls):
+        pass
+
     @pytest.mark.xfail(reason="unknown")
     def test_schema_load(self):
         i = Index().load({"title": "Mishnah Torah Test"})
@@ -506,20 +514,20 @@ class Test_Schema(object):
         i.delete()
 
     def test_alt_struct(self):
-        i = Index().load({"title": "Stest"})
+        i = Index().load({"title": "Altstest"})
         if i:
             i.delete()
         schema = {
-            "key": "Stest",
+            "key": "Altstest",
             "titles": [
                 {
                     "lang": "en",
-                    "text": "Stest",
+                    "text": "Altstest",
                     "primary": True
                 },
                 {
                     "lang": "he",
-                    "text": 'כגככג',
+                    "text": 'כגככגגגגג',
                     "primary": True
                 }
             ],
@@ -538,15 +546,15 @@ class Test_Schema(object):
                         "depth": 1,
                         "addressTypes": ["Integer"],
                         "sectionNames": ["Aliyah"],
-                        'wholeRef': 'Stest 1:1-6:1',
+                        'wholeRef': 'Altstest 1:1-6:1',
                         'refs': [
-                                "Stest 1:1-1:17",
-                                "Stest 1:18-2:10",
-                                "Stest 2:11-2:25",
-                                "Stest 3:1-3:15",
-                                "Stest 3:16-4:17",
-                                "Stest 4:18-4:31",
-                                "Stest 5:1-6:1",
+                                "Altstest 1:1-1:17",
+                                "Altstest 1:18-2:10",
+                                "Altstest 2:11-2:25",
+                                "Altstest 3:1-3:15",
+                                "Altstest 3:16-4:17",
+                                "Altstest 4:18-4:31",
+                                "Altstest 5:1-6:1",
                         ]
                     },
                     {
@@ -555,15 +563,15 @@ class Test_Schema(object):
                         "depth": 1,
                         "addressTypes": ["Integer"],
                         "sectionNames": ["Aliyah"],
-                        'wholeRef': 'Stest 6:2-9:35',
+                        'wholeRef': 'Altstest 6:2-9:35',
                         'refs': [
-                            "Stest 10:1-10:11",
-                            "Stest 10:12-10:23",
-                            "Stest 10:24-11:3",
-                            "Stest 11:4-12:20",
-                            "Stest 12:21-12:28",
-                            "Stest 12:29-12:51",
-                            "Stest 13:1-13:16",
+                            "Altstest 10:1-10:11",
+                            "Altstest 10:12-10:23",
+                            "Altstest 10:24-11:3",
+                            "Altstest 11:4-12:20",
+                            "Altstest 12:21-12:28",
+                            "Altstest 12:29-12:51",
+                            "Altstest 13:1-13:16",
                         ]
                     },
                 ]
@@ -572,7 +580,7 @@ class Test_Schema(object):
 
         creating_dict = {
             "schema": schema,
-            "title": "Stest",
+            "title": "Altstest",
             "categories": ["Chasidut"],
             "alt_structs": structs
         }
@@ -590,17 +598,17 @@ class Test_Schema(object):
         creating_dict['schema']['titles'] = sorted(creating_dict['schema']['titles'], key=lambda x: x['text'])
         assert contents == creating_dict
 
-        assert Ref("Stest, Vaera 3") == Ref("Stest 10:24-11:3")
-        assert Ref("Stest, Vaera") == Ref("Stest 6:2-9:35")
+        assert Ref("Altstest, Vaera 3") == Ref("Altstest 10:24-11:3")
+        assert Ref("Altstest, Vaera") == Ref("Altstest 6:2-9:35")
 
         with pytest.raises(InputError):
-            Ref("Stest, Foobar")
+            Ref("Altstest, Foobar")
 
         with pytest.raises(InputError):
-            Ref("Stest, Foobar 3")
+            Ref("Altstest, Foobar 3")
 
         with pytest.raises(InputError):
-            Ref("Stest, Vaera 12")
+            Ref("Altstest, Vaera 12")
 
         i.delete()
 
@@ -729,31 +737,31 @@ class Test_Schema(object):
         assert Ref("CAtest, Vaera") == Ref("CAtest, Kid 6:2-9:35")
 
         with pytest.raises(InputError):
-            Ref("Stest, Foobar")
+            Ref("CAtest, Foobar")
 
         with pytest.raises(InputError):
-            Ref("Stest, Foobar 3")
+            Ref("CAtest, Foobar 3")
 
         with pytest.raises(InputError):
-            Ref("Stest, Vaera 12")
+            Ref("CAtest, Vaera 12")
 
         i.delete()
 
     def test_numbered_primary_struct(self):
-        i = Index().load({"title": "Stest"})
+        i = Index().load({"title": "NumbPrimeTest"})
         if i:
             i.delete()
         schema = {
-            "key": "Stest",
+            "key": "NumbPrimeTest",
             "titles": [
                 {
                     "lang": "en",
-                    "text": "Stest",
+                    "text": "NumbPrimeTest",
                     "primary": True
                 },
                 {
                     "lang": "he",
-                    "text": 'כגככג',
+                    "text": 'כגכעגעגהכג',
                     "primary": True
                 }
             ],
@@ -799,7 +807,7 @@ class Test_Schema(object):
 
         creating_dict = {
             "schema": schema,
-            "title": "Stest",
+            "title": "NumbPrimeTest",
             "categories": ["Chasidut"],
         }
         i = Index(creating_dict)
@@ -810,19 +818,19 @@ class Test_Schema(object):
         serialized = i.nodes.serialize()
         serialized['titles'] = sorted(serialized['titles'], key=lambda x: x['text'])
         assert schema == serialized
-        contents =  i.contents(raw=True)
+        contents = i.contents(raw=True)
         contents['schema']['titles'] = sorted(contents['schema']['titles'], key=lambda x: x['text'])
         creating_dict['schema']['titles'] = sorted(creating_dict['schema']['titles'], key=lambda x: x['text'])
         assert contents == creating_dict
 
-        assert Ref("Stest 3:5") == Ref("Stest, Bo 5")
-        assert Ref("Stest 3") == Ref("Stest, Bo")
+        assert Ref("NumbPrimeTest 3:5") == Ref("NumbPrimeTest, Bo 5")
+        assert Ref("NumbPrimeTest 3") == Ref("NumbPrimeTest, Bo")
 
         with pytest.raises(InputError):
-            Ref("Stest, Foobar")
+            Ref("NumbPrimeTest, Foobar")
 
         with pytest.raises(InputError):
-            Ref("Stest, Foobar 3")
+            Ref("NumbPrimeTest, Foobar 3")
 
         i.delete()
 

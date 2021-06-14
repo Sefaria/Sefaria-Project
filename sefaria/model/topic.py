@@ -19,6 +19,7 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
         'person': 'PersonTopic',
         'author': 'AuthorTopic',
     }
+    reverse_subclass_map = {v: k for k, v in subclass_map.items()}
     required_attrs = [
         'slug',
         'titles',
@@ -56,6 +57,9 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
 
     def _set_derived_attributes(self):
         self.set_titles(getattr(self, "titles", None))
+        if self.__class__ != Topic:
+            # in a subclass. set appropriate "subclass" attribute
+            setattr(self, "subclass", self.reverse_subclass_map[self.__class__.__name__])
 
     def _validate(self):
         super(Topic, self)._validate()
@@ -333,11 +337,11 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
     def __repr__(self):
         return "{}.init('{}')".format(self.__class__.__name__, self.slug)
 
+
 class PersonTopic(Topic):
     """
     Represents a topic which is a person. Not necessarily an author of a book.
     """
-
     @staticmethod
     def get_person_by_key(key: str):
         """
@@ -384,6 +388,7 @@ class PersonTopic(Topic):
             return TimePeriod().load({"symbol": self.get_property("era")})
         else:
             return None
+
 
 class AuthorTopic(PersonTopic):
     """
@@ -485,8 +490,19 @@ class AuthorTopic(PersonTopic):
                 link_names += [(f'/texts/{"/".join(index_or_cat.path)}', {"en": en_text, "he": he_text})]
         return link_names
 
+
 class TopicSet(abst.AbstractMongoSet):
     recordClass = Topic
+
+    def __init__(self, query=None, *args, **kwargs):
+        if self.recordClass != Topic:
+            # include class name of recordClass + any class names of subclasses
+            query = query or {}
+            subclass_names = [self.recordClass.__name__] + [klass.__name__ for klass in self.recordClass.all_subclasses()]
+            query['subclass'] = {"$in": [self.recordClass.reverse_subclass_map[name] for name in subclass_names]}
+        
+        super().__init__(query=query, *args, **kwargs)
+
     @staticmethod
     def load_by_title(title):
         query = {'titles.text': title}
@@ -499,21 +515,14 @@ class TopicSet(abst.AbstractMongoSet):
                 Subclass = globals()[self.recordClass.subclass_map[rec.subclass]]
                 rec.__class__ = Subclass  # cast to relevant subclass
 
+
 class PersonTopicSet(TopicSet):
     recordClass = PersonTopic
 
-    def __init__(self, query=None, *args, **kwargs):
-        reverse_subclass_map = {v: k for k, v in Topic.subclass_map.items()}
-        query = query or {}
-
-        # include class name of recordClass + any class names of subclasses
-        subclass_names = [self.recordClass.__name__] + [klass.__name__ for klass in self.recordClass.all_subclasses()]
-        query['subclass'] = {"$in": [reverse_subclass_map[name] for name in subclass_names]}
-        
-        super().__init__(query=query, *args, **kwargs)
 
 class AuthorTopicSet(PersonTopicSet):
     recordClass = AuthorTopic
+
 
 class TopicLinkHelper(object):
     """
@@ -656,7 +665,7 @@ class RefTopicLink(abst.AbstractMongoRecord):
 
     def _normalize(self):
         super(RefTopicLink, self)._normalize()
-        self.is_sheet = bool(re.search("Sheet \d+$", self.ref))
+        self.is_sheet = bool(re.search(r"Sheet \d+$", self.ref))
         setattr(self, "class", "refTopic")
         if self.is_sheet:
             self.expandedRefs = [self.ref]

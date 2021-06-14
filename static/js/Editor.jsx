@@ -31,7 +31,8 @@ const voidElements = [
     "ProfilePic",
     "SheetMedia",
     "SheetSource",
-    "SheetOutsideBiText"
+    "SheetOutsideBiText",
+    "horizontal-line"
 ];
 
 
@@ -60,6 +61,7 @@ const ELEMENT_TAGS = {
     TABLE: () => ({type: 'table'}),
     TR: () => ({type: 'table-row'}),
     TD: () => ({type: 'table-cell'}),
+    HR: () => ({type: 'horizontal-line'}),
 };
 
 const format_tag_pairs = [
@@ -145,6 +147,22 @@ export const deserialize = el => {
         return null
     }
 
+    const checkForStyles = () => {
+        if (el.getAttribute("style")) {
+          const elStyles = el.getAttribute("style").split(';');
+          let addlAttrs = {}
+          for (const elStyle of elStyles) {
+            const styleArray = elStyle.split(":");
+            if (styleArray.length == 2) {
+              const styleType = styleArray[0].trim()
+              const styleValue = styleArray[1].trim()
+              addlAttrs[styleType] = styleValue
+            }
+          }
+        return addlAttrs
+        }
+    }
+
     const {nodeName} = el;
     let parent = el;
 
@@ -168,7 +186,10 @@ export const deserialize = el => {
         if(!children[0]) {
             new_children = [{'text':''}]
         }
-        const attrs = ELEMENT_TAGS[nodeName](el);
+        const attrs = {
+            ...ELEMENT_TAGS[nodeName](el),
+            ...checkForStyles()
+        };
         return jsx('element', attrs, new_children)
     }
 
@@ -234,6 +255,9 @@ export const serialize = (content) => {
                 const paragraphHTML = content.children.reduce((acc, text) => {
                     return (acc + serialize(text))
                 }, "");
+                if (content["text-align"] == "center") {
+                    return `<div style='text-align: center'>${paragraphHTML}</div>`
+                }
                 return `<div>${paragraphHTML}</div>`
             }
 
@@ -278,18 +302,8 @@ export const serialize = (content) => {
               }, "");
               return `<td>${tdHtml}</td>`
 
-            /*
-                BLOCKQUOTE: () => ({type: 'quote'}),
-                H1: () => ({type: 'heading-one'}),
-                H2: () => ({type: 'heading-two'}),
-                H3: () => ({type: 'heading-three'}),
-                H4: () => ({type: 'heading-four'}),
-                H5: () => ({type: 'heading-five'}),
-                H6: () => ({type: 'heading-six'}),
-                IMG: el => ({type: 'image', url: el.getAttribute('src')}),
-                PRE: () => ({type: 'code'}),
-            */
-
+            case 'horizontal-line':
+              return `<hr>`
 
         }
     }
@@ -306,7 +320,6 @@ export const serialize = (content) => {
 
 
 function renderSheetItem(source) {
-
     const sheetItemType = Object.keys(sheet_item_els).filter(key => Object.keys(source).includes(key))[0];
 
     switch (sheetItemType) {
@@ -320,6 +333,7 @@ function renderSheetItem(source) {
                     node: source.node,
                     heText: parseSheetItemHTML(source.text.he),
                     enText: parseSheetItemHTML(source.text.en),
+                    options: source.options,
                     children: [
                         {text: ""},
                     ]
@@ -331,6 +345,7 @@ function renderSheetItem(source) {
             const content = (
                 {
                     type: sheet_item_els[sheetItemType],
+                    options: source.options,
                     children: parseSheetItemHTML(source.comment),
                     node: source.node
                 }
@@ -343,6 +358,7 @@ function renderSheetItem(source) {
             const content = (
                 {
                     type: sheet_item_els[sheetItemType],
+                    options: source.options,
                     children: parseSheetItemHTML(source.outsideText),
                     node: source.node,
                     lang: lang
@@ -356,6 +372,7 @@ function renderSheetItem(source) {
                     type: sheet_item_els[sheetItemType],
                     heText: parseSheetItemHTML(source.outsideBiText.he),
                     enText: parseSheetItemHTML(source.outsideBiText.en),
+                    options: source.options,
                     children: [
                         {text: ""},
                     ],
@@ -370,6 +387,7 @@ function renderSheetItem(source) {
                     type: sheet_item_els[sheetItemType],
                     mediaUrl: source.media,
                     node: source.node,
+                    options: source.options,
                     children: [
                         {
                             text: source.media,
@@ -719,8 +737,9 @@ const Element = props => {
               <div className="sourceContentText">{children}</div>
             )
         case 'paragraph':
+            const pClasses = {center: element["text-align"] == "center" };
             return (
-                <div>
+                <div className={classNames(pClasses)}>
                     {element.loading ? <div className="sourceLoader"></div> : null}
                     {children}
                 </div>
@@ -754,7 +773,8 @@ const Element = props => {
           return <tr {...attributes}>{children}</tr>
         case 'table-cell':
           return <td {...attributes}>{children}</td>
-
+        case 'horizontal-line':
+          return <>{children}<hr contentEditable={false} style={{ userSelect: 'none' }} /></>
         default:
             return <div>{children}</div>
     }
@@ -785,7 +805,7 @@ const getNextSheetItemPath = (SheetItemPath) => {
     return path
 };
 
-async function getRefInText(editor, additionalOffset=0) {
+async function getRefInText(editor, returnSourceIfFound) {
 
   const closestSheetOutsideText = getClosestSheetElement(editor, editor.selection.focus.path, "SheetOutsideText")
   if (!closestSheetOutsideText) {return {}}
@@ -804,10 +824,10 @@ async function getRefInText(editor, additionalOffset=0) {
     for (const query of match) {
       if (query.length > 50 || query.trim() == "") {continue}
 
-      const ref = await Sefaria.getName(query)
+      const ref = await Sefaria.getName(query.replace(/[\.:]$/, ""))
       .then(d => {  return d    });
 
-      const selectDistance = query.replace("\n","").length + additionalOffset;
+      const selectDistance = query.replace("\n","").length;
 
       if (ref["is_ref"]) {
         for (const [node, path] of Node.texts(i[0])) {
@@ -815,7 +835,7 @@ async function getRefInText(editor, additionalOffset=0) {
         }
 
 
-        if(ref["is_segment"] || ref["is_section"]) {
+        if(returnSourceIfFound && (ref["is_segment"] || ref["is_section"])) {
           Transforms.select(editor, Editor.end(editor, paragraphPath));
           Transforms.move(editor, { distance: selectDistance, unit: 'character', reverse: true, edge: 'anchor' })
           Editor.removeMark(editor, "isRef")
@@ -904,7 +924,7 @@ const withSefariaSheet = editor => {
                 return
             }
 
-        getRefInText(editor).then(query =>{
+        getRefInText(editor, true).then(query =>{
             if(query["is_segment"] || query["is_section"]) {
               return
             }
@@ -1431,7 +1451,6 @@ const Leaf = ({attributes, children, leaf}) => {
       children = <span style={{textAlign: leaf["text-align"]}}>{children}</span>
     }
 
-
     return <span {...attributes}>{children}</span>
 };
 
@@ -1528,6 +1547,7 @@ function saveSheetContent(doc, lastModified) {
                         "en": enSerializedSourceText !== "" ? enSerializedSourceText : "...",
                         "he": heSerializedSourceText !== "" ? heSerializedSourceText : "...",
                     },
+                    ...sheetItem.options && { options: sheetItem.options },
                     "node": sheetItem.node,
                 };
                 return (source);
@@ -1546,6 +1566,7 @@ function saveSheetContent(doc, lastModified) {
                         "en": enSerializedOutsideText !== "" ? enSerializedOutsideText : "...",
                         "he": heSerializedOutsideText !== "" ? heSerializedOutsideText : "...",
                     },
+                    ...sheetItem.options && { options: sheetItem.options },
                     "node": sheetItem.node,
 
                 };
@@ -1554,6 +1575,7 @@ function saveSheetContent(doc, lastModified) {
             case 'SheetComment':
                 return ({
                     "comment": serialize(sheetItem),
+                    ...sheetItem.options && { options: sheetItem.options },
                     "node": sheetItem.node,
                 });
 
@@ -1562,12 +1584,14 @@ function saveSheetContent(doc, lastModified) {
                //Add space to empty outside texts to preseve line breaks from old sheets.
                return ({
                     "outsideText": (outsideTextText=="<p></p>" || outsideTextText=="<div></div>") ? "<p> </p>" : outsideTextText,
+                    ...sheetItem.options && { options: sheetItem.options },
                     "node": sheetItem.node,
                 });
 
             case 'SheetMedia':
                 return({
                     "media": sheetItem.mediaUrl,
+                    ...sheetItem.options && { options: sheetItem.options },
                     "node": sheetItem.node,
                 });
 
@@ -1779,9 +1803,9 @@ const SefariaEditor = (props) => {
           }
         }
 
-        // add ref on space if end of line
-        if (event.key == " ") {
-            getRefInText(editor, 1)
+        // Add or remove ref highlighting
+        if (event.key == " " || Node.get(editor, editor.selection.focus.path).isRef) {
+            getRefInText(editor, false)
         }
     };
 

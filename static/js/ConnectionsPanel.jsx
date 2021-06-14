@@ -224,8 +224,8 @@ class ConnectionsPanel extends Component {
           }
           this.setState({
               currObjectVersions: {
-                  en: (this.props.masterPanelLanguage != "hebrew" && !!data.text.length) ? this.getVersionFromData(data, "en") : null,
-                  he: (this.props.masterPanelLanguage != "english" && !!data.he.length) ? this.getVersionFromData(data, "he") : null,
+                  en: ((this.props.masterPanelLanguage != "hebrew" && !!data.text.length) || (this.props.masterPanelLanguage == "hebrew" && !data.he.length)) ? this.getVersionFromData(data, "en") : null,
+                  he: ((this.props.masterPanelLanguage != "english" && !!data.he.length)  || (this.props.masterPanelLanguage == "english" && !data.text.length)) ? this.getVersionFromData(data, "he") : null,
               },
               mainVersionLanguage: currentLanguage,
               sectionRef: data.sectionRef,
@@ -566,7 +566,7 @@ class ConnectionsPanel extends Component {
       content = (<AboutBox
                   key={`About-${Object.values(this.state.currObjectVersions).map((v) => v?.versionTitle ?? "").join("|")}`}
                   currObjectVersions={this.state.currObjectVersions}
-                  mainVersionLanguage={this.state.mainVersionLanguage}
+                  masterPanelLanguage={this.props.masterPanelLanguage}
                   setConnectionsMode={this.props.setConnectionsMode}
                   mode={this.props.mode}
                   setFilter={this.props.setVersionFilter}
@@ -581,7 +581,6 @@ class ConnectionsPanel extends Component {
       content = (<TranslationsBox
                   key={`Translations`}
                   currObjectVersions={this.state.currObjectVersions}
-                  mainVersionLanguage={this.state.mainVersionLanguage}
                   setConnectionsMode={this.props.setConnectionsMode}
                   mode={this.props.mode}
                   setFilter={this.props.setVersionFilter}

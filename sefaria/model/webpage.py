@@ -61,7 +61,7 @@ class WebPage(abst.AbstractMongoRecord):
     def normalize_url(url):
         rewrite_rules = {
             "use https": lambda url: re.sub(r"^http://", "https://", url),
-            "remove hash": lambda url: re.sub(r"#.+", "", url),
+            "remove hash": lambda url: re.sub(r"#.*", "", url),
             "remove url params": lambda url: re.sub(r"\?.+", "", url),
             "remove utm params": lambda url: re.sub(r"\?utm_.+", "", url),
             "remove fbclid param": lambda url: re.sub(r"\?fbclid=.+", "", url),
@@ -103,11 +103,7 @@ class WebPage(abst.AbstractMongoRecord):
     @staticmethod
     def excluded_pages_url_regex():
         bad_urls = []
-        sites = scache.get_shared_cache_elem("websites_data")
-        if sites == False:
-            sites = [w.contents() for w in WebSiteSet()]
-            scache.set_shared_cache_elem("websites_data", sites)
-            sites = scache.get_shared_cache_elem("websites_data")
+        sites = get_website_cache()
         for site in sites:
             bad_urls += getattr(site, "bad_urls", [])
         return "({})".format("|".join(bad_urls))
@@ -123,11 +119,7 @@ class WebPage(abst.AbstractMongoRecord):
 
     @staticmethod
     def site_data_for_domain(domain):
-        sites = scache.get_shared_cache_elem("websites_data")
-        if sites == False:
-            sites = [w.contents() for w in WebSiteSet()]
-            scache.set_shared_cache_elem("websites_data", sites)
-            sites = scache.get_shared_cache_elem("websites_data")
+        sites = get_website_cache()
         for site in sites:
             for site_domain in site["domains"]:
                 if site_domain == domain or domain.endswith("." + site_domain):
@@ -424,3 +416,22 @@ def webpages_stats():
             total += len(total_in_book)
 
         print("{}: {}%".format(cat, round(covered * 100.0 / total, 2)))
+
+
+def find_sites_that_may_have_removed_linker(last_linker_activity_day=20):
+    """
+    Checks for each site whether there has been a webpage hit with the linker in the last `last_linker_activity_day` days
+    Prints an alert for each site that doesn't meet this criterion
+    """
+    from datetime import datetime, timedelta
+
+    last_active_threshold = datetime.today() - timedelta(days=last_linker_activity_day)
+    for data in get_website_cache():
+        for domain in data['domains']:
+            ws = WebPageSet({"url": re.compile(re.escape(domain))}, limit=1, sort=[['lastUpdated', -1]])
+            if ws.count() == 0:
+                print(f"{domain} has no pages")
+                continue
+            w = ws.array()[0]
+            if w.lastUpdated < last_active_threshold:
+                print(f"ALERT! {domain} has removed the linker!")

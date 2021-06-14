@@ -4,57 +4,31 @@ on:
   - push
 
 jobs:
-  starting-notification:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v2
-
-      - name: Setup Python 3.7
-        uses: actions/setup-python@v1
-        with: 
-          python-version: '3.7'
-      - name: Send Slack Message
-        run: |
-          pip3 install slack-sdk
-          python3 ./build/slack/notifyStart.py
-        env:
-          SLACK_BOT_TOKEN: "${{secrets.CI_SLACK_BOT_TOKEN}}"
-          TARGET_SLACK_CHANNEL: "${{secrets.TARGET_SLACK_CHANNEL}}"
-
   ending-notification:
     runs-on: ubuntu-latest
     if: ${{ always() }}
     needs: 
-      - selenium-allsuites-local
+#      - selenium-allsuites-local
 #      - selenium-pageloadsuite-local
-      - selenium-pageloadsuite-sauce
+      - selenium-sauce
 #      - selenium-readersuite-local
       - pytest-job
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v2
-
-      - name: Setup Python 3.7
-        uses: actions/setup-python@v1
-        with: 
-          python-version: '3.7'
-
-      - name: Define BUILD_RESULT_SUBDIR
-        run: echo "BUILD_RESULT_SUBDIR=${GITHUB_SHA:0:8}" >> $GITHUB_ENV
-        if: ${{ always() }}
-
-      - name: Send Slack Message
-        run: |
-          pip3 install slack-sdk
-          python3 ./build/slack/notifyEnd.py
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+      - run: npm ci
+        working-directory: ./build/notify
+      - run: node notifyEnd.js
+        working-directory: ./build/notify
         env:
-          # I might have to list the available result files until I build a proper frontend
-          SLACK_BOT_TOKEN: "${{secrets.CI_SLACK_BOT_TOKEN}}"
-          TEST_RESULTS_LINK: "https://buildresults.sefaria.org/${{env.BUILD_RESULT_SUBDIR}}"
-          TARGET_SLACK_CHANNEL: "${{secrets.TARGET_SLACK_CHANNEL}}"
-
+          SLACK_TEST_SUCCESS_WEBHOOK_URL: ${{secrets.SLACK_TEST_SUCCESS_WEBHOOK_URL}}
+          SLACK_TEST_FAILURE_WEBHOOK_URL: ${{secrets.SLACK_TEST_FAILURE_WEBHOOK_URL}}
+          GITUSER_SLACK_MAP: ${{secrets.GITUSER_SLACK_MAP}}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   jest-tests:
+    name: "Jest"   # This name is referenced when slacking status
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -315,18 +289,99 @@ jobs:
 #        run: gsutil cp /home/runner/selenium-readersuite-local.txt gs://${{secrets.GCS_BUILD_UPLOAD_BUCKET}}/${{env.BUILD_RESULT_SUBDIR}}/selenium-readersuite-local.txt
 #        if: ${{ always() }}
 
-  selenium-allsuites-local:
-    # Start off with local firefox
-    name: "Selenium: All Default tests on Local Linux Firefox"
+#  selenium-allsuites-local:
+#    # Start off with local firefox
+#    name: "Selenium: Local"   # This name is referenced when slacking status
+#    needs: sandbox-ready
+#    runs-on: ubuntu-latest
+#    services:
+#      selenium:
+#        image: selenium/standalone-chrome:3.141.59
+#        ports: [ "4444:4444" ]
+#        volumes: ["/dev/shm:/dev/shm"]
+#    steps:
+#
+#      # BEGIN SETUP
+#      - name: Checkout Code
+#        uses: actions/checkout@v2
+#      - name: Set Up Python 3
+#        uses: actions/setup-python@v1
+#        with:
+#          python-version: '3.7'
+#
+#      # Set Up Connection to Dev Mongo
+#      # 1. Auth to cluster
+#      # 2. Open encrypted connection
+#      - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+#        with:
+#          service_account_key: ${{ secrets.DEV_CLOUDBUILD_SA_KEY }}
+#          project_id: ${{ secrets.DEV_PROJECT }}
+#
+#      - name: Authenticate GHA Runner To Target Cluster
+#        run: gcloud container clusters get-credentials ${{secrets.DEV_GKE_CLUSTER}} --zone ${{secrets.DEV_GKE_REGION}} --project ${{secrets.DEV_GCP_PROJECT}}
+#
+#      - name: Establish MongoDB Connection
+#        run: kubectl port-forward svc/mongo 27017:27017 &
+#
+#      - name: Await MongoDB Connection
+#        run: sleep 20
+#
+#      - name: Confirm MongoDB Connection
+#        # The following command returns a success code if mongo is available,
+#        # and a failure code if it is not
+#        run: curl localhost:27017
+#
+#      - name: Establish PostgreSQL Connection
+#        run: kubectl port-forward svc/postgres 5432:5432 &
+#
+#      - name: Await MongoDB Connection
+#        run: sleep 20
+#
+#      - name: Confirm PostgreSQL Connection
+#        # if the PostgreSQL server is available, curl will fail with a '52' exit code
+#        # if it is NOT available, it will fail with a '7' exit code
+#        # run: curl localhost:5432; if [ $? -eq "52" ]; then exit 0; else exit 1; fi
+#        run: exitCode=$(curl localhost:5432; echo $?); if [ $exitCode -eq 52 ]; then exit 0; else exit 1; fi
+#
+#      - name: Define GITHUB_SHA_SHORT
+#        run: echo "GITHUB_SHA_SHORT=${GITHUB_SHA:0:6}" >> $GITHUB_ENV
+#
+#      # END SETUP
+#      - name: Install Python Packages
+#        run: pip3 install -r ./requirements.txt
+#
+#      - name: Run PageLoad Suite
+#        run: python3 ./reader/browsertest/run_local_sel.py  | tee /home/runner/selenium-allsuites-local.txt # --parallel ; echo $?
+#        shell: bash
+#        env:
+#          CI_RUN: "true"
+#          CI_URL: https://${{env.GITHUB_SHA_SHORT}}.cauldron.sefaria.org
+#          LOCAL_SELENIUM_URL: "http://localhost:4444/wd/hub"
+#          SEFARIA_TEST_PASS: ${{ secrets.SEFARIA_APP_PASS }}
+#          SEFARIA_TEST_USER: ${{ secrets.SEFARIA_APP_USER }}
+#          PYTHONPATH: "."
+#          DJANGO_SETTINGS_MODULE: sefaria.settings
+#
+#      - name: Authenticate GHA Runner to GCP
+#        uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+#        with:
+#          service_account_key: ${{ secrets.GCS_BUILD_UPLOAD_KEY }}
+#          project_id: ${{ secrets.BUILD_UPLOAD_PROJECT }}
+#        if: ${{ always() }}
+#
+#      - name: Define BUILD_RESULT_SUBDIR
+#        run: echo "BUILD_RESULT_SUBDIR=${GITHUB_SHA:0:8}" >> $GITHUB_ENV
+#        if: ${{ always() }}
+#
+#      - name: Upload Build Results
+#        run: gsutil cp /home/runner/selenium-allsuites-local.txt gs://${{secrets.GCS_BUILD_UPLOAD_BUCKET}}/${{env.BUILD_RESULT_SUBDIR}}/selenium-allsuites-local.txt
+#        if: ${{ always() }}
+
+  selenium-sauce:
+    name: "Selenium"   # This name is referenced when slacking status
     needs: sandbox-ready
     runs-on: ubuntu-latest
-    services: 
-      selenium:
-        image: selenium/standalone-chrome:3.141.59
-        ports: [ "4444:4444" ]
-        volumes: ["/dev/shm:/dev/shm"]
     steps:
-
       # BEGIN SETUP
       - name: Checkout Code
         uses: actions/checkout@v2
@@ -338,7 +393,7 @@ jobs:
       # Set Up Connection to Dev Mongo
       # 1. Auth to cluster
       # 2. Open encrypted connection
-      - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+      - uses: google-github-actions/setup-gcloud@master
         with:
           service_account_key: ${{ secrets.DEV_CLOUDBUILD_SA_KEY }}
           project_id: ${{ secrets.DEV_PROJECT }}
@@ -372,94 +427,13 @@ jobs:
       - name: Define GITHUB_SHA_SHORT
         run: echo "GITHUB_SHA_SHORT=${GITHUB_SHA:0:6}" >> $GITHUB_ENV
 
-      # END SETUP
-      - name: Install Python Packages
-        run: pip3 install -r ./requirements.txt
-
-      - name: Run PageLoad Suite
-        run: python3 ./reader/browsertest/run_local_sel.py  | tee /home/runner/selenium-allsuites-local.txt # --parallel ; echo $?
-        shell: bash
-        env:
-          CI_RUN: "true"
-          CI_URL: https://${{env.GITHUB_SHA_SHORT}}.cauldron.sefaria.org
-          LOCAL_SELENIUM_URL: "http://localhost:4444/wd/hub"
-          SEFARIA_TEST_PASS: ${{ secrets.SEFARIA_APP_PASS }}
-          SEFARIA_TEST_USER: ${{ secrets.SEFARIA_APP_USER }}
-          PYTHONPATH: "."
-          DJANGO_SETTINGS_MODULE: sefaria.settings
-
-      - name: Authenticate GHA Runner to GCP
-        uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
-        with:
-          service_account_key: ${{ secrets.GCS_BUILD_UPLOAD_KEY }}
-          project_id: ${{ secrets.BUILD_UPLOAD_PROJECT }}
-        if: ${{ always() }}
-
-      - name: Define BUILD_RESULT_SUBDIR
-        run: echo "BUILD_RESULT_SUBDIR=${GITHUB_SHA:0:8}" >> $GITHUB_ENV
-        if: ${{ always() }}
-
-      - name: Upload Build Results
-        run: gsutil cp /home/runner/selenium-allsuites-local.txt gs://${{secrets.GCS_BUILD_UPLOAD_BUCKET}}/${{env.BUILD_RESULT_SUBDIR}}/selenium-allsuites-local.txt
-        if: ${{ always() }}
-
-  selenium-pageloadsuite-sauce:
-    name: "Selenium: PageLoad Suite on Sauce Labs Firefox"
-    needs: sandbox-ready
-    runs-on: ubuntu-latest
-    steps:
-      # BEGIN SETUP
-      - name: Checkout Code
-        uses: actions/checkout@v2
-      - name: Set Up Python 3
-        uses: actions/setup-python@v1
-        with: 
-          python-version: '3.7'  
-
-      # Set Up Connection to Dev Mongo
-      # 1. Auth to cluster
-      # 2. Open encrypted connection
-      - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
-        with:
-          service_account_key: ${{ secrets.DEV_CLOUDBUILD_SA_KEY }}
-          project_id: ${{ secrets.DEV_PROJECT }}
-
-      - name: Authenticate GHA Runner To Target Cluster
-        run: gcloud container clusters get-credentials ${{secrets.DEV_GKE_CLUSTER}} --zone ${{secrets.DEV_GKE_REGION}} --project ${{secrets.DEV_GCP_PROJECT}}
-
-      - name: Establish MongoDB Connection
-        run: kubectl port-forward svc/mongo 27017:27017 &
-      
-      - name: Await MongoDB Connection
-        run: sleep 20
-
-      - name: Confirm MongoDB Connection
-        # The following command returns a success code if mongo is available,
-        # and a failure code if it is not
-        run: curl localhost:27017
-
-      - name: Establish PostgreSQL Connection
-        run: kubectl port-forward svc/postgres 5432:5432 &
-
-      - name: Await MongoDB Connection
-        run: sleep 20
-
-      - name: Confirm PostgreSQL Connection
-        # if the PostgreSQL server is available, curl will fail with a '52' exit code
-        # if it is NOT available, it will fail with a '7' exit code
-        # run: curl localhost:5432; if [ $? -eq "52" ]; then exit 0; else exit 1; fi
-        run: exitCode=$(curl localhost:5432; echo $?); if [ $exitCode -eq 52 ]; then exit 0; else exit 1; fi
-
-      - name: Define GITHUB_SHA_SHORT
-        run: echo "GITHUB_SHA_SHORT=${GITHUB_SHA:0:6}" >> $GITHUB_ENV
-
 
       # END SETUP
       - name: Install Python Packages
         run: pip3 install -r ./requirements.txt
 
-      - name: Run PageLoad Suite
-        run: python3 ./reader/browsertest/run_tests_on_github.py --tests PageloadSuite | tee /home/runner/selenium-pageloadsuite-sauce.txt #  ; echo $?
+      - name: Run Test Suite
+        run: python3 ./reader/browsertest/run_tests_on_github.py | tee /home/runner/selenium-pageloadsuite-sauce.txt #  ; echo $?
         shell: bash
         env:
           SAUCE_USERNAME: ${{ secrets.SAUCE_USERNAME }}
@@ -470,9 +444,10 @@ jobs:
           SEFARIA_TEST_USER: ${{ secrets.SEFARIA_APP_USER }}
           PYTHONPATH: "."
           DJANGO_SETTINGS_MODULE: sefaria.settings
+          MONGO_DB_NAME: sefaria-${{env.GITHUB_SHA_SHORT}}
 
       - name: Authenticate GHA Runner to GCP
-        uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+        uses: google-github-actions/setup-gcloud@master
         with:
           service_account_key: ${{ secrets.GCS_BUILD_UPLOAD_KEY }}
           project_id: ${{ secrets.BUILD_UPLOAD_PROJECT }}
@@ -487,7 +462,7 @@ jobs:
         if: ${{ always() }}
 
   pytest-job:
-    name: Run PyTest Job
+    name: "PyTest"  # This name is referenced when slacking status
     needs:
       - sandbox-ready
     runs-on: ubuntu-latest
@@ -497,7 +472,7 @@ jobs:
       # Set Up Connection to Dev Mongo
       # 1. Auth to cluster
       # 2. Open encrypted connection
-      - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+      - uses: google-github-actions/setup-gcloud@master
         with:
           service_account_key: ${{ secrets.DEV_CLOUDBUILD_SA_KEY }}
           project_id: ${{ secrets.DEV_PROJECT }}
@@ -528,7 +503,7 @@ jobs:
         run: "LASTLINE=`kubectl logs --tail=1 -l ci-run=$GITHUB_RUN_ID,test-name=pytest`; STAT=${LASTLINE: -1}; exit $STAT"
 
       - name: Authenticate GHA Runner to GCP
-        uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+        uses: google-github-actions/setup-gcloud@master
         with:
           service_account_key: ${{ secrets.GCS_BUILD_UPLOAD_KEY }}
           project_id: ${{ secrets.BUILD_UPLOAD_PROJECT }}
@@ -546,9 +521,9 @@ jobs:
     name: "Clean up CI Sandbox"
     if: ${{ always() }}
     needs: 
-      - selenium-allsuites-local
+#      - selenium-allsuites-local
 #      - selenium-pageloadsuite-local
-      - selenium-pageloadsuite-sauce
+      - selenium-sauce
 #      - selenium-readersuite-local
       - pytest-job
     runs-on: ubuntu-latest
@@ -556,7 +531,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+      - uses: google-github-actions/setup-gcloud@master
         with:
           service_account_key: ${{ secrets.DEV_CLOUDBUILD_SA_KEY }}
           project_id: ${{ secrets.DEV_PROJECT }}
@@ -569,6 +544,7 @@ jobs:
           GKE_REGION: "${{secrets.DEV_GKE_REGION}}"
           SANDBOX_SUBDOMAIN: "${{secrets.DEV_SANDBOX_SUBDOMAIN}}"
           GKE_NAMESPACE: "${{secrets.DEV_SANDBOX_NAMESPACE}}"
+          MONGO_HOST: "${{secrets.DEV_MONGO_HOST}}"
 
   prepare-report-bucket:
     name: "Prepare Build Report"
@@ -579,7 +555,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Authenticate GHA Runner to GCP
-        uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+        uses: google-github-actions/setup-gcloud@master
         with:
           service_account_key: ${{ secrets.GCS_BUILD_UPLOAD_KEY }}
           project_id: ${{ secrets.BUILD_UPLOAD_PROJECT }}

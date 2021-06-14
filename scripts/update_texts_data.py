@@ -59,7 +59,7 @@ for l in rows:
         current_authors = set(getattr(i, "authors", []) or [])
     except TypeError:
         current_authors = set()
-    sheet_authors = set([a.strip() for a in l[1].split(",") if Person().load({"key": a.strip()})])
+    sheet_authors = set([a.strip() for a in l[1].split(",") if AuthorTopic().load({"slug": a.strip()})])
     needs_save = current_authors != sheet_authors
     sheet_authors = list(sheet_authors)
 
@@ -83,21 +83,3 @@ for l in rows:
     if needs_save:
         print("o - {}".format(l[0]))
         i.save(override_dependencies=True)
-
-
-# clear out all earlier author data:
-"""
-db.index.update({}, {"$unset": {
-    "authors": 1,
-    "enDesc": 1,
-    "heDesc": 1,
-    "enShortDesc": 1,
-    "heShortDesc": 1,
-    "pubDate": 1,
-    "compDate": 1,
-    "compPlace": 1,
-    "pubPlace": 1,
-    "errorMargin": 1,
-    "era": 1,
-}}, multi=True)
-"""
