@@ -137,10 +137,10 @@ const ContestLandingPage = () => (
 
         <H2Block en="Eligibility" he="זכאות" />
         <EnBlock padded={true}>
-            <p>The Contest is open to applicants from the United States and Israel. All participants are eligible to enter the grand prize. Eligible participants for the Women in Tech prize include a) individuals who identify as women or b) groups of 3 or more, the majority of whom identify as women. Participants who are eligible for the Women in Tech prize may submit their project into both the Women in Tech prize and grand prize categories, and the youth prize category if eligible. Eligible participants for the youth prize include people under the age of 23. Participants who are eligible for the youth prize may submit their project into both the youth prize and grand prize categories, as well as the Women in Tech category if eligible. All entrants under the age of 18 must obtain permission from their parent or guardian before entering the contest. <b>To learn more, see our official <a href="https://drive.google.com/file/d/1ZFcIDcteqbS562YU3a8Ok_1LBvLEj2h6/view?usp=sharing">Contest Rules</a></b>.</p>
+            <p>The Contest is open to applicants from the United States and Israel. All participants are eligible to enter the grand prize. Eligible participants for the Women in Tech prize include a) individuals who identify as women or b) groups of 3 or more, the majority of whom identify as women. Participants who are eligible for the Women in Tech prize may submit their project into both the Women in Tech prize and grand prize categories, and the youth prize category if eligible. Eligible participants for the youth prize include people under the age of 23. Participants who are eligible for the youth prize may submit their project into both the youth prize and grand prize categories, as well as the Women in Tech category if eligible. All entrants under the age of 18 must obtain permission from their parent or guardian before entering the contest. <b>To learn more, see our official <a href="https://drive.google.com/file/d/1CMlxEe-xIk8RNpfdBRlytLDWsdLMXPpl/view">Contest Rules</a></b>.</p>
         </EnBlock>
         <HeBlock padded={true}>
-            <p>התחרות הכללית פתוחה למועמדים מארצות הברית ומישראל (נשים וגברים). הפרס המיוחד עבור נשים מיועד לנשים שמפתחות תוכנה או לקבוצה בתנאי שיש בה רוב נשי. א. אישה; ב. קבוצה של שלושה משתתפים או יותר, שמורכבת רובה מנשים. המשתתפות הזכאיות יכולות לשלוח את המיזם שלהן להתמודדות על כמה פרסים: הפרס הכללי, הפרס לנשים מפתחות תוכנה ועל פרס המתמודד הצעיר, אם הן עומדות בתנאיו. התנאי להתמודדות בקטגוריית פרס המתמודד הצעיר הוא שגיל המשתתף אינו עולה על 23. כל המשתתפים בתחרות מתחת לגיל 18 חייבים להציג אישור מהורה או מאפטרופוס לפני הכניסה לתחרות. לעיון נוסף, ראו את <a href="https://drive.google.com/file/d/1CMlxEe-xIk8RNpfdBRlytLDWsdLMXPpl/view?usp=sharing">תקנון התחרות הרשמי שלנו</a>.</p>
+            <p>התחרות הכללית פתוחה למועמדים מארצות הברית ומישראל (נשים וגברים). הפרס המיוחד עבור נשים מיועד לנשים שמפתחות תוכנה או לקבוצה בתנאי שיש בה רוב נשי. א. אישה; ב. קבוצה של שלושה משתתפים או יותר, שמורכבת רובה מנשים. המשתתפות הזכאיות יכולות לשלוח את המיזם שלהן להתמודדות על כמה פרסים: הפרס הכללי, הפרס לנשים מפתחות תוכנה ועל פרס המתמודד הצעיר, אם הן עומדות בתנאיו. התנאי להתמודדות בקטגוריית פרס המתמודד הצעיר הוא שגיל המשתתף אינו עולה על 23. כל המשתתפים בתחרות מתחת לגיל 18 חייבים להציג אישור מהורה או מאפטרופוס לפני הכניסה לתחרות. לעיון נוסף, ראו את <a href="https://drive.google.com/file/d/1CMlxEe-xIk8RNpfdBRlytLDWsdLMXPpl/view">תקנון התחרות הרשמי שלנו</a>.</p>
         </HeBlock>
         <Spacer/>
 
@@ -203,8 +203,8 @@ const ContestLandingPage = () => (
                 white={true}
                 rounded={false}
                 tall={true}
-                href="https://drive.google.com/file/d/1ZFcIDcteqbS562YU3a8Ok_1LBvLEj2h6/view?usp=sharing"
-                he_href="https://drive.google.com/file/d/1ZFcIDcteqbS562YU3a8Ok_1LBvLEj2h6/view?usp=sharing"
+                href="https://drive.google.com/file/d/1CMlxEe-xIk8RNpfdBRlytLDWsdLMXPpl/view"
+                he_href="https://drive.google.com/file/d/1CMlxEe-xIk8RNpfdBRlytLDWsdLMXPpl/view"
                 he="כללי התחרות"
                 en="Official Rules"
             />
