@@ -1856,11 +1856,14 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 }
 #mobilePage #headerButtons{
   position: fixed;
-  right: 100px;
+  right: 30px;
   top: 15px;
   z-index: 1002;
 }
-
+.interface-hebrew #mobilePage #headerButtons {
+  right: auto;
+  left: 30px;
+}
 #mobilePage #headerButtons a:active,
 #mobilePage #headerButtons a:hover{
   text-decoration: none;

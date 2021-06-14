@@ -282,7 +282,7 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
   width: 100%;
   height: 100%;
 }
-.nochrome #s2 .headerNavSection,
+.nochrome #s2 .headerNavSection a:not(.home),
 .nochrome #s2 .headerLinksSection,
 .nochrome #footerContainer {
   display: none;
