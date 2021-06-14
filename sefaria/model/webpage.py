@@ -75,8 +75,8 @@ class WebPage(abst.AbstractMongoRecord):
         domain = WebPage.domain_for_url(url)
         site_rules = global_rules
         site_data = WebPage.site_data_for_domain(domain)
-        if site_data.is_whitelisted:
-            site_rules += getattr(site_data, "normalization_rules", [])
+        if site_data and site_data["is_whitelisted"]:
+            site_rules += site_data.get("normalization_rules", [])
         for rule in site_rules:
             url = rewrite_rules[rule](url)
 
@@ -105,7 +105,7 @@ class WebPage(abst.AbstractMongoRecord):
         bad_urls = []
         sites = get_website_cache()
         for site in sites:
-            bad_urls += getattr(site, "bad_urls", [])
+            bad_urls += site.get("bad_urls", [])
         return "({})".format("|".join(bad_urls))
 
     @staticmethod
