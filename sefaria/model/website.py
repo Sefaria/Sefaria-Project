@@ -24,7 +24,7 @@ class WebSiteSet(abst.AbstractMongoSet):
 
 def get_website_cache():
 	sites = scache.get_shared_cache_elem("websites_data")
-	if sites == False:
+	if sites in [None, []]:
 		sites = [w.contents() for w in WebSiteSet()]
 		scache.set_shared_cache_elem("websites_data", sites)
 		sites = scache.get_shared_cache_elem("websites_data")
