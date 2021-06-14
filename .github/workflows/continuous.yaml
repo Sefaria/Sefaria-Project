@@ -444,6 +444,7 @@ jobs:
           SEFARIA_TEST_USER: ${{ secrets.SEFARIA_APP_USER }}
           PYTHONPATH: "."
           DJANGO_SETTINGS_MODULE: sefaria.settings
+          MONGO_DB_NAME: sefaria-${{env.GITHUB_SHA_SHORT}}
 
       - name: Authenticate GHA Runner to GCP
         uses: google-github-actions/setup-gcloud@master
