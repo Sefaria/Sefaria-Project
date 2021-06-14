@@ -55,6 +55,7 @@ from sefaria.clean import remove_old_counts
 from sefaria.search import index_sheets_by_timestamp as search_index_sheets_by_timestamp
 from sefaria.model import *
 from sefaria.model.website import *
+from sefaria.model.webpage import clean_webpages
 from sefaria.system.multiserver.coordinator import server_coordinator
 
 from reader.views import render_template
@@ -454,6 +455,7 @@ def reset_cache(request):
 def reset_websites_data(request):
     website_set = [w.contents() for w in WebSiteSet()]
     InMemoryCache().reset("websites_data", website_set)
+    clean_webpages()
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("in_memory_cache", "reset", ["websites_data", website_set])
     return HttpResponseRedirect("/?m=Website-Data-Reset")
