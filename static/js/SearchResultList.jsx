@@ -25,9 +25,6 @@ class SearchResultList extends Component {
       super(props);
       this.types = ['text', 'sheet'];
       this.querySize = {"text": 50, "sheet": 20};
-      this.updateAppliedFilterByTypeMap      = this.types.reduce((obj, k) => { obj[k] = props.updateAppliedFilter.bind(null, k);      return obj; }, {});
-      this.updateAppliedOptionFieldByTypeMap = this.types.reduce((obj, k) => { obj[k] = props.updateAppliedOptionField.bind(null, k); return obj; }, {});
-      this.updateAppliedOptionSortByTypeMap  = this.types.reduce((obj, k) => { obj[k] = props.updateAppliedOptionSort.bind(null, k);  return obj; }, {});
       this.state = {
         runningQueries: this._typeObjDefault(null),
         isQueryRunning: this._typeObjDefault(false),
@@ -326,8 +323,6 @@ SearchResultList.propTypes = {
   sheetSearchState:         PropTypes.object,
   onResultClick:            PropTypes.func,
   updateTab:                PropTypes.func,
-  updateAppliedFilter:      PropTypes.func,
-  updateAppliedOptionField: PropTypes.func,
   updateAppliedOptionSort:  PropTypes.func,
   registerAvailableFilters: PropTypes.func,
 };

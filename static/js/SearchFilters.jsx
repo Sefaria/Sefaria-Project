@@ -121,22 +121,11 @@ class TextSearchFilters extends Component {
   render() {
     return (
       <div className="searchFilterBoxes">
-        <div className="searchFilterGroup">
-          <h2>
-            <InterfaceText>Texts</InterfaceText>
-          </h2>
-          {this.props.availableFilters.map(filter => {
-            return (
-              <SearchFilter
-                filter={filter}
-                isInFocus={this.props.openedCategory === filter}
-                focusCategory={this.props.handleFocusCategory}
-                updateSelected={this.props.updateAppliedFilter}
-                expandable={true}
-                key={filter.aggKey}/>
-            );
-          })}
-        </div>
+        <SearchFilterGroup
+          name="Texts"
+          filters={this.props.availableFilters}
+          updateSelected={this.props.updateAppliedFilter}
+          expandable={true} />
 
         <div className="searchFilterGroup">
           <h2>
@@ -159,6 +148,33 @@ TextSearchFilters.propTypes = {
   toggleExactSearch:   PropTypes.func,
   handleFocusCategory: PropTypes.func,
 };
+
+
+const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged}) => {
+  if (!filters || !filters.length) { return null; }
+
+  let content = filters.map(filter => (
+    <SearchFilter
+      filter={filter}
+      updateSelected={updateSelected}
+      expandable={expandable}
+      key={filter.aggKey}/>
+  ));
+
+  if (paged) {
+    content = <PagedList items={content} />
+  }
+
+  return (
+    <div className="searchFilterGroup">
+      <h2>
+        <InterfaceText>{name}</InterfaceText>
+      </h2>
+      {content}
+    </div>
+  );
+};
+
 
 
 class SearchFilterExactBox extends Component {
@@ -354,30 +370,17 @@ class SheetSearchFilters extends Component {
 
     return (
       <div className="searchFilterBoxes" role="dialog">
-        <div className="searchFilterGroup">
-          <h2>
-            <InterfaceText>Topics</InterfaceText>
-          </h2>
-          <PagedList 
-            items={tagFilters.map(filter => (
-              <SearchFilter
-                filter={filter}
-                updateSelected={this.props.updateAppliedFilter}
-                key={filter.aggKey} />))} />
-        </div>
+        <SearchFilterGroup
+          name="Topics"
+          filters={tagFilters}
+          updateSelected={this.props.updateAppliedFilter}
+          paged={true} />
 
-        <div className="searchFilterGroup">
-          <h2>
-            <InterfaceText>Collections</InterfaceText>
-          </h2>
-          <PagedList 
-            items={collectionFilters.map(filter => (
-              <SearchFilter
-                filter={filter}
-                updateSelected={this.props.updateAppliedFilter}
-                isInFocus={false}
-                key={filter.aggKey} />))} />
-        </div>
+        <SearchFilterGroup
+          name="Collections"
+          filters={collectionFilters}
+          updateSelected={this.props.updateAppliedFilter}
+          paged={true} />
       </div>
     );
   }

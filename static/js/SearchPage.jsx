@@ -46,8 +46,6 @@ class SearchPage extends Component {
                 sheetSearchState={this.props.sheetSearchState}
                 onResultClick={this.props.onResultClick}
                 updateTab={this.props.updateTab}
-                updateAppliedFilter = {this.props.updateAppliedFilter}
-                updateAppliedOptionField={this.props.updateAppliedOptionField}
                 updateAppliedOptionSort={this.props.updateAppliedOptionSort}
                 registerAvailableFilters={this.props.registerAvailableFilters}
               />
