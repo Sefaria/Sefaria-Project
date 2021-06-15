@@ -972,7 +972,6 @@ const withSefariaSheet = editor => {
 
         // Fall back to the original `normalizeNode` to enforce other constraints.
         normalizeNode(entry);
-        return editor
     };
 
     // Normalization functions take (node, path) and return true if they make a change.
