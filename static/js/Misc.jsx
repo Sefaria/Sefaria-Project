@@ -611,7 +611,7 @@ DropdownButton.propTypes = {
   toggle:      PropTypes.func.isRequired,
   enText:      PropTypes.string.isRequired,
   heText:      PropTypes.string.isRequired,
-  buttonStyle: PropTypes.string,
+  buttonStyle: PropTypes.bool,
 };
 
 

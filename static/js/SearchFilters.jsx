@@ -287,8 +287,16 @@ class SearchFilter extends Component {
       }
     }   
   }
+  handleExpandKeyPress(e) {
+    if (e.charCode == 13) { // enter
+      this.toggleExpanded();
+    }
+  }
   render() {
-    const { filter, isInFocus } = this.props;
+    const { filter, expandable, isInFocus } = this.props;
+    const toggleMessage = "Press enter to toggle search filter for " + filter.title + ".";
+    const expandMessage = "Press enter to toggle the list of specific books within " + filter.title + " to filter by."
+
     return (
       <>
         <li className={classNames({active: isInFocus})}>
@@ -297,17 +305,23 @@ class SearchFilter extends Component {
             <label 
               onClick={this.handleFilterClick} 
               id={"label-for-"+this.props.filter.aggKey} 
-              tabIndex="0" onKeyDown={this.handleKeyDown} 
+              tabIndex="0"
+              onKeyDown={this.handleKeyDown} 
               onKeyPress={this.handleKeyPress} 
-              aria-label={"Click enter to toggle search filter for "+filter.title+" and space bar to toggle specific books in this category. Escape exits out of this modal"}>
+              aria-label={toggleMessage}>
               <span></span>
             </label>
-            <span className="searchFilterTitle" onClick={this.toggleExpanded}>
+            <span
+              className="searchFilterTitle"
+              onClick={expandable ? this.toggleExpanded : this.handleFilterClick}
+              onKeyPress={expandable ? this.handleExpandKeyPress : this.handleKeyPress}
+              tabIndex={expandable ? "0" : null}
+              aria-label={expandable ? expandMessage : toggleMessage} >
               <InterfaceText text={{en: filter.title, he: filter.heTitle}} />&nbsp;
               <span className="filter-count"><InterfaceText>{`(${filter.docCount})`}</InterfaceText></span>
             </span>
           </div>
-          {this.props.expandable ? <i className="fa fa-angle-down" /> : null}
+          {this.props.expandable ? <i className="fa fa-angle-down" onClick={this.toggleExpanded} /> : null}
         </li>
         {this.state.expanded ? 
         <li>
