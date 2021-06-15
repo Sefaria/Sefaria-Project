@@ -68,7 +68,6 @@ class TranslationsBox extends Component {
       return (
         <VersionsBlocksList key={`versions-${Object.values(this.props.currObjectVersions).map((v) => v?.versionTitle ?? "").join("|")}`}
           versionsByLanguages={this.state.versionLangMap}
-          mainVersionLanguage={this.props.mainVersionLanguage}
           currObjectVersions={this.props.currObjectVersions}
           sortPrioritizeLanugage={"en"}
           currentRef={this.props.srefs[0]}
@@ -84,7 +83,6 @@ class TranslationsBox extends Component {
 TranslationsBox.propTypes = {
   currObjectVersions:       PropTypes.object.isRequired,
   mode:                     PropTypes.oneOf(["Translations", "Translation Open"]),
-  mainVersionLanguage:      PropTypes.oneOf(["english", "hebrew"]).isRequired,
   vFilter:                  PropTypes.array,
   recentVFilters:           PropTypes.array,
   srefs:                    PropTypes.array.isRequired,

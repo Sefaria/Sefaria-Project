@@ -40,6 +40,7 @@ static_pages = [
     "sheets",
     "powered-by-sefaria-contest-2020",
     "ramban-sponsorships",
+    "contest",
     "design-system"
 ]
 

@@ -337,11 +337,11 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
     def __repr__(self):
         return "{}.init('{}')".format(self.__class__.__name__, self.slug)
 
+
 class PersonTopic(Topic):
     """
     Represents a topic which is a person. Not necessarily an author of a book.
     """
-
     @staticmethod
     def get_person_by_key(key: str):
         """
@@ -388,6 +388,7 @@ class PersonTopic(Topic):
             return TimePeriod().load({"symbol": self.get_property("era")})
         else:
             return None
+
 
 class AuthorTopic(PersonTopic):
     """
@@ -489,6 +490,7 @@ class AuthorTopic(PersonTopic):
                 link_names += [(f'/texts/{"/".join(index_or_cat.path)}', {"en": en_text, "he": he_text})]
         return link_names
 
+
 class TopicSet(abst.AbstractMongoSet):
     recordClass = Topic
 
@@ -513,11 +515,14 @@ class TopicSet(abst.AbstractMongoSet):
                 Subclass = globals()[self.recordClass.subclass_map[rec.subclass]]
                 rec.__class__ = Subclass  # cast to relevant subclass
 
+
 class PersonTopicSet(TopicSet):
     recordClass = PersonTopic
 
+
 class AuthorTopicSet(PersonTopicSet):
     recordClass = AuthorTopic
+
 
 class TopicLinkHelper(object):
     """
