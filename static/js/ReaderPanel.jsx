@@ -716,6 +716,7 @@ class ReaderPanel extends Component {
           filter={this.state.filter}
           textHighlights={this.state.textHighlights}
           unsetTextHighlight={this.props.unsetTextHighlight}
+          translationLanguagePreference={this.props.translationLanguagePreference}
           key={`${textColumnBookTitle ? textColumnBookTitle : "empty"}-TextColumn`} />
       );
     }
@@ -774,6 +775,7 @@ class ReaderPanel extends Component {
           setVersionFilter={this.setVersionFilter}
           viewExtendedNotes={this.props.viewExtendedNotes.bind(null, "Connections")}
           checkIntentTimer={this.props.checkIntentTimer}
+          translationLanguagePreference={this.props.translationLanguagePreference}
           key="connections" />
       );
     }
@@ -1042,7 +1044,7 @@ class ReaderPanel extends Component {
     }
 
     let classes  = {readerPanel: 1, serif: 1, narrowColumn: this.state.width < 730};
-    classes[contextContentLang.language] = 1
+    classes[contextContentLang.language] = 1;
     classes[this.currentLayout()]        = 1;
     classes[this.state.settings.color]   = 1;
     classes = classNames(classes);
@@ -1088,6 +1090,7 @@ class ReaderPanel extends Component {
             toggleSignUpModal={this.props.toggleSignUpModal}
             historyObject={this.props.getHistoryObject(this.state, this.props.hasSidebar)}
             connectionData={this.state.connectionData}
+            setTranslationLanguagePreference={this.props.setTranslationLanguagePreference}
           />}
 
           {(items.length > 0 && !menu) ?
@@ -1181,6 +1184,8 @@ ReaderPanel.propTypes = {
   toggleSignUpModal:           PropTypes.func.isRequired,
   getHistoryRef:               PropTypes.func,
   profile:                     PropTypes.object,
+  translationLanguagePreference: PropTypes.string,
+  setTranslationLanguagePreference: PropTypes.func.isRequired,
 };
 
 
@@ -1318,7 +1323,7 @@ class ReaderControls extends Component {
           />
           <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
         </div>);
-    let transLangPrefSuggBann = hideHeader || connectionsHeader ? null : <TranslationLanguagePreferenceSuggestionBanner />;
+    let transLangPrefSuggBann = hideHeader || connectionsHeader ? null : <TranslationLanguagePreferenceSuggestionBanner setTranslationLanguagePreference={this.props.setTranslationLanguagePreference} />;
     const classes = classNames({
       readerControls: 1,
       connectionsHeader: mode == "Connections",
@@ -1367,10 +1372,11 @@ ReaderControls.propTypes = {
   interfaceLang:           PropTypes.string,
   toggleSignUpModal:       PropTypes.func.isRequired,
   historyObject:           PropTypes.object,
+  setTranslationLanguagePreference: PropTypes.func.isRequired,
 };
 
 
-const TranslationLanguagePreferenceSuggestionBanner = ({}) => {
+const TranslationLanguagePreferenceSuggestionBanner = ({ setTranslationLanguagePreference }) => {
   const [accepted, setAccepted] = useState(false);
   const [closed, setClosed] = useState(false);
 
@@ -1389,6 +1395,7 @@ const TranslationLanguagePreferenceSuggestionBanner = ({}) => {
     cookie("translation_language_preference", translation_language_preference_suggestion);
     cookie("translation_language_preference_suggested", JSON.stringify(1), {path: "/"});
     Sefaria.editProfileAPI({settings: {translation_language_preference: translation_language_preference_suggestion, translation_language_preference_suggested: true}});
+    setTranslationLanguagePreference(translation_language_preference_suggestion);
   }
   const lang = Sefaria.translateISOLanguageCode(translation_language_preference_suggestion);
 

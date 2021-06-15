@@ -362,9 +362,8 @@ Sefaria = extend(Sefaria, {
       multiple:   settings.multiple   || 0,
       wrapLinks:  ("wrapLinks" in settings) ? settings.wrapLinks : 1,
       wrapNamedEntities: ("wrapNamedEntities" in settings) ? settings.wrapNamedEntities : 1, 
-      translationLanguagePreference: Sefaria.translation_language_preference,
+      translationLanguagePreference: settings.translationLanguagePreference || null,
     };
-
     return settings;
   },
   getTextFromCache: function(ref, settings) {
@@ -2635,7 +2634,6 @@ Sefaria.unpackDataFromProps = function(props) {
       "full_name",
       "profile_pic_url",
       "is_history_enabled",
-      "translation_language_preference",
       "translation_language_preference_suggestion",
       "following",
 

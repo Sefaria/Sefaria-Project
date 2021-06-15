@@ -185,7 +185,7 @@ def base_props(request):
             "full_name": profile.full_name,
             "profile_pic_url": profile.profile_pic_url,
             "is_history_enabled": profile.settings.get("reading_history", True),
-            "translation_language_preference": profile.settings.get("translation_language_preference", None),
+            "translationLanguagePreference": profile.settings.get("translation_language_preference", None),
             "following": profile.followees.uids,
             "calendars": get_todays_calendar_items(**_get_user_calendar_params(request)),
             "notificationCount": profile.unread_notification_count(),
@@ -204,7 +204,7 @@ def base_props(request):
             "full_name": "",
             "profile_pic_url": "",
             "is_history_enabled": True,
-            "translation_language_preference": request.COOKIES.get("translation_language_preference", None),
+            "translationLanguagePreference": request.COOKIES.get("translation_language_preference", None),
             "following": [],
 
             "calendars": get_todays_calendar_items(**_get_user_calendar_params(request)),

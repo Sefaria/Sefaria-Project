@@ -238,6 +238,7 @@ class ReaderApp extends Component {
       panelCap: props.initialPanelCap,
       initialAnalyticsTracked: false,
       showSignUpModal: false,
+      translationLanguagePreference: props.translationLanguagePreference,
     };
   }
   componentDidMount() {
@@ -1734,6 +1735,9 @@ class ReaderApp extends Component {
       sheet_title,
     };
   }
+  setTranslationLanguagePreference(lang) {
+    this.setState({translationLanguagePreference: lang});
+  }
   doesPanelHaveSidebar(n) {
     return this.state.panels.length > n+1 && this.state.panels[n+1].mode == "Connections";
   }
@@ -1879,7 +1883,9 @@ class ReaderApp extends Component {
                     analyticsInitialized={this.state.initialAnalyticsTracked}
                     getLicenseMap={this.getLicenseMap}
                     openTopic={this.openTopic}
-                    toggleSignUpModal={this.toggleSignUpModal} />) : null;
+                    toggleSignUpModal={this.toggleSignUpModal}
+                    translationLanguagePreference={this.state.translationLanguagePreference}
+                    setTranslationLanguagePreference={this.setTranslationLanguagePreference} />) : null;
     var panels = [];
     var allOpenRefs = panelStates.filter( panel => panel.mode == "Text" && !panel.menuOpen)
                                   .map( panel => Sefaria.humanRef(panel.highlightedRefs.length ? panel.highlightedRefs : panel.refs));
@@ -1972,6 +1978,8 @@ class ReaderApp extends Component {
                       getHistoryObject={this.getHistoryObject}
                       clearSelectedWords={clearSelectedWords}
                       clearNamedEntity={clearNamedEntity}
+                      translationLanguagePreference={this.state.translationLanguagePreference}
+                      setTranslationLanguagePreference={this.setTranslationLanguagePreference}
                     />
                   </div>);
     }

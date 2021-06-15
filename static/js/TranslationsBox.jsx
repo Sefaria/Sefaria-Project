@@ -54,6 +54,7 @@ class TranslationsBox extends Component {
           onRangeClick={this.props.onRangeClick}
           setConnectionsMode={this.props.setConnectionsMode}
           onCitationClick={this.props.onCitationClick}
+          translationLanguagePreference={this.props.translationLanguagePreference}
         />
       );
     }else if(this.props.mode == "Translations"){
@@ -94,6 +95,7 @@ TranslationsBox.propTypes = {
   sectionRef:               PropTypes.string.isRequired,
   onRangeClick:             PropTypes.func.isRequired,
   onCitationClick:          PropTypes.func.isRequired,
+  translationLanguagePreference: PropTypes.string,
 };
 
 
@@ -147,11 +149,13 @@ class VersionsTextList extends Component {
           hideTitle={true}
           numberLabel={0}
           basetext={false}
-          onCitationClick={this.props.onCitationClick} />
-          <ConnectionButtons>
-            <OpenConnectionTabButton srefs={this.props.srefs} openInTabCallback={onRangeClick}/>
-            <AddConnectionToSheetButton srefs={this.props.srefs} versions={{[language]: vTitle}} addToSheetCallback={this.props.setConnectionsMode}/>
-          </ConnectionButtons>
+          onCitationClick={this.props.onCitationClick}
+          translationLanguagePreference={this.props.translationLanguagePreference}
+        />
+        <ConnectionButtons>
+          <OpenConnectionTabButton srefs={this.props.srefs} openInTabCallback={onRangeClick}/>
+          <AddConnectionToSheetButton srefs={this.props.srefs} versions={{[language]: vTitle}} addToSheetCallback={this.props.setConnectionsMode}/>
+        </ConnectionButtons>
       </div>);
   }
 }
@@ -162,6 +166,7 @@ VersionsTextList.propTypes = {
   setFilter:       PropTypes.func.isRequired,
   onRangeClick:    PropTypes.func.isRequired,
   onCitationClick: PropTypes.func.isRequired,
+  translationLanguagePreference: PropTypes.string,
 };
 
 

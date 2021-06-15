@@ -361,6 +361,7 @@ class ConnectionsPanel extends Component {
                     closePanel={this.props.closePanel}
                     selectedWords={this.props.selectedWords}
                     checkVisibleSegments={this.checkVisibleSegments}
+                    translationLanguagePreference={this.props.translationLanguagePreference}
                   />);
 
     } else if (this.props.mode === "Sheets") {
@@ -593,7 +594,9 @@ class ConnectionsPanel extends Component {
                   onRangeClick={this.props.onTextClick}
                   openVersionInReader={this.props.selectVersion}
                   viewExtendedNotes={this.props.viewExtendedNotes}
-                  onCitationClick={this.props.onCitationClick} />);
+                  onCitationClick={this.props.onCitationClick}
+                  translationLanguagePreference={this.props.translationLanguagePreference}
+                />);
 
     } else if (this.props.mode === "extended notes") {
       content = (<ExtendedNotes
@@ -670,6 +673,7 @@ ConnectionsPanel.propTypes = {
   checkIntentTimer:        PropTypes.func.isRequired,
   clearSelectedWords:      PropTypes.func.isRequired,
   clearNamedEntity:        PropTypes.func.isRequired,
+  translationLanguagePreference: PropTypes.string,
 };
 
 

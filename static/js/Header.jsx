@@ -284,6 +284,8 @@ class Header extends Component {
                           analyticsInitialized={this.props.analyticsInitialized}
                           getLicenseMap={this.props.getLicenseMap}
                           toggleSignUpModal={this.props.toggleSignUpModal}
+                          translationLanguagePreference={this.props.translationLanguagePreference}
+                          setTranslationLanguagePreference={this.props.setTranslationLanguagePreference}
                         />) : null;
 
     // Header should not show box-shadow over panels that have color line
