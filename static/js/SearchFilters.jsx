@@ -344,7 +344,7 @@ class SheetSearchFilters extends Component {
           <h2>
             <InterfaceText>Topics</InterfaceText>
           </h2>
-          <CollapsibleList 
+          <PagedList 
             items={tagFilters.map(filter => (
               <SearchFilter
                 filter={filter}
@@ -356,7 +356,7 @@ class SheetSearchFilters extends Component {
           <h2>
             <InterfaceText>Collections</InterfaceText>
           </h2>
-          <CollapsibleList 
+          <PagedList 
             items={collectionFilters.map(filter => (
               <SearchFilter
                 filter={filter}
@@ -374,23 +374,18 @@ SheetSearchFilters.propTypes = {
 };
 
 
-const CollapsibleList = ({items, cutoff=8}) => {
-  const [showMore, setShowMore] = useState(false);
-
-  if (showMore || items.length <= cutoff) {
-    return (
-      <>{items}</>
-    );
-  } else {
-    return (
-      <>
-        {items.slice(0,cutoff)}
-        <a href="javascript:void(0);" className="showMore sans-serif" onClick={() => {setShowMore(true);}}>
-          <InterfaceText>See More</InterfaceText>
-        </a>
-      </>
-    );
-  }
+const PagedList = ({items, initial=8, pageSize=20}) => {
+  const [cutoff, setCutoff] = useState(initial);
+  return (
+    <>
+      {items.slice(0, cutoff)}
+      {items.length > cutoff ?
+      <a href="javascript:void(0);" className="showMore sans-serif" onClick={() => {setCutoff(cutoff + pageSize);}}>
+        <InterfaceText>See More</InterfaceText>
+      </a>
+      : null}
+    </>
+  );
 };
 
 
