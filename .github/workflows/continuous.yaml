@@ -18,7 +18,7 @@ jobs:
       - run: pwd
       - name: Run Jest Tests
         run: npm run jest-gha
-      - name: Handle Jest Test Results # later, upload
+      - name: Handle Jest Test Results
         run: cat /home/runner/jestResults.json; STATUS=`jq ".numFailedTestSuites" /home/runner/jestResults.json`; exit $STATUS
         if: ${{ always() }}
 
@@ -44,7 +44,6 @@ jobs:
 
       - name: Submit Build Job to Cloud Build
         # This should use the 'arbitrary commit' build script
-        # should these sandboxes be available to the public? probably not -- don't give them public IP addresses
         run: ./build/ci/create-ci-sandbox.bash
         env:
           GIT_COMMIT: "$GITHUB_SHA"
@@ -67,7 +66,6 @@ jobs:
 
       - name: Wait for test sandbox to become available 
         # https://gist.github.com/rgl/f90ff293d56dbb0a1e0f7e7e89a81f42
-        # Add a timeout
         run: ./build/ci/waitForSandbox.bash
         env:
           WAIT_DURATION: "3000"
