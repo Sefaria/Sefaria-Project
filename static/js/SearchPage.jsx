@@ -59,7 +59,6 @@ class SearchPage extends Component {
                 updateAppliedFilter={this.props.updateAppliedFilter.bind(null, this.props.tab)}
                 updateAppliedOptionField={this.props.updateAppliedOptionField.bind(null, this.props.tab)}
                 updateAppliedOptionSort={this.props.updateAppliedOptionSort.bind(null, this.props.tab)}
-                updateLastAppliedAggType={this.updateLastAppliedAggType} // TODO
                 type={this.props.tab} />
             </div>
           </div>

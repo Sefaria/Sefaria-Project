@@ -1050,7 +1050,6 @@ class ReaderApp extends Component {
       filterNode.setUnselected(true);
     }
     const update = Sefaria.search.getAppliedSearchFilters(searchState.availableFilters)
-    update["lastAppliedAggType"] = filterNode.aggType;
     this.setPanelState(n, {
       [searchStateName]: searchState.update(update)
     });

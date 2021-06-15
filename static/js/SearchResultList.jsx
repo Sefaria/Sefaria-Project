@@ -28,7 +28,6 @@ class SearchResultList extends Component {
       this.updateAppliedFilterByTypeMap      = this.types.reduce((obj, k) => { obj[k] = props.updateAppliedFilter.bind(null, k);      return obj; }, {});
       this.updateAppliedOptionFieldByTypeMap = this.types.reduce((obj, k) => { obj[k] = props.updateAppliedOptionField.bind(null, k); return obj; }, {});
       this.updateAppliedOptionSortByTypeMap  = this.types.reduce((obj, k) => { obj[k] = props.updateAppliedOptionSort.bind(null, k);  return obj; }, {});
-      this.lastAppliedAggType = this._typeObjDefault(null);
       this.state = {
         runningQueries: this._typeObjDefault(null),
         isQueryRunning: this._typeObjDefault(false),
@@ -95,9 +94,6 @@ class SearchResultList extends Component {
       this.state.isQueryRunning[type] = !!ajax;
       this.setState(this.state);
     }
-    updateLastAppliedAggType(aggType) {
-      this.lastAppliedAggType[this.props.tab] = aggType;
-    }
     _typeObjDefault(defaultValue) {
       // es6 version of dict comprehension...
       return this.types.reduce((obj, k) => { obj[k] = defaultValue; return obj; }, {});
@@ -139,18 +135,15 @@ class SearchResultList extends Component {
     _executeAllQueries(props) {
       this.types.forEach(t => this._executeQuery(props, t));
     }
-    _getAggsToUpdate(filtersValid, aggregation_field_array, aggregation_field_lang_suffix_array, appliedFilterAggTypes, lastAppliedAggType, type, interfaceLang) {
+    _getAggsToUpdate(filtersValid, aggregation_field_array, aggregation_field_lang_suffix_array, appliedFilterAggTypes, type, interfaceLang) {
+      // Returns a list of aggregations type which we should request from the server. 
+
       // If there is only on possible filter (i.e. path for text) and filters are valid, no need to request again for any filter interactions
       if (filtersValid && aggregation_field_array.length === 1) { return []; }
-
-      // If you just unapplied an aggtype filter completely, make sure you rerequest that aggType's filters also in case they were deleted
-      const uniqueAggTypes = [...(new Set(appliedFilterAggTypes))];
-      const justUnapplied = uniqueAggTypes.indexOf(lastAppliedAggType) === -1; 
       
       return Sefaria.util
         .zip(aggregation_field_array, aggregation_field_lang_suffix_array)
-        .filter(([agg, _]) => justUnapplied || agg !== lastAppliedAggType)        // remove lastAppliedAggType
-        .map(([agg, suffix_map]) => `${agg}${suffix_map ? suffix_map[interfaceLang] : ''}`); // add suffix based on interfaceLang to filter, if present in suffix_map
+        .map(([agg, suffix_map]) => `${agg}${suffix_map ? suffix_map[Sefaria.interfaceLang] : ''}`); // add suffix based on interfaceLang to filter, if present in suffix_map
     }
     _executeQuery(props, type) {
       //This takes a props object, so as to be able to handle being called from componentWillReceiveProps with newProps
@@ -215,10 +208,10 @@ class SearchResultList extends Component {
       props = props || this.props;
 
       const searchState = this._getSearchState(type, props);
-      const { field, fieldExact, sortType, filtersValid, appliedFilters, appliedFilterAggTypes, lastAppliedAggType } = searchState;
+      const { field, fieldExact, sortType, filtersValid, appliedFilters, appliedFilterAggTypes } = searchState;
       const request_applied = filtersValid && appliedFilters;
       const { aggregation_field_array,  aggregation_field_lang_suffix_array } = SearchState.metadataByType[type];
-      const aggregationsToUpdate = this._getAggsToUpdate(filtersValid, aggregation_field_array, aggregation_field_lang_suffix_array, appliedFilterAggTypes, lastAppliedAggType, type, Sefaria.interfaceLang);
+      const aggregationsToUpdate = this._getAggsToUpdate(filtersValid, aggregation_field_array, aggregation_field_lang_suffix_array, appliedFilterAggTypes, type);
 
       return {
         query: props.query,
