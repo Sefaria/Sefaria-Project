@@ -1090,6 +1090,7 @@ class ReaderPanel extends Component {
             toggleSignUpModal={this.props.toggleSignUpModal}
             historyObject={this.props.getHistoryObject(this.state, this.props.hasSidebar)}
             connectionData={this.state.connectionData}
+            translationLanguagePreference={this.props.translationLanguagePreference}
             setTranslationLanguagePreference={this.props.setTranslationLanguagePreference}
           />}
 
@@ -1208,7 +1209,7 @@ class ReaderControls extends Component {
     const title = this.props.currentRef;
     if (title) {
       // If we don't have this data yet, rerender when we do so we can set the Hebrew title
-      const getTextPromise = Sefaria.getText(title, {context: 1}).then(data => {
+      const getTextPromise = Sefaria.getText(title, {context: 1, translationLanguagePreference: this.props.translationLanguagePreference}).then(data => {
         if ("error" in data) { this.props.onError(data.error); }
         this.setState({runningQuery: null});   // Causes re-render
       });
