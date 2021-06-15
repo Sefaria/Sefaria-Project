@@ -2062,6 +2062,7 @@ export {
   EditCollectionPage,
   RemoteLearningPage,
   SheetsLandingPage,
+  ContestLandingPage,
   PBSC2020LandingPage,
   RambanLandingPage,
   EducatorsPage

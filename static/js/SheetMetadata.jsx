@@ -6,6 +6,9 @@ import {
   InterfaceText,
   LoadingMessage,
   LoginPrompt,
+  SheetAuthorStatement,
+  ProfilePic,
+
 } from './Misc';
 import { CollectionsModal } from './CollectionsWidget'
 import React  from 'react';
@@ -343,20 +346,6 @@ class SheetMetadata extends Component {
     const timestampCreated = Date.parse(sheet.dateCreated)/1000;
     const canEdit = Sefaria._uid == sheet.owner;
     const title = sheet.title;
-    let authorStatement;
-
-    if (sheet.attribution) {
-      authorStatement = sheet.attribution;
-    }
-    else if (sheet.assignerName) {
-      authorStatement = "Assigned by <a href='"+sheet.assignerOwnerProfileUrl + "'>" + sheet.assignerName +" Completed by <a href='" + sheet.ownerProfileUrl + "'>" + sheet.ownerName + "</a>";
-    }
-    else if (sheet.viaOwnerName) {
-      authorStatement = "by <a href='" + sheet.ownerProfileUrl + "'>" + sheet.ownerName + "</a> based on a <a href='/sheets/"+sheet.via+"'>sheet</a> by <a href='"+ sheet.viaOwnerProfileUrl + "'>" + sheet.viaOwnerName+"</a>";
-    }
-    else {
-      authorStatement = "by <a href='" + sheet.ownerProfileUrl + "'>" + sheet.ownerName + "</a>";
-    }
 
     // Text Details
     const details = sheet.summary;
@@ -402,12 +391,20 @@ class SheetMetadata extends Component {
                     </div>
 
                     <div className="tocDetail authorStatement">
-                        <div className="collectionListingImageBox imageBox">
-                            <a href={sheet.ownerProfileUrl}>
-                                <img className="collectionListingImage img-circle" src={sheet.ownerImageUrl} alt="Author Avatar" />
-                            </a>
-                        </div>
-                        <span dangerouslySetInnerHTML={ {__html: authorStatement} }></span>
+                      <SheetAuthorStatement
+                          authorUrl={sheet.ownerProfileUrl}
+                          authorStatement={sheet.ownerName}
+                      >
+                        <ProfilePic
+                          url={sheet.ownerImageUrl}
+                          len={30}
+                          name={sheet.ownerName}
+                          outerStyle={{width: "30px", height: "30px", display: "inline-block", verticalAlign: "middle", marginRight: "10px"}}
+                        />
+                        <a href={sheet.ownerProfileUrl}>
+                          <InterfaceText>{sheet.ownerName}</InterfaceText>
+                        </a>
+                      </SheetAuthorStatement>
                     </div>
 
                     {sheet.displayedCollection ?
