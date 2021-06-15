@@ -360,6 +360,7 @@ class SheetSearchFilters extends Component {
             items={collectionFilters.map(filter => (
               <SearchFilter
                 filter={filter}
+                updateSelected={this.props.updateAppliedFilter}
                 isInFocus={false}
                 key={filter.aggKey} />))} />
         </div>
