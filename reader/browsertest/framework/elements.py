@@ -10,6 +10,7 @@ import traceback
 import sys
 
 import urllib.parse
+from urllib3.exceptions import MaxRetryError
 
 from selenium import webdriver
 from appium import webdriver as appium_webdriver
@@ -176,6 +177,102 @@ class SefariaTest(AbstractTest):
                                      "return false;                            "
                                      , element)
 
+    #
+    #
+    #  Scrolling
+    #############
+
+    def scroll_to_css_selector(self, selector):
+        # This scrolls forward.  Do we need to test and try to scroll back also?
+        self.driver.execute_script(
+            "var a = document.querySelector('{}'); a.scrollIntoView(true);".format(selector)
+        )
+        time.sleep(.50)
+        return self
+
+    def scroll_to_css_selector_and_click(self, selector):
+        self.scroll_to_css_selector(selector)
+        p1 = self.driver.find_element_by_css_selector(selector)
+        p1.click()
+        time.sleep(.5)    # Takes some time to reload, and not sure what next page is
+        return self
+
+
+    def back(self):
+        # These may not work as expected...
+        self.driver.back()
+        return self
+
+    def forward(self):
+        # These may not work as expected...
+        self.driver.forward()
+        return self
+
+    def scroll_window_down(self, pixels):
+        self.driver.execute_script("window.scrollBy(0,{});".format(pixels))
+        return self
+
+    def scroll_window_up(self, pixels):
+        self.driver.execute_script("window.scrollBy(0,{});".format(-pixels))
+        return self
+
+    def scroll_window_to_bottom(self):
+        self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        return self
+
+    def scroll_reader_panel_down(self, pixels):
+        # todo: untested
+        # todo: handle multiple panels
+        self.driver.execute_script(
+            "var a = document.getElementsByClassName('textColumn')[0]; a.scrollTop = a.scrollTop + {};".format(pixels)
+        )
+        return self
+
+    def scroll_reader_panel_up(self, pixels):
+        # todo: untested
+        # todo: handle multiple panels
+        self.driver.execute_script(
+            "var a = document.getElementsByClassName('textColumn')[0]; a.scrollTop = a.scrollTop - {};".format(pixels)
+        )
+        return self
+
+    def scroll_reader_panel_to_bottom(self):
+        # todo: untested
+        # todo: handle multiple panels
+        # jiggle the screen after scrolling to coerce the next section to load
+        self.driver.execute_script(
+            "var a = document.getElementsByClassName('textColumn')[0]; a.scrollTop = a.scrollHeight; setTimeout(function() { a.scrollTop = a.scrollHeight - 700; }, 100);"
+        )
+        return self
+
+    def scroll_reader_panel_to_top(self):
+        """Scrolls the first text panel to the top"""
+        # todo
+        return self
+
+    def scroll_content_to_position(self, pixels):
+        self.driver.execute_script(
+            "var a = document.getElementsByClassName('content')[0]; a.scrollTop = {}".format(pixels)
+        )
+        return self
+
+    def get_content_scroll_position(self):
+        return self.driver.execute_script("var a = document.getElementsByClassName('content')[0]; return a.scrollTop;")
+
+    def scroll_to_segment(self, ref):
+        if isinstance(ref, str):
+            ref = Ref(ref)
+        assert isinstance(ref, Ref)
+        # todo
+        return self
+
+    def scroll_nav_panel_to_bottom(self):
+        # todo: handle multiple panels
+        self.driver.execute_script(
+            "var a = document.getElementsByClassName('content')[0]; a.scrollTop = a.scrollHeight;"
+        )
+        return self
+
     def set_modal_cookie(self):
         # # set cookie to avoid popup interruption
         # # We now longer set the welcomeToS2LoggedOut message by default.
@@ -283,12 +380,7 @@ class SefariaTest(AbstractTest):
 
     def _nav_to_login_mobile(self):
         self.nav_to_toc()
-        self.driver.execute_script(
-            "var a = document.getElementById('loginLink'); a.scrollIntoView(true);"
-        )
-        time.sleep(.50)
-        el = self.driver.find_element_by_css_selector('#loginLink')
-        el.click()
+        self.scroll_to_css_selector_and_click('#loginLink')
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#id_email")))
         return self
 
@@ -302,7 +394,7 @@ class SefariaTest(AbstractTest):
     def nav_to_toc(self):
         """
         This method can be called from many different initial states.
-        It tries a few differnt things to get out of the current state, back to a dependable base toc.
+        It tries a few different things to get out of the current state, back to a dependable base toc.
         :return:
         """
         if self.driver.current_url == urllib.parse.urljoin(self.base_url, "/texts") or self.driver.current_url.startswith(urllib.parse.urljoin(self.base_url,"/texts") + "?"):
@@ -358,24 +450,7 @@ class SefariaTest(AbstractTest):
         WebDriverWait(self.driver, TEMPER).until(
             presence_of_element_located((By.CSS_SELECTOR,'.readerNavCategory[data-cat*="{}"], .catLink[data-cats*="{}"]'.format(category_name, category_name)))
         )
-        self.driver.execute_script(
-            "var a = document.querySelector('.readerNavCategory[data-cat*=\"{}\"], .catLink[data-cats*=\"{}\"]'); a.scrollIntoView(true);".format(category_name, category_name)
-        )
-        e = self.driver.find_element_by_css_selector(
-            '.readerNavCategory[data-cat*="{}"], .catLink[data-cats*="{}"]'.format(category_name, category_name))
-        e.click()
-        '''
-        i = 0
-        while i < 3:
-            try:
-                e = self.driver.find_element_by_css_selector('.readerNavCategory[data-cat*="{}"], .catLink[data-cats*="{}"]'.format(category_name,category_name))
-                e.click()
-                break
-            except (StaleElementReferenceException, NoSuchElementException) as e:
-                i += 1
-                time.sleep(.25)
-                continue
-        '''
+        self.scroll_to_css_selector_and_click('.readerNavCategory[data-cat*="{}"], .catLink[data-cats*="{}"]'.format(category_name, category_name))
         elem = self.driver.find_element_by_css_selector("h1 > span.en, h2 > span.en")
         if category_name == "Talmud":
             category_name = "Talmud Bavli"
@@ -1061,8 +1136,7 @@ class SefariaTest(AbstractTest):
         if isinstance(ref, str):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
-        p1 = self.driver.find_element_by_css_selector('.sectionLink[data-ref="{}"], .schema-node-toc[data-ref="{}"]'.format(ref.normal(), ref.normal()))
-        p1.click()
+        self.scroll_to_css_selector_and_click('.sectionLink[data-ref="{}"], .schema-node-toc[data-ref="{}"]'.format(ref.normal(), ref.normal()))
         WebDriverWait(self.driver, TEMPER).until(
             element_to_be_clickable((By.CSS_SELECTOR, '.segment'))
         )
@@ -1072,9 +1146,7 @@ class SefariaTest(AbstractTest):
         if isinstance(ref, str):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
-        p1 = self.driver.find_element_by_css_selector('.schema-node-toc[data-ref="{}"]>span'.format(ref.normal()))
-        p1.click()
-        time.sleep(.5)    # Takes some time to reload, and not sure what next page is
+        self.scroll_to_css_selector_and_click('.schema-node-toc[data-ref="{}"]>span'.format(ref.normal()))
         return self
 
     def load_refs(self):
@@ -1101,81 +1173,6 @@ class SefariaTest(AbstractTest):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
         self._perform_segment_click(ref)
-
-    def back(self):
-        # These may not work as expected...
-        self.driver.back()
-        return self
-
-    def forward(self):
-        # These may not work as expected...
-        self.driver.forward()
-        return self
-
-    def scroll_window_down(self, pixels):
-        self.driver.execute_script("window.scrollBy(0,{});".format(pixels))
-        return self
-
-    def scroll_window_up(self, pixels):
-        self.driver.execute_script("window.scrollBy(0,{});".format(-pixels))
-        return self
-
-    def scroll_window_to_bottom(self):
-        self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-        return self
-
-    def scroll_reader_panel_down(self, pixels):
-        # todo: untested
-        # todo: handle multiple panels
-        self.driver.execute_script(
-            "var a = document.getElementsByClassName('textColumn')[0]; a.scrollTop = a.scrollTop + {};".format(pixels)
-        )
-        return self
-
-    def scroll_reader_panel_up(self, pixels):
-        # todo: untested
-        # todo: handle multiple panels
-        self.driver.execute_script(
-            "var a = document.getElementsByClassName('textColumn')[0]; a.scrollTop = a.scrollTop - {};".format(pixels)
-        )
-        return self
-
-    def scroll_reader_panel_to_bottom(self):
-        # todo: untested
-        # todo: handle multiple panels
-        # jiggle the screen after scrolling to coerce the next section to load
-        self.driver.execute_script(
-            "var a = document.getElementsByClassName('textColumn')[0]; a.scrollTop = a.scrollHeight; setTimeout(function() { a.scrollTop = a.scrollHeight - 700; }, 100);"
-        )
-        return self
-
-    def scroll_reader_panel_to_top(self):
-        """Scrolls the first text panel to the top"""
-        # todoff
-        return self
-
-    def scroll_content_to_position(self, pixels):
-        self.driver.execute_script(
-            "var a = document.getElementsByClassName('content')[0]; a.scrollTop = {}".format(pixels)
-        )
-        return self
-
-    def get_content_scroll_position(self):
-        return self.driver.execute_script("var a = document.getElementsByClassName('content')[0]; return a.scrollTop;")
-
-    def scroll_to_segment(self, ref):
-        if isinstance(ref, str):
-            ref = Ref(ref)
-        assert isinstance(ref, Ref)
-        # todo
-        return self
-
-    def scroll_nav_panel_to_bottom(self):
-        # todo: handle multiple panels
-        self.driver.execute_script(
-            "var a = document.getElementsByClassName('content')[0]; a.scrollTop = a.scrollHeight;"
-        )
-        return self
 
     def find_category_filter(self, name):
         WebDriverWait(self.driver, TEMPER).until(
@@ -1648,14 +1645,23 @@ class Trial(object):
                 driver = cap()
         elif self.platform == "sauce":
             assert cap is not None
-            if cap.get("appiumVersion") is not None:
-                driver = appium_webdriver.Remote(
-                    command_executor='https://{}:{}@ondemand.us-west-1.saucelabs.com:443/wd/hub'.format(SAUCE_USERNAME, SAUCE_ACCESS_KEY),
-                    desired_capabilities=cap)
-            else:
-                driver = webdriver.Remote(
-                    command_executor='https://{}:{}@ondemand.us-west-1.saucelabs.com:443/wd/hub'.format(SAUCE_USERNAME, SAUCE_ACCESS_KEY),
-                    desired_capabilities=cap)
+
+            MAX_ATTEMPTS = 3
+            attempt = 0
+            while attempt < MAX_ATTEMPTS:
+                try:
+                    if cap.get("appiumVersion") is not None:
+                        driver = appium_webdriver.Remote(
+                            command_executor='https://{}:{}@ondemand.us-west-1.saucelabs.com:443/wd/hub'.format(SAUCE_USERNAME, SAUCE_ACCESS_KEY),
+                            desired_capabilities=cap)
+                    else:
+                        driver = webdriver.Remote(
+                            command_executor='https://{}:{}@ondemand.us-west-1.saucelabs.com:443/wd/hub'.format(SAUCE_USERNAME, SAUCE_ACCESS_KEY),
+                            desired_capabilities=cap)
+                    break
+                except MaxRetryError:
+                    attempt += 1
+
         elif self.platform == "localselenium":
             assert cap is not None
 
@@ -1713,7 +1719,10 @@ class Trial(object):
                 result = test_instance.run()
 
                 if self.platform == "sauce":
-                    self.set_sauce_result(driver, result.success)
+                    try:
+                        self.set_sauce_result(driver, result.success)
+                    except WebDriverException:      # Sometimes an earlier test infrastructure fail makes this throw
+                        pass
 
                 driver.quit()       # had been if not self.is_local:  why?
 

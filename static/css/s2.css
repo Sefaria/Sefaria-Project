@@ -2176,6 +2176,13 @@ a.readerNavCategory {
 .readerTextTableOfContents .tocDetail .int-he {
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 }
+
+.readerTextTableOfContents .tocDetail.authorStatement .int-he,
+.readerTextTableOfContents .tocDetail.authorStatement .int-en {
+  font-family: inherit;
+}
+
+
 .readerTextTableOfContents .tocDetails .description {
   margin: 6px 0 16px;
   font-style: normal;
@@ -7773,6 +7780,9 @@ span.purim-emoji img{
 .sheetContent tbody {
   width: 100%;
 }
+.sheetContent .center {
+  text-align: center;
+}
 .readerPanel .sheetItem {
   position: relative;
 }
@@ -8141,6 +8151,16 @@ section.SheetSource .SheetOutsideBiText {
   margin-inline-start: -16px;
   margin-inline-end: -20px;
 }
+.interface-hebrew .sheetItem .SheetSource .he,
+.interface-hebrew .sheetItem .SheetSource .en,
+.interface-hebrew .sheetItem .SheetOutsideBiText .he,
+.interface-hebrew .sheetItem .SheetOutsideBiText .en {
+  padding-inline-start: 20px;
+  padding-inline-end: 16px;
+  margin-inline-start: -20px;
+  margin-inline-end: -16px;
+}
+
 .sheetItem .SheetSource .he.editable.selected .sourceContentText,
 .sheetItem .SheetSource .en.editable.selected .sourceContentText,
 .sheetItem .SheetOutsideBiText .he.editable.selected .sourceContentText,
