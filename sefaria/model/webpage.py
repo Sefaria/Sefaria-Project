@@ -9,8 +9,7 @@ from . import text
 from sefaria.system.database import db
 from sefaria.model.website import *
 
-import sefaria.system.cache as scache
-
+from sefaria.system.cache import InMemoryCache
 
 import structlog
 logger = structlog.get_logger(__name__)
@@ -202,6 +201,35 @@ class WebPage(abst.AbstractMongoRecord):
 class WebPageSet(abst.AbstractMongoSet):
     recordClass = WebPage
 
+
+class WebSite(abst.AbstractMongoRecord):
+    collection = 'websites'
+
+    required_attrs = [
+        "name",
+        "domains",
+        "is_whitelisted"
+    ]
+    optional_attrs = [
+        "bad_urls",
+        "normalization_rules",
+        "title_branding",
+        "initial_title_branding"
+    ]
+
+
+class WebSiteSet(abst.AbstractMongoSet):
+    recordClass = WebSite
+
+
+def get_website_cache():
+    cache = InMemoryCache()
+    sites = cache.get("websites_data")
+    if sites in [None, []]:
+        sites = [w.contents() for w in WebSiteSet()]
+        cache.set("websites_data", sites)
+        return sites
+    return sites
 
 def get_webpages_for_ref(tref):
     from pymongo.errors import OperationFailure
