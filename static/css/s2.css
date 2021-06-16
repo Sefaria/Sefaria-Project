@@ -3157,6 +3157,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   height: 40px;
   font-size: 30px;
   color: #000;
+  margin-bottom: 5px;
   --english-font: var(--english-serif-font-family);
   --hebrew-font:  var(--hebrew-serif-font-family);
 }
@@ -3165,6 +3166,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .searchContent h1.hebrewQuery {
   font-family: var(--hebrew-serif-font-family);
+}
+.searchContent .searchTopLine {
+  margin-bottom: 40px;
+}
+.searchContent .searchResultCount {
+  color: var(--dark-grey);
 }
 .searchContent .searchTopMatter {
   position: relative;

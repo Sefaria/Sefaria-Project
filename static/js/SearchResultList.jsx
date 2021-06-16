@@ -55,6 +55,7 @@ class SearchResultList extends Component {
           cachedQuery = Sefaria.search.getCachedQuery(args);
         }
       });
+      this.updateTotalResults();
     }
     componentDidMount() {
         this._executeAllQueries();
@@ -90,6 +91,12 @@ class SearchResultList extends Component {
       this.state.runningQueries[type] = ajax;
       this.state.isQueryRunning[type] = !!ajax;
       this.setState(this.state);
+    }
+    totalResults() {
+      return this.types.reduce((accum, type) => (this.state.totals[type] + accum), 0);
+    }
+    updateTotalResults() {
+      this.props.updateTotalResults(this.totalResults());
     }
     _typeObjDefault(defaultValue) {
       // es6 version of dict comprehension...
@@ -170,7 +177,10 @@ class SearchResultList extends Component {
                   pagesLoaded: extend(this.state.pagesLoaded, {[type]: 1}),
                   moreToLoad: extend(this.state.moreToLoad, {[type]: data.hits.total > this.querySize[type]})
                 };
-                this.setState(state, () => this.handleScroll());
+                this.setState(state, () => {
+                  this.updateTotalResults();
+                  this.handleScroll();
+                });
                 const filter_label = (request_applied && request_applied.length > 0) ? (' - ' + request_applied.join('|')) : '';
                 const query_label = props.query + filter_label;
                 Sefaria.track.event("Search", `Query: ${type}`, query_label, data.hits.total); 
@@ -337,7 +347,7 @@ const SearchTabs = ({clickTextButton, clickSheetButton, textTotal, sheetTotal, c
 
 
 const SearchTab = ({label, total, onClick, active}) => {
-  total = total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); // add commas
+  total = total.addCommas()
   const classes = classNames({"search-dropdown-button": 1, active});
 
   return (

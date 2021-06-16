@@ -265,7 +265,6 @@ class Util {
     }
     static setupPrototypes() {
 
-
         String.prototype.toProperCase = function() {
           // Treat anything after ", " as a new clause
           // so that titles like "Orot, The Ideals of Israel" keep a capital The
@@ -449,6 +448,11 @@ class Util {
           };
         };
         */
+
+        Number.prototype.addCommas = function() {
+          return this.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); 
+        };
+        
         if (!Array.prototype.fill) {
           Object.defineProperty(Array.prototype, 'fill', {
             value: function(value) {

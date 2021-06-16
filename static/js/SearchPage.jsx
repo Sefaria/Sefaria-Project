@@ -18,7 +18,9 @@ import {
 class SearchPage extends Component {
   constructor(props) {
     super(props);
-    this.state = {};
+    this.state = {
+      totalResults: null
+    };
   }
   render () {
     const classes        = classNames({readerNavMenu: 1, compare: this.props.compare});
@@ -35,10 +37,18 @@ class SearchPage extends Component {
         <div className="content searchContent">
           <div className="sidebarLayout">
             <div className="contentInner">
-              <h1 className={classNames({"hebrewQuery": isQueryHebrew, "englishQuery": !isQueryHebrew})}>
-                <InterfaceText>Results for</InterfaceText>&nbsp;
-                &ldquo;{ this.props.query }&rdquo;
-              </h1>
+              <div className="searchTopLine">
+                <h1 className={classNames({"hebrewQuery": isQueryHebrew, "englishQuery": !isQueryHebrew})}>
+                  <InterfaceText>Results for</InterfaceText>&nbsp;
+                  &ldquo;{ this.props.query }&rdquo;
+                </h1>
+                {this.state.totalResults ?
+                <div className="searchResultCount sans-serif">
+                  <InterfaceText>{this.state.totalResults.addCommas()}</InterfaceText>&nbsp;
+                  <InterfaceText>Results</InterfaceText>
+                </div>
+                : null }
+              </div>
               <SearchResultList
                 query={this.props.query}
                 tab={this.props.tab}
@@ -48,9 +58,11 @@ class SearchPage extends Component {
                 updateTab={this.props.updateTab}
                 updateAppliedOptionSort={this.props.updateAppliedOptionSort}
                 registerAvailableFilters={this.props.registerAvailableFilters}
+                updateTotalResults={n => this.setState({totalResults: n})}
               />
             </div>
             <div className="navSidebar">
+              {this.state.totalResults ?
               <SearchFilters
                 query={this.props.query}
                 searchState={this.props[`${this.props.tab}SearchState`]}
@@ -58,6 +70,7 @@ class SearchPage extends Component {
                 updateAppliedOptionField={this.props.updateAppliedOptionField.bind(null, this.props.tab)}
                 updateAppliedOptionSort={this.props.updateAppliedOptionSort.bind(null, this.props.tab)}
                 type={this.props.tab} />
+              : null }
             </div>
           </div>
           { this.props.panelsOpen === 1 ? <Footer /> : null }
