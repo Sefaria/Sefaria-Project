@@ -59,10 +59,7 @@ for l in rows:
         current_authors = set(getattr(i, "authors", []) or [])
     except TypeError:
         current_authors = set()
-    sheet_authors = set([a.strip() for a in l[1].split(",") if len(a) and AuthorTopic.init(a.strip())])
-    needs_save = current_authors != sheet_authors
-    sheet_authors = list(sheet_authors)
-
+    sheet_authors = set([a.strip() for a in l[1].split(",") if AuthorTopic.is_author(a.strip())])
     setattr(i, "authors", sheet_authors)
     attrs = [("enDesc", l[2]),
         ("heDesc", l[3]),
