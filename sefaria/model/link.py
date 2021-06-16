@@ -40,8 +40,8 @@ class Link(abst.AbstractMongoRecord):
         "first_comment_indexes", # Used when is_first_comment is True. List of the two indexes of the refs.
         "first_comment_section_ref", # Used when is_first_comment is True. First comment section ref.
         "inline_reference",  # dict with keys "data-commentator" and "data-order" to match an inline reference (itag)
-        "charLevelData",     # dict with 2 keys. charLevelDataBook, charLevelDataPasuk. each of wich consistes of the folowing keys: ["startChar","endChar","versionTitle","language"] this attribute was created for the Tanakh quotation finder
-        "score"             # int. represents how "good"/accurate the link is. introduced for quotations
+        "charLevelData",     # list of length 2. containing 2 dicts coresponding to the refs list, each dict consists of the following keys: ["startChar","endChar","versionTitle","language"]. *if one of the refs is a Pasuk the startChar and endChar keys are startWord and endWord.This attribute was created for the quotation finder
+        "score"             # int. represents how "good"/accurate the link is. introduced for quotations finder
     ]
 
     def _normalize(self):
