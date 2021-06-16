@@ -490,6 +490,11 @@ class AuthorTopic(PersonTopic):
                 link_names += [(f'/texts/{"/".join(index_or_cat.path)}', {"en": en_text, "he": he_text})]
         return link_names
 
+    @staticmethod
+    def is_author(slug):
+        t = Topic.init(slug)
+        return t and isinstance(t, AuthorTopic)
+
 
 class TopicSet(abst.AbstractMongoSet):
     recordClass = Topic
