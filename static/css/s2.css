@@ -3,7 +3,6 @@ body {
   margin: 0;
   -webkit-text-size-adjust: 100%;
 }
-
 *::selection {
   background-color: #D2DCFF;
 }
@@ -1972,10 +1971,10 @@ a.readerNavCategory {
   font-size: 18px;
   font-weight: 400;
   line-height: 23px;
+  background-color: white;
   cursor: pointer;
   text-align: center;
   unicode-bidi: plaintext;
-  background-color: white;
   flex: 1;
   display: flex;
   justify-content: center;
