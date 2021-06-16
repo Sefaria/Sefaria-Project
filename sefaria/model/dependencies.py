@@ -2,7 +2,7 @@
 dependencies.py -- list cross model dependencies and subscribe listeners to changes.
 """
 
-from . import abstract, link, note, history, schema, text, layer, version_state, timeperiod, person, garden, notification, story, collection, library, category, ref_data, user_profile, manuscript, topic
+from . import abstract, link, note, history, schema, text, layer, version_state, timeperiod, garden, notification, story, collection, library, category, ref_data, user_profile, manuscript, topic
 
 from .abstract import subscribe, cascade, cascade_to_list, cascade_delete, cascade_delete_to_list
 import sefaria.system.cache as scache
@@ -83,20 +83,8 @@ Category
 """
 
 # Time
-subscribe(cascade(person.PersonSet, "era"),                                timeperiod.TimePeriod, "attributeChange", "symbol")
-subscribe(cascade(person.PersonSet, "generation"),                         timeperiod.TimePeriod, "attributeChange", "symbol")
-
-# Person key change
-subscribe(cascade(person.PersonRelationshipSet, "to_key"),                 person.Person, "attributeChange", "key")
-subscribe(cascade(person.PersonRelationshipSet, "from_key"),               person.Person, "attributeChange", "key")
-subscribe(cascade_to_list(text.IndexSet, "authors"),                       person.Person, "attributeChange", "key")
-
-subscribe(cascade(person.PersonRelationshipSet, "type"),                   person.PersonRelationshipType, "attributeChange", "key")
-
-# Person delete
-subscribe(cascade_delete(person.PersonRelationshipSet, "to_key", "key"),   person.Person, "delete")
-subscribe(cascade_delete(person.PersonRelationshipSet, "from_key", "key"), person.Person, "delete")
-subscribe(cascade_delete_to_list(text.IndexSet, "authors", "key"),         person.Person, "delete")
+subscribe(cascade(topic.PersonTopicSet, "properties.era.value"),          timeperiod.TimePeriod, "attributeChange", "symbol")
+subscribe(cascade(topic.PersonTopicSet, "properties.generation.value"),   timeperiod.TimePeriod, "attributeChange", "symbol")
 
 # Gardens
 subscribe(cascade(garden.GardenStopSet, "garden"),                         garden.Garden, "attributeChange", "key")

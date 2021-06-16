@@ -157,7 +157,8 @@ class Notification(abst.AbstractMongoRecord):
     ]
     optional_attrs = [
         "read_via",
-        "global_id"
+        "global_id",
+        "suspected_spam"
     ]
 
     def _init_defaults(self):
@@ -302,7 +303,7 @@ class NotificationSet(abst.AbstractMongoSet):
         """
         Loads the unread notifications for uid.
         """
-        self.__init__(query={"uid": uid, "read": False, "is_global": False})
+        self.__init__(query={"uid": uid, "read": False, "is_global": False, "suspected_spam": {'$in': [False, None]}})
         return self
 
     def recent_for_user(self, uid, page=0, limit=10):
@@ -310,7 +311,7 @@ class NotificationSet(abst.AbstractMongoSet):
         Loads recent notifications for uid.
         """
         self._add_global_messages(uid)
-        self.__init__(query={"uid": uid}, page=page, limit=limit)
+        self.__init__(query={"uid": uid, "suspected_spam": {'$in': [False, None]}}, page=page, limit=limit)
         return self
 
     def mark_read(self, via="site"):

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState, useRef} from 'react';
 import {
     SimpleInterfaceBlock,
     NewsletterSignUpForm,
@@ -7,6 +7,8 @@ import {
 } from './Misc';
 import palette from './sefaria/palette';
 import classNames from 'classnames';
+import Cookies from 'js-cookie';
+
 
 
 /*  Templates:
@@ -60,7 +62,7 @@ import classNames from 'classnames';
         />
  */
 
-/* Saving for next year....
+
 const ContestLandingPage = () => (
     <StaticPage>
         <Header
@@ -68,100 +70,90 @@ const ContestLandingPage = () => (
             enText="Advance the frontiers of tech and Torah this summer. Build something new using our free data or API."
             enImg="/static/img/contest-landing-page/codemockup3.png"
             enImgAlt=""
-            enActionURL="http://sefaria.nationbuilder.com/contest"
+            enActionURL="http://sefaria.nationbuilder.com/contest2021"
             enActionText="Register to Join"
             heTitle="תחרות פיתוח תוכנה"
             heText="הצטרפו אלינו לאתגר שיקדם את תחום התורה והטכנולוגיה בבניית תוצר יצירתי ועצמאי בעזרת המאגר החופשי וממשק ה־API של ספריא."
             heImg="/static/img/contest-landing-page/codemockup3.png"
             heImgAlt=""
-            heActionURL="http://sefaria.nationbuilder.com/contest"
+            heActionURL="http://sefaria.nationbuilder.com/contest2021"
             heActionText="הרשמה לתחרות"
         />
 
         <H2Block en="The Contest" he="התחרות"/>
         <EnBlock padded={true}>
-            <p>Sefaria offers a free digital dataset of Jewish texts, translations, and interconnections that is open for anyone to reuse in novel ways. Over the years dozens of third parties have created apps, visualizations, and done research using our data or API. We’ve seen some incredible projects and we’d love to see what else our community can dream up.</p>
-            <p>What you create is up to you. It could be a functioning web app or just a compelling demo; an interactive visualization or just a question that digs into data quantitatively in search of an answer; something useful and impactful to the world of learning, or just a crazy experiment that fascinates you without a clear application. <b>The only criteria being that it prominently makes use of the data that Sefaria has to offer.</b></p>
-            <p>To get your ideas flowing, here are three great examples of projects using Sefaria’s data or API that were created in the last few years. You can find dozens more on our "<a href="https://github.com/Sefaria/Sefaria-Project/wiki/Projects-Powered-by-Sefaria">Powered by Sefaria</a>" list on Github.</p>
+            <p>Sefaria offers a free digital dataset of Jewish texts, translations, and interconnections that is open for anyone to reuse in novel ways. Last year, we received over 50 innovative Powered by Sefaria projects using our open data or API (<a href="/powered-by-sefaria-contest-2020">see the winners and honorable mentions!</a>). We’re eager to see what else our community can dream up to advance the frontiers of Torah and technology in this year’s contest!</p>
+            <p>What you create is up to you. It could be a functioning web app or just a compelling demo; an interactive visualization, or just a question that digs into data quantitatively in search of an answer; something useful and impactful to the world of learning, or just a crazy experiment that fascinates you without a clear application. <b>The only requirement is that your project must prominently make use of the data that Sefaria has to offer</b>.</p>
+            <p>To get your ideas flowing, here are three great examples from last year’s Powered by Sefaria contest. You can find dozens more projects on our <a href="https://github.com/Sefaria/Sefaria-Project/wiki/Projects-Powered-by-Sefaria">Powered by Sefaria list</a> on Github and on the <a href="https://www.sefaria.org/powered-by-sefaria-contest-2020">Powered by Sefaria 2020 Winners & Honorable Mentions page</a>.</p>
         </EnBlock>
         <HeBlock padded={true}>
-            <p>ספריא מציעה מאגר נתונים דיגיטלי חופשי של טקסטים יהודיים, תרגומים וקישורים, וכל אלה פתוחים לכל מי שרוצה לעשות בהם שימוש יצירתי. במהלך השנים עשרות משתמשים יצרו יישומונים והמחשות וביצעו מחקרים באמצעות שימוש בנתונים וב־API של ספריא. התוודענו לכמה מיזמים מדהימים, ונשמח לראות אילו עוד חלומות הקהילה שלנו יכולה להגשים.</p>
-            <p>הרעיון תלוי בכם: תוכלו ליצור יישומון פעיל או מיצג משכנע; המחשה אינטראקטיבית או שאלה שפתרונה יימצא בנתונים כמותיים במאגרים של ספריא; משהו יעיל שישפיע על עולם הלימוד או ניסוי מטורף שמרתק אתכם בלי אפליקציה ברורה.
-                &nbsp;<b>הקריטריון היחיד להשתתפות בתחרות הוא שימוש בנתונים של ספריא.</b>
-            </p>
-            <p>לפני שאתם מתחילים להעלות רעיונות, הינה שלוש דוגמאות נהדרות של מיזמים שעושים שימוש בנתונים או בממשק ה־API של ספריא משנים קודמות. תוכלו למצוא עוד עשרות דוגמאות של מיזמים ברשימת
-                "<a href="https://github.com/Sefaria/Sefaria-Project/wiki/Projects-Powered-by-Sefaria">Powered by Sefaria</a>"
-                באתר Github.</p>
+            <p>ספריא מציעה לציבור מסד נתונים דיגיטלי וחופשי של מקורות יהודיים, תרגומים וקישורים בין־טקסטואליים.  בשנה שעברה הגיעו לפתחנו יותר מ־50 מיזמים חדשניים שהשתמשו במסד הנתונים הפתוח  או ב־API שלנו (<a href="/powered-by-sefaria-contest-2020">ראו את המיזמים הזוכים ואת המיזמים שזכו להערכה מיוחדת</a>). אנו מלאי ציפייה לראות מה עוד מסוגלת הקהילה שלנו לעשות כדי לחצות את הגבולות המוכרים של התורה והטכנולוגיה?</p>
+            <p>המיזם תלוי רק בכם: זה יכול להיות יישומון רשת פעיל או דמו משכנע; ויזואליזציה אינטראקטיבית או שאלה שיורדת לעומקם של הנתונים הכמותיים של המערכת; כלי שימושי ויעיל לעולם הלימוד או ניסוי מדליק ללא תוצר ברור שפשוט מרתק אתכם. <b>הדרישה היחידה היא שבמיזם ייעשה שימוש מובהק במסד הנתונים של ספריא</b>.</p>
+            <p>כדי לעזור לכם להתחיל הינה שלוש דוגמאות מעולות מתחרות פיתוח התוכנה בשנה שעברה. אפשר למצוא עשרות מיזמים אחרים ברשימת המיזמים של התחרות ב<a href="https://github.com/Sefaria/Sefaria-Project/wiki/Projects-Powered-by-Sefaria">גיטהאב</a> וב<a href="/powered-by-sefaria-contest-2020">עמוד המיזמים הזוכים והמיזמים שזכו להערכה מיוחדת בתחרות פיתוח התוכנה לשנת 2020</a>.</p>
         </HeBlock>
-        <Spacer/>
 
-        <ButtonRow>
+        <ButtonRow white={true}>
             <SimpleButton
                 white={true}
                 rounded={false}
                 tall={true}
-                href="https://talmud.dev/"
-                he_href="https://talmud.dev/"
-                he="talmud.dev"
-                en="talmud.dev"
+                href="https://www.youtube.com/watch?v=C6nMn4CLuEU"
+                he_href="https://www.youtube.com/watch?v=C6nMn4CLuEU"
+                he="סרגל הכלים של התלמוד"
+                en="Talmud Sidebar Extension"
             />
             <SimpleButton
                 white={true}
                 rounded={false}
                 tall={true}
-                href="https://github.com/shman/SefariaAddOn-Google"
-                he_href="https://github.com/shman/SefariaAddOn-Google"
-                he="התוסף של ספריא לגוגל דוקס (Google Docs)"
-                en="Google Docs Sefaria Add-on"
+                href="https://www.youtube.com/watch?v=uB4In-Nc2WU"
+                he_href="https://www.youtube.com/watch?v=uB4In-Nc2WU"
+                he="מזמור שיר"
+                en="Mizmor Shir"
             />
             <SimpleButton
                 white={true}
                 rounded={false}
                 tall={true}
-                href="https://www.sefaria.org/explore"
-                he_href="https://www.sefaria.org.il/explore"
-                he="Sefaria’s Link Explorer"
-                en="Sefaria’s Link Explorer"
+                href="https://jhostyk.github.io/SeferSimilarityMap/"
+                he_href="https://jhostyk.github.io/SeferSimilarityMap/"
+                he="ספר – מפת דמיון בין טקסטים"
+                en="Sefer Similarity Map"
             />
         </ButtonRow>
 
 
         <H2Block en="Timeline and Prize" he="לוח זמנים ופרסים" />
         <EnBlock padded={true}>
-            <p>We'll be <a href="https://docs.google.com/forms/d/e/1FAIpQLSdYygtWWCte6ljlNUq7qwVItoJREeaVRXznuuVC8213xw6k4w/viewform">accepting submissions</a> from Wednesday, July 1 until Monday, August 31st. To participate, you just need to send us a URL and a short description of what you've made.</p>
-            <p>A jury will select two projects to win cash prizes: $5,000 for the grand prize, and $3,600 for the student prize for work created by undergraduate students or younger, or people under the age of 23.</p>
+            <p>The contest is open from Sunday, June 13th through Tuesday, August 31st. <a href="https://sefaria.nationbuilder.com/contest2021">Registered participants</a> will receive a form to submit their projects. The contest deliverable must be in the form of a URL where our judges can directly access your work. For many projects, this will be a running demo of an app on the web. For other other projects, your URL may point to a description and summary of the work you've done, much like a poster for a research project presented at a conference. For desktop or mobile apps, you will need to host your app on a web-based emulator (like <a href="https://appetize.io/">Appetize.io</a>) so our judges can interact with it without downloading executables.</p>
+            <p>A jury will select three projects to win cash prizes: $5,000 for the grand prize, $5,000 for the Women in Tech prize, and $3,600 for the youth prize.</p>
             <p>A selection of completed projects will also be featured on a contest page and shared with our community.</p>
         </EnBlock>
         <HeBlock padded={true}>
-            <p> מיום רביעי, 1 ביולי, ועד יום שני, 31 באוגוסט. להשתתפות בתחרות שלחו כתובת <a href="https://docs.google.com/forms/d/e/1FAIpQLSdYygtWWCte6ljlNUq7qwVItoJREeaVRXznuuVC8213xw6k4w/viewform">הגשות תתקבלנה</a> URL ותיאור תמציתי של התוצר.</p>
-            <p>חבר השופטים שלנו יבחר שני מיזמים: הפרס הראשון בסך $5,000 , והפרס השני בסך 3,600$ יוענק למתכנת/ת צעיר/ה עבור מיזם שיוגש על ידי מי שלומד לתואר ראשון או על ידי צעירים מתחת לגיל 23.</p>
+            <p>התחרות תתחיל ביום רשון, 13 ביוני, ותסתיים ביום שלישי, 31 באוגוסט. <a href="https://sefaria.nationbuilder.com/contest2021">המשתתפים והמשתתפות שיירשמו</a> יקבלו טופס להגשת המיזם. ההגשה צריכה להיות בפורמט URL שדרכו יוכלו השופטים לגשת ישירות אל המיזם. עבור מיזמים רבים משמעות הדבר היא העלאת גרסת דמו חיה של היישומון, שתפעל ברשת. עבור מיזמים אחרים כתובת ה־URL תוביל לתיאור ולתקציר של המיזם, בדומה לכרזות המציגות מיזמי מחקר בכנסים. אם המיזם שלכם הוא יישומון לשולחן עבודה או לטלפון נייד, יש להפעיל אותו באמצעות אמולטור מבוסס רשת (לדוגמה <a href="https://appetize.io">Appetize.io</a>), כדי שהשופטים והשופטות יוכלו להשתמש בו בלי להוריד קובצי הרצה כלשהם.</p>
+            <p>השופטים יבחרו שלושה מיזמים שיזכו בפרס כספי: 5,000 דולר לפרס הכללי, 5,000 דולר לפרס לנשים מפתחות תוכנה ו־3,600 דולר לפרס המתמודד הצעיר.</p>
             <p>מבחר מיזמים אחרים שיושלמו, יופיעו אף הם בדף התחרות וישותפו עם קהילת ספריא.</p>
         </HeBlock>
 
         <H2Block en="Eligibility" he="זכאות" />
         <EnBlock padded={true}>
-            <p>The Contest is open to applicants from the United States and Israel. All participants are eligible to enter the grand prize, and those who are eligible for the youth prize may submit their project into both categories. All entrants under the age of 18 must obtain permission from their parent or guardian before entering the contest. <b>To learn more, see our official <a href="https://d3n8a8pro7vhmx.cloudfront.net/sefaria/pages/1085/attachments/original/1594012430/PoweredbySefaria_Contest_Official_Rules.pdf?1594012430">Contest Rules</a>.</b></p>
+            <p>The Contest is open to applicants from the United States and Israel. All participants are eligible to enter the grand prize. Eligible participants for the Women in Tech prize include a) individuals who identify as women or b) groups of 3 or more, the majority of whom identify as women. Participants who are eligible for the Women in Tech prize may submit their project into both the Women in Tech prize and grand prize categories, and the youth prize category if eligible. Eligible participants for the youth prize include people under the age of 23. Participants who are eligible for the youth prize may submit their project into both the youth prize and grand prize categories, as well as the Women in Tech category if eligible. All entrants under the age of 18 must obtain permission from their parent or guardian before entering the contest. <b>To learn more, see our official <a href="https://drive.google.com/file/d/1CMlxEe-xIk8RNpfdBRlytLDWsdLMXPpl/view">Contest Rules</a></b>.</p>
         </EnBlock>
         <HeBlock padded={true}>
-            <p>התחרות פתוחה למועמדים מארצות הברית ומישראל. כל המשתתפים זכאים למועמדות לפרס הראשון, ומועמדים לפרס המתמודד הצעיר יוכלו להגיש את המיזם בשתי הקטגוריות. משתתפים מתחת לגיל 18 נדרשים להביא אישור מהורה או אפוטרופוס כדי להשתתף בתחרות. למידע נוסף עיינו
-                &nbsp;<a href="https://d3n8a8pro7vhmx.cloudfront.net/sefaria/pages/1085/attachments/original/1594012430/PoweredbySefaria_Contest_Official_Rules.pdf?1594012430">
-                בכללי התחרות הרשמיים
-                </a>
-                .</p>
+            <p>התחרות הכללית פתוחה למועמדים מארצות הברית ומישראל (נשים וגברים). הפרס המיוחד עבור נשים מיועד לנשים שמפתחות תוכנה או לקבוצה בתנאי שיש בה רוב נשי. א. אישה; ב. קבוצה של שלושה משתתפים או יותר, שמורכבת רובה מנשים. המשתתפות הזכאיות יכולות לשלוח את המיזם שלהן להתמודדות על כמה פרסים: הפרס הכללי, הפרס לנשים מפתחות תוכנה ועל פרס המתמודד הצעיר, אם הן עומדות בתנאיו. התנאי להתמודדות בקטגוריית פרס המתמודד הצעיר הוא שגיל המשתתף אינו עולה על 23. כל המשתתפים בתחרות מתחת לגיל 18 חייבים להציג אישור מהורה או מאפטרופוס לפני הכניסה לתחרות. לעיון נוסף, ראו את <a href="https://drive.google.com/file/d/1CMlxEe-xIk8RNpfdBRlytLDWsdLMXPpl/view">תקנון התחרות הרשמי שלנו</a>.</p>
         </HeBlock>
         <Spacer/>
 
         <GreyBox>
             <ImageWithText
                 enText="<i>“By open-sourcing a vast array of Jewish texts, Sefaria's API makes programmatic analysis of Jewish tradition simple for the everyday programmer. talmud.page began as my own hand-tailored UI for learning Daf Yomi. The more developers use Sefaria's API to solve creative questions, the richer Jewish learning will be worldwide.”
-                        <br/><br/>
+                    <br/><br/>
                     - Ron Shapiro, <a href='https://talmud.page'>talmud.page</a></i></div>"
                 enImg="/static/img/contest-landing-page/AdobeStock_314348719.png"
                 enImgAlt=""
-                heText='<i>"על-ידי אספקת גישה למגוון עצום של טקסטים יהודיים, ה-API של ספריא מאפשר למתכנת הפשוט לבצע ניתוח פרוגרמטי של המסורת היהודי. talmud.page החל כממשק משתמש בעיצובי ללימוד דף יומי. שימוש רב יותר של מפתחים ב-API של ספריא לפתרון שאלות יצירתיות יעשיר את הלימוד היהודי בכל העולם"
-                <br/><br/>
-                 - רון שפירא
-                 <a href="https://talmud.page">talmud.page</a></i>'
+                heText='<i>"על-ידי אספקת גישה למגוון עצום של טקסטים יהודיים, ה-API של ספריא מאפשר למתכנת הפשוט לבצע ניתוח פרוגרמטי של המסורת היהודי. talmud.page החל כממשק משתמש אישי לצורך לימוד דף יומי. ככל שמפתחים ישתמשו יותר  ב-API של ספריא לפתרון שאלות יצירתיות- הלימוד היהודי בכל העולם- יזכה"
+                    <br/><br/>
+                    - רון שפירא, <a href="https://talmud.page">talmud.page</a></i>'
                 heImg="/static/img/contest-landing-page/AdobeStock_314348719.png"
                 heImgAlt=""
             />
@@ -191,20 +183,19 @@ const ContestLandingPage = () => (
 
         <H2Block en="Registration" he="הרשמה"/>
         <EnBlock padded={true}>
-            <p><a href="http://sefaria.nationbuilder.com/contest">Click here</a> to register your interest in participating so we can keep you up to date as the contest progresses with tools and resources, including engineering office hours where you can ask questions or work out ideas 1:1 with our team. You can register as an individual or team, and sign up at any point between now and the end of the contest.</p>
+            <p>Interested in participating in the contest? <a href="http://sefaria.nationbuilder.com/contest2021">Sign up</a> for updates and resources, including office hours with the Sefaria engineering team. We'll share a link for project submissions with you in the coming weeks!</p>
         </EnBlock>
         <HeBlock padded={true}>
-            <p>אם אתם מעוניינים להשתתף בתחרות, לחצו כאן להרשמה, כדי שנוכל לשלוח לכם עדכונים במהלך התחרות בנוגע לכלים ומשאבים, כולל שעות העבודה של המתכנתים שלנו, שתוכלו לשאול אותם שאלות ולהתייעץ איתם על רעיונות אחד־על־אחד. תוכלו להתמודד באופן עצמאי או כחלק מצוות, ולהירשם בכל שלב מעכשיו ועד לסיום התחרות.</p>
+            <p>אם אתם מעוניינים להשתתף בתחרות, <a href="https://sefaria.nationbuilder.com/contest2021">לחצו כאן להרשמה</a>, כדי שנוכל לשלוח לכם עדכונים במהלך התחרות בנוגע לכלים ומשאבים, כולל שעות העבודה של המתכנתים שלנו, שתוכלו לשאול אותם שאלות ולהתייעץ איתם על רעיונות אחד־על־אחד. תוכלו להתמודד באופן עצמאי או כחלק מצוות, ולהירשם בכל שלב מעכשיו ועד לסיום התחרות.</p>
         </HeBlock>
-        <Spacer/>
 
-        <ButtonRow>
+        <ButtonRow white={true}>
             <SimpleButton
                 white={true}
                 rounded={false}
                 tall={true}
-                href="http://sefaria.nationbuilder.com/contest"
-                he_href="http://sefaria.nationbuilder.com/contest"
+                href="http://sefaria.nationbuilder.com/contest2021"
+                he_href="http://sefaria.nationbuilder.com/contest2021"
                 he="טופס הרשמה"
                 en="Register"
             />
@@ -212,8 +203,8 @@ const ContestLandingPage = () => (
                 white={true}
                 rounded={false}
                 tall={true}
-                href="https://drive.google.com/file/d/1-TdCwaxGvGaPPZgEiWoYakqygZLyYtBf/view?usp=sharing"
-                he_href="https://drive.google.com/file/d/1-TdCwaxGvGaPPZgEiWoYakqygZLyYtBf/view?usp=sharing"
+                href="https://drive.google.com/file/d/1CMlxEe-xIk8RNpfdBRlytLDWsdLMXPpl/view"
+                he_href="https://drive.google.com/file/d/1CMlxEe-xIk8RNpfdBRlytLDWsdLMXPpl/view"
                 he="כללי התחרות"
                 en="Official Rules"
             />
@@ -229,6 +220,16 @@ const ContestLandingPage = () => (
         </ButtonRow>
 
         <CallToActionFooterWithButton
+            href="/powered-by-sefaria-contest-2020"
+            he_href="/powered-by-sefaria-contest-2020"
+            enText="Need Inspiration?"
+            heText="רוצה לקבל השראה?"
+            enButtonText="See 2020 Projects"
+            heButtonText="למיזמי 2020"
+        />
+
+        {/*
+        <CallToActionFooterWithButton
             href="https://docs.google.com/forms/d/e/1FAIpQLSdYygtWWCte6ljlNUq7qwVItoJREeaVRXznuuVC8213xw6k4w/viewform"
             he_href="https://docs.google.com/forms/d/e/1FAIpQLSdYygtWWCte6ljlNUq7qwVItoJREeaVRXznuuVC8213xw6k4w/viewform"
             enText="Ready to share what you created?"
@@ -236,9 +237,9 @@ const ContestLandingPage = () => (
             enButtonText="Submit your project"
             heButtonText="הגישו את הפרוייקט שלכם"
         />
+        */}
     </StaticPage>
 );
-*/
 
 
 const RambanLandingPage = () => {
@@ -669,6 +670,162 @@ const RemoteLearningPage = () => (
     </StaticPage>
 );
 
+const EducatorsPage = () => (
+  <StaticPage>
+    <HeaderForEducatorsPage/>
+    <GreyBox>
+      <H2Block en="Empower and Engage" he=""/>
+      <EnBlock padded={true}>
+        <p>Empower your students with Sefaria’s free library of digital texts, in Hebrew and English translation, and use our teaching materials to spark creativity and foster independence. Learn new ways of teaching and engaging your students in the centuries-old conversation around Jewish texts, and join Sefaria’s Educator community.</p>
+      </EnBlock>
+      <Spacer/>
+    </GreyBox>
+
+
+    <Feature
+      enTitle="Professional Development"
+      enText="Whether you’re a pro or a new user, Sefaria has resources to help you and your students learn and thrive. Join a Sefaria webinar, browse our tutorials, sign up for our Educator course, or request a custom workshop for your team or your students."
+      enImg="/static/img/educators-landing-page/teaching-with-sefaria-library.png"
+      enImgAlt="Professional Development"
+      heTitle="Professional Development"
+      heText="Whether you’re a pro or a new user, Sefaria has resources to help you and your students learn and thrive. Join a Sefaria webinar, browse our tutorials, sign up for our Educator course, or request a custom workshop for your team or your students."
+      heImg="/static/img/educators-landing-page/teaching-with-sefaria-library.png"
+      heImgAlt="Professional Development"
+      borderColor={palette.colors.darkblue}
+    />
+
+    <ButtonRow white={true} enTitle="" heTitle="">
+      { [
+          ["Online Educator Course", "", "https://sefaria.typeform.com/to/tJVexqpG"],
+          ["Lesson Plans on Sefaria", "", "/collections/pedagogy-on-sefaria-exemplary-lesson-plans"],
+          ["Schedule A Workshop", "", "https://sefaria.typeform.com/to/Pl3biam8"]
+      ].map(i =>
+          <SimpleButton
+              white={true}
+              rounded={false}
+              tall={true}
+              newTab={true}
+              href={i[2]}
+              he_href={i[2]}
+              he={i[0]}
+              en={i[0]}
+          />)
+      }
+    </ButtonRow>
+
+     <Feature
+      enTitle="Resources for Educators"
+      enText="Stay up to date with the latest news and resources from Sefaria. Learn from other educators’ experiences teaching and using Sefaria’s resources, and get inspired to try new things in your work. Discover our adaptable lesson plans and resources, or find learning materials and activities ready-to-go for your classroom!"
+      enImg="/static/img/educators-landing-page/megillah-activity.png"
+      enImgAlt="Resources for Educators"
+      heTitle=""
+      heText=""
+      heImg="/static/img/educators-landing-page/megillah-activity.png"
+      heImgAlt=""
+      borderColor={palette.colors.gold}
+      link=""
+     />
+
+    <ButtonRow white={true} enTitle="" heTitle="">
+      { [
+          ["Past Educator Newsletters", "", "/collections/qZ0UWi5y"],
+          ["Sefaria in Action", "", "/sheets/311116?lang=bi"],
+          ["For Your Students", "", "/sheets/311291?lang=bi"]
+      ].map(i =>
+          <SimpleButton
+              white={true}
+              rounded={false}
+              tall={true}
+              newTab={true}
+              href={i[2]}
+              he_href={i[2]}
+              he={i[0]}
+              en={i[0]}
+          />)
+      }
+    </ButtonRow>
+    <Feature
+      enTitle="Sefaria for Educators How-Tos"
+      enText="Browse our FAQ’s and learn more about how to use Sefaria’s tools to study and to teach. Sefaria’s Learning Team is always available to support you and your students or answer any questions you might have. If there are texts, translations, lesson plans, or student materials that would enhance your teaching, please share that with us as well."
+      enImg="/static/img/educators-landing-page/tutorials-for-educators.png"
+      enImgAlt="Sefaria for Educators How-Tos"
+      heTitle=""
+      heText=""
+      heImg="/static/img/educators-landing-page/tutorials-for-educators.png"
+      heImgAlt=""
+      borderColor={palette.colors.red}
+    />
+
+    <ButtonRow white={true} enTitle="" heTitle="">
+      { [
+          ["Educator FAQ", "", "/collections/tutorials-for-educators"],
+          ["Request New Resources", "", "https://sefaria.typeform.com/to/aaZmi4JD"],
+          ["Webinars for Educators", "", "/collections/qJLU68HQ"]
+      ].map(i =>
+          <SimpleButton
+              white={true}
+              rounded={false}
+              tall={true}
+              newTab={true}
+              href={i[2]}
+              he_href={i[2]}
+              he={i[0]}
+              en={i[0]}
+          />)
+      }
+    </ButtonRow>
+
+    <GreyBox>
+      <H2Block en="Get in touch" he=""/>
+      <EnBlock padded={true}>
+          <p>Was your teaching enhanced by Sefaria? Did you have a “Sefaria moment” with your students? Share it with us! We love to hear how educators are using Sefaria in the field and we learn from the feedback we receive. We are also available to answer all of your Sefaria questions. Write to us at education@sefaria.org.</p>
+      </EnBlock>
+      <Spacer/>
+    </GreyBox>
+
+    <H2Block en="What the educators have to say…" he=""/>
+
+    <Section>
+      <UserQuote
+          heText=""
+          enText="As an educator, I have come to appreciate Sefaria more and more. I now make sure to expose all of my students to what Sefaria has to offer. I show them how to use Sefaria to make source sheets. <b>I love hearing their excitement as they realize how easy it is to make a sheet on Sefaria and how organized their final products look.</b> They also are impressed at how Sefaria helps them do research by finding sources that connect to their topic. I am grateful that Sefaria is there to provide Torah resources to my students after they complete their formal Jewish education. Overall, the experience of using Sefaria with my students has been very positive!"
+          enName="Sarit Anstandig | High School Judaics Teacher | Farber Hebrew Day School"
+          heName=""
+          image="/static/img/educators-landing-page/sarit anstandig.png"
+      />
+      <UserQuote
+          enText="I really appreciate Sefaria. I use it all the time studying for tests, doing homework, doing learning on my own or even preparing for a seminary interview. <b>The fact that I can quickly and easily find whatever I need wherever I am and understand and study it is incredible.</b> I'm so so grateful for Sefaria. I've introduced all my friends to it and they all use it now too."
+          heText=""
+          enName="Anonymous day school student"
+          heName=""
+          image="/static/img/educators-landing-page/anonymous.png"
+      />
+      <UserQuote
+        heText=""
+        enText="Digital learning is making its way into all aspects of our students' education and learning, and if we are not on the train we will lose the hearts and minds of our students. We risk Torah being viewed as antiquated if it does not respond to our students' way of thinking about the world. Equally important, there are tools at our disposal which can enhance the experience of learning Torah and it would be malpractice not to see them. Through Sefaria's innovative educational features, my students' learning has been greatly enhanced. <b>We owe it to our students, and to ourselves, to make the most of this platform and to help make it better.</b>"
+        enName="Leib Zalesch | Judaic Studies Teacher | Beth Tfiloh Dahan Community School"
+        heName=""
+        image="/static/img/educators-landing-page/Leib Pic Prof.png"
+      />
+      <UserQuote
+        enText="Students have exposure to so many more commentaries than they would have in the past because of Sefaria and online texts. What I like most about Sefaria is the ability to compare and contrast texts clearly with the text side by side. It is a very powerful tool in the classroom and allows students to be more active in the learning process. Sefaria has also enhanced the level of sophistication of student project based learning."
+        heText=""
+        enName="Yael Goldfischer | Chair: Chumash Department | The Frisch School"
+        heName=""
+        image="/static/img/educators-landing-page/Yael Goldfischer.png"
+      />
+    </Section>
+
+    <div className="staticPageCallToActionFooter">
+      <div className="staticPageBlockInner flexContainer">
+        <SimpleInterfaceBlock classes="callToActionText" en="Sign up for our mailing list to get updates in your inbox" he="Sign up for our mailing list to get updates in your inbox" />
+        <EducatorSubscribeButton/>
+      </div>
+    </div>
+
+
+  </StaticPage>
+);
 
 const PBSC2020LandingPage = () => (
     <StaticPage>
@@ -1077,16 +1234,105 @@ const EnBlock = ({children, padded}) => <div className={"int-en" + (padded ? " s
 const GreyBox = ({children, light}) => <div className={light ? "lightgreyBackground" : "greyBackground"}>{children}</div>;
 
 const H2Block = ({en, he, classes}) =>
-    <div className="staticPageBlockInner">
-        <h2 className="staticPageH2">
-            <SimpleInterfaceBlock en={en} he={he} />
-        </h2>
-    </div>;
+  <div className="staticPageBlockInner">
+    <h2 className="staticPageH2">
+        <SimpleInterfaceBlock en={en} he={he} />
+    </h2>
+  </div>;
+
+const EducatorSubscribeButton = () => {
+  const email = Sefaria._email;
+  const [message, setMessage] = useState("");
+  const [messageStyle, setMessageStyle] = useState("");
+  const heActionText = useRef("הירשמו לקבלת הניוזלטר");
+  const enActionText = useRef("Get the Newsletter");
+
+  if (email.length === 0) {
+    enActionText.current = "Sign up to get updates";
+    heActionText.current = "הירשמו לקבלת עדכונים";
+  }
+  const handleClick = () => {
+    if (Sefaria.util.isValidEmailAddress(email)) {
+      setMessage("Subscribing...");
+      setMessageStyle("italics");
+      var lists = Sefaria.interfaceLang == "hebrew" ?
+              "Announcements_General_Hebrew|Announcements_Edu_Hebrew"
+              : "Announcements_General|Announcements_Edu"
+      const request = new Request(
+          "/api/subscribe/" + email,
+          {headers: {'X-CSRFToken': Cookies.get('csrftoken')}}
+      );
+      fetch(request, {
+        method: 'POST',
+        mode: 'same-origin',
+        credentials: 'same-origin',
+        body: {"lists": lists},
+      }).then(response => {
+        if (!response.ok) {
+          response.text().then(resp_text => {
+            setMessage(resp_text)
+            setMessageStyle("");
+          });
+        } else {
+          response.json().then(resp_json => {
+            if (resp_json.hasOwnProperty("status") && resp_json["status"] == "ok") {
+              setMessage("Subscribed! Welcome to our list.");
+              setMessageStyle("");
+            }
+            else if (resp_json.hasOwnProperty("error")) {
+              setMessage(resp_json["error"]);
+              setMessageStyle("");
+            }
+          });
+        }
+      }).catch(error => {
+        setMessage(error.message);
+      });
+    }
+  }
+
+  return <span>
+      <div className="simpleButtonWrapper signUpEducators">
+        <div onClick={handleClick} className={classNames({button:1, flexContainer:1, "int-en":1, white: true, tall: false, rounded:true})}>
+          <span className="int-en">{email.length === 0 ? <a href="/register?educator=true&next=/educators">{enActionText.current}</a> : enActionText.current}<img src="/static/img/circled-arrow-right.svg"/></span>
+        </div>
+        <div onClick={handleClick} className={classNames({button:1, flexContainer:1, "int-he":1, white: true, tall: false, rounded:true})}>
+          <span className="int-he">{email.length === 0 ? <a href="/register?educator=true&next=/educators">{heActionText.current}</a> : heActionText.current}<img src="/static/img/circled-arrow-right.svg"/></span>
+        </div>
+      </div>
+      <div className={`signUpEducatorsMessage ${messageStyle}`}>{message}<br/></div>
+  </span>
+}
+
+const HeaderForEducatorsPage = () => {
+  var enTitle="Teach with Sefaria"
+  var enText="Discover the power of digital texts and tools in your classroom. Explore Sefaria’s many resources to enrich teaching and learning in your community."
+  var heText="Discover the power of digital texts and tools in your classroom. Explore Sefaria’s many resources to enrich teaching and learning in your community."
+  var heTitle="Teach with Sefaria"
+
+  return <div className="staticPageHeader educators">
+    <div className="staticPageBlockInner flexContainer">
+      <div className="staticPageHeaderTextBox educators">
+        <h1>
+          <span className="int-en">{enTitle}</span>
+          <span className="int-he">{heTitle}</span>
+        </h1>
+        <SimpleInterfaceBlock classes="staticPageHeaderText" he={heText} en={enText}/>
+        <EducatorSubscribeButton/>
+      </div>
+    </div>
+  </div>
+};
 
 const Header = ({enTitle, heTitle, enText, heText, enImg, heImg, enImgAlt, heImgAlt, enActionURL, enActionText, heActionURL, heActionText}) => {
-    var staticPageHeaderClass = "staticPageHeader"
+    var staticPageHeaderClass = "staticPageHeader";
+    var imgComponent = "";
     if (enImg === "" && heImg === "") {
-        staticPageHeaderClass += " textOnly";
+      staticPageHeaderClass += " textOnly";
+    }
+    else
+    {
+      imgComponent = <span><img className="int-en" src={enImg} alt={enImgAlt}/><img className="int-he" src={heImg} alt={heImgAlt}/></span>;
     }
     return <div className={staticPageHeaderClass}>
         <div className="staticPageBlockInner flexContainer">
@@ -1101,8 +1347,7 @@ const Header = ({enTitle, heTitle, enText, heText, enImg, heImg, enImgAlt, heImg
                                   white={true}/> : null}
             </div>
             <div className="staticPageHeaderImg">
-                <img className="int-en" src={enImg} alt={enImgAlt}/>
-                <img className="int-he" src={heImg} alt={heImgAlt}/>
+                {imgComponent}
             </div>
         </div>
     </div>
@@ -1136,12 +1381,12 @@ const Sheet = ({title, link, author, image}) =>
     </div>;
 
 const CallToActionFooterWithButton = ({href, he_href, enText, heText, enButtonText, heButtonText}) => (
-    <div className="staticPageCallToActionFooter">
-        <div className="staticPageBlockInner flexContainer">
-            <SimpleInterfaceBlock classes="callToActionText" en={enText} he={heText} />
-            <SimpleButton href={href} he_href={he_href} en={enButtonText} he={heButtonText} white={true}/>
-        </div>
+  <div className="staticPageCallToActionFooter">
+    <div className="staticPageBlockInner flexContainer">
+      <SimpleInterfaceBlock classes="callToActionText" en={enText} he={heText} />
+      <SimpleButton href={href} he_href={he_href} en={enButtonText} he={heButtonText} white={true}/>
     </div>
+  </div>
 );
 
 const CallToActionFooter = ({enText, heText}) => (
@@ -1269,5 +1514,7 @@ export {
     RemoteLearningPage,
     SheetsLandingPage,
     PBSC2020LandingPage,
-    RambanLandingPage
+    ContestLandingPage,
+    RambanLandingPage,
+    EducatorsPage
 }

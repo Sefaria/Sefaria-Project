@@ -120,6 +120,9 @@ class Test_parse_he_ref(object):
         assert m.Ref("ברכות ח:") == m.Ref("Berakhot 8b")
         assert m.Ref("ברכות ח, א") == m.Ref("Berakhot 8a")
         assert m.Ref("""ברכות ח ע"ב""") == m.Ref("Berakhot 8b")
+        assert m.Ref("""ברכות י"א עמוד ב'""") == m.Ref("Berakhot 11b")
+        assert m.Ref("""ברכות דף י"א עמוד ב'""") == m.Ref("Berakhot 11b")
+
 
     def test_talmud_refs_without_amud(self):
         assert m.Ref("ברכות ח") == m.Ref("Berakhot 8a-8b")

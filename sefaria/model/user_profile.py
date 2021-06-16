@@ -487,7 +487,7 @@ class UserProfile(object):
         or None if the profile is valid.
         """
         # Slug
-        if re.search("[^a-z0-9\-]", self.slug):
+        if re.search(r"[^a-z0-9\-]", self.slug):
             return "Profile URLs may only contain lowercase letters, numbers and hyphens."
 
         existing = db.profiles.find_one({"slug": self.slug, "_id": {"$ne": self._id}})
@@ -673,6 +673,48 @@ class UserProfile(object):
         return json.dumps(self.to_mongo_dict())
 
 
+def detect_potential_spam_message_notifications():
+    # Get "message" type notifications where one user has sent many messages to multiple users.
+    spammers = db.notifications.aggregate(
+        [
+            {
+                "$match": {
+                    "read": False,
+                    "is_global": False,
+                    "type": "message"
+                }
+            },
+            {
+                "$group": {
+                    "_id": "$content.sender",
+                    "countmessages": {
+                        "$sum": 1
+                    },
+                    "uids": {
+                        "$addToSet": "$uid"
+                    }
+                }
+            },
+            {"$match": {"countmessages": {"$gt": 20}}},
+        ])
+    suspect_results = []
+    for spammer in spammers:
+        spammer_id = spammer["_id"]
+        if len(spammer["uids"]) >= 5:
+            suspect_results.append(spammer_id)
+            try:
+                spammer_account = User.objects.get(id=spammer_id)
+                spammer_account.is_active = False
+                spammer_account.save()
+            except:
+                continue
+
+        print(spammer["_id"])
+    # Mark all of these Notifications with these sender ids as suspicious so they dont get sent to the users
+    db.notifications.update_many({"content.sender": {"$in": suspect_results}}, {"$set": {"suspected_spam": True}})
+    return suspect_results
+
+
 def email_unread_notifications(timeframe):
     """
     Looks for all unread notifications and sends each user one email with a summary.
@@ -684,6 +726,8 @@ def email_unread_notifications(timeframe):
     * 'all'    - send all notifications
     """
     from sefaria.model.notification import NotificationSet
+
+    detect_potential_spam_message_notifications()
 
     users = db.notifications.find({"read": False, "is_global": False}).distinct("uid")
 
@@ -711,7 +755,7 @@ def email_unread_notifications(timeframe):
         elif notifications.like_count() > 0:
             noun      = "likes" if notifications.like_count() > 1 else "like"
             subject   = "%d new %s on your Source Sheet" % (notifications.like_count(), noun)
-        from_email    = "Sefaria <hello@sefaria.org>"
+        from_email    = "Sefaria Notifications <notifications@sefaria.org>"
         to            = user.email
 
         msg = EmailMultiAlternatives(subject, message_html, from_email, [to])

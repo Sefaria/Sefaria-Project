@@ -40,7 +40,7 @@ class AboutBox extends Component {
       Sefaria.versions(this.props.sectionRef, true, this._includeOtherVersionsLangs, false).then(this.onVersionsLoad);
   }
   componentDidUpdate(prevProps, prevState) {
-    if (prevProps.title !== this.props.title) {
+    if (prevProps.title !== this.props.title || prevProps.masterPanelLanguage != this.props.masterPanelLanguage) {
       this.setState({details: null});
       this.setTextMetaData();
       Sefaria.versions(this.props.sectionRef,true, this._includeOtherVersionsLangs, false).then(this.onVersionsLoad);
@@ -57,6 +57,10 @@ class AboutBox extends Component {
       }
     }
     this.setState({versionLangMap: versionsByLang, currentVersionsByActualLangs:currentVersionsByActualLangs});
+  }
+  openVersionInSidebar(versionTitle, versionLanguage) {
+    this.props.setConnectionsMode("Translation Open", {previousMode: "About"});
+    this.props.setFilter(Sefaria.getTranslateVersionsKey(versionTitle, versionLanguage));
   }
   render() {
     const d = this.state.details;
@@ -98,8 +102,8 @@ class AboutBox extends Component {
       if (d.authors && d.authors.length) {
         const authorArrayEn = d.authors.filter((elem) => !!elem.en);
         const authorArrayHe = d.authors.filter((elem) => !!elem.he);
-        authorsEn = authorArrayEn.map(author => <a key={author.en} href={"/person/" + author.en}>{author.en}</a> );
-        authorsHe = authorArrayHe.map(author => <a key={author.en} href={"/person/" + author.en}>{author.he}</a> );
+        authorsEn = authorArrayEn.map(author => <a key={author.slug} href={"/topics/" + author.slug}>{author.en}</a> );
+        authorsHe = authorArrayHe.map(author => <a key={author.slug} href={"/topics/" + author.slug}>{author.he}</a> );
       }
       // use compPlaceString and compDateString if available. then use compPlace o/w use pubPlace o/w nothing
       let placeTextEn, placeTextHe;
@@ -201,19 +205,19 @@ class AboutBox extends Component {
           }
       </div> : null );
     const alternateSectionHe =
-      (!!this.state.versionLangMap ?
+      (this.state.versionLangMap?.he?.length > 0 ?
           <div className="alternateVersionsSection">
             <h2 className="aboutHeader">
               <InterfaceText text={alternateVersionsSectionTitle} />
             </h2>
             <VersionsBlocksList key={`versions-${Object.values(this.props.currObjectVersions).map((v) => v?.versionTitle ?? "").join("|")}`}
               versionsByLanguages={this.state.versionLangMap}
-              mainVersionLanguage={this.props.mainVersionLanguage}
               currObjectVersions={this.props.currObjectVersions}
               showLanguageHeaders={false}
               currentRef={this.props.srefs[0]}
               getLicenseMap={this.props.getLicenseMap}
               openVersionInReader={this.props.openVersionInReader}
+              openVersionInSidebar={this.openVersionInSidebar}
               viewExtendedNotes={this.props.viewExtendedNotes}
             />
       </div> : null );
@@ -221,7 +225,7 @@ class AboutBox extends Component {
     return (
       <section className="aboutBox">
         {detailSection}
-        { this.props.mainVersionLanguage === "english" ?
+        { this.props.masterPanelLanguage === "english" ?
           (<div>{versionSectionEn}{versionSectionHe}{alternateSectionHe}</div>) :
           (<div>{versionSectionHe}{versionSectionEn}{alternateSectionHe}</div>)
         }
@@ -231,7 +235,7 @@ class AboutBox extends Component {
 }
 AboutBox.propTypes = {
   currObjectVersions:  PropTypes.object.isRequired,
-  mainVersionLanguage: PropTypes.oneOf(["english", "hebrew"]),
+  masterPanelLanguage: PropTypes.oneOf(["english", "hebrew", "bilingual"]),
   title:               PropTypes.string.isRequired,
   srefs:               PropTypes.array.isRequired,
   getLicenseMap:       PropTypes.func.isRequired,

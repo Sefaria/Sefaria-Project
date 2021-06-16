@@ -15,7 +15,8 @@ import {
   RemoteLearningPage,
   SheetsLandingPage,
   PBSC2020LandingPage,
-  RambanLandingPage
+  RambanLandingPage,
+  EducatorsPage
 } from './StaticPages';
 import {
   SignUpModal,
@@ -583,7 +584,7 @@ class ReaderApp extends Component {
             hist.mode = "profile";
             break;
           case "notifications":
-            hist.title = Sefaria._(siteName + " Notifcations");
+            hist.title = Sefaria._(siteName + " Notifications");
             hist.url   = "notifications";
             hist.mode  = "notifications";
             break;
@@ -1698,7 +1699,7 @@ class ReaderApp extends Component {
     }
   }
   openTopic(slug) {
-    Sefaria.getTopic(slug).then(topic => {
+    Sefaria.getTopic(slug, {annotate_time_period: true}).then(topic => {
       this.setStateInHeaderOrSinglePanel({ menuOpen: "topics", navigationTopic: slug, topicTitle: topic.primaryTitle });
     });
   }
@@ -2061,6 +2062,8 @@ export {
   EditCollectionPage,
   RemoteLearningPage,
   SheetsLandingPage,
+  ContestLandingPage,
   PBSC2020LandingPage,
-  RambanLandingPage
+  RambanLandingPage,
+  EducatorsPage
 };

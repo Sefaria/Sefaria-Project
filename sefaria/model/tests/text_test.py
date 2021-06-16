@@ -7,6 +7,7 @@ import sefaria.model as model
 from sefaria.system.exceptions import InputError
 from sefaria.system.testing import test_uid
 
+
 def teardown_module(module):
     titles = ['Test Commentator Name',
               'Bartenura (The Next Generation)',
@@ -17,8 +18,14 @@ def teardown_module(module):
               "Test Del"]
 
     for title in titles:
-        model.IndexSet({"title": title}).delete()
-        model.VersionSet({"title": title}).delete()
+        try:
+            model.IndexSet({"title": title}).delete()
+        except Exception:
+            pass
+        try:
+            model.VersionSet({"title": title}).delete()
+        except Exception:
+            pass
 
 
 def test_dup_index_save():
@@ -619,10 +626,11 @@ class TestModifyVersion:
 
     @classmethod
     def teardown_class(cls):
-        cls.simpleIndex.delete()
-        cls.complexIndex.delete()
-        cls.simpleVersion.delete()
-        cls.complexVersion.delete()
+        for c in [cls.simpleIndex, cls.complexIndex, cls.simpleVersion, cls.complexVersion]:
+            try:
+                c.delete()
+            except Exception:
+                pass
 
     def test_sub_content_with_ref(self):
         self.simpleVersion.sub_content_with_ref(model.Ref(f"{self.simpleIndexTitle} 3:2"), "new text")

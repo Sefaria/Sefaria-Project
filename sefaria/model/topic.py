@@ -1,8 +1,10 @@
-from typing import Union
+from typing import Union, Optional
 from . import abstract as abst
 from .schema import AbstractTitledObject, TitleGroup
-from .text import Ref
+from .text import Ref, IndexSet
+from .category import Category
 from sefaria.system.exceptions import DuplicateRecordError
+from sefaria.model.timeperiod import TimePeriod
 import structlog
 import regex as re
 logger = structlog.get_logger(__name__)
@@ -13,11 +15,17 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
     history_noun = 'topic'
     slug_fields = ['slug']
     title_group = None
+    subclass_map = {
+        'person': 'PersonTopic',
+        'author': 'AuthorTopic',
+    }
+    reverse_subclass_map = {v: k for k, v in subclass_map.items()}
     required_attrs = [
         'slug',
         'titles',
     ]
     optional_attrs = [
+        'subclass',  # str which indicates which subclass of `Topic` this instance is
         'alt_ids',
         'properties',
         'description',
@@ -33,17 +41,30 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
         'isAmbiguous',  # True if topic primary title can refer to multiple other topics
     ]
 
-    @staticmethod
-    def init(slug:str) -> 'Topic':
+    @classmethod
+    def init(cls, slug:str) -> 'Topic':
         """
         Convenience func to avoid using .load() when you're only passing a slug
+        Can return a subclass of Topic based on `subclass` field
         :param slug:
         :return:
         """
-        return Topic().load({'slug': slug})
+        topic =  Topic().load({'slug': slug})
+        if getattr(topic, 'subclass', False):
+            Subclass = globals()[cls.subclass_map[topic.subclass]]
+            topic = Subclass(topic._saveable_attrs())
+        return topic
 
     def _set_derived_attributes(self):
         self.set_titles(getattr(self, "titles", None))
+        if self.__class__ != Topic:
+            # in a subclass. set appropriate "subclass" attribute
+            setattr(self, "subclass", self.reverse_subclass_map[self.__class__.__name__])
+
+    def _validate(self):
+        super(Topic, self)._validate()
+        if getattr(self, 'subclass', False):
+            assert self.subclass in self.subclass_map, f"Field `subclass` set to {self.subclass} which is not one of the valid subclass keys in `Topic.subclass_map`. Valid keys are {', '.join(self.subclass_map.keys())}"
 
     def set_titles(self, titles):
         self.title_group = TitleGroup(titles)
@@ -131,7 +152,7 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
                     below_min_sources_set |= temp_below_min_sources
         return topics, links, below_min_sources_set
 
-    def has_types(self, search_slug_set):
+    def has_types(self, search_slug_set) -> bool:
         """
         WARNING: Expensive, lots of database calls
         Checks if `self` has any slug in `search_slug_set` as an ancestor when traversing `is-a` links
@@ -141,10 +162,19 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
         types = self.get_types(search_slug_set=search_slug_set)
         return len(search_slug_set.intersection(types)) > 0
 
-    def should_display(self):
-        return getattr(self, 'shouldDisplay', True) and getattr(self, 'numSources', 0) > 0
+    def should_display(self) -> bool:
+        return getattr(self, 'shouldDisplay', True) and (getattr(self, 'numSources', 0) > 0 or self.has_description())
 
-    def set_slug_to_primary_title(self):
+    def has_description(self) -> bool:
+        """
+        returns True if self has description in at least on language
+        """
+        has_desc = False
+        for temp_desc in getattr(self, 'description', {}).values():
+            has_desc = has_desc or len(temp_desc) > 0
+        return has_desc
+
+    def set_slug_to_primary_title(self) -> None:
         new_slug = self.get_primary_title('en')
         if len(new_slug) == 0:
             new_slug = self.get_primary_title('he')
@@ -152,11 +182,12 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
         if new_slug != self.slug:
             self.set_slug(new_slug)
 
-    def set_slug(self, new_slug):
+    def set_slug(self, new_slug) -> None:
         slug_field = self.slug_fields[0]
         old_slug = getattr(self, slug_field)
         setattr(self, slug_field, new_slug)
         setattr(self, slug_field, self.normalize_slug_field(slug_field))
+        self.save()  # so that topic with this slug exists when saving links to it
         self.merge(old_slug)
 
     def merge(self, other: Union['Topic', str]) -> None:
@@ -169,7 +200,7 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
             return
         other_slug = other if isinstance(other, str) else other.slug
         if other_slug == self.slug:
-            logger.warning('Cant merge slug into itself')
+            logger.warning(f'Cant merge slug into itself. Slug == {self.slug}')
             return
 
         # links
@@ -191,10 +222,17 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
         # source sheets
         db.sheets.update_many({'topics.slug': other_slug}, {"$set": {'topics.$[element].slug': self.slug}}, array_filters=[{"element.slug": other_slug}])
 
+        # indexes
+        for index in IndexSet({"authors": other_slug}):
+            index.authors = [self.slug if author_slug == other_slug else author_slug for author_slug in index.authors]
+            props = index._saveable_attrs()
+            db.index.replace_one({"title":index.title}, props)
+
         if isinstance(other, Topic):
             # titles
             for title in other.titles:
-                if title.get('primary', False):
+                if title.get('primary', False) and self.get_primary_title(title['lang']):
+                    # delete primary flag if self already has primary in this language
                     del title['primary']
             self.titles += other.titles
 
@@ -241,28 +279,10 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
 
     def contents(self, **kwargs):
         mini = kwargs.get('minify', False)
-        annotate_time_period = kwargs.get('annotate_time_period', False)
-
         d = {'slug': self.slug} if mini else super(Topic, self).contents(**kwargs)
         d['primaryTitle'] = {}
         for lang in ('en', 'he'):
             d['primaryTitle'][lang] = self.get_primary_title(lang=lang, with_disambiguation=kwargs.get('with_disambiguation', True))
-        if annotate_time_period:
-            gen_symbol, _ = self.get_property("generation")
-            if gen_symbol is not None:
-                from sefaria.model.timeperiod import TimePeriod
-                tp = TimePeriod().load({"symbol": gen_symbol})
-                if tp is not None:
-                    d['timePeriod'] = {
-                        "name": {
-                            "en": tp.primary_name("en"),
-                            "he": tp.primary_name("he")
-                        },
-                        "yearRange": {
-                            "en": tp.period_string("en"),
-                            "he": tp.period_string("he")
-                        }
-                    }
         return d
 
     def get_primary_title(self, lang='en', with_disambiguation=True):
@@ -289,11 +309,21 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
             return titles
         return super(Topic, self).get_titles(lang)
 
-    def get_property(self, property):
+    def get_property(self, property, default=None, value_only=True):
         properties = getattr(self, 'properties', {})
-        if property not in properties:
-            return None, None
-        return properties[property]['value'], properties[property]['dataSource']
+        value = properties.get(property, {}).get('value', default)
+        data_source = properties.get(property, {}).get('dataSource', default)
+        if value_only:
+            return value
+        return value, data_source
+
+    def set_property(self, property, value, data_source):
+        if getattr(self, 'properties', None) is None:
+            self.properties = {}
+        self.properties[property] = {
+            'value': value,
+            'dataSource': data_source
+        }
 
     @staticmethod
     def get_uncategorized_slug_set() -> set:
@@ -308,12 +338,190 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
         return "{}.init('{}')".format(self.__class__.__name__, self.slug)
 
 
+class PersonTopic(Topic):
+    """
+    Represents a topic which is a person. Not necessarily an author of a book.
+    """
+    @staticmethod
+    def get_person_by_key(key: str):
+        """
+        Find topic corresponding to deprecated Person key
+        """
+        return PersonTopic().load({"alt_ids.old-person-key": key})
+
+    def contents(self, **kwargs):
+        annotate_time_period = kwargs.get('annotate_time_period', False)
+        d = super(PersonTopic, self).contents(**kwargs)
+        if annotate_time_period:
+            tp = self.most_accurate_time_period()
+            if tp is not None:
+                d['timePeriod'] = {
+                    "name": {
+                        "en": tp.primary_name("en"),
+                        "he": tp.primary_name("he")
+                    },
+                    "yearRange": {
+                        "en": re.sub(r'[()]', '', tp.period_string("en")),
+                        "he": re.sub(r'[()]', '', tp.period_string("he")),
+                    }
+                }
+        return d
+    
+    # A person may have an era, a generation, or a specific birth and death years, which each may be approximate.
+    # They may also have none of these...
+    def most_accurate_time_period(self) -> Optional[TimePeriod]:
+        if self.get_property("birthYear") and self.get_property("deathYear"):
+            return TimePeriod({
+                "start": self.get_property("birthYear"),
+                "startIsApprox": self.get_property("birthYearIsApprox", False),
+                "end": self.get_property("deathYear"),
+                "endIsApprox": self.get_property("deathYearIsApprox", False)
+            })
+        elif self.get_property("birthYear") and self.get_property("era", "CO"):
+            return TimePeriod({
+                "start": self.get_property("birthYear"),
+                "startIsApprox": self.get_property("birthYearIsApprox", False),
+            })
+        elif self.get_property("generation"):
+            return TimePeriod().load({"symbol": self.get_property("generation")})
+        elif self.get_property("era"):
+            return TimePeriod().load({"symbol": self.get_property("era")})
+        else:
+            return None
+
+
+class AuthorTopic(PersonTopic):
+    """
+    Represents a topic which is an author of a book. Can be used on the `authors` field of `Index`
+    """
+
+    def get_authored_indexes(self):
+        ins = IndexSet({"authors": self.slug})
+        return sorted(ins, key=lambda i: Ref(i.title).order_id())
+
+    def _authors_indexes_fill_category(self, indexes, path, include_dependant):
+        from .text import library
+
+        temp_index_title_set = {i.title for i in indexes}
+        indexes_in_path = library.get_indexes_in_category_path(path, include_dependant, full_records=True)
+        if indexes_in_path.count() == 0:
+            # could be these are dependent texts without a collective title for some reason
+            indexes_in_path = library.get_indexes_in_category_path(path, True, full_records=True)
+            if indexes_in_path.count() == 0:
+                return False
+        path_end_set = {tuple(i.categories[len(path):]) for i in indexes}
+        for index_in_path in indexes_in_path:
+            if tuple(index_in_path.categories[len(path):]) in path_end_set:
+                if index_in_path.title not in temp_index_title_set and self.slug not in set(getattr(index_in_path, 'authors', [])):
+                    return False
+        return True
+
+    def _category_matches_author(self, category: Category) -> bool:
+        from .schema import Term
+
+        cat_term = Term().load({"name": category.sharedTitle})
+        return len(set(cat_term.get_titles()) & set(self.get_titles())) > 0
+
+    def aggregate_authors_indexes_by_category(self):
+        from .text import library
+        from .schema import Term
+        from collections import defaultdict
+
+        def index_is_commentary(index):
+            return getattr(index, 'base_text_titles', None) is not None and len(index.base_text_titles) > 0 and getattr(index, 'collective_title', None) is not None
+
+        indexes = self.get_authored_indexes()
+        
+        index_or_cat_list = [] # [(index_or_cat, collective_title_term, base_category)]
+        cat_aggregator = defaultdict(lambda: defaultdict(list))  # of shape {(collective_title, top_cat): {(icat, category): [index_object]}}
+        MAX_ICAT_FROM_END_TO_CONSIDER = 2
+        for index in indexes:
+            is_comm = index_is_commentary(index)
+            base = library.get_index(index.base_text_titles[0]) if is_comm else index
+            collective_title = index.collective_title if is_comm else None
+            base_cat_path = tuple(base.categories[:-MAX_ICAT_FROM_END_TO_CONSIDER+1])
+            for icat in range(len(base.categories) - MAX_ICAT_FROM_END_TO_CONSIDER, len(base.categories)):
+                cat_aggregator[(collective_title, base_cat_path)][(icat, tuple(base.categories[:icat+1]))] += [index]
+        for (collective_title, _), cat_choice_dict in cat_aggregator.items():
+            cat_choices_sorted = sorted(cat_choice_dict.items(), key=lambda x: (len(x[1]), x[0][0]), reverse=True)
+            (_, best_base_cat_path), temp_indexes = cat_choices_sorted[0]
+            if len(temp_indexes) == 1:
+                index_or_cat_list += [(temp_indexes[0], None, None)]
+                continue
+            if best_base_cat_path == ('Talmud', 'Bavli'):
+                best_base_cat_path = ('Talmud',)  # hard-coded to get 'Rashi on Talmud' instead of 'Rashi on Bavli'
+            
+            base_category = Category().load({"path": list(best_base_cat_path)})
+            if collective_title is None:
+                index_category = base_category
+                collective_title_term = None
+            else:
+                index_category = Category.get_shared_category(temp_indexes)
+                collective_title_term = Term().load({"name": collective_title})
+            if index_category is None or not self._authors_indexes_fill_category(temp_indexes, index_category.path, collective_title is not None) or (collective_title is None and self._category_matches_author(index_category)):
+                for temp_index in temp_indexes:
+                    index_or_cat_list += [(temp_index, None, None)]
+                continue
+            index_or_cat_list += [(index_category, collective_title_term, base_category)]
+        return index_or_cat_list
+
+    def get_aggregated_urls_for_authors_indexes(self) -> list:
+        """
+        Aggregates author's works by category when possible and
+        returns list of tuples. Each tuple is of shape (url, {"en", "he"}) corresponding to an index or category of indexes of this author's works.
+        """
+        from .schema import Term
+        from .text import Index
+
+        index_or_cat_list = self.aggregate_authors_indexes_by_category()
+        link_names = []  # [(href, en, he)]
+        for index_or_cat, collective_title_term, base_category in index_or_cat_list:
+            if isinstance(index_or_cat, Index):
+                link_names += [(f'/{index_or_cat.title.replace(" ", "_")}', {"en": index_or_cat.get_title('en'), "he": index_or_cat.get_title('he')})]
+            else:
+                if collective_title_term is None:
+                    cat_term = Term().load({"name": index_or_cat.sharedTitle})
+                    en_text = cat_term.get_primary_title('en')
+                    he_text = cat_term.get_primary_title('he')
+                else:
+                    base_category_term = Term().load({"name": base_category.sharedTitle})
+                    en_text = f'{collective_title_term.get_primary_title("en")} on {base_category_term.get_primary_title("en")}'
+                    he_text = f'{collective_title_term.get_primary_title("he")} על {base_category_term.get_primary_title("he")}'
+                link_names += [(f'/texts/{"/".join(index_or_cat.path)}', {"en": en_text, "he": he_text})]
+        return link_names
+
+
 class TopicSet(abst.AbstractMongoSet):
     recordClass = Topic
+
+    def __init__(self, query=None, *args, **kwargs):
+        if self.recordClass != Topic:
+            # include class name of recordClass + any class names of subclasses
+            query = query or {}
+            subclass_names = [self.recordClass.__name__] + [klass.__name__ for klass in self.recordClass.all_subclasses()]
+            query['subclass'] = {"$in": [self.recordClass.reverse_subclass_map[name] for name in subclass_names]}
+        
+        super().__init__(query=query, *args, **kwargs)
+
     @staticmethod
     def load_by_title(title):
         query = {'titles.text': title}
         return TopicSet(query=query)
+
+    def _read_records(self):
+        super()._read_records()
+        for rec in self.records:
+            if getattr(rec, 'subclass', False):
+                Subclass = globals()[self.recordClass.subclass_map[rec.subclass]]
+                rec.__class__ = Subclass  # cast to relevant subclass
+
+
+class PersonTopicSet(TopicSet):
+    recordClass = PersonTopic
+
+
+class AuthorTopicSet(PersonTopicSet):
+    recordClass = AuthorTopic
 
 
 class TopicLinkHelper(object):
@@ -332,7 +540,7 @@ class TopicLinkHelper(object):
     ]
     optional_attrs = [
         'generatedBy',
-        'order',
+        'order',  # dict with some data on how to sort this link. can have key 'custom_order' which should trump other data
         'isJudgementCall',
     ]
     generated_by_sheets = "sheet-topic-aggregator"
@@ -351,7 +559,6 @@ class TopicLinkHelper(object):
 
 class IntraTopicLink(abst.AbstractMongoRecord):
     collection = TopicLinkHelper.collection
-    sub_collection_query = {"class": "intraTopic"}
     required_attrs = TopicLinkHelper.required_attrs + ['fromTopic']
     optional_attrs = TopicLinkHelper.optional_attrs
     valid_links = []
@@ -364,6 +571,10 @@ class IntraTopicLink(abst.AbstractMongoRecord):
         """
         super(IntraTopicLink, self).__init__(attrs=attrs)
         self.context_slug = context_slug
+
+    def load(self, query, proj=None):
+        query = TopicLinkSetHelper.init_query(query, 'intraTopic')
+        return super().load(query, proj)
 
     def _normalize(self):
         setattr(self, "class", "intraTopic")
@@ -445,19 +656,30 @@ class IntraTopicLink(abst.AbstractMongoRecord):
 
 class RefTopicLink(abst.AbstractMongoRecord):
     collection = TopicLinkHelper.collection
-    sub_collection_query = {"class": "refTopic"}
     required_attrs = TopicLinkHelper.required_attrs + ['ref', 'expandedRefs', 'is_sheet']  # is_sheet  and expandedRef attrs are defaulted automatically in normalize
     optional_attrs = TopicLinkHelper.optional_attrs + ['text', 'charLevelData', 'unambiguousToTopic']  # unambiguousToTopic is used when linking to an ambiguous topic. There are some instance when you need to decide on one of the options (e.g. linking to an ambiguous rabbi in frontend). this can be used as a proxy for toTopic in those cases.
 
+    def load(self, query, proj=None):
+        query = TopicLinkSetHelper.init_query(query, 'refTopic')
+        return super().load(query, proj)
+
     def _normalize(self):
         super(RefTopicLink, self)._normalize()
-        self.is_sheet = bool(re.search("Sheet \d+$", self.ref))
+        self.is_sheet = bool(re.search(r"Sheet \d+$", self.ref))
         setattr(self, "class", "refTopic")
         if self.is_sheet:
             self.expandedRefs = [self.ref]
         else:  # Ref is a regular Sefaria Ref
             self.expandedRefs = [r.normal() for r in Ref(self.ref).all_segment_refs()]
 
+    def _validate(self):
+        to_topic = Topic.init(self.toTopic)
+        assert to_topic is not None, "toTopic '{}' does not exist".format(self.toTopic)
+        link_type = TopicLinkType().load({"slug": self.linkType})
+        assert link_type is not None, "Link type '{}' does not exist".format(self.linkType)
+        if getattr(link_type, 'validTo', False):
+            assert to_topic.has_types(set(link_type.validTo)), "to topic '{}' does not have valid types '{}' for link type '{}'. Instead, types are '{}'".format(self.toTopic, ', '.join(link_type.validTo), self.linkType, ', '.join(to_topic.get_types()))
+    
     def _pre_save(self):
         if getattr(self, "_id", None) is None:
             # check for duplicates

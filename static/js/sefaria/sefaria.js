@@ -386,8 +386,10 @@ Sefaria = extend(Sefaria, {
         .then(d => {
             //swap out original versions from the server with the ones that Sefaria client side has sorted and updated with some fields.
             // This happens before saving the text to cache so that both caches are consistent
-            let versions = Sefaria._saveVersions(d.sectionRef, d.versions);
-            d.versions = Sefaria._makeVersions(versions, false, null, false);
+            if(d.versions){
+                let versions = Sefaria._saveVersions(d.sectionRef, d.versions);
+                d.versions = Sefaria._makeVersions(versions, false, null, false);
+            }
             Sefaria._saveText(d, settings);
             return d;
         });
@@ -449,8 +451,10 @@ Sefaria = extend(Sefaria, {
     }
     this._api(Sefaria.apiHost + this._textUrl(ref, settings), function(data) {
         //save versions and then text so both caches have updated versions
-        let versions = this._saveVersions(data.sectionRef, data.versions);
-        data.versions = this._makeVersions(versions, false, null, false);
+        if(data.versions){
+            let versions = this._saveVersions(data.sectionRef, data.versions);
+            data.versions = this._makeVersions(versions, false, null, false);
+        }
         this._saveText(data, settings);
         cb(data);
     }.bind(this));
@@ -534,10 +538,14 @@ Sefaria = extend(Sefaria, {
       return versionStore;
   },
   transformVersionObjectsToByActualLanguageKeys(versionObjects){
-    return Object.values(versionObjects)
-          .filter(v => !!v)
-          .reduce((obj, version) => {
-            obj[version.actualLanguage] = version;
+    return Object.entries(versionObjects)
+          .filter(([lang, v]) => !!v)
+          .reduce((obj, [lang, version]) => {
+              if(version?.merged){ //this would be the best guess of the merged language's version currently
+                  obj[lang] = version;
+              }else{
+                 obj[version.actualLanguage] = version;
+              }
             return obj;
           }, {});
   },
@@ -1996,29 +2004,56 @@ _media: {},
     });
   },
   _topics: {},
-  getTopic: function(topic, {with_links=true, annotate_links=true, with_refs=true, group_related=true, annotate_time_period=false, ref_link_type_filters=['about']}={}) {
-      return this._cachedApiPromise({
-          url:   `${this.apiHost}/api/topics/${topic}?with_links=${0+with_links}&annotate_links=${0+annotate_links}&with_refs=${0+with_refs}&group_related=${0+group_related}&annotate_time_period=${0+annotate_time_period}&ref_link_type_filters=${ref_link_type_filters.join('|')}`,
-          key:   topic,
-          store: this._topics,
-          processor: this.processTopicsData,
+  _CAT_REF_LINK_TYPE_FILTER_MAP: {
+    'authors': ['popular-writing-of'],
+  },
+  getTopic: function(slug, {with_links=true, annotate_links=true, with_refs=true, group_related=true, annotate_time_period=false, ref_link_type_filters=['about', 'popular-writing-of'], with_indexes=true}={}) {
+    const cat = Sefaria.topicTocCategory(slug);
+    // overwrite ref_link_type_filters with predefined list. currently used to hide "Sources" and "Sheets" on author pages.
+    if (!!cat && !!Sefaria._CAT_REF_LINK_TYPE_FILTER_MAP[cat.slug]) {
+      ref_link_type_filters = Sefaria._CAT_REF_LINK_TYPE_FILTER_MAP[cat.slug];
+    }
+    const url = `${this.apiHost}/api/v2/topics/${slug}?with_links=${0+with_links}&annotate_links=${0+annotate_links}&with_refs=${0+with_refs}&group_related=${0+group_related}&annotate_time_period=${0+annotate_time_period}&ref_link_type_filters=${ref_link_type_filters.join('|')}&with_indexes=${0+with_indexes}`;
+    return this._cachedApiPromise({
+      url,
+      key: url,
+      store: this._topics,
+      processor: this.processTopicsData,
     });
   },
   processTopicsData: function(data) {
     if (!data) { return null; }
     if (!data.refs) { return data; }
-    // Split  `refs` in `sourceRefs` and `sheetRefs`
-    let refMap = {};
-    for (let refObj of data.refs.filter(s => !s.is_sheet)) {
-      refMap[refObj.ref] = {ref: refObj.ref, order: refObj.order, dataSources: refObj.dataSources};
+    const tabs = {};
+    for (let [linkTypeSlug, linkTypeObj] of Object.entries(data.refs)) {
+      for (let refObj of linkTypeObj.refs) {
+        let tabKey = linkTypeSlug;
+        if (tabKey == 'about') {
+          tabKey = refObj.is_sheet ? 'sheets' : 'sources';
+        }
+        if (!tabs[tabKey]) {
+          let { title } = linkTypeObj;
+          if (tabKey == 'sheets') {
+            title = {en: 'Sheets', he: Sefaria._('Sheets')};
+          } 
+          if (tabKey == 'sources') {
+            title = {en: 'Sources', he: Sefaria._('Sources')};
+          }
+          tabs[tabKey] = {
+            refMap: {},
+            title,
+            shouldDisplay: linkTypeObj.shouldDisplay,
+          };
+        }
+        const ref = refObj.is_sheet ? parseInt(refObj.ref.replace('Sheet ', '')) : refObj.ref;
+        tabs[tabKey].refMap[refObj.ref] = {ref, order: refObj.order, dataSources: refObj.dataSources};
+      }
     }
-    data.textRefs = Object.values(refMap);
-    let sheetMap = {};
-    for (let refObj of data.refs.filter(s => s.is_sheet)) {
-      const sid = refObj.ref.replace('Sheet ', '');
-      sheetMap[sid] = {sid, order: refObj.order};
+    for (let tabObj of Object.values(tabs)) {
+      tabObj.refs = Object.values(tabObj.refMap);
+      delete tabObj.refMap;
     }
-    data.sheetRefs = Object.values(sheetMap);
+    data.tabs = tabs;
     return data;
   },
   getTopicFromCache: function(topic) {

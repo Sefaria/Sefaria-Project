@@ -13,7 +13,7 @@ from . import abstract
 
 # not sure why we have to do this now - it wasn't previously required
 from . import history, schema, text, link, note, layer, notification, queue, lock, following, user_profile, version_state, \
-    lexicon, place, person, timeperiod, garden, collection, topic, manuscript
+    lexicon, place, timeperiod, garden, collection, topic, manuscript
 
 from .history import History, HistorySet, log_add, log_delete, log_update, log_text
 from .schema import deserialize_tree, Term, TermSet, TermScheme, TermSchemeSet, TitledTreeNode, SchemaNode, \
@@ -37,14 +37,13 @@ from .version_state import VersionState, VersionStateSet, StateNode, refresh_all
 from .timeperiod import TimePeriod, TimePeriodSet
 from .lexicon import Lexicon, LexiconEntry, LexiconEntrySet, Dictionary, DictionaryEntry, StrongsDictionaryEntry, RashiDictionaryEntry, JastrowDictionaryEntry, KleinDictionaryEntry, WordForm, WordFormSet, LexiconLookupAggregator
 from .place import Place, PlaceSet
-from .person import Person, PersonSet, PersonRelationship, PersonRelationshipSet, PersonRelationshipType, PersonRelationshipTypeSet
 from .garden import Garden, GardenStop, GardenStopRelation, GardenSet, GardenStopSet, GardenStopRelationSet
 from .category import Category, CategorySet
 from .passage import Passage, PassageSet
 from .ref_data import RefData, RefDataSet
 from .webpage import WebPage, WebPageSet
 from .media import Media, MediaSet
-from .topic import Topic, TopicLinkType, IntraTopicLink, RefTopicLink, TopicLinkType, TopicDataSource, TopicSet, TopicLinkTypeSet, RefTopicLinkSet, IntraTopicLinkSet, TopicLinkSetHelper
+from .topic import Topic, PersonTopic, AuthorTopic, TopicLinkType, IntraTopicLink, RefTopicLink, TopicLinkType, TopicDataSource, TopicSet, PersonTopicSet, AuthorTopicSet, TopicLinkTypeSet, RefTopicLinkSet, IntraTopicLinkSet, TopicLinkSetHelper
 from .manuscript import Manuscript, ManuscriptSet, ManuscriptPage, ManuscriptPageSet
 
 from . import dependencies

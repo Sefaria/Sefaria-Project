@@ -679,6 +679,8 @@ def topics_toc_page(request, topicCategory):
     List of topics in a category.
     """
     topic_obj = Topic.init(topicCategory)
+    if not topic_obj:
+        raise Http404
     props={
         "initialMenu": "navigation",
         "initialNavigationTopicCategory": topicCategory,
@@ -1443,13 +1445,15 @@ def table_of_contents_api(request):
 @catch_error_as_json
 def search_autocomplete_redirecter(request):
     query = request.GET.get("q", "")
-    completions_dict = get_name_completions(query, 1, False)
+    topic_override = query.startswith('#')
+    query = query[1:] if topic_override else query
+    completions_dict = get_name_completions(query, 1, False, topic_override)
     ref = completions_dict['ref']
     object_data = completions_dict['object_data']
     if ref:
         response = redirect('/{}'.format(ref.url()), permanent=False)
-    elif object_data is not None and object_data.get('type', '') == 'Person':
-        response = redirect('/person/{}'.format(object_data['key']), permanent=False)
+    elif object_data is not None and object_data.get('type', '') in {'Topic', 'PersonTopic', 'AuthorTopic'}:
+        response = redirect('/topics/{}'.format(object_data['key']), permanent=False)
     elif object_data is not None and object_data.get('type', '') == 'TocCategory':
         response = redirect('/{}'.format(object_data['key']), permanent=False)
     else:
@@ -3033,7 +3037,7 @@ def topics_list_api(request):
 
 
 @catch_error_as_json
-def topics_api(request, topic):
+def topics_api(request, topic, v2=False):
     """
     API to get data for a particular topic.
     """
@@ -3042,8 +3046,9 @@ def topics_api(request, topic):
     group_related = bool(int(request.GET.get("group_related", False)))
     with_refs = bool(int(request.GET.get("with_refs", False)))
     annotate_time_period = bool(int(request.GET.get("annotate_time_period", False)))
+    with_indexes = bool(int(request.GET.get("with_indexes", False)))
     ref_link_type_filters = set(filter(lambda x: len(x) > 0, request.GET.get("ref_link_type_filters", "").split("|")))
-    response = get_topic(topic, with_links, annotate_links, with_refs, group_related, annotate_time_period, ref_link_type_filters)
+    response = get_topic(v2, topic, with_links, annotate_links, with_refs, group_related, annotate_time_period, ref_link_type_filters, with_indexes)
     return jsonResponse(response, callback=request.GET.get("callback", None))
 
 
@@ -3075,9 +3080,13 @@ def topic_ref_api(request, tref):
     response = get_topics_for_ref(tref, annotate)
     return jsonResponse(response, callback=request.GET.get("callback", None))
 
-
+_CAT_REF_LINK_TYPE_FILTER_MAP = {
+    'authors': ['popular-writing-of'],
+}
 def _topic_data(topic):
-    response = get_topic(topic, with_links=True, annotate_links=True, with_refs=True, group_related=True, annotate_time_period=False, ref_link_type_filters=['about'])
+    cat = library.get_topic_toc_category_mapping().get(topic, None)
+    ref_link_type_filters = _CAT_REF_LINK_TYPE_FILTER_MAP.get(cat, ['about', 'popular-writing-of'])
+    response = get_topic(True, topic, with_links=True, annotate_links=True, with_refs=True, group_related=True, annotate_time_period=False, ref_link_type_filters=ref_link_type_filters, with_indexes=True) 
     return response
 
 
@@ -3526,7 +3535,7 @@ def saved_history_for_ref(request):
 def _get_anonymous_user_history(request):
     import urllib.parse
     history = json.loads(urllib.parse.unquote(request.COOKIES.get("user_history", '[]')))
-    return recents+history
+    return history
 
 def profile_get_user_history(request):
     """
@@ -4005,86 +4014,22 @@ def visualize_timeline(request):
     return render_template(request, 'timeline.html', None, {})
 
 
-def person_page(request, name):
-    person = Person().load({"key": name})
+def person_page_redirect(request, name):
+    person = PersonTopic.get_person_by_key(name)
 
     if not person:
         raise Http404
-    assert isinstance(person, Person)
 
-    template_vars = person.contents()
-    if request.interfaceLang == "hebrew":
-        template_vars["name"] = person.primary_name("he")
-        template_vars["bio"]= getattr(person, "heBio", _("Learn about %(name)s - works written, biographies, dates and more.") % {"name": person.primary_name("he")})
-    else:
-        template_vars["name"] = person.primary_name("en")
-        template_vars["bio"]= getattr(person, "enBio", _("Learn about %(name)s - works written, biographies, dates and more.")  % {"name": person.primary_name("en")})
-
-    template_vars["primary_name"] = {
-        "en": person.primary_name("en"),
-        "he": person.primary_name("he")
-    }
-    template_vars["secondary_names"] = {
-        "en": person.secondary_names("en"),
-        "he": person.secondary_names("he")
-    }
-    try:
-        tp = person.mostAccurateTimePeriod()
-
-        template_vars["time_period_name"] = {
-            "en": tp.primary_name("en"),
-            "he": tp.primary_name("he")
-        }
-        template_vars["time_period"] = {
-            "en": tp.period_string("en"),
-            "he": tp.period_string("he")
-        }
-    except AttributeError:
-        pass
-    template_vars["relationships"] = person.get_grouped_relationships()
-    template_vars["indexes"] = person.get_indexes()
-    template_vars["post_talmudic"] = person.is_post_talmudic()
-    template_vars["places"] = person.get_places()
-
-    return render_template(request,'person.html', None, template_vars)
+    url = f'/topics/{person.slug}'
+    return redirect(iri_to_uri(url), permanent=True)
 
 
-def person_index(request):
+def person_index_redirect(request):
+    return redirect(iri_to_uri('/topics/category/authors'), permanent=True)
+    
 
-    eras = ["GN", "RI", "AH", "CO"]
-    template_vars = {
-        "eras": []
-    }
-    for era in eras:
-        tp = TimePeriod().load({"symbol": era})
-        template_vars["eras"].append(
-            {
-                "name_en": tp.primary_name("en"),
-                "name_he": tp.primary_name("he"),
-                "years_en": tp.period_string("en"),
-                "years_he": tp.period_string("he"),
-                "people": [p for p in PersonSet({"era": era}, sort=[('deathYear', 1)]) if p.has_indexes()]
-            }
-        )
-
-    return render_template(request,'people.html', None, template_vars)
-
-
-def talmud_person_index(request):
-    gens = TimePeriodSet.get_generations()
-    template_vars = {
-        "gens": []
-    }
-    for gen in gens:
-        people = gen.get_people_in_generation()
-        template_vars["gens"].append({
-            "name_en": gen.primary_name("en"),
-            "name_he": gen.primary_name("he"),
-            "years_en": gen.period_string("en"),
-            "years_he": gen.period_string("he"),
-            "people": [p for p in people]
-        })
-    return render_template(request,'talmud_people.html', None, template_vars)
+def talmud_person_index_redirect(request):
+    return redirect(iri_to_uri('/topics/category/talmudic-figures'), permanent=True)
 
 
 def _get_sheet_tag_garden(tag):
@@ -4203,7 +4148,7 @@ def apple_app_site_association(request):
 
 def application_health_api(request):
     """
-    Defines the /healthz API endpoint which responds with
+    Defines the /healthz  and /health-check API endpoints which responds with
         200 if the application is ready for requests,
         500 if the application is not ready for requests
     """
