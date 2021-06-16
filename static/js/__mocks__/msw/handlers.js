@@ -11,5 +11,11 @@ export const handlers = [
             return res(ctx.json({error: "Please specifiy a list."}))
         }
         return res(ctx.json({status: "ok"}))
+    }),
+    rest.get('/api/v2/index/:title', (req, res, ctx) => {
+        const { title } = req.params
+        return res(ctx.json({
+
+        }));
     })
 ];

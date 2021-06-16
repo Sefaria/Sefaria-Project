@@ -4,12 +4,6 @@ import { server } from '../../__mocks__/msw/server';
 import { render, fireEvent, waitFor, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { NewsletterSignUpForm } from '../../Misc';
-import Sefaria from '../../sefaria/sefaria';
-
-Sefaria.interfaceLang = "english";
-beforeAll(() => server.listen());
-afterEach(() => server.resetHandlers());
-afterAll(() => server.close());
 
 const inputTest = async (props, email, waitForMessages) => {
     render(<NewsletterSignUpForm {...props} />);
