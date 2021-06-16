@@ -1,25 +1,12 @@
 import React from 'react';
 import { rest } from 'msw';
-import { setupServer } from 'msw/node';
+import { server } from '../../__mocks__/msw/server';
 import { render, fireEvent, waitFor, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { NewsletterSignUpForm } from '../../Misc';
 import Sefaria from '../../sefaria/sefaria';
 
 Sefaria.interfaceLang = "english";
-const server = setupServer(
-    rest.post('/api/subscribe/:email', (req, res, ctx) => {
-        const { email } = req.params
-        const lists = req.url.searchParams.get('lists').split('|');
-        if (!Sefaria.util.isValidEmailAddress(email)) {
-            return res(ctx.json({error: "Sorry, there was an error."}))
-        }
-        if (lists.length === 0) {
-            return res(ctx.json({error: "Please specifiy a list."}))
-        }
-        return res(ctx.json({status: "ok"}))
-    })
-)
 beforeAll(() => server.listen());
 afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
