@@ -28,11 +28,11 @@ const inputTest = async (props, email, waitForMessages) => {
     }
 } 
 it('test invalid email in newsletter form', async () => {
-    await inputTest({contextName: "Footer"}, 'invalid email', ['Please enter a valid email address.'])
+    await inputTest({contextName: "Footer"}, 'invalid email', ['Please enter a valid email address.']);
 });
 
 it('test valid email in newsletter form', async () => {
-    await inputTest({contextName: "Footer"}, 'test@fakedomain.com', ['Subscribing...', 'Subscribed! Welcome to our list.'])
+    await inputTest({contextName: "Footer"}, 'test@fakedomain.com', ['Subscribing...', 'Subscribed! Welcome to our list.']);
 });
 
 it('test valid email in newsletter form with 500 response', async () => {
@@ -41,7 +41,7 @@ it('test valid email in newsletter form with 500 response', async () => {
             return res(ctx.status(500))
         })
     );
-    await inputTest({contextName: "Footer"}, 'test@fakedomain.com', ['Subscribing...', 'Sorry, there was an error.'])
+    await inputTest({contextName: "Footer"}, 'test@fakedomain.com', ['Subscribing...', 'Sorry, there was an error.']);
 });
 
 it('test valid email in newsletter form with error response', async () => {
@@ -51,5 +51,5 @@ it('test valid email in newsletter form with error response', async () => {
             return res(ctx.json({error: errorMessage}))
         })
     );
-    await inputTest({contextName: "Footer"}, 'test@fakedomain.com', ['Subscribing...', errorMessage])
+    await inputTest({contextName: "Footer"}, 'test@fakedomain.com', ['Subscribing...', errorMessage]);
 });
