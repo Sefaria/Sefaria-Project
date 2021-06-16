@@ -237,6 +237,7 @@ AboutBox.propTypes = {
   masterPanelLanguage: PropTypes.oneOf(["english", "hebrew", "bilingual"]),
   title:               PropTypes.string.isRequired,
   srefs:               PropTypes.array.isRequired,
+  sectionRef:          PropTypes.string.isRequired,
 };
 
 
