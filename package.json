@@ -89,13 +89,17 @@
     "@babel/plugin-transform-destructuring": "^7.6.0",
     "@babel/preset-env": "^7.10.2",
     "@babel/preset-react": "^7.0.0",
+    "@testing-library/react": "^11.2.7",
+    "@testing-library/user-event": "^13.1.9",
     "babel-loader": "^8.0.6",
     "babel-plugin-transform-remove-console": "^6.8.0",
     "babel-watch": "^2.0.0",
     "css-loader": "^3.2.0",
-    "jest": "^24.9.0",
+    "jest": "^27.0.0",
+    "node-notifier": "^10.0.0",
     "nodemon": "^1.9.2",
     "on-build-webpack": "^0.1.0",
+    "regenerator-runtime": "^0.10.5",
     "source-map-support": "^0.4.15",
     "style-loader": "^1.0.0",
     "webpack": "^4.40.2",
@@ -109,6 +113,15 @@
     ],
     "compact": false,
     "plugins": []
+  },
+  "jest": {
+    "moduleNameMapper": {
+      "\\.(css|less|sass|scss)$": "<rootDir>/static/js/__mocks__/styleMock.js"
+    },
+    "setupFilesAfterEnv": [
+      "<rootDir>/static/js/setupJest.js"
+    ],
+    "testEnvironment": "jsdom"
   },
   "repository": {
     "type": "git",
