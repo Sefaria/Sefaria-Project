@@ -17,12 +17,10 @@ const server = setupServer(
         if (lists.length === 0) {
             return res(ctx.json({error: "Please specifiy a list."}))
         }
-        return res(ctx.json({success: true}))
+        return res(ctx.json({status: "ok"}))
     })
 )
-beforeAll(() => {
-    server.listen()
-});
+beforeAll(() => server.listen());
 afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
