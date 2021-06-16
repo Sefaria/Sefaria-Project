@@ -180,7 +180,7 @@ class AboutBox extends Component {
           currObjectVersions={this.props.currObjectVersions}
           currentRef={this.props.srefs[0]}
           firstSectionRef={"firstSectionRef" in sourceVersion ? sourceVersion.firstSectionRef : null}
-          getLicenseMap={this.props.getLicenseMap} />
+        />
       </div>
       : null );
     const versionSectionEn =
@@ -200,7 +200,7 @@ class AboutBox extends Component {
                   currentRef={this.props.srefs[0]}
                   firstSectionRef={"firstSectionRef" in ve ? ve.firstSectionRef : null}
                   viewExtendedNotes={this.props.viewExtendedNotes}
-                  getLicenseMap={this.props.getLicenseMap} />
+                  />
               ))
           }
       </div> : null );
@@ -215,7 +215,6 @@ class AboutBox extends Component {
               currObjectVersions={this.props.currObjectVersions}
               showLanguageHeaders={false}
               currentRef={this.props.srefs[0]}
-              getLicenseMap={this.props.getLicenseMap}
               openVersionInReader={this.props.openVersionInReader}
               openVersionInSidebar={this.openVersionInSidebar}
               viewExtendedNotes={this.props.viewExtendedNotes}
@@ -238,7 +237,6 @@ AboutBox.propTypes = {
   masterPanelLanguage: PropTypes.oneOf(["english", "hebrew", "bilingual"]),
   title:               PropTypes.string.isRequired,
   srefs:               PropTypes.array.isRequired,
-  getLicenseMap:       PropTypes.func.isRequired,
 };
 
 
