@@ -9,6 +9,14 @@ import Sefaria from '../../sefaria/sefaria';
 Sefaria.interfaceLang = "english";
 const server = setupServer(
     rest.post('/api/subscribe/:email', (req, res, ctx) => {
+        const { email } = req.params
+        const lists = req.url.searchParams.get('lists').split('|');
+        if (!Sefaria.util.isValidEmailAddress(email)) {
+            return res(ctx.json({error: "Sorry, there was an error."}))
+        }
+        if (lists.length === 0) {
+            return res(ctx.json({error: "Please specifiy a list."}))
+        }
         return res(ctx.json({success: true}))
     })
 )
@@ -28,11 +36,11 @@ const inputTest = async (props, email, waitForMessages) => {
     }
 } 
 it('invalid email in newsletter form', async () => {
-    await inputTest({contextName: "Footer"}, 'invalid email', ['Please enter a valid email address.']);
+    await inputTest({}, 'invalid email', ['Please enter a valid email address.']);
 });
 
 it('valid email in newsletter form', async () => {
-    await inputTest({contextName: "Footer"}, 'test@fakedomain.com', ['Subscribing...', 'Subscribed! Welcome to our list.']);
+    await inputTest({}, 'test@fakedomain.com', ['Subscribing...', 'Subscribed! Welcome to our list.']);
 });
 
 it('valid email in newsletter form with 500 response', async () => {
@@ -41,7 +49,7 @@ it('valid email in newsletter form with 500 response', async () => {
             return res(ctx.status(500))
         })
     );
-    await inputTest({contextName: "Footer"}, 'test@fakedomain.com', ['Subscribing...', 'Sorry, there was an error.']);
+    await inputTest({}, 'test@fakedomain.com', ['Subscribing...', 'Sorry, there was an error.']);
 });
 
 it('valid email in newsletter form with error response', async () => {
@@ -51,5 +59,5 @@ it('valid email in newsletter form with error response', async () => {
             return res(ctx.json({error: errorMessage}))
         })
     );
-    await inputTest({contextName: "Footer"}, 'test@fakedomain.com', ['Subscribing...', errorMessage]);
+    await inputTest({}, 'test@fakedomain.com', ['Subscribing...', errorMessage]);
 });
