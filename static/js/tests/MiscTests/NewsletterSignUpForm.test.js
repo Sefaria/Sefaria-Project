@@ -27,15 +27,15 @@ const inputTest = async (props, email, waitForMessages) => {
         await waitFor(() => screen.getByText(message));
     }
 } 
-it('test invalid email in newsletter form', async () => {
+it('invalid email in newsletter form', async () => {
     await inputTest({contextName: "Footer"}, 'invalid email', ['Please enter a valid email address.']);
 });
 
-it('test valid email in newsletter form', async () => {
+it('valid email in newsletter form', async () => {
     await inputTest({contextName: "Footer"}, 'test@fakedomain.com', ['Subscribing...', 'Subscribed! Welcome to our list.']);
 });
 
-it('test valid email in newsletter form with 500 response', async () => {
+it('valid email in newsletter form with 500 response', async () => {
     server.use(
         rest.post('/api/subscribe/:email', (req, res, ctx) => {
             return res(ctx.status(500))
@@ -44,7 +44,7 @@ it('test valid email in newsletter form with 500 response', async () => {
     await inputTest({contextName: "Footer"}, 'test@fakedomain.com', ['Subscribing...', 'Sorry, there was an error.']);
 });
 
-it('test valid email in newsletter form with error response', async () => {
+it('valid email in newsletter form with error response', async () => {
     const errorMessage = "test error message";
     server.use(
         rest.post('/api/subscribe/:email', (req, res, ctx) => {
