@@ -1,4 +1,5 @@
 import { rest } from 'msw';
+import { data } from './data';
 
 export const handlers = [
     rest.post('/api/subscribe/:email', (req, res, ctx) => {
@@ -14,8 +15,10 @@ export const handlers = [
     }),
     rest.get('/api/v2/index/:title', (req, res, ctx) => {
         const { title } = req.params
-        return res(ctx.json({
-
-        }));
+        return res(ctx.json(data['api/v2/index'][title]));
+    }),
+    rest.get('/api/texts/versions/:title', (req, res, ctx) => {
+        const { title } = req.params;
+        return res(ctx.json(data['api/texts/versions'][title]));
     })
 ];
