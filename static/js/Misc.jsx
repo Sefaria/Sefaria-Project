@@ -1603,7 +1603,7 @@ function NewsletterSignUpForm(props) {
           onChange={e => setInput(e.target.value)}
           onKeyUp={handleSubscribeKeyUp} />
       </span>
-      <img src="/static/img/circled-arrow-right.svg" onClick={handleSubscribe} />
+      <img src="/static/img/circled-arrow-right.svg" onClick={handleSubscribe} data-testid="subscribeSubmit"/>
       {includeEducatorOption ?
         <div className="newsletterEducatorOption">
           <span className="int-en">
