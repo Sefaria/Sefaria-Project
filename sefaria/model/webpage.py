@@ -7,7 +7,6 @@ from collections import defaultdict
 from . import abstract as abst
 from . import text
 from sefaria.system.database import db
-from sefaria.model.website import *
 
 from sefaria.system.cache import InMemoryCache
 
