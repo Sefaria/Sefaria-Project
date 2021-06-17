@@ -1,7 +1,7 @@
 import React from 'react';
 import { rest } from 'msw';
 import { server } from '../../__mocks__/msw/server';
-import { render, fireEvent, waitFor, screen } from '@testing-library/react';
+import { render, waitFor, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { NewsletterSignUpForm } from '../../Misc';
 

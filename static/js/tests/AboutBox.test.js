@@ -1,7 +1,5 @@
-import React, { useReducer } from 'react';
-import { render, fireEvent, waitFor, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import $ from '../sefaria/sefariaJquery';
+import React from 'react';
+import { render, waitFor, screen } from '@testing-library/react';
 import AboutBox from '../AboutBox';
 
 const getCurrObjectVersions = async (ref, masterPanelLanguage) => {
@@ -27,6 +25,7 @@ it('has bilingual versions', async () => {
     await waitFor(() => screen.getByText("About This Text"));
     screen.getByText("Current Version");
     screen.getByText("Current Translation");
+    expect(screen.queryByText("Author:")).not.toBeInTheDocument();
 });
 
 it('has english version', async () => {
@@ -45,4 +44,22 @@ it('has english version', async () => {
     await waitFor(() => screen.getByText("About This Text"));
     expect(screen.queryByText("Current Version")).not.toBeInTheDocument();
     screen.getByText("Current Translation");
+});
+
+it('has hebrew version', async () => {
+    const title = {en: "Job", he: "איוב"};
+    const sectionRef = `${title.en} 1`;
+    const currObjectVersions = await getCurrObjectVersions(sectionRef, "hebrew");
+    render(
+        <AboutBox
+            currObjectVersions={currObjectVersions}
+            masterPanelLanguage={"english"}
+            title={title.en}
+            srefs={[`${title.en} 1:1`]}
+            sectionRef={sectionRef}
+        />
+    );
+    await waitFor(() => screen.getByText("About This Text"));
+    expect(screen.queryByText("Current Translation")).not.toBeInTheDocument();
+    screen.getByText("Current Version");
 });
