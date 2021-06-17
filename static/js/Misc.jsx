@@ -904,12 +904,11 @@ class ToggleSet extends Component {
     let classes = {toggleSet: 1, separated: this.props.separated };
     classes[this.props.name] = 1;
     classes = classNames(classes);
-    const value = this.props.name === "layout" ? this.props.currentLayout() : this.props.settings[this.props.name];
     const width = 100.0 - (this.props.separated ? (this.props.options.length - 1) * 3 : 0);
-    let style = {width: (width/this.props.options.length) + "%"};
+    const style = {width: (width/this.props.options.length) + "%"};
     const label = this.props.label ? (<span className="toggle-set-label">{this.props.label}</span>) : null;
     return (
-      <div className={classes} role={this.props.role} aria-label={this.props.ariaLabel}>
+      <div className={classes} role="radiogroup" aria-label={this.props.ariaLabel}>
           {label}
           <div>
         {
@@ -920,8 +919,8 @@ class ToggleSet extends Component {
                 key={option.name}
                 set={this.props.name}
                 role={option.role}
-                ariaLable={option.ariaLabel}
-                on={value == option.name}
+                ariaLabel={option.ariaLabel}
+                on={this.props.currentValue == option.name}
                 setOption={this.props.setOption}
                 style={style}
                 image={option.image}
