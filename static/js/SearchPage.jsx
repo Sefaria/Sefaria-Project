@@ -19,7 +19,8 @@ class SearchPage extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      totalResults: null
+      totalResults: null,
+      mobileFiltersOpen: false,
     };
   }
   render () {
@@ -37,6 +38,7 @@ class SearchPage extends Component {
         <div className="content searchContent">
           <div className="sidebarLayout">
             <div className="contentInner">
+              
               <div className="searchTopLine">
                 <h1 className={classNames({"hebrewQuery": isQueryHebrew, "englishQuery": !isQueryHebrew})}>
                   <InterfaceText>Results for</InterfaceText>&nbsp;
@@ -49,6 +51,7 @@ class SearchPage extends Component {
                 </div>
                 : null }
               </div>
+
               <SearchResultList
                 query={this.props.query}
                 tab={this.props.tab}
@@ -59,9 +62,12 @@ class SearchPage extends Component {
                 updateAppliedOptionSort={this.props.updateAppliedOptionSort}
                 registerAvailableFilters={this.props.registerAvailableFilters}
                 updateTotalResults={n => this.setState({totalResults: n})}
+                openMobileFilters={() => this.setState({mobileFiltersOpen: true})}
               />
             </div>
-            <div className="navSidebar">
+
+            {Sefaria.multiPanel || this.state.mobileFiltersOpen ?
+            <div className={Sefaria.multiPanel ? "navSidebar" : "mobileSearchFilters"}>
               {this.state.totalResults ?
               <SearchFilters
                 query={this.props.query}
@@ -69,9 +75,11 @@ class SearchPage extends Component {
                 updateAppliedFilter={this.props.updateAppliedFilter.bind(null, this.props.tab)}
                 updateAppliedOptionField={this.props.updateAppliedOptionField.bind(null, this.props.tab)}
                 updateAppliedOptionSort={this.props.updateAppliedOptionSort.bind(null, this.props.tab)}
+                closeMobileFilters={() => this.setState({mobileFiltersOpen: false})}
                 type={this.props.tab} />
               : null }
             </div>
+            : null }
           </div>
           { this.props.panelsOpen === 1 ? <Footer /> : null }
         </div>

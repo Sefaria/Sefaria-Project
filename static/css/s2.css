@@ -876,6 +876,9 @@ div.interfaceLinks-row a {
 .header .headerInner.mobile div {
   flex: 1;
 }
+.mobileHeaderCenter {
+  text-align: center;
+}
 .header .headerInner.mobile .mobileHeaderLanguageToggle {
   text-align: end;
 }
@@ -1299,7 +1302,6 @@ div.interfaceLinks-row a {
   width: 100%;
   height: 100%;
   box-sizing: border-box;
-  z-index: 101;
 }
 .readerNavMenu .content,
 .homeFeedWrapper .content {
@@ -1696,7 +1698,7 @@ div.interfaceLinks-row a {
 }
 .singlePanel .readerNavMenu h1,
 .singlePanel .readerNavMenu h2.styledH1 {
-  margin-bottom: 15px;
+  margin-bottom: 10px;
 }
 .readerNavMenu h1 img {
   margin-inline-end: 9px;
@@ -3196,14 +3198,17 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-inline-end: 20px;
 }
 @media (max-width: 540px) {
+  .searchTopMatter .search-dropdown-button {
+    margin-inline-end:  15px;
+  }
   .searchTopMatter .search-dropdown-button,
   .searchTopMatter .dropdown-button {
-  font-size: 14px;
+  font-size: 16px;
   }
 }
 .searchTopMatter .search-dropdown-button.active {
   color: #000;
-  border-bottom: 4px solid #CCC;
+  border-bottom: 4px solid var(--medium-grey);
 }
 .searchContent .searchResultList {
   padding-top: 25px;
@@ -3478,6 +3483,40 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .dropdown-option-list tr.unselected .dropdown-option-check {
   display: none;
+}
+.searchContent .mobileSearchFilters {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  z-index: 1002;
+  background-color: var(--lightest-grey);
+}
+.mobileSearchFiltersHeader {
+  background-color: var(--lighter-grey);
+  padding: 20px 15px;
+  display: flex;
+  justify-content: space-between;
+  color:  var(--dark-grey);
+}
+.mobileSearchFiltersHeader .readerNavMenuCloseButton {
+  font-size: 45px;
+  color: var(--medium-grey);
+  height: 20px;
+  display: block;
+  line-height: 20px;
+}
+.mobileSearchFilters .searchFilters {
+  flex-grow:  1;
+  overflow-y: scroll;
+  padding:  20px 15px;
+}
+.mobileSearchFiltersFooter {
+  padding: 15px;
+  border-top: 1px solid var(--light-grey);
 }
 .searchContent .result {
   padding-bottom: 20px;
@@ -6322,6 +6361,12 @@ a.button:hover {
 a.button.white {
   color: #333;
 }
+.button.grey {
+  background-color:  var(--lighter-grey);
+  color: var(--dark-grey);
+  box-shadow: none;
+  border: none;
+}
 a.button.mini {
   padding: 5px;
   font-size: .8em;
@@ -6363,8 +6408,6 @@ a .button:hover {
 .button.extraSmall {
   border-radius: 6px;
   box-shadow: none;
-  color: #666;
-  border: 1px solid #CCC;
   margin: 0;
   padding: 5px 8px;
   height: 30px;

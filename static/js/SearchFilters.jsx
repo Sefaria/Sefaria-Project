@@ -9,6 +9,7 @@ import Component from 'react-class';
 import {
   InterfaceText,
   LoadingMessage,
+  ReaderNavigationMenuCloseButton,
 } from './Misc';
 
 
@@ -64,10 +65,32 @@ class SearchFilters extends Component {
       />
     );
 
-    return (
+    return Sefaria.multiPanel ?(
       <div className="searchFilters navSidebarModule">
         {filters}
       </div>
+    ) : (
+      <>
+        <div className="mobileSearchFiltersHeader sans-serif">
+          <ReaderNavigationMenuCloseButton onClick={this.props.closeMobileFilters} />
+          <InterfaceText>Filters</InterfaceText>
+          <div></div>
+        </div>
+        <div className="searchFilters navSidebarModule">
+          <div className="searchFilterGroup">
+            <h2>
+              <InterfaceText>Sort by</InterfaceText>
+            </h2>
+          </div>
+
+          {filters}
+        </div>
+        <div className="mobileSearchFiltersFooter">
+          <div className="button fillWidth" onClick={this.props.closeMobileFilters}>
+            <InterfaceText>Show Results</InterfaceText>
+          </div>
+        </div>
+      </>
     );
   }
 }

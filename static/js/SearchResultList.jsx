@@ -313,10 +313,15 @@ class SearchResultList extends Component {
                 textTotal={this.state.totals["text"]}
                 sheetTotal={this.state.totals["sheet"]}
                 currentTab={tab} />
+              {Sefaria.multiPanel ? 
               <SearchSortBox
                 type={tab}
                 updateAppliedOptionSort={this.props.updateAppliedOptionSort}
-                sortType={searchState.sortType} />                
+                sortType={searchState.sortType} />
+              :
+              <SearchFilterButton
+                openMobileFilters={this.props.openMobileFilters}
+                nFilters={searchState.appliedFilters.length} />}             
             </div>
             <div className="searchResultList">
               { queryFullyLoaded || haveResults ? results : null }
@@ -395,6 +400,14 @@ SearchSortBox.propTypes = {
   updateAppliedOptionSort: PropTypes.func,
   sortType:                PropTypes.string,
 };
+
+
+const SearchFilterButton = ({openMobileFilters, nFilters}) => (
+  <div className={classNames({button: 1, extraSmall: 1, grey: !nFilters})} onClick={openMobileFilters}>
+    <InterfaceText>Filter</InterfaceText>
+    {!!nFilters ? <>&nbsp;({nFilters.toString()})</> : null}
+  </div>
+);
 
 
 export default SearchResultList;
