@@ -15,11 +15,7 @@ import {
 class SearchFilters extends Component {
   constructor(props) {
     super(props);
-    const hasFilters = props.searchState.availableFilters.length > 0;
-    const openedCategory = hasFilters ? props.searchState.availableFilters[0] : null;
     this.state = {
-      openedCategory,
-      openedCategoryBooks: hasFilters ? openedCategory.getLeafNodes() : [],
       isExactSearch: props.searchState.field === props.searchState.fieldExact
     }
   }
@@ -30,11 +26,7 @@ class SearchFilters extends Component {
     if ((newProps.query != this.props.query)
         || (newProps.searchState.availableFilters.length !== this.props.searchState.availableFilters.length)) {
 
-      const hasFilters = newProps.searchState.availableFilters.length > 0;
-      const openedCategory = hasFilters ? newProps.searchState.availableFilters[0] : null;
       this.setState({
-        openedCategory,
-        openedCategoryBooks: hasFilters ? openedCategory.getLeafNodes() : [],
         isExactSearch: field === fieldExact
       });
     }
@@ -47,18 +39,6 @@ class SearchFilters extends Component {
     }
     return results;
   }
-  handleFocusCategory(filterNode) {
-    var leaves = filterNode.getLeafNodes();
-    this.setState({
-      openedCategory: filterNode,
-      openedCategoryBooks: leaves
-    })
-  }
-  resetOpenedCategoryBooks() {
-    this.setState({
-      openedCategoryBooks: []
-    })
-  }
   toggleExactSearch() {
     let newExactSearch = !this.state.isExactSearch;
     if (newExactSearch) {
@@ -69,18 +49,6 @@ class SearchFilters extends Component {
     this.setState({isExactSearch: newExactSearch});
   }
   render() {
-    /*
-    var runningQueryLine = (<LoadingMessage message="Searching..." heMessage="מבצע חיפוש..." />);
-
-    var selected_filters = (<div className="results-count">
-          <span className="int-en">
-            {(!!this.props.searchState.appliedFilters.length && !!this.props.total)?(this.getSelectedTitles("en").join(", ")):""}
-          </span>
-          <span className="int-he">
-            {(!!this.props.searchState.appliedFilters.length && !!this.props.total)?(this.getSelectedTitles("he").join(", ")):""}
-          </span>
-      </div>);
-    */
     const filters = (this.props.type === 'text' ?
       <TextSearchFilters
         toggleExactSearch={this.toggleExactSearch}
@@ -89,8 +57,6 @@ class SearchFilters extends Component {
         updateAppliedFilter={this.props.updateAppliedFilter}
         availableFilters={this.props.searchState.availableFilters}
         isExactSearch={this.props.searchState.fieldExact === this.props.searchState.field}
-        handleFocusCategory={this.handleFocusCategory}
-        resetOpenedCategoryBooks={this.resetOpenedCategoryBooks}
       /> :
       <SheetSearchFilters
         updateAppliedFilter={this.props.updateAppliedFilter}
@@ -146,7 +112,6 @@ TextSearchFilters.propTypes = {
   openedCategoryBooks: PropTypes.array,
   isExactSearch:       PropTypes.bool,
   toggleExactSearch:   PropTypes.func,
-  handleFocusCategory: PropTypes.func,
 };
 
 
@@ -176,7 +141,6 @@ const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged}) =
 };
 
 
-
 class SearchFilterExactBox extends Component {
   handleClick() {
     this.props.checkBoxClick();
@@ -184,25 +148,6 @@ class SearchFilterExactBox extends Component {
   handleKeyPress(e) {
     if (e.charCode == 13) { // enter
       this.handleClick(e);
-    }
-  }
-  handleKeyDown(e) {
-    if (e.keyCode === 9) { //9 is tab
-      e.stopPropagation();
-      var lastTab = $("div[role='dialog']").find(':tabbable').last();
-      var firstTab = $("div[role='dialog']").find(':tabbable').first();
-      if (e.shiftKey) {
-        if ($(e.target).is(firstTab)) {
-          $(lastTab).focus();
-          e.preventDefault();
-        }
-      }
-      else {
-        if ($(e.target).is(lastTab)) {
-          $(firstTab).focus();
-          e.preventDefault();
-        }
-      }
     }
   }
   render() {
@@ -239,8 +184,8 @@ class SearchFilter extends Component {
       this.setState({selected: newProps.filter.selected});
     }
   }
-  // Can't set indeterminate in the render phase.  https://github.com/facebook/react/issues/1798
   componentDidMount() {
+    // Can't set indeterminate in the render phase.  https://github.com/facebook/react/issues/1798
     ReactDOM.findDOMNode(this).querySelector("input").indeterminate = this.props.filter.isPartial();
     if (this.props.filter.isPartial()) {
       ReactDOM.findDOMNode(this).querySelector("label").setAttribute("aria-checked", "mixed");
@@ -257,12 +202,6 @@ class SearchFilter extends Component {
     else {
       ReactDOM.findDOMNode(this).querySelector("label").setAttribute("aria-checked", this.state.selected==1);
     }
-
-    /* TODO verify no longer needed
-    if ($(".searchFilterBookBox").children().length > 0 && !$('.searchFilterBookBox li label').is(':focus')) { // unoptimized code to focus on top of searchFilterBookBox when not previously selected. For a11y.
-      $(".searchFilterBookBox").find(':focusable').first().focus();
-    }
-    */
   }
   handleFilterClick(evt) {
     this.props.updateSelected(this.props.filter)
@@ -270,38 +209,10 @@ class SearchFilter extends Component {
   toggleExpanded() {
     this.props.expandable && this.setState({expanded: !this.state.expanded});    
   }
-  handleFocusCategory() {
-    if (this.props.focusCategory) {
-      this.props.focusCategory(this.props.filter)
-    }
-  }
   handleKeyPress(e) {
     if (e.charCode == 13) { // enter
       this.handleFilterClick(e);
     }
-    else if (e.charCode == 32) { //space
-      e.preventDefault();
-      this.handleFocusCategory(e);
-    }
-  }
-  handleKeyDown(e) {
-    if (e.keyCode === 9) { //9 is tab
-      e.stopPropagation();
-      var lastTab = $("div[role='dialog']").find(':tabbable').last();
-      var firstTab = $("div[role='dialog']").find(':tabbable').first();
-      if (e.shiftKey) {
-        if ($(e.target).is(firstTab)) {
-          $(lastTab).focus();
-          e.preventDefault();
-        }
-      }
-      else {
-        if ($(e.target).is(lastTab)) {
-          $(firstTab).focus();
-          e.preventDefault();
-        }
-      }
-    }   
   }
   handleExpandKeyPress(e) {
     if (e.charCode == 13) { // enter
@@ -309,13 +220,13 @@ class SearchFilter extends Component {
     }
   }
   render() {
-    const { filter, expandable, isInFocus } = this.props;
+    const { filter, expandable } = this.props;
     const toggleMessage = "Press enter to toggle search filter for " + filter.title + ".";
     const expandMessage = "Press enter to toggle the list of specific books within " + filter.title + " to filter by."
 
     return (
       <>
-        <li className={classNames({active: isInFocus})}>
+        <li>
           <div className="checkboxAndText">
             <input type="checkbox" id={filter.aggKey} className="filter" checked={this.state.selected == 1} onChange={this.handleFilterClick}/>
             <label 
@@ -357,9 +268,7 @@ class SearchFilter extends Component {
 SearchFilter.propTypes = {
   filter:         PropTypes.object.isRequired,
   expandable:     PropTypes.bool,
-  isInFocus:      PropTypes.bool,
   updateSelected: PropTypes.func.isRequired,
-  focusCategory:  PropTypes.func,
 };
 
 

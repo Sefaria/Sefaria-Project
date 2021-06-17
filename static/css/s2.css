@@ -3539,7 +3539,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .result .version {
   color: #999;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  letter-spacing: 1px;
   font-size: 13px;
   margin: 15px 0 5px;
   display: flex;
