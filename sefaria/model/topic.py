@@ -352,7 +352,7 @@ class PersonTopic(Topic):
         """
         Find topic corresponding to deprecated Person key
         """
-        return PersonTopic().load({"alt_ids.old-person-key": key})
+        return PersonTopic().load({"alt_ids.old-person-key": key}) or AuthorTopic().load({"alt_ids.old-person-key": key})
 
     def contents(self, **kwargs):
         annotate_time_period = kwargs.get('annotate_time_period', False)

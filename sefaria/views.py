@@ -157,6 +157,7 @@ def subscribe(request, email):
         return jsonResponse({"error": _("Sorry, there was an error.")})
 
 
+@login_required
 def unlink_gauth(request):
     profile = UserProfile(id=request.user.id)
     profile.update({"gauth_token": None})
