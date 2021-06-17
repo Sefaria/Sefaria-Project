@@ -11,7 +11,10 @@ api_map = {
     'get': {
         'api/v2/index': [{'url_end': 'Job'}],
         'api/texts/versions': [{'url_end': 'Job_1'}],
-        'api/texts': [{'url_end': 'Job_1', 'params': {'context': '1'}}],
+        'api/texts': [
+            {'url_end': 'Job_1', 'params': {'context': '1'}},
+            {'url_end': 'Orot,_Lights_from_Darkness,_Land_of_Israel_2.2', 'params': {'context': '1'}}
+        ],
     }
 }
 api_data = {}

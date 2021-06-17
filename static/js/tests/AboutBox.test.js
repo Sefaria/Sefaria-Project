@@ -10,15 +10,15 @@ const getCurrObjectVersions = async (ref, masterPanelLanguage) => {
     }
 }
 it('has bilingual versions', async () => {
-    const title = {en: "Job", he: "איוב"};
-    const sectionRef = `${title.en} 1`;
+    const title = "Job"
+    const sectionRef = `${title} 1`;
     const currObjectVersions = await getCurrObjectVersions(sectionRef, "bilingual");
     render(
         <AboutBox
             currObjectVersions={currObjectVersions}
             masterPanelLanguage={"english"}
-            title={title.en}
-            srefs={[`${title.en} 1:1`]}
+            title={title}
+            srefs={[sectionRef]}
             sectionRef={sectionRef}
         />
     );
@@ -29,15 +29,15 @@ it('has bilingual versions', async () => {
 });
 
 it('has english version', async () => {
-    const title = {en: "Job", he: "איוב"};
-    const sectionRef = `${title.en} 1`;
+    const title = "Job";
+    const sectionRef = `${title} 1`;
     const currObjectVersions = await getCurrObjectVersions(sectionRef, "english");
     render(
         <AboutBox
             currObjectVersions={currObjectVersions}
             masterPanelLanguage={"english"}
-            title={title.en}
-            srefs={[`${title.en} 1:1`]}
+            title={title}
+            srefs={[sectionRef]}
             sectionRef={sectionRef}
         />
     );
@@ -47,15 +47,15 @@ it('has english version', async () => {
 });
 
 it('has hebrew version', async () => {
-    const title = {en: "Job", he: "איוב"};
-    const sectionRef = `${title.en} 1`;
+    const title = "Job";
+    const sectionRef = `${title} 1`;
     const currObjectVersions = await getCurrObjectVersions(sectionRef, "hebrew");
     render(
         <AboutBox
             currObjectVersions={currObjectVersions}
             masterPanelLanguage={"english"}
-            title={title.en}
-            srefs={[`${title.en} 1:1`]}
+            title={title}
+            srefs={[sectionRef]}
             sectionRef={sectionRef}
         />
     );
