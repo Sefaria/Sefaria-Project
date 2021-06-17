@@ -224,7 +224,7 @@ class WebSiteSet(abst.AbstractMongoSet):
 def get_website_cache():
     cache = InMemoryCache()
     sites = cache.get("websites_data")
-    if sites in [None, []]:
+    if sites == None:
         sites = [w.contents() for w in WebSiteSet()]
         cache.set("websites_data", sites)
         return sites
