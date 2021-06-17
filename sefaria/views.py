@@ -989,12 +989,17 @@ def modtools_upload_workflowy(request):
 
     return jsonResponse({"status": "ok", "data": res})
 
-def compare(request, secRef=None, lang=None, v1=None, v2=None):
-    if secRef and Ref.is_ref(secRef):
-        secRef = Ref(secRef).first_available_section_ref()
-        if not secRef.is_section_level():
-            secRef = secRef.section_ref()
-        secRef = secRef.normal()
+def compare(request, comp_ref=None, lang=None, v1=None, v2=None):
+    print(comp_ref)
+    ref_array = None
+    if comp_ref and Ref.is_ref(comp_ref):
+        o_comp_ref = Ref(comp_ref)
+        sec_ref = o_comp_ref.first_available_section_ref()
+        if not sec_ref.is_section_level():
+            sec_ref = sec_ref.section_ref()
+        sec_ref = sec_ref.normal()
+        if not o_comp_ref.is_section_level():
+            ref_array = [r.normal() for r in o_comp_ref.all_subrefs()]
     if v1:
         v1 = v1.replace("_", " ")
     if v2:
@@ -1002,8 +1007,9 @@ def compare(request, secRef=None, lang=None, v1=None, v2=None):
 
     return render_template(request,'compare.html', None, {
         "JSON_PROPS": json.dumps({
-            'secRef': secRef,
+            'secRef': sec_ref,
             'v1': v1, 'v2': v2,
             'lang': lang,
+            'refArray': ref_array,
         })
     })

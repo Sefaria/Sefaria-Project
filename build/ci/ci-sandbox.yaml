@@ -12,12 +12,16 @@ substitutions:
   _IS_SANDBOX: "false" # must be a quoted string
   _MONGO_HOST: mongo
   _MONGO_DATABASE: "sefaria-vecino"
+  _MONGO_RESTORE_JOB: "restore-mongo-ASDF-foobar"
+  _RAND_SLUG: "foobar"
   _RESOURCE_ALLOCATION: small
   _POSTGRES_HOST: postgres
   _SANDBOX_SUBDOMAIN: cauldron
 
 options:
   machineType: N1_HIGHCPU_8
+
+timeout: 2200s
 
 steps:
   - name: "gcr.io/cloud-builders/git"
@@ -42,6 +46,40 @@ steps:
     dir: Sefaria-Project
     id: sefaria_repo_git_hash
     wait_for: [ "sefaria_repo_clone" ]
+
+  # Restore Mongo
+  # This build step is defined at `v2/containers/mongo-restore
+  - name: gcr.io/${PROJECT_ID}/mongo-restore:latest
+    id: mongo_restore
+    entrypoint: "/restoreMongo.bash"
+    env:
+      # Restore Script Variables
+      - 'MONGO_HOST=${_MONGO_HOST}'
+      - 'SANDBOX_NAME=${_ENV_NAME}'
+      - 'MONGO_LOAD=${_MONGO_LOAD}' # If false, the job is a no-op
+      - 'MONGO_SNAPSHOT_LOCATION=${_MONGO_SNAPSHOT_LOCATION}'
+      - 'RAND_SLUG=${_RAND_SLUG}'
+      - 'CLUSTER_NAMESPACE=${_GKE_NAMESPACE}'
+      - 'ENVIRONMENT=sandbox'
+      # kubectl Variables
+      - 'CLOUDSDK_COMPUTE_ZONE=${_GKE_REGION}'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'
+      - 'KUBECTL_VERSION=1.18'
+      - 'KUBECONFIG=/root/.kube/config'
+    wait_for: [ "-" ]
+
+  # Wait for mongo job to finish
+  - name: gcr.io/cloud-builders/kubectl
+    id: wait_for_mongo_job
+    args: ['wait', '--for=condition=complete', '--timeout=1800s', 'job/${_MONGO_RESTORE_JOB}']
+    timeout: 1860s
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=${_GKE_REGION}'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'
+      - 'KUBECTL_VERSION=1.18'
+      - 'KUBECONFIG=/root/.kube/config'
+    wait_for:
+      - mongo_restore
 
   # Build artifacts
   - name: gcr.io/kaniko-project/executor:latest
@@ -153,10 +191,11 @@ steps:
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=${_GKE_REGION}'
       - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'
-      - 'KUBECTL_VERSION=1.16'
+      - 'KUBECTL_VERSION=1.18'
       - 'KUBECONFIG=/root/.kube/config'
     wait_for:
-      # - mongo_restore
+      - mongo_restore
+      - wait_for_mongo_job
       - web_container
       - nodejs_container
       - nginx_container
@@ -178,7 +217,7 @@ steps:
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=${_GKE_REGION}'
       - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'
-      - 'KUBECTL_VERSION=1.16'
+      - 'KUBECTL_VERSION=1.18'
       - 'KUBECONFIG=/root/.kube/config'
     wait_for: [ "deploy_sandbox" ]
 
@@ -200,7 +239,7 @@ steps:
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=${_GKE_REGION}'
       - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'
-      - 'KUBECTL_VERSION=1.16'
+      - 'KUBECTL_VERSION=1.18'
       - 'KUBECONFIG=/root/.kube/config'
     wait_for:
       - generate_ingress_values_file
