@@ -46,7 +46,7 @@ static_pages = [
 
 static_pages_by_lang = [
     "about",
-    "donate",
+    "ways-to-give",
     "team",
 ]
 
@@ -69,6 +69,7 @@ site_urlpatterns = [
 
 # Redirects to Wikis etc
 site_urlpatterns += [
+    url(r'^donate/?$', lambda x: HttpResponseRedirect('https://sefaria.nationbuilder.com/supportsefaria')),
     url(r'^wiki/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki')),
     url(r'^developers/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki#developers')),
     url(r'^request-a-text/?$', lambda x: HttpResponseRedirect('https://goo.gl/forms/ru33ivawo7EllQxa2')),
