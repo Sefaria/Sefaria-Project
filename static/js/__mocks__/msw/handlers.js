@@ -8,7 +8,7 @@ const getApiData = (httpMethod, urlBegin, requestValues) => {
     urlBegin: beginning of url
     requestValues: array. first element should be end of url followed by optional url params and post body (if httpMethod is 'post')
     */
-    const requestKey = requestValues.map(value => JSON.stringify(value)).join("|")
+    const requestKey = requestValues.map(value => JSON.stringify(value)).join("|");
     return apiData[httpMethod][urlBegin][requestKey];
 };
 
