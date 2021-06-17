@@ -9,7 +9,12 @@ const getApiData = (httpMethod, urlBegin, requestValues) => {
     requestValues: array. first element should be end of url followed by optional url params and post body (if httpMethod is 'post')
     */
     const requestKey = requestValues.map(value => JSON.stringify(value)).join("|")
-    return apiData[httpMethod][urlBegin][requestKey];
+    try {
+        const response = apiData[httpMethod][urlBegin][requestKey];
+        return response;
+    } catch(e) {
+        console.log("YO");
+    }
 };
 
 const dataHandlerInputs = [

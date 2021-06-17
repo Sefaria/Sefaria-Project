@@ -11,7 +11,7 @@ const getCurrObjectVersions = async (ref, masterPanelLanguage) => {
         he: Sefaria.getVersionFromData(data, "he", masterPanelLanguage),
     }
 }
-it('renders', async () => {
+it('has bilingual versions', async () => {
     const title = {en: "Job", he: "איוב"};
     const sectionRef = `${title.en} 1`;
     const currObjectVersions = await getCurrObjectVersions(sectionRef, "bilingual");
@@ -25,4 +25,24 @@ it('renders', async () => {
         />
     );
     await waitFor(() => screen.getByText("About This Text"));
+    screen.getByText("Current Version");
+    screen.getByText("Current Translation");
+});
+
+it('has english version', async () => {
+    const title = {en: "Job", he: "איוב"};
+    const sectionRef = `${title.en} 1`;
+    const currObjectVersions = await getCurrObjectVersions(sectionRef, "english");
+    render(
+        <AboutBox
+            currObjectVersions={currObjectVersions}
+            masterPanelLanguage={"english"}
+            title={title.en}
+            srefs={[`${title.en} 1:1`]}
+            sectionRef={sectionRef}
+        />
+    );
+    await waitFor(() => screen.getByText("About This Text"));
+    expect(screen.queryByText("Current Version")).not.toBeInTheDocument();
+    screen.getByText("Current Translation");
 });
