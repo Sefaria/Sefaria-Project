@@ -56,8 +56,9 @@ def write_sheet_makers_csv(query={}, cutoff=False):
         if "dateModified" in sheet and sheet_mod_time > cur_last_modified_date:
             author["last_modified_date"] = sheet_mod_time
 
-        if cutoff and (sheet_mod_time-cutoff).days > 0:
-            author["sheets_in_cut_off"] += 1
+        if cutoff:
+            if (sheet_mod_time-cutoff).days > 0:
+                author["sheets_in_cut_off"] += 1
         else:
             author["sheets_in_cut_off"] = author["total_sheet_count"]
 
