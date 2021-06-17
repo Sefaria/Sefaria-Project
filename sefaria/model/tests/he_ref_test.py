@@ -303,6 +303,7 @@ class Test_parse_he_ref_range(object):
     def test_hebrew_range_talmud(self):
         assert m.Ref('שבת טו. - טז:') == m.Ref("Shabbat 15a-16b")
         assert m.Ref('שבת טו א - טז ב') == m.Ref("Shabbat 15a-16b")
+        assert m.Ref('יבמות סא ע"א-ע"ב') == m.Ref("Yevamot 61a-b")
 
     @pytest.mark.xfail(reason="unknown")
     def test_hebrew_range_talmud_commentary(self):
