@@ -49,9 +49,14 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
         :param slug:
         :return:
         """
-        topic =  Topic().load({'slug': slug})
+        return cls().load({'slug': slug})
+
+    def load(self, query, proj=None):
+        if self.__class__ != Topic:
+            query['subclass'] = self.reverse_subclass_map[self.__class__.__name__]
+        topic = super().load(query, proj)
         if getattr(topic, 'subclass', False):
-            Subclass = globals()[cls.subclass_map[topic.subclass]]
+            Subclass = globals()[self.subclass_map[topic.subclass]]
             topic = Subclass(topic._saveable_attrs())
         return topic
 
