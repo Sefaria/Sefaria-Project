@@ -190,19 +190,6 @@ class ConnectionsPanel extends Component {
     // Gets data about this text from cache, which may be null.
     return Sefaria.getText(this.props.srefs[0], {context: 1, enVersion: this.props.currVersions.en, heVersion: this.props.currVersions.he}).then(cb);
   }
-  getVersionFromData(d, lang) {
-    //d - data received from this.getData()
-    //language - the language of the version
-    //console.log(d);
-    const currentVersionTitle = (lang == "he") ? d.heVersionTitle : d.versionTitle;
-    return {
-      ... d.versions.find(v => v.versionTitle == currentVersionTitle && v.language == lang),
-      title:                  d.indexTitle,
-      heTitle:                d.heIndexTitle,
-      sources:                lang == "he" ? d.heSources : d.sources,
-      merged:                 lang == "he" ? !!d.heSources : !!d.sources,
-    }
-  }
   getCurrentVersions() {
       const data = this.getData((data) => {
           let currentLanguage = this.props.masterPanelLanguage;
@@ -224,8 +211,8 @@ class ConnectionsPanel extends Component {
           }
           this.setState({
               currObjectVersions: {
-                  en: ((this.props.masterPanelLanguage != "hebrew" && !!data.text.length) || (this.props.masterPanelLanguage == "hebrew" && !data.he.length)) ? this.getVersionFromData(data, "en") : null,
-                  he: ((this.props.masterPanelLanguage != "english" && !!data.he.length)  || (this.props.masterPanelLanguage == "english" && !data.text.length)) ? this.getVersionFromData(data, "he") : null,
+                  en: Sefaria.getVersionFromData(data, "en", this.props.masterPanelLanguage),
+                  he: Sefaria.getVersionFromData(data, "he", this.props.masterPanelLanguage),
               },
               mainVersionLanguage: currentLanguage,
               sectionRef: data.sectionRef,

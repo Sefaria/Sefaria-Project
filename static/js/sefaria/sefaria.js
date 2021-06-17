@@ -499,6 +499,28 @@ Sefaria = extend(Sefaria, {
     }
     return Promise.resolve(this._makeVersions(this._versions[ref], byLang, filter, excludeFilter));
   },
+  getVersionFromData(d, lang, masterPanelLanguage) {
+    //d - data received from Sefaria.getText()
+    //language - the language of the version. two letter lang code
+    //masterPanelLanguage - language of the master panel. "english", "hebrew" or "bilingual"
+    if (lang == 'en') {
+      if ((masterPanelLanguage != "hebrew" && !d.text.length) || (masterPanelLanguage == "hebrew" && !!d.he.length)) {
+        return null;
+      }
+    } else if (lang == 'he') {
+      if ((masterPanelLanguage != "english" && !d.he.length) || (masterPanelLanguage == "english" && !!d.text.length)) {
+        return null;
+      }
+    }
+    const currentVersionTitle = (lang == "he") ? d.heVersionTitle : d.versionTitle;
+    return {
+      ... d.versions.find(v => v.versionTitle == currentVersionTitle && v.language == lang),
+      title:                  d.indexTitle,
+      heTitle:                d.heIndexTitle,
+      sources:                lang == "he" ? d.heSources : d.sources,
+      merged:                 lang == "he" ? !!d.heSources : !!d.sources,
+    }
+  },
   _makeVersions: function(versions, byLang, filter, excludeFilter){
     let tempValue;
     if(filter?.length){ // we filter out the languages we want bu filtering on the array of keys and then creating a new object on the fly with only those keys
