@@ -4346,6 +4346,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .segment sup:hover {
   text-decoration: underline;
 }
+.sheetContent .segment sup:hover {
+  text-decoration: none;
+}
 .segment sup::before {
   padding: 12px 12px;
   content: "";
