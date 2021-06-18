@@ -80,6 +80,10 @@ const format_tag_pairs = [
         format: "bold"
     },
     {
+        tag: "SUP",
+        format: "superscript"
+    },
+    {
         tag: "B",
         format: "bold"
     },
@@ -1502,6 +1506,9 @@ const Leaf = ({attributes, children, leaf}) => {
     }
     if (leaf.small) {
         children = <small>{children}</small>
+    }
+    if (leaf.superscript) {
+        children = <sup>{children}</sup>
     }
     if (leaf.isRef) {
         children = <span className="inlineTextRef">{children}</span>
