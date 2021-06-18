@@ -3515,6 +3515,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   overflow-y: scroll;
   padding:  20px 15px;
 }
+.mobileSearchFilters .toggleSet {
+  width: 100%;
+  margin: 10px 0 0 0;
+}
 .mobileSearchFiltersFooter {
   padding: 15px;
   border-top: 1px solid var(--light-grey);
@@ -3999,9 +4003,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .toggleSet {
   display: inline-block;
-  width: 48%;
+  width: 47%;
   margin: 2px auto 20px auto;
-  /*margin-left: 1px;*/
 }
 .toggleSet.aliyotTorah, .toggleSet .toggle-set-label {
   --english-font: var(--english-sans-serif-font-family);
@@ -4015,6 +4018,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin: 10px;
   letter-spacing: 1.5px;
 }
+.toggleSetToggleBox {
+  display:  flex;
+}
 .toggleOption {
   box-sizing: border-box;
   text-align: center;
@@ -4023,31 +4029,33 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding: 4px;
   height: 42px;
   line-height: 34px;
+  flex: 1;
   background-color: #FBFBFA;
   vertical-align: middle;
 }
-.toggleSet.aliyotTorah .toggleOption{
+.toggleSet.aliyotTorah .toggleOption {
   font-size: 14px;
 }
-.toggleSet.vowels .toggleOption.all span span, .toggleSet.vowels .toggleOption.partial span span{
-  /*line-height: 29px;*/
+.toggleSet.vowels .toggleOption.all span span, 
+.toggleSet.vowels .toggleOption.partial span span {
   position: relative;
   top: -3px;
 }
-.toggleSet.fontSize .toggleOption{
+.toggleSet.fontSize .toggleOption {
   color: black;
 }
-.toggleSet.biLayout .toggleOption img, .toggleSet.layout .toggleOption img{
+.toggleSet.biLayout .toggleOption img,
+.toggleSet.layout .toggleOption img {
   opacity: 0.5;
 }
 .toggleOption:first-child {
-    border-top-left-radius: 4px;
-    border-bottom-left-radius: 4px;
+  border-top-left-radius: 4px;
+  border-bottom-left-radius: 4px;
 }
 .toggleOption:last-child {
-    border-top-right-radius: 4px;
-    border-bottom-right-radius: 4px;
-    border-right: 1px solid #999;
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 4px;
+  border-right: 1px solid #999;
 }
 .toggleOption.on, .toggleOption:hover {
   background-color: white;
@@ -4105,6 +4113,25 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .toggleOption.larger {
   font-size: 22px;
+}
+.toggleSet.blueStyle {
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  border-radius: 6px;
+}
+.toggleSet.blueStyle .toggleOption {
+  border: none;
+  font-size: 16px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.toggleSet.blueStyle .toggleOption.on {
+  background-color:  var(--sefaria-blue);
+  color: white;
+  border-radius: 6px;
 }
 .readerOptionsPanel .line {
   margin: 20px 0;
@@ -6349,6 +6376,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-align: center;
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
+  border: none;
 }
 .button.disabled{
   border: 1px solid var(--light-grey);

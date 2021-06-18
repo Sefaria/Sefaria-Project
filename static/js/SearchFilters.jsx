@@ -10,6 +10,7 @@ import {
   InterfaceText,
   LoadingMessage,
   ReaderNavigationMenuCloseButton,
+  ToggleSet,
 } from './Misc';
 
 
@@ -65,6 +66,15 @@ class SearchFilters extends Component {
       />
     );
 
+    const {searchState, type, updateAppliedOptionSort} = this.props;
+    console.log(searchState);
+    const sortOptions = SearchState.metadataByType[type].sortTypeArray.map(data => ({
+      name: data.type,
+      content: <InterfaceText>{data.name}</InterfaceText>,
+      role: "radio",
+      ariaLabel: Sefaria._("Sort by") + " " + Sefaria._(data.name),
+    }));
+
     return Sefaria.multiPanel ?(
       <div className="searchFilters navSidebarModule">
         {filters}
@@ -81,6 +91,13 @@ class SearchFilters extends Component {
             <h2>
               <InterfaceText>Sort by</InterfaceText>
             </h2>
+            <ToggleSet
+              ariaLabel="Sort by"
+              name="sortBy"
+              options={sortOptions}
+              setOption={(set, sortType) => updateAppliedOptionSort(sortType)}
+              currentValue={searchState.sortType}
+              blueStyle={true} />
           </div>
 
           {filters}

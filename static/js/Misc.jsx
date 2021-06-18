@@ -903,7 +903,7 @@ BlockLink.defaultProps = {
 class ToggleSet extends Component {
   // A set of options grouped together.
   render() {
-    let classes = {toggleSet: 1, separated: this.props.separated };
+    let classes = {toggleSet: 1, separated: this.props.separated, blueStyle: this.props.blueStyle };
     classes[this.props.name] = 1;
     classes = classNames(classes);
     const width = 100.0 - (this.props.separated ? (this.props.options.length - 1) * 3 : 0);
@@ -911,26 +911,22 @@ class ToggleSet extends Component {
     const label = this.props.label ? (<span className="toggle-set-label">{this.props.label}</span>) : null;
     return (
       <div className={classes} role="radiogroup" aria-label={this.props.ariaLabel}>
-          {label}
-          <div>
-        {
-          this.props.options.map(function(option) {
-            return (
-              <ToggleOption
-                name={option.name}
-                key={option.name}
-                set={this.props.name}
-                role={option.role}
-                ariaLabel={option.ariaLabel}
-                on={this.props.currentValue == option.name}
-                setOption={this.props.setOption}
-                style={style}
-                image={option.image}
-                fa={option.fa}
-                content={option.content} />);
-          }.bind(this))
-        }
-          </div>
+        {label}
+        <div className="toggleSetToggleBox">
+          {this.props.options.map((option) => (
+          <ToggleOption
+            name={option.name}
+            key={option.name}
+            set={this.props.name}
+            role={option.role}
+            ariaLabel={option.ariaLabel}
+            on={this.props.currentValue == option.name}
+            setOption={this.props.setOption}
+            style={style}
+            image={option.image}
+            fa={option.fa}
+            content={option.content} />))}     
+        </div>
       </div>);
   }
 }
@@ -941,6 +937,7 @@ ToggleSet.propTypes = {
   currentValue:  PropTypes.string,
   options:       PropTypes.array.isRequired,
   separated:     PropTypes.bool,
+  blueStyle:     PropTypes.bool,
   role:          PropTypes.string,
   ariaLabel:     PropTypes.string
 };
@@ -994,9 +991,10 @@ class ToggleOption extends Component {
     const ariaCheckedValue = this.props.on ? "true" : "false";
     classes[this.props.name] = 1;
     classes = classNames(classes);
-    let content = this.props.image ? (<img src={this.props.image} alt=""/>) :
-                    this.props.fa ? (<i className={"fa fa-" + this.props.fa}></i>) :
-                      (<span dangerouslySetInnerHTML={ {__html: this.props.content} }></span>);
+    const content = this.props.image ? (<img src={this.props.image} alt=""/>) :
+                      this.props.fa ? (<i className={"fa fa-" + this.props.fa}></i>) :
+                        typeof this.props.content === "string" ? (<span dangerouslySetInnerHTML={ {__html: this.props.content} }></span>) :
+                          this.props.content;
     return (
       <div
         role={this.props.role}
@@ -1004,7 +1002,6 @@ class ToggleOption extends Component {
         tabIndex = {this.props.role == "radio"? tabIndexValue : "0"}
         aria-checked={ariaCheckedValue}
         className={classes}
-        style={this.props.style}
         onKeyDown={this.checkKeyPress}
         onClick={this.handleClick}>
         {content}
@@ -1012,6 +1009,7 @@ class ToggleOption extends Component {
   }
 }
 
+        //style={this.props.style}
 
 class ReaderNavigationMenuSearchButton extends Component {
   render() {
