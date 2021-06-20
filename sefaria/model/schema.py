@@ -2055,25 +2055,15 @@ class AddressTalmud(AddressType):
         elif len(parts) == 2:
             range_parts = parts[1].split(".")  # this was converting space to '.', for some reason.
 
+            # 'Shabbat 7-8' -> 'Shabbat 7a-8b'; 'Zohar 3:7-8' -> 'Zohar 3:7a-8b'
+            if ref_lacks_amud(parts[1]) and ref_lacks_amud(parts[0]):
+                range_parts[-1] = range_parts[-1] + ('b' if ref._lang == 'en' else ' ב')
+
+            ref._parse_range_end(range_parts)
+            
             # 'Shabbat 23a-b' or 'Zohar 1:2a-b'
             if range_parts[-1] in ['b', 'B', 'ᵇ', 'ב', 'ע"ב', 'ב\'']:
                 ref.toSections[-1] = ref.sections[-1] + 1
-
-            # 'Shabbat 24b-25a' or 'Zohar 2:24b-25a'
-            elif re.search(cls.amud_patterns[ref._lang], range_parts[-1]):
-                ref.toSections = parts[1].split(".")
-                ref.toSections[-1] = AddressTalmud(0).toNumber(ref._lang, range_parts[-1])
-
-            # 'Shabbat 7-8' -> 'Shabbat 7a-8b'; 'Zohar 3:7-8' -> 'Zohar 3:7a-8b'
-            elif ref_lacks_amud(parts[1]) and ref_lacks_amud(parts[0]):
-                ref.toSections = parts[1].split(".")
-                amud = range_parts + ('b' if ref._lang == 'en' else ' ב')
-                ref.toSections[-1] = AddressTalmud(0).toNumber(ref._lang, amud)
-
-        ref.toSections[0] = int(ref.toSections[0])
-        ref.sections[0] = int(ref.sections[0])
-        if len(ref.sections) == len(ref.toSections) + 1:
-            ref.toSections.insert(0, ref.sections[0])
 
         # below code makes sure toSections doesn't go pass end of section/book
         if getattr(ref.index_node, "lengths", None):
