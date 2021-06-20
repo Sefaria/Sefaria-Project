@@ -23,7 +23,7 @@ import ReactDOM from "react-dom";
 // Mapping from Sheet doc format source types to Slate block element types
 const sheet_item_els = {
     ref: 'SheetSource',
-    comment: 'SheetComment',
+    comment: 'SheetOutsideText',
     outsideText: 'SheetOutsideText',
     outsideBiText: 'SheetOutsideBiText',
     media: 'SheetMedia',
@@ -78,6 +78,10 @@ const format_tag_pairs = [
     {
         tag: "STRONG",
         format: "bold"
+    },
+    {
+        tag: "SUP",
+        format: "superscript"
     },
     {
         tag: "B",
@@ -349,7 +353,8 @@ function renderSheetItem(source) {
                     type: sheet_item_els[sheetItemType],
                     options: source.options,
                     children: parseSheetItemHTML(source.comment),
-                    node: source.node
+                    node: source.node,
+                    lang: lang
                 }
             );
             return content
@@ -1502,6 +1507,9 @@ const Leaf = ({attributes, children, leaf}) => {
     }
     if (leaf.small) {
         children = <small>{children}</small>
+    }
+    if (leaf.superscript) {
+        children = <sup>{children}</sup>
     }
     if (leaf.isRef) {
         children = <span className="inlineTextRef">{children}</span>
