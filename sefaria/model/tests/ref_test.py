@@ -278,7 +278,7 @@ class Test_Ref(object):
         assert Ref("Rashi on Shabbat 15a").range_index() == 3
         assert Ref("Rashi on Shabbat 15a:15-15b:13").range_index() == 0
         assert Ref("Rashi on Exodus 3:1-4:1").range_index() == 0
-        assert Ref("Rashi on Exodus 3:1-4:10").range_index() == 0
+        assert Ref("Rashi on Exodus 3:1-4:10").rangetest_ranged_talmud_wrap_refs_index() == 0
         assert Ref("Rashi on Exodus 3:1-3:10").range_index() == 1
         assert Ref("Rashi on Exodus 3:1:1-3:1:3").range_index() == 2
 

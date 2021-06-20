@@ -333,6 +333,8 @@ class Test_Hebrew_Normal(object):
         # assert m.Ref("Shabbat 3b:3-24").he_normal() == u'שבת ג׳ ב 3-24'
         assert m.Ref("Shabbat 3b:3-24").he_normal() == 'שבת ג׳ ב:ג׳-כ״ד'
         # assert m.Ref("Shabbat 3b:3-5a:24").he_normal() == u'שבת ג: 3-ה. 24'
+        assert m.Ref("שבת לג, א–ב") == m.Ref("Shabbat 33")
+        assert m.Ref('עירובין פב-פג') == m.Ref("Eruvin 82-83")
 
     def test_complex(self):
         pass

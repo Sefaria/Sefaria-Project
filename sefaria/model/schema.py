@@ -2056,7 +2056,7 @@ class AddressTalmud(AddressType):
             ref.toSections = parts[1].split(".")  # this was converting space to '.', for some reason.
 
             # 'Shabbat 23a-b' or 'Zohar 1:2a-b'
-            if ref.toSections[-1] in ['b', 'B', 'ᵇ', 'ע"ב', 'ב']:
+            if ref.toSections[-1] in ['b', 'B', 'ᵇ', 'ב', 'ע"ב', 'ב\'']:
                 ref.toSections[-1] = ref.sections[-1] + 1
 
             # 'Shabbat 24b-25a' or 'Zohar 2:24b-25a'
@@ -2064,8 +2064,9 @@ class AddressTalmud(AddressType):
                 ref.toSections[-1] = AddressTalmud(0).toNumber(ref._lang, ref.toSections[-1])
 
             # 'Shabbat 7-8' -> 'Shabbat 7a-8b'; 'Zohar 3:7-8' -> 'Zohar 3:7a-8b'
-            elif ref_lacks_amud(parts[1]):
-                ref.toSections[-1] = AddressTalmud(0).toNumber(ref._lang, "{}b".format(ref.toSections[-1]))
+            elif ref_lacks_amud(parts[1]) and ref_lacks_amud(parts[0]):
+                amud = "{}b".format(ref.toSections[-1]) if ref._lang == "en" else "{} ב".format(ref.toSections[-1])
+                ref.toSections[-1] = AddressTalmud(0).toNumber(ref._lang, amud)
 
         ref.toSections[0] = int(ref.toSections[0])
         ref.sections[0] = int(ref.sections[0])
