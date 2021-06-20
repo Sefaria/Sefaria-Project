@@ -2053,21 +2053,21 @@ class AddressTalmud(AddressType):
             if ref_lacks_amud(base):
                 ref.toSections[-1] += 1
         elif len(parts) == 2:
-            possToSections = parts[1].split(".")  # this was converting space to '.', for some reason.
+            range_parts = parts[1].split(".")  # this was converting space to '.', for some reason.
 
             # 'Shabbat 23a-b' or 'Zohar 1:2a-b'
-            if possToSections[-1] in ['b', 'B', 'ᵇ', 'ב', 'ע"ב', 'ב\'']:
+            if range_parts[-1] in ['b', 'B', 'ᵇ', 'ב', 'ע"ב', 'ב\'']:
                 ref.toSections[-1] = ref.sections[-1] + 1
 
             # 'Shabbat 24b-25a' or 'Zohar 2:24b-25a'
-            elif re.search(cls.amud_patterns[ref._lang], possToSections[-1]):
+            elif re.search(cls.amud_patterns[ref._lang], range_parts[-1]):
                 ref.toSections = parts[1].split(".")
-                ref.toSections[-1] = AddressTalmud(0).toNumber(ref._lang, possToSections[-1])
+                ref.toSections[-1] = AddressTalmud(0).toNumber(ref._lang, range_parts[-1])
 
             # 'Shabbat 7-8' -> 'Shabbat 7a-8b'; 'Zohar 3:7-8' -> 'Zohar 3:7a-8b'
             elif ref_lacks_amud(parts[1]) and ref_lacks_amud(parts[0]):
                 ref.toSections = parts[1].split(".")
-                amud = ref.toSections[-1] + ('b' if ref._lang == 'en' else ' ב')
+                amud = range_parts + ('b' if ref._lang == 'en' else ' ב')
                 ref.toSections[-1] = AddressTalmud(0).toNumber(ref._lang, amud)
 
         ref.toSections[0] = int(ref.toSections[0])
