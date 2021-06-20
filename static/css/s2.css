@@ -45,6 +45,7 @@ a {
   --sans-serif-small-font-size: 14px;
 
   /* colors */
+  --inline-link-blue: #4871bf;
   --sefaria-blue: #18345D;
   --highlight-blue: #DDEEFF;
   --highlight-blue-light: #F0F7FF;
@@ -4333,24 +4334,40 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .segment sup {
   margin-left: .2em;
   margin-right: .2em;
-  font-size: 12px;
+  text-decoration: none;
+  font-family: var(--hebrew-sans-serif-font-family);
+  font-size: 0.6em;
+  line-height: 1;
+  color: var(--inline-link-blue);
+}
+.segment .he sup {
+  font-size: 0.5em;
 }
 .segment sup:hover {
   text-decoration: underline;
 }
+.sheetContent .segment sup:hover {
+  text-decoration: none;
+}
+.segment sup::before {
+  padding: 12px 12px;
+  content: "";
+  margin-inline-start: -7px;
+  position: absolute;
+}
 .segment sup.itag {
   text-decoration: none;
-  font-family: "Heebo", "sans-serif";
+  font-family: var(--hebrew-sans-serif-font-family);
   font-size: 0.6em;
   line-height: 1;
-  color: #4871bf;
+  color: var(--inline-link-blue);
 }
 .segment i.footnote {
   display: none;
   font-size: .8em;
   margin-left: .5em;
   margin-right: .5em;
-  color: #888;
+  color: #666;
   font-style: normal;
 }
 .segment img {

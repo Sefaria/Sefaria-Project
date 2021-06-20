@@ -171,8 +171,8 @@ class SheetMetadata extends Component {
           console.log('saved...')
           this.setState({lastModified: data.dateModified})
           Sefaria.sheets._loadSheetByID[data.id] = data;
-        } else if ("error" in data) {
-            console.log(data.error);
+        } else {
+            console.log(data);
         }
     })
   }
@@ -231,6 +231,7 @@ class SheetMetadata extends Component {
     updatedSheet.topics = topics;
     updatedSheet.lastModified = this.state.lastModified;
     delete updatedSheet._id;
+    delete updatedSheet.error;
     const postJSON = JSON.stringify(updatedSheet);
     this.postSheet(postJSON)
   }

@@ -1412,13 +1412,12 @@ class ReaderDisplayOptionsMenu extends Component {
     ];
     let languageToggle = this.showLangaugeToggle() ? (
         <ToggleSet
-          role="radiogroup"
           ariaLabel="Language toggle"
           label={Sefaria._("Language")}
           name="language"
           options={languageOptions}
           setOption={this.props.setOption}
-          settings={this.props.settings} />) : null;
+          currentValue={this.props.settings.language} />) : null;
 
     let layoutOptions = [
       {name: "continuous", fa: "align-justify", role: "radio", ariaLabel: "Show Text as a paragram" },
@@ -1432,24 +1431,20 @@ class ReaderDisplayOptionsMenu extends Component {
     let layoutToggle = this.props.settings.language !== "bilingual" ?
       this.props.parentPanel == "Sheet" ? null :
       (<ToggleSet
-          role="radiogroup"
           ariaLabel="text layout toggle"
           label={Sefaria._("Layout")}
           name="layout"
           options={layoutOptions}
           setOption={this.props.setOption}
-          currentLayout={this.props.currentLayout}
-          settings={this.props.settings} />) :
+          currentValue={this.props.currentLayout()} />) :
       (this.props.width > 500 ?
         <ToggleSet
-          role="radiogroup"
           ariaLabel="bidirectional text layout toggle"
           label={Sefaria._("Bilingual Layout")}
           name="biLayout"
           options={biLayoutOptions}
           setOption={this.props.setOption}
-          currentLayout={this.props.currentLayout}
-          settings={this.props.settings} /> : null);
+          currentValue={this.props.currentLayout()} /> : null);
 
     let colorOptions = [
       {name: "light", content: "", role: "radio", ariaLabel: "Toggle light mode" },
@@ -1458,14 +1453,13 @@ class ReaderDisplayOptionsMenu extends Component {
     ];
     let colorToggle = (
         <ToggleSet
-          role="radiogroup"
           ariaLabel="Color toggle"
           label={Sefaria._("Color")}
           name="color"
           separated={true}
           options={colorOptions}
           setOption={this.props.setOption}
-          settings={this.props.settings} />);
+          currentValue={this.props.settings.color} />);
     colorToggle = this.props.multiPanel ? null : colorToggle;
 
     let sizeOptions = [
@@ -1474,13 +1468,12 @@ class ReaderDisplayOptionsMenu extends Component {
     ];
     let sizeToggle = (
         <ToggleSet
-          role="radiogroup"
           ariaLabel="Increase/Decrease Font Size Buttons"
           label={Sefaria._("Font Size")}
           name="fontSize"
           options={sizeOptions}
           setOption={this.props.setOption}
-          settings={this.props.settings} />);
+          currentValue={null} />);
 
     let aliyahOptions = [
       {name: "aliyotOn",   content: Sefaria._("On"), role: "radio", ariaLabel: Sefaria._("Show Parasha Aliyot") },
@@ -1489,13 +1482,13 @@ class ReaderDisplayOptionsMenu extends Component {
     let aliyahToggle = this.renderAliyotToggle() ? (
       this.props.parentPanel == "Sheet" ? null :
         <ToggleSet
-          role="radiogroup"
           ariaLabel="Toggle Aliyot"
           label={Sefaria._("Aliyot")}
           name="aliyotTorah"
           options={aliyahOptions}
           setOption={this.props.setOption}
-          settings={this.props.settings} />) : null;
+          currentValue={this.props.settings.aliyotTorah} />) : null;
+    
     let vowelsOptions = [
       {name: "all", content: "<span class='he'>אָ֑</span>", role: "radio", ariaLabel: Sefaria._("Show Vowels and Cantillation")},
       {name: "partial", content: "<span class='he'>אָ</span>", role: "radio", ariaLabel: Sefaria._("Show only vowel points")},
@@ -1509,15 +1502,14 @@ class ReaderDisplayOptionsMenu extends Component {
       vowelToggle = (this.props.settings.language !== "english" && vowelsOptions.length > 1) ?
         this.props.parentPanel == "Sheet" ? null :
         (<ToggleSet
-            role="radiogroup"
-            ariaLabel="vowels and cantillation toggle"
-            label={vowelOptionsTitle}
-            name="vowels"
-            options={vowelsOptions}
-            setOption={this.props.setOption}
-            currentLayout={this.props.currentLayout}
-            settings={this.props.settings} />): null;
+          ariaLabel="vowels and cantillation toggle"
+          label={vowelOptionsTitle}
+          name="vowels"
+          options={vowelsOptions}
+          setOption={this.props.setOption}
+          currentValue={this.props.settings.vowels} />): null;
     }
+    
     if (this.props.menuOpen === "search") {
       return (<div className="readerOptionsPanel" role="dialog">
                 <div className="readerOptionsPanelInner">
