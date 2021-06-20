@@ -2720,6 +2720,8 @@ class Ref(object, metaclass=RefCacheType):
                 except (ValueError, IndexError):
                     raise InputError("Couldn't understand text sections: '{}'.".format(self.tref))
 
+
+
     def __get_sections(self, reg, tref, use_node=None):
         use_node = use_node or self.index_node
         sections = []
