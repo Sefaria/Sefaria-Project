@@ -69,7 +69,11 @@ class Link(abst.AbstractMongoRecord):
             samelink = Link().load({"refs": self.refs})
 
             if samelink:
-                if not self.auto and self.type and not samelink.type:
+                if hasattr(self, 'score') and hasattr(self, 'charLevelData'):
+                    samelink.score = self.score
+                    samelink.charLevelData = self.charLevelData
+                    raise DuplicateRecordError("Updated existing link with the new score and charLevelData data")
+                elif not self.auto and self.type and not samelink.type:
                     samelink.type = self.type
                     samelink.save()
                     raise DuplicateRecordError("Updated existing link with new type: {}".format(self.type))
@@ -82,7 +86,6 @@ class Link(abst.AbstractMongoRecord):
                     samelink.refs = self.refs  #in case the refs are reversed. switch them around
                     samelink.save()
                     raise DuplicateRecordError("Updated existing link with auto generation data {} - {}".format(self.refs[0], self.refs[1]))
-
                 else:
                     raise DuplicateRecordError("Link already exists {} - {}. Try editing instead.".format(self.refs[0], self.refs[1]))
 
