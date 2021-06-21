@@ -348,7 +348,7 @@ function renderSheetItem(source) {
             return content
         }
         case 'comment': {
-            const commentLang = Sefaria.hebrew.isHebrew(source.outsideText) ? 'he' : 'en';
+            const commentLang = Sefaria.hebrew.isHebrew(source.comment) ? 'he' : 'en';
             const content = (
                 {
                     type: sheet_item_els[sheetItemType],
