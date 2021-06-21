@@ -9,6 +9,9 @@ const getApiData = (httpMethod, urlBegin, requestValues) => {
     requestValues: array. first element should be end of url followed by optional url params and post body (if httpMethod is 'post')
     */
     const requestKey = requestValues.map(value => JSON.stringify(value)).join("|");
+    if (!apiData?.[httpMethod]?.[urlBegin]?.[requestKey]) {
+        console.error("Request not found in `apiData.js`. Maybe you forgot to include it in `api_map` of scripts/generateApiData.py?\nHTTP Method:", httpMethod, '\nURL Begin:',urlBegin, '\nrequestKey:',requestKey)
+    }
     return apiData[httpMethod][urlBegin][requestKey];
 };
 
