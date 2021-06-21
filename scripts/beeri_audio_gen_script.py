@@ -53,7 +53,7 @@ def load_csv_and_split_by_section(filename, base_uri):
 
 
 
-media = load_csv_and_split_by_section('scripts/torah_audio/beeri_leviticus.csv', 'https://ia802909.us.archive.org/31/items/Tanakh_Cantillation_Beeri_03Leviticus/03Tc_Vayiqra-_')
+media = load_csv_and_split_by_section('scripts/torah_audio/beeri_leviticus.csv', 'https://storage.googleapis.com/sefaria-audio/beeri/03Tc_Vayiqra-_')
 
 generate_timestamps_from_array(
     media_array = media,
@@ -67,7 +67,7 @@ generate_timestamps_from_array(
 )
 
 
-media = load_csv_and_split_by_section('scripts/torah_audio/beeri_deuteronomy.csv', 'https://ia801903.us.archive.org/28/items/Tanakh_Cantillation_Beeri_05Deuteronomy/05Tc_devarim-_')
+media = load_csv_and_split_by_section('scripts/torah_audio/beeri_deuteronomy.csv', 'https://storage.googleapis.com/sefaria-audio/beeri/05Tc_devarim-_')
 
 generate_timestamps_from_array(
     media_array = media,
@@ -81,7 +81,7 @@ generate_timestamps_from_array(
 )
 
 
-media = load_csv_and_split_by_section('scripts/torah_audio/beeri_exodus.csv', 'https://ia802908.us.archive.org/18/items/Tanakh_Cantillation_Beeri_02Exodus/02Tc_shemot--_')
+media = load_csv_and_split_by_section('scripts/torah_audio/beeri_exodus.csv', 'https://storage.googleapis.com/sefaria-audio/beeri/02Tc_shemot--_')
 
 generate_timestamps_from_array(
     media_array = media,
@@ -95,7 +95,7 @@ generate_timestamps_from_array(
 )
 
 
-media = load_csv_and_split_by_section('scripts/torah_audio/beeri_genesis.csv', 'https://ia802904.us.archive.org/35/items/Tanakh_Cantillation_Beeri_01Genesis/01Tc_bereshit_')
+media = load_csv_and_split_by_section('scripts/torah_audio/beeri_genesis.csv', 'https://storage.googleapis.com/sefaria-audio/beeri/01Tc_bereshit_')
 
 generate_timestamps_from_array(
     media_array = media,
@@ -110,7 +110,7 @@ generate_timestamps_from_array(
 
 
 
-media = load_csv_and_split_by_section('scripts/torah_audio/beeri_numbers.csv', 'https://ia800909.us.archive.org/17/items/Tanakh_Cantillation_Beeri_04Numbers/04Tc_bemidbar_')
+media = load_csv_and_split_by_section('scripts/torah_audio/beeri_numbers.csv', 'https://storage.googleapis.com/sefaria-audio/beeri/04Tc_bemidbar_')
 
 generate_timestamps_from_array(
     media_array = media,
@@ -122,8 +122,3 @@ generate_timestamps_from_array(
     description = '',
     description_he = ''
 )
-
-
-
-
-
