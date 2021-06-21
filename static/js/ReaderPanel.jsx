@@ -1408,14 +1408,14 @@ const TranslationLanguagePreferenceSuggestionBanner = ({ setTranslationLanguageP
             <div className="transLangPrefCentered">
               <InterfaceText>
                   <EnglishText> Thanks! We'll show you {lang} translations first when we have them. </EnglishText>
-                  <HebrewText>תודה! כשנוכל, נציג לכם תרגומים בשפה ה <span className="bold"> {Sefaria._(lang)} </span> כאשר אלו יהיו זמינים. </HebrewText>
+                  <HebrewText>תודה! כשנוכל, נציג לכם תרגומים בשפה ה<span className="bold">{Sefaria._(lang)}</span> כאשר אלו יהיו זמינים. </HebrewText>
               </InterfaceText>              
             </div>
           ) : (
             <div className="transLangPrefCentered">
             <InterfaceText>
                 <EnglishText> Prefer to see <span className="bold"> {lang} </span> translations when available? </EnglishText>
-                <HebrewText> האם תעדיפו לראות תרגומים בשפה ה<span className="bold"> {Sefaria._(lang)} </span> כאשר הם זמינים?</HebrewText>
+                <HebrewText>האם תעדיפו לראות תרגומים בשפה ה<span className="bold">{Sefaria._(lang)}</span> כאשר הם זמינים?</HebrewText>
             </InterfaceText>
             <div className="yesNoGroup">
               <a className="yesNoButton" onClick={accept}>
