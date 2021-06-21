@@ -53,7 +53,8 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
 
     def load(self, query, proj=None):
         if self.__class__ != Topic:
-            query['subclass'] = self.reverse_subclass_map[self.__class__.__name__]
+            subclass_names = [self.__class__.__name__] + [klass.__name__ for klass in self.all_subclasses()]
+            query['subclass'] = {"$in": [self.reverse_subclass_map[name] for name in subclass_names]}
         topic = super().load(query, proj)
         if getattr(topic, 'subclass', False):
             Subclass = globals()[self.subclass_map[topic.subclass]]
@@ -62,7 +63,7 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
 
     def _set_derived_attributes(self):
         self.set_titles(getattr(self, "titles", None))
-        if self.__class__ != Topic:
+        if self.__class__ != Topic and not getattr(self, "subclass", False):
             # in a subclass. set appropriate "subclass" attribute
             setattr(self, "subclass", self.reverse_subclass_map[self.__class__.__name__])
 
