@@ -145,7 +145,7 @@ class CollectionPage extends Component {
     if (filter) {
       return (
         <div className="emptyMessage sans-serif">
-          <InterfaceText>No sheets matching</InterfaceText>&nbsp;
+          <InterfaceText>No sheets matching </InterfaceText>;
           "<InterfaceText text={{en: filter, he: filter}} />".
         </div>
       );
@@ -175,7 +175,7 @@ class CollectionPage extends Component {
           e.preventDefault();
           this.props.searchInCollection(filter, this.state.collectionData.name);
         }}>
-        <InterfaceText>Search the full text of this collection for</InterfaceText>&nbsp;
+        <InterfaceText>Search the full text of this collection for </InterfaceText>
         "<InterfaceText text={{en: filter, he: filter}} />" &raquo;
       </a>
     );

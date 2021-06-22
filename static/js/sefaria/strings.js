@@ -45,6 +45,10 @@ const Strings = {
     "Support Sefaria": "תמכו בספריא",
     "Sefaria is an open source, non-profit project. Support us by making a tax-deductible donation.": "ספריא היא מיזם קוד פתוח ללא מטרות רווח. תמכו בנו בעזרת תרומה בניכוי מס.",
     "Make a Donation": "תרמו",
+    "Explore the Community": "הכירו את הקהילה",
+    "People around the world use Sefaria to create and share Torah resources. You're invited to add your voice.": "לומדים ולומדות מכל רחבי העולם משתמשים בספריא ליצור ולשתף מקורות יהודיים. אנו מזמינים אותך להצטרף לשיחה הזו",
+    "Create with Sefaria": "צרו בעזרת ספריא",
+    "Mobile Apps": "יישומים לטלפון הנייד",
 
     // Texts Page
     "Browse the Library": "עיון בספרייה",
@@ -80,7 +84,7 @@ const Strings = {
     "Search Topics": "חפש נושאים",
 
     // Search
-    "Exact Matches Only": "חיפוש מדויק", // TODO Hebrew
+    "Exact Matches Only": "תוצאות מדויקות בלבד",
 
     // Sheets
     "Source Sheets": "דפי מקורות",
@@ -227,8 +231,8 @@ const Strings = {
     "There are no sheets in this collection yet.": "לאסופה זו טרם נוספו דפי מקורות.",
     "You can add sheets to this collection on your profile.": "באפשרותך להוסיף דפי מקורות לאסופה הזאת דרך הפרופיל האישי שלך.",
     "Open Profile": "לפרופיל האישי",
-    "Search the full text of this collection for": "Search for", // TODO Hebrew
-    "No sheets matching": "No sheets matching", // TODO Hebrew
+    "Search the full text of this collection for ": "לחיפוש בטקסט המלא של האסופה ל",
+    "No sheets matching ": "לא נמצאו דפים מתאימים ל",
     "Pinned Sheet - click to unpin": "דף מקורות נעוץ - לחצו להסרה",
     "Pinned Sheet" : "דף מקורות נעוץ",
     "Pin Sheet" : "נעיצת דף מקורות",
@@ -280,14 +284,17 @@ const Strings = {
     "Unfortunately an error occurred deleting your collection.": "אירעה שגיאה במחיקת האסופה שלך.",
 
     // Community Page
-    "Today on Sefaria": "היום על ספריא", // TODO Hebrew
-    "Who to Follow": "אחרי מי לעקוב", // TODO Hebrew
+    "Today on Sefaria": "היום בספריא",
+    "Who to Follow": "משתמשים ששווה לעקוב אחריהם",
+    "Organizations, communities and individuals around the world curate and share collections of sheets for you to explore.": "ארגונים, קהילות ויחידים מרחבי העולם מציגים ומשתפים אסופות של דפי מקורות שתוכלו לגלות",
+    "Explore Collections": "עיינו באסופות של דפי מקורות",
 
+    // Saved / History / Notifications
     "Saved": "שמורים",
     "Notifications": "התראות",
 
-    "Texts and sheets that you read will be available for you to see here.": "", // TODO Hebrew
-    "Click the bookmark icon on texts or sheets to save them here.": "", // TODO Hebrew,
+    "Texts and sheets that you read will be available for you to see here.": "טקסטים ודפי מקורות שתקראו יהיו זמינים עבורכם כאן",
+    "Click the bookmark icon on texts or sheets to save them here.": "לחצו על סמל הסימנייה בתוך טקסטים או דפי מקורות כדי לשמור אותם כאן",
 
     // Learning Schedules
     "Daily Learning": "לימוד יומי",
@@ -471,7 +478,7 @@ const Strings = {
       "Follow": "עוקב",
       "Unfollow": "הפסק לעקוב",
       "Following": "עקוב",
-      "Follow Back": "" // TODO Hebrew
+      "Follow Back": "לעקוב בחזרה",
     },
     "DownloadVersions":{
       "Select Format": "בחירת פורמט הורדה",

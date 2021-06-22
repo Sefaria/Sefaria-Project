@@ -538,7 +538,7 @@ const AboutCollections = ({hideTitle}) => (
 const ExploreCollections = () => (
   <Module>
     <ModuleTitle>Collections</ModuleTitle>
-    <InterfaceText>Orgranizations, communities and individuals around the world curate and share collections of sheets for you to explore.</InterfaceText>
+    <InterfaceText>Organizations, communities and individuals around the world curate and share collections of sheets for you to explore.</InterfaceText>
     <div>
       <a className="button small white" href="/collections">
         <img src="/static/icons/collection.svg" alt="collection icon" />
