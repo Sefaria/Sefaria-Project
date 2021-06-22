@@ -1106,7 +1106,7 @@ class ReaderApp extends Component {
       this.showLibrary();
 
     } else if (path.match(/\/texts\/.+/)) {
-      this.showLibrary(path.slice(7).split("/"));
+      this.showLibrary(path.slice(7).split("/").map(decodeURI));
 
     } else if (path == "/collections") {
       this.showCollections();
