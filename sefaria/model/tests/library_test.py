@@ -297,6 +297,10 @@ class Test_he_get_refs_in_text(object):
         wrapped = library.get_wrapped_refs_string(st, lang="he", citing_only=citing_only)
         assert wrapped == res
 
+    def test_ranged_talmud_wrap_refs(self):
+        st = "(סוכה מ\' א\' – ב\')"
+        wrapped = library.get_wrapped_refs_string(st, lang="he", citing_only=True)
+
 
 class Test_get_titles_in_text(object):
 

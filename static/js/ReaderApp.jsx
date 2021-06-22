@@ -950,8 +950,8 @@ class ReaderApp extends Component {
     } else if (path === "/texts/saved") {
       this.showSaved();
 
-    } else if (path.match(/^\/texts\/.+/)) {
-      this.showLibrary(path.slice(7).split("/"));
+    } else if (path.match(/\/texts\/.+/)) {
+      this.showLibrary(path.slice(7).split("/").map(decodeURI));
 
     } else if (path === "/collections") {
       this.showCollections();

@@ -115,6 +115,7 @@ class Test_parse_he_ref(object):
         assert r.sections[0] == 90
         assert len(r.sections) == 1
 
+
     def test_talmud_refs_with_amud(self):
         assert m.Ref("ברכות ח.") == m.Ref("Berakhot 8a")
         assert m.Ref("ברכות ח:") == m.Ref("Berakhot 8b")
@@ -128,8 +129,10 @@ class Test_parse_he_ref(object):
         assert m.Ref("ברכות ח") == m.Ref("Berakhot 8a-8b")
         assert m.Ref("ברכות ב") == m.Ref("Berakhot 2a-2b")
 
-    def test_talmud_aleph_to_bet(self):
+    def test_talmud_range(self):
         assert m.Ref("שבת לג, א–ב") == m.Ref("Shabbat 33")
+        assert m.Ref('עירובין פב-פג') == m.Ref("Eruvin 82-83")
+        assert m.Ref("""ברכות י"א עמוד א–עמוד ב'""") == m.Ref("Berakhot 11")
 
     def test_bible_word_end(self):
         with pytest.raises(InputError):
@@ -328,7 +331,7 @@ class Test_Hebrew_Normal(object):
         assert m.Ref("Exodus 4:3-8").he_normal() == 'שמות ד׳:ג׳-ח׳'
         assert m.Ref("Exodus 4:3-5:8").he_normal() == 'שמות ד׳:ג׳-ה׳:ח׳'
 
-    def test_talmud_range(self):
+    def test_talmud_normal_range(self):
         assert m.Ref("Shabbat 3b-5a").he_normal() == 'שבת ג׳ ב-ה׳ א'
         # assert m.Ref("Shabbat 3b:3-24").he_normal() == u'שבת ג׳ ב 3-24'
         assert m.Ref("Shabbat 3b:3-24").he_normal() == 'שבת ג׳ ב:ג׳-כ״ד'
