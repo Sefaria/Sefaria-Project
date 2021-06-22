@@ -1867,7 +1867,6 @@ class ReaderApp extends Component {
                     headerMode={this.props.headerMode}
                     panelsOpen={panelStates.length}
                     analyticsInitialized={this.state.initialAnalyticsTracked}
-                    getLicenseMap={this.getLicenseMap}
                     openTopic={this.openTopic}
                     toggleSignUpModal={this.toggleSignUpModal} />) : null;
     var panels = [];

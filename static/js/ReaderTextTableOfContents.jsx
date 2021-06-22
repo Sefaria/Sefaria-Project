@@ -230,7 +230,6 @@ class ReaderTextTableOfContents extends Component {
           currObjectVersions={currObjectVersions}
           currentRef={this.props.currentRef}
           showHistory={true}
-          getLicenseMap={this.props.getLicenseMap}
           viewExtendedNotes={this.props.viewExtendedNotes}/>);
       }
     }
@@ -285,7 +284,6 @@ class ReaderTextTableOfContents extends Component {
               openVersion={this.openVersion}
               title={this.props.title}
               currentRef={this.props.currentRef}
-              getLicenseMap={this.props.getLicenseMap}
               viewExtendedNotes={this.props.viewExtendedNotes}
             /> : null
           }
