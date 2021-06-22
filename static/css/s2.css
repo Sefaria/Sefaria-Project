@@ -7925,6 +7925,52 @@ span.purim-emoji img{
 .sheetContent .sheetItem.segment .addedBy {
   margin-top: -20px;
 }
+
+
+
+.sheetContent .element-link {
+  display: inline;
+  position: relative;
+}
+
+.sheetContent .element-link .popup {
+  position: absolute;
+  left: 0;
+  display: flex;
+  align-items: center;
+  background-color: white;
+  padding: 6px 10px;
+  gap: 10px;
+  border-radius: 6px;
+  border: 1px solid #CCCCCC;
+  z-index: 1;
+  top: -50px;
+  pointer-events: auto;
+}
+
+.sheetContent .element-link .popup a {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding-right: 10px;
+  border-right: 1px solid lightgrey;
+}
+
+.sheetContent .element-link .popup button {
+  border: none;
+  background: transparent;
+}
+
+.sheetContent .element-link .popup button:hover {
+  color: rebeccapurple;
+  cursor: pointer;
+}
+
+.sheetContent .editorContent,
+.sheetContent .editorContent .segment {
+  cursor: text;
+}
+
 .interface-english .sheetContent .sheetItem.segment .addedBy {
   float: left;
 }
@@ -8147,6 +8193,11 @@ section.SheetSource .SheetOutsideBiText {
   padding-inline-end: 20px;
   box-shadow: 0px 1px 6px rgba(0, 0, 0, 0.25);
 }
+.sheetItem .SheetSource.segment,
+.sheetItem .SheetOutsideBiText.segment {
+cursor: pointer;
+}
+
 .sheetItem .SheetSource.selected.segment,
 .sheetItem .SheetOutsideBiText.selected.segment {
   border-top: 2px solid #CCE6FF;
@@ -8155,6 +8206,7 @@ section.SheetSource .SheetOutsideBiText {
   margin-top: 12px;
   margin-bottom: 12px;
   margin-inline-end: -2px;
+  cursor: text;
 }
 .sheetItem .SheetSource .he,
 .sheetItem .SheetSource .en,
@@ -9577,7 +9629,7 @@ a.topicLexiconTitle.contentText {
   left: -10000px;
   margin-top: -6px;
   opacity: 0;
-  background-color: #fafafa;
+  background-color: #333333;
   border-radius: 4px;
   transition: opacity 0.75s;
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
@@ -9586,10 +9638,10 @@ a.topicLexiconTitle.contentText {
   padding: 10px;
 }
 .markButton i {
-  color: #737373
+  color: #CCCCCC
 }
 .markButton i.active {
-  color: #000;
+  color: #fff;
 }
 .editorHoverBox {
   position: fixed;
