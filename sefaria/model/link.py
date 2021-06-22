@@ -73,6 +73,7 @@ class Link(abst.AbstractMongoRecord):
                     samelink.score = self.score
                     samelink.charLevelData = self.charLevelData
                     raise DuplicateRecordError("Updated existing link with the new score and charLevelData data")
+
                 elif not self.auto and self.type and not samelink.type:
                     samelink.type = self.type
                     samelink.save()
