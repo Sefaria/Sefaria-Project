@@ -636,25 +636,8 @@ class TextTableOfContentsNavigation extends Component {
         break;
       case "commentary":
         content = <CommentatorList
-<<<<<<< HEAD
                         commentatorList={this.props.commentatorList}
                         title={this.props.title} />;
-=======
-                    commentatorList={this.props.commentatorList}
-                    title={this.props.title} />;
-
-
-        break;
-      case "versions":
-        content = <VersionsList
-                    versionsList={this.props.versions}
-                    currObjectVersions={this.props.currObjectVersions}
-                    openVersion={this.props.openVersion}
-                    title={this.props.title}
-                    currentRef={this.props.currentRef}
-                    viewExtendedNotes={this.props.viewExtendedNotes}
-                  />;
->>>>>>> 1138a44b8... Refactor location of getLicenseMap() and remove it from being drilled down on every component
 
 
         break;
