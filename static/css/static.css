@@ -772,10 +772,9 @@ p.registration-links a:hover{
   position: absolute;
   top: -90px;
   left: 0;
-  width: 100%;
   min-width: 1200px;
   z-index: 0;
-  height: 710px;
+  width: 100%;
 }
 #aboutPage .inner {
   margin-top: -440px;
