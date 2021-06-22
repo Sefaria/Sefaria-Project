@@ -9,15 +9,6 @@ import Sefaria  from './sefaria';
 var INBROWSER = (typeof document !== 'undefined');
 
 class Util {
-    static getLicenseMap() {
-      return {
-        "Public Domain": "https://en.wikipedia.org/wiki/Public_domain",
-        "CC0": "https://creativecommons.org/publicdomain/zero/1.0/",
-        "CC-BY": "https://creativecommons.org/licenses/by/3.0/",
-        "CC-BY-SA": "https://creativecommons.org/licenses/by-sa/3.0/",
-        "CC-BY-NC": "https://creativecommons.org/licenses/by-nc/4.0/"
-      };
-    }
     static selectElementContents(el) {
       //source: https://stackoverflow.com/questions/4183401/can-you-set-and-or-change-the-user-s-text-selection-in-javascript
       if (window.getSelection && document.createRange) {

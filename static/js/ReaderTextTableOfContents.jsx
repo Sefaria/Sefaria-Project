@@ -230,6 +230,7 @@ class ReaderTextTableOfContents extends Component {
           currObjectVersions={currObjectVersions}
           currentRef={this.props.currentRef}
           showHistory={true}
+          getLicenseMap={this.props.getLicenseMap}
           viewExtendedNotes={this.props.viewExtendedNotes}/>);
       }
     }
@@ -284,6 +285,7 @@ class ReaderTextTableOfContents extends Component {
               openVersion={this.openVersion}
               title={this.props.title}
               currentRef={this.props.currentRef}
+              getLicenseMap={this.props.getLicenseMap}
               viewExtendedNotes={this.props.viewExtendedNotes}
             /> : null
           }
@@ -464,6 +466,7 @@ ReaderTextTableOfContents.propTypes = {
   close:            PropTypes.func.isRequired,
   openNav:          PropTypes.func.isRequired,
   showBaseText:     PropTypes.func.isRequired,
+  getLicenseMap:    PropTypes.func.isRequired,
   selectVersion:    PropTypes.func,
   viewExtendedNotes: PropTypes.func,
   backFromExtendedNotes: PropTypes.func,
@@ -1036,7 +1039,7 @@ class VersionsList extends Component {
         openVersionInReader={this.props.openVersion}
         viewExtendedNotes={this.props.viewExtendedNotes}
         key={v.versionTitle + "/" + v.language}
-      />
+        getLicenseMap={this.props.getLicenseMap}/>
      )
     );
 
@@ -1066,6 +1069,7 @@ VersionsList.propTypes = {
   title:             PropTypes.string.isRequired,
   currentRef:        PropTypes.string,
   viewExtendedNotes: PropTypes.func,
+  getLicenseMap:     PropTypes.func.isRequired,
 };
 
 
