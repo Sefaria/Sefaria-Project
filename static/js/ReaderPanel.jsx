@@ -1383,7 +1383,7 @@ const TranslationLanguagePreferenceSuggestionBanner = ({ setTranslationLanguageP
 
   const cookie = Sefaria._inBrowser ? $.cookie : Sefaria.util.cookie;
   const { translation_language_preference_suggestion } = Sefaria;
-  if (closed || cookie("translation_language_preference_suggested") || !translation_language_preference_suggestion) {
+  if (closed || (!accepted && cookie("translation_language_preference_suggested")) || !translation_language_preference_suggestion) {
     return null;
   }
   const closeBanner = () => {
