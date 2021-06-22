@@ -1393,7 +1393,7 @@ const TranslationLanguagePreferenceSuggestionBanner = ({ setTranslationLanguageP
   }
   const accept = () => {
     setAccepted(true);
-    cookie("translation_language_preference", translation_language_preference_suggestion);
+    cookie("translation_language_preference", translation_language_preference_suggestion, {path: "/"});
     cookie("translation_language_preference_suggested", JSON.stringify(1), {path: "/"});
     Sefaria.editProfileAPI({settings: {translation_language_preference: translation_language_preference_suggestion, translation_language_preference_suggested: true}});
     setTranslationLanguagePreference(translation_language_preference_suggestion);

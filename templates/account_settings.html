@@ -170,10 +170,12 @@
                         textual_custom: $("#textualCustom .toggleOption.active").attr("data-value"),
                         reading_history: $("#readingHistory .toggleOption.active").attr("data-value") === "true" ? true : false,
                         translation_language_preference: $("#translationLanguagePreference .toggleOption.active").attr("data-value"),
+                        translation_language_preference_suggested: true,
                     }
 				};
-                $.cookie("translation_language_preference", $("#translationLanguagePreference .toggleOption.active").attr("data-value"));  // see trans pref in cookie in case user is logged out
-				$.post("/api/profile", {json: JSON.stringify(profile)}, function(data) {
+                $.cookie("translation_language_preference", $("#translationLanguagePreference .toggleOption.active").attr("data-value"), {path: "/"});  // see trans pref in cookie in case user is logged out
+                $.cookie("translation_language_preference_suggested", JSON.stringify(1), {path: "/"});
+                $.post("/api/profile", {json: JSON.stringify(profile)}, function(data) {
 					if ("error" in data) {
 						alert(data.error);
 					} else {
