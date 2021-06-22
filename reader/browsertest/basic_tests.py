@@ -90,10 +90,10 @@ class ChangeTextLanguage(SefariaTest):
     every_build = True
 
     def body(self):
-        self.load_ref("Genesis 10")
-        expected_heb = 'וְאֵלֶּה תּוֹלְדֹת בְּנֵי־נֹחַ שֵׁם חָם וָיָפֶת וַיִּוָּלְדוּ לָהֶם בָּנִים אַחַר הַמַּבּוּל׃'
-        expected_eng_closed = 'These are the lines of Shem, Ham, and Japheth, the sons of Noah: sons were born to them after the Flood.'
-        expected_eng_open = 'Now these are the generations of the sons of Noah: Shem, Ham, and Japheth; and unto them were sons born after the flood.'
+        self.load_ref("Job 1")
+        expected_heb = 'אִ֛ישׁ הָיָ֥ה בְאֶֽרֶץ־ע֖וּץ אִיּ֣וֹב שְׁמ֑וֹ וְהָיָ֣ה ׀ הָאִ֣ישׁ הַה֗וּא תָּ֧ם וְיָשָׁ֛ר וִירֵ֥א אֱלֹהִ֖ים וְסָ֥ר מֵרָֽע׃'
+        expected_eng_closed = 'There was a man in the land of Uz named Job. That man was blameless and upright; he feared God and shunned evil.'
+        expected_eng_open = 'THERE was a man in the land of Uz, whose name was Job; and that man was whole-hearted and upright, and one that feared God, and shunned evil.'
         sgmnt_eng = self.get_nth_section_english(1)
         sgmnt_heb = self.get_nth_section_hebrew(1)
         str_eng = sgmnt_eng.text.strip()
@@ -181,10 +181,10 @@ class TextVocalizationSettings(SefariaTest):
     every_build = True
 
     def body(self):
-        just_text = 'בראשית ברא אלהים את השמים ואת הארץ'
-        text_with_vowels = 'בְּרֵאשִׁית בָּרָא אֱלֹהִים אֵת הַשָּׁמַיִם וְאֵת הָאָרֶץ׃'
-        text_with_cantillation = 'בְּרֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ׃'
-        self.load_ref("Genesis 1")
+        just_text = 'איש היה בארץ־עוץ איוב שמו והיה  האיש ההוא תם וישר וירא אלהים וסר מרע'
+        text_with_vowels = 'אִישׁ הָיָה בְאֶרֶץ־עוּץ אִיּוֹב שְׁמוֹ וְהָיָה  הָאִישׁ הַהוּא תָּם וְיָשָׁר וִירֵא אֱלֹהִים וְסָר מֵרָע׃'
+        text_with_cantillation = 'אִ֛ישׁ הָיָ֥ה בְאֶֽרֶץ־ע֖וּץ אִיּ֣וֹב שְׁמ֑וֹ וְהָיָ֣ה ׀ הָאִ֣ישׁ הַה֗וּא תָּ֧ם וְיָשָׁ֛ר וִירֵ֥א אֱלֹהִ֖ים וְסָ֥ר מֵרָֽע׃'
+        self.load_ref("Job 1")
 
         self.toggle_on_text_settings()
         self.toggle_vowels_partial()
