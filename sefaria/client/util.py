@@ -2,13 +2,15 @@
 import json
 from rauth import OAuth2Service
 from datetime import datetime
+import time
+from urllib.parse import unquote
+
 
 from django.http import HttpResponse, JsonResponse
 from django.core.mail import EmailMultiAlternatives
 from functools import wraps
 
 from sefaria import settings as sls
-
 
 def jsonResponse(data, callback=None, status=200):
     if callback:
@@ -78,6 +80,27 @@ def subscribe_to_list(lists, email, first_name=None, last_name=None, direct_sign
     session.close()
 
     return r
+
+def get_by_tag(tag_name):
+    return f"/api/v1/tags/{tag_name}/people" 
+
+def nationbuilder_get_all(endpoint_func, args=[]):
+    session = get_nation_builder_connection()
+    base_url = "https://"+sls.NATIONBUILDER_SLUG+".nationbuilder.com"
+    next_endpoint = endpoint_func(*args)
+    try:
+        while(next_endpoint):
+            res = session.get(base_url + next_endpoint)
+            res_data = res.json()
+            for item in res_data['results']:
+                yield item
+            next_endpoint = unquote(res_data['next']) if res_data['next'] else None
+            if (): # TODO pause if we run out of rate limits
+                time.sleep(10)
+    #catch:
+        # TODO handle error
+    finally:
+        session.close()
 
 
 def get_nation_builder_connection():
