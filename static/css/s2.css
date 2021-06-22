@@ -7239,13 +7239,16 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 .topicFilterBox {
   display: flex;
   align-items: center;
-  margin-bottom: 25px;
+  margin-bottom: 30px;
   background-color: var(--lighter-grey);
   border-radius: 100px;
   padding: 0 10px;
-  margin-top: -15px;
+  margin-top: 0;
   width: 285px;
   max-width: 100%;
+}
+.singlePanel .topicFilterBox {
+  margin-top: 20px;
 }
 .topicFilterBox .searchIcon {
   height: 18px;
@@ -7274,7 +7277,11 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 }
 .alphabeticalTopicsNav {
   color: var(--dark-grey);
-  margin-bottom: 25px;
+  margin-bottom: 5px;
+}
+.alphabeticalTopicsNav a {
+  display: inline-block;
+  margin-bottom: 10px;  
 }
 .alphabeticalTopicsNav a + a {
   margin-inline-start: 10px;
