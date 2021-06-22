@@ -157,7 +157,7 @@ def user_sheets(user_id, sort_by="date", limit=0, skip=0, private=True):
 	return response
 
 
-def public_sheets(sort=[["dateModified", -1]], limit=50, skip=0, lang=None):
+def public_sheets(sort=[["datePublished", -1]], limit=50, skip=0, lang=None):
 	query = {"status": "public"}
 	if lang:
 		query["sheetLanguage"] = lang
@@ -180,6 +180,7 @@ def sheet_list(query=None, sort=None, skip=0, limit=None):
 		"views": 1,
 		"dateModified": 1,
 		"dateCreated": 1,
+		"datePublished": 1,
 		"topics": 1,
 		"displayedCollection": 1,
 	}
@@ -214,6 +215,7 @@ def sheet_to_dict(sheet):
 		"displayedCollection": sheet.get("displayedCollection", None),
 		"modified": dateutil.parser.parse(sheet["dateModified"]).strftime("%m/%d/%Y"),
 		"created": sheet.get("dateCreated", None),
+		"published": sheet.get("datePublished", None),
 		"topics": add_langs_to_topics(sheet.get("topics", [])),
 		"tags": [t['asTyped'] for t in sheet.get("topics", [])],  # for backwards compatibility with mobile
 		"options": sheet["options"] if "options" in sheet else [],
@@ -447,14 +449,12 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 					if url.startswith(GoogleStorageManager.BASE_URL):
 						GoogleStorageManager.delete_filename((re.findall(r"/([^/]+)$", url)[0]), GoogleStorageManager.UGC_SHEET_BUCKET)
 
-
-
-
-
 		# Protected fields -- can't be set from outside
 		sheet["views"] = existing["views"]
 		sheet["owner"] = existing["owner"]
 		sheet["likes"] = existing["likes"] if "likes" in existing else []
+		if "datePublished" in existing:
+			sheet["datePublished"] = existing["datePublished"]
 		if "noindex" in existing:
 			sheet["noindex"] = existing["noindex"]
 

@@ -696,12 +696,12 @@ input.noselect {
   min-width: 150px;
   width: max-content;
 }
-.interface-hebrew .header .interfaceLinks .interfaceLinks-menu{
+.interface-hebrew .header .interfaceLinks .interfaceLinks-menu {
   left: 0px;
   min-width: 150px;
   width: max-content;
 }
-.header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header{
+.header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header {
   font-style: normal;
   font-weight: normal;
   font-size: 14px;
@@ -710,10 +710,10 @@ input.noselect {
   padding: 12px;
   border-bottom: 1px solid #CCCCCC;
 }
-.interface-english .header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header{
+.interface-english .header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header {
   font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
 }
-.interface-hebrew .header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header{
+.interface-hebrew .header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header {
   font-family: "Heebo", sans-serif;
 }
 .interfaceLinks-options {
@@ -733,7 +733,10 @@ input.noselect {
   padding: 5px;
   direction: ltr;
 }
-.header .interfaceLinks .interfaceLinks-menu.open{
+.header .interfaceLinks .interfaceLinks-option:hover {
+  background-color: var(--lighter-grey);
+}
+.header .interfaceLinks .interfaceLinks-menu.open {
   display: block;
 }
 .interface-hebrew .header .interfaceLinks .interfaceLinks-option.int-bi {
@@ -758,7 +761,7 @@ input.noselect {
   height: 23px;
 }
 .header .interfaceLinks .interfaceLinks-row:hover {
-   background-color: #EDEDEC;
+  background-color: var(--lighter-grey);
 }
 div.interfaceLinks-row a:hover {
   text-decoration: none;

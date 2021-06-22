@@ -2305,7 +2305,7 @@ SheetAuthorStatement.propTypes = {
 
 const CollectionStatement = ({name, slug, image, children}) => (
   slug ?
-    <div className="collectionStatement" contentEditable={false} style={{ userSelect: 'none' }}>
+    <div className="collectionStatement sans-serif" contentEditable={false} style={{ userSelect: 'none' }}>
       <div className="collectionListingImageBox imageBox">
         <a href={"/collections/" + slug}>
           <img className={classNames({collectionListingImage:1, "img-circle": 1, default: !image})} src={image || "/static/icons/collection.svg"} alt="Collection Logo"/>
@@ -2314,16 +2314,16 @@ const CollectionStatement = ({name, slug, image, children}) => (
       <a href={"/collections/" + slug}>{children ? children : name}</a>
     </div>
     :
-    <div className="collectionStatement" contentEditable={false} style={{ userSelect: 'none', display: 'none' }}>
+    <div className="collectionStatement sans-serif" contentEditable={false} style={{ userSelect: 'none', display: 'none' }}>
       {children}
     </div>
 );
 
 
 const SheetMetaDataBox = (props) => (
-    <div className="sheetMetaDataBox">
-      {props.children}
-    </div>
+  <div className="sheetMetaDataBox">
+    {props.children}
+  </div>
 );
 
 
