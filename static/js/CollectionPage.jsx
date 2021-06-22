@@ -307,28 +307,6 @@ CollectionPage.propTypes = {
 };
 
 
-/*
-
-      
-        <div className="tabs">
-          <a className={classNames({bubbleTab: 1, active: this.state.tab == "sheets"})} onClick={this.setTab.bind(null, "sheets")}>
-            <span className="int-en">Sheets</span>
-            <span className="int-he">דפי מקורות</span>
-          </a>
-          <a className={classNames({bubbleTab: 1, active: this.state.tab == "members"})} onClick={this.setTab.bind(null, "members")}>
-            <InterfaceText>Editors</InterfaceText>
-          </a>
-          { isAdmin ?
-            <a className="bubbleTab" href={"/collections/" + collection.slug + "/settings"}>
-              <span className="int-en">Settings</span>
-              <span className="int-he">הגדרות</span>
-            </a>
-            : null }
-        </div>
-
-*/
-
-
 const CollectionAbout = ({collection, isAdmin, toggleLanguage}) => (
   <div className="collectionInfo sans-serif">
     {collection.toc ?
@@ -336,9 +314,14 @@ const CollectionAbout = ({collection, isAdmin, toggleLanguage}) => (
       <h1>
         <ContentText text={{en: collection.toc.title, he: collection.toc.heTitle}} />
       </h1>
+      { isAdmin ? <EditCollectionButton slug={collection.slug} /> : null }
       { Sefaria.multiPanel && Sefaria.interfaceLang !== "hebrew" ? <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null }
     </div>
-    : <h1>{collection.name}</h1> }
+    : 
+    <div className="navTitle">
+      <h1>{collection.name}</h1>
+      { isAdmin ? <EditCollectionButton slug={collection.slug} /> : null }
+    </div> }
 
     <a className="collectionLabel" href="/collections">
       <InterfaceText>Collection</InterfaceText>
@@ -357,6 +340,14 @@ const CollectionAbout = ({collection, isAdmin, toggleLanguage}) => (
       : null }
   </div>
 );
+
+
+const EditCollectionButton = (slug) => (
+  <a class="button small white" href={`/collections/${slug}/settings`}>
+    <img className="buttonIcon" src="/static/img/tools-write-note.svg" /><InterfaceText>Edit</InterfaceText>
+  </a>
+);
+
 
 
 const CollectionContentsTab = ({collection, setFilter}) => {
@@ -449,7 +440,7 @@ class CollectionInvitationBox extends Component {
     return re.test(email);
   }
   render() {
-    return (<div className="collectionInvitationBox">
+    return (<div className="collectionInvitationBox sans-serif">
               <div className="collectionInvitationBoxInner">
                 <input id="collectionInvitationInput" placeholder={Sefaria._("Email Address")} />
                 <div className="button small" onClick={this.onInviteClick}>

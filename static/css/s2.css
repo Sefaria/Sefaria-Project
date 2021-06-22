@@ -1548,10 +1548,6 @@ div.interfaceLinks-row a {
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
   border: none;
 }
-.navSidebar .newsletterSignUpBox .newsletterInput::placeholder {
-  font-style: normal;
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
 .navSidebarModule.wide {
   display: flex;
   margin-bottom: 0;
@@ -6404,7 +6400,7 @@ a.button:hover {
   color: #333;
 }
 a.button.white {
-  color: #333;
+  color: var(--dark-grey);
 }
 .button.grey {
   background-color:  var(--lighter-grey);
@@ -6459,13 +6455,14 @@ a .button:hover {
   line-height: 20px;
   letter-spacing: normal;
 }
-.button img.buttonIcon {
-  width: 16px;
-  height: 16px;
-  opacity: .4;
-  margin: 0 5px;
-  position: relative;
-  top: 2px;
+.button .buttonIcon {
+  margin-inline-end: 7px;
+  vertical-align: middle;
+}
+.button.small .buttonIcon {
+  height: 14px;
+  width: 14px;
+  margin-top: -3px;
 }
 .button.appButton {
   box-shadow: none;
@@ -6488,24 +6485,6 @@ a .button:hover {
   width: 18px;
   height: 18px;
   margin: 0;
-}
-::placeholder {
-   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
-   color: #666;
-}
-:-ms-input-placeholder {
-   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
-   color: #666;
-}
-.interface-hebrew ::placeholder {
-  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
-  font-size: 18px;
-  color: #666;
-}
-.interface-hebrew :-ms-input-placeholder {
-  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
-  font-size: 18px;
-  color: #666;
 }
 .lexicon-content{
   font-size: 15px;
@@ -6794,7 +6773,6 @@ a .button:hover {
   content: "\200B"; /* zero-width space required so that chrome doesn't cause change in size of box on focus/blur */
   width: 0;
 }
-
 .publishBox {
   text-align: start;
   background-color: #EDEDEC;
@@ -6805,26 +6783,20 @@ a .button:hover {
   font-size: 16px;
   color: #666;
 }
-
 .publishBox .smallText .int-en, .publishBox .smallText .int-he.enInHe {
   color: #666;
 }
-
 .publishBox p.error {
   color: red;
 }
-
 .publishBox .error .react-tags,
 .publishBox textarea.error {
   border: 1px solid red;
 }
-
 .publishBox p strong {
   color: black;
   font-weight: 400;
 }
-
-
 .publishBox h3 {
   font-size: 22px;
   font-weight: 500;
@@ -6834,7 +6806,6 @@ a .button:hover {
   text-transform: none;
   text-align: start;
 }
-
 .publishBox hr {
   border-bottom: none;
   border-right: none;
@@ -6844,11 +6815,9 @@ a .button:hover {
   border-top: 1px solid #CCC;
   margin-top: 20px;
 }
-
 .publishBox .smallText {
   color: #666666
 }
-
 .publishBox textarea {
   width: 100%;
   height: 100%;
@@ -6868,8 +6837,6 @@ a .button:hover {
   font-style: normal;
   font-family: var(--english-sans-serif-font-family);
 }
-
-
 .publishBox .react-tags {
   position: relative;
   padding: 10px 10px 4px 10px;
@@ -6883,15 +6850,12 @@ a .button:hover {
   /* clicking anywhere will focus the input */
   cursor: text;
 }
-
 .publishBox .react-tags.is-focused {
   border-color: #B1B1B1;
 }
-
 .publishBox .react-tags__selected {
   display: inline;
 }
-
 .publishBox .react-tags__selected-tag {
   display: inline-block;
   box-sizing: border-box;
@@ -6906,7 +6870,6 @@ a .button:hover {
   font-size: inherit;
   line-height: inherit;
 }
-
 .publishBox .react-tags__search-input,
 .publishBox .react-tags__search-input:focus,
 .publishBox .react-tags__search-input:focus-visible {
@@ -6915,33 +6878,26 @@ a .button:hover {
   border: none;
   outline: none;
 }
-
 .publishBox .react-tags__search-input::placeholder {
   font-size: 16px;
   font-style: normal;
   font-family: var(--english-sans-serif-font-family);
 }
-
 body.interface-hebrew .publishBox .react-tags__search-input::placeholder,
 body.interface-hebrew .publishBox textarea::placeholder {
   font-family: var(--hebrew-sans-serif-font-family);
 
 }
-
-
-
 .publishBox .react-tags__selected-tag:after {
   content: '\2715';
   color: #AAA;
   margin-inline-start: 8px;
   font-size: 10px;
 }
-
 .publishBox .react-tags__selected-tag:hover,
 .publishBox .react-tags__selected-tag:focus {
   border-color: #B1B1B1;
 }
-
 .publishBox .react-tags__search {
   display: inline-block;
 
@@ -6952,23 +6908,18 @@ body.interface-hebrew .publishBox textarea::placeholder {
   /* prevent autoresize overflowing the container */
   max-width: 100%;
 }
-
 .publishBox .publishButton {
   margin: 18px 0;
   text-align: end;
 }
-
 .publishBox .publishButton .button.published {
   background-color: #EDEDEC;
   border: 1px solid #CCCCCC;
   color: #666666
 }
-
-
 .publishBox p {
   margin-bottom: 9px;
  }
-
 .publishBox .react-tags__suggestions ul {
   position: absolute;
   inset-inline-start: 0;  /* Note reduntant css rules below `body.interface-[hebrew|english]  .publishBox .react-tags__suggestions ul` */
@@ -6981,49 +6932,39 @@ body.interface-hebrew .publishBox textarea::placeholder {
   border-radius: 6px;
   min-width: 300px;
 }
-
 /* Reduntant given above `inset-inline-start` rule, but not standard on all browsers yet
 RMN: 2021-04-22 */
 body.interface-hebrew  .publishBox .react-tags__suggestions ul {
   right: 0;
 }
-
 /* Reduntant given above `inset-inline-start` rule, but not standard on all browsers yet
 RMN: 2021-04-22 */
 body.interface-english .publishBox .react-tags__suggestions ul {
   left: 0;
 }
-
 .publishBox .react-tags__suggestions li {
   border-bottom: none;
   padding: 6px 8px;
 }
-
 .publishBox .react-tags__suggestions li mark {
   text-decoration: none;
   background: none;
   font-weight: normal;
 }
-
 .publishBox .react-tags__suggestions li:hover {
   cursor: pointer;
   background: #eee;
 }
-
 .publishBox .react-tags__suggestions li.is-active {
   background: #eee;
 }
-
 .publishBox .react-tags__suggestions li.is-disabled {
   opacity: 0.5;
   cursor: auto;
 }
-
-
 .interface-hebrew .sheetMetaDataBox .authorStatement {
   direction: rtl;
 }
-
 .editorSidebarToggle {
   position: fixed;
   top: 150px;
@@ -7166,9 +7107,6 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 }
 .collectionInvitationBox {
   padding-bottom: 20px;
-}
-.interface-hebrew .collectionInvitationBox input::placeholder {
-  font-family: "Heebo", sans-serif;
 }
 .collectionInvitationBox .button {margin: 0;}
 .collectionSheetInner {
@@ -8870,7 +8808,6 @@ cursor: pointer;
   margin-top: 10px;
   height: 120px;
 }
-
 .interface-hebrew textarea,
 .interface-hebrew textarea::placeholder,
 .interface-hebrew input,
