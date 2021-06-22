@@ -3741,11 +3741,14 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   color: #999;
 }
 .toggleSet {
-  display: flex;
+  display: inline-block;
   width: 48%;
   margin: 2px auto 0 auto;
   padding-bottom: 20px;
   /*margin-left: 1px;*/
+}
+#accountSettingsPage .toggleSet {
+  display: flex;
 }
 .toggleSet.aliyotTorah, .toggleSet .toggle-set-label {
   --english-font: var(--english-sans-serif-font-family);
