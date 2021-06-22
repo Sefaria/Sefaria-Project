@@ -369,6 +369,9 @@ class UserProfile(object):
         self.show_editor_toggle = False
         self.uses_new_editor = False
 
+        # Fundraising
+        self.is_sustainer = False
+
         # Update with saved profile doc in MongoDB
         profile = db.profiles.find_one({"id": id})
         if profile:
@@ -632,6 +635,7 @@ class UserProfile(object):
             "settings":              self.settings,
             "attr_time_stamps":      self.attr_time_stamps,
             "interrupting_messages": getattr(self, "interrupting_messages", []),
+            "is_sustainer":          self.is_sustainer,
             "tag_order":             getattr(self, "tag_order", None),
             "last_sync_web":         self.last_sync_web,
             "profile_pic_url":       self.profile_pic_url,

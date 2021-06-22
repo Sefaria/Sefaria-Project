@@ -1,5 +1,6 @@
 import json
 from django.template.loader import render_to_string
+from sefaria.model.user_profile import UserProfile
 
 class InterruptingMessage(object):
   def __init__(self, attrs={}, request=None):
@@ -8,6 +9,7 @@ class InterruptingMessage(object):
     self.name        = attrs.get("name", None)
     self.style       = attrs.get("style", "modal")
     self.repetition  = attrs.get("repetition", 0)
+    self.is_fundraising = attrs.get("isFundraising", False)
     self.condition   = attrs.get("condition", {})
     self.request     = request
     self.cookie_name = "%s_%d" % (self.name, self.repetition)
@@ -52,6 +54,12 @@ class InterruptingMessage(object):
     if self.condition.get("logged_in_only", False):
       if not self.request.user.is_authenticated:
         return False
+
+    if self.is_fundraising:
+      if self.request.user.is_authenticated:
+        profile = UserProfile(id=self.request.user.id)
+        if(profile.is_sustainer):
+          return False
 
     return True
 
