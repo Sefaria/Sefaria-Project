@@ -6725,6 +6725,17 @@ a .button:hover {
 .singlePanel .collectionsList {
   margin-top: 0;
 }
+.collectionsList .enCollections,
+.collectionsList .heCollections {
+  margin-bottom: 50px;
+}
+.readerPanel .collectionsList .enCollections .gridBox,
+.readerPanel .collectionsList .enCollections .int-he {
+  direction: ltr;
+}
+.readerPanel .collectionsList .heCollections .gridBox {
+  direction: rtl;
+}
 .collectionListing {
   display: flex;
   flex-direction: row;
