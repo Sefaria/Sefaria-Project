@@ -23,7 +23,7 @@ import ReactDOM from "react-dom";
 // Mapping from Sheet doc format source types to Slate block element types
 const sheet_item_els = {
     ref: 'SheetSource',
-    comment: 'SheetComment',
+    comment: 'SheetOutsideText',
     outsideText: 'SheetOutsideText',
     outsideBiText: 'SheetOutsideBiText',
     media: 'SheetMedia',
@@ -78,6 +78,10 @@ const format_tag_pairs = [
     {
         tag: "STRONG",
         format: "bold"
+    },
+    {
+        tag: "SUP",
+        format: "superscript"
     },
     {
         tag: "B",
@@ -344,12 +348,14 @@ function renderSheetItem(source) {
             return content
         }
         case 'comment': {
+            const commentLang = Sefaria.hebrew.isHebrew(source.comment) ? 'he' : 'en';
             const content = (
                 {
                     type: sheet_item_els[sheetItemType],
                     options: source.options,
                     children: parseSheetItemHTML(source.comment),
-                    node: source.node
+                    node: source.node,
+                    lang: commentLang
                 }
             );
             return content
@@ -756,9 +762,7 @@ const Element = props => {
             );
         case 'link':
           return (
-            <a {...attributes} href={element.url}>
-              {children}
-            </a>
+            <Link {...props} />
           )
         case 'table':
           return (
@@ -1413,32 +1417,120 @@ const withTables = editor => {
   return editor
 }
 
+const Link = ({ attributes, children, element }) => {
+  const editor = useSlate();
+  const {selection} = editor;
+
+  const focused = useFocused();
+  const selected = useSelected();
+
+  const linkPopoverVisible = (focused && selection && Range.isCollapsed(selection));
+  const onClick = (e, url) => {
+      console.log(e)
+      console.log(url)
+  }
+
+  return (
+    <div
+        {...attributes}
+        className="element-link"
+    >
+        <a href={element.url}>
+            {children}
+        </a>
+      {selected && focused && (
+        <div className="popup" contentEditable={false}>
+          <a href={element.url} rel="noreferrer" target="_blank">
+            {element.url}
+          </a>
+          <button onClick={() => editor.removeLink()}>
+            unlink
+          </button>
+        </div>
+      )}
+
+
+    </div>
+
+  )
+
+ }
+
+
 const withLinks = editor => {
-  const { insertData, insertText, isInline } = editor
+    const { insertData, insertText, isInline } = editor
 
-  editor.isInline = element => {
-    return element.type === 'link' ? true : isInline(element)
-  };
+    editor.isInline = element => {
+        return element.type === 'link' ? true : isInline(element)
+    };
 
-  editor.insertText = text => {
-    if (text && Sefaria.util.isUrl(text)) {
-      wrapLink(editor, text)
-    } else {
-      insertText(text)
-    }
-  };
+    editor.insertText = text => {
+        if (text && Sefaria.util.isUrl(text)) {
+            wrapLink(editor, text)
+        } else {
+            insertText(text)
+        }
+    };
 
-  editor.insertData = data => {
-    const text = data.getData('text/plain')
+    editor.insertData = data => {
+        const text = data.getData('text/plain')
 
-    if (text && Sefaria.util.isUrl(text)) {
-      wrapLink(editor, text)
-    } else {
-      insertData(data)
-    }
-  };
+        if (text && Sefaria.util.isUrl(text)) {
+            wrapLink(editor, text)
+        } else {
+            insertData(data)
+        }
+    };
 
-  return editor
+
+    editor.createLinkNode = (href, text) => ({
+        type: "link",
+        href,
+        children: [{ text }]
+    });
+
+    editor.insertLink = (url) => {
+        if (!url) return;
+        const { selection } = editor;
+        const link = editor.createLinkNode(url, "New Link");
+        ReactEditor.focus(editor);
+        if (!!selection) {
+            const [parentNode, parentPath] = Editor.parent(
+                editor,
+                selection.focus?.path
+            );
+            // Remove the Link node if we're inserting a new link node inside of another
+            // link.
+            if (parentNode.type === "link") {
+                editor.removeLink(editor);
+            }
+            if (editor.isVoid(parentNode)) {
+                // Insert the new link after the void node
+                Transforms.insertNodes(editor, createParagraphNode([link]), {
+                    at: Path.next(parentPath),
+                    select: true
+                });
+            } else if (Range.isCollapsed(selection)) {
+                // Insert the new link in our last known location
+                Transforms.insertNodes(editor, link, { select: true });
+            } else {
+                // Wrap the currently selected range of text into a Link
+                Transforms.wrapNodes(editor, link, { split: true });
+                Transforms.collapse(editor, { edge: "end" });
+            }
+        } else {
+            return
+        }
+    };
+
+    editor.removeLink = () => {
+        Transforms.unwrapNodes(editor, {
+            match: (n) =>
+                !Editor.isEditor(n) && SlateElement.isElement(n) && n.type === "link"
+        });
+    };
+
+    return editor
 };
 
 const isLinkActive = editor => {
@@ -1502,6 +1594,9 @@ const Leaf = ({attributes, children, leaf}) => {
     }
     if (leaf.small) {
         children = <small>{children}</small>
+    }
+    if (leaf.superscript) {
+        children = <sup>{children}</sup>
     }
     if (leaf.isRef) {
         children = <span className="inlineTextRef">{children}</span>
