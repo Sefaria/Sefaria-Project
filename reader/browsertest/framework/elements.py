@@ -241,7 +241,7 @@ class SefariaTest(AbstractTest):
         # todo: handle multiple panels
         # jiggle the screen after scrolling to coerce the next section to load
         self.driver.execute_script(
-            "var a = document.getElementsByClassName('textColumn')[0]; a.scrollTop = a.scrollHeight; setTimeout(function() { console.log('yoyoyoy'); a.scrollTop = a.scrollHeight - 1000; }, 100); setTimeout(function() { a.scrollTop = a.scrollHeight - 400; }, 100);"
+            "var a = document.getElementsByClassName('textColumn')[0]; a.scrollTop = a.scrollHeight; setTimeout(function() { a.scrollTop = a.scrollHeight - 1000; }, 100); setTimeout(function() { a.scrollTop = a.scrollHeight - 400; }, 100);"
         )
         return self
 
