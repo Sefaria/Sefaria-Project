@@ -43,7 +43,7 @@ export const handlers = [
                 hasParamValues = true;
             }
         }
-        const requestValues = [req.params[urlEnd]];
+        const requestValues = [decodeURIComponent(req.params[urlEnd])];
         if (hasParamValues) { requestValues.push(paramObj); }
         return res(ctx.json(getApiData(httpMethod, urlBegin, requestValues)))
     });

@@ -10,10 +10,10 @@ SERVER = "http://localhost:8000"
 api_map = {
     'get': {
         'api/v2/index': [{'url_end': 'Job'}, {'url_end': 'Orot'}],
-        'api/texts/versions': [{'url_end': 'Job_1'}, {'url_end': 'Orot,_Lights_from_Darkness,_Land_of_Israel_1'}],
+        'api/texts/versions': [{'url_end': 'Job.1'}, {'url_end': 'Orot,_Lights_from_Darkness,_Land_of_Israel.1'}],
         'api/texts': [
-            {'url_end': 'Job_1', 'params': {'context': '1'}},
-            {'url_end': 'Orot,_Lights_from_Darkness,_Land_of_Israel_1', 'params': {'context': '1'}}
+            {'url_end': 'Job.1', 'params': {'context': '1'}},
+            {'url_end': 'Orot,_Lights_from_Darkness,_Land_of_Israel.1', 'params': {'context': '1'}}
         ],
     }
 }
@@ -31,3 +31,7 @@ for http_method, url_map in api_map.items():
             curr_url_dict[request_key] = response.json()
 with open('static/js/__mocks__/msw/apiData.js', 'w') as fout:
     fout.write(f"export const apiData = {json.dumps(api_data, ensure_ascii=False, separators=(',', ':'))}")
+
+data_js_response = requests.get(f'{SERVER}/data.js')
+with open('static/js/__mocks__/msw/data.js', 'w') as fout:
+    fout.write(data_js_response.text + f"\nexport default DJANGO_DATA_VARS;")
