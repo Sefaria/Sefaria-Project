@@ -2162,6 +2162,15 @@ a.navBlockTitle:hover {
 .featuredSheet .navBlockDescription {
   margin-bottom: 12px;
 }
+.featuredSheetBottom {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+.featuredSheetDate {
+  color: var(--medium-grey);
+  font-size: 14px;
+}
 .communityPage .recentlyPublished {
   padding-top: 30px;
 }

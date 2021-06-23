@@ -76,7 +76,7 @@ const RecenltyPublished = ({multiPanel, toggleSignUpModal}) => {
   };
 
   const recentSheetsContent = !recentSheets ? [<LoadingMessage />] :
-          recentSheets.map(s => <FeaturedSheet sheet={s} toggleSignUpModal={toggleSignUpModal} />);
+          recentSheets.map(s => <FeaturedSheet sheet={s} showDate={true} toggleSignUpModal={toggleSignUpModal} />);
   const joinTheConversation = (
     <div className="navBlock">
       <Modules type={"JoinTheConversation"} props={{wide:multiPanel}} />
@@ -99,7 +99,7 @@ const RecenltyPublished = ({multiPanel, toggleSignUpModal}) => {
 };
 
 
-const FeaturedSheet = ({sheet, toggleSignUpModal}) => {
+const FeaturedSheet = ({sheet, showDate, toggleSignUpModal}) => {
   if (!sheet) { return null; }
   const {heading, title, id, summary} = sheet;
   const uid = sheet.author || sheet.owner;
@@ -112,6 +112,10 @@ const FeaturedSheet = ({sheet, toggleSignUpModal}) => {
     is_followed: Sefaria._uid ? Sefaria.following.indexOf(uid) !== -1 : false,
     toggleSignUpModal: toggleSignUpModal,
   };
+
+  const now = new Date();
+  const published = new Date(sheet.published);
+  const naturalPublished = Sefaria.util.naturalTime(published.getTime()/1000, {short:true});
 
   return (
     <div className="featuredSheet navBlock">
@@ -128,7 +132,10 @@ const FeaturedSheet = ({sheet, toggleSignUpModal}) => {
         <InterfaceText>{summary}</InterfaceText>
       </div>
       : null}
-      <ProfileListing {...author} />
+      <div className="featuredSheetBottom">
+        <ProfileListing {...author} />
+        {showDate ? <div className="featuredSheetDate">• {naturalPublished}</div> : null}
+      </div>
     </div>
   );
 };
