@@ -111,6 +111,8 @@ def render_template(request, template_name='base.html', app_props=None, template
     template_context = template_context if template_context else {}
     props = base_props(request)
     props.update(app_props)
+    if request.GET.get("onlyProps", False):
+        return jsonResponse(props)
     propsJSON = json.dumps(props, ensure_ascii=False)
     template_context["propsJSON"] = propsJSON
     if app_props: # We are rendering the ReaderApp in Node, otherwise its jsut a Django template view with ReaderApp set to headerMode
