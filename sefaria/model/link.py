@@ -60,12 +60,24 @@ class Link(abst.AbstractMongoRecord):
         if False in self.refs:
             return False
 
+        if hasattr(self, "charLevelData"):
+            try:
+                assert type(self.charLevelData) is list, 'charLevelData attribute must be a list'
+                assert len(self.charLevelData) == 2, 'charLevelData list must be of length 2 like the length of the refs attribute'
+                assert type(self.charLevelData[0]) is dict, "charLevelData's data is stored in a dict for each ref in the refs being linked"
+                assert type(self.charLevelData[1]) is dict, "charLevelData's data is stored in a dict for each ref in the refs being linked"
+            except AssertionError:
+                raise InputError(f"Structure of the charLevelData in Link is wrong. link refs: {self.refs[0]} - {self.refs[1]}")
+                # return False
         return True
 
     def _pre_save(self):
         if getattr(self, "_id", None) is None:
             # Don't bother saving a connection that already exists, or that has a more precise link already
+            if self.refs != sorted(self.refs) and hasattr(self, 'charLevelData'):
+                self.charLevelData.reverse()
             self.refs = sorted(self.refs) #make sure ref order is deterministic
+            assert self.charLevelData[0]['versionTitle'] in [v['versionTitle'] for v in text.Ref(self.refs[0]).version_list()]
             samelink = Link().load({"refs": self.refs})
 
             if samelink:
