@@ -937,7 +937,7 @@ sites_data = [
         "normalization_rules": ["use https", "remove www"],
     },
     {
-        "Tablet Magazine",
+        "name":"Tablet Magazine",
         "domains": ["tabletmag.com"],
     }
 ]
