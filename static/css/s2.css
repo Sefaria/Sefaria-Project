@@ -3708,7 +3708,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin: 2px auto 20px auto;
   /*margin-left: 1px;*/
 }
-.toggleSet.aliyotTorah, .toggleSet .toggle-set-label {
+.toggleSet.aliyotTorah, .toggleSet.punctuationTalmud, .toggleSet .toggle-set-label {
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--english-sans-serif-font-family);
   text-transform: uppercase;
@@ -3731,7 +3731,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   background-color: #FBFBFA;
   vertical-align: middle;
 }
-.toggleSet.aliyotTorah .toggleOption{
+.toggleSet.aliyotTorah .toggleOption, .toggleSet.punctuationTalmud .toggleOption{
   font-size: 14px;
 }
 .toggleSet.vowels .toggleOption.all span span, .toggleSet.vowels .toggleOption.partial span span{
