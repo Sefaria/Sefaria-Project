@@ -187,7 +187,7 @@ const ReaderNavigationCategoryMenuContents = ({category, contents, categories,
               </span> : null }
             </h2>
             {hasDesc && longDesc ? 
-            <div className="categoryDescription">
+            <div className="categoryDescription long sans-serif">
               <ContentText text={{en: shortDesc, he: shortDesc}} defaultToInterfaceOnBilingual={true} />
             </div> : null }
             <ReaderNavigationCategoryMenuContents

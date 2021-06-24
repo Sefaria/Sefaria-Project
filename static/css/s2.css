@@ -2292,6 +2292,9 @@ a.navBlockTitle:hover {
   font-size: 14px;
   color: #666;
 }
+.readerNavCategoryMenu .categoryDescription.long {
+  margin: -8px 0 20px 0;
+} 
 .readerNavCategoryMenu .content .category,
 .readerNavCategoryMenu .content .gridBox {
   margin-bottom: 40px;
@@ -2496,6 +2499,10 @@ a.navBlockTitle:hover {
 }
 .bookPage .about {
   margin-top: 10px;
+}
+.bookPage .categoryAttribution {
+  color: var(--dark-grey);
+  font-size: 24px;
 }
 .readerTextTableOfContents .sheetMeta {
   font-size: 14px;
