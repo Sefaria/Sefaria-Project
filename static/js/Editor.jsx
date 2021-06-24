@@ -1423,31 +1423,85 @@ const Link = ({ attributes, children, element }) => {
 
   const focused = useFocused();
   const selected = useSelected();
+  const [linkPopoverVisible, setLinkPopoverVisible] = useState(false);
+  const [urlValue, setUrlValue] = useState(element.url);
+  const [currentSlateRange, setCurrentSlateRange] = useState(null)
 
-  const linkPopoverVisible = (focused && selection && Range.isCollapsed(selection));
-  const onClick = (e, url) => {
-      console.log(e)
-      console.log(url)
-  }
+
+  let showLinkHoverTimeout;
+  let hideLinkHoverTimeout;
+
+    const onHover = (e, url) => {
+        clearTimeout(hideLinkHoverTimeout)
+        if (!editor.selection) {return}
+        let range = document.createRange();
+        range.selectNode(e.target);
+        setCurrentSlateRange(ReactEditor.toSlateRange(editor, range))
+        showLinkHoverTimeout = setTimeout(function () {
+            Transforms.select(editor, currentSlateRange);
+            setLinkPopoverVisible(true)
+        }, 500, e);
+    }
+    const onBlur = (e, url) => {
+        clearTimeout(showLinkHoverTimeout)
+        hideLinkHoverTimeout = setTimeout(function () {
+            setLinkPopoverVisible(false)
+            setCurrentSlateRange(null)
+        }, 500);
+    }
+    const onClick = (e, url) => {
+        window.open(url, '_blank').focus();
+    }
+
+    const xClicked = () => {
+        editor.removeLink();
+        Transforms.collapse(editor);
+    }
+
+    const fixUrl = (s) => {
+        try {
+            let url = new URL(s)
+            return(url)
+        }
+
+        catch {
+            return(`http://${s}`)
+        }
+    }
+
+    const urlChange = (e) => {
+        const newUrl = e.target.value;
+        setUrlValue(newUrl)
+        const [node, linkPath] = Editor.above(editor, {at: currentSlateRange, match: n => n.type ==="link"})
+        Transforms.setNodes(editor, { url: fixUrl(newUrl) }, {at: linkPath});
+    }
+
 
   return (
     <div
         {...attributes}
         className="element-link"
+        onMouseEnter={(e) => onHover(e, element.url)}
+        onMouseLeave={(e) => onBlur(e, element.url)}
     >
-        <a href={element.url}>
+        <a
+            href={element.url}
+            onClick={(e) => onClick(e, element.url)}
+        >
             {children}
         </a>
-      {selected && focused && (
+      {linkPopoverVisible ? (
         <div className="popup" contentEditable={false}>
-          <a href={element.url} rel="noreferrer" target="_blank">
-            {element.url}
-          </a>
-          <button onClick={() => editor.removeLink()}>
-            unlink
-          </button>
+          <input
+              type="text"
+              value={urlValue}
+              placeholder="Enter link URL"
+              className="sans-serif"
+              onChange={(e) => urlChange(e)}
+          />
+          <button onClick={() => xClicked()}>✕</button>
         </div>
-      )}
+      ) : null }
 
 
     </div>
@@ -1626,11 +1680,13 @@ const HoverMenu = () => {
             return
         }
 
+
         if (
             !selection ||
             !ReactEditor.isFocused(editor) ||
             Range.isCollapsed(selection) ||
-            Editor.string(editor, selection) === ''
+            Editor.string(editor, selection) === '' ||
+            isLinkActive(editor)
         ) {
             el.removeAttribute('style');
             return
