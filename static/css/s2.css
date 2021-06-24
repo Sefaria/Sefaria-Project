@@ -7925,6 +7925,12 @@ span.purim-emoji img{
 .sheetContent .editorContent .sheetItem.noPointer {
   pointer-events: none;
 }
+
+.sheetContent .editorContent .sheetItem.noPointer .element-link,
+.sheetContent .editorContent .sheetItem.noPointer .element-link a {
+    cursor: pointer;
+    pointer-events: auto;
+}
 .sheetContent .sheetItem.segment .addedBy {
   margin-top: -20px;
 }
@@ -7942,13 +7948,20 @@ span.purim-emoji img{
   display: flex;
   align-items: center;
   background-color: white;
-  padding: 6px 10px;
-  gap: 10px;
+  padding: 0;
   border-radius: 6px;
   border: 1px solid #CCCCCC;
   z-index: 1;
   top: -50px;
   pointer-events: auto;
+}
+
+.sheetContent .element-link .popup input {
+  border: none;
+  width: 200px;
+  padding: 6px;
+  font-size: 16px;
+  color: rgb(0, 136, 204)
 }
 
 .sheetContent .element-link .popup a {
@@ -7962,6 +7975,7 @@ span.purim-emoji img{
 .sheetContent .element-link .popup button {
   border: none;
   background: transparent;
+  padding: 6px;
 }
 
 .sheetContent .element-link .popup button:hover {
