@@ -175,7 +175,7 @@ class CollectionPage extends Component {
           e.preventDefault();
           this.props.searchInCollection(filter, this.state.collectionData.name);
         }}>
-        <InterfaceText>Search the full text of this collection for </InterfaceText>
+        <InterfaceText>Search the full text of this collection for</InterfaceText>&nbsp;
         "<InterfaceText text={{en: filter, he: filter}} />" &raquo;
       </a>
     );
