@@ -553,7 +553,7 @@ const WhoToFollow = ({toggleSignUpModal}) => (
   <Module>
     <ModuleTitle>Who to Follow</ModuleTitle>
     {Sefaria.followRecommendations.map(user => 
-      <ProfileListing {...user} key={user.uid} toggleSignUpModal={toggleSignUpModal} />)}
+    <ProfileListing {...user} key={user.uid} toggleSignUpModal={toggleSignUpModal} />)}
   </Module>
 );
 

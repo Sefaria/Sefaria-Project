@@ -17,17 +17,36 @@ import {
 
 const CommunityPage = ({multiPanel, toggleSignUpModal, initialWidth}) => {
 
+  const [dataLoaded, setDataLoaded] = useState(!!Sefaria.community);
+
   const sidebarModules = [
     {type: "JoinTheConversation"},
-    {type: "WhoToFollow", props: {toggleSignUpModal}},
+    {type: dataLoaded ? "WhoToFollow" : null, props: {toggleSignUpModal}},
     {type: "ExploreCollections"},
     {type: "SupportSefaria", props: {blue: true}},
     {type: "StayConnected"},
   ];
 
-  const {parashah, calendar, discover, featured} = Sefaria.community;
-  const sheets = [parashah, calendar, discover, featured].filter(x => !!x)
-                    .map(x => <FeaturedSheet sheet={x.sheet} toggleSignUpModal={toggleSignUpModal} />);
+  useEffect(() => {
+    if (!dataLoaded) {
+      Sefaria.getBackgroundData().then(() => { setDataLoaded(true); });
+    }
+  }, []);
+
+  let featuredContent;
+  if (dataLoaded) {
+    const {parashah, calendar, discover, featured} = Sefaria.community;
+    const sheets = [parashah, calendar, discover, featured].filter(x => !!x)
+                      .map(x => <FeaturedSheet sheet={x.sheet} toggleSignUpModal={toggleSignUpModal} />);    
+    featuredContent = (
+      <>
+        <ResponsiveNBox content={sheets.slice(0,2)} stretch={true} initialWidth={initialWidth} />
+        {sheets.slice(2).map(sheet => <NBox content={[sheet]} n={1} key={sheet.id} /> )}
+      </>
+    );
+  } else {
+    featuredContent = <LoadingMessage />
+  }
 
   return (
     <div className="readerNavMenu communityPage sans-serif" key="0">
@@ -37,9 +56,7 @@ const CommunityPage = ({multiPanel, toggleSignUpModal, initialWidth}) => {
             
             <h1><InterfaceText>Today on Sefaria</InterfaceText></h1>
 
-            <ResponsiveNBox content={sheets.slice(0,2)} stretch={true} initialWidth={initialWidth} />
-
-            {sheets.slice(2).map(sheet => <NBox content={[sheet]} n={1} key={sheet.id} /> )}
+            {featuredContent}
             
             <RecenltyPublished multiPanel={multiPanel} toggleSignUpModal={toggleSignUpModal} />
 
