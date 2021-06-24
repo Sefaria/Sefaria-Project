@@ -95,12 +95,13 @@ const CalendarListing = ({calendar}) => {
 
 
 const reformatCalendars = () => {
+  // Reformats the calendar data as it is given by the API into the shape we need,
+  // combining with descriptions written here.
   const calendars = Sefaria.util.clone(Sefaria.calendars);
   const mergedCalendars = [];
   calendars.map(cal => {
     let calData = calendarDescriptions[cal.title.en.replace(/ \([AS]\)$/, "")]
-    if (!calData) debugger
-    if (!cal.description) {
+    if (!cal.description && calData) {
       cal.description = {en: calData.en, he: calData.he};
     }
     if (cal.title.en === "Parashat Hashavua") {
@@ -113,6 +114,8 @@ const reformatCalendars = () => {
       }
     }
 
+    // Merge multiple calendar entries that from from the same schedule
+    // (e.g., when a Haftarah has multiple refs)
     let len = mergedCalendars.length;
     if (len && cal.title.en === mergedCalendars[len-1].title.en) {
       mergedCalendars[len-1].refs.push({url: cal.url, displayValue: cal.displayValue});
