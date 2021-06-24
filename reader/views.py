@@ -3646,7 +3646,7 @@ def home(request):
     return redirect("/texts")
 
 
-def community(request, props={}):
+def community_page(request, props={}):
     """
     Community Page
     """    
@@ -3678,7 +3678,7 @@ def community_preview(request):
     date = request.GET.get("date", "5/23/21")
     community = get_community_page_items(date=date, language=request.interfaceLang)
 
-    return community(request, props={"community": community, "communityPreview": date})
+    return community_page(request, props={"community": community, "communityPreview": date})
 
 
 @staff_member_required
@@ -3689,7 +3689,7 @@ def community_reset(request):
     date = request.GET.get("next", "5/23/21")
     community = get_community_page_items(date=date, language=request.interfaceLang, refresh=True)
 
-    return community(request, props={"community": community, "communityPreview": date})
+    return community_page(request, props={"community": community, "communityPreview": date})
 
 
 def new_home_redirect(request):

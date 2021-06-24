@@ -36,7 +36,7 @@ urlpatterns = [
     url(r'^collections/new$', reader_views.edit_collection_page),
     url(r'^collections/(?P<slug>[^.]+)/settings$', reader_views.edit_collection_page),
     url(r'^collections/(?P<slug>[^.]+)$', reader_views.collection_page),
-    url(r'^community/?$', reader_views.community),
+    url(r'^community/?$', reader_views.community_page),
     url(r'^notifications/?$', reader_views.notifications),
     url(r'^updates/?$', reader_views.updates),
     url(r'^modtools/?$', reader_views.modtools),
