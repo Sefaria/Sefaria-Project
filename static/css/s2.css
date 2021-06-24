@@ -3,9 +3,6 @@ body {
   margin: 0;
   -webkit-text-size-adjust: 100%;
 }
-span.ref-link-color-1 {color: orange}
-span.ref-link-color-2 {color: #0cd200}
-span.ref-link-color-3 {color: blue}
 *::selection {
   background-color: #D2DCFF;
 }
@@ -9769,6 +9766,10 @@ a.topicLexiconTitle.contentText {
 #history-disabled-msg {
   text-align: center;
 }
+/* demo coloring of ref-link parentheses for quotation finder project*/
+span.ref-link-color-1 {color: orange}
+span.ref-link-color-2 {color: #0cd200}
+span.ref-link-color-3 {color: blue}
 /* start css code for loading bezel */
 .sourceLoader {
   margin-left: -34px;
