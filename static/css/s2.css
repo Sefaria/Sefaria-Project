@@ -455,10 +455,16 @@ input.noselect {
 .header .header-links {
   margin-top: 1px;
 }
-.header .library, .header .home, .header .my-profile, .header .notifications, .header .readerNavMenuSearchButton {
+.header .textLink,
+.header .home, 
+.header .my-profile,
+.header .notifications,
+.header .readerNavMenuSearchButton {
   cursor: pointer;
 }
-.header .library, .header .my-profile, .header .readerNavMenuSearchButton {
+.header .textLink,
+.header .my-profile,
+.header .readerNavMenuSearchButton {
   display: inline-block;
   color: #999;
   border: none;
@@ -818,25 +824,22 @@ div.interfaceLinks-row a {
   padding: 0 8px;
 }
 @media screen and (max-width: 700px) {
-  .header .interfaceLinks {
-    display: none;
+  .header .headerInner {
+    padding: 0 15px;
   }
-  .header .help {
-    display: none;
-  }
-  .header .profile-pic {
+  .header .interfaceLinks,
+  .header .help,
+  .header .login.loginLink,
+  .header .myProfileBox,
+  .header .home,
+  .header .donate {
     display: none;
   }
   .header .accountLinks .login{
     padding: 5px 5px;
   }
   .header .accountLinks{
-    -webkit-margin-end: 0px;
-    -moz-margin-end: 0px;
-    margin-inline-end: 0px;
-  }
-  .header .login:first-child{
-    margin:auto;
+    margin-inline-start: 5px;
   }
 }
 .header .my-profile, 
@@ -844,15 +847,11 @@ div.interfaceLinks-row a {
   display: inline-block;
   vertical-align: middle;
 }
-.header .library,
+.header .textLink,
 .header .my-profile {
   font-size: 24px;
   line-height: 24px;
   margin-top: 2px;
-}
-.header .library .fa {
-  position: relative;
-  top: 1px;
 }
 .header .notifications.unread::after {
   content:"";
@@ -1408,7 +1407,7 @@ div.interfaceLinks-row a {
   display: flex;
   flex-direction: row;
 }
-@media (max-width: 500px) {
+@media (max-width: 700px) {
   .sidebarLayout {
     flex-direction: column;
   }
