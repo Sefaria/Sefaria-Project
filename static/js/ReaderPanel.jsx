@@ -352,7 +352,6 @@ class ReaderPanel extends Component {
       navigationTopic: null,
       topicTitle: null,
       navigationCategories: null,
-
     });
   }
   setCollectionTag (tag) {

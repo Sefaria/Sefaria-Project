@@ -977,6 +977,9 @@ class ReaderApp extends Component {
     } else if (path === "/topics") {
       this.showTopics();
 
+    } else if (path.match(/^\/topics\/category\/[^\/]/)) {
+      this.openTopicCategory(path.slice(17));
+
     } else if (path.match(/^\/topics\/all\/[^\/]/)) {
       this.openAllTopics(path.slice(12));
 
@@ -1497,6 +1500,14 @@ class ReaderApp extends Component {
   openTopic(slug) {
     Sefaria.getTopic(slug, {annotate_time_period: true}).then(topic => {
       this.setSinglePanelState({ menuOpen: "topics", navigationTopic: slug, topicTitle: topic.primaryTitle });
+    });
+  }
+  openTopicCategory(slug) {
+    this.setSinglePanelState({ 
+      menuOpen: "topics",
+      navigationTopicCategory: slug,
+      navigationTopicTitle: Sefaria.topicTocCategoryTitle(slug), 
+      navigationTopic: null,
     });
   }
   openAllTopics(letter) {
