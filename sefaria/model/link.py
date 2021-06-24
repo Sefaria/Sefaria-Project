@@ -40,7 +40,7 @@ class Link(abst.AbstractMongoRecord):
         "first_comment_indexes", # Used when is_first_comment is True. List of the two indexes of the refs.
         "first_comment_section_ref", # Used when is_first_comment is True. First comment section ref.
         "inline_reference",  # dict with keys "data-commentator" and "data-order" to match an inline reference (itag)
-        "charLevelData",     # list of length 2. containing 2 dicts coresponding to the refs list, each dict consists of the following keys: ["startChar","endChar","versionTitle","language"]. *if one of the refs is a Pasuk the startChar and endChar keys are startWord and endWord.This attribute was created for the quotation finder
+        "charLevelData",     # list of length 2. Containing 2 dicts coresponding to the refs list, each dict consists of the following keys: ["startChar","endChar","versionTitle","language"]. *if one of the refs is a Pasuk the startChar and endChar keys are startWord and endWord. This attribute was created for the quotation finder
         "score"             # int. represents how "good"/accurate the link is. introduced for quotations finder
     ]
 
@@ -62,13 +62,13 @@ class Link(abst.AbstractMongoRecord):
 
         if hasattr(self, "charLevelData"):
             try:
-                assert type(self.charLevelData) is list, 'charLevelData attribute must be a list'
-                assert len(self.charLevelData) == 2, 'charLevelData list must be of length 2 like the length of the refs attribute'
-                assert type(self.charLevelData[0]) is dict, "charLevelData's data is stored in a dict for each ref in the refs being linked"
-                assert type(self.charLevelData[1]) is dict, "charLevelData's data is stored in a dict for each ref in the refs being linked"
+                assert type(self.charLevelData) is list
+                assert len(self.charLevelData) == 2
+                assert type(self.charLevelData[0]) is dict
+                assert type(self.charLevelData[1]) is dict
             except AssertionError:
-                raise InputError(f"Structure of the charLevelData in Link is wrong. link refs: {self.refs[0]} - {self.refs[1]}")
-                # return False
+                raise InputError(f'Structure of the charLevelData in Link is wrong. link refs: {self.refs[0]} - {self.refs[1]}. charLevelData should be a list of length 2 containing 2 dicts coresponding to the refs list, each dict consists of the following keys: ["startChar","endChar","versionTitle","language"]')
+            assert self.charLevelData[0]['versionTitle'] in [v['versionTitle'] for v in text.Ref(self.refs[0]).version_list()], 'Dictionaries in charLevelData should be in correspondence to the "refs" list'
         return True
 
     def _pre_save(self):
@@ -77,7 +77,6 @@ class Link(abst.AbstractMongoRecord):
             if self.refs != sorted(self.refs) and hasattr(self, 'charLevelData'):
                 self.charLevelData.reverse()
             self.refs = sorted(self.refs) #make sure ref order is deterministic
-            assert self.charLevelData[0]['versionTitle'] in [v['versionTitle'] for v in text.Ref(self.refs[0]).version_list()]
             samelink = Link().load({"refs": self.refs})
 
             if samelink:
