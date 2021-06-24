@@ -30,14 +30,27 @@ const PublicCollectionsPage = ({multiPanel, initialWidth}) => {
 
   useEffect(() => {
     Sefaria.getCollectionsList()
-        .then(d => sortCollectionList(d))
-        .then(d => setCollectionsList(d));
+      .then(d => sortCollectionList(d))
+      .then(d => setCollectionsList(d));
   });
 
   const sidebarModules = [
     multiPanel ? {type: "AboutCollections"} : {type: null},
     {type: "StayConnected"},
   ];
+
+  let enCollections, heCollections, enCollBox, heCollBox;  
+  if (collectionsList) {
+    enCollections = collectionsList.public.filter(c => !Sefaria.hebrew.isHebrew(c.name));
+    heCollections = collectionsList.public.filter(c => Sefaria.hebrew.isHebrew(c.name));
+
+    [enCollBox, heCollBox] = [enCollections, heCollections].map(coll => (
+      <ResponsiveNBox 
+        content={coll.map(item => 
+          <CollectionBlockListing data={item} key={item.name} />)}
+        initialWidth={initialWidth} />
+    ));
+  }
 
   return (
     <div className="readerNavMenu">
@@ -54,10 +67,16 @@ const PublicCollectionsPage = ({multiPanel, initialWidth}) => {
             <div className="collectionsList">
               { !!collectionsList ?
               (collectionsList.public.length ?
-                <ResponsiveNBox 
-                  content={collectionsList.public.map(item => 
-                    <CollectionBlockListing data={item} key={item.name} />)}
-                  initialWidth={initialWidth} />
+                (Sefaria.interfaceLang === "hebrew" ?
+                <>
+                  <div className="heCollections">{heCollBox}</div>
+                  <div className="enCollections">{enCollBox}</div>
+                </>
+                :
+                <>
+                  <div className="enCollections">{enCollBox}</div>
+                  <div className="heCollections">{heCollBox}</div>
+                </>)
                 : <InterfaceText>There are no public collections yet.</InterfaceText>)
               : <LoadingMessage /> }
             </div>
@@ -66,7 +85,8 @@ const PublicCollectionsPage = ({multiPanel, initialWidth}) => {
         </div>
         <Footer />
       </div>
-    </div>);
+    </div>
+  );
 }
 
 

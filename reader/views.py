@@ -188,7 +188,6 @@ def base_props(request):
             "profile_pic_url": profile.profile_pic_url,
             "is_history_enabled": profile.settings.get("reading_history", True),
             "following": profile.followees.uids,
-            "followRecommendations": profile.follow_recommendations(),
             "calendars": get_todays_calendar_items(**_get_user_calendar_params(request)),
             "notificationCount": profile.unread_notification_count(),
             "notifications": profile.recent_notifications().client_contents(),
@@ -207,7 +206,6 @@ def base_props(request):
             "profile_pic_url": "",
             "is_history_enabled": True,
             "following": [],
-            "followRecommendations": general_follow_recommendations(),
             "calendars": get_todays_calendar_items(**_get_user_calendar_params(request)),
             "notificationCount": 0,
             "notifications": [],
@@ -232,7 +230,6 @@ def base_props(request):
             "fontSize":      request.COOKIES.get("fontSize", 62.5),
         },
         "trendingTopics": trending_topics(days=7, ntags=5),
-        "community": get_community_page_items(language=request.interfaceLang),
         "_siteSettings": SITE_SETTINGS,
         "_debug": DEBUG,
     })
@@ -2930,6 +2927,19 @@ def follow_list_api(request, kind, uid):
     return jsonResponse(annotate_user_list(f.uids))
 
 
+def background_data_api(request):
+    """
+    API that bundles data which we want the client to prefetch, 
+    but should not block initial pageload.
+    """
+    language = request.GET.get("interfaceLang", request.interfaceLang)
+
+    data = {}
+    data.update(community_page_data(request, language=language))
+
+    return jsonResponse(data)
+
+
 @catch_error_as_json
 def texts_history_api(request, tref, lang=None, version=None):
     """
@@ -3636,14 +3646,29 @@ def home(request):
     return redirect("/texts")
 
 
-def community(request):
+def community(request, props={}):
     """
     Community Page
     """    
     title = _("Community") # TODO
     desc  = _("") # TODO
-    return menu_page(request, page="community", title=title, desc=desc)
+    props.update(community_page_data(request, language=request.interfaceLang))
+    return menu_page(request, page="community", props=props, title=title, desc=desc)
 
+
+def community_page_data(request, language="english"):
+    from sefaria.model.user_profile import UserProfile
+
+    data = {
+        "community": get_community_page_items(language=language)
+    }
+    if request.user.is_authenticated:
+        profile = UserProfile(user_obj=request.user)
+        data["followRecommendations"] = profile.follow_recommendations()
+    else:
+        data["followRecommendations"] = general_follow_recommendations()
+
+    return data
 
 @staff_member_required
 def community_preview(request):
@@ -3653,7 +3678,7 @@ def community_preview(request):
     date = request.GET.get("date", "5/23/21")
     community = get_community_page_items(date=date, language=request.interfaceLang)
 
-    return menu_page(request, page="community", props={"community": community, "communityPreview": date})
+    return community(request, props={"community": community, "communityPreview": date})
 
 
 @staff_member_required
@@ -3664,7 +3689,7 @@ def community_reset(request):
     date = request.GET.get("next", "5/23/21")
     community = get_community_page_items(date=date, language=request.interfaceLang, refresh=True)
 
-    return menu_page(request, page="community", props={"community": community, "communityPreview": date})
+    return community(request, props={"community": community, "communityPreview": date})
 
 
 def new_home_redirect(request):

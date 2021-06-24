@@ -600,13 +600,18 @@ class Test_normal_forms(object):
 
     def test_talmud_range_b_to_b(self):
         oref = Ref("Bava Metzia 20b-21b")
-        assert oref.normal() == "Bava Metzia 20b-21b"
-        assert oref.he_normal() == "בבא מציעא כ׳ ב-כ״א ב"
+        oref_capitalized = Ref("Bava Metzia 20B-21B")
+        assert oref.normal() == "Bava Metzia 20b-21b" == oref_capitalized.normal()
+        assert oref.he_normal() == "בבא מציעא כ׳ ב-כ״א ב" == oref_capitalized.he_normal()
 
     def test_talmud_segment_range(self):
         oref = Ref("Bava Metzia 20a:1-20b:1")
         assert oref.normal() == "Bava Metzia 20a:1-20b:1"
         assert oref.he_normal() == "בבא מציעא כ׳ א:א׳-כ׳ ב:א׳"
+
+    def test_talmud_aA_bB(self):
+        assert Ref("Berakhot 2a") == Ref("Berakhot 2A")
+        assert Ref("Berakhot 2B") == Ref("Berakhot 2B")
 
     def test_zohar_volume_range(self):
         oref = Ref("Zohar 1-2")

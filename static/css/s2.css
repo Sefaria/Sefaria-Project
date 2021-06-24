@@ -696,12 +696,12 @@ input.noselect {
   min-width: 150px;
   width: max-content;
 }
-.interface-hebrew .header .interfaceLinks .interfaceLinks-menu{
+.interface-hebrew .header .interfaceLinks .interfaceLinks-menu {
   left: 0px;
   min-width: 150px;
   width: max-content;
 }
-.header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header{
+.header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header {
   font-style: normal;
   font-weight: normal;
   font-size: 14px;
@@ -710,10 +710,10 @@ input.noselect {
   padding: 12px;
   border-bottom: 1px solid #CCCCCC;
 }
-.interface-english .header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header{
+.interface-english .header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header {
   font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
 }
-.interface-hebrew .header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header{
+.interface-hebrew .header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header {
   font-family: "Heebo", sans-serif;
 }
 .interfaceLinks-options {
@@ -733,7 +733,10 @@ input.noselect {
   padding: 5px;
   direction: ltr;
 }
-.header .interfaceLinks .interfaceLinks-menu.open{
+.header .interfaceLinks .interfaceLinks-option:hover {
+  background-color: var(--lighter-grey);
+}
+.header .interfaceLinks .interfaceLinks-menu.open {
   display: block;
 }
 .interface-hebrew .header .interfaceLinks .interfaceLinks-option.int-bi {
@@ -758,7 +761,7 @@ input.noselect {
   height: 23px;
 }
 .header .interfaceLinks .interfaceLinks-row:hover {
-   background-color: #EDEDEC;
+  background-color: var(--lighter-grey);
 }
 div.interfaceLinks-row a:hover {
   text-decoration: none;
@@ -876,6 +879,9 @@ div.interfaceLinks-row a {
 }
 .header .headerInner.mobile div {
   flex: 1;
+}
+.mobileHeaderCenter {
+  text-align: center;
 }
 .header .headerInner.mobile .mobileHeaderLanguageToggle {
   text-align: end;
@@ -1300,7 +1306,6 @@ div.interfaceLinks-row a {
   width: 100%;
   height: 100%;
   box-sizing: border-box;
-  z-index: 101;
 }
 .readerNavMenu .content,
 .homeFeedWrapper .content {
@@ -1546,10 +1551,6 @@ div.interfaceLinks-row a {
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
   border: none;
 }
-.navSidebar .newsletterSignUpBox .newsletterInput::placeholder {
-  font-style: normal;
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
 .navSidebarModule.wide {
   display: flex;
   margin-bottom: 0;
@@ -1697,7 +1698,7 @@ div.interfaceLinks-row a {
 }
 .singlePanel .readerNavMenu h1,
 .singlePanel .readerNavMenu h2.styledH1 {
-  margin-bottom: 15px;
+  margin-bottom: 10px;
 }
 .readerNavMenu h1 img {
   margin-inline-end: 9px;
@@ -2160,6 +2161,15 @@ a.navBlockTitle:hover {
 }
 .featuredSheet .navBlockDescription {
   margin-bottom: 12px;
+}
+.featuredSheetBottom {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+.featuredSheetDate {
+  color: var(--medium-grey);
+  font-size: 14px;
 }
 .communityPage .recentlyPublished {
   padding-top: 30px;
@@ -3158,6 +3168,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   height: 40px;
   font-size: 30px;
   color: #000;
+  margin-bottom: 5px;
   --english-font: var(--english-serif-font-family);
   --hebrew-font:  var(--hebrew-serif-font-family);
 }
@@ -3166,6 +3177,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .searchContent h1.hebrewQuery {
   font-family: var(--hebrew-serif-font-family);
+}
+.searchContent .searchTopLine {
+  margin-bottom: 40px;
+}
+.searchContent .searchResultCount {
+  color: var(--dark-grey);
 }
 .searchContent .searchTopMatter {
   position: relative;
@@ -3190,14 +3207,17 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-inline-end: 20px;
 }
 @media (max-width: 540px) {
+  .searchTopMatter .search-dropdown-button {
+    margin-inline-end:  15px;
+  }
   .searchTopMatter .search-dropdown-button,
   .searchTopMatter .dropdown-button {
-  font-size: 14px;
+  font-size: 16px;
   }
 }
 .searchTopMatter .search-dropdown-button.active {
   color: #000;
-  border-bottom: 4px solid #CCC;
+  border-bottom: 4px solid var(--medium-grey);
 }
 .searchContent .searchResultList {
   padding-top: 25px;
@@ -3473,6 +3493,44 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .dropdown-option-list tr.unselected .dropdown-option-check {
   display: none;
 }
+.searchContent .mobileSearchFilters {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  z-index: 1002;
+  background-color: var(--lightest-grey);
+}
+.mobileSearchFiltersHeader {
+  background-color: var(--lighter-grey);
+  padding: 20px 15px;
+  display: flex;
+  justify-content: space-between;
+  color:  var(--dark-grey);
+}
+.mobileSearchFiltersHeader .readerNavMenuCloseButton {
+  font-size: 45px;
+  color: var(--medium-grey);
+  height: 20px;
+  display: block;
+  line-height: 20px;
+}
+.mobileSearchFilters .searchFilters {
+  flex-grow:  1;
+  overflow-y: scroll;
+  padding:  20px 15px;
+}
+.mobileSearchFilters .toggleSet {
+  width: 100%;
+  margin: 10px 0 0 0;
+}
+.mobileSearchFiltersFooter {
+  padding: 15px;
+  border-top: 1px solid var(--light-grey);
+}
 .searchContent .result {
   padding-bottom: 20px;
 }
@@ -3533,7 +3591,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .result .version {
   color: #999;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  letter-spacing: 1px;
   font-size: 13px;
   margin: 15px 0 5px;
   display: flex;
@@ -3954,9 +4011,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .toggleSet {
   display: inline-block;
-  width: 48%;
+  width: 47%;
   margin: 2px auto 20px auto;
-  /*margin-left: 1px;*/
 }
 .toggleSet.aliyotTorah, .toggleSet .toggle-set-label {
   --english-font: var(--english-sans-serif-font-family);
@@ -3970,6 +4026,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin: 10px;
   letter-spacing: 1.5px;
 }
+.toggleSetToggleBox {
+  display:  flex;
+}
 .toggleOption {
   box-sizing: border-box;
   text-align: center;
@@ -3978,31 +4037,33 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding: 4px;
   height: 42px;
   line-height: 34px;
+  flex: 1;
   background-color: #FBFBFA;
   vertical-align: middle;
 }
-.toggleSet.aliyotTorah .toggleOption{
+.toggleSet.aliyotTorah .toggleOption {
   font-size: 14px;
 }
-.toggleSet.vowels .toggleOption.all span span, .toggleSet.vowels .toggleOption.partial span span{
-  /*line-height: 29px;*/
+.toggleSet.vowels .toggleOption.all span span, 
+.toggleSet.vowels .toggleOption.partial span span {
   position: relative;
   top: -3px;
 }
-.toggleSet.fontSize .toggleOption{
+.toggleSet.fontSize .toggleOption {
   color: black;
 }
-.toggleSet.biLayout .toggleOption img, .toggleSet.layout .toggleOption img{
+.toggleSet.biLayout .toggleOption img,
+.toggleSet.layout .toggleOption img {
   opacity: 0.5;
 }
 .toggleOption:first-child {
-    border-top-left-radius: 4px;
-    border-bottom-left-radius: 4px;
+  border-top-left-radius: 4px;
+  border-bottom-left-radius: 4px;
 }
 .toggleOption:last-child {
-    border-top-right-radius: 4px;
-    border-bottom-right-radius: 4px;
-    border-right: 1px solid #999;
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 4px;
+  border-right: 1px solid #999;
 }
 .toggleOption.on, .toggleOption:hover {
   background-color: white;
@@ -4060,6 +4121,25 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .toggleOption.larger {
   font-size: 22px;
+}
+.toggleSet.blueStyle {
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  border-radius: 6px;
+}
+.toggleSet.blueStyle .toggleOption {
+  border: none;
+  font-size: 16px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.toggleSet.blueStyle .toggleOption.on {
+  background-color:  var(--sefaria-blue);
+  color: white;
+  border-radius: 6px;
 }
 .readerOptionsPanel .line {
   margin: 20px 0;
@@ -6304,6 +6384,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-align: center;
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
+  border: none;
 }
 .button.disabled{
   border: 1px solid var(--light-grey);
@@ -6331,7 +6412,13 @@ a.button:hover {
   color: #333;
 }
 a.button.white {
-  color: #333;
+  color: var(--dark-grey);
+}
+.button.grey {
+  background-color:  var(--lighter-grey);
+  color: var(--dark-grey);
+  box-shadow: none;
+  border: none;
 }
 a.button.mini {
   padding: 5px;
@@ -6374,21 +6461,20 @@ a .button:hover {
 .button.extraSmall {
   border-radius: 6px;
   box-shadow: none;
-  color: #666;
-  border: 1px solid #CCC;
   margin: 0;
   padding: 5px 8px;
   height: 30px;
   line-height: 20px;
   letter-spacing: normal;
 }
-.button img.buttonIcon {
-  width: 16px;
-  height: 16px;
-  opacity: .4;
-  margin: 0 5px;
-  position: relative;
-  top: 2px;
+.button .buttonIcon {
+  margin-inline-end: 7px;
+  vertical-align: middle;
+}
+.button.small .buttonIcon {
+  height: 14px;
+  width: 14px;
+  margin-top: -3px;
 }
 .button.appButton {
   box-shadow: none;
@@ -6411,24 +6497,6 @@ a .button:hover {
   width: 18px;
   height: 18px;
   margin: 0;
-}
-::placeholder {
-   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
-   color: #666;
-}
-:-ms-input-placeholder {
-   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
-   color: #666;
-}
-.interface-hebrew ::placeholder {
-  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
-  font-size: 18px;
-  color: #666;
-}
-.interface-hebrew :-ms-input-placeholder {
-  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
-  font-size: 18px;
-  color: #666;
 }
 .lexicon-content{
   font-size: 15px;
@@ -6669,6 +6737,17 @@ a .button:hover {
 .singlePanel .collectionsList {
   margin-top: 0;
 }
+.collectionsList .enCollections,
+.collectionsList .heCollections {
+  margin-bottom: 50px;
+}
+.readerPanel .collectionsList .enCollections .gridBox,
+.readerPanel .collectionsList .enCollections .int-he {
+  direction: ltr;
+}
+.readerPanel .collectionsList .heCollections .gridBox {
+  direction: rtl;
+}
 .collectionListing {
   display: flex;
   flex-direction: row;
@@ -6717,7 +6796,6 @@ a .button:hover {
   content: "\200B"; /* zero-width space required so that chrome doesn't cause change in size of box on focus/blur */
   width: 0;
 }
-
 .publishBox {
   text-align: start;
   background-color: #EDEDEC;
@@ -6728,26 +6806,20 @@ a .button:hover {
   font-size: 16px;
   color: #666;
 }
-
 .publishBox .smallText .int-en, .publishBox .smallText .int-he.enInHe {
   color: #666;
 }
-
 .publishBox p.error {
   color: red;
 }
-
 .publishBox .error .react-tags,
 .publishBox textarea.error {
   border: 1px solid red;
 }
-
 .publishBox p strong {
   color: black;
   font-weight: 400;
 }
-
-
 .publishBox h3 {
   font-size: 22px;
   font-weight: 500;
@@ -6757,7 +6829,6 @@ a .button:hover {
   text-transform: none;
   text-align: start;
 }
-
 .publishBox hr {
   border-bottom: none;
   border-right: none;
@@ -6767,11 +6838,9 @@ a .button:hover {
   border-top: 1px solid #CCC;
   margin-top: 20px;
 }
-
 .publishBox .smallText {
   color: #666666
 }
-
 .publishBox textarea {
   width: 100%;
   height: 100%;
@@ -6791,8 +6860,6 @@ a .button:hover {
   font-style: normal;
   font-family: var(--english-sans-serif-font-family);
 }
-
-
 .publishBox .react-tags {
   position: relative;
   padding: 10px 10px 4px 10px;
@@ -6806,15 +6873,12 @@ a .button:hover {
   /* clicking anywhere will focus the input */
   cursor: text;
 }
-
 .publishBox .react-tags.is-focused {
   border-color: #B1B1B1;
 }
-
 .publishBox .react-tags__selected {
   display: inline;
 }
-
 .publishBox .react-tags__selected-tag {
   display: inline-block;
   box-sizing: border-box;
@@ -6829,7 +6893,6 @@ a .button:hover {
   font-size: inherit;
   line-height: inherit;
 }
-
 .publishBox .react-tags__search-input,
 .publishBox .react-tags__search-input:focus,
 .publishBox .react-tags__search-input:focus-visible {
@@ -6838,33 +6901,26 @@ a .button:hover {
   border: none;
   outline: none;
 }
-
 .publishBox .react-tags__search-input::placeholder {
   font-size: 16px;
   font-style: normal;
   font-family: var(--english-sans-serif-font-family);
 }
-
 body.interface-hebrew .publishBox .react-tags__search-input::placeholder,
 body.interface-hebrew .publishBox textarea::placeholder {
   font-family: var(--hebrew-sans-serif-font-family);
 
 }
-
-
-
 .publishBox .react-tags__selected-tag:after {
   content: '\2715';
   color: #AAA;
   margin-inline-start: 8px;
   font-size: 10px;
 }
-
 .publishBox .react-tags__selected-tag:hover,
 .publishBox .react-tags__selected-tag:focus {
   border-color: #B1B1B1;
 }
-
 .publishBox .react-tags__search {
   display: inline-block;
 
@@ -6875,23 +6931,18 @@ body.interface-hebrew .publishBox textarea::placeholder {
   /* prevent autoresize overflowing the container */
   max-width: 100%;
 }
-
 .publishBox .publishButton {
   margin: 18px 0;
   text-align: end;
 }
-
 .publishBox .publishButton .button.published {
   background-color: #EDEDEC;
   border: 1px solid #CCCCCC;
   color: #666666
 }
-
-
 .publishBox p {
   margin-bottom: 9px;
  }
-
 .publishBox .react-tags__suggestions ul {
   position: absolute;
   inset-inline-start: 0;  /* Note reduntant css rules below `body.interface-[hebrew|english]  .publishBox .react-tags__suggestions ul` */
@@ -6904,49 +6955,39 @@ body.interface-hebrew .publishBox textarea::placeholder {
   border-radius: 6px;
   min-width: 300px;
 }
-
 /* Reduntant given above `inset-inline-start` rule, but not standard on all browsers yet
 RMN: 2021-04-22 */
 body.interface-hebrew  .publishBox .react-tags__suggestions ul {
   right: 0;
 }
-
 /* Reduntant given above `inset-inline-start` rule, but not standard on all browsers yet
 RMN: 2021-04-22 */
 body.interface-english .publishBox .react-tags__suggestions ul {
   left: 0;
 }
-
 .publishBox .react-tags__suggestions li {
   border-bottom: none;
   padding: 6px 8px;
 }
-
 .publishBox .react-tags__suggestions li mark {
   text-decoration: none;
   background: none;
   font-weight: normal;
 }
-
 .publishBox .react-tags__suggestions li:hover {
   cursor: pointer;
   background: #eee;
 }
-
 .publishBox .react-tags__suggestions li.is-active {
   background: #eee;
 }
-
 .publishBox .react-tags__suggestions li.is-disabled {
   opacity: 0.5;
   cursor: auto;
 }
-
-
 .interface-hebrew .sheetMetaDataBox .authorStatement {
   direction: rtl;
 }
-
 .editorSidebarToggle {
   position: fixed;
   top: 150px;
@@ -7090,9 +7131,6 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 .collectionInvitationBox {
   padding-bottom: 20px;
 }
-.interface-hebrew .collectionInvitationBox input::placeholder {
-  font-family: "Heebo", sans-serif;
-}
 .collectionInvitationBox .button {margin: 0;}
 .collectionSheetInner {
   display: flex;
@@ -7224,13 +7262,16 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 .topicFilterBox {
   display: flex;
   align-items: center;
-  margin-bottom: 25px;
+  margin-bottom: 30px;
   background-color: var(--lighter-grey);
   border-radius: 100px;
   padding: 0 10px;
-  margin-top: -15px;
+  margin-top: 0;
   width: 285px;
   max-width: 100%;
+}
+.singlePanel .topicFilterBox {
+  margin-top: 20px;
 }
 .topicFilterBox .searchIcon {
   height: 18px;
@@ -7259,7 +7300,11 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 }
 .alphabeticalTopicsNav {
   color: var(--dark-grey);
-  margin-bottom: 25px;
+  margin-bottom: 5px;
+}
+.alphabeticalTopicsNav a {
+  display: inline-block;
+  margin-bottom: 10px;  
 }
 .alphabeticalTopicsNav a + a {
   margin-inline-start: 10px;
@@ -8219,6 +8264,52 @@ span.purim-emoji img{
 .sheetContent .sheetItem.segment .addedBy {
   margin-top: -20px;
 }
+
+
+
+.sheetContent .element-link {
+  display: inline;
+  position: relative;
+}
+
+.sheetContent .element-link .popup {
+  position: absolute;
+  left: 0;
+  display: flex;
+  align-items: center;
+  background-color: white;
+  padding: 6px 10px;
+  gap: 10px;
+  border-radius: 6px;
+  border: 1px solid #CCCCCC;
+  z-index: 1;
+  top: -50px;
+  pointer-events: auto;
+}
+
+.sheetContent .element-link .popup a {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding-right: 10px;
+  border-right: 1px solid lightgrey;
+}
+
+.sheetContent .element-link .popup button {
+  border: none;
+  background: transparent;
+}
+
+.sheetContent .element-link .popup button:hover {
+  color: rebeccapurple;
+  cursor: pointer;
+}
+
+.sheetContent .editorContent,
+.sheetContent .editorContent .segment {
+  cursor: text;
+}
+
 .interface-english .sheetContent .sheetItem.segment .addedBy {
   float: left;
 }
@@ -8441,6 +8532,11 @@ section.SheetSource .SheetOutsideBiText {
   padding-inline-end: 20px;
   box-shadow: 0px 1px 6px rgba(0, 0, 0, 0.25);
 }
+.sheetItem .SheetSource.segment,
+.sheetItem .SheetOutsideBiText.segment {
+cursor: pointer;
+}
+
 .sheetItem .SheetSource.selected.segment,
 .sheetItem .SheetOutsideBiText.selected.segment {
   border-top: 2px solid #CCE6FF;
@@ -8449,6 +8545,7 @@ section.SheetSource .SheetOutsideBiText {
   margin-top: 12px;
   margin-bottom: 12px;
   margin-inline-end: -2px;
+  cursor: text;
 }
 .sheetItem .SheetSource .he,
 .sheetItem .SheetSource .en,
@@ -8741,7 +8838,6 @@ section.SheetSource .SheetOutsideBiText {
   margin-top: 10px;
   height: 120px;
 }
-
 .interface-hebrew textarea,
 .interface-hebrew textarea::placeholder,
 .interface-hebrew input,
@@ -9858,7 +9954,7 @@ a.topicLexiconTitle.contentText {
   left: -10000px;
   margin-top: -6px;
   opacity: 0;
-  background-color: #fafafa;
+  background-color: #333333;
   border-radius: 4px;
   transition: opacity 0.75s;
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
@@ -9867,10 +9963,10 @@ a.topicLexiconTitle.contentText {
   padding: 10px;
 }
 .markButton i {
-  color: #737373
+  color: #CCCCCC
 }
 .markButton i.active {
-  color: #000;
+  color: #fff;
 }
 .editorHoverBox {
   position: fixed;

@@ -175,7 +175,9 @@ urlpatterns += [
     url(r'^api/user_stats/(?P<uid>.+)/?$', reader_views.user_stats_api),
     url(r'^api/site_stats/?$', reader_views.site_stats_api),
     url(r'^api/messages/?$', reader_views.messages_api),
-    url(r'^api/manuscripts/(?P<tref>.+)', reader_views.manuscripts_for_source)
+    url(r'^api/manuscripts/(?P<tref>.+)', reader_views.manuscripts_for_source),
+    url(r'^api/background-data', reader_views.background_data_api),
+
 ]
 
 # Source Sheets API
@@ -207,7 +209,6 @@ urlpatterns += [
     url(r'^api/sheets/all-sheets/(?P<limiter>\d+)/(?P<offset>\d+)$',  sheets_views.all_sheets_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)/export_to_drive$',            sheets_views.export_to_drive),
     url(r'^api/sheets/upload-image$',                                 sheets_views.upload_sheet_media),
-
 ]
 
 # Unlink Google Account Subscribe

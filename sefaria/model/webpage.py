@@ -202,6 +202,7 @@ class WebPage(abst.AbstractMongoRecord):
             r"hatanakh\.com\/((en|es)\/)?(articles|lessons)\?(page|arg|tanachRef(\[|%5B)\d+(\]|%5D))=",
             r"hatanakh\.com\/((en|es)\/)?(daily)?\/?\?(chapter|custom|gclid|parasha)=",
             r"hatanakh\.com\/es\/\?biblia=",
+            r"tabletmag\.com\/contributors\/",
         ]
         return "({})".format("|".join(bad_urls))
 
@@ -934,5 +935,9 @@ sites_data = [
         "domains": ["hatanakh.com"],
         "title_branding": ["התנך"],
         "normalization_rules": ["use https", "remove www"],
+    },
+    {
+        "name":"Tablet Magazine",
+        "domains": ["tabletmag.com"],
     }
 ]

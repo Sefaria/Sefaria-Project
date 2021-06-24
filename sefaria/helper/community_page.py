@@ -18,7 +18,7 @@ from sefaria.helper.topic import get_topic_by_parasha
 from sefaria.system.cache import django_cache, delete_cache_elem, cache_get_key
 
 
-@django_cache(timeout=1 * 60 * 60, cache_prefix="community_page")
+@django_cache(timeout=12 * 60 * 60, cache_prefix="community_page")
 def get_community_page_data(language="english"):
   urls = {
     "english": {

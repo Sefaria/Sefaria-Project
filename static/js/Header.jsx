@@ -11,6 +11,7 @@ import {
   ProfilePic,
   InterfaceLanguageMenu,
   InterfaceText,
+  LanguageToggleButton,
 } from './Misc';
 
 

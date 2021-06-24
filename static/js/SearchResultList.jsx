@@ -55,6 +55,7 @@ class SearchResultList extends Component {
           cachedQuery = Sefaria.search.getCachedQuery(args);
         }
       });
+      this.updateTotalResults();
     }
     componentDidMount() {
         this._executeAllQueries();
@@ -90,6 +91,12 @@ class SearchResultList extends Component {
       this.state.runningQueries[type] = ajax;
       this.state.isQueryRunning[type] = !!ajax;
       this.setState(this.state);
+    }
+    totalResults() {
+      return this.types.reduce((accum, type) => (this.state.totals[type] + accum), 0);
+    }
+    updateTotalResults() {
+      this.props.updateTotalResults(this.totalResults());
     }
     _typeObjDefault(defaultValue) {
       // es6 version of dict comprehension...
@@ -132,7 +139,7 @@ class SearchResultList extends Component {
     _executeAllQueries(props) {
       this.types.forEach(t => this._executeQuery(props, t));
     }
-    _getAggsToUpdate(filtersValid, aggregation_field_array, aggregation_field_lang_suffix_array, appliedFilterAggTypes, type, interfaceLang) {
+    _getAggsToUpdate(filtersValid, aggregation_field_array, aggregation_field_lang_suffix_array, appliedFilterAggTypes, type) {
       // Returns a list of aggregations type which we should request from the server. 
 
       // If there is only on possible filter (i.e. path for text) and filters are valid, no need to request again for any filter interactions
@@ -170,7 +177,10 @@ class SearchResultList extends Component {
                   pagesLoaded: extend(this.state.pagesLoaded, {[type]: 1}),
                   moreToLoad: extend(this.state.moreToLoad, {[type]: data.hits.total > this.querySize[type]})
                 };
-                this.setState(state, () => this.handleScroll());
+                this.setState(state, () => {
+                  this.updateTotalResults();
+                  this.handleScroll();
+                });
                 const filter_label = (request_applied && request_applied.length > 0) ? (' - ' + request_applied.join('|')) : '';
                 const query_label = props.query + filter_label;
                 Sefaria.track.event("Search", `Query: ${type}`, query_label, data.hits.total); 
@@ -303,10 +313,15 @@ class SearchResultList extends Component {
                 textTotal={this.state.totals["text"]}
                 sheetTotal={this.state.totals["sheet"]}
                 currentTab={tab} />
+              {Sefaria.multiPanel ? 
               <SearchSortBox
                 type={tab}
                 updateAppliedOptionSort={this.props.updateAppliedOptionSort}
-                sortType={searchState.sortType} />                
+                sortType={searchState.sortType} />
+              :
+              <SearchFilterButton
+                openMobileFilters={this.props.openMobileFilters}
+                nFilters={searchState.appliedFilters.length} />}             
             </div>
             <div className="searchResultList">
               { queryFullyLoaded || haveResults ? results : null }
@@ -337,7 +352,7 @@ const SearchTabs = ({clickTextButton, clickSheetButton, textTotal, sheetTotal, c
 
 
 const SearchTab = ({label, total, onClick, active}) => {
-  total = total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); // add commas
+  total = total.addCommas()
   const classes = classNames({"search-dropdown-button": 1, active});
 
   return (
@@ -385,6 +400,14 @@ SearchSortBox.propTypes = {
   updateAppliedOptionSort: PropTypes.func,
   sortType:                PropTypes.string,
 };
+
+
+const SearchFilterButton = ({openMobileFilters, nFilters}) => (
+  <div className={classNames({button: 1, extraSmall: 1, grey: !nFilters})} onClick={openMobileFilters}>
+    <InterfaceText>Filter</InterfaceText>
+    {!!nFilters ? <>&nbsp;({nFilters.toString()})</> : null}
+  </div>
+);
 
 
 export default SearchResultList;

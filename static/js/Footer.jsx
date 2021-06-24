@@ -40,7 +40,7 @@ class Footer extends Component {
     return (
       <footer id="footer" className="static sans-serif">
         <div id="footerInner">
-            <Section en="About" he="על אודות">
+            <Section en="About" he="אודות">
                 <Link href="/about" en="What is Sefaria?" he="מהי ספריא" />
                 <Link href="/help" en="Help" he="עזרה" />
                 <Link href="/team" en="Team" he="צוות" />

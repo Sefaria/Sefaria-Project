@@ -2329,6 +2329,10 @@ _media: {},
   getUserCollectionsForSheetFromCache(sheetID) {
     return Sefaria._userCollectionsForSheet[sheetID];
   },
+  getBackgroundData() {
+    return Sefaria._ApiPromise("/api/background-data?interfaceLang=" + Sefaria.interfaceLang)
+      .then(data => { Sefaria = extend(Sefaria, data); });
+  },
   calendarRef: function(calendarTitle) {
     const cal = Sefaria.calendars.filter(cal => cal.title.en === calendarTitle);
     return cal.length ? cal[0].ref : null;
@@ -2546,7 +2550,6 @@ Sefaria.unpackDataFromProps = function(props) {
       "profile_pic_url",
       "is_history_enabled",
       "following",
-      "followRecommendations",
 
       "calendars",
       "notificationCount",
@@ -2558,8 +2561,9 @@ Sefaria.unpackDataFromProps = function(props) {
       "multiPanel",
       "interruptingMessage",
 
-      "trendingTopics",
       "community",
+      "followRecommendations",
+      "trendingTopics",
       "_siteSettings",
       "_debug",
   ];
@@ -2568,6 +2572,8 @@ Sefaria.unpackDataFromProps = function(props) {
         Sefaria[element] = props[element];
       }
   }
+
+  Sefaria.getBackgroundData();
 };
 
 Sefaria.loadServerData = function(data){
@@ -2615,5 +2621,6 @@ Sefaria.setup = function(data) {
     Sefaria.search = new Search(Sefaria.searchIndexText, Sefaria.searchIndexSheet);
 };
 Sefaria.setup();
+
 
 export default Sefaria;
