@@ -3670,12 +3670,13 @@ def community_page_data(request, language="english"):
 
     return data
 
+
 @staff_member_required
 def community_preview(request):
     """
     Preview the community page as it will appear at some date in the future
     """
-    date = request.GET.get("date", "5/23/21")
+    date = request.GET.get("date", "7/25/21")
     community = get_community_page_items(date=date, language=request.interfaceLang)
 
     return community_page(request, props={"community": community, "communityPreview": date})
@@ -3686,7 +3687,7 @@ def community_reset(request):
     """
     Reset the cache of the community page content from Google sheet
     """
-    date = request.GET.get("next", "5/23/21")
+    date = request.GET.get("next", "7/25/21")
     community = get_community_page_items(date=date, language=request.interfaceLang, refresh=True)
 
     return community_page(request, props={"community": community, "communityPreview": date})
