@@ -792,19 +792,18 @@ class ReaderApp extends Component {
     }
   }
   setContainerMode() {
-    // Applies CSS classes to the React container and body so that the App can function as a header only on top of a static page.
+    // Applies CSS classes to the React container and body so that the App can function as a  
+    // header only on top of a static page.
     if (this.props.headerMode) {
       if (this.state.panels && this.state.panels.length) {
         $("#s2").removeClass("headerOnly");
         $("body").css({overflow: "hidden"})
-                  .removeClass("hasBannerMessage");
-        if (!this.props.multiPanel) {
-          // Hacky, needed because rendered html of Header doesn't differentiate multiPanel
-          $(".readerApp").removeClass("multiPanel").addClass("singlePanel");
-        }
+          .addClass("inApp")
+          .removeClass("hasBannerMessage");
       } else {
         $("#s2").addClass("headerOnly");
-        $("body").css({overflow: "auto"});
+        $("body").css({overflow: "auto"})
+          .removeClass("inApp");
       }
     }
   }

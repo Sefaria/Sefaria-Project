@@ -283,9 +283,9 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
   width: 100%;
   height: 100%;
 }
-.nochrome #s2 .headerNavSection a:not(.home),
-.nochrome #s2 .headerLinksSection,
-.nochrome #footerContainer {
+body:not(.inApp).nochrome #s2 .headerNavSection a:not(.home),
+body:not(.inApp).nochrome #s2 .headerLinksSection,
+body:not(.inApp).nochrome #footerContainer {
   display: none;
 }
 #bannerMessage {
@@ -440,7 +440,7 @@ input.noselect {
   color: #666;
   margin-inline-end: 30px;
   font-weight: 500;
-  line-height: 25px;
+  line-height: 26px;
   vertical-align: middle;
 }
 .headerInner .headerLinksSection {
