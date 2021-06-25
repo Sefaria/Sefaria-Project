@@ -574,10 +574,6 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
     }
     setSourceActive(true)
 
-    console.log(e)
-    console.log(activeSourceLangContent)
-    console.log(sourceActive)
-
   }
 
   const onBlur = (e) => {
@@ -1454,8 +1450,10 @@ const Link = ({ attributes, children, element }) => {
     }
 
     const xClicked = () => {
+        console.log(currentSlateRange)
+        Transforms.select(editor, currentSlateRange);
         editor.removeLink();
-        Transforms.collapse(editor);
+        // Transforms.collapse(editor);
     }
 
     const fixUrl = (s) => {
@@ -1711,21 +1709,49 @@ const HoverMenu = () => {
             <FormatButton editor={editor} format="bold"/>
             <FormatButton editor={editor} format="italic"/>
             <FormatButton editor={editor} format="underline"/>
+            <AddLinkButton/>
+
+
         </div>,
         root
     )
 };
 
+const AddLinkButton = () => {
+    const editor = useSlate();
+    const classes = {fa: 1};
+    classes["fa-link"] = 1
+
+    return (
+        <span className="hoverButton"
+              onMouseDown={event => {
+                  event.preventDefault();
+                  console.log(
+                      // ReactEditor.toDOMNode(editor,
+                          (Node.get(editor, editor.selection))
+                      // )
+
+                      )
+
+                  wrapLink(editor, "")
+                  const mouseenterEvent = new Event('mouseenter');
+                  // whateverElement.dispatchEvent(mouseoverEvent);
+              }}
+        >
+      <i className={classNames(classes)}/>
+    </span>
+    )
+}
+
 const FormatButton = ({format}) => {
     const editor = useSlate();
-
     const isActive = isFormatActive(editor, format);
     const iconName = "fa-" + format;
     const classes = {fa: 1, active: isActive};
     classes[iconName] = 1;
 
     return (
-        <span className="markButton"
+        <span className="hoverButton"
               onMouseDown={event => {
                   event.preventDefault();
                   toggleFormat(editor, format);
@@ -1949,18 +1975,7 @@ const SefariaEditor = (props) => {
         setValue(value)
 
     }
-
-    const beforeInput = event => {
-        switch (event.inputType) {
-            case 'formatBold':
-                return toggleFormat(editor, 'bold');
-            case 'formatItalic':
-                return toggleFormat(editor, 'italic')
-            case 'formatUnderline':
-                return toggleFormat(editor, 'underline')
-        }
-    };
-
+    
     const ensureInView = e => {
           /*
             Slate doesn't always scroll to content beyond the viewport -- this should fix that.
@@ -2122,7 +2137,6 @@ const SefariaEditor = (props) => {
                   onCut={onCutorCopy}
                   onCopy={onCutorCopy}
                   onBlur={onBlur}
-                  onDOMBeforeInput={beforeInput}
                 />
             </Slate>
         </div>

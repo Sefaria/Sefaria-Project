@@ -7952,7 +7952,7 @@ span.purim-emoji img{
   border-radius: 6px;
   border: 1px solid #CCCCCC;
   z-index: 1;
-  top: -50px;
+  top: -30px;
   pointer-events: auto;
 }
 
@@ -9651,13 +9651,13 @@ a.topicLexiconTitle.contentText {
   transition: opacity 0.75s;
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
-.markButton {
+.hoverButton {
   padding: 10px;
 }
-.markButton i {
+.hoverButton i {
   color: #CCCCCC
 }
-.markButton i.active {
+.hoverButton i.active {
   color: #fff;
 }
 .editorHoverBox {
