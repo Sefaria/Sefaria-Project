@@ -6358,6 +6358,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   background-color: #FBFBFA;
   height: 100%;
   width: 100%;
+  direction: initial;
 }
 #appLoading .loadingMessage {
   position: absolute;
@@ -6365,10 +6366,15 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   left: 50%;
   transform: translate(-50%, -50%);
 }
-#appLoading img {
+#appLoading img.int-en {
   width: 150px;
   height: 42px;
   margin-bottom: 6px;
+}
+#appLoading img.int-he {
+  width: 150px;
+  height: 49px;
+  margin-bottom: 6px; 
 }
 .emptyDesktop {
   margin-top: 200px;
