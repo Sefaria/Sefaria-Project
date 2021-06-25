@@ -1833,7 +1833,7 @@ _media: {},
         english: "The William Davidson Talmud",
         hebrew: "תלמוד מהדורת ויליאם דוידסון",
         englishAsEdition: "The William Davidson Edition",
-        hebrewAsEdition: "תלמוד מהדורת ויליאם דוידסון",
+        hebrewAsEdition: "מהדורת ויליאם דוידסון",
         link: "/william-davidson-talmud"
       }
     ];
