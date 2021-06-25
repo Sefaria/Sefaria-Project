@@ -456,13 +456,15 @@ input.noselect {
   margin-top: 1px;
 }
 .header .textLink,
-.header .home, 
+.header .home,
+.header .menuButton,
 .header .my-profile,
 .header .notifications,
 .header .readerNavMenuSearchButton {
   cursor: pointer;
 }
 .header .textLink,
+.header .menuButton,
 .header .my-profile,
 .header .readerNavMenuSearchButton {
   display: inline-block;
@@ -470,6 +472,18 @@ input.noselect {
   border: none;
   background: transparent;
   padding: 0;
+}
+.header .my-profile, 
+.header .notifications {
+  display: inline-block;
+  vertical-align: middle;
+}
+.header .textLink,
+.header .menuButton,
+.header .my-profile {
+  font-size: 24px;
+  line-height: 24px;
+  margin-top: 2px;
 }
 .header .searchBox {
   overflow: hidden;
@@ -531,7 +545,7 @@ input.noselect {
   width: 100%;
 }
 .header.mobile .ui-autocomplete {
-  width: 100%;
+  width: 100% !important;
 }
 .mobileNavMenu a,
 .mobileInterfaceLanguageToggle {
@@ -831,7 +845,7 @@ div.interfaceLinks-row a {
   .header .help,
   .header .login.loginLink,
   .header .myProfileBox,
-  .header .home,
+  .multiPanel .header .home,
   .header .donate {
     display: none;
   }
@@ -841,17 +855,6 @@ div.interfaceLinks-row a {
   .header .accountLinks{
     margin-inline-start: 5px;
   }
-}
-.header .my-profile, 
-.header .notifications {
-  display: inline-block;
-  vertical-align: middle;
-}
-.header .textLink,
-.header .my-profile {
-  font-size: 24px;
-  line-height: 24px;
-  margin-top: 2px;
 }
 .header .notifications.unread::after {
   content:"";
