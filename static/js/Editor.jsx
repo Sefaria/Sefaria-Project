@@ -1975,7 +1975,18 @@ const SefariaEditor = (props) => {
         setValue(value)
 
     }
-    
+
+    const beforeInput = event => {
+        switch (event.inputType) {
+            case 'formatBold':
+                return toggleFormat(editor, 'bold');
+            case 'formatItalic':
+                return toggleFormat(editor, 'italic')
+            case 'formatUnderline':
+                return toggleFormat(editor, 'underline')
+        }
+    };
+
     const ensureInView = e => {
           /*
             Slate doesn't always scroll to content beyond the viewport -- this should fix that.
@@ -2137,6 +2148,7 @@ const SefariaEditor = (props) => {
                   onCut={onCutorCopy}
                   onCopy={onCutorCopy}
                   onBlur={onBlur}
+                  onDOMBeforeInput={beforeInput}
                 />
             </Slate>
         </div>
