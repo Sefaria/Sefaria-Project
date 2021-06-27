@@ -10,7 +10,7 @@ const getApiData = (httpMethod, urlBegin, requestValues) => {
     */
     const requestKey = requestValues.map(value => JSON.stringify(value)).join("|");
     if (!apiData?.[httpMethod]?.[urlBegin]?.[requestKey]) {
-        console.error("Request not found in `apiData.js`. Maybe you forgot to include it in `api_map` of scripts/generateApiData.py?\nHTTP Method:", httpMethod, '\nURL Begin:',urlBegin, '\nrequestKey:',requestKey)
+        console.error("Request not found in `apiData.js`. Maybe you forgot to include it in `api_map` of scripts/generateApiData.py or forgot to include the handler in dataHandlerInputs in this file?\nHTTP Method:", httpMethod, '\nURL Begin:',urlBegin, '\nrequestKey:',requestKey)
     }
     return apiData[httpMethod][urlBegin][requestKey];
 };
@@ -18,8 +18,10 @@ const getApiData = (httpMethod, urlBegin, requestValues) => {
 const dataHandlerInputs = [
     {httpMethod: 'get', urlBegin: '/api/v2/index', urlEnd: 'title'},
     {httpMethod: 'get', urlBegin: '/api/texts/versions', urlEnd: 'title'},
-    {httpMethod: 'get', urlBegin: '/api/texts', urlEnd: 'ref', params: ['context']},
-    {httpMethod: 'get', urlBegin: '/api/v2/topics', urlEnd: 'lot'},
+    {httpMethod: 'get', urlBegin: '/api/texts', urlEnd: 'ref'},
+    {httpMethod: 'get', urlBegin: '/api/v2/topics', urlEnd: 'topic'},
+    {httpMethod: 'get', urlBegin: '/api/bulktext', urlEnd: 'refs'},
+    {httpMethod: 'get', urlBegin: '/api/v2/sheets/bulk', urlEnd: 'sheets'},
 ];
 export const handlers = [
     rest.post('/api/subscribe/:email', (req, res, ctx) => {
@@ -33,12 +35,11 @@ export const handlers = [
         }
         return res(ctx.json({status: "ok"}))
     }),
-].concat(dataHandlerInputs.map(({httpMethod, urlBegin, urlEnd, params=[]}) => {
+].concat(dataHandlerInputs.map(({httpMethod, urlBegin, urlEnd}) => {
     return rest[httpMethod](`${urlBegin}/:${urlEnd}`, (req, res, ctx) => {
         const paramObj = {};
         let hasParamValues = false;
-        for (let param of params) {
-            const paramValue = req.url.searchParams.get(param);
+        for (let [param, paramValue] of req.url.searchParams) {
             if (typeof paramValue != 'undefined') {
                 paramObj[param] = paramValue;
                 hasParamValues = true;
