@@ -1,4 +1,5 @@
 import React from 'react';
+import ReactDOM  from 'react-dom';
 import classNames from 'classnames';
 import extend from 'extend';
 import PropTypes from 'prop-types';

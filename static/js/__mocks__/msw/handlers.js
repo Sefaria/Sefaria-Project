@@ -19,6 +19,7 @@ const dataHandlerInputs = [
     {httpMethod: 'get', urlBegin: '/api/v2/index', urlEnd: 'title'},
     {httpMethod: 'get', urlBegin: '/api/texts/versions', urlEnd: 'title'},
     {httpMethod: 'get', urlBegin: '/api/texts', urlEnd: 'ref', params: ['context']},
+    {httpMethod: 'get', urlBegin: '/api/v2/topics', urlEnd: 'lot'},
 ];
 export const handlers = [
     rest.post('/api/subscribe/:email', (req, res, ctx) => {
