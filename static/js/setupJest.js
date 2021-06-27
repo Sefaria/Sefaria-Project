@@ -6,7 +6,7 @@ import { server } from './__mocks__/msw/server';
 
 beforeAll(() => {
     server.listen();
-    setupSefaria(getPropsByUrl('/texts', ['']));
+    setupSefaria(getPropsByUrl('/texts', ''));
 });
 afterEach(() => server.resetHandlers());
 afterAll(() => server.close());

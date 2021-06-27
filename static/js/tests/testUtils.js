@@ -11,7 +11,11 @@ const addScriptToBody = () => {
     body.appendChild(script);
 }
 
-export const getPropsByUrl = (urlBegin, requestValues) => {
+export const getPropsByUrl = (urlBegin, urlEnd, params) => {
+    const requestValues = [urlEnd];
+    if (params) {
+        requestValues.push(params);
+    }
     const requestKey = requestValues.map(value => JSON.stringify(value)).join("|");
     if (!propsData?.[urlBegin]?.[requestKey]) {
         console.error("Request not found in `propsData.js`. Maybe you forgot to include it in `html_view_map` of scripts/generateApiData.py?\nURL Begin:", urlBegin, '\nrequestKey:',requestKey)
@@ -24,8 +28,8 @@ export const setupSefaria = (props) => {
     Sefaria.setup(DJANGO_DATA_VARS);
 };
 
-export const renderAppByUrl = (urlBegin, requestValues) => {
-    const props = getPropsByUrl(urlBegin, requestValues);
+export const renderAppByUrl = (urlBegin, urlEnd, params) => {
+    const props = getPropsByUrl(urlBegin, urlEnd, params);
     setupSefaria(props);
     addScriptToBody();
     render(<ReaderApp {...props}/>);

@@ -16,7 +16,7 @@ it('filters', async () => {
     const topSheet = "Ruth the Moabite";
     const bottomRef = "Leviticus 8:23";
     const bottomSheet = "בנות לוט";
-    renderAppByUrl('/topics', ['lot']);
+    renderAppByUrl('/topics', 'lot');
     await waitFor(() => screen.getByRole('heading', {name: "Lot"}));
     await waitFor(() => screen.getByText(topRef));
     filterByText(nonsenseTextToFilterBy);
