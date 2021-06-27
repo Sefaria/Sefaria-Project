@@ -450,7 +450,7 @@ const FilterableList = ({
         </div>
       </div> : null }
       { !oldDesign && showFilterHeader ? (
-        <div className="filter-bar-new">
+        <div className="filter-bar-new" data-testid="filter-header">
           <div className="filter-input">
             <ReaderNavigationMenuSearchButton />
             <input
