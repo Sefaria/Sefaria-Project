@@ -25,12 +25,16 @@ api_map = {
             {'url_end': 'Job.1'},
             {'url_end': 'Orot,_Lights_from_Darkness,_Land_of_Israel.1'}
         ],
-        'api/v2/topics': [{'url_end': 'lot'}],
+        'api/v2/topics': [{'url_end': 'lot'}, {'url_end': 'haran'}, {'url_end': 'biblical-figures'}, {'url_end': 'achan'}],
         'api/bulktext': [
             {'url_end': 'Genesis%2013:10-11|Genesis%2019:30-37|Genesis%2019:16-29|Genesis%2013:5-9|Genesis%2019:1-4|Genesis%2014:12-14|Deuteronomy%2023:4-7|Shevuot%2035b:11|Sifrei%20Devarim%2043:11|Nazir%2023a:14-23b:2|Bereishit%20Rabbah%2050:11|Bava%20Kamma%2093a:2|Bava%20Metzia%2086b:20|Jerusalem%20Talmud%20Berakhot%204b:1|Genesis%2013:1|Genesis%2013:12-13|Genesis%2019:5-15|Genesis%2019:38|Genesis%2012:4-5|Genesis%2011:31|Genesis%2014:15-16|Genesis%2024:12-14|Genesis%2039:8|Genesis%2038:27-29|Ruth%204:13-18|Rashi%20on%20Genesis%2024:39:1|Ruth%204:22|Jerusalem%20Talmud%20Sanhedrin%2054b:3|Deuteronomy%2025:5-10|Leviticus%208:23'},
+            {'url_end': 'Genesis 11:27|Midrash Lekach Tov, Genesis 11:28:1|Midrash Aggadah, Genesis 11:28:1|Targum Jonathan on Genesis 11:28|Shenei Luchot HaBerit, Aseret HaDibrot, Pesachim, Matzah Ashirah 3:122|Bereishit Rabbah 38:13|Jerusalem Talmud Kiddushin 9b:1|Midrash Tehillim 109:8'},
+            {'url_end': 'Joshua 7:19-22|Joshua 7:1|Joshua 7:11|Joshua 7:15-16|Pirkei DeRabbi Eliezer 38:15-16|Midrash Tehillim 147:3|Vayikra Rabbah 9:1|Radak on Joshua 7:19:1|Bamidbar Rabbah 23:6|Midrash Tanchuma, Vayeshev 2:8|Jerusalem Talmud Sanhedrin 27b:5-28a:1|Shem MiShmuel, Nitzavim 2:5|Radak on Joshua 7:13:2|Sefer Kuzari 2:58|Pri Tzadik, Shushan Purim 2:1|Pri Tzadik, Tetzaveh 12:2'},
         ],
         'api/v2/sheets/bulk': [
             {'url_end': '3131|1656|5579|5605|7205|5919|11522|11215|11464|11202|11666|11671|12895|14168|85333|86693|97134|110390|111098|113155|127558|136364|137039|199513|199830|217117|234908|242711|270504|270892|271596|273919|275220|275471|276482|277508|278367|293015|306134'},
+            {'url_end': '206083|279819|298330'},
+            {'url_end': '94938|107311|177397|246457|257244'},
         ]
     }
 }
