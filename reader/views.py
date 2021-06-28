@@ -224,6 +224,7 @@ def base_props(request):
             "layoutTanakh":  request.COOKIES.get("layoutTanakh", "segmented"),
             "aliyotTorah":   request.COOKIES.get("aliyotTorah", "aliyotOff"),
             "vowels":        request.COOKIES.get("vowels", "all"),
+            "punctuationTalmud": request.COOKIES.get("punctuationTalmud", "punctuationOn"),
             "biLayout":      request.COOKIES.get("biLayout", "stacked"),
             "color":         request.COOKIES.get("color", "light"),
             "fontSize":      request.COOKIES.get("fontSize", 62.5),
