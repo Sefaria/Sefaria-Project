@@ -6,6 +6,7 @@ import Sefaria from '../sefaria/sefaria';
 import DJANGO_DATA_VARS from '../__mocks__/data/data';
 
 const addScriptToBody = () => {
+    if (document.getElementsByTagName('script').length > 0) { return; }
     const body = document.getElementsByTagName('body')[0]
     const script = document.createElement('script');
     body.appendChild(script);

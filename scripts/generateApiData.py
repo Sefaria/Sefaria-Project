@@ -52,7 +52,10 @@ api_map = {
             {'url_end': 'Jeremiah.8'},
             {'url_end': 'Jeremiah.9'},
         ],
-        'api/v2/topics': [{'url_end': 'lot'}, {'url_end': 'haran'}, {'url_end': 'biblical-figures'}, {'url_end': 'achan'}, {'url_end': 'parashat-tzav'}],
+        'api/v2/topics': [
+            {'url_end': 'lot'}, {'url_end': 'haran'}, {'url_end': 'biblical-figures'}, {'url_end': 'achan'}, {'url_end': 'parashat-tzav'},
+            {'url_end': 'rashi', 'params': {"with_links":"1","annotate_links":"1","with_refs":"1","group_related":"1","annotate_time_period":"1","ref_link_type_filters":"popular-writing-of","with_indexes":"1"}}
+        ],
         'api/bulktext': [
             {'url_end': 'Genesis%2013:10-11|Genesis%2019:30-37|Genesis%2019:16-29|Genesis%2013:5-9|Genesis%2019:1-4|Genesis%2014:12-14|Deuteronomy%2023:4-7|Shevuot%2035b:11|Sifrei%20Devarim%2043:11|Nazir%2023a:14-23b:2|Bereishit%20Rabbah%2050:11|Bava%20Kamma%2093a:2|Bava%20Metzia%2086b:20|Jerusalem%20Talmud%20Berakhot%204b:1|Genesis%2013:1|Genesis%2013:12-13|Genesis%2019:5-15|Genesis%2019:38|Genesis%2012:4-5|Genesis%2011:31|Genesis%2014:15-16|Genesis%2024:12-14|Genesis%2039:8|Genesis%2038:27-29|Ruth%204:13-18|Rashi%20on%20Genesis%2024:39:1|Ruth%204:22|Jerusalem%20Talmud%20Sanhedrin%2054b:3|Deuteronomy%2025:5-10|Leviticus%208:23'},
             {'url_end': 'Genesis 11:27|Midrash Lekach Tov, Genesis 11:28:1|Midrash Aggadah, Genesis 11:28:1|Targum Jonathan on Genesis 11:28|Shenei Luchot HaBerit, Aseret HaDibrot, Pesachim, Matzah Ashirah 3:122|Bereishit Rabbah 38:13|Jerusalem Talmud Kiddushin 9b:1|Midrash Tehillim 109:8'},
@@ -69,7 +72,7 @@ api_map = {
     }
 }
 html_view_map = {
-    'topics': [{'url_end': 'lot'}, {'url_end': 'parashat-tzav'}],
+    'topics': [{'url_end': 'lot'}, {'url_end': 'parashat-tzav'}, {'url_end': 'rashi'}],
     'texts': [{'url_end': ''}]
 }
 

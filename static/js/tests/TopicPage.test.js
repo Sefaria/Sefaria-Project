@@ -102,3 +102,18 @@ describe('parasha topic', () => {
         }
     });
 });
+
+describe('author topic', () => {
+    it('has indexes listed', async () => {
+        renderAppByUrl('/topics', 'rashi');
+        await waitFor(() => screen.getByRole('heading', {name: "Rashi"}));
+        await waitFor(() => screen.getByText('Works on Sefaria'));
+        userEvent.click(screen.getByText('Rashi on Tanakh'));
+        await waitFor(() => screen.getByRole('heading', {name: /Rashi/}));
+    });
+
+    it('has lived', async () => {
+        renderAppByUrl('/topics', 'rashi');
+        await waitFor(() => screen.getByText('Lived'));
+    });
+});
