@@ -124,6 +124,9 @@ static/sheetrank.json
 
 /random_files
 
+# JEST MOCK DATA #
+/static/js/__mocks__/data
+
 # Miscellaneous #
 #################
 /dafChat/deploy/dafchat/valuesGeneration/_generatedHelmValues.yaml
