@@ -1,6 +1,6 @@
 import { render, waitFor, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { renderAppByUrl } from './testUtils';
+import { renderAppByUrl, waitForLinkDot } from './testUtils';
 
 const lotTopRef = "Genesis 13:10-11";
 
@@ -68,5 +68,5 @@ it('can render parasha topic', async () => {
     renderAppByUrl('/topics', 'parashat-tzav');
     await waitFor(() => screen.getByText("Leviticus 7:11-12"));
     userEvent.click(screen.getByText("Read the Portion"));
-    await waitFor(() => screen.getAllByTitle(/Connections Available/))
+    await waitForLinkDot();
 });

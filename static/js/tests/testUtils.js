@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react';
+import { render, waitFor, screen } from '@testing-library/react';
 import { ReaderApp } from '../ReaderApp';
 import { propsData } from '../__mocks__/data/propsData';
 import Sefaria from '../sefaria/sefaria';
@@ -34,3 +34,5 @@ export const renderAppByUrl = (urlBegin, urlEnd, params) => {
     addScriptToBody();
     render(<ReaderApp {...props}/>);
 };
+
+export const waitForLinkDot = () => waitFor(() => screen.getAllByTitle(/Connections Available/));
