@@ -68,4 +68,5 @@ it('can render parasha topic', async () => {
     renderAppByUrl('/topics', 'parashat-tzav');
     await waitFor(() => screen.getByText("Leviticus 7:11-12"));
     userEvent.click(screen.getByText("Read the Portion"));
+    await waitFor(() => screen.getAllByTitle(/Connections Available/))
 });

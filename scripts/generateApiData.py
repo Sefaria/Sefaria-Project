@@ -15,15 +15,31 @@ default_api_params = {
         'api/texts': {'commentary': '0', 'context': '1', 'pad': '0', 'wrapLinks': '1', 'wrapNamedEntities': '1', 'multiple': '0'},
         'api/v2/topics': {"with_links":"1","annotate_links":"1","with_refs":"1","group_related":"1","annotate_time_period":"1","ref_link_type_filters":"about|popular-writing-of","with_indexes":"1"},
         'api/bulktext': {"asSizedString":"true","minChar":"500","maxChar":"600"},
+        'api/related': {"with_sheet_links": "1"},
     }
 }
 api_map = {
     'get': {
-        'api/v2/index': [{'url_end': 'Job'}, {'url_end': 'Orot'}],
+        'api/v2/index': [{'url_end': 'Job'}, {'url_end': 'Orot'}, {'url_end': 'Leviticus'}],
         'api/texts/versions': [{'url_end': 'Job.1'}, {'url_end': 'Orot,_Lights_from_Darkness,_Land_of_Israel.1'}],
         'api/texts': [
             {'url_end': 'Job.1'},
-            {'url_end': 'Orot,_Lights_from_Darkness,_Land_of_Israel.1'}
+            {'url_end': 'Orot,_Lights_from_Darkness,_Land_of_Israel.1'},
+            {'url_end': 'Leviticus.6.1-8.36'},
+            {'url_end': 'Leviticus.6.1-23'},
+            {'url_end': 'Leviticus.8.1-36'},
+            {'url_end': 'Leviticus.5'},
+            {'url_end': 'Leviticus.6'},
+            {'url_end': 'Leviticus.7'},
+            {'url_end': 'Leviticus.8'},
+            {'url_end': 'Leviticus.9'},
+        ],
+        'api/related': [
+            {'url_end': 'Leviticus.5'},
+            {'url_end': 'Leviticus.6'},
+            {'url_end': 'Leviticus.7'},
+            {'url_end': 'Leviticus.8'},
+            {'url_end': 'Leviticus.9'},
         ],
         'api/v2/topics': [{'url_end': 'lot'}, {'url_end': 'haran'}, {'url_end': 'biblical-figures'}, {'url_end': 'achan'}, {'url_end': 'parashat-tzav'}],
         'api/bulktext': [
@@ -73,7 +89,7 @@ for http_method, url_map in api_map.items():
     for url_begin, request_list in url_map.items():
         curr_http_method_dict["/" + url_begin] = get_response_dict(http_method, url_begin, request_list)
 
-with open('static/js/__mocks__/msw/apiData.js', 'w') as fout:
+with open('static/js/__mocks__/data/apiData.js', 'w') as fout:
     fout.write(f"export const apiData = {json.dumps(api_data, ensure_ascii=False, separators=(',', ':'))}")
 
 # PROPS
@@ -81,11 +97,11 @@ with open('static/js/__mocks__/msw/apiData.js', 'w') as fout:
 for url_begin, request_list in html_view_map.items():
     props_data["/" + url_begin] = get_response_dict('get', url_begin, request_list, 'onlyProps=1')
 
-with open('static/js/__mocks__/msw/propsData.js', 'w') as fout:
+with open('static/js/__mocks__/data/propsData.js', 'w') as fout:
     fout.write(f"export const propsData = {json.dumps(props_data, ensure_ascii=False, separators=(',', ':'))}")
 
 # DATA.JS
 
 data_js_response = requests.get(f'{SERVER}/data.js')
-with open('static/js/__mocks__/msw/data.js', 'w') as fout:
+with open('static/js/__mocks__/data/data.js', 'w') as fout:
     fout.write(data_js_response.text + f"\nexport default DJANGO_DATA_VARS;")

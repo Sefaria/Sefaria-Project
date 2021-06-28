@@ -125,7 +125,7 @@ static/sheetrank.json
 /random_files
 
 # JEST MOCK DATA #
-/static/js/__mocks__/data
+static/js/__mocks__/data
 
 # Miscellaneous #
 #################

@@ -1,9 +1,9 @@
 import React from 'react';
 import { render } from '@testing-library/react';
 import { ReaderApp } from '../ReaderApp';
-import { propsData } from '../__mocks__/msw/propsData';
+import { propsData } from '../__mocks__/data/propsData';
 import Sefaria from '../sefaria/sefaria';
-import DJANGO_DATA_VARS from '../__mocks__/msw/data';
+import DJANGO_DATA_VARS from '../__mocks__/data/data';
 
 const addScriptToBody = () => {
     const body = document.getElementsByTagName('body')[0]
