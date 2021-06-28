@@ -185,7 +185,7 @@ def base_props(request):
             "full_name": profile.full_name,
             "profile_pic_url": profile.profile_pic_url,
             "is_history_enabled": profile.settings.get("reading_history", True),
-            "translationLanguagePreference": profile.settings.get("translation_language_preference", None),
+            "translationLanguagePreference": request.translation_language_preference,
             "following": profile.followees.uids,
             "calendars": get_todays_calendar_items(**_get_user_calendar_params(request)),
             "notificationCount": profile.unread_notification_count(),
@@ -204,7 +204,7 @@ def base_props(request):
             "full_name": "",
             "profile_pic_url": "",
             "is_history_enabled": True,
-            "translationLanguagePreference": request.COOKIES.get("translation_language_preference", None),
+            "translationLanguagePreference": request.translation_language_preference,
             "following": [],
 
             "calendars": get_todays_calendar_items(**_get_user_calendar_params(request)),
@@ -3613,6 +3613,7 @@ def account_settings(request):
         'user': request.user,
         'profile': profile,
         'lang_names_and_codes': zip([Locale(lang).languages[lang].capitalize() for lang in SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES']], SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES']), 
+        'translation_language_preference': (profile is not None and profile.settings.get("translation_language_preference", None)) or request.COOKIES.get("translation_language_preference", None)
     })
 
 
