@@ -1682,9 +1682,6 @@ h1 .languageToggle .he {
   font-weight: 300;
   color: #666;
   margin-bottom: 20px;
-  /* letter-spacing: 2px; */
-  /* height: 16px; */
-  /* line-height: 16px; */
 }
 .readerPanel h2 .en, .readerPanel h3 .en {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
@@ -3201,10 +3198,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   align-items: flex-start;
   align-content: flex-start;
 }
-.interface-hebrew .searchContent .searchFilterCategoryBox,
-.interface-hebrew .searchContent .searchFilterBookBox {
-  /*float: right;*/
-}
 .searchContent .result {
   border-bottom: thin solid #eee;
   padding-bottom: 12px;
@@ -3709,7 +3702,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: inline-block;
   width: 48%;
   margin: 2px auto 20px auto;
-  /*margin-left: 1px;*/
 }
 .toggleSet.aliyotTorah, .toggleSet .toggle-set-label {
   --english-font: var(--english-sans-serif-font-family);
@@ -6010,14 +6002,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin: 0 2px 6px 2px;
   cursor: pointer;
   font-size: 16px;
-  letter-spacing: 0.1em;
   box-sizing: border-box;
   line-height: 19px;
   text-align: center;
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
-
 a.button {
   color: white;
 }
