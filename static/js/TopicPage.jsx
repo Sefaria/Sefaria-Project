@@ -22,6 +22,8 @@ import {
   FilterableList,
   ToolTipped,
   SimpleLinkedBlock,
+  EnglishText,
+  HebrewText,
 } from './Misc';
 import Footer from './Footer';
 import { useIncrementalLoad } from './Hooks';
@@ -274,8 +276,10 @@ const TopicHeader = ({
        {topicData && topicData.ref ?
          <a href={`/${topicData.ref.url}`} className="resourcesLink blue">
            <img src="/static/img/book-icon-black.svg" alt="Book Icon" />
-           <span className="int-en">{ topicData.parasha ? Sefaria._('Read the Portion') : topicData.ref.en }</span>
-           <span className="int-he">{ topicData.parasha ? Sefaria._('Read the Portion') : norm_hebrew_ref(topicData.ref.he) }</span>
+           <InterfaceText>
+             <EnglishText>{topicData.parasha ? 'Read the Portion' : topicData.ref.en}</EnglishText>
+             <HebrewText>{topicData.parasha ? Sefaria._('Read the Portion') : norm_hebrew_ref(topicData.ref.he)}</HebrewText>
+           </InterfaceText>
          </a>
        : null}
        {topicData?.indexes?.length ?

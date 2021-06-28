@@ -63,3 +63,9 @@ it('can navigate to biblical figures', async () => {
     await waitFor(() => screen.getByRole('heading', {name: "Achan"}));
     await waitFor(() => screen.getByText(achanTopRef));
 });
+
+it('can render parasha topic', async () => {
+    renderAppByUrl('/topics', 'parashat-tzav');
+    await waitFor(() => screen.getByText("Leviticus 7:11-12"));
+    userEvent.click(screen.getByText("Read the Portion"));
+});
