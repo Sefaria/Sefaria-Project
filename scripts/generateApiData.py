@@ -20,7 +20,7 @@ default_api_params = {
 }
 api_map = {
     'get': {
-        'api/v2/index': [{'url_end': 'Job'}, {'url_end': 'Orot'}, {'url_end': 'Leviticus'}],
+        'api/v2/index': [{'url_end': 'Job'}, {'url_end': 'Orot'}, {'url_end': 'Leviticus'}, {'url_end': 'Jeremiah'}],
         'api/texts/versions': [{'url_end': 'Job.1'}, {'url_end': 'Orot,_Lights_from_Darkness,_Land_of_Israel.1'}],
         'api/texts': [
             {'url_end': 'Job.1'},
@@ -33,6 +33,13 @@ api_map = {
             {'url_end': 'Leviticus.7'},
             {'url_end': 'Leviticus.8'},
             {'url_end': 'Leviticus.9'},
+            {'url_end': 'Jeremiah.7.21-8.3'},
+            {'url_end': 'Jeremiah.7.21-34'},
+            {'url_end': 'Jeremiah.8.1-3'},
+            {'url_end': 'Jeremiah.6'},
+            {'url_end': 'Jeremiah.7'},
+            {'url_end': 'Jeremiah.8'},
+            {'url_end': 'Jeremiah.9'},
         ],
         'api/related': [
             {'url_end': 'Leviticus.5'},
@@ -40,6 +47,10 @@ api_map = {
             {'url_end': 'Leviticus.7'},
             {'url_end': 'Leviticus.8'},
             {'url_end': 'Leviticus.9'},
+            {'url_end': 'Jeremiah.6'},
+            {'url_end': 'Jeremiah.7'},
+            {'url_end': 'Jeremiah.8'},
+            {'url_end': 'Jeremiah.9'},
         ],
         'api/v2/topics': [{'url_end': 'lot'}, {'url_end': 'haran'}, {'url_end': 'biblical-figures'}, {'url_end': 'achan'}, {'url_end': 'parashat-tzav'}],
         'api/bulktext': [

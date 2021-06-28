@@ -677,7 +677,7 @@ const TopicSideSection = ({ title, children, hasMore }) => {
 }
 
 const ReadingsComponent = ({ parashaData, tref }) => (
-  <div className="readings link-section">
+  <div className="readings link-section" data-testid="readings-component">
     <h2>
       <InterfaceText text={{en:"Readings", he:"פרשיות והפטרות"}}  />
     </h2>
@@ -692,8 +692,8 @@ const ReadingsComponent = ({ parashaData, tref }) => (
     <div className="sectionTitleText"><InterfaceText text={{en:"Haftarah", he:"הפטרה"}}/></div>
     <div className="haftarot">
     {
-      parashaData.haftarah.map(h => (
-        <a href={'/' + h.url} className="contentText" key={h.url}>
+      parashaData.haftarah.map((h, i) => (
+        <a href={'/' + h.url} className="contentText" key={h.url} data-testid={`readings-haftarah-link-${i}`}>
           <InterfaceText text={{en:h.displayValue.en, he:norm_hebrew_ref(h.displayValue.he)}} />
         </a>
       ))

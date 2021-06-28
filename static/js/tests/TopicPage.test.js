@@ -65,10 +65,40 @@ it('can navigate to biblical figures', async () => {
 });
 
 describe('parasha topic', () => {
+    const topTzavPasuk = "Leviticus 7:11-12";
     it('can click read the portion', async () => {
         renderAppByUrl('/topics', 'parashat-tzav');
-        await waitFor(() => screen.getByText("Leviticus 7:11-12"));
+        await waitFor(() => screen.getByText(topTzavPasuk));
         userEvent.click(screen.getByText("Read the Portion"));
         await waitForLinkDot();
+    });
+
+    it('has parasha sidebar data', async () => {
+        renderAppByUrl('/topics', 'parashat-tzav');
+        await waitFor(() => screen.getByText(topTzavPasuk));
+        const readings = screen.getByTestId('readings-component');
+        within(readings).getByText('Torah');
+        within(readings).getByText('Haftarah');
+        userEvent.click(within(readings).getByText('Leviticus 6:1-8:36'));
+    });
+
+    it('can click parasha sidebar link', async () => {
+        renderAppByUrl('/topics', 'parashat-tzav');
+        await waitFor(() => screen.getByText(topTzavPasuk));
+        const readings = screen.getByTestId('readings-component');
+        userEvent.click(within(readings).getByText('Leviticus 6:1-8:36'));
+        await waitForLinkDot();
+    });
+
+    it('can click haftarah sidebar links', async () => {
+        renderAppByUrl('/topics', 'parashat-tzav');
+        await waitFor(() => screen.getByText(topTzavPasuk));
+        const readings = screen.getByTestId('readings-component');
+
+        // assert existence of both haftarah links
+        for (let ihaftarahLink of [0, 1]) {
+            userEvent.click(within(readings).getByTestId(`readings-haftarah-link-${ihaftarahLink}`));
+            await waitForLinkDot();
+        }
     });
 });
