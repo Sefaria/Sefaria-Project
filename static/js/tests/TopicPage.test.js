@@ -64,9 +64,11 @@ it('can navigate to biblical figures', async () => {
     await waitFor(() => screen.getByText(achanTopRef));
 });
 
-it('can render parasha topic', async () => {
-    renderAppByUrl('/topics', 'parashat-tzav');
-    await waitFor(() => screen.getByText("Leviticus 7:11-12"));
-    userEvent.click(screen.getByText("Read the Portion"));
-    await waitForLinkDot();
+describe('parasha topic', () => {
+    it('can click read the portion', async () => {
+        renderAppByUrl('/topics', 'parashat-tzav');
+        await waitFor(() => screen.getByText("Leviticus 7:11-12"));
+        userEvent.click(screen.getByText("Read the Portion"));
+        await waitForLinkDot();
+    });
 });
