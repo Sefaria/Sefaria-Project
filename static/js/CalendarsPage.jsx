@@ -133,33 +133,33 @@ const calendarDescriptions = {
   "Parashat Hashavua": {},
   "Haftarah": {
     en: "The portion from Prophets (a section of the Bible) read on any given week, based on its thematic connection to the weekly Torah portion.",
-    he: "קטע קבוע מספרי הנביאים (אחד מחלקי התנ\"ך) הנקרא בכל שבת ומועד, ובעל קשר רעיוני לפרשת השבוע."
+    he: "קטע קבוע לכל פרשה מספרי הנביאים הנקרא בכל שבת ומועד, ויש לו קשר רעיוני לפרשת השבוע."
   },
   "Daf Yomi": {
     en: "A learning program that covers a page of Talmud a day. In this way, the entire Talmud is completed in about seven and a half years.",
-    he: "תוכנית לימודים לתלמוד הבבלי הכוללת לימוד של דף אחד בכל יום. הלומדים בדרך זו מסיימים את קריאת התלמוד כולו בתוך כשבע שנים וחצי.",
+    he: "סדר לימוד לתלמוד הבבלי הכולל לימוד של דף אחד בכל יום. הלומדים בדרך זו מסיימים את קריאת התלמוד כולו בתוך כשבע שנים וחצי.",
     enSubtitle: "(Talmud)",
   },
   "929": {
     en: "A learning program in which participants study five of the Bible’s 929 chapters a week, completing it in about three and a half years.",
-    he: "תוכנית שבועית ללימוד תנ\"ך שבה נלמדים בכל שבוע חמישה פרקים מתוך 929 פרקי התנ\"ך. הלומדים בדרך זו מסיימים את קריאת התנ\"ך כולו כעבור שלוש שנים וחצי.",
+    he: "סדר שבועי ללימוד תנ\"ך שבו נלמדים בכל שבוע חמישה מתוך 929 פרקי התנ\"ך. הלומדים בדרך זו מסיימים את קריאת התנ\"ך כולו כעבור שלוש שנים וחצי.",
     enSubtitle: "(Tanakh)"
   },
   "Daily Mishnah": {
     en: "A program of daily learning in which participants study two Mishnahs (teachings) each day in order to finish the entire Mishnah in six years.",
-    he: "תוכנית ללימוד משנה שבמסגרתה נלמדות שתי משניות בכל יום. הלומדים בדרך זו מסיימים את קריאת המשנה כולה כעבור שש שנים."
+    he: "סדר לימוד משנה שבמסגרתו נלמדות שתי משניות בכל יום. הלומדים בדרך זו מסיימים את קריאת המשנה כולה כעבור שש שנים."
   },
   "Daily Rambam": {
     en: "A learning program that divides Maimonides’ Mishneh Torah legal code into daily units, to complete the whole work in three years.",
-    he: "תוכנית ללימוד הספר ההלכתי של הרמב\"ם, \"משנה תורה\", המחלקת את הספר ליחידות יומיות. הלומדים בדרך זו מסיימים את קריאת הספר כולו בתוך שלוש שנים."
+    he: "סדר לימוד הספר ההלכתי של הרמב\"ם, \"משנה תורה\", המחלק את הספר ליחידות יומיות. הלומדים בדרך זו מסיימים את קריאת הספר כולו בתוך שלוש שנים."
   },
   "Daily Rambam (3 Chapters)": {
     en: "A learning program that divides Maimonides’ Mishneh Torah legal code into daily units, to complete the whole work in one year.",
-    he: "תוכנית ללימוד הספר ההלכתי של הרמב\"ם, \"משנה תורה\", המחלקת את הספר ליחידות יומיות. הלומדים בדרך זו מסיימים את קריאת הספר כולו בתוך שנה אחת.",
+    he: "סדר לימוד הספר ההלכתי של הרמב\"ם, \"משנה תורה\", המחלק את הספר ליחידות יומיות. הלומדים בדרך זו מסיימים את קריאת הספר כולו בתוך שנה אחת.",
   },
   "Daf a Week": {
     en: "A learning program  that covers a page of Talmud a week. By going at a slower pace, it facilitates greater mastery and retention.",
-    he: "תוכנית שבועית ללימוד התלמוד הבבלי שבה נלמד דף תלמוד אחד בכל שבוע. קצב הלימוד האיטי מאפשר ללומדים הפנמה ושליטה רבה יותר בחומר הנלמד.",
+    he: "סדר שבועי ללימוד התלמוד הבבלי שבו נלמד דף תלמוד אחד בכל שבוע. קצב הלימוד האיטי מאפשר ללומדים הפנמה ושליטה רבה יותר בחומר הנלמד.",
     enSubtitle: "(Talmud)"
   },
   "Halakhah Yomit": {
