@@ -837,23 +837,35 @@ div.interfaceLinks-row a {
   content: "\f00c";
   padding: 0 8px;
 }
-@media screen and (max-width: 700px) {
+@media screen and (max-width: 910px) {
   .header .headerInner {
     padding: 0 15px;
   }
-  .header .interfaceLinks,
-  .header .help,
-  .header .login.loginLink,
-  .header .myProfileBox,
-  .multiPanel .header .home,
+  .header .login.loginLink {
+    display: none;
+  }
+  .header .accountLinks .login {
+    padding: 5px 5px;
+  }
+  .header .accountLinks {
+    margin-inline-start: 5px;
+  }
+}
+@media screen and (max-width: 780px) {
   .header .donate {
     display: none;
   }
-  .header .accountLinks .login{
-    padding: 5px 5px;
+}
+@media screen and (max-width: 700px) {
+  .multiPanel .header .home {
+    display: none;
   }
-  .header .accountLinks{
-    margin-inline-start: 5px;
+}
+@media screen and (max-width: 580px) {
+  .header .interfaceLinks,
+  .header .help,
+  .header .notifications {
+    display: none;
   }
 }
 .header .notifications.unread::after {
