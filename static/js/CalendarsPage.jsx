@@ -109,7 +109,7 @@ const reformatCalendars = () => {
       cal.displayValue = {en: cal.ref, he: cal.heRef};
     } else {
       cal.displayTitle = Sefaria.util.clone(cal.title);
-      if (calData.enSubtitle) {
+      if (calData && calData.enSubtitle) {
         cal.enSubtitle = calData.enSubtitle;
       }
     }
