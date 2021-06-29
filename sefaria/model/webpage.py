@@ -146,7 +146,7 @@ class WebPage(abst.AbstractMongoRecord):
             webpage = WebPage(data)
             existing = False
         webpage._normalize() # to remove bad refs, so pages with empty ref list aren't saved
-        if webpage.should_be_excluded():
+        if webpage.should_be_excluded() or len(data["refs"]) == 0:  # data["refs"] is empty when linker.js finds no refs on a page
             if existing:
                 webpage.delete()
             return "excluded"
