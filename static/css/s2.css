@@ -1984,6 +1984,9 @@ h1 .languageToggle .he {
 .readerNavMenu .navToggle.second {
   text-align: left;
 }
+.singlePanel .navToggles {
+  margin-top:  20px;
+}
 .readerNavMenu .navToggle.active {
   color: black;
   border-bottom: 2px solid #999;
@@ -8303,7 +8306,7 @@ span.purim-emoji img{
   border-radius: 6px;
   border: 1px solid #CCCCCC;
   z-index: 1;
-  top: -50px;
+  top: -30px;
   pointer-events: auto;
 }
 
@@ -9988,13 +9991,13 @@ a.topicLexiconTitle.contentText {
   transition: opacity 0.75s;
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
-.markButton {
+.hoverButton {
   padding: 10px;
 }
-.markButton i {
+.hoverButton i {
   color: #CCCCCC
 }
-.markButton i.active {
+.hoverButton i.active {
   color: #fff;
 }
 .editorHoverBox {
@@ -10124,6 +10127,10 @@ a.topicLexiconTitle.contentText {
   -ms-transform: rotate(45deg);
   transform: rotate(45deg);
 }
+/* demo coloring of ref-link parentheses for quotation finder project*/
+span.ref-link-color-1 {color: orange}
+span.ref-link-color-2 {color: #0cd200}
+span.ref-link-color-3 {color: blue}
 /* start css code for loading bezel */
 .sourceLoader {
   margin-left: -34px;

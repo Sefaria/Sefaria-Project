@@ -72,6 +72,7 @@ for l in rows:
         ("pubPlace", l[10]), # publication place
         ("era", eras.get(l[11]))]
 
+    needs_save = False
     for aname, value in attrs:
         obj_val = getattr(i, aname, "")
         if (obj_val or value) and (obj_val != value):
