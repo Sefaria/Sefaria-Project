@@ -943,16 +943,16 @@ class ReaderApp extends Component {
       return this.props.initialSettings;
     } else {
       return {
-        language:      "bilingual",
-        layoutDefault: "segmented",
-        layoutTalmud:  "continuous",
-        layoutTanakh:  "segmented",
-        aliyotTorah:   "aliyotOff",
-        vowels:        "all",
+        language:          "bilingual",
+        layoutDefault:     "segmented",
+        layoutTalmud:      "continuous",
+        layoutTanakh:      "segmented",
+        aliyotTorah:       "aliyotOff",
+        vowels:            "all",
         punctuationTalmud: "punctuationOn",
-        biLayout:      "stacked",
-        color:         "light",
-        fontSize:      62.5
+        biLayout:          "stacked",
+        color:             "light",
+        fontSize:          62.5
       };
     }
   }

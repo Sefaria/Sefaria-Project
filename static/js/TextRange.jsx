@@ -44,8 +44,8 @@ class TextRange extends Component {
           nextProps.settings.layoutTalmud !== this.props.settings.layoutTalmud ||
           nextProps.settings.biLayout !== this.props.settings.biLayout ||
           nextProps.settings.fontSize !== this.props.settings.fontSize ||
-          nextProps.layoutWidth !== this.props.layoutWidth || 
-          nextProps.settings.punctuationTalmud !== this.props.settings.punctuationTalmud))     { return true; }
+          nextProps.settings.punctuationTalmud !== this.props.settings.punctuationTalmud ||
+          nextProps.layoutWidth !== this.props.layoutWidth))     { return true; }
     // lowlight ?
 
     return false;
@@ -63,8 +63,8 @@ class TextRange extends Component {
           prevProps.settings.biLayout !== this.props.settings.biLayout ||
           prevProps.settings.fontSize !== this.props.settings.fontSize ||
           prevProps.layoutWidth !== this.props.layoutWidth ||
-          !!prevProps.filter !== !!this.props.filter ||
           prevProps.settings.punctuationTalmud !== this.props.settings.punctuationTalmud ||
+          !!prevProps.filter !== !!this.props.filter ||
           (!!prevProps.filter && !prevProps.filter.compare(this.props.filter))) {
             // Rerender in case version has changed
             this.forceUpdate(function() {

@@ -1404,9 +1404,9 @@ class ReaderDisplayOptionsMenu extends Component {
     const hasEnglish = !!data.text.length;
     return !(hasHebrew && hasEnglish);
   }
-  renderPunctuationToggle() {
-    if (this.props.currentData?.()?.primary_category === "Talmud" && (this.props.settings?.language === "hebrew" || this.props.settings?.language === "bilingual")) return true;
-    else return false;
+  shouldPunctuationToggleRender() {
+    if (this.props.currentData?.()?.primary_category === "Talmud" && (this.props.settings?.language === "hebrew" || this.props.settings?.language === "bilingual")) { return true; }
+    else { return false; }
   }
 
   render() {
@@ -1519,7 +1519,7 @@ class ReaderDisplayOptionsMenu extends Component {
       {name: "punctuationOn", content: Sefaria._("On"), role: "radio", ariaLabel: Sefaria._("Show Punctuation")},
       {name: "punctuationOff", content: Sefaria._("Off"), role: "radio", ariaLabel: Sefaria._("Hide Punctuation")}
     ]
-    let punctuationToggle = this.renderPunctuationToggle() ? (
+    let punctuationToggle = this.shouldPunctuationToggleRender() ? (
         <ToggleSet
           ariaLabel="Punctuation Toggle"
           label={Sefaria._("Punctuation")}
