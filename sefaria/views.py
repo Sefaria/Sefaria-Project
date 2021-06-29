@@ -456,7 +456,7 @@ def reset_websites_data(request):
     website_set = [w.contents() for w in WebSiteSet()]
     in_memory_cache.set("websites_data", website_set)
     if MULTISERVER_ENABLED:
-        server_coordinator.publish_event("in_memory_cache", "set", ["websites_data", website_set])
+        server_coordinator.publish_event("in_memory_cache", "reset", ["websites_data", website_set])
     return HttpResponseRedirect("/?m=Website-Data-Reset")
 
 @staff_member_required
