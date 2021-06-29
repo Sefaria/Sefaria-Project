@@ -103,6 +103,12 @@
     "webpack-bundle-tracker": "^0.4.3",
     "webpack-cli": "^3.3.9"
   },
+  "jest": {
+    "setupFilesAfterEnv": [
+      "<rootDir>/static/js/setupJest.js"
+    ],
+    "testEnvironment": "jsdom"
+  },
   "babel": {
     "presets": [
       "@babel/env",
