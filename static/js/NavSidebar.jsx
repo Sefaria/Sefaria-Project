@@ -24,7 +24,6 @@ const Modules = ({type, props}) => {
     "Resources":              Resources,
     "TheJewishLibrary":       TheJewishLibrary,
     "AboutTextCategory":      AboutTextCategory,
-    "PopularTexts":           PopularTexts,
     "AboutText":              AboutText,
     "SupportSefaria":         SupportSefaria,
     "SponsorADay":            SponsorADay,
@@ -109,19 +108,6 @@ const TheJewishLibrary = ({hideTitle}) => (
     {!hideTitle ?
     <ModuleTitle>The Jewish Library</ModuleTitle> : null}
     <InterfaceText>The tradition of Torah texts is a vast, interconnected network that forms a conversation across space and time. The five books of the Torah form its foundation, and each generation of later texts functions as a commentary on those that came before it.</InterfaceText>
-  </Module>
-);
-
-
-const PopularTexts = ({texts}) => (
-  <Module>
-    <ModuleTitle>Popular Texts</ModuleTitle>
-    {texts.map(text => 
-      <div className="navSidebarLink ref serif" key={text}>
-        <img src="/static/img/book-icon-black.svg" className="navSidebarIcon" alt="book icon" />
-        <a href={"/" + Sefaria.normRef(text)}><InterfaceText>{text}</InterfaceText></a>
-      </div>
-    )}
   </Module>
 );
 
