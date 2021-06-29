@@ -108,7 +108,7 @@ const RecenltyPublished = ({multiPanel, toggleSignUpModal}) => {
     recentSheetsContent.splice(6, 0, joinTheConversation);
     recentSheetsContent.push(
       <a className="button small white loadMore" onClick={loadMore}>
-        <InterfaceText>Load More</InterfaceText>
+        <InterfaceText context="RecenltyPublished">Load More</InterfaceText>
       </a>
     );
   }

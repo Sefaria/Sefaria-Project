@@ -47,7 +47,7 @@ class Header extends Component {
         <div className="headerNavSection">
           { Sefaria._siteSettings.TORAH_SPECIFIC ?
           <a className="home" href="/" >{logo}</a> : null }
-          <a href="/texts" className="textLink"><InterfaceText>Texts</InterfaceText></a>
+          <a href="/texts" className="textLink"><InterfaceText context="Header">Texts</InterfaceText></a>
           <a href="/topics" className="textLink"><InterfaceText>Topics</InterfaceText></a>
           <a href="/community" className="textLink"><InterfaceText>Community</InterfaceText></a>
           <a href="https://sefaria.nationbuilder.com/supportsefaria" target="_blank" className="textLink donate"><InterfaceText>Donate</InterfaceText></a>
@@ -457,7 +457,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
       </div>
       <a href="/texts" onClick={close}>
         <img src="/static/icons/book.svg" />
-        <InterfaceText>Texts</InterfaceText>
+        <InterfaceText context="Header">Texts</InterfaceText>
       </a>
       <a href="/topics" onClick={close}>
         <img src="/static/icons/topic.svg" />

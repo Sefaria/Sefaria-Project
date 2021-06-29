@@ -173,7 +173,7 @@ const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged}) =
   return (
     <div className="searchFilterGroup">
       <h2>
-        <InterfaceText>{name}</InterfaceText>
+        <InterfaceText context="SearchFilters">{name}</InterfaceText>
       </h2>
       {content}
     </div>

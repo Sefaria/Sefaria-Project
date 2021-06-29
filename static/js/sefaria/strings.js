@@ -2,9 +2,10 @@ const Strings = {
   _i18nInterfaceStrings: {
     "Sefaria": "ספריא",
     "Topics":"נושאים",
-    "Community": "קהילה", // TODO Hebrew
+    "Community": "קהילה",
+    "Donate": "תרומה",
     "Sefaria Notifications": "הודעות בספריא",
-    "Sefaria: a Living Library of Jewish Texts Online": "ספריא: ספרייה חיה של טקסטים יהודיים",
+    "Sefaria: a Living Library of Jewish Texts Online": "ספריא: ספריה חיה של טקסטים יהודיים",
     "Recently Viewed" : "נצפו לאחרונה",
     "The Sefaria Library": "תוכן העניינים של ספריא",
     "Sefaria Search": "חיפוש בספריא",
@@ -22,69 +23,70 @@ const Strings = {
     "Log in": "התחבר",
     "Sign up": "הרשם",
 
-    // Home
-    "Donate": "תרומה",
-    "Recently Published": "פורסמו לאחרונה",
-    "Load More": "להמשך קריאה",
-    "Join the Conversation": "להצטרף לשיחה" ,
-    "Make a Sheet": "צור דף חדש",
-    "Combine sources from our library with your own comments, questions, images, and videos.": "השתמשו במקורות מהספרייה ושלבו בהם את התגובות, השאלות, התמונות והסרטונים שלכם.",
-    "A Living Library of Torah": "ספרייה תורנית דינמית",
+    // Texts Page
     "Sefaria is home to 3,000 years of Jewish texts. We are a non-profit organization offering free access to texts, translations, and commentaries so that everyone can participate in the ongoing process of studying, interpreting, and creating Torah.": "ספריא היא הבית של 3,000 שנות ספרות יהודית. אנו ארגון ללא מטרות רווח המציע גישה חופשית למקורות יהודיים, לתרגומים ולפרשנויות, ומטרתנו לאפשר לכל אחד ואחת להשתתף בתהליך המתמשך של לימוד וחידוש בתורה.",
     "Learn More": "לקריאה נוספת",
-    "Explore the Library": "גלו את הספריה",
     "Learning Schedules": "לוח לימוד יומי",
     "Teach with Sefaria": "מלמדים עם ספריא",
     "Visualizations": "תרשימים גרפיים",
-    "Torah Tab": "תורה טאב (לשונית)",
+    "Torah Tab": "תורה טאב (תוסף)",
     "Get the Mobile App": "הורידו את היישומון",
-    "Access the Jewish library anywhere and anytime with the": "קבלו גישה לארון הספרים היהודי בכל מקום ובכל זמן עם יישומון ספריא.",
+    "Access the Jewish library anywhere and anytime with the": "בעזרת היישומון תוכלו לגשת לארון הספרים היהודי בכל מקום ובכל זמן.",
     "Sefaria mobile app.": "אפליקציית ספריא לנייד.",
-    "Stay Connected": "השארו מעודכנים",
-    "Get updates on new texts, learning resources, features, and more.": "קבלו עדכונים על מקורות חדשים, כלי למידה חדשים, פיצ'רים ועוד.",
+    "Stay Connected": "הישארו מעודכנים",
+    "Get updates on new texts, learning resources, features, and more.": "קבלו עדכונים על מקורות חדשים, כלי למידה חדשים ועוד.",
     "Support Sefaria": "תמכו בספריא",
-    "Sefaria is an open source, non-profit project. Support us by making a tax-deductible donation.": "ספריא היא מיזם קוד פתוח ללא מטרות רווח. תמכו בנו בעזרת תרומה בניכוי מס.",
-    "Make a Donation": "תרמו",
-    "Explore the Community": "הכירו את הקהילה",
-    "People around the world use Sefaria to create and share Torah resources. You're invited to add your voice.": "לומדים ולומדות מכל רחבי העולם משתמשים בספריא ליצור ולשתף מקורות יהודיים. אנו מזמינים אותך להצטרף לשיחה הזו",
+    "Sefaria is an open source, non-profit project. Support us by making a tax-deductible donation.": "ספריא היא מאגר פתוח וחינמי. תמכו בנו בעזרת תרומה.",
+    "Make a Donation": "לתרומה",
+    "Join the Conversation": "קחו חלק בשיח" ,
+    "Explore the Community": "לעמוד הקהילה",
+    "People around the world use Sefaria to create and share Torah resources. You're invited to add your voice.": "לומדים ולומדות מכל רחבי העולם משתמשים בספריא כדי ליצור ולשתף מקורות יהודיים. אנו מזמינים אתכם לקחת חלק בשיח זה.",
     "Create with Sefaria": "צרו בעזרת ספריא",
-    "Mobile Apps": "יישומן לטלפון הנייד",
-
-    // Texts Page
-    "Browse the Library": "עיון בספרייה",
-    "The Jewish Library": "ארון הספרים היהודי",
-    "The tradition of Torah texts is a vast, interconnected network that forms a conversation across space and time. The five books of the Torah form its foundation, and each generation of later texts functions as a commentary on those that came before it.": "מסורת הלימוד היהודי ארוגה ברשת מסועפת של קשרים, היוצרים שיח מֵעבר לגבולות הזמן והמקום. חמשת חומשי התורה הם אבן היסוד של השיח הזה, וכל דור נוסף של כתיבה תורנית משמש פרשנות לכתיבה התורנית של הדורות הקודמים.",
+    "Mobile Apps": "יישומון לטלפון הנייד",
+    "Browse the Library": "עיון בספריה",
     "Weekly Torah Portion": "פרשת השבוע",
-    "All Learning Schedules": "לוח לימוד יומי",
+    "All Learning Schedules": "לוחות לימוד נוספים",
     "Sponsor A Day of Learning": "תרמו יום לימוד בספריא",
     "With your help, we can add more texts and translations to the library, develop new tools for learning, and keep Sefaria accessible for Torah study anytime, anywhere.": "בעזרת התרומה שלכם נוכל להוסיף מקורות, תרגומים, לפתח כלים חדשים ללימוד ולשמור על גישה חופשית ללימוד תורה, בכל מקום ובכל זמן.",
-    "Sponsor A Day": "הקדשת יום לימוד",
+    "Sponsor A Day": "הקדישו יום לימוד",
 
     // Text Category Pages
     "All Portions": "פרשות השבוע",
     "Popular Texts": "מקורות פופולריים",
-    "Explore interconnections among texts with our interactive visualizations.": "גלו קשרים מעניינים בין מקורות בעזרת  הויזואליזציות האינטראקטיביות שלנו.",
-    "All Visualizations": "כל הויזואליזציות",
+    "Explore interconnections among texts with our interactive visualizations.": "העזרו בתרשימים הגרפיים כדי לגלות קשרים מעניינים בין מקורות.",
+    "All Visualizations": "תרשימים גרפיים נוספים",
     "Daily Study": "לימוד יומי",
 
     // Topics
     "Explore by Topic": "לימוד לפי נושאים",
     "About Topics": "אודות \"נושאים\"",
-    "Topics bring you straight to selections of texts and user created source sheets about thousands of subjects. Sources that appear are drawn from existing indices of Jewish texts (like Aspaklaria) and from the sources our users include on their public source sheets.": "דפי נושא מביאים אותך ישירות למקורות נבחרים ולדפי מקורות של משתמשים המקורות המופיעים בדפי הנושא נלקטים ממאגרים קיימים של ספרות יהודית (דוגמת אספקלריא) ומדפי המקורות הציבוריים של משתמשי ספריא.",
-    "Trending Topics": "נושאים חמים",
+    "Topic pages bring you straight to selections of texts and user created source sheets about thousands of subjects. Sources that appear are drawn from existing indices of Jewish texts (like Aspaklaria) and from the sources our users include on their public source sheets.": "בדפי הנושא מלוקטים מקורות נבחרים ודפי מקורות של משתמשים על נושא מסוים. המקורות המופיעים בדפי הנושא נאספים ממאגרים קיימים של ספרות יהודית (דוגמת 'אספקלריא') ומתוך דפי מקורות פומביים של משתמשי ספריא.",
+    "Trending Topics": "נושאים נפוצים",
     "More": "עוד",
     "Less": "פחות",
     "All Topics A-Z": "כל הנושאים א-ת",
-    "Browse or search our complete list of topics.": "עיון או חיפוש ברשימת הנושאים.",
-    "Topics bring you straight to selections of texts and user created source sheets about thousands of subjects. Sources that appear are drawn from existing indices of Jewish texts (like Aspaklaria) and from the sources our users include on their public source sheets.": "דפי נושא מביאים אותך ישירות למקורות נבחרים ולדפי מקורות של משתמשים המקורות המופיעים בדפי הנושא נלקטים ממאגרים קיימים של ספרות יהודית (דוגמת אספקלריא) ומדפי המקורות הציבוריים של משתמשי ספריא.",
+    "Browse or search our complete list of topics.": "חיפוש ברשימת הנושאים.",
 
     // All Topics
     "All Topics": "כל הנושאים",
     "Reset": "לאתחל",
     "Search Topics": "חפש נושאים",
 
+    // Community Page
+    "Today on Sefaria": "היום בספריא",
+    "Who to Follow": "משתמשים שכדאי לעקוב אחריהם",
+    "Explore Collections": "עיינו באסופות",
+    "Organizations, communities and individuals around the world curate and share collections of sheets for you to explore.": "ארגונים, קהילות ויחידים מרחבי העולם מציגים ומשתפים אסופות של דפי מקורות שתוכלו לגלות.",
+    "Recently Published": "פורסמו לאחרונה",
+    "Make a Sheet": "יצירת דף מקורות",
+    "Combine sources from our library with your own comments, questions, images, and videos.": "השתמשו במקורות מהספריה ושלבו בהם את התגובות, השאלות, התמונות והסרטונים שלכם.",
+    "A Living Library of Torah": "ספריה יהודית דינמית",
+
     // Search
-    "Exact Matches Only": "תוצאות מדויקות בלבד",
+    "Results for": "תוצאות עבור",
+    "Results": "תוצאות",
+    "Options": "אפשרויות",
+    "Exact Matches Only": "התאמה מדויקת למילות החיפוש",
 
     // Sheets
     "Source Sheets": "דפי מקורות",
@@ -175,7 +177,6 @@ const Strings = {
     "Please add a description to publish your sheet.": "יש להוסיף תיאור כדי לפרסם את הדף",
     "The summary description is limited to 280 characters.": "תקציר דף המקורות מוגבל ל280 תווים.",
 
-
     // Reader Panel
     "Search" : "חיפוש",
     "Search Dictionary": "חיפוש במילון",
@@ -219,7 +220,7 @@ const Strings = {
     "Collections": "אסופות",
     "About Collections": "אודות \"אסופות\"",
     "Collection": "אסופה",
-    "Collections are user generated bundles of sheets which can be used privately, shared with friends, or made public on Sefaria.": "אסופות הן מקבצים של דפי מקורות שיצרו המשתמשים והמשתמשות. הן ניתנות לשימוש פרטי, לשיתוף עם חברים וחברות או לשימוש ציבורי באתר ספריא.",
+    "Collections of sheets are created by Sefaria users and can be privately, shared with friends, or made public on Sefaria.": "אסופות הן מקבצים של דפי מקורות שנוצרו על ידי משתמשי האתר. הן ניתנות לשימוש פרטי, לצורך שיתוף עם אחרים או לשימוש ציבורי באתר ספריא.",
     "Sefaria Collections": "אסופות של ספריא",
     "Create a Collection": "יצירת אסופה",
     "Create a New Collection": "יצירת אסופה חדשה",
@@ -283,23 +284,16 @@ const Strings = {
     "Unfortunately an error occurred saving your collection.": "אירעה שגיאה בשמירת האסופה שלך.",
     "Unfortunately an error occurred deleting your collection.": "אירעה שגיאה במחיקת האסופה שלך.",
 
-    // Community Page
-    "Today on Sefaria": "היום בספריא",
-    "Who to Follow": "משתמשים שכדאי לעקוב אחריהם",
-    "Organizations, communities and individuals around the world curate and share collections of sheets for you to explore.": "ארגונים, קהילות ויחידים מרחבי העולם מציגים ומשתפים אסופות של דפי מקורות שתוכלו לגלות",
-    "Explore Collections": "עיינו באסופות של דפי מקורות",
-
     // Saved / History / Notifications
     "Saved": "שמורים",
     "Notifications": "התראות",
-
-    "Texts and sheets that you read will be available for you to see here.": "טקסטים ודפי מקורות שתקראו יהיו זמינים עבורכם כאן",
-    "Click the bookmark icon on texts or sheets to save them here.": "לחצו על סמל הסימנייה בתוך טקסטים או דפי מקורות כדי לשמור אותם כאן",
+    "Texts and sheets that you read will be available for you to see here.": "מקורות ודפי מקורות שקראתם יהיו זמינים עבורכם כאן לעיון חוזר.",
+    "Click the bookmark icon on texts or sheets to save them here.": "לחצו על סמל הסימניה בתוך מקורות או דפי מקורות כדי לשמור מראי מקומות מסוימים כאן.",
 
     // Learning Schedules
     "Daily Learning": "לימוד יומי",
     "Weekly Learning": "לימוד שבועי",
-    "Since biblical times, the Torah has been divided into sections which are read each week on a set yearly calendar. Following this practice, many other calendars have been created to help communities of learners work through specific texts together.": "מאז ימי המקרא חולקה התורה לקטעי קריאה שבועיים שנועדו לסיום הספר כולו במשך תקופת זמן של שנה. בעקבות המנהג הזה התפתחו לאורך השנים סדרי לימוד תקופתיים רבים נוספים, ובעזרתם יכולות קהילות וקבוצות של לומדים ללמוד יחד טקסטים שלמים.",
+    "Since ancient times, the Torah has been divided into sections which are read each week on a set yearly calendar. Following this practice, many other calendars have been created to help communities of learners work through specific texts together.": "מימי קדם חולקה התורה לקטעי קריאה שבועיים שנועדו לסיום הספר כולו במשך תקופת זמן של שנה. בעקבות המנהג הזה התפתחו לאורך השנים סדרי לימוד תקופתיים רבים נוספים, ובעזרתם יכולות קהילות וקבוצות של לומדים ללמוד יחד טקסטים שלמים.",
 
     //languages
     "English": "אנגלית",
@@ -475,10 +469,10 @@ const Strings = {
       "Tools": "כלים",
     },
     "FollowButton": {
-      "Follow": "עוקב",
+      "Follow": "עקבו",
       "Unfollow": "הפסק לעקוב",
       "Following": "עקוב",
-      "Follow Back": "לעקוב בחזרה",
+      "Follow Back": "עקבו בחזרה",
     },
     "DownloadVersions":{
       "Select Format": "בחירת פורמט הורדה",
@@ -490,6 +484,20 @@ const Strings = {
       "Alphabetical": "אלפביתי",
       "Recent": "הכי חדש",
       "Views": "הכי נצפה",
+    },
+    "Header": {
+      "Texts": "מקורות",
+    },
+    "RecentlyPublished": {
+      "Load More": "דפי מקורות נוספים",
+    },
+    "ResourcesModule": {
+      "Resources": "כלי עזר",
+    },
+    "SearchFilters": {
+      "Texts": "מקורות",
+      "Topics": "נושאים",
+      "Collections": "Collections",
     }
   },
 };
