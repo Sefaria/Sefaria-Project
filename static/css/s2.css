@@ -1672,6 +1672,9 @@ h1 .languageToggle .he {
 .readerNavMenu .navToggle.second {
   text-align: left;
 }
+.singlePanel .navToggles {
+  margin-top:  20px;
+}
 .readerNavMenu .navToggle.active {
   color: black;
 }
