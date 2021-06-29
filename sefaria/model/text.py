@@ -972,7 +972,11 @@ class AbstractTextRecord(object):
     ALLOWED_TAGS    = ("i", "b", "br", "u", "strong", "em", "big", "small", "img", "sup", "span", "a")
     ALLOWED_ATTRS   = {
         'span':['class', 'dir'],
-        'i': ['data-commentator', 'data-order', 'class', 'data-label', 'dir'],
+        # There are three uses of i tags.
+        # footnotes: uses content internal to <i> tag.
+        # commentary placement: uses 'data-commentator', 'data-order', 'data-label'
+        # structure placement (e.g. page transitions): uses 'data-overlay', 'data-value'
+        'i': ['data-overlay', 'data-value', 'data-commentator', 'data-order', 'class', 'data-label', 'dir'],
         'img': lambda name, value: name == 'src' and value.startswith("data:image/"),
         'a': ['dir', 'class', 'href', 'data-ref'],
     }
@@ -1163,7 +1167,8 @@ class AbstractTextRecord(object):
         if isinstance(tag, Tag):
             is_footnote = tag.name == "sup" and isinstance(tag.next_sibling, Tag) and tag.next_sibling.name == "i" and 'footnote' in tag.next_sibling.get('class', '')
             is_inline_commentator = tag.name == "i" and len(tag.get('data-commentator', '')) > 0
-            return is_footnote or is_inline_commentator
+            is_page_marker = tag.name == "i" and len(tag.get('data-overlay','')) > 0
+            return is_footnote or is_inline_commentator or is_page_marker
         return False
 
     @staticmethod
