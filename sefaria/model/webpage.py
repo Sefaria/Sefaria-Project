@@ -8,7 +8,7 @@ from . import abstract as abst
 from . import text
 from sefaria.system.database import db
 
-from sefaria.system.cache import InMemoryCache
+from sefaria.system.cache import in_memory_cache
 
 import structlog
 logger = structlog.get_logger(__name__)
@@ -222,11 +222,10 @@ class WebSiteSet(abst.AbstractMongoSet):
 
 
 def get_website_cache():
-    cache = InMemoryCache()
-    sites = cache.get("websites_data")
+    sites = in_memory_cache.get("websites_data")
     if sites in [None, []]:
         sites = [w.contents() for w in WebSiteSet()]
-        cache.set("websites_data", sites)
+        in_memory_cache.set("websites_data", sites)
         return sites
     return sites
 

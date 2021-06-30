@@ -36,7 +36,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 import sefaria.model as model
 import sefaria.system.cache as scache
-from sefaria.system.cache import InMemoryCache
+from sefaria.system.cache import in_memory_cache
 from sefaria.client.util import jsonResponse, subscribe_to_list, send_email
 from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI
 from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, relative_to_abs_path, RTC_SERVER
@@ -452,11 +452,10 @@ def reset_cache(request):
 
 @staff_member_required
 def reset_websites_data(request):
-    in_memory_cache = InMemoryCache()
     website_set = [w.contents() for w in WebSiteSet()]
     in_memory_cache.set("websites_data", website_set)
     if MULTISERVER_ENABLED:
-        server_coordinator.publish_event("in_memory_cache", "reset", ["websites_data", website_set])
+        server_coordinator.publish_event("in_memory_cache", "set", ["websites_data", website_set])
     return HttpResponseRedirect("/?m=Website-Data-Reset")
 
 @staff_member_required
