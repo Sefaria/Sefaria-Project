@@ -322,14 +322,6 @@ class ReaderPanel extends Component {
     this.conditionalSetState(state);
 
   }
-  closePanelSearch() {
-    let state = {
-      menuOpen: "navigation",
-      navigationCategories: null,
-      navigationTopicCategory: null,
-    };
-    this.conditionalSetState(state);
-  }
   openMenu(menu) {
     this.conditionalSetState({
       menuOpen: menu,
@@ -794,7 +786,7 @@ class ReaderPanel extends Component {
                     onResultClick={this.props.onSearchResultClick}
                     openDisplaySettings={this.openDisplaySettings}
                     toggleLanguage={this.toggleLanguage}
-                    close={this.state.compare ? this.props.closePanel : this.closePanelSearch}
+                    close={this.props.closePanel}
                     onQueryChange={this.props.onQueryChange}
                     updateTab={this.props.updateSearchTab}
                     updateAppliedFilter={this.props.updateSearchFilter}

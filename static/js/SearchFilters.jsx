@@ -67,7 +67,6 @@ class SearchFilters extends Component {
     );
 
     const {searchState, type, updateAppliedOptionSort} = this.props;
-    console.log(searchState);
     const sortOptions = SearchState.metadataByType[type].sortTypeArray.map(data => ({
       name: data.type,
       content: <InterfaceText>{data.name}</InterfaceText>,

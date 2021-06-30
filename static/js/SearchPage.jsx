@@ -32,7 +32,7 @@ class SearchPage extends Component {
         <ComparePanelHeader
           search={true}
           showDisplaySettings={false}
-          onCompareBack={this.props.close}
+          onBack={this.props.close}
           openSearch={this.props.onQueryChange} /> : null}
 
         <div className="content searchContent">

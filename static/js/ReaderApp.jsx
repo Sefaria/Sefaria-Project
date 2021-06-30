@@ -1429,6 +1429,7 @@ class ReaderApp extends Component {
     }
   }
   convertToTextList(n) {
+    console.log("convert")
     var base = this.state.panels[n-1];
     this.closePanel(n);
     if (base.mode == "Sheet") {
