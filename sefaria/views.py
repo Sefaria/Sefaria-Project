@@ -268,14 +268,22 @@ def title_regex_api(request, titles):
     if request.method == "GET":
         cb = request.GET.get("callback", None)
         parentheses = bool(int(request.GET.get("parentheses", False)))
+        res = {"regexes": {}, "link_params": {}}
+        url = request.GET.get("url", "")
+        domain = WebPage.domain_for_url(url)
+        website_matches = WebSiteSet({"domains": domain})
+        website_link_params = getattr(website_matches[0], "link_params", {}) if website_matches.count() == 1 else {}
+        for regex in website_link_params:
+            if re.search(regex, url):
+                res["link_params"]
         titles = set(titles.split("|"))
-        res = {}
         errors = []
+        # check request.domain and then look up in WebSites collection to get linker_params and return both resp and linker_params
         for title in titles:
             lang = "he" if is_hebrew(title) else "en"
             try:
                 re_string = model.library.get_regex_string(title, lang, anchored=False, for_js=True, parentheses=parentheses)
-                res[title] = re_string
+                res["regexes"][title] = re_string
             except (AttributeError, AssertionError) as e:
                 # There are normal errors here, when a title matches a schema node, the chatter fills up the logs.
                 # logger.warning(u"Library._build_ref_from_string() failed to create regex for: {}.  {}".format(title, e))

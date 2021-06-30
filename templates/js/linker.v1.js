@@ -236,13 +236,15 @@
         }
 
         // Get regexes for each of the titles
-        atomic.get(base_url + "api/regexs/" + matchedTitles.join("|"))
+        atomic.get(base_url + "api/regexs/" + matchedTitles.join("|") + '&url='+document.location.href)
             .success(function (data, xhr) {
                 if ("error" in data) {
                     console.log(data["error"]);
                     delete data.error;
                 }
-                ns.regexes = data;
+                ns.regexes = data["regexes"];
+                Object.assign(ns, data["link_params"]);
+
                 var books = Object.getOwnPropertyNames(data).sort(function(a, b) {
                   return b.length - a.length; // ASC -> a - b; DESC -> b - a
                 });

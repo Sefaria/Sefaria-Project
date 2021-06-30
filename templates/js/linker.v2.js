@@ -427,13 +427,14 @@
     // Private API
     ns._getRegexesThenTexts = function(mode) {
         // Get regexes for each of the titles
-        atomic.get(base_url + "api/regexs/" + ns.matchedTitles.join("|") + '?' + 'parentheses='+(0+ns.parenthesesOnly))
+        atomic.get(base_url + "api/regexs/" + ns.matchedTitles.join("|") + '?' + 'parentheses='+(0+ns.parenthesesOnly) + '&url='+document.location.href)
             .success(function (data, xhr) {
                 if ("error" in data) {
                     console.log(data["error"]);
                     delete data.error;
                 }
-                ns.regexes = data;
+                ns.regexes = data["regexes"];
+                Object.assign(ns, data["link_params"]);
                 ns._wrapMatches();
                 ns._trackPage();
 
