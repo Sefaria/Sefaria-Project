@@ -213,7 +213,8 @@ class WebSite(abst.AbstractMongoRecord):
         "bad_urls",
         "normalization_rules",
         "title_branding",
-        "initial_title_branding"
+        "initial_title_branding",
+        "exclude_from_tracking"
     ]
 
 

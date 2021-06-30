@@ -268,7 +268,7 @@ def linker_data_api(request, titles):
     if request.method == "GET":
         cb = request.GET.get("callback", None)
         res = {}
-        title_regex = title_regex_api(request, titles)
+        title_regex = title_regex_api(request, titles, json_response=False)
         if "error" in title_regex:
             res["error"] = title_regex.pop("error")
         res["regexes"] = title_regex
@@ -277,14 +277,14 @@ def linker_data_api(request, titles):
 
         website_match = WebSiteSet({"domains": domain})  # we know there can only be 0 or 1 matches found because of a constraint
                                                          # enforced in Sefaria-Data/sources/WebSites/populate_web_sites.py
-        res["exclude_from_tracking"] = getattr(website_match[0], "exclude_from_tracking", {}) if website_match.count() == 1 else {}
+        res["exclude_from_tracking"] = getattr(website_match[0], "exclude_from_tracking", "") if website_match.count() == 1 else ""
         resp = jsonResponse(res, cb)
         return resp
     else:
         return jsonResponse({"error": "Unsupported HTTP method."})
 
 
-def title_regex_api(request, titles):
+def title_regex_api(request, titles, json_response=True):
     if request.method == "GET":
         cb = request.GET.get("callback", None)
         parentheses = bool(int(request.GET.get("parentheses", False)))
@@ -304,9 +304,9 @@ def title_regex_api(request, titles):
         if len(errors):
             res["error"] = errors
         resp = jsonResponse(res, cb)
-        return resp
+        return resp if json_response else res
     else:
-        return jsonResponse({"error": "Unsupported HTTP method."})
+        return jsonResponse({"error": "Unsupported HTTP method."}) if json_response else {"error": "Unsupported HTTP method."}
 
 
 def bundle_many_texts(refs, useTextFamily=False, as_sized_string=False, min_char=None, max_char=None):

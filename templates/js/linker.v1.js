@@ -236,15 +236,17 @@
         }
 
         // Get regexes for each of the titles
-        atomic.get(base_url + "api/regexs/" + matchedTitles.join("|") + '&url='+document.location.href)
+        atomic.get(base_url + "api/linker-data/" + matchedTitles.join("|") + '&url='+document.location.href)
             .success(function (data, xhr) {
                 if ("error" in data) {
                     console.log(data["error"]);
                     delete data.error;
                 }
                 ns.regexes = data["regexes"];
-                ns.excludeFromTracking = data["exclude_from_tracking"];
-
+                if (ns.excludeFromTracking && ns.excludeFromTracking.length > 0 && data["exclude_from_tracking"].length > 0) {
+                    // append our exclusions to site's own exclusions
+                    ns.excludeFromTracking = data["exclude_from_tracking"] + ", " + ns.excludeFromTracking;
+                }
                 var books = Object.getOwnPropertyNames(data).sort(function(a, b) {
                   return b.length - a.length; // ASC -> a - b; DESC -> b - a
                 });
