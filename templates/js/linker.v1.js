@@ -243,7 +243,7 @@
                     delete data.error;
                 }
                 ns.regexes = data["regexes"];
-                Object.assign(ns, data["link_params"]);
+                ns.excludeFromTracking = data["exclude_from_tracking"];
 
                 var books = Object.getOwnPropertyNames(data).sort(function(a, b) {
                   return b.length - a.length; // ASC -> a - b; DESC -> b - a

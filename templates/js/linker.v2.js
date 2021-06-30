@@ -434,7 +434,7 @@
                     delete data.error;
                 }
                 ns.regexes = data["regexes"];
-                Object.assign(ns, data["link_params"]);
+                ns.excludeFromTracking = data["exclude_from_tracking"];
                 ns._wrapMatches();
                 ns._trackPage();
 

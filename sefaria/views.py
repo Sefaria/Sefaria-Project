@@ -264,18 +264,31 @@ def linker_js(request, linker_version=None):
     return render(request, linker_link, attrs, content_type = "text/javascript; charset=utf-8")
 
 
+def linker_data_api(request, titles):
+    if request.method == "GET":
+        cb = request.GET.get("callback", None)
+        res = {}
+        title_regex = title_regex_api(request, titles)
+        if "error" in title_regex:
+            res["error"] = title_regex.pop("error")
+        res["regexes"] = title_regex
+        url = request.GET.get("url", "")
+        domain = WebPage.domain_for_url(url)
+
+        website_match = WebSiteSet({"domains": domain})  # we know there can only be 0 or 1 matches found because of a constraint
+                                                         # enforced in Sefaria-Data/sources/WebSites/populate_web_sites.py
+        res["exclude_from_tracking"] = getattr(website_match[0], "exclude_from_tracking", {}) if website_match.count() == 1 else {}
+        resp = jsonResponse(res, cb)
+        return resp
+    else:
+        return jsonResponse({"error": "Unsupported HTTP method."})
+
+
 def title_regex_api(request, titles):
     if request.method == "GET":
         cb = request.GET.get("callback", None)
         parentheses = bool(int(request.GET.get("parentheses", False)))
-        res = {"regexes": {}, "link_params": {}}
-        url = request.GET.get("url", "")
-        domain = WebPage.domain_for_url(url)
-        website_matches = WebSiteSet({"domains": domain})
-        website_link_params = getattr(website_matches[0], "link_params", {}) if website_matches.count() == 1 else {}
-        for regex in website_link_params:
-            if re.search(regex, url):
-                res["link_params"]
+        res = {}
         titles = set(titles.split("|"))
         errors = []
         # check request.domain and then look up in WebSites collection to get linker_params and return both resp and linker_params
@@ -283,7 +296,7 @@ def title_regex_api(request, titles):
             lang = "he" if is_hebrew(title) else "en"
             try:
                 re_string = model.library.get_regex_string(title, lang, anchored=False, for_js=True, parentheses=parentheses)
-                res["regexes"][title] = re_string
+                res[title] = re_string
             except (AttributeError, AssertionError) as e:
                 # There are normal errors here, when a title matches a schema node, the chatter fills up the logs.
                 # logger.warning(u"Library._build_ref_from_string() failed to create regex for: {}.  {}".format(title, e))
