@@ -95,12 +95,13 @@ def nationbuilder_get_all(endpoint_func, args=[]):
             for item in res_data['results']:
                 yield item
             next_endpoint = unquote(res_data['next']) if res_data['next'] else None
-            if (): # TODO pause if we run out of rate limits
+            if (res.headers['x-ratelimit-remaining'] == '0'): # TODO pause if we run out of rate limits
                 time.sleep(10)
-    #catch:
-        # TODO handle error
-    finally:
+    except:
         session.close()
+        raise
+
+    session.close()
 
 
 def get_nation_builder_connection():

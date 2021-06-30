@@ -6,14 +6,14 @@ class InterruptingMessage(object):
   def __init__(self, attrs={}, request=None):
     if attrs is None:
       attrs = {}
-    self.name        = attrs.get("name", None)
-    self.style       = attrs.get("style", "modal")
-    self.repetition  = attrs.get("repetition", 0)
+    self.name           = attrs.get("name", None)
+    self.style          = attrs.get("style", "modal")
+    self.repetition     = attrs.get("repetition", 0)
     self.is_fundraising = attrs.get("isFundraising", False)
-    self.condition   = attrs.get("condition", {})
-    self.request     = request
-    self.cookie_name = "%s_%d" % (self.name, self.repetition)
-    self.should_show = self.check_condition()
+    self.condition      = attrs.get("condition", {})
+    self.request        = request
+    self.cookie_name    = "%s_%d" % (self.name, self.repetition)
+    self.should_show    = self.check_condition()
 
   def check_condition(self):
     """Returns true if this interrupting message should be shown given its conditions"""
