@@ -81,7 +81,7 @@ class Test_Mongo_Record_Models(object):
             num_records = 1
             dup_str = ''
             count = 0
-            sub_set = record_classes[sub.__name__]({slug_field: temp_slug})
+            sub_set = record_to_set[sub.__name__]({slug_field: temp_slug})
             sub_set.delete()
             while num_records > 0:
                 sub_set = record_to_set[sub.__name__]({slug_field: temp_slug + dup_str})  # delete all

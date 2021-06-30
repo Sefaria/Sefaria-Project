@@ -73,6 +73,7 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
             assert self.subclass in self.subclass_map, f"Field `subclass` set to {self.subclass} which is not one of the valid subclass keys in `Topic.subclass_map`. Valid keys are {', '.join(self.subclass_map.keys())}"
 
     def _normalize(self):
+        super()._normalize()
         self.titles = self.title_group.titles
 
     def set_titles(self, titles):
