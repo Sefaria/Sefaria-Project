@@ -6120,6 +6120,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   align-items: center;
   flex-direction: column;
 }
+.profile-page {
+  background-color: var(--lightest-grey);
+}
 .profile-page .profile-pic .profile-pic-hover-button {
   display: none;
 }
