@@ -75,7 +75,7 @@ class SearchFilters extends Component {
       ariaLabel: Sefaria._("Sort by") + " " + Sefaria._(data.name),
     }));
 
-    return Sefaria.multiPanel ?(
+    return Sefaria.multiPanel && !this.props.compare ? (
       <div className="searchFilters navSidebarModule">
         {filters}
       </div>

@@ -55,6 +55,7 @@ class SearchPage extends Component {
               <SearchResultList
                 query={this.props.query}
                 tab={this.props.tab}
+                compare={this.props.compare}
                 textSearchState={this.props.textSearchState}
                 sheetSearchState={this.props.sheetSearchState}
                 onResultClick={this.props.onResultClick}
@@ -66,8 +67,8 @@ class SearchPage extends Component {
               />
             </div>
 
-            {Sefaria.multiPanel || this.state.mobileFiltersOpen ?
-            <div className={Sefaria.multiPanel ? "navSidebar" : "mobileSearchFilters"}>
+            {(Sefaria.multiPanel && !this.props.compare) || this.state.mobileFiltersOpen ?
+            <div className={Sefaria.multiPanel && !this.props.compare ? "navSidebar" : "mobileSearchFilters"}>
               {this.state.totalResults ?
               <SearchFilters
                 query={this.props.query}
@@ -76,6 +77,7 @@ class SearchPage extends Component {
                 updateAppliedOptionField={this.props.updateAppliedOptionField.bind(null, this.props.tab)}
                 updateAppliedOptionSort={this.props.updateAppliedOptionSort.bind(null, this.props.tab)}
                 closeMobileFilters={() => this.setState({mobileFiltersOpen: false})}
+                compare={this.props.compare}
                 type={this.props.tab} />
               : null }
             </div>
