@@ -197,6 +197,8 @@ def view_sheet(request, sheet_id, editorMode = False):
 
     sheet_id = int(sheet_id)
     sheet = get_sheet(sheet_id)
+    if "error" in sheet:
+            return HttpResponse(sheet["error"])
 
     sheet["sources"] = annotate_user_links(sheet["sources"])
 
@@ -959,7 +961,6 @@ def sheet_to_story_dict(request, sid):
 
 def sheet_list_to_story_list(request, sid_list, public=True):
     """
-
     :param request:
     :param sid_list: list of sheet ids
     :param public: if True, return only public sheets

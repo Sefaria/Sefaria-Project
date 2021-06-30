@@ -23,7 +23,7 @@ import ReactDOM from "react-dom";
 // Mapping from Sheet doc format source types to Slate block element types
 const sheet_item_els = {
     ref: 'SheetSource',
-    comment: 'SheetComment',
+    comment: 'SheetOutsideText',
     outsideText: 'SheetOutsideText',
     outsideBiText: 'SheetOutsideBiText',
     media: 'SheetMedia',
@@ -78,6 +78,10 @@ const format_tag_pairs = [
     {
         tag: "STRONG",
         format: "bold"
+    },
+    {
+        tag: "SUP",
+        format: "superscript"
     },
     {
         tag: "B",
@@ -344,12 +348,14 @@ function renderSheetItem(source) {
             return content
         }
         case 'comment': {
+            const commentLang = Sefaria.hebrew.isHebrew(source.comment) ? 'he' : 'en';
             const content = (
                 {
                     type: sheet_item_els[sheetItemType],
                     options: source.options,
                     children: parseSheetItemHTML(source.comment),
-                    node: source.node
+                    node: source.node,
+                    lang: commentLang
                 }
             );
             return content
@@ -568,10 +574,6 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
     }
     setSourceActive(true)
 
-    console.log(e)
-    console.log(activeSourceLangContent)
-    console.log(sourceActive)
-
   }
 
   const onBlur = (e) => {
@@ -756,9 +758,7 @@ const Element = props => {
             );
         case 'link':
           return (
-            <a {...attributes} href={element.url}>
-              {children}
-            </a>
+            <Link {...props} />
           )
         case 'table':
           return (
@@ -1413,32 +1413,176 @@ const withTables = editor => {
   return editor
 }
 
+const Link = ({ attributes, children, element }) => {
+  const editor = useSlate();
+  const {selection} = editor;
+
+  const focused = useFocused();
+  const selected = useSelected();
+  const [linkPopoverVisible, setLinkPopoverVisible] = useState(false);
+  const [urlValue, setUrlValue] = useState(element.url);
+  const [currentSlateRange, setCurrentSlateRange] = useState(null)
+
+
+  let showLinkHoverTimeout;
+  let hideLinkHoverTimeout;
+
+    const onHover = (e, url) => {
+        clearTimeout(hideLinkHoverTimeout)
+        if (!editor.selection) {return}
+        let range = document.createRange();
+        range.selectNode(e.target);
+        setCurrentSlateRange(ReactEditor.toSlateRange(editor, range))
+        showLinkHoverTimeout = setTimeout(function () {
+            Transforms.select(editor, currentSlateRange);
+            setLinkPopoverVisible(true)
+        }, 500, e);
+    }
+    const onBlur = (e, url) => {
+        clearTimeout(showLinkHoverTimeout)
+        hideLinkHoverTimeout = setTimeout(function () {
+            setLinkPopoverVisible(false)
+            setCurrentSlateRange(null)
+        }, 500);
+    }
+    const onClick = (e, url) => {
+        window.open(url, '_blank').focus();
+    }
+
+    const xClicked = () => {
+        console.log(currentSlateRange)
+        Transforms.select(editor, currentSlateRange);
+        editor.removeLink();
+        // Transforms.collapse(editor);
+    }
+
+    const fixUrl = (s) => {
+        try {
+            let url = new URL(s)
+            return(url)
+        }
+
+        catch {
+            return(`http://${s}`)
+        }
+    }
+
+    const urlChange = (e) => {
+        const newUrl = e.target.value;
+        setUrlValue(newUrl)
+        const [node, linkPath] = Editor.above(editor, {at: currentSlateRange, match: n => n.type ==="link"})
+        Transforms.setNodes(editor, { url: fixUrl(newUrl) }, {at: linkPath});
+    }
+
+
+  return (
+    <div
+        {...attributes}
+        className="element-link"
+        onMouseEnter={(e) => onHover(e, element.url)}
+        onMouseLeave={(e) => onBlur(e, element.url)}
+    >
+        <a
+            href={element.url}
+            onClick={(e) => onClick(e, element.url)}
+        >
+            {children}
+        </a>
+      {linkPopoverVisible ? (
+        <div className="popup" contentEditable={false}>
+          <input
+              type="text"
+              value={urlValue}
+              placeholder="Enter link URL"
+              className="sans-serif"
+              onChange={(e) => urlChange(e)}
+          />
+          <button onClick={() => xClicked()}>✕</button>
+        </div>
+      ) : null }
+
+
+    </div>
+
+  )
+
+ }
+
+
 const withLinks = editor => {
-  const { insertData, insertText, isInline } = editor
+    const { insertData, insertText, isInline } = editor
 
-  editor.isInline = element => {
-    return element.type === 'link' ? true : isInline(element)
-  };
+    editor.isInline = element => {
+        return element.type === 'link' ? true : isInline(element)
+    };
 
-  editor.insertText = text => {
-    if (text && Sefaria.util.isUrl(text)) {
-      wrapLink(editor, text)
-    } else {
-      insertText(text)
-    }
-  };
+    editor.insertText = text => {
+        if (text && Sefaria.util.isUrl(text)) {
+            wrapLink(editor, text)
+        } else {
+            insertText(text)
+        }
+    };
 
-  editor.insertData = data => {
-    const text = data.getData('text/plain')
+    editor.insertData = data => {
+        const text = data.getData('text/plain')
 
-    if (text && Sefaria.util.isUrl(text)) {
-      wrapLink(editor, text)
-    } else {
-      insertData(data)
-    }
-  };
+        if (text && Sefaria.util.isUrl(text)) {
+            wrapLink(editor, text)
+        } else {
+            insertData(data)
+        }
+    };
 
-  return editor
+
+    editor.createLinkNode = (href, text) => ({
+        type: "link",
+        href,
+        children: [{ text }]
+    });
+
+    editor.insertLink = (url) => {
+        if (!url) return;
+        const { selection } = editor;
+        const link = editor.createLinkNode(url, "New Link");
+        ReactEditor.focus(editor);
+        if (!!selection) {
+            const [parentNode, parentPath] = Editor.parent(
+                editor,
+                selection.focus?.path
+            );
+            // Remove the Link node if we're inserting a new link node inside of another
+            // link.
+            if (parentNode.type === "link") {
+                editor.removeLink(editor);
+            }
+            if (editor.isVoid(parentNode)) {
+                // Insert the new link after the void node
+                Transforms.insertNodes(editor, createParagraphNode([link]), {
+                    at: Path.next(parentPath),
+                    select: true
+                });
+            } else if (Range.isCollapsed(selection)) {
+                // Insert the new link in our last known location
+                Transforms.insertNodes(editor, link, { select: true });
+            } else {
+                // Wrap the currently selected range of text into a Link
+                Transforms.wrapNodes(editor, link, { split: true });
+                Transforms.collapse(editor, { edge: "end" });
+            }
+        } else {
+            return
+        }
+    };
+
+    editor.removeLink = () => {
+        Transforms.unwrapNodes(editor, {
+            match: (n) =>
+                !Editor.isEditor(n) && SlateElement.isElement(n) && n.type === "link"
+        });
+    };
+
+    return editor
 };
 
 const isLinkActive = editor => {
@@ -1503,6 +1647,9 @@ const Leaf = ({attributes, children, leaf}) => {
     if (leaf.small) {
         children = <small>{children}</small>
     }
+    if (leaf.superscript) {
+        children = <sup>{children}</sup>
+    }
     if (leaf.isRef) {
         children = <span className="inlineTextRef">{children}</span>
     }
@@ -1531,11 +1678,13 @@ const HoverMenu = () => {
             return
         }
 
+
         if (
             !selection ||
             !ReactEditor.isFocused(editor) ||
             Range.isCollapsed(selection) ||
-            Editor.string(editor, selection) === ''
+            Editor.string(editor, selection) === '' ||
+            isLinkActive(editor)
         ) {
             el.removeAttribute('style');
             return
@@ -1560,21 +1709,49 @@ const HoverMenu = () => {
             <FormatButton editor={editor} format="bold"/>
             <FormatButton editor={editor} format="italic"/>
             <FormatButton editor={editor} format="underline"/>
+            <AddLinkButton/>
+
+
         </div>,
         root
     )
 };
 
+const AddLinkButton = () => {
+    const editor = useSlate();
+    const classes = {fa: 1};
+    classes["fa-link"] = 1
+
+    return (
+        <span className="hoverButton"
+              onMouseDown={event => {
+                  event.preventDefault();
+                  console.log(
+                      // ReactEditor.toDOMNode(editor,
+                          (Node.get(editor, editor.selection))
+                      // )
+
+                      )
+
+                  wrapLink(editor, "")
+                  const mouseenterEvent = new Event('mouseenter');
+                  // whateverElement.dispatchEvent(mouseoverEvent);
+              }}
+        >
+      <i className={classNames(classes)}/>
+    </span>
+    )
+}
+
 const FormatButton = ({format}) => {
     const editor = useSlate();
-
     const isActive = isFormatActive(editor, format);
     const iconName = "fa-" + format;
     const classes = {fa: 1, active: isActive};
     classes[iconName] = 1;
 
     return (
-        <span className="markButton"
+        <span className="hoverButton"
               onMouseDown={event => {
                   event.preventDefault();
                   toggleFormat(editor, format);

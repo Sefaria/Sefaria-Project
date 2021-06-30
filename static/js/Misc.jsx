@@ -904,12 +904,11 @@ class ToggleSet extends Component {
     let classes = {toggleSet: 1, separated: this.props.separated };
     classes[this.props.name] = 1;
     classes = classNames(classes);
-    const value = this.props.name === "layout" ? this.props.currentLayout() : this.props.settings[this.props.name];
     const width = 100.0 - (this.props.separated ? (this.props.options.length - 1) * 3 : 0);
-    let style = {width: (width/this.props.options.length) + "%"};
+    const style = {width: (width/this.props.options.length) + "%"};
     const label = this.props.label ? (<span className="toggle-set-label">{this.props.label}</span>) : null;
     return (
-      <div className={classes} role={this.props.role} aria-label={this.props.ariaLabel}>
+      <div className={classes} role="radiogroup" aria-label={this.props.ariaLabel}>
           {label}
           <div>
         {
@@ -920,8 +919,8 @@ class ToggleSet extends Component {
                 key={option.name}
                 set={this.props.name}
                 role={option.role}
-                ariaLable={option.ariaLabel}
-                on={value == option.name}
+                ariaLabel={option.ariaLabel}
+                on={this.props.currentValue == option.name}
                 setOption={this.props.setOption}
                 style={style}
                 image={option.image}
@@ -937,8 +936,7 @@ ToggleSet.propTypes = {
   name:          PropTypes.string.isRequired,
   label:         PropTypes.string,
   setOption:     PropTypes.func.isRequired,
-  currentLayout: PropTypes.func,
-  settings:      PropTypes.object.isRequired,
+  currentValue:  PropTypes.string,
   options:       PropTypes.array.isRequired,
   separated:     PropTypes.bool,
   role:          PropTypes.string,
@@ -2210,7 +2208,7 @@ SheetAuthorStatement.propTypes = {
 
 const CollectionStatement = ({name, slug, image, children}) => (
   slug ?
-    <div className="collectionStatement" contentEditable={false} style={{ userSelect: 'none' }}>
+    <div className="collectionStatement sans-serif" contentEditable={false} style={{ userSelect: 'none' }}>
       <div className="collectionListingImageBox imageBox">
         <a href={"/collections/" + slug}>
           <img className={classNames({collectionListingImage:1, "img-circle": 1, default: !image})} src={image || "/static/icons/collection.svg"} alt="Collection Logo"/>
@@ -2219,16 +2217,16 @@ const CollectionStatement = ({name, slug, image, children}) => (
       <a href={"/collections/" + slug}>{children ? children : name}</a>
     </div>
     :
-    <div className="collectionStatement" contentEditable={false} style={{ userSelect: 'none', display: 'none' }}>
+    <div className="collectionStatement sans-serif" contentEditable={false} style={{ userSelect: 'none', display: 'none' }}>
       {children}
     </div>
 );
 
 
 const SheetMetaDataBox = (props) => (
-    <div className="sheetMetaDataBox">
-      {props.children}
-    </div>
+  <div className="sheetMetaDataBox">
+    {props.children}
+  </div>
 );
 
 

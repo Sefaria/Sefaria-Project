@@ -943,15 +943,16 @@ class ReaderApp extends Component {
       return this.props.initialSettings;
     } else {
       return {
-        language:      "bilingual",
-        layoutDefault: "segmented",
-        layoutTalmud:  "continuous",
-        layoutTanakh:  "segmented",
-        aliyotTorah:   "aliyotOff",
-        vowels:        "all",
-        biLayout:      "stacked",
-        color:         "light",
-        fontSize:      62.5
+        language:          "bilingual",
+        layoutDefault:     "segmented",
+        layoutTalmud:      "continuous",
+        layoutTanakh:      "segmented",
+        aliyotTorah:       "aliyotOff",
+        vowels:            "all",
+        punctuationTalmud: "punctuationOn",
+        biLayout:          "stacked",
+        color:             "light",
+        fontSize:          62.5
       };
     }
   }
@@ -1106,7 +1107,7 @@ class ReaderApp extends Component {
       this.showLibrary();
 
     } else if (path.match(/\/texts\/.+/)) {
-      this.showLibrary(path.slice(7).split("/"));
+      this.showLibrary(path.slice(7).split("/").map(decodeURI));
 
     } else if (path == "/collections") {
       this.showCollections();

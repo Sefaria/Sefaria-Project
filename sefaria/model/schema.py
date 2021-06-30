@@ -2001,9 +2001,10 @@ class AddressTalmud(AddressType):
         "en": r"""(?:(?:[Ff]olios?|[Dd]af|[Pp](ages?|s?\.))?\s*)""",  # the internal ? is a hack to allow a non match, even if 'strict'
         "he": "(\u05d1?\u05d3\u05b7?\u05bc?[\u05e3\u05e4\u05f3\u2018\u2019'\"״]\\s+)"			# Daf, spelled with peh, peh sofit, geresh, gereshayim,  or single or doublequote
     }
+    he_pattern = '''(?:\u05e2(?:"|\u05f4|''|\u05de\u05d5\u05d3\\s))?([\u05d0\u05d1])['\u05f3\u2018\u2019]?''' #+ (optional: Ayin for amud) + [alef or bet] + (optional: single quote of any type (really only makes sense if there's no Ayin beforehand))
     amud_patterns = {
         "en": "[ABabᵃᵇ]",
-        "he": '''([.:]|[,\\s]+(?:\u05e2(?:"|\u05f4|''|\u05de\u05d5\u05d3\\s))?([\u05d0\u05d1])['\u05f3\u2018\u2019]?)'''  # Either (1) period / colon (2) some separator + (optional: Ayin for amud) + [alef or bet] + (optional: single quote of any type (really only makes sense if there's no Ayin beforehand))
+        "he": '''([.:]|[,\\s]+{})'''.format(he_pattern)  # Either (1) period / colon (2) some separator + he_pattern
     }
 
     @classmethod
@@ -2053,24 +2054,18 @@ class AddressTalmud(AddressType):
             if ref_lacks_amud(base):
                 ref.toSections[-1] += 1
         elif len(parts) == 2:
-            ref.toSections = parts[1].split(".")  # this was converting space to '.', for some reason.
+            range_parts = parts[1].split(".")  # this was converting space to '.', for some reason.
 
-            # 'Shabbat 23a-b' or 'Zohar 1:2a-b'
-            if ref.toSections[-1] in ['b', 'B', 'ᵇ', 'ב']:
+            he_bet_reg_ex = "^"+cls.he_pattern.replace('[\u05d0\u05d1]', '\u05d1')  # don't want to look for Aleph
+
+            if re.search(he_bet_reg_ex, range_parts[-1]):
+                # 'Shabbat 23a-b' or 'Zohar 1:2a-b'
                 ref.toSections[-1] = ref.sections[-1] + 1
-
-            # 'Shabbat 24b-25a' or 'Zohar 2:24b-25a'
-            elif re.search(cls.amud_patterns[ref._lang], ref.toSections[-1]):
-                ref.toSections[-1] = AddressTalmud(0).toNumber(ref._lang, ref.toSections[-1])
-
-            # 'Shabbat 7-8' -> 'Shabbat 7a-8b'; 'Zohar 3:7-8' -> 'Zohar 3:7a-8b'
-            elif ref_lacks_amud(parts[1]):
-                ref.toSections[-1] = AddressTalmud(0).toNumber(ref._lang, "{}b".format(ref.toSections[-1]))
-
-        ref.toSections[0] = int(ref.toSections[0])
-        ref.sections[0] = int(ref.sections[0])
-        if len(ref.sections) == len(ref.toSections) + 1:
-            ref.toSections.insert(0, ref.sections[0])
+            else:
+                if ref_lacks_amud(parts[1]) and ref_lacks_amud(parts[0]):
+                    # 'Shabbat 7-8' -> 'Shabbat 7a-8b'; 'Zohar 3:7-8' -> 'Zohar 3:7a-8b'
+                    range_parts[-1] = range_parts[-1] + ('b' if ref._lang == 'en' else ' ב')
+                ref._parse_range_end(range_parts)
 
         # below code makes sure toSections doesn't go pass end of section/book
         if getattr(ref.index_node, "lengths", None):
@@ -2079,6 +2074,11 @@ class AddressTalmud(AddressType):
                 end += 2
             while ref.toSections[-1] > end:  # Yoma 87-90 should become Yoma 87a-88a, since it ends at 88a
                 ref.toSections[-1] -= 1
+
+
+
+
+
 
 
 
@@ -2106,11 +2106,12 @@ class AddressTalmud(AddressType):
         return False
 
     def toNumber(self, lang, s, **kwargs):
+        amud_b_list = ['b', 'B', 'ᵇ']
         if lang == "en":
             try:
                 if re.search(self.amud_patterns["en"]+"{1}$", s):
                     amud = s[-1]
-                    s = self.toStr(lang, kwargs['sections']) if s == 'b' else s
+                    s = self.toStr(lang, kwargs['sections']) if s in amud_b_list else s
                     daf = int(s[:-1])
                 else:
                     amud = "a"

@@ -45,6 +45,7 @@ a {
   --sans-serif-small-font-size: 14px;
 
   /* colors */
+  --inline-link-blue: #4871bf;
   --sefaria-blue: #18345D;
   --highlight-blue: #DDEEFF;
   --highlight-blue-light: #F0F7FF;
@@ -617,12 +618,12 @@ input.noselect {
   min-width: 150px;
   width: max-content;
 }
-.interface-hebrew .header .interfaceLinks .interfaceLinks-menu{
+.interface-hebrew .header .interfaceLinks .interfaceLinks-menu {
   left: 0px;
   min-width: 150px;
   width: max-content;
 }
-.header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header{
+.header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header {
   font-style: normal;
   font-weight: normal;
   font-size: 14px;
@@ -631,10 +632,10 @@ input.noselect {
   padding: 12px;
   border-bottom: 1px solid #CCCCCC;
 }
-.interface-english .header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header{
+.interface-english .header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header {
   font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
 }
-.interface-hebrew .header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header{
+.interface-hebrew .header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header {
   font-family: "Heebo", sans-serif;
 }
 .interfaceLinks-options {
@@ -654,7 +655,10 @@ input.noselect {
   padding: 5px;
   direction: ltr;
 }
-.header .interfaceLinks .interfaceLinks-menu.open{
+.header .interfaceLinks .interfaceLinks-option:hover {
+  background-color: var(--lighter-grey);
+}
+.header .interfaceLinks .interfaceLinks-menu.open {
   display: block;
 }
 .interface-hebrew .header .interfaceLinks .interfaceLinks-option.int-bi {
@@ -679,7 +683,7 @@ input.noselect {
   height: 23px;
 }
 .header .interfaceLinks .interfaceLinks-row:hover {
-   background-color: #EDEDEC;
+  background-color: var(--lighter-grey);
 }
 div.interfaceLinks-row a:hover {
   text-decoration: none;
@@ -1668,6 +1672,9 @@ h1 .languageToggle .he {
 .readerNavMenu .navToggle.second {
   text-align: left;
 }
+.singlePanel .navToggles {
+  margin-top:  20px;
+}
 .readerNavMenu .navToggle.active {
   color: black;
 }
@@ -1678,9 +1685,6 @@ h1 .languageToggle .he {
   font-weight: 300;
   color: #666;
   margin-bottom: 20px;
-  /* letter-spacing: 2px; */
-  /* height: 16px; */
-  /* line-height: 16px; */
 }
 .readerPanel h2 .en, .readerPanel h3 .en {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
@@ -3197,10 +3201,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   align-items: flex-start;
   align-content: flex-start;
 }
-.interface-hebrew .searchContent .searchFilterCategoryBox,
-.interface-hebrew .searchContent .searchFilterBookBox {
-  /*float: right;*/
-}
 .searchContent .result {
   border-bottom: thin solid #eee;
   padding-bottom: 12px;
@@ -3705,9 +3705,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: inline-block;
   width: 48%;
   margin: 2px auto 20px auto;
-  /*margin-left: 1px;*/
 }
-.toggleSet.aliyotTorah, .toggleSet .toggle-set-label {
+.toggleSet.aliyotTorah, .toggleSet.punctuationTalmud, .toggleSet .toggle-set-label {
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--english-sans-serif-font-family);
   text-transform: uppercase;
@@ -3730,7 +3729,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   background-color: #FBFBFA;
   vertical-align: middle;
 }
-.toggleSet.aliyotTorah .toggleOption{
+.toggleSet.aliyotTorah .toggleOption, .toggleSet.punctuationTalmud .toggleOption{
   font-size: 14px;
 }
 .toggleSet.vowels .toggleOption.all span span, .toggleSet.vowels .toggleOption.partial span span{
@@ -4333,24 +4332,40 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .segment sup {
   margin-left: .2em;
   margin-right: .2em;
-  font-size: 12px;
+  text-decoration: none;
+  font-family: var(--hebrew-sans-serif-font-family);
+  font-size: 0.6em;
+  line-height: 1;
+  color: var(--inline-link-blue);
+}
+.segment .he sup {
+  font-size: 0.5em;
 }
 .segment sup:hover {
   text-decoration: underline;
 }
+.sheetContent .segment sup:hover {
+  text-decoration: none;
+}
+.segment sup::before {
+  padding: 12px 12px;
+  content: "";
+  margin-inline-start: -7px;
+  position: absolute;
+}
 .segment sup.itag {
   text-decoration: none;
-  font-family: "Heebo", "sans-serif";
+  font-family: var(--hebrew-sans-serif-font-family);
   font-size: 0.6em;
   line-height: 1;
-  color: #4871bf;
+  color: var(--inline-link-blue);
 }
 .segment i.footnote {
   display: none;
   font-size: .8em;
   margin-left: .5em;
   margin-right: .5em;
-  color: #888;
+  color: #666;
   font-style: normal;
 }
 .segment img {
@@ -5990,14 +6005,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin: 0 2px 6px 2px;
   cursor: pointer;
   font-size: 16px;
-  letter-spacing: 0.1em;
   box-sizing: border-box;
   line-height: 19px;
   text-align: center;
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
-
 a.button {
   color: white;
 }
@@ -7905,9 +7918,69 @@ span.purim-emoji img{
 .sheetContent .editorContent .sheetItem.noPointer {
   pointer-events: none;
 }
+
+.sheetContent .editorContent .sheetItem.noPointer .element-link,
+.sheetContent .editorContent .sheetItem.noPointer .element-link a {
+    cursor: pointer;
+    pointer-events: auto;
+}
 .sheetContent .sheetItem.segment .addedBy {
   margin-top: -20px;
 }
+
+
+
+.sheetContent .element-link {
+  display: inline;
+  position: relative;
+}
+
+.sheetContent .element-link .popup {
+  position: absolute;
+  left: 0;
+  display: flex;
+  align-items: center;
+  background-color: white;
+  padding: 0;
+  border-radius: 6px;
+  border: 1px solid #CCCCCC;
+  z-index: 1;
+  top: -30px;
+  pointer-events: auto;
+}
+
+.sheetContent .element-link .popup input {
+  border: none;
+  width: 200px;
+  padding: 6px;
+  font-size: 16px;
+  color: rgb(0, 136, 204)
+}
+
+.sheetContent .element-link .popup a {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding-right: 10px;
+  border-right: 1px solid lightgrey;
+}
+
+.sheetContent .element-link .popup button {
+  border: none;
+  background: transparent;
+  padding: 6px;
+}
+
+.sheetContent .element-link .popup button:hover {
+  color: rebeccapurple;
+  cursor: pointer;
+}
+
+.sheetContent .editorContent,
+.sheetContent .editorContent .segment {
+  cursor: text;
+}
+
 .interface-english .sheetContent .sheetItem.segment .addedBy {
   float: left;
 }
@@ -8130,6 +8203,11 @@ section.SheetSource .SheetOutsideBiText {
   padding-inline-end: 20px;
   box-shadow: 0px 1px 6px rgba(0, 0, 0, 0.25);
 }
+.sheetItem .SheetSource.segment,
+.sheetItem .SheetOutsideBiText.segment {
+cursor: pointer;
+}
+
 .sheetItem .SheetSource.selected.segment,
 .sheetItem .SheetOutsideBiText.selected.segment {
   border-top: 2px solid #CCE6FF;
@@ -8138,6 +8216,7 @@ section.SheetSource .SheetOutsideBiText {
   margin-top: 12px;
   margin-bottom: 12px;
   margin-inline-end: -2px;
+  cursor: text;
 }
 .sheetItem .SheetSource .he,
 .sheetItem .SheetSource .en,
@@ -9560,19 +9639,19 @@ a.topicLexiconTitle.contentText {
   left: -10000px;
   margin-top: -6px;
   opacity: 0;
-  background-color: #fafafa;
+  background-color: #333333;
   border-radius: 4px;
   transition: opacity 0.75s;
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
-.markButton {
+.hoverButton {
   padding: 10px;
 }
-.markButton i {
-  color: #737373
+.hoverButton i {
+  color: #CCCCCC
 }
-.markButton i.active {
-  color: #000;
+.hoverButton i.active {
+  color: #fff;
 }
 .editorHoverBox {
   position: fixed;
@@ -9680,6 +9759,10 @@ a.topicLexiconTitle.contentText {
 #history-disabled-msg {
   text-align: center;
 }
+/* demo coloring of ref-link parentheses for quotation finder project*/
+span.ref-link-color-1 {color: orange}
+span.ref-link-color-2 {color: #0cd200}
+span.ref-link-color-3 {color: blue}
 /* start css code for loading bezel */
 .sourceLoader {
   margin-left: -34px;
