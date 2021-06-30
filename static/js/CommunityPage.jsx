@@ -75,20 +75,25 @@ CommunityPage.propTypes = {
 
 const RecenltyPublished = ({multiPanel, toggleSignUpModal}) => {
   const options = Sefaria.interfaceLang === "hebrew" ? {"lang": "hebrew"} : {};
-  const pageSize = 12;
-  const [nSheetsLoaded, setNSheetsLoded] = useState(pageSize);
+  const pageSize = 18;
+  const [nSheetsLoaded, setNSheetsLoded] = useState(0); // counting sheets loaded from the API, may be different than sheets displayed
   // Start with recent sheets in the cache, if any
-  const [recentSheets, setRecentSheets] = useState(Sefaria.sheets.publicSheets(0, pageSize, options));
+  const [recentSheets, setRecentSheets] = useState(collapseSheets(Sefaria.sheets.publicSheets(0, pageSize, options)));
 
   // But also make an API call immeditately to check for updates
   useEffect(() => {
-    Sefaria.sheets.publicSheets(0, pageSize, options, true, (data) => setRecentSheets(data));
+    loadMore();
   }, []);
 
-  const loadMore = () => {
+  const loadMore = (e, until=pageSize) => {
     Sefaria.sheets.publicSheets(nSheetsLoaded, pageSize, options, true, (data) => {
-      setRecentSheets(recentSheets.concat(data));
+      const collapsedSheets = collapseSheets(data);
+      const newSheets = recentSheets ? recentSheets.concat(collapsedSheets) : collapsedSheets;
+      setRecentSheets(newSheets);
       setNSheetsLoded(nSheetsLoaded + pageSize);
+      if (collapsedSheets.length < until) {
+        loadMore(null, until - collapsedSheets.length);
+      }
     });
   };
 
@@ -103,7 +108,7 @@ const RecenltyPublished = ({multiPanel, toggleSignUpModal}) => {
     recentSheetsContent.splice(6, 0, joinTheConversation);
     recentSheetsContent.push(
       <a className="button small white loadMore" onClick={loadMore}>
-        <InterfaceText>Load More</InterfaceText>
+        <InterfaceText context="RecenltyPublished">Load More</InterfaceText>
       </a>
     );
   }
@@ -115,6 +120,25 @@ const RecenltyPublished = ({multiPanel, toggleSignUpModal}) => {
   );
 };
 
+
+const collapseSheets = (sheets) => {
+  // Collapses consecutive sheets with the same author
+  if (!sheets) { return null; }
+
+  return sheets.reduce((accum, sheet) => {
+    if (!accum.length) {
+      return [sheet];
+    }
+    const prev = accum[accum.length-1];
+    if (prev.author === sheet.author) {
+      prev.moreSheets = prev.moreSheets || [];
+      prev.moreSheets.push(sheet);
+    } else {
+      accum.push(sheet);
+    }
+    return accum;
+  }, []);
+}
 
 const FeaturedSheet = ({sheet, showDate, toggleSignUpModal}) => {
   if (!sheet) { return null; }

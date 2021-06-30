@@ -130,7 +130,7 @@
     {% endautoescape %}
 
     {% if not html %}
-    <div class="wrapper">
+    <div id="staticContentWrapper">
         <div id="content" class="interface-{{ request.interfaceLang }}">
             {% block content %}{% endblock %}
         </div>

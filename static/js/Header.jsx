@@ -47,10 +47,10 @@ class Header extends Component {
         <div className="headerNavSection">
           { Sefaria._siteSettings.TORAH_SPECIFIC ?
           <a className="home" href="/" >{logo}</a> : null }
-          <a href="/texts" className="library"><InterfaceText>Texts</InterfaceText></a>
-          <a href="/topics" className="library"><InterfaceText>Topics</InterfaceText></a>
-          <a href="/community" className="library"><InterfaceText>Community</InterfaceText></a>
-          <a href="https://sefaria.nationbuilder.com/supportsefaria" target="_blank" className="library"><InterfaceText>Donate</InterfaceText></a>
+          <a href="/texts" className="textLink"><InterfaceText context="Header">Texts</InterfaceText></a>
+          <a href="/topics" className="textLink"><InterfaceText>Topics</InterfaceText></a>
+          <a href="/community" className="textLink"><InterfaceText>Community</InterfaceText></a>
+          <a href="https://sefaria.nationbuilder.com/supportsefaria" target="_blank" className="textLink donate"><InterfaceText>Donate</InterfaceText></a>
         </div>
 
         <div className="headerLinksSection">
@@ -74,7 +74,7 @@ class Header extends Component {
     const mobileHeaderContent = (
       <>
         <div>
-          <button onClick={this.props.onMobileMenuButtonClick} aria-label={Sefaria._("Menu")} className="library">
+          <button onClick={this.props.onMobileMenuButtonClick} aria-label={Sefaria._("Menu")} className="menuButton">
             <i className="fa fa-bars"></i>
           </button>
         </div>
@@ -457,7 +457,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
       </div>
       <a href="/texts" onClick={close}>
         <img src="/static/icons/book.svg" />
-        <InterfaceText>Texts</InterfaceText>
+        <InterfaceText context="Header">Texts</InterfaceText>
       </a>
       <a href="/topics" onClick={close}>
         <img src="/static/icons/topic.svg" />
@@ -569,7 +569,7 @@ const ProfilePicMenu = ({len, url, name}) => {
     return encodeURIComponent(Sefaria.util.currentPath());
   };
   return (
-    <div ref={wrapperRef}>
+    <div className="myProfileBox" ref={wrapperRef}>
         <a href="/my/profile" className="my-profile" onClick={profilePicClick}>
           <ProfilePic len={len} url={url} name={name}/>
         </a>

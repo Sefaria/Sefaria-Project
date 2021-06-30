@@ -7,7 +7,6 @@ import Track from './track';
 import Hebrew from './hebrew';
 import Util from './util';
 import $ from './sefariaJquery';
-require('babel-polyfill');
 
 
 let Sefaria = Sefaria || {
@@ -1833,7 +1832,7 @@ _media: {},
         english: "The William Davidson Talmud",
         hebrew: "תלמוד מהדורת ויליאם דוידסון",
         englishAsEdition: "The William Davidson Edition",
-        hebrewAsEdition: "תלמוד מהדורת ויליאם דוידסון",
+        hebrewAsEdition: "מהדורת ויליאם דוידסון",
         link: "/william-davidson-talmud"
       }
     ];
@@ -2105,6 +2104,26 @@ _media: {},
     // return category english and hebrew for slug
     if (!this._topicTocCategory) { this._initTopicTocCategory(); }
     return this._topicTocCategory[slug];
+  },
+  _topicTocCategoryTitles: null,
+  _initTopicTocCategoryTitles: function() {
+    this._topicTocCategoryTitles = this.topic_toc.reduce(this._initTopicTocCategoryTitlesReducer, {});
+  },
+  _initTopicTocCategoryTitlesReducer: function(a,c) {
+    if (!c.children) {
+      return a;
+    }
+    a[c.slug] = {en: c.en, he: c.he};
+
+    for (let sub_c of c.children) {
+      Sefaria._initTopicTocCategoryReducer(a, sub_c);
+    }
+    return a;
+  },
+  topicTocCategoryTitle: function(slug) {
+    // returns english and hebrew titles for the topic category named by `slug``
+    if (!this._topicTocCategoryTitles) { this._initTopicTocCategoryTitles(); }
+    return this._topicTocCategoryTitles[slug];
   },
   isTopicTopLevel: function(slug) {
     // returns true is `slug` is part of the top level of topic toc

@@ -219,15 +219,16 @@ def base_props(request):
         "initialPath": request.get_full_path(),
         "interfaceLang": request.interfaceLang,
         "initialSettings": {
-            "language":      getattr(request, "contentLang", "english"),
-            "layoutDefault": request.COOKIES.get("layoutDefault", "segmented"),
-            "layoutTalmud":  request.COOKIES.get("layoutTalmud", "continuous"),
-            "layoutTanakh":  request.COOKIES.get("layoutTanakh", "segmented"),
-            "aliyotTorah":   request.COOKIES.get("aliyotTorah", "aliyotOff"),
-            "vowels":        request.COOKIES.get("vowels", "all"),
-            "biLayout":      request.COOKIES.get("biLayout", "stacked"),
-            "color":         request.COOKIES.get("color", "light"),
-            "fontSize":      request.COOKIES.get("fontSize", 62.5),
+            "language":          getattr(request, "contentLang", "english"),
+            "layoutDefault":     request.COOKIES.get("layoutDefault", "segmented"),
+            "layoutTalmud":      request.COOKIES.get("layoutTalmud", "continuous"),
+            "layoutTanakh":      request.COOKIES.get("layoutTanakh", "segmented"),
+            "aliyotTorah":       request.COOKIES.get("aliyotTorah", "aliyotOff"),
+            "vowels":            request.COOKIES.get("vowels", "all"),
+            "punctuationTalmud": request.COOKIES.get("punctuationTalmud", "punctuationOn"),
+            "biLayout":          request.COOKIES.get("biLayout", "stacked"),
+            "color":             request.COOKIES.get("color", "light"),
+            "fontSize":          request.COOKIES.get("fontSize", 62.5),
         },
         "trendingTopics": trending_topics(days=7, ntags=5),
         "_siteSettings": SITE_SETTINGS,
@@ -3646,7 +3647,7 @@ def home(request):
     return redirect("/texts")
 
 
-def community(request, props={}):
+def community_page(request, props={}):
     """
     Community Page
     """    
@@ -3670,15 +3671,16 @@ def community_page_data(request, language="english"):
 
     return data
 
+
 @staff_member_required
 def community_preview(request):
     """
     Preview the community page as it will appear at some date in the future
     """
-    date = request.GET.get("date", "5/23/21")
+    date = request.GET.get("date", "7/25/21")
     community = get_community_page_items(date=date, language=request.interfaceLang)
 
-    return community(request, props={"community": community, "communityPreview": date})
+    return community_page(request, props={"community": community, "communityPreview": date})
 
 
 @staff_member_required
@@ -3686,10 +3688,10 @@ def community_reset(request):
     """
     Reset the cache of the community page content from Google sheet
     """
-    date = request.GET.get("next", "5/23/21")
+    date = request.GET.get("next", "7/25/21")
     community = get_community_page_items(date=date, language=request.interfaceLang, refresh=True)
 
-    return community(request, props={"community": community, "communityPreview": date})
+    return community_page(request, props={"community": community, "communityPreview": date})
 
 
 def new_home_redirect(request):

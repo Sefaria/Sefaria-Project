@@ -779,32 +779,32 @@ class ReaderApp extends Component {
       return this.props.initialSettings;
     } else {
       return {
-        language:      "bilingual",
-        layoutDefault: "segmented",
-        layoutTalmud:  "continuous",
-        layoutTanakh:  "segmented",
-        aliyotTorah:   "aliyotOff",
-        vowels:        "all",
-        biLayout:      "stacked",
-        color:         "light",
-        fontSize:      62.5
+        language:          "bilingual",
+        layoutDefault:     "segmented",
+        layoutTalmud:      "continuous",
+        layoutTanakh:      "segmented",
+        aliyotTorah:       "aliyotOff",
+        vowels:            "all",
+        punctuationTalmud: "punctuationOn",
+        biLayout:          "stacked",
+        color:             "light",
+        fontSize:          62.5
       };
     }
   }
   setContainerMode() {
-    // Applies CSS classes to the React container and body so that the App can function as a header only on top of a static page.
+    // Applies CSS classes to the React container and body so that the App can function as a  
+    // header only on top of a static page.
     if (this.props.headerMode) {
       if (this.state.panels && this.state.panels.length) {
         $("#s2").removeClass("headerOnly");
         $("body").css({overflow: "hidden"})
-                  .removeClass("hasBannerMessage");
-        if (!this.props.multiPanel) {
-          // Hacky, needed because rendered html of Header doesn't differentiate multiPanel
-          $(".readerApp").removeClass("multiPanel").addClass("singlePanel");
-        }
+          .addClass("inApp")
+          .removeClass("hasBannerMessage");
       } else {
         $("#s2").addClass("headerOnly");
-        $("body").css({overflow: "auto"});
+        $("body").css({overflow: "auto"})
+          .removeClass("inApp");
       }
     }
   }
@@ -976,6 +976,9 @@ class ReaderApp extends Component {
 
     } else if (path === "/topics") {
       this.showTopics();
+
+    } else if (path.match(/^\/topics\/category\/[^\/]/)) {
+      this.openTopicCategory(path.slice(17));
 
     } else if (path.match(/^\/topics\/all\/[^\/]/)) {
       this.openAllTopics(path.slice(12));
@@ -1427,6 +1430,7 @@ class ReaderApp extends Component {
     }
   }
   convertToTextList(n) {
+    console.log("convert")
     var base = this.state.panels[n-1];
     this.closePanel(n);
     if (base.mode == "Sheet") {
@@ -1497,6 +1501,14 @@ class ReaderApp extends Component {
   openTopic(slug) {
     Sefaria.getTopic(slug, {annotate_time_period: true}).then(topic => {
       this.setSinglePanelState({ menuOpen: "topics", navigationTopic: slug, topicTitle: topic.primaryTitle });
+    });
+  }
+  openTopicCategory(slug) {
+    this.setSinglePanelState({ 
+      menuOpen: "topics",
+      navigationTopicCategory: slug,
+      navigationTopicTitle: Sefaria.topicTocCategoryTitle(slug), 
+      navigationTopic: null,
     });
   }
   openAllTopics(letter) {

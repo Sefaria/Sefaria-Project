@@ -187,7 +187,7 @@ const ReaderNavigationCategoryMenuContents = ({category, contents, categories,
               </span> : null }
             </h2>
             {hasDesc && longDesc ? 
-            <div className="categoryDescription">
+            <div className="categoryDescription long sans-serif">
               <ContentText text={{en: shortDesc, he: shortDesc}} defaultToInterfaceOnBilingual={true} />
             </div> : null }
             <ReaderNavigationCategoryMenuContents
@@ -423,11 +423,9 @@ const getSidebarModules = (categories) => {
   const modules = {
     "Tanakh": [
       {type: "WeeklyTorahPortion"},
-      {type: "PopularTexts", props: {texts: ["Genesis", "Psalms", "Isaiah", "Job", "Proverbs"]}}
     ],
     "Talmud|Bavli": [
       {type: "DafYomi"},
-      {type: "PopularTexts", props: {texts: ["Sanhedrin", "Bava Metzia", "Shabbat", "Berakhot", "Kiddushin"]}}      
     ]
   };
 

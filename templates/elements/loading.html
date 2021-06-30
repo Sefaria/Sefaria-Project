@@ -4,10 +4,11 @@
 <div id="appLoading">
     <div class='loadingMessage'>
       {% if SITE_SETTINGS.TORAH_SPECIFIC %}
-      <img src="{% static 'img/logo.svg' %}" alt="Sefaria Loading Icon" />
+      <img class="int-en" src="{% static 'img/logo.svg' %}" alt="Sefaria Loading Icon" />
+      <img class="int-he" src="{% static 'img/logo-hebrew.png' %}" alt="Sefaria Loading Icon" />
       <br>
       {% endif %}
-      <span class="smallText">
+      <div class="smallText">
       	<span class="int-he">...טעינה</span>
       	<span class="int-en">Loading...</span>
       </span>

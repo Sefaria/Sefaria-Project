@@ -322,14 +322,6 @@ class ReaderPanel extends Component {
     this.conditionalSetState(state);
 
   }
-  closePanelSearch() {
-    let state = {
-      menuOpen: "navigation",
-      navigationCategories: null,
-      navigationTopicCategory: null,
-    };
-    this.conditionalSetState(state);
-  }
   openMenu(menu) {
     this.conditionalSetState({
       menuOpen: menu,
@@ -352,7 +344,6 @@ class ReaderPanel extends Component {
       navigationTopic: null,
       topicTitle: null,
       navigationCategories: null,
-
     });
   }
   setCollectionTag (tag) {
@@ -795,7 +786,7 @@ class ReaderPanel extends Component {
                     onResultClick={this.props.onSearchResultClick}
                     openDisplaySettings={this.openDisplaySettings}
                     toggleLanguage={this.toggleLanguage}
-                    close={this.state.compare ? this.props.closePanel : this.closePanelSearch}
+                    close={this.props.closePanel}
                     onQueryChange={this.props.onQueryChange}
                     updateTab={this.props.updateSearchTab}
                     updateAppliedFilter={this.props.updateSearchFilter}
@@ -1312,6 +1303,11 @@ class ReaderDisplayOptionsMenu extends Component {
     const hasEnglish = !!data.text.length;
     return !(hasHebrew && hasEnglish);
   }
+  shouldPunctuationToggleRender() {
+    if (this.props.currentData?.()?.primary_category === "Talmud" && (this.props.settings?.language === "hebrew" || this.props.settings?.language === "bilingual")) { return true; }
+    else { return false; }
+  }
+
   render() {
     let languageOptions = [
       {name: "english",   content: "<span class='en'>A</span>", role: "radio", ariaLabel: "Show English Text" },
@@ -1417,7 +1413,19 @@ class ReaderDisplayOptionsMenu extends Component {
           setOption={this.props.setOption}
           currentValue={this.props.settings.vowels} />): null;
     }
-    
+
+    let punctuationOptions = [
+      {name: "punctuationOn", content: Sefaria._("On"), role: "radio", ariaLabel: Sefaria._("Show Punctuation")},
+      {name: "punctuationOff", content: Sefaria._("Off"), role: "radio", ariaLabel: Sefaria._("Hide Punctuation")}
+    ]
+    let punctuationToggle = this.shouldPunctuationToggleRender() ? (
+        <ToggleSet
+          ariaLabel="Punctuation Toggle"
+          label={Sefaria._("Punctuation")}
+          name="punctuationTalmud"
+          options={punctuationOptions}
+          setOption={this.props.setOption}
+          currentValue={this.props.settings.punctuationTalmud} />) : null;
     if (this.props.menuOpen === "search") {
       return (<div className="readerOptionsPanel" role="dialog">
                 <div className="readerOptionsPanelInner">
@@ -1440,6 +1448,7 @@ class ReaderDisplayOptionsMenu extends Component {
                   {sizeToggle}
                   {aliyahToggle}
                   {vowelToggle}
+                  {punctuationToggle}
                 </div>
               </div>);
     }

@@ -283,9 +283,9 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
   width: 100%;
   height: 100%;
 }
-.nochrome #s2 .headerNavSection a:not(.home),
-.nochrome #s2 .headerLinksSection,
-.nochrome #footerContainer {
+body:not(.inApp).nochrome #s2 .headerNavSection a:not(.home),
+body:not(.inApp).nochrome #s2 .headerLinksSection,
+body:not(.inApp).nochrome #footerContainer {
   display: none;
 }
 #bannerMessage {
@@ -440,7 +440,7 @@ input.noselect {
   color: #666;
   margin-inline-end: 30px;
   font-weight: 500;
-  line-height: 25px;
+  line-height: 26px;
   vertical-align: middle;
 }
 .headerInner .headerLinksSection {
@@ -455,15 +455,35 @@ input.noselect {
 .header .header-links {
   margin-top: 1px;
 }
-.header .library, .header .home, .header .my-profile, .header .notifications, .header .readerNavMenuSearchButton {
+.header .textLink,
+.header .home,
+.header .menuButton,
+.header .my-profile,
+.header .notifications,
+.header .readerNavMenuSearchButton {
   cursor: pointer;
 }
-.header .library, .header .my-profile, .header .readerNavMenuSearchButton {
+.header .textLink,
+.header .menuButton,
+.header .my-profile,
+.header .readerNavMenuSearchButton {
   display: inline-block;
   color: #999;
   border: none;
   background: transparent;
   padding: 0;
+}
+.header .my-profile, 
+.header .notifications {
+  display: inline-block;
+  vertical-align: middle;
+}
+.header .textLink,
+.header .menuButton,
+.header .my-profile {
+  font-size: 24px;
+  line-height: 24px;
+  margin-top: 2px;
 }
 .header .searchBox {
   overflow: hidden;
@@ -525,7 +545,7 @@ input.noselect {
   width: 100%;
 }
 .header.mobile .ui-autocomplete {
-  width: 100%;
+  width: 100% !important;
 }
 .mobileNavMenu a,
 .mobileInterfaceLanguageToggle {
@@ -605,7 +625,7 @@ input.noselect {
   direction: ltr;
 }
 .header .home {
-  margin-top: 1px;
+  margin-top: 2px;
 }
 .header .home img {
   vertical-align: middle;
@@ -817,42 +837,36 @@ div.interfaceLinks-row a {
   content: "\f00c";
   padding: 0 8px;
 }
-@media screen and (max-width: 700px) {
-  .header .interfaceLinks {
+@media screen and (max-width: 910px) {
+  .header .headerInner {
+    padding: 0 15px;
+  }
+  .header .login.loginLink {
     display: none;
   }
-  .header .help {
-    display: none;
-  }
-  .header .profile-pic {
-    display: none;
-  }
-  .header .accountLinks .login{
+  .header .accountLinks .login {
     padding: 5px 5px;
   }
-  .header .accountLinks{
-    -webkit-margin-end: 0px;
-    -moz-margin-end: 0px;
-    margin-inline-end: 0px;
-  }
-  .header .login:first-child{
-    margin:auto;
+  .header .accountLinks {
+    margin-inline-start: 5px;
   }
 }
-.header .my-profile, 
-.header .notifications {
-  display: inline-block;
-  vertical-align: middle;
+@media screen and (max-width: 780px) {
+  .header .donate {
+    display: none;
+  }
 }
-.header .library,
-.header .my-profile {
-  font-size: 24px;
-  line-height: 24px;
-  margin-top: 2px;
+@media screen and (max-width: 700px) {
+  .multiPanel .header .home {
+    display: none;
+  }
 }
-.header .library .fa {
-  position: relative;
-  top: 1px;
+@media screen and (max-width: 580px) {
+  .header .interfaceLinks,
+  .header .help,
+  .header .notifications {
+    display: none;
+  }
 }
 .header .notifications.unread::after {
   content:"";
@@ -1309,7 +1323,6 @@ div.interfaceLinks-row a {
 }
 .readerNavMenu .content,
 .homeFeedWrapper .content {
-  position: relative;
   box-sizing: border-box;
   overflow-y: scroll;
   -webkit-overflow-scrolling: touch;
@@ -1408,7 +1421,7 @@ div.interfaceLinks-row a {
   display: flex;
   flex-direction: row;
 }
-@media (max-width: 500px) {
+@media (max-width: 700px) {
   .sidebarLayout {
     flex-direction: column;
   }
@@ -1982,6 +1995,9 @@ h1 .languageToggle .he {
 .readerNavMenu .navToggle.second {
   text-align: left;
 }
+.singlePanel .navToggles {
+  margin-top:  20px;
+}
 .readerNavMenu .navToggle.active {
   color: black;
   border-bottom: 2px solid #999;
@@ -2293,6 +2309,9 @@ a.navBlockTitle:hover {
   font-size: 14px;
   color: #666;
 }
+.readerNavCategoryMenu .categoryDescription.long {
+  margin: -8px 0 20px 0;
+} 
 .readerNavCategoryMenu .content .category,
 .readerNavCategoryMenu .content .gridBox {
   margin-bottom: 40px;
@@ -2497,6 +2516,10 @@ a.navBlockTitle:hover {
 }
 .bookPage .about {
   margin-top: 10px;
+}
+.bookPage .categoryAttribution {
+  color: var(--dark-grey);
+  font-size: 24px;
 }
 .readerTextTableOfContents .sheetMeta {
   font-size: 14px;
@@ -3164,7 +3187,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-decoration: underline;
 }
 .searchContent h1 {
-  direction: ltr;
   height: 40px;
   font-size: 30px;
   color: #000;
@@ -3214,6 +3236,13 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   .searchTopMatter .dropdown-button {
   font-size: 16px;
   }
+}
+.compare .searchTopMatter .search-dropdown-button {
+  margin-inline-end:  15px;
+}
+.compare .searchTopMatter .search-dropdown-button,
+.compare .searchTopMatter .dropdown-button {
+  font-size: 16px;
 }
 .searchTopMatter .search-dropdown-button.active {
   color: #000;
@@ -3494,7 +3523,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: none;
 }
 .searchContent .mobileSearchFilters {
-  position: fixed;
+  position: absolute;
   width: 100%;
   height: 100%;
   top: 0;
@@ -4014,7 +4043,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   width: 47%;
   margin: 2px auto 20px auto;
 }
-.toggleSet.aliyotTorah, .toggleSet .toggle-set-label {
+.toggleSet.aliyotTorah, .toggleSet.punctuationTalmud, .toggleSet .toggle-set-label {
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--english-sans-serif-font-family);
   text-transform: uppercase;
@@ -4041,7 +4070,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   background-color: #FBFBFA;
   vertical-align: middle;
 }
-.toggleSet.aliyotTorah .toggleOption {
+.toggleSet.aliyotTorah .toggleOption,
+.toggleSet.punctuationTalmud .toggleOption {
   font-size: 14px;
 }
 .toggleSet.vowels .toggleOption.all span span, 
@@ -6091,6 +6121,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   align-items: center;
   flex-direction: column;
 }
+.profile-page {
+  background-color: var(--lightest-grey);
+}
 .profile-page .profile-pic .profile-pic-hover-button {
   display: none;
 }
@@ -6352,6 +6385,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   background-color: #FBFBFA;
   height: 100%;
   width: 100%;
+  direction: initial;
 }
 #appLoading .loadingMessage {
   position: absolute;
@@ -6359,10 +6393,15 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   left: 50%;
   transform: translate(-50%, -50%);
 }
-#appLoading img {
+#appLoading img.int-en {
   width: 150px;
   height: 42px;
   margin-bottom: 6px;
+}
+#appLoading img.int-he {
+  width: 150px;
+  height: 49px;
+  margin-bottom: 6px; 
 }
 .emptyDesktop {
   margin-top: 200px;
@@ -8288,7 +8327,7 @@ span.purim-emoji img{
   border-radius: 6px;
   border: 1px solid #CCCCCC;
   z-index: 1;
-  top: -50px;
+  top: -30px;
   pointer-events: auto;
 }
 
@@ -9973,13 +10012,13 @@ a.topicLexiconTitle.contentText {
   transition: opacity 0.75s;
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
-.markButton {
+.hoverButton {
   padding: 10px;
 }
-.markButton i {
+.hoverButton i {
   color: #CCCCCC
 }
-.markButton i.active {
+.hoverButton i.active {
   color: #fff;
 }
 .editorHoverBox {
@@ -10109,6 +10148,10 @@ a.topicLexiconTitle.contentText {
   -ms-transform: rotate(45deg);
   transform: rotate(45deg);
 }
+/* demo coloring of ref-link parentheses for quotation finder project*/
+span.ref-link-color-1 {color: orange}
+span.ref-link-color-2 {color: #0cd200}
+span.ref-link-color-3 {color: blue}
 /* start css code for loading bezel */
 .sourceLoader {
   margin-left: -34px;

@@ -237,7 +237,7 @@ class ReaderTextTableOfContents extends Component {
                   <ContentText text={{en:category, he:Sefaria.hebrewTerm(category)}}/>
                 </a>
 
-                <CategoryAttribution categories={categories} />
+                <CategoryAttribution categories={categories} asEdition={true} />
 
                 {this.state.indexDetails && this.state.indexDetails.dedication ?
                   <div className="dedication">

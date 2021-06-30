@@ -140,7 +140,7 @@ const UserHistoryList = ({store, scrollableRef, menuOpen, toggleSignUpModal}) =>
         
         const timeStamp = menuOpen === "saved" ? null : (
           <div className="timeStamp sans-serif">
-            { Sefaria.util.naturalTime(item.time_stamp) }
+            { Sefaria.util.naturalTime(item.time_stamp, {short: true}) }
           </div>
         );
 

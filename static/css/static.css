@@ -1,5 +1,8 @@
-.wrapper{
+#staticContentWrapper{
   background-color: #FBFBFA;
+}
+.inApp #staticContentWrapper {
+  display: none;
 }
 .container{
   width: 100%;
@@ -790,7 +793,7 @@ p.registration-links a:hover{
   margin-bottom: 20px;
 }
 #aboutTitleSub {
-  font-size: 18px;
+  font-size: 24px;
 }
 #aboutPage .section {
   margin-bottom: 60px;

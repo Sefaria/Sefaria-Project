@@ -313,7 +313,7 @@ class SearchResultList extends Component {
                 textTotal={this.state.totals["text"]}
                 sheetTotal={this.state.totals["sheet"]}
                 currentTab={tab} />
-              {Sefaria.multiPanel ? 
+              {Sefaria.multiPanel && !this.props.compare ? 
               <SearchSortBox
                 type={tab}
                 updateAppliedOptionSort={this.props.updateAppliedOptionSort}
