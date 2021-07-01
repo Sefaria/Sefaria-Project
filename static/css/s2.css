@@ -2687,7 +2687,51 @@ a.navBlockTitle:hover {
   padding-top: 30px;
   border-top: 1px solid #ccc;
 }
-.readerTextTableOfContents .content .sectionLink {
+.textTableOfContents .structToggles{
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+.textTableOfContents .structToggles .structTogglesInner {
+  display: flex;
+  flex-direction: row;
+  align-items: start;
+}
+.interface-hebrew .textTableOfContents .structToggles{
+  direction: rtl;
+}
+.interface-english .textTableOfContents .structToggles{
+  direction: ltr;
+}
+.altStructToggleBox a, .altStructToggleBox a:hover, .altStructToggleBox a:visited, .altStructToggleBox a:link, .altStructToggleBox a:active {
+  text-decoration: none;
+}
+.textTableOfContents .structToggles .altStructToggle {
+  color: var(--dark-grey);
+  cursor: pointer;
+  text-align: start;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 16px;
+  line-height: 19px;
+  text-align: justify;
+}
+.textTableOfContents .structToggles .altStructToggleBox:not(:last-child):after{
+  content: "•";
+  color: var(--dark-grey);
+  margin-inline-start: 5px;
+  margin-inline-end: 5px;
+}
+.readerTextTableOfContents.compare .structToggles .altStructToggle {
+  font-size: 16px;
+}
+.textTableOfContents .structToggles .altStructToggle.active {
+  color: #000000;
+}
+.textTableOfContents .structToggles .toggleDivider {
+  color: #ccc;
+  margin: 0 8px;
+}
+.textTableOfContents .sectionLink {
   display: inline-block;
   height: 50px;
   min-width: 50px;
@@ -2703,69 +2747,17 @@ a.navBlockTitle:hover {
   padding: 0 6px;
   box-sizing: border-box;
 }
-.interface-hebrew .readerTextTableOfContents .content .structToggles{
-  direction: rtl;
-}
-.interface-english .readerTextTableOfContents .content .structToggles{
-  direction: ltr;
-}
-.readerTextTableOfContents .content .structToggles {
-  margin-bottom: 25px;
-  display: table;
-  table-layout: fixed;
-  width: 100%;
-  border-bottom: 1px solid #CCC;
-}
-.readerTextTableOfContents .content .structTogglesInner {
-  display: table-row;
-}
-.readerTextTableOfContents .content .structTogglesInner + .structTogglesInner > .altStructToggleBox {
-  padding-top: 6px;
-}
-.readerTextTableOfContents .content .structToggles .en {
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-.readerTextTableOfContents .content .structToggles .he {
-  font-family: "Heebo", sans-serif;
-}
-.readerTextTableOfContents .structToggles .altStructToggleBox {
-  display: inline-block;
-}
-.altStructToggleBox a, .altStructToggleBox a:hover, .altStructToggleBox a:visited, .altStructToggleBox a:link, .altStructToggleBox a:active {
-  text-decoration: none;
-}
-.readerTextTableOfContents .structToggles .altStructToggle {
-  padding-bottom: 8px;
-  display: block;
-  color: #666;
-  margin-inline-end: 30px;
-  cursor: pointer;
-  font-size: 22px;
-  text-align: start;
-  letter-spacing: 1px;
-}
-.readerTextTableOfContents.compare .structToggles .altStructToggle {
-  font-size: 16px;
-}
-.readerTextTableOfContents .structToggles .altStructToggle.active {
-  color: black;
-  border-bottom: 4px solid #CCC;
-}
-.readerTextTableOfContents .structToggles .toggleDivider {
-  color: #ccc;
-  margin: 0 8px;
-}
-.readerTextTableOfContents .content .sectionName {
+.textTableOfContents .sectionName {
   display: none;
 }
-.readerTextTableOfContents .content .tocSection > .sectionName {
+.textTableOfContents .tocSection > .sectionName {
   font-size: 12px;
   margin: 0 3px 4px;
   color: #666;
   display: block;
 }
-.readerTextTableOfContents .content .tocContent {
-  padding: 30px 0 40px;
+.readerTextTableOfContents .content .tab-view.largeTabs {
+  padding: 20px 0 40px;
   text-align: start;
 }
 .readerTextTableOfContents.compare .content .tocContent {
@@ -2774,35 +2766,36 @@ a.navBlockTitle:hover {
 .readerTextTableOfContents.narrowPanel .tocContent {
   padding: 0 0 40px;
 }
-.readerTextTableOfContents .content .tocSection {
+.textTableOfContents .tocSection {
   margin-bottom: 22px;
   display: block;
   text-align: left;
 }
-.readerTextTableOfContents .content .tocSection.noSubLevels{
+.textTableOfContents .tocSection.noSubLevels{
   display: none;
 }
-.readerTextTableOfContents .content .schema-node-contents {
+.textTableOfContents .schema-node-contents {
   margin: 0 auto 22px;
   display: block;
   width: 100%;
-}.readerTextTableOfContents .tocContent > .tocLevel {
+}
+.textTableOfContents > .tocLevel {
   margin-bottom: 30px;
 }
-.readerTextTableOfContents .tocContent > .tocLevel > .schema-node-toc > .schema-node-title {
+.textTableOfContents > .tocLevel > .schema-node-toc > .schema-node-title {
   font-size: 24px;
 }
-.readerTextTableOfContents .content .schema-node-title {
+.textTableOfContents .schema-node-title {
   color: black;
   font-size: 18px;
   display: inline-block;
   margin-bottom: 10px;
   cursor: pointer;
 }
-.readerTextTableOfContents .content .schema-node-toc {
+.textTableOfContents .schema-node-toc {
   display: block;
 }
-.readerTextTableOfContents .content .schema-node-toc:not(.linked) > .schema-node-title:after {
+.textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title:after {
   content: "\f105";
   display: inline-block;
   font-size: inherit;
@@ -2816,54 +2809,54 @@ a.navBlockTitle:hover {
   top: -2px;
   color: var(--medium-grey);
 }
-.readerTextTableOfContents .content .schema-node-toc:not(.linked) > .schema-node-title.open:after {
+.textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title.open:after {
   content: "\f107";
 }
-.readerPanel.hebrew .readerTextTableOfContents .content .schema-node-toc:not(.linked) > .schema-node-title:after,
+.readerPanel.hebrew .textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title:after,
 .readerApp.interface-hebrew .readerTextTableOfContents.noLangToggleInHebrew .content .schema-node-toc:not(.linked) > .schema-node-title:after {
   content: "\f104";
   font-size: 122%;
   margin-inline-start: 9px;
 }
-.readerPanel.hebrew .readerTextTableOfContents .content .schema-node-toc:not(.linked) > .schema-node-title.open:after,
+.readerPanel.hebrew .textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title.open:after,
 .readerApp.interface-hebrew .readerTextTableOfContents.noLangToggleInHebrew .content .schema-node-toc:not(.linked) > .schema-node-title.open:after {
   content: "\f107";
 }
-.readerTextTableOfContents .content .schema-node-contents.closed {
+.textTableOfContents .schema-node-contents.closed {
   display: none;
 }
-.readerTextTableOfContents .content .schema-node-toc .schema-node-contents.closed {
+.textTableOfContents .schema-node-toc .schema-node-contents.closed {
   display: block;
 }
-.readerTextTableOfContents .content .tocLevel {
+.textTableOfContents .tocLevel {
   display: block;
 }
-.readerTextTableOfContents .content .tocContent > .tocLevel > .schema-node-toc {
+.textTableOfContents > .tocLevel > .schema-node-toc {
   margin: 10px 0;
 }
-.readerTextTableOfContents .schema-node-toc {
+.textTableOfContents.schema-node-toc {
   margin: 6px 20px;
 }
-.readerTextTableOfContents .content .schema-node-toc.linked:hover .schema-node-title {
+.textTableOfContents .schema-node-toc.linked:hover .schema-node-title {
   text-decoration: underline;
 }
-.readerTextTableOfContents .torahNavSectionHeader {
+.textTableOfContents .torahNavSectionHeader {
   font-size: 24px;
   margin-bottom: 10px;
 }
-.readerTextTableOfContents .altStruct .refLink {
+.textTableOfContents .altStruct .refLink {
   width: 49%;
   margin: 3px;
   box-sizing: border-box;
   display: inline-block;
 }
 @media (max-width: 450px) {
-  .readerTextTableOfContents .altStruct .refLink {
+  .textTableOfContents .altStruct .refLink {
     margin: 0.5%;
   }
 }
-.hebrew .readerTextTableOfContents .content .tocSection,
-.hebrew .readerTextTableOfContents .content .tocContent,
+.hebrew .textTableOfContents .tocSection,
+.hebrew .textTableOfContents .tocContent,
 .english .readerTextTableOfContents.noLangToggleInHebrew .content .tocContent,
 .bilingual .readerTextTableOfContents.noLangToggleInHebrew .content .tocContent{
   text-align: right;
@@ -4246,6 +4239,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .interface-english .readerPanel.hebrew .textRange,
 .interface-english .readerPanel.hebrew .categoryFilterGroup,
 .interface-english .readerPanel.hebrew .structToggles,
+.interface-english .readerPanel.hebrew .tab-view,
 .interface-english .readerPanel.hebrew .tocContent,
 .interface-english .readerPanel.hebrew .connectionsPanel .toolsButton.more,
 .interface-english .readerPanel.hebrew .connectionsPanel .toolsButton.seeLess {
@@ -8695,7 +8689,8 @@ cursor: pointer;
   color: black;
   text-align: center;
   padding: 10px 0;
-  margin: 0 30px 0 0;
+  margin: 0;
+  margin-inline-end: 30px;
   cursor: pointer;
 }
 .tab-view .tab-list .tab a {
@@ -8766,7 +8761,7 @@ cursor: pointer;
   font-size: 22px;
 }
 .tab-view.largeTabs .tab-list .active .tab {
-  border-bottom: 4px solid #999;
+  border-bottom: 4px solid var(--light-grey);
 }
 .profile-page .textRange {
   font-size: 18px;

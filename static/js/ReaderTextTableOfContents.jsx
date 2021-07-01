@@ -7,6 +7,7 @@ import {
   LoadingMessage,
   NBox,
   ResponsiveNBox,
+  TabView,
   InterfaceText,
   ContentText, EnglishText, HebrewText, LanguageToggleButton,
 } from './Misc';
@@ -148,6 +149,9 @@ class ReaderTextTableOfContents extends Component {
     const index     = Sefaria.index(title);
     const heTitle   = index ? index.heTitle : title;
     const category  = this.props.category;
+    const isDictionary = this.state.indexDetails && !!this.state.indexDetails.lexiconName;
+    const categories = Sefaria.index(this.props.title).categories;
+    let currObjectVersions = this.state.currObjectVersions;
     let catUrl;
     if (category == "Commentary") {
       catUrl  = "/texts/" + index.categories.slice(0, index.categories.indexOf("Commentary") + 1).join("/");
@@ -156,17 +160,27 @@ class ReaderTextTableOfContents extends Component {
     } else {
       catUrl  = "/texts/" + category;
     }
-    let currObjectVersions = this.state.currObjectVersions;
 
     const readButton = !this.state.indexDetails || this.isTextToc() || this.props.compare ? null :
-      Sefaria.lastPlaceForText(title) ? 
+      Sefaria.lastPlaceForText(title) ?
         <a className="button small readButton" href={"/" + Sefaria.normRef(Sefaria.lastPlaceForText(title).ref)}>
           <InterfaceText>Continue Reading</InterfaceText>
         </a>
         :
         <a className="button small readButton" href={"/" + Sefaria.normRef(this.state.indexDetails["firstSectionRef"])}>
           <InterfaceText>Start Reading</InterfaceText>
-        </a>   
+        </a>
+
+    const tabs = [{id: "contents", title: {en: "Contents", he: Sefaria._("Contents")}}];
+    if (this.isBookToc()){
+      tabs.push({id: "versions", title: {en: "Versions", he: Sefaria._("Versions")}});
+    }
+    const renderTab = t => (
+      <div className={classNames({tab: 1, noselect: 1})}>
+        <InterfaceText text={t.title} />
+        { t.icon ? <img src={t.icon} alt={`${t.title.en} icon`} /> : null }
+      </div>
+    );
 
     const sidebarModules = !this.state.indexDetails ? [] :
       [
@@ -175,9 +189,7 @@ class ReaderTextTableOfContents extends Component {
         {type: "DownloadVersions", props:{sref: this.props.title}},
       ];
 
-    const isDictionary = this.state.indexDetails && !!this.state.indexDetails.lexiconName;
     const moderatorSection = Sefaria.is_moderator || Sefaria.is_editor ? (<ModeratorButtons title={title} />) : null;
-    const categories = Sefaria.index(this.props.title).categories;
 
     const classes = classNames({
       readerTextTableOfContents: 1,
@@ -254,34 +266,36 @@ class ReaderTextTableOfContents extends Component {
                 {this.props.multiPanel ? null :
                 <div className="about">
                   <Modules type={"AboutText"} props={{index: this.state.indexDetails, hideTitle: true}} />
-                </div>} 
+                </div>}
 
-                {isDictionary ? 
-                <DictionarySearch
-                  lexiconName={this.state.indexDetails.lexiconName}
-                  title={this.props.title}
-                  showBaseText={this.props.showBaseText}
-                  contextSelector=".readerTextTableOfContents"
-                  currVersions={this.props.currVersions}/> : null }
+                 <TabView
+                  tabs={tabs}
+                  renderTab={renderTab}
+                  containerClasses={"largeTabs"}>
 
-                <div onClick={this.handleClick}>
-                  <TextTableOfContentsNavigation
-                    schema={this.state.indexDetails.schema}
-                    isDictionary={isDictionary}
-                    commentatorList={Sefaria.commentaryList(this.props.title)}
-                    alts={this.state.indexDetails.alts}
-                    defaultStruct={"default_struct" in this.state.indexDetails && this.state.indexDetails.default_struct in this.state.indexDetails.alts ? this.state.indexDetails.default_struct : "default"}
-                    narrowPanel={this.props.narrowPanel}
-                    title={this.props.title}
-                    versionsTabProps={{
-                      currObjectVersions: currObjectVersions,
-                      openVersionInReader: this.openVersion,
-                      currentRef: this.props.currentRef,
-                      viewExtendedNotes : this.props.viewExtendedNotes,
-                    }}
-                  />
-                </div>
-              </div> : <LoadingMessage />}
+                    <div onClick={this.handleClick}>
+                      <TextTableOfContentsNavigation
+                        schema={this.state.indexDetails.schema}
+                        isDictionary={isDictionary}
+                        alts={this.state.indexDetails.alts}
+                        defaultStruct={"default_struct" in this.state.indexDetails && this.state.indexDetails.default_struct in this.state.indexDetails.alts ? this.state.indexDetails.default_struct : "default"}
+                        narrowPanel={this.props.narrowPanel}
+                        title={this.props.title}
+                      />
+                    </div>
+                    <VersionsList
+                     currObjectVersions={currObjectVersions}
+                     openVersionInReader={this.openVersion}
+                     currentRef={this.props.currentRef}
+                     viewExtendedNotes={this.props.viewExtendedNotes}
+                    />
+                 </TabView>
+
+
+              </div>
+                  :
+              <LoadingMessage />
+              }
             </div>
             {this.isBookToc() && ! this.props.compare ? 
             <NavSidebar modules={sidebarModules} /> : null}
@@ -326,57 +340,34 @@ class TextTableOfContentsNavigation extends Component {
     this.setState({tab: tab});
   }
   render() {
-    let options;
     const isTorah =["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy"].indexOf(this.props.title) > -1;
-    if (isTorah) {
-      // Special case for Torah -- show both chapters and parshiot on one tab
-      options = [{
-        name: "default",
-        text: "Contents",
-        onPress: this.setTab.bind(null, "default")
-      }];
-    } else {
-      options = [{
-        name: "default",
-        text: "sectionNames" in this.props.schema ? this.props.schema.sectionNames[0] : "Contents",
-        onPress: this.setTab.bind(null, "default")
-      }];
-      if (this.props.alts) {
-        for (let alt in this.props.alts) {
-          if (this.props.alts.hasOwnProperty(alt)) {
-            options.push({
-              name: alt,
-              text: alt,
-              onPress: this.setTab.bind(null, alt)
-            });
-          }
+    const showToggle = !(this.props.isDictionary || isTorah);
+    let options = [{
+      name: "default",
+      text: "sectionNames" in this.props.schema ? this.props.schema.sectionNames[0] : "Contents",
+      onPress: this.setTab.bind(null, "default")
+    }];
+    if (this.props.alts) {
+      for (let alt in this.props.alts) {
+        if (this.props.alts.hasOwnProperty(alt)) {
+          options.push({
+            name: alt,
+            text: alt,
+            onPress: this.setTab.bind(null, alt)
+          });
         }
       }
-      options = options.sort(function(a, b) {
-        return a.name == this.props.defaultStruct ? -1 :
-                b.name == this.props.defaultStruct ? 1 : 0;
-      }.bind(this));
     }
-    options.push({
-        name: "versions",
-        text: "Versions",
-        heText: "מהדורות",
-        onPress: this.setTab.bind(null, "versions")
-    });
-    if (this.props.commentatorList.length) {
-      options.push({
-        name: "commentary",
-        text: "Commentary",
-        heText: "מפרשים",
-        onPress: this.setTab.bind(null, "commentary")
-      });
-    }
+    options = options.sort(function(a, b) {
+      return a.name == this.props.defaultStruct ? -1 :
+              b.name == this.props.defaultStruct ? 1 : 0;
+    }.bind(this));
 
-    const toggle = (this.props.isDictionary ? null :
+    const toggle = (showToggle ?
                   <TabbedToggleSet
                     tabOptions={options}
                     activeTab={this.state.tab}
-                    narrowPanel={this.props.narrowPanel} />);
+                    narrowPanel={this.props.narrowPanel} /> : null);
     
     let content;
     switch(this.state.tab) {
@@ -412,16 +403,6 @@ class TextTableOfContentsNavigation extends Component {
                       topLevel={true} />;
         }
         break;
-      case "commentary":
-        content = <CommentatorList
-                    commentatorList={this.props.commentatorList}
-                    title={this.props.title} />;
-
-
-        break;
-      case "versions":
-        content = <VersionsList {...this.props.versionsTabProps}/>;
-        break;
       default:
         content = <SchemaNode
                     schema={this.props.alts[this.state.tab]}
@@ -432,7 +413,7 @@ class TextTableOfContentsNavigation extends Component {
     }
 
     return (
-      <div className="tocContent">
+      <div className="textTableOfContents tocContent">
         {toggle}
         {content}
       </div>
@@ -441,7 +422,6 @@ class TextTableOfContentsNavigation extends Component {
 }
 TextTableOfContentsNavigation.propTypes = {
   schema:          PropTypes.object.isRequired,
-  commentatorList: PropTypes.array,
   alts:            PropTypes.object,
   defaultStruct:   PropTypes.string,
   narrowPanel:     PropTypes.bool,
