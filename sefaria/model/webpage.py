@@ -8,7 +8,7 @@ from . import abstract as abst
 from . import text
 from sefaria.system.database import db
 
-from sefaria.system.cache import InMemoryCache
+from sefaria.system.cache import in_memory_cache
 
 import structlog
 logger = structlog.get_logger(__name__)
@@ -178,7 +178,7 @@ class WebPage(abst.AbstractMongoRecord):
         title = str(self.title)
         title = title.replace("&amp;", "&")
         brands = [self.site_name] + self._site_data.get("title_branding", [])
-        separators = [("-", ' '), ("|", ' '), ("—", ' '), ("–", ' '), ("»", ' '), ("•", ' '), (":", '')]
+        separators = [("-", ' '), ("|", ' '), ("—", ' '), ("–", ' '), ("»", ' '), ("•", ' '), (":", ''), ("⋆", ' ')]
         for separator, padding in separators:
             for brand in brands:
                 if self._site_data.get("initial_title_branding", False):
@@ -229,11 +229,10 @@ class WebSiteSet(abst.AbstractMongoSet):
 
 
 def get_website_cache():
-    cache = InMemoryCache()
-    sites = cache.get("websites_data")
+    sites = in_memory_cache.get("websites_data")
     if sites in [None, []]:
         sites = [w.contents() for w in WebSiteSet()]
-        cache.set("websites_data", sites)
+        in_memory_cache.set("websites_data", sites)
         return sites
     return sites
 
