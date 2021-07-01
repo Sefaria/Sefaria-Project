@@ -12,7 +12,7 @@ from sefaria.system.cache import InMemoryCache
 
 import structlog
 logger = structlog.get_logger(__name__)
-
+from collections import Counter
 
 class WebPage(abst.AbstractMongoRecord):
     collection = 'webpages'
@@ -22,12 +22,12 @@ class WebPage(abst.AbstractMongoRecord):
         "title",
         "refs",
         "lastUpdated",
-        "linkerHits",
     ]
     optional_attrs = [
         "description",
         "expandedRefs",
         "body",
+        "linkerHits"
     ]
 
     def load(self, url_or_query):
@@ -213,7 +213,8 @@ class WebSite(abst.AbstractMongoRecord):
         "bad_urls",
         "normalization_rules",
         "title_branding",
-        "initial_title_branding"
+        "initial_title_branding",
+        "linker_installed"
     ]
 
 
@@ -381,68 +382,41 @@ def clean_webpages(test=True):
 def webpages_stats():
     webpages = WebPageSet()
     total_pages  = webpages.count()
-    total_links  = 0
-    sites        = defaultdict(int)
-    books        = defaultdict(int)
-    categories   = defaultdict(int)
-    covered_refs = defaultdict(set)
+    total_links  = []
 
     for webpage in webpages:
-        sites[webpage.domain] += 1
-        for ref in webpage.refs:
-            total_links += 1
-            oref = text.Ref(ref)
-            books[oref.index.title] += 1
-            category = oref.index.get_primary_category()
-            category = oref.index.categories[0] + " Commentary" if category == "Commentary" else category
-            categories[category] += 1
-            [covered_refs[oref.index.title].add(ref.normal()) for ref in oref.all_segment_refs()]
+        total_links += webpage.refs
 
-    # Totals
+    total_links = len(set(total_links))
     print("{} total pages.\n".format(total_pages))
     print("{} total connections.\n".format(total_links))
 
-    # Count by Site
-    print("\nSITES")
-    sites = sorted(sites.items(), key=lambda x: -x[1])
-    for site in sites:
-        print("{}: {}".format(site[0], site[1]))
 
-    # Count / Percentage by Category
-    print("\nCATEGORIES")
-    categories = sorted(categories.items(), key=lambda x: -x[1])
-    for category in categories:
-        print("{}: {} ({}%)".format(category[0], category[1], round(category[1] * 100.0 / total_links, 2)))
+def find_new_sites(hit_threshold=50):
+    from datetime import datetime, timedelta
+    webpages = WebPageSet()
+    unacknowledged_sites = Counter()
+    last_active_threshold = datetime.today() - timedelta(days=20)
 
-    # Count / Percentage by Book
-    print("\nBOOKS")
-    books = sorted(books.items(), key=lambda x: -x[1])
-    for book in books:
-        print("{}: {} ({}%)".format(book[0], book[1], round(book[1] * 100.0 / total_links, 2)))
+    for webpage in webpages:
+        updated_recently = webpage.lastUpdated > last_active_threshold
+        webpage.domain = WebPage.domain_for_url(WebPage.normalize_url(webpage.url))
+        website = WebSiteSet({"domains": webpage.domain})
+        if website.count() == 0 and updated_recently:
+            unacknowledged_sites[webpage.domain] += 1
 
-    # Coverage Percentage / Average pages per ref for Torah, Tanakh, Mishnah, Talmud
-    print("\nCOVERAGE")
-    coverage_cats = ["Torah", "Tanakh", "Bavli", "Mishnah"]
-    for cat in coverage_cats:
-        cat_books = text.library.get_indexes_in_category(cat)
-        covered = 0
-        total   = 0
-        for book in cat_books:
-            covered_in_book = covered_refs[book]
-            try:
-                total_in_book = set([ref.normal() for ref in text.Ref(book).all_segment_refs()])
-            except:
-                continue # Bad data in Mishnah Sukkah
+    print(unacknowledged_sites)
+    for site, hits in unacknowledged_sites.items():
+        if hits > hit_threshold:
+            newsite = WebSite()
+            newsite.name = site
+            newsite.domains = [site]
+            newsite.is_whitelisted = True
+            newsite.linker_installed = True
+            newsite.save()
+            print("Created new WebSite with name='{}'".format(site))
 
-            # print "{} in covered, not in total:".format(book)
-            # print list(covered_in_book - total_in_book)
-            # Ignore refs that we don't have in the library
-            covered_in_book = covered_in_book.intersection(total_in_book)
 
-            covered += len(covered_in_book)
-            total += len(total_in_book)
-
-        print("{}: {}%".format(cat, round(covered * 100.0 / total, 2)))
 
 
 def find_sites_that_may_have_removed_linker(last_linker_activity_day=20):
@@ -451,14 +425,20 @@ def find_sites_that_may_have_removed_linker(last_linker_activity_day=20):
     Prints an alert for each site that doesn't meet this criterion
     """
     from datetime import datetime, timedelta
-
     last_active_threshold = datetime.today() - timedelta(days=last_linker_activity_day)
+
     for data in get_website_cache():
         for domain in data['domains']:
-            ws = WebPageSet({"url": re.compile(re.escape(domain))}, limit=1, sort=[['lastUpdated', -1]])
+            ws = WebPageSet({"url": {"$regex": re.escape(domain)}}, limit=1, sort=[['lastUpdated', -1]])
             if ws.count() == 0:
-                print(f"{domain} has no pages")
-                continue
-            w = ws.array()[0]
-            if w.lastUpdated < last_active_threshold:
-                print(f"ALERT! {domain} has removed the linker!")
+                print(f"Alert: {domain} has no pages")
+            else:
+                w = ws.array()[0]  # lastUpdated webpage for this domain
+                if w.lastUpdated < last_active_threshold:
+                    print(f"ALERT! {domain} has removed the linker!")
+                    w.linker_installed = False
+                    w.save()
+                else:
+                    w.linker_installed = True
+                    w.save()
+
