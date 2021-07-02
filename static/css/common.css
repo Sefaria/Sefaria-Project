@@ -149,6 +149,7 @@
   position: fixed;
   right: 10px;
   z-index: 100;
+  top: 70px;
 }
 .toggle {
   display: inline-block;

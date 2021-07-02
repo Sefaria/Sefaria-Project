@@ -7,7 +7,6 @@ import Track from './track';
 import Hebrew from './hebrew';
 import Util from './util';
 import $ from './sefariaJquery';
-require('babel-polyfill');
 
 
 let Sefaria = Sefaria || {
