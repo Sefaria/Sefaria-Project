@@ -9,7 +9,7 @@ class InterruptingMessage(object):
     self.name           = attrs.get("name", None)
     self.style          = attrs.get("style", "modal")
     self.repetition     = attrs.get("repetition", 0)
-    self.is_fundraising = attrs.get("isFundraising", False)
+    self.is_fundraising = attrs.get("is_fundraising", False)
     self.condition      = attrs.get("condition", {})
     self.request        = request
     self.cookie_name    = "%s_%d" % (self.name, self.repetition)
