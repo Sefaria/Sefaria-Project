@@ -93,21 +93,17 @@ def nationbuilder_get_all(endpoint_func, args=[]):
             try:
                 res = session.get(base_url + next_endpoint)
                 res_data = res.json()
-                if (len(res_data['results'])):
-                    yield res_data['results']
-                # for item in res_data['results']:
-                #     yield item
-                else:
-                    raise
+                for item in res_data['results']:
+                    yield item
                 next_endpoint = unquote(res_data['next']) if res_data['next'] else None
-                if (res.headers['x-ratelimit-remaining'] == '0'): # TODO pause if we run out of rate limits
+                if (res.headers['x-ratelimit-remaining'] == '0'):
                     time.sleep(10)
                 break
-            except:
-                print("Trying again to access and process {}. Attempts: {}".format(next_endpoint, attempt+1))
+            except Exception as e:
+                print("Trying again to access and process {}. Attempts: {}. Exception: {}".format(next_endpoint, attempt+1, e))
         else:
             session.close()
-            raise Exception("Error when attempting to connect to " + next_endpoint)
+            raise Exception("Error when attempting to connect to and process " + next_endpoint)
         
     session.close()
     
