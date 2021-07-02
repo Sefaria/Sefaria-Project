@@ -88,21 +88,29 @@ def nationbuilder_get_all(endpoint_func, args=[]):
     session = get_nation_builder_connection()
     base_url = "https://"+sls.NATIONBUILDER_SLUG+".nationbuilder.com"
     next_endpoint = endpoint_func(*args)
-    try:
-        while(next_endpoint):
-            res = session.get(base_url + next_endpoint)
-            res_data = res.json()
-            for item in res_data['results']:
-                yield item
-            next_endpoint = unquote(res_data['next']) if res_data['next'] else None
-            if (res.headers['x-ratelimit-remaining'] == '0'): # TODO pause if we run out of rate limits
-                time.sleep(10)
-    except:
-        session.close()
-        raise
-
+    while(next_endpoint):
+        for attempt in range(0,3):
+            try:
+                res = session.get(base_url + next_endpoint)
+                res_data = res.json()
+                if (len(res_data['results'])):
+                    yield res_data['results']
+                # for item in res_data['results']:
+                #     yield item
+                else:
+                    raise
+                next_endpoint = unquote(res_data['next']) if res_data['next'] else None
+                if (res.headers['x-ratelimit-remaining'] == '0'): # TODO pause if we run out of rate limits
+                    time.sleep(10)
+                break
+            except:
+                print("Trying again to access and process {}. Attempts: {}".format(next_endpoint, attempt+1))
+        else:
+            session.close()
+            raise Exception("Error when attempting to connect to " + next_endpoint)
+        
     session.close()
-
+    
 
 def get_nation_builder_connection():
     access_token_url = "http://%s.nationbuilder.com/oauth/token" % sls.NATIONBUILDER_SLUG
