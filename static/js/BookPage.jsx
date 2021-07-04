@@ -192,9 +192,9 @@ class BookPage extends Component {
     const moderatorSection = Sefaria.is_moderator || Sefaria.is_editor ? (<ModeratorButtons title={title} />) : null;
 
     const classes = classNames({
-      readerTextTableOfContents: 1,
+      bookPage: 1,
       readerNavMenu: 1,
-      bookPage: this.isBookToc(),
+      fullBookPage: this.isBookToc(),
       narrowPanel: this.props.narrowPanel,
       compare: this.props.compare,
       noLangToggleInHebrew: Sefaria.interfaceLang == 'hebrew'
