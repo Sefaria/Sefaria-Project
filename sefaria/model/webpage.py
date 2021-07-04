@@ -203,6 +203,7 @@ class WebPage(abst.AbstractMongoRecord):
             r"hatanakh\.com\/((en|es)\/)?(daily)?\/?\?(chapter|custom|gclid|parasha)=",
             r"hatanakh\.com\/es\/\?biblia=",
             r"tabletmag\.com\/contributors\/",
+            r"sivanrahavmeir\.com\/?$",
         ]
         return "({})".format("|".join(bad_urls))
 
@@ -268,7 +269,7 @@ class WebPage(abst.AbstractMongoRecord):
         title = str(self.title)
         title = title.replace("&amp;", "&")
         brands = [self.site_name] + self._site_data.get("title_branding", [])
-        separators = [("-", ' '), ("|", ' '), ("—", ' '), ("–", ' '), ("»", ' '), ("•", ' '), (":", '')]
+        separators = [("-", ' '), ("|", ' '), ("—", ' '), ("–", ' '), ("»", ' '), ("•", ' '), (":", ''), ("⋆", ' ')]
         for separator, padding in separators:
             for brand in brands:
                 if self._site_data.get("initial_title_branding", False):
@@ -939,5 +940,9 @@ sites_data = [
     {
         "name":"Tablet Magazine",
         "domains": ["tabletmag.com"],
-    }
+    },
+    {
+        "name": "סיון רהב-מאיר",
+        "domains": ["sivanrahavmeir.com"],
+    },
 ]

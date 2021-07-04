@@ -2158,7 +2158,7 @@ class TextFamily(object):
                 #then count how many links came from that version. If any- do the wrapping.
                 from . import Link
                 query = oref.ref_regex_query()
-                query.update({"$or": [{"generated_by": "add_links_from_text"}, {"score": {"$exists": True}}]})  # , "source_text_oid": {"$in": c.version_ids()}
+                query.update({"generated_by": "add_links_from_text"})  # , "source_text_oid": {"$in": c.version_ids()}
                 if Link().load(query) is not None:
                     text_modification_funcs += [lambda s, secs: library.get_wrapped_refs_string(s, lang=language, citing_only=True)]
             padded_sections, _ = oref.get_padded_sections()
