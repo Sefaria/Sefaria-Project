@@ -632,6 +632,9 @@ input.noselect {
   padding: 12px;
   border-bottom: 1px solid #CCCCCC;
 }
+.header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header:not(:first-child) {
+  border-top: 1px solid #CCC;
+}
 .interface-english .header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header {
   font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
 }
@@ -3493,6 +3496,24 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-inline-start: auto;
   margin-top: -6px;
   color: #bbb;
+}
+.trans-pref-header-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  padding-inline: 12px;
+  padding-block: 10px;
+  align-items: center;
+}
+.trans-pref-header-container .trans-pref-reset {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+}
+.trans-pref-header-container img.reset-btn {
+  width: 10px;
+  height: 10px;
+  opacity: 0.4;
 }
 .singlePanel .readerControls .readerControlsInner {
   padding: 0 10px;

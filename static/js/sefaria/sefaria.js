@@ -459,7 +459,7 @@ Sefaria = extend(Sefaria, {
     }.bind(this));
     return null;
   },
-  translateISOLanguageCode(code) {
+  translateISOLanguageCode(code, inMotherTongue) {
     //takes two-letter ISO 639.2 code and returns full language name
     const codeMap = {
       "en": "English",
@@ -477,6 +477,21 @@ Sefaria = extend(Sefaria, {
       "eo": "Esparanto",
       "fa": "Farsi",
     };
+    const motherTongueCodeMap = {
+      "en": "English",
+      "he": "עברית",
+      "yi": "יידיש",
+      "pt": "Português",
+      "es": "Español",
+      "fr": "Français",
+      "de": "Deutsch",
+      "ar": "عربى",
+      "it": "Italiano",
+      "pl": "Polskie",
+      "ru": "Pусский",
+      "eo": "Esperanto",
+    }
+    if (inMotherTongue) { return motherTongueCodeMap[code.toLowerCase()] || code; }
     return codeMap[code.toLowerCase()] || code;
   },
   _versions: {},

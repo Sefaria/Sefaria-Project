@@ -1737,6 +1737,16 @@ class ReaderApp extends Component {
     };
   }
   setTranslationLanguagePreference(lang) {
+    let suggested = true;
+    if (lang === null) {
+      suggested = false;
+      $.removeCookie("translation_language_preference", {path: "/"});
+      $.removeCookie("translation_language_preference_suggested", {path: "/"});
+    } else {
+      $.cookie("translation_language_preference", lang, {path: "/"});
+      $.cookie("translation_language_preference_suggested", JSON.stringify(1), {path: "/"});
+    }
+    Sefaria.editProfileAPI({settings: {translation_language_preference: lang, translation_language_preference_suggested: suggested}});
     this.setState({translationLanguagePreference: lang});
   }
   doesPanelHaveSidebar(n) {

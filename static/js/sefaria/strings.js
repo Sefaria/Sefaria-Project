@@ -88,6 +88,7 @@ const Strings = {
     "Indent Source": "הזחת מקור פנימה",
     "Create New" : "יצירת חדש",
     "Close" : "סגירה",
+    "Reset": "איפוס",
 
     //publish flow:
     "Not Published" : "לא פורסם",
@@ -295,6 +296,7 @@ const Strings = {
     "Read the Portion": "קראו את הפרשה",
     "My Notes": "הרשומות שלי",
     "Updates": "טקסטים חדשים",
+    "Preferred Translation": "Preferred Translation",
 
     //user stats
     "Torah Tracker" : "לימוד במספרים",
