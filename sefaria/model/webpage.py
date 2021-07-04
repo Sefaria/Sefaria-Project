@@ -220,8 +220,20 @@ class WebSite(abst.AbstractMongoRecord):
         "title_branding",
         "initial_title_branding",
         "linker_installed",
-        "num_webpages"
+        "num_webpages",
+        "exclude_from_tracking"
     ]
+
+    def __key(self):
+        return (self.name, self.domains[0])
+
+    def __hash__(self):
+        return hash(self.__key())
+
+    def __eq__(self, other):
+        if isinstance(other, WebSite):
+            return self.__key() == other.__key()
+        return NotImplemented
 
 
 class WebSiteSet(abst.AbstractMongoSet):
@@ -392,9 +404,10 @@ def webpages_stats():
 
     for webpage in webpages:
         website = webpage.get_website()
-        if website not in websites:
-            websites[website] = 0
-        websites[website] += 1
+        if website:
+            if website not in websites:
+                websites[website] = 0
+            websites[website] += 1
         total_links += webpage.refs
 
     total_links = len(set(total_links))
@@ -406,20 +419,26 @@ def webpages_stats():
         website.save()
 
 
-def find_new_sites(hit_threshold=50):
+def find_webpages_without_websites(hit_threshold=50, last_linker_activity_day=20):
     from datetime import datetime, timedelta
     webpages = WebPageSet()
-    unacknowledged_sites = Counter()
-    last_active_threshold = datetime.today() - timedelta(days=20)
+    new_active_sites = Counter()   # WebSites we don't yet have in DB, but we have corresponding WebPages accessed recently
+    unactive_unacknowledged_sites = {}  # WebSites we don't yet have in DB, and we even have correpsonding WebPages but they have not been accessed recently
+    last_active_threshold = datetime.today() - timedelta(days=last_linker_activity_day)
 
     for webpage in webpages:
         updated_recently = webpage.lastUpdated > last_active_threshold
         website = webpage.get_website()
-        if website is None and updated_recently:
-            unacknowledged_sites[webpage.domain] += 1
+        if website is None:
+            if updated_recently:
+                new_active_sites[webpage.domain] += 1
+            else:
+                if webpage.domain not in unactive_unacknowledged_sites:
+                    unactive_unacknowledged_sites[webpage.domain] = []
+                unactive_unacknowledged_sites[webpage.domain].append(webpage)
 
-    print(unacknowledged_sites)
-    for site, hits in unacknowledged_sites.items():
+    sites_added = []
+    for site, hits in new_active_sites.items():
         if hits > hit_threshold:
             newsite = WebSite()
             newsite.name = site
@@ -428,6 +447,15 @@ def find_new_sites(hit_threshold=50):
             newsite.linker_installed = True
             newsite.save()
             print("Created new WebSite with name='{}'".format(site))
+            sites_added.append(site)
+
+    print(sites_added)
+    print("****")
+    for site, hits in unactive_unacknowledged_sites.items():
+        if site not in sites_added:  # if True, site has not been updated recently
+            print("Deleting {} with {} pages".format(site, len(unactive_unacknowledged_sites[site])))
+            for webpage in unactive_unacknowledged_sites[site]:
+                webpage.delete()
 
 
 
@@ -441,33 +469,33 @@ def find_sites_that_may_have_removed_linker(last_linker_activity_day=20):
     last_active_threshold = datetime.today() - timedelta(days=last_linker_activity_day)
 
     for data in get_website_cache():
-        for domain in data['domains']:
-            ws = WebPageSet({"url": {"$regex": re.escape(domain)}}, limit=1, sort=[['lastUpdated', -1]])
-            if ws.count() == 0:
-                print(f"Alert: {domain} has no pages")
-            else:
-                webpage = ws.array()[0]  # lastUpdated webpage for this domain
-                website = webpage.get_website()
-                if webpage.lastUpdated < last_active_threshold:
-                    print(f"ALERT! {domain} has removed the linker!")
-                    website.linker_installed = False
-                    website.save()
+        if data["is_whitelisted"]:  # we only care about whitelisted sites
+            for domain in data['domains']:
+                ws = WebPageSet({"url": {"$regex": re.escape(domain)}}, limit=1, sort=[['lastUpdated', -1]])
+                if ws.count() == 0:
+                    print(f"Alert: {domain} has no pages")
                 else:
-                    website.linker_installed = True
-                    website.save()
+                    webpage = ws.array()[0]  # lastUpdated webpage for this domain
+                    website = webpage.get_website()
+                    if website:
+                        website.linker_installed = webpage.lastUpdated > last_active_threshold
+                        if not website.linker_installed:
+                            print(f"ALERT! {domain} has removed the linker!")
+                        website.save()
+                    else:
+                        print("can't find website {} corresponding to webpage {}".format(data["name"], webpage.url))
 
 
-def find_sites_to_be_excluded():
+def find_sites_to_be_excluded(flag=100):
     refs = {}
     for webpage in WebPageSet():
-        domain = WebPage.domain_for_url(WebPage.normalize_url(webpage.url))
-        website = WebSite().load({"domains": domain})
-        refs[website] = Counter()
+        website = webpage.get_website()
         if website:
+            if website not in refs:
+                refs[website] = Counter()
             for ref in webpage.refs:
-                refs[ref] += 1
+                refs[website][ref] += 1
 
     for website in refs:
-        if refs[website].most_common(1) == website.num_webpages:
-            print("{} needs exclusions set.".format(website.name))
-
+        if refs[website].most_common(1)[0][1] > flag:
+            print("{} may need exclusions set.".format(website.name))
