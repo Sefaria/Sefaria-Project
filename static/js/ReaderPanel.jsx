@@ -13,7 +13,7 @@ import {
   ConnectionsPanel,
   ConnectionsPanelHeader,
 } from './ConnectionsPanel';
-import ReaderTextTableOfContents  from './ReaderTextTableOfContents';
+import BookPage  from './BookPage';
 import SearchPage  from './SearchPage';
 import Sheet  from './Sheet';
 import SheetMetadata  from './SheetMetadata';
@@ -713,7 +713,7 @@ class ReaderPanel extends Component {
                     showBaseText={this.showBaseText} />);
 
     } else if (this.state.menuOpen === "text toc") {
-      menu = (<ReaderTextTableOfContents
+      menu = (<BookPage
                     mode={this.state.menuOpen}
                     multiPanel={this.props.multiPanel}
                     close={this.closeMenus}
@@ -736,7 +736,7 @@ class ReaderPanel extends Component {
           navigationCategories: this.state.previousCategories,
         });
       };
-      menu = (<ReaderTextTableOfContents
+      menu = (<BookPage
                     mode={this.state.menuOpen}
                     multiPanel={this.props.multiPanel}
                     close={this.closeMenus}
@@ -756,7 +756,7 @@ class ReaderPanel extends Component {
                     viewExtendedNotes={this.props.viewExtendedNotes.bind(null, "toc")} />);
 
     } else if (this.state.menuOpen === "extended notes" && this.state.mode !== "Connections") {
-      menu = (<ReaderTextTableOfContents
+      menu = (<BookPage
                     mode={this.state.menuOpen}
                     interfaceLang={this.props.interfaceLang}
                     close={this.closeMenus}

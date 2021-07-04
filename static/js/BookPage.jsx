@@ -26,7 +26,7 @@ import Component   from 'react-class';
 import {ContentLanguageContext} from './context';
 
 
-class ReaderTextTableOfContents extends Component {
+class BookPage extends Component {
   // Menu for the Table of Contents for a single text
   constructor(props) {
     super(props);
@@ -303,7 +303,7 @@ class ReaderTextTableOfContents extends Component {
     );
   }
 }
-ReaderTextTableOfContents.propTypes = {
+BookPage.propTypes = {
   mode:                  PropTypes.string.isRequired,
   title:                 PropTypes.string.isRequired,
   category:              PropTypes.string.isRequired,
@@ -974,4 +974,4 @@ ReadMoreText.defaultProps = {
 
 
 
-export {ReaderTextTableOfContents as default, TextTableOfContents};
+export {BookPage as default, TextTableOfContents};
