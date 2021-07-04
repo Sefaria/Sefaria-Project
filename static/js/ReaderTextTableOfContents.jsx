@@ -275,10 +275,6 @@ class ReaderTextTableOfContents extends Component {
 
                     <div onClick={this.handleClick}>
                       <TextTableOfContentsNavigation
-                        schema={this.state.indexDetails.schema}
-                        isDictionary={isDictionary}
-                        alts={this.state.indexDetails.alts}
-                        defaultStruct={"default_struct" in this.state.indexDetails && this.state.indexDetails.default_struct in this.state.indexDetails.alts ? this.state.indexDetails.default_struct : "default"}
                         narrowPanel={this.props.narrowPanel}
                         title={this.props.title}
                       />
@@ -330,39 +326,51 @@ ReaderTextTableOfContents.propTypes = {
 class TextTableOfContentsNavigation extends Component {
   // The content section of the text table of contents that includes links to text sections,
   // and tabs for alternate structures and commentary.
+
   constructor(props) {
     super(props);
     this.state = {
-      tab: props.defaultStruct
+      tab: "default",
+      indexDetails: null
     };
+  }
+  componentDidMount() {
+    this.loadData();
+  }
+  loadData(){
+    // Ensures data this text is in cache, rerenders after data load if needed
+    Sefaria.getIndexDetails(this.props.title).then(data => this.setState({indexDetails: data}));
   }
   setTab(tab) {
     this.setState({tab: tab});
   }
   render() {
-    const isTorah =["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy"].indexOf(this.props.title) > -1;
-    const showToggle = !(this.props.isDictionary || isTorah);
+    if(this.state.indexDetails == null){
+      return (<LoadingMessage />);
+    }
+    const isTorah = ["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy"].indexOf(this.props.title) > -1;
+    const isDictionary = this.state.indexDetails?.lexiconName;
+    const defaultStruct = ("default_struct" in this.state.indexDetails && this.state.indexDetails.default_struct in this.state.indexDetails?.alts) ? this.state.indexDetails.default_struct : "default";
+    const alts = this.state.indexDetails?.alts || {};
     let options = [{
       name: "default",
-      text: "sectionNames" in this.props.schema ? this.props.schema.sectionNames[0] : "Contents",
+      text: "sectionNames" in this.state.indexDetails?.schema ? this.state.indexDetails.schema.sectionNames[0] : "Contents",
       onPress: this.setTab.bind(null, "default")
     }];
-    if (this.props.alts) {
-      for (let alt in this.props.alts) {
-        if (this.props.alts.hasOwnProperty(alt)) {
-          options.push({
-            name: alt,
-            text: alt,
-            onPress: this.setTab.bind(null, alt)
-          });
-        }
+    for (let alt in alts) {
+      if (alts.hasOwnProperty(alt)) {
+        options.push({
+          name: alt,
+          text: alt,
+          onPress: this.setTab.bind(null, alt)
+        });
       }
     }
     options = options.sort(function(a, b) {
-      return a.name == this.props.defaultStruct ? -1 :
-              b.name == this.props.defaultStruct ? 1 : 0;
+      return a.name == defaultStruct ? -1 :
+              b.name == defaultStruct ? 1 : 0;
     }.bind(this));
-
+    const showToggle = !(isDictionary || isTorah) && options.length > 1;
     const toggle = (showToggle ?
                   <TabbedToggleSet
                     tabOptions={options}
@@ -379,53 +387,54 @@ class TextTableOfContentsNavigation extends Component {
                 <ContentText text={{en: "Chapters", he: Sefaria.hebrewTranslation("Chapters")}}/>
               </div>
               <SchemaNode
-                schema={this.props.schema}
-                addressTypes={this.props.schema.addressTypes}
+                schema={this.state.indexDetails.schema}
+                addressTypes={this.state.indexDetails.schema.addressTypes}
                 refPath={this.props.title}
-                topLevel={true} />
-
+                topLevel={true}
+              />
               <div className="torahNavSectionHeader">
                 <ContentText text={{en: "Torah Portions", he: Sefaria.hebrewTranslation("Torah Portions")}}/>
               </div>
               <div className="torahNavParshiot">
                 <SchemaNode
-                  schema={this.props.alts["Parasha"]}
-                  addressTypes={this.props.schema.addressTypes}
-                  refPath={this.props.title} />
+                  schema={alts["Parasha"]}
+                  addressTypes={this.state.indexDetails.schema.addressTypes}
+                  refPath={this.props.title}
+                />
               </div>
             </>
           );
         } else {
           content = <SchemaNode
-                      schema={this.props.schema}
-                      addressTypes={this.props.schema.addressTypes}
+                      schema={this.state.indexDetails.schema}
+                      addressTypes={this.state.indexDetails.schema.addressTypes}
                       refPath={this.props.title}
                       topLevel={true} />;
         }
         break;
       default:
         content = <SchemaNode
-                    schema={this.props.alts[this.state.tab]}
-                    addressTypes={this.props.schema.addressTypes}
+                    schema={alts[this.state.tab]}
+                    addressTypes={this.state.indexDetails.schema.addressTypes}
                     refPath={this.props.title}
                     topLevel={true} />;
         break;
     }
 
     return (
-      <div className="textTableOfContents tocContent">
-        {toggle}
-        {content}
+      <div className="textTableOfContents">
+        <div className="altsToggle">
+          {toggle}
+        </div>
+        <div className="tocContent">
+          {content}
+        </div>
       </div>
     );
   }
 }
 TextTableOfContentsNavigation.propTypes = {
-  schema:          PropTypes.object.isRequired,
-  alts:            PropTypes.object,
-  defaultStruct:   PropTypes.string,
   narrowPanel:     PropTypes.bool,
-  isDictionary:    PropTypes.bool,
   title:           PropTypes.string.isRequired,
 };
 
