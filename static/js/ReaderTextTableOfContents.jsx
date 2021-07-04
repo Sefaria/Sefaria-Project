@@ -339,7 +339,13 @@ class TextTableOfContentsNavigation extends Component {
   }
   loadData(){
     // Ensures data this text is in cache, rerenders after data load if needed
-    Sefaria.getIndexDetails(this.props.title).then(data => this.setState({indexDetails: data}));
+    Sefaria.getIndexDetails(this.props.title).then(data => this.setState({
+      indexDetails: data,
+      tab: this.getDefaultActiveTab(data)
+    }));
+  }
+  getDefaultActiveTab(indexDetails){
+    return ("default_struct" in indexDetails && indexDetails.default_struct in indexDetails?.alts) ? indexDetails.default_struct : "default";
   }
   setTab(tab) {
     this.setState({tab: tab});
@@ -350,7 +356,7 @@ class TextTableOfContentsNavigation extends Component {
     }
     const isTorah = ["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy"].indexOf(this.props.title) > -1;
     const isDictionary = this.state.indexDetails?.lexiconName;
-    const defaultStruct = ("default_struct" in this.state.indexDetails && this.state.indexDetails.default_struct in this.state.indexDetails?.alts) ? this.state.indexDetails.default_struct : "default";
+    const defaultStruct = this.getDefaultActiveTab(this.state.indexDetails);
     const alts = this.state.indexDetails?.alts || {};
     let options = [{
       name: "default",
