@@ -274,7 +274,7 @@ class ReaderTextTableOfContents extends Component {
                   containerClasses={"largeTabs"}>
 
                     <div onClick={this.handleClick}>
-                      <TextTableOfContentsNavigation
+                      <TextTableOfContents
                         narrowPanel={this.props.narrowPanel}
                         title={this.props.title}
                       />
@@ -323,7 +323,7 @@ ReaderTextTableOfContents.propTypes = {
 };
 
 
-class TextTableOfContentsNavigation extends Component {
+class TextTableOfContents extends Component {
   // The content section of the text table of contents that includes links to text sections,
   // and tabs for alternate structures and commentary.
 
@@ -439,7 +439,7 @@ class TextTableOfContentsNavigation extends Component {
     );
   }
 }
-TextTableOfContentsNavigation.propTypes = {
+TextTableOfContents.propTypes = {
   narrowPanel:     PropTypes.bool,
   title:           PropTypes.string.isRequired,
 };
@@ -974,4 +974,4 @@ ReadMoreText.defaultProps = {
 
 
 
-export default ReaderTextTableOfContents;
+export {ReaderTextTableOfContents as default, TextTableOfContents};
