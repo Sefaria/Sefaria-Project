@@ -442,11 +442,11 @@ class TextTableOfContents extends Component {
   }
 }
 TextTableOfContents.propTypes = {
-  narrowPanel:     PropTypes.bool,
-  title:           PropTypes.string.isRequired,
-  close:           PropTypes.func,
-  showBaseText:    PropTypes.func,
-  currVersions:    PropTypes.object
+    title:           PropTypes.string.isRequired,
+    narrowPanel:     PropTypes.bool,
+    close:           PropTypes.func,
+    showBaseText:    PropTypes.func,
+    currVersions:    PropTypes.object
 };
 
 
