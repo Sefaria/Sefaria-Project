@@ -2578,9 +2578,10 @@ a.navBlockTitle:hover {
   text-align: center;
 }
 .readerTextTableOfContents .moderatorSection {
-  margin-top: 20px;
+  margin-inline-start: 20px;
+  margin-inline-end: 20px;
 }
-.readerTextTableOfContents .moderatorSectionExpand {
+.readerTextTableOfContents .moderatorSectionExpand, .readerTextTableOfContents .moderatorSectionCollapse {
   cursor: pointer;
   color: #666;
   margin: 13px 6px 0;

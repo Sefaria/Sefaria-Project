@@ -846,6 +846,9 @@ class ModeratorButtons extends Component {
   expand() {
     this.setState({expanded: true});
   }
+  collapse() {
+    this.setState({expanded: false});
+  }
   editIndex() {
     window.location = "/edit/textinfo/" + this.props.title;
   }
@@ -897,6 +900,7 @@ class ModeratorButtons extends Component {
                           {Sefaria.is_moderator ? editTextInfo : null}
                           {Sefaria.is_moderator || Sefaria.is_editor ? addSection : null}
                           {Sefaria.is_moderator ? deleteText : null}
+                          <span className="moderatorSectionCollapse" onClick={this.collapse}><i className="fa fa-times"></i></span>
                         </span>);
     let message = this.state.message ? (<div className="moderatorSectionMessage">{this.state.message}</div>) : null;
     return (<div className="moderatorSection">
