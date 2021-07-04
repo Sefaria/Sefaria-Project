@@ -2760,10 +2760,10 @@ a.navBlockTitle:hover {
   padding: 20px 0 40px;
   text-align: start;
 }
-.readerTextTableOfContents.compare .content .tocContent {
+.readerTextTableOfContents.compare .content .textTableOfContents {
   padding: 10px 0;
 }
-.readerTextTableOfContents.narrowPanel .tocContent {
+.readerTextTableOfContents.narrowPanel .textTableOfContents {
   padding: 0 0 40px;
 }
 .textTableOfContents .tocSection {
@@ -2813,13 +2813,13 @@ a.navBlockTitle:hover {
   content: "\f107";
 }
 .readerPanel.hebrew .textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title:after,
-.readerApp.interface-hebrew .readerTextTableOfContents.noLangToggleInHebrew .content .schema-node-toc:not(.linked) > .schema-node-title:after {
+.readerApp.interface-hebrew .noLangToggleInHebrew .textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title:after {
   content: "\f104";
   font-size: 122%;
   margin-inline-start: 9px;
 }
 .readerPanel.hebrew .textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title.open:after,
-.readerApp.interface-hebrew .readerTextTableOfContents.noLangToggleInHebrew .content .schema-node-toc:not(.linked) > .schema-node-title.open:after {
+.readerApp.interface-hebrew .noLangToggleInHebrew .textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title.open:after {
   content: "\f107";
 }
 .textTableOfContents .schema-node-contents.closed {
@@ -2856,13 +2856,13 @@ a.navBlockTitle:hover {
   }
 }
 .hebrew .textTableOfContents .tocSection,
-.hebrew .textTableOfContents .tocContent,
-.english .readerTextTableOfContents.noLangToggleInHebrew .content .tocContent,
-.bilingual .readerTextTableOfContents.noLangToggleInHebrew .content .tocContent{
+.hebrew .textTableOfContents,
+.english .noLangToggleInHebrew .textTableOfContents,
+.bilingual .noLangToggleInHebrew .textTableOfContents{
   text-align: right;
 }
-.english .readerTextTableOfContents.noLangToggleInHebrew .content .tocContent,
-.bilingual .readerTextTableOfContents.noLangToggleInHebrew .content .tocContent{
+.english .noLangToggleInHebrew .textTableOfContents,
+.bilingual .noLangToggleInHebrew .textTableOfContents{
   direction: rtl;
 }
 .readerTextTableOfContents .button.allVersionsButton {
@@ -4232,15 +4232,15 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .interface-hebrew .readerPanel.english .textRange,
 .interface-hebrew .readerPanel.english .categoryFilterGroup,
 .interface-hebrew .readerPanel.bilingual .categoryFilterGroup,
-.interface-hebrew .readerPanel.english .tocContent,
-.interface-hebrew .readerPanel.bilingual .tocContent {
+.interface-hebrew .readerPanel.english .textTableOfContents,
+.interface-hebrew .readerPanel.bilingual .textTableOfContents {
   direction: ltr;
 }
 .interface-english .readerPanel.hebrew .textRange,
 .interface-english .readerPanel.hebrew .categoryFilterGroup,
 .interface-english .readerPanel.hebrew .structToggles,
 .interface-english .readerPanel.hebrew .tab-view,
-.interface-english .readerPanel.hebrew .tocContent,
+.interface-english .readerPanel.hebrew .textTableOfContents,
 .interface-english .readerPanel.hebrew .connectionsPanel .toolsButton.more,
 .interface-english .readerPanel.hebrew .connectionsPanel .toolsButton.seeLess {
   direction: rtl;
