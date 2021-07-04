@@ -173,17 +173,20 @@ class DictionarySearch extends Component {
   render() {
     var inputClasses = classNames({search: 1, keyboardInput: Sefaria.interfaceLang == 'english'});
 
-    return (<div className = "searchBox dictionarySearchBox ui-front">
-      <span className="dictionarySearchButton" onClick={this.handleSearchButtonClick}><i className="fa fa-search"></i></span>
-                      <input className={inputClasses}
-                             id="searchInput"
-                             placeholder={Sefaria._("Search Dictionary")}
-                             onKeyUp={this.handleSearchKeyUp}
-                             onFocus={this.showVirtualKeyboardIcon.bind(this, true)}
-                             onBlur={this.showVirtualKeyboardIcon.bind(this, false)}
-                             maxLength={75}
-                      title={Sefaria._("Search for Texts or Keywords Here")}/>
-    </div>);
+    return (
+        <div className = "searchBox dictionarySearchBox ui-front">
+          <img className="dictionarySearchButton" src="/static/icons/magnifier.svg" onClick={this.handleSearchButtonClick} role="button" alt="image of maginfying glass"/>
+          <input className={inputClasses}
+            id="searchInput"
+            placeholder={Sefaria._("Search Dictionary")}
+            onKeyUp={this.handleSearchKeyUp}
+            onFocus={this.showVirtualKeyboardIcon.bind(this, true)}
+            onBlur={this.showVirtualKeyboardIcon.bind(this, false)}
+            maxLength={75}
+            title={Sefaria._("Search for Texts or Keywords Here")}
+          />
+        </div>
+    );
   }
 }
 DictionarySearch.propTypes = {

@@ -382,14 +382,21 @@ class TextTableOfContents extends Component {
                     tabOptions={options}
                     activeTab={this.state.tab}
                     narrowPanel={this.props.narrowPanel} /> : null);
-    
+    const dictionarySearch = (isDictionary ?
+                  <DictionarySearch
+                  lexiconName={this.state.indexDetails.lexiconName}
+                  title={this.props.title}
+                  showBaseText={this.props.showBaseText}
+                  contextSelector=".bookPage"
+                  currVersions={this.props.currVersions}/> : null);
+
     let content;
     switch(this.state.tab) {
       case "default":
         if (isTorah) {
           content = (
             <>
-              <div className="torahNavSectionHeader">
+              <div className="specialNavSectionHeader">
                 <ContentText text={{en: "Chapters", he: Sefaria.hebrewTranslation("Chapters")}}/>
               </div>
               <SchemaNode
@@ -398,7 +405,7 @@ class TextTableOfContents extends Component {
                 refPath={this.props.title}
                 topLevel={true}
               />
-              <div className="torahNavSectionHeader">
+              <div className="specialNavSectionHeader">
                 <ContentText text={{en: "Torah Portions", he: Sefaria.hebrewTranslation("Torah Portions")}}/>
               </div>
               <div className="torahNavParshiot">
@@ -430,8 +437,9 @@ class TextTableOfContents extends Component {
     return (
         <div onClick={this.handleClick}>
           <div className="textTableOfContents">
-            <div className="altsToggle">
+            <div className="tocTools">
               {toggle}
+              {dictionarySearch}
             </div>
             <div className="tocContent">
               {content}
@@ -776,7 +784,16 @@ class DictionaryNode extends Component {
           </a>
         );
       });
-      return (<div className="schema-node-toc"><div className="schema-node-contents"><div className="tocLevel">{sectionLinks}</div></div></div>);
+      return (
+          <div className="schema-node-toc">
+            <div className="schema-node-contents">
+              <div className="specialNavSectionHeader">
+                <ContentText text={{en: "Browse By Letter", he: 'לפי סדר הא"ב'}}/>
+              </div>
+              <div className="tocLevel">{sectionLinks}</div>
+            </div>
+          </div>
+      );
     }
   }
 }
