@@ -118,17 +118,6 @@ class BookPage extends Component {
     currentVersion.merged = !!(currentVersion.sources);
     return currentVersion;
   }
-  handleClick(e) {
-    const $a = $(e.target).closest("a");
-    if ($a.length && ($a.hasClass("sectionLink") || $a.hasClass("linked"))) {
-      let ref = $a.attr("data-ref");
-      ref = decodeURIComponent(ref);
-      ref = Sefaria.humanRef(ref);
-      this.props.close();
-      this.props.showBaseText(ref, false, this.props.currVersions);
-      e.preventDefault();
-    }
-  }
   openVersion(version, language) {
     // Selects a version and closes this menu to show it.
     // Calling this functon wihtout parameters resets to default
@@ -272,19 +261,19 @@ class BookPage extends Component {
                   tabs={tabs}
                   renderTab={renderTab}
                   containerClasses={"largeTabs"}>
-
-                    <div onClick={this.handleClick}>
-                      <TextTableOfContents
+                   <TextTableOfContents
                         narrowPanel={this.props.narrowPanel}
                         title={this.props.title}
-                      />
-                    </div>
-                    <VersionsList
+                        close={this.props.close}
+                        showBaseText={this.props.showBaseText}
+                        currVersions={this.props.currVersions}
+                   />
+                   <VersionsList
                      currObjectVersions={currObjectVersions}
                      openVersionInReader={this.openVersion}
                      currentRef={this.props.currentRef}
                      viewExtendedNotes={this.props.viewExtendedNotes}
-                    />
+                   />
                  </TabView>
 
 
@@ -349,6 +338,17 @@ class TextTableOfContents extends Component {
   }
   setTab(tab) {
     this.setState({tab: tab});
+  }
+  handleClick(e) {
+    const $a = $(e.target).closest("a");
+    if ($a.length && ($a.hasClass("sectionLink") || $a.hasClass("linked"))) {
+      let ref = $a.attr("data-ref");
+      ref = decodeURIComponent(ref);
+      ref = Sefaria.humanRef(ref);
+      this.props.close();
+      this.props.showBaseText(ref, false, this.props.currVersions);
+      e.preventDefault();
+    }
   }
   render() {
     if(this.state.indexDetails == null){
@@ -428,20 +428,25 @@ class TextTableOfContents extends Component {
     }
 
     return (
-      <div className="textTableOfContents">
-        <div className="altsToggle">
-          {toggle}
+        <div onClick={this.handleClick}>
+          <div className="textTableOfContents">
+            <div className="altsToggle">
+              {toggle}
+            </div>
+            <div className="tocContent">
+              {content}
+            </div>
+          </div>
         </div>
-        <div className="tocContent">
-          {content}
-        </div>
-      </div>
     );
   }
 }
 TextTableOfContents.propTypes = {
   narrowPanel:     PropTypes.bool,
   title:           PropTypes.string.isRequired,
+  close:           PropTypes.func,
+  showBaseText:    PropTypes.func,
+  currVersions:    PropTypes.object
 };
 
 
