@@ -230,6 +230,7 @@ class AboutBox extends Component {
           (<div>{versionSectionEn}{versionSectionHe}{alternateSectionHe}</div>) :
           (<div>{versionSectionHe}{versionSectionEn}{alternateSectionHe}</div>)
         }
+        <Modules type={"RelatedTopics"} props={{title: this.props.title}} />
         <Modules type={"DownloadVersions"} props={{sref: this.props.title}} />
       </section>
     );
