@@ -41,16 +41,6 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
         'isAmbiguous',  # True if topic primary title can refer to multiple other topics
     ]
 
-    @classmethod
-    def init(cls, slug:str) -> 'Topic':
-        """
-        Convenience func to avoid using .load() when you're only passing a slug
-        Can return a subclass of Topic based on `subclass` field
-        :param slug:
-        :return:
-        """
-        return cls().load({'slug': slug})
-
     def load(self, query, proj=None):
         if self.__class__ != Topic:
             subclass_names = [self.__class__.__name__] + [klass.__name__ for klass in self.all_subclasses()]

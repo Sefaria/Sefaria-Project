@@ -1133,6 +1133,7 @@ class SchemaNode(TitledTreeNode):
 
     """
     is_virtual = False
+    optional_param_keys = ["ref_parts", "ref_parts_optional"]
 
     def __init__(self, serial=None, **kwargs):
         """
@@ -1402,7 +1403,7 @@ class JaggedArrayNode(SchemaNode, NumberedTitledTreeNode):
     - Structure Nodes whose children can be addressed by Integer or other :class:`AddressType`
     - Content Nodes that define the schema for JaggedArray stored content
     """
-    optional_param_keys = ["lengths", "toc_zoom"]
+    optional_param_keys = SchemaNode.optional_param_keys + NumberedTitledTreeNode.optional_param_keys + ["lengths", "toc_zoom"]
 
     def __init__(self, serial=None, **kwargs):
         # call SchemaContentNode.__init__, then the additional parts from NumberedTitledTreeNode.__init__

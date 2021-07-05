@@ -38,6 +38,18 @@ class AbstractMongoRecord(object):
     ALLOWED_TAGS = bleach.ALLOWED_TAGS + ["p", "br"]  # not sure why p/br isn't included. dont see any security risks
     ALLOWED_ATTRS = bleach.ALLOWED_ATTRIBUTES
 
+    @classmethod
+    def init(cls, slug:str) -> 'AbstractMongoRecord':
+        """
+        Convenience func to avoid using .load() when you're only passing a slug
+        Applicable only if class defines `slug_fields`
+        :param slug:
+        :return:
+        """
+        if len(cls.slug_fields) != 1:
+            raise Exception("Can only call init() if exactly one slug field is defined.")
+        return cls().load({cls.slug_fields[0]: slug})
+
     def __init__(self, attrs=None):
         if attrs is None:
             attrs = {}
