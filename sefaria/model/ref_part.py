@@ -44,6 +44,12 @@ class RawRefPart(AbstractRefPart):
     def get_ref_matches(self, structured_ref_part:'StructuredRefPart'):
         pass
 
+    def __str__(self):
+        return f"{self.__class__.__name__}: {self.span}, Source = {self.source}"
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self.source}, {self.span}, {self.potential_dh_continuation})"
+
 class RawRef:
     
     def __init__(self, raw_ref_parts: list, span: Span) -> None:
@@ -97,24 +103,34 @@ class DiburHamatchilRefPart(StructuredRefPart, abst.AbstractMongoRecord):
     def fuzzy_match_score(self, text: str, potential_dh_continuation: str):
         pass
 
+class RawRefPartMatch:
+
+    def __init__(self, raw_ref_parts, node) -> None:
+        self.raw_ref_parts = raw_ref_parts
+        self.node = node
+
 class RefResolver:
 
     def __init__(self, lang) -> None:
         self.lang = lang
 
-    def find_potential_root_structured_ref_parts(self, context_ref: text.Ref, raw_ref: 'RawRef') -> list:
+    def get_unrefined_ref_part_matches(self, context_ref: text.Ref, raw_ref: 'RawRef') -> list:
         # TODO implement `type` on ref part and filter by "named" ref parts only
         from .text import library
-        return self._find_potential_root_structured_ref_parts_recursive(raw_ref.raw_ref_parts, library.get_all_root_ref_part_titles()[self.lang])
+        return self._get_unrefined_ref_part_matches_recursive(raw_ref.raw_ref_parts, library.get_all_root_ref_part_titles()[self.lang])
 
-    def _find_potential_root_structured_ref_parts_recursive(self, ref_parts: list, title_trie: dict) -> list:
-        roots = title_trie.get(None, [])
+    def _get_unrefined_ref_part_matches_recursive(self, ref_parts: list, title_trie: dict, prev_ref_parts: list=None) -> list:
+        prev_ref_parts = prev_ref_parts or []
+        matches = []
         for i, ref_part in enumerate(ref_parts):
+            temp_prev_ref_parts = prev_ref_parts + [ref_part]
             temp_title_trie = title_trie.get(ref_part.span.text, None)
             if temp_title_trie is None: continue
+            if None in temp_title_trie:
+                matches += [RawRefPartMatch(temp_prev_ref_parts, node) for node in temp_title_trie[None]]
             temp_ref_parts = [ref_parts[j] for j in range(len(ref_parts)) if j != i]
-            roots += self._find_potential_root_structured_ref_parts_recursive(temp_ref_parts, temp_title_trie)
-        return roots
+            matches += self._get_unrefined_ref_part_matches_recursive(temp_ref_parts, temp_title_trie, temp_prev_ref_parts)
+        return matches
 
-    def score_and_prune_ref_parts(self, curr_ref_parts: list) -> list:
+    def refine_ref_part_matches(self, ref_part_matches: list) -> list:
         pass
