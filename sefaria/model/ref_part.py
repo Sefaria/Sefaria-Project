@@ -45,7 +45,7 @@ class RawRefPart:
             pass
         elif self.type == REF_PART_TYPE_NAMED and isinstance(node, schema.SchemaNode):
             pass
-        elif self.type == REF_PART_TYPE_DH and isinstance(node, DiburHamatchilRefPart):
+        elif self.type == REF_PART_TYPE_DH and isinstance(node, DiburHamatchilNode):
             pass
 
 
@@ -70,8 +70,10 @@ class RawRef:
         self.raw_ref_parts = raw_ref_parts
         self.span = span
 
-class DiburHamatchilRefPart(abst.AbstractMongoRecord):
-    
+class DiburHamatchilNode(abst.AbstractMongoRecord):
+    """
+    Very likely possible to use VirtualNode and add these nodes as children of JANs and ArrayMapNodes. But that can be a little complicated
+    """
     collection="dibur_hamatchils"
     required_attrs = [
         "dibur_hamatchil",
