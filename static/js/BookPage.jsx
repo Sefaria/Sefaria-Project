@@ -319,7 +319,7 @@ class TextTableOfContents extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      tab: "default",
+      tab: "schema",
       indexDetails: null
     };
   }
@@ -334,7 +334,7 @@ class TextTableOfContents extends Component {
     }));
   }
   getDefaultActiveTab(indexDetails){
-    return ("default_struct" in indexDetails && indexDetails.default_struct in indexDetails?.alts) ? indexDetails.default_struct : "default";
+    return ("default_struct" in indexDetails && indexDetails.default_struct in indexDetails?.alts) ? indexDetails.default_struct : "schema";
   }
   setTab(tab) {
     this.setState({tab: tab});
@@ -357,29 +357,33 @@ class TextTableOfContents extends Component {
     const isTorah = ["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy"].indexOf(this.props.title) > -1;
     const isDictionary = this.state.indexDetails?.lexiconName;
     const defaultStruct = this.getDefaultActiveTab(this.state.indexDetails);
+    const excludedStructs = this.state.indexDetails?.exclude_structs || [];
     const alts = this.state.indexDetails?.alts || {};
-    let options = [{
-      name: "default",
-      text: "sectionNames" in this.state.indexDetails?.schema ? this.state.indexDetails.schema.sectionNames[0] : "Contents",
-      onPress: this.setTab.bind(null, "default")
-    }];
+    let structTabOptions = [];
+    if(!excludedStructs.includes("schema")){
+      structTabOptions.push({
+        name: "schema",
+        text: "sectionNames" in this.state.indexDetails?.schema ? this.state.indexDetails.schema.sectionNames[0] : "Contents",
+        onPress: this.setTab.bind(null, "schema")
+      })
+    }
     for (let alt in alts) {
-      if (alts.hasOwnProperty(alt)) {
-        options.push({
+      if (alts.hasOwnProperty(alt) && !excludedStructs.includes(alt)) {
+        structTabOptions.push({
           name: alt,
           text: alt,
           onPress: this.setTab.bind(null, alt)
         });
       }
     }
-    options = options.sort(function(a, b) {
+    structTabOptions = structTabOptions.sort(function(a, b) {
       return a.name == defaultStruct ? -1 :
               b.name == defaultStruct ? 1 : 0;
     }.bind(this));
-    const showToggle = !(isDictionary || isTorah) && options.length > 1;
+    const showToggle = !(isDictionary || isTorah) && structTabOptions.length > 1;
     const toggle = (showToggle ?
                   <TabbedToggleSet
-                    tabOptions={options}
+                    tabOptions={structTabOptions}
                     activeTab={this.state.tab}
                     narrowPanel={this.props.narrowPanel} /> : null);
     const dictionarySearch = (isDictionary ?
@@ -392,7 +396,7 @@ class TextTableOfContents extends Component {
 
     let content;
     switch(this.state.tab) {
-      case "default":
+      case "schema":
         if (isTorah) {
           content = (
             <>
