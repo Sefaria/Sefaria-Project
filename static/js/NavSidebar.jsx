@@ -392,11 +392,14 @@ const TrendingTopics = () => (
 );
 
 
-const RelatedTopics = ({topics}) => {
-  if (!topics.length) { return null; }
+const RelatedTopics = ({title}) => {
+  const [topics, setTopics] = useState([]);
   const [showMore, setShowMore] = useState(false);
   const showMoreLink = !showMore && topics.length > 5;
   const shownTopics = showMore ? topics : topics.slice(0,5);
+  useEffect(() => {
+        Sefaria.getIndexDetails(title).then(data => setTopics(data.relatedTopics));
+  },[title]);
   return (
     <Module>
       <ModuleTitle>Related Topics</ModuleTitle>
