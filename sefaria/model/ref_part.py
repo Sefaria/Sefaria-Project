@@ -30,15 +30,10 @@ class NonUniqueTerm(abst.AbstractMongoRecord, schema.AbstractTitledObject):
 class NonUniqueTermSet(abst.AbstractMongoSet):
     recordClass = NonUniqueTerm
 
-class AbstractRefPart:
-    
-    def __init__(self, source: str) -> None:
-        self.source = source
-
-class RawRefPart(AbstractRefPart):
+class RawRefPart:
     
     def __init__(self, source: str, type: str, span: Span, potential_dh_continuation: str=None) -> None:
-        super().__init__(source)
+        self.source = source
         self.span = span
         self.type = type
         self.potential_dh_continuation = potential_dh_continuation
@@ -46,8 +41,13 @@ class RawRefPart(AbstractRefPart):
     def matches(self, node:schema.SchemaNode):
         if self.type == REF_PART_TYPE_NUMBERED and isinstance(node, schema.JaggedArrayNode):
             pass
+        elif self.type == REF_PART_TYPE_NAMED and isinstance(node, schema.ArrayMapNode):
+            pass
         elif self.type == REF_PART_TYPE_NAMED and isinstance(node, schema.SchemaNode):
             pass
+        elif self.type == REF_PART_TYPE_DH and isinstance(node, DiburHamatchilRefPart):
+            pass
+
 
     def __str__(self):
         return f"{self.__class__.__name__}: {self.span}, Source = {self.source}"
@@ -70,38 +70,7 @@ class RawRef:
         self.raw_ref_parts = raw_ref_parts
         self.span = span
 
-class StructuredRefPart(AbstractRefPart):
-    
-    def __init__(self, source: str, ref:text.Ref=None, schema_node: schema.SchemaNode=None, **kwargs) -> None:
-        super().__init__(source, **kwargs)
-        self.ref = ref
-        self.schema_node = schema_node
-
-class AbstractNamedRefPart(AbstractRefPart):
-
-    def __init__(self, source: str, term: 'NonUniqueTerm', **kwargs) -> None:
-        super().__init__(source, **kwargs)
-        self.term = term
-
-class TitleRefPart(AbstractNamedRefPart):
-
-    def __init__(self, source: str, term: 'NonUniqueTerm', child: 'StructuredRefPart') -> None:
-        super().__init__(source, term)
-        self.child = child
-
-class StructuredNamedRefPart(StructuredRefPart, AbstractNamedRefPart):
-    
-    def __init__(self, source: str, ref: text.Ref, schema_node: schema.SchemaNode, term: 'NonUniqueTerm') -> None:
-        super().__init__(source, ref=ref, schema_node=schema_node, term=term)
-
-class NumberedRefPart(StructuredRefPart):
-
-    def __init__(self, source: str, ref: text.Ref, schema_node: schema.SchemaNode, base_ref: text.Ref, address_type: schema.AddressType) -> None:
-        super().__init__(source, ref=ref, schema_node=schema_node)
-        self.base_ref = base_ref
-        self.address_type = address_type
-
-class DiburHamatchilRefPart(StructuredRefPart, abst.AbstractMongoRecord):
+class DiburHamatchilRefPart(abst.AbstractMongoRecord):
     
     collection="dibur_hamatchils"
     required_attrs = [
@@ -109,10 +78,6 @@ class DiburHamatchilRefPart(StructuredRefPart, abst.AbstractMongoRecord):
         "container_refs",
         "ref",
     ]
-
-    def __init__(self, source: str, ref: text.Ref, schema_node: schema.SchemaNode, attrs=None) -> None:
-        StructuredRefPart.__init__(source, ref=ref, schema_node=schema_node)
-        abst.AbstractMongoRecord.__init__(attrs)
 
     def fuzzy_match_score(self, text: str, potential_dh_continuation: str):
         pass
@@ -159,7 +124,7 @@ class RefResolver:
             match = match_queue.pop(0)
             unused_ref_parts = match.get_unused_parts(ref_parts)
             has_match = False
-            for child in match.node.all_children():
+            for child in match.node.all_children(only_referenceable=True):
                 for ref_part in unused_ref_parts:
                     if ref_part.matches(child):
                         has_match = True

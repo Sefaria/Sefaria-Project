@@ -861,7 +861,7 @@ class NumberedTitledTreeNode(TitledTreeNode):
     A :class:`TreeNode` that can address its :class:`TreeNode` children by Integer, or other :class:`AddressType`.
     """
     required_param_keys = ["depth", "addressTypes", "sectionNames"]
-    optional_param_keys = ["lengths"]
+    optional_param_keys = ["lengths", "referenceableSections", "diburHamatchilSections"]
 
     def __init__(self, serial=None, **kwargs):
         """
