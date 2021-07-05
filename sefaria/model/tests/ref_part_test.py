@@ -52,7 +52,7 @@ def test_duplicate_terms(duplicate_terms):
 
 def test_resolver(resolver_data):
     ref_resolver, raw_ref, context_ref = resolver_data
-    matches = ref_resolver.find_potential_root_structured_ref_parts(context_ref, raw_ref)
+    matches = ref_resolver.get_unrefined_ref_part_matches(context_ref, raw_ref)
     assert len(matches) == 2
     print(matches[0].raw_ref_parts)
     print(matches[1].raw_ref_parts)

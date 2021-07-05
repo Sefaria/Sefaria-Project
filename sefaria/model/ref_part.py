@@ -5,6 +5,7 @@ from spacy.tokens import Span
 
 REF_PART_TYPE_NAMED = "named"
 REF_PART_TYPE_NUMBERED = "numbered"
+REF_PART_TYPE_DH = "dibur_hamatchil"
 
 class NonUniqueTerm(abst.AbstractMongoRecord, schema.AbstractTitledObject):
     collection = "non_unique_terms"
@@ -36,19 +37,32 @@ class AbstractRefPart:
 
 class RawRefPart(AbstractRefPart):
     
-    def __init__(self, source: str, span: Span, potential_dh_continuation: str=None) -> None:
+    def __init__(self, source: str, type: str, span: Span, potential_dh_continuation: str=None) -> None:
         super().__init__(source)
         self.span = span
+        self.type = type
         self.potential_dh_continuation = potential_dh_continuation
 
-    def get_ref_matches(self, structured_ref_part:'StructuredRefPart'):
-        pass
+    def matches(self, node:schema.SchemaNode):
+        if self.type == REF_PART_TYPE_NUMBERED and isinstance(node, schema.JaggedArrayNode):
+            pass
+        elif self.type == REF_PART_TYPE_NAMED and isinstance(node, schema.SchemaNode):
+            pass
 
     def __str__(self):
         return f"{self.__class__.__name__}: {self.span}, Source = {self.source}"
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self.source}, {self.span}, {self.potential_dh_continuation})"
+
+    def __eq__(self, other):
+        return isinstance(other, RawRefPart) and self.__hash__() == other.__hash__()
+
+    def __hash__(self):
+        return hash(f"{self.source}|{self.span.__hash()}|{self.potential_dh_continuation}")
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
 class RawRef:
     
@@ -109,6 +123,12 @@ class RawRefPartMatch:
         self.raw_ref_parts = raw_ref_parts
         self.node = node
 
+    def get_unused_ref_parts(self, ref_parts: list):
+        return [ref_part for ref_part in ref_parts if ref_part in self.raw_ref_parts]
+
+    def refine(self, raw_ref_part, node) -> 'RawRefPartMatch':
+        return RawRefPartMatch(self.raw_ref_parts + [raw_ref_part], node)
+
 class RefResolver:
 
     def __init__(self, lang) -> None:
@@ -132,5 +152,21 @@ class RefResolver:
             matches += self._get_unrefined_ref_part_matches_recursive(temp_ref_parts, temp_title_trie, temp_prev_ref_parts)
         return matches
 
-    def refine_ref_part_matches(self, ref_part_matches: list) -> list:
-        pass
+    def refine_ref_part_matches(self, ref_part_matches: list, ref_parts: list) -> list:
+        fully_refined = []
+        match_queue = [match.node for match in ref_part_matches]
+        while len(match_queue) > 0:
+            match = match_queue.pop(0)
+            unused_ref_parts = match.get_unused_parts(ref_parts)
+            has_match = False
+            for child in match.node.all_children():
+                for ref_part in unused_ref_parts:
+                    if ref_part.matches(child):
+                        has_match = True
+                        match_queue += [match.refine(ref_part, child)]
+            if not has_match:
+                fully_refined += [match]
+        
+        return fully_refined
+
+
