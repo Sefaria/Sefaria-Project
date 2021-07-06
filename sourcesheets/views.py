@@ -197,7 +197,7 @@ def view_sheet(request, sheet_id, editorMode = False):
 
     sheet_id = int(sheet_id)
     sheet = get_sheet(sheet_id)
-    if "error" in sheet:
+    if "error" in sheet and sheet["error"] != "Sheet updated.":
             return HttpResponse(sheet["error"])
 
     sheet["sources"] = annotate_user_links(sheet["sources"])
