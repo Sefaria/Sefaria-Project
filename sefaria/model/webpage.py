@@ -411,12 +411,12 @@ def webpages_stats():
         total_links += webpage.refs
 
     total_links = len(set(total_links))
-    print("{} total pages.\n".format(total_pages))
-    print("{} total connections.\n".format(total_links))
 
     for website, num in websites.items():
         website.num_webpages = num
         website.save()
+
+    return (total_pages, total_links)
 
 
 def find_webpages_without_websites(hit_threshold=50, last_linker_activity_day=20):
@@ -473,29 +473,14 @@ def find_sites_that_may_have_removed_linker(last_linker_activity_day=20):
             for domain in data['domains']:
                 ws = WebPageSet({"url": {"$regex": re.escape(domain)}}, limit=1, sort=[['lastUpdated', -1]])
                 if ws.count() == 0:
-                    print(f"Alert: {domain} has no pages")
+                    print(f"Alert! {domain} has no pages")
                 else:
                     webpage = ws.array()[0]  # lastUpdated webpage for this domain
                     website = webpage.get_website()
                     if website:
                         website.linker_installed = webpage.lastUpdated > last_active_threshold
                         if not website.linker_installed:
-                            print(f"ALERT! {domain} has removed the linker!")
+                            print(f"Alert! {domain} has removed the linker!")
                         website.save()
                     else:
-                        print("can't find website {} corresponding to webpage {}".format(data["name"], webpage.url))
-
-
-def find_sites_to_be_excluded(flag=100):
-    refs = {}
-    for webpage in WebPageSet():
-        website = webpage.get_website()
-        if website:
-            if website not in refs:
-                refs[website] = Counter()
-            for ref in webpage.refs:
-                refs[website][ref] += 1
-
-    for website in refs:
-        if refs[website].most_common(1)[0][1] > flag:
-            print("{} may need exclusions set.".format(website.name))
+                        print("Alert! Can't find website {} corresponding to webpage {}".format(data["name"], webpage.url))
