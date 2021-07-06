@@ -1,12 +1,14 @@
 from typing import List
+from enum import Enum
 from . import abstract as abst
 from . import text
 from . import schema
 from spacy.tokens import Span
 
-REF_PART_TYPE_NAMED = "named"
-REF_PART_TYPE_NUMBERED = "numbered"
-REF_PART_TYPE_DH = "dibur_hamatchil"
+class RefPartType(Enum):
+    NAMED = "named"
+    NUMBERED = "numbered"
+    DH = "dibur_hamatchil"
 
 class NonUniqueTerm(abst.AbstractMongoRecord, schema.AbstractTitledObject):
     collection = "non_unique_terms"
@@ -33,23 +35,11 @@ class NonUniqueTermSet(abst.AbstractMongoSet):
 
 class RawRefPart:
     
-    def __init__(self, source: str, type: str, span: Span, potential_dh_continuation: str=None) -> None:
+    def __init__(self, source: str, type: 'RefPartType', span: Span, potential_dh_continuation: str=None) -> None:
         self.source = source
         self.span = span
         self.type = type
         self.potential_dh_continuation = potential_dh_continuation
-
-    def matches(self, node: schema.SchemaNode) -> bool:
-        if self.type == REF_PART_TYPE_NUMBERED and isinstance(node, schema.JaggedArrayNode):
-            pass
-        elif self.type == REF_PART_TYPE_NAMED and isinstance(node, schema.ArrayMapNode):
-            pass
-        elif self.type == REF_PART_TYPE_NAMED and isinstance(node, schema.SchemaNode):
-            pass
-        elif self.type == REF_PART_TYPE_DH and isinstance(node, DiburHamatchilNode):
-            pass
-        # TODO sham and directional cases
-        return False
 
     def __str__(self):
         return f"{self.__class__.__name__}: {self.span}, Source = {self.source}"
@@ -61,7 +51,7 @@ class RawRefPart:
         return isinstance(other, RawRefPart) and self.__hash__() == other.__hash__()
 
     def __hash__(self):
-        return hash(f"{self.source}|{self.span.__hash()}|{self.potential_dh_continuation}")
+        return hash(f"{self.source}|{self.span.__hash__()}|{self.potential_dh_continuation}")
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -93,16 +83,26 @@ class RawRefPartMatch:
         self.node = node
         self.ref = ref
 
-    def get_unused_ref_parts(self, ref_parts: list):
-        return [ref_part for ref_part in ref_parts if ref_part in self.raw_ref_parts]
+    def get_unused_ref_parts(self, raw_ref: 'RawRef'):
+        return [ref_part for ref_part in raw_ref.raw_ref_parts if ref_part not in self.raw_ref_parts]
 
     def get_refined_matches(self, raw_ref_part, node, lang: str) -> List['RawRefPartMatch']:
         refined_ref_parts = self.raw_ref_parts + [raw_ref_part]
-        if isinstance(node, schema.JaggedArrayNode):
-            refined_ref = self.ref.subref(node.address_class(0).toNumber(lang, raw_ref_part))
-
-        else:
-            return [RawRefPartMatch(refined_ref_parts, node, node.ref())]
+        matches = []
+        if raw_ref_part.type == RefPartType.NUMBERED and isinstance(node, schema.JaggedArrayNode):
+            possible_sections = node.address_class(0).get_all_possible_sections_from_string(lang, raw_ref_part.span.text)
+            for sec in possible_sections:
+                refined_ref = self.ref.subref(sec)
+                matches += [RawRefPartMatch(refined_ref_parts, node, refined_ref)]
+        elif raw_ref_part.type == RefPartType.NAMED and isinstance(node, schema.ArrayMapNode):
+            pass
+        elif raw_ref_part.type == RefPartType.NAMED and isinstance(node, schema.SchemaNode):
+            if raw_ref_part.span.text in getattr(node, 'ref_parts', set()):
+                matches += [RawRefPartMatch(refined_ref_parts, node, node.ref())]
+        elif raw_ref_part.type == RefPartType.DH and isinstance(node, DiburHamatchilNode):
+            pass
+        # TODO sham and directional cases
+        return matches
 
 class RefResolver:
 
@@ -127,12 +127,12 @@ class RefResolver:
             matches += self._get_unrefined_ref_part_matches_recursive(temp_ref_parts, temp_title_trie, temp_prev_ref_parts)
         return matches
 
-    def refine_ref_part_matches(self, ref_part_matches: list, ref_parts: list) -> list:
+    def refine_ref_part_matches(self, ref_part_matches: list, raw_ref: 'RawRef') -> list:
         fully_refined = []
-        match_queue = [match.node for match in ref_part_matches]
+        match_queue = ref_part_matches[:]
         while len(match_queue) > 0:
             match = match_queue.pop(0)
-            unused_ref_parts = match.get_unused_parts(ref_parts)
+            unused_ref_parts = match.get_unused_ref_parts(raw_ref)
             has_match = False
             if isinstance(match.node, schema.NumberedTitledTreeNode):
                 child = match.node.get_referenceable_child()
@@ -141,31 +141,11 @@ class RefResolver:
                 children = match.node.all_children()
             for child in children:
                 for ref_part in unused_ref_parts:
-                    if ref_part.matches(child):
-                        has_match = True
-                        match_queue += match.get_refined_matches(ref_part, child)
+                    temp_matches = match.get_refined_matches(ref_part, child, self.lang)
+                    match_queue += temp_matches
+                    if len(temp_matches) > 0: has_match = True
             if not has_match:
                 fully_refined += [match]
         
         return fully_refined
-
-    def to_number(lang: str, addr, s: str, SuperClass: type=None):
-        import regex
-        try:
-            regex_func = addr.regex if SuperClass is None else super(SuperClass, addr).regex
-            toNumber_func = addr.toNumber if SuperClass is None else super(SuperClass, addr).toNumber
-        except AttributeError:
-            return
-        reg = regex.compile(regex_func(lang, strict=True), regex.VERBOSE)
-        match = reg.match(s)
-        if match:
-            return toNumber_func(lang, match.group(1))
-
-    def all_to_number(lang: str, addr, s: str):
-        results = []
-        for SuperClass in [None] + list(addr.__class__.__mro__):
-            result = to_number(lang, addr, s, SuperClass)
-            if result is None: continue
-            results += [result]
-        return results
 

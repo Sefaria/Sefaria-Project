@@ -1055,7 +1055,7 @@ class NumberedTitledTreeNode(TitledTreeNode):
             # truncate every list attribute by `next_referenceable_depth`
             if list_attr not in serial: continue
             serial[list_attr] = serial[list_attr][(1+next_refereceable_depth):]
-        return self.__class__(serial=serial, **kwargs)
+        return self.__class__(serial=serial, index=self.index, **kwargs)
 
 
 class ArrayMapNode(NumberedTitledTreeNode):
@@ -1962,12 +1962,12 @@ class AddressType(object):
         for SuperClass in cls.__mro__:  # mro gives all super classes
             if SuperClass == AddressType: break
             addr = SuperClass(0)  # somewhat hacky. trying to get access to super class implementation of `regex` but actually only AddressTalmud implements this function. Other classes just overwrite class fields which modify regex's behavior. Simplest to just instantiate the appropriate address and use it.
-            regex_str = addr.regex(lang, strict=True)
+            regex_str = addr.regex(lang, strict=True, group_id='section')
             if regex_str is None: continue
             reg = regex.compile(regex_str, regex.VERBOSE)
             match = reg.match(s)
             if match:
-                results += [addr.toNumber(lang, match.group(1))]                
+                results += [addr.toNumber(lang, match.group('section'))]
         return results
 
     @classmethod
