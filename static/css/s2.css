@@ -3510,6 +3510,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   align-items: center;
   text-decoration: none;
 }
+.interface-hebrew .trans-pref-header-container .trans-pref-reset {
+  direction: rtl;
+}
+.interface-hebrew .trans-pref-header-container .trans-pref-reset .smallText {
+  padding-bottom: 2px;
+}
 .trans-pref-header-container img.reset-btn {
   width: 10px;
   height: 10px;

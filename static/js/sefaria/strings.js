@@ -296,7 +296,7 @@ const Strings = {
     "Read the Portion": "קראו את הפרשה",
     "My Notes": "הרשומות שלי",
     "Updates": "טקסטים חדשים",
-    "Preferred Translation": "Preferred Translation",
+    "Preferred Translation": "תרגום מועדף",
 
     //user stats
     "Torah Tracker" : "לימוד במספרים",
