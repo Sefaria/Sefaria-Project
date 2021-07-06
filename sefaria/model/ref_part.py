@@ -1,3 +1,4 @@
+from collections import defaultdict
 from typing import List
 from enum import Enum
 from . import abstract as abst
@@ -125,7 +126,16 @@ class RefResolver:
                 matches += [RawRefPartMatch(temp_prev_ref_parts, index, index.nodes.ref()) for index in temp_title_trie[None]]
             temp_ref_parts = [ref_parts[j] for j in range(len(ref_parts)) if j != i]
             matches += self._get_unrefined_ref_part_matches_recursive(temp_ref_parts, temp_title_trie, temp_prev_ref_parts)
-        return matches
+        return self._prune_unrefined_ref_part_matches(matches)
+
+    def _prune_unrefined_ref_part_matches(self, ref_part_matches: List['RawRefPartMatch']) -> List['RawRefPartMatch']:
+        index_match_map = defaultdict(list)
+        for match in ref_part_matches:
+            index_match_map[match.node.title] += [match]
+        pruned_matches = []
+        for match_list in index_match_map.values():
+            pruned_matches += [max(match_list, key=lambda m: len(m.raw_ref_parts))]
+        return pruned_matches
 
     def refine_ref_part_matches(self, ref_part_matches: list, raw_ref: 'RawRef') -> list:
         fully_refined = []

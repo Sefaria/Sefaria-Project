@@ -55,10 +55,8 @@ def test_duplicate_terms(duplicate_terms):
 def test_resolver(resolver_data):
     ref_resolver, raw_ref, context_ref = resolver_data
     matches = ref_resolver.get_unrefined_ref_part_matches(context_ref, raw_ref)
-    assert len(matches) == 2
-    print()
-    print(matches[0].raw_ref_parts)
-    print(matches[1].raw_ref_parts)
+    assert len(matches) == 1
 
     refined_matches = ref_resolver.refine_ref_part_matches(matches, raw_ref)
-    pass
+    assert len(refined_matches) == 1
+    assert refined_matches[0].ref == Ref("Berakhot 2a")
