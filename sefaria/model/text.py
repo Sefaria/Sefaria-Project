@@ -5547,6 +5547,8 @@ class Library(object):
                 toSections.append(sections[len(sections) - len(toSections) - 1])
             toSections.reverse()
 
+        # return seems to ignore all previous logic...
+        # leaving this function in case errors that were thrown in above logic act as validation?
         return Ref(ref_match.group())
 
     def _build_ref_from_string(self, title=None, st=None, lang="en"):

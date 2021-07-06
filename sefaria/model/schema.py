@@ -861,7 +861,7 @@ class NumberedTitledTreeNode(TitledTreeNode):
     A :class:`TreeNode` that can address its :class:`TreeNode` children by Integer, or other :class:`AddressType`.
     """
     required_param_keys = ["depth", "addressTypes", "sectionNames"]
-    optional_param_keys = ["lengths", "referenceableSections", "diburHamatchilSections"]
+    optional_param_keys = ["lengths", "referenceableSections", "isSegmentLevelDiburHamatchil"]
 
     def __init__(self, serial=None, **kwargs):
         """
@@ -1041,6 +1041,21 @@ class NumberedTitledTreeNode(TitledTreeNode):
         if kwargs.get("translate_sections"):
                 d["heSectionNames"] = list(map(hebrew_term, self.sectionNames))
         return d
+
+    def get_referenceable_child(self, **kwargs) -> 'NumberedTitledTreeNode':
+        if self.depth == 0: return
+        next_refereceable_depth = 0
+        # if `referenceableSections` is not define, assume they're all referenceable
+        if getattr(self, 'referenceableSections', False):
+            while next_refereceable_depth < len(self.referenceableSections) and not self.referenceableSections[next_refereceable_depth]:
+                next_refereceable_depth += 1
+        serial = self.serialize()
+        serial['depth'] -= (1+next_refereceable_depth)
+        for list_attr in ('addressTypes', 'sectionNames', 'lengths', 'referenceableSections'):
+            # truncate every list attribute by `next_referenceable_depth`
+            if list_attr not in serial: continue
+            serial[list_attr] = serial[list_attr][(1+next_refereceable_depth):]
+        return self.__class__(serial=serial, **kwargs)
 
 
 class ArrayMapNode(NumberedTitledTreeNode):

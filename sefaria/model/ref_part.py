@@ -1,3 +1,4 @@
+from typing import List
 from . import abstract as abst
 from . import text
 from . import schema
@@ -38,7 +39,7 @@ class RawRefPart:
         self.type = type
         self.potential_dh_continuation = potential_dh_continuation
 
-    def matches(self, node:schema.SchemaNode):
+    def matches(self, node: schema.SchemaNode) -> bool:
         if self.type == REF_PART_TYPE_NUMBERED and isinstance(node, schema.JaggedArrayNode):
             pass
         elif self.type == REF_PART_TYPE_NAMED and isinstance(node, schema.ArrayMapNode):
@@ -47,7 +48,8 @@ class RawRefPart:
             pass
         elif self.type == REF_PART_TYPE_DH and isinstance(node, DiburHamatchilNode):
             pass
-
+        # TODO sham and directional cases
+        return False
 
     def __str__(self):
         return f"{self.__class__.__name__}: {self.span}, Source = {self.source}"
@@ -86,15 +88,21 @@ class DiburHamatchilNode(abst.AbstractMongoRecord):
 
 class RawRefPartMatch:
 
-    def __init__(self, raw_ref_parts, node) -> None:
+    def __init__(self, raw_ref_parts, node, ref: text.Ref) -> None:
         self.raw_ref_parts = raw_ref_parts
         self.node = node
+        self.ref = ref
 
     def get_unused_ref_parts(self, ref_parts: list):
         return [ref_part for ref_part in ref_parts if ref_part in self.raw_ref_parts]
 
-    def refine(self, raw_ref_part, node) -> 'RawRefPartMatch':
-        return RawRefPartMatch(self.raw_ref_parts + [raw_ref_part], node)
+    def get_refined_matches(self, raw_ref_part, node, lang: str) -> List['RawRefPartMatch']:
+        refined_ref_parts = self.raw_ref_parts + [raw_ref_part]
+        if isinstance(node, schema.JaggedArrayNode):
+            refined_ref = self.ref.subref(node.address_class(0).toNumber(lang, raw_ref_part))
+
+        else:
+            return [RawRefPartMatch(refined_ref_parts, node, node.ref())]
 
 class RefResolver:
 
@@ -114,7 +122,7 @@ class RefResolver:
             temp_title_trie = title_trie.get(ref_part.span.text, None)
             if temp_title_trie is None: continue
             if None in temp_title_trie:
-                matches += [RawRefPartMatch(temp_prev_ref_parts, node) for node in temp_title_trie[None]]
+                matches += [RawRefPartMatch(temp_prev_ref_parts, index, index.nodes.ref()) for index in temp_title_trie[None]]
             temp_ref_parts = [ref_parts[j] for j in range(len(ref_parts)) if j != i]
             matches += self._get_unrefined_ref_part_matches_recursive(temp_ref_parts, temp_title_trie, temp_prev_ref_parts)
         return matches
@@ -126,14 +134,38 @@ class RefResolver:
             match = match_queue.pop(0)
             unused_ref_parts = match.get_unused_parts(ref_parts)
             has_match = False
-            for child in match.node.all_children(only_referenceable=True):
+            if isinstance(match.node, schema.NumberedTitledTreeNode):
+                child = match.node.get_referenceable_child()
+                children = [] if child is None else [child]
+            else:
+                children = match.node.all_children()
+            for child in children:
                 for ref_part in unused_ref_parts:
                     if ref_part.matches(child):
                         has_match = True
-                        match_queue += [match.refine(ref_part, child)]
+                        match_queue += match.get_refined_matches(ref_part, child)
             if not has_match:
                 fully_refined += [match]
         
         return fully_refined
 
+    def to_number(lang: str, addr, s: str, SuperClass: type=None):
+        import regex
+        try:
+            regex_func = addr.regex if SuperClass is None else super(SuperClass, addr).regex
+            toNumber_func = addr.toNumber if SuperClass is None else super(SuperClass, addr).toNumber
+        except AttributeError:
+            return
+        reg = regex.compile(regex_func(lang, strict=True), regex.VERBOSE)
+        match = reg.match(s)
+        if match:
+            return toNumber_func(lang, match.group(1))
+
+    def all_to_number(lang: str, addr, s: str):
+        results = []
+        for SuperClass in [None] + list(addr.__class__.__mro__):
+            result = to_number(lang, addr, s, SuperClass)
+            if result is None: continue
+            results += [result]
+        return results
 
