@@ -400,7 +400,7 @@ const RelatedTopics = ({title}) => {
   useEffect(() => {
         Sefaria.getIndexDetails(title).then(data => setTopics(data.relatedTopics));
   },[title]);
-  return (
+  return (topics.length ?
     <Module>
       <ModuleTitle>Related Topics</ModuleTitle>
       {shownTopics.map((topic, i) => 
@@ -412,7 +412,7 @@ const RelatedTopics = ({title}) => {
       <a className="moreLink" onClick={()=>{setShowMore(true);}}>
         <InterfaceText>More</InterfaceText>
       </a> : null}
-    </Module>
+    </Module> : null
   );
 };
 
