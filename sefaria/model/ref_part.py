@@ -5,6 +5,7 @@ from . import abstract as abst
 from . import text
 from . import schema
 from spacy.tokens import Span
+import re
 
 class RefPartType(Enum):
     NAMED = "named"
@@ -118,6 +119,62 @@ class RawRefPartMatch:
         # TODO sham and directional cases
         return matches
 
+class RefPartTitleTrie:
+
+    PREFIXES = {'ב'}
+
+    def __init__(self, lang, nodes=None, sub_trie=None) -> None:
+        self.lang = lang
+        if nodes is not None:
+            self.__init_with_nodes(nodes)
+        else:
+            self._trie = sub_trie
+
+    def __init_with_nodes(self, nodes):
+        self._trie = {}
+        for node in nodes:
+            curr_dict_queue = [self._trie]
+            for term_slug, optional in zip(node.ref_part_terms, getattr(node, 'ref_parts_optional', [])):
+                term = NonUniqueTerm.init(term_slug)
+                len_curr_dict_queue = len(curr_dict_queue)
+                for _ in range(len_curr_dict_queue):
+                    curr_dict = curr_dict_queue[0] if optional else curr_dict_queue.pop(0)  # dont remove curr_dict if optional. leave it for next level to add to.
+                    for title in term.get_titles(self.lang):
+                        if title in curr_dict:
+                            temp_dict = curr_dict[title]
+                        else:
+                            temp_dict = {}
+                            curr_dict[title] = temp_dict
+                        curr_dict_queue += [temp_dict]
+            # add nodes to leaves
+            # None key indicates this is a leaf                            
+            for curr_dict in curr_dict_queue:
+                if None in curr_dict:
+                    curr_dict[None] += [node.index]
+                else:
+                    curr_dict[None] = [node.index]
+
+    def __getitem__(self, key):
+        return self.get(key)        
+
+    def get(self, key, default=None):
+        sub_trie = self._trie.get(key, default)
+        if sub_trie is default and self.lang == 'he':
+            # try with prefixes
+            for prefix in self.PREFIXES:
+                sub_trie = self._trie.get(re.sub(fr'^{prefix}', '', key), default)
+                if sub_trie is not None: break
+
+        if sub_trie is None: return
+        return RefPartTitleTrie(self.lang, sub_trie=sub_trie)
+
+    def __contains__(self, key):
+        return key in self._trie
+
+    def __iter__(self):
+        for item in self._trie:
+            yield item
+
 class RefResolver:
 
     def __init__(self, lang) -> None:
@@ -126,14 +183,14 @@ class RefResolver:
     def get_unrefined_ref_part_matches(self, context_ref: text.Ref, raw_ref: 'RawRef') -> list:
         # TODO implement `type` on ref part and filter by "named" ref parts only
         from .text import library
-        return self._get_unrefined_ref_part_matches_recursive(raw_ref.raw_ref_parts, library.get_root_ref_part_titles()[self.lang])
+        return self._get_unrefined_ref_part_matches_recursive(raw_ref.raw_ref_parts, library.get_root_ref_part_title_trie(self.lang))
 
-    def _get_unrefined_ref_part_matches_recursive(self, ref_parts: list, title_trie: dict, prev_ref_parts: list=None) -> list:
+    def _get_unrefined_ref_part_matches_recursive(self, ref_parts: list, title_trie: RefPartTitleTrie, prev_ref_parts: list=None) -> list:
         prev_ref_parts = prev_ref_parts or []
         matches = []
         for i, ref_part in enumerate(ref_parts):
             temp_prev_ref_parts = prev_ref_parts + [ref_part]
-            temp_title_trie = title_trie.get(ref_part.text, None)
+            temp_title_trie = title_trie[ref_part.text]
             if temp_title_trie is None: continue
             if None in temp_title_trie:
                 matches += [RawRefPartMatch(temp_prev_ref_parts, index, index.nodes.ref()) for index in temp_title_trie[None]]

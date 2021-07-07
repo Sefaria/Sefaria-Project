@@ -4569,7 +4569,7 @@ class Library(object):
         self._simple_term_mapping = {}
         self._full_term_mapping = {}
         self._simple_term_mapping_json = None
-        self._root_ref_part_titles = None
+        self._root_ref_part_title_trie = None
 
         # Topics
         self._topic_mapping = {}
@@ -5184,40 +5184,18 @@ class Library(object):
         self._topic_mapping = {t.slug: {"en": t.get_primary_title("en"), "he": t.get_primary_title("he")} for t in TopicSet()}
         return self._topic_mapping
 
-    def get_root_ref_part_titles(self, rebuild=False):
-        roots = self._root_ref_part_titles
-        if not roots or rebuild:
-            roots = self._build_root_ref_part_titles()
-        return roots
+    def get_root_ref_part_title_trie(self, lang, rebuild=False):
+        # TODO create separate trie for English
+        trie = self._root_ref_part_title_trie
+        if not trie or rebuild:
+            trie = self._build_root_ref_part_titles(lang)
+        return trie
 
-    def _build_root_ref_part_titles(self):
-        from sefaria.model.ref_part import NonUniqueTerm
-        langs = ['en', 'he']
+    def _build_root_ref_part_titles(self, lang):
+        from sefaria.model.ref_part import RefPartTitleTrie
         root_nodes = filter(lambda n: getattr(n, 'ref_part_terms', None) is not None, self.get_index_forest())
-        self._root_ref_part_titles = {lang: {} for lang in langs}
-        for node in list(root_nodes):
-            for lang in langs:
-                curr_dict_queue = [self._root_ref_part_titles[lang]]
-                for term_slug, optional in zip(node.ref_part_terms, getattr(node, 'ref_parts_optional', [])):
-                    term = NonUniqueTerm.init(term_slug)
-                    len_curr_dict_queue = len(curr_dict_queue)
-                    for _ in range(len_curr_dict_queue):
-                        curr_dict = curr_dict_queue[0] if optional else curr_dict_queue.pop(0)  # dont remove curr_dict if optional. leave it for next level to add to.
-                        for title in term.get_titles(lang):
-                            if title in curr_dict:
-                                temp_dict = curr_dict[title]
-                            else:
-                                temp_dict = {}
-                                curr_dict[title] = temp_dict
-                            curr_dict_queue += [temp_dict]
-                # add nodes to leaves
-                # None key indicates this is a leaf                            
-                for curr_dict in curr_dict_queue:
-                    if None in curr_dict:
-                        curr_dict[None] += [node.index]
-                    else:
-                        curr_dict[None] = [node.index] 
-        return self._root_ref_part_titles
+        self._root_ref_part_title_trie = RefPartTitleTrie(lang, nodes=root_nodes)
+        return self._root_ref_part_title_trie
 
                         
     #todo: only used in bio scripts

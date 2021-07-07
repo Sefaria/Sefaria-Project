@@ -2,8 +2,9 @@ import pytest
 from sefaria.model.text import Ref, library
 from sefaria.model.ref_part import *
 from sefaria.model.abstract import AbstractMongoRecord
-from sefaria.model.ref_part import RefPartType
+from sefaria.model.ref_part import RefPartType as RPT
 from spacy.lang.he import Hebrew
+from spacy.lang.en import English
 
 
 @pytest.fixture(scope='module')
@@ -30,20 +31,15 @@ def duplicate_terms():
     s.delete()
 
 
-@pytest.fixture(scope="module")
-def resolver_data():
-    ref_resolver = RefResolver('he')
-    nlp = Hebrew()
-    doc = nlp("בבלי ברכות דף ב")
+def create_raw_ref_data(context_tref, lang, tref, span_indexes, part_types):
+    ref_resolver = RefResolver(lang)
+    nlp = Hebrew() if lang == 'he' else English()
+    doc = nlp(tref)
     span = doc[0:]
-    raw_ref = RawRef([
-        RawRefPart("input", RefPartType.NAMED, span[0]),
-        RawRefPart("input", RefPartType.NAMED, span[1]),
-        RawRefPart("input", RefPartType.NUMBERED, span[2:4]),
-    ], span)
-    context_ref = Ref("Rashi on Berakhot 2a")
+    part_spans = [span[index] for index in span_indexes]
+    raw_ref = RawRef([RawRefPart("input", part_type, part_span) for part_type, part_span in zip(part_types, part_spans)], span)
 
-    yield ref_resolver, raw_ref, context_ref
+    return ref_resolver, raw_ref, Ref(context_tref)
 
 
 def test_duplicate_terms(duplicate_terms):
@@ -52,11 +48,16 @@ def test_duplicate_terms(duplicate_terms):
     assert s.slug == AbstractMongoRecord.normalize_slug(initial_slug) + "1"
 
 
-def test_resolver(resolver_data):
+@pytest.mark.parametrize(('resolver_data', 'results'), [
+    [create_raw_ref_data("Rashi on Berakhot 2a", 'he', "בבלי ברכות דף ב", [0, 1, slice(2, 4)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), [1, ("Berakhot 2",)]],   # amud-less talmud
+    [create_raw_ref_data("Rashi on Berakhot 2a", 'he', "בבלי ברכות דף ב.", [0, 1, slice(2, 5)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), [1, ("Berakhot 2a",)]],  # amud-ful talmud
+    [create_raw_ref_data("Rashi on Berakhot 2a", 'he', "בבלי דף ב עמוד א בברכות", [0, slice(1, 5), 5], [RPT.NAMED, RPT.NUMBERED, RPT.NAMED]), [1, ("Berakhot 2a",)]]  # out of order with prefix on title
+])
+def test_resolver(resolver_data, results):
     ref_resolver, raw_ref, context_ref = resolver_data
+    num_results, result_trefs = results
     matches = ref_resolver.get_unrefined_ref_part_matches(context_ref, raw_ref)
-    assert len(matches) == 1
-
     refined_matches = ref_resolver.refine_ref_part_matches(matches, raw_ref)
-    assert len(refined_matches) == 1
-    assert refined_matches[0].ref == Ref("Berakhot 2")
+    assert len(refined_matches) == num_results
+    for result_tref, match in zip(result_trefs, refined_matches):
+        assert match.ref == Ref(result_tref)
