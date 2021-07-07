@@ -99,7 +99,7 @@ class RawRefPartMatch:
         elif raw_ref_part.type == RefPartType.NAMED and isinstance(node, schema.SchemaNode):
             if raw_ref_part.text in getattr(node, 'ref_parts', set()):
                 matches += [RawRefPartMatch(refined_ref_parts, node, node.ref())]
-        elif raw_ref_part.type == RefPartType.DH and isinstance(node, DiburHamatchilNode):
+        elif raw_ref_part.type == RefPartType.DH and isinstance(node, schema.DiburHamatchilNodeSet):
             pass
         # TODO sham and directional cases
         return matches
@@ -204,6 +204,8 @@ class RefResolver:
             if isinstance(match.node, schema.NumberedTitledTreeNode):
                 child = match.node.get_referenceable_child()
                 children = [] if child is None else [child]
+            elif isinstance(match.node, schema.DiburHamatchilNodeSet):
+                children = []
             else:
                 children = match.node.all_children()
             for child in children:

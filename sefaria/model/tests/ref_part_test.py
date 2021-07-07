@@ -3,6 +3,7 @@ from sefaria.model.text import Ref, library
 from sefaria.model.ref_part import *
 from sefaria.model.abstract import AbstractMongoRecord
 from sefaria.model.ref_part import RefPartType as RPT
+from sefaria.model.schema import DiburHamatchilNode, DiburHamatchilNodeSet
 from spacy.lang.he import Hebrew
 from spacy.lang.en import English
 
@@ -47,6 +48,12 @@ def test_duplicate_terms(duplicate_terms):
     assert t.slug == AbstractMongoRecord.normalize_slug(initial_slug)
     assert s.slug == AbstractMongoRecord.normalize_slug(initial_slug) + "1"
 
+
+def test_referenceable_child():
+    i = library.get_index("Rashi on Berakhot")
+    assert i.nodes.depth == 3
+    child = i.nodes.get_referenceable_child(Ref("Rashi on Berakhot 2a"))
+    assert isinstance(child, DiburHamatchilNodeSet)
 
 @pytest.mark.parametrize(('resolver_data', 'results'), [
     [create_raw_ref_data("Rashi on Berakhot 2a", 'he', "בבלי ברכות דף ב", [0, 1, slice(2, 4)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), [1, ("Berakhot 2",)]],   # amud-less talmud
