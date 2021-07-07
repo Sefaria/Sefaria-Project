@@ -36,7 +36,7 @@ class BookPage extends Component {
       versionsLoaded: false,
       currentVersion: null,
       currObjectVersions: {en: null, he: null},
-      indexDetails: null,
+      indexDetails: Sefaria.getIndexDetailsFromCache(props.title),
       dlVersionTitle: null,
       dlVersionLanguage: null,
       dlVersionFormat: null,
@@ -320,7 +320,7 @@ class TextTableOfContents extends Component {
     super(props);
     this.state = {
       tab: "schema",
-      indexDetails: null
+      indexDetails: Sefaria.getIndexDetailsFromCache(props.title)
     };
   }
   componentDidMount() {

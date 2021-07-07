@@ -393,7 +393,7 @@ const TrendingTopics = () => (
 
 
 const RelatedTopics = ({title}) => {
-  const [topics, setTopics] = useState([]);
+  const [topics, setTopics] = useState(Sefaria.getIndexDetailsFromCache(title)?.relatedTopics || []);
   const [showMore, setShowMore] = useState(false);
   const showMoreLink = !showMore && topics.length > 5;
   const shownTopics = showMore ? topics : topics.slice(0,5);

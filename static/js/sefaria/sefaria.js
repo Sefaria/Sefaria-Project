@@ -833,6 +833,9 @@ Sefaria = extend(Sefaria, {
   },
 
   _indexDetails: {},
+  getIndexDetailsFromCache: function(title){
+    return this._cachedApi(title, this._indexDetails, null);
+  },
   getIndexDetails: function(title) {
     return this._cachedApiPromise({
         url:   Sefaria.apiHost + "/api/v2/index/" + title + "?with_content_counts=1&with_related_topics=1",
@@ -2473,6 +2476,9 @@ _media: {},
     }
     this._ajaxObjects[url] = $.getJSON(url).always(_ => {delete this._ajaxObjects[url];});
     return this._ajaxObjects[url];
+  },
+  _cachedApi: function(key, store, defaultVal){
+      return (key in store) ? store[key] : defaultVal;
   },
   _cachedApiPromise: function({url, key, store, processor}) {
       // Checks store[key].  Resolves to this value, if present.
