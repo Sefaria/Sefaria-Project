@@ -1055,8 +1055,26 @@ class NumberedTitledTreeNode(TitledTreeNode):
             # truncate every list attribute by `next_referenceable_depth`
             if list_attr not in serial: continue
             serial[list_attr] = serial[list_attr][(1+next_refereceable_depth):]
+        if serial['depth'] == 1 and getattr(self, 'isSegmentLevelDiburHamatchil', False):
+            return DiburHamatchilNode().load({"container_refs": self.ref()})
         return self.__class__(serial=serial, index=self.index, **kwargs)
 
+class DiburHamatchilNode(abst.AbstractMongoRecord):
+    """
+    Very likely possible to use VirtualNode and add these nodes as children of JANs and ArrayMapNodes. But that can be a little complicated
+    """
+    collection="dibur_hamatchils"
+    required_attrs = [
+        "dibur_hamatchil",
+        "container_refs",
+        "ref",
+    ]
+
+    def fuzzy_match_score(self, text: str, potential_dh_continuation: str):
+        pass
+
+class DiburHamatchilNodeSet(abst.AbstractMongoSet):
+    recordClass = DiburHamatchilNode
 
 class ArrayMapNode(NumberedTitledTreeNode):
     """

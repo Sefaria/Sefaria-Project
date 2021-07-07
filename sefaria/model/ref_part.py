@@ -72,20 +72,6 @@ class RawRef:
         return self.span.text
 
     text = property(get_text)
-    
-class DiburHamatchilNode(abst.AbstractMongoRecord):
-    """
-    Very likely possible to use VirtualNode and add these nodes as children of JANs and ArrayMapNodes. But that can be a little complicated
-    """
-    collection="dibur_hamatchils"
-    required_attrs = [
-        "dibur_hamatchil",
-        "container_refs",
-        "ref",
-    ]
-
-    def fuzzy_match_score(self, text: str, potential_dh_continuation: str):
-        pass
 
 class RawRefPartMatch:
 
