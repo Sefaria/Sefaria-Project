@@ -27,21 +27,10 @@ def create_non_unique_terms():
             "titles": index.nodes.title_group.titles
         })
         index_term.save()
-        index.nodes.ref_parts = [bavli.slug, index_term.slug]
+        index.nodes.ref_part_terms = [bavli.slug, index_term.slug]
         index.nodes.ref_parts_optional = [True, False]
         index.save()
 
 
 if __name__ == "__main__":
     create_non_unique_terms()
-
-"""
-[
-    [
-
-    ],
-    [
-        "berakhot"
-    ]
-]
-"""
