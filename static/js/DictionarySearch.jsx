@@ -30,8 +30,9 @@ class DictionarySearch extends Component {
     clearTimeout(this.state.timer);
   }
   checkIfChanged() {
+    let current;
     try {
-      var current = $(ReactDOM.findDOMNode(this)).find("input.search").val();
+      current = $(ReactDOM.findDOMNode(this)).find("input.search").val();
     }
     catch(e) {
       // The component is unmounted
@@ -57,7 +58,7 @@ class DictionarySearch extends Component {
 
   }
   attachKeyboard() {
-    var inputElement = document.querySelector(this.props.contextSelector + ' .dictionarySearchBox .keyboardInput');
+    const inputElement = document.querySelector(this.props.contextSelector + ' .dictionarySearchBox .keyboardInput');
     if (inputElement && (!inputElement.VKI_attached)) {
       VKI_attach(inputElement);
     }
@@ -119,14 +120,14 @@ class DictionarySearch extends Component {
     });
   }
   handleSearchButtonClick(event) {
-    var query = $(ReactDOM.findDOMNode(this)).find(".search").val();
+    const query = $(ReactDOM.findDOMNode(this)).find(".search").val();
     if (query) {
       this.submitSearch(query, true);
     }
   }
   handleSearchKeyUp(event) {
     if (event.keyCode === 13) {
-      var query = $(event.target).val();
+      const query = $(event.target).val();
       if (query) {
         $(ReactDOM.findDOMNode(this)).find("input.search").autocomplete("close");
         this.submitSearch(query, true);
@@ -166,24 +167,27 @@ class DictionarySearch extends Component {
         return; //this prevents the icon from flashing on every key stroke.
       }
       if(Sefaria.interfaceLang === 'english'){
-          var opacity = show ? 0.4 : 0;
+          const opacity = show ? 0.4 : 0;
           $(ReactDOM.findDOMNode(this)).find(".keyboardInputInitiator").css({"opacity": opacity});
       }
   }
   render() {
-    var inputClasses = classNames({search: 1, keyboardInput: Sefaria.interfaceLang == 'english'});
+    let inputClasses = classNames({search: 1, keyboardInput: Sefaria.interfaceLang == 'english'});
 
-    return (<div className = "searchBox dictionarySearchBox ui-front">
-      <span className="dictionarySearchButton" onClick={this.handleSearchButtonClick}><i className="fa fa-search"></i></span>
-                      <input className={inputClasses}
-                             id="searchInput"
-                             placeholder={Sefaria._("Search Dictionary")}
-                             onKeyUp={this.handleSearchKeyUp}
-                             onFocus={this.showVirtualKeyboardIcon.bind(this, true)}
-                             onBlur={this.showVirtualKeyboardIcon.bind(this, false)}
-                             maxLength={75}
-                      title={Sefaria._("Search for Texts or Keywords Here")}/>
-    </div>);
+    return (
+        <div className = "searchBox dictionarySearchBox ui-front">
+          <img className="dictionarySearchButton" src="/static/icons/magnifier.svg" onClick={this.handleSearchButtonClick} role="button" alt="image of maginfying glass"/>
+          <input className={inputClasses}
+            id="searchInput"
+            placeholder={Sefaria._("Search Dictionary")}
+            onKeyUp={this.handleSearchKeyUp}
+            onFocus={this.showVirtualKeyboardIcon.bind(this, true)}
+            onBlur={this.showVirtualKeyboardIcon.bind(this, false)}
+            maxLength={75}
+            title={Sefaria._("Search for Texts or Keywords Here")}
+          />
+        </div>
+    );
   }
 }
 DictionarySearch.propTypes = {

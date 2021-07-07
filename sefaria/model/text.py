@@ -160,6 +160,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         "schema",             # required for new style
         "alt_structs",        # optional for new style
         "default_struct",     # optional for new style
+        "exclude_structs",    # optional, specifies which structs the client should ignore when displaying navigation ToCs
         "order",              # optional for old style and new
         "authors",
         "enDesc",

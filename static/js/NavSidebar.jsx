@@ -392,12 +392,15 @@ const TrendingTopics = () => (
 );
 
 
-const RelatedTopics = ({topics}) => {
-  if (!topics.length) { return null; }
+const RelatedTopics = ({title}) => {
+  const [topics, setTopics] = useState([]);
   const [showMore, setShowMore] = useState(false);
   const showMoreLink = !showMore && topics.length > 5;
   const shownTopics = showMore ? topics : topics.slice(0,5);
-  return (
+  useEffect(() => {
+        Sefaria.getIndexDetails(title).then(data => setTopics(data.relatedTopics));
+  },[title]);
+  return (topics.length ?
     <Module>
       <ModuleTitle>Related Topics</ModuleTitle>
       {shownTopics.map((topic, i) => 
@@ -409,7 +412,7 @@ const RelatedTopics = ({topics}) => {
       <a className="moreLink" onClick={()=>{setShowMore(true);}}>
         <InterfaceText>More</InterfaceText>
       </a> : null}
-    </Module>
+    </Module> : null
   );
 };
 

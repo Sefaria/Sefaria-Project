@@ -7,6 +7,7 @@ import {
   LoadingMessage,
   NBox,
   ResponsiveNBox,
+  TabView,
   InterfaceText,
   ContentText, EnglishText, HebrewText, LanguageToggleButton,
 } from './Misc';
@@ -25,7 +26,7 @@ import Component   from 'react-class';
 import {ContentLanguageContext} from './context';
 
 
-class ReaderTextTableOfContents extends Component {
+class BookPage extends Component {
   // Menu for the Table of Contents for a single text
   constructor(props) {
     super(props);
@@ -117,17 +118,6 @@ class ReaderTextTableOfContents extends Component {
     currentVersion.merged = !!(currentVersion.sources);
     return currentVersion;
   }
-  handleClick(e) {
-    const $a = $(e.target).closest("a");
-    if ($a.length && ($a.hasClass("sectionLink") || $a.hasClass("linked"))) {
-      let ref = $a.attr("data-ref");
-      ref = decodeURIComponent(ref);
-      ref = Sefaria.humanRef(ref);
-      this.props.close();
-      this.props.showBaseText(ref, false, this.props.currVersions);
-      e.preventDefault();
-    }
-  }
   openVersion(version, language) {
     // Selects a version and closes this menu to show it.
     // Calling this functon wihtout parameters resets to default
@@ -148,6 +138,9 @@ class ReaderTextTableOfContents extends Component {
     const index     = Sefaria.index(title);
     const heTitle   = index ? index.heTitle : title;
     const category  = this.props.category;
+    const isDictionary = this.state.indexDetails && !!this.state.indexDetails.lexiconName;
+    const categories = Sefaria.index(this.props.title).categories;
+    let currObjectVersions = this.state.currObjectVersions;
     let catUrl;
     if (category == "Commentary") {
       catUrl  = "/texts/" + index.categories.slice(0, index.categories.indexOf("Commentary") + 1).join("/");
@@ -156,33 +149,41 @@ class ReaderTextTableOfContents extends Component {
     } else {
       catUrl  = "/texts/" + category;
     }
-    let currObjectVersions = this.state.currObjectVersions;
 
     const readButton = !this.state.indexDetails || this.isTextToc() || this.props.compare ? null :
-      Sefaria.lastPlaceForText(title) ? 
+      Sefaria.lastPlaceForText(title) ?
         <a className="button small readButton" href={"/" + Sefaria.normRef(Sefaria.lastPlaceForText(title).ref)}>
           <InterfaceText>Continue Reading</InterfaceText>
         </a>
         :
         <a className="button small readButton" href={"/" + Sefaria.normRef(this.state.indexDetails["firstSectionRef"])}>
           <InterfaceText>Start Reading</InterfaceText>
-        </a>   
+        </a>
+
+    const tabs = [{id: "contents", title: {en: "Contents", he: Sefaria._("Contents")}}];
+    if (this.isBookToc()){
+      tabs.push({id: "versions", title: {en: "Versions", he: Sefaria._("Versions")}});
+    }
+    const renderTab = t => (
+      <div className={classNames({tab: 1, noselect: 1})}>
+        <InterfaceText text={t.title} />
+        { t.icon ? <img src={t.icon} alt={`${t.title.en} icon`} /> : null }
+      </div>
+    );
 
     const sidebarModules = !this.state.indexDetails ? [] :
       [
         this.props.multiPanel ? {type: "AboutText", props: {index: this.state.indexDetails}} : {type: null},
-        {type: "RelatedTopics", props: { topics: this.state.indexDetails.relatedTopics}},
+        {type: "RelatedTopics", props: { title: this.props.title}},
         {type: "DownloadVersions", props:{sref: this.props.title}},
       ];
 
-    const isDictionary = this.state.indexDetails && !!this.state.indexDetails.lexiconName;
     const moderatorSection = Sefaria.is_moderator || Sefaria.is_editor ? (<ModeratorButtons title={title} />) : null;
-    const categories = Sefaria.index(this.props.title).categories;
 
     const classes = classNames({
-      readerTextTableOfContents: 1,
+      bookPage: 1,
       readerNavMenu: 1,
-      bookPage: this.isBookToc(),
+      fullBookPage: this.isBookToc(),
       narrowPanel: this.props.narrowPanel,
       compare: this.props.compare,
       noLangToggleInHebrew: Sefaria.interfaceLang == 'hebrew'
@@ -254,34 +255,32 @@ class ReaderTextTableOfContents extends Component {
                 {this.props.multiPanel ? null :
                 <div className="about">
                   <Modules type={"AboutText"} props={{index: this.state.indexDetails, hideTitle: true}} />
-                </div>} 
+                </div>}
 
-                {isDictionary ? 
-                <DictionarySearch
-                  lexiconName={this.state.indexDetails.lexiconName}
-                  title={this.props.title}
-                  showBaseText={this.props.showBaseText}
-                  contextSelector=".readerTextTableOfContents"
-                  currVersions={this.props.currVersions}/> : null }
+                 <TabView
+                  tabs={tabs}
+                  renderTab={renderTab}
+                  containerClasses={"largeTabs"}>
+                   <TextTableOfContents
+                        narrowPanel={this.props.narrowPanel}
+                        title={this.props.title}
+                        close={this.props.close}
+                        showBaseText={this.props.showBaseText}
+                        currVersions={this.props.currVersions}
+                   />
+                   <VersionsList
+                     currObjectVersions={currObjectVersions}
+                     openVersionInReader={this.openVersion}
+                     currentRef={this.props.currentRef}
+                     viewExtendedNotes={this.props.viewExtendedNotes}
+                   />
+                 </TabView>
 
-                <div onClick={this.handleClick}>
-                  <TextTableOfContentsNavigation
-                    schema={this.state.indexDetails.schema}
-                    isDictionary={isDictionary}
-                    commentatorList={Sefaria.commentaryList(this.props.title)}
-                    alts={this.state.indexDetails.alts}
-                    defaultStruct={"default_struct" in this.state.indexDetails && this.state.indexDetails.default_struct in this.state.indexDetails.alts ? this.state.indexDetails.default_struct : "default"}
-                    narrowPanel={this.props.narrowPanel}
-                    title={this.props.title}
-                    versionsTabProps={{
-                      currObjectVersions: currObjectVersions,
-                      openVersionInReader: this.openVersion,
-                      currentRef: this.props.currentRef,
-                      viewExtendedNotes : this.props.viewExtendedNotes,
-                    }}
-                  />
-                </div>
-              </div> : <LoadingMessage />}
+
+              </div>
+                  :
+              <LoadingMessage />
+              }
             </div>
             {this.isBookToc() && ! this.props.compare ? 
             <NavSidebar modules={sidebarModules} /> : null}
@@ -293,7 +292,7 @@ class ReaderTextTableOfContents extends Component {
     );
   }
 }
-ReaderTextTableOfContents.propTypes = {
+BookPage.propTypes = {
   mode:                  PropTypes.string.isRequired,
   title:                 PropTypes.string.isRequired,
   category:              PropTypes.string.isRequired,
@@ -313,140 +312,153 @@ ReaderTextTableOfContents.propTypes = {
 };
 
 
-class TextTableOfContentsNavigation extends Component {
+class TextTableOfContents extends Component {
   // The content section of the text table of contents that includes links to text sections,
   // and tabs for alternate structures and commentary.
+
   constructor(props) {
     super(props);
     this.state = {
-      tab: props.defaultStruct
+      tab: "schema",
+      indexDetails: null
     };
+  }
+  componentDidMount() {
+    this.loadData();
+  }
+  loadData(){
+    // Ensures data this text is in cache, rerenders after data load if needed
+    Sefaria.getIndexDetails(this.props.title).then(data => this.setState({
+      indexDetails: data,
+      tab: this.getDefaultActiveTab(data)
+    }));
+  }
+  getDefaultActiveTab(indexDetails){
+    return ("default_struct" in indexDetails && indexDetails.default_struct in indexDetails?.alts) ? indexDetails.default_struct : "schema";
   }
   setTab(tab) {
     this.setState({tab: tab});
   }
+  handleClick(e) {
+    const $a = $(e.target).closest("a");
+    if ($a.length && ($a.hasClass("sectionLink") || $a.hasClass("linked"))) {
+      let ref = $a.attr("data-ref");
+      ref = decodeURIComponent(ref);
+      ref = Sefaria.humanRef(ref);
+      this.props.close();
+      this.props.showBaseText(ref, false, this.props.currVersions);
+      e.preventDefault();
+    }
+  }
   render() {
-    let options;
-    const isTorah =["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy"].indexOf(this.props.title) > -1;
-    if (isTorah) {
-      // Special case for Torah -- show both chapters and parshiot on one tab
-      options = [{
-        name: "default",
-        text: "Contents",
-        onPress: this.setTab.bind(null, "default")
-      }];
-    } else {
-      options = [{
-        name: "default",
-        text: "sectionNames" in this.props.schema ? this.props.schema.sectionNames[0] : "Contents",
-        onPress: this.setTab.bind(null, "default")
-      }];
-      if (this.props.alts) {
-        for (let alt in this.props.alts) {
-          if (this.props.alts.hasOwnProperty(alt)) {
-            options.push({
-              name: alt,
-              text: alt,
-              onPress: this.setTab.bind(null, alt)
-            });
-          }
-        }
+    if(this.state.indexDetails == null){
+      return (<LoadingMessage />);
+    }
+    const isTorah = ["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy"].indexOf(this.props.title) > -1;
+    const isDictionary = this.state.indexDetails?.lexiconName;
+    const defaultStruct = this.getDefaultActiveTab(this.state.indexDetails);
+    const excludedStructs = this.state.indexDetails?.exclude_structs || [];
+    const alts = this.state.indexDetails?.alts || {};
+    let structTabOptions = [];
+    if(!excludedStructs.includes("schema")){
+      structTabOptions.push({
+        name: "schema",
+        text: "sectionNames" in this.state.indexDetails?.schema ? this.state.indexDetails.schema.sectionNames[0] : "Contents",
+        onPress: this.setTab.bind(null, "schema")
+      })
+    }
+    for (let alt in alts) {
+      if (alts.hasOwnProperty(alt) && !excludedStructs.includes(alt)) {
+        structTabOptions.push({
+          name: alt,
+          text: alt,
+          onPress: this.setTab.bind(null, alt)
+        });
       }
-      options = options.sort(function(a, b) {
-        return a.name == this.props.defaultStruct ? -1 :
-                b.name == this.props.defaultStruct ? 1 : 0;
-      }.bind(this));
     }
-    options.push({
-        name: "versions",
-        text: "Versions",
-        heText: "מהדורות",
-        onPress: this.setTab.bind(null, "versions")
-    });
-    if (this.props.commentatorList.length) {
-      options.push({
-        name: "commentary",
-        text: "Commentary",
-        heText: "מפרשים",
-        onPress: this.setTab.bind(null, "commentary")
-      });
-    }
-
-    const toggle = (this.props.isDictionary ? null :
+    structTabOptions = structTabOptions.sort(function(a, b) {
+      return a.name == defaultStruct ? -1 :
+              b.name == defaultStruct ? 1 : 0;
+    }.bind(this));
+    const showToggle = !(isDictionary || isTorah) && structTabOptions.length > 1;
+    const toggle = (showToggle ?
                   <TabbedToggleSet
-                    tabOptions={options}
+                    tabOptions={structTabOptions}
                     activeTab={this.state.tab}
-                    narrowPanel={this.props.narrowPanel} />);
-    
+                    narrowPanel={this.props.narrowPanel} /> : null);
+    const dictionarySearch = (isDictionary ?
+                  <DictionarySearch
+                  lexiconName={this.state.indexDetails.lexiconName}
+                  title={this.props.title}
+                  showBaseText={this.props.showBaseText}
+                  contextSelector=".bookPage"
+                  currVersions={this.props.currVersions}/> : null);
+
     let content;
     switch(this.state.tab) {
-      case "default":
+      case "schema":
         if (isTorah) {
           content = (
             <>
-              <div className="torahNavSectionHeader">
+              <div className="specialNavSectionHeader">
                 <ContentText text={{en: "Chapters", he: Sefaria.hebrewTranslation("Chapters")}}/>
               </div>
               <SchemaNode
-                schema={this.props.schema}
-                addressTypes={this.props.schema.addressTypes}
+                schema={this.state.indexDetails.schema}
+                addressTypes={this.state.indexDetails.schema.addressTypes}
                 refPath={this.props.title}
-                topLevel={true} />
-
-              <div className="torahNavSectionHeader">
+                topLevel={true}
+              />
+              <div className="specialNavSectionHeader">
                 <ContentText text={{en: "Torah Portions", he: Sefaria.hebrewTranslation("Torah Portions")}}/>
               </div>
               <div className="torahNavParshiot">
                 <SchemaNode
-                  schema={this.props.alts["Parasha"]}
-                  addressTypes={this.props.schema.addressTypes}
-                  refPath={this.props.title} />
+                  schema={alts["Parasha"]}
+                  addressTypes={this.state.indexDetails.schema.addressTypes}
+                  refPath={this.props.title}
+                />
               </div>
             </>
           );
         } else {
           content = <SchemaNode
-                      schema={this.props.schema}
-                      addressTypes={this.props.schema.addressTypes}
+                      schema={this.state.indexDetails.schema}
+                      addressTypes={this.state.indexDetails.schema.addressTypes}
                       refPath={this.props.title}
                       topLevel={true} />;
         }
         break;
-      case "commentary":
-        content = <CommentatorList
-                    commentatorList={this.props.commentatorList}
-                    title={this.props.title} />;
-
-
-        break;
-      case "versions":
-        content = <VersionsList {...this.props.versionsTabProps}/>;
-        break;
       default:
         content = <SchemaNode
-                    schema={this.props.alts[this.state.tab]}
-                    addressTypes={this.props.schema.addressTypes}
+                    schema={alts[this.state.tab]}
+                    addressTypes={this.state.indexDetails.schema.addressTypes}
                     refPath={this.props.title}
                     topLevel={true} />;
         break;
     }
 
     return (
-      <div className="tocContent">
-        {toggle}
-        {content}
-      </div>
+        <div onClick={this.handleClick}>
+          <div className="textTableOfContents">
+            <div className="tocTools">
+              {toggle}
+              {dictionarySearch}
+            </div>
+            <div className="tocContent">
+              {content}
+            </div>
+          </div>
+        </div>
     );
   }
 }
-TextTableOfContentsNavigation.propTypes = {
-  schema:          PropTypes.object.isRequired,
-  commentatorList: PropTypes.array,
-  alts:            PropTypes.object,
-  defaultStruct:   PropTypes.string,
-  narrowPanel:     PropTypes.bool,
-  isDictionary:    PropTypes.bool,
-  title:           PropTypes.string.isRequired,
+TextTableOfContents.propTypes = {
+    title:           PropTypes.string.isRequired,
+    narrowPanel:     PropTypes.bool,
+    close:           PropTypes.func,
+    showBaseText:    PropTypes.func,
+    currVersions:    PropTypes.object
 };
 
 
@@ -776,7 +788,16 @@ class DictionaryNode extends Component {
           </a>
         );
       });
-      return (<div className="schema-node-toc"><div className="schema-node-contents"><div className="tocLevel">{sectionLinks}</div></div></div>);
+      return (
+          <div className="schema-node-toc">
+            <div className="schema-node-contents">
+              <div className="specialNavSectionHeader">
+                <ContentText text={{en: "Browse By Letter", he: 'לפי סדר הא"ב'}}/>
+              </div>
+              <div className="tocLevel">{sectionLinks}</div>
+            </div>
+          </div>
+      );
     }
   }
 }
@@ -866,6 +887,9 @@ class ModeratorButtons extends Component {
   expand() {
     this.setState({expanded: true});
   }
+  collapse() {
+    this.setState({expanded: false});
+  }
   editIndex() {
     window.location = "/edit/textinfo/" + this.props.title;
   }
@@ -917,6 +941,7 @@ class ModeratorButtons extends Component {
                           {Sefaria.is_moderator ? editTextInfo : null}
                           {Sefaria.is_moderator || Sefaria.is_editor ? addSection : null}
                           {Sefaria.is_moderator ? deleteText : null}
+                          <span className="moderatorSectionCollapse" onClick={this.collapse}><i className="fa fa-times"></i></span>
                         </span>);
     let message = this.state.message ? (<div className="moderatorSectionMessage">{this.state.message}</div>) : null;
     return (<div className="moderatorSection">
@@ -975,4 +1000,4 @@ ReadMoreText.defaultProps = {
 
 
 
-export default ReaderTextTableOfContents;
+export {BookPage as default, TextTableOfContents};

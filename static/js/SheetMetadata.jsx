@@ -353,7 +353,7 @@ class SheetMetadata extends Component {
 
     var closeClick = this.props.close;
     var classes = classNames({
-      readerTextTableOfContents:1,
+      bookPage:1,
       readerNavMenu:1,
       narrowPanel: this.props.narrowPanel,
       noLangToggleInHebrew: this.props.interfaceLang == 'hebrew',

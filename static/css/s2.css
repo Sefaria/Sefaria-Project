@@ -1337,15 +1337,15 @@ div.interfaceLinks-row a {
 .singlePanel .readerNavMenu .categoryColorLine {
   top: 60px;
 }
-.singlePanel .readerNavMenu.readerTextTableOfContents:not(.bookPage) .content {
+.singlePanel .readerNavMenu.bookPage:not(.fullBookPage) .content {
   padding-top: 25px;
 }
-.singlePanel .readerNavMenu.readerTextTableOfContents:not(.bookPage) .categoryColorLine {
+.singlePanel .readerNavMenu.bookPage:not(.fullBookPage) .categoryColorLine {
   top: 0;
 }
 .readerNavMenu.compare .content,
 .readerNavCategoryMenu.compare .content,
-.readerTextTableOfContents.compare .content {
+.bookPage.compare .content {
   padding: 30px 10px;
 }
 .readerNavMenu .content .contentInner {
@@ -2329,7 +2329,7 @@ a.navBlockTitle:hover {
 .readerNavMenu .blockLink,
 .readerNavMenu .catLink,
 .readerNavMenu .navButton,
-.readerTextTableOfContents .refLink {
+.bookPage .refLink {
   display: block;
   margin: 0;
   padding: 14px 8px;
@@ -2359,7 +2359,7 @@ a.navBlockTitle:hover {
 .readerNavMenu .blockLink .he,
 .readerNavMenu .catLink .he,
 .readerNavMenu .navButton .he,
-.readerTextTableOfContents .refLink .he {
+.bookPage .refLink .he {
   text-align: center;
 }
 .blockLink:active,
@@ -2373,7 +2373,7 @@ a.navBlockTitle:hover {
   .readerNavMenu .catLink,
   .readerNavMenu .navButton,
   .readerNavMenu .sheetLink,
-  .readerTextTableOfContents .refLink {
+  .bookPage .refLink {
     font-size: 18px;
   }
 }
@@ -2401,15 +2401,15 @@ a.navBlockTitle:hover {
 .readerApp.interface-hebrew .readerNavMenu.noLangToggleInHebrew .he {
   display: inline;
 }
-.readerTextTableOfContents .readerTextToc {
+.bookPage .readerTextToc {
   letter-spacing: 1px;
   text-transform: uppercase;
   font-size: 14px;
 }
-.readerTextTableOfContents .readerTextToc .en {
+.bookPage .readerTextToc .en {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
-.readerTextTableOfContents .readerTextToc .he {
+.bookPage .readerTextToc .he {
   font-family: "Heebo", sans-serif;
 }
 .readerNavMenu .dedication {
@@ -2420,19 +2420,19 @@ a.navBlockTitle:hover {
   font-size: 18px;
   margin-bottom: 27px;
 }
-.readerTextTableOfContents .categoryAttribution,
-.readerTextTableOfContents .dedication {
+.bookPage .categoryAttribution,
+.bookPage .dedication {
   margin: 25px 0 10px;
   text-align: center;
   font-size: 18px;
   font-style: italic;
 }
-.readerTextTableOfContents .categoryAttribution,
-.readerTextTableOfContents .dedication {
+.bookPage .categoryAttribution,
+.bookPage .dedication {
   text-align: start;
 }
-.readerTextTableOfContents .categoryAttribution .he,
-.readerTextTableOfContents .dedication .int-he,
+.bookPage .categoryAttribution .he,
+.bookPage .dedication .int-he,
 .readerNavMenu .dedication .int-he {
   font-style: normal;
 }
@@ -2444,19 +2444,19 @@ a.navBlockTitle:hover {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-style: italic;
 }
-.readerTextTableOfContents .tocTop {
+.bookPage .tocTop {
   padding-bottom: 15px;
 }
-.readerTextTableOfContents .tocCategory {
+.bookPage .tocCategory {
   color:#999;
   font-size: 14px;
   text-transform: uppercase;
   letter-spacing: 1px;
 }
-.readerTextTableOfContents .tocCategory .en {
+.bookPage .tocCategory .en {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
-.readerTextTableOfContents .tocTitle,
+.bookPage .tocTitle,
 .sheetContent .title,
 .bookMetaDataBox .title {
   text-align: center;
@@ -2464,15 +2464,15 @@ a.navBlockTitle:hover {
   line-height: 1.3;
   unicode-bidi: plaintext;
 }
-.readerTextTableOfContents.bookPage .tocTitle {
+.bookPage.fullBookPage .tocTitle {
   text-align: start;
   margin-bottom: 8px;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
 }
-.readerTextTableOfContents .currentSection,
-.readerTextTableOfContents .authorStatement,
+.bookPage .currentSection,
+.bookPage .authorStatement,
 .sheetContent .sheetMetaDataBox .authorStatement,
 .sheetContent .sheetMetaDataBox .collectionStatement {
   font-size: 17px;
@@ -2488,12 +2488,12 @@ a.navBlockTitle:hover {
 .sheetContent .sheetMetaDataBox .authorStatement a {
   color: #999;
 }
-.readerTextTableOfContents .currentSection .he,
-.readerTextTableOfContents .authorStatement .he,
-.readerTextTableOfContents .sheetMeta .he {
+.bookPage .currentSection .he,
+.bookPage .authorStatement .he,
+.bookPage .sheetMeta .he {
   font-family: "Heebo", sans-serif;
 }
-.readerTextTableOfContents .authorStatement a {
+.bookPage .authorStatement a {
  color: #333;
 }
 .authorStatement .imageBox,
@@ -2511,17 +2511,17 @@ a.navBlockTitle:hover {
 .authorStatement span p {
   display: inline-block;
 }
-.bookPage .readButton {
+.fullBookPage .readButton {
   margin: 6px 0px 12px;
 }
-.bookPage .about {
+.fullBookPage .about {
   margin-top: 10px;
 }
-.bookPage .categoryAttribution {
+.fullBookPage .categoryAttribution {
   color: var(--dark-grey);
   font-size: 24px;
 }
-.readerTextTableOfContents .sheetMeta {
+.bookPage .sheetMeta {
   font-size: 14px;
   color: #999;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
@@ -2529,115 +2529,114 @@ a.navBlockTitle:hover {
   margin-bottom: 20px;
   letter-spacing: 1px;
 }
-.readerTextTableOfContents .tocDetails {
+.bookPage .tocDetails {
   margin-top: 30px;
   color: #999;
   font-style: italic;
 }
-.readerTextTableOfContents .tocDetails a {
+.bookPage .tocDetails a {
   color: #999;
 }
-.readerTextTableOfContents .tocDetail {
+.bookPage .tocDetail {
   margin-bottom: 4px;
 }
-.readerTextTableOfContents .tocDetail .int-en {
+.bookPage .tocDetail .int-en {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
-.readerTextTableOfContents .tocDetail .int-he {
+.bookPage .tocDetail .int-he {
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 }
 
-.readerTextTableOfContents .tocDetail.authorStatement .int-he,
-.readerTextTableOfContents .tocDetail.authorStatement .int-en {
+.bookPage .tocDetail.authorStatement .int-he,
+.bookPage .tocDetail.authorStatement .int-en {
   font-family: inherit;
 }
 
 
-.readerTextTableOfContents .tocDetails .description {
+.bookPage .tocDetails .description {
   margin: 6px 0 16px;
   font-style: normal;
   font-size: 16px;
   line-height: 1.4;
 }
-.readerTextTableOfContents .tocDetails .description .readMoreText {
+.bookPage .tocDetails .description .readMoreText {
   display: block;
   text-align: center;
 }
-.readerTextTableOfContents .tocDetails .description .readMoreLink {
+.bookPage .tocDetails .description .readMoreLink {
   font-style: italic;
   cursor: pointer;
   font-size: 14px;
   color: #666;
   margin: 0 5px;
 }
-.readerTextTableOfContents .tocDetails .sheetSummary {
+.bookPage .tocDetails .sheetSummary {
   margin: 6px 0 16px;
   font-style: normal;
   font-size: 22px;
   line-height: 1.4;
   text-align: center;
 }
-.readerTextTableOfContents .moderatorSection {
-  margin-top: 20px;
+.bookPage .moderatorSection {
+  margin-inline-start: 20px;
+  margin-inline-end: 20px;
 }
-.readerTextTableOfContents .moderatorSectionExpand {
-  display: inline;
+.bookPage .moderatorSectionExpand, .bookPage .moderatorSectionCollapse {
   cursor: pointer;
   color: #666;
   margin: 13px 6px 0;
   font-size: 14px;
-  position: absolute;
 }
-.interface-hebrew .readerTextTableOfContents .moderatorSectionExpand {
-  margin: 7px 18px 0;
+.bookPage .tocTitleControls{
+  display: flex;
 }
-.readerTextTableOfContents .moderatorSectionExpand:hover {
+.bookPage .moderatorSectionExpand:hover {
   text-decoration: underline;
 }
-.readerTextTableOfContents .moderatorSection .button {
+.bookPage .moderatorSection .button {
   padding: 12px 16px;
   font-size: 13px;
 }
-.readerTextTableOfContents .moderatorSection .moderatorSectionMessage {
+.bookPage .moderatorSection .moderatorSectionMessage {
   margin-top: 20px;
   font-size: 18px;
 }
-.readerTextTableOfContents .moderatorSection .button .fa {
+.bookPage .moderatorSection .button .fa {
   color: #999;
   margin-right: 4px;
 }
-.readerTextTableOfContents .versionEditForm {
+.bookPage .versionEditForm {
   text-align: left;
   background-color: #ddd;
   padding: 10px;
   width: 100%;
 }
-.readerTextTableOfContents .versionEditForm label {
+.bookPage .versionEditForm label {
   display: inline-block;
   padding: 10px 10px 0 0;
 }
-.readerTextTableOfContents .versionEditForm label#versionNotes_label {
+.bookPage .versionEditForm label#versionNotes_label {
   display: block;
 }
-.readerTextTableOfContents .versionEditForm #versionTitle,
-.readerTextTableOfContents .versionEditForm #versionSource,
-.readerTextTableOfContents .versionEditForm #versionNotes,
-.readerTextTableOfContents .versionEditForm #versionTitleInHebrew,
-.readerTextTableOfContents .versionEditForm #versionNotesInHebrew,
-.readerTextTableOfContents .versionEditForm #purchase_name,
-.readerTextTableOfContents .versionEditForm #purchase_url,
-.readerTextTableOfContents .versionEditForm #purchase_image
+.bookPage .versionEditForm #versionTitle,
+.bookPage .versionEditForm #versionSource,
+.bookPage .versionEditForm #versionNotes,
+.bookPage .versionEditForm #versionTitleInHebrew,
+.bookPage .versionEditForm #versionNotesInHebrew,
+.bookPage .versionEditForm #purchase_name,
+.bookPage .versionEditForm #purchase_url,
+.bookPage .versionEditForm #purchase_image
  {
   width: 98%;
 }
-.readerTextTableOfContents .versionEditForm #priority {
+.bookPage .versionEditForm #priority {
   width: 25px;
 }
-.readerTextTableOfContents .versionEditForm #digitzedBySefaria {
+.bookPage .versionEditForm #digitzedBySefaria {
   margin-right: 10px;
 }
-.readerTextTableOfContents .versionEditForm #save_button,
-.readerTextTableOfContents .versionEditForm #delete_button {
+.bookPage .versionEditForm #save_button,
+.bookPage .versionEditForm #delete_button {
   text-align: center;
   cursor: pointer;
   color: white;
@@ -2647,7 +2646,7 @@ a.navBlockTitle:hover {
   margin: 10px auto 0;
   width: 60px;
 }
-.readerTextTableOfContents .versionEditForm #delete_button {
+.bookPage .versionEditForm #delete_button {
   float: right;
   background: white;
   color: #999;
@@ -2655,37 +2654,81 @@ a.navBlockTitle:hover {
   width: 100px;
   margin: 0;
 }
-.readerTextTableOfContents .versionTitle .fa,
-.readerTextTableOfContents .versionEditForm .fa {
+.bookPage .versionTitle .fa,
+.bookPage .versionEditForm .fa {
   font-size: 10px;
   color: #666;
   vertical-align: super;
   margin-left: 3px;
   cursor: pointer;
 }
-.interface-hebrew .readerTextTableOfContents .versionTitle .fa,
-.interface-hebrew .readerTextTableOfContents .versionEditForm .fa {
+.interface-hebrew .bookPage .versionTitle .fa,
+.interface-hebrew .bookPage .versionEditForm .fa {
   margin: 0 3px 0 0 ;
 }
-.readerTextTableOfContents .versionTitle .error {
+.bookPage .versionTitle .error {
   color: red;
 }
-.readerTextTableOfContents .content {
+.bookPage .content {
   box-sizing: border-box;
   text-align: center;
   height: 100%;
 }
-.readerTextTableOfContents.bookPage .content {
+.bookPage.fullBookPage .content {
   text-align: start;
 }
-.readerTextTableOfContents .content .sheetTags {
+.bookPage .content .sheetTags {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
   padding-top: 30px;
   border-top: 1px solid #ccc;
 }
-.readerTextTableOfContents .content .sectionLink {
+.textTableOfContents .structToggles{
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+.textTableOfContents .structToggles .structTogglesInner {
+  display: flex;
+  flex-direction: row;
+  align-items: start;
+}
+.interface-hebrew .textTableOfContents .structToggles{
+  direction: rtl;
+}
+.interface-english .textTableOfContents .structToggles{
+  direction: ltr;
+}
+.altStructToggleBox a, .altStructToggleBox a:hover, .altStructToggleBox a:visited, .altStructToggleBox a:link, .altStructToggleBox a:active {
+  text-decoration: none;
+}
+.textTableOfContents .structToggles .altStructToggle {
+  color: var(--dark-grey);
+  cursor: pointer;
+  text-align: start;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 16px;
+  line-height: 19px;
+  text-align: justify;
+}
+.textTableOfContents .structToggles .altStructToggleBox:not(:last-child):after{
+  content: "•";
+  color: var(--dark-grey);
+  margin-inline-start: 5px;
+  margin-inline-end: 5px;
+}
+.bookPage.compare .structToggles .altStructToggle {
+  font-size: 16px;
+}
+.textTableOfContents .structToggles .altStructToggle.active {
+  color: #000000;
+}
+.textTableOfContents .structToggles .toggleDivider {
+  color: #ccc;
+  margin: 0 8px;
+}
+.textTableOfContents .sectionLink {
   display: inline-block;
   height: 50px;
   min-width: 50px;
@@ -2701,106 +2744,55 @@ a.navBlockTitle:hover {
   padding: 0 6px;
   box-sizing: border-box;
 }
-.interface-hebrew .readerTextTableOfContents .content .structToggles{
-  direction: rtl;
-}
-.interface-english .readerTextTableOfContents .content .structToggles{
-  direction: ltr;
-}
-.readerTextTableOfContents .content .structToggles {
-  margin-bottom: 25px;
-  display: table;
-  table-layout: fixed;
-  width: 100%;
-  border-bottom: 1px solid #CCC;
-}
-.readerTextTableOfContents .content .structTogglesInner {
-  display: table-row;
-}
-.readerTextTableOfContents .content .structTogglesInner + .structTogglesInner > .altStructToggleBox {
-  padding-top: 6px;
-}
-.readerTextTableOfContents .content .structToggles .en {
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-.readerTextTableOfContents .content .structToggles .he {
-  font-family: "Heebo", sans-serif;
-}
-.readerTextTableOfContents .structToggles .altStructToggleBox {
-  display: inline-block;
-}
-.altStructToggleBox a, .altStructToggleBox a:hover, .altStructToggleBox a:visited, .altStructToggleBox a:link, .altStructToggleBox a:active {
-  text-decoration: none;
-}
-.readerTextTableOfContents .structToggles .altStructToggle {
-  padding-bottom: 8px;
-  display: block;
-  color: #666;
-  margin-inline-end: 30px;
-  cursor: pointer;
-  font-size: 22px;
-  text-align: start;
-  letter-spacing: 1px;
-}
-.readerTextTableOfContents.compare .structToggles .altStructToggle {
-  font-size: 16px;
-}
-.readerTextTableOfContents .structToggles .altStructToggle.active {
-  color: black;
-  border-bottom: 4px solid #CCC;
-}
-.readerTextTableOfContents .structToggles .toggleDivider {
-  color: #ccc;
-  margin: 0 8px;
-}
-.readerTextTableOfContents .content .sectionName {
+.textTableOfContents .sectionName {
   display: none;
 }
-.readerTextTableOfContents .content .tocSection > .sectionName {
+.textTableOfContents .tocSection > .sectionName {
   font-size: 12px;
   margin: 0 3px 4px;
   color: #666;
   display: block;
 }
-.readerTextTableOfContents .content .tocContent {
-  padding: 30px 0 40px;
+.bookPage .content .tab-view.largeTabs {
+  padding: 20px 0 40px;
   text-align: start;
 }
-.readerTextTableOfContents.compare .content .tocContent {
+.bookPage.compare .content .textTableOfContents {
   padding: 10px 0;
 }
-.readerTextTableOfContents.narrowPanel .tocContent {
+.bookPage.narrowPanel .textTableOfContents {
   padding: 0 0 40px;
 }
-.readerTextTableOfContents .content .tocSection {
+.textTableOfContents .tocSection {
   margin-bottom: 22px;
   display: block;
   text-align: left;
 }
-.readerTextTableOfContents .content .tocSection.noSubLevels{
+.textTableOfContents .tocSection.noSubLevels{
   display: none;
 }
-.readerTextTableOfContents .content .schema-node-contents {
+.textTableOfContents .schema-node-contents {
   margin: 0 auto 22px;
   display: block;
   width: 100%;
-}.readerTextTableOfContents .tocContent > .tocLevel {
+}
+.textTableOfContents > .tocLevel {
   margin-bottom: 30px;
 }
-.readerTextTableOfContents .tocContent > .tocLevel > .schema-node-toc > .schema-node-title {
+.textTableOfContents > .tocLevel > .schema-node-toc > .schema-node-title {
   font-size: 24px;
 }
-.readerTextTableOfContents .content .schema-node-title {
+.textTableOfContents .schema-node-title {
   color: black;
   font-size: 18px;
   display: inline-block;
   margin-bottom: 10px;
   cursor: pointer;
 }
-.readerTextTableOfContents .content .schema-node-toc {
+.textTableOfContents .schema-node-toc {
   display: block;
 }
-.readerTextTableOfContents .content .schema-node-toc:not(.linked) > .schema-node-title:after {
+.textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title:after {
   content: "\f105";
   display: inline-block;
   font-size: inherit;
@@ -2814,70 +2806,70 @@ a.navBlockTitle:hover {
   top: -2px;
   color: var(--medium-grey);
 }
-.readerTextTableOfContents .content .schema-node-toc:not(.linked) > .schema-node-title.open:after {
+.textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title.open:after {
   content: "\f107";
 }
-.readerPanel.hebrew .readerTextTableOfContents .content .schema-node-toc:not(.linked) > .schema-node-title:after,
-.readerApp.interface-hebrew .readerTextTableOfContents.noLangToggleInHebrew .content .schema-node-toc:not(.linked) > .schema-node-title:after {
+.readerPanel.hebrew .textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title:after,
+.readerApp.interface-hebrew .noLangToggleInHebrew .textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title:after {
   content: "\f104";
   font-size: 122%;
   margin-inline-start: 9px;
 }
-.readerPanel.hebrew .readerTextTableOfContents .content .schema-node-toc:not(.linked) > .schema-node-title.open:after,
-.readerApp.interface-hebrew .readerTextTableOfContents.noLangToggleInHebrew .content .schema-node-toc:not(.linked) > .schema-node-title.open:after {
+.readerPanel.hebrew .textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title.open:after,
+.readerApp.interface-hebrew .noLangToggleInHebrew .textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title.open:after {
   content: "\f107";
 }
-.readerTextTableOfContents .content .schema-node-contents.closed {
+.textTableOfContents .schema-node-contents.closed {
   display: none;
 }
-.readerTextTableOfContents .content .schema-node-toc .schema-node-contents.closed {
+.textTableOfContents .schema-node-toc .schema-node-contents.closed {
   display: block;
 }
-.readerTextTableOfContents .content .tocLevel {
+.textTableOfContents .tocLevel {
   display: block;
 }
-.readerTextTableOfContents .content .tocContent > .tocLevel > .schema-node-toc {
+.textTableOfContents > .tocLevel > .schema-node-toc {
   margin: 10px 0;
 }
-.readerTextTableOfContents .schema-node-toc {
+.textTableOfContents.schema-node-toc {
   margin: 6px 20px;
 }
-.readerTextTableOfContents .content .schema-node-toc.linked:hover .schema-node-title {
+.textTableOfContents .schema-node-toc.linked:hover .schema-node-title {
   text-decoration: underline;
 }
-.readerTextTableOfContents .torahNavSectionHeader {
+.textTableOfContents .specialNavSectionHeader {
   font-size: 24px;
   margin-bottom: 10px;
 }
-.readerTextTableOfContents .altStruct .refLink {
+.textTableOfContents .altStruct .refLink {
   width: 49%;
   margin: 3px;
   box-sizing: border-box;
   display: inline-block;
 }
 @media (max-width: 450px) {
-  .readerTextTableOfContents .altStruct .refLink {
+  .textTableOfContents .altStruct .refLink {
     margin: 0.5%;
   }
 }
-.hebrew .readerTextTableOfContents .content .tocSection,
-.hebrew .readerTextTableOfContents .content .tocContent,
-.english .readerTextTableOfContents.noLangToggleInHebrew .content .tocContent,
-.bilingual .readerTextTableOfContents.noLangToggleInHebrew .content .tocContent{
+.hebrew .textTableOfContents .tocSection,
+.hebrew .textTableOfContents,
+.english .noLangToggleInHebrew .textTableOfContents,
+.bilingual .noLangToggleInHebrew .textTableOfContents{
   text-align: right;
 }
-.english .readerTextTableOfContents.noLangToggleInHebrew .content .tocContent,
-.bilingual .readerTextTableOfContents.noLangToggleInHebrew .content .tocContent{
+.english .noLangToggleInHebrew .textTableOfContents,
+.bilingual .noLangToggleInHebrew .textTableOfContents{
   direction: rtl;
 }
-.readerTextTableOfContents .button.allVersionsButton {
+.bookPage .button.allVersionsButton {
   color: #999;
   text-transform: uppercase;
   font-size: 15px;
   padding: 12px 50px;
   margin: 20px 0;
 }
-.readerTextTableOfContents .allVersionsButton.inactive {
+.bookPage .allVersionsButton.inactive {
   background-color: transparent;
 }
 .versionBlock{
@@ -2889,7 +2881,7 @@ a.navBlockTitle:hover {
   justify-content: start;
   align-items: flex-start;
 }
-.readerTextTableOfContents .versionBlock .versionBlockHeading{
+.bookPage .versionBlock .versionBlockHeading{
   margin-bottom: 10px;
 }
 .versionBlock .versionTitle {
@@ -2897,7 +2889,7 @@ a.navBlockTitle:hover {
   color: #000;
   /*unicode-bidi: plaintext;*/
 }
-.readerTextTableOfContents .versionBlock .versionTitle{
+.bookPage .versionBlock .versionTitle{
   font-style: normal;
   font-weight: normal;
   font-size: 24px;
@@ -2908,11 +2900,11 @@ a.navBlockTitle:hover {
   padding: 20px 0;
   border-top: solid 1px #CCC;
 }
-.readerTextTableOfContents .versionsBox .versionBlock{
+.bookPage .versionsBox .versionBlock{
   padding-top: 20px;
   padding-bottom: 34px;
 }
-.readerTextTableOfContents .versionsBox .versionBlock:first-child{
+.bookPage .versionsBox .versionBlock:first-child{
   padding-top: 0;
   border-top: none;
 }
@@ -2925,7 +2917,7 @@ a.navBlockTitle:hover {
 .versionBlock .versionBlockHeading .versionLanguage {
   display: none;
 }
-.readerTextTableOfContents .versionBlock .versionBlockHeading .versionLanguage{
+.bookPage .versionBlock .versionBlockHeading .versionLanguage{
   display: initial;
   margin-inline-start: auto;
   font-style: normal;
@@ -2958,7 +2950,7 @@ a.navBlockTitle:hover {
 .versionBlock .versionSelect{
   margin: 10px 0;
 }
-.readerTextTableOfContents .versionBlock .versionSelect, .aboutBox .currVersionSection .versionSelect{
+.bookPage .versionBlock .versionSelect, .aboutBox .currVersionSection .versionSelect{
   display: none;
 }
 .versionBlock .versionNotes a {
@@ -2977,7 +2969,7 @@ a.navBlockTitle:hover {
   line-height: 20px;
   color: #666666;
 }
-.readerTextTableOfContents .versionBlock .versionDetails{
+.bookPage .versionBlock .versionDetails{
   line-height: 20px;
 }
 .versionBlock .versionDetails .versionDetailsInformation{
@@ -3012,7 +3004,7 @@ a.navBlockTitle:hover {
   margin: 10px 0;
   text-align: start;
 }
-.readerTextTableOfContents .versionBlock .versionNotes{
+.bookPage .versionBlock .versionNotes{
   font-size: 16px;
   line-height: 19px;
   padding-bottom: 15px;
@@ -3041,39 +3033,39 @@ a.navBlockTitle:hover {
   padding: 50px;
   border-top: 1px solid #ccc;
 }
-.readerTextTableOfContents .content .dlSection {
+.bookPage .content .dlSection {
 }
 .modTools .dlSectionTitle {
     width: 60%;
     margin: 0 auto;
 }
 .modTools .dlSectionTitle,
-.readerTextTableOfContents .content h2 {
+.bookPage .content h2 {
     text-transform: uppercase;
     color: #999;
     padding: 10px 0;
     margin-bottom: 14px;
 }
-.readerTextTableOfContents .content h2[role=button] {
+.bookPage .content h2[role=button] {
   cursor: pointer;
 }
-.readerTextTableOfContents .content h2 img {
+.bookPage .content h2 img {
   opacity: 0.43;
   padding: 0 5px;
   height: 10px;
   width: 10px;
 }
-.readerTextTableOfContents .versionSectionHeader {
+.bookPage .versionSectionHeader {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
 }
-.readerTextTableOfContents .versionSectionSummary {
+.bookPage .versionSectionSummary {
   text-transform: none;
   color: #ccc;
   font-size: 14px;
 }
-.readerTextTableOfContents .versionSectionSummaryHidden {
+.bookPage .versionSectionSummaryHidden {
   visibility: hidden;
 }
 .modTools .dlVersionSelect {
@@ -3092,11 +3084,11 @@ select {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .modTools .dlVersionSelect option,
-.readerTextTableOfContents .content .dlVersionSelect option{
+.bookPage .content .dlVersionSelect option{
   unicode-bidi: plaintext;
 }
 .modTools .versionDownloadButton,
-.readerTextTableOfContents .content .versionDownloadButton {
+.bookPage .content .versionDownloadButton {
   width: 60%;
   margin: 10px auto;
   background-color: white;
@@ -3108,18 +3100,18 @@ select {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .modTools .versionDownloadButton .downloadButtonInner,
-.readerTextTableOfContents .content .versionDownloadButton .downloadButtonInner {
+.bookPage .content .versionDownloadButton .downloadButtonInner {
     font-size: 16px;
     padding: 10px;
 }
 .modTools .versionDownloadButton .he,
-.readerTextTableOfContents .content .versionDownloadButton .he {
+.bookPage .content .versionDownloadButton .he {
     font-family: "Heebo", sans-serif;
     direction: rtl;
     text-align: right;
 }
 .modTools a .versionDownloadButton,
-.readerTextTableOfContents .content a .versionDownloadButton {
+.bookPage .content a .versionDownloadButton {
     border-color: #212E50;
     background-color: #212E50;
 }
@@ -3149,36 +3141,56 @@ select {
 }
 .dictionarySearchBox {
   display: flex;
-  justify-content: flex-start;
+  justify-content: space-between;
+  align-items: center;
   padding-bottom: 5px;
-  border-bottom: #999 solid 1px;
-  color: #999;
-  font-size: 17px;
-  height: 22px;
+  color: var(--medium-grey);
+  font-size: 16px;
+  line-height: 19px;
+  width: 300px;
+  height: 30px;
+  background: var(--lighter-grey);
+  border-radius: 6px;
+  margin-bottom: 25px;
 }
-.dictionarySearchBox .dictionarySearchButton {
-
+.dictionarySearchBox .dictionarySearchButton{
+  width: 16px;
+  height: 16px;
+  margin-inline-start: 8px;
+  margin-inline-end: 5px;
 }
 .searchBox.dictionarySearchBox .keyboardInputInitiator {
   border: none;
 }
 .dictionarySearchBox input {
-  padding: 0 10px 10px;
   font-size: 17px;
   background-color: transparent;
   border: none;
-  width: 100%;
   height: 18px;
-  margin-bottom: 10px;
+  margin-inline-end: auto;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
+.dictionarySearchBox input::placeholder{
+  font-size: 16px;
+  line-height: 19px;
+  color: var(--dark-grey);
 }
 body .ui-autocomplete.dictionary-toc-autocomplete {
-  margin: 0 0;
+  margin-top: 40px;
   padding: 6px 0 0;
+  width: 300px;
+  min-height: 85px;
+  max-height: 185px;
+  background: #FFFFFF;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  border-radius: 6px;
+  overflow-y: auto;
 }
 body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item {
   padding: 4px 25px;
-  border-bottom: solid #ccc 1px;
-  font-size: 17px;
+  font-size: 22px;
+  line-height: 29px;
   color: black;
   cursor: pointer;
   display: block;
@@ -4237,14 +4249,15 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .interface-hebrew .readerPanel.english .textRange,
 .interface-hebrew .readerPanel.english .categoryFilterGroup,
 .interface-hebrew .readerPanel.bilingual .categoryFilterGroup,
-.interface-hebrew .readerPanel.english .tocContent,
-.interface-hebrew .readerPanel.bilingual .tocContent {
+.interface-hebrew .readerPanel.english .textTableOfContents,
+.interface-hebrew .readerPanel.bilingual .textTableOfContents {
   direction: ltr;
 }
 .interface-english .readerPanel.hebrew .textRange,
 .interface-english .readerPanel.hebrew .categoryFilterGroup,
 .interface-english .readerPanel.hebrew .structToggles,
-.interface-english .readerPanel.hebrew .tocContent,
+.interface-english .readerPanel.hebrew .tab-view,
+.interface-english .readerPanel.hebrew .textTableOfContents,
 .interface-english .readerPanel.hebrew .connectionsPanel .toolsButton.more,
 .interface-english .readerPanel.hebrew .connectionsPanel .toolsButton.seeLess {
   direction: rtl;
@@ -5280,7 +5293,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 14px;
   margin: 4px;
 }
-.readerTextTableOfContents .sheetTag.button {
+.bookPage .sheetTag.button {
   padding: 10px 16px
 }
 .textList .sheetList {
@@ -7515,6 +7528,9 @@ body #keyboardInputMaster {
     padding: 5px;
     box-shadow: none;
     border-radius: 0.3em;
+    /*position: relative;
+    top: 100px;
+    left: 395px;*/
 }
 body #keyboardInputMaster thead {
   display: none;
@@ -8251,7 +8267,7 @@ span.purim-emoji img{
   margin: 0 8px;
   vertical-align: middle;
 }
-.readerTextTableOfContents .content h2.tagsTitle {
+.bookPage .content h2.tagsTitle {
   text-align: center;
   color:black;
   font-size: 13px;
@@ -8693,7 +8709,8 @@ cursor: pointer;
   color: black;
   text-align: center;
   padding: 10px 0;
-  margin: 0 30px 0 0;
+  margin: 0;
+  margin-inline-end: 30px;
   cursor: pointer;
 }
 .tab-view .tab-list .tab a {
@@ -8764,7 +8781,7 @@ cursor: pointer;
   font-size: 22px;
 }
 .tab-view.largeTabs .tab-list .active .tab {
-  border-bottom: 4px solid #999;
+  border-bottom: 4px solid var(--light-grey);
 }
 .profile-page .textRange {
   font-size: 18px;
