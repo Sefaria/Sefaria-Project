@@ -480,7 +480,7 @@ Sefaria = extend(Sefaria, {
   },
   _versions: {},
   _translateVersions: {},
-  versions: async function(ref, byLang, filter, excludeFilter) {
+  getVersions: async function(ref, byLang, filter, excludeFilter) {
       /**
        * Returns a list of available text versions for `ref`.
        *
@@ -536,6 +536,7 @@ Sefaria = extend(Sefaria, {
       return versionStore;
   },
   transformVersionObjectsToByActualLanguageKeys(versionObjects){
+    //not related to above, used to turn curent version object in client code into an object mapped by the real language vs just "he/"en
     return Object.entries(versionObjects)
           .filter(([lang, v]) => !!v)
           .reduce((obj, [lang, version]) => {

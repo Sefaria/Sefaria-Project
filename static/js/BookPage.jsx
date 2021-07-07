@@ -65,7 +65,7 @@ class BookPage extends Component {
 
     if (this.isBookToc() && !this.props.compare) {
       if(!this.state.versionsLoaded){
-        Sefaria.versions(this.props.title, false, null, false).then(this.onVersionsLoad);
+        Sefaria.getVersions(this.props.title, false, null, false).then(this.onVersionsLoad);
       }
     }
   }
@@ -825,7 +825,7 @@ CommentatorList.propTypes = {
 
 class VersionsList extends Component {
   componentDidMount() {
-    Sefaria.versions(this.props.currentRef, false, [], true).then(this.onVersionsLoad);
+    Sefaria.getVersions(this.props.currentRef, false, [], true).then(this.onVersionsLoad);
   }
   onVersionsLoad(versions){
     versions.sort(

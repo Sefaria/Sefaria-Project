@@ -166,7 +166,7 @@ class ConnectionsPanel extends Component {
           linksLoaded: true,
         });
     }
-    Sefaria.versions(ref, false, ["he"], true).then(versions => this.setState({availableTranslations: versions})); //for counting translations
+    Sefaria.getVersions(ref, false, ["he"], true).then(versions => this.setState({availableTranslations: versions})); //for counting translations
   }
   reloadData() {
     this.setState({
