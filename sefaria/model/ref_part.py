@@ -187,15 +187,6 @@ class RefResolver:
             matches += self._get_unrefined_ref_part_matches_recursive(temp_ref_parts, temp_title_trie, temp_prev_ref_parts)
         return self._prune_unrefined_ref_part_matches(matches)
 
-    def _prune_unrefined_ref_part_matches(self, ref_part_matches: List['RawRefPartMatch']) -> List['RawRefPartMatch']:
-        index_match_map = defaultdict(list)
-        for match in ref_part_matches:
-            index_match_map[match.node.title] += [match]
-        pruned_matches = []
-        for match_list in index_match_map.values():
-            pruned_matches += [max(match_list, key=lambda m: len(m.raw_ref_parts))]
-        return pruned_matches
-
     def refine_ref_part_matches(self, ref_part_matches: list, raw_ref: 'RawRef') -> list:
         fully_refined = []
         match_queue = ref_part_matches[:]
@@ -218,5 +209,28 @@ class RefResolver:
             if not has_match:
                 fully_refined += [match]
         
-        return fully_refined
+        return self._prune_refined_ref_part_matches(fully_refined)
+
+    def _prune_unrefined_ref_part_matches(self, ref_part_matches: List['RawRefPartMatch']) -> List['RawRefPartMatch']:
+        index_match_map = defaultdict(list)
+        for match in ref_part_matches:
+            index_match_map[match.node.title] += [match]
+        pruned_matches = []
+        for match_list in index_match_map.values():
+            pruned_matches += [max(match_list, key=lambda m: len(m.raw_ref_parts))]
+        return pruned_matches
+
+    def _prune_refined_ref_part_matches(self, ref_part_matches: List['RawRefPartMatch']) -> List['RawRefPartMatch']:
+        """
+        So far simply returns all matches with the maximum number of raw_ref_parts
+        """
+        max_ref_parts = 0
+        max_ref_part_matches = []
+        for match in ref_part_matches:
+            if len(match.raw_ref_parts) > max_ref_parts:
+                max_ref_parts = len(match.raw_ref_parts)
+                max_ref_part_matches = [match]
+            elif len(match.raw_ref_parts) == max_ref_parts:
+                max_ref_part_matches += [match]
+        return max_ref_part_matches
 

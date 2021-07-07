@@ -59,7 +59,7 @@ def test_referenceable_child():
     [create_raw_ref_data("Rashi on Berakhot 2a", 'he', "בבלי ברכות דף ב", [0, 1, slice(2, 4)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), [1, ("Berakhot 2",)]],   # amud-less talmud
     [create_raw_ref_data("Rashi on Berakhot 2a", 'he', "בבלי ברכות דף ב.", [0, 1, slice(2, 5)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), [1, ("Berakhot 2a",)]],  # amud-ful talmud
     [create_raw_ref_data("Rashi on Berakhot 2a", 'he', "בבלי דף ב עמוד א בברכות", [0, slice(1, 5), 5], [RPT.NAMED, RPT.NUMBERED, RPT.NAMED]), [1, ("Berakhot 2a",)]],  # out of order with prefix on title
-    [create_raw_ref_data("Rashi on Berakhot 2a", 'he', "רש\"י דף ב עמוד א בברכות ד\"ה מאימתי קורין", [0, slice(1, 5), 5, slice(6, 9)], [RPT.NAMED, RPT.NUMBERED, RPT.NAMED, RPT.DH]), [2, ("Berakhot 2a", "Rashi on Berakhot 2a:1:1")]]  # out of order with prefix on title
+    [create_raw_ref_data("Rashi on Berakhot 2a", 'he', "רש\"י דף ב עמוד א בברכות ד\"ה מאימתי קורין", [0, slice(1, 5), 5, slice(6, 9)], [RPT.NAMED, RPT.NUMBERED, RPT.NAMED, RPT.DH]), [1, ("Rashi on Berakhot 2a:1:1",)]]  # out of order with prefix on title
 ])
 def test_resolver(resolver_data, results):
     ref_resolver, raw_ref, context_ref = resolver_data
