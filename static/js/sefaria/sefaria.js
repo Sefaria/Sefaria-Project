@@ -480,6 +480,10 @@ Sefaria = extend(Sefaria, {
   },
   _versions: {},
   _translateVersions: {},
+  getVersionFromCache: function(ref,  byLang, filter, excludeFilter){
+     let versions = this._cachedApi(ref, this._versions, []);
+     return this._makeVersions(versions, byLang, filter, excludeFilter)
+  },
   getVersions: async function(ref, byLang, filter, excludeFilter) {
       /**
        * Returns a list of available text versions for `ref`.
