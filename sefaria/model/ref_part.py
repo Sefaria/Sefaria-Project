@@ -168,6 +168,10 @@ class RefResolver:
     def __init__(self, lang) -> None:
         self.lang = lang
 
+    def resolve(self, context_ref: text.Ref, raw_ref: 'RawRef') -> List['RawRefPartMatch']:
+        unrefined_matches = self.get_unrefined_ref_part_matches(context_ref, raw_ref)
+        return self.refine_ref_part_matches(unrefined_matches, raw_ref)
+
     def get_unrefined_ref_part_matches(self, context_ref: text.Ref, raw_ref: 'RawRef') -> list:
         from .text import library
         return self._get_unrefined_ref_part_matches_recursive(raw_ref.raw_ref_parts, library.get_root_ref_part_title_trie(self.lang))

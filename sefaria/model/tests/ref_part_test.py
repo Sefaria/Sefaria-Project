@@ -64,8 +64,7 @@ def test_referenceable_child():
 def test_resolver(resolver_data, results):
     ref_resolver, raw_ref, context_ref = resolver_data
     num_results, result_trefs = results
-    matches = ref_resolver.get_unrefined_ref_part_matches(context_ref, raw_ref)
-    refined_matches = ref_resolver.refine_ref_part_matches(matches, raw_ref)
-    assert len(refined_matches) == num_results
-    for result_tref, match in zip(result_trefs, refined_matches):
+    matches = ref_resolver.resolve(context_ref, raw_ref)
+    assert len(matches) == num_results
+    for result_tref, match in zip(result_trefs, matches):
         assert match.ref == Ref(result_tref)
