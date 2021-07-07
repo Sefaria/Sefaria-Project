@@ -1,6 +1,6 @@
 from .settings import GOOGLE_APPLICATION_CREDENTIALS_FILEPATH
 from google.cloud import storage
-
+import re
 
 class GoogleStorageManager(object):
 
@@ -51,3 +51,7 @@ class GoogleStorageManager(object):
     @classmethod
     def get_url(cls, filename, bucket_name):
         return "{}/{}/{}".format(cls.BASE_URL, bucket_name, filename)
+
+    @classmethod
+    def get_filename(cls, old_file_url):
+        return re.findall(r"/([^/]+)$", old_file_url)[0] if old_file_url.startswith(cls.BASE_URL) else None
