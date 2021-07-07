@@ -4569,7 +4569,7 @@ class Library(object):
         self._simple_term_mapping = {}
         self._full_term_mapping = {}
         self._simple_term_mapping_json = None
-        self._all_root_ref_part_titles = None
+        self._root_ref_part_titles = None
 
         # Topics
         self._topic_mapping = {}
@@ -5184,21 +5184,21 @@ class Library(object):
         self._topic_mapping = {t.slug: {"en": t.get_primary_title("en"), "he": t.get_primary_title("he")} for t in TopicSet()}
         return self._topic_mapping
 
-    def get_all_root_ref_part_titles(self, rebuild=False):
-        roots = self._all_root_ref_part_titles
+    def get_root_ref_part_titles(self, rebuild=False):
+        roots = self._root_ref_part_titles
         if not roots or rebuild:
-            roots = self._build_all_root_ref_part_titles()
+            roots = self._build_root_ref_part_titles()
         return roots
 
-    def _build_all_root_ref_part_titles(self):
+    def _build_root_ref_part_titles(self):
         from sefaria.model.ref_part import NonUniqueTerm
-
-        root_nodes = filter(lambda n: getattr(n, 'ref_parts', None) is not None, self.get_index_forest())
-        self._all_root_ref_part_titles = {'en': {}, 'he': {}}
+        langs = ['en', 'he']
+        root_nodes = filter(lambda n: getattr(n, 'ref_part_terms', None) is not None, self.get_index_forest())
+        self._root_ref_part_titles = {lang: {} for lang in langs}
         for node in list(root_nodes):
-            for lang in ('en', 'he'):
-                curr_dict_queue = [self._all_root_ref_part_titles[lang]]
-                for term_slug, optional in zip(node.ref_parts, getattr(node, 'ref_parts_optional', [])):
+            for lang in langs:
+                curr_dict_queue = [self._root_ref_part_titles[lang]]
+                for term_slug, optional in zip(node.ref_part_terms, getattr(node, 'ref_parts_optional', [])):
                     term = NonUniqueTerm.init(term_slug)
                     len_curr_dict_queue = len(curr_dict_queue)
                     for _ in range(len_curr_dict_queue):
@@ -5217,7 +5217,7 @@ class Library(object):
                         curr_dict[None] += [node.index]
                     else:
                         curr_dict[None] = [node.index] 
-        return self._all_root_ref_part_titles
+        return self._root_ref_part_titles
 
                         
     #todo: only used in bio scripts

@@ -113,7 +113,7 @@ class RefResolver:
     def get_unrefined_ref_part_matches(self, context_ref: text.Ref, raw_ref: 'RawRef') -> list:
         # TODO implement `type` on ref part and filter by "named" ref parts only
         from .text import library
-        return self._get_unrefined_ref_part_matches_recursive(raw_ref.raw_ref_parts, library.get_all_root_ref_part_titles()[self.lang])
+        return self._get_unrefined_ref_part_matches_recursive(raw_ref.raw_ref_parts, library.get_root_ref_part_titles()[self.lang])
 
     def _get_unrefined_ref_part_matches_recursive(self, ref_parts: list, title_trie: dict, prev_ref_parts: list=None) -> list:
         prev_ref_parts = prev_ref_parts or []

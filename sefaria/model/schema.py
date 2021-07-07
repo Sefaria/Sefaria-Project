@@ -1148,7 +1148,7 @@ class SchemaNode(TitledTreeNode):
 
     """
     is_virtual = False
-    optional_param_keys = ["ref_parts", "ref_parts_optional"]
+    optional_param_keys = ["ref_part_terms", "ref_parts_optional"]
 
     def __init__(self, serial=None, **kwargs):
         """
@@ -1967,6 +1967,8 @@ class AddressType(object):
             reg = regex.compile(regex_str, regex.VERBOSE)
             match = reg.match(s)
             if match:
+                if hasattr(address_class, "parse_range_end"):
+                    address_class.parse_range_end(self, parts, base_wout_title)
                 results += [addr.toNumber(lang, match.group('section'))]
         return results
 
