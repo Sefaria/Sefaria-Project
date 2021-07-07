@@ -5,7 +5,6 @@ from . import abstract as abst
 from . import text
 from . import schema
 from spacy.tokens import Span
-import re
 
 class RefPartType(Enum):
     NAMED = "named"
@@ -162,7 +161,8 @@ class RefPartTitleTrie:
         if sub_trie is default and self.lang == 'he':
             # try with prefixes
             for prefix in self.PREFIXES:
-                sub_trie = self._trie.get(re.sub(fr'^{prefix}', '', key), default)
+                if not key.startswith(prefix): continue
+                sub_trie = self._trie.get(key[len(prefix):], default)
                 if sub_trie is not None: break
 
         if sub_trie is None: return
