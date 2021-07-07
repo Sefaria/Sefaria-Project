@@ -42,7 +42,7 @@ class Link(abst.AbstractMongoRecord):
         "inline_reference",  # dict with keys "data-commentator" and "data-order" to match an inline reference (itag)
         "charLevelData",     # list of length 2. Containing 2 dicts coresponding to the refs list, each dict consists of the following keys: ["startChar","endChar","versionTitle","language"]. *if one of the refs is a Pasuk the startChar and endChar keys are startWord and endWord. This attribute was created for the quotation finder
         "score",             # int. represents how "good"/accurate the link is. introduced for quotations finder
-        "inline_citation"    # bool acts as a flag for wrapped refs logic to run on the segments where this ciation is inline.
+        "inline_citation"    # bool acts as a flag for wrapped refs logic to run on the segments where this citation is inline.
     ]
 
     def _normalize(self):
