@@ -181,7 +181,6 @@ class RefResolver:
         self.lang = lang
 
     def get_unrefined_ref_part_matches(self, context_ref: text.Ref, raw_ref: 'RawRef') -> list:
-        # TODO implement `type` on ref part and filter by "named" ref parts only
         from .text import library
         return self._get_unrefined_ref_part_matches_recursive(raw_ref.raw_ref_parts, library.get_root_ref_part_title_trie(self.lang))
 
@@ -189,6 +188,8 @@ class RefResolver:
         prev_ref_parts = prev_ref_parts or []
         matches = []
         for i, ref_part in enumerate(ref_parts):
+            # no need to consider other types at root level
+            if ref_part.type != RefPartType.NAMED: continue
             temp_prev_ref_parts = prev_ref_parts + [ref_part]
             temp_title_trie = title_trie[ref_part.text]
             if temp_title_trie is None: continue
