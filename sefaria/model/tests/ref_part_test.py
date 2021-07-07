@@ -59,4 +59,4 @@ def test_resolver(resolver_data):
 
     refined_matches = ref_resolver.refine_ref_part_matches(matches, raw_ref)
     assert len(refined_matches) == 1
-    assert refined_matches[0].ref == Ref("Berakhot 2a")
+    assert refined_matches[0].ref == Ref("Berakhot 2")

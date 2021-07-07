@@ -101,9 +101,12 @@ class RawRefPartMatch:
         refined_ref_parts = self.raw_ref_parts + [raw_ref_part]
         matches = []
         if raw_ref_part.type == RefPartType.NUMBERED and isinstance(node, schema.JaggedArrayNode):
-            possible_sections = node.address_class(0).get_all_possible_sections_from_string(lang, raw_ref_part.text)
-            for sec in possible_sections:
+            possible_sections, possible_to_sections = node.address_class(0).get_all_possible_sections_from_string(lang, raw_ref_part.text)
+            for sec, toSec in zip(possible_sections, possible_to_sections):
                 refined_ref = self.ref.subref(sec)
+                if toSec != sec:
+                    to_ref = self.ref.subref(toSec)
+                    refined_ref = refined_ref.to(to_ref)
                 matches += [RawRefPartMatch(refined_ref_parts, node, refined_ref)]
         elif raw_ref_part.type == RefPartType.NAMED and isinstance(node, schema.ArrayMapNode):
             pass

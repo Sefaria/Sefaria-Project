@@ -1958,7 +1958,8 @@ class AddressType(object):
         For string `s`, parse to sections using all address types in that `cls` inherits from
         Useful for parsing ambiguous sections, e.g. for AddressPerek פ"ח = 8 but for its superclass AddressInteger, it equals 88.
         """
-        results = []
+        sections = []
+        toSections = []
         for SuperClass in cls.__mro__:  # mro gives all super classes
             if SuperClass == AddressType: break
             addr = SuperClass(0)  # somewhat hacky. trying to get access to super class implementation of `regex` but actually only AddressTalmud implements this function. Other classes just overwrite class fields which modify regex's behavior. Simplest to just instantiate the appropriate address and use it.
@@ -1967,10 +1968,13 @@ class AddressType(object):
             reg = regex.compile(regex_str, regex.VERBOSE)
             match = reg.match(s)
             if match:
-                #if hasattr(address_class, "parse_range_end"):
-                #    address_class.parse_range_end(self, parts, base_wout_title)
-                results += [addr.toNumber(lang, match.group('section'))]
-        return results
+                section_str = match.group('section')
+                sections += [addr.toNumber(lang, section_str)]
+                toSections += [sections[-1]]
+                if hasattr(cls, "lacks_amud") and cls.lacks_amud(section_str, lang):
+                    toSections[-1] += 1
+                    
+        return sections, toSections
 
     @classmethod
     def toStr(cls, lang, i, **kwargs):
@@ -2069,6 +2073,13 @@ class AddressTalmud(AddressType):
             return ref._get_normal(lang)
 
     @classmethod
+    def lacks_amud(cls, part, lang):
+        if lang == "he":
+            return re.search(cls.amud_patterns["he"], part) is None
+        else:
+            return re.search(cls.amud_patterns["en"] + "{1}$", part) is None
+    
+    @classmethod
     def parse_range_end(cls, ref, parts, base):
         """
         :param ref: Ref object (example: Zohar 1:2-3)
@@ -2077,17 +2088,12 @@ class AddressTalmud(AddressType):
         :param base: parts[0] without title; in the above example, base would be "1:2"
         :return:
         """
-        def ref_lacks_amud(part):
-            if ref._lang == "he":
-                return re.search(cls.amud_patterns["he"], part) is None
-            else:
-                return re.search(cls.amud_patterns["en"] + "{1}$", part) is None
 
         if len(parts) == 1:
             # check for Talmud ref without amud, such as Berakhot 2 or Zohar 1:2,
             # we don't want "Berakhot 2a" or "Zohar 1:2a" but "Berakhot 2a-2b" and "Zohar 1:2a-2b"
-            # so change toSections if ref_lacks_amud
-            if ref_lacks_amud(base):
+            # so change toSections if lacks_amud
+            if cls.lacks_amud(base, ref._lang):
                 ref.toSections[-1] += 1
         elif len(parts) == 2:
             range_parts = parts[1].split(".")  # this was converting space to '.', for some reason.
@@ -2098,7 +2104,7 @@ class AddressTalmud(AddressType):
                 # 'Shabbat 23a-b' or 'Zohar 1:2a-b'
                 ref.toSections[-1] = ref.sections[-1] + 1
             else:
-                if ref_lacks_amud(parts[1]) and ref_lacks_amud(parts[0]):
+                if cls.lacks_amud(parts[0], ref._lang) and cls.lacks_amud(parts[1], ref._lang):
                     # 'Shabbat 7-8' -> 'Shabbat 7a-8b'; 'Zohar 3:7-8' -> 'Zohar 3:7a-8b'
                     range_parts[-1] = range_parts[-1] + ('b' if ref._lang == 'en' else ' ב')
                 ref._parse_range_end(range_parts)
