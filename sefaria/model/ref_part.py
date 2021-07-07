@@ -57,12 +57,22 @@ class RawRefPart:
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    def get_text(self):
+        return self.span.text
+
+    text = property(get_text)
+
 class RawRef:
     
     def __init__(self, raw_ref_parts: list, span: Span) -> None:
         self.raw_ref_parts = raw_ref_parts
         self.span = span
 
+    def get_text(self):
+        return self.span.text
+
+    text = property(get_text)
+    
 class DiburHamatchilNode(abst.AbstractMongoRecord):
     """
     Very likely possible to use VirtualNode and add these nodes as children of JANs and ArrayMapNodes. But that can be a little complicated
@@ -91,14 +101,14 @@ class RawRefPartMatch:
         refined_ref_parts = self.raw_ref_parts + [raw_ref_part]
         matches = []
         if raw_ref_part.type == RefPartType.NUMBERED and isinstance(node, schema.JaggedArrayNode):
-            possible_sections = node.address_class(0).get_all_possible_sections_from_string(lang, raw_ref_part.span.text)
+            possible_sections = node.address_class(0).get_all_possible_sections_from_string(lang, raw_ref_part.text)
             for sec in possible_sections:
                 refined_ref = self.ref.subref(sec)
                 matches += [RawRefPartMatch(refined_ref_parts, node, refined_ref)]
         elif raw_ref_part.type == RefPartType.NAMED and isinstance(node, schema.ArrayMapNode):
             pass
         elif raw_ref_part.type == RefPartType.NAMED and isinstance(node, schema.SchemaNode):
-            if raw_ref_part.span.text in getattr(node, 'ref_parts', set()):
+            if raw_ref_part.text in getattr(node, 'ref_parts', set()):
                 matches += [RawRefPartMatch(refined_ref_parts, node, node.ref())]
         elif raw_ref_part.type == RefPartType.DH and isinstance(node, DiburHamatchilNode):
             pass
@@ -120,7 +130,7 @@ class RefResolver:
         matches = []
         for i, ref_part in enumerate(ref_parts):
             temp_prev_ref_parts = prev_ref_parts + [ref_part]
-            temp_title_trie = title_trie.get(ref_part.span.text, None)
+            temp_title_trie = title_trie.get(ref_part.text, None)
             if temp_title_trie is None: continue
             if None in temp_title_trie:
                 matches += [RawRefPartMatch(temp_prev_ref_parts, index, index.nodes.ref()) for index in temp_title_trie[None]]
