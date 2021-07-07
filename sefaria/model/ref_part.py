@@ -100,7 +100,9 @@ class RawRefPartMatch:
             if raw_ref_part.text in getattr(node, 'ref_parts', set()):
                 matches += [RawRefPartMatch(refined_ref_parts, node, node.ref())]
         elif raw_ref_part.type == RefPartType.DH and isinstance(node, schema.DiburHamatchilNodeSet):
-            pass
+            max_node, max_score = node.best_fuzzy_match_score(raw_ref_part)
+            if max_score == 1.0:
+                matches += [RawRefPartMatch(refined_ref_parts, max_node, text.Ref(max_node.ref))]
         # TODO sham and directional cases
         return matches
 
@@ -202,9 +204,9 @@ class RefResolver:
             unused_ref_parts = match.get_unused_ref_parts(raw_ref)
             has_match = False
             if isinstance(match.node, schema.NumberedTitledTreeNode):
-                child = match.node.get_referenceable_child()
+                child = match.node.get_referenceable_child(match.ref)
                 children = [] if child is None else [child]
-            elif isinstance(match.node, schema.DiburHamatchilNodeSet):
+            elif isinstance(match.node, schema.DiburHamatchilNode):
                 children = []
             else:
                 children = match.node.all_children()

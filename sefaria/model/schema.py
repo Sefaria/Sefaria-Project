@@ -1070,12 +1070,25 @@ class DiburHamatchilNode(abst.AbstractMongoRecord):
         "ref",
     ]
 
-    def fuzzy_match_score(self, text: str, potential_dh_continuation: str):
-        pass
+    def fuzzy_match_score(self, raw_ref_part):
+        # TODO improve this amazing algorithm
+        part_text = raw_ref_part.text.replace('ד"ה ', '')
+        if part_text in self.dibur_hamatchil:
+            return 1.0
+        return 0.0
 
 class DiburHamatchilNodeSet(abst.AbstractMongoSet):
     recordClass = DiburHamatchilNode
 
+    def best_fuzzy_match_score(self, raw_ref_part):
+        max_score = 0.0
+        max_node = None
+        for node in self:
+            score = node.fuzzy_match_score(raw_ref_part)
+            if score > max_score:
+                max_score = score
+                max_node = node
+        return max_node, max_score
 class ArrayMapNode(NumberedTitledTreeNode):
     """
     A :class:`TreeNode` that contains jagged arrays of references.

@@ -75,7 +75,7 @@ def create_non_unique_terms():
                 continue
             DiburHamatchilNode({
                 "dibur_hamatchil": dh,
-                "container_refs": [segment_ref.top_section_ref().normal(), seg_perek_mapping[segment_ref.section_ref().normal()]],
+                "container_refs": [segment_ref.top_section_ref().normal(), seg_perek_mapping[segment_ref.section_ref().normal()], index.title],
                 "ref": segment_ref.normal()
             }).save()
             break # TODO remove
