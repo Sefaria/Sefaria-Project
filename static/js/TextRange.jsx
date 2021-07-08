@@ -34,6 +34,7 @@ class TextRange extends Component {
         !this.props.highlightedRefs.compare(nextProps.highlightedRefs)) { return true; }
     if (this.props.currVersions.en !== nextProps.currVersions.en) { return true; }
     if (this.props.currVersions.he !== nextProps.currVersions.he) { return true; }
+    if (this.props.translationLanguagePreference !== nextProps.translationLanguagePreference) { return true; }
     // todo: figure out when and if this component receives settings at all
     if (nextProps.settings && this.props.settings &&
         (nextProps.settings.language !== this.props.settings.language ||
@@ -98,7 +99,8 @@ class TextRange extends Component {
     let settings = {
       context: this.props.withContext ? 1 : 0,
       enVersion: this.props.currVersions.en || null,
-      heVersion: this.props.currVersions.he || null
+      heVersion: this.props.currVersions.he || null,
+      translationLanguagePreference: this.props.translationLanguagePreference,
     };
     let data = Sefaria.getTextFromCache(this.props.sref, settings);
 
@@ -178,7 +180,8 @@ class TextRange extends Component {
          context: 1,
          multiple: this.props.prefetchMultiple,
          enVersion: this.props.currVersions.en || null,
-         heVersion: this.props.currVersions.he || null
+         heVersion: this.props.currVersions.he || null,
+         translationLanguagePreference: this.props.translationLanguagePreference,
        }).then(ds => Array.isArray(ds) ? ds.map(d => this._prefetchLinksAndNotes(d)) : this._prefetchLinksAndNotes(ds));
      }
      if (data.prev) {
@@ -186,7 +189,8 @@ class TextRange extends Component {
          context: 1,
          multiple: -this.props.prefetchMultiple,
          enVersion: this.props.currVersions.en || null,
-         heVersion: this.props.currVersions.he || null
+         heVersion: this.props.currVersions.he || null,
+         translationLanguagePreference: this.props.translationLanguagePreference,
        }).then(ds => Array.isArray(ds) ? ds.map(d => this._prefetchLinksAndNotes(d)) : this._prefetchLinksAndNotes(ds));
      }
      if (data.indexTitle) {
@@ -281,8 +285,10 @@ class TextRange extends Component {
 
     const showSegmentNumbers = showNumberLabel && this.props.basetext;
 
-    // const punctuationre = /[\.\!\?\:\,]|( —)|(?<![\u0591-\u05bd\u05bf-\u05c5\u05c7\u200d\u05d0-\u05eA])(\״)|(\״)(?![\u0591-\u05bd\u05bf-\u05c5\u05c7\u200d\u05d0-\u05eA])|(\״)(?=[\u0591-\u05bd\u05bf-\u05c5\u05c7\u200d\u05d0-\u05eA]{2,})|(^\״)|(\״$)/g
-    const punctuationre = /[\.\!\?\:\,]|( —)|(\״)/g
+    // [\.\!\?\:\,\u05F4]+                                                                      # Match (and remove) one or more punctuation or gershayim
+    //    (?![\u0591-\u05bd\u05bf-\u05c5\u05c7\u200d\u05d0-\u05eA](?:[\.\!\?\:\,\u05F4\s]|$))   # So long as it's not immediately followed by one letter (followed by space, punctuation, endline, etc.)
+    // |—\s;                                                                                    # OR match (and remove) an mdash followed by a space
+    const punctuationre = /[\.\!\?\:\,\u05F4]+(?![\u0591-\u05bd\u05bf-\u05c5\u05c7\u200d\u05d0-\u05eA](?:[\.\!\?\:\,\u05F4\s]|$))|—\s/g;
 
     const strip_punctuation_re = (this.props.settings?.language === "hebrew" || this.props.settings?.language === "bilingual") && this.props.settings?.punctuationTalmud === "punctuationOff" && data?.type === "Talmud" ? punctuationre : null;
     const nre = /[\u0591-\u05af\u05bd\u05bf\u05c0\u05c4\u05c5\u200d]/g; // cantillation
@@ -435,6 +441,7 @@ TextRange.propTypes = {
   showActionLinks:        PropTypes.bool,
   inlineReference:        PropTypes.object,
   textHighlights:         PropTypes.array,
+  translationLanguagePreference: PropTypes.string,
 };
 TextRange.defaultProps = {
   currVersions: {en:null,he:null},

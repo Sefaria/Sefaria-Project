@@ -31,12 +31,12 @@
 			<div role="radio" data-value="daily" class="toggleOption {% if profile.settings.email_notifications == "daily" %} active{% endif %}" tabindex="{% if profile.settings.email_notifications == "daily" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
                 <span class="int-en">Daily</span>
 			    <span class="int-he">יומית</span>
-            </div><!--
-			--><div role="radio"  data-value="weekly" class="toggleOption {% if profile.settings.email_notifications == "weekly" %} active{% endif %}" tabindex="{% if profile.settings.email_notifications == "weekly" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
+            </div>
+            <div role="radio"  data-value="weekly" class="toggleOption {% if profile.settings.email_notifications == "weekly" %} active{% endif %}" tabindex="{% if profile.settings.email_notifications == "weekly" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
                 <span class="int-en">Weekly</span>
 			    <span class="int-he">שבועית</span>
-            </div><!--
-			--><div role="radio"  data-value="never" class="toggleOption {% if profile.settings.email_notifications == "never" %} active{% endif %}" tabindex="{% if profile.settings.email_notifications == "never" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
+            </div>
+            <div role="radio"  data-value="never" class="toggleOption {% if profile.settings.email_notifications == "never" %} active{% endif %}" tabindex="{% if profile.settings.email_notifications == "never" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
                 <span class="int-en">Never</span>
 			    <span class="int-he">לעולם לא</span>
             </div>
@@ -51,12 +51,27 @@
 		<div class="toggleSet doubleOption control-elem" role="radiogroup">
 			<div role="radio" data-value="english" class="toggleOption {% if profile.settings.interface_language == "english" %} active{% endif %}" tabindex="{% if profile.settings.interface_language == "english" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
                 <span class="int-bi">English</span>
-            </div><!--
-			--><div role="radio" data-value="hebrew" class="toggleOption {% if profile.settings.interface_language == "hebrew" %} active{% endif %}" tabindex="{% if profile.settings.interface_language == "hebrew" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
+            </div>
+            <div role="radio" data-value="hebrew" class="toggleOption {% if profile.settings.interface_language == "hebrew" %} active{% endif %}" tabindex="{% if profile.settings.interface_language == "hebrew" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
                 <span class="int-bi">עברית</span>
             </div>
 		</div>
 	</div>
+    {% if SITE_SETTINGS.SUPPORTED_TRANSLATION_LANGUAGES|length > 0 %}
+	<div id="translationLanguagePreference" class="section">
+		<label class="control-elem">
+            <span class="int-en">Preferred Translation Language</span>
+			<span class="int-he">שפה מועדפת לתרגום</span>
+        </label>
+		<div class="toggleSet quadrupleOption control-elem" role="radiogroup">
+            {% for name, lang in lang_names_and_codes %}
+			<div role="radio" data-value="{{lang}}" class="toggleOption {% if translation_language_preference == lang %} active{% endif %}" tabindex="{% if translation_language_preference == lang %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
+                <span class="int-bi">{{name}}</span>
+            </div>
+            {% endfor %}
+		</div>
+	</div>
+    {% endif %}
     <div id="readingHistory" class="section">
 		<label class="control-elem">
             <span class="int-en">Reading History</span>
@@ -66,8 +81,8 @@
 			<div role="radio" data-name="reading-history" data-value=true class="toggleOption {% if "reading_history" not in profile.settings or profile.settings.reading_history %} active{% endif %}" tabindex="{% if "reading_history" not in profile.settings or profile.settings.reading_history %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
                 <span class="int-en">On</span>
                 <span class="int-he">פעילה</span>
-            </div><!--
-			--><div role="radio" data-name="reading-history" data-value=false class="toggleOption {% if "reading_history" in profile.settings and not profile.settings.reading_history %} active{% endif %}" tabindex="{% if "reading_history" in profile.settings and not profile.settings.reading_history %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
+            </div>
+            <div role="radio" data-name="reading-history" data-value=false class="toggleOption {% if "reading_history" in profile.settings and not profile.settings.reading_history %} active{% endif %}" tabindex="{% if "reading_history" in profile.settings and not profile.settings.reading_history %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
                 <span class="int-en">Off</span>
                 <span class="int-he">כבויה</span>
             </div>
@@ -83,8 +98,8 @@
 			<div role="radio" data-value="sephardi" class="toggleOption {% if profile.settings.textual_custom == "sephardi" %} active{% endif %}" tabindex="{% if profile.settings.textual_custom == "sephardi" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
                 <span class="int-en">Sephardi</span>
                 <span class="int-he">עדות המזרח</span>
-            </div><!--
-			--><div role="radio" data-value="ashkenazi" class="toggleOption {% if profile.settings.textual_custom == "ashkenazi" %} active{% endif %}" tabindex="{% if profile.settings.textual_custom == "ashkenazi" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
+            </div>
+            <div role="radio" data-value="ashkenazi" class="toggleOption {% if profile.settings.textual_custom == "ashkenazi" %} active{% endif %}" tabindex="{% if profile.settings.textual_custom == "ashkenazi" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
                 <span class="int-en">Ashkenazi</span>
                 <span class="int-he">אשכנז</span>
             </div>
@@ -128,12 +143,10 @@
 			    let $this = $(this);
 				$this.closest(".toggleSet").find(".toggleOption").removeClass("active").attr("tabIndex","-1").attr("ariaChecked","false");
 				$this.addClass("active").attr("tabIndex","0").attr("ariaChecked","true");
-				if($this.attr("data-name") === "reading-history"){
-				    if($this.attr("data-value") == "false"){
-				        console.log("deleteing history");
+				if ($this.attr("data-name") === "reading-history") {
+				    if ($this.attr("data-value") == "false") {
 				        $('#readingHistory #reading-history-warning').text(Sefaria._("Turning this feature off will permanently delete your reading history.")).addClass('active');
-                    }else{
-				        console.log("enabling history");
+                    } else {
 				        $('#readingHistory #reading-history-warning').removeClass('active');
                     }
                 }
@@ -151,15 +164,18 @@
 
 			$("#saveAccountSettings").click(function(){
 				let profile = {
-						settings: {
-							email_notifications: $("#emailNotifications .toggleOption.active").attr("data-value"),
-							interface_language: $("#siteLanguage .toggleOption.active").attr("data-value"),
-                            textual_custom: $("#textualCustom .toggleOption.active").attr("data-value"),
-                            reading_history: $("#readingHistory .toggleOption.active").attr("data-value") === "true" ? true : false,
-						}
+                    settings: {
+                        email_notifications: $("#emailNotifications .toggleOption.active").attr("data-value"),
+                        interface_language: $("#siteLanguage .toggleOption.active").attr("data-value"),
+                        textual_custom: $("#textualCustom .toggleOption.active").attr("data-value"),
+                        reading_history: $("#readingHistory .toggleOption.active").attr("data-value") === "true" ? true : false,
+                        translation_language_preference: $("#translationLanguagePreference .toggleOption.active").attr("data-value"),
+                        translation_language_preference_suggested: true,
+                    }
 				};
-
-				$.post("/api/profile", {json: JSON.stringify(profile)}, function(data) {
+                $.cookie("translation_language_preference", $("#translationLanguagePreference .toggleOption.active").attr("data-value"), {path: "/"});  // see trans pref in cookie in case user is logged out
+                $.cookie("translation_language_preference_suggested", JSON.stringify(1), {path: "/"});
+                $.post("/api/profile", {json: JSON.stringify(profile)}, function(data) {
 					if ("error" in data) {
 						alert(data.error);
 					} else {

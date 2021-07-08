@@ -1,4 +1,4 @@
-import React  from 'react';
+import React, {useState}  from 'react';
 import classNames  from 'classnames';
 import ReactDOM  from 'react-dom';
 import PropTypes  from 'prop-types';
@@ -37,7 +37,7 @@ import {
   SaveButton,
   CategoryColorLine,
   CategoryAttribution,
-  ToggleSet, ContentText,
+  ToggleSet, ContentText, InterfaceText, EnglishText, HebrewText,
 } from './Misc';
 import Component from 'react-class';
 import {ContentLanguageContext} from './context';
@@ -716,6 +716,7 @@ class ReaderPanel extends Component {
           filter={this.state.filter}
           textHighlights={this.state.textHighlights}
           unsetTextHighlight={this.props.unsetTextHighlight}
+          translationLanguagePreference={this.props.translationLanguagePreference}
           key={`${textColumnBookTitle ? textColumnBookTitle : "empty"}-TextColumn`} />
       );
     }
@@ -774,6 +775,7 @@ class ReaderPanel extends Component {
           setVersionFilter={this.setVersionFilter}
           viewExtendedNotes={this.props.viewExtendedNotes.bind(null, "Connections")}
           checkIntentTimer={this.props.checkIntentTimer}
+          translationLanguagePreference={this.props.translationLanguagePreference}
           key="connections" />
       );
     }
@@ -1042,7 +1044,7 @@ class ReaderPanel extends Component {
     }
 
     let classes  = {readerPanel: 1, serif: 1, narrowColumn: this.state.width < 730};
-    classes[contextContentLang.language] = 1
+    classes[contextContentLang.language] = 1;
     classes[this.currentLayout()]        = 1;
     classes[this.state.settings.color]   = 1;
     classes = classNames(classes);
@@ -1088,6 +1090,8 @@ class ReaderPanel extends Component {
             toggleSignUpModal={this.props.toggleSignUpModal}
             historyObject={this.props.getHistoryObject(this.state, this.props.hasSidebar)}
             connectionData={this.state.connectionData}
+            translationLanguagePreference={this.props.translationLanguagePreference}
+            setTranslationLanguagePreference={this.props.setTranslationLanguagePreference}
           />}
 
           {(items.length > 0 && !menu) ?
@@ -1181,6 +1185,8 @@ ReaderPanel.propTypes = {
   toggleSignUpModal:           PropTypes.func.isRequired,
   getHistoryRef:               PropTypes.func,
   profile:                     PropTypes.object,
+  translationLanguagePreference: PropTypes.string,
+  setTranslationLanguagePreference: PropTypes.func.isRequired,
 };
 
 
@@ -1203,7 +1209,7 @@ class ReaderControls extends Component {
     const title = this.props.currentRef;
     if (title) {
       // If we don't have this data yet, rerender when we do so we can set the Hebrew title
-      const getTextPromise = Sefaria.getText(title, {context: 1}).then(data => {
+      const getTextPromise = Sefaria.getText(title, {context: 1, translationLanguagePreference: this.props.translationLanguagePreference}).then(data => {
         if ("error" in data) { this.props.onError(data.error); }
         this.setState({runningQuery: null});   // Causes re-render
       });
@@ -1318,7 +1324,7 @@ class ReaderControls extends Component {
           />
           <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
         </div>);
-
+    let transLangPrefSuggBann = hideHeader || connectionsHeader ? null : <TranslationLanguagePreferenceSuggestionBanner setTranslationLanguagePreference={this.props.setTranslationLanguagePreference} />;
     const classes = classNames({
       readerControls: 1,
       connectionsHeader: mode == "Connections",
@@ -1338,6 +1344,7 @@ class ReaderControls extends Component {
       <div>
         {connectionsHeader ? null : <CategoryColorLine category={this.props.currentCategory()} />}
         {readerControls}
+        {transLangPrefSuggBann}
       </div>
     );
   }
@@ -1366,7 +1373,63 @@ ReaderControls.propTypes = {
   interfaceLang:           PropTypes.string,
   toggleSignUpModal:       PropTypes.func.isRequired,
   historyObject:           PropTypes.object,
+  setTranslationLanguagePreference: PropTypes.func.isRequired,
 };
+
+
+const TranslationLanguagePreferenceSuggestionBanner = ({ setTranslationLanguagePreference }) => {
+  const [accepted, setAccepted] = useState(false);
+  const [closed, setClosed] = useState(false);
+
+  const cookie = Sefaria._inBrowser ? $.cookie : Sefaria.util.cookie;
+  const { translation_language_preference_suggestion } = Sefaria;
+  if (closed || (!accepted && cookie("translation_language_preference_suggested")) || !translation_language_preference_suggestion) {
+    return null;
+  }
+  const closeBanner = () => {
+    setClosed(true);
+    cookie("translation_language_preference_suggested", JSON.stringify(1), {path: "/"});
+    Sefaria.editProfileAPI({settings: {translation_language_preference_suggested: true}});
+  }
+  const accept = () => {
+    setAccepted(true);
+    setTranslationLanguagePreference(translation_language_preference_suggestion);
+  }
+  const lang = Sefaria.translateISOLanguageCode(translation_language_preference_suggestion);
+
+  return (
+    <div className="readerControls transLangPrefSuggBann">
+      <div className="readerControlsInner transLangPrefSuggBannInner sans-serif">
+        {
+          accepted ? (
+            <div className="transLangPrefCentered">
+              <InterfaceText>
+                  <EnglishText> Thanks! We'll show you {lang} translations first when we have them. </EnglishText>
+                  <HebrewText>תודה! כשנוכל, נציג לכם תרגומים בשפה ה<span className="bold">{Sefaria._(lang)}</span> כאשר אלו יהיו זמינים. </HebrewText>
+              </InterfaceText>              
+            </div>
+          ) : (
+            <div className="transLangPrefCentered">
+            <InterfaceText>
+                <EnglishText> Prefer to see <span className="bold"> {lang} </span> translations when available? </EnglishText>
+                <HebrewText>האם תעדיפו לראות תרגומים בשפה ה<span className="bold">{Sefaria._(lang)}</span> כאשר הם זמינים?</HebrewText>
+            </InterfaceText>
+            <div className="yesNoGroup">
+              <a className="yesNoButton" onClick={accept}>
+                <InterfaceText>Yes</InterfaceText>
+              </a>
+              <a className="yesNoButton" onClick={closeBanner}>
+                <InterfaceText>No</InterfaceText>
+              </a>
+            </div>
+          </div>
+          )
+        }
+        <ReaderNavigationMenuCloseButton onClick={closeBanner} />
+      </div>
+    </div>
+  );
+}
 
 
 class ReaderDisplayOptionsMenu extends Component {

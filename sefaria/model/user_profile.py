@@ -347,7 +347,8 @@ class UserProfile(object):
             "email_notifications": "daily",
             "interface_language": "english",
             "textual_custom" : "sephardi",
-            "reading_history" : True
+            "reading_history" : True,
+            "translation_language_preference": None,
         }
         # dict that stores the last time an attr has been modified
         self.attr_time_stamps = {
@@ -447,6 +448,10 @@ class UserProfile(object):
         """
         if not ignore_flags_on_init:
             self._set_flags_on_update(obj)
+        if "settings" in obj and "settings" in self.__dict__:
+            # merge settings separately since it itself is a dict. want to allow partial settings to be passed to update.
+            self.__dict__["settings"].update(obj["settings"])
+            obj["settings"] = self.__dict__["settings"]
         self.__dict__.update(obj)
 
         return self
