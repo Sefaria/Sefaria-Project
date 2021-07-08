@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "jwt-decode": "^2.2.0",
-    "node-fetch": "^2.6.0",
+    "node-fetch": "^2.6.1",
     "node-static": "^0.7.10",
     "os": "0.1.1",
     "socket.io": "^2.0.0",
