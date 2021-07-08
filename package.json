@@ -67,7 +67,7 @@
     "react-image-crop": "^8.3.1",
     "react-jsonschema-form": "^1.0.0",
     "react-tag-autocomplete": "^6.1.0",
-    "redis": "^2.8.0",
+    "redis": "^3.1.1",
     "regenerator-runtime": "^0.13.7",
     "request": "^2.72.0",
     "sanitize-html": "^1.16.3",
