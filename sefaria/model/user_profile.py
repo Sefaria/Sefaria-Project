@@ -381,16 +381,6 @@ class UserProfile(object):
             self.interrupting_messages = []
             self.save()
 
-
-        # Profile Pic default to Gravatar
-        if len(self.profile_pic_url) == 0:
-            default_image           = "https://www.sefaria.org/static/img/profile-default.png"
-            gravatar_base           = "https://www.gravatar.com/avatar/" + hashlib.md5(self.email.lower().encode('utf-8')).hexdigest() + "?"
-            gravatar_url       = gravatar_base + urllib.parse.urlencode({'d':default_image, 's':str(250)})
-            gravatar_url_small = gravatar_base + urllib.parse.urlencode({'d':default_image, 's':str(80)})
-            self.profile_pic_url = gravatar_url
-            self.profile_pic_url_small = gravatar_url_small
-
     @property
     def full_name(self):
         return self.first_name + " " + self.last_name
