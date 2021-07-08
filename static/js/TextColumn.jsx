@@ -355,6 +355,7 @@ class TextColumn extends Component {
         panelsOpen={this.props.panelsOpen}
         layoutWidth={this.props.layoutWidth}
         unsetTextHighlight={this.props.unsetTextHighlight}
+        translationLanguagePreference={this.props.translationLanguagePreference}
         key={ref} />);
     }.bind(this));
 
@@ -417,6 +418,7 @@ TextColumn.propTypes = {
   hasSidebar:             PropTypes.bool,
   textHighlights:         PropTypes.array,
   unsetTextHighlight:     PropTypes.func,
+  translationLanguagePreference: PropTypes.string,
 };
 
 
