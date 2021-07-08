@@ -70,7 +70,7 @@
     "redis": "^2.8.0",
     "regenerator-runtime": "^0.13.7",
     "request": "^2.72.0",
-    "sanitize-html": "^1.16.3",
+    "sanitize-html": "^2.3.2",
     "slate": "0.62.0",
     "slate-history": "0.62.0",
     "slate-hyperscript": "0.62.0",
