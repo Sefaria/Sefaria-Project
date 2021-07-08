@@ -787,6 +787,28 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
         """
         return self.title_group.add_title(text, lang, primary, replace_primary, presentation)
 
+    def ref_part_titles(self, lang):
+        """
+        Return all titles corresponding to `self.ref_part_terms`
+        Titles are created by calculating the cartesian product of all the titles of the ref_part_terms
+        Optional ref_part_terms are accounted for
+        """
+        from sefaria.model.ref_part import NonUniqueTerm
+        from itertools import product
+
+        if not getattr(self, 'ref_part_terms', False): return []
+        terms = [NonUniqueTerm.init(term_slug) for term_slug in self.ref_part_terms]
+        term_combos_excluding_optional = [terms]
+        for temp_term, is_optional in zip(terms, getattr(self, 'ref_parts_optional', [False]*len(self.ref_part_terms))):
+            if not is_optional: continue
+            other_terms = [other_term for other_term in terms if other_term.slug != temp_term.slug]
+            term_combos_excluding_optional += [other_terms]
+        titles = []
+        for term_combo in term_combos_excluding_optional:
+            titles_for_product = [term.get_titles(lang) for term in term_combo]
+            titles += [' '.join(title_tup) for title_tup in product(*titles_for_product)]
+        return titles
+
     def validate(self):
         super(TitledTreeNode, self).validate()
 
@@ -861,7 +883,7 @@ class NumberedTitledTreeNode(TitledTreeNode):
     A :class:`TreeNode` that can address its :class:`TreeNode` children by Integer, or other :class:`AddressType`.
     """
     required_param_keys = ["depth", "addressTypes", "sectionNames"]
-    optional_param_keys = ["lengths", "referenceableSections", "isSegmentLevelDiburHamatchil"]
+    optional_param_keys = ["lengths"]
 
     def __init__(self, serial=None, **kwargs):
         """
@@ -1057,7 +1079,7 @@ class NumberedTitledTreeNode(TitledTreeNode):
             serial[list_attr] = serial[list_attr][next_refereceable_depth:]
         if serial['depth'] == 1 and getattr(self, 'isSegmentLevelDiburHamatchil', False):
             return DiburHamatchilNodeSet({"container_refs": context_ref.normal()})
-        return self.__class__(serial=serial, index=self.index, **kwargs)
+        return self.__class__(serial=serial, index=getattr(self, 'index', None), **kwargs)
 
 class DiburHamatchilNode(abst.AbstractMongoRecord):
     """
@@ -1096,7 +1118,7 @@ class ArrayMapNode(NumberedTitledTreeNode):
     (e.g., Parsha structures of chapter/verse stored Tanach, or Perek structures of Daf/Line stored Talmud)
     """
     required_param_keys = ["depth", "wholeRef"]
-    optional_param_keys = ["lengths", "addressTypes", "sectionNames", "refs", "includeSections", "startingAddress"]  # "addressTypes", "sectionNames", "refs" are not required for depth 0, but are required for depth 1 +
+    optional_param_keys = ["lengths", "addressTypes", "sectionNames", "refs", "includeSections", "startingAddress", "ref_part_terms", "ref_parts_optional", "referenceableSections", "isSegmentLevelDiburHamatchil"]  # "addressTypes", "sectionNames", "refs" are not required for depth 0, but are required for depth 1 +
     has_key = False  # This is not used as schema for content
 
     def get_ref_from_sections(self, sections):
@@ -1449,7 +1471,7 @@ class JaggedArrayNode(SchemaNode, NumberedTitledTreeNode):
     - Structure Nodes whose children can be addressed by Integer or other :class:`AddressType`
     - Content Nodes that define the schema for JaggedArray stored content
     """
-    optional_param_keys = SchemaNode.optional_param_keys + NumberedTitledTreeNode.optional_param_keys + ["lengths", "toc_zoom"]
+    optional_param_keys = SchemaNode.optional_param_keys + ["lengths", "toc_zoom", "referenceableSections", "isSegmentLevelDiburHamatchil"]
 
     def __init__(self, serial=None, **kwargs):
         # call SchemaContentNode.__init__, then the additional parts from NumberedTitledTreeNode.__init__

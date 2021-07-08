@@ -94,11 +94,10 @@ class RawRefPartMatch:
                     to_ref = self.ref.subref(toSec)
                     refined_ref = refined_ref.to(to_ref)
                 matches += [RawRefPartMatch(refined_ref_parts, node, refined_ref)]
-        elif raw_ref_part.type == RefPartType.NAMED and isinstance(node, schema.ArrayMapNode):
-            pass
-        elif raw_ref_part.type == RefPartType.NAMED and isinstance(node, schema.SchemaNode):
-            if raw_ref_part.text in getattr(node, 'ref_parts', set()):
-                matches += [RawRefPartMatch(refined_ref_parts, node, node.ref())]
+        elif raw_ref_part.type == RefPartType.NAMED and isinstance(node, schema.TitledTreeNode):
+            if raw_ref_part.text in node.ref_part_titles(lang):
+                node_ref = text.Ref(node.wholeRef) if isinstance(node, schema.ArrayMapNode) else node.ref()
+                matches += [RawRefPartMatch(refined_ref_parts, node, node_ref)]
         elif raw_ref_part.type == RefPartType.DH and isinstance(node, schema.DiburHamatchilNodeSet):
             max_node, max_score = node.best_fuzzy_match_score(raw_ref_part)
             if max_score == 1.0:

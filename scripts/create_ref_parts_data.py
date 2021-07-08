@@ -5,19 +5,15 @@ from sefaria.model import *
 from sefaria.model.abstract import AbstractMongoRecord
 from sefaria.model.schema import DiburHamatchilNode, DiburHamatchilNodeSet
 
-def t(en, he):
+def t(**kwargs):
+    slug = kwargs.get('en', kwargs.get('he'))
     term = NonUniqueTerm({
-        "slug": en,
-        "titles": [{
-            "text": en,
-            "lang": "en",
-            "primary": True
-        },{
-            "text": he,
-            "lang": "he",
-            "primary": True
-        }]
+        "slug": slug,
+        "titles": []
     })
+    for lang in ('en', 'he'):
+        if kwargs.get(lang, False):
+            term.title_group.add_title(kwargs.get(lang), lang, primary=True)
     term.save()
     return term
 
@@ -35,8 +31,9 @@ def create_non_unique_terms():
     NonUniqueTermSet().delete()
     DiburHamatchilNodeSet().delete()
 
-    bavli = t('Bavli', 'בבלי')
-    rashi = t('Rashi', 'רש"י')
+    bavli = t(en='Bavli', he='בבלי')
+    rashi = t(en='Rashi', he='רש"י')
+    perek = t(en='Perek', he='פרק')
 
     minor_tractates = {title for title in library.get_indexes_in_category("Minor Tractates")}
     indexes = library.get_indexes_in_category("Bavli", full_records=True)
@@ -49,6 +46,12 @@ def create_non_unique_terms():
         index_term.save()
         index.nodes.ref_part_terms = [bavli.slug, index_term.slug]
         index.nodes.ref_parts_optional = [True, False]
+
+        # add perek terms
+        for perek_node in index.get_alt_struct_nodes():
+            perek_term = t(he=perek_node.get_primary_title('he'))  # TODO english titles are 'Chapter N'. Is that an issue?
+            perek_node.ref_part_terms = [perek.slug, perek_term.slug]
+            perek_node.ref_parts_optional = [True, False]
         index.save()
 
     # Rashi
