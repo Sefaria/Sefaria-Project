@@ -9,5 +9,6 @@ SITE_SETTINGS = {
 	"LIBRARY_NAME": {
 		"en": "The Sefaria Library",
 		"he": "האוסף של ספריא",
-	}
+	},
+	"SUPPORTED_TRANSLATION_LANGUAGES": ['en', 'es', 'fr', 'de'],
 }

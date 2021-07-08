@@ -88,6 +88,7 @@ const Strings = {
     "Indent Source": "הזחת מקור פנימה",
     "Create New" : "יצירת חדש",
     "Close" : "סגירה",
+    "Reset": "איפוס",
 
     //publish flow:
     "Not Published" : "לא פורסם",
@@ -230,6 +231,8 @@ const Strings = {
 
     "On": "הצג",
     "Off": "הסתר",
+    "Yes": "כן",
+    "No": "לא",
     "Show Parasha Aliyot": "עליות לתורה מוצגות",
     "Hide Parasha Aliyot": "עליות לתורה מוסתרות",
     "Language": "שפה",
@@ -293,6 +296,7 @@ const Strings = {
     "Read the Portion": "קראו את הפרשה",
     "My Notes": "הרשומות שלי",
     "Updates": "טקסטים חדשים",
+    "Preferred Translation": "תרגום מועדף",
 
     //user stats
     "Torah Tracker" : "לימוד במספרים",
