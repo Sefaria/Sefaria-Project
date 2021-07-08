@@ -218,15 +218,16 @@ def base_props(request):
         "initialPath": request.get_full_path(),
         "interfaceLang": request.interfaceLang,
         "initialSettings": {
-            "language":      getattr(request, "contentLang", "english"),
-            "layoutDefault": request.COOKIES.get("layoutDefault", "segmented"),
-            "layoutTalmud":  request.COOKIES.get("layoutTalmud", "continuous"),
-            "layoutTanakh":  request.COOKIES.get("layoutTanakh", "segmented"),
-            "aliyotTorah":   request.COOKIES.get("aliyotTorah", "aliyotOff"),
-            "vowels":        request.COOKIES.get("vowels", "all"),
-            "biLayout":      request.COOKIES.get("biLayout", "stacked"),
-            "color":         request.COOKIES.get("color", "light"),
-            "fontSize":      request.COOKIES.get("fontSize", 62.5),
+            "language":          getattr(request, "contentLang", "english"),
+            "layoutDefault":     request.COOKIES.get("layoutDefault", "segmented"),
+            "layoutTalmud":      request.COOKIES.get("layoutTalmud", "continuous"),
+            "layoutTanakh":      request.COOKIES.get("layoutTanakh", "segmented"),
+            "aliyotTorah":       request.COOKIES.get("aliyotTorah", "aliyotOff"),
+            "vowels":            request.COOKIES.get("vowels", "all"),
+            "punctuationTalmud": request.COOKIES.get("punctuationTalmud", "punctuationOn"),
+            "biLayout":          request.COOKIES.get("biLayout", "stacked"),
+            "color":             request.COOKIES.get("color", "light"),
+            "fontSize":          request.COOKIES.get("fontSize", 62.5),
         },
         "_siteSettings": SITE_SETTINGS,
         "_debug": DEBUG,
@@ -399,7 +400,7 @@ def make_sheet_panel_dict(sheet_id, filter, **kwargs):
 
     db.sheets.update({"id": sheet_id}, {"$inc": {"views": 1}})
     sheet = get_sheet_for_panel(sheet_id)
-    if "error" in sheet:
+    if "error" in sheet and sheet["error"] != "Sheet updated.":
         raise Http404
     sheet["ownerProfileUrl"] = public_user_data(sheet["owner"])["profileUrl"]
 

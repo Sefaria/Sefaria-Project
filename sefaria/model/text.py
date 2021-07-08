@@ -2149,7 +2149,7 @@ class TextFamily(object):
                 #then count how many links came from that version. If any- do the wrapping.
                 from . import Link
                 query = oref.ref_regex_query()
-                query.update({"generated_by": "add_links_from_text"})  # , "source_text_oid": {"$in": c.version_ids()}
+                query.update({"inline_citation": True})  # , "source_text_oid": {"$in": c.version_ids()}
                 if Link().load(query) is not None:
                     text_modification_funcs += [lambda s, secs: library.get_wrapped_refs_string(s, lang=language, citing_only=True)]
             padded_sections, _ = oref.get_padded_sections()
@@ -2711,15 +2711,19 @@ class Ref(object, metaclass=RefCacheType):
             base_wout_title = base.replace(title + " ", "")
             address_class.parse_range_end(self, parts, base_wout_title)
         elif len(parts) == 2: # Parse range end portion, if it exists
-            self.__init_ref_pointer_vars()  # clear out any mistaken partial representations
-            range_parts = re.split("[.:, ]+", parts[1])
-            delta = len(self.sections) - len(range_parts)
-            for i in range(delta, len(self.sections)):
-                try:
-                    self.toSections[i] = self.index_node._addressTypes[i].toNumber(self._lang,
-                                                                                   range_parts[i - delta], sections=self.sections[i])
-                except (ValueError, IndexError):
-                    raise InputError("Couldn't understand text sections: '{}'.".format(self.tref))
+            self._parse_range_end(re.split("[.:, ]+", parts[1]))
+
+
+    def _parse_range_end(self, range_parts):
+        self.__init_ref_pointer_vars()  # clear out any mistaken partial representations
+        delta = len(self.sections) - len(range_parts)
+        for i in range(delta, len(self.sections)):
+            try:
+                self.toSections[i] = self.index_node._addressTypes[i].toNumber(self._lang,
+                                                                                range_parts[i - delta], sections=self.sections[i])
+            except (ValueError, IndexError):
+                raise InputError("Couldn't understand text sections: '{}'.".format(self.tref))
+
 
     def __get_sections(self, reg, tref, use_node=None):
         use_node = use_node or self.index_node
