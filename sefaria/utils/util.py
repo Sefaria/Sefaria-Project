@@ -502,3 +502,19 @@ def traverse_dict_tree(dict_tree: dict, key_list: list):
     for key in key_list:
         current_node = current_node[key]
     return current_node
+
+def get_lang_codes_for_territory(territory_code, min_pop_perc=0.2, official_status=False):
+    """
+    Wrapper for babel.languages.get_territory_language_info
+    Documentation here: https://github.com/python-babel/babel/blob/master/babel/languages.py#L45 (strange that this function isn't documented on their official site)
+
+    :param territory_code: two letter territory ISO code. If doesn't match anything babel recognizes, returns empty array
+    :param min_pop_perc: min population percentage of language usage in territory. stats are likely only mildly accurate but good enough
+    :param official_status: the status of the language in the territory. I think this can be 'official', 'de_facto_official', None, 'official_regional'. False means return all.
+    
+    returns array of ISO lang codes
+    """
+    from babel import languages
+    lang_dict = languages.get_territory_language_info(territory_code)
+    langs = [lang_code for lang_code, _ in filter(lambda x: x[1]['population_percent'] >= (min_pop_perc*100) and ((official_status == False) or x[1]['official_status'] == official_status), lang_dict.items())]
+    return langs

@@ -12,7 +12,7 @@ from django.http import HttpResponse
 from sefaria.settings import *
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.model.user_profile import UserProfile
-from sefaria.utils.util import short_to_long_lang_code
+from sefaria.utils.util import short_to_long_lang_code, get_lang_codes_for_territory
 from sefaria.system.cache import get_shared_cache_elem, set_shared_cache_elem
 from django.utils.deprecation import MiddlewareMixin
 
@@ -53,11 +53,11 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
             request.contentLang = "bilingual"
             return # Save looking up a UserProfile, or redirecting when not needed
 
+        profile = UserProfile(id=request.user.id) if request.user.is_authenticated else None
         # INTERFACE 
         # Our logic for setting interface lang checks (1) User profile, (2) cookie, (3) geolocation, (4) HTTP language code
         interface = None
         if request.user.is_authenticated and not interface:
-            profile = UserProfile(id=request.user.id)
             interface = profile.settings["interface_language"] if "interface_language" in profile.settings else interface 
         if not interface: 
             # Pull language setting from cookie, location (set by Cloudflare) or Accept-Lanugage header or default to english
@@ -102,9 +102,23 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
             content = "english"
             interface = "english"
 
+        # TRANSLATION LANGUAGE PREFERENCE
+        translation_language_preference = (profile is not None and profile.settings.get("translation_language_preference", None)) or request.COOKIES.get("translation_language_preference", None)
+        langs_in_country = get_lang_codes_for_territory(request.META.get("HTTP_CF_IPCOUNTRY", None))
+        translation_language_preference_suggestion = None
+        trans_lang_pref_suggested = (profile is not None and profile.settings.get("translation_language_preference_suggested", False)) or request.COOKIES.get("translation_language_preference_suggested", False)
+        if translation_language_preference is None and not trans_lang_pref_suggested:
+            supported_translation_langs = set(SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES'])
+            for lang in langs_in_country:
+                if lang in supported_translation_langs:
+                    translation_language_preference_suggestion = lang
+                    break             
+
         request.LANGUAGE_CODE = interface[0:2]
         request.interfaceLang = interface
         request.contentLang   = content
+        request.translation_language_preference = translation_language_preference
+        request.translation_language_preference_suggestion = translation_language_preference_suggestion
 
         translation.activate(request.LANGUAGE_CODE)
 

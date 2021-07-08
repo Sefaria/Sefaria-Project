@@ -1421,7 +1421,7 @@ const Link = ({ attributes, children, element }) => {
   const selected = useSelected();
   const [linkPopoverVisible, setLinkPopoverVisible] = useState(false);
   const [urlValue, setUrlValue] = useState(element.url);
-  const [currentSlateRange, setCurrentSlateRange] = useState(null)
+  const [currentSlateRange, setCurrentSlateRange] = useState(editor.linkOverrideSelection)
 
 
   let showLinkHoverTimeout;
@@ -1450,10 +1450,16 @@ const Link = ({ attributes, children, element }) => {
     }
 
     const xClicked = () => {
-        console.log(currentSlateRange)
         Transforms.select(editor, currentSlateRange);
         editor.removeLink();
+        editor.showLinkOverride = false;
+        editor.linkOverrideSelection = null;
         // Transforms.collapse(editor);
+    }
+
+    const closePopup = () => {
+        editor.showLinkOverride = false;
+        editor.linkOverrideSelection = null;
     }
 
     const fixUrl = (s) => {
@@ -1488,8 +1494,10 @@ const Link = ({ attributes, children, element }) => {
         >
             {children}
         </a>
-      {linkPopoverVisible ? (
-        <div className="popup" contentEditable={false}>
+
+      {/* Show popup on hover and also force it open when a new link is created  */}
+      {linkPopoverVisible || (editor.showLinkOverride && Path.isDescendant(editor.linkOverrideSelection.anchor.path, ReactEditor.findPath(editor, element))) ? (
+        <div className="popup" contentEditable={false} onBlur={closePopup}>
           <input
               type="text"
               value={urlValue}
@@ -1726,16 +1734,14 @@ const AddLinkButton = () => {
         <span className="hoverButton"
               onMouseDown={event => {
                   event.preventDefault();
-                  console.log(
-                      // ReactEditor.toDOMNode(editor,
-                          (Node.get(editor, editor.selection))
-                      // )
-
-                      )
-
                   wrapLink(editor, "")
-                  const mouseenterEvent = new Event('mouseenter');
-                  // whateverElement.dispatchEvent(mouseoverEvent);
+                  editor.showLinkOverride = true;
+                  editor.linkOverrideSelection = editor.selection;
+                  // Timeout required b/c it takes a moment for react to rerender before focusing on the new input
+                  setTimeout(() => {
+                      document.querySelector(".popup input").focus()
+                  }, 50);
+
               }}
         >
       <i className={classNames(classes)}/>

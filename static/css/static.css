@@ -1107,6 +1107,9 @@ p.registration-links a:hover{
 .static .tripleOption .toggleOption {
   width: 33.3%;
 }
+.static .quadrupleOption .toggleOption {
+  width: 25%;
+}
 .static .toggleOption {
   background-color: white;
   color: #666;
