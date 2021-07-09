@@ -54,6 +54,8 @@ from sefaria.clean import remove_old_counts
 from sefaria.search import index_sheets_by_timestamp as search_index_sheets_by_timestamp
 from sefaria.model import *
 from sefaria.system.multiserver.coordinator import server_coordinator
+from sefaria.google_storage_manager import GoogleStorageManager
+
 
 from reader.views import render_template
 
@@ -67,6 +69,11 @@ logger = structlog.get_logger(__name__)
 
 
 def process_register_form(request, auth_method='session'):
+    from sefaria.utils.util import epoch_time
+    from sefaria.helper.file import get_resized_file
+    import hashlib
+    import urllib.parse, urllib.request
+    from PIL import Image
     form = SefariaNewUserForm(request.POST) if auth_method == 'session' else SefariaNewUserFormAPI(request.POST)
     token_dict = None
     if form.is_valid():
@@ -80,7 +87,21 @@ def process_register_form(request, auth_method='session'):
             if hasattr(request, "interfaceLang"):
                 p.settings["interface_language"] = request.interfaceLang
 
+
+            # auto-add profile pic from gravatar if exists
+            email_hash = hashlib.md5(p.email.lower().encode('utf-8')).hexdigest()
+            gravatar_url = "https://www.gravatar.com/avatar/" + email_hash + "?d=404&s=250"
+            with urllib.request.urlopen(gravatar_url) as r:
+                if r.getcode() != 404:
+                    bucket_name = GoogleStorageManager.PROFILES_BUCKET
+                    with Image.open(r) as image:
+                        now = epoch_time()
+                        big_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (250, 250)), "{}-{}.png".format(p.slug, now), bucket_name, None)
+                        small_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (80, 80)), "{}-{}-small.png".format(p.slug, now), bucket_name, None)
+                        p.profile_pic_url = big_pic_url
+                        p.profile_pic_url_small = small_pic_url
             p.save()
+
         if auth_method == 'session':
             auth_login(request, user)
         elif auth_method == 'jwt':
