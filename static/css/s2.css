@@ -9342,6 +9342,13 @@ img.smallProfileImage {
   margin: 10px 0;
   text-align: justify;
 }
+
+.story .storySheetListItem > div.storyBody.sheetSummary > *{
+  color: var(--dark-grey);
+  font-family: var(--english-sans-serif-font-family);
+  font-size: 15px;
+}
+
 .story .contentText .en {
   line-height: 1.6;
 }
