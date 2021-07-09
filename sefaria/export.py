@@ -554,26 +554,26 @@ def export_links():
     write_aggregate_file(links_by_book_without_commentary, "links_by_book_without_commentary.csv")
 
 
-def export_tag_graph():
-    print("Exporting tag graph...")
+def export_topic_graph():
+    print("Exporting topic graph...")
     counts = Counter()
     sheets = db.sheets.find()
-    tags = db.sheets.distinct("tags")
-    for tag in tags:
-        sheets = db.sheets.find({"tags": tag})
+    topics = db.sheets.distinct("topics")
+    for topic in topics:
+        sheets = db.sheets.find({"topics.asTyped": topic["asTyped"]})
         for sheet in sheets:
-            for tag2 in sheet["tags"]:
-                if tag != tag2:
-                    counts[tuple(sorted([tag, tag2]))] += 0.5
+            for topic2 in sheet["topics"]:
+                if topic["asTyped"] != topic2["asTyped"]:
+                    counts[tuple(sorted([topic["asTyped"], topic2["asTyped"]]))] += 0.5
 
     path = SEFARIA_EXPORT_PATH + "/misc/"
     if not os.path.exists(path):
         os.makedirs(path)
-    with open(path + "tag_graph.csv", 'wb') as csvfile:
+    with open(path + "topic_graph.csv", 'wb') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow([
-            "Tag 1",
-            "Tag 2",
+            "Topic 1",
+            "Topic 2",
             "Co-occurrence Count",
         ])
         for link in counts.most_common():
@@ -602,7 +602,7 @@ def export_all():
     export_links()
     export_schemas()
     export_toc()
-    export_tag_graph()
+    export_topic_graph()
     make_export_log()
     print_errors()
 

@@ -284,6 +284,8 @@ class Header extends Component {
                           analyticsInitialized={this.props.analyticsInitialized}
                           getLicenseMap={this.props.getLicenseMap}
                           toggleSignUpModal={this.props.toggleSignUpModal}
+                          translationLanguagePreference={this.props.translationLanguagePreference}
+                          setTranslationLanguagePreference={this.props.setTranslationLanguagePreference}
                         />) : null;
 
     // Header should not show box-shadow over panels that have color line
@@ -318,7 +320,7 @@ class Header extends Component {
                       <LoggedOutButtons headerMode={this.props.headerMode}/>
                   }
                   { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ? <HelpButton/>: null}
-                  { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ? <InterfaceLanguageMenu currentLang={Sefaria.interfaceLang} /> : null}
+                  { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ? <InterfaceLanguageMenu currentLang={Sefaria.interfaceLang} translationLanguagePreference={this.props.translationLanguagePreference} setTranslationLanguagePreference={this.props.setTranslationLanguagePreference} /> : null}
                 </div>
               </div>
               { viewContent ?

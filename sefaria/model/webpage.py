@@ -173,7 +173,7 @@ class WebPage(abst.AbstractMongoRecord):
         title = str(self.title)
         title = title.replace("&amp;", "&")
         brands = [self.site_name] + self._site_data.get("title_branding", [])
-        separators = [("-", ' '), ("|", ' '), ("—", ' '), ("–", ' '), ("»", ' '), ("•", ' '), (":", '')]
+        separators = [("-", ' '), ("|", ' '), ("—", ' '), ("–", ' '), ("»", ' '), ("•", ' '), (":", ''), ("⋆", ' ')]
         for separator, padding in separators:
             for brand in brands:
                 if self._site_data.get("initial_title_branding", False):
@@ -462,3 +462,4 @@ def find_sites_that_may_have_removed_linker(last_linker_activity_day=20):
             w = ws.array()[0]
             if w.lastUpdated < last_active_threshold:
                 print(f"ALERT! {domain} has removed the linker!")
+

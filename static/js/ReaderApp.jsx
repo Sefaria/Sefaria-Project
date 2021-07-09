@@ -238,6 +238,7 @@ class ReaderApp extends Component {
       panelCap: props.initialPanelCap,
       initialAnalyticsTracked: false,
       showSignUpModal: false,
+      translationLanguagePreference: props.translationLanguagePreference,
     };
   }
   componentDidMount() {
@@ -943,15 +944,16 @@ class ReaderApp extends Component {
       return this.props.initialSettings;
     } else {
       return {
-        language:      "bilingual",
-        layoutDefault: "segmented",
-        layoutTalmud:  "continuous",
-        layoutTanakh:  "segmented",
-        aliyotTorah:   "aliyotOff",
-        vowels:        "all",
-        biLayout:      "stacked",
-        color:         "light",
-        fontSize:      62.5
+        language:          "bilingual",
+        layoutDefault:     "segmented",
+        layoutTalmud:      "continuous",
+        layoutTanakh:      "segmented",
+        aliyotTorah:       "aliyotOff",
+        vowels:            "all",
+        punctuationTalmud: "punctuationOn",
+        biLayout:          "stacked",
+        color:             "light",
+        fontSize:          62.5
       };
     }
   }
@@ -1106,7 +1108,7 @@ class ReaderApp extends Component {
       this.showLibrary();
 
     } else if (path.match(/\/texts\/.+/)) {
-      this.showLibrary(path.slice(7).split("/"));
+      this.showLibrary(path.slice(7).split("/").map(decodeURI));
 
     } else if (path == "/collections") {
       this.showCollections();
@@ -1734,6 +1736,19 @@ class ReaderApp extends Component {
       sheet_title,
     };
   }
+  setTranslationLanguagePreference(lang) {
+    let suggested = true;
+    if (lang === null) {
+      suggested = false;
+      $.removeCookie("translation_language_preference", {path: "/"});
+      $.removeCookie("translation_language_preference_suggested", {path: "/"});
+    } else {
+      $.cookie("translation_language_preference", lang, {path: "/"});
+      $.cookie("translation_language_preference_suggested", JSON.stringify(1), {path: "/"});
+    }
+    Sefaria.editProfileAPI({settings: {translation_language_preference: lang, translation_language_preference_suggested: suggested}});
+    this.setState({translationLanguagePreference: lang});
+  }
   doesPanelHaveSidebar(n) {
     return this.state.panels.length > n+1 && this.state.panels[n+1].mode == "Connections";
   }
@@ -1879,7 +1894,9 @@ class ReaderApp extends Component {
                     analyticsInitialized={this.state.initialAnalyticsTracked}
                     getLicenseMap={this.getLicenseMap}
                     openTopic={this.openTopic}
-                    toggleSignUpModal={this.toggleSignUpModal} />) : null;
+                    toggleSignUpModal={this.toggleSignUpModal}
+                    translationLanguagePreference={this.state.translationLanguagePreference}
+                    setTranslationLanguagePreference={this.setTranslationLanguagePreference} />) : null;
     var panels = [];
     var allOpenRefs = panelStates.filter( panel => panel.mode == "Text" && !panel.menuOpen)
                                   .map( panel => Sefaria.humanRef(panel.highlightedRefs.length ? panel.highlightedRefs : panel.refs));
@@ -1972,6 +1989,8 @@ class ReaderApp extends Component {
                       getHistoryObject={this.getHistoryObject}
                       clearSelectedWords={clearSelectedWords}
                       clearNamedEntity={clearNamedEntity}
+                      translationLanguagePreference={this.state.translationLanguagePreference}
+                      setTranslationLanguagePreference={this.setTranslationLanguagePreference}
                     />
                   </div>);
     }
@@ -2062,6 +2081,7 @@ export {
   EditCollectionPage,
   RemoteLearningPage,
   SheetsLandingPage,
+  ContestLandingPage,
   PBSC2020LandingPage,
   RambanLandingPage,
   EducatorsPage

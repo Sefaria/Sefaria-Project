@@ -1,3 +1,5 @@
+import "core-js/stable";
+import "regenerator-runtime/runtime";
 import d3  from 'd3';
 import Sefaria  from 'sefaria';
 import SefariaD3  from "./sefaria-d3/sefaria-d3";

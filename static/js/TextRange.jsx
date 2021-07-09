@@ -34,6 +34,7 @@ class TextRange extends Component {
         !this.props.highlightedRefs.compare(nextProps.highlightedRefs)) { return true; }
     if (this.props.currVersions.en !== nextProps.currVersions.en) { return true; }
     if (this.props.currVersions.he !== nextProps.currVersions.he) { return true; }
+    if (this.props.translationLanguagePreference !== nextProps.translationLanguagePreference) { return true; }
     // todo: figure out when and if this component receives settings at all
     if (nextProps.settings && this.props.settings &&
         (nextProps.settings.language !== this.props.settings.language ||
@@ -44,6 +45,7 @@ class TextRange extends Component {
           nextProps.settings.layoutTalmud !== this.props.settings.layoutTalmud ||
           nextProps.settings.biLayout !== this.props.settings.biLayout ||
           nextProps.settings.fontSize !== this.props.settings.fontSize ||
+          nextProps.settings.punctuationTalmud !== this.props.settings.punctuationTalmud ||
           nextProps.layoutWidth !== this.props.layoutWidth))     { return true; }
     // lowlight ?
 
@@ -62,6 +64,7 @@ class TextRange extends Component {
           prevProps.settings.biLayout !== this.props.settings.biLayout ||
           prevProps.settings.fontSize !== this.props.settings.fontSize ||
           prevProps.layoutWidth !== this.props.layoutWidth ||
+          prevProps.settings.punctuationTalmud !== this.props.settings.punctuationTalmud ||
           !!prevProps.filter !== !!this.props.filter ||
           (!!prevProps.filter && !prevProps.filter.compare(this.props.filter))) {
             // Rerender in case version has changed
@@ -96,7 +99,8 @@ class TextRange extends Component {
     let settings = {
       context: this.props.withContext ? 1 : 0,
       enVersion: this.props.currVersions.en || null,
-      heVersion: this.props.currVersions.he || null
+      heVersion: this.props.currVersions.he || null,
+      translationLanguagePreference: this.props.translationLanguagePreference,
     };
     let data = Sefaria.getTextFromCache(this.props.sref, settings);
 
@@ -176,7 +180,8 @@ class TextRange extends Component {
          context: 1,
          multiple: this.props.prefetchMultiple,
          enVersion: this.props.currVersions.en || null,
-         heVersion: this.props.currVersions.he || null
+         heVersion: this.props.currVersions.he || null,
+         translationLanguagePreference: this.props.translationLanguagePreference,
        }).then(ds => Array.isArray(ds) ? ds.map(d => this._prefetchLinksAndNotes(d)) : this._prefetchLinksAndNotes(ds));
      }
      if (data.prev) {
@@ -184,7 +189,8 @@ class TextRange extends Component {
          context: 1,
          multiple: -this.props.prefetchMultiple,
          enVersion: this.props.currVersions.en || null,
-         heVersion: this.props.currVersions.he || null
+         heVersion: this.props.currVersions.he || null,
+         translationLanguagePreference: this.props.translationLanguagePreference,
        }).then(ds => Array.isArray(ds) ? ds.map(d => this._prefetchLinksAndNotes(d)) : this._prefetchLinksAndNotes(ds));
      }
      if (data.indexTitle) {
@@ -253,6 +259,7 @@ class TextRange extends Component {
     }
     return null;
   }
+
   render() {
     const data = this.getText();
     let title, heTitle, ref;
@@ -278,16 +285,24 @@ class TextRange extends Component {
 
     const showSegmentNumbers = showNumberLabel && this.props.basetext;
 
-    const nre = /[\u0591-\u05af\u05bd\u05bf\u05c0\u05c4\u05c5\u200d]/g;
-    const cnre = /[\u0591-\u05bd\u05bf-\u05c5\u05c7\u200d]/g;
-    let strip_text_re = null;
+    // [\.\!\?\:\,\u05F4]+                                                                      # Match (and remove) one or more punctuation or gershayim
+    //    (?![\u0591-\u05bd\u05bf-\u05c5\u05c7\u200d\u05d0-\u05eA](?:[\.\!\?\:\,\u05F4\s]|$))   # So long as it's not immediately followed by one letter (followed by space, punctuation, endline, etc.)
+    // |—\s;                                                                                    # OR match (and remove) an mdash followed by a space
+    const punctuationre = /[\.\!\?\:\,\u05F4]+(?![\u0591-\u05bd\u05bf-\u05c5\u05c7\u200d\u05d0-\u05eA](?:[\.\!\?\:\,\u05F4\s]|$))|—\s/g;
+
+    const strip_punctuation_re = (this.props.settings?.language === "hebrew" || this.props.settings?.language === "bilingual") && this.props.settings?.punctuationTalmud === "punctuationOff" && data?.type === "Talmud" ? punctuationre : null;
+    const nre = /[\u0591-\u05af\u05bd\u05bf\u05c0\u05c4\u05c5\u200d]/g; // cantillation
+    const cnre = /[\u0591-\u05bd\u05bf-\u05c5\u05c7\u200d]/g; // cantillation and nikud
+    
+    let strip_vowels_re = null;
+
     if(this.props.settings && this.props.settings.language !== "english" && this.props.settings.vowels !== "all"){
-      strip_text_re = (this.props.settings.vowels == "partial") ? nre : cnre;
+      strip_vowels_re = (this.props.settings.vowels == "partial") ? nre : cnre;
     }
 
     let segments      = Sefaria.makeSegments(data, this.props.withContext);
-    if(segments.length > 0 && strip_text_re && !strip_text_re.test(segments[0].he)){
-      strip_text_re = null; //if the first segment doesnt even match as containing vowels or cantillation- stop
+    if(segments.length > 0 && strip_vowels_re && !strip_vowels_re.test(segments[0].he)){
+      strip_vowels_re = null; //if the first segment doesnt even match as containing vowels or cantillation- stop
     }
     let textSegments = segments.map((segment, i) => {
       let highlight = this.props.highlightedRefs && this.props.highlightedRefs.length ?        // if highlighted refs are explicitly set
@@ -310,7 +325,9 @@ class TextRange extends Component {
           );
         }
       }
-      segment.he = strip_text_re ? segment.he.replace(strip_text_re, "") : segment.he;
+      segment.he = strip_vowels_re ? segment.he.replace(strip_vowels_re, "") : segment.he;
+      segment.he = strip_punctuation_re ? segment.he.replace(strip_punctuation_re, "") : segment.he;
+
       return (
         <span key={i + segment.ref}>
           { parashahHeader }
@@ -424,6 +441,7 @@ TextRange.propTypes = {
   showActionLinks:        PropTypes.bool,
   inlineReference:        PropTypes.object,
   textHighlights:         PropTypes.array,
+  translationLanguagePreference: PropTypes.string,
 };
 TextRange.defaultProps = {
   currVersions: {en:null,he:null},
@@ -441,7 +459,6 @@ class TextSegment extends Component {
         !this.props.filter.compare(nextProps.filter))           { return true; }
     if (this.props.en !== nextProps.en
         || this.props.he !== nextProps.he)                      { return true; }
-
     return false;
   }
   componentDidUpdate(prevProps) {

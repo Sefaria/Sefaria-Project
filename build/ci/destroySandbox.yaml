@@ -5,8 +5,8 @@ substitutions:
   _GKE_REGION: placeholder
   _SANDBOX_NAME: deadbeef
   _SANDBOX_SUBDOMAIN: placeholder
-  # _MONGO_HOST: placeholder
-  # _MONGO_DATABASE: placeholder
+  _MONGO_HOST: placeholder
+#  _MONGO_DATABASE: placeholder
 
 steps:
 
@@ -19,6 +19,7 @@ steps:
     id: k8s-admin_clone
     wait_for: [ "-" ]
 
+
   #
   #
   # Helm Release Management
@@ -30,7 +31,24 @@ steps:
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=${_GKE_REGION}'
       - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'
-      - 'KUBECTL_VERSION=1.16'
+      - 'KUBECTL_VERSION=1.18'
+      - 'KUBECONFIG=/root/.kube/config'
+    wait_for: [ "-" ]
+
+  #
+  #
+  #  Delete Mongo DBs
+  #####################
+  - name: "gcr.io/${PROJECT_ID}/mongo-destroy"
+    id: delete mongo dbs
+    entrypoint: "/destroyMongo.bash"
+    env:
+      - 'SANDBOX_NAME=${_SANDBOX_NAME}'
+      - 'MONGO_HOST=${_MONGO_HOST}'
+      # kubectl Variables
+      - 'CLOUDSDK_COMPUTE_ZONE=${_GKE_REGION}'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'
+      - 'KUBECTL_VERSION=1.18'
       - 'KUBECONFIG=/root/.kube/config'
     wait_for: [ "-" ]
 
@@ -46,7 +64,7 @@ steps:
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=${_GKE_REGION}'
       - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'
-      - 'KUBECTL_VERSION=1.16'
+      - 'KUBECTL_VERSION=1.18'
       - 'KUBECONFIG=/root/.kube/config'
     wait_for:
       - delete_sandbox
@@ -70,9 +88,11 @@ steps:
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=${_GKE_REGION}'
       - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'
-      - 'KUBECTL_VERSION=1.16'
+      - 'KUBECTL_VERSION=1.18'
       - 'KUBECONFIG=/root/.kube/config'
     wait_for:
       - generate_ingress_values_file
       - delete_sandbox
+
+
 ...

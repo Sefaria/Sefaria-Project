@@ -443,7 +443,7 @@ class TextIndexer(object):
     @staticmethod
     def get_ref_version_list(oref, tries=0):
         try:
-            return oref.version_list()
+            return oref.index.versionSet().array()
         except InputError as e:
             print(f"InputError: {oref.normal()}")
             return []

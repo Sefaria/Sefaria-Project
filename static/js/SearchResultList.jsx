@@ -150,8 +150,8 @@ class SearchResultList extends Component {
       
       return Sefaria.util
         .zip(aggregation_field_array, aggregation_field_lang_suffix_array)
-        .filter(([agg, _]) => justUnapplied || agg !== lastAppliedAggType)        // remove lastAppliedAggType
-        .map(([agg, suffix_map]) => `${agg}${suffix_map ? suffix_map[interfaceLang] : ''}`); // add suffix based on interfaceLang to filter, if present in suffix_map
+        .map(([agg, suffix_map]) => `${agg}${suffix_map ? suffix_map[interfaceLang] : ''}`) // add suffix based on interfaceLang to filter, if present in suffix_map
+        .filter(agg => justUnapplied || agg !== lastAppliedAggType);                        // remove lastAppliedAggType
     }
     _executeQuery(props, type) {
       //This takes a props object, so as to be able to handle being called from componentWillReceiveProps with newProps
