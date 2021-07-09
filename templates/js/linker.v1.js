@@ -236,7 +236,7 @@
         }
 
         // Get regexes for each of the titles
-        atomic.get(base_url + "api/linker-data/" + matchedTitles.join("|") + '&url='+document.location.href)
+        atomic.get(base_url + "api/linker-data/" + matchedTitles.join("|") + '?url='+document.location.href)
             .success(function (data, xhr) {
                 if ("error" in data) {
                     console.log(data["error"]);
@@ -247,7 +247,7 @@
                     // append our exclusions to site's own exclusions
                     ns.excludeFromTracking = data["exclude_from_tracking"] + ", " + ns.excludeFromTracking;
                 }
-                var books = Object.getOwnPropertyNames(data).sort(function(a, b) {
+                var books = Object.getOwnPropertyNames(data["regexes"]).sort(function(a, b) {
                   return b.length - a.length; // ASC -> a - b; DESC -> b - a
                 });
                 for (var k = 0; k < books.length; k++) {
@@ -255,7 +255,7 @@
                     const portionHasMatched = {};
 
                     // Run each regex over the document, and wrap results
-                    var r = XRegExp(data[book],"xgm");
+                    var r = XRegExp(data["regexes"][book],"xgm");
                     for (var i = 0; i < elems.length; i++) {
                         findAndReplaceDOMText(elems[i], {
                             preset: 'prose',
