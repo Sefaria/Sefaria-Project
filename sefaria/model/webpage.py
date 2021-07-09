@@ -287,7 +287,7 @@ def test_normalization():
     print("{} pages normalized".format(count))
 
 
-def dedupe_webpages(test=True):
+def dedupe_webpages(test=True, test_url_to_look_for=""):
     """Normalizes URLs of all webpages and deletes multiple entries that normalize to the same URL"""
     norm_count = 0
     dedupe_count = 0
@@ -362,7 +362,7 @@ def dedupe_identical_urls(test=True):
             if merged_page_data["lastUpdated"] < page.lastUpdated:
                 merged_page_data.update({
                     "refs": page.refs,
-                    "expandedRefs": text.Ref.expand_refs(page.refs),
+                    "expandedRefs": page.expandedRefs,
                     "title": page.title,
                     "description": page.description
                 })
