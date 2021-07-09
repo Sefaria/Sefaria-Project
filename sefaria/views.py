@@ -36,7 +36,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 import sefaria.model as model
 import sefaria.system.cache as scache
-from sefaria.system.cache import InMemoryCache
+from sefaria.system.cache import in_memory_cache
 from sefaria.client.util import jsonResponse, subscribe_to_list, send_email
 from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI
 from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, relative_to_abs_path, RTC_SERVER
@@ -265,13 +265,34 @@ def linker_js(request, linker_version=None):
     return render(request, linker_link, attrs, content_type = "text/javascript; charset=utf-8")
 
 
-def title_regex_api(request, titles):
+def linker_data_api(request, titles):
+    if request.method == "GET":
+        cb = request.GET.get("callback", None)
+        res = {}
+        title_regex = title_regex_api(request, titles, json_response=False)
+        if "error" in title_regex:
+            res["error"] = title_regex.pop("error")
+        res["regexes"] = title_regex
+        url = request.GET.get("url", "")
+        domain = WebPage.domain_for_url(url)
+
+        website_match = WebSiteSet({"domains": domain})  # we know there can only be 0 or 1 matches found because of a constraint
+                                                         # enforced in Sefaria-Data/sources/WebSites/populate_web_sites.py
+        res["exclude_from_tracking"] = getattr(website_match[0], "exclude_from_tracking", "") if website_match.count() == 1 else ""
+        resp = jsonResponse(res, cb)
+        return resp
+    else:
+        return jsonResponse({"error": "Unsupported HTTP method."})
+
+
+def title_regex_api(request, titles, json_response=True):
     if request.method == "GET":
         cb = request.GET.get("callback", None)
         parentheses = bool(int(request.GET.get("parentheses", False)))
-        titles = set(titles.split("|"))
         res = {}
+        titles = set(titles.split("|"))
         errors = []
+        # check request.domain and then look up in WebSites collection to get linker_params and return both resp and linker_params
         for title in titles:
             lang = "he" if is_hebrew(title) else "en"
             try:
@@ -284,9 +305,9 @@ def title_regex_api(request, titles):
         if len(errors):
             res["error"] = errors
         resp = jsonResponse(res, cb)
-        return resp
+        return resp if json_response else res
     else:
-        return jsonResponse({"error": "Unsupported HTTP method."})
+        return jsonResponse({"error": "Unsupported HTTP method."}) if json_response else {"error": "Unsupported HTTP method."}
 
 
 def bundle_many_texts(refs, useTextFamily=False, as_sized_string=False, min_char=None, max_char=None):
@@ -453,7 +474,6 @@ def reset_cache(request):
 
 @staff_member_required
 def reset_websites_data(request):
-    in_memory_cache = InMemoryCache()
     website_set = [w.contents() for w in WebSiteSet()]
     in_memory_cache.set("websites_data", website_set)
     if MULTISERVER_ENABLED:
