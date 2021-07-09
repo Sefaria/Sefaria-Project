@@ -9,7 +9,7 @@ def update_user_flags(profile, isSustainer):
     profile.save()
 
 # Get list of sustainers
-sustainers = list(db.profiles.find({"is_sustainer": True}))
+sustainers = {profile["id"]: profile for profile in db.profiles.find({"is_sustainer": True})}
 added_count = 0
 removed_count = 0
 no_profile_count = 0
@@ -20,20 +20,19 @@ for nationbuilder_sustainer in nationbuilder_get_all(get_by_tag, ['sustainer_cur
     nationbuilder_sustainer_profile = UserProfile(email=nationbuilder_sustainer['email']) 
 
     if (nationbuilder_sustainer_profile.id != None): # has user profile
-        existing_sustainer = [x for x in sustainers if x['id'] and x['id'] == nationbuilder_sustainer_profile.id]
-        
-        if len(existing_sustainer) != 1: 
+        existing_sustainer = sustainers.get(nationbuilder_sustainer_profile.id) is not None
+
+        if existing_sustainer: # remove sustainer from dictionary; already synced
+            del sustainers[nationbuilder_sustainer_profile.id]
+            already_synced_count += 1
+        else: # add new sustainer to db
             update_user_flags(nationbuilder_sustainer_profile, True)
             added_count += 1
-        else:
-            sustainers.remove(existing_sustainer[0]) 
-            already_synced_count += 1
-
     else:
         no_profile_count += 1
 
 for sustainer_to_remove in sustainers:
-    profile = UserProfile(id=sustainer_to_remove['id'])
+    profile = UserProfile(sustainer_to_remove)
     update_user_flags(profile, False)
     removed_count += 1
 
