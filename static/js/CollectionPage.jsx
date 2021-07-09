@@ -239,7 +239,8 @@ class CollectionPage extends Component {
                   pinSheet={this.pinSheet.bind(null, sheet.id)}
                   handleCollectionsChange={this.onDataChange}
                   toggleSignUpModal={this.props.toggleSignUpModal}
-                  key={sheet.id} />);
+                  key={sheet.id} 
+                  showSheetSummary={true}/>);
       }.bind(this));     
 
       content = <div className="contentInner">

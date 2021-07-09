@@ -8621,6 +8621,9 @@ cursor: pointer;
   height: 18px;
   margin-inline-end: 10px;
 }
+.sheetLeft div.sheetSummary {
+  margin-bottom: 10px
+}
 .default-profile-img {
   width: 175px;
   height: 175px;
