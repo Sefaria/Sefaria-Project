@@ -184,7 +184,7 @@
                 'max-height: calc(100% - 117px);' +
             '}'+
             'span.sefaria-ref-wrapper{'+
-                'display: inline;' +
+                'display: inline !important;' +
             '}';
 
         if (mode == "popup-click") {
