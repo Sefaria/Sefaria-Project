@@ -175,7 +175,7 @@ class BookPage extends Component {
       [
         this.props.multiPanel ? {type: "AboutText", props: {index: this.state.indexDetails}} : {type: null},
         {type: "RelatedTopics", props: { title: this.props.title}},
-        {type: "DownloadVersions", props:{sref: this.props.title}},
+        !isDictionary ? {type: "DownloadVersions", props:{sref: this.props.title}} : {type: null},
       ];
 
     const moderatorSection = Sefaria.is_moderator || Sefaria.is_editor ? (<ModeratorButtons title={title} />) : null;

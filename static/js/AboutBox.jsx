@@ -65,6 +65,7 @@ class AboutBox extends Component {
   }
   render() {
     const d = this.state.details;
+    const isDictionary = d?.lexiconName;
     const sourceVersion = this.state.currentVersionsByActualLangs?.he;
     const translationVersions = Object.entries(this.state.currentVersionsByActualLangs).filter(([lang, version]) => lang != "he").map(([lang, version])=> version);
     const multiple_translations = translationVersions?.length > 1;
@@ -231,7 +232,7 @@ class AboutBox extends Component {
           (<div>{versionSectionHe}{versionSectionEn}{alternateSectionHe}</div>)
         }
         <Modules type={"RelatedTopics"} props={{title: this.props.title}} />
-        <Modules type={"DownloadVersions"} props={{sref: this.props.title}} />
+        { !isDictionary ? <Modules type={"DownloadVersions"} props={{sref: this.props.title}} /> : null}
       </section>
     );
   }
