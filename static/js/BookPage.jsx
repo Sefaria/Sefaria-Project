@@ -538,8 +538,9 @@ class SchemaNode extends Component {
 
     } else {
       let content = this.props.schema.nodes.map(function(node, i) {
+        const includeSections = node?.includeSections ?? true; //either undefined or explicitly true
         let path;
-        if ("nodes" in node || ("refs" in node && node.refs.length)) {
+        if ("nodes" in node || ("refs" in node && node.refs.length && includeSections)) {
           // SchemaNode with children (nodes) or ArrayMapNode with depth (refs)
           path = this.props.refPath + ", " + node.title;
           return (
@@ -735,7 +736,8 @@ class ArrayMapNode extends Component {
     super(props);
   }
   render() {
-    if ("refs" in this.props.schema && this.props.schema.refs.length) {
+    const includeSections = this.props.schema?.includeSections ?? true; //either undefined or explicitly true
+    if ("refs" in this.props.schema && this.props.schema.refs.length && includeSections) {
       let section, heSection;
       let sectionLinks = this.props.schema.refs.map(function(ref, i) {
         i += this.props.schema.offset || 0;
