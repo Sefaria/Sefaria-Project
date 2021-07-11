@@ -5256,7 +5256,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .sheet .sheetRight img {
   display: none;
-  opacity: 0.4;
   padding: 0 5px;
   width: 22px;
   height: 22px;
