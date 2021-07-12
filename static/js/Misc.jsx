@@ -1356,7 +1356,7 @@ ProfileListing.propTypes = {
 const SheetListing = ({
   sheet, connectedRefs, handleSheetClick, handleSheetDelete, handleCollectionsChange,
   editable, deletable, saveable, collectable, pinnable, pinned, pinSheet,
-  hideAuthor, showAuthorUnderneath, infoUnderneath, hideCollection, openInNewTab, toggleSignUpModal
+  hideAuthor, showAuthorUnderneath, infoUnderneath, hideCollection, openInNewTab, toggleSignUpModal, showSheetSummary
 }) => {
   // A source sheet presented in lists, like sidebar or profile page
   const [showCollectionsModal, setShowCollectionsModal] = useState(false);
@@ -1409,6 +1409,9 @@ const SheetListing = ({
       {sheet.views}&nbsp;<InterfaceText>Views</InterfaceText>
     </>
   );
+
+  const sheetSummary = showSheetSummary && sheet.summary? 
+  <SimpleInterfaceBlock classes={"smallText sheetSummary"} en={sheet.summary} he={sheet.sheet_summary}/>:null;
 
   const sheetInfo = hideAuthor ? null :
       <div className="sheetInfo">
@@ -1482,6 +1485,7 @@ const SheetListing = ({
           <img src="/static/img/sheet.svg" className="sheetIcon"/>
           <span className="sheetTitleText">{title}</span>
         </a>
+        {sheetSummary}
         <div className="sheetTags sans-serif">
           {
             underInfo.map((item, i) => (

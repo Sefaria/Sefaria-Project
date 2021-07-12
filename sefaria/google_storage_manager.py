@@ -4,6 +4,15 @@ import re
 
 class GoogleStorageManager(object):
 
+    """
+    Wrapper class for interacting with Google Cloud storage via Google's API classes.
+    Please note that several Google exceptions (mostly subclasses of google.cloud.exceptions.GoogleAPICallError)
+    or Python Exceptions if used incorrectly may be raised and that calling functions should handle them.
+    https://googleapis.dev/python/google-api-core/latest/exceptions.html#google.api_core.exceptions.GoogleAPIError
+    https://googleapis.dev/python/storage/latest/client.html
+    https://googleapis.dev/python/storage/latest/buckets.html
+    """
+
     PROFILES_BUCKET = 'sefaria-profile-pictures'
     UGC_SHEET_BUCKET = 'sheet-user-uploaded-media'
 
