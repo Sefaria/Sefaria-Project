@@ -9573,6 +9573,9 @@ body .homeFeedWrapper .content {
   border-inline-start: 4px solid transparent;
   padding-inline-start: 20px;
 }
+.readerPanel.hebrew .savedHistoryList .colorBarBox{
+  direction: rtl;
+}
 .interface-english .citationLine,
 .interface-english .learnMoreLink {
   padding-left: 34px;
