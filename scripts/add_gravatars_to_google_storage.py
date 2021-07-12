@@ -8,6 +8,7 @@ import hashlib
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.system.database import db
 from sefaria.model.user_profile import UserProfile
+from google.cloud.exceptions import GoogleCloudError
 
 
 for profile_mongo in db.profiles.find():
@@ -32,4 +33,10 @@ for profile_mongo in db.profiles.find():
                 profile_mongo["profile_pic_url_small"]=""
             else:
                 print('unexpected error: {}'.format(e))
+        except urllib.error.URLError as e:
+            print("HTTP Error from Gravatar Server. Reason: {}".format(e.reason))
+        except GoogleCloudError as e:
+            print("Error communicating with Google Storage Manager. {}".format(e))
+        except e:
+            print("Unexpected Error: {}".format(e))
         db.profiles.save(profile_mongo)
