@@ -23,8 +23,8 @@ for profile_mongo in db.profiles.find():
             bucket_name = GoogleStorageManager.PROFILES_BUCKET
             with Image.open(r) as image:
                 now = epoch_time()
-                big_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (250, 250)), "{}-{}.png".format(profile['slug'], now), bucket_name, None)
-                small_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (80, 80)), "{}-{}-small.png".format(profile['slug'], now), bucket_name, None)
+                big_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (250, 250)), "{}-{}.png".format(profile.slug, now), bucket_name, None)
+                small_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (80, 80)), "{}-{}-small.png".format(profile.slug, now), bucket_name, None)
                 profile_mongo["profile_pic_url"] = big_pic_url
                 profile_mongo["profile_pic_url_small"] = small_pic_url
         except urllib.error.HTTPError as e:
