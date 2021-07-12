@@ -56,7 +56,7 @@ const ReaderNavigationCategoryMenu = ({category, categories, setCategories, togg
 
   const sidebarModules = aboutModule.concat(getSidebarModules(cats));
 
-  const categoryToggle = (<><TalmudToggle categories={cats} setCategories={setCategories} /><ToseftaToggle categories={cats} setCategories={setCategories} /></>);
+  const categoryToggle = (<SubCategoryToggle categories={cats} setCategories={setCategories} />);
   
   const title = compare ? categoryToggle :
     <div className="navTitle">
@@ -304,48 +304,34 @@ const TextMenuItem = ({item, categories, nestLevel, onClick}) => {
   );
 };
 
-
-const TalmudToggle = ({categories, setCategories}) => {
-    if ( categories.length !== 2 || categories[0] !== "Talmud") {
+const SubCategoryToggle = ({categories, setCategories}) => {
+    const toggleEnableMap = {
+      "Talmud": {
+          categoryPathDepth: 2,
+          subCategories: ["Bavli", "Yerushalmi"],
+          subCategoriesDisplay: [{en: "Babylonian", he: "בבלי"}, {en: "Jerusalem", he: "ירושלמי"}]
+      },
+      "Tosefta": {
+          categoryPathDepth: 2,
+          subCategories: ["Vilna Edition", "Lieberman Edition"],
+          subCategoriesDisplay: [{en: "Vilna Edition", he: Sefaria.hebrewTerm("Vilna Edition")}, {en: "Lieberman Edition", he: Sefaria.hebrewTerm("Lieberman Edition")}]
+      },
+    };
+    if (!(categories[0] in toggleEnableMap) || categories.length !== toggleEnableMap[categories[0]]["categoryPathDepth"]) {
         return null;
     }
-
-    const setBavli = () => { setCategories(["Talmud", "Bavli"]); };
-    const setYerushalmi = () => { setCategories(["Talmud", "Yerushalmi"]); };
-    const bClasses = classNames({navToggle: 1, active: categories[1] === "Bavli"});
-    const yClasses = classNames({navToggle: 1, active: categories[1] === "Yerushalmi", second: 1});
-
+    let options = toggleEnableMap[categories[0]]["subCategories"].map((element, index) => {
+        let oClasses = classNames({navToggle: 1, active: categories[1] === element});
+        let toggleFunc = () => setCategories([categories[0], element]);
+        return(
+            <span className={oClasses} onClick={toggleFunc}>
+              <ContentText text={toggleEnableMap[categories[0]]["subCategoriesDisplay"][index]} />
+            </span>
+        )
+    });
     return (
       <div className="navToggles">
-        <span className={bClasses} onClick={setBavli}>
-          <ContentText text={{en: "Babylonian", he: "בבלי"}} />
-        </span>
-        <span className={yClasses} onClick={setYerushalmi}>
-          <ContentText text={{en: "Jerusalem", he: "ירושלמי"}} />
-        </span>
-      </div>
-    );
-};
-
-
-const ToseftaToggle = ({categories, setCategories}) => {
-    if ( categories.length !== 2 || categories[0] !== "Tosefta") {
-        return null;
-    }
-
-    const setVilna = () => { setCategories(["Tosefta", "Vilna Edition"]); };
-    const setLieberman = () => { setCategories(["Tosefta", "Lieberman Edition"]); };
-    const vClasses = classNames({navToggle: 1, active: categories[1] === "Vilna Edition"});
-    const lClasses = classNames({navToggle: 1, active: categories[1] === "Lieberman Edition", second: 1});
-
-    return (
-      <div className="navToggles">
-        <span className={vClasses} onClick={setVilna}>
-          <ContentText text={{en: "Vilna Edition", he: "דפוס וילנא"}} />
-        </span>
-        <span className={lClasses} onClick={setLieberman}>
-          <ContentText text={{en: "Lieberman Edition", he: "מהדורת ליברמן"}} />
-        </span>
+          {options}
       </div>
     );
 };
