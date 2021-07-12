@@ -73,6 +73,7 @@ def process_register_form(request, auth_method='session'):
     from sefaria.helper.file import get_resized_file
     import hashlib
     import urllib.parse, urllib.request
+    from google.cloud.exceptions import GoogleCloudError
     from PIL import Image
     form = SefariaNewUserForm(request.POST) if auth_method == 'session' else SefariaNewUserFormAPI(request.POST)
     token_dict = None
@@ -104,6 +105,8 @@ def process_register_form(request, auth_method='session'):
                 logger.info("The Gravatar server couldn't fulfill the request. Error Code {}".format(e.code))
             except urllib.error.URLError as e:
                 logger.info("HTTP Error from Gravatar Server. Reason: {}".format(e.reason))
+            except GoogleCloudError as e:
+                logger.warning("Error communicating with Google Storage Manager. {}".format(e))
             p.save()
 
         if auth_method == 'session':
