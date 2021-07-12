@@ -13,6 +13,9 @@ from sefaria.system.cache import in_memory_cache
 import structlog
 logger = structlog.get_logger(__name__)
 from collections import Counter
+from sefaria.utils.calendars import daf_yomi, parashat_hashavua_and_haftara
+from datetime import datetime, timedelta
+from sefaria.system.exceptions import InputError
 
 class WebPage(abst.AbstractMongoRecord):
     collection = 'webpages'
@@ -56,9 +59,17 @@ class WebPage(abst.AbstractMongoRecord):
         super(WebPage, self)._validate()
 
 
-    def get_website(self):
+    def get_website(self, dict_only=False):
+        # returns the corresponding WebSite.  If dict_only is True, grabs the dictionary of the WebSite from cache
         domain = WebPage.domain_for_url(WebPage.normalize_url(self.url))
-        return WebSite().load({"domains": domain})
+        if dict_only is False:
+            return WebSite().load({"domains": domain})
+        else:
+            sites = get_website_cache()
+            for site in sites:
+                if domain in site["domains"]:
+                    return site
+            return {}
 
     @staticmethod
     def normalize_url(url):
@@ -260,15 +271,20 @@ def get_webpages_for_ref(tref):
         logger.warn(f"WebPageSet for ref {tref} failed due to Error: {repr(e)}")
         return []
     client_results = []
+    duplicates = set()
     for webpage in results:
         if not webpage.whitelisted or len(webpage.title) == 0:
             continue
-        anchor_ref_list, anchor_ref_expanded_list = oref.get_all_anchor_refs(segment_refs, webpage.refs, webpage.expandedRefs)
-        for anchor_ref, anchor_ref_expanded in zip(anchor_ref_list, anchor_ref_expanded_list):
-            webpage_contents = webpage.client_contents()
-            webpage_contents["anchorRef"] = anchor_ref.normal()
-            webpage_contents["anchorRefExpanded"] = [r.normal() for r in anchor_ref_expanded]
-            client_results.append(webpage_contents)
+        webpage_key = webpage.title+"|".join(sorted(webpage.refs))+getattr(webpage, "description", "")
+        if webpage_key not in duplicates:  # we don't want to return a webpage that has the same title, refs, and description as another page
+            duplicates.add(webpage_key)
+            anchor_ref_list, anchor_ref_expanded_list = oref.get_all_anchor_refs(segment_refs, webpage.refs,
+                                                                                 webpage.expandedRefs)
+            for anchor_ref, anchor_ref_expanded in zip(anchor_ref_list, anchor_ref_expanded_list):
+                webpage_contents = webpage.client_contents()
+                webpage_contents["anchorRef"] = anchor_ref.normal()
+                webpage_contents["anchorRefExpanded"] = [r.normal() for r in anchor_ref_expanded]
+                client_results.append(webpage_contents)
 
     return client_results
 
@@ -287,12 +303,14 @@ def test_normalization():
     print("{} pages normalized".format(count))
 
 
-def dedupe_webpages(test=True, test_url_to_look_for=""):
+def dedupe_webpages(test=True):
     """Normalizes URLs of all webpages and deletes multiple entries that normalize to the same URL"""
     norm_count = 0
     dedupe_count = 0
-    webpages = WebPageSet()
-    for webpage in webpages:
+    webpages = WebPageSet({"url": {"$regex": "why-learn-gemara"}})
+    for i, webpage in enumerate(webpages):
+        if i % 100000 == 0:
+            print(i)
         norm = WebPage.normalize_url(webpage.url)
         if webpage.url != norm:
             normpage = WebPage().load(norm)
@@ -308,7 +326,7 @@ def dedupe_webpages(test=True, test_url_to_look_for=""):
                     if normpage.lastUpdated < webpage.lastUpdated:
                         normpage.lastUpdated = webpage.lastUpdated
                         normpage.refs = webpage.refs
-                        normpage.expandedRefs = text.Ref.expand_refs(webpage.refs)
+                        normpage.expandedRefs = webpage.expandedRefs
                     normpage.save()
                     webpage.delete()
 
@@ -396,6 +414,7 @@ def clean_webpages(test=True):
         print("\n {} pages would be deleted".format(pages.count()))
 
 
+
 def webpages_stats():
     webpages = WebPageSet()
     total_pages  = webpages.count()
@@ -419,17 +438,19 @@ def webpages_stats():
     return (total_pages, total_links)
 
 
-def find_webpages_without_websites(hit_threshold=50, last_linker_activity_day=20):
+def find_webpages_without_websites(test=True, hit_threshold=50, last_linker_activity_day=20):
     from datetime import datetime, timedelta
     webpages = WebPageSet()
     new_active_sites = Counter()   # WebSites we don't yet have in DB, but we have corresponding WebPages accessed recently
     unactive_unacknowledged_sites = {}  # WebSites we don't yet have in DB, and we even have correpsonding WebPages but they have not been accessed recently
     last_active_threshold = datetime.today() - timedelta(days=last_linker_activity_day)
 
-    for webpage in webpages:
+    for i, webpage in enumerate(webpages):
+        if i % 100000 == 0:
+            print(i)
         updated_recently = webpage.lastUpdated > last_active_threshold
-        website = webpage.get_website()
-        if website is None:
+        website = webpage.get_website(dict_only=True)
+        if website == {}:
             if updated_recently:
                 new_active_sites[webpage.domain] += 1
             else:
@@ -445,7 +466,8 @@ def find_webpages_without_websites(hit_threshold=50, last_linker_activity_day=20
             newsite.domains = [site]
             newsite.is_whitelisted = True
             newsite.linker_installed = True
-            newsite.save()
+            if not test:
+                newsite.save()
             print("Created new WebSite with name='{}'".format(site))
             sites_added.append(site)
 
@@ -455,12 +477,71 @@ def find_webpages_without_websites(hit_threshold=50, last_linker_activity_day=20
         if site not in sites_added:  # if True, site has not been updated recently
             print("Deleting {} with {} pages".format(site, len(unactive_unacknowledged_sites[site])))
             for webpage in unactive_unacknowledged_sites[site]:
-                webpage.delete()
+                if not test:
+                    webpage.delete()
+
+
+def find_sites_to_be_excluded(flag=100):
+    all_sites = {}
+    for i, webpage in enumerate(WebPageSet()):
+        if i % 100000 == 0:
+            print(i)
+        website = webpage.get_website(dict_only=True)
+        if website != {}:
+            if website["name"] not in all_sites:
+                all_sites[website["name"]] = Counter()
+            for ref in webpage.refs:
+                all_sites[website["name"]][ref] += 1
+
+    for website in all_sites:
+        if len(all_sites[website]) > 0:
+            most_common = all_sites[website].most_common(10)
+            for common in most_common:
+                if common[1] > flag:
+                    print("{} may need exclusions set because of ref {} with count {}".format(website, common[0], common[1]))
+
+    #check_daf_yomi_and_parashat_hashavua(all_sites)
+
+def check_daf_yomi_and_parashat_hashavua(sites):
+    previous = datetime.now() - timedelta(10)
+    recent_daf = daf_yomi(previous)[0]["ref"]
+    recent_parasha = parashat_hashavua_and_haftara(previous)[0]["ref"]
+
+    future_daf = datetime.now() + timedelta(500)
+    future_daf = daf_yomi(future_daf)[0]["ref"]
+
+    future_parasha = datetime.now() + timedelta(180)
+    future_parasha = parashat_hashavua_and_haftara(future_parasha)[0]["ref"]
+    poss_issues = {}
+    for site in sites:
+        poss_issues[site] = {}
+        poss_issues[site]["Daf"] = 0
+        poss_issues[site]["Parasha"] = 0
+        for type, future, recent in [("Daf", future_daf, recent_daf), ("Parasha", future_parasha, recent_parasha)]:
+            future_range = text.Ref(future)
+            recent_range = text.Ref(recent)
+            for ref, count in sites[site].items():
+                try:
+                    ref = text.Ref(ref)
+                    if recent_range.contains(ref):
+                        poss_issues[site][type] += count
+                    if future_range.contains(ref):
+                        poss_issues[site][type] -= count
+                except InputError as e:
+                    print(e)
+
+    for site in poss_issues:
+        daf = poss_issues[site]["Daf"]
+        parasha = poss_issues[site]["Parasha"]
+        if daf > 10:
+            print("{} may have daf yomi on every page.".format(site))
+        if parasha > 10:
+            print("{} may have parasha on every page.".format(site))
 
 
 
 
-def find_sites_that_may_have_removed_linker(last_linker_activity_day=20):
+def find_sites_that_may_have_removed_linker(test=True, last_linker_activity_day=20):
     """
     Checks for each site whether there has been a webpage hit with the linker in the last `last_linker_activity_day` days
     Prints an alert for each site that doesn't meet this criterion
@@ -481,6 +562,7 @@ def find_sites_that_may_have_removed_linker(last_linker_activity_day=20):
                         website.linker_installed = webpage.lastUpdated > last_active_threshold
                         if not website.linker_installed:
                             print(f"Alert! {domain} has removed the linker!")
-                        website.save()
+                        if not test:
+                            website.save()
                     else:
                         print("Alert! Can't find website {} corresponding to webpage {}".format(data["name"], webpage.url))
