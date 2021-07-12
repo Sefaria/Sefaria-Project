@@ -56,8 +56,7 @@ const ReaderNavigationCategoryMenu = ({category, categories, setCategories, togg
 
   const sidebarModules = aboutModule.concat(getSidebarModules(cats));
 
-  const categoryToggle = <TalmudToggle categories={cats} setCategories={setCategories} /> || 
-                          <ToseftaToggle categories={cats} setCategories={setCategories} />;
+  const categoryToggle = (<><TalmudToggle categories={cats} setCategories={setCategories} /><ToseftaToggle categories={cats} setCategories={setCategories} /></>);
   
   const title = compare ? categoryToggle :
     <div className="navTitle">
@@ -344,7 +343,6 @@ const ToseftaToggle = ({categories, setCategories}) => {
         <span className={vClasses} onClick={setVilna}>
           <ContentText text={{en: "Vilna Edition", he: "דפוס וילנא"}} />
         </span>
-        <span className="navTogglesDivider">|</span>
         <span className={lClasses} onClick={setLieberman}>
           <ContentText text={{en: "Lieberman Edition", he: "מהדורת ליברמן"}} />
         </span>
