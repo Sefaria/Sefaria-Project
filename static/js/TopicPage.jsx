@@ -297,7 +297,7 @@ const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDis
        : null}
        {topicData && topicData.ref ?
          <a href={`/${topicData.ref.url}`} className="resourcesLink button blue">
-           <img src="/static/img/book-icon-black.svg" alt="Book Icon" />
+           <img src="/static/icons/book-icon-black.svg" alt="Book Icon" />
            <span className="int-en">{ topicData.parasha ? Sefaria._('Read the Portion') : topicData.ref.en }</span>
            <span className="int-he">{ topicData.parasha ? Sefaria._('Read the Portion') : norm_hebrew_ref(topicData.ref.he) }</span>
          </a>
