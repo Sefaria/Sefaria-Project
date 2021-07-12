@@ -270,7 +270,7 @@ const AboutParashah = ({content}) => {
           <InterfaceText context="AboutParashah">Torah Reading</InterfaceText>
         </div>
         <div className="calendarRef">
-          <img src="/static/img/book-icon-black.svg" className="navSidebarIcon" alt="book icon" />
+          <img src="/static/icons/book.svg" className="navSidebarIcon" alt="book icon" />
           <a href={`/${ref.url}`} className="serif">
             <InterfaceText text={ref} />
           </a> 
@@ -303,7 +303,7 @@ const AboutCalendar = ({content}) => {
         </div>
         {readings.map(ref => (
           <div className="calendarRef" key={ref.url}>
-            <img src="/static/img/book-icon-black.svg" className="navSidebarIcon" alt="book icon" />
+            <img src="/static/icons/book.svg" className="navSidebarIcon" alt="book icon" />
             <a href={`/${ref.url}`} className="serif">
               <InterfaceText text={ref} />
            </a> 
@@ -334,7 +334,7 @@ const AboutDiscover = ({content}) => {
           <InterfaceText>Readings</InterfaceText>
         </div>
           <div className="calendarRef" key={ref.url}>
-            <img src="/static/img/book-icon-black.svg" className="navSidebarIcon" alt="book icon" />
+            <img src="/static/icons/book.svg" className="navSidebarIcon" alt="book icon" />
             <a href={`/${ref.url}`} className="serif">
               <InterfaceText text={ref} />
            </a> 

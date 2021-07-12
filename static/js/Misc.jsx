@@ -1042,7 +1042,7 @@ class ReaderNavigationMenuCloseButton extends Component {
   }
   render() {
     if (this.props.icon == "circledX"){
-      var icon = <img src="/static/img/circled-x.svg" />;
+      var icon = <img src="/static/icons/circled-x.svg" />;
     } else if (this.props.icon == "chevron") {
       var icon = <i className="fa fa-chevron-left"></i>
     } else {
@@ -1456,7 +1456,7 @@ const SheetListing = ({
       <div className="sheetRight">
         {
           editable && !Sefaria._uses_new_editor ?
-            <a href={`/sheets/${sheet.id}?editor=1`}><img src="/static/img/tools-write-note.svg" title={Sefaria._("Edit")}/></a>
+            <a href={`/sheets/${sheet.id}?editor=1`}><img src="/static/icons/tools-write-note.svg" title={Sefaria._("Edit")}/></a>
             : null
         }
         {
@@ -1466,7 +1466,7 @@ const SheetListing = ({
         }
         {
           deletable ?
-            <img src="/static/img/circled-x.svg" onClick={handleSheetDeleteClick} title={Sefaria._("Delete")} />
+            <img src="/static/icons/circled-x.svg" onClick={handleSheetDeleteClick} title={Sefaria._("Delete")} />
             : null
         }
         {

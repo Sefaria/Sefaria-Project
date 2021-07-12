@@ -97,7 +97,7 @@ const Resources = () => (
       <IconLink text="Teach with Sefaria" url="/educators" icon="educators.svg" />
       <IconLink text="Visualizations" url="/visualizations" icon="visualizations.svg" />
       <IconLink text="Torah Tab" url="/torah-tab" icon="torah-tab.svg" />
-      <IconLink text="Help" url="/help" icon="help-black.svg" />
+      <IconLink text="Help" url="/help" icon="help.svg" />
     </div>
   </Module>
 );
@@ -213,7 +213,7 @@ const ParashahLink = () => {
   const parashah = Sefaria.calendars.filter(c => c.title.en === "Parashat Hashavua")[0];
   return (
     <div className="navSidebarLink ref serif">
-      <img src="/static/img/book-icon-black.svg" className="navSidebarIcon" alt="book icon" />
+      <img src="/static/icons/book.svg" className="navSidebarIcon" alt="book icon" />
       <a href={"/" + parashah.url}><InterfaceText text={{en: parashah.ref, he: parashah.heRef}} /></a>
     </div>
   );
@@ -232,7 +232,7 @@ const HaftarotLinks = () => {
     <>
       {haftarot.map(h => 
       <div className="navSidebarLink ref serif" key={h.url}>
-        <img src="/static/img/book-icon-black.svg" className="navSidebarIcon" alt="book icon" />
+        <img src="/static/icons/book.svg" className="navSidebarIcon" alt="book icon" />
         <a href={"/" + h.url}><InterfaceText text={h.displayValue} /></a>
       </div>)}
     </>
@@ -244,7 +244,7 @@ const DafLink = () => {
   const daf = Sefaria.calendars.filter(c => c.title.en === "Daf Yomi")[0];
   return (
     <div className="navSidebarLink ref serif">
-      <img src="/static/img/book-icon-black.svg" className="navSidebarIcon" alt={Sefaria._("book icon")} />
+      <img src="/static/icons/book.svg" className="navSidebarIcon" alt={Sefaria._("book icon")} />
       <a href={"/" + daf.url}>
         <InterfaceText text={daf.displayValue} />
       </a>

@@ -77,7 +77,7 @@ const CalendarListing = ({calendar}) => {
       <div className="calendarRefs">
         {calendar.refs.map(ref => (
         <div className="calendarRef" key={ref.url}>
-          <img src="/static/img/book-icon-black.svg" className="navSidebarIcon" alt="book icon" />
+          <img src="/static/icons/book.svg" className="navSidebarIcon" alt="book icon" />
           <a href={`/${ref.url}`} className="">
             <InterfaceText text={ref.displayValue} />
           </a>

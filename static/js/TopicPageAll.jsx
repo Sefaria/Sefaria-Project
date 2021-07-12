@@ -100,7 +100,7 @@ class TopicPageAll extends Component {
                 { this.state.filter.length ?
                 <div className="topicsFilterReset sans-serif" onClick={this.resetFilter}>
                   <InterfaceText>Reset</InterfaceText>
-                  <img className="topicsFilterResetIcon" src="/static/img/circled-x.svg" />
+                  <img className="topicsFilterResetIcon" src="/static/icons/circled-x.svg" />
                 </div>
                 : null }
               </div>

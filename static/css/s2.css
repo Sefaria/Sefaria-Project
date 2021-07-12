@@ -1489,7 +1489,6 @@ div.interfaceLinks-row a {
   color: white;
 }
 .navSidebarIcon {
-  opacity: 0.4;
   height: 18px;
   width: 18px;
   margin-inline-end: 10px;
@@ -2266,7 +2265,6 @@ a.navBlockTitle:hover {
 .readerNavMenu .resourcesLink img {
   width: 16px;
   height: 16px;
-  opacity: 0.4;
   margin: 0 5px;
   position: relative;
   top: 2px;
@@ -4784,7 +4782,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .connectionsHeader .readerNavMenuCloseButton.circledX img,
 .readerNavMenu.compare .readerNavTop .readerNavMenuCloseButton.circledX img {
-  opacity: 0.4;
   height: 20px;
   width: 20px;
   vertical-align: middle;
@@ -7345,7 +7342,6 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 .topicsFilterResetIcon {
   height: 16px;
   width: 16px;
-  opacity: 0.4;
   margin-inline-start: 8px;
   vertical-align: -2px;
 }
@@ -7473,7 +7469,6 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 .noteListing .actionButtons img {
   width: 16px;
   height: 16px;
-  opacity: 0.4;
 }
 .noteListing .actionButtons img + img {
   margin: 0 0 0 10px;
@@ -7506,7 +7501,6 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   cursor: pointer;
   height: 18px;
   width: 18px;
-  opacity: 0.5;
   float: right;
 }
 .searchBox .keyboardInputInitiator {
@@ -8262,7 +8256,6 @@ span.purim-emoji img{
   font-size: 16px;
   width: 15px;
   height: 15px;
-  opacity: 0.2;
   margin: 0 8px;
   vertical-align: middle;
 }
@@ -9070,7 +9063,6 @@ cursor: pointer;
   vertical-align: middle;
   margin: 0;
   margin-inline-end: 10px;
-  opacity: 0.4;
   position: relative;
   top: -2px;
 }

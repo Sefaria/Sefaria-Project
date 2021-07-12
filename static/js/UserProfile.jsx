@@ -32,17 +32,17 @@ class UserProfile extends Component {
     const showNotes = !!props.profile.id && Sefaria._uid === props.profile.id;
     const showBio = !!props.profile.bio;
     const tabs = [
-      { id: "sheets", text: "Sheets", icon: "/static/img/sheet.svg" },
+      { id: "sheets", text: "Sheets", icon: "/static/icons/sheet.svg" },
       { id: "collections", text: "Collections", icon: "/static/icons/collection.svg" },
       { id: "followers", text: "Followers", invisible: true },
       { id: "following", text: "Following", invisible: true },
-      { id: "torah-tracker", text: "Torah Tracker", invisible: Sefaria._uid !== props.profile.id, icon: "/static/img/chart-icon.svg", href: "/torahtracker", applink: true, justifyright: true}
+      { id: "torah-tracker", text: "Torah Tracker", invisible: Sefaria._uid !== props.profile.id, icon: "/static/icons/chart-icon.svg", href: "/torahtracker", applink: true, justifyright: true}
     ];
     if (showNotes) {
-      tabs.splice(2, 0, { id: "notes", text: Sefaria._("Notes"), icon: "/static/img/note.svg" });
+      tabs.splice(2, 0, { id: "notes", text: Sefaria._("Notes"), icon: "/static/icons/note.svg" });
     }
     if (showBio) {
-      tabs.push({ id: "about", text: Sefaria._("About"), icon: "/static/img/info.svg" });
+      tabs.push({ id: "about", text: Sefaria._("About"), icon: "/static/icons/info.svg" });
     }
     let tabIndex = tabs.findIndex(t => t.id == props.tab);
     tabIndex = tabIndex == -1 ? 0 : tabIndex;
@@ -623,7 +623,7 @@ const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowi
               <span className="int-he">עריכת פרופיל</span>
             </a>
             <a href="/settings/account" className="resourcesLink sans-serif">
-              <img src="/static/img/settings.svg" alt="Profile Settings" />
+              <img src="/static/icons/settings.svg" alt="Profile Settings" />
               <span className="int-en">Settings</span>
               <span className="int-he">הגדרות</span>
             </a>
