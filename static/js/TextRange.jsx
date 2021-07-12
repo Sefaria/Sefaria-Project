@@ -34,6 +34,7 @@ class TextRange extends Component {
         !this.props.highlightedRefs.compare(nextProps.highlightedRefs)) { return true; }
     if (this.props.currVersions.en !== nextProps.currVersions.en) { return true; }
     if (this.props.currVersions.he !== nextProps.currVersions.he) { return true; }
+    if (this.props.translationLanguagePreference !== nextProps.translationLanguagePreference) { return true; }
     // todo: figure out when and if this component receives settings at all
     if (nextProps.settings && this.props.settings &&
         (nextProps.settings.language !== this.props.settings.language ||
@@ -98,7 +99,8 @@ class TextRange extends Component {
     let settings = {
       context: this.props.withContext ? 1 : 0,
       enVersion: this.props.currVersions.en || null,
-      heVersion: this.props.currVersions.he || null
+      heVersion: this.props.currVersions.he || null,
+      translationLanguagePreference: this.props.translationLanguagePreference,
     };
     let data = Sefaria.getTextFromCache(this.props.sref, settings);
 
@@ -178,7 +180,8 @@ class TextRange extends Component {
          context: 1,
          multiple: this.props.prefetchMultiple,
          enVersion: this.props.currVersions.en || null,
-         heVersion: this.props.currVersions.he || null
+         heVersion: this.props.currVersions.he || null,
+         translationLanguagePreference: this.props.translationLanguagePreference,
        }).then(ds => Array.isArray(ds) ? ds.map(d => this._prefetchLinksAndNotes(d)) : this._prefetchLinksAndNotes(ds));
      }
      if (data.prev) {
@@ -186,7 +189,8 @@ class TextRange extends Component {
          context: 1,
          multiple: -this.props.prefetchMultiple,
          enVersion: this.props.currVersions.en || null,
-         heVersion: this.props.currVersions.he || null
+         heVersion: this.props.currVersions.he || null,
+         translationLanguagePreference: this.props.translationLanguagePreference,
        }).then(ds => Array.isArray(ds) ? ds.map(d => this._prefetchLinksAndNotes(d)) : this._prefetchLinksAndNotes(ds));
      }
      if (data.indexTitle) {
@@ -437,6 +441,7 @@ TextRange.propTypes = {
   showActionLinks:        PropTypes.bool,
   inlineReference:        PropTypes.object,
   textHighlights:         PropTypes.array,
+  translationLanguagePreference: PropTypes.string,
 };
 TextRange.defaultProps = {
   currVersions: {en:null,he:null},

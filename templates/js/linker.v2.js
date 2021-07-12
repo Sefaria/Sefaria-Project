@@ -27,7 +27,7 @@
     /* see https://stackoverflow.com/questions/3561493/is-there-a-regexp-escape-function-in-javascript/3561711#3561711 */
     function escapeRegex(string) {return string.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');}
 
-    var base_url = '{% if DEBUG %}/{% else %}https://www.sefaria.org/{% endif %}';
+    var base_url = '{% if DEBUG %}http://localhost:8000/{% else %}https://www.sefaria.org/{% endif %}';
     var bookTitles = {{ book_titles }};
     var popUpElem;
     var heBox;
@@ -182,6 +182,9 @@
             '#sefaria-popup.short-screen .sefaria-text{'+
                 'overflow-y: scroll;' + 
                 'max-height: calc(100% - 117px);' +
+            '}'+
+            'span.sefaria-ref-wrapper{'+
+                'display: inline !important;' +
             '}';
 
         if (mode == "popup-click") {
@@ -524,8 +527,9 @@
                             // due to the fact that safari doesn't support lookbehinds, we need to include prefix group in match
                             // however, we don't want the prefix group to end up in the final a-tag
                             const node = document.createElement("span");
+                            node.className="sefaria-ref-wrapper";
                             node.textContent = preText;
-                            node.appendChild(atag);``
+                            node.appendChild(atag);
                             return node;
                         }
                     }).bind(null, book)
