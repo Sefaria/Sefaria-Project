@@ -91,8 +91,8 @@ def process_register_form(request, auth_method='session'):
             # auto-add profile pic from gravatar if exists
             email_hash = hashlib.md5(p.email.lower().encode('utf-8')).hexdigest()
             gravatar_url = "https://www.gravatar.com/avatar/" + email_hash + "?d=404&s=250"
-            with urllib.request.urlopen(gravatar_url) as r:
-                if r.getcode() != 404:
+            try:
+                with urllib.request.urlopen(gravatar_url) as r:
                     bucket_name = GoogleStorageManager.PROFILES_BUCKET
                     with Image.open(r) as image:
                         now = epoch_time()
@@ -100,6 +100,10 @@ def process_register_form(request, auth_method='session'):
                         small_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (80, 80)), "{}-{}-small.png".format(p.slug, now), bucket_name, None)
                         p.profile_pic_url = big_pic_url
                         p.profile_pic_url_small = small_pic_url
+            except urllib.error.HTTPError as e:
+                logger.info("The Gravatar server couldn't fulfill the request. Error Code {}".format(e.code))
+            except urllib.error.URLError as e:
+                logger.info("HTTP Error from Gravatar Server. Reason: {}".format(e.reason))
             p.save()
 
         if auth_method == 'session':
