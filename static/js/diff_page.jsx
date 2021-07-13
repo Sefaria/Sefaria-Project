@@ -32,7 +32,7 @@ class DiffStore {
     for (var [i, seg] of segList.entries()) {
 
       if (i%2 === 0) { // The odd elements are the text
-        // The map contains the number of skipped characters for each character of  the filtered text
+        // The map contains the number of skipped characters for each character of the filtered text
         Array.prototype.push.apply(mapping, Array(seg.length).fill(skipCount));
         filteredTextList.push(seg);
       } else {
