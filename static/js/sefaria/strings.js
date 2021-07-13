@@ -473,8 +473,8 @@ const Strings = {
     },
     "FollowButton": {
       "Follow": "עקבו",
-      "Unfollow": "הפסק לעקוב",
-      "Following": "עקוב",
+      "Unfollow": "הסרת עוקב",
+      "Following": "עוקב",
       "Follow Back": "עקבו בחזרה",
     },
     "DownloadVersions":{
