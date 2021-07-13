@@ -608,7 +608,7 @@ const MobileInterfaceLanguageToggle = () => {
 
   const links = Sefaria.interfaceLang == "hebrew" ?
     <>
-      <a href={"/interface/hebrew?next=" + currentURL} className="int-he">תירבע</a>
+      <a href={"/interface/hebrew?next=" + currentURL} className="int-he">עברית</a>
       <span className="separator">•</span>
       <a href={"/interface/english?next=" + currentURL} className="int-en inactive">English</a>
     </>
@@ -616,7 +616,7 @@ const MobileInterfaceLanguageToggle = () => {
     <>
       <a href={"/interface/english?next=" + currentURL} className="int-en">English</a>
       <span className="separator">•</span>
-      <a href={"/interface/hebrew?next=" + currentURL} className="int-he inactive">תירבע</a>
+      <a href={"/interface/hebrew?next=" + currentURL} className="int-he inactive">עברית</a>
     </>;
 
   return (

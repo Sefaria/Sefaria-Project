@@ -88,7 +88,7 @@ const ReaderNavigationCategoryMenu = ({category, categories, setCategories, togg
           <div className="contentInner followsContentLang">
             { title }
             {!multiPanel ? 
-            <div className="categoryDescription top">
+            <div className="categoryDescription top sans-serif">
               <ContentText text={{en: tocObject.enDesc, he: tocObject.heDesc}} defaultToInterfaceOnBilingual={true} />
             </div> : null}
             <CategoryAttribution categories={cats} asEdition={true} />

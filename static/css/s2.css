@@ -1485,6 +1485,9 @@ div.interfaceLinks-row a {
   color: white;
   padding: 34px 44px 45px;
 }
+.singlePanel .navSidebarModule.blue {
+  padding: 34px 15px 45px;
+}
 .readerPanel .navSidebarModule.blue h3 {
   color: white;
 }
@@ -1757,7 +1760,7 @@ div.interfaceLinks-row a {
     padding: 0 25px !important;
     margin: 0;
   }
-  .topicPanel .filterable-list .filter-sort-wrapper {
+  .topicPanel .filterable-list .filter-sort-wrapper, .collectionPage .filterable-list .filter-sort-wrapper {
     margin-top: 20px;
   }
 }
@@ -2415,6 +2418,9 @@ a.navBlockTitle:hover {
   font-size: 18px;
   margin-bottom: 27px;
 }
+.singlePanel .readerNavMenu .dedication{
+  margin: 27px 0;
+}
 .bookPage .categoryAttribution,
 .bookPage .dedication {
   margin: 25px 0 10px;
@@ -2743,7 +2749,7 @@ a.navBlockTitle:hover {
   display: none;
 }
 .textTableOfContents .tocSection > .sectionName {
-  font-size: 12px;
+  font-size: 18px;
   margin: 0 3px 4px;
   color: #666;
   display: block;
@@ -3873,7 +3879,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .saveButton img {
   height: 18px;
   width: 18px;
-  margin-top: 4px;
 }
 .rightButtons .saveButton.tooltip-toggle::before {
   top: 47px;
@@ -9240,6 +9245,15 @@ cursor: pointer;
   right: 30px;
   text-align: right;
 }
+@media (max-width: 450px) {
+  .three-dots-button.tooltip-toggle::before {
+    left: -165px;
+  }
+  .interface-hebrew .three-dots-button.tooltip-toggle::before{
+    right: -165px;
+  }
+}
+
 .tooltip-toggle::before {
   color: #000;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
@@ -9691,9 +9705,6 @@ img.smallProfileImage {
 }
 .interface-english .story .saveLine .beforeSave {
   padding-right: 10px;
-}
-.story .saveLine .saveButton {
-  align-self: center;
 }
 .story .citationLine.contentText .int-en,
 .story .citationLine.contentText .int-he {

@@ -813,6 +813,21 @@ p.registration-links a:hover{
   margin: 14px 0;
   line-height: 1.2;
 }
+@media (max-width: 450px) {
+  #aboutPage #aboutHeader {
+    margin-bottom: 130px;
+  }
+  #aboutPage #aboutCover {
+    height: 270px;
+    padding: 180px 0;
+  }
+  #aboutPage .inner {
+    margin-top: -365px;
+  }
+  #aboutPage #aboutVideo {
+    min-width: 900px;
+  }
+}
 #donatePage pre{
   all: initial;
   display: block;
