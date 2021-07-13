@@ -7961,6 +7961,17 @@ span.purim-emoji img{
   overflow-wrap: break-word;
   word-wrap: break-word;
 }
+.sheetContent h1,
+#sheet .outside h1 {
+  font-weight: 400;
+  font-size: var(--serif-h3-font-size);
+  text-align: center;
+  margin-top: 45px;
+  margin-bottom: 30px;
+}
+.sheetContent h1 span {
+  border-bottom: 4px solid var(--lighter-grey);
+}
 .readerPanel.hebrew .sheetContent .sheetItem.segment .sourceContentText.outsideBiText.en {
   display: none;
 }
@@ -8620,6 +8631,9 @@ cursor: pointer;
   width: 18px;
   height: 18px;
   margin-inline-end: 10px;
+}
+.sheetLeft div.sheetSummary {
+  margin-bottom: 10px
 }
 .default-profile-img {
   width: 175px;
@@ -9342,6 +9356,13 @@ img.smallProfileImage {
   margin: 10px 0;
   text-align: justify;
 }
+
+.story .storySheetListItem > div.storyBody.sheetSummary > *{
+  color: var(--dark-grey);
+  font-family: var(--english-sans-serif-font-family);
+  font-size: 15px;
+}
+
 .story .contentText .en {
   line-height: 1.6;
 }
