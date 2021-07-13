@@ -7961,6 +7961,17 @@ span.purim-emoji img{
   overflow-wrap: break-word;
   word-wrap: break-word;
 }
+.sheetContent h1,
+#sheet .outside h1 {
+  font-weight: 400;
+  font-size: var(--serif-h3-font-size);
+  text-align: center;
+  margin-top: 45px;
+  margin-bottom: 30px;
+}
+.sheetContent h1 span {
+  border-bottom: 4px solid var(--lighter-grey);
+}
 .readerPanel.hebrew .sheetContent .sheetItem.segment .sourceContentText.outsideBiText.en {
   display: none;
 }
