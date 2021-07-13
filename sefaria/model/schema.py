@@ -1065,7 +1065,6 @@ class NumberedTitledTreeNode(TitledTreeNode):
         return d
 
     def get_referenceable_child(self, context_ref=None, **kwargs) -> 'NumberedTitledTreeNode':
-        if self.depth == 1: return
         next_refereceable_depth = 1
         # if `referenceableSections` is not define, assume they're all referenceable
         if getattr(self, 'referenceableSections', False):
@@ -1077,8 +1076,9 @@ class NumberedTitledTreeNode(TitledTreeNode):
             # truncate every list attribute by `next_referenceable_depth`
             if list_attr not in serial: continue
             serial[list_attr] = serial[list_attr][next_refereceable_depth:]
-        if serial['depth'] == 1 and getattr(self, 'isSegmentLevelDiburHamatchil', False):
+        if serial['depth'] <= 1 and getattr(self, 'isSegmentLevelDiburHamatchil', False):
             return DiburHamatchilNodeSet({"container_refs": context_ref.normal()})
+        if self.depth <= 1: return
         return self.__class__(serial=serial, index=getattr(self, 'index', None), **kwargs)
 
 class DiburHamatchilNode(abst.AbstractMongoRecord):

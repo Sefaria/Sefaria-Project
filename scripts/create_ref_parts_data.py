@@ -27,6 +27,19 @@ def get_dh(s):
     dh = re.sub(r"מתני'|גמ'", '', dh).strip()
     return dh
 
+def add_alt_structs():
+    # Rashi
+    indexes = library.get_indexes_in_category_path(['Talmud', 'Bavli', 'Rishonim on Talmud', 'Rashi'], True, True)
+    for index in tqdm(indexes, desc='rashi', total=indexes.count()):
+        base_index = library.get_index(index.base_text_titles[0])
+        base_alt_struct = base_index.get_alt_structures()['Chapters']
+        for perek_node in base_alt_struct.children:
+            perek_node.wholeRef = "Rashi on " + perek_node.wholeRef
+            perek_node.isSegmentLevelDiburHamatchil = True
+        base_alt_struct.validate()
+        index.set_alt_structure("Chapters", base_alt_struct)
+        index.save()
+
 def create_non_unique_terms():
     NonUniqueTermSet().delete()
     DiburHamatchilNodeSet().delete()
@@ -84,3 +97,4 @@ def create_non_unique_terms():
             break # TODO remove
 if __name__ == "__main__":
     create_non_unique_terms()
+    add_alt_structs()
