@@ -317,12 +317,12 @@ const SubCategoryToggle = ({categories, setCategories}) => {
           subCategoriesDisplay: [{en: "Vilna Edition", he: Sefaria.hebrewTerm("Vilna Edition")}, {en: "Lieberman Edition", he: Sefaria.hebrewTerm("Lieberman Edition")}]
       },
     };
-    if (!(categories[0] in toggleEnableMap) || categories.length !== toggleEnableMap[categories[0]]["categoryPathDepth"]) {
+    if (!categories.length || !(categories[0] in toggleEnableMap) || categories.length !== toggleEnableMap[categories[0]]["categoryPathDepth"]) {
         return null;
     }
     let options = toggleEnableMap[categories[0]]["subCategories"].map((element, index) => {
         let oClasses = classNames({navToggle: 1, active: categories[1] === element});
-        let toggleFunc = () => setCategories([categories[0], element]);
+        let toggleFunc = () => setCategories([categories[0], element]); //this may need some adjustment if there ever was another toggle not at dpeth 2
         return(
             <span className={oClasses} onClick={toggleFunc}>
               <ContentText text={toggleEnableMap[categories[0]]["subCategoriesDisplay"][index]} />
