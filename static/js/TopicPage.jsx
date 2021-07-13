@@ -148,7 +148,7 @@ const refRenderWrapper = (toggleSignUpModal, topicData, interfaceLang) => item =
 
 
 const sheetRenderWrapper = (toggleSignUpModal) => item => (
-  <SheetBlock key={item.sheet_id} sheet={item} compact toggleSignUpModal={toggleSignUpModal}/>
+  <SheetBlock key={item.sheet_id} sheet={item} toggleSignUpModal={toggleSignUpModal}/>
 );
 
 
