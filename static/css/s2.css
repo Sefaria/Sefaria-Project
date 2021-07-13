@@ -9276,11 +9276,8 @@ cursor: pointer;
   cursor: pointer;
   background: #18345d;
   color: #fff;
-  border-radius: 8px;
+  border-radius: 6px;
   box-shadow: 0 1px 3px rgb(0 0 0 / 20%);
-}
-.largeFollowButton.following {
-  background: #fff;
 }
 .profile-page .largeFollowButton.following .int-en,
 .profile-page .largeFollowButton.following .int-he {
@@ -9290,20 +9287,38 @@ cursor: pointer;
   color: #666;
 }
 .smallFollowButton {
-  height: 18px;
+  height: 20px;
   line-height: 18px;
-  width: 68px;
+  width: min-content;
   text-align: center;
   cursor: pointer;
   background: var(--sefaria-blue);
   color: white;
-  border-radius: 4px;
+  border-radius: 3px;
   margin-inline-start: 15px;
   display: none;
   letter-spacing: normal;
+  padding: 0 3px;
 }
 .smallFollowButton.smallText span {
   color: white;
+}
+.largeFollowButton.following, .smallFollowButton.following {
+  background: #fff;
+  color: black;
+}
+.smallFollowButton.following{
+  border: 1px solid #CCCCCC;
+  box-sizing: border-box;
+}
+.smallFollowButton.following.smallText span {
+  color: black;
+}
+.authorByLine.small .smallFollowButton.following{
+  line-height: 18px;
+}
+.authorByLine .smallFollowButton.following{
+  line-height: 16px;
 }
 body .homeFeedWrapper {
   background-color: white;
@@ -9715,6 +9730,7 @@ img.smallProfileImage {
 }
 .authorByLine.small {
   font-size: 14px;
+  width: max-content;
 }
 .mainColumn a:not(.button) {
   color: #000;
