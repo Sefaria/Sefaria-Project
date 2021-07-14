@@ -5215,7 +5215,7 @@ class Library(object):
         return trie
 
     def _build_root_ref_part_titles(self, lang):
-        from sefaria.model.ref_part import RefPartTitleTrie
+        from .ref_part import RefPartTitleTrie
         root_nodes = list(filter(lambda n: getattr(n, 'ref_part_terms', None) is not None, self.get_index_forest()))
         alone_nodes = reduce(lambda a, b: a + b.index.get_referenceable_alone_nodes(), root_nodes, [])
         self._root_ref_part_title_trie = RefPartTitleTrie(lang, nodes=(root_nodes + alone_nodes), context='root')

@@ -787,27 +787,9 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
         """
         return self.title_group.add_title(text, lang, primary, replace_primary, presentation)
 
-    def ref_part_titles(self, lang):
-        """
-        Return all titles corresponding to `self.ref_part_terms`
-        Titles are created by calculating the cartesian product of all the titles of the ref_part_terms
-        Optional ref_part_terms are accounted for
-        """
-        from sefaria.model.ref_part import NonUniqueTerm
-        from itertools import product
-
-        if not getattr(self, 'ref_part_terms', False): return []
-        terms = [NonUniqueTerm.init(term_slug) for term_slug in self.ref_part_terms]
-        term_combos_excluding_optional = [terms]
-        for temp_term, is_optional in zip(terms, getattr(self, 'ref_parts_optional', [False]*len(self.ref_part_terms))):
-            if not is_optional: continue
-            other_terms = [other_term for other_term in terms if other_term.slug != temp_term.slug]
-            term_combos_excluding_optional += [other_terms]
-        titles = []
-        for term_combo in term_combos_excluding_optional:
-            titles_for_product = [term.get_titles(lang) for term in term_combo]
-            titles += [' '.join(title_tup) for title_tup in product(*titles_for_product)]
-        return titles
+    def ref_part_title_trie(self, lang: str):
+        from .ref_part import RefPartTitleTrie
+        return RefPartTitleTrie(lang, nodes=[self])
 
     def validate(self):
         super(TitledTreeNode, self).validate()

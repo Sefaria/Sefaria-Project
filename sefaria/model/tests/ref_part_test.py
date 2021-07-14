@@ -64,6 +64,7 @@ def test_referenceable_child():
     [create_raw_ref_data("Job 1", 'he', "פרק מאימתי", [slice(0, 2)], [RPT.NAMED]), [1, ("Berakhot 2a:1-13a:15",)]],  # talmud perek without book
     [create_raw_ref_data("Job 1", 'he', "רש\"י פרק מאימתי בברכות", [0, slice(1, 3), 3], [RPT.NAMED, RPT.NAMED, RPT.NAMED]), [1, ("Rashi on Berakhot 2a:1-13a:15",)]],  # rashi perek
     [create_raw_ref_data("Job 1", 'he', "רש\"י פרק מאימתי בברכות ד\"ה מאימתי קורין", [0, slice(1, 3), 3, slice(4, 7)], [RPT.NAMED, RPT.NAMED, RPT.NAMED, RPT.DH]), [1, ("Rashi on Berakhot 2a:1:1",)]],  # rashi perek dibur hamatchil
+    [create_raw_ref_data("Job 1", 'he', "רש\"י פרק מאימתי ד\"ה מאימתי קורין", [0, slice(1, 3), slice(3, 6)], [RPT.NAMED, RPT.NAMED, RPT.DH]), [1, ("Rashi on Berakhot 2a:1:1",)]],
 ])
 def test_resolver(resolver_data, results):
     ref_resolver, raw_ref, context_ref = resolver_data

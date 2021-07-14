@@ -95,7 +95,7 @@ class RawRefPartMatch:
                     refined_ref = refined_ref.to(to_ref)
                 matches += [RawRefPartMatch(refined_ref_parts, node, refined_ref)]
         elif raw_ref_part.type == RefPartType.NAMED and isinstance(node, schema.TitledTreeNode):
-            if raw_ref_part.text in node.ref_part_titles(lang):
+            if node.ref_part_title_trie(lang).has_continuations(raw_ref_part.text):
                 matches += [RawRefPartMatch(refined_ref_parts, node, node.ref())]
         elif raw_ref_part.type == RefPartType.DH and isinstance(node, schema.DiburHamatchilNodeSet):
             max_node, max_score = node.best_fuzzy_match_score(raw_ref_part)
