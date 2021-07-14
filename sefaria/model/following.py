@@ -65,9 +65,9 @@ def general_follow_recommendations(lang="english", n=4):
 	global creators
 	if not creators:
 		creators = []
+		match_stage = {"status": "public"} if lang == "english" else {"status": "public", "sheetLanguage": "hebrew"}
 		pipeline = [
-			{"$match": {
-			   "status": "public"}},
+			{"$match": match_stage},
 			{"$sortByCount": "$owner"},
 			{"$lookup": {
 				"from": "profiles",

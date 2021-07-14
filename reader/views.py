@@ -3665,9 +3665,9 @@ def community_page_data(request, language="english"):
     }
     if request.user.is_authenticated:
         profile = UserProfile(user_obj=request.user)
-        data["followRecommendations"] = profile.follow_recommendations()
+        data["followRecommendations"] = profile.follow_recommendations(lang=request.interfaceLang)
     else:
-        data["followRecommendations"] = general_follow_recommendations()
+        data["followRecommendations"] = general_follow_recommendations(lang=request.interfaceLang)
 
     return data
 
