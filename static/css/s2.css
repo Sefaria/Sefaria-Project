@@ -8140,6 +8140,38 @@ span.purim-emoji img{
   top: -44px;
   margin-bottom: -44px;
 }
+.editorAddInterface {
+    position: relative;
+    pointer-events:none;
+}
+.editorAddInterface:before {
+  content: "";
+  margin-inline-start:-34px;
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  transform: rotate(45deg);
+  background-color; white;
+  background-image: url("/static/icons/iconmonstr-x-mark-7.svg");
+  background-size: contain;
+  filter: invert(67%) sepia(2%) saturate(9%) hue-rotate(126deg) brightness(91%) contrast(89%);
+  border-radius: 50%;
+  pointer-events:auto;
+  cursor: pointer;
+}
+.editorAddInterface.active:before {
+  transform: rotate(0);
+}
+.editorAddInterface .editorAddInterfaceButton {
+  display: none;
+}
+.editorAddInterface.active .editorAddInterfaceButton {
+  display: inline-block;
+}
+.editorAddInterface.active .cursorHolder {
+  display: inline-block;
+ }
+
 .sheetContent .sheetItem .SheetOutsideText.segment p {
   margin: 0
 }

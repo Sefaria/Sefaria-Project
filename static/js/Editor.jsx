@@ -636,6 +636,10 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
   );
 };
 
+const toggleEditorAddInterface = (e) => {
+    e.target.classList.toggle('active');
+}
+
 const Element = props => {
     const { attributes, children, element } = props;
     const sheetItemClasses = {
@@ -647,9 +651,19 @@ const Element = props => {
 
     switch (element.type) {
         case 'spacer':
+          const spacerSelected = useSelected();
           return (
             <div className="spacer empty">
-              {children}
+              {spacerSelected ?
+                  <div className="editorAddInterface" contentEditable={false} onClick={(e) => toggleEditorAddInterface(e)}>
+                      <div className="editorAddInterfaceButton" contentEditable={false}>A</div>
+                      <div className="editorAddInterfaceButton" contentEditable={false}>B</div>
+                      <div className="editorAddInterfaceButton" contentEditable={false}>C</div>
+                      <div className="cursorHolder" contentEditable={true}>{children}</div>
+                  </div>
+
+                  : <>{children}</>}
+
             </div>
           );
         case 'SheetSource':
@@ -2180,9 +2194,9 @@ const SefariaEditor = (props) => {
         {
           /* debugger */
 
-          // <div style={{position: 'fixed', left: 0, top: 0, width: 300, height: '100%', backgroundColor: '#ddd', fontSize: 12, zIndex: 9999, whiteSpace: 'pre', overflow: "scroll"}}>
-          // {JSON.stringify(editor.children[0,0], null, 4)}
-          // </div>
+          <div style={{position: 'fixed', left: 0, top: 0, width: 300, height: '100%', backgroundColor: '#ddd', fontSize: 12, zIndex: 9999, whiteSpace: 'pre', overflow: "scroll"}}>
+          {JSON.stringify(editor.children[0,0], null, 4)}
+          </div>
 
         }
 
