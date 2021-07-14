@@ -3913,7 +3913,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .narrowColumn .content .contentInner {
   padding: 0 15px;
 }
-.textRange.basetext .title, .sheetContent .customSourceTitle{
+.textRange.basetext .title, .sheetContent .customSourceTitle {
   padding: 0 28px;
   margin: 30px 0 24px 0;
   color: #000;
@@ -3921,9 +3921,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   justify-content: center;
   font-weight: lighter;
   letter-spacing: 1px;
-}
-.textRange.basetext .title, {
-  font-size: 24px;
+  font-size: 1.1em;
 }
 .sheetContent .customSourceTitle {
   padding-top: 14px;
