@@ -1118,7 +1118,7 @@ class ArrayMapNode(NumberedTitledTreeNode):
     (e.g., Parsha structures of chapter/verse stored Tanach, or Perek structures of Daf/Line stored Talmud)
     """
     required_param_keys = ["depth", "wholeRef"]
-    optional_param_keys = ["lengths", "addressTypes", "sectionNames", "refs", "includeSections", "startingAddress", "ref_part_terms", "ref_parts_optional", "referenceableSections", "isSegmentLevelDiburHamatchil"]  # "addressTypes", "sectionNames", "refs" are not required for depth 0, but are required for depth 1 +
+    optional_param_keys = ["lengths", "addressTypes", "sectionNames", "refs", "includeSections", "startingAddress", "ref_part_terms", "ref_parts_optional", "referenceableSections", "isSegmentLevelDiburHamatchil", "referenceableAlone", "aloneRefPartTermPrefixes"]  # "addressTypes", "sectionNames", "refs" are not required for depth 0, but are required for depth 1 +
     has_key = False  # This is not used as schema for content
 
     def get_ref_from_sections(self, sections):
@@ -1181,6 +1181,10 @@ class ArrayMapNode(NumberedTitledTreeNode):
                     raise IndexSchemaError("Missing Parameter '{}' in {}".format(k, self.__class__.__name__))
             super(ArrayMapNode, self).validate()
 
+    def ref(self):
+        from . import text
+        return text.Ref(self.wholeRef)
+
 
 """
                 -------------------------
@@ -1201,7 +1205,7 @@ class SchemaNode(TitledTreeNode):
 
     """
     is_virtual = False
-    optional_param_keys = ["ref_part_terms", "ref_parts_optional"]
+    optional_param_keys = ["ref_part_terms", "ref_parts_optional", "referenceableAlone", "aloneRefPartTermPrefixes"]
 
     def __init__(self, serial=None, **kwargs):
         """

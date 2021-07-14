@@ -96,8 +96,7 @@ class RawRefPartMatch:
                 matches += [RawRefPartMatch(refined_ref_parts, node, refined_ref)]
         elif raw_ref_part.type == RefPartType.NAMED and isinstance(node, schema.TitledTreeNode):
             if raw_ref_part.text in node.ref_part_titles(lang):
-                node_ref = text.Ref(node.wholeRef) if isinstance(node, schema.ArrayMapNode) else node.ref()
-                matches += [RawRefPartMatch(refined_ref_parts, node, node_ref)]
+                matches += [RawRefPartMatch(refined_ref_parts, node, node.ref())]
         elif raw_ref_part.type == RefPartType.DH and isinstance(node, schema.DiburHamatchilNodeSet):
             max_node, max_score = node.best_fuzzy_match_score(raw_ref_part)
             if max_score == 1.0:
@@ -109,8 +108,15 @@ class RefPartTitleTrie:
 
     PREFIXES = {'ב'}
 
-    def __init__(self, lang, nodes=None, sub_trie=None) -> None:
+    def __init__(self, lang, nodes=None, sub_trie=None, context=None) -> None:
+        """
+        :param lang:
+        :param nodes:
+        :param sub_trie:
+        :param context: str. context of the trie. if 'root', take into account 'aloneRefPartTermPrefixes'.
+        """
         self.lang = lang
+        self.context = context
         if nodes is not None:
             self.__init_with_nodes(nodes)
         else:
@@ -119,8 +125,16 @@ class RefPartTitleTrie:
     def __init_with_nodes(self, nodes):
         self._trie = {}
         for node in nodes:
+            is_index_level = getattr(node, 'index', False) and node == node.index.nodes
+            ref_part_terms = node.ref_part_terms[:]
+            optional_terms = getattr(node, 'ref_parts_optional', [False]*len(node.ref_part_terms))[:]
+            if not is_index_level and self.context == 'root':
+                alone_prefixes = getattr(node, "aloneRefPartTermPrefixes", [])
+                ref_part_terms = alone_prefixes + ref_part_terms
+                optional_terms = [False]*len(alone_prefixes) + optional_terms
+
             curr_dict_queue = [self._trie]
-            for term_slug, optional in zip(node.ref_part_terms, getattr(node, 'ref_parts_optional', [])):
+            for term_slug, optional in zip(ref_part_terms, optional_terms):
                 term = NonUniqueTerm.init(term_slug)
                 len_curr_dict_queue = len(curr_dict_queue)
                 for _ in range(len_curr_dict_queue):
@@ -135,25 +149,72 @@ class RefPartTitleTrie:
             # add nodes to leaves
             # None key indicates this is a leaf                            
             for curr_dict in curr_dict_queue:
+                leaf_node = node.index if is_index_level else node
                 if None in curr_dict:
-                    curr_dict[None] += [node.index]
+                    curr_dict[None] += [leaf_node]
                 else:
-                    curr_dict[None] = [node.index]
+                    curr_dict[None] = [leaf_node]
 
     def __getitem__(self, key):
         return self.get(key)        
 
     def get(self, key, default=None):
         sub_trie = self._trie.get(key, default)
-        if sub_trie is default and self.lang == 'he':
-            # try with prefixes
-            for prefix in self.PREFIXES:
-                if not key.startswith(prefix): continue
-                sub_trie = self._trie.get(key[len(prefix):], default)
-                if sub_trie is not None: break
-
         if sub_trie is None: return
         return RefPartTitleTrie(self.lang, sub_trie=sub_trie)
+
+    def has_continuations(self, key):
+        return self.get_continuations(key, default=None) is not None
+
+    def _merge_two_tries(self, a, b):
+        "merges b into a"
+        for key in b:
+            if key in a:
+                if isinstance(a[key], dict) and isinstance(b[key], dict):
+                    self._merge_two_tries(a[key], b[key])
+                elif a[key] == b[key]:
+                    pass  # same leaf value
+                elif isinstance(a[key], list) and isinstance(b[key], list):
+                    a[key] += b[key]
+                else:
+                    raise Exception('Conflict in _merge_two_tries')
+            else:
+                a[key] = b[key]
+        return a
+
+    def _merge_n_tries(self, *tries):
+        from functools import reduce
+        if len(tries) == 1:
+            return tries[0]
+        return reduce(self._merge_two_tries, tries)
+
+    def get_continuations(self, key, default=None):
+        continuations = self._get_continuations_recursive(key)
+        if len(continuations) == 0:
+            return default
+        merged = self._merge_n_tries(*continuations)
+        return RefPartTitleTrie(self.lang, sub_trie=merged)
+
+    def _get_continuations_recursive(self, key: str, prev_sub_tries=None):
+        is_first = prev_sub_tries is None
+        prev_sub_tries = prev_sub_tries or self._trie
+        next_sub_tries = []
+        key = key.strip()
+        starti_list = [0]
+        if self.lang == 'he' and is_first:
+            for prefix in self.PREFIXES:
+                if not key.startswith(prefix): continue
+                starti_list += [len(prefix)]
+        for starti in starti_list:
+            for endi in reversed(range(len(key)+1)):
+                sub_key = key[starti:endi]
+                if sub_key not in prev_sub_tries: continue
+                if endi == len(key):
+                    next_sub_tries += [prev_sub_tries[sub_key]]
+                    continue
+                temp_sub_tries = self._get_continuations_recursive(key[endi:], prev_sub_tries[sub_key])
+                next_sub_tries += temp_sub_tries
+        return next_sub_tries
 
     def __contains__(self, key):
         return key in self._trie
@@ -161,6 +222,7 @@ class RefPartTitleTrie:
     def __iter__(self):
         for item in self._trie:
             yield item
+
 
 class RefResolver:
 
@@ -182,10 +244,10 @@ class RefResolver:
             # no need to consider other types at root level
             if ref_part.type != RefPartType.NAMED: continue
             temp_prev_ref_parts = prev_ref_parts + [ref_part]
-            temp_title_trie = title_trie[ref_part.text]
+            temp_title_trie = title_trie.get_continuations(ref_part.text)
             if temp_title_trie is None: continue
             if None in temp_title_trie:
-                matches += [RawRefPartMatch(temp_prev_ref_parts, index, index.nodes.ref()) for index in temp_title_trie[None]]
+                matches += [RawRefPartMatch(temp_prev_ref_parts, node, (node.nodes if isinstance(node, text.Index) else node).ref()) for node in temp_title_trie[None]]
             temp_ref_parts = [ref_parts[j] for j in range(len(ref_parts)) if j != i]
             matches += self._get_unrefined_ref_part_matches_recursive(temp_ref_parts, temp_title_trie, temp_prev_ref_parts)
         return self._prune_unrefined_ref_part_matches(matches)
@@ -217,7 +279,8 @@ class RefResolver:
     def _prune_unrefined_ref_part_matches(self, ref_part_matches: List['RawRefPartMatch']) -> List['RawRefPartMatch']:
         index_match_map = defaultdict(list)
         for match in ref_part_matches:
-            index_match_map[match.node.title] += [match]
+            key = match.node.title if isinstance(match.node, text.Index) else match.node.ref().normal()
+            index_match_map[key] += [match]
         pruned_matches = []
         for match_list in index_match_map.values():
             pruned_matches += [max(match_list, key=lambda m: len(m.raw_ref_parts))]

@@ -36,6 +36,7 @@ def add_alt_structs():
         for perek_node in base_alt_struct.children:
             perek_node.wholeRef = "Rashi on " + perek_node.wholeRef
             perek_node.isSegmentLevelDiburHamatchil = True
+            perek_node.aloneRefPartTermPrefixes = ["rashi"]
         base_alt_struct.validate()
         index.set_alt_structure("Chapters", base_alt_struct)
         index.save()
@@ -65,6 +66,7 @@ def create_non_unique_terms():
             perek_term = t(he=perek_node.get_primary_title('he'))  # TODO english titles are 'Chapter N'. Is that an issue?
             perek_node.ref_part_terms = [perek.slug, perek_term.slug]
             perek_node.ref_parts_optional = [True, False]
+            perek_node.referenceableAlone = True
         index.save()
 
     # Rashi

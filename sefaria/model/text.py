@@ -895,6 +895,13 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         # parallel to TreeNodes's all_children(). Allows full traversal of an index's nodes
         return [self.nodes] + self.get_alt_struct_nodes()
 
+    def get_referenceable_alone_nodes(self):
+        alone_nodes = []
+        for child in self.all_children():
+            if getattr(child, "referenceableAlone", False):
+                alone_nodes += [child]
+            alone_nodes += list(filter(lambda x: getattr(x, "referenceableAlone", False), child.all_children()))
+        return alone_nodes
 
 class IndexSet(abst.AbstractMongoSet):
     """
@@ -5209,8 +5216,9 @@ class Library(object):
 
     def _build_root_ref_part_titles(self, lang):
         from sefaria.model.ref_part import RefPartTitleTrie
-        root_nodes = filter(lambda n: getattr(n, 'ref_part_terms', None) is not None, self.get_index_forest())
-        self._root_ref_part_title_trie = RefPartTitleTrie(lang, nodes=root_nodes)
+        root_nodes = list(filter(lambda n: getattr(n, 'ref_part_terms', None) is not None, self.get_index_forest()))
+        alone_nodes = reduce(lambda a, b: a + b.index.get_referenceable_alone_nodes(), root_nodes, [])
+        self._root_ref_part_title_trie = RefPartTitleTrie(lang, nodes=(root_nodes + alone_nodes), context='root')
         return self._root_ref_part_title_trie
 
                         
