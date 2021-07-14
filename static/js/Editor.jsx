@@ -603,7 +603,7 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
           {element.heRef ? <div className="ref" contentEditable={false} style={{ userSelect: 'none' }}>{element.heRef}</div> : null }
           <div className="sourceContentText">
           <Slate editor={sheetSourceHeEditor} value={sheetHeSourceValue} onChange={value => onHeChange(value)}>
-          <HoverMenu/>
+          <HoverMenu buttons="basic"/>
             <Editable
               readOnly={!sourceActive}
               renderLeaf={props => <Leaf {...props} />}
@@ -615,7 +615,7 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
         {element.ref ? <div className="ref" contentEditable={false} style={{ userSelect: 'none' }}>{element.ref}</div> : null }
         <div className="sourceContentText">
           <Slate editor={sheetSourceEnEditor} value={sheetEnSourceValue} onChange={value => onEnChange(value)}>
-          <HoverMenu/>
+          <HoverMenu buttons="basic"/>
             <Editable
               readOnly={!sourceActive}
               renderLeaf={props => <Leaf {...props} />}
@@ -1732,7 +1732,8 @@ const Leaf = ({attributes, children, leaf}) => {
     return <span {...attributes}>{children}</span>
 };
 
-const HoverMenu = () => {
+const HoverMenu = (opt) => {
+    const buttons = (opt["buttons"])
     const ref = useRef();
     const editor = useSlate();
 
@@ -1775,9 +1776,11 @@ const HoverMenu = () => {
             <FormatButton editor={editor} format="bold"/>
             <FormatButton editor={editor} format="italic"/>
             <FormatButton editor={editor} format="underline"/>
-            <AddLinkButton/>
-            <BlockButton editor={editor} format="header"/>
-
+            {buttons == "basic" ? null : <>
+                <AddLinkButton/>
+                <BlockButton editor={editor} format="header"/>
+            </>
+            }
 
         </div>,
         root
@@ -2241,7 +2244,7 @@ const SefariaEditor = (props) => {
         </SheetMetaDataBox>
 
             <Slate editor={editor} value={value} onChange={(value) => onChange(value)}>
-                <HoverMenu/>
+                <HoverMenu buttons="all"/>
                 <Editable
                   renderLeaf={props => <Leaf {...props} />}
                   renderElement={renderElement}
