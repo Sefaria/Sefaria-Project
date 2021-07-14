@@ -459,13 +459,19 @@ function transformSheetJsonToSlate(sheet) {
 
     sheet.sources.forEach( (source, i) => {
 
-      // this snippet of code exists to create placeholder spacers inbetween elements to allow for easier editting.
-      //if the source is not the first source and it's not an outside text or adjacent to an outside text
+        // this snippet of code exists to create placeholder spacers in between elements to allow for easier editing
+        // and to preserve spacing.
+        //
+        // A spacer is added:
+        // 1. If the source is not the first source and it's not an outside text or adjacent to an outside text, and
+        // 2. In between outside texts.
 
-      const isCurrentSourceAnOutsideText = !!source["outsideText"]
-      const isPrevSourceAnOutsideText = !!(i > 0 && sheet.sources[i-1]["outsideText"])
+      // needed for now b/c headers are saved as OutsideTexts for backwards compatability w/ old sheets
+      const sourceIsHeader = source["outsideText"] && source["outsideText"].startsWith("<h1>");
+      const isCurrentSourceAnOutsideText = !!source["outsideText"];
+      const isPrevSourceAnOutsideText = !!(i > 0 && sheet.sources[i-1]["outsideText"]);
 
-      if (!(isPrevSourceAnOutsideText || isCurrentSourceAnOutsideText) ) {
+      if (!(isPrevSourceAnOutsideText || isCurrentSourceAnOutsideText) || (isPrevSourceAnOutsideText && isCurrentSourceAnOutsideText && !sourceIsHeader) ) {
           sourceNodes.push({
             type: "spacer",
             children: [{text: ""}]
@@ -925,7 +931,6 @@ const withSefariaSheet = editor => {
 
         if (getClosestSheetElement(editor, editor.selection.focus.path, "header")) {
             insertBreak();
-            console.log(getClosestSheetElement(editor, editor.selection.focus.path, "editor"))
             Transforms.setNodes(editor, {type: "SheetOutsideText"}, {at: editor.selection.focus.path});
             return
         }
@@ -967,6 +972,7 @@ const withSefariaSheet = editor => {
             editor.wrapSheetOutsideTextChildren,
             editor.mergeSheetOutsideTextBlocks,
             editor.convertEmptyOutsideTextIntoSpacer,
+            editor.convertEmptyParagraphToSpacer,
             editor.wrapSheetContentElements,
             editor.ensureEditableSpaceAtTopAndBottom,
             editor.replaceSpacerWithOutsideText,
@@ -1054,34 +1060,18 @@ const withSefariaSheet = editor => {
         }
     };
 
+    editor.convertEmptyParagraphToSpacer = (node, path) => {
+        if (node.type === "paragraph") {
+            if (Node.string(node) === "" && node.children.length <= 1) {
+                Transforms.setNodes(editor, {type: "spacer"}, {at: path});
+            }
+        }
+    }
+
     editor.convertEmptyOutsideTextIntoSpacer = (node, path) => {
         if (node.type === "SheetOutsideText") {
-
             if (Node.string(node) === "" && node.children.length <= 1) {
-
-                const fragment = {
-                    type: "spacer",
-                    children: [{text: ""}]
-                };
-
-                const atEndOfDoc = Point.equals(editor.selection.focus, Editor.end(editor, [0, 0]));
-
-                //This dance is required b/c it can't be changed in place
-                // it exits the spacer, deletes it, then places the new outside text in its place
-                Transforms.move(editor);
-                Transforms.delete(editor, {at: path});
-                Transforms.insertNodes(editor, fragment, {at: path});
-
-                if (atEndOfDoc) {
-                    // sometimes the delete action above loses the cursor
-                    //  at the end of the doc, this drops you back in place
-                    ReactEditor.focus(editor);
-                    Transforms.select(editor, Editor.end(editor, []));
-                } else {
-                    // gain back the cursor position that we exited above
-                    Transforms.move(editor, {reverse: true})
-                }
-                return true;
+                Transforms.setNodes(editor, {type: "spacer"}, {at: path});
             }
         }
     };
@@ -1147,29 +1137,8 @@ const withSefariaSheet = editor => {
     //Convert a spacer to an outside text if there's text inside it.
     editor.replaceSpacerWithOutsideText = (node, path) => {
         if (node.type === "spacer") {
-
             if (Node.string(node) !== "") {
-
-                const fragment = defaultEmptyOutsideText(editor.children[0].nextNode, Node.string(node));
-                const atEndOfDoc = Point.equals(editor.selection.focus, Editor.end(editor, [0, 0]));
-
-                //This dance is required b/c it can't be changed in place
-                // it exits the spacer, deletes it, then places the new outside text in its place
-                Transforms.move(editor);
-                Transforms.delete(editor, {at: path});
-                Transforms.insertNodes(editor, fragment, {at: path});
-                incrementNextSheetNode(editor);
-
-                if (atEndOfDoc) {
-                    // sometimes the delete action above loses the cursor
-                    //  at the end of the doc, this drops you back in place
-                    ReactEditor.focus(editor);
-                    Transforms.select(editor, Editor.end(editor, []));
-                } else {
-                    // gain back the cursor position that we exited above
-                    Transforms.move(editor, {reverse: true})
-                }
-                return true;
+                Transforms.setNodes(editor, {type: "SheetOutsideText"}, {at: path});
             }
         }
     };
@@ -1303,7 +1272,6 @@ const checkAndFixDuplicateSheetNodeNumbers = (editor) => {
   let existingSheetNodes = []
   for (const [child, childPath] of Node.children(editor, [0,0])) {
     const sheetNode = child;
-    console.log(sheetNode.node)
     if (existingSheetNodes.includes(sheetNode.node)) {
       Transforms.setNodes(editor, {node: editor.children[0].nextNode}, {at: childPath});
       existingSheetNodes.push(editor.children[0].nextNode);
