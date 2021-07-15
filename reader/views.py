@@ -3657,8 +3657,9 @@ def community_page(request, props={}):
     """    
     title = _("From the Community: Today on Sefaria")
     desc  = _("New and featured source sheets, divrei torah, articles, sermons and more created by members of the Sefaria community.")
-    props.update(community_page_data(request, language=request.interfaceLang))
-    return menu_page(request, page="community", props=props, title=title, desc=desc)
+    data  = community_page_data(request, language=request.interfaceLang)
+    data.update(props) # don't overwrite data that was passed n with props
+    return menu_page(request, page="community", props=data, title=title, desc=desc)
 
 
 def community_page_data(request, language="english"):
