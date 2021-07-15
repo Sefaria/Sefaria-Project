@@ -280,11 +280,6 @@ class TocTree(object):
 
         title = old_title or d["title"]
 
-        vs = self._vs_lookup.get(title, {})
-        d["firstSection"] = vs.get("first_section_ref", None)
-        d["heComplete"]   = vs.get("heComplete", False)
-        d["enComplete"]   = vs.get("enComplete", False)
-
         if "base_text_titles" in d and len(d["base_text_titles"]) > 0:
             d["refs_to_base_texts"] = {btitle:
                 self._first_comment_lookup.get(frozenset([btitle, title]), d["firstSection"])
