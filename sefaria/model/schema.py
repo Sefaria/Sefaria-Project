@@ -1093,6 +1093,8 @@ class DiburHamatchilNodeSet(abst.AbstractMongoSet):
                 max_score = score
                 max_node = node
         return max_node, max_score
+
+
 class ArrayMapNode(NumberedTitledTreeNode):
     """
     A :class:`TreeNode` that contains jagged arrays of references.

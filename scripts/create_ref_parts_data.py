@@ -86,17 +86,21 @@ def create_non_unique_terms():
         n.isSegmentLevelDiburHamatchil = True
         n.referenceableSections = [True, False, True]
         index.save()
-        for segment_ref in index.all_segment_refs():
+        for iseg, segment_ref in enumerate(index.all_segment_refs()):
+            perek_ref = seg_perek_mapping[segment_ref.section_ref().normal()]
+
+            # TODO remove
+            if iseg > 3 and perek_ref not in {"Rashi on Beitzah 15b:1-23b:10", "Rashi on Rosh Hashanah 29b:5-35a:13"}: continue
+            
             chunk = TextChunk(segment_ref, 'he')
             dh = get_dh(chunk.text)
             if dh is None:
                 continue
             DiburHamatchilNode({
                 "dibur_hamatchil": dh,
-                "container_refs": [segment_ref.top_section_ref().normal(), seg_perek_mapping[segment_ref.section_ref().normal()], index.title],
+                "container_refs": [segment_ref.top_section_ref().normal(), perek_ref, index.title],
                 "ref": segment_ref.normal()
             }).save()
-            break # TODO remove
 if __name__ == "__main__":
     create_non_unique_terms()
     add_alt_structs()

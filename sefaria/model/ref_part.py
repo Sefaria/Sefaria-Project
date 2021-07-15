@@ -83,6 +83,11 @@ class RawRefPartMatch:
     def get_unused_ref_parts(self, raw_ref: 'RawRef'):
         return [ref_part for ref_part in raw_ref.raw_ref_parts if ref_part not in self.raw_ref_parts]
 
+    def _get_refined_match_for_dh_part(self, raw_ref_part: 'RawRefPart', refined_ref_parts: List['RawRefPart'], node: schema.DiburHamatchilNodeSet):
+        max_node, max_score = node.best_fuzzy_match_score(raw_ref_part)
+        if max_score == 1.0:
+            return RawRefPartMatch(refined_ref_parts, max_node, text.Ref(max_node.ref))
+
     def get_refined_matches(self, raw_ref_part, node, lang: str) -> List['RawRefPartMatch']:
         refined_ref_parts = self.raw_ref_parts + [raw_ref_part]
         matches = []
@@ -97,10 +102,15 @@ class RawRefPartMatch:
         elif raw_ref_part.type == RefPartType.NAMED and isinstance(node, schema.TitledTreeNode):
             if node.ref_part_title_trie(lang).has_continuations(raw_ref_part.text):
                 matches += [RawRefPartMatch(refined_ref_parts, node, node.ref())]
-        elif raw_ref_part.type == RefPartType.DH and isinstance(node, schema.DiburHamatchilNodeSet):
-            max_node, max_score = node.best_fuzzy_match_score(raw_ref_part)
-            if max_score == 1.0:
-                matches += [RawRefPartMatch(refined_ref_parts, max_node, text.Ref(max_node.ref))]
+        elif raw_ref_part.type == RefPartType.DH:
+            if isinstance(node, schema.JaggedArrayNode):
+                # jagged array node can be skipped entirely if it has a dh child
+                # technically doesn't work if there is a referenceable child in between ja and dh node
+                node = node.get_referenceable_child(self.ref)
+            if isinstance(node, schema.DiburHamatchilNodeSet):
+                dh_match = self._get_refined_match_for_dh_part(raw_ref_part, refined_ref_parts, node)
+                if dh_match is not None:
+                    matches += [dh_match]
         # TODO sham and directional cases
         return matches
 
@@ -228,6 +238,16 @@ class RefResolver:
 
     def __init__(self, lang) -> None:
         self.lang = lang
+    
+    def get_refs_in_string(self, context_ref: text.Ref, st: str) -> List[text.Ref]:
+        pass
+
+    def _get_raw_refs_in_string(self, st: str) -> List['RawRef']:
+        """
+        ml_raw_ref_out
+        ml_raw_ref_part_out
+        parse ml out
+        """
 
     def resolve(self, context_ref: text.Ref, raw_ref: 'RawRef') -> List['RawRefPartMatch']:
         unrefined_matches = self.get_unrefined_ref_part_matches(context_ref, raw_ref)
