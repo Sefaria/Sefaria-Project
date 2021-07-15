@@ -265,17 +265,32 @@ class SheetContent extends Component {
       }
 
       else if ("outsideText" in source) {
-        return (
-          <SheetOutsideText
+        const sourceIsHeader = source["outsideText"].startsWith("<h1>");
+
+        if (sourceIsHeader) {
+          return <SheetHeader
             key={i}
             sourceNum={i + 1}
             source={source}
-            cleanHTML={this.cleanHTML}
             sheetSourceClick={this.props.sheetSourceClick.bind(this, source)}
             highlightedNode={this.props.highlightedNode}
             sheetNumbered={this.props.sheetNumbered}
-         />
-        );
+          />
+        }
+
+        else {
+          return (
+            <SheetOutsideText
+              key={i}
+              sourceNum={i + 1}
+              source={source}
+              cleanHTML={this.cleanHTML}
+              sheetSourceClick={this.props.sheetSourceClick.bind(this, source)}
+              highlightedNode={this.props.highlightedNode}
+              sheetNumbered={this.props.sheetNumbered}
+           />
+          );
+        }
       }
 
       else if ("outsideBiText" in source) {
@@ -489,6 +504,29 @@ class SheetComment extends Component {
       </section>
     );
   }
+}
+
+class SheetHeader extends Component {
+  render() {
+    const lang = Sefaria.hebrew.isHebrew(this.props.source.outsideText.stripHtml().replace(/\s+/g, ' ')) ? "he" : "en";
+    const containerClasses = classNames("sheetItem",
+        "segment",
+        lang == "he" ? "heOnly" : "enOnly",
+        this.props.highlightedNode === this.props.source.node ? "highlight" : null,
+        this.props.source.options ? this.props.source.options.indented : null
+    );
+
+    return (
+        <div className={containerClasses} data-node={this.props.source.node} onClick={this.props.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.props.sheetSourceClick(e):null}.bind(this)} >
+          <div className={lang}>
+              <div className="sourceContentText"><h1><span>{this.props.source.outsideText.stripHtml()}</span></h1></div>
+          </div>
+        </div>
+    )
+
+
+  }
+
 }
 
 

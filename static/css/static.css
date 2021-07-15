@@ -1295,41 +1295,29 @@ p.registration-links a:hover{
 /*#jobsPage nav h3{
   text-transform: uppercase;
 }*/
-#jobsPage nav ul{
-  display: flex;
-  flex-flow: column wrap;
-  justify-content: flex-start;
-  margin-inline: auto;
-  padding: initial;
-}
-#jobsPage nav ul li{
-  list-style: none;
-  /*border: 1px solid #ccc;
-  background-color: #EDEDEC;*/
-  text-align: center;
-  margin: 2px 0;
-  padding: 5px 0;
-  border-radius: 5px;
-  display: flex;
-  align-items: center;
-  /*max-width: 130px;*/
-}
-#jobsPage nav ul li a:hover{
-  background-color: #ededec;
-}
-#jobsPage nav ul li a{
-  vertical-align: middle;
-  display: inline-block;
-  line-height: 20px;
-}
-#jobsPage nav ul li a:hover{
-  text-decoration: none;
-}
 #jobsPage h1 {
   margin-bottom: 0;
 }
 #jobsPage h2 {
   font-size: 22px;
+}
+#jobsPage section.department h2{
+  font-weight: 500;
+  font-size: 22px;
+  line-height: 26px;
+  color: var(--dark-grey);
+  text-transform: none;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--light-grey);
+}
+#jobsPage section.department{
+  margin-top: 50px;
+}
+#jobsPage section.department:first-of-type{
+  margin-top: 80px;
+}
+#jobsPage .department .jobsListForDepartment{
+  margin-top: 18px;
 }
 #jobsPage h2.anchorable {
   margin-top: 0;
@@ -1338,32 +1326,30 @@ p.registration-links a:hover{
   font-size: 16px;
   font-weight: lighter;
 }
-#jobsPage p {
-  margin: 20px 0;
-}
 #jobsPage li {
   margin: 14px 0;
 }
-#jobsPage .apply-buttons{
-  display: block;
-  text-align: center;
-}
-#jobsPage h4.subheader{
-  margin:initial;
-  font-style: italic;
-}
 #jobsPage .job{
+  margin-bottom: 15px;
   scroll-margin-top: 5em;
-  margin-top: 90px;
-  border-bottom: 4px solid #212E50;
-  /*border-image: linear-gradient(90deg, #00505E 0% 10%, #5698B4 10% 20%, #CCB37C 20% 30%, #5B9370 30% 40%, #823241 40% 50%, #5A4474 50% 60%, #AD4F66 60% 70%, #7285A6 70% 80%, #00807E 80% 90%, #4872B3 90% 100%);
-  -webkit-border-image: -webkit-linear-gradient(90deg, #00505E 0% 10%, #5698B4 10% 20%, #CCB37C 20% 30%, #5B9370 30% 40%, #823241 40% 50%, #5A4474 50% 60%, #AD4F66 60% 70%, #7285A6 70% 80%, #00807E 80% 90%, #4872B3 90% 100%);
-  -moz-border-image: -moz-linear-gradient(left, #3acfd5 0%, #3a4ed5 100%);*/
-  border-image-slice: 1;
-  padding-bottom: 30px;
+  --english-font: var(--english-serif-font-family);
+  --hebrew-font: var(--hebrew-serif-font-family);
+  font-style: normal;
+  font-weight: normal;
+  font-size: 24px;
+  line-height: 29px;
+  color: #000000;
 }
-#jobsPage .job:first-of-type{
-  margin-top: 90px;
+#jobsPage .solicitationNotice, #jobsPage .solicitationNotice p{
+  margin-top: 80px;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 14px;
+  line-height: 18px;
+  color: var(--medium-grey);
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  direction: ltr;
 }
 #jobsPage .bold{
   font-weight: bold;

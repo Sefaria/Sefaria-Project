@@ -730,6 +730,9 @@ input.noselect {
   padding: 12px;
   border-bottom: 1px solid #CCCCCC;
 }
+.header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header:not(:first-child) {
+  border-top: 1px solid #CCC;
+}
 .interface-english .header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header {
   font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
 }
@@ -3805,6 +3808,68 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .readerControls.connectionsHeader .readerControlsInner {
   padding: 0 34px;
 }
+.readerControls.transLangPrefSuggBann {
+  background-color: #EDEDEC;
+}
+.readerControls .readerControlsInner.transLangPrefSuggBannInner {
+  justify-content: center;
+  align-items: center;
+  line-height: initial;
+  height: 100%;
+  color: #666;
+}
+.readerControls.transLangPrefSuggBann .transLangPrefCentered {
+  display: flex;
+  align-items: center;
+  margin-inline-start: auto;
+}
+.readerControls .readerControlsInner.transLangPrefSuggBannInner .yesNoGroup {
+  margin: 0 10px;
+  display: flex;
+}
+.readerControls .readerControlsInner.transLangPrefSuggBannInner .yesNoButton {
+  border-radius: 6px;
+  background-color: white;
+  padding: 5px 11px;
+  margin: 0 7px 0 0;
+  user-select: none;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+}
+.interface-hebrew .readerControls .readerControlsInner.transLangPrefSuggBannInner .yesNoButton {
+  margin: 0 0 0 7px;
+}
+.readerControls .readerControlsInner.transLangPrefSuggBannInner .readerNavMenuCloseButton {
+  font-size: 35px;
+  margin-inline-start: auto;
+  margin-top: -6px;
+  color: #bbb;
+}
+.trans-pref-header-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  padding-inline: 12px;
+  padding-block: 10px;
+  align-items: center;
+}
+.trans-pref-header-container .trans-pref-reset {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+}
+.interface-hebrew .trans-pref-header-container .trans-pref-reset {
+  direction: rtl;
+}
+.interface-hebrew .trans-pref-header-container .trans-pref-reset .smallText {
+  padding-bottom: 2px;
+}
+.trans-pref-header-container img.reset-btn {
+  width: 10px;
+  height: 10px;
+  opacity: 0.4;
+}
 .singlePanel .readerControls .readerControlsInner {
   padding: 0px 15px;
 }
@@ -4053,7 +4118,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .toggleSet {
   display: inline-block;
   width: 47%;
-  margin: 2px auto 20px auto;
+  margin: 2px auto 0 auto;
+}
+#accountSettingsPage .toggleSet {
+  display: flex;
 }
 .toggleSet.aliyotTorah, .toggleSet.punctuationTalmud, .toggleSet .toggle-set-label {
   --english-font: var(--english-sans-serif-font-family);
@@ -4107,11 +4175,13 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   border-bottom-right-radius: 4px;
   border-right: 1px solid #999;
 }
-.toggleOption.on, .toggleOption:hover {
+.toggleOption.on, 
+.toggleOption:hover {
   background-color: white;
   color: black;
 }
-.toggleSet.biLayout .toggleOption.on img, .toggleSet.layout .toggleOption:hover img{
+.toggleSet.biLayout .toggleOption.on img,
+.toggleSet.layout .toggleOption:hover img {
   opacity: 1;
 }
 .toggleSet.separated .toggleOption {
@@ -4217,7 +4287,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .narrowColumn .content .contentInner {
   padding: 0 15px;
 }
-.textRange.basetext .title, .sheetContent .customSourceTitle{
+.textRange.basetext .title, .sheetContent .customSourceTitle {
   padding: 0 28px;
   margin: 30px 0 24px 0;
   color: #000;
@@ -4225,9 +4295,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   justify-content: center;
   font-weight: lighter;
   letter-spacing: 1px;
-}
-.textRange.basetext .title, {
-  font-size: 24px;
+  font-size: 1.1em;
 }
 .sheetContent .customSourceTitle {
   padding-top: 14px;
@@ -8104,6 +8172,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   background-color: white;
   border-radius: 4px;
   line-height: 18px;
+  cursor: pointer;
 }
 .versionsBox a.selectButton.currSelectButton {
   background-color: #212E50;
@@ -8281,6 +8350,21 @@ span.purim-emoji img{
   overflow-wrap: break-word;
   word-wrap: break-word;
 }
+.sheetContent h1,
+#sheet .outside h1,
+.sourceContentText h1 {
+  font-weight: 400;
+  font-size: var(--serif-h3-font-size);
+  text-align: center;
+  margin-top: 45px;
+  margin-bottom: 30px;
+}
+.sheetContent h1 span,
+.sourceContentText h1 span {
+  border-bottom: 4px solid var(--lighter-grey);
+}
+
+
 .readerPanel.hebrew .sheetContent .sheetItem.segment .sourceContentText.outsideBiText.en {
   display: none;
 }
@@ -8953,6 +9037,9 @@ cursor: pointer;
   width: 18px;
   height: 18px;
   margin-inline-end: 10px;
+}
+.sheetLeft div.sheetSummary {
+  margin-bottom: 10px
 }
 .default-profile-img {
   width: 175px;
@@ -9671,6 +9758,11 @@ img.smallProfileImage {
   text-align: justify;
   font-size: 18px;
 }
+.story .storySheetListItem > div.storyBody.sheetSummary > * {
+  color: var(--dark-grey);
+  font-family: var(--english-sans-serif-font-family);
+  font-size: 15px;
+}
 .story .storyBody .en {
   line-height: 1.6;
 }
@@ -10123,6 +10215,9 @@ a.topicLexiconTitle.contentText {
 }
 #communityPagePreviewControls a:hover {
   color: inherit;
+}
+.bold {
+  font-weight: bold; /* because apparently it isn't recommended to use <b> or <strong> to style thing https://developer.mozilla.org/en-US/docs/Web/HTML/Element/strong#usage_notes */
 }
 /* Customize checkmark inputs */
 .checkmarkLabel {

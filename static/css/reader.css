@@ -286,11 +286,6 @@ body.bilingual #about.enLocked.heLocked #editText {
 	display: none;
 }
 
-#sectionNav {
-	float: left;
-	margin: 8px 0 6px 4px;
-}
-
 #next, #prev {
 	display: inline-block;
 	visibility: hidden;

@@ -157,7 +157,7 @@ class Util {
         var clean = sanitizeHtml(html, {
             allowedTags: ['blockquote', 'p', 'a', 'ul', 'ol',
                 'nl', 'li', 'b', 'i', 'strong', 'em', 'small', 'big', 'span', 'strike', 'hr', 'br', 'div',
-                'table', 'thead', 'caption', 'tbody', 'tr', 'th', 'td', 'pre', 'sup','u'],
+                'table', 'thead', 'caption', 'tbody', 'tr', 'th', 'td', 'pre', 'sup','u', 'h1'],
             allowedAttributes: {
                 a: ['href', 'name', 'target', 'class', 'data-ref'],
                 img: ['src'],

@@ -225,14 +225,16 @@ class TextList extends Component {
                                       basetext={false}
                                       textHighlights={link.highlightedWords || null}
                                       inlineReference={link.inline_reference || null}
-                                      onCitationClick={this.props.onCitationClick}/>
-                                      <ConnectionButtons>
-                                        <OpenConnectionTabButton srefs={[link.sourceRef]} openInTabCallback={this.props.onTextClick}/>
-                                        <AddConnectionToSheetButton srefs={[link.sourceRef]} addToSheetCallback={this.props.setConnectionsMode}/>
-                                        {Sefaria.is_moderator ?
-                                        <DeleteConnectionButton delUrl={"/api/links/" + link._id} connectionDeleteCallback={this.onDataChange}/> : null
-                                        }
-                                      </ConnectionButtons>
+                                      onCitationClick={this.props.onCitationClick}
+                                      translationLanguagePreference={this.props.translationLanguagePreference}
+                                    />
+                                    <ConnectionButtons>
+                                      <OpenConnectionTabButton srefs={[link.sourceRef]} openInTabCallback={this.props.onTextClick}/>
+                                      <AddConnectionToSheetButton srefs={[link.sourceRef]} addToSheetCallback={this.props.setConnectionsMode}/>
+                                      {Sefaria.is_moderator ?
+                                      <DeleteConnectionButton delUrl={"/api/links/" + link._id} connectionDeleteCallback={this.onDataChange}/> : null
+                                      }
+                                    </ConnectionButtons>
                                   </div>);
 
                         }
@@ -271,6 +273,7 @@ TextList.propTypes = {
   closePanel:              PropTypes.func,
   selectedWords:           PropTypes.string,
   checkVisibleSegments:    PropTypes.func.isRequired,
+  translationLanguagePreference: PropTypes.string,
 };
 
 const DeleteConnectionButton = ({delUrl, connectionDeleteCallback}) =>{
