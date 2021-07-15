@@ -5,11 +5,26 @@ from . import abstract as abst
 from . import text
 from . import schema
 from spacy.tokens import Span
+from spacy.language import Language
 
 class RefPartType(Enum):
     NAMED = "named"
     NUMBERED = "numbered"
     DH = "dibur_hamatchil"
+
+    label_to_enum_attr = {
+        "כותרת": 'NAMED',
+        "מספר": "NUMBERED",
+        "דה": "DH",
+    }
+
+    @classmethod
+    def span_label_to_enum(cls, span_label: str) -> 'RefPartType':
+        return getattr(cls, cls.label_to_enum_attr[span_label])
+
+# TODO consider that we may not need raw ref part source
+class RefPartSource(Enum):
+    INPUT = "input"
 
 class NonUniqueTerm(abst.AbstractMongoRecord, schema.AbstractTitledObject):
     collection = "non_unique_terms"
@@ -73,23 +88,25 @@ class RawRef:
 
     text = property(get_text)
 
-class RawRefPartMatch:
+class ResolvedRawRef:
 
-    def __init__(self, raw_ref_parts, node, ref: text.Ref) -> None:
-        self.raw_ref_parts = raw_ref_parts
+    def __init__(self, raw_ref: 'RawRef', resolved_ref_parts: List['RawRefPart'], node, ref: text.Ref) -> None:
+        self.raw_ref = raw_ref
+        self.resolved_ref_parts = resolved_ref_parts
         self.node = node
         self.ref = ref
+        self.ambiguous = False
 
     def get_unused_ref_parts(self, raw_ref: 'RawRef'):
-        return [ref_part for ref_part in raw_ref.raw_ref_parts if ref_part not in self.raw_ref_parts]
+        return [ref_part for ref_part in raw_ref.raw_ref_parts if ref_part not in self.resolved_ref_parts]
 
     def _get_refined_match_for_dh_part(self, raw_ref_part: 'RawRefPart', refined_ref_parts: List['RawRefPart'], node: schema.DiburHamatchilNodeSet):
         max_node, max_score = node.best_fuzzy_match_score(raw_ref_part)
         if max_score == 1.0:
-            return RawRefPartMatch(refined_ref_parts, max_node, text.Ref(max_node.ref))
+            return ResolvedRawRef(self.raw_ref, refined_ref_parts, max_node, text.Ref(max_node.ref))
 
-    def get_refined_matches(self, raw_ref_part, node, lang: str) -> List['RawRefPartMatch']:
-        refined_ref_parts = self.raw_ref_parts + [raw_ref_part]
+    def get_refined_matches(self, raw_ref_part: 'RawRefPart', node, lang: str) -> List['ResolvedRawRef']:
+        refined_ref_parts = self.resolved_ref_parts + [raw_ref_part]
         matches = []
         if raw_ref_part.type == RefPartType.NUMBERED and isinstance(node, schema.JaggedArrayNode):
             possible_sections, possible_to_sections = node.address_class(0).get_all_possible_sections_from_string(lang, raw_ref_part.text)
@@ -98,10 +115,10 @@ class RawRefPartMatch:
                 if toSec != sec:
                     to_ref = self.ref.subref(toSec)
                     refined_ref = refined_ref.to(to_ref)
-                matches += [RawRefPartMatch(refined_ref_parts, node, refined_ref)]
+                matches += [ResolvedRawRef(self.raw_ref, refined_ref_parts, node, refined_ref)]
         elif raw_ref_part.type == RefPartType.NAMED and isinstance(node, schema.TitledTreeNode):
             if node.ref_part_title_trie(lang).has_continuations(raw_ref_part.text):
-                matches += [RawRefPartMatch(refined_ref_parts, node, node.ref())]
+                matches += [ResolvedRawRef(self.raw_ref, refined_ref_parts, node, node.ref())]
         elif raw_ref_part.type == RefPartType.DH:
             if isinstance(node, schema.JaggedArrayNode):
                 # jagged array node can be skipped entirely if it has a dh child
@@ -113,6 +130,7 @@ class RawRefPartMatch:
                     matches += [dh_match]
         # TODO sham and directional cases
         return matches
+
 
 class RefPartTitleTrie:
 
@@ -236,11 +254,17 @@ class RefPartTitleTrie:
 
 class RefResolver:
 
-    def __init__(self, lang) -> None:
+    def __init__(self, lang, raw_ref_model: Language, raw_ref_part_model: Language) -> None:
         self.lang = lang
+        self.raw_ref_model = raw_ref_model
+        self.raw_ref_part_model = raw_ref_part_model
     
-    def get_refs_in_string(self, context_ref: text.Ref, st: str) -> List[text.Ref]:
-        pass
+    def resolve_refs_in_string(self, context_ref: text.Ref, st: str) -> List['ResolvedRawRef']:
+        raw_refs = self._get_raw_refs_in_string(st)
+        resolved = []
+        for raw_ref in raw_refs:
+            resolved += self.resolve_raw_ref(context_ref, raw_ref)
+        return resolved
 
     def _get_raw_refs_in_string(self, st: str) -> List['RawRef']:
         """
@@ -248,16 +272,48 @@ class RefResolver:
         ml_raw_ref_part_out
         parse ml out
         """
+        raw_refs: List['RawRef'] = []
+        raw_ref_spans = self._get_raw_ref_spans_in_string(st)
+        for span in raw_ref_spans:
+            raw_ref_part_spans = self._get_raw_ref_part_spans_in_string(span.text)
+            raw_ref_parts = []
+            for part_span in raw_ref_part_spans:
+                part_type = RefPartType.span_label_to_enum(part_span.label_)
+                dh_cont = None
+                if part_type == RefPartType.DH:
+                    dh_cont = None  # TODO FILL IN
+                raw_ref_parts += [RawRefPart(RefPartSource.INPUT, part_type, part_span, dh_cont)]
+            raw_refs += [RawRef(raw_ref_parts, span)]
+        return raw_refs
 
-    def resolve(self, context_ref: text.Ref, raw_ref: 'RawRef') -> List['RawRefPartMatch']:
+    def _get_raw_ref_spans_in_string(self, st: str) -> List[Span]:
+        doc = self.raw_ref_model(st)
+        spans = []
+        for ent in doc.ents:
+            spans += [doc[ent.start:ent.end]]
+        return spans
+
+    def _get_raw_ref_part_spans_in_string(self, st: str) -> List[Span]:
+        doc = self.raw_ref_part_model(st)
+        spans = []
+        for ent in doc.ents:
+            spans += [doc[ent.start:ent.end]]
+        return spans
+
+    def resolve_raw_ref(self, context_ref: text.Ref, raw_ref: 'RawRef') -> List['ResolvedRawRef']:
         unrefined_matches = self.get_unrefined_ref_part_matches(context_ref, raw_ref)
-        return self.refine_ref_part_matches(unrefined_matches, raw_ref)
+        resolved_list = self.refine_ref_part_matches(unrefined_matches, raw_ref)
+        if len(resolved_list) > 1:
+            for resolved in resolved_list:
+                resolved.ambiguous = True
+        return resolved_list
 
     def get_unrefined_ref_part_matches(self, context_ref: text.Ref, raw_ref: 'RawRef') -> list:
         from .text import library
-        return self._get_unrefined_ref_part_matches_recursive(raw_ref.raw_ref_parts, library.get_root_ref_part_title_trie(self.lang))
+        return self._get_unrefined_ref_part_matches_recursive(raw_ref, library.get_root_ref_part_title_trie(self.lang))
 
-    def _get_unrefined_ref_part_matches_recursive(self, ref_parts: list, title_trie: RefPartTitleTrie, prev_ref_parts: list=None) -> list:
+    def _get_unrefined_ref_part_matches_recursive(self, raw_ref: RawRef, title_trie: RefPartTitleTrie, prev_ref_parts: list=None) -> list:
+        ref_parts = raw_ref.raw_ref_parts
         prev_ref_parts = prev_ref_parts or []
         matches = []
         for i, ref_part in enumerate(ref_parts):
@@ -267,9 +323,9 @@ class RefResolver:
             temp_title_trie = title_trie.get_continuations(ref_part.text)
             if temp_title_trie is None: continue
             if None in temp_title_trie:
-                matches += [RawRefPartMatch(temp_prev_ref_parts, node, (node.nodes if isinstance(node, text.Index) else node).ref()) for node in temp_title_trie[None]]
+                matches += [ResolvedRawRef(raw_ref, temp_prev_ref_parts, node, (node.nodes if isinstance(node, text.Index) else node).ref()) for node in temp_title_trie[None]]
             temp_ref_parts = [ref_parts[j] for j in range(len(ref_parts)) if j != i]
-            matches += self._get_unrefined_ref_part_matches_recursive(temp_ref_parts, temp_title_trie, temp_prev_ref_parts)
+            matches += self._get_unrefined_ref_part_matches_recursive(RawRef(temp_ref_parts, raw_ref.span), temp_title_trie, temp_prev_ref_parts)
         return self._prune_unrefined_ref_part_matches(matches)
 
     def refine_ref_part_matches(self, ref_part_matches: list, raw_ref: 'RawRef') -> list:
@@ -296,27 +352,27 @@ class RefResolver:
         
         return self._prune_refined_ref_part_matches(fully_refined)
 
-    def _prune_unrefined_ref_part_matches(self, ref_part_matches: List['RawRefPartMatch']) -> List['RawRefPartMatch']:
+    def _prune_unrefined_ref_part_matches(self, ref_part_matches: List['ResolvedRawRef']) -> List['ResolvedRawRef']:
         index_match_map = defaultdict(list)
         for match in ref_part_matches:
             key = match.node.title if isinstance(match.node, text.Index) else match.node.ref().normal()
             index_match_map[key] += [match]
         pruned_matches = []
         for match_list in index_match_map.values():
-            pruned_matches += [max(match_list, key=lambda m: len(m.raw_ref_parts))]
+            pruned_matches += [max(match_list, key=lambda m: len(m.resolved_ref_parts))]
         return pruned_matches
 
-    def _prune_refined_ref_part_matches(self, ref_part_matches: List['RawRefPartMatch']) -> List['RawRefPartMatch']:
+    def _prune_refined_ref_part_matches(self, ref_part_matches: List['ResolvedRawRef']) -> List['ResolvedRawRef']:
         """
-        So far simply returns all matches with the maximum number of raw_ref_parts
+        So far simply returns all matches with the maximum number of resolved_ref_parts
         """
         max_ref_parts = 0
         max_ref_part_matches = []
         for match in ref_part_matches:
-            if len(match.raw_ref_parts) > max_ref_parts:
-                max_ref_parts = len(match.raw_ref_parts)
+            if len(match.resolved_ref_parts) > max_ref_parts:
+                max_ref_parts = len(match.resolved_ref_parts)
                 max_ref_part_matches = [match]
-            elif len(match.raw_ref_parts) == max_ref_parts:
+            elif len(match.resolved_ref_parts) == max_ref_parts:
                 max_ref_part_matches += [match]
         return max_ref_part_matches
 

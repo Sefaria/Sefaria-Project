@@ -33,7 +33,7 @@ def duplicate_terms():
 
 
 def create_raw_ref_data(context_tref, lang, tref, span_indexes, part_types):
-    ref_resolver = RefResolver(lang)
+    ref_resolver = RefResolver(lang, None, None)
     nlp = Hebrew() if lang == 'he' else English()
     doc = nlp(tref)
     span = doc[0:]
@@ -71,7 +71,7 @@ def test_referenceable_child():
 def test_resolver(resolver_data, expected_results):
     ref_resolver, raw_ref, context_ref = resolver_data
     num_expected_results, expected_trefs = expected_results
-    matches = ref_resolver.resolve(context_ref, raw_ref)
+    matches = ref_resolver.resolve_raw_ref(context_ref, raw_ref)
     assert len(matches) == num_expected_results
     matched_orefs = sorted([match.ref for match in matches], key=lambda x: x.normal())
     for expected_tref, matched_oref in zip(sorted(expected_trefs, key=lambda x: x), matched_orefs):
