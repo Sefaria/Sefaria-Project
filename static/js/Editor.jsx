@@ -44,10 +44,14 @@ const HOTKEYS = {
   'mod+u': 'underline',
 };
 
+const LIST_TYPES = ['numbered-list', 'bulleted-list']
+
+const NO_SPACER_NEEDED_TYPES = ["SheetOutsideText", "header", "SheetComment"]
+
 const ELEMENT_TAGS = {
     A: el => ({type: 'link', url: el.getAttribute('href'), ref: el.getAttribute('data-ref'), target: el.getAttribute('target')}),
     BLOCKQUOTE: () => ({type: 'quote'}),
-    H1: () => ({type: 'heading-one'}),
+    H1: () => ({type: 'header'}),
     H2: () => ({type: 'heading-two'}),
     H3: () => ({type: 'heading-three'}),
     H4: () => ({type: 'heading-four'}),
@@ -287,7 +291,6 @@ export const serialize = (content) => {
                 }, "");
                 return `<ul>${ulHtml}</ul>`
             }
-
             case 'table':
               const tableHtml = content.children.reduce((acc, text) => {
                   return (acc + serialize(text))
@@ -456,13 +459,19 @@ function transformSheetJsonToSlate(sheet) {
 
     sheet.sources.forEach( (source, i) => {
 
-      // this snippet of code exists to create placeholder spacers inbetween elements to allow for easier editting.
-      //if the source is not the first source and it's not an outside text or adjacent to an outside text
+        // this snippet of code exists to create placeholder spacers in between elements to allow for easier editing
+        // and to preserve spacing.
+        //
+        // A spacer is added:
+        // 1. If the source is not the first source and it's not an outside text or adjacent to an outside text, and
+        // 2. In between outside texts.
 
-      const isCurrentSourceAnOutsideText = !!source["outsideText"]
-      const isPrevSourceAnOutsideText = !!(i > 0 && sheet.sources[i-1]["outsideText"])
+      // needed for now b/c headers are saved as OutsideTexts for backwards compatability w/ old sheets
+      const sourceIsHeader = source["outsideText"] && source["outsideText"].startsWith("<h1>");
+      const isCurrentSourceAnOutsideText = !!source["outsideText"];
+      const isPrevSourceAnOutsideText = !!(i > 0 && sheet.sources[i-1]["outsideText"]);
 
-      if (!(isPrevSourceAnOutsideText || isCurrentSourceAnOutsideText) ) {
+      if (!(isPrevSourceAnOutsideText || isCurrentSourceAnOutsideText) || (isPrevSourceAnOutsideText && isCurrentSourceAnOutsideText && !sourceIsHeader) ) {
           sourceNodes.push({
             type: "spacer",
             children: [{text: ""}]
@@ -600,7 +609,7 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
           {element.heRef ? <div className="ref" contentEditable={false} style={{ userSelect: 'none' }}>{element.heRef}</div> : null }
           <div className="sourceContentText">
           <Slate editor={sheetSourceHeEditor} value={sheetHeSourceValue} onChange={value => onHeChange(value)}>
-          <HoverMenu/>
+          <HoverMenu buttons="basic"/>
             <Editable
               readOnly={!sourceActive}
               renderLeaf={props => <Leaf {...props} />}
@@ -612,7 +621,7 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
         {element.ref ? <div className="ref" contentEditable={false} style={{ userSelect: 'none' }}>{element.ref}</div> : null }
         <div className="sourceContentText">
           <Slate editor={sheetSourceEnEditor} value={sheetEnSourceValue} onChange={value => onEnChange(value)}>
-          <HoverMenu/>
+          <HoverMenu buttons="basic"/>
             <Editable
               readOnly={!sourceActive}
               renderLeaf={props => <Leaf {...props} />}
@@ -756,6 +765,9 @@ const Element = props => {
             return (
                 <li>{children}</li>
             );
+        case 'header': {
+            return <h1 className="serif" {...attributes}><span>{children}</span></h1>
+        }
         case 'link':
           return (
             <Link {...props} />
@@ -882,7 +894,7 @@ const withSefariaSheet = editor => {
                 inSpacer = true;
             }
 
-            //we do a dance to seeif we'll accidently delete a sheetsource and select it instead if we will
+            //we do a dance to see if we'll accidently delete a sheetsource and select it instead if we will
             Transforms.move(editor, {reverse: true})
             if (getClosestSheetElement(editor, editor.selection.focus.path, "SheetSource")) {
                 //deletes the extra spacer space that would otherwise be left behind
@@ -916,6 +928,13 @@ const withSefariaSheet = editor => {
             insertBreak();
             return
         }
+
+        if (getClosestSheetElement(editor, editor.selection.focus.path, "header")) {
+            insertBreak();
+            Transforms.setNodes(editor, {type: "SheetOutsideText"}, {at: editor.selection.focus.path});
+            return
+        }
+
 
         getRefInText(editor, true).then(query => {
             if (query["is_segment"] || query["is_section"]) {
@@ -953,6 +972,7 @@ const withSefariaSheet = editor => {
             editor.wrapSheetOutsideTextChildren,
             editor.mergeSheetOutsideTextBlocks,
             editor.convertEmptyOutsideTextIntoSpacer,
+            editor.convertEmptyParagraphToSpacer,
             editor.wrapSheetContentElements,
             editor.ensureEditableSpaceAtTopAndBottom,
             editor.replaceSpacerWithOutsideText,
@@ -962,6 +982,7 @@ const withSefariaSheet = editor => {
             editor.ensureEditableSpaceBeforeAndAfterBoxedElements,
             editor.onlyTextAndRefsInBoxedElements,
             editor.addPlaceholdersForEmptyText,
+            editor.liftHeader,
 
         ];
 
@@ -976,6 +997,17 @@ const withSefariaSheet = editor => {
 
     // Normalization functions take (node, path) and return true if they make a change.
     // They are registered in editor.normalizeNode
+
+    editor.liftHeader = (node, path) => {
+        if (node.type === "header") {
+            if (Node.parent(editor, path).type !== "SheetContent") {
+                Transforms.setNodes(editor, {node: editor.children[0].nextNode}, {at: path});
+                incrementNextSheetNode(editor)
+                Transforms.liftNodes(editor, {at: path});
+                return true;
+            }
+        }
+    }
 
     editor.decorateSheetOutsideText = (node, path) => {
         // Autoset language of an outside text for proper RTL/LTR handling
@@ -1028,34 +1060,18 @@ const withSefariaSheet = editor => {
         }
     };
 
+    editor.convertEmptyParagraphToSpacer = (node, path) => {
+        if (node.type === "paragraph") {
+            if (Node.string(node) === "" && node.children.length <= 1) {
+                Transforms.setNodes(editor, {type: "spacer"}, {at: path});
+            }
+        }
+    }
+
     editor.convertEmptyOutsideTextIntoSpacer = (node, path) => {
         if (node.type === "SheetOutsideText") {
-
             if (Node.string(node) === "" && node.children.length <= 1) {
-
-                const fragment = {
-                    type: "spacer",
-                    children: [{text: ""}]
-                };
-
-                const atEndOfDoc = Point.equals(editor.selection.focus, Editor.end(editor, [0, 0]));
-
-                //This dance is required b/c it can't be changed in place
-                // it exits the spacer, deletes it, then places the new outside text in its place
-                Transforms.move(editor);
-                Transforms.delete(editor, {at: path});
-                Transforms.insertNodes(editor, fragment, {at: path});
-
-                if (atEndOfDoc) {
-                    // sometimes the delete action above loses the cursor
-                    //  at the end of the doc, this drops you back in place
-                    ReactEditor.focus(editor);
-                    Transforms.select(editor, Editor.end(editor, []));
-                } else {
-                    // gain back the cursor position that we exited above
-                    Transforms.move(editor, {reverse: true})
-                }
-                return true;
+                Transforms.setNodes(editor, {type: "spacer"}, {at: path});
             }
         }
     };
@@ -1102,7 +1118,7 @@ const withSefariaSheet = editor => {
         if (node.type === "SheetContent") {
             //ensure there's always an editable space for a user to type at end and top of sheet
             const lastSheetItem = node.children[node.children.length - 1];
-            if (lastSheetItem.type !== "spacer" && lastSheetItem.type !== "SheetOutsideText") {
+            if (lastSheetItem.type !== "spacer" && !NO_SPACER_NEEDED_TYPES.includes(lastSheetItem.type)) {
                 Transforms.insertNodes(editor, {
                     type: 'spacer',
                     children: [{text: ""}]
@@ -1111,7 +1127,7 @@ const withSefariaSheet = editor => {
             }
 
             const firstSheetItem = node.children[0];
-            if (firstSheetItem.type !== "spacer" && firstSheetItem.type !== "SheetOutsideText") {
+            if (firstSheetItem.type !== "spacer" && !NO_SPACER_NEEDED_TYPES.includes(firstSheetItem.type)) {
                 Transforms.insertNodes(editor, {type: 'spacer', children: [{text: ""}]}, {at: [0, 0, 0]});
                 return true;
             }
@@ -1121,29 +1137,8 @@ const withSefariaSheet = editor => {
     //Convert a spacer to an outside text if there's text inside it.
     editor.replaceSpacerWithOutsideText = (node, path) => {
         if (node.type === "spacer") {
-
             if (Node.string(node) !== "") {
-
-                const fragment = defaultEmptyOutsideText(editor.children[0].nextNode, Node.string(node));
-                const atEndOfDoc = Point.equals(editor.selection.focus, Editor.end(editor, [0, 0]));
-
-                //This dance is required b/c it can't be changed in place
-                // it exits the spacer, deletes it, then places the new outside text in its place
-                Transforms.move(editor);
-                Transforms.delete(editor, {at: path});
-                Transforms.insertNodes(editor, fragment, {at: path});
-                incrementNextSheetNode(editor);
-
-                if (atEndOfDoc) {
-                    // sometimes the delete action above loses the cursor
-                    //  at the end of the doc, this drops you back in place
-                    ReactEditor.focus(editor);
-                    Transforms.select(editor, Editor.end(editor, []));
-                } else {
-                    // gain back the cursor position that we exited above
-                    Transforms.move(editor, {reverse: true})
-                }
-                return true;
+                Transforms.setNodes(editor, {type: "SheetOutsideText"}, {at: path});
             }
         }
     };
@@ -1421,7 +1416,7 @@ const Link = ({ attributes, children, element }) => {
   const selected = useSelected();
   const [linkPopoverVisible, setLinkPopoverVisible] = useState(false);
   const [urlValue, setUrlValue] = useState(element.url);
-  const [currentSlateRange, setCurrentSlateRange] = useState(null)
+  const [currentSlateRange, setCurrentSlateRange] = useState(editor.linkOverrideSelection)
 
 
   let showLinkHoverTimeout;
@@ -1429,7 +1424,7 @@ const Link = ({ attributes, children, element }) => {
 
     const onHover = (e, url) => {
         clearTimeout(hideLinkHoverTimeout)
-        if (!editor.selection) {return}
+        if (!editor.selection || editor.linkOverrideSelection) {return}
         let range = document.createRange();
         range.selectNode(e.target);
         setCurrentSlateRange(ReactEditor.toSlateRange(editor, range))
@@ -1450,10 +1445,16 @@ const Link = ({ attributes, children, element }) => {
     }
 
     const xClicked = () => {
-        console.log(currentSlateRange)
         Transforms.select(editor, currentSlateRange);
         editor.removeLink();
+        editor.showLinkOverride = false;
+        editor.linkOverrideSelection = null;
         // Transforms.collapse(editor);
+    }
+
+    const closePopup = () => {
+        editor.showLinkOverride = false;
+        editor.linkOverrideSelection = null;
     }
 
     const fixUrl = (s) => {
@@ -1488,8 +1489,10 @@ const Link = ({ attributes, children, element }) => {
         >
             {children}
         </a>
-      {linkPopoverVisible ? (
-        <div className="popup" contentEditable={false}>
+
+      {/* Show popup on hover and also force it open when a new link is created  */}
+      {linkPopoverVisible || (editor.showLinkOverride && Path.isDescendant(editor.linkOverrideSelection.anchor.path, ReactEditor.findPath(editor, element))) ? (
+        <div className="popup" contentEditable={false} onBlur={closePopup}>
           <input
               type="text"
               value={urlValue}
@@ -1629,6 +1632,37 @@ const isFormatActive = (editor, format) => {
   return !!match
 };
 
+const toggleBlock = (editor, format) => {
+    console.log(format)
+  const isActive = isBlockActive(editor, format)
+  const isList = LIST_TYPES.includes(format)
+
+  Transforms.unwrapNodes(editor, {
+    match: n =>
+      LIST_TYPES.includes(
+        !Editor.isEditor(n) && SlateElement.isElement(n) && n.type
+      ),
+    split: true,
+  })
+  const newProperties = {
+    type: isActive ? 'paragraph' : isList ? 'list-item' : format,
+  }
+  Transforms.setNodes(editor, newProperties)
+
+  if (!isActive && isList) {
+    const block = { type: format, children: [] }
+    Transforms.wrapNodes(editor, block)
+  }
+}
+
+const isBlockActive = (editor, format) => {
+  const [match] = Editor.nodes(editor, {
+    match: n =>
+      !Editor.isEditor(n) && SlateElement.isElement(n) && n.type === format,
+  })
+
+  return !!match
+}
 
 
 const Leaf = ({attributes, children, leaf}) => {
@@ -1666,7 +1700,8 @@ const Leaf = ({attributes, children, leaf}) => {
     return <span {...attributes}>{children}</span>
 };
 
-const HoverMenu = () => {
+const HoverMenu = (opt) => {
+    const buttons = (opt["buttons"])
     const ref = useRef();
     const editor = useSlate();
 
@@ -1709,8 +1744,11 @@ const HoverMenu = () => {
             <FormatButton editor={editor} format="bold"/>
             <FormatButton editor={editor} format="italic"/>
             <FormatButton editor={editor} format="underline"/>
-            <AddLinkButton/>
-
+            {buttons == "basic" ? null : <>
+                <AddLinkButton/>
+                <BlockButton editor={editor} format="header"/>
+            </>
+            }
 
         </div>,
         root
@@ -1726,16 +1764,14 @@ const AddLinkButton = () => {
         <span className="hoverButton"
               onMouseDown={event => {
                   event.preventDefault();
-                  console.log(
-                      // ReactEditor.toDOMNode(editor,
-                          (Node.get(editor, editor.selection))
-                      // )
-
-                      )
-
                   wrapLink(editor, "")
-                  const mouseenterEvent = new Event('mouseenter');
-                  // whateverElement.dispatchEvent(mouseoverEvent);
+                  editor.showLinkOverride = true;
+                  editor.linkOverrideSelection = editor.selection;
+                  // Timeout required b/c it takes a moment for react to rerender before focusing on the new input
+                  setTimeout(() => {
+                      document.querySelector(".popup input").focus()
+                  }, 50);
+
               }}
         >
       <i className={classNames(classes)}/>
@@ -1761,6 +1797,26 @@ const FormatButton = ({format}) => {
     </span>
     )
 };
+
+const BlockButton = ({format}) => {
+    const editor = useSlate()
+    const isActive = isBlockActive(editor, format);
+    const iconName = "fa-" + format;
+    const classes = {fa: 1, active: isActive};
+    classes[iconName] = 1;
+
+    return (
+        <span className="hoverButton"
+              onMouseDown={event => {
+                  event.preventDefault();
+                  toggleBlock(editor, format);
+              }}
+        >
+      <i className={classNames(classes)}/>
+    </span>
+    )
+}
+
 
 function saveSheetContent(doc, lastModified) {
     const sheetTitle = document.querySelector(".sheetContent .sheetMetaDataBox .title") ? document.querySelector(".sheetContent .sheetMetaDataBox .title").textContent : "Untitled"
@@ -1835,6 +1891,15 @@ function saveSheetContent(doc, lastModified) {
                     "node": sheetItem.node,
                 });
 
+            case 'header':
+                const headerContent = serialize(sheetItem)
+                return({
+                    "outsideText": `<h1>${headerContent}</h1>`,
+                    ...sheetItem.options && { options: sheetItem.options },
+                    "node": sheetItem.node,
+                });
+
+
             case 'spacer':
               return;
 
@@ -1893,6 +1958,14 @@ const SefariaEditor = (props) => {
         },
         [currentDocument[0].children[0]] // Only re-call effect if value or delay changes
     );
+
+    useEffect( /* normalize on load */
+        () => {
+
+            Editor.normalize(editor, { force: true })
+        }, []
+    )
+
 
   useEffect(() => {
     if(!props.hasSidebar) {
@@ -2107,8 +2180,8 @@ const SefariaEditor = (props) => {
         {
           /* debugger */
 
-          // <div style={{position: 'fixed', left: 0, top: 0, width: 300, height: 1000, backgroundColor: '#ddd', fontSize: 12, zIndex: 9999}}>
-          // {JSON.stringify(editor.children[0,0])}
+          // <div style={{position: 'fixed', left: 0, top: 0, width: 300, height: '100%', backgroundColor: '#ddd', fontSize: 12, zIndex: 9999, whiteSpace: 'pre', overflow: "scroll"}}>
+          // {JSON.stringify(editor.children[0,0], null, 4)}
           // </div>
 
         }
@@ -2139,7 +2212,7 @@ const SefariaEditor = (props) => {
         </SheetMetaDataBox>
 
             <Slate editor={editor} value={value} onChange={(value) => onChange(value)}>
-                <HoverMenu/>
+                <HoverMenu buttons="all"/>
                 <Editable
                   renderLeaf={props => <Leaf {...props} />}
                   renderElement={renderElement}

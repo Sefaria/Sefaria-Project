@@ -58,6 +58,7 @@ from sefaria.system.database import db
 from sefaria.helper.search import get_query_obj
 from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, get_topics_for_book
 from sefaria.helper.community_page import get_community_page_items
+from sefaria.helper.file import get_resized_file
 import sefaria.tracker as tracker
 
 if USE_VARNISH:
@@ -97,7 +98,7 @@ if server_coordinator:
 def render_template(request, template_name='base.html', app_props=None, template_context=None, content_type=None, status=None, using=None):
     """
     This is a general purpose custom function that serves to render all the templates in the project and provide a central point for all similar processing.
-    It can take props that area meant for the Node render of ReaderApp (and will properly combine them with base_props() and serialize
+    It can take props that are meant for the Node render of ReaderApp (and will properly combine them with base_props() and serialize
     It also takes care of adding these props to the template context
     If needed (i.e. currently, if props are passed in) it will also attempt to call render_react_component so it doesnt have to be called by the view itself.
     :param request: the request object
@@ -187,6 +188,7 @@ def base_props(request):
             "full_name": profile.full_name,
             "profile_pic_url": profile.profile_pic_url,
             "is_history_enabled": profile.settings.get("reading_history", True),
+            "translationLanguagePreference": request.translation_language_preference,
             "following": profile.followees.uids,
             "calendars": get_todays_calendar_items(**_get_user_calendar_params(request)),
             "notificationCount": profile.unread_notification_count(),
@@ -205,6 +207,7 @@ def base_props(request):
             "full_name": "",
             "profile_pic_url": "",
             "is_history_enabled": True,
+            "translationLanguagePreference": request.translation_language_preference,
             "following": [],
             "calendars": get_todays_calendar_items(**_get_user_calendar_params(request)),
             "notificationCount": 0,
@@ -218,6 +221,7 @@ def base_props(request):
         "multiPanel":  not request.user_agent.is_mobile and not "mobile" in request.GET,
         "initialPath": request.get_full_path(),
         "interfaceLang": request.interfaceLang,
+        "translation_language_preference_suggestion": request.translation_language_preference_suggestion,
         "initialSettings": {
             "language":          getattr(request, "contentLang", "english"),
             "layoutDefault":     request.COOKIES.get("layoutDefault", "segmented"),
@@ -364,7 +368,7 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
         if mode != "Connections":
             try:
                 text_family = TextFamily(oref, version=panel["currVersions"]["en"], lang="en", version2=panel["currVersions"]["he"], lang2="he", commentary=False,
-                                  context=True, pad=True, alts=True, wrapLinks=False).contents()
+                                  context=True, pad=True, alts=True, wrapLinks=False, translationLanguagePreference=kwargs.get("translationLanguagePreference", None)).contents()
             except NoVersionFoundError:
                 text_family = {}
             text_family["updateFromAPI"] = True
@@ -506,6 +510,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         kwargs = {
             "panelDisplayLanguage": request.GET.get("lang", request.contentLang),
             'extended notes': int(request.GET.get("notes", 0)),
+            "translationLanguagePreference": request.translation_language_preference,
         }
         if filter is not None:
             lang1 = kwargs["panelDisplayLanguage"]
@@ -559,6 +564,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
             kwargs = {
                 "panelDisplayLanguage": request.GET.get("lang{}".format(i), request.contentLang),
                 'extended notes': int(request.GET.get("notes{}".format(i), 0)),
+                "translationLanguagePreference": request.translation_language_preference,
             }
             if request.GET.get("aliyot{}".format(i), None):
                 kwargs["aliyotOverride"] = "aliyotOn" if int(request.GET.get("aliyot{}".format(i))) == 1 else "aliyotOff"
@@ -1294,12 +1300,14 @@ def texts_api(request, tref):
         wrapNamedEntities = bool(int(request.GET.get("wrapNamedEntities", False)))
         stripItags = bool(int(request.GET.get("stripItags", False)))
         multiple = int(request.GET.get("multiple", 0))  # Either undefined, or a positive integer (indicating how many sections forward) or negative integer (indicating backward)
+        translationLanguagePreference = request.GET.get("transLangPref", None)
 
         def _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context, pad=pad,
-                      alts=alts, wrapLinks=wrapLinks, layer_name=layer_name, wrapNamedEntities=wrapNamedEntities):
+                      alts=alts, wrapLinks=wrapLinks, layer_name=layer_name, wrapNamedEntities=wrapNamedEntities, translationLanguagePreference=translationLanguagePreference):
             text_family_kwargs = dict(version=versionEn, lang="en", version2=versionHe, lang2="he",
                                       commentary=commentary, context=context, pad=pad, alts=alts,
-                                      wrapLinks=wrapLinks, stripItags=stripItags, wrapNamedEntities=wrapNamedEntities)
+                                      wrapLinks=wrapLinks, stripItags=stripItags, wrapNamedEntities=wrapNamedEntities,
+                                      translationLanguagePreference=translationLanguagePreference)
             try:
                 text = TextFamily(oref, **text_family_kwargs).contents()
             except AttributeError as e:
@@ -3418,18 +3426,11 @@ def profile_upload_photo(request):
         from sefaria.utils.util import epoch_time
         now = epoch_time()
 
-        def get_resized_file(image, size):
-            resized_image = image.resize(size, resample=Image.LANCZOS)
-            resized_image_file = BytesIO()
-            resized_image.save(resized_image_file, format="PNG")
-            resized_image_file.seek(0)
-            return resized_image_file
-
         profile = UserProfile(id=request.user.id)
         bucket_name = GoogleStorageManager.PROFILES_BUCKET
         image = Image.open(request.FILES['file'])
-        old_big_pic_filename = re.findall(r"/([^/]+)$", profile.profile_pic_url)[0] if profile.profile_pic_url.startswith(GoogleStorageManager.BASE_URL) else None
-        old_small_pic_filename = re.findall(r"/([^/]+)$", profile.profile_pic_url_small)[0] if profile.profile_pic_url_small.startswith(GoogleStorageManager.BASE_URL) else None
+        old_big_pic_filename = GoogleStorageManager.get_filename(profile.profile_pic_url)
+        old_small_pic_filename = GoogleStorageManager.get_filename(profile.profile_pic_url_small)
 
         big_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (250, 250)), "{}-{}.png".format(profile.slug, now), bucket_name, old_big_pic_filename)
         small_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (80, 80)), "{}-{}-small.png".format(profile.slug, now), bucket_name, old_small_pic_filename)
@@ -3632,10 +3633,13 @@ def account_settings(request):
     """
     Page for managing a user's account settings.
     """
+    from babel import Locale
     profile = UserProfile(id=request.user.id)
     return render_template(request,'account_settings.html', None, {
         'user': request.user,
         'profile': profile,
+        'lang_names_and_codes': zip([Locale(lang).languages[lang].capitalize() for lang in SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES']], SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES']), 
+        'translation_language_preference': (profile is not None and profile.settings.get("translation_language_preference", None)) or request.COOKIES.get("translation_language_preference", None)
     })
 
 

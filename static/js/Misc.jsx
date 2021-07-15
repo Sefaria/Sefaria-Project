@@ -1080,7 +1080,7 @@ ReaderNavigationMenuDisplaySettingsButton.propTypes = {
 };
 
 
-function InterfaceLanguageMenu({currentLang}){
+function InterfaceLanguageMenu({currentLang, translationLanguagePreference, setTranslationLanguagePreference}){
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef(null);
 
@@ -1091,6 +1091,10 @@ function InterfaceLanguageMenu({currentLang}){
     e.stopPropagation();
     setIsOpen(isOpen => !isOpen);
   }
+  const handleTransPrefResetClick = (e) => {
+    e.stopPropagation();
+    setTranslationLanguagePreference(null);
+  };
   const handleHideDropdown = (event) => {
       if (event.key === 'Escape') {
           setIsOpen(false);
@@ -1119,19 +1123,35 @@ function InterfaceLanguageMenu({currentLang}){
         <a className="interfaceLinks-button" onClick={handleClick}><img src="/static/icons/globe-wire.svg"/></a>
         <div className={`interfaceLinks-menu ${ isOpen ? "open" : "closed"}`}>
           <div className="interfaceLinks-header">
-            <span className="int-en">Site Language</span>
-            <span className="int-he">שפת האתר</span>
+            <InterfaceText>Site Language</InterfaceText>
           </div>
           <div className="interfaceLinks-options">
             <a className={`interfaceLinks-option int-bi int-he ${(currentLang == 'hebrew') ? 'active':''}`} href={`/interface/hebrew?next=${getCurrentPage()}`}>עברית</a>
             <a className={`interfaceLinks-option int-bi int-en ${(currentLang == 'english') ? 'active' : ''}`} href={`/interface/english?next=${getCurrentPage()}`}>English</a>
           </div>
+          { !!translationLanguagePreference ? (
+            <>
+              <div className="interfaceLinks-header">
+                <InterfaceText>Preferred Translation</InterfaceText>
+              </div>
+              <div className="interfaceLinks-options trans-pref-header-container">
+                <InterfaceText>{Sefaria.translateISOLanguageCode(translationLanguagePreference, true)}</InterfaceText>
+                <a className="trans-pref-reset" onClick={handleTransPrefResetClick}>
+                  <img src="/static/img/circled-x.svg" className="reset-btn" />
+                  <span className="smallText">
+                    <InterfaceText>Reset</InterfaceText>
+                  </span>
+                </a>
+              </div>
+            </>
+          ) : null}
         </div>
       </div>
   );
 }
 InterfaceLanguageMenu.propTypes = {
-  currentLang: PropTypes.string
+  currentLang: PropTypes.string,
+  translationLanguagePreference: PropTypes.string,
 };
 
 
@@ -1316,7 +1336,7 @@ ProfileListing.propTypes = {
 const SheetListing = ({
   sheet, connectedRefs, handleSheetClick, handleSheetDelete, handleCollectionsChange,
   editable, deletable, saveable, collectable, pinnable, pinned, pinSheet,
-  hideAuthor, showAuthorUnderneath, infoUnderneath, hideCollection, openInNewTab, toggleSignUpModal
+  hideAuthor, showAuthorUnderneath, infoUnderneath, hideCollection, openInNewTab, toggleSignUpModal, showSheetSummary
 }) => {
   // A source sheet presented in lists, like sidebar or profile page
   const [showCollectionsModal, setShowCollectionsModal] = useState(false);
@@ -1369,6 +1389,9 @@ const SheetListing = ({
       {sheet.views}&nbsp;<InterfaceText>Views</InterfaceText>
     </>
   );
+
+  const sheetSummary = showSheetSummary && sheet.summary? 
+  <SimpleInterfaceBlock classes={"smallText sheetSummary"} en={sheet.summary} he={sheet.sheet_summary}/>:null;
 
   const sheetInfo = hideAuthor ? null :
       <div className="sheetInfo">
@@ -1442,6 +1465,7 @@ const SheetListing = ({
           <img src="/static/img/sheet.svg" className="sheetIcon"/>
           <span className="sheetTitleText">{title}</span>
         </a>
+        {sheetSummary}
         <div className="sheetTags sans-serif">
           {
             underInfo.map((item, i) => (

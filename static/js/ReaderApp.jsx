@@ -104,6 +104,7 @@ class ReaderApp extends Component {
       panelCap: props.initialPanelCap,
       initialAnalyticsTracked: false,
       showSignUpModal: false,
+      translationLanguagePreference: props.translationLanguagePreference,
     };
   }
   makePanelState(state) {
@@ -1557,6 +1558,19 @@ class ReaderApp extends Component {
       sheet_title,
     };
   }
+  setTranslationLanguagePreference(lang) {
+    let suggested = true;
+    if (lang === null) {
+      suggested = false;
+      $.removeCookie("translation_language_preference", {path: "/"});
+      $.removeCookie("translation_language_preference_suggested", {path: "/"});
+    } else {
+      $.cookie("translation_language_preference", lang, {path: "/"});
+      $.cookie("translation_language_preference_suggested", JSON.stringify(1), {path: "/"});
+    }
+    Sefaria.editProfileAPI({settings: {translation_language_preference: lang, translation_language_preference_suggested: suggested}});
+    this.setState({translationLanguagePreference: lang});
+  }
   doesPanelHaveSidebar(n) {
     return this.state.panels.length > n+1 && this.state.panels[n+1].mode == "Connections";
   }
@@ -1678,6 +1692,7 @@ class ReaderApp extends Component {
     } else {
       widths = panelStates.map( panel => evenWidth );
     }
+    
     // Header should not show box-shadow over panels that have color line
     const menuOpen = this.state.panels?.[0]?.menuOpen;
     const hasColorLine = [null, "book toc", "sheets", "sheets meta"];
@@ -1698,7 +1713,9 @@ class ReaderApp extends Component {
         hasLanguageToggle={!this.props.multiPanel && Sefaria.interfaceLang !== "hebrew" && this.state.panels?.[0]?.menuOpen === "navigation"}
         toggleLanguage={this.toggleLanguageInFirstPanel}
         firstPanelLanguage={this.state.panels?.[0]?.settings?.language}
-        hasBoxShadow={headerHasBoxShadow} />
+        hasBoxShadow={headerHasBoxShadow}
+        translationLanguagePreference={this.state.translationLanguagePreference}
+        setTranslationLanguagePreference={this.setTranslationLanguagePreference} />
     );
 
     var panels = [];
@@ -1793,6 +1810,8 @@ class ReaderApp extends Component {
                       getHistoryObject={this.getHistoryObject}
                       clearSelectedWords={clearSelectedWords}
                       clearNamedEntity={clearNamedEntity}
+                      translationLanguagePreference={this.state.translationLanguagePreference}
+                      setTranslationLanguagePreference={this.setTranslationLanguagePreference}
                     />
                   </div>);
     }

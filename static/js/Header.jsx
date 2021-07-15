@@ -66,7 +66,10 @@ class Header extends Component {
           }
           { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ? <HelpButton /> : null}
           { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ?
-              <InterfaceLanguageMenu currentLang={Sefaria.interfaceLang} /> : null}
+              <InterfaceLanguageMenu 
+                currentLang={Sefaria.interfaceLang}
+                translationLanguagePreference={this.props.translationLanguagePreference}
+                setTranslationLanguagePreference={this.props.setTranslationLanguagePreference} /> : null}
         </div>
       </>
     );
@@ -368,7 +371,7 @@ class SearchBar extends Component {
           onFocus={this.focusSearch}
           onBlur={this.blurSearch}
           maxLength={75}
-          title={Sefaria._("Search for Texts or Keywords Here")}/>
+          title={Sefaria._("Search for Texts or Keywords Here")} />
       </div>
     );
   }
