@@ -35,7 +35,7 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
         'numSources',
         'shouldDisplay',
         'parasha',  # name of parsha as it appears in `parshiot` collection
-        'ref',  # for topics with refs associated with them, this stores the tref (e.g. for a parashah)
+        'ref',  # dictionary for topics with refs associated with them (e.g. parashah) containing strings `en`, `he`, and `url`.
         'good_to_promote',
         'description_published',  # bool to keep track of which descriptions we've vetted
         'isAmbiguous',  # True if topic primary title can refer to multiple other topics
