@@ -416,7 +416,7 @@ class ReaderApp extends Component {
         switch (state.menuOpen) {
           case "navigation":
             var cats   = state.navigationCategories ? state.navigationCategories.join("/") : "";
-            hist.title = cats ? state.navigationCategories.map(Sefaria._).join(", ") + " | " + Sefaria._(siteName) : Sefaria._("The " + siteName + " Library");
+            hist.title = cats ? state.navigationCategories.map(Sefaria._).join(", ") + " | " + Sefaria._(siteName) : Sefaria._("Sefaria: a Living Library of Jewish Texts Online");
             hist.url   = "texts" + (cats ? "/" + cats : "");
             hist.mode  = "navigation";
             break;
@@ -461,9 +461,8 @@ class ReaderApp extends Component {
               hist.title = `${state.topicTitle[shortLang]} | ${ Sefaria._("Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.")}`;
               hist.mode  = "topic";
             } else if (state.navigationTopicCategory) {
-              var topic  = state.navigationTopicCategory;
-              hist.title = state.navigationTopicTitle[shortLang] + " | " + Sefaria._(siteName);
-              hist.url   =  "topics/category/" + topic;
+              hist.title = state.navigationTopicTitle[shortLang] + " | " + Sefaria._("Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.");
+              hist.url   =  "topics/category/" + state.navigationTopicCategory;;
             } else {
               hist.url   = "topics";
               hist.title = Sefaria._("Topics | " + siteName);
@@ -472,11 +471,11 @@ class ReaderApp extends Component {
             break;
           case "allTopics":
               hist.url   = "topics/all/" + state.navigationTopicLetter;
-              hist.title = Sefaria._("All Topics") + " - " + state.navigationTopicLetter + " | " + Sefaria._(siteName);
+              hist.title = Sefaria._("Explore Jewish Texts by Topic") + " - " + state.navigationTopicLetter + " | " + Sefaria._(siteName);
               hist.mode  = "topics";
             break;
           case "community":
-            hist.title = Sefaria._("Community") + " | " + Sefaria._(siteName); // TODO
+            hist.title = Sefaria._("From the Community: Today on Sefaria");
             hist.url   = "community";
             hist.mode  = "community";
             break;
