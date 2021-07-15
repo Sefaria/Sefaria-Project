@@ -1,12 +1,14 @@
-import pytest
+import pytest, re
 from sefaria.model.text import Ref, library
 from sefaria.model.ref_part import *
 from sefaria.model.abstract import AbstractMongoRecord
 from sefaria.model.ref_part import RefPartType as RPT
-from sefaria.model.schema import DiburHamatchilNode, DiburHamatchilNodeSet
+from sefaria.model.schema import DiburHamatchilNodeSet
+import spacy
 from spacy.lang.he import Hebrew
 from spacy.lang.en import English
-
+from spacy.language import Language
+from sefaria.spacy_function_registry import custom_tokenizer_factory  # used 
 
 @pytest.fixture(scope='module')
 def duplicate_terms():
@@ -31,6 +33,8 @@ def duplicate_terms():
     t.delete()
     s.delete()
 
+def model(project_name: str) -> Language:
+    return spacy.load(f'/home/nss/sefaria/data/research/prodigy/output/{project_name}/model-last')
 
 def create_raw_ref_data(context_tref, lang, tref, span_indexes, part_types):
     ref_resolver = RefResolver(lang, None, None)
@@ -68,11 +72,22 @@ def test_referenceable_child():
     [create_raw_ref_data("Job 1", 'he', "רש\"י ביצה ד\"ה שמא יפשע", [0, 1, slice(2, 5)], [RPT.NAMED, RPT.NAMED, RPT.DH]), [1, ("Rashi on Beitzah 15b:8:1",)]],
     [create_raw_ref_data("Job 1", 'he', "רש\"י יום טוב ד\"ה אלא ביבנה", [0, slice(1, 3), slice(3, 6)], [RPT.NAMED, RPT.NAMED, RPT.DH]), [1, ("Rashi on Rosh Hashanah 29b:5:3",)]],
 ])
-def test_resolver(resolver_data, expected_results):
+def test_resolve_raw_ref(resolver_data, expected_results):
     ref_resolver, raw_ref, context_ref = resolver_data
     num_expected_results, expected_trefs = expected_results
     matches = ref_resolver.resolve_raw_ref(context_ref, raw_ref)
     assert len(matches) == num_expected_results
     matched_orefs = sorted([match.ref for match in matches], key=lambda x: x.normal())
     for expected_tref, matched_oref in zip(sorted(expected_trefs, key=lambda x: x), matched_orefs):
+        assert matched_oref == Ref(expected_tref)
+
+ref_resolver = RefResolver('he', model('ref_tagging_gilyon'), model('sub_citation'))
+@pytest.mark.parametrize(('input_str', 'expected_trefs'), [
+    ["""גמ' שמזונותן עליך. עיין ביצה דף טו ע"ב רש"י ד"ה שמא יפשע:""", ("Rashi on Beitzah 15b:8:1",)]
+])
+def test_full_pipeline_ref_resolver(input_str, expected_trefs):
+    resolved = ref_resolver.resolve_refs_in_string(Ref("Job 1"), input_str)
+    assert len(resolved) == len(expected_trefs)
+    resolved_orefs = sorted([match.ref for match in resolved], key=lambda x: x.normal())
+    for expected_tref, matched_oref in zip(sorted(expected_trefs, key=lambda x: x), resolved_orefs):
         assert matched_oref == Ref(expected_tref)

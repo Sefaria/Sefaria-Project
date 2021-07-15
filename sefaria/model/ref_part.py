@@ -7,20 +7,19 @@ from . import schema
 from spacy.tokens import Span
 from spacy.language import Language
 
+LABEL_TO_REF_PART_TYPE_ATTR = {
+    "כותרת": 'NAMED',
+    "מספר": "NUMBERED",
+    "דה": "DH",
+}
 class RefPartType(Enum):
     NAMED = "named"
     NUMBERED = "numbered"
     DH = "dibur_hamatchil"
 
-    label_to_enum_attr = {
-        "כותרת": 'NAMED',
-        "מספר": "NUMBERED",
-        "דה": "DH",
-    }
-
     @classmethod
     def span_label_to_enum(cls, span_label: str) -> 'RefPartType':
-        return getattr(cls, cls.label_to_enum_attr[span_label])
+        return getattr(cls, LABEL_TO_REF_PART_TYPE_ATTR[span_label])
 
 # TODO consider that we may not need raw ref part source
 class RefPartSource(Enum):
@@ -288,17 +287,11 @@ class RefResolver:
 
     def _get_raw_ref_spans_in_string(self, st: str) -> List[Span]:
         doc = self.raw_ref_model(st)
-        spans = []
-        for ent in doc.ents:
-            spans += [doc[ent.start:ent.end]]
-        return spans
+        return doc.ents
 
     def _get_raw_ref_part_spans_in_string(self, st: str) -> List[Span]:
         doc = self.raw_ref_part_model(st)
-        spans = []
-        for ent in doc.ents:
-            spans += [doc[ent.start:ent.end]]
-        return spans
+        return doc.ents
 
     def resolve_raw_ref(self, context_ref: text.Ref, raw_ref: 'RawRef') -> List['ResolvedRawRef']:
         unrefined_matches = self.get_unrefined_ref_part_matches(context_ref, raw_ref)
