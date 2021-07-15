@@ -524,7 +524,9 @@ class SchemaNode extends Component {
         return (
           <JaggedArrayNode
             schema={this.props.schema}
-            refPath={this.props.refPath} />
+            refPath={this.props.refPath}
+            topLevel={this.props.topLevel}
+          />
         );
       } else if (this.props.schema.nodeType === "ArrayMapNode") {
         return (
@@ -621,12 +623,22 @@ class JaggedArrayNode extends Component {
                 contentCounts={this.props.schema.content_counts}
                 refPath={this.props.refPath} />);
     }
-    return (<JaggedArrayNodeSection
-              depth={this.props.schema.depth}
-              sectionNames={this.props.schema.sectionNames}
-              addressTypes={this.props.schema.addressTypes}
-              contentCounts={this.props.schema.content_counts}
-              refPath={this.props.refPath} />);
+    let topLevelHeader = this.props.topLevel ? (
+        <div className="specialNavSectionHeader">
+          <ContentText text={{en: this.props.schema?.sectionNames[0] || "Chapters", he: Sefaria.hebrewTranslation(this.props.schema?.sectionNames[0] || "Chapters")}}/>
+        </div>
+    ) : null;
+    return (
+        <>
+          {topLevelHeader}
+          <JaggedArrayNodeSection
+                depth={this.props.schema.depth}
+                sectionNames={this.props.schema.sectionNames}
+                addressTypes={this.props.schema.addressTypes}
+                contentCounts={this.props.schema.content_counts}
+                refPath={this.props.refPath} />
+        </>
+    );
   }
 }
 JaggedArrayNode.propTypes = {
