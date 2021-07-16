@@ -1,3 +1,7 @@
+"""Retrieves gravatar images for profiles if they exist and save to google storage + mongo
+arg[1]: id to start at
+"""
+
 import django
 django.setup()
 from sefaria.utils.util import epoch_time
@@ -9,11 +13,18 @@ from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.system.database import db
 from sefaria.model.user_profile import UserProfile
 from google.cloud.exceptions import GoogleCloudError
+import sys
 
 
-for profile_mongo in db.profiles.find({"profile_pic_url": {"$not": {"$regex": "{}.*".format(GoogleStorageManager.BASE_URL)}}}):
+count = 0
+try:
+    start_at = int(sys.argv[1])
+except:
+    start_at = 0
+
+for profile_mongo in db.profiles.find({"profile_pic_url": {"$not": {"$regex": "{}.*".format(GoogleStorageManager.BASE_URL)}}, "id" : {"$gt": start_at}}).sort("id"):
     old_profile_pic_url = recentlyViewed = profile_mongo["profile_pic_url"]
-
+    print(profile_mongo["id"])
     profile = UserProfile(id=profile_mongo['id'])
     email_hash = hashlib.md5(profile.email.lower().encode('utf-8')).hexdigest()
     gravatar_url = "https://www.gravatar.com/avatar/" + email_hash + "?d=404&s=250"
@@ -38,4 +49,7 @@ for profile_mongo in db.profiles.find({"profile_pic_url": {"$not": {"$regex": "{
         print("Error communicating with Google Storage Manager. {}".format(e))
     except e:
         print("Unexpected Error: {}".format(e))
+    count += 1
+    if count % 50 == 0:
+        print(profile_mongo["id"])
     db.profiles.save(profile_mongo)
