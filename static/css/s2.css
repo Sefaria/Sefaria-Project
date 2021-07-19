@@ -5679,7 +5679,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .textListTextRangeBox .connection-buttons, .versionsTextList .connection-buttons{
   margin-bottom: 28px;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   align-content: flex-start;
 }
 .connection-buttons.access-user .connection-button.delete-link{
@@ -5702,6 +5702,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-align: start;
   margin-inline-end: 5px;
 }
+.connection-buttons .connection-button span{
+  text-align: initial;
+}
 .connection-buttons .connection-button .int-en{
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
@@ -5714,8 +5717,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 18px;
 }
 .connection-buttons .connection-button::before{
-  color: #999999;
-  opacity: 0.4;
   display: block;
   content: ' ';
   background-size: 15px 15px;
