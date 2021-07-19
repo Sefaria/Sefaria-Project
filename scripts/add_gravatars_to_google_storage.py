@@ -1,3 +1,7 @@
+"""Retrieves gravatar images for profiles if they exist and save to google storage + mongo
+arg[1]: id to start at
+"""
+
 import django
 django.setup()
 from sefaria.utils.util import epoch_time
@@ -9,12 +13,19 @@ from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.system.database import db
 from sefaria.model.user_profile import UserProfile
 from google.cloud.exceptions import GoogleCloudError
+import sys
 
 
-for profile_mongo in db.profiles.find():
-    old_profile_pic_url = recentlyViewed = profile_mongo["profile_pic_url"]
+count = 0
+try:
+    start_at = int(sys.argv[1])
+except:
+    start_at = 0
 
-    if not old_profile_pic_url.startswith(GoogleStorageManager.BASE_URL):
+cursor = db.profiles.find({"profile_pic_url": {"$not": {"$regex": "{}.*".format(GoogleStorageManager.BASE_URL)}}, "id" : {"$gt": start_at}}, no_cursor_timeout=True).sort("id")
+try:
+    for profile_mongo in cursor:
+        old_profile_pic_url = recentlyViewed = profile_mongo["profile_pic_url"]
         profile = UserProfile(id=profile_mongo['id'])
         email_hash = hashlib.md5(profile.email.lower().encode('utf-8')).hexdigest()
         gravatar_url = "https://www.gravatar.com/avatar/" + email_hash + "?d=404&s=250"
@@ -32,11 +43,23 @@ for profile_mongo in db.profiles.find():
                 profile_mongo["profile_pic_url"]=""
                 profile_mongo["profile_pic_url_small"]=""
             else:
-                print('unexpected error: {}'.format(e))
+                print('unexpected ERROR: {}'.format(e))
+                print(profile_mongo["id"])
         except urllib.error.URLError as e:
-            print("HTTP Error from Gravatar Server. Reason: {}".format(e.reason))
+            print("HTTP ERROR from Gravatar Server. Reason: {}".format(e.reason))
+            print(profile_mongo["id"])
         except GoogleCloudError as e:
-            print("Error communicating with Google Storage Manager. {}".format(e))
-        except e:
-            print("Unexpected Error: {}".format(e))
+            print("ERROR communicating with Google Storage Manager. {}".format(e))
+            print(profile_mongo["id"])
+        except Exception as e:
+            print("Unexpected Error!!: {}".format(e))
+            print(profile_mongo["id"])
+        count += 1
+        if count % 100 == 0:
+            print(profile_mongo["id"])
         db.profiles.save(profile_mongo)
+except Exception as e:
+    print("Breaking error: {}".format(e))
+    print(profile_mongo["id"])
+finally:
+    cursor.close()
