@@ -65,16 +65,17 @@ def general_follow_recommendations(lang="english", n=4):
 	global creators
 	if not creators:
 		creators = []
+		match_stage = {"status": "public"} if lang == "english" else {"status": "public", "sheetLanguage": "hebrew"}
 		pipeline = [
-			{"$match": {
-			   "status": "public"}},
-			{"$sortByCount": "$owner"},
-			{"$lookup": {
+			{"$match": match_stage}, # get all the sheets matching the criteria
+			{"$sortByCount": "$owner"}, # group them by owner and count how many each owner has
+			{"$match": {"count": {"$gte": 3}}}, # limit to owners with 3 or more sheets ("count" field is a result of the previous stage) that matched the first match
+			{"$lookup": { # perform a "left join", use the "_id" field from the last stage, which contains the user/owner id of sheets, to look up corresponding profile obj
 				"from": "profiles",
 				"localField": "_id",
 				"foreignField": "id",
 				"as": "user"}},
-			{"$unwind": {
+			{"$unwind": { # not sure this does anything, if there are accidental multiple user profiles for one user id, it unwinds them
 				"path": "$user",
 				"preserveNullAndEmptyArrays": True
 			}}

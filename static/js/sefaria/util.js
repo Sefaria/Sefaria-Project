@@ -65,9 +65,9 @@ class Util {
       const now = Util.epoch_time();
       let language = lang ? lang : (Sefaria.interfaceLang === 'hebrew' ? 'he' : 'en');
       let spacer = " ";
-      if (language === "en" && short) {
-        language = "shortEn";
-        spacer = "";
+      if(short){
+          language = language == "en" ? "shortEn" : "shortHe";
+          spacer = language == "en" ? "" : " ";
       }
       return Util.sefariaHumanizeDuration(now - timeStamp, { language, spacer });
     }
@@ -929,6 +929,16 @@ Util.sefariaHumanizeDuration = humanizeDuration.humanizer({
       m: () => "m",
       s: () => "s",
       ms: () => "ms",
+    },
+    shortHe: {
+      y: () => "ש'",
+      mo: () => "ח'",
+      w: () => "שב'",
+      d: () => "י'",
+      h: () => "שע'",
+      m: () => "דק'",
+      s: () => "שנ'",
+      ms: () => "מלש'",
     },
   },
 });

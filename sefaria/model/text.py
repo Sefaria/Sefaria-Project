@@ -840,6 +840,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             if "collectiveTitle" not in toc_contents_dict:
                 toc_contents_dict["collectiveTitle"] = self.title
                 toc_contents_dict["heCollectiveTitle"] = self.get_title("he")
+        elif hasattr(self, 'base_text_titles'):
+            toc_contents_dict["base_text_order"] = self.get_base_text_order()
 
         if include_base_texts and hasattr(self, 'base_text_mapping'):
             toc_contents_dict["base_text_mapping"] = self.base_text_mapping

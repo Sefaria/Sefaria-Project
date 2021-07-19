@@ -618,12 +618,12 @@ class UserProfile(object):
     def delete_user_history(self, exclude_saved=True, exclude_last_place=False):
         UserHistory.delete_user_history(uid=self.id, exclude_saved=exclude_saved, exclude_last_place=exclude_last_place)
 
-    def follow_recommendations(self, n=4):
+    def follow_recommendations(self, lang="english", n=4):
         """
         Returns a list of users recommended for `self` to follow.
         """
         from random import choices
-        options = general_follow_recommendations(n=100)
+        options = general_follow_recommendations(lang=lang, n=100)
         filtered_options = [u for u in options if not self.follows(u["uid"])]
 
         return choices(filtered_options, k=n)

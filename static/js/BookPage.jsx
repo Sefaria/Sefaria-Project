@@ -400,23 +400,20 @@ class TextTableOfContents extends Component {
         if (isTorah) {
           content = (
             <>
-              <div className="specialNavSectionHeader">
-                <ContentText text={{en: "Chapters", he: Sefaria.hebrewTranslation("Chapters")}}/>
-              </div>
               <SchemaNode
                 schema={this.state.indexDetails.schema}
                 addressTypes={this.state.indexDetails.schema.addressTypes}
                 refPath={this.props.title}
                 topLevel={true}
+                topLevelHeader={"Chapters"}
               />
-              <div className="specialNavSectionHeader">
-                <ContentText text={{en: "Torah Portions", he: Sefaria.hebrewTranslation("Torah Portions")}}/>
-              </div>
               <div className="torahNavParshiot">
                 <SchemaNode
                   schema={alts["Parasha"]}
                   addressTypes={this.state.indexDetails.schema.addressTypes}
                   refPath={this.props.title}
+                  topLevel={true}
+                  topLevelHeader={"Torah Portions"}
                 />
               </div>
             </>
@@ -426,7 +423,9 @@ class TextTableOfContents extends Component {
                       schema={this.state.indexDetails.schema}
                       addressTypes={this.state.indexDetails.schema.addressTypes}
                       refPath={this.props.title}
-                      topLevel={true} />;
+                      topLevel={true}
+
+          />;
         }
         break;
       default:
@@ -524,7 +523,10 @@ class SchemaNode extends Component {
         return (
           <JaggedArrayNode
             schema={this.props.schema}
-            refPath={this.props.refPath} />
+            refPath={this.props.refPath}
+            topLevel={this.props.topLevel}
+            topLevelHeader={this.props.topLevelHeader}
+          />
         );
       } else if (this.props.schema.nodeType === "ArrayMapNode") {
         return (
@@ -598,8 +600,20 @@ class SchemaNode extends Component {
             </div>);
         }
       }.bind(this));
+      let topLevelHeader = this.props.topLevel && this.props.topLevelHeader ? (
+        <div className="specialNavSectionHeader">
+          <ContentText text={{
+            en: this.props.topLevelHeader,
+            he: Sefaria.hebrewTranslation(this.props.topLevelHeader)
+          }}/>
+        </div>
+      ) : null;
       return (
-        <div className="tocLevel">{content}</div>
+          <>
+            {topLevelHeader}
+            <div className="tocLevel">{content}</div>
+          </>
+
       );
     }
   }
@@ -621,12 +635,25 @@ class JaggedArrayNode extends Component {
                 contentCounts={this.props.schema.content_counts}
                 refPath={this.props.refPath} />);
     }
-    return (<JaggedArrayNodeSection
-              depth={this.props.schema.depth}
-              sectionNames={this.props.schema.sectionNames}
-              addressTypes={this.props.schema.addressTypes}
-              contentCounts={this.props.schema.content_counts}
-              refPath={this.props.refPath} />);
+    let topLevelHeader = this.props.topLevel && (this.props.schema?.depth <= 2 || this.props.topLevelHeader) ? (
+        <div className="specialNavSectionHeader">
+          <ContentText text={{
+            en: this.props.topLevelHeader || this.props.schema?.sectionNames[0] || "Chapters",
+            he: Sefaria.hebrewTranslation(this.props.topLevelHeader || this.props.schema?.sectionNames[0] || "Chapters")
+          }}/>
+        </div>
+    ) : null;
+    return (
+        <>
+          {topLevelHeader}
+          <JaggedArrayNodeSection
+                depth={this.props.schema.depth}
+                sectionNames={this.props.schema.sectionNames}
+                addressTypes={this.props.schema.addressTypes}
+                contentCounts={this.props.schema.content_counts}
+                refPath={this.props.refPath} />
+        </>
+    );
   }
 }
 JaggedArrayNode.propTypes = {
