@@ -434,8 +434,8 @@ class TextIndexer(object):
                 vlist = cls.get_ref_version_list(r)
                 vpriorities = defaultdict(lambda: 0)
                 for i, v in enumerate(vlist):
-                    lang = v["language"]
-                    cls.version_priority_map[(title, v["versionTitle"], lang)] = (vpriorities[lang], mini_toc["categories"])
+                    lang = v.language
+                    cls.version_priority_map[(title, v.versionTitle, lang)] = (vpriorities[lang], mini_toc["categories"])
                     vpriorities[lang] += 1
 
         traverse(toc)
@@ -545,7 +545,7 @@ class TextIndexer(object):
             cls.best_time_period = None
         version_priority = 0
         for priority, v in enumerate(cls.get_ref_version_list(oref)):
-            if v['versionTitle'] == version_title:
+            if v.versionTitle == version_title:
                 version_priority = priority
         content = TextChunk(oref, lang, vtitle=version_title).ja().flatten_to_string()
         categories = cls.curr_index.categories
