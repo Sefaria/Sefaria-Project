@@ -5679,7 +5679,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .textListTextRangeBox .connection-buttons, .versionsTextList .connection-buttons{
   margin-bottom: 28px;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   align-content: flex-start;
 }
 .connection-buttons.access-user .connection-button.delete-link{
@@ -5694,10 +5694,16 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-inline-end: 15px;
   text-decoration: none;
   cursor: pointer;
+  display: flex;
+  flex-flow: row wrap;
+  align-items: center;
 }
 .singlePanel .connection-buttons .connection-button{
   text-align: start;
   margin-inline-end: 5px;
+}
+.connection-buttons .connection-button span{
+  text-align: initial;
 }
 .connection-buttons .connection-button .int-en{
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
@@ -5711,21 +5717,21 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 18px;
 }
 .connection-buttons .connection-button::before{
-  line-height: 25px;
-  color: #999999;
-  vertical-align: middle;
-  opacity: 0.4;
-  transform: scale(0.55);
-  display: inline-block;
+  display: block;
+  content: ' ';
+  background-size: 15px 15px;
+  height: 15px;
+  width: 15px;
+  margin-inline-end: 5px;
 }
 .connection-buttons .panel-open-link::before{
-  content: url("/static/icons/open-panel.svg");
+  background-image: url("/static/icons/open-panel.svg");
 }
 .connection-buttons .delete-link::before{
-  content: url("/static/icons/remove-connection.svg");
+  background-image: url("/static/icons/remove-connection.svg");
 }
 .connection-buttons .add-to-sheet-link::before{
-  content: url("/static/icons/add-to-sheet.svg");
+  background-image: url("/static/icons/add-to-sheet.svg");
 }
 .toolsButton {
   display: flex;
