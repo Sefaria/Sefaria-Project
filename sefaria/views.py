@@ -744,6 +744,20 @@ def sheet_stats(request):
         n = db.sheets.find(query).distinct("owner")
         html += "%s: %d\n" % (start.strftime("%b %y"), len(n))
 
+    html += "\n\nUnique Source Sheet creators per year:\n\n"
+    end   = datetime.today()
+    start = datetime.today().replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+    query = {"dateCreated": {"$gt": start.isoformat(), "$lt": end.isoformat()}}
+    n = db.sheets.find(query).distinct("owner")
+    html += "%s YTD: %d\n" % (start.strftime("%Y"), len(n))
+    years = 3
+    for i in range(years):
+        end   = start
+        start = end - relativedelta(years=1)
+        query = {"dateCreated": {"$gt": start.isoformat(), "$lt": end.isoformat()}}
+        n = db.sheets.find(query).distinct("owner")
+        html += "%s: %d\n" % (start.strftime("%Y"), len(n))
+
     html += "\n\nAll time contributors:\n\n"
     all_sheet_makers = db.sheets.distinct("owner")
     public_sheet_makers = db.sheets.find({"status": "public"}).distinct("owner")

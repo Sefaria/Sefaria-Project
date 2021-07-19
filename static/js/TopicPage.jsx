@@ -686,15 +686,15 @@ const ReadingsComponent = ({ parashaData, tref }) => (
     <div className="sectionTitleText"><InterfaceText text={{en:"Torah", he:"תורה"}} /></div>
     <a href={'/' + tref.url} className="contentText"><InterfaceText text={{en:tref.en, he:norm_hebrew_ref(tref.he)}} /></a>
     <div className="sectionTitleText"><InterfaceText text={{en:"Haftarah", he:"הפטרה"}}/></div>
-    <div className="haftarot">
-    {
-      parashaData.haftarah.map(h => (
-        <a href={'/' + h.url} className="contentText" key={h.url}>
-          <InterfaceText text={{en:h.displayValue.en, he:norm_hebrew_ref(h.displayValue.he)}} />
-        </a>
-      ))
-    }
-    </div>
+    {parashaData.haftarah?<div className="haftarot">
+        {
+          parashaData.haftarah.map(h => (
+            <a href={'/' + h.url} className="contentText" key={h.url}>
+              <InterfaceText text={{en:h.displayValue.en, he:norm_hebrew_ref(h.displayValue.he)}} />
+            </a>
+          ))
+        }
+    </div>:""}
   </div>
 );
 
