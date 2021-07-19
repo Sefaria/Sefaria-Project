@@ -2104,6 +2104,12 @@ a.navBlockTitle:hover {
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
+.hebrew .navBlockDescription{
+  line-height: 24px;
+}
+.navBlockTitle .int-he, .navBlockDescription .int-he{
+      font-size: 122%;
+}
 .interface-english .navBlockDescription.clamped .int-en,
 .interface-hebrew .navBlockDescription.clamped .int-he {
   display: -webkit-box;
@@ -5720,6 +5726,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: block;
   content: ' ';
   background-size: 15px 15px;
+  background-repeat: no-repeat;
   height: 15px;
   width: 15px;
   margin-inline-end: 5px;
