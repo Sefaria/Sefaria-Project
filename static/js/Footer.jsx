@@ -47,7 +47,7 @@ class Footer extends Component {
                 <Link href="/testimonials" en="Testimonials" he="חוות דעת" />
                 <Link href="/metrics" en="Metrics" he="מדדים" />
                 <Link href="/terms" en="Terms of Use" he="תנאי שימוש" />
-                <Link href="/privacy-policy" en="Privacy Policy" he="מדיניות הפרטיות" />
+                <Link href="/privacy-policy" en="Privacy Policy" he="מדיניות פרטיות" />
             </Section>
 
             <Section en="Tools" he="כלים">
@@ -56,7 +56,7 @@ class Footer extends Component {
                 <Link href="/visualizations" en="Visualizations" he="תרשימים גרפיים" />
                 <Link href="/mobile" en="Mobile Apps" he="ספריא בנייד" />
                 <Link href="/daf-yomi" en="Daf Yomi" he="דף יומי" />
-                <Link href="/torah-tab" en="Torah Tab" he="תורה טאב (לשונית)" />
+                <Link href="/torah-tab" en="Torah Tab" he="תורה טאב" />
                 <Link href="/people" en="Authors" he="מחברים" />
                 <Link href="/collections" en="Collections" he="אסופות" />
                 <Link href="/updates" en="New Additions" he="עדכונים" />
@@ -67,12 +67,12 @@ class Footer extends Component {
                 <Link href="/developers" en="Get Involved" he="הצטרפו אלינו" blank={true} />
                 <Link href="/developers#api" en="API Docs" he="מסמכי API" blank={true} />
                 <Link href="https://github.com/Sefaria/Sefaria-Project" en="Fork us on GitHub" he="Github" blank={true} />
-                <Link href="https://github.com/Sefaria/Sefaria-Export" en="Download our Data" he="הורדת בסיס הנתונים שלנו" blank={true} />
+                <Link href="https://github.com/Sefaria/Sefaria-Export" en="Download our Data" he="בסיס נתונים" blank={true} />
             </Section>
 
             <Section en="Join Us" he="הצטרפו אלינו">
                 <Link href="https://sefaria.nationbuilder.com/supportsefaria" en="Donate" he="תרומות" />
-                <Link href="/ways-to-give" en="Ways to Give" he="אפשרויות להעברת תרומה" />
+                <Link href="/ways-to-give" en="Ways to Give" he="אפשרויות תרומה" />
                 <Link href="/supporters" en="Supporters" he="תומכים" />
                 <Link href="/jobs" en="Jobs" he="דרושים" />
                 <Link href="https://store.sefaria.org" en="Shop" he="חנות" />
