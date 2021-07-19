@@ -8,6 +8,8 @@ from . import abstract as abst
 from . import text
 from sefaria.system.database import db
 
+from sefaria.system.cache import in_memory_cache
+
 import structlog
 logger = structlog.get_logger(__name__)
 
@@ -38,7 +40,7 @@ class WebPage(abst.AbstractMongoRecord):
             self.favicon     = "https://www.google.com/s2/favicons?domain={}".format(self.domain)
             self._site_data  = WebPage.site_data_for_domain(self.domain)
             self.site_name   = self._site_data["name"] if self._site_data else self.domain
-            self.whitelisted = bool(self._site_data)
+            self.whitelisted = self._site_data["is_whitelisted"] if self._site_data else False
 
     def _init_defaults(self):
         self.linkerHits = 0
@@ -69,8 +71,10 @@ class WebPage(abst.AbstractMongoRecord):
         }
         global_rules = ["remove hash", "remove utm params", "remove fbclid param"]
         domain = WebPage.domain_for_url(url)
-        site_data = WebPage.site_data_for_domain(domain) or {}
-        site_rules = global_rules + site_data.get("normalization_rules", [])
+        site_rules = global_rules
+        site_data = WebPage.site_data_for_domain(domain)
+        if site_data and site_data["is_whitelisted"]:
+            site_rules += site_data.get("normalization_rules", [])
         for rule in site_rules:
             url = rewrite_rules[rule](url)
 
@@ -96,115 +100,10 @@ class WebPage(abst.AbstractMongoRecord):
 
     @staticmethod
     def excluded_pages_url_regex():
-        bad_urls = [
-            r"rabbisacks\.org\/(.+\/)?\?s=",           # Rabbi Sacks search results
-            r"halachipedia\.com\/index\.php\?search=", # Halachipedia search results
-            r"halachipedia\.com\/index\.php\?diff=",   # Halachipedia diff pages
-            r"myjewishlearning\.com\/\?post_type=evergreen", # These urls end up not working
-            r"judaism\.codidact\.com\/.+\/edit",
-            r"judaism\.codidact\.com\/.+\/history",
-            r"judaism\.codidact\.com\/.+\/suggested-edit\/",
-            r"judaism\.codidact\.com\/.+\/posts\/new\/",
-            r"judaism\.codidact\.com\/questions\/d+",  # these pages redirect to /posts
-            r"judaism\.codidact\.com\/users\/",
-            r"jewishexponent\.com\/page\/\d",
-            r"hebrewcollege\.edu\/blog\/(author\|category\|tag)\/",  # these function like indices of articles
-            r"roshyeshivamaharat.org\/(author\|category\|tag)\/",
-            r"lilith\.org\/\?gl=1\&s=",                  # Lilith Magazine search results
-            r"lilith\.org\/(tag\|author\|category)\/",
-            r"https://torah\.org$",
-            r"test\.hadran\.org\.il",
-            r"hadran\.org\.il\/he\/?$",
-            r"hadran\.org\.il\/he\/(masechet|מסכת)\/",
-            r"hadran\.org\.il\/daf-yomi\/$",
-            r"www\.jtsa.edu\/search\/index\.php",
-            r"jewschool\.com\/page\/",
-            r"truah\.org\/\?s=",
-            r"truah\.org\/(holiday|page|resource-types)\/",
-            r"clevelandjewishnews\.com$",
-            r"clevelandjewishnews\.com\/news\/",
-            r"ots\.org\.il\/news\/",
-            r"ots\.org\.il\/.+\/page\/\d+\/",
-            r"ots\.org\.il\/tag\/.+",
-            r"ots\.org\.il\/parasha\/",
-            r"ots\.org\.il\/torah-insights\/",
-            r"ots\.org\.il\/new-home-",
-            r"traditiononline\.org\/page\/\d+\/",
-            r"toravoda\.org\.il\/%D7%90%D7%99%D7%A8%D7%95%D7%A2%D7%99%D7%9D-%D7%97%D7%9C%D7%95%D7%A4%D7%99\/",  # Neemanei Torah Vavoda list of past events
-            r"929.org.il\/(lang\/en\/)?author/\d+$",  # Author index pages
-            r"rabbijohnnysolomon.com$",
-            r"rabbijohnnysolomon.com/shiurim/$",
-            r"rabbijohnnysolomon.com/shiurim/parasha/$",
-            r"rabbijohnnysolomon.com/shiurim/halacha/$",
-            r"webcache\.googleusercontent\.com",
-            r"translate\.googleusercontent\.com",
-            r"dailympails\.gq\/",
-            r"http:\/\/:localhost(:\d+)?",
-            r"jewfaq\.org\/search\.shtml", # Judaism 101, Search the Glossary and Index
-            r"avodah\.net\/(blog|category|tag)/",
-            r"hebrewcollege\.edu\/blog\/(author|tag)\/",
-            r"jewishideas\.org\/search\/",
-            r"jewishideas\.org\/articles\/",  # it seems you can write anything after articles/ and it leads to the same page?
-            r"jwa\.org\/encyclopedia\/author\/",  # tends to have articles by author that have snippets from article
-            r"jwa\.org\/encyclopedia\/content\/",
-            r"library\.yctorah\.org\/series\/",
-            r"psak\.yctorah\.org\/?$",
-            r"psak\.yctorah\.org\/(category|about|source)\/",  # archives
-            r"psak\.yctorah\.org\/sitemap_index\.xml$",
-            r"reconstructingjudaism\.org\/taxonomy\/",
-            r"reconstructingjudaism\.org\/search\/",
-            r"askhalacha\.com\/?$",
-            r"askhalacha\.com\/qas\/?$",
-            r"yeshiva\.co\/?$",
-            r"yeshiva\.co\/404\/404.asp",
-            r"yeshiva\.co\/(ask|midrash)\/?$",
-            r"yeshiva\.co\/(calendar|tags|dedication|errorpage)\/?",  # it seems anything under calendar is not an article
-            r"yeshiva\.co\/midrash\/(category|rabbi)\/?",
-            r"yutorah\.org\/search\/",
-            r"yutorah\.org\/searchResults\.cfm",
-            r"yutorah\.org\/\d+\/?$",  # year pages
-            r"yutorah\.org\/users\/",
-            r"yutorah\.org\/daf\.cfm\/?$",  # generic daf yomi page
-            r"mayim\.org\.il\/?$",
-            r"kabbalahoftime\.com\/?$",
-            r"kabbalahoftime\.com\/\d{4}\/?$",  # page that aggregates all articles for the year
-            r"kabbalahoftime\.com\/\d{4}\/\d{2}\/?$",  # page that aggregates all articles for the month
-            r"jewishcontemplatives\.blogspot\.com\/?$",
-            r"orayta\.org\/orayta-torah\/orayta-byte-parsha-newsletter",
-            r"jewishencyclopedia\.com\/(directory|contribs|search)",
-            r"orhalev\.org\/blogs\/parasha-and-practice\/?$",
-            r"orhalev\.org\/blogs\/tag\/",
-            r"torah\.org$",
-            r"talmudology\.com\/?$",
-            r"talmudology\.com\/[^\/]+$",  # seems everything at the top level is not an article
-            r"sephardi\.co\.uk\/(category|community|tag|test)\/",
-            r"theameninstitute\.com\/?$",
-            r"theameninstitute\.com\/category\/whats-new-at-the-amen-institute\/?$",
-            r"chiefrabbi\.org\/?(\?post_type.+)?$",  # post_type are pages that seem to by filtered lists
-            r"chiefrabbi\.org\/(all-media|communities|education|maayan-programme)\/?$",
-            r"chiefrabbi\.org\/(dvar-torah|media_type)\/?",  # archives
-            r"justice-in-the-city\.com\/?$",
-            r"justice-in-the-city\.com\/(category|page)\/",
-            r"aju\.edu\/(faculty|search|taxonomy)\/",
-            r"aju\.edu\/miller-intro-judaism-program\/learning-portal\/glossary\/",
-            r"aju\.edu\/ziegler-school-rabbinic-studies\/our-torah\/back-issues\/\d+$"
-            r"aju\.edu\/ziegler-school-rabbinic-studies\/torah-resource-center\/"
-            r"aju\.edu\/ziegler-school-rabbinic-studies\/blogs\/?$",
-            r"hatanakh\.com\/?#?$",
-            r"hatanakh\.com\/\/(en|es)$",  # home page?
-            r"hatanakh\.com(\/(en|es))?\/?#?(\?.+)?$",  # a sledgehammer. gets rid of odd url params on homepage + spanish chapter pages
-            r"hatanakh\.com\/\.[^/]+$",  # strange private pages
-            r"hatanakh\.com\/((en|es)\/)?(tanach|search|taxonomy|tags|%D7%9E%D7%97%D7%91%D7%A8%D7%99%D7%9D|%D7%93%D7%9E%D7%95%D7%99%D7%95%D7%AA|%D7%A0%D7%95%D7%A9%D7%90%D7%99%D7%9D)\/",  # topic, author and character pages
-            r"hatanakh\.com\/((en|es)\/)?search",
-            r"hatanakh\.com\/\?(chapter|custom|gclid|parasha)=",  # chapter pages
-            r"hatanakh\.com\/(en|es)?\/home",  # other chapter pages?
-            r"hatanakh\.com\/((en|es)\/)?(articles|daily|node)\/?$",
-            r"hatanakh\.com\/((en|es)\/)?(articles|lessons)\?(page|arg|tanachRef(\[|%5B)\d+(\]|%5D))=",
-            r"hatanakh\.com\/((en|es)\/)?(daily)?\/?\?(chapter|custom|gclid|parasha)=",
-            r"hatanakh\.com\/es\/\?biblia=",
-            r"tabletmag\.com\/contributors\/",
-            r"sivanrahavmeir\.com\/?$",
-        ]
+        bad_urls = []
+        sites = get_website_cache()
+        for site in sites:
+            bad_urls += site.get("bad_urls", [])
         return "({})".format("|".join(bad_urls))
 
     @staticmethod
@@ -218,13 +117,18 @@ class WebPage(abst.AbstractMongoRecord):
 
     @staticmethod
     def site_data_for_domain(domain):
-        for site in sites_data:
+        sites = get_website_cache()
+        for site in sites:
             for site_domain in site["domains"]:
                 if site_domain == domain or domain.endswith("." + site_domain):
                     return site
         return None
 
-    def update_from_linker(self, updates):
+    def update_from_linker(self, updates, existing=False):
+        if existing and len(updates["title"]) == 0:
+            # in case we are updating an existing web page that has a title,
+            # we don't want to accidentally overwrite it with a blank title
+            updates["title"] = self.title
         self.load_from_dict(updates)
         self.linkerHits += 1
         self.lastUpdated = datetime.now()
@@ -246,7 +150,7 @@ class WebPage(abst.AbstractMongoRecord):
             if existing:
                 webpage.delete()
             return "excluded"
-        webpage.update_from_linker(data)
+        webpage.update_from_linker(data, existing)
         return "saved"
 
     def client_contents(self):
@@ -297,6 +201,35 @@ class WebPageSet(abst.AbstractMongoSet):
     recordClass = WebPage
 
 
+class WebSite(abst.AbstractMongoRecord):
+    collection = 'websites'
+
+    required_attrs = [
+        "name",
+        "domains",
+        "is_whitelisted"
+    ]
+    optional_attrs = [
+        "bad_urls",
+        "normalization_rules",
+        "title_branding",
+        "initial_title_branding",
+        "exclude_from_tracking"
+    ]
+
+
+class WebSiteSet(abst.AbstractMongoSet):
+    recordClass = WebSite
+
+
+def get_website_cache():
+    sites = in_memory_cache.get("websites_data")
+    if sites in [None, []]:
+        sites = [w.contents() for w in WebSiteSet()]
+        in_memory_cache.set("websites_data", sites)
+        return sites
+    return sites
+
 def get_webpages_for_ref(tref):
     from pymongo.errors import OperationFailure
     oref = text.Ref(tref)
@@ -310,7 +243,7 @@ def get_webpages_for_ref(tref):
         return []
     client_results = []
     for webpage in results:
-        if not webpage.whitelisted:
+        if not webpage.whitelisted or len(webpage.title) == 0:
             continue
         anchor_ref_list, anchor_ref_expanded_list = oref.get_all_anchor_refs(segment_refs, webpage.refs, webpage.expandedRefs)
         for anchor_ref, anchor_ref_expanded in zip(anchor_ref_list, anchor_ref_expanded_list):
@@ -520,7 +453,7 @@ def find_sites_that_may_have_removed_linker(last_linker_activity_day=20):
     from datetime import datetime, timedelta
 
     last_active_threshold = datetime.today() - timedelta(days=last_linker_activity_day)
-    for data in sites_data:
+    for data in get_website_cache():
         for domain in data['domains']:
             ws = WebPageSet({"url": re.compile(re.escape(domain))}, limit=1, sort=[['lastUpdated', -1]])
             if ws.count() == 0:
@@ -529,420 +462,3 @@ def find_sites_that_may_have_removed_linker(last_linker_activity_day=20):
             w = ws.array()[0]
             if w.lastUpdated < last_active_threshold:
                 print(f"ALERT! {domain} has removed the linker!")
-
-"""
-Web Pages Whitelist
-*******************
-Web pages are visible to users on the site only after being whitelisted by adding an 
-entry to the `sites_data` list below. Entries have the following fields:
-
-- `name`: required, string - the name of overall website, how pages are displayed 
-    and grouped in the sidebar.
-- `domains`: required, list of strings - all the domains that are part of this website. 
-    Root domains will match any subdomain.
-- `title_branding`: optional, list of strings - branding words which are appended to 
-    every page title which should be removed when displayed to the user. The site name 
-    is used by default, additional phrases here will also be removed for display when 
-    they follow any of the separators (like " | ") listed in WebPage.clean_title().
-- `initial_title_branding`: optional, boolean - if True, also remove title branding from
-    the beginning of the title as well as the end. 
-- `normalization_rules`: optional, list of strings - which URL rewrite rules to apply to
-    URLs from this site, for example to rewrite `http` to `https` or remove specific URL
-    params. Rewrite rules are named and defined in WebPage.normalize_url().
-
-To add a site to the whitelist:
-1. Add an entry with name and domains.
-2. Examine titles of data collected to determine if additional `title_branding` entries
-    are needed, or if `initial_title_branding` should be True.
-3. Examine data to find patterns of URLs that should be excluded. These include things like
-    search result pages, 404 pages, index pages that include snippets text from full 
-    articles (like author or tag pages), or anything else that may be irrelevant. Add  to 
-    regexs either WebPage.excluded_pages_url_regex() or WebPage.excluded_pages_title_regex()
-4. After deploying code updates, you may need to clean up bad that had already been 
-    collected in the database. If you've added normalization rules, run dedupe_webpages()
-    to remove records that we now know should be excluded. If you've adding exclusion rules
-    run clean_webpages() to remove records that we now know we want to exclude.
-
-"""
-sites_data = [
-    {
-        "name":           "My Jewish Learning",
-        "domains":        ["myjewishlearning.com"],
-        "normalization_rules": ["use https"]
-    },
-    {
-        "name":           "Virtual Beit Midrash",
-        "domains":        ["etzion.org.il", "vbm-torah.org"],
-        "title_branding": ["vbm haretzion"],
-    },
-    {
-        "name":           "Rabbi Sacks",
-        "domains":        ["rabbisacks.org"],
-        "normalization_rules": ["use https", "remove www"]
-    },
-    {
-        "name":           "Halachipedia",
-        "domains":        ["halachipedia.com"],
-        "normalization_rules": ["use https", "remove www", "remove mediawiki params"],
-    },
-    {
-        "name":           "Torah In Motion",
-        "domains":        ["torahinmotion.org"],
-    },
-    {
-        "name":           "The Open Siddur Project",
-        "domains":        ["opensiddur.org"],
-    },
-    {
-        "name":           "בית הלל",
-        "domains":        ["beithillel.org.il"],
-        "title_branding": ["בית הלל - הנהגה תורנית קשובה"]
-    },
-    {
-        "name":                   "ParshaNut",
-        "domains":                ["parshanut.com"],
-        "title_branding":         ["PARSHANUT"],
-        "initial_title_branding": True,
-        "normalization_rules":    ["use https"],
-    },
-    {
-        "name":            "Real Clear Daf",
-        "domains":         ["realcleardaf.com"],
-    },
-    {
-        "name":           "NACH NOOK",
-        "domains":        ["nachnook.com"],
-    },
-    {
-        "name":           "Congregation Beth Jacob, Redwood City",
-        "domains":        ["bethjacobrwc.org"],
-        "title_branding": ["CBJ"]
-    },
-    {
-        "name":    "Amen V'Amen",
-        "domains": ["amenvamen.com"],
-    },
-    {
-        "name":    "Rabbi Sharon Sobel",
-        "domains": ["rabbisharonsobel.com"],
-    },
-    {
-        "name":    "The Kosher Backpacker",
-        "domains": ["thekosherbackpacker.com"]
-    },
-    {
-        "name": "WebYeshiva",
-        "domains": ["webyeshiva.org"]
-    },
-    {
-        "name": "Tradition Online",
-        "domains": ["traditiononline.org"],
-        "normalization_rules": ["remove mediawiki params"]
-    },
-    {
-        "name": "Partners in Torah",
-        "domains": ["partnersintorah.org"]
-    },
-    {
-        "name": "The Lehrhaus",
-        "domains": ["thelehrhaus.com"]
-    },
-    {
-        "name": "סִינַי",
-        "domains": ["sinai.org.il"],
-        "title_branding": ["הדף היומי ב15 דקות - שיעורי דף יומי קצרים בגמרא"]
-    },
-    {
-        "name": 'אתר לבנ"ה - קרן תל"י',
-        "domains": ["levana.org.il"],
-        "title_branding": ["אתר לבנה מבית קרן תל&#039;&#039;י", "אתר לבנה מבית קרן תל''י"]  # not sure how HTML escape characters are handled. Including both options.
-    },
-    {
-        "name": 'Judaism Codidact',
-        "domains": ["judaism.codidact.com"],
-        "title_branding": ["Judaism"],
-        "initial_title_branding": True,
-        "normalization_rules": ["remove sort param"],
-    },
-    {
-        "name": "The Jewish Theological Seminary",
-        "domains": ["jtsa.edu"],
-        "normalization_rules": ["remove url params", "use https"],
-    },
-    {
-        "name": "Ritualwell",
-        "domains": ["ritualwell.org"],
-        "normalization_rules": ["remove www"],
-    },
-    {
-        "name": "Jewish Exponent",
-        "domains": ["jewishexponent.com"]
-    },
-    {
-        "name": "The 5 Towns Jewish Times",
-        "domains": ["5tjt.com"]
-    },
-    {
-        "name": "Hebrew College",
-        "domains": ["hebrewcollege.edu"]
-    },
-    {
-        "name": "מכון הדר",
-        "domains": ["mechonhadar.org.il"]
-    },
-    {
-        "name": "Pardes Institute of Jewish Studies",
-        "domains": ["pardes.org"],
-        "title_branding": ["Elmad Online Learning Torah Podcasts, Online Jewish Learning"]
-    },
-    {
-        "name": "Yeshivat Chovevei Torah",
-        "domains": ["yctorah.org"],
-        "title_branding": ["Torah Library of Yeshivat Chovevei Torah", "Rosh Yeshiva Responds"]
-    },
-    {
-        "name": "Rabbi Jeff Fox (Rosh ha-Yeshiva, Yeshivat Maharat)",
-        "domains": ["roshyeshivatmaharat.org"],
-        "title_branding": ["Rosh Yeshiva Maharat"]
-    },
-    {
-        "name": "Cleveland Jewish News",
-        "domains": ["clevelandjewishnews.com"],
-        "title_branding": ["clevelandjewishnews.com"]
-    },
-    {
-        "name": "Rabbi Noah Farkas",
-        "domains": ["noahfarkas.com"],
-        "title_branding": ["Rabbi Noah farkas"]
-    },
-    {
-        "name": "Reconstructing Judaism",
-        "domains": ["reconstructingjudaism.org"],
-    },
-    {
-        "name": "The Institute for Jewish Ideas and Ideals",
-        "domains": ["jewishideas.org"],
-        "title_branding": ["jewishideas.org"]
-    },
-    {
-        "name": "The Jewish Virtual Library",
-        "domains": ["jewishvirtuallibrary.org"],
-        "normalization_rules": ["use https", "remove url params"],
-    },
-    {
-        "name": "Lilith Magazine",
-        "domains": ["lilith.org"],
-    },
-    {
-        "name": "Torah.org",
-        "domains": ["torah.org"],
-    },
-    {
-        "name": "Sinai and Synapses",
-        "domains": ["sinaiandsynapses.org"],
-    },
-    {
-        "name": "Times of Israel Blogs",
-        "domains": ["blogs.timesofisrael.com"],
-        "title_branding": ["The Blogs"]
-    },
-    {
-        "name": "The Jewish Standard",
-        "domains": ["jewishstandard.timesofisrael.com"],
-    },
-    {
-        "name": "Rav Kook Torah",
-        "domains": ["ravkooktorah.org"],
-        "normalization_rules": ["remove www"]
-    },
-    {
-        "name": "YUTorah Online",
-        "domains": ["yutorah.org"],
-        "initial_title_branding": True,
-    },
-    {
-        "name": "Hadran",
-        "domains": ["hadran.org.il"],
-    },
-    {
-        "name": "Julian Ungar-Sargon",
-        "domains": ["jyungar.com"],
-    },
-    {
-        "name": "Aish HaTorah",
-        "domains": ["aish.com"],
-    },
-    {
-        "name": "Jewschool",
-        "domains": ["jewschool.com"],
-    },
-    {
-        "name": "T'ruah",
-        "domains": ["truah.org"],
-        "normalization_rules": ["remove www"],
-    },
-    # Keeping off for now while we try to resolve empty titles from dynamic pages.
-    # {
-    #     "name": "929",
-    #     "domains": ["929.org.il"],
-    #     "title_branding": ["929 – תנך ביחד", "Tanakh - Age Old Text, New Perspectives"]
-    #     "initial_title_branding": True
-    # },
-    {
-        "name": "נאמני תורה ועבודה",
-        "domains": ["toravoda.org.il"],
-    },
-    {
-        "name": "Ohr Torah Stone",
-        "domains": ["ots.org.il"],
-        "title_branding": ["אור תורה סטון"]
-    },
-    {
-        "name": "Jewish Action",
-        "domains": ["jewishaction.com"],
-    },
-    {
-        "name": "Rabbi Johnny Solomon",
-        "domains": ["rabbijohnnysolomon.com"],
-    },
-    {
-        "name": "Moment Magazine",
-        "domains": ["momentmag.com"],
-    },
-    {
-        "name": "Jewish Action",
-        "domains": ["jewishaction.com"],
-    },
-    {
-        "name": "Orthodox Union (OU Torah)",
-        "domains": ["ou.org"],
-        "title_branding": ["Jewish Holidays", "OU Holidays", "OU", "OU Torah", "OU Life"],
-    },
-    {
-        "name": "Judaism 101 (JewFAQ)",
-        "domains": ["jewfaq.org"],
-        "title_branding": ["Judaism 101:"],
-        "initial_title_branding": True,
-        "normalization_rules": ["remove url params", "remove www"],
-    },
-    {
-        "name": "Jewish Women's Archive",
-        "domains": ["jwa.org"],
-    },
-    {
-        "name": "The Wexner Foundation",
-        "domains": ["wexnerfoundation.org"],
-    },
-    {
-        "name": "Jewish Drinking",
-        "domains": ["jewishdrinking.com"],
-    },
-    {
-        "name": "Avodah",
-        "domains": ["avodah.net"],
-    },
-    {
-        "name": "TorahWeb.org",
-        "domains": ["torahweb.org"],
-    },
-    {
-        "name": "AskHalacha",
-        "domains": ["askhalacha.com"],
-    },
-    {
-        "name": "Yeshiva.co",
-        "domains": ["yeshiva.co"],
-        "title_branding": ["Ask the rabbi | Q&A | yeshiva.co", "Beit Midrash | Torah Lessons | yeshiva.co", "yeshiva.co"],
-    },
-    {
-        "name": "מחלקי המים",
-        "domains": ["mayim.org.il"],
-    },
-    {
-        "name": "The Kabbalah of Time",
-        "domains": ["kabbalahoftime.com"],
-        "initial_title_branding": True,
-    },
-    {
-        "name": "Jewish Contemplatives",
-        "domains": ["jewishcontemplatives.blogspot.com"],
-        "initial_title_branding": True,
-    },
-    {
-        "name": "Orayta",
-        "domains": ["orayta.org"],
-        "normalization_rules": ["use https", "remove www"],
-    },
-    {
-        "name": "Rabbi Efrem Goldberg",
-        "domains": ["rabbiefremgoldberg.org"],
-        "normalization_rules": ["use https", "remove www", "remove url params"],
-    },
-    {
-        "name": "Jewish Encyclopedia",
-        "domains": ["jewishencyclopedia.com"],
-        "title_branding": ["JewishEncyclopedia.com"],
-        "normalization_rules": ["remove url params", "use https", "remove www"]
-    },
-    {
-        "name": "Wilderness Torah",
-        "domains": ["wildernesstorah.org"],
-    },
-    {
-        "name": "Or HaLev",
-        "domains": ["orhalev.org"],
-        "normalization_rules": ["use https", "remove www"]
-    },
-    {
-        "name": "Talmudology",
-        "domains": ["talmudology.com"],
-        "normalization_rules": ["use https", "remove www"],
-    },
-    {
-        "name": "S and P Sephardi Community",
-        "domains": ["sephardi.org.uk"],
-    },
-    {
-        "name": "זיכרון בספר",
-        "domains": ["mevoot.michlala.edu"],
-        "normalization_rules": ["use https", "remove www", "remove all params after id"]
-    },
-    {
-        "name": "Evolve",
-        "domains": ["evolve.reconstructingjudaism.org"],
-    },
-    {
-        "name": "The Amen Institute",
-        "domains": ["theameninstitute.com"]
-    },
-    {
-        "name": "Office of the Chief Rabbi",
-        "domains": ["chiefrabbi.org"],
-    },
-    {
-        "name": "Sapir Journal",
-        "domains": ["sapirjournal.org"],
-    },
-    {
-        "name": "Justice in the City",
-        "domains": ["justice-in-the-city.com"],
-    },
-    {
-        "name": "American Jewish University",
-        "domains": ["aju.edu"],
-    },
-    {
-        "name": 'התנ"ך',
-        "domains": ["hatanakh.com"],
-        "title_branding": ["התנך"],
-        "normalization_rules": ["use https", "remove www"],
-    },
-    {
-        "name":"Tablet Magazine",
-        "domains": ["tabletmag.com"],
-    },
-    {
-        "name": "סיון רהב-מאיר",
-        "domains": ["sivanrahavmeir.com"],
-    },
-]
