@@ -5,9 +5,9 @@ import Sefaria  from './sefaria/sefaria';
 import {
   CategoryColorLine,
   ContentText,
-  ReaderNavigationMenuMenuButton,
-  ReaderNavigationMenuDisplaySettingsButton,
-  ReaderNavigationMenuSearchButton,
+  MenuButton,
+  DisplaySettingsButton,
+  SearchButton,
 } from './Misc';
 
 
@@ -22,9 +22,9 @@ const ComparePanelHeader = ({ search, category, openDisplaySettings, navHome, ca
       <div className="readerNavTop search">
         <CategoryColorLine category="System" />
         <div className="readerNavTopStart">
-          <ReaderNavigationMenuMenuButton onClick={onBack} compare={true} />
+          <MenuButton onClick={onBack} compare={true} />
           <div className="searchBox">
-            <ReaderNavigationMenuSearchButton onClick={handleSearchButtonClick} />
+            <SearchButton onClick={handleSearchButtonClick} />
             <input
               id="searchInput" className="readerSearch"
               title={Sefaria._("Search for Texts or Keywords Here")}
@@ -35,7 +35,7 @@ const ComparePanelHeader = ({ search, category, openDisplaySettings, navHome, ca
           </div>
         </div>
         {Sefaria.interfaceLang !== "hebrew" ? 
-        <ReaderNavigationMenuDisplaySettingsButton onClick={openDisplaySettings} />
+        <DisplaySettingsButton onClick={openDisplaySettings} />
         : null}
       </div>
     );
@@ -43,14 +43,14 @@ const ComparePanelHeader = ({ search, category, openDisplaySettings, navHome, ca
     return (
       <div className={classNames({readerNavTop: 1, searchOnly: 1})}>
         <CategoryColorLine category={category} />
-        <ReaderNavigationMenuMenuButton onClick={onBack} compare={true} /> 
+        <MenuButton onClick={onBack} compare={true} /> 
         <h2 className="readerNavTopCategory">
           <ContentText text={{en: catTitle, he: heCatTitle}} />
         </h2>
         
         {(Sefaria.interfaceLang === "hebrew" || !openDisplaySettings) ?
-        <ReaderNavigationMenuDisplaySettingsButton placeholder={true} />
-        : <ReaderNavigationMenuDisplaySettingsButton onClick={openDisplaySettings} />}
+        <DisplaySettingsButton placeholder={true} />
+        : <DisplaySettingsButton onClick={openDisplaySettings} />}
       </div>
     );
   }

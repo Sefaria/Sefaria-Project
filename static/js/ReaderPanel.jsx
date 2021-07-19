@@ -8,7 +8,7 @@ import Sefaria  from './sefaria/sefaria';
 import {ContentLanguageContext} from './context';
 import $  from './sefaria/sefariaJquery';
 import TextColumn  from './TextColumn';
-import ReaderNavigationMenu  from './ReaderNavigationMenu';
+import TextsPage  from './TextsPage';
 import {
   ConnectionsPanel,
   ConnectionsPanelHeader,
@@ -32,9 +32,9 @@ import UserStats  from './UserStats';
 import ModeratorToolsPanel  from './ModeratorToolsPanel';
 import PublicCollectionsPage from './PublicCollectionsPage';
 import {
-  ReaderNavigationMenuCloseButton,
-  ReaderNavigationMenuMenuButton,
-  ReaderNavigationMenuDisplaySettingsButton,
+  CloseButton,
+  MenuButton,
+  DisplaySettingsButton,
   SaveButton,
   CategoryColorLine,
   CategoryAttribution,
@@ -684,7 +684,7 @@ class ReaderPanel extends Component {
       const openNav     = this.state.compare ? this.props.openComparePanel : this.openMenu.bind(null, "navigation");
       const openTextTOC = this.state.compare ? this.openCompareTextTOC : null;
 
-      menu = (<ReaderNavigationMenu
+      menu = (<TextsPage
                     key={this.state.navigationCategories ? this.state.navigationCategories.join("-") : this.state.navigationTopicCategory ? this.state.navigationTopicCategory: "navHome"}
                     compare={this.state.compare}
                     multiPanel={this.props.multiPanel}
@@ -1210,8 +1210,8 @@ class ReaderControls extends Component {
 
     let leftControls = hideHeader || connectionsHeader ? null :
       (<div className="leftButtons">
-          {this.props.multiPanel ? (<ReaderNavigationMenuCloseButton onClick={this.props.closePanel} />) : null}
-          {this.props.multiPanel ? null : (<ReaderNavigationMenuMenuButton onClick={this.props.openMobileNavMenu}/>)}
+          {this.props.multiPanel ? (<CloseButton onClick={this.props.closePanel} />) : null}
+          {this.props.multiPanel ? null : (<MenuButton onClick={this.props.openMobileNavMenu}/>)}
           <SaveButton placeholder={true}/>
         </div>);
 
@@ -1222,7 +1222,7 @@ class ReaderControls extends Component {
             tooltip={true}
             toggleSignUpModal={this.props.toggleSignUpModal}
           />
-          <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
+          <DisplaySettingsButton onClick={this.props.openDisplaySettings} />
         </div>);
     let transLangPrefSuggBann = hideHeader || connectionsHeader ? null : <TranslationLanguagePreferenceSuggestionBanner setTranslationLanguagePreference={this.props.setTranslationLanguagePreference} />;
     const classes = classNames({
@@ -1326,7 +1326,7 @@ const TranslationLanguagePreferenceSuggestionBanner = ({ setTranslationLanguageP
           </div>
           )
         }
-        <ReaderNavigationMenuCloseButton onClick={closeBanner} />
+        <CloseButton onClick={closeBanner} />
       </div>
     </div>
   );

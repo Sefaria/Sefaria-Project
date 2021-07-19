@@ -17,7 +17,7 @@ import {
 
 
 // Navigation Menu for a single category of texts (e.g., "Tanakh", "Bavli")
-const ReaderNavigationCategoryMenu = ({category, categories, setCategories, toggleLanguage,
+const TextCategoryPage = ({category, categories, setCategories, toggleLanguage,
   openDisplaySettings, onCompareBack, openTextTOC, multiPanel, initialWidth, compare }) => {
 
   // Show Talmud with Toggles
@@ -92,7 +92,7 @@ const ReaderNavigationCategoryMenu = ({category, categories, setCategories, togg
               <ContentText text={{en: tocObject.enDesc, he: tocObject.heDesc}} defaultToInterfaceOnBilingual={true} />
             </div> : null}
             <CategoryAttribution categories={cats} asEdition={true} />
-            <ReaderNavigationCategoryMenuContents
+            <TextCategoryContents
               contents={catContents}
               categories={cats}
               category={category}
@@ -108,7 +108,7 @@ const ReaderNavigationCategoryMenu = ({category, categories, setCategories, togg
     </div>
   );
 };
-ReaderNavigationCategoryMenu.propTypes = {
+TextCategoryPage.propTypes = {
   category:            PropTypes.string.isRequired,
   categories:          PropTypes.array.isRequired,
   setCategories:       PropTypes.func.isRequired,
@@ -119,9 +119,8 @@ ReaderNavigationCategoryMenu.propTypes = {
 };
 
 
-// Inner content of Category menu (just category title and boxes of texts/subcategories)
-const ReaderNavigationCategoryMenuContents = ({category, contents, categories, 
-  setCategories, openTextTOC, initialWidth, nestLevel}) =>  {
+// Recursive content of text category listing (including category title and lists of texts/subcategories)
+const TextCategoryContents = ({category, contents, categories, setCategories, openTextTOC, initialWidth, nestLevel}) => {
   const content = [];
   const cats = categories || [];
   const contentLang = useContext(ContentLanguageContext).language;
@@ -189,7 +188,7 @@ const ReaderNavigationCategoryMenuContents = ({category, contents, categories,
             <div className="categoryDescription long sans-serif">
               <ContentText text={{en: shortDesc, he: shortDesc}} defaultToInterfaceOnBilingual={true} />
             </div> : null }
-            <ReaderNavigationCategoryMenuContents
+            <TextCategoryContents
               contents      = {item.contents}
               categories    = {newCats}
               category      = {item.category}
@@ -256,14 +255,14 @@ const ReaderNavigationCategoryMenuContents = ({category, contents, categories,
   return (<div>{boxedContent}</div>);
 
 };
-ReaderNavigationCategoryMenuContents.propTypes = {
+TextCategoryContents.propTypes = {
   category:     PropTypes.string.isRequired,
   contents:     PropTypes.array.isRequired,
   categories:   PropTypes.array.isRequired,
   initialWidth: PropTypes.number,
   nestLevel:    PropTypes.number
 };
-ReaderNavigationCategoryMenuContents.defaultProps = {
+TextCategoryContents.defaultProps = {
   contents: []
 };
 
@@ -303,6 +302,7 @@ const TextMenuItem = ({item, categories, nestLevel, onClick}) => {
     />
   );
 };
+
 
 const SubCategoryToggle = ({categories, setCategories}) => {
     const toggleEnableMap = {
@@ -424,4 +424,4 @@ const getSidebarModules = (categories) => {
 };
 
 
-export default ReaderNavigationCategoryMenu;
+export default TextCategoryPage;

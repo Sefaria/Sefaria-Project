@@ -6,7 +6,7 @@ import classNames  from 'classnames';
 import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
 import {
-  ReaderNavigationMenuSearchButton,
+  SearchButton,
   GlobalWarningMessage,
   ProfilePic,
   InterfaceLanguageMenu,
@@ -363,7 +363,7 @@ class SearchBar extends Component {
 
     return (
       <div id="searchBox" className={searchBoxClasses}>
-        <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
+        <SearchButton onClick={this.handleSearchButtonClick} />
         <input className={inputClasses}
           id="searchInput"
           placeholder={Sefaria._("Search")}
