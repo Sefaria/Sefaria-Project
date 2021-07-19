@@ -8005,6 +8005,11 @@ span.purim-emoji img{
   pointer-events: none;
 }
 
+.sheetContent .editorContent .sheetItem.noPointer iframe {
+  pointer-events: auto;
+}
+
+
 .sheetContent .editorContent .sheetItem.noPointer .element-link,
 .sheetContent .editorContent .sheetItem.noPointer .element-link a {
     cursor: pointer;
@@ -8078,6 +8083,7 @@ span.purim-emoji img{
   padding-bottom: 56.25%; /* 16:9 */
   padding-top: 25px;
   height: 0;
+  pointer-events: auto;
 }
 .youTubeContainer iframe {
   position: absolute;
@@ -8152,13 +8158,13 @@ span.purim-emoji img{
   content: "";
   margin-inline-start:-34px;
   position: absolute;
-  width: 30px;
-  height: 30px;
+  width: 25px;
+  height: 25px;
   transform: rotate(45deg);
   background-color; white;
-  background-image: url("/static/icons/iconmonstr-x-mark-7.svg");
+  background-image: url("/static/icons/x-plus.svg");
+  border: 1px solid var(--light-grey);
   background-size: contain;
-  filter: invert(67%) sepia(2%) saturate(9%) hue-rotate(126deg) brightness(91%) contrast(89%);
   border-radius: 50%;
   pointer-events:auto;
   cursor: pointer;
@@ -8169,12 +8175,64 @@ span.purim-emoji img{
 .editorAddInterface .editorAddInterfaceButton {
   display: none;
 }
+
+.addInterfaceInput {
+  pointer-events: none;
+}
+
+.addInterfaceInput input,
+.addInterfaceInput button {
+  pointer-events: auto;
+}
+.addInterfaceInput button {
+  cursor: pointer;
+}
+
+.addInterfaceInput input {
+  min-width: 350px;
+  border-radius: 250px;
+  border: none;
+  box-shadow: none;
+  box-sizing: border-box;
+  font-size: 22px;
+  padding-inline-start: 30px;
+  background: url("/static/icons/iconmonstr-magnifier-2-240.svg") no-repeat scroll 7px 7px;
+  background-color: var(--lighter-grey);
+
+}
+.addInterfaceInput input::placeholder {
+  font-size: 22px;
+  font-style: normal;
+}
+
 .editorAddInterface.active .editorAddInterfaceButton {
+  width: 30px;
+  height: 30px;
+  padding: 5px;
   display: inline-block;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  border-radius: 6px;
+  background-origin: content-box;
+  background-color: var(--lighter-grey);
+  margin-inline-end: 6px;
+  box-sizing: border-box;
+  cursor: pointer;
+  pointer-events: auto;
 }
 .editorAddInterface.active .cursorHolder {
   display: inline-block;
  }
+#addSourceButton.editorAddInterfaceButton {
+  background-image: url("/static/icons/quotation.svg");
+}
+#addImageButton.editorAddInterfaceButton {
+  background-image: url("/static/icons/image.svg");
+}
+#addMediaButton.editorAddInterfaceButton {
+  background-image: url("/static/icons/video.svg");
+}
 
 .sheetContent .sheetItem .SheetOutsideText.segment p {
   margin: 0

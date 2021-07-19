@@ -636,8 +636,163 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
   );
 };
 
-const toggleEditorAddInterface = (e) => {
-    e.target.classList.toggle('active');
+const AddInterfaceInput = ({ inputType, resetInterface }) => {
+    const editor = useSlate();
+    const [inputValue, setInputValue] = useState("");
+    const [showAddMediaButton, setShowAddMediaButton] = useState(false);
+    const [shouldReset, setShouldReset] = useState(false);
+
+    const isMediaLink = (url) => {
+        console.log(url)
+
+      if (url.match(/^https?/i) == null) {
+        return null;
+      }
+      const youtube_re = /https?:\/\/(www\.)?(youtu(?:\.be|be\.com)\/(?:.*v(?:\/|=)|(?:.*\/)?)([\w'-]+))/i;
+      let m;
+      if ((m = youtube_re.exec(url)) !== null) {
+        if (m.index === youtube_re.lastIndex) {
+          youtube_re.lastIndex++;
+        }
+          if (m.length>0) {
+            return ('https://www.youtube.com/embed/'+m[m.length-1]+'?rel=0&amp;showinfo=0')
+          }
+      } else if (url.match(/^https?:\/\/(www\.)?.+\.(jpeg|jpg|gif|png)$/i) != null) {
+        return url;
+      } else if (url.match(/^https?:\/\/(www\.)?.+\.(mp3)$/i) != null) {
+        return url;
+      } else if (url.match(/^https?:\/\/(www\.|m\.)?soundcloud\.com\/[\w\-\.]+\/[\w\-\.]+\/?/i) != null) {
+        return 'https://w.soundcloud.com/player/?url='+ url + '&amp;color=ff5500&amp;auto_play=false&amp;hide_related=true&amp;show_comments=false&amp;show_user=true&amp;show_reposts=false';
+      } else {
+        return false
+      }
+    }
+
+    const onMediaChange = (e) => {
+        const newValue = e.target.value;
+        setInputValue(newValue)
+        setShowAddMediaButton(isMediaLink(newValue))
+        console.log(isMediaLink(newValue))
+    }
+    const addMedia = () => {
+        const fragment = {
+            type: "SheetMedia",
+            mediaUrl: isMediaLink(inputValue),
+            node: editor.children[0].nextNode,
+            children: [{text: ""}]
+        };
+        incrementNextSheetNode(editor);
+        Transforms.insertNodes(editor, fragment);
+        Editor.normalize(editor, { force: true })
+        Transforms.move(editor);
+    }
+
+    if (inputType == "media") {
+        return (
+            <div className="addInterfaceInput" onClick={(e)=> {e.stopPropagation()}}>
+                <input
+                    type="text"
+                    placeholder="Paste a YouTube, SoundCloud or Image link..."
+                    className="serif"
+                    onBlur={(e) => {if(shouldReset) {resetInterface() }}}
+                    onClick={(e)=> {e.stopPropagation()}}
+                    onChange={(e) => onMediaChange(e)}
+                    value={inputValue}
+                />
+                {showAddMediaButton ? <button onClick={(e) => {
+                    addMedia()
+                }}>Add Media</button> : null}
+            </div>
+        )
+    }
+
+    else if (inputType == "source") {
+        return (
+            <div className="addInterfaceInput" onClick={(e) => {
+                e.stopPropagation()
+            }}>
+                <input
+                    type="text"
+                    placeholder="Search for a text..."
+                    className="serif"
+                    onBlur={(e) => {
+                        resetInterface()
+                    }}
+                    onClick={(e) => {
+                        e.stopPropagation()
+                    }}
+                />
+            </div>
+        )
+    }
+
+        else {return(null)}
+
+}
+
+const AddInterface = ({ attributes, children, element }) => {
+    const [active, setActive] = useState(false)
+    const [itemToAdd, setItemToAdd] = useState(null)
+
+    const resetInterface = () => {
+        setActive(false);
+        setItemToAdd(null);
+    }
+
+
+    const toggleEditorAddInterface = (e) => {
+        setActive(!active)
+        setItemToAdd(null);
+
+    }
+    const addInterfaceClasses = {
+        active: active,
+        editorAddInterface: 1,
+    };
+
+    const addSourceClicked = (e) => {
+        e.stopPropagation();
+        setItemToAdd('source');
+          // Timeout required b/c it takes a moment for react to rerender before focusing on the new input
+          setTimeout(() => {
+              document.querySelector(".addInterfaceInput input").focus()
+          }, 100);
+
+    }
+
+    const addImageClicked = (e) => {
+        e.stopPropagation();
+        setItemToAdd(null);
+        setActive(!active)
+    }
+
+    const addMediaClicked = (e) => {
+        e.stopPropagation();
+        setItemToAdd("media");
+          // Timeout required b/c it takes a moment for react to rerender before focusing on the new input
+          setTimeout(() => {
+              document.querySelector(".addInterfaceInput input").focus()
+          }, 100);
+    }
+
+
+    return (
+      <div className={classNames(addInterfaceClasses)} contentEditable={false} onClick={(e) => toggleEditorAddInterface(e)}>
+          {itemToAdd == null ? <>
+              <div className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addSourceClicked(e)} id="addSourceButton"></div>
+              <div className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addImageClicked(e)} id="addImageButton"></div>
+              <div className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addMediaClicked(e)} id="addMediaButton"></div>
+          </> :
+
+              <AddInterfaceInput
+                inputType={itemToAdd}
+                resetInterface={resetInterface}
+              />
+
+          }
+          <div className="cursorHolder" contentEditable={true} suppressContentEditableWarning={true}>{children}</div>
+      </div>
+    )
 }
 
 const Element = props => {
@@ -654,15 +809,7 @@ const Element = props => {
           const spacerSelected = useSelected();
           return (
             <div className="spacer empty">
-              {spacerSelected ?
-                  <div className="editorAddInterface" contentEditable={false} onClick={(e) => toggleEditorAddInterface(e)}>
-                      <div className="editorAddInterfaceButton" contentEditable={false}>A</div>
-                      <div className="editorAddInterfaceButton" contentEditable={false}>B</div>
-                      <div className="editorAddInterfaceButton" contentEditable={false}>C</div>
-                      <div className="cursorHolder" contentEditable={true}>{children}</div>
-                  </div>
-
-                  : <>{children}</>}
+              {spacerSelected ? <AddInterface {...props} /> : <>{children}</>}
 
             </div>
           );
@@ -963,18 +1110,8 @@ const withSefariaSheet = editor => {
 
 
     editor.insertData = data => {
-        const text = data.getData('text/plain');
-
-        const pastedMediaLink = parseMediaLink(text);
-
-        if (pastedMediaLink) {
-            event.preventDefault();
-            insertMedia(editor, pastedMediaLink)
-
-        } else {
-            insertData(data);
-            checkAndFixDuplicateSheetNodeNumbers(editor);
-        }
+        insertData(data);
+        checkAndFixDuplicateSheetNodeNumbers(editor);
     };
 
 
@@ -1243,31 +1380,6 @@ const withSefariaSheet = editor => {
 return editor
 };
 
-const parseMediaLink = (url) => {
-
-  if (url.match(/^https?/i) == null) {
-    return null;
-  }
-  const youtube_re = /https?:\/\/(www\.)?(youtu(?:\.be|be\.com)\/(?:.*v(?:\/|=)|(?:.*\/)?)([\w'-]+))/i;
-  let m;
-  if ((m = youtube_re.exec(url)) !== null) {
-    if (m.index === youtube_re.lastIndex) {
-      youtube_re.lastIndex++;
-    }
-      if (m.length>0) {
-        return ('https://www.youtube.com/embed/'+m[m.length-1]+'?rel=0&amp;showinfo=0')
-      }
-  } else if (url.match(/^https?:\/\/(www\.)?.+\.(jpeg|jpg|gif|png)$/i) != null) {
-    return url;
-  } else if (url.match(/^https?:\/\/(www\.)?.+\.(mp3)$/i) != null) {
-    return url;
-  } else if (url.match(/^https?:\/\/(www\.|m\.)?soundcloud\.com\/[\w\-\.]+\/[\w\-\.]+\/?/i) != null) {
-    return 'https://w.soundcloud.com/player/?url='+ url + '&amp;color=ff5500&amp;auto_play=false&amp;hide_related=true&amp;show_comments=false&amp;show_user=true&amp;show_reposts=false';
-  } else {
-    return
-  }
-}
-
 const incrementNextSheetNode = (editor) => {
   Transforms.setNodes(editor, {nextNode: editor.children[0].nextNode + 1}, {at: [0]});
 }
@@ -1441,7 +1553,7 @@ const Link = ({ attributes, children, element }) => {
         if (!editor.selection || editor.linkOverrideSelection) {return}
         let range = document.createRange();
         range.selectNode(e.target);
-        setCurrentSlateRange(ReactEditor.toSlateRange(editor, range))
+        setCurrentSlateRange(ReactEditor.toSlateRange(editor, range, {exactMatch: false}))
         showLinkHoverTimeout = setTimeout(function () {
             Transforms.select(editor, currentSlateRange);
             setLinkPopoverVisible(true)
@@ -1527,30 +1639,11 @@ const Link = ({ attributes, children, element }) => {
 
 
 const withLinks = editor => {
-    const { insertData, insertText, isInline } = editor
+    const { isInline } = editor
 
     editor.isInline = element => {
         return element.type === 'link' ? true : isInline(element)
     };
-
-    editor.insertText = text => {
-        if (text && Sefaria.util.isUrl(text)) {
-            wrapLink(editor, text)
-        } else {
-            insertText(text)
-        }
-    };
-
-    editor.insertData = data => {
-        const text = data.getData('text/plain')
-
-        if (text && Sefaria.util.isUrl(text)) {
-            wrapLink(editor, text)
-        } else {
-            insertData(data)
-        }
-    };
-
 
     editor.createLinkNode = (href, text) => ({
         type: "link",
@@ -1784,7 +1877,7 @@ const AddLinkButton = () => {
                   // Timeout required b/c it takes a moment for react to rerender before focusing on the new input
                   setTimeout(() => {
                       document.querySelector(".popup input").focus()
-                  }, 50);
+                  }, 200);
 
               }}
         >
@@ -2194,9 +2287,9 @@ const SefariaEditor = (props) => {
         {
           /* debugger */
 
-          <div style={{position: 'fixed', left: 0, top: 0, width: 300, height: '100%', backgroundColor: '#ddd', fontSize: 12, zIndex: 9999, whiteSpace: 'pre', overflow: "scroll"}}>
-          {JSON.stringify(editor.children[0,0], null, 4)}
-          </div>
+          // <div style={{position: 'fixed', left: 0, top: 0, width: 300, height: '100%', backgroundColor: '#ddd', fontSize: 12, zIndex: 9999, whiteSpace: 'pre', overflow: "scroll"}}>
+          // {JSON.stringify(editor.children[0,0], null, 4)}
+          // </div>
 
         }
 
