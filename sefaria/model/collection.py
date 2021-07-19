@@ -54,6 +54,8 @@ class Collection(abst.AbstractMongoRecord):
                                 # `collectiveTitle` - optional dictionary with `en`, `he`, overiding title display in TOC/Sidebar.
                                 # `desscription` - string
                                 # `heDescription` - string
+                                # `enShortDesc` - string
+                                # `heShortDesc` - string
                                 # `dependence` - string - "Commentary" or "Targum"
                                 # These fields will override `name` and `description` for display
     ]
