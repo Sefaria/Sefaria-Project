@@ -85,6 +85,7 @@ ref_resolver = RefResolver('he', model('ref_tagging_gilyon'), model('sub_citatio
 @pytest.mark.parametrize(('input_str', 'expected_trefs'), [
     ["""גמ' שמזונותן עליך. עיין ביצה דף טו ע"ב רש"י ד"ה שמא יפשע:""", ("Rashi on Beitzah 15b:8:1",)],
     ["""שם אלא ביתך ל"ל. ע' מנחות מד ע"א תד"ה טלית:""", ("Tosafot on Menachot 44a:12:1",)],
+    ["""גמ' במה מחנכין. עי' מנחות דף עח ע"א תוס' ד"ה אחת:""", ("Tosafot on Menachot 78a:10:1",)],
 ])
 def test_full_pipeline_ref_resolver(input_str, expected_trefs):
     resolved = ref_resolver.resolve_refs_in_string(Ref("Job 1"), input_str)
