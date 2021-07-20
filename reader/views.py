@@ -56,6 +56,7 @@ from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.helper.search import get_query_obj
 from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref
+from sefaria.helper.file import get_resized_file
 from sefaria.system.database import db
 
 if USE_VARNISH:
@@ -372,7 +373,7 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
             if oref.index.categories == ["Tanakh", "Torah"]:
                 panel["indexDetails"] = oref.index.contents(v2=True) # Included for Torah Parashah titles rendered in text
 
-            if oref.is_segment_level(): # Note: a ranging or spanning ref like "Genesis 1:2-3:4" is considered segment level
+            if oref.is_segment_level() or oref.is_range(): # we don't want to highlight "Genesis 3" but we do want "Genesis 3:4" and "Genesis 3-5"
                 panel["highlightedRefs"] = [subref.normal() for subref in oref.range_list()]
 
     return panel
@@ -3402,18 +3403,11 @@ def profile_upload_photo(request):
         from sefaria.utils.util import epoch_time
         now = epoch_time()
 
-        def get_resized_file(image, size):
-            resized_image = image.resize(size, resample=Image.LANCZOS)
-            resized_image_file = BytesIO()
-            resized_image.save(resized_image_file, format="PNG")
-            resized_image_file.seek(0)
-            return resized_image_file
-
         profile = UserProfile(id=request.user.id)
         bucket_name = GoogleStorageManager.PROFILES_BUCKET
         image = Image.open(request.FILES['file'])
-        old_big_pic_filename = re.findall(r"/([^/]+)$", profile.profile_pic_url)[0] if profile.profile_pic_url.startswith(GoogleStorageManager.BASE_URL) else None
-        old_small_pic_filename = re.findall(r"/([^/]+)$", profile.profile_pic_url_small)[0] if profile.profile_pic_url_small.startswith(GoogleStorageManager.BASE_URL) else None
+        old_big_pic_filename = GoogleStorageManager.get_filename(profile.profile_pic_url)
+        old_small_pic_filename = GoogleStorageManager.get_filename(profile.profile_pic_url_small)
 
         big_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (250, 250)), "{}-{}.png".format(profile.slug, now), bucket_name, old_big_pic_filename)
         small_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (80, 80)), "{}-{}-small.png".format(profile.slug, now), bucket_name, old_small_pic_filename)

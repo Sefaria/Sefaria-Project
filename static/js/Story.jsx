@@ -504,7 +504,7 @@ const SheetBlock = ({sheet, compact, cozy, smallfonts, isTitle, toggleSignUpModa
         <SaveLine historyObject={historyObject} toggleSignUpModal={toggleSignUpModal}>
             <SimpleLinkedBlock en={sheet.sheet_title} he={sheet.sheet_title} url={"/sheets/" + sheet.sheet_id} classes={"sheetTitle" + (smallfonts?" chapterText lowercase":" pageTitle") + (isTitle ? " storyTitle" : "")}/>
         </SaveLine>
-        {(sheet.sheet_summary && !(compact || cozy))?<SimpleInterfaceBlock classes={"storyBody" + (smallfonts?" smallText":" contentText")} en={sheet.sheet_summary} he={sheet.sheet_summary}/>:null}
+        {(sheet.sheet_summary && !(compact || cozy))?<SimpleInterfaceBlock classes={"storyBody" + (smallfonts?" smallText":" contentText") + " sheetSummary"} en={sheet.sheet_summary} he={sheet.sheet_summary}/>:null}
         {cozy?"":<ProfileListing
           uid={sheet.publisher_id}
           url={sheet.publisher_url}

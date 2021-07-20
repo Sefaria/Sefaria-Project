@@ -301,6 +301,7 @@ GLOBAL_INTERRUPTING_MESSAGE = {
     "name":       "shavuot-2021",
     "style":      "modal", # "modal" or "banner"
     "repetition": 7,
+    "is_fundraising": True,
     "condition":  {
         "returning_only": False,
         "english_only": True,

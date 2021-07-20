@@ -4498,7 +4498,7 @@ class Ref(object, metaclass=RefCacheType):
         for tref in refs:
             try:
                 oref = Ref(tref)
-            except InputError:
+            except (InputError, IndexError):
                 continue
             try:
                 expanded_set |= {r.normal() for r in oref.all_segment_refs()}
