@@ -51,21 +51,21 @@ a, a:hover {
   font-family: 'EnglishInHebrew Serif Font';
   src: url("https://use.typekit.net/af/2011b6/00000000000000003b9b00c1/27/l?primer=7fa3915bdafdf03041871920a205bef951d72bf64dd4c4460fb992e3ecc3a862&fvd=n4&v=3");
   font-weight: normal;
-  unicode-range: U+0030-0039, U+0041-007A;
+  unicode-range: U+0041-007A;
 }
 @font-face {
   /*Mixed English - Hebrew serif text*/
   font-family: 'EnglishInHebrew Serif Font';
   src: url("https://use.typekit.net/af/af619f/00000000000000003b9b00c5/27/l?primer=7fa3915bdafdf03041871920a205bef951d72bf64dd4c4460fb992e3ecc3a862&fvd=n7&v=3");
   font-weight: bold;
-  unicode-range: U+0030-0039, U+0041-007A;
+  unicode-range: U+0041-007A;
 }
 @font-face {
   /*Mixed English - Hebrew serif text*/
   font-family: 'EnglishInHebrew Serif Font';
   src: url("https://use.typekit.net/af/5cace6/00000000000000003b9b00c2/27/l?primer=7fa3915bdafdf03041871920a205bef951d72bf64dd4c4460fb992e3ecc3a862&fvd=i4&v=3");
   font-style: italic;
-  unicode-range: U+0030-0039, U+0041-007A;
+  unicode-range: U+0041-007A;
 }
 @font-face {
   /*Mixed English - Hebrew serif text*/
@@ -73,7 +73,7 @@ a, a:hover {
   src: url("https://use.typekit.net/af/6c275f/00000000000000003b9b00c6/27/l?primer=7fa3915bdafdf03041871920a205bef951d72bf64dd4c4460fb992e3ecc3a862&fvd=i7&v=3");
   font-style: italic;
   font-weight: bold;
-  unicode-range: U+0030-0039, U+0041-007A;
+  unicode-range: U+0041-007A;
 }
 :root {
   /* font stacks */
