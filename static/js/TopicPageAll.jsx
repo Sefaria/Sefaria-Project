@@ -8,8 +8,8 @@ import Footer  from './Footer';
 import { NavSidebar } from './NavSidebar';
 import {
   CategoryColorLine,
-  ReaderNavigationMenuMenuButton,
-  ReaderNavigationMenuDisplaySettingsButton,
+  MenuButton,
+  DisplaySettingsButton,
   LanguageToggleButton,
   LoadingMessage,
   ResponsiveNBox,

@@ -420,7 +420,7 @@ const FilterableList = ({
     <div className="filterable-list">
       {oldDesign ? <div className="filter-bar">
         <div className="filter-bar-inner">
-          <ReaderNavigationMenuSearchButton />
+          <SearchButton />
           <input
             type="text"
             placeholder={Sefaria._("Search")}
@@ -452,7 +452,7 @@ const FilterableList = ({
       { !oldDesign && showFilterHeader ? (
         <div className="filter-bar-new">
           <div className="filter-input">
-            <ReaderNavigationMenuSearchButton />
+            <SearchButton />
             <input
               type="text"
               placeholder={Sefaria._("Search")}
@@ -677,27 +677,6 @@ class GlobalWarningMessage extends Component {
       : null;
   }
 }
-
-
-const ReaderNavigationMenuSection = ({title, heTitle, content, enableAnchor}) => (
-  (!content) ? null :
-  <div className="readerNavSection" id={enableAnchor ? "navigation-" + title.toLowerCase() : ""}>
-    {title ? (
-    <h2 className="sans-serif">
-      <InterfaceText text={{en: title, he: heTitle}} />
-    </h2>) : null }
-    {content}
-  </div>
-);
-ReaderNavigationMenuSection.propTypes = {
-  title:   PropTypes.string,
-  heTitle: PropTypes.string,
-  content: PropTypes.object,
-  enableAnchor: PropTypes.bool
-};
-ReaderNavigationMenuSection.defaultProps = {
-  enableAnchor: false
-};
 
 
 class TextBlockLink extends Component {
@@ -1011,7 +990,7 @@ class ToggleOption extends Component {
 
         //style={this.props.style}
 
-class ReaderNavigationMenuSearchButton extends Component {
+class SearchButton extends Component {
   render() {
     return (<span className="readerNavMenuSearchButton" onClick={this.props.onClick}>
       <img src="/static/icons/iconmonstr-magnifier-2.svg" />
@@ -1020,7 +999,7 @@ class ReaderNavigationMenuSearchButton extends Component {
 }
 
 
-class ReaderNavigationMenuMenuButton extends Component {
+class MenuButton extends Component {
   render() {
     var isheb = Sefaria.interfaceLang == "hebrew";
     var icon = this.props.compare ? (isheb ?
@@ -1029,13 +1008,13 @@ class ReaderNavigationMenuMenuButton extends Component {
     return (<span className="readerNavMenuMenuButton" onClick={this.props.onClick}>{icon}</span>);
   }
 }
-ReaderNavigationMenuMenuButton.propTypes = {
+MenuButton.propTypes = {
   onClick: PropTypes.func,
   compare: PropTypes.bool,
 };
 
 
-class ReaderNavigationMenuCloseButton extends Component {
+class CloseButton extends Component {
   onClick(e) {
     e.preventDefault();
     this.props.onClick();
@@ -1055,7 +1034,7 @@ class ReaderNavigationMenuCloseButton extends Component {
 }
 
 
-class ReaderNavigationMenuDisplaySettingsButton extends Component {
+class DisplaySettingsButton extends Component {
   render() {
     var style = this.props.placeholder ? {visibility: "hidden"} : {};
     var icon = Sefaria._siteSettings.TORAH_SPECIFIC ?
@@ -1074,7 +1053,7 @@ class ReaderNavigationMenuDisplaySettingsButton extends Component {
             </a>);
   }
 }
-ReaderNavigationMenuDisplaySettingsButton.propTypes = {
+DisplaySettingsButton.propTypes = {
   onClick: PropTypes.func,
   placeholder: PropTypes.bool,
 };
@@ -2389,11 +2368,10 @@ export {
   ProfileListing,
   ProfilePic,
   ReaderMessage,
-  ReaderNavigationMenuCloseButton,
-  ReaderNavigationMenuDisplaySettingsButton,
-  ReaderNavigationMenuMenuButton,
-  ReaderNavigationMenuSection,
-  ReaderNavigationMenuSearchButton,
+  CloseButton,
+  DisplaySettingsButton,
+  MenuButton,
+  SearchButton,
   SaveButton,
   SignUpModal,
   SheetListing,

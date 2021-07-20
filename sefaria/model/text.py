@@ -799,7 +799,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         return toc_contents_dict
 
-    def toc_contents(self, include_first_section=False, include_flags=True, include_base_texts=False):
+    def toc_contents(self, include_first_section=False, include_flags=False, include_base_texts=False):
         """Returns to a dictionary used to represent this text in the library wide Table of Contents"""
         toc_contents_dict = {
             "title": self.get_title(),
@@ -808,8 +808,10 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             "enShortDesc": getattr(self, "enShortDesc", ""),
             "heShortDesc": getattr(self, "heShortDesc", ""),
             "primary_category" : self.get_primary_category(),
-            "dependence" : getattr(self, "dependence", False),
         }
+
+        if getattr(self, "dependence", False):
+            toc_contents_dict["dependence"] = self.dependence
 
         if include_first_section:
             firstSection = Ref(self.title).first_available_section_ref()
@@ -4509,7 +4511,7 @@ class Ref(object, metaclass=RefCacheType):
         for tref in refs:
             try:
                 oref = Ref(tref)
-            except InputError:
+            except (InputError, IndexError):
                 continue
             try:
                 expanded_set |= {r.normal() for r in oref.all_segment_refs()}

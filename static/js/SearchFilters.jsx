@@ -9,7 +9,7 @@ import Component from 'react-class';
 import {
   InterfaceText,
   LoadingMessage,
-  ReaderNavigationMenuCloseButton,
+  CloseButton,
   ToggleSet,
 } from './Misc';
 
@@ -81,7 +81,7 @@ class SearchFilters extends Component {
     ) : (
       <>
         <div className="mobileSearchFiltersHeader sans-serif">
-          <ReaderNavigationMenuCloseButton onClick={this.props.closeMobileFilters} />
+          <CloseButton onClick={this.props.closeMobileFilters} />
           <InterfaceText>Filters</InterfaceText>
           <div></div>
         </div>

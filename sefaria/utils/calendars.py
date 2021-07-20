@@ -360,3 +360,17 @@ def get_keyed_calendar_items(diaspora=True, custom=None):
 
 def get_todays_calendar_items(diaspora=True, custom=None):
     return get_all_calendar_items(timezone.localtime(timezone.now()), diaspora=diaspora, custom=custom)
+
+
+
+def verify_parashah_topics_exist():
+    """Checks that topics exist corresponding to every entry in the parshiot collection"""
+    missing = False
+    parshiot = db.parshiot.distinct("parasha")
+    for parashah in parshiot:
+        if not model.Topic().load({"parasha": parashah}):
+            missing = True
+            print("Missing parashah topic for: {}".format(parashah))
+
+    if not missing:
+        print("All parashahs in the parshiot collection have corresponding topics.")

@@ -110,7 +110,7 @@ const Notifications = ({type, props}) => {
     "version":         VersionNotification,
     "general":         GeneralNotification,
   };
-  if (!type) { return null; }
+  if (!type || !notificationTypes[type]) { return null; }
   const NotificationType = notificationTypes[type];
   return <NotificationType {...props} />
 };

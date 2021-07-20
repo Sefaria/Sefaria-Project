@@ -12,8 +12,8 @@ import {
 } from './Story';
 import {
   CategoryColorLine,
-  ReaderNavigationMenuMenuButton,
-  ReaderNavigationMenuDisplaySettingsButton,
+  MenuButton,
+  DisplaySettingsButton,
   TextBlockLink,
   LanguageToggleButton,
   LoadingMessage,

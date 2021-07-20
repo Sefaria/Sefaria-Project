@@ -699,9 +699,14 @@ def topics_category_page(request, topicCategory):
             "he": topic_obj.get_primary_title('he')
         }
     }
+
+    short_lang = 'en' if request.interfaceLang == 'english' else 'he'
+    title = topic_obj.get_primary_title(short_lang) + " | " + _("Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.")
+    desc = _("Jewish texts and source sheets about %(topic)s from Torah, Talmud and other sources in Sefaria's library.") % {'topic': topic_obj.get_primary_title(short_lang)}
+    
     return render_template(request, 'base.html', props, {
-        "title": "",
-        "desc":  "",
+        "title": title,
+        "desc":  desc,
     })
 
 
@@ -714,8 +719,8 @@ def all_topics_page(request, letter):
         "initialNavigationTopicLetter": letter,
     }
     return render_template(request, 'base.html', props, {
-        "title": "", # TODO
-        "desc":  "", # TODO
+        "title": _("Explore Jewish Texts by Topic"),
+        "desc":  _("Explore Jewish texts related to traditional and contemporary topics, coming from Torah, Talmud, and more."),
     })
 
 
@@ -920,18 +925,14 @@ def _get_user_calendar_params(request):
 
 
 def texts_list(request):
-    title = _(SITE_SETTINGS["LIBRARY_NAME"]["en"])
-    desc  = _("Browse 1,000s of Jewish texts in the Sefaria Library by category and title.")
-    return menu_page(request, page="navigation", title=title, desc=desc)
-
-    """
     title = _("Sefaria: a Living Library of Jewish Texts Online")
     desc  = _("The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more.")
-    """
+    return menu_page(request, page="navigation", title=title, desc=desc)
+
 
 def calendars(request):
     title = _("Learning Schedules") + " | " + _(SITE_SETTINGS["LIBRARY_NAME"]["en"])
-    desc  = _("Weekly Torah portions, Daf Yomi and other schedules for Torah learning.")
+    desc  = _("Weekly Torah portions, Daf Yomi, and other schedules for Torah learning.")
     return menu_page(request, page="calendars", title=title, desc=desc)
 
 
@@ -3398,7 +3399,6 @@ def account_user_update(request):
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 
-
 @catch_error_as_json
 def profile_get_api(request, slug):
     if request.method == "GET":
@@ -3415,6 +3415,7 @@ def profile_follow_api(request, ftype, slug):
         response = [UserProfile(id=uid).to_api_dict(basic=True) for uid in follow_set.uids]
         return jsonResponse(response)
     return jsonResponse({"error": "Unsupported HTTP method."})
+
 
 @catch_error_as_json
 def profile_upload_photo(request):
@@ -3440,7 +3441,6 @@ def profile_upload_photo(request):
         public_user_data(request.user.id, ignore_cache=True)  # reset user data cache
         return jsonResponse({"urls": [big_pic_url, small_pic_url]})
     return jsonResponse({"error": "Unsupported HTTP method."})
-
 
 
 @api_view(["POST"])
@@ -3655,10 +3655,11 @@ def community_page(request, props={}):
     """
     Community Page
     """    
-    title = _("Community") # TODO
-    desc  = _("") # TODO
-    props.update(community_page_data(request, language=request.interfaceLang))
-    return menu_page(request, page="community", props=props, title=title, desc=desc)
+    title = _("From the Community: Today on Sefaria")
+    desc  = _("New and featured source sheets, divrei torah, articles, sermons and more created by members of the Sefaria community.")
+    data  = community_page_data(request, language=request.interfaceLang)
+    data.update(props) # don't overwrite data that was passed n with props
+    return menu_page(request, page="community", props=data, title=title, desc=desc)
 
 
 def community_page_data(request, language="english"):

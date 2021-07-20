@@ -4,11 +4,10 @@ import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
 import $  from './sefaria/sefariaJquery';
 import { NavSidebar, Modules } from './NavSidebar';
-import ReaderNavigationCategoryMenu  from './ReaderNavigationCategoryMenu';
+import TextCategoryPage  from './TextCategoryPage';
 import Footer  from './Footer';
 import ComparePanelHeader from './ComparePanelHeader';
 import {
-  ReaderNavigationMenuSection,
   TextBlockLink,
   TwoOrThreeBox,
   NBox,
@@ -18,15 +17,15 @@ import {
   ContentText,
 } from './Misc';
 
-// The Navigation menu for browsing and searching texts
-const ReaderNavigationMenu = ({categories, settings, setCategories, onCompareBack, openSearch,
+
+const TextsPage = ({categories, settings, setCategories, onCompareBack, openSearch,
   toggleLanguage, openTextTOC, openDisplaySettings, multiPanel, initialWidth, compare}) => {
 
   // List of Texts in a Category
   if (categories.length) {
     return (
       <div className="readerNavMenu">
-        <ReaderNavigationCategoryMenu
+        <TextCategoryPage
           categories={categories}
           category={categories.slice(-1)[0]}
           setCategories={setCategories}
@@ -116,7 +115,7 @@ const ReaderNavigationMenu = ({categories, settings, setCategories, onCompareBac
     </div>
   );
 };
-ReaderNavigationMenu.propTypes = {
+TextsPage.propTypes = {
   categories:          PropTypes.array.isRequired,
   settings:            PropTypes.object.isRequired,
   setCategories:       PropTypes.func.isRequired,
@@ -172,4 +171,4 @@ const Dedication = () => {
 };
 
 
-export default ReaderNavigationMenu;
+export default TextsPage;

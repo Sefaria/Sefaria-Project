@@ -1,6 +1,6 @@
 import {
-  ReaderNavigationMenuCloseButton,
-  ReaderNavigationMenuDisplaySettingsButton,
+  CloseButton,
+  DisplaySettingsButton,
   CategoryAttribution,
   CategoryColorLine,
   InterfaceText,
@@ -365,7 +365,7 @@ class SheetMetadata extends Component {
               <div className="readerControls">
                 <div className="readerControlsInner">
                   <div className="leftButtons">
-                    <ReaderNavigationMenuCloseButton onClick={closeClick}/>
+                    <CloseButton onClick={closeClick}/>
                   </div>
                   <div className="readerTextToc readerTextTocHeader">
                     <div className="readerTextTocBox">
@@ -375,8 +375,8 @@ class SheetMetadata extends Component {
                   </div>
                   <div className="rightButtons">
                     {this.props.interfaceLang !== "hebrew" ?
-                      <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
-                      : <ReaderNavigationMenuDisplaySettingsButton placeholder={true} />}
+                      <DisplaySettingsButton onClick={this.props.openDisplaySettings} />
+                      : <DisplaySettingsButton placeholder={true} />}
                   </div>
                 </div>
               </div>

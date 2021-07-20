@@ -3,7 +3,7 @@ import {
     LoadingMessage,
     LoginPrompt,
     LanguageToggleButton,
-    ReaderNavigationMenuCloseButton,
+    CloseButton,
     SheetListing,
     Note,
     FeedbackBox,

@@ -1,7 +1,7 @@
 import {
-  ReaderNavigationMenuCloseButton,
-  ReaderNavigationMenuMenuButton,
-  ReaderNavigationMenuDisplaySettingsButton,
+  CloseButton,
+  MenuButton,
+  DisplaySettingsButton,
   CategoryAttribution,
   CategoryColorLine,
   LoadingMessage,
@@ -198,8 +198,8 @@ class BookPage extends Component {
             <div className="readerControlsInner">
               <div className="leftButtons">
                 {this.props.compare ?
-                <ReaderNavigationMenuMenuButton onClick={this.props.onCompareBack} compare={true} />
-                : <ReaderNavigationMenuCloseButton onClick={this.props.close} />}
+                <MenuButton onClick={this.props.onCompareBack} compare={true} />
+                : <CloseButton onClick={this.props.close} />}
               </div>
               <div className="readerTextToc readerTextTocHeader">
                 {this.props.compare ?
@@ -213,8 +213,8 @@ class BookPage extends Component {
               </div>
               <div className="rightButtons">
                 {Sefaria.interfaceLang !== "hebrew" ?
-                  <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
-                  : <ReaderNavigationMenuDisplaySettingsButton placeholder={true} />}
+                  <DisplaySettingsButton onClick={this.props.openDisplaySettings} />
+                  : <DisplaySettingsButton placeholder={true} />}
               </div>
             </div>
           </div>
