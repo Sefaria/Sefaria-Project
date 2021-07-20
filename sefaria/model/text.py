@@ -361,6 +361,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         :return:
         """
         self.struct_objs[name] = struct_obj
+        self.struct_objs[name].title_group = self.nodes.title_group
 
     def get_alt_structure(self, name):
         """
