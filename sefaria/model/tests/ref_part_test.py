@@ -100,7 +100,7 @@ def test_full_pipeline_ref_resolver(input_str, expected_trefs):
     ['מ"ד ע"ב', schema.AddressTalmud, ([88], [88])],
     ['מ"ד', schema.AddressMishnah, ([4, 44], [4, 44])],
 ])
-def test_stupid_address_type(input_addr_str, AddressClass, expected_sections):
+def test_get_all_possible_sections_from_string(input_addr_str, AddressClass, expected_sections):
     exp_secs, exp2secs = expected_sections
     sections, toSections = AddressClass.get_all_possible_sections_from_string('he', input_addr_str)
     assert sections == exp_secs
