@@ -21,10 +21,6 @@ class RefPartType(Enum):
     def span_label_to_enum(cls, span_label: str) -> 'RefPartType':
         return getattr(cls, LABEL_TO_REF_PART_TYPE_ATTR[span_label])
 
-# TODO consider that we may not need raw ref part source
-class RefPartSource(Enum):
-    INPUT = "input"
-
 class NonUniqueTerm(abst.AbstractMongoRecord, schema.AbstractTitledObject):
     collection = "non_unique_terms"
     required_attrs = [
@@ -50,23 +46,22 @@ class NonUniqueTermSet(abst.AbstractMongoSet):
 
 class RawRefPart:
     
-    def __init__(self, source: str, type: 'RefPartType', span: Span, potential_dh_continuation: str=None) -> None:
-        self.source = source
+    def __init__(self, type: 'RefPartType', span: Span, potential_dh_continuation: str=None) -> None:
         self.span = span
         self.type = type
         self.potential_dh_continuation = potential_dh_continuation
 
     def __str__(self):
-        return f"{self.__class__.__name__}: {self.span}, Source = {self.source}"
+        return f"{self.__class__.__name__}: {self.span}, Type = {self.type}"
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({self.source}, {self.span}, {self.potential_dh_continuation})"
+        return f"{self.__class__.__name__}({self.span}, {self.potential_dh_continuation})"
 
     def __eq__(self, other):
         return isinstance(other, RawRefPart) and self.__hash__() == other.__hash__()
 
     def __hash__(self):
-        return hash(f"{self.source}|{self.span.__hash__()}|{self.potential_dh_continuation}")
+        return hash(f"{self.type}|{self.span.__hash__()}|{self.potential_dh_continuation}")
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -281,7 +276,7 @@ class RefResolver:
                 dh_cont = None
                 if part_type == RefPartType.DH:
                     dh_cont = None  # TODO FILL IN
-                raw_ref_parts += [RawRefPart(RefPartSource.INPUT, part_type, part_span, dh_cont)]
+                raw_ref_parts += [RawRefPart(part_type, part_span, dh_cont)]
             raw_refs += [RawRef(raw_ref_parts, span)]
         return raw_refs
 

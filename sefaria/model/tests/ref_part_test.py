@@ -43,7 +43,7 @@ def create_raw_ref_data(context_tref, lang, tref, span_indexes, part_types):
     doc = nlp(tref)
     span = doc[0:]
     part_spans = [span[index] for index in span_indexes]
-    raw_ref = RawRef([RawRefPart("input", part_type, part_span) for part_type, part_span in zip(part_types, part_spans)], span)
+    raw_ref = RawRef([RawRefPart(part_type, part_span) for part_type, part_span in zip(part_types, part_spans)], span)
 
     return ref_resolver, raw_ref, Ref(context_tref)
 
