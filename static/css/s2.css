@@ -25,6 +25,28 @@ a, a:hover {
   unicode-range: U+0590-05FF, U+25CC;
 }
 @font-face {
+  /*Mixed Hebrew - English serif text*/
+  font-family: 'HebrewInEnglish Serif Font';
+  src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-Bold.ttf'), local(Georgia), local(serif);
+  font-weight: bold;
+  unicode-range: U+0590-05FF, U+25CC;
+}
+@font-face {
+  /*Mixed Hebrew - English serif text*/
+  font-family: 'HebrewInEnglish Serif Font';
+  src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-MediumOblique.ttf'), local(Georgia), local(serif);
+  font-style: italic;
+  unicode-range: U+0590-05FF, U+25CC;
+}
+@font-face {
+  /*Mixed Hebrew - English serif text*/
+  font-family: 'HebrewInEnglish Serif Font';
+  src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-BoldOblique.ttf'), local(Georgia), local(serif);
+  font-weight: bold;
+  font-style: italic;
+  unicode-range: U+0590-05FF, U+25CC;
+}
+@font-face {
   /*Mixed English - Hebrew serif text*/
   font-family: 'EnglishInHebrew Serif Font';
   src: url("https://use.typekit.net/af/2011b6/00000000000000003b9b00c1/27/l?primer=7fa3915bdafdf03041871920a205bef951d72bf64dd4c4460fb992e3ecc3a862&fvd=n4&v=3");
