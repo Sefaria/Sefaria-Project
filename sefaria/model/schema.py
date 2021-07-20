@@ -1102,7 +1102,7 @@ class ArrayMapNode(NumberedTitledTreeNode):
     (e.g., Parsha structures of chapter/verse stored Tanach, or Perek structures of Daf/Line stored Talmud)
     """
     required_param_keys = ["depth", "wholeRef"]
-    optional_param_keys = ["lengths", "addressTypes", "sectionNames", "refs", "includeSections", "startingAddress", "ref_part_terms", "ref_parts_optional", "referenceableSections", "isSegmentLevelDiburHamatchil", "referenceableAlone", "aloneRefPartTermPrefixes"]  # "addressTypes", "sectionNames", "refs" are not required for depth 0, but are required for depth 1 +
+    optional_param_keys = ["lengths", "addressTypes", "sectionNames", "refs", "includeSections", "startingAddress", "ref_part_terms", "ref_parts_optional", "referenceableSections", "isSegmentLevelDiburHamatchil", "referenceableAlone", "aloneRefPartTermPrefixes", "diburHamatchilRegexes"]  # "addressTypes", "sectionNames", "refs" are not required for depth 0, but are required for depth 1 +
     has_key = False  # This is not used as schema for content
 
     def get_ref_from_sections(self, sections):
@@ -1459,7 +1459,7 @@ class JaggedArrayNode(SchemaNode, NumberedTitledTreeNode):
     - Structure Nodes whose children can be addressed by Integer or other :class:`AddressType`
     - Content Nodes that define the schema for JaggedArray stored content
     """
-    optional_param_keys = SchemaNode.optional_param_keys + ["lengths", "toc_zoom", "referenceableSections", "isSegmentLevelDiburHamatchil"]
+    optional_param_keys = SchemaNode.optional_param_keys + ["lengths", "toc_zoom", "referenceableSections", "isSegmentLevelDiburHamatchil", "diburHamatchilRegexes"]
 
     def __init__(self, serial=None, **kwargs):
         # call SchemaContentNode.__init__, then the additional parts from NumberedTitledTreeNode.__init__
