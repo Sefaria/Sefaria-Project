@@ -56,6 +56,8 @@ from sefaria.search import index_sheets_by_timestamp as search_index_sheets_by_t
 from sefaria.model import *
 from sefaria.model.webpage import *
 from sefaria.system.multiserver.coordinator import server_coordinator
+from sefaria.google_storage_manager import GoogleStorageManager
+
 
 from reader.views import render_template
 
@@ -69,6 +71,12 @@ logger = structlog.get_logger(__name__)
 
 
 def process_register_form(request, auth_method='session'):
+    from sefaria.utils.util import epoch_time
+    from sefaria.helper.file import get_resized_file
+    import hashlib
+    import urllib.parse, urllib.request
+    from google.cloud.exceptions import GoogleCloudError
+    from PIL import Image
     form = SefariaNewUserForm(request.POST) if auth_method == 'session' else SefariaNewUserFormAPI(request.POST)
     token_dict = None
     if form.is_valid():
@@ -82,7 +90,27 @@ def process_register_form(request, auth_method='session'):
             if hasattr(request, "interfaceLang"):
                 p.settings["interface_language"] = request.interfaceLang
 
+
+            # auto-add profile pic from gravatar if exists
+            email_hash = hashlib.md5(p.email.lower().encode('utf-8')).hexdigest()
+            gravatar_url = "https://www.gravatar.com/avatar/" + email_hash + "?d=404&s=250"
+            try:
+                with urllib.request.urlopen(gravatar_url) as r:
+                    bucket_name = GoogleStorageManager.PROFILES_BUCKET
+                    with Image.open(r) as image:
+                        now = epoch_time()
+                        big_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (250, 250)), "{}-{}.png".format(p.slug, now), bucket_name, None)
+                        small_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (80, 80)), "{}-{}-small.png".format(p.slug, now), bucket_name, None)
+                        p.profile_pic_url = big_pic_url
+                        p.profile_pic_url_small = small_pic_url
+            except urllib.error.HTTPError as e:
+                logger.info("The Gravatar server couldn't fulfill the request. Error Code {}".format(e.code))
+            except urllib.error.URLError as e:
+                logger.info("HTTP Error from Gravatar Server. Reason: {}".format(e.reason))
+            except GoogleCloudError as e:
+                logger.warning("Error communicating with Google Storage Manager. {}".format(e))
             p.save()
+
         if auth_method == 'session':
             auth_login(request, user)
         elif auth_method == 'jwt':
@@ -159,6 +187,7 @@ def subscribe(request, email):
         return jsonResponse({"error": _("Sorry, there was an error.")})
 
 
+@login_required
 def unlink_gauth(request):
     profile = UserProfile(id=request.user.id)
     profile.update({"gauth_token": None})
@@ -264,13 +293,34 @@ def linker_js(request, linker_version=None):
     return render(request, linker_link, attrs, content_type = "text/javascript; charset=utf-8")
 
 
-def title_regex_api(request, titles):
+def linker_data_api(request, titles):
+    if request.method == "GET":
+        cb = request.GET.get("callback", None)
+        res = {}
+        title_regex = title_regex_api(request, titles, json_response=False)
+        if "error" in title_regex:
+            res["error"] = title_regex.pop("error")
+        res["regexes"] = title_regex
+        url = request.GET.get("url", "")
+        domain = WebPage.domain_for_url(url)
+
+        website_match = WebSiteSet({"domains": domain})  # we know there can only be 0 or 1 matches found because of a constraint
+                                                         # enforced in Sefaria-Data/sources/WebSites/populate_web_sites.py
+        res["exclude_from_tracking"] = getattr(website_match[0], "exclude_from_tracking", "") if website_match.count() == 1 else ""
+        resp = jsonResponse(res, cb)
+        return resp
+    else:
+        return jsonResponse({"error": "Unsupported HTTP method."})
+
+
+def title_regex_api(request, titles, json_response=True):
     if request.method == "GET":
         cb = request.GET.get("callback", None)
         parentheses = bool(int(request.GET.get("parentheses", False)))
-        titles = set(titles.split("|"))
         res = {}
+        titles = set(titles.split("|"))
         errors = []
+        # check request.domain and then look up in WebSites collection to get linker_params and return both resp and linker_params
         for title in titles:
             lang = "he" if is_hebrew(title) else "en"
             try:
@@ -283,9 +333,9 @@ def title_regex_api(request, titles):
         if len(errors):
             res["error"] = errors
         resp = jsonResponse(res, cb)
-        return resp
+        return resp if json_response else res
     else:
-        return jsonResponse({"error": "Unsupported HTTP method."})
+        return jsonResponse({"error": "Unsupported HTTP method."}) if json_response else {"error": "Unsupported HTTP method."}
 
 
 def bundle_many_texts(refs, useTextFamily=False, as_sized_string=False, min_char=None, max_char=None):
@@ -723,6 +773,20 @@ def sheet_stats(request):
         query = {"dateCreated": {"$gt": start.isoformat(), "$lt": end.isoformat()}}
         n = db.sheets.find(query).distinct("owner")
         html += "%s: %d\n" % (start.strftime("%b %y"), len(n))
+
+    html += "\n\nUnique Source Sheet creators per year:\n\n"
+    end   = datetime.today()
+    start = datetime.today().replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+    query = {"dateCreated": {"$gt": start.isoformat(), "$lt": end.isoformat()}}
+    n = db.sheets.find(query).distinct("owner")
+    html += "%s YTD: %d\n" % (start.strftime("%Y"), len(n))
+    years = 3
+    for i in range(years):
+        end   = start
+        start = end - relativedelta(years=1)
+        query = {"dateCreated": {"$gt": start.isoformat(), "$lt": end.isoformat()}}
+        n = db.sheets.find(query).distinct("owner")
+        html += "%s: %d\n" % (start.strftime("%Y"), len(n))
 
     html += "\n\nAll time contributors:\n\n"
     all_sheet_makers = db.sheets.distinct("owner")

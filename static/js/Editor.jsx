@@ -13,15 +13,17 @@ import {
     SheetTitle,
     CollectionStatement,
     ProfilePic,
+    InterfaceText,
 } from './Misc';
 
 import classNames from 'classnames';
 import $ from "./sefaria/sefariaJquery";
 import ReactDOM from "react-dom";
 
+// Mapping from Sheet doc format source types to Slate block element types
 const sheet_item_els = {
     ref: 'SheetSource',
-    comment: 'SheetComment',
+    comment: 'SheetOutsideText',
     outsideText: 'SheetOutsideText',
     outsideBiText: 'SheetOutsideBiText',
     media: 'SheetMedia',
@@ -40,12 +42,16 @@ const HOTKEYS = {
   'mod+b': 'bold',
   'mod+i': 'italic',
   'mod+u': 'underline',
-}
+};
+
+const LIST_TYPES = ['numbered-list', 'bulleted-list']
+
+const NO_SPACER_NEEDED_TYPES = ["SheetOutsideText", "header", "SheetComment"]
 
 const ELEMENT_TAGS = {
     A: el => ({type: 'link', url: el.getAttribute('href'), ref: el.getAttribute('data-ref'), target: el.getAttribute('target')}),
     BLOCKQUOTE: () => ({type: 'quote'}),
-    H1: () => ({type: 'heading-one'}),
+    H1: () => ({type: 'header'}),
     H2: () => ({type: 'heading-two'}),
     H3: () => ({type: 'heading-three'}),
     H4: () => ({type: 'heading-four'}),
@@ -78,6 +84,10 @@ const format_tag_pairs = [
         format: "bold"
     },
     {
+        tag: "SUP",
+        format: "superscript"
+    },
+    {
         tag: "B",
         format: "bold"
     },
@@ -99,7 +109,7 @@ const special_styles_to_care_about = [
   "background-color",
   "color",
   "text-align"
-]
+];
 
 
 const TEXT_TAGS = format_tag_pairs.reduce((obj, item) => {
@@ -123,7 +133,7 @@ const format_to_html_lookup = format_tag_pairs.reduce((obj, item) => {
    catch(err) {}
 
    return {node: top, path: topPath}
- }
+ };
 
  const getNodeBelow = (curPath, editor) => {
    let bottom = null;
@@ -135,7 +145,7 @@ const format_to_html_lookup = format_tag_pairs.reduce((obj, item) => {
    catch(err) {}
 
    return {node: bottom, path: bottomPath}
- }
+ };
 
 
 export const deserialize = el => {
@@ -161,7 +171,7 @@ export const deserialize = el => {
           }
         return addlAttrs
         }
-    }
+    };
 
     const {nodeName} = el;
     let parent = el;
@@ -281,7 +291,6 @@ export const serialize = (content) => {
                 }, "");
                 return `<ul>${ulHtml}</ul>`
             }
-
             case 'table':
               const tableHtml = content.children.reduce((acc, text) => {
                   return (acc + serialize(text))
@@ -342,12 +351,14 @@ function renderSheetItem(source) {
             return content
         }
         case 'comment': {
+            const commentLang = Sefaria.hebrew.isHebrew(source.comment) ? 'he' : 'en';
             const content = (
                 {
                     type: sheet_item_els[sheetItemType],
                     options: source.options,
                     children: parseSheetItemHTML(source.comment),
-                    node: source.node
+                    node: source.node,
+                    lang: commentLang
                 }
             );
             return content
@@ -398,22 +409,20 @@ function renderSheetItem(source) {
             return content
         }
         default: {
-          console.log(source)
+          console.log(source);
             return {
                 text: "",
             }
-
-
         }
     }
 }
 
 function parseSheetItemHTML(rawhtml) {
-    const preparseHtml = rawhtml.replace(/\u00A0/g, ' ').replace(/(\r\n|\n|\r)/gm, "")
+    const preparseHtml = rawhtml.replace(/\u00A0/g, ' ').replace(/(\r\n|\n|\r)/gm, "");
     const parsed = new DOMParser().parseFromString(preparseHtml, 'text/html');
     const fragment = deserialize(parsed.body);
     const slateJSON = fragment.length > 0 ? fragment : [{text: ''}];
-    return slateJSON[0].type == 'paragraph' ? slateJSON : [{type: 'paragraph', children: slateJSON}]
+    return slateJSON[0].type === 'paragraph' ? slateJSON : [{type: 'paragraph', children: slateJSON}]
 }
 
 const defaultSheetTitle = (title) => {
@@ -438,11 +447,8 @@ const defaultEmptyOutsideText = (sheetNodeNumber, textFragment) => {
                 children: [{text: textFragment}]
             }]
           }
-}
+};
 
-function getInitialSheetNodes(sheet) {
-  return sheet["sources"].map(source => source["node"])
-}
 
 function transformSheetJsonToSlate(sheet) {
     const sheetTitle = sheet.title.stripHtmlConvertLineBreaks();
@@ -453,13 +459,19 @@ function transformSheetJsonToSlate(sheet) {
 
     sheet.sources.forEach( (source, i) => {
 
-      // this snippet of code exists to create placeholder spacers inbetween elements to allow for easier editting.
-      //if the source is not the first source and it's not an outside text or adjacent to an outside text
+        // this snippet of code exists to create placeholder spacers in between elements to allow for easier editing
+        // and to preserve spacing.
+        //
+        // A spacer is added:
+        // 1. If the source is not the first source and it's not an outside text or adjacent to an outside text, and
+        // 2. In between outside texts.
 
-      const isCurrentSourceAnOutsideText = !!source["outsideText"]
-      const isPrevSourceAnOutsideText = !!(i > 0 && sheet.sources[i-1]["outsideText"])
+      // needed for now b/c headers are saved as OutsideTexts for backwards compatability w/ old sheets
+      const sourceIsHeader = source["outsideText"] && source["outsideText"].startsWith("<h1>");
+      const isCurrentSourceAnOutsideText = !!source["outsideText"];
+      const isPrevSourceAnOutsideText = !!(i > 0 && sheet.sources[i-1]["outsideText"]);
 
-      if (!(isPrevSourceAnOutsideText || isCurrentSourceAnOutsideText) ) {
+      if (!(isPrevSourceAnOutsideText || isCurrentSourceAnOutsideText) || (isPrevSourceAnOutsideText && isCurrentSourceAnOutsideText && !sourceIsHeader) ) {
           sourceNodes.push({
             type: "spacer",
             children: [{text: ""}]
@@ -571,10 +583,6 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
     }
     setSourceActive(true)
 
-    console.log(e)
-    console.log(activeSourceLangContent)
-    console.log(sourceActive)
-
   }
 
   const onBlur = (e) => {
@@ -601,7 +609,7 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
           {element.heRef ? <div className="ref" contentEditable={false} style={{ userSelect: 'none' }}>{element.heRef}</div> : null }
           <div className="sourceContentText">
           <Slate editor={sheetSourceHeEditor} value={sheetHeSourceValue} onChange={value => onHeChange(value)}>
-          <HoverMenu/>
+          <HoverMenu buttons="basic"/>
             <Editable
               readOnly={!sourceActive}
               renderLeaf={props => <Leaf {...props} />}
@@ -613,7 +621,7 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
         {element.ref ? <div className="ref" contentEditable={false} style={{ userSelect: 'none' }}>{element.ref}</div> : null }
         <div className="sourceContentText">
           <Slate editor={sheetSourceEnEditor} value={sheetEnSourceValue} onChange={value => onEnChange(value)}>
-          <HoverMenu/>
+          <HoverMenu buttons="basic"/>
             <Editable
               readOnly={!sourceActive}
               renderLeaf={props => <Leaf {...props} />}
@@ -626,16 +634,16 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
       {children}
       </div>
   );
-}
+};
 
 const Element = props => {
-    const { attributes, children, element } = props
+    const { attributes, children, element } = props;
     const sheetItemClasses = {
         sheetItem: 1,
         empty: !(Node.string(element)),
-        noPointer: element.type != ("SheetSource" || "SheetOutsideBiText"),
-        highlight: (useSlate().highlightedNode == element.node)
-    }
+        noPointer: ["SheetSource", "SheetOutsideBiText"].indexOf(element.type) === -1,
+        highlight: (useSlate().highlightedNode === element.node)
+    };
 
     switch (element.type) {
         case 'spacer':
@@ -643,11 +651,11 @@ const Element = props => {
             <div className="spacer empty">
               {children}
             </div>
-          )
+          );
         case 'SheetSource':
             return (
               <BoxedSheetElement {...props} />
-            )
+            );
 
         case 'SheetOutsideBiText':
             return (
@@ -663,7 +671,7 @@ const Element = props => {
                 </div>
                 <div className="clearFix"></div>
               </div>
-            )
+            );
         case 'SheetOutsideText':
                 const SheetOutsideTextClasses = `SheetOutsideText segment ${element.lang}`;
                 return (
@@ -757,11 +765,12 @@ const Element = props => {
             return (
                 <li>{children}</li>
             );
+        case 'header': {
+            return <h1 className="serif" {...attributes}><span>{children}</span></h1>
+        }
         case 'link':
           return (
-            <a {...attributes} href={element.url}>
-              {children}
-            </a>
+            <Link {...props} />
           )
         case 'table':
           return (
@@ -850,10 +859,7 @@ async function getRefInText(editor, returnSourceIfFound) {
           Transforms.setNodes(editor, { isRef: false }, {at: i[1].concat(path)});
         }
       }
-
-
     }
-
   }
   return {}
 }
@@ -863,7 +869,8 @@ const withSefariaSheet = editor => {
     const {insertData, insertBreak, isVoid, normalizeNode, deleteBackward, setFragmentData} = editor;
 
     //Hack to override this built-in which often returns null when programmatically selecting the whole SheetSource
-    Transforms.deselect = () => {}
+    Transforms.deselect = () => {
+    };
 
     editor.isVoid = element => {
         return (voidElements.includes(element.type)) ? true : isVoid(element)
@@ -871,302 +878,355 @@ const withSefariaSheet = editor => {
 
 
     editor.deleteBackward = () => {
-        const atStartOfDoc = Point.equals(editor.selection.focus, Editor.start(editor, [0,0]))
-        if (atStartOfDoc) {return}
-
-        //if selected element is sheet source, delete it as normal
-        if (getClosestSheetElement(editor, editor.selection.focus.path, "SheetSource")) {
-            deleteBackward()
+        const atStartOfDoc = Point.equals(editor.selection.focus, Editor.start(editor, [0, 0]));
+        if (atStartOfDoc) {
             return
         }
 
-        else {
+        //if selected element is sheet source, delete it as normal
+        if (getClosestSheetElement(editor, editor.selection.focus.path, "SheetSource")) {
+            deleteBackward();
+            return
+        } else {
             //check to see if we're in a spacer to apply special delete rules
             let inSpacer = false;
             if (getClosestSheetElement(editor, editor.selection.focus.path, "spacer")) {
-              inSpacer = true;
+                inSpacer = true;
             }
 
-            //we do a dance to seeif we'll accidently delete a sheetsource and select it instead if we will
-            Transforms.move(editor, { reverse: true })
+            //we do a dance to see if we'll accidently delete a sheetsource and select it instead if we will
+            Transforms.move(editor, {reverse: true})
             if (getClosestSheetElement(editor, editor.selection.focus.path, "SheetSource")) {
-              //deletes the extra spacer space that would otherwise be left behind
-              if (inSpacer)  {
-                Transforms.move(editor);
-                Editor.deleteForward(editor)
-              }
-              return
-            }
-            else {
-              Editor.deleteForward(editor)
-              return;
+                //deletes the extra spacer space that would otherwise be left behind
+                if (inSpacer) {
+                    Transforms.move(editor);
+                    Editor.deleteForward(editor)
+                }
+                return
+            } else {
+                Editor.deleteForward(editor);
+                return;
             }
         }
-
-    }
+    };
 
     editor.setFragmentData = (data) => {
         setFragmentData(data);
         //dance required to ensure a cut source is properly deleted when the delete part of cut is fired
         if (editor.cuttingSource) {
-            Transforms.move(editor, { distance: 1, unit: 'character',  edge: 'anchor' })
-            Transforms.move(editor, { distance: 1, unit: 'character', reverse: true, edge: 'focus' })
+            Transforms.move(editor, {distance: 1, unit: 'character', edge: 'anchor'});
+            Transforms.move(editor, {distance: 1, unit: 'character', reverse: true, edge: 'focus'});
             editor.cuttingSource = false
         }
-    }
+    };
 
     editor.insertBreak = () => {
 
         // if enter in middle of line in SheetOutsideText insert soft break
         if (getClosestSheetElement(editor, editor.selection.focus.path, "SheetOutsideText") &&
             !Point.equals(editor.selection.focus, Editor.end(editor, editor.selection.focus.path))) {
-                insertBreak()
+            insertBreak();
+            return
+        }
+
+        if (getClosestSheetElement(editor, editor.selection.focus.path, "header")) {
+            insertBreak();
+            Transforms.setNodes(editor, {type: "SheetOutsideText"}, {at: editor.selection.focus.path});
+            return
+        }
+
+
+        getRefInText(editor, true).then(query => {
+            if (query["is_segment"] || query["is_section"]) {
                 return
             }
-
-        getRefInText(editor, true).then(query =>{
-            if(query["is_segment"] || query["is_section"]) {
-              return
-            }
-            Transforms.insertNodes(editor,{type: 'spacer', children: [{text: ""}]});
-            checkAndFixDuplicateSheetNodeNumbers(editor)
+            Transforms.insertNodes(editor, {type: 'spacer', children: [{text: ""}]});
+            checkAndFixDuplicateSheetNodeNumbers(editor);
             return;
 
         })
-
-
     };
 
 
     editor.insertData = data => {
-      const text = data.getData('text/plain')
+        const text = data.getData('text/plain');
 
-      const pastedMediaLink = parseMediaLink(text);
+        const pastedMediaLink = parseMediaLink(text);
 
-      if (pastedMediaLink) {
-        event.preventDefault();
-        insertMedia(editor, pastedMediaLink)
+        if (pastedMediaLink) {
+            event.preventDefault();
+            insertMedia(editor, pastedMediaLink)
 
-      }
-      else {
-        insertData(data)
-        checkAndFixDuplicateSheetNodeNumbers(editor);
-      }
+        } else {
+            insertData(data);
+            checkAndFixDuplicateSheetNodeNumbers(editor);
+        }
     };
-
-
 
 
     editor.normalizeNode = entry => {
-      const [node, path] = entry;
+        const [node, path] = entry;
 
-      let sheetElementTypes = Object.values(sheet_item_els);
+        const normalizers = [
+            editor.decorateSheetOutsideText,
+            editor.wrapSheetOutsideTextChildren,
+            editor.mergeSheetOutsideTextBlocks,
+            editor.convertEmptyOutsideTextIntoSpacer,
+            editor.convertEmptyParagraphToSpacer,
+            editor.wrapSheetContentElements,
+            editor.ensureEditableSpaceAtTopAndBottom,
+            editor.replaceSpacerWithOutsideText,
+            editor.liftSpacer,
+            editor.liftSheetElement,
+            editor.enforceTextOnlyInBoxedSheetElement,
+            editor.ensureEditableSpaceBeforeAndAfterBoxedElements,
+            editor.onlyTextAndRefsInBoxedElements,
+            editor.addPlaceholdersForEmptyText,
+            editor.liftHeader,
 
-      if (node.type == "SheetOutsideText") {
+        ];
 
-        // Autoset language of an outside text for proper RTL/LTR handling
-          const content = Node.string(node);
-          const lang = Sefaria.hebrew.isHebrew(content) ? 'he' : 'en';
-          Transforms.setNodes(editor, { lang: lang }, {at: path});
-
-
-          //solve issue of children content
-          for (const [child, childPath] of Node.children(editor, path)) {
-
-            //if there's raw text, wrap it in a pagraph
-            if (child.text) {
-            Transforms.wrapNodes(editor,
-              {
-                  type: "paragraph",
-                  children: [child],
-                  }
-                            ,{ at: childPath })
-              return
-            }
-          }
-
-          //merge with adjacent outside texts:
-          const nodeAbove = getNodeAbove(path, editor)
-          const nodeBelow = getNodeBelow(path, editor)
-
-          if (nodeAbove.node && nodeAbove.node.type == "SheetOutsideText") {
-              Transforms.mergeNodes(editor, { at: path})
-              return
-          }
-          if (nodeBelow.node && nodeBelow.node.type == "SheetOutsideText") {
-              Transforms.mergeNodes(editor, {at: nodeBelow.path})
-          }
-
-
-          if (Node.string(node) == "" && node.children.length <= 1) {
-
-            const fragment = {
-              type: "spacer",
-              children: [{text: ""}]
-            }
-
-            const atEndOfDoc = Point.equals(editor.selection.focus, Editor.end(editor, [0,0]))
-
-            //This dance is required b/c it can't be changed in place
-            // it exits the spacer, deletes it, then places the new outside text in its place
-            Transforms.move(editor);
-            Transforms.delete(editor, {at: path});
-            Transforms.insertNodes(editor, fragment, { at: path });
-
-            if (atEndOfDoc) {
-              // sometimes the delete action above loses the cursor
-              //  at the end of the doc, this drops you back in place
-              ReactEditor.focus(editor)
-              Transforms.select(editor, Editor.end(editor, []));
-            }
-            else {
-              // gain back the cursor position that we exited above
-              Transforms.move(editor, { reverse: true })
-            }
-            return
-          }
-      }
-
-      if (node.type == "SheetContent") {
-        // If sheet elements are in sheetcontent and not wrapped in sheetItem, wrap it.
-        for (const [child, childPath] of Node.children(editor, path)) {
-          if (child.hasOwnProperty('text')) {
-
-            const fragmentText = child.text
-            const fragment = defaultEmptyOutsideText(editor.children[0].nextNode, fragmentText)
-
-            Transforms.delete(editor, {at: childPath});
-            Transforms.insertNodes(editor, fragment, { at: childPath });
-            incrementNextSheetNode(editor);
-            return
-
-          }
-
-          if (child.type == "paragraph") {
-            if (Node.string(child) !== "") {
-
-            Transforms.wrapNodes(editor,
-              {
-                  type: "SheetOutsideText",
-                  children: [child],
-                  }
-                            ,{ at: childPath })
-            return
-          }
-          else {
-            Transforms.delete(editor, {at: childPath  });
-          }
-        }
+        for (let normalizer of normalizers) {
+            const changeWasMade = normalizer(node, path);
+            if (changeWasMade) return;
         }
 
-        //ensure there's always an editable space for a user to type at end and top of sheet
-        const lastSheetItem = node.children[node.children.length-1]
-        if (lastSheetItem.type != "spacer" && lastSheetItem.type != "SheetOutsideText") {
-            Transforms.insertNodes(editor,{type: 'spacer', children: [{text: ""}]}, {at: Editor.end(editor, [0,0])});
-            return
-        }
-
-        const firstSheetItem = node.children[0]
-        if (firstSheetItem.type != "spacer" && firstSheetItem.type != "SheetOutsideText") {
-            Transforms.insertNodes(editor,{type: 'spacer', children: [{text: ""}]}, {at: [0,0,0]});
-            return
-        }
-      }
-
-
-      if (node.type == "spacer") {
-
-        //Convert a spacer to an outside text if there's text inside it.
-        if (Node.string(node) !== "") {
-
-          const fragment = defaultEmptyOutsideText(editor.children[0].nextNode, Node.string(node))
-          const atEndOfDoc = Point.equals(editor.selection.focus, Editor.end(editor, [0,0]))
-
-          //This dance is required b/c it can't be changed in place
-          // it exits the spacer, deletes it, then places the new outside text in its place
-          Transforms.move(editor);
-          Transforms.delete(editor, {at: path});
-          Transforms.insertNodes(editor, fragment, { at: path });
-          incrementNextSheetNode(editor);
-
-          if (atEndOfDoc) {
-            // sometimes the delete action above loses the cursor
-            //  at the end of the doc, this drops you back in place
-            ReactEditor.focus(editor)
-            Transforms.select(editor, Editor.end(editor, []));
-          }
-          else {
-            // gain back the cursor position that we exited above
-            Transforms.move(editor, { reverse: true })
-          }
-          return
-        }
-
-      //If a spacer gets stuck inside some other element, lift it up to top level
-      if (Node.parent(editor, path).type != "SheetContent") {
-        Transforms.liftNodes(editor, { at: path })
-          return
-      }
-    }
-
-      if (sheetElementTypes.includes(node.type)) {
-        //Any nested sheet element should be lifted
-        if (Node.parent(editor, path).type !== "SheetContent") {
-          Transforms.liftNodes(editor, { at: path })
-          return
-        }
-      }
-
-      if (["SheetSource", "SheetOutsideBiText"].includes(node.type)) {
-        //anything pasted into a sheet source object or a sheet outsideBiText will be treated just as text content
-        for (const [child, childPath] of Node.children(editor, path)) {
-          if (sheetElementTypes.includes(child.type)) {
-            Transforms.unwrapNodes(editor, { at: childPath })
-            return
-          }
-        }
-        const nextPath = Path.next(path)
-        if (Node.get(editor, nextPath).type != "spacer" && Node.get(editor, Path.next(path)).type != "SheetOutsideText") {
-             console.log(nextPath)
-             Transforms.insertNodes(editor,{type: 'spacer', children: [{text: ""}]}, {at: nextPath});
-        }
-      }
-
-      if (node.type == "he" || node.type == "en") {
-        //only allow TextRef & SourceContentText in he or en
-        // if extra -- merge it with the previous element
-          if (node.children && node.children.length > 2) {
-          for (const [child, childPath] of Node.children(editor, path)) {
-              if (!["SourceContentText", "TextRef"].includes(child.type)) {
-                Transforms.mergeNodes(editor, { at: childPath})
-                return
-              }
-            }
-          }
-          //for he's or en's in a SheetSource, make sure that SourceContentText exists
-          if (Node.parent(editor, path).type == "SheetSource") {
-            if (node.children && node.children.length < 2) {
-              const insertPath = path.concat([1])
-              Transforms.insertNodes(editor,{
-                              type: "SourceContentText",
-                              children: parseSheetItemHTML('...')
-                            }, { at: insertPath });
-            }
-
-          }
-      }
-
-      //if a sheetSource is stuck somewhere it shouldnt be raise it up to proper doc level
-      if (node.type == "SheetSource" && (Node.parent(editor, path)).type != "SheetContent") {
-        Transforms.liftNodes(editor,{ at: path })
-        return
-      }
-
-      // Fall back to the original `normalizeNode` to enforce other constraints.
-      normalizeNode(entry)
+        // Fall back to the original `normalizeNode` to enforce other constraints.
+        normalizeNode(entry);
     };
 
-    return editor
+    // Normalization functions take (node, path) and return true if they make a change.
+    // They are registered in editor.normalizeNode
+
+    editor.liftHeader = (node, path) => {
+        if (node.type === "header") {
+            if (Node.parent(editor, path).type !== "SheetContent") {
+                Transforms.setNodes(editor, {node: editor.children[0].nextNode}, {at: path});
+                incrementNextSheetNode(editor)
+                Transforms.liftNodes(editor, {at: path});
+                return true;
+            }
+        }
+    }
+
+    editor.decorateSheetOutsideText = (node, path) => {
+        // Autoset language of an outside text for proper RTL/LTR handling
+        if (node.type === "SheetOutsideText") {
+            const content = Node.string(node);
+            const lang = Sefaria.hebrew.isHebrew(content) ? 'he' : 'en';
+            Transforms.setNodes(editor, {lang: lang}, {at: path});
+        }
+    };
+
+    editor.wrapSheetOutsideTextChildren = (node, path) => {
+        // Ensure all texts in SheetOutsideText are wrapped in paragraph block
+        if (node.type === "SheetOutsideText") {
+
+            //solve issue of children content
+            for (const [child, childPath] of Node.children(editor, path)) {
+
+                //if there's raw text, wrap it in a paragraph
+                if (child.text) {
+                    Transforms.wrapNodes(
+                        editor,
+                        {
+                            type: "paragraph",
+                            children: [child],
+                        },
+                        {at: childPath}
+                    );
+                    return true;
+                }
+            }
+        }
+    };
+
+    editor.mergeSheetOutsideTextBlocks = (node, path) => {
+        // Merge adjacent SheetOutsideText blocks into one
+        if (node.type === "SheetOutsideText") {
+
+            //merge with adjacent outside texts:
+            const nodeAbove = getNodeAbove(path, editor);
+            const nodeBelow = getNodeBelow(path, editor);
+
+            if (nodeAbove.node && nodeAbove.node.type === "SheetOutsideText") {
+                Transforms.mergeNodes(editor, {at: path});
+                return true;
+            }
+            if (nodeBelow.node && nodeBelow.node.type === "SheetOutsideText") {
+                Transforms.mergeNodes(editor, {at: nodeBelow.path})
+                return true;
+            }
+        }
+    };
+
+    editor.convertEmptyParagraphToSpacer = (node, path) => {
+        if (node.type === "paragraph") {
+            if (Node.string(node) === "" && node.children.length <= 1) {
+                Transforms.setNodes(editor, {type: "spacer"}, {at: path});
+            }
+        }
+    }
+
+    editor.convertEmptyOutsideTextIntoSpacer = (node, path) => {
+        if (node.type === "SheetOutsideText") {
+            if (Node.string(node) === "" && node.children.length <= 1) {
+                Transforms.setNodes(editor, {type: "spacer"}, {at: path});
+            }
+        }
+    };
+
+    // If sheet elements are in sheetcontent and not wrapped in sheetItem, wrap it.
+    editor.wrapSheetContentElements = (node, path) => {
+        if (node.type === "SheetContent") {
+            for (const [child, childPath] of Node.children(editor, path)) {
+                // If it's raw text, covert to SheetOutsideText
+                if (child.hasOwnProperty('text')) {
+
+                    const fragmentText = child.text;
+                    const fragment = defaultEmptyOutsideText(editor.children[0].nextNode, fragmentText);
+
+                    Transforms.delete(editor, {at: childPath});
+                    Transforms.insertNodes(editor, fragment, {at: childPath});
+                    incrementNextSheetNode(editor);
+                    return true;
+
+                }
+
+                // If it's a paragraph, covert to SheetOutisdeText
+                if (child.type === "paragraph") {
+                    if (Node.string(child) !== "") {
+
+                        Transforms.wrapNodes(editor,
+                            {
+                                type: "SheetOutsideText",
+                                children: [child],
+                            }
+                            , {at: childPath});
+                        return true;
+                    } else {
+                        // It's not text or paragraph.  It's probably a null element.  Nuke it.
+                        Transforms.delete(editor, {at: childPath});
+                        return true;
+                    }
+                }
+            }
+        }
+    };
+
+    editor.ensureEditableSpaceAtTopAndBottom = (node, path) => {
+        if (node.type === "SheetContent") {
+            //ensure there's always an editable space for a user to type at end and top of sheet
+            const lastSheetItem = node.children[node.children.length - 1];
+            if (lastSheetItem.type !== "spacer" && !NO_SPACER_NEEDED_TYPES.includes(lastSheetItem.type)) {
+                Transforms.insertNodes(editor, {
+                    type: 'spacer',
+                    children: [{text: ""}]
+                }, {at: Editor.end(editor, [0, 0])});
+                return true;
+            }
+
+            const firstSheetItem = node.children[0];
+            if (firstSheetItem.type !== "spacer" && !NO_SPACER_NEEDED_TYPES.includes(firstSheetItem.type)) {
+                Transforms.insertNodes(editor, {type: 'spacer', children: [{text: ""}]}, {at: [0, 0, 0]});
+                return true;
+            }
+        }
+    };
+
+    //Convert a spacer to an outside text if there's text inside it.
+    editor.replaceSpacerWithOutsideText = (node, path) => {
+        if (node.type === "spacer") {
+            if (Node.string(node) !== "") {
+                Transforms.setNodes(editor, {type: "SheetOutsideText"}, {at: path});
+            }
+        }
+    };
+
+    //If a spacer gets stuck inside some other element, lift it up to top level
+    editor.liftSpacer = (node, path) => {
+        if (node.type === "spacer") {
+            if (Node.parent(editor, path).type !== "SheetContent") {
+                Transforms.liftNodes(editor, {at: path});
+                return true;
+            }
+        }
+    };
+
+    // If a sheet element gets stuck inside some other element, lift it up to top level
+    editor.liftSheetElement = (node, path) => {
+        // SheetSource, SheetComment, SheetOutsideText, SheetOutsideBiText, SheetMedia
+        const sheetElementTypes = Object.values(sheet_item_els);
+
+        if (sheetElementTypes.includes(node.type)) {
+            //Any nested sheet element should be lifted
+            if (Node.parent(editor, path).type !== "SheetContent") {
+                Transforms.liftNodes(editor, {at: path});
+                return true;
+            }
+        }
+    };
+
+    // Only allow text inside SheetSource and SheetOutsideBiText
+    editor.enforceTextOnlyInBoxedSheetElement = (node, path) => {
+        // SheetSource, SheetComment, SheetOutsideText, SheetOutsideBiText, SheetMedia
+        const sheetElementTypes = Object.values(sheet_item_els);
+
+        if (["SheetSource", "SheetOutsideBiText"].includes(node.type)) {
+            //anything pasted into a sheet source object or a sheet outsideBiText will be treated just as text content
+            for (const [child, childPath] of Node.children(editor, path)) {
+                if (sheetElementTypes.includes(child.type)) {
+                    Transforms.unwrapNodes(editor, {at: childPath});
+                    return true;
+                }
+            }
+        }
+    };
+
+    editor.ensureEditableSpaceBeforeAndAfterBoxedElements = (node, path) => {
+        if (["SheetSource", "SheetOutsideBiText"].includes(node.type)) {
+            const nextPath = Path.next(path);
+            if (Node.get(editor, nextPath).type !== "spacer" && Node.get(editor, Path.next(path)).type !== "SheetOutsideText") {
+                console.log(nextPath);
+                Transforms.insertNodes(editor, {type: 'spacer', children: [{text: ""}]}, {at: nextPath});
+                return true;
+            }
+        }
+    };
+
+    editor.onlyTextAndRefsInBoxedElements = (node, path) => {
+        if (node.type === "he" || node.type === "en") {
+            //only allow TextRef & SourceContentText in he or en
+            // if extra -- merge it with the previous element
+            if (node.children && node.children.length > 2) {
+                for (const [child, childPath] of Node.children(editor, path)) {
+                    if (!["SourceContentText", "TextRef"].includes(child.type)) {
+                        Transforms.mergeNodes(editor, {at: childPath});
+                        return true;
+                    }
+                }
+            }
+        }
+    };
+
+    // for he's or en's in a SheetSource, make sure that SourceContentText exists
+    editor.addPlaceholdersForEmptyText = (node, path) => {
+        if (node.type === "he" || node.type === "en") {
+
+            if (Node.parent(editor, path).type === "SheetSource") {
+                if (node.children && node.children.length < 2) {
+                    const insertPath = path.concat([1]);
+                    Transforms.insertNodes(editor, {
+                        type: "SourceContentText",
+                        children: parseSheetItemHTML('...')
+                    }, {at: insertPath});
+                    return true;
+                }
+            }
+        }
+    };
+
+return editor
 };
 
 const parseMediaLink = (url) => {
@@ -1348,32 +1408,184 @@ const withTables = editor => {
   return editor
 }
 
+const Link = ({ attributes, children, element }) => {
+  const editor = useSlate();
+  const {selection} = editor;
+
+  const focused = useFocused();
+  const selected = useSelected();
+  const [linkPopoverVisible, setLinkPopoverVisible] = useState(false);
+  const [urlValue, setUrlValue] = useState(element.url);
+  const [currentSlateRange, setCurrentSlateRange] = useState(editor.linkOverrideSelection)
+
+
+  let showLinkHoverTimeout;
+  let hideLinkHoverTimeout;
+
+    const onHover = (e, url) => {
+        clearTimeout(hideLinkHoverTimeout)
+        if (!editor.selection || editor.linkOverrideSelection) {return}
+        let range = document.createRange();
+        range.selectNode(e.target);
+        setCurrentSlateRange(ReactEditor.toSlateRange(editor, range))
+        showLinkHoverTimeout = setTimeout(function () {
+            Transforms.select(editor, currentSlateRange);
+            setLinkPopoverVisible(true)
+        }, 500, e);
+    }
+    const onBlur = (e, url) => {
+        clearTimeout(showLinkHoverTimeout)
+        hideLinkHoverTimeout = setTimeout(function () {
+            setLinkPopoverVisible(false)
+            setCurrentSlateRange(null)
+        }, 500);
+    }
+    const onClick = (e, url) => {
+        window.open(url, '_blank').focus();
+    }
+
+    const xClicked = () => {
+        Transforms.select(editor, currentSlateRange);
+        editor.removeLink();
+        editor.showLinkOverride = false;
+        editor.linkOverrideSelection = null;
+        // Transforms.collapse(editor);
+    }
+
+    const closePopup = () => {
+        editor.showLinkOverride = false;
+        editor.linkOverrideSelection = null;
+    }
+
+    const fixUrl = (s) => {
+        try {
+            let url = new URL(s)
+            return(url)
+        }
+
+        catch {
+            return(`http://${s}`)
+        }
+    }
+
+    const urlChange = (e) => {
+        const newUrl = e.target.value;
+        setUrlValue(newUrl)
+        const [node, linkPath] = Editor.above(editor, {at: currentSlateRange, match: n => n.type ==="link"})
+        Transforms.setNodes(editor, { url: fixUrl(newUrl) }, {at: linkPath});
+    }
+
+
+  return (
+    <div
+        {...attributes}
+        className="element-link"
+        onMouseEnter={(e) => onHover(e, element.url)}
+        onMouseLeave={(e) => onBlur(e, element.url)}
+    >
+        <a
+            href={element.url}
+            onClick={(e) => onClick(e, element.url)}
+        >
+            {children}
+        </a>
+
+      {/* Show popup on hover and also force it open when a new link is created  */}
+      {linkPopoverVisible || (editor.showLinkOverride && Path.isDescendant(editor.linkOverrideSelection.anchor.path, ReactEditor.findPath(editor, element))) ? (
+        <div className="popup" contentEditable={false} onBlur={closePopup}>
+          <input
+              type="text"
+              value={urlValue}
+              placeholder="Enter link URL"
+              className="sans-serif"
+              onChange={(e) => urlChange(e)}
+          />
+          <button onClick={() => xClicked()}>✕</button>
+        </div>
+      ) : null }
+
+
+    </div>
+
+  )
+
+ }
+
+
 const withLinks = editor => {
-  const { insertData, insertText, isInline } = editor
+    const { insertData, insertText, isInline } = editor
 
-  editor.isInline = element => {
-    return element.type === 'link' ? true : isInline(element)
-  };
+    editor.isInline = element => {
+        return element.type === 'link' ? true : isInline(element)
+    };
 
-  editor.insertText = text => {
-    if (text && Sefaria.util.isUrl(text)) {
-      wrapLink(editor, text)
-    } else {
-      insertText(text)
-    }
-  };
+    editor.insertText = text => {
+        if (text && Sefaria.util.isUrl(text)) {
+            wrapLink(editor, text)
+        } else {
+            insertText(text)
+        }
+    };
 
-  editor.insertData = data => {
-    const text = data.getData('text/plain')
+    editor.insertData = data => {
+        const text = data.getData('text/plain')
 
-    if (text && Sefaria.util.isUrl(text)) {
-      wrapLink(editor, text)
-    } else {
-      insertData(data)
-    }
-  };
+        if (text && Sefaria.util.isUrl(text)) {
+            wrapLink(editor, text)
+        } else {
+            insertData(data)
+        }
+    };
 
-  return editor
+
+    editor.createLinkNode = (href, text) => ({
+        type: "link",
+        href,
+        children: [{ text }]
+    });
+
+    editor.insertLink = (url) => {
+        if (!url) return;
+        const { selection } = editor;
+        const link = editor.createLinkNode(url, "New Link");
+        ReactEditor.focus(editor);
+        if (!!selection) {
+            const [parentNode, parentPath] = Editor.parent(
+                editor,
+                selection.focus?.path
+            );
+            // Remove the Link node if we're inserting a new link node inside of another
+            // link.
+            if (parentNode.type === "link") {
+                editor.removeLink(editor);
+            }
+            if (editor.isVoid(parentNode)) {
+                // Insert the new link after the void node
+                Transforms.insertNodes(editor, createParagraphNode([link]), {
+                    at: Path.next(parentPath),
+                    select: true
+                });
+            } else if (Range.isCollapsed(selection)) {
+                // Insert the new link in our last known location
+                Transforms.insertNodes(editor, link, { select: true });
+            } else {
+                // Wrap the currently selected range of text into a Link
+                Transforms.wrapNodes(editor, link, { split: true });
+                Transforms.collapse(editor, { edge: "end" });
+            }
+        } else {
+            return
+        }
+    };
+
+    editor.removeLink = () => {
+        Transforms.unwrapNodes(editor, {
+            match: (n) =>
+                !Editor.isEditor(n) && SlateElement.isElement(n) && n.type === "link"
+        });
+    };
+
+    return editor
 };
 
 const isLinkActive = editor => {
@@ -1420,6 +1632,37 @@ const isFormatActive = (editor, format) => {
   return !!match
 };
 
+const toggleBlock = (editor, format) => {
+    console.log(format)
+  const isActive = isBlockActive(editor, format)
+  const isList = LIST_TYPES.includes(format)
+
+  Transforms.unwrapNodes(editor, {
+    match: n =>
+      LIST_TYPES.includes(
+        !Editor.isEditor(n) && SlateElement.isElement(n) && n.type
+      ),
+    split: true,
+  })
+  const newProperties = {
+    type: isActive ? 'paragraph' : isList ? 'list-item' : format,
+  }
+  Transforms.setNodes(editor, newProperties)
+
+  if (!isActive && isList) {
+    const block = { type: format, children: [] }
+    Transforms.wrapNodes(editor, block)
+  }
+}
+
+const isBlockActive = (editor, format) => {
+  const [match] = Editor.nodes(editor, {
+    match: n =>
+      !Editor.isEditor(n) && SlateElement.isElement(n) && n.type === format,
+  })
+
+  return !!match
+}
 
 
 const Leaf = ({attributes, children, leaf}) => {
@@ -1438,6 +1681,9 @@ const Leaf = ({attributes, children, leaf}) => {
     if (leaf.small) {
         children = <small>{children}</small>
     }
+    if (leaf.superscript) {
+        children = <sup>{children}</sup>
+    }
     if (leaf.isRef) {
         children = <span className="inlineTextRef">{children}</span>
     }
@@ -1454,7 +1700,8 @@ const Leaf = ({attributes, children, leaf}) => {
     return <span {...attributes}>{children}</span>
 };
 
-const HoverMenu = () => {
+const HoverMenu = (opt) => {
+    const buttons = (opt["buttons"])
     const ref = useRef();
     const editor = useSlate();
 
@@ -1466,11 +1713,13 @@ const HoverMenu = () => {
             return
         }
 
+
         if (
             !selection ||
             !ReactEditor.isFocused(editor) ||
             Range.isCollapsed(selection) ||
-            Editor.string(editor, selection) === ''
+            Editor.string(editor, selection) === '' ||
+            isLinkActive(editor)
         ) {
             el.removeAttribute('style');
             return
@@ -1495,21 +1744,50 @@ const HoverMenu = () => {
             <FormatButton editor={editor} format="bold"/>
             <FormatButton editor={editor} format="italic"/>
             <FormatButton editor={editor} format="underline"/>
+            {buttons == "basic" ? null : <>
+                <AddLinkButton/>
+                <BlockButton editor={editor} format="header"/>
+            </>
+            }
+
         </div>,
         root
     )
 };
 
-const FormatButton = ({format}) => {
-    const editor = useSlate()
+const AddLinkButton = () => {
+    const editor = useSlate();
+    const classes = {fa: 1};
+    classes["fa-link"] = 1
 
+    return (
+        <span className="hoverButton"
+              onMouseDown={event => {
+                  event.preventDefault();
+                  wrapLink(editor, "")
+                  editor.showLinkOverride = true;
+                  editor.linkOverrideSelection = editor.selection;
+                  // Timeout required b/c it takes a moment for react to rerender before focusing on the new input
+                  setTimeout(() => {
+                      document.querySelector(".popup input").focus()
+                  }, 50);
+
+              }}
+        >
+      <i className={classNames(classes)}/>
+    </span>
+    )
+}
+
+const FormatButton = ({format}) => {
+    const editor = useSlate();
     const isActive = isFormatActive(editor, format);
     const iconName = "fa-" + format;
     const classes = {fa: 1, active: isActive};
     classes[iconName] = 1;
 
     return (
-        <span className="markButton"
+        <span className="hoverButton"
               onMouseDown={event => {
                   event.preventDefault();
                   toggleFormat(editor, format);
@@ -1518,9 +1796,27 @@ const FormatButton = ({format}) => {
       <i className={classNames(classes)}/>
     </span>
     )
-
-
 };
+
+const BlockButton = ({format}) => {
+    const editor = useSlate()
+    const isActive = isBlockActive(editor, format);
+    const iconName = "fa-" + format;
+    const classes = {fa: 1, active: isActive};
+    classes[iconName] = 1;
+
+    return (
+        <span className="hoverButton"
+              onMouseDown={event => {
+                  event.preventDefault();
+                  toggleBlock(editor, format);
+              }}
+        >
+      <i className={classNames(classes)}/>
+    </span>
+    )
+}
+
 
 function saveSheetContent(doc, lastModified) {
     const sheetTitle = document.querySelector(".sheetContent .sheetMetaDataBox .title") ? document.querySelector(".sheetContent .sheetMetaDataBox .title").textContent : "Untitled"
@@ -1595,6 +1891,15 @@ function saveSheetContent(doc, lastModified) {
                     "node": sheetItem.node,
                 });
 
+            case 'header':
+                const headerContent = serialize(sheetItem)
+                return({
+                    "outsideText": `<h1>${headerContent}</h1>`,
+                    ...sheetItem.options && { options: sheetItem.options },
+                    "node": sheetItem.node,
+                });
+
+
             case 'spacer':
               return;
 
@@ -1614,7 +1919,7 @@ function saveSheetContent(doc, lastModified) {
         options: doc.options,
         tags: doc.tags,
         displayedCollection: doc.displayedCollection,
-        title: sheetTitle == "" ? "Untitled" : sheetTitle,
+        title: sheetTitle === "" ? "Untitled" : sheetTitle,
         sources: sources.filter(x => !!x),
         nextNode: doc.nextNode,
     };
@@ -1631,16 +1936,14 @@ const SefariaEditor = (props) => {
     const sheet = props.data;
     const initValue = transformSheetJsonToSlate(sheet);
     const renderElement = useCallback(props => <Element {...props} />, []);
-    const [value, setValue] = useState(initValue)
-    const [sheetNodes, setSheetNodes] = useState(getInitialSheetNodes(sheet))
+    const [value, setValue] = useState(initValue);
     const [currentDocument, setCurrentDocument] = useState(initValue);
     const [unsavedChanges, setUnsavedChanges] = useState(false);
     const [lastModified, setlastModified] = useState(props.data.dateModified);
-    const [currentSelection, setCurrentSelection] = useState([]);
 
     useEffect(
         () => {
-            setUnsavedChanges(true)
+            setUnsavedChanges(true);
             // Update debounced value after delay
             const handler = setTimeout(() => {
                 saveDocument(currentDocument);
@@ -1656,11 +1959,19 @@ const SefariaEditor = (props) => {
         [currentDocument[0].children[0]] // Only re-call effect if value or delay changes
     );
 
+    useEffect( /* normalize on load */
+        () => {
+
+            Editor.normalize(editor, { force: true })
+        }, []
+    )
+
+
   useEffect(() => {
     if(!props.hasSidebar) {
       editor.highlightedNode = null;
     }
-  }, [props.hasSidebar])
+  }, [props.hasSidebar]);
 
 
   useEffect(() => {
@@ -1670,12 +1981,12 @@ const SefariaEditor = (props) => {
           scrollTimeOutId = setTimeout(
               () => {
                   if(props.hasSidebar) {
-                      ReactEditor.deselect(editor)
+                      ReactEditor.deselect(editor);
                       onEditorSidebarToggleClick()
                   }
               }, 200
           );
-      }
+      };
 
       let clickTimeOutId = null;
       const onClickListener = (e) => {
@@ -1699,17 +2010,17 @@ const SefariaEditor = (props) => {
               }
             }
           }, 20);
-      }
+      };
 
 
 
-     editorContainer.current.parentNode.parentNode.addEventListener("scroll", onScrollListener)
-     editorContainer.current.parentNode.parentNode.addEventListener("click", onClickListener)
+     editorContainer.current.parentNode.parentNode.addEventListener("scroll", onScrollListener);
+     editorContainer.current.parentNode.parentNode.addEventListener("click", onClickListener);
 
 
       return () => {
-          editorContainer.current.parentNode.parentNode.removeEventListener("scroll", onScrollListener)
-          editorContainer.current.parentNode.parentNode.removeEventListener("click", onClickListener)
+          editorContainer.current.parentNode.parentNode.removeEventListener("scroll", onScrollListener);
+          editorContainer.current.parentNode.parentNode.removeEventListener("click", onClickListener);
       }
     }, [props.highlightedNode, props.hasSidebar]
   );
@@ -1717,12 +2028,12 @@ const SefariaEditor = (props) => {
 
     function saveDocument(doc) {
         const json = saveSheetContent(doc[0], lastModified);
-        console.log('saving...')
+        console.log('saving...');
 
         $.post("/api/sheets/", {"json": json}, res => {
             setlastModified(res.dateModified);
             // console.log("saved at: "+ res.dateModified);
-            setUnsavedChanges(false)
+            setUnsavedChanges(false);
 
             const updatedSheet = {...Sefaria.sheets._loadSheetByID[doc[0].id], ...res};
             Sefaria.sheets._loadSheetByID[doc[0].id] = updatedSheet
@@ -1774,7 +2085,7 @@ const SefariaEditor = (props) => {
           } catch (e) {
             //Do nothing if there is an error.
           }
-    }
+    };
 
     const onCutorCopy = event => {
         const nodeAbove = Editor.above(editor, { match: n => Editor.isBlock(editor, n) })
@@ -1786,25 +2097,25 @@ const SefariaEditor = (props) => {
             Transforms.move(editor, { distance: 1, unit: 'character', edge: 'focus' })
         }
 
-    }
+    };
 
     const onBlur = event => {
       editor.blurSelection = editor.selection
-    }
+    };
 
     const onKeyDown = event => {
-        ensureInView(event)
+        ensureInView(event);
 
         for (const hotkey in HOTKEYS) {
           if (isHotkey(hotkey, event)) {
-            event.preventDefault()
-            const format = HOTKEYS[hotkey]
+            event.preventDefault();
+            const format = HOTKEYS[hotkey];
             toggleFormat(editor, format)
           }
         }
 
         // Add or remove ref highlighting
-        if (event.key == " " || Node.get(editor, editor.selection.focus.path).isRef) {
+        if (event.key === " " || Node.get(editor, editor.selection.focus.path).isRef) {
             getRefInText(editor, false)
         }
     };
@@ -1818,7 +2129,7 @@ const SefariaEditor = (props) => {
         if (elementbbox.bottom >= vh/2 && element) {
             return "past half"
         }
-    }
+    };
 
     const getHighlightedByScrollPos = () => {
         let segmentToHighlight = null
@@ -1826,8 +2137,8 @@ const SefariaEditor = (props) => {
         const segments = editorContainer.current.querySelectorAll(".sheetItem");
 
         for (let segment of segments) {
-            const elementLoc = whereIsElementInViewport(segment)
-            if (elementLoc == "in viewport" || elementLoc == "past half") {
+            const elementLoc = whereIsElementInViewport(segment);
+            if (elementLoc === "in viewport" || elementLoc === "past half") {
                 segmentToHighlight = segment;
                 break;
             }
@@ -1835,19 +2146,19 @@ const SefariaEditor = (props) => {
 
         return segmentToHighlight
 
-    }
+    };
 
     const updateSidebar = (sheetNode, sheetRef) => {
       let source = {
           'node': sheetNode,
-      }
+      };
       if (!!sheetRef) {
           source["ref"] = sheetRef
       }
       editor.highlightedNode = sheetNode
       props.sheetSourceClick(source)
 
-    }
+    };
 
     const onEditorSidebarToggleClick = event => {
         const segmentToHighlight = getHighlightedByScrollPos()
@@ -1855,7 +2166,7 @@ const SefariaEditor = (props) => {
         const sheetNode = segmentToHighlight.getAttribute("data-sheet-node")
         const sheetRef = segmentToHighlight.getAttribute("data-sefaria-ref")
         updateSidebar(sheetNode, sheetRef)
-    }
+    };
 
 
     const editor = useMemo(
@@ -1869,13 +2180,13 @@ const SefariaEditor = (props) => {
         {
           /* debugger */
 
-          // <div style={{position: 'fixed', left: 0, top: 0, width: 300, height: 1000, backgroundColor: '#ddd', fontSize: 12, zIndex: 9999}}>
-          // {JSON.stringify(editor.children[0,0])}
+          // <div style={{position: 'fixed', left: 0, top: 0, width: 300, height: '100%', backgroundColor: '#ddd', fontSize: 12, zIndex: 9999, whiteSpace: 'pre', overflow: "scroll"}}>
+          // {JSON.stringify(editor.children[0,0], null, 4)}
           // </div>
 
         }
 
-        <button className="editorSidebarToggle" onClick={(e)=>onEditorSidebarToggleClick(e) } aria-label="Click to open the sidebar" />
+            <button className="editorSidebarToggle" onClick={(e)=>onEditorSidebarToggleClick(e) } aria-label="Click to open the sidebar" />
 
         <SheetMetaDataBox>
             <SheetTitle tabIndex={0} title={sheet.title} editable={true} blurCallback={() => saveDocument(currentDocument)}/>
@@ -1889,7 +2200,9 @@ const SefariaEditor = (props) => {
                 name={sheet.ownerName}
                 outerStyle={{width: "30px", height: "30px", display: "inline-block", verticalAlign: "middle", marginRight: "10px"}}
               />
-              <span>by <a href={sheet.ownerProfileUrl}>{sheet.ownerName}</a></span>
+              <a href={sheet.ownerProfileUrl}>
+                <InterfaceText>{sheet.ownerName}</InterfaceText>
+              </a>
             </SheetAuthorStatement>
             <CollectionStatement
                 name={sheet.collectionName}
@@ -1898,9 +2211,9 @@ const SefariaEditor = (props) => {
             />
         </SheetMetaDataBox>
 
-          <Slate editor={editor} value={value} onChange={(value) => onChange(value)}>
-              <HoverMenu/>
-              <Editable
+            <Slate editor={editor} value={value} onChange={(value) => onChange(value)}>
+                <HoverMenu buttons="all"/>
+                <Editable
                   renderLeaf={props => <Leaf {...props} />}
                   renderElement={renderElement}
                   spellCheck
@@ -1909,8 +2222,8 @@ const SefariaEditor = (props) => {
                   onCopy={onCutorCopy}
                   onBlur={onBlur}
                   onDOMBeforeInput={beforeInput}
-              />
-          </Slate>
+                />
+            </Slate>
         </div>
     )
 };

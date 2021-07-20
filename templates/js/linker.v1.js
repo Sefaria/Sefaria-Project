@@ -232,17 +232,22 @@
 
         if (matchedTitles.length == 0) {
             console.log("No book titles found to link to Sefaria.");
+            ns._trackPage();
             return;
         }
 
         // Get regexes for each of the titles
-        atomic.get(base_url + "api/regexs/" + matchedTitles.join("|"))
+        atomic.get(base_url + "api/linker-data/" + matchedTitles.join("|") + '&url='+document.location.href)
             .success(function (data, xhr) {
                 if ("error" in data) {
                     console.log(data["error"]);
                     delete data.error;
                 }
-                ns.regexes = data;
+                ns.regexes = data["regexes"];
+                if (ns.excludeFromTracking && ns.excludeFromTracking.length > 0 && data["exclude_from_tracking"].length > 0) {
+                    // append our exclusions to site's own exclusions
+                    ns.excludeFromTracking = data["exclude_from_tracking"] + ", " + ns.excludeFromTracking;
+                }
                 var books = Object.getOwnPropertyNames(data).sort(function(a, b) {
                   return b.length - a.length; // ASC -> a - b; DESC -> b - a
                 });
@@ -356,7 +361,15 @@
     };
 
     ns._trackPage = function() {
-        if (ns.trackedMatches.length == 0) { return; }
+        if (ns.trackedMatches.length === 0 && ns.matches.length > 0) {
+            // we want to track page in two cases:
+            // 1) if there are trackedMatches found
+            // or 2) if there are no trackMatches found AND no matches found, as we want to send a message
+            // to api/linker_track so that the backend will delete the webpage.
+            // however, this if statement is a third case:
+            // when there are no trackMatches found but there are matches found, we don't want to track page
+            return;
+        }
 
         var robots = document.head.querySelector("meta[name~=robots]");
         if (robots && robots.content.includes("noindex")) { return; }

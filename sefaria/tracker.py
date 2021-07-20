@@ -41,7 +41,7 @@ def modify_text(user, oref, vtitle, lang, text, vsource=None, **kwargs):
     return chunk
 
 
-def modify_bulk_text(user:int, version:model.Version, text_map: dict, vsource=None, **kwargs) -> dict:
+def modify_bulk_text(user: int, version: model.Version, text_map: dict, vsource=None, **kwargs) -> dict:
     """
     user: user ID of user making modification
     version: version object of text being modified

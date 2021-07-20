@@ -1,3 +1,5 @@
+import "core-js/stable";
+import "regenerator-runtime/runtime";
 import $ from './sefaria/sefariaJquery';
 import React from 'react';
 import ReactDOM from 'react-dom';

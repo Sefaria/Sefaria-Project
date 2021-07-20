@@ -27,7 +27,7 @@
     /* see https://stackoverflow.com/questions/3561493/is-there-a-regexp-escape-function-in-javascript/3561711#3561711 */
     function escapeRegex(string) {return string.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');}
 
-    var base_url = '{% if DEBUG %}/{% else %}https://www.sefaria.org/{% endif %}';
+    var base_url = '{% if DEBUG %}http://localhost:8000/{% else %}https://www.sefaria.org/{% endif %}';
     var bookTitles = {{ book_titles }};
     var popUpElem;
     var heBox;
@@ -182,6 +182,9 @@
             '#sefaria-popup.short-screen .sefaria-text{'+
                 'overflow-y: scroll;' + 
                 'max-height: calc(100% - 117px);' +
+            '}'+
+            'span.sefaria-ref-wrapper{'+
+                'display: inline !important;' +
             '}';
 
         if (mode == "popup-click") {
@@ -415,25 +418,31 @@
         const full_text = [].reduce.call(ns.elems, (prev, current) => prev + current.textContent, "");
         ns.matchedTitles = bookTitles.filter(title => full_text.indexOf(title) > -1).filter(distinct);
 
+
         if (ns.matchedTitles.length === 0) {
             //console.log("No book titles found to link to Sefaria.");
-            return;
+            ns._trackPage();
         }
-
-        ns._getRegexesThenTexts(ns.mode);
+        else {
+            ns._getRegexesThenTexts(ns.mode);
+        }
     };
 
 
     // Private API
     ns._getRegexesThenTexts = function(mode) {
         // Get regexes for each of the titles
-        atomic.get(base_url + "api/regexs/" + ns.matchedTitles.join("|") + '?' + 'parentheses='+(0+ns.parenthesesOnly))
+        atomic.get(base_url + "api/linker-data/" + ns.matchedTitles.join("|") + '?' + 'parentheses='+(0+ns.parenthesesOnly) + '&url='+document.location.href)
             .success(function (data, xhr) {
                 if ("error" in data) {
                     console.log(data["error"]);
                     delete data.error;
                 }
-                ns.regexes = data;
+                ns.regexes = data["regexes"];
+                if (ns.excludeFromTracking && ns.excludeFromTracking.length > 0 && data["exclude_from_tracking"].length > 0) {
+                    // append our exclusions to site's own exclusions
+                    ns.excludeFromTracking = data["exclude_from_tracking"] + ", " + ns.excludeFromTracking;
+                }
                 ns._wrapMatches();
                 ns._trackPage();
 
@@ -524,8 +533,9 @@
                             // due to the fact that safari doesn't support lookbehinds, we need to include prefix group in match
                             // however, we don't want the prefix group to end up in the final a-tag
                             const node = document.createElement("span");
+                            node.className="sefaria-ref-wrapper";
                             node.textContent = preText;
-                            node.appendChild(atag);``
+                            node.appendChild(atag);
                             return node;
                         }
                     }).bind(null, book)
@@ -607,7 +617,15 @@
     };
 
     ns._trackPage = function() {
-        if (ns.trackedMatches.length == 0) { return; }
+        if (ns.trackedMatches.length === 0 && ns.matches.length > 0) {
+            // we want to track page in two cases:
+            // 1) if there are trackedMatches found
+            // or 2) if there are no trackMatches found AND no matches found, as we want to send a message
+            // to api/linker_track so that the backend will delete the webpage.
+            // however, this if statement is a third case:
+            // when there are no trackMatches found but there are matches found, we don't want to track page
+            return;
+        }
 
         var robots = document.head.querySelector("meta[name~=robots]");
         if (robots && robots.content.includes("noindex")) { return; }

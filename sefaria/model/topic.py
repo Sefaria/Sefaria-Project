@@ -35,7 +35,7 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
         'numSources',
         'shouldDisplay',
         'parasha',  # name of parsha as it appears in `parshiot` collection
-        'ref',  # for topics with refs associated with them, this stores the tref (e.g. for a parashah)
+        'ref',  # dictionary for topics with refs associated with them (e.g. parashah) containing strings `en`, `he`, and `url`.
         'good_to_promote',
         'description_published',  # bool to keep track of which descriptions we've vetted
         'isAmbiguous',  # True if topic primary title can refer to multiple other topics
@@ -49,15 +49,21 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
         :param slug:
         :return:
         """
-        topic =  Topic().load({'slug': slug})
+        return cls().load({'slug': slug})
+
+    def load(self, query, proj=None):
+        if self.__class__ != Topic:
+            subclass_names = [self.__class__.__name__] + [klass.__name__ for klass in self.all_subclasses()]
+            query['subclass'] = {"$in": [self.reverse_subclass_map[name] for name in subclass_names]}
+        topic = super().load(query, proj)
         if getattr(topic, 'subclass', False):
-            Subclass = globals()[cls.subclass_map[topic.subclass]]
+            Subclass = globals()[self.subclass_map[topic.subclass]]
             topic = Subclass(topic._saveable_attrs())
         return topic
 
     def _set_derived_attributes(self):
         self.set_titles(getattr(self, "titles", None))
-        if self.__class__ != Topic:
+        if self.__class__ != Topic and not getattr(self, "subclass", False):
             # in a subclass. set appropriate "subclass" attribute
             setattr(self, "subclass", self.reverse_subclass_map[self.__class__.__name__])
 
@@ -65,6 +71,10 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
         super(Topic, self)._validate()
         if getattr(self, 'subclass', False):
             assert self.subclass in self.subclass_map, f"Field `subclass` set to {self.subclass} which is not one of the valid subclass keys in `Topic.subclass_map`. Valid keys are {', '.join(self.subclass_map.keys())}"
+
+    def _normalize(self):
+        super()._normalize()
+        self.titles = self.title_group.titles
 
     def set_titles(self, titles):
         self.title_group = TitleGroup(titles)
@@ -489,6 +499,11 @@ class AuthorTopic(PersonTopic):
                     he_text = f'{collective_title_term.get_primary_title("he")} על {base_category_term.get_primary_title("he")}'
                 link_names += [(f'/texts/{"/".join(index_or_cat.path)}', {"en": en_text, "he": he_text})]
         return link_names
+
+    @staticmethod
+    def is_author(slug):
+        t = Topic.init(slug)
+        return t and isinstance(t, AuthorTopic)
 
 
 class TopicSet(abst.AbstractMongoSet):

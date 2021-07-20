@@ -347,7 +347,8 @@ class UserProfile(object):
             "email_notifications": "daily",
             "interface_language": "english",
             "textual_custom" : "sephardi",
-            "reading_history" : True
+            "reading_history" : True,
+            "translation_language_preference": None,
         }
         # dict that stores the last time an attr has been modified
         self.attr_time_stamps = {
@@ -369,6 +370,9 @@ class UserProfile(object):
         self.show_editor_toggle = False
         self.uses_new_editor = False
 
+        # Fundraising
+        self.is_sustainer = False
+
         # Update with saved profile doc in MongoDB
         profile = db.profiles.find_one({"id": id})
         if profile:
@@ -380,16 +384,6 @@ class UserProfile(object):
             self.assign_slug()
             self.interrupting_messages = []
             self.save()
-
-
-        # Profile Pic default to Gravatar
-        if len(self.profile_pic_url) == 0:
-            default_image           = "https://www.sefaria.org/static/img/profile-default.png"
-            gravatar_base           = "https://www.gravatar.com/avatar/" + hashlib.md5(self.email.lower().encode('utf-8')).hexdigest() + "?"
-            gravatar_url       = gravatar_base + urllib.parse.urlencode({'d':default_image, 's':str(250)})
-            gravatar_url_small = gravatar_base + urllib.parse.urlencode({'d':default_image, 's':str(80)})
-            self.profile_pic_url = gravatar_url
-            self.profile_pic_url_small = gravatar_url_small
 
     @property
     def full_name(self):
@@ -444,6 +438,10 @@ class UserProfile(object):
         """
         if not ignore_flags_on_init:
             self._set_flags_on_update(obj)
+        if "settings" in obj and "settings" in self.__dict__:
+            # merge settings separately since it itself is a dict. want to allow partial settings to be passed to update.
+            self.__dict__["settings"].update(obj["settings"])
+            obj["settings"] = self.__dict__["settings"]
         self.__dict__.update(obj)
 
         return self
@@ -632,6 +630,7 @@ class UserProfile(object):
             "settings":              self.settings,
             "attr_time_stamps":      self.attr_time_stamps,
             "interrupting_messages": getattr(self, "interrupting_messages", []),
+            "is_sustainer":          self.is_sustainer,
             "tag_order":             getattr(self, "tag_order", None),
             "last_sync_web":         self.last_sync_web,
             "profile_pic_url":       self.profile_pic_url,

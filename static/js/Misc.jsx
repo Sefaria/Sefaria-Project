@@ -904,12 +904,11 @@ class ToggleSet extends Component {
     let classes = {toggleSet: 1, separated: this.props.separated };
     classes[this.props.name] = 1;
     classes = classNames(classes);
-    const value = this.props.name === "layout" ? this.props.currentLayout() : this.props.settings[this.props.name];
     const width = 100.0 - (this.props.separated ? (this.props.options.length - 1) * 3 : 0);
-    let style = {width: (width/this.props.options.length) + "%"};
+    const style = {width: (width/this.props.options.length) + "%"};
     const label = this.props.label ? (<span className="toggle-set-label">{this.props.label}</span>) : null;
     return (
-      <div className={classes} role={this.props.role} aria-label={this.props.ariaLabel}>
+      <div className={classes} role="radiogroup" aria-label={this.props.ariaLabel}>
           {label}
           <div>
         {
@@ -920,8 +919,8 @@ class ToggleSet extends Component {
                 key={option.name}
                 set={this.props.name}
                 role={option.role}
-                ariaLable={option.ariaLabel}
-                on={value == option.name}
+                ariaLabel={option.ariaLabel}
+                on={this.props.currentValue == option.name}
                 setOption={this.props.setOption}
                 style={style}
                 image={option.image}
@@ -937,8 +936,7 @@ ToggleSet.propTypes = {
   name:          PropTypes.string.isRequired,
   label:         PropTypes.string,
   setOption:     PropTypes.func.isRequired,
-  currentLayout: PropTypes.func,
-  settings:      PropTypes.object.isRequired,
+  currentValue:  PropTypes.string,
   options:       PropTypes.array.isRequired,
   separated:     PropTypes.bool,
   role:          PropTypes.string,
@@ -1083,7 +1081,7 @@ ReaderNavigationMenuDisplaySettingsButton.propTypes = {
 };
 
 
-function InterfaceLanguageMenu({currentLang}){
+function InterfaceLanguageMenu({currentLang, translationLanguagePreference, setTranslationLanguagePreference}){
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef(null);
 
@@ -1094,6 +1092,10 @@ function InterfaceLanguageMenu({currentLang}){
     e.stopPropagation();
     setIsOpen(isOpen => !isOpen);
   }
+  const handleTransPrefResetClick = (e) => {
+    e.stopPropagation();
+    setTranslationLanguagePreference(null);
+  };
   const handleHideDropdown = (event) => {
       if (event.key === 'Escape') {
           setIsOpen(false);
@@ -1122,19 +1124,35 @@ function InterfaceLanguageMenu({currentLang}){
         <a className="interfaceLinks-button" onClick={handleClick}><img src="/static/icons/globe-wire.svg"/></a>
         <div className={`interfaceLinks-menu ${ isOpen ? "open" : "closed"}`}>
           <div className="interfaceLinks-header">
-            <span className="int-en">Site Language</span>
-            <span className="int-he">שפת האתר</span>
+            <InterfaceText>Site Language</InterfaceText>
           </div>
           <div className="interfaceLinks-options">
             <a className={`interfaceLinks-option int-bi int-he ${(currentLang == 'hebrew') ? 'active':''}`} href={`/interface/hebrew?next=${getCurrentPage()}`}>עברית</a>
             <a className={`interfaceLinks-option int-bi int-en ${(currentLang == 'english') ? 'active' : ''}`} href={`/interface/english?next=${getCurrentPage()}`}>English</a>
           </div>
+          { !!translationLanguagePreference ? (
+            <>
+              <div className="interfaceLinks-header">
+                <InterfaceText>Preferred Translation</InterfaceText>
+              </div>
+              <div className="interfaceLinks-options trans-pref-header-container">
+                <InterfaceText>{Sefaria.translateISOLanguageCode(translationLanguagePreference, true)}</InterfaceText>
+                <a className="trans-pref-reset" onClick={handleTransPrefResetClick}>
+                  <img src="/static/img/circled-x.svg" className="reset-btn" />
+                  <span className="smallText">
+                    <InterfaceText>Reset</InterfaceText>
+                  </span>
+                </a>
+              </div>
+            </>
+          ) : null}
         </div>
       </div>
   );
 }
 InterfaceLanguageMenu.propTypes = {
-  currentLang: PropTypes.string
+  currentLang: PropTypes.string,
+  translationLanguagePreference: PropTypes.string,
 }
 
 
@@ -1338,7 +1356,7 @@ ProfileListing.propTypes = {
 const SheetListing = ({
   sheet, connectedRefs, handleSheetClick, handleSheetDelete, handleCollectionsChange,
   editable, deletable, saveable, collectable, pinnable, pinned, pinSheet,
-  hideAuthor, showAuthorUnderneath, infoUnderneath, hideCollection, openInNewTab, toggleSignUpModal
+  hideAuthor, showAuthorUnderneath, infoUnderneath, hideCollection, openInNewTab, toggleSignUpModal, showSheetSummary
 }) => {
   // A source sheet presented in lists, like sidebar or profile page
   const [showCollectionsModal, setShowCollectionsModal] = useState(false);
@@ -1391,6 +1409,9 @@ const SheetListing = ({
       {sheet.views}&nbsp;<InterfaceText>Views</InterfaceText>
     </>
   );
+
+  const sheetSummary = showSheetSummary && sheet.summary? 
+  <SimpleInterfaceBlock classes={"smallText sheetSummary"} en={sheet.summary} he={sheet.sheet_summary}/>:null;
 
   const sheetInfo = hideAuthor ? null :
       <div className="sheetInfo">
@@ -1464,6 +1485,7 @@ const SheetListing = ({
           <img src="/static/img/sheet.svg" className="sheetIcon"/>
           <span className="sheetTitleText">{title}</span>
         </a>
+        {sheetSummary}
         <div className="sheetTags sans-serif">
           {
             underInfo.map((item, i) => (
@@ -2210,7 +2232,7 @@ SheetAuthorStatement.propTypes = {
 
 const CollectionStatement = ({name, slug, image, children}) => (
   slug ?
-    <div className="collectionStatement" contentEditable={false} style={{ userSelect: 'none' }}>
+    <div className="collectionStatement sans-serif" contentEditable={false} style={{ userSelect: 'none' }}>
       <div className="collectionListingImageBox imageBox">
         <a href={"/collections/" + slug}>
           <img className={classNames({collectionListingImage:1, "img-circle": 1, default: !image})} src={image || "/static/icons/collection.svg"} alt="Collection Logo"/>
@@ -2219,16 +2241,16 @@ const CollectionStatement = ({name, slug, image, children}) => (
       <a href={"/collections/" + slug}>{children ? children : name}</a>
     </div>
     :
-    <div className="collectionStatement" contentEditable={false} style={{ userSelect: 'none', display: 'none' }}>
+    <div className="collectionStatement sans-serif" contentEditable={false} style={{ userSelect: 'none', display: 'none' }}>
       {children}
     </div>
 );
 
 
 const SheetMetaDataBox = (props) => (
-    <div className="sheetMetaDataBox">
-      {props.children}
-    </div>
+  <div className="sheetMetaDataBox">
+    {props.children}
+  </div>
 );
 
 

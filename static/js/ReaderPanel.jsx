@@ -1,4 +1,4 @@
-import React  from 'react';
+import React, {useState}  from 'react';
 import classNames  from 'classnames';
 import ReactDOM  from 'react-dom';
 import PropTypes  from 'prop-types';
@@ -37,7 +37,7 @@ import {
   SaveButton,
   CategoryColorLine,
   CategoryAttribution,
-  ToggleSet, ContentText,
+  ToggleSet, ContentText, InterfaceText, EnglishText, HebrewText,
 } from './Misc';
 import Component from 'react-class';
 import {ContentLanguageContext} from './context';
@@ -716,6 +716,7 @@ class ReaderPanel extends Component {
           filter={this.state.filter}
           textHighlights={this.state.textHighlights}
           unsetTextHighlight={this.props.unsetTextHighlight}
+          translationLanguagePreference={this.props.translationLanguagePreference}
           key={`${textColumnBookTitle ? textColumnBookTitle : "empty"}-TextColumn`} />
       );
     }
@@ -774,6 +775,7 @@ class ReaderPanel extends Component {
           setVersionFilter={this.setVersionFilter}
           viewExtendedNotes={this.props.viewExtendedNotes.bind(null, "Connections")}
           checkIntentTimer={this.props.checkIntentTimer}
+          translationLanguagePreference={this.props.translationLanguagePreference}
           key="connections" />
       );
     }
@@ -1042,7 +1044,7 @@ class ReaderPanel extends Component {
     }
 
     let classes  = {readerPanel: 1, serif: 1, narrowColumn: this.state.width < 730};
-    classes[contextContentLang.language] = 1
+    classes[contextContentLang.language] = 1;
     classes[this.currentLayout()]        = 1;
     classes[this.state.settings.color]   = 1;
     classes = classNames(classes);
@@ -1088,6 +1090,8 @@ class ReaderPanel extends Component {
             toggleSignUpModal={this.props.toggleSignUpModal}
             historyObject={this.props.getHistoryObject(this.state, this.props.hasSidebar)}
             connectionData={this.state.connectionData}
+            translationLanguagePreference={this.props.translationLanguagePreference}
+            setTranslationLanguagePreference={this.props.setTranslationLanguagePreference}
           />}
 
           {(items.length > 0 && !menu) ?
@@ -1181,6 +1185,8 @@ ReaderPanel.propTypes = {
   toggleSignUpModal:           PropTypes.func.isRequired,
   getHistoryRef:               PropTypes.func,
   profile:                     PropTypes.object,
+  translationLanguagePreference: PropTypes.string,
+  setTranslationLanguagePreference: PropTypes.func.isRequired,
 };
 
 
@@ -1203,7 +1209,7 @@ class ReaderControls extends Component {
     const title = this.props.currentRef;
     if (title) {
       // If we don't have this data yet, rerender when we do so we can set the Hebrew title
-      const getTextPromise = Sefaria.getText(title, {context: 1}).then(data => {
+      const getTextPromise = Sefaria.getText(title, {context: 1, translationLanguagePreference: this.props.translationLanguagePreference}).then(data => {
         if ("error" in data) { this.props.onError(data.error); }
         this.setState({runningQuery: null});   // Causes re-render
       });
@@ -1318,7 +1324,7 @@ class ReaderControls extends Component {
           />
           <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
         </div>);
-
+    let transLangPrefSuggBann = hideHeader || connectionsHeader ? null : <TranslationLanguagePreferenceSuggestionBanner setTranslationLanguagePreference={this.props.setTranslationLanguagePreference} />;
     const classes = classNames({
       readerControls: 1,
       connectionsHeader: mode == "Connections",
@@ -1338,6 +1344,7 @@ class ReaderControls extends Component {
       <div>
         {connectionsHeader ? null : <CategoryColorLine category={this.props.currentCategory()} />}
         {readerControls}
+        {transLangPrefSuggBann}
       </div>
     );
   }
@@ -1366,7 +1373,63 @@ ReaderControls.propTypes = {
   interfaceLang:           PropTypes.string,
   toggleSignUpModal:       PropTypes.func.isRequired,
   historyObject:           PropTypes.object,
+  setTranslationLanguagePreference: PropTypes.func.isRequired,
 };
+
+
+const TranslationLanguagePreferenceSuggestionBanner = ({ setTranslationLanguagePreference }) => {
+  const [accepted, setAccepted] = useState(false);
+  const [closed, setClosed] = useState(false);
+
+  const cookie = Sefaria._inBrowser ? $.cookie : Sefaria.util.cookie;
+  const { translation_language_preference_suggestion } = Sefaria;
+  if (closed || (!accepted && cookie("translation_language_preference_suggested")) || !translation_language_preference_suggestion) {
+    return null;
+  }
+  const closeBanner = () => {
+    setClosed(true);
+    cookie("translation_language_preference_suggested", JSON.stringify(1), {path: "/"});
+    Sefaria.editProfileAPI({settings: {translation_language_preference_suggested: true}});
+  }
+  const accept = () => {
+    setAccepted(true);
+    setTranslationLanguagePreference(translation_language_preference_suggestion);
+  }
+  const lang = Sefaria.translateISOLanguageCode(translation_language_preference_suggestion);
+
+  return (
+    <div className="readerControls transLangPrefSuggBann">
+      <div className="readerControlsInner transLangPrefSuggBannInner sans-serif">
+        {
+          accepted ? (
+            <div className="transLangPrefCentered">
+              <InterfaceText>
+                  <EnglishText> Thanks! We'll show you {lang} translations first when we have them. </EnglishText>
+                  <HebrewText>תודה! כשנוכל, נציג לכם תרגומים בשפה ה<span className="bold">{Sefaria._(lang)}</span> כאשר אלו יהיו זמינים. </HebrewText>
+              </InterfaceText>              
+            </div>
+          ) : (
+            <div className="transLangPrefCentered">
+            <InterfaceText>
+                <EnglishText> Prefer to see <span className="bold"> {lang} </span> translations when available? </EnglishText>
+                <HebrewText>האם תעדיפו לראות תרגומים בשפה ה<span className="bold">{Sefaria._(lang)}</span> כאשר הם זמינים?</HebrewText>
+            </InterfaceText>
+            <div className="yesNoGroup">
+              <a className="yesNoButton" onClick={accept}>
+                <InterfaceText>Yes</InterfaceText>
+              </a>
+              <a className="yesNoButton" onClick={closeBanner}>
+                <InterfaceText>No</InterfaceText>
+              </a>
+            </div>
+          </div>
+          )
+        }
+        <ReaderNavigationMenuCloseButton onClick={closeBanner} />
+      </div>
+    </div>
+  );
+}
 
 
 class ReaderDisplayOptionsMenu extends Component {
@@ -1404,6 +1467,11 @@ class ReaderDisplayOptionsMenu extends Component {
     const hasEnglish = !!data.text.length;
     return !(hasHebrew && hasEnglish);
   }
+  shouldPunctuationToggleRender() {
+    if (this.props.currentData?.()?.primary_category === "Talmud" && (this.props.settings?.language === "hebrew" || this.props.settings?.language === "bilingual")) { return true; }
+    else { return false; }
+  }
+
   render() {
     let languageOptions = [
       {name: "english",   content: "<span class='en'>A</span>", role: "radio", ariaLabel: "Show English Text" },
@@ -1412,13 +1480,12 @@ class ReaderDisplayOptionsMenu extends Component {
     ];
     let languageToggle = this.showLangaugeToggle() ? (
         <ToggleSet
-          role="radiogroup"
           ariaLabel="Language toggle"
           label={Sefaria._("Language")}
           name="language"
           options={languageOptions}
           setOption={this.props.setOption}
-          settings={this.props.settings} />) : null;
+          currentValue={this.props.settings.language} />) : null;
 
     let layoutOptions = [
       {name: "continuous", fa: "align-justify", role: "radio", ariaLabel: "Show Text as a paragram" },
@@ -1432,24 +1499,20 @@ class ReaderDisplayOptionsMenu extends Component {
     let layoutToggle = this.props.settings.language !== "bilingual" ?
       this.props.parentPanel == "Sheet" ? null :
       (<ToggleSet
-          role="radiogroup"
           ariaLabel="text layout toggle"
           label={Sefaria._("Layout")}
           name="layout"
           options={layoutOptions}
           setOption={this.props.setOption}
-          currentLayout={this.props.currentLayout}
-          settings={this.props.settings} />) :
+          currentValue={this.props.currentLayout()} />) :
       (this.props.width > 500 ?
         <ToggleSet
-          role="radiogroup"
           ariaLabel="bidirectional text layout toggle"
           label={Sefaria._("Bilingual Layout")}
           name="biLayout"
           options={biLayoutOptions}
           setOption={this.props.setOption}
-          currentLayout={this.props.currentLayout}
-          settings={this.props.settings} /> : null);
+          currentValue={this.props.currentLayout()} /> : null);
 
     let colorOptions = [
       {name: "light", content: "", role: "radio", ariaLabel: "Toggle light mode" },
@@ -1458,14 +1521,13 @@ class ReaderDisplayOptionsMenu extends Component {
     ];
     let colorToggle = (
         <ToggleSet
-          role="radiogroup"
           ariaLabel="Color toggle"
           label={Sefaria._("Color")}
           name="color"
           separated={true}
           options={colorOptions}
           setOption={this.props.setOption}
-          settings={this.props.settings} />);
+          currentValue={this.props.settings.color} />);
     colorToggle = this.props.multiPanel ? null : colorToggle;
 
     let sizeOptions = [
@@ -1474,13 +1536,12 @@ class ReaderDisplayOptionsMenu extends Component {
     ];
     let sizeToggle = (
         <ToggleSet
-          role="radiogroup"
           ariaLabel="Increase/Decrease Font Size Buttons"
           label={Sefaria._("Font Size")}
           name="fontSize"
           options={sizeOptions}
           setOption={this.props.setOption}
-          settings={this.props.settings} />);
+          currentValue={null} />);
 
     let aliyahOptions = [
       {name: "aliyotOn",   content: Sefaria._("On"), role: "radio", ariaLabel: Sefaria._("Show Parasha Aliyot") },
@@ -1489,13 +1550,13 @@ class ReaderDisplayOptionsMenu extends Component {
     let aliyahToggle = this.renderAliyotToggle() ? (
       this.props.parentPanel == "Sheet" ? null :
         <ToggleSet
-          role="radiogroup"
           ariaLabel="Toggle Aliyot"
           label={Sefaria._("Aliyot")}
           name="aliyotTorah"
           options={aliyahOptions}
           setOption={this.props.setOption}
-          settings={this.props.settings} />) : null;
+          currentValue={this.props.settings.aliyotTorah} />) : null;
+    
     let vowelsOptions = [
       {name: "all", content: "<span class='he'>אָ֑</span>", role: "radio", ariaLabel: Sefaria._("Show Vowels and Cantillation")},
       {name: "partial", content: "<span class='he'>אָ</span>", role: "radio", ariaLabel: Sefaria._("Show only vowel points")},
@@ -1509,15 +1570,26 @@ class ReaderDisplayOptionsMenu extends Component {
       vowelToggle = (this.props.settings.language !== "english" && vowelsOptions.length > 1) ?
         this.props.parentPanel == "Sheet" ? null :
         (<ToggleSet
-            role="radiogroup"
-            ariaLabel="vowels and cantillation toggle"
-            label={vowelOptionsTitle}
-            name="vowels"
-            options={vowelsOptions}
-            setOption={this.props.setOption}
-            currentLayout={this.props.currentLayout}
-            settings={this.props.settings} />): null;
+          ariaLabel="vowels and cantillation toggle"
+          label={vowelOptionsTitle}
+          name="vowels"
+          options={vowelsOptions}
+          setOption={this.props.setOption}
+          currentValue={this.props.settings.vowels} />): null;
     }
+
+    let punctuationOptions = [
+      {name: "punctuationOn", content: Sefaria._("On"), role: "radio", ariaLabel: Sefaria._("Show Punctuation")},
+      {name: "punctuationOff", content: Sefaria._("Off"), role: "radio", ariaLabel: Sefaria._("Hide Punctuation")}
+    ]
+    let punctuationToggle = this.shouldPunctuationToggleRender() ? (
+        <ToggleSet
+          ariaLabel="Punctuation Toggle"
+          label={Sefaria._("Punctuation")}
+          name="punctuationTalmud"
+          options={punctuationOptions}
+          setOption={this.props.setOption}
+          currentValue={this.props.settings.punctuationTalmud} />) : null;
     if (this.props.menuOpen === "search") {
       return (<div className="readerOptionsPanel" role="dialog">
                 <div className="readerOptionsPanelInner">
@@ -1540,6 +1612,7 @@ class ReaderDisplayOptionsMenu extends Component {
                   {sizeToggle}
                   {aliyahToggle}
                   {vowelToggle}
+                  {punctuationToggle}
                 </div>
               </div>);
     }

@@ -7,7 +7,6 @@ import Track from './track';
 import Hebrew from './hebrew';
 import Util from './util';
 import $ from './sefariaJquery';
-require('babel-polyfill');
 
 
 let Sefaria = Sefaria || {
@@ -362,8 +361,8 @@ Sefaria = extend(Sefaria, {
       multiple:   settings.multiple   || 0,
       wrapLinks:  ("wrapLinks" in settings) ? settings.wrapLinks : 1,
       wrapNamedEntities: ("wrapNamedEntities" in settings) ? settings.wrapNamedEntities : 1, 
+      translationLanguagePreference: settings.translationLanguagePreference || null,
     };
-
     return settings;
   },
   getTextFromCache: function(ref, settings) {
@@ -460,7 +459,7 @@ Sefaria = extend(Sefaria, {
     }.bind(this));
     return null;
   },
-  translateISOLanguageCode(code) {
+  translateISOLanguageCode(code, inMotherTongue) {
     //takes two-letter ISO 639.2 code and returns full language name
     const codeMap = {
       "en": "English",
@@ -478,6 +477,21 @@ Sefaria = extend(Sefaria, {
       "eo": "Esparanto",
       "fa": "Farsi",
     };
+    const motherTongueCodeMap = {
+      "en": "English",
+      "he": "עברית",
+      "yi": "יידיש",
+      "pt": "Português",
+      "es": "Español",
+      "fr": "Français",
+      "de": "Deutsch",
+      "ar": "عربى",
+      "it": "Italiano",
+      "pl": "Polskie",
+      "ru": "Pусский",
+      "eo": "Esperanto",
+    }
+    if (inMotherTongue) { return motherTongueCodeMap[code.toLowerCase()] || code; }
     return codeMap[code.toLowerCase()] || code;
   },
   _versions: {},
@@ -559,7 +573,8 @@ Sefaria = extend(Sefaria, {
       pad:        settings.pad,
       wrapLinks:  settings.wrapLinks,
       wrapNamedEntities: settings.wrapNamedEntities,
-      multiple:   settings.multiple
+      multiple:   settings.multiple,
+      transLangPref: settings.translationLanguagePreference,
     });
     let url = "/api/texts/" + Sefaria.normRef(ref);
     if (settings.enVersion) { url += "&ven=" + encodeURIComponent(settings.enVersion.replace(/ /g,"_")); }
@@ -574,6 +589,7 @@ Sefaria = extend(Sefaria, {
     if (settings) {
       if (settings.enVersion) { key += "&ven=" + settings.enVersion; }
       if (settings.heVersion) { key += "&vhe=" + settings.heVersion; }
+      if (settings.translationLanguagePreference) { key += "&transLangPref=" + settings.translationLanguagePreference}
       key = settings.context ? key + "|CONTEXT" : key;
     }
     return key;
@@ -1880,6 +1896,12 @@ _media: {},
     return Sefaria._ApiPromise(`/api/${isUnfollow ? 'un' : ''}follow/${uid}`);
   },
   */
+  editProfileAPI: (partialProfile) => {
+    const data = {json: JSON.stringify(partialProfile)};
+    return new Promise((resolve, reject) => {
+      $.post(`${Sefaria.apiHost}/api/profile`, data, resolve);
+    });
+  },
   followAPI: (slug, ftype) => {
     return Sefaria._ApiPromise(Sefaria.apiHost + `/api/profile/${slug}/${ftype}`);
   },
@@ -2626,6 +2648,7 @@ Sefaria.unpackDataFromProps = function(props) {
       "full_name",
       "profile_pic_url",
       "is_history_enabled",
+      "translation_language_preference_suggestion",
       "following",
 
       "calendars",

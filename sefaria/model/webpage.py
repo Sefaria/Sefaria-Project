@@ -162,7 +162,7 @@ class WebPage(abst.AbstractMongoRecord):
             webpage = WebPage(data)
             existing = False
         webpage._normalize() # to remove bad refs, so pages with empty ref list aren't saved
-        if webpage.should_be_excluded():
+        if webpage.should_be_excluded() or len(data["refs"]) == 0:  # data["refs"] is empty when linker.js finds no refs on a page
             if existing:
                 webpage.delete()
             return "excluded"
@@ -258,6 +258,7 @@ def get_website_cache():
         in_memory_cache.set("websites_data", sites)
         return sites
     return sites
+
 
 def get_webpages_for_ref(tref):
     from pymongo.errors import OperationFailure
@@ -550,19 +551,19 @@ def find_sites_that_may_have_removed_linker(test=True, last_linker_activity_day=
     last_active_threshold = datetime.today() - timedelta(days=last_linker_activity_day)
 
     for data in get_website_cache():
-        if data["is_whitelisted"]:  # we only care about whitelisted sites
-            for domain in data['domains']:
-                ws = WebPageSet({"url": {"$regex": re.escape(domain)}}, limit=1, sort=[['lastUpdated', -1]])
-                if ws.count() == 0:
-                    print(f"Alert! {domain} has no pages")
+     if data["is_whitelisted"]:  # we only care about whitelisted sites
+        for domain in data['domains']:
+            ws = WebPageSet({"url": {"$regex": re.escape(domain)}}, limit=1, sort=[['lastUpdated', -1]])
+            if ws.count() == 0:
+                print(f"Alert! {domain} has no pages")
+            else:
+                webpage = ws.array()[0]  # lastUpdated webpage for this domain
+                website = webpage.get_website()
+                if website:
+                    website.linker_installed = webpage.lastUpdated > last_active_threshold
+                    if not website.linker_installed:
+                        print(f"Alert! {domain} has removed the linker!")
+                    if not test:
+                        website.save()
                 else:
-                    webpage = ws.array()[0]  # lastUpdated webpage for this domain
-                    website = webpage.get_website()
-                    if website:
-                        website.linker_installed = webpage.lastUpdated > last_active_threshold
-                        if not website.linker_installed:
-                            print(f"Alert! {domain} has removed the linker!")
-                        if not test:
-                            website.save()
-                    else:
-                        print("Alert! Can't find website {} corresponding to webpage {}".format(data["name"], webpage.url))
+                    print("Alert! Can't find website {} corresponding to webpage {}".format(data["name"], webpage.url))
