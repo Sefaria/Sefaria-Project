@@ -1996,7 +1996,7 @@ class AddressType(object):
     @classmethod
     def get_all_possible_sections_from_string(cls, lang, s):
         """
-        For string `s`, parse to sections using all address types in that `cls` inherits from
+        For string `s`, parse to sections using all address types that `cls` inherits from
         Useful for parsing ambiguous sections, e.g. for AddressPerek פ"ח = 8 but for its superclass AddressInteger, it equals 88.
         """
         sections = []
@@ -2004,7 +2004,7 @@ class AddressType(object):
         for SuperClass in cls.__mro__:  # mro gives all super classes
             if SuperClass == AddressType: break
             addr = SuperClass(0)  # somewhat hacky. trying to get access to super class implementation of `regex` but actually only AddressTalmud implements this function. Other classes just overwrite class fields which modify regex's behavior. Simplest to just instantiate the appropriate address and use it.
-            regex_str = addr.regex(lang, strict=True, group_id='section')
+            regex_str = addr.regex(lang, strict=False, group_id='section')
             if regex_str is None: continue
             reg = regex.compile(regex_str, regex.VERBOSE)
             match = reg.match(s)

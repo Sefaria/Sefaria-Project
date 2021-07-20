@@ -8,6 +8,7 @@ import spacy
 from spacy.lang.he import Hebrew
 from spacy.lang.en import English
 from spacy.language import Language
+from sefaria.model import schema
 from sefaria.spacy_function_registry import custom_tokenizer_factory  # used by spacy.load()
 
 @pytest.fixture(scope='module')
@@ -82,7 +83,8 @@ def test_resolve_raw_ref(resolver_data, expected_trefs):
 
 ref_resolver = RefResolver('he', model('ref_tagging_gilyon'), model('sub_citation'))
 @pytest.mark.parametrize(('input_str', 'expected_trefs'), [
-    ["""גמ' שמזונותן עליך. עיין ביצה דף טו ע"ב רש"י ד"ה שמא יפשע:""", ("Rashi on Beitzah 15b:8:1",)]
+    ["""גמ' שמזונותן עליך. עיין ביצה דף טו ע"ב רש"י ד"ה שמא יפשע:""", ("Rashi on Beitzah 15b:8:1",)],
+    ["""שם אלא ביתך ל"ל. ע' מנחות מד ע"א תד"ה טלית:""", ("Tosafot on Menachot 44a:12:1",)],
 ])
 def test_full_pipeline_ref_resolver(input_str, expected_trefs):
     resolved = ref_resolver.resolve_refs_in_string(Ref("Job 1"), input_str)
@@ -90,3 +92,16 @@ def test_full_pipeline_ref_resolver(input_str, expected_trefs):
     resolved_orefs = sorted([match.ref for match in resolved], key=lambda x: x.normal())
     for expected_tref, matched_oref in zip(sorted(expected_trefs, key=lambda x: x), resolved_orefs):
         assert matched_oref == Ref(expected_tref)
+
+@pytest.mark.parametrize(('input_addr_str', 'AddressClass','expected_sections'), [
+    ['פ"ח', schema.AddressPerek, ([8, 88], [8, 88])],
+    ['מ"ד', schema.AddressTalmud, ([87], [88])],
+    ['מ"ד.', schema.AddressTalmud, ([87], [87])],
+    ['מ"ד ע"ב', schema.AddressTalmud, ([88], [88])],
+    ['מ"ד', schema.AddressMishnah, ([4, 44], [4, 44])],
+])
+def test_stupid_address_type(input_addr_str, AddressClass, expected_sections):
+    exp_secs, exp2secs = expected_sections
+    sections, toSections = AddressClass.get_all_possible_sections_from_string('he', input_addr_str)
+    assert sections == exp_secs
+    assert toSections == exp2secs
