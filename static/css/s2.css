@@ -4012,6 +4012,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .saveButton img {
   height: 18px;
   width: 18px;
+  margin-top: 2px;
 }
 .rightButtons .saveButton.tooltip-toggle::before {
   top: 47px;
