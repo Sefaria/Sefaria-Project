@@ -1611,6 +1611,7 @@ div.interfaceLinks-row a {
 .navSidebar a.inTextLink {
   color: inherit;
   text-decoration: underline;
+  margin-inline-start: 5px;
 }
 .navSidebar .newsletterSignUpBox {
   margin-top: 20px;

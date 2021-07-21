@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Sefaria  from './sefaria/sefaria';
-import {NewsletterSignUpForm} from './Misc'
+import {EnglishText, HebrewText, NewsletterSignUpForm} from './Misc'
 import {InterfaceText, ProfileListing, Dropdown} from './Misc';
 
 const NavSidebar = ({modules}) => {
@@ -82,7 +82,23 @@ const AboutSefaria = ({hideTitle}) => (
   <Module>
     {!hideTitle ?
     <ModuleTitle h1={true}>A Living Library of Torah</ModuleTitle> : null }
-    <InterfaceText>Sefaria is home to 3,000 years of Jewish texts. We are a non-profit organization offering free access to texts, translations, and commentaries so that everyone can participate in the ongoing process of studying, interpreting, and creating Torah.</InterfaceText> <a href="/about" className="inTextLink"><InterfaceText>Learn More</InterfaceText> <InterfaceText>&rsaquo;</InterfaceText></a>
+    <InterfaceText>
+        <EnglishText>
+            Sefaria is home to 3,000 years of Jewish texts. We are a non-profit organization offering free access to texts, translations,
+            and commentaries so that everyone can participate in the ongoing process of studying, interpreting, and creating Torah.
+        </EnglishText>
+        <HebrewText>
+            ספריא היא ביתם של 3,000 שנות ספרות יהודית.
+            אנו ארגון ללא מטרות רווח המציע גישה חופשית למקורות יהודיים, לתרגומים ולפרשנויות,
+            ומטרתנו לאפשר לכל אחד ואחת להשתתף בתהליך המתמשך של לימוד וחידוש בתורה.
+        </HebrewText>
+    </InterfaceText>
+    <a href="/about" className="inTextLink">
+      <InterfaceText>
+          <EnglishText>Learn More ›</EnglishText>
+          <HebrewText>לקריאה נוספת ›</HebrewText>
+      </InterfaceText>
+    </a>
   </Module>
 );
 
