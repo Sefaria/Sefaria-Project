@@ -2834,16 +2834,12 @@ a.navBlockTitle:hover {
 .textTableOfContents .tocSection.noSubLevels{
   display: none;
 }
-.textTableOfContents .schema-node-contents {
-  margin: 0 auto 22px;
-  display: block;
-  width: 100%;
-}
 .textTableOfContents > .tocLevel {
   margin-bottom: 30px;
 }
-.textTableOfContents > .tocLevel > .schema-node-toc > .schema-node-title {
+.textTableOfContents > .tocContent > .tocLevel > .schema-node-toc > .schema-node-title {
   font-size: 24px;
+  line-height: 29px;
 }
 .textTableOfContents .schema-node-title {
   color: black;
@@ -2881,6 +2877,15 @@ a.navBlockTitle:hover {
 .readerPanel.hebrew .textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title.open:after,
 .readerApp.interface-hebrew .noLangToggleInHebrew .textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title.open:after {
   content: "\f107";
+}
+.textTableOfContents .schema-node-contents {
+  margin: 0 auto 22px;
+  display: block;
+  width: 100%;
+}
+.textTableOfContents .schema-node-contents > .tocLevel > .schema-node-toc:not(.janode),
+.torahNavParshiot .tocLevel .schema-node-toc{
+  margin-inline-start: 15px;
 }
 .textTableOfContents .schema-node-contents.closed {
   display: none;

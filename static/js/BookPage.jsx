@@ -580,7 +580,7 @@ class SchemaNode extends Component {
         } else {
           // SchemaNode that has a JaggedArray below it
           return (
-            <div className="schema-node-toc" key={i}>
+            <div className="schema-node-toc janode" key={i}>
               { !node.default ?
               <span className={`schema-node-title ${this.state.collapsed[i] ? "collapsed" : "open"}`}
                     role="heading" aria-level="3" tabIndex={0}
@@ -899,7 +899,6 @@ VersionsList.propTypes = {
   currentRef:                PropTypes.string,
   currObjectVersions:        PropTypes.object,
   openVersionInReader:       PropTypes.func,
-
   viewExtendedNotes:         PropTypes.func,
 };
 
