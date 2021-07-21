@@ -37,14 +37,16 @@ def duplicate_terms():
 def model(project_name: str) -> Language:
     return spacy.load(f'/home/nss/sefaria/data/research/prodigy/output/{project_name}/model-last')
 
-def create_raw_ref_data(context_tref, lang, tref, span_indexes, part_types):
-    ref_resolver = RefResolver(lang, None, None)
+def create_raw_ref_params(lang, input_str, span_indexes, part_types):
     nlp = Hebrew() if lang == 'he' else English()
-    doc = nlp(tref)
+    doc = nlp(input_str)
     span = doc[0:]
     part_spans = [span[index] for index in span_indexes]
-    raw_ref = RawRef([RawRefPart(part_type, part_span) for part_type, part_span in zip(part_types, part_spans)], span)
+    return [RawRefPart(part_type, part_span) for part_type, part_span in zip(part_types, part_spans)], span
 
+def create_raw_ref_data(context_tref, lang, input_str, span_indexes, part_types):
+    ref_resolver = RefResolver(lang, None, None)
+    raw_ref = RawRef(*create_raw_ref_params(lang, input_str, span_indexes, part_types))
     return ref_resolver, raw_ref, Ref(context_tref)
 
 
@@ -73,6 +75,7 @@ def test_referenceable_child():
     [create_raw_ref_data("Job 1", 'he', "רש\"י ביצה ד\"ה שמא יפשע", [0, 1, slice(2, 5)], [RPT.NAMED, RPT.NAMED, RPT.DH]), ("Rashi on Beitzah 15b:8:1",)],
     [create_raw_ref_data("Job 1", 'he', "רש\"י יום טוב ד\"ה אלא ביבנה", [0, slice(1, 3), slice(3, 6)], [RPT.NAMED, RPT.NAMED, RPT.DH]), ("Rashi on Rosh Hashanah 29b:5:3",)],
     [create_raw_ref_data("Job 1", 'he', 'שבועות דף כה ע"א תוד"ה חומר', [0, slice(1, 4), 4, 5], [RPT.NAMED, RPT.NUMBERED, RPT.NAMED, RPT.DH]), ("Tosafot on Shevuot 25a:11:1",)],
+    [create_raw_ref_data("Job 1", 'he', 'ספר בראשית פרק יג פסוק א', [slice(0, 2), slice(2, 4), slice(4, 6)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Genesis 13:1",)],
 ])
 def test_resolve_raw_ref(resolver_data, expected_trefs):
     ref_resolver, raw_ref, context_ref = resolver_data
@@ -106,3 +109,25 @@ def test_get_all_possible_sections_from_string(input_addr_str, AddressClass, exp
     sections, toSections = AddressClass.get_all_possible_sections_from_string('he', input_addr_str)
     assert sections == exp_secs
     assert toSections == exp2secs
+
+@pytest.mark.parametrize(('raw_ref_params', 'expected_section_slices'), [
+    [create_raw_ref_params('he', "בראשית א:א-ב", [0, 1, 3, 4, 5], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED]), (slice(1,3),slice(4,5))],  # standard case
+    [create_raw_ref_params('he', "א:א-ב", [0, 2, 3, 4], [RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED]), (slice(0,2),slice(3,4))],  # only numbered sections
+    [create_raw_ref_params('he', "בראשית א:א-ב:א", [0, 1, 3, 4, 5, 7], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED, RPT.NUMBERED]), (slice(1,3),slice(4,6))],  # full sections and toSections
+    [create_raw_ref_params('he', "בראשית א:א", [0, 1, 3], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), (None, None)],  # no ranged symbol
+])
+def test_group_ranged_parts(raw_ref_params, expected_section_slices):
+    raw_ref_parts, span = raw_ref_params
+    raw_ref = RawRef(raw_ref_parts, span)
+    exp_sec_slice, exp2sec_slice = expected_section_slices
+    if exp_sec_slice is None:
+        expected_raw_ref_parts = raw_ref_parts
+    else:
+        expected_ranged_raw_ref_parts = RangedRawRefParts(raw_ref_parts[exp_sec_slice], raw_ref_parts[exp2sec_slice])
+        expected_raw_ref_parts = raw_ref_parts[:exp_sec_slice.start] + \
+                                 [expected_ranged_raw_ref_parts] + \
+                                 raw_ref_parts[exp2sec_slice.stop:]
+        ranged_raw_ref_parts = raw_ref.raw_ref_parts[exp_sec_slice.start]
+        assert ranged_raw_ref_parts.sections == expected_ranged_raw_ref_parts.sections
+        assert ranged_raw_ref_parts.toSections == expected_ranged_raw_ref_parts.toSections
+    assert raw_ref.raw_ref_parts == expected_raw_ref_parts

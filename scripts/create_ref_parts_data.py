@@ -5,6 +5,7 @@ from sefaria.model import *
 from sefaria.model.abstract import AbstractMongoRecord
 from sefaria.model.schema import DiburHamatchilNode, DiburHamatchilNodeSet
 
+
 def t(**kwargs):
     slug = kwargs.get('en', kwargs.get('he'))
     term = NonUniqueTerm({
@@ -20,6 +21,14 @@ def t(**kwargs):
     return term
 
 
+def t_from_titled_obj(obj):
+    en_title = obj.get_primary_title('en')
+    he_title = obj.get_primary_title('he')
+    alt_en_titles = [title for title in obj.title_group.all_titles('en') if title != en_title]
+    alt_he_titles = [title for title in obj.title_group.all_titles('he') if title != he_title]
+    return t(en=en_title, he=he_title, alt_en=alt_en_titles, alt_he=alt_he_titles)
+
+
 def get_dh(s, regexes, oref):
     for reg in regexes:
         match = re.search(reg, s)
@@ -28,22 +37,7 @@ def get_dh(s, regexes, oref):
     s = s.strip()
     return s
 
-    dh_parts = re.split(r'[\-–]', s)
-    if len(dh_parts) < 2:
-        return
-    dh = dh_parts[0]
-    if '.' in dh:
-        return dh.split('.')[0]
-    dh = re.sub(r"מתני'|גמ'", '', dh).strip()
-    return dh
 
-"""
-TOS
----
-RH, Sukkah, Beitzah, Taanit, Megillah, Moed Katan, Chagigah, Bava_Batra, Makkot, Shevuot, Horayot, Menachot, Niddah periods
-Second period when there's 2?
-
-"""
 def get_dh_regexes(index, comm_term_slug):
     reg_map = {
         "rashi": ['^(.+?)[\-–]', '\.(.+?)$', "^(?:(?:מתני'|גמ')\s?)?(.+)$"],
@@ -54,6 +48,7 @@ def get_dh_regexes(index, comm_term_slug):
 
 
 def modify_commentaries():
+    DiburHamatchilNodeSet().delete()
     for comm_ref_prefix, comm_term_slug, comm_cat_path in (
         ('Rashi on ', 'rashi', ['Talmud', 'Bavli', 'Rishonim on Talmud', 'Rashi']),
         ('Tosafot on ', 'tosafot', ['Talmud', 'Bavli', 'Rishonim on Talmud', 'Tosafot']),
@@ -122,20 +117,12 @@ def add_alt_structs(comm_ref_prefix, comm_term_slug, index):
         delattr(perek_node, 'aloneRefPartTermPrefixes')
 
 
-def create_non_unique_terms():
-    NonUniqueTermSet().delete()
-    DiburHamatchilNodeSet().delete()
-
-    bavli = t(en='Bavli', he='בבלי')
-    rashi = t(en='Rashi', he='רש"י')
-    tosafot = t(en='Tosafot', he='תוספות', alt_he=["תוס'", 'תוד"ה', 'תד"ה',])
-    ran = t(en='Ran', he='ר"ן')
-    perek = t(en='Perek', he='פרק')
-
+def modify_talmud():
+    perek = NonUniqueTerm.init('perek')
+    bavli = NonUniqueTerm.init('bavli')
     minor_tractates = {title for title in library.get_indexes_in_category("Minor Tractates")}
     indexes = library.get_indexes_in_category("Bavli", full_records=True)
     for index in tqdm(indexes, desc='talmud', total=indexes.count()):
-        # if "Nedarim" not in index.title: continue
         if index.title in minor_tractates: continue
         index_term = NonUniqueTerm({
             "slug": index.title,
@@ -153,6 +140,43 @@ def create_non_unique_terms():
             perek_node.referenceableAlone = True
         index.save()
 
+
+def modify_tanakh():
+    sefer = NonUniqueTerm.init('sefer')
+    parasha = NonUniqueTerm.init('parasha')
+    indexes = library.get_indexes_in_category("Tanakh", full_records=True)
+    for index in tqdm(indexes, desc='tanakh', total=indexes.count()):
+        index_term = NonUniqueTerm({
+            "slug": index.title,
+            "titles": index.nodes.title_group.titles
+        })
+        index_term.save()
+        index.nodes.ref_part_terms = [sefer.slug, index_term.slug]
+        index.nodes.ref_parts_optional = [True, False]
+
+        # add parsha terms
+        if index.categories[-1] == 'Torah':
+            for parsha_node in index.get_alt_struct_nodes():
+                parsha_term = t_from_titled_obj(parsha_node)
+                parsha_node.ref_part_terms = [parasha.slug, parsha_term.slug]
+                parsha_node.ref_parts_optional = [True, False]
+                parsha_node.referenceableAlone = True
+        index.save()
+
+
+def create_base_non_unique_terms():
+    NonUniqueTermSet().delete()
+
+    t(en='Bavli', he='בבלי')
+    t(en='Rashi', he='רש"י')
+    t(en='Tosafot', he='תוספות', alt_he=["תוס'", 'תוד"ה', 'תד"ה',])
+    t(en='Ran', he='ר"ן')
+    t(en='Perek', he='פרק')
+    t(en='Sefer', he='ספר')
+    t_from_titled_obj(Term().load({"name": "Parasha"}))
+
 if __name__ == "__main__":
-    create_non_unique_terms()
-    modify_commentaries()
+    # create_base_non_unique_terms()
+    # modify_talmud()
+    modify_tanakh()
+    # modify_commentaries()

@@ -1,6 +1,7 @@
 from collections import defaultdict
 from typing import List
 from enum import Enum
+from sefaria.system.exceptions import InputError
 from . import abstract as abst
 from . import text
 from . import schema
@@ -60,7 +61,7 @@ class RawRefPart:
         return f"{self.__class__.__name__}({self.span}, {self.potential_dh_continuation})"
 
     def __eq__(self, other):
-        return isinstance(other, RawRefPart) and self.__hash__() == other.__hash__()
+        return isinstance(other, self.__class__) and self.__hash__() == other.__hash__()
 
     def __hash__(self):
         return hash(f"{self.type}|{self.span.__hash__()}|{self.potential_dh_continuation}")
@@ -73,30 +74,48 @@ class RawRefPart:
 
     text = property(get_text)
 
-class RawRefPartList:
+class RangedRawRefParts:
     """
-    Represents an ordered list of raw ref parts.
-    These ref parts should be parsed in this order.
-    Currently used to enforce order when parsing ranged refs
+    Container for ref parts that represent the sections and toSections of a ranged ref
     """
-    def __init__(self, raw_ref_parts: List['RawRefPart']):
-        self.raw_ref_parts = raw_ref_parts
+    def __init__(self, sections: List['RawRefPart'], toSections: List['RawRefPart']):
+        self.sections = sections
+        self.toSections = toSections
+
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and self.__hash__() == other.__hash__()
+
+    def __hash__(self):
+        return hash(hash(p) for p in (self.sections + self.toSections))
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
 class RawRef:
     
     def __init__(self, raw_ref_parts: list, span: Span) -> None:
-        self.raw_ref_parts = raw_ref_parts
+        self.raw_ref_parts = self._group_ranged_parts(raw_ref_parts)
         self.span = span
 
-    def group_ranged_parts(self, raw_ref_parts: List['RawRefPart']) -> List['RawRefPart']:
+    def _group_ranged_parts(self, raw_ref_parts: List['RawRefPart']) -> List['RawRefPart']:
         ranged_symbol_ind = None
         for i, part in enumerate(raw_ref_parts):
             if part.type == RefPartType.RANGE_SYMBOL:
                 ranged_symbol_ind = i
                 break
         if ranged_symbol_ind is None: return raw_ref_parts
-        new_raw_ref_parts = []
-
+        section_slice, toSection_slice = None, None
+        for i in range(ranged_symbol_ind-1, -1, -1):
+            if i == 0 or raw_ref_parts[i-1].type != RefPartType.NUMBERED:
+                section_slice = slice(i, ranged_symbol_ind)
+                break
+        for i in range(ranged_symbol_ind+1, len(raw_ref_parts)):
+            if i == len(raw_ref_parts) - 1 or raw_ref_parts[i+1].type != RefPartType.NUMBERED:
+                toSection_slice = slice(ranged_symbol_ind+1, i+1)
+                break
+        new_raw_ref_parts = raw_ref_parts[:section_slice.start] + \
+                            [RangedRawRefParts(raw_ref_parts[section_slice], raw_ref_parts[toSection_slice])] + \
+                            raw_ref_parts[toSection_slice.stop:]
         return new_raw_ref_parts
 
     def get_text(self):
@@ -127,11 +146,14 @@ class ResolvedRawRef:
         if raw_ref_part.type == RefPartType.NUMBERED and isinstance(node, schema.JaggedArrayNode):
             possible_sections, possible_to_sections = node.address_class(0).get_all_possible_sections_from_string(lang, raw_ref_part.text)
             for sec, toSec in zip(possible_sections, possible_to_sections):
-                refined_ref = self.ref.subref(sec)
-                if toSec != sec:
-                    to_ref = self.ref.subref(toSec)
-                    refined_ref = refined_ref.to(to_ref)
-                matches += [ResolvedRawRef(self.raw_ref, refined_ref_parts, node, refined_ref)]
+                try:
+                    refined_ref = self.ref.subref(sec)
+                    if toSec != sec:
+                        to_ref = self.ref.subref(toSec)
+                        refined_ref = refined_ref.to(to_ref)
+                    matches += [ResolvedRawRef(self.raw_ref, refined_ref_parts, node, refined_ref)]
+                except InputError:
+                    continue
         elif raw_ref_part.type == RefPartType.NAMED and isinstance(node, schema.TitledTreeNode):
             if node.ref_part_title_trie(lang).has_continuations(raw_ref_part.text):
                 matches += [ResolvedRawRef(self.raw_ref, refined_ref_parts, node, node.ref())]

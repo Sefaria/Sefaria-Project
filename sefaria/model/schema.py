@@ -2004,7 +2004,7 @@ class AddressType(object):
         for SuperClass in cls.__mro__:  # mro gives all super classes
             if SuperClass == AddressType: break
             addr = SuperClass(0)  # somewhat hacky. trying to get access to super class implementation of `regex` but actually only AddressTalmud implements this function. Other classes just overwrite class fields which modify regex's behavior. Simplest to just instantiate the appropriate address and use it.
-            regex_str = addr.regex(lang, strict=False, group_id='section')
+            regex_str = addr.regex(lang, strict=False, group_id='section') + "$"  # must match entire string
             if regex_str is None: continue
             reg = regex.compile(regex_str, regex.VERBOSE)
             match = reg.match(s)
