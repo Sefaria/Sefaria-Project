@@ -354,6 +354,7 @@ class SheetMetadata extends Component {
     var closeClick = this.props.close;
     var classes = classNames({
       bookPage:1,
+      sheetPage: 1,
       readerNavMenu:1,
       narrowPanel: this.props.narrowPanel,
       noLangToggleInHebrew: this.props.interfaceLang == 'hebrew',
@@ -383,13 +384,14 @@ class SheetMetadata extends Component {
               <div className="content">
                 <div className="contentInner">
                   <div className="tocTop">
+                    <div className="tocTitle serif" role="heading" aria-level="1">
+                      <span>{title.stripHtmlConvertLineBreaks()}</span>
+                    </div>
+
                     <a className="tocCategory serif" href="/sheets">
                       <span className="en">Sheet</span>
                       <span className="he">{Sefaria.hebrewTerm("Sheets")}</span>
                     </a>
-                    <div className="tocTitle serif" role="heading" aria-level="1">
-                      <span>{title.stripHtmlConvertLineBreaks()}</span>
-                    </div>
 
                     <div className="tocDetail authorStatement">
                       <SheetAuthorStatement

@@ -444,7 +444,7 @@ const Strings = {
 
     //Module Names
     "Download Text": "הורדת טקסט",
-    "About this Text" : "אודות הטקסט",
+    "About this Text" : "אודות ספר זה",
     "Related Topics": "נושאים קשורים",
 
     // FilterableList

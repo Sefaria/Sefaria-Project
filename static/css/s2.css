@@ -2510,14 +2510,19 @@ a.navBlockTitle:hover {
 .bookPage .tocTop {
   padding-bottom: 15px;
 }
-.bookPage .tocCategory {
+.bookPage .tocCategory{
   color:#999;
   font-size: 14px;
   text-transform: uppercase;
   letter-spacing: 1px;
 }
+.bookPage.sheetPage .tocCategory{
+  margin-top: 15px;
+  margin-bottom: 15px;
+  display: block;
+}
 .bookPage .tocCategory .en {
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  --english-font: var(--english-sans-serif-font-family);
 }
 .bookPage .tocTitle,
 .sheetContent .title,
@@ -2647,10 +2652,12 @@ a.navBlockTitle:hover {
 .bookPage .moderatorSectionExpand, .bookPage .moderatorSectionCollapse {
   cursor: pointer;
   color: #666;
-  margin: 13px 6px 0;
   font-size: 14px;
 }
-.bookPage .tocTitleControls{
+.bookPage.fullBookPage .moderatorSectionExpand, .bookPage.fullBookPage .moderatorSectionCollapse {
+  margin: 13px 6px 0;
+}
+.bookPage.fullBookPage .tocTitleControls{
   display: flex;
 }
 .bookPage .moderatorSectionExpand:hover {
@@ -2951,8 +2958,6 @@ a.navBlockTitle:hover {
   display: flex;
   justify-content: start;
   align-items: flex-start;
-}
-.bookPage .versionBlock .versionBlockHeading{
   margin-bottom: 10px;
 }
 .versionBlock .versionTitle {
@@ -8123,6 +8128,9 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .bubbleTab.active {
   color: #333;
 }
+.aboutBox .detailsSection{
+  margin-bottom: 40px;
+}
 .aboutBox .aboutHeader {
   color: var(--dark-grey);
   padding-bottom: 13px;
@@ -8136,17 +8144,24 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
 .aboutBox .aboutTitle {
-  padding: 10px 0 15px 0;
+  padding: 10px 0 10px 0;
   display: inline-block;
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-style: normal;
   font-weight: normal;
   font-size: 24px;
   line-height: 29px;
   color: #000000;
 }
+.aboutBox .tocCategory{
+  display: block;
+  margin-bottom: 17px;
+  font-size: 16px;
+  line-height: 19px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--dark-grey);
+}
 .aboutBox .aboutSubtitle {
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-style: italic;
   font-weight: normal;
   font-size: 18px;
@@ -8156,14 +8171,28 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .aboutBox .aboutSubtitle .he {
   font-style: normal;
 }
+.aboutBox .aboutAuthor{
+  font-size: 16px;
+  line-height: 19px;
+  color: var(--dark-grey);
+  margin-bottom: 22px;
+}
+.aboutBox .aboutAuthor .authorName{
+  margin-inline-start: 5px;
+  color: black;
+}
 .aboutBox .aboutDesc {
-  padding: 15px 0 30px 0;
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  margin: 15px 0 15px 0;
   font-style: normal;
   font-weight: normal;
-  font-size: 18px;
-  line-height: 22px;
-  color: #000000;
+  font-size: 16px;
+  line-height: 19px;
+  color: var(--dark-grey);
+}
+.aboutBox .aboutComposed{
+  font-size: 14px;
+  line-height: 18px;
+  color: var(--medium-grey);
 }
 .readerApp.interface-hebrew .aboutBox .versionDetails,
 .readerApp.interface-hebrew .versionsBox .versionDetails {
