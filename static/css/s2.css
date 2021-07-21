@@ -3223,6 +3223,7 @@ select {
   background: var(--lighter-grey);
   border-radius: 6px;
   margin-bottom: 25px;
+  position: relative;
 }
 .dictionarySearchBox .dictionarySearchButton{
   width: 16px;
