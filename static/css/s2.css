@@ -2904,6 +2904,9 @@ a.navBlockTitle:hover {
   font-size: 24px;
   margin-bottom: 10px;
 }
+.textTableOfContents .torahNavParshiot{
+  margin-top: 30px;
+}
 .textTableOfContents .altStruct .refLink {
   width: 49%;
   margin: 3px;
