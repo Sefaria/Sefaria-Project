@@ -2811,7 +2811,7 @@ a.navBlockTitle:hover {
   display: none;
 }
 .textTableOfContents .tocSection > .sectionName {
-  font-size: 18px;
+  font-size: 24px;
   margin: 0 3px 4px;
   color: #666;
   display: block;
