@@ -169,7 +169,7 @@ const AboutText = ({index, hideTitle}) => {
   }
 
   let authors   = index?.authors || [];
-  authors = authors.filter((x) => !!x[lang]).map(a => <a href={"/person/" + a.en} key={a.en}><InterfaceText>{a[lang]}</InterfaceText></a>);
+  authors = authors.filter(a => !!a[lang]).map(a => <a href={"/topics/" + a.slug} key={a.slug}><InterfaceText>{a[lang]}</InterfaceText></a>);
   authors = [].concat(...authors.map(x => [<span>, </span>, x])).slice(1); // Like a join for an array of React elements
 
   const description = lang === "he" ? (index.heDesc || index.heShortDesc) : (index.enDesc || index.enShortDesc);
