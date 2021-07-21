@@ -11,11 +11,13 @@ LABEL_TO_REF_PART_TYPE_ATTR = {
     "כותרת": 'NAMED',
     "מספר": "NUMBERED",
     "דה": "DH",
+    "סימן-טווח": "RANGE_SYMBOL",
 }
 class RefPartType(Enum):
     NAMED = "named"
     NUMBERED = "numbered"
     DH = "dibur_hamatchil"
+    RANGE_SYMBOL = "range_symbol"
 
     @classmethod
     def span_label_to_enum(cls, span_label: str) -> 'RefPartType':
@@ -71,11 +73,31 @@ class RawRefPart:
 
     text = property(get_text)
 
+class RawRefPartList:
+    """
+    Represents an ordered list of raw ref parts.
+    These ref parts should be parsed in this order.
+    Currently used to enforce order when parsing ranged refs
+    """
+    def __init__(self, raw_ref_parts: List['RawRefPart']):
+        self.raw_ref_parts = raw_ref_parts
+
 class RawRef:
     
     def __init__(self, raw_ref_parts: list, span: Span) -> None:
         self.raw_ref_parts = raw_ref_parts
         self.span = span
+
+    def group_ranged_parts(self, raw_ref_parts: List['RawRefPart']) -> List['RawRefPart']:
+        ranged_symbol_ind = None
+        for i, part in enumerate(raw_ref_parts):
+            if part.type == RefPartType.RANGE_SYMBOL:
+                ranged_symbol_ind = i
+                break
+        if ranged_symbol_ind is None: return raw_ref_parts
+        new_raw_ref_parts = []
+
+        return new_raw_ref_parts
 
     def get_text(self):
         return self.span.text
