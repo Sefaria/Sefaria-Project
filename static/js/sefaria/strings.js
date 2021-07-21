@@ -24,7 +24,6 @@ const Strings = {
     "Sign up": "הרשם",
 
     // Texts Page
-    "Sefaria is home to 3,000 years of Jewish texts. We are a non-profit organization offering free access to texts, translations, and commentaries so that everyone can participate in the ongoing process of studying, interpreting, and creating Torah.": "ספריא היא ביתם של 3,000 שנות ספרות יהודית. אנו ארגון ללא מטרות רווח המציע גישה חופשית למקורות יהודיים, לתרגומים ולפרשנויות, ומטרתנו לאפשר לכל אחד ואחת להשתתף בתהליך המתמשך של לימוד וחידוש בתורה.",
     "Learn More": "לקריאה נוספת",
     "Learning Schedules": "לוח לימוד יומי",
     "Teach with Sefaria": "מלמדים עם ספריא",
