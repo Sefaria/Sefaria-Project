@@ -41,7 +41,7 @@ class DictionarySearch extends Component {
     if (this.state.val != current) {
       if (document.getElementById('keyboardInputMaster')) {
         // If the keyboard is open, place autocomplete results below it
-        $(ReactDOM.findDOMNode(this)).find("input.search").autocomplete("option", "position", {my: "left+15 top-535", at: "left bottom",of: this.props.contextSelector + ' .dictionarySearchBox'});
+        $(ReactDOM.findDOMNode(this)).find("input.search").autocomplete("option", "position", {my: "left+15 top+180", at: "left bottom",of: this.props.contextSelector + ' .dictionarySearchBox'});
       } else {
         // Otherwise results are below input box
         $(ReactDOM.findDOMNode(this)).find("input.search").autocomplete("option", "position", {my: "left top", at: "left bottom", of: this.props.contextSelector + ' .dictionarySearchBox'});

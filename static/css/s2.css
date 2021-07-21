@@ -7639,11 +7639,12 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 }
 .searchBox .keyboardInputInitiator {
     opacity: 0.4;
-    width: 16px;
-    height: 16px;
-    padding: 4px 7px;
+    width: 22px;
+    height: 20px;
+    padding: 4px 7px 2px;
     position: initial;
     vertical-align: 0px;
+
 }
 .header .searchBox .keyboardInputInitiator {
     display: none;
