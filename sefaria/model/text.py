@@ -2206,7 +2206,7 @@ class TextFamily(object):
                         val = {"en":[], "he":[]}
 
                         try:
-                            val = alts_ja.get_element(indxs)
+                            val = alts_ja.get_element(indxs) or val
                         except IndexError:
                             pass
 
@@ -2228,9 +2228,7 @@ class TextFamily(object):
                                 val = {"en":[], "he":[]}
 
                                 try:
-                                    a = alts_ja.get_element(indxs)
-                                    if a:
-                                        val = a
+                                    val = alts_ja.get_element(indxs) or val
                                 except IndexError:
                                     pass
 

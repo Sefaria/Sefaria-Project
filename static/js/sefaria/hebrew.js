@@ -52,7 +52,7 @@ class Hebrew {
   }
   static encodeHebrewDaf(daf, form) {
     // Ruturns Hebrew daf strings from "32b"
-    var form = form || "short"
+    var form = form || "short";
     var n = parseInt(daf.slice(0,-1));
     var a = daf.slice(-1);
     if (form === "short") {
@@ -65,8 +65,9 @@ class Hebrew {
     }
   }
   static encodeHebrewFolio(daf) {
-    // todo:
-    return daf;
+    const n = parseInt(daf.slice(0,-1));
+    let a = {a: "א", b: "ב", c: "ג", d: "ד"}[daf.slice(-1)];
+    return this.encodeHebrewNumeral(n) + " " + a;
   }
   static getNikkudRegex(rawString) {
     // given a Hebrew string, return regex that allows for arbitrary nikkud in between letters

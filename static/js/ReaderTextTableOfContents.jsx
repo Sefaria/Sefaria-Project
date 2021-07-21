@@ -755,7 +755,7 @@ class SchemaNode extends Component {
             <div className="schema-node-toc" data-ref={path} key={i}>
               <span className={`schema-node-title ${this.state.collapsed[i] ? "collapsed" : "open"}`}
                     onClick={this.toggleCollapse.bind(null, i)}
-                    onKeyPress={function(e) {e.charCode == 13 ? this.toggleCollapse(i):null}.bind(this)}
+                    onKeyPress={function(e) {e.charCode === 13 ? this.toggleCollapse(i):null}.bind(this)}
                     role="heading"
                     aria-level="3"
                     aria-hidden="true" tabIndex={0}>
@@ -769,12 +769,12 @@ class SchemaNode extends Component {
               </div>
               : null }
             </div>);
-        } else if (node.nodeType == "ArrayMapNode") {
+        } else if (node.nodeType === "ArrayMapNode") {
           // ArrayMapNode with only wholeRef
           return <ArrayMapNode schema={node} key={i}/>;
-        } else if (node.nodeType == "DictionaryNode") {
+        } else if (node.nodeType === "DictionaryNode") {
           return <DictionaryNode schema={node} key={i}/>;
-        } else if (node.depth == 1 && !node.default) {
+        } else if (node.depth === 1 && !node.default) {
           // SchemaNode title that points straight to content
           path = this.props.refPath + ", " + node.title;
           return (
