@@ -2047,9 +2047,6 @@ h1 .languageToggle .he {
   font-weight: lighter;
   cursor: pointer;
 }
-.singlePanel .navToggles {
-  margin-top:  20px;
-}
 .readerNavMenu .navToggle.active {
   color: black;
   border-bottom: 2px solid #999;

@@ -314,7 +314,7 @@ const SubCategoryToggle = ({categories, setCategories}) => {
       "Tosefta": {
           categoryPathDepth: 2,
           subCategories: ["Vilna Edition", "Lieberman Edition"],
-          subCategoriesDisplay: [{en: "Vilna Edition", he: Sefaria.hebrewTerm("Vilna Edition")}, {en: "Lieberman Edition", he: Sefaria.hebrewTerm("Lieberman Edition")}]
+          subCategoriesDisplay: [{en: "Vilna", he: "דפוס וילנא"}, {en: "Lieberman", he: "מהדורת ליברמן"}]
       },
     };
     if (!categories.length || !(categories[0] in toggleEnableMap) || categories.length !== toggleEnableMap[categories[0]]["categoryPathDepth"]) {
