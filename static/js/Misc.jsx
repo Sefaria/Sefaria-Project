@@ -132,7 +132,7 @@ class ProfilePic extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      showDefault: !this.props.url,
+      showDefault: !this.props.url || this.props.url.startsWith("https://www.gravatar"), // We can't know in advance if a gravatar image exists of not, so start with the default beforing trying to load image
       src: null,
       isFirstCropChange: true,
       crop: {unit: "px", width: 250, aspect: 1},
@@ -141,7 +141,22 @@ class ProfilePic extends Component {
     };
     this.imgFile = React.createRef();
   }
-
+  setShowDefault() { /* console.log("error"); */ this.setState({showDefault: true});  }
+  setShowImage() { /* console.log("load"); */ this.setState({showDefault: false});  }
+  componentDidMount() {
+    if (this.didImageLoad()) {
+      this.setShowImage();
+    } else {
+      this.setShowDefault();
+    }
+  }
+  didImageLoad(){
+    // When using React Hydrate, the onLoad event of the profile image will return before
+    // react code runs, so we check after mount as well to look replace bad images, or to
+    // swap in a gravatar image that we now know is valid.
+    const img = this.imgFile.current;
+    return (img && img.complete && img.naturalWidth !== 0);
+  }
   onSelectFile(e) {
     if (e.target.files && e.target.files.length > 0) {
       if (!e.target.files[0].type.startsWith('image/')) {
