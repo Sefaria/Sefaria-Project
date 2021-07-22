@@ -8959,6 +8959,24 @@ cursor: pointer;
 .tab-view.largeTabs .tab-list .active .tab {
   border-bottom: 4px solid var(--light-grey);
 }
+@media (max-width: 540px) {
+  .profile-page .tab-view .tab .tabIcon {
+    display: none;
+  }
+  .interface-hebrew .tab-view .tab-list .justifyright {
+    margin: initial;
+  }
+  .tab-view .tab-list .justifyright {
+    margin: initial;
+  }
+  .tab-view .tab-list{
+    flex-wrap: wrap;
+  }
+  .profile-page .profile-actions .resourcesLink.profile-settings,
+  .profile-page .profile-actions .button.logoutLink{
+    display: none;
+  }
+}
 .profile-page .textRange {
   font-size: 18px;
   color: #666;
