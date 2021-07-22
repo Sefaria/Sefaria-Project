@@ -4013,7 +4013,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .saveButton img {
   height: 18px;
   width: 18px;
-  margin-top: 2px;
+  margin-top: 3px;
 }
 .rightButtons .saveButton.tooltip-toggle::before {
   top: 47px;
@@ -6420,7 +6420,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   --english-font: var(--english-serif-font-family);
   --hebrew-font: var(--hebrew-serif-font-family);
   color: var(--dark-grey);
-  font-size: 16px;
+  font-size: 18px;
   margin-top: 10px;
 }
 .notification .replyButton {
@@ -9922,6 +9922,9 @@ img.smallProfileImage {
   display: flex;
   justify-content: center;
   flex-direction: column;
+}
+.authorByLine .authorByLineText.small{
+  line-height: 18px;
 }
 .authorByLine .authorOrganization,
 .authorByLine .authorName {

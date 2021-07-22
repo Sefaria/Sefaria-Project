@@ -1285,7 +1285,7 @@ class ProfileListing extends Component {
             />
           </a>
         </div>
-        <div className="authorByLineText">
+        <div className={`authorByLineText ${smallfonts? "small" : ""}`}>
           <SimpleLinkedBlock
             classes="authorName"
             url={url}
