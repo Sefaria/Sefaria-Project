@@ -2253,6 +2253,126 @@ const SheetMetaDataBox = (props) => (
   </div>
 );
 
+const Autocompleter = ({}) => {
+  const [inputValue, setInputValue] = useState("");
+  const [currentSuggestions, setCurrentSuggestions] = useState(null);
+  const [previewText, setPreviewText] = useState(null);
+  const [helperPromptText, setHelperPromptText] = useState(null);
+
+  const getWidthOfInput = () => {
+    //Create a temporary w/ all of the same styles as the input since we can't measure the input
+    let tmp = document.createElement("div");
+    const inputEl = document.querySelector('.addInterfaceInput input');
+    const styles = window.getComputedStyle(inputEl);
+    //Reduce function required b/c cssText returns "" on Firefox
+    const cssText = Object.values(styles).reduce(
+        (css, propertyName) =>
+            `${css}${propertyName}:${styles.getPropertyValue(
+                propertyName
+            )};`
+    );
+    tmp.style.cssText = cssText
+
+    //otherwise it will always return the width of container instead of the content
+    tmp.style.removeProperty('width')
+    tmp.style.removeProperty('min-width')
+    tmp.style.removeProperty('min-inline-size')
+    tmp.style.removeProperty('inline-size')
+
+    tmp.innerHTML = inputEl.value.trim().replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    document.body.appendChild(tmp);
+    const theWidth = tmp.getBoundingClientRect().width;
+    // document.body.removeChild(tmp);
+    console.log(theWidth)
+    return theWidth;
+  }
+
+  const getSuggestions = (input) => {
+    setInputValue(input)
+    if (input == "") return
+    Sefaria.getName(input, true, 5).then(d => {
+
+      if (d.is_section || d.is_segment) {
+        setCurrentSuggestions(null)
+        setPreviewText(input)
+        return
+      }
+
+      if (d.is_book) {
+        setHelperPromptText(d.addressExamples[0])
+        document.querySelector('.addInterfaceInput input+span.helperCompletionText').style.left = `${getWidthOfInput()}px`;
+      }
+      else {
+        setHelperPromptText(null)
+      }
+
+      const inputData = {
+          addressExamples: d.addressExamples,
+          is_book: d.is_book,
+          is_ref: d.is_ref,
+          is_section: d.is_section,
+          is_segment: d.is_segment,
+      }
+      const suggestions = d.completion_objects
+          .map((suggestion, index) => ({
+            name: suggestion.title,
+            key: suggestion.key,
+            border_color: Sefaria.palette.refColor(suggestion.key)
+          })
+      )
+      setCurrentSuggestions(suggestions);
+    })
+  }
+
+  const onChange = (input) => {
+    getSuggestions(input)
+  }
+  const Suggestion = ({title, color}) => {
+    return(<div
+              className="suggestion"
+              onClick={(e)=>{
+                  e.stopPropagation()
+                  setInputValue(title)
+                  getSuggestions(title)
+                }
+              }
+           >{color} {title}</div>)
+
+  }
+  const mapSuggestions = (suggestions) => {
+    const div = suggestions.map((suggestion, index) => (
+
+        (<Suggestion
+           title={suggestion.name}
+           color={suggestion.border_color}
+           key={index}
+        />)
+
+    ))
+
+  return(div)
+  }
+
+  return(
+    <div className="addInterfaceInput" onClick={(e) => {e.stopPropagation()}}>
+      <input
+          type="text"
+          placeholder="Search for a text..."
+          className="serif"
+          onClick={(e) => {e.stopPropagation()}}
+          onChange={(e) => onChange(e.target.value)}
+          value={inputValue}
+      /><span className="helperCompletionText">{helperPromptText}</span>
+      {currentSuggestions ?
+          <div className="suggestionBox">
+            {mapSuggestions(currentSuggestions)}
+          </div>
+
+          : null
+      }
+    </div>
+    )
+}
 
 export {
   SimpleInterfaceBlock,
@@ -2309,4 +2429,5 @@ export {
   SheetAuthorStatement,
   SheetTitle,
   InterfaceLanguageMenu,
+  Autocompleter,
 };

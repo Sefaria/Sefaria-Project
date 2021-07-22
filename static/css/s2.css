@@ -8182,13 +8182,16 @@ span.purim-emoji img{
 
 .addInterfaceInput {
   pointer-events: none;
+  display: inline-block;
 }
 
 .addInterfaceInput input,
-.addInterfaceInput button {
+.addInterfaceInput button,
+.addInterfaceInput .suggestion {
   pointer-events: auto;
 }
-.addInterfaceInput button {
+.addInterfaceInput button,
+.addInterfaceInput .suggestion {
   cursor: pointer;
 }
 
@@ -8207,6 +8210,12 @@ span.purim-emoji img{
 .addInterfaceInput input::placeholder {
   font-size: 22px;
   font-style: normal;
+}
+
+.addInterfaceInput input+span.helperCompletionText {
+  position: absolute;
+  margin-left: 4px;
+  color: var(--medium-grey)
 }
 
 .editorAddInterface.active .editorAddInterfaceButton {

@@ -14,6 +14,7 @@ import {
     CollectionStatement,
     ProfilePic,
     InterfaceText,
+    Autocompleter,
 } from './Misc';
 
 import classNames from 'classnames';
@@ -640,7 +641,6 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
     const editor = useSlate();
     const [inputValue, setInputValue] = useState("");
     const [showAddMediaButton, setShowAddMediaButton] = useState(false);
-    const [shouldReset, setShouldReset] = useState(false);
 
     const isMediaLink = (url) => {
         console.log(url)
@@ -694,7 +694,6 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
                     type="text"
                     placeholder="Paste a YouTube, SoundCloud or Image link..."
                     className="serif"
-                    onBlur={(e) => {if(shouldReset) {resetInterface() }}}
                     onClick={(e)=> {e.stopPropagation()}}
                     onChange={(e) => onMediaChange(e)}
                     value={inputValue}
@@ -708,21 +707,8 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
 
     else if (inputType == "source") {
         return (
-            <div className="addInterfaceInput" onClick={(e) => {
-                e.stopPropagation()
-            }}>
-                <input
-                    type="text"
-                    placeholder="Search for a text..."
-                    className="serif"
-                    onBlur={(e) => {
-                        resetInterface()
-                    }}
-                    onClick={(e) => {
-                        e.stopPropagation()
-                    }}
-                />
-            </div>
+            <Autocompleter
+            />
         )
     }
 
