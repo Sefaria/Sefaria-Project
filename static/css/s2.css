@@ -3666,24 +3666,32 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   font-size: 22px;
 }
-.searchContent .sheetResult .result-title.in-en {
-  direction: ltr;
-  text-align: left;
+.searchContent .sheetResult .sheetData{
+  display: flex;
+  justify-content:flex-start;
+  align-items: center;
+  color: #999;
+  font-size: 13px;
+  margin: 15px 0 5px;
 }
-.searchContent .sheetResult .result-title.in-he {
-  direction: rtl;
-  text-align: right;
+.searchContent .sheetResult .ownerData{
+  display: flex;
+  justify-content:flex-start;
+  align-items: center;
+  font-size: 13px;
 }
 .searchContent .sheetResult .ownerName {
   color: #000;
+  margin-inline-start: 10px;
 }
-.readerPanel.english .searchContent .sheetResult .ownerName.in-he {
-  direction: rtl;
-  text-align: left;
+.searchContent .sheetResult .sheetData .tagsViews a:not(:last-of-type):after{
+  content: ",";
+  margin-inline-end: 4px;
 }
-.readerPanel.hebrew .searchContent .sheetResult .ownerName.in-en {
-  direction: ltr;
-  text-align: right;
+.searchContent .sheetResult .sheetData .tagsViews a:first-of-type:before{
+  content: '•';
+  margin-inline-start: 4px;
+  margin-inline-end: 4px;
 }
 .searchContent .result .result-title:hover {
   text-decoration: underline;
@@ -3728,15 +3736,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .searchContent .result .similar-trigger-box i {
   padding: 0 5px;
-}
-.searchContent .sheet_result .owner_image {
-  height: 30px;
-  width: 30px;
-  align-self: flex-start;
-}
-.searchContent .sheet_result {
-  height: auto;
-  margin: 15px 0 20px 0;
 }
 .searchContent .result + .loadingMessage {
   margin-top: 30px;

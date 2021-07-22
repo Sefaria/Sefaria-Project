@@ -5,8 +5,8 @@ import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Component      from 'react-class';
 import {
-  ColorBarBox,
-  ProfilePic,
+    ColorBarBox, InterfaceText,
+    ProfilePic,
 } from './Misc';
 
 
@@ -38,6 +38,7 @@ class SearchSheetResult extends Component {
         const snippetClasses = classNames({snippet: 1, en: snippetMarkup.lang == "en", he: snippetMarkup.lang == "he"});
         const ownerIsHe = Sefaria.hebrew.isHebrew(s.owner_name);
         const titleIsHe = Sefaria.hebrew.isHebrew(clean_title);
+        const tags = s.tags && s.tags.length ? Sefaria.util.zip(s.tags, s.topic_slugs, s.topics_he) : [];
         return (
             <div className='result sheetResult'>
                 <a href={href} onClick={this.handleSheetClick}>
@@ -46,22 +47,25 @@ class SearchSheetResult extends Component {
                       <div className={snippetClasses} dangerouslySetInnerHTML={snippetMarkup.markup}></div>
                     </ColorBarBox>
                 </a>
-              <a href={s.profile_url} onClick={this.handleProfileClick}>
-                <div className="version">
-                  <ProfilePic
-                    url={s.owner_image}
-                    name={s.owner_name}
-                    len={30}
-                  />
-                  <span className="ownerMetadata sans-serif">
-                    <span className={classNames({'ownerName': 1, 'in-en': !ownerIsHe, 'in-he': ownerIsHe})}>{s.owner_name}</span>
+                <div className="sheetData sans-serif">
+                    <a className="ownerData sans-serif" href={s.profile_url} onClick={this.handleProfileClick}>
+                        <ProfilePic
+                            url={s.owner_image}
+                            name={s.owner_name}
+                            len={30}
+                        />
+                        <span className={classNames({'ownerName': 1, 'in-en': !ownerIsHe, 'in-he': ownerIsHe})}>{s.owner_name}</span>
+                    </a>
                     <span className='tagsViews'>
-                      <span className='int-en'>{`${(!!s.tags && s.tags.length) ? ' • ' : ''}${!!s.tags ? s.tags.join(', ') : ''}`}</span>
-                      <span className='int-he'>{`${(!!s.tags && s.tags.length) ? ' • ' : ''}${!!s.tags ? s.tags.map( t => !!Sefaria.terms[t] ? Sefaria.terms[t].he : t).join(', ') : ''}`}</span>
+                    {tags.map((topic, i) => {
+                        return (
+                          <a href={`/topics/${topic[1]}`} target="_blank">
+                              <InterfaceText text={{en: topic[0], he: topic[2]}} />
+                          </a>
+                        );
+                      })}
                     </span>
-                  </span>
                 </div>
-              </a>
             </div>
         );
     }
