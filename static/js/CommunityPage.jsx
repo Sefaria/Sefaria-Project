@@ -58,7 +58,7 @@ const CommunityPage = ({multiPanel, toggleSignUpModal, initialWidth}) => {
 
             {featuredContent}
             
-            <RecenltyPublished multiPanel={multiPanel} toggleSignUpModal={toggleSignUpModal} />
+            <RecentlyPublished multiPanel={multiPanel} toggleSignUpModal={toggleSignUpModal} />
 
           </div>
           <NavSidebar modules={sidebarModules} />
@@ -73,7 +73,7 @@ CommunityPage.propTypes = {
 };
 
 
-const RecenltyPublished = ({multiPanel, toggleSignUpModal}) => {
+const RecentlyPublished = ({multiPanel, toggleSignUpModal}) => {
   const options = Sefaria.interfaceLang === "hebrew" ? {"lang": "hebrew"} : {};
   const pageSize = 18;
   const [nSheetsLoaded, setNSheetsLoded] = useState(0); // counting sheets loaded from the API, may be different than sheets displayed
@@ -108,7 +108,7 @@ const RecenltyPublished = ({multiPanel, toggleSignUpModal}) => {
     recentSheetsContent.splice(6, 0, joinTheConversation);
     recentSheetsContent.push(
       <a className="button small white loadMore" onClick={loadMore}>
-        <InterfaceText context="RecenltyPublished">Load More</InterfaceText>
+        <InterfaceText context="RecentlyPublished">Load More</InterfaceText>
       </a>
     );
   }
