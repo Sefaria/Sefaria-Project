@@ -2,7 +2,6 @@ import django
 django.setup()
 from sefaria.model.webpage import *
 import cProfile, pstats
-import json
 
 def run_job(test=True):
 	sites_that_may_have_removed_linker_days = 20  # num of days we care about in find_sites_that_may_have_removed_linker and find_webpages_without_websites
@@ -32,13 +31,16 @@ def run_job(test=True):
 	print("{} total pages.  Deleted {}.\n".format(after_total_pages, total_pages-after_total_pages))
 	print("{} total connections.  Deleted {}.\n".format(after_total_pages, total_links-after_total_links))
 
-get_webpages_for_ref("Genesis 1:1")
+
+def profile_job():
+	profiler = cProfile.Profile()
+	profiler.enable()
+	run_job(False)
+	profiler.disable()
+	stats = pstats.Stats(profiler).sort_stats('cumtime')
+	stats.print_stats()
 
 
-profiler = cProfile.Profile()
-profiler.enable()
-run_job(False)
-profiler.disable()
-stats = pstats.Stats(profiler).sort_stats('cumtime')
-stats.print_stats()
 
+if __name__ == "__main__":
+	run_job(False)

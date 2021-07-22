@@ -271,23 +271,26 @@ def get_webpages_for_ref(tref):
         # If documents are too large or there are too many results, fail gracefully
         logger.warn(f"WebPageSet for ref {tref} failed due to Error: {repr(e)}")
         return []
-    client_results = []
-    duplicates = set()
+    webpage_objs = {}      # webpage_obj is an actual WebPage()
+    webpage_results = {}  # webpage_results is dictionary that API returns
+    
     for webpage in results:
         if not webpage.whitelisted or len(webpage.title) == 0:
             continue
+          
         webpage_key = webpage.title+"|".join(sorted(webpage.refs))+getattr(webpage, "description", "")
-        if webpage_key not in duplicates:  # we don't want to return a webpage that has the same title, refs, and description as another page
-            duplicates.add(webpage_key)
+        prev_webpage_obj = webpage_objs.get(webpage_key, None)
+        if prev_webpage_obj is None or prev_webpage_obj.lastUpdated < webpage.lastUpdated:
             anchor_ref_list, anchor_ref_expanded_list = oref.get_all_anchor_refs(segment_refs, webpage.refs,
                                                                                  webpage.expandedRefs)
             for anchor_ref, anchor_ref_expanded in zip(anchor_ref_list, anchor_ref_expanded_list):
                 webpage_contents = webpage.client_contents()
                 webpage_contents["anchorRef"] = anchor_ref.normal()
                 webpage_contents["anchorRefExpanded"] = [r.normal() for r in anchor_ref_expanded]
-                client_results.append(webpage_contents)
+                webpage_objs[webpage_key] = webpage
+                webpage_results[webpage_key] = webpage_contents
 
-    return client_results
+    return list(webpage_results.values())
 
 
 def test_normalization():
