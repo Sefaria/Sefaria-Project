@@ -85,7 +85,7 @@ class Header extends Component {
 
         <div className="mobileHeaderCenter">
           { Sefaria._siteSettings.TORAH_SPECIFIC ?
-          <a className="home" onClick={this.props.onMobileMenuButtonClick} href="/" >{logo}</a> : null }
+          <a className="home" onClick={this.props.mobileNavMenuOpen ? this.props.onMobileMenuButtonClick : null} href="/texts" >{logo}</a> : null }
         </div>
 
         {this.props.hasLanguageToggle ?
