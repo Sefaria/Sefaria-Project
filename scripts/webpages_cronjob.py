@@ -23,13 +23,13 @@ def run_job(test=True):
 	find_webpages_without_websites(test=test, hit_threshold=50, last_linker_activity_day=webpages_without_websites_days)
 
 
-	flag = 150
+	flag = 500
 	print("Looking for websites where the same Ref appears in at least {} pages...".format(flag))
 	find_sites_to_be_excluded(flag=flag)
 
 	after_total_pages, after_total_links = webpages_stats()
 	print("{} total pages.  Deleted {}.\n".format(after_total_pages, total_pages-after_total_pages))
-	print("{} total connections.  Deleted {}.\n".format(after_total_pages, total_links-after_total_links))
+	print("{} total connections.  Deleted {}.\n".format(after_total_links, total_links-after_total_links))
 
 
 def profile_job():

@@ -446,7 +446,7 @@ def find_webpages_without_websites(test=True, hit_threshold=50, last_linker_acti
     from datetime import datetime, timedelta
     webpages = WebPageSet()
     new_active_sites = Counter()   # WebSites we don't yet have in DB, but we have corresponding WebPages accessed recently
-    unactive_unacknowledged_sites = {}  # WebSites we don't yet have in DB, and we even have correpsonding WebPages but they have not been accessed recently
+    unactive_unacknowledged_sites = {}  # WebSites we don't yet have in DB, and we have correpsonding WebPages but they have not been accessed recently
     last_active_threshold = datetime.today() - timedelta(days=last_linker_activity_day)
 
     for i, webpage in enumerate(webpages):
@@ -454,7 +454,7 @@ def find_webpages_without_websites(test=True, hit_threshold=50, last_linker_acti
             print(i)
         updated_recently = webpage.lastUpdated > last_active_threshold
         website = webpage.get_website(dict_only=True)
-        if website == {}:
+        if website == {} and len(webpage.domain.strip()) > 0:
             if updated_recently:
                 new_active_sites[webpage.domain] += 1
             else:
