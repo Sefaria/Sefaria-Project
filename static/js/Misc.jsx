@@ -1262,7 +1262,7 @@ class FollowButton extends Component {
       smallText: true,
     });
     const buttonText = this.state.following ? this.state.hovering ? "Unfollow":"Following":"Follow";
-    return ( 
+    return (
       <div className={classes} onMouseEnter={this.onMouseEnter} onMouseLeave={this.onMouseLeave} onClick={this.onClick}>
         <InterfaceText context={"FollowButton"}>{buttonText}</InterfaceText>
       </div>
@@ -1324,7 +1324,7 @@ class ProfileListing extends Component {
             en={name}
             he={name}
           >
-            <FollowButton 
+            <FollowButton
               large={false}
               uid={uid}
               following={is_followed}
@@ -1410,7 +1410,7 @@ const SheetListing = ({
     </>
   );
 
-  const sheetSummary = showSheetSummary && sheet.summary? 
+  const sheetSummary = showSheetSummary && sheet.summary?
   <SimpleInterfaceBlock classes={"smallText sheetSummary"} en={sheet.summary} he={sheet.sheet_summary}/>:null;
 
   const sheetInfo = hideAuthor ? null :
@@ -2282,7 +2282,7 @@ const Autocompleter = ({}) => {
     tmp.innerHTML = inputEl.value.trim().replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     document.body.appendChild(tmp);
     const theWidth = tmp.getBoundingClientRect().width;
-    // document.body.removeChild(tmp);
+    document.body.removeChild(tmp);
     console.log(theWidth)
     return theWidth;
   }
@@ -2295,10 +2295,12 @@ const Autocompleter = ({}) => {
       if (d.is_section || d.is_segment) {
         setCurrentSuggestions(null)
         setPreviewText(input)
+        setHelperPromptText(null)
         return
       }
 
-      if (d.is_book) {
+      //We want to show address completions when book exists but not once we start typing further
+      if (d.is_book && isNaN(input.trim().slice(-1))) {
         setHelperPromptText(d.addressExamples[0])
         document.querySelector('.addInterfaceInput input+span.helperCompletionText').style.left = `${getWidthOfInput()}px`;
       }
@@ -2336,7 +2338,8 @@ const Autocompleter = ({}) => {
                   getSuggestions(title)
                 }
               }
-           >{color} {title}</div>)
+              style={{"borderInlineStartColor": color}}
+           >{title}</div>)
 
   }
   const mapSuggestions = (suggestions) => {
