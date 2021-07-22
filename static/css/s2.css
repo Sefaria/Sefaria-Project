@@ -896,9 +896,6 @@ div.interfaceLinks-row a {
   .header .headerInner {
     padding: 0 15px;
   }
-  .header .login.loginLink {
-    display: none;
-  }
   .header .accountLinks .login {
     padding: 5px 5px;
   }
