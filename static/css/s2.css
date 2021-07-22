@@ -7871,9 +7871,6 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .dropdown .dropdownList .dropdownOption.selected {
   color: var(--selected-option);
 }
-.downloadTextModule .dropdown .dropdownMain{
-  box-shadow: none;
-}
 .addToSourceSheetBox .dropdownMain.noselect {
   display: flex;
   justify-content: space-between;
