@@ -126,6 +126,14 @@ const LoadingRing = () => (
   <div className="lds-ring"><div></div><div></div><div></div><div></div></div>
 );
 
+const DonateLink = ({children, classes}) => {
+  const url = Sefaria._v({en: "https://sefaria.nationbuilder.com/supportsefaria", he: "https://sefaria.nationbuilder.com/supportsefaria_il"});
+  return (
+      <a href={url} className={classes} target="_blank">
+        {children}
+      </a>
+  );
+};
 
 /* flexible profile picture that overrides the default image of gravatar with text with the user's initials */
 class ProfilePic extends Component {
@@ -2387,4 +2395,5 @@ export {
   SheetAuthorStatement,
   SheetTitle,
   InterfaceLanguageMenu,
+  DonateLink,
 };

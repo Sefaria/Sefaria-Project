@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Sefaria  from './sefaria/sefaria';
-import {EnglishText, HebrewText, NewsletterSignUpForm} from './Misc'
+import {DonateLink, EnglishText, HebrewText, NewsletterSignUpForm} from './Misc'
 import {InterfaceText, ProfileListing, Dropdown} from './Misc';
 
 const NavSidebar = ({modules}) => {
@@ -133,10 +133,10 @@ const SupportSefaria = ({blue}) => (
     <ModuleTitle>Support Sefaria</ModuleTitle>
     <InterfaceText>Sefaria is an open source, non-profit project. Support us by making a tax-deductible donation.</InterfaceText>
     <br />
-    <a className={"button small" + (blue ? " white" : "")} href="https://sefaria.nationbuilder.com/supportsefaria" target="_blank">
+    <DonateLink classes={"button small" + (blue ? " white" : "")}>
       <img src="/static/img/heart.png" alt="donation icon" />
       <InterfaceText>Make a Donation</InterfaceText>
-    </a>
+    </DonateLink>
   </Module>
 );
 

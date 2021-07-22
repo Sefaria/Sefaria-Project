@@ -2,7 +2,7 @@ import React  from 'react';
 import Sefaria  from './sefaria/sefaria';
 import PropTypes from'prop-types';
 import $  from './sefaria/sefariaJquery';
-import { InterfaceText, NewsletterSignUpForm } from './Misc';
+import { InterfaceText, NewsletterSignUpForm, DonateLink } from './Misc';
 import Component from 'react-class';
 
 const Section = ({en, he, children}) => (
@@ -71,7 +71,7 @@ class Footer extends Component {
             </Section>
 
             <Section en="Join Us" he="הצטרפו אלינו">
-                <Link href="https://sefaria.nationbuilder.com/supportsefaria" en="Donate" he="תרומות" />
+                <DonateLink><InterfaceText text={{en:"Donate", he:"תרומות"}}/></DonateLink>
                 <Link href="/ways-to-give" en="Ways to Give" he="אפשרויות תרומה" />
                 <Link href="/supporters" en="Supporters" he="תומכים" />
                 <Link href="/jobs" en="Jobs" he="דרושים" />
