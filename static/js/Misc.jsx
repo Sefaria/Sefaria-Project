@@ -448,7 +448,7 @@ const FilterableList = ({
               />
               <DropdownOptionList
                 isOpen={displaySort}
-                options={sortOptions.map(option => ({type: option, name: option, heName: Sefaria._(option)}))}
+                options={sortOptions.map(option => ({type: option, name: option, heName: Sefaria._(option, "FilterableList")}))}
                 currOptionSelected={sortOption}
                 handleClick={onSortChange}
               />
@@ -479,7 +479,7 @@ const FilterableList = ({
                 className={classNames({'sans-serif': 1, 'sort-option': 1, noselect: 1, active: sortOption === option})}
                 onClick={() => onSortChange(option)}
               >
-                <InterfaceText context="FilterSort">{option}</InterfaceText>
+                <InterfaceText context="FilterableList">{option}</InterfaceText>
               </span>
             ))}
           </div>
