@@ -67,7 +67,7 @@ class Hebrew {
   static encodeHebrewFolio(daf) {
     const n = parseInt(daf.slice(0,-1));
     let a = {a: "א", b: "ב", c: "ג", d: "ד"}[daf.slice(-1)];
-    return this.encodeHebrewNumeral(n) + " " + a;
+    return this.encodeHebrewNumeral(n) + "," + a;
   }
   static getNikkudRegex(rawString) {
     // given a Hebrew string, return regex that allows for arbitrary nikkud in between letters
