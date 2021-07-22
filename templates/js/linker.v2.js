@@ -430,13 +430,17 @@
     // Private API
     ns._getRegexesThenTexts = function(mode) {
         // Get regexes for each of the titles
-        atomic.get(base_url + "api/regexs/" + ns.matchedTitles.join("|") + '?' + 'parentheses='+(0+ns.parenthesesOnly))
+        atomic.get(base_url + "api/linker-data/" + ns.matchedTitles.join("|") + '?' + 'parentheses='+(0+ns.parenthesesOnly) + '&url='+document.location.href)
             .success(function (data, xhr) {
                 if ("error" in data) {
                     console.log(data["error"]);
                     delete data.error;
                 }
-                ns.regexes = data;
+                ns.regexes = data["regexes"];
+                if (ns.excludeFromTracking && ns.excludeFromTracking.length > 0 && data["exclude_from_tracking"].length > 0) {
+                    // append our exclusions to site's own exclusions
+                    ns.excludeFromTracking = data["exclude_from_tracking"] + ", " + ns.excludeFromTracking;
+                }
                 ns._wrapMatches();
                 ns._trackPage();
 
