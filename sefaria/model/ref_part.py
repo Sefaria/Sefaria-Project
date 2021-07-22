@@ -19,6 +19,7 @@ class RefPartType(Enum):
     NUMBERED = "numbered"
     DH = "dibur_hamatchil"
     RANGE_SYMBOL = "range_symbol"
+    RANGE = "range"
 
     @classmethod
     def span_label_to_enum(cls, span_label: str) -> 'RefPartType':
@@ -74,11 +75,15 @@ class RawRefPart:
 
     text = property(get_text)
 
-class RangedRawRefParts:
+class RangedRawRefParts(RawRefPart):
     """
     Container for ref parts that represent the sections and toSections of a ranged ref
     """
     def __init__(self, sections: List['RawRefPart'], toSections: List['RawRefPart']):
+        start_part = sections[0]
+        end_part = toSections[-1]
+        # TODO calculate overarching span that covers sections and toSections
+        super().__init__(RefPartType.RANGE, None)
         self.sections = sections
         self.toSections = toSections
 
