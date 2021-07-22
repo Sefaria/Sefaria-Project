@@ -6298,7 +6298,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: flex;
 }
 .profile-page .profile-pic .profile-pic-button {
-  position: absolute;
+  position: relative;
+  top: calc(-1 * ((175px/2) + (46px/2)));  /* height of .profile-img + height of .profile-pic-button */
 }
 .profile-pic-cropper-modal {
   max-width: unset !important;
@@ -9315,6 +9316,9 @@ cursor: pointer;
 @media (max-width: 540px) {
   .profile-page .profile-pic:hover .profile-pic-hover-button.profile-pic-button-visible {
     display: none !important;  /* dont allow profile pic upload on mobile b/c causes black image on iOS */
+  }
+  .profile-page .profile-pic .profile-pic-button {
+    top: calc(-1 * ((87px/2) + (46px/2)));  /* height of .profile-img + height of .profile-pic-button */
   }
   .profile-page .editorToggleHeader {
     display: none !important;

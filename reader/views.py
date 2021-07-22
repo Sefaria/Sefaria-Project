@@ -379,7 +379,7 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
             if oref.index.categories == ["Tanakh", "Torah"]:
                 panel["indexDetails"] = oref.index.contents(v2=True) # Included for Torah Parashah titles rendered in text
 
-            if oref.is_segment_level(): # Note: a ranging or spanning ref like "Genesis 1:2-3:4" is considered segment level
+            if oref.is_segment_level() or oref.is_range(): # we don't want to highlight "Genesis 3" but we do want "Genesis 3:4" and "Genesis 3-5"
                 panel["highlightedRefs"] = [subref.normal() for subref in oref.range_list()]
 
     return panel

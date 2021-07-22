@@ -29,6 +29,7 @@ from .schema import deserialize_tree, SchemaNode, VirtualNode, DictionaryNode, J
 from sefaria.system.database import db
 
 import sefaria.system.cache as scache
+from sefaria.system.cache import in_memory_cache
 from sefaria.system.exceptions import InputError, BookNameError, PartialRefInputError, IndexSchemaError, \
     NoVersionFoundError, DictionaryEntryNotFoundError
 from sefaria.utils.hebrew import is_hebrew, hebrew_term
@@ -4647,6 +4648,7 @@ class Library(object):
         self._title_regex_strings = {}
         self._title_regexes = {}
         Ref.clear_cache()
+        in_memory_cache.reset_all()
         if include_toc:
             self.rebuild_toc()
 
