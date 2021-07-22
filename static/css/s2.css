@@ -1407,7 +1407,7 @@ div.interfaceLinks-row a {
   max-width: 100%;
   box-sizing: border-box;
   padding-bottom: 70px;
-  padding-inline-start: 15px;
+  padding-inline-start: 30px;
   padding-inline-end: 30px;
 }
 .homeFeedWrapper .content .contentInner {
@@ -1818,7 +1818,7 @@ div.interfaceLinks-row a {
   }
 }
 .topicPanel .sideColumn {
-  padding: 0 50px;
+  width: 420px;
   background-color: #FBFBFA;
   /* HACK: add grey background beyond bounding box of sidebar by utilizing negative margins! */
   border-top: 80px solid #FBFBFA;
@@ -1839,6 +1839,9 @@ div.interfaceLinks-row a {
   padding-bottom: 10px;
   margin-top: 30px;
   margin-bottom: 10px;
+}
+.topicPanel .sideColumn .link-section{
+  padding: 0 44px;
 }
 .topicPanel .sideColumn .link-section:first-child h2 {
   margin-top: 0;
@@ -9583,12 +9586,6 @@ body .homeFeedWrapper .content {
 .columnLayout {
   display: flex;
   flex-direction: row;
-}
-.sideColumn {
-  flex: 0 0 320px;
-  max-width: 40%;
-  background-color: #FBFBFA;
-  padding: 60px 50px;
 }
 @media (max-width: 540px) {
   .topicPanel .columnLayout {
