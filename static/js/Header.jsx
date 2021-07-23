@@ -51,7 +51,7 @@ class Header extends Component {
           <a href="/texts" className="textLink"><InterfaceText context="Header">Texts</InterfaceText></a>
           <a href="/topics" className="textLink"><InterfaceText>Topics</InterfaceText></a>
           <a href="/community" className="textLink"><InterfaceText>Community</InterfaceText></a>
-          <DonateLink classes={"textLink donate"} source={"Header"}><InterfaceText>Donate</InterfaceText></DonateLink>
+          <DonateLink classes={"textLink donate"} link={"header"} source={"Header"}><InterfaceText>Donate</InterfaceText></DonateLink>
         </div>
 
         <div className="headerLinksSection">
@@ -518,7 +518,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
         <LoggedOutButtons mobile={true} loginOnly={true}/> }
 
       </div>
-      <DonateLink classes={"blue"}>
+      <DonateLink classes={"blue"} source="MobileNavMenu" link={"header"}>
         <img src="/static/img/heart.png" alt="donation icon" />
         <InterfaceText>Donate</InterfaceText>
       </DonateLink>

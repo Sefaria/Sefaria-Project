@@ -71,7 +71,7 @@ class Footer extends Component {
             </Section>
 
             <Section en="Join Us" he="הצטרפו אלינו">
-                <DonateLink><InterfaceText text={{en:"Donate", he:"תרומות"}}/></DonateLink>
+                <DonateLink source={"Footer"}><InterfaceText text={{en:"Donate", he:"תרומות"}}/></DonateLink>
                 <Link href="/ways-to-give" en="Ways to Give" he="אפשרויות תרומה" />
                 <Link href="/supporters" en="Supporters" he="תומכים" />
                 <Link href="/jobs" en="Jobs" he="דרושים" />

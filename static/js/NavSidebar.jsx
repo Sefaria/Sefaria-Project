@@ -133,7 +133,7 @@ const SupportSefaria = ({blue}) => (
     <ModuleTitle>Support Sefaria</ModuleTitle>
     <InterfaceText>Sefaria is an open source, non-profit project. Support us by making a tax-deductible donation.</InterfaceText>
     <br />
-    <DonateLink classes={"button small" + (blue ? " white" : "")}>
+    <DonateLink classes={"button small" + (blue ? " white" : "")} source={"NavSidebar / SupportSefaria"}>
       <img src="/static/img/heart.png" alt="donation icon" />
       <InterfaceText>Make a Donation</InterfaceText>
     </DonateLink>
@@ -146,10 +146,10 @@ const SponsorADay = () => (
     <ModuleTitle>Sponsor A Day of Learning</ModuleTitle>
     <InterfaceText>With your help, we can add more texts and translations to the library, develop new tools for learning, and keep Sefaria accessible for Torah study anytime, anywhere.</InterfaceText>
     <br />
-    <a className="button small" href="https://sefaria.nationbuilder.com/sponsor" target="_blank">
+    <DonateLink classes={"button small"} link={"sponsor"} source={"NavSidebar / SponsorADay"}>
       <img src="/static/img/heart.png" alt="donation icon" />
       <InterfaceText>Sponsor A Day</InterfaceText>
-    </a>
+    </DonateLink>
   </Module>
 );
 

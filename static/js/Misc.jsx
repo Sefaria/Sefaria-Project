@@ -126,15 +126,31 @@ const LoadingRing = () => (
   <div className="lds-ring"><div></div><div></div><div></div><div></div></div>
 );
 
-const DonateLink = ({children, classes, source}) => {
-  const links = source === "Header" ?
-                {en: "https://sefaria.nationbuilder.com/supportsefaria_w", he: "https://sefaria.nationbuilder.com/supportsefaria_il_w"}
-                : {en: "https://sefaria.nationbuilder.com/supportsefaria", he: "https://sefaria.nationbuilder.com/supportsefaria_il"}
-  const url = Sefaria._v(links);
+const DonateLink = ({children, classes, source, link}) => {
+  link = link || "default";
+  const linkOptions = {
+    default: {
+      en: "https://sefaria.nationbuilder.com/supportsefaria",
+      he: "https://sefaria.nationbuilder.com/supportsefaria_il"
+    },
+    header: {
+      en: "https://sefaria.nationbuilder.com/supportsefaria_w",
+      he: "https://sefaria.nationbuilder.com/supportsefaria_il_w"
+    },
+    sponsor: {
+      en: "https://sefaria.nationbuilder.com/sponsor",
+      he: "https://sefaria.nationbuilder.com/sponsor",
+    }
+  };
+  const url = Sefaria._v(linkOptions[link]);
+  const trackClick = () => {
+    Sefaria.track.event("Donations", "Donation Click", source);
+  };
+
   return (
-      <a href={url} className={classes} target="_blank">
-        {children}
-      </a>
+    <a href={url} className={classes} target="_blank" onClick={trackClick}>
+      {children}
+    </a>
   );
 };
 
