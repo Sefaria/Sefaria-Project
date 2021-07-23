@@ -641,7 +641,7 @@ const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowi
             />
             <a href="#" className="resourcesLink sans-serif" onClick={message}>
               <span className="int-en">Message</span>
-              <span className="int-he">שלח הודעה</span>
+              <span className="int-he">שליחת הודעה</span>
             </a>
           </div>)
         }
