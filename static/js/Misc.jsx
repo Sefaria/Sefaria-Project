@@ -1378,7 +1378,7 @@ const SheetListing = ({
   );
 
   const sheetSummary = showSheetSummary && sheet.summary? 
-  <SimpleInterfaceBlock classes={"smallText sheetSummary"} en={sheet.summary} he={sheet.sheet_summary}/>:null;
+  <DangerousInterfaceBlock classes={"smallText sheetSummary"} en={sheet.summary} he={sheet.sheet_summary}/>:null;
 
   const sheetInfo = hideAuthor ? null :
       <div className="sheetInfo">
