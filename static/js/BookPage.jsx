@@ -572,7 +572,7 @@ class SchemaNode extends Component {
           // SchemaNode title that points straight to content
           path = this.props.refPath + ", " + node.title;
           return (
-            <a className="schema-node-toc linked" href={Sefaria.normRef(path)} data-ref={path} key={i}>
+            <a className="schema-node-toc linked" href={"/" + Sefaria.normRef(path)} data-ref={path} key={i}>
               <span className="schema-node-title" role="heading" aria-level="3">
                 <ContentText text={{en:node.title , he:node.heTitle }}/>
               </span>
@@ -735,7 +735,7 @@ class JaggedArrayNodeSection extends Component {
         }
       let ref  = (this.props.refPath + ":" + section).replace(":", " ") + this.refPathTerminal(contentCounts[i]);
       let link = (
-        <a className="sectionLink" href={Sefaria.normRef(ref)} data-ref={ref} key={i}>
+        <a className="sectionLink" href={"/" + Sefaria.normRef(ref)} data-ref={ref} key={i}>
           <ContentText text={{en:section, he:heSection}}/>
         </a>
       );
@@ -782,7 +782,7 @@ class ArrayMapNode extends Component {
           heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
         }
         return (
-          <a className="sectionLink" href={Sefaria.normRef(ref)} data-ref={ref} key={i}>
+          <a className="sectionLink" href={"/" + Sefaria.normRef(ref)} data-ref={ref} key={i}>
             <ContentText text={{en:section, he:heSection}}/>
           </a>
         );
@@ -792,7 +792,7 @@ class ArrayMapNode extends Component {
 
     } else {
       return (
-        <a className="schema-node-toc linked" href={Sefaria.normRef(this.props.schema.wholeRef)} data-ref={this.props.schema.wholeRef}>
+        <a className="schema-node-toc linked" href={"/" + Sefaria.normRef(this.props.schema.wholeRef)} data-ref={this.props.schema.wholeRef}>
           <span className="schema-node-title" role="heading" aria-level="3">
             <ContentText text={{en:this.props.schema.title, he:this.props.schema.heTitle}}/>
           </span>
@@ -812,7 +812,7 @@ class DictionaryNode extends Component {
       let letter = m[0];
       let ref = m[1];
       return (
-          <a className="sectionLink" href={Sefaria.normRef(ref)} data-ref={ref} key={i}>
+          <a className="sectionLink" href={"/" + Sefaria.normRef(ref)} data-ref={ref} key={i}>
             <ContentText text={{en:letter, he:letter}} />
           </a>
         );
@@ -832,23 +832,6 @@ class DictionaryNode extends Component {
 }
 DictionaryNode.propTypes = {
   schema:      PropTypes.object.isRequired
-};
-
-class CommentatorList extends Component {
-  render() {
-    let content = this.props.commentatorList.map(function(commentator, i) {
-      let ref = commentator.refs_to_base_texts[this.props.title];
-      return (<a className="refLink linked" href={Sefaria.normRef(ref)} data-ref={ref} key={i}>
-                <ContentText text={{en:commentator.collectiveTitle, he:commentator.heCollectiveTitle}}/>
-            </a>);
-    }.bind(this));
-
-    return (<NBox n={2} content={content} />);
-  }
-}
-CommentatorList.propTypes = {
-  commentatorList: PropTypes.array.isRequired,
-  title:           PropTypes.string.isRequired,
 };
 
 

@@ -197,7 +197,6 @@ class SefariaTest(AbstractTest):
         time.sleep(.5)    # Takes some time to reload, and not sure what next page is
         return self
 
-
     def back(self):
         # These may not work as expected...
         self.driver.back()
@@ -294,7 +293,6 @@ class SefariaTest(AbstractTest):
             pass
 
     def catch_js_error(self):
-
         error_strings = [
             "RangeError",
             "ReferenceError",
@@ -327,7 +325,7 @@ class SefariaTest(AbstractTest):
     def _login(self, user, password):
         if self.is_logged_in():
             return self
-        self.nav_to_login()
+        self.load_url("/login", "#id_email")
         try:
             elem = self.driver.find_element_by_css_selector("#id_email")
             elem.send_keys(user)
@@ -373,6 +371,9 @@ class SefariaTest(AbstractTest):
         return self
 
     def _nav_to_login_desktop(self):
+        # Broken - I believe because the Selenium window is relatively narrow, which causes us to hide
+        # the login button in the header (Sign up button remains visible). 
+        # Using self.load_url("/login", "#id_email") because tests all the same... - BLL 7/22/21
         el = self.driver.find_element_by_css_selector('.accountLinks .loginLink')
         el.click()
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#id_email")))
@@ -415,31 +416,39 @@ class SefariaTest(AbstractTest):
                 break
 
         try:
-            self.driver.find_element_by_css_selector('.headerNavSection .library, .readerNavMenuMenuButton').click()
+            self.driver.find_element_by_css_selector('.header .home, .readerNavMenuMenuButton').click()
         except NoSuchElementException:
             try:
                 # Mobile browsers could be in a state where a window needs to be closed.
                 self.driver.find_element_by_css_selector('.readerNavMenuCloseButton').click()
-                self.driver.find_element_by_css_selector('.headerNavSection .library, .readerNavMenuMenuButton').click()
+                self.driver.find_element_by_css_selector('.header .home').click()
             except NoSuchElementException:
                 # Mobile browsers could be in a state where commentary panel is open
                 self.driver.find_element_by_css_selector('.segment').click()
-                self.driver.find_element_by_css_selector('.headerNavSection .library, .readerNavMenuMenuButton').click()
+                self.driver.find_element_by_css_selector('.header .home').click()
 
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".readerNavCategory")))
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".navBlockTitle")))
         return self
 
     def nav_to_history(self):
-        self.nav_to_toc()
+        self.login_user()
+        try:
+            el = self.driver.find_element_by_css_selector('a[href="/texts/saved"]')
+        except NoSuchElementException:
+            #Mobile
+            self.open_mobile_navigation_menu()
+            el = self.driver.find_element_by_css_selector('a[href="/texts/saved"]')
+        el.click()
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "h1")))
         el = self.driver.find_element_by_css_selector('a[href="/texts/history"]')
         el.click()
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".recentItem")))
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".storyTitle")))
         return self
 
     def load_toc(self, my_temper=None):
         my_temper = my_temper or TEMPER  # This is used at startup, which can be sluggish on iPhone.
         self.driver.get(urllib.parse.urljoin(self.base_url, "/texts"))
-        WebDriverWait(self.driver, my_temper).until(element_to_be_clickable((By.CSS_SELECTOR, ".readerNavCategory")))
+        WebDriverWait(self.driver, my_temper).until(element_to_be_clickable((By.CSS_SELECTOR, ".navBlockTitle")))
         self.set_modal_cookie()
         return self
 
@@ -448,10 +457,10 @@ class SefariaTest(AbstractTest):
 
         # These CSS selectors could fail if the category is a substring of another possible category
         WebDriverWait(self.driver, TEMPER).until(
-            presence_of_element_located((By.CSS_SELECTOR,'.readerNavCategory[data-cat*="{}"], .catLink[data-cats*="{}"]'.format(category_name, category_name)))
+            presence_of_element_located((By.CSS_SELECTOR,'.navBlockTitle[data-cat*="{}"]'.format(category_name)))
         )
-        self.scroll_to_css_selector_and_click('.readerNavCategory[data-cat*="{}"], .catLink[data-cats*="{}"]'.format(category_name, category_name))
-        elem = self.driver.find_element_by_css_selector("h1 > span.en, h2 > span.en")
+        self.scroll_to_css_selector_and_click('.navBlockTitle[data-cat*="{}"]'.format(category_name))
+        elem = self.driver.find_element_by_css_selector("h1 > span.en")
         if category_name == "Talmud":
             category_name = "Talmud Bavli"
         assert elem.get_attribute('innerHTML') == category_name, f"elem innerHTML == {elem.get_attribute('innerHTML')} != {category_name}"  # use get_attribute in case element is visible due to hebrew interface
@@ -459,7 +468,7 @@ class SefariaTest(AbstractTest):
 
     def click_toc_text(self, text_name):
         # Assume that text link is already present on screen (or soon will be)
-        selector = '.refLink[data-ref^="{}"]'.format(text_name)
+        selector = '.navBlockTitle[href="/{}"]'.format(Ref(text_name).url())
         WebDriverWait(self.driver, TEMPER).until(
             presence_of_element_located((By.CSS_SELECTOR, selector))
         )
@@ -470,16 +479,16 @@ class SefariaTest(AbstractTest):
         p1.click()
 
         WebDriverWait(self.driver, TEMPER).until(
-            element_to_be_clickable((By.CSS_SELECTOR, '.segment'))
+            element_to_be_clickable((By.CSS_SELECTOR, '.tocContent'))
         )
         return self
 
-    def click_toc_recent(self, tref):
+    def click_history_item(self, tref):
         # Assume that text link is already present on screen (or soon will be)
         WebDriverWait(self.driver, TEMPER).until(
-            element_to_be_clickable((By.CSS_SELECTOR, '.recentItem[data-ref="{}"]'.format(tref)))
+            element_to_be_clickable((By.CSS_SELECTOR, '.savedHistoryList a[href="/{}"]'.format(Ref(tref).url())))
         )
-        recent = self.driver.find_element_by_css_selector('.recentItem[data-ref="{}"]'.format(tref))
+        recent = self.driver.find_element_by_css_selector('.savedHistoryList a[href="/{}"]'.format(Ref(tref).url()))
         recent.click()
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, '.segment')))
 
@@ -498,60 +507,6 @@ class SefariaTest(AbstractTest):
         )
         ttl = self.driver.find_element_by_css_selector(chapter_selector)
         ttl.click()
-
-    def click_sefaria(self):
-        time.sleep(.5)
-        sefaria_img_selector = '#s2 > div > div.header > div > div.headerHomeSection > a > img'
-        WebDriverWait(self.driver, TEMPER).until(
-            element_to_be_clickable((By.CSS_SELECTOR, sefaria_img_selector))
-        )
-        sefaria_img = self.driver.find_element_by_css_selector(sefaria_img_selector)
-        sefaria_img.click()
-
-    def click_get_started(self):
-        btn_selector = '#homeCover > a > div > span.int-en'
-        WebDriverWait(self.driver, TEMPER).until(
-            element_to_be_clickable((By.CSS_SELECTOR, btn_selector))
-        )
-        btn = self.driver.find_element_by_css_selector(btn_selector)
-        btn.click()
-
-    def click_explore_lib(self):
-        explore_lib_selector = '#homeLearn > div > div.textBox > a > div > span.int-en'
-        WebDriverWait(self.driver, TEMPER).until(
-            element_to_be_clickable((By.CSS_SELECTOR, explore_lib_selector))
-        )
-        explore_lib = self.driver.find_element_by_css_selector(explore_lib_selector)
-        explore_lib.click()
-
-    def click_start_learning_nth_btn(self, btn):
-        nth_btn_selector = '#homeLearn > div > div.imageBox > a:nth-child(' + btn + ') > span.int-en'
-        WebDriverWait(self.driver, TEMPER).until(
-            element_to_be_clickable((By.CSS_SELECTOR, nth_btn_selector))
-        )
-        nth_btn = self.driver.find_element_by_css_selector(nth_btn_selector)
-        nth_btn.click()
-
-    def click_parasha(self):
-        self.click_start_learning_nth_btn('1')
-
-    def click_daf_yomi(self):
-        self.click_start_learning_nth_btn('2')
-
-    def click_haggadah(self):
-        self.click_start_learning_nth_btn('3')
-
-    def click_pirkei_avot(self):
-        self.click_start_learning_nth_btn('4')
-
-    def click_midrash_rabbah(self):
-        self.click_start_learning_nth_btn('5')
-
-    def click_shulchan_arukh(self):
-        self.click_start_learning_nth_btn('6')
-
-    def click_start_a_sheet(self):
-        self.click_object_by_css_selector('#homeSheets > div > div.textBox > a:nth-child(3) > div > span.int-en')
 
     def click_resources_on_sidebar(self):
         self.click_object_by_css_selector('.connectionsHeaderTitle')
@@ -585,27 +540,6 @@ class SefariaTest(AbstractTest):
         except NoAlertPresentException:
             print('A <<NoAlertPresentException>> was thrown')
             pass
-
-    def click_source_sheet_img(self):
-        self.click_object_by_css_selector('#homeSheets > div > div.imageBox.bordered > a > img')
-
-    def click_link_explorer_img(self):
-        self.click_object_by_css_selector('#homeExplore > div > div.imageBox.bordered > a > img')
-
-    def click_explore_connections(self):
-        self.click_object_by_css_selector('#homeExplore > div > div.textBox > a > div > span.int-en')
-
-    def click_learn_more_for_educators(self):
-        self.click_object_by_css_selector('#homeEducators > div > div.textBox > a > div > span.int-en')
-
-    def click_educators_img(self):
-        self.click_object_by_css_selector('#homeEducators > div > div.imageBox.bordered > a > img')
-
-    def click_more_metrics(self):
-        self.click_object_by_css_selector('#moreMetrics > div > span.int-en')
-
-    def click_make_a_donation(self):
-        self.click_object_by_css_selector('#homeHelp > div > a > div > span.int-en')
 
     def click_subscribe(self):
         self.click_object_by_css_selector('#subscribe > span.int-en')
@@ -655,93 +589,6 @@ class SefariaTest(AbstractTest):
         obj_to_return = self.driver.find_element_by_css_selector("#" + obj_id)
         return obj_to_return
 
-    def click_library(self):
-        self.click_object_by_css_selector('.headerNavSection .library, .readerNavMenuMenuButton')
-
-    def click_what_in_sefaria_link(self):
-        self.click_object_by_css_selector('div.section:nth-child(1) > a:nth-child(2) > span:nth-child(1)')
-
-    def click_help_link(self):
-        self.click_object_by_css_selector('div.section:nth-child(1) > a:nth-child(3) > span:nth-child(1)')
-
-    def click_FAQ_link(self):
-        self.click_object_by_css_selector('div.section:nth-child(1) > a:nth-child(4) > span:nth-child(1)')
-
-    def click_Team_link(self):
-        self.click_object_by_css_selector('div.section:nth-child(1) > a:nth-child(5) > span:nth-child(1)')
-
-    def click_terms_of_use_link(self):
-        self.click_object_by_css_selector('div.section:nth-child(1) > a:nth-child(6) > span:nth-child(1)')
-
-    def click_privacy_policy_link(self):
-        self.click_object_by_css_selector('div.section:nth-child(1) > a:nth-child(7) > span:nth-child(1)')
-
-    def click_teach_with_sefaria_link(self):
-        self.click_object_by_css_selector('#footerInner > div:nth-child(2) > a:nth-child(2) > span:nth-child(1)')
-
-    def click_source_sheets_link(self):
-        self.click_object_by_css_selector('#footerInner > div:nth-child(2) > a:nth-child(3) > span:nth-child(1)')
-
-    def click_visualizations_link(self):
-        self.click_object_by_css_selector('#footerInner > div:nth-child(2) > a:nth-child(4) > span:nth-child(1)')
-
-    def click_authors_link(self):
-        self.click_object_by_css_selector('#footerInner > div:nth-child(2) > a:nth-child(5) > span:nth-child(1)')
-
-    def click_new_additions_link(self):
-        self.click_object_by_css_selector('#footerInner > div:nth-child(2) > a:nth-child(6) > span:nth-child(1)')
-
-    def click_get_involved_link(self):
-        self.click_object_by_css_selector('#footerInner > div:nth-child(3) > a:nth-child(2) > span:nth-child(1)')
-
-    def click_API_docs_link(self):
-        self.click_object_by_css_selector('#footerInner > div:nth-child(3) > a:nth-child(3) > span:nth-child(1)')
-
-    def click_fork_us_on_GitHub_link(self):
-        self.click_object_by_css_selector('#footerInner > div:nth-child(3) > a:nth-child(4) > span:nth-child(1)')
-
-    def click_download_our_data_link(self):
-        self.click_object_by_css_selector('#footerInner > div:nth-child(3) > a:nth-child(5) > span:nth-child(1)')
-
-    def click_donate_link(self):
-        self.click_object_by_css_selector('#footerInner > div:nth-child(4) > a:nth-child(2) > span:nth-child(1)')
-
-    def click_supporters_link(self):
-        self.click_object_by_css_selector('#footerInner > div:nth-child(4) > a:nth-child(3) > span:nth-child(1)')
-
-    def click_contribute_link(self):
-        self.click_object_by_css_selector('#footerInner > div:nth-child(4) > a:nth-child(4) > span:nth-child(1)')
-
-    def click_jobs_link(self):
-        self.click_object_by_css_selector('#footerInner > div:nth-child(4) > a:nth-child(5) > span:nth-child(1)')
-
-    def click_sidebar_facebook_link(self):
-        self.click_object_by_css_selector('a.toolsButton:nth-child(2) > span:nth-child(2)')
-
-    def click_facebook_link(self):
-        self.click_object_by_css_selector('.last > a:nth-child(4) > span:nth-child(1)')
-
-    def click_twitter_link(self):
-        self.click_object_by_css_selector('.last > a:nth-child(5) > span:nth-child(1)')
-
-    def click_sidebar_twitter_link(self):
-        self.click_object_by_css_selector('a.toolsButton:nth-child(3) > span:nth-child(2)')
-
-    def click_youtube_link(self):
-        self.click_object_by_css_selector('.last > a:nth-child(7) > span:nth-child(1)')
-
-    def click_blog_link(self):
-        self.click_object_by_css_selector('.last > a:nth-child(8) > span:nth-child(1)')
-
-    def click_instagram_link(self):
-        self.click_object_by_css_selector('.last > a:nth-child(10) > span:nth-child(1)')
-
-    def click_email_link(self):
-        self.click_object_by_css_selector('.last > a:nth-child(11) > span:nth-child(1)')
-
-    def click_sidebar_email_link(self):
-        self.click_object_by_css_selector('a.toolsButton:nth-child(4) > span:nth-child(2)')
-
     def click_ivrit_link(self): # Named '..ivrit..' as the link's in Hebrew. Below - a method with '..hebrew..' (that calls this one), in case it's easier to locate that way
         try:
             # if logged out, first click to open dropdown
@@ -767,9 +614,6 @@ class SefariaTest(AbstractTest):
 
     def toggle_on_text_settings(self):
         self.click_object_by_css_selector('#panel-0 .readerControls .readerOptions')
-
-    def toggle_off_text_settings(self):
-        self.click_object_by_css_selector("#panel-0 .leftButtons > a")
 
     def toggle_language_english(self):
         self.click_object_by_css_selector('#panel-0 div.readerOptionsPanel div.toggleSet.language div.toggleOption.english')
@@ -845,37 +689,6 @@ class SefariaTest(AbstractTest):
             return 'hebrew'
         elif 'english' in content_lang_class:
             return 'english'
-
-    def get_login_link_text(self):
-        ret = self.get_object_by_css_selector('#s2 div.headerInner div.headerLinksSection a.login.loginLink').text
-        return ret
-
-    def get_signup_link_text(self):
-        ret = self.get_object_by_css_selector('#s2 div.headerInner div.headerLinksSection a.login.signupLink').text
-        return ret
-
-    def get_what_is_sefaria_link_text(self):
-        ret = self.get_object_by_css_selector('#footerInner > div:nth-child(1) > a:nth-child(2)').text
-        return ret
-
-    def get_teach_with_sefaria_link_text(self):
-        ret = self.get_object_by_css_selector('#footerInner > div:nth-child(2) > a:nth-child(2)').text
-        return ret
-
-    def get_get_involved_link_text(self):
-        ret = self.get_object_by_css_selector('#footerInner > div:nth-child(3) > a:nth-child(2)').text
-        return ret
-
-    def get_donate_link_text(self):
-        ret = self.get_object_by_css_selector('#footerInner > div:nth-child(4) > a:nth-child(2)').text
-        return ret
-
-    def get_facebook_link_text(self):
-        ret = self.get_object_by_css_selector('#footerInner > div.section.last.connect .socialLinks > a:nth-child(1)').text
-        return ret
-
-    def get_sefaria_lib_title(self):
-        return self.get_object_by_css_selector('#panel-undefined h1, .singlePanel h1').text
 
     def get_font_size(self):
         size = self.get_nth_section_hebrew(1).value_of_css_property("font-size")
@@ -969,12 +782,6 @@ class SefariaTest(AbstractTest):
         )
         sidebar_entry = self.driver.find_element_by_css_selector(selector)
         sidebar_entry.click()
-
-    def click_android_app(self):
-        self.click_object_by_css_selector('#homeMobile > div > div.textBox > a:nth-child(3) > div > span.int-en')
-
-    def click_ios_app(self):
-        self.click_object_by_css_selector('#iOSButton > div > span.int-en')
 
     def close_tab_and_return_to_prev_tab(self):
         self.driver.switch_to_window(self.driver.window_handles[1])
@@ -1118,7 +925,6 @@ class SefariaTest(AbstractTest):
         for cat in cats:
             self.click_toc_category(cat)
         self.click_toc_text(text_title)
-        self.click_toc_from_text_panel()
         return self
 
     def load_text_toc(self, ref):
@@ -1136,7 +942,7 @@ class SefariaTest(AbstractTest):
         if isinstance(ref, str):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
-        self.scroll_to_css_selector_and_click('.sectionLink[data-ref="{}"], .schema-node-toc[data-ref="{}"]'.format(ref.normal(), ref.normal()))
+        self.scroll_to_css_selector_and_click('.sectionLink[href="/{}"], .schema-node-toc[href="/{}"]'.format(ref.url(), ref.url()))
         WebDriverWait(self.driver, TEMPER).until(
             element_to_be_clickable((By.CSS_SELECTOR, '.segment'))
         )
@@ -1146,7 +952,7 @@ class SefariaTest(AbstractTest):
         if isinstance(ref, str):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
-        self.scroll_to_css_selector_and_click('.schema-node-toc[data-ref="{}"]>span'.format(ref.normal()))
+        self.scroll_to_css_selector_and_click('.schema-node-toc[href="/{}"] > span'.format(ref.url()))
         return self
 
     def load_refs(self):
@@ -1231,7 +1037,7 @@ class SefariaTest(AbstractTest):
 
     def load_topics(self):
         self.driver.get(urllib.parse.urljoin(self.base_url, "/topics"))
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".topicList")))
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".navBlockTitle")))
         self.set_modal_cookie()
         return self
 
@@ -1249,7 +1055,7 @@ class SefariaTest(AbstractTest):
         return self
 
     def load_home(self):
-        self.driver.get(urllib.parse.urljoin(self.base_url, "/?home"))
+        self.driver.get(self.base_url)
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".header")))
         return self
 
@@ -1269,7 +1075,7 @@ class SefariaTest(AbstractTest):
     def load_notifications(self):
         self.driver.get(urllib.parse.urljoin(self.base_url, "/notifications"))
         WebDriverWait(self.driver, TEMPER).until(
-            element_to_be_clickable((By.CSS_SELECTOR, ".notificationsList > .notification")))
+            element_to_be_clickable((By.CSS_SELECTOR, ".notification")))
         return self
 
     def load_url(self, url, test_selector):
@@ -1285,8 +1091,8 @@ class SefariaTest(AbstractTest):
         if isinstance(ref, str):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
-        # url = urllib.parse.urljoin(self.base_url, "/edit/", ref.url(), "/", lang, "/", version.replace(" ", "_"))
 
+        # url = urllib.parse.urljoin(self.base_url, "/edit/", ref.url(), "/", lang, "/", version.replace(" ", "_"))
         url = urllib.parse.urljoin(self.base_url, "/edit/")
         url = urllib.parse.urljoin(url, ref.url())
         url = urllib.parse.urljoin(url, lang)
@@ -1379,7 +1185,6 @@ class SefariaTest(AbstractTest):
         / - Partial fail (for suites)
 
 """
-
 
 class AbstractTestResult(object):
     def word_status(self):

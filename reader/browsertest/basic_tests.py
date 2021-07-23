@@ -41,11 +41,10 @@ class PagesLoad(SefariaTest):
     def body(self):
         self.load_toc()
         self.click_toc_category("Midrash").click_toc_text("Ein Yaakov")
-        self.load_ref("Psalms.104")
-        self.load_ref("Job.3")
+        self.load_ref("Tosefta Peah 2")
+        self.load_ref("Sifra, Tzav, Chapter 1")
         self.load_topics()
         self.load_gardens()
-        self.load_home()
         self.load_people()
 
 class PagesLoadLoggedIn(SefariaTest):
@@ -202,8 +201,6 @@ class TanakhCantillationAndVowels(SefariaTest):
     every_build = False
 
     def body(self):
-        self.load_home()
-        self.click_get_started()
         # self.toggle_on_text_settings()
         # self.toggle_vowels_partial()
         # assert not has_cantillation(self.get_nth_section_hebrew(1).text, False)
@@ -308,7 +305,6 @@ class SideBarEntries(SefariaTest):
         self.click_sidebar_button("Share")
         '''
         Buggy.  Doesn't work on Safari. Mobile?
-        self.click_sidebar_facebook_link()
         url1 = self.get_newly_opened_tab_url()
         assert 'facebook.com' in url1, u"'{}' not in '{}'".format('facebook.com', url1)
         self.close_tab_and_return_to_prev_tab()
@@ -461,15 +457,16 @@ class ReadingHistory(SefariaTest):
     def body(self):
         # Using a short chapter can cause the text to fail if the following section is
         # counted as a view and saved in recent in place of the named chapter.
+        self.login_user()
         self.load_toc()
-        self.search_ref("Joshua 1")
-        self.nav_to_history().click_toc_recent("Joshua 1")
-        self.browse_to_ref("Berakhot 23b")
+        self.search_ref("Tosefta Peah 3")
+        self.nav_to_history().click_history_item("Tosefta Peah 3")
+        self.browse_to_ref("Tosefta Peah 4")
         time.sleep(3)
-        self.nav_to_history().click_toc_recent("Berakhot 23b")
+        self.nav_to_history().click_history_item("Tosefta Peah 4")
 
         # Ensure History sticks on reload
-        self.load_toc().nav_to_history().click_toc_recent("Joshua 1")
+        self.load_toc().nav_to_history().click_history_item("Tosefta Peah 3")
 
 
 class NavToRefAndClickSegment(SefariaTest):
@@ -690,10 +687,10 @@ class CollectionsPagesLoad(SefariaTest):
     every_build = True
 
     def body(self):
-        self.load_url("/collections", ".collectionListing")
+        self.load_url("/collections", ".collectionsList")
+        self.load_url("/collections/bimbam", ".collectionPage .sheet")
         self.login_user()
         self.load_url("/collections/new", "#editCollectionPage .field")
-        self.load_url("/collections/bimbam", ".collectionPage .sheet")
 
 
 class BrowserBackAndForward(SefariaTest):
