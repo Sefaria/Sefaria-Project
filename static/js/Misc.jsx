@@ -2289,7 +2289,12 @@ const Autocompleter = ({}) => {
 
   const getSuggestions = (input) => {
     setInputValue(input)
-    if (input == "") return
+    if (input == "") {
+      setPreviewText(null)
+      setHelperPromptText(null)
+      setCurrentSuggestions(null)
+      return
+    }
     Sefaria.getName(input, true, 5).then(d => {
 
       if (d.is_section || d.is_segment) {
@@ -2297,6 +2302,9 @@ const Autocompleter = ({}) => {
         generatePreviewText(input);
         setHelperPromptText(null)
         return
+      }
+      else {
+        setPreviewText(null)
       }
 
       //We want to show address completions when book exists but not once we start typing further
@@ -2363,7 +2371,7 @@ const Autocompleter = ({}) => {
           const previewHTML =  segments.map((segment, i) => {
             {
               return(
-                  <div class="textPreviewSegment" key={segment.ref}>
+                  <div className="textPreviewSegment" key={segment.ref}>
                     <ContentText
                         text={{"en": segment.number, "he": Sefaria.hebrew.encodeHebrewNumeral(segment.number)}}
                         defaultToInterfaceOnBilingual={true}
