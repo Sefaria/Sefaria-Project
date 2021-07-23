@@ -299,7 +299,7 @@ class TextRange extends Component {
     if(this.props.settings && this.props.settings.language !== "english" && this.props.settings.vowels !== "all"){
       strip_vowels_re = (this.props.settings.vowels == "partial") ? nre : cnre;
     }
-    console.log(data)
+
     let segments      = Sefaria.makeSegments(data, this.props.withContext);
     if(segments.length > 0 && strip_vowels_re && !strip_vowels_re.test(segments[0].he)){
       strip_vowels_re = null; //if the first segment doesnt even match as containing vowels or cantillation- stop
