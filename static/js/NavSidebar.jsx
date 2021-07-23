@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Sefaria  from './sefaria/sefaria';
-import {NewsletterSignUpForm} from './Misc'
+import {DonateLink, EnglishText, HebrewText, NewsletterSignUpForm} from './Misc'
 import {InterfaceText, ProfileListing, Dropdown} from './Misc';
 
 const NavSidebar = ({modules}) => {
@@ -82,7 +82,23 @@ const AboutSefaria = ({hideTitle}) => (
   <Module>
     {!hideTitle ?
     <ModuleTitle h1={true}>A Living Library of Torah</ModuleTitle> : null }
-    <InterfaceText>Sefaria is home to 3,000 years of Jewish texts. We are a non-profit organization offering free access to texts, translations, and commentaries so that everyone can participate in the ongoing process of studying, interpreting, and creating Torah.</InterfaceText> <a href="/about" className="inTextLink"><InterfaceText>Learn More</InterfaceText> <InterfaceText>&rsaquo;</InterfaceText></a>
+    <InterfaceText>
+        <EnglishText>
+            Sefaria is home to 3,000 years of Jewish texts. We are a non-profit organization offering free access to texts, translations,
+            and commentaries so that everyone can participate in the ongoing process of studying, interpreting, and creating Torah.
+        </EnglishText>
+        <HebrewText>
+            ספריא היא ביתם של 3,000 שנות ספרות יהודית.
+            אנו ארגון ללא מטרות רווח המציע גישה חופשית למקורות יהודיים, לתרגומים ולפרשנויות,
+            ומטרתנו לאפשר לכל אחד ואחת להשתתף בתהליך המתמשך של לימוד וחידוש בתורה.
+        </HebrewText>
+    </InterfaceText>
+    <a href="/about" className="inTextLink">
+      <InterfaceText>
+          <EnglishText>Learn More ›</EnglishText>
+          <HebrewText>לקריאה נוספת ›</HebrewText>
+      </InterfaceText>
+    </a>
   </Module>
 );
 
@@ -117,10 +133,10 @@ const SupportSefaria = ({blue}) => (
     <ModuleTitle>Support Sefaria</ModuleTitle>
     <InterfaceText>Sefaria is an open source, non-profit project. Support us by making a tax-deductible donation.</InterfaceText>
     <br />
-    <a className={"button small" + (blue ? " white" : "")} href="https://sefaria.nationbuilder.com/supportsefaria" target="_blank">
+    <DonateLink classes={"button small" + (blue ? " white" : "")}>
       <img src="/static/img/heart.png" alt="donation icon" />
       <InterfaceText>Make a Donation</InterfaceText>
-    </a>
+    </DonateLink>
   </Module>
 );
 
@@ -512,11 +528,14 @@ const AboutCollections = ({hideTitle}) => (
   <Module>
     {hideTitle ? null :
     <ModuleTitle h1={true}>About Collections</ModuleTitle>}
-    <InterfaceText>Collections are user generated bundles of sheets which can be used privately, shared with friends, or made public on Sefaria.</InterfaceText>
+    <InterfaceText>
+        <EnglishText>Collections are user generated bundles of sheets which can be used privately, shared with friends, or made public on Sefaria.</EnglishText>
+        <HebrewText>אסופות הן מקבצים של דפי מקורות שנוצרו על ידי משתמשי האתר. הן ניתנות לשימוש פרטי, לצורך שיתוף עם אחרים או לשימוש ציבורי באתר ספריא.</HebrewText>
+    </InterfaceText>
     {hideTitle ? null :
     <div>
       <a className="button small" href="/collections/new">
-        <img src="/static/icons/collection.svg" alt="create a collection icon" />
+        <img src="/static/icons/collection-black.svg" alt="create a collection icon" />
         <InterfaceText>Create a Collection</InterfaceText>
       </a>
     </div>}

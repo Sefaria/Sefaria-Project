@@ -24,7 +24,6 @@ const Strings = {
     "Sign up": "הרשם",
 
     // Texts Page
-    "Sefaria is home to 3,000 years of Jewish texts. We are a non-profit organization offering free access to texts, translations, and commentaries so that everyone can participate in the ongoing process of studying, interpreting, and creating Torah.": "ספריא היא ביתם של 3,000 שנות ספרות יהודית. אנו ארגון ללא מטרות רווח המציע גישה חופשית למקורות יהודיים, לתרגומים ולפרשנויות, ומטרתנו לאפשר לכל אחד ואחת להשתתף בתהליך המתמשך של לימוד וחידוש בתורה.",
     "Learn More": "לקריאה נוספת",
     "Learning Schedules": "לוח לימוד יומי",
     "Teach with Sefaria": "מלמדים עם ספריא",
@@ -290,6 +289,13 @@ const Strings = {
     "Notifications": "התראות",
     "Texts and sheets that you read will be available for you to see here.": "מקורות ודפי מקורות שקראתם יהיו זמינים עבורכם כאן לעיון חוזר.",
     "Click the bookmark icon on texts or sheets to save them here.": "לחצו על סמל הסימניה בתוך מקורות או דפי מקורות כדי לשמור מראי מקומות מסוימים כאן.",
+    "New Text": "טקסט חדש",
+    "sent you a message": "שלח/ה לך הודעה",
+    "published a new sheet": "פרסמ/ה דף מקורות חדש",
+    "liked your sheet": "שמר/ה את דף המקורות שלך",
+    "is now following you": "נרשמ/ה לעדכונים ממך",
+    "Reply": "תשובה",
+    "added you to a collection": "הוסיפ/ה אותך לאסופה",
 
     // Learning Schedules
     "Daily Learning": "לימוד יומי",
@@ -438,6 +444,10 @@ const Strings = {
     "Start Reading": "התחלת קריאה",
     "Composed": "זמן חיבור",
 
+    //Sheet Meta
+    "About this Sheet": "אודות דף המקורות",
+    "Tags": "תוויות",
+
     //Topics
     "Wikipedia": "ויקיפדיה",
     "Jewish Encyclopedia": "האנציקלופדיה היהודית",
@@ -445,7 +455,7 @@ const Strings = {
 
     //Module Names
     "Download Text": "הורדת טקסט",
-    "About this Text" : "אודות הטקסט",
+    "About this Text" : "אודות ספר זה",
     "Related Topics": "נושאים קשורים",
 
     // FilterableList

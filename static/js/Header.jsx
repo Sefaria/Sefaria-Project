@@ -12,6 +12,7 @@ import {
   InterfaceLanguageMenu,
   InterfaceText,
   LanguageToggleButton,
+  DonateLink
 } from './Misc';
 
 
@@ -50,7 +51,7 @@ class Header extends Component {
           <a href="/texts" className="textLink"><InterfaceText context="Header">Texts</InterfaceText></a>
           <a href="/topics" className="textLink"><InterfaceText>Topics</InterfaceText></a>
           <a href="/community" className="textLink"><InterfaceText>Community</InterfaceText></a>
-          <a href="https://sefaria.nationbuilder.com/supportsefaria" target="_blank" className="textLink donate"><InterfaceText>Donate</InterfaceText></a>
+          <DonateLink classes={"textLink donate"}><InterfaceText>Donate</InterfaceText></DonateLink>
         </div>
 
         <div className="headerLinksSection">
@@ -475,7 +476,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
         <InterfaceText>Learning Schedules</InterfaceText>
       </a>
       <a href="/collections" onClick={close}>
-        <img src="/static/icons/collection.svg" className="blackIcon"/>
+        <img src="/static/icons/collection.svg"/>
         <InterfaceText>Collections</InterfaceText>
       </a>
 
@@ -517,10 +518,10 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
         <LoggedOutButtons mobile={true} loginOnly={true}/> }
 
       </div>
-      <a href="https://sefaria.nationbuilder.com/supportsefaria" className="blue">
+      <DonateLink classes={"blue"}>
         <img src="/static/img/heart.png" alt="donation icon" />
         <InterfaceText>Donate</InterfaceText>
-      </a>
+      </DonateLink>
     </div>
   );
 };
@@ -632,8 +633,7 @@ const MobileInterfaceLanguageToggle = () => {
 
 
 const HelpButton = () => {
-  //TODO: There's an upcoming commit that re-introduces `Sefaria._v()` as a way to return a string/data that may be a different variable between interface langs that would be a good use here.
-  const url = Sefaria.interfaceLang == "hebrew" ? "/collections/%D7%A9%D7%90%D7%9C%D7%95%D7%AA-%D7%A0%D7%A4%D7%95%D7%A6%D7%95%D7%AA-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90" : "/collections/sefaria-faqs";
+  const url = Sefaria._v({he: "/collections/%D7%A9%D7%90%D7%9C%D7%95%D7%AA-%D7%A0%D7%A4%D7%95%D7%A6%D7%95%D7%AA-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90", en:"/collections/sefaria-faqs"});
   return (
     <div className="help">
       <a href={url}>

@@ -314,7 +314,7 @@ const SubCategoryToggle = ({categories, setCategories}) => {
       "Tosefta": {
           categoryPathDepth: 2,
           subCategories: ["Vilna Edition", "Lieberman Edition"],
-          subCategoriesDisplay: [{en: "Vilna Edition", he: Sefaria.hebrewTerm("Vilna Edition")}, {en: "Lieberman Edition", he: Sefaria.hebrewTerm("Lieberman Edition")}]
+          subCategoriesDisplay: [{en: "Vilna", he: "דפוס וילנא"}, {en: "Lieberman", he: "מהדורת ליברמן"}]
       },
     };
     if (!categories.length || !(categories[0] in toggleEnableMap) || categories.length !== toggleEnableMap[categories[0]]["categoryPathDepth"]) {
@@ -355,12 +355,23 @@ const getRenderedTextTitleString = (title, heTitle, categories) => {
         "en" : [", ", "; ", " on ", " to ", " of "],
         "he" : [", ", " על "]
     };
+    const replaceSuffixes = {
+        "en" : [" (Lieberman)"],
+        "he" : [" (ליברמן)"]
+    };
 
     //this will replace a category name at the beginning of the title string and any connector strings (0 or 1) that follow.
     const titleRe = new RegExp(`^(${replaceTitles['en'].join("|")})(${replaceOther['en'].join("|")})?`);
     const heTitleRe = new RegExp(`^(${replaceTitles['he'].join("|")})(${replaceOther['he'].join("|")})?`);
     title   = title === categories.slice(-1)[0] ? title : title.replace(titleRe, "");
     heTitle = heTitle === Sefaria.hebrewTerm(categories.slice(-1)[0]) ? heTitle : heTitle.replace(heTitleRe, "");
+
+    //couldnt get this to work in one regex (eliminating both prefix stuff above and the suffix stuff below),
+    // any engineer seeing this feel free to try and streamline
+    const suffixTitleRe = new  RegExp(`(${replaceSuffixes['en'].join("|").replace(/[()]/g, '\\$&')})$`);
+    const suffixHeTitleRe = new  RegExp(`(${replaceSuffixes['he'].join("|").replace(/[()]/g, '\\$&')})$`);
+    title   = title.replace(suffixTitleRe, "");
+    heTitle = heTitle.replace(suffixHeTitleRe, "");
 
     return [title, heTitle];
 };

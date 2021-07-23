@@ -126,13 +126,21 @@ const LoadingRing = () => (
   <div className="lds-ring"><div></div><div></div><div></div><div></div></div>
 );
 
+const DonateLink = ({children, classes}) => {
+  const url = Sefaria._v({en: "https://sefaria.nationbuilder.com/supportsefaria", he: "https://sefaria.nationbuilder.com/supportsefaria_il"});
+  return (
+      <a href={url} className={classes} target="_blank">
+        {children}
+      </a>
+  );
+};
 
 /* flexible profile picture that overrides the default image of gravatar with text with the user's initials */
 class ProfilePic extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      showDefault: !this.props.url,
+      showDefault: !this.props.url || this.props.url.startsWith("https://www.gravatar"), // We can't know in advance if a gravatar image exists of not, so start with the default beforing trying to load image
       src: null,
       isFirstCropChange: true,
       crop: {unit: "px", width: 250, aspect: 1},
@@ -141,7 +149,22 @@ class ProfilePic extends Component {
     };
     this.imgFile = React.createRef();
   }
-
+  setShowDefault() { /* console.log("error"); */ this.setState({showDefault: true});  }
+  setShowImage() { /* console.log("load"); */ this.setState({showDefault: false});  }
+  componentDidMount() {
+    if (this.didImageLoad()) {
+      this.setShowImage();
+    } else {
+      this.setShowDefault();
+    }
+  }
+  didImageLoad(){
+    // When using React Hydrate, the onLoad event of the profile image will return before
+    // react code runs, so we check after mount as well to look replace bad images, or to
+    // swap in a gravatar image that we now know is valid.
+    const img = this.imgFile.current;
+    return (img && img.complete && img.naturalWidth !== 0);
+  }
   onSelectFile(e) {
     if (e.target.files && e.target.files.length > 0) {
       if (!e.target.files[0].type.startsWith('image/')) {
@@ -425,7 +448,7 @@ const FilterableList = ({
               />
               <DropdownOptionList
                 isOpen={displaySort}
-                options={sortOptions.map(option => ({type: option, name: option, heName: Sefaria._(option)}))}
+                options={sortOptions.map(option => ({type: option, name: option, heName: Sefaria._(option, "FilterableList")}))}
                 currOptionSelected={sortOption}
                 handleClick={onSortChange}
               />
@@ -456,7 +479,7 @@ const FilterableList = ({
                 className={classNames({'sans-serif': 1, 'sort-option': 1, noselect: 1, active: sortOption === option})}
                 onClick={() => onSortChange(option)}
               >
-                <InterfaceText context="FilterSort">{option}</InterfaceText>
+                <InterfaceText context="FilterableList">{option}</InterfaceText>
               </span>
             ))}
           </div>
@@ -1262,7 +1285,7 @@ class ProfileListing extends Component {
             />
           </a>
         </div>
-        <div className="authorByLineText">
+        <div className={`authorByLineText ${smallfonts? "small" : ""}`}>
           <SimpleLinkedBlock
             classes="authorName"
             url={url}
@@ -1355,7 +1378,7 @@ const SheetListing = ({
   );
 
   const sheetSummary = showSheetSummary && sheet.summary? 
-  <SimpleInterfaceBlock classes={"smallText sheetSummary"} en={sheet.summary} he={sheet.sheet_summary}/>:null;
+  <DangerousInterfaceBlock classes={"smallText sheetSummary"} en={sheet.summary} he={sheet.sheet_summary}/>:null;
 
   const sheetInfo = hideAuthor ? null :
       <div className="sheetInfo">
@@ -2372,4 +2395,5 @@ export {
   SheetAuthorStatement,
   SheetTitle,
   InterfaceLanguageMenu,
+  DonateLink,
 };

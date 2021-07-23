@@ -317,7 +317,7 @@ class UserProfile extends Component {
       return (
           <div className="tab">
             <a href={tab.href}>
-              <img src={tab.icon} alt={`${tab.text} icon`}/>
+              <img className="tabIcon" src={tab.icon} alt={`${tab.text} icon`}/>
               <InterfaceText>{tab.text}</InterfaceText>
             </a>
           </div>
@@ -325,7 +325,7 @@ class UserProfile extends Component {
     }
     return (
       <div className="tab">
-        <img src={tab.icon} alt={`${tab.text} icon`} />
+        <img className="tabIcon" src={tab.icon} alt={`${tab.text} icon`} />
         <InterfaceText>{tab.text}</InterfaceText>
       </div>
     );
@@ -622,7 +622,7 @@ const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowi
               <span className="int-en">Edit Profile</span>
               <span className="int-he">עריכת פרופיל</span>
             </a>
-            <a href="/settings/account" className="resourcesLink sans-serif">
+            <a href="/settings/account" className="resourcesLink sans-serif profile-settings">
               <img src="/static/icons/settings.svg" alt="Profile Settings" />
               <span className="int-en">Settings</span>
               <span className="int-he">הגדרות</span>
@@ -641,7 +641,7 @@ const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowi
             />
             <a href="#" className="resourcesLink sans-serif" onClick={message}>
               <span className="int-en">Message</span>
-              <span className="int-he">שלח הודעה</span>
+              <span className="int-he">שליחת הודעה</span>
             </a>
           </div>)
         }

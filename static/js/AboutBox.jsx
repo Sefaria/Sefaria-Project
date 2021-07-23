@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import Sefaria from './sefaria/sefaria';
 import VersionBlock, {VersionsBlocksList} from './VersionBlock';
 import Component             from 'react-class';
-import {InterfaceText} from "./Misc";
+import {ContentText, InterfaceText} from "./Misc";
 import { Modules } from './NavSidebar';
 
 
@@ -14,7 +14,7 @@ class AboutBox extends Component {
     this.state = {
       versionLangMap: null,
       currentVersionsByActualLangs: Sefaria.transformVersionObjectsToByActualLanguageKeys(this.props.currObjectVersions),
-      details: null,
+      details: Sefaria.getIndexDetailsFromCache(props.title),
     }
   }
   setTextMetaData() {
@@ -65,6 +65,7 @@ class AboutBox extends Component {
   }
   render() {
     const d = this.state.details;
+    const category = Sefaria.index(this.state.details.title).primary_category;
     const isDictionary = d?.lexiconName;
     const sourceVersion = this.state.currentVersionsByActualLangs?.he;
     const translationVersions = Object.entries(this.state.currentVersionsByActualLangs).filter(([lang, version]) => lang != "he").map(([lang, version])=> version);
@@ -141,31 +142,37 @@ class AboutBox extends Component {
       }
       const bookPageUrl = "/" + Sefaria.normRef(d.title);
       detailSection = (
-        <div className="detailsSection">
+        <div className="detailsSection sans-serif">
           <h2 className="aboutHeader">
-            <span className="int-en">About This Text</span>
-            <span className="int-he">אודות ספר זה</span>
+            <InterfaceText>About This Text</InterfaceText>
           </h2>
-          <a href={bookPageUrl} className="aboutTitle">
-            <span className="en">{d.title}</span>
-            <span className="he">{d.heTitle}</span>
+          <a href={bookPageUrl} className="aboutTitle serif">
+            <ContentText text={{en: d.title, he:d.heTitle}}/>
           </a>
+          <span className="tocCategory">
+              <ContentText text={{en:category, he:Sefaria.hebrewTerm(category)}}/>
+          </span>
           { authorsEn && authorsEn.length ?
-            <div className="aboutSubtitle">
-              <span className="en">Author: {authorsEn}</span>
-              <span className="he">מחבר: {authorsHe}</span>
+            <div className="aboutAuthor">
+              <span className="authorLabel">
+                  <ContentText text={{en:"Author:", he: "מחבר:"}} />
+              </span>
+              <span className="authorName">
+                  <ContentText text={{en:authorsEn, he: authorsHe}} />
+              </span>
+
             </div> : null
           }
+          <div className="aboutDesc">
+            <ContentText text={{en: d?.enDesc, he: d?.heDesc}} />
+          </div>
+
           { !!placeTextEn || !!dateTextEn ?
-            <div className="aboutSubtitle">
+            <div className="aboutComposed">
               <span className="en">{`Composed: ${!!placeTextEn ? placeTextEn : ""} ${!!dateTextEn ? dateTextEn : ""}`}</span>
               <span className="he">{`נוצר/נערך: ${!!placeTextHe ? placeTextHe : ""} ${!!dateTextHe ? dateTextHe : ""}`}</span>
             </div> : null
           }
-          <div className="aboutDesc">
-            { !!d.enDesc ? <span className="en">{d.enDesc}</span> : null}
-            { !!d.heDesc ? <span className="he">{d.heDesc}</span> : null}
-          </div>
         </div>
       );
     }

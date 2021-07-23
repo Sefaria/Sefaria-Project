@@ -411,7 +411,7 @@ const TopicPage = ({
           he: Sefaria._("Filter")
         },
         id: 'filter',
-        icon: `/static/img/arrow-${showFilterHeader ? 'up' : 'down'}-bold.svg`,
+        icon: `/static/icons/arrow-${showFilterHeader ? 'up' : 'down'}-bold.svg`,
         justifyright: true
       });
       onClickFilterIndex = displayTabs.length - 1;      

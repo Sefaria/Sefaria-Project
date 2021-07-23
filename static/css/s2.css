@@ -24,13 +24,64 @@ a, a:hover {
   src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-Medium.ttf'), local(Georgia), local(serif);
   unicode-range: U+0590-05FF, U+25CC;
 }
+@font-face {
+  /*Mixed Hebrew - English serif text*/
+  font-family: 'HebrewInEnglish Serif Font';
+  src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-Bold.ttf'), local(Georgia), local(serif);
+  font-weight: bold;
+  unicode-range: U+0590-05FF, U+25CC;
+}
+@font-face {
+  /*Mixed Hebrew - English serif text*/
+  font-family: 'HebrewInEnglish Serif Font';
+  src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-MediumOblique.ttf'), local(Georgia), local(serif);
+  font-style: italic;
+  unicode-range: U+0590-05FF, U+25CC;
+}
+@font-face {
+  /*Mixed Hebrew - English serif text*/
+  font-family: 'HebrewInEnglish Serif Font';
+  src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-BoldOblique.ttf'), local(Georgia), local(serif);
+  font-weight: bold;
+  font-style: italic;
+  unicode-range: U+0590-05FF, U+25CC;
+}
+@font-face {
+  /*Mixed English - Hebrew serif text*/
+  font-family: 'EnglishInHebrew Serif Font';
+  src: url("https://use.typekit.net/af/2011b6/00000000000000003b9b00c1/27/l?primer=7fa3915bdafdf03041871920a205bef951d72bf64dd4c4460fb992e3ecc3a862&fvd=n4&v=3");
+  font-weight: normal;
+  unicode-range: U+0041-007A;
+}
+@font-face {
+  /*Mixed English - Hebrew serif text*/
+  font-family: 'EnglishInHebrew Serif Font';
+  src: url("https://use.typekit.net/af/af619f/00000000000000003b9b00c5/27/l?primer=7fa3915bdafdf03041871920a205bef951d72bf64dd4c4460fb992e3ecc3a862&fvd=n7&v=3");
+  font-weight: bold;
+  unicode-range: U+0041-007A;
+}
+@font-face {
+  /*Mixed English - Hebrew serif text*/
+  font-family: 'EnglishInHebrew Serif Font';
+  src: url("https://use.typekit.net/af/5cace6/00000000000000003b9b00c2/27/l?primer=7fa3915bdafdf03041871920a205bef951d72bf64dd4c4460fb992e3ecc3a862&fvd=i4&v=3");
+  font-style: italic;
+  unicode-range: U+0041-007A;
+}
+@font-face {
+  /*Mixed English - Hebrew serif text*/
+  font-family: 'EnglishInHebrew Serif Font';
+  src: url("https://use.typekit.net/af/6c275f/00000000000000003b9b00c6/27/l?primer=7fa3915bdafdf03041871920a205bef951d72bf64dd4c4460fb992e3ecc3a862&fvd=i7&v=3");
+  font-style: italic;
+  font-weight: bold;
+  unicode-range: U+0041-007A;
+}
 :root {
   /* font stacks */
   --english-sans-serif-font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   --hebrew-sans-serif-font-family: "Heebo", "Roboto", sans-serif;
 
   --english-serif-font-family: "HebrewInEnglish Serif Font", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
-  --hebrew-serif-font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", "Times New Roman", serif;
+  --hebrew-serif-font-family: "EnglishInHebrew Serif Font", "Taamey Frank", "adobe-garamond-pro", "Crimson Text", "Times New Roman", serif;
 
   --serif-h1-font-size: 48px;
   --serif-h2-font-size: 30px;
@@ -93,6 +144,7 @@ body, .en, .int-en {
   --is-hebrew: initial; /* false */
 }
 .he, .int-he {
+  unicode-bidi: plaintext;
   --is-hebrew: ; /* true */
 }
 
@@ -844,9 +896,6 @@ div.interfaceLinks-row a {
   .header .headerInner {
     padding: 0 15px;
   }
-  .header .login.loginLink {
-    display: none;
-  }
   .header .accountLinks .login {
     padding: 5px 5px;
   }
@@ -1358,7 +1407,7 @@ div.interfaceLinks-row a {
   max-width: 100%;
   box-sizing: border-box;
   padding-bottom: 70px;
-  padding-inline-start: 15px;
+  padding-inline-start: 30px;
   padding-inline-end: 30px;
 }
 .homeFeedWrapper .content .contentInner {
@@ -1473,12 +1522,13 @@ div.interfaceLinks-row a {
   padding: 0;
 }
 .readerPanel .navSidebarModule h3,
-.readerPanel .navSidebarModule h1 {
+.readerPanel .navSidebarModule h1,
+.readerPanel .bookPage h3{
   margin: 0 0 20px;
   font-size: 22px;
   text-transform: none;
   letter-spacing: 0;
-  border-bottom: 1px solid #CCC;
+  border-bottom: 1px solid var(--light-grey);
   padding-bottom: 14px;
   font-weight: 500;
   height: auto;
@@ -1559,6 +1609,7 @@ div.interfaceLinks-row a {
 .navSidebar a.inTextLink {
   color: inherit;
   text-decoration: underline;
+  margin-inline-start: 5px;
 }
 .navSidebar .newsletterSignUpBox {
   margin-top: 20px;
@@ -1768,7 +1819,7 @@ div.interfaceLinks-row a {
   }
 }
 .topicPanel .sideColumn {
-  padding: 0 50px;
+  width: 420px;
   background-color: #FBFBFA;
   /* HACK: add grey background beyond bounding box of sidebar by utilizing negative margins! */
   border-top: 80px solid #FBFBFA;
@@ -1789,6 +1840,9 @@ div.interfaceLinks-row a {
   padding-bottom: 10px;
   margin-top: 30px;
   margin-bottom: 10px;
+}
+.topicPanel .sideColumn .link-section{
+  padding: 0 44px;
 }
 .topicPanel .sideColumn .link-section:first-child h2 {
   margin-top: 0;
@@ -1997,9 +2051,6 @@ h1 .languageToggle .he {
   font-weight: lighter;
   cursor: pointer;
 }
-.singlePanel .navToggles {
-  margin-top:  20px;
-}
 .readerNavMenu .navToggle.active {
   color: black;
   border-bottom: 2px solid #999;
@@ -2103,6 +2154,12 @@ a.navBlockTitle:hover {
   margin-inline-end: 20px;
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
+.hebrew .navBlockDescription{
+  line-height: 24px;
+}
+.navBlockTitle .int-he, .navBlockDescription .int-he{
+      font-size: 122%;
 }
 .interface-english .navBlockDescription.clamped .int-en,
 .interface-hebrew .navBlockDescription.clamped .int-he {
@@ -2451,14 +2508,19 @@ a.navBlockTitle:hover {
 .bookPage .tocTop {
   padding-bottom: 15px;
 }
-.bookPage .tocCategory {
+.bookPage .tocCategory{
   color:#999;
   font-size: 14px;
   text-transform: uppercase;
   letter-spacing: 1px;
 }
+.bookPage.sheetPage .tocCategory{
+  margin-top: 15px;
+  margin-bottom: 15px;
+  display: block;
+}
 .bookPage .tocCategory .en {
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  --english-font: var(--english-sans-serif-font-family);
 }
 .bookPage .tocTitle,
 .sheetContent .title,
@@ -2533,46 +2595,31 @@ a.navBlockTitle:hover {
   margin-bottom: 20px;
   letter-spacing: 1px;
 }
-.bookPage .tocDetails {
-  margin-top: 30px;
-  color: #999;
-  font-style: italic;
+.bookPage.sheetPage .sheetMetaButtons{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 40px;
 }
-.bookPage .tocDetails a {
-  color: #999;
+.bookPage.sheetPage .sheetMetaButtons .button{
+  height: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
-.bookPage .tocDetail {
-  margin-bottom: 4px;
+.bookPage.sheetPage .sheetMetaButtons .button img{
+  margin-inline-end: 5px;
+  max-height: 18px;
 }
-.bookPage .tocDetail .int-en {
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
-}
-.bookPage .tocDetail .int-he {
-  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
-}
-
-.bookPage .tocDetail.authorStatement .int-he,
-.bookPage .tocDetail.authorStatement .int-en {
-  font-family: inherit;
-}
-
-
-.bookPage .tocDetails .description {
-  margin: 6px 0 16px;
-  font-style: normal;
+.bookPage .tocDetails{
+  margin-top:40px;
   font-size: 16px;
-  line-height: 1.4;
+  line-height: 19px;
+  color: var(--dark-grey);
+  text-align: start;
 }
-.bookPage .tocDetails .description .readMoreText {
-  display: block;
-  text-align: center;
-}
-.bookPage .tocDetails .description .readMoreLink {
-  font-style: italic;
-  cursor: pointer;
-  font-size: 14px;
-  color: #666;
-  margin: 0 5px;
+.bookPage .tocDetails h3{
+  margin-bottom: 25px;
 }
 .bookPage .tocDetails .sheetSummary {
   margin: 6px 0 16px;
@@ -2588,10 +2635,12 @@ a.navBlockTitle:hover {
 .bookPage .moderatorSectionExpand, .bookPage .moderatorSectionCollapse {
   cursor: pointer;
   color: #666;
-  margin: 13px 6px 0;
   font-size: 14px;
 }
-.bookPage .tocTitleControls{
+.bookPage.fullBookPage .moderatorSectionExpand, .bookPage.fullBookPage .moderatorSectionCollapse {
+  margin: 13px 6px 0;
+}
+.bookPage.fullBookPage .tocTitleControls{
   display: flex;
 }
 .bookPage .moderatorSectionExpand:hover {
@@ -2685,8 +2734,6 @@ a.navBlockTitle:hover {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  padding-top: 30px;
-  border-top: 1px solid #ccc;
 }
 .textTableOfContents .structToggles{
   margin-top: 20px;
@@ -2752,7 +2799,7 @@ a.navBlockTitle:hover {
   display: none;
 }
 .textTableOfContents .tocSection > .sectionName {
-  font-size: 18px;
+  font-size: 24px;
   margin: 0 3px 4px;
   color: #666;
   display: block;
@@ -2775,16 +2822,12 @@ a.navBlockTitle:hover {
 .textTableOfContents .tocSection.noSubLevels{
   display: none;
 }
-.textTableOfContents .schema-node-contents {
-  margin: 0 auto 22px;
-  display: block;
-  width: 100%;
-}
 .textTableOfContents > .tocLevel {
   margin-bottom: 30px;
 }
-.textTableOfContents > .tocLevel > .schema-node-toc > .schema-node-title {
+.textTableOfContents > .tocContent > .tocLevel > .schema-node-toc > .schema-node-title {
   font-size: 24px;
+  line-height: 29px;
 }
 .textTableOfContents .schema-node-title {
   color: black;
@@ -2823,6 +2866,15 @@ a.navBlockTitle:hover {
 .readerApp.interface-hebrew .noLangToggleInHebrew .textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title.open:after {
   content: "\f107";
 }
+.textTableOfContents .schema-node-contents {
+  margin: 0 auto 22px;
+  display: block;
+  width: 100%;
+}
+.textTableOfContents .schema-node-contents > .tocLevel > .schema-node-toc:not(.janode),
+.torahNavParshiot .tocLevel .schema-node-toc{
+  margin-inline-start: 15px;
+}
 .textTableOfContents .schema-node-contents.closed {
   display: none;
 }
@@ -2844,6 +2896,9 @@ a.navBlockTitle:hover {
 .textTableOfContents .specialNavSectionHeader {
   font-size: 24px;
   margin-bottom: 10px;
+}
+.textTableOfContents .torahNavParshiot{
+  margin-top: 30px;
 }
 .textTableOfContents .altStruct .refLink {
   width: 49%;
@@ -2884,8 +2939,6 @@ a.navBlockTitle:hover {
   display: flex;
   justify-content: start;
   align-items: flex-start;
-}
-.bookPage .versionBlock .versionBlockHeading{
   margin-bottom: 10px;
 }
 .versionBlock .versionTitle {
@@ -3156,6 +3209,7 @@ select {
   background: var(--lighter-grey);
   border-radius: 6px;
   margin-bottom: 25px;
+  position: relative;
 }
 .dictionarySearchBox .dictionarySearchButton{
   width: 16px;
@@ -3596,24 +3650,32 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   font-size: 22px;
 }
-.searchContent .sheetResult .result-title.in-en {
-  direction: ltr;
-  text-align: left;
+.searchContent .sheetResult .sheetData{
+  display: flex;
+  justify-content:flex-start;
+  align-items: center;
+  color: #999;
+  font-size: 13px;
+  margin: 15px 0 5px;
 }
-.searchContent .sheetResult .result-title.in-he {
-  direction: rtl;
-  text-align: right;
+.searchContent .sheetResult .ownerData{
+  display: flex;
+  justify-content:flex-start;
+  align-items: center;
+  font-size: 13px;
 }
 .searchContent .sheetResult .ownerName {
   color: #000;
+  margin-inline-start: 10px;
 }
-.readerPanel.english .searchContent .sheetResult .ownerName.in-he {
-  direction: rtl;
-  text-align: left;
+.searchContent .sheetResult .sheetData .tagsViews a:not(:last-of-type):after{
+  content: ",";
+  margin-inline-end: 4px;
 }
-.readerPanel.hebrew .searchContent .sheetResult .ownerName.in-en {
-  direction: ltr;
-  text-align: right;
+.searchContent .sheetResult .sheetData .tagsViews a:first-of-type:before{
+  content: '•';
+  margin-inline-start: 4px;
+  margin-inline-end: 4px;
 }
 .searchContent .result .result-title:hover {
   text-decoration: underline;
@@ -3658,15 +3720,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .searchContent .result .similar-trigger-box i {
   padding: 0 5px;
-}
-.searchContent .sheet_result .owner_image {
-  height: 30px;
-  width: 30px;
-  align-self: flex-start;
-}
-.searchContent .sheet_result {
-  height: auto;
-  margin: 15px 0 20px 0;
 }
 .searchContent .result + .loadingMessage {
   margin-top: 30px;
@@ -3944,6 +3997,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .saveButton img {
   height: 18px;
   width: 18px;
+  margin-top: 3px;
 }
 .rightButtons .saveButton.tooltip-toggle::before {
   top: 47px;
@@ -5359,7 +5413,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin: 4px;
 }
 .bookPage .sheetTag.button {
-  padding: 10px 16px
+  padding: 5px 16px;
+  height: 30px;
 }
 .textList .sheetList {
   padding-top: 40px;
@@ -5720,6 +5775,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: block;
   content: ' ';
   background-size: 15px 15px;
+  background-repeat: no-repeat;
   height: 15px;
   width: 15px;
   margin-inline-end: 5px;
@@ -6349,7 +6405,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   --english-font: var(--english-serif-font-family);
   --hebrew-font: var(--hebrew-serif-font-family);
   color: var(--dark-grey);
-  font-size: 16px;
+  font-size: 18px;
   margin-top: 10px;
 }
 .notification .replyButton {
@@ -7581,11 +7637,12 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 }
 .searchBox .keyboardInputInitiator {
     opacity: 0.4;
-    width: 16px;
-    height: 16px;
-    padding: 4px 7px;
+    width: 22px;
+    height: 20px;
+    padding: 4px 7px 2px;
     position: initial;
     vertical-align: 0px;
+
 }
 .header .searchBox .keyboardInputInitiator {
     display: none;
@@ -7794,9 +7851,6 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 .dropdown .dropdownList .dropdownOption.selected {
   color: var(--selected-option);
-}
-.downloadTextModule .dropdown .dropdownMain{
-  box-shadow: none;
 }
 .addToSourceSheetBox .dropdownMain.noselect {
   display: flex;
@@ -8053,6 +8107,9 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .bubbleTab.active {
   color: #333;
 }
+.aboutBox .detailsSection{
+  margin-bottom: 40px;
+}
 .aboutBox .aboutHeader {
   color: var(--dark-grey);
   padding-bottom: 13px;
@@ -8066,17 +8123,24 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
 .aboutBox .aboutTitle {
-  padding: 10px 0 15px 0;
+  padding: 10px 0 10px 0;
   display: inline-block;
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-style: normal;
   font-weight: normal;
   font-size: 24px;
   line-height: 29px;
   color: #000000;
 }
+.aboutBox .tocCategory{
+  display: block;
+  margin-bottom: 17px;
+  font-size: 16px;
+  line-height: 19px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--dark-grey);
+}
 .aboutBox .aboutSubtitle {
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-style: italic;
   font-weight: normal;
   font-size: 18px;
@@ -8086,14 +8150,28 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .aboutBox .aboutSubtitle .he {
   font-style: normal;
 }
+.aboutBox .aboutAuthor{
+  font-size: 16px;
+  line-height: 19px;
+  color: var(--dark-grey);
+  margin-bottom: 22px;
+}
+.aboutBox .aboutAuthor .authorName{
+  margin-inline-start: 5px;
+  color: black;
+}
 .aboutBox .aboutDesc {
-  padding: 15px 0 30px 0;
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  margin: 15px 0 15px 0;
   font-style: normal;
   font-weight: normal;
-  font-size: 18px;
-  line-height: 22px;
-  color: #000000;
+  font-size: 16px;
+  line-height: 19px;
+  color: var(--dark-grey);
+}
+.aboutBox .aboutComposed{
+  font-size: 14px;
+  line-height: 18px;
+  color: var(--medium-grey);
 }
 .readerApp.interface-hebrew .aboutBox .versionDetails,
 .readerApp.interface-hebrew .versionsBox .versionDetails {
@@ -8866,6 +8944,24 @@ cursor: pointer;
 .tab-view.largeTabs .tab-list .active .tab {
   border-bottom: 4px solid var(--light-grey);
 }
+@media (max-width: 540px) {
+  .profile-page .tab-view .tab .tabIcon {
+    display: none;
+  }
+  .interface-hebrew .tab-view .tab-list .justifyright {
+    margin: initial;
+  }
+  .tab-view .tab-list .justifyright {
+    margin: initial;
+  }
+  .tab-view .tab-list{
+    flex-wrap: wrap;
+  }
+  .profile-page .profile-actions .resourcesLink.profile-settings,
+  .profile-page .profile-actions .button.logoutLink{
+    display: none;
+  }
+}
 .profile-page .textRange {
   font-size: 18px;
   color: #666;
@@ -9494,12 +9590,6 @@ body .homeFeedWrapper .content {
   display: flex;
   flex-direction: row;
 }
-.sideColumn {
-  flex: 0 0 320px;
-  max-width: 40%;
-  background-color: #FBFBFA;
-  padding: 60px 50px;
-}
 @media (max-width: 540px) {
   .topicPanel .columnLayout {
     flex-direction: column;
@@ -9829,6 +9919,9 @@ img.smallProfileImage {
   display: flex;
   justify-content: center;
   flex-direction: column;
+}
+.authorByLine .authorByLineText.small{
+  line-height: 18px;
 }
 .authorByLine .authorOrganization,
 .authorByLine .authorName {
