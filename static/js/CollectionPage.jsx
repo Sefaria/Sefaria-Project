@@ -223,7 +223,7 @@ class CollectionPage extends Component {
         {
           id: 'filter',
           title: {en: "Filter", he: Sefaria._("Filter")},
-          icon: `/static/img/arrow-${this.state.showFilterHeader ? 'up' : 'down'}-bold.svg`,
+          icon: `/static/icons/arrow-${this.state.showFilterHeader ? 'up' : 'down'}-bold.svg`,
           justifyright: true
         }
       );
