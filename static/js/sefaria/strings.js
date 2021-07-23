@@ -437,6 +437,10 @@ const Strings = {
     "Start Reading": "התחלת קריאה",
     "Composed": "זמן חיבור",
 
+    //Sheet Meta
+    "About this Sheet": "אודות דף המקורות",
+    "Tags": "תוויות",
+
     //Topics
     "Wikipedia": "ויקיפדיה",
     "Jewish Encyclopedia": "האנציקלופדיה היהודית",

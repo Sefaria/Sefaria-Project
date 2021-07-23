@@ -1522,12 +1522,13 @@ div.interfaceLinks-row a {
   padding: 0;
 }
 .readerPanel .navSidebarModule h3,
-.readerPanel .navSidebarModule h1 {
+.readerPanel .navSidebarModule h1,
+.readerPanel .bookPage h3{
   margin: 0 0 20px;
   font-size: 22px;
   text-transform: none;
   letter-spacing: 0;
-  border-bottom: 1px solid #CCC;
+  border-bottom: 1px solid var(--light-grey);
   padding-bottom: 14px;
   font-weight: 500;
   height: auto;
@@ -2594,46 +2595,31 @@ a.navBlockTitle:hover {
   margin-bottom: 20px;
   letter-spacing: 1px;
 }
-.bookPage .tocDetails {
-  margin-top: 30px;
-  color: #999;
-  font-style: italic;
+.bookPage.sheetPage .sheetMetaButtons{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 40px;
 }
-.bookPage .tocDetails a {
-  color: #999;
+.bookPage.sheetPage .sheetMetaButtons .button{
+  height: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
-.bookPage .tocDetail {
-  margin-bottom: 4px;
+.bookPage.sheetPage .sheetMetaButtons .button img{
+  margin-inline-end: 5px;
+  max-height: 18px;
 }
-.bookPage .tocDetail .int-en {
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
-}
-.bookPage .tocDetail .int-he {
-  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
-}
-
-.bookPage .tocDetail.authorStatement .int-he,
-.bookPage .tocDetail.authorStatement .int-en {
-  font-family: inherit;
-}
-
-
-.bookPage .tocDetails .description {
-  margin: 6px 0 16px;
-  font-style: normal;
+.bookPage .tocDetails{
+  margin-top:40px;
   font-size: 16px;
-  line-height: 1.4;
+  line-height: 19px;
+  color: var(--dark-grey);
+  text-align: start;
 }
-.bookPage .tocDetails .description .readMoreText {
-  display: block;
-  text-align: center;
-}
-.bookPage .tocDetails .description .readMoreLink {
-  font-style: italic;
-  cursor: pointer;
-  font-size: 14px;
-  color: #666;
-  margin: 0 5px;
+.bookPage .tocDetails h3{
+  margin-bottom: 25px;
 }
 .bookPage .tocDetails .sheetSummary {
   margin: 6px 0 16px;
@@ -2748,8 +2734,6 @@ a.navBlockTitle:hover {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  padding-top: 30px;
-  border-top: 1px solid #ccc;
 }
 .textTableOfContents .structToggles{
   margin-top: 20px;
@@ -5429,7 +5413,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin: 4px;
 }
 .bookPage .sheetTag.button {
-  padding: 10px 16px
+  padding: 5px 16px;
+  height: 30px;
 }
 .textList .sheetList {
   padding-top: 40px;

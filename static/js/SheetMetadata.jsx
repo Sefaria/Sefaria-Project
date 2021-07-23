@@ -428,26 +428,26 @@ class SheetMetadata extends Component {
                         close={this.toggleCollectionsModal} /> : null }
                     </div>
 
-                    <div className="tocDetails">
+                    <div className="tocDetails sheetSummary">
+                      <h3><InterfaceText>About this Sheet</InterfaceText></h3>
                       {details && !canEdit ? <div className="description" dangerouslySetInnerHTML={ {__html: details} }></div> : null}
                     </div>
-                    {sheet.topics && sheet.topics.length > 0 && !canEdit ?
-                    <div className="tagsSection">
-                        <h2 className="tagsTitle int-en">Tags</h2>
-                        <h2 className="tagsTitle int-he">תוית</h2>
 
-                        <div className="sheetTags">
-                          {sheet.topics.map((topic, i) => (
-                              <a href={"/topics/" + topic.slug}
-                                target="_blank"
-                                className="sheetTag button"
-                                key={i}
-                              >
-                                <InterfaceText text={{en:topic.en, he:topic.he}} />
-                              </a>
-                            ))
-                          }
-                        </div>
+                    {sheet.topics && sheet.topics.length > 0 && !canEdit ?
+                    <div className="tocDetails tagsSection">
+                      <h3><InterfaceText>Tags</InterfaceText></h3>
+                      <div className="sheetTags">
+                        {sheet.topics.map((topic, i) => (
+                            <a href={"/topics/" + topic.slug}
+                              target="_blank"
+                              className="sheetTag button"
+                              key={i}
+                            >
+                              <InterfaceText text={{en:topic.en, he:topic.he}} />
+                            </a>
+                          ))
+                        }
+                      </div>
                     </div> : null }
 
                     {canEdit ? <div className={"publishBox sans-serif"}>
