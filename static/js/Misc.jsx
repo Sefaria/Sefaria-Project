@@ -2260,7 +2260,7 @@ const Autocompleter = ({}) => {
   const [helperPromptText, setHelperPromptText] = useState(null);
 
   const getWidthOfInput = () => {
-    //Create a temporary w/ all of the same styles as the input since we can't measure the input
+    //Create a temporary div w/ all of the same styles as the input since we can't measure the input
     let tmp = document.createElement("div");
     const inputEl = document.querySelector('.addInterfaceInput input');
     const styles = window.getComputedStyle(inputEl);
@@ -2294,7 +2294,7 @@ const Autocompleter = ({}) => {
 
       if (d.is_section || d.is_segment) {
         setCurrentSuggestions(null)
-        setPreviewText(input)
+        generatePreviewText(input);
         setHelperPromptText(null)
         return
       }
@@ -2308,13 +2308,6 @@ const Autocompleter = ({}) => {
         setHelperPromptText(null)
       }
 
-      const inputData = {
-          addressExamples: d.addressExamples,
-          is_book: d.is_book,
-          is_ref: d.is_ref,
-          is_section: d.is_section,
-          is_segment: d.is_segment,
-      }
       const suggestions = d.completion_objects
           .map((suggestion, index) => ({
             name: suggestion.title,
@@ -2326,8 +2319,14 @@ const Autocompleter = ({}) => {
     })
   }
 
+  const resizeInputIfNeeded = () => {
+    const currentWidth = getWidthOfInput()
+    if (currentWidth > 350) {document.querySelector('.addInterfaceInput input').style.width = `${currentWidth+20}px`}
+  }
+
   const onChange = (input) => {
-    getSuggestions(input)
+    getSuggestions(input);
+    resizeInputIfNeeded()
   }
   const Suggestion = ({title, color}) => {
     return(<div
@@ -2336,6 +2335,7 @@ const Autocompleter = ({}) => {
                   e.stopPropagation()
                   setInputValue(title)
                   getSuggestions(title)
+                  resizeInputIfNeeded()
                 }
               }
               style={{"borderInlineStartColor": color}}
@@ -2356,6 +2356,28 @@ const Autocompleter = ({}) => {
   return(div)
   }
 
+  const generatePreviewText = (ref) => {
+        Sefaria.getText(ref).then(text => {
+           const segments = Sefaria.makeSegments(text);
+           console.log(segments)
+          const previewHTML =  segments.map((segment, i) => {
+            {
+              return(
+                  <div class="textPreviewSegment" key={segment.ref}>
+                    <ContentText
+                        text={{"en": segment.number, "he": Sefaria.hebrew.encodeHebrewNumeral(segment.number)}}
+                        defaultToInterfaceOnBilingual={true}
+                    />
+                    <ContentText html={{"he": segment.he+ " ", "en": segment.en+ " " }}/>
+                  </div>
+              )
+            }
+          })
+          setPreviewText(previewHTML)
+        })
+  }
+
+
   return(
     <div className="addInterfaceInput" onClick={(e) => {e.stopPropagation()}}>
       <input
@@ -2373,6 +2395,16 @@ const Autocompleter = ({}) => {
 
           : null
       }
+
+      {previewText ?
+          <div className="textPreview">
+            <div className="inner">{previewText}</div>
+          </div>
+
+          : null
+
+      }
+
     </div>
     )
 }

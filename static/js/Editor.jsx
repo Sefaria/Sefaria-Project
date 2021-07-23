@@ -672,7 +672,6 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
         const newValue = e.target.value;
         setInputValue(newValue)
         setShowAddMediaButton(isMediaLink(newValue))
-        console.log(isMediaLink(newValue))
     }
     const addMedia = () => {
         const fragment = {
