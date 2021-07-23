@@ -126,8 +126,11 @@ const LoadingRing = () => (
   <div className="lds-ring"><div></div><div></div><div></div><div></div></div>
 );
 
-const DonateLink = ({children, classes}) => {
-  const url = Sefaria._v({en: "https://sefaria.nationbuilder.com/supportsefaria", he: "https://sefaria.nationbuilder.com/supportsefaria_il"});
+const DonateLink = ({children, classes, source}) => {
+  const links = source === "Header" ?
+                {en: "https://sefaria.nationbuilder.com/supportsefaria_w", he: "https://sefaria.nationbuilder.com/supportsefaria_il_w"}
+                : {en: "https://sefaria.nationbuilder.com/supportsefaria", he: "https://sefaria.nationbuilder.com/supportsefaria_il"}
+  const url = Sefaria._v(links);
   return (
       <a href={url} className={classes} target="_blank">
         {children}
