@@ -130,7 +130,9 @@ const Notification = ({imageUrl, imageLink, topLine, date, body}) => {
       <div className="mainSection">
         <div className="topLine">
           <div className="topLineText">{topLine}</div>
-          <div className="date">{Sefaria.util.naturalTime(date) + " " + Sefaria._("ago")}</div>
+          <div className="date">
+            <InterfaceText text={{en: `${Sefaria.util.naturalTime(date)} ago`, he: `לפני ${Sefaria.util.naturalTime(date)}`}} />
+          </div>
         </div>
         
         {body ?
@@ -298,7 +300,7 @@ const IndexNotification = ({date, content}) => {
 
   const topLine = (
     <>
-      <InterfaceText>New Text:</InterfaceText>&nbsp;
+      <InterfaceText>New Text</InterfaceText>:&nbsp;
       <a href={url}>
         <InterfaceText text={{en: title, he: heTitle}} />
       </a>

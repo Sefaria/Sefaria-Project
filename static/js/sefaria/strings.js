@@ -289,6 +289,13 @@ const Strings = {
     "Notifications": "התראות",
     "Texts and sheets that you read will be available for you to see here.": "מקורות ודפי מקורות שקראתם יהיו זמינים עבורכם כאן לעיון חוזר.",
     "Click the bookmark icon on texts or sheets to save them here.": "לחצו על סמל הסימניה בתוך מקורות או דפי מקורות כדי לשמור מראי מקומות מסוימים כאן.",
+    "New Text": "טקסט חדש",
+    "sent you a message": "שלח/ה לך הודעה",
+    "published a new sheet": "פרסמ/ה דף מקורות חדש",
+    "liked your sheet": "שמר/ה את דף המקורות שלך",
+    "is now following you": "נרשמ/ה לעדכונים ממך",
+    "Reply": "תשובה",
+    "added you to a collection": "הוסיפ/ה אותך לאסופה",
 
     // Learning Schedules
     "Daily Learning": "לימוד יומי",
