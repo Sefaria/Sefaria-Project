@@ -3693,6 +3693,10 @@ def community_reset(request):
     """
     Reset the cache of the community page content from Google sheet
     """
+    if MULTISERVER_ENABLED:
+        server_coordinator.publish_event("in_memory_cache", "set", ["community-page-data-english", None])
+        server_coordinator.publish_event("in_memory_cache", "set", ["community-page-data-hebrew", None])
+
     date = request.GET.get("next", "7/25/21")
     community = get_community_page_items(date=date, language=request.interfaceLang, refresh=True)
 

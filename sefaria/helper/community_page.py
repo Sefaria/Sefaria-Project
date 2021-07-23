@@ -15,11 +15,15 @@ from sefaria.utils.calendars import get_parasha
 from sefaria.utils.hebrew import is_hebrew, hebrew_term, hebrew_parasha_name
 from sefaria.utils.util import strip_tags
 from sefaria.helper.topic import get_topic_by_parasha
-from sefaria.system.cache import django_cache, delete_cache_elem, cache_get_key
+from sefaria.system.cache import django_cache, delete_cache_elem, cache_get_key, in_memory_cache
 
 
 @django_cache(timeout=12 * 60 * 60, cache_prefix="community_page")
 def get_community_page_data(language="english"):
+  data = in_memory_cache.get("community-page-data-{}".format(language))
+  if data:
+    return data
+
   urls = {
     "english": {
       "parashah": 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSoHRVY9Z5MNhERjolxXzQ6Efp3SFTniHMgkSORWFPlkwoj5ppYeP8AyTX7yG_LcQ3p165iRNfOpOSZ/pub?output=csv',
@@ -35,12 +39,16 @@ def get_community_page_data(language="english"):
     },
   }
 
-  return {
+  data = {
     "parashah": load_data_from_sheet(urls[language]["parashah"]),
     "calendar": load_data_from_sheet(urls[language]["calendar"]),
     "discover": load_data_from_sheet(urls[language]["discover"]),
     "featured": load_data_from_sheet(urls[language]["featured"]),
   }
+
+  in_memory_cache.set("community-page-data-{}".format(language), data)
+
+  return data
 
 
 def load_data_from_sheet(url):
