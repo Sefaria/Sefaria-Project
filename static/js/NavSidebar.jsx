@@ -528,11 +528,14 @@ const AboutCollections = ({hideTitle}) => (
   <Module>
     {hideTitle ? null :
     <ModuleTitle h1={true}>About Collections</ModuleTitle>}
-    <InterfaceText>Collections are user generated bundles of sheets which can be used privately, shared with friends, or made public on Sefaria.</InterfaceText>
+    <InterfaceText>
+        <EnglishText>Collections are user generated bundles of sheets which can be used privately, shared with friends, or made public on Sefaria.</EnglishText>
+        <HebrewText>אסופות הן מקבצים של דפי מקורות שנוצרו על ידי משתמשי האתר. הן ניתנות לשימוש פרטי, לצורך שיתוף עם אחרים או לשימוש ציבורי באתר ספריא.</HebrewText>
+    </InterfaceText>
     {hideTitle ? null :
     <div>
       <a className="button small" href="/collections/new">
-        <img src="/static/icons/collection.svg" alt="create a collection icon" />
+        <img src="/static/icons/collection-black.svg" alt="create a collection icon" />
         <InterfaceText>Create a Collection</InterfaceText>
       </a>
     </div>}
