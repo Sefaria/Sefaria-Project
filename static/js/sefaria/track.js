@@ -19,7 +19,7 @@ class Track {
     static event(category, action, label, value, options) {
         // https://developers.google.com/analytics/devguides/collection/analyticsjs/command-queue-reference#send
         ga(SEND, 'event', category, action, label, value, options);
-        // console.log(SEND, 'event', category, action, label, value, options);
+        console.log(SEND, 'event', category, action, label, value, options);
         if (ga._mock && value && value.hitCallback) {
           // When Google Analytics isn't being used, trigger hitCallback immediately.
           value.hitCallback();

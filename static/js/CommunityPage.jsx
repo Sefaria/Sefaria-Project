@@ -37,7 +37,7 @@ const CommunityPage = ({multiPanel, toggleSignUpModal, initialWidth}) => {
   if (dataLoaded) {
     const {parashah, calendar, discover, featured} = Sefaria.community;
     const sheets = [parashah, calendar, discover, featured].filter(x => !!x)
-                      .map(x => <FeaturedSheet sheet={x.sheet} toggleSignUpModal={toggleSignUpModal} />);    
+      .map(x => <FeaturedSheet sheet={x.sheet} key={x.sheet.id} toggleSignUpModal={toggleSignUpModal} trackClicks={true}/>);    
     featuredContent = (
       <>
         <ResponsiveNBox content={sheets.slice(0,2)} stretch={true} initialWidth={initialWidth} />
@@ -140,7 +140,7 @@ const collapseSheets = (sheets) => {
   }, []);
 }
 
-const FeaturedSheet = ({sheet, showDate, toggleSignUpModal}) => {
+const FeaturedSheet = ({sheet, showDate, trackClicks, toggleSignUpModal}) => {
   if (!sheet) { return null; }
   const {heading, title, id, summary} = sheet;
   const uid = sheet.author || sheet.owner;
@@ -158,6 +158,10 @@ const FeaturedSheet = ({sheet, showDate, toggleSignUpModal}) => {
   const published = new Date(sheet.published);
   const naturalPublished = Sefaria.util.naturalTime(published.getTime()/1000, {short:true});
 
+  const trackClick = () => {
+    Sefaria.track.event("Community Page Featured Click", title, `/sheets/${id}`);
+  };
+
   return (
     <div className="featuredSheet navBlock">
       { heading ?
@@ -165,7 +169,7 @@ const FeaturedSheet = ({sheet, showDate, toggleSignUpModal}) => {
         <InterfaceText text={heading} />
       </div>
       : null}
-      <a href={`/sheets/${id}`} className="navBlockTitle">
+      <a href={`/sheets/${id}`} className="navBlockTitle" onClick={trackClicks ? trackClick : null}>
         <InterfaceText>{title}</InterfaceText>
       </a>
       {summary ?
