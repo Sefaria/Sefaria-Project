@@ -1,26 +1,55 @@
 # -*- coding: utf-8 -*-
+from urllib.parse import urlparse, quote_plus
 
-from .framework import SefariaTest, one_of_these_texts_present_in_element
-from sefaria.utils.hebrew import has_cantillation
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support.ui import WebDriverWait, Select
 from selenium.webdriver.support.expected_conditions import title_contains, staleness_of, element_to_be_clickable, visibility_of_element_located, invisibility_of_element_located, text_to_be_present_in_element
+from selenium.common.exceptions import WebDriverException
 
 from sefaria.model import *
 from sefaria.utils.hebrew import strip_cantillation, strip_nikkud
-from selenium.common.exceptions import WebDriverException
+from sefaria.utils.hebrew import has_cantillation
+from .framework import SefariaTest, one_of_these_texts_present_in_element
 
 import time  # import stand library below name collision in sefaria.model
-import urllib.parse
 
 TEMPER = 30
+
+
+class PagesLoad(SefariaTest):
+    
+    every_build = True
+    initial_url = "/texts"
+
+    def body(self):
+        self.click_toc_category("Midrash").click_toc_text("Ein Yaakov")
+        self.load_ref("Tosefta Peah 2", wait_for_connections=True)
+        self.load_ref("Sifra, Tzav, Chapter 1", wait_for_connections=True)
+        self.load_topics()
+        self.load_search_url("Passover")
+        self.load_gardens()
+        self.load_people()
+
+class PagesLoadLoggedIn(SefariaTest):
+    
+    every_build  = True
+    single_panel = False   # todo write or rewrite this to account for logged in state on mobile
+    initial_url  = "/texts"
+
+    def body(self):
+        self.login_user()
+        self.load_my_profile()
+        # self.load_notifications()
+        self.nav_to_profile() # load_account might be superceded by load_my_profile or nav_to_profile
+        self.load_notifications()
 
 
 class SinglePanelOnMobile(SefariaTest):
     
     every_build = True
     multi_panel = False
+    initial_url = "/texts"
 
     def body(self):
         self.nav_to_text_toc(["Tanakh"], "Joshua")
@@ -31,42 +60,13 @@ class SinglePanelOnMobile(SefariaTest):
         elems = self.driver.find_elements_by_css_selector(".readerApp .readerPanelBox")
         assert len(elems) == 1
 
-        self.click_segment_to_close_commentary("Joshua 1:1")  # Close commentary window on mobile
-
-
-class PagesLoad(SefariaTest):
-    
-    every_build = True
-
-    def body(self):
-        self.load_toc()
-        self.click_toc_category("Midrash").click_toc_text("Ein Yaakov")
-        self.load_ref("Tosefta Peah 2", wait_for_connections=True)
-        self.load_ref("Sifra, Tzav, Chapter 1", wait_for_connections=True)
-        self.load_topics()
-        self.load_gardens()
-        self.load_people()
-
-class PagesLoadLoggedIn(SefariaTest):
-    
-    every_build = True
-    single_panel = False   # todo write or rewrite this to account for logged in state on mobile
-
-    def body(self):
-        self.load_toc()
-        self.login_user()
-        self.load_my_profile()
-        # self.load_notifications()
-        self.nav_to_profile() # load_account might be superceded by load_my_profile or nav_to_profile
-        self.load_notifications()
-
 
 class ChangeTextLanguage(SefariaTest):
     
     every_build = True
+    initial_url = "/Job.1"
 
     def body(self):
-        self.load_ref("Job 1")
         expected_heb = 'אִ֛ישׁ הָיָ֥ה בְאֶֽרֶץ־ע֖וּץ אִיּ֣וֹב שְׁמ֑וֹ וְהָיָ֣ה ׀ הָאִ֣ישׁ הַה֗וּא תָּ֧ם וְיָשָׁ֛ר וִירֵ֥א אֱלֹהִ֖ים וְסָ֥ר מֵרָֽע׃'
         expected_eng_closed = 'There was a man in the land of Uz named Job. That man was blameless and upright; he feared God and shunned evil.'
         expected_eng_open = 'THERE was a man in the land of Uz, whose name was Job; and that man was whole-hearted and upright, and one that feared God, and shunned evil.'
@@ -106,9 +106,9 @@ class ChangeTextLanguage(SefariaTest):
 class FontSizeTest(SefariaTest):
     
     every_build = True
+    initial_url = "/Tosefta_Peah.3"
 
     def body(self):
-        self.load_ref("Tosefta Peah 3")
         self.toggle_on_text_settings()
         font_size_original = self.get_font_size()
         self.toggle_fontSize_smaller()
@@ -123,8 +123,9 @@ class FontSizeTest(SefariaTest):
 class LayoutSettings(SefariaTest):
     # 2] Layout: left/right/stacked
 
+    initial_url = "/Tosefta_Peah.3"
+
     def body(self):
-        self.load_ref("Tosefta Peah 3")
         if not self.single_panel:
             self.toggle_on_text_settings()
             self.toggle_bilingual_layout_heLeft()
@@ -142,12 +143,12 @@ class LayoutSettings(SefariaTest):
 class TextVocalizationSettings(SefariaTest):
     
     every_build = True
+    initial_url = "/Job.1"
 
     def body(self):
         just_text = 'איש היה בארץ־עוץ איוב שמו והיה  האיש ההוא תם וישר וירא אלהים וסר מרע'
         text_with_vowels = 'אִישׁ הָיָה בְאֶרֶץ־עוּץ אִיּוֹב שְׁמוֹ וְהָיָה  הָאִישׁ הַהוּא תָּם וְיָשָׁר וִירֵא אֱלֹהִים וְסָר מֵרָע׃'
         text_with_cantillation = 'אִ֛ישׁ הָיָ֥ה בְאֶֽרֶץ־ע֖וּץ אִיּ֣וֹב שְׁמ֑וֹ וְהָיָ֣ה ׀ הָאִ֣ישׁ הַה֗וּא תָּ֧ם וְיָשָׁ֛ר וִירֵ֥א אֱלֹהִ֖ים וְסָ֥ר מֵרָֽע׃'
-        self.load_ref("Job 1")
 
         self.toggle_on_text_settings()
         self.toggle_vowels_partial()
@@ -191,9 +192,9 @@ class TanakhCantillationAndVowels(SefariaTest):
 class AliyotAndCantillationToggles(SefariaTest):
     
     every_build = True
+    initial_url = "/Derashot_HaRan.1"
 
     def body(self):
-        self.browse_to_ref("Derashot HaRan 1")
         assert not has_cantillation(self.get_nth_section_hebrew(1).text)
         assert not has_cantillation(self.get_nth_section_hebrew(1).text, False)
         self.toggle_on_text_settings()
@@ -216,16 +217,16 @@ class AliyotAndCantillationToggles(SefariaTest):
         assert self.is_vocalization_toggleSet_displayed()
 
 
-class SideBarEntries(SefariaTest):
+class SidebarOpens(SefariaTest):
     
     every_build = True
     single_panel = False
+    initial_url = "/Ecclesiastes.1"
     # todo: make this work on mobile.
     # "sidebar" elements will need to be scrolled into view before clicking
 
     def body(self):
-        self.login_user()
-        self.browse_to_ref("Ecclesiastes 1")
+        self.wait_for_connections()
         self.click_segment("Ecclesiastes 1:1")
 
         sections = ("Commentary", "Targum", "Talmud", "Midrash", "Midrash")
@@ -237,9 +238,6 @@ class SideBarEntries(SefariaTest):
         self.driver.find_element_by_css_selector('.readerNavMenuMenuButton').click()
 
         self.click_sidebar_button("Sheets")
-        self.click_resources_on_sidebar()
-
-        self.click_sidebar_button("Notes")
         self.click_resources_on_sidebar()
 
         self.click_sidebar_button("About this Text")
@@ -263,6 +261,11 @@ class SideBarEntries(SefariaTest):
         self.click_sidebar_button("Share")
         self.click_resources_on_sidebar()
 
+        self.login_user()
+
+        self.click_sidebar_button("Notes")
+        self.click_resources_on_sidebar()
+
         self.click_sidebar_button("Advanced")
         self.click_sidebar_button("Add Connection")
 
@@ -272,9 +275,9 @@ class ChangeSiteLanguage(SefariaTest):
     # the language has actually changed.
     
     every_build = True
+    initial_url = "/texts"
 
     def body(self):
-        self.nav_to_toc()
         self.click_ivrit_link()
         time.sleep(1)
         assert self.driver.find_element_by_css_selector('.interface-hebrew') != None
@@ -388,6 +391,7 @@ class ReadingHistory(SefariaTest):
     
     single_panel = False
     every_build = True
+    initial_url = "/login"
 
     def body(self):
         # Using a short chapter can cause the text to fail if the following section is
@@ -407,9 +411,10 @@ class ReadingHistory(SefariaTest):
 class LoadRefAndClickSegment(SefariaTest):
     
     every_build = True
+    initial_url = "/Job.3"
 
     def body(self):
-        self.load_ref("Job 3:4", wait_for_connections=True).click_segment("Job 3:4")
+        self.click_segment("Job 3:4")
         assert "Job.3.4" in self.driver.current_url, self.driver.current_url
         assert "with=all" in self.driver.current_url, self.driver.current_url
 
@@ -423,9 +428,10 @@ class LoadRefAndClickSegment(SefariaTest):
 class LoadRefWithCommentaryAndClickOnCommentator(SefariaTest):
     
     every_build = True
+    initial_url = "/Job.3.4?with=all"
 
     def body(self):
-        self.load_ref("Job 3:4", filter="all").click_category_filter("Commentary").click_text_filter("Rashi")
+        self.click_category_filter("Commentary").click_text_filter("Rashi")
         assert "Job.3.4" in self.driver.current_url, self.driver.current_url
         assert "with=Rashi" in self.driver.current_url, self.driver.current_url
 
@@ -433,6 +439,7 @@ class LoadRefWithCommentaryAndClickOnCommentator(SefariaTest):
 class NavToBookPages(SefariaTest):
     
     every_build = True
+    initial_url = "/texts"
 
     def body(self):
         navs = [
@@ -448,9 +455,10 @@ class NavToBookPages(SefariaTest):
             self.nav_to_text_toc(cats, text_title)
 
 
-class LoadAndVerifyIndepenedentTOC(SefariaTest):
+class LoadBookPages(SefariaTest):
     
     every_build = True
+    initial_url = "/texts"
 
     def body(self):
         titles = [
@@ -462,15 +470,15 @@ class LoadAndVerifyIndepenedentTOC(SefariaTest):
             "Pesach Haggadah" # Complex text
         ]
         for title in titles:
-            self.load_text_toc(title)
+            self.load_book_page(title)
 
 
 class LoadSpanningRefAndOpenConnections(SefariaTest):
     
     every_build = True
+    initial_url = "/Shabbat.2a-2b"
 
     def body(self):
-        self.load_ref("Shabbat 2a-2b")
         self.click_segment("Shabbat 2a:1")
 
 
@@ -478,6 +486,7 @@ class NavToSpanningRefAndOpenConnections(SefariaTest):
     
     every_build = True
     single_panel = False
+    initial_url = "/texts"
 
     def body(self):
         self.search_ref("Shabbat 2a-2b")
@@ -492,9 +501,9 @@ class PermanenceOfRangedRefs(SefariaTest):
     
     every_build = True
     single_panel = False  # Segment clicks on mobile have different semantics  todo: write this for mobile?  It's primarily a data test.
+    initial_url = "/Shabbat.2a"
 
     def body(self):
-        self.search_ref("Shabbat 2a")
         self.click_segment("Shabbat 2a:1")
         self.click_category_filter("Mishnah")
         assert self.find_text_filter("Mishnah Shabbat")
@@ -506,17 +515,10 @@ class PermanenceOfRangedRefs(SefariaTest):
         assert self.find_text_filter("Mishnah Shabbat")
 
 
-class LoadSearchFromURL(SefariaTest):
-    
-    every_build = True
-
-    def body(self):
-        self.load_search_url("Passover")
-
-
 class ClickVersionedSearchResultDesktop(SefariaTest):
     weekly = True
     single_panel = False
+    initial_url = "/texts"
 
     def body(self):
         self.search_for("they howl like dogs")
@@ -526,8 +528,27 @@ class ClickVersionedSearchResultDesktop(SefariaTest):
         assert "Psalms.59.7/en/The_Rashi_Ketuvim_by_Rabbi_Shraga_Silverstein" in self.driver.current_url, self.driver.current_url
 
 
+class ClickVersionedSearchResultMobile(SefariaTest):
+    weekly = True
+    multi_panel = False
+    initial_url = "/texts"
+
+    def body(self):
+        hamburger = self.driver.find_element_by_css_selector(".readerNavMenuMenuButton")
+        if hamburger:
+            hamburger.click()
+            wait = WebDriverWait(self.driver, TEMPER)
+            wait.until(staleness_of(hamburger))
+        self.search_for("Dogs")
+        versionedResult = self.driver.find_element_by_css_selector('a[href="/Psalms.59.7/en/The_Rashi_Ketuvim_by_Rabbi_Shraga_Silverstein?qh=Dogs"]')
+        versionedResult.click()
+        WebDriverWait(self.driver, TEMPER).until(staleness_of(versionedResult))
+        assert "Psalms.59.7/en/The_Rashi_Ketuvim_by_Rabbi_Shraga_Silverstein" in self.driver.current_url, self.driver.current_url
+
+
 class CollectionsPagesLoad(SefariaTest):
     every_build = True
+    initial_url = "/texts"
 
     def body(self):
         self.load_url("/collections", ".collectionsList")
@@ -540,6 +561,7 @@ class BrowserBackAndForward(SefariaTest):
     
     every_build = True
     exclude = ['FF/x12', 'FF/x13', 'Sf/x11', 'Sf/x12', 'Sf/x13'] # Buggy handling of Back button
+    initial_url = "/texts"
 
     def body(self):
         # Sidebar
@@ -561,26 +583,10 @@ class BrowserBackAndForward(SefariaTest):
         # Todo - infinite scroll, nav pages, display options, ref normalization
 
 
-class ClickVersionedSearchResultMobile(SefariaTest):
-    weekly = True
-    multi_panel = False
-
-    def body(self):
-        hamburger = self.driver.find_element_by_css_selector(".readerNavMenuMenuButton")
-        if hamburger:
-            hamburger.click()
-            wait = WebDriverWait(self.driver, TEMPER)
-            wait.until(staleness_of(hamburger))
-        self.search_for("Dogs")
-        versionedResult = self.driver.find_element_by_css_selector('a[href="/Psalms.59.7/en/The_Rashi_Ketuvim_by_Rabbi_Shraga_Silverstein?qh=Dogs"]')
-        versionedResult.click()
-        WebDriverWait(self.driver, TEMPER).until(staleness_of(versionedResult))
-        assert "Psalms.59.7/en/The_Rashi_Ketuvim_by_Rabbi_Shraga_Silverstein" in self.driver.current_url, self.driver.current_url
-
-
 class SaveNewSourceSheet(SefariaTest):
     every_build = True
     single_panel = False  # No source sheets on mobile
+    initial_url = "/login"
 
     def body(self):
         self.login_user()
@@ -622,6 +628,7 @@ class LoginOnMobile(SefariaTest):
     
     every_build = True
     multi_panel = False  # Login is tested as part of SaveNewSourceSheet on multipanel
+    initial_url = "/login"
 
     def body(self):
         self.login_user()
@@ -633,6 +640,7 @@ class LoginOnMobile(SefariaTest):
 class SearchNavigation(SefariaTest):
     every_build = True
     single_panel = False  # This hasn't yet been implemented on mobile
+    initial_url = "/texts"
 
     def body(self):
         self.type_in_search_box("Shabbat")
@@ -664,6 +672,7 @@ class EditTextPagesLoad(SefariaTest):
     #todo: build a no-load reader test to match this
     every_build = True
     single_panel = False
+    initial_url = "/login"
 
     def body(self):
         self.login_user()
@@ -674,6 +683,7 @@ class EditTextPagesLoad(SefariaTest):
 class ScrollToHighlight(SefariaTest):
     every_build = True
     single_panel = False        # is_element_visible_in_viewport fails for mobile.
+    initial_url = "/texts"
 
     def test_by_load(self, ref):
         self.load_ref(ref)
@@ -698,9 +708,9 @@ class ScrollToHighlight(SefariaTest):
 
 class InfiniteScrollUp(SefariaTest):
     every_build = True
+    initial_url = "/texts"
 
     def test_up(self, start_ref, prev_segment_ref):
-        from urllib.parse import quote_plus
         self.browse_to_ref(start_ref)
         time.sleep(.5)
         self.scroll_reader_panel_down(100) # This jiggle feels like cheating, but I am finding that a single scroll doesn't trigger the "scroll" event, causing the next scroll to be ignore (with this.justScrolled flag)
@@ -719,6 +729,7 @@ class InfiniteScrollUp(SefariaTest):
 
 class InfiniteScrollDown(SefariaTest):
     every_build = True
+    initial_url = "/texts"
 
     def test_down(self, start_ref, next_segment_ref):
         self.browse_to_ref(start_ref).scroll_reader_panel_to_bottom()
@@ -738,16 +749,14 @@ class EditorTest(SefariaTest):
     """
     Tests that do editor things
     """
-
     every_build = False
     temp_sheet_id = None
 
     def setup(self):
-        from urllib.parse import urlparse
-        self.load_toc(my_temper=60)
+        self.click_accept_cookies()
+        self.close_modal_popup()
         self.login_user()
         self.enable_new_editor()
-        self.click_accept_cookies()
         self.new_sheet_in_editor()
         self.nav_to_end_of_editor()
         self.temp_sheet_id = urlparse(self.get_current_url()).path.rsplit("/", 1)[-1]
@@ -812,12 +821,12 @@ class AddSheetContent(EditorTest):
 class BackRestoresScrollPosition(SefariaTest):
     
     every_build = True
+    initial_url = "/texts"
 
     def body(self):
         SCROLL_DISTANCE = 200
 
         # TOC
-        self.load_toc()
         self.scroll_content_to_position(SCROLL_DISTANCE)
         time.sleep(0.4)
         self.click_toc_category("Midrash")

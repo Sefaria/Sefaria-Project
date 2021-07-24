@@ -160,7 +160,7 @@ class SefariaTest(AbstractTest):
             self.driver.set_window_size(900, 1100)
         except WebDriverException:
             pass
-        self.load_toc(my_temper=60)         # holdover from when tests expected a loaded environment.  todo: have tests take care of that individually, and remove this line.
+        self.driver.get(self.base_url + self.initial_url)
         self.close_modal_popup()
         self.click_accept_cookies()
 
@@ -177,6 +177,23 @@ class SefariaTest(AbstractTest):
                                      "return false;                            "
                                      , element)
 
+    def catch_js_error(self):
+        error_strings = [
+            "RangeError",
+            "ReferenceError",
+            "SyntaxError",
+            "TypeError",
+            "Uncaught Error",
+            "Uncaught (in promise) Error",
+        ]
+
+        js_console = self.driver.get_log("browser")
+        # This is cranky on many webdrivers.  It appears to only work on Chrome.
+        # See e.g. https://github.com/mozilla/geckodriver/issues/330
+
+        for msg in js_console:
+            if any(error in msg["message"] for error in error_strings):
+                raise Exception(f'JavaScript Error: {msg["message"]}')
     
     #  Shortcuts
     ############
@@ -220,13 +237,18 @@ class SefariaTest(AbstractTest):
         self.wait_until_present(selector)
         return self.driver.find_element_by_css_selector(selector)
 
-    def load_url(self, url, test_selector):
+    def load_url(self, url, test_selector, temper=TEMPER):
         """
         Load any URL and wait until `test_selector` is present
         """
         self.driver.get(urllib.parse.urljoin(self.base_url, url))
-        WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, test_selector)))
+        WebDriverWait(self.driver, temper).until(presence_of_element_located((By.CSS_SELECTOR, test_selector)))
         # self.catch_js_error()
+        return self
+
+    def load_toc(self, my_temper=None):
+        temper = my_temper or TEMPER  # This is used at startup, which can be sluggish on iPhone.
+        self.load_url("/texts", ".navBlockTitle")
         return self
 
     def click_element_by_link_text(self, link_txt):
@@ -239,7 +261,7 @@ class SefariaTest(AbstractTest):
         obj_to_click.click()
 
     #  Scrolling
-    #############
+    ##############
 
     def scroll_to_css_selector(self, selector):
         # This scrolls forward.  Do we need to test and try to scroll back also?
@@ -320,6 +342,9 @@ class SefariaTest(AbstractTest):
         )
         return self
 
+    # Initial Setup
+    ################
+
     def set_modal_cookie(self):
         # # set cookie to avoid popup interruption
         # # We now longer set the welcomeToS2LoggedOut message by default.
@@ -340,23 +365,35 @@ class SefariaTest(AbstractTest):
         except NoSuchElementException:
             pass
 
-    def catch_js_error(self):
-        error_strings = [
-            "RangeError",
-            "ReferenceError",
-            "SyntaxError",
-            "TypeError",
-            "Uncaught Error",
-            "Uncaught (in promise) Error",
-        ]
+    def close_modal_popup(self):
+        """
+        :return: Boolean - did we manage to close the popup?
+        """
+        time.sleep(3)
+        try:
+            self.driver.find_element_by_css_selector('#interruptingMessage #interruptingMessageClose')
+            self.click('#interruptingMessage #interruptingMessageClose')
+            return True
+        except NoSuchElementException:
+            pass
 
-        js_console = self.driver.get_log("browser")
-        # This is cranky on many webdrivers.  It appears to only work on Chrome.
-        # See e.g. https://github.com/mozilla/geckodriver/issues/330
+        try:
+            self.driver.find_element_by_css_selector('#bannerMessageClose')
+            self.click('#bannerMessageClose')
+            return True
+        except NoSuchElementException:
+            return False
 
-        for msg in js_console:
-            if any(error in msg["message"] for error in error_strings):
-                raise Exception(f'JavaScript Error: {msg["message"]}')
+    def close_popup_with_accept(self):
+        try:
+            alert = self.driver.switch_to.alert
+            alert.accept()
+        except NoAlertPresentException:
+            print('A <<NoAlertPresentException>> was thrown')
+            pass
+
+    # Login
+    ########3
 
     def login_user(self):
         password = os.environ["SEFARIA_TEST_PASS"]
@@ -373,7 +410,7 @@ class SefariaTest(AbstractTest):
     def _login(self, user, password):
         if self.is_logged_in():
             return self
-        self.load_url("/login", "#id_email")
+        self.nav_to_login()
         try:
             elem = self.driver.find_element_by_css_selector("#id_email")
             elem.send_keys(user)
@@ -388,6 +425,16 @@ class SefariaTest(AbstractTest):
             return self
         finally:
             return self
+
+    def is_logged_in(self):
+        try:
+            self.driver.find_element_by_css_selector('.accountLinks .my-profile')
+            return True
+        except NoSuchElementException:
+            return False
+
+    # Navigating in App
+    ###################
 
     def nav_to_profile(self):
         if not self.is_logged_in():
@@ -414,9 +461,6 @@ class SefariaTest(AbstractTest):
         return self
 
     def _nav_to_login_desktop(self):
-        # Broken - I believe because the Selenium window is relatively narrow, which causes us to hide
-        # the login button in the header (Sign up button remains visible). 
-        # Using self.load_url("/login", "#id_email") tests all the same... - BLL 7/22/21
         self.click('.accountLinks .loginLink')
         self.wait_until_clickable("#id_email")
         return self
@@ -426,13 +470,6 @@ class SefariaTest(AbstractTest):
         self.scroll_to_css_selector_and_click('#loginLink')
         self.wait_until_clickable("#id_email")
         return self
-
-    def is_logged_in(self):
-        try:
-            self.driver.find_element_by_css_selector('.accountLinks .my-profile')
-            return True
-        except NoSuchElementException:
-            return False
 
     def nav_to_toc(self):
         """
@@ -486,10 +523,33 @@ class SefariaTest(AbstractTest):
         self.wait_until_clickable(".storyTitle")
         return self
 
-    def load_toc(self, my_temper=None):
-        my_temper = my_temper or TEMPER  # This is used at startup, which can be sluggish on iPhone.
-        self.load_url("/texts", ".navBlockTitle")
-        self.set_modal_cookie()
+    def search_ref(self, ref):
+        if isinstance(ref, str):
+            ref = Ref(ref)
+        assert isinstance(ref, Ref)
+        self.type_in_search_box(ref.normal())
+        time.sleep(.5)  # Old page may have an element that matches the selector below.  Wait for it to go away.
+        self.wait_until_clickable(".textColumn .textRange .segment")
+        self.wait_for_connections()
+        #WebDriverWait(self.driver, TEMPER).until(visibility_of_any_elements_located((By.CSS_SELECTOR, ".linkCountDot")))
+        time.sleep(.5)  # Something takes a moment here.  Not sure what to wait for.
+        return self
+
+    def browse_to_ref(self, ref):
+        if isinstance(ref, str):
+            ref = Ref(ref)
+        assert isinstance(ref, Ref)
+
+        index = ref.index
+        categories = self._get_clickpath_from_categories(index.categories)
+        self.nav_to_text_toc(categories, index.title)
+
+        # Logic for what is displayed lives on SchemaNode under TextTableOfContentsNavigation
+        section_ref = ref.section_ref()
+        index_node = ref.index_node
+        assert isinstance(index_node, SchemaNode)
+
+        self.click_text_toc_section(section_ref)
         return self
 
     def click_toc_category(self, category_name):
@@ -518,33 +578,6 @@ class SefariaTest(AbstractTest):
     def click_sidebar_button(self, name):
         self.click('a.toolsButton[data-name="{}"]'.format(name))
 
-    def close_modal_popup(self):
-        """
-        :return: Boolean - did we manage to close the popup?
-        """
-        time.sleep(3)
-        try:
-            self.driver.find_element_by_css_selector('#interruptingMessage #interruptingMessageClose')
-            self.click('#interruptingMessage #interruptingMessageClose')
-            return True
-        except NoSuchElementException:
-            pass
-
-        try:
-            self.driver.find_element_by_css_selector('#bannerMessageClose')
-            self.click('#bannerMessageClose')
-            return True
-        except NoSuchElementException:
-            return False
-
-    def close_popup_with_accept(self):
-        try:
-            alert = self.driver.switch_to.alert
-            alert.accept()
-        except NoAlertPresentException:
-            print('A <<NoAlertPresentException>> was thrown')
-            pass
-
     def click_sidebar_nth_version_button(self, n):
         self.get_sidebar_nth_version_button(n).click()
 
@@ -557,13 +590,6 @@ class SefariaTest(AbstractTest):
 
     def type_in_mailing_list_email(self, str):
         self.type_in_text_box_by_id('mailingListEmail', str)
-
-    def click_footer_link_by_id(self, link_id):
-        WebDriverWait(self.driver, TEMPER).until(
-            element_to_be_clickable((By.CSS_SELECTOR, "#" + link_id))
-        )
-        link = self.driver.find_element_by_css_selector("#" + link_id)
-        link.click()
 
     def type_in_text_box_by_id(self, obj_id, txt_to_type):
         WebDriverWait(self.driver, TEMPER).until(
@@ -713,35 +739,6 @@ class SefariaTest(AbstractTest):
         self.driver.switch_to_window(self.driver.window_handles[0])
         return new_url
 
-    def search_ref(self, ref):
-        if isinstance(ref, str):
-            ref = Ref(ref)
-        assert isinstance(ref, Ref)
-        self.type_in_search_box(ref.normal())
-        time.sleep(.5)  # Old page may have an element that matches the selector below.  Wait for it to go away.
-        self.wait_until_clickable(".textColumn .textRange .segment")
-        self.wait_for_connections()
-        #WebDriverWait(self.driver, TEMPER).until(visibility_of_any_elements_located((By.CSS_SELECTOR, ".linkCountDot")))
-        time.sleep(.5)  # Something takes a moment here.  Not sure what to wait for.
-        return self
-
-    def browse_to_ref(self, ref):
-        if isinstance(ref, str):
-            ref = Ref(ref)
-        assert isinstance(ref, Ref)
-
-        index = ref.index
-        categories = self._get_clickpath_from_categories(index.categories)
-        self.nav_to_text_toc(categories, index.title)
-
-        # Logic for what is displayed lives on SchemaNode under TextTableOfContentsNavigation
-        section_ref = ref.section_ref()
-        index_node = ref.index_node
-        assert isinstance(index_node, SchemaNode)
-
-        self.click_text_toc_section(section_ref)
-        return self
-
     @staticmethod
     def _get_clickpath_from_categories(cats):
         """
@@ -811,7 +808,7 @@ class SefariaTest(AbstractTest):
         self.click_toc_text(text_title)
         return self
 
-    def load_text_toc(self, ref):
+    def load_book_page(self, ref):
         if isinstance(ref, str):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
