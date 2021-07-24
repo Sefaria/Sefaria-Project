@@ -57,6 +57,7 @@ const Strings = {
     "Daily Study": "לימוד יומי",
 
     // Topics
+    "Explore Jewish Texts by Topic": "עיון בארון הספרים היהודי לפי נושא",
     "Explore by Topic": "לימוד לפי נושאים",
     "About Topics": "אודות \"נושאים\"",
     "Topic pages bring you straight to selections of texts and user created source sheets about thousands of subjects. Sources that appear are drawn from existing indices of Jewish texts (like Aspaklaria) and from the sources our users include on their public source sheets.": "בדפי הנושא מלוקטים מקורות נבחרים ודפי מקורות של משתמשים על נושא מסוים. המקורות המופיעים בדפי הנושא נאספים ממאגרים קיימים של ספרות יהודית (דוגמת 'אספקלריא') ומתוך דפי מקורות פומביים של משתמשי ספריא.",
@@ -72,6 +73,7 @@ const Strings = {
     "Search Topics": "חפש נושאים",
 
     // Community Page
+    "From the Community: Today on Sefaria": "מן הקהילה: היום בספריא",
     "Today on Sefaria": "היום בספריא",
     "Who to Follow": "משתמשים שכדאי לעקוב אחריהם",
     "Explore Collections": "עיינו באסופות",

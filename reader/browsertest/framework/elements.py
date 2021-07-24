@@ -396,7 +396,7 @@ class SefariaTest(AbstractTest):
             pass
 
     # Login
-    ########3
+    #########
 
     def login_user(self):
         password = os.environ["SEFARIA_TEST_PASS"]
