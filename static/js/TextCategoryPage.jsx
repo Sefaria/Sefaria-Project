@@ -275,6 +275,7 @@ const MenuItem = ({href, nestLevel, title, heTitle, cats, onClick, enDesc, heDes
       <a href={href}
         className   = {classes}
         onClick     = {onClick}
+        data-cat    = {cats ? cats.slice(-1) : null} // This is only used for Selenium test, would like to get rid of it
         key         = {keytype + "." + nestLevel + "." + title}
       >
         <ContentText text={{en: title, he: heTitle}} />

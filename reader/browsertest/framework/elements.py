@@ -17,7 +17,7 @@ from appium import webdriver as appium_webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support.expected_conditions import title_contains, presence_of_element_located, \
-    element_to_be_clickable, _find_element, visibility_of_any_elements_located
+    element_to_be_clickable, _find_element, visibility_of_element_located, visibility_of_any_elements_located
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import NoSuchElementException, NoAlertPresentException, WebDriverException, \
     ElementClickInterceptedException, StaleElementReferenceException
@@ -177,25 +177,9 @@ class SefariaTest(AbstractTest):
                                      "return false;                            "
                                      , element)
 
-    #
-    #
-    #  Scrolling
-    #############
-
-    def scroll_to_css_selector(self, selector):
-        # This scrolls forward.  Do we need to test and try to scroll back also?
-        self.driver.execute_script(
-            "var a = document.querySelector('{}'); a.scrollIntoView(true);".format(selector)
-        )
-        time.sleep(.50)
-        return self
-
-    def scroll_to_css_selector_and_click(self, selector):
-        self.scroll_to_css_selector(selector)
-        p1 = self.driver.find_element_by_css_selector(selector)
-        p1.click()
-        time.sleep(.5)    # Takes some time to reload, and not sure what next page is
-        return self
+    
+    #  Shortcuts
+    ############
 
     def back(self):
         # These may not work as expected...
@@ -205,6 +189,70 @@ class SefariaTest(AbstractTest):
     def forward(self):
         # These may not work as expected...
         self.driver.forward()
+        return self
+
+    def click(self, selector):
+        self.wait_until_clickable(selector)
+        self.driver.find_element_by_css_selector(selector).click()
+
+    def wait_until_visible(self, selector, temper=TEMPER):
+        WebDriverWait(self.driver, temper).until(visibility_of_element_located((By.CSS_SELECTOR, selector)))
+        return self.driver.find_element_by_css_selector(selector)
+
+    def wait_until_clickable(self, selector, temper=TEMPER):
+        WebDriverWait(self.driver, temper).until(element_to_be_clickable((By.CSS_SELECTOR, selector)))
+        return self.driver.find_element_by_css_selector(selector)
+
+    def wait_until_present(self, selector):
+        WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, selector)))
+        return self.driver.find_element_by_css_selector(selector)
+
+    def wait_for_connections(self, temper=TEMPER*2):
+        WebDriverWait(self.driver, temper).until(element_to_be_clickable((By.CSS_SELECTOR, ".linkCountDot")))
+
+    def wait_until_title_contains(self, text):
+        WebDriverWait(self.driver, TEMPER).until(title_contains(text))
+
+    def wait_until_title_does_not_contain(self, text):
+        WebDriverWait(self.driver, TEMPER).until_not(title_contains(text))
+
+    def get_element(self, selector):
+        self.wait_until_present(selector)
+        return self.driver.find_element_by_css_selector(selector)
+
+    def load_url(self, url, test_selector):
+        """
+        Load any URL and wait until `test_selector` is present
+        """
+        self.driver.get(urllib.parse.urljoin(self.base_url, url))
+        WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, test_selector)))
+        # self.catch_js_error()
+        return self
+
+    def click_element_by_link_text(self, link_txt):
+        self.driver.execute_script("scroll(250, 0)")
+        self.driver.execute_script("scroll(0, 250)")
+        WebDriverWait(self.driver, TEMPER).until(
+            element_to_be_clickable((By.LINK_TEXT, link_txt))
+        )
+        obj_to_click = self.driver.find_element_by_link_text(link_txt)
+        obj_to_click.click()
+
+    #  Scrolling
+    #############
+
+    def scroll_to_css_selector(self, selector):
+        # This scrolls forward.  Do we need to test and try to scroll back also?
+        self.driver.execute_script(
+            "var a = document.querySelector('{}'); a.scrollIntoView(true);".format(selector)
+        )
+        time.sleep(.5)
+        return self
+
+    def scroll_to_css_selector_and_click(self, selector):
+        self.scroll_to_css_selector(selector)
+        self.click(selector)
+        time.sleep(.5)    # Takes some time to reload, and not sure what next page is
         return self
 
     def scroll_window_down(self, pixels):
@@ -331,9 +379,9 @@ class SefariaTest(AbstractTest):
             elem.send_keys(user)
             elem = self.driver.find_element_by_css_selector("#id_password")
             elem.send_keys(password)
-            self.driver.find_element_by_css_selector("button").click()
-            WebDriverWait(self.driver, TEMPER).until_not(title_contains("Log in"))
-            time.sleep(3)    # Takes some time to reload, and not sure what next page is
+            self.click("button")
+            self.wait_until_title_does_not_contain("Log in")
+            self.wait_until_clickable(".header .home")
             return self
         except Exception as e:
             print(e)
@@ -341,26 +389,21 @@ class SefariaTest(AbstractTest):
         finally:
             return self
 
-    def nav_to_account(self):
+    def nav_to_profile(self):
         if not self.is_logged_in():
-            raise Exception("Can't nav to account.  Not logged in.")
+            self.login_user()
 
-        self.driver.find_element_by_css_selector('.accountLinks .my-profile').click()
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#my-profile-link")))
-        self.driver.find_element_by_css_selector("#my-profile-link").click()
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".profile-summary")))
+        self.click('.accountLinks .my-profile')
+        self.wait_until_clickable("#my-profile-link")
+        self.click("#my-profile-link")
+        self.wait_until_clickable(".profile-summary")
 
         return self
 
-    def nav_to_sheets(self):
-        self.nav_to_account()
-        time.sleep(5)
-        try:
-            el = self.driver.find_element_by_css_selector('.sheet-header .resourcesLink')
-        except NoSuchElementException:
-            el = self.driver.find_element_by_css_selector('.emptyList .resourcesLink')
-        el.click()
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#inlineAdd")))
+    def nav_to_new_sheet(self):
+        self.nav_to_profile()
+        self.click('a[href="/sheets/new"]')
+        self.wait_until_clickable("#inlineAdd")
         return self
 
     def nav_to_login(self):
@@ -373,16 +416,15 @@ class SefariaTest(AbstractTest):
     def _nav_to_login_desktop(self):
         # Broken - I believe because the Selenium window is relatively narrow, which causes us to hide
         # the login button in the header (Sign up button remains visible). 
-        # Using self.load_url("/login", "#id_email") because tests all the same... - BLL 7/22/21
-        el = self.driver.find_element_by_css_selector('.accountLinks .loginLink')
-        el.click()
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#id_email")))
+        # Using self.load_url("/login", "#id_email") tests all the same... - BLL 7/22/21
+        self.click('.accountLinks .loginLink')
+        self.wait_until_clickable("#id_email")
         return self
 
     def _nav_to_login_mobile(self):
         self.nav_to_toc()
         self.scroll_to_css_selector_and_click('#loginLink')
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#id_email")))
+        self.wait_until_clickable("#id_email")
         return self
 
     def is_logged_in(self):
@@ -427,7 +469,7 @@ class SefariaTest(AbstractTest):
                 self.driver.find_element_by_css_selector('.segment').click()
                 self.driver.find_element_by_css_selector('.header .home').click()
 
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".navBlockTitle")))
+        self.wait_until_clickable(".navBlockTitle")
         return self
 
     def nav_to_history(self):
@@ -439,80 +481,42 @@ class SefariaTest(AbstractTest):
             self.open_mobile_navigation_menu()
             el = self.driver.find_element_by_css_selector('a[href="/texts/saved"]')
         el.click()
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "h1")))
-        el = self.driver.find_element_by_css_selector('a[href="/texts/history"]')
-        el.click()
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".storyTitle")))
+        self.wait_until_clickable("h1")
+        self.click('a[href="/texts/history"]')
+        self.wait_until_clickable(".storyTitle")
         return self
 
     def load_toc(self, my_temper=None):
         my_temper = my_temper or TEMPER  # This is used at startup, which can be sluggish on iPhone.
-        self.driver.get(urllib.parse.urljoin(self.base_url, "/texts"))
-        WebDriverWait(self.driver, my_temper).until(element_to_be_clickable((By.CSS_SELECTOR, ".navBlockTitle")))
+        self.load_url("/texts", ".navBlockTitle")
         self.set_modal_cookie()
         return self
 
     def click_toc_category(self, category_name):
         # Assume that category link is already present on screen (or soon will be)
-
-        # These CSS selectors could fail if the category is a substring of another possible category
-        WebDriverWait(self.driver, TEMPER).until(
-            presence_of_element_located((By.CSS_SELECTOR,'.navBlockTitle[data-cat*="{}"]'.format(category_name)))
-        )
-        self.scroll_to_css_selector_and_click('.navBlockTitle[data-cat*="{}"]'.format(category_name))
+        self.wait_until_visible('.navBlockTitle[data-cat="{}"]'.format(category_name))
+        self.scroll_to_css_selector_and_click('.navBlockTitle[data-cat="{}"]'.format(category_name))
         elem = self.driver.find_element_by_css_selector("h1 > span.en")
-        if category_name == "Talmud":
-            category_name = "Talmud Bavli"
         assert elem.get_attribute('innerHTML') == category_name, f"elem innerHTML == {elem.get_attribute('innerHTML')} != {category_name}"  # use get_attribute in case element is visible due to hebrew interface
         return self
 
     def click_toc_text(self, text_name):
         # Assume that text link is already present on screen (or soon will be)
         selector = '.navBlockTitle[href="/{}"]'.format(Ref(text_name).url())
-        WebDriverWait(self.driver, TEMPER).until(
-            presence_of_element_located((By.CSS_SELECTOR, selector))
-        )
-        WebDriverWait(self.driver, TEMPER).until(
-            element_to_be_clickable((By.CSS_SELECTOR, selector))
-        )
-        p1 = self.driver.find_element_by_css_selector(selector)
-        p1.click()
-
-        WebDriverWait(self.driver, TEMPER).until(
-            element_to_be_clickable((By.CSS_SELECTOR, '.tocContent'))
-        )
+        self.scroll_to_css_selector_and_click(selector)
+        self.wait_until_visible(".tocContent")
         return self
 
     def click_history_item(self, tref):
         # Assume that text link is already present on screen (or soon will be)
-        WebDriverWait(self.driver, TEMPER).until(
-            element_to_be_clickable((By.CSS_SELECTOR, '.savedHistoryList a[href="/{}"]'.format(Ref(tref).url())))
-        )
-        recent = self.driver.find_element_by_css_selector('.savedHistoryList a[href="/{}"]'.format(Ref(tref).url()))
-        recent.click()
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, '.segment')))
-
-    def click_source_title(self):
-        title_selector = 'div.readerTextToc a'
-        WebDriverWait(self.driver, TEMPER).until(
-            element_to_be_clickable((By.CSS_SELECTOR, title_selector))
-        )
-        ttl = self.driver.find_element_by_css_selector(title_selector)
-        ttl.click()
-
-    def click_chapter(self, cptr):
-        chapter_selector = 'div.content div.tocLevel a.sectionLink:nth-child('+ cptr + ')'
-        WebDriverWait(self.driver, TEMPER).until(
-            element_to_be_clickable((By.CSS_SELECTOR, chapter_selector))
-        )
-        ttl = self.driver.find_element_by_css_selector(chapter_selector)
-        ttl.click()
+        self.click('.savedHistoryList a[href="/{}"]'.format(Ref(tref).url()))
+        self.wait_until_clickable('.segment')
 
     def click_resources_on_sidebar(self):
-        self.click_object_by_css_selector('.connectionsHeaderTitle')
+        self.click('.connectionsHeaderTitle')
 
     def click_sidebar_button(self, name):
-        self.click_object_by_css_selector('a.toolsButton[data-name="{}"]'.format(name))
+        self.click('a.toolsButton[data-name="{}"]'.format(name))
 
     def close_modal_popup(self):
         """
@@ -521,14 +525,14 @@ class SefariaTest(AbstractTest):
         time.sleep(3)
         try:
             self.driver.find_element_by_css_selector('#interruptingMessage #interruptingMessageClose')
-            self.click_object_by_css_selector('#interruptingMessage #interruptingMessageClose')
+            self.click('#interruptingMessage #interruptingMessageClose')
             return True
         except NoSuchElementException:
             pass
 
         try:
             self.driver.find_element_by_css_selector('#bannerMessageClose')
-            self.click_object_by_css_selector('#bannerMessageClose')
+            self.click('#bannerMessageClose')
             return True
         except NoSuchElementException:
             return False
@@ -541,28 +545,15 @@ class SefariaTest(AbstractTest):
             print('A <<NoAlertPresentException>> was thrown')
             pass
 
-    def click_subscribe(self):
-        self.click_object_by_css_selector('#subscribe > span.int-en')
-
-    def get_subscribe_msg(self):
-        msg = self.get_object_txt_by_id('subscribeMsg')
-        return msg
-
     def click_sidebar_nth_version_button(self, n):
         self.get_sidebar_nth_version_button(n).click()
 
     def get_sidebar_nth_version_button_text(self, n):
         return self.get_sidebar_nth_version_button(n).text
 
-    def get_object_by_css_selector(self, selector):
-        WebDriverWait(self.driver, TEMPER).until(
-            element_to_be_clickable((By.CSS_SELECTOR, selector))
-        )
-        return self.driver.find_element_by_css_selector(selector)
-
     def get_sidebar_nth_version_button(self, n):
         slctr = f"#panel-1 > div.readerContent > div > div > div > div > div:nth-child(1) >div:nth-child({n+1}) > div.versionSelect > a.selectButton"
-        return self.get_object_by_css_selector(slctr)
+        return self.get_element(slctr)
 
     def type_in_mailing_list_email(self, str):
         self.type_in_text_box_by_id('mailingListEmail', str)
@@ -582,22 +573,15 @@ class SefariaTest(AbstractTest):
         txt_box.clear()
         txt_box.send_keys(txt_to_type)
 
-    def get_object_by_id(self, obj_id):
-        WebDriverWait(self.driver, TEMPER).until(
-            element_to_be_clickable((By.CSS_SELECTOR, "#" + obj_id))
-        )
-        obj_to_return = self.driver.find_element_by_css_selector("#" + obj_id)
-        return obj_to_return
-
     def click_ivrit_link(self): # Named '..ivrit..' as the link's in Hebrew. Below - a method with '..hebrew..' (that calls this one), in case it's easier to locate that way
         try:
             # if logged out, first click to open dropdown
             self.driver.find_element_by_css_selector('.header a.interfaceLinks-button')
-            self.click_object_by_css_selector('.header a.interfaceLinks-button')
-            self.click_object_by_link_text('עברית')
+            self.click('.header a.interfaceLinks-button')
+            self.click_element_by_link_text('עברית')
         except NoSuchElementException:
             # must be logged in
-            self.click_object_by_css_selector('#siteLanguageHebrew')
+            self.click('#siteLanguageHebrew')
 
     def click_hebrew_link(self):
         self.click_ivrit_link()
@@ -606,61 +590,61 @@ class SefariaTest(AbstractTest):
         try:
             # if logged out, first click to open dropdown
             self.driver.find_element_by_css_selector('.header a.interfaceLinks-button')
-            self.click_object_by_css_selector('.header a.interfaceLinks-button')
-            self.click_object_by_link_text('English')
+            self.click('.header a.interfaceLinks-button')
+            self.click_element_by_link_text('English')
         except NoSuchElementException:
             # must be logged in
-            self.click_object_by_css_selector('#siteLanguageEnglish')
+            self.click('#siteLanguageEnglish')
 
     def toggle_on_text_settings(self):
-        self.click_object_by_css_selector('#panel-0 .readerControls .readerOptions')
+        self.click('#panel-0 .readerControls .readerOptions')
 
     def toggle_language_english(self):
-        self.click_object_by_css_selector('#panel-0 div.readerOptionsPanel div.toggleSet.language div.toggleOption.english')
+        self.click('#panel-0 div.readerOptionsPanel div.toggleSet.language div.toggleOption.english')
 
     def toggle_language_bilingual(self):
-        self.click_object_by_css_selector('#panel-0 div.readerOptionsPanel div.toggleSet.language div.toggleOption.bilingual')
+        self.click('#panel-0 div.readerOptionsPanel div.toggleSet.language div.toggleOption.bilingual')
 
     def toggle_language_hebrew(self):
-        self.click_object_by_css_selector('#panel-0 div.readerOptionsPanel div.toggleSet.language div.toggleOption.hebrew')
+        self.click('#panel-0 div.readerOptionsPanel div.toggleSet.language div.toggleOption.hebrew')
 
     def toggle_bilingual_layout_stacked(self):
-        self.click_object_by_css_selector('#panel-0 div.readerOptionsPanel div.toggleSet.biLayout div.toggleOption.stacked')
+        self.click('#panel-0 div.readerOptionsPanel div.toggleSet.biLayout div.toggleOption.stacked')
 
     def toggle_bilingual_layout_heLeft(self):
-        self.click_object_by_css_selector('#panel-0 div.readerOptionsPanel div.toggleSet.biLayout div.toggleOption.heLeft')
+        self.click('#panel-0 div.readerOptionsPanel div.toggleSet.biLayout div.toggleOption.heLeft')
 
     def toggle_bilingual_layout_heRight(self):
-        self.click_object_by_css_selector('#panel-0 div.readerOptionsPanel div.toggleSet.biLayout div.toggleOption.heRight')
+        self.click('#panel-0 div.readerOptionsPanel div.toggleSet.biLayout div.toggleOption.heRight')
 
     def toggle_fontSize_smaller(self):
-        self.click_object_by_css_selector('#panel-0 div.readerOptionsPanel div.toggleSet.fontSize div.toggleOption.smaller')
+        self.click('#panel-0 div.readerOptionsPanel div.toggleSet.fontSize div.toggleOption.smaller')
 
     def toggle_fontSize_larger(self):
-        self.click_object_by_css_selector('#panel-0 div.readerOptionsPanel div.toggleSet.fontSize div.toggleOption.larger')
+        self.click('#panel-0 div.readerOptionsPanel div.toggleSet.fontSize div.toggleOption.larger')
 
     def toggle_aliyotTorah_aliyotOn(self):
-        self.click_object_by_css_selector('#panel-0 div.readerOptionsPanel div.toggleSet.aliyotTorah div.toggleOption.aliyotOn')
+        self.click('#panel-0 div.readerOptionsPanel div.toggleSet.aliyotTorah div.toggleOption.aliyotOn')
 
     def toggle_aliyotTorah_aliyotOff(self):
-        self.click_object_by_css_selector('#panel-0 div.readerOptionsPanel div.toggleSet.aliyotTorah div.toggleOption.aliyotOff')
+        self.click('#panel-0 div.readerOptionsPanel div.toggleSet.aliyotTorah div.toggleOption.aliyotOff')
 
     def toggle_vowels_none(self):
-        self.click_object_by_css_selector('#panel-0 div.readerOptionsPanel div.toggleSet.vowels div.toggleOption.none')
+        self.click('#panel-0 div.readerOptionsPanel div.toggleSet.vowels div.toggleOption.none')
 
     def toggle_vowels_partial(self):
-        self.click_object_by_css_selector('#panel-0 div.readerOptionsPanel div.toggleSet.vowels div.toggleOption.partial')
+        self.click('#panel-0 div.readerOptionsPanel div.toggleSet.vowels div.toggleOption.partial')
 
     def toggle_vowels_all(self):
-        self.click_object_by_css_selector('#panel-0 div.readerOptionsPanel div.toggleSet.vowels div.toggleOption.all')
+        self.click('#panel-0 div.readerOptionsPanel div.toggleSet.vowels div.toggleOption.all')
 
     def get_nth_section_english(self, n):
         selector = '#panel-0 > div.readerContent div.textRange.basetext > div.text > div > span:nth-child(' + str(n) + ') .segmentText > span.en'
-        return self.get_nth_section(selector)
+        return self.get_element(selector)
 
     def get_nth_section_hebrew(self, n):
         selector = '#panel-0 > div.readerContent div.textRange.basetext > div.text > div > span:nth-child(' + str(n) + ') .segmentText > span.he'
-        return self.get_nth_section(selector)
+        return self.get_element(selector)
 
     def has_hebrew_text(self):
         selector = '#panel-0 > div.readerContent div.textRange.basetext > div.text .segmentText > span.he'
@@ -697,9 +681,6 @@ class SefariaTest(AbstractTest):
     def get_current_url(self):
         return self.driver.current_url
 
-    def get_current_content_title(self):
-        return self.get_object_by_css_selector('#panel-0 div.readerControls.fullPanel div.readerTextToc > div > a').text
-
     def is_object_displayed(self, css_selector):
         try:
             aliyot = self.driver.find_element_by_css_selector(css_selector)
@@ -707,81 +688,18 @@ class SefariaTest(AbstractTest):
         except NoSuchElementException:
             return False
 
-    def is_aliyot_displayed(self):
-        time.sleep(.5)
-        return self.is_object_displayed("#panel-0 > div.readerContent > div > div:nth-child(3) > div.text > div > span:nth-child(4) > div.parashahHeader.aliyah")
-
     def is_aliyot_toggleSet_displayed(self):
         return self.is_object_displayed("div[class='toggleSet aliyotTorah']")
 
     def is_vocalization_toggleSet_displayed(self):
         return self.is_object_displayed("div[class='toggleSet vowels']")
 
-    def is_sidebar_browse_title_displayed(self):
-        return self.is_object_displayed('#panel-1 > div > div.content > div > div:nth-child(2) > h2 > span.int-en')
-
-    def is_sidebar_calendar_title_displayed(self):
-        return self.is_object_displayed('#panel-1 > div > div.content > div > div:nth-child(3) > h2 > span.int-en')
-
     def get_content_panel(self):
-        selector = '#panel-0'
-        WebDriverWait(self.driver, TEMPER).until(
-            presence_of_element_located((By.CSS_SELECTOR, selector))
-        )
-        elm = self.driver.find_element_by_css_selector(selector)
-        return elm
-
-    def get_nth_section(self, selector):
-        WebDriverWait(self.driver, TEMPER).until(
-            presence_of_element_located((By.CSS_SELECTOR, selector))
-        )
-        section = self.driver.find_element_by_css_selector(selector)
-        return section
-
-    def click_object_by_css_selector(self, selector):
-        WebDriverWait(self.driver, TEMPER).until(
-            presence_of_element_located((By.CSS_SELECTOR, selector))
-        )
-        btn = self.driver.find_element_by_css_selector(selector)
-        btn.click()
-
-    def click_object_by_id(self, id):
-        WebDriverWait(self.driver, TEMPER).until(
-            presence_of_element_located((By.CSS_SELECTOR, "#" + id))
-        )
-        obj_to_click = self.driver.find_element_by_css_selector("#" + id)
-        obj_to_click.click()
-
-    def get_object_txt_by_id(self, id):
-        WebDriverWait(self.driver, TEMPER).until(
-            presence_of_element_located((By.CSS_SELECTOR, "#" + id))
-        )
-        obj = self.driver.find_element_by_css_selector("#" + id)
-        return obj.text
-
-    def get_object_by_link_text(self, link_txt):
-        WebDriverWait(self.driver, TEMPER).until(
-            element_to_be_clickable((By.LINK_TEXT, link_txt))
-        )
-        ret = self.driver.find_element_by_link_text(link_txt)
-        return ret
-
-    def click_object_by_link_text(self, link_txt):
-        self.driver.execute_script("scroll(250, 0)")
-        self.driver.execute_script("scroll(0, 250)")
-        WebDriverWait(self.driver, TEMPER).until(
-            element_to_be_clickable((By.LINK_TEXT, link_txt))
-        )
-        obj_to_click = self.driver.find_element_by_link_text(link_txt)
-        obj_to_click.click()
+        return self.get_element("#panel-0")
 
     def click_sidebar_entry(self, data_name):
         selector = "div[class='categoryFilter'][data-name='" + data_name + "']"
-        WebDriverWait(self.driver, TEMPER).until(
-            presence_of_element_located((By.CSS_SELECTOR, selector))
-        )
-        sidebar_entry = self.driver.find_element_by_css_selector(selector)
-        sidebar_entry.click()
+        self.click(selector)
 
     def close_tab_and_return_to_prev_tab(self):
         self.driver.switch_to_window(self.driver.window_handles[1])
@@ -795,46 +713,15 @@ class SefariaTest(AbstractTest):
         self.driver.switch_to_window(self.driver.window_handles[0])
         return new_url
 
-    def get_section_txt(self, vrs):
-        verse_selector = '#panel-0 div.readerContent div.textRange.basetext > div.text > div > span:nth-child(' + vrs + ') > div p.segmentText > span.he'
-        WebDriverWait(self.driver, TEMPER).until(
-            element_to_be_clickable((By.CSS_SELECTOR, verse_selector))
-        )
-        verse = self.driver.find_element_by_css_selector(verse_selector)
-        verse_txt = verse.get_attribute('innerHTML')
-        return verse_txt
-
-    def click_masechet_and_chapter(self, masechet, cptr):
-        #The Masechtot and Chapters 1 based index
-        masechet_selector = 'div.tocContent div.tocLevel div:nth-child(' + masechet + ') span span.en'
-        chapter_selector = 'div.tocContent div.tocLevel div:nth-child(' + masechet + ') div a:nth-child(' + cptr + ')'
-
-        WebDriverWait(self.driver, TEMPER).until(
-            element_to_be_clickable((By.CSS_SELECTOR, masechet_selector))
-        )
-        masechet_arrow = self.driver.find_element_by_css_selector(masechet_selector)
-        masechet_arrow.click()
-
-        WebDriverWait(self.driver, TEMPER).until(
-            element_to_be_clickable((By.CSS_SELECTOR, chapter_selector))
-        )
-        chapter = self.driver.find_element_by_css_selector(chapter_selector)
-        chapter.click()
-
-    def click_toc_from_text_panel(self):
-        self.driver.find_element_by_css_selector(".readerTextTocBox a").click()
-        WebDriverWait(self.driver, TEMPER).until(
-            element_to_be_clickable((By.CSS_SELECTOR, ".tocContent > :not(.loadingMessage)")))
-
     def search_ref(self, ref):
         if isinstance(ref, str):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
         self.type_in_search_box(ref.normal())
         time.sleep(.5)  # Old page may have an element that matches the selector below.  Wait for it to go away.
-        WebDriverWait(self.driver, TEMPER).until(
-            element_to_be_clickable((By.CSS_SELECTOR, ".textColumn .textRange .segment")))
-        WebDriverWait(self.driver, TEMPER).until(visibility_of_any_elements_located((By.CSS_SELECTOR, ".linkCountDot")))
+        self.wait_until_clickable(".textColumn .textRange .segment")
+        self.wait_for_connections()
+        #WebDriverWait(self.driver, TEMPER).until(visibility_of_any_elements_located((By.CSS_SELECTOR, ".linkCountDot")))
         time.sleep(.5)  # Something takes a moment here.  Not sure what to wait for.
         return self
 
@@ -851,11 +738,6 @@ class SefariaTest(AbstractTest):
         section_ref = ref.section_ref()
         index_node = ref.index_node
         assert isinstance(index_node, SchemaNode)
-
-        if index.is_complex() and index_node.parent != index.nodes:
-            ancestors = index_node.ancestors()
-            for ancestor in ancestors[1:]:
-                self.open_text_toc_menu(ancestor.ref())
 
         self.click_text_toc_section(section_ref)
         return self
@@ -884,7 +766,7 @@ class SefariaTest(AbstractTest):
         return click_cats
 
     # Todo: handle the case when the loaded page has different URL - because of scroll
-    def load_ref(self, ref, filter=None, lang=None):
+    def load_ref(self, ref, filter=None, lang=None, wait_for_connections=False):
         """
         takes string ref or object Ref
         :param ref:
@@ -904,14 +786,16 @@ class SefariaTest(AbstractTest):
         self.driver.get(url.replace("&", "?", 1))
 
         if filter == "all":
-            WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".categoryFilter")))
+            self.wait_until_clickable(".categoryFilter")
         elif filter is not None:
             # Filters load slower than the main page
-            WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".filterSet > .textRange")))
+            self.wait_until_clickable(".filterSet > .textRange")
         else:
-            WebDriverWait(self.driver, TEMPER).until(
-                element_to_be_clickable((By.CSS_SELECTOR, ".textColumn .textRange .segment")))
-            WebDriverWait(self.driver, TEMPER * 2).until(visibility_of_any_elements_located((By.CSS_SELECTOR, ".linkCountDot")))
+            self.wait_until_clickable(".textColumn .textRange .segment")
+        
+        if wait_for_connections:
+            self.wait_for_connections()
+
         self.set_modal_cookie()
         return self
 
@@ -931,10 +815,8 @@ class SefariaTest(AbstractTest):
         if isinstance(ref, str):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
-        url = urllib.parse.urljoin(self.base_url, ref.url()) # is the '/' needed
-        self.driver.get(url)
-        WebDriverWait(self.driver, TEMPER).until(
-            element_to_be_clickable((By.CSS_SELECTOR, ".tocContent > :not(.loadingMessage)")))
+        self.load_url(ref.url(), ".tocContent")
+        self.wait_until_clickable(".tocContent > :not(.loadingMessage)")
         self.set_modal_cookie()
         return self
 
@@ -942,21 +824,17 @@ class SefariaTest(AbstractTest):
         if isinstance(ref, str):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
-        self.scroll_to_css_selector_and_click('.sectionLink[href="/{}"], .schema-node-toc[href="/{}"]'.format(ref.url(), ref.url()))
-        WebDriverWait(self.driver, TEMPER).until(
-            element_to_be_clickable((By.CSS_SELECTOR, '.segment'))
-        )
+        url = urllib.parse.quote(ref.url())
+        self.scroll_to_css_selector_and_click('.sectionLink[href="/{}"], .schema-node-toc[href="/{}"]'.format(url, url))
+        self.wait_until_clickable('.segment')
         return self
 
-    def open_text_toc_menu(self, ref):
+    def click_text_toc_schema_node(self, ref):
         if isinstance(ref, str):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
-        self.scroll_to_css_selector_and_click('.schema-node-toc[href="/{}"] > span'.format(ref.url()))
+        self.scroll_to_css_selector_and_click('.schema-node-toc[href="/{}"] > span'.format(urllib.parse.quote(ref.url())))
         return self
-
-    def load_refs(self):
-        pass
 
     def click_segment(self, ref):
         if isinstance(ref, str):
@@ -965,14 +843,12 @@ class SefariaTest(AbstractTest):
         self._perform_segment_click(ref)
         # Todo: put a data-* attribute on .filterSet, for the multi-panel case
         # Note below will fail if there are no connections
-        WebDriverWait(self.driver, TEMPER * 2).until(element_to_be_clickable((By.CSS_SELECTOR, ".categoryFilter")))
+        self.wait_until_clickable(".categoryFilter", temper=TEMPER*2),
         return self
 
     def _perform_segment_click(self, ref):
         selector = '.segment[data-ref="{}"]'.format(ref.normal())
-        WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, selector)))
-        segment = self.driver.find_element_by_css_selector(selector)
-        segment.click()
+        self.click(selector)
 
     def click_segment_to_close_commentary(self, ref):
         if isinstance(ref, str):
@@ -981,110 +857,85 @@ class SefariaTest(AbstractTest):
         self._perform_segment_click(ref)
 
     def find_category_filter(self, name):
-        WebDriverWait(self.driver, TEMPER).until(
-            element_to_be_clickable((By.CSS_SELECTOR, '.categoryFilter[data-name="{}"]'.format(name))))
-        return self.driver.find_element_by_css_selector('.categoryFilter[data-name="{}"]'.format(name))
+        selector = '.categoryFilter[data-name="{}"]'.format(name)
+        self.wait_until_clickable(selector)
+        return self.driver.find_element_by_css_selector(selector)
 
     def find_text_filter(self, name):
-        WebDriverWait(self.driver, TEMPER).until(
-            element_to_be_clickable((By.CSS_SELECTOR, '.textFilter[data-name="{}"]'.format(name))))
-        return self.driver.find_element_by_css_selector('.textFilter[data-name="{}"]'.format(name))
+        selector = '.textFilter[data-name="{}"]'.format(name)
+        self.wait_until_clickable(selector)
+        return self.driver.find_element_by_css_selector(selector)
 
     def click_category_filter(self, name):
         f = self.find_category_filter(name)
         assert f, "Can not find text filter {}".format(name)
         f.click()
-        WebDriverWait(self.driver, TEMPER).until(
-            element_to_be_clickable((By.CSS_SELECTOR, '.categoryFilterGroup.withBooks'))
-        )
+        self.wait_until_clickable('.categoryFilterGroup.withBooks')
         return self
 
     def click_text_filter(self, name):
         f = self.find_text_filter(name)
         assert f, "Can not find text filter {}".format(name)
         f.click()
-        WebDriverWait(self.driver, TEMPER).until(
-            element_to_be_clickable((By.CSS_SELECTOR, '.recentFilterSet'))
-        )
+        self.wait_until_clickable('.recentFilterSet')
         return self
 
     def load_search_url(self, query=None):
-        url = urllib.parse.urljoin(self.base_url, "/search")
+        url = "/search"
         if query is not None:
             url += "?q={}".format(query)
-        self.driver.get(url)
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".type-button-title")))
+        self.load_url(url, ".type-button-title")
         self.set_modal_cookie()
         return self
 
     def search_for(self, query):
         # This one is for searches that produce search results, not navigations
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#searchInput")))
+        self.wait_until_clickable("#searchInput")
         elem = self.driver.find_element_by_css_selector("#searchInput")
         elem.send_keys(query)
         elem.send_keys(Keys.RETURN)
         # todo: does this work for a second search?
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".result")))
+        self.wait_until_clickable(".result")
         return self
 
     # todo: the #searchInput isn't always present on mobile.  The button to open it isn't always predsent either.  Probably need to nav to toc in that case.
     def type_in_search_box(self, query):
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#searchInput")))
+        self.wait_until_clickable("#searchInput")
         elem = self.driver.find_element_by_css_selector("#searchInput")
         elem.send_keys(query)
         elem.send_keys(Keys.RETURN)
         return self
 
     def load_topics(self):
-        self.driver.get(urllib.parse.urljoin(self.base_url, "/topics"))
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".navBlockTitle")))
+        self.load_url("/topics", ".navBlockTitle")
         self.set_modal_cookie()
         return self
 
     def load_topic_page(self, slug):
-        self.driver.get(urllib.parse.urljoin(self.base_url, "/topics/" + slug))
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".storyTitle")))
+        self.load_url("/topics/" + slug, ".storyTitle")
         return self
 
     def load_gardens(self):
+        self.load_url("/garden/jerusalem", "#filter-1 g.row")
+        self.wait_until_clickable(".dc-grid-item .result-text .en")
         self.driver.get(urllib.parse.urljoin(self.base_url, "/garden/jerusalem"))
-        WebDriverWait(self.driver, TEMPER).until(
-            element_to_be_clickable((By.CSS_SELECTOR, "#filter-1 g.row")))  # individual filter row
-        WebDriverWait(self.driver, TEMPER).until(
-            element_to_be_clickable((By.CSS_SELECTOR, ".dc-grid-item .result-text .en")))  # individual result text
         return self
 
     def load_home(self):
-        self.driver.get(self.base_url)
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".header")))
+        self.load_url("/", ".header")
         return self
 
     def load_people(self):
-        self.driver.get(urllib.parse.urljoin(self.base_url, "/people"))
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".gridBoxItem")))
-
-        self.driver.get(urllib.parse.urljoin(self.base_url, "/person/Meir%20Abulafia"))
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".topicDescription")))
+        self.load_url("/people", ".gridBoxItem")
+        self.load_url("/person/Meir%20Abulafia", ".topicDescription")
         return self
 
     def load_my_profile(self):
-        self.driver.get(urllib.parse.urljoin(self.base_url, "/my/profile"))
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".profile-page")))
+        self.load_url("/my/profile", ".profile-page")
         return self
 
     def load_notifications(self):
-        self.driver.get(urllib.parse.urljoin(self.base_url, "/notifications"))
-        WebDriverWait(self.driver, TEMPER).until(
-            element_to_be_clickable((By.CSS_SELECTOR, ".notification")))
-        return self
-
-    def load_url(self, url, test_selector):
-        """
-        Load any URL and wait until `test_selector` is present
-        """
-        self.driver.get(urllib.parse.urljoin(self.base_url, url))
-        WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, test_selector)))
-        # self.catch_js_error()
+        self.load_url("/notifications", ".notification")
         return self
 
     def load_edit(self, ref, lang, version):
@@ -1092,24 +943,17 @@ class SefariaTest(AbstractTest):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
 
-        # url = urllib.parse.urljoin(self.base_url, "/edit/", ref.url(), "/", lang, "/", version.replace(" ", "_"))
-        url = urllib.parse.urljoin(self.base_url, "/edit/")
-        url = urllib.parse.urljoin(url, ref.url())
-        url = urllib.parse.urljoin(url, lang)
-        url = urllib.parse.urljoin(url, version.replace(" ", "_"))
+        url = "/edit/{}/{}/{}".format(ref, lang, version.replace(" ", "_"))
 
-        self.driver.get(url)
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#newVersion")))
+        self.load_url(url, "#newVersion")
         return self
 
     def load_add(self, ref):
         if isinstance(ref, str):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
-        url = urllib.parse.urljoin(self.base_url, "/add/")
-        url = urllib.parse.urljoin(url, ref.url())
-        self.driver.get(url)
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#newVersion")))
+ 
+        self.load_url("/add/{}".format(ref.url()), "#newVersion")
         return self
 
     def enable_new_editor(self):
@@ -1119,18 +963,15 @@ class SefariaTest(AbstractTest):
         self.driver.get(self.base_url + "/disable_new_editor")
 
     def new_sheet_in_editor(self):
-        self.driver.get(self.base_url + "/sheets/new")
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".editorContent")))
+        self.load_url("/sheets/new", ".editorContent")
         return self
 
     def load_existing_sheet(self, sheetID):
-        self.driver.get(self.base_url + "/sheets/"+sheetID)
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".editorContent")))
+        self.load_url("/sheets/" + sheetID, ".editorContent")
         return self
 
     def nav_to_end_of_editor(self):
-        elem = self.driver.find_element_by_css_selector(".editorContent")
-        elem.click()
+        self.click(".editorContent")
         self.driver.switch_to.active_element.send_keys(Keys.CONTROL, Keys.END)
         return self
 

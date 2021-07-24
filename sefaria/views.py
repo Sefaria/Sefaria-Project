@@ -501,6 +501,7 @@ def reset_cache(request):
 
     return HttpResponseRedirect("/?m=Cache-Reset")
 
+
 @staff_member_required
 def reset_websites_data(request):
     website_set = [w.contents() for w in WebSiteSet()]
@@ -508,6 +509,7 @@ def reset_websites_data(request):
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("in_memory_cache", "set", ["websites_data", website_set])
     return HttpResponseRedirect("/?m=Website-Data-Reset")
+
 
 @staff_member_required
 def reset_index_cache_for_text(request, title):

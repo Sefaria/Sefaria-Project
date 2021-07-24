@@ -41,8 +41,8 @@ class PagesLoad(SefariaTest):
     def body(self):
         self.load_toc()
         self.click_toc_category("Midrash").click_toc_text("Ein Yaakov")
-        self.load_ref("Tosefta Peah 2")
-        self.load_ref("Sifra, Tzav, Chapter 1")
+        self.load_ref("Tosefta Peah 2", wait_for_connections=True)
+        self.load_ref("Sifra, Tzav, Chapter 1", wait_for_connections=True)
         self.load_topics()
         self.load_gardens()
         self.load_people()
@@ -57,29 +57,8 @@ class PagesLoadLoggedIn(SefariaTest):
         self.login_user()
         self.load_my_profile()
         # self.load_notifications()
-        self.nav_to_account() # load_account might be superceded by load_my_profile or nav_to_account
+        self.nav_to_profile() # load_account might be superceded by load_my_profile or nav_to_profile
         self.load_notifications()
-
-
-class InTextSectionHeaders(SefariaTest):
-    
-    every_build = True
-
-    def body(self):
-        self.load_toc()
-        self.click_toc_category("Midrash")
-        self.click_toc_text("Ein Yaakov")
-        self.click_source_title()
-        self.click_masechet_and_chapter('2','3')
-        section = self.get_section_txt('1')
-        assert 'רבי זירא הוה' in strip_nikkud(section)
-
-        self.load_toc()
-        self.click_toc_category("Midrash").click_toc_text("Midrash Mishlei")
-        self.click_source_title()
-        self.click_chapter('4')
-        section = self.get_section_txt('1')
-        assert 'מכל משמר נצור ליבך' in section
 
 
 class ChangeTextLanguage(SefariaTest):
@@ -129,7 +108,7 @@ class FontSizeTest(SefariaTest):
     every_build = True
 
     def body(self):
-        self.load_ref("Job 12")
+        self.load_ref("Tosefta Peah 3")
         self.toggle_on_text_settings()
         font_size_original = self.get_font_size()
         self.toggle_fontSize_smaller()
@@ -140,25 +119,12 @@ class FontSizeTest(SefariaTest):
         font_size_larger = self.get_font_size()
         assert font_size_larger > font_size_smaller
 
-'''
-class AliyotTest(SefariaTest):
-    # 4] Aliyot: on off
-        # todo: Set up scroll_to_segment then enable this
-        # self.toggle_aliyotTorah_aliyotOn()
-        # self.scroll_to_segment(Ref("Genesis 2:4"))
-        # assert self.is_aliyot_displayed()
-
-        # self.toggle_on_text_settings()
-        # self.toggle_aliyotTorah_aliyotOff()
-        # self.scroll_reader_panel_to_bottom()
-        # assert not self.is_aliyot_displayed()
-'''
 
 class LayoutSettings(SefariaTest):
     # 2] Layout: left/right/stacked
 
     def body(self):
-        self.load_ref("Job 12")
+        self.load_ref("Tosefta Peah 3")
         if not self.single_panel:
             self.toggle_on_text_settings()
             self.toggle_bilingual_layout_heLeft()
@@ -268,8 +234,6 @@ class SideBarEntries(SefariaTest):
             self.click_resources_on_sidebar()
 
         self.click_sidebar_button("Compare Text")
-        assert self.is_sidebar_browse_title_displayed()
-        assert self.is_sidebar_calendar_title_displayed()
         self.driver.find_element_by_css_selector('.readerNavMenuMenuButton').click()
 
         self.click_sidebar_button("Sheets")
@@ -284,16 +248,10 @@ class SideBarEntries(SefariaTest):
         self.click_resources_on_sidebar()
 
         self.click_sidebar_button("Translations")
-        #todo: This version doesn't show up on title bar.  Rework this to change to a version that will show on bar.
-        #url1 = self.get_current_url()
-        #title1 = self.get_current_content_title()
         assert self.get_sidebar_nth_version_button(1).text in ['Current Translation', 'מהדורה נוכחית'],  "'{}' does not equal 'Current Translation'".format(self.get_sidebar_nth_version_button(1).text)
         assert self.get_sidebar_nth_version_button(2).text in ['Select Translation', 'בחירת תרגום'],  "'{}' does not equal 'Select Translation'".format(self.get_sidebar_nth_version_button(2).text)
         self.click_sidebar_nth_version_button(2)
-        #url2 = self.get_current_url()
-        #title2 = self.get_current_content_title()
-        #assert url1 != url2, u"'{}' equals '{}'".format(url1, url2)
-        #assert title1 != title2,  u"'{}' equals '{}'".format(title1, title2)
+
         time.sleep(1)
         assert self.get_sidebar_nth_version_button(1).text in ['Select Translation', 'בחירת תרגום'],  u"'{}' does not equal 'Select Translation'".format(self.get_sidebar_nth_version_button(1).text)
         assert self.get_sidebar_nth_version_button(2).text in ['Current Translation', 'מהדורה נוכחית'], u"'{}' does not equal 'Current Translation'".format(self.get_sidebar_nth_version_button(2).text)
@@ -303,33 +261,10 @@ class SideBarEntries(SefariaTest):
         self.click_resources_on_sidebar()
 
         self.click_sidebar_button("Share")
-        '''
-        Buggy.  Doesn't work on Safari. Mobile?
-        url1 = self.get_newly_opened_tab_url()
-        assert 'facebook.com' in url1, u"'{}' not in '{}'".format('facebook.com', url1)
-        self.close_tab_and_return_to_prev_tab()
         self.click_resources_on_sidebar()
-        self.click_tools_on_sidebar()
-        self.click_share_on_sidebar()
-        self.click_sidebar_twitter_link()
-        url1 = self.get_newly_opened_tab_url()
-        assert 'twitter.com' in url1, u"'{}' not in '{}'".format('twitter.com', url1)
-        self.close_tab_and_return_to_prev_tab()
-        '''
-        self.click_resources_on_sidebar()
-        # self.click_tools_on_sidebar()     #NOT checking the email option, not to open an email client. Leaving here thoupgh, just in case.
-        # self.click_share_on_sidebar()
-        # self.click_email_twitter_link()
-        # self.click_resources_on_sidebar()
-        # self.click_tools_on_sidebar()
-        # self.click_add_translation_on_sidebar()   # Time out. Is this a bug?
-        # self.back()
 
         self.click_sidebar_button("Advanced")
         self.click_sidebar_button("Add Connection")
-        time.sleep(1)
-        assert self.is_sidebar_browse_title_displayed()
-        assert self.is_sidebar_calendar_title_displayed()
 
 
 class ChangeSiteLanguage(SefariaTest):
@@ -461,35 +396,12 @@ class ReadingHistory(SefariaTest):
         self.load_toc()
         self.search_ref("Tosefta Peah 3")
         self.nav_to_history().click_history_item("Tosefta Peah 3")
-        self.browse_to_ref("Tosefta Peah 4")
+        self.browse_to_ref("Tosefta Berakhot 4")
         time.sleep(3)
-        self.nav_to_history().click_history_item("Tosefta Peah 4")
+        self.nav_to_history().click_history_item("Tosefta Berakhot 4")
 
         # Ensure History sticks on reload
         self.load_toc().nav_to_history().click_history_item("Tosefta Peah 3")
-
-
-class NavToRefAndClickSegment(SefariaTest):
-    
-    every_build = True
-
-    def body(self):
-        self.browse_to_ref("Job 3:4").click_segment("Job 3:4")
-        assert "Job.3.4" in self.driver.current_url, self.driver.current_url
-        assert "with=all" in self.driver.current_url, self.driver.current_url
-
-        # If we're one level deep in a menu, go back.
-        elems = self.driver.find_elements_by_css_selector(".connectionsHeaderTitle.active")
-        if len(elems) > 0:
-            elems[0].click()
-
-        self.click_category_filter("Commentary")
-        self.click_text_filter("Ibn Ezra")
-
-        assert "Job.3.4" in self.driver.current_url, self.driver.current_url
-        assert "with=Ibn%20Ezra" in self.driver.current_url or "with=Ibn Ezra" in self.driver.current_url, self.driver.current_url
-
-        self.click_segment_to_close_commentary("Job 3:4")  #  This is needed on mobile, to close the commentary window
 
 
 class LoadRefAndClickSegment(SefariaTest):
@@ -497,7 +409,7 @@ class LoadRefAndClickSegment(SefariaTest):
     every_build = True
 
     def body(self):
-        self.load_ref("Job 3:4").click_segment("Job 3:4")
+        self.load_ref("Job 3:4", wait_for_connections=True).click_segment("Job 3:4")
         assert "Job.3.4" in self.driver.current_url, self.driver.current_url
         assert "with=all" in self.driver.current_url, self.driver.current_url
 
@@ -518,7 +430,7 @@ class LoadRefWithCommentaryAndClickOnCommentator(SefariaTest):
         assert "with=Rashi" in self.driver.current_url, self.driver.current_url
 
 
-class NavAndVerifyTextTOC(SefariaTest):
+class NavToBookPages(SefariaTest):
     
     every_build = True
 
@@ -594,75 +506,6 @@ class PermanenceOfRangedRefs(SefariaTest):
         assert self.find_text_filter("Mishnah Shabbat")
 
 
-class NavToTocAndCheckPresenceOfDownloadButton(SefariaTest):
-    
-    every_build = True
-    exclude = ['And/5.1', 'iPh5s']  # Android driver doesn't support "Select" class. Haven't found workaround.
-
-    # iPhone has an unrelated bug where a screen size refresh mid-test causes this to fail.
-    def body(self):
-        # Load Shabbat TOC and scroll to bottom
-        self.nav_to_text_toc(["Talmud"], "Shabbat").scroll_nav_panel_to_bottom()
-
-        # Check that DL Button is visible and not clickable
-        visible = self.driver.execute_script(
-            'var butt = document.getElementsByClassName("downloadButtonInner")[0]; ' + \
-            'var butt_bot = butt.getBoundingClientRect().top + butt.getBoundingClientRect().height; ' + \
-            'var win_height = window.innerHeight; ' + \
-            'return win_height > butt_bot;'
-        )
-        assert visible, "Download button below page"
-        # This isn't sufficient - it only checks if it's visible in the DOM
-        # WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, ".downloadButtonInner")))
-
-        WebDriverWait(self.driver, TEMPER).until(
-            invisibility_of_element_located((By.CSS_SELECTOR, '.dlVersionFormatSelect + a')))
-
-        # Select version and format
-        select1 = Select(self.driver.find_element_by_css_selector('.dlVersionTitleSelect'))
-        select1.select_by_value("Wikisource Talmud Bavli/he")
-        select2 = Select(self.driver.find_element_by_css_selector('.dlVersionFormatSelect'))
-        select2.select_by_value("csv")
-
-        # Check that DL button is clickable
-        WebDriverWait(self.driver, TEMPER).until(
-            visibility_of_element_located((By.CSS_SELECTOR, '.dlVersionFormatSelect + a')))
-
-
-class LoadTocAndCheckPresenceOfDownloadButton(SefariaTest):
-    
-    every_build = True
-    exclude = ['And/5.1']  # Android driver doesn't support "Select" class. Haven't found workaround.
-                           # iPhone 5 used to have an unrelated bug where a screen size refresh mid-test causes this to fail.
-                           # Is this bug still on iPhone 6?
-
-    def body(self):
-        # Load Shabbat TOC and scroll to bottom
-        self.load_text_toc("Shabbat").scroll_nav_panel_to_bottom()
-
-        # Check that DL Button is visible and not clickable
-        visible = self.driver.execute_script(
-            'var butt = document.getElementsByClassName("downloadButtonInner")[0]; ' +\
-            'var butt_bot = butt.getBoundingClientRect().top + butt.getBoundingClientRect().height; ' +\
-            'var win_height = window.innerHeight; ' +\
-            'return win_height > butt_bot;'
-        )
-        assert visible, "Download button below page"
-        # This isn't sufficient - it only checks if it's visible in the DOM
-        #WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, ".downloadButtonInner")))
-
-        WebDriverWait(self.driver, TEMPER).until(invisibility_of_element_located((By.CSS_SELECTOR, '.dlVersionFormatSelect + a')))
-
-        # Select version and format
-        select1 = Select(self.driver.find_element_by_css_selector('.dlVersionTitleSelect'))
-        select1.select_by_value("Wikisource Talmud Bavli/he")
-        select2 = Select(self.driver.find_element_by_css_selector('.dlVersionFormatSelect'))
-        select2.select_by_value("csv")
-
-        # Check that DL button is clickable
-        WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, '.dlVersionFormatSelect + a')))
-
-
 class LoadSearchFromURL(SefariaTest):
     
     every_build = True
@@ -717,8 +560,6 @@ class BrowserBackAndForward(SefariaTest):
         assert "with=Commentary" in self.driver.current_url, self.driver.current_url
         # Todo - infinite scroll, nav pages, display options, ref normalization
 
-        self.click_segment_to_close_commentary("Amos 3:1")  # Close commentary window on mobile
-
 
 class ClickVersionedSearchResultMobile(SefariaTest):
     weekly = True
@@ -743,7 +584,7 @@ class SaveNewSourceSheet(SefariaTest):
 
     def body(self):
         self.login_user()
-        self.nav_to_sheets()
+        self.nav_to_new_sheet()
 
         time.sleep(2)   #  If we enter text before the js is ready, we don't get a dropdown menu.
 
@@ -763,17 +604,16 @@ class SaveNewSourceSheet(SefariaTest):
 
         self.driver.find_element_by_css_selector("#inlineAddSourceOK").click()
 
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#save")))
-        saveButton = self.driver.find_element_by_css_selector('#save')
-        saveButton.click()
+        self.wait_until_clickable("#save")
+        self.click("#save")
 
         try:
             # this is site language dependent. try both options
-            WebDriverWait(self.driver, TEMPER).until(title_contains("New Source Sheet | Sefaria"))
+            self.wait_until_title_contains("New Source Sheet")
         except TimeoutException:
-            WebDriverWait(self.driver, TEMPER).until(title_contains("דף מקורות חדש | ספריא"))
+            self.wait_until_title_contains("דף מקורות חדש")
 
-        WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, '.headerNavSection .library')))
+        WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, '.header .home')))
 
 
 '''
@@ -790,40 +630,44 @@ class LoginOnMobile(SefariaTest):
 '''
 
 
-class SpecialCasedSearchBarNavigations(SefariaTest):
+class SearchNavigation(SefariaTest):
     every_build = True
     single_panel = False  # This hasn't yet been implemented on mobile
 
     def body(self):
         self.type_in_search_box("Shabbat")
-        WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, ".readerTextTableOfContents")))
+        self.wait_until_visible(".textTableOfContents")
+
         self.type_in_search_box("Shabbat 12b")
-        WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, ".segment")))
+        self.wait_until_visible(".segment")
+
         self.type_in_search_box("#Yosef Giqatillah")
-        WebDriverWait(self.driver, TEMPER).until(title_contains("Yosef Giqatillah"))
+        self.wait_until_title_contains("Yosef Giqatillah")
+
         self.type_in_search_box("Midrash")
-        WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, ".readerNavCategoryMenu")))
+        self.wait_until_visible(".readerNavCategoryMenu")
 
         self.type_in_search_box("שבת")
-        WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, ".readerTextTableOfContents")))
+        self.wait_until_visible(".textTableOfContents")
+
         self.type_in_search_box("שבת י״ד")
-        WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, ".segment")))
+        self.wait_until_visible(".segment")
+
         self.type_in_search_box("#יוסף שאול נתנזון")
-        WebDriverWait(self.driver, TEMPER).until(title_contains("Yosef"))
+        self.wait_until_title_contains("Yosef")
+        
         self.type_in_search_box("מדרש")
-        WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, ".readerNavCategoryMenu")))
+        self.wait_until_visible(".readerNavCategoryMenu")
 
 
-class EditorPagesLoad(SefariaTest):
+class EditTextPagesLoad(SefariaTest):
     #todo: build a no-load reader test to match this
     every_build = True
     single_panel = False
 
     def body(self):
-        self.load_toc()
-        #logged in stuff
         self.login_user()
-        # self.load_edit("Genesis 1", "en", "Sefaria Community Translation") -- need debugging, threw a 500 on travis, works local
+        self.load_edit("Genesis 1", "en", "Sefaria Community Translation") # threw a 500 on travis, works local
         self.load_add("Mishnah Peah 4")
 
 
@@ -833,12 +677,12 @@ class ScrollToHighlight(SefariaTest):
 
     def test_by_load(self, ref):
         self.load_ref(ref)
-        el = self.driver.find_element_by_css_selector('[data-ref="{}"]'.format(ref))
+        el = self.get_element('[data-ref="{}"]'.format(ref))
         assert self.is_element_visible_in_viewport(el)
 
     def test_in_app(self, ref):
         self.search_ref(ref)
-        el = self.driver.find_element_by_css_selector('[data-ref="{}"]'.format(ref))
+        el = self.get_element('[data-ref="{}"]'.format(ref))
         assert self.is_element_visible_in_viewport(el)
 
     def body(self):
@@ -861,7 +705,7 @@ class InfiniteScrollUp(SefariaTest):
         time.sleep(.5)
         self.scroll_reader_panel_down(100) # This jiggle feels like cheating, but I am finding that a single scroll doesn't trigger the "scroll" event, causing the next scroll to be ignore (with this.justScrolled flag)
         self.scroll_reader_panel_up(200)
-        WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, '[data-ref="%s"]' % prev_segment_ref)))
+        self.wait_until_visible('[data-ref="%s"]' % prev_segment_ref)
         time.sleep(.5)
         # Wait then check that URL has not changed as a proxy for checking that visible scroll position has not changed
         assert quote_plus(Ref(start_ref).url()) in self.driver.current_url, self.driver.current_url
@@ -878,7 +722,7 @@ class InfiniteScrollDown(SefariaTest):
 
     def test_down(self, start_ref, next_segment_ref):
         self.browse_to_ref(start_ref).scroll_reader_panel_to_bottom()
-        WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, '[data-ref="%s"]' % next_segment_ref)))
+        WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, '[data-ref="{}"]'.format(next_segment_ref))))
 
     def body(self):
         # Simple Text
@@ -961,8 +805,6 @@ class AddSheetContent(EditorTest):
         # self.driver.get(sheetURL)
         # loaded_sheet = self.get_sheet_html()
         # assert edited_sheet == loaded_sheet
-
-
 
 
 '''
