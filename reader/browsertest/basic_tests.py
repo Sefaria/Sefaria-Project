@@ -40,7 +40,6 @@ class PagesLoadLoggedIn(SefariaTest):
     def body(self):
         self.login_user()
         self.load_my_profile()
-        # self.load_notifications()
         self.nav_to_profile() # load_account might be superceded by load_my_profile or nav_to_profile
         self.load_notifications()
 
@@ -52,11 +51,11 @@ class SinglePanelOnMobile(SefariaTest):
     initial_url = "/texts"
 
     def body(self):
-        self.nav_to_text_toc(["Tanakh"], "Joshua")
-        self.click_text_toc_section("Joshua 1")
+        self.nav_to_book_page(["Tosefta"], "Tosefta Peah")
+        self.click_text_toc_section("Tosefta Peah 1")
         elems = self.driver.find_elements_by_css_selector(".readerApp.multiPanel")
         assert len(elems) == 0
-        self.click_segment("Joshua 1:1")
+        self.click_segment("Tosefta Peah 1:1")
         elems = self.driver.find_elements_by_css_selector(".readerApp .readerPanelBox")
         assert len(elems) == 1
 
@@ -183,7 +182,7 @@ class TanakhCantillationAndVowels(SefariaTest):
         # assert not has_cantillation(self.get_nth_section_hebrew(1).text)
         # assert not has_cantillation(self.get_nth_section_hebrew(1).text, False)
         # # Make sure switching to a differernt book doesn't change the cantillation/vowels settings
-        # self.nav_to_text_toc(["Tanakh"], "Joshua")
+        # self.nav_to_book_page(["Tanakh"], "Joshua")
         # self.load_ref("Joshua 1")
         # assert not has_cantillation(self.get_nth_section_hebrew(1).text)
         # assert not has_cantillation(self.get_nth_section_hebrew(1).text, False)
@@ -452,7 +451,7 @@ class NavToBookPages(SefariaTest):
         ]
 
         for (cats, text_title) in navs:
-            self.nav_to_text_toc(cats, text_title)
+            self.nav_to_book_page(cats, text_title)
 
 
 class LoadBookPages(SefariaTest):
@@ -534,11 +533,6 @@ class ClickVersionedSearchResultMobile(SefariaTest):
     initial_url = "/texts"
 
     def body(self):
-        hamburger = self.driver.find_element_by_css_selector(".readerNavMenuMenuButton")
-        if hamburger:
-            hamburger.click()
-            wait = WebDriverWait(self.driver, TEMPER)
-            wait.until(staleness_of(hamburger))
         self.search_for("Dogs")
         versionedResult = self.driver.find_element_by_css_selector('a[href="/Psalms.59.7/en/The_Rashi_Ketuvim_by_Rabbi_Shraga_Silverstein?qh=Dogs"]')
         versionedResult.click()
@@ -620,21 +614,6 @@ class SaveNewSourceSheet(SefariaTest):
             self.wait_until_title_contains("דף מקורות חדש")
 
         WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, '.header .home')))
-
-
-'''
-# Not sure why this isn't working.
-class LoginOnMobile(SefariaTest):
-    
-    every_build = True
-    multi_panel = False  # Login is tested as part of SaveNewSourceSheet on multipanel
-    initial_url = "/login"
-
-    def body(self):
-        self.login_user()
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".accountLinks .account")))
-
-'''
 
 
 class SearchNavigation(SefariaTest):

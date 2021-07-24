@@ -41,7 +41,6 @@ class AbstractTest(object):
 
     def __init__(self, url, cap, verbose=False, **kwargs):
         """
-
         :param driver:
         :param url:
         :param cap:
@@ -211,6 +210,7 @@ class SefariaTest(AbstractTest):
     def click(self, selector):
         self.wait_until_clickable(selector)
         self.driver.find_element_by_css_selector(selector).click()
+        return self
 
     def wait_until_visible(self, selector, temper=TEMPER):
         WebDriverWait(self.driver, temper).until(visibility_of_element_located((By.CSS_SELECTOR, selector)))
@@ -234,7 +234,6 @@ class SefariaTest(AbstractTest):
         WebDriverWait(self.driver, TEMPER).until_not(title_contains(text))
 
     def get_element(self, selector):
-        self.wait_until_present(selector)
         return self.driver.find_element_by_css_selector(selector)
 
     def load_url(self, url, test_selector, temper=TEMPER):
@@ -369,6 +368,10 @@ class SefariaTest(AbstractTest):
         """
         :return: Boolean - did we manage to close the popup?
         """
+        message = self.driver.execute_script('return Sefaria.interruptingMessage')
+        if not message:
+            return True
+
         time.sleep(3)
         try:
             self.driver.find_element_by_css_selector('#interruptingMessage #interruptingMessageClose')
@@ -454,20 +457,8 @@ class SefariaTest(AbstractTest):
         return self
 
     def nav_to_login(self):
-        try:
-            self._nav_to_login_desktop()
-        except NoSuchElementException:
-            self._nav_to_login_mobile()
-        return self
-
-    def _nav_to_login_desktop(self):
-        self.click('.accountLinks .loginLink')
-        self.wait_until_clickable("#id_email")
-        return self
-
-    def _nav_to_login_mobile(self):
-        self.nav_to_toc()
-        self.scroll_to_css_selector_and_click('#loginLink')
+        self.open_mobile_navigation_menu_if_needed()
+        self.click(".loginLink")
         self.wait_until_clickable("#id_email")
         return self
 
@@ -487,37 +478,22 @@ class SefariaTest(AbstractTest):
         except NoSuchElementException:
             pass
 
-        # Maybe deep in a commentary list
-        while True:
-            try:
-                self.driver.find_element_by_css_selector('.connectionsHeaderTitle.active').click()
-            except NoSuchElementException:
-                break
-
         try:
-            self.driver.find_element_by_css_selector('.header .home, .readerNavMenuMenuButton').click()
+            self.click('.header .home')
         except NoSuchElementException:
             try:
                 # Mobile browsers could be in a state where a window needs to be closed.
-                self.driver.find_element_by_css_selector('.readerNavMenuCloseButton').click()
-                self.driver.find_element_by_css_selector('.header .home').click()
+                self.click('.readerNavMenuCloseButton').click('.menuButton').click(".textsPageLink")
             except NoSuchElementException:
                 # Mobile browsers could be in a state where commentary panel is open
-                self.driver.find_element_by_css_selector('.segment').click()
-                self.driver.find_element_by_css_selector('.header .home').click()
-
+                self.click('.segment').click('.menuButton').click(".textsPageLink")
         self.wait_until_clickable(".navBlockTitle")
         return self
 
     def nav_to_history(self):
         self.login_user()
-        try:
-            el = self.driver.find_element_by_css_selector('a[href="/texts/saved"]')
-        except NoSuchElementException:
-            #Mobile
-            self.open_mobile_navigation_menu()
-            el = self.driver.find_element_by_css_selector('a[href="/texts/saved"]')
-        el.click()
+        self.open_mobile_navigation_menu_if_needed()
+        self.click('a[href="/texts/saved"]')
         self.wait_until_clickable("h1")
         self.click('a[href="/texts/history"]')
         self.wait_until_clickable(".storyTitle")
@@ -542,7 +518,7 @@ class SefariaTest(AbstractTest):
 
         index = ref.index
         categories = self._get_clickpath_from_categories(index.categories)
-        self.nav_to_text_toc(categories, index.title)
+        self.nav_to_book_page(categories, index.title)
 
         # Logic for what is displayed lives on SchemaNode under TextTableOfContentsNavigation
         section_ref = ref.section_ref()
@@ -621,6 +597,16 @@ class SefariaTest(AbstractTest):
         except NoSuchElementException:
             # must be logged in
             self.click('#siteLanguageEnglish')
+
+    def open_mobile_navigation_menu(self):
+        self.click(".menuButton")
+
+    def open_mobile_navigation_menu_if_needed(self):
+        try:
+            self.get_element(".menuButton")
+            self.open_mobile_navigation_menu()
+        except NoSuchElementException:
+            pass
 
     def toggle_on_text_settings(self):
         self.click('#panel-0 .readerControls .readerOptions')
@@ -796,7 +782,7 @@ class SefariaTest(AbstractTest):
         self.set_modal_cookie()
         return self
 
-    def nav_to_text_toc(self, cats, text_title):
+    def nav_to_book_page(self, cats, text_title):
         """
         :param cats: list of categories to click before text is visible (may not be entire category path to text)
         :param text: name of text to click
@@ -887,6 +873,7 @@ class SefariaTest(AbstractTest):
 
     def search_for(self, query):
         # This one is for searches that produce search results, not navigations
+        self.open_mobile_navigation_menu_if_needed()
         self.wait_until_clickable("#searchInput")
         elem = self.driver.find_element_by_css_selector("#searchInput")
         elem.send_keys(query)
@@ -897,6 +884,7 @@ class SefariaTest(AbstractTest):
 
     # todo: the #searchInput isn't always present on mobile.  The button to open it isn't always predsent either.  Probably need to nav to toc in that case.
     def type_in_search_box(self, query):
+        self.open_mobile_navigation_menu_if_needed()
         self.wait_until_clickable("#searchInput")
         elem = self.driver.find_element_by_css_selector("#searchInput")
         elem.send_keys(query)

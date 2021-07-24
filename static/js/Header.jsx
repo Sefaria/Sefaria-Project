@@ -459,7 +459,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
           fullWidth={true}
           hideHebrewKeyboard={true} />
       </div>
-      <a href="/texts" onClick={close}>
+      <a href="/texts" onClick={close} className="textsPageLink">
         <img src="/static/icons/book.svg" />
         <InterfaceText context="Header">Texts</InterfaceText>
       </a>
