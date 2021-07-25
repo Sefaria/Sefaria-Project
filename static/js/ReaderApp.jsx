@@ -972,6 +972,7 @@ class ReaderApp extends Component {
       this.showUserStats();
 
     } else if (path.match(/^\/sheets\/\d+/)) {
+      if (params.get("editor")) { return false; }
       this.openPanel("Sheet " + path.slice(8));
 
     } else if (path === "/topics") {
