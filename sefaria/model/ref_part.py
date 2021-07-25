@@ -118,8 +118,12 @@ class RawRef:
             if i == len(raw_ref_parts) - 1 or raw_ref_parts[i+1].type != RefPartType.NUMBERED:
                 toSection_slice = slice(ranged_symbol_ind+1, i+1)
                 break
+        sections = raw_ref_parts[section_slice]
+        toSections = sections[:]
+        num_explicit_to_sections = toSection_slice.stop - toSection_slice.start
+        toSections[-num_explicit_to_sections:] = raw_ref_parts[toSection_slice]
         new_raw_ref_parts = raw_ref_parts[:section_slice.start] + \
-                            [RangedRawRefParts(raw_ref_parts[section_slice], raw_ref_parts[toSection_slice])] + \
+                            [RangedRawRefParts(sections, toSections)] + \
                             raw_ref_parts[toSection_slice.stop:]
         return new_raw_ref_parts
 

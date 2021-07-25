@@ -124,7 +124,10 @@ def test_group_ranged_parts(raw_ref_params, expected_section_slices):
     if exp_sec_slice is None:
         expected_raw_ref_parts = raw_ref_parts
     else:
-        expected_ranged_raw_ref_parts = RangedRawRefParts(raw_ref_parts[exp_sec_slice], raw_ref_parts[exp2sec_slice])
+        sections = raw_ref_parts[exp_sec_slice]
+        toSections = sections[:]
+        toSections[-(exp2sec_slice.stop-exp2sec_slice.start):] = raw_ref_parts[exp2sec_slice]
+        expected_ranged_raw_ref_parts = RangedRawRefParts(sections, toSections)
         expected_raw_ref_parts = raw_ref_parts[:exp_sec_slice.start] + \
                                  [expected_ranged_raw_ref_parts] + \
                                  raw_ref_parts[exp2sec_slice.stop:]
