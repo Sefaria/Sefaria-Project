@@ -553,6 +553,9 @@ input.noselect {
 }
 .header .searchBox input {
   background-color: transparent; /*for firefox */
+  padding: 0;
+  flex: 1;
+  height: 100%;
 }
 .header .searchBox input::placeholder {
   font-style: normal;
@@ -587,7 +590,7 @@ input.noselect {
   display: none;
 }
 .mobileNavMenu .searchLine {
-  padding: 15px: 20px;
+  padding: 15px 10px;
   border-bottom: 1px solid #EDEDEC;
 }
 .header .mobileNavMenu .searchBox,
@@ -956,9 +959,6 @@ div.interfaceLinks-row a {
 .mobileHeaderLanguageToggle.english .he {
   display: none;
 }
-.header.mobile .searchLine {
-  padding: 15px;
-}
 .overlay {
   width: 100%;
   height: 100%;
@@ -1121,7 +1121,7 @@ div.interfaceLinks-row a {
 }
 .readerNavMenuSearchButton {
   position: relative;
-  margin: 0 10px 0 10px;
+  margin: 0 9px 0 7px;
   top: -2px;
 }
 .header .readerNavMenuSearchButton {
