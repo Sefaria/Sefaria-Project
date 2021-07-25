@@ -154,20 +154,54 @@ class ResolvedRawRef:
         if max_score == 1.0:
             return ResolvedRawRef(self.raw_ref, refined_ref_parts, max_node, text.Ref(max_node.ref))
 
+    def _get_refined_refs_for_numbered_part(self, raw_ref_part: 'RawRefPart', refined_ref_parts: List['RawRefPart'], node, lang) -> List['ResolvedRawRef']:
+        possible_sections, possible_to_sections = node.address_class(0).get_all_possible_sections_from_string(lang, raw_ref_part.text)
+        refined_refs = []
+        for sec, toSec in zip(possible_sections, possible_to_sections):
+            try:
+                refined_ref = self.ref.subref(sec)
+                if toSec != sec:
+                    to_ref = self.ref.subref(toSec)
+                    refined_ref = refined_ref.to(to_ref)
+                refined_refs += [refined_ref]
+            except InputError:
+                continue
+        return [ResolvedRawRef(self.raw_ref, refined_ref_parts, node, refined_ref) for refined_ref in refined_refs]
+
+    def _get_refined_matches_for_ranged_sections(self, sections: List['RawRefPart'], refined_ref_parts: List['RawRefPart'], node, lang):
+        resolved_raw_refs = [ResolvedRawRef(self.raw_ref, refined_ref_parts, node, node.ref())]
+        is_first_pass = True
+        for section_part in sections:
+            queue_len = len(resolved_raw_refs)
+            for _ in range(queue_len):
+                temp_resolved_raw_ref = resolved_raw_refs.pop(0)
+                if not is_first_pass:
+                    temp_resolved_raw_ref.node = temp_resolved_raw_ref.node.get_referenceable_child(temp_resolved_raw_ref.ref)
+                is_first_pass = False
+                resolved_raw_refs += temp_resolved_raw_ref._get_refined_refs_for_numbered_part(section_part, refined_ref_parts, temp_resolved_raw_ref.node, lang)
+
+        return resolved_raw_refs
+
+    def _get_refined_matches_for_ranged_part(self, raw_ref_part: 'RangedRawRefParts', refined_ref_parts: List['RawRefPart'], node, lang) -> List['ResolvedRawRef']:
+        from itertools import product
+        section_resolved_raw_refs = self._get_refined_matches_for_ranged_sections(raw_ref_part.sections, refined_ref_parts, node, lang)
+        toSection_resolved_raw_refs = self._get_refined_matches_for_ranged_sections(raw_ref_part.toSections, refined_ref_parts, node, lang)
+        ranged_resolved_raw_refs = []
+        for section, toSection in product(section_resolved_raw_refs, toSection_resolved_raw_refs):
+            try:
+                ranged_resolved_raw_refs += [ResolvedRawRef(self.raw_ref, refined_ref_parts, section.node, section.ref.to(toSection.ref))]
+            except InputError:
+                continue
+        return ranged_resolved_raw_refs
+
+
     def get_refined_matches(self, raw_ref_part: 'RawRefPart', node, lang: str) -> List['ResolvedRawRef']:
         refined_ref_parts = self.resolved_ref_parts + [raw_ref_part]
         matches = []
         if raw_ref_part.type == RefPartType.NUMBERED and isinstance(node, schema.JaggedArrayNode):
-            possible_sections, possible_to_sections = node.address_class(0).get_all_possible_sections_from_string(lang, raw_ref_part.text)
-            for sec, toSec in zip(possible_sections, possible_to_sections):
-                try:
-                    refined_ref = self.ref.subref(sec)
-                    if toSec != sec:
-                        to_ref = self.ref.subref(toSec)
-                        refined_ref = refined_ref.to(to_ref)
-                    matches += [ResolvedRawRef(self.raw_ref, refined_ref_parts, node, refined_ref)]
-                except InputError:
-                    continue
+            matches += self._get_refined_refs_for_numbered_part(raw_ref_part, refined_ref_parts, node, lang)
+        elif raw_ref_part.type == RefPartType.RANGE and isinstance(node, schema.JaggedArrayNode):
+            matches += self._get_refined_matches_for_ranged_part(raw_ref_part, refined_ref_parts, node, lang)
         elif raw_ref_part.type == RefPartType.NAMED and isinstance(node, schema.TitledTreeNode):
             if node.ref_part_title_trie(lang).has_continuations(raw_ref_part.text):
                 matches += [ResolvedRawRef(self.raw_ref, refined_ref_parts, node, node.ref())]
