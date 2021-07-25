@@ -1,11 +1,11 @@
 from collections import defaultdict
-from typing import List
+from typing import List, Union
 from enum import Enum
 from sefaria.system.exceptions import InputError
 from . import abstract as abst
 from . import text
 from . import schema
-from spacy.tokens import Span
+from spacy.tokens import Span, Token
 from spacy.language import Language
 
 LABEL_TO_REF_PART_TYPE_ATTR = {
@@ -50,7 +50,7 @@ class NonUniqueTermSet(abst.AbstractMongoSet):
 
 class RawRefPart:
     
-    def __init__(self, type: 'RefPartType', span: Span, potential_dh_continuation: str=None) -> None:
+    def __init__(self, type: 'RefPartType', span: Union[Token, Span], potential_dh_continuation: str=None) -> None:
         self.span = span
         self.type = type
         self.potential_dh_continuation = potential_dh_continuation
@@ -80,10 +80,7 @@ class RangedRawRefParts(RawRefPart):
     Container for ref parts that represent the sections and toSections of a ranged ref
     """
     def __init__(self, sections: List['RawRefPart'], toSections: List['RawRefPart']):
-        start_part = sections[0]
-        end_part = toSections[-1]
-        # TODO calculate overarching span that covers sections and toSections
-        super().__init__(RefPartType.RANGE, None)
+        super().__init__(RefPartType.RANGE, self._get_full_span(sections, toSections))
         self.sections = sections
         self.toSections = toSections
 
@@ -96,9 +93,17 @@ class RangedRawRefParts(RawRefPart):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    def _get_full_span(self, sections, toSections):
+        start_span = sections[0].span
+        end_span = toSections[-1].span
+        start_token_i = start_span.start if isinstance(start_span, Span) else start_span.i
+        end_token_i = end_span.end if isinstance(end_span, Span) else (end_span.i + 1)
+        return start_span.doc[start_token_i:end_token_i]
+
+
 class RawRef:
     
-    def __init__(self, raw_ref_parts: list, span: Span) -> None:
+    def __init__(self, raw_ref_parts: list, span: Union[Token, Span]) -> None:
         self.raw_ref_parts = self._group_ranged_parts(raw_ref_parts)
         self.span = span
 
