@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-
-from datetime import datetime
+from datetime import datetime, timedelta
 from elasticsearch_dsl import Search
 from elasticsearch import Elasticsearch
 from random import choice
@@ -3682,7 +3681,9 @@ def community_preview(request):
     """
     Preview the community page as it will appear at some date in the future
     """
-    date = request.GET.get("date", "7/25/21")
+    datetime_obj = datetime(2021,7, 25) + timedelta(days=1)
+    tomorrow = datetime_obj.strftime("%-m/%-d/%y")
+    date = request.GET.get("date", tomorrow)
     community = get_community_page_items(date=date, language=request.interfaceLang)
 
     return community_page(request, props={"community": community, "communityPreview": date})
@@ -3697,7 +3698,9 @@ def community_reset(request):
         server_coordinator.publish_event("in_memory_cache", "set", ["community-page-data-english", None])
         server_coordinator.publish_event("in_memory_cache", "set", ["community-page-data-hebrew", None])
 
-    date = request.GET.get("next", "7/25/21")
+    datetime_obj = datetime(2021,7, 25) + timedelta(days=1)
+    tomorrow = datetime_obj.strftime("%-m/%-d/%y")
+    date = request.GET.get("next", tomorrow)
     community = get_community_page_items(date=date, language=request.interfaceLang, refresh=True)
 
     return community_page(request, props={"community": community, "communityPreview": date})

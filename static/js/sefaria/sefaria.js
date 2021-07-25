@@ -2266,8 +2266,7 @@ _media: {},
       if (sheets && !skipCache) {
         if (callback) { callback(sheets); }
       } else {
-        // const url = Sefaria.apiHost + "/api/sheets/all-sheets/" + path
-        const url = "https://www.sefaria.org/api/sheets/all-sheets/" + path;
+        const url = Sefaria.apiHost + "/api/sheets/all-sheets/" + path
 
         Sefaria._api(url, function(data) {
           this._publicSheets[path] = data.sheets;

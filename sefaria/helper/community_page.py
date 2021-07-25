@@ -89,13 +89,8 @@ def get_community_page_items(date=None, language="englsih", diaspora=True, refre
     }
 
   if date is None:
-    # TODO remove pre-launch. For dev only, choose a random date in early weeks of the calendar
-    days = random.randrange(60)
-    datetime_obj = datetime(2021,7, 25) + timedelta(days=days)
+    datetime_obj = timezone.localtime(timezone.now())
     date = datetime_obj.strftime("%-m/%-d/%y")
-
-    #datetime_obj = timezone.localtime(timezone.now())
-    #date = datetime_obj.strftime("%-m/%-d/%y")
 
   return {
     "parashah": get_parashah_item(data["parashah"], date=date, diaspora=diaspora),
