@@ -462,6 +462,12 @@ const Strings = {
 
     // FilterableList
     "Sort by": "מיון לפי",
+
+    //Mobile Nav Header
+    "Get Help": "עזרה", //already has a similar string here but with different capitalization, maybe fix bug when not right before a launch?
+    "About Sefaria": "אודות ספריא",
+    "Saved & History": "היסטורית קריאה ושמורים",
+
   },
 
   _i18nInterfaceStringsWithContext: {
@@ -503,6 +509,9 @@ const Strings = {
       "Alphabetical": "אלפביתי",
       "Recent": "הכי חדש",
       "Views": "הכי נצפה",
+      /*"Relevance": 'רלוונטיות', //these 3 are duplicates but it doesnt seem to work without them, why?
+      "Chronological": 'כרונולוגי',
+      "Newest": "הכי חדש",*/
     },
     "Header": {
       "Texts": "מקורות",
