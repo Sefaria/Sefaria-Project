@@ -1,10 +1,13 @@
 
 import hashlib
 import sys
+from datetime import datetime
 from functools import wraps
+
 from django.http import HttpRequest
-from sefaria import settings
 from django.core.cache import DEFAULT_CACHE_ALIAS
+
+from sefaria import settings
 
 import structlog
 logger = structlog.get_logger(__name__)
@@ -133,10 +136,19 @@ def delete_template_cache(fragment_name='', *args):
 
 class InMemoryCache():
     data = {}
-    def set(self, key, val):
+    timeouts = {}
+
+    def set(self, key, val, timeout=None):
         self.data[key] = val
+        if timeout:
+            self.timeouts[key] = (timeout, datetime.now().timestamp())
 
     def get(self, key):
+        timeout = self.timeouts.get(key, None);
+        if timeout and timeout[0] + timeout[1] < datetime.now().timestamp():
+            self.set(key, None, timeout=timeout[0])
+            return None
+
         return self.data.get(key,  None)
 
     def reset_all(self):

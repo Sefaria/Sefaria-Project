@@ -18,10 +18,12 @@ from sefaria.helper.topic import get_topic_by_parasha
 from sefaria.system.cache import django_cache, delete_cache_elem, cache_get_key, in_memory_cache
 
 
-@django_cache(timeout=12 * 60 * 60, cache_prefix="community_page")
-def get_community_page_data(language="english"):
+def get_community_page_data(language="english", refresh=False):
+  """
+  Returns (nearly) raw data from Community page spreadsheet for `language`. Manages caching of date in memeory.
+  """
   data = in_memory_cache.get("community-page-data-{}".format(language))
-  if data:
+  if data and not refresh:
     return data
 
   urls = {
@@ -46,19 +48,21 @@ def get_community_page_data(language="english"):
     "featured": load_data_from_sheet(urls[language]["featured"]),
   }
 
-  in_memory_cache.set("community-page-data-{}".format(language), data)
+  in_memory_cache.set("community-page-data-{}".format(language), data, timeout=60 * 60)
 
   return data
 
 
 def load_data_from_sheet(url):
+  """
+  Returns data from a single spreadsheet URL, formatted as keyed objects according to sheet headers, translating Hebrew headers into English.
+  """
   response = requests.get(url)
   data     = response.content.decode("utf-8")
   cr       = csv.reader(StringIO(data))
   rows     = list(cr)
   fields   = [translate_labels(f) for f in rows[1]]
   data     = rows[2:]
-
 
   keyed_data = []
   for row in data:
@@ -71,12 +75,11 @@ def load_data_from_sheet(url):
 
 
 def get_community_page_items(date=None, language="englsih", diaspora=True, refresh=False):
-  if refresh:
-    cache_key = cache_get_key("community_page", language=language)
-    delete_cache_elem(cache_key)
-  
+  """
+  Retruns processed community page items
+  """
   try:
-    data = get_community_page_data(language=language)
+    data = get_community_page_data(language=language, refresh=refresh)
   except:
     data = {
       "parashah": None,
@@ -169,6 +172,10 @@ def sheet_with_customization(data):
   if len(data.get("Custom Summary", "")):
     sheet["summary"] = data["Custom Summary"]
 
+  if len(data.get("Custom Author", "")):
+    sheet["ownerName"] = data["Custom Author"]
+
+
   if len(data.get("Block Title", "")):
     sheet["heading"] = {"en": data["Block Title"], "he": data["Block Title"]}
 
@@ -233,6 +240,7 @@ def translate_labels(label):
     "קישור לדף המקורות": "Sheet URL",
     "כותרת מיוחדת": "Custom Title",
     "תקציר מיוחד": "Custom Summary",
+    "מחבר מיוחד": "Custom Author",
     "מוכן לפרסום": "Ready",
     "כותרת נושא מיוחדת": "Custom About Title",
     "קישור לדף הנושא": "Topic URL",
