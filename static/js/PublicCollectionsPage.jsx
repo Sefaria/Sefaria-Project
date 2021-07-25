@@ -15,12 +15,20 @@ const PublicCollectionsPage = ({multiPanel, initialWidth}) => {
   const [collectionsList, setCollectionsList] = useState(Sefaria.getCollectionsListFromCache());
   
   const sortCollectionList = d => {
-    if (Sefaria.interfaceLang == "hebrew") {
-      d.public.sort((a, b) => {
-        const [aHe, bHe] = [a.name, b.name].map(Sefaria.hebrew.isHebrew);
-        return aHe == bHe ? a.name - b.name : (aHe ? -1 : 1)
-      });
-    }
+    // Sort alphabetically, ignoring punctuation, putting numbers at the end, with collections in the current interface lang first.
+    d.public.sort((a, b) => {
+      const [strippedA, strippedB] = [a.name, b.name].map(x => x.stripPunctuation());
+      const [aHe, bHe] = [strippedA, strippedB].map(Sefaria.hebrew.isHebrew);
+      const [aNum, bNum] = [strippedA, strippedB].map(x => /^\d/.test(x));
+
+      if (aHe !== bHe) {
+        return (Sefaria.interfaceLang === "hebrew" ? aHe : bHe) ? -1 : 1; 
+      } else if (aNum !== bNum) {
+        return aNum ? 1 : -1;
+      } else {
+        return strippedA < strippedB ? -1 : 1;
+      }
+    });
     return d;
   };
 

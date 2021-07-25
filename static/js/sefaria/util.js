@@ -323,6 +323,11 @@ class Util {
           return striptags(this.replace(/\u00a0/g, ' ').decodeHtmlEntities().replace(/<p>/g, ' <p>').replace(/(<br>|\n)+/g,' '));
         };
 
+        String.prototype.stripPunctuation = function() {
+          const regex = /[!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~]/g;
+          return this.replace(regex, '');
+        };
+
         String.prototype.escapeHtml = function() {
           return this.replace(/&/g,'&amp;')
                       .replace(/</g,'&lt;')
