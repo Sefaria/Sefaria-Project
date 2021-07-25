@@ -1,4 +1,3 @@
-
 {% autoescape off %}
 //call with sefaria.link();
 
@@ -177,10 +176,10 @@
             '}'+
             '.interface-hebrew .sefaria-footer {' +
                 'direction: rtl;' +
-                'font-family: "Heebo", sans-serif' + 
+                'font-family: "Heebo", sans-serif' +
             '}'+
             '#sefaria-popup.short-screen .sefaria-text{'+
-                'overflow-y: scroll;' + 
+                'overflow-y: scroll;' +
                 'max-height: calc(100% - 117px);' +
             '}'+
             'span.sefaria-ref-wrapper{'+
@@ -220,12 +219,12 @@
             '</div>' +
             '<div class="sefaria-text" id="sefaria-linker-text" tabindex="0"></div>' +
 
-            '<div class="sefaria-footer">' + 
+            '<div class="sefaria-footer">' +
                 '<div class="sefaria-powered-by-box">' + poweredByText + ' <div id="sefaria-logo">&nbsp;</div></div>' +
-                (mode == "popup-click" ? 
+                (mode == "popup-click" ?
                 '<span class="sefaria-read-more-button">' +
                     '<a class = "sefaria-popup-ref" target="_blank" href = "">' + readMoreText + '</a>' +
-                '</span>' : "") + 
+                '</span>' : "") +
             '</div>';
 
         popUpElem.innerHTML = html;
@@ -336,12 +335,12 @@
             popUpElem.classList.add("short-screen");
             popUpElem.style.height = (window.innerHeight * 0.9) + "px";
         }
-        if (window.innerHeight < popUpRect.bottom) { 
+        if (window.innerHeight < popUpRect.bottom) {
             // if popup drops off bottom screen, pull up
             var pos = ((window.innerHeight - popUpRect.height) - 10);
             popUpElem.style.top = (pos > 0) ? pos + "px" : "10px";
         }
-        if (window.innerWidth < popUpRect.right || popUpRect.left < 0) { 
+        if (window.innerWidth < popUpRect.right || popUpRect.left < 0) {
             // popup drops off the side screen, center it
             var pos = ((window.innerWidth - popUpRect.width) / 2);
             popUpElem.style.left = pos + "px";
@@ -404,10 +403,10 @@
         Object.assign(defaultOptions, options);
         Object.assign(ns, defaultOptions);
 
-        if (window.innerWidth < 700 && ns.hidePopupsOnMobile) { 
+        if (window.innerWidth < 700 && ns.hidePopupsOnMobile) {
             // If the screen is small, defautlt to link mode, unless override set
             ns.mode = "link";
-        }  
+        }
         setupPopup(ns, ns.mode);
 
         ns.matches = [];   // Matches that will be linked
@@ -418,14 +417,12 @@
         const full_text = [].reduce.call(ns.elems, (prev, current) => prev + current.textContent, "");
         ns.matchedTitles = bookTitles.filter(title => full_text.indexOf(title) > -1).filter(distinct);
 
-
         if (ns.matchedTitles.length === 0) {
             //console.log("No book titles found to link to Sefaria.");
-            ns._trackPage();
+            return;
         }
-        else {
-            ns._getRegexesThenTexts(ns.mode);
-        }
+
+        ns._getRegexesThenTexts(ns.mode);
     };
 
 
@@ -550,7 +547,7 @@
         const MAX_URL_LENGTH = 3800;
         const hostStr = base_url + 'api/bulktext/';
         var paramStr = '?useTextFamily=1';
-    
+
         if (typeof Promise == "undefined" || Promise.toString().indexOf("[native code]") == -1) {
             //promises not defined. fallback to one request
             atomic.get(base_url + "api/bulktext/" + ns.matches.join("|")+"?useTextFamily=1")
@@ -580,7 +577,7 @@
                 .error(function (data, xhr) { });
             });
         });
-    
+
         return Promise.all(promises).then(function (results) {
             var mergedResults = Object.assign.apply(null, results);
             ns._getTextsSuccess(mode, mergedResults);
@@ -617,15 +614,7 @@
     };
 
     ns._trackPage = function() {
-        if (ns.trackedMatches.length === 0 && ns.matches.length > 0) {
-            // we want to track page in two cases:
-            // 1) if there are trackedMatches found
-            // or 2) if there are no trackMatches found AND no matches found, as we want to send a message
-            // to api/linker_track so that the backend will delete the webpage.
-            // however, this if statement is a third case:
-            // when there are no trackMatches found but there are matches found, we don't want to track page
-            return;
-        }
+        if (ns.trackedMatches.length == 0) { return; }
 
         var robots = document.head.querySelector("meta[name~=robots]");
         if (robots && robots.content.includes("noindex")) { return; }
