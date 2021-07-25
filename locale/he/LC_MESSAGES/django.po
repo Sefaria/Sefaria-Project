@@ -339,10 +339,8 @@ msgstr ""
 "לחלופין למחוק אותה."
 
 #: sourcesheets/views.py:1116
-#, fuzzy
-#| msgid "You must be logged in to update your profile."
 msgid "You must be logged in to access this api."
-msgstr "הנכם צריכים להיות מחוברים כדי לערוך את הפרופיל שלכם."
+msgstr "הנכם צריכים להיות מחוברים כדי להשתמש באפשרות זו."
 
 #: templates/404.html:4
 msgid "Page Not Found | Sefaria"
