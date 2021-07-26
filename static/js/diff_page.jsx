@@ -130,6 +130,7 @@ class PageLoader extends Component {
 }
 
   render() {
+    Sefaria.unpackDataFromProps(DJANGO_VARS.props);
     return (
       <div>
       <DataForm
