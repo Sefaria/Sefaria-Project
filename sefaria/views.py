@@ -1065,6 +1065,7 @@ def modtools_upload_workflowy(request):
 def compare(request, comp_ref=None, lang=None, v1=None, v2=None):
     print(comp_ref)
     ref_array = None
+    sec_ref = ""
     if comp_ref and Ref.is_ref(comp_ref):
         o_comp_ref = Ref(comp_ref)
         sec_ref = o_comp_ref.first_available_section_ref()
