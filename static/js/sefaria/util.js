@@ -67,9 +67,9 @@ class Util {
       let spacer = " ";
       if(short){
           language = language == "en" ? "shortEn" : "shortHe";
-          spacer = language == "en" ? "" : " ";
+          spacer = language == "shortEn" ? "" : " ";
       }
-      return Util.sefariaHumanizeDuration(now - timeStamp, { language, spacer });
+      return Util.sefariaHumanizeDuration(now - timeStamp, { "language": language, "spacer": spacer });
     }
     static object_equals(a, b) {
         // simple object equality assuming values are primitive. see here
