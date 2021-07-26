@@ -960,7 +960,7 @@ class ReaderApp extends Component {
       this.showCommunity();
 
     } else if (path === "/my/profile") {
-      this.openProfile(Sefaria.slug);
+      this.openProfile(Sefaria.slug, params.get("tab"));
 
     } else if (path === "/notifications") {
       this.showNotifications();
