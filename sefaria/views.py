@@ -57,7 +57,7 @@ from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.google_storage_manager import GoogleStorageManager
 
 
-from reader.views import render_template
+from reader.views import render_template, text_panels
 
 
 
@@ -771,7 +771,24 @@ def untagged_sheets(request):
 
     return HttpResponse("<html><h1>Untagged Public Sheets</h1><ul>" + html + "</ul></html>")
 
+@staff_member_required
+def categorize_sheets(request):
+    from pymongo import DESCENDING
+    from sefaria.sheets import sheet_to_dict
+    # get the first sheet that has no tags
+    sheet = sheet_to_dict(db.sheets.find({"tags": {"$in": [None, []] }}).sort("id", DESCENDING)[0])
+    room_id = request.GET.get("rid", None)
+    starting_ref = request.GET.get("ref", "Genesis 1")
+    roulette = request.GET.get("roulette", "0")
 
+    return render(request, "static/categorize-sheets.html")
+    # return render_template(request,'static/categorize-sheets.html', None, {
+    #     "sheet": sheet    
+    #     })
+
+
+    # x = text_panels(request, str(sheet['id']), sheet=True)
+    # return x
 
 @staff_member_required
 def spam_dashboard(request):
