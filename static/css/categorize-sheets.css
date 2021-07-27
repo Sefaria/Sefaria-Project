@@ -1,0 +1,50 @@
+html,
+body,
+.wrapper,
+#content,
+.categorizer,
+.sheet {
+    height: 100%;
+    margin: 0;
+    font-family: Roboto;
+    font-style: normal;
+    font-weight: normal;
+}
+
+.categorizer {
+    display: flex;
+    flex-direction: row;
+    order: 0;
+    flex: 0 0 auto;
+    align-self: auto;
+    border: 0;
+}
+
+a {
+    color: #666666;
+}
+
+#edit-pane {
+    min-height: 100%;
+    width: 300px;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-content: stretch;
+    align-items: flex-start;
+}
+
+#iframeContainer {
+    order: 0;
+    flex: 1 1 auto;
+    align-self: stretch;
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+iframe.sheet {
+    width: 100%
+}
