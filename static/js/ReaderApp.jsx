@@ -932,7 +932,7 @@ class ReaderApp extends Component {
       return false;
     }
     // Allow absolute URLs pointing to Sefaria. TODO generalize to any domain of current deploy.
-    if (url.hostname.indexOf("sefaria.org") === -1) {
+    if (url.hostname.indexOf("www.sefaria.org") === -1) {
       return false;
     }
     const path = url.pathname;
