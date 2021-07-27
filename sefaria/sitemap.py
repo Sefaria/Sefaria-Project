@@ -42,7 +42,7 @@ class SefariaSiteMapGenerator(object):
         "/help",
         "/metrics",
         "/sheets",
-        "/groups",
+        "/collections",
         "/login",
         "/register",
         "/terms",
@@ -123,7 +123,7 @@ class SefariaSiteMapGenerator(object):
         """
         Creates a sitemap for each public source sheet.
         """
-        query = {"status": "public"}
+        query = {"status": "public", "noindex": {"$ne": True}}
         public = db.sheets.find(query).distinct("id")
         urls = [self._hostname + "/sheets/" + str(id) for id in public]
         self.write_urls(urls, "sheets-sitemap.xml")
@@ -137,10 +137,6 @@ class SefariaSiteMapGenerator(object):
         urls = [self._hostname + "/topics/" + topic.slug for topic in topics]
         self.write_urls(urls, "topics-sitemap.xml")
 
-    def generate_people_sitemap(self):
-        urls = [self._hostname + "/person/{}".format(p.key.replace(" ", "%20")) for p in PersonSet()]
-        self.write_urls(urls, "person-sitemap.xml")
-
     def generate_static_sitemap(self):
         """
         Creates a sitemap of static content listed above.
@@ -151,9 +147,12 @@ class SefariaSiteMapGenerator(object):
         """
         Writes the list of `urls` to `filename`.
         """
+        def escape_url(url):
+            return url.replace("&", "&amp;")
+
         content = ""
         for url in urls:
-            content += ("<url><loc>{}</loc></url>\n".format(url))
+            content += ("<url><loc>{}</loc></url>\n".format(escape_url(url)))
 
         xml = ('<?xml version="1.0" encoding="UTF-8"?>'
                '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'

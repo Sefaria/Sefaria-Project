@@ -7,7 +7,7 @@ Writes to MongoDB Collection: sheets
 import sys
 import hashlib
 import urllib.request, urllib.parse, urllib.error
-import logging
+import structlog
 import regex
 import dateutil.parser
 import bleach
@@ -23,7 +23,7 @@ from sefaria.system.database import db
 from sefaria.model.notification import Notification, NotificationSet
 from sefaria.model.following import FollowersSet
 from sefaria.model.user_profile import UserProfile, annotate_user_list, public_user_data, user_link
-from sefaria.model.group import Group
+from sefaria.model.collection import Collection, CollectionSet
 from sefaria.model.story import UserStory, UserStorySet
 from sefaria.model.topic import TopicSet, Topic, RefTopicLink, RefTopicLinkSet
 from sefaria.utils.util import strip_tags, string_overlap, titlecase
@@ -33,15 +33,17 @@ from sefaria.system.cache import django_cache
 from .history import record_sheet_publication, delete_sheet_publication
 from .settings import SEARCH_INDEX_ON_SAVE
 from . import search
+from sefaria.google_storage_manager import GoogleStorageManager
+import re
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 if not hasattr(sys, '_doc_build'):
 	from django.contrib.auth.models import User
 from django.contrib.humanize.templatetags.humanize import naturaltime
 
-import logging
-logger = logging.getLogger(__name__)
+import structlog
+logger = structlog.get_logger(__name__)
 
 
 def get_sheet(id=None):
@@ -72,9 +74,6 @@ def get_sheet_metadata_bulk(id_list, public=True):
 
 
 def get_sheet_node(sheet_id=None, node_id=None):
-	"""
-	Returns the source sheet with id.
-	"""
 	if sheet_id is None:
 		return {"error": "No sheet id given."}
 	if node_id is None:
@@ -106,15 +105,15 @@ def get_sheet_for_panel(id=None):
 	sheet["ownerName"]  = ownerData["name"]
 	sheet["ownerProfileUrl"] = public_user_data(sheet["owner"])["profileUrl"]
 	sheet["ownerImageUrl"] = public_user_data(sheet["owner"])["imageUrl"]
-	sheet["naturalDateCreated"] = naturaltime(datetime.strptime(sheet["dateCreated"], "%Y-%m-%dT%H:%M:%S.%f"))
 	sheet["sources"] = annotate_user_links(sheet["sources"])
 	sheet["topics"] = add_langs_to_topics(sheet.get("topics", []))
-	if "group" in sheet:
-		group = Group().load({"name": sheet["group"]})
-		try:
-			sheet["groupLogo"] = group.imageUrl
-		except:
-			sheet["groupLogo"] = None
+	if "displayedCollection" in sheet:
+		collection = Collection().load({"slug": sheet["displayedCollection"]})
+		if collection:
+			sheet["collectionImage"] = getattr(collection, "imageUrl", None)
+			sheet["collectionName"] = collection.name
+		else:
+			del sheet["displayedCollection"]
 	return sheet
 
 
@@ -126,30 +125,28 @@ def user_sheets(user_id, sort_by="date", limit=0, skip=0, private=True):
 		sort = [["dateModified", -1]]
 	elif sort_by == "views":
 		sort = [["views", -1]]
-
-	response = {
-		"sheets": sheet_list(query=query, sort=sort, limit=limit, skip=skip)
-	}
-	return response
-
-
-def public_sheets(sort=[["dateModified", -1]], limit=50, skip=0):
-	query = {"status": "public"}
-	response = {
-		"sheets": sheet_list(query=query, sort=sort, limit=limit, skip=skip)
-	}
-	return response
-
-
-def group_sheets(group, authenticated):
-	islisted = getattr(group, "listed", False)
-	if authenticated == False and islisted:
-		query = {"status": "public", "group": group.name}
 	else:
-		query = {"status": {"$in": ["unlisted", "public"]}, "group": group.name}
+		sort = None
+
+	sheets = sheet_list(query=query, sort=sort, limit=limit, skip=skip)
+
+	if private:
+		sheets = annotate_user_collections(sheets, user_id)
+	else:
+		sheets = annotate_displayed_collections(sheets)
 
 	response = {
-		"sheets": sheet_list(query=query),
+		"sheets": sheets
+	}
+	return response
+
+
+def public_sheets(sort=[["datePublished", -1]], limit=50, skip=0, lang=None):
+	query = {"status": "public"}
+	if lang:
+		query["sheetLanguage"] = lang
+	response = {
+		"sheets": sheet_list(query=query, sort=sort, limit=limit, skip=skip)
 	}
 	return response
 
@@ -161,13 +158,15 @@ def sheet_list(query=None, sort=None, skip=0, limit=None):
 	projection = {
 		"id": 1,
 		"title": 1,
+		"summary": 1,
 		"status": 1,
 		"owner": 1,
 		"views": 1,
 		"dateModified": 1,
 		"dateCreated": 1,
+		"datePublished": 1,
 		"topics": 1,
-		"group": 1,
+		"displayedCollection": 1,
 	}
 	if not query:
 		return []
@@ -177,15 +176,6 @@ def sheet_list(query=None, sort=None, skip=0, limit=None):
 		sheets = sheets.limit(limit)
 
 	return [sheet_to_dict(s) for s in sheets]
-
-def annotate_user_links(sources):
-	"""
-	Search a sheet for any addedBy fields (containg a UID) and add corresponding user links.
-	"""
-	for source in sources:
-		if "addedBy" in source:
-			source["userLink"] = user_link(source["addedBy"])
-	return sources
 
 
 def sheet_to_dict(sheet):
@@ -197,20 +187,67 @@ def sheet_to_dict(sheet):
 	sheet_dict = {
 		"id": sheet["id"],
 		"title": strip_tags(sheet["title"]) if "title" in sheet else "Untitled Sheet",
+		"summary": sheet.get("summary", None),
 		"status": sheet["status"],
 		"author": sheet["owner"],
 		"ownerName": profile["name"],
 		"ownerImageUrl": profile["imageUrl"],
+		"ownerProfileUrl": profile["profileUrl"],
 		"sheetUrl": "/sheets/" + str(sheet["id"]),
 		"views": sheet["views"],
-		"group": sheet.get("group", None),
+		"displayedCollection": sheet.get("displayedCollection", None),
 		"modified": dateutil.parser.parse(sheet["dateModified"]).strftime("%m/%d/%Y"),
 		"created": sheet.get("dateCreated", None),
+		"published": sheet.get("datePublished", None),
 		"topics": add_langs_to_topics(sheet.get("topics", [])),
 		"tags": [t['asTyped'] for t in sheet.get("topics", [])],  # for backwards compatibility with mobile
 		"options": sheet["options"] if "options" in sheet else [],
 	}
 	return sheet_dict
+
+
+def annotate_user_collections(sheets, user_id):
+	"""
+	Adds a `collections` field to each sheet in `sheets` which includes the collections
+	that `user_id` has put that sheet in.
+	"""
+	sheet_ids = [sheet["id"] for sheet in sheets]
+	user_collections = CollectionSet({"sheets": {"$in": sheet_ids}})
+	for sheet in sheets:
+		sheet["collections"] = []
+		for collection in user_collections:
+			if sheet["id"] in collection.sheets:
+				sheet["collections"].append({"name": collection.name, "slug": collection.slug})
+
+	return sheets
+
+
+def annotate_displayed_collections(sheets):
+	"""
+	Adds `displayedCollectionName` field to each sheet in `sheets` that has `displayedCollection`.
+	"""
+	slugs = list(set([sheet["displayedCollection"] for sheet in sheets if sheet.get("displayedCollection", None)]))
+	if len(slugs) == 0:
+		return sheets
+	displayed_collections = CollectionSet({"slug": {"$in": slugs}})
+	for sheet in sheets:
+		if not sheet.get("displayedCollection", None):
+			continue
+		for collection in displayed_collections:
+			if sheet["displayedCollection"] == collection.slug:
+				sheet["displayedCollectionName"] = collection.name
+
+	return sheets
+
+
+def annotate_user_links(sources):
+	"""
+	Search a sheet for any addedBy fields (containg a UID) and add corresponding user links.
+	"""
+	for source in sources:
+		if "addedBy" in source:
+			source["userLink"] = user_link(source["addedBy"])
+	return sources
 
 
 def user_tags(uid):
@@ -379,9 +416,24 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 		old_topics = existing.get("topics", [])
 		topics_diff = topic_list_diff(old_topics, sheet.get("topics", []))
 
-		sheet["views"] = existing["views"] 										# prevent updating views
-		sheet["owner"] = existing["owner"] 										# prevent updating owner
-		sheet["likes"] = existing["likes"] if "likes" in existing else [] 		# prevent updating likes
+		old_media_urls = set([source["media"] for source in existing.get("sources") if "media" in source])
+		if len(old_media_urls) > 0:
+			new_media_urls = set([source["media"] for source in sheet.get("sources") if "media" in source])
+			if len(old_media_urls) != len(new_media_urls):
+				deleted_media = set(old_media_urls).difference(new_media_urls)
+				print(deleted_media)
+				for url in deleted_media:
+					if url.startswith(GoogleStorageManager.BASE_URL):
+						GoogleStorageManager.delete_filename((re.findall(r"/([^/]+)$", url)[0]), GoogleStorageManager.UGC_SHEET_BUCKET)
+
+		# Protected fields -- can't be set from outside
+		sheet["views"] = existing["views"]
+		sheet["owner"] = existing["owner"]
+		sheet["likes"] = existing["likes"] if "likes" in existing else []
+		if "datePublished" in existing:
+			sheet["datePublished"] = existing["datePublished"]
+		if "noindex" in existing:
+			sheet["noindex"] = existing["noindex"]
 
 		existing.update(sheet)
 		sheet = existing
@@ -393,7 +445,7 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 			sheet["status"] = "unlisted"
 		sheet["owner"] = user_id
 		sheet["views"] = 1
-		
+
 		old_topics = []
 		topics_diff = topic_list_diff(old_topics, sheet.get("topics", []))
 
@@ -429,7 +481,8 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 							}).delete()
 
 	sheet["includedRefs"] = refs_in_sources(sheet.get("sources", []))
-	sheet["expandedRefs"] = model.Ref.expand_refs(sheet["includedRefs"]) 
+	sheet["expandedRefs"] = model.Ref.expand_refs(sheet["includedRefs"])
+	sheet["sheetLanguage"] = get_sheet_language(sheet)
 
 	if rebuild_nodes:
 		sheet = rebuild_sheet_nodes(sheet)
@@ -477,7 +530,7 @@ def is_valid_source(source):
 
 def bleach_text(text):
 	ok_sheet_tags = ['blockquote', 'p', 'a', 'ul', 'ol', 'nl', 'li', 'b', 'i', 'strong', 'em', 'small', 'big', 'span', 'strike',
-			'hr', 'br', 'div', 'table', 'thead', 'caption', 'tbody', 'tr', 'th', 'td', 'pre', 'sup', 'u']
+			'hr', 'br', 'div', 'table', 'thead', 'caption', 'tbody', 'tr', 'th', 'td', 'pre', 'sup', 'u', 'h1']
 
 	ok_sheet_attrs = {'a': [ 'href', 'name', 'target', 'data-ref' ],'img': [ 'src' ], 'p': ['style'], 'span': ['style'], 'div': ['style'], 'td': ['colspan'],"*": ["class"]}
 
@@ -502,6 +555,25 @@ def clean_source(source):
 		source["outsideBiText"]["en"] = bleach_text(source["outsideBiText"]["en"])
 
 	return source
+
+
+def get_sheet_language(sheet):
+	"""
+	Returns the language we believe `sheet` to be written in,
+	based on the language of its title.
+	"""
+	title = strip_tags(sheet.get("title", "")).replace("(Copy)", "").replace("\n", " ")
+	return "hebrew" if is_hebrew(title, heb_only=True) else "english"
+
+
+def test():
+	ss = db.sheets.find({}, sort=[["_id", -1]], limit=10000)
+
+	for s in ss:
+		lang = get_sheet_language(s)
+		if lang == "some hebrew":
+			print("{}\thttps://www.sefaria.org/sheets/{}".format(strip_tags(s["title"]).replace("\n", ""), s["id"]))
+
 
 
 def add_source_to_sheet(id, source, note=None):
@@ -629,12 +701,12 @@ def get_top_sheets(limit=3):
 	return sheet_list(query=query, limit=limit)
 
 
-def get_sheets_for_ref(tref, uid=None, in_group=None):
+def get_sheets_for_ref(tref, uid=None, in_collection=None):
 	"""
 	Returns a list of sheets that include ref,
 	formating as need for the Client Sidebar.
 	If `uid` is present return user sheets, otherwise return public sheets.
-	If `in_group` (list) is present, only return sheets in one of the listed groups.
+	If `in_collection` (list of slugs) is present, only return sheets in one of the listed collections.
 	"""
 	oref = model.Ref(tref)
 	# perform initial search with context to catch ranges that include a segment ref
@@ -644,10 +716,14 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 		query["owner"] = uid
 	else:
 		query["status"] = "public"
-	if in_group:
-		query["group"] = {"$in": in_group}
+	if in_collection:
+		collections = CollectionSet({"slug": {"$in": in_collection}})
+		sheets_list = [collection.sheets for collection in collections]
+		sheets_ids = [sheet for sublist in sheets_list for sheet in sublist]
+		query["id"] = {"$in": sheets_ids}
+
 	sheetsObj = db.sheets.find(query,
-		{"id": 1, "title": 1, "owner": 1, "viaOwner":1, "via":1, "dateCreated": 1, "includedRefs": 1, "expandedRefs": 1, "views": 1, "topics": 1, "status": 1, "summary":1, "attribution":1, "assigner_id":1, "likes":1, "group":1, "options":1}).sort([["views", -1]])
+		{"id": 1, "title": 1, "owner": 1, "viaOwner":1, "via":1, "dateCreated": 1, "includedRefs": 1, "expandedRefs": 1, "views": 1, "topics": 1, "status": 1, "summary":1, "attribution":1, "assigner_id":1, "likes":1, "displayedCollection":1, "options":1}).sort([["views", -1]])
 	sheetsObj.hint("expandedRefs_1")
 	sheets = [s for s in sheetsObj]
 	user_ids = list({s["owner"] for s in sheets})
@@ -670,11 +746,6 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 	for sheet in sheets:
 		anchor_ref_list, anchor_ref_expanded_list = oref.get_all_anchor_refs(segment_refs, sheet.get("includedRefs", []), sheet.get("expandedRefs", []))
 		ownerData = user_profiles.get(sheet["owner"], {'first_name': 'Ploni', 'last_name': 'Almoni', 'email': 'test@sefaria.org', 'slug': 'Ploni-Almoni', 'id': None, 'profile_pic_url_small': ''})
-		if len(ownerData.get('profile_pic_url_small', '')) == 0:
-			default_image           = "https://www.sefaria.org/static/img/profile-default.png"
-			gravatar_base           = "https://www.gravatar.com/avatar/" + hashlib.md5(ownerData["email"].lower().encode('utf8')).hexdigest() + "?"
-			gravatar_url_small = gravatar_base + urllib.parse.urlencode({'d':default_image, 's':str(80)})
-			ownerData['profile_pic_url_small'] = gravatar_url_small
 
 		if "assigner_id" in sheet:
 			asignerData = public_user_data(sheet["assigner_id"])
@@ -685,11 +756,9 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 			sheet["viaOwnerName"] = viaOwnerData["name"]
 			sheet["viaOwnerProfileUrl"] = viaOwnerData["profileUrl"]
 
-		if "group" in sheet:
-			group = Group().load({"name": sheet["group"]})
-			sheet["groupLogo"]       = getattr(group, "imageUrl", None)
-			sheet["groupTOC"]        = getattr(group, "toc", None)
-		natural_date_created = naturaltime(datetime.strptime(sheet["dateCreated"], "%Y-%m-%dT%H:%M:%S.%f"))
+		if "displayedCollection" in sheet:
+			collection = Collection().load({"slug": sheet["displayedCollection"]})
+			sheet["collectionTOC"] = getattr(collection, "toc", None)
 		topics = add_langs_to_topics(sheet.get("topics", []))
 		for anchor_ref, anchor_ref_expanded in zip(anchor_ref_list, anchor_ref_expanded_list):
 			sheet_data = {
@@ -702,10 +771,7 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 				"anchorRef":       anchor_ref.normal(),
 				"anchorRefExpanded": [r.normal() for r in anchor_ref_expanded],
 				"options": 		   sheet["options"],
-				"naturalDateCreated": natural_date_created,
-				"group":           sheet.get("group", None),
-				"groupLogo" : 	   sheet.get("groupLogo", None),
-				"groupTOC":        sheet.get("groupTOC", None),
+				"collectionTOC":   sheet.get("collectionTOC", None),
 				"ownerName":       ownerData["first_name"]+" "+ownerData["last_name"],
 				"via":			   sheet.get("via", None),
 				"viaOwnerName":	   sheet.get("viaOwnerName", None),
@@ -745,12 +811,12 @@ def topic_list_diff(old, new):
 
 def update_sheet_topics(sheet_id, topics, old_topics):
 	"""
-	Sets the topic list for `sheet_id` to those listed in list `topics`, 
+	Sets the topic list for `sheet_id` to those listed in list `topics`,
 	containing fields `asTyped` and `slug`.
-	Performs some normalization of `asTyped` and creates new topic objects for new topics.  
+	Performs some normalization of `asTyped` and creates new topic objects for new topics.
 	"""
 	normalized_slug_title_pairs = set()
-	
+
 	for topic in topics:
 	# Dedupe, normalize titles, create/choose topics for any missing slugs
 		title = normalize_new_topic_title(topic["asTyped"])
@@ -807,8 +873,8 @@ def choose_existing_topic_for_title(title):
 
 
 def update_sheet_topic_links(sheet_id, new_topics, old_topics):
-	"""	
-	Adds and removes sheet topic links per differences in old and new topics list.  
+	"""
+	Adds and removes sheet topic links per differences in old and new topics list.
 	Only adds link for public sheets.
 	"""
 	topic_diff = topic_list_diff(old_topics, new_topics)
@@ -866,21 +932,22 @@ def add_langs_to_topics(topic_list: list, use_as_typed=True, backwards_compat_la
 	:param bool use_as_typed:
 	"""
 	new_topic_list = []
+	from sefaria.model import library
+	topic_map = library.get_topic_mapping()
 	if len(topic_list) > 0:
-		topic_set = {topic.slug: topic for topic in TopicSet({'$or': [{'slug': topic['slug']} for topic in topic_list]})}
 		for topic in topic_list:
-			topic_obj = topic_set.get(topic['slug'], None)
-			if topic_obj is None:
-				continue
+			# Fall back on `asTyped` if no data is in mapping yet. If neither `asTyped` nor mapping data is availble fail safe by reconstructing a title from a slug (HACK currently affecting trending topics if a new topic isn't in cache yet)
+			default_title = topic['asTyped'] if use_as_typed else topic['slug'].replace("-", " ").title()
+			topic_titles = topic_map.get(topic['slug'], {"en": default_title, "he": default_title})
 			new_topic = topic.copy()
 			tag_lang = 'en'
 			if use_as_typed:
 				tag_lang = 'he' if is_hebrew(new_topic['asTyped']) else 'en'
 				new_topic[tag_lang] = new_topic['asTyped']
 			if not use_as_typed or tag_lang == 'en':
-				new_topic['he'] = topic_obj.get_primary_title('he')
+				new_topic['he'] = topic_titles["he"]
 			if not use_as_typed or tag_lang == 'he':
-				new_topic['en'] = topic_obj.get_primary_title('en')
+				new_topic['en'] = topic_titles["en"]
 
 			if backwards_compat_lang_fields is not None:
 				for lang in ('en', 'he'):
@@ -898,7 +965,7 @@ def get_last_updated_time(sheet_id):
 
 	if not sheet:
 		return None
-		
+
 	return sheet["dateModified"]
 
 
@@ -929,7 +996,7 @@ def public_tag_list(sort_by="alpha"):
 	return results
 
 
-def get_sheets_by_topic(topic, public=True, uid=None, group=None, proj=None, limit=0, page=0):
+def get_sheets_by_topic(topic, public=True, proj=None, limit=0, page=0):
 	"""
 	Returns all sheets tagged with 'topic'
 	"""
@@ -938,11 +1005,7 @@ def get_sheets_by_topic(topic, public=True, uid=None, group=None, proj=None, lim
 	topic = AbstractMongoRecord.normalize_slug(topic)
 	query = {"topics.slug": topic} if topic else {"topics": {"$exists": 0}}
 
-	if uid:
-		query["owner"] = uid
-	elif group:
-		query["group"] = group
-	elif public:
+	if public:
 		query["status"] = "public"
 
 	sheets = db.sheets.find(query, proj).sort([["views", -1]]).limit(limit).skip(page * limit)
@@ -1034,9 +1097,17 @@ def make_sheet_from_text(text, sources=None, uid=1, generatedBy=None, title=None
 	return save_sheet(sheet, uid)
 
 
-# This is here as an alternative interface - it's not yet used, generally.
 
 class Sheet(abstract.AbstractMongoRecord):
+	# This is here as an alternative interface - it's not yet used, generally.
+
+	# Warning: this class doesn't implement all of the saving logic in save_sheet()
+	# In current form should only be used for reading or for changes that are known to be
+	# safe and without need of side effects.
+	#
+	# Warning: there are fields on some individual sheet documents that aren't enumerated here,
+	# trying to load a document with an attribute not listed here will cause an error.
+
 	collection = 'sheets'
 
 	required_attrs = [
@@ -1067,11 +1138,20 @@ class Sheet(abstract.AbstractMongoRecord):
 		"assigner_id",
 		"likes",
 		"group",
+		"displayedCollection",
 		"generatedBy",
+		"zoom",
+		"visualNodes",
 		"highlighterTags",
 		"summary",
         "reviewed",
+        "sheetLanguage",
+        "ownerImageUrl",   # TODO this shouldn't be stored on sheets, but it is for many
+        "ownerProfileUrl", # TODO this shouldn't be stored on sheets, but it is for many
 	]
+
+	def _sanitize(self):
+		pass
 
 	def is_hebrew(self):
 		"""Returns True if this sheet appears to be in Hebrew according to its title"""

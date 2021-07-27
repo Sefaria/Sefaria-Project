@@ -1,13 +1,12 @@
 # encoding=utf-8
 import re
 
-import sefaria.summaries as summaries
 from sefaria.model import *
-from sefaria.system import cache as scache
 from sefaria.system.database import db
 from sefaria.datatype.jagged_array import JaggedTextArray
 from diff_match_patch import diff_match_patch
 from functools import reduce
+from sefaria.system.exceptions import InputError
 
 import regex as re
 import pprint
@@ -17,7 +16,6 @@ except ImportError:
     import xml.etree.ElementTree as ET
 from sefaria.model import *
 from sefaria.utils.hebrew import is_hebrew
-
 
 def add_spelling(category, old, new, lang="en"):
     """
@@ -285,7 +283,7 @@ def find_and_replace_in_text(title, vtitle, lang, find_string, replace_string, u
     Replaces all instances of `find_string` with `replace_string` in the text specified by `title` / `vtitle` / `lang`.
     Changes are attributed to the user with `uid`. 
     """
-    def replacer(text):
+    def replacer(text, sections):
         return text.replace(find_string, replace_string)
 
     modify_text_by_function(title, vtitle, lang, replacer, uid)
@@ -347,7 +345,6 @@ def make_versions_csv():
         "status",
         "priority",
         "license",
-        "licenseVetted",
         "versionNotes",
         "digitizedBySefaria",
         "method",
@@ -546,6 +543,31 @@ def dual_text_diff(seg1, seg2, edit_cb=None, css_classes=False):
     return side_by_side_diff(diff), side_by_side_diff(diff, False)
 
 
+def word_frequency_for_text(title, lang="en"):
+    """
+    Returns an ordered list of word/count tuples for occurences of words inside the 
+    text `title`.
+    """
+    import string
+    from collections import defaultdict
+    from sefaria.export import make_text, prepare_merged_text_for_export
+    from sefaria.utils.util import strip_tags 
+    text = make_text(prepare_merged_text_for_export(title, lang=lang))
+
+    text = strip_tags(text)
+    text = text.lower()
+    text = re.sub(r'[^a-z ]', " ", text)
+    text = re.sub(r' +', " ", text)
+    text = text.translate(str.maketrans(dict.fromkeys(string.punctuation)))
+
+    count = defaultdict(int)
+    words = text.split(" ")
+    for word in words:
+        count[word] += 1
+
+    counts = sorted(iter(count.items()), key=lambda x: -x[1])
+
+    return counts
 
 
 class WorkflowyParser(object):
@@ -567,6 +589,7 @@ class WorkflowyParser(object):
                                            re.UNICODE)
         self.parsed_schema = None
         self.version_info = None
+        self.categories = None
         if delims:
             delims = delims.split()
             self.title_lang_delim = delims[0] if len(delims) >= 1 else self.title_lang_delim
@@ -577,12 +600,11 @@ class WorkflowyParser(object):
         # tree = tree.getroot()[1][0]
         # for element in tree.iter('outline'):
         #     print parse_titles(element)["enPrim"]
-        categories = self.extract_categories_from_title()
+        self.categories = self.extract_categories_from_title()
         self.version_info = {'info': self.extract_version_info(), 'text': []}
-        schema_root = self.build_index_schema(self.outline)
-        self.parsed_schema = schema_root
-        schema_root.validate()
-        idx = self.create_index_from_schema(categories)
+        self.parsed_schema = self.build_index_schema(self.outline)
+        self.parsed_schema.validate()
+        idx = self.create_index_from_schema()
         if self._c_index:
             idx_obj = Index(idx).save()
             res = "Index record [{}] created.".format(self.parsed_schema.primary_title())
@@ -681,7 +703,7 @@ class WorkflowyParser(object):
             categories = [s.strip() for s in category_str.group(1).split(",")]
             self.outline.set('text', re.sub(category_pattern, "", title))
             return categories
-        return None
+        raise InputError("Categories must be supplied on the Workflowy outline according to specifications")
 
     def parse_implied_depth(self, element):
         ja_depth_pattern = r"\[(\d)\]$"
@@ -722,12 +744,10 @@ class WorkflowyParser(object):
                           }
         return vinfo_dict
 
-    def create_index_from_schema(self, categories=None):
-        if not categories:
-            categories = ["Other"]
+    def create_index_from_schema(self):
         return {
             "title": self.parsed_schema.primary_title(),
-            "categories": categories,
+            "categories": self.categories,
             "schema": self.parsed_schema.serialize()
         }
 

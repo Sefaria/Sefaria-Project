@@ -1,3 +1,5 @@
+import "core-js/stable";
+import "regenerator-runtime/runtime";
 import $  from 'jquery';
 import React  from 'react';
 import ReactDOM  from 'react-dom';
@@ -7,7 +9,7 @@ import PropTypes  from 'prop-types';
 import DjangoCSRF  from './lib/django-csrf';
 import DiffMatchPatch  from 'diff-match-patch';
     import Component from 'react-class';  //auto-bind this to all event-listeners. see https://www.npmjs.com/package/react-class
-
+//TODO: fix the language selector to include any available language, not just English and Hebrew
 function changePath(newPath) {
   const newUrl = window.location.origin + newPath;
   window.location.assign(newUrl);
@@ -30,7 +32,7 @@ class DiffStore {
     for (var [i, seg] of segList.entries()) {
 
       if (i%2 === 0) { // The odd elements are the text
-        // The map contains the number of skipped characters for each character of  the filtered text
+        // The map contains the number of skipped characters for each character of the filtered text
         Array.prototype.push.apply(mapping, Array(seg.length).fill(skipCount));
         filteredTextList.push(seg);
       } else {
@@ -86,10 +88,11 @@ class PageLoader extends Component {
     super(props);
     this.state = {
       secRef: this.props.secRef,
-          v1: this.props.v1,
-          v2: this.props.v2,
-        lang: this.props.lang,
- nextChapter: null
+      refArray: this.props.refArray ? this.props.refArray : null,
+      v1: this.props.v1,
+      v2: this.props.v2,
+      lang: this.props.lang,
+      nextChapter: null
     };
   //this.handlePublish = this.handlePublish.bind(this);
   }
@@ -136,11 +139,23 @@ class PageLoader extends Component {
       v2={this.props.v2 ? this.props.v2 : ""}
       formSubmit={this.formSubmit}/>
       {(this.props.secRef != null & this.props.v1 != null & this.props.v2 != null & this.props.lang != null)
-      ? <DiffTable
+      ? (this.props.refArray)
+          ?
+            this.props.refArray.map(x =>
+              <DiffTable
+                key={x}
+                secRef={x}
+                v1={this.props.v1}
+                v2={this.props.v2}
+                lang={this.props.lang}
+              />)
+          :
+          <DiffTable
           secRef={this.props.secRef}
           v1={this.props.v1}
           v2={this.props.v2}
-          lang={this.props.lang}/> : null}
+          lang={this.props.lang}/>
+          : null}
       {this.state.nextChapter
       ? <input type="button" value="Load Next Chapter" onClick={this.loadNextChapter} /> : null }
       </div>
@@ -184,18 +199,13 @@ class DataForm extends Component {
 
   loadPossibleVersions(versions) {
     let lang = this.state.lang;
-    let possibleVersions = versions.reduce(function(vList, version) {
-      if (version.language === lang) {
-        vList.push(version.versionTitle);
-      }
-      return vList;
-    }, []);
+    let possibleVersions = versions[lang].map(({ versionTitle }) => versionTitle);
     this.setState({possibleVersions: possibleVersions});
   }
 
   componentWillMount() {
     if (Sefaria.isRef(this.state.secRef)) {
-      Sefaria.versions(this.state.secRef, this.loadPossibleVersions);
+      Sefaria.versions(this.state.secRef, true, null, false).then(this.loadPossibleVersions);
     }
   }
 
@@ -228,7 +238,7 @@ class DataForm extends Component {
 
   componentDidUpdate(prevProps, prevState) {
     if (Sefaria.isRef(this.state.secRef) && this.state.lang) {
-      Sefaria.versions(this.state.secRef, this.loadPossibleVersions)
+      Sefaria.versions(this.state.secRef, true, null, false).then(this.loadPossibleVersions);
     } else {
       this.setState({possibleVersions: null});
     }
@@ -500,7 +510,7 @@ class DiffRow extends Component {
   }
 
   acceptChange(segRef, vtitle, lang, text) {
-    if (!Sefaria.loggedIn) {
+    if (!Sefaria._uid) {
       alert("Please sign in before making a change");
       return;
     }
@@ -630,9 +640,9 @@ class DiffElement extends Component {
     this.setState({mouseover: false});
   }
   openConfirm() {
-    if (Sefaria.loggedIn & (Sefaria.is_moderator || Sefaria.is_editor)) {
+    if (Sefaria._uid & (Sefaria.is_moderator || Sefaria.is_editor)) {
       this.setState({confirmOpen: true, mouseover: false});
-    } else if (Sefaria.loggedIn) {
+    } else if (Sefaria._uid) {
       alert("Only Sefaria Moderators Can Edit Texts");
     } else {
       alert("Not signed in. You must be signed in as a Sefaria Moderator to use this feature.");
@@ -702,5 +712,7 @@ class DiffElement extends Component {
 ReactDOM.render(<PageLoader secRef={JSON_PROPS.secRef}
                 v1={JSON_PROPS.v1}
                 v2={JSON_PROPS.v2}
-                lang={JSON_PROPS.lang}/>,
+                lang={JSON_PROPS.lang}
+                refArray={JSON_PROPS.refArray}
+                  />,
                   document.getElementById('DiffTable'));

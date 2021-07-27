@@ -1,0 +1,247 @@
+# TODO: Notifications
+
+---
+substitutions:
+
+  _GIT_COMMIT: deadbeef
+  _ENV_NAME: ASDF
+  _GIT_REPO: Sefaria/Sefaria-Project
+  _GKE_CLUSTER: cluster-1
+  _GKE_NAMESPACE: sandboxes
+  _GKE_REGION: us-east1-b
+  _IS_SANDBOX: "false" # must be a quoted string
+  _MONGO_HOST: mongo
+  _MONGO_DATABASE: "sefaria-vecino"
+  _MONGO_RESTORE_JOB: "restore-mongo-ASDF-foobar"
+  _RAND_SLUG: "foobar"
+  _RESOURCE_ALLOCATION: small
+  _POSTGRES_HOST: postgres
+  _SANDBOX_SUBDOMAIN: cauldron
+
+options:
+  machineType: N1_HIGHCPU_8
+
+timeout: 2200s
+
+steps:
+  - name: "gcr.io/cloud-builders/git"
+    args: ['clone', 'https://source.developers.google.com/p/production-deployment/r/k8s-admin', "--depth", "1"]
+    id: k8s-admin_clone
+    wait_for: [ "-" ]
+
+
+  # Clone repository using specified remote and branch
+  - name: gcr.io/cloud-builders/git
+    args: ["clone", "https://github.com/${_GIT_REPO}.git" ]
+    id: sefaria_repo_clone
+    wait_for: [ "-" ]
+
+  - name: gcr.io/cloud-builders/git
+    dir: Sefaria-Project
+    args: ["checkout", "${_GIT_COMMIT}" ]
+
+  # Print git hash
+  - name: gcr.io/cloud-builders/git
+    args: [ "rev-parse", "--verify", "HEAD", "--short=6" ]
+    dir: Sefaria-Project
+    id: sefaria_repo_git_hash
+    wait_for: [ "sefaria_repo_clone" ]
+
+  # Restore Mongo
+  # This build step is defined at `v2/containers/mongo-restore
+  - name: gcr.io/${PROJECT_ID}/mongo-restore:latest
+    id: mongo_restore
+    entrypoint: "/restoreMongo.bash"
+    env:
+      # Restore Script Variables
+      - 'MONGO_HOST=${_MONGO_HOST}'
+      - 'SANDBOX_NAME=${_ENV_NAME}'
+      - 'MONGO_LOAD=${_MONGO_LOAD}' # If false, the job is a no-op
+      - 'MONGO_SNAPSHOT_LOCATION=${_MONGO_SNAPSHOT_LOCATION}'
+      - 'RAND_SLUG=${_RAND_SLUG}'
+      - 'CLUSTER_NAMESPACE=${_GKE_NAMESPACE}'
+      - 'ENVIRONMENT=sandbox'
+      # kubectl Variables
+      - 'CLOUDSDK_COMPUTE_ZONE=${_GKE_REGION}'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'
+      - 'KUBECTL_VERSION=1.18'
+      - 'KUBECONFIG=/root/.kube/config'
+    wait_for: [ "-" ]
+
+  # Wait for mongo job to finish
+  - name: gcr.io/cloud-builders/kubectl
+    id: wait_for_mongo_job
+    args: ['wait', '--for=condition=complete', '--timeout=1800s', 'job/${_MONGO_RESTORE_JOB}']
+    timeout: 1860s
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=${_GKE_REGION}'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'
+      - 'KUBECTL_VERSION=1.18'
+      - 'KUBECONFIG=/root/.kube/config'
+    wait_for:
+      - mongo_restore
+
+  # Build artifacts
+  - name: gcr.io/kaniko-project/executor:latest
+    args:
+      - --destination=gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:$SHORT_SHA
+      - --destination=gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:gha-${_ENV_NAME}
+      - --destination=gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:latest
+      - --destination=gcr.io/${PROJECT_ID}/sefaria-web-dev:${_ENV_NAME}
+      - --cache=true
+      - --cache-repo=gcr.io/${PROJECT_ID}/sefaria-web/cache
+      - --dockerfile=build/web/Dockerfile
+      - --context=dir://.
+    dir: Sefaria-Project
+    id: web_container
+    wait_for:
+      - sefaria_repo_clone
+
+  - name: gcr.io/kaniko-project/executor:latest
+    args:
+      - --destination=gcr.io/${PROJECT_ID}/sefaria-node-${_ENV_NAME}:$SHORT_SHA
+      - --destination=gcr.io/${PROJECT_ID}/sefaria-node-${_ENV_NAME}:gha-${_ENV_NAME}
+      - --destination=gcr.io/${PROJECT_ID}/sefaria-node-${_ENV_NAME}:latest
+      - --destination=gcr.io/${PROJECT_ID}/sefaria-node-dev:${_ENV_NAME}
+      - --cache=true
+      - --cache-repo=gcr.io/${PROJECT_ID}/sefaria-node/cache
+      - --dockerfile=build/node/Dockerfile
+      - --context=dir://.
+    dir: Sefaria-Project
+    id: nodejs_container
+    wait_for:
+      - sefaria_repo_clone
+  
+  - name: gcr.io/kaniko-project/executor:latest
+    args:
+      - --destination=gcr.io/${PROJECT_ID}/sefaria-asset-${_ENV_NAME}:$SHORT_SHA
+      - --destination=gcr.io/${PROJECT_ID}/sefaria-asset-${_ENV_NAME}:gha-${_ENV_NAME}
+      - --destination=gcr.io/${PROJECT_ID}/sefaria-asset-${_ENV_NAME}:latest
+      - --destination=gcr.io/${PROJECT_ID}/sefaria-asset-dev:${_ENV_NAME}
+      - --cache=false
+      - --dockerfile=build/nginx/Dockerfile
+      - --build-arg=SRC_IMG=gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:$SHORT_SHA
+      - --context=dir://.
+    dir: Sefaria-Project
+    id: nginx_container
+    wait_for:
+      - web_container
+      - sefaria_repo_clone
+
+  # Outputs a file to /k8s-admin/v2/app_settings/helm/_sandboxValues.yaml
+  - name: gcr.io/${PROJECT_ID}/mongo-restore # used for gettext access
+    dir: k8s-admin/v2/app_settings/helm
+    entrypoint: "bash"
+    args: ['-c', './generateHelmValues.bash']
+    id: generate_helm_values
+    env: 
+      - 'ENV_NAME=${_ENV_NAME}'
+      - 'IS_SANDBOX=${_IS_SANDBOX}'
+      - 'RESOURCE_ALLOC=${_RESOURCE_ALLOCATION}'
+      - 'PROJECT_ID=${PROJECT_ID}'
+    wait_for: [ "-" ]
+
+  # Outputs a file to /k8s-admin/v2/app_settings/local_settings/_local_settings.py
+  - name: gcr.io/${PROJECT_ID}/mongo-restore # used for gettext access
+    dir: k8s-admin/v2/app_settings/local_settings
+    entrypoint: "bash"
+    args: ['-c', './generateLocalSettings.bash']
+    id: generate_localsettings_file
+    env: 
+      - 'ENV_NAME=${_ENV_NAME}'
+      - 'IS_SANDBOX=${_IS_SANDBOX}'
+      - 'MONGO_HOST=${_MONGO_HOST}' # Should this be parmeterized here or read in the repo
+      - 'POSTGRES_HOST=${_POSTGRES_HOST}' # Should this be parmeterized here or read in the repo
+      - 'SEFARIA_DB=${_MONGO_DATABASE}'
+    wait_for: [ "-" ]
+  
+  # Copy localsettings into file
+  # Later, combined this with the script above
+  - name: "gcr.io/production-deployment/cloudbuild-helm:v3.5.4"
+    dir: k8s-admin/v2
+    id: copy_localsettings_file
+    entrypoint: cp
+    args: ["-f", "./app_settings/local_settings/_local_settings.py", "./charts/sefaria/local_settings.py"]
+    wait_for:
+      - generate_localsettings_file
+
+  - name: gcr.io/${PROJECT_ID}/mongo-restore
+    dir: k8s-admin/v2/app_settings/nginx
+    entrypoint: "bash"
+    args: ['-c', './generateRobotsTxtFile.bash']
+    id: generate_robots_file
+    env: 
+      - 'IS_PROD=false'
+    wait_for: [ "-" ]
+    
+  # Copy robots.txt into file
+  # Later, combined this with the script above
+  - name: "gcr.io/production-deployment/cloudbuild-helm:v3.5.4"
+    dir: k8s-admin/v2
+    id: copy_robots_file
+    entrypoint: cp
+    args: ["-f", "./app_settings/nginx/_robots.txt", "./charts/sefaria/robots.txt"]
+    wait_for:
+      - generate_robots_file
+
+  - name: "gcr.io/${PROJECT_ID}/cloudbuild-helm:v3.5.4"
+    id: deploy_sandbox
+    dir: k8s-admin/v2
+    args: ["upgrade", "-i", "sandbox-${_ENV_NAME}", "./charts/sefaria", "--namespace", "${_GKE_NAMESPACE}", "--set-string", "releaseImageTag=gha-${_ENV_NAME},deployEnv=${_ENV_NAME}", "-f", "app_settings/helm/_envValues.yaml", "-f", "app_settings/helm/_resourceValues.yaml", "--debug"]
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=${_GKE_REGION}'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'
+      - 'KUBECTL_VERSION=1.18'
+      - 'KUBECONFIG=/root/.kube/config'
+    wait_for:
+      - mongo_restore
+      - wait_for_mongo_job
+      - web_container
+      - nodejs_container
+      - nginx_container
+      - generate_helm_values
+      - generate_localsettings_file
+      - copy_localsettings_file
+      - generate_robots_file
+
+  # Manage the ingress
+  # 1. Add the sandbox name to v2/sandboxes/sandboxes.txt
+  # 2. Create and apply ingress object with all routes
+
+  # Get all sandbox names, so that we can reconfigure the sandbox ingress
+  # Requires kubectl
+  # emits a file to v2/sandboxes/_sandboxes.txt
+  - name: gcr.io/${PROJECT_ID}/cloudbuild-getsandboxnames:v0.3
+    id: get_sandbox_names
+    dir: k8s-admin/v2/sandboxes/ingresses
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=${_GKE_REGION}'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'
+      - 'KUBECTL_VERSION=1.18'
+      - 'KUBECONFIG=/root/.kube/config'
+    wait_for: [ "deploy_sandbox" ]
+
+  # Outputs a file to /k8s-admin/v2/sandboxes/ingresses/_ingressValues.yaml
+  - name: gcr.io/${PROJECT_ID}/mongo-restore # used for gettext access
+    dir: k8s-admin/v2/sandboxes/ingresses
+    entrypoint: "bash"
+    args: ['-c', './generateIngressValuesFile.bash']
+    id: generate_ingress_values_file
+    env: 
+      - 'SUBDOMAIN=${_SANDBOX_SUBDOMAIN}'
+      - 'SANDBOX=${_ENV_NAME}'
+    wait_for: [ "get_sandbox_names" ]
+
+  - name: "gcr.io/${PROJECT_ID}/cloudbuild-helm:v3.5.4"
+    id: deploy_ingress
+    dir: k8s-admin/v2
+    args: ["upgrade", "-i", "wildcard-sandbox-ingress", "./charts/wildcard-sandbox-ingress", "--namespace", "${_GKE_NAMESPACE}", "-f", "sandboxes/ingresses/_ingressValues.yaml", "--debug"]
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=${_GKE_REGION}'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'
+      - 'KUBECTL_VERSION=1.18'
+      - 'KUBECONFIG=/root/.kube/config'
+    wait_for:
+      - generate_ingress_values_file
+      - deploy_sandbox
+...

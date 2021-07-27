@@ -2,14 +2,13 @@ import React  from 'react';
 import Sefaria  from './sefaria/sefaria';
 import PropTypes from'prop-types';
 import $  from './sefaria/sefariaJquery';
-import { NewsletterSignUpForm } from './Misc';
+import { InterfaceText, NewsletterSignUpForm } from './Misc';
 import Component from 'react-class';
 
 const Section = ({en, he, children}) => (
     <div className="section">
       <div className="header">
-          <span className="int-en">{en}</span>
-          <span className="int-he">{he}</span>
+         <InterfaceText text={{en:en, he:he}}/>
       </div>
       {children}
     </div>
@@ -17,8 +16,7 @@ const Section = ({en, he, children}) => (
 
 const Link = ({href, en, he, blank}) => (
     <a href={href} target={blank ? "_blank" : "_self"}>
-      <span className="int-en">{en}</span>
-      <span className="int-he">{he}</span>
+      <InterfaceText text={{en:en, he:he}}/>
     </a>
 );
 
@@ -28,7 +26,7 @@ class Footer extends Component {
     this.state = {subscribeMessage: null};
   }
   componentDidMount() {
-      this.setState({isClient: true});
+    this.setState({isClient: true});
   }
   trackLanguageClick(language){
     Sefaria.track.setInterfaceLanguage('interface language footer', language);
@@ -48,13 +46,13 @@ class Footer extends Component {
         if ("error" in data) {
           this.setState({subscribeMessage: data.error});
         } else {
-          this.setState({subscribeMessage: "Subscribed! Welcome to our list."});
+          this.setState({subscribeMessage: Sefaria._("Subscribed! Welcome to our list.")});
         }
       }.bind(this)).error(function(data) {
-        this.setState({subscribeMessage: "Sorry, there was an error."});
+        this.setState({subscribeMessage: Sefaria._("Sorry, there was an error.")});
       }.bind(this));
     } else {
-      this.setState({subscribeMessage: "Please enter a valid email address."});
+      this.setState({subscribeMessage: Sefaria._("Please enter a valid email address.")});
     }
   }
   render() {
@@ -64,12 +62,11 @@ class Footer extends Component {
     const blgURL = Sefaria.interfaceLang == "hebrew" ? "https://blog.sefaria.org.il/" : "https://blog.sefaria.org/";
     let next = this.state.isClient ? (encodeURIComponent(Sefaria.util.currentPath())) : "/" ; //try to make sure that a server render of this does not get some weird data in the url that then gets cached
     return (
-      <footer id="footer" className="static sans">
+      <footer id="footer" className="static sans-serif">
         <div id="footerInner">
-            <Section en="About" he="אודות">
+            <Section en="About" he="על אודות">
                 <Link href="/about" en="What is Sefaria?" he="מהי ספריא" />
                 <Link href="/help" en="Help" he="עזרה" />
-                <Link href="/faq" en="FAQ" he="שאלות נפוצות" />
                 <Link href="/team" en="Team" he="צוות" />
                 <Link href="/testimonials" en="Testimonials" he="חוות דעת" />
                 <Link href="/metrics" en="Metrics" he="מדדים" />
@@ -78,37 +75,36 @@ class Footer extends Component {
             </Section>
 
             <Section en="Tools" he="כלים">
-                <Link href="/educators" en="Teach with Sefaria" he="למד באמצעות ספריא" />
+                <Link href="/educators" en="Teach with Sefaria" he="לַמדו עם ספריא" />
                 <Link href="/sheets" en="Source Sheets" he="דפי מקורות" />
                 <Link href="/visualizations" en="Visualizations" he="תרשימים גרפיים" />
                 <Link href="/mobile" en="Mobile Apps" he="ספריא בנייד" />
                 <Link href="/daf-yomi" en="Daf Yomi" he="דף יומי" />
-                <Link href="/torah-tab" en="Torah Tab" he="תורה טאב" />
+                <Link href="/torah-tab" en="Torah Tab" he="תורה טאב (לשונית)" />
                 <Link href="/people" en="Authors" he="מחברים" />
-                <Link href="/groups" en="Groups" he="קבוצות" />
+                <Link href="/collections" en="Collections" he="אסופות" />
                 <Link href="/updates" en="New Additions" he="עדכונים" />
                 <Link href="/remote-learning" en="Remote Learning" he="למידה מרחוק" />
             </Section>
 
             <Section en="Developers" he="מפתחים">
-                <Link href="/developers" en="Get Involved" he="הצטרף אלינו" blank={true} />
+                <Link href="/developers" en="Get Involved" he="הצטרפו אלינו" blank={true} />
                 <Link href="/developers#api" en="API Docs" he="מסמכי API" blank={true} />
-                <Link href="https://github.com/Sefaria/Sefaria-Project" en="Fork us on GitHub" he="זלגו חופשי מגיטהאב" blank={true} />
-                <Link href="https://github.com/Sefaria/Sefaria-Export" en="Download our Data" he="הורד את בסיס הנתונים שלנו" blank={true} />
+                <Link href="https://github.com/Sefaria/Sefaria-Project" en="Fork us on GitHub" he="Github" blank={true} />
+                <Link href="https://github.com/Sefaria/Sefaria-Export" en="Download our Data" he="הורדת בסיס הנתונים שלנו" blank={true} />
             </Section>
 
-            <Section en="Join Us" he="הצטרף אלינו">
+            <Section en="Join Us" he="הצטרפו אלינו">
                 <Link href="https://sefaria.nationbuilder.com/supportsefaria" en="Donate" he="תרומות" />
+                <Link href="/ways-to-give" en="Ways to Give" he="אפשרויות להעברת תרומה" />
                 <Link href="/supporters" en="Supporters" he="תומכים" />
-                <Link href="/contribute" en="Contribute" he="הצטרף" blank={true} />
                 <Link href="/jobs" en="Jobs" he="דרושים" />
                 <Link href="https://store.sefaria.org" en="Shop" he="חנות" />
             </Section>
 
           <div className="section last connect">
               <div className="header connect">
-                  <span className="int-en">Connect</span>
-                  <span className="int-he">התחבר</span>
+                  <InterfaceText>Connect</InterfaceText>
               </div>
               <NewsletterSignUpForm contextName="Footer" />
               <LikeFollowButtons />
@@ -129,8 +125,7 @@ class Footer extends Component {
               </div>
               <div id="siteLanguageToggle">
                   <div id="siteLanguageToggleLabel">
-                      <span className="int-en">Site Language</span>
-                      <span className="int-he">שפת האתר</span>
+                      <InterfaceText>Site Language</InterfaceText>
                   </div>
                   <a href={"/interface/english?next=" + next} id="siteLanguageEnglish"
                      onClick={this.trackLanguageClick.bind(null, "English")}>English

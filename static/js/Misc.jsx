@@ -1,42 +1,162 @@
 //const React      = require('react');
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import ReactDOM  from 'react-dom';
 import $  from './sefaria/sefariaJquery';
+import { CollectionsModal } from "./CollectionsWidget";
 import Sefaria  from './sefaria/sefaria';
 import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Component from 'react-class';
-import { usePaginatedDisplay } from './Hooks'
+import { usePaginatedDisplay } from './Hooks';
+import {ContentLanguageContext} from './context';
 import ReactCrop from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 
-// interface text that can fallback to alternate langauge if current language doesn't have content
-const InterfaceTextWithFallback = ({ en, he, isItalics, endContent }) => (
-  <span>
-    <span className={classNames({"int-en": 1, "but-text-is-he": !en, italics: isItalics && isItalics.en })}>{en || he}{endContent}</span>
-    <span className={classNames({"int-he": 1, "but-text-is-en": !he, italics: isItalics && isItalics.he })}>{he || en}{endContent}</span>
-  </span>
+/**
+ * Component meant to simply denote a language specific string to go inside an InterfaceText element
+ * ```
+ * <InterfaceText>
+ *     <EnglishText>lorem ipsum</EnglishText>
+ *     <HebrewText>lorem ipsum</HebrewText>
+ * </InterfaceText>
+ * ```
+ * @param children
+ * @returns {JSX.Element}
+ * @constructor
+ */
+const HebrewText = ({children}) => (
+    <>{children}</>
 );
+const EnglishText = ({children}) => (
+    <>{children}</>
+);
+
+const AvailableLanguages = () => {
+  return {"english" : EnglishText, "hebrew": HebrewText};
+};
+const AvailableLanguagesValidator = (children, key, componentName, location, propFullName) => {
+    if (!(children[key].type && (Object.values(AvailableLanguages()).indexOf(children[key].type) != -1) )) {
+      return new Error(
+        'Invalid prop `' + propFullName + '` supplied to' +
+        ' `' + componentName + '`. Validation failed.'
+      );
+    }
+};
+const __filterChildrenByLanguage = (children, language) => {
+  let chlArr = React.Children.toArray(children);
+  let currLangComponent = AvailableLanguages()[language];
+  let newChildren = chlArr.filter(x=> x.type == currLangComponent);
+  return newChildren;
+};
+
+const InterfaceText = ({text, html, children, context}) => {
+  /**
+   * Renders a single span for interface string with either class `int-en`` or `int-he` depending on Sefaria.interfaceLang.
+   *  If passed explicit text or html objects as props with "en" and/or "he", will only use those to determine correct text or fallback text to display.
+   *  Otherwise:
+   * `children` can be the English string, which will be translated with Sefaria._ if needed.
+   * `children` can also take the form of <LangText> components above, so they can be used for longer paragrpahs or paragraphs containing html, if needed.
+   * `context` is passed to Sefaria._ for additional translation context
+   */
+  const [contentVariable, isDangerouslySetInnerHTML]  = html ? [html, true] : [text, false];
+  const isHebrew = Sefaria.interfaceLang === "hebrew";
+  let elemclasses = classNames({"int-en": !isHebrew, "int-he": isHebrew});
+  let textResponse = null;
+  if (contentVariable) {// Prioritze explicit props passed in for text of the element, does not attempt to use Sefaria._() for this case
+    let {he, en} = contentVariable;
+    textResponse = isHebrew ? (he || en) : (en || he);
+    let fallbackCls = (isHebrew && !he) ? "enInHe" : ((!isHebrew && !en) ? "heInEn" : "" );
+    elemclasses += fallbackCls;
+  } else { // Also handle composition with children
+    const chlCount = React.Children.count(children);
+    if (chlCount == 1) { // Same as passing in a `en` key but with children syntax
+      textResponse = Sefaria._(children, context);
+    } else if (chlCount <= Object.keys(AvailableLanguages()).length){ // When multiple languages are passed in via children
+      let newChildren = __filterChildrenByLanguage(children, Sefaria.interfaceLang);
+      textResponse = newChildren[0]; //assumes one language element per InterfaceText, may be too naive
+    } else {
+      console.log("Error too many children")
+    }
+  }
+  return (
+    isDangerouslySetInnerHTML ?
+      <span className={elemclasses} dangerouslySetInnerHTML={{__html: textResponse}}/>
+      :
+      <span className={elemclasses}>{textResponse}</span>
+  );
+};
+InterfaceText.propTypes = {
+  //Makes sure that children passed in are either a single string, or an array consisting only of <EnglishText>, <HebrewText>
+  children: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.arrayOf(AvailableLanguagesValidator),
+  ]),
+  content: PropTypes.object,
+  html: PropTypes.object,
+  context: PropTypes.string,
+  className: PropTypes.string
+};
+
+const ContentText = ({text, html, overrideLanguage, defaultToInterfaceOnBilingual= false}) => {
+  /**
+   * Renders cotnet language throughout the site (content that comes from the database and is not interface language)
+   * Gets the active content language from Context and renders only the appropriate child(ren) for given language
+   * text {{text: object}} a dictionary {en: "some text", he: "some translated text"} to use for each language
+   * html {{html: object}} a dictionary {en: "some html", he: "some translated html"} to use for each language in the case where it needs to be dangerously set html
+   * overrideLanguage a string with the language name (full not 2 letter) to force to render to overriding what the content language context says. Can be useful if calling object determines one langugae is missing in a dynamic way
+   * defaultToInterfaceOnBilingual use if you want components not to render all languages in bilingual mode, and default them to what the interface language is
+   */
+  const [contentVariable, isDangerouslySetInnerHTML]  = html ? [html, true] : [text, false];
+  const contentLanguage = useContext(ContentLanguageContext);
+  const languageToFilter = (defaultToInterfaceOnBilingual && contentLanguage.language === "bilingual") ? Sefaria.interfaceLang : (overrideLanguage ? overrideLanguage : contentLanguage.language);
+  const langShort = languageToFilter.slice(0,2);
+  let renderedItems = Object.entries(contentVariable).filter(([lang, _])=>{
+    return (languageToFilter === "bilingual") ? true : ((lang === langShort) ? true : false);
+  });
+  return renderedItems.map( x =>
+      isDangerouslySetInnerHTML ?
+          <span className={x[0]} lang={x[0]} key={x[0]} dangerouslySetInnerHTML={{__html: x[1]}}/>
+          :
+          <span className={x[0]} lang={x[0]} key={x[0]}>{x[1]}</span>
+  );
+};
+
 
 const LoadingRing = () => (
   <div className="lds-ring"><div></div><div></div><div></div><div></div></div>
 );
+
 
 /* flexible profile picture that overrides the default image of gravatar with text with the user's initials */
 class ProfilePic extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      showDefault: null,  // can be `true`, `false` or `null`
+      showDefault: !this.props.url || this.props.url.startsWith("https://www.gravatar"), // We can't know in advance if a gravatar image exists of not, so start with the default beforing trying to load image
       src: null,
       isFirstCropChange: true,
       crop: {unit: "px", width: 250, aspect: 1},
       croppedImageBlob: null,
       error: null,
     };
+    this.imgFile = React.createRef();
   }
-  setShowDefault() {this.setState({showDefault: true});  }
-  setShowNonDefault() {this.setState({showDefault: false});  }
+  setShowDefault() { /* console.log("error"); */ this.setState({showDefault: true});  }
+  setShowImage() { /* console.log("load"); */ this.setState({showDefault: false});  }
+  componentDidMount() {
+    if (this.didImageLoad()) {
+      this.setShowImage();
+    } else {
+      this.setShowDefault();
+    }
+  }
+  didImageLoad(){
+    // When using React Hydrate, the onLoad event of the profile image will return before
+    // react code runs, so we check after mount as well to look replace bad images, or to
+    // swap in a gravatar image that we now know is valid.
+    const img = this.imgFile.current;
+    return (img && img.complete && img.naturalWidth !== 0);
+  }
   onSelectFile(e) {
     if (e.target.files && e.target.files.length > 0) {
       if (!e.target.files[0].type.startsWith('image/')) {
@@ -51,7 +171,6 @@ class ProfilePic extends Component {
       reader.readAsDataURL(e.target.files[0]);
     }
   }
-  // If you setState the crop in here you should return false.
   onImageLoaded(image) {
     this.imageRef = image;
   }
@@ -147,35 +266,33 @@ class ProfilePic extends Component {
     const { name, url, len, hideOnDefault, showButtons, outerStyle } = this.props;
     const { showDefault, src, crop, error, uploading, isFirstCropChange } = this.state;
     const nameArray = !!name.trim() ? name.trim().split(/\s/) : [];
-    const initials = nameArray.length > 0 ? (nameArray.length === 1 ? nameArray[0][0] : nameArray[0][0] + nameArray[nameArray.length-1][0]) : "--";
+    const initials = nameArray.length > 0 ? (nameArray.length === 1 ? nameArray[0][0] : nameArray[0][0] + nameArray[nameArray.length-1][0]) : "";
     const defaultViz = showDefault ? 'flex' : 'none';
     const profileViz = showDefault ? 'none' : 'block';
     const imageSrc = url.replace("profile-default.png", 'profile-default-404.png');  // replace default with non-existant image to force onLoad to fail
+
     return (
       <div style={outerStyle} className="profile-pic">
-        <div
-          className={classNames({'default-profile-img': 1, noselect: 1, invisible: hideOnDefault})}
-          style={{display: defaultViz,  width: len, height: len, fontSize: len/2}}
-        >
+        <div className={classNames({'default-profile-img': 1, noselect: 1, invisible: hideOnDefault})}
+          style={{display: defaultViz,  width: len, height: len, fontSize: len/2}}>
           { showButtons ? null : `${initials}` }
         </div>
-        { Sefaria._inBrowser ?
-          <img
-            className="img-circle profile-img"
-            style={{display: profileViz, width: len, height: len, fontSize: len/2}}
-            src={imageSrc}
-            alt="User Profile Picture"
-            onLoad={this.setShowNonDefault}
-            onError={this.setShowDefault}
-          /> : null
-        }
+        <img
+          className="img-circle profile-img"
+          style={{display: profileViz, width: len, height: len, fontSize: len/2}}
+          src={imageSrc}
+          alt="User Profile Picture"
+          ref={this.imgFile}
+          onLoad={this.setShowImage}
+          onError={this.setShowDefault}
+        />
         {this.props.children ? this.props.children : null /*required for slate.js*/}
         { showButtons ? /* cant style file input directly. see: https://stackoverflow.com/questions/572768/styling-an-input-type-file-button */
             (<div className={classNames({"profile-pic-button-visible": showDefault !== null, "profile-pic-hover-button": !showDefault, "profile-pic-button": 1})}>
               <input type="file" className="profile-pic-input-file" id="profile-pic-input-file" onChange={this.onSelectFile} onClick={(event)=> { event.target.value = null}}/>
               <label htmlFor="profile-pic-input-file" className={classNames({resourcesLink: 1, blue: showDefault})}>
                 <span className="int-en">{ showDefault ? "Add Picture" : "Upload New" }</span>
-                <span className="int-he">{ showDefault ? "הוסף תמונה" : "ייבא תמונה" }</span>
+                <span className="int-he">{ showDefault ? "הוספת תמונה" : "עדכון תמונה" }</span>
               </label>
             </div>) : null
           }
@@ -235,7 +352,8 @@ ProfilePic.propTypes = {
 const FilterableList = ({
   filterFunc, sortFunc, renderItem, sortOptions, getData, data, renderEmptyList,
   renderHeader, renderFooter, showFilterHeader, extraData, refreshData,
-  scrollableElement, pageSize, bottomMargin, onDisplayedDataChange, initialRenderSize
+  scrollableElement, pageSize, onDisplayedDataChange, initialRenderSize,
+  bottomMargin, containerClass
 }) => {
   const [filter, setFilter] = useState('');
   const [sortOption, setSortOption] = useState(sortOptions[0]);
@@ -251,11 +369,11 @@ const FilterableList = ({
   const [loading, setLoading] = useState(!cachedData);
   const [rawData, setRawData] = useState(cachedData);
   const [displayData, setDisplayData] = useState(processData(rawData));
-  
-  // Initial loading of data
+
+  // If `getData` function is passed, load data through this effect
   useEffect(() => {
     let isMounted = true;
-    if (!rawData) {
+    if (!rawData && !!getData) { // Don't try calling getData when `data` is intially passed
       setLoading(true);
       getData().then(data => {
         if (isMounted) {
@@ -263,19 +381,20 @@ const FilterableList = ({
           setDisplayData(processData(data));
           setLoading(false);
         }
-      });      
+      });
     }
     return () => {
       isMounted = false;
     };
   }, [getData, rawData]);
 
-  // After initial load, when refreshData changes, trigger a new call for data.
-  const mounted = useRef(false);
+  // Alternatively, if there is no `getData` function passed, we expect data
+  // to be fed in directly through the `data` prop. Check `data` again whenever
+  // refreshData signal changes.
   useEffect(() => {
-    if (mounted.current) { setRawData(null); }
-    else { mounted.current = true; }
-  }, [refreshData]);
+    setRawData(data);
+    setDisplayData(processData(data));
+  }, [data, refreshData]);
 
   // Updates to filter or sort
   useEffect(() => {
@@ -283,7 +402,7 @@ const FilterableList = ({
   }, [filter, sortOption, extraData]);
 
   const dataUpToPage = usePaginatedDisplay(scrollableElement, displayData, pageSize, bottomMargin, initialRenderSize || pageSize);
-  
+
   if (onDisplayedDataChange) {
     useEffect(() => {
       onDisplayedDataChange(dataUpToPage);
@@ -350,11 +469,10 @@ const FilterableList = ({
             { sortOptions.map(option =>(
               <span
                 key={option}
-                className={classNames({'sort-option': 1, noselect: 1, active: sortOption === option})}
+                className={classNames({'sans-serif': 1, 'sort-option': 1, noselect: 1, active: sortOption === option})}
                 onClick={() => onSortChange(option)}
               >
-                <span className="int-en">{ option }</span>
-                <span className="int-he">{ Sefaria._(option) }</span>
+                <InterfaceText>{option}</InterfaceText>
               </span>
             ))}
           </div>
@@ -364,7 +482,7 @@ const FilterableList = ({
         loading ? <LoadingMessage /> :
         ( dataUpToPage.length ?
           (
-            <div className="filter-content">
+            <div className={"filter-content" + (containerClass ? " " + containerClass : "")}>
               { !!renderHeader ? renderHeader() : null }
               { dataUpToPage.map(renderItem) }
               { !!renderFooter ? renderFooter() : null }
@@ -416,7 +534,7 @@ class TabView extends Component {
   renderTab(tab, index) {
     const { currTabIndex } = typeof this.props.currTabIndex == 'undefined' ? this.state : this.props;
     return (
-      <div className={classNames({active: currTabIndex === index, justifyright: tab.justifyright})} key={tab.text} data-tab-index={index} onClick={this.onClickTab}>
+      <div className={classNames({active: currTabIndex === index, justifyright: tab.justifyright})} key={tab.id} data-tab-index={index} onClick={this.onClickTab}>
         {this.props.renderTab(tab, index)}
       </div>
     );
@@ -425,7 +543,7 @@ class TabView extends Component {
     const { currTabIndex } = typeof this.props.currTabIndex == 'undefined' ? this.state : this.props;
     return (
       <div className="tab-view">
-        <div className="tab-list">
+        <div className="tab-list sans-serif">
           {this.props.tabs.map(this.renderTab)}
         </div>
         { React.Children.toArray(this.props.children)[currTabIndex] }
@@ -434,10 +552,11 @@ class TabView extends Component {
   }
 }
 TabView.propTypes = {
-  tabs: PropTypes.array.isRequired,
+  tabs: PropTypes.array.isRequired,  // array of objects of any form. only requirement is each tab has a unique 'id' field. These objects will be passed to renderTab.
   renderTab: PropTypes.func.isRequired,
-  currTabIndex: PropTypes.number,  // not required. If passed, TabView will be controlled from outside
-  setTab: PropTypes.func,          // not required. If passed, TabView will be controlled from outside
+  currTabIndex: PropTypes.number,  // optional. If passed, TabView will be controlled from outside
+  setTab: PropTypes.func,          // optional. If passed, TabView will be controlled from outside
+  onClickArray: PropTypes.object,  // optional. If passed, TabView will be controlled from outside
 };
 
 
@@ -455,7 +574,7 @@ class DropdownOptionList extends Component {
                     <td>
                       <img className="dropdown-option-check" src="/static/img/check-mark.svg" alt={`${option.name} sort selected`}/>
                     </td>
-                    <td>
+                    <td className="dropdown-option-list-label">
                       <span className="int-en">{option.name}</span>
                       <span className="int-he" dir="rtl">{option.heName}</span>
                     </td>
@@ -499,6 +618,7 @@ DropdownButton.propTypes = {
   heText: PropTypes.string.isRequired,
 }
 
+
 class DropdownModal extends Component {
   componentDidMount() {
     document.addEventListener('mousedown', this.handleClickOutside, false);
@@ -514,7 +634,7 @@ class DropdownModal extends Component {
   }
   render() {
     return (
-      <div className={classNames({"dropdown-modal": 1, "position-unset": this.props.positionUnset})}>
+      <div className={classNames({"dropdown-modal": 1, "position-unset": this.props.positionUnset, "sans-serif": 1})}>
         { this.props.children }
       </div>
     );
@@ -525,6 +645,7 @@ DropdownModal.propTypes = {
   isOpen:  PropTypes.bool.isRequired,
   positionUnset: PropTypes.bool,  // for search filters
 };
+
 
 class Link extends Component {
   handleClick(e) {
@@ -562,15 +683,16 @@ class GlobalWarningMessage extends Component {
 }
 
 
-const ReaderNavigationMenuSection = ({title, heTitle, content, enableAnchor}) => (!content) ? null :
-      <div className="readerNavSection" id={enableAnchor ? "navigation-" + title.toLowerCase() : ""}>
-        {title ? (<h2>
-          <span className="int-en">{title}</span>
-          <span className="int-he">{heTitle}</span>
-        </h2>) : null }
-        {content}
-      </div>;
-
+const ReaderNavigationMenuSection = ({title, heTitle, content, enableAnchor}) => (
+  (!content) ? null :
+  <div className="readerNavSection" id={enableAnchor ? "navigation-" + title.toLowerCase() : ""}>
+    {title ? (
+    <h2 className="sans-serif">
+      <InterfaceText text={{en: title, he: heTitle}} />
+    </h2>) : null }
+    {content}
+  </div>
+);
 ReaderNavigationMenuSection.propTypes = {
   title:   PropTypes.string,
   heTitle: PropTypes.string,
@@ -585,14 +707,9 @@ ReaderNavigationMenuSection.defaultProps = {
 class TextBlockLink extends Component {
   // Monopoly card style link with category color at top
   // This component is seriously overloaded :grimacing:
-  componentDidMount(){
-    if(this.props.csrRequired) {
-      this.setState({csrActive: true});
-    }
-  }
 
   render() {
-    let { book, category, title, heTitle, showSections, sref, heRef, displayValue, heDisplayValue, position, url_string, recentItem, currVersions, sideColor, saved, sheetTitle, sheetOwner, timeStamp, intlang, csrRequired } = this.props;
+    let { book, category, title, heTitle, showSections, sref, heRef, displayValue, heDisplayValue, position, url_string, recentItem, currVersions, sideColor, saved, sheetTitle, sheetOwner, timeStamp, intlang } = this.props;
     const index    = Sefaria.index(book);
     category = category || (index ? index.primary_category : "Other");
     const style    = {"borderColor": Sefaria.palette.categoryColor(category)};
@@ -600,7 +717,6 @@ class TextBlockLink extends Component {
     heTitle  = heTitle || (showSections ? heRef : index.heTitle);
     const hlang = intlang ? "int-he": "he";
     const elang = intlang ? "int-en": "en";
-    const fullRender = !csrRequired || (this.state && this.state.csrActive);
     let byLine;
     if (!!sheetOwner && sideColor) {
       title = sheetTitle.stripHtml();
@@ -631,7 +747,7 @@ class TextBlockLink extends Component {
 
     if (sideColor) {
       return (
-        <a href={fullRender ? url : ""} className={classes} data-ref={fullRender ? sref : ""} data-ven={currVersions.en} data-vhe={currVersions.he} data-position={position}>
+        <a href={url} className={classes} data-ref={sref} data-ven={currVersions.en} data-vhe={currVersions.he} data-position={position}>
           <div className="sideColorLeft" data-ref-child={true}>
             <div className="sideColor" data-ref-child={true} style={{backgroundColor: Sefaria.palette.categoryColor(category)}} />
             <div className="sideColorInner" data-ref-child={true}>
@@ -642,16 +758,15 @@ class TextBlockLink extends Component {
           <div className="sideColorRight">
             { saved ? <SaveButton historyObject={{ ref: sref, versions: currVersions }} /> : null }
             { !saved && timeStamp ?
-              <span>
-                <span className="int-en">{ Sefaria.util.naturalTime(timeStamp) }</span>
-                <span className="int-he">&rlm;{ Sefaria.util.naturalTime(timeStamp) }</span>
+              <span className="sans-serif">
+                <InterfaceText>{ Sefaria.util.naturalTime(timeStamp) }</InterfaceText>
               </span>: null
             }
           </div>
         </a>
       );
     }
-    return (<a href={fullRender ? url : ""} className={classes} data-ref={fullRender ? sref : ""} data-ven={currVersions.en} data-vhe={currVersions.he} data-position={position} style={style}>
+    return (<a href={url} className={classes} data-ref={sref} data-ven={currVersions.en} data-vhe={currVersions.he} data-position={position} style={style}>
               <span className={elang}>{title}</span>
               <span className={hlang}>{heTitle}</span>
                 {subtitle}
@@ -677,11 +792,9 @@ TextBlockLink.propTypes = {
   sheetTitle:      PropTypes.string,
   sheetOwner:      PropTypes.string,
   timeStamp:       PropTypes.number,
-  csrRequired:     PropTypes.bool,
 };
 TextBlockLink.defaultProps = {
   currVersions: {en:null, he:null},
-  csrRequired: false,
 };
 
 
@@ -706,8 +819,7 @@ LanguageToggleButton.propTypes = {
 
 const DangerousInterfaceBlock = ({en, he, classes}) => (
         <div className={classes}>
-          <span className="int-en" dangerouslySetInnerHTML={ {__html: en } } />
-          <span className="int-he" dangerouslySetInnerHTML={ {__html: he } } />
+          <InterfaceText html={{"en": en, "he":he}} />
         </div>
     );
 DangerousInterfaceBlock.propTypes = {
@@ -716,10 +828,10 @@ DangerousInterfaceBlock.propTypes = {
     classes: PropTypes.string
 };
 
+
 const SimpleInterfaceBlock = ({en, he, classes}) => (
         <div className={classes}>
-            <span className="int-en">{en}</span>
-            <span className="int-he">{he}</span>
+            <InterfaceText text={{en:en, he:he}} />
         </div>
     );
 SimpleInterfaceBlock.propTypes = {
@@ -727,6 +839,7 @@ SimpleInterfaceBlock.propTypes = {
     he: PropTypes.string,
     classes: PropTypes.string
 };
+
 
 const SimpleContentBlock = ({en, he, classes}) => (
         <div className={classes}>
@@ -741,15 +854,14 @@ SimpleContentBlock.propTypes = {
 };
 
 
-const SimpleLinkedBlock = ({en, he, url, classes, aclasses, children, onClick}) => (
-        <div className={classes} onClick={onClick}>
-            <a href={url} className={aclasses}>
-              <span className="int-en">{en}</span>
-              <span className="int-he">{he}</span>
-            </a>
-            {children}
-        </div>
-    );
+const SimpleLinkedBlock = ({en, he, url, classes, aclasses, children, onClick, openInNewTab}) => (
+  <div className={classes} onClick={onClick}>
+    <a href={url} className={aclasses} target={openInNewTab ? "_blank" : "_self"}>
+      <InterfaceText text={{en, he}}/>
+    </a>
+    {children}
+  </div>
+);
 SimpleLinkedBlock.propTypes = {
     en: PropTypes.string,
     he: PropTypes.string,
@@ -757,8 +869,6 @@ SimpleLinkedBlock.propTypes = {
     classes: PropTypes.string,
     aclasses: PropTypes.string
 };
-
-
 
 
 
@@ -791,15 +901,14 @@ BlockLink.defaultProps = {
 class ToggleSet extends Component {
   // A set of options grouped together.
   render() {
-    var classes = {toggleSet: 1, separated: this.props.separated };
+    let classes = {toggleSet: 1, separated: this.props.separated };
     classes[this.props.name] = 1;
     classes = classNames(classes);
-    var value = this.props.name === "layout" ? this.props.currentLayout() : this.props.settings[this.props.name];
-    var width = 100.0 - (this.props.separated ? (this.props.options.length - 1) * 3 : 0);
-    var style = {width: (width/this.props.options.length) + "%"};
-    var label = this.props.label ? (<span className="toggle-set-label">{this.props.label}</span>) : null;
+    const width = 100.0 - (this.props.separated ? (this.props.options.length - 1) * 3 : 0);
+    const style = {width: (width/this.props.options.length) + "%"};
+    const label = this.props.label ? (<span className="toggle-set-label">{this.props.label}</span>) : null;
     return (
-      <div className={classes} role={this.props.role} aria-label={this.props.ariaLabel}>
+      <div className={classes} role="radiogroup" aria-label={this.props.ariaLabel}>
           {label}
           <div>
         {
@@ -810,8 +919,8 @@ class ToggleSet extends Component {
                 key={option.name}
                 set={this.props.name}
                 role={option.role}
-                ariaLable={option.ariaLabel}
-                on={value == option.name}
+                ariaLabel={option.ariaLabel}
+                on={this.props.currentValue == option.name}
                 setOption={this.props.setOption}
                 style={style}
                 image={option.image}
@@ -827,8 +936,7 @@ ToggleSet.propTypes = {
   name:          PropTypes.string.isRequired,
   label:         PropTypes.string,
   setOption:     PropTypes.func.isRequired,
-  currentLayout: PropTypes.func,
-  settings:      PropTypes.object.isRequired,
+  currentValue:  PropTypes.string,
   options:       PropTypes.array.isRequired,
   separated:     PropTypes.bool,
   role:          PropTypes.string,
@@ -879,12 +987,12 @@ class ToggleOption extends Component {
     }
   }
   render() {
-    var classes = {toggleOption: 1, on: this.props.on };
-    var tabIndexValue = this.props.on ? 0 : -1;
-    var ariaCheckedValue = this.props.on ? "true" : "false";
+    let classes = {toggleOption: 1, on: this.props.on };
+    const tabIndexValue = this.props.on ? 0 : -1;
+    const ariaCheckedValue = this.props.on ? "true" : "false";
     classes[this.props.name] = 1;
     classes = classNames(classes);
-    var content = this.props.image ? (<img src={this.props.image} alt=""/>) :
+    let content = this.props.image ? (<img src={this.props.image} alt=""/>) :
                     this.props.fa ? (<i className={"fa fa-" + this.props.fa}></i>) :
                       (<span dangerouslySetInnerHTML={ {__html: this.props.content} }></span>);
     return (
@@ -973,7 +1081,7 @@ ReaderNavigationMenuDisplaySettingsButton.propTypes = {
 };
 
 
-function InterfaceLanguageMenu({currentLang}){
+function InterfaceLanguageMenu({currentLang, translationLanguagePreference, setTranslationLanguagePreference}){
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef(null);
 
@@ -984,6 +1092,10 @@ function InterfaceLanguageMenu({currentLang}){
     e.stopPropagation();
     setIsOpen(isOpen => !isOpen);
   }
+  const handleTransPrefResetClick = (e) => {
+    e.stopPropagation();
+    setTranslationLanguagePreference(null);
+  };
   const handleHideDropdown = (event) => {
       if (event.key === 'Escape') {
           setIsOpen(false);
@@ -1012,25 +1124,40 @@ function InterfaceLanguageMenu({currentLang}){
         <a className="interfaceLinks-button" onClick={handleClick}><img src="/static/icons/globe-wire.svg"/></a>
         <div className={`interfaceLinks-menu ${ isOpen ? "open" : "closed"}`}>
           <div className="interfaceLinks-header">
-            <span className="int-en">Site Language</span>
-            <span className="int-he">שפת האתר</span>
+            <InterfaceText>Site Language</InterfaceText>
           </div>
           <div className="interfaceLinks-options">
-            <a className={`interfaceLinks-option int-bi ${(currentLang == 'hebrew') ? 'active':''}`} href={`/interface/hebrew?next=${getCurrentPage()}`}>עברית</a>
-            <a className={`interfaceLinks-option int-bi ${(currentLang == 'english') ? 'active' : ''}`} href={`/interface/english?next=${getCurrentPage()}`}>English</a>
+            <a className={`interfaceLinks-option int-bi int-he ${(currentLang == 'hebrew') ? 'active':''}`} href={`/interface/hebrew?next=${getCurrentPage()}`}>עברית</a>
+            <a className={`interfaceLinks-option int-bi int-en ${(currentLang == 'english') ? 'active' : ''}`} href={`/interface/english?next=${getCurrentPage()}`}>English</a>
           </div>
+          { !!translationLanguagePreference ? (
+            <>
+              <div className="interfaceLinks-header">
+                <InterfaceText>Preferred Translation</InterfaceText>
+              </div>
+              <div className="interfaceLinks-options trans-pref-header-container">
+                <InterfaceText>{Sefaria.translateISOLanguageCode(translationLanguagePreference, true)}</InterfaceText>
+                <a className="trans-pref-reset" onClick={handleTransPrefResetClick}>
+                  <img src="/static/img/circled-x.svg" className="reset-btn" />
+                  <span className="smallText">
+                    <InterfaceText>Reset</InterfaceText>
+                  </span>
+                </a>
+              </div>
+            </>
+          ) : null}
         </div>
       </div>
   );
 }
-
 InterfaceLanguageMenu.propTypes = {
-  currentLang: PropTypes.string
+  currentLang: PropTypes.string,
+  translationLanguagePreference: PropTypes.string,
 }
 
-// const [mounted, setMounted] = React.useState(true);
-// useEffect(() => {return () => {setMounted(false)}}, []);
+
 function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
+  if (!historyObject) { placeholder = true; }
   const isSelected = () => !!Sefaria.getSavedItem(historyObject);
   const [selected, setSelected] = useState(placeholder || isSelected());
   useEffect(() => {
@@ -1046,8 +1173,9 @@ function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
       `${Sefaria._(selected ? "Remove" : "Save")} "${historyObject.sheet_title ?
           historyObject.sheet_title.stripHtml() : Sefaria._r(historyObject.ref)}"`;
 
-  function onClick() {
+  function onClick(event) {
     if (isPosting) { return; }
+    event.preventDefault();
     setPosting(true);
     Sefaria.track.event("Saved", "saving", historyObject.ref);
     Sefaria.toggleSavedItem(historyObject)
@@ -1057,11 +1185,11 @@ function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
   }
 
   return (
-      <ToolTipped {...{ altText, classes, style, onClick }}>
-        { selected ? <img src="/static/img/filled-star.png" alt={altText}/> :
-          <img src="/static/img/star.png" alt={altText}/> }
-      </ToolTipped>
-    );
+    <ToolTipped {...{ altText, classes, style, onClick }}>
+      { selected ? <img src="/static/img/filled-star.png" alt={altText}/> :
+        <img src="/static/img/star.png" alt={altText}/> }
+    </ToolTipped>
+  );
 }
 SaveButton.propTypes = {
   historyObject: PropTypes.shape({
@@ -1092,19 +1220,20 @@ class FollowButton extends Component {
       hovering: false
     }
   }
-  _post_follow() {
+  _postFollow() {
     $.post("/api/follow/" + this.props.uid, {}, data => {
       Sefaria.following.push(this.props.uid);  // keep local following list up-to-date
       Sefaria.track.event("Following", "New Follow", this.props.uid);
     });
   }
-  _post_unfollow() {
+  _postUnfollow() {
     $.post("/api/unfollow/" + this.props.uid, {}, data => {
       Sefaria.following = Sefaria.following.filter(i => i !== this.props.uid);  // keep local following list up-to-date
       Sefaria.track.event("Following", "Unfollow", this.props.uid);
     });
   }
   onMouseEnter() {
+    if (this.props.disableUnfollow) { return; }
     this.setState({hovering: true});
   }
   onMouseLeave() {
@@ -1113,14 +1242,14 @@ class FollowButton extends Component {
   onClick(e) {
     e.stopPropagation();
     if (!Sefaria._uid) {
-        this.props.toggleSignUpModal();
-        return;
+      this.props.toggleSignUpModal();
+      return;
     }
-    if (this.state.following) {
-      this._post_unfollow();
+    if (this.state.following && !this.props.disableUnfollow) {
+      this._postUnfollow();
       this.setState({following: false});
     } else {
-      this._post_follow();
+      this._postFollow();
       this.setState({following: true, hovering: false});  // hovering:false keeps the "unfollow" from flashing.
     }
   }
@@ -1132,32 +1261,29 @@ class FollowButton extends Component {
       hovering: this.state.hovering,
       smallText: true,
     });
-    const en_text = this.state.following ? this.state.hovering ? "Unfollow":"Following":"Follow";
-    const he_text = this.state.following ? this.state.hovering ? "הפסק לעקוב":"עוקב":"עקוב";
-    return <div className={classes} onMouseEnter={this.onMouseEnter} onMouseLeave={this.onMouseLeave} onClick={this.onClick}>
-            <span className="int-en">
-                {en_text}
-            </span>
-            <span className="int-he">
-                {he_text}
-            </span>
-          </div>
+    const buttonText = this.state.following ? this.state.hovering ? "Unfollow":"Following":"Follow";
+    return ( 
+      <div className={classes} onMouseEnter={this.onMouseEnter} onMouseLeave={this.onMouseLeave} onClick={this.onClick}>
+        <InterfaceText context={"FollowButton"}>{buttonText}</InterfaceText>
+      </div>
+    );
   }
 }
 FollowButton.propTypes = {
-  uid: PropTypes.number.isRequired,
-  following: PropTypes.bool,  // is this person followed already?
-  large: PropTypes.bool,
+  uid:               PropTypes.number.isRequired,
+  following:         PropTypes.bool,  // is this person followed already?
+  large:             PropTypes.bool,
+  disableUnfollow:   PropTypes.bool,
   toggleSignUpModal: PropTypes.func,
 };
+
 
 const SinglePanelNavHeader = (props) =>
       <div className="readerNavTop searchOnly">
           <CategoryColorLine category={props.colorLineCategory || "Other"} />
           <ReaderNavigationMenuMenuButton onClick={props.navHome} />
           <h2>
-            <span className="int-en">{props.enTitle}</span>
-            <span className="int-he">{props.heTitle || Sefaria.hebrewTerm(props.enTitle)}</span>
+            <InterfaceText>{props.title}</InterfaceText>
           </h2>
           {props.showDisplaySettings ?
             <ReaderNavigationMenuDisplaySettingsButton onClick={props.openDisplaySettings} />
@@ -1165,8 +1291,7 @@ const SinglePanelNavHeader = (props) =>
       </div>;
 SinglePanelNavHeader.propTypes = {
   navHome:             PropTypes.func.isRequired,
-  enTitle:             PropTypes.string,
-  heTitle:             PropTypes.string,
+  title:               PropTypes.string,
   showDisplaySettings: PropTypes.bool,
   openDisplaySettings: PropTypes.func,
   colorLineCategory:   PropTypes.string,
@@ -1181,7 +1306,7 @@ class ProfileListing extends Component {
   render() {
     const { url, image, name, uid, is_followed, toggleSignUpModal, smallfonts, organization } = this.props;
     return (
-      <div className="authorByLine">
+      <div className="authorByLine sans-serif">
         <div className="authorByLineImage">
           <a href={url}>
             <ProfilePic
@@ -1199,7 +1324,12 @@ class ProfileListing extends Component {
             en={name}
             he={name}
           >
-            <FollowButton large={false} uid={uid} following={is_followed} toggleSignUpModal={toggleSignUpModal}/>
+            <FollowButton 
+              large={false}
+              uid={uid}
+              following={is_followed}
+              disableUnfollow={true}
+              toggleSignUpModal={toggleSignUpModal} />
           </SimpleLinkedBlock>
           {
             !!organization ? <SimpleInterfaceBlock
@@ -1220,132 +1350,188 @@ ProfileListing.propTypes = {
   name:        PropTypes.string.isRequired,
   is_followed: PropTypes.bool,
   toggleSignUpModal: PropTypes.func,
-
 };
 
 
-class SheetListing extends Component {
-  // A source sheet listed in the Sidebar
-  handleSheetClick(e) {
+const SheetListing = ({
+  sheet, connectedRefs, handleSheetClick, handleSheetDelete, handleCollectionsChange,
+  editable, deletable, saveable, collectable, pinnable, pinned, pinSheet,
+  hideAuthor, showAuthorUnderneath, infoUnderneath, hideCollection, openInNewTab, toggleSignUpModal, showSheetSummary
+}) => {
+  // A source sheet presented in lists, like sidebar or profile page
+  const [showCollectionsModal, setShowCollectionsModal] = useState(false);
+
+  const handleSheetClickLocal = (e) => {
     //console.log("Sheet Click Handled");
-    // TODO: There more contexts to distinguish / track. Profile, groups, search
-    if (Sefaria._uid == this.props.sheet.owner) {
-      Sefaria.track.event("Tools", "My Sheet Click", this.props.sheet.sheetUrl);
+    // TODO: There more contexts to distinguish / track. Profile, collections, search
+    if (Sefaria._uid == sheet.owner) {
+      Sefaria.track.event("Tools", "My Sheet Click", sheet.sheetUrl);
     } else {
-      Sefaria.track.event("Tools", "Sheet Click", this.props.sheet.sheetUrl);
+      Sefaria.track.event("Tools", "Sheet Click", sheet.sheetUrl);
     }
-    if (this.props.handleSheetClick) {
-      Sefaria.track.sheets("Opened via Connections Panel", this.props.connectedRefs.toString());
-      this.props.handleSheetClick(e, this.props.sheet, null, this.props.connectedRefs);
+    if (handleSheetClick) {
+      Sefaria.track.sheets("Opened via Connections Panel", connectedRefs.toString());
+      handleSheetClick(e, sheet, null, connectedRefs);
       e.preventDefault();
-    } 
-  }
-  handleSheetOwnerClick(e) {
-    Sefaria.track.event("Tools", "Sheet Owner Click", this.props.sheet.ownerProfileUrl);
-  }
-  handleTopicClick(topic) {
-    Sefaria.track.event("Tools", "Topic Click", topic);
-  }
-  handleSheetDelete() {
-    if (confirm(Sefaria._("Are you sure you want to delete this sheet? There is no way to undo this action."))) {
-      Sefaria.sheets.deleteSheetById(this.props.sheet.id).then(this.props.handleSheetDelete);
     }
-  }
-  render() {
-    var sheet = this.props.sheet;
-    var viewsIcon = sheet.public ?
-      <div className="sheetViews sans"><i className="fa fa-eye" title={sheet.views + " views"}></i> {sheet.views}</div>
-      : <div className="sheetViews sans"><i className="fa fa-lock" title="Private"></i></div>;
+  };
 
-    var sheetInfo = this.props.hideAuthor ? null :
-        <div className="sheetInfo">
-          <div className="sheetUser">
-            <a href={sheet.ownerProfileUrl} target={this.props.openInNewTab ? "_blank" : "_self"}>
-              <ProfilePic
-                outerStyle={{display: "inline-block"}}
-                name={sheet.ownerName}
-                url={sheet.ownerImageUrl}
-                len={26}
-              />
-            </a>
-            <a href={sheet.ownerProfileUrl} target={this.props.openInNewTab ? "_blank" : "_self"} className="sheetAuthor" onClick={this.handleSheetOwnerClick}>{sheet.ownerName}</a>
-          </div>
-          {viewsIcon}
-        </div>
+  const handleSheetOwnerClick = (e) => {
+    Sefaria.track.event("Tools", "Sheet Owner Click", sheet.ownerProfileUrl);
+  };
 
-    const topics = sheet.topics.map((topic, i) => {
-      const separator = i == sheet.topics.length -1 ? null : <span className="separator">,</span>;
-      return (
-        <a href={`/topics/${topic.slug}`}
-          target={this.props.openInNewTab ? "_blank" : "_self"}
-          className="sheetTag"
-          key={i}
-          onClick={this.handleTopicClick.bind(null, topic.slug)}
-        >
-          <InterfaceTextWithFallback {...topic} />
-          {separator}
-        </a>
-      );
-    });
-    const created = Sefaria.util.localeDate(sheet.created);
-    const underInfo = this.props.infoUnderneath ? [
-        sheet.status !== 'public' ? (<span className="unlisted"><img src="/static/img/eye-slash.svg"/><span>{Sefaria._("Unlisted")}</span></span>) : undefined,
-        `${sheet.views} ${Sefaria._('Views')}`,
-        created,
-        sheet.topics.length ? topics : undefined,
-        !!sheet.group ? (<a href={`/groups/${sheet.group}`} target={this.props.openInNewTab ? "_blank" : "_self"}>{sheet.group}</a>) : undefined,
-      ].filter(x => x !== undefined) : [topics];
+  const handleTopicClick = (topic) => {
+    Sefaria.track.event("Tools", "Topic Click", topic);
+  };
 
-    return (
-      <div className="sheet" key={sheet.sheetUrl}>
-        <div className="sheetLeft">
-          {sheetInfo}
-          <a href={sheet.sheetUrl} target={this.props.openInNewTab ? "_blank" : "_self"} className="sheetTitle" onClick={this.handleSheetClick}>
-            <img src="/static/img/sheet.svg" className="sheetIcon"/>
-            <span className="sheetTitleText">{sheet.title}</span>
+  const handleSheetDeleteClick = () => {
+    if (confirm(Sefaria._("Are you sure you want to delete this sheet? There is no way to undo this action."))) {
+      Sefaria.sheets.deleteSheetById(sheet.id).then(handleSheetDelete);
+    }
+  };
+
+  const toggleCollectionsModal = () => {
+    if (Sefaria._uid) {
+      setShowCollectionsModal(!showCollectionsModal);
+    } else {
+      toggleSignUpModal();
+    }
+  };
+
+  const title = sheet.title ? sheet.title.stripHtmlConvertLineBreaks() : "Untitled Source Sheet";
+
+  const viewsIcon = sheet.public ?
+    <div className="sheetViews sans-serif"><i className="fa fa-eye" title={sheet.views + " views"}></i> {sheet.views}</div>
+    : <div className="sheetViews sans-serif"><i className="fa fa-lock" title="Private"></i></div>;
+
+  const views = (
+    <>
+      {sheet.views}&nbsp;<InterfaceText>Views</InterfaceText>
+    </>
+  );
+
+  const sheetSummary = showSheetSummary && sheet.summary? 
+  <SimpleInterfaceBlock classes={"smallText sheetSummary"} en={sheet.summary} he={sheet.sheet_summary}/>:null;
+
+  const sheetInfo = hideAuthor ? null :
+      <div className="sheetInfo">
+        <div className="sheetUser">
+          <a href={sheet.ownerProfileUrl} target={openInNewTab ? "_blank" : "_self"}>
+            <ProfilePic
+              outerStyle={{display: "inline-block"}}
+              name={sheet.ownerName}
+              url={sheet.ownerImageUrl}
+              len={26}
+            />
           </a>
-          <div className="sheetTags">
-            {
-              underInfo.map((i, ii) => (
-                <span key={ii}>
-                  { ii !== 0 ? <span className="bullet">{'\u2022'}</span> : null }
-                  {i}
-                </span>
-              ))
-            }
-          </div>
+          <a href={sheet.ownerProfileUrl} target={openInNewTab ? "_blank" : "_self"} className="sheetAuthor" onClick={handleSheetOwnerClick}>{sheet.ownerName}</a>
         </div>
-        <div className="sheetRight">
-          {
-            this.props.editable && !document.cookie.includes("new_editor") ?
-            <a href={`/sheets/${sheet.id}?editor=1`}><img src="/static/img/circled-edit.svg"/></a>
-              : null
-          }
-          {
-            this.props.deletable ?
-              <img src="/static/img/circled-x.svg" onClick={this.handleSheetDelete}/>
-              : null
-          }
-          {
-            this.props.saveable ?
-              <SaveButton historyObject={{ ref: `Sheet ${sheet.id}`, versions: {}  }} />
-              : null
-          }
-        </div>
-      </div>);
+        {viewsIcon}
+      </div>
+
+  const collectionsList = "collections" in sheet ? sheet.collections.slice() : [];
+  if (sheet.displayedCollectionName) {
+    collectionsList.unshift({name: sheet.displayedCollectionName, slug: sheet.displayedCollection});
   }
-}
-SheetListing.propTypes = {
-  sheet:            PropTypes.object.isRequired,
-  connectedRefs:    PropTypes.array.isRequired,
-  handleSheetClick: PropTypes.func,
-  handleSheetDelete:PropTypes.func,
-  handleSheetEdit:  PropTypes.func,
-  deletable:        PropTypes.bool,
-  saveable:         PropTypes.bool,
-  hideAuthor:       PropTypes.bool,
-  infoUnderneath:   PropTypes.bool,
-  openInNewTab:     PropTypes.bool,
+  const collections = collectionsList.map((collection, i) => {
+    const separator = i == collectionsList.length -1 ? null : <span className="separator">,</span>;
+    return (
+      <a href={`/collections/${collection.slug}`}
+        target={openInNewTab ? "_blank" : "_self"}
+        className="sheetTag"
+        key={i}
+      >
+        {collection.name}
+        {separator}
+      </a>
+    );
+  });
+
+  const topics = sheet.topics.map((topic, i) => {
+    const separator = i == sheet.topics.length -1 ? null : <span className="separator">,</span>;
+    return (
+      <a href={`/topics/${topic.slug}`}
+        target={openInNewTab ? "_blank" : "_self"}
+        className="sheetTag"
+        key={i}
+        onClick={handleTopicClick.bind(null, topic.slug)}
+      >
+        <InterfaceText text={topic} />
+        {separator}
+      </a>
+    );
+  });
+  const created = Sefaria.util.localeDate(sheet.created);
+  const underInfo = infoUnderneath ? [
+      sheet.status !== 'public' ? (<span className="unlisted"><img src="/static/img/eye-slash.svg"/><span>{Sefaria._("Not Published")}</span></span>) : undefined,
+      showAuthorUnderneath ? (<a href={sheet.ownerProfileUrl} target={openInNewTab ? "_blank" : "_self"}>{sheet.ownerName}</a>) : undefined,
+      views,
+      created,
+      collections.length ? collections : undefined,
+      sheet.topics.length ? topics : undefined,
+    ].filter(x => x !== undefined) : [topics];
+
+
+  const pinButtonClasses = classNames({sheetListingPinButton: 1, pinned: pinned, active: pinnable});
+  const pinMessage = pinned && pinnable ? Sefaria._("Pinned Sheet - click to unpin") :
+                    pinned ? Sefaria._("Pinned Sheet") : Sefaria._("Pin Sheet");
+  const pinButton = <img src="/static/img/pin.svg" className={pinButtonClasses} title={pinMessage} onClick={pinnable ? pinSheet : null} />
+
+  return (
+    <div className="sheet" key={sheet.sheetUrl}>
+      <div className="sheetLeft">
+        {sheetInfo}
+        <a href={sheet.sheetUrl} target={openInNewTab ? "_blank" : "_self"} className="sheetTitle" onClick={handleSheetClickLocal}>
+          <img src="/static/img/sheet.svg" className="sheetIcon"/>
+          <span className="sheetTitleText">{title}</span>
+        </a>
+        {sheetSummary}
+        <div className="sheetTags sans-serif">
+          {
+            underInfo.map((item, i) => (
+              <span key={i}>
+                { i !== 0 ? <span className="bullet">{'\u2022'}</span> : null }
+                {item}
+              </span>
+            ))
+          }
+        </div>
+      </div>
+      <div className="sheetRight">
+        {
+          editable && !Sefaria._uses_new_editor ?
+            <a href={`/sheets/${sheet.id}?editor=1`}><img src="/static/img/tools-write-note.svg" title={Sefaria._("Edit")}/></a>
+            : null
+        }
+        {
+          collectable ?
+            <img src="/static/icons/collection.svg" onClick={toggleCollectionsModal} title={Sefaria._("Add to Collection")} />
+            : null
+        }
+        {
+          deletable ?
+            <img src="/static/img/circled-x.svg" onClick={handleSheetDeleteClick} title={Sefaria._("Delete")} />
+            : null
+        }
+        {
+          saveable ?
+            <SaveButton historyObject={{ ref: `Sheet ${sheet.id}`, versions: {}  }}
+              toggleSignUpModal={toggleSignUpModal} />
+            : null
+        }
+        { pinnable || pinned ?
+            pinButton
+            : null
+        }
+      </div>
+      {showCollectionsModal ?
+        <CollectionsModal
+          sheetID={sheet.id}
+          close={toggleCollectionsModal}
+          handleCollectionsChange={handleCollectionsChange} />
+        : null
+      }
+    </div>);
 };
 
 
@@ -1377,7 +1563,6 @@ class Note extends Component {
               </div>);
   }
 }
-
 Note.propTypes = {
   text:            PropTypes.string.isRequired,
   ownerName:       PropTypes.string,
@@ -1460,7 +1645,7 @@ function NewsletterSignUpForm(props) {
         </div>
       : null}
       { subscribeMessage ?
-      <div className="subscribeMessage">{subscribeMessage}</div>
+      <div className="subscribeMessage">{Sefaria._(subscribeMessage)}</div>
       : null }
     </div>);
 }
@@ -1494,14 +1679,14 @@ LoginPrompt.propTypes = {
 class SignUpModal extends Component {
   render() {
     const innerContent = [
-      ["star-white.png", Sefaria._("Save texts")],
-      ["sheet-white.png", Sefaria._("Make source sheets")],
-      ["note-white.png", Sefaria._("Take notes")],
-      ["email-white.png", Sefaria._("Stay in the know")],
+      ["star-white.png", "Save texts"],
+      ["sheet-white.png", "Make source sheets"],
+      ["note-white.png", "Take notes"],
+      ["email-white.png", "Stay in the know"],
     ].map(x => (
       <div key={x[0]}>
         <img src={`/static/img/${x[0]}`} alt={x[1]} />
-        { x[1] }
+        <InterfaceText>{ x[1] }</InterfaceText>
       </div>
     ));
     const nextParam = "?next=" + encodeURIComponent(Sefaria.util.currentPath());
@@ -1512,21 +1697,21 @@ class SignUpModal extends Component {
         <div id="interruptingMessage" className="sefariaModalContentBox">
           <div id="interruptingMessageClose" className="sefariaModalClose" onClick={this.props.onClose}>×</div>
           <div className="sefariaModalContent">
-            <h2>
-              {Sefaria._("Love Learning?")}
+            <h2 className="serif sans-serif-in-hebrew">
+              <InterfaceText>Love Learning?</InterfaceText>
             </h2>
             <h3>
-              {Sefaria._("Sign up to get more from Sefaria")}
+              <InterfaceText>Sign up to get more from Sefaria</InterfaceText>
             </h3>
             <div className="sefariaModalInnerContent">
               { innerContent }
             </div>
             <a className="button white control-elem" href={"/register" + nextParam}>
-              { Sefaria._("Sign Up")}
+              <InterfaceText>Sign Up</InterfaceText>
             </a>
             <div className="sefariaModalBottomContent">
-              { Sefaria._("Already have an account?") + " "}
-              <a href={"/login" + nextParam}>{ Sefaria._("Sign\u00A0in")}</a>
+              <InterfaceText>Already have an account?</InterfaceText>&nbsp;
+              <a href={"/login" + nextParam}><InterfaceText>Sign in</InterfaceText></a>
             </div>
           </div>
         </div>
@@ -1573,6 +1758,7 @@ class InterruptingMessage extends Component {
       this.setState({timesUp: true});
       $("#interruptingMessage .button").click(this.close);
       $("#interruptingMessage .trackedAction").click(this.trackAction);
+      this.showAorB();
       this.animateOpen();
     }.bind(this), this.settings.showDelay);
   }
@@ -1582,6 +1768,14 @@ class InterruptingMessage extends Component {
       this.setState({animationStarted: true});
       this.trackOpen();
     }.bind(this), 50);
+  }
+  showAorB() {
+    // Allow random A/B testing if items are tagged ".optionA", ".optionB"
+    const $message = $(ReactDOM.findDOMNode(this));
+    if ($message.find(".optionA").length) {
+      console.log("rand show")
+      Math.random() > 0.5 ? $(".optionA").show() : $(".optionB").show();
+    }
   }
   close() {
     this.markAsRead();
@@ -1612,7 +1806,7 @@ class InterruptingMessage extends Component {
 
     } else if (this.props.style === "modal") {
       return  <div id="interruptingMessageBox" className={this.state.animationStarted ? "" : "hidden"}>
-          <div id="interruptingMessageOverlay" onClick={this.close}></div>
+          <div id="interruptingMessageOverlay"></div>
           <div id="interruptingMessage">
             <div id="interruptingMessageContentBox">
               <div id="interruptingMessageClose" onClick={this.close}>×</div>
@@ -1633,84 +1827,42 @@ InterruptingMessage.propTypes = {
 };
 
 
-class ThreeBox extends Component {
-  // Wrap a list of elements into a three column table
-  render() {
-      var content = this.props.content;
-      var length = content.length;
-      if (length % 3) {
-          length += (3-length%3);
-      }
-      content.pad(length, "");
-      var threes = [];
-      for (var i=0; i<length; i+=3) {
-        threes.push([content[i], content[i+1], content[i+2]]);
-      }
-      return (
-        <table className="gridBox threeBox">
-          <tbody>
-          {
-            threes.map(function(row, i) {
-              return (
-                <tr key={i}>
-                  {row[0] ? (<td>{row[0]}</td>) : null}
-                  {row[1] ? (<td>{row[1]}</td>) : null}
-                  {row[2] ? (<td>{row[2]}</td>) : null}
-                </tr>
-              );
-            })
-          }
-          </tbody>
-        </table>
-      );
+const NBox = ({ content, n }) => {
+  // Wrap a list of elements into an n-column flexbox
+  let length = content.length;
+  if (length % n) {
+      length += (n-length%n);
   }
-}
-
-
-class TwoBox extends Component {
-  // Wrap a list of elements into a two column table
-  render() {
-      var content = this.props.content;
-      var length = content.length;
-      if (length % 2) {
-          length += (2-length%2);
-      }
-      content.pad(length, "");
-      var twos = [];
-      for (var i=0; i<length; i+=2) {
-        twos.push([content[i], content[i+1]]);
-      }
-      return (
-        <table className="gridBox twoBox">
-          <tbody>
-          {
-            twos.map(function(row, i) {
-              return (
-                <tr key={i}>
-                  {row[0] ? (<td>{row[0]}</td>) : <td className="empty"></td>}
-                  {row[1] ? (<td>{row[1]}</td>) : <td className="empty"></td>}
-                </tr>
-              );
-            })
-          }
-          </tbody>
-        </table>
-      );
+  content.pad(length, "");
+  let rows = [];
+  for (let i=0; i<length; i+=n) {
+    rows.push(content.slice(i, i+n));
   }
+  return (
+    <div className="gridBox">
+    {
+      rows.map((row, i) => (
+        <div className="gridBoxRow" key={i}>
+          {
+            row.pad(n, "").map((item, j) => (
+              <div className={classNames({gridBoxItem: 1, placeholder: !item})} key={`gridItem|${j}`}>{item}</div>
+            ))
+          }
+        </div>
+      ))
+    }
+    </div>
+  );
 }
-TwoBox.propTypes = {
-  content: PropTypes.array.isRequired
-};
-
 
 class TwoOrThreeBox extends Component {
   // Wrap a list of elements into a two or three column table, depending on window width
   render() {
       var threshhold = this.props.threshhold;
       if (this.props.width > threshhold) {
-        return (<ThreeBox content={this.props.content} />);
+        return (<NBox content={this.props.content} n={3}/>);
       } else {
-        return (<TwoBox content={this.props.content} />);
+        return (<NBox content={this.props.content} n={2}/>);
       }
   }
 }
@@ -1721,6 +1873,36 @@ TwoOrThreeBox.propTypes = {
 };
 TwoOrThreeBox.defaultProps = {
   threshhold: 500
+};
+
+
+const ResponsiveNBox = ({content}) => {
+
+  const initialWidth = window.innerWidth;
+  const [width, setWidth] = useState(initialWidth);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    deriveAndSetWidth();
+    window.addEventListener("resize", deriveAndSetWidth);
+    return () => {
+        window.removeEventListener("resize", deriveAndSetWidth);
+    }
+  }, []);
+
+  const deriveAndSetWidth = () => {
+    setWidth(window.innerWidth);
+  }
+
+  const threshold_2 = 500; //above threshold_2, there will be 2 columns
+  const threshold_3 = 1500; //above threshold_3, there will be 3 columns
+  if (width > threshold_3) {
+    return (<NBox content={content} n={3}/>);
+  } else if (width > threshold_2) {
+    return (<NBox content={content} n={2}/>);
+  } else {
+    return (<NBox content={content} n={1}/>);
+  }
 };
 
 
@@ -1741,7 +1923,7 @@ class Dropdown extends Component {
   }
   render() {
     return (
-        <div className="dropdown sans">
+        <div className="dropdown sans-serif">
           <div className="dropdownMain noselect" onClick={this.toggle}>
             <i className="dropdownOpenButton noselect fa fa-caret-down"></i>
             {this.state.selected ? this.state.selected.label : this.props.placeholder }
@@ -1772,10 +1954,12 @@ class LoadingMessage extends Component {
   render() {
     var message = this.props.message || "Loading...";
     var heMessage = this.props.heMessage || "טוען מידע...";
-    var classes = "loadingMessage " + (this.props.className || "");
+    var classes = "loadingMessage sans-serif " + (this.props.className || "");
     return (<div className={classes}>
-              <span className="int-en">{message}</span>
-              <span className="int-he">{heMessage}</span>
+              <InterfaceText>
+                <EnglishText>{message}</EnglishText>
+                <HebrewText>{heMessage}</HebrewText>
+              </InterfaceText>
             </div>);
   }
 }
@@ -1786,36 +1970,15 @@ LoadingMessage.propTypes = {
 };
 
 
-class TestMessage extends Component {
-  // Modal explaining development status with links to send feedback or go back to the old site
-  render() {
-    return (
-      <div className="testMessageBox">
-        <div className="overlay" onClick={this.props.hide} ></div>
-        <div className="testMessage">
-          <div className="title">The new Sefaria is still in development.<br />Thank you for helping us test and improve it.</div>
-          <a href="mailto:hello@sefaria.org" target="_blank" className="button">Send Feedback</a>
-          <div className="button" onClick={null} >Return to Old Sefaria</div>
-        </div>
-      </div>);
-  }
-}
-TestMessage.propTypes = {
-  hide:   PropTypes.func
-};
-
-
 class CategoryAttribution extends Component {
   render() {
     var attribution = Sefaria.categoryAttribution(this.props.categories);
     if (!attribution) { return null; }
     var linkedContent = <a href={attribution.link}>
-                          <span className="en">{attribution.english}</span>
-                          <span className="he">{attribution.hebrew}</span>
+                          <ContentText text={{en: attribution.english, he: attribution.hebrew }} defaultToInterfaceOnBilingual={true} />
                         </a>;
     var unlinkedContent = <span>
-                            <span className="en">{attribution.english}</span>
-                            <span className="he">{attribution.hebrew}</span>
+                            <ContentText text={{en: attribution.english, he: attribution.hebrew }} defaultToInterfaceOnBilingual={true} />
                           </span>;
     return <div className="categoryAttribution">
             {this.props.linked ? linkedContent : unlinkedContent}
@@ -1840,7 +2003,7 @@ class SheetTopicLink extends Component {
     const { slug, en, he } = this.props.topic;
     return (
       <a href={`/topics/${slug}`} onClick={this.handleTagClick}>
-        <InterfaceTextWithFallback en={en} he={he} />
+        <InterfaceText text={{en:en, he:he}} />
       </a>
     );
   }
@@ -1858,7 +2021,6 @@ SheetTopicLink.propTypes = {
 class SheetAccessIcon extends Component {
   render() {
     var sheet = this.props.sheet;
-    var msg = "group" in sheet ? "Listed for Group members only" : "Private";
     return (sheet.status == "unlisted") ?
       (<i className="fa fa-lock" title={msg}></i>)
       : null;
@@ -1966,7 +2128,7 @@ class FeedbackBox extends Component {
 
              <div className="button" role="button" onClick={() => this.sendFeedback()}>
                  <span className="int-en">Submit</span>
-                 <span className="int-he">שלח</span>
+                 <span className="int-he">שליחה</span>
              </div>
         </div>
     );
@@ -2009,7 +2171,7 @@ ReaderMessage.propTypes = {
 class CookiesNotification extends Component {
   constructor(props) {
     super(props);
-    const showNotification = !Sefaria._debug && Sefaria._inBrowser && !document.cookie.includes("cookiesNotificationAccepted");
+    const showNotification = /*!Sefaria._debug && */Sefaria._inBrowser && !document.cookie.includes("cookiesNotificationAccepted");
 
     this.state = {showNotification: showNotification};
   }
@@ -2027,8 +2189,10 @@ class CookiesNotification extends Component {
             <span className='int-en button small white' onClick={this.setCookie}>OK</span>
           </span>
           <span className="int-he">
-            <span>אנחנו משתמשים בעוגיות כדי לתת למשתמשים את חווית השימוש הטובה ביותר. <a href="/privacy-policy">קרא עוד בנושא</a>.</span>
-            <span className='int-he button small white' onClick={this.setCookie}>אישור</span>
+            <span>אנחנו משתמשים ב"עוגיות" כדי לתת למשתמשים את חוויית השימוש הטובה ביותר.
+              <a href="/privacy-policy">קראו עוד בנושא</a>
+            </span>
+            <span className='int-he button small white' onClick={this.setCookie}>לחצו כאן לאישור</span>
           </span>
 
        </div>
@@ -2036,65 +2200,58 @@ class CookiesNotification extends Component {
   }
 }
 
+
 const SheetTitle = (props) => (
-        <div className={`title ${props.empty ? 'empty': ''}`} role="heading" aria-level="1" style={{"direction": Sefaria.hebrew.isHebrew(props.title.stripHtml().replace(/&amp;/g, '&')) ? "rtl" :"ltr"}}>
-            {props.children? props.children : props.title.stripHtmlKeepLineBreaks()}
-        </div>
-    )
+  <span className="title"
+    role="heading"
+    aria-level="1"
+    contentEditable={props.editable}
+    suppressContentEditableWarning={true}
+    onBlur={props.editable ? props.blurCallback : null}
+    style={{"direction": Sefaria.hebrew.isHebrew(props.title.stripHtml()) ? "rtl" :"ltr"}}
+  >
+  {props.title ? props.title.stripHtmlConvertLineBreaks() : ""}
+  </span>
+);
 SheetTitle.propTypes = {
-    title:          PropTypes.string,
+  title: PropTypes.string,
 };
+
 
 const SheetAuthorStatement = (props) => (
-    <div className="authorStatement" contentEditable={false} style={{ userSelect: 'none' }}>
-          {props.children}
-    </div>
-)
-
+  <div className="authorStatement sans-serif" contentEditable={false} style={{ userSelect: 'none' }}>
+    {props.children}
+  </div>
+);
 SheetAuthorStatement.propTypes = {
-    authorImage:      PropTypes.string,
-    authorStatement:  PropTypes.string,
-    authorUrl:        PropTypes.string,
-};
-
-const GroupStatement = (props) => (
-    props.group && props.group != "" ?
-        <div className="groupStatement" contentEditable={false} style={{ userSelect: 'none' }}>
-          <div className="groupListingImageBox imageBox">
-            <a href={"/groups/" + props.group.replace(/-/g, "-")}>
-              <img className="groupListingImage img-circle" src={props.groupLogo} alt="Group Logo"/>
-            </a>
-          </div>
-          <a href={"/groups/" + props.group.replace(/ /g, "-")}>{props.children ? props.children : props.group}</a>
-        </div> 
-        : 
-        <div className="groupStatement" contentEditable={false} style={{ userSelect: 'none', display: 'none' }}>
-          {props.children}
-        </div>
-
-)
-
-GroupStatement.propTypes = {
-    group:      PropTypes.string,
-    groupLogo:  PropTypes.string,
+  authorImage:      PropTypes.string,
+  authorStatement:  PropTypes.string,
+  authorUrl:        PropTypes.string,
 };
 
 
-const SheetMetaDataBox = (props) => (
-    <div className="sheetMetaDataBox">
-      {props.children}
+const CollectionStatement = ({name, slug, image, children}) => (
+  slug ?
+    <div className="collectionStatement sans-serif" contentEditable={false} style={{ userSelect: 'none' }}>
+      <div className="collectionListingImageBox imageBox">
+        <a href={"/collections/" + slug}>
+          <img className={classNames({collectionListingImage:1, "img-circle": 1, default: !image})} src={image || "/static/icons/collection.svg"} alt="Collection Logo"/>
+        </a>
+      </div>
+      <a href={"/collections/" + slug}>{children ? children : name}</a>
+    </div>
+    :
+    <div className="collectionStatement sans-serif" contentEditable={false} style={{ userSelect: 'none', display: 'none' }}>
+      {children}
     </div>
 );
 
-SheetMetaDataBox.propTypes = {
-    title:          PropTypes.string,
-    authorUrl:      PropTypes.string,
-    authorImage:    PropTypes.string,
-    authorStatement:PropTypes.string,
-    group:          PropTypes.string,
-    groupLogo:      PropTypes.string,
-};
 
+const SheetMetaDataBox = (props) => (
+  <div className="sheetMetaDataBox">
+    {props.children}
+  </div>
+);
 
 
 export {
@@ -2105,6 +2262,7 @@ export {
   BlockLink,
   CategoryColorLine,
   CategoryAttribution,
+  CollectionStatement,
   CookiesNotification,
   Dropdown,
   DropdownButton,
@@ -2114,12 +2272,16 @@ export {
   FilterableList,
   GlobalWarningMessage,
   InterruptingMessage,
-  InterfaceTextWithFallback,
+  InterfaceText,
+  ContentText,
+  EnglishText,
+  HebrewText,
   LanguageToggleButton,
   Link,
   LoadingMessage,
   LoadingRing,
   LoginPrompt,
+  NBox,
   NewsletterSignUpForm,
   Note,
   ProfileListing,
@@ -2139,15 +2301,12 @@ export {
   SheetTopicLink,
   TabView,
   TextBlockLink,
-  TestMessage,
-  ThreeBox,
   ToggleSet,
   ToolTipped,
-  TwoBox,
   TwoOrThreeBox,
+  ResponsiveNBox,
   SheetMetaDataBox,
   SheetAuthorStatement,
   SheetTitle,
-  GroupStatement,
   InterfaceLanguageMenu,
 };

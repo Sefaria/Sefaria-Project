@@ -1,9 +1,8 @@
 # An example of settings needed in a local_settings.py file.
 # copy this file to sefaria/local_settings.py and provide local info to run.
-import os.path
 from datetime import timedelta
-relative_to_abs_path = lambda *x: os.path.join(os.path.dirname(
-                               os.path.realpath(__file__)), *x)
+import structlog
+import sefaria.system.logging as sefaria_logging
 
 # These are things you need to change!
 
@@ -49,20 +48,45 @@ ADMINS = (
 )
 PINNED_IPCOUNTRY = "IL" #change if you want parashat hashavua to be diaspora.
 
+""" These are some examples of possible caches. more here: https://docs.djangoproject.com/en/1.11/topics/cache/"""
 CACHES = {
-    'default': {
+    "shared": {
         'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
-    }
+    },
+    "default": {
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+    },
 }
-""" These are some other examples of possible caches. more here: https://docs.djangoproject.com/en/1.11/topics/cache/"""
-"""CACHES = {
+"""
+CACHES = {
+    'shared': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': '/home/ephraim/www/sefaria/django_cache/',
+    },
     'default': {
         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
         'LOCATION': '/home/ephraim/www/sefaria/django_cache/',
     }
 }
+"""
 
+SESSION_CACHE_ALIAS = "default"
+USER_AGENTS_CACHE = 'default'
+SHARED_DATA_CACHE_ALIAS = 'shared'
+
+"""THIS CACHE DEFINITION IS FOR USE WITH NODE AND SERVER SIDE RENDERING"""
+"""
 CACHES = {
+    "shared": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1", #The URI used to look like this "127.0.0.1:6379:0"
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            #"SERIALIZER": "django_redis.serializers.json.JSONSerializer", #this is the default, we override it to ensure_ascii=False
+            "SERIALIZER": "sefaria.system.serializers.JSONSerializer",
+        },
+        "TIMEOUT": None,
+    },
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": "redis://127.0.0.1:6379/0", #The URI used to look like this "127.0.0.1:6379:0"
@@ -71,8 +95,9 @@ CACHES = {
             #"PASSWORD": "secretpassword", # Optional
         },
         "TIMEOUT": 60 * 60 * 24 * 30,
-    }
-}"""
+    },
+}
+"""
 
 SITE_PACKAGE = "sites.sefaria"
 
@@ -88,14 +113,13 @@ ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]']
 OFFLINE = False
 DOWN_FOR_MAINTENANCE = False
 MAINTENANCE_MESSAGE = ""
-GLOBAL_WARNING = False
-GLOBAL_WARNING_MESSAGE = ""
 
 # GLOBAL_INTERRUPTING_MESSAGE = None
 """
 GLOBAL_INTERRUPTING_MESSAGE = {
     "name":       "messageName",
     "repetition": 1,
+    "is_fundraising": True,
     "style":      "modal" # "modal" or "banner"
     "condition":  {"returning_only": True}
 }
@@ -128,22 +152,15 @@ SEFARIA_DB_PASSWORD = ''
 APSCHEDULER_NAME = "apscheduler"
 
 # ElasticSearch server
-SEARCH_HOST = "http://localhost:9200"
 SEARCH_ADMIN = "http://localhost:9200"
-SEARCH_ADMIN_USER = None  # if not None, use these credentials to access SEARCH_ADMIN
-SEARCH_ADMIN_PW = None
-SEARCH_ADMIN_K8S = "http://localhost:9200"
 SEARCH_INDEX_ON_SAVE = False  # Whether to send texts and source sheet to Search Host for indexing after save
-SEARCH_INDEX_NAME = 'sefaria'
 SEARCH_INDEX_NAME_TEXT = 'text'  # name of the ElasticSearch index to use
 SEARCH_INDEX_NAME_SHEET = 'sheet'
-SEARCH_INDEX_NAME_MERGED = 'merged'
 
 # Node Server
 USE_NODE = False
 NODE_HOST = "http://localhost:4040"
 NODE_TIMEOUT = 10
-# NODE_TIMEOUT_MONITOR = relative_to_abs_path("../log/forever/timeouts")
 
 SEFARIA_DATA_PATH = '/path/to/your/Sefaria-Data' # used for Data
 SEFARIA_EXPORT_PATH = '/path/to/your/Sefaria-Data/export' # used for exporting texts
@@ -181,6 +198,10 @@ USE_VARNISH_ESI = False
 # Prevent modification of Index records
 DISABLE_INDEX_SAVE = False
 
+# Turns off search autocomplete suggestions, which are reinitialized on every server reload
+# which can be annoying for local development. 
+DISABLE_AUTOCOMPLETER = False
+
 # Caching with Cloudflare
 CLOUDFLARE_ZONE = ""
 CLOUDFLARE_EMAIL = ""
@@ -205,7 +226,6 @@ GOOGLE_APPLICATION_CREDENTIALS_FILEPATH = ""
 GEOIP_DATABASE = 'data/geoip/GeoLiteCity.dat'
 GEOIPV6_DATABASE = 'data/geoip/GeoLiteCityv6.dat'
 
-PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE = None
 
 # Simple JWT
 SIMPLE_JWT = {
@@ -219,105 +239,52 @@ SIMPLE_JWT = {
 # using our API outside of the app. Mainly for registration
 MOBILE_APP_KEY = "MOBILE_APP_KEY"
 
-""" to use logging, in any module:
-# import the logging library
-import logging
-
-# Get an instance of a logger
-logger = logging.getLogger(__name__)
-
-#log stuff
-logger.critical()
-logger.error()
-logger.warning()
-logger.info()
-logger.debug()
-
-if you are logging to a file, make sure the directory exists and is writeable by the server.
-"""
-
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
-        'standard': {
-            'format': '%(asctime)s - %(levelname)s %(name)s: %(message)s'
+        "json_formatter": {
+            "()": structlog.stdlib.ProcessorFormatter,
+            "processor": structlog.processors.JSONRenderer(),
         },
-        'simple': {
-            'format': '%(levelname)s %(message)s'
-        },
-        'verbose': {
-            'format': '%(asctime)s - %(levelname)s: [%(name)s] %(process)d %(thread)d %(message)s'
-        },
-
-    },
-    'filters': {
-        'require_debug_false': {
-            '()': 'django.utils.log.RequireDebugFalse'
-        },
-        'require_debug_true': {
-            '()': 'django.utils.log.RequireDebugTrue'
-        }
     },
     'handlers': {
         'default': {
-            'level':'INFO',
-            'class':'logging.handlers.RotatingFileHandler',
-            'filename': relative_to_abs_path('../log/sefaria.log'),
-            'maxBytes': 1024*1024*5, # 5 MB
-            'backupCount': 5,
-            'formatter':'standard',
+            "class": "logging.StreamHandler",
+            "formatter": "json_formatter",
         },
-        'custom_debug' :{
-            'level':'DEBUG',
-            'class':'logging.handlers.RotatingFileHandler',
-            'filename': relative_to_abs_path('../log/debug.log'),
-            'maxBytes': 1024*1024*5, # 5 MB
-            'backupCount': 5,
-            'formatter':'verbose',
-            'filters': ['require_debug_true'],
-        },
-        'console':{
-            'level':'INFO',
-            'class':'logging.StreamHandler',
-            'formatter': 'simple',
-            'filters': ['require_debug_true'],
-        },
-
-        'null': {
-            'level':'INFO',
-            'class':'logging.NullHandler',
-        },
-
-        'mail_admins': {
-            'level': 'ERROR',
-            'filters': ['require_debug_false'],
-            'class': 'django.utils.log.AdminEmailHandler'
-        },
-        'request_handler': {
-            'level':'INFO',
-            'class':'logging.handlers.RotatingFileHandler',
-            'filename': relative_to_abs_path('../log/django_request.log'),
-            'maxBytes': 1024*1024*5, # 5 MB
-            'backupCount': 20,
-            'formatter':'standard',
-        }
     },
     'loggers': {
         '': {
-            'handlers': ['default', 'console', 'custom_debug'],
-            'level': 'DEBUG',
-            'propagate': True
+            'handlers': ['default'],
+            'propagate': False,
         },
         'django': {
-            'handlers': ['null'],
+            'handlers': ['default'],
             'propagate': False,
-            'level': 'INFO',
         },
         'django.request': {
-            'handlers': ['mail_admins', 'request_handler'],
-            'level': 'INFO',
-            'propagate': True,
+            'handlers': ['default'],
+            'propagate': False,
         },
     }
 }
+
+structlog.configure(
+    processors=[
+        structlog.stdlib.filter_by_level,
+        structlog.processors.TimeStamper(fmt="iso"),
+        structlog.stdlib.add_logger_name,
+        sefaria_logging.add_severity,
+        structlog.stdlib.PositionalArgumentsFormatter(),
+        structlog.processors.StackInfoRenderer(),
+        sefaria_logging.log_exception_info,
+        structlog.processors.UnicodeDecoder(),
+        sefaria_logging.decompose_request_info,
+        structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
+    ],
+    context_class=structlog.threadlocal.wrap_dict(dict),
+    logger_factory=structlog.stdlib.LoggerFactory(),
+    wrapper_class=structlog.stdlib.BoundLogger,
+    cache_logger_on_first_use=True,
+)

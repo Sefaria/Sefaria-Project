@@ -317,38 +317,7 @@ body.bilingual #about.enLocked.heLocked #editText {
 	height: 1px;
 	background: black;
 }
-		
-.button {
-	font-weight: bold;
-	font-size: 16px;
-	height: 20px;
-	padding: 0px 12px;
-	margin: 5px 6px;
-	display: block;
-	float: right;
-	letter-spacing: 1px;
-	text-align: center;
-	vertical-align: center;
-	border-radius: 4px;
-	border: 1px solid #aaa;
-	box-shadow: 2px 2px 3px #333333;
-}
 
-
-.button:hover {
-	background: #ccc;
-	cursor: pointer;
-}
-
-.button.inactive {
-	color: #999;
-}
-
-.button.inactive:hover {
-	background: transparent;
-	cursor: normal;
-	
-}
 
 .btn.inactive {
 	display: none;

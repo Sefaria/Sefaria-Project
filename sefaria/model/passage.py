@@ -1,8 +1,8 @@
 # coding=utf-8
 from . import abstract as abst
 from . import text
-import logging
-logger = logging.getLogger(__name__)
+import structlog
+logger = structlog.get_logger(__name__)
 
 
 class Passage(abst.AbstractMongoRecord):

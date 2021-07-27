@@ -13,10 +13,6 @@ import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Component      from 'react-class';
 
-const noGroupEn = '(No Group)';
-const noGroupHe = '(ללא קבוצה)';
-const noTagsEn = '(No Tag)';
-const noTagsHe = '(ללא תוית)';
 
 class SearchFilters extends Component {
   constructor(props) {
@@ -164,7 +160,7 @@ class SearchFilters extends Component {
           { (this.props.isQueryRunning) ? runningQueryLine : null }
           { (this.props.searchState.availableFilters.length > 0) ? selected_filters : ""}
         </div>
-        <div className="searchButtonsBar">
+        <div className="searchButtonsBar sans-serif">
           { buttons }
           <div className="filterSortFlexbox">
             {filter_panel}
@@ -230,9 +226,8 @@ class SheetSearchFilterPanel extends Component {
     }
   }
   render() {
-    const groupFilters = this.props.availableFilters.filter(filter => filter.aggType === 'group');
+    const collectionFilters = this.props.availableFilters.filter(filter => filter.aggType === 'collections' && filter.title);
     const tagFilters = this.props.availableFilters.filter(filter => filter.aggType.match(/^topics/));
-
 
     return (
       <DropdownModal positionUnset={true} close={this.props.closeBox} isOpen={this.props.displayFilters}>
@@ -245,13 +240,13 @@ class SheetSearchFilterPanel extends Component {
         {this.props.displayFilters ? 
         <div key={this.state.activeTab} className="searchFilterBoxes" role="dialog">
           <SearchFilterTabRow
-            tabs={[ {en: 'Topics', he: 'נושאים'}, {en: 'Groups', he: 'קבוצות'}]}
+            tabs={[ {en: 'Topics', he: 'נושאים'}, {en: 'Collections', he: 'אסופות'}]}
             activeTab={this.state.activeTab}
             changeTab={this.changeTab}
           />
-          { this.state.activeTab === 'Groups' ?
+          { this.state.activeTab === 'Collections' ?
             <div className="searchFilterCategoryBox searchFilterSheetBox">
-            {groupFilters.map(filter => (
+            {collectionFilters.map(filter => (
                   <SearchFilter
                     filter={filter}
                     isInFocus={false}
@@ -467,18 +462,17 @@ class SearchTagFilter extends Component {
   }
   render() {
     const { filter } = this.props;
-    let enTitle = filter.title || filter.heTitle;
-    enTitle = enTitle || noTagsEn;
+    const enTitle = filter.title || filter.heTitle;
+    const heTitle = filter.heTitle || filter.title;
+    if (!enTitle) { return null; } // Don't show option to filter by no topic or no collection
     const enTitleIsHe = !filter.title && !!filter.heTitle;
-    let heTitle = filter.heTitle || filter.title;
-    heTitle = heTitle || noTagsHe;
     const heTitleIsEn = !filter.heTitle && !!filter.title;
 
     const classes = classNames({"type-button": 1, "tag-filter": 1, active: this.state.selected === 1})
     return (
       <div className={classes} onClick={this.handleClick}>
-        <span className={classNames({'int-en': 1, 'but-text-is-he': enTitleIsHe})} dir={enTitleIsHe ? 'rtl' : 'ltr'}><span className="filter-title">{enTitle}</span> <span className="filter-count">({filter.docCount})</span></span>
-        <span className={classNames({'int-he': 1, 'but-text-is-en': heTitleIsEn})} dir={heTitleIsEn ? 'ltr' : 'rtl'}><span className="filter-title">{heTitle}</span> <span className="filter-count">({filter.docCount})</span></span>
+        <span className={classNames({'int-en': 1, 'heInEn': enTitleIsHe})} dir={enTitleIsHe ? 'rtl' : 'ltr'}><span className="filter-title">{enTitle}</span> <span className="filter-count">({filter.docCount})</span></span>
+        <span className={classNames({'int-he': 1, 'enInHe': heTitleIsEn})} dir={heTitleIsEn ? 'ltr' : 'rtl'}><span className="filter-title">{heTitle}</span> <span className="filter-count">({filter.docCount})</span></span>
       </div>
     )
   }
@@ -571,18 +565,16 @@ class SearchFilter extends Component {
   render() {
     const { filter, isInFocus } = this.props;
     let enTitle = filter.title || filter.heTitle;
-    enTitle = enTitle || noGroupEn;
     const enTitleIsHe = !filter.title && !!filter.heTitle;
     let heTitle = filter.heTitle || filter.title;
-    heTitle = heTitle || noGroupHe;
     const heTitleIsEn = !filter.heTitle && !!filter.title;
     return(
       <li className={classNames({active: isInFocus})} onClick={this.handleFocusCategory}>
         <div className="checkboxAndText">
           <input type="checkbox" id={filter.aggKey} className="filter" checked={this.state.selected == 1} onChange={this.handleFilterClick}/>
           <label onClick={this.handleFilterClick} id={"label-for-"+this.props.filter.aggKey} tabIndex="0" onKeyDown={this.handleKeyDown} onKeyPress={this.handleKeyPress} aria-label={"Click enter to toggle search filter for "+filter.title+" and space bar to toggle specific books in this category. Escape exits out of this modal"}><span></span></label>
-          <span className={classNames({'int-en': 1, 'but-text-is-he': enTitleIsHe})} dir={enTitleIsHe ? 'rtl' : 'ltr'}><span className="filter-title">{enTitle}</span>&nbsp;<span className="filter-count">({filter.docCount})</span></span>
-          <span className={classNames({'int-he': 1, 'but-text-is-en': heTitleIsEn})} dir={heTitleIsEn ? 'ltr' : 'rtl'}><span className="filter-title">{heTitle}</span>&nbsp;<span className="filter-count">({filter.docCount})</span></span>
+          <span className={classNames({'int-en': 1, 'heInEn': enTitleIsHe})} dir={enTitleIsHe ? 'rtl' : 'ltr'}><span className="filter-title">{enTitle}</span>&nbsp;<span className="filter-count">({filter.docCount})</span></span>
+          <span className={classNames({'int-he': 1, 'enInHe': heTitleIsEn})} dir={heTitleIsEn ? 'ltr' : 'rtl'}><span className="filter-title">{heTitle}</span>&nbsp;<span className="filter-count">({filter.docCount})</span></span>
         </div>
         {isInFocus?<span className="int-en"><img src="/static/img/arrow-right.png"></img></span>:""}
         {isInFocus?<span className="int-he"><img src="/static/img/arrow-left.png"></img></span>:""}

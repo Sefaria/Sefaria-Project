@@ -21,7 +21,7 @@ First clone the Sefaria-Project repository to a directory on your computer, then
 
 *Note: if you are a developer that might want to contribute code to Sefaria, we suggest first making a fork of this respository by clicking the "Fork" button above when logged in to GitHub.*
 
-*Note for macOS users: Install `Homebrew`*
+*Note for macOS users - Install `Homebrew`:*
 
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
     
@@ -49,14 +49,15 @@ You can use virtualenv functionality while also using Pyenv, this allows you to 
 ###### Unix & Windows
 Instructions [here](https://github.com/pyenv/pyenv-virtualenv#installing-as-a-pyenv-plugin).
 ###### macOS:
-Instructions [here](https://github.com/pyenv/pyenv-virtualenv#installing-with-homebrew-for-macos-users).
+Instructions [here](https://github.com/pyenv/pyenv-virtualenv#installing-with-homebrew-for-macos-users). 
 
 Create [a pyenv virtualenv](https://github.com/pyenv/pyenv-virtualenv#using-pyenv-virtualenv-with-pyenv). 
 
-In your Sefaria directory, run `pyenv local`. This will create a `.python-version` listing ust the version number of the python you created it from. You can then modify it to point at the coorect virtualenv path (e.g. `3.7.5/envs/sefaria-venv
-`). This should also serve to activate the virtualenv whenever you are in the Sefaria directory. 
+In your Sefaria directory, run `pyenv local [venv-name]`. This will create a `.python-version` and write the version name provided to the file (e.g. `3.7.5/envs/sefaria-venv`). This should serve to activate the virtualenv whenever you are in the Sefaria directory. 
 
-*Note: If you are using an IDE like PyCharm, you can (and should) configure the interpreter options on your Sefaria-Project to point to the python executable of this virtualenv (e.g. `~/.pyenv/versions/3.7.5/envs/sefaria-venv/bin/python3.7`)
+*Note: If after following the installation and configuration instructions, running `python -V` still displays the system version, you may have to manually add the shims directory to your path.*
+
+*Note: If you are using an IDE like PyCharm, you can (and should) configure the interpreter options on your Sefaria-Project to point to the python executable of this virtualenv (e.g. `~/.pyenv/versions/3.7.5/envs/sefaria-venv/bin/python3.7`)*
 
 ##### Classic virtualenv
 Install [virtualenv](http://pypi.python.org/pypi/virtualenv) then enter these commands:
@@ -84,7 +85,7 @@ Use instructions [here](http://www.tylerbutler.com/2012/05/how-to-install-python
 
 If you are not using virtualenv, you may have to run it with sudo: `sudo pip install -r requirements.txt`
 
-If you see an error about a missing 'python.h' file, you'll need to install the Python development libraries. 
+*Note: If you see an error about a missing 'python.h' file, you'll need to install the Python development libraries.*
 
 ###### On Debian systems: 
 
@@ -94,7 +95,15 @@ If you see an error about a missing 'python.h' file, you'll need to install the 
 
     sudo dnf install python2-devel libpq-devel
 
-After installing the Python development libraries, run `pip install -r requirements.txt` again.
+
+*Note: If you see an error that `pg_config executable not found`, you need to install PostgreSQL. If on MacOS you see an error while `Building wheel for psycopg2` about `linker command failed with exit code 1`, you may need to add the path to OpenSSL*
+
+```
+export LDFLAGS="-L/usr/local/opt/openssl/lib"
+export CPPFLAGS="-I/usr/local/opt/openssl/include"
+```
+
+After installing the Python development libraries or other dependencies, run `pip install -r requirements.txt` again.
 
 #### 4) Install gettext
 
@@ -149,6 +158,8 @@ The recommended dump (which is of a manageable size) is available [here](https:/
 
 A complete dump is also available [here](https://storage.googleapis.com/sefaria-mongo-backup/dump.tar.gz). The complete dump includes the `history` collections which contains a complete revision history of every text our library. For many applications this data is not relevant. We recommend using the smaller dump unless you're specifically interested in texts revision history within Sefaria.
 
+From MongoDB version 4.4, mongorestore comes separately from the MongoDB server, you'll also need to download the [Database Tools](https://www.mongodb.com/try/download/database-tools?tck=docs_databasetools)
+
 Once you've download and unzipped this content, from the parent directory which contains `dump` run:
 
     mongorestore --drop
@@ -160,7 +171,7 @@ If you have used `dump_small.tar.gz`, use the mongo client shell, or a GUI you h
 #### 9) Set up Django's local server
 
 Sefaria is using Google's reCAPTCHA to verify the user is not a bot. For a deployment you should register and use your own reCAPTCHA keys (https://pypi.org/project/django-recaptcha/#installation).
-For local development the default test keys would suffice. The warning can be suprassed by adding the following to the settings file:
+For local development the default test keys would suffice. The warning can be suprassed by uncommenting the following in the local_settings.py file:
 
     SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
 
@@ -193,17 +204,6 @@ Now download the required Javascript libraries and install some global tools for
     
 If the second command fails, you may have to install using `sudo npm run setup`
 
-The following environment variables, defined in `./node/local_settings.js`, can be set to configure the node instance:
-
-| Env Var | Default | Description |
-|---------|---------|-------------|
-| `DJANGO_HOST` | No default | The hostname of the Django service |
-| `DJANGO_PORT` | `80` | The port used by the Django service | 
-| `NODEJS_PORT` | `3000` | The port to be used by the NodeJs service |
-| `DEBUG` | `false` | Determines whether the NodeJs service should run in debug mode | 
-
-These variables can be set via command line explicitly, or set up to be defined when your machine's shell runs or set up in your IDE settings for running the node server. 
-
     
 #### Run Webpack
 
@@ -220,15 +220,49 @@ to bundle once. To watch the javascript for changes and automatically rebuild, r
 
 Sefaria uses React.js. To render HTML server-side, we use a Node.js server. For development, the site is fully functional without server-side rendering. For deploying in a production environemnet however server side HTML is very important for bots and SEO. 
 
+##### Install Redis
+
+To use server side rendering, you must also install Redis Cache. `brew install redis` or `sudo apt-get install redis`.
+
+To run redis: `redis-server`. On MacOS: `brew services start redis`
+
+
+##### Configure Django and Node to use Redis as a shared data store
+
+**Django**
+
+Update your `local_settings.py` file and replace the `CACHES` variable with the `CACHES` variable meant for server side rendering, commented out in `local_settings_example.py`.
+
+Also make sure the following are set: 
+```
+SESSION_CACHE_ALIAS = "default" #declares where Django's session engine will store data
+USER_AGENTS_CACHE = 'default' #declares where the Django user agent middleware will store data (cannot be JSON encoded!)
+SHARED_DATA_CACHE_ALIAS = 'shared' #Tells the application where to store data placed in cache by `sefaria.system.cache` shared-cache functions
+
+USE_NODE = True
+NODE_HOST = "http://localhost:3000" #Or whatever host and port you set node up to listen on
+
+```
+
+
+**Node**
+
+The following environment variables, defined in `./node/local_settings.js`, can be set to configure the node instance:
+
+| Env Var | Default | Description |
+|---------|---------|-------------|
+| `NODEJS_PORT` | `3000` | The port to be used by the NodeJs service |
+| `DEBUG` | `false` | Determines whether the NodeJs service should run in debug mode | 
+| `REDIS_HOST` | `127.0.0.1` | The Redis instance to point Node to when running |
+| `REDIS_PORT` | `6379` | The Default port Redis listens on | 
+
+
+These variables can be set via command line explicitly, or set up to be defined when your machine's shell runs or set up in your IDE settings for running the node server. 
+
 For development, you can run the Node server using nodemon with:
 
     npm start
     
-You also need to set 
-
-    USE_NODE = True
-    
-in Django's `local_settings.py`. 
 
 To run webpack with server-side rendering, use:
 

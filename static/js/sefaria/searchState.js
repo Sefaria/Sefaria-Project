@@ -131,8 +131,9 @@ class SearchState {
   }
 
   makeURL({ prefix, isStart }) {
-    // prefix: string prepended to every parameter. meant to distinguish between different type of searchState URL parameters (e.g. sheet and text)
-    //         oneOf({'t': 'text', 's': sheet, 'g': group, 'u': user})
+    // prefix: string prepended to every parameter. meant to distinguish between different types
+    //         of searchState URL parameters (e.g. sheet and text)
+    //         oneOf({'t': 'text', 's': sheet, 'c': collection, 'u': user})
     const aggTypes = SearchState.metadataByType[this.type].aggregation_field_array;
     const aggTypesSuffixes = SearchState.metadataByType[this.type].aggregation_field_lang_suffix_array;
     const aggTypesWithSuffixes = []
@@ -195,7 +196,7 @@ SearchState.metadataByType = {
     fieldExact: null,
     fieldBroad: null,
     field: 'content',
-    aggregation_field_array: ['group', 'topics'],
+    aggregation_field_array: ['collections', 'topics'],
     aggregation_field_lang_suffix_array: [null, {'english': '_en', 'hebrew': '_he'}],
     build_and_apply_filters: 'buildAndApplySheetFilters',  // func name from Search.js
     sortType: 'relevance',

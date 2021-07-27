@@ -1,17 +1,19 @@
 import json
 from django.template.loader import render_to_string
+from sefaria.model.user_profile import UserProfile
 
 class InterruptingMessage(object):
   def __init__(self, attrs={}, request=None):
     if attrs is None:
       attrs = {}
-    self.name        = attrs.get("name", None)
-    self.style       = attrs.get("style", "modal")
-    self.repetition  = attrs.get("repetition", 0)
-    self.condition   = attrs.get("condition", {})
-    self.request     = request
-    self.cookie_name = "%s_%d" % (self.name, self.repetition)
-    self.should_show = self.check_condition()
+    self.name           = attrs.get("name", None)
+    self.style          = attrs.get("style", "modal")
+    self.repetition     = attrs.get("repetition", 0)
+    self.is_fundraising = attrs.get("is_fundraising", False)
+    self.condition      = attrs.get("condition", {})
+    self.request        = request
+    self.cookie_name    = "%s_%d" % (self.name, self.repetition)
+    self.should_show    = self.check_condition()
 
   def check_condition(self):
     """Returns true if this interrupting message should be shown given its conditions"""
@@ -53,19 +55,27 @@ class InterruptingMessage(object):
       if not self.request.user.is_authenticated:
         return False
 
+    if self.is_fundraising:
+      if self.request.user.is_authenticated:
+        profile = UserProfile(id=self.request.user.id)
+        if(profile.is_sustainer):
+          return False
+
     return True
 
-  def json(self):
+  def contents(self):
     """
     Returns JSON for this interrupting message which may be just `null` if the
     message should not be shown.
     """
-    if self.should_show:
-      return json.dumps({
+
+    return {
           "name": self.name,
           "style": self.style,
           "html": render_to_string("messages/%s.html" % self.name),
           "repetition": self.repetition
-        })
-    else:
-      return "null"
+    } if self.should_show else None
+
+
+  def json(self):
+    return json.dumps(self.contents())

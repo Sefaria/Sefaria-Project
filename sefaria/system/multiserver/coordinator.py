@@ -7,8 +7,8 @@ from sefaria.settings import MULTISERVER_ENABLED, MULTISERVER_REDIS_EVENT_CHANNE
 
 from .messaging import MessagingNode
 
-import logging
-logger = logging.getLogger("multiserver")
+import structlog
+logger = structlog.get_logger(__name__)
 
 
 class ServerCoordinator(MessagingNode):
@@ -42,22 +42,38 @@ class ServerCoordinator(MessagingNode):
         import socket
         import os
         logger.info("publish_event from {}:{} - {}".format(socket.gethostname(), os.getpid(), msg_data))
-
-        self.redis_client.publish(MULTISERVER_REDIS_EVENT_CHANNEL, msg_data)
+        try:
+            self.redis_client.publish(MULTISERVER_REDIS_EVENT_CHANNEL, msg_data)
+        except Exception:
+            logger.error("Failed to connect to Redis instance while doing message publish.")
+            return
 
         # Since we are subscribed to this channel as well, throw away the message we just sent.
         # It would be nice to assume that nothing new came through in the microseconds that it took to publish ##
         # But the below should insulate against even that case ##
-        popped_msg = self.pubsub.get_message()
+        try:
+            popped_msg = self.pubsub.get_message()
+        except Exception:
+            logger.error("Failed to connect to Redis instance while doing message publish listen.")
+            popped_msg = None
+
         while popped_msg:
             if popped_msg["data"] != msg_data:
                 logger.warning("Multiserver Message collision!")
                 self._process_message(popped_msg)
-            popped_msg = self.pubsub.get_message()
+            try:
+                popped_msg = self.pubsub.get_message()
+            except Exception:
+                logger.error("Failed to connect to Redis instance while doing message publish listen.")
+                popped_msg = None
 
     def sync(self):
         self._check_initialization()
-        msg = self.pubsub.get_message()
+        try:
+            msg = self.pubsub.get_message()
+        except Exception:
+            logger.error("Failed to connect to Redis instance while doing multiserver sync.")
+            return
         if not msg or msg["type"] == "subscribe":
             return
 
@@ -90,6 +106,7 @@ class ServerCoordinator(MessagingNode):
         from sefaria.model import library
         import sefaria.system.cache as scache
         import sefaria.model.text as text
+        from sefaria.system.cache import InMemoryCache as in_memory_cache
 
         import socket
         import os
@@ -126,7 +143,10 @@ class ServerCoordinator(MessagingNode):
         # Send confirmation
         msg_data = json.dumps(confirm_msg)
         logger.info("Sending confirm from {}:{} - {}".format(host, pid, msg["data"]))
-        self.redis_client.publish(MULTISERVER_REDIS_CONFIRM_CHANNEL, msg_data)
+        try:
+            self.redis_client.publish(MULTISERVER_REDIS_CONFIRM_CHANNEL, msg_data)
+        except Exception:
+            logger.error("Failed to connect to Redis instance while doing confirm publish")
 
 
 class MultiServerEventListenerMiddleware(object):

@@ -10,19 +10,18 @@ import random
 from datetime import datetime
 
 from sefaria.utils.hebrew import hebrew_term
-from sefaria.utils.talmud import amud_ref_to_daf_ref
 from sefaria.utils.util import strip_tags
 from sefaria.system.database import db
 from . import abstract as abst
 from . import user_profile
-from . import person
+from . import topic
 from . import text
 from . import following
 from . import ref_data
 from . import passage
 
-import logging
-logger = logging.getLogger(__name__)
+import structlog
+logger = structlog.get_logger(__name__)
 
 
 class Story(abst.AbstractMongoRecord):
@@ -110,9 +109,9 @@ class Story(abst.AbstractMongoRecord):
                     sheet_dict.update(self.publisher_metadata(sheet_dict["publisher_id"]))
 
         if "author_key" in d:
-            p = person.Person().load({"key": d["author_key"]})
-            d["author_names"] = {"en": p.primary_name("en"), "he": p.primary_name("he")}
-            d["author_bios"] = {"en": p.enBio, "he": p.heBio}
+            p = topic.Topic.init(d["author_key"])
+            d["author_names"] = {"en": p.get_primary_title("en"), "he": p.get_primary_title("he")}
+            d["author_bios"] = p.description
 
         return c
 
@@ -728,9 +727,9 @@ class AuthorStoryFactory(AbstractStoryFactory):
     def _data_object(cls, **kwargs):
         prs = kwargs.get("person")
         if isinstance(prs, str):
-            prs = person.Person().load({"key": prs})
-        assert isinstance(prs, person.Person)
-        return {"author_key": prs.key, "example_work": random.choice(prs.get_indexes()).title}
+            prs = topic.Topic.init(prs)
+        assert isinstance(prs, topic.Topic)
+        return {"author_key": prs.slug, "example_work": random.choice(prs.get_authored_indexes()).title}
 
     @classmethod
     def _story_form(cls, **kwargs):
@@ -745,7 +744,7 @@ class AuthorStoryFactory(AbstractStoryFactory):
     @classmethod
     def _select_random_person(cls):
         eras = ["GN", "RI", "AH", "CO"]
-        ps = person.PersonSet({"era": {"$in": eras}})
+        ps = topic.TopicSet({"properties.era.value": {"$in": eras}})
 
         p = random.choice(ps)
         while not cls._can_use_person(p):
@@ -757,13 +756,13 @@ class AuthorStoryFactory(AbstractStoryFactory):
 
     @classmethod
     def _can_use_person(cls, p):
-        if not isinstance(p, person.Person):
+        if not isinstance(p, topic.Topic):
             return False
         if not p.has_indexes():
             return False
-        if not getattr(p, "enBio", False):
+        if not getattr(p, "description", {}).get('en', False):
             return False
-        if not getattr(p, "heBio", False):
+        if not getattr(p, "description", {}).get('he', False):
             return False
 
         return True
@@ -797,15 +796,15 @@ class UserSheetsFactory(AbstractStoryFactory):
         story = cls._generate_user_story(uid=uid, author_uid=author_uid, **kwargs)
         story.save()
 
-class GroupSheetListFactory(AbstractStoryFactory):
+class CollectionSheetListFactory(AbstractStoryFactory):
     """
         "title" : {
             "he"
             "en"
         }
-        "group_image"
-        "group_url"
-        "group_name"
+        "collection_image"
+        "collection_url"
+        "collection_name"
         "sheet_ids"
         "sheets" (derived)
             [{"sheet_id"
@@ -824,16 +823,16 @@ class GroupSheetListFactory(AbstractStoryFactory):
     """
     @classmethod
     def _data_object(cls, **kwargs):
-        from sefaria.model.group import Group
+        from sefaria.model.collection import Collecion
         sheet_ids = kwargs.get("sheet_ids")
-        g = Group().load({"name": kwargs.get("group_name")})
-        assert g
+        c = Collection().load({"slug": kwargs.get("collection_slug")})
+        assert c
 
         d = {
             "sheet_ids": sheet_ids,
-            "group_image": getattr(g, "imageUrl", ""),
-            "group_url": g.url,
-            "title": kwargs.get("title",{"en": g.name, "he": g.name}),
+            "collection_image": getattr(c, "imageUrl", ""),
+            "collection_url": c.url,
+            "title": kwargs.get("title",{"en": c.name, "he": c.name}),
             "cozy": kwargs.get("cozy", False)
         }
         if kwargs.get("lead") and kwargs.get("lead").get("en") and kwargs.get("lead").get("he"):
@@ -842,16 +841,16 @@ class GroupSheetListFactory(AbstractStoryFactory):
 
     @classmethod
     def _story_form(cls, **kwargs):
-        return "groupSheetList"
+        return "collectionSheetList"
 
     @classmethod
-    def create_shared_story(cls, group_name, sheet_ids, **kwargs):
-        story = cls._generate_shared_story(group_name=group_name, sheet_ids=sheet_ids, **kwargs)
+    def create_shared_story(cls, collection_slug, sheet_ids, **kwargs):
+        story = cls._generate_shared_story(collection_slug=collection_slug, sheet_ids=sheet_ids, **kwargs)
         story.save()
 
     @classmethod
-    def create_user_story(cls, uid, group_name, sheet_ids, **kwargs):
-        story = cls._generate_user_story(uid=uid, group_name=group_name, sheet_ids=sheet_ids, **kwargs)
+    def create_user_story(cls, uid, collection_slug, sheet_ids, **kwargs):
+        story = cls._generate_user_story(uid=uid, collection_slug=collection_slug, sheet_ids=sheet_ids, **kwargs)
         story.save()
 
     @classmethod
@@ -861,7 +860,7 @@ class GroupSheetListFactory(AbstractStoryFactory):
             from sefaria.utils.calendars import make_parashah_response_from_calendar_entry
             cal = make_parashah_response_from_calendar_entry(parasha_obj)[0]
 
-            sheets = db.sheets.find({"status": "public", "group": "גיליונות נחמה", "tags": parasha_obj["parasha"]}, {"id": 1})
+            sheets = db.sheets.find({"status": "public", "displayedCollection": "גיליונות-נחמה", "tags": parasha_obj["parasha"]}, {"id": 1})
             sheets = [s for s in sheets]
             selected = random.sample(sheets, 3)
             if len(selected) < 3:
@@ -873,7 +872,7 @@ class GroupSheetListFactory(AbstractStoryFactory):
             cls.generate_story(
                 sheet_ids=[s["id"] for s in selected],
                 cozy=True,
-                group_name="גיליונות נחמה",
+                collection_slug="גיליונות-נחמה",
                 title={"en": "Nechama on " + cal["displayValue"]["en"], "he": "נחמה על " + cal["displayValue"]["he"]},
                 lead={"en": "Weekly Torah Portion", "he": 'פרשת השבוע'},
                 mustHave=mustHave,
@@ -1121,7 +1120,7 @@ class TopicTextsStoryFactory(AbstractStoryFactory):
 def daf_yomi_ref():
     from sefaria.utils.calendars import get_keyed_calendar_items
     cal = get_keyed_calendar_items()["Daf Yomi"]
-    daf_ref = amud_ref_to_daf_ref(text.Ref(cal["ref"]))
+    daf_ref = text.Ref(cal["ref"])
     return daf_ref
 
 def daf_yomi_display_value():

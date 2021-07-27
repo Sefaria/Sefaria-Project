@@ -15,8 +15,8 @@ from sefaria.utils.util import graceful_exception
 from sefaria.utils.hebrew import encode_hebrew_numeral, hebrew_parasha_name
 from sefaria.site.site_settings import SITE_SETTINGS
 
-import logging
-logger = logging.getLogger(__name__)
+import structlog
+logger = structlog.get_logger(__name__)
 
 
 """
@@ -51,19 +51,17 @@ def daf_yomi(datetime_obj):
     """
     date_str = datetime_obj.strftime(" %m/ %d/%Y").replace(" 0", "").replace(" ", "")
     daf = db.dafyomi.find_one({"date": date_str})
+    daf_en, daf_he = None, None
+    if 'displayValue' in daf:
+        daf_en, daf_he = daf['displayValue'].get('en', None), daf['displayValue'].get('he', None)
     daf_str = [daf["daf"]] if isinstance(daf["daf"], str) else daf["daf"]
     daf_yomi = []
     for d in daf_str:
         rf = model.Ref(d)
-        if rf.index.get_primary_category() == "Talmud":
-            displayVal = rf.normal()[:-1] #remove the a
-            heDisplayVal = rf.he_normal()[:-2] #remove the alef and the space before it
-        else:
-            displayVal = rf.normal()
-            heDisplayVal = rf.he_normal()
+
         daf_yomi.append({
             'title': {'en': 'Daf Yomi', 'he': 'דף יומי'},
-            'displayValue': {'en': displayVal, 'he': heDisplayVal},
+            'displayValue': {'en': daf_en if daf_en else rf.normal(), 'he': daf_he if daf_he else rf.he_normal()},
             'url': rf.url(),
             'ref': rf.normal(),
             'order': 3,
@@ -104,6 +102,26 @@ def daily_rambam(datetime_obj):
         'category': rf.index.get_primary_category()
     }]
 
+@graceful_exception(logger=logger, return_value=[])
+def arukh_hashulchan(datetime_obj):
+    items = []
+    datetime_obj = datetime.datetime(datetime_obj.year, datetime_obj.month, datetime_obj.day)
+    database_obj = db.arukh_hashulchan.find_one({"date": {"$eq": datetime_obj}})
+    if not database_obj:
+        return []
+    rf = database_obj["refs"]
+    rf = model.Ref(rf)
+    display_en = rf.normal()
+    display_he = rf.he_normal()
+    items.append({
+        "title": {"en": "Arukh HaShulchan Yomi", "he": 'ערוך השולחן היומי'},
+        "displayValue": {"en": display_en.replace("Arukh HaShulchan, ", ""), "he": display_he.replace("ערוך השולחן, ", "")},
+        "url": rf.url(),
+        "ref": rf.normal(),
+        "order": 10,
+        "category": rf.index.get_primary_category()
+    })
+    return items
 
 @graceful_exception(logger=logger, return_value=[])
 def daily_rambam_three(datetime_obj):
@@ -128,6 +146,27 @@ def daily_rambam_three(datetime_obj):
 
 
 @graceful_exception(logger=logger, return_value=[])
+def tanakh_yomi(datetime_obj):
+    tanakh_items = []
+    datetime_obj = datetime.datetime(datetime_obj.year, datetime_obj.month, datetime_obj.day)
+    database_obj = db.tanakh_yomi.find_one({"date": {"$eq": datetime_obj}})
+    if not database_obj:
+        return []
+    rf = database_obj["ref"]
+    rf = model.Ref(rf)
+    display_en = database_obj["displayValue"]
+    display_he = database_obj["heDisplayValue"]
+    tanakh_items.append({
+        "title": {"en": "Tanakh Yomi", "he": 'תנ"ך יומי'},
+        "displayValue": {"en": display_en, "he": display_he},
+        "url": rf.url(),
+        "ref": rf.normal(),
+        "order": 11,
+        "category": rf.index.get_primary_category()
+    })
+    return tanakh_items
+
+@graceful_exception(logger=logger, return_value=[])
 def daf_weekly(datetime_obj):
     """
     :param datetime.datetime datetime_obj:
@@ -149,15 +188,9 @@ def daf_weekly(datetime_obj):
 
     for d in daf_str:
         rf = model.Ref(d)
-        display_val = rf.normal()
-        he_display_val = rf.he_normal()
-        if rf.index.get_primary_category() == "Talmud":
-            display_val = display_val[:-1]  # remove the a
-            he_display_val = he_display_val[:-2]  # remove the alef and the space before it
-
         daf_weekly_list.append({
             "title": {"en": "Daf a Week", "he": "דף השבוע"},
-            "displayValue": {"en": display_val, "he": he_display_val},
+            "displayValue": {"en": rf.normal(), "he": rf.he_normal()},
             "url": rf.url(),
             "ref": rf.normal(),
             "order": 8,
@@ -244,6 +277,7 @@ def get_parasha(datetime_obj, diaspora=True, parasha=None):
     """
     Returns the upcoming Parasha for datetime.
     """
+    datetime_obj = datetime.datetime(datetime_obj.year, datetime_obj.month, datetime_obj.day)
     query = {"date": {"$gte": datetime_obj}, "diaspora": {'$in': [diaspora, None]}}
     if parasha is not None:
         # regex search for potential double parasha. there can be dash before or after name
@@ -289,6 +323,8 @@ def get_all_calendar_items(datetime_obj, diaspora=True, custom="sephardi"):
     cal_items += daily_rambam_three(datetime_obj)
     cal_items += daf_weekly(datetime_obj)
     cal_items += halakhah_yomit(datetime_obj)
+    cal_items += arukh_hashulchan(datetime_obj)
+    cal_items += tanakh_yomi(datetime_obj)
     cal_items = [item for item in cal_items if item]
     return cal_items
 
@@ -301,3 +337,17 @@ def get_keyed_calendar_items(diaspora=True, custom=None):
 
 def get_todays_calendar_items(diaspora=True, custom=None):
     return get_all_calendar_items(timezone.localtime(timezone.now()), diaspora=diaspora, custom=custom)
+
+
+
+def verify_parashah_topics_exist():
+    """Checks that topics exist corresponding to every entry in the parshiot collection"""
+    missing = False
+    parshiot = db.parshiot.distinct("parasha")
+    for parashah in parshiot:
+        if not model.Topic().load({"parasha": parashah}):
+            missing = True
+            print("Missing parashah topic for: {}".format(parashah))
+
+    if not missing:
+        print("All parashahs in the parshiot collection have corresponding topics.")

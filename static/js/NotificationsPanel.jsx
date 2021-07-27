@@ -31,7 +31,7 @@ class NotificationsPanel extends Component {
   handleScroll() {
     if (this.state.loadedToEnd || this.state.loading) { return; }
     var $scrollable = $(ReactDOM.findDOMNode(this)).find(".content");
-    var margin = 100;
+    var margin = 600;
     if($scrollable.scrollTop() + $scrollable.innerHeight() + margin >= $scrollable[0].scrollHeight) {
       this.getMoreNotifications();
     }
@@ -72,8 +72,8 @@ class NotificationsPanel extends Component {
               <span className="int-en">Notifications</span>
               <span className="int-he">התראות</span>
             </h1>
-            { Sefaria.loggedIn ?
-              (<div className="notificationsList" dangerouslySetInnerHTML={ {__html: Sefaria.notificationsHtml } }></div>) :
+            { Sefaria._uid ?
+              (<div className="notificationsList sans-serif" dangerouslySetInnerHTML={ {__html: Sefaria.notificationsHtml } }></div>) :
               (<LoginPrompt fullPanel={true} />) }
           </div>
           <Footer />

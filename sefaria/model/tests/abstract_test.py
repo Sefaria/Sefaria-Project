@@ -39,7 +39,7 @@ class Test_Mongo_Record_Models(object):
         m = sub()
         if m.collection == "term": #remove this line once terms are normalized
             return
-        res = m.load({} if sub.sub_collection_query is None else sub.sub_collection_query)
+        res = m.load({})
         if not res:  # Collection may be empty
             return
         assert m._id
@@ -81,6 +81,8 @@ class Test_Mongo_Record_Models(object):
             num_records = 1
             dup_str = ''
             count = 0
+            sub_set = record_to_set[sub.__name__]({slug_field: temp_slug})
+            sub_set.delete()
             while num_records > 0:
                 sub_set = record_to_set[sub.__name__]({slug_field: temp_slug + dup_str})  # delete all
                 count += 1

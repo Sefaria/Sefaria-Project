@@ -1,6 +1,4 @@
-# TODO: Fail the build if the target mongo host is not reachable
 # TODO: Remove references to sandboxes
-
 ---
 substitutions:
   _ENV_NAME: ASDF
@@ -18,7 +16,7 @@ options:
 
 steps:
   - name: "gcr.io/cloud-builders/git"
-    args: ['clone', 'https://source.developers.google.com/p/production-deployment/r/k8s-admin', '--branch', '${_K8S_ADMIN_BRANCH}', '--single-branch']
+    args: ['clone', 'https://source.developers.google.com/p/production-deployment/r/k8s-admin', '--branch', '${_K8S_ADMIN_BRANCH}', "--depth", "1"]
     id: k8s-admin_clone
     wait_for: [ "-" ]
 
@@ -29,29 +27,41 @@ steps:
     args: ["-c", 'git rev-parse HEAD > ../k8s-admin-hash.txt']
     wait_for: ["k8s-admin_clone"]
 
-  #
-  # Build artifacts
-  #
-  # TODO: Use the Kaniko builder to take advantage of shared build caches across builds
-  # TODO: Use SHORT_SHA for image tags after a trigger for sandboxes is created (That variable is only available for triggered builds)
-  - name: "gcr.io/cloud-builders/docker"
-    args: ["build", "-t", "gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:$SHORT_SHA", "-t", "gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:$TAG_NAME", "-f", "build/web/Dockerfile", "."]
-    #dir: Sefaria-Project
-    id: web_container
-    wait_for: [ "-" ]  
 
-  - name: "gcr.io/cloud-builders/docker"
-    args: ["build", "-t", "gcr.io/${PROJECT_ID}/sefaria-node-${_ENV_NAME}:$SHORT_SHA", "-t", "gcr.io/${PROJECT_ID}/sefaria-node-${_ENV_NAME}:$TAG_NAME", "-f", "build/node/Dockerfile", "."]
-    # dir: Sefaria-Project
-    id: nodejs_container
+  # Build artifacts
+  - name: gcr.io/kaniko-project/executor:latest
+    args:
+      - --destination=gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:$SHORT_SHA
+      - --destination=gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:$TAG_NAME
+      - --destination=gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:latest
+      - --cache=true
+      - --dockerfile=build/web/Dockerfile
+      - --context=dir://.
+    id: web_container
     wait_for: [ "-" ]
 
-  - name: "gcr.io/cloud-builders/docker"
-    args: ["build", "-t", "gcr.io/${PROJECT_ID}/sefaria-asset-${_ENV_NAME}:$SHORT_SHA", "-t", "gcr.io/${PROJECT_ID}/sefaria-asset-${_ENV_NAME}:$TAG_NAME", "-f", "build/nginx/Dockerfile", "--build-arg", "SRC_IMG=gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:$SHORT_SHA", "."]
-    # dir: Sefaria-Project
+  - name: gcr.io/kaniko-project/executor:latest
+    args:
+      - --destination=gcr.io/${PROJECT_ID}/sefaria-node-${_ENV_NAME}:$SHORT_SHA
+      - --destination=gcr.io/${PROJECT_ID}/sefaria-node-${_ENV_NAME}:$TAG_NAME
+      - --destination=gcr.io/${PROJECT_ID}/sefaria-node-${_ENV_NAME}:latest
+      - --cache=true
+      - --dockerfile=build/node/Dockerfile
+      - --context=dir://.
+    id: nodejs_container
+    wait_for: [ "-" ]
+  
+  - name: gcr.io/kaniko-project/executor:latest
+    args:
+      - --destination=gcr.io/${PROJECT_ID}/sefaria-asset-${_ENV_NAME}:$SHORT_SHA
+      - --destination=gcr.io/${PROJECT_ID}/sefaria-asset-${_ENV_NAME}:$TAG_NAME
+      - --destination=gcr.io/${PROJECT_ID}/sefaria-asset-${_ENV_NAME}:latest
+      - --cache=false
+      - --dockerfile=build/nginx/Dockerfile
+      - --build-arg=SRC_IMG=gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:$SHORT_SHA
+      - --context=dir://.
     id: nginx_container
-    wait_for:
-      - web_container
+    wait_for: [ web_container ]
 
   # Outputs a file to /k8s-admin/v2/app_settings/helm/_sandboxValues.yaml
   - name: gcr.io/${PROJECT_ID}/mongo-restore # used for gettext access
@@ -77,11 +87,12 @@ steps:
       - 'IS_SANDBOX=${_IS_SANDBOX}'
       - 'MONGO_HOST=${_MONGO_HOST}' # Should this be parmeterized here or read in the repo
       - 'POSTGRES_HOST=${_POSTGRES_HOST}' # Should this be parmeterized here or read in the repo
+      - 'SEFARIA_DB=sefaria-${_ENV_NAME}'
     wait_for: [ "k8s-admin_clone" ]
   
   # Copy localsettings into file
   # Later, combined this with the script above
-  - name: "gcr.io/production-deployment/cloudbuild-helm:v3.1.2"
+  - name: "gcr.io/production-deployment/cloudbuild-helm:v3.5.4"
     dir: k8s-admin/v2
     id: copy_localsettings_file
     entrypoint: cp
@@ -101,7 +112,7 @@ steps:
     
   # Copy robots.txt into file
   # Later, combined this with the script above
-  - name: "gcr.io/production-deployment/cloudbuild-helm:v3.1.2"
+  - name: "gcr.io/production-deployment/cloudbuild-helm:v3.5.4"
     dir: k8s-admin/v2
     id: copy_robots_file
     entrypoint: cp
@@ -109,14 +120,14 @@ steps:
     wait_for:
       - generate_robots_file
 
-  - name: "gcr.io/${PROJECT_ID}/cloudbuild-helm:v3.1.2"
+  - name: "gcr.io/${PROJECT_ID}/cloudbuild-helm:v3.5.4"
     id: deploy_sandbox
     dir: k8s-admin/v2
     args: ["upgrade", "-i", "sefaria-${_ENV_NAME}", "./charts/sefaria", "--namespace", "${_GKE_NAMESPACE}", "--set-string", "releaseImageTag=$SHORT_SHA", "-f", "app_settings/helm/_envValues.yaml", "-f", "app_settings/helm/_resourceValues.yaml", "--debug"]
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=${_GKE_REGION}'
       - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'
-      - 'KUBECTL_VERSION=1.14'
+      - 'KUBECTL_VERSION=1.18'
       - 'KUBECONFIG=/root/.kube/config'
     wait_for:
       - web_container
@@ -135,13 +146,4 @@ steps:
     wait_for: 
       - print_k8s_admin_git_hash
       - deploy_sandbox
-
-images:
-  - "gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:$SHORT_SHA"
-  - "gcr.io/${PROJECT_ID}/sefaria-node-${_ENV_NAME}:$SHORT_SHA"
-  - "gcr.io/${PROJECT_ID}/sefaria-asset-${_ENV_NAME}:$SHORT_SHA"
-
-  - "gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:$TAG_NAME"
-  - "gcr.io/${PROJECT_ID}/sefaria-node-${_ENV_NAME}:$TAG_NAME"
-  - "gcr.io/${PROJECT_ID}/sefaria-asset-${_ENV_NAME}:$TAG_NAME"
 ...

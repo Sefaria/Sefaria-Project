@@ -120,7 +120,6 @@ class SearchResultList extends Component {
 
       var $scrollable = $(ReactDOM.findDOMNode(this)).closest(".content");
       var margin = 300;
-
       if($scrollable.scrollTop() + $scrollable.innerHeight() + margin >= $scrollable[0].scrollHeight) {
         this._loadNextPage(tab);
       }
@@ -151,8 +150,8 @@ class SearchResultList extends Component {
       
       return Sefaria.util
         .zip(aggregation_field_array, aggregation_field_lang_suffix_array)
-        .filter(([agg, _]) => justUnapplied || agg !== lastAppliedAggType)        // remove lastAppliedAggType
-        .map(([agg, suffix_map]) => `${agg}${suffix_map ? suffix_map[interfaceLang] : ''}`); // add suffix based on interfaceLang to filter, if present in suffix_map
+        .map(([agg, suffix_map]) => `${agg}${suffix_map ? suffix_map[interfaceLang] : ''}`) // add suffix based on interfaceLang to filter, if present in suffix_map
+        .filter(agg => justUnapplied || agg !== lastAppliedAggType);                        // remove lastAppliedAggType
     }
     _executeQuery(props, type) {
       //This takes a props object, so as to be able to handle being called from componentWillReceiveProps with newProps
@@ -182,7 +181,7 @@ class SearchResultList extends Component {
                   pagesLoaded: extend(this.state.pagesLoaded, {[type]: 1}),
                   moreToLoad: extend(this.state.moreToLoad, {[type]: data.hits.total > this.querySize[type]})
                 };
-                this.setState(state);
+                this.setState(state, () => this.handleScroll());
                 const filter_label = (request_applied && request_applied.length > 0) ? (' - ' + request_applied.join('|')) : '';
                 const query_label = props.query + filter_label;
                 Sefaria.track.event("Search", `Query: ${type}`, query_label, data.hits.total); 
@@ -312,7 +311,8 @@ class SearchResultList extends Component {
               <SearchSheetResult
                     data={result}
                     query={this.props.query}
-                    key={result._id} />);
+                    key={result._id}
+                    onResultClick={this.props.onResultClick} />);
         }
 
         var loadingMessage   = (<LoadingMessage message="Searching..." heMessage="מבצע חיפוש..." />);

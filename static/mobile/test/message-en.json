@@ -1,8 +1,8 @@
 {
-	"title": "Help us tell the story.",
-	"text": ["And even if we were all sages, all discerning, all elders, all knowledgeable about the Torah, it would be a commandment upon us to tell the story of the exodus from Egypt.","— Passover Haggadah, Magid"],
-	"buttonLink": "https://sefaria.nationbuilder.com/donate_m",
-	"buttonText": "Donate Now",
-	"name": "pesach-2019-1",
+	"title": "Sefaria Community —",
+	"text": ["We need to raise $70,000 by Purim. Your gift — of any size — will support the Sefaria Innovation Fund which fuels special projects like the Powered by Sefaria Contest, our internship program, and R&D to support new tech. Thanks to two generous donors, your gift will be matched 1:1.", "Thank you!"],
+	"buttonLink": "https://sefaria.nationbuilder.com/innovation_fund21?utm_source=Sefaria&utm_medium=Modal&utm_campaign=InnovationCampaign_Mdl",
+	"buttonText": "DONATE",
+	"name": "innovation-2021-1",
 	"schemaVersion": 1
 }

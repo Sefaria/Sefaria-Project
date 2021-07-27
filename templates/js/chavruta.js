@@ -21,6 +21,8 @@ const sdpConstraints = {
 
 let clientRoom;
 
+let chavrutaTime = 0;
+
 const socket = io.connect('//{{ rtc_server }}');
 
 socket.on('return rooms', function(numRooms) {
@@ -43,13 +45,12 @@ socket.on('created', function(room) {
   // are received by the original client. This code runs every 7.5 seconds to make sure the room still exists and
   // prevents a user from getting stuck in a room that no one would join
   setInterval(function(){
-    socket.emit('does room exist', clientRoom);
+    socket.emit('does room exist', clientRoom, {{ client_uid }});
     }, 7500);
 });
 
 socket.on('join', function(room) {
   console.log('user joined room: ' + room);
-  Sefaria.track.event("DafRoulette", "Chevruta Match Made");
   clientRoom = room;
   isChannelReady = true;
   socket.emit('send user info', '{{ client_name }}', '{{ client_uid }}', room);
@@ -58,10 +59,15 @@ socket.on('join', function(room) {
 
 socket.on('got user name', function(userName, uid) {
   console.log('got user name')
+  Sefaria.track.event("DafRoulette", "Chevruta Match Made");
   document.getElementById("chevrutaName").innerHTML = userName;
   document.getElementById("chevrutaUID").value = uid;
   localStorage.setItem('lastChevrutaID', uid);
   localStorage.setItem('lastChevrutaTimeStamp', Date.now());
+
+  setInterval(function(){
+    chavrutaTime = chavrutaTime + 1
+  }, 60000);
 });
 
 socket.on('user reported', function(){
@@ -139,7 +145,7 @@ navigator.mediaDevices.getUserMedia({
     console.log('Adding local stream.');
   })
   .catch(function(e) {
-    alert('getUserMedia() error: ' + e.name);
+    alert("There was an error starting your video. Usually this is because your camera is being used by another program. Please check and try again.");
   });
 
 function addAdditionalHTML() {
@@ -157,12 +163,27 @@ function addAdditionalHTML() {
   document.getElementById("iframeContainer").appendChild(iframe);
 }
 
-
 function getNewChevruta() {
   Sefaria.track.event("DafRoulette", "New Chevruta Click", "");
-  socket.emit('bye', clientRoom);
+  byebye();
 }
 
+
+function toggleMute() {
+  localStream.getAudioTracks()[0].enabled = !(localStream.getAudioTracks()[0].enabled);
+
+  const videoDiv = document.getElementById("videos");
+  if(videoDiv.classList.contains("muted")) {
+    videoDiv.classList.remove("muted");
+    document.getElementById("enMute").setAttribute("title", "Turn off microphone");
+    document.getElementById("heMute").setAttribute("title", "כבה את המיקרופון");
+  }
+  else {
+    videoDiv.classList.add("muted")
+    document.getElementById("enMute").setAttribute("title", "Turn on microphone");
+    document.getElementById("heMute").setAttribute("title", "הפעל את המיקרופון");
+  }
+}
 
 function reportUser() {
   remoteVideo.srcObject = null;
@@ -208,7 +229,7 @@ function maybeStart() {
 
 window.onbeforeunload = function() {
   console.log('onbeforeunload')
-  socket.emit('bye', clientRoom);
+  byebye();
 };
 
 /////////////////////////////////////////////////////////
@@ -232,7 +253,7 @@ function createPeerConnection() {
     setTimeout(function(){
       console.log('checking not in phantom room')
         if (isStarted && !isInitiator && pc.iceConnectionState == "new") {
-          socket.emit('bye', clientRoom);
+          byebye();
         }
     }, 5000);
 
@@ -260,7 +281,7 @@ function handleIceCandidate(event) {
     setTimeout(function(){
       console.log('checking if remote stream exists')
       if (!remoteStream) {
-        socket.emit('bye', clientRoom);
+        byebye();
       }
     }, 3000);
   }
@@ -305,15 +326,31 @@ function handleRemoteStreamRemoved(event) {
 }
 
 function handleIceConnectionChange(event) {
-  if (pc.iceConnectionState == "disconnected" || pc.iceConnectionState == "failed") {
-    socket.emit('bye', clientRoom);
+  if (pc.iceConnectionState == "failed") {
+    byebye();
+  }
+  //"disconnected" could be a temporary state caused by any number of factors that could be automatically fixed w/o intervention
+  // this gives the app a chance to re-establish the connection before restarting
+  else if(pc.iceConnectionState == "disconnected") {
+        console.log("iceConnection is disconnected -- waiting 5 seconds to see if reconnects")
+        setTimeout(function(){
+        if (pc.iceConnectionState == "disconnected") {
+          byebye();
+        }
+    }, 5000);
   }
   console.log(pc.iceConnectionState);
 }
 
 function handleRemoteHangup() {
+  Sefaria.track.event("DafRoulette", "Chevruta Ended", "Minutes Learned", chavrutaTime);
   window.onbeforeunload = null;
   location.reload();
+}
+
+function byebye(){
+    Sefaria.track.event("DafRoulette", "Chevruta Ended", "Minutes Learned", chavrutaTime);
+    socket.emit('bye', clientRoom);
 }
 
 

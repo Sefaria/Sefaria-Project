@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import logging
-logger = logging.getLogger(__name__)
+import structlog
+logger = structlog.get_logger(__name__)
 
 from sefaria.model import *
 from sefaria.system.exceptions import DuplicateRecordError, InputError
@@ -403,7 +403,8 @@ def add_links_from_text(oref, lang, text, text_id, user, **kwargs):
                 "type": "",
                 "auto": True,
                 "generated_by": "add_links_from_text",
-                "source_text_oid": text_id
+                "source_text_oid": text_id,
+                "inline_citation": True
             }
             found += [linked_oref.normal()]  # Keep this here, since tracker.add will throw an error if the link exists
             try:

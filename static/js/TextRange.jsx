@@ -5,13 +5,14 @@ import classNames  from 'classnames';
 import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
 import Component from 'react-class';
+import {ContentText, EnglishText, HebrewText} from "./Misc";
 
 class TextRange extends Component {
   // A Range or text defined a by a single Ref. Specially treated when set as 'basetext'.
   // This component is responsible for retrieving data from `Sefaria` for the ref that defines it.
   componentDidMount() {
     this._isMounted = true;
-    var data = this.getText();
+    let data = this.getText();
     if (data && !this.dataPrefetched) {
       // If data was populated server side, onTextLoad was never called
       this.onTextLoad(data);
@@ -33,6 +34,7 @@ class TextRange extends Component {
         !this.props.highlightedRefs.compare(nextProps.highlightedRefs)) { return true; }
     if (this.props.currVersions.en !== nextProps.currVersions.en) { return true; }
     if (this.props.currVersions.he !== nextProps.currVersions.he) { return true; }
+    if (this.props.translationLanguagePreference !== nextProps.translationLanguagePreference) { return true; }
     // todo: figure out when and if this component receives settings at all
     if (nextProps.settings && this.props.settings &&
         (nextProps.settings.language !== this.props.settings.language ||
@@ -43,6 +45,7 @@ class TextRange extends Component {
           nextProps.settings.layoutTalmud !== this.props.settings.layoutTalmud ||
           nextProps.settings.biLayout !== this.props.settings.biLayout ||
           nextProps.settings.fontSize !== this.props.settings.fontSize ||
+          nextProps.settings.punctuationTalmud !== this.props.settings.punctuationTalmud ||
           nextProps.layoutWidth !== this.props.layoutWidth))     { return true; }
     // lowlight ?
 
@@ -61,6 +64,7 @@ class TextRange extends Component {
           prevProps.settings.biLayout !== this.props.settings.biLayout ||
           prevProps.settings.fontSize !== this.props.settings.fontSize ||
           prevProps.layoutWidth !== this.props.layoutWidth ||
+          prevProps.settings.punctuationTalmud !== this.props.settings.punctuationTalmud ||
           !!prevProps.filter !== !!this.props.filter ||
           (!!prevProps.filter && !prevProps.filter.compare(this.props.filter))) {
             // Rerender in case version has changed
@@ -92,12 +96,13 @@ class TextRange extends Component {
     }
   }
   getText() {
-    var settings = {
+    let settings = {
       context: this.props.withContext ? 1 : 0,
       enVersion: this.props.currVersions.en || null,
-      heVersion: this.props.currVersions.he || null
+      heVersion: this.props.currVersions.he || null,
+      translationLanguagePreference: this.props.translationLanguagePreference,
     };
-    var data = Sefaria.getTextFromCache(this.props.sref, settings);
+    let data = Sefaria.getTextFromCache(this.props.sref, settings);
 
     if ((!data || "updateFromAPI" in data) && !this.textLoading) { // If we don't have data yet, call trigger an API call
       this.textLoading = true;
@@ -116,7 +121,7 @@ class TextRange extends Component {
     } else if (this.props.basetext && data.spanning) {
       // Replace ReaderPanel contents with split refs if ref is spanning
       // Pass parameter to showBaseText to replaceHistory - normalization should't add a step to history
-      //console.log("Re-rewriting spanning ref")
+      // console.log("Re-rewriting spanning ref")
       this.props.showBaseText(data.spanningRefs, true, this.props.version, this.props.versionLanguage);
       return;
     }
@@ -132,12 +137,12 @@ class TextRange extends Component {
     if (this._isMounted) {
       this.forceUpdate(function() {
         this.placeSegmentNumbers();
-        this.props.onTextLoad && this.props.onTextLoad(); // Don't call until the text is actually rendered
+        this.props.onTextLoad && this.props.onTextLoad(data.ref); // Don't call until the text is actually rendered
       }.bind(this));
     }
   }
   _prefetchLinksAndNotes(data) {
-    var sectionRefs = data.isSpanning ? data.spanningRefs : [data.sectionRef];
+    let sectionRefs = data.isSpanning ? data.spanningRefs : [data.sectionRef];
     sectionRefs = sectionRefs.map(function(ref) {
       if (ref.indexOf("-") > -1) {
         ref = ref.split("-")[0];
@@ -147,7 +152,7 @@ class TextRange extends Component {
     });
 
     if (this.props.loadLinks && !Sefaria.linksLoaded(sectionRefs)) {
-      for (var i = 0; i < sectionRefs.length; i++) {
+      for (let i = 0; i < sectionRefs.length; i++) {
         Sefaria.related(sectionRefs[i], function() {
           if (this._isMounted) { this.forceUpdate(); }
         }.bind(this));
@@ -163,7 +168,7 @@ class TextRange extends Component {
     // Prefetch additional data (next, prev, links, notes etc) for this ref
     if (this.dataPrefetched) { return; }
 
-    var data = this.getText();
+    let data = this.getText();
     if (!data) { return; }
 
     // Load links at section level if spanning, so that cache is properly primed with section level refs
@@ -175,7 +180,8 @@ class TextRange extends Component {
          context: 1,
          multiple: this.props.prefetchMultiple,
          enVersion: this.props.currVersions.en || null,
-         heVersion: this.props.currVersions.he || null
+         heVersion: this.props.currVersions.he || null,
+         translationLanguagePreference: this.props.translationLanguagePreference,
        }).then(ds => Array.isArray(ds) ? ds.map(d => this._prefetchLinksAndNotes(d)) : this._prefetchLinksAndNotes(ds));
      }
      if (data.prev) {
@@ -183,7 +189,8 @@ class TextRange extends Component {
          context: 1,
          multiple: -this.props.prefetchMultiple,
          enVersion: this.props.currVersions.en || null,
-         heVersion: this.props.currVersions.he || null
+         heVersion: this.props.currVersions.he || null,
+         translationLanguagePreference: this.props.translationLanguagePreference,
        }).then(ds => Array.isArray(ds) ? ds.map(d => this._prefetchLinksAndNotes(d)) : this._prefetchLinksAndNotes(ds));
      }
      if (data.indexTitle) {
@@ -199,13 +206,13 @@ class TextRange extends Component {
     // on the rendered height of the text of each segment.
     if (!this.props.basetext) { return; }
 
-    var $text  = $(ReactDOM.findDOMNode(this));
-    var elemsAtPosition = {}; // Keyed by top position, an array of elements found there
-    var setTop = function() {
-      var $elem = $(this);
-      var top   = $elem.parent().position().top;
+    const $text  = $(ReactDOM.findDOMNode(this));
+    let elemsAtPosition = {}; // Keyed by top position, an array of elements found there
+    const setTop = function() {
+      const $elem = $(this);
+      const top   = $elem.parent().position().top;
       $elem.css({top: top, left: '', right: ''});
-      var list = elemsAtPosition[top] || [];
+      let list = elemsAtPosition[top] || [];
       list.push($elem);
       elemsAtPosition[top] = list;
     };
@@ -213,19 +220,19 @@ class TextRange extends Component {
     elemsAtPosition = {};  // resetting because we only want it to track segmentNumbers
     $text.find(".segmentNumber").each(setTop).show();
 
-    var side = this.props.settings.language == "hebrew" ? "right" : "left";
-    var selector = this.props.settings.language == "hebrew" ? ".he" : ".en";
-    var fixCollision = function ($elems) {
+    const side = this.props.settings.language == "hebrew" ? "right" : "left";
+    const selector = this.props.settings.language == "hebrew" ? ".he" : ".en";
+    const fixCollision = function ($elems) {
       // Takes an array of jQuery elements that all currently appear at the same top position
       if ($elems.length == 1) { return; }
       if ($elems.length == 2) {
-        var adjust1 = $elems[0].find(selector).find(".segmentNumberInner").width();
-        var adjust2 = $elems[1].find(selector).find(".segmentNumberInner").width();
+        const adjust1 = $elems[0].find(".segmentNumberInner").width();
+        const adjust2 = $elems[1].find(".segmentNumberInner").width();
         $elems[0].css(side, "-=" + adjust1);
         $elems[1].css(side, "+=" + adjust2);
       }
     };
-    for (var top in elemsAtPosition) {
+    for (let top in elemsAtPosition) {
       if (elemsAtPosition.hasOwnProperty(top)) {
         fixCollision(elemsAtPosition[top]);
       }
@@ -240,10 +247,10 @@ class TextRange extends Component {
   parashahHeader(data, segment, includeAliyout=false) {
     // Returns the English/Hebrew title of a Parasha, if `ref` is the beginning of a new parahsah
     // returns null otherwise.
-    //var data = this.getText();
+    //let data = this.getText();
     if (!data) { return null; }
     if ("alts" in data && data.alts.length && ((data.categories[1] == "Torah" && !data["isDependant"]) || data.categories[2] == "Onkelos")) {
-      var curRef = segment.ref;
+      const curRef = segment.ref;
       if ("alt" in segment && segment.alt != null){
         if(includeAliyout || "whole" in segment.alt){
           return {"en": segment.alt["en"][0], "he": segment.alt["he"][0], "parashaTitle": "whole" in segment.alt}
@@ -252,6 +259,7 @@ class TextRange extends Component {
     }
     return null;
   }
+
   render() {
     const data = this.getText();
     let title, heTitle, ref;
@@ -277,20 +285,29 @@ class TextRange extends Component {
 
     const showSegmentNumbers = showNumberLabel && this.props.basetext;
 
-    const nre = /[\u0591-\u05af\u05bd\u05bf\u05c0\u05c4\u05c5\u200d]/g;
-    const cnre = /[\u0591-\u05bd\u05bf-\u05c5\u05c7\u200d]/g;
-    let strip_text_re = null;
+    // [\.\!\?\:\,\u05F4]+                                                                      # Match (and remove) one or more punctuation or gershayim
+    //    (?![\u0591-\u05bd\u05bf-\u05c5\u05c7\u200d\u05d0-\u05eA](?:[\.\!\?\:\,\u05F4\s]|$))   # So long as it's not immediately followed by one letter (followed by space, punctuation, endline, etc.)
+    // |—\s;                                                                                    # OR match (and remove) an mdash followed by a space
+    const punctuationre = /[\.\!\?\:\,\u05F4]+(?![\u0591-\u05bd\u05bf-\u05c5\u05c7\u200d\u05d0-\u05eA](?:[\.\!\?\:\,\u05F4\s]|$))|—\s/g;
+
+    const strip_punctuation_re = (this.props.settings?.language === "hebrew" || this.props.settings?.language === "bilingual") && this.props.settings?.punctuationTalmud === "punctuationOff" && data?.type === "Talmud" ? punctuationre : null;
+    const nre = /[\u0591-\u05af\u05bd\u05bf\u05c0\u05c4\u05c5\u200d]/g; // cantillation
+    const cnre = /[\u0591-\u05bd\u05bf-\u05c5\u05c7\u200d]/g; // cantillation and nikud
+    
+    let strip_vowels_re = null;
+
     if(this.props.settings && this.props.settings.language !== "english" && this.props.settings.vowels !== "all"){
-      strip_text_re = (this.props.settings.vowels == "partial") ? nre : cnre;
+      strip_vowels_re = (this.props.settings.vowels == "partial") ? nre : cnre;
     }
 
-    var segments      = Sefaria.makeSegments(data, this.props.withContext);
-    if(segments.length > 0 && strip_text_re && !strip_text_re.test(segments[0].he)){
-      strip_text_re = null; //if the first segment doesnt even match as containing vowels or cantillation- stop
+    let segments      = Sefaria.makeSegments(data, this.props.withContext);
+    if(segments.length > 0 && strip_vowels_re && !strip_vowels_re.test(segments[0].he)){
+      strip_vowels_re = null; //if the first segment doesnt even match as containing vowels or cantillation- stop
     }
     let textSegments = segments.map((segment, i) => {
-      var highlight = this.props.highlightedRefs && this.props.highlightedRefs.length ?        // if highlighted refs are explicitly set
-                            Sefaria.util.inArray(segment.ref, this.props.highlightedRefs) !== -1 : // highlight if this ref is in highlighted refs prop
+      let highlight = this.props.highlightedRefs && this.props.highlightedRefs.length ?        // if highlighted refs are explicitly set
+                            Sefaria.util.inArray(segment.ref, this.props.highlightedRefs) !== -1 || // highlight if this ref is in highlighted refs prop
+                            Sefaria.util.inArray(Sefaria.sectionRef(segment.ref), this.props.highlightedRefs) !== -1 : // or if the highlighted refs include a section level ref including this ref
                             this.props.basetext && segment.highlight;  // otherwise highlight if this a basetext and the ref is specific
       const textHighlights = (highlight || !this.props.basetext) && !!this.props.textHighlights ? this.props.textHighlights : null; // apply textHighlights in a base text only when the segment is hightlights
       let parashahHeader = null;
@@ -301,13 +318,16 @@ class TextRange extends Component {
                     parashahHeader: 1,
                     aliyah: !parashahNames.parashaTitle,
                   });
-          parashahHeader = <div className={pclasses}>
-            <span className="en">{ parashahNames.en }</span>
-            <span className="he">{ parashahNames.he }</span>
-          </div>;
+          parashahHeader = (
+              <div className={pclasses}>
+                <ContentText text={{en: parashahNames.en, he:parashahNames.he}} defaultToInterfaceOnBilingual={true}/>
+              </div>
+          );
         }
       }
-      segment.he = strip_text_re ? segment.he.replace(strip_text_re, "") : segment.he;
+      segment.he = strip_vowels_re ? segment.he.replace(strip_vowels_re, "") : segment.he;
+      segment.he = strip_punctuation_re ? segment.he.replace(strip_punctuation_re, "") : segment.he;
+
       return (
         <span key={i + segment.ref}>
           { parashahHeader }
@@ -327,6 +347,7 @@ class TextRange extends Component {
             onSegmentClick={this.props.onSegmentClick}
             onCitationClick={this.props.onCitationClick}
             onFootnoteClick={this.onFootnoteClick}
+            onNamedEntityClick={this.props.onNamedEntityClick}
             unsetTextHighlight={this.props.unsetTextHighlight}
           />
         </span>
@@ -340,28 +361,6 @@ class TextRange extends Component {
                       loading: !data,
                       lowlight: this.props.lowlight
                   });
-
-    const open        = () => { this.props.onNavigationClick(this.props.sref) };
-    const compare     = () => { this.props.onCompareClick(this.props.sref) };
-    const connections = () => { this.props.onOpenConnectionsClick([this.props.sref]) };
-
-    const actionLinks = (<div className="actionLinks">
-                        <span className="openLink" onClick={open}>
-                          <img src="/static/img/open-64.png" alt="" />
-                          <span className="en">Open</span>
-                          <span className="he">פתח</span>
-                        </span>
-                        <span className="compareLink" onClick={compare}>
-                          <img src="/static/img/compare-64.png" alt="" />
-                          <span className="en">Compare</span>
-                          <span className="he">השווה</span>
-                        </span>
-                        <span className="connectionsLink" onClick={connections}>
-                          <i className="fa fa-link"></i>
-                          <span className="en">Connections</span>
-                          <span className="he">קשרים</span>
-                        </span>
-                      </div>);
 
     // configure number display for inline references
     let sidebarNum;
@@ -380,17 +379,15 @@ class TextRange extends Component {
       if (heDisplayValue === undefined) {
         heDisplayValue = enDisplayValue;
       }
-      sidebarNum = <div className="numberLabel sans itag">
+      sidebarNum = <div className="numberLabel sans-serif itag">
         <span className="numberLabelInner">
-          <span className="en">{enDisplayValue}</span>
-          <span className="he">{heDisplayValue}</span>
+          <ContentText text={{en:enDisplayValue, he:heDisplayValue}} defaultToInterfaceOnBilingual={true}/>
         </span>
       </div>;
     } else if (showNumberLabel && this.props.numberLabel) {
-      sidebarNum = <div className="numberLabel sans">
+      sidebarNum = <div className="numberLabel sans-serif">
         <span className="numberLabelInner">
-          <span className="en">{this.props.numberLabel}</span>
-          <span className="he">{Sefaria.hebrew.encodeHebrewNumeral(this.props.numberLabel)}</span>
+          <ContentText text={{en:this.props.numberLabel, he:Sefaria.hebrew.encodeHebrewNumeral(this.props.numberLabel)}} defaultToInterfaceOnBilingual={true} />
         </span>
       </div>;
     } else { sidebarNum = null;}
@@ -401,8 +398,7 @@ class TextRange extends Component {
         {this.props.hideTitle ? null :
         (<div className="title">
           <div className="titleBox" role="heading" aria-level="2">
-            <span className="en" >{title}</span>
-            <span className="he">{heTitle}</span>
+            <ContentText text={{en: title, he: heTitle}} defaultToInterfaceOnBilingual={true}/>
           </div>
           {this.props.titleButtons ? <div className="buttons" onClick={e => e.stopPropagation()}>{this.props.titleButtons}</div> : null }
         </div>)}
@@ -437,9 +433,7 @@ TextRange.propTypes = {
   onRangeClick:           PropTypes.func,
   onSegmentClick:         PropTypes.func,
   onCitationClick:        PropTypes.func,
-  onNavigationClick:      PropTypes.func,
-  onCompareClick:         PropTypes.func,
-  onOpenConnectionsClick: PropTypes.func,
+  onNamedEntityClick:     PropTypes.func,
   showBaseText:           PropTypes.func,
   unsetTextHighlight:     PropTypes.func,
   panelsOpen:             PropTypes.number, // used?
@@ -447,6 +441,7 @@ TextRange.propTypes = {
   showActionLinks:        PropTypes.bool,
   inlineReference:        PropTypes.object,
   textHighlights:         PropTypes.array,
+  translationLanguagePreference: PropTypes.string,
 };
 TextRange.defaultProps = {
   currVersions: {en:null,he:null},
@@ -464,7 +459,6 @@ class TextSegment extends Component {
         !this.props.filter.compare(nextProps.filter))           { return true; }
     if (this.props.en !== nextProps.en
         || this.props.he !== nextProps.he)                      { return true; }
-
     return false;
   }
   componentDidUpdate(prevProps) {
@@ -477,9 +471,19 @@ class TextSegment extends Component {
       //Click of citation
       event.preventDefault();
       let ref = Sefaria.humanRef($(event.target).attr("data-ref"));
-      this.props.onCitationClick(ref, this.props.sref);
+      this.props.onCitationClick(ref, this.props.sref, true);
       event.stopPropagation();
       Sefaria.track.event("Reader", "Citation Link Click", ref);
+    } else if ($(event.target).hasClass("namedEntityLink")) {
+      //Click of named entity
+      event.preventDefault();
+      if (!this.props.onNamedEntityClick) { return; }
+
+      let topicSlug = $(event.target).attr("data-slug");
+      Sefaria.util.selectElementContents(event.target);
+      this.props.onNamedEntityClick(topicSlug, this.props.sref, event.target.innerText);
+      event.stopPropagation();
+      Sefaria.track.event("Reader", "Named Entity Link Click", topicSlug);
     } else if ($(event.target).is("sup") || $(event.target).parents("sup").size()) {
       this.props.onFootnoteClick(event);
       event.stopPropagation();
@@ -494,16 +498,17 @@ class TextSegment extends Component {
     }
   }
   formatItag(lang, text) {
-    var $newElement = $("<div>" + text + "</div>");
-    var textValue = function(i) {
+    let $newElement = $("<div>" + text + "</div>");
+    const textValue = function(i) {
+      let value;
       if ($(i).attr('data-label')) {
         return $(i).attr('data-label');
       } else {
         if (lang === "he") {
-          var value = Sefaria.hebrew.encodeHebrewNumeral($(i).attr('data-order'));
+          value = Sefaria.hebrew.encodeHebrewNumeral($(i).attr('data-order'));
         }
         else if (lang === "en") {
-          var value = $(i).attr('data-order');
+          value = $(i).attr('data-order');
         }
       }
       if (value === undefined) {
@@ -511,42 +516,30 @@ class TextSegment extends Component {
       }
       return value;
     };
-    $newElement.find('i[data-commentator="' + this.props.filter[0] + '"]').each(function () {
+    //Since our list of commentaries has titles both with single quotes and double quotes in it, because reasons, we need to escape at least one so this function doest go down in flames.
+    const escapedFilter = this.props.filter[0].replace(/["]/g, '\\"'); //we know filter is defined at this point, so no need to check if its there first.
+    $newElement.find(`i[data-commentator="${escapedFilter}"]`).each(function () {
       $(this).replaceWith('<sup class="itag">' + textValue(this) + "</sup>");
     });
     return $newElement.html();
   }
+  wrapWordsInGenericHTMLRegex(text) {
+    const arbitraryHTMLTagsRegex = '(?:<\/?[^>]+>){0,}';
+    return text.replace(/(\S+)/g, `${arbitraryHTMLTagsRegex}$1${arbitraryHTMLTagsRegex}`);
+  }
   addHighlights(text) {
     // for adding in highlights to query results in Reader
     if (!!this.props.textHighlights) {
-      const highList = this.props.textHighlights.map(h => Sefaria.hebrew.isHebrew(h) ? Sefaria.hebrew.getNikkudRegex(h) : h);
+      const highList = this.props.textHighlights.map(h => this.wrapWordsInGenericHTMLRegex(h));
       const reg = new RegExp(`(${highList.join("|")})`, 'g');
-      
       return text.replace(reg, '<span class="queryTextHighlight">$1</span>');
     }
     return text;
   }
   render() {
-    var linkCountElement;
-    if (this.props.showLinkCount) {
-      var linkCount = this.props.linkCount;
-      var minOpacity = 20, maxOpacity = 70;
-      var linkScore = linkCount ? Math.min(linkCount + minOpacity, maxOpacity) / 100.0 : 0;
-      var style = {opacity: linkScore};
-      linkCountElement = this.props.showLinkCount ? (<div className="linkCount sans" title={linkCount + " Connections Available"}>
-                                                    <span className="en"><span className="linkCountDot" style={style}></span></span>
-                                                    <span className="he"><span className="linkCountDot" style={style}></span></span>
-                                                  </div>) : null;
-    } else {
-      linkCountElement = "";
-    }
-    var segmentNumber = this.props.segmentNumber ? (<div className="segmentNumber sans">
-                                                      <span className="en"> <span className="segmentNumberInner">{this.props.segmentNumber}</span> </span>
-                                                      <span className="he"> <span className="segmentNumberInner">{Sefaria.hebrew.encodeHebrewNumeral(this.props.segmentNumber)}</span> </span>
-                                                    </div>) : null;
-    var he = this.props.he || "";
-    var en = this.props.en || "";
-
+    let linkCountElement = null;
+    let he = this.props.he || "";
+    let en = this.props.en || "";
     // render itags
     if (this.props.filter && this.props.filter.length > 0) {
       he = this.formatItag("he", he);
@@ -555,19 +548,57 @@ class TextSegment extends Component {
     he = this.addHighlights(he);
     en = this.addHighlights(en);
 
-    var classes=classNames({ segment: 1,
-                     highlight: this.props.highlight,
-                     heOnly: !this.props.en,
-                     enOnly: !this.props.he });
+    const heOnly = !this.props.en;
+    const enOnly = !this.props.he;
+    const overrideLanguage = (enOnly || heOnly) ? (heOnly ? "hebrew" : "english") : null;
+
+    if (this.props.showLinkCount) {
+      const linkCount = this.props.linkCount;
+      const minOpacity = 20, maxOpacity = 70;
+      const linkScore = linkCount ? Math.min(linkCount + minOpacity, maxOpacity) / 100.0 : 0;
+      const style = {opacity: linkScore};
+      linkCountElement = this.props.showLinkCount ? (
+          <div className="linkCount sans-serif" title={linkCount + " Connections Available"}>
+             <span className="linkCountDot" style={style}></span>
+          </div>
+      ) : null;
+    } else {
+      linkCountElement = "";
+    }
+    let segmentNumber = this.props.segmentNumber ? (
+        <div className="segmentNumber sans-serif">
+          <span className="segmentNumberInner">
+             <ContentText
+                 text={{"en": this.props.segmentNumber, "he": Sefaria.hebrew.encodeHebrewNumeral(this.props.segmentNumber)}}
+                 defaultToInterfaceOnBilingual={true}
+             />
+          </span>
+        </div>
+    ) : null;
+
+
+
+    const classes=classNames({
+      segment: 1,
+      highlight: this.props.highlight,
+      heOnly: heOnly,
+      enOnly: enOnly,
+      showNamedEntityLinks: !!this.props.onNamedEntityClick,
+    });
     if(!this.props.en && !this.props.he){
         return false;
     }
     return (
-      <div tabIndex="0" className={classes} onClick={this.handleClick} onKeyPress={this.handleKeyPress} data-ref={this.props.sref} aria-controls={"panel-"+(this.props.panelPosition+1)} aria-label={"Click to see links to "+this.props.sref}>
+      <div tabIndex="0"
+           className={classes} onClick={this.handleClick} onKeyPress={this.handleKeyPress}
+           data-ref={this.props.sref} aria-controls={"panel-"+(this.props.panelPosition+1)}
+           aria-label={"Click to see links to "+this.props.sref}>
         {segmentNumber}
         {linkCountElement}
-        <p lang={this.props.heLangCode} className="he" dangerouslySetInnerHTML={ {__html: he + " "} }></p>
-        <p lang={this.props.enLangCode} className="en" dangerouslySetInnerHTML={ {__html: en + " "} }></p>
+        <p className="segmentText">
+          <ContentText overrideLanguage={overrideLanguage} html={{"he": he+ " ", "en": en+ " " }}/>
+        </p>
+
         <div className="clearFix"></div>
       </div>
     );
@@ -586,8 +617,8 @@ TextSegment.propTypes = {
   onCitationClick: PropTypes.func,
   onSegmentClick:  PropTypes.func,
   onFootnoteClick: PropTypes.func,
+  onNamedEntityClick: PropTypes.func,
   unsetTextHighlight: PropTypes.func,
 };
-
 
 export default TextRange;

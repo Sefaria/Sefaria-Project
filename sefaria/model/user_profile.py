@@ -13,7 +13,7 @@ from sefaria.system.exceptions import InputError, SheetNotFoundError
 from functools import reduce
 
 if not hasattr(sys, '_doc_build'):
-    from django.contrib.auth.models import User
+    from django.contrib.auth.models import User, Group, AnonymousUser
     from emailusernames.utils import get_user, user_exists
     from django.core.mail import EmailMultiAlternatives
     from django.template.loader import render_to_string
@@ -27,10 +27,9 @@ from sefaria.model.text import Ref
 from sefaria.system.database import db
 from sefaria.utils.util import epoch_time
 from django.utils import translation
-from sefaria.settings import PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE
 
-import logging
-logger = logging.getLogger(__name__)
+import structlog
+logger = structlog.get_logger(__name__)
 
 
 class UserHistory(abst.AbstractMongoRecord):
@@ -80,11 +79,13 @@ class UserHistory(abst.AbstractMongoRecord):
         if "last_place" not in attrs:
             attrs["last_place"] = False
         # remove empty versions
+        if not hasattr(attrs.get("versions", None), "items"):
+            attrs["versions"] = {}  # if versions doesn't have 'items', make it an empty dict
         for k, v in list(attrs.get("versions", {}).items()):
             if v is None:
                 del attrs["versions"][k]
         if load_existing:
-            temp = UserHistory().load({"uid": attrs["uid"], "ref": attrs["ref"], "versions": attrs["versions"]})
+            temp = UserHistory().load({"uid": attrs["uid"], "ref": attrs["ref"], "versions": attrs["versions"], "secondary": attrs['secondary']})
             if temp is not None:
                 attrs = temp._saveable_attrs()
             # in the race-condition case where you're creating the saved item before the history item, do the update outside the previous if
@@ -98,6 +99,10 @@ class UserHistory(abst.AbstractMongoRecord):
             attrs["last_place"] = True
 
         super(UserHistory, self).__init__(attrs=attrs)
+
+    def _validate(self):
+        if self.secondary and self.saved:
+            raise InputError("UserHistory item cannot currently have both saved and secondary flags set at the same time")
 
     def _normalize(self):
         # Derived values - used to make downstream queries quicker
@@ -151,8 +156,8 @@ class UserHistory(abst.AbstractMongoRecord):
         # UserHistory API is only open to post for your uid
         pass
 
-    @classmethod
-    def save_history_item(cls, uid, hist, time_stamp=None):
+    @staticmethod
+    def save_history_item(uid, hist, action=None, time_stamp=None):
         if time_stamp is None:
             time_stamp = epoch_time()
         hist["uid"] = uid
@@ -162,7 +167,6 @@ class UserHistory(abst.AbstractMongoRecord):
             hist["book"] = oref.index.title
         hist["server_time_stamp"] = time_stamp if "server_time_stamp" not in hist else hist["server_time_stamp"]  # DEBUG: helpful to include this field for debugging
 
-        action = hist.pop("action", None)
         saved = True if action == "add_saved" else (False if action == "delete_saved" else hist.get("saved", False))
         uh = UserHistory(hist, load_existing=(action is not None), update_last_place=(action is None), field_updates={
             "saved": saved,
@@ -173,23 +177,10 @@ class UserHistory(abst.AbstractMongoRecord):
         return uh
 
     @staticmethod
-    def timeclause(start=None, end=None):
-        """
-        Returns a time range clause, fit for use in a pymongo query
-        :param start: datetime
-        :param end: datetime
-        :return:
-        """
-        if start is None and end is None:
-            return {}
-
-        timerange = {}
-        if start:
-            timerange["$gte"] = start
-        if end:
-            timerange["$lte"] = end
-        return {"datetime": timerange}
-
+    def remove_history_item(uid, hist):
+        hist["uid"] = uid
+        uh = UserHistory(hist, load_existing=True)
+        uh.delete()
 
     @staticmethod
     def get_user_history(uid=None, oref=None, saved=None, secondary=None, last_place=None, sheets=None, serialized=False, limit=0):
@@ -212,6 +203,35 @@ class UserHistory(abst.AbstractMongoRecord):
             return [uh.contents(for_api=True) for uh in UserHistorySet(query, proj={"uid": 0, "server_time_stamp": 0}, sort=[("time_stamp", -1)], limit=limit)]
         return UserHistorySet(query, sort=[("time_stamp", -1)], limit=limit)
 
+    @staticmethod
+    def delete_user_history(uid, exclude_saved=True, exclude_last_place=False):
+        if not uid:
+            raise InputError("Cannot delete user history without an id")
+        query = {"uid": uid}
+        if exclude_saved:
+            query["saved"] = False
+        if exclude_last_place:
+            query["last_place"] = False
+        UserHistorySet(query).delete(bulk_delete=True)
+
+    @staticmethod
+    def timeclause(start=None, end=None):
+        """
+        Returns a time range clause, fit for use in a pymongo query
+        :param start: datetime
+        :param end: datetime
+        :return:
+        """
+        if start is None and end is None:
+            return {}
+
+        timerange = {}
+        if start:
+            timerange["$gte"] = start
+        if end:
+            timerange["$lte"] = end
+        return {"datetime": timerange}
+
 
 class UserHistorySet(abst.AbstractMongoSet):
     recordClass = UserHistory
@@ -224,8 +244,13 @@ class UserHistorySet(abst.AbstractMongoSet):
 Wrapper class for operations on the user object. Currently only for changing primary email.
 """
 class UserWrapper(object):
-    def __init__(self, email=None):
-        self.user = get_user(email)
+    def __init__(self, email=None, user_obj=None):
+        if email:
+            self.user = get_user(email)
+        elif user_obj:
+            self.user = user_obj
+        else:
+            raise InputError("No user provided")
         self._errors = []
 
     def set_email(self, new_email):
@@ -257,10 +282,18 @@ class UserWrapper(object):
         else:
             raise ValueError(self.errors())
 
+    def has_permission_group(self, group_name):
+        try:
+            group = Group.objects.get(name=group_name)
+            return group in self.user.groups.all()
+        except:
+            return False
+
 
 class UserProfile(object):
-    def __init__(self, id=None, slug=None, email=None):
-
+    def __init__(self, user_obj=None, id=None, slug=None, email=None):
+        #TODO: Can we optimize the init to be able to load a profile without a call to user db?
+        # say in a case where we already have an id and just want some fields from the profile object
         if slug:  # Load profile by slug, if passed
             profile = db.profiles.find_one({"slug": slug})
             if profile:
@@ -268,7 +301,10 @@ class UserProfile(object):
                 return
 
         try:
-            if email and not id:  # Load profile by email, if passed.
+            if user_obj and not isinstance(user_obj, AnonymousUser):
+                user = user_obj
+                id = user.id
+            elif email and not id:  # Load profile by email, if passed.
                 user = User.objects.get(email__iexact=email)
                 id = user.id
             else:
@@ -303,8 +339,6 @@ class UserProfile(object):
         self.linkedin              = ""
         self.pinned_sheets         = []
         self.interrupting_messages = ["newUserWelcome"]
-        self.partner_group        = ""
-        self.partner_role         = ""
         self.last_sync_web        = 0  # epoch time for last sync of web app
         self.profile_pic_url      = ""
         self.profile_pic_url_small = ""
@@ -312,26 +346,37 @@ class UserProfile(object):
         self.settings     =  {
             "email_notifications": "daily",
             "interface_language": "english",
-            "textual_custom" : "sephardi"
+            "textual_custom" : "sephardi",
+            "reading_history" : True,
+            "translation_language_preference": None,
         }
         # dict that stores the last time an attr has been modified
         self.attr_time_stamps = {
             "settings": 0
         }
 
+        # flags that indicate a change needing a cascade after save
         self._name_updated      = False
+        self._process_remove_history = False
 
         # Followers
         self.followers = FollowersSet(self.id)
         self.followees = FolloweesSet(self.id)
 
-        # Gravatar
+        # Google API token
+        self.gauth_token = None
+
+        # new editor
+        self.show_editor_toggle = False
+        self.uses_new_editor = False
+
+        # Fundraising
+        self.is_sustainer = False
 
         # Update with saved profile doc in MongoDB
         profile = db.profiles.find_one({"id": id})
-        profile = self.migrateFromOldRecents(profile)
         if profile:
-            self.update(profile)
+            self.update(profile, ignore_flags_on_init=True)
         elif self.exists():
             # If we encounter a user that has a Django user record but not a profile document
             # create a profile for them. This allows two enviornments to share a user database,
@@ -339,16 +384,6 @@ class UserProfile(object):
             self.assign_slug()
             self.interrupting_messages = []
             self.save()
-
-
-        if len(self.profile_pic_url) == 0:
-            default_image           = "https://www.sefaria.org/static/img/profile-default.png"
-            gravatar_base           = "https://www.gravatar.com/avatar/" + hashlib.md5(self.email.lower().encode('utf-8')).hexdigest() + "?"
-            gravatar_url       = gravatar_base + urllib.parse.urlencode({'d':default_image, 's':str(250)})
-            gravatar_url_small = gravatar_base + urllib.parse.urlencode({'d':default_image, 's':str(80)})
-            self.profile_pic_url = gravatar_url
-            self.profile_pic_url_small = gravatar_url_small
-
 
     @property
     def full_name(self):
@@ -358,6 +393,10 @@ class UserProfile(object):
         if "first_name" in obj or "last_name" in obj:
             if self.first_name != obj["first_name"] or self.last_name != obj["last_name"]:
                 self._name_updated = True
+
+        if "reading_history" in self.settings and self.settings["reading_history"] == True:
+            if "settings" in obj and "reading_history" in obj["settings"] and obj["settings"]["reading_history"] == False:
+                self._process_remove_history = True
 
     @staticmethod
     def transformOldRecents(uid, recents):
@@ -393,27 +432,16 @@ class UserProfile(object):
                 return None
         return [_f for _f in [xformer(r) for r in recents] if _f]
 
-    def migrateFromOldRecents(self, profile):
-        """
-        migrate from recentlyViewed which is a flat list and only saves one item per book to readingHistory, which is a dict and saves all reading history
-        """
-        if profile is None:
-            profile = {}  # for testing, user doesn't need to exist
-        if "recentlyViewed" in profile:
-            user_history = self.transformOldRecents(self.id, profile['recentlyViewed'])
-            for temp_uh in user_history:
-                uh = UserHistory(temp_uh)
-                uh.save()
-            profile.pop('recentlyViewed', None)
-            db.profiles.find_one_and_update({"id": self.id}, {"$unset": {"recentlyViewed": True}})
-            self.save()
-        return profile
-
-    def update(self, obj):
+    def update(self, obj, ignore_flags_on_init=False):
         """
         Update this object with the fields in dictionry 'obj'
         """
-        self._set_flags_on_update(obj)
+        if not ignore_flags_on_init:
+            self._set_flags_on_update(obj)
+        if "settings" in obj and "settings" in self.__dict__:
+            # merge settings separately since it itself is a dict. want to allow partial settings to be passed to update.
+            self.__dict__["settings"].update(obj["settings"])
+            obj["settings"] = self.__dict__["settings"]
         self.__dict__.update(obj)
 
         return self
@@ -445,6 +473,10 @@ class UserProfile(object):
             user.save()
             self._name_updated = False
 
+        if self._process_remove_history:
+            self.delete_user_history()
+            self._process_remove_history = False
+
         return self
 
     def errors(self):
@@ -453,7 +485,7 @@ class UserProfile(object):
         or None if the profile is valid.
         """
         # Slug
-        if re.search("[^a-z0-9\-]", self.slug):
+        if re.search(r"[^a-z0-9\-]", self.slug):
             return "Profile URLs may only contain lowercase letters, numbers and hyphens."
 
         existing = db.profiles.find_one({"slug": self.slug, "_id": {"$ne": self._id}})
@@ -504,28 +536,15 @@ class UserProfile(object):
 
         return self
 
-    def add_partner_group_by_email(self):
+    def join_invited_collections(self):
         """
-        Sets the partner group if email pattern matches known school
+        Add this user as a editor of any collections for which there is an outstanding invitation.
         """
-        email_pattern = self.email.split("@")[1]
-        tsv_file = csv.reader(open(PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE, "rt"), delimiter="\t")
-        for row in tsv_file:
-            # if current rows 2nd value is equal to input, print that row
-            if email_pattern == row[1]:
-                self.partner_group = row[0]
-                return self
-        return self
-
-    def join_invited_groups(self):
-        """
-        Add this user as a member of any group for which there is an outstanding invitation.
-        """
-        from sefaria.model import GroupSet
-        groups = GroupSet({"invitations.email": self.email})
-        for group in groups:
-            group.add_member(self.id)
-            group.remove_invitation(self.email)
+        from sefaria.model import CollectionSet
+        collections = CollectionSet({"invitations.email": self.email})
+        for collection in collections:
+            collection.add_member(self.id)
+            collection.remove_invitation(self.email)
 
     def follows(self, uid):
         """Returns true if this user follows uid"""
@@ -540,7 +559,8 @@ class UserProfile(object):
         return NotificationSet().recent_for_user(self.id)
 
     def unread_notification_count(self):
-        return unread_notifications_count_for_user(self.id)
+        from sefaria.model.notification import NotificationSet
+        return NotificationSet().unread_for_user(self.id).count()
 
     def interrupting_message(self):
         """
@@ -557,6 +577,17 @@ class UserProfile(object):
             self.interrupting_messages.remove(message)
             self.save()
 
+    def process_history_item(self, hist, time_stamp):
+        action = hist.pop("action", None)
+        if self.settings.get("reading_history", True) or action == "add_saved":  # regular case where history enabled, save/unsave saved item etc. or save history in either case
+            return UserHistory.save_history_item(self.id, hist, action, time_stamp)
+        elif action == "delete_saved":  # user has disabled history and is "unsaving", therefore deleting this item.
+            UserHistory.remove_history_item(self.id, hist)
+            return None
+        else:  # history disabled do nothing.
+            return None
+
+
     def get_user_history(self, oref=None, saved=None, secondary=None, sheets=None, last_place=None, serialized=False, limit=0):
         """
         personal user history
@@ -569,9 +600,14 @@ class UserProfile(object):
         :param limit: Passed on to Mongo to limit # of results
         :return:
         """
-
+        if not self.settings.get('reading_history', True) and not saved:
+            return [] if serialized else None
         return UserHistory.get_user_history(uid=self.id, oref=oref, saved=saved, secondary=secondary, sheets=sheets,
                                             last_place=last_place, serialized=serialized, limit=limit)
+
+    def delete_user_history(self, exclude_saved=True, exclude_last_place=False):
+        UserHistory.delete_user_history(uid=self.id, exclude_saved=exclude_saved, exclude_last_place=exclude_last_place)
+
     def to_mongo_dict(self):
         """
         Return a json serializable dictionary which includes all data to be saved in mongo (as opposed to postgres)
@@ -594,14 +630,15 @@ class UserProfile(object):
             "settings":              self.settings,
             "attr_time_stamps":      self.attr_time_stamps,
             "interrupting_messages": getattr(self, "interrupting_messages", []),
+            "is_sustainer":          self.is_sustainer,
             "tag_order":             getattr(self, "tag_order", None),
-            "partner_group":         self.partner_group,
-            "partner_role":          self.partner_role,
             "last_sync_web":         self.last_sync_web,
             "profile_pic_url":       self.profile_pic_url,
-            "profile_pic_url_small": self.profile_pic_url_small
+            "profile_pic_url_small": self.profile_pic_url_small,
+            "gauth_token":           self.gauth_token,
+            "show_editor_toggle":    self.show_editor_toggle,
+            "uses_new_editor":       self.uses_new_editor,
         }
-
 
     def to_api_dict(self, basic=False):
         """
@@ -635,6 +672,48 @@ class UserProfile(object):
         return json.dumps(self.to_mongo_dict())
 
 
+def detect_potential_spam_message_notifications():
+    # Get "message" type notifications where one user has sent many messages to multiple users.
+    spammers = db.notifications.aggregate(
+        [
+            {
+                "$match": {
+                    "read": False,
+                    "is_global": False,
+                    "type": "message"
+                }
+            },
+            {
+                "$group": {
+                    "_id": "$content.sender",
+                    "countmessages": {
+                        "$sum": 1
+                    },
+                    "uids": {
+                        "$addToSet": "$uid"
+                    }
+                }
+            },
+            {"$match": {"countmessages": {"$gt": 20}}},
+        ])
+    suspect_results = []
+    for spammer in spammers:
+        spammer_id = spammer["_id"]
+        if len(spammer["uids"]) >= 5:
+            suspect_results.append(spammer_id)
+            try:
+                spammer_account = User.objects.get(id=spammer_id)
+                spammer_account.is_active = False
+                spammer_account.save()
+            except:
+                continue
+
+        print(spammer["_id"])
+    # Mark all of these Notifications with these sender ids as suspicious so they dont get sent to the users
+    db.notifications.update_many({"content.sender": {"$in": suspect_results}}, {"$set": {"suspected_spam": True}})
+    return suspect_results
+
+
 def email_unread_notifications(timeframe):
     """
     Looks for all unread notifications and sends each user one email with a summary.
@@ -646,6 +725,8 @@ def email_unread_notifications(timeframe):
     * 'all'    - send all notifications
     """
     from sefaria.model.notification import NotificationSet
+
+    detect_potential_spam_message_notifications()
 
     users = db.notifications.find({"read": False, "is_global": False}).distinct("uid")
 
@@ -665,7 +746,6 @@ def email_unread_notifications(timeframe):
             translation.activate(profile.settings["interface_language"][0:2])
 
         message_html  = render_to_string("email/notifications_email.html", {"notifications": notifications, "recipient": user.first_name})
-        #message_text = util.strip_tags(message_html)
         actors_string = notifications.actors_string()
         # TODO Hebrew subjects
         if actors_string:
@@ -674,12 +754,11 @@ def email_unread_notifications(timeframe):
         elif notifications.like_count() > 0:
             noun      = "likes" if notifications.like_count() > 1 else "like"
             subject   = "%d new %s on your Source Sheet" % (notifications.like_count(), noun)
-        from_email    = "Sefaria <hello@sefaria.org>"
+        from_email    = "Sefaria Notifications <notifications@sefaria.org>"
         to            = user.email
 
         msg = EmailMultiAlternatives(subject, message_html, from_email, [to])
-        msg.content_subtype = "html"  # Main content is now text/html
-        #msg.attach_alternative(message_text, "text/plain")
+        msg.content_subtype = "html"
         try:
             msg.send()
             notifications.mark_read(via="email")
@@ -688,13 +767,6 @@ def email_unread_notifications(timeframe):
 
         if "interface_language" in profile.settings:
             translation.deactivate()
-
-
-def unread_notifications_count_for_user(uid):
-    """Returns the number of unread notifications belonging to user uid"""
-    # Check for globals to add...
-    from sefaria.model.notification import NotificationSet
-    return NotificationSet().unread_for_user(uid).count()
 
 
 public_user_data_cache = {}

@@ -1,0 +1,23 @@
+{
+    "type": "PushEvent",
+    "payload": {
+        "push_id": 5789960196,
+        "size": 1,
+        "distinct_size": 1,
+        "ref": "refs/heads/master",
+        "head": "05dc0a7f8b8e1d6012e994adf31d2b34708c6776",
+        "before": "e6e8b98797bb07011912d8b713e855116237438e",
+        "commits": [
+          {
+            "sha": "05dc0a7f8b8e1d6012e994adf31d2b34708c6776",
+            "author": {
+              "email": "blocks@gmail.com",
+              "name": "Brett Lockspeiser"
+            },
+            "message": "Missing ! in banner",
+            "distinct": true,
+            "url": "https://api.github.com/repos/Sefaria/Sefaria-Project/commits/05dc0a7f8b8e1d6012e994adf31d2b34708c6776"
+          }
+        ]
+    }
+}

@@ -4,23 +4,24 @@
 http://norvig.com/spell-correct.html
 http://scottlobdell.me/2015/02/writing-autocomplete-engine-scratch-python/
 """
-import string
 from collections import defaultdict
 
 import datrie
 from unidecode import unidecode
+from django.contrib.auth.models import User
 from sefaria.model import *
 from sefaria.model.schema import SheetLibraryNode
 from sefaria.utils import hebrew
+from sefaria.system.database import db
 
-import logging
-logger = logging.getLogger(__name__)
+import structlog
+logger = structlog.get_logger(__name__)
 
 try:
     import re2 as re
     re.set_fallback_notification(re.FALLBACK_WARNING)
 except ImportError:
-    logging.warning("Failed to load 're2'.  Falling back to 're' for regular expression parsing. See https://github.com/sefaria/Sefaria-Project/wiki/Regular-Expression-Engines")
+    logger.warning("Failed to load 're2'.  Falling back to 're' for regular expression parsing. See https://github.com/sefaria/Sefaria-Project/wiki/Regular-Expression-Engines")
     import re
 
 letter_scope = "\u05b0\u05b1\u05b2\u05b3\u05b4\u05b5\u05b6\u05b7\u05b8\u05b9\u05ba\u05bb\u05bc\u05bd" \
@@ -28,8 +29,8 @@ letter_scope = "\u05b0\u05b1\u05b2\u05b3\u05b4\u05b5\u05b6\u05b7\u05b8\u05b9\u05
             + "\u05d0\u05d1\u05d2\u05d3\u05d4\u05d5\u05d6\u05d7\u05d8\u05d9\u05da\u05db\u05dc\u05dd\u05de\u05df" \
             + "\u05e0\u05e1\u05e2\u05e3\u05e4\u05e5\u05e6\u05e7\u05e8\u05e9\u05ea" \
             + "\u05f3\u05f4" \
-            + "\u200e\u200f\u2013\u201d\ufeff" \
-            + " abcdefghijklmnopqrstuvwxyz1234567890[]`:;.-,*()'&?/\""
+            + "\u200e\u200f\u2013\u201c\u201d\ufeff" \
+            + " abcdefghijklmnopqrstuvwxyz1234567890[]`:;.-,*$()'&?/\""
 
 
 def normalizer(lang):
@@ -46,8 +47,8 @@ class AutoCompleter(object):
     An AutoCompleter object provides completion services - it is the object in this module designed to be used by the Library.
     It instantiates objects that provide string completion according to different algorithms.
     """
-    def __init__(self, lang, lib, include_titles=True, include_people=False, include_categories=False,
-                 include_parasha=False, include_lexicons=False, include_groups=False, include_topics=False, *args, **kwargs):
+    def __init__(self, lang, lib, include_titles=True, include_categories=False,
+                 include_parasha=False, include_lexicons=False, include_users=False, include_collections=False, include_topics=False, *args, **kwargs):
         """
 
         :param lang:
@@ -69,51 +70,86 @@ class AutoCompleter(object):
         self.max_autocorrect_length = 20   # Max # of chars of input string, beyond which no autocorrect search is done
         # self.prefer_longest = True  # True for titles, False for dictionary entries.  AC w/ combo of two may be tricky.
 
+        PAD = 1000000 # padding for object type ordering.  Allows for internal ordering within type.
+
         # Titles in library
         if include_titles:
             title_node_dict = self.library.get_title_node_dict(lang)
             tnd_items = [(t, d) for t, d in list(title_node_dict.items()) if not isinstance(d, SheetLibraryNode)]
             titles = [t for t, d in tnd_items]
             normal_titles = [self.normalizer(t) for t, d in tnd_items]
-            self.title_trie.add_titles_from_title_node_dict(tnd_items, normal_titles)
+            self.title_trie.add_titles_from_title_node_dict(tnd_items, normal_titles, 1 * PAD)
             self.spell_checker.train_phrases(normal_titles)
             self.ngram_matcher.train_phrases(titles, normal_titles)
         if include_categories:
             categories = self._get_main_categories(library.get_toc_tree().get_root())
             category_names = [c.primary_title(lang) for c in categories]
             normal_category_names = [self.normalizer(c) for c in category_names]
-            self.title_trie.add_titles_from_set(categories, "all_node_titles", "primary_title", "full_path")
+            self.title_trie.add_titles_from_set(categories, "all_node_titles", "primary_title", "full_path", 2 * PAD)
             self.spell_checker.train_phrases(category_names)
             self.ngram_matcher.train_phrases(category_names, normal_category_names)
         if include_parasha:
             parashot = TermSet({"scheme": "Parasha"})
             parasha_names = [n for p in parashot for n in p.get_titles(lang)]
             normal_parasha_names = [self.normalizer(p) for p in parasha_names]
-            self.title_trie.add_titles_from_set(parashot, "get_titles", "get_primary_title", "name")
+            self.title_trie.add_titles_from_set(parashot, "get_titles", "get_primary_title", "name", 3 * PAD)
             self.spell_checker.train_phrases(parasha_names)
             self.ngram_matcher.train_phrases(parasha_names, normal_parasha_names)
         if include_topics:
-            ts = TopicSet({"shouldDisplay":{"$ne":False}, "numSources":{"$gte":10}})
+            ts_gte10 = TopicSet({"shouldDisplay":{"$ne":False}, "numSources":{"$gte":10}, "subclass": {"$ne": "author"}})
+            authors = AuthorTopicSet()  # include all authors
+            ts = ts_gte10.array() + authors.array()
             tnames = [name for t in ts for name in t.get_titles(lang)]
             normal_topics_names = [self.normalizer(n) for n in tnames]
-            self.title_trie.add_titles_from_set(ts, "get_titles", "get_primary_title", "slug")
+            self.title_trie.add_titles_from_set(ts, "get_titles", "get_primary_title", "slug", 4 * PAD)
             self.spell_checker.train_phrases(tnames)
             self.ngram_matcher.train_phrases(tnames, normal_topics_names)
-        if include_people:
-            eras = ["GN", "RI", "AH", "CO"]
-            ps = PersonSet({"era": {"$in": eras}})
-            person_names = [n for p in ps for n in p.all_names(lang)]
-            normal_person_names = [self.normalizer(n) for n in person_names]
-            self.title_trie.add_titles_from_set(ps, "all_names", "primary_name", "key")
-            self.spell_checker.train_phrases(person_names)
-            self.ngram_matcher.train_phrases(person_names, normal_person_names)
-        if include_groups:
-            gs = GroupSet({"listed": True, "moderationStatus": {"$ne": "nolist"}})
-            gnames = [name for g in gs for name in g.all_names(lang)]
-            normal_group_names = [self.normalizer(n) for n in gnames]
-            self.title_trie.add_titles_from_set(gs, "all_names", "primary_name", "name")
-            self.spell_checker.train_phrases(gnames)
-            self.ngram_matcher.train_phrases(gnames, normal_group_names)
+        if include_users:
+            pipeline = [
+                {"$match": {
+                   "status": "public"}},
+                {"$sortByCount": "$owner"},
+                {"$lookup": {
+                    "from": "profiles",
+                    "localField": "_id",
+                    "foreignField": "id",
+                    "as": "user"}},
+                {"$unwind": {
+                    "path": "$user",
+                    "preserveNullAndEmptyArrays": True
+                }}
+            ]
+            results = db.sheets.aggregate(pipeline)
+            try:
+                profiles = {r["user"]["id"]: r for r in results}
+            except KeyError:
+                logger.error("Encountered sheet owner with no profile record.  No users will be shown in autocomplete.")
+                profiles = {}
+            users = User.objects.in_bulk(profiles.keys())
+            unames = []
+            normal_user_names = []
+            for id, u in users.items():
+                fullname = u.first_name + " " + u.last_name
+                normal_name = self.normalizer(fullname)
+                self.title_trie[normal_name] = {
+                    "title": fullname,
+                    "type": "User",
+                    "key": profiles[id]["user"]["slug"],
+                    "pic": profiles[id]["user"]["profile_pic_url_small"],
+                    "order": (7 * PAD) - profiles[id]["count"],  # lower is earlier
+                    "is_primary": True,
+                }
+                unames += [fullname]
+                normal_user_names += [normal_name]
+            self.spell_checker.train_phrases(unames)
+            self.ngram_matcher.train_phrases(unames, normal_user_names)
+        if include_collections:
+            cs = CollectionSet({"listed": True, "moderationStatus": {"$ne": "nolist"}})
+            cnames = [name for c in cs for name in c.all_names(lang)]
+            normal_collection_names = [self.normalizer(n) for n in cnames]
+            self.title_trie.add_titles_from_set(cs, "all_names", "primary_name", "slug", 6 * PAD)
+            self.spell_checker.train_phrases(cnames)
+            self.ngram_matcher.train_phrases(cnames, normal_collection_names)
         if include_lexicons:
             # languages get muddy for lexicons
             # self.prefer_longest = False
@@ -124,7 +160,8 @@ class AutoCompleter(object):
                     "title": wf.form,
                     "key": wf.form,
                     "type": "word_form",
-                    "is_primary": True
+                    "is_primary": True,
+                    "order": (2 * PAD),
                 }
                 if not hasattr(wf, "c_form"):
                     continue
@@ -132,7 +169,8 @@ class AutoCompleter(object):
                     "title": wf.c_form,
                     "key": wf.form,
                     "type": "word_form",
-                    "is_primary": True
+                    "is_primary": True,
+                    "order": (2 * PAD),
                 }
 
             forms = [getattr(wf, "c_form", wf.form) for wf in wfs]
@@ -147,7 +185,7 @@ class AutoCompleter(object):
     def _get_main_categories(otoc):
         cats = []
         for child in otoc.children:
-            if child.children and child.primary_title("en") != "Commentary" and child.primary_title("en") != "Other":
+            if child.children and child.primary_title("en") != "Commentary":
                 cats += [child]
             for grandchild in child.children:
                 if grandchild.children and grandchild.primary_title("en") != "Commentary":
@@ -192,14 +230,11 @@ class AutoCompleter(object):
         instring = instring.strip()  # A terminal space causes some kind of awful "include everything" behavior
         if len(instring) >= self.max_completion_length:
             return [], []
-        completion_manager = Completions(self, self.lang, instring, limit,
-                                         do_autocorrect=len(instring) < self.max_autocorrect_length)
-        completion_manager.process()
-        completions = completion_manager.completions
-        completion_objects = completion_manager.completion_objects
-
-        if len(completions):
-            return completions, completion_objects
+        cm = Completions(self, self.lang, instring, limit,
+                         do_autocorrect=len(instring) < self.max_autocorrect_length)
+        cm.process()
+        if cm.has_results():
+            return cm.get_completion_strings(), cm.get_completion_objects()
 
         # No results. Try letter swap
         if not redirected and self.other_lang_ac:
@@ -208,6 +243,7 @@ class AutoCompleter(object):
 
         return [], []
 
+    '''
     def next_steps_from_node(self, instring):
         """
         Used in the case when the instring matches a node.  Provides the continuations of that string for its children nodes.
@@ -222,6 +258,8 @@ class AutoCompleter(object):
             return [t for t,o in titles_and_objects], [o for t,o in titles_and_objects]
         except KeyError:
             return []
+    '''
+
 
 
 class Completions(object):
@@ -245,29 +283,84 @@ class Completions(object):
         self.completions = []  # titles to return
         self.completion_objects = []
         self.do_autocorrect = do_autocorrect
+        self._completion_strings = []
+        self._raw_completion_strings = []  # May have dupes
+        self._completion_objects = []
+        self._candidate_type_counters = defaultdict(int)
+        self._type_limit = 3
+
+    def has_results(self):
+        return len(self._completion_objects) > 0
+
+    def get_completion_objects(self):
+        return self._completion_objects
+
+    def get_completion_strings(self):
+        return self._completion_strings
 
     def process(self):
         """
         Execute the completion search
         :return:
         """
+        self._collect_candidates()
+        self._trim_results()
+
+    def _trim_results(self):
+        seen = set()
+
+        if self.limit == 0:
+            self._completion_strings = [x for x in self._raw_completion_strings if x not in seen and not seen.add(x)]
+            return
+
+        obj_count = 0
+        for x in self._raw_completion_strings:
+            obj_count += 1
+            if x in seen:
+                continue
+            else:
+                seen.add(x)
+                self._completion_strings += [x]
+            if len(seen) >= self.limit:
+                break
+
+        self._completion_objects = self._completion_objects[:obj_count]
+
+        return
+
+    def _candidate_order(self, c):
+        self._candidate_type_counters[c[1]["type"]] += 1
+        if self._candidate_type_counters[c[1]["type"]] <= self._type_limit:
+            return c[1]["order"]
+        else:
+            return c[1]["order"] * 100
+
+    def _collect_candidates(self):
         # Match titles that begin exactly this way
-        [completions, completion_objects] = self.get_new_continuations_from_string(self.normal_string)
-        self.completions += completions
-        self.completion_objects += completion_objects
-        if self.limit and len(self.completions) >= self.limit:
-            return self.completions[:self.limit or None]   # todo: the return value isn't used, so this (and other) slices on return are a waste
+        [cs, co] = self.get_new_continuations_from_string(self.normal_string)
+
+        joined = list(zip(cs, co))
+        if len(joined):
+            # joined.sort(key=lambda w: w[1]["order"])
+            joined.sort(key=self._candidate_order)
+            self._raw_completion_strings, self._completion_objects = [list(_) for _ in zip(*joined)]
+        else:
+            self._raw_completion_strings, self._completion_objects = [], []
+
+        if self.limit and len(set(self._raw_completion_strings)) >= self.limit:
+            return
+
         if not self.do_autocorrect:
             return 
 
         # single misspellings
         single_edits = self.auto_completer.spell_checker.single_edits(self.normal_string)
         for edit in single_edits:
-            [completions, completion_objects] = self.get_new_continuations_from_string(edit)
-            self.completions += completions
-            self.completion_objects += completion_objects
-            if self.limit and len(self.completions) >= self.limit:
-                return self.completions[:self.limit or None]
+            [cs, co] = self.get_new_continuations_from_string(edit)
+            self._raw_completion_strings += cs
+            self._completion_objects += co
+            if self.limit and len(set(self._raw_completion_strings)) >= self.limit:
+                return
 
 
         # This string of characters, or a minor variations thereof, deeper in the string
@@ -279,19 +372,15 @@ class Completions(object):
                 try:
                     all_v = self.auto_completer.title_trie[k]
                 except KeyError:
-                    pass
-                added_to_completions = False
+                    all_v = []
                 for v in all_v:
                     if (v["type"], v["key"]) not in self.keys_covered:
-                        self.completion_objects += [v]
-                        if not added_to_completions:
-                            self.completions += [v["title"]]
-                            added_to_completions = True
+                        self._completion_objects += [v]
+                        self._raw_completion_strings += [v["title"]]
         except ValueError:
             pass
 
-        self.completions = self.completions[:self.limit or None]
-        return self.completions
+        return
 
     def get_new_continuations_from_string(self, str):
         """
@@ -315,19 +404,14 @@ class Completions(object):
         completion_objects = []
         non_primary_matches = []
         for k, all_v in all_continuations:
-            added_to_completions = False
             for v in all_v:
                 if v["is_primary"] and (v["type"], v["key"]) not in self.keys_covered:
                     if v["type"] == "ref" or v["type"] == "word_form" or v["type"] == "Topic":
                         completion_objects += [v]
-                        if not added_to_completions:
-                            completions += [v["title"]]
-                            added_to_completions = True
+                        completions += [v["title"]]
                     else:
                         completion_objects.insert(0, v)
-                        if not added_to_completions:
-                            completions.insert(0, v["title"])
-                            added_to_completions = True
+                        completions.insert(0, v["title"])
                     self.keys_covered.add((v["type"], v["key"]))
                 else:
                     non_primary_matches += [(k, v)]
@@ -345,7 +429,7 @@ class Completions(object):
 
 
 class LexiconTrie(datrie.Trie):
-    dict_letter_scope = "\u05b0\u05b4\u05b5\u05b6\u05b7\u05b8\u05b9\u05bc\u05c1\u05d0\u05d1\u05d2\u05d3\u05d4\u05d5\u05d6\u05d7\u05d8\u05d9\u05da\u05db\u05dc\u05dd\u05de\u05df\u05e0\u05e1\u05e2\u05e3\u05e4\u05e5\u05e6\u05e7\u05e8\u05e9\u05ea\u05f3\u05f4\u200e\u200f\u2013\u201d\ufeff`' \""
+    dict_letter_scope = "\u05b0\u05b4\u05b5\u05b6\u05b7\u05b8\u05b9\u05bc\u05c1\u05d0\u05d1\u05d2\u05d3\u05d4\u05d5\u05d6\u05d7\u05d8\u05d9\u05da\u05db\u05dc\u05dd\u05de\u05df\u05e0\u05e1\u05e2\u05e3\u05e4\u05e5\u05e6\u05e7\u05e8\u05e9\u05ea\u05f3\u05f4\u200e\u200f\u2013\u201c\u201d\ufeff`' \""
 
     def __init__(self, lexicon_name):
         super(LexiconTrie, self).__init__(self.dict_letter_scope)
@@ -383,16 +467,17 @@ class TitleTrie(datrie.Trie):
         except KeyError:
             super(TitleTrie, self).__setitem__(key, [value])
 
-    def add_titles_from_title_node_dict(self, tnd_items, normal_titles):
+    def add_titles_from_title_node_dict(self, tnd_items, normal_titles, order):
         for (title, snode), norm_title in zip(tnd_items, normal_titles):
             self[norm_title] = {
                 "title": title,
                 "key": snode.full_title("en"),
                 "type": "ref",
-                "is_primary": title == snode.full_title(self.lang)
+                "is_primary": title == snode.full_title(self.lang),
+                "order": order
             }
 
-    def add_titles_from_set(self, recordset, all_names_method, primary_name_method, keyattr):
+    def add_titles_from_set(self, recordset, all_names_method, primary_name_method, keyattr, order):
         """
 
         :param recordset: Instance of a subclass of AbstractMongoSet, or a List of objects
@@ -403,7 +488,9 @@ class TitleTrie(datrie.Trie):
         """
         done = set()
         for obj in recordset:
-            key = getattr(obj, keyattr)
+            key = getattr(obj, keyattr, None)
+            if not key:
+                continue
 
             title = getattr(obj, primary_name_method)(self.lang)
             if title:
@@ -413,7 +500,8 @@ class TitleTrie(datrie.Trie):
                     "title": title,
                     "type": obj.__class__.__name__,
                     "key": tuple(key) if isinstance(key, list) else key,
-                    "is_primary": True
+                    "is_primary": True,
+                    "order": order
                 }
 
             titles = getattr(obj, all_names_method)(self.lang)
@@ -426,7 +514,8 @@ class TitleTrie(datrie.Trie):
                     "title": title,
                     "type": obj.__class__.__name__,
                     "key": tuple(key) if isinstance(key, list) else key,
-                    "is_primary": False
+                    "is_primary": False,
+                    "order": order
                 }
 
 

@@ -5,6 +5,8 @@ import Sefaria from './sefaria/sefaria';
 import Util from './sefaria/util';
 import $ from './sefaria/sefariaJquery';
 import Component from 'react-class';
+import {LoadingMessage} from "./Misc";
+
 
 
 class VersionBlock extends Component {
@@ -135,9 +137,9 @@ class VersionBlock extends Component {
       return "#"; // there's no url for a merged version
     }
     const withParam = versionParam === 'side' ? "&with=Translation Open" : "";
-    const nonSelectedVersionParams = Object.keys(this.props.currVersions)
-                                      .filter(vlang=>!!this.props.currVersions[vlang] && (versionParam === 'side' || vlang !== this.props.version.language))  // in 'side' case, keep all version params
-                                      .map(vlang=>`&v${vlang}=${this.props.currVersions[vlang].replace(/\s/g,'_')}`)
+    const nonSelectedVersionParams = Object.entries(this.props.currObjectVersions)
+                                      .filter(([vlang, version])=>!!version && !version?.merged && (versionParam === 'side' || vlang !== this.props.version.language))  // in 'side' case, keep all version params
+                                      .map(([vlang, version])=>`&v${vlang}=${version.versionTitle.replace(/\s/g,'_')}`)
                                       .join("");
     const versionLink = nonSelectedVersionParams == "" ? null : `/${Sefaria.normRef(this.props.currentRef)}${nonSelectedVersionParams}&v${versionParam}=${this.props.version.versionTitle.replace(/\s/g,'_')}${withParam}`.replace("&","?");
     return versionLink;
@@ -169,7 +171,7 @@ class VersionBlock extends Component {
       "en": "Translation",
       "he" : "Version"
     }
-    let voc = langMap[this.props.version.language] || "Translation";
+    let voc = langMap[this.props.version.actualLanguage] || "Translation";
     return this.props.isCurrent ? Sefaria._("Current " + voc) : Sefaria._("Select "+ voc);
   }
   makeDigitizedByLanguage(){
@@ -259,7 +261,7 @@ class VersionBlock extends Component {
     }
     else {
       return (
-        <div className = "versionBlock">
+        <div className="versionBlock">
             <div className="versionTitle">
               <a className={vtitle["className"]} href={this.makeVersionLink('side')} onClick={this.onVersionTitleClick}>
                 {vtitle["text"]}
@@ -282,7 +284,7 @@ class VersionBlock extends Component {
               </span>
             </div>
           { !v.merged ?
-            <div className="versionDetails">
+            <div className="versionDetails sans-serif">
               <div className="versionDetailsInformation">
                 <div className={classNames(this.makeAttrClassNames({"versionSource": 1, "versionDetailsElement": 1}, "versionSource"))}>
                   <span className="versionDetailsLabel">
@@ -334,21 +336,21 @@ class VersionBlock extends Component {
   }
 }
 VersionBlock.propTypes = {
-  title:           PropTypes.string,
-  version:         PropTypes.object.isRequired,
-  currVersions:    PropTypes.object.isRequired,
-  currentRef:      PropTypes.string,
-  firstSectionRef: PropTypes.string,
-  showHistory:     PropTypes.bool,
-  showNotes:       PropTypes.bool,
-  openVersionInSidebar: PropTypes.func,
-  openVersionInReader: PropTypes.func,
-  getLicenseMap:   PropTypes.func.isRequired,
-  isCurrent:       PropTypes.bool,
-  openVersion:     PropTypes.func,
-  viewExtendedNotes: PropTypes.func,
-  sidebarDisplay: PropTypes.bool,
-  rendermode:     PropTypes.string,
+  title:                  PropTypes.string,
+  version:                PropTypes.object.isRequired,
+  currObjectVersions:     PropTypes.object.isRequired,
+  currentRef:             PropTypes.string,
+  firstSectionRef:        PropTypes.string,
+  showHistory:            PropTypes.bool,
+  showNotes:              PropTypes.bool,
+  openVersionInSidebar:   PropTypes.func,
+  openVersionInReader:    PropTypes.func,
+  getLicenseMap:          PropTypes.func.isRequired,
+  isCurrent:              PropTypes.bool,
+  openVersion:            PropTypes.func,
+  viewExtendedNotes:      PropTypes.func,
+  sidebarDisplay:         PropTypes.bool,
+  rendermode:             PropTypes.string,
 };
 VersionBlock.defaultProps = {
   showHistory: true,
@@ -356,4 +358,108 @@ VersionBlock.defaultProps = {
   sidebarDisplay: false
 };
 
-export default VersionBlock;
+class VersionsBlocksList extends Component{
+  constructor(props) {
+    super(props);
+    this.state = {
+      //We only want this calculated when component is created, so it doesnt cause a massive re-render/reshuffle in order every time a version is selected
+      sortedLanguages: this.sortVersionsByActiveLang(this.props.sortPrioritizeLanugage),
+      currentKeys: this.getCurrentVersionsKeys(this.props.currObjectVersions),
+    }
+  }
+  sortVersionsByActiveLang(prioritize=null){
+    //sorts the languages of the available versions
+    const standard_langs = ["en", "he"];
+    //const activeLanguages = Object.values(this.props.currObjectVersions).map(({actualLanguage}) => actualLanguage);
+    return Object.keys(this.props.versionsByLanguages).sort(
+      (a, b) => {
+        if      (!!prioritize && a === prioritize)                {return -1;}
+        else if (!!prioritize && b === prioritize)                {return 1;}
+        /*else if (a in standard_langs && !(b in standard_langs))   {return -1;}
+        else if (b in standard_langs && !(a in standard_langs))   {return  1;}
+        else if (this.props.activeLanguages.includes(a))          {return -1;}
+        else if (this.props.activeLanguages.includes(b))          {return  1;}*/
+        else if (a < b)                                           {return -1;}
+        else if (b < a)                                           {return  1;}
+        else                                                      {return  0;}
+      }
+    );
+  }
+  componentDidMount() {
+    this.setState({currentKeys : this.getCurrentVersionsKeys(this.props.currObjectVersions)});
+  }
+  isVersionCurrent(version){
+    //make versions string key and check if that key is in the current keys array (hashing for morons)
+    let {actualLanguage, versionTitle} = version;
+    return this.state.currentKeys.includes(`${actualLanguage}|${versionTitle}`);
+  }
+  getCurrentVersionsKeys(currentVersions){
+    //make an array of strings that are keys of the current versions
+    let currs = Object.values(currentVersions).map((v) => !!v ? `${v.actualLanguage}|${v.versionTitle}` : "");
+    return currs
+  }
+  render(){
+      if (!this.props.versionsByLanguages) {
+        return (
+          <div className="versionsBox">
+            <LoadingMessage />
+          </div>
+        );
+      }
+      return (
+        <div className="versionsBox">
+          {
+            this.state.sortedLanguages.map((lang) => (
+              <div key={lang}>
+                { this.props.showLanguageHeaders ?
+                  <div className="versionLanguage">
+                    {Sefaria._(Sefaria.translateISOLanguageCode(lang))}<span className="enInHe connectionsCount">{` (${this.props.versionsByLanguages[lang].length})`}</span>
+                  </div>
+                    :
+                    null
+                }
+                {
+                  this.props.versionsByLanguages[lang].map((v) => (
+                    <VersionBlock
+                      rendermode="versions-box"
+                      sidebarDisplay={true}
+                      version={v}
+                      currObjectVersions={this.props.currObjectVersions}
+                      currentRef={this.props.currentRef}
+                      firstSectionRef={"firstSectionRef" in v ? v.firstSectionRef : null}
+                      getLicenseMap={this.props.getLicenseMap}
+                      key={`${this.isVersionCurrent(v) ? "current" : ""}|${v.versionTitle}|${v.actualLanguage}`}
+                      openVersionInReader={this.props.openVersionInReader}
+                      openVersionInSidebar={this.props.openVersionInSidebar}
+                      viewExtendedNotes={this.props.viewExtendedNotes}
+                      isCurrent={this.isVersionCurrent(v)}
+                    />
+                  ))
+                }
+              </div>
+            ))
+          }
+        </div>
+      );
+    }
+}
+VersionsBlocksList.propTypes={
+  versionsByLanguages: PropTypes.object.isRequired,
+  currObjectVersions: PropTypes.object,
+  displayCurrentVersions: PropTypes.bool,
+  sortPrioritizeLanugage: PropTypes.string,
+  currentRef: PropTypes.string,
+  getLicenseMap: PropTypes.func,
+  openVersionInReader: PropTypes.func,
+  openVersionInSidebar: PropTypes.func,
+  viewExtendedNotes: PropTypes.func,
+  showLanguageHeaders: PropTypes.bool,
+};
+VersionsBlocksList.defaultProps = {
+  displayCurrentVersions: true,
+  showLanguageHeaders: true,
+};
+
+
+
+export {VersionBlock as default, VersionsBlocksList};

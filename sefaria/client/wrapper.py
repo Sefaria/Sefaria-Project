@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import re
 
-import logging
-logger = logging.getLogger(__name__)
+import structlog
+logger = structlog.get_logger(__name__)
 
 from sefaria.model import *
 from sefaria.datatype.jagged_array import JaggedTextArray
@@ -85,14 +85,6 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
     if com["type"] != "commentary" and com["category"] == "Commentary":
             com["category"] = "Quoting Commentary"
 
-    if com["category"] == "Modern Works" and getattr(linkRef.index, "dependence", None) == "Commentary":
-        # print "Transforming " + linkRef.normal()
-        com["category"] = "Modern Commentary"
-        com["collectiveTitle"] = {
-            'en': getattr(linkRef.index, 'collective_title', linkRef.index.title),
-            'he': hebrew_term(getattr(linkRef.index, 'collective_title', linkRef.index.get_title("he")))
-        }
-
     if linkRef.index_node.primary_title("he"):
         com["heTitle"] = linkRef.index_node.primary_title("he")
 
@@ -146,8 +138,8 @@ def format_note_object_for_client(note):
 
 
 def format_sheet_as_link(sheet):
-    sheet["category"]        = "Commentary" if "Commentary" in sheet["groupTOC"]["categories"] else sheet["groupTOC"]["categories"][0]
-    sheet["collectiveTitle"] = sheet["groupTOC"]["collectiveTitle"] if "collectiveTitle" in sheet["groupTOC"] else {"en": sheet["groupTOC"]["title"], "he": sheet["groupTOC"]["heTitle"]}
+    sheet["category"]        = sheet["collectionTOC"].get("dependence", sheet["collectionTOC"]["categories"][0])
+    sheet["collectiveTitle"] = sheet["collectionTOC"]["collectiveTitle"] if "collectiveTitle" in sheet["collectionTOC"] else {"en": sheet["collectionTOC"]["title"], "he": sheet["collectionTOC"]["heTitle"]}
     sheet["index_title"]     = sheet["collectiveTitle"]["en"]
     sheet["sourceRef"]       = sheet["title"]
     sheet["sourceHeRef"]     = sheet["title"]
@@ -171,7 +163,7 @@ def get_links(tref, with_text=True, with_sheet_links=False):
     """
     Return a list of links tied to 'ref' in client format.
     If `with_text`, retrieve texts for each link.
-    If `with_sheet_links` include sheet results for sheets in groups which are listed in the TOC.
+    If `with_sheet_links` include sheet results for sheets in collections which are listed in the TOC.
     """
     links = []
     oref = Ref(tref)
@@ -258,15 +250,21 @@ def get_links(tref, with_text=True, with_sheet_links=False):
                             }
                     com_sections = [i - 1 for i in com_oref.sections]
                     com_toSections = [i - 1 for i in com_oref.toSections]
-                    for lang, (attr, versionAttr, licenseAttr, vtitleInHeAttr) in (("he", ("he","heVersionTitle","heLicense","heVersionTitleInHebrew")), ("en", ("text", "versionTitle","license","versionTitleInHebrew"))):
+                    for lang, (attr, versionAttr, licenseAttr, vtitleInHeAttr) in (
+                            ("he", ("he","heVersionTitle","heLicense","heVersionTitleInHebrew")),
+                            ("en", ("text", "versionTitle","license","versionTitleInHebrew"))):
                         temp_nref_data = texts[top_nref][lang]
+                        # Because of how the jagged arrays work, res may be either a single line or a list of lines
                         res = temp_nref_data['ja'].subarray(com_sections[1:], com_toSections[1:]).array()
-                        if attr not in com:
-                            com[attr] = res
-                        else:
+                        if attr not in com: # If this is the first com_oref, and so the object doesn't contain any data in this field,
+                            com[attr] = res  # Set the text directly in the object
+                        else:  # This is not the first oref (this was a spanning ref, e.g. "Ketubot 110b:25-111a:1".
+                            # We'll want to connect the texts from all pages together. As mentioned, each can be either a string or a list.
                             if isinstance(com[attr], str):
                                 com[attr] = [com[attr]]
-                            com[attr] += res
+                            if isinstance(res, str):
+                                res = [res]
+                            com[attr] += res  # Once they're both definitely lists, merge the lists together.
                         temp_version = temp_nref_data['version']
                         if isinstance(temp_version, str) or temp_version is None:
                             com[versionAttr] = temp_version
@@ -309,9 +307,9 @@ def get_links(tref, with_text=True, with_sheet_links=False):
             base_links = [x for x in base_links if ((x['sourceRef'], x['anchorRef']) not in orig_links_refs) and (x["sourceRef"] != x["anchorRef"])]
             links += base_links
 
-    groups = library.get_groups_in_library()
-    if with_sheet_links and len(groups):
-        sheet_links = get_sheets_for_ref(tref, in_group=groups)
+    collections = library.get_collections_in_library()
+    if with_sheet_links and len(collections):
+        sheet_links = get_sheets_for_ref(tref, in_collection=collections)
         formatted_sheet_links = [format_sheet_as_link(sheet) for sheet in sheet_links]
         links += formatted_sheet_links
 

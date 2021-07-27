@@ -3,8 +3,8 @@ Object history tracker
 Accepts change requests for model objects, passes the changes to the models, and records the changes in history
 
 """
-import logging
-logger = logging.getLogger(__name__)
+import structlog
+logger = structlog.get_logger(__name__)
 
 import sefaria.model as model
 from sefaria.system.exceptions import InputError
@@ -36,26 +36,96 @@ def modify_text(user, oref, vtitle, lang, text, vsource=None, **kwargs):
     if vsource:
         chunk.versionSource = vsource  # todo: log this change
     if chunk.save():
-        model.log_text(user, action, oref, lang, vtitle, old_text, chunk.text, **kwargs)
-        if USE_VARNISH:
-            invalidate_ref(oref, lang=lang, version=vtitle, purge=True)
-            if oref.next_section_ref():
-                invalidate_ref(oref.next_section_ref(), lang=lang, version=vtitle, purge=True)
-            if oref.prev_section_ref():
-                invalidate_ref(oref.prev_section_ref(), lang=lang, version=vtitle, purge=True)
-        if not kwargs.get("skip_links", None):
-            from sefaria.helper.link import add_links_from_text
-            # Some commentaries can generate links to their base text automatically
-            linker = oref.autolinker(user=user)
-            if linker:
-                linker.refresh_links(**kwargs)
-            # scan text for links to auto add
-            add_links_from_text(oref, lang, chunk.text, chunk.full_version._id, user, **kwargs)
-
-            if USE_VARNISH:
-                invalidate_linked(oref)
+        post_modify_text(user, action, oref, lang, vtitle, old_text, chunk.text, chunk.full_version._id, **kwargs)
 
     return chunk
+
+
+def modify_bulk_text(user: int, version: model.Version, text_map: dict, vsource=None, **kwargs) -> dict:
+    """
+    user: user ID of user making modification
+    version: version object of text being modified
+    text_map: dict with segment ref keys and text values. Each key/value pair represents a segment that should be modified. Segments that don't have changes will be ignored.
+    vsource: optional parameter to set the version source of the version. not sure why this is here. I copied it from modify_text.
+    """
+    def populate_change_map(old_text, en_tref, he_tref, _):
+        nonlocal change_map, existing_tref_set
+        existing_tref_set.add(en_tref)
+        new_text = text_map.get(en_tref, None)
+        if new_text is None or new_text == old_text:
+            return
+        change_map[en_tref] = (old_text, new_text, model.Ref(en_tref))
+    change_map = {}
+    existing_tref_set = set()
+    version.walk_thru_contents(populate_change_map)
+    new_ref_set = set(text_map.keys()).difference(existing_tref_set)
+    for new_tref in new_ref_set:
+        if len(text_map[new_tref].strip()) == 0:
+            # this ref doesn't exist for this version. probably exists in a different version
+            # no reason to add to change_map if it has not content
+            continue
+        change_map[new_tref] = ('', text_map[new_tref], model.Ref(new_tref))
+
+    if vsource:
+        version.versionSource = vsource  # todo: log this change
+
+    # modify version in place
+    error_map = {}
+    for _, new_text, oref in change_map.values():
+        try:
+            version.sub_content_with_ref(oref, new_text)
+        except Exception as e:
+            error_map[oref.normal()] = f"Ref doesn't match schema of version. Exception: {repr(e)}"
+    version.save()
+
+    for old_text, new_text, oref in change_map.values():
+        if oref.normal() in error_map: continue
+        post_modify_text(user, kwargs.get("type"), oref, version.language, version.versionTitle, old_text, new_text, version._id, **kwargs)
+
+    return error_map
+
+
+def post_modify_text(user, action, oref, lang, vtitle, old_text, curr_text, version_id, **kwargs) -> None:
+    model.log_text(user, action, oref, lang, vtitle, old_text, curr_text, **kwargs)
+    if USE_VARNISH:
+        invalidate_ref(oref, lang=lang, version=vtitle, purge=True)
+        if oref.next_section_ref():
+            invalidate_ref(oref.next_section_ref(), lang=lang, version=vtitle, purge=True)
+        if oref.prev_section_ref():
+            invalidate_ref(oref.prev_section_ref(), lang=lang, version=vtitle, purge=True)
+    if not kwargs.get("skip_links", None):
+        from sefaria.helper.link import add_links_from_text
+        # Some commentaries can generate links to their base text automatically
+        linker = oref.autolinker(user=user)
+        if linker:
+            linker.refresh_links(**kwargs)
+        # scan text for links to auto add
+        add_links_from_text(oref, lang, curr_text, version_id, user, **kwargs)
+
+        if USE_VARNISH:
+            invalidate_linked(oref)
+    
+    count_and_index(oref, lang, vtitle, to_count=kwargs.get("count_after", 1))
+
+
+def count_and_index(oref, lang, vtitle, to_count=1):
+    from sefaria.settings import SEARCH_INDEX_ON_SAVE, MULTISERVER_ENABLED
+    from sefaria.system.multiserver.coordinator import server_coordinator
+
+    # count available segments of text
+    if to_count:
+        model.library.recount_index_in_toc(oref.index)
+        if MULTISERVER_ENABLED:
+            server_coordinator.publish_event("library", "recount_index_in_toc", [oref.index.title])
+
+    
+    if SEARCH_INDEX_ON_SAVE:
+        model.IndexQueue({
+            "ref": oref.normal(),
+            "lang": lang,
+            "version": vtitle,
+            "type": "ref",
+        }).save()
 
 
 def add(user, klass, attrs, **kwargs):

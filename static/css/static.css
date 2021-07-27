@@ -8,10 +8,15 @@
 .interface-hebrew .staticPage {
   direction:rtl;
 }
+.interface-hebrew .staticPage.englishOnly {
+  direction:ltr;
+}
+.interface-hebrew .static .englishOnly {
+  direction:ltr;
+}
 .static {
   font-size: 16px;
   background-color: #FBFBFA;
-  font-family: "adobe-garamond-pro", Georgia, serif;
 }
 .static .inner {
   width: 90%;
@@ -22,47 +27,11 @@
 #register.static .inner {
   width: 302px;
 }
-.static .int-he {
-  font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, sans-serif;
-}
-.static .control-elem, .static .control-elem .int-en{
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-.static .control-elem .int-he {
-  font-family: "Heebo", sans-serif;
-}
-.static .control-elem .int-bi {
-  font-family: "Roboto", "Heebo", "Helvetica Neue", Ariel, sans-serif;
-}
-.static .sans .int-en, .static.sans .int-en, .static .sans {
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-.static .sans .int-he, .static.sans .int-he  {
-  font-family: "Heebo", sans-serif;
-}
 .interface-english .static .int-he, .interface-english .static .he {
   display: none;
 }
 .interface-hebrew .static .int-en, .interface-hebrew .static .en {
   display: none;
-}
-.static h2,
-.static h3,
-.static h4,
-.static h2 .int-en,
-.static h3 .int-en,
-.static h4 .int-en {
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-.interface-hebrew h1,
-.interface-hebrew h2,
-.interface-hebrew h3,
-.interface-hebrew h4,
-.static h1 .int-he,
-.static h2 .int-he,
-.static h3 .int-he,
-.static h4 .int-he {
-  font-family: "Heebo", sans-serif;
 }
 .static h1 {
   position: relative;
@@ -72,9 +41,6 @@
   font-size: 30px;
   margin: 0 0 60px 0;
   height: auto;
-}
-.static h1 .int-en {
-  font-family: "adobe-garamond-pro", Georgia, serif;
 }
 .static h2 {
   font-weight: lighter;
@@ -89,6 +55,7 @@
 }
 .static h3 {
   font-weight: normal;
+  font-size: 16px;
   text-transform: uppercase;
   color: #aaa;
   letter-spacing: 1px;
@@ -97,7 +64,7 @@
   padding-bottom: 15px;
   border-bottom: 1px solid #eee;
 }
-.static p {
+.static p, .static section {
   margin: initial;
   font-size: 18px;
   line-height: 1.5;
@@ -165,35 +132,8 @@
 .static label.button {
   height: auto;
 }
-.static .row{
-
-}
 .static .error {
   color: red;
-}
-.static .inner div.single-button a.button{
-  margin: auto;
-}
-.static .inner .button {
-  border-radius: 7px;
-  padding: 16px 24px;
-  cursor: pointer;
-  font-size: 15px;
-  letter-spacing: 1px;
-  box-sizing: border-box;
-  text-align: center;
-}
-.static .inner .button.big {
-  width: 250px;
-}
-.static .inner .button.blue {
-  background-color: #212E50;
-  border: 1px solid #212E50;
-  color: white;
-}
-.static .inner .button.full{
-  width:100%;
-  margin: 10px 0;
 }
 .static img.fullWidth {
   width: 100%;
@@ -218,11 +158,9 @@
   font-weight: bold;
   color: #666;
 }
-
 .static .quotation a {
   color: #666;
 }
-
 .static .quotation he {
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 }
@@ -256,8 +194,7 @@
 }
 #homePage #homeCover h1.featureTitle {
   color: white;
-  height: 70px;
-  margin-bottom: 20px;
+  margin-bottom: 22px;
 }
 #homePage #homeCover h1.featureTitle .int-en,
 #homePage #homeCover h1.featureTitle .int-he {
@@ -663,19 +600,19 @@
   box-sizing: border-box;
 }
 .registrationContent input::placeholder { /* eventual spec? */
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .registrationContent input::-webkit-input-placeholder { /* Chrome/Opera/Safari */
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .registrationContent input::-moz-placeholder { /* Firefox 19+ */
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .registrationContent input:-ms-input-placeholder { /* IE 10+ */
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .registrationContent input:-moz-placeholder { /* Firefox 18- */
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .registrationContent #id_subscribe_announce, .registrationContent #id_subscribe_educator {
   width: auto;
@@ -693,7 +630,7 @@
 .registrationContent #register-form p:nth-of-type(5){
   padding-top: 10px;
 }
-.interface-hebrew input#id_email::-webkit-input-placeholder {
+.interface-hebrew input#id_email::placeholder {
   text-align: right;
 }
 input#id_email{
@@ -740,34 +677,69 @@ p.registration-links a:hover{
 .static div.single-button.center {
   text-align: center;
 }
+#donatePage h3{
+  font-size: inherit;
+  font-weight: bold;
+  display: inline;
+  text-transform: none;
+  color: inherit;
+  letter-spacing: 1px;
+  border-bottom: none;
+}
+#donatePage .notice{
+  font-style: italic;
+}
+#donatePage .covidNotice span {
+    font-size: 0.8em;
+}
+#donatePage .donateIntroduction{
+  text-align: center;
+}
+#donatePage section p{
+  margin-top: 10px;
+}
+#donatePage #givingOpportunities{
+
+}
+#donatePage #givingOpportunities .givingOpportunitiesDesc{
+  font-style: italic;
+  padding-inline-start: 5%;
+}
 #donatePage #donateOptions .donateOption {
   margin-bottom: 35px;
+}
+#donatePage #donateOptions .donateOption p{
+  display: inline;
 }
 #donatePage .faq p.question {
   font-weight: bold;
 }
 #donatePage .faq p.answer {
-  margin-left: 40px;
-  text-indent: -20px;
+  padding-inline-start: 40px;
 }
-#donatePage .faq p.question:before {
+/*#donatePage .faq p.question:before {
   content: "Q)";
 }
 #donatePage .faq p.answer:before {
   content: "A)";
+}*/
+#donatePage address{
+  font-size: 20px;
 }
-.interface-hebrew #donatePage .faq p.answer{
-  margin-right: 40px;
-  text-indent: -20px;
+#donatePage ul li{
+  list-style: none;
+  font-size: 18px;
+  line-height: 27px
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
-.interface-hebrew #donatePage .faq p.question:before {
+/*.interface-hebrew #donatePage .faq p.question:before {
   content: "ש)";
   font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, san-serif;
 }
 .interface-hebrew #donatePage .faq p.answer:before {
   content: "ת)";
   font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, san-serif;
-}
+}*/
 #supportersPage{
   text-align: center;
 }
@@ -781,9 +753,6 @@ p.registration-links a:hover{
 }
 #supportersPage .supporters p.tagline:first-child {
   margin-bottom: 20px;
-}
-#supportersPage .supporter .int-en{
-    font-family: "adobe-garamond-pro", Georgia, serif;
 }
 #supportersPage h2 {
     margin-top: 25px;
@@ -859,7 +828,7 @@ p.registration-links a:hover{
   letter-spacing: 2px;
   color: #999;
   text-align: center;
-  padding-bottom: 40px;
+  margin-bottom: 40px;
 }
 #teamPage .team-members, #teamPage .board-members{
   display: flex;
@@ -871,23 +840,20 @@ p.registration-links a:hover{
   font-size: 20px;
   line-height: 1.2em;
   display: inline-block;
-  margin-bottom: 35px;
-  padding-bottom: 35px;
-  margin-left: auto;
-  margin-right: auto;
-  /*width: 32%;*/
+  margin-bottom: 20px;
+}
+#teamPage .teamMember.placeholder, #teamPage .teamBoardMember.placeholder {
+  width: 200px;
 }
 #teamPage .teamMember {
   flex: 0 0 30%;
 }
 #teamPage .teamBoardMember {
   border-bottom: none;
-  margin-bottom: 10px;
-  flex: 0 0 29%;
+  flex: 0 0 30%;
 }
 #teamPage .teamMember .teamMemberImage {
   display: block;
-  /*float: left;*/
 }
 #teamPage .teamMember .teamMemberDetails, #teamPage .teamBoardMember .teamMemberDetails {
   display: block;
@@ -904,19 +870,23 @@ p.registration-links a:hover{
   vertical-align:middle;
 }
 #teamPage .teamMember .teamName, #teamPage .teamBoardMember .teamName {
-  margin-bottom: 20px;
+  margin-bottom: 10px;
   font-size: 24px;
   color: #555;
 }
-#teamPage .teamMember .teamTitle, #teamPage .teamBoardMember .teamTitle {
-
+#teamPage .teamBoardMember .teamName {
+  font-size: 20px;
+  margin-bottom: 4px;
 }
-#teamPage .teamMember .teamEmail {
-  color: #999;
+#teamPage .teamMember .teamTitle {
+  font-size: 18px;
 }
-#teamPage .teamMember .teamBio {
-  margin-top: 20px;
-  white-space: normal;
+#teamPage .teamBoardMember .teamTitle {
+  font-size: 16px;
+}
+#teamContact {
+  margin-top: 60px;
+  line-height: 2;
 }
 #editProfilePage {
   color: #666;
@@ -924,11 +894,6 @@ p.registration-links a:hover{
 #editProfilePage .inner {
   position: relative;
 }
-/*#saveCancelButtons {
-  position: absolute;
-  top: 145px;
-  right: 0px;
-}*/
 #saveCancelButtons .button {
   padding: 10px 16px;
   font-weight: normal;
@@ -1077,6 +1042,7 @@ p.registration-links a:hover{
 }
 #accountSettingsPage .toggleSet {
   width: 100%;
+  text-align: center;
 }
 #accountSettingsPage input {
     width: 100%;
@@ -1094,7 +1060,7 @@ p.registration-links a:hover{
     background-color: #FBFBFA;
 }
 #accountSettingsPage input::placeholder{
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-weight: normal;
   color: #999;
   padding-bottom: 15px;
@@ -1106,14 +1072,21 @@ p.registration-links a:hover{
   display: block;
   width 100%;
   margin: 10px;
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 13px;
 }
-#accountSettingsPage #email-edit-errors{
+#accountSettingsPage #email-edit-errors, #accountSettingsPage #reading-history-warning {
   color: #CB6158;
 }
 #accountSettingsPage #email-edit-ok{
   color: #666;
+}
+#accountSettingsPage #reading-history-warning{
+  display: none;
+}
+#accountSettingsPage #reading-history-warning.active{
+  margin: 10px;
+  display: inline-block;
 }
 .interface-hebrew #accountSettingsPage.static.biReady .toggleOption:first-child{
   border-top-right-radius: 4px;
@@ -1133,6 +1106,9 @@ p.registration-links a:hover{
 }
 .static .tripleOption .toggleOption {
   width: 33.3%;
+}
+.static .quadrupleOption .toggleOption {
+  width: 25%;
 }
 .static .toggleOption {
   background-color: white;
@@ -1298,25 +1274,73 @@ p.registration-links a:hover{
 #jobsPage {
   font-size: 18px
 }
+#jobsPage nav{
+  margin-top: 60px;
+}
+#jobsPage nav:not(.navigationVisible){
+  display: none;
+}
+/*#jobsPage nav h3{
+  text-transform: uppercase;
+}*/
 #jobsPage h1 {
   margin-bottom: 0;
 }
 #jobsPage h2 {
   font-size: 22px;
 }
+#jobsPage section.department h2{
+  font-weight: 500;
+  font-size: 22px;
+  line-height: 26px;
+  color: var(--dark-grey);
+  text-transform: none;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--light-grey);
+}
+#jobsPage section.department{
+  margin-top: 50px;
+}
+#jobsPage section.department:first-of-type{
+  margin-top: 80px;
+}
+#jobsPage .department .jobsListForDepartment{
+  margin-top: 18px;
+}
 #jobsPage h2.anchorable {
-  padding-top: 90px;
   margin-top: 0;
 }
 #jobsPage h3 {
   font-size: 16px;
   font-weight: lighter;
 }
-#jobsPage p {
-  margin: 20px 0;
-}
 #jobsPage li {
   margin: 14px 0;
+}
+#jobsPage .job{
+  margin-bottom: 15px;
+  scroll-margin-top: 5em;
+  --english-font: var(--english-serif-font-family);
+  --hebrew-font: var(--hebrew-serif-font-family);
+  font-style: normal;
+  font-weight: normal;
+  font-size: 24px;
+  line-height: 29px;
+  color: #000000;
+}
+#jobsPage .solicitationNotice, #jobsPage .solicitationNotice p{
+  margin-top: 80px;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 14px;
+  line-height: 18px;
+  color: var(--medium-grey);
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  direction: ltr;
+}
+#jobsPage .bold{
+  font-weight: bold;
 }
 #helpPage .section {
   margin-bottom: 60px;
@@ -1559,53 +1583,6 @@ p.registration-links a:hover{
   font-size: 20px;
   display: none;
 }
-
-#groupsPage {
-    margin: 70px auto;
-    text-align: center;
-}
-#groupsPage #groups {
-    margin-top: 40px;
-}
-#groupsPage .group {
-    margin: 10px;
-    padding: 10px;
-    border-bottom: 1px solid #ddd;
-    display: block;
-    text-align: left;
-    overflow: hidden;
-}
-#groupsPage .group:hover {
-    border: 1px solid #08c;
-}
-#groupsPage .groupName {
-    font-size: 18px;
-    line-height: 22px;
-    color: #555;
-    display: block;
-}
-#groupsPage .groupSettings {
-    display: none;
-    cursor: pointer;
-    position: absolute;
-    right: 8px;
-    top: 8px;
-    height: 20px;
-    line-height: 20px;
-    font-size: 18px;
-    color: black;
-}
-#groupsPage .group img.groupCover {
-}
-#groupsPage .group img.groupHeader {
-    display: none;
-}
-#groupsPage .group img {
-    width: 48px;
-    height: 48px;
-    float: left;
-}
-
 #visualGardenPage .control-results-containe{
   display: flex;
   display: -webkit-flex;
@@ -2140,8 +2117,8 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   text-transform: uppercase;
   color: #000000;
 }
-#mobilePage #mobileUpdate .mobileUpdateText .mobileUpdateTitle span{
-  display: inline-block;
+#mobilePage #mobileUpdate .mobileUpdateText .mobileUpdateTitle .mobileUpdateTitleSection{
+  display: block;
 }
 #mobilePage #mobileUpdate .mobileUpdateText .mobileUpdateDescription{
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
@@ -2175,11 +2152,11 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
   border-radius: 6px;
   align-items: center;
+  justify-content: space-evenly;
 }
 #mobilePage #mobileDownloadLinks .mobileDownloadButtons .button img{
   height: 40px;
 }
-
 #mobilePage #mobileDownloadLinks .mobileDownloadButtons .button span{
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-style: normal;
@@ -2190,7 +2167,6 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   color: #FFFFFF;
   letter-spacing: 0px;
 }
-
 #mobilePage #mobileNewsletterSocial{
   padding-bottom: 3%;
   padding-top: 3%;
@@ -2208,9 +2184,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   line-height: 36px;
   color: #000000;
   text-transform: initial;
-
 }
-
 #mobilePage #mobileNewsletterSocial .newsletterSignUpBox input.newsletterInput{
   width: 289px;
   height: 46px;
@@ -2244,14 +2218,11 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   right: 26px;
   left: auto;
 }
-
 .interface-hebrew #mobilePage #mobileNewsletterSocial input[type=image] {
   transform: scale(-1, 1);
   left: 26px;
   right: auto;
 }
-
-
 .interface-hebrew #mobilePage #mobileNewsletterSocial .newsletterSignUpBox img{
     position: relative;
     top: 4px;
@@ -2757,17 +2728,107 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   }
 }
 
+
 /* Static Page Templates */
 
 .staticPage {
   background-color: #fff;
 }
+.staticPage hr {
+  border-top: 1px solid #ccc;
+  margin-top: 60px;
+}
+.staticPage p a {
+  text-decoration: underline;
+}
+.staticPage .parashaSponsorship .parashaTitle {
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-style: normal;
+  font-weight: lighter;
+  font-size: 30px;
+  padding-top: 50px;
+  display: block;
+}
+.staticPage .parashaSponsorship .parashaTitle:hover {
+  color: black;
+  text-decoration: none;
+}
+.staticPage .parashaSponsorship .parashaSponsorNames {
+  font-family: Roboto, serif;
+  font-style: normal;
+  font-weight: lighter;
+  font-size: 16px;
+  padding-top: 25px;
+  width: 75%;
+}
+.staticPage .parashaSponsorship .parashaSponsorNames a {
+  text-decoration: none;
+}
+.staticPage .parashaSponsorship .parashaSponsorNames a {
+  text-decoration: none;
+  color: black;
+}
+.staticPage .parashaSponsorship .parashaMessage {
+  font-family: Roboto, serif;
+  font-style: italic;
+  font-weight: lighter;
+  font-size: 16px;
+  width: 75%;
+  padding-top: 25px;
+  line-height: 1.3;
+}
+.staticPage .staticPageHeader.textOnly .staticPageHeaderTextBox {
+  flex: 7;
+  text-align: center;
+  font-size: 2em;
+}
+.interface-english .staticPage .staticPageHeader.textOnly .staticPageHeaderTextBox {
+  padding-right: 10px;
+  padding-top: 10px;
+}
+.interface-hebrew .staticPage .staticPageHeader.textOnly .staticPageHeaderTextBox {
+  padding-left: 10px;
+  padding-top: 10px;
+}
+.interface-hebrew .staticPage.englishOnly .staticPageHeader.textOnly .staticPageHeaderTextBox {
+  padding-right: 10px;
+  padding-top: 10px;
+}
+.staticPage .staticPageHeader.textOnly .staticPageHeaderImg {
+display: none;
+}
+.staticPage .staticPageHeader.textOnly .staticPageHeaderImg img {
+display: none;
+}
+.staticPage .staticPageHeader.textOnly .staticPageHeaderText {
+  font-size: 16px;
+  line-height: 22px;
+  padding-bottom: 40px;
+  text-align: left;
+  font-weight: lighter;
+  font-family: Garamond,Baskerville,Baskerville Old Face,Hoefler Text,Times New Roman,serif;
+  max-width: 100%;
+}
+.staticPage .staticPageHeader.textOnly .staticPageHeaderTextBox h1 {
+  line-height: 52px;
+  margin: 0 0 14px 0;
+  padding-bottom: 20px;
+}
+.staticPage .staticPageHeader.textOnly .staticPageHeaderTextBox h1 .int-en {
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-weight: lighter;
+  font-size: 46px;
+}
+.staticPage .staticPageHeader.textOnly .staticPageHeaderTextBox .simpleButtonWrapper {
+  width: auto;
+  display: flex;
+  justify-content: center;
+  padding-bottom: 40px;
+}
 .staticPage .staticPageBlockInner {
   width: 800px;
   margin: 0 auto;
   max-width: 90%;
-  /* margin: 20px; */
-  /* display: block; */
 }
 .staticPage .blockVerticalPadding {
   padding-top: 80px;
@@ -2782,7 +2843,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 /* We need to hide some <a> tags that have a flexContainer on them. */
 .interface-hebrew .staticPage .flexContainer.int-en,
 .interface-english .staticPage .flexContainer.int-he {
-    display: none;
+  display: none;
 }
 .staticPage .flexReverse {
   flex-direction: row-reverse;
@@ -2793,12 +2854,18 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 .staticPage .lightgreyBackground {
   background-color: #FBFBFA;
 }
-
 .staticPage .staticPageHeader {
   background-color: #212E50;
   padding: 70px 0 0 0;
   margin-top: 60px;
   color: white;
+}
+.staticPage .staticPageHeader.educators {
+  background-image: url("/static/img/educators-landing-page/edu_landingpage_header.png");
+  background-repeat: no-repeat;
+  background-size: cover;
+  padding: 70px 0 30px;
+  background-position: 50% 0%;
 }
 .staticPage .staticPageCallToActionFooter {
   background-color: #212E50;
@@ -2813,7 +2880,18 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   font-size: 30px;
   line-height: 36px;
   width: 50%;
-}.staticPage .staticPageCallToActionFooter .callToActionText .int-en {
+}
+.staticPage .staticPageCallToActionFooter .callToActionText a {
+  color: inherit;
+}
+.staticPage .staticPageCallToActionFooter .callToActionText a {
+
+}
+.staticPage .staticPageCallToActionFooter .callToActionText.noButton {
+  width: 100%;
+  text-align: center;
+}
+.staticPage .staticPageCallToActionFooter .callToActionText .int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
 .staticPage .staticPageCallToActionFooter .newsletterSignUpBox .subscribeMessage {
@@ -2821,6 +2899,9 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 }
 .staticPage .staticPageHeader .staticPageHeaderTextBox {
   flex: 7;
+}
+.staticPage .staticPageHeader .staticPageHeaderTextBox.educators {
+  flex: inherit;
 }
 .staticPage .staticPageHeader .staticPageHeaderImg {
   flex: 9;
@@ -2832,10 +2913,12 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 .interface-hebrew .staticPage .staticPageHeader .staticPageHeaderTextBox {
   padding-left: 10px;
 }
+.interface-hebrew .staticPage.englishOnly .staticPageHeader .staticPageHeaderTextBox {
+  padding-right: 10px;
+}
 .staticPage .staticPageH2 {
   padding: 55px 0 10px;
   margin: 0;
-  width: 35%;
 }
 .staticPage .staticPageH2 span {
   font-style: normal;
@@ -2844,42 +2927,80 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   line-height: 35px;
   color: #666666;
 }
-
 .staticPage .staticPageSpacer {
 }
-
-.staticPage .staticPageSheetList {
-  padding: 30px 0 0;
+.staticPage .staticPageSection {
+  padding: 30px 0;
 }
-.staticPage .staticPageSheetList .staticPageSheetItem {
+.staticPage .staticPageSheetItem {
   padding: 20px 0;
 }
-.staticPage .staticPageSheetList .staticPageSheetItem + .staticPageSheetItem {
+.staticPage .staticPageSheetItem + .staticPageSheetItem {
   border-top: 1px solid #ccc;
 }
-.staticPage .staticPageSheetList .staticPageSheetItem a {
+.staticPage .staticPageSheetItem a {
   padding-bottom: 20px;
   display: block;
   color: #000;
 }
-.staticPage .int-en .staticPageSheetList .staticPageSheetItem a {
+.staticPage .int-en .staticPageSheetItem a {
   font-family: "adobe-garamond-pro", Georgia, serif;
   font-size: 24px;
 }
-.staticPage .int-he .staticPageSheetList .staticPageSheetItem a {
+.staticPage .int-he .staticPageSheetItem a {
   font-family: "Heebo", sans-serif;
   font-size: 24px;
 }
-.staticPage .staticPageSheetList .staticPageSheetItem img {
+.staticPage .staticPageSheetItem img {
   height: 46px;
   width: 46px;
   vertical-align: middle;
 }
-.staticPage .staticPageSheetList .staticPageSheetItem .staticPageSheetAuthor {
+.staticPage .staticPageSheetAuthor {
+  padding: 0 20px;
+}
+.staticPage .staticPageUserQuote {
+  padding: 26px 0;
+}
+.staticPage .staticPageUserQuote + .staticPageUserQuote {
+  border-top: 1px solid #ccc;
+}
+.staticPage .staticPageUserQuoteNameBox {
+  display: flex;
+  align-items: center;
+  margin-top: 20px;
+}
+.staticPage .staticPageUserQuote img {
+  height: 46px;
+  width: 46px;
+}
+.staticPage .staticPageUserQuoteName {
   padding: 0 20px;
 }
 .staticPage .simpleButtonWrapper {
   width: 33%;
+}
+.staticPage .simpleButtonWrapper.signUpEducators img {
+  height: 18px;
+  width: 18px;
+  opacity: 0.2;
+  position: absolute;
+  margin-left: 10px;
+}
+.staticPage .simpleButtonWrapper.signUpEducators, .staticPage .staticPageHeaderTextBox .simpleButtonWrapper.signUpEducators {
+  width: 100%;
+  padding-bottom: 0px;
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+.staticPage .simpleButtonWrapper.signUpEducators a:hover {
+  color: inherit;
+  text-decoration: none;
+}
+.staticPage .simpleButtonWrapper.signUpEducators .button {
+  padding: 17px 50px;
+}
+.staticPage .signUpEducatorsMessage {
+  text-align: center;
 }
 .staticPage .staticPageHeaderTextBox .simpleButtonWrapper {
   width: 66%;
@@ -2931,7 +3052,6 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   font-size: 16px;
   line-height: 19px;
 }
-
 .staticPage .feature .featureText {
   font-family: "Roboto", sans-serif;
   font-style: normal;
@@ -2949,13 +3069,18 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 .staticPage .feature .featureImage img {
   width: 454px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-  /* max-width: 100%; */
+  border-radius: 6px;
 }
 .staticPage .feature {
-    padding: 40px 0;
-    background-color: #FBFBFA;
+  padding: 40px 0;
+  background-color: #FBFBFA;
 }
-.staticPage .feature .featureHeader {}
+.staticPage .feature .featureHeader a {
+  color: inherit;
+}
+.staticPage .feature .featureHeader a:hover h3 {
+  text-decoration: underline;
+}
 .staticPage .feature .featureHeader h3 {
   margin: 20px 0 20px 0;
   font-size: 30px;
@@ -2963,9 +3088,11 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   font-weight: normal;
   display: inline-block;
 }
-
 .staticPage .feature .featureHeader h3 .int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;
+}
+.staticPage .buttonRow h2 {
+  padding: 0 0 30px 0;
 }
 @media (max-width: 540px) {
   .staticPage .flexContainer {
@@ -2985,13 +3112,14 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   .staticPage .staticPageH2 {
     width: 100%;
   }
-  .staticPageCallToActionFooter .simpleButtonWrapper,
+  .staticPageFooter .simpleButtonWrapper,
   .staticPage .feature .featureImage {
     padding-top: 30px;
   }
   .staticPage .staticPageHeader .staticPageHeaderImg {
     margin-top: 20px;
   }
+
   .staticPage .simpleButtonWrapper,
   .staticPage .feature .featureText,
   .staticPage .feature .featureImage,
@@ -3003,7 +3131,6 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
     padding-bottom: 20px;
   }
 }
-
 
 /*** Filters for coloring svgs ***/
 .svg-white {

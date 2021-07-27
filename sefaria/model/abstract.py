@@ -4,7 +4,7 @@
 abstract.py - abstract classes for Sefaria models
 """
 import collections
-import logging
+import structlog
 import copy
 import bleach
 import re
@@ -17,9 +17,7 @@ from bson.objectid import ObjectId
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 
-logging.basicConfig()
-logger = logging.getLogger("abstract")
-logger.setLevel(logging.WARNING)
+logger = structlog.get_logger(__name__)
 
 
 class AbstractMongoRecord(object):
@@ -28,7 +26,6 @@ class AbstractMongoRecord(object):
     "collection" attribute is set on subclass
     """
     collection = None  # name of MongoDB collection
-    sub_collection_query = None  # dict with key/values for docs in `collection` that can be instantiated with this model (e.g. used in RefTopicLink)
     id_field = "_id"  # Mongo ID field
     criteria_field = "_id"  # Primary ID used to find existing records
     slug_fields = None  # If record can be uniquely identified by slug, set this var with the slug fields
@@ -106,7 +103,7 @@ class AbstractMongoRecord(object):
         """
         Save the object to the Mongo data store.
         On completion, will emit a 'save' notification.  If a tracked attribute has changed, will emit an 'attributeChange' notification.
-        if override_dependencies is set to True, no notifcations will be emitted.
+        if override_dependencies is set to True, no notifications will be emitted.
         :return: the object
         """
         is_new_obj = self.is_new()
@@ -152,7 +149,14 @@ class AbstractMongoRecord(object):
         """
         return True
 
-    def delete(self, force=False):
+    def delete(self, force=False, override_dependencies=False):
+        """
+        Just before the delete is executed, will emit a 'delete' notification.
+
+        :param force: delete object, even if it fails a `can_delete()` check
+        :param override_dependencies: if override_dependencies is set to True, no notifications will be emitted.
+        :return:
+        """
         if not self.can_delete():
             if force:
                 logger.error("Forcing delete of {}.".format(str(self)))
@@ -163,7 +167,8 @@ class AbstractMongoRecord(object):
         if self.is_new():
             raise InputError("Can not delete {} that doesn't exist in database.".format(type(self).__name__))
 
-        notify(self, "delete")
+        if not override_dependencies:
+            notify(self, "delete")
         getattr(db, self.collection).delete_one({"_id": self._id})
 
     def delete_by_query(self, query, force=False):
@@ -295,6 +300,12 @@ class AbstractMongoRecord(object):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    @classmethod
+    def all_subclasses(cls) -> set:
+        # get all subclasses recursively
+        # see https://stackoverflow.com/a/3862957/4246723
+        return set(cls.__subclasses__()).union([sub_sub_cls for sub_cls in cls.__subclasses__() for sub_sub_cls in sub_cls.all_subclasses()])
+
 
 class AbstractMongoSet(collections.abc.Iterable):
     """
@@ -302,10 +313,13 @@ class AbstractMongoSet(collections.abc.Iterable):
     """
     recordClass = AbstractMongoRecord
 
-    def __init__(self, query=None, page=0, limit=0, sort=[("_id", 1)], proj=None, hint=None, record_kwargs=None):
+    def __init__(self, query=None, page=0, limit=0, sort=None, proj=None, hint=None, record_kwargs=None):   # default sort used to be =[("_id", 1)]
         self.query = query or {}
         self.record_kwargs = record_kwargs or {}  # kwargs to pass to record when instantiating
-        self.raw_records = getattr(db, self.recordClass.collection).find(self.query, proj).sort(sort).skip(page * limit).limit(limit)
+        self.raw_records = getattr(db, self.recordClass.collection).find(self.query, proj)
+        if sort:
+            self.raw_records = self.raw_records.sort(sort)
+        self.raw_records = self.raw_records.skip(page * limit).limit(limit)
         self.hint = hint
         self.limit = limit
         self.skip = page * limit
@@ -355,9 +369,12 @@ class AbstractMongoSet(collections.abc.Iterable):
         for rec in self:
             rec.load_from_dict(attrs).save()
 
-    def delete(self, force=False):
-        for rec in self:
-            rec.delete(force=force)
+    def delete(self, force=False, bulk_delete=False):
+        if bulk_delete: # Bulk deletion is more performant but will not trigger dependencies.
+            getattr(db, self.recordClass.collection).delete_many(self.query)
+        else:
+            for rec in self:
+                rec.delete(force=force)
 
     def save(self):
         for rec in self:
@@ -487,7 +504,7 @@ def notify(inst, action, **kwargs):
 
     if action == "attributeChange":
         callbacks = deps.get((type(inst), action, kwargs["attr"]), None)
-        logger.debug("Notify: " + str(inst) + "." + kwargs["attr"] + ": " + kwargs["old"] + " is becoming " + kwargs["new"])
+        logger.debug("Notify: " + str(inst) + "." + str(kwargs["attr"]) + ": " + str(kwargs["old"]) + " is becoming " + str(kwargs["new"]))
     else:
         logger.debug("Notify: " + str(inst) + " is being " + action + "d.")
         callbacks = deps.get((type(inst), action, None), [])
@@ -512,21 +529,22 @@ def cascade(set_class, attr):
     See examples in dependencies.py
     :param set_class: The set class of the impacted model
     :param attr: The name of the impacted class attribute (fk) that holds the references to the changed attribute (pk)
-        There is support for nested attributes one level deep, e.g. "contents.value"
+        There is support for any level of nested attributes, e.g. "contents.properties.value"
     :return: a function that will update 'attr' in 'set_class' and can be passed to subscribe()
     """
+    from functools import reduce
+
     attrs = attr.split(".")
     if len(attrs) == 1:
         return lambda obj, **kwargs: set_class({attr: kwargs["old"]}).update({attr: kwargs["new"]})
-    elif len(attrs) == 2:
+    else:
         def foo(obj, **kwargs):
             for rec in set_class({attr: kwargs["old"]}):
-                new_dict = {k: (v if k != attrs[1] else kwargs["new"]) for k, v in list(getattr(rec, attrs[0]).items())}
-                setattr(rec, attrs[0], new_dict)
+                dict_parent = reduce(lambda d, k: d[k], attrs[1:-1], getattr(rec, attrs[0]))
+                dict_parent[attrs[-1]] = kwargs["new"]
+                setattr(rec, attrs[0], getattr(rec, attrs[0]))
                 rec.save()
         return foo
-    else:
-        raise InputError("cascade does not support attributes deeper than two levels")
 
 
 def cascade_to_list(set_class, attr):

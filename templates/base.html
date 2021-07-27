@@ -1,5 +1,6 @@
 {% load render_bundle from webpack_loader %}
 {% load static %}
+{% load sefaria_tags %}
 {% get_static_prefix as STATIC_PREFIX %}
 
 <!DOCTYPE html>
@@ -64,6 +65,24 @@
 
     {% block head %}{% endblock %}
 
+    <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
+    <script>
+        WebFont.load({
+          google: {
+            families: ['Crimson Text:400,700'],
+            text: 'ăǎġḥḤḫḳḲŏṭżūŻāīēḗîìi̧ ̆̄'
+          },
+          typekit: {
+            id: 'aeg8div' // Adobe Garamond Pro
+          }
+        });
+        WebFont.load({
+          google: {
+            families: ['Roboto:300,400,700', 'Heebo:300,400,700:hebrew'] // The dotted h causes Heebo not to load.
+          }
+        });
+    </script>
+
     <link rel="stylesheet" href="{% static 'css/common.css' %}">
     <link rel="stylesheet" href="{%  static 'font-awesome/css/font-awesome.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'css/keyboard.css' %}">
@@ -91,22 +110,6 @@
     <!-- End Google Tag Manager -->
     {% endif %}
 
-    <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
-    <script>
-        WebFont.load({
-          google: {
-            families: ['Crimson Text:400,700'],
-            text: 'ăǎġḥḤḫḳḲŏṭżūŻāīēḗîìi̧ ̆̄'
-          },
-          typekit: {
-            id: 'aeg8div' // Adobe Garamond Pro
-          }
-        });
-        WebFont.load({
-          google: {
-            families: ['Roboto:300,400,700', 'Heebo:300,400,700:hebrew'] // The dotted h causes Heebo not to load.
-          }});
-    </script>
 </head>
 
 <body class="interface-{% if request.interfaceLang %}{{request.interfaceLang}}{% else %}english{% endif %}{% if EMBED %} embeded{% endif %} {% block bodyclasses %}{% endblock %}">
@@ -148,7 +151,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.js"></script>
 
     <script src="{% static 'js/lib/keyboard.js' %}"></script>
-    <script src="/data.js"></script>
+    <script src="/data.{{ last_cached_short }}.js"></script>
 
     <script>
       {% autoescape off %}
@@ -160,63 +163,14 @@
           console.log('loading react locally');
           document.write('<script src="/static/js/lib/react.development.js"><\/script><script src="/static/js/lib/react-dom.development.js"><\/script>');
       }
+
       var DJANGO_VARS = {
-        props: {{ propsJSON|default:"null" }},
-        contentLang: "{{ request.contentLang }}",
-        interfaceLang: "{{ request.interfaceLang }}",
-        inReaderApp: {% if html %}true{% else %}false{% endif %},
-        static_url: {{ STATIC_PREFIX }}
+        props:         {{ propsJSON|default:"null" }},
+        contentLang:   "{{ request.contentLang }}",
+        inReaderApp:   {% if html %}true{% else %}false{% endif %},
+        static_url:    {{ STATIC_PREFIX }},
       };
-      document.addEventListener('copy', function(e) {
-          const selection = document.getSelection()
-          const text_only = selection.toString();
 
-          if (selection.rangeCount) {
-              var container = document.createElement("div");
-              for (var i = 0, len = selection.rangeCount; i < len; ++i) {
-                  container.appendChild(selection.getRangeAt(i).cloneContents());
-              }
-
-              var classesToRemove = ["segmentNumber", "linkCount", "clearFix"];
-              classesToRemove.map(function(cls) {
-                var elsToRemove = container.getElementsByClassName(cls);
-                while(elsToRemove.length > 0){
-                    elsToRemove[0].parentNode.removeChild(elsToRemove[0]);
-                }
-              });
-
-              var selectionAncestor = selection.getRangeAt(0).commonAncestorContainer;
-
-              if (selectionAncestor.nodeType == 1) {
-
-                var curReaderPanel = selectionAncestor.closest('.readerPanel');
-
-                if (curReaderPanel && curReaderPanel.classList.contains('hebrew')) {
-                    var elsToRemove = container.getElementsByClassName('en')
-                    while(elsToRemove.length > 0){
-                        elsToRemove[0].parentNode.removeChild(elsToRemove[0]);
-                    }
-                }
-
-                else if (curReaderPanel && curReaderPanel.classList.contains('english')) {
-                    var elsToRemove = container.getElementsByClassName('he')
-                    while(elsToRemove.length > 0){
-                        elsToRemove[0].parentNode.removeChild(elsToRemove[0]);
-                    }
-                }
-              }
-
-              html = container.innerHTML;
-          }
-          else {
-              html = text_only;
-          }
-
-          const clipdata = e.clipboardData || window.clipboardData;
-          clipdata.setData('text/plain', text_only);
-          clipdata.setData('text/html', html);
-          e.preventDefault();
-      });
       {% endautoescape %}
     </script>
 

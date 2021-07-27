@@ -13,8 +13,8 @@ import regex
 import math
 
 from sefaria.system.decorators import memoized
-import logging
-logger = logging.getLogger(__name__)
+import structlog
+logger = structlog.get_logger(__name__)
 
 
 ### Change to all caps for constants
@@ -104,11 +104,11 @@ def heb_string_to_int(n):
 	764
 	'''
 
-	n = re.sub('[\u05F4"\u201d]', '', n)  # remove gershayim, double quote, or fancy double quote
+	n = re.sub('[\u05F4"\u201c\u201d]', '', n)  # remove gershayim, double quote, or fancy double quote
 	return sum(map(heb_to_int, n))
 
 @memoized
-def decode_hebrew_numeral(n):
+def decode_hebrew_numeral(numeral: str):
 	"""
 	Takes any string representing a Hebrew numeral and returns it integer value.
 
@@ -116,7 +116,7 @@ def decode_hebrew_numeral(n):
 	5764
 	"""
 
-	t = list(map(heb_string_to_int, split_thousands(n)))  # split and convert to numbers
+	t = list(map(heb_string_to_int, split_thousands(numeral)))  # split and convert to numbers
 	t = [pow(10, 3 * E_num[0]) * E_num[1] for E_num in enumerate(t)]  # take care of thousands and add
 	return sum(t)
 
@@ -399,6 +399,7 @@ def encode_hebrew_numeral(n, punctuation=True):
 
 	return ret
 
+
 @memoized
 def encode_hebrew_daf(daf):
 	"""
@@ -414,10 +415,14 @@ def strip_nikkud(rawString):
 
 
 #todo: rewrite to handle edge case of hebrew words in english texts, and latin characters in Hebrew text
+
+any_hebrew = regex.compile(r"\p{Hebrew}")
+any_english = regex.compile(r"[a-zA-Z]")
+
 def is_hebrew(s, heb_only=False):
-	if not heb_only and regex.search("\p{Hebrew}", s):
+	if not heb_only and any_hebrew.search(s):
 		return True
-	elif heb_only and regex.search("\p{Hebrew}", s) and not regex.search("[a-zA-Z]", s):
+	elif heb_only and any_hebrew.search(s) and not any_english.search(s):
 		return True
 	return False
 

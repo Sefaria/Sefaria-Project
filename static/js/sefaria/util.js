@@ -3,11 +3,26 @@ import extend from 'extend';
 import striptags from 'striptags';
 import humanizeDuration from 'humanize-duration';
 import sanitizeHtml from 'sanitize-html';
+import Sefaria  from './sefaria';
 
 
 var INBROWSER = (typeof document !== 'undefined');
 
 class Util {
+    static selectElementContents(el) {
+      //source: https://stackoverflow.com/questions/4183401/can-you-set-and-or-change-the-user-s-text-selection-in-javascript
+      if (window.getSelection && document.createRange) {
+        var sel = window.getSelection();
+        var range = document.createRange();
+        range.selectNodeContents(el);
+        sel.removeAllRanges();
+        sel.addRange(range);
+      } else if (document.selection && document.body.createTextRange) {
+        var textRange = document.body.createTextRange();
+        textRange.moveToElementText(el);
+        textRange.select();
+      }
+    }
     static encodeVtitle(vtitle) {
       return vtitle.replace(/\s/g, '_').replace(/;/g, '%3B');
     }
@@ -45,10 +60,10 @@ class Util {
     static naturalTimePlural(n, singular, plural) {
       return n <= 1 ? singular : plural;
     }
-    static naturalTime(timeStamp) {
+    static naturalTime(timeStamp, lang) {
       // given epoch time stamp, return string of time delta between `timeStamp` and now
       const now = Util.epoch_time();
-      const language = Sefaria.interfaceLang === 'hebrew' ? 'he' : 'en';
+      const language = lang ? lang : (Sefaria.interfaceLang === 'hebrew' ? 'he' : 'en');
       return Util.sefariaHumanizeDuration(now - timeStamp, { language });
     }
     static object_equals(a, b) {
@@ -137,7 +152,7 @@ class Util {
         var clean = sanitizeHtml(html, {
             allowedTags: ['blockquote', 'p', 'a', 'ul', 'ol',
                 'nl', 'li', 'b', 'i', 'strong', 'em', 'small', 'big', 'span', 'strike', 'hr', 'br', 'div',
-                'table', 'thead', 'caption', 'tbody', 'tr', 'th', 'td', 'pre', 'sup','u'],
+                'table', 'thead', 'caption', 'tbody', 'tr', 'th', 'td', 'pre', 'sup','u', 'h1'],
             allowedAttributes: {
                 a: ['href', 'name', 'target', 'class', 'data-ref'],
                 img: ['src'],
@@ -292,27 +307,33 @@ class Util {
         };
 
         String.prototype.stripHtml = function() {
-           /*if (INBROWSER) {
-             var tmp = document.createElement("div");
-             tmp.innerHTML = this;
-             return tmp.textContent|| "";
-           } else {*/
-            return striptags(this.replace(/\u00a0/g, ' ').replace(/&nbsp;/g, ' '));
-           //}
+          return striptags(this.replace(/\u00a0/g, ' ').decodeHtmlEntities());
         };
 
-        String.prototype.stripHtmlKeepLineBreaks = function() {
-            return striptags(this.replace(/\u00a0/g, ' ').replace(/&nbsp;/g, ' ').replace(/<p>/g, ' <p>').replace(/&amp;/g, '&').replace(/(<br>|\n)+/g,' '));
-        };
+        String.prototype.stripNikkud = function() {
+          return this.replace(/[\u0591-\u05C7]/g,"");
+        }
 
+        String.prototype.stripHtmlConvertLineBreaks = function() {
+          // Converts line breaks to spaces
+          return striptags(this.replace(/\u00a0/g, ' ').decodeHtmlEntities().replace(/<p>/g, ' <p>').replace(/(<br>|\n)+/g,' '));
+        };
 
         String.prototype.escapeHtml = function() {
-            return this.replace(/&/g,'&amp;')
-                        .replace(/</g,'&lt;')
-                        .replace(/>/g,'&gt;')
-                        .replace(/'/g,'&apos;')
-                        .replace(/"/g,'&quot;')
-                        .replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1<br />$2');
+          return this.replace(/&/g,'&amp;')
+                      .replace(/</g,'&lt;')
+                      .replace(/>/g,'&gt;')
+                      .replace(/'/g,'&apos;')
+                      .replace(/"/g,'&quot;')
+                      .replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1<br />$2');
+        };
+
+        String.prototype.decodeHtmlEntities = function() {
+          return this.replace(/&nbsp;/gi, " ")
+                      .replace(/&amp;/gi, "&")
+                      .replace(/&quot;/gi, `"`)
+                      .replace(/&lt;/gi, "<")
+                      .replace(/&gt;/gi, ">");
         };
 
         if (!String.prototype.startsWith) {
@@ -327,6 +348,13 @@ class Util {
                           .trim()
                           .replace(/^./, str => str.toUpperCase())
         };
+
+        String.prototype.camelize = function() {
+          return this.replace(/(?:^\w|[A-Z]|\b\w|\s+)/g, function(match, index) {
+            if (+match === 0) return ""; // or if (/\s+/.test(match)) for white spaces
+            return index === 0 ? match.toLowerCase() : match.toUpperCase();
+          });
+        }
 
         Array.prototype.compare = function(testArr) {
             if (this.length != testArr.length) return false;
@@ -508,10 +536,10 @@ class Util {
             console.log = function() {};
         }
     }
-    static handleUserCookie(loggedIn, uid, partner_group, partner_role) {
+    static handleUserCookie(uid) {
         var cookie = INBROWSER ? $.cookie : this.cookie;
 
-        if (loggedIn) {
+        if (uid) {
             // If logged in, replace cookie with current system details
 
             var expires = new Date(); // starts with current time
@@ -519,8 +547,6 @@ class Util {
 
             cookie("_user", JSON.stringify({
                _uid: uid,
-               _partner_group: partner_group,
-               _partner_role: partner_role
             }), { path: "/", expires: expires });
         } else {
             // If not logged in, get details from cookie
@@ -884,17 +910,7 @@ Util.sefariaHumanizeDuration = humanizeDuration.humanizer({
     m: 60,
     s: 1,
   },
-  languages: {
-    he: {  // add hebrew since it's not supported in the package
-      y: n => Util.naturalTimePlural(n, 'שנה', 'שנים'),
-      mo: n => Util.naturalTimePlural(n, 'חודש', 'חודשים'),
-      w: n => Util.naturalTimePlural(n, 'שבוע', 'שבועות'),
-      d: n => Util.naturalTimePlural(n, 'יום', 'ימים'),
-      h: n => Util.naturalTimePlural(n, 'שעה', 'שעות'),
-      m: n => Util.naturalTimePlural(n, 'דקה', 'דקות'),
-      s: n => Util.naturalTimePlural(n, 'שנייה', 'שניות'),
-    }
-  },
 });
+
 
 export default Util;

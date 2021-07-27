@@ -108,7 +108,7 @@ body {
 	padding: 60px 40px;
 	margin: 150px auto 56px;
 	box-shadow: 0px 0px 2px #777;
-	font-family: "Times New Roman", "Georgia", serif;
+  font-family: "Crimson Text", "Georgia", serif
 
 
 	width:850px;
@@ -141,7 +141,7 @@ body {
 #bsdHeader {
 	display: none;
 	direction: rtl;
-	font-family: 'Times New Roman', serif;
+  font-family: "Crimson Text", "Georgia", serif
 	font-size: 18px;
 	position: relative;
 	top: -40px;
@@ -465,18 +465,6 @@ body {
 	text-align: center;
 }
 
-#s2LikeContainer {
-	font-family: "Roboto","Helvetica Neue","Helvetica",sans-serif;
-	color: #666;
-	font-size:12px;
-	height:26px;
-	width:52px;
-	border: 1px solid #ccc;
-	padding: 4px 10px;
-	border-radius: 3px;
-
-}
-
 #sheet.public #likes {
 	display: block;
 }
@@ -670,12 +658,13 @@ body {
 }
 
 #sheet .en {
-	direction: ltr;
+  font-family: "Crimson Text", "Georgia", serif
+  direction: ltr;
 }
 #sheet .he {
 	direction: rtl;
 	text-align: right;
-	font-family: "Times New Roman", Serif;
+	font-family: "Frank Ruhl Libre", serif;
 	font-size: 24px;
 }
 
@@ -1772,7 +1761,7 @@ img {
 
 
 .customTextEditables.en {
-	font-family: "Times New Roman", "Georgia", serif;
+  font-family: "Crimson Text", "Georgia", serif
 }
 .customTextEditables.he {
 	text-align: right;
@@ -2038,7 +2027,7 @@ a {
 		#sheet #author,
 		#sheet #sources li,
 		#sheet .en {
-			font-family: "Times New Roman", serif; /* for some reason, removing Georgia makes this work... */
+      font-family: "Crimson Text", "Georgia", serif
 		}
         .sheetItem {
             padding: 0;
@@ -2051,7 +2040,7 @@ a {
 		#sheet #author,
 		#sheet #sources li,
 		#sheet .en {
-			font-family: "Times New Roman", serif; /* for some reason, removing Georgia makes this work... */
+      font-family: "Crimson Text", "Georgia", serif
 		}
         * {
             padding: 0 !important;
@@ -2079,16 +2068,6 @@ a {
 		{% if sheet.options.bsd %}
 		<div id="bsdHeader">בס"ד</div>
 		{% endif %}
-
-		<!-- <div id="sheetHeader" {% if sheet_group == None %}style="display:none"{% endif %}>
-			{% if sheet_group %}
-			<a href="/groups/{{ sheet_group.name|url_safe }}">
-				<img id="groupLogo" src="{{ sheet_group.headerUrl }}" />
-			</a>
-			{% else %}
-				<img id="groupLogo" style="display:none;" />
-			{% endif %}
-		</div> -->
 
 		{% autoescape off %}
 		<h1 id="title" style="text-align:center">{{ title|striptags|strip_html_entities }}</h1>

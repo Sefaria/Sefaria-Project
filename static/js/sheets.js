@@ -4,7 +4,7 @@ sjs.flags = {
 		ckfocus: false,
 	 };
 
-sjs.can_save = (sjs.can_edit || sjs.can_add || sjs.can_publish);
+sjs.can_save = (sjs.can_edit || sjs.can_add);
 
 sjs.current = sjs.current || {
 	options: {
@@ -39,6 +39,7 @@ parseRef = Sefaria.parseRef.bind(Sefaria);
 makeRef = Sefaria.makeRef.bind(Sefaria);
 normRef = Sefaria.normRef.bind(Sefaria);
 humanRef = Sefaria.humanRef.bind(Sefaria);
+isHebrew = Sefaria.hebrew.isHebrew;
 
 $(window).on("beforeunload", function() {
 	if (!($("#save").data("mode") == "saving")) {
@@ -165,6 +166,7 @@ $(function() {
             $("#inlineTextPreview").hide();
             $("#inlineAddDialogTitle").text("Select a text");
             $("#inlineAddSourceOK").addClass("disabled");
+            $(".ui-autocomplete").hide();
             $("#sheet").click();
         });
 		Sefaria.track.sheets("Add Source", ref);
@@ -456,7 +458,7 @@ $(function() {
 			}
 		});
 
-	// Sheet Language Options 
+	// Sheet Language Options
 	$("#hebrew, #english, #bilingual").click(function(){
 		var mode = this.id;
 		var shortMode = this.id.substring(0,2);
@@ -546,7 +548,7 @@ $(function() {
 		var $target = $(".activeSource").find(".text").find(".he");
 		$target.html(stripNikkud($target.html()));
 		Sefaria.track.sheets("Remove Nikkudot");
-		autoSave();
+		// autoSave();
 	});
 
 	$("#splitSourceToSegment").click(function() {
@@ -678,6 +680,14 @@ $(function() {
 				if ($el.hasClass("he") || $el.hasClass("outside")) {
 					if (sjs.current.options.divineNames !== "noSub") {
 						substituteDivineNamesInNode($el[0]);
+					}
+				}
+				// Update hebrew/english classes which are determined by content
+				if ($el.hasClass("outside") || $el.hasClass("comment")) {
+					if (isHebrew(text)) {
+						$el.addClass("he").removeClass("en");
+					} else {
+						$el.addClass("en").removeClass("he");
 					}
 				}
 				// Mark author as customized
@@ -1530,7 +1540,7 @@ $(function() {
 		// Remove Source
 		$(".removeSource").on("click", function() {
 			var $item = $(this).closest(".sheetItem"); // Firefox triggers mouseout when opening confirm
-			if (confirm("Are you sure you want to remove this?")) {
+			if (confirm(_("Are you sure you want to remove this?"))) {
 				$item.remove();
 				autoSave();
 				setSourceNumbers();
@@ -1654,22 +1664,16 @@ $(function() {
 	}).find("#sheetSummaryInput").change();
 
 	$("#sourceSheetGroupSelect").change(function() {
-		if ($(this).val()!="None") {
+		if (!!$(this).val()) {
 			var $el = $("#sourceSheetGroupSelect option:selected");
-			var groupUrl = $(this).val().replace(/ /g, "-");
-			var groupLogo = $el.attr("data-image");
-			$("#groupLogo").attr("src", groupLogo)
-				.closest("a").attr("href", "/groups/" + groupUrl);
-			if (groupLogo) {$("#sheetHeader").show();} else { $("#sheetHeader").hide();}
-			if (parseInt($el.attr("data-can-publish"))) {
-				$("#sourceSheetsAccessOptions").show();
-			} else {
-				$("#sourceSheetsAccessOptions").hide();
-			}
+			var collectionSlug = $el.attr("data-slug");
+			var collectionHeader = $el.attr("data-image");
+			$("#collectionHeader").attr("src", collectionHeader)
+				.closest("a").attr("href", "/collections/" + collectionSlug);
+			if (collectionHeader) {$("#sheetHeader").show();} else { $("#sheetHeader").hide();}
 		}
 		else {
 			$("#sheetHeader").hide();
-			$("#sourceSheetsAccessOptions").show();
 		}
 	});
 
@@ -1680,8 +1684,6 @@ $(function() {
 		curHighlighter.find(".en").html("<div class='highlighterSegment'>"+curText.find(".en").html().stripHtml()+"</div>");
 		curHighlighter.find(".he").html("<div class='highlighterSegment'>"+curText.find(".he").html().stripHtml()+"</div>");
 		autoSave();
-
-
 	});
 
 	$("#highlightMenu .optionsMenu").on('click', '.segmentedContinuousToggle', function() {
@@ -2139,6 +2141,7 @@ sjs.sheetTagger = {
 			position: {my: dropdownAnchorSide + " top", at: dropdownAnchorSide + " bottom"},
 			select: function(event, ui) {
 				sjs.sheetTagger.addTagFromInput(ui.item.value);
+				return false;
 			},
 			focus: ( event, ui ) => {
                 $(".ui-menu-item.ui-state-focus").removeClass("ui-state-focus");
@@ -2340,6 +2343,19 @@ function placed_segment_mapper(lang, segmented, includeNumbers, s) {
     return str;
 }
 
+function removeFootnotes(str) {
+	//removes all i tags that are of class "footnote" as well as the preceding "sup" tag
+	var $str = $("<span>" + str + "</span>");
+	$str.find( "i[class='footnote']" ).each(function( index ) {
+		if ($(this).prev().is("sup")) {
+			$(this).prev().remove();
+		}
+  		$(this).remove();
+	});
+
+	return $str.html();
+}
+
 
 function loadSource(data, $target, optionStr) {
 
@@ -2370,6 +2386,8 @@ function loadSource(data, $target, optionStr) {
         .filter(Boolean)
         .join("");
 
+    heStr = removeFootnotes(heStr);
+    enStr = removeFootnotes(enStr);
 
 	enStr = enStr || "...";
 	heStr = heStr || "...";
@@ -2444,7 +2462,7 @@ function readSheet() {
 		sheet.options.highlightMode = $("#sheet").hasClass("highlightMode") ? 1 : 0;
 	}
 
-	if (sjs.is_owner || sjs.can_publish) {
+	if (sjs.is_owner) {
 
 		sheet["status"] = $("#sheetPublicToggle").is(':checked') ? "public" : "unlisted";
 
@@ -2457,10 +2475,10 @@ function readSheet() {
 				sheet.options.collaboration = "none";
 				break;
 			case 'add':
-				sheet.options.collaboration = ($("#sourceSheetGroupSelect").val() && $("#sourceSheetGroupSelect").val() !== "None") || (sjs.current.group && sjs.current.group !== "" && !sjs.is_owner) ? "group-can-add" : "anyone-can-add";
+				sheet.options.collaboration = "anyone-can-add";
 				break;
 			case 'edit':
-				sheet.options.collaboration = ($("#sourceSheetGroupSelect").val() && $("#sourceSheetGroupSelect").val() !== "None") || (sjs.current.group && sjs.current.group !== "" && !sjs.is_owner) ? "group-can-edit" : "anyone-can-edit";
+				sheet.options.collaboration = "anyone-can-edit";
 				break;
 		}
 
@@ -2482,20 +2500,16 @@ function readSheet() {
 		sheet["status"] = sjs.current.status;
 	}
 
-	var group = $("#sourceSheetGroupSelect").val();
 
-	if (group === undefined && sjs.current && sjs.current.group !== "None") {
-		// When working on someone else's group sheet
-		group = sjs.current.group;
+	if (!sjs.is_owner) {
+		// Only allow owner to change displayedCollection
+		sheet["displayedCollection"] = sjs.current.displayedCollection;
+	}
+    else {
+		var displayedCollection = $("#sourceSheetGroupSelect").val() || null;
+		sheet["displayedCollection"] = displayedCollection;
 	}
 
-	if (group && group !== "None") {
-		// Group Sheet
-		sheet["group"] = group;
-	} else {
-		// Individual Sheet
-		sheet["group"] = "";
-	}
 
 	return sheet;
 } // end readSheet
@@ -2721,6 +2735,17 @@ function autoSave() {
 		$("#lastSaved").find(".saving").show().siblings().hide();
 		var sheet = readSheet();
 		saveSheet(sheet);
+	} else if (sjs.can_save && !sjs.current.id && !sjs.promptedToSave) {
+		var sheet = readSheet();
+		if (sheet.sources.length > 2) {
+			setTimeout(function() {
+				var save = confirm(_("Would you like to save this sheet? You only need to save once, after that changes are saved automatically."));
+				if (save) {
+					handleSave();
+				}
+				sjs.promptedToSave = true;
+			}, 500);
+		}
 	}
 }
 
@@ -2805,27 +2830,20 @@ function buildSheet(data){
 
 	if (!("collaboration" in data.options)) { data.options.collaboration = "none"}
 
-	if (data.options.collaboration == "none")  $("#sourceSheetShareSelect").val('view');
-	else if (data.options.collaboration == "anyone-can-add" || data.options.collaboration == "group-can-add") $("#sourceSheetShareSelect").val('add');
-	else if (data.options.collaboration == "anyone-can-edit" || data.options.collaboration == "group-can-edit") $("#sourceSheetShareSelect").val('edit');
+	if (data.options.collaboration == "none")                 $("#sourceSheetShareSelect").val('view');
+	else if (data.options.collaboration == "anyone-can-add")  $("#sourceSheetShareSelect").val('add');
+	else if (data.options.collaboration == "anyone-can-edit") $("#sourceSheetShareSelect").val('edit');
 
 	if (data.status == "public") { $('#sheetPublicToggle').attr('checked', true); }
 	else { $('#sheetPublicToggle').attr('checked', false); }
 
 	// Set Sheet Group
-	if (data.group) {
-		$("#sourceSheetGroupSelect").val(data.group);
+	if (data.displayedCollection) {
+		$("#sourceSheetGroupSelect").val(data.displayedCollection);
 		var $el = $("#sourceSheetGroupSelect option:selected");
-		var groupImage = $el.attr("data-image");
-		$("#groupLogo").attr("src", groupImage);
-		if (groupImage) {$("#sheetHeader").show();} else { $("#sheetHeader").hide();}
-		if (parseInt($el.attr("data-can-publish")) || sjs.can_publish) {
-			$("#sourceSheetsAccessOptions").show();
-		} else {
-			$("#sourceSheetsAccessOptions").hide();
-		}
-	} else {
-		$("#sourceSheetsAccessOptions").show();
+		var collectionImage = $el.attr("data-image");
+		$("#collectionHeader").attr("src", collectionImage);
+		if (collectionImage) {$("#sheetHeader").show();} else { $("#sheetHeader").hide();}
 	}
 
 	if (sjs.is_owner) {
@@ -2938,7 +2956,7 @@ function buildSource($target, source, appendOrInsert) {
 			additionalRefData = additionalRefData + " data-sourceprefix='"+source["options"]["sourcePrefix"]+"'";
 		}
 
-		var commentHtml = "<div " + attributionData + " data-node='" + source.node + "'" + additionalRefData + ">" + 
+		var commentHtml = "<div " + attributionData + " data-node='" + source.node + "'" + additionalRefData + ">" +
 			"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" +
 			"<span class='commentIcon'><i class='fa fa-comment-o fa'></i></span>" +
 			("userLink" in source ? "<div class='addedBy s2AddedBy'>" + source.userLink + "</div>" : "")	+
@@ -3004,10 +3022,12 @@ function buildSource($target, source, appendOrInsert) {
 	else if ("media" in source) {
 		var mediaLink;
 		var mediaClass = "media";
+		var wrapperClass = "mediaWrapper";
 
 		if (source.media.match(/\.(jpeg|jpg|gif|png)$/i) != null) {
 			mediaLink = '<img class="addedMedia" src="'+source.media+'" />';
 			mediaClass = "media";
+			wrapperClass += (!sjs.is_owner && sjs.current.hideImages ? " hidden" : "");
 		}
 		else if (source.media.toLowerCase().indexOf('youtube') > 0) {
 			mediaLink = '<iframe width="560" height="315" src='+source.media+' frameborder="0" allowfullscreen></iframe>'
@@ -3041,8 +3061,8 @@ function buildSource($target, source, appendOrInsert) {
 							   "</div></div>";
 		}
 
-		var attributionData = attributionDataString(source.addedBy, source.isNew, "mediaWrapper");
-		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'"+additionalRefData+">"+
+		var attributionData = attributionDataString(source.addedBy, source.isNew, wrapperClass);
+		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'" + additionalRefData + ">" +
 							"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" +
 							"<div class='" + mediaClass + (sjs.loading ? "" : " new") + "'>" + mediaLink + mediaCaption + "</div>" +
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "") +
@@ -3270,7 +3290,6 @@ function startPollingIfNeeded() {
 		if (sjs.current.options.collaboration && sjs.current.options.collaboration === "anyone-can-add") {
 			needed = true;
 		}
-		// Poll if sheet is in a group
 		else if  (sjs.current.options.collaboration && sjs.current.options.collaboration === "anyone-can-edit") {
 			needed = true;
 		}
@@ -3493,7 +3512,7 @@ function exportToDrive() {
 		},
 		statusCode: {
 			401: function() {
-				window.location.href = "/gauth?next=" + encodeURIComponent(window.location.pathname + "#onload=exportToDrive");
+				window.location.href = "/gauth?next=" + encodeURIComponent(window.location.protocol + '//' + window.location.host + window.location.pathname + "?editor=1#onload=exportToDrive");
 			}
 		}
 	});
@@ -3572,7 +3591,7 @@ function deleteSheet() {
 					"<span class='int-en'>Source Sheet deleted.</span>" +
 					"<span class='int-he'>דף המקורות נמחק בהצלחה.</span>" +
 					"<br><br>" +
-					"<a href='/sheets/private'>" +
+					"<a href='/my/profile'>" +
 						"<div class='ok btn'>" +
 							"<span class='int-en'>OK</span>" +
 							"<span class='int-he'>המשך</span>" +
@@ -3689,7 +3708,7 @@ var afterAction = function() {
 
 // ------------------ Upload locally stored images to Imgur ------------------
 
-var imgurClientId = "f409a1105c5e8af";
+var imgurClientId = "cf90b7f2c19622e";
 
 var addmediaChooseFile = function() {
   var file = this.files[0];
@@ -3701,7 +3720,7 @@ var addmediaChooseFile = function() {
     var reader = new FileReader();
 
     reader.addEventListener("load", function() {
-      addmediaUploadImageToImgur(reader.result);
+      uploadImage(reader.result);
     }, false);
 
     reader.addEventListener("onerror", function() {
@@ -3715,28 +3734,26 @@ var addmediaChooseFile = function() {
 };
 
 
-var addmediaUploadImageToImgur = function(imageData) {
-  $.ajax({
-    url: "https://api.imgur.com/3/image",
-    type: "POST",
-    headers: {
-      Authorization: "Client-ID " + imgurClientId,
-      Accept: "application/json"
-    },
-    data: {
-      image: imageData.replace(/data:image\/(jpe?g|png|gif);base64,/, ""),
-      type: "base64"
-    },
-    success: function(result) {
-	  var imageUrl = "https://i.imgur.com/" + result.data.id + ".png";
-      $("#inlineAddMediaInput").val(imageUrl);
-      $("#addmediaDiv").find(".button").first().trigger("click");
-			$("#inlineAddMediaInput").val("");
-    },
-    error: function(result) {
-      sjs.alert.message(result.responseJSON.data.error);
-    }
-  });
+var uploadImage = function(imageData) {
+	const formData = new FormData();
+	formData.append('file', imageData.replace(/data:image\/(jpe?g|png|gif);base64,/, ""));
+	// formData.append('file', imageData);
+
+	$.ajax({
+		url: Sefaria.apiHost + "/api/sheets/upload-image",
+		type: 'POST',
+		data: formData,
+		contentType: false,
+		processData: false,
+		success: function(data) {
+	      $("#inlineAddMediaInput").val(data.url);
+	      $("#addmediaDiv").find(".button").first().trigger("click");
+				$("#inlineAddMediaInput").val("");
+		},
+		error: function(e) {
+			console.log("photo upload ERROR", e);
+		}
+	});
 };
 $("#addmediaFileSelector").change(addmediaChooseFile);
 

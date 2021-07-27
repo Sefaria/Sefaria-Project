@@ -1,0 +1,464 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "The Sefaria Team" %}{% endblock %}
+
+{% block description %}{% trans "Sefaria's team is working to create the Jewish future." %}{% endblock %}
+
+{% block content %}
+    <main id="teamPage" class="container static">
+        <div class="inner">
+            <header>
+                <h1>
+                    <span class="int-he">צוות ספריא</span>
+                </h1>
+            </header>
+            <div class="row static-text">
+                <section class="main-text team-members">
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="{% static 'img/headshots/daniel.png' %}" alt="Headshot of Daniel Septimus">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-he">דניאל ספטימוס</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-he">מנהל כללי</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="{% static 'img/headshots/brett.png' %}" alt="Headshot of Brett Lockspeiser">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-he">ברט לקספיזר</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-he">מנהל טכנולוגי ומייסד-שותף</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="{% static 'img/headshots/annie.png' %}" alt="Headshot of Annie Lumerman">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-he">אנני לומרמן</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-he">מנהלת תפעול ראשית</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="{% static 'img/headshots/lev.png' %}" alt="Headshot of Lev Israel">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-he">לב ישראל</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-he">מנהל נתונים ראשי</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="{% static 'img/headshots/sara.png' %}" alt="Headshot of Sara Wolkenfeld">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-he">שרה וולקנפלד</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-he">מנהלת חינוך והוראה</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="{% static 'img/headshots/Lizi.jpg' %}" alt="Headshot of Lizi Martin">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-he">ליזי מרטין</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-he">מנהלת ספריא- ישראל</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!--
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="{% static 'img/headshots/gabriel.png' %}" alt="Headshot of Gabriel Winer">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-he">גבריאל ווינר</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-he">מנהל מוצר</span>
+                            </div>
+                        </div>
+                    </div>
+                    -->
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="{% static 'img/headshots/loren.png' %}" alt="Headshot of Loren Berman">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-he">לורן ברמן</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-he">רכז לענייני קהילה ומעורבות</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="{% static 'img/headshots/rachel.png' %}" alt="Headshot of Rachel Buckman">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-he">רחל בקמן</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-he">רכזת חינוך בכירה</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="{% static 'img/headshots/ephraim.png' %}" alt="Headshot of Ephraim Damboritz">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-he">אפרים דמבוריץ</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-he">מהנדס תוכנה בכיר וראש צוות</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="{% static 'img/headshots/lizzie.png' %}" alt="Headshot of Lizzie Frankel">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-he">ליזי פרנקל</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-he">רכזת תקשורת ושיווק</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="{% static 'img/headshots/yishai.png' %}" alt="Headshot of Yishai Glasner">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-he">ישי גלזנר</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-he">מהנדס תוכן זוטר</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="{% static 'img/headshots/hannah.png' %}" alt="Headshot of Hannah Goldberger">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-he">חנה גולדברגר</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-he">מנהלת פיתוח וגיוס משאבים</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="{% static 'img/headshots/tali.jpg' %}" alt="Headshot of Tali Herenstein">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-he">טלי הרנשטיין</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-he">ראש הסגל</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="{% static 'img/headshots/steve.png' %}" alt="Headshot of Steve Kaplan">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-he">סטיב קפלן</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-he">מהנדס תוכן</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="{% static 'img/headshots/nissa.png' %}" alt="Headshot of Nissa Mai-Rose">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-he">נסה מאי-רוז</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-he">מהנדס תכנה</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="{% static 'img/headshots/russel.png' %}" alt="Headshot of Russel Neiss">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-he">רזיאל ניס</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-he">מהנדס מוצר בכיר</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="{% static 'img/headshots/rebecca.png' %}" alt="Headshot of Rebecca Remisn">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-he">רבקה רמיס</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-he">מנהלת תפעול וכספים</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="{% static 'img/headshots/shanee.png' %}" alt="Headshot of Shanee Rosen">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-he">שני רוזן</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-he">מהנדסת תוכן</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="{% static 'img/headshots/noah.png' %}" alt="Headshot of Noah Santacruz">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-he">נח סנטקרוז</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-he">מהנדס מחקר בכיר</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="{% static 'img/headshots/chava.jpg' %}" alt="Headshot of Chava Tzemach">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-he">חוה צמח</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-he">מנהלת תקשורת ושיווק בכירה</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="{% static 'img/headshots/shmuel.png' %}" alt="Headshot of Shmuel Weissman">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-he">שמואל וייסמן</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-he">אחראי רכש טקסטים ואיכות</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="{% static 'img/headshots/hedva.png' %}" alt="Headshot of Hedva Yechieli">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-he">חדוה יחיאלי</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-he">רכזת חינוך ישראל</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamMember placeholder"></div>
+                    <div class="teamMember placeholder"></div>
+                </section>
+                <header>
+                    <h2>
+                        <span class="int-he">מועצת המנהלים</span>
+                    </h2>
+                </header>
+                <section class="main-text board-members">
+                    <div class="teamBoardMember">
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-he">ג'ושוע פוייר</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-he">יושב ראש ומייסד-שותף</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamBoardMember">
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-he">ברט לקספיזר</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-he">מייסד-שותף</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamBoardMember">
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-he">מו קויפמן</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-he"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamBoardMember">
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-he">אלנה שטיין היין</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-he"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamBoardMember">
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-he">פלישיה הרמן</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-he"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamBoardMember">
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-he">יונתן קושיצקי</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-he"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamBoardMember">
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-he">יהושוע קושנר</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-he"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamBoardMember">
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-he">רענן אגוס</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-he"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamBoardMember">
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-he">רונה שרמי</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-he"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamBoardMember">
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-he">מיכאל ענגלענדער</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-he"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamBoardMember">
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-he">רות קלדרון</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-he"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamBoardMember">
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-he">שמואל מועד</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-he"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamBoardMember placeholder"></div>
+                </section>
+
+
+                <section id="teamContact">
+                    <div>
+                        <span class="int-he">לשאלות ובקשות כלליות, אנא צרו קשר בכתובת הדוא"ל <a href="mailto:hello@sefaria.org">hello@sefaria.org</a>.</span>
+                    </div>
+                    <div>
+                        <span class="int-he">אם הנכם מעוניינים לתמוך בספריא, אנא צרו קשר בכתובת הדוא"ל <a href="mailto:donate@sefaria.org">donate@sefaria.org</a>.</span>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+{% endblock %}

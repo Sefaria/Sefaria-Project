@@ -2,7 +2,7 @@ import React  from 'react';
 import Sefaria  from './sefaria/sefaria';
 import PropTypes  from 'prop-types';
 import {
-    TwoBox,
+    NBox,
     BlockLink,
     SaveButton,
     SimpleInterfaceBlock,
@@ -41,18 +41,18 @@ const bilingualPropType = PropTypes.shape({
 // It's important that it's capitalized, so that React treats it as a component.
 function Story(story_props, indx, props) {
     const storyForms = {
-        freeText:       FreeTextStory,
-        newIndex:       NewIndexStory,
-        newVersion:     NewVersionStory,
-        publishSheet:   PublishSheetStory,
-        author:         AuthorStory,
-        textPassage:    TextPassageStory,
-        multiText:      MultiTextStory,
-        topicTexts:     TopicTextsStory,
-        topicList:      TopicListStory,
-        sheetList:      SheetListStory,
-        userSheets:     UserSheetsStory,
-        groupSheetList: GroupSheetListStory
+        freeText:            FreeTextStory,
+        newIndex:            NewIndexStory,
+        newVersion:          NewVersionStory,
+        publishSheet:        PublishSheetStory,
+        author:              AuthorStory,
+        textPassage:         TextPassageStory,
+        multiText:           MultiTextStory,
+        topicTexts:          TopicTextsStory,
+        topicList:           TopicListStory,
+        sheetList:           SheetListStory,
+        userSheets:          UserSheetsStory,
+        collectionSheetList: CollectionSheetListStory
     };
     const StoryForm = storyForms[story_props.storyForm];
     return <StoryForm
@@ -169,7 +169,7 @@ const AuthorStory = (props) => (
     <StoryFrame cls="authorStory" cardColor={Sefaria.palette.indexColor(props.data.example_work)}>
         <StoryTypeBlock en="Author" he="מחבר" />
         <NaturalTimeBlock timestamp={props.timestamp}/>
-        <StoryTitleBlock en={props.data.author_names.en} he={props.data.author_names.he} url={"/person/" + props.data.author_key} />
+        <StoryTitleBlock en={props.data.author_names.en} he={props.data.author_names.he} url={"/topics/" + props.data.author_key} />
         <DangerousInterfaceBlock classes="storyBody contentText" en={props.data.author_bios.en} he={props.data.author_bios.he}/>
     </StoryFrame>
 );
@@ -187,6 +187,7 @@ AuthorStory.propTypes = {
   interfaceLang:      PropTypes.string,
   toggleSignUpModal:  PropTypes.func
 };
+
 
 const UserSheetsStory = (props) => {
       /* const positionBlock = (props.data.publisher_position) ?
@@ -220,8 +221,7 @@ const UserSheetsStory = (props) => {
             </div>
         </StoryFrame>
       );
-  };
-
+};
 UserSheetsStory.propTypes = {
   storyForm:    PropTypes.string,
   timestamp:    PropTypes.number,
@@ -247,29 +247,30 @@ UserSheetsStory.propTypes = {
   toggleSignUpModal:  PropTypes.func.isRequired
 };
 
-const GroupSheetListStory = (props) => (
-    <StoryFrame cls="groupSheetListStory">
-        <StoryTypeBlock en={props.data.lead?props.data.lead.en:"Group"} he={props.data.lead?props.data.lead.he:"קבוצה"} />
+
+const CollectionSheetListStory = (props) => (
+    <StoryFrame cls="collectionSheetListStory">
+        <StoryTypeBlock en={props.data.lead?props.data.lead.en:"Collection"} he={props.data.lead?props.data.lead.he:"אסופה"} />
         <StoryTitleBlock en={props.data.title.en} he={props.data.title.he}/>
-        <img className="mediumProfileImage" src={props.data.group_image} alt={props.data.title.en}/>
+        <img className="mediumProfileImage" src={props.data.collection_image} alt={props.data.title.en}/>
         <StorySheetList sheets={props.data.sheets} cozy={props.data.cozy} toggleSignUpModal={props.toggleSignUpModal}/>
     </StoryFrame>
 );
-
-GroupSheetListStory.propTypes = {
-  storyForm:    PropTypes.string,
-  timestamp:    PropTypes.number,
-  is_shared:    PropTypes.bool,
-  data:         PropTypes.shape({
-    title: bilingualPropType.isRequired,
-    group_image: PropTypes.string,
-    group_url:  PropTypes.string,
-    group_name: PropTypes.string,
-    sheets: PropTypes.arrayOf(sheetPropType).isRequired
+CollectionSheetListStory.propTypes = {
+  storyForm:          PropTypes.string,
+  timestamp:          PropTypes.number,
+  is_shared:          PropTypes.bool,
+  data:               PropTypes.shape({
+    title:            bilingualPropType.isRequired,
+    collection_image: PropTypes.string,
+    collection_url:   PropTypes.string,
+    collection_name:  PropTypes.string,
+    sheets:           PropTypes.arrayOf(sheetPropType).isRequired
   }),
   interfaceLang:      PropTypes.string,
   toggleSignUpModal:  PropTypes.func
 };
+
 
 const SheetListStory = (props) => {
   const lead = props.data.lead || {en: "Sheets", he: "גליונות"};
@@ -397,7 +398,7 @@ const TopicListStory = (props) => (
         <StoryTypeBlock en={props.data.lead.en} he={props.data.lead.he}/>
         <SeeAllLink url="/topics"/>
         <StoryTitleBlock en={props.data.title.en} he={props.data.title.he}/>
-        <TwoBox content={props.data.topics.map(topic =>
+        <NBox n={2} content={props.data.topics.map(topic =>
             <BlockLink title={topic.en} heTitle={topic.he} target={"/topics/" + (topic.slug || topic.en)} interfaceLink={true}/>
         )}/>
     </StoryFrame>
@@ -503,7 +504,7 @@ const SheetBlock = ({sheet, compact, cozy, smallfonts, isTitle, toggleSignUpModa
         <SaveLine historyObject={historyObject} toggleSignUpModal={toggleSignUpModal}>
             <SimpleLinkedBlock en={sheet.sheet_title} he={sheet.sheet_title} url={"/sheets/" + sheet.sheet_id} classes={"sheetTitle" + (smallfonts?" chapterText lowercase":" pageTitle") + (isTitle ? " storyTitle" : "")}/>
         </SaveLine>
-        {(sheet.sheet_summary && !(compact || cozy))?<SimpleInterfaceBlock classes={"storyBody" + (smallfonts?" smallText":" contentText")} en={sheet.sheet_summary} he={sheet.sheet_summary}/>:null}
+        {(sheet.sheet_summary && !(compact || cozy))?<SimpleInterfaceBlock classes={"storyBody" + (smallfonts?" smallText":" contentText") + " sheetSummary"} en={sheet.sheet_summary} he={sheet.sheet_summary}/>:null}
         {cozy?"":<ProfileListing
           uid={sheet.publisher_id}
           url={sheet.publisher_url}

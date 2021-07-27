@@ -1,0 +1,10 @@
+---
+name: Nightly Tests
+on:
+  schedule:
+    - cron: '0 3 * * *'
+
+
+jobs:
+
+...

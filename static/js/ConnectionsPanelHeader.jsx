@@ -1,10 +1,5 @@
-const {
-  LanguageToggleButton,
-  ReaderNavigationMenuCloseButton,
-}                = require('./Misc');
-const {
-  RecentFilterSet
-}                = require('./ConnectionFilters');
+import {InterfaceText, EnglishText, HebrewText, LanguageToggleButton, ReaderNavigationMenuCloseButton } from "./Misc";
+import {RecentFilterSet} from "./ConnectionFilters";
 import React  from 'react';
 import ReactDOM  from 'react-dom';
 import $  from './sefaria/sefariaJquery';
@@ -17,20 +12,24 @@ import Component      from 'react-class';
 class ConnectionsPanelHeader extends Component {
   constructor(props) {
     super(props);
-    this.previousModes = { // mapping from modes to previous modes
-      "Translation Open":"Translations",
-      "extended notes":"Translations",
-      "WebPagesList": "WebPages"
+    this.previousModes = {
+        // mapping from modes to previous modes
+        "Translation Open":"Translations",
+        "extended notes":"Translations",
+        "WebPagesList": "WebPages"
     };
   }
   componentDidMount() {
     this.setMarginForScrollbar();
   }
+  getPreviousMode() {
+      return !!this.props.previousMode ? this.props.previousMode : this.previousModes[this.props.connectionsMode];
+  }
   setMarginForScrollbar() {
     // Scrollbars take up spacing, causing the centering of ConnectsionPanel to be slightly off center
     // compared to the header. This functions sets appropriate margin to compensate.
-    var width      = Sefaria.util.getScrollbarWidth();
-    var $container = $(ReactDOM.findDOMNode(this));
+    const width      = Sefaria.util.getScrollbarWidth();
+    const $container = $(ReactDOM.findDOMNode(this));
     if (this.props.interfaceLang == "hebrew") {
       $container.css({marginRight: 0, marginLeft: width});
     } else {
@@ -39,7 +38,7 @@ class ConnectionsPanelHeader extends Component {
   }
   onClick(e) {
     e.preventDefault();
-    const previousMode = this.previousModes[this.props.connectionsMode];
+    const previousMode = this.getPreviousMode();
     if (previousMode) {
       this.props.setConnectionsMode(previousMode);
     } else {
@@ -47,12 +46,13 @@ class ConnectionsPanelHeader extends Component {
     }
   }
   render() {
-    const previousMode = this.previousModes[this.props.connectionsMode];
+      /** TODO: fix for interfacetext */
+    const previousMode = this.getPreviousMode();
+    let title;
     if (this.props.connectionsMode == "Resources") {
       // Top Level Menu
-      var title = <div className="connectionsHeaderTitle">
-                    {this.props.interfaceLang == "english" ? <div className="int-en">Resources</div> : null }
-                    {this.props.interfaceLang == "hebrew" ? <div className="int-he">קישורים וכלים</div> : null }
+      title = <div className="connectionsHeaderTitle sans-serif">
+                    <InterfaceText text={{en: "Resources" , he:"קישורים וכלים" }} />
                   </div>;
 
     } else if ((this.props.previousCategory && this.props.connectionsMode == "TextList") || previousMode) {
@@ -60,26 +60,42 @@ class ConnectionsPanelHeader extends Component {
       const prev = previousMode ? previousMode.splitCamelCase() : this.props.previousCategory;
       const prevHe = previousMode ? Sefaria._(prev) : Sefaria._(this.props.previousCategory);
       const url = Sefaria.util.replaceUrlParam("with", prev);
-      var title = <a href={url} className="connectionsHeaderTitle active" onClick={this.onClick}>
-                    {this.props.interfaceLang == "english" ? <div className="int-en"><i className="fa fa-chevron-left"></i>{this.props.multiPanel ? prev : null }</div> : null }
-                    {this.props.interfaceLang == "hebrew" ? <div className="int-he"><i className="fa fa-chevron-right"></i>{this.props.multiPanel ? prevHe : null }</div> : null }
+      title = <a href={url} className="connectionsHeaderTitle sans-serif active" onClick={this.onClick}>
+                    <InterfaceText>
+                        <EnglishText>
+                            <i className="fa fa-chevron-left"></i>
+                            {this.props.multiPanel ? prev : null }
+                        </EnglishText>
+                        <HebrewText>
+                            <i className="fa fa-chevron-right"></i>
+                            {this.props.multiPanel ? prevHe : null }
+                        </HebrewText>
+                    </InterfaceText>
                   </a>;
     } else {
       // Anywhere else, back to Top Level
-      var url = Sefaria.util.replaceUrlParam("with", "all");
-      var onClick = function(e) {
+      const url = Sefaria.util.replaceUrlParam("with", "all");
+      const onClick = function(e) {
         e.preventDefault();
         this.props.setConnectionsMode("Resources");
       }.bind(this);
-      var title = <a href={url} className="connectionsHeaderTitle active" onClick={onClick}>
-                    {this.props.interfaceLang == "english" ? <div className="int-en"><i className="fa fa-chevron-left"></i>Resources</div> : null }
-                    {this.props.interfaceLang == "hebrew" ? <div className="int-he"><i className="fa fa-chevron-right"></i>קישורים וכלים</div> : null }
+      title = <a href={url} className="connectionsHeaderTitle sans-serif active" onClick={onClick}>
+                    <InterfaceText>
+                        <EnglishText>
+                            <i className="fa fa-chevron-left"></i>
+                            Resources
+                        </EnglishText>
+                        <HebrewText>
+                            <i className="fa fa-chevron-right"></i>
+                            קישורים וכלים
+                        </HebrewText>
+                    </InterfaceText>
                   </a>;
     }
     if (this.props.multiPanel) {
-      var toggleLang = Sefaria.util.getUrlVars()["lang2"] == "en" ? "he" : "en";
-      var langUrl = Sefaria.util.replaceUrlParam("lang2", toggleLang);
-      var closeUrl = Sefaria.util.removeUrlParam("with");
+      const toggleLang = Sefaria.util.getUrlVars()["lang2"] == "en" ? "he" : "en";
+      const langUrl = Sefaria.util.replaceUrlParam("lang2", toggleLang);
+      const closeUrl = Sefaria.util.removeUrlParam("with");
       return (<div className="connectionsPanelHeader">
                 {title}
                 <div className="rightButtons">
@@ -90,10 +106,10 @@ class ConnectionsPanelHeader extends Component {
                 </div>
               </div>);
     } else {
-      var style = !this.props.multiPanel && this.props.connectionsMode == "TextList" ? {"borderTopColor": Sefaria.palette.categoryColor(this.props.previousCategory)} : {}
-      var cStyle = !this.props.multiPanel && this.props.connectionsMode == "Resources" ? {"justifyContent": "center"} : style;
+      const style = !this.props.multiPanel && this.props.connectionsMode == "TextList" ? {"borderTopColor": Sefaria.palette.categoryColor(this.props.previousCategory)} : {}
+      const cStyle = !this.props.multiPanel && this.props.connectionsMode == "Resources" ? {"justifyContent": "center"} : style;
       // Modeling the class structure when ConnectionsPanelHeader is created inside ReaderControls in the multiPanel case
-      var classes = classNames({readerControls: 1, connectionsHeader: 1, fullPanel: this.props.multiPanel});
+      let classes = classNames({readerControls: 1, connectionsHeader: 1, fullPanel: this.props.multiPanel});
       return (<div className={classes} style={style}>
                 <div className="readerControlsInner">
                   <div className="readerTextToc">
