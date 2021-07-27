@@ -4132,6 +4132,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .basetext .segment.highlight,
 .sheetContent .segment.highlight .en,
 .sheetContent .segment.highlight .he,
+.sheetContent .textPreviewSegment.highlight,
 .readerPanel.bilingual.heLeft .sheetContent .segment.highlight,
 .readerPanel.bilingual.heRight .sheetContent .segment.highlight,
 .editorContent .sheetItem.highlight,
@@ -8194,10 +8195,15 @@ span.purim-emoji img{
   pointer-events: auto;
 }
 
+.addInterfaceInput .textPreviewSegment {
+  display: inline;
+}
+
 .addInterfaceInput .textPreview .inner {
   max-height: 272px;
   overflow-y: scroll;
   padding-inline-end: 30px;
+  position: relative;
 }
 
 .addInterfaceInput .suggestionBox,
@@ -8205,10 +8211,6 @@ span.purim-emoji img{
   border: 1px solid var(--light-grey);
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
   border-radius: 6px;
-}
-
-.addInterfaceInput .textPreview .textPreviewSegment > span {
-  display: inline-block;
 }
 
 .addInterfaceInput input,

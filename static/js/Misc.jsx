@@ -11,6 +11,7 @@ import { usePaginatedDisplay } from './Hooks';
 import {ContentLanguageContext} from './context';
 import ReactCrop from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
+import {Editor} from "slate";
 
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
@@ -2287,6 +2288,17 @@ const Autocompleter = ({}) => {
     return theWidth;
   }
 
+  useEffect( /* normalize on load */
+    () => {
+         const element = document.querySelector('.textPreviewSegment.highlight');
+         if (element) {element.scrollIntoView()}
+    }, [previewText]
+  )
+
+
+
+
+
   const getSuggestions = (input) => {
     setInputValue(input)
     if (input == "") {
@@ -2365,18 +2377,19 @@ const Autocompleter = ({}) => {
   }
 
   const generatePreviewText = (ref) => {
-        Sefaria.getText(ref).then(text => {
-           const segments = Sefaria.makeSegments(text);
+        Sefaria.getText(ref, {context:1}).then(text => {
+           const segments = Sefaria.makeSegments(text, true);
            console.log(segments)
           const previewHTML =  segments.map((segment, i) => {
             {
               return(
-                  <div className="textPreviewSegment" key={segment.ref}>
-                    <ContentText
+                  <div
+                      className={classNames({'textPreviewSegment': 1, highlight: segment.highlight})}
+                      key={segment.ref}>
+                    <sup><ContentText
                         text={{"en": segment.number, "he": Sefaria.hebrew.encodeHebrewNumeral(segment.number)}}
                         defaultToInterfaceOnBilingual={true}
-                    />
-                    <ContentText html={{"he": segment.he+ " ", "en": segment.en+ " " }}/>
+                    /></sup> <ContentText html={{"he": segment.he+ " ", "en": segment.en+ " " }} defaultToInterfaceOnBilingual={true}/>
                   </div>
               )
             }
