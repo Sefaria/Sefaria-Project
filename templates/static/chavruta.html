@@ -281,7 +281,7 @@ color: #666;
       Share this link with your chavruta to start a video call with this text
     </p>
 
-    <input id="chavrutaURL" type="text" value={{ request.build_absolute_uri }} autofocus="autofocus" onfocus="this.select()" readonly >
+    <input id="chavrutaURL" type="text" value={{request.get_host}}/chavruta?rid={{room_id}} autofocus="autofocus" onfocus="this.select()" readonly >
 
     <div class="chavrutaFooter">
       <p class="int-en">
@@ -309,5 +309,8 @@ color: #666;
   const startingRoom = "{{room_id}}";
 </script>
 <script src="/chavruta.js?roulette={{roulette}}"></script>
-<script>addAdditionalHTML()</script>
+<script>
+  addAdditionalHTML()
+  updateUrl()
+</script>
 {% endblock %}

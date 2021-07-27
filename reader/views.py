@@ -14,6 +14,7 @@ from html import unescape
 import redis
 import os
 import re
+import uuid
 
 from rest_framework.decorators import api_view
 from django.template.loader import render_to_string
@@ -4304,11 +4305,12 @@ def daf_roulette_redirect(request):
 @login_required
 def chevruta_redirect(request):
     room_id = request.GET.get("rid", None)
-    starting_ref = request.GET.get("ref", "Genesis 1")
+    starting_ref = urllib.parse.quote(request.GET.get("ref", ""))
     roulette = request.GET.get("roulette", "0")
 
     if room_id is None:
-        raise Http404('Missing room ID.')
+        x = uuid.uuid4()
+        room_id = str(x)[:22]
 
     return render_template(request,'static/chavruta.html', None, {
         "rtc_server": RTC_SERVER,

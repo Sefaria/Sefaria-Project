@@ -163,6 +163,11 @@ function addAdditionalHTML() {
   document.getElementById("iframeContainer").appendChild(iframe);
 }
 
+function updateUrl () {
+  let url = "chavruta?rid=" + startingRoom
+  window.history.pushState({}, '', url)
+}
+
 function getNewChevruta() {
   Sefaria.track.event("DafRoulette", "New Chevruta Click", "");
   byebye();
