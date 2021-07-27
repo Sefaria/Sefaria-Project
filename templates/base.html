@@ -125,7 +125,19 @@
     <!-- React will complain about whitespace -->
     <div id="s2">{{ html }}</div>
     {% else %}
-    <div id="s2" class="headerOnly">{% if request.user_agent.is_mobile %}{{ mobile_header }}{% elif request.user.is_authenticated %}{{ logged_in_header }}{% else %}{{ logged_out_header }}{% endif %}</div>
+    <div id="s2" class="headerOnly">
+        {% if request.user_agent.is_mobile %}
+            {% if request.user.is_authenticated %}
+                {{ logged_in_mobile_header }}
+            {% else %}
+                {{ logged_out_mobile_header }}
+            {% endif %}
+        {% elif request.user.is_authenticated %}
+            {{ logged_in_header }}
+        {% else %}
+            {{ logged_out_header }}
+        {% endif %}
+    </div>
     {% endif %}
     {% endautoescape %}
 

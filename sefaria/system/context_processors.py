@@ -105,7 +105,8 @@ def large_data(request):
 HEADER = {
     'logged_in': {'english': None, 'hebrew': None},
     'logged_out': {'english': None, 'hebrew': None},
-    'mobile': {'english': None, 'hebrew': None},
+    'logged_in_mobile': {'english': None, 'hebrew': None},
+    'logged_out_mobile': {'english': None, 'hebrew': None},
 }
 @user_only
 def header_html(request):
@@ -131,28 +132,44 @@ def header_html(request):
                                                  "full_name": "",
                                                  "_siteSettings": SITE_SETTINGS})
 
-        MOBILE_HEADER = HEADER["mobile"][lang] or \
+        MOBILE_LOGGED_OUT_HEADER = HEADER["logged_out_mobile"][lang] or \
             render_react_component("ReaderApp", {"headerMode": True,
                                                  "_uid": None,
                                                  "interfaceLang": lang,
                                                  "multiPanel": False,
                                                  "_siteSettings": SITE_SETTINGS})
 
+        MOBILE_LOGGED_IN_HEADER = HEADER["logged_in_mobile"][lang] or \
+            render_react_component("ReaderApp", {"headerMode": True,
+                                                 "_uid": True,
+                                                 "interfaceLang": lang,
+                                                 "notificationCount": 0,
+                                                 "profile_pic_url": "",
+                                                 "full_name": "",
+                                                 "multiPanel": False,
+                                                 "_siteSettings": SITE_SETTINGS})
+
+
+
         LOGGED_OUT_HEADER = "" if "appLoading" in LOGGED_OUT_HEADER else LOGGED_OUT_HEADER
         LOGGED_IN_HEADER = "" if "appLoading" in LOGGED_IN_HEADER else LOGGED_IN_HEADER
-        MOBILE_HEADER = "" if "appLoading" in MOBILE_HEADER else MOBILE_HEADER
+        MOBILE_LOGGED_OUT_HEADER = "" if "appLoading" in MOBILE_LOGGED_OUT_HEADER else MOBILE_LOGGED_OUT_HEADER
+        MOBILE_LOGGED_IN_HEADER = "" if "appLoading" in MOBILE_LOGGED_IN_HEADER else MOBILE_LOGGED_IN_HEADER
         HEADER['logged_out'][lang] = LOGGED_OUT_HEADER
         HEADER['logged_in'][lang] = LOGGED_IN_HEADER
-        HEADER['mobile'][lang] = MOBILE_HEADER
+        HEADER['logged_out_mobile'][lang] = MOBILE_LOGGED_OUT_HEADER
+        HEADER['logged_in_mobile'][lang] = MOBILE_LOGGED_IN_HEADER
     else:
         LOGGED_OUT_HEADER = ""
         LOGGED_IN_HEADER = ""
-        MOBILE_HEADER = ""
+        MOBILE_LOGGED_OUT_HEADER = ""
+        MOBILE_LOGGED_IN_HEADER = ""
     
     return {
         "logged_in_header":  LOGGED_IN_HEADER,
         "logged_out_header": LOGGED_OUT_HEADER,
-        "mobile_header":     MOBILE_HEADER,
+        "logged_in_mobile_header":     MOBILE_LOGGED_IN_HEADER,
+        "logged_out_mobile_header": MOBILE_LOGGED_OUT_HEADER,
     }
 
 
