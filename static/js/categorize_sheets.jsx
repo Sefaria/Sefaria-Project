@@ -1,9 +1,9 @@
 const getMessage = () => "Hello World!!!! THIS WORKS";
   document.getElementById("output").innerHTML = getMessage();
-  class App extends React.Component {
+  class Categorizer extends React.Component {
   render() {
     return (
-        <div className='app'>
+        <div classname="categorizer">
             <div id="container">
             <p>ASDF</p>
             </div>
@@ -14,4 +14,4 @@ const getMessage = () => "Hello World!!!! THIS WORKS";
     );
   }
 }
-ReactDOM.render(<App/>, document.getElementById('categorizer'));
+ReactDOM.render(<Categorizer/>, document.getElementById('content'));

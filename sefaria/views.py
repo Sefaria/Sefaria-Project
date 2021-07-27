@@ -816,6 +816,10 @@ def untagged_sheets(request):
     return HttpResponse("<html><h1>Untagged Public Sheets</h1><ul>" + html + "</ul></html>")
 
 @staff_member_required
+def tag_sheets(request):
+    return render(request, "static/categorize-sheets.html")
+
+@staff_member_required
 def categorize_sheets(request):
     from pymongo import DESCENDING
     from sefaria.sheets import sheet_to_dict
@@ -824,8 +828,11 @@ def categorize_sheets(request):
     room_id = request.GET.get("rid", None)
     starting_ref = request.GET.get("ref", "Genesis 1")
     roulette = request.GET.get("roulette", "0")
-
-    return render(request, "static/categorize-sheets.html")
+    context = {
+        "title": "Categorize Sheets",
+        "description": "Retrieve the latest untagged sheet and allow user to tag"
+    }
+    return render(request, "static/categorize-sheets.html", context)
     # return render_template(request,'static/categorize-sheets.html', None, {
     #     "sheet": sheet    
     #     })

@@ -1,20 +1,59 @@
+{% extends "base.html"%}
 {% load static %}
-
-
 <!DOCTYPE html>
 <html>
 <head>
+<title>{{title}}</title>
+ <meta charset="utf-8"/>
+    <meta name="description" property="og:description" content="{{description}}"/>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <script src="https://unpkg.com/react@16/umd/react.development.js"></script>
 <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"></script>
+<style>
+  #categorizer {
+  max-width: 100%;
+  width: 258px;
+  order: 0;
+  flex: 0 0 auto;
+  align-self: auto;
+  border: 0;
+
+} 
+
+
+
+a {
+  color: #666666;
+}
+
+#container {
+    min-height: 100%;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-content: stretch;
+    align-items: flex-start;
+    }
+
+#iframeContainer {
+    order: 0;
+    flex: 1 1 auto;
+    align-self: stretch;
+
+        display: flex;
+        flex-direction: row;
+        align-items: stretch;
+    }
+
+iframe.sheet {
+  width:100%
+}
+</style>
 </head>
 <body>
-{% comment %} {% load i18n static %} 
 
-{% block title %}Categorize Sheets on Sefaria{% endblock %}
-
-{% block description %}Retrieve the latest untagged sheet and allow user to tag{% endblock %}
-
+{% comment %}
 {% block css %}
 
 html, body, .wrapper, #content {
@@ -56,45 +95,7 @@ video {
 
 } {% endcomment %}
 
-#categorizer {
-  max-width: 100%;
-  width: 258px;
-  order: 0;
-  flex: 0 0 auto;
-  align-self: auto;
-  border: 0;
 
-} 
-
-
-
-a {
-  color: #666666;
-}
-
-#container {
-    min-height: 100%;
-    display: flex;
-    flex-direction: row;
-    flex-wrap: nowrap;
-    justify-content: flex-start;
-    align-content: stretch;
-    align-items: flex-start;
-    }
-
-#iframeContainer {
-    order: 0;
-    flex: 1 1 auto;
-    align-self: stretch;
-
-        display: flex;
-        flex-direction: row;
-        align-items: stretch;
-    }
-
-iframe.sheet {
-  width:100%
-}
 
     {% comment %} #chevrutaName {
       margin: -30px 5px 20px;
@@ -211,9 +212,7 @@ color: #666;
 
 {% block bodyclasses %}nochrome{% endblock %}
 {% block content %}
-            <div id="categorizer"></div>
-            <div id="reacttest"></div>
-
+    <div id="content"></div>
 {% endblock %}
 
 {% block js  %}
