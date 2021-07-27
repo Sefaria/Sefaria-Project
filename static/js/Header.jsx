@@ -34,7 +34,7 @@ class Header extends Component {
     }
   }
   _type_icon(item) {
-    if (item.type === "User") {
+    if (item.type === "User" && item.pic !== "") {
       return item.pic;
     } else {
       return `/static/icons/${this._type_icon_map[item.type]}`;
