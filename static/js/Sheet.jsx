@@ -25,7 +25,6 @@ class Sheet extends Component {
   }
   componentDidMount() {
     this.$container = $(ReactDOM.findDOMNode(this));
-    this.setPaddingForScrollbar();
     this.ensureData();
   }
   getSheetFromCache() {
@@ -55,12 +54,6 @@ class Sheet extends Component {
         Sefaria.related(data.sources[i].ref, () => this.forceUpdate);
       }
     }
-  }
-  setPaddingForScrollbar() {
-    // Scrollbars take up spacing, causing the centering of Sheet to be slightly off center
-    // compared to the header. This functions sets appropriate padding to compensate.
-    const width = Sefaria.util.getScrollbarWidth();
-    this.$container.css({paddingRight: 0, paddingLeft: width});
   }
   render() {
     const sheet = this.getSheetFromCache();

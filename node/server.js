@@ -106,7 +106,7 @@ router.post('/ReaderApp/:cachekey', function(req, res) {
   };
   const props = JSON.parse(req.body.propsJSON);
   req.input_props = {               // For logging
-    initialRefs: props.initialRefs,
+    initialRefs: props.panels ? props.panels[0].refs : null,
     initialMenu: props.initialMenu,
     initialPath: props.initialPath,
   };

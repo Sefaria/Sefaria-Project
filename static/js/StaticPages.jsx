@@ -361,7 +361,7 @@ const RambanLandingPage = () => {
 const SheetsLandingPage = () => (
     <StaticPage>
         <Header
-            enTitle="Sheets"
+            enTitle="Create with Sefaria"
             enText="Mix and match sources from Sefaria’s library of Jewish texts, and add your comments, images and videos."
             enImg="/static/img/sheets-landing-page/sheetspage_headerimage.png"
             enImgAlt="Sefaria Sheets"

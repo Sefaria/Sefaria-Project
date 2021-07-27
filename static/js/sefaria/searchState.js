@@ -9,7 +9,6 @@ class SearchState {
     availableFilters,
     filterRegistry,
     filtersValid,
-    lastAppliedAggType,
     orphanFilters,
     fieldExact,
     fieldBroad,
@@ -22,7 +21,6 @@ class SearchState {
     this.availableFilters      = typeof availableFilters === 'undefined' ? [] : availableFilters.map(f => f instanceof FilterNode ? f : new FilterNode(f));
     this.filterRegistry        = typeof filterRegistry !== "undefined" ? filterRegistry : this._recreateRegistry(this.availableFilters);
     this.filtersValid          = filtersValid       || false;
-    this.lastAppliedAggType    = lastAppliedAggType || null;
     this.orphanFilters         = orphanFilters      || [];
     this.fieldExact            = fieldExact         || SearchState.metadataByType[type].fieldExact;
     this.fieldBroad            = fieldBroad         || SearchState.metadataByType[type].fieldBroad;
@@ -49,7 +47,6 @@ class SearchState {
       availableFilters: trimFilters ? [] : this.availableFilters,
       filterRegistry:   trimFilters ? {} : this.filterRegistry,
       filtersValid:     trimFilters ? false : this.filtersValid,
-      lastAppliedAggType: this.lastAppliedAggType,
       orphanFilters:      this.orphanFilters,
       type:               this.type,
       fieldExact:         this.fieldExact,
@@ -66,7 +63,6 @@ class SearchState {
     availableFilters,
     filterRegistry,
     filtersValid,
-    lastAppliedAggType,
     orphanFilters,
     fieldExact,
     fieldBroad,
@@ -78,7 +74,6 @@ class SearchState {
     appliedFilters   = typeof appliedFilters   === 'undefined' ? this.appliedFilters   : appliedFilters;
     appliedFilterAggTypes = typeof appliedFilterAggTypes === 'undefined' ? this.appliedFilterAggTypes : appliedFilterAggTypes;
     filtersValid     = typeof filtersValid     === 'undefined' ? this.filtersValid     : filtersValid;
-    lastAppliedAggType = typeof lastAppliedAggType === 'undefined' ? this.lastAppliedAggType : lastAppliedAggType;
     orphanFilters    = typeof orphanFilters    === 'undefined' ? this.orphanFilters    : orphanFilters;
     fieldExact       = typeof fieldExact       === 'undefined' ? this.fieldExact       : fieldExact;
     fieldBroad       = typeof fieldBroad       === 'undefined' ? this.fieldBroad       : fieldBroad;
@@ -100,7 +95,6 @@ class SearchState {
       appliedFilters,
       appliedFilterAggTypes,
       availableFilters,
-      lastAppliedAggType,
       filterRegistry,
       filtersValid,
       orphanFilters,

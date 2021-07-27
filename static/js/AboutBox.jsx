@@ -3,7 +3,8 @@ import PropTypes from 'prop-types';
 import Sefaria from './sefaria/sefaria';
 import VersionBlock, {VersionsBlocksList} from './VersionBlock';
 import Component             from 'react-class';
-import {InterfaceText} from "./Misc";
+import {ContentText, InterfaceText} from "./Misc";
+import { Modules } from './NavSidebar';
 
 
 class AboutBox extends Component {
@@ -13,7 +14,7 @@ class AboutBox extends Component {
     this.state = {
       versionLangMap: null,
       currentVersionsByActualLangs: Sefaria.transformVersionObjectsToByActualLanguageKeys(this.props.currObjectVersions),
-      details: null,
+      details: Sefaria.getIndexDetailsFromCache(props.title),
     }
   }
   setTextMetaData() {
@@ -37,13 +38,13 @@ class AboutBox extends Component {
   }
   componentDidMount() {
       this.setTextMetaData();
-      Sefaria.versions(this.props.sectionRef, true, this._includeOtherVersionsLangs, false).then(this.onVersionsLoad);
+      Sefaria.getVersions(this.props.sectionRef, true, this._includeOtherVersionsLangs, false).then(this.onVersionsLoad);
   }
   componentDidUpdate(prevProps, prevState) {
     if (prevProps.title !== this.props.title || prevProps.masterPanelLanguage != this.props.masterPanelLanguage) {
       this.setState({details: null});
       this.setTextMetaData();
-      Sefaria.versions(this.props.sectionRef,true, this._includeOtherVersionsLangs, false).then(this.onVersionsLoad);
+      Sefaria.getVersions(this.props.sectionRef,true, this._includeOtherVersionsLangs, false).then(this.onVersionsLoad);
     }
   }
   onVersionsLoad(versions) {
@@ -64,6 +65,8 @@ class AboutBox extends Component {
   }
   render() {
     const d = this.state.details;
+    const category = Sefaria.index(this.state.details.title).primary_category;
+    const isDictionary = d?.lexiconName;
     const sourceVersion = this.state.currentVersionsByActualLangs?.he;
     const translationVersions = Object.entries(this.state.currentVersionsByActualLangs).filter(([lang, version]) => lang != "he").map(([lang, version])=> version);
     const multiple_translations = translationVersions?.length > 1;
@@ -137,32 +140,39 @@ class AboutBox extends Component {
         dateTextEn = `(${Math.abs(d.pubDate)} ${d.pubDate < 0 ? "BCE" : "CE"})`;
         dateTextHe = `(${Math.abs(d.pubDate)} ${d.pubDate < 0 ? 'לפנה"ס בקירוב' : 'לספירה בקירוב'})`;
       }
+      const bookPageUrl = "/" + Sefaria.normRef(d.title);
       detailSection = (
-        <div className="detailsSection">
+        <div className="detailsSection sans-serif">
           <h2 className="aboutHeader">
-            <span className="int-en">About This Text</span>
-            <span className="int-he">אודות ספר זה</span>
+            <InterfaceText>About This Text</InterfaceText>
           </h2>
-          <div className="aboutTitle">
-            <span className="en">{d.title}</span>
-            <span className="he">{d.heTitle}</span>
-          </div>
+          <a href={bookPageUrl} className="aboutTitle serif">
+            <ContentText text={{en: d.title, he:d.heTitle}}/>
+          </a>
+          <span className="tocCategory">
+              <ContentText text={{en:category, he:Sefaria.hebrewTerm(category)}}/>
+          </span>
           { authorsEn && authorsEn.length ?
-            <div className="aboutSubtitle">
-              <span className="en">Author: {authorsEn}</span>
-              <span className="he">מחבר: {authorsHe}</span>
+            <div className="aboutAuthor">
+              <span className="authorLabel">
+                  <ContentText text={{en:"Author:", he: "מחבר:"}} />
+              </span>
+              <span className="authorName">
+                  <ContentText text={{en:authorsEn, he: authorsHe}} />
+              </span>
+
             </div> : null
           }
+          <div className="aboutDesc">
+            <ContentText text={{en: d?.enDesc, he: d?.heDesc}} />
+          </div>
+
           { !!placeTextEn || !!dateTextEn ?
-            <div className="aboutSubtitle">
+            <div className="aboutComposed">
               <span className="en">{`Composed: ${!!placeTextEn ? placeTextEn : ""} ${!!dateTextEn ? dateTextEn : ""}`}</span>
               <span className="he">{`נוצר/נערך: ${!!placeTextHe ? placeTextHe : ""} ${!!dateTextHe ? dateTextHe : ""}`}</span>
             </div> : null
           }
-          <div className="aboutDesc">
-            { !!d.enDesc ? <span className="en">{d.enDesc}</span> : null}
-            { !!d.heDesc ? <span className="he">{d.heDesc}</span> : null}
-          </div>
         </div>
       );
     }
@@ -180,7 +190,7 @@ class AboutBox extends Component {
           currObjectVersions={this.props.currObjectVersions}
           currentRef={this.props.srefs[0]}
           firstSectionRef={"firstSectionRef" in sourceVersion ? sourceVersion.firstSectionRef : null}
-          getLicenseMap={this.props.getLicenseMap} />
+          />
       </div>
       : null );
     const versionSectionEn =
@@ -200,7 +210,7 @@ class AboutBox extends Component {
                   currentRef={this.props.srefs[0]}
                   firstSectionRef={"firstSectionRef" in ve ? ve.firstSectionRef : null}
                   viewExtendedNotes={this.props.viewExtendedNotes}
-                  getLicenseMap={this.props.getLicenseMap} />
+                   />
               ))
           }
       </div> : null );
@@ -215,7 +225,6 @@ class AboutBox extends Component {
               currObjectVersions={this.props.currObjectVersions}
               showLanguageHeaders={false}
               currentRef={this.props.srefs[0]}
-              getLicenseMap={this.props.getLicenseMap}
               openVersionInReader={this.props.openVersionInReader}
               openVersionInSidebar={this.openVersionInSidebar}
               viewExtendedNotes={this.props.viewExtendedNotes}
@@ -229,6 +238,8 @@ class AboutBox extends Component {
           (<div>{versionSectionEn}{versionSectionHe}{alternateSectionHe}</div>) :
           (<div>{versionSectionHe}{versionSectionEn}{alternateSectionHe}</div>)
         }
+        <Modules type={"RelatedTopics"} props={{title: this.props.title}} />
+        { !isDictionary ? <Modules type={"DownloadVersions"} props={{sref: this.props.title}} /> : null}
       </section>
     );
   }
@@ -238,7 +249,6 @@ AboutBox.propTypes = {
   masterPanelLanguage: PropTypes.oneOf(["english", "hebrew", "bilingual"]),
   title:               PropTypes.string.isRequired,
   srefs:               PropTypes.array.isRequired,
-  getLicenseMap:       PropTypes.func.isRequired,
 };
 
 

@@ -97,9 +97,9 @@ InterfaceText.propTypes = {
   className: PropTypes.string
 };
 
-const ContentText = ({text, html, overrideLanguage, defaultToInterfaceOnBilingual= false}) => {
+const ContentText = ({text, html, overrideLanguage, defaultToInterfaceOnBilingual=false}) => {
   /**
-   * Renders cotnet language throughout the site (content that comes from the database and is not interface language)
+   * Renders content language throughout the site (content that comes from the database and is not interface language)
    * Gets the active content language from Context and renders only the appropriate child(ren) for given language
    * text {{text: object}} a dictionary {en: "some text", he: "some translated text"} to use for each language
    * html {{html: object}} a dictionary {en: "some html", he: "some translated html"} to use for each language in the case where it needs to be dangerously set html
@@ -126,6 +126,33 @@ const LoadingRing = () => (
   <div className="lds-ring"><div></div><div></div><div></div><div></div></div>
 );
 
+const DonateLink = ({children, classes, source, link}) => {
+  link = link || "default";
+  const linkOptions = {
+    default: {
+      en: "https://sefaria.nationbuilder.com/supportsefaria",
+      he: "https://sefaria.nationbuilder.com/supportsefaria_il"
+    },
+    header: {
+      en: "https://sefaria.nationbuilder.com/supportsefaria_w",
+      he: "https://sefaria.nationbuilder.com/supportsefaria_il_w"
+    },
+    sponsor: {
+      en: "https://sefaria.nationbuilder.com/sponsor",
+      he: "https://sefaria.nationbuilder.com/sponsor",
+    }
+  };
+  const url = Sefaria._v(linkOptions[link]);
+  const trackClick = () => {
+    Sefaria.track.event("Donations", "Donation Click", source);
+  };
+
+  return (
+    <a href={url} className={classes} target="_blank" onClick={trackClick}>
+      {children}
+    </a>
+  );
+};
 
 /* flexible profile picture that overrides the default image of gravatar with text with the user's initials */
 class ProfilePic extends Component {
@@ -351,18 +378,18 @@ ProfilePic.propTypes = {
 
 const FilterableList = ({
   filterFunc, sortFunc, renderItem, sortOptions, getData, data, renderEmptyList,
-  renderHeader, renderFooter, showFilterHeader, extraData, refreshData,
+  renderHeader, renderFooter, showFilterHeader, refreshData, initialFilter,
   scrollableElement, pageSize, onDisplayedDataChange, initialRenderSize,
   bottomMargin, containerClass
 }) => {
-  const [filter, setFilter] = useState('');
+  const [filter, setFilter] = useState(initialFilter || '');
   const [sortOption, setSortOption] = useState(sortOptions[0]);
   const [displaySort, setDisplaySort] = useState(false);
 
   // Apply filter and sort to the raw data
   const processData = rawData => rawData ? rawData
       .filter(item => !filter ? true : filterFunc(filter, item))
-      .sort((a, b) => sortFunc(sortOption, a, b, extraData))
+      .sort((a, b) => sortFunc(sortOption, a, b))
       : [];
 
   const cachedData = data || null;
@@ -399,7 +426,7 @@ const FilterableList = ({
   // Updates to filter or sort
   useEffect(() => {
     setDisplayData(processData(rawData));
-  }, [filter, sortOption, extraData]);
+  }, [filter, sortOption]);
 
   const dataUpToPage = usePaginatedDisplay(scrollableElement, displayData, pageSize, bottomMargin, initialRenderSize || pageSize);
 
@@ -420,7 +447,7 @@ const FilterableList = ({
     <div className="filterable-list">
       {oldDesign ? <div className="filter-bar">
         <div className="filter-bar-inner">
-          <ReaderNavigationMenuSearchButton />
+          <SearchButton />
           <input
             type="text"
             placeholder={Sefaria._("Search")}
@@ -440,7 +467,7 @@ const FilterableList = ({
               />
               <DropdownOptionList
                 isOpen={displaySort}
-                options={sortOptions.map(option => ({type: option, name: option, heName: Sefaria._(option)}))}
+                options={sortOptions.map(option => ({type: option, name: option, heName: Sefaria._(option, "FilterableList")}))}
                 currOptionSelected={sortOption}
                 handleClick={onSortChange}
               />
@@ -452,7 +479,7 @@ const FilterableList = ({
       { !oldDesign && showFilterHeader ? (
         <div className="filter-bar-new">
           <div className="filter-input">
-            <ReaderNavigationMenuSearchButton />
+            <SearchButton />
             <input
               type="text"
               placeholder={Sefaria._("Search")}
@@ -463,8 +490,7 @@ const FilterableList = ({
           </div>
           <div className="filter-sort-wrapper">
             <span className="systemText">
-              <span className="int-en">Sort by</span>
-              <span className="int-he">מיון לפי</span>
+              <InterfaceText>Sort by</InterfaceText>
             </span>
             { sortOptions.map(option =>(
               <span
@@ -472,7 +498,7 @@ const FilterableList = ({
                 className={classNames({'sans-serif': 1, 'sort-option': 1, noselect: 1, active: sortOption === option})}
                 onClick={() => onSortChange(option)}
               >
-                <InterfaceText>{option}</InterfaceText>
+                <InterfaceText context="FilterableList">{option}</InterfaceText>
               </span>
             ))}
           </div>
@@ -480,15 +506,15 @@ const FilterableList = ({
       ) : null}
       {
         loading ? <LoadingMessage /> :
-        ( dataUpToPage.length ?
-          (
-            <div className={"filter-content" + (containerClass ? " " + containerClass : "")}>
-              { !!renderHeader ? renderHeader() : null }
-              { dataUpToPage.map(renderItem) }
-              { !!renderFooter ? renderFooter() : null }
-            </div>
-          ) : ( !!renderEmptyList ? renderEmptyList() : null )
-        )
+        <div className={"filter-content" + (containerClass ? " " + containerClass : "")}>
+          {dataUpToPage.length ?
+          <>
+            { !!renderHeader ? renderHeader({filter}) : null }
+            { dataUpToPage.map(renderItem) }
+          </>
+          : <>{!!renderEmptyList ? renderEmptyList({filter}) : null}</>}
+          { !!renderFooter ? renderFooter({filter}) : null }
+        </div>
       }
     </div>
   );
@@ -504,7 +530,6 @@ FilterableList.propTypes = {
   renderHeader:     PropTypes.func,
   renderFooter:     PropTypes.func,
   showFilterHeader: PropTypes.bool,
-  extraData:        PropTypes.object,  // extraData to pass to sort function
 };
 
 
@@ -541,8 +566,9 @@ class TabView extends Component {
   }
   render() {
     const { currTabIndex } = typeof this.props.currTabIndex == 'undefined' ? this.state : this.props;
+    const classes = classNames({"tab-view": 1, [this.props.containerClasses]: 1});
     return (
-      <div className="tab-view">
+      <div className={classes}>
         <div className="tab-list sans-serif">
           {this.props.tabs.map(this.renderTab)}
         </div>
@@ -552,10 +578,10 @@ class TabView extends Component {
   }
 }
 TabView.propTypes = {
-  tabs: PropTypes.array.isRequired,  // array of objects of any form. only requirement is each tab has a unique 'id' field. These objects will be passed to renderTab.
-  renderTab: PropTypes.func.isRequired,
+  tabs:         PropTypes.array.isRequired,  // array of objects of any form. only requirement is each tab has a unique 'id' field. These objects will be passed to renderTab.
+  renderTab:    PropTypes.func.isRequired,
   currTabIndex: PropTypes.number,  // optional. If passed, TabView will be controlled from outside
-  setTab: PropTypes.func,          // optional. If passed, TabView will be controlled from outside
+  setTab:       PropTypes.func,    // optional. If passed, TabView will be controlled from outside
   onClickArray: PropTypes.object,  // optional. If passed, TabView will be controlled from outside
 };
 
@@ -598,25 +624,22 @@ DropdownOptionList.propTypes = {
 };
 
 
-class DropdownButton extends Component {
-  render() {
-    const { isOpen, toggle, enText, heText } = this.props;
-    const filterTextClasses = classNames({ "dropdown-button": 1, active: isOpen });
-    return (
-      <div className={ filterTextClasses } tabIndex="0" onClick={toggle} onKeyPress={(e) => {e.charCode == 13 ? toggle(e):null}}>
-        <span className="int-en">{enText}</span>
-        <span className="int-he">{heText}</span>
-        {isOpen ? <img src="/static/img/arrow-up.png" alt=""/> : <img src="/static/img/arrow-down.png" alt=""/>}
-      </div>
-    )
-  }
-}
+const DropdownButton = ({isOpen, toggle, enText, heText, buttonStyle}) => {
+  const filterTextClasses = classNames({ "dropdown-button": 1, active: isOpen, buttonStyle });
+  return (
+    <div className={ filterTextClasses } tabIndex="0" onClick={toggle} onKeyPress={(e) => {e.charCode == 13 ? toggle(e):null}}>
+      <InterfaceText text={{en: enText, he: heText}} />
+      {isOpen ? <img src="/static/img/arrow-up.png" alt=""/> : <img src="/static/img/arrow-down.png" alt=""/>}
+    </div>
+  );
+};
 DropdownButton.propTypes = {
-  isOpen: PropTypes.bool.isRequired,
-  toggle: PropTypes.func.isRequired,
-  enText: PropTypes.string.isRequired,
-  heText: PropTypes.string.isRequired,
-}
+  isOpen:      PropTypes.bool.isRequired,
+  toggle:      PropTypes.func.isRequired,
+  enText:      PropTypes.string.isRequired,
+  heText:      PropTypes.string.isRequired,
+  buttonStyle: PropTypes.bool,
+};
 
 
 class DropdownModal extends Component {
@@ -683,27 +706,6 @@ class GlobalWarningMessage extends Component {
 }
 
 
-const ReaderNavigationMenuSection = ({title, heTitle, content, enableAnchor}) => (
-  (!content) ? null :
-  <div className="readerNavSection" id={enableAnchor ? "navigation-" + title.toLowerCase() : ""}>
-    {title ? (
-    <h2 className="sans-serif">
-      <InterfaceText text={{en: title, he: heTitle}} />
-    </h2>) : null }
-    {content}
-  </div>
-);
-ReaderNavigationMenuSection.propTypes = {
-  title:   PropTypes.string,
-  heTitle: PropTypes.string,
-  content: PropTypes.object,
-  enableAnchor: PropTypes.bool
-};
-ReaderNavigationMenuSection.defaultProps = {
-  enableAnchor: false
-};
-
-
 class TextBlockLink extends Component {
   // Monopoly card style link with category color at top
   // This component is seriously overloaded :grimacing:
@@ -759,18 +761,20 @@ class TextBlockLink extends Component {
             { saved ? <SaveButton historyObject={{ ref: sref, versions: currVersions }} /> : null }
             { !saved && timeStamp ?
               <span className="sans-serif">
-                <InterfaceText>{ Sefaria.util.naturalTime(timeStamp) }</InterfaceText>
+                { Sefaria.util.naturalTime(timeStamp) }
               </span>: null
             }
           </div>
         </a>
       );
     }
-    return (<a href={url} className={classes} data-ref={sref} data-ven={currVersions.en} data-vhe={currVersions.he} data-position={position} style={style}>
-              <span className={elang}>{title}</span>
-              <span className={hlang}>{heTitle}</span>
-                {subtitle}
-             </a>);
+    return (
+      <a href={url} className={classes} data-ref={sref} data-ven={currVersions.en} data-vhe={currVersions.he} data-position={position} style={style}>
+        <span className={elang}>{title}</span>
+        <span className={hlang}>{heTitle}</span>
+        {subtitle}
+      </a>
+    );
   }
 }
 TextBlockLink.propTypes = {
@@ -806,8 +810,8 @@ class LanguageToggleButton extends Component {
   render() {
     var url = this.props.url || "";
     return (<a href={url} className="languageToggle" onClick={this.toggle}>
-              <span className="en"><img src="/static/img/aleph.svg" alt="Hebrew Language Toggle Icon" /></span>
-              <span className="he"><img src="/static/img/aye.svg" alt="English Language Toggle Icon" /></span>
+              <img className="en" src="/static/img/aleph.svg" alt="Hebrew Language Toggle Icon" />
+              <img className="he" src="/static/img/aye.svg" alt="English Language Toggle Icon" />
             </a>);
   }
 }
@@ -815,6 +819,11 @@ LanguageToggleButton.propTypes = {
   toggleLanguage: PropTypes.func.isRequired,
   url:            PropTypes.string,
 };
+
+
+const ColorBarBox = ({tref, children}) =>  (
+  <div className="colorBarBox" style={{"borderColor": Sefaria.palette.refColor(tref)}}>{children}</div>
+);
 
 
 const DangerousInterfaceBlock = ({en, he, classes}) => (
@@ -871,7 +880,6 @@ SimpleLinkedBlock.propTypes = {
 };
 
 
-
 class BlockLink extends Component {
   render() {
     var interfaceClass = this.props.interfaceLink ? 'int-' : '';
@@ -901,7 +909,7 @@ BlockLink.defaultProps = {
 class ToggleSet extends Component {
   // A set of options grouped together.
   render() {
-    let classes = {toggleSet: 1, separated: this.props.separated };
+    let classes = {toggleSet: 1, separated: this.props.separated, blueStyle: this.props.blueStyle };
     classes[this.props.name] = 1;
     classes = classNames(classes);
     const width = 100.0 - (this.props.separated ? (this.props.options.length - 1) * 3 : 0);
@@ -909,26 +917,22 @@ class ToggleSet extends Component {
     const label = this.props.label ? (<span className="toggle-set-label">{this.props.label}</span>) : null;
     return (
       <div className={classes} role="radiogroup" aria-label={this.props.ariaLabel}>
-          {label}
-          <div>
-        {
-          this.props.options.map(function(option) {
-            return (
-              <ToggleOption
-                name={option.name}
-                key={option.name}
-                set={this.props.name}
-                role={option.role}
-                ariaLabel={option.ariaLabel}
-                on={this.props.currentValue == option.name}
-                setOption={this.props.setOption}
-                style={style}
-                image={option.image}
-                fa={option.fa}
-                content={option.content} />);
-          }.bind(this))
-        }
-          </div>
+        {label}
+        <div className="toggleSetToggleBox">
+          {this.props.options.map((option) => (
+          <ToggleOption
+            name={option.name}
+            key={option.name}
+            set={this.props.name}
+            role={option.role}
+            ariaLabel={option.ariaLabel}
+            on={this.props.currentValue == option.name}
+            setOption={this.props.setOption}
+            style={style}
+            image={option.image}
+            fa={option.fa}
+            content={option.content} />))}     
+        </div>
       </div>);
   }
 }
@@ -939,6 +943,7 @@ ToggleSet.propTypes = {
   currentValue:  PropTypes.string,
   options:       PropTypes.array.isRequired,
   separated:     PropTypes.bool,
+  blueStyle:     PropTypes.bool,
   role:          PropTypes.string,
   ariaLabel:     PropTypes.string
 };
@@ -992,9 +997,10 @@ class ToggleOption extends Component {
     const ariaCheckedValue = this.props.on ? "true" : "false";
     classes[this.props.name] = 1;
     classes = classNames(classes);
-    let content = this.props.image ? (<img src={this.props.image} alt=""/>) :
-                    this.props.fa ? (<i className={"fa fa-" + this.props.fa}></i>) :
-                      (<span dangerouslySetInnerHTML={ {__html: this.props.content} }></span>);
+    const content = this.props.image ? (<img src={this.props.image} alt=""/>) :
+                      this.props.fa ? (<i className={"fa fa-" + this.props.fa}></i>) :
+                        typeof this.props.content === "string" ? (<span dangerouslySetInnerHTML={ {__html: this.props.content} }></span>) :
+                          this.props.content;
     return (
       <div
         role={this.props.role}
@@ -1002,7 +1008,6 @@ class ToggleOption extends Component {
         tabIndex = {this.props.role == "radio"? tabIndexValue : "0"}
         aria-checked={ariaCheckedValue}
         className={classes}
-        style={this.props.style}
         onKeyDown={this.checkKeyPress}
         onClick={this.handleClick}>
         {content}
@@ -1010,8 +1015,9 @@ class ToggleOption extends Component {
   }
 }
 
+        //style={this.props.style}
 
-class ReaderNavigationMenuSearchButton extends Component {
+class SearchButton extends Component {
   render() {
     return (<span className="readerNavMenuSearchButton" onClick={this.props.onClick}>
       <img src="/static/icons/iconmonstr-magnifier-2.svg" />
@@ -1020,30 +1026,29 @@ class ReaderNavigationMenuSearchButton extends Component {
 }
 
 
-class ReaderNavigationMenuMenuButton extends Component {
+class MenuButton extends Component {
   render() {
-    var isheb = this.props.interfaceLang == "hebrew";
+    var isheb = Sefaria.interfaceLang == "hebrew";
     var icon = this.props.compare ? (isheb ?
       <i className="fa fa-chevron-right"></i> : <i className="fa fa-chevron-left"></i>) :
         (<i className="fa fa-bars"></i>);
     return (<span className="readerNavMenuMenuButton" onClick={this.props.onClick}>{icon}</span>);
   }
 }
-ReaderNavigationMenuMenuButton.propTypes = {
+MenuButton.propTypes = {
   onClick: PropTypes.func,
   compare: PropTypes.bool,
-  interfaceLang: PropTypes.string
 };
 
 
-class ReaderNavigationMenuCloseButton extends Component {
+class CloseButton extends Component {
   onClick(e) {
     e.preventDefault();
     this.props.onClick();
   }
   render() {
     if (this.props.icon == "circledX"){
-      var icon = <img src="/static/img/circled-x.svg" />;
+      var icon = <img src="/static/icons/circled-x.svg" />;
     } else if (this.props.icon == "chevron") {
       var icon = <i className="fa fa-chevron-left"></i>
     } else {
@@ -1056,7 +1061,7 @@ class ReaderNavigationMenuCloseButton extends Component {
 }
 
 
-class ReaderNavigationMenuDisplaySettingsButton extends Component {
+class DisplaySettingsButton extends Component {
   render() {
     var style = this.props.placeholder ? {visibility: "hidden"} : {};
     var icon = Sefaria._siteSettings.TORAH_SPECIFIC ?
@@ -1075,7 +1080,7 @@ class ReaderNavigationMenuDisplaySettingsButton extends Component {
             </a>);
   }
 }
-ReaderNavigationMenuDisplaySettingsButton.propTypes = {
+DisplaySettingsButton.propTypes = {
   onClick: PropTypes.func,
   placeholder: PropTypes.bool,
 };
@@ -1153,7 +1158,7 @@ function InterfaceLanguageMenu({currentLang, translationLanguagePreference, setT
 InterfaceLanguageMenu.propTypes = {
   currentLang: PropTypes.string,
   translationLanguagePreference: PropTypes.string,
-}
+};
 
 
 function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
@@ -1186,8 +1191,8 @@ function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
 
   return (
     <ToolTipped {...{ altText, classes, style, onClick }}>
-      { selected ? <img src="/static/img/filled-star.png" alt={altText}/> :
-        <img src="/static/img/star.png" alt={altText}/> }
+      { selected ? <img src="/static/icons/bookmark-filled.svg" alt={altText}/> :
+        <img src="/static/icons/bookmark.svg" alt={altText}/> }
     </ToolTipped>
   );
 }
@@ -1259,9 +1264,10 @@ class FollowButton extends Component {
       smallFollowButton: !this.props.large,
       following: this.state.following,
       hovering: this.state.hovering,
-      smallText: true,
+      smallText: !this.props.large,
     });
-    const buttonText = this.state.following ? this.state.hovering ? "Unfollow":"Following":"Follow";
+    let buttonText = this.state.following ? this.state.hovering ?  "Unfollow" : "Following" : "Follow";
+    buttonText = buttonText === "Follow" && this.props.followBack ? "Follow Back" : buttonText;
     return ( 
       <div className={classes} onMouseEnter={this.onMouseEnter} onMouseLeave={this.onMouseLeave} onClick={this.onClick}>
         <InterfaceText context={"FollowButton"}>{buttonText}</InterfaceText>
@@ -1274,27 +1280,9 @@ FollowButton.propTypes = {
   following:         PropTypes.bool,  // is this person followed already?
   large:             PropTypes.bool,
   disableUnfollow:   PropTypes.bool,
+  followBack:        PropTypes.bool,
   toggleSignUpModal: PropTypes.func,
-};
 
-
-const SinglePanelNavHeader = (props) =>
-      <div className="readerNavTop searchOnly">
-          <CategoryColorLine category={props.colorLineCategory || "Other"} />
-          <ReaderNavigationMenuMenuButton onClick={props.navHome} />
-          <h2>
-            <InterfaceText>{props.title}</InterfaceText>
-          </h2>
-          {props.showDisplaySettings ?
-            <ReaderNavigationMenuDisplaySettingsButton onClick={props.openDisplaySettings} />
-            : <div className="readerOptions"></div> }
-      </div>;
-SinglePanelNavHeader.propTypes = {
-  navHome:             PropTypes.func.isRequired,
-  title:               PropTypes.string,
-  showDisplaySettings: PropTypes.bool,
-  openDisplaySettings: PropTypes.func,
-  colorLineCategory:   PropTypes.string,
 };
 
 
@@ -1306,20 +1294,19 @@ class ProfileListing extends Component {
   render() {
     const { url, image, name, uid, is_followed, toggleSignUpModal, smallfonts, organization } = this.props;
     return (
-      <div className="authorByLine sans-serif">
+      <div className={"authorByLine sans-serif" + (smallfonts ? " small" : "")}>
         <div className="authorByLineImage">
           <a href={url}>
             <ProfilePic
-              len={40}
+              len={smallfonts ? 30 : 40}
               url={image}
               name={name}
             />
           </a>
         </div>
-        <div className="authorByLineText">
+        <div className={`authorByLineText ${smallfonts? "small" : ""}`}>
           <SimpleLinkedBlock
             classes="authorName"
-            aclasses={smallfonts?"smallText":"systemText"}
             url={url}
             en={name}
             he={name}
@@ -1331,24 +1318,23 @@ class ProfileListing extends Component {
               disableUnfollow={true}
               toggleSignUpModal={toggleSignUpModal} />
           </SimpleLinkedBlock>
-          {
-            !!organization ? <SimpleInterfaceBlock
-              classes={"authorOrganization" + (smallfonts?"smallText":"systemText")}
-              en={organization}
-              he={organization}
-            />:null
-          }
+          {!!organization ? 
+          <SimpleInterfaceBlock
+            classes="authorOrganization"
+            en={organization}
+            he={organization} />
+          :null}
         </div>
       </div>
     );
   }
 }
 ProfileListing.propTypes = {
-  uid:         PropTypes.number.isRequired,
-  url:         PropTypes.string.isRequired,
-  image:       PropTypes.string.isRequired,
-  name:        PropTypes.string.isRequired,
-  is_followed: PropTypes.bool,
+  uid:               PropTypes.number.isRequired,
+  url:               PropTypes.string.isRequired,
+  image:             PropTypes.string.isRequired,
+  name:              PropTypes.string.isRequired,
+  is_followed:       PropTypes.bool,
   toggleSignUpModal: PropTypes.func,
 };
 
@@ -1411,7 +1397,7 @@ const SheetListing = ({
   );
 
   const sheetSummary = showSheetSummary && sheet.summary? 
-  <SimpleInterfaceBlock classes={"smallText sheetSummary"} en={sheet.summary} he={sheet.sheet_summary}/>:null;
+  <DangerousInterfaceBlock classes={"smallText sheetSummary"} en={sheet.summary} he={sheet.sheet_summary}/>:null;
 
   const sheetInfo = hideAuthor ? null :
       <div className="sheetInfo">
@@ -1500,7 +1486,7 @@ const SheetListing = ({
       <div className="sheetRight">
         {
           editable && !Sefaria._uses_new_editor ?
-            <a href={`/sheets/${sheet.id}?editor=1`}><img src="/static/img/tools-write-note.svg" title={Sefaria._("Edit")}/></a>
+            <a href={`/sheets/${sheet.id}?editor=1`}><img src="/static/icons/tools-write-note.svg" title={Sefaria._("Edit")}/></a>
             : null
         }
         {
@@ -1510,7 +1496,7 @@ const SheetListing = ({
         }
         {
           deletable ?
-            <img src="/static/img/circled-x.svg" onClick={handleSheetDeleteClick} title={Sefaria._("Delete")} />
+            <img src="/static/icons/circled-x.svg" onClick={handleSheetDeleteClick} title={Sefaria._("Delete")} />
             : null
         }
         {
@@ -1533,6 +1519,50 @@ const SheetListing = ({
       }
     </div>);
 };
+
+
+const CollectionListing = ({data}) => {
+  const imageUrl = "/static/icons/collection.svg";
+  const collectionUrl = "/collections/" + data.slug;
+  return (
+    <div className="collectionListing">
+      <div className="left-content">
+        <div className="collectionListingText">
+          
+          <a href={collectionUrl} className="collectionListingName">
+            <img className="collectionListingImage" src={imageUrl} alt="Collection Icon"/>
+            {data.name}
+          </a>
+         
+          <div className="collectionListingDetails">
+            {data.listed ? null :
+              (<span className="unlisted">
+                <img src="/static/img/eye-slash.svg"/>
+                <InterfaceText>Unlisted</InterfaceText>
+              </span>) }
+
+            {data.listed ? null :
+            <span className="collectionListingDetailSeparator">•</span> }
+            
+            <span className="collectionListingDetail collectionListingSheetCount">
+              <InterfaceText>{`${data.sheetCount} `}</InterfaceText>
+              <InterfaceText>Sheets</InterfaceText>
+            </span>
+
+            {data.memberCount > 1 ? 
+            <span className="collectionListingDetailSeparator">•</span> : null }
+
+            {data.memberCount > 1 ?
+            <span className="collectionListingDetail collectionListingMemberCount">
+              <InterfaceText>{`${data.memberCount} `}</InterfaceText>
+              <InterfaceText>Editors</InterfaceText>
+            </span> : null }
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 
 class Note extends Component {
@@ -1571,6 +1601,52 @@ Note.propTypes = {
   isPrivate:       PropTypes.bool,
   isMyNote:        PropTypes.bool,
   editNote:        PropTypes.func
+};
+
+
+class MessageModal extends Component {
+  constructor(props) {
+    super(props);
+    this.textarea = React.createRef();
+    this.state = {
+      visible: false,
+      message: '',
+    };
+  }
+  componentDidUpdate(prevProps, prevState) {
+    if (this.state.visible && !prevState.visible) {
+      this.textarea.current.focus();
+    }
+  }
+  onChange(e) { this.setState({ message: e.target.value }); }
+  onSend(e) {
+    if (!this.state.message) { return; }
+    Sefaria.messageAPI(this.props.uid, this.state.message).then(() => {
+      this.setState({ visible: false });
+      alert("Message Sent");
+      Sefaria.track.event("Messages", "Message Sent", "");
+    });
+  }
+  makeVisible() { this.setState({ visible: true }); }
+  onCancel(e) { this.setState({ visible: false }); }
+  render() {
+    if (!this.state.visible) { return null; }
+    return (
+      <div id="interruptingMessageBox" className="sefariaModalBox sans-serif">
+        <div id="interruptingMessageOverlay" onClick={this.onCancel}></div>
+        <div id="interruptingMessage" className='message-modal' style={{display: 'block'}}>
+          <div className='messageHeader'>{ `${Sefaria._("Send a message to ")}${this.props.name}` }</div>
+          <textarea value={this.state.message} onChange={this.onChange} ref={this.textarea} />
+          <div className='sendMessage button' onClick={this.onSend}>{ Sefaria._("Send") }</div>
+          <div className='cancel button white' onClick={this.onCancel}>{ Sefaria._("Cancel") }</div>
+        </div>
+      </div>
+    );
+  }
+}
+MessageModal.propTypes = {
+  name: PropTypes.string.isRequired,
+  uid:  PropTypes.number.isRequired,
 };
 
 
@@ -1827,30 +1903,23 @@ InterruptingMessage.propTypes = {
 };
 
 
-const NBox = ({ content, n }) => {
+const NBox = ({ content, n, stretch }) => {
   // Wrap a list of elements into an n-column flexbox
+  // If `stretch`, extend the final row into any remaining empty columns
   let length = content.length;
-  if (length % n) {
-      length += (n-length%n);
-  }
-  content.pad(length, "");
   let rows = [];
   for (let i=0; i<length; i+=n) {
     rows.push(content.slice(i, i+n));
   }
   return (
     <div className="gridBox">
-    {
-      rows.map((row, i) => (
-        <div className="gridBoxRow" key={i}>
-          {
-            row.pad(n, "").map((item, j) => (
-              <div className={classNames({gridBoxItem: 1, placeholder: !item})} key={`gridItem|${j}`}>{item}</div>
-            ))
-          }
-        </div>
-      ))
-    }
+      {rows.map((row, i) => (
+      <div className="gridBoxRow" key={i}>
+        {row.pad(stretch ? row.length : n, "").map((item, j) => (
+          <div className={classNames({gridBoxItem: 1, placeholder: !item})} key={`gridItem|${j}`}>{item}</div>
+        ))}
+      </div>
+      ))}
     </div>
   );
 }
@@ -1876,9 +1945,9 @@ TwoOrThreeBox.defaultProps = {
 };
 
 
-const ResponsiveNBox = ({content}) => {
+const ResponsiveNBox = ({content, stretch, initialWidth}) => {
 
-  const initialWidth = window.innerWidth;
+  initialWidth = initialWidth || (window ? window.innerWidth : 1000);
   const [width, setWidth] = useState(initialWidth);
   const ref = useRef(null);
 
@@ -1890,19 +1959,18 @@ const ResponsiveNBox = ({content}) => {
     }
   }, []);
 
-  const deriveAndSetWidth = () => {
-    setWidth(window.innerWidth);
-  }
+  const deriveAndSetWidth = () => setWidth(ref.current ? ref.current.offsetWidth : initialWidth);
 
-  const threshold_2 = 500; //above threshold_2, there will be 2 columns
-  const threshold_3 = 1500; //above threshold_3, there will be 3 columns
-  if (width > threshold_3) {
-    return (<NBox content={content} n={3}/>);
-  } else if (width > threshold_2) {
-    return (<NBox content={content} n={2}/>);
-  } else {
-    return (<NBox content={content} n={1}/>);
-  }
+  const threshold2 = 500; //above threshold2, there will be 2 columns
+  const threshold3 = 1500; //above threshold3, there will be 3 columns
+  const n = (width > threshold3) ? 3 :
+    (width > threshold2) ? 2 : 1;
+
+  return (
+    <div className="responsiveNBox" ref={ref}>
+      <NBox content={content} n={n} stretch={stretch} />
+    </div>
+  );
 };
 
 
@@ -1916,7 +1984,8 @@ class Dropdown extends Component {
   }
   select(option) {
     this.setState({selected: option, optionsOpen: false});
-    this.props.onSelect && this.props.onSelect(option.value);
+    const event = {target: {name: this.props.name, value: option.value}}
+    this.props.onChange && this.props.onChange(event);
   }
   toggle() {
     this.setState({optionsOpen: !this.state.optionsOpen});
@@ -1924,16 +1993,17 @@ class Dropdown extends Component {
   render() {
     return (
         <div className="dropdown sans-serif">
-          <div className="dropdownMain noselect" onClick={this.toggle}>
-            <i className="dropdownOpenButton noselect fa fa-caret-down"></i>
-            {this.state.selected ? this.state.selected.label : this.props.placeholder }
+          <div className={`dropdownMain noselect${this.state.selected ? " selected":""}`} onClick={this.toggle}>
+            <span>{this.state.selected ? this.state.selected.label : this.props.placeholder}</span>
+            <img src="/static/icons/chevron-down.svg" className="dropdownOpenButton noselect fa fa-caret-down"/>
+
           </div>
           {this.state.optionsOpen ?
             <div className="dropdownListBox noselect">
               <div className="dropdownList noselect">
                 {this.props.options.map(function(option) {
-                  var onClick = this.select.bind(null, option);
-                  var classes = classNames({dropdownOption: 1, selected: this.state.selected && this.state.selected.value == option.value});
+                  const onClick = this.select.bind(null, option);
+                  const classes = classNames({dropdownOption: 1, selected: this.state.selected && this.state.selected.value == option.value});
                   return <div className={classes} onClick={onClick} key={option.value}>{option.label}</div>
                 }.bind(this))}
               </div>
@@ -1944,7 +2014,8 @@ class Dropdown extends Component {
 }
 Dropdown.propTypes = {
   options:     PropTypes.array.isRequired, // Array of {label, value}
-  onSelect:    PropTypes.func,
+  name:        PropTypes.string.isRequired,
+  onChange:    PropTypes.func,
   placeholder: PropTypes.string,
   selected:    PropTypes.string,
 };
@@ -1970,27 +2041,18 @@ LoadingMessage.propTypes = {
 };
 
 
-class CategoryAttribution extends Component {
-  render() {
-    var attribution = Sefaria.categoryAttribution(this.props.categories);
-    if (!attribution) { return null; }
-    var linkedContent = <a href={attribution.link}>
-                          <ContentText text={{en: attribution.english, he: attribution.hebrew }} defaultToInterfaceOnBilingual={true} />
-                        </a>;
-    var unlinkedContent = <span>
-                            <ContentText text={{en: attribution.english, he: attribution.hebrew }} defaultToInterfaceOnBilingual={true} />
-                          </span>;
-    return <div className="categoryAttribution">
-            {this.props.linked ? linkedContent : unlinkedContent}
-           </div>;
-  }
-}
-CategoryAttribution.propTypes = {
-  categories: PropTypes.array.isRequired,
-  linked:     PropTypes.bool,
-};
-CategoryAttribution.defaultProps = {
-  linked:     true,
+const CategoryAttribution = ({categories, linked = true, asEdition}) => {
+  var attribution = Sefaria.categoryAttribution(categories);
+  if (!attribution) { return null; }
+
+  const en = asEdition ? attribution.englishAsEdition : attribution.english;
+  const he = asEdition ? attribution.hebrewAsEdition : attribution.hebrew;  
+  const str = <ContentText text={{en, he}} defaultToInterfaceOnBilingual={true} />;
+  
+  const content = linked ? 
+      <a href={attribution.link}>{str}</a> : str;
+  
+  return <div className="categoryAttribution">{content}</div>;
 };
 
 
@@ -2051,7 +2113,7 @@ class FeedbackBox extends Component {
       return
     }
 
-    var feedback = {
+    let feedback = {
         refs: this.props.srefs || null,
         type: this.state.type,
         url: this.props.url || null,
@@ -2060,8 +2122,8 @@ class FeedbackBox extends Component {
         msg: $("#feedbackText").val(),
         uid: Sefaria._uid || null
     };
-    var postData = {json: JSON.stringify(feedback)};
-    var url = "/api/send_feedback";
+    let postData = {json: JSON.stringify(feedback)};
+    const url = "/api/send_feedback";
 
     this.setState({feedbackSent: true});
 
@@ -2078,23 +2140,23 @@ class FeedbackBox extends Component {
     });
   }
   validateEmail(email) {
-    var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     return re.test(email);
   }
-  setType(type) {
-    this.setState({type: type});
+  setType(event) {
+    this.setState({type: event.target.value});
   }
   render() {
     if (this.state.feedbackSent) {
         return (
-            <div className="feedbackBox">
+            <div className="feedbackBox sans-serif">
                 <p className="int-en">Feedback sent!</p>
                 <p className="int-he">משוב נשלח!</p>
             </div>
         )
     }
     return (
-        <div className="feedbackBox">
+        <div className="feedbackBox sans-serif">
             <p className="int-en">Have some feedback? We would love to hear it.</p>
             <p className="int-he">אנחנו מעוניינים במשוב ממך</p>
 
@@ -2107,6 +2169,7 @@ class FeedbackBox extends Component {
             }
 
             <Dropdown
+              name="feedbackType"
               options={[
                         {value: "content_issue",   label: Sefaria._("Report an issue with the text")},
                         {value: "translation_request",   label: Sefaria._("Request translation")},
@@ -2117,7 +2180,7 @@ class FeedbackBox extends Component {
                         {value: "other",           label: Sefaria._("Other")},
                       ]}
               placeholder={Sefaria._("Select Type")}
-              onSelect={this.setType}
+              onChange={this.setType}
             />
 
             <textarea className="feedbackText" placeholder={Sefaria._("Describe the issue...")} id="feedbackText"></textarea>
@@ -2201,6 +2264,46 @@ class CookiesNotification extends Component {
 }
 
 
+const CommunityPagePreviewControls = ({date}) => {
+
+  const dateStr = (date, offset) => {
+    const d = new Date(date);
+    d.setDate(d.getDate() + offset)
+
+    return (
+      (d.getMonth() + 1) + "/" +
+      d.getDate() + "/" +
+      d.getFullYear().toString().slice(2)
+    );
+  };
+
+  const tomorrow = dateStr(date, 1);
+  const yesterday = dateStr(date, -1)
+
+  return (
+    <div id="communityPagePreviewControls">
+      <InterfaceText>You are previewing the Community page for </InterfaceText>
+      <a className="date" href={"/admin/community-preview?date=" + date}>
+        <InterfaceText>{date}</InterfaceText>
+      </a>
+      <div>
+        <a href={"/admin/community-preview?date=" + yesterday}>
+          <InterfaceText>{"« " + yesterday}</InterfaceText>
+        </a>
+        <a href={"/admin/community-preview?date=" + tomorrow}>
+          <InterfaceText>{tomorrow + " »"}</InterfaceText>
+        </a>
+      </div>
+      <div>
+        <a href={"/admin/reset/community?next=" + date}>
+          <InterfaceText>Refresh Cache</InterfaceText>
+        </a>
+      </div>
+    </div>
+  );
+};
+
+
 const SheetTitle = (props) => (
   <span className="title"
     role="heading"
@@ -2264,37 +2367,39 @@ export {
   CategoryAttribution,
   CollectionStatement,
   CookiesNotification,
+  CollectionListing,
+  ColorBarBox,
   Dropdown,
   DropdownButton,
   DropdownModal,
   DropdownOptionList,
   FeedbackBox,
   FilterableList,
+  FollowButton,
   GlobalWarningMessage,
   InterruptingMessage,
   InterfaceText,
   ContentText,
   EnglishText,
   HebrewText,
+  CommunityPagePreviewControls,
   LanguageToggleButton,
   Link,
   LoadingMessage,
   LoadingRing,
   LoginPrompt,
+  MessageModal,
   NBox,
   NewsletterSignUpForm,
   Note,
   ProfileListing,
   ProfilePic,
   ReaderMessage,
-  ReaderNavigationMenuCloseButton,
-  ReaderNavigationMenuDisplaySettingsButton,
-  ReaderNavigationMenuMenuButton,
+  CloseButton,
+  DisplaySettingsButton,
+  MenuButton,
+  SearchButton,
   SaveButton,
-  FollowButton,
-  ReaderNavigationMenuSection,
-  ReaderNavigationMenuSearchButton,
-  SinglePanelNavHeader,
   SignUpModal,
   SheetListing,
   SheetAccessIcon,
@@ -2309,4 +2414,5 @@ export {
   SheetAuthorStatement,
   SheetTitle,
   InterfaceLanguageMenu,
+  DonateLink,
 };

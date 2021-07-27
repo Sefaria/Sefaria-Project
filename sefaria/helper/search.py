@@ -128,12 +128,13 @@ def get_filter_obj(type, filters, filter_fields):
     if len(filter_fields) == 0:
         filter_fields = [None] * len(filters)  # use default filter_field for query type (defined in make_filter())
     unique_fields = set(filter_fields)
-    must_bools = []
+    outer_bools = []
     for agg_type in unique_fields:
         type_filters = [x for x in zip(filters, filter_fields) if x[1] == agg_type]
-        should_bool = Bool(should=[make_filter(type, agg_type, f) for f, t in type_filters])
-        must_bools += [should_bool]
-    return Bool(must=must_bools)
+        bool_type = 'should' if type == 'text' else 'must'  # in general we want filters to be AND (union) but for text filters, we want them to be OR (intersection)
+        inner_bool = Bool(**{bool_type: [make_filter(type, agg_type, f) for f, t in type_filters]})
+        outer_bools += [inner_bool]
+    return Bool(must=outer_bools)
 
 
 def make_filter(type, agg_type, agg_key):

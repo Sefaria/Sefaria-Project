@@ -22,8 +22,8 @@ if not hasattr(sys, '_doc_build'):
     from anymail.exceptions import AnymailRecipientsRefused
 
 from . import abstract as abst
-from sefaria.model.following import FollowersSet, FolloweesSet
-from sefaria.model.text import Ref
+from sefaria.model.following import FollowersSet, FolloweesSet, general_follow_recommendations
+from sefaria.model.text import Ref, TextChunk
 from sefaria.system.database import db
 from sefaria.utils.util import epoch_time
 from django.utils import translation
@@ -64,7 +64,6 @@ class UserHistory(abst.AbstractMongoRecord):
 
     def __init__(self, attrs=None, load_existing=False, field_updates=None, update_last_place=False):
         """
-
         :param attrs:
         :param load_existing: True if you want to load an existing mongo record if it exists to avoid duplicates
         :param field_updates: dict of updates in case load_existing finds a record
@@ -132,6 +131,7 @@ class UserHistory(abst.AbstractMongoRecord):
             pass
 
     def contents(self, **kwargs):
+        from sefaria.sheets import get_sheet_listing_data
         d = super(UserHistory, self).contents(**kwargs)
         if kwargs.get("for_api", False):
             keys = {
@@ -150,6 +150,18 @@ class UserHistory(abst.AbstractMongoRecord):
             d = {
                 key: d.get(key, default) for key, default in list(keys.items())
             }
+        if kwargs.get("annotate", False):
+            try:
+                ref = Ref(d["ref"])
+                if ref.is_sheet():
+                    d.update(get_sheet_listing_data(d["sheet_id"]))
+                else:
+                    d["text"] = {
+                        "en": TextChunk(ref, "en").as_sized_string(),
+                        "he": TextChunk(ref, "he").as_sized_string()
+                    }
+            except:
+                return d
         return d
 
     def _sanitize(self):
@@ -183,7 +195,7 @@ class UserHistory(abst.AbstractMongoRecord):
         uh.delete()
 
     @staticmethod
-    def get_user_history(uid=None, oref=None, saved=None, secondary=None, last_place=None, sheets=None, serialized=False, limit=0):
+    def get_user_history(uid=None, oref=None, saved=None, secondary=None, last_place=None, sheets=None, serialized=False, annotate=False, limit=0, skip=0):
         query = {}
         if uid is not None:
             query["uid"] = uid
@@ -200,8 +212,8 @@ class UserHistory(abst.AbstractMongoRecord):
         if last_place is not None:
             query["last_place"] = last_place
         if serialized:
-            return [uh.contents(for_api=True) for uh in UserHistorySet(query, proj={"uid": 0, "server_time_stamp": 0}, sort=[("time_stamp", -1)], limit=limit)]
-        return UserHistorySet(query, sort=[("time_stamp", -1)], limit=limit)
+            return [uh.contents(for_api=True, annotate=annotate) for uh in UserHistorySet(query, proj={"uid": 0, "server_time_stamp": 0}, sort=[("time_stamp", -1)], limit=limit, skip=skip)]
+        return UserHistorySet(query, sort=[("time_stamp", -1)], limit=limit, skip=skip)
 
     @staticmethod
     def delete_user_history(uid, exclude_saved=True, exclude_last_place=False):
@@ -587,8 +599,7 @@ class UserProfile(object):
         else:  # history disabled do nothing.
             return None
 
-
-    def get_user_history(self, oref=None, saved=None, secondary=None, sheets=None, last_place=None, serialized=False, limit=0):
+    def get_history(self, oref=None, saved=None, secondary=None, sheets=None, last_place=None, serialized=False, annotate=False, limit=0, skip=0):
         """
         personal user history
         :param oref:
@@ -602,11 +613,20 @@ class UserProfile(object):
         """
         if not self.settings.get('reading_history', True) and not saved:
             return [] if serialized else None
-        return UserHistory.get_user_history(uid=self.id, oref=oref, saved=saved, secondary=secondary, sheets=sheets,
-                                            last_place=last_place, serialized=serialized, limit=limit)
+        return UserHistory.get_user_history(uid=self.id, oref=oref, saved=saved, secondary=secondary, sheets=sheets, last_place=last_place, serialized=serialized, annotate=annotate, limit=limit, skip=skip)
 
     def delete_user_history(self, exclude_saved=True, exclude_last_place=False):
         UserHistory.delete_user_history(uid=self.id, exclude_saved=exclude_saved, exclude_last_place=exclude_last_place)
+
+    def follow_recommendations(self, lang="english", n=4):
+        """
+        Returns a list of users recommended for `self` to follow.
+        """
+        from random import choices
+        options = general_follow_recommendations(lang=lang, n=100)
+        filtered_options = [u for u in options if not self.follows(u["uid"])]
+
+        return choices(filtered_options, k=n)
 
     def to_mongo_dict(self):
         """

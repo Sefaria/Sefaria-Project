@@ -4,6 +4,7 @@ from datetime import timedelta
 import structlog
 import sefaria.system.logging as sefaria_logging
 
+
 # These are things you need to change!
 
 ################ YOU ONLY NEED TO CHANGE "NAME" TO THE PATH OF YOUR SQLITE DATA FILE (If the db.sqlite file does not exist, simply create it) ########################################

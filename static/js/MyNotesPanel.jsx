@@ -1,7 +1,7 @@
 import {
   CategoryColorLine,
-  ReaderNavigationMenuMenuButton,
-  ReaderNavigationMenuDisplaySettingsButton,
+  MenuButton,
+  DisplaySettingsButton,
   LanguageToggleButton,
   LoadingMessage,
   SinglePanelNavHeader,

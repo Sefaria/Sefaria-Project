@@ -1,4 +1,4 @@
-import {InterfaceText, EnglishText, HebrewText, LanguageToggleButton, ReaderNavigationMenuCloseButton } from "./Misc";
+import {InterfaceText, EnglishText, HebrewText, LanguageToggleButton, CloseButton } from "./Misc";
 import {RecentFilterSet} from "./ConnectionFilters";
 import React  from 'react';
 import ReactDOM  from 'react-dom';
@@ -102,7 +102,7 @@ class ConnectionsPanelHeader extends Component {
                   {Sefaria.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?
                     <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} url={langUrl} />
                     : null }
-                  <ReaderNavigationMenuCloseButton icon="circledX" onClick={this.props.closePanel} url={closeUrl} />
+                  <CloseButton icon="circledX" onClick={this.props.closePanel} url={closeUrl} />
                 </div>
               </div>);
     } else {
