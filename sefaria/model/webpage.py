@@ -278,7 +278,7 @@ def get_webpages_for_ref(tref):
         if not webpage.whitelisted or len(webpage.title) == 0:
             continue
           
-        webpage_key = webpage.title+"|".join(sorted(webpage.refs))+getattr(webpage, "description", "")
+        webpage_key = webpage.title+"|".join(sorted(webpage.refs))
         prev_webpage_obj = webpage_objs.get(webpage_key, None)
         if prev_webpage_obj is None or prev_webpage_obj.lastUpdated < webpage.lastUpdated:
             anchor_ref_list, anchor_ref_expanded_list = oref.get_all_anchor_refs(segment_refs, webpage.refs,
