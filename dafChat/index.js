@@ -9,6 +9,7 @@ const sqlite3 = require('sqlite3').verbose();
 const nodeStatic = require('node-static');
 const http = require('http');
 
+
 // initialize db
 const db = new sqlite3.Database('./db/chatrooms.db');
 db.run(`DROP TABLE IF EXISTS "chatrooms"`);
