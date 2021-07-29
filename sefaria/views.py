@@ -59,7 +59,7 @@ from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.google_storage_manager import GoogleStorageManager
 
 
-from reader.views import render_template, text_panels
+from reader.views import base_props, render_template, text_panels
 
 
 
@@ -823,23 +823,24 @@ def tag_sheets(request):
 def categorize_sheets(request):
     from pymongo import DESCENDING
     from sefaria.sheets import sheet_to_dict
+    from reader.views import base_props
     # get the first sheet that has no tags
-    sheet = sheet_to_dict(db.sheets.find({"tags": {"$in": [None, []] }}).sort("id", DESCENDING)[0])
+    sheet = sheet_to_dict(db.sheets.find({"tags": {"$in": [None, []] }, "datePublished": {"$exists": True}}).sort("id", DESCENDING)[0])
     room_id = request.GET.get("rid", None)
     starting_ref = request.GET.get("ref", "Genesis 1")
     roulette = request.GET.get("roulette", "0")
+    props = base_props(request)
+    categorize_props = {
+        "sheetId": sheet['id']
+    }
+    props.update(categorize_props)
+    propsJSON = json.dumps(props, ensure_ascii=False)
     context = {
         "title": "Categorize Sheets",
-        "description": "Retrieve the latest untagged sheet and allow user to tag"
+        "description": "Retrieve the latest untagged sheet and allow user to tag",
+        "propsJSON": propsJSON
     }
     return render(request, "static/categorize-sheets.html", context)
-    # return render_template(request,'static/categorize-sheets.html', None, {
-    #     "sheet": sheet    
-    #     })
-
-
-    # x = text_panels(request, str(sheet['id']), sheet=True)
-    # return x
 
 @staff_member_required
 def spam_dashboard(request):

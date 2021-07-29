@@ -203,7 +203,8 @@ urlpatterns += [
     url(r'^api/sheets/all-sheets/(?P<limiter>\d+)/(?P<offset>\d+)$',  sheets_views.all_sheets_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)/export_to_drive$',            sheets_views.export_to_drive),
     url(r'^api/sheets/upload-image$',                                 sheets_views.upload_sheet_media),
-
+    url(r'^api/sheets/latest-untagged/?$',                            sheets_views.latest_untagged),
+    url(r'^api/sheets/latest-uncategorized/?$',                       sheets_views.latest_uncategorized)
 ]
 
 # Unlink Google Account Subscribe
@@ -391,6 +392,7 @@ urlpatterns += [
     url(r'^admin/error', sefaria_views.cause_error),
     url(r'^admin/account-stats', sefaria_views.account_stats),
     url(r'^admin/categorize-sheets', sefaria_views.categorize_sheets),
+    url(r'^admin/tag-sheets', sefaria_views.tag_sheets),
     url(r'^admin/sheet-stats', sefaria_views.sheet_stats),
     url(r'^admin/untagged-sheets', sefaria_views.untagged_sheets),
     url(r'^admin/spam', sefaria_views.spam_dashboard),

@@ -33,6 +33,7 @@ a {
     justify-content: flex-start;
     align-content: stretch;
     align-items: flex-start;
+    padding: 15px;
 }
 
 #iframeContainer {
