@@ -1,14 +1,17 @@
 import React  from 'react';
 import ReactDOM  from 'react-dom';
+import Component from 'react-class';
 import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
 import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Footer  from './Footer';
+import { Notifications } from './NotificationsPanel';
+import { NavSidebar }from './NavSidebar';
 import {
-  SinglePanelNavHeader,
+  InterfaceText,
+  MessageModal,
 } from './Misc';
-import Component from 'react-class';
 
 
 class UpdatesPanel extends Component {
@@ -85,45 +88,37 @@ class UpdatesPanel extends Component {
     });
   }
   render() {
-    var classes = {notificationsPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
-    var classStr = classNames(classes);
+    const sidebarModules = [{type: "StayConnected"}];
 
     return (
-      <div className={classStr}>
-        {this.props.multiPanel ? null :
-          <SinglePanelNavHeader
-            title="Updates"
-            heTitle="טקסטים חדשים"
-            navHome={this.props.navHome}
-            showDisplaySettings={false} />
-        }
-        <div className="content hasFooter">
-          <div className="contentInner">
-            {this.props.multiPanel ?
-            <h1>
-              <span className="int-en">Updates</span>
-              <span className="int-he">עדכונים</span>
-            </h1> : null }
+      <div className="readerNavMenu sans-serif">
+        <div className="content">
+          <div className="sidebarLayout">
+            <div className="contentInner">
+              <h1><InterfaceText>Updates</InterfaceText></h1>
 
-            {Sefaria.is_moderator?<NewUpdateForm handleSubmit={this.handleSubmit} key={this.state.submitCount} error={this.state.error}/>:""}
+              {Sefaria.is_moderator?<NewUpdateForm handleSubmit={this.handleSubmit} key={this.state.submitCount} error={this.state.error}/>:""}
 
-            <div className="notificationsList">
-            {this.state.updates.map(u =>
+              <div className="notificationsList">
+              {this.state.updates.map(u =>
                 <SingleUpdate
-                    type={u.type}
-                    content={u.content}
-                    date={u.date}
-                    key={u._id}
-                    id={u._id}
-                    onDelete={this.onDelete}
-                    submitting={this.state.submitting}
+                  type={u.type}
+                  content={u.content}
+                  date={u.date}
+                  key={u._id}
+                  id={u._id}
+                  onDelete={this.onDelete}
+                  submitting={this.state.submitting}
                 />
-            )}
+              )}
+              </div>
             </div>
+            <NavSidebar modules={sidebarModules} />
           </div>
           <Footer />
         </div>
-      </div>);
+      </div>
+    );
   }
 }
 UpdatesPanel.propTypes = {
@@ -231,57 +226,25 @@ NewUpdateForm.propTypes = {
 
 
 class SingleUpdate extends Component {
-
   onDelete() {
     this.props.onDelete(this.props.id);
   }
   render() {
-    var title = this.props.content.index;
-    if (title) {
-      var heTitle = Sefaria.index(title)?Sefaria.index(title).heTitle:"";
-    }
-
-    var url = Sefaria.ref(title)?"/" + Sefaria.normRef(Sefaria.ref(title).book):"/" + Sefaria.normRef(title);
-
-    var d = new Date(this.props.date);
-
     return (
-      <div className="notification">
-        <div className="date">
-          <span className="int-en">{d.toLocaleDateString("en")}</span>
-          <span className="int-he">{d.toLocaleDateString("he")}</span>
-          {Sefaria.is_moderator?<i className="fa fa-times-circle delete-update-button" onClick={this.onDelete} aria-hidden="true"/>:""}
-        </div>
-
-        {this.props.type == "index"?
-        <div>
-            <span className="int-en">New Text: <a href={url}>{title}</a></span>
-            <span className="int-he">טקסט חדש זמין: <a href={url}>{heTitle}</a></span>
-        </div>
-        :""}
-
-        {this.props.type == "version"?
-        <div>
-            <span className="int-en">New { this.props.content.language == "en"?"English":"Hebrew"} version of <a href={url}>{title}</a>: {this.props.content.version}</span>
-            <span className="int-he">גרסה חדשה של <a href={url}>{heTitle}</a> ב{ this.props.content.language == "en"?"אנגלית":"עברית"} : {this.props.content.version}</span>
-        </div>
-        :""}
-
-        <div>
-            <span className="int-en" dangerouslySetInnerHTML={ {__html: this.props.content.en } } />
-            <span className="int-he" dangerouslySetInnerHTML={ {__html: this.props.content.he } } />
-        </div>
-
-
+      <div className="update">
+        {Sefaria.is_moderator?<i className="fa fa-times-circle delete-update-button" onClick={this.onDelete} aria-hidden="true"/>:""}
+        <Notifications
+          type={this.props.type}
+          props={this.props} />
       </div>);
   }
 }
 SingleUpdate.propTypes = {
-  id:         PropTypes.string,
-  type:         PropTypes.string,
-  content:      PropTypes.object,
-  onDelete:     PropTypes.func,
-  date:         PropTypes.string
+  id:        PropTypes.string,
+  type:      PropTypes.string,
+  content:   PropTypes.object,
+  onDelete:  PropTypes.func,
+  date:      PropTypes.number
 };
 
 

@@ -1,26 +1,34 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import {
-  InterfaceText,
-  LoadingMessage,
-  SinglePanelNavHeader,
-} from './Misc';
 import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
 import Footer  from './Footer';
 import Sefaria  from './sefaria/sefaria';
 import Component from 'react-class';
+import { NavSidebar, Modules } from './NavSidebar';
+import {
+  InterfaceText,
+  LoadingMessage,
+  ResponsiveNBox
+} from './Misc';
 
-
-function PublicCollectionsPage({multiPanel, navHome}) {
+const PublicCollectionsPage = ({multiPanel, initialWidth}) => {
   const [collectionsList, setCollectionsList] = useState(Sefaria.getCollectionsListFromCache());
   
   const sortCollectionList = d => {
-    if (Sefaria.interfaceLang == "hebrew") {
-      d.public.sort((a, b) => {
-        const [aHe, bHe] = [a.name, b.name].map(Sefaria.hebrew.isHebrew);
-        return aHe == bHe ? a.name - b.name : (aHe ? -1 : 1)
-      });
-    }
+    // Sort alphabetically, ignoring punctuation, putting numbers at the end, with collections in the current interface lang first.
+    d.public.sort((a, b) => {
+      const [strippedA, strippedB] = [a.name, b.name].map(x => x.stripPunctuation());
+      const [aHe, bHe] = [strippedA, strippedB].map(Sefaria.hebrew.isHebrew);
+      const [aNum, bNum] = [strippedA, strippedB].map(x => /^\d/.test(x));
+
+      if (aHe !== bHe) {
+        return (Sefaria.interfaceLang === "hebrew" ? aHe : bHe) ? -1 : 1; 
+      } else if (aNum !== bNum) {
+        return aNum ? 1 : -1;
+      } else {
+        return strippedA < strippedB ? -1 : 1;
+      }
+    });
     return d;
   };
 
@@ -30,109 +38,82 @@ function PublicCollectionsPage({multiPanel, navHome}) {
 
   useEffect(() => {
     Sefaria.getCollectionsList()
-        .then(d => sortCollectionList(d))
-        .then(d => setCollectionsList(d));
+      .then(d => sortCollectionList(d))
+      .then(d => setCollectionsList(d));
   });
 
-  const classStr = classNames( {systemPanel: 1, readerNavMenu: 1, noHeader: 1 });
+  const sidebarModules = [
+    multiPanel ? {type: "AboutCollections"} : {type: null},
+    {type: "StayConnected"},
+  ];
+
+  let enCollections, heCollections, enCollBox, heCollBox;  
+  if (collectionsList) {
+    enCollections = collectionsList.public.filter(c => !Sefaria.hebrew.isHebrew(c.name));
+    heCollections = collectionsList.public.filter(c => Sefaria.hebrew.isHebrew(c.name));
+
+    [enCollBox, heCollBox] = [enCollections, heCollections].map(coll => (
+      <ResponsiveNBox 
+        content={coll.map(item => 
+          <CollectionBlockListing data={item} key={item.name} />)}
+        initialWidth={initialWidth} />
+    ));
+  }
+
   return (
-    <div className={classStr}>
-      {multiPanel ? null :
-        <SinglePanelNavHeader
-          title="Collections"
-          navHome={navHome}
-          showDisplaySettings={false}/>
-      }
-      <div className="content hasFooter">
-        <div className="contentInner">
-          {multiPanel ?
-          <h1>
-            <InterfaceText>Collections</InterfaceText>
-          </h1> : null}
-          {multiPanel ?
-          <center>
-            <a className="button white" href="/collections/new">
-              <InterfaceText>Create a Collection</InterfaceText>
-            </a>
-          </center> : null}
+    <div className="readerNavMenu">
+      <div className="content">
+        <div className="sidebarLayout">
+          <div className="contentInner">
+            <h1>
+              <InterfaceText>Collections</InterfaceText>
+            </h1>
 
-          <div className="collectionsList">
-            { !!collectionsList ?
-                (collectionsList.public.length ?
-                  collectionsList.public.map(function(item) {
-                    return <CollectionListing data={item} key={item.name} />
-                  })
-                  : <InterfaceText>There are no public collections yet.</InterfaceText>)
-                : <LoadingMessage />
-            }
+            {multiPanel ? null :
+            <Modules type={"AboutCollections"} props={{hideTitle: true}} /> }
+
+            <div className="collectionsList">
+              { !!collectionsList ?
+              (collectionsList.public.length ?
+                (Sefaria.interfaceLang === "hebrew" ?
+                <>
+                  <div className="heCollections">{heCollBox}</div>
+                  <div className="enCollections">{enCollBox}</div>
+                </>
+                :
+                <>
+                  <div className="enCollections">{enCollBox}</div>
+                  <div className="heCollections">{heCollBox}</div>
+                </>)
+                : <InterfaceText>There are no public collections yet.</InterfaceText>)
+              : <LoadingMessage /> }
+            </div>
           </div>
-
+          <NavSidebar modules={sidebarModules} />
         </div>
         <Footer />
-      </div>
-    </div>);
-
-}
-PublicCollectionsPage.propTypes = {};
-
-
-function CollectionListing({data, showMembership, small}) {
-  const imageUrl = data.imageUrl && !small ? data.imageUrl : "/static/icons/collection.svg";
-  const imageClass = classNames({collectionListingImage: 1, default: !data.imageUrl});
-  const collectionUrl = "/collections/" + data.slug;
-  return (
-    <div className="collectionListing">
-      <div className="left-content">
-        {!small ?
-        <a href={collectionUrl}>
-          <div className="collectionListingImageBox">
-            <img className={imageClass} src={imageUrl} alt="Collection Logo"/>
-          </div>
-        </a>
-        : null }
-        <div className="collectionListingText">
-          
-          <a href={collectionUrl} className="collectionListingName">
-            {small ? <img className={imageClass} src={imageUrl} alt="Collection Icon"/> : null}
-            {data.name}
-          </a>
-         
-          <div className="collectionListingDetails sans-serif">
-            {data.listed ? null :
-              (<span className="unlisted">
-                <img src="/static/img/eye-slash.svg"/>
-                <InterfaceText>Unlisted</InterfaceText>
-              </span>) }
-
-            {data.listed ? null :
-            <span className="collectionListingDetailSeparator">•</span> }
-            
-            <span className="collectionListingDetail collectionListingSheetCount">
-              <InterfaceText>{`${data.sheetCount} `}</InterfaceText>
-              <InterfaceText>Sheets</InterfaceText>
-            </span>
-
-            {data.memberCount > 1 && small ? 
-            <span className="collectionListingDetailSeparator">•</span> : null }
-
-            {data.memberCount > 1 && small ?
-            <span className="collectionListingDetail collectionListingMemberCount">
-              <InterfaceText>{`${data.memberCount} `}</InterfaceText>
-              <InterfaceText>Editors</InterfaceText>
-            </span> : null }
-          </div>
-        </div>
       </div>
     </div>
   );
 }
-CollectionListing.propTypes = {
-  data: PropTypes.object.isRequired,
-  showMembership: PropTypes.bool,
-};
 
 
-export {
-  CollectionListing,
-  PublicCollectionsPage,
-};
+const CollectionBlockListing = ({data}) => {
+  return (
+    <div className="navBlock">
+      <a href={`/collections/${data.slug}`} className="navBlockTitle">
+        <div className="collectionListingImageBox">
+          <img className="collectionListingImage" src={data.imageUrl} alt="Collection Logo"/>
+        </div>
+        <InterfaceText>{data.name}</InterfaceText>
+      </a>
+      {data.description ?
+      <div className="navBlockDescription clamped clamped5">
+        <InterfaceText>{data.description.stripHtml()}</InterfaceText>
+      </div> : null }
+    </div>
+  );
+}
+
+
+export default PublicCollectionsPage

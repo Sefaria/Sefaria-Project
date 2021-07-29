@@ -16,7 +16,6 @@ let Sefaria = Sefaria || {
   books: [],
   booksDict: {},
   last_place: [],
-  saved: [],
   apiHost: "" // Defaults to localhost, override to talk another server
 };
 
@@ -496,7 +495,11 @@ Sefaria = extend(Sefaria, {
   },
   _versions: {},
   _translateVersions: {},
-  versions: async function(ref, byLang, filter, excludeFilter) {
+  getVersionFromCache: function(ref,  byLang, filter, excludeFilter){
+     let versions = this._cachedApi(ref, this._versions, []);
+     return this._makeVersions(versions, byLang, filter, excludeFilter)
+  },
+  getVersions: async function(ref, byLang, filter, excludeFilter) {
       /**
        * Returns a list of available text versions for `ref`.
        *
@@ -552,6 +555,7 @@ Sefaria = extend(Sefaria, {
       return versionStore;
   },
   transformVersionObjectsToByActualLanguageKeys(versionObjects){
+    //not related to above, used to turn curent version object in client code into an object mapped by the real language vs just "he/"en
     return Object.entries(versionObjects)
           .filter(([lang, v]) => !!v)
           .reduce((obj, [lang, version]) => {
@@ -565,6 +569,16 @@ Sefaria = extend(Sefaria, {
   },
   getTranslateVersionsKey: (vTitle, lang) => `${vTitle}|${lang}`,
   deconstructVersionsKey: (versionsKey) => versionsKey.split('|'),
+  getLicenseMap: function() {
+    const licenseMap = {
+      "Public Domain": "https://en.wikipedia.org/wiki/Public_domain",
+      "CC0": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "CC-BY": "https://creativecommons.org/licenses/by/3.0/",
+      "CC-BY-SA": "https://creativecommons.org/licenses/by-sa/3.0/",
+      "CC-BY-NC": "https://creativecommons.org/licenses/by-nc/4.0/"
+    }
+    return licenseMap;
+  },
   _textUrl: function(ref, settings) {
     // copy the parts of settings that are used as parameters, but not other
     const params = param({
@@ -841,9 +855,12 @@ Sefaria = extend(Sefaria, {
   },
 
   _indexDetails: {},
+  getIndexDetailsFromCache: function(title){
+    return this._cachedApi(title, this._indexDetails, null);
+  },
   getIndexDetails: function(title) {
     return this._cachedApiPromise({
-        url:   Sefaria.apiHost + "/api/v2/index/" + title + "?with_content_counts=1",
+        url:   Sefaria.apiHost + "/api/v2/index/" + title + "?with_content_counts=1&with_related_topics=1",
         key:   title,
         store: this._indexDetails
     });
@@ -1809,21 +1826,29 @@ _media: {},
     }
     return results;
   },
-  tocItemsByCategories: function(cats) {
-    // Returns the TOC items that correspond to the list of categories 'cats'
-    let list = Sefaria.util.clone(Sefaria.toc);
+  tocObjectByCategories: function(cats) {
+    // Returns the TOC entry that corresponds to list of categories `cats`
+    let found, item;
+    let list = Sefaria.toc
     for (let i = 0; i < cats.length; i++) {
-      let found = false;
+      found = false;
+      item = null;
       for (let k = 0; k < list.length; k++) {
         if (list[k].category === cats[i]) {
-          list = Sefaria.util.clone(list[k].contents);
+          item = list[k];
+          list = item.contents;
           found = true;
           break;
         }
       }
-      if (!found) { return []; }
+      if (!found) { return null; }
     }
-    return list || [];
+    return item;
+  },
+  tocItemsByCategories: function(cats) {
+    // Returns the TOC items that correspond to the list of categories 'cats'
+    const object = Sefaria.tocObjectByCategories(cats);
+    return object ? Sefaria.util.clone(object.contents) : [];
   },
   categoryAttribution: function(categories) {
     var attributions = [
@@ -1831,6 +1856,8 @@ _media: {},
         categories: ["Talmud", "Bavli"],
         english: "The William Davidson Talmud",
         hebrew: "תלמוד מהדורת ויליאם דוידסון",
+        englishAsEdition: "The William Davidson Edition",
+        hebrewAsEdition: "מהדורת ויליאם דוידסון",
         link: "/william-davidson-talmud"
       }
     ];
@@ -1845,19 +1872,19 @@ _media: {},
     return attribution;
   },
   getPassages: function(refs) {
-      // refs: list of ref strings
-      // resolves to dictionary mapping ref to sugya ref
-      return this._ApiPromise(Sefaria.apiHost + "/api/passages/" + refs.join("|"));
+    // refs: list of ref strings
+    // resolves to dictionary mapping ref to sugya ref
+    return this._ApiPromise(Sefaria.apiHost + "/api/passages/" + refs.join("|"));
   },
   areVersionsEqual(v1, v2) {
     // v1, v2 are `currVersions` objects stored like {en: ven, he: vhe}
     return v1.en == v2.en && v1.he == v2.he;
   },
   getSavedItem: ({ ref, versions }) => {
-    return Sefaria.saved.find(s => s.ref === ref && Sefaria.areVersionsEqual(s.versions, versions));
+    return Sefaria.saved.items.find(s => s.ref === ref && Sefaria.areVersionsEqual(s.versions, versions));
   },
   removeSavedItem: ({ ref, versions }) => {
-    Sefaria.saved = Sefaria.saved.filter(x => !(x.ref === ref && Sefaria.areVersionsEqual(versions, x.versions)));
+    Sefaria.saved.items = Sefaria.saved.items.filter(x => !(x.ref === ref && Sefaria.areVersionsEqual(versions, x.versions)));
   },
   toggleSavedItem: ({ ref, versions, sheet_owner, sheet_title }) => {
     return new Promise((resolve, reject) => {
@@ -1871,7 +1898,7 @@ _media: {},
             reject(response['error'])
           } else {
             if (action === "add_saved" && !!response.created && response.created.length > 0) {
-              Sefaria.saved = response.created.concat(Sefaria.saved);
+              Sefaria.saved.items = response.created.concat(Sefaria.saved.items);
             } else {
               // delete
               Sefaria.removeSavedItem({ ref, versions });
@@ -1886,16 +1913,6 @@ _media: {},
       }
     });
   },
-    /*
-  toggleFollowAPI: (uid, isUnfollow) => {
-    return new Promise((resolve, reject) => {
-      $.post({
-        url: `/api/${isUnfollow ? 'un' : ''}follow/${uid}`
-      });
-    });
-    return Sefaria._ApiPromise(`/api/${isUnfollow ? 'un' : ''}follow/${uid}`);
-  },
-  */
   editProfileAPI: (partialProfile) => {
     const data = {json: JSON.stringify(partialProfile)};
     return new Promise((resolve, reject) => {
@@ -1922,14 +1939,7 @@ _media: {},
       store: Sefaria._profiles
     });
   },
-  _userHistory: {},
-  userHistoryAPI: () => {
-    return Sefaria._cachedApiPromise({
-      url: Sefaria.apiHost + "/api/profile/user_history?secondary=0",
-      key: "history",
-      store: Sefaria._userHistory
-    });
-  },
+  userHistory: {loaded: false, items: []},
   saveUserHistory: function(history_item) {
     // history_item contains:
     // `ref`, `book`, `versions`, `sheet_title`, `sheet_owner`` 
@@ -1946,10 +1956,8 @@ _media: {},
               {user_history: JSON.stringify(history_item_array)},
               data => {
                 //console.log("sync resp", data)
-                if ("history" in Sefaria._userHistory) {
-                  // If full user history has already been loaded into cache, then modify cache to keep it up to date
-                  Sefaria._userHistory.history.splice(0,0, data.created[0]);
-                }
+                // Insert new item to beginning of history
+                Sefaria.userHistory.items.splice(0,0, data.created[0]);
               } );
     } else {
       // we need to get the heRef for each history item
@@ -1963,7 +1971,7 @@ _media: {},
         const user_history_cookie = cookie("user_history");
         const user_history = !!user_history_cookie ? JSON.parse(user_history_cookie) : [];
         cookie("user_history", JSON.stringify(new_hist_array.concat(user_history)), {path: "/"});
-        Sefaria._userHistory.history = new_hist_array.concat(user_history);
+        Sefaria.userHistory.items = new_hist_array.concat(user_history);
 
         //console.log("saving history cookie", new_hist_array);
         if (Sefaria._inBrowser) {
@@ -1980,6 +1988,26 @@ _media: {},
       });
     }
     Sefaria.last_place = history_item_array.filter(x=>!x.secondary).concat(Sefaria.last_place);  // while technically we should remove dup. books, this list is only used on client
+  },
+  getRefSavedHistory: tref => {
+    return Sefaria._ApiPromise(Sefaria.apiHost + `/api/user_history/saved?tref=${tref}`);
+  },
+  followAPI: (slug, ftype) => {
+    return Sefaria._ApiPromise(Sefaria.apiHost + `/api/profile/${slug}/${ftype}`);
+  },
+  messageAPI: (uid, message) => {
+    const data = {json: JSON.stringify({recipient: uid, message: message.escapeHtml()})};
+    return new Promise((resolve, reject) => {
+      $.post(`${Sefaria.apiHost}/api/messages`, data, resolve);
+    });
+  },
+  _profiles: {},
+  profileAPI: slug => {
+    return Sefaria._cachedApiPromise({
+      url:   Sefaria.apiHost + "/api/profile/" + slug,
+      key:   slug,
+      store: Sefaria._profiles
+    });
   },
   uploadProfilePhoto: (formData) => {
     return new Promise((resolve, reject) => {
@@ -2010,7 +2038,13 @@ _media: {},
     // Returns promise for all topics list.
     if (this._topicList) { return Promise.resolve(this._topicList); }
     return this._ApiPromise(Sefaria.apiHost + "/api/topics?limit=0")
-        .then(d => { this._topicList = d; return d; });
+        .then(d => { 
+          for (let topic of d) {
+            topic.normTitles = topic.titles.map(title => title.text.toLowerCase());
+          }
+          this._topicList = d; 
+          return d;
+        });
   },
   _tableOfContentsDedications: {},
   _stories: {
@@ -2122,6 +2156,26 @@ _media: {},
     if (!this._topicTocCategory) { this._initTopicTocCategory(); }
     return this._topicTocCategory[slug];
   },
+  _topicTocCategoryTitles: null,
+  _initTopicTocCategoryTitles: function() {
+    this._topicTocCategoryTitles = this.topic_toc.reduce(this._initTopicTocCategoryTitlesReducer, {});
+  },
+  _initTopicTocCategoryTitlesReducer: function(a,c) {
+    if (!c.children) {
+      return a;
+    }
+    a[c.slug] = {en: c.en, he: c.he};
+
+    for (let sub_c of c.children) {
+      Sefaria._initTopicTocCategoryReducer(a, sub_c);
+    }
+    return a;
+  },
+  topicTocCategoryTitle: function(slug) {
+    // returns english and hebrew titles for the topic category named by `slug``
+    if (!this._topicTocCategoryTitles) { this._initTopicTocCategoryTitles(); }
+    return this._topicTocCategoryTitles[slug];
+  },
   isTopicTopLevel: function(slug) {
     // returns true is `slug` is part of the top level of topic toc
     return Sefaria.topic_toc.filter(x => x.slug == slug).length > 0;
@@ -2150,83 +2204,6 @@ _media: {},
     },
     deleteSheetById: function(id) {
       return Sefaria._ApiPromise(`/api/sheets/${id}/delete`);
-    },
-    _trendingTags: null,
-    trendingTags: function(callback) {
-      // Returns a list of trending tags -- source sheet tags which have been used often recently.
-      var tags = this._trendingTags;
-      if (tags) {
-        if (callback) { callback(tags); }
-      } else {
-        var url = Sefaria.apiHost + "/api/sheets/trending-tags";
-         Sefaria._api(url, function(data) {
-            this._trendingTags = data;
-            if (callback) { callback(data); }
-          }.bind(this));
-        }
-      return tags;
-    },
-    _tagList: {},
-    tagList: function(sortBy, callback) {
-      // Returns a list of all public source sheet tags, ordered by popularity
-      sortBy = typeof sortBy == "undefined" ? "count" : sortBy;
-      var tags = this._tagList[sortBy];
-      if (tags) {
-        if (callback) { callback(tags); }
-      } else if ("count" in this._tagList && (sortBy == "alpha")) {
-        // If we have one set of ordered tags already, we can do sorts locally.
-        var tags = this._tagList["count"].slice();
-        tags.sort(function(a, b) {
-          return a.tag > b.tag ? 1 : -1;
-        });
-        this._tagList["alpha"] = tags;
-      } else {
-        var url = Sefaria.apiHost + "/api/sheets/tag-list/" + sortBy;
-         Sefaria._api(url, function(data) {
-            this._tagList[sortBy] = data;
-            if (callback) { callback(data); }
-          }.bind(this));
-        }
-      return tags;
-    },
-    _userTagList: null,
-    userTagList: function(uid, callback) {
-      // Returns a list of all public source sheet tags, ordered by populartiy
-      var tags = this._userTagList;
-      if (tags) {
-        if (callback) { callback(tags); }
-      } else {
-        var url = Sefaria.apiHost + "/api/sheets/tag-list/user/"+uid;
-         Sefaria._api(url, function(data) {
-            this._userTagList = data;
-             if (callback) { callback(data); }
-          }.bind(this));
-        }
-      return tags;
-    },
-    _sheetsByTag: {},
-    sheetsByTag: function(tag, callback) {
-      // Returns a list of public sheets matching a given tag.
-      var sheets = this._sheetsByTag[tag];
-      if (sheets) {
-        if (callback) { callback(sheets); }
-      } else {
-        var url = Sefaria.apiHost + "/api/sheets/tag/" + tag.replace("#","%23");
-         $.getJSON(url, function(data) {
-            this._sheetsByTag[tag] = data.sheets;
-            if (callback) { callback(data.sheets); }
-          }.bind(this));
-        }
-      return sheets;
-    },
-    getSheetsByTag: function(tag, v2) {
-      const url =  Sefaria.apiHost + "/api" + (v2 ? "/v2" : "") + "/sheets/tag/" + tag.replace("#", "%23");
-
-      return Sefaria._cachedApiPromise({
-          url:  url,
-          store: this._sheetsByTag,
-          key:   tag,
-        });
     },
     _userSheets: {},
     userSheets: function(uid, callback, sortBy="date", offset=0, numberToRetrieve=0) {
@@ -2276,33 +2253,23 @@ _media: {},
       }, {});
     },
     _publicSheets: {},
-    publicSheets: function(offset, numberToRetrieve, callback) {
-      if (!offset) offset = 0;
-      if (!numberToRetrieve) numberToRetrieve = 50;
+    publicSheets: function(offset, limit, options, skipCache, callback) {
       // Returns a list of public sheets
-      var sheets = this._publicSheets["offset"+offset+"num"+numberToRetrieve];
-      if (sheets) {
+      offset = offset || 0;
+      limit = limit || 30;
+      options = options || {};
+
+      const params = param(options);
+      const path = limit+"/"+offset + (params ? "?" + params : "");
+
+      const sheets = this._publicSheets[path];
+      if (sheets && !skipCache) {
         if (callback) { callback(sheets); }
       } else {
-        var url = Sefaria.apiHost + "/api/sheets/all-sheets/"+numberToRetrieve+"/"+offset;
+        const url = Sefaria.apiHost + "/api/sheets/all-sheets/" + path
+
         Sefaria._api(url, function(data) {
-          this._publicSheets["offset"+offset+"num"+numberToRetrieve] = data.sheets;
-          if (callback) { callback(data.sheets); }
-        }.bind(this));
-      }
-      return sheets;
-    },
-    _topSheets: null,
-    topSheets: function(callback) {
-      // Returns a list of top sheets (recent sheets with some quality heuristic)
-      // TODO implements an API for this, currently just grabbing most recent 4
-      var sheets = this._topSheets;
-      if (sheets) {
-        if (callback) { callback(sheets); }
-      } else {
-        var url = Sefaria.apiHost + "/api/sheets/all-sheets/3/0";
-        Sefaria._api(url, function(data) {
-          this._topSheets = data.sheets;
+          this._publicSheets[path] = data.sheets;
           if (callback) { callback(data.sheets); }
         }.bind(this));
       }
@@ -2431,6 +2398,10 @@ _media: {},
   getUserCollectionsForSheetFromCache(sheetID) {
     return Sefaria._userCollectionsForSheet[sheetID];
   },
+  getBackgroundData() {
+    return Sefaria._ApiPromise("/api/background-data?interfaceLang=" + Sefaria.interfaceLang)
+      .then(data => { Sefaria = extend(Sefaria, data); });
+  },
   calendarRef: function(calendarTitle) {
     const cal = Sefaria.calendars.filter(cal => cal.title.en === calendarTitle);
     return cal.length ? cal[0].ref : null;
@@ -2462,35 +2433,58 @@ _media: {},
         return name;
     }
   },
-  _r: function (inputRef) {
-    const oref = Sefaria.getRefFromCache(inputRef);
-    if (!oref) { return inputRef; }
-    return Sefaria.interfaceLang != "english" ? oref.heRef : oref.ref;
+  hebrewTranslation: function(inputStr, context = null){
+    let translatedString = null;
+    if (context && context in Sefaria._i18nInterfaceStringsWithContext){
+      let translatedString = Sefaria._getStringCaseInsensitive(Sefaria._i18nInterfaceStringsWithContext[context], inputStr);
+      if (translatedString) return translatedString;
+    }
+    if (translatedString = Sefaria._getStringCaseInsensitive(Sefaria._i18nInterfaceStrings, inputStr)) {
+      return translatedString;
+    }
+    if ((translatedString = Sefaria.hebrewTerm(inputStr)) != inputStr) {
+      return translatedString;
+    }
+    if (inputStr.indexOf(" | ") !== -1) {
+      var inputStrs = inputStr.split(" | ");
+      return Sefaria._(inputStrs[0])+ " | " + Sefaria._(inputStrs[1]);
+    } else {
+      //console.warn("Missing Hebrew translation for: " + inputStr);
+      return inputStr;
+    }
+  },
+  translation: function(language, inputStr, context=null){
+      const translationMatrix = {
+          "he": Sefaria.hebrewTranslation
+      };
+      try {
+          return translationMatrix[language.slice(0,2)](inputStr, context);
+      }catch (e){
+          console.warn("No transaltion available for " + language)
+          return inputStr;
+      }
   },
   _: function(inputStr, context=null){
     if (!inputStr.toLowerCase) debugger;
     if(Sefaria.interfaceLang != "english"){
-        let translatedString = null;
-        if (context && context in Sefaria._i18nInterfaceStringsWithContext){
-          let translatedString = Sefaria._getStringCaseInsensitive(Sefaria._i18nInterfaceStringsWithContext[context], inputStr);
-          if (typeof translatedString !== "undefined") return translatedString;
-        }
-        if (translatedString = Sefaria._getStringCaseInsensitive(Sefaria._i18nInterfaceStrings, inputStr)) {
-          return translatedString;
-        }
-        if ((translatedString = Sefaria.hebrewTerm(inputStr)) != inputStr) {
-          return translatedString;
-        }
-        if (inputStr.indexOf(" | ") !== -1) {
-          var inputStrs = inputStr.split(" | ");
-          return Sefaria._(inputStrs[0])+ " | " + Sefaria._(inputStrs[1]);
-        } else {
-          console.warn("Missing Hebrew translation for: " + inputStr);
-          return inputStr;
-        }
+      return Sefaria.translation(Sefaria.interfaceLang, inputStr, context);
     } else {
       return inputStr;
     }
+  },
+  _v: function(langOptions){
+    /* Takes an object {en: "something", he: "משהו"}
+     * and returns the correct one according to interface language
+     * Convenience method for when there are two data variables in an object one wishes to return
+     * according to interface, in places where HTML is not allowed (inside <options> tag for ex.
+    */
+    const lang = Sefaria.interfaceLang.slice(0,2);
+    return langOptions[lang] ? langOptions[lang] : "";
+  },
+  _r: function (inputRef) {
+    const oref = Sefaria.getRefFromCache(inputRef);
+    if (!oref) { return inputRef; }
+    return Sefaria.interfaceLang != "english" ? oref.heRef : oref.ref;
   },
   _getStringCaseInsensitive: function (store, inputStr){
      return inputStr in store ? store[inputStr] : inputStr.toLowerCase() in store ? store[inputStr.toLowerCase()] : null;
@@ -2529,6 +2523,9 @@ _media: {},
     }
     this._ajaxObjects[url] = $.getJSON(url).always(_ => {delete this._ajaxObjects[url];});
     return this._ajaxObjects[url];
+  },
+  _cachedApi: function(key, store, defaultVal){
+      return (key in store) ? store[key] : defaultVal;
   },
   _cachedApiPromise: function({url, key, store, processor}) {
       // Checks store[key].  Resolves to this value, if present.
@@ -2601,27 +2598,6 @@ Sefaria.unpackDataFromProps = function(props) {
         Sefaria.sheets._loadSheetByID[panel.sheet.id] = panel.sheet;
       }
   }
-  if (props.userSheets) {
-    Sefaria.sheets._userSheets[Sefaria._uid + "date"] = props.userSheets;
-  }
-  if (props.userTags) {
-    Sefaria.sheets._userTagList = props.userTags;
-  }
-  if (props.publicSheets) {
-    Sefaria.sheets._publicSheets = props.publicSheets;
-  }
-  if (props.tagSheets) {
-    Sefaria.sheets._sheetsByTag[props.initialSheetsTag] = props.tagSheets;
-  }
-  if (props.tagList) {
-    Sefaria.sheets._tagList["count"] = props.tagList;
-  }
-  if (props.trendingTags) {
-    Sefaria.sheets._trendingTags = props.trendingTags;
-  }
-  if (props.topSheets) {
-    Sefaria.sheets._topSheets = props.topSheets;
-  }
   if (props.collectionData) {
     Sefaria._collections[props.initialCollectionSlug] = props.collectionData;
   }
@@ -2630,9 +2606,6 @@ Sefaria.unpackDataFromProps = function(props) {
   }
   if (props.topicList) {
     Sefaria._topicList = props.topicList;
-  }
-  if (props.userHistory) {
-      Sefaria._userHistory.history = props.userHistory;
   }
   if (props.collectionListing) {
       Sefaria._collectionsList.list = props.collectionListing;
@@ -2653,12 +2626,17 @@ Sefaria.unpackDataFromProps = function(props) {
 
       "calendars",
       "notificationCount",
-      "notificationsHtml",
+      "notifications",
       "saved",
+      "userHistory",
       "last_place",
       "interfaceLang",
+      "multiPanel",
       "interruptingMessage",
 
+      "community",
+      "followRecommendations",
+      "trendingTopics",
       "_siteSettings",
       "_debug",
   ];
@@ -2667,6 +2645,8 @@ Sefaria.unpackDataFromProps = function(props) {
         Sefaria[element] = props[element];
       }
   }
+
+  Sefaria.getBackgroundData();
 };
 
 Sefaria.loadServerData = function(data){
@@ -2714,5 +2694,6 @@ Sefaria.setup = function(data) {
     Sefaria.search = new Search(Sefaria.searchIndexText, Sefaria.searchIndexSheet);
 };
 Sefaria.setup();
+
 
 export default Sefaria;

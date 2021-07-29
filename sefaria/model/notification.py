@@ -5,7 +5,6 @@ notifications.py - handle user event notifications
 
 Writes to MongoDB Collection: notifications
 """
-
 import re
 from datetime import datetime
 import json
@@ -14,11 +13,14 @@ from django.template.loader import render_to_string
 
 from . import abstract as abst
 from . import user_profile
+from sefaria.model.collection import Collection
+from sefaria.utils.util import strip_tags
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 
 import structlog
 logger = structlog.get_logger(__name__)
+
 
 class GlobalNotification(abst.AbstractMongoRecord):
     """
@@ -124,6 +126,11 @@ class GlobalNotification(abst.AbstractMongoRecord):
 
         return d
 
+    def client_contents(self):
+        n = super(GlobalNotification, self).contents(with_string_id=True)
+        n["date"] = n["date"].timestamp()
+        return n
+
     @property
     def id(self):
         return str(self._id)
@@ -141,6 +148,9 @@ class GlobalNotificationSet(abst.AbstractMongoSet):
 
     def contents(self):
         return [n.contents() for n in self]
+
+    def client_contents(self):
+        return [n.client_contents() for n in self]
 
 
 class Notification(abst.AbstractMongoRecord):
@@ -238,21 +248,6 @@ class Notification(abst.AbstractMongoRecord):
         self.read_via = via
         return self
 
-    def to_JSON(self):
-        notification = self.contents()
-        if "_id" in notification:
-            notification["_id"] = self.id
-        if "global_id" in notification:
-            notification["global_id"] = str(notification["global_id"])
-        notification["date"] = notification["date"].isoformat()    
-    
-        return json.dumps(notification)
-
-    def to_HTML(self):
-        html = render_to_string("elements/notification.html", {"notification": self}).strip()
-        html = re.sub("[\n\r]", "", html)
-        return html
-
     @property
     def id(self):
         return str(self._id)
@@ -269,6 +264,55 @@ class Notification(abst.AbstractMongoRecord):
             "discuss":        "adder",
         }
         return self.content[keys[self.type]]
+
+    def client_contents(self):
+        """ 
+        Returns contents of notification in format usable by client, including needed merged
+        data from profiles, sheets, etc
+        """
+        from sefaria.sheets import get_sheet_metadata
+
+        n = super(Notification, self).contents(with_string_id=True)
+        n["date"] = n["date"].timestamp()
+        if "global_id" in n:
+            n["global_id"] = str(n["global_id"])
+
+        def annotate_user(n, uid):
+            user_data = user_profile.public_user_data(uid)
+            n["content"].update({
+                "name":       user_data["name"],
+                "profileUrl": user_data["profileUrl"],
+                "imageUrl":   user_data["imageUrl"],
+            })
+
+        def annotate_sheet(n, sheet_id):
+            sheet_data = get_sheet_metadata(id=sheet_id)
+            n["content"]["sheet_title"] = strip_tags(sheet_data["title"], remove_new_lines=True)
+            n["content"]["summary"] = sheet_data["summary"]
+
+        def annotate_collection(n, collection_slug):
+            c = Collection().load({"slug": collection_slug})
+            n["content"]["collection_name"] = c.name
+
+        if n["type"] == "sheet like":
+            annotate_sheet(n, n["content"]["sheet_id"])
+            annotate_user(n, n["content"]["liker"])
+
+        elif n["type"] == "sheet publish":
+            annotate_sheet(n, n["content"]["sheet_id"])
+            annotate_user(n, n["content"]["publisher"])
+
+        elif n["type"] == "message":
+            annotate_user(n, n["content"]["sender"])
+
+        elif n["type"] == "follow":
+            annotate_user(n, n["content"]["follower"])
+
+        elif n["type"] == "collection add":
+            annotate_user(n, n["content"]["adder"])
+            annotate_collection(n, n["content"]["collection_slug"])
+
+        return n
 
 
 class NotificationSet(abst.AbstractMongoSet):
@@ -347,12 +391,8 @@ class NotificationSet(abst.AbstractMongoSet):
         """Returns the number of likes in this NotificationSet"""
         return len([n for n in self if n.type == "sheet like"])
 
-    def to_JSON(self):
-        return "[%s]" % ", ".join([n.to_JSON() for n in self])
-
-    def to_HTML(self):
-        html = [n.to_HTML() for n in self]
-        return "".join(html)
+    def client_contents(self):
+        return [n.client_contents() for n in self]
 
 
 def process_sheet_deletion_in_notifications(sheet_id):
@@ -363,4 +403,3 @@ def process_sheet_deletion_in_notifications(sheet_id):
     """
     ns = NotificationSet({"content.sheet_id": sheet_id})
     ns.delete()
-

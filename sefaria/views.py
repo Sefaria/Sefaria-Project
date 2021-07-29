@@ -258,6 +258,7 @@ def sefaria_js(request):
 
     return render(request, "js/sefaria.js", attrs, content_type= "text/javascript; charset=utf-8")
 
+
 def chavruta_js(request):
     """
     Javascript for chavruta [required to pass server attribute].
@@ -274,7 +275,6 @@ def chavruta_js(request):
 
 
     return render(request, "js/chavruta.js", attrs, content_type="text/javascript; charset=utf-8")
-
 
 
 def linker_js(request, linker_version=None):
@@ -390,6 +390,7 @@ def bundle_many_texts(refs, useTextFamily=False, as_sized_string=False, min_char
             res[tref] = {"error": 1}
     return res
 
+
 def bulktext_api(request, refs):
     """
     Used by the linker.
@@ -500,6 +501,7 @@ def reset_cache(request):
 
     return HttpResponseRedirect("/?m=Cache-Reset")
 
+
 @staff_member_required
 def reset_websites_data(request):
     website_set = [w.contents() for w in WebSiteSet()]
@@ -507,6 +509,7 @@ def reset_websites_data(request):
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("in_memory_cache", "set", ["websites_data", website_set])
     return HttpResponseRedirect("/?m=Website-Data-Reset")
+
 
 @staff_member_required
 def reset_index_cache_for_text(request, title):

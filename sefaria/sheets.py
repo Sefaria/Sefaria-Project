@@ -61,8 +61,24 @@ def get_sheet(id=None):
 
 
 def get_sheet_metadata(id = None):
+	"""Returns only metadata on the sheet document"""
 	assert id
 	s = db.sheets.find_one({"id": int(id)}, {"title": 1, "owner": 1, "summary": 1, "ownerImageUrl": 1, "via": 1})
+	return s
+
+
+def get_sheet_listing_data(id):
+	"""Returns metadata on sheet document plus data about its author"""
+	s = get_sheet_metadata(id)
+	del s["_id"]
+	s["title"] = strip_tags(s["title"]).replace("\n", " ")
+	profile = public_user_data(s["owner"])
+	s.update({
+		"ownerName": profile["name"],
+		"ownerImageUrl": profile["imageUrl"],
+		"ownerProfileUrl": profile["profileUrl"],
+		"ownerOrganization": profile["organization"],
+	})
 	return s
 
 
@@ -193,6 +209,7 @@ def sheet_to_dict(sheet):
 		"ownerName": profile["name"],
 		"ownerImageUrl": profile["imageUrl"],
 		"ownerProfileUrl": profile["profileUrl"],
+		"ownerOrganization": profile["organization"],
 		"sheetUrl": "/sheets/" + str(sheet["id"]),
 		"views": sheet["views"],
 		"displayedCollection": sheet.get("displayedCollection", None),
@@ -300,7 +317,7 @@ def order_tags_for_user(tag_counts, uid):
 
 	return tag_counts
 
-
+@django_cache(timeout=6 * 60 * 60)
 def trending_topics(days=7, ntags=14):
 	"""
 	Returns a list of trending topics plus sheet count and author count modified in the last `days`.
@@ -325,6 +342,17 @@ def trending_topics(days=7, ntags=14):
 		"author_count": len(topic['authors']),
 	} for topic in filter(lambda x: len(x["authors"]) > 1, topics)], use_as_typed=False, backwards_compat_lang_fields={'en': 'tag', 'he': 'he_tag'})
 	results = sorted(results, key=lambda x: -x["author_count"])
+
+
+	# For testing purposes: if nothing is trennding in specified number of days, 
+	# (because local data is stale) look at a bigger window
+	# ------
+	# Updated to return an empty array on 7/29/21 b/c it was causing a recursion error due to stale data on sandboxes
+	# or local and for folks who only had the public dump.
+	# -----------
+	if len(results) == 0:
+		return[]
+		#return trending_topics(days=180, ntags=ntags)
 
 	return results[:ntags]
 

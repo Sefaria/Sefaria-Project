@@ -53,7 +53,6 @@ static_pages_by_lang = [
 
 # Static and Semi Static Content
 site_urlpatterns = [
-    url(r'^$', reader_views.home, name="home"),
     url(r'^enable_new_editor/?$', reader_views.enable_new_editor),
     url(r'^disable_new_editor/?$', reader_views.disable_new_editor),
     url(r'^metrics/?$', reader_views.metrics),
