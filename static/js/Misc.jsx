@@ -2254,11 +2254,13 @@ const SheetMetaDataBox = (props) => (
   </div>
 );
 
-const Autocompleter = ({}) => {
+const Autocompleter = ({selectedRefCallback}) => {
   const [inputValue, setInputValue] = useState("");
   const [currentSuggestions, setCurrentSuggestions] = useState(null);
   const [previewText, setPreviewText] = useState(null);
   const [helperPromptText, setHelperPromptText] = useState(null);
+  const [showAddButton, setShowAddButton] = useState(false);
+
 
   const getWidthOfInput = () => {
     //Create a temporary div w/ all of the same styles as the input since we can't measure the input
@@ -2313,9 +2315,11 @@ const Autocompleter = ({}) => {
         setCurrentSuggestions(null)
         generatePreviewText(input);
         setHelperPromptText(null)
+        setShowAddButton(true)
         return
       }
       else {
+        setShowAddButton(false)
         setPreviewText(null)
       }
 
@@ -2409,6 +2413,10 @@ const Autocompleter = ({}) => {
           onChange={(e) => onChange(e.target.value)}
           value={inputValue}
       /><span className="helperCompletionText">{helperPromptText}</span>
+      {showAddButton ? <button onClick={(e) => {
+                    selectedRefCallback(inputValue)
+                }}>Add Source</button> : null}
+
       {currentSuggestions ?
           <div className="suggestionBox">
             {mapSuggestions(currentSuggestions)}

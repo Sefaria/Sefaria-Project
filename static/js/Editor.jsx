@@ -639,6 +639,7 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
 
 const AddInterfaceInput = ({ inputType, resetInterface }) => {
     const editor = useSlate();
+    const curPath = editor.selection.focus.path
     const [inputValue, setInputValue] = useState("");
     const [showAddMediaButton, setShowAddMediaButton] = useState(false);
 
@@ -686,6 +687,11 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
         Transforms.move(editor);
     }
 
+    const selectedRefCallback = (ref) => {
+          insertSource(editor, ref, curPath)
+    }
+
+
     if (inputType == "media") {
         return (
             <div className="addInterfaceInput" onClick={(e)=> {e.stopPropagation()}}>
@@ -707,6 +713,7 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
     else if (inputType == "source") {
         return (
             <Autocompleter
+                selectedRefCallback={selectedRefCallback}
             />
         )
     }
