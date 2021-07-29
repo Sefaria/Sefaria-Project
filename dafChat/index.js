@@ -196,8 +196,7 @@ io.sockets.on('connection', function(socket) {
   })
 
   socket.on('send sources', function(msg, room) {
-    console.log(msg, room)
-    socket.to(room).emit('got sources', msg)
+    socket.to(room).emit('got sources', msg);
   })
 
 });

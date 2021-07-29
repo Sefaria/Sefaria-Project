@@ -27,17 +27,15 @@ const socket = io.connect('//{{ rtc_server }}');
 
 const channel = Sefaria.broadcast("chavruta");
 channel.onmessage = msg => {
-  console.log(msg)
-  // if (msg) {
-  //   document.getElementById("currently-reading").innerHTML = "You are reading " + msg
-  // };
-  socket.emit('send sources', msg, clientRoom)
+  socket.emit('send sources', msg, clientRoom);
 };
 
 socket.on('got sources', function(msg) {
-  console.log(msg)
-  if (msg) {
-    document.getElementById("currently-reading").innerHTML = "Your chavruta is currently reading " + msg
+  const sources = msg.currentlyReading;
+  const url = msg.history.url;
+  if (sources) {
+    document.getElementById("currently-reading").innerHTML = `Your chavruta is reading  
+    <a href=${url} target="iframe">${sources}</a>`
   };
 })
 
@@ -175,6 +173,7 @@ function addAdditionalHTML() {
   document.body.classList.remove("hasBannerMessage");
 
   const iframe = document.createElement('iframe');
+  iframe.setAttribute("name", "iframe")
   iframe.src = "http://{{request.get_host}}/" + startingRef;
   document.getElementById("iframeContainer").appendChild(iframe);
 }

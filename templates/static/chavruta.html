@@ -70,6 +70,7 @@ a {
     align-content: center;
     align-items: center;
     z-index: 1001;
+    width: 250px; 
 
     }
 
@@ -196,6 +197,11 @@ color: #666;
 
 }
 
+#currently-reading {
+  width: 208px;
+  margin: 10px;
+}
+
 .chavrutaFooter {
   position: absolute;
   bottom: 15px;
@@ -283,7 +289,7 @@ color: #666;
 
     <input id="chavrutaURL" type="text" value={{request.get_host}}/chavruta?ref={{starting_ref}}&rid={{room_id}} autofocus="autofocus" onfocus="this.select()" readonly >
 
-    <div id="currently-reading" class = "int-en"></div>
+    <div id="currently-reading"></div>
 
     <div class="chavrutaFooter">
       <p class="int-en">

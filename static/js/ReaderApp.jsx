@@ -233,7 +233,7 @@ class ReaderApp extends Component {
       if (panel.mode === "Text") return panel.currentlyVisibleRef
       else return panel.filter[0]
     }).join(", ")
-    channel.postMessage(currentlyReading);
+    channel.postMessage({currentlyReading: currentlyReading, history: this.makeHistoryState()});
   }
   handlePopState(event) {
     var state = event.state;
