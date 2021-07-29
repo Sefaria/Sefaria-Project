@@ -723,6 +723,7 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
 }
 
 const AddInterface = ({ attributes, children, element }) => {
+    const editor = useSlate();
     const [active, setActive] = useState(false)
     const [itemToAdd, setItemToAdd] = useState(null)
 
@@ -752,12 +753,6 @@ const AddInterface = ({ attributes, children, element }) => {
 
     }
 
-    const addImageClicked = (e) => {
-        e.stopPropagation();
-        setItemToAdd(null);
-        setActive(!active)
-    }
-
     const addMediaClicked = (e) => {
         e.stopPropagation();
         setItemToAdd("media");
@@ -767,12 +762,63 @@ const AddInterface = ({ attributes, children, element }) => {
           }, 100);
     }
 
+    const addImageClicked = (e) => {
+        e.stopPropagation();
+        setItemToAdd(null);
+        setActive(!active)
+    }
+    const fileInput = useRef(null);
+
+    const uploadImage = (imageData) => {
+        const formData = new FormData();
+        formData.append('file', imageData.replace(/data:image\/(jpe?g|png|gif);base64,/, ""));
+        // formData.append('file', imageData);
+
+        $.ajax({
+            url: Sefaria.apiHost + "/api/sheets/upload-image",
+            type: 'POST',
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function(data) {
+                console.log(data.url)
+                insertMedia(editor, data.url)
+            },
+            error: function(e) {
+                console.log("photo upload ERROR", e);
+            }
+        });
+    };
+
+    const onFileSelect = (e) => {
+        const file = fileInput.current.files[0];
+        if (file == null)
+        return;
+            if (/\.(jpe?g|png|gif)$/i.test(file.name)) {
+                const reader = new FileReader();
+
+                reader.addEventListener("load", function() {
+                  uploadImage(reader.result);
+                }, false);
+
+                reader.addEventListener("onerror", function() {
+                  alert(reader.error);
+                }, false);
+
+                reader.readAsDataURL(file);
+            } else {
+              alert('not an image');
+            }
+    }
 
     return (
       <div role="button" title={active ? "Close menu" : "Add a source, image, or other media"} aria-label={active ? "Close menu" : "Add a source, image, or other media"} className={classNames(addInterfaceClasses)} contentEditable={false} onClick={(e) => toggleEditorAddInterface(e)}>
           {itemToAdd == null ? <>
               <div role="button" title="Add a source" aria-label="Add a source" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addSourceClicked(e)} id="addSourceButton"></div>
-              <div role="button" title="Add an image" aria-label="Add an image" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addImageClicked(e)} id="addImageButton"></div>
+              <div role="button" title="Add an image" aria-label="Add an image" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addImageClicked(e)} id="addImageButton">
+                  <label htmlFor="addImageFileSelector" id="addImageFileSelectorLabel"></label>
+              </div>
+              <input id="addImageFileSelector" type="file" style={{ display: "none"}} onChange={onFileSelect} ref={fileInput} />
               <div role="button" title="Add media" aria-label="Add media" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addMediaClicked(e)} id="addMediaButton"></div>
           </> :
 
@@ -1376,9 +1422,7 @@ const incrementNextSheetNode = (editor) => {
   Transforms.setNodes(editor, {nextNode: editor.children[0].nextNode + 1}, {at: [0]});
 }
 
-const addItemToSheet = (editor, fragment, position) => {
-    // const closestSheetItem = getClosestSheetElement(editor, editor.selection.focus.path, "SheetItem")[1];
-    // const nextSheetItemPath = Path.isPath(position) ? position : position == "top" ? closestSheetItem : getNextSheetItemPath(closestSheetItem);
+const addItemToSheet = (editor, fragment) => {
     incrementNextSheetNode(editor);
     Transforms.insertNodes(editor, fragment);
     Editor.normalize(editor, { force: true })
@@ -1410,7 +1454,7 @@ const insertMedia = (editor, mediaUrl) => {
                   text: ""
               }]
   };
-  addItemToSheet(editor, fragment, "bottom");
+  addItemToSheet(editor, fragment);
   Transforms.move(editor);
 }
 
@@ -1441,7 +1485,7 @@ const insertSource = (editor, ref, path) => {
           fragment.push({type: 'spacer', children: [{text: ""}]})
         }
         Transforms.setNodes(editor, { loading: false }, { at: path });
-        addItemToSheet(editor, fragment, path ? path : "bottom");
+        addItemToSheet(editor, fragment);
         checkAndFixDuplicateSheetNodeNumbers(editor)
         if (nodeAbove.node && (nodeAbove.node.type == "SheetOutsideText" || nodeAbove.node.type == "paragraph" ) ) {
           Transforms.delete(editor, {at: path})

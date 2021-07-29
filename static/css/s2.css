@@ -8288,6 +8288,16 @@ span.purim-emoji img{
   background-image: url("/static/icons/video.svg");
 }
 
+#addImageFileSelectorLabel {
+  width: 30px;
+  height: 30px;
+  margin-inline-start: -5px;
+  margin-top: -5px;
+  display: block;
+  position: absolute;
+  cursor: pointer;
+}
+
 .sheetContent .sheetItem .SheetOutsideText.segment p {
   margin: 0
 }
