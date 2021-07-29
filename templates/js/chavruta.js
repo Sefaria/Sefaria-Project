@@ -24,10 +24,13 @@ let chavrutaTime = 0;
 
 const socket = io.connect('//{{ rtc_server }}');
 
-
 const channel = Sefaria.broadcast("chavruta");
 channel.onmessage = msg => {
   socket.emit('send sources', msg, clientRoom);
+
+  const link = msg.history.url;
+  document.getElementById("end-call").setAttribute("data-url", `${link}`)
+
 };
 
 socket.on('got sources', function(msg) {
@@ -174,15 +177,22 @@ function addAdditionalHTML() {
 
   const iframe = document.createElement('iframe');
   iframe.setAttribute("name", "iframe")
+  iframe.setAttribute("id", "iframe")
   iframe.src = "http://{{request.get_host}}/" + startingRef;
   document.getElementById("iframeContainer").appendChild(iframe);
 }
 
 function updateUrl () {
-  let url = "chavruta?ref=" + startingRef  +"&rid=" + startingRoom
-  window.history.pushState({}, '', url)
+  let url = "chavruta?ref=" + startingRef  +"&rid=" + startingRoom;
+  window.history.pushState({}, '', url);
 }
 
+function endCall (e) {
+  console.log("end call")
+  window.onbeforeunload = null
+  e.preventDefault()
+  window.location= document.getElementById("end-call").getAttribute("data-url")
+}
 
 function getNewChevruta() {
   Sefaria.track.event("DafRoulette", "New Chevruta Click", "");
@@ -373,6 +383,5 @@ function byebye(){
     Sefaria.track.event("DafRoulette", "Chevruta Ended", "Minutes Learned", chavrutaTime);
     socket.emit('bye', clientRoom);
 }
-
 
 {% endautoescape %}
