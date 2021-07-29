@@ -8,7 +8,7 @@ import {
     Note,
     FeedbackBox,
     ProfilePic,
-    ToolTipped, InterfaceText, ContentText,
+    ToolTipped, InterfaceText, ContentText, EnglishText, HebrewText,
 } from './Misc';
 
 import {
@@ -502,6 +502,7 @@ class ConnectionsPanel extends Component {
           srefs={this.props.srefs}
           sectionRef={this.sectionRef()}
           interfaceLang={this.props.interfaceLang}
+          key={`Topics-${this.props.srefs.join("|")}`}
         />
       );
     } else if (this.props.mode === "WebPages" || this.props.mode === "WebPagesList") {
@@ -907,10 +908,9 @@ const TopicList = ({ srefs, sectionRef, interfaceLang, contentLang }) => {
     <div className={`topicList ${contentLang === 'hebrew' ? 'topicsHe' : 'topicsEn'}`}>
       {(!topics || !topics.length) ? (
           <div className="webpageList empty">
-            <LoadingMessage
-              message={"No topics known here."}
-              heMessage={"אין נושאים ידועים."}
-            />
+            <div className="loadingMessage sans-serif">
+              <ContentText text={{en:"No known Topics Here.", he: "אין קשרים ידועים."}}/>
+            </div>
           </div>
         ) : topics.map(
           topic => (
