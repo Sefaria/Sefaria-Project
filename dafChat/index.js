@@ -195,4 +195,9 @@ io.sockets.on('connection', function(socket) {
     socket.to(room).emit('got user name', userName, uid);
   })
 
+  socket.on('send sources', function(msg, room) {
+    console.log(msg, room)
+    socket.to(room).emit('got sources', msg)
+  })
+
 });

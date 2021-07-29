@@ -2,7 +2,6 @@
 
 'use strict';
 
-
 let isChannelReady = false;
 let isInitiator = false;
 let isStarted = false;
@@ -24,6 +23,23 @@ let clientRoom;
 let chavrutaTime = 0;
 
 const socket = io.connect('//{{ rtc_server }}');
+
+
+const channel = Sefaria.broadcast("chavruta");
+channel.onmessage = msg => {
+  console.log(msg)
+  // if (msg) {
+  //   document.getElementById("currently-reading").innerHTML = "You are reading " + msg
+  // };
+  socket.emit('send sources', msg, clientRoom)
+};
+
+socket.on('got sources', function(msg) {
+  console.log(msg)
+  if (msg) {
+    document.getElementById("currently-reading").innerHTML = "Your chavruta is currently reading " + msg
+  };
+})
 
 socket.on('return rooms', function(numRooms) {
   console.log('got number of rooms')
@@ -159,14 +175,15 @@ function addAdditionalHTML() {
   document.body.classList.remove("hasBannerMessage");
 
   const iframe = document.createElement('iframe');
-  iframe.src = "https://www.sefaria.org/"+startingRef;
+  iframe.src = "http://{{request.get_host}}/" + startingRef;
   document.getElementById("iframeContainer").appendChild(iframe);
 }
 
 function updateUrl () {
-  let url = "chavruta?rid=" + startingRoom
+  let url = "chavruta?ref=" + startingRef  +"&rid=" + startingRoom
   window.history.pushState({}, '', url)
 }
+
 
 function getNewChevruta() {
   Sefaria.track.event("DafRoulette", "New Chevruta Click", "");

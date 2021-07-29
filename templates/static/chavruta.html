@@ -281,7 +281,9 @@ color: #666;
       Share this link with your chavruta to start a video call with this text
     </p>
 
-    <input id="chavrutaURL" type="text" value={{request.get_host}}/chavruta?rid={{room_id}} autofocus="autofocus" onfocus="this.select()" readonly >
+    <input id="chavrutaURL" type="text" value={{request.get_host}}/chavruta?ref={{starting_ref}}&rid={{room_id}} autofocus="autofocus" onfocus="this.select()" readonly >
+
+    <div id="currently-reading" class = "int-en"></div>
 
     <div class="chavrutaFooter">
       <p class="int-en">

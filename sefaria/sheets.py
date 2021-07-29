@@ -347,7 +347,7 @@ def trending_topics(days=7, ntags=14):
 	# For testing purposes: if nothing is trennding in specified number of days, 
 	# (because local data is stale) look at a bigger window
 	if len(results) == 0:
-		return trending_topics(days=180, ntags=ntags)
+		return []
 
 	return results[:ntags]
 

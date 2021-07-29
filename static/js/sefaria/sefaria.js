@@ -7,6 +7,7 @@ import Track from './track';
 import Hebrew from './hebrew';
 import Util from './util';
 import $ from './sefariaJquery';
+import { BroadcastChannel } from 'broadcast-channel';
 
 
 let Sefaria = Sefaria || {
@@ -2114,6 +2115,9 @@ _media: {},
   },
   getTopicFromCache: function(topic) {
     return this._topics[topic];
+  },
+  broadcast: function(channel){
+    return new BroadcastChannel(channel);
   },
   _topicTocPages: null,
   _initTopicTocPages: function() {

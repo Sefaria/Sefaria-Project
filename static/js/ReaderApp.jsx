@@ -25,6 +25,7 @@ import {
   CommunityPagePreviewControls,
 } from './Misc';
 import Component from 'react-class';
+import { BroadcastChannel } from 'broadcast-channel';
 
 
 class ReaderApp extends Component {
@@ -224,6 +225,15 @@ class ReaderApp extends Component {
 
     this.setContainerMode();
     this.updateHistoryState(this.replaceHistory);
+
+    //creates broadcast channel to send source information to chavruta
+    const channel = new BroadcastChannel("chavruta");
+
+    const currentlyReading = this.state.panels.map((panel) => {
+      if (panel.mode === "Text") return panel.currentlyVisibleRef
+      else return panel.filter[0]
+    }).join(", ")
+    channel.postMessage(currentlyReading);
   }
   handlePopState(event) {
     var state = event.state;
@@ -1657,7 +1667,6 @@ class ReaderApp extends Component {
   }
   render() {
     var panelStates = this.state.panels;
-
     var evenWidth;
     var widths;
     var unit;
