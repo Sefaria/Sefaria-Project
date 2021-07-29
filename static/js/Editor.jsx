@@ -769,11 +769,11 @@ const AddInterface = ({ attributes, children, element }) => {
 
 
     return (
-      <div className={classNames(addInterfaceClasses)} contentEditable={false} onClick={(e) => toggleEditorAddInterface(e)}>
+      <div role="img" title={active ? "Close menu" : "Add a source, image, or other media"} alt={active ? "Close menu" : "Add a source, image, or other media"} className={classNames(addInterfaceClasses)} contentEditable={false} onClick={(e) => toggleEditorAddInterface(e)}>
           {itemToAdd == null ? <>
-              <div className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addSourceClicked(e)} id="addSourceButton"></div>
-              <div className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addImageClicked(e)} id="addImageButton"></div>
-              <div className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addMediaClicked(e)} id="addMediaButton"></div>
+              <div role="img" title="Add a source" alt="Add a source" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addSourceClicked(e)} id="addSourceButton"></div>
+              <div role="img" title="Add an image" alt="Add an image" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addImageClicked(e)} id="addImageButton"></div>
+              <div role="img" title="Add media" alt="Add media" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addMediaClicked(e)} id="addMediaButton"></div>
           </> :
 
               <AddInterfaceInput
