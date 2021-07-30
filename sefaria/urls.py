@@ -203,8 +203,8 @@ urlpatterns += [
     url(r'^api/sheets/all-sheets/(?P<limiter>\d+)/(?P<offset>\d+)$',  sheets_views.all_sheets_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)/export_to_drive$',            sheets_views.export_to_drive),
     url(r'^api/sheets/upload-image$',                                 sheets_views.upload_sheet_media),
-    url(r'^api/sheets/latest-untagged/?$',                            sheets_views.latest_untagged),
-    url(r'^api/sheets/latest-uncategorized/?$',                       sheets_views.latest_uncategorized)
+    url(r'^api/sheets/next-untagged/?$',                              sheets_views.next_untagged),
+    url(r'^api/sheets/next-uncategorized/?$',                         sheets_views.next_uncategorized)
 ]
 
 # Unlink Google Account Subscribe

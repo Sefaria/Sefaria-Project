@@ -12,6 +12,11 @@
 <script src="{% static 'js/s1/util.js' %}"></script>
 <script src="{% static 'ckeditor/ckeditor.js' %}"></script>
 <script src="{% static 'ckeditor/adapters/jquery.js' %}"></script>
+<script>
+{% autoescape off %}
+	{% include "js/django-csrf.js" %}
+{% endautoescape %}
+</script>
 <script src="{% static 'js/categorize_sheets.jsx'%}" type="text/babel" data-type="module" data-presets="react,env"></script>
 
 {% endblock %}

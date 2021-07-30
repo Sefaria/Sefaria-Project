@@ -6,6 +6,7 @@ from urllib.parse import unquote
 from elasticsearch.exceptions import AuthorizationException
 from datetime import datetime, timedelta
 from io import StringIO, BytesIO
+from django.contrib.admin.views.decorators import staff_member_required
 
 import structlog
 logger = structlog.get_logger(__name__)
@@ -1140,3 +1141,22 @@ def upload_sheet_media(request):
 
         return jsonResponse({"url": img_url})
     return jsonResponse({"error": "Unsupported HTTP method."})
+
+
+@staff_member_required
+@api_view(["PUT"])
+def next_untagged(request):
+    from pymongo import DESCENDING
+    sheet_id = sheet_to_dict(db.sheets.find({"tags": {"$in": [None, []] }, "datePublished": {"$exists": True}}).sort("id", DESCENDING)[0])["id"]
+    return jsonResponse({"sheetId": sheet_id})
+
+@staff_member_required
+def next_uncategorized(request):
+    from pymongo import DESCENDING
+    from sefaria.sheets import update_sheet_topics
+    body_unicode = request.body.decode('utf-8')
+    body = json.loads(body_unicode)
+    update_sheet_topics(body['sheetId'], body["tags"], [])
+    sheet_id = sheet_to_dict(db.sheets.find({"categories": {"$in": [None, []] }, "datePublished": {"$exists": True}}).sort("id", DESCENDING)[0])["id"]
+    return jsonResponse({"sheetId": sheet_id})
+
