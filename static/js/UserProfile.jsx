@@ -1,21 +1,21 @@
+import React, { useState } from 'react';
+import Component from 'react-class';
+import PropTypes  from 'prop-types';
+import Sefaria  from './sefaria/sefaria';
+import NoteListing  from './NoteListing';
+import Footer  from './Footer';
 import {
+  CollectionListing,
+  FilterableList,
   LoadingMessage,
   TabView,
-  FilterableList,
   SheetListing,
-  SinglePanelNavHeader,
   ProfileListing,
   ProfilePic,
+  MessageModal,
   FollowButton,
   InterfaceText,
 } from './Misc';
-import React, {useState}  from 'react';
-import PropTypes  from 'prop-types';
-import Sefaria  from './sefaria/sefaria';
-import { CollectionListing } from './PublicCollectionsPage';
-import NoteListing  from './NoteListing';
-import Component from 'react-class';
-import Footer  from './Footer';
 
 class UserProfile extends Component {
   constructor(props) {
@@ -32,17 +32,17 @@ class UserProfile extends Component {
     const showNotes = !!props.profile.id && Sefaria._uid === props.profile.id;
     const showBio = !!props.profile.bio;
     const tabs = [
-      { id: "sheets", text: "Sheets", icon: "/static/img/sheet.svg" },
+      { id: "sheets", text: "Sheets", icon: "/static/icons/sheet.svg" },
       { id: "collections", text: "Collections", icon: "/static/icons/collection.svg" },
       { id: "followers", text: "Followers", invisible: true },
       { id: "following", text: "Following", invisible: true },
-      { id: "torah-tracker", text: "Torah Tracker", invisible: Sefaria._uid !== props.profile.id, icon: "/static/img/chart-icon.svg", href: "/torahtracker", applink: true, justifyright: true}
+      { id: "torah-tracker", text: "Torah Tracker", invisible: Sefaria._uid !== props.profile.id, icon: "/static/icons/chart-icon.svg", href: "/torahtracker", applink: true, justifyright: true}
     ];
     if (showNotes) {
-      tabs.splice(2, 0, { id: "notes", text: Sefaria._("Notes"), icon: "/static/img/note.svg" });
+      tabs.splice(2, 0, { id: "notes", text: Sefaria._("Notes"), icon: "/static/icons/note.svg" });
     }
     if (showBio) {
-      tabs.push({ id: "about", text: Sefaria._("About"), icon: "/static/img/info.svg" });
+      tabs.push({ id: "about", text: Sefaria._("About"), icon: "/static/icons/info.svg" });
     }
     let tabIndex = tabs.findIndex(t => t.id == props.tab);
     tabIndex = tabIndex == -1 ? 0 : tabIndex;
@@ -106,7 +106,7 @@ class UserProfile extends Component {
   }
   renderCollection(collection) {
     return (
-      <CollectionListing key={collection.slug} data={collection} showMembership={true} small={true} />
+      <CollectionListing key={collection.slug} data={collection} />
     );
   }
   renderCollectionHeader() {
@@ -317,7 +317,7 @@ class UserProfile extends Component {
       return (
           <div className="tab">
             <a href={tab.href}>
-              <img src={tab.icon} alt={`${tab.text} icon`}/>
+              <img className="tabIcon" src={tab.icon} alt={`${tab.text} icon`}/>
               <InterfaceText>{tab.text}</InterfaceText>
             </a>
           </div>
@@ -325,7 +325,7 @@ class UserProfile extends Component {
     }
     return (
       <div className="tab">
-        <img src={tab.icon} alt={`${tab.text} icon`} />
+        <img className="tabIcon" src={tab.icon} alt={`${tab.text} icon`} />
         <InterfaceText>{tab.text}</InterfaceText>
       </div>
     );
@@ -353,14 +353,8 @@ class UserProfile extends Component {
 
   render() {
     return (
-      <div key={this.props.profile.id} className="profile-page readerNavMenu noHeader">
-        {this.props.multiPanel ? null :
-          <SinglePanelNavHeader
-            title="Profile"
-            navHome={this.props.navHome}
-            showDisplaySettings={false}/>
-        }
-        <div className="content hasFooter noOverflowX">
+      <div key={this.props.profile.id} className="profile-page readerNavMenu">
+        <div className="content noOverflowX">
           {this.props.profile.show_editor_toggle ?  <EditorToggleHeader usesneweditor={this.props.profile.uses_new_editor} /> : null}
           <div className="contentInner">
             { !this.props.profile.id ? <LoadingMessage /> :
@@ -628,8 +622,8 @@ const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowi
               <span className="int-en">Edit Profile</span>
               <span className="int-he">עריכת פרופיל</span>
             </a>
-            <a href="/settings/account" className="resourcesLink sans-serif">
-              <img src="/static/img/settings.svg" alt="Profile Settings" />
+            <a href="/settings/account" className="resourcesLink sans-serif profile-settings">
+              <img src="/static/icons/settings.svg" alt="Profile Settings" />
               <span className="int-en">Settings</span>
               <span className="int-he">הגדרות</span>
             </a>
@@ -647,7 +641,7 @@ const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowi
             />
             <a href="#" className="resourcesLink sans-serif" onClick={message}>
               <span className="int-en">Message</span>
-              <span className="int-he">שלח הודעה</span>
+              <span className="int-he">שליחת הודעה</span>
             </a>
           </div>)
         }
@@ -682,46 +676,6 @@ ProfileSummary.propTypes = {
   openFollowers: PropTypes.func.isRequired,
   openFollowing: PropTypes.func.isRequired,
   toggleSignUpModal: PropTypes.func.isRequired,
-};
-
-
-class MessageModal extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      visible: false,
-      message: '',
-    };
-  }
-  onChange(e) { this.setState({ message: e.target.value }); }
-  onSend(e) {
-    if (!this.state.message) { return; }
-    Sefaria.messageAPI(this.props.uid, this.state.message).then(() => {
-      this.setState({ visible: false });
-      alert("Message Sent");
-      Sefaria.track.event("Messages", "Message Sent", "");
-    });
-  }
-  makeVisible() { this.setState({ visible: true }); }
-  onCancel(e) { this.setState({ visible: false }); }
-  render() {
-    if (!this.state.visible) { return null; }
-    return (
-      <div id="interruptingMessageBox" className="sefariaModalBox">
-        <div id="interruptingMessageOverlay" onClick={this.onCancel}></div>
-        <div id="interruptingMessage" className='message-modal' style={{display: 'block'}}>
-          <div className='messageHeader'>{ `${Sefaria._("Send a message to ")}${this.props.name}` }</div>
-          <textarea value={this.state.message} onChange={this.onChange} />
-          <div className='sendMessage button' onClick={this.onSend}>{ Sefaria._("Send") }</div>
-          <div className='cancel button white' onClick={this.onCancel}>{ Sefaria._("Cancel") }</div>
-        </div>
-      </div>
-    );
-  }
-}
-MessageModal.propTypes = {
-  name: PropTypes.string.isRequired,
-  uid:  PropTypes.number.isRequired,
 };
 
 

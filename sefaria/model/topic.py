@@ -717,8 +717,8 @@ class RefTopicLink(abst.AbstractMongoRecord):
             d.pop('toTopic')
         return d
 
-class TopicLinkSetHelper(object):
 
+class TopicLinkSetHelper(object):
     @staticmethod
     def init_query(query, link_class):
         query = query or {}

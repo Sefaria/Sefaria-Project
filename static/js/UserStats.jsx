@@ -51,7 +51,7 @@ const UserStats = () => {
     // let user_active = true;
     return (
     <div className="homeFeedWrapper userStats">
-      <div className="content hasFooter" style={{padding: "0 40px 80px"}}>
+      <div className="content" style={{padding: "0 40px 80px"}}>
           <div className="contentInner">
               <h1 style={{textAlign: "center"}}>
                   {all_ready? user_data.name : <LoadingRing />}
