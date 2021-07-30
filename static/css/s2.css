@@ -8605,29 +8605,26 @@ span.purim-emoji img{
 .sheetContent .spacer:only-of-type.empty {
   line-height: inherit;
 }
-.sheetItem:only-of-type.empty .SheetOutsideText:after,
-.sheetContent .spacer:only-of-type.empty:after {
+.sheetItem:only-of-type.empty .SheetOutsideText:before,
+.sheetContent .spacer:only-of-type.empty:before {
   color: #999;
-  position: relative;
+  position: absolute;
   pointer-events: none;
 }
-.interface-english .sheetItem:only-of-type.empty .SheetOutsideText:after,
-.interface-english .spacer:only-of-type.empty:after,
-.interface-english .spacer:only-of-type.empty:after {
+.interface-english .sheetItem:only-of-type.empty .SheetOutsideText:before,
+.interface-english .spacer:only-of-type.empty:before,
+.interface-english .spacer:only-of-type.empty:before {
   content: "Write some text or type a citation (ex. 'Genesis 1:1-5') ";
-  top: -31px;
-  margin-bottom: -31px;
 }
-.interface-hebrew .sheetItem:only-of-type.empty .SheetOutsideText:after,
-.interface-hebrew .spacer:only-of-type.empty:after,
-.interface-hebrew .spacer:only-of-type.empty:after {
+.interface-hebrew .sheetItem:only-of-type.empty .SheetOutsideText:before,
+.interface-hebrew .spacer:only-of-type.empty:before,
+.interface-hebrew .spacer:only-of-type.empty:before {
   content: "הקלידו טקסט חופשי או מראה מקום (לדוגמא, בראשית א, א-ה)";
-  top: -44px;
-  margin-bottom: -44px;
 }
 .editorAddInterface {
-    position: relative;
-    pointer-events:none;
+  position: relative;
+  pointer-events:none;
+  background-color: transparent;
 }
 .editorAddInterface:before {
   content: "";
@@ -8643,6 +8640,10 @@ span.purim-emoji img{
   border-radius: 50%;
   pointer-events:auto;
   cursor: pointer;
+}
+
+.editorAddInterface.active {
+  background-color: white;
 }
 .editorAddInterface.active:before {
   transform: rotate(0);
