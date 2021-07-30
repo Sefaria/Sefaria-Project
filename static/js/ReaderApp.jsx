@@ -234,8 +234,7 @@ class ReaderApp extends Component {
       else if (panel.filter.length !== 0) return panel.filter[0]
       else return
     }).filter(ele => ele).join(", ")
-    // console.log(currentlyReading)
-    // console.log(this.state.panels)
+ 
     channel.postMessage({currentlyReading: currentlyReading, history: this.makeHistoryState()});
   }
   handlePopState(event) {
