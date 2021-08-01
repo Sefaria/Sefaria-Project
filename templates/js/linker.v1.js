@@ -266,11 +266,11 @@
                                 const matchKey = match.startIndex + "|" + match.endIndex;
                                 let isFirstPortionInMatch = !portionHasMatched[matchKey];
                                 portionHasMatched[matchKey] = true;
-                                
+
                                 var matched_ref = match[1]
                                     .replace(/[\r\n\t ]+/g, " ") // Filter out multiple spaces
                                     .replace(/[(){}[\]]+/g, ""); // Filter out internal parenthesis todo: Don't break on parens in books names
-                                
+
                                 // Walk up node tree to see if this context should be excluded from linking or tracking
                                 let p = portion.node;
                                 let excludeFromLinking = false;
