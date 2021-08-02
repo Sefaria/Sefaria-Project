@@ -227,13 +227,22 @@ class ReaderApp extends Component {
     this.updateHistoryState(this.replaceHistory);
 
     //creates broadcast channel to send source information to chavruta
-    const channel = new BroadcastChannel("chavruta");
+    
+    if (window.location !== window.parent.location) {
+      const channel = new BroadcastChannel("chavruta");
 
-    const currentlyReading = this.state.panels.map((panel) => {
-      if (panel.mode === "Text") return panel.currentlyVisibleRef
-      else return panel.filter[0]
-    }).join(", ")
-    channel.postMessage({currentlyReading: currentlyReading, history: this.makeHistoryState()});
+      const currentlyReading = this.state.panels.map((panel) => {
+        if (panel.mode === "Text") {
+          return panel.currentlyVisibleRef
+        } else if (panel.filter.length !== 0) {
+          return panel.filter[0]
+        } else {
+          return
+        }
+      }).filter(ele => ele).join(", ");
+      
+      channel.postMessage({currentlyReading: currentlyReading, history: this.makeHistoryState()});
+    }
   }
   handlePopState(event) {
     var state = event.state;
