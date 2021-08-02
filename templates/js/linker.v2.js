@@ -440,6 +440,9 @@
                     // append our exclusions to site's own exclusions
                     ns.excludeFromTracking = data["exclude_from_tracking"] + ", " + ns.excludeFromTracking;
                 }
+                else if (data["exclude_from_tracking"].length > 0) {
+                    ns.excludeFromTracking = data["exclude_from_tracking"];
+                }
                 ns._wrapMatches();
                 ns._trackPage();
 
