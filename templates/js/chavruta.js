@@ -24,12 +24,26 @@ let chavrutaTime = 0;
 
 const socket = io.connect('//{{ rtc_server }}');
 
+//broadcast channel
 const channel = Sefaria.broadcast("chavruta");
 channel.onmessage = msg => {
   socket.emit('send sources', msg, clientRoom);
 
+  //end call button
   const link = msg.history.url;
-  document.getElementById("end-call").setAttribute("data-url", `${link}`)
+  document.getElementById("end-call").setAttribute("data-url", `${link}`);
+  
+  const ref = encodeURIComponent(link.slice(1))
+ 
+  console.log("link", link);
+  
+  console.log("ref", ref);
+  const url = "chavruta?ref=" + ref  +"&rid=" + startingRoom;
+  console.log("url", url);
+  //updates url bar when new content is loaded
+  window.history.pushState({}, '', url);
+  //updates input box with url when new content is loaded
+  document.getElementById("chavrutaURL").setAttribute("value", "http://{{request.get_host}}/" + url);
 
 };
 
@@ -37,13 +51,13 @@ socket.on('got sources', function(msg) {
   const sources = msg.currentlyReading;
   const url = msg.history.url;
   if (sources) {
-    document.getElementById("currently-reading").innerHTML = `Your chavruta is reading  
-    <a href=${url} target="iframe">${sources}</a>`
+    document.getElementById("currently-reading").innerHTML = `Your chavruta is reading <br/>  
+    <img src="/static/icons/book.svg" class="navSidebarIcon" alt="book icon"><a href=${url} target="iframe">${sources}</a>`;
   };
 })
 
 socket.on('return rooms', function(numRooms) {
-  console.log('got number of rooms')
+  console.log('got number of rooms');
   document.getElementById("numberOfChevrutas").innerHTML = numRooms;
 });
 
@@ -155,7 +169,9 @@ navigator.mediaDevices.getUserMedia({
 
     if (startingRoom !="" && {{roulette}} == 0 ) {
       socket.emit('start chevruta', {{ client_uid }}, startingRoom);
+      socket.emit('enter beit midrash', {{ client_uid }})
     }
+
     else {
       socket.emit('start roulette', {{ client_uid }}, localStorage.getItem('lastChevrutaID'), startingRoom == "" ? "dafRoulette" : startingRoom);
     }
@@ -381,6 +397,7 @@ function handleRemoteHangup() {
 
 function byebye(){
     Sefaria.track.event("DafRoulette", "Chevruta Ended", "Minutes Learned", chavrutaTime);
+    socket.emit('leave beit midrash', {{client_uid}})
     socket.emit('bye', clientRoom);
 }
 
