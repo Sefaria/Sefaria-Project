@@ -137,7 +137,7 @@ class VersionBlock extends Component {
     }
     const withParam = versionParam === 'side' ? "&with=Translation Open" : "";
     const nonSelectedVersionParams = Object.entries(this.props.currObjectVersions)
-                                      .filter(([vlang, version])=>!!version && !version?.merged && (versionParam === 'side' || vlang !== this.props.version.language))  // in 'side' case, keep all version params
+                                      .filter(([vlang, version])=>!!version &&!!version?.versionTitle && !version?.merged && (versionParam === 'side' || vlang !== this.props.version.language))  // in 'side' case, keep all version params
                                       .map(([vlang, version])=>`&v${vlang}=${version.versionTitle.replace(/\s/g,'_')}`)
                                       .join("");
     const versionLink = nonSelectedVersionParams == "" ? null : `/${Sefaria.normRef(this.props.currentRef)}${nonSelectedVersionParams}&v${versionParam}=${this.props.version.versionTitle.replace(/\s/g,'_')}${withParam}`.replace("&","?");
@@ -191,6 +191,7 @@ class VersionBlock extends Component {
   }
 
   render() {
+    if(this.props.version.title == "Sheet") return null //why are we even getting here in such a case??;
     const v = this.props.version;
     const vtitle = this.makeVersionTitle();
     const vnotes = this.makeVersionNotes();
@@ -294,7 +295,7 @@ class VersionBlock extends Component {
                 <div className={classNames(this.makeAttrClassNames({"versionDigitizedBySefaria": 1, "versionDetailsElement": 1}, "digitizedBySefaria"))}>
                   <span className="versionDetailsLabel">
                     {`${Sefaria._("Digitization")}: `}
-                  </span>
+                  < /span>
                   <a className="versionDetailsLink" href="/digitized-by-sefaria" target="_blank">
                     {Sefaria._("Sefaria")}
                   </a>
@@ -304,7 +305,7 @@ class VersionBlock extends Component {
                     {`${Sefaria._("License")}: `}
                   </span>
                   <a className="versionDetailsLink" href={this.makeLicenseLink()} target="_blank">
-                    {Sefaria._(v.license)}
+                    {Sefaria._(v?.license)}
                   </a>
                 </div>
                 <div className={classNames(this.makeAttrClassNames({"versionHistoryLink": 1, "versionDetailsElement": 1}, null))}>

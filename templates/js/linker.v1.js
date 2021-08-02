@@ -247,6 +247,9 @@
                     // append our exclusions to site's own exclusions
                     ns.excludeFromTracking = data["exclude_from_tracking"] + ", " + ns.excludeFromTracking;
                 }
+                else if (data["exclude_from_tracking"].length > 0) {
+                    ns.excludeFromTracking = data["exclude_from_tracking"];
+                }
                 var books = Object.getOwnPropertyNames(data["regexes"]).sort(function(a, b) {
                   return b.length - a.length; // ASC -> a - b; DESC -> b - a
                 });
@@ -266,11 +269,11 @@
                                 const matchKey = match.startIndex + "|" + match.endIndex;
                                 let isFirstPortionInMatch = !portionHasMatched[matchKey];
                                 portionHasMatched[matchKey] = true;
-                                
+
                                 var matched_ref = match[1]
                                     .replace(/[\r\n\t ]+/g, " ") // Filter out multiple spaces
                                     .replace(/[(){}[\]]+/g, ""); // Filter out internal parenthesis todo: Don't break on parens in books names
-                                
+
                                 // Walk up node tree to see if this context should be excluded from linking or tracking
                                 let p = portion.node;
                                 let excludeFromLinking = false;

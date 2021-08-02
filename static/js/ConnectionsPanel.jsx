@@ -8,7 +8,7 @@ import {
     Note,
     FeedbackBox,
     ProfilePic,
-    ToolTipped, InterfaceText, ContentText,
+    ToolTipped, InterfaceText, ContentText, EnglishText, HebrewText,
 } from './Misc';
 
 import {
@@ -500,7 +500,9 @@ class ConnectionsPanel extends Component {
         <TopicList
           contentLang={this.props.contentLang}
           srefs={this.props.srefs}
+          sectionRef={this.sectionRef()}
           interfaceLang={this.props.interfaceLang}
+          key={`Topics-${this.props.srefs.join("|")}`}
         />
       );
     } else if (this.props.mode === "WebPages" || this.props.mode === "WebPagesList") {
@@ -890,24 +892,25 @@ PublicSheetsList.propTypes = {
 };
 
 
-const TopicList = ({ srefs, interfaceLang, contentLang }) => {
+const TopicList = ({ srefs, sectionRef, interfaceLang, contentLang }) => {
   // segment ref topicList can be undefined even if loaded
   // but section ref topicList is null when loading and array when loaded
-  const sectionRef = Sefaria.getRefFromCache(srefs[0]).sectionRef;
-  const topics = Sefaria.topicsByRef(srefs)
-  return (
-    <div className={`topicList ${contentLang === 'hebrew' ? 'topicsHe' : 'topicsEn'}`}>
-      {
-        Sefaria.topicsByRef(sectionRef) === null ? (
+  const topics = Sefaria.topicsByRef(srefs);
+  const topicsBySectionRef =  Sefaria.topicsByRef(sectionRef);
+  if(!topicsBySectionRef){
+      return (
           <div className="webpageList empty">
             <LoadingMessage />
           </div>
-        ) : (!topics || !topics.length) ? (
+      );
+  }
+  return (
+    <div className={`topicList ${contentLang === 'hebrew' ? 'topicsHe' : 'topicsEn'}`}>
+      {(!topics || !topics.length) ? (
           <div className="webpageList empty">
-            <LoadingMessage
-              message={"No topics known here."}
-              heMessage={"אין נושאים ידועים."}
-            />
+            <div className="loadingMessage sans-serif">
+              <ContentText text={{en:"No known Topics Here.", he: "אין קשרים ידועים."}}/>
+            </div>
           </div>
         ) : topics.map(
           topic => (
@@ -918,8 +921,7 @@ const TopicList = ({ srefs, interfaceLang, contentLang }) => {
               srefs={srefs}
             />
           )
-        )
-      }
+        )}
     </div>
   );
 }

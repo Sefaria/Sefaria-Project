@@ -63,21 +63,13 @@ class AboutBox extends Component {
     this.props.setConnectionsMode("Translation Open", {previousMode: "About"});
     this.props.setFilter(Sefaria.getTranslateVersionsKey(versionTitle, versionLanguage));
   }
+  isSheet(){
+    return this.props.srefs[0].startsWith("Sheet");
+  }
   render() {
     const d = this.state.details;
-    const category = Sefaria.index(this.state.details.title).primary_category;
-    const isDictionary = d?.lexiconName;
-    const sourceVersion = this.state.currentVersionsByActualLangs?.he;
-    const translationVersions = Object.entries(this.state.currentVersionsByActualLangs).filter(([lang, version]) => lang != "he").map(([lang, version])=> version);
-    const multiple_translations = translationVersions?.length > 1;
-    const no_source_versions = multiple_translations || translationVersions?.length == 1 && !sourceVersion;
-    const sourceVersionSectionTitle = {en: "Current Version", he:"מהדורה נוכחית"};
-    const translationVersionsSectionTitle = multiple_translations ? {en: "Current Translations", he:"תרגומים נוכחיים"} : {en: "Current Translation", he:"תרגום נוכחי"};
-    const alternateVersionsSectionTitle = no_source_versions ? {en: "Source Versions", he:"מהדורות בשפת המקור"} : {en: "Alternate Source Versions", he:"מהדורות נוספות בשפת המקור"}
-
-    if (this.props.srefs[0].startsWith("Sheet")) {
-      let detailSection = null;
-
+    let detailsSection = null;
+    if (this.isSheet()) {
       if (d) {
           detailSection = (<div className="detailsSection">
                   <h2 className="aboutHeader">
@@ -98,6 +90,16 @@ class AboutBox extends Component {
       }
       return <section className="aboutBox">{detailSection}</section>;
     }
+
+    const category = Sefaria.index(this.state?.details?.title)?.primary_category;
+    const isDictionary = d?.lexiconName;
+    const sourceVersion = this.state.currentVersionsByActualLangs?.he;
+    const translationVersions = Object.entries(this.state.currentVersionsByActualLangs).filter(([lang, version]) => lang != "he").map(([lang, version])=> version);
+    const multiple_translations = translationVersions?.length > 1;
+    const no_source_versions = multiple_translations || translationVersions?.length == 1 && !sourceVersion;
+    const sourceVersionSectionTitle = {en: "Current Version", he:"מהדורה נוכחית"};
+    const translationVersionsSectionTitle = multiple_translations ? {en: "Current Translations", he:"תרגומים נוכחיים"} : {en: "Current Translation", he:"תרגום נוכחי"};
+    const alternateVersionsSectionTitle = no_source_versions ? {en: "Source Versions", he:"מהדורות בשפת המקור"} : {en: "Alternate Source Versions", he:"מהדורות נוספות בשפת המקור"}
 
     let detailSection = null;
     if (d) {
