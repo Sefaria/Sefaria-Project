@@ -25,7 +25,8 @@ import {
   CommunityPagePreviewControls,
 } from './Misc';
 import Component from 'react-class';
-
+import ReactTags from 'react-tag-autocomplete';
+window.ReactTags = ReactTags; // for use in categorize_sheets
 
 class ReaderApp extends Component {
   constructor(props) {

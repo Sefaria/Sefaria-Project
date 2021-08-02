@@ -11,6 +11,16 @@ body,
     font-weight: normal;
 }
 
+body {
+    height: calc(100% - 60px);
+    
+}
+
+#staticContentWrapper {
+    height: 100%;
+    margin-top: 60px;
+}
+
 .categorizer {
     display: flex;
     flex-direction: row;
@@ -34,6 +44,7 @@ a {
     align-content: stretch;
     align-items: flex-start;
     padding: 15px;
+    box-sizing: border-box;
 }
 
 #iframeContainer {

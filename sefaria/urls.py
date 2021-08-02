@@ -210,7 +210,7 @@ urlpatterns += [
     url(r'^api/sheets/(?P<sheet_id>\d+)/export_to_drive$',            sheets_views.export_to_drive),
     url(r'^api/sheets/upload-image$',                                 sheets_views.upload_sheet_media),
     url(r'^api/sheets/next-untagged/?$',                              sheets_views.next_untagged),
-    url(r'^api/sheets/next-uncategorized/?$'                    sheets_views.next_uncategorized)
+    url(r'^api/sheets/next-uncategorized/?$',                         sheets_views.next_uncategorized)
 ]
 
 # Unlink Google Account Subscribe
