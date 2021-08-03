@@ -298,6 +298,7 @@ urlpatterns += [
     url(r'^random/?$',           reader_views.random_text_page),
     url(r'^daf-roulette/?$',     reader_views.daf_roulette_redirect),
     url(r'^chavruta/?$',         reader_views.chevruta_redirect),
+    url(r'^beit-midrash/?$',     reader_views.beit_midrash_redirect),
 ]
 
 # Registration
@@ -351,6 +352,9 @@ urlpatterns += [
 # chavruta.js -
 urlpatterns += [
     url(r'^chavruta\.js$', sefaria_views.chavruta_js)
+]
+urlpatterns += [
+    url(r'^beit-midrash\.js$', sefaria_views.beit_midrash_js)
 ]
 
 

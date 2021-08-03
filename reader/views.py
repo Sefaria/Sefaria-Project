@@ -169,7 +169,7 @@ def base_props(request):
     """
     from sefaria.model.user_profile import UserProfile, UserWrapper
     from sefaria.site.site_settings import SITE_SETTINGS
-    from sefaria.settings import DEBUG, GLOBAL_INTERRUPTING_MESSAGE
+    from sefaria.settings import DEBUG, GLOBAL_INTERRUPTING_MESSAGE, RTC_SERVER
 
     if hasattr(request, "init_shared_cache"):
         logger.warning("Shared cache disappeared while application was running")
@@ -237,6 +237,7 @@ def base_props(request):
         "trendingTopics": trending_topics(days=7, ntags=5),
         "_siteSettings": SITE_SETTINGS,
         "_debug": DEBUG,
+        "rtc_server": RTC_SERVER
     })
     return user_data
 
@@ -4318,3 +4319,9 @@ def chevruta_redirect(request):
         "starting_ref": starting_ref,
         "roulette": roulette
     })
+
+@login_required
+def beit_midrash_redirect(request):
+    title = _("Sefaria Beit Midrash")
+    desc  = _("The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more.")
+    return menu_page(request, page="beit_midrash", title=title, desc=desc)

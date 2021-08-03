@@ -556,6 +556,10 @@ class ReaderApp extends Component {
             hist.url = "texts/history";
             hist.mode = "history";
             break;
+          case "beit_midrash":
+            hist.title = Sefaria._("Sefaria Beit Midrash");
+            hist.url = "beit-midrash";
+            hist.mode = "beit-midrash";
         }
 
       } else if (state.mode === "Text") {

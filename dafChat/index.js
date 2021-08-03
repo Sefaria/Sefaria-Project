@@ -33,17 +33,21 @@ const pcConfig = {
 
 //setup static server and initialize sockets
 const PORT = process.env.PORT || 8080;
-const fileServer = new(nodeStatic.Server)();
-const app = http.createServer(function(req, res) {
-    fileServer.serve(req, res);
-    // console.log(req.headers)
-}).listen(PORT);
+const httpServer = require("http").createServer();
 
-const io = socketIO.listen(app);
+const io = require("socket.io")(httpServer, {
+  cors: {
+    origin: "http://localhost:8000",
+    methods: ["GET", "POST"]
+  }
+});
 
+httpServer.listen(PORT)
 
+const peopleInBeitMidrash = [];
 
-io.sockets.on('connection', function(socket) {
+io.on("connection", (socket) => {
+  console.log("connected")
 
   socket.on('message', function(message, roomId) {
     socket.to(roomId).emit('message', message);
@@ -51,17 +55,41 @@ io.sockets.on('connection', function(socket) {
 
   function createNewRoom(uid, namespace="dafRoulette", uroom=false) {
     const room = uroom ? uroom : Math.random().toString(36).substring(7);
-    socket.join(room, () => {
-      console.log(`${socket.id} created room ${room}`);
-      socket.emit('created', room);
-      db.run(`INSERT INTO chatrooms(name, clients, roomStarted, namespace) VALUES(?, ?, ?, ?)`, [room, uid, +new Date, namespace], function(err) {
-        if (err) {
-          console.log(err.message);
-        }
-      });
+    socket.join(room);
+    console.log(`${socket.id} created room ${room}`);
+    socket.emit('created', room);
+    db.run(`INSERT INTO chatrooms(name, clients, roomStarted, namespace) VALUES(?, ?, ?, ?)`, [room, uid, +new Date, namespace], function(err) {
+      if (err) {
+        console.log(err.message);
+      }
     });
+  
+  
   }
 
+  function addUser(uid) {
+    peopleInBeitMidrash.push(uid);
+  }
+  function removeUser(uid) {
+    const index = peopleInBeitMidrash.indexOf(uid);
+    peopleInBeitMidrash.splice(index, 1);
+  }
+  
+  socket.on("enter beit midrash", function(uid){
+    console.log("someone entered the beit midrash!");
+    addUser(uid);
+    console.log(peopleInBeitMidrash);
+    socket.broadcast.emit("change in people", peopleInBeitMidrash);
+    socket.emit("change in people", peopleInBeitMidrash);
+  })
+
+  socket.on("leave beit midrash", function(uid) {
+    console.log("Someone left the beit midrash!");
+    removeUser(uid);
+    console.log(peopleInBeitMidrash);
+    socket.broadcast.emit("change in people", peopleInBeitMidrash);
+    socket.emit("change in people", peopleInBeitMidrash);
+  })
 
 
 
@@ -100,12 +128,11 @@ io.sockets.on('connection', function(socket) {
 
       else if (row.clients != 0) {
         console.log(socket.id +' attempting to join room: '+ room)
-        socket.join(room, () => {
-          console.log('Client ID ' + socket.id + ' joined room ' + room);
-          socket.to(room).emit('join', room);
-          socket.emit('join', room);
-          db.run(`UPDATE chatrooms SET clients=? WHERE name=?`, [0, room]);
-        })
+        socket.join(room)
+        console.log('Client ID ' + socket.id + ' joined room ' + room);
+        socket.to(room).emit('join', room);
+        socket.emit('join', room);
+        db.run(`UPDATE chatrooms SET clients=? WHERE name=?`, [0, room]);
       }
 
       else {
@@ -154,12 +181,12 @@ io.sockets.on('connection', function(socket) {
             else {
               const room = rows[rowIndex].name;
               console.log(socket.id +' attempting to join room: '+ room)
-              socket.join(room, () => {
-                console.log('Client ID ' + socket.id + ' joined room ' + room);
-                socket.to(room).emit('join', room);
-                socket.emit('join', room);
-                db.run(`UPDATE chatrooms SET clients=? WHERE name=?`, [0, room]);
-              });
+              socket.join(room);
+              console.log('Client ID ' + socket.id + ' joined room ' + room);
+              socket.to(room).emit('join', room);
+              socket.emit('join', room);
+              db.run(`UPDATE chatrooms SET clients=? WHERE name=?`, [0, room]);
+              
               foundRoom = true;
             }
           }
