@@ -44,7 +44,7 @@ const io = require("socket.io")(httpServer, {
 
 httpServer.listen(PORT)
 
-const peopleInBeitMidrash = [];
+const peopleInBeitMidrash = {};
 
 io.on("connection", (socket) => {
   console.log("connected")
@@ -63,35 +63,22 @@ io.on("connection", (socket) => {
         console.log(err.message);
       }
     });
-  
-  
   }
 
-  function addUser(uid) {
-    peopleInBeitMidrash.push(uid);
+  function addUserToBeitMidrash(uid, socketId) {
+    peopleInBeitMidrash[socketId] = uid;
+    socket.broadcast.emit("change in people", Object.values(peopleInBeitMidrash));
+    socket.emit("change in people", Object.values(peopleInBeitMidrash));
   }
-  function removeUser(uid) {
-    const index = peopleInBeitMidrash.indexOf(uid);
-    peopleInBeitMidrash.splice(index, 1);
+  function removeUserFromBeitMidrash(socketId) {
+    delete peopleInBeitMidrash[socketId];
+    socket.broadcast.emit("change in people", Object.values(peopleInBeitMidrash));
+    socket.emit("change in people", Object.values(peopleInBeitMidrash));
   }
   
-  socket.on("enter beit midrash", function(uid){
-    console.log("someone entered the beit midrash!");
-    addUser(uid);
-    console.log(peopleInBeitMidrash);
-    socket.broadcast.emit("change in people", peopleInBeitMidrash);
-    socket.emit("change in people", peopleInBeitMidrash);
-  })
+  socket.on("enter beit midrash", ()=> addUserToBeitMidrash(uid, socket.id));
 
-  socket.on("leave beit midrash", function(uid) {
-    console.log("Someone left the beit midrash!");
-    removeUser(uid);
-    console.log(peopleInBeitMidrash);
-    socket.broadcast.emit("change in people", peopleInBeitMidrash);
-    socket.emit("change in people", peopleInBeitMidrash);
-  })
-
-
+  socket.on("disconnect", () => removeUserFromBeitMidrash(socket.id));
 
   socket.on('does room exist', function(roomID, uid) {
     let sql = `SELECT name, clients FROM chatrooms WHERE name = ?`;

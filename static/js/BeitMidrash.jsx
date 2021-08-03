@@ -12,39 +12,25 @@ import UserProfile from './UserProfile';
 
 
 const BeitMidrash = () => {
-    const socket = io(`//${Sefaria.rtc_server}`);
-
     const [peopleInBeitMidrash, setPeopleInBeitMidrash] = useState(null);
     
-    const beitMidrashContainer = useRef();
-
-    const leave = useCallback ( event => {
-        event.preventDefault()
-        console.log("leaving beit midrash!")
-        socket.emit("leave beit midrash", Sefaria._uid)
-    }, [])
-
-    useEffect(() => {
-        console.log("entered beit midrash")
-        socket.emit("enter beit midrash", Sefaria._uid)
-    }, []);
-
     useEffect(
         () => {
-                window.addEventListener('beforeunload', leave);
-                return () => {
-                    window.removeEventListener('beforeunload', leave);
-                };
-        }, []
-    )
-    
-    socket.on("change in people", function(people) {
-        console.log(people)
-        setPeopleInBeitMidrash(people)
-    })
-    
+            const socket = io(`//${Sefaria.rtc_server}`);
+            socket.emit("enter beit midrash", Sefaria._uid);
+            socket.on("change in people", function(people) {
+                console.log(people);
+                const dedupedPeople = [...new Set(people)];
+                setPeopleInBeitMidrash(dedupedPeople);
+            })
+            return () => {
+                socket.disconnect()
+            }
+        }, 
+    [])
+
     return (
-        <div ref={beitMidrashContainer}>
+        <div>
         <h1>Beit Midrash</h1>
         {peopleInBeitMidrash ? peopleInBeitMidrash.map(uid => {
             return <li key={uid}>{uid}</li>
