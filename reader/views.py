@@ -1745,7 +1745,7 @@ def shape_api(request, title):
                 leaves = cat.get_leaf_nodes() if depth == 0 else [n for n in cat.get_leaf_nodes_to_depth(depth)]
                 leaves = [n for n in leaves if not isinstance(n, TocCollectionNode)]
                 if not include_dependents:
-                    leaves = [n for n in leaves if not n.dependence]
+                    leaves = [n for n in leaves if not getattr(n, "dependence", None)]
 
                 res = [_simple_shape(jan) for toc_index in leaves for jan in toc_index.get_index_object().nodes.get_leaf_nodes()]
 

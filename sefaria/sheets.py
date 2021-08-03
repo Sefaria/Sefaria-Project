@@ -346,8 +346,13 @@ def trending_topics(days=7, ntags=14):
 
 	# For testing purposes: if nothing is trennding in specified number of days, 
 	# (because local data is stale) look at a bigger window
+	# ------
+	# Updated to return an empty array on 7/29/21 b/c it was causing a recursion error due to stale data on sandboxes
+	# or local and for folks who only had the public dump.
+	# -----------
 	if len(results) == 0:
-		return []
+		return[]
+		#return trending_topics(days=180, ntags=ntags)
 
 	return results[:ntags]
 
