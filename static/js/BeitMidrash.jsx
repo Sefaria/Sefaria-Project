@@ -17,7 +17,7 @@ const BeitMidrash = () => {
     useEffect(
         () => {
             const socket = io(`//${Sefaria.rtc_server}`);
-            socket.emit("enter beit midrash", Sefaria._uid);
+            socket.emit("enter beit midrash", Sefaria._uid, Sefaria.full_name);
             socket.on("change in people", function(people) {
                 console.log(people);
                 const dedupedPeople = [...new Set(people)];
@@ -32,8 +32,11 @@ const BeitMidrash = () => {
     return (
         <div>
         <h1>Beit Midrash</h1>
-        {peopleInBeitMidrash ? peopleInBeitMidrash.map(uid => {
-            return <li key={uid}>{uid}</li>
+        {peopleInBeitMidrash ? peopleInBeitMidrash.map(user => {
+            return <li key={user.uid}>
+                {user.name}
+                <button>Connect</button>
+            </li>
         }) : null}
         </div>
     )
