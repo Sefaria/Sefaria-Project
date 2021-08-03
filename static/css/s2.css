@@ -2553,6 +2553,7 @@ a.navBlockTitle:hover {
 .sheetContent .sheetMetaDataBox .collectionStatement a,
 .sheetContent .sheetMetaDataBox .authorStatement a {
   color: #999;
+  margin-inline-start: 5px;
 }
 .bookPage .currentSection .he,
 .bookPage .authorStatement .he,
@@ -6955,6 +6956,7 @@ a .button:hover {
 .sheetMetaDataBox .collectionListingImageBox,
 .tocTop .collectionListingImageBox {
   background-color: transparent;
+  overflow: initial;
 }
 .sheetMetaDataBox .title {
   display: block;

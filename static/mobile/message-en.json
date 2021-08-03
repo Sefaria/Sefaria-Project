@@ -1,1 +1,10 @@
-null
+{
+	"title": "Sefaria is hiring!,",
+	"text": [
+		"Join the Sefaria Team! We're hiring Senior Software Engineer and Infrastructure Engineer."
+    ],
+	"buttonLink": "https://www.sefaria.org/jobs",
+	"buttonText": "Learn More",
+	"name": "job-announcement-banner-2021",
+	"schemaVersion": 1
+}
