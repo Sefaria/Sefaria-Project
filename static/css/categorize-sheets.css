@@ -60,3 +60,15 @@ a {
 iframe.sheet {
     width: 100%
 }
+div.categorize-section {
+    margin: 0 0 10px 0;
+}
+
+fieldset {
+    border: 0;
+    padding: 0;
+}
+
+.publishBox {
+    min-width: calc(100% - 50px);
+}

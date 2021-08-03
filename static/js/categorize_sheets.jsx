@@ -9,23 +9,28 @@ class SheetCategorizer extends React.Component {
       categories: {},
       allCategories: props.allCategories,
       noTags: false,
+      previousTags: [],
       adminType: props.adminType,
     };
     this.saveAndNext = this.saveAndNext.bind(this);
 
     this.reactTags = React.createRef();
-    // this.categorizeSelections = React.createRef();
   }
 
   onTagDelete(i) {
     const tags = this.state.tags.slice(0);
     tags.splice(i, 1);
-    this.setState({ tags });
+    if (tags.length === 0) {
+      this.setState({ tags, previousTags: tags, noTags: true });
+    }
+    else {
+      this.setState({tags, previousTags: tags})
+    }
   }
 
   onTagAddition(tag) {
     const tags = [].concat(this.state.tags, tag);
-    this.setState({ tags });
+    this.setState({ tags, previousTags: tags, noTags: false });
   }
 
   updateSuggestedTags(input) {
@@ -49,10 +54,7 @@ class SheetCategorizer extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    // Typical usage (don't forget to compare props):
-    console.log("componentDidUpdate");
     if (this.state.sheetId !== prevState.sheetId) {
-      console.log("componentDidUpdate different state");
       this.getSheet();
     }
   }
@@ -84,7 +86,6 @@ class SheetCategorizer extends React.Component {
         data: JSON.stringify(postJSON), // access in body
         success: function(data) {
           if (data.sheetId) {
-            console.log("saved...");
             this.setState({ sheetId: data.sheetId, allCategories: data.allCategories });
           } else {
             console.log(data);
@@ -98,7 +99,6 @@ class SheetCategorizer extends React.Component {
     Sefaria.sheets.loadSheetByID(
       this.state.sheetId,
       function (x) {
-        console.log(x);
         const topics = x.topics.map((topic, i) => ({
           id: i,
           name: topic["asTyped"],
@@ -106,10 +106,9 @@ class SheetCategorizer extends React.Component {
         })
       )
       const categories = x.categories ? x.categories.reduce((a, x) => {
-        return {...z, [x]: true}
+        return {...a, [x]: true}
       }, {}) : {};
-      this.setState({ tags: topics, categories: categories, noTags: x.noTags});
-        console.log("hi");
+      this.setState({ tags: topics, previousTags: topics, categories: categories, noTags: x.noTags});
       }.bind(this)
     );
   }
@@ -130,24 +129,39 @@ class SheetCategorizer extends React.Component {
     const categories = this.state.categories;
     categories[e.target.name] = e.target.checked;
     this.setState({categories: categories})
-    console.log(this)
   }
 
-  handleInputChange(e) {
+  handleNoTagsChange(e) {
     const target = e.target;
-    const value = target.type === 'checkbox' ? target.checked : target.value;
-    const name = target.name;
-
-    this.setState({
-      [name]: value
-    });
+    const value = target.checked;
+    if(value === true) { // remove Tags
+      this.setState({
+        noTags: value,
+        tags: []
+      });
+    } else { 
+      this.setState({
+        noTags: value,
+        tags: this.state.previousTags
+      });
+    }
   }
 
   render() {
     return (
       <div className="categorizer">
         <div id="edit-pane">
-          Left pane
+          <h3>Topics:</h3>
+          <div class="categorize-section">
+          <input
+          type="checkbox"
+          name="noTags"
+          checked={this.state.noTags || false}
+          onChange={this.handleNoTagsChange.bind(this)}
+          ></input>
+          <label htmlFor="noTags">No Tags</label>
+          </div>
+          <div class="publishBox">
           <reactTagGlobal.ReactTags
             ref={this.reactTags}
             allowNew={true}
@@ -159,7 +173,10 @@ class SheetCategorizer extends React.Component {
             delimiters={["Enter", "Tab", ","]}
             onInput={this.updateSuggestedTags.bind(this)}
           />
-          <div>
+          </div>
+        <div class="categorize-section">
+          <fieldset>
+           <h3> Categories:</h3>
         {
         this.state.allCategories.map(category => (
           <div>
@@ -174,16 +191,10 @@ class SheetCategorizer extends React.Component {
           </div>
         ))
       }
+      </fieldset>
       <input type="text" id="newCategory" placeholder="New Category" onKeyUp={this.addCategory.bind(this)}></input><button onClick={this.addCategory.bind(this)}>Add</button>
       </div>
-          <input
-          type="checkbox"
-          name="noTags"
-          checked={this.state.noTags || false}
-          onChange={this.handleInputChange.bind(this)}
-          ></input>
-          <label htmlFor="noTags">No Tags</label>
-          <button onClick={this.saveAndNext}>Next Sheet</button>
+        <button onClick={this.saveAndNext}>Next Sheet</button>
         </div>
         <div id="iframeContainer">
           <iframe
