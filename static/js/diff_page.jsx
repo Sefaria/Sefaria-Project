@@ -206,7 +206,7 @@ class DataForm extends Component {
 
   componentWillMount() {
     if (Sefaria.isRef(this.state.secRef)) {
-      Sefaria.versions(this.state.secRef, true, null, false).then(this.loadPossibleVersions);
+      Sefaria.getVersions(this.state.secRef, true, null, false).then(this.loadPossibleVersions);
     }
   }
 
@@ -239,7 +239,7 @@ class DataForm extends Component {
 
   componentDidUpdate(prevProps, prevState) {
     if (Sefaria.isRef(this.state.secRef) && this.state.lang) {
-      Sefaria.versions(this.state.secRef, true, null, false).then(this.loadPossibleVersions);
+      Sefaria.getVersions(this.state.secRef, true, null, false).then(this.loadPossibleVersions);
     } else {
       this.setState({possibleVersions: null});
     }

@@ -15,7 +15,7 @@ body.dark {
 body:not(.user-is-tabbing) *:focus {
   outline: none;
 }
-a {
+a, a:hover {
   color: inherit;
 }
 @font-face {
@@ -24,13 +24,64 @@ a {
   src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-Medium.ttf'), local(Georgia), local(serif);
   unicode-range: U+0590-05FF, U+25CC;
 }
+@font-face {
+  /*Mixed Hebrew - English serif text*/
+  font-family: 'HebrewInEnglish Serif Font';
+  src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-Bold.ttf'), local(Georgia), local(serif);
+  font-weight: bold;
+  unicode-range: U+0590-05FF, U+25CC;
+}
+@font-face {
+  /*Mixed Hebrew - English serif text*/
+  font-family: 'HebrewInEnglish Serif Font';
+  src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-MediumOblique.ttf'), local(Georgia), local(serif);
+  font-style: italic;
+  unicode-range: U+0590-05FF, U+25CC;
+}
+@font-face {
+  /*Mixed Hebrew - English serif text*/
+  font-family: 'HebrewInEnglish Serif Font';
+  src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-BoldOblique.ttf'), local(Georgia), local(serif);
+  font-weight: bold;
+  font-style: italic;
+  unicode-range: U+0590-05FF, U+25CC;
+}
+@font-face {
+  /*Mixed English - Hebrew serif text*/
+  font-family: 'EnglishInHebrew Serif Font';
+  src: url("https://use.typekit.net/af/2011b6/00000000000000003b9b00c1/27/l?primer=7fa3915bdafdf03041871920a205bef951d72bf64dd4c4460fb992e3ecc3a862&fvd=n4&v=3");
+  font-weight: normal;
+  unicode-range: U+0041-007A;
+}
+@font-face {
+  /*Mixed English - Hebrew serif text*/
+  font-family: 'EnglishInHebrew Serif Font';
+  src: url("https://use.typekit.net/af/af619f/00000000000000003b9b00c5/27/l?primer=7fa3915bdafdf03041871920a205bef951d72bf64dd4c4460fb992e3ecc3a862&fvd=n7&v=3");
+  font-weight: bold;
+  unicode-range: U+0041-007A;
+}
+@font-face {
+  /*Mixed English - Hebrew serif text*/
+  font-family: 'EnglishInHebrew Serif Font';
+  src: url("https://use.typekit.net/af/5cace6/00000000000000003b9b00c2/27/l?primer=7fa3915bdafdf03041871920a205bef951d72bf64dd4c4460fb992e3ecc3a862&fvd=i4&v=3");
+  font-style: italic;
+  unicode-range: U+0041-007A;
+}
+@font-face {
+  /*Mixed English - Hebrew serif text*/
+  font-family: 'EnglishInHebrew Serif Font';
+  src: url("https://use.typekit.net/af/6c275f/00000000000000003b9b00c6/27/l?primer=7fa3915bdafdf03041871920a205bef951d72bf64dd4c4460fb992e3ecc3a862&fvd=i7&v=3");
+  font-style: italic;
+  font-weight: bold;
+  unicode-range: U+0041-007A;
+}
 :root {
   /* font stacks */
   --english-sans-serif-font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   --hebrew-sans-serif-font-family: "Heebo", "Roboto", sans-serif;
 
   --english-serif-font-family: "HebrewInEnglish Serif Font", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
-  --hebrew-serif-font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", "Times New Roman", serif;
+  --hebrew-serif-font-family: "EnglishInHebrew Serif Font", "Taamey Frank", "adobe-garamond-pro", "Crimson Text", "Times New Roman", serif;
 
   --serif-h1-font-size: 48px;
   --serif-h2-font-size: 30px;
@@ -72,6 +123,7 @@ a {
   --grammar-green: #B2B272;
   --reference-orange: #D4896C;
   --miscelaneous-green: #3B5849;
+  --selected-option: #000000;
 }
 /* Font Family */
 body, .sans-serif {
@@ -92,6 +144,7 @@ body, .en, .int-en {
   --is-hebrew: initial; /* false */
 }
 .he, .int-he {
+  unicode-bidi: plaintext;
   --is-hebrew: ; /* true */
 }
 
@@ -282,9 +335,9 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
   width: 100%;
   height: 100%;
 }
-.nochrome #s2 .headerNavSection,
-.nochrome #s2 .headerLinksSection,
-.nochrome #footerContainer {
+body:not(.inApp).nochrome #s2 .headerNavSection a:not(.home),
+body:not(.inApp).nochrome #s2 .headerLinksSection,
+body:not(.inApp).nochrome #footerContainer {
   display: none;
 }
 #bannerMessage {
@@ -374,14 +427,13 @@ body.hasBannerMessage #s2.headerOnly {
   position: relative;
 }
 .noselect {
-  -webkit-touch-callout: none; /* iOS Safari */
-    -webkit-user-select: none; /* Safari/Opera */
-       -moz-user-select: none; /* Firefox */
-        -ms-user-select: none; /* Internet Explorer/Edge */
-            user-select: none; /* Non-prefixed version, Chrome */
+  user-select: none;
 }
 input.noselect {
   -webkit-user-select: auto; /* Safari/Opera -- required for Safari to allow inputs to be accessible. See http://caniuse.com/#feat=user-select-none "Known Issues" for details  TODO Check back to see if bug is fixed in future version */
+}
+.interface-hebrew {
+  direction: rtl;
 }
 .interface-hebrew .int-en,
 .interface-english .int-he {
@@ -428,18 +480,20 @@ input.noselect {
 .headerOnly .headerInner, .headerInner.boxShadow {
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
-.interface-hebrew .headerInner {
+.interface-hebrew .header {
   direction: rtl;
 }
 .headerInner .headerNavSection {
   display: flex;
   justify-content: flex-start;
 }
-.headerInner .headerHomeSection {
-  position: absolute;
-  top: 17px;
-  left: 50%;
-  margin-left: -46px;
+.headerInner .headerNavSection a {
+  font-size: 16px;
+  color: #666;
+  margin-inline-end: 30px;
+  font-weight: 500;
+  line-height: 26px;
+  vertical-align: middle;
 }
 .headerInner .headerLinksSection {
   display: flex;
@@ -453,12 +507,35 @@ input.noselect {
 .header .header-links {
   margin-top: 1px;
 }
-.header .library, .header .home, .header .my-profile, .header .notifications, .header .readerNavMenuSearchButton {
+.header .textLink,
+.header .home,
+.header .menuButton,
+.header .my-profile,
+.header .notifications,
+.header .readerNavMenuSearchButton {
   cursor: pointer;
 }
-.header .library, .header .my-profile, .header .readerNavMenuSearchButton {
+.header .textLink,
+.header .menuButton,
+.header .my-profile,
+.header .readerNavMenuSearchButton {
   display: inline-block;
   color: #999;
+  border: none;
+  background: transparent;
+  padding: 0;
+}
+.header .my-profile, 
+.header .notifications {
+  display: inline-block;
+  vertical-align: middle;
+}
+.header .textLink,
+.header .menuButton,
+.header .my-profile {
+  font-size: 24px;
+  line-height: 24px;
+  margin-top: 2px;
 }
 .header .searchBox {
   overflow: hidden;
@@ -466,17 +543,19 @@ input.noselect {
   align-items: center;
   padding: 0;
   text-align: inherit;
-  margin: 0 17px 0 17px;
   background: #EDEDEC;
   border-radius: 250px;
   width: 140px;
   height: 30px;
 }
 .header .searchBox.searchFocused {
-  width: 240px;
+  width: 280px;
 }
 .header .searchBox input {
   background-color: transparent; /*for firefox */
+  padding: 0;
+  flex: 1;
+  height: 100%;
 }
 .header .searchBox input::placeholder {
   font-style: normal;
@@ -491,10 +570,104 @@ input.noselect {
   width: 100px;
 }
 .header .searchFocused .search {
-  width: 160px;
+  width: 200px;
 }
 .header .search.hebrewSearch {
   font-size: 18px;
+}
+.mobileNavMenu {
+  position: fixed;
+  height: calc(100% - 60px);
+  box-sizing: border-box;
+  top: 60px;
+  width: 100%;
+  background-color: white;
+  left: 0;
+  z-index: 1000;
+  overflow-y: scroll;
+}
+.mobileNavMenu.closed {
+  display: none;
+}
+.mobileNavMenu .searchLine {
+  padding: 15px 10px;
+  border-bottom: 1px solid #EDEDEC;
+}
+.header .mobileNavMenu .searchBox,
+.header .mobileNavMenu .searchBox.searchFocused
+.header .mobileNavMenu .searchBox .search,
+.header .mobileNavMenu .searchBox.searchFocused .search {
+  width: 100%;
+}
+.header.mobile .ui-autocomplete {
+  width: 100% !important;
+}
+.mobileNavMenu a,
+.mobileInterfaceLanguageToggle {
+  display: block;
+  color: #666;
+  font-size: 16px;
+  padding: 15px;
+  border-bottom: 1px solid #EDEDEC;
+}
+.mobileNavMenu a > img,
+.mobileInterfaceLanguageToggle img {
+  margin-inline-end: 15px;
+  width: 16px;
+  height: 16px;
+  position: relative;
+  top: 3px;
+}
+.mobileNavMenu a > img.blackIcon {
+  opacity: 0.4;
+}
+.mobileNavMenu a.blue {
+  background-color: #18345D;
+  color: white;
+}
+.mobileNavMenu a.blue img {
+  filter: invert(1);
+  opacity: 1;
+}
+.mobileNavMenu .mobileAccountLinks {
+  background-color: #FBFBFA;
+  border-top: 1px solid #CCC;
+  border-bottom: 1px solid #CCC;
+}
+.mobileNavMenu .mobileAccountLinks img {
+  opacity: 1;
+}
+.mobileNavMenu .mobileAccountLinks .login {
+  display: block;
+  padding: 15px;
+}
+.mobileNavMenu .profile-pic {
+  display: inline-block;
+  margin-inline-end: 11px;
+  position: relative;
+  top: 4px;
+}
+.mobileNavMenu .mobileAccountLinks .accountLinks {
+  display: block;
+}
+.header .mobileInterfaceLanguageToggle .int-en,
+.header .mobileInterfaceLanguageToggle .int-he {
+  display: inline;
+}
+.mobileInterfaceLanguageToggle a {
+  display: inline;
+  padding: 0;
+  border: none;
+}
+.mobileInterfaceLanguageToggle .separator {
+  margin: 0 7px;
+  font-size: 13px;
+}
+.mobileInterfaceLanguageToggle .inactive {
+  color: #999;
+}
+.mobileNavMenu .logout {
+  color: #999;
 }
 .ui-autocomplete .ui-menu-item.search-override {
   border-top: solid 1px #ccc;
@@ -507,42 +680,16 @@ input.noselect {
   direction: ltr;
 }
 .header .home {
-  margin-top: 1px;
+  margin-top: 2px;
 }
 .header .home img {
   vertical-align: middle;
+  height: 25px;
+  margin-top: -7px;
   width: 92px;
 }
-.header .login:first-child{
-  -webkit-margin-end: 0px;
-  -moz-margin-end: 0px;
-  margin-inline-end: 0px;
-}
-.header .notifications {
-  margin: 0 17px;
-}
-@media (max-width: 540px) {
-  .header .home {
-    display: none;
-  }
-  .header .accountLinks .login {
-    margin-left: 16px;
-  }
-  .header .searchBox input{
-    width: 45%;
-  }
-  .header .login:first-child {
-    margin: auto 20px;
-  }
-  .headerInner .headerNavSection{
-    width: 48%;
-  }
-  img.keyboardInputInitiator{
-    display: none;
-  }
-  .nochrome .header .home {
-    display: inline;
-  }
+.interface-hebrew .header .home img {
+  width: 77px;
 }
 .header .accountLinks {
   display: flex;
@@ -551,7 +698,14 @@ input.noselect {
   margin-top: 2px;
   color: #666;
 }
-.header .accountLinks.anon a:last-child {
+.header .accountLinks > * {
+  margin-inline-start: 17px;
+  position: relative;
+}
+.header .accountLinks.anon a {
+  margin: 0;
+}
+.header .accountLinks.anon a:last-child{
   background: #FFFFFF;
   border: 1px solid #EDEDEC;
   box-sizing: border-box;
@@ -576,17 +730,16 @@ input.noselect {
   height: 18px;
   width: 18px;
   vertical-align: middle;
-  -webkit-margin-end: 5px;
-  -moz-margin-end: 5px;
-  margin-inline-end: 5px;
+  margin-inline-end: 2px;
 }
 .header .interfaceLinks a.interfaceLinks-button::after {
   display: inline-block;
-  background-image: url("/static/icons/chevron-down.svg");
+  background: no-repeat url("/static/icons/chevron-down.svg");
   height: 10px;
-  width: 10px;
+  width: 12px;
   vertical-align: middle;
   content: "";
+  transform: scale(0.75);
 }
 .header .interfaceLinks .interfaceLinks-menu {
   top: 35px;
@@ -742,60 +895,69 @@ div.interfaceLinks-row a {
   content: "\f00c";
   padding: 0 8px;
 }
-@media screen and (max-width: 700px) {
-  .header .interfaceLinks {
-    display: none;
+@media screen and (max-width: 910px) {
+  .header .headerInner {
+    padding: 0 15px;
   }
-  .header .help {
-    display: none;
-  }
-  .header .profile-pic {
-    display: none;
-  }
-  .header .accountLinks .login{
+  .header .accountLinks .login {
     padding: 5px 5px;
   }
-  .header .accountLinks{
-    -webkit-margin-end: 0px;
-    -moz-margin-end: 0px;
-    margin-inline-end: 0px;
-  }
-  .header .login:first-child{
-    margin:auto;
+  .header .accountLinks {
+    margin-inline-start: 5px;
   }
 }
-.header .my-profile, .header .notifications {
-  display: inline-block;
-  vertical-align: middle;
+@media screen and (max-width: 780px) {
+  .header .donate {
+    display: none;
+  }
 }
-.header .library, .header .my-profile {
-  font-size: 24px;
-  line-height: 24px;
-  margin-top: 2px;
+@media screen and (max-width: 700px) {
+  .multiPanel .header .home {
+    display: none;
+  }
 }
-.header .library .fa {
-  position: relative;
-  top: 1px;
+@media screen and (max-width: 580px) {
+  .header .interfaceLinks,
+  .header .help,
+  .header .notifications {
+    display: none;
+  }
 }
-.header .notifications {
-  display: inline-block;
-  line-height: 24px;
-  height: 24px;
-  width: 24px;
-  text-align: center;
-  border-radius: 50%;
-  background-color: #aaa;
-  color: white;
-  font-size: 16px;
-}
-.header .notifications.unread {
-  background-color: #EFB4B6;
+.header .notifications.unread::after {
+  content:"";
+  background-color: #CB6158;
+  width: 8px;
+  height: 8px;
+  border-radius: 4px;
+  display: block;
+  top: 3px;
+  right: 1px;
+  position: absolute;
 }
 .header .login {
   color: #666;
   display: inline-block;
   line-height: 1;
   padding: 8px 15px;
+}
+.header .headerInner.mobile {
+  padding: 0 15px;
+}
+.header .headerInner.mobile {
+  display: flex;
+}
+.header .headerInner.mobile div {
+  flex: 1;
+}
+.mobileHeaderCenter {
+  text-align: center;
+}
+.header .headerInner.mobile .mobileHeaderLanguageToggle {
+  text-align: end;
+}
+.mobileHeaderLanguageToggle.hebrew .en,
+.mobileHeaderLanguageToggle.english .he {
+  display: none;
 }
 .overlay {
   width: 100%;
@@ -959,7 +1121,7 @@ div.interfaceLinks-row a {
 }
 .readerNavMenuSearchButton {
   position: relative;
-  margin: 0 10px 0 10px;
+  margin: 0 9px 0 7px;
   top: -2px;
 }
 .header .readerNavMenuSearchButton {
@@ -998,7 +1160,7 @@ div.interfaceLinks-row a {
   z-index: 1000 !important;
 }
 .ui-autocomplete .ui-menu-item {
-  display: block;
+  display: flex;
   padding: 6px 12px;
 }
 .interface-hebrew .ui-autocomplete .ui-menu-item {
@@ -1056,7 +1218,7 @@ div.interfaceLinks-row a {
   position: absolute;
   height: 100%;
   width: 100%;
-  direction:ltr;
+  direction: ltr; /* Even in Hebrew Interface we want scroll bars on the right */
 }
 .readerPanelBox + .readerPanelBox {
   border-left: 1px solid #eee;
@@ -1118,11 +1280,14 @@ div.interfaceLinks-row a {
 .int-he .int-he {
   font-size: inherit;
 }
+.readerPanel .content {
+  direction: ltr; /* Even in Hebrew Interface, we want scroll bars on the right */
+}
 .readerPanel .he {
   direction: rtl;
   text-align: right;
 }
-.interface-hebrew .readerPanel .en{
+.interface-hebrew .readerPanel .en {
   direction: ltr;
 }
 .interface-hebrew .readerPanel .contentInner,
@@ -1162,9 +1327,6 @@ div.interfaceLinks-row a {
   display: inline;
   text-align: right;
 }
-.readerPanel .recentPanel .sheetLink.recentItem {
-  font-family: var(--english-serif-font-family);
-}
 .readerPanel.hebrew .en {
   display: none;
 }
@@ -1179,24 +1341,10 @@ div.interfaceLinks-row a {
 .languageToggle img {
   opacity: 0.4;
   height: 18px;
+  width: 18px;
 }
-.systemPanel.english .content .he {
+.bilingual .languageToggle .he {
   display: none;
-}
-.systemPanel.hebrew .content .en {
-  display: none;
-}
-.interface-english .systemPanel .content .int-en {
-  display: inline;
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-.interface-english .systemPanel .content h1 .int-en {
-  display: inline;
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
-}
-.interface-hebrew .systemPanel .content .int-he {
-  display: inline;
-  font-family: "Heebo", sans-serif;
 }
 .loadingMessage {
   font-size: 14px;
@@ -1224,37 +1372,43 @@ div.interfaceLinks-row a {
   width: 100%;
   height: 100%;
   box-sizing: border-box;
-  z-index: 101;
-  background-color: #FBFBFA;
 }
 .readerNavMenu .content,
 .homeFeedWrapper .content {
-  position: relative;
   box-sizing: border-box;
-  padding: 30px 10px 10px;
-  flex: 1;
   overflow-y: scroll;
   -webkit-overflow-scrolling: touch;
-  font-size: 14px;
+  font-size: 16px;
 }
-.multiPanel .readerNavMenu .content {
-  padding: 30px 30px 70px 30px;
+.readerNavMenu .content {
+  padding: 60px 0 0 0;
 }
-.multiPanel .readerNavMenu .content.hasFooter {
-  padding: 30px 0 0 0;
+.singlePanel .readerNavMenu .content {
+  padding: 85px 0 0 0;
 }
-.multiPanel .readerNavMenu.noHeader .content,
-.multiPanel .homeFeedWrapper.noHeader .content {
-  padding-top: 80px;
+.singlePanel .readerNavMenu .categoryColorLine {
+  top: 60px;
 }
-.multiPanel .readerNavMenu.compare .content,
-.multiPanel .readerNavCategoryMenu.compare .content {
+.singlePanel .readerNavMenu.bookPage:not(.fullBookPage) .content {
+  padding-top: 25px;
+}
+.singlePanel .readerNavMenu.bookPage:not(.fullBookPage) .categoryColorLine {
+  top: 0;
+}
+.readerNavMenu.compare .content,
+.readerNavCategoryMenu.compare .content,
+.bookPage.compare .content {
   padding: 30px 10px;
 }
 .readerNavMenu .content .contentInner {
-  max-width: 660px;
+  width: 725px;
   margin: 0 auto;
   min-height: 520px;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding-bottom: 70px;
+  padding-inline-start: 30px;
+  padding-inline-end: 30px;
 }
 .homeFeedWrapper .content .contentInner {
   max-width: none;
@@ -1263,21 +1417,249 @@ div.interfaceLinks-row a {
   max-width: 660px;
   margin: 0 auto;
 }
+.navTitle {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  margin-bottom: 40px;
+}
+.navTitle.tight {
+  margin-bottom: 15px;
+}
+.readerNavMenu .navTitle h1,
+.singlePanel .readerNavMenu .navTitle h1 {
+  margin-bottom: 0;
+}
+.navTitle + .dedication {
+  margin-bottom: 20px;
+}
+.navSidebarModule + .dedication {
+  margin-top: -30px;
+}
+.navTitle .languageToggle,
+.tocTitle .languageToggle,
+.header .languageToggle {
+  text-align: center;
+  color: #ccc;
+  display: inline-flex;
+  width: 32px;
+  height: 32px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 22px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+.navTitleTab {
+  margin-inline-end: 26px;
+  color: #999;
+}
+.navTitleTab:hover {
+  color: inherit;
+  text-decoration: none;
+}
+.navTitleTab.current {
+  color: inherit;
+  pointer-events: none;
+}
+.readerNavMenu h1 .navTitleTab img {
+  height: 14px;
+  margin-inline-end: 6px;
+}
+.readerNavMenu h1 .navTitleTab.current img {filter: brightness(0.5);}
+.sidebarLayout {
+  display: flex;
+  flex-direction: row;
+}
+@media (max-width: 700px) {
+  .sidebarLayout {
+    flex-direction: column;
+  }
+}
+.sidebarLayout h1 {
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
+.interface-hebrew .sidebarLayout {
+  direction: rtl;
+}
+.readerPanel.hebrew .followsContentLang {
+  direction: rtl;
+}
+.navSidebar {
+  width: 420px;
+  background-color: #FBFBFA;
+  /* HACK: add grey background beyond bounding box of sidebar by utilizing negative margins! */
+  border-top: 80px solid #FBFBFA;
+  border-bottom: 120px solid #FBFBFA;
+  margin: -80px 0 0 0;
+}
+.singlePanel .navSidebar {
+  width: 100%;
+  margin: 20px 0 0 0;
+  padding: 30px 0 0 0;
+  border: none;
+}
+.navSidebarModule {
+  font-size: 16px;
+  color: #666;
+  margin-bottom: 34px;
+  padding: 0 44px;
+}
+.connectionsPanel .navSidebarModule{
+  padding: initial;
+}
+.singlePanel .navSidebarModule {
+  padding: 0 15px;
+}
+.singlePanel .contentInner .navSidebarModule {
+  padding: 0;
+}
+.singlePanel .contentInner .navSidebarModule h1 {
+  border: none;
+  padding: 0;
+}
+.readerPanel .navSidebarModule h3,
+.readerPanel .navSidebarModule h1,
+.readerPanel .bookPage h3{
+  margin: 0 0 20px;
+  font-size: 22px;
+  text-transform: none;
+  letter-spacing: 0;
+  border-bottom: 1px solid var(--light-grey);
+  padding-bottom: 14px;
+  font-weight: 500;
+  height: auto;
+}
+.navSidebarModule.blue {
+  background-color: var(--sefaria-blue);
+  color: white;
+  padding: 34px 44px 45px;
+}
+.singlePanel .navSidebarModule.blue {
+  padding: 34px 15px 45px;
+}
+.readerPanel .navSidebarModule.blue h3 {
+  color: white;
+}
+.navSidebarIcon {
+  height: 18px;
+  width: 18px;
+  margin-inline-end: 10px;
+  vertical-align: middle;
+  margin-top: -4px;
+}
+.navSidebarLink {
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+.navSidebarLink a {
+  color: black;
+}
+.navSidebarLink.gray a {
+  color: #666;
+}
+.navSidebarLink.ref {
+  font-size: 18px;
+}
+.navSidebar .linkList {
+  margin-top: 20px;
+}
+.navSidebarModule .button {
+  margin: 12px 0 0 0;
+}
+.navSidebarModule .button img {
+  filter: invert(1);
+  height: 18px;
+  width: 18px;
+  margin-inline-end: 10px;
+  vertical-align: middle;
+  margin-top: -2px;
+}
+.navSidebar .button.white img {
+  filter: none;
+  opacity: .6;
+}
+.navSidebar .button.appButton.white img {
+  opacity: 1;
+}
+.navSidebar .button.appButton.ios img {
+  margin-top: -5px;
+}
+.navSidebar .button + .button {
+  margin-inline-start: 7px;
+}
+.navSidebar .readingsSection {
+  margin-bottom: 15px;
+}
+.navSidebar .readingsSectionTitle {
+  margin-bottom: 8px;
+  display: block;
+}
+.navSidebar a.allLink {
+  color: #999;
+  font-size: 13px;
+}
+.navSidebar a.moreLink:hover {
+  color: inherit;
+  cursor: pointer;
+}
+.navSidebar a.inTextLink {
+  color: inherit;
+  text-decoration: underline;
+  margin-inline-start: 5px;
+}
+.navSidebar .newsletterSignUpBox {
+  margin-top: 20px;
+}
+.navSidebar .newsletterSignUpBox .newsletterInput {
+  width: 100%;
+  box-sizing: border-box;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  border: none;
+}
+.navSidebarModule.wide {
+  display: flex;
+  margin-bottom: 0;
+}
+.navSidebarModule.wide div:first-child {
+  flex: 1;
+}
+.navSidebarModule.wide .button {
+  margin-top: 0;
+}
+.navSidebarModule .authorByLine {
+  margin-bottom: 15px;
+}
+.navSidebarModule .imageModuleImage {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--lighter-grey);
+}
+.aboutTextMetadata {
+  margin-bottom: 20px;
+}
+.aboutTextMetadata .aboutTextComposedText,
+.aboutTextMetadata .aboutTextAuthorText {
+  color: black;
+}
 .readerNavTop {
   width: 100%;
   background-color: #FBFBFA;
   border-bottom: 1px solid #E2E2E1;
   box-sizing: border-box;
-  height: 58px;
+  height: 60px;
   z-index: 1;
-  padding: 5px 30px 0 30px;
+  padding: 10px 25px 10px 25px;
   vertical-align: middle;
-  line-height: 58px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  line-height: 60px;
 }
-.interface-hebrew .readerNavTop{
+.interface-hebrew .readerNavTop {
   direction: rtl;
 }
 .readerNavTop .readerNavTopStart {
@@ -1372,18 +1754,34 @@ div.interfaceLinks-row a {
 .readerNavTop .searchBox .readerSearch {
   flex: 1;
 }
-.readerNavMenu h1 {
-  text-align: center;
-  color: #000;
-  height: 70px;
+.readerNavMenu h1,
+.readerNavMenu h2.styledH1 {
+  text-align: start;
+  color: #666;
   position: relative;
-  font-size: 30px;
-  font-weight: lighter;
-  letter-spacing: 1px;
-  margin: 0 0 10px 0;
+  font-size: 22px;
+  font-weight: 500;
+  margin: 0 0px 30px 0;
+  height: auto;
+  text-transform: none;
 }
-.readerNavMenu.topicPanel {
-  background-color: white;
+.singlePanel .readerNavMenu h1,
+.singlePanel .readerNavMenu h2.styledH1 {
+  margin-bottom: 10px;
+}
+.readerNavMenu h1 img {
+  margin-inline-end: 9px;
+}
+.readerNavMenu h1 :not(.languageToggle) .en {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.readerNavMenu h1 .button {
+  position: absolute;
+  right: 0;
+  top: 0;
+  padding: 0;
+  margin: 0;
+  line-height: 26px;
 }
 .singlePanel .readerNavCategoryMenu .readerTocTopics.content {
   padding-top: 30px;
@@ -1408,7 +1806,7 @@ div.interfaceLinks-row a {
   margin-top: 20px;
 }
 .topicPanel .mainColumn {
-  padding: 0 50px;
+  padding: 0 40px;
 }
 @media (max-width: 450px) {
   .topicPanel .mainColumn,
@@ -1416,12 +1814,12 @@ div.interfaceLinks-row a {
     padding: 0 25px !important;
     margin: 0;
   }
-  .topicPanel .filterable-list .filter-sort-wrapper {
+  .topicPanel .filterable-list .filter-sort-wrapper, .collectionPage .filterable-list .filter-sort-wrapper {
     margin-top: 20px;
   }
 }
 .topicPanel .sideColumn {
-  padding: 0 50px;
+  width: 420px;
   background-color: #FBFBFA;
   /* HACK: add grey background beyond bounding box of sidebar by utilizing negative margins! */
   border-top: 80px solid #FBFBFA;
@@ -1436,13 +1834,15 @@ div.interfaceLinks-row a {
 .topicPanel h1 span {
   font-size: 40px;
 }
-
 .topicPanel .sideColumn h2 {
   text-align: unset;
   border-bottom: 1px solid #CCC;
   padding-bottom: 10px;
   margin-top: 30px;
   margin-bottom: 10px;
+}
+.topicPanel .sideColumn .link-section{
+  padding: 0 44px;
 }
 .topicPanel .sideColumn .link-section:first-child h2 {
   margin-top: 0;
@@ -1488,29 +1888,28 @@ div.interfaceLinks-row a {
 .topicPanel .sideColumn .topicCategory {
   margin-bottom: 30px;
 }
-.topicPanel .story .storySheetList .pageTitle span {
-  font-size: 24px;
-}
-.topicPanel .story .storySheetList .pageTitle .int-he {
-  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
-  font-size: 29px;
-}
 .topicPanel .authorOrganizationsystemText {
   font-size: 16px;
   color: #666;
 }
-.topicPanel .pageTitle span {
-  font-size: 24px;
+.story .storyTitle {
+  --english-font: var(--english-serif-font-family);
+  --hebrew-font: var(--hebrew-serif-font-family);
 }
 .story .storyTitle .int-he {
-  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   font-size: 29px;
 }
-.topicPanel .pageTitle h1 span {
+.topicPanel .story .storyTitle {
+  font-size: 24px;
+}
+.topicPanel h1 {
+  --english-font: var(--english-serif-font-family);
+  --hebrew-font: var(--hebrew-serif-font-family); 
+}
+.topicPanel h1 .int.en {
   font-size: 30px;
 }
-.topicPanel .pageTitle h1 .int-he {
-  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+.topicPanel h1 .int-he {
   font-size: 36px;
 }
 .pageTitle .topicTitleInHe .heInEn {
@@ -1536,19 +1935,6 @@ div.interfaceLinks-row a {
   margin: 0 0 15px 0;
 }
 .topicPanel .topicDescription span {
-}
-.topicPanel .tab-view .tab-list {
-    border-bottom: 1px solid #CCC;
-    margin-bottom: 18px;
-}
-.topicPanel .tab-view .filter-bar {
-  margin-bottom: 30px;
-}
-.topicPanel .tab-view .tab-list .tab {
-  font-size: 22px;
-}
-.topicPanel .tab-view .tab-list .active .tab {
-  border-bottom: 4px solid #999;
 }
 .topicPanel .resourcesLink.blue {
   padding: 8px 16px;
@@ -1583,10 +1969,10 @@ h1 .languageToggle {
   right: 0;
   color: #ccc;
   display: block;
-  width: 38px;
+  width: 32px;
   height: 32px;
   border: 1px solid #ccc;
-  border-radius: 4px;
+  border-radius: 6px;
   line-height: 34px;
   cursor: pointer;
 }
@@ -1597,9 +1983,6 @@ h1 div.languageToggle .en {
 h1 .languageToggle .he {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 22px;
-}
-.readerNavMenu h1 .int-en {
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif, "Taamey Frank";  /* fallback on Hebrew if Hebrew in text */
 }
 .authorIndexTitle {
   margin-top: 30px;
@@ -1650,50 +2033,36 @@ h1 .languageToggle .he {
     direction: rtl;
 }
 .readerNavMenu .navToggles {
-    text-align: center;
-    margin-bottom: 40px;
-    margin-top: -10px;
-    display: flex;
-    justify-content: center;
     flex-direction: row;
+    flex: 1;
+    margin-inline-start: 16px;
+    margin-top: 4px;
+    margin-bottom: 30px;
 }
 .readerNavMenu .navToggles .navTogglesDivider {
   color: #ccc;
 }
 .readerNavMenu .navToggle {
-  margin: 0 10px;
+  margin-inline-end: 12px;
   display: inline-block;
-  text-align: right;
   text-transform: uppercase;
-  color: #999;
-  font-size: 11px;
+  color: #666;
+  font-size: 13px;
   font-weight: lighter;
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  letter-spacing: 1px;
   cursor: pointer;
-}
-.readerNavMenu .navToggle.second {
-  text-align: left;
-}
-.singlePanel .navToggles {
-  margin-top:  20px;
 }
 .readerNavMenu .navToggle.active {
   color: black;
+  border-bottom: 2px solid #999;
+  padding-bottom: 4px;
 }
 .readerPanel h2, .readerPanel h3 {
   text-transform: uppercase;
-  text-align: center;
+  text-align: start;
   font-size: 15px;
-  font-weight: 300;
   color: #666;
   margin-bottom: 20px;
-}
-.readerPanel h2 .en, .readerPanel h3 .en {
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-.readerPanel h2 .he, .readerPanel h3 .he {
-  font-family: "Heebo", sans-serif;
+  font-weight: normal;
 }
 .readerNavSection h2, .topicsPanel h2 {
   font-size: 16px;
@@ -1704,7 +2073,6 @@ h1 .languageToggle .he {
 .readerNavSection {
   margin-bottom: 44px;
 }
-a.recentItem,
 a.resourcesLink,
 input.resourcesLink {
   white-space: nowrap;
@@ -1713,112 +2081,182 @@ input.resourcesLink {
   width: 100%;
   min-height: 60px;
 }
-.readerPanel .recentPanel .recentItem {
-  display: flex;
-  justify-content: space-between;
-  padding: 0;
-  border: 0;
-  flex-direction: row;
+.savedHistoryList .story {
+  border-top:  1px solid var(--lighter-grey);
+  padding:  20px 0;
 }
-.readerPanel .recentPanel .sideColorLeft {
-  flex: 1;
-  min-width: 0;
+.savedHistoryList .story .storyTitle {
+  font-size:  18px;
 }
-.readerPanel .recentPanel .saved .sideColorLeft {
-  max-width: 90%;
+.savedHistoryList .story .storyBody {
+  color: var(--dark-grey);
 }
-.readerPanel .recentPanel a:not(.saved) .sideColorRight {
-  margin-inline-end: 10px;
-  align-items: center;
-  justify-content: flex-end;
-  color: #999;
-  font-size: 16px;
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  width: 90px;
-  text-align: end;
+.savedHistoryList .saveButton {
+  visibility: hidden;
 }
-.interface-hebrew .recentItem:hover .sideColorRight .int-he,
-.interface-english .recentItem:hover .sideColorRight .int-en {
-  display: inline-block;
-  text-decoration: none;
+.savedHistoryList .story:hover .saveButton {
+  visibility: visible;
 }
-.readerPanel .recentPanel .sideColorLeft,
-.readerPanel .recentPanel .sideColorRight {
-  display: flex;
+.savedHistoryList .timeStamp {
+  color:  var(--medium-grey);
+  font-size: 14px;
+  margin-inline-start: 10px;
 }
-.readerPanel .recentPanel .recentItem .sideColorRight .saveButton {
-  display: none;
-}
-.readerPanel .recentPanel .recentItem:hover .sideColorRight .saveButton {
-  display: flex;
-  align-items: center;
-  padding: 0 15px;
-}
-.readerPanel .recentPanel .sideColor {
-  width: 6px;
-  min-width: 6px;
-}
-.readerPanel .recentPanel .sideColorInner {
-  display: flex;
-  align-items: center;
-  padding: 0 15px;
-  overflow: hidden;
-}
-.readerPanel .recentPanel .sideColorInner .en,
-.readerPanel .recentPanel .sideColorInner .he {
-  text-overflow: ellipsis;
-  overflow: hidden;
-  white-space: nowrap;
-}
-
-.readerPanel .recentPanel .sideColorInner .byLine {
-  padding: 0 10px;
+.savedHistoryMessage {
+  color: var(--dark-grey);
 }
 .readerNavCategories {
   width: 100%;
+  margin-bottom: 30px;
 }
 .readerNavCategories a {
   color: #000;
 }
-.readerNavCategory {
-  background-color: white;
-  text-transform: uppercase;
-  text-align: center;
-  font-size: 18px;
-  padding: 16px 10px 17px;
+.readerNavCategories .gridBox .gridBoxItem,
+.readerNavCategoryMenu .category .gridBoxItem {
+  margin: 0 5px;
+  padding: 0;
+}
+.navBlock {
+  padding-bottom: 12px;
+  border-top: 1px solid #EDEDEC;
+}
+.navBlock.withColorLine {
+  border-top: 4px solid transparent;
+}
+.navBlockTitle {
+  text-align: start;
+  font-size: 24px;
+  padding: 15px 0 8px;
   margin: 0;
   cursor: pointer;
-  border-top: 4px solid transparent;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-  letter-spacing: 1px;
   display: flex;
   align-items: center;
-  justify-content: center;;
   line-height: 1.3;
   flex: 1;
+  font-weight: 400;
 }
-a.readerNavCategory {
+a.navBlockTitle {
   color: #000;
+  margin-inline-end: 20px;
 }
-@media (max-width: 450px) {
-  .readerNavCategory {
-    font-size: 16px;
-  }
+a.navBlockTitle:hover {
+  text-decoration: none;
+  color: var(--dark-grey);
 }
-.gridBox .readerNavMore span {
+.navBlockTitle .subtitle {
+  color: var(--dark-grey);
+}
+.navBlockDescription {
+  font-size: 14px;
+  line-height: 18px;
   color: #666;
-  text-transform: none;
+  margin-inline-end: 20px;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
-.gridBox .readerNavMore img {
-  height: 10px;
-  width: 10px;
-  opacity: 0.6;
+.hebrew .navBlockDescription{
+  line-height: 24px;
 }
-.gridBox .readerNavMore .int-en {
-  direction: ltr;
+.navBlockTitle .int-he, .navBlockDescription .int-he{
+      font-size: 122%;
 }
-.bilingual .readerNavCategory .he {
+.interface-english .navBlockDescription.clamped .int-en,
+.interface-hebrew .navBlockDescription.clamped .int-he {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.interface-english .navBlockDescription.clamped5 .int-en,
+.interface-hebrew .navBlockDescription.clamped5 .int-he {
+  -webkit-line-clamp: 5;
+}
+.bilingual .navBlock .he {
   display: none;
+}
+.navSidebarModule.wide {
+  background-color: #FAFAFB;
+  padding: 24px;
+  border-radius: 6px;
+}
+.navSidebarModule.wide h3 {
+  border-bottom: none;
+  margin-bottom: 0px;
+}
+.readerPanel .communityPage h2 {
+  text-transform: none;
+  font-size: 22px;
+  color: #666;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+.communityPage .gridBoxRow:first-child,
+.communityPage .recentlyPublished {
+  border-top: 1px solid var(--lighter-grey);
+}
+.communityPage .gridBox {
+  margin-bottom: 30px;
+}
+.communityPage .gridBox .gridBoxItem {
+  padding: 0
+}
+.communityPage .gridBox {
+  margin-bottom: 25px;
+}
+.communityPage .navBlock {
+  padding: 25px 0 0 0;
+  border: none;
+}
+.communityPage .navBlockTitle {
+  padding-top: 0;
+  --english-font: var(--english-serif-font-family);
+  --hebrew-font: var(--hebrew-serif-font-family);
+}
+.communityPage .readingLinks {
+  margin-top: 20px;
+}
+.communityPage .readingLinksHeader {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+.communityPage .readingLinks a {
+  font-size: 18px;
+}
+.communityPage .calendarDate {
+  font-size: 14px;
+  color: #999;
+  margin-bottom: 15px;
+}
+.featuredSheetHeading {
+  color: #666;
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+.featuredSheet .navBlockDescription {
+  margin-bottom: 12px;
+}
+.featuredSheetBottom {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+.featuredSheetDate {
+  color: var(--medium-grey);
+  font-size: 14px;
+}
+.communityPage .recentlyPublished {
+  padding-top: 30px;
+}
+.communityPage .recentlyPublished .gridBoxRow {
+  border: none;
+}
+.communityPage .recentlyPublished .loadingMessage {
+  margin-top: 30px;
+}
+.recentlyPublished .loadMore {
+  margin-top: 30px;
 }
 .bilingual .readerNavMenu .he {
   display: none;
@@ -1874,26 +2312,6 @@ a.readerNavCategory {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.english .gridBox .gridBoxItem:first-child {
-  border-left: 0;
-}
-.english .gridBox .gridBoxItem:last-child {
-  border-right: 0;
-}
-.hebrew .gridBox .gridBoxItem:first-child {
-  border-right: 0;
-}
-.hebrew .gridBox .gridBoxItem:last-child {
-  border-left: 0;
-}
-.hebrew .readerTocResources .gridBoxItem:last-child {
-  border-left: 0;
-  border-right: 3px solid transparent;
-}
-.hebrew .readerTocResources .gridBoxItem:first-child {
-  border-left: 3px solid transparent;
-  border-right: 0;
-}
 .readerNavMenu .resourcesLink .en {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
@@ -1907,33 +2325,12 @@ a.readerNavCategory {
 .readerNavMenu .resourcesLink img {
   width: 16px;
   height: 16px;
-  opacity: 0.4;
   margin: 0 5px;
   position: relative;
   top: 2px;
 }
-.readerNavMenu .siteLinks {
-  margin: 20px 0 50px;
-  text-align: center;
-}
-.readerNavMenu .siteLinks .siteLink {
-  color: #999;
-  text-transform: uppercase;
-  display: inline-block;
-  margin: 0 8px;
-  font-size: 12px;
-}
 .uppercase {
   text-transform: uppercase;
-}
-.readerNavMenu .siteLinks .siteLink .en {
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-.readerNavMenu .siteLinks .siteLink .he {
-  font-family: "Heebo", sans-serif;
-}
-.readerNavMenu .siteLink .fa {
-  margin: 0 4px;
 }
 .readerNavMenu .divider {
   color: #ccc;
@@ -1941,33 +2338,56 @@ a.readerNavCategory {
 .readerNavCategoryMenu {
   height: 100%;
 }
-.multiPanel .readerNavCategoryMenu .content {
-  padding: 100px 10px 10px;
+.readerNavMenu.readerNavCategoryMenu .navTitle {
+  margin-bottom: 40px;
 }
-.singlePanel .readerNavCategoryMenu .content {
-  padding-top: 0;
+.readerNavMenu.readerNavCategoryMenu h1 {
+  color: #000;
+  text-transform: uppercase;
+  font-size: 30px;
+  --english-font: var(--english-serif-font-family);
+  --hebrew-font: var(--hebrew-serif-font-family);
 }
+.readerNavCategoryMenu h2 {
+  font-size: 18px;
+  color: #666;
+  margin: 0 0 20px;
+}
+.readerNavCategoryMenu .categoryDescription.top {
+  margin-top: -26px;
+  margin-bottom: 40px;
+}
+.readerNavCategoryMenu h2 .categoryDescription {
+  text-transform: none;
+  font-size: 18px;
+  margin-inline-start: 5px;
+}
+.readerNavCategoryMenu .categoryDescription {
+  margin-bottom: 16px;
+  font-size: 14px;
+  color: #666;
+}
+.readerNavCategoryMenu .categoryDescription.long {
+  margin: -8px 0 20px 0;
+} 
 .readerNavCategoryMenu .content .category,
 .readerNavCategoryMenu .content .gridBox {
-  margin-bottom: 30px;
+  margin-bottom: 40px;
 }
 .readerNavCategoryMenu .categoryAttribution {
-  color: #999;
-  text-align: center;
-  font-size: 20px;
+  color: #666;
+  text-align: start;
+  font-size: 24px;
   font-style: italic;
   margin: 16px 0 30px;
 }
 .readerNavCategoryMenu .categoryAttribution .he {
   font-style: normal;
 }
-.readerNavCategoryMenu .category h3 {
-  margin-top: 36px;
-}
 .readerNavMenu .blockLink,
 .readerNavMenu .catLink,
 .readerNavMenu .navButton,
-.readerTextTableOfContents .refLink {
+.bookPage .refLink {
   display: block;
   margin: 0;
   padding: 14px 8px;
@@ -1988,7 +2408,6 @@ a.readerNavCategory {
   align-items: inherit;
   flex-direction: column;
 }
-
 .readerNavCategoryMenu .blockLink,
 .gridBox .navButton {
   display: flex;
@@ -1998,12 +2417,8 @@ a.readerNavCategory {
 .readerNavMenu .blockLink .he,
 .readerNavMenu .catLink .he,
 .readerNavMenu .navButton .he,
-.readerTextTableOfContents .refLink .he {
+.bookPage .refLink .he {
   text-align: center;
-}
-.systemPanel .blockLink {
-  padding: 13px 8px 19px;
-  border-radius: 7px;
 }
 .blockLink:active,
 .navButton:active,
@@ -2016,7 +2431,7 @@ a.readerNavCategory {
   .readerNavMenu .catLink,
   .readerNavMenu .navButton,
   .readerNavMenu .sheetLink,
-  .readerTextTableOfContents .refLink {
+  .bookPage .refLink {
     font-size: 18px;
   }
 }
@@ -2044,48 +2459,41 @@ a.readerNavCategory {
 .readerApp.interface-hebrew .readerNavMenu.noLangToggleInHebrew .he {
   display: inline;
 }
-.interface-hebrew .readerPanel.english .noLangToggleInHebrew .readerNavSection,
-.interface-hebrew .readerPanel.english .readerNavMenu.noLangToggleInHebrew .gridBox {
-  direction: rtl;
-}
-.interface-hebrew .english .noLangToggleInHebrew .gridBox .gridBoxItem:first-child {
-  border-right: 0;
-  border-left: 3px solid transparent;
-}
-.interface-hebrew .english .noLangToggleInHebrew .gridBox .gridBoxItem:last-child {
-  border-left: 0;
-  border-right: 3px solid transparent;
-}
-.bilingual .readerTextTableOfContents .he {
-  display: none;
-}
-.readerTextTableOfContents .readerTextToc {
+.bookPage .readerTextToc {
   letter-spacing: 1px;
   text-transform: uppercase;
   font-size: 14px;
 }
-.readerTextTableOfContents .readerTextToc .en {
+.bookPage .readerTextToc .en {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
-.readerTextTableOfContents .readerTextToc .he {
+.bookPage .readerTextToc .he {
   font-family: "Heebo", sans-serif;
 }
 .readerNavMenu .dedication {
-  margin: -10px 0 58px 0;
+  text-align: start;
+  color: #666;
+  background-color: #FBFBFA;
+  padding: 26px 19px;
+  font-size: 18px;
+  margin-bottom: 27px;
 }
-.readerTextTableOfContents .categoryAttribution,
-.readerTextTableOfContents .dedication {
-  margin: 28px 0;
+.singlePanel .readerNavMenu .dedication{
+  margin: 27px 0;
 }
-.readerTextTableOfContents .categoryAttribution,
-.readerTextTableOfContents .dedication,
-.readerNavMenu .dedication {
+.bookPage .categoryAttribution,
+.bookPage .dedication {
+  margin: 25px 0 10px;
   text-align: center;
   font-size: 18px;
   font-style: italic;
 }
-.readerTextTableOfContents .categoryAttribution .he,
-.readerTextTableOfContents .dedication .int-he,
+.bookPage .categoryAttribution,
+.bookPage .dedication {
+  text-align: start;
+}
+.bookPage .categoryAttribution .he,
+.bookPage .dedication .int-he,
 .readerNavMenu .dedication .int-he {
   font-style: normal;
 }
@@ -2095,19 +2503,26 @@ a.readerNavCategory {
 }
 .readerNavMenu .dedication .int-en {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
-  font-size: 18px;
+  font-style: italic;
 }
-.readerTextTableOfContents .tocTop {
+.bookPage .tocTop {
   padding-bottom: 15px;
 }
-.readerTextTableOfContents .tocCategory {
+.bookPage .tocCategory{
   color:#999;
   font-size: 14px;
   text-transform: uppercase;
-  margin-bottom: 8px;
   letter-spacing: 1px;
 }
-.readerTextTableOfContents .tocTitle,
+.bookPage.sheetPage .tocCategory{
+  margin-top: 15px;
+  margin-bottom: 15px;
+  display: block;
+}
+.bookPage .tocCategory .en {
+  --english-font: var(--english-sans-serif-font-family);
+}
+.bookPage .tocTitle,
 .sheetContent .title,
 .bookMetaDataBox .title {
   text-align: center;
@@ -2115,8 +2530,15 @@ a.readerNavCategory {
   line-height: 1.3;
   unicode-bidi: plaintext;
 }
-.readerTextTableOfContents .currentSection,
-.readerTextTableOfContents .authorStatement,
+.bookPage.fullBookPage .tocTitle {
+  text-align: start;
+  margin-bottom: 8px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.bookPage .currentSection,
+.bookPage .authorStatement,
 .sheetContent .sheetMetaDataBox .authorStatement,
 .sheetContent .sheetMetaDataBox .collectionStatement {
   font-size: 17px;
@@ -2131,13 +2553,14 @@ a.readerNavCategory {
 .sheetContent .sheetMetaDataBox .collectionStatement a,
 .sheetContent .sheetMetaDataBox .authorStatement a {
   color: #999;
+  margin-inline-start: 5px;
 }
-.readerTextTableOfContents .currentSection .he,
-.readerTextTableOfContents .authorStatement .he,
-.readerTextTableOfContents .sheetMeta .he {
+.bookPage .currentSection .he,
+.bookPage .authorStatement .he,
+.bookPage .sheetMeta .he {
   font-family: "Heebo", sans-serif;
 }
-.readerTextTableOfContents .authorStatement a {
+.bookPage .authorStatement a {
  color: #333;
 }
 .authorStatement .imageBox,
@@ -2155,7 +2578,17 @@ a.readerNavCategory {
 .authorStatement span p {
   display: inline-block;
 }
-.readerTextTableOfContents .sheetMeta {
+.fullBookPage .readButton {
+  margin: 6px 0px 12px;
+}
+.fullBookPage .about {
+  margin-top: 10px;
+}
+.fullBookPage .categoryAttribution {
+  color: var(--dark-grey);
+  font-size: 24px;
+}
+.bookPage .sheetMeta {
   font-size: 14px;
   color: #999;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
@@ -2163,122 +2596,101 @@ a.readerNavCategory {
   margin-bottom: 20px;
   letter-spacing: 1px;
 }
-.readerTextTableOfContents .tocDetails {
-  margin-top: 30px;
-  color: #999;
-  font-style: italic;
+.bookPage.sheetPage .sheetMetaButtons{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 40px;
 }
-.readerTextTableOfContents .tocDetails a {
-  color: #999;
+.bookPage.sheetPage .sheetMetaButtons .button{
+  height: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
-.readerTextTableOfContents .tocDetail {
-  margin-bottom: 4px;
+.bookPage.sheetPage .sheetMetaButtons .button img{
+  margin-inline-end: 5px;
+  max-height: 18px;
 }
-.readerTextTableOfContents .tocDetail .int-en {
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
-}
-.readerTextTableOfContents .tocDetail .int-he {
-  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
-}
-
-.readerTextTableOfContents .tocDetail.authorStatement .int-he,
-.readerTextTableOfContents .tocDetail.authorStatement .int-en {
-  font-family: inherit;
-}
-
-
-.readerTextTableOfContents .tocDetails .description {
-  margin: 6px 0 16px;
-  font-style: normal;
+.bookPage .tocDetails{
+  margin-top:40px;
   font-size: 16px;
-  line-height: 1.4;
+  line-height: 19px;
+  color: var(--dark-grey);
+  text-align: start;
 }
-.readerTextTableOfContents .tocDetails .description .readMoreText {
-  display: block;
-  text-align: center;
+.bookPage .tocDetails h3{
+  margin-bottom: 25px;
 }
-.readerTextTableOfContents .tocDetails .description .readMoreLink {
-  font-style: italic;
-  cursor: pointer;
-  font-size: 14px;
-  color: #666;
-  margin: 0 5px;
-}
-.readerTextTableOfContents .tocDetails .sheetSummary {
+.bookPage .tocDetails .sheetSummary {
   margin: 6px 0 16px;
   font-style: normal;
   font-size: 22px;
   line-height: 1.4;
   text-align: center;
 }
-
-.readerTextTableOfContents .currentVersionBox {
-  margin-bottom: 18px;
+.bookPage .moderatorSection {
+  margin-inline-start: 20px;
+  margin-inline-end: 20px;
 }
-.readerTextTableOfContents .currentVersionBox .versionBlock {
-  margin: 0;
-}
-.readerTextTableOfContents .moderatorSection {
-  margin-top: 20px;
-}
-.readerTextTableOfContents .moderatorSectionExpand {
-  display: inline;
+.bookPage .moderatorSectionExpand, .bookPage .moderatorSectionCollapse {
   cursor: pointer;
   color: #666;
-  margin: 7px 6px 0;
   font-size: 14px;
-  position: absolute;
 }
-.interface-hebrew .readerTextTableOfContents .moderatorSectionExpand {
-  margin: 7px 18px 0;
+.bookPage.fullBookPage .moderatorSectionExpand, .bookPage.fullBookPage .moderatorSectionCollapse {
+  margin: 13px 6px 0;
 }
-.readerTextTableOfContents .moderatorSectionExpand:hover {
+.bookPage.fullBookPage .tocTitleControls{
+  display: flex;
+}
+.bookPage .moderatorSectionExpand:hover {
   text-decoration: underline;
 }
-.readerTextTableOfContents .moderatorSection .button {
+.bookPage .moderatorSection .button {
   padding: 12px 16px;
   font-size: 13px;
 }
-.readerTextTableOfContents .moderatorSection .moderatorSectionMessage {
+.bookPage .moderatorSection .moderatorSectionMessage {
   margin-top: 20px;
   font-size: 18px;
 }
-.readerTextTableOfContents .moderatorSection .button .fa {
+.bookPage .moderatorSection .button .fa {
   color: #999;
   margin-right: 4px;
 }
-.readerTextTableOfContents .versionEditForm {
+.bookPage .versionEditForm {
   text-align: left;
   background-color: #ddd;
   padding: 10px;
   width: 100%;
 }
-.readerTextTableOfContents .versionEditForm label {
+.bookPage .versionEditForm label {
   display: inline-block;
   padding: 10px 10px 0 0;
 }
-.readerTextTableOfContents .versionEditForm label#versionNotes_label {
+.bookPage .versionEditForm label#versionNotes_label {
   display: block;
 }
-.readerTextTableOfContents .versionEditForm #versionTitle,
-.readerTextTableOfContents .versionEditForm #versionSource,
-.readerTextTableOfContents .versionEditForm #versionNotes,
-.readerTextTableOfContents .versionEditForm #versionTitleInHebrew,
-.readerTextTableOfContents .versionEditForm #versionNotesInHebrew,
-.readerTextTableOfContents .versionEditForm #purchase_name,
-.readerTextTableOfContents .versionEditForm #purchase_url,
-.readerTextTableOfContents .versionEditForm #purchase_image
+.bookPage .versionEditForm #versionTitle,
+.bookPage .versionEditForm #versionSource,
+.bookPage .versionEditForm #versionNotes,
+.bookPage .versionEditForm #versionTitleInHebrew,
+.bookPage .versionEditForm #versionNotesInHebrew,
+.bookPage .versionEditForm #purchase_name,
+.bookPage .versionEditForm #purchase_url,
+.bookPage .versionEditForm #purchase_image
  {
   width: 98%;
 }
-.readerTextTableOfContents .versionEditForm #priority {
+.bookPage .versionEditForm #priority {
   width: 25px;
 }
-.readerTextTableOfContents .versionEditForm #digitzedBySefaria {
+.bookPage .versionEditForm #digitzedBySefaria {
   margin-right: 10px;
 }
-.readerTextTableOfContents .versionEditForm #save_button,
-.readerTextTableOfContents .versionEditForm #delete_button {
+.bookPage .versionEditForm #save_button,
+.bookPage .versionEditForm #delete_button {
   text-align: center;
   cursor: pointer;
   color: white;
@@ -2288,7 +2700,7 @@ a.readerNavCategory {
   margin: 10px auto 0;
   width: 60px;
 }
-.readerTextTableOfContents .versionEditForm #delete_button {
+.bookPage .versionEditForm #delete_button {
   float: right;
   background: white;
   color: #999;
@@ -2296,150 +2708,139 @@ a.readerNavCategory {
   width: 100px;
   margin: 0;
 }
-.readerTextTableOfContents .versionTitle .fa,
-.readerTextTableOfContents .versionEditForm .fa {
+.bookPage .versionTitle .fa,
+.bookPage .versionEditForm .fa {
   font-size: 10px;
   color: #666;
   vertical-align: super;
   margin-left: 3px;
   cursor: pointer;
 }
-.interface-hebrew .readerTextTableOfContents .versionTitle .fa,
-.interface-hebrew .readerTextTableOfContents .versionEditForm .fa {
+.interface-hebrew .bookPage .versionTitle .fa,
+.interface-hebrew .bookPage .versionEditForm .fa {
   margin: 0 3px 0 0 ;
 }
-.readerTextTableOfContents .versionTitle .error {
+.bookPage .versionTitle .error {
   color: red;
 }
-.readerTextTableOfContents .content {
-  padding: 30px 10px 10px;
+.bookPage .content {
   box-sizing: border-box;
   text-align: center;
   height: 100%;
 }
-.readerTextTableOfContents .content .sheetTags {
+.bookPage.fullBookPage .content {
+  text-align: start;
+}
+.bookPage .content .sheetTags {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  padding-top: 30px;
-  border-top: 1px solid #ccc;
 }
-.readerTextTableOfContents .content .sectionLink {
+.textTableOfContents .structToggles{
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+.textTableOfContents .structToggles .structTogglesInner {
+  display: flex;
+  flex-direction: row;
+  align-items: start;
+}
+.interface-hebrew .textTableOfContents .structToggles{
+  direction: rtl;
+}
+.interface-english .textTableOfContents .structToggles{
+  direction: ltr;
+}
+.altStructToggleBox a, .altStructToggleBox a:hover, .altStructToggleBox a:visited, .altStructToggleBox a:link, .altStructToggleBox a:active {
+  text-decoration: none;
+}
+.textTableOfContents .structToggles .altStructToggle {
+  color: var(--dark-grey);
+  cursor: pointer;
+  text-align: start;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 16px;
+  line-height: 19px;
+  text-align: justify;
+}
+.textTableOfContents .structToggles .altStructToggleBox:not(:last-child):after{
+  content: "•";
+  color: var(--dark-grey);
+  margin-inline-start: 5px;
+  margin-inline-end: 5px;
+}
+.bookPage.compare .structToggles .altStructToggle {
+  font-size: 16px;
+}
+.textTableOfContents .structToggles .altStructToggle.active {
+  color: #000000;
+}
+.textTableOfContents .structToggles .toggleDivider {
+  color: #ccc;
+  margin: 0 8px;
+}
+.textTableOfContents .sectionLink {
   display: inline-block;
-  height: 38px;
-  min-width: 38px;
-  line-height: 38px;
+  height: 50px;
+  min-width: 50px;
+  line-height: 50px;
   vertical-align: middle;
-  font-size: 13px;
+  font-size: 18px;
   font-weight: lighter;
-  margin: 1px;
+  margin: 3px;
   text-align: center;
-  background-color: white;
+  background-color: #FBFBFA;
   color: #666;
   cursor: pointer;
   padding: 0 6px;
   box-sizing: border-box;
 }
-.readerTextTableOfContents .content .sectionLink .en {
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-.readerTextTableOfContents .content .sectionLink  .he {
-  font-family: "Heebo", sans-serif;
-}
-.interface-hebrew .readerTextTableOfContents .content .structToggles{
-  direction: rtl;
-}
-.interface-english .readerTextTableOfContents .content .structToggles{
-  direction: ltr;
-}
-.readerTextTableOfContents .content .structToggles {
-  margin-bottom: 40px;
-  display: table;
-  table-layout: fixed;
-  width: 100%;
-}
-.readerTextTableOfContents .content .structTogglesInner {
-  display: table-row;
-}
-.readerTextTableOfContents .content .structTogglesInner + .structTogglesInner > .altStructToggleBox {
-  padding-top: 6px;
-}
-.readerTextTableOfContents .content .structToggles .en {
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-.readerTextTableOfContents .content .structToggles .he {
-  font-family: "Heebo", sans-serif;
-}
-.readerTextTableOfContents .structToggles .altStructToggleBox {
-  display: table-cell;
-  height: 37px;
-}
-.altStructToggleBox a, .altStructToggleBox a:hover, .altStructToggleBox a:visited, .altStructToggleBox a:link, .altStructToggleBox a:active {
-  text-decoration: none;
-}
-
-.readerTextTableOfContents .structToggles .altStructToggle {
-  display: block;
-  padding: 8px;
-  color: #999;
-  cursor: pointer;
-  font-size: 13px;
-  text-align: center;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  border-bottom: 1px solid #CCC;
-}
-.readerTextTableOfContents .structToggles .altStructToggle.active {
-  color: black;
-  border-bottom: 4px solid #CCC;
-}
-.readerTextTableOfContents .structToggles .toggleDivider {
-  color: #ccc;
-  margin: 0 8px;
-}
-.readerTextTableOfContents .content .sectionName {
+.textTableOfContents .sectionName {
   display: none;
 }
-.readerTextTableOfContents .content .tocSection > .sectionName {
-  font-size: 12px;
+.textTableOfContents .tocSection > .sectionName {
+  font-size: 24px;
   margin: 0 3px 4px;
   color: #666;
   display: block;
 }
-.readerTextTableOfContents .content .tocContent {
-  padding: 30px 0 40px;
-  text-align: left;
+.bookPage .content .tab-view.largeTabs {
+  padding: 20px 0 40px;
+  text-align: start;
 }
-.readerTextTableOfContents.narrowPanel .tocContent {
+.bookPage.compare .content .textTableOfContents {
+  padding: 10px 0;
+}
+.bookPage.narrowPanel .textTableOfContents {
   padding: 0 0 40px;
 }
-.readerTextTableOfContents .content .tocSection {
+.textTableOfContents .tocSection {
   margin-bottom: 22px;
   display: block;
   text-align: left;
 }
-.readerTextTableOfContents .content .tocSection.noSubLevels{
+.textTableOfContents .tocSection.noSubLevels{
   display: none;
 }
-.readerTextTableOfContents .content .schema-node-contents {
-  margin: 0 auto 22px;
-  display: block;
-  width: 100%;
+.textTableOfContents > .tocLevel {
+  margin-bottom: 30px;
 }
-.readerTextTableOfContents .content .schema-node-title {
+.textTableOfContents > .tocContent > .tocLevel > .schema-node-toc > .schema-node-title {
+  font-size: 24px;
+  line-height: 29px;
+}
+.textTableOfContents .schema-node-title {
   color: black;
-  font-size: 16px;
+  font-size: 18px;
   display: inline-block;
   margin-bottom: 10px;
   cursor: pointer;
 }
-.readerTextTableOfContents .content .schema-node-title .he {
-  font-family: "Heebo", sans-serif;
-}
-.readerTextTableOfContents .content .schema-node-toc {
+.textTableOfContents .schema-node-toc {
   display: block;
 }
-.readerTextTableOfContents .content .schema-node-toc:not(.linked) > .schema-node-title:after {
+.textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title:after {
   content: "\f105";
   display: inline-block;
   font-size: inherit;
@@ -2448,179 +2849,196 @@ a.readerNavCategory {
   -moz-osx-font-smoothing: grayscale;
   font-family: FontAwesome;
   margin-inline-start: 8px;
+  font-size: 14px;
+  position: relative;
+  top: -2px;
+  color: var(--medium-grey);
 }
-.readerTextTableOfContents .content .schema-node-toc:not(.linked) > .schema-node-title.open:after {
+.textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title.open:after {
   content: "\f107";
 }
-.readerPanel.hebrew .readerTextTableOfContents .content .schema-node-toc:not(.linked) > .schema-node-title:after,
-.readerApp.interface-hebrew .readerTextTableOfContents.noLangToggleInHebrew .content .schema-node-toc:not(.linked) > .schema-node-title:after {
+.readerPanel.hebrew .textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title:after,
+.readerApp.interface-hebrew .noLangToggleInHebrew .textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title:after {
   content: "\f104";
   font-size: 122%;
   margin-inline-start: 9px;
 }
-.readerPanel.hebrew .readerTextTableOfContents .content .schema-node-toc:not(.linked) > .schema-node-title.open:after,
-.readerApp.interface-hebrew .readerTextTableOfContents.noLangToggleInHebrew .content .schema-node-toc:not(.linked) > .schema-node-title.open:after {
+.readerPanel.hebrew .textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title.open:after,
+.readerApp.interface-hebrew .noLangToggleInHebrew .textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title.open:after {
   content: "\f107";
 }
-.readerTextTableOfContents .content .schema-node-contents.closed {
+.textTableOfContents .schema-node-contents {
+  margin: 0 auto 22px;
+  display: block;
+  width: 100%;
+}
+.textTableOfContents .schema-node-contents > .tocLevel > .schema-node-toc:not(.janode),
+.torahNavParshiot .tocLevel .schema-node-toc{
+  margin-inline-start: 15px;
+}
+.textTableOfContents .schema-node-contents.closed {
   display: none;
 }
-.readerTextTableOfContents .content .schema-node-toc .schema-node-contents.closed {
+.textTableOfContents .schema-node-toc .schema-node-contents.closed {
   display: block;
 }
-.readerTextTableOfContents .content .tocLevel {
+.textTableOfContents .tocLevel {
   display: block;
-  margin: 0 auto;
 }
-.readerTextTableOfContents .content .tocContent > .tocLevel > .schema-node-toc {
+.textTableOfContents > .tocLevel > .schema-node-toc {
   margin: 10px 0;
 }
-.readerTextTableOfContents .schema-node-toc {
+.textTableOfContents.schema-node-toc {
   margin: 6px 20px;
 }
-.readerTextTableOfContents .content .schema-node-toc.linked:hover .schema-node-title {
+.textTableOfContents .schema-node-toc.linked:hover .schema-node-title {
   text-decoration: underline;
 }
-.readerTextTableOfContents .altStruct .refLink {
+.textTableOfContents .specialNavSectionHeader {
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+.textTableOfContents .torahNavParshiot{
+  margin-top: 30px;
+}
+.textTableOfContents .altStruct .refLink {
   width: 49%;
   margin: 3px;
   box-sizing: border-box;
   display: inline-block;
 }
 @media (max-width: 450px) {
-  .readerTextTableOfContents .altStruct .refLink {
+  .textTableOfContents .altStruct .refLink {
     margin: 0.5%;
   }
 }
-.hebrew .readerTextTableOfContents .content .tocSection,
-.hebrew .readerTextTableOfContents .content .tocContent,
-.english .readerTextTableOfContents.noLangToggleInHebrew .content .tocContent,
-.bilingual .readerTextTableOfContents.noLangToggleInHebrew .content .tocContent{
+.hebrew .textTableOfContents .tocSection,
+.hebrew .textTableOfContents,
+.english .noLangToggleInHebrew .textTableOfContents,
+.bilingual .noLangToggleInHebrew .textTableOfContents{
   text-align: right;
 }
-.english .readerTextTableOfContents.noLangToggleInHebrew .content .tocContent,
-.bilingual .readerTextTableOfContents.noLangToggleInHebrew .content .tocContent{
+.english .noLangToggleInHebrew .textTableOfContents,
+.bilingual .noLangToggleInHebrew .textTableOfContents{
   direction: rtl;
 }
-.readerTextTableOfContents .versionsBox {
-  padding: 20px 0;
-}
-.readerTextTableOfContents .button.allVersionsButton {
+.bookPage .button.allVersionsButton {
   color: #999;
   text-transform: uppercase;
   font-size: 15px;
   padding: 12px 50px;
   margin: 20px 0;
 }
-.readerTextTableOfContents .allVersionsButton.inactive {
+.bookPage .allVersionsButton.inactive {
   background-color: transparent;
-}
-.readerTextTableOfContents .versionBlocks {
-  text-align: center;
-  border-top: 1px solid #ccc;
-  padding-top: 20px;
-}
-.readerTextTableOfContents .versionBlocks .versionLanguageBlock {
-  padding-bottom: 30px;
-  clear: both;
-}
-.readerTextTableOfContents .versionBlocks .versionLanguageHeader {
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  text-transform: uppercase;
-  letter-spacing: .2em;
-  color: #999;
-  padding: 10px 0;
 }
 .versionBlock{
   display: flex;
   flex-flow: column;
 }
-.readerTextTableOfContents .versionBlock {
-  padding: 0 30px;
-  margin: 25px 0;
-  box-sizing: border-box;
-  cursor: pointer;
-  text-align: center;
+.versionBlock .versionBlockHeading{
+  display: flex;
+  justify-content: start;
+  align-items: flex-start;
+  margin-bottom: 10px;
 }
 .versionBlock .versionTitle {
   font-size: 18px;
   color: #000;
   /*unicode-bidi: plaintext;*/
 }
-.versionBlock .versionTitle a{
-  font-family: 'HebrewInEnglish Serif Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+.bookPage .versionBlock .versionTitle{
+  font-style: normal;
+  font-weight: normal;
+  font-size: 24px;
+  line-height: 29px;
+  max-inline-size: max-content;
 }
-.versionBlock .versionTitle .versionEditIcon{
+.versionsBox .versionBlock {
+  padding: 20px 0;
+  border-top: solid 1px #CCC;
+}
+.bookPage .versionsBox .versionBlock{
+  padding-top: 20px;
+  padding-bottom: 34px;
+}
+.bookPage .versionsBox .versionBlock:first-child{
+  padding-top: 0;
+  border-top: none;
+}
+.singlePanel .versionsBox .versionBlock .versionTitle .he {
+    display: inline;
+}
+.versionBlock .versionTitle a {
+  color: black;
+}
+.versionBlock .versionBlockHeading .versionLanguage {
   display: none;
 }
-.versionBlock .versionTitle .versionEditIcon.enabled{
+.bookPage .versionBlock .versionBlockHeading .versionLanguage{
+  display: initial;
+  margin-inline-start: auto;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 14px;
+  line-height: 18px;
+  color: #666666;
+  background: #EDEDEC;
+  border-radius: 25px;
+  padding: 5px 10px;
+}
+.aboutBox .versionBlock .versionTitle:hover {
+  text-decoration: none;
+}
+.versionBlock .versionTitle a{
+}
+.versionBlock .versionBlockHeading .versionEditIcon{
+  display: none;
+}
+.versionBlock .versionBlockHeading .versionEditIcon.enabled{
   display: inline-block;
+  align-self: self-start;
+  font-size: 14px;
+  padding: 5px;
+}
+.versionBlock .versionBlockHeading .versionEditIcon.enabled:hover{
+  color: #666666;
+  cursor: pointer;
 }
 .versionBlock .versionSelect{
   margin: 10px 0;
 }
-.readerTextTableOfContents .versionBlock .versionSelect, .aboutBox .currVersionSection .versionSelect{
+.bookPage .versionBlock .versionSelect, .aboutBox .currVersionSection .versionSelect{
   display: none;
 }
-.versionBlock a {
-  color: #999;
-}
 .versionBlock .versionNotes a {
-  font-family: 'HebrewInEnglish Serif Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-style: normal;
   font-weight: normal;
-  font-size: 18px;
-  line-height: 22px;
   color: #666666;
   text-decoration: underline;
 }
-.versionBlock .versionNotes span{
-  font-family: 'HebrewInEnglish Serif Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
-}
 .versionBlock .versionDetails {
-  display: inline-block;
-  font-size: 12px;
-  font-family: "Hebrew System Text", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  color: #999;
   display: flex;
   flex-flow: row;
   justify-content: space-between;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 14px;
+  line-height: 20px;
+  color: #666666;
 }
-.readerTextTableOfContents .versionBlock .versionDetails{
-  text-align: center;
+.bookPage .versionBlock .versionDetails{
+  line-height: 20px;
 }
 .versionBlock .versionDetails .versionDetailsInformation{
   display: flex;
   flex-flow: column;
 }
-.readerTextTableOfContents .versionBlock .versionDetails .versionDetailsInformation{
-  margin: auto;
-  flex-flow: row;
-  justify-content: space-around;
-}
 .versionBlock .versionDetails .versionDetailsImage{
   margin-top: 5px;
 }
-.versionBlock .versionDetails .versionDetailsInformation .versionDetailsElement{
-  font-family: "Hebrew System Text", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;;
-  font-style: normal;
-  font-weight: normal;
-  font-size: 13px;
-  line-height: 20px;
-  color: #999999;
-}
 .versionBlock .versionDetails .versionDetailsInformation .versionDetailsElement.versionBuyLink a{
   color: #18345D;
-}
-.readerTextTableOfContents .versionBlock .versionDetails .versionDetailsInformation .versionDetailsElement{
-  margin: 0 2px;
-}
-.readerTextTableOfContents .versionBlock .versionDetails .versionDetailsInformation .versionDetailsElement::after{
-  content: "•";
-  margin-inline-start: 4px;
-}
-.readerTextTableOfContents .versionBlock .versionDetails .versionDetailsInformation .versionDetailsElement.versionHistoryLink::after{
-  content: "›";
 }
 .versionBlock .versionDetails .versionDetailsLabel, .versionBlock .versionDetails .versionDetailsLabel:hover{
   text-decoration: none;
@@ -2628,17 +3046,14 @@ a.readerNavCategory {
 .versionBlock .versionDetails .versionBuyImage .versionDetailsImageLink img{
   height: 120px;
 }
-.readerTextTableOfContents .versionBlock .versionDetails .versionBuyImage, .readerTextTableOfContents .versionBlock .versionDetails .versionBuyLink{
-  display: none;
-}
 .versionBlock .versionDetails .n-a, .versionBlock .n-a{
   display: none;
 }
 .versionBlock .versionTitle:hover {
   text-decoration: underline;
+  cursor: pointer;
 }
 .versionBlock .versionNotes {
-  font-family: 'HebrewInEnglish Serif Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-style: normal;
   font-weight: normal;
   font-size: 18px;
@@ -2647,17 +3062,25 @@ a.readerNavCategory {
   margin: 10px 0;
   text-align: start;
 }
+.bookPage .versionBlock .versionNotes{
+  font-size: 16px;
+  line-height: 19px;
+  padding-bottom: 15px;
+}
 .versionBlock .versionEditIcon {
   margin: 0 7px;
   vertical-align: 1px;
 }
 .versionBlock .versionExtendedNotesLinks{
   font-style: italic;
+  display: block;
 }
 .versionBlock .versionExtendedNotesLinks.no-notes{
   display: none;
 }
-
+.versionBlock .versionExtendedNotesLinks{/*temporary because broken*/
+  display: none;
+}
 .modTools {
   width: 50%;
   margin: 0 auto;
@@ -2668,65 +3091,62 @@ a.readerNavCategory {
   padding: 50px;
   border-top: 1px solid #ccc;
 }
-.readerTextTableOfContents .content .dlSection {
-  padding-top: 50px;
-  border-top: 1px solid #ccc;
+.bookPage .content .dlSection {
 }
 .modTools .dlSectionTitle {
     width: 60%;
     margin: 0 auto;
 }
 .modTools .dlSectionTitle,
-.readerTextTableOfContents .content h2 {
+.bookPage .content h2 {
     text-transform: uppercase;
     color: #999;
     padding: 10px 0;
     margin-bottom: 14px;
 }
-.readerTextTableOfContents .content h2[role=button] {
+.bookPage .content h2[role=button] {
   cursor: pointer;
 }
-.readerTextTableOfContents .content h2 img {
+.bookPage .content h2 img {
   opacity: 0.43;
   padding: 0 5px;
   height: 10px;
   width: 10px;
 }
-.readerTextTableOfContents .versionSectionHeader {
+.bookPage .versionSectionHeader {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
 }
-.readerTextTableOfContents .versionSectionSummary {
+.bookPage .versionSectionSummary {
   text-transform: none;
   color: #ccc;
   font-size: 14px;
 }
-.readerTextTableOfContents .versionSectionSummaryHidden {
+.bookPage .versionSectionSummaryHidden {
   visibility: hidden;
 }
 .modTools .dlVersionSelect {
   display: block;
 }
 
-.modTools .dlVersionSelect,
-.readerTextTableOfContents .content .dlVersionSelect {
-  width: 60%;
+select {
+  width: 100%;
   margin: 10px auto;
   background-color: white;
   font-size: 14px;
-  height: 3em;
+  height: 50px;
   border-color: #ccc;
   border-radius: 3px;
   color: #333;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .modTools .dlVersionSelect option,
-.readerTextTableOfContents .content .dlVersionSelect option{
+.bookPage .content .dlVersionSelect option{
   unicode-bidi: plaintext;
 }
 .modTools .versionDownloadButton,
-.readerTextTableOfContents .content .versionDownloadButton {
+.bookPage .content .versionDownloadButton {
   width: 60%;
   margin: 10px auto;
   background-color: white;
@@ -2738,22 +3158,21 @@ a.readerNavCategory {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .modTools .versionDownloadButton .downloadButtonInner,
-.readerTextTableOfContents .content .versionDownloadButton .downloadButtonInner {
+.bookPage .content .versionDownloadButton .downloadButtonInner {
     font-size: 16px;
     padding: 10px;
 }
 .modTools .versionDownloadButton .he,
-.readerTextTableOfContents .content .versionDownloadButton .he {
+.bookPage .content .versionDownloadButton .he {
     font-family: "Heebo", sans-serif;
     direction: rtl;
     text-align: right;
 }
 .modTools a .versionDownloadButton,
-.readerTextTableOfContents .content a .versionDownloadButton {
+.bookPage .content a .versionDownloadButton {
     border-color: #212E50;
     background-color: #212E50;
 }
-
 .modTools .workflowy-tool{
   width: 60%;
   margin: auto;
@@ -2780,36 +3199,57 @@ a.readerNavCategory {
 }
 .dictionarySearchBox {
   display: flex;
-  justify-content: flex-start;
+  justify-content: space-between;
+  align-items: center;
   padding-bottom: 5px;
-  border-bottom: #999 solid 1px;
-  color: #999;
-  font-size: 17px;
-  height: 22px;
+  color: var(--medium-grey);
+  font-size: 16px;
+  line-height: 19px;
+  width: 300px;
+  height: 30px;
+  background: var(--lighter-grey);
+  border-radius: 6px;
+  margin-bottom: 25px;
+  position: relative;
 }
-.dictionarySearchBox .dictionarySearchButton {
-
+.dictionarySearchBox .dictionarySearchButton{
+  width: 16px;
+  height: 16px;
+  margin-inline-start: 8px;
+  margin-inline-end: 5px;
 }
 .searchBox.dictionarySearchBox .keyboardInputInitiator {
   border: none;
 }
 .dictionarySearchBox input {
-  padding: 0 10px 10px;
   font-size: 17px;
   background-color: transparent;
   border: none;
-  width: 100%;
   height: 18px;
-  margin-bottom: 10px;
+  margin-inline-end: auto;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
+.dictionarySearchBox input::placeholder{
+  font-size: 16px;
+  line-height: 19px;
+  color: var(--dark-grey);
 }
 body .ui-autocomplete.dictionary-toc-autocomplete {
-  margin: 0 0;
+  margin-top: 40px;
   padding: 6px 0 0;
+  width: 300px;
+  min-height: 85px;
+  max-height: 185px;
+  background: #FFFFFF;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  border-radius: 6px;
+  overflow-y: auto;
 }
 body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item {
   padding: 4px 25px;
-  border-bottom: solid #ccc 1px;
-  font-size: 17px;
+  font-size: 22px;
+  line-height: 29px;
   color: black;
   cursor: pointer;
   display: block;
@@ -2817,36 +3257,33 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item {
 body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus {
   text-decoration: underline;
 }
-.searchContentFrame h1 {
-  direction: ltr;
+.searchContent h1 {
   height: 40px;
+  font-size: 30px;
+  color: #000;
+  margin-bottom: 5px;
+  --english-font: var(--english-serif-font-family);
+  --hebrew-font:  var(--hebrew-serif-font-family);
 }
-.searchContentFrame h1.englishQuery {
+.searchContent h1.englishQuery {
   font-size: 30px;
 }
-.searchContentFrame h1.hebrewQuery {
-  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
-  font-size: 30px;
+.searchContent h1.hebrewQuery {
+  font-family: var(--hebrew-serif-font-family);
 }
-.searchContent {
-  padding: 0 10px 100px;
+.searchContent .searchTopLine {
+  margin-bottom: 40px;
+}
+.searchContent .searchResultCount {
+  color: var(--dark-grey);
 }
 .searchContent .searchTopMatter {
-  padding-bottom: 10px;
-  margin-bottom: 30px;
   position: relative;
-}
-.searchTopMatter .filterSortFlexbox {
   display: flex;
+  border-bottom: 1px solid var(--light-grey);
   flex-direction: row;
-  margin-bottom: 4px;  /* to vertically align with type-buttons */
-}
-.searchTopMatter .searchButtonsBar {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid #CCC;
+  align-items: center;
 }
 .searchTopMatter .type-buttons {
   display: flex;
@@ -2854,26 +3291,48 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   align-self: flex-start;
 }
 .searchTopMatter .search-dropdown-button {
-  font-size: 18px;
+  font-size: 22px;
   color: #999;
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  letter-spacing: 1px;
   cursor: pointer;
-  padding: 15px;
+  padding: 10px 0;
   -webkit-touch-callout: none; /* iOS Safari */
-  -webkit-user-select: none; /* Safari */
-   -khtml-user-select: none; /* Konqueror HTML */
-     -moz-user-select: none; /* Firefox */
-      -ms-user-select: none; /* Internet Explorer/Edge */
-          user-select: none; /* Non-prefixed version, currently
-                                supported by Chrome and Opera */
+  user-select: none;
+  margin-inline-end: 20px;
+}
+@media (max-width: 540px) {
+  .searchTopMatter .search-dropdown-button {
+    margin-inline-end:  15px;
+  }
+  .searchTopMatter .search-dropdown-button,
+  .searchTopMatter .dropdown-button {
+  font-size: 16px;
+  }
+}
+.compare .searchTopMatter .search-dropdown-button {
+  margin-inline-end:  15px;
+}
+.compare .searchTopMatter .search-dropdown-button,
+.compare .searchTopMatter .dropdown-button {
+  font-size: 16px;
 }
 .searchTopMatter .search-dropdown-button.active {
   color: #000;
-  border-bottom: 4px solid #CCC;
+  border-bottom: 4px solid var(--medium-grey);
+}
+.searchContent .searchResultList {
+  padding-top: 25px;
+}
+.searchContent .searchFilters h2 {
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: 22px;
+  text-transform: none;
+  color: var(--dark-grey);
+  border-bottom: 1px solid var(--light-grey);
+  padding-bottom: 10px;
+  margin: 0 0 10px 0;
 }
 .searchContent .searchStatusLine {
-  padding: 0 0 36px 0;
   text-align: center;
   font-size: 13px;
   height: 10px;
@@ -2883,7 +3342,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin: 5px;
   border-radius: 12px;
   border: 1px solid #DADADA;
-  display: inline-block;
   font-size: 13px;
   color: #666;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
@@ -2923,13 +3381,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   letter-spacing: 1px;
   cursor: pointer;
   font-weight: lighter;
-  -webkit-touch-callout: none; /* iOS Safari */
-  -webkit-user-select: none; /* Safari */
-   -khtml-user-select: none; /* Konqueror HTML */
-     -moz-user-select: none; /* Firefox */
-      -ms-user-select: none; /* Internet Explorer/Edge */
-          user-select: none; /* Non-prefixed version, currently
-                                supported by Chrome and Opera */
+  user-select: none;
 }
 .dropdown-button:hover {
   text-decoration: underline;
@@ -2948,6 +3400,17 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding: 0 5px;
   height: 10px;
   width: 10px;
+}
+.dropdown-button.buttonStyle {
+  letter-spacing: 0;
+  background-color: var(--lighter-grey);
+  font-size: 16px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  margin: 0;
+}
+.dropdown-button.buttonStyle:hover {
+  text-decoration: none;
 }
 .message-modal {
   position: fixed;
@@ -2988,73 +3451,18 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   box-sizing: border-box;
   margin-bottom: 20px;
 }
-.interface-hebrew .searchContent .searchFilterToggle i {
-  padding-left: 0;
-  padding-right: 5px;
-}
-.searchContent .searchFilterBoxes {
-  margin-top: 21px;
-  background: #F5F5F5;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  position: absolute;
-  z-index: 1;
-  box-shadow: 0 1px 3px #ccc;
-  box-sizing: border-box;
-}
-.interface-english .searchFilterBoxes {
-  right: 0;
-}
-.interface-hebrew .searchFilterBoxes {
-  left: 0;
-}
-.searchContent .searchFilterBoxes .tag-filter-outer {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  height: 210px;
-  padding: 10px 20px;
-  box-sizing: border-box;
-}
-.searchFilterBoxes .tag-filter {
-  color: #999;
-  background-color: white;
-  border: 0;
-}
-.searchFilterBoxes .tag-filter.active {
-  background-color: #e7e7e7;
-}
-
-.searchContent .searchFilterBoxes .searchFilterBoxRow {
-  display: flex;
-  flex-direction: row;
-  width: 100%;
-}
-.searchFilterBoxes .searchFilterTabRow {
-  display: flex;
-  flex-direction: row;
-  border-bottom: 1px solid #CCC;
-  padding: 0 15px;
-}
-.searchFilterTabRow .searchFilterTab {
-  font-size: 14px;
-}
-.searchFilterTabRow .searchFilterTab.active {
-  border-bottom: 4px solid #CCC;
-}
-.searchFilterBoxes.hidden{
-    display:none;
+.searchContent .searchFilterGroup {
+  margin-bottom:  30px;
 }
 .searchContent .searchFilterBoxes li {
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   display: flex;
   justify-content: space-between;
   flex: 1 0 45%;  /* see https://stackoverflow.com/questions/29546550/flexbox-4-items-per-row */
-  padding: 15px 0 15px 15px;
-  font-size: 16px;
+  padding: 6px 0;
+  font-size: 18px;
   cursor: pointer;
   line-height: 125%;
+  color: #000;
 }
 .searchContent .searchFilterBoxes li img {
   height: 10px;
@@ -3068,66 +3476,64 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .searchFilterBoxes li .checkboxAndText {
   display: flex;
 }
-.searchContent .searchFilterBoxRow li.active,
-.searchContent .searchFilterBoxRow li:hover {
-  background-color: #e0e0e0;
+.searchContent .searchFilterBoxes li .checkboxAndText label {
+  opacity: 0.4;
 }
-.interface-hebrew .searchContent .searchFilterBoxes li {
-  font-family: "Heebo", sans-serif;
-  padding: 10px 15px 10px 0;
+.searchContent .searchFilterBoxes li .checkboxAndText label:hover {
+  opacity: 0.6;
 }
 .searchContent .searchFilterBoxes li input[type="checkbox"] {
   display: none;
 }
 .searchContent .searchFilterBoxes li input[type="checkbox"] + label span {
-    margin: 0 13px;
-    display:inline-block;
-    width: 15px;
-    height: 15px;
-    cursor:pointer;
-    background-image: url(/static/img/checkbox-unchecked.svg);
-    background-size: contain;
+  display:inline-block;
+  width: 15px;
+  height: 15px;
+  cursor:pointer;
+  background-image: url(/static/img/checkbox-unchecked.svg);
+  background-size: contain;
+  margin-inline-end: 10px;
 }
 .searchContent .searchFilterBoxes li input[type="checkbox"]:checked + label span {
-    background-image: url(/static/img/checkbox-checked.svg);
+  background-image: url(/static/img/checkbox-checked.svg);
 }
 .searchContent .searchFilterBoxes li input[type="checkbox"]:indeterminate + label span {
-    background-image: url(/static/img/checkbox-partially.svg);
+  background-image: url(/static/img/checkbox-partially.svg);
 }
-.searchContent .searchFilterBoxes li .filter-title
-.dropdown-option-list li .filter-title {
-  color: #333;
+.searchContent .searchFilterTitle:hover {
+  text-decoration: underline;
 }
 .searchContent .searchFilterBoxes li .filter-count {
-  color: #999;
+  color: var(--dark-grey);
 }
-.searchContent .searchFilterBoxes li .in-focus-arrow {
-  float: right;
-  padding-right: 20px;
-  color: #999;
+.searchContent .searchFilterBoxes li .fa {
+  color:  var(--medium-grey);
+  font-size: 20px;
 }
-.interface-hebrew .searchContent .searchFilterBoxes li .in-focus-arrow {
-  float: left;
-  padding-left: 20px;
-  padding-right: 0;
+.searchContent .searchFilterBooks {
+  padding-inline-start: 27px;
+  margin-top: -6px;
 }
-.searchFilterBoxes .searchFilterExactBox {
-  padding-top: 10px;
-  height: 200px;
+.searchContent .searchFilters .showMore {
+  display: block;
+  margin-inline-start: 27px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-top: 4px;
 }
-.searchFilterExactBox.hidden {
-  display:none;
+.searchContent .searchFilters .showMore:hover {
+  text-decoration: underline;
 }
 .dropdown-option-list {
-    margin-top: 10px;
-    background: white;
-    width: auto;
-    position: absolute;
-    z-index: 1;
-    -webkit-border-radius: 7px;
-    -moz-border-radius: 7px;
-    border-radius: 7px;
-    border: 1px solid #ccc;
+  margin-top: 10px;
+  background: white;
+  width: auto;
+  position: absolute;
+  z-index: 1;
+  -webkit-border-radius: 7px;
+  -moz-border-radius: 7px;
+  border-radius: 7px;
+  border: 1px solid #ccc;
 }
 .dropdown-option-list-label span {
   white-space: nowrap;
@@ -3139,7 +3545,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   left: 0;
 }
 .dropdown-option-list.hidden{
-    display:none;
+  display: none;
 }
 .dropdown-option-list table {
   border-collapse: collapse;
@@ -3154,7 +3560,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-family: "Heebo", sans-serif;
 }
 .dropdown-option-list tr:hover {
-  background-color: #e0e0e0;
+  background-color: var(--lighter-grey);
 }
 .dropdown-option-list tr:not(:last-child) {
   border-bottom: 1px solid #eee;
@@ -3187,26 +3593,46 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .dropdown-option-list tr.unselected .dropdown-option-check {
   display: none;
 }
-.searchContent .searchResultsOverlay {
-  opacity: 0.5;
-}
-.searchContent .searchFilterCategoryBox,
-.searchContent .searchFilterBookBox {
-  padding-top: 10px;
-  width: 50%;
-  height: 200px;
-  overflow-y: auto;
-}
-.searchContent .searchFilterCategoryBox.searchFilterSheetBox {
+.searchContent .mobileSearchFilters {
+  position: absolute;
   width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
   display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  align-content: flex-start;
+  flex-direction: column;
+  z-index: 1002;
+  background-color: var(--lightest-grey);
+}
+.mobileSearchFiltersHeader {
+  background-color: var(--lighter-grey);
+  padding: 20px 15px;
+  display: flex;
+  justify-content: space-between;
+  color:  var(--dark-grey);
+}
+.mobileSearchFiltersHeader .readerNavMenuCloseButton {
+  font-size: 45px;
+  color: var(--medium-grey);
+  height: 20px;
+  display: block;
+  line-height: 20px;
+}
+.mobileSearchFilters .searchFilters {
+  flex-grow:  1;
+  overflow-y: scroll;
+  padding:  20px 15px;
+}
+.mobileSearchFilters .toggleSet {
+  width: 100%;
+  margin: 10px 0 0 0;
+}
+.mobileSearchFiltersFooter {
+  padding: 15px;
+  border-top: 1px solid var(--light-grey);
 }
 .searchContent .result {
-  border-bottom: thin solid #eee;
-  padding-bottom: 12px;
+  padding-bottom: 20px;
 }
 .searchContent .result a:hover {
   text-decoration: none;
@@ -3214,48 +3640,43 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .similar-results {
   padding: 0 25px;
 }
-.searchContent .similar-results .result {
-  border-top: none;
+.searchContent .similar-results .result-title {
+  display: none;
 }
-.searchContent .text_result .result-title,
-.searchContent .sheet_result .result-title {
-  color: #666;
-  font-weight: lighter;
-  padding: 20px 0 5px;
-  letter-spacing: 1px;
-  display: block;
+.searchContent .result-title {
+  font-size: 24px;
+  margin-bottom: 15px;
 }
-.searchContent .text_result .result-title .int-he,
-.searchContent .sheet_result .result-title .int-he {
+.searchContent .result-title .int-he {
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   font-size: 22px;
 }
-.searchContent .text_result .result-title .int-en,
-.searchContent .sheet_result .result-title .int-en {
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
-  font-size: 18px;
+.searchContent .sheetResult .sheetData{
+  display: flex;
+  justify-content:flex-start;
+  align-items: center;
+  color: #999;
+  font-size: 13px;
+  margin: 15px 0 5px;
 }
-.searchContent .sheet_result .result-title {
-  font-size: 18px;
+.searchContent .sheetResult .ownerData{
+  display: flex;
+  justify-content:flex-start;
+  align-items: center;
+  font-size: 13px;
 }
-.searchContent .sheet_result .result-title.in-en {
-  direction: ltr;
-  text-align: left;
+.searchContent .sheetResult .ownerName {
+  color: #000;
+  margin-inline-start: 10px;
 }
-.searchContent .sheet_result .result-title.in-he {
-  direction: rtl;
-  text-align: right;
+.searchContent .sheetResult .sheetData .tagsViews a:not(:last-of-type):after{
+  content: ",";
+  margin-inline-end: 4px;
 }
-.searchContent .sheet_result .owner_name {
-  padding-bottom: 5px;
-}
-.readerPanel.english .searchContent .sheet_result .owner_name.in-he {
-  direction: rtl;
-  text-align: left;
-}
-.readerPanel.hebrew .searchContent .sheet_result .owner_name.in-en {
-  direction: ltr;
-  text-align: right;
+.searchContent .sheetResult .sheetData .tagsViews a:first-of-type:before{
+  content: '•';
+  margin-inline-start: 4px;
+  margin-inline-end: 4px;
 }
 .searchContent .result .result-title:hover {
   text-decoration: underline;
@@ -3265,10 +3686,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .bilingual .searchContent .snippet.he {
   display: block;
 }
-.searchContent .text_result .snippet {
-
-}
-.searchContent .sheet_result .snippet {
+.searchContent .snippet {
   font-size: 18px;
   color: #000;
 }
@@ -3280,19 +3698,14 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .searchContent .result .version {
   color: #999;
-  font-weight: lighter;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  letter-spacing: 1px;
   font-size: 13px;
-  margin: 8px 0;
+  margin: 15px 0 5px;
   display: flex;
   align-items: center;
 }
-.searchContent .result .version .owner-metadata {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  margin: 0 10px;
+.searchContent .result .version .ownerMetadata {
+  margin-inline-start: 10px;
 }
 .searchContent .result .similar-trigger-box {
   color: #999;
@@ -3308,16 +3721,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .searchContent .result .similar-trigger-box i {
   padding: 0 5px;
-}
-.searchContent .sheet_result .owner_image {
-  height: 30px;
-  width: 30px;
-  align-self: flex-start;
-}
-.searchContent .sheet_result {
-  height: auto;
-  margin: 15px 0 20px 0;
-  padding-bottom: 30px;
 }
 .searchContent .result + .loadingMessage {
   margin-top: 30px;
@@ -3338,20 +3741,17 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .readerNavMenu .sheet:hover{
   text-decoration: none;
 }
-.readerNavMenu .sheet:first-child {
-  padding-top: 0;
-}
 .readerNavMenu .sheet .sheetImg {
   height: 40px;
   width: 40px;
   margin: 1px 0 0 0;
   border-radius: 2px;
 }
-.readerNavMenu .sheet .sheetTextInfo{
+.readerNavMenu .sheet .sheetTextInfo {
   display: flex;
   justify-content: flex-start;
 }
-.readerNavMenu .sheet:hover .sheetTextInfo{
+.readerNavMenu .sheet:hover .sheetTextInfo {
   text-decoration: underline;
 }
 .readerNavMenu .sheet .sheetAuthTitle{
@@ -3366,17 +3766,17 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-bottom: 6px;
   letter-spacing: 1px;
 }
-.readerNavMenu .sheet .sheetTitle{
+.readerNavMenu .sheet .sheetTitle {
   overflow: hidden;
   font-size: 16px;
   unicode-bidi: plaintext;
 }
-.readerNavMenu .sheet .sheetViews{
+.readerNavMenu .sheet .sheetViews {
   color: #999;
   font-size: 13px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
-.readerNavMenu .sheet:hover .sheetViews{
+.readerNavMenu .sheet:hover .sheetViews {
   display: inline-block ;
   text-decoration: none;
 }
@@ -3456,6 +3856,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   max-width:  100%;
   box-sizing: border-box;
 }
+.compare .readerControls .readerControlsInner {
+  padding: 0 25px;
+}
 .readerControls.connectionsHeader .readerControlsInner {
   padding: 0 34px;
 }
@@ -3522,7 +3925,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   opacity: 0.4;
 }
 .singlePanel .readerControls .readerControlsInner {
-  padding: 0 10px;
+  padding: 0px 15px;
 }
 .readerControls .readerTextToc a {
   color: inherit;
@@ -3593,10 +3996,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   cursor: pointer;
 }
 .saveButton img {
-  height: 20px;
-  width: 20px;
-  opacity: 0.5;
-  margin-top: 2px;
+  height: 18px;
+  width: 18px;
+  margin-top: 3px;
 }
 .rightButtons .saveButton.tooltip-toggle::before {
   top: 47px;
@@ -3655,8 +4057,11 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-decoration: none;
 }
 .leftButtons .readerNavMenuMenuButton {
-  font-size: 22px;
+  font-size: 24px;
   margin-top: 6px;
+}
+.compare .leftButtons .readerNavMenuMenuButton {
+  font-size: 20px;
 }
 .leftButtons .readerNavMenuCloseButton {
   font-size: 44px;
@@ -3679,9 +4084,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .readerTextTocHeader.readerTextToc {
   font-size: 16px;
 }
-.readerControls .readerTextToc{
-  min-width: 0;
-}
 .hebrew .readerControls .readerTextToc {
   direction: rtl;
 }
@@ -3694,7 +4096,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .interface-hebrew .bilingual .readerControls .readerTextToc {
   direction: rtl;
 }
-
 .interface-hebrew .bilingual .readerControls .readerTextToc .readerTextTocBox.sheetBox,
 .interface-hebrew .english .readerControls .readerTextToc .readerTextTocBox.sheetBox {
   padding-left: 23px;
@@ -3709,6 +4110,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: inline-block;
   vertical-align: middle;
   max-width: 100%;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
 .readerControls .readerTextToc .readerTextTocBox a h1,
 .readerControls .readerTextToc .readerTextTocBox a span,
@@ -3768,10 +4172,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .toggleSet {
   display: inline-block;
-  width: 48%;
+  width: 47%;
   margin: 2px auto 0 auto;
-  padding-bottom: 20px;
-  /*margin-left: 1px;*/
 }
 #accountSettingsPage .toggleSet {
   display: flex;
@@ -3788,6 +4190,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin: 10px;
   letter-spacing: 1.5px;
 }
+.toggleSetToggleBox {
+  display:  flex;
+}
 .toggleOption {
   box-sizing: border-box;
   text-align: center;
@@ -3796,37 +4201,42 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding: 4px;
   height: 42px;
   line-height: 34px;
+  flex: 1;
   background-color: #FBFBFA;
   vertical-align: middle;
 }
-.toggleSet.aliyotTorah .toggleOption, .toggleSet.punctuationTalmud .toggleOption{
+.toggleSet.aliyotTorah .toggleOption,
+.toggleSet.punctuationTalmud .toggleOption {
   font-size: 14px;
 }
-.toggleSet.vowels .toggleOption.all span span, .toggleSet.vowels .toggleOption.partial span span{
-  /*line-height: 29px;*/
+.toggleSet.vowels .toggleOption.all span span, 
+.toggleSet.vowels .toggleOption.partial span span {
   position: relative;
   top: -3px;
 }
-.toggleSet.fontSize .toggleOption{
+.toggleSet.fontSize .toggleOption {
   color: black;
 }
-.toggleSet.biLayout .toggleOption img, .toggleSet.layout .toggleOption img{
+.toggleSet.biLayout .toggleOption img,
+.toggleSet.layout .toggleOption img {
   opacity: 0.5;
 }
 .toggleOption:first-child {
-    border-top-left-radius: 4px;
-    border-bottom-left-radius: 4px;
+  border-top-left-radius: 4px;
+  border-bottom-left-radius: 4px;
 }
 .toggleOption:last-child {
-    border-top-right-radius: 4px;
-    border-bottom-right-radius: 4px;
-    border-right: 1px solid #999;
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 4px;
+  border-right: 1px solid #999;
 }
-.toggleOption.on, .toggleOption:hover {
+.toggleOption.on, 
+.toggleOption:hover {
   background-color: white;
   color: black;
 }
-.toggleSet.biLayout .toggleOption.on img, .toggleSet.layout .toggleOption:hover img{
+.toggleSet.biLayout .toggleOption.on img,
+.toggleSet.layout .toggleOption:hover img {
   opacity: 1;
 }
 .toggleSet.separated .toggleOption {
@@ -3878,6 +4288,25 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .toggleOption.larger {
   font-size: 22px;
+}
+.toggleSet.blueStyle {
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  border-radius: 6px;
+}
+.toggleSet.blueStyle .toggleOption {
+  border: none;
+  font-size: 16px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.toggleSet.blueStyle .toggleOption.on {
+  background-color:  var(--sefaria-blue);
+  color: white;
+  border-radius: 6px;
 }
 .readerOptionsPanel .line {
   margin: 20px 0;
@@ -3943,15 +4372,16 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .interface-hebrew .readerPanel.english .textRange,
 .interface-hebrew .readerPanel.english .categoryFilterGroup,
 .interface-hebrew .readerPanel.bilingual .categoryFilterGroup,
-.interface-hebrew .readerPanel.english .tocContent,
-.interface-hebrew .readerPanel.bilingual .tocContent {
+.interface-hebrew .readerPanel.english .textTableOfContents,
+.interface-hebrew .readerPanel.bilingual .textTableOfContents {
   direction: ltr;
 }
 .interface-english .readerPanel.hebrew .textRange,
 .interface-english .readerPanel.hebrew .categoryFilterGroup,
+.interface-english .readerPanel.hebrew .structToggles,
+.interface-english .readerPanel.hebrew .textTableOfContents,
 .interface-english .readerPanel.hebrew .connectionsPanel .toolsButton.more,
-.interface-english .readerPanel.hebrew .connectionsPanel .toolsButton.seeLess,
-.interface-english .readerPanel.hebrew .tocContent{
+.interface-english .readerPanel.hebrew .connectionsPanel .toolsButton.seeLess {
   direction: rtl;
 }
 .basetext .text, .sheetContent .text {
@@ -4151,10 +4581,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   background-color: inherit;
 }
 .sheetContent .segment a {
-    color: #4B71B7;
+  color: #4B71B7;
 }
 .sheetContent .segment .sourceContentText a {
-    text-decoration: underline;
+  text-decoration: underline;
 }
 .readerPanel.bilingual.stacked .sheetContent .segment.highlight .he {
   padding-bottom: 1px;
@@ -4222,19 +4652,11 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   width: 30px;
   text-align: center;
   -webkit-text-size-adjust: 100%;
-  -moz-user-select: none;
-  -khtml-user-select: none;
-  -webkit-user-select: none;
-  -o-user-select: none;
   user-select: none;
 }
 .segmentNumber .segmentNumberInner,
 .linkCount .linkCountDot {
   display: inline-block;
-  -moz-user-select: none;
-  -khtml-user-select: none;
-  -webkit-user-select: none;
-  -o-user-select: none;
   user-select: none;
 }
 .bilingual .segmentNumber .segmentNumberInner,
@@ -4465,7 +4887,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-align: center;
   line-height: 32px;
 }
-.readerNavMenu.noHeader.compare .readerNavTop .readerNavMenuCloseButton.circledX{
+.readerNavMenu.compare {
+  background-color: var(--lightest-grey);
+}
+.readerNavMenu.compare .readerNavTop .readerNavMenuCloseButton.circledX {
   height: 32px;
   width: 30px;
   display: flex;
@@ -4476,15 +4901,21 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin: 0 15px;
 }
 .connectionsHeader .readerNavMenuCloseButton.circledX,
-.readerNavMenu.noHeader.compare .readerNavTop .readerNavMenuCloseButton.circledX{
+.readerNavMenu.compare .readerNavTop .readerNavMenuCloseButton.circledX {
   width: 20px;
 }
 .connectionsHeader .readerNavMenuCloseButton.circledX img,
-.readerNavMenu.noHeader.compare .readerNavTop .readerNavMenuCloseButton.circledX img {
-  opacity: 0.4;
+.readerNavMenu.compare .readerNavTop .readerNavMenuCloseButton.circledX img {
   height: 20px;
   width: 20px;
   vertical-align: middle;
+}
+.readerNavMenu.compare .navBlockDescription,
+.readerNavMenu.compare .categoryDescription {
+  display: none;
+}
+.readerNavMenu.compare .navToggles {
+  margin-inline-start: 0;
 }
 .connectionsPanelHeader .languageToggle img {
   vertical-align: middle;
@@ -4577,25 +5008,26 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .gridBox .gridBoxRow {
   display: flex;
   justify-content: space-between;
+  margin-bottom: 6px;
 }
 .gridBox .gridBoxItem {
-  padding: 0;
   flex: 1;
-  border: 3px solid transparent;
-  overflow: hidden;
-  padding: 5px; /* HACK: overflow hidden will hide any box shadow beneath (b/c overflow cuts off at padding-box) can get around this by increasing padding-box and decreasing margin-box. see here https://stackoverflow.com/questions/33949013/css-overflow-hidden-cuts-shadow*/
-  margin: -5px;
+  
+   /* HACK: overflow hidden will hide any box shadow beneath (b/c overflow cuts off at padding-box) can get around this by increasing padding-box and decreasing margin-box. see here https://stackoverflow.com/questions/33949013/css-overflow-hidden-cuts-shadow*/
   display: flex;
   flex-direction: column;
+  padding: 5px;
 }
 .gridBox .gridBoxItem.placeholder {
   visibility: hidden;
 }
-@media (max-width: 450px) {
-  .gridBox .gridBoxItem {
-    border: solid transparent;
-    border-width: 2px 4px;
-  }
+.gridBox .gridBoxItem:first-child {
+  padding-inline-start: 0;
+  margin-inline-start: 0;
+}
+.gridBox .gridBoxItem:last-child {
+  padding-inline-end: 0;
+  margin-inline-end: 0;
 }
 .dark .filterSet td {
   border-color: #555;
@@ -4945,7 +5377,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .sheet .sheetRight img {
   display: none;
-  opacity: 0.4;
   padding: 0 5px;
   width: 22px;
   height: 22px;
@@ -4982,8 +5413,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 14px;
   margin: 4px;
 }
-.readerTextTableOfContents .sheetTag.button {
-  padding: 10px 16px
+.bookPage .sheetTag.button {
+  padding: 5px 16px;
+  height: 30px;
 }
 .textList .sheetList {
   padding-top: 40px;
@@ -5344,6 +5776,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: block;
   content: ' ';
   background-size: 15px 15px;
+  background-repeat: no-repeat;
   height: 15px;
   width: 15px;
   margin-inline-end: 5px;
@@ -5799,10 +6232,15 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   line-height: 68px;
   background: #212E50;
 }
-
 .addConnectionBox {
   font-size: 18px;
   text-align: center;
+}
+.addConnectionBox .dropdown .dropdownMain{
+  justify-content: center;
+}
+.addConnectionBox .dropdown .dropdownMain span, .addConnectionBox .dropdown .dropdownMain img{
+  margin-inline-start: auto;
 }
 .addConnectionSummary {
   margin-bottom: 20px;
@@ -5818,35 +6256,14 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   width: auto;
   margin: 0 6px;
 }
-.notificationsPanel .content {
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  font-size: 16px;
-  color: #666;
-}
-.notificationsPanel .content a {
-  color: #000;
-  text-decoration: underline;
-}
-.systemPanel.readerNavMenu h1 {
-  margin: 0 0 40px 0;
-  height: auto;
-}
-.systemPanel.readerNavMenu h1 :not(.languageToggle) .en {
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-.systemPanel.readerNavMenu h1 .button {
-  position: absolute;
-  right: 0;
-  top: 0;
-  padding: 0;
-  margin: 0;
-  line-height: 26px;
-}
 .profile-pic {
   display: flex;
   justify-content: center;
   align-items: center;
   flex-direction: column;
+}
+.profile-page {
+  background-color: var(--lightest-grey);
 }
 .profile-page .profile-pic .profile-pic-hover-button {
   display: none;
@@ -5863,7 +6280,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: flex;
 }
 .profile-page .profile-pic .profile-pic-button {
-  position: absolute;
+  position: relative;
+  top: calc(-1 * ((175px/2) + (46px/2)));  /* height of .profile-img + height of .profile-pic-button */
 }
 .profile-pic-cropper-modal {
   max-width: unset !important;
@@ -5927,33 +6345,77 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .profile-page .logoutLink .int-he {
   font-family: "Heebo", sans-serif;
 }
-.notificationsPanel a {
-  color: #000;
-  text-decoration: underline;
+.notificationsTitleIcon {
+  position: relative;top: 2px;
 }
-.notificationsList {
-  margin-bottom: 100px;
-}
-.notificationsList .notification {
-  width: auto;
-  border-bottom: 1px solid #ccc;
+.notification {
+  border-bottom: 1px solid var(--light-grey);
   border-top: none;
-  padding: 27px 15px;
-  margin: 0;
+  padding: 25px 0;
+  line-height: 1.4;
 }
-.notificationsList .added-description {
-  padding: 5px 0 0;
+.notification {
+  display: flex;
 }
-.notificationsPanel .notification .date {
-  color: #999;
-  font-size: 13px;
-  margin-top: 8px;
+.notification .imageSection {
+  margin-inline-end: 15px;
 }
-.notificationsList .int-he {
-  font-size: inherit;
+.notification .imageSection img {
+  height: 30px;
+  width: 30px;
+  border-radius: 15px;
 }
-.notificationsList .notification a{
+.notification .mainSection {
+  flex: 1;
+}
+.notification a {
   unicode-bidi: plaintext;
+}
+.notification a:hover {
+  color: inherit;
+}
+.notification .topLine {
+  display: flex;
+  justify-content: space-between;
+  flex-direction: row;
+  margin-top: 2px;
+  align-content: space-between;
+}
+.notification .topLine a {
+  font-weight: bold;
+}
+.notification .topLineText {
+  flex: 1;
+}
+.notification .date {
+  color: var(--medium-grey);
+  font-size: 14px;
+  margin-inline-start: 15px;
+}
+.notification .notificationBody {
+  margin-top: 20px;
+}
+.notification .sheetTitle,
+.notification .collectionName {
+  --english-font: var(--english-serif-font-family);
+  --hebrew-font: var(--hebrew-serif-font-family);
+  font-size: 24px;
+  display: block;
+}
+.notification .sheetSummary {
+  --english-font: var(--english-serif-font-family);
+  --hebrew-font: var(--hebrew-serif-font-family);
+  color: var(--dark-grey);
+  font-size: 18px;
+  margin-top: 10px;
+}
+.notification .replyButton {
+  margin-top: 15px;
+}
+.notification .replyButton img {
+  width: 15px;
+  height: 10px;
+  margin-inline-end: 10px;
 }
 .notification-message-link {
   display: inline-block;
@@ -5977,7 +6439,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .globalUpdateForm input[type="text"] {
   padding: 5px;
-  margin: 0 0 0 15px;
+  margin: 5px 0;
+  width: 260px;
 }
 .globalUpdateForm input[type="radio"] {
   padding: 5px;
@@ -5990,6 +6453,18 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .globalUpdateForm .previewButton {
   margin-left: 85%;
   font-size: 20px;
+}
+.update {
+  position: relative;
+}
+.update .imageSection {
+  display: none;
+}
+.update .delete-update-button {
+  position: absolute;
+  top:  8px;
+  right:  0px;
+  color:  var(--dark-grey);
 }
 .story-action-button {
   display: inline-block;
@@ -6052,6 +6527,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   background-color: #FBFBFA;
   height: 100%;
   width: 100%;
+  direction: initial;
 }
 #appLoading .loadingMessage {
   position: absolute;
@@ -6059,10 +6535,15 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   left: 50%;
   transform: translate(-50%, -50%);
 }
-#appLoading img {
+#appLoading img.int-en {
   width: 150px;
   height: 42px;
   margin-bottom: 6px;
+}
+#appLoading img.int-he {
+  width: 150px;
+  height: 49px;
+  margin-bottom: 6px; 
 }
 .emptyDesktop {
   margin-top: 200px;
@@ -6072,10 +6553,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .button {
   display: inline-block;
   color: white;
-  background-color: #212E50;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-  border-radius: 7px;
-  padding: 17px 30px;
+  background-color: var(--sefaria-blue);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+  border-radius: 6px;
+  padding: 16px 30px;
   margin: 0 2px 6px 2px;
   cursor: pointer;
   font-size: 16px;
@@ -6084,6 +6565,20 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-align: center;
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
+  border: none;
+}
+.button.disabled{
+  border: 1px solid var(--light-grey);
+  background-color: var(--lightest-grey);
+  font-size: 16px;
+  line-height: 19px;
+  text-align: center;
+  color: var(--medium-grey);
+  box-shadow: none;
+}
+.button.disabled:hover{
+  color: var(--medium-grey);
+  cursor: initial;
 }
 a.button {
   color: white;
@@ -6098,7 +6593,13 @@ a.button:hover {
   color: #333;
 }
 a.button.white {
-  color: #333;
+  color: var(--dark-grey);
+}
+.button.grey {
+  background-color:  var(--lighter-grey);
+  color: var(--dark-grey);
+  box-shadow: none;
+  border: none;
 }
 a.button.mini {
   padding: 5px;
@@ -6135,47 +6636,48 @@ a .button:hover {
 }
 .button.small {
   padding: 10px 14px;
+  width: -moz-fit-content;
+  width: fit-content;
 }
 .button.extraSmall {
   border-radius: 6px;
   box-shadow: none;
-  color: #666;
-  border: 1px solid #CCC;
   margin: 0;
   padding: 5px 8px;
   height: 30px;
   line-height: 20px;
   letter-spacing: normal;
 }
-.button img.buttonIcon {
-    width: 16px;
-    height: 16px;
-    opacity: .4;
-    margin: 0 5px;
-    position: relative;
-    top: 2px;
+.button .buttonIcon {
+  margin-inline-end: 7px;
+  vertical-align: middle;
 }
-::placeholder {
-   font-style: italic;
-   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
-   color: #666;
+.button.small .buttonIcon {
+  height: 14px;
+  width: 14px;
+  margin-top: -3px;
 }
-:-ms-input-placeholder {
-   font-style: italic;
-   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
-   color: #666;
+.button.appButton {
+  box-shadow: none;
+  border: 2px solid #18345D;
+  color: #18345D;
 }
-.interface-hebrew ::placeholder {
-  font-style: normal;
-  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
-  font-size: 18px;
-  color: #666;
+.button.appButton img {
+  margin-inline-end: 5px;
 }
-.interface-hebrew :-ms-input-placeholder {
-  font-style: normal;
-  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
-  font-size: 18px;
-  color: #666;
+.button.appButton.iconOnly {
+  width: 40px;
+  height: 40px;
+  box-sizing: border-box;
+  display: inline-flex;
+  padding: 0;
+  justify-content: center;
+  align-items: center;
+}
+.button.appButton.iconOnly img {
+  width: 18px;
+  height: 18px;
+  margin: 0;
 }
 .lexicon-content{
   font-size: 15px;
@@ -6315,7 +6817,6 @@ a .button:hover {
   font-style: italic;
 }
 .splitHeader {
-  margin-bottom: 10px;
   text-align: left;
   display: flex;
   flex-direction: row;
@@ -6414,17 +6915,21 @@ a .button:hover {
 .tagString a:last-child:after {
   content: "";
 }
-.collectionsList {
-  margin-top: 30px;
-}
 .singlePanel .collectionsList {
   margin-top: 0;
 }
-.collectionsList .loadingMessage {
-  text-align: center;
+.collectionsList .enCollections,
+.collectionsList .heCollections {
+  margin-bottom: 50px;
+}
+.readerPanel .collectionsList .enCollections .gridBox,
+.readerPanel .collectionsList .enCollections .int-he {
+  direction: ltr;
+}
+.readerPanel .collectionsList .heCollections .gridBox {
+  direction: rtl;
 }
 .collectionListing {
-  padding: 30px 0;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -6441,17 +6946,17 @@ a .button:hover {
   border-top: 1px solid #ccc;
 }
 .collectionListingImageBox {
-  width: 60px;
-  height: 60px;
-  float: left;
-  margin-right: 20px;
-}
-.interface-hebrew .collectionsList .collectionListingImageBox {
-  margin: 0 0 0 20px;
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+  margin-inline-end: 10px;
+  overflow: hidden;
+  flex-shrink: 0;
 }
 .sheetMetaDataBox .collectionListingImageBox,
 .tocTop .collectionListingImageBox {
   background-color: transparent;
+  overflow: initial;
 }
 .sheetMetaDataBox .title {
   display: block;
@@ -6473,7 +6978,6 @@ a .button:hover {
   content: "\200B"; /* zero-width space required so that chrome doesn't cause change in size of box on focus/blur */
   width: 0;
 }
-
 .publishBox {
   text-align: start;
   background-color: #EDEDEC;
@@ -6484,26 +6988,20 @@ a .button:hover {
   font-size: 16px;
   color: #666;
 }
-
 .publishBox .smallText .int-en, .publishBox .smallText .int-he.enInHe {
   color: #666;
 }
-
 .publishBox p.error {
   color: red;
 }
-
 .publishBox .error .react-tags,
 .publishBox textarea.error {
   border: 1px solid red;
 }
-
 .publishBox p strong {
   color: black;
   font-weight: 400;
 }
-
-
 .publishBox h3 {
   font-size: 22px;
   font-weight: 500;
@@ -6513,7 +7011,6 @@ a .button:hover {
   text-transform: none;
   text-align: start;
 }
-
 .publishBox hr {
   border-bottom: none;
   border-right: none;
@@ -6523,11 +7020,9 @@ a .button:hover {
   border-top: 1px solid #CCC;
   margin-top: 20px;
 }
-
 .publishBox .smallText {
   color: #666666
 }
-
 .publishBox textarea {
   width: 100%;
   height: 100%;
@@ -6547,8 +7042,6 @@ a .button:hover {
   font-style: normal;
   font-family: var(--english-sans-serif-font-family);
 }
-
-
 .publishBox .react-tags {
   position: relative;
   padding: 10px 10px 4px 10px;
@@ -6562,15 +7055,12 @@ a .button:hover {
   /* clicking anywhere will focus the input */
   cursor: text;
 }
-
 .publishBox .react-tags.is-focused {
   border-color: #B1B1B1;
 }
-
 .publishBox .react-tags__selected {
   display: inline;
 }
-
 .publishBox .react-tags__selected-tag {
   display: inline-block;
   box-sizing: border-box;
@@ -6585,7 +7075,6 @@ a .button:hover {
   font-size: inherit;
   line-height: inherit;
 }
-
 .publishBox .react-tags__search-input,
 .publishBox .react-tags__search-input:focus,
 .publishBox .react-tags__search-input:focus-visible {
@@ -6594,33 +7083,26 @@ a .button:hover {
   border: none;
   outline: none;
 }
-
 .publishBox .react-tags__search-input::placeholder {
   font-size: 16px;
   font-style: normal;
   font-family: var(--english-sans-serif-font-family);
 }
-
 body.interface-hebrew .publishBox .react-tags__search-input::placeholder,
 body.interface-hebrew .publishBox textarea::placeholder {
   font-family: var(--hebrew-sans-serif-font-family);
 
 }
-
-
-
 .publishBox .react-tags__selected-tag:after {
   content: '\2715';
   color: #AAA;
   margin-inline-start: 8px;
   font-size: 10px;
 }
-
 .publishBox .react-tags__selected-tag:hover,
 .publishBox .react-tags__selected-tag:focus {
   border-color: #B1B1B1;
 }
-
 .publishBox .react-tags__search {
   display: inline-block;
 
@@ -6631,23 +7113,18 @@ body.interface-hebrew .publishBox textarea::placeholder {
   /* prevent autoresize overflowing the container */
   max-width: 100%;
 }
-
 .publishBox .publishButton {
   margin: 18px 0;
   text-align: end;
 }
-
 .publishBox .publishButton .button.published {
   background-color: #EDEDEC;
   border: 1px solid #CCCCCC;
   color: #666666
 }
-
-
 .publishBox p {
   margin-bottom: 9px;
  }
-
 .publishBox .react-tags__suggestions ul {
   position: absolute;
   inset-inline-start: 0;  /* Note reduntant css rules below `body.interface-[hebrew|english]  .publishBox .react-tags__suggestions ul` */
@@ -6660,49 +7137,39 @@ body.interface-hebrew .publishBox textarea::placeholder {
   border-radius: 6px;
   min-width: 300px;
 }
-
 /* Reduntant given above `inset-inline-start` rule, but not standard on all browsers yet
 RMN: 2021-04-22 */
 body.interface-hebrew  .publishBox .react-tags__suggestions ul {
   right: 0;
 }
-
 /* Reduntant given above `inset-inline-start` rule, but not standard on all browsers yet
 RMN: 2021-04-22 */
 body.interface-english .publishBox .react-tags__suggestions ul {
   left: 0;
 }
-
 .publishBox .react-tags__suggestions li {
   border-bottom: none;
   padding: 6px 8px;
 }
-
 .publishBox .react-tags__suggestions li mark {
   text-decoration: none;
   background: none;
   font-weight: normal;
 }
-
 .publishBox .react-tags__suggestions li:hover {
   cursor: pointer;
   background: #eee;
 }
-
 .publishBox .react-tags__suggestions li.is-active {
   background: #eee;
 }
-
 .publishBox .react-tags__suggestions li.is-disabled {
   opacity: 0.5;
   cursor: auto;
 }
-
-
 .interface-hebrew .sheetMetaDataBox .authorStatement {
   direction: rtl;
 }
-
 .editorSidebarToggle {
   position: fixed;
   top: 150px;
@@ -6752,17 +7219,8 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 .collectionListingDetailSeparator {
   margin: 8px;
 }
-.collectionPage .loadingMessage {
-  text-align: center;
-}
-.collectionPage .collectionImage {
-  max-height: 200px;
-  max-width: 100%;
-  display: block;
-  margin: 0 auto 50px;
-}
 .collectionInfo {
-  margin-bottom: 50px;
+  margin-bottom: 35px;
 }
 .interface-hebrew .collectionInfo .he {
   display: inline;
@@ -6771,29 +7229,37 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   display: none;
 }
 .collectionPage h1 {
-  margin-top: 20px;
-  height: auto;
+  color: black;
+  font-size: 30px;
+  margin-bottom: 5px;
+  --hebrew-font: var(--hebrew-serif-font-family);
+  --english-font: var(--english-serif-font-family);
+}
+.collectionPage .navTitle {
+  margin-bottom: 5px;
+}
+.collectionPage .collectionLabel {
+  text-transform: uppercase;
+  color: #666;
+  font-size: 16px;
+  letter-spacing: 2px;
+  display: block;
+  margin-bottom: 25px;
 }
 .collectionPage a:hover {
   color: inherit;
 }
 .collectionPage .collectionWebsite {
   display: block;
-  text-align: center;
   font-size: 16px;
-  margin-bottom: 20px;
-  color: #666;
-  --hebrew-font: var(--hebrew-serif-font-family);
-  --english-font: var(--english-serif-font-family);
+  margin-top: 15px;
+  color: #4B71B7;
   direction: ltr;
 }
 .collectionPage .collectionDescription {
   font-size: 16px;
-  color: #333;
-  text-align: center;
+  color: #666;
   line-height: 1.3;
-  --hebrew-font: var(--hebrew-sans-serif-font-family);
-  --english-font: var(--english-sans-serif-font-family);
 }
 .collectionPage .collectionDescription .dedication {
   --hebrew-font: var(--hebrew-serif-font-family);
@@ -6802,15 +7268,11 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 .collectionPage .collectionDescription .en .dedication {
   font-style: italic;
   font-size: 18px;
+  display: block;
 }
 .collectionPage .collectionDescription .he .dedication {
   font-size: 20px;
-}
-.collectionPage .tabs {
-  text-align: center;
-  margin-bottom: 60px;
-  --hebrew-font: var(--hebrew-sans-serif-font-family);
-  --english-font: var(--english-sans-serif-font-family);
+  display: block;
 }
 .collectionPage .bubbleTab {
   font-size: 16px;
@@ -6819,52 +7281,39 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   --hebrew-font: var(--hebrew-serif-font-family);
   --english-font: var(--english-serif-font-family);
 }
-.collectionPage .emptyMessage {
-  text-align: center;
-}
 .collectionPage .emptyMessage .button {
   margin-top: 22px;
 }
 .collectionPage .emptyMessage .button:hover {
   color: white;
 }
-.collectionPage .collectionSearchBox {
-  display: flex;
-  align-items: center;
-  border-bottom: 1px solid #ccc;
-  margin-top: 14px;
-  margin-bottom: 20px;
+.collectionContentsTab .gridBox {
+  margin-bottom:  30px;
 }
-.collectionPage .collectionSearchIcon {
-  height: 18px;
-  opacity: 0.4;
-  width: 18px;
+.collectionPage .collectionContentsSectionLabel {
+  color: var(--dark-grey);
+  size: 16px;
+  margin: 30px 0 12px 0;
 }
-.collectionPage .collectionSearchInput {
-  padding: 12px 10px;
-  flex: 1;
-  box-sizing: border-box;
-  border: none;
-  background: transparent;
-  font-size: 18px;
+.collectionPage .collectionContentsTag {
+  font-size: 24px;
 }
-.collectionPage .tagsList {
-  margin-top: 30px;
+.collectionPage .sheetIcon {
+  display: none;
+}
+.collectionPage .filterable-list .sheet a.sheetTitle {
+  font-size:  24px;
+}
+.collectionPage .searchInCollectionLink {
+  font-size:  16px;
+  color: var(--dark-grey);
+  margin-top: 20px;
+  display: block;
 }
 .collectionInvitationBox {
-  border-bottom: 1px solid #CCC;
   padding-bottom: 20px;
 }
-.collectionInvitationBoxInner {
-  display: flex;
-}
-.interface-hebrew .collectionInvitationBox input::placeholder {
-  font-family: "Heebo", sans-serif;
-}
-.collectionInvitationBox .button {
-  width: 200px;
-  margin: 0;
-}
+.collectionInvitationBox .button {margin: 0;}
 .collectionSheetInner {
   display: flex;
 }
@@ -6887,15 +7336,15 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   opacity: 0.6;
 }
 #collectionInvitationInput {
-  padding: 14px 30px;
-  width: 472px;
-  border-radius: 7px;
-  outline: 0;
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
   border: none;
   margin-inline-end: 10px;
   font-size: 18px;
   position: relative;
+  border-radius: 7px;
+  box-sizing: border-box;
+  width: 215px;
+  padding: 10px 15px;
 }
 .collectionInvitationBoxMessage {
   font-size: 18px;
@@ -6907,66 +7356,52 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   height: 0;
 }
 .collectionPage .collectionMemberListing {
-  padding: 24px 0;
+  padding-bottom: 24px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 16px;
   color: #666;
   display: flex;
   flex-direction: row;
-  justify-content: space-between;
+  justify-content: start;
 }
-.collectionPage .collectionMemberListing .collectionLeft,
-.collectionPage .collectionMemberListing .collectionMemberListingRoleBox {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
+.collectionMemberListingPic {
+  margin-inline-end: 10px;
 }
-.collectionMemberListing + .collectionMemberListing {
-  border-top: 1px solid #CCC;
-}
-.collectionMemberListingProfileImage {
-  height: 50px;
-  width: 50px;
-  vertical-align: middle;
+.collectionMemberListingPic.invitation {
+  background-color: var(--medium-grey);
+  border-radius: 1000px;
+  width: 40px;
+  height: 40px;
+  line-height: 40px;
+  text-align: center;
 }
 .collectionMemberListingName {
-  color: #666;
-  margin: 0 20px;
-}
-.collectionInvitationListing {
-  display: inline-block;
-  min-height: 50px;
-  line-height: 50px;
-}
-.collectionMemberListingRoleBox {
-  float: right;
-  line-height: 50px;
+  color: black;
 }
 .collectionMemberListingRole {
-  color: #666;
+  color: var(--dark-grey);
+  font-size: 13px;
+  margin-top: 4px;
 }
-.collectionMemberListingActions {
+.collectionMemberListingText {
   position: relative;
-  background-color: white;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  margin-left: 12px;
-  line-height: 36px
 }
-.interface-hebrew .collectionMemberListingActions {
-  margin-left: 0;
-  margin-right: 12px;
+.collectionPage .collectionMemberListing .collectionMemberListingActions {
+  display: none;
 }
-.collectionMemberListingActionsButton {
+.collectionPage .collectionMemberListing:hover .collectionMemberListingActions {
+  display: inline-flex;
+}
+.collectionMemberListingActions .collectionMemberListingActionsButton {
   cursor: pointer;
-  padding: 0 12px;
-  font-size: 18px;
-  color: #CCC;
+  color: var(--dark-grey);
+  margin-inline-start: 8px;
 }
 .collectionMemberListingActionsMenu {
   position: absolute;
-  right: 0;
+  left: 0;
   top: 46px;
+  line-height: 30px;
   background-color: white;
   border: 1px solid #ccc;
   border-radius: 4px;
@@ -6975,8 +7410,8 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   z-index: 1;
 }
 .interface-hebrew .collectionMemberListingActionsMenu {
-  left: 0;
-  right: unset;
+  right: 0;
+  left: unset;
 }
 .collectionMemberListingActionsMenu .action {
   padding: 4px 10px;
@@ -6994,56 +7429,69 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   margin-right: 4px;
 }
 .collectionMemberListingActionsMenu .role.current {
-  color: #666;
+  color: var(--dark-grey);
+}
+.collectionInvitationListing {
+  display: inline-block;
+  min-height: 50px;
+  line-height: 50px;
 }
 .topicPanel .smallText .separator {
   color: #999;
   font-size: 20px;
   margin: 0 3px;
 }
-.topicsPanel .loadingMessage {
-  text-align: center;
-}
-.topicsPanel .topicFilterBox {
+.topicFilterBox {
   display: flex;
   align-items: center;
-  border-bottom: 1px solid #ccc;
-  margin-bottom: 50px
+  margin-bottom: 30px;
+  background-color: var(--lighter-grey);
+  border-radius: 100px;
+  padding: 0 10px;
+  margin-top: 0;
+  width: 285px;
+  max-width: 100%;
 }
-.topicsPanel .topicFilterIcon {
-  font-size: 22px;
+.singlePanel .topicFilterBox {
+  margin-top: 20px;
+}
+.topicFilterBox .searchIcon {
+  height: 18px;
+  width: 18px;
   opacity: 0.4;
 }
-.topicsPanel .topicFilterInput {
-  padding: 12px 10px;
+.topicFilterInput {
+  padding: 0px 10px;
+  line-height: 30px;
   flex: 1;
   box-sizing: border-box;
   border: none;
   background: transparent;
-  font-size: 24px;
+  font-size: 18px;
 }
-.topicsPanel .topicsFilterReset {
-  color: #999;
+.topicsFilterReset {
   cursor: pointer;
+  color: var(--medium-grey);
 }
-.topicsPanel .topicsFilterResetIcon {
+.topicsFilterResetIcon {
   height: 16px;
   width: 16px;
-  opacity: 0.4;
-  margin-left: 8px;
-  vertical-align: middle;
+  margin-inline-start: 8px;
+  vertical-align: -2px;
 }
-.topicsPanel .topicList {
+.alphabeticalTopicsNav {
+  color: var(--dark-grey);
+  margin-bottom: 5px;
+}
+.alphabeticalTopicsNav a {
+  display: inline-block;
+  margin-bottom: 10px;  
+}
+.alphabeticalTopicsNav a + a {
+  margin-inline-start: 10px;
+}
+.allTopicsList {
   min-height: 500px;
-}
-.topicsPanel .content .topicList .navButton .int-en {
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif, "Taamey Frank";
-}
-.topicsPanel .content .topicList .navButton .int-he {
-  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
-}
-.topicsPanel .trendingTopics {
-  margin-bottom: 40px;
 }
 .topicPanel .topicLabel {
   text-transform: uppercase;
@@ -7110,9 +7558,6 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   color: #333;
   text-decoration: underline;
 }
-.myNotesPanel .noteList {
-  margin-bottom: 220px;
-}
 .noteListing {
   margin-bottom: 30px;
   border-bottom: 1px solid #ccc;
@@ -7158,7 +7603,6 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 .noteListing .actionButtons img {
   width: 16px;
   height: 16px;
-  opacity: 0.4;
 }
 .noteListing .actionButtons img + img {
   margin: 0 0 0 10px;
@@ -7191,16 +7635,16 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   cursor: pointer;
   height: 18px;
   width: 18px;
-  opacity: 0.5;
   float: right;
 }
 .searchBox .keyboardInputInitiator {
     opacity: 0.4;
-    width: 16px;
-    height: 16px;
-    padding: 4px 7px;
+    width: 22px;
+    height: 20px;
+    padding: 4px 7px 2px;
     position: initial;
     vertical-align: 0px;
+
 }
 .header .searchBox .keyboardInputInitiator {
     display: none;
@@ -7212,6 +7656,9 @@ body #keyboardInputMaster {
     padding: 5px;
     box-shadow: none;
     border-radius: 0.3em;
+    /*position: relative;
+    top: 100px;
+    left: 395px;*/
 }
 body #keyboardInputMaster thead {
   display: none;
@@ -7235,6 +7682,21 @@ body #keyboardInputMaster tbody tr td table tbody tr td:active,
 body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
     border: 1px solid #eee;
     background: #eee;
+}
+.calendarRefs {
+  margin-bottom: 16px;
+}
+.calendarRef {
+  font-size: 18px;
+  color: #666;
+  display: flex;
+  margin: 2px 0;
+}
+.calendarRef a {
+  color: inherit;
+}
+.calendarRef img {
+  margin-top: 2px;
 }
 #editCollectionPageContainerInner {
   position: relative;
@@ -7333,6 +7795,64 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   font-size: 16px;
   margin-bottom: 10px;
   cursor: pointer;
+  line-height: 19px;
+  color: var(--dark-grey);
+  display: flex;
+  justify-content: space-between;
+  flex-direction: row;
+}
+.dropdown .dropdownMain.selected{
+  color: var(--selected-option);
+}
+.dropdown .dropdownList .dropdownOption {
+  font-size: 18px;
+  cursor: pointer;
+  padding: 0 22px;
+  margin: 26px 0;
+  border: none;
+  color: var(--dark-grey);
+  font-style: normal;
+  font-weight: normal;
+  font-size: 16px;
+  line-height: 19px;
+}
+.dropdown .dropdownOpenButton {
+  margin-inline-start: 6px;
+  cursor: pointer;
+  color: var(--dark-grey);
+  font-size: 18px;
+}
+.interface-hebrew .dropdownOpenButton {
+  float: left;
+  margin-left: 0;
+}
+.dropdown .dropdownListBox {
+  position: absolute;
+  z-index: 1;
+  margin-top: -14px;
+  width: 100%;
+  box-sizing: border-box;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  background: white;
+  border-bottom-left-radius: 7px;
+  border-bottom-right-radius: 7px;
+}
+.dropdown .dropdownList {
+  color: #999;
+  background-color: white;
+  box-sizing: border-box;
+  padding: 0;
+  max-height: 250px;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  border-bottom-left-radius: 7px;
+  border-bottom-right-radius: 7px;
+}
+.singlePanel .dropdown .dropdownList {
+  max-height: 150px;
+}
+.dropdown .dropdownList .dropdownOption.selected {
+  color: var(--selected-option);
 }
 .addToSourceSheetBox .dropdownMain.noselect {
   display: flex;
@@ -7395,51 +7915,6 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   font-size: 1.2em;
 }
-.dropdown .dropdownOpenButton {
-  float: right;
-  margin-left: 6px;
-  cursor: pointer;
-  color: #666;
-  font-size: 18px;
-}
-.interface-hebrew .dropdownOpenButton {
-  float: left;
-  margin-left: 0;
-  margin-right: 6px;
-}
-.dropdown .dropdownListBox {
-  position: absolute;
-  z-index: 1;
-  margin-top: -14px;
-  width: 100%;
-  box-sizing: border-box;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-  background: white;
-  border-bottom-left-radius: 7px;
-  border-bottom-right-radius: 7px;
-}
-.dropdown .dropdownList {
-  color: #999;
-  background-color: white;
-  box-sizing: border-box;
-  padding: 0;
-  max-height: 250px;
-  overflow-x: hidden;
-  overflow-y: scroll;
-  border-bottom-left-radius: 7px;
-  border-bottom-right-radius: 7px;
-}
-.singlePanel .dropdown .dropdownList {
-  max-height: 150px;
-}
-.dropdown .dropdownList .dropdownOption {
-  font-size: 18px;
-  cursor: pointer;
-  padding: 0 22px;
-  margin: 26px 0;
-  border: none;
-  color: #666;
-}
 .addToSourceSheetBox .dropdown .dropdownList .dropdownOption::before{
   content: url("/static/img/sheet.svg");
   opacity: 0.4;
@@ -7449,9 +7924,6 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   vertical-align: text-bottom;
   line-height: 10px;
 }
-.dropdown .dropdownList .dropdownOption.selected {
-  color: #333;
-}
 #footer {
   background-color: white;
   border-top: 1px solid #F4F4F4;
@@ -7459,6 +7931,9 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   padding: 18px 40px 70px 40px;
   text-align: left;
   color: #999;
+}
+.singlePanel #footer {
+  padding: 18px 15px 70px 15px;
 }
 #footer a {
   display: block;
@@ -7521,7 +7996,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 .newsletterSignUpBox .newsletterInput {
   border-radius: 6px;
-  padding: 8px 32px 11px 16px;
+  padding: 10px 32px 12px 16px;
   width: 150px;
   font-size: 15px;
   border: 1px solid #EEE;
@@ -7556,7 +8031,6 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-style: italic;
   text-align: center;
-  width: 200px;
   direction: ltr;
 }
 #footer .section.connect a {
@@ -7607,9 +8081,6 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 #footer a#siteLanguageHebrew {
   font-family: "Heebo", sans-serif;
 }
-.multiPanel .readerNavMenu .content.hasFooter #footer {
-  margin-top: 120px;
-}
 .gemarra-regular, .gemarra-italic {
   font-weight: bold;
 }
@@ -7638,30 +8109,40 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .bubbleTab.active {
   color: #333;
 }
+.aboutBox .detailsSection{
+  margin-bottom: 40px;
+}
 .aboutBox .aboutHeader {
-  color: #666;
+  color: var(--dark-grey);
   padding-bottom: 13px;
   margin: 0;
   margin-bottom: 15px;
   text-align: initial;
   text-transform: none;
-  font-size: 16px;
-  border-bottom: solid 1px #CCC;
+  font-size: 22px;
+  border-bottom: solid 1px var(--light-grey);
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
 .aboutBox .aboutTitle {
-  padding: 10px 0 15px 0;
+  padding: 10px 0 10px 0;
   display: inline-block;
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-style: normal;
   font-weight: normal;
   font-size: 24px;
   line-height: 29px;
   color: #000000;
 }
+.aboutBox .tocCategory{
+  display: block;
+  margin-bottom: 17px;
+  font-size: 16px;
+  line-height: 19px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--dark-grey);
+}
 .aboutBox .aboutSubtitle {
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-style: italic;
   font-weight: normal;
   font-size: 18px;
@@ -7671,14 +8152,28 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .aboutBox .aboutSubtitle .he {
   font-style: normal;
 }
+.aboutBox .aboutAuthor{
+  font-size: 16px;
+  line-height: 19px;
+  color: var(--dark-grey);
+  margin-bottom: 22px;
+}
+.aboutBox .aboutAuthor .authorName{
+  margin-inline-start: 5px;
+  color: black;
+}
 .aboutBox .aboutDesc {
-  padding: 15px 0 30px 0;
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  margin: 15px 0 15px 0;
   font-style: normal;
   font-weight: normal;
-  font-size: 18px;
-  line-height: 22px;
-  color: #000000;
+  font-size: 16px;
+  line-height: 19px;
+  color: var(--dark-grey);
+}
+.aboutBox .aboutComposed{
+  font-size: 14px;
+  line-height: 18px;
+  color: var(--medium-grey);
 }
 .readerApp.interface-hebrew .aboutBox .versionDetails,
 .readerApp.interface-hebrew .versionsBox .versionDetails {
@@ -7687,10 +8182,6 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .aboutBox .versionDetails .separator,
 .versionsBox .versionDetails .separator {
   margin: 0 3px;
-}
-.aboutBox a,
-.versionsBox a {
-  color: #999;
 }
 .aboutBox .currVersionSection, .aboutBox .alternateVersionsSection {
   padding-bottom: 30px;
@@ -7742,7 +8233,6 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 .versionsBox .versionLanguage {
   padding-bottom: 15px;
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   letter-spacing: 1px;
   font-style: normal;
   font-weight: normal;
@@ -7751,7 +8241,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   color: #666666;
 }
 .interface-hebrew .versionsBox .versionLanguage {
-  font-family: "Heebo", sans-serif;
+  direction: rtl;
 }
 .versionsBox div:not(:first-child) .versionLanguage {
   padding-top: 25px;
@@ -7760,7 +8250,6 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   color: #999;
 }
 .versionsBox a.selectButton {
-  font-family: "HebrewInEnglish System Font", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-style: normal;
   font-weight: normal;
   font-size: 13px;
@@ -7781,22 +8270,6 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 .versionsTextList .topFiltersInner .uppercase {
   text-transform: none;
-}
-.versionsBox .versionBlock {
-  padding: 20px 0;
-  border-top: solid 1px #CCC;
-}
-.singlePanel .versionsBox .versionBlock .versionTitle .he {
-    display: inline;
-}
-.versionBlock .versionTitle a {
-  color: black;
-}
-.interface-hebrew .versionsBox .versionLanguage {
-  direction: rtl;
-}
-.aboutBox .versionBlock .versionTitle:hover {
-  text-decoration: none;
 }
 span.purim-emoji img{
   height: 25px;
@@ -7940,11 +8413,10 @@ span.purim-emoji img{
   font-size: 16px;
   width: 15px;
   height: 15px;
-  opacity: 0.2;
   margin: 0 8px;
   vertical-align: middle;
 }
-.readerTextTableOfContents .content h2.tagsTitle {
+.bookPage .content h2.tagsTitle {
   text-align: center;
   color:black;
   font-size: 13px;
@@ -8401,7 +8873,8 @@ cursor: pointer;
   color: black;
   text-align: center;
   padding: 10px 0;
-  margin: 0 30px 0 0;
+  margin: 0;
+  margin-inline-end: 30px;
   cursor: pointer;
 }
 .tab-view .tab-list .tab a {
@@ -8419,7 +8892,6 @@ cursor: pointer;
 .tab-view .tab-list .tab img {
   width: 18px;
   height: 18px;
-  opacity: 0.4;
   margin: 0 10px 0 0;
   top: 2px;
   position: relative;
@@ -8432,7 +8904,8 @@ cursor: pointer;
   display: flex;
   align-items: center;
 }
-.tab-view .tab-list .tab.filter {
+.tab-view .tab-list .tab.filter,
+.tab-view.largeTabs .tab-list .tab.filter {
   font-size: 16px;
   margin: 0;
   padding: 6px 9px;
@@ -8459,6 +8932,37 @@ cursor: pointer;
 }
 .tab-list :not(.active) .tab, .tab-list :not(.active) .tab a{
     color: #666;
+}
+.tab-view.largeTabs .tab-list {
+    border-bottom: 1px solid #CCC;
+    margin-bottom: 18px;
+}
+.tab-view.largeTabs .filter-bar {
+  margin-bottom: 30px;
+}
+.tab-view.largeTabs .tab-list .tab {
+  font-size: 22px;
+}
+.tab-view.largeTabs .tab-list .active .tab {
+  border-bottom: 4px solid var(--light-grey);
+}
+@media (max-width: 540px) {
+  .profile-page .tab-view .tab .tabIcon {
+    display: none;
+  }
+  .interface-hebrew .tab-view .tab-list .justifyright {
+    margin: initial;
+  }
+  .tab-view .tab-list .justifyright {
+    margin: initial;
+  }
+  .tab-view .tab-list{
+    flex-wrap: wrap;
+  }
+  .profile-page .profile-actions .resourcesLink.profile-settings,
+  .profile-page .profile-actions .button.logoutLink{
+    display: none;
+  }
 }
 .profile-page .textRange {
   font-size: 18px;
@@ -8520,7 +9024,7 @@ cursor: pointer;
   color: white;
   height: 60px;
   font-size: 16px;
-  margin-top: -80px;
+  margin-top: -60px;
   margin-left: -12px;
   margin-bottom: 80px;
   padding-right: 12px;
@@ -8585,7 +9089,6 @@ cursor: pointer;
   margin-top: 10px;
   height: 120px;
 }
-
 .interface-hebrew textarea,
 .interface-hebrew textarea::placeholder,
 .interface-hebrew input,
@@ -8753,7 +9256,6 @@ cursor: pointer;
   vertical-align: middle;
   margin: 0;
   margin-inline-end: 10px;
-  opacity: 0.4;
   position: relative;
   top: -2px;
 }
@@ -8813,11 +9315,12 @@ cursor: pointer;
   .profile-page .profile-pic:hover .profile-pic-hover-button.profile-pic-button-visible {
     display: none !important;  /* dont allow profile pic upload on mobile b/c causes black image on iOS */
   }
+  .profile-page .profile-pic .profile-pic-button {
+    top: calc(-1 * ((87px/2) + (46px/2)));  /* height of .profile-img + height of .profile-pic-button */
+  }
   .profile-page .editorToggleHeader {
     display: none !important;
   }
-
-
   .profile-page .profile-summary .profile-img {
     width: 87px !important;
     height: 87px !important;
@@ -8831,8 +9334,6 @@ cursor: pointer;
   .profile-page .profile-summary .profile-actions {
     flex-wrap: wrap;
   }
-
-
 }
 .profile-page .profile-summary .follow {
   color: #999;
@@ -8850,7 +9351,6 @@ cursor: pointer;
 .profile-page .resourcesLink.faded {
   color: #666;
 }
-
 .resourcesLink.blue {
   color: white;
   background-color: #18345d;
@@ -8873,26 +9373,15 @@ cursor: pointer;
 .profile-page .follow-header .follow-count {
   color: #999;
 }
-.profile-page .resourcesLink,
-.profile-page .largeFollowButton {
+.profile-page .resourcesLink  {
   min-height: 46px;
   height: 46px;
   overflow: visible;
   padding: 0px 16px;
   border-top: 0;
   display: flex;
-  letter-spacing: 1px;
   align-items: center;
   width: unset;
-}
-.profile-page .largeFollowButton {
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-  border: 0;
-}
-.profile-page .largeFollowButton .int-en,
-.profile-page .largeFollowButton .int-he {
-  color: white;
-  font-size: 16px;
 }
 .profile-page .emptyList {
   display: flex;
@@ -8951,6 +9440,15 @@ cursor: pointer;
   right: 30px;
   text-align: right;
 }
+@media (max-width: 450px) {
+  .three-dots-button.tooltip-toggle::before {
+    left: -165px;
+  }
+  .interface-hebrew .three-dots-button.tooltip-toggle::before{
+    right: -165px;
+  }
+}
+
 .tooltip-toggle::before {
   color: #000;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
@@ -8977,20 +9475,18 @@ cursor: pointer;
   transition: all 0.75s ease;
 }
 .largeFollowButton {
-  display: inline-block;
-  padding: 7px;
-  height: 16px;
-  width: 59px;
+  display: inline-flex;
+  min-height: 46px;
+  height: 46px;
+  overflow: visible;
+  padding: 0px 16px;
+  align-items: center;
   text-align: center;
   cursor: pointer;
   background: #18345d;
   color: #fff;
-  border-radius: 8px;
-  box-shadow: 1px 1px 1px #ccc;
-  border: 1px solid #ccc;
-}
-.largeFollowButton.following {
-  background: #fff;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 20%);
 }
 .profile-page .largeFollowButton.following .int-en,
 .profile-page .largeFollowButton.following .int-he {
@@ -9000,20 +9496,38 @@ cursor: pointer;
   color: #666;
 }
 .smallFollowButton {
-  height: 18px;
+  height: 20px;
   line-height: 18px;
-  width: 68px;
+  width: min-content;
   text-align: center;
   cursor: pointer;
   background: var(--sefaria-blue);
   color: white;
-  border-radius: 4px;
+  border-radius: 3px;
   margin-inline-start: 15px;
   display: none;
   letter-spacing: normal;
+  padding: 0 3px;
 }
 .smallFollowButton.smallText span {
   color: white;
+}
+.largeFollowButton.following, .smallFollowButton.following {
+  background: #fff;
+  color: black;
+}
+.smallFollowButton.following{
+  border: 1px solid #CCCCCC;
+  box-sizing: border-box;
+}
+.smallFollowButton.following.smallText span {
+  color: black;
+}
+.authorByLine.small .smallFollowButton.following{
+  line-height: 18px;
+}
+.authorByLine .smallFollowButton.following{
+  line-height: 16px;
 }
 body .homeFeedWrapper {
   background-color: white;
@@ -9077,12 +9591,6 @@ body .homeFeedWrapper .content {
 .columnLayout {
   display: flex;
   flex-direction: row;
-}
-.sideColumn {
-  flex: 0 0 320px;
-  max-width: 40%;
-  background-color: #FBFBFA;
-  padding: 60px 50px;
 }
 @media (max-width: 540px) {
   .topicPanel .columnLayout {
@@ -9244,27 +9752,23 @@ body .homeFeedWrapper .content {
 .sideColumn .feedbackBoxOverlay.open .feedbackBox {
   width: 470px;
 }
-.mainColumn {
-  flex: 1;
-  margin: 0 45px 0 30px;
-}
 .homeFeedWrapper .mainColumn {
   background-color: white;
 }
-.interface-hebrew .mainColumn {
-  margin: 0 30px 0 45px;
-}
 .storyFeedInner,
 .interface-hebrew .storyFeedInner {
-  max-width: 760px;
+  width: 760px;
   margin: 0 auto;
   padding-top: 60px;
+  max-width: 100%;
+  box-sizing: border-box;
+  min-height: 500px;
 }
 .interface-hebrew .topicPanel .storyFeedInner {
   padding-top: 0;
 }
 .storyByLine:hover .smallFollowButton,
-.authorName:hover .smallFollowButton {
+.authorByLine:hover .smallFollowButton {
   display: inline-block;
 }
 .bilingual .homeFeedWrapper span.he,
@@ -9283,14 +9787,11 @@ body .homeFeedWrapper .content {
 }
 .colorBarBox {
   clear: both;
+  border-inline-start: 4px solid transparent;
+  padding-inline-start: 20px;
 }
-.interface-english .colorBarBox  {
-  border-left: 4px solid transparent;
-  padding-left: 30px;
-}
-.interface-hebrew .colorBarBox  {
-  border-right: 4px solid transparent;
-  padding-right: 30px;
+.readerPanel.hebrew .savedHistoryList .colorBarBox{
+  direction: rtl;
 }
 .interface-english .citationLine,
 .interface-english .learnMoreLink {
@@ -9313,14 +9814,8 @@ body .homeFeedWrapper .content {
 .mainColumn .story.publishSheetStory .saveLine .saveButton  {
   margin-top: 13px;
 }
-.mainColumn .story.publishSheetStory .storyTitle {
+.story.publishSheetStory .storyTitle {
   padding-bottom: 10px;
-}
-.mainColumn .story .storyTitle {
-  padding: 5px 0 15px;
-}
-.topicPanel .mainColumn .story .storyTitle {
-  padding: 0;
 }
 .mainColumn .story .storySubTitle {
   padding-bottom: 10px;
@@ -9363,18 +9858,17 @@ img.smallProfileImage {
   clear: both;
   margin: 10px 0;
   text-align: justify;
+  font-size: 18px;
 }
-
-.story .storySheetListItem > div.storyBody.sheetSummary > *{
+.story .storySheetListItem > div.storyBody.sheetSummary > * {
   color: var(--dark-grey);
   font-family: var(--english-sans-serif-font-family);
   font-size: 15px;
 }
-
-.story .contentText .en {
+.story .storyBody .en {
   line-height: 1.6;
 }
-.story .contentText .he {
+.story .storyBody .he {
   font-size: 22px;
   line-height: 1.6;
 }
@@ -9390,26 +9884,21 @@ img.smallProfileImage {
 .story .storySheetList .sheetTitle {
   padding-bottom: 10px;
 }
-.story .storySheetList .pageTitle span {
+.story .storySheetList .storyTitle span {
   font-size: 20px;
 }
 .story .saveLine {
   display: flex;
   align-items: center;
   clear: both;
+  margin-bottom: 10px;
 }
-.story .saveLine .beforeSave {
-  width: 100%;
-}
+.story .saveLine .beforeSave {flex: 1;}
 .interface-hebrew .story .saveLine .beforeSave {
   padding-left: 10px;
 }
 .interface-english .story .saveLine .beforeSave {
   padding-right: 10px;
-}
-.story .saveLine .saveButton {
-  align-self: center;
-  padding-bottom: 10px;
 }
 .story .citationLine.contentText .int-en,
 .story .citationLine.contentText .int-he {
@@ -9426,10 +9915,15 @@ img.smallProfileImage {
   display: flex;
 }
 .authorByLine .authorByLineText {
-  letter-spacing: 2px;
   padding: 0 10px;
   line-height: 22px;
   margin-top: -1px;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+}
+.authorByLine .authorByLineText.small{
+  line-height: 18px;
 }
 .authorByLine .authorOrganization,
 .authorByLine .authorName {
@@ -9439,10 +9933,14 @@ img.smallProfileImage {
   position: relative;
   bottom: 12px;
 }
-.systemText.authorOrganization span {
+.authorOrganization {
   color: #999;
 }
-.mainColumn a {
+.authorByLine.small {
+  font-size: 14px;
+  width: max-content;
+}
+.mainColumn a:not(.button) {
   color: #000;
 }
 .storyBody a {
@@ -9796,6 +10294,33 @@ a.topicLexiconTitle.contentText {
     text-align: center;
   }
 }
+#communityPagePreviewControls {
+  position: fixed;
+  width: 380px;
+  bottom: 0;
+  right: 0;
+  color: white;
+  z-index: 9999;
+  background-color: #18345D;
+  padding: 20px;
+  line-height: 1.6;
+  text-align: center;
+  border: 1px solid #ccc;
+}
+.interface-hebrew #communityPagePreviewControls {
+  right: auto;
+  left: 0;
+}
+#communityPagePreviewControls a.date {
+  display: block;
+  font-size: 22px;
+}
+#communityPagePreviewControls a {
+  margin-inline-end: 10px;
+}
+#communityPagePreviewControls a:hover {
+  color: inherit;
+}
 .bold {
   font-weight: bold; /* because apparently it isn't recommended to use <b> or <strong> to style thing https://developer.mozilla.org/en-US/docs/Web/HTML/Element/strong#usage_notes */
 }
@@ -9805,9 +10330,6 @@ a.topicLexiconTitle.contentText {
   position: relative;
   padding-inline-start: 28px;
   cursor: pointer;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
   user-select: none;
 }
 /* Hide the browser's default checkbox */
@@ -9858,9 +10380,6 @@ a.topicLexiconTitle.contentText {
   -webkit-transform: rotate(45deg);
   -ms-transform: rotate(45deg);
   transform: rotate(45deg);
-}
-#history-disabled-msg {
-  text-align: center;
 }
 /* demo coloring of ref-link parentheses for quotation finder project*/
 span.ref-link-color-1 {color: orange}

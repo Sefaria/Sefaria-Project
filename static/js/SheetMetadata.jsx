@@ -1,6 +1,6 @@
 import {
-  ReaderNavigationMenuCloseButton,
-  ReaderNavigationMenuDisplaySettingsButton,
+  CloseButton,
+  DisplaySettingsButton,
   CategoryAttribution,
   CategoryColorLine,
   InterfaceText,
@@ -295,50 +295,6 @@ class SheetMetadata extends Component {
     this.debouncedSaveSummary()
   }
 
-  generateSheetMetaDataButtons() {
-    const sheet = this.getSheetFromCache();
-    return (
-      <div>
-        <div>
-          {Sefaria._uid == sheet.owner && !Sefaria._uses_new_editor ?
-          <a href={"/sheets/"+sheet.id+"?editor=1"} className="button white" role="button">
-            <InterfaceText>Edit</InterfaceText>
-          </a> : null }
-
-          <a href="#" className="button white" onClick={this.copySheet}>
-            <InterfaceText>{this.state.sheetCopyStatus}</InterfaceText>
-          </a>
-
-          <a href="#" className="button white" onClick={this.toggleCollectionsModal}>
-            <InterfaceText>Add to Collection</InterfaceText>
-          </a>
-
-          {Sefaria._uid !== sheet.owner && !Sefaria._uses_new_editor ?
-          <a href={"/sheets/"+sheet.id+"?editor=1"} className="button white" role="button">
-            <InterfaceText>View in Editor</InterfaceText>
-          </a> : null }
-        </div>
-
-        {this.state.sheetCopyStatus == "Copied" ?
-        <div><a href={"/sheets/"+this.state.copiedSheetId}>
-            <span className="int-en">View Copy &raquo;</span>
-            <span className="int-he">צפייה בהעתק &raquo;</span>
-        </a></div> : null }
-
-        {Sefaria._uses_new_editor ?
-        <a className="smallText" href={"/sheets/"+sheet.id+"?editor=1"}>
-          <span className="int-en">View in the old sheets experience</span>
-          <span className="int-he">תצוגה בפורמט הישן של דפי המקורות</span>
-        </a> : null }
-
-        {this.state.showCollectionsModal ?
-        <CollectionsModal
-          sheetID={sheet.id}
-          close={this.toggleCollectionsModal} /> : null }
-
-      </div>
-    );
-  }
   render() {
     const sheet = this.getSheetFromCache();
 
@@ -353,7 +309,8 @@ class SheetMetadata extends Component {
 
     var closeClick = this.props.close;
     var classes = classNames({
-      readerTextTableOfContents:1,
+      bookPage:1,
+      sheetPage: 1,
       readerNavMenu:1,
       narrowPanel: this.props.narrowPanel,
       noLangToggleInHebrew: this.props.interfaceLang == 'hebrew',
@@ -365,7 +322,7 @@ class SheetMetadata extends Component {
               <div className="readerControls">
                 <div className="readerControlsInner">
                   <div className="leftButtons">
-                    <ReaderNavigationMenuCloseButton onClick={closeClick}/>
+                    <CloseButton onClick={closeClick}/>
                   </div>
                   <div className="readerTextToc readerTextTocHeader">
                     <div className="readerTextTocBox">
@@ -375,21 +332,22 @@ class SheetMetadata extends Component {
                   </div>
                   <div className="rightButtons">
                     {this.props.interfaceLang !== "hebrew" ?
-                      <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
-                      : <ReaderNavigationMenuDisplaySettingsButton placeholder={true} />}
+                      <DisplaySettingsButton onClick={this.props.openDisplaySettings} />
+                      : <DisplaySettingsButton placeholder={true} />}
                   </div>
                 </div>
               </div>
               <div className="content">
                 <div className="contentInner">
                   <div className="tocTop">
+                    <div className="tocTitle serif" role="heading" aria-level="1">
+                      <span>{title.stripHtmlConvertLineBreaks()}</span>
+                    </div>
+
                     <a className="tocCategory serif" href="/sheets">
                       <span className="en">Sheet</span>
                       <span className="he">{Sefaria.hebrewTerm("Sheets")}</span>
                     </a>
-                    <div className="tocTitle serif" role="heading" aria-level="1">
-                      <span>{title.stripHtmlConvertLineBreaks()}</span>
-                    </div>
 
                     <div className="tocDetail authorStatement">
                       <SheetAuthorStatement
@@ -428,28 +386,68 @@ class SheetMetadata extends Component {
                           <span> {!!this.state.sheetSaves ? this.state.sheetSaves.length + this.state.sheetLikeAdjustment : '--' } שמירות </span> {this.state.published ? null : (<span className="unlisted">· <img src="/static/img/eye-slash.svg"/><span>{Sefaria._("Not Published")}</span></span>)}                      </div>
                     </div>
 
-                    {this.generateSheetMetaDataButtons()}
+                    <div>
+                      <div className="sheetMetaButtons">
+                        {Sefaria._uid == sheet.owner && !Sefaria._uses_new_editor ?
+                        <a href={"/sheets/"+sheet.id+"?editor=1"} className="button white" role="button">
+                          <img src="/static/icons/tools-write-note.svg" alt="edit sheet" />
+                          <InterfaceText>Edit</InterfaceText>
+                        </a> : null }
 
-                    <div className="tocDetails">
+                        <a href="#" className="button white" onClick={this.copySheet}>
+                          <img src="/static/icons/copy.svg" alt="copy sheet" />
+                          <InterfaceText>{this.state.sheetCopyStatus}</InterfaceText>
+                        </a>
+
+                        <a href="#" className="button white" onClick={this.toggleCollectionsModal}>
+                          <img src="/static/icons/plus.svg" alt="copy sheet" />
+                          <InterfaceText>Add to Collection</InterfaceText>
+                        </a>
+
+                        {Sefaria._uid !== sheet.owner && !Sefaria._uses_new_editor ?
+                        <a href={"/sheets/"+sheet.id+"?editor=1"} className="button white" role="button">
+                          <InterfaceText>View in Editor</InterfaceText>
+                        </a> : null }
+                      </div>
+
+                      {this.state.sheetCopyStatus == "Copied" ?
+                      <div><a href={"/sheets/"+this.state.copiedSheetId}>
+                          <span className="int-en">View Copy &raquo;</span>
+                          <span className="int-he">צפייה בהעתק &raquo;</span>
+                      </a></div> : null }
+
+                      {Sefaria._uses_new_editor ?
+                      <a className="smallText" href={"/sheets/"+sheet.id+"?editor=1"}>
+                        <span className="int-en">View in the old sheets experience</span>
+                        <span className="int-he">תצוגה בפורמט הישן של דפי המקורות</span>
+                      </a> : null }
+
+                      {this.state.showCollectionsModal ?
+                      <CollectionsModal
+                        sheetID={sheet.id}
+                        close={this.toggleCollectionsModal} /> : null }
+                    </div>
+
+                    <div className="tocDetails sheetSummary">
+                      <h3><InterfaceText>About this Sheet</InterfaceText></h3>
                       {details && !canEdit ? <div className="description" dangerouslySetInnerHTML={ {__html: details} }></div> : null}
                     </div>
-                    {sheet.topics && sheet.topics.length > 0 && !canEdit ?
-                    <div className="tagsSection">
-                        <h2 className="tagsTitle int-en">Tags</h2>
-                        <h2 className="tagsTitle int-he">תוית</h2>
 
-                        <div className="sheetTags">
-                          {sheet.topics.map((topic, i) => (
-                              <a href={"/topics/" + topic.slug}
-                                target="_blank"
-                                className="sheetTag button"
-                                key={i}
-                              >
-                                <InterfaceText text={{en:topic.en, he:topic.he}} />
-                              </a>
-                            ))
-                          }
-                        </div>
+                    {sheet.topics && sheet.topics.length > 0 && !canEdit ?
+                    <div className="tocDetails tagsSection">
+                      <h3><InterfaceText>Tags</InterfaceText></h3>
+                      <div className="sheetTags">
+                        {sheet.topics.map((topic, i) => (
+                            <a href={"/topics/" + topic.slug}
+                              target="_blank"
+                              className="sheetTag button"
+                              key={i}
+                            >
+                              <InterfaceText text={{en:topic.en, he:topic.he}} />
+                            </a>
+                          ))
+                        }
+                      </div>
                     </div> : null }
 
                     {canEdit ? <div className={"publishBox sans-serif"}>

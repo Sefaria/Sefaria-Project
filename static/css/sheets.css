@@ -1654,9 +1654,9 @@ body.hasBannerMessage .sheetsEditNavTop {
 	background-color: #ccc;
 }
 #customTextLanguageToggle .toggleOption img {
+	margin-bottom: 13px;
 	height: 16px;
 	width: 16px;
-    margin-bottom: 13px;
 }
 #customTextContainer, #addmediaDiv, #addcommentDiv, #addsourceDiv{
 	width: 702px;

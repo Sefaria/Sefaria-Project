@@ -1,124 +1,180 @@
+import React, { useState, useEffect, useRef } from 'react';
+import PropTypes  from 'prop-types';
+import classNames  from 'classnames';
+import Component from 'react-class';
+import Sefaria  from './sefaria/sefaria';
+import { useScrollToLoad } from "./Hooks";
+import { NavSidebar } from './NavSidebar';
+import Footer  from './Footer';
+import { 
+  SheetBlock,
+  TextPassage
+} from './Story';
 import {
   CategoryColorLine,
-  ReaderNavigationMenuMenuButton,
-  ReaderNavigationMenuDisplaySettingsButton,
-  SinglePanelNavHeader,
+  MenuButton,
+  DisplaySettingsButton,
   TextBlockLink,
   LanguageToggleButton,
   LoadingMessage,
   InterfaceText,
 } from './Misc';
-import React  from 'react';
-import PropTypes  from 'prop-types';
-import classNames  from 'classnames';
-import Sefaria  from './sefaria/sefaria';
-import MobileHeader from './MobileHeader';
-import Footer  from './Footer';
-import Component from 'react-class';
 
 
-class UserHistoryPanel extends Component {
-  constructor(props) {
-    super(props);
+const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNav, compare, toggleSignUpModal}) => {
+  const store = menuOpen === "saved" ? Sefaria.saved : Sefaria.userHistory;
+  const contentRef = useRef();
 
-    if (props.menuOpen === "saved") {
-      this.state = {
-        items: Sefaria.saved
-      };
-    } else if (props.menuOpen === "history") {
-      this.state = {
-        items: Sefaria._userHistory.history
-      }
-    }
-  }
-  componentDidMount() {
-    this._isMounted = true;
-    this.getItems(this.props);
-  }
-  componentWillUnmount() {
-    this._isMounted = false;
-  }
-  getItems(props) {
-    if (props.menuOpen === "history") {
-      Sefaria.userHistoryAPI().then( items => {
-        if (this._isMounted) {
-          this.setState({ items });
-        }
-      });
-    }
-  }
-  render() {
-    const content = (this.props.menuOpen === 'history' && !Sefaria.is_history_enabled) ? (
-        <div id="history-disabled-msg">
-          <span className="int-en">Reading history is currently disabled. You can re-enable this feature in your <a href="/settings/account">account settings</a>.</span>
-          <span className="int-he">היסטורית קריאה כבויה כרגע. ניתן להפעילה מחדש במסך <a href="/settings/account">ההגדרות</a>.</span>
-        </div>
-    ) : !!this.state.items ?
-      this.state.items.reduce((accum, curr, index) => (  // reduce consecutive history items with the same ref
-        (!accum.length || curr.ref !== accum[accum.length-1].ref) ? accum.concat([curr]) : accum
-      ), [])
-      .map((item, iitem) =>
-       (<TextBlockLink
-          sref={item.ref}
-          heRef={item.he_ref}
-          book={item.book}
-          currVersions={item.versions}
-          sheetOwner={item.sheet_owner}
-          sheetTitle={item.sheet_title}
-          timeStamp={item.time_stamp}
-          showSections={true}
-          recentItem={true}
-          sideColor={true}
-          saved={this.props.menuOpen === 'saved'}
-          key={item.ref + "|" + item.time_stamp + "|" + iitem }
-      />)
-    ) : (<LoadingMessage />);
+  const title = (
+    <span className="sans-serif">
+      <a href="/texts/saved" className={"navTitleTab" + (menuOpen === "saved" ? " current" : "")}>
+        <img src="/static/icons/bookmark.svg" />
+        <InterfaceText>Saved</InterfaceText>
+      </a>
+      <a href="/texts/history" className={"navTitleTab" + (menuOpen === "history" ? " current" : "")}>
+        <img src="/static/icons/clock.svg" />
+        <InterfaceText>History</InterfaceText>
+      </a>
+    </span>
+  );
 
+  const sidebarModules = [
+    {type: "GetTheApp"},
+    {type: "SupportSefaria"},
+  ];
 
-    const title = this.props.menuOpen === "saved" ? "Saved" : "History";
-    const footer = this.props.compare ? null : <Footer />;
-    const navMenuClasses = classNames({recentPanel: 1, readerNavMenu: 1, noHeader: this.props.hideNavHeader, compare:this.props.compare, noLangToggleInHebrew: 1});
-    const navTopClasses  = classNames({readerNavTop: 1, searchOnly: 1, colorLineOnly: this.props.hideNavHeader});
-    const contentClasses = classNames({content: 1, hasFooter: footer != null});
-    return (
-      <div onClick={this.props.handleClick} className={navMenuClasses}>
-        {this.props.hideNavHeader ? null :
-        <MobileHeader
-          mode={"innerTOC"}
-          navHome={this.props.openNav}
-          catTitle={title}
-          heCatTitle={Sefaria._(title)}
-          interfaceLang={Sefaria.interfaceLang}
-          openDisplaySettings={this.props.openDisplaySettings}
-          showDisplaySettings={this.props.interfaceLang !== "hebrew"}
-          compare={this.props.compare}
-        />}
-        <div className={contentClasses}>
+  const footer = compare ? null : <Footer />;
+  const navMenuClasses = classNames({readerNavMenu: 1, compare, noLangToggleInHebrew: 1});
+
+  return (
+    <div className={navMenuClasses}>
+      <div className="content" ref={contentRef}>
+        <div className="sidebarLayout">
           <div className="contentInner">
-            {this.props.hideNavHeader ?
-              <h1 className="sans-serif-in-hebrew">
-              {this.props.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?
-              <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null}
-              <InterfaceText>{ title }</InterfaceText>
-            </h1>
-            : null }
-            { content }
+            <div className="navTitle sans-serif-in-hebrew">
+              <h1>{ title }</h1>
+              {Sefaria.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?
+              <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null}
+            </div>
+            <UserHistoryList
+              store={store}
+              scrollableRef={contentRef}
+              menuOpen={menuOpen}
+              toggleSignUpModal={toggleSignUpModal}
+              key={menuOpen}/>
           </div>
-          {footer}
+          <NavSidebar modules={sidebarModules} />
         </div>
+        {footer}
       </div>
-      );
-  }
-}
+    </div>
+    );
+};
 UserHistoryPanel.propTypes = {
-  handleClick:         PropTypes.func.isRequired,
   toggleLanguage:      PropTypes.func.isRequired,
   openDisplaySettings: PropTypes.func.isRequired,
   openNav:             PropTypes.func.isRequired,
   compare:             PropTypes.bool,
-  hideNavHeader:       PropTypes.bool,
-  interfaceLang:       PropTypes.string,
   menuOpen:            PropTypes.string.isRequired,
+};
+
+
+const UserHistoryList = ({store, scrollableRef, menuOpen, toggleSignUpModal}) => {
+  const [items, setItems] = useState(store.loaded ? store.items : null);
+
+  // Store changes when switching tabs, reset items
+  useEffect(() => {
+    setItems(store.loaded ? store.items : null);
+  }, [store]);
+
+  useScrollToLoad({
+    scrollableRef: scrollableRef,
+    url: "/api/profile/user_history?secondary=0&annotate=1" + (menuOpen === "saved" ? "&saved=1" : ""),
+    setter: data => {
+      if (!store.loaded) {
+        store.items = []; // saved intially has items that have not been annotated with text
+        store.loaded = true;
+      }
+      store.items.push(...data);
+      setItems(store.items.slice());
+    },
+    itemsPreLoaded: items ? items.length : 0,
+  });
+
+  if (menuOpen === 'history' && !Sefaria.is_history_enabled) {
+    return (
+      <div className="savedHistoryMessage">
+        <span className="int-en">Reading history is currently disabled. You can re-enable this feature in your <a href="/settings/account">account settings</a>.</span>
+        <span className="int-he">היסטורית קריאה כבויה כרגע. ניתן להפעילה מחדש במסך <a href="/settings/account">ההגדרות</a>.</span>
+      </div>
+    );
+  } else if (!items) {
+    return <LoadingMessage />;
+  } else if (items.length === 0) {
+    return (
+      <div className="savedHistoryMessage sans-serif">
+        {menuOpen === "history" ?
+        <InterfaceText>Texts and sheets that you read will be available for you to see here.</InterfaceText>
+        : <InterfaceText>Click the bookmark icon on texts or sheets to save them here.</InterfaceText>}
+      </div>
+    );
+  }
+  
+  return (
+    <div className="savedHistoryList">
+      {items.reduce((accum, curr, index) => {
+        // reduce consecutive history items with the same text/sheet
+        if (!accum.length || menuOpen === "saved") {return accum.concat([curr]); }
+        const prev = accum[accum.length-1];
+
+        if (curr.is_sheet && curr.sheet_id === prev.sheet_id) {
+          return accum;
+        } else if (!curr.is_sheet && curr.book === prev.book) {
+          return accum;
+        } else {
+          return accum.concat(curr);
+        }
+      }, [])
+      .map((item, iitem) => {
+        const key = item.ref + "|" + item.time_stamp + "|" + iitem;
+        
+        const timeStamp = menuOpen === "saved" ? null : (
+          <div className="timeStamp sans-serif">
+            { Sefaria.util.naturalTime(item.time_stamp, {short: true}) }
+          </div>
+        );
+
+        return item.is_sheet ?
+          <SheetBlock 
+            sheet={{
+              sheet_id:               item.sheet_id,
+              sheet_title:            item.title,
+              publisher_name:         item.ownerName,
+              publisher_id:           item.owner,
+              publisher_image:        item.ownerImageUrl,
+              publisher_url:          item.ownerProfileUrl,
+              publisher_organization: item.ownerOrganization,
+              publisher_followed:     Sefaria.following.includes(item.owner),
+            }}
+            afterSave={timeStamp}
+            smallfonts={true}
+            key={key} />
+          :
+          // item.versions
+          <TextPassage
+            text={{
+              ref: item.ref,
+              heRef: item.he_ref,
+              en: item.text.en,
+              he: item.text.he,
+              versions: item.versions,
+            }}
+            afterSave={timeStamp}
+            toggleSignUpModal={toggleSignUpModal}
+            key={key} />;
+      })}
+    </div>
+  );
 };
 
 

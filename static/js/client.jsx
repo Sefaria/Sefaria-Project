@@ -21,6 +21,7 @@ $(function() {
     // Rendering a full ReaderApp experience
     Sefaria.unpackDataFromProps(DJANGO_VARS.props);
     component = React.createElement(SefariaReact.ReaderApp, DJANGO_VARS.props);
+
     renderFunc(component, container);
 
   } else {
@@ -28,14 +29,6 @@ $(function() {
     let staticProps = {
       multiPanel: $(window).width() > 600,
       headerMode: true,
-      initialRefs: [],
-      initialFilter: [],
-      initialMenu: null,
-      initialQuery: null,
-      initialSheetsTag: null,
-      initialNavigationCategories: [],
-      initialNavigationTopicCategory: "",
-      initialPanels: [],
     };
 
     let mergedStaticProps = { ...DJANGO_VARS.props, ...staticProps };

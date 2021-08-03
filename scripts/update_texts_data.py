@@ -39,7 +39,7 @@ data = response.content.decode("utf-8")
 cr = csv.reader(StringIO(data))
 
 
-rows = list(cr)[3:]
+rows = list(cr)[2:]
 indexes_handled = [row[0] for row in rows]
 
 unhandled = set([i.primary_title() for i in library.get_index_forest()]) - set(indexes_handled)

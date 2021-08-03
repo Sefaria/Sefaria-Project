@@ -1,18 +1,23 @@
+import React, { useState } from 'react';
+import ReactDOM from 'react-dom';
+import PropTypes from 'prop-types';
+import Component from 'react-class';
+import extend from 'extend';
+import classNames from 'classnames';
+import $ from './sefaria/sefariaJquery';
+import Sefaria from './sefaria/sefaria';
+import { FilterNode } from './sefaria/search';
+import SearchTextResult from './SearchTextResult';
+import SearchSheetResult from './SearchSheetResult';
+import SearchFilters from './SearchFilters';
+import SearchState from './sefaria/searchState';
 import {
+  DropdownModal,
+  DropdownButton,
+  DropdownOptionList,
+  InterfaceText,
   LoadingMessage,
 } from './Misc';
-import React  from 'react';
-import ReactDOM  from 'react-dom';
-import extend  from 'extend';
-import $  from './sefaria/sefariaJquery';
-import Sefaria  from './sefaria/sefaria';
-import { FilterNode } from './sefaria/search';
-import SearchTextResult  from './SearchTextResult';
-import SearchSheetResult  from './SearchSheetResult';
-import SearchFilters  from './SearchFilters';
-import SearchState  from './sefaria/searchState';
-import PropTypes  from 'prop-types';
-import Component        from 'react-class';
 
 
 class SearchResultList extends Component {
@@ -20,10 +25,6 @@ class SearchResultList extends Component {
       super(props);
       this.types = ['text', 'sheet'];
       this.querySize = {"text": 50, "sheet": 20};
-      this.updateAppliedFilterByTypeMap      = this.types.reduce((obj, k) => { obj[k] = props.updateAppliedFilter.bind(null, k);      return obj; }, {});
-      this.updateAppliedOptionFieldByTypeMap = this.types.reduce((obj, k) => { obj[k] = props.updateAppliedOptionField.bind(null, k); return obj; }, {});
-      this.updateAppliedOptionSortByTypeMap  = this.types.reduce((obj, k) => { obj[k] = props.updateAppliedOptionSort.bind(null, k);  return obj; }, {});
-      this.lastAppliedAggType = this._typeObjDefault(null);
       this.state = {
         runningQueries: this._typeObjDefault(null),
         isQueryRunning: this._typeObjDefault(false),
@@ -32,9 +33,6 @@ class SearchResultList extends Component {
         pagesLoaded:    this._typeObjDefault(0),
         hits:           this._typeObjDefault([]),
         error:          false,
-        showOverlay:    false,
-        displayFilters: false,
-        displaySort:    false,
       }
 
       // Load search results from cache so they are available for immedate render
@@ -44,8 +42,8 @@ class SearchResultList extends Component {
         while (cachedQuery) {
           // Load all pages of results that are available in cache, so if page X was 
           // previously loaded it will be returned. 
-          console.log("Loaded cached query for")
-          console.log(args);
+          //console.log("Loaded cached query for")
+          //console.log(args);
           this.state.hits[t] = this.state.hits[t].concat(cachedQuery.hits.hits);
           this.state.totals[t] = cachedQuery.hits.total;
           this.state.pagesLoaded[t] += 1;
@@ -57,27 +55,7 @@ class SearchResultList extends Component {
           cachedQuery = Sefaria.search.getCachedQuery(args);
         }
       });
-    }
-    updateRunningQuery(type, ajax) {
-      this.state.runningQueries[type] = ajax;
-      this.state.isQueryRunning[type] = !!ajax;
-      this.setState(this.state);
-    }
-    updateLastAppliedAggType(aggType) {
-      this.lastAppliedAggType[this.props.tab] = aggType;
-    }
-    _typeObjDefault(defaultValue) {
-      // es6 version of dict comprehension...
-      return this.types.reduce((obj, k) => { obj[k] = defaultValue; return obj; }, {});
-    }
-    _abortRunningQueries() {
-      this.types.forEach(t => this._abortRunningQuery(t));
-    }
-    _abortRunningQuery(type) {
-      if(this.state.runningQueries[type]) {
-          this.state.runningQueries[type].abort();  //todo: make work with promises
-      }
-      this.updateRunningQuery(type, null);
+      this.updateTotalResults();
     }
     componentDidMount() {
         this._executeAllQueries();
@@ -93,9 +71,6 @@ class SearchResultList extends Component {
           totals: this._typeObjDefault(0),
           hits: this._typeObjDefault([]),
           moreToLoad: this._typeObjDefault(true),
-          displayFilters: false,
-          displaySort: false,
-          showOverlay: false
         });
         this._executeAllQueries(newProps);
       } else {
@@ -109,8 +84,32 @@ class SearchResultList extends Component {
             this.setState(state);
             this._executeQuery(newProps, t);
           }
-        })
+        });
       }
+    }
+    updateRunningQuery(type, ajax) {
+      this.state.runningQueries[type] = ajax;
+      this.state.isQueryRunning[type] = !!ajax;
+      this.setState(this.state);
+    }
+    totalResults() {
+      return this.types.reduce((accum, type) => (this.state.totals[type] + accum), 0);
+    }
+    updateTotalResults() {
+      this.props.updateTotalResults(this.totalResults());
+    }
+    _typeObjDefault(defaultValue) {
+      // es6 version of dict comprehension...
+      return this.types.reduce((obj, k) => { obj[k] = defaultValue; return obj; }, {});
+    }
+    _abortRunningQueries() {
+      this.types.forEach(t => this._abortRunningQuery(t));
+    }
+    _abortRunningQuery(type) {
+      if(this.state.runningQueries[type]) {
+          this.state.runningQueries[type].abort();  //todo: make work with promises
+      }
+      this.updateRunningQuery(type, null);
     }
     handleScroll() {
       var tab = this.props.tab;
@@ -140,18 +139,15 @@ class SearchResultList extends Component {
     _executeAllQueries(props) {
       this.types.forEach(t => this._executeQuery(props, t));
     }
-    _getAggsToUpdate(filtersValid, aggregation_field_array, aggregation_field_lang_suffix_array, appliedFilterAggTypes, lastAppliedAggType, type, interfaceLang) {
+    _getAggsToUpdate(filtersValid, aggregation_field_array, aggregation_field_lang_suffix_array, appliedFilterAggTypes, type) {
+      // Returns a list of aggregations type which we should request from the server. 
+
       // If there is only on possible filter (i.e. path for text) and filters are valid, no need to request again for any filter interactions
       if (filtersValid && aggregation_field_array.length === 1) { return []; }
-
-      // If you just unapplied an aggtype filter completely, make sure you rerequest that aggType's filters also in case they were deleted
-      const uniqueAggTypes = [...(new Set(appliedFilterAggTypes))];
-      const justUnapplied = uniqueAggTypes.indexOf(lastAppliedAggType) === -1; 
       
       return Sefaria.util
         .zip(aggregation_field_array, aggregation_field_lang_suffix_array)
-        .map(([agg, suffix_map]) => `${agg}${suffix_map ? suffix_map[interfaceLang] : ''}`) // add suffix based on interfaceLang to filter, if present in suffix_map
-        .filter(agg => justUnapplied || agg !== lastAppliedAggType);                        // remove lastAppliedAggType
+        .map(([agg, suffix_map]) => `${agg}${suffix_map ? suffix_map[Sefaria.interfaceLang] : ''}`); // add suffix based on interfaceLang to filter, if present in suffix_map
     }
     _executeQuery(props, type) {
       //This takes a props object, so as to be able to handle being called from componentWillReceiveProps with newProps
@@ -181,7 +177,10 @@ class SearchResultList extends Component {
                   pagesLoaded: extend(this.state.pagesLoaded, {[type]: 1}),
                   moreToLoad: extend(this.state.moreToLoad, {[type]: data.hits.total > this.querySize[type]})
                 };
-                this.setState(state, () => this.handleScroll());
+                this.setState(state, () => {
+                  this.updateTotalResults();
+                  this.handleScroll();
+                });
                 const filter_label = (request_applied && request_applied.length > 0) ? (' - ' + request_applied.join('|')) : '';
                 const query_label = props.query + filter_label;
                 Sefaria.track.event("Search", `Query: ${type}`, query_label, data.hits.total); 
@@ -206,8 +205,8 @@ class SearchResultList extends Component {
                 }
                 this.props.registerAvailableFilters(type, availableFilters, registry, orphans, args.aggregationsToUpdate);
               }
-          }
-      args.error = this._handle_error;
+            };
+      args.error = this._handleError;
 
       const runningQuery = Sefaria.search.execute_query(args);
       this.updateRunningQuery(type, runningQuery);
@@ -216,10 +215,10 @@ class SearchResultList extends Component {
       props = props || this.props;
 
       const searchState = this._getSearchState(type, props);
-      const { field, fieldExact, sortType, filtersValid, appliedFilters, appliedFilterAggTypes, lastAppliedAggType } = searchState;
+      const { field, fieldExact, sortType, filtersValid, appliedFilters, appliedFilterAggTypes } = searchState;
       const request_applied = filtersValid && appliedFilters;
       const { aggregation_field_array,  aggregation_field_lang_suffix_array } = SearchState.metadataByType[type];
-      const aggregationsToUpdate = this._getAggsToUpdate(filtersValid, aggregation_field_array, aggregation_field_lang_suffix_array, appliedFilterAggTypes, lastAppliedAggType, type, props.interfaceLang);
+      const aggregationsToUpdate = this._getAggsToUpdate(filtersValid, aggregation_field_array, aggregation_field_lang_suffix_array, appliedFilterAggTypes, type);
 
       return {
         query: props.query,
@@ -254,14 +253,14 @@ class SearchResultList extends Component {
       const runningNextPageQuery = Sefaria.search.execute_query(args);
       this.updateRunningQuery(type, runningNextPageQuery, false);
     }
-    _handle_error(jqXHR, textStatus, errorThrown) {
-        if (textStatus == "abort") {
-            // Abort is immediately followed by new query, above.  Worried there would be a race if we call updateCurrentQuery(null) from here
-            //this.updateCurrentQuery(null);
-            return;
-        }
-        this.setState({error: true});
-        this.updateRunningQuery(null, null);
+    _handleError(jqXHR, textStatus, errorThrown) {
+      if (textStatus == "abort") {
+        // Abort is immediately followed by new query, above.  Worried there would be a race if we call updateCurrentQuery(null) from here
+        //this.updateCurrentQuery(null);
+        return;
+      }
+      this.setState({error: true});
+      this.updateRunningQuery(null, null);
     }
     showSheets() {
       this.props.updateTab('sheet');
@@ -269,85 +268,62 @@ class SearchResultList extends Component {
     showTexts() {
       this.props.updateTab('text');
     }
-    showResultsOverlay(shouldShow) {
-      //overlay gives opacity to results when either filter box or sort box is open
-      this.setState({showOverlay: shouldShow});
-    }
-    toggleFilterView() {
-      this.showResultsOverlay(!this.state.displayFilters);
-      this.setState({displayFilters: !this.state.displayFilters, displaySort: false});
-    }
-    toggleSortView() {
-      this.showResultsOverlay(!this.state.displaySort);
-      this.setState({displaySort: !this.state.displaySort, displayFilters: false});
-    }
-    closeFilterView() {
-      this.showResultsOverlay(false);
-      this.setState({displayFilters: false});
-    }
-    closeSortView() {
-      this.showResultsOverlay(false);
-      this.setState({displaySort: false});
-    }
     render () {
         if (!(this.props.query)) {  // Push this up? Thought is to choose on the SearchPage level whether to show a ResultList or an EmptySearchMessage.
             return null;
         }
 
-        var { tab } = this.props;
-        var results = [];
+        const { tab }     = this.props;
+        const searchState = this._getSearchState(tab);
+        let results       = [];
 
         if (tab == "text") {
           results = Sefaria.search.mergeTextResultsVersions(this.state.hits.text);
           results = results.filter(result => !!result._source.version).map(result =>
             <SearchTextResult
-                data={result}
-                query={this.props.query}
-                key={result._id}
-                onResultClick={this.props.onResultClick} />);
+              data={result}
+              query={this.props.query}
+              key={result._id}
+              onResultClick={this.props.onResultClick} />
+          );
 
         } else if (tab == "sheet") {
           results = this.state.hits.sheet.map(result =>
-              <SearchSheetResult
-                    data={result}
-                    query={this.props.query}
-                    key={result._id}
-                    onResultClick={this.props.onResultClick} />);
+            <SearchSheetResult
+              data={result}
+              query={this.props.query}
+              key={result._id}
+              onResultClick={this.props.onResultClick} />
+          );
         }
 
-        var loadingMessage   = (<LoadingMessage message="Searching..." heMessage="מבצע חיפוש..." />);
-        var noResultsMessage = (<LoadingMessage message="0 results." heMessage="0 תוצאות." />);
+        const loadingMessage   = (<LoadingMessage message="Searching..." heMessage="מבצע חיפוש..." />);
+        const noResultsMessage = (<LoadingMessage message="0 results." heMessage="0 תוצאות." />);
 
-        var queryFullyLoaded = !this.state.moreToLoad[tab] && !this.state.isQueryRunning[tab];
-        var haveResults      = !!results.length;
-        results              = haveResults ? results : noResultsMessage;
-        var searchFilters    = (<SearchFilters
-                                  query = {this.props.query}
-                                  searchState={this._getSearchState(this.props.tab)}
-                                  total = {this.state.totals["text"] + this.state.totals["sheet"]}
-                                  textTotal = {this.state.totals["text"]}
-                                  sheetTotal = {this.state.totals["sheet"]}
-                                  updateAppliedFilter      = {this.updateAppliedFilterByTypeMap[this.props.tab]}
-                                  updateAppliedOptionField = {this.updateAppliedOptionFieldByTypeMap[this.props.tab]}
-                                  updateAppliedOptionSort  = {this.updateAppliedOptionSortByTypeMap[this.props.tab]}
-                                  updateLastAppliedAggType={this.updateLastAppliedAggType}
-                                  isQueryRunning = {this.state.isQueryRunning[tab]}
-                                  type = {this.props.tab}
-                                  clickTextButton = {this.showTexts}
-                                  clickSheetButton = {this.showSheets}
-                                  showResultsOverlay = {this.showResultsOverlay}
-                                  displayFilters={this.state.displayFilters}
-                                  displaySort={this.state.displaySort}
-                                  toggleFilterView={this.toggleFilterView}
-                                  toggleSortView={this.toggleSortView}
-                                  closeFilterView={this.closeFilterView}
-                                  closeSortView={this.closeSortView}/>);
-        //console.log(this.state);
-        //debugger;
+        const queryFullyLoaded = !this.state.moreToLoad[tab] && !this.state.isQueryRunning[tab];
+        const haveResults      = !!results.length;
+        results                = haveResults ? results : noResultsMessage;
+
         return (
           <div>
-            { searchFilters }
-            <div className={this.state.showOverlay ? "searchResultsOverlay" : ""}>
+            <div className="searchTopMatter">
+              <SearchTabs
+                clickTextButton={this.showTexts}
+                clickSheetButton={this.showSheets}
+                textTotal={this.state.totals["text"]}
+                sheetTotal={this.state.totals["sheet"]}
+                currentTab={tab} />
+              {Sefaria.multiPanel && !this.props.compare ? 
+              <SearchSortBox
+                type={tab}
+                updateAppliedOptionSort={this.props.updateAppliedOptionSort}
+                sortType={searchState.sortType} />
+              :
+              <SearchFilterButton
+                openMobileFilters={this.props.openMobileFilters}
+                nFilters={searchState.appliedFilters.length} />}             
+            </div>
+            <div className="searchResultList">
               { queryFullyLoaded || haveResults ? results : null }
               { this.state.isQueryRunning[tab] ? loadingMessage : null }
             </div>
@@ -356,18 +332,82 @@ class SearchResultList extends Component {
     }
 }
 SearchResultList.propTypes = {
-  interfaceLang:            PropTypes.oneOf(['english', 'hebrew']),
   query:                    PropTypes.string,
   tab:                      PropTypes.oneOf(["text", "sheet"]),
   textSearchState:          PropTypes.object,
   sheetSearchState:         PropTypes.object,
   onResultClick:            PropTypes.func,
   updateTab:                PropTypes.func,
-  updateAppliedFilter:      PropTypes.func,
-  updateAppliedOptionField: PropTypes.func,
   updateAppliedOptionSort:  PropTypes.func,
   registerAvailableFilters: PropTypes.func,
 };
+
+
+const SearchTabs = ({clickTextButton, clickSheetButton, textTotal, sheetTotal, currentTab}) => (
+  <div className="type-buttons sans-serif">
+    <SearchTab label={"Sources"} total={textTotal} onClick={clickTextButton} active={currentTab === "text"} />
+    <SearchTab label={"Sheets"} total={sheetTotal} onClick={clickSheetButton} active={currentTab === "sheet"} />
+  </div>
+);
+
+
+const SearchTab = ({label, total, onClick, active}) => {
+  total = total.addCommas()
+  const classes = classNames({"search-dropdown-button": 1, active});
+
+  return (
+    <div className={classes} onClick={onClick} onKeyPress={e => {e.charCode === 13 ? onClick(e) : null}} role="button" tabIndex="0">
+      <div className="type-button-title">
+        <InterfaceText>{label}</InterfaceText>&nbsp;
+        <InterfaceText>{`(${total})`}</InterfaceText>
+      </div>
+    </div>
+  );
+};
+
+
+const SearchSortBox = ({type, updateAppliedOptionSort, sortType}) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleClick = (newSortType) => {
+    if (sortType === newSortType) {
+      return;
+    }
+    updateAppliedOptionSort(type, newSortType);
+    setIsOpen(false);
+  }
+  const filterTextClasses = classNames({ searchFilterToggle: 1, active: isOpen });
+  return (
+    <DropdownModal close={() => {setIsOpen(false)}} isOpen={isOpen}>
+      <DropdownButton
+        isOpen={isOpen}
+        toggle={() => {setIsOpen(!isOpen)}}
+        enText={"Sort"}
+        heText={"מיון"}
+        buttonStyle={true}
+      />
+      <DropdownOptionList
+        isOpen={isOpen}
+        options={SearchState.metadataByType[type].sortTypeArray}
+        currOptionSelected={sortType}
+        handleClick={handleClick}
+      />
+    </DropdownModal>
+  );
+}
+SearchSortBox.propTypes = {
+  type:                    PropTypes.string.isRequired,
+  updateAppliedOptionSort: PropTypes.func,
+  sortType:                PropTypes.string,
+};
+
+
+const SearchFilterButton = ({openMobileFilters, nFilters}) => (
+  <div className={classNames({button: 1, extraSmall: 1, grey: !nFilters})} onClick={openMobileFilters}>
+    <InterfaceText>Filter</InterfaceText>
+    {!!nFilters ? <>&nbsp;({nFilters.toString()})</> : null}
+  </div>
+);
 
 
 export default SearchResultList;

@@ -1,10 +1,13 @@
 
 import hashlib
 import sys
+from datetime import datetime
 from functools import wraps
+
 from django.http import HttpRequest
-from sefaria import settings
 from django.core.cache import DEFAULT_CACHE_ALIAS
+
+from sefaria import settings
 
 import structlog
 logger = structlog.get_logger(__name__)
@@ -39,7 +42,7 @@ def cache_get_key(*args, **kwargs):
     return key
 
 
-def django_cache(action="get", timeout=None, cache_key='', cache_prefix = None, default_on_miss = False, default_on_miss_value=None, cache_type=None):
+def django_cache(action="get", timeout=None, cache_key='', cache_prefix=None, default_on_miss=False, default_on_miss_value=None, cache_type=None):
     """
     Easily add caching to a function in django
     """
@@ -131,13 +134,21 @@ def delete_template_cache(fragment_name='', *args):
     delete_cache_elem('template.cache.%s.%s' % (fragment_name, hashlib.md5(':'.join([arg for arg in args]).encode('utf-8')).hexdigest()))
 
 
-
 class InMemoryCache():
     data = {}
-    def set(self, key, val):
+    timeouts = {}
+
+    def set(self, key, val, timeout=None):
         self.data[key] = val
+        if timeout:
+            self.timeouts[key] = (timeout, datetime.now().timestamp())
 
     def get(self, key):
+        timeout = self.timeouts.get(key, None);
+        if timeout and timeout[0] + timeout[1] < datetime.now().timestamp():
+            self.set(key, None, timeout=timeout[0])
+            return None
+
         return self.data.get(key,  None)
 
     def reset_all(self):
@@ -146,5 +157,3 @@ class InMemoryCache():
 
 
 in_memory_cache = InMemoryCache()
-
-

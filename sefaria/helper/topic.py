@@ -8,6 +8,8 @@ from sefaria.model import *
 from sefaria.system.exceptions import InputError
 from sefaria.model.topic import TopicLinkHelper
 from sefaria.system.database import db
+from sefaria.system.cache import django_cache
+
 import structlog
 
 logger = structlog.get_logger(__name__)
@@ -157,8 +159,10 @@ def annotate_topic_link(link: dict, link_topic_dict: dict) -> Union[dict, None]:
     return link
 
 
-def get_all_topics(limit=1000):
-    return TopicSet({}, limit=limit, sort=[('numSources', -1)]).array()
+@django_cache(timeout=24 * 60 * 60)
+def get_all_topics(limit=1000, displayableOnly=True):
+    query = {"shouldDisplay": {"$ne": False}, "numSources": {"$gt": 0}} if displayableOnly else {}
+    return TopicSet(query, limit=limit, sort=[('numSources', -1)]).array()
 
 
 def get_topic_by_parasha(parasha:str) -> Topic:
@@ -215,7 +219,6 @@ def get_bulk_topics(topic_list: list) -> TopicSet:
 
 def recommend_topics(refs: list) -> list:
     """Returns a list of topics recommended for the list of string refs"""
-
     seg_refs = []
     for tref in refs:
         try:
@@ -261,13 +264,31 @@ def get_topics_for_ref(tref, annotate=False):
             data_source = library.get_topic_data_source(data_source_slug)
             link['dataSource'] = data_source.displayName
             link['dataSource']['slug'] = data_source_slug
+    
+    serialized.sort(key=cmp_to_key(sort_refs_by_relevance))
     return serialized
+
+
+@django_cache(timeout=24 * 60 * 60, cache_prefix="get_topics_for_book")
+def get_topics_for_book(title: str, annotate=False, n=18) -> list:
+    all_topics = get_topics_for_ref(title, annotate=annotate)
+
+    topic_counts = defaultdict(int)
+    topic_data   = {}
+    for topic in all_topics:
+        if topic["topic"].startswith("parashat-"):
+            continue # parasha topics aren't useful here
+        topic_counts[topic["topic"]] += topic["order"].get("user_votes", 1)
+        topic_data[topic["topic"]] = {"slug": topic["topic"], "title": topic["title"]}
+
+    topic_order = sorted(topic_counts.items(), key=lambda x: x[1], reverse=True)
+
+    return [topic_data[topic[0]] for topic in topic_order][:n]
 
 
 """
     SECONDARY TOPIC DATA GENERATION
 """
-
 
 def generate_all_topic_links_from_sheets(topic=None):
     """
