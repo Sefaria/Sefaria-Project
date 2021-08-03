@@ -1208,7 +1208,7 @@ def get_sheet_categorization_info(does_not_contain):
 	if does_not_contain == "topics":
 		sheet = sheet_to_dict(db.sheets.find({"topics": {"$in": [None, []] }, "noTags": {"$in": [None, False]}, "status": "public"}).sort("id", DESCENDING)[0]) 
 	else: # categories
-		sheet = sheet_to_dict(db.sheets.find({"categories": {"$in": [None, []] }, "status": "public"}).sort("id", DESCENDING)[0])
+		sheet = sheet_to_dict(db.sheets.find({"categories": {"$in": [None, []] }, "status": "public", "$where": "this.includedRefs.length != this.sources.length"}).sort("id", DESCENDING)[0])
 	
 	categories_all = db.sheets.distinct("categories") # this is slow; maybe add index or ...?
 
