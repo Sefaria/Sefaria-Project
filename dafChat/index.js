@@ -83,6 +83,23 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => removeUserFromBeitMidrash(socket.id));
 
+  socket.on("connect with other user", (uid, name) => {
+    console.log("connecting with other user");
+    const socketId = Object.keys(peopleInBeitMidrash).find(key => peopleInBeitMidrash[key]["uid"] === uid);
+    socket.broadcast.to(socketId).emit('connection request', name);
+  });
+
+  socket.on("connection rejected", (name) =>{
+    const socketId = Object.keys(peopleInBeitMidrash).find(key => peopleInBeitMidrash[key]["name"] === name);
+    socket.broadcast.to(socketId).emit("send connection rejection")
+  });
+
+  socket.on("send room ID to server", (name, roomId)=> {
+    const socketId = Object.keys(peopleInBeitMidrash).find(key => peopleInBeitMidrash[key]["name"] === name);
+    console.log("sending room ID to client", socketId)
+    socket.broadcast.to(socketId).emit("send room ID to client", roomId)
+  });
+
   socket.on('does room exist', function(roomID, uid) {
     let sql = `SELECT name, clients FROM chatrooms WHERE name = ?`;
     let room = roomID;
