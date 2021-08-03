@@ -1134,6 +1134,17 @@ const withSefariaSheet = editor => {
             return
         }
 
+        const isListItemAndNotEmpty = editor => {
+          const [list] = Editor.nodes(editor, { match: n => LIST_TYPES.includes(!Editor.isEditor(n) && SlateElement.isElement(n) && n.type)})
+          const curNode = Node.get(editor, editor.selection.focus.path);
+            if (list && Node.string(curNode) !== "") {return true}
+            else {return false}
+        };
+
+        if (isListItemAndNotEmpty(editor)) {
+            insertBreak();
+            return
+        }
 
         getRefInText(editor, true).then(query => {
             if (query["is_segment"] || query["is_section"]) {
@@ -1776,7 +1787,6 @@ const isFormatActive = (editor, format) => {
 };
 
 const toggleBlock = (editor, format) => {
-    console.log(format)
   const isActive = isBlockActive(editor, format)
   const isList = LIST_TYPES.includes(format)
 
@@ -1889,7 +1899,9 @@ const HoverMenu = (opt) => {
             <FormatButton editor={editor} format="underline"/>
             {buttons == "basic" ? null : <>
                 <AddLinkButton/>
-                <BlockButton editor={editor} format="header"/>
+                <BlockButton editor={editor} format="header" icon="header" />
+                <BlockButton editor={editor} format="numbered-list" icon="list-ol" />
+                <BlockButton editor={editor} format="bulleted-list" icon="list-ul" />
             </>
             }
 
@@ -1941,10 +1953,10 @@ const FormatButton = ({format}) => {
     )
 };
 
-const BlockButton = ({format}) => {
+const BlockButton = ({format, icon}) => {
     const editor = useSlate()
     const isActive = isBlockActive(editor, format);
-    const iconName = "fa-" + format;
+    const iconName = "fa-" + icon;
     const classes = {fa: 1, active: isActive};
     classes[iconName] = 1;
 
