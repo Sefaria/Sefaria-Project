@@ -26,7 +26,6 @@ import {
 } from './Misc';
 import Component from 'react-class';
 import ReactTags from 'react-tag-autocomplete';
-window.ReactTags = ReactTags; // for use in categorize_sheets
 
 class ReaderApp extends Component {
   constructor(props) {
@@ -1913,3 +1912,8 @@ export {
   RambanLandingPage,
   EducatorsPage
 };
+
+if (typeof reactTagGlobal != "undefined") {
+  reactTagGlobal.ReactTags = ReactTags;
+  console.log('reactTagGlobal')
+}

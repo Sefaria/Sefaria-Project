@@ -1147,16 +1147,21 @@ def upload_sheet_media(request):
 @api_view(["PUT"])
 def next_untagged(request):
     from pymongo import DESCENDING
-    sheet_id = sheet_to_dict(db.sheets.find({"tags": {"$in": [None, []] }, "datePublished": {"$exists": True}}).sort("id", DESCENDING)[0])["id"]
-    return jsonResponse({"sheetId": sheet_id})
+    from sefaria.sheets import update_sheet_topics, get_sheet_categorization_info
+    body_unicode = request.body.decode('utf-8')
+    body = json.loads(body_unicode)
+    update_sheet_topics(body['sheetId'], body["tags"], [])
+    db.sheets.update_one({"id": body['sheetId']}, {"$set": {"categories": body['categories'], "noTags": body["noTags"]}})
+    return jsonResponse(get_sheet_categorization_info("topics"))
+
 
 @staff_member_required
 def next_uncategorized(request):
     from pymongo import DESCENDING
-    from sefaria.sheets import update_sheet_topics
+    from sefaria.sheets import update_sheet_topics, get_sheet_categorization_info
     body_unicode = request.body.decode('utf-8')
     body = json.loads(body_unicode)
     update_sheet_topics(body['sheetId'], body["tags"], [])
-    sheet_id = sheet_to_dict(db.sheets.find({"categories": {"$in": [None, []] }, "datePublished": {"$exists": True}}).sort("id", DESCENDING)[0])["id"]
-    return jsonResponse({"sheetId": sheet_id})
+    db.sheets.update_one({"id": body['sheetId']}, {"$set": {"categories": body['categories'], "noTags": body["noTags"]}})
+    return jsonResponse(get_sheet_categorization_info("categories"))
 

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import io
 import os
+from sefaria.sheets import get_sheet_categorization_info
 import zipfile
 import json
 import re
@@ -824,23 +825,28 @@ def tag_sheets(request):
 
 @staff_member_required
 def categorize_sheets(request):
-    from pymongo import DESCENDING
-    from sefaria.sheets import sheet_to_dict
     from reader.views import base_props
-    # get the first sheet that has no tags
-    sheet = sheet_to_dict(db.sheets.find({"tags": {"$in": [None, []] }, "datePublished": {"$exists": True}}).sort("id", DESCENDING)[0])
-    room_id = request.GET.get("rid", None)
-    starting_ref = request.GET.get("ref", "Genesis 1")
-    roulette = request.GET.get("roulette", "0")
     props = base_props(request)
-    categorize_props = {
-        "sheetId": sheet['id']
-    }
+    categorize_props = get_sheet_categorization_info("categories")
     props.update(categorize_props)
     propsJSON = json.dumps(props, ensure_ascii=False)
     context = {
         "title": "Categorize Sheets",
-        "description": "Retrieve the latest untagged sheet and allow user to tag",
+        "description": "Retrieve the latest uncategorized, public sheet and allow user to tag",
+        "propsJSON": propsJSON
+    }
+    return render(request, "static/categorize-sheets.html", context)
+
+@staff_member_required
+def tag_sheets(request):
+    from reader.views import base_props
+    props = base_props(request)
+    categorize_props = get_sheet_categorization_info("topics")
+    props.update(categorize_props)
+    propsJSON = json.dumps(props, ensure_ascii=False)
+    context = {
+        "title": "Tag Sheets",
+        "description": "Retrieve the latest untagged, public sheet and allow user to tag",
         "propsJSON": propsJSON
     }
     return render(request, "static/categorize-sheets.html", context)

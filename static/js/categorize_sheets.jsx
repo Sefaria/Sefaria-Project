@@ -6,13 +6,15 @@ class SheetCategorizer extends React.Component {
     this.state = {
       sheetId: props.sheetId,
       tags: [],
-      categories: [],
+      categories: {},
+      allCategories: props.allCategories,
+      noTags: false,
       adminType: props.adminType,
     };
-    this.getNextSheet = this.getNextSheet.bind(this);
     this.saveAndNext = this.saveAndNext.bind(this);
 
     this.reactTags = React.createRef();
+    // this.categorizeSelections = React.createRef();
   }
 
   onTagDelete(i) {
@@ -57,70 +59,88 @@ class SheetCategorizer extends React.Component {
 
   componentWillUnmount() {}
 
-  getNextSheet() {
-    this.setState({ sheetId: 123 });
-  }
-
   saveAndNext() {
     const topics = this.state.tags.map(tag => ({
       asTyped: tag.name,
       slug: tag.slug,
-    })
-)
-    this.putSheet({ 
+    }));
+    const currentCategories = this.state.categories;
+    const keys = Object.keys(currentCategories);
+    const categoriesToSend = keys.filter(x => currentCategories[x])
+    this.putSheetAndUpdateNext({ 
       sheetId: this.state.sheetId,
-      tags: topics });
+      tags: topics,
+      noTags: this.state.noTags,
+      categories: categoriesToSend
+     });
   }
 
-  putSheet(postJSON) {
-    const requestOptions = {
-      credentials: "same-origin",
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(postJSON),
-    };
+  putSheetAndUpdateNext(postJSON) {
     jQuery.ajax(
       {
         type: 'PUT',
-        url: '/api/sheets/next-uncategorized',
+        url: this.props.doesNotContain === "topics" ? "/api/sheets/next-untagged" : "/api/sheets/next-uncategorized",
         contentType: 'application/json',
         data: JSON.stringify(postJSON), // access in body
         success: function(data) {
           if (data.sheetId) {
             console.log("saved...");
-            this.setState({ sheetId: data.sheetId });
+            this.setState({ sheetId: data.sheetId, allCategories: data.allCategories });
           } else {
             console.log(data);
           }
         }.bind(this)
       });
-
-    // fetch("/api/sheets/next-untagged", requestOptions)
-    //   .then((res) => res.json)
-    //   .then((data) => {
-    //     if (data.sheetId) {
-    //       console.log("saved...");
-    //       this.setState({ sheetId: data.sheetId });
-    //     } else {
-    //       console.log(data);
-    //     }
-    //   });
   }
 
   getSheet() {
+    /* Load sheet when sheetId changes */
     Sefaria.sheets.loadSheetByID(
       this.state.sheetId,
       function (x) {
+        console.log(x);
         const topics = x.topics.map((topic, i) => ({
           id: i,
           name: topic["asTyped"],
           slug: topic["slug"],
         })
       )
-        this.setState({ sheet: x, tags: topics});
+      const categories = x.categories ? x.categories.reduce((a, x) => {
+        return {...z, [x]: true}
+      }, {}) : {};
+      this.setState({ tags: topics, categories: categories, noTags: x.noTags});
         console.log("hi");
       }.bind(this)
     );
+  }
+
+
+  addCategory(e) {
+    if(e.key === "Enter" || e.key === "Tab" || e.key === "," || e.type == "click") {
+      const newCategoryElem = document.getElementById('newCategory')
+      this.setState({
+        allCategories: [...this.state.allCategories, newCategoryElem.value]
+      })
+      newCategoryElem.value = "";
+    }
+
+  }
+
+  handleCategoryToggle(e) {
+    const categories = this.state.categories;
+    categories[e.target.name] = e.target.checked;
+    this.setState({categories: categories})
+    console.log(this)
+  }
+
+  handleInputChange(e) {
+    const target = e.target;
+    const value = target.type === 'checkbox' ? target.checked : target.value;
+    const name = target.name;
+
+    this.setState({
+      [name]: value
+    });
   }
 
   render() {
@@ -128,7 +148,7 @@ class SheetCategorizer extends React.Component {
       <div className="categorizer">
         <div id="edit-pane">
           Left pane
-          <window.ReactTags
+          <reactTagGlobal.ReactTags
             ref={this.reactTags}
             allowNew={true}
             tags={this.state.tags}
@@ -139,6 +159,30 @@ class SheetCategorizer extends React.Component {
             delimiters={["Enter", "Tab", ","]}
             onInput={this.updateSuggestedTags.bind(this)}
           />
+          <div>
+        {
+        this.state.allCategories.map(category => (
+          <div>
+          <input
+          type="checkbox"
+          onChange={this.handleCategoryToggle.bind(this)}
+          key={category}
+          name={category}
+          checked={this.state.categories[category] || false}
+          ></input>
+          <label htmlFor={category}>{category}</label>
+          </div>
+        ))
+      }
+      <input type="text" id="newCategory" placeholder="New Category" onKeyUp={this.addCategory.bind(this)}></input><button onClick={this.addCategory.bind(this)}>Add</button>
+      </div>
+          <input
+          type="checkbox"
+          name="noTags"
+          checked={this.state.noTags || false}
+          onChange={this.handleInputChange.bind(this)}
+          ></input>
+          <label htmlFor="noTags">No Tags</label>
           <button onClick={this.saveAndNext}>Next Sheet</button>
         </div>
         <div id="iframeContainer">
@@ -151,7 +195,6 @@ class SheetCategorizer extends React.Component {
     );
   }
 }
-
 
 Sefaria.unpackDataFromProps(DJANGO_VARS.props);
 
