@@ -1206,9 +1206,9 @@ def change_tag(old_tag, new_tag_or_list):
 def get_sheet_categorization_info(does_not_contain):
 	from pymongo import DESCENDING
 	if does_not_contain == "topics":
-		sheet = sheet_to_dict(db.sheets.find({"topics": {"$in": [None, []] }, "noTags": {"$not": True}, "status": "public"}).sort("id", DESCENDING)[0]) 
+		sheet = sheet_to_dict(db.sheets.find({"topics": {"$in": [None, []] }, "noTags": {"$in": [None, False]}, "status": "public"}).sort("id", DESCENDING)[0]) 
 	else: # categories
-		sheet = sheet_to_dict(db.sheets.find({"categories": {"$in": [None, []] }, "noTags": {"$not": True}, "status": "public"}).sort("id", DESCENDING)[0])
+		sheet = sheet_to_dict(db.sheets.find({"categories": {"$in": [None, []] }, "noTags": {"$in": [None, False]}, "status": "public"}).sort("id", DESCENDING)[0])
 	
 	categories_all = db.sheets.distinct("categories") # this is slow; maybe add index or ...?
 

@@ -4,7 +4,7 @@ import httplib2
 from urllib3.exceptions import NewConnectionError
 from urllib.parse import unquote
 from elasticsearch.exceptions import AuthorizationException
-from datetime import datetime, timedelta
+from datetime import datetime
 from io import StringIO, BytesIO
 from django.contrib.admin.views.decorators import staff_member_required
 
@@ -1146,22 +1146,22 @@ def upload_sheet_media(request):
 @staff_member_required
 @api_view(["PUT"])
 def next_untagged(request):
-    from pymongo import DESCENDING
     from sefaria.sheets import update_sheet_topics, get_sheet_categorization_info
     body_unicode = request.body.decode('utf-8')
     body = json.loads(body_unicode)
     update_sheet_topics(body['sheetId'], body["tags"], [])
-    db.sheets.update_one({"id": body['sheetId']}, {"$set": {"categories": body['categories'], "noTags": body["noTags"]}})
+    noTags = datetime.today() if body['noTags'] else False
+    db.sheets.update_one({"id": body['sheetId']}, {"$set": {"categories": body['categories'], "noTags": noTags}})
     return jsonResponse(get_sheet_categorization_info("topics"))
 
 
 @staff_member_required
 def next_uncategorized(request):
-    from pymongo import DESCENDING
     from sefaria.sheets import update_sheet_topics, get_sheet_categorization_info
     body_unicode = request.body.decode('utf-8')
     body = json.loads(body_unicode)
     update_sheet_topics(body['sheetId'], body["tags"], [])
-    db.sheets.update_one({"id": body['sheetId']}, {"$set": {"categories": body['categories'], "noTags": body["noTags"]}})
+    noTags = datetime.today() if body['noTags'] else False
+    db.sheets.update_one({"id": body['sheetId']}, {"$set": {"categories": body['categories'], "noTags": noTags}})
     return jsonResponse(get_sheet_categorization_info("categories"))
 
