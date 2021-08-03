@@ -1,5 +1,3 @@
-var input = "import ReactTags from 'react-tag-autocomplete'";
-Babel.transform(input, { presets: [["env", { modules: "commonjs" }]] }).code;
 class SheetCategorizer extends React.Component {
   constructor(props) {
     super(props);
@@ -13,8 +11,17 @@ class SheetCategorizer extends React.Component {
       adminType: props.adminType,
     };
     this.saveAndNext = this.saveAndNext.bind(this);
-
     this.reactTags = React.createRef();
+  }
+
+  componentDidMount() {
+    this.getSheet();
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    if (this.state.sheetId !== prevState.sheetId) {
+      this.getSheet();
+    }
   }
 
   onTagDelete(i) {
@@ -48,18 +55,6 @@ class SheetCategorizer extends React.Component {
       })
       .then((topics) => this.setState({ suggestions: topics }));
   }
-  
-  componentDidMount() {
-    this.getSheet();
-  }
-
-  componentDidUpdate(prevProps, prevState) {
-    if (this.state.sheetId !== prevState.sheetId) {
-      this.getSheet();
-    }
-  }
-
-  componentWillUnmount() {}
 
   saveAndNext() {
     const topics = this.state.tags.map(tag => ({
@@ -95,7 +90,6 @@ class SheetCategorizer extends React.Component {
   }
 
   getSheet() {
-    /* Load sheet when sheetId changes */
     Sefaria.sheets.loadSheetByID(
       this.state.sheetId,
       function (x) {
@@ -113,7 +107,6 @@ class SheetCategorizer extends React.Component {
     );
   }
 
-
   addCategory(e) {
     if(e.key === "Enter" || e.key === "Tab" || e.key === "," || e.type == "click") {
       const newCategoryElem = document.getElementById('newCategory')
@@ -122,7 +115,6 @@ class SheetCategorizer extends React.Component {
       })
       newCategoryElem.value = "";
     }
-
   }
 
   handleCategoryToggle(e) {
@@ -151,7 +143,7 @@ class SheetCategorizer extends React.Component {
     return (
       <div className="categorizer">
         <div id="edit-pane">
-          <h3>Topics:</h3>
+          <h3>Topics/Tags:</h3>
           <div class="categorize-section">
           <input
           type="checkbox"
