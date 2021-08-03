@@ -186,7 +186,7 @@ class SheetCategorizer extends React.Component {
       </fieldset>
       <input type="text" id="newCategory" placeholder="New Category" onKeyUp={this.addCategory.bind(this)}></input><button onClick={this.addCategory.bind(this)}>Add</button>
       </div>
-        <button onClick={this.saveAndNext}>Next Sheet</button>
+        <button onClick={this.saveAndNext}>Save and Next</button>
         </div>
         <div id="iframeContainer">
           <iframe
