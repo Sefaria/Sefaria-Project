@@ -2420,6 +2420,13 @@ a.navBlockTitle:hover {
 .bookPage .refLink .he {
   text-align: center;
 }
+.bookPage .editTextInfo {
+  position:absolute;
+  top: 0px;
+  right: 0px;
+  bottom: 0px;
+  left: 0px;
+}
 .blockLink:active,
 .navButton:active,
 .readerNavCategory:active,

@@ -11,7 +11,8 @@ import {
   InterfaceText,
   ContentText, EnglishText, HebrewText, LanguageToggleButton,
 } from './Misc';
-import React  from 'react';
+
+import React, { useState }  from 'react';
 import ReactDOM  from 'react-dom';
 import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
@@ -893,6 +894,7 @@ class ModeratorButtons extends Component {
     this.state = {
       expanded: false,
       message: null,
+      editing: false,
     }
   }
   expand() {
@@ -941,6 +943,7 @@ class ModeratorButtons extends Component {
     }
     let editTextInfo = <div className="button white" onClick={this.editIndex}>
                           <span><i className="fa fa-info-circle"></i> Edit Text Info</span>
+                          {this.editing ? <EditTextInfo/> : null}
                         </div>;
     let addSection   = <div className="button white" onClick={this.addSection}>
                           <span><i className="fa fa-plus-circle"></i> Add Section</span>
@@ -965,6 +968,19 @@ ModeratorButtons.propTypes = {
   title: PropTypes.string.isRequired,
 };
 
+function EditTextInfo() {
+  // Declare a new state variable, which we'll call "count"
+  const [count, setCount] = useState(0);
+
+  return (
+    <div>
+      <p>You clicked {count} times</p>
+      <button onClick={() => setCount(count + 1)}>
+        Click me
+      </button>
+    </div>
+  );
+}
 
 class ReadMoreText extends Component {
   constructor(props) {
