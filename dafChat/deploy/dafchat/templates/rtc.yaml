@@ -2,9 +2,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: rtc-{{ .Values.deployEnv }}
+  name: rtc-{{ .Values.deployEnv | quote }}
   labels:
-    app: rtc-{{ .Values.deployEnv }}
+    app: rtc-{{ .Values.deployEnv | quote }}
 spec:
   type: LoadBalancer
   ports:
@@ -12,29 +12,29 @@ spec:
     port: 80
     targetPort: 8080
   selector:
-    app: rtc-{{ .Values.deployEnv }}
+    app: rtc-{{ .Values.deployEnv | quote }}
 ---
 # Deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: rtc-{{ .Values.deployEnv }}
+  name: rtc-{{ .Values.deployEnv | quote }}
 spec:
   selector:
     matchLabels:
-      app: rtc-{{ .Values.deployEnv }}
+      app: rtc-{{ .Values.deployEnv | quote }}
   replicas: 1
   template:
     metadata:
       labels:
-        app: rtc-{{ .Values.deployEnv }}
+        app: rtc-{{ .Values.deployEnv | quote }}
         tier: application
-        deployEnv: "{{ .Values.deployEnv }}"
+        deployEnv: {{ .Values.deployEnv | quote }}
         stackRole: rtc
     spec:
       containers:
-        - name: rtc-{{ .Values.deployEnv }}
-          image: {{ .Values.dafChat.rtc.containerImage }}:{{ quote .Values.releaseImageTag }}
+        - name: rtc-{{ .Values.deployEnv | quote }}
+          image: {{ .Values.dafChat.rtc.containerImage | quote }}:{{ .Values.releaseImageTag | quote }}
           ports:
             - containerPort: 8080
           resources:
