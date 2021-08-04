@@ -243,6 +243,7 @@ io.on("connection", (socket) => {
   })
 
   socket.on('send sources', function(msg, room) {
+    console.log(room, msg["currentlyReading"])
     socket.to(room).emit('got sources', msg);
   })
 

@@ -34,20 +34,18 @@ channel.onmessage = msg => {
   document.getElementById("end-call").setAttribute("data-url", `${link}`);
 
   const ref = encodeURIComponent(link.slice(1))
-
-  console.log("link", link);
-
-  console.log("ref", ref);
   const url = "chavruta?ref=" + ref  +"&rid=" + startingRoom;
-  console.log("url", url);
+
   //updates url bar when new content is loaded
   window.history.pushState({}, '', url);
+
   //updates input box with url when new content is loaded
   document.getElementById("chavrutaURL").setAttribute("value", "http://{{request.get_host}}/" + url);
 
 };
 
 socket.on('got sources', function(msg) {
+  console.log(msg)
   const sources = msg.currentlyReading;
   const url = msg.history.url;
   if (sources) {
