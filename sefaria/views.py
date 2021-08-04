@@ -276,21 +276,6 @@ def chavruta_js(request):
 
     return render(request, "js/chavruta.js", attrs, content_type="text/javascript; charset=utf-8")
 
-def beit_midrash_js(request):
-    """
-    Javascript for beit midrash
-    """
-    client_user = UserProfile(id=request.user.id)
-
-    attrs = {
-        "rtc_server": RTC_SERVER,
-        "client_name": client_user.first_name + " " + client_user.last_name,
-        "client_uid": client_user.id,
-    }
-
-
-    return render(request, "js/beit-midrash.js", attrs, content_type="text/javascript; charset=utf-8")
-
 def linker_js(request, linker_version=None):
     """
     Javascript of Linker plugin.

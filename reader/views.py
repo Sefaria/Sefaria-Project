@@ -4321,7 +4321,7 @@ def chevruta_redirect(request):
     })
 
 @login_required
-def beit_midrash_redirect(request):
+def beit_midrash(request):
     title = _("Sefaria Beit Midrash")
     desc  = _("The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more.")
     return menu_page(request, page="beit_midrash", title=title, desc=desc)
