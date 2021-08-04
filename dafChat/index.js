@@ -37,7 +37,14 @@ const httpServer = require("http").createServer();
 
 const io = require("socket.io")(httpServer, {
   cors: {
-    origin: "http://localhost:8000",
+    origin: [
+        "http://localhost:8000",
+        "https://www.sefaria.org",
+        "https://www.sefaria.org.il",
+        "https://chavruta.cauldron.sefaria.org",
+        /\.sefaria\.org$/,
+        /\.sefaria\.org.il$/
+    ],
     methods: ["GET", "POST"]
   }
 });
