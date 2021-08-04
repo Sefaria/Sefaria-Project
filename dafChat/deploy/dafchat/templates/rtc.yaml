@@ -34,7 +34,7 @@ spec:
     spec:
       containers:
         - name: rtc-{{ .Values.deployEnv }}
-          image: "{{ .Values.dafChat.rtc.containerImage }}:{{ .Values.releaseImageTag }}"
+          image: {{ .Values.dafChat.rtc.containerImage }}:{{ quote .Values.releaseImageTag }}
           ports:
             - containerPort: 8080
           resources:
