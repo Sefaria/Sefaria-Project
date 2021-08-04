@@ -2643,6 +2643,7 @@ Sefaria.unpackDataFromProps = function(props) {
       "trendingTopics",
       "_siteSettings",
       "_debug",
+      "rtc_server"
   ];
   for (const element of dataPassedAsProps) {
       if (element in props) {

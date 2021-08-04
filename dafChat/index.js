@@ -33,17 +33,21 @@ const pcConfig = {
 
 //setup static server and initialize sockets
 const PORT = process.env.PORT || 8080;
-const fileServer = new(nodeStatic.Server)();
-const app = http.createServer(function(req, res) {
-    fileServer.serve(req, res);
-    // console.log(req.headers)
-}).listen(PORT);
+const httpServer = require("http").createServer();
 
-const io = socketIO.listen(app);
+const io = require("socket.io")(httpServer, {
+  cors: {
+    origin: "http://localhost:8000",
+    methods: ["GET", "POST"]
+  }
+});
 
+httpServer.listen(PORT)
 
+const peopleInBeitMidrash = {};
 
-io.sockets.on('connection', function(socket) {
+io.on("connection", (socket) => {
+  console.log("connected")
 
   socket.on('message', function(message, roomId) {
     socket.to(roomId).emit('message', message);
@@ -51,19 +55,50 @@ io.sockets.on('connection', function(socket) {
 
   function createNewRoom(uid, namespace="dafRoulette", uroom=false) {
     const room = uroom ? uroom : Math.random().toString(36).substring(7);
-    socket.join(room, () => {
-      console.log(`${socket.id} created room ${room}`);
-      socket.emit('created', room);
-      db.run(`INSERT INTO chatrooms(name, clients, roomStarted, namespace) VALUES(?, ?, ?, ?)`, [room, uid, +new Date, namespace], function(err) {
-        if (err) {
-          console.log(err.message);
-        }
-      });
+    socket.join(room);
+    console.log(`${socket.id} created room ${room}`);
+    socket.emit('created', room);
+    db.run(`INSERT INTO chatrooms(name, clients, roomStarted, namespace) VALUES(?, ?, ?, ?)`, [room, uid, +new Date, namespace], function(err) {
+      if (err) {
+        console.log(err.message);
+      }
     });
   }
 
+  function addUserToBeitMidrash(uid, fullName, socketId) {
+    peopleInBeitMidrash[socketId] = {}
+    peopleInBeitMidrash[socketId]["uid"] = uid;
+    peopleInBeitMidrash[socketId]["name"] = fullName;
+    console.log(peopleInBeitMidrash)
+    socket.broadcast.emit("change in people", Object.values(peopleInBeitMidrash));
+    socket.emit("change in people", Object.values(peopleInBeitMidrash));
+  }
+  function removeUserFromBeitMidrash(socketId) {
+    delete peopleInBeitMidrash[socketId];
+    socket.broadcast.emit("change in people", Object.values(peopleInBeitMidrash));
+    socket.emit("change in people", Object.values(peopleInBeitMidrash));
+  }
+  
+  socket.on("enter beit midrash", (uid, fullName)=> addUserToBeitMidrash(uid, fullName, socket.id));
 
+  socket.on("disconnect", () => removeUserFromBeitMidrash(socket.id));
 
+  socket.on("connect with other user", (uid, name) => {
+    console.log("connecting with other user");
+    const socketId = Object.keys(peopleInBeitMidrash).find(key => peopleInBeitMidrash[key]["uid"] === uid);
+    socket.broadcast.to(socketId).emit('connection request', name);
+  });
+
+  socket.on("connection rejected", (name) =>{
+    const socketId = Object.keys(peopleInBeitMidrash).find(key => peopleInBeitMidrash[key]["name"] === name);
+    socket.broadcast.to(socketId).emit("send connection rejection")
+  });
+
+  socket.on("send room ID to server", (name, roomId)=> {
+    const socketId = Object.keys(peopleInBeitMidrash).find(key => peopleInBeitMidrash[key]["name"] === name);
+    console.log("sending room ID to client", socketId)
+    socket.broadcast.to(socketId).emit("send room ID to client", roomId)
+  });
 
   socket.on('does room exist', function(roomID, uid) {
     let sql = `SELECT name, clients FROM chatrooms WHERE name = ?`;
@@ -100,12 +135,11 @@ io.sockets.on('connection', function(socket) {
 
       else if (row.clients != 0) {
         console.log(socket.id +' attempting to join room: '+ room)
-        socket.join(room, () => {
-          console.log('Client ID ' + socket.id + ' joined room ' + room);
-          socket.to(room).emit('join', room);
-          socket.emit('join', room);
-          db.run(`UPDATE chatrooms SET clients=? WHERE name=?`, [0, room]);
-        })
+        socket.join(room)
+        console.log('Client ID ' + socket.id + ' joined room ' + room);
+        socket.to(room).emit('join', room);
+        socket.emit('join', room);
+        db.run(`UPDATE chatrooms SET clients=? WHERE name=?`, [0, room]);
       }
 
       else {
@@ -154,12 +188,12 @@ io.sockets.on('connection', function(socket) {
             else {
               const room = rows[rowIndex].name;
               console.log(socket.id +' attempting to join room: '+ room)
-              socket.join(room, () => {
-                console.log('Client ID ' + socket.id + ' joined room ' + room);
-                socket.to(room).emit('join', room);
-                socket.emit('join', room);
-                db.run(`UPDATE chatrooms SET clients=? WHERE name=?`, [0, room]);
-              });
+              socket.join(room);
+              console.log('Client ID ' + socket.id + ' joined room ' + room);
+              socket.to(room).emit('join', room);
+              socket.emit('join', room);
+              db.run(`UPDATE chatrooms SET clients=? WHERE name=?`, [0, room]);
+              
               foundRoom = true;
             }
           }

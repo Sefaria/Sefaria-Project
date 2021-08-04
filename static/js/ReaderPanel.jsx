@@ -40,6 +40,7 @@ import {
   CategoryAttribution,
   ToggleSet, ContentText, InterfaceText, EnglishText, HebrewText,
 } from './Misc';
+import BeitMidrash from './BeitMidrash';
 
 
 class ReaderPanel extends Component {
@@ -955,6 +956,12 @@ class ReaderPanel extends Component {
     } else if (this.state.menuOpen === "calendars") {
       menu = (
         <CalendarsPage 
+          multiPanel={this.props.multiPanel}
+          initialWidth={this.state.width} />
+      );
+    } else if (this.state.menuOpen === "beit_midrash") {
+      menu = (
+        <BeitMidrash
           multiPanel={this.props.multiPanel}
           initialWidth={this.state.width} />
       );
