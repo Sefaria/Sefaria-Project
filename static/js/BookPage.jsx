@@ -904,7 +904,8 @@ class ModeratorButtons extends Component {
     this.setState({expanded: false});
   }
   editIndex() {
-    window.location = "/edit/textinfo/" + this.props.title;
+    //window.location = "/edit/textinfo/" + this.props.title;
+    this.setState({editing: true})
   }
   addSection() {
     window.location = "/add/" + this.props.title;
@@ -943,7 +944,7 @@ class ModeratorButtons extends Component {
     }
     let editTextInfo = <div className="button white" onClick={this.editIndex}>
                           <span><i className="fa fa-info-circle"></i> Edit Text Info</span>
-                          {this.editing ? <EditTextInfo/> : null}
+                          {this.state.editing ? <EditTextInfo title={this.props.title} toc={Sefaria.toc}/> : null}
                         </div>;
     let addSection   = <div className="button white" onClick={this.addSection}>
                           <span><i className="fa fa-plus-circle"></i> Add Section</span>
@@ -968,16 +969,108 @@ ModeratorButtons.propTypes = {
   title: PropTypes.string.isRequired,
 };
 
-function EditTextInfo() {
+function EditTextInfo({title, toc}) {
   // Declare a new state variable, which we'll call "count"
   const [count, setCount] = useState(0);
 
   return (
-    <div>
-      <p>You clicked {count} times</p>
-      <button onClick={() => setCount(count + 1)}>
-        Click me
-      </button>
+    <div className="editTextInfo">
+      <div id="newIndex">
+        <div id="newIndexMsg">Sefaria doesn't yet know about the text {title}.
+          <div className="sub">Please provide some basic information about this text.</div>
+        </div>
+
+        <div className="fieldSet">
+          <span className="fieldLabel">
+            <div className="help">?
+                <div className="helpText">
+                  The primary title of a text. Texts may have multiple titles which can be entered below, but this will be the default way of referring to this text.
+                  <br/><br/>
+                  Titles in this field must use Roman chacters, but may be transliterations. Add titles in Hebrew characters below.
+                </div>
+            </div>
+            Text Title
+          </span>
+          <input id="textTitle"/>
+        </div>
+
+        <div className="fieldSet">
+          <span className="fieldLabel">
+            <div className="help">?
+                <div className="helpText">
+                  The primary title of a text in Hebrew characters. Alternate Hebrew titles may also be added under "Alternate Titles" below.
+                </div>
+            </div>
+            Hebrew Title
+          </span>
+          <input id="heTitle"/>
+        </div>
+
+        <div className="fieldSet">
+          <span className="fieldLabel">
+            <div className="help">?
+              <div className="helpText">
+              Alternate English Titles can include alternate translations, alternate transliterations spellings, and abbreviations.<br/><br/>Press enter after each title variant to seprate it from others.
+              </div>
+            </div>
+            Alternate English Titles
+            <span className="optional">(optional)</span>
+          </span>
+          <ul id="textTitleVariants"></ul>
+        </div>
+
+        <div className="fieldSet">
+            <span className="fieldLabel">
+              <div className="help">?
+                <div className="helpText">
+                  Alternate Hebrew Titles can include alternate spellings and abbreviations.<br/><br/>Press enter after each title variant to seprate it from others.
+                </div>
+              </div>
+              Alternate Hebrew Titles<span className="optional">(optional)</span>
+          </span>
+          <ul id="textHeTitleVariants"></ul>
+        </div>
+
+        <div className="fieldSet" id="textCategories">
+            <span className="fieldLabel">
+              <div className="help">?
+                <div className="helpText">
+                  A category for the text. Categories are used in searching and grouping texts.
+                </div>
+              </div>
+              Category
+            </span>
+          <select id="textCategory">
+            <option value="">Select a Category…</option>
+            {toc.map(tocItem => (
+                <option onChange={} value={tocItem.category}>{tocItem.category}</option>
+            ))}
+          </select> <input id="otherCategory"/>
+        </div>
+
+        <div className="fieldSet" id="textStructureFieldSet">
+            <span className="fieldLabel">
+              <div className="help">?
+                <div className="helpText">
+                  A Text's Structure is represented by the hieracrchy of different types of sections that make up the text.
+                  <br/><br/>For example, texts of the Tanakh like Genesis are divided into "Chapters" which are then divided into "Verses".
+                  <br/><br/>Larger texts, such as the Mishneh Torah, may have more levels in their hierarchy, for example "Book" > "Section" > "Chapter" > "Law".
+                </div>
+              </div>
+              Text Structure
+            </span>
+            <div id="sectionTypesBox">
+              <span className='sectionType'><input placeholder='e.g. Chapter'/></span>
+              <span className='sectionType'> > <input placeholder='e.g. Verse'/> <span className='remove'>X</span></span>
+              <span id="addSection">add level of structure</span>
+            </div>
+        </div>
+
+        <div className="actions">
+          <span id="newIndexSave" className="btn btn-primary btn-large">Save</span>
+          <span id="newIndexCancel" className="btn btn-large">Cancel</span>
+        </div>
+      </div>
     </div>
   );
 }
