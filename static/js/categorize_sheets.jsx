@@ -144,7 +144,7 @@ class SheetCategorizer extends React.Component {
       <div className="categorizer">
         <div id="edit-pane">
           <h3>Topics/Tags:</h3>
-          <div class="categorize-section">
+          <div className="categorize-section">
           <input
           type="checkbox"
           name="noTags"
@@ -154,7 +154,7 @@ class SheetCategorizer extends React.Component {
           ></input>
           <label htmlFor="noTags">No Tags</label>
           </div>
-          <div class="publishBox">
+          <div className="publishBox">
           <reactTagGlobal.ReactTags
             ref={this.reactTags}
             allowNew={true}
@@ -167,7 +167,7 @@ class SheetCategorizer extends React.Component {
             onInput={this.updateSuggestedTags.bind(this)}
           />
           </div>
-        <div class="categorize-section">
+        <div className="categorize-section">
           <fieldset>
            <h3> Categories:</h3>
         {
