@@ -1150,7 +1150,7 @@ def next_untagged(request):
     body_unicode = request.body.decode('utf-8')
     body = json.loads(body_unicode)
     update_sheet_topics(body['sheetId'], body["tags"], [])
-    noTags = datetime.today() if body['noTags'] else False
+    noTags = datetime.now().isoformat() if body.get("noTags", False) else False
     db.sheets.update_one({"id": body['sheetId']}, {"$set": {"categories": body['categories'], "noTags": noTags}})
     return jsonResponse(get_sheet_categorization_info("topics"))
 
@@ -1161,7 +1161,7 @@ def next_uncategorized(request):
     body_unicode = request.body.decode('utf-8')
     body = json.loads(body_unicode)
     update_sheet_topics(body['sheetId'], body["tags"], [])
-    noTags = datetime.today() if body['noTags'] else False
+    noTags = datetime.now().isoformat() if body.get("noTags", False) else False
     db.sheets.update_one({"id": body['sheetId']}, {"$set": {"categories": body['categories'], "noTags": noTags}})
     return jsonResponse(get_sheet_categorization_info("categories"))
 
