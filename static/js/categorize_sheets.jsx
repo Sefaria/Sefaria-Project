@@ -148,6 +148,7 @@ class SheetCategorizer extends React.Component {
           <input
           type="checkbox"
           name="noTags"
+          key="noTags"
           checked={this.state.noTags || false}
           onChange={this.handleNoTagsChange.bind(this)}
           ></input>
@@ -170,12 +171,12 @@ class SheetCategorizer extends React.Component {
           <fieldset>
            <h3> Categories:</h3>
         {
-        this.state.allCategories.map(category => (
-          <div>
+        this.state.allCategories.map((category, i) => (
+          <div key={i}>
           <input
           type="checkbox"
           onChange={this.handleCategoryToggle.bind(this)}
-          key={category}
+          key={i}
           name={category}
           checked={this.state.categories[category] || false}
           ></input>
@@ -184,7 +185,7 @@ class SheetCategorizer extends React.Component {
         ))
       }
       </fieldset>
-      <input type="text" id="newCategory" placeholder="New Category" onKeyUp={this.addCategory.bind(this)}></input><button onClick={this.addCategory.bind(this)}>Add</button>
+      <input type="text" key="newCategory" id="newCategory" placeholder="New Category" onKeyUp={this.addCategory.bind(this)}></input><button onClick={this.addCategory.bind(this)}>Add</button>
       </div>
         <button onClick={this.saveAndNext}>Save and Next</button>
         </div>

@@ -1915,5 +1915,4 @@ export {
 
 if (typeof reactTagGlobal != "undefined") {
   reactTagGlobal.ReactTags = ReactTags;
-  console.log('reactTagGlobal')
 }
