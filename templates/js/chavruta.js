@@ -204,6 +204,7 @@ function updateUrl () {
 function endCall (e) {
   console.log("end call")
   window.onbeforeunload = null
+  byebye();
   e.preventDefault()
   window.location= document.getElementById("end-call").getAttribute("data-url")
 }
