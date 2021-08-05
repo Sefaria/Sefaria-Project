@@ -33,16 +33,29 @@ const pcConfig = {
 
 //setup static server and initialize sockets
 const PORT = process.env.PORT || 8080;
-const httpServer = require("http").createServer();
+// const httpServer = require("http").createServer();
+
+const httpServer = require("http").createServer((req, res) => {
+    res.write('The DafRoulette WebRTC Server lives here.'); //write a response to the client
+    res.end(); //end the response
+});
 
 const io = require("socket.io")(httpServer, {
   cors: {
-    origin: "http://localhost:8000",
+    origin: [
+        "http://localhost:8000",
+        "https://www.sefaria.org",
+        "https://www.sefaria.org.il",
+        "https://chavruta.cauldron.sefaria.org",
+        /\.sefaria\.org$/,
+        /\.sefaria\.org.il$/
+    ],
     methods: ["GET", "POST"]
   }
 });
 
 httpServer.listen(PORT)
+
 
 const peopleInBeitMidrash = {};
 
@@ -218,11 +231,10 @@ io.on("connection", (socket) => {
 
   socket.on('bye', function(room){
     socket.to(room).emit('message', 'bye')
-    socket.leave(room, () => {
-        console.log(`bye received from ${socket.id} for room ${room}`);
-        db.run(`DELETE FROM chatrooms WHERE name=?`, room);
-        socket.emit('byeReceived');
-    });
+    socket.leave(room);
+    console.log(`bye received from ${socket.id} for room ${room}`);
+    db.run(`DELETE FROM chatrooms WHERE name=?`, room);
+    socket.emit('byeReceived');
   });
 
   socket.on('send user info', function(userName, uid, room) {
@@ -234,6 +246,7 @@ io.on("connection", (socket) => {
   })
 
   socket.on('send sources', function(msg, room) {
+    console.log(room, msg["currentlyReading"])
     socket.to(room).emit('got sources', msg);
   })
 

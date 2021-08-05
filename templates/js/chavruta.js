@@ -32,26 +32,24 @@ channel.onmessage = msg => {
   //end call button
   const link = msg.history.url;
   document.getElementById("end-call").setAttribute("data-url", `${link}`);
-  
+
   const ref = encodeURIComponent(link.slice(1))
- 
-  console.log("link", link);
-  
-  console.log("ref", ref);
   const url = "chavruta?ref=" + ref  +"&rid=" + startingRoom;
-  console.log("url", url);
+
   //updates url bar when new content is loaded
   window.history.pushState({}, '', url);
+
   //updates input box with url when new content is loaded
   document.getElementById("chavrutaURL").setAttribute("value", "http://{{request.get_host}}/" + url);
 
 };
 
 socket.on('got sources', function(msg) {
+  console.log(msg)
   const sources = msg.currentlyReading;
   const url = msg.history.url;
   if (sources) {
-    document.getElementById("currently-reading").innerHTML = `Your chavruta is reading <br/>  
+    document.getElementById("currently-reading").innerHTML = `Your chavruta is reading <br/>
     <img src="/static/icons/book.svg" class="navSidebarIcon" alt="book icon"><a href=${url} target="iframe">${sources}</a>`;
   };
 })
@@ -194,7 +192,7 @@ function addAdditionalHTML() {
   const iframe = document.createElement('iframe');
   iframe.setAttribute("name", "iframe")
   iframe.setAttribute("id", "iframe")
-  iframe.src = "http://{{request.get_host}}/" + startingRef;
+  iframe.src = "//{{request.get_host}}/" + startingRef;
   document.getElementById("iframeContainer").appendChild(iframe);
 }
 
@@ -206,6 +204,7 @@ function updateUrl () {
 function endCall (e) {
   console.log("end call")
   window.onbeforeunload = null
+  byebye();
   e.preventDefault()
   window.location= document.getElementById("end-call").getAttribute("data-url")
 }
@@ -397,7 +396,6 @@ function handleRemoteHangup() {
 
 function byebye(){
     Sefaria.track.event("DafRoulette", "Chevruta Ended", "Minutes Learned", chavrutaTime);
-    socket.emit('leave beit midrash', {{client_uid}})
     socket.emit('bye', clientRoom);
 }
 
