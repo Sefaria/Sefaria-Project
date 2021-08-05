@@ -969,6 +969,46 @@ ModeratorButtons.propTypes = {
   title: PropTypes.string.isRequired,
 };
 
+
+function TOCDropdown({initChildren}) {
+  const [children, setChildren] = useState(initChildren);
+  const [neverSelected, setNeverSelected] = useState(true);
+  const handleChange = function(e) {
+      const val = e.target.options[e.target.selectedIndex].value;
+      if (val !== "Choose a category") {
+        if (neverSelected) {
+          setNeverSelected(false);
+        }
+        else {
+          setChildren(children.splice(0,-1));
+        }
+        setChildren(children.concat(val));
+      }
+  }
+  let menus = [];
+
+  //create a menu of first level categories
+  let options = Sefaria.toc.map((child, key) => <option key={key} value={child.category}>{child.category}</option>);
+  menus.push(options);
+
+  //now create second and third level categories found in children
+  for (let i=0; i<children.length; i++) {
+    let options = [];
+    let subcats = Sefaria.tocItemsByCategories(children);
+    for (let j=0; j<subcats.length; j++) {
+      if (subcats[j].hasOwnProperty("contents")) {
+        options.push(<option key={j} value={subcats[j].category}>{subcats[j].category}</option>);
+      }
+    }
+    menus.push(options);
+  }
+  return <div>
+          {menus.map(menu => <select id="cats" onChange={handleChange}>
+                                <option key="chooseCategory" value="Choose a category">Choose a category</option>
+                                {menu}
+                             </select>)}
+         </div>
+}
 function EditTextInfo({title, toc}) {
   // Declare a new state variable, which we'll call "count"
   const [count, setCount] = useState(0);
@@ -1040,12 +1080,8 @@ function EditTextInfo({title, toc}) {
               </div>
               Category
             </span>
-          <select id="textCategory">
-            <option value="">Select a Category…</option>
-            {toc.map(tocItem => (
-                <option onChange={} value={tocItem.category}>{tocItem.category}</option>
-            ))}
-          </select> <input id="otherCategory"/>
+           <TOCDropdown id="textCategory" initChildren={[]}/>
+           <input id="otherCategory"/>
         </div>
 
         <div className="fieldSet" id="textStructureFieldSet">

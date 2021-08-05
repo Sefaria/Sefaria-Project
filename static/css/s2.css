@@ -2428,14 +2428,13 @@ a.navBlockTitle:hover {
   left: 0px;
 }
 
-#newIndex {
-	display: none;
-	width: 810px;
+.bookPage .editTextInfo #newIndex {
 	margin: 100px auto;
 	font-size: 23px;
+    background-color: var(--dark-grey);
 }
 
-#newIndexMsg {
+.bookPage .editTextInfo #newIndexMsg {
 	display: none;
 	font-size: 29px;
 	margin-bottom: 27px;
@@ -2443,16 +2442,16 @@ a.navBlockTitle:hover {
 	line-height: 1.2
 }
 
-#newIndexMsg .sub {
+.bookPage .editTextInfo #newIndexMsg .sub {
 	font-size: 21px;
 	color: #555;
 }
 
-#newIndex .fieldSet {
+.bookPage .editTextInfo #newIndex .fieldSet {
 	margin-bottom: 12px;
 }
 
-#newIndex .fieldLabel {
+.bookPage .editTextInfo #newIndex .fieldLabel {
 	width: 250px;
 	font-size: 20px;
 	display: inline-block;
@@ -2460,14 +2459,14 @@ a.navBlockTitle:hover {
 	text-align: right;
 }
 
-#newIndex .optional {
+.bookPage .editTextInfo #newIndex .optional {
 	display: block;
 	font-size: 15px;
 	color: #A6A4DD;
 	margin-left: 25px;
 }
 
-#newIndex input {
+.bookPage .editTextInfo #newIndex input {
 	font-size: 15px;
 	padding: 2px;
 	width: 500px;
@@ -2475,63 +2474,63 @@ a.navBlockTitle:hover {
 }
 
 
-#textTitleVariants, #textHeTitleVariants {
+.bookPage .editTextInfo #textTitleVariants, #textHeTitleVariants {
 	display: inline-block;
 	width: 500px;
 	margin: 0 0 0 5px;
 	font-size: 14px;
 }
 
-#textTitleVariants input,
+.bookPage .editTextInfo #textTitleVariants input,
 #textHeTitleVariants input {
 	width: auto;
 }
 
-#textHeTitleVariants {
+.bookPage .editTextInfo #textHeTitleVariants {
 	direction: rtl;
 }
 
-#newIndex #textTitle {
+.bookPage .editTextInfo #newIndex #textTitle {
 	font-size: 20px;
 	padding: 4px;
 }
 
-#newIndex #heTitle {
+.bookPage .editTextInfo #newIndex #heTitle {
 	font-size: 20px;
 	padding: 4px;
 	direction: rtl;
 }
 
-#newIndex select {
+.bookPage .editTextInfo #newIndex select {
 	margin-left: 7px;
 }
 
-#newIndex #otherCategory {
+.bookPage .editTextInfo #newIndex #otherCategory {
 	width: 240px;
 	display: none;
 }
 
-#newIndex #sectionTypesBox, #newIndex #sectionNamesBox, #newIndex #shorthandsBox {
+.bookPage .editTextInfo #newIndex #sectionTypesBox, .bookPage .editTextInfo #newIndex #sectionNamesBox, #newIndex #shorthandsBox {
 	display: inline-block;
 	width: 515px;
 	line-height: 33px;
 }
 
-#newIndex .sectionType input{
+.bookPage .editTextInfo #newIndex .sectionType input{
 	width: 100px;
 	margin: 0px 5px;
 	font-size: 16px;
 }
 
-#newIndex .sectionName input {
+.bookPage .editTextInfo #newIndex .sectionName input {
 	width: 280px;
 }
 
-#newIndex .sectionName .name {
-	font-size: 15px;;
+.bookPage .editTextInfo #newIndex .sectionName .name {
+	font-size: 15px;
 }
 
-#newIndex #addSection, #newIndex #addShorthand {
+.bookPage .editTextInfo #newIndex #addSection, #newIndex #addShorthand {
 	color: #777;
 	cursor: pointer;
 	font-size: 15px;
@@ -2540,21 +2539,21 @@ a.navBlockTitle:hover {
 }
 
 
-#sectionTypesBox.fixedDepth #addSection,
-#sectionTypesBox.fixedDepth .remove {
+.bookPage .editTextInfo #sectionTypesBox.fixedDepth #addSection,
+.bookPage .editTextInfo #sectionTypesBox.fixedDepth .remove {
 	display: none;
 }
 
-#newIndex .shorthand input {
+.bookPage .editTextInfo #newIndex .shorthand input {
 	width: 212px;
 }
 
-#newIndex #addShorthand {
+.bookPage .editTextInfo #newIndex #addShorthand {
 	text-align: right;
 	display: block;
 }
 
-#newIndex .remove {
+.bookPage .editTextInfo #newIndex .remove {
 	color: white;
 	background: #bbb;
 	display: inline-block;
@@ -2569,16 +2568,16 @@ a.navBlockTitle:hover {
 	vertical-align: 15%;
 }
 
-#newIndex .sectionType .remove {
+.bookPage .editTextInfo #newIndex .sectionType .remove {
 	margin: -5px 11px 0 -32px;
 }
 
-#newIndex .actions {
+.bookPage .editTextInfo #newIndex .actions {
 	margin-top: 10px;
 	text-align: center;
 }
 
-#newIndex .help {
+.bookPage .editTextInfo #newIndex .help {
 	color: white;
 	position: relative;
 	background: #A6A4DD;
@@ -2596,11 +2595,11 @@ a.navBlockTitle:hover {
 	margin-right: 1px;
 }
 
-#newIndex .help:hover .helpText {
+.bookPage .editTextInfo #newIndex .help:hover .helpText {
 	display: block;
 }
 
-#newIndex .helpText {
+.bookPage .editTextInfo #newIndex .helpText {
 	display: none;
 	position: absolute;
 	top: 24px;
@@ -2618,7 +2617,7 @@ a.navBlockTitle:hover {
 	box-shadow: 1px 1px 5px #555;
 }
 
-#editTextInfo .nodeTemplate {
+.bookPage .editTextInfo .nodeTemplate {
 	display: none;
 }
 
@@ -5139,7 +5138,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   left: 0;
   position: absolute;
   text-align: justify;
-  margin: 0 auto;
+  margin: 0 auto
   background-color: #FBFBFA;
 }
 .textList.marginless .texts,
