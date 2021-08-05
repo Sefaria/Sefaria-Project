@@ -113,6 +113,12 @@ io.on("connection", (socket) => {
     socket.broadcast.to(socketId).emit("send room ID to client", roomId)
   });
 
+  socket.on("send chat message", (name, partnerName, message) => {
+    const socketId = Object.keys(peopleInBeitMidrash).find(key => peopleInBeitMidrash[key]["name"] === name);
+    console.log(`sending chat message to ${socketId}`)
+    socket.to(socketId).emit("received chat message", partnerName, message)
+  });
+
   socket.on('does room exist', function(roomID, uid) {
     let sql = `SELECT name, clients FROM chatrooms WHERE name = ?`;
     let room = roomID;

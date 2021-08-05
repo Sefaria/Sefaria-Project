@@ -961,9 +961,9 @@ class ReaderPanel extends Component {
       );
     } else if (this.state.menuOpen === "beit_midrash") {
       menu = (
-        <BeitMidrash
-          multiPanel={this.props.multiPanel}
-          initialWidth={this.state.width} />
+          <BeitMidrash
+            multiPanel={this.props.multiPanel}
+            initialWidth={this.state.width} />
       );
     }
 

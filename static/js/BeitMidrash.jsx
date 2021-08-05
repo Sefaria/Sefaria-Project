@@ -1,22 +1,21 @@
 import {
     InterfaceText,
-    ResponsiveNBox,
+    NBox,
   } from './Misc';
 import React, { useState, useEffect } from 'react';
 import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
 import $  from './sefaria/sefariaJquery';
 import Footer  from './Footer';
-import { io } from 'socket.io-client';
 import UserProfile from './UserProfile';
+import { socket } from './sockets';
 
 
 const BeitMidrash = () => {
     const [peopleInBeitMidrash, setPeopleInBeitMidrash] = useState(null);
-    const [pairs, setPairs] = useState(null)
+    const [activeChats, setActiveChats] = useState([]);
 
     useEffect(() => {
-        const socket = io(`//${Sefaria.rtc_server}`);
         socket.emit("enter beit midrash", Sefaria._uid, Sefaria.full_name);
         socket.on("change in people", function(people) {
             console.log(people);
@@ -44,18 +43,23 @@ const BeitMidrash = () => {
             window.alert("Chavruta accepted!");
             window.location = `/chavruta?rid=${room}`;
         });
+
+        socket.on("received chat message", (name, message) => {
+            setActiveChats(users => [...users, user])
+        })
     
         return () => {
+            console.log("disconnecting")
             socket.disconnect();
         }
     }, [])
    
     const handleConnect = (uid) => {
         //user A sends connection request to user B 
-        const socket = io(`//${Sefaria.rtc_server}`);
         socket.emit("connect with other user", uid, Sefaria.full_name);
     }
 
+    
     const pairsLearning = (people) => {
         //create an array of roomIds
         const rooms = people.map(user => user.roomId);
@@ -69,6 +73,17 @@ const BeitMidrash = () => {
         })
         return Object.values(pairs);
     }
+    
+    const startChat = (user) => {
+        console.log("USER", user)
+        setActiveChats(users => [...users, user])
+    }
+
+    const makeChatRooms = () => {
+        return activeChats.map(user => {
+            return <ChatBox user={user} />
+        })      
+    }
 
     return (
         <div>
@@ -81,7 +96,7 @@ const BeitMidrash = () => {
                     if (user.uid !== Sefaria._uid) {
                     return <li key={user.uid}>
                         {user.name}
-                        <button onClick={() => handleConnect(user.uid)}>Connect</button>
+                        <button onClick={() => startChat(user)}>Chat</button>
                     </li>
                     } else {
                         return <li key={user.uid}>{user.name} (You)</li>
@@ -92,8 +107,51 @@ const BeitMidrash = () => {
             <div>
             {peopleInBeitMidrash ? pairsLearning(peopleInBeitMidrash).map((pair, i)  => <li key={i}>{pair.map(user => user.name).join(", ")}</li>) : null}
             </div>
+        <NBox content={makeChatRooms()} n={3} />
         </div>
         
+    )
+}
+
+const ChatBox = (props) => {
+    const [chatMessage, setChatMessage] = useState(null);
+    //chat messages in the window
+    const [chats, setChats] = useState([]);
+    
+    useEffect(()=>{
+        socket.on("received chat message", (name, message) => {
+            console.log("received chat message")
+            setChats(chats => [...chats, `${name}: ${message}`])
+        });
+    }, []);
+
+    const handleChange = (e) =>{
+        setChatMessage(e.target.value);
+    }
+    
+    const handleSubmit = (e) => {
+        e.preventDefault()
+        socket.emit("send chat message", props.user, Sefaria.full_name, chatMessage);
+        setChats(chats => [...chats, `You: ${chatMessage}`]);
+        e.target.reset();
+        
+    }
+
+    return (<div className="chat">
+        <div>Chat with {props.userName}</div>
+        <div className="chats-container">
+        {chats.map((message, i) => {
+            return <div key={i}>{message}</div>
+        })}
+        </div>
+        <form className="chat-form" onSubmit={handleSubmit}>
+          <label className="chat-label">
+            Enter a message:
+            <input type="text" className="chat-input" onChange={handleChange} />
+          </label>
+          <input type="submit" className="chat-submit" value="enter" />
+        </form>
+        </div>
     )
 }
 
