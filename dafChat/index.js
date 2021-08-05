@@ -231,11 +231,10 @@ io.on("connection", (socket) => {
 
   socket.on('bye', function(room){
     socket.to(room).emit('message', 'bye')
-    socket.leave(room, () => {
-        console.log(`bye received from ${socket.id} for room ${room}`);
-        db.run(`DELETE FROM chatrooms WHERE name=?`, room);
-        socket.emit('byeReceived');
-    });
+    socket.leave(room);
+    console.log(`bye received from ${socket.id} for room ${room}`);
+    db.run(`DELETE FROM chatrooms WHERE name=?`, room);
+    socket.emit('byeReceived');
   });
 
   socket.on('send user info', function(userName, uid, room) {

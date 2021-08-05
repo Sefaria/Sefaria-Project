@@ -395,7 +395,6 @@ function handleRemoteHangup() {
 
 function byebye(){
     Sefaria.track.event("DafRoulette", "Chevruta Ended", "Minutes Learned", chavrutaTime);
-    socket.emit('leave beit midrash', {{client_uid}})
     socket.emit('bye', clientRoom);
 }
 
