@@ -226,7 +226,11 @@ io.on("connection", (socket) => {
   });
 
   socket.on('send user info', function(userName, uid, room) {
+    peopleInBeitMidrash[socket.id]["roomId"] = room; 
+    console.log(peopleInBeitMidrash)
     socket.to(room).emit('got user name', userName, uid);
+    socket.broadcast.emit("change in people", Object.values(peopleInBeitMidrash));
+    socket.emit("change in people", Object.values(peopleInBeitMidrash));
   })
 
   socket.on('send sources', function(msg, room) {

@@ -169,7 +169,7 @@ navigator.mediaDevices.getUserMedia({
 
     if (startingRoom !="" && {{roulette}} == 0 ) {
       socket.emit('start chevruta', {{ client_uid }}, startingRoom);
-      socket.emit('enter beit midrash', {{ client_uid }})
+      socket.emit('enter beit midrash', {{ client_uid }}, "{{ client_name }}");
     }
 
     else {
