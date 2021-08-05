@@ -82,6 +82,7 @@ socket.on('join', function(room) {
   console.log('user joined room: ' + room);
   clientRoom = room;
   isChannelReady = true;
+  socket.emit('enter beit midrash', {{ client_uid }}, "{{ client_name }}");
   socket.emit('send user info', '{{ client_name }}', '{{ client_uid }}', room);
   maybeStart();
 });
@@ -167,7 +168,6 @@ navigator.mediaDevices.getUserMedia({
 
     if (startingRoom !="" && {{roulette}} == 0 ) {
       socket.emit('start chevruta', {{ client_uid }}, startingRoom);
-      socket.emit('enter beit midrash', {{ client_uid }}, "{{ client_name }}");
     }
 
     else {
