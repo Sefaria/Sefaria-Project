@@ -104,19 +104,21 @@ class SheetCategorizer extends React.Component {
   getSheet() {
     Sefaria.sheets.loadSheetByID(
       this.state.sheetId,
-      function (x) {
-        const topics = x.topics.map((topic, i) => ({
-          id: i,
-          name: topic["asTyped"],
-          slug: topic["slug"],
-        })
-        )
-        const categories = x.categories ? x.categories.reduce((a, x) => {
-          return { ...a, [x]: true }
-        }, {}) : {};
-        this.setState({ tags: topics, previousTags: topics, categories: categories, noTags: x.noTags });
-      }.bind(this)
-    );
+      this.updateStateWithNewSheet.bind(this)
+      );
+  }
+
+  updateStateWithNewSheet(sheet) {
+    const topics = sheet.topics.map((topic, i) => ({
+      id: i,
+      name: topic["asTyped"],
+      slug: topic["slug"],
+    })
+    )
+    const categories = sheet.categories ? sheet.categories.reduce((a, x) => {
+      return { ...a, [x]: true }
+    }, {}) : {};
+    this.setState({ tags: topics, previousTags: topics, categories: categories, noTags: sheet.noTags });
   }
 
   addCategory(e) {
