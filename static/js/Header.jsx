@@ -193,7 +193,7 @@ class SearchBar extends Component {
           .toggleClass("search-override", !!override)
           .toggleClass("hebrew-result", !!is_hebrew)
           .toggleClass("english-result", !is_hebrew)
-          .append(`<img alt="${item.type}" class="ac-img-${item.type}" src="${this._type_icon(item)}">`)
+          .append(`<img alt="${item.type}" class="ac-img-${item.type === "User" && item.pic === "" ? "UserPlaceholder" : item.type}" src="${this._type_icon(item)}">`)
           .append( $(`<a href="${this.getURLForObject(item.type, item.key)}" role='option' data-type-key="${item.type}-${item.key}"></a>` ).text( item.label ) )
           .appendTo( ul );
       }.bind(this)
