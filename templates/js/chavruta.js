@@ -45,13 +45,15 @@ channel.onmessage = msg => {
 };
 
 socket.on('got sources', function(msg) {
-  console.log(msg)
   const sources = msg.currentlyReading;
   const url = msg.history.url;
-  if (sources) {
-    document.getElementById("currently-reading").innerHTML = `Your chavruta is reading <br/>
-    <img src="/static/icons/book.svg" class="navSidebarIcon" alt="book icon"><a href=${url} target="iframe">${sources}</a>`;
-  };
+  const curReadingEl = document.getElementById("currently-reading");
+  if (!!sources) {
+    curReadingEl.innerHTML = `Your chavruta is reading <br/> <img src="/static/icons/book.svg" class="navSidebarIcon" alt="book icon"><a href=${url} target="iframe">${sources}</a>`;
+  }
+  else {
+   curReadingEl.innerHTML = ``;
+  }
 })
 
 socket.on('return rooms', function(numRooms) {
@@ -395,8 +397,8 @@ function handleRemoteHangup() {
 }
 
 function byebye(){
-    Sefaria.track.event("DafRoulette", "Chevruta Ended", "Minutes Learned", chavrutaTime);
     socket.emit('bye', clientRoom);
+    Sefaria.track.event("DafRoulette", "Chevruta Ended", "Minutes Learned", chavrutaTime);
 }
 
 {% endautoescape %}
