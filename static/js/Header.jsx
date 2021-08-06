@@ -151,6 +151,7 @@ class SearchBar extends Component {
       "ref": "iconmonstr-book-15.svg",
       "search": "iconmonstr-magnifier-2.svg",
       "Term": "iconmonstr-script-2.svg",
+      "User": "iconmonstr-user-2%20%281%29.svg"
     }
   }
   componentDidMount() {
