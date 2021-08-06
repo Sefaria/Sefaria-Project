@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import io
 import os
-from sefaria.sheets import get_sheet_categorization_info
 import zipfile
 import json
 import re
@@ -58,9 +57,8 @@ from sefaria.model import *
 from sefaria.model.webpage import *
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.google_storage_manager import GoogleStorageManager
-
-
-from reader.views import base_props, render_template, text_panels
+from sefaria.sheets import get_sheet_categorization_info
+from reader.views import base_props, render_template 
 
 
 
@@ -821,7 +819,6 @@ def untagged_sheets(request):
 
 @staff_member_required
 def categorize_sheets(request):
-    from reader.views import base_props
     props = base_props(request)
     categorize_props = get_sheet_categorization_info("categories")
     props.update(categorize_props)
@@ -835,7 +832,6 @@ def categorize_sheets(request):
 
 @staff_member_required
 def tag_sheets(request):
-    from reader.views import base_props
     props = base_props(request)
     categorize_props = get_sheet_categorization_info("topics")
     props.update(categorize_props)
