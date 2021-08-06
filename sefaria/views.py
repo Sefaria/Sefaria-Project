@@ -820,10 +820,6 @@ def untagged_sheets(request):
     return HttpResponse("<html><h1>Untagged Public Sheets</h1><ul>" + html + "</ul></html>")
 
 @staff_member_required
-def tag_sheets(request):
-    return render(request, "static/categorize-sheets.html")
-
-@staff_member_required
 def categorize_sheets(request):
     from reader.views import base_props
     props = base_props(request)
