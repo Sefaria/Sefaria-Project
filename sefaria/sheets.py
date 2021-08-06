@@ -1203,9 +1203,13 @@ def change_tag(old_tag, new_tag_or_list):
 		sheet.tags = [tag for tag in sheet.tags if tag != old_tag] + new_tag_list
 		sheet.save()
 
-def get_sheet_categorization_info(does_not_contain):
+def get_sheet_categorization_info(find_without):
+	"""
+	Returns the next sheetId for categorization along with all existing categories
+	:param find_without: the field that must contain no elements for the sheet to be returned
+	"""
 	from pymongo import DESCENDING
-	if does_not_contain == "topics":
+	if find_without == "topics":
 		sheet = sheet_to_dict(db.sheets.find({"topics": {"$in": [None, []] }, "noTags": {"$in": [None, False]}, "status": "public"}).sort("id", DESCENDING)[0]) 
 	else: # categories
 		sheet = sheet_to_dict(db.sheets.find({"categories": {"$in": [None, []] }, "status": "public", "$where": "this.includedRefs.length != this.sources.length"}).sort("id", DESCENDING)[0])
@@ -1213,7 +1217,7 @@ def get_sheet_categorization_info(does_not_contain):
 	categories_all = db.sheets.distinct("categories") # this is slow; maybe add index or ...?
 
 	categorize_props = {
-		"doesNotContain": does_not_contain,
+		"doesNotContain": find_without,
 		"sheetId": sheet['id'],
 		"allCategories": categories_all
 	}
