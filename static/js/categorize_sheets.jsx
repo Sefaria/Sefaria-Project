@@ -9,8 +9,9 @@ class SheetCategorizer extends React.Component {
       noTags: false,
       previousTags: [],
       adminType: props.adminType,
+      skipIds: [],
+      doesNotContain: props.doesNotContain
     };
-    this.saveAndNext = this.saveAndNext.bind(this);
     this.reactTags = React.createRef();
   }
 
@@ -31,7 +32,7 @@ class SheetCategorizer extends React.Component {
       this.setState({ tags, previousTags: tags, noTags: true });
     }
     else {
-      this.setState({tags, previousTags: tags})
+      this.setState({ tags, previousTags: tags })
     }
   }
 
@@ -64,22 +65,33 @@ class SheetCategorizer extends React.Component {
     const currentCategories = this.state.categories;
     const keys = Object.keys(currentCategories);
     const categoriesToSend = keys.filter(x => currentCategories[x])
-    this.putSheetAndUpdateNext({ 
+    this.putSheetAndUpdateNext({
       sheetId: this.state.sheetId,
       tags: topics,
       noTags: this.state.noTags,
-      categories: categoriesToSend
-     });
+      categories: categoriesToSend,
+      skipIds: this.state.skipIds
+    });
+  }
+
+  skipAndNext() {
+    this.setState({
+      skipIds: [...this.state.skipIds, this.state.sheetId]
+    }, () => {
+      this.putSheetAndUpdateNext({
+        skipIds: this.state.skipIds
+      })
+    })
   }
 
   putSheetAndUpdateNext(postJSON) {
     jQuery.ajax(
       {
         type: 'PUT',
-        url: this.props.doesNotContain === "topics" ? "/api/sheets/next-untagged" : "/api/sheets/next-uncategorized",
+        url: this.state.doesNotContain === "topics" ? "/api/sheets/next-untagged" : "/api/sheets/next-uncategorized",
         contentType: 'application/json',
         data: JSON.stringify(postJSON), // access in body
-        success: function(data) {
+        success: function (data) {
           if (data.sheetId) {
             this.setState({ sheetId: data.sheetId, allCategories: data.allCategories });
           } else {
@@ -98,21 +110,23 @@ class SheetCategorizer extends React.Component {
           name: topic["asTyped"],
           slug: topic["slug"],
         })
-      )
-      const categories = x.categories ? x.categories.reduce((a, x) => {
-        return {...a, [x]: true}
-      }, {}) : {};
-      this.setState({ tags: topics, previousTags: topics, categories: categories, noTags: x.noTags});
+        )
+        const categories = x.categories ? x.categories.reduce((a, x) => {
+          return { ...a, [x]: true }
+        }, {}) : {};
+        this.setState({ tags: topics, previousTags: topics, categories: categories, noTags: x.noTags });
       }.bind(this)
     );
   }
 
   addCategory(e) {
-    if(e.key === "Enter" || e.key === "Tab" || e.key === "," || e.type == "click") {
+    if (e.key === "Enter" || e.key === "Tab" || e.key === "," || e.type == "click") {
       const newCategoryElem = document.getElementById('newCategory')
-      this.setState({
-        allCategories: [...this.state.allCategories, newCategoryElem.value]
-      })
+      if (newCategoryElem !== "" && !this.state.allCategories.includes(newCategoryElem)) {
+        this.setState({
+          allCategories: [...this.state.allCategories, newCategoryElem.value]
+        })
+      }
       newCategoryElem.value = "";
     }
   }
@@ -120,18 +134,18 @@ class SheetCategorizer extends React.Component {
   handleCategoryToggle(e) {
     const categories = this.state.categories;
     categories[e.target.name] = e.target.checked;
-    this.setState({categories: categories})
+    this.setState({ categories: categories })
   }
 
   handleNoTagsChange(e) {
     const target = e.target;
     const value = target.checked;
-    if(value === true) { // remove Tags
+    if (value === true) { // remove Tags
       this.setState({
         noTags: value,
         tags: []
       });
-    } else { 
+    } else {
       this.setState({
         noTags: value,
         tags: this.state.previousTags
@@ -139,55 +153,69 @@ class SheetCategorizer extends React.Component {
     }
   }
 
+  // toggleSheetSortingMechanism() {
+  //   this.setState(this.getOpposite(this.state.doesNotContain))
+  // }
+
+  // getOpposite(keyword) {
+  //   return keyword === "topics" ? "categories" : "topics"
+  // }
+
   render() {
     return (
       <div className="categorizer">
         <div id="edit-pane">
           <h3>Topics/Tags:</h3>
           <div className="categorize-section">
-          <input
-          type="checkbox"
-          name="noTags"
-          key="noTags"
-          checked={this.state.noTags || false}
-          onChange={this.handleNoTagsChange.bind(this)}
-          ></input>
-          <label htmlFor="noTags">No Tags</label>
+            <input
+              type="checkbox"
+              name="noTags"
+              key="noTags"
+              checked={this.state.noTags || false}
+              onChange={this.handleNoTagsChange.bind(this)}
+            ></input>
+            <label htmlFor="noTags">No Tags</label>
           </div>
           <div className="publishBox">
-          <reactTagGlobal.ReactTags
-            ref={this.reactTags}
-            allowNew={true}
-            tags={this.state.tags}
-            suggestions={this.state.suggestions}
-            onDelete={this.onTagDelete.bind(this)}
-            onAddition={this.onTagAddition.bind(this)}
-            placeholderText={Sefaria._("Add a topic...")}
-            delimiters={["Enter", "Tab", ","]}
-            onInput={this.updateSuggestedTags.bind(this)}
-          />
+            <reactTagGlobal.ReactTags
+              ref={this.reactTags}
+              allowNew={true}
+              tags={this.state.tags}
+              suggestions={this.state.suggestions}
+              onDelete={this.onTagDelete.bind(this)}
+              onAddition={this.onTagAddition.bind(this)}
+              placeholderText={Sefaria._("Add a topic...")}
+              delimiters={["Enter", "Tab", ","]}
+              onInput={this.updateSuggestedTags.bind(this)}
+            />
           </div>
-        <div className="categorize-section">
-          <fieldset>
-           <h3> Categories:</h3>
-        {
-        this.state.allCategories.map((category, i) => (
-          <div key={i}>
-          <input
-          type="checkbox"
-          onChange={this.handleCategoryToggle.bind(this)}
-          key={i}
-          name={category}
-          checked={this.state.categories[category] || false}
-          ></input>
-          <label htmlFor={category}>{category}</label>
+          <div className="categorize-section">
+            <fieldset>
+              <h3> Categories:</h3>
+              {
+                this.state.allCategories.map((category, i) => (
+                  <div key={i}>
+                    <input
+                      type="checkbox"
+                      onChange={this.handleCategoryToggle.bind(this)}
+                      key={i}
+                      name={category}
+                      checked={this.state.categories[category] || false}
+                    ></input>
+                    <label htmlFor={category}>{category}</label>
+                  </div>
+                ))
+              }
+            </fieldset>
+            <input type="text" key="newCategory" id="newCategory" placeholder="New Category" onKeyUp={this.addCategory.bind(this)}></input><button onClick={this.addCategory.bind(this)}>Add</button>
           </div>
-        ))
-      }
-      </fieldset>
-      <input type="text" key="newCategory" id="newCategory" placeholder="New Category" onKeyUp={this.addCategory.bind(this)}></input><button onClick={this.addCategory.bind(this)}>Add</button>
-      </div>
-        <button onClick={this.saveAndNext}>Save and Next</button>
+          <button onClick={this.saveAndNext.bind(this)}>Save and Next</button>
+          <div class="left-pane-bottom">
+            <h3>Skip sheet until refresh:</h3>
+            <button onClick={this.skipAndNext.bind(this)}>Skip this sheet</button>
+            {/* <h3>Latest sheets without: {this.state.doesNotContain}</h3>
+            <button onClick={this.toggleSheetSortingMechanims}>Switch to finding sheets without: {this.getOpposite(this.state.doesNotContain)}</button> */}
+          </div>
         </div>
         <div id="iframeContainer">
           <iframe
