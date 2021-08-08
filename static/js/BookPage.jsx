@@ -1239,7 +1239,7 @@ function NewIndexSaveButton({enTitle, heTitle, enTitleVariants, heTitleVariants}
   }
 
   const save = function() {
-    let postJSON = JSON.stringify(index.current);
+    let postJSON = JSON.stringify({"json": index.current});
     let title = enTitle.replace(/ /g, "_");
 
     let message = "Saving text information...";
@@ -1248,14 +1248,14 @@ function NewIndexSaveButton({enTitle, heTitle, enTitleVariants, heTitleVariants}
     // }
     alert(message);
     const request = new Request(
-    '/api/v2/raw/index/'+title,
-    {headers: {'X-CSRFToken': Cookies.get('csrftoken')}}
+    '/api/index/'+title,
+    {headers: {'X-CSRFToken': Cookies.get('csrftoken'), 'Content-Type': 'application/json'}}
     );
     fetch(request, {
       method: 'POST',
       mode: 'same-origin',
       credentials: 'same-origin',
-      body: postJSON,
+      body: postJSON
     }).then(response => {
       if (!response.ok) {
         response.text().then(resp_text=> {
