@@ -16,7 +16,7 @@ const CalendarsPage = ({multiPanel, initialWidth}) => {
   const calendars = reformatCalendars();
 
   const parashaCalendars = ["Parashat Hashavua", "Haftarah (A)", "Haftarah (S)", "Haftarah"];
-  const dailyCalendars   = ["Daf Yomi", "929", "Daily Mishnah", "Daily Rambam", "Daily Rambam (3 Chapters)", "Halakhah Yomit", "Zohar for Elul"];
+  const dailyCalendars   = ["Daf Yomi", "929", "Daily Mishnah", "Daily Rambam", "Daily Rambam (3 Chapters)", "Halakhah Yomit", "Arukh HaShulchan Yomi", "Tanakh Yomi", "Zohar for Elul"];
   const weeklyCalendars  = ["Daf a Week"];
 
   const makeListings = list => calendars.filter(c => list.indexOf(c.title.en) != -1)
@@ -164,11 +164,20 @@ const calendarDescriptions = {
   },
   "Halakhah Yomit": {
     en: "A four year daily learning program in which participants study central legal texts that cover most of the daily and yearly rituals.",
-    he: "תוכנית ארבע־שנתית ללימוד מקורות הלכתיים מרכזיים העוסקים ברוב הלכות היום־יום והמועדים."
+    he: "תוכנית ארבע־שנתית ללימוד מקורות הלכתיים מרכזיים העוסקים ברוב הלכות היום־יום והמועדים.",
+  },
+  "Arukh HaShulchan Yomi": {
+    en: "A four-year daily learning program covering ritual halakhot, practical kashrut and interpersonal mitzvot within Rabbi Yechiel Michel Epstein’s legal code, Arukh HaShulchan.",
+    he: "תכנית לימוד ארבע-שנתית של הלכות מעשיות מתוך ספר ערוך השלחן, חיבורו ההלכתי של הרב יחיאל מיכל עפשטיין.",
+  },
+  "Tanakh Yomi": {
+    en: "A daily learning cycle for completing Tanakh annually. On Shabbat, each Torah portion is recited. On weekdays, Prophets and Writings are recited according to the ancient Masoretic division of sedarim.",
+    he: "סדר לימוד המשלים את קריאת התנ\"ך כולו אחת לשנה. בשבתות קוראים את התורה לפי סדר פרשיות השבוע. בימות החול קוראים את הנ\"ך על פי חלוקת הסדרים של המסורה.",
+    enSubtitle: "(Tanakh)"
   },
   "Zohar for Elul": {
     en: "A 40 day learning schedule in which participants learn the Kabbalistic work \"Tikkunei Zohar\" over the course of the days between the First of the month of Elul and Yom Kippur.",
-    he: "סדר יומי ללימוד הספר \"תיקוני הזהר\". הסדר נמשך 40 יום, בתקופה שבין ראש חודש אלול ויום הכיפורים."
+    he: "סדר יומי ללימוד הספר \"תיקוני הזהר\". הסדר נמשך 40 יום, בתקופה שבין ראש חודש אלול ויום הכיפורים.",
   }
 }
 
