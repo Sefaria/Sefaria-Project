@@ -25,6 +25,9 @@ import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Component   from 'react-class';
 import {ContentLanguageContext} from './context';
+import Hebrew from './sefaria/hebrew.js';
+import Cookies from 'js-cookie';
+
 
 
 class BookPage extends Component {
@@ -981,7 +984,7 @@ function TOCDropdown({categories}) {
       let el = categoryMenu.current.children[i];
       if (el.options[el.selectedIndex].value === "Choose a category" || Sefaria.tocItemsByCategories(children.slice(0, i+1)).length === 0) {
         //first test says dont include "Choose a category" and anything after it in categories.
-        // second test is if categories are ["Talmud", "Prophets"], return children to ["Talmud"]
+        //second test is if categories are ["Talmud", "Prophets"], set children to ["Talmud"]
         break;
       }
       newChildren.push(el.options[el.selectedIndex].value);
@@ -993,12 +996,12 @@ function TOCDropdown({categories}) {
 
   //create a menu of first level categories
   let options = Sefaria.toc.map(function(child, key) {
-      if (children.length > 0 && children[0] === child.category) {
-        return <option key={key} value={children[0]} selected>{children[0]}</option>;
-      }
-      else {
-        return <option key={key} value={child.category}>{child.category}</option>
-      }
+    if (children.length > 0 && children[0] === child.category) {
+      return <option key={key} value={children[0]} selected>{children[0]}</option>;
+    }
+    else {
+      return <option key={key} value={child.category}>{child.category}</option>
+    }
   });
   menus.push(options);
 
@@ -1021,15 +1024,17 @@ function TOCDropdown({categories}) {
       menus.push(options);
     }
   }
-  return <div id="categoryMenus" ref={categoryMenu}>
-          {menus.map((menu, index) => <select id={`subcats-${index}`} onChange={handleChange}>
-                                <option key="chooseCategory" value="Choose a category">Choose a category</option>
-                                {menu}
-                             </select>)}
+  return <div id="categoryMenu" ref={categoryMenu}>
+          {menus.map((menu, index) =>
+            <select id={`subcats-${index}`} onChange={handleChange}>
+              <option key="chooseCategory" value="Choose a category">Choose a category</option>
+              {menu}
+           </select>)}
          </div>
 }
 
 function EditTextInfo({title}) {
+  Sefaria.getIndexDetails(title); //is this necessary?
   const index = useRef(Sefaria.getIndexDetailsFromCache(title));
   const enTitle = useRef("");
   const heTitle = useRef("");
@@ -1095,7 +1100,7 @@ function EditTextInfo({title}) {
             </div>
             Text Title
           </span>
-          <input id="textTitle" ref={enTitle} value={index.current.title}/>
+          <input id="textTitle" ref={enTitle} defaultValue={index.current.title}/>
         </div>
 
         <div className="fieldSet">
@@ -1107,7 +1112,7 @@ function EditTextInfo({title}) {
             </div>
             Hebrew Title
           </span>
-          <input id="heTitle" ref={heTitle} value={index.current.heTitle}/>
+          <input id="heTitle" ref={heTitle} defaultValue={index.current.heTitle}/>
         </div>
 
         <div className="fieldSet">
@@ -1120,7 +1125,7 @@ function EditTextInfo({title}) {
             Alternate English Titles
             <span className="optional">(optional)</span>
           </span>
-          <ul id="textTitleVariants" ref={enTitleVariants} value={index.current.titleVariants}></ul>
+          <ul id="textTitleVariants" ref={enTitleVariants} defaultValue={index.current.titleVariants}></ul>
         </div>
 
         <div className="fieldSet">
@@ -1132,7 +1137,7 @@ function EditTextInfo({title}) {
               </div>
               Alternate Hebrew Titles<span className="optional">(optional)</span>
           </span>
-          <ul id="textHeTitleVariants" ref={heTitleVariants} value={index.current.heTitleVariants}></ul>
+          <ul id="textHeTitleVariants" ref={heTitleVariants} defaultValue={index.current.heTitleVariants}></ul>
         </div>
 
         <div className="fieldSet" id="textCategories">
@@ -1165,14 +1170,118 @@ function EditTextInfo({title}) {
             </div>
         </div>
 
-        {/*<div className="actions">
-          <NewIndexSaveButton/>
-          <NewIndexCancel/>
-
-        </div>*/}
+        <div className="actions">
+          <NewIndexSaveButton enTitle={enTitle.current.value} heTitle={heTitle.current.value} enTitleVariants={[]} heTitleVariants={[]}/>
+        </div>
       </div>
     </div>
   );
+}
+
+
+function NewIndexSaveButton({enTitle, heTitle, enTitleVariants, heTitleVariants}) {
+  const errorOnSave = useRef(false);
+  const index = useRef(null);
+  index.current = Sefaria.getIndexDetailsFromCache(enTitle);
+  const validate = function () {
+    let categories = [];
+    for (let i=0; i<document.getElementById("categoryMenu").children.length; i++) {
+      let child = document.getElementById("categoryMenu").children[i];
+      let cat = child.options[child.selectedIndex].value;
+      if (cat === "Choose a category") {
+        break;
+      }
+      categories.push(cat);
+    }
+    if (!enTitle) {
+      alert("Please give a text title or commentator name.");
+      return false;
+    }
+
+    if (!heTitle) {
+      alert("Please give a Hebrew text title.");
+      return false;
+    }
+
+    if (/[.\-\\\/]/.test(enTitle)) {
+      alert('Text titles may not contain periods, hyphens or slashes.');
+      return false;
+    }
+
+    if (/[0-9]/.test(enTitle)) {
+      alert('Text titles may not contain numbers. This form is for general information about a text as a whole, not specific citations.');
+      return false;
+    }
+
+    if (categories.length === 0) {
+      alert("Please choose a text category.");
+      return false;
+    }
+
+    for (let i = 0; i < categories.length; i++) {
+      if (/[.\-\\\/]/.test(categories[i])) {
+        alert('Categories may not contain periods, hyphens or slashes.');
+        return false;
+      }
+    }
+
+
+    if (Hebrew.containsHebrew(enTitle)) {
+      alert("Please enter a primary title in English. Use the Hebrew Title field to specify a title in Hebrew.");
+      return false;
+    }
+    index.current.title = enTitle;
+    index.current.heTitle = heTitle;
+    index.current.titleVariants = enTitleVariants;
+    index.current.heTitleVariants = heTitleVariants;
+    index.current.categories = categories;
+    return true;
+  }
+
+  const save = function() {
+    let postJSON = JSON.stringify(index.current);
+    let title = enTitle.replace(/ /g, "_");
+
+    let message = "Saving text information...";
+    // if ("oldTitle" in index) {
+    //     message += "<br><br>(processing title changes may take some time)"
+    // }
+    alert(message);
+    const request = new Request(
+    '/api/v2/raw/index/'+title,
+    {headers: {'X-CSRFToken': Cookies.get('csrftoken')}}
+    );
+    fetch(request, {
+      method: 'POST',
+      mode: 'same-origin',
+      credentials: 'same-origin',
+      body: postJSON,
+    }).then(response => {
+      if (!response.ok) {
+        response.text().then(resp_text=> {
+          console.log(resp_text);
+          errorOnSave.current = true;
+        })
+      }else{
+        response.json().then(resp_json=>{
+          console.log("okay response", resp_json);
+          errorOnSave.current = false;
+        });
+      }
+    }).catch(error => {
+        console.log("network error", error);
+        errorOnSave.current = true;
+    });
+
+  };
+
+  const validateThenSave = function () {
+    if (validate()) {
+      save();
+    }
+  }
+
+  return <span id="newIndexSave" onClick={validateThenSave} className="btn btn-primary btn-large">Save</span>;
 }
 
 
