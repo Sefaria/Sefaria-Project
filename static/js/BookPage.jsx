@@ -12,7 +12,7 @@ import {
   ContentText, EnglishText, HebrewText, LanguageToggleButton,
 } from './Misc';
 
-import React, { useState }  from 'react';
+import React, { useState, useRef }  from 'react';
 import ReactDOM  from 'react-dom';
 import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
@@ -944,7 +944,7 @@ class ModeratorButtons extends Component {
     }
     let editTextInfo = <div className="button white" onClick={this.editIndex}>
                           <span><i className="fa fa-info-circle"></i> Edit Text Info</span>
-                          {this.state.editing ? <EditTextInfo title={this.props.title} toc={Sefaria.toc}/> : null}
+                          {this.state.editing ? <EditTextInfo title={this.props.title}/> : null}
                         </div>;
     let addSection   = <div className="button white" onClick={this.addSection}>
                           <span><i className="fa fa-plus-circle"></i> Add Section</span>
@@ -970,16 +970,18 @@ ModeratorButtons.propTypes = {
 };
 
 
-function TOCDropdown() {
+function TOCDropdown({categories}) {
   //initially set up one level of the menu, on selecting anything but "Choose a category"
+  const [children, setChildren] = useState(categories);
+  const categoryMenu = useRef();
 
-  const [children, setChildren] = useState([]);
-  const [neverSelected, setNeverSelected] = useState(true);
   const handleChange = function(e) {
     let newChildren = [];
-    for (let i=0; i<children.length+1; i++) {
-      let el = document.getElementById("subcats-"+i);
-      if (el.options[el.selectedIndex].value === "Choose a category") {  //dont include this and anything after it in categories
+    for (let i=0; i<children.length; i++) {
+      let el = categoryMenu.current.children[i];
+      if (el.options[el.selectedIndex].value === "Choose a category" || Sefaria.tocItemsByCategories(children.slice(0, i+1)).length === 0) {
+        //first test says dont include "Choose a category" and anything after it in categories.
+        // second test is if categories are ["Talmud", "Prophets"], return children to ["Talmud"]
         break;
       }
       newChildren.push(el.options[el.selectedIndex].value);
@@ -990,33 +992,90 @@ function TOCDropdown() {
   let menus = [];
 
   //create a menu of first level categories
-  let options = Sefaria.toc.map((child, key) => <option key={key} value={child.category}>{child.category}</option>);
+  let options = Sefaria.toc.map(function(child, key) {
+      if (children.length > 0 && children[0] === child.category) {
+        return <option key={key} value={children[0]} selected>{children[0]}</option>;
+      }
+      else {
+        return <option key={key} value={child.category}>{child.category}</option>
+      }
+  });
   menus.push(options);
 
   //now add to menu second and/or third level categories found in children
   for (let i=0; i<children.length; i++) {
     let options = [];
-
     let subcats = Sefaria.tocItemsByCategories(children.slice(0, i+1));
     for (let j=0; j<subcats.length; j++) {
       if (subcats[j].hasOwnProperty("contents")) {
-        options.push(<option key={j} value={subcats[j].category}>{subcats[j].category}</option>);
+        if (children.length >= i && children[i+1] === subcats[j].category) {
+          options.push(<option key={j} value={children[i+1]} selected>{subcats[j].category}</option>);
+        }
+        else
+        {
+          options.push(<option key={j} value={subcats[j].category}>{subcats[j].category}</option>);
+        }
       }
     }
     if (options.length > 0) {
       menus.push(options);
     }
   }
-  return <div>
+  return <div id="categoryMenus" ref={categoryMenu}>
           {menus.map((menu, index) => <select id={`subcats-${index}`} onChange={handleChange}>
                                 <option key="chooseCategory" value="Choose a category">Choose a category</option>
                                 {menu}
                              </select>)}
          </div>
 }
-function EditTextInfo({title, toc}) {
-  // Declare a new state variable, which we'll call "count"
-  const [count, setCount] = useState(0);
+
+function EditTextInfo({title}) {
+  const index = useRef(Sefaria.getIndexDetailsFromCache(title));
+  const enTitle = useRef("");
+  const heTitle = useRef("");
+  const enTitleVariants = useRef("");
+  const heTitleVariants = useRef("");
+  const categories = useRef([]);
+  const oldEnTitle = useRef("");  //only gets set when editing existing Index record's title
+
+  // const loadIndex = function() {
+  //
+  //
+  //   // Make list of categories currently in the select
+  //   var cats = {};
+  //   $("#textCategory option").each(function() {
+  //       cats[$(this).attr("value")] = 1;
+  //   });
+  //
+  //   // Set the Category if it's in the list, otherwise set it as "Other"
+  //   var topCat = sjs.index.categories[0];
+  //   if (topCat in cats) {
+  //       $("#textCategory").val(topCat);
+  //   } else {
+  //       $("#textCategory").val("Other");
+  //       $("#otherCategory").val(topCat);
+  //   }
+  //   $("#textCategory").trigger("change");
+  //
+  //   if (!("sectionNames" in sjs.index)) {
+  //       $("#textStructureFieldSet").hide();
+  //   }
+  //   else if (sjs.index.categories[0] !== "Commentary") {
+  //       // Remove a section name box if text depth is 1
+  //       if (sjs.index.sectionNames.length == 1) {
+  //           $(".sectionType:gt(0)").remove();
+  //       }
+  //
+  //       // Add additional section name boxes if needed
+  //       for (var i = 2; i < sjs.index.sectionNames.length; i++) {
+  //           $("#addSection").trigger("click");
+  //       }
+  //
+  //       // Populate sections names
+  //       $(".sectionType").each(function(){
+  //           $(this).find("input").val(sjs.index.sectionNames[$(this).index()]);
+  //       });
+  //   }
 
   return (
     <div className="editTextInfo">
@@ -1036,7 +1095,7 @@ function EditTextInfo({title, toc}) {
             </div>
             Text Title
           </span>
-          <input id="textTitle"/>
+          <input id="textTitle" ref={enTitle} value={index.current.title}/>
         </div>
 
         <div className="fieldSet">
@@ -1048,7 +1107,7 @@ function EditTextInfo({title, toc}) {
             </div>
             Hebrew Title
           </span>
-          <input id="heTitle"/>
+          <input id="heTitle" ref={heTitle} value={index.current.heTitle}/>
         </div>
 
         <div className="fieldSet">
@@ -1061,7 +1120,7 @@ function EditTextInfo({title, toc}) {
             Alternate English Titles
             <span className="optional">(optional)</span>
           </span>
-          <ul id="textTitleVariants"></ul>
+          <ul id="textTitleVariants" ref={enTitleVariants} value={index.current.titleVariants}></ul>
         </div>
 
         <div className="fieldSet">
@@ -1073,7 +1132,7 @@ function EditTextInfo({title, toc}) {
               </div>
               Alternate Hebrew Titles<span className="optional">(optional)</span>
           </span>
-          <ul id="textHeTitleVariants"></ul>
+          <ul id="textHeTitleVariants" ref={heTitleVariants} value={index.current.heTitleVariants}></ul>
         </div>
 
         <div className="fieldSet" id="textCategories">
@@ -1085,8 +1144,7 @@ function EditTextInfo({title, toc}) {
               </div>
               Category
             </span>
-           <TOCDropdown id="textCategory"/>
-           <input id="otherCategory"/>
+           <TOCDropdown id="textCategory" categories={index.current.categories}/>
         </div>
 
         <div className="fieldSet" id="textStructureFieldSet">
@@ -1107,14 +1165,16 @@ function EditTextInfo({title, toc}) {
             </div>
         </div>
 
-        <div className="actions">
-          <span id="newIndexSave" className="btn btn-primary btn-large">Save</span>
-          <span id="newIndexCancel" className="btn btn-large">Cancel</span>
-        </div>
+        {/*<div className="actions">
+          <NewIndexSaveButton/>
+          <NewIndexCancel/>
+
+        </div>*/}
       </div>
     </div>
   );
 }
+
 
 class ReadMoreText extends Component {
   constructor(props) {
