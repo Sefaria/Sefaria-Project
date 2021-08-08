@@ -16,7 +16,7 @@ const CalendarsPage = ({multiPanel, initialWidth}) => {
   const calendars = reformatCalendars();
 
   const parashaCalendars = ["Parashat Hashavua", "Haftarah (A)", "Haftarah (S)", "Haftarah"];
-  const dailyCalendars   = ["Daf Yomi", "929", "Daily Mishnah", "Daily Rambam", "Daily Rambam (3 Chapters)", "Halakhah Yomit"];
+  const dailyCalendars   = ["Daf Yomi", "929", "Daily Mishnah", "Daily Rambam", "Daily Rambam (3 Chapters)", "Halakhah Yomit", "Zohar for Elul"];
   const weeklyCalendars  = ["Daf a Week"];
 
   const makeListings = list => calendars.filter(c => list.indexOf(c.title.en) != -1)
@@ -166,6 +166,10 @@ const calendarDescriptions = {
     en: "A four year daily learning program in which participants study central legal texts that cover most of the daily and yearly rituals.",
     he: "תוכנית ארבע־שנתית ללימוד מקורות הלכתיים מרכזיים העוסקים ברוב הלכות היום־יום והמועדים."
   },
+  "Zohar for Elul": {
+    en: "A 40 day learning schedule in which participants learn the Kabbalistic work \"Tikkunei Zohar\" over the course of the days between the First of the month of Elul and Yom Kippur.",
+    he: "סדר יומי ללימוד הספר \"תיקוני הזהר\". הסדר נמשך 40 יום, בתקופה שבין ראש חודש אלול ויום הכיפורים."
+  }
 }
 
 
