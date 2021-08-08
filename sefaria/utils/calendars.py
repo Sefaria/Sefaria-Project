@@ -170,6 +170,27 @@ def tanakh_yomi(datetime_obj):
     return tanakh_items
 
 @graceful_exception(logger=logger, return_value=[])
+def tikkunei_yomi(datetime_obj):
+    tikkunei_items = []
+    datetime_obj = datetime.datetime(datetime_obj.year, datetime_obj.month, datetime_obj.day)
+    database_obj = db.daily_tikkunei_zohar.find_one({"date": {"$eq": datetime_obj}})
+    if not database_obj:
+        return []
+    rf = database_obj["ref"]
+    rf = model.Ref(rf)
+    display_en = database_obj["displayValue"]
+    display_he = database_obj["heDisplayValue"]
+    tikkunei_items.append({
+        "title": {"en": "Zohar for Elul", "he": 'תיקוני זוהר לחודש אלול'},
+        "displayValue": {"en": display_en, "he": display_he},
+        "url": rf.url(),
+        "ref": rf.normal(),
+        "order": 12,
+        "category": rf.index.get_primary_category()
+    })
+    return tikkunei_items
+
+@graceful_exception(logger=logger, return_value=[])
 def daf_weekly(datetime_obj):
     """
     :param datetime.datetime datetime_obj:
@@ -346,6 +367,7 @@ def get_all_calendar_items(datetime_obj, diaspora=True, custom="sephardi"):
     cal_items += halakhah_yomit(datetime_obj)
     cal_items += arukh_hashulchan(datetime_obj)
     cal_items += tanakh_yomi(datetime_obj)
+    cal_items += tikkunei_yomi(datetime_obj)
     cal_items = [item for item in cal_items if item]
     return cal_items
 
