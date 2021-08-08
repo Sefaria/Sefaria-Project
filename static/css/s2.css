@@ -2146,6 +2146,7 @@ a.navBlockTitle:hover {
 }
 .navBlockTitle .subtitle {
   color: var(--dark-grey);
+  margin-inline-start: 5px;
 }
 .navBlockDescription {
   font-size: 14px;
@@ -2159,7 +2160,7 @@ a.navBlockTitle:hover {
   line-height: 24px;
 }
 .navBlockTitle .int-he, .navBlockDescription .int-he{
-      font-size: 122%;
+  font-size: 122%;
 }
 .interface-english .navBlockDescription.clamped .int-en,
 .interface-hebrew .navBlockDescription.clamped .int-he {

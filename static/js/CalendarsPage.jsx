@@ -71,7 +71,7 @@ const CalendarListing = ({calendar}) => {
         <InterfaceText text={calendar.displayTitle} />
         {calendar.enSubtitle ?
         <span className="subtitle">
-          &nbsp;<InterfaceText text={{en: calendar.enSubtitle, he: ""}} />
+          <InterfaceText text={{en: calendar.enSubtitle, he: calendar.heSubtitle}} />
         </span> : null }
       </a>
       <div className="calendarRefs">
@@ -112,6 +112,9 @@ const reformatCalendars = () => {
       if (calData && calData.enSubtitle) {
         cal.enSubtitle = calData.enSubtitle;
       }
+      if (calData && calData.heSubtitle) {
+        cal.heSubtitle = calData.heSubtitle;
+      }
     }
 
     // Merge multiple calendar entries that from from the same schedule
@@ -138,12 +141,12 @@ const calendarDescriptions = {
   "Daf Yomi": {
     en: "A learning program that covers a page of Talmud a day. In this way, the entire Talmud is completed in about seven and a half years.",
     he: "סדר לימוד לתלמוד הבבלי הכולל לימוד של דף אחד בכל יום. הלומדים בדרך זו מסיימים את קריאת התלמוד כולו בתוך כשבע שנים וחצי.",
-    enSubtitle: "(Talmud)",
+    enSubtitle: "(Talmud)", heSubtitle: "(תלמוד)",
   },
   "929": {
     en: "A learning program in which participants study five of the Bible’s 929 chapters a week, completing it in about three and a half years.",
     he: "סדר שבועי ללימוד תנ\"ך שבו נלמדים בכל שבוע חמישה מתוך 929 פרקי התנ\"ך. הלומדים בדרך זו מסיימים את קריאת התנ\"ך כולו כעבור שלוש שנים וחצי.",
-    enSubtitle: "(Tanakh)"
+    enSubtitle: "(Tanakh)", heSubtitle: '(תנ"ך)',
   },
   "Daily Mishnah": {
     en: "A program of daily learning in which participants study two Mishnahs (teachings) each day in order to finish the entire Mishnah in six years.",
@@ -160,7 +163,7 @@ const calendarDescriptions = {
   "Daf a Week": {
     en: "A learning program  that covers a page of Talmud a week. By going at a slower pace, it facilitates greater mastery and retention.",
     he: "סדר שבועי ללימוד התלמוד הבבלי שבו נלמד דף תלמוד אחד בכל שבוע. קצב הלימוד האיטי מאפשר ללומדים הפנמה ושליטה רבה יותר בחומר הנלמד.",
-    enSubtitle: "(Talmud)"
+    enSubtitle: "(Talmud)", heSubtitle: "(תלמוד)",
   },
   "Halakhah Yomit": {
     en: "A four year daily learning program in which participants study central legal texts that cover most of the daily and yearly rituals.",
@@ -173,7 +176,7 @@ const calendarDescriptions = {
   "Tanakh Yomi": {
     en: "A daily learning cycle for completing Tanakh annually. On Shabbat, each Torah portion is recited. On weekdays, Prophets and Writings are recited according to the ancient Masoretic division of sedarim.",
     he: "סדר לימוד המשלים את קריאת התנ\"ך כולו אחת לשנה. בשבתות קוראים את התורה לפי סדר פרשיות השבוע. בימות החול קוראים את הנ\"ך על פי חלוקת הסדרים של המסורה.",
-    enSubtitle: "(Tanakh)"
+    enSubtitle: "(Tanakh)", heSubtitle: '(תנ"ך)',
   },
   "Zohar for Elul": {
     en: "A 40 day learning schedule in which participants learn the Kabbalistic work \"Tikkunei Zohar\" over the course of the days between the First of the month of Elul and Yom Kippur.",
