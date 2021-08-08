@@ -970,40 +970,45 @@ ModeratorButtons.propTypes = {
 };
 
 
-function TOCDropdown({initChildren}) {
-  const [children, setChildren] = useState(initChildren);
+function TOCDropdown() {
+  //initially set up one level of the menu, on selecting anything but "Choose a category"
+
+  const [children, setChildren] = useState([]);
   const [neverSelected, setNeverSelected] = useState(true);
   const handleChange = function(e) {
-      const val = e.target.options[e.target.selectedIndex].value;
-      if (val !== "Choose a category") {
-        if (neverSelected) {
-          setNeverSelected(false);
-        }
-        else {
-          setChildren(children.splice(0,-1));
-        }
-        setChildren(children.concat(val));
+    let newChildren = [];
+    for (let i=0; i<children.length+1; i++) {
+      let el = document.getElementById("subcats-"+i);
+      if (el.options[el.selectedIndex].value === "Choose a category") {  //dont include this and anything after it in categories
+        break;
       }
+      newChildren.push(el.options[el.selectedIndex].value);
+    }
+    setChildren(newChildren);
   }
+
   let menus = [];
 
   //create a menu of first level categories
   let options = Sefaria.toc.map((child, key) => <option key={key} value={child.category}>{child.category}</option>);
   menus.push(options);
 
-  //now create second and third level categories found in children
+  //now add to menu second and/or third level categories found in children
   for (let i=0; i<children.length; i++) {
     let options = [];
-    let subcats = Sefaria.tocItemsByCategories(children);
+
+    let subcats = Sefaria.tocItemsByCategories(children.slice(0, i+1));
     for (let j=0; j<subcats.length; j++) {
       if (subcats[j].hasOwnProperty("contents")) {
         options.push(<option key={j} value={subcats[j].category}>{subcats[j].category}</option>);
       }
     }
-    menus.push(options);
+    if (options.length > 0) {
+      menus.push(options);
+    }
   }
   return <div>
-          {menus.map(menu => <select id="cats" onChange={handleChange}>
+          {menus.map((menu, index) => <select id={`subcats-${index}`} onChange={handleChange}>
                                 <option key="chooseCategory" value="Choose a category">Choose a category</option>
                                 {menu}
                              </select>)}
@@ -1080,7 +1085,7 @@ function EditTextInfo({title, toc}) {
               </div>
               Category
             </span>
-           <TOCDropdown id="textCategory" initChildren={[]}/>
+           <TOCDropdown id="textCategory"/>
            <input id="otherCategory"/>
         </div>
 
