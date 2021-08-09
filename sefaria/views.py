@@ -831,19 +831,6 @@ def categorize_sheets(request):
     return render(request, "static/categorize-sheets.html", context)
 
 @staff_member_required
-def tag_sheets(request):
-    props = base_props(request)
-    categorize_props = get_sheet_categorization_info("topics")
-    props.update(categorize_props)
-    propsJSON = json.dumps(props, ensure_ascii=False)
-    context = {
-        "title": "Tag Sheets",
-        "description": "Retrieve the latest untagged, public sheet and allow user to tag",
-        "propsJSON": propsJSON
-    }
-    return render(request, "static/categorize-sheets.html", context)
-
-@staff_member_required
 def spam_dashboard(request):
 
     from django.contrib.auth.models import User

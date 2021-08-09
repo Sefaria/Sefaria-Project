@@ -163,13 +163,16 @@ class SheetCategorizer extends React.Component {
     }
   }
 
-  // toggleSheetSortingMechanism() {
-  //   this.setState(this.getOpposite(this.state.doesNotContain))
-  // }
+  toggleSheetSortingMechanism() {
+    this.setState({ doesNotContain: this.getOpposite(this.state.doesNotContain) },
+    () => {this.putSheetAndUpdateNext({
+      skipIds: this.state.skipIds
+    })})
+  }
 
-  // getOpposite(keyword) {
-  //   return keyword === "topics" ? "categories" : "topics"
-  // }
+  getOpposite(keyword) {
+    return keyword === "topics" ? "categories" : "topics"
+  }
 
   render() {
  
@@ -220,13 +223,17 @@ class SheetCategorizer extends React.Component {
             </fieldset>
             <input type="text" key="newCategory" id="newCategory" placeholder="New Category" onKeyUp={this.addCategory.bind(this)}></input><button onClick={this.addCategory.bind(this)}>Add</button>
           </div>
-          <button onClick={this.saveAndNext.bind(this)}>Save and Next</button>
+          <button id="save-and-next" onClick={this.saveAndNext.bind(this)}>Save and Next</button>
           <div className="left-pane-bottom">
-            <h3>Skip sheet until refresh:</h3>
+            <h3>Settings/Admin:</h3>
+            <h4>Latest sheets without: {this.state.doesNotContain}</h4>
+            <div>
+            <button onClick={this.toggleSheetSortingMechanism.bind(this)}>Switch to finding sheets without: {this.getOpposite(this.state.doesNotContain)}</button>
+            </div>
+            <div>
             <button onClick={this.skipAndNext.bind(this)}>Skip this sheet</button>
+            </div>
             Sheet will not be saved!
-            {/* <h3>Latest sheets without: {this.state.doesNotContain}</h3>
-            <button onClick={this.toggleSheetSortingMechanims}>Switch to finding sheets without: {this.getOpposite(this.state.doesNotContain)}</button> */}
           </div>
         </div>
         <div id="iframeContainer">

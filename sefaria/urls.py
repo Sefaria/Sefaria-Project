@@ -399,7 +399,6 @@ urlpatterns += [
     url(r'^admin/error', sefaria_views.cause_error),
     url(r'^admin/account-stats', sefaria_views.account_stats),
     url(r'^admin/categorize-sheets', sefaria_views.categorize_sheets),
-    url(r'^admin/tag-sheets', sefaria_views.tag_sheets),
     url(r'^admin/sheet-stats', sefaria_views.sheet_stats),
     url(r'^admin/untagged-sheets', sefaria_views.untagged_sheets),
     url(r'^admin/spam', sefaria_views.spam_dashboard),

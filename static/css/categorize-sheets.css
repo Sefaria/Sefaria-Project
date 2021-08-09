@@ -33,6 +33,7 @@ a {
     width: 300px;
     display: flex;
     flex-direction: column;
+    overflow-y: auto;
     flex-wrap: nowrap;
     justify-content: flex-start;
     align-content: stretch;
@@ -70,4 +71,8 @@ fieldset {
 
 div.left-pane-bottom {
     margin-top: auto;
+}
+
+#save-and-next {
+    font-size: 20px;
 }
