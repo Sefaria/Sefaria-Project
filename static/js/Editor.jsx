@@ -639,7 +639,6 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
 
 const AddInterfaceInput = ({ inputType, resetInterface }) => {
     const editor = useSlate();
-    const curPath = editor.selection.focus.path
     const [inputValue, setInputValue] = useState("");
     const [showAddMediaButton, setShowAddMediaButton] = useState(false);
 
@@ -688,7 +687,7 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
     }
 
     const selectedRefCallback = (ref) => {
-          insertSource(editor, ref, curPath)
+          insertSource(editor, ref)
     }
 
 
@@ -1048,7 +1047,7 @@ async function getRefInText(editor, returnSourceIfFound) {
           Transforms.move(editor, { distance: selectDistance, unit: 'character', reverse: true, edge: 'anchor' })
           Editor.removeMark(editor, "isRef")
           Transforms.delete(editor);
-          insertSource(editor, ref["ref"], paragraphPath)
+          insertSource(editor, ref["ref"])
         }
         return ref
       }
@@ -1469,7 +1468,8 @@ const insertMedia = (editor, mediaUrl) => {
   Transforms.move(editor);
 }
 
-const insertSource = (editor, ref, path) => {
+const insertSource = (editor, ref) => {
+    const path = editor.selection.anchor.path;
 
     Transforms.setNodes(editor, { loading: true }, {at: path});
 
