@@ -130,6 +130,7 @@ class PageLoader extends Component {
 }
 
   render() {
+    Sefaria.unpackDataFromProps(DJANGO_VARS.props);
     return (
       <div>
       <DataForm
@@ -640,7 +641,7 @@ class DiffElement extends Component {
     this.setState({mouseover: false});
   }
   openConfirm() {
-    if (Sefaria._uid & (Sefaria.is_moderator || Sefaria.is_editor)) {
+    if (Sefaria._uid && (Sefaria.is_moderator || Sefaria.is_editor)) {
       this.setState({confirmOpen: true, mouseover: false});
     } else if (Sefaria._uid) {
       alert("Only Sefaria Moderators Can Edit Texts");
