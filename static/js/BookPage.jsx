@@ -1239,39 +1239,45 @@ function NewIndexSaveButton({enTitle, heTitle, enTitleVariants, heTitleVariants}
   }
 
   const save = function() {
-    let postJSON = JSON.stringify({"json": index.current});
+    let postJSON = JSON.stringify(index.current);
     let title = enTitle.replace(/ /g, "_");
 
     let message = "Saving text information...";
-    // if ("oldTitle" in index) {
-    //     message += "<br><br>(processing title changes may take some time)"
-    // }
     alert(message);
-    const request = new Request(
-    '/api/index/'+title,
-    {headers: {'X-CSRFToken': Cookies.get('csrftoken'), 'Content-Type': 'application/json'}}
-    );
-    fetch(request, {
-      method: 'POST',
-      mode: 'same-origin',
-      credentials: 'same-origin',
-      body: postJSON
-    }).then(response => {
-      if (!response.ok) {
-        response.text().then(resp_text=> {
-          console.log(resp_text);
-          errorOnSave.current = true;
-        })
-      }else{
-        response.json().then(resp_json=>{
-          console.log("okay response", resp_json);
-          errorOnSave.current = false;
-        });
+    $.post("/api/index/" + title,  {"json": postJSON}, function(data) {
+      if (data.error) {
+        alert(data.error);
+      } else {
+        alert("Text information saved.");
       }
-    }).catch(error => {
-        console.log("network error", error);
-        errorOnSave.current = true;
-    });
+      }).fail( function(xhr, textStatus, errorThrown) {
+        alert("Unfortunately, there was an error saving this text information. Please try again or try reloading this page.")
+      });
+    // const request = new Request(
+    // '/api/index/'+title,
+    // {headers: {'X-CSRFToken': Cookies.get('csrftoken'), 'Content-Type': 'application/json'}}
+    // );
+    // fetch(request, {
+    //   method: 'POST',
+    //   mode: 'same-origin',
+    //   credentials: 'same-origin',
+    //   body: postJSON
+    // }).then(response => {
+    //   if (!response.ok) {
+    //     response.text().then(resp_text=> {
+    //       console.log(resp_text);
+    //       errorOnSave.current = true;
+    //     })
+    //   }else{
+    //     response.json().then(resp_json=>{
+    //       console.log("okay response", resp_json);
+    //       errorOnSave.current = false;
+    //     });
+    //   }
+    // }).catch(error => {
+    //     console.log("network error", error);
+    //     errorOnSave.current = true;
+    // });
 
   };
 
