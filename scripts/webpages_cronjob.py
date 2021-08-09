@@ -2,8 +2,12 @@ import django
 django.setup()
 from sefaria.model.webpage import *
 import cProfile, pstats
+from django.core.mail import EmailMultiAlternatives
+import sys
+def run_job(test=True, email=True):
+	if email:
+		sys.stdout = open("email.txt", 'w')
 
-def run_job(test=True):
 	sites_that_may_have_removed_linker_days = 20  # num of days we care about in find_sites_that_may_have_removed_linker and find_webpages_without_websites
 	webpages_without_websites_days = sites_that_may_have_removed_linker_days # same timeline is relevant
 
@@ -31,6 +35,18 @@ def run_job(test=True):
 	print("{} total pages.  Deleted {}.\n".format(after_total_pages, total_pages-after_total_pages))
 	print("{} total connections.  Deleted {}.\n".format(after_total_links, total_links-after_total_links))
 
+	if email:
+		sys.stdout.close()
+		with open("email.txt", 'r') as f:
+			text = f.read()
+		subject = "webpage cronjob"
+		from_email = "Sefaria <hello@sefaria.org>"
+		to = "stevek004@gmail.com"
+
+		msg = EmailMultiAlternatives(subject, text, from_email, [to])
+		msg.content_subtype = "html"  # Main content is now text/html
+		msg.send()
+
 
 def profile_job():
 	profiler = cProfile.Profile()
@@ -44,3 +60,4 @@ def profile_job():
 
 if __name__ == "__main__":
 	run_job(False)
+
