@@ -57,9 +57,8 @@ from sefaria.model import *
 from sefaria.model.webpage import *
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.google_storage_manager import GoogleStorageManager
-
-
-from reader.views import render_template
+from sefaria.sheets import get_sheet_categorization_info
+from reader.views import base_props, render_template 
 
 
 
@@ -818,7 +817,18 @@ def untagged_sheets(request):
 
     return HttpResponse("<html><h1>Untagged Public Sheets</h1><ul>" + html + "</ul></html>")
 
-
+@staff_member_required
+def categorize_sheets(request):
+    props = base_props(request)
+    categorize_props = get_sheet_categorization_info("categories")
+    props.update(categorize_props)
+    propsJSON = json.dumps(props, ensure_ascii=False)
+    context = {
+        "title": "Categorize Sheets",
+        "description": "Retrieve the latest uncategorized, public sheet and allow user to tag",
+        "propsJSON": propsJSON
+    }
+    return render(request, "static/categorize-sheets.html", context)
 
 @staff_member_required
 def spam_dashboard(request):

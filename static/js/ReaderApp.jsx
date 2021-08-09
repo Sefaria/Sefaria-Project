@@ -26,7 +26,6 @@ import {
 } from './Misc';
 import Component from 'react-class';
 
-
 class ReaderApp extends Component {
   constructor(props) {
     super(props);
