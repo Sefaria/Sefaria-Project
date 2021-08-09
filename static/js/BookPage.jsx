@@ -973,8 +973,32 @@ ModeratorButtons.propTypes = {
 };
 
 
+function SectionTypesBox({sectionNames, canEdit}) {
+  const [sections, setSections] = useState(sectionNames);
+  const add = function() {
+    setSections(sections.concat(""));
+  }
+  const remove = function(i) {
+    setSections(sections.slice(0, i+1));
+  }
+
+  return <div id="sectionTypesBox">
+            {sections.map(function(section, i) {
+              if (i === 0) {
+                return <input className={'sectionType'} defaultValue={section}/>;
+              }
+              else if (canEdit) {
+                return <span><input className={'sectionType'} defaultValue={section}/><span className="remove" onClick={(i) => remove(i)}>X</span></span>;
+              }
+              else {
+                return <input className={'sectionType'} defaultValue={section}/>;
+              }
+            })}
+            {canEdit ? <span className="add" onClick={add}>Add Section</span> : null}
+          </div>
+}
+
 function TOCDropdown({categories}) {
-  //initially set up one level of the menu, on selecting anything but "Choose a category"
   const [children, setChildren] = useState(categories);
   const categoryMenu = useRef();
 
@@ -1034,54 +1058,13 @@ function TOCDropdown({categories}) {
 }
 
 function EditTextInfo({title}) {
-  Sefaria.getIndexDetails(title); //is this necessary?
-  const index = useRef(Sefaria.getIndexDetailsFromCache(title));
+  const index = useRef(null);
   const enTitle = useRef("");
   const heTitle = useRef("");
   const enTitleVariants = useRef("");
   const heTitleVariants = useRef("");
-  const categories = useRef([]);
-  const oldEnTitle = useRef("");  //only gets set when editing existing Index record's title
-
-  // const loadIndex = function() {
-  //
-  //
-  //   // Make list of categories currently in the select
-  //   var cats = {};
-  //   $("#textCategory option").each(function() {
-  //       cats[$(this).attr("value")] = 1;
-  //   });
-  //
-  //   // Set the Category if it's in the list, otherwise set it as "Other"
-  //   var topCat = sjs.index.categories[0];
-  //   if (topCat in cats) {
-  //       $("#textCategory").val(topCat);
-  //   } else {
-  //       $("#textCategory").val("Other");
-  //       $("#otherCategory").val(topCat);
-  //   }
-  //   $("#textCategory").trigger("change");
-  //
-  //   if (!("sectionNames" in sjs.index)) {
-  //       $("#textStructureFieldSet").hide();
-  //   }
-  //   else if (sjs.index.categories[0] !== "Commentary") {
-  //       // Remove a section name box if text depth is 1
-  //       if (sjs.index.sectionNames.length == 1) {
-  //           $(".sectionType:gt(0)").remove();
-  //       }
-  //
-  //       // Add additional section name boxes if needed
-  //       for (var i = 2; i < sjs.index.sectionNames.length; i++) {
-  //           $("#addSection").trigger("click");
-  //       }
-  //
-  //       // Populate sections names
-  //       $(".sectionType").each(function(){
-  //           $(this).find("input").val(sjs.index.sectionNames[$(this).index()]);
-  //       });
-  //   }
-
+  Sefaria.getIndexDetails(title);
+  index.current = Sefaria.getIndexDetailsFromCache(title);
   return (
     <div className="editTextInfo">
       <div id="newIndex">
@@ -1149,9 +1132,9 @@ function EditTextInfo({title}) {
               </div>
               Category
             </span>
-           <TOCDropdown id="textCategory" categories={index.current.categories}/>
+            {index.current === {} ? <TOCDropdown id="textCategory" categories={[]}/> : <TOCDropdown id="textCategory" categories={index.current.categories}/>}
         </div>
-
+        {index.current.hasOwnProperty("sectionNames") ?
         <div className="fieldSet" id="textStructureFieldSet">
             <span className="fieldLabel">
               <div className="help">?
@@ -1163,12 +1146,9 @@ function EditTextInfo({title}) {
               </div>
               Text Structure
             </span>
-            <div id="sectionTypesBox">
-              <span className='sectionType'><input placeholder='e.g. Chapter'/></span>
-              <span className='sectionType'> > <input placeholder='e.g. Verse'/> <span className='remove'>X</span></span>
-              <span id="addSection">add level of structure</span>
-            </div>
-        </div>
+           {index.current === {} ? <SectionTypesBox sectionNames={["e.g. Chapter", "e.g. Verse"]} canEdit={true}/> :
+                                  <SectionTypesBox sectionNames={index.current.sectionNames} canEdit={false}/>}
+        </div> : null}
 
         <div className="actions">
           <NewIndexSaveButton enTitle={enTitle.current.value} heTitle={heTitle.current.value} enTitleVariants={[]} heTitleVariants={[]}/>
@@ -1178,21 +1158,31 @@ function EditTextInfo({title}) {
   );
 }
 
-
 function NewIndexSaveButton({enTitle, heTitle, enTitleVariants, heTitleVariants}) {
   const errorOnSave = useRef(false);
-  const index = useRef(null);
-  index.current = Sefaria.getIndexDetailsFromCache(enTitle);
+  const origIndex = useRef(null);
+  Sefaria.getIndexDetails(enTitle);
+  origIndex.current = Sefaria.getIndexDetailsFromCache(enTitle);
+  let index = {};
   const validate = function () {
     let categories = [];
-    for (let i=0; i<document.getElementById("categoryMenu").children.length; i++) {
-      let child = document.getElementById("categoryMenu").children[i];
+    let categoryMenu = document.getElementById("categoryMenu")
+    for (let i=0; i<categoryMenu.children.length; i++) {
+      let child = categoryMenu.children[i];
       let cat = child.options[child.selectedIndex].value;
       if (cat === "Choose a category") {
         break;
       }
       categories.push(cat);
     }
+    let sectionNames = [];
+    if (origIndex.current.hasOwnProperty("sectionNames")) {
+      const sectionTypes = document.getElementById("sectionTypesBox").querySelectorAll(".sectionType");
+      for (let i=0; i<sectionTypes.length; i++) {
+        sectionNames.push(sectionTypes[i].value);
+      }
+    }
+
     if (!enTitle) {
       alert("Please give a text title or commentator name.");
       return false;
@@ -1230,16 +1220,20 @@ function NewIndexSaveButton({enTitle, heTitle, enTitleVariants, heTitleVariants}
       alert("Please enter a primary title in English. Use the Hebrew Title field to specify a title in Hebrew.");
       return false;
     }
-    index.current.title = enTitle;
-    index.current.heTitle = heTitle;
-    index.current.titleVariants = enTitleVariants;
-    index.current.heTitleVariants = heTitleVariants;
-    index.current.categories = categories;
+    index["title"] = enTitle;
+    index["heTitle"] = heTitle;
+    index["titleVariants"] = enTitleVariants;
+    index["heTitleVariants"] = heTitleVariants;
+    index["categories"] = categories;
+    if (sectionNames.length > 0) {
+      index["sectionNames"] = sectionNames;
+    }
+
     return true;
   }
 
   const save = function() {
-    let postJSON = JSON.stringify(index.current);
+    let postJSON = JSON.stringify(index);
     let title = enTitle.replace(/ /g, "_");
 
     let message = "Saving text information...";
