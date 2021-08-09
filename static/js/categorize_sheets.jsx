@@ -1,3 +1,11 @@
+import "core-js/stable";
+import "regenerator-runtime/runtime";
+import React  from 'react';
+import ReactDOM  from 'react-dom';
+import ReactTags from 'react-tag-autocomplete'
+import DjangoCSRF  from './lib/django-csrf';
+import Sefaria  from './sefaria/sefaria';
+
 class SheetCategorizer extends React.Component {
   constructor(props) {
     super(props);
@@ -164,6 +172,7 @@ class SheetCategorizer extends React.Component {
   // }
 
   render() {
+ 
     return (
       <div className="categorizer">
         <div id="edit-pane">
@@ -179,7 +188,7 @@ class SheetCategorizer extends React.Component {
             <label htmlFor="noTags">No Tags</label>
           </div>
           <div className="publishBox">
-            <reactTagGlobal.ReactTags
+            <ReactTags
               ref={this.reactTags}
               allowNew={true}
               tags={this.state.tags}
@@ -212,9 +221,10 @@ class SheetCategorizer extends React.Component {
             <input type="text" key="newCategory" id="newCategory" placeholder="New Category" onKeyUp={this.addCategory.bind(this)}></input><button onClick={this.addCategory.bind(this)}>Add</button>
           </div>
           <button onClick={this.saveAndNext.bind(this)}>Save and Next</button>
-          <div class="left-pane-bottom">
+          <div className="left-pane-bottom">
             <h3>Skip sheet until refresh:</h3>
             <button onClick={this.skipAndNext.bind(this)}>Skip this sheet</button>
+            Sheet will not be saved!
             {/* <h3>Latest sheets without: {this.state.doesNotContain}</h3>
             <button onClick={this.toggleSheetSortingMechanims}>Switch to finding sheets without: {this.getOpposite(this.state.doesNotContain)}</button> */}
           </div>
@@ -230,7 +240,8 @@ class SheetCategorizer extends React.Component {
   }
 }
 
-Sefaria.unpackDataFromProps(DJANGO_VARS.props);
+DjangoCSRF.init();
+
 
 ReactDOM.render(
   React.createElement(SheetCategorizer, DJANGO_VARS.props),

@@ -1,18 +1,17 @@
 {% extends "base.html"%}
 {% load static %}
-{% block head %} <link rel="stylesheet" href="{% static 'css/categorize-sheets.css' %}"> {% endblock %}
+{% block head %} <link rel="stylesheet" href="{% static 'css/categorize-sheets.css' %}">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/16.8.6/react.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/16.8.6/react-dom.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+{% endblock %}
 {% block bodyclasses %}nochrome{% endblock %}
 {% block content %}
 <div id="output"></div>
-<script type="text/javascript">
-reactTagGlobal = {}
+{% endblock %}
+{% block js %}
+<script>Sefaria.unpackDataFromProps(DJANGO_VARS.props);
 </script>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-<script>
-{% autoescape off %}
-	{% include "js/django-csrf.js" %}
-{% endautoescape %}
-</script>
-<script src="{% static 'js/categorize_sheets.jsx'%}" type="text/babel" data-type="module" data-presets="react,env"></script>
+<script src="{% static 'bundles/categorize_sheets/categorize_sheets.js'%}" ></script>
 {% endblock %}

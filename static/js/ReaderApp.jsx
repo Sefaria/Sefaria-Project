@@ -25,7 +25,6 @@ import {
   CommunityPagePreviewControls,
 } from './Misc';
 import Component from 'react-class';
-import ReactTags from 'react-tag-autocomplete';
 
 class ReaderApp extends Component {
   constructor(props) {
@@ -1912,7 +1911,3 @@ export {
   RambanLandingPage,
   EducatorsPage
 };
-
-if (typeof reactTagGlobal != "undefined") {
-  reactTagGlobal.ReactTags = ReactTags;
-}
