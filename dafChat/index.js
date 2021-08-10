@@ -113,10 +113,20 @@ io.on("connection", (socket) => {
     socket.broadcast.to(socketId).emit("send room ID to client", roomId)
   });
 
-  socket.on("send chat message", (name, partnerName, message) => {
-    const socketId = Object.keys(peopleInBeitMidrash).find(key => peopleInBeitMidrash[key]["name"] === name);
-    console.log(`sending chat message to ${socketId}`)
-    socket.to(socketId).emit("received chat message", partnerName, message)
+  socket.on("send first chat message", (room, message) => {
+    console.log("received")
+    console.log("room.user.name", room["user"].name)
+    const socketId = Object.keys(peopleInBeitMidrash).find(key => peopleInBeitMidrash[key]["name"] === room.userB.name);
+    const partner = peopleInBeitMidrash[socket.id]
+    console.log(`sending first chat message to ${socketId} from ${partner.name}: ${message}`)
+    socket.to(socketId).emit("received first chat message", partner, message, room)
+  });
+
+  socket.on("send chat message", (room, message) => {
+    const socketId = Object.keys(peopleInBeitMidrash).find(key => peopleInBeitMidrash[key]["name"] === room.userB.name);
+    const partner = peopleInBeitMidrash[socket.id]
+    console.log(`sending chat message to ${socketId} from ${partner.name}: ${message}`)
+    socket.to(socketId).emit("received chat message", room, message)
   });
 
   socket.on('does room exist', function(roomID, uid) {

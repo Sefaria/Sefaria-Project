@@ -10415,8 +10415,12 @@ span.ref-link-color-3 {color: blue}
 }
 
 .chat-form {
-  position: fixed;
+  position: relative;
   bottom: 0;
+}
+
+.chat-box-header{
+  border: 1px solid grey;
 }
 
 @-webkit-keyframes load5 {
