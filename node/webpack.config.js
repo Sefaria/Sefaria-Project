@@ -200,4 +200,19 @@ var timelineConfig = config({
     }
 });
 
-module.exports = [clientConfig, serverConfig, diffConfig, exploreConfig, sefariajsConfig, jsonEditorConfig, timelineConfig];
+var categorizeSheetsConfig = config({
+    context: path.resolve('./static/js'),
+    entry: './categorize_sheets',
+    mode: 'development', // can be overriden via cli
+    externals: {
+        d3: 'd3',
+        sefaria: 'Sefaria',
+    },
+    output: {
+        path: path.resolve(buildDir + 'categorize_sheets'),
+        filename: 'categorize_sheets.js'
+    }
+
+})
+
+module.exports = [clientConfig, serverConfig, diffConfig, exploreConfig, sefariajsConfig, jsonEditorConfig, timelineConfig, categorizeSheetsConfig];
