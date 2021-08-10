@@ -28,17 +28,11 @@ const BeitMidrash = () => {
         })
 
         socket.on("received first chat message", (user, message, room) => {
-            // console.log("Active Chats", activeChats)
-            // console.log("room in received first chat message", room)
-            console.log(activeChatRooms.find(roomObj=> roomObj.roomId === room.roomId))
-            if (!activeChatRooms.find(roomObj => roomObj.roomId === room.roomId)) {
-                setFirstMessage(`${user.name}: ${message}`);
-                console.log("room on first chat message", room)
-                room.userB = user
-                room.user = {uid: Sefaria._uid, name: Sefaria.full_name}
-                console.log("room on first chat message 2", room)
-                setActiveChatRooms(rooms => [...rooms, room]);
-            }
+            setFirstMessage(`${user.name}: ${message}`);
+            room.userB = user
+            room.user = {uid: Sefaria._uid, name: Sefaria.full_name}
+            setActiveChatRooms(rooms => [...rooms, room]);
+            socket.emit("join chat room", room)
         })
     
         return () => {
