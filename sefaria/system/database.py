@@ -101,6 +101,7 @@ def ensure_indices(active_db=None):
         ('sheets', ["displayedCollection"], {}),
         ('sheets', ["sheetLanguage"], {}),
         ('sheets', [[("views", pymongo.DESCENDING)]],{}),
+        ('sheets', ["categories"], {}),
         ('links', [[("owner", pymongo.ASCENDING), ("date_modified", pymongo.DESCENDING)]], {}),
         ('texts', ["title"],{}),
         ('texts', [[("priority", pymongo.DESCENDING), ("_id", pymongo.ASCENDING)]],{}),
