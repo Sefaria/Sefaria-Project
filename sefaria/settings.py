@@ -300,7 +300,7 @@ CACHES = {
 GLOBAL_INTERRUPTING_MESSAGE = {
     "name":       "rh-elul-2021-modal",
     "style":      "modal", # "modal" or "banner"
-    "repetition": 3,
+    "repetition": 2,
     "is_fundraising": True,
     "condition":  {
         "returning_only": False,
