@@ -15,11 +15,14 @@ import { cssNumber } from 'jquery';
 const BeitMidrash = () => {
     const [peopleInBeitMidrash, setPeopleInBeitMidrash] = useState(null);
     const [activeChatRooms, setActiveChatRooms] = useState([]);
-    const [firstMessage, setFirstMessage] = useState(null)
+    const [firstMessage, setFirstMessage] = useState(null);
+    const [chatDataStore, setChatDataStore] = useState(() => {
+        const saved = localStorage.getItem("chatDataStore");
+        const initialValue = JSON.parse(saved);
+        return initialValue || {};
+      });
 
     useEffect(() => {
-        window.localStorage.setItem("chatsDataStore", "{}")
-
         socket.emit("enter beit midrash", Sefaria._uid, Sefaria.full_name);
         socket.on("change in people", function(people) {
             console.log(people);
@@ -29,10 +32,25 @@ const BeitMidrash = () => {
 
         socket.on("received first chat message", (user, message, room) => {
             setFirstMessage(`${user.name}: ${message}`);
-            room.userB = user
-            room.user = {uid: Sefaria._uid, name: Sefaria.full_name}
+            room.userB = user;
+            room.user = {uid: Sefaria._uid, name: Sefaria.full_name};
             setActiveChatRooms(rooms => [...rooms, room]);
-            socket.emit("join chat room", room)
+            socket.emit("join chat room", room);
+
+            const roomId = room.roomId;
+            setChatDataStore(chatDataStore => ({
+                ...chatDataStore, 
+                [roomId]: {
+                    chatMembers: [
+                        user,
+                        {uid: Sefaria._uid, name: Sefaria.full_name}
+                    ],
+                    messages: [{
+                    senderId: user.uid,
+                    message: message,
+                    timestamp: Date.now()
+                    }]}
+                }));
         })
     
         return () => {
@@ -40,6 +58,10 @@ const BeitMidrash = () => {
             socket.disconnect();
         }
     }, [])
+
+    useEffect (()=> {
+        localStorage.setItem("chatDataStore", JSON.stringify(chatDataStore))
+    }, [chatDataStore])
    
     const pairsLearning = (people) => {
         //create an array of roomIds
@@ -60,16 +82,30 @@ const BeitMidrash = () => {
         setFirstMessage(null)
         const room = {roomId, userB: user, user: {uid: Sefaria._uid, name: Sefaria.full_name}};
         setActiveChatRooms(rooms => [...rooms, room]);
+        setChatDataStore({...chatDataStore, 
+            [roomId]: {
+                chatMembers: [
+                    user,
+                    {uid: Sefaria._uid, name: Sefaria.full_name}
+                ],
+                messages: []
+            }});
     }
 
     const makeChatRooms = () => {
         return activeChatRooms.map(room => {
-            return <ChatBox room={room} firstMessage={firstMessage} handleCloseChat={handleCloseChat} />
+            return <ChatBox 
+                        room={room} 
+                        firstMessage={firstMessage}
+                        chatDataStore = {chatDataStore}
+                        setChatDataStore = {setChatDataStore}
+                        handleCloseChat={handleCloseChat} 
+                    />
         })      
     }
 
     const handleCloseChat = (roomObj) => {
-        setActiveChatRooms(activeChatRooms.filter(room => room.roomId !== roomObj.roomId))
+        setActiveChatRooms(activeChatRooms.filter(room => room.roomId !== roomObj.roomId));
     }
     
     return (
@@ -100,7 +136,7 @@ const BeitMidrash = () => {
     )
 }
 
-const ChatBox = ({firstMessage, room, handleCloseChat}) => {
+const ChatBox = ({firstMessage, room, chatDataStore, setChatDataStore, handleCloseChat}) => {
     //chat message currently being typed:
     const [chatMessage, setChatMessage] = useState(null);
     //chat messages in the window:
@@ -111,6 +147,15 @@ const ChatBox = ({firstMessage, room, handleCloseChat}) => {
             if (roomObj.roomId === room.roomId) {
                 setChats(chats => [...chats, `${roomObj.user.name}: ${message}`])
             }
+            const roomId = room.roomId
+            setChatDataStore(chatDataStore => 
+                ({...chatDataStore, [roomId]: {...chatDataStore[roomId], 
+                   messages: [...chatDataStore[roomId].messages, {
+                    senderId: roomObj.user.uid,
+                    message: message,
+                    timestamp: Date.now()
+                }]}
+               }));
         });
 
         //user B receives connection request
@@ -152,6 +197,16 @@ const ChatBox = ({firstMessage, room, handleCloseChat}) => {
         }
         
         setChats(chats => [...chats, `You: ${chatMessage}`]);
+        const roomId = room.roomId;
+      
+        setChatDataStore(chatDataStore => 
+            ({...chatDataStore, [roomId]: {...chatDataStore[roomId], 
+               messages: [...chatDataStore[roomId].messages, {
+                senderId: Sefaria._uid,
+                message: chatMessage,
+                timestamp: Date.now()
+            }]}
+           }));
         e.target.reset();
     }
 
@@ -160,9 +215,6 @@ const ChatBox = ({firstMessage, room, handleCloseChat}) => {
         socket.emit("connect with other user", uid, Sefaria.full_name);
     }
     
-    const chatsDataStore = window.localStorage.getItem("chatsDataStore")
-    console.log("chatsDataStore in ChatBox", chatsDataStore)
-
     return (
     <div className="chat">
         <div className="chat-box-header">
@@ -173,7 +225,7 @@ const ChatBox = ({firstMessage, room, handleCloseChat}) => {
                 alt="icon of video camera"
                 role="button"
                 tabIndex="0"
-                aria-description={`click to open a video call with ${room.userB.name}`}
+                aria-roledescription={`click to open a video call with ${room.userB.name}`}
                 />
             <img 
                 onClick={()=>handleCloseChat(room)}
@@ -181,7 +233,7 @@ const ChatBox = ({firstMessage, room, handleCloseChat}) => {
                 alt="icon of X"
                 role="button"
                 tabIndex="0"
-                aria-description={`click to close chat with ${room.userB.name}`}
+                aria-roledescription={`click to close chat with ${room.userB.name}`}
                 />
         </div>
         <div className="chats-container">
