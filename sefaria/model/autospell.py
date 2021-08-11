@@ -12,8 +12,7 @@ from django.contrib.auth.models import User
 from sefaria.model import *
 from sefaria.model.schema import SheetLibraryNode
 from sefaria.utils import hebrew
-from sefaria.system.database import db
-from sefaria.system.cache import django_cache
+from sefaria.model.following import aggregate_profiles
 
 import structlog
 logger = structlog.get_logger(__name__)
@@ -41,31 +40,6 @@ def normalizer(lang):
 
 
 splitter = re.compile(r"[\s,]+")
-
-
-@django_cache(cache_key="profiles_aggregation")
-def aggregate_profiles():
-    pipeline = [
-        {"$match": {
-            "status": "public"}},
-        {"$sortByCount": "$owner"},
-        {"$lookup": {
-            "from": "profiles",
-            "localField": "_id",
-            "foreignField": "id",
-            "as": "user"}},
-        {"$unwind": {
-            "path": "$user",
-            "preserveNullAndEmptyArrays": True
-        }}
-    ]
-    results = db.sheets.aggregate(pipeline)
-    try:
-        profiles = {r["user"]["id"]: r for r in results}
-    except KeyError:
-        logger.error("Encountered sheet owner with no profile record.  No users will be shown in autocomplete.")
-        profiles = {}
-    return profiles
 
 
 class AutoCompleter(object):
