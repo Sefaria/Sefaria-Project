@@ -58,14 +58,21 @@ class FolloweesSet(FollowSet):
         self.uids = db.following.find({"follower": uid}).distinct("followee")
 
 
-@django_cache(timeout=60*60*24)
-def aggregate_profiles(lang="english"):
+@django_cache(timeout=60 * 60 * 24)
+def aggregate_profiles(lang="english", limit=None):
     match_stage = {"status": "public"} if lang == "english" else {"status": "public", "sheetLanguage": "hebrew"}
     pipeline = [
         {"$match": match_stage},  # get all the sheets matching the criteria
-        {"$sortByCount": "$owner"},  # group them by owner and count how many each owner has
-        {"$match": {"count": {"$gte": 3}}},
-        # limit to owners with 3 or more sheets ("count" field is a result of the previous stage) that matched the first match
+        {"$sortByCount": "$owner"}  # group them by owner and count how many each owner has
+    ]
+
+    if limit is not None:
+        pipeline += [
+            {"$match": {"count": {"$gte": limit}}}
+            # limit to owners with 3 or more sheets ("count" field is a result of the previous stage) that matched the first match
+        ]
+
+    pipeline += [
         {"$lookup": {
             # perform a "left join", use the "_id" field from the last stage, which contains the user/owner id of sheets, to look up corresponding profile obj
             "from": "profiles",
@@ -101,7 +108,7 @@ def general_follow_recommendations(lang="english", n=4):
     global creators
     if not creators:
         creators = []
-        profiles = aggregate_profiles(lang=lang)
+        profiles = aggregate_profiles(lang=lang, limit=3)
         user_records = User.objects.in_bulk(profiles.keys())
         creators = []
         for id, u in user_records.items():
