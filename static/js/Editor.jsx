@@ -543,7 +543,7 @@ function isSourceEditable(e, editor) {
 }
 
 const BoxedSheetElement = ({ attributes, children, element }) => {
-  const editor = useSlate();
+  const parentEditor = useSlate();
 
   const sheetSourceEnEditor = useMemo(() => withLinks(withHistory(withReact(createEditor()))), [])
   const sheetSourceHeEditor = useMemo(() => withLinks(withHistory(withReact(createEditor()))), [])
@@ -566,7 +566,7 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
 
   useEffect(
       () => {
-        Transforms.setNodes(editor, {heText: sheetHeSourceValue, enText: sheetEnSourceValue}, {at: ReactEditor.findPath(editor, element)});
+        Transforms.setNodes(parentEditor, {heText: sheetHeSourceValue, enText: sheetEnSourceValue}, {at: ReactEditor.findPath(parentEditor, element)});
       },
       [sourceActive]
   );
@@ -591,9 +591,19 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
     setActiveSourceLangContent(null)
   }
 
+    const onKeyDown = (event, editor) => {
+        for (const hotkey in HOTKEYS) {
+            if (isHotkey(hotkey, event)) {
+                event.preventDefault();
+                const format = HOTKEYS[hotkey];
+                console.log(format)
+                toggleFormat(editor, format)
+            }
+        }
+    }
 
   const isActive = selected;
-  const sheetItemClasses = {sheetItem: 1, highlight: editor.highlightedNode == element.node}
+  const sheetItemClasses = {sheetItem: 1, highlight: parentEditor.highlightedNode == element.node}
   const classes = {
       SheetSource: element.ref ? 1 : 0,
       SheetOutsideBiText: element.ref ? 0 : 1,
@@ -614,6 +624,8 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
             <Editable
               readOnly={!sourceActive}
               renderLeaf={props => <Leaf {...props} />}
+              onKeyDown={(e) => onKeyDown(e, sheetSourceHeEditor)}
+
             />
           </Slate>
         </div>
@@ -626,6 +638,7 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
             <Editable
               readOnly={!sourceActive}
               renderLeaf={props => <Leaf {...props} />}
+              onKeyDown={(e) => onKeyDown(e, sheetSourceEnEditor)}
             />
           </Slate>
         </div>
