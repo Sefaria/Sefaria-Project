@@ -8687,6 +8687,23 @@ span.purim-emoji img{
   border-radius: 6px;
 }
 
+.addInterfaceInput .suggestionBox {
+  height: 100%;
+}
+.addInterfaceInput select.suggestionBox {
+  font-size: 22px;
+}
+
+
+.addInterfaceInput select.suggestionBox:focus > option:checked {
+  background: var(--light-grey) !important;
+}
+
+.addInterfaceInput select.suggestionBox option:checked,
+.addInterfaceInput select.suggestionBox option:hover {
+    box-shadow: 0 0 10px 100px var(--light-grey) inset;
+}
+
 .addInterfaceInput input,
 .addInterfaceInput button,
 .addInterfaceInput .suggestion {

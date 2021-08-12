@@ -2364,6 +2364,9 @@ const Autocompleter = ({selectedRefCallback}) => {
   const [helperPromptText, setHelperPromptText] = useState(null);
   const [showAddButton, setShowAddButton] = useState(false);
 
+  const suggestionEl = useRef(null);
+  const inputEl = useRef(null);
+
 
   const getWidthOfInput = () => {
     //Create a temporary div w/ all of the same styles as the input since we can't measure the input
@@ -2455,18 +2458,21 @@ const Autocompleter = ({selectedRefCallback}) => {
     getSuggestions(input);
     resizeInputIfNeeded()
   }
+
+
   const Suggestion = ({title, color}) => {
-    return(<div
+    return(<option
               className="suggestion"
               onClick={(e)=>{
                   e.stopPropagation()
                   setInputValue(title)
                   getSuggestions(title)
                   resizeInputIfNeeded()
+                  inputEl.current.focus()
                 }
               }
               style={{"borderInlineStartColor": color}}
-           >{title}</div>)
+           >{title}</option>)
 
   }
   const mapSuggestions = (suggestions) => {
@@ -2482,6 +2488,19 @@ const Autocompleter = ({selectedRefCallback}) => {
 
   return(div)
   }
+
+  const onKeyDown = e => {
+    if (e.key === 'Enter') {
+
+    }
+
+    else if (e.key === 'ArrowDown' && currentSuggestions && currentSuggestions.length > 0) {
+      suggestionEl.current.focus();
+      (suggestionEl.current).firstChild.selected = 'selected';
+    }
+
+  }
+
 
   const generatePreviewText = (ref) => {
         Sefaria.getText(ref, {context:1}).then(text => {
@@ -2505,6 +2524,15 @@ const Autocompleter = ({selectedRefCallback}) => {
         })
   }
 
+   const checkEnterOnSelect = (e) => {
+      console.log(e.key)
+      if (e.key === 'Enter') {
+        setInputValue(e.target.value);
+        getSuggestions(e.target.value);
+        inputEl.current.focus();
+      }
+    }
+
 
   return(
     <div className="addInterfaceInput" onClick={(e) => {e.stopPropagation()}}>
@@ -2512,18 +2540,26 @@ const Autocompleter = ({selectedRefCallback}) => {
           type="text"
           placeholder="Search for a text..."
           className="serif"
+          onKeyDown={(e) => onKeyDown(e)}
           onClick={(e) => {e.stopPropagation()}}
           onChange={(e) => onChange(e.target.value)}
           value={inputValue}
+          ref={inputEl}
       /><span className="helperCompletionText">{helperPromptText}</span>
       {showAddButton ? <button onClick={(e) => {
                     selectedRefCallback(inputValue)
                 }}>Add Source</button> : null}
 
-      {currentSuggestions ?
-          <div className="suggestionBox">
+      {currentSuggestions && currentSuggestions.length > 0 ?
+          <select
+              ref={suggestionEl}
+              className="suggestionBox"
+              size={currentSuggestions.length}
+              multiple
+              onKeyDown={(e) => checkEnterOnSelect(e)}
+          >
             {mapSuggestions(currentSuggestions)}
-          </div>
+          </select>
 
           : null
       }
