@@ -123,7 +123,6 @@ const BeitMidrash = () => {
     }
 
     const makeChatRooms = () => {
-        console.log("activeChatRooms in makeChatRooms", activeChatRooms)
         return activeChatRooms.map(room => {
             return <ChatBox 
                         room={room} 
@@ -132,11 +131,10 @@ const BeitMidrash = () => {
                         handleCloseChat={handleCloseChat} 
 
                     />
-        })      
+        });      
     }
 
     const handleCloseChat = (roomObj) => {
-        console.log("closing chat rooms")
         setActiveChatRooms(activeChatRooms.filter(room => room.roomId !== roomObj.roomId));
     }
 
@@ -200,6 +198,17 @@ const ChatBox = ({room, chatDataStore, setChatDataStore, handleCloseChat}) => {
             window.location = `/chavruta?rid=${room}`;
         });
 
+        socket.on("leaving chat room", (user, roomId)=>{
+            setChatDataStore(chatDataStore => ({
+                ...chatDataStore, 
+                [roomId]: {...chatDataStore[roomId],
+                    messages: [...chatDataStore[roomId].messages, {
+                    senderId: user.uid,
+                    message: `${user.name} left the chat`,
+                    timestamp: Date.now()
+                    }]}
+                }));
+        })
     }, []);
 
     useEffect(()=>{
@@ -207,6 +216,7 @@ const ChatBox = ({room, chatDataStore, setChatDataStore, handleCloseChat}) => {
         if (lastMessage) {
             lastMessage.scrollIntoView()
         }
+
     }, [chatDataStore])
 
     const handleChange = (e) =>{

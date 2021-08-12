@@ -125,6 +125,13 @@ io.on("connection", (socket) => {
     socket.join(room.roomId)
   })
 
+  socket.on("disconnecting", ()=> {
+    console.log("disconnecting from rooms", socket.rooms)
+    const user = peopleInBeitMidrash[socket.id]
+    const roomArray = [...socket.rooms]
+    roomArray.forEach(room => socket.to(room).emit("leaving chat room", user, room))
+  })
+
   socket.on('does room exist', function(roomID, uid) {
     let sql = `SELECT name, clients FROM chatrooms WHERE name = ?`;
     let room = roomID;
