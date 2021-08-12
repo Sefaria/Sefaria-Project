@@ -1799,6 +1799,7 @@ class ReaderApp extends Component {
                       allOpenRefs={allOpenRefs}
                       hasSidebar={this.doesPanelHaveSidebar(i)}
                       masterPanelLanguage={panel.mode === "Connections" ? panelStates[i-1].settings.language : panel.settings.language}
+                      masterPanelMode={panel.mode === "Connections" ? panelStates[i-1].mode : null}
                       layoutWidth={width}
                       analyticsInitialized={this.state.initialAnalyticsTracked}
                       openURL={this.openURL}

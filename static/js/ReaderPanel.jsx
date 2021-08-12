@@ -1085,6 +1085,7 @@ ReaderPanel.propTypes = {
   toggleSignUpModal:           PropTypes.func.isRequired,
   getHistoryRef:               PropTypes.func,
   profile:                     PropTypes.object,
+  masterPanelMode:             PropTypes.string,
   translationLanguagePreference: PropTypes.string,
   setTranslationLanguagePreference: PropTypes.func.isRequired,
 };
@@ -1104,6 +1105,7 @@ class ReaderControls extends Component {
   openSheetMeta(e) {
     e.preventDefault();
     this.props.openMenu("sheet meta");
+    this.props.opentextlis
   }
   componentDidMount() {
     const title = this.props.currentRef;
