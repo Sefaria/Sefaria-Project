@@ -2916,9 +2916,10 @@ class Ref(object, metaclass=RefCacheType):
                     ref_list_list = [sub_ref.all_segment_refs() for sub_ref in sub_refs]
                     ref_list += [refs for refs in ref_list_list]
                 else:
-                    sub_ja = temp_ref.get_state_ja().subarray_with_ref(temp_ref)
+                    state_ja = self.get_state_ja("all")
+                    sub_ja = state_ja.subarray_with_ref(temp_ref)
                     ref_list_sections = [temp_ref.subref([i + 1 for i in k ]) for k in sub_ja.non_empty_sections() ]
-                    ref_list += [ref_seg for ref_sec in ref_list_sections for ref_seg in ref_sec.all_subrefs()]
+                    ref_list += [ref_seg for ref_sec in ref_list_sections for ref_seg in ref_sec.all_subrefs(state_ja=state_ja)]
 
         return ref_list
 
@@ -3558,7 +3559,7 @@ class Ref(object, metaclass=RefCacheType):
             l.append(self.subref(i + 1))
         return l
 
-    def all_subrefs(self, lang='all'):
+    def all_subrefs(self, lang='all', state_ja=None):
         """
         Return a list of all the valid :class:`Ref` objects one level deeper than this :class:`Ref`.
 
@@ -3579,8 +3580,8 @@ class Ref(object, metaclass=RefCacheType):
         if self.index_node.is_virtual:
             size = len(self.text().text)
             return self.subrefs(size)
-
-        size = self.get_state_ja(lang).sub_array_length([i - 1 for i in self.sections])
+        state_ja = state_ja or self.get_state_ja(lang)
+        size = state_ja.sub_array_length([i - 1 for i in self.sections])
         if size is None:
             size = 0
         return self.subrefs(size)
