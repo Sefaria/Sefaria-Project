@@ -1125,25 +1125,13 @@ function EditTextInfo({initTitle}) {
 
   Sefaria.getIndexDetails(initTitle).then(data => index.current = data);
   index.current = Sefaria.getIndexDetailsFromCache(initTitle);
-
-  const enTitle = useRef(index.current.title);
-  const heTitle = useRef(index.current.heTitle);
+  const [enTitle, setEnTitle] = useState(index.current.title);
+  const [heTitle, setHeTitle] = useState(index.current.heTitle);
   const titleVariants = useRef(null);
   const heTitleVariants = useRef(null);
-  const categoryMenu = useRef(index.current.categories);
-  const sectionTypesBox = useRef([]);
-  if (index.current) {
-    sectionTypesBox.current = index.current.sectionNames;
-  }
+  const [categories, setCategories] = useState(index.current.categories);
+  const [sections, setSections] = useState(index.current.sectionNames);
 
-
-
-  const updateSections = function(secs) {
-    sectionTypesBox.current = secs;
-  }
-  const updateCategories = function(cats) {
-    categoryMenu.current = cats;
-  }
   const updateTitleVariants = function(titles) {
     titleVariants.current = titles;
   }
@@ -1151,10 +1139,11 @@ function EditTextInfo({initTitle}) {
     heTitleVariants.current = titles;
   }
 
+
   return (
     <div className="editTextInfo">
       <div id="newIndex">
-        <div id="newIndexMsg">Sefaria doesn't yet know about the text {enTitle.value}.
+        <div id="newIndexMsg">Sefaria doesn't yet know about the text {enTitle}.
           <div className="sub">Please provide some basic information about this text.</div>
         </div>
 
@@ -1169,7 +1158,7 @@ function EditTextInfo({initTitle}) {
             </div>
             Text Title
           </span>
-          <input id="textTitle" ref={enTitle} defaultValue={index.current.title}/>
+          <input id="textTitle" onBlur={(e) => setEnTitle(e.target.value)} defaultValue={index.current.title}/>
         </div>
 
         <div className="fieldSet">
@@ -1181,7 +1170,7 @@ function EditTextInfo({initTitle}) {
             </div>
             Hebrew Title
           </span>
-          <input id="heTitle" ref={heTitle} defaultValue={index.current.heTitle}/>
+          <input id="heTitle" onBlur={(e) => setHeTitle(e.target.value)} defaultValue={index.current.heTitle}/>
         </div>
 
         <div className="fieldSet">
@@ -1218,8 +1207,8 @@ function EditTextInfo({initTitle}) {
               </div>
               Category
             </span>
-            {index.current === {} ? <TOCDropdown update={updateCategories} id="textCategory" initCategories={[]}/> :
-                                    <TOCDropdown update={updateCategories} id="textCategory" initCategories={index.current.categories}/>}
+            {index.current === {} ? <TOCDropdown update={setCategories} id="textCategory" initCategories={[]}/> :
+                                    <TOCDropdown update={setCategories} id="textCategory" initCategories={index.current.categories}/>}
         </div>
         {index.current.hasOwnProperty("sectionNames") ?
         <div className="fieldSet" id="textStructureFieldSet">
@@ -1233,13 +1222,13 @@ function EditTextInfo({initTitle}) {
               </div>
               Text Structure
             </span>
-           {index.current === {} ? <SectionTypesBox updateParent={updateSections} sectionNames={["e.g. Chapter", "e.g. Verse"]} canEdit={true}/> :
-                                  <SectionTypesBox updateParent={updateSections} sectionNames={index.current.sectionNames} canEdit={false}/>}
+           {index.current === {} ? <SectionTypesBox updateParent={setSections} sectionNames={["e.g. Chapter", "e.g. Verse"]} canEdit={true}/> :
+                                  <SectionTypesBox updateParent={setSections} sectionNames={index.current.sectionNames} canEdit={false}/>}
         </div> : null}
 
         <div className="actions">
-          <NewIndexSaveButton enTitle={enTitle.current.value} heTitle={heTitle.current.value} enTitleVariants={[]} heTitleVariants={[]}
-          categories={categoryMenu.current} sectionNames={sectionTypesBox.current}/>
+          <NewIndexSaveButton enTitle={enTitle} heTitle={heTitle} enTitleVariants={[]} heTitleVariants={[]}
+          categories={categories} sectionNames={sections}/>
         </div>
       </div>
     </div>
