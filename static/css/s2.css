@@ -2437,6 +2437,12 @@ a.navBlockTitle:hover {
   margin: 100px auto;
   font-size: 23px;
 }
+.bookPage .editTextInfo #newIndex #right {
+  float: right;
+}
+.bookPage .editTextInfo #newIndex #left {
+  float: left;
+}
 
 .bookPage .editTextInfo #newIndexMsg {
 	display: none;
