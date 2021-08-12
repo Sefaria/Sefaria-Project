@@ -1013,18 +1013,18 @@ function TOCDropdown({initCategories, update}) {
 
 
   const handleChange = function(e) {
-    let newcategories = [];
-    for (let i=0; i<categories.length; i++) {
+    let newCategories = [];
+    for (let i=0; i<categoryMenu.current.children.length; i++) {
       let el = categoryMenu.current.children[i];
       if (el.options[el.selectedIndex].value === "Choose a category" || Sefaria.tocItemsByCategories(categories.slice(0, i+1)).length === 0) {
         //first test says dont include "Choose a category" and anything after it in categories.
         //second test is if categories are ["Talmud", "Prophets"], set categories to ["Talmud"]
         break;
       }
-      newcategories.push(el.options[el.selectedIndex].value);
+      newCategories.push(el.options[el.selectedIndex].value);
     }
-    setCategories(newcategories);
-    update(newcategories); //tell parent of new values
+    setCategories(newCategories);
+    update(newCategories); //tell parent of new values
   }
 
   let menus = [];
@@ -1068,55 +1068,31 @@ function TOCDropdown({initCategories, update}) {
          </div>
 }
 function TitleVariants({lang, defaultValue, update}) {
-  const [titles, setTitles] = useState(defaultValue.map((item, i) =>({[i]: item})));
+  const [titles, setTitles] = useState(defaultValue.map((item, i) =>({["name"]: item, ["id"]: i})));
 
   const onTitleDelete = function(i) {
-    // const tags = this.state.tags.slice(0);
-    // tags.splice(i, 1);
-    // this.setState({ tags });
-    // this.updateTopics(tags);
-    alert('delete');
+    let newTitles = titles.filter(t => t !== titles[i]);
+    setTitles(newTitles);
+    update(newTitles);
   }
   const onTitleAddition = function(title) {
-    alert('add');
+    let newTitles = [].concat(titles, title);
+    setTitles(newTitles);
+    update(newTitles);
   }
   const onTitleValidate = function (title) {
-    alert('validate');
+    return titles.every((item) => item.name !== title.name)
   }
-  // onTagAddition(tag) {
-  //   const tags = [].concat(this.state.tags, tag);
-  //   this.setState({ tags });
-  //   this.updateTopics(tags);
-  // }
-  //
-  // onTagValidate(tag) {
-  //   return this.state.tags.every((item) => item.name !== tag.name)
-  // }
 
-  // updateSuggestedTags(input) {
-  //   if (input == "") return
-  //   Sefaria.getName(input, false, 0).then(d => {
-  //     const topics = d.completion_objects
-  //         .filter(obj => obj.type === "Topic")
-  //         .map((filteredObj, index) => ({
-  //           id: index,
-  //           name: filteredObj.title,
-  //           slug: filteredObj.key
-  //         })
-  //     )
-  //     return topics
-  //   }).then(topics => this.setState({suggestions: topics}))
-
-  return <div>
+  return <div className="publishBox sans-serif">
                   <ReactTags
                       allowNew={true}
                       tags={titles}
                       onDelete={onTitleDelete}
-                      placeholderText={Sefaria._("Add a title variant")}
+                      placeholderText={Sefaria._("Add title variant")}
                       delimiters={["Enter", "Tab", ","]}
                       onAddition={onTitleAddition}
                       onValidate={onTitleValidate}
-                      onInput={console.log('u')}
                     />
         </div>
 }
@@ -1127,8 +1103,8 @@ function EditTextInfo({initTitle}) {
   index.current = Sefaria.getIndexDetailsFromCache(initTitle);
   const [enTitle, setEnTitle] = useState(index.current.title);
   const [heTitle, setHeTitle] = useState(index.current.heTitle);
-  const titleVariants = useRef(null);
-  const heTitleVariants = useRef(null);
+  const [titleVariants, setTitleVariants] = useState(index.current.titleVariants);
+  const [heTitleVariants, setHeTitleVariants] = useState(index.current.heTitleVariants);
   const [categories, setCategories] = useState(index.current.categories);
   const [sections, setSections] = useState(index.current.sectionNames);
 
@@ -1183,7 +1159,7 @@ function EditTextInfo({initTitle}) {
             Alternate English Titles
             <span className="optional">(optional)</span>
           </span>
-          <TitleVariants lang="en" id="textTitleVariants" update={updateTitleVariants} defaultValue={index.current.titleVariants}></TitleVariants>
+          <TitleVariants lang="en" id="textTitleVariants" update={setTitleVariants} defaultValue={index.current.titleVariants}></TitleVariants>
         </div>
 
         <div className="fieldSet">
@@ -1195,7 +1171,7 @@ function EditTextInfo({initTitle}) {
               </div>
               Alternate Hebrew Titles<span className="optional">(optional)</span>
           </span>
-          <TitleVariants lang="he" id="textHeTitleVariants" update={updateHeTitleVariants} defaultValue={index.current.heTitleVariants}></TitleVariants>
+          <TitleVariants lang="he" id="textHeTitleVariants" update={setHeTitleVariants} defaultValue={index.current.heTitleVariants}></TitleVariants>
         </div>
 
         <div className="fieldSet" id="textCategories">
@@ -1227,8 +1203,8 @@ function EditTextInfo({initTitle}) {
         </div> : null}
 
         <div className="actions">
-          <NewIndexSaveButton enTitle={enTitle} heTitle={heTitle} enTitleVariants={[]} heTitleVariants={[]}
-          categories={categories} sectionNames={sections}/>
+          <NewIndexSaveButton enTitle={enTitle} heTitle={heTitle} enTitleVariants={titleVariants}
+                              heTitleVariants={heTitleVariants} categories={categories} sectionNames={sections}/>
         </div>
       </div>
     </div>
