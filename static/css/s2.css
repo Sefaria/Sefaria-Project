@@ -2423,14 +2423,19 @@ a.navBlockTitle:hover {
 .bookPage .editTextInfo {
   top: 0px;
   right: 0px;
-  bottom: 0px;
   left: 0px;
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  overflow: auto;
+  z-index: 1;
+  background-color:  var(--lighter-grey);
+
 }
 
 .bookPage .editTextInfo #newIndex {
-	margin: 100px auto;
-	font-size: 23px;
-    background-color: var(--dark-grey);
+  margin: 100px auto;
+  font-size: 23px;
 }
 
 .bookPage .editTextInfo #newIndexMsg {

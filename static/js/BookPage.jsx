@@ -1108,73 +1108,64 @@ function EditTextInfo({initTitle}) {
   const [categories, setCategories] = useState(index.current.categories);
   const [sections, setSections] = useState(index.current.sectionNames);
 
-  const updateTitleVariants = function(titles) {
-    titleVariants.current = titles;
-  }
-  const updateHeTitleVariants = function(titles) {
-    heTitleVariants.current = titles;
-  }
-
-
   return (
     <div className="editTextInfo">
-      <div id="newIndex">
-        <div id="newIndexMsg">Sefaria doesn't yet know about the text {enTitle}.
-          <div className="sub">Please provide some basic information about this text.</div>
-        </div>
+        <div id="newIndex">
+          <div id="newIndexMsg">Sefaria doesn't yet know about the text {enTitle}.
+            <div className="sub">Please provide some basic information about this text.</div>
+          </div>
 
-        <div className="fieldSet">
-          <span className="fieldLabel">
-            <div className="help">?
-                <div className="helpText">
-                  The primary title of a text. Texts may have multiple titles which can be entered below, but this will be the default way of referring to this text.
-                  <br/><br/>
-                  Titles in this field must use Roman chacters, but may be transliterations. Add titles in Hebrew characters below.
-                </div>
-            </div>
-            Text Title
-          </span>
-          <input id="textTitle" onBlur={(e) => setEnTitle(e.target.value)} defaultValue={index.current.title}/>
-        </div>
-
-        <div className="fieldSet">
-          <span className="fieldLabel">
-            <div className="help">?
-                <div className="helpText">
-                  The primary title of a text in Hebrew characters. Alternate Hebrew titles may also be added under "Alternate Titles" below.
-                </div>
-            </div>
-            Hebrew Title
-          </span>
-          <input id="heTitle" onBlur={(e) => setHeTitle(e.target.value)} defaultValue={index.current.heTitle}/>
-        </div>
-
-        <div className="fieldSet">
-          <span className="fieldLabel">
-            <div className="help">?
-              <div className="helpText">
-              Alternate English Titles can include alternate translations, alternate transliterations spellings, and abbreviations.<br/><br/>Press enter after each title variant to seprate it from others.
+          <div className="fieldSet">
+            <span className="fieldLabel">
+              <div className="help">?
+                  <div className="helpText">
+                    The primary title of a text. Texts may have multiple titles which can be entered below, but this will be the default way of referring to this text.
+                    <br/><br/>
+                    Titles in this field must use Roman chacters, but may be transliterations. Add titles in Hebrew characters below.
+                  </div>
               </div>
-            </div>
-            Alternate English Titles
-            <span className="optional">(optional)</span>
-          </span>
-          <TitleVariants lang="en" id="textTitleVariants" update={setTitleVariants} defaultValue={index.current.titleVariants}></TitleVariants>
-        </div>
+              Text Title
+            </span>
+            <input id="textTitle" onBlur={(e) => setEnTitle(e.target.value)} defaultValue={index.current.title}/>
+          </div>
 
-        <div className="fieldSet">
+          <div className="fieldSet">
+            <span className="fieldLabel">
+              <div className="help">?
+                  <div className="helpText">
+                    The primary title of a text in Hebrew characters. Alternate Hebrew titles may also be added under "Alternate Titles" below.
+                  </div>
+              </div>
+              Hebrew Title
+            </span>
+            <input id="heTitle" onBlur={(e) => setHeTitle(e.target.value)} defaultValue={index.current.heTitle}/>
+          </div>
+
+          <div className="fieldSet">
             <span className="fieldLabel">
               <div className="help">?
                 <div className="helpText">
-                  Alternate Hebrew Titles can include alternate spellings and abbreviations.<br/><br/>Press enter after each title variant to seprate it from others.
+                Alternate English Titles can include alternate translations, alternate transliterations spellings, and abbreviations.<br/><br/>Press enter after each title variant to seprate it from others.
                 </div>
               </div>
-              Alternate Hebrew Titles<span className="optional">(optional)</span>
-          </span>
-          <TitleVariants lang="he" id="textHeTitleVariants" update={setHeTitleVariants} defaultValue={index.current.heTitleVariants}></TitleVariants>
-        </div>
+              Alternate English Titles
+              <span className="optional">(optional)</span>
+            </span>
+            <TitleVariants lang="en" id="textTitleVariants" update={setTitleVariants} defaultValue={index.current.titleVariants}></TitleVariants>
+          </div>
 
-        <div className="fieldSet" id="textCategories">
+          <div className="fieldSet">
+              <span className="fieldLabel">
+                <div className="help">?
+                  <div className="helpText">
+                    Alternate Hebrew Titles can include alternate spellings and abbreviations.<br/><br/>Press enter after each title variant to seprate it from others.
+                  </div>
+                </div>
+                Alternate Hebrew Titles<span className="optional">(optional)</span>
+            </span>
+            <TitleVariants lang="he" id="textHeTitleVariants" update={setHeTitleVariants} defaultValue={index.current.heTitleVariants}></TitleVariants>
+          </div>
+          <div className="fieldSet" id="textCategories">
             <span className="fieldLabel">
               <div className="help">?
                 <div className="helpText">
@@ -1185,9 +1176,9 @@ function EditTextInfo({initTitle}) {
             </span>
             {index.current === {} ? <TOCDropdown update={setCategories} id="textCategory" initCategories={[]}/> :
                                     <TOCDropdown update={setCategories} id="textCategory" initCategories={index.current.categories}/>}
-        </div>
-        {index.current.hasOwnProperty("sectionNames") ?
-        <div className="fieldSet" id="textStructureFieldSet">
+          </div>
+          {index.current.hasOwnProperty("sectionNames") ?
+          <div className="fieldSet" id="textStructureFieldSet">
             <span className="fieldLabel">
               <div className="help">?
                 <div className="helpText">
@@ -1200,13 +1191,13 @@ function EditTextInfo({initTitle}) {
             </span>
            {index.current === {} ? <SectionTypesBox updateParent={setSections} sectionNames={["e.g. Chapter", "e.g. Verse"]} canEdit={true}/> :
                                   <SectionTypesBox updateParent={setSections} sectionNames={index.current.sectionNames} canEdit={false}/>}
-        </div> : null}
+          </div> : null}
 
-        <div className="actions">
-          <NewIndexSaveButton enTitle={enTitle} heTitle={heTitle} enTitleVariants={titleVariants}
+          <div className="actions">
+            <NewIndexSaveButton enTitle={enTitle} heTitle={heTitle} enTitleVariants={titleVariants}
                               heTitleVariants={heTitleVariants} categories={categories} sectionNames={sections}/>
+          </div>
         </div>
-      </div>
     </div>
   );
 }
