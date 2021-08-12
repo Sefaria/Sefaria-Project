@@ -2490,8 +2490,8 @@ const Autocompleter = ({selectedRefCallback}) => {
   }
 
   const onKeyDown = e => {
-    if (e.key === 'Enter') {
-
+    if (e.key === 'Enter' && showAddButton) {
+      selectedRefCallback(inputValue)
     }
 
     else if (e.key === 'ArrowDown' && currentSuggestions && currentSuggestions.length > 0) {

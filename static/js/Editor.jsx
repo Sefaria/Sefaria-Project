@@ -1090,6 +1090,7 @@ const withSefariaSheet = editor => {
 
     editor.deleteBackward = () => {
         const atStartOfDoc = Point.equals(editor.selection.focus, Editor.start(editor, [0, 0]));
+        const atEndOfDoc = Point.equals(editor.selection.focus, Editor.end(editor, [0, 0]));
         if (atStartOfDoc) {
             return
         }
@@ -1105,13 +1106,23 @@ const withSefariaSheet = editor => {
                 inSpacer = true;
             }
 
+            if (atEndOfDoc && inSpacer) {
+                Transforms.move(editor, {reverse: true})
+                return
+            }
+
             //we do a dance to see if we'll accidently delete a sheetsource and select it instead if we will
             Transforms.move(editor, {reverse: true})
             if (getClosestSheetElement(editor, editor.selection.focus.path, "SheetSource")) {
                 //deletes the extra spacer space that would otherwise be left behind
                 if (inSpacer) {
-                    Transforms.move(editor);
-                    Editor.deleteForward(editor)
+                    Transforms.move(editor, {distance: 2});
+                    if (getClosestSheetElement(editor, editor.selection.focus.path, "SheetSource")) {
+                            Transforms.move(editor, {reverse: true, distance: 2})
+                    }
+                    else {
+                        deleteBackward();
+                    }
                 }
                 return
             } else {
