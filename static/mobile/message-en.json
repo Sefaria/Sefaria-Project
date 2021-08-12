@@ -1,10 +1,13 @@
 {
-	"title": "Sefaria is hiring!,",
+	"title": "Sefaria Community,",
 	"text": [
-		"Join the Sefaria Team! We're hiring Senior Software Engineer and Infrastructure Engineer."
+		"If you share Sefaria's vision of Torah for all, we'd like to ask you to become a Sefaria Sustainer by making a monthly donation.",
+		"When you make a monthly donation for the new year, you sustain both Sefaria's growing library and the world of learning that it fuels.",
+		"Chodesh Elul Tov,",
+		"Team Sefaria"
     ],
-	"buttonLink": "https://www.sefaria.org/jobs",
-	"buttonText": "Learn More",
-	"name": "job-announcement-banner-2021",
+	"buttonLink": "https://sefaria.nationbuilder.com/sustainers_b",
+	"buttonText": "Become a Monthly Donor",
+	"name": "rh-elul-2021-modal-2",
 	"schemaVersion": 1
 }

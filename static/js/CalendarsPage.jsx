@@ -16,7 +16,7 @@ const CalendarsPage = ({multiPanel, initialWidth}) => {
   const calendars = reformatCalendars();
 
   const parashaCalendars = ["Parashat Hashavua", "Haftarah (A)", "Haftarah (S)", "Haftarah"];
-  const dailyCalendars   = ["Daf Yomi", "929", "Daily Mishnah", "Daily Rambam", "Daily Rambam (3 Chapters)", "Halakhah Yomit"];
+  const dailyCalendars   = ["Daf Yomi", "929", "Daily Mishnah", "Daily Rambam", "Daily Rambam (3 Chapters)", "Halakhah Yomit", "Arukh HaShulchan Yomi", "Tanakh Yomi", "Zohar for Elul"];
   const weeklyCalendars  = ["Daf a Week"];
 
   const makeListings = list => calendars.filter(c => list.indexOf(c.title.en) != -1)
@@ -66,12 +66,12 @@ const CalendarsPage = ({multiPanel, initialWidth}) => {
 const CalendarListing = ({calendar}) => {
   const style = {"borderColor": Sefaria.palette.categoryColor(calendar.category)};
   return (
-    <div className="navBlock withColorLine" style={style}>
+    <div className="navBlock withColorLine calendarListing" style={style}>
       <a href={`/${calendar.url}`} className="navBlockTitle">
         <InterfaceText text={calendar.displayTitle} />
         {calendar.enSubtitle ?
         <span className="subtitle">
-          &nbsp;<InterfaceText text={{en: calendar.enSubtitle, he: ""}} />
+          <InterfaceText context="CalendarListing">{calendar.enSubtitle}</InterfaceText>
         </span> : null }
       </a>
       <div className="calendarRefs">
@@ -112,6 +112,9 @@ const reformatCalendars = () => {
       if (calData && calData.enSubtitle) {
         cal.enSubtitle = calData.enSubtitle;
       }
+      if (calData && calData.heSubtitle) {
+        cal.heSubtitle = calData.heSubtitle;
+      }
     }
 
     // Merge multiple calendar entries that from from the same schedule
@@ -138,12 +141,12 @@ const calendarDescriptions = {
   "Daf Yomi": {
     en: "A learning program that covers a page of Talmud a day. In this way, the entire Talmud is completed in about seven and a half years.",
     he: "סדר לימוד לתלמוד הבבלי הכולל לימוד של דף אחד בכל יום. הלומדים בדרך זו מסיימים את קריאת התלמוד כולו בתוך כשבע שנים וחצי.",
-    enSubtitle: "(Talmud)",
+    enSubtitle: "Talmud",
   },
   "929": {
     en: "A learning program in which participants study five of the Bible’s 929 chapters a week, completing it in about three and a half years.",
     he: "סדר שבועי ללימוד תנ\"ך שבו נלמדים בכל שבוע חמישה מתוך 929 פרקי התנ\"ך. הלומדים בדרך זו מסיימים את קריאת התנ\"ך כולו כעבור שלוש שנים וחצי.",
-    enSubtitle: "(Tanakh)"
+    enSubtitle: "Tanakh",
   },
   "Daily Mishnah": {
     en: "A program of daily learning in which participants study two Mishnahs (teachings) each day in order to finish the entire Mishnah in six years.",
@@ -160,12 +163,25 @@ const calendarDescriptions = {
   "Daf a Week": {
     en: "A learning program  that covers a page of Talmud a week. By going at a slower pace, it facilitates greater mastery and retention.",
     he: "סדר שבועי ללימוד התלמוד הבבלי שבו נלמד דף תלמוד אחד בכל שבוע. קצב הלימוד האיטי מאפשר ללומדים הפנמה ושליטה רבה יותר בחומר הנלמד.",
-    enSubtitle: "(Talmud)"
+    enSubtitle: "Talmud",
   },
   "Halakhah Yomit": {
     en: "A four year daily learning program in which participants study central legal texts that cover most of the daily and yearly rituals.",
-    he: "תוכנית ארבע־שנתית ללימוד מקורות הלכתיים מרכזיים העוסקים ברוב הלכות היום־יום והמועדים."
+    he: "תוכנית ארבע־שנתית ללימוד מקורות הלכתיים מרכזיים העוסקים ברוב הלכות היום־יום והמועדים.",
   },
+  "Arukh HaShulchan Yomi": {
+    en: "A four-year daily learning program covering ritual halakhot, practical kashrut and interpersonal mitzvot within Rabbi Yechiel Michel Epstein’s legal code, Arukh HaShulchan.",
+    he: "תכנית לימוד ארבע-שנתית של הלכות מעשיות מתוך ספר ערוך השלחן, חיבורו ההלכתי של הרב יחיאל מיכל עפשטיין.",
+  },
+  "Tanakh Yomi": {
+    en: "A daily learning cycle for completing Tanakh annually. On Shabbat, each Torah portion is recited. On weekdays, Prophets and Writings are recited according to the ancient Masoretic division of sedarim.",
+    he: "סדר לימוד המשלים את קריאת התנ\"ך כולו אחת לשנה. בשבתות קוראים את התורה לפי סדר פרשיות השבוע. בימות החול קוראים את הנ\"ך על פי חלוקת הסדרים של המסורה.",
+    enSubtitle: "Tanakh",
+  },
+  "Zohar for Elul": {
+    en: "A 40 day learning schedule in which participants learn the Kabbalistic work \"Tikkunei Zohar\" over the course of the days between the First of the month of Elul and Yom Kippur.",
+    he: "סדר יומי ללימוד הספר \"תיקוני הזהר\". הסדר נמשך 40 יום, בתקופה שבין ראש חודש אלול ויום הכיפורים.",
+  }
 }
 
 
