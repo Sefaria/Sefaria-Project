@@ -27,6 +27,8 @@ import Component   from 'react-class';
 import {ContentLanguageContext} from './context';
 import Hebrew from './sefaria/hebrew.js';
 import Cookies from 'js-cookie';
+import ReactTags from 'react-tag-autocomplete'
+
 
 
 
@@ -947,7 +949,7 @@ class ModeratorButtons extends Component {
     }
     let editTextInfo = <div className="button white" onClick={this.editIndex}>
                           <span><i className="fa fa-info-circle"></i> Edit Text Info</span>
-                          {this.state.editing ? <EditTextInfo title={this.props.title}/> : null}
+                          {this.state.editing ? <EditTextInfo initTitle={this.props.title}/> : null}
                         </div>;
     let addSection   = <div className="button white" onClick={this.addSection}>
                           <span><i className="fa fa-plus-circle"></i> Add Section</span>
@@ -973,55 +975,64 @@ ModeratorButtons.propTypes = {
 };
 
 
-function SectionTypesBox({sectionNames, canEdit}) {
+function SectionTypesBox({sectionNames, canEdit, updateParent}) {
   const [sections, setSections] = useState(sectionNames);
+  const box = useRef(null);
   const add = function() {
     setSections(sections.concat(""));
+    updateParent(sections); //tell parent new values
   }
   const remove = function(i) {
     setSections(sections.slice(0, i+1));
+    updateParent(sections); //tell parent new values
+  }
+  const updateSelfAndParent = function() {
+    let newSections = Array.from(box.current.children).map(item => item.value);
+    updateParent(newSections);
+    setSections(newSections);
   }
 
-  return <div id="sectionTypesBox">
+  return <div id="sectionTypesBox" ref={box}>
             {sections.map(function(section, i) {
               if (i === 0) {
-                return <input className={'sectionType'} defaultValue={section}/>;
+                return <input onBlur={updateSelfAndParent} className={'sectionType'} defaultValue={section}/>;
               }
               else if (canEdit) {
-                return <span><input className={'sectionType'} defaultValue={section}/><span className="remove" onClick={(i) => remove(i)}>X</span></span>;
+                return <span><input onBlur={updateSelfAndParent} className={'sectionType'} defaultValue={section}/><span className="remove" onClick={(i) => remove(i)}>X</span></span>;
               }
               else {
-                return <input className={'sectionType'} defaultValue={section}/>;
+                return <input onBlur={updateSelfAndParent} className={'sectionType'} defaultValue={section}/>;
               }
             })}
             {canEdit ? <span className="add" onClick={add}>Add Section</span> : null}
           </div>
 }
-
-function TOCDropdown({categories}) {
-  const [children, setChildren] = useState(categories);
+function TOCDropdown({initCategories, update}) {
+  const [categories, setCategories] = useState(initCategories);
   const categoryMenu = useRef();
 
+
   const handleChange = function(e) {
-    let newChildren = [];
-    for (let i=0; i<children.length; i++) {
+    let newcategories = [];
+    for (let i=0; i<categories.length; i++) {
       let el = categoryMenu.current.children[i];
-      if (el.options[el.selectedIndex].value === "Choose a category" || Sefaria.tocItemsByCategories(children.slice(0, i+1)).length === 0) {
+      if (el.options[el.selectedIndex].value === "Choose a category" || Sefaria.tocItemsByCategories(categories.slice(0, i+1)).length === 0) {
         //first test says dont include "Choose a category" and anything after it in categories.
-        //second test is if categories are ["Talmud", "Prophets"], set children to ["Talmud"]
+        //second test is if categories are ["Talmud", "Prophets"], set categories to ["Talmud"]
         break;
       }
-      newChildren.push(el.options[el.selectedIndex].value);
+      newcategories.push(el.options[el.selectedIndex].value);
     }
-    setChildren(newChildren);
+    setCategories(newcategories);
+    update(newcategories); //tell parent of new values
   }
 
   let menus = [];
 
   //create a menu of first level categories
   let options = Sefaria.toc.map(function(child, key) {
-    if (children.length > 0 && children[0] === child.category) {
-      return <option key={key} value={children[0]} selected>{children[0]}</option>;
+    if (categories.length > 0 && categories[0] === child.category) {
+      return <option key={key} value={categories[0]} selected>{categories[0]}</option>;
     }
     else {
       return <option key={key} value={child.category}>{child.category}</option>
@@ -1029,14 +1040,14 @@ function TOCDropdown({categories}) {
   });
   menus.push(options);
 
-  //now add to menu second and/or third level categories found in children
-  for (let i=0; i<children.length; i++) {
+  //now add to menu second and/or third level categories found in categories
+  for (let i=0; i<categories.length; i++) {
     let options = [];
-    let subcats = Sefaria.tocItemsByCategories(children.slice(0, i+1));
+    let subcats = Sefaria.tocItemsByCategories(categories.slice(0, i+1));
     for (let j=0; j<subcats.length; j++) {
       if (subcats[j].hasOwnProperty("contents")) {
-        if (children.length >= i && children[i+1] === subcats[j].category) {
-          options.push(<option key={j} value={children[i+1]} selected>{subcats[j].category}</option>);
+        if (categories.length >= i && categories[i+1] === subcats[j].category) {
+          options.push(<option key={j} value={categories[i+1]} selected>{subcats[j].category}</option>);
         }
         else
         {
@@ -1050,25 +1061,100 @@ function TOCDropdown({categories}) {
   }
   return <div id="categoryMenu" ref={categoryMenu}>
           {menus.map((menu, index) =>
-            <select id={`subcats-${index}`} onChange={handleChange}>
+            <select key={`subcats-${index}`} id={`subcats-${index}`} onChange={handleChange}>
               <option key="chooseCategory" value="Choose a category">Choose a category</option>
               {menu}
            </select>)}
          </div>
 }
+function TitleVariants({lang, defaultValue, update}) {
+  const [titles, setTitles] = useState(defaultValue.map((item, i) =>({[i]: item})));
 
-function EditTextInfo({title}) {
+  const onTitleDelete = function(i) {
+    // const tags = this.state.tags.slice(0);
+    // tags.splice(i, 1);
+    // this.setState({ tags });
+    // this.updateTopics(tags);
+    alert('delete');
+  }
+  const onTitleAddition = function(title) {
+    alert('add');
+  }
+  const onTitleValidate = function (title) {
+    alert('validate');
+  }
+  // onTagAddition(tag) {
+  //   const tags = [].concat(this.state.tags, tag);
+  //   this.setState({ tags });
+  //   this.updateTopics(tags);
+  // }
+  //
+  // onTagValidate(tag) {
+  //   return this.state.tags.every((item) => item.name !== tag.name)
+  // }
+
+  // updateSuggestedTags(input) {
+  //   if (input == "") return
+  //   Sefaria.getName(input, false, 0).then(d => {
+  //     const topics = d.completion_objects
+  //         .filter(obj => obj.type === "Topic")
+  //         .map((filteredObj, index) => ({
+  //           id: index,
+  //           name: filteredObj.title,
+  //           slug: filteredObj.key
+  //         })
+  //     )
+  //     return topics
+  //   }).then(topics => this.setState({suggestions: topics}))
+
+  return <div>
+                  <ReactTags
+                      allowNew={true}
+                      tags={titles}
+                      onDelete={onTitleDelete}
+                      placeholderText={Sefaria._("Add a title variant")}
+                      delimiters={["Enter", "Tab", ","]}
+                      onAddition={onTitleAddition}
+                      onValidate={onTitleValidate}
+                      onInput={console.log('u')}
+                    />
+        </div>
+}
+function EditTextInfo({initTitle}) {
   const index = useRef(null);
-  const enTitle = useRef("");
-  const heTitle = useRef("");
-  const enTitleVariants = useRef("");
-  const heTitleVariants = useRef("");
-  Sefaria.getIndexDetails(title);
-  index.current = Sefaria.getIndexDetailsFromCache(title);
+
+  Sefaria.getIndexDetails(initTitle).then(data => index.current = data);
+  index.current = Sefaria.getIndexDetailsFromCache(initTitle);
+
+  const enTitle = useRef(index.current.title);
+  const heTitle = useRef(index.current.heTitle);
+  const titleVariants = useRef(null);
+  const heTitleVariants = useRef(null);
+  const categoryMenu = useRef(index.current.categories);
+  const sectionTypesBox = useRef([]);
+  if (index.current) {
+    sectionTypesBox.current = index.current.sectionNames;
+  }
+
+
+
+  const updateSections = function(secs) {
+    sectionTypesBox.current = secs;
+  }
+  const updateCategories = function(cats) {
+    categoryMenu.current = cats;
+  }
+  const updateTitleVariants = function(titles) {
+    titleVariants.current = titles;
+  }
+  const updateHeTitleVariants = function(titles) {
+    heTitleVariants.current = titles;
+  }
+
   return (
     <div className="editTextInfo">
       <div id="newIndex">
-        <div id="newIndexMsg">Sefaria doesn't yet know about the text {title}.
+        <div id="newIndexMsg">Sefaria doesn't yet know about the text {enTitle.value}.
           <div className="sub">Please provide some basic information about this text.</div>
         </div>
 
@@ -1108,7 +1194,7 @@ function EditTextInfo({title}) {
             Alternate English Titles
             <span className="optional">(optional)</span>
           </span>
-          <ul id="textTitleVariants" ref={enTitleVariants} defaultValue={index.current.titleVariants}></ul>
+          <TitleVariants lang="en" id="textTitleVariants" update={updateTitleVariants} defaultValue={index.current.titleVariants}></TitleVariants>
         </div>
 
         <div className="fieldSet">
@@ -1120,7 +1206,7 @@ function EditTextInfo({title}) {
               </div>
               Alternate Hebrew Titles<span className="optional">(optional)</span>
           </span>
-          <ul id="textHeTitleVariants" ref={heTitleVariants} defaultValue={index.current.heTitleVariants}></ul>
+          <TitleVariants lang="he" id="textHeTitleVariants" update={updateHeTitleVariants} defaultValue={index.current.heTitleVariants}></TitleVariants>
         </div>
 
         <div className="fieldSet" id="textCategories">
@@ -1132,7 +1218,8 @@ function EditTextInfo({title}) {
               </div>
               Category
             </span>
-            {index.current === {} ? <TOCDropdown id="textCategory" categories={[]}/> : <TOCDropdown id="textCategory" categories={index.current.categories}/>}
+            {index.current === {} ? <TOCDropdown update={updateCategories} id="textCategory" initCategories={[]}/> :
+                                    <TOCDropdown update={updateCategories} id="textCategory" initCategories={index.current.categories}/>}
         </div>
         {index.current.hasOwnProperty("sectionNames") ?
         <div className="fieldSet" id="textStructureFieldSet">
@@ -1146,43 +1233,26 @@ function EditTextInfo({title}) {
               </div>
               Text Structure
             </span>
-           {index.current === {} ? <SectionTypesBox sectionNames={["e.g. Chapter", "e.g. Verse"]} canEdit={true}/> :
-                                  <SectionTypesBox sectionNames={index.current.sectionNames} canEdit={false}/>}
+           {index.current === {} ? <SectionTypesBox updateParent={updateSections} sectionNames={["e.g. Chapter", "e.g. Verse"]} canEdit={true}/> :
+                                  <SectionTypesBox updateParent={updateSections} sectionNames={index.current.sectionNames} canEdit={false}/>}
         </div> : null}
 
         <div className="actions">
-          <NewIndexSaveButton enTitle={enTitle.current.value} heTitle={heTitle.current.value} enTitleVariants={[]} heTitleVariants={[]}/>
+          <NewIndexSaveButton enTitle={enTitle.current.value} heTitle={heTitle.current.value} enTitleVariants={[]} heTitleVariants={[]}
+          categories={categoryMenu.current} sectionNames={sectionTypesBox.current}/>
         </div>
       </div>
     </div>
   );
 }
 
-function NewIndexSaveButton({enTitle, heTitle, enTitleVariants, heTitleVariants}) {
+function NewIndexSaveButton({enTitle, heTitle, enTitleVariants, heTitleVariants, categories, sectionNames}) {
   const errorOnSave = useRef(false);
   const origIndex = useRef(null);
-  Sefaria.getIndexDetails(enTitle);
+  Sefaria.getIndexDetails(enTitle).then(data => origIndex.current = data);
   origIndex.current = Sefaria.getIndexDetailsFromCache(enTitle);
   let index = {};
   const validate = function () {
-    let categories = [];
-    let categoryMenu = document.getElementById("categoryMenu")
-    for (let i=0; i<categoryMenu.children.length; i++) {
-      let child = categoryMenu.children[i];
-      let cat = child.options[child.selectedIndex].value;
-      if (cat === "Choose a category") {
-        break;
-      }
-      categories.push(cat);
-    }
-    let sectionNames = [];
-    if (origIndex.current.hasOwnProperty("sectionNames")) {
-      const sectionTypes = document.getElementById("sectionTypesBox").querySelectorAll(".sectionType");
-      for (let i=0; i<sectionTypes.length; i++) {
-        sectionNames.push(sectionTypes[i].value);
-      }
-    }
-
     if (!enTitle) {
       alert("Please give a text title or commentator name.");
       return false;
