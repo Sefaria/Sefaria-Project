@@ -69,7 +69,6 @@ const BeitMidrash = () => {
         })
         
         const onDisconnect = () => {
-            localStorage.clear()
             console.log("disconnecting")
             socket.disconnect();
         }
@@ -140,7 +139,9 @@ const BeitMidrash = () => {
         console.log("closing chat rooms")
         setActiveChatRooms(activeChatRooms.filter(room => room.roomId !== roomObj.roomId));
     }
- 
+
+    const currentActiveChatUsers = activeChatRooms.reduce((acc, curr) => {return acc.concat([curr.userB.uid, curr.user.uid])}, []);
+    
     return (
         <div>
         <h1>Beit Midrash</h1>
@@ -152,7 +153,8 @@ const BeitMidrash = () => {
                     if (user.uid !== Sefaria._uid) {
                     return <li key={user.uid}>
                         {user.name}
-                        <button onClick={() => startChat(user)}>Chat</button>
+                        {currentActiveChatUsers.includes(user.uid) ? null : <button onClick={() => startChat(user)}>Chat</button>
+                        }
                     </li>
                     } else {
                         return <li key={user.uid}>{user.name} (You)</li>
