@@ -526,6 +526,10 @@ const Strings = {
       "Texts": "מקורות",
       "Topics": "נושאים",
       "Collections": "Collections",
+    },
+    "CalendarListing": {
+      "Tanakh": "",
+      "Talmud": ""
     }
   },
 };

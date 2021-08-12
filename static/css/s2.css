@@ -2148,6 +2148,12 @@ a.navBlockTitle:hover {
   color: var(--dark-grey);
   margin-inline-start: 5px;
 }
+.interface-english .calendarListing .subtitle::before {
+    content: "(";
+}
+.interface-english .calendarListing .subtitle::after {
+    content: ")";
+}
 .navBlockDescription {
   font-size: 14px;
   line-height: 18px;
