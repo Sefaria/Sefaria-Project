@@ -10408,10 +10408,17 @@ span.ref-link-color-3 {color: blue}
   border: 3px solid grey;
   width: 200px;
   height: 300px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .chats-container {
-  overflow-y: scroll;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  padding: 5px;
+  margin: 5px;
 }
 
 .chat-form {
@@ -10421,6 +10428,27 @@ span.ref-link-color-3 {color: blue}
 
 .chat-box-header{
   border: 1px solid grey;
+}
+
+.chat-message{
+  margin: 3px;
+  text-align: start;
+}
+
+.chat-message.own{
+  text-align: end;
+}
+
+.chat-message span {
+  background: var(--sefaria-blue);
+  color: white;
+  border-radius: 25%;
+  padding: 3px;
+} 
+
+.chat-message.own span {
+  background: var(--medium-grey);
+  color: black;
 }
 
 @-webkit-keyframes load5 {
