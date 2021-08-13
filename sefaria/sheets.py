@@ -1223,7 +1223,8 @@ def get_sheet_categorization_info(find_without, skip_ids=[]):
 	}
 	return categorize_props
 
-def update_sheet_tags_categories(body):
+def update_sheet_tags_categories(body, uid):
 	update_sheet_topics(body['sheetId'], body["tags"], [])
-	noTags = datetime.now().isoformat() if body.get("noTags", False) else False
-	db.sheets.update_one({"id": body['sheetId']}, {"$set": {"categories": body['categories'], "noTags": noTags}})
+	time = datetime.now().isoformat()
+	noTags = time if body.get("noTags", False) else False
+	db.sheets.update_one({"id": body['sheetId']}, {"$set": {"categories": body['categories'], "noTags": noTags}, "$push": {"moderators": {"uid": uid, "time": time}}})
