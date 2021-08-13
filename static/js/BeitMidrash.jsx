@@ -203,7 +203,7 @@ const ChatBox = ({room, chatDataStore, setChatDataStore, handleCloseChat}) => {
                 ...chatDataStore, 
                 [roomId]: {...chatDataStore[roomId],
                     messages: [...chatDataStore[roomId].messages, {
-                    senderId: user.uid,
+                    senderId: 0,
                     message: `${user.name} left the chat`,
                     timestamp: Date.now()
                     }]}
@@ -269,7 +269,11 @@ const ChatBox = ({room, chatDataStore, setChatDataStore, handleCloseChat}) => {
         </div>
         <div className="chats-container">
             {chatDataStore[roomId].messages.map((message, i) => {
-                return <div key={i} className={message.senderId === Sefaria._uid? "own chat-message" : "chat-message"}><span>{message.message}</span></div>
+                return <div 
+                    key={i} 
+                    className={`${message.senderId === Sefaria._uid? "own chat-message" : "chat-message"} ${message.senderId === 0 ? "chat-notification": ""}`}>
+                        <span>{message.message}</span>
+                    </div>
             })}
         </div>
         <form className="chat-form" onSubmit={handleSubmit}>
