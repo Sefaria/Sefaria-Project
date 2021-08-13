@@ -10,6 +10,7 @@ import {
     ProfilePic,
     ToolTipped, InterfaceText, ContentText, EnglishText, HebrewText,
 } from './Misc';
+import SheetMetadataV2 from './SheetMetadataV2';
 
 import {
   MediaList
@@ -288,6 +289,7 @@ class ConnectionsPanel extends Component {
       content = (
           <div>
               { this.state.flashMessage ? <div className="flashMessage sans-serif">{this.state.flashMessage}</div> : null }
+              { this.props.masterPanelMode === "Sheet" ? <SheetMetadataV2 setConnectionsMode={this.props.setConnectionsMode}></SheetMetadataV2> : null }
               <ToolsButton en="About this Text" he="אודות הטקסט" image="about-text.svg" onClick={() => this.props.setConnectionsMode("About")} />
               {showConnectionSummary ?
                   <ConnectionsPanelSection title="Related Texts">
@@ -664,6 +666,7 @@ ConnectionsPanel.propTypes = {
   selectedNamedEntityText: PropTypes.string,
   interfaceLang:           PropTypes.string,
   contentLang:             PropTypes.string,
+  masterPanelMode:         PropTypes.string,
   masterPanelLanguage:     PropTypes.oneOf(["english", "bilingual", "hebrew"]),
   versionFilter:           PropTypes.array,
   recentVersionFilters:    PropTypes.array,

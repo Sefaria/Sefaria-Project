@@ -666,6 +666,7 @@ class ReaderPanel extends Component {
           selectedNamedEntityText={this.state.selectedNamedEntityText}
           clearSelectedWords={this.clearSelectedWords}
           clearNamedEntity={this.props.clearNamedEntity}
+          masterPanelMode={this.props.masterPanelMode}
           masterPanelLanguage={this.props.masterPanelLanguage}
           versionFilter={this.state.versionFilter}
           recentVersionFilters={this.state.recentVersionFilters}
