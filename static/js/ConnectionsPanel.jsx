@@ -1530,6 +1530,7 @@ const ConnectionsPanelSection = ({title, children}) => {
 export {
   ConnectionsPanel,
   ConnectionsPanelHeader,
+  ToolsButton
 };
 
 
