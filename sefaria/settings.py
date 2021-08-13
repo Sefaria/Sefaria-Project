@@ -296,21 +296,20 @@ CACHES = {
     }
 }
 
-"""
+
 GLOBAL_INTERRUPTING_MESSAGE = {
-    "name":       "shavuot-2021",
+    "name":       "rh-elul-2021-modal",
     "style":      "modal", # "modal" or "banner"
-    "repetition": 7,
+    "repetition": 2,
     "is_fundraising": True,
     "condition":  {
         "returning_only": False,
-        "english_only": True,
+        "english_only": False,
         "desktop_only": False,
         "debug": False,
     }
 }
-"""
-GLOBAL_INTERRUPTING_MESSAGE = None
+#GLOBAL_INTERRUPTING_MESSAGE = None
 
 # Grab environment specific settings from a file which
 # is left out of the repo.

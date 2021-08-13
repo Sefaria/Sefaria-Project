@@ -57,9 +57,8 @@ from sefaria.model import *
 from sefaria.model.webpage import *
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.google_storage_manager import GoogleStorageManager
-
-
-from reader.views import render_template
+from sefaria.sheets import get_sheet_categorization_info
+from reader.views import base_props, render_template 
 
 
 
@@ -258,6 +257,7 @@ def sefaria_js(request):
 
     return render(request, "js/sefaria.js", attrs, content_type= "text/javascript; charset=utf-8")
 
+
 def chavruta_js(request):
     """
     Javascript for chavruta [required to pass server attribute].
@@ -274,7 +274,6 @@ def chavruta_js(request):
 
 
     return render(request, "js/chavruta.js", attrs, content_type="text/javascript; charset=utf-8")
-
 
 
 def linker_js(request, linker_version=None):
@@ -390,6 +389,7 @@ def bundle_many_texts(refs, useTextFamily=False, as_sized_string=False, min_char
             res[tref] = {"error": 1}
     return res
 
+
 def bulktext_api(request, refs):
     """
     Used by the linker.
@@ -500,6 +500,7 @@ def reset_cache(request):
 
     return HttpResponseRedirect("/?m=Cache-Reset")
 
+
 @staff_member_required
 def reset_websites_data(request):
     website_set = [w.contents() for w in WebSiteSet()]
@@ -507,6 +508,7 @@ def reset_websites_data(request):
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("in_memory_cache", "set", ["websites_data", website_set])
     return HttpResponseRedirect("/?m=Website-Data-Reset")
+
 
 @staff_member_required
 def reset_index_cache_for_text(request, title):
@@ -815,7 +817,18 @@ def untagged_sheets(request):
 
     return HttpResponse("<html><h1>Untagged Public Sheets</h1><ul>" + html + "</ul></html>")
 
-
+@staff_member_required
+def categorize_sheets(request):
+    props = base_props(request)
+    categorize_props = get_sheet_categorization_info("categories")
+    props.update(categorize_props)
+    propsJSON = json.dumps(props, ensure_ascii=False)
+    context = {
+        "title": "Categorize Sheets",
+        "description": "Retrieve the latest uncategorized, public sheet and allow user to tag",
+        "propsJSON": propsJSON
+    }
+    return render(request, "static/categorize-sheets.html", context)
 
 @staff_member_required
 def spam_dashboard(request):
@@ -1065,6 +1078,7 @@ def modtools_upload_workflowy(request):
 def compare(request, comp_ref=None, lang=None, v1=None, v2=None):
     print(comp_ref)
     ref_array = None
+    sec_ref = ""
     if comp_ref and Ref.is_ref(comp_ref):
         o_comp_ref = Ref(comp_ref)
         sec_ref = o_comp_ref.first_available_section_ref()

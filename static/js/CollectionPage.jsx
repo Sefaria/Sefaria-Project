@@ -1,24 +1,27 @@
-import {
-  CategoryColorLine,
-  DropdownModal,
-  DropdownButton,
-  DropdownOptionList,
-  LanguageToggleButton,
-  LoadingMessage,
-  TwoOrThreeBox,
-  SheetListing,
-  SinglePanelNavHeader,
-  ProfilePic,
-  SimpleLinkedBlock,
-  InterfaceText,
-} from './Misc';
 import React  from 'react';
+import Component from 'react-class';
 import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
 import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
+import { NavSidebar } from './NavSidebar';
 import Footer  from './Footer';
-import Component from 'react-class';
+import {
+  CategoryColorLine,
+  ContentText,
+  DropdownModal,
+  DropdownButton,
+  DropdownOptionList,
+  FilterableList,
+  InterfaceText,
+  LanguageToggleButton,
+  LoadingMessage,
+  ProfilePic,
+  ResponsiveNBox,
+  SheetListing,
+  TabView,
+  TwoOrThreeBox,
+} from './Misc';
 
 
 class CollectionPage extends Component {
@@ -26,17 +29,19 @@ class CollectionPage extends Component {
     super(props);
 
     const collectionData = Sefaria.getCollectionFromCache(props.slug);
-    const sheetSort = "date";
-    if (collectionData) { this.sortSheetData(collectionData, sheetSort); }
 
     this.state = {
-      showTopics: collectionData && !!collectionData.showTagsByDefault && !props.tag,
-      sheetFilterTopic: props.tag,
-      sheetSort: sheetSort,
-      displaySort: false,
-      tab: "sheets",
+      showFilterHeader: !!props.tag,
+      sheetFilterTopic: props.tag || '',
+      tabIndex: !!props.tag ? 1 : 0,
       collectionData: collectionData,
     };
+ 
+    this.scrollableRef = React.createRef();
+
+    /*
+    this.props.setCollectionTag(topic);
+    */
   }
   componentDidMount() {
     this.loadData();
@@ -47,132 +52,22 @@ class CollectionPage extends Component {
       this.loadData();
     }
 
-    if (!this.state.showTopics && prevState.showTopics && $(".content").scrollTop() > 570) {
-      $(".content").scrollTop(570);
-    }
-  }
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.tag !== this.state.sheetFilterTopic) {
-      this.setState({sheetFilterTopic: nextProps.tag});
-      if (this.showTagsByDefault && nextProps.tag == null) {
-        this.setState({showTopics: true});
-      }
-      if (nextProps.tag !== null) {
-        this.setState({showTopics: false});
-      }
+    if (prevState.sheetFilterTopic !== this.state.sheetFilterTopic && $(".content").scrollTop() > 260) {
+      $(".content").scrollTop(0);
     }
   }
   loadData() {
     Sefaria.getCollection(this.props.slug)
       .then(collectionData => {
-        this.sortSheetData(collectionData, this.state.sheetSort);
-        this.setState({
-          collectionData,
-          showTopics: !!collectionData.showTagsByDefault && !this.props.tag
-        });
+        this.setState({collectionData});
         this.props.updateCollectionName(collectionData.name);
       });
   }
   onDataChange() {
     this.setState({collectionData: Sefaria._collections[this.props.slug]});
   }
-  sortSheetData(collection, sheetSort) {
-    // Warning: This sorts the sheets within the cached collection item in sefaria.js
-    if (!collection.sheets) { return; }
-    const sorters = {
-      date: function(a, b) {
-        return Date.parse(b.modified) - Date.parse(a.modified);
-      },
-      alphabetical: function(a, b) {
-        return a.title.stripHtml().trim().toLowerCase() > b.title.stripHtml().trim().toLowerCase() ? 1 : -1;
-      },
-      views: function(a, b) {
-        return b.views - a.views;
-      }
-    };
-    collection.sheets.sort(sorters[sheetSort]);
-
-    if (collection.name == "גיליונות נחמה"){
-      let parshaOrder = ["Bereshit", "Noach", "Lech Lecha", "Vayera", "Chayei Sara", "Toldot", "Vayetzei", "Vayishlach", "Vayeshev", "Miketz", "Vayigash", "Vayechi", "Shemot", "Vaera", "Bo", "Beshalach", "Yitro", "Mishpatim", "Terumah", "Tetzaveh", "Ki Tisa", "Vayakhel", "Pekudei", "Vayikra", "Tzav", "Shmini", "Tazria", "Metzora", "Achrei Mot", "Kedoshim", "Emor", "Behar", "Bechukotai", "Bamidbar", "Nasso", "Beha'alotcha", "Sh'lach", "Korach", "Chukat", "Balak", "Pinchas", "Matot", "Masei", "Devarim", "Vaetchanan", "Eikev", "Re'eh", "Shoftim", "Ki Teitzei", "Ki Tavo", "Nitzavim", "Vayeilech", "Ha'Azinu", "V'Zot HaBerachah"]
-      if (this.props.interfaceLang == "english") {
-        parshaOrder = ["English"].concat(parshaOrder);
-      }
-      collection.pinnedTags = parshaOrder;
-    }
-    if (collection.pinnedSheets && collection.pinnedSheets.length > 0) {
-      this.pinSheetsToSheetList(collection);
-    }
-    if (collection.pinnedTags && collection.pinnedTags.length > 0) {
-      this.sortTags(collection);
-    }
-  }
-  pinSheetsToSheetList(collection) {
-    // Applies any pinned sheets to the sorting of sheets list
-    const sortPinned = function(a, b) {
-      const ai = collection.pinnedSheets.indexOf(a.id);
-      const bi = collection.pinnedSheets.indexOf(b.id);
-      if (ai == -1 && bi == -1) { return 0; }
-      if (ai == -1) { return 1; }
-      if (bi == -1) { return -1; }
-      return  ai < bi ? -1 : 1;
-    };
-    collection.sheets.sort(sortPinned);
-  }
-  sortTags(collection) {
-    const sortTags = function(a, b) {
-      const ai = collection.pinnedTags.indexOf(a.asTyped);
-      const bi = collection.pinnedTags.indexOf(b.asTyped);
-      if (ai == -1 && bi == -1) { return 0; }
-      if (ai == -1) { return 1; }
-      if (bi == -1) { return -1; }
-      return  ai < bi ? -1 : 1;
-    };
-    collection.topics.sort(sortTags);
-  }
-  setTab(tab) {
-    this.setState({tab: tab});
-  }
-  toggleSheetTags() {
-    if (this.state.showTopics) {
-      this.setState({showTopics: false});
-    } else {
-      this.setState({showTopics: true, sheetFilterTopic: null});
-      this.props.setCollectionTag(null);
-    }
-  }
-  setSheetTag(topic) {
-    this.setState({sheetFilterTopic: topic, showTopics: false});
-    this.props.setCollectionTag(topic);
-  }
-  handleTagButtonClick (topic) {
-    if (topic == this.state.sheetFilterTopic) {
-      this.setState({sheetFilterTopic: null, showTopics: false});
-      this.props.setCollectionTag(null);
-    } else {
-      this.setSheetTag(topic);
-    }
-  }
-  changeSheetSort(value) {
-    let collectionData = this.state.collectionData;
-    this.sortSheetData(collectionData, value);
-    this.setState({collectionData, sheetSort: value, displaySort: false});
-  }
-  searchCollection(query) {
-    this.props.searchInCollection(query, this.state.collectionData.name);
-  }
-  handleSearchKeyUp(event) {
-    if (event.keyCode === 13) {
-      var query = $(event.target).val();
-      if (query) {
-        this.searchCollection(query);
-      }
-    }
-  }
-  handleSearchButtonClick(event) {
-    var query = $(ReactDOM.findDOMNode(this)).find(".collectionSearchInput").val();
-    if (query) {
-      this.searchCollection(query);
-    }
+  setFilter(filter) {
+    this.setState({tabIndex: 1, sheetFilterTopic: filter, showFilterHeader: true});
   }
   memberList() {
     var collection = this.state.collectionData;
@@ -182,6 +77,10 @@ class CollectionPage extends Component {
     var invitations = collection.invitations.map(function(member) {member.role = "Invitation"; return member; });
 
     return admins.concat(members, invitations);
+  }
+  isMember() {
+    const members   = this.memberList();
+    return members && members.filter(function(x) { return x.uid == Sefaria._uid } ).length !== 0;
   }
   pinSheet(sheetId) {
     if (this.pinning) { return; }
@@ -200,184 +99,202 @@ class CollectionPage extends Component {
     }.bind(this));
     this.pinning = true;
   }
+  sortSheets(option, a, b) {
+    const [ai, bi] = [a, b].map(x => this.state.collectionData.pinnedSheets.indexOf(x.id));
+    if (ai !== bi) {
+      return  ai < bi ? -1 : 1;
+    
+    } else if (option == "Recent") {
+      return Date.parse(b.modified) - Date.parse(a.modified);
+  
+    } else if (option === "Alphabetical") {
+      return a.title.stripHtml().trim().toLowerCase() > b.title.stripHtml().trim().toLowerCase() ? 1 : -1;
+  
+    } else if (option === "Views") {
+      return b.views - a.views;
+    }
+  }
+  filterSheets(filter, sheet) {
+    const n = text => text.toLowerCase();
+    filter = n(filter);
+    const filterText = [sheet.title.stripHtml(),
+                        sheet.topics.map(topic => topic.asTyped).join(" "),
+                        ].join(" ");
+    return n(filterText).indexOf(filter) > -1;
+  }
+  renderSheet(sheet) {
+    return (
+      <SheetListing
+        sheet={sheet}
+        hideAuthor={true}
+        infoUnderneath={true}
+        showAuthorUnderneath={true}
+        hideCollection={true}
+        pinned={this.state.collectionData.pinnedSheets.indexOf(sheet.id) != -1}
+        pinnable={this.isMember()}
+        editable={sheet.author == Sefaria._uid}
+        saveable={sheet.author !== Sefaria._uid && !this.isMember()}
+        collectable={true}
+        pinSheet={this.pinSheet.bind(null, sheet.id)}
+        handleCollectionsChange={this.onDataChange}
+        toggleSignUpModal={this.props.toggleSignUpModal}
+        showSheetSummary={true}
+        key={sheet.id} />
+    );
+  }
+  renderEmptyList({filter}) {
+    if (filter) {
+      return (
+        <div className="emptyMessage sans-serif">
+          <InterfaceText>No sheets matching </InterfaceText>;
+          "<InterfaceText text={{en: filter, he: filter}} />".
+        </div>
+      );
+    } else if (this.isMember()) {
+      return (
+        <div className="emptyMessage sans-serif">
+          <InterfaceText>You can add sheets to this collection on your profile.</InterfaceText>
+          <br />
+          <a className="button" href="/my/profile">
+            <InterfaceText>Open Profile</InterfaceText>
+          </a>
+        </div>
+      );
+    } else {
+      return (
+        <div className="emptyMessage sans-serif">
+          <InterfaceText>There are no sheets in this collection yet.</InterfaceText>
+        </div>
+      );
+    }
+  }
+  renderSearchLink({filter}) {
+    if (!filter || !this.state.collectionData.listed) { return null; }
+    return (
+      <a className="searchInCollectionLink sans-serif" href={`/search?q=${filter}&tab=sheet&scollectionsFilters=${this.state.collectionData.name}`}
+        onClick={(e) => {
+          e.preventDefault();
+          this.props.searchInCollection(filter, this.state.collectionData.name);
+        }}>
+        <InterfaceText>Search the full text of this collection for</InterfaceText>&nbsp;
+        "<InterfaceText text={{en: filter, he: filter}} />" &raquo;
+      </a>
+    );
+  }
   render() {
     const collection = this.state.collectionData;
+    const sidebarModules = [];
+
     let content;
 
     if (!collection) {
-      content = <div className="contentInner"><LoadingMessage /></div>;
+      content = <LoadingMessage />;
     } else {
-      var sheets         = collection.sheets;
-      var topicList      = collection.topics;
-      var members        = this.memberList();
-      var isMember       = members && members.filter(function(x) { return x.uid == Sefaria._uid } ).length !== 0;
-      var isAdmin        = collection.admins.filter(function(x) { return x.uid == Sefaria._uid } ).length !== 0;
+      const sheets  = collection.sheets;
+      const isAdmin = collection.admins.filter(function(x) { return x.uid == Sefaria._uid } ).length !== 0;
 
-      topicList = topicList ? topicList.map(topic => {
-          const filterThisTag = (event) => {event.preventDefault(); this.handleTagButtonClick(topic.slug)};
-          const classes = classNames({navButton: 1, sheetButton: 1, active: this.state.sheetFilterTopic == topic.slug});
-          return (
-              <SimpleLinkedBlock onClick={filterThisTag} en={topic.en} he={topic.he} classes={classes} key={topic.slug} url={`?${topic.slug}`}>
-                <span className="enInHe">{` (${topic.count})`}</span>
-              </SimpleLinkedBlock>
-          );
-        }) : null;
+      if (collection.imageUrl) {
+        sidebarModules.push({type: "Image", props: {url: collection.imageUrl}});
+      }
 
-      sheets = this.state.sheetFilterTopic ? sheets.filter(sheet => sheet.topics && sheet.topics.reduce((accum, curr) => accum || this.state.sheetFilterTopic === curr.slug, false)) : sheets;
-      sheets = sheets.map(function(sheet) {
-        return (<SheetListing
-                  sheet={sheet}
-                  hideAuthor={true}
-                  infoUnderneath={true}
-                  showAuthorUnderneath={true}
-                  hideCollection={true}
-                  pinned={collection.pinnedSheets.indexOf(sheet.id) != -1}
-                  pinnable={isMember}
-                  editable={sheet.author == Sefaria._uid}
-                  saveable={sheet.author !== Sefaria._uid && !isMember}
-                  collectable={true}
-                  pinSheet={this.pinSheet.bind(null, sheet.id)}
-                  handleCollectionsChange={this.onDataChange}
-                  toggleSignUpModal={this.props.toggleSignUpModal}
-                  key={sheet.id} 
-                  showSheetSummary={true}/>);
-      }.bind(this));     
-
-      content = <div className="contentInner">
-        {collection.imageUrl ?
-          <img className="collectionImage" src={collection.imageUrl} alt={this.props.name}/>
-          : null }
-
-        <div className="collectionInfo">
-          <h1>
-            {collection.toc ?
-            <span>
-              { this.props.multiPanel && this.props.interfaceLang !== "hebrew" ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
-              <span className="en">{collection.toc.title}</span>
-              <span className="he">{collection.toc.heTitle}</span>
-            </span>
-            : collection.name }
-          </h1>
-
-          {collection.websiteUrl ?
-            <a className="collectionWebsite" target="_blank" href={collection.websiteUrl}>{collection.websiteUrl}</a>
-            : null }
-
-          {collection.toc ?
-            <div className="collectionDescription">
-              <span>
-                <span className="en" dangerouslySetInnerHTML={ {__html: collection.toc.description} }></span>
-                <span className="he"dangerouslySetInnerHTML={ {__html: collection.toc.heDescription} }></span>
-              </span>
-            </div>
-          : collection.description ?
-            <div className="collectionDescription"  dangerouslySetInnerHTML={ {__html: collection.description} }></div>
-          : null }
+      const editorsBlock = (
+        <div>
+         {isAdmin ? <CollectionInvitationBox slug={this.props.slug} onDataChange={this.onDataChange}/> : null }
+         {this.memberList().map((member, i) => (
+            <CollectionMemberListing
+              member={member}
+              isAdmin={isAdmin}
+              isSelf={member.uid == Sefaria._uid}
+              slug={this.props.slug}
+              onDataChange={this.onDataChange}
+              key={i} />
+          ))}
         </div>
+      );
+      sidebarModules.push({type: "Wrapper", props: {
+        title: "Editors",
+        content: editorsBlock}});
 
-        <div className="tabs">
-          <a className={classNames({bubbleTab: 1, active: this.state.tab == "sheets"})} onClick={this.setTab.bind(null, "sheets")}>
-            <span className="int-en">Sheets</span>
-            <span className="int-he">דפי מקורות</span>
-          </a>
-          <a className={classNames({bubbleTab: 1, active: this.state.tab == "members"})} onClick={this.setTab.bind(null, "members")}>
-            <InterfaceText>Editors</InterfaceText>
-          </a>
-          { isAdmin ?
-            <a className="bubbleTab" href={"/collections/" + collection.slug + "/settings"}>
-              <span className="int-en">Settings</span>
-              <span className="int-he">הגדרות</span>
-            </a>
-            : null }
+      const hasContentsTab = (collection.pinnedTags && collection.pinnedTags.length);
+      const tabs = !hasContentsTab ? []
+        : [{id: "contents", title: {en: "Contents", he: Sefaria._("Contents")}}];
+      tabs.push(
+        {id: "sheets", title: {en: "Sheets", he: Sefaria._("Sheets")}},
+        {
+          id: 'filter',
+          title: {en: "Filter", he: Sefaria._("Filter")},
+          icon: `/static/icons/arrow-${this.state.showFilterHeader ? 'up' : 'down'}-bold.svg`,
+          justifyright: true
+        }
+      );
+      const setTab = (tabIndex) => {
+        if (tabIndex === tabs.length - 1) {
+          this.setState({showFilterHeader: !this.state.showFilterHeader});
+        } else {
+          this.setState({tabIndex, showFilterHeader: false, sheetFilterTopic: ""});
+        }
+      };
+      const renderTab = t => (
+        <div className={classNames({tab: 1, noselect: 1, filter: t.justifyright, open: t.justifyright && this.state.showFilterHeader})}>
+          <InterfaceText text={t.title} />
+          { t.icon ? <img src={t.icon} alt={`${t.title.en} icon`} /> : null }
         </div>
+      );
 
-        { this.state.tab == "sheets" ?
-          <div className="sheetList">
-            {sheets.length ?
-            <div className="splitHeader">
-              { topicList && topicList.length ?
-              <span className="filterByTag sans-serif" onClick={this.toggleSheetTags}>
-                <span className="int-en" >Filter By Tag <i className="fa fa-angle-down"></i></span>
-                <span className="int-he">סנן לפי תווית <i className="fa fa-angle-down"></i></span>
-               </span>
-               : <div /> }
+      content = (
+        <>
+          <CollectionAbout
+            collection={collection}
+            isAdmin={isAdmin}
+            toggleLanguage={this.props.toggleLanguage} />
 
-              <DropdownModal close={()=>this.setState({displaySort: false})} isOpen={this.state.displaySort}>
-                <DropdownButton
-                  isOpen={this.state.displaySort}
-                  toggle={()=>this.setState({displaySort: !this.state.displaySort})}
-                  enText={"Sort"}
-                  heText={"מיון"}
-                />
-                <DropdownOptionList
-                  isOpen={this.state.displaySort}
-                  options={[{type: "date", name: "Recent", heName: "הכי חדש"}, {type: "alphabetical", name:"Alphabetical", heName: "אלפביתי"}, {type: "views", name:"Most Viewed", heName: "הכי נצפה"}]}
-                  currOptionSelected={this.state.sheetSort}
-                  handleClick={this.changeSheetSort}
-                />
-              </DropdownModal>
-            </div>
-            : null }
+          <TabView
+            tabs={tabs}
+            renderTab={renderTab}
+            containerClasses={"largeTabs"}
+            currTabIndex={this.state.tabIndex}
+            setTab={setTab} >
 
-          {collection.listed ?
-            <div className="collectionSearchBox">
-              <img className="collectionSearchIcon" src="/static/icons/iconmonstr-magnifier-2.svg" onClick={this.handleSearchButtonClick} />
-              <input
-                className="collectionSearchInput"
-                placeholder={Sefaria._("Search")}
-                onKeyUp={this.handleSearchKeyUp} />
-          </div> : null}
+            {!hasContentsTab ? null :
+            <CollectionContentsTab 
+              collection={collection}
+              setFilter={this.setFilter} />}
 
-          {this.state.showTopics ? <div className="tagsList"><TwoOrThreeBox content={topicList} width={this.props.width} /></div> : null}
-
-          {sheets.length && !this.state.showTopics ? sheets : null}
-
-          {!sheets.length ? (isMember ?
-                  <div className="emptyMessage">
-                    <InterfaceText>You can add sheets to this collection on your profile.</InterfaceText>
-                    <br />
-                    <a className="button" href="/my/profile">
-                      <InterfaceText>Open Profile</InterfaceText>
-                    </a>
-                  </div>
-                : <div className="emptyMessage">
-                    <InterfaceText>There are no sheets in this collection yet.</InterfaceText>
-                  </div>) : null}
-          </div>
-          : null }
-
-          {this.state.tab == "members" ?
-            <div>
-             {isAdmin ? <CollectionInvitationBox slug={this.props.slug} onDataChange={this.onDataChange}/> : null }
-             { members.map(function (member, i) {
-                return <CollectionMemberListing
-                        member={member}
-                        isAdmin={isAdmin}
-                        isSelf={member.uid == Sefaria._uid}
-                        slug={this.props.slug}
-                        onDataChange={this.onDataChange}
-                        key={i} />
-                }.bind(this) )
-              }
-            </div>
-          : null }
-      </div>
+            <FilterableList
+              pageSize={20}
+              filterFunc={this.filterSheets}
+              sortFunc={this.sortSheets}
+              renderItem={this.renderSheet}
+              renderEmptyList={this.renderEmptyList}
+              renderFooter={this.renderSearchLink}
+              sortOptions={["Recent", "Alphabetical", "Views"]}
+              data={sheets}
+              containerClass={"sheetList"}
+              scrollableElement={this.scrollableRef}
+              initialRenderSize={collection._sheetsDisplayed}
+              onDisplayedDataChange={data => {collection._sheetsDisplayed = data.length}}
+              initialFilter={this.state.sheetFilterTopic}
+              showFilterHeader={this.state.showFilterHeader} />
+          
+          </TabView>
+        </>
+      );
     }
 
-    var classes = classNames({readerNavMenu: 1, noHeader: this.props.hideNavHeader});
-    return <div className={classes}>
-            <CategoryColorLine category="Sheets" />
-            {this.props.hideNavHeader ? null :
-            <SinglePanelNavHeader
-              title="Collection"
-              navHome={this.props.navHome}
-              showDisplaySettings={false}/>}
-
-            <div className="content collectionPage hasFooter">
+    return (
+      <div className="readerNavMenu">
+        <CategoryColorLine category="Sheets" />
+        <div className="content collectionPage" ref={this.scrollableRef}>
+          <div className="sidebarLayout">
+            <div className="contentInner">
               {content}
-              <Footer />
-            </div>;
+            </div>
+            <NavSidebar modules={sidebarModules} />
           </div>
+          <Footer />
+        </div>
+      </div>
+    );
   }
 }
 CollectionPage.propTypes = {
@@ -388,6 +305,92 @@ CollectionPage.propTypes = {
   tag:                PropTypes.string,
   interfaceLang:      PropTypes.string,
   searchInCollection: PropTypes.func,
+};
+
+
+const CollectionAbout = ({collection, isAdmin, toggleLanguage}) => (
+  <div className="collectionInfo sans-serif">
+    {collection.toc ?
+    <div className="navTitle">
+      <h1>
+        <ContentText text={{en: collection.toc.title, he: collection.toc.heTitle}} />
+      </h1>
+      { isAdmin ? <EditCollectionButton slug={collection.slug} /> : null }
+      { Sefaria.multiPanel && Sefaria.interfaceLang !== "hebrew" ? <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null }
+    </div>
+    : 
+    <div className="navTitle">
+      <h1>{collection.name}</h1>
+      { isAdmin ? <EditCollectionButton slug={collection.slug} /> : null }
+    </div> }
+
+    <a className="collectionLabel" href="/collections">
+      <InterfaceText>Collection</InterfaceText>
+    </a>
+
+    {collection.toc ?
+      <div className="collectionDescription">
+        <ContentText html={{en: collection.toc.description, he: collection.toc.heDescription}} />
+      </div>
+    : collection.description ?
+      <div className="collectionDescription"  dangerouslySetInnerHTML={ {__html: collection.description} }></div>
+    : null }
+
+    {collection.websiteUrl ?
+      <a className="collectionWebsite" target="_blank" href={collection.websiteUrl}>{collection.websiteUrl.replace(/https?:\/\//, "")}</a>
+      : null }
+  </div>
+);
+
+
+const EditCollectionButton = ({slug}) => (
+  <a class="button small white" href={`/collections/${slug}/settings`}>
+    <img className="buttonIcon" src="/static/icons/tools-write-note.svg" /><InterfaceText>Edit</InterfaceText>
+  </a>
+);
+
+
+
+const CollectionContentsTab = ({collection, setFilter}) => {
+  let pinnedTags = collection.pinnedTags;
+  
+  if (!pinnedTags || !pinnedTags.length) { return null; }
+
+  if (collection.name === "גיליונות נחמה" && Sefaria.interfaceLang === "english"){
+    pinnedTags = ["English"].concat(pinnedTags);
+  }
+
+  // Tags may be grouped under labels which are represented as objects in `pinnedTags`, instead of strings.
+  const groupedTags = pinnedTags.reduce((accum, tag) => {
+    if (typeof tag === "object") {
+      return accum.concat([{label: tag, contents: []}]);
+    } else if (accum.length == 0) {
+      return accum.concat([{label: null, contents: [tag]}]);
+    } else {
+      accum[accum.length -1].contents.push(tag);
+      return accum;
+    }
+  }, []);
+
+  return (
+    <div className="collectionContentsTab">
+      {groupedTags.map(tagGroup => (
+        <div key={tagGroup.label ? tagGroup.label.en : "contents"}>
+          {!tagGroup.label ? null :
+          <div className="collectionContentsSectionLabel sans-serif">
+            <InterfaceText text={tagGroup.label} />
+          </div>}
+          <ResponsiveNBox content={tagGroup.contents.map(tag => (
+            <a href={`/collections/${collection.slug}?tag=${tag}`} className="collectionContentsTag" onClick={(e) => {
+              e.preventDefault();
+              setFilter(tag);}}>
+              <InterfaceText>{tag}</InterfaceText>
+            </a>   
+          ))} />
+        </div>
+      ))}
+    </div>
+  );
 };
 
 
@@ -438,10 +441,10 @@ class CollectionInvitationBox extends Component {
     return re.test(email);
   }
   render() {
-    return (<div className="collectionInvitationBox">
+    return (<div className="collectionInvitationBox sans-serif">
               <div className="collectionInvitationBoxInner">
                 <input id="collectionInvitationInput" placeholder={Sefaria._("Email Address")} />
-                <div className="button" onClick={this.onInviteClick}>
+                <div className="button small" onClick={this.onInviteClick}>
                   <InterfaceText>Invite</InterfaceText>
                 </div>
               </div>
@@ -470,22 +473,19 @@ class CollectionMemberListing extends Component {
 
     return (
       <div className="collectionMemberListing">
-        <div className="collectionLeft">
-          <a href={this.props.member.profileUrl}>
-            <ProfilePic
-              url={this.props.member.imageUrl}
-              name={this.props.member.name}
-              len={50}
-            />
-          </a>
-
+        <a href={this.props.member.profileUrl} className="collectionMemberListingPic">
+          <ProfilePic
+            url={this.props.member.imageUrl}
+            name={this.props.member.name}
+            len={40}
+          />
+        </a>
+        <div className="collectionMemberListingText">
           <a href={this.props.member.profileUrl} className="collectionMemberListingName">
             {this.props.member.name}
           </a>
-        </div>
-
-        <div className="collectionMemberListingRoleBox">
-          <span className="collectionMemberListingRole"><InterfaceText>{this.props.member.role}</InterfaceText></span>
+          <div className="collectionMemberListingRole">
+            <InterfaceText>{this.props.member.role}</InterfaceText>
           {this.props.isAdmin || this.props.isSelf ?
             <CollectionMemberListingActions
               member={this.props.member}
@@ -494,8 +494,8 @@ class CollectionMemberListing extends Component {
               isSelf={this.props.isSelf}
               onDataChange={this.props.onDataChange} />
             : null }
+          </div>
         </div>
-
       </div>);
   }
 }
@@ -512,19 +512,22 @@ class CollectionInvitationListing extends Component {
   render() {
     return (
       <div className="collectionMemberListing">
-        <span className="collectionInvitationListing">
-          {this.props.member.email}
-        </span>
-
-        <div className="collectionMemberListingRoleBox">
-          <span className="collectionMemberListingRole"><InterfaceText>Invited</InterfaceText></span>
-          <CollectionMemberListingActions
-            member={this.props.member}
-            slug={this.props.slug}
-            isInvitation={true}
-            onDataChange={this.props.onDataChange} />
+        <div className="collectionMemberListingPic invitation">
+          <img src="/static/icons/mail.svg" />
         </div>
-
+        <div className="collectionMemberListingText">
+          <span className="collectionMemberListingName">
+            {this.props.member.email}
+          </span>
+          <div className="collectionMemberListingRole">
+            <InterfaceText>Invited</InterfaceText>
+            <CollectionMemberListingActions
+              member={this.props.member}
+              slug={this.props.slug}
+              isInvitation={true}
+              onDataChange={this.props.onDataChange} />
+          </div>
+        </div>
       </div>);
   }
 }

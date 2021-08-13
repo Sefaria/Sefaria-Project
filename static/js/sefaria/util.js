@@ -60,11 +60,16 @@ class Util {
     static naturalTimePlural(n, singular, plural) {
       return n <= 1 ? singular : plural;
     }
-    static naturalTime(timeStamp, lang) {
+    static naturalTime(timeStamp, {lang, short}={}) {
       // given epoch time stamp, return string of time delta between `timeStamp` and now
       const now = Util.epoch_time();
-      const language = lang ? lang : (Sefaria.interfaceLang === 'hebrew' ? 'he' : 'en');
-      return Util.sefariaHumanizeDuration(now - timeStamp, { language });
+      let language = lang ? lang : (Sefaria.interfaceLang === 'hebrew' ? 'he' : 'en');
+      let spacer = " ";
+      if(short){
+          language = language == "en" ? "shortEn" : "shortHe";
+          spacer = language == "shortEn" ? "" : " ";
+      }
+      return Util.sefariaHumanizeDuration(now - timeStamp, { "language": language, "spacer": spacer });
     }
     static object_equals(a, b) {
         // simple object equality assuming values are primitive. see here
@@ -265,7 +270,6 @@ class Util {
     }
     static setupPrototypes() {
 
-
         String.prototype.toProperCase = function() {
           // Treat anything after ", " as a new clause
           // so that titles like "Orot, The Ideals of Israel" keep a capital The
@@ -317,6 +321,11 @@ class Util {
         String.prototype.stripHtmlConvertLineBreaks = function() {
           // Converts line breaks to spaces
           return striptags(this.replace(/\u00a0/g, ' ').decodeHtmlEntities().replace(/<p>/g, ' <p>').replace(/(<br>|\n)+/g,' '));
+        };
+
+        String.prototype.stripPunctuation = function() {
+          const regex = /[!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~]/g;
+          return this.replace(regex, '');
         };
 
         String.prototype.escapeHtml = function() {
@@ -449,6 +458,11 @@ class Util {
           };
         };
         */
+
+        Number.prototype.addCommas = function() {
+          return this.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); 
+        };
+        
         if (!Array.prototype.fill) {
           Object.defineProperty(Array.prototype, 'fill', {
             value: function(value) {
@@ -909,6 +923,28 @@ Util.sefariaHumanizeDuration = humanizeDuration.humanizer({
     h: 60 * 60,
     m: 60,
     s: 1,
+  },
+  languages: {
+    shortEn: {
+      y: () => "y",
+      mo: () => "mo",
+      w: () => "w",
+      d: () => "d",
+      h: () => "h",
+      m: () => "m",
+      s: () => "s",
+      ms: () => "ms",
+    },
+    shortHe: {
+      y: () => "ש'",
+      mo: () => "ח'",
+      w: () => "שב'",
+      d: () => "י'",
+      h: () => "שע'",
+      m: () => "דק'",
+      s: () => "שנ'",
+      ms: () => "מלש'",
+    },
   },
 });
 

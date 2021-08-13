@@ -39,8 +39,8 @@ class NoteListing extends Component {
 
     return (<div className="noteListing">
               <div className="actionButtons">
-                <img src="/static/img/sheet.svg" onClick={this.showSheetModal} />
-                <img src="/static/img/circled-x.svg" onClick={this.deleteNote} />
+                <img src="/static/icons/sheet.svg" onClick={this.showSheetModal} />
+                <img src="/static/icons/circled-x.svg" onClick={this.deleteNote} />
               </div>
               <a href={url}>
                 {this.props.showText ?

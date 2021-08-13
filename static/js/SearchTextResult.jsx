@@ -3,6 +3,10 @@ import Sefaria  from './sefaria/sefaria';
 import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
 import Component      from 'react-class';
+import {
+    ColorBarBox,
+    InterfaceText
+} from './Misc'
 
 
 class SearchTextResult extends Component {
@@ -105,21 +109,22 @@ class SearchTextResult extends Component {
             </div>) : null;
 
         const snippetMarkup = this.get_snippet_markup(data);
-        const snippetClasses = classNames({contentText: 1, snippet: 1, en: snippetMarkup.lang == "en", he: snippetMarkup.lang == "he"});
+        const snippetClasses = classNames({snippet: 1, en: snippetMarkup.lang == "en", he: snippetMarkup.lang == "he"});
         return (
-            <div className="result text_result">
+            <div className="result textResult">
                 <a href={href} onClick={this.handleResultClick}>
                     <div className="result-title">
-                        <span className="int-en">{s.ref}</span>
-                        <span className="int-he">{s.heRef}</span>
+                        <InterfaceText text={{en: s.ref, he: s.heRef}} />
                     </div>
-                    <div className={snippetClasses} dangerouslySetInnerHTML={snippetMarkup.markup} ></div>
-                    <div className="version" >{s.version}</div>
+                    <ColorBarBox tref={s.ref}>
+                        <div className={snippetClasses} dangerouslySetInnerHTML={snippetMarkup.markup} ></div>
+                    </ColorBarBox>
+                    <div className="version">{s.version}</div>
                 </a>
                 {more_results_indicator}
                 {shown_duplicates}
             </div>
-        )
+        );
     }
 }
 SearchTextResult.propTypes = {

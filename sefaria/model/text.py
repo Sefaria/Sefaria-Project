@@ -139,36 +139,6 @@ class AbstractIndex(object):
     def publication_time_period(self):
         return None
 
-    def contents_with_content_counts(self):
-        """
-        Returns the `contents` dictionary with each node annotated with section lengths info
-        from version_state.
-        """
-        contents = self.contents(v2=True)
-        vstate   = self.versionState()
-
-        def simplify_version_state(vstate_node):
-            return aggregate_available_texts(vstate_node["_all"]["availableTexts"])
-
-        def aggregate_available_texts(available):
-            """Returns a jagged arrary of ints that counts the number of segments in each section,
-            (by throwing out the number of versions of each segment)"""
-            if len(available) == 0 or type(available[0]) is int:
-                return len(available)
-            else:
-                return [aggregate_available_texts(x) for x in available]
-
-        def annotate_schema(schema, vstate):
-            if "nodes" in schema:
-                for node in schema["nodes"]:
-                    if "key" in node:
-                        annotate_schema(node, vstate[node["key"]])
-            else:
-                schema["content_counts"] = simplify_version_state(vstate)
-
-        annotate_schema(contents["schema"], vstate.content)
-        return contents
-
 
 class Index(abst.AbstractMongoRecord, AbstractIndex):
     """
@@ -191,6 +161,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         "schema",             # required for new style
         "alt_structs",        # optional for new style
         "default_struct",     # optional for new style
+        "exclude_structs",    # optional, specifies which structs the client should ignore when displaying navigation ToCs
         "order",              # optional for old style and new
         "authors",
         "enDesc",
@@ -241,12 +212,15 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
     def is_complex(self):
         return getattr(self, "nodes", None) and self.nodes.has_children()
 
-    def contents(self, v2=False, raw=False, force_complex=False, **kwargs):
+    def contents(self, v2=False, raw=False, force_complex=False, with_content_counts=False, with_related_topics=False, **kwargs):
         if raw:
             contents = super(Index, self).contents()
         elif v2:
             # adds a set of legacy fields like 'titleVariants', expands alt structures with preview, etc.
             contents = self.nodes.as_index_contents()
+            if with_content_counts:
+                contents["schema"] = self.annotate_schema_with_content_counts(contents["schema"])
+                contents["firstSectionRef"] = Ref(self.title).first_available_section_ref().normal()
         else:
             contents = self.legacy_form(force_complex=force_complex)
 
@@ -254,6 +228,36 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             contents = self.expand_metadata_on_contents(contents)
 
         return contents
+
+    def annotate_schema_with_content_counts(self, schema):
+        """
+        Returns the `schema` dictionary with each node annotated with section lengths info
+        from version_state.
+        """
+        vstate   = self.versionState()
+
+        def simplify_version_state(vstate_node):
+            return aggregate_available_texts(vstate_node["_all"]["availableTexts"])
+
+        def aggregate_available_texts(available):
+            """Returns a jagged arrary of ints that counts the number of segments in each section,
+            (by throwing out the number of versions of each segment)"""
+            if len(available) == 0 or type(available[0]) is int:
+                return len(available)
+            else:
+                return [aggregate_available_texts(x) for x in available]
+
+        def annotate_schema(schema, vstate):
+            if "nodes" in schema:
+                for node in schema["nodes"]:
+                    if "key" in node:
+                        annotate_schema(node, vstate[node["key"]])
+            else:
+                schema["content_counts"] = simplify_version_state(vstate)
+
+        annotate_schema(schema, vstate.content)
+
+        return schema
 
     def expand_metadata_on_contents(self, contents):
         """
@@ -435,7 +439,6 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
     def best_time_period(self):
         """
-
         :return: TimePeriod: First tries to return `compDate`. Deals with ranges and negative values for compDate
         If no compDate, looks at author info
         """
@@ -798,15 +801,19 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         return toc_contents_dict
 
-    def toc_contents(self, include_first_section=True, include_flags=True):
+    def toc_contents(self, include_first_section=False, include_flags=False, include_base_texts=False):
         """Returns to a dictionary used to represent this text in the library wide Table of Contents"""
         toc_contents_dict = {
             "title": self.get_title(),
             "heTitle": self.get_title("he"),
             "categories": self.categories[:],
+            "enShortDesc": getattr(self, "enShortDesc", ""),
+            "heShortDesc": getattr(self, "heShortDesc", ""),
             "primary_category" : self.get_primary_category(),
-            "dependence" : getattr(self, "dependence", False),
         }
+
+        if getattr(self, "dependence", False):
+            toc_contents_dict["dependence"] = self.dependence
 
         if include_first_section:
             firstSection = Ref(self.title).first_available_section_ref()
@@ -821,14 +828,13 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         if order:
             toc_contents_dict["order"] = order
 
-
         if hasattr(self, "collective_title"):
             toc_contents_dict["commentator"] = self.collective_title # todo: deprecate Only used in s1 js code
             toc_contents_dict["heCommentator"] = hebrew_term(self.collective_title) # todo: deprecate Only used in s1 js code
             toc_contents_dict["collectiveTitle"] = self.collective_title
             toc_contents_dict["heCollectiveTitle"] = hebrew_term(self.collective_title)
 
-        if hasattr(self, 'base_text_titles'):
+        if include_base_texts and hasattr(self, 'base_text_titles'):
             toc_contents_dict["base_text_titles"] = self.base_text_titles
             toc_contents_dict["base_text_order"] = self.get_base_text_order()
             if include_first_section:
@@ -836,8 +842,10 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             if "collectiveTitle" not in toc_contents_dict:
                 toc_contents_dict["collectiveTitle"] = self.title
                 toc_contents_dict["heCollectiveTitle"] = self.get_title("he")
+        elif hasattr(self, 'base_text_titles'):
+            toc_contents_dict["base_text_order"] = self.get_base_text_order()
 
-        if hasattr(self, 'base_text_mapping'):
+        if include_base_texts and hasattr(self, 'base_text_mapping'):
             toc_contents_dict["base_text_mapping"] = self.base_text_mapping
 
         if hasattr(self, 'hidden'):
@@ -2912,9 +2920,10 @@ class Ref(object, metaclass=RefCacheType):
                     ref_list_list = [sub_ref.all_segment_refs() for sub_ref in sub_refs]
                     ref_list += [refs for refs in ref_list_list]
                 else:
-                    sub_ja = temp_ref.get_state_ja().subarray_with_ref(temp_ref)
+                    state_ja = self.get_state_ja("all")
+                    sub_ja = state_ja.subarray_with_ref(temp_ref)
                     ref_list_sections = [temp_ref.subref([i + 1 for i in k ]) for k in sub_ja.non_empty_sections() ]
-                    ref_list += [ref_seg for ref_sec in ref_list_sections for ref_seg in ref_sec.all_subrefs()]
+                    ref_list += [ref_seg for ref_sec in ref_list_sections for ref_seg in ref_sec.all_subrefs(state_ja=state_ja)]
 
         return ref_list
 
@@ -3367,7 +3376,13 @@ class Ref(object, metaclass=RefCacheType):
             first_leaf = self.index_node.first_leaf()
             if not first_leaf:
                 return None
-            r = first_leaf.ref().padded_ref()
+            try:
+                r = first_leaf.ref().padded_ref()
+            except Exception as e: #VirtualNodes dont have a .ref() function so fall back to VersionState
+               if self.is_book_level():
+                   from .version_state import VersionState
+                   vs = VersionState(self.index, proj={"title": 1, "first_section_ref": 1})
+                   return Ref(vs.first_section_ref) if (vs is not None) else None
         else:
             return None
 
@@ -3548,7 +3563,7 @@ class Ref(object, metaclass=RefCacheType):
             l.append(self.subref(i + 1))
         return l
 
-    def all_subrefs(self, lang='all'):
+    def all_subrefs(self, lang='all', state_ja=None):
         """
         Return a list of all the valid :class:`Ref` objects one level deeper than this :class:`Ref`.
 
@@ -3569,8 +3584,8 @@ class Ref(object, metaclass=RefCacheType):
         if self.index_node.is_virtual:
             size = len(self.text().text)
             return self.subrefs(size)
-
-        size = self.get_state_ja(lang).sub_array_length([i - 1 for i in self.sections])
+        state_ja = state_ja or self.get_state_ja(lang)
+        size = state_ja.sub_array_length([i - 1 for i in self.sections])
         if size is None:
             size = 0
         return self.subrefs(size)
@@ -4242,7 +4257,7 @@ class Ref(object, metaclass=RefCacheType):
 
         :return list: each list element is an object with keys 'versionTitle' and 'language'
         """
-        fields = ["versionTitle", "versionSource", "language", "status", "license", "versionNotes",
+        fields = ["title", "versionTitle", "versionSource", "language", "status", "license", "versionNotes",
                   "digitizedBySefaria", "priority", "versionTitleInHebrew", "versionNotesInHebrew", "extendedNotes",
                   "extendedNotesHebrew", "purchaseInformationImage", "purchaseInformationURL"]
         versions = VersionSet(self.condition_query())
@@ -4755,12 +4770,15 @@ class Library(object):
                 "he": topic.get_primary_title("he"),
                 "displayOrder": getattr(topic, "displayOrder", 10000)
             }
+
+            with_descriptions = True # TODO revisit for data size / performance
             if with_descriptions:
+                if getattr(topic, "categoryDescription", False):
+                    topic_json['categoryDescription'] = topic.categoryDescription
                 description = getattr(topic, "description", None)
                 if description is not None and getattr(topic, "description_published", False):
                     topic_json['description'] = description
-                if getattr(topic, "categoryDescription", False):
-                    topic_json['categoryDescription'] = topic.categoryDescription
+
             explored.add(topic.slug)
         if len(children) > 0 or topic is None:  # make sure root gets children no matter what
             topic_json['children'] = []
@@ -4854,7 +4872,6 @@ class Library(object):
 
     def get_collections_in_library(self):
         return self._toc_tree.get_collections_in_library()
-
 
     def build_full_auto_completer(self):
         from .autospell import AutoCompleter

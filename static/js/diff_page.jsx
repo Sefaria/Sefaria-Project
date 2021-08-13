@@ -130,6 +130,7 @@ class PageLoader extends Component {
 }
 
   render() {
+    Sefaria.unpackDataFromProps(DJANGO_VARS.props);
     return (
       <div>
       <DataForm
@@ -205,7 +206,7 @@ class DataForm extends Component {
 
   componentWillMount() {
     if (Sefaria.isRef(this.state.secRef)) {
-      Sefaria.versions(this.state.secRef, true, null, false).then(this.loadPossibleVersions);
+      Sefaria.getVersions(this.state.secRef, true, null, false).then(this.loadPossibleVersions);
     }
   }
 
@@ -238,7 +239,7 @@ class DataForm extends Component {
 
   componentDidUpdate(prevProps, prevState) {
     if (Sefaria.isRef(this.state.secRef) && this.state.lang) {
-      Sefaria.versions(this.state.secRef, true, null, false).then(this.loadPossibleVersions);
+      Sefaria.getVersions(this.state.secRef, true, null, false).then(this.loadPossibleVersions);
     } else {
       this.setState({possibleVersions: null});
     }
@@ -640,7 +641,7 @@ class DiffElement extends Component {
     this.setState({mouseover: false});
   }
   openConfirm() {
-    if (Sefaria._uid & (Sefaria.is_moderator || Sefaria.is_editor)) {
+    if (Sefaria._uid && (Sefaria.is_moderator || Sefaria.is_editor)) {
       this.setState({confirmOpen: true, mouseover: false});
     } else if (Sefaria._uid) {
       alert("Only Sefaria Moderators Can Edit Texts");

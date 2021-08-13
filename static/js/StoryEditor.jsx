@@ -49,7 +49,7 @@ function StoryEditor(props) {
   };
 
   return (<div className="homeFeedWrapper">
-    <div className="content hasFooter" ref={scrollable_element}>
+    <div className="content" ref={scrollable_element}>
       <div className="contentInner">
         <h1>
           <span className="int-en">Stories</span>

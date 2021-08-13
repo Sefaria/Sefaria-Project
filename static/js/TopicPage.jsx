@@ -2,29 +2,24 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
-import MobileHeader from './MobileHeader';
+import { useIncrementalLoad } from './Hooks';
+import { NavSidebar } from './NavSidebar';
+import Footer from './Footer';
 import {
-    SheetBlock,
-    StorySheetList,
-    SaveLine,
-    StoryTitleBlock,
-    ColorBarBox,
-    StoryBodyBlock,
-    StoryFrame,
-    textPropType
+  SheetBlock,
+  TextPassage,
 } from './Story';
 import {
   TabView,
   LoadingMessage,
   Link,
-  TwoOrThreeBox,
+  ResponsiveNBox,
   InterfaceText,
   FilterableList,
   ToolTipped,
   SimpleLinkedBlock,
 } from './Misc';
-import Footer from './Footer';
-import { useIncrementalLoad } from './Hooks';
+
 
 /*
 *** Helper functions
@@ -82,7 +77,7 @@ const sheetFilter = (currFilter, sheet) => {
 };
 
 
-const refSort = (currSortOption, a, b, { interfaceLang }) => {
+const refSort = (currSortOption, a, b) => {
   a = a[1]; b = b[1];
   if (!a.order && !b.order) { return 0; }
   if ((0+!!a.order) !== (0+!!b.order)) { return (0+!!b.order) - (0+!!a.order); }
@@ -97,7 +92,7 @@ const refSort = (currSortOption, a, b, { interfaceLang }) => {
   else {
     const aAvailLangs = a.order.availableLangs || [];
     const bAvailLangs = b.order.availableLangs || [];
-    if (interfaceLang === 'english' && aAvailLangs.length !== bAvailLangs.length) {
+    if (Sefaria.interfaceLang === 'english' && aAvailLangs.length !== bAvailLangs.length) {
       if (aAvailLangs.indexOf('en') > -1) { return -1; }
       if (bAvailLangs.indexOf('en') > -1) { return 1; }
       return 0;
@@ -109,17 +104,17 @@ const refSort = (currSortOption, a, b, { interfaceLang }) => {
 };
 
 
-const sheetSort = (currSortOption, a, b, { interfaceLang }) => {
+const sheetSort = (currSortOption, a, b) => {
   if (!a.order && !b.order) { return 0; }
   if ((0+!!a.order) !== (0+!!b.order)) { return (0+!!b.order) - (0+!!a.order); }
   const aTLangHe = 0 + (a.order.titleLanguage === 'hebrew');
   const bTLangHe = 0 + (b.order.titleLanguage === 'hebrew');
   const aLangHe  = 0 + (a.order.language      === 'hebrew');
   const bLangHe  = 0 + (b.order.language      === 'hebrew');
-  if (interfaceLang === 'hebrew' && (aTLangHe ^ bTLangHe || aLangHe ^ bLangHe)) {
+  if (Sefaria.interfaceLang === 'hebrew' && (aTLangHe ^ bTLangHe || aLangHe ^ bLangHe)) {
     if (aTLangHe ^ bTLangHe && aLangHe ^ bLangHe) { return bTLangHe - aTLangHe; }  // title lang takes precedence over content lang
     return (bTLangHe + bLangHe) - (aTLangHe + aLangHe);
-  } else if (interfaceLang === 'english' && (aTLangHe ^ bTLangHe || aLangHe ^ bLangHe)) {
+  } else if (Sefaria.interfaceLang === 'english' && (aTLangHe ^ bTLangHe || aLangHe ^ bLangHe)) {
     if (aTLangHe ^ bTLangHe && aLangHe ^ bLangHe) { return aTLangHe - bTLangHe; }  // title lang takes precedence over content lang
     return (aTLangHe + aLangHe) - (bTLangHe + bLangHe);
   }
@@ -135,16 +130,30 @@ const sheetSort = (currSortOption, a, b, { interfaceLang }) => {
   }
 };
 
+const refRenderWrapper = (toggleSignUpModal, topicData) => item => {
+  const text = item[1];
+  const topicTitle = topicData && topicData.primaryTitle;
+  const langKey = Sefaria.interfaceLang === 'english' ? 'en' : 'he';
+  let dataSourceText = '';
 
-const refRenderWrapper = (toggleSignUpModal, topicData, interfaceLang) => item => (
-  <TextPassage
-    key={item[0]}
-    text={item[1]}
-    toggleSignUpModal={toggleSignUpModal}
-    topicTitle={topicData && topicData.primaryTitle}
-    interfaceLang={interfaceLang}
-  />
-);
+  if (!!text.dataSources && Object.values(text.dataSources).length > 0) {
+    dataSourceText = `${Sefaria._('This source is connected to ')}"${topicTitle && topicTitle[langKey]}" ${Sefaria._('by')} ${Object.values(text.dataSources).map(d => d[langKey]).join(' & ')}.`;
+  }
+
+  const afterSave = (
+    <ToolTipped altText={dataSourceText} classes={"saveButton tooltip-toggle three-dots-button"}>
+      <img src="/static/img/three-dots.svg" alt={dataSourceText}/>
+    </ToolTipped>
+  );
+
+  return (
+    <TextPassage
+      key={item[0]}
+      text={text}
+      afterSave={afterSave}
+      toggleSignUpModal={toggleSignUpModal} />
+  );
+};
 
 
 const sheetRenderWrapper = (toggleSignUpModal) => item => (
@@ -157,7 +166,8 @@ const sheetRenderWrapper = (toggleSignUpModal) => item => (
 */
 
 
-const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, interfaceLang, width, multiPanel, compare, hideNavHeader, contentLang, openDisplaySettings, openSearch, onClose}) => {
+const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initialWidth, 
+  openDisplaySettings, openSearch}) => {
     
     const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(topic) || {primaryTitle: topicTitle});
     const [subtopics, setSubtopics] = useState(Sefaria.topicTocPage(topic));
@@ -181,7 +191,7 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, interfaceLang,
         if (aDisplayOrder === bDisplayOrder) {
           const stripInitialPunctuation = str => str.replace(/^["#]/, "");
           const [aAlpha, bAlpha] = [a, b].map(x => {
-            if (interfaceLang === "hebrew") {
+            if (Sefaria.interfaceLang === "hebrew") {
               return (x.he.length) ?
                 stripInitialPunctuation(x.he) :
                "תתת" + stripInitialPunctuation(x.en);
@@ -199,53 +209,67 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, interfaceLang,
 
       })
       .map((t,i) => {
-      const { slug, children, en, he } = t;
-      const openTopic = e => {
-        e.preventDefault();
-        t.children ? setNavTopic(slug, {en, he}) : setTopic(slug, {en, he});
-      };
-      return <a href={`/topics/${children ? 'category/' : ''}${slug}`}
-         onClick={openTopic}
-         className="blockLink"
-         key={i}>
-          <span className='en'>{en || he}</span>
-          <span className='he'>{he || en}</span>
-      </a>
-    });
+        const { slug, children, description} = t;
+        const openTopic = e => {
+          e.preventDefault();
+          t.children ? setNavTopic(slug, {en, he}) : setTopic(slug, {en, he});
+        };
+        let {en, he} = t;
+        en = en.replace(/^Parashat /, "");
+        he = he.replace(/^פרשת /, "");
+        return (
+            <div className="navBlock">
+              <a href={`/topics/${children ? 'category/' : ''}${slug}`}
+                 className="navBlockTitle" 
+                 onClick={openTopic}
+                 key={i}>
+                <InterfaceText text={{en, he}} />
+              </a>
+              {description ?
+              <div className="navBlockDescription clamped">
+                <InterfaceText text={{en: description.en, he: description.he}} />
+              </div>
+              : null }
+            </div>
+        );
+      });
 
-    const footer         = compare ? null : <Footer />;
-    const navMenuClasses = classNames({readerNavCategoryMenu: 1, readerNavMenu: 1, noHeader: hideNavHeader, noLangToggleInHebrew: 1});
-    const contentClasses = classNames({content: 1, readerTocTopics:1, hasFooter: footer != null});
+    const sidebarModules = [
+      {type: "TrendingTopics"},
+      {type: "SponsorADay"},
+    ];
+    if (topicData.description) {
+      sidebarModules.unshift({
+        type: "TitledText",
+        props: {
+          enTitle: "About",
+          heTitle: Sefaria._("About"),
+          enText: topicData.description.en,
+          heText: topicData.description.he
+        }
+      });
+    }
+
     return (
-        <div className={navMenuClasses}>
-            {hideNavHeader ? null : (<MobileHeader
-              compare={compare}
-              mode="mainTOC"
-              onClose={onClose}
-              interfaceLang={interfaceLang}
-              openSearch={openSearch}
-              openDisplaySettings={openDisplaySettings}
-            />)}
-            <div className={contentClasses}>
-                <div className="contentInner">
-                    <TopicHeader topic={topic} topicData={topicData}
-                      multiPanel={multiPanel} interfaceLang={interfaceLang} isCat
-                      openDisplaySettings={openDisplaySettings}
-                      openSearch={openSearch}
-                      onClose={onClose} />
-                    <TwoOrThreeBox content={topicBlocks} width={width} />
+        <div className="readerNavMenu noLangToggleInHebrew">
+            <div className="content readerTocTopics">
+                <div className="sidebarLayout">
+                  <div className="contentInner">
+                      <h1><InterfaceText text={{en: topicTitle.en, he: topicTitle.he}} /></h1>
+                      <div className="readerNavCategories">
+                        <ResponsiveNBox content={topicBlocks} initialWidth={initialWidth} />
+                      </div>
+                  </div>
+                  <NavSidebar modules={sidebarModules} />
                 </div>
-                {footer}
+                <Footer />
             </div>
         </div>
     );
 };
 
 
-const TopicHeader = ({
-  topic, topicData, multiPanel, interfaceLang, isCat, setNavTopic, hideNavHeader,
-  onClose, openDisplaySettings, openSearch
-}) => {
+const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDisplaySettings, openSearch }) => {
   const { en, he } = !!topicData && topicData.primaryTitle ? topicData.primaryTitle : {en: "Loading...", he: "טוען..."};
   const isTransliteration = !!topicData ? topicData.primaryTitleIsTransliteration : {en: false, he: false};
   const category = !!topicData ? Sefaria.topicTocCategory(topicData.slug) : null;
@@ -272,8 +296,8 @@ const TopicHeader = ({
             </div>
        : null}
        {topicData && topicData.ref ?
-         <a href={`/${topicData.ref.url}`} className="resourcesLink blue">
-           <img src="/static/img/book-icon-black.svg" alt="Book Icon" />
+         <a href={`/${topicData.ref.url}`} className="resourcesLink button blue">
+           <img src="/static/icons/book-icon-black.svg" alt="Book Icon" />
            <span className="int-en">{ topicData.parasha ? Sefaria._('Read the Portion') : topicData.ref.en }</span>
            <span className="int-he">{ topicData.parasha ? Sefaria._('Read the Portion') : norm_hebrew_ref(topicData.ref.he) }</span>
          </a>
@@ -317,9 +341,8 @@ const TAB_DISPLAY_DATA = [
   }
 ]; 
 const TopicPage = ({
-  tab, topic, topicTitle, setTopic, setNavTopic, openTopics, interfaceLang, multiPanel,
-  hideNavHeader, showBaseText, navHome, toggleSignUpModal, openDisplaySettings,
-  updateTopicsTab, onClose, openSearch
+  tab, topic, topicTitle, setTopic, setNavTopic, openTopics, multiPanel, showBaseText, navHome, 
+  toggleSignUpModal, openDisplaySettings, updateTopicsTab, openSearch
 }) => {
     const defaultTopicData = {primaryTitle: topicTitle, tabs: {}, isLoading: true};
     const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(topic) || defaultTopicData);
@@ -327,10 +350,7 @@ const TopicPage = ({
     const [refsToFetchByTab, setRefsToFetchByTab] = useState({});
     const [parashaData, setParashaData] = useState(null);
     const [showFilterHeader, setShowFilterHeader] = useState(false);
-    const [extraData, setExtraData] = useState({ interfaceLang });
-    useEffect(() => {
-      setExtraData({ interfaceLang });
-    }, [interfaceLang]);
+
     const scrollableElement = useRef();
 
     const clearAndSetTopic = (topic, topicTitle) => {setTopic(topic, topicTitle)};
@@ -391,7 +411,7 @@ const TopicPage = ({
           he: Sefaria._("Filter")
         },
         id: 'filter',
-        icon: `/static/img/arrow-${showFilterHeader ? 'up' : 'down'}-bold.svg`,
+        icon: `/static/icons/arrow-${showFilterHeader ? 'up' : 'down'}-bold.svg`,
         justifyright: true
       });
       onClickFilterIndex = displayTabs.length - 1;      
@@ -406,21 +426,12 @@ const TopicPage = ({
       }
     }, [tabIndex]);
 
-    const classStr = classNames({topicPanel: 1, readerNavMenu: 1, noHeader: hideNavHeader });
+    const classStr = classNames({topicPanel: 1, readerNavMenu: 1});
     return <div className={classStr}>
-        {hideNavHeader ? null : 
-        (<MobileHeader
-          compare={false}
-          mode="mainTOC"
-          onClose={onClose}
-          interfaceLang={interfaceLang}
-          openSearch={openSearch}
-          openDisplaySettings={openDisplaySettings}
-        />)}
-        <div className="content hasFooter noOverflowX" ref={scrollableElement}>
+        <div className="content noOverflowX" ref={scrollableElement}>
             <div className="columnLayout">
                <div className="mainColumn storyFeedInner">
-                    <TopicHeader topic={topic} topicData={topicData} multiPanel={multiPanel} interfaceLang={interfaceLang} setNavTopic={setNavTopic} onClose={onClose} openSearch={openSearch} openDisplaySettings={openDisplaySettings} />
+                    <TopicHeader topic={topic} topicData={topicData} multiPanel={multiPanel} setNavTopic={setNavTopic} openSearch={openSearch} openDisplaySettings={openDisplaySettings} />
                     {(!topicData.isLoading && displayTabs.length) ?
                        <TabView
                           currTabIndex={tabIndex}
@@ -432,6 +443,7 @@ const TopicPage = ({
                               { t.icon ? <img src={t.icon} alt={`${t.title.en} icon`} /> : null }
                             </div>
                           )}
+                          containerClasses={"largeTabs"}
                           onClickArray={{[onClickFilterIndex]: ()=>setShowFilterHeader(!showFilterHeader)}}
                         >
                           {
@@ -453,8 +465,7 @@ const TopicPage = ({
                                     topicData._refsDisplayedByTab[key] = data.length;
                                   }}
                                   initialRenderSize={(topicData._refsDisplayedByTab && topicData._refsDisplayedByTab[key]) || 0}
-                                  extraData={extraData}
-                                  renderItem={renderWrapper(toggleSignUpModal, topicData, interfaceLang)}
+                                  renderItem={renderWrapper(toggleSignUpModal, topicData)}
                                 />
                               );
                             })
@@ -464,11 +475,16 @@ const TopicPage = ({
                 </div>
                 <div className="sideColumn">
                     { topicData ?
-                    <TopicSideColumn key={topic} slug={topic} links={topicData.links}
-                      clearAndSetTopic={clearAndSetTopic} setNavTopic={setNavTopic}
-                      parashaData={parashaData} tref={topicData.ref} interfaceLang={interfaceLang}
-                      timePeriod={topicData.timePeriod} properties={topicData.properties}
-                    />
+                    <TopicSideColumn 
+                      key={topic}
+                      slug={topic}
+                      links={topicData.links}
+                      clearAndSetTopic={clearAndSetTopic}
+                      setNavTopic={setNavTopic}
+                      parashaData={parashaData}
+                      tref={topicData.ref}
+                      timePeriod={topicData.timePeriod}
+                      properties={topicData.properties} />
                     : null }
                 </div>
             </div>
@@ -483,9 +499,7 @@ TopicPage.propTypes = {
   setNavTopic:         PropTypes.func.isRequired,
   openTopics:          PropTypes.func.isRequired,
   updateTopicsTab:     PropTypes.func.isRequired,
-  interfaceLang:       PropTypes.string,
   multiPanel:          PropTypes.bool,
-  hideNavHeader:       PropTypes.bool,
   showBaseText:        PropTypes.func,
   navHome:             PropTypes.func,
   openDisplaySettings: PropTypes.func,
@@ -494,16 +508,15 @@ TopicPage.propTypes = {
 
 
 const TopicPageTab = ({
-  data, renderItem, classes, sortOptions, sortFunc, filterFunc, extraData,
-  showFilterHeader, scrollableElement, onDisplayedDataChange, initialRenderSize
+  data, renderItem, classes, sortOptions, sortFunc, filterFunc, showFilterHeader, 
+  scrollableElement, onDisplayedDataChange, initialRenderSize
 }) => {
   return (
-    <div className="story topicTabContents">
+    <div className="topicTabContents">
       {!!data ?
         <div className={classes}>
           <FilterableList
             pageSize={20}
-            bottomMargin={800}
             scrollableElement={scrollableElement}
             showFilterHeader={showFilterHeader}
             filterFunc={filterFunc}
@@ -514,7 +527,6 @@ const TopicPageTab = ({
             sortOptions={sortOptions}
             onDisplayedDataChange={onDisplayedDataChange}
             initialRenderSize={initialRenderSize}
-            extraData={extraData}
             data={data}
           />
         </div> : <LoadingMessage />
@@ -522,35 +534,6 @@ const TopicPageTab = ({
     </div>
   );
 }
-
-
-const TextPassage = ({text, toggleSignUpModal, topicTitle, interfaceLang}) => {
-    if (!text.ref) { return null; }
-    const url = "/" + Sefaria.normRef(text.ref);
-    let dataSourceText = '';
-    const langKey = interfaceLang === 'english' ? 'en' : 'he';
-    if (!!text.dataSources && Object.values(text.dataSources).length > 0) {
-      dataSourceText = `${Sefaria._('This source is connected to ')}"${topicTitle && topicTitle[langKey]}" ${Sefaria._('by')} ${Object.values(text.dataSources).map(d => d[langKey]).join(' & ')}.`;
-    }
-    return <StoryFrame cls="textPassageStory">
-        <SaveLine dref={text.ref} toggleSignUpModal={toggleSignUpModal} classes={"storyTitleWrapper"}
-          afterChildren={(
-            <ToolTipped altText={dataSourceText} classes={"saveButton tooltip-toggle three-dots-button"}>
-              <img src="/static/img/three-dots.svg" alt={dataSourceText}/>
-            </ToolTipped>
-          )}
-        >
-            <StoryTitleBlock en={text.ref} he={norm_hebrew_ref(text.heRef)} url={url}/>
-        </SaveLine>
-        <ColorBarBox tref={text.ref}>
-            <StoryBodyBlock en={text.en} he={text.he}/>
-        </ColorBarBox>
-    </StoryFrame>;
-};
-TextPassage.propTypes = {
-  text: textPropType,
-  toggleSignUpModal:  PropTypes.func
-};
 
 
 const TopicLink = ({topic, topicTitle, onClick, isTransliteration, isCategory}) => (
@@ -568,7 +551,7 @@ TopicLink.propTypes = {
 };
 
 
-const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, interfaceLang, setNavTopic, timePeriod, properties }) => {
+const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, setNavTopic, timePeriod, properties }) => {
   const category = Sefaria.topicTocCategory(slug);
   const linkTypeArray = links ? Object.values(links).filter(linkType => !!linkType && linkType.shouldDisplay && linkType.links.filter(l => l.shouldDisplay !== false).length > 0) : [];
   if (linkTypeArray.length === 0) {
@@ -612,7 +595,7 @@ const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, int
             {
               linksToDisplay
               .sort((a, b) => {
-                const shortLang = interfaceLang == 'hebrew' ? 'he' : 'en';
+                const shortLang = Sefaria.interfaceLang == 'hebrew' ? 'he' : 'en';
                 if (!!a.title[shortLang] !== !!b.title[shortLang]) {
                   return (0+!!b.title[shortLang]) - (0+!!a.title[shortLang]);
                 }
@@ -671,6 +654,7 @@ const TopicSideSection = ({ title, children, hasMore }) => {
     </div>
   );
 }
+
 
 const ReadingsComponent = ({ parashaData, tref }) => (
   <div className="readings link-section">
@@ -753,6 +737,7 @@ const TopicMetaData = ({ timePeriod, properties={} }) => {
     </>
   );
 };
+
 
 export {
   TopicPage,
