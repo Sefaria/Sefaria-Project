@@ -38,7 +38,7 @@ def run_job(test=True, email=True):
 	if email:
 		sys.stdout = sys.__stdout__
 		with open("email2.txt", 'r') as f:
-			text = f.read()
+			text = "<br/>".join(list(f))
 		subject = "webpage cronjob"
 		from_email = "Sefaria <hello@sefaria.org>"
 		to = "stevek004@gmail.com"
