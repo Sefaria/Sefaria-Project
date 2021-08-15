@@ -144,7 +144,7 @@ class InMemoryCache():
             self.timeouts[key] = (timeout, datetime.now().timestamp())
 
     def get(self, key):
-        timeout = self.timeouts.get(key, None);
+        timeout = self.timeouts.get(key, None)
         if timeout and timeout[0] + timeout[1] < datetime.now().timestamp():
             self.set(key, None, timeout=timeout[0])
             return None

@@ -1150,7 +1150,7 @@ def next_untagged(request):
     body_unicode = request.body.decode('utf-8')
     body = json.loads(body_unicode)
     if("sheetId" in body):
-       update_sheet_tags_categories(body)
+       update_sheet_tags_categories(body, request.user.id)
     return jsonResponse(get_sheet_categorization_info("topics", body['skipIds']))
 
 
@@ -1161,6 +1161,6 @@ def next_uncategorized(request):
     body_unicode = request.body.decode('utf-8')
     body = json.loads(body_unicode)
     if("sheetId" in body):
-       update_sheet_tags_categories(body)
+       update_sheet_tags_categories(body, request.user.id)
     return jsonResponse(get_sheet_categorization_info("categories", body['skipIds']))
 
