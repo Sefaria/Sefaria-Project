@@ -2444,20 +2444,19 @@ a.navBlockTitle:hover {
   margin: 100px auto;
   font-size: 23px;
 }
-.bookPage .editTextInfo #newIndex #right {
-  float: right;
-}
-.bookPage .editTextInfo #newIndex #left {
-  float: left;
+
+.bookPage .editTextInfo #newIndex .publishBox {
+  margin-left: 400px;
 }
 
 .bookPage .editTextInfo #newIndexMsg {
-	display: none;
-	font-size: 29px;
-	margin-bottom: 27px;
-	text-align: center;
-	line-height: 1.2
+  display: none;
+  font-size: 29px;
+  margin-bottom: 27px;
+  text-align: center;
+  line-height: 1.2
 }
+
 
 .bookPage .editTextInfo #newIndexMsg .sub {
 	font-size: 21px;
@@ -2465,15 +2464,11 @@ a.navBlockTitle:hover {
 }
 
 .bookPage .editTextInfo #newIndex .fieldSet {
-	margin-bottom: 12px;
+	margin: 25px 300px 0px 0px;
 }
 
 .bookPage .editTextInfo #newIndex .fieldLabel {
-	width: 250px;
 	font-size: 20px;
-	display: inline-block;
-	vertical-align: top;
-	text-align: right;
 }
 
 .bookPage .editTextInfo #newIndex .optional {
@@ -2519,7 +2514,7 @@ a.navBlockTitle:hover {
 }
 
 .bookPage .editTextInfo #newIndex select {
-	margin-left: 7px;
+	width: 500px;
 }
 
 .bookPage .editTextInfo #newIndex #otherCategory {
@@ -2590,8 +2585,14 @@ a.navBlockTitle:hover {
 }
 
 .bookPage .editTextInfo #newIndex .actions {
-	margin-top: 10px;
-	text-align: center;
+  margin-top: 10px;
+  text-align: center;
+}
+
+.bookPage .editTextInfo #newIndex #cancel {
+  position: fixed;
+  left: 0px;
+  top: 75px;
 }
 
 .bookPage .editTextInfo #newIndex .help {
@@ -2618,7 +2619,6 @@ a.navBlockTitle:hover {
 
 .bookPage .editTextInfo #newIndex .helpText {
 	display: none;
-	position: absolute;
 	top: 24px;
 	left: 0px;
 	background: #eee;

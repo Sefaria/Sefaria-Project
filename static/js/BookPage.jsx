@@ -908,9 +908,13 @@ class ModeratorButtons extends Component {
   collapse() {
     this.setState({expanded: false});
   }
-  editIndex() {
-    //window.location = "/edit/textinfo/" + this.props.title;
-    this.setState({editing: true})
+  editIndex(e) {
+    if (e.target.id === "edit") {
+      this.setState({editing: true});
+    }
+    else if(e.target.id === "cancel") {
+      this.setState({editing: false});
+    }
   }
   addSection() {
     window.location = "/add/" + this.props.title;
@@ -947,10 +951,15 @@ class ModeratorButtons extends Component {
                 <i className="fa fa-cog"></i>
               </div>);
     }
-    let editTextInfo = <div className="button white" onClick={this.editIndex}>
-                          <span><i className="fa fa-info-circle"></i> Edit Text Info</span>
-                          {this.state.editing ? <EditTextInfo initTitle={this.props.title}/> : null}
-                        </div>;
+    let editTextInfo =    this.state.editing ? <EditTextInfo initTitle={this.props.title} close={(e) => this.editIndex(e)}/>
+                          :
+                          <div className="button white" id="edit" onClick={(e) => this.editIndex(e)}>
+                            <span>
+                              <i className="fa fa-info-circle"></i> Edit Text Info
+                            </span>
+                          </div>
+
+
     let addSection   = <div className="button white" onClick={this.addSection}>
                           <span><i className="fa fa-plus-circle"></i> Add Section</span>
                         </div>;
@@ -975,7 +984,7 @@ ModeratorButtons.propTypes = {
 };
 
 
-function SectionTypesBox({sectionNames, canEdit, updateParent}) {
+const SectionTypesBox = function({sectionNames, canEdit, updateParent}) {
   const [sections, setSections] = useState(sectionNames);
   const box = useRef(null);
   const add = function() {
@@ -1007,10 +1016,11 @@ function SectionTypesBox({sectionNames, canEdit, updateParent}) {
             {canEdit ? <span className="add" onClick={add}>Add Section</span> : null}
           </div>
 }
-function TOCDropdown({initCategories, update}) {
+
+
+const CategoryChooser = function({initCategories, update}) {
   const [categories, setCategories] = useState(initCategories);
   const categoryMenu = useRef();
-
 
   const handleChange = function(e) {
     let newCategories = [];
@@ -1089,16 +1099,17 @@ function TitleVariants({lang, defaultValue, update}) {
                       allowNew={true}
                       tags={titles}
                       onDelete={onTitleDelete}
-                      placeholderText={Sefaria._("Add title variant")}
+                      placeholderText={Sefaria._("...")}
                       delimiters={["Enter", "Tab", ","]}
                       onAddition={onTitleAddition}
                       onValidate={onTitleValidate}
                     />
         </div>
 }
-function EditTextInfo({initTitle}) {
-  const index = useRef(null);
 
+
+const EditTextInfo = function({initTitle, close}) {
+  const index = useRef(null);
   Sefaria.getIndexDetails(initTitle).then(data => index.current = data);
   index.current = Sefaria.getIndexDetailsFromCache(initTitle);
   const [enTitle, setEnTitle] = useState(index.current.title);
@@ -1108,16 +1119,16 @@ function EditTextInfo({initTitle}) {
   const [categories, setCategories] = useState(index.current.categories);
   const [sections, setSections] = useState(index.current.sectionNames);
 
+
   return (
-    <div className="editTextInfo">
-      <div id="newIndex">
-        <div id="left">
+      <div className="editTextInfo">
+        <div id="newIndex">
           <div id="newIndexMsg">Sefaria doesn't yet know about the text {enTitle}.
             <div className="sub">Please provide some basic information about this text.</div>
           </div>
-
+          <div id="cancel" onClick={close} className="btn-xs">X</div>
           <div className="fieldSet">
-            <span className="fieldLabel">
+            <div className="fieldLabel">
               <div className="help">?
                   <div className="helpText">
                     The primary title of a text. Texts may have multiple titles which can be entered below, but this will be the default way of referring to this text.
@@ -1126,37 +1137,37 @@ function EditTextInfo({initTitle}) {
                   </div>
               </div>
               Text Title
-            </span>
+            </div>
             <input id="textTitle" onBlur={(e) => setEnTitle(e.target.value)} defaultValue={index.current.title}/>
           </div>
 
           <div className="fieldSet">
-            <span className="fieldLabel">
+            <div className="fieldLabel">
               <div className="help">?
                   <div className="helpText">
                     The primary title of a text in Hebrew characters. Alternate Hebrew titles may also be added under "Alternate Titles" below.
                   </div>
               </div>
               Hebrew Title
-            </span>
+            </div>
             <input id="heTitle" onBlur={(e) => setHeTitle(e.target.value)} defaultValue={index.current.heTitle}/>
           </div>
 
           <div className="fieldSet" id="textCategories">
-            <span className="fieldLabel">
+            <div className="fieldLabel">
               <div className="help">?
                 <div className="helpText">
                   A category for the text. Categories are used in searching and grouping texts.
                 </div>
               </div>
               Category
-            </span>
-            {index.current === {} ? <TOCDropdown update={setCategories} id="textCategory" initCategories={[]}/> :
-                                    <TOCDropdown update={setCategories} id="textCategory" initCategories={index.current.categories}/>}
+            </div>
+            {index.current === {} ? <CategoryChooser update={setCategories} id="textCategory" initCategories={[]}/> :
+                                    <CategoryChooser update={setCategories} id="textCategory" initCategories={index.current.categories}/>}
           </div>
           {index.current.hasOwnProperty("sectionNames") ?
           <div className="fieldSet" id="textStructureFieldSet">
-            <span className="fieldLabel">
+            <div className="fieldLabel">
               <div className="help">?
                 <div className="helpText">
                   A Text's Structure is represented by the hieracrchy of different types of sections that make up the text.
@@ -1165,19 +1176,13 @@ function EditTextInfo({initTitle}) {
                 </div>
               </div>
               Text Structure
-            </span>
+            </div>
            {index.current === {} ? <SectionTypesBox updateParent={setSections} sectionNames={["e.g. Chapter", "e.g. Verse"]} canEdit={true}/> :
                                   <SectionTypesBox updateParent={setSections} sectionNames={index.current.sectionNames} canEdit={false}/>}
           </div> : null}
 
-          <div className="actions">
-            <NewIndexSaveButton enTitle={enTitle} heTitle={heTitle} enTitleVariants={titleVariants}
-                              heTitleVariants={heTitleVariants} categories={categories} sectionNames={sections}/>
-          </div>
-        </div>
-        <div id="right">
           <div className="fieldSet">
-              <span className="fieldLabel">
+              <div className="fieldLabel">
                 <div className="help">?
                   <div className="helpText">
                   Alternate English Titles can include alternate translations, alternate transliterations spellings, and abbreviations.<br/><br/>Press enter after each title variant to seprate it from others.
@@ -1185,29 +1190,33 @@ function EditTextInfo({initTitle}) {
                 </div>
                 Alternate English Titles
                 <span className="optional">(optional)</span>
-              </span>
+              </div>
               <TitleVariants lang="en" id="textTitleVariants" update={setTitleVariants} defaultValue={index.current.titleVariants}></TitleVariants>
             </div>
 
             <div className="fieldSet">
-                <span className="fieldLabel">
+              <div className="fieldLabel">
                   <div className="help">?
                     <div className="helpText">
                       Alternate Hebrew Titles can include alternate spellings and abbreviations.<br/><br/>Press enter after each title variant to seprate it from others.
                     </div>
                   </div>
                   Alternate Hebrew Titles<span className="optional">(optional)</span>
-              </span>
+              </div>
               <TitleVariants lang="he" id="textHeTitleVariants" update={setHeTitleVariants} defaultValue={index.current.heTitleVariants}></TitleVariants>
             </div>
-        </div>
+            <div className="actions">
+              <NewIndexSaveButton enTitle={enTitle} heTitle={heTitle} enTitleVariants={titleVariants}
+                                heTitleVariants={heTitleVariants} categories={categories} sectionNames={sections}/>
+
+            </div>
+          </div>
       </div>
-    </div>
   );
 }
 
-function NewIndexSaveButton({enTitle, heTitle, enTitleVariants, heTitleVariants, categories, sectionNames}) {
-  const errorOnSave = useRef(false);
+
+const NewIndexSaveButton = function({enTitle, heTitle, enTitleVariants, heTitleVariants, categories, sectionNames}) {
   const origIndex = useRef(null);
   Sefaria.getIndexDetails(enTitle).then(data => origIndex.current = data);
   origIndex.current = Sefaria.getIndexDetailsFromCache(enTitle);
@@ -1277,32 +1286,6 @@ function NewIndexSaveButton({enTitle, heTitle, enTitleVariants, heTitleVariants,
       }).fail( function(xhr, textStatus, errorThrown) {
         alert("Unfortunately, there was an error saving this text information. Please try again or try reloading this page.")
       });
-    // const request = new Request(
-    // '/api/index/'+title,
-    // {headers: {'X-CSRFToken': Cookies.get('csrftoken'), 'Content-Type': 'application/json'}}
-    // );
-    // fetch(request, {
-    //   method: 'POST',
-    //   mode: 'same-origin',
-    //   credentials: 'same-origin',
-    //   body: postJSON
-    // }).then(response => {
-    //   if (!response.ok) {
-    //     response.text().then(resp_text=> {
-    //       console.log(resp_text);
-    //       errorOnSave.current = true;
-    //     })
-    //   }else{
-    //     response.json().then(resp_json=>{
-    //       console.log("okay response", resp_json);
-    //       errorOnSave.current = false;
-    //     });
-    //   }
-    // }).catch(error => {
-    //     console.log("network error", error);
-    //     errorOnSave.current = true;
-    // });
-
   };
 
   const validateThenSave = function () {
@@ -1311,7 +1294,7 @@ function NewIndexSaveButton({enTitle, heTitle, enTitleVariants, heTitleVariants,
     }
   }
 
-  return <span id="newIndexSave" onClick={validateThenSave} className="btn btn-primary btn-large">Save</span>;
+  return <span onClick={validateThenSave} className="btn">Save</span>;
 }
 
 
