@@ -41,7 +41,7 @@ def run_job(test=True, email=True):
 			text = "<br/>".join(list(f))
 		subject = "webpage cronjob"
 		from_email = "Sefaria <hello@sefaria.org>"
-		to = "stevek004@gmail.com"
+		to = "dev@sefaria.org"
 
 		msg = EmailMultiAlternatives(subject, text, from_email, [to])
 		msg.content_subtype = "html"  # Main content is now text/html
