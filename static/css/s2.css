@@ -2446,7 +2446,14 @@ a.navBlockTitle:hover {
 }
 
 .bookPage .editTextInfo #newIndex .publishBox {
-  margin-left: 400px;
+  text-align: start;
+  background-color: #EDEDEC;
+  border-radius: 6px;
+  padding: 10px 25px;
+  margin-left: 280px;
+  font-size: 16px;
+  color: #666;
+
 }
 
 .bookPage .editTextInfo #newIndexMsg {
@@ -2464,8 +2471,9 @@ a.navBlockTitle:hover {
 }
 
 .bookPage .editTextInfo #newIndex .fieldSet {
-	margin: 25px 300px 0px 0px;
+	margin: 25px 300px 0px 300px;
 }
+
 
 .bookPage .editTextInfo #newIndex .fieldLabel {
 	font-size: 20px;
@@ -2585,8 +2593,8 @@ a.navBlockTitle:hover {
 }
 
 .bookPage .editTextInfo #newIndex .actions {
-  margin-top: 10px;
   text-align: center;
+  margin: 50px 100px 0px 400px;
 }
 
 .bookPage .editTextInfo #newIndex #cancel {

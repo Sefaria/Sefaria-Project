@@ -954,9 +954,7 @@ class ModeratorButtons extends Component {
     let editTextInfo =    this.state.editing ? <EditTextInfo initTitle={this.props.title} close={(e) => this.editIndex(e)}/>
                           :
                           <div className="button white" id="edit" onClick={(e) => this.editIndex(e)}>
-                            <span>
-                              <i className="fa fa-info-circle"></i> Edit Text Info
-                            </span>
+                            <i className="fa fa-info-circle"></i> Edit Text Info
                           </div>
 
 
@@ -1191,26 +1189,27 @@ const EditTextInfo = function({initTitle, close}) {
                 Alternate English Titles
                 <span className="optional">(optional)</span>
               </div>
-              <TitleVariants lang="en" id="textTitleVariants" update={setTitleVariants} defaultValue={index.current.titleVariants}></TitleVariants>
-            </div>
+          </div>
+          <TitleVariants lang="en" id="textTitleVariants" update={setTitleVariants} defaultValue={index.current.titleVariants}></TitleVariants>
 
-            <div className="fieldSet">
-              <div className="fieldLabel">
-                  <div className="help">?
-                    <div className="helpText">
-                      Alternate Hebrew Titles can include alternate spellings and abbreviations.<br/><br/>Press enter after each title variant to seprate it from others.
-                    </div>
+          <div className="fieldSet">
+            <div className="fieldLabel">
+                <div className="help">?
+                  <div className="helpText">
+                    Alternate Hebrew Titles can include alternate spellings and abbreviations.<br/><br/>Press enter after each title variant to seprate it from others.
                   </div>
-                  Alternate Hebrew Titles<span className="optional">(optional)</span>
-              </div>
-              <TitleVariants lang="he" id="textHeTitleVariants" update={setHeTitleVariants} defaultValue={index.current.heTitleVariants}></TitleVariants>
-            </div>
-            <div className="actions">
-              <NewIndexSaveButton enTitle={enTitle} heTitle={heTitle} enTitleVariants={titleVariants}
-                                heTitleVariants={heTitleVariants} categories={categories} sectionNames={sections}/>
-
+                </div>
+                Alternate Hebrew Titles<span className="optional">(optional)</span>
             </div>
           </div>
+          <TitleVariants lang="he" id="textHeTitleVariants" update={setHeTitleVariants} defaultValue={index.current.heTitleVariants}></TitleVariants>
+
+          <div className="actions">
+            <NewIndexSaveButton enTitle={enTitle} heTitle={heTitle} enTitleVariants={titleVariants}
+                              heTitleVariants={heTitleVariants} categories={categories} sectionNames={sections}/>
+
+          </div>
+        </div>
       </div>
   );
 }
