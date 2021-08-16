@@ -982,21 +982,17 @@ ModeratorButtons.propTypes = {
 };
 
 
-const SectionTypesBox = function({sectionNames, canEdit, updateParent}) {
-  const [sections, setSections] = useState(sectionNames);
+const SectionTypesBox = function({sections, canEdit, updateParent}) {
   const box = useRef(null);
   const add = function() {
-    setSections(sections.concat(""));
-    updateParent(sections); //tell parent new values
+    updateParent(sections.concat("")); //tell parent new values
   }
-  const remove = function(i) {
-    setSections(sections.slice(0, i+1));
-    updateParent(sections); //tell parent new values
+  const remove = function(i) {;
+    updateParent(sections.slice(0, i+1)); //tell parent new values
   }
   const updateSelfAndParent = function() {
     let newSections = Array.from(box.current.children).map(item => item.value);
     updateParent(newSections);
-    setSections(newSections);
   }
 
   return <div id="sectionTypesBox" ref={box}>
@@ -1016,22 +1012,20 @@ const SectionTypesBox = function({sectionNames, canEdit, updateParent}) {
 }
 
 
-const CategoryChooser = function({initCategories, update}) {
-  const [categories, setCategories] = useState(initCategories);
+const CategoryChooser = function({categories, update}) {
   const categoryMenu = useRef();
 
   const handleChange = function(e) {
     let newCategories = [];
     for (let i=0; i<categoryMenu.current.children.length; i++) {
       let el = categoryMenu.current.children[i];
-      if (el.options[el.selectedIndex].value === "Choose a category" || Sefaria.tocItemsByCategories(categories.slice(0, i+1)).length === 0) {
+      if (el.options[el.selectedIndex].value === "Choose a category" || (i > 0 && Sefaria.tocItemsByCategories(newCategories.slice(0, i+1)).length === 0)) {
         //first test says dont include "Choose a category" and anything after it in categories.
         //second test is if categories are ["Talmud", "Prophets"], set categories to ["Talmud"]
         break;
       }
       newCategories.push(el.options[el.selectedIndex].value);
     }
-    setCategories(newCategories);
     update(newCategories); //tell parent of new values
   }
 
@@ -1075,17 +1069,15 @@ const CategoryChooser = function({initCategories, update}) {
            </select>)}
          </div>
 }
-function TitleVariants({lang, defaultValue, update}) {
-  const [titles, setTitles] = useState(defaultValue.map((item, i) =>({["name"]: item, ["id"]: i})));
 
+
+const TitleVariants = function({titles, update}) {
   const onTitleDelete = function(i) {
     let newTitles = titles.filter(t => t !== titles[i]);
-    setTitles(newTitles);
     update(newTitles);
   }
   const onTitleAddition = function(title) {
     let newTitles = [].concat(titles, title);
-    setTitles(newTitles);
     update(newTitles);
   }
   const onTitleValidate = function (title) {
@@ -1112,10 +1104,11 @@ const EditTextInfo = function({initTitle, close}) {
   index.current = Sefaria.getIndexDetailsFromCache(initTitle);
   const [enTitle, setEnTitle] = useState(index.current.title);
   const [heTitle, setHeTitle] = useState(index.current.heTitle);
-  const [titleVariants, setTitleVariants] = useState(index.current.titleVariants);
-  const [heTitleVariants, setHeTitleVariants] = useState(index.current.heTitleVariants);
+  const [titleVariants, setTitleVariants] = useState(index.current.titleVariants.map((item, i) =>({["name"]: item, ["id"]: i})));
+  const [heTitleVariants, setHeTitleVariants] = useState(index.current.heTitleVariants.map((item, i) =>({["name"]: item, ["id"]: i})));
   const [categories, setCategories] = useState(index.current.categories);
   const [sections, setSections] = useState(index.current.sectionNames);
+
 
 
   return (
@@ -1136,7 +1129,7 @@ const EditTextInfo = function({initTitle, close}) {
               </div>
               Text Title
             </div>
-            <input id="textTitle" onBlur={(e) => setEnTitle(e.target.value)} defaultValue={index.current.title}/>
+            <input id="textTitle" onBlur={(e) => setEnTitle(e.target.value)} defaultValue={enTitle}/>
           </div>
 
           <div className="fieldSet">
@@ -1148,7 +1141,7 @@ const EditTextInfo = function({initTitle, close}) {
               </div>
               Hebrew Title
             </div>
-            <input id="heTitle" onBlur={(e) => setHeTitle(e.target.value)} defaultValue={index.current.heTitle}/>
+            <input id="heTitle" onBlur={(e) => setHeTitle(e.target.value)} defaultValue={heTitle}/>
           </div>
 
           <div className="fieldSet" id="textCategories">
@@ -1160,8 +1153,7 @@ const EditTextInfo = function({initTitle, close}) {
               </div>
               Category
             </div>
-            {index.current === {} ? <CategoryChooser update={setCategories} id="textCategory" initCategories={[]}/> :
-                                    <CategoryChooser update={setCategories} id="textCategory" initCategories={index.current.categories}/>}
+            <CategoryChooser update={setCategories} categories={categories}/>
           </div>
           {index.current.hasOwnProperty("sectionNames") ?
           <div className="fieldSet" id="textStructureFieldSet">
@@ -1175,8 +1167,7 @@ const EditTextInfo = function({initTitle, close}) {
               </div>
               Text Structure
             </div>
-           {index.current === {} ? <SectionTypesBox updateParent={setSections} sectionNames={["e.g. Chapter", "e.g. Verse"]} canEdit={true}/> :
-                                  <SectionTypesBox updateParent={setSections} sectionNames={index.current.sectionNames} canEdit={false}/>}
+            <SectionTypesBox updateParent={setSections} sections={sections} canEdit={index.current === {}}/>
           </div> : null}
 
           <div className="fieldSet">
@@ -1190,7 +1181,7 @@ const EditTextInfo = function({initTitle, close}) {
                 <span className="optional">(optional)</span>
               </div>
           </div>
-          <TitleVariants lang="en" id="textTitleVariants" update={setTitleVariants} defaultValue={index.current.titleVariants}></TitleVariants>
+          <TitleVariants update={setTitleVariants} titles={titleVariants}/>
 
           <div className="fieldSet">
             <div className="fieldLabel">
@@ -1202,7 +1193,7 @@ const EditTextInfo = function({initTitle, close}) {
                 Alternate Hebrew Titles<span className="optional">(optional)</span>
             </div>
           </div>
-          <TitleVariants lang="he" id="textHeTitleVariants" update={setHeTitleVariants} defaultValue={index.current.heTitleVariants}></TitleVariants>
+          <TitleVariants update={setHeTitleVariants} titles={heTitleVariants}/>
 
           <div className="actions">
             <NewIndexSaveButton enTitle={enTitle} heTitle={heTitle} enTitleVariants={titleVariants}
@@ -1220,6 +1211,8 @@ const NewIndexSaveButton = function({enTitle, heTitle, enTitleVariants, heTitleV
   Sefaria.getIndexDetails(enTitle).then(data => origIndex.current = data);
   origIndex.current = Sefaria.getIndexDetailsFromCache(enTitle);
   let index = {};
+  enTitleVariants = enTitleVariants.map(i => i["name"]);
+  heTitleVariants = heTitleVariants.map(i => i["name"]);
   const validate = function () {
     if (!enTitle) {
       alert("Please give a text title or commentator name.");
@@ -1293,7 +1286,7 @@ const NewIndexSaveButton = function({enTitle, heTitle, enTitleVariants, heTitleV
     }
   }
 
-  return <span onClick={validateThenSave} className="btn">Save</span>;
+  return <span onClick={validateThenSave} className="btn-xs">Save</span>;
 }
 
 

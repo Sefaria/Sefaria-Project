@@ -2444,16 +2444,19 @@ a.navBlockTitle:hover {
   margin: 100px auto;
   font-size: 23px;
 }
-
+.readerPanel.hebrew #newIndex .publishBox {
+  margin-left: 350px;
+}
+.readerPanel.english #newIndex .publishBox {
+  margin-left: 280px;
+}
 .bookPage .editTextInfo #newIndex .publishBox {
   text-align: start;
   background-color: #EDEDEC;
   border-radius: 6px;
   padding: 10px 25px;
-  margin-left: 280px;
   font-size: 16px;
   color: #666;
-
 }
 
 .bookPage .editTextInfo #newIndexMsg {
@@ -2594,7 +2597,7 @@ a.navBlockTitle:hover {
 
 .bookPage .editTextInfo #newIndex .actions {
   text-align: center;
-  margin: 50px 100px 0px 400px;
+  margin-top: 50px;
 }
 
 .bookPage .editTextInfo #newIndex #cancel {
@@ -2628,7 +2631,8 @@ a.navBlockTitle:hover {
 .bookPage .editTextInfo #newIndex .helpText {
 	display: none;
 	top: 24px;
-	left: 0px;
+	left: -450px;
+    position: absolute;
 	background: #eee;
 	color: black;
 	font-weight: normal;
