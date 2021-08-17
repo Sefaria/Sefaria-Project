@@ -264,9 +264,9 @@ io.on("connection", (socket) => {
     socket.emit("change in people", Object.values(peopleInBeitMidrash));
   })
 
-  socket.on('send sources', function(msg, room) {
+  socket.on('send sources', function(msg, name, room) {
     console.log(room, msg["currentlyReading"])
-    socket.to(room).emit('got sources', msg);
+    socket.to(room).emit('got sources', msg, name);
   })
 
 });

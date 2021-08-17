@@ -47,6 +47,20 @@ a {
   transform: rotateY(180deg);
 }
 
+.pip {
+  position: absolute;
+  height: 50px;
+  top: 15px;
+  right: 10px;
+  text-align: end;
+  width: initial;
+  border-radius: 6px;
+}
+
+.hiddenVideo {
+  display: none;
+}
+
 #container {
     min-height: 100%;
     display: flex;
@@ -61,7 +75,7 @@ a {
     order: 0;
     flex: 0 1 auto;
     align-self: stretch;
-    background-color: #EDEDEC;
+    background-color: #333333;
 
     display: flex;
     flex-direction: column;
@@ -91,33 +105,28 @@ a {
         align-items: stretch;
     }
 
-    #chevrutaName {
-      margin: -30px 5px 20px;
-      padding: 5px;
-      border-radius: 10px;
-      z-index: 1;
-      background: rgba(0,0,0,.3);
+    #chevrutaNameHolder {
+      margin: 10px;
       color: white;
-      align-self: flex-start;
-      font-size: 13px;
-      display: none;
+      font-size: var(--sans-serif-h3-font-size);
+      font-weight: 500;
     }
 
     #muteButtonHolder {
       height:0;
       width: 258px;
-      text-align: right;
+      text-align: left;
     }
 
     .muteButton {
       position: absolute;
-      width: 30px;
+      width: 40px;
       height: 30px;
-      border-radius: 15px;
+      border-radius: 6px;
       z-index: 1;
-      background-color: #EDEDEC;
+      background-color: #999999;
       opacity: 0.5;
-      left: -5px;
+      left: -8.5px;
       top: -3px;
       box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
     }
@@ -133,8 +142,7 @@ a {
       width: 20px;
       height: 20px;
       top: -40px;
-      right: 20px;
-
+      left: 40px;
     }
 
     .muted #micIcon {
@@ -144,7 +152,40 @@ a {
       background-color: #CB6158;
     }
 
+#endCallButtonHolder {
+  height:0;
+  width: 258px;
+  text-align: right;
+}
 
+.endCallButton {
+  position: absolute;
+  width: 40px;
+  height: 30px;
+  border-radius: 6px;
+  z-index: 1;
+  background-color: #CB6158;
+  left: -8.5px;
+  top: -3px;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  background-image: url("/static/img/endcall.svg");
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+#endCallIcon {
+  display: inline-block;
+  position: relative;
+  background-image: url("/static/img/endcall.svg");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  opacity: 1;
+  width: 20px;
+  height: 20px;
+  top: -40px;
+  right: 40px;
+}
 
 button {
   background: #FFFFFF;
@@ -177,29 +218,68 @@ a {
 
 }
 
+#waiting{
+  margin: 10px;
+  color: white;
+  font-size: var(--sans-serif-h3-font-size);
+  font-weight: 500;
+}
+
 #chavrutaURL {
   width: 186px;
 
-background: #FBFBFA;
-box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
-border-radius: 6px;
-border: none;
+  background: black;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  border-radius: 6px;
+  border: none;
 
-padding: 15px 11px;
-font-family: Roboto;
-font-style: normal;
-font-weight: normal;
-font-size: 16px;
-line-height: 19px;
-font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-color: #666;
+  padding: 15px 40px 15px 11px;
+  font-family: Roboto;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 16px;
+  line-height: 19px;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  color: white;
+  text-overflow: ellipsis;
 
+}
 
+#chavrutaURLcontainer:after {
+  content: url("/static/img/copy2.svg");
+  width: 18px;
+  height: 18px;
+  margin-inline-start: -40px;
+  margin-top: 10px;
+  cursor: pointer;
 }
 
 #currently-reading {
   width: 208px;
   margin: 10px;
+  color: white;
+  font-size: var(--sans-serif-h3-font-size);
+  font-weight: 500;
+}
+
+#currently-reading-sources{
+  color: white;
+  background-color: black;
+  border-radius: 6px;
+  font-size: 18px;
+  margin: 10px;
+  padding: 10px;
+}
+
+#currently-reading-sources a{
+  text-decoration: none;
+  color: white;
+  font-family: Adobe Garamond Pro;
+  font-weight: normal;
+}
+
+#currently-reading-sources img {
+  filter: brightness(0) saturate(100%) invert(1);
 }
 
 #end-call {
@@ -217,8 +297,12 @@ color: #666;
 {% block content %}
 
 <div id="container">
+  <div id="iframeContainer">
+  </div>
+
   <div id="videos">
     <video id="localVideo" class="flippedVideo" autoplay playsinline disablePictureInPicture muted></video>
+    <video id="remoteVideo" class="hiddenVideo" autoplay playsinline disablePictureInPicture></video>
     <div id="muteButtonHolder">
       <span id="micIcon">
         <span id="enMute" class="muteButton int-en" tabindex=0 title="Turn off microphone" onclick="toggleMute();"></span>
@@ -226,8 +310,13 @@ color: #666;
 
       </span>
     </div>
-    <video id="remoteVideo" autoplay playsinline disablePictureInPicture poster="/static/img/dafroulette-loading.png"></video>
-    <div id="chevrutaName"></div>
+    <div id="endCallButtonHolder">
+      <span id="endCallIcon">
+        <span id="end-call" class="endCallButton int-en" tabindex=0 title="End Call" onclick="endCall(event)" role="link"></span>
+      </span>
+    </div>
+    
+    
     <input type="hidden" id="chevrutaUID" value=false>
 
 
@@ -282,20 +371,25 @@ color: #666;
     {% endif %}
 
     {% if roulette == "0" and room_id != "" %}
-
-    <p class="int-en">
-      Share this link with your chavruta to start a video call with this text
-    </p>
-
-    <p class="int-he">
-      Share this link with your chavruta to start a video call with this text
-    </p>
-
-    <input id="chavrutaURL" type="text" value={{request.get_host}}/chavruta?ref={{starting_ref}}&rid={{room_id}} autofocus="autofocus" onfocus="this.select()" readonly >
-
+    
+    <div id="chevrutaNameHolder"><span id="chevrutaName"></span></div>
     <div id="currently-reading"></div>
+    
+    <div id="waiting">
+    Waiting for someone to join...
+      <p class="int-en">
+        Share this link with your chavruta to start a video call
+      </p>
 
-    <button id="end-call" class="button small" onclick="endCall(event)" role="link">End Call</button>
+      <p class="int-he">
+        Share this link with your chavruta to start a video call
+      </p>
+
+      <div id="chavrutaURLcontainer">
+        <input id="chavrutaURL" type="text" value={{request.get_host}}/chavruta?ref={{starting_ref}}&rid={{room_id}} autofocus="autofocus" onfocus="this.select()" readonly >
+      </div>
+
+    </div>
 
     <div class="chavrutaFooter">
       <p class="int-en">
@@ -310,8 +404,7 @@ color: #666;
     {% endif %}
 
   </div>
-  <div id="iframeContainer">
-  </div>
+
 </div>
 {% endblock %}
 
