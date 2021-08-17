@@ -3130,10 +3130,12 @@ class Ref(object, metaclass=RefCacheType):
         else:
             current_ending_ref = self
 
-        # calculate the number of "paddings" required to get down to segment level
-        max_depth = self.index_node.depth - len(self.sections)
+        max_depth = self.index_node.depth - len(self.sections)  # calculate the number of "paddings" required to get down to segment level
 
-        d['sections'] += [1] * max_depth
+        if len(d['sections']) == 0:
+            d['sections'] = self.first_available_section_ref().all_subrefs()[0].sections
+        else:
+            d['sections'] += [1] * max_depth
 
         state_ja = current_ending_ref.get_state_ja()
 
