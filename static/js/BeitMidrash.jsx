@@ -12,7 +12,7 @@ import { socket } from './sockets';
 import { cssNumber } from 'jquery';
 
 
-const BeitMidrash = () => {
+const BeitMidrash = ({beitMidrashId}) => {
     const [peopleInBeitMidrash, setPeopleInBeitMidrash] = useState(null);
     const [activeChatRooms, setActiveChatRooms] = useState([]);
     const [chatDataStore, setChatDataStore] = useState(() => {
@@ -62,10 +62,11 @@ const BeitMidrash = () => {
     }, [activeChatRooms])
     
     useEffect(() => {
-        socket.emit("enter beit midrash", Sefaria._uid, Sefaria.full_name);
+        socket.emit("enter beit midrash", Sefaria._uid, Sefaria.full_name, beitMidrashId);
         socket.on("change in people", function(people) {
             const dedupedPeople = [...new Set(people)];
-            setPeopleInBeitMidrash(dedupedPeople);
+            const filteredDedupedPeople = dedupedPeople.filter(person => person.beitMidrashId === beitMidrashId)
+            setPeopleInBeitMidrash(filteredDedupedPeople);
         })
         
         const onDisconnect = () => {
@@ -142,7 +143,7 @@ const BeitMidrash = () => {
     
     return (
         <div>
-        <h1>Beit Midrash</h1>
+        <h1>Beit Midrash {beitMidrashId}</h1>
         <h2>Single Learners</h2>
             <div>
                 {peopleInBeitMidrash ? peopleInBeitMidrash

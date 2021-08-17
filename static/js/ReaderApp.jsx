@@ -68,6 +68,7 @@ class ReaderApp extends Component {
         collectionName:          props.initialCollectionName,
         collectionSlug:          props.initialCollectionSlug,
         collectionTag:           props.initialCollectionTag,
+        beitMidrashId:           props.beit_midrash_id
       };
     }
 
@@ -153,6 +154,7 @@ class ReaderApp extends Component {
       textHighlights:          state.textHighlights          || null,
       profile:                 state.profile                 || null,
       profileTab:              state.profileTab              || "sheets",
+      beitMidrashId:           state.beitMidrashId           || null,
     };
     // if version is not set for the language you're in, see if you can retrieve it from cache
     if (this.state && panel.refs.length && ((panel.settings.language === "hebrew" && !panel.currVersions.he) || (panel.settings.language !== "hebrew" && !panel.currVersions.en ))) {

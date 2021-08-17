@@ -963,7 +963,8 @@ class ReaderPanel extends Component {
       menu = (
           <BeitMidrash
             multiPanel={this.props.multiPanel}
-            initialWidth={this.state.width} />
+            initialWidth={this.state.width}
+            beitMidrashId={this.state.beitMidrashId} />
       );
     }
 
