@@ -112,12 +112,6 @@ a {
       font-weight: 500;
     }
 
-    #muteButtonHolder {
-      height:0;
-      width: 258px;
-      text-align: left;
-    }
-
     .muteButton {
       position: absolute;
       width: 40px;
@@ -141,8 +135,6 @@ a {
       opacity: 1;
       width: 20px;
       height: 20px;
-      top: -40px;
-      left: 40px;
     }
 
     .muted #micIcon {
@@ -152,10 +144,11 @@ a {
       background-color: #CB6158;
     }
 
-#endCallButtonHolder {
-  height:0;
-  width: 258px;
-  text-align: right;
+#buttonHolder {
+  display: flex;
+  width: 80%;
+  justify-content: space-between;
+  margin-top: -35px;
 }
 
 .endCallButton {
@@ -183,8 +176,6 @@ a {
   opacity: 1;
   width: 20px;
   height: 20px;
-  top: -40px;
-  right: 40px;
 }
 
 button {
@@ -303,17 +294,19 @@ a {
   <div id="videos">
     <video id="localVideo" class="flippedVideo" autoplay playsinline disablePictureInPicture muted></video>
     <video id="remoteVideo" class="hiddenVideo" autoplay playsinline disablePictureInPicture></video>
-    <div id="muteButtonHolder">
-      <span id="micIcon">
-        <span id="enMute" class="muteButton int-en" tabindex=0 title="Turn off microphone" onclick="toggleMute();"></span>
-        <span id="heMute" class="muteButton int-he" tabindex=0 title="כבה את המיקרופון" onclick="toggleMute();"></span>
+    <div id ="buttonHolder">
+   
+        <span id="micIcon">
+          <span id="enMute" class="muteButton int-en" tabindex=0 title="Turn off microphone" onclick="toggleMute();"></span>
+          <span id="heMute" class="muteButton int-he" tabindex=0 title="כבה את המיקרופון" onclick="toggleMute();"></span>
 
-      </span>
-    </div>
-    <div id="endCallButtonHolder">
-      <span id="endCallIcon">
-        <span id="end-call" class="endCallButton int-en" tabindex=0 title="End Call" onclick="endCall(event)" role="link"></span>
-      </span>
+        </span>
+   
+     
+        <span id="endCallIcon">
+          <span id="end-call" class="endCallButton int-en" tabindex=0 title="End Call" onclick="endCall(event)" role="link"></span>
+        </span>
+  
     </div>
     
     
