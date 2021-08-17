@@ -219,7 +219,6 @@ function getNewChevruta() {
 
 //add click event to copy bottom
 document.getElementById("chavrutaURLcontainer").addEventListener("click", ()=>{
-  console.log("clicked")
   let chavrutaURL = document.getElementById("chavrutaURL");
   chavrutaURL.select();
   document.execCommand("copy");
