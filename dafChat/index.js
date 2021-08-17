@@ -266,7 +266,12 @@ io.on("connection", (socket) => {
     socket.emit("change in people", Object.values(peopleInBeitMidrash));
   })
 
+<<<<<<< HEAD
   socket.on('send sources', function(msg, name, room) {
+=======
+  socket.on('send sources', function(msg, room) {
+    console.log(msg)
+>>>>>>> 8d7979df54d6cea927b2b798599878c554b14863
     console.log(room, msg["currentlyReading"])
     socket.to(room).emit('got sources', msg, name);
   })
