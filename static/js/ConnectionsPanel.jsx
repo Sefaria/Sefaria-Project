@@ -891,7 +891,7 @@ PublicSheetsList.propTypes = {
 };
 
 
-const TopicList = ({ srefs, sectionRef, interfaceLang, contentLang }) => {
+const TopicList = ({ srefs, interfaceLang, contentLang }) => {
   // segment ref topicList can be undefined even if loaded
   // but section ref topicList is null when loading and array when loaded
   const topics = Sefaria.topicsByRef(srefs);
