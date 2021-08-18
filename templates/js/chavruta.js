@@ -44,7 +44,6 @@ channel.onmessage = msg => {
 
 };
 
-<<<<<<< HEAD
 socket.on('got sources', function(msg, name) {
   console.log(msg)
   const sources = msg.currentlyReading;
@@ -56,18 +55,6 @@ socket.on('got sources', function(msg, name) {
     <img src="/static/icons/book.svg" class="navSidebarIcon" alt="book icon"><a href=${url} target="iframe">${sources}</a></div>`;
   };
   
-=======
-socket.on('got sources', function(msg) {
-  const sources = msg.currentlyReading;
-  const url = msg.history.url;
-  const curReadingEl = document.getElementById("currently-reading");
-  if (!!sources) {
-    curReadingEl.innerHTML = `Your chavruta is reading <br/> <img src="/static/icons/book.svg" class="navSidebarIcon" alt="book icon"><a href=${url} target="iframe">${sources}</a>`;
-  }
-  else {
-   curReadingEl.innerHTML = ``;
-  }
->>>>>>> 8d7979df54d6cea927b2b798599878c554b14863
 })
 
 socket.on('return rooms', function(numRooms) {
