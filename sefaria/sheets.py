@@ -1209,17 +1209,14 @@ def get_sheet_categorization_info(find_without, skip_ids=[]):
 	:param find_without: the field that must contain no elements for the sheet to be returned
 	:param skip_ids: sheets to skip in this session:
 	"""
-	from pymongo import DESCENDING
-	import random
 	if find_without == "topics":
-		sheets = db.sheets.find({"topics": {"$in": [None, []] }, "id": {"$nin": skip_ids}, "noTags": {"$in": [None, False]}, "status": "public"})
-	else: # categories
-		sheets = db.sheets.find({"categories": {"$in": [None, []] }, "id": {"$nin": skip_ids}, "status": "public", "$where": "this.includedRefs.length != this.sources.length"})
-	
-	count = sheets.count()
-	rand = random.randint(0, count)
-	sheet = sheet_to_dict(sheets.limit(-1).skip(rand).next())
-
+		sheet = db.sheets.aggregate([
+		{"$match": {"topics": {"$in": [None, []] }, "id": {"$nin": skip_ids}, "noTags": {"$in": [None, False]}, "status": "public"}},
+		{"$sample": {"size": 1}}]).next()
+	else: #categories
+		sheet = db.sheets.aggregate([
+		{"$match": {"categories": {"$in": [None, []] }, "sources.outsideText": {"$exists": True}, "id": {"$nin": skip_ids}, "noTags": {"$in": [None, False]}, "status": "public"}},
+		{"$sample": {"size": 1}}]).next()
 	categories_all = list(filter(lambda x: x != None, db.sheets.distinct("categories"))) # this is slow; maybe add index or ...?
 	categorize_props = {
 		"doesNotContain": find_without,

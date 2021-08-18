@@ -380,7 +380,7 @@ def dedupe_identical_urls(test=True):
             if test:
                 print(page.contents())
             merged_page_data["linkerHits"] += page.linkerHits
-            if merged_page_data["lastUpdated"] < page.lastUpdated:
+            if "refs" not in merged_page_data.keys() or merged_page_data["lastUpdated"] < page.lastUpdated:
                 merged_page_data.update({
                     "refs": page.refs,
                     "expandedRefs": page.expandedRefs,
