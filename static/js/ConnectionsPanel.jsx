@@ -500,7 +500,6 @@ class ConnectionsPanel extends Component {
         <TopicList
           contentLang={this.props.contentLang}
           srefs={this.props.srefs}
-          sectionRef={this.sectionRef()}
           interfaceLang={this.props.interfaceLang}
           key={`Topics-${this.props.srefs.join("|")}`}
         />
@@ -896,14 +895,6 @@ const TopicList = ({ srefs, sectionRef, interfaceLang, contentLang }) => {
   // segment ref topicList can be undefined even if loaded
   // but section ref topicList is null when loading and array when loaded
   const topics = Sefaria.topicsByRef(srefs);
-  const topicsBySectionRef =  Sefaria.topicsByRef(sectionRef);
-  if(!topicsBySectionRef){
-      return (
-          <div className="webpageList empty">
-            <LoadingMessage />
-          </div>
-      );
-  }
   return (
     <div className={`topicList ${contentLang === 'hebrew' ? 'topicsHe' : 'topicsEn'}`}>
       {(!topics || !topics.length) ? (
