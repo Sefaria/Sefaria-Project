@@ -132,6 +132,9 @@ class ConnectionsPanel extends Component {
     });
     this._savedHistorySegments.add(ref);
   }
+  isSheet(){
+    return this.props.srefs[0].startsWith("Sheet");
+  }
   isSegmentVisible(segment) {
     const threshold = 100;
     const $segment = $(segment);
@@ -166,7 +169,9 @@ class ConnectionsPanel extends Component {
           linksLoaded: true,
         });
     }
-    Sefaria.getVersions(ref, false, ["he"], true).then(versions => this.setState({availableTranslations: versions})); //for counting translations
+    if (!this.isSheet()){
+        Sefaria.getVersions(ref, false, ["he"], true).then(versions => this.setState({availableTranslations: versions})); //for counting translations
+    }
   }
   reloadData() {
     this.setState({
