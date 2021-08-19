@@ -35,6 +35,7 @@ class TextRange extends Component {
     if (this.props.currVersions.en !== nextProps.currVersions.en) { return true; }
     if (this.props.currVersions.he !== nextProps.currVersions.he) { return true; }
     if (this.props.translationLanguagePreference !== nextProps.translationLanguagePreference) { return true; }
+    if (this.props.showHighlight !== nextProps.showHighlight) { return true; }
     // todo: figure out when and if this component receives settings at all
     if (nextProps.settings && this.props.settings &&
         (nextProps.settings.language !== this.props.settings.language ||
@@ -338,6 +339,7 @@ class TextRange extends Component {
             en={!this.props.useVersionLanguage || this.props.currVersions.en ? segment.en : null}
             he={!this.props.useVersionLanguage || this.props.currVersions.he ? segment.he : null}
             highlight={highlight}
+            showHighlight={this.props.showHighlight}
             textHighlights={textHighlights}
             segmentNumber={showSegmentNumbers ? segment.number : 0}
             showLinkCount={this.props.basetext}
@@ -417,6 +419,7 @@ TextRange.propTypes = {
   currVersions:           PropTypes.object.isRequired,
   useVersionLanguage:     PropTypes.bool,
   highlightedRefs:        PropTypes.array,
+  showHighlight:          PropTypes.bool,
   basetext:               PropTypes.bool,
   withContext:            PropTypes.bool,
   hideTitle:              PropTypes.bool,
@@ -451,6 +454,7 @@ TextRange.defaultProps = {
 class TextSegment extends Component {
   shouldComponentUpdate(nextProps) {
     if (this.props.highlight !== nextProps.highlight)           { return true; }
+    if (this.props.showHighlight !== nextProps.showHighlight)   { return true; }
     if (this.props.textHighlights !== nextProps.textHighlights) { return true; }
     if (this.props.showLinkCount !== nextProps.showLinkCount)   { return true; }
     if (this.props.linkCount !== nextProps.linkCount)           { return true; }
@@ -580,7 +584,8 @@ class TextSegment extends Component {
 
     const classes=classNames({
       segment: 1,
-      highlight: this.props.highlight,
+      highlight: this.props.highlight && this.props.showHighlight,
+      invisibleHighlight: this.props.highlight,
       heOnly: heOnly,
       enOnly: enOnly,
       showNamedEntityLinks: !!this.props.onNamedEntityClick,
@@ -609,6 +614,7 @@ TextSegment.propTypes = {
   en:              PropTypes.string,
   he:              PropTypes.string,
   highlight:       PropTypes.bool,
+  showHighlight:   PropTypes.bool,
   textHighlights:  PropTypes.array,
   segmentNumber:   PropTypes.number,
   showLinkCount:   PropTypes.bool,
