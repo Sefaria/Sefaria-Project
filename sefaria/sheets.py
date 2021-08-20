@@ -458,6 +458,7 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 		sheet["views"] = existing["views"]
 		sheet["owner"] = existing["owner"]
 		sheet["likes"] = existing["likes"] if "likes" in existing else []
+		sheet["dateCreated"] = existing["dateCreated"]
 		if "datePublished" in existing:
 			sheet["datePublished"] = existing["datePublished"]
 		if "noindex" in existing:
