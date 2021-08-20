@@ -80,14 +80,14 @@ urlpatterns += [
     url(r'^settings/account?$', reader_views.account_settings),
     url(r'^settings/profile?$', reader_views.edit_profile),
     url(r'^interface/(?P<language>english|hebrew)$', reader_views.interface_language_redirect),
-    url(r'^api/profile/user_history$', reader_views.user_history_api),
+    url(r'^api/profile/user_history$', reader_views.user_history_api), # SEC-AUDIT: DO we want everyone to be able to access everyone's history?
     url(r'^api/profile/sync$', reader_views.profile_sync_api),
     url(r'^api/profile/upload-photo$', reader_views.profile_upload_photo),
     url(r'^api/profile$', reader_views.profile_api),
     url(r'^settings/account/user$', reader_views.account_user_update),
-    url(r'^api/profile/(?P<slug>[^/]+)$', reader_views.profile_get_api),
+    url(r'^api/profile/(?P<slug>[^/]+)$', reader_views.profile_get_api), #SEC-AUDIT: !! Do we want to send back: user's gauth_token, is_sustainer (maybe we do want to start giving people a cute little sustainer badge), attr_time_stamps(probably harmless but why), interrupting_messages, settings (etc),  uses_new_editor -- basically we are sending back some user personal settings so maybe want a different url for user to obtain own data / not send back ENTIRE USER PROFILE
     url(r'^api/profile/(?P<slug>[^/]+)/(?P<ftype>followers|following)$', reader_views.profile_follow_api),
-    url(r'^api/user_history/saved$', reader_views.saved_history_for_ref),
+    url(r'^api/user_history/saved$', reader_views.saved_history_for_ref), # SEC-AUDIT: same question re user history as above
     url(r'^api/interrupting-messages/read/(?P<message>.+)$', reader_views.interrupting_messages_read_api),
 ]
 
@@ -185,10 +185,10 @@ urlpatterns += [
     url(r'^api/sheets/?$',                                            sheets_views.save_sheet_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)/delete$',                     sheets_views.delete_sheet_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)/add$',                        sheets_views.add_source_to_sheet_api),
-    url(r'^api/sheets/(?P<sheet_id>\d+)/add_ref$',                    sheets_views.add_ref_to_sheet_api),
+    url(r'^api/sheets/(?P<sheet_id>\d+)/add_ref$',                    sheets_views.add_ref_to_sheet_api), # SEC-AUDIT: exposed endpoint allowing anyone to add sources to any sheet (used in old editor)
     url(r'^api/sheets/(?P<parasha>.+)/get_aliyot$',                   sheets_views.get_aliyot_by_parasha_api),
-    url(r'^api/sheets/(?P<sheet_id>\d+)/copy_source$',                sheets_views.copy_source_to_sheet_api),
-    url(r'^api/sheets/(?P<sheet_id>\d+)/topics$',                     sheets_views.update_sheet_topics_api),
+    url(r'^api/sheets/(?P<sheet_id>\d+)/copy_source$',                sheets_views.copy_source_to_sheet_api), # SEC-AUDIT: exposed endpoint allowing anyone to add sources to any sheet (unused)
+    url(r'^api/sheets/(?P<sheet_id>\d+)/topics$',                     sheets_views.update_sheet_topics_api), # SEC-AUDIT: exposed endpoint allowing anyone to add tags to any sheet
     url(r'^api/sheets/(?P<sheet_id>\d+)$',                            sheets_views.sheet_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)\.(?P<node_id>\d+)$',          sheets_views.sheet_node_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)/like$',                       sheets_views.like_sheet_api),
@@ -224,7 +224,7 @@ urlpatterns += [
     url(r'^api/collections/for-sheet/(?P<sheet_id>\d+)$', sheets_views.collections_for_sheet_api),
     url(r'^api/collections(/(?P<slug>[^/]+))?$', sheets_views.collections_api),
     url(r'^api/collections/(?P<slug>[^/]+)/set-role/(?P<uid>\d+)/(?P<role>[^/]+)$', sheets_views.collections_role_api),
-    url(r'^api/collections/(?P<slug>[^/]+)/invite/(?P<uid_or_email>[^/]+)(?P<uninvite>\/uninvite)?$', sheets_views.collections_invite_api),
+    url(r'^api/collections/(?P<slug>[^/]+)/invite/(?P<uid_or_email>[^/]+)(?P<uninvite>\/uninvite)?$', sheets_views.collections_invite_api), # SEC-AUDIT: allows anyone to uninvite anyone from collections
     url(r'^api/collections/(?P<slug>[^/]+)/(?P<action>(add|remove))/(?P<sheet_id>\d+)', sheets_views.collections_inclusion_api),
     url(r'^api/collections/(?P<slug>[^/]+)/(?P<action>(add|remove))/(?P<sheet_id>\d+)', sheets_views.collections_inclusion_api),
     url(r'^api/collections/(?P<slug>[^/]+)/pin-sheet/(?P<sheet_id>\d+)', sheets_views.collections_pin_sheet_api),
@@ -270,7 +270,8 @@ urlpatterns += [
 urlpatterns += [
     url(r'^api/locktext/(?P<title>.+)/(?P<lang>\w\w)/(?P<version>.+)$', reader_views.lock_text_api),
     url(r'^api/version/flags/(?P<title>.+)/(?P<lang>\w\w)/(?P<version>.+)$', reader_views.flag_text_api),
-]
+] #SEC-AUDIT: not using @is_staff decorator, custom inside
+# SEC-AUDIT: do we also want to maybe move these to 'admin' 
 
 # Discussions
 urlpatterns += [
@@ -362,7 +363,7 @@ urlpatterns += [
 
 # File Uploads
 urlpatterns += [
-    url(r'^api/file/upload$', sefaria_views.file_upload),
+    url(r'^api/file/upload$', sefaria_views.file_upload), #SEC-AUDIT: do we limit how many files users can upload?
 ]
 
 # Send Feedback
@@ -376,7 +377,7 @@ urlpatterns += [
 ]
 
 # Admin
-urlpatterns += [
+urlpatterns += [ #SEC-AUDIT: Potentially recommend putting these in a single class outside of sefaria views which is entirely protected by staff_member_required + add test (assuming this is possible and easy in python)
     url(r'^admin/reset/varnish/(?P<tref>.+)$', sefaria_views.reset_varnish),
     url(r'^admin/reset/cache$', sefaria_views.reset_cache),
     url(r'^admin/reset/cache/(?P<title>.+)$', sefaria_views.reset_index_cache_for_text),
