@@ -1263,6 +1263,7 @@ def modify_bulk_text_api(request, title):
                 return jsonResponse({"error": "Unrecognized API key."})
             return jsonResponse(modify(apikey['uid']))
         else:
+            @staff_member_required
             @csrf_protect
             def protected_post(request):
                 return jsonResponse(modify(request.user.id))
