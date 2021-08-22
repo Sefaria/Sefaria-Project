@@ -18,11 +18,11 @@ class TranslationsBox extends Component {
     };
   }
   componentDidMount() {
-    Sefaria.versions(this.props.sectionRef, true, this._excludedLangs, true).then(this.onVersionsLoad);
+    Sefaria.getVersions(this.props.sectionRef, true, this._excludedLangs, true).then(this.onVersionsLoad);
   }
   componentDidUpdate(prevProps, prevState) {
     if (prevProps.sectionRef !== this.props.sectionRef) {
-      Sefaria.versions(this.props.sectionRef,true, this._excludedLangs, true).then(this.onVersionsLoad);
+      Sefaria.getVersions(this.props.sectionRef,true, this._excludedLangs, true).then(this.onVersionsLoad);
     }
   }
   onVersionsLoad(versions) {
@@ -71,7 +71,6 @@ class TranslationsBox extends Component {
           currObjectVersions={this.props.currObjectVersions}
           sortPrioritizeLanugage={"en"}
           currentRef={this.props.srefs[0]}
-          getLicenseMap={this.props.getLicenseMap}
           openVersionInReader={this.props.openVersionInReader}
           openVersionInSidebar={this.openVersionInSidebar}
           viewExtendedNotes={this.props.viewExtendedNotes}
@@ -86,7 +85,6 @@ TranslationsBox.propTypes = {
   vFilter:                  PropTypes.array,
   recentVFilters:           PropTypes.array,
   srefs:                    PropTypes.array.isRequired,
-  getLicenseMap:            PropTypes.func.isRequired,
   setConnectionsMode:       PropTypes.func.isRequired,
   setFilter:                PropTypes.func.isRequired,
   openVersionInReader:      PropTypes.func.isRequired,

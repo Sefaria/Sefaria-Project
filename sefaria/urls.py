@@ -23,6 +23,7 @@ handler404 = 'reader.views.custom_page_not_found'
 
 # App Pages
 urlpatterns = [
+    url(r'^$', reader_views.home, name="home"),
     url(r'^texts/?$', reader_views.texts_list, name="table_of_contents"),
     url(r'^texts/saved/?$', reader_views.saved),
     url(r'^texts/history/?$', reader_views.user_history),
@@ -30,16 +31,16 @@ urlpatterns = [
     url(r'^texts/(?P<cats>.+)?$', reader_views.texts_category_list),
     url(r'^search/?$', reader_views.search),
     url(r'^search-autocomplete-redirecter/?$', reader_views.search_autocomplete_redirecter),
+    url(r'^calendars/?$', reader_views.calendars),
     url(r'^collections/?$', reader_views.public_collections),
     url(r'^collections/new$', reader_views.edit_collection_page),
     url(r'^collections/(?P<slug>[^.]+)/settings$', reader_views.edit_collection_page),
     url(r'^collections/(?P<slug>[^.]+)$', reader_views.collection_page),
+    url(r'^community/?$', reader_views.community_page),
     url(r'^notifications/?$', reader_views.notifications),
-    url(r'^my/notes/?$', reader_views.my_notes),
     url(r'^updates/?$', reader_views.updates),
     url(r'^modtools/?$', reader_views.modtools),
     url(r'^modtools/upload_text$', sefaria_views.modtools_upload_workflowy),
-    url(r'^new-home/?$', reader_views.new_home),
     url(r'^story_editor/?$', reader_views.story_editor),
     url(r'^torahtracker/?$', reader_views.user_stats),
 ]
@@ -79,11 +80,11 @@ urlpatterns += [
     url(r'^settings/account?$', reader_views.account_settings),
     url(r'^settings/profile?$', reader_views.edit_profile),
     url(r'^interface/(?P<language>english|hebrew)$', reader_views.interface_language_redirect),
-    url(r'^api/profile/user_history$', reader_views.profile_get_user_history),
+    url(r'^api/profile/user_history$', reader_views.user_history_api),
     url(r'^api/profile/sync$', reader_views.profile_sync_api),
     url(r'^api/profile/upload-photo$', reader_views.profile_upload_photo),
     url(r'^api/profile$', reader_views.profile_api),
-    url(r'settings/account/user$', reader_views.account_user_update),
+    url(r'^settings/account/user$', reader_views.account_user_update),
     url(r'^api/profile/(?P<slug>[^/]+)$', reader_views.profile_get_api),
     url(r'^api/profile/(?P<slug>[^/]+)/(?P<ftype>followers|following)$', reader_views.profile_follow_api),
     url(r'^api/user_history/saved$', reader_views.saved_history_for_ref),
@@ -92,7 +93,8 @@ urlpatterns += [
 
 # Topics
 urlpatterns += [
-    url(r'^topics/category/(?P<topicCategory>.+)?$', reader_views.topics_toc_page),
+    url(r'^topics/category/(?P<topicCategory>.+)?$', reader_views.topics_category_page),
+    url(r'^topics/all/(?P<letter>.)$', reader_views.all_topics_page),    
     url(r'^topics/?$', reader_views.topics_page),
     url(r'^topics/(?P<topic>.+)$', reader_views.topic_page),
 ]
@@ -118,7 +120,9 @@ urlpatterns += [
 
 # Redirects for legacy URLs
 urlpatterns += [
+    url(r'^new-home/?$', reader_views.new_home_redirect),
     url(r'^account/?$', reader_views.my_profile),
+    url(r'^my/notes/?$', reader_views.my_notes_redirect),
     url(r'^sheets/tags/?$', reader_views.topics_redirect),
     url(r'^sheets/tags/(?P<tag>.+)$', reader_views.topic_page_redirect),
     url(r'^sheets/(?P<type>(public|private))/?$', reader_views.sheets_pages_redirect),
@@ -171,7 +175,9 @@ urlpatterns += [
     url(r'^api/user_stats/(?P<uid>.+)/?$', reader_views.user_stats_api),
     url(r'^api/site_stats/?$', reader_views.site_stats_api),
     url(r'^api/messages/?$', reader_views.messages_api),
-    url(r'^api/manuscripts/(?P<tref>.+)', reader_views.manuscripts_for_source)
+    url(r'^api/manuscripts/(?P<tref>.+)', reader_views.manuscripts_for_source),
+    url(r'^api/background-data', reader_views.background_data_api),
+
 ]
 
 # Source Sheets API
@@ -203,7 +209,8 @@ urlpatterns += [
     url(r'^api/sheets/all-sheets/(?P<limiter>\d+)/(?P<offset>\d+)$',  sheets_views.all_sheets_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)/export_to_drive$',            sheets_views.export_to_drive),
     url(r'^api/sheets/upload-image$',                                 sheets_views.upload_sheet_media),
-
+    url(r'^api/sheets/next-untagged/?$',                              sheets_views.next_untagged),
+    url(r'^api/sheets/next-uncategorized/?$',                         sheets_views.next_uncategorized)
 ]
 
 # Unlink Google Account Subscribe
@@ -292,7 +299,7 @@ urlpatterns += [
     url(r'^random/link$',        reader_views.random_redirect),
     url(r'^random/?$',           reader_views.random_text_page),
     url(r'^daf-roulette/?$',     reader_views.daf_roulette_redirect),
-    url(r'^chavruta/?$',     reader_views.chevruta_redirect),
+    url(r'^chavruta/?$',         reader_views.chevruta_redirect),
 ]
 
 # Registration
@@ -378,6 +385,7 @@ urlpatterns += [
     url(r'^admin/reset/toc$', sefaria_views.rebuild_toc),
     url(r'^admin/reset/ac$', sefaria_views.rebuild_auto_completer),
     url(r'^admin/reset/api/(?P<apiurl>.+)$', sefaria_views.reset_cached_api),
+    url(r'^admin/reset/community$', reader_views.community_reset),
     url(r'^admin/reset/(?P<tref>.+)$', sefaria_views.reset_ref),
     url(r'^admin/reset-websites-data', sefaria_views.reset_websites_data),
     url(r'^admin/delete/orphaned-counts', sefaria_views.delete_orphaned_counts),
@@ -390,11 +398,13 @@ urlpatterns += [
     url(r'^admin/export/all', sefaria_views.export_all),
     url(r'^admin/error', sefaria_views.cause_error),
     url(r'^admin/account-stats', sefaria_views.account_stats),
+    url(r'^admin/categorize-sheets', sefaria_views.categorize_sheets),
     url(r'^admin/sheet-stats', sefaria_views.sheet_stats),
     url(r'^admin/untagged-sheets', sefaria_views.untagged_sheets),
     url(r'^admin/spam', sefaria_views.spam_dashboard),
     url(r'^admin/versions-csv', sefaria_views.versions_csv),
     url(r'^admin/index-sheets-by-timestamp', sefaria_views.index_sheets_by_timestamp),
+    url(r'^admin/community-preview', reader_views.community_preview),
     url(r'^admin/?', include(admin.site.urls)),
 ]
 

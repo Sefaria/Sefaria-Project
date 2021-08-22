@@ -25,7 +25,7 @@ First clone the Sefaria-Project repository to a directory on your computer, then
 
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
     
-#### 1) Install Python
+#### 1) Install Python 3
 
 ###### Linux and macOS
 Most UNIX systems come with a python interpreter pre-installed. However, this is generally still Python 2. The recommended way to get Python 3, and not mess up any software the OS is dependant on, is by using Pyenv. You can use the instructions [here](https://github.com/pyenv/pyenv#installation) and also [here](https://opensource.com/article/19/5/python-3-default-mac#what-we-should-do).

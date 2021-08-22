@@ -1,1 +1,10 @@
-null
+{
+	"title": "",
+	"text": [
+		"This Elul, Sefaria is here for you with texts, resources, and inspiration. Please consider supporting Sefaria with a gift of $10 — or whatever you can give — to keep the library open and accessible.",
+    ],
+	"buttonLink": "https://sefaria.nationbuilder.com/supportsefaria_aeb",
+	"buttonText": "Donate",
+	"name": "elul-2021-1",
+	"schemaVersion": 1
+}

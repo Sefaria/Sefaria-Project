@@ -280,17 +280,12 @@ class TocTree(object):
 
         title = old_title or d["title"]
 
-        vs = self._vs_lookup.get(title, {})
-        d["firstSection"] = vs.get("first_section_ref", None)
-        d["heComplete"]   = vs.get("heComplete", False)
-        d["enComplete"]   = vs.get("enComplete", False)
-
         if "base_text_titles" in d and len(d["base_text_titles"]) > 0:
             d["refs_to_base_texts"] = {btitle:
                 self._first_comment_lookup.get(frozenset([btitle, title]), d["firstSection"])
                 for btitle in d["base_text_titles"]
                 }
-
+        
         return TocTextIndex(d, index_object=index)
 
     def _add_category(self, cat):
@@ -430,6 +425,8 @@ class TocCategory(TocNode):
                 self.isPrimary = True
             if getattr(self._category_object, "searchRoot", False):
                 self.searchRoot = self._category_object.searchRoot
+            for field in ("enDesc", "heDesc", "enShortDesc", "heShortDesc"):
+                setattr(self, field, getattr(self._category_object, field, ""))
         if self.primary_title() in CATEGORY_ORDER:
             # If this text is listed in ORDER, consider its position in ORDER as its order field.
             self.order = CATEGORY_ORDER.index(self.primary_title())
@@ -438,6 +435,10 @@ class TocCategory(TocNode):
         "order",
         "enComplete",
         "heComplete",
+        "enDesc",
+        "heDesc",
+        "enShortDesc",
+        "heShortDesc",
         "isPrimary",
         "searchRoot"
     ]
@@ -484,6 +485,8 @@ class TocTextIndex(TocNode):
         "primary_category",
         "heComplete",
         "enComplete",
+        "enShortDesc",
+        "heShortDesc",
         "collectiveTitle",
         "base_text_titles",
         "base_text_mapping",
@@ -519,6 +522,8 @@ class TocCollectionNode(TocNode):
                 "slug": c_contents["slug"],
                 "title": c_contents["toc"]["collectiveTitle"]["en"] if "collectiveTitle" in c_contents["toc"] else c_contents["toc"]["title"],
                 "heTitle": c_contents["toc"]["collectiveTitle"]["he"] if "collectiveTitle" in c_contents["toc"] else c_contents["toc"]["heTitle"], 
+                "enShortDesc": c_contents["toc"].get("enShortDesc", ""),
+                "heShortDesc": c_contents["toc"].get("heShortDesc", ""),
                 "isCollection": True,
                 "enComplete": True,
                 "heComplete": True,
@@ -549,6 +554,8 @@ class TocCollectionNode(TocNode):
         "order",
         "heComplete",
         "enComplete",
+        "enShortDesc",
+        "heShortDesc",
     ]
 
     title_attrs = {

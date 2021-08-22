@@ -61,8 +61,24 @@ def get_sheet(id=None):
 
 
 def get_sheet_metadata(id = None):
+	"""Returns only metadata on the sheet document"""
 	assert id
 	s = db.sheets.find_one({"id": int(id)}, {"title": 1, "owner": 1, "summary": 1, "ownerImageUrl": 1, "via": 1})
+	return s
+
+
+def get_sheet_listing_data(id):
+	"""Returns metadata on sheet document plus data about its author"""
+	s = get_sheet_metadata(id)
+	del s["_id"]
+	s["title"] = strip_tags(s["title"]).replace("\n", " ")
+	profile = public_user_data(s["owner"])
+	s.update({
+		"ownerName": profile["name"],
+		"ownerImageUrl": profile["imageUrl"],
+		"ownerProfileUrl": profile["profileUrl"],
+		"ownerOrganization": profile["organization"],
+	})
 	return s
 
 
@@ -193,6 +209,7 @@ def sheet_to_dict(sheet):
 		"ownerName": profile["name"],
 		"ownerImageUrl": profile["imageUrl"],
 		"ownerProfileUrl": profile["profileUrl"],
+		"ownerOrganization": profile["organization"],
 		"sheetUrl": "/sheets/" + str(sheet["id"]),
 		"views": sheet["views"],
 		"displayedCollection": sheet.get("displayedCollection", None),
@@ -300,7 +317,7 @@ def order_tags_for_user(tag_counts, uid):
 
 	return tag_counts
 
-
+@django_cache(timeout=6 * 60 * 60)
 def trending_topics(days=7, ntags=14):
 	"""
 	Returns a list of trending topics plus sheet count and author count modified in the last `days`.
@@ -325,6 +342,17 @@ def trending_topics(days=7, ntags=14):
 		"author_count": len(topic['authors']),
 	} for topic in filter(lambda x: len(x["authors"]) > 1, topics)], use_as_typed=False, backwards_compat_lang_fields={'en': 'tag', 'he': 'he_tag'})
 	results = sorted(results, key=lambda x: -x["author_count"])
+
+
+	# For testing purposes: if nothing is trennding in specified number of days, 
+	# (because local data is stale) look at a bigger window
+	# ------
+	# Updated to return an empty array on 7/29/21 b/c it was causing a recursion error due to stale data on sandboxes
+	# or local and for folks who only had the public dump.
+	# -----------
+	if len(results) == 0:
+		return[]
+		#return trending_topics(days=180, ntags=ntags)
 
 	return results[:ntags]
 
@@ -1174,3 +1202,31 @@ def change_tag(old_tag, new_tag_or_list):
 	for sheet in SheetSet({"tags": old_tag}):
 		sheet.tags = [tag for tag in sheet.tags if tag != old_tag] + new_tag_list
 		sheet.save()
+
+def get_sheet_categorization_info(find_without, skip_ids=[]):
+	"""
+	Returns a pseudorandom sheetId for categorization along with all existing categories
+	:param find_without: the field that must contain no elements for the sheet to be returned
+	:param skip_ids: sheets to skip in this session:
+	"""
+	if find_without == "topics":
+		sheet = db.sheets.aggregate([
+		{"$match": {"topics": {"$in": [None, []] }, "id": {"$nin": skip_ids}, "noTags": {"$in": [None, False]}, "status": "public"}},
+		{"$sample": {"size": 1}}]).next()
+	else: #categories
+		sheet = db.sheets.aggregate([
+		{"$match": {"categories": {"$in": [None, []] }, "sources.outsideText": {"$exists": True}, "id": {"$nin": skip_ids}, "noTags": {"$in": [None, False]}, "status": "public"}},
+		{"$sample": {"size": 1}}]).next()
+	categories_all = list(filter(lambda x: x != None, db.sheets.distinct("categories"))) # this is slow; maybe add index or ...?
+	categorize_props = {
+		"doesNotContain": find_without,
+		"sheetId": sheet['id'],
+		"allCategories": categories_all
+	}
+	return categorize_props
+
+def update_sheet_tags_categories(body, uid):
+	update_sheet_topics(body['sheetId'], body["tags"], [])
+	time = datetime.now().isoformat()
+	noTags = time if body.get("noTags", False) else False
+	db.sheets.update_one({"id": body['sheetId']}, {"$set": {"categories": body['categories'], "noTags": noTags}, "$push": {"moderators": {"uid": uid, "time": time}}})

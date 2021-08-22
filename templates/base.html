@@ -70,7 +70,7 @@
         WebFont.load({
           google: {
             families: ['Crimson Text:400,700'],
-            text: 'ăǎġḥḤḫḳḲŏṭżūŻāīēḗîìi̧ ̆̄'
+            text: 'ăǎġḥḤḫḳḲŏšṭżūŻāīēḗîìi̧ ̆̄'
           },
           typekit: {
             id: 'aeg8div' // Adobe Garamond Pro
@@ -82,6 +82,7 @@
           }
         });
     </script>
+    <script src="https://www.gstatic.com/charts/loader.js"></script>
 
     <link rel="stylesheet" href="{% static 'css/common.css' %}">
     <link rel="stylesheet" href="{%  static 'font-awesome/css/font-awesome.css' %}">
@@ -125,12 +126,24 @@
     <!-- React will complain about whitespace -->
     <div id="s2">{{ html }}</div>
     {% else %}
-    <div id="s2" class="headerOnly">{% if request.user.is_authenticated %}{{ logged_in_header }}{% else %}{{ logged_out_header }}{% endif %}</div>
+    <div id="s2" class="headerOnly">
+        {% if request.user_agent.is_mobile %}
+            {% if request.user.is_authenticated %}
+                {{ logged_in_mobile_header }}
+            {% else %}
+                {{ logged_out_mobile_header }}
+            {% endif %}
+        {% elif request.user.is_authenticated %}
+            {{ logged_in_header }}
+        {% else %}
+            {{ logged_out_header }}
+        {% endif %}
+    </div>
     {% endif %}
     {% endautoescape %}
 
     {% if not html %}
-    <div class="wrapper">
+    <div id="staticContentWrapper">
         <div id="content" class="interface-{{ request.interfaceLang }}">
             {% block content %}{% endblock %}
         </div>

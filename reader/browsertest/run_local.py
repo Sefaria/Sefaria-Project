@@ -11,7 +11,6 @@ from .framework import Trial
 from . import basic_tests
 
 
-
 def _get_appium_webdriver(caps):
     wd = appiumWebdriver.Remote('http://0.0.0.0:4723/wd/hub', caps)
     wd.implicitly_wait(3)

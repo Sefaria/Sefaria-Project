@@ -54,6 +54,8 @@ class Collection(abst.AbstractMongoRecord):
                                 # `collectiveTitle` - optional dictionary with `en`, `he`, overiding title display in TOC/Sidebar.
                                 # `desscription` - string
                                 # `heDescription` - string
+                                # `enShortDesc` - string
+                                # `heShortDesc` - string
                                 # `dependence` - string - "Commentary" or "Targum"
                                 # These fields will override `name` and `description` for display
     ]
@@ -173,7 +175,6 @@ class Collection(abst.AbstractMongoRecord):
         contents = super(Collection, self).contents()
         if with_content:
             contents["sheets"]       = self.sheet_contents(authenticated=authenticated)
-            contents["topics"]       = sheet_topics_counts({"id": {"$in": self.sheets}})
             contents["admins"]       = [public_user_data(uid) for uid in contents["admins"]]
             contents["members"]      = [public_user_data(uid) for uid in contents["members"]]
             contents["lastModified"] = str(self.lastModified)
@@ -186,6 +187,7 @@ class Collection(abst.AbstractMongoRecord):
         contents = {
             "name": self.name,
             "slug": self.slug,
+            "description": getattr(self, "description", None),
             "imageUrl": getattr(self, "imageUrl", None),
             "headerUrl": getattr(self, "headerUrl", None),
             "memberCount": self.member_count(),
@@ -199,7 +201,7 @@ class Collection(abst.AbstractMongoRecord):
 
     def sheet_contents(self, authenticated=False):
         from sefaria.sheets import sheet_list
-        if authenticated == False and getattr(self, "listed", False):
+        if authenticated is False and getattr(self, "listed", False):
             query = {"status": "public", "id": {"$in": self.sheets}}
         else:
             query = {"status": {"$in": ["unlisted", "public"]}, "id": {"$in": self.sheets}}

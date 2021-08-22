@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-calendar.py - functions for looking up information relating texts to dates.
+ar.py - functions for looking up information relating texts to dates.
 
 Uses MongoDB collections: dafyomi, parshiot
 """
@@ -44,6 +44,7 @@ def daily_929(datetime_obj):
         'category': rf.index.get_primary_category()
     }]
 
+
 @graceful_exception(logger=logger, return_value=[])
 def daf_yomi(datetime_obj):
     """
@@ -69,6 +70,7 @@ def daf_yomi(datetime_obj):
         })
     return daf_yomi
 
+
 @graceful_exception(logger=logger, return_value=[])
 def daily_mishnayot(datetime_obj):
     mishnah_items = []
@@ -85,6 +87,7 @@ def daily_mishnayot(datetime_obj):
         'category': rf.index.get_primary_category()
     })
     return mishnah_items
+
 
 @graceful_exception(logger=logger, return_value=[])
 def daily_rambam(datetime_obj):
@@ -135,7 +138,7 @@ def daily_rambam_three(datetime_obj):
         display_en = rf.normal().replace("Mishneh Torah, ", "")
         display_he = rf.he_normal().replace("משנה תורה, ", "")
         rambam_items.append({
-            "title": {"en": "Daily Rambam (3)", "he": 'הרמב"ם היומי {}'.format("(3)")},
+            "title": {"en": "Daily Rambam (3 Chapters)", "he": 'הרמב"ם היומי {}'.format("(3 פרקים)")},
             "displayValue": {"en": display_en, "he": display_he},
             "url": rf.url(),
             "ref": rf.normal(),
@@ -165,6 +168,27 @@ def tanakh_yomi(datetime_obj):
         "category": rf.index.get_primary_category()
     })
     return tanakh_items
+
+@graceful_exception(logger=logger, return_value=[])
+def tikkunei_yomi(datetime_obj):
+    tikkunei_items = []
+    datetime_obj = datetime.datetime(datetime_obj.year, datetime_obj.month, datetime_obj.day)
+    database_obj = db.daily_tikkunei_zohar.find_one({"date": {"$eq": datetime_obj}})
+    if not database_obj:
+        return []
+    rf = database_obj["ref"]
+    rf = model.Ref(rf)
+    display_en = database_obj["displayValue"]
+    display_he = database_obj["heDisplayValue"]
+    tikkunei_items.append({
+        "title": {"en": "Zohar for Elul", "he": 'תיקוני זוהר לחודש אלול'},
+        "displayValue": {"en": display_en, "he": display_he},
+        "url": rf.url(),
+        "ref": rf.normal(),
+        "order": 12,
+        "category": rf.index.get_primary_category()
+    })
+    return tikkunei_items
 
 @graceful_exception(logger=logger, return_value=[])
 def daf_weekly(datetime_obj):
@@ -257,14 +281,26 @@ def make_haftarah_response_from_calendar_entry(db_parasha, custom=None):
 
 def make_parashah_response_from_calendar_entry(db_parasha):
     rf = model.Ref(db_parasha["ref"])
+    
+    parashiot = db_parasha["parasha"].split("-") # Could be a double parashah
+    p_en, p_he = [], []
+    for p in parashiot:
+        parasha_topic = model.Topic().load({"parasha": p})
+        if parasha_topic:
+            p_en.append(parasha_topic.description["en"])
+            p_he.append(parasha_topic.description["he"])
+    parasha_description = {"en": "\n\n".join(p_en), "he": "\n\n".join(p_he)}
+
     parasha = {
         'title': {'en': 'Parashat Hashavua', 'he': 'פרשת השבוע'},
         'displayValue': {'en': db_parasha["parasha"], 'he': hebrew_parasha_name(db_parasha["parasha"])},
         'url': rf.url(),
         'ref': rf.normal(),
+        'heRef': rf.he_normal(),
         'order': 1,
         'category': rf.index.get_primary_category(),
-        'extraDetails': {'aliyot': db_parasha["aliyot"]}
+        'extraDetails': {'aliyot': db_parasha["aliyot"]},
+        'description': parasha_description
     }
     return [parasha]
 
@@ -272,6 +308,7 @@ def make_parashah_response_from_calendar_entry(db_parasha):
 def aliyah_ref(parasha_db, aliyah):
     assert 1 <= aliyah <= 7
     return model.Ref(parasha_db["aliyot"][aliyah - 1])
+
 
 def get_parasha(datetime_obj, diaspora=True, parasha=None):
     """
@@ -286,6 +323,11 @@ def get_parasha(datetime_obj, diaspora=True, parasha=None):
     p = next(p)
 
     return p
+
+
+def get_todays_parasha(diaspora=True):
+    return get_parasha(timezone.localtime(timezone.now()), diaspora=diaspora)
+
 
 @graceful_exception(logger=logger, return_value=[])
 def parashat_hashavua_and_haftara(datetime_obj, diaspora=True, custom=None, parasha=None, ret_type='list'):
@@ -325,8 +367,10 @@ def get_all_calendar_items(datetime_obj, diaspora=True, custom="sephardi"):
     cal_items += halakhah_yomit(datetime_obj)
     cal_items += arukh_hashulchan(datetime_obj)
     cal_items += tanakh_yomi(datetime_obj)
+    cal_items += tikkunei_yomi(datetime_obj)
     cal_items = [item for item in cal_items if item]
     return cal_items
+
 
 def get_keyed_calendar_items(diaspora=True, custom=None):
     cal_items = get_todays_calendar_items(diaspora=diaspora, custom=custom)
@@ -334,6 +378,7 @@ def get_keyed_calendar_items(diaspora=True, custom=None):
     for cal_item in cal_items:
         cal_dict[cal_item["title"]["en"]] = cal_item
     return cal_dict
+
 
 def get_todays_calendar_items(diaspora=True, custom=None):
     return get_all_calendar_items(timezone.localtime(timezone.now()), diaspora=diaspora, custom=custom)

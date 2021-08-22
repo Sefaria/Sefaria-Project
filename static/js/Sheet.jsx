@@ -25,7 +25,6 @@ class Sheet extends Component {
   }
   componentDidMount() {
     this.$container = $(ReactDOM.findDOMNode(this));
-    this.setPaddingForScrollbar();
     this.ensureData();
   }
   getSheetFromCache() {
@@ -55,12 +54,6 @@ class Sheet extends Component {
         Sefaria.related(data.sources[i].ref, () => this.forceUpdate);
       }
     }
-  }
-  setPaddingForScrollbar() {
-    // Scrollbars take up spacing, causing the centering of Sheet to be slightly off center
-    // compared to the header. This functions sets appropriate padding to compensate.
-    const width = Sefaria.util.getScrollbarWidth();
-    this.$container.css({paddingRight: 0, paddingLeft: width});
   }
   render() {
     const sheet = this.getSheetFromCache();
@@ -345,8 +338,8 @@ class SheetContent extends Component {
               name={this.props.authorStatement}
               outerStyle={{width: "30px", height: "30px", display: "inline-block", verticalAlign: "middle"}}
             />
-            <InterfaceText context="SheetAuthorStatement">by </InterfaceText> 
-            <a href={this.props.authorUrl}>
+            <InterfaceText text={{en: "By", he: "מאת"}}/>
+            <a href={this.props.authorUrl} className="sheetAuthorName">
               <InterfaceText>{this.props.authorStatement}</InterfaceText>
             </a>
           </SheetAuthorStatement>

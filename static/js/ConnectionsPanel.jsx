@@ -3,12 +3,12 @@ import {
     LoadingMessage,
     LoginPrompt,
     LanguageToggleButton,
-    ReaderNavigationMenuCloseButton,
+    CloseButton,
     SheetListing,
     Note,
     FeedbackBox,
     ProfilePic,
-    ToolTipped, InterfaceText, ContentText,
+    ToolTipped, InterfaceText, ContentText, EnglishText, HebrewText,
 } from './Misc';
 
 import {
@@ -166,7 +166,7 @@ class ConnectionsPanel extends Component {
           linksLoaded: true,
         });
     }
-    Sefaria.versions(ref, false, ["he"], true).then(versions => this.setState({availableTranslations: versions})); //for counting translations
+    Sefaria.getVersions(ref, false, ["he"], true).then(versions => this.setState({availableTranslations: versions})); //for counting translations
   }
   reloadData() {
     this.setState({
@@ -472,7 +472,7 @@ class ConnectionsPanel extends Component {
                     onCancel={() => this.props.setConnectionsMode("Notes")} />
                   { Sefaria._uid ?
                   <div>
-                    <a href="/my/notes" className="allNotesLink button transparent bordered fillWidth">
+                    <a href="/my/profile?tab=notes" className="allNotesLink button white transparent bordered fillWidth">
                       <span className="int-en">Go to My Notes</span>
                       <span className="int-he">הרשומות שלי</span>
                     </a>
@@ -500,7 +500,9 @@ class ConnectionsPanel extends Component {
         <TopicList
           contentLang={this.props.contentLang}
           srefs={this.props.srefs}
+          sectionRef={this.sectionRef()}
           interfaceLang={this.props.interfaceLang}
+          key={`Topics-${this.props.srefs.join("|")}`}
         />
       );
     } else if (this.props.mode === "WebPages" || this.props.mode === "WebPagesList") {
@@ -574,7 +576,6 @@ class ConnectionsPanel extends Component {
                   title={this.props.title}
                   srefs={this.props.srefs}
                   sectionRef={this.state.sectionRef}
-                  getLicenseMap={this.props.getLicenseMap}
                   openVersionInReader={this.props.selectVersion}
                   viewExtendedNotes={this.props.viewExtendedNotes}/>);
 
@@ -587,7 +588,6 @@ class ConnectionsPanel extends Component {
                   setFilter={this.props.setVersionFilter}
                   vFilter={this.props.versionFilter}
                   recentVFilters={this.props.recentVersionFilters}
-                  getLicenseMap={this.props.getLicenseMap}
                   srefs={this.props.srefs}
                   sectionRef={this.state.sectionRef}
                   onRangeClick={this.props.onTextClick}
@@ -664,7 +664,6 @@ ConnectionsPanel.propTypes = {
   selectedNamedEntityText: PropTypes.string,
   interfaceLang:           PropTypes.string,
   contentLang:             PropTypes.string,
-  getLicenseMap:           PropTypes.func.isRequired,
   masterPanelLanguage:     PropTypes.oneOf(["english", "bilingual", "hebrew"]),
   versionFilter:           PropTypes.array,
   recentVersionFilters:    PropTypes.array,
@@ -855,7 +854,13 @@ class MySheetsList extends Component {
     var content = sheets.length ? sheets.filter(sheet => {
       // Don't show sheets as connections to themselves
       return sheet.id !== this.props.connectedSheet;
-    }).map(sheet => {
+    }).filter(
+        // filters out duplicate sheets by sheet ID number
+        (sheet, index, self) =>
+            index === self.findIndex((s) => (
+                s.id === sheet.id
+            ))
+    ).map(sheet => {
       return (<SheetListing sheet={sheet} key={sheet.sheetUrl} handleSheetClick={this.props.handleSheetClick} connectedRefs={this.props.srefs} />)
     }, this) : null;
     return content && content.length ? (<div className="sheetList">{content}</div>) : null;
@@ -893,24 +898,25 @@ PublicSheetsList.propTypes = {
 };
 
 
-const TopicList = ({ srefs, interfaceLang, contentLang }) => {
+const TopicList = ({ srefs, sectionRef, interfaceLang, contentLang }) => {
   // segment ref topicList can be undefined even if loaded
   // but section ref topicList is null when loading and array when loaded
-  const sectionRef = Sefaria.getRefFromCache(srefs[0]).sectionRef;
-  const topics = Sefaria.topicsByRef(srefs)
-  return (
-    <div className={`topicList ${contentLang === 'hebrew' ? 'topicsHe' : 'topicsEn'}`}>
-      {
-        Sefaria.topicsByRef(sectionRef) === null ? (
+  const topics = Sefaria.topicsByRef(srefs);
+  const topicsBySectionRef =  Sefaria.topicsByRef(sectionRef);
+  if(!topicsBySectionRef){
+      return (
           <div className="webpageList empty">
             <LoadingMessage />
           </div>
-        ) : (!topics || !topics.length) ? (
+      );
+  }
+  return (
+    <div className={`topicList ${contentLang === 'hebrew' ? 'topicsHe' : 'topicsEn'}`}>
+      {(!topics || !topics.length) ? (
           <div className="webpageList empty">
-            <LoadingMessage
-              message={"No topics known here."}
-              heMessage={"אין נושאים ידועים."}
-            />
+            <div className="loadingMessage sans-serif">
+              <ContentText text={{en:"No known Topics Here.", he: "אין קשרים ידועים."}}/>
+            </div>
           </div>
         ) : topics.map(
           topic => (
@@ -921,8 +927,7 @@ const TopicList = ({ srefs, interfaceLang, contentLang }) => {
               srefs={srefs}
             />
           )
-        )
-      }
+        )}
     </div>
   );
 }
@@ -1357,8 +1362,8 @@ class AddConnectionBox extends Component {
     }
   }
   getHeRefs(refs) {
-    var heRefs = refs.map( ref =>  {
-      var oRef = Sefaria.ref(ref);
+    let heRefs = refs.map( ref =>  {
+      let oRef = Sefaria.ref(ref);
       if (!oRef) {
         // If a range was selected, the ref cache may not have a Hebrew ref for us, so ask the API
         Sefaria.getRef(ref).then(this.setHeRefs);
@@ -1371,16 +1376,16 @@ class AddConnectionBox extends Component {
   setHeRefs() {
     this.setState({heRefs: this.getHeRefs(this.state.refs)});
   }
-  setType(type) {
-    this.setState({type: type});
+  setType(event) {
+    this.setState({type: event.target.value});
   }
   addConnection() {
-    var connection = {
+    let connection = {
       refs: this.props.srefs,
       type: this.state.type,
     };
-    var postData = { json: JSON.stringify(connection) };
-    var url = "/api/links/";
+    let postData = { json: JSON.stringify(connection) };
+    const url = "/api/links/";
     $.post(url, postData, function(data) {
       if (data.error) {
         alert(data.error);
@@ -1395,8 +1400,8 @@ class AddConnectionBox extends Component {
     this.setState({saving: true});
   }
   render() {
-    var refs = this.state.refs;
-    var heRefs = this.state.heRefs;
+    const refs = this.state.refs;
+    const heRefs = this.state.heRefs;
     return (<div className="addConnectionBox">
 
             { this.props.srefs.length == 1 ?
@@ -1427,6 +1432,7 @@ class AddConnectionBox extends Component {
                 </div>
 
                 <Dropdown
+                  name="connectionType"
                   options={[
                             {value: "",               label: Sefaria._("None", "AddConnectionBox")},
                             {value: "commentary",     label: Sefaria._("Commentary", "AddConnectionBox")},
@@ -1438,7 +1444,7 @@ class AddConnectionBox extends Component {
                             {value: "related",        label: Sefaria._("Related Passage", "AddConnectionBox")}
                           ]}
                   placeholder={Sefaria._("Select Type", "AddConnectionBox")}
-                  onSelect={this.setType} />
+                  onChange={this.setType} />
 
                 <div className="button fillWidth" onClick={this.addConnection}>
                   <span className="int-en">Add Connection</span>

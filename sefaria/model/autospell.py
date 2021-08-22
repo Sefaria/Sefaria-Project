@@ -12,7 +12,7 @@ from django.contrib.auth.models import User
 from sefaria.model import *
 from sefaria.model.schema import SheetLibraryNode
 from sefaria.utils import hebrew
-from sefaria.system.database import db
+from sefaria.model.following import aggregate_profiles
 
 import structlog
 logger = structlog.get_logger(__name__)
@@ -105,26 +105,7 @@ class AutoCompleter(object):
             self.spell_checker.train_phrases(tnames)
             self.ngram_matcher.train_phrases(tnames, normal_topics_names)
         if include_users:
-            pipeline = [
-                {"$match": {
-                   "status": "public"}},
-                {"$sortByCount": "$owner"},
-                {"$lookup": {
-                    "from": "profiles",
-                    "localField": "_id",
-                    "foreignField": "id",
-                    "as": "user"}},
-                {"$unwind": {
-                    "path": "$user",
-                    "preserveNullAndEmptyArrays": True
-                }}
-            ]
-            results = db.sheets.aggregate(pipeline)
-            try:
-                profiles = {r["user"]["id"]: r for r in results}
-            except KeyError:
-                logger.error("Encountered sheet owner with no profile record.  No users will be shown in autocomplete.")
-                profiles = {}
+            profiles = aggregate_profiles()
             users = User.objects.in_bulk(profiles.keys())
             unames = []
             normal_user_names = []

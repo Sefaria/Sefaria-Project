@@ -2,12 +2,15 @@ const Strings = {
   _i18nInterfaceStrings: {
     "Sefaria": "ספריא",
     "Topics":"נושאים",
+    "Community": "קהילה",
+    "Donate": "תרומה",
     "Sefaria Notifications": "הודעות בספריא",
-    "Sefaria: a Living Library of Jewish Texts Online": "ספריא: ספרייה חיה של טקסטים יהודיים",
+    "Sefaria: a Living Library of Jewish Texts Online": "ספריא: ספריה יהודית דינמית",
     "Recently Viewed" : "נצפו לאחרונה",
     "The Sefaria Library": "תוכן העניינים של ספריא",
     "Sefaria Search": "חיפוש בספריא",
     "Sefaria Account": "חשבון בספריא",
+    "Notifcations": "התראות",
     "New Additions to the Sefaria Library": "חידושים בארון הספרים של ספריא",
     "My Notes on Sefaria": "ההערות שלי בספריא",
     "Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.": "טקסטים ודפי מקורות מן התורה, התלמוד וספריית המקורות של ספריא.",
@@ -17,6 +20,74 @@ const Strings = {
     " & ": " | ",
     "My Source Sheets" : "דפי המקורות שלי",
     "Public Source Sheets":"דפי מקורות פומביים",
+    "Log in": "התחבר",
+    "Sign up": "הרשם",
+
+    // Texts Page
+    "Learn More": "לקריאה נוספת",
+    "Learning Schedules": "לוח לימוד יומי",
+    "Teach with Sefaria": "מלמדים עם ספריא",
+    "Visualizations": "תרשימים גרפיים",
+    "Torah Tab": "תורה טאב (תוסף)",
+    "Get the Mobile App": "הורידו את היישומון",
+    "Access the Jewish library anywhere and anytime with the": "בעזרת היישומון תוכלו לגשת לארון הספרים היהודי בכל מקום ובכל זמן.",
+    "Sefaria mobile app.": "אפליקציית ספריא לנייד.",
+    "Stay Connected": "הישארו מעודכנים",
+    "Get updates on new texts, learning resources, features, and more.": "קבלו עדכונים על מקורות חדשים, כלי למידה חדשים ועוד.",
+    "Support Sefaria": "תמכו בספריא",
+    "Sefaria is an open source, non-profit project. Support us by making a tax-deductible donation.": "ספריא היא מאגר פתוח וחינמי. תמכו בנו בעזרת תרומה.",
+    "Make a Donation": "לתרומה",
+    "Join the Conversation": "קחו חלק בשיח" ,
+    "Explore the Community": "לעמוד הקהילה",
+    "People around the world use Sefaria to create and share Torah resources. You're invited to add your voice.": "לומדים ולומדות מכל רחבי העולם משתמשים בספריא כדי ליצור ולשתף מקורות יהודיים. אנו מזמינים אתכם לקחת חלק בשיח זה.",
+    "Create with Sefaria": "צרו בעזרת ספריא",
+    "Mobile Apps": "יישומון לטלפון הנייד",
+    "Browse the Library": "עיון בספריה",
+    "Weekly Torah Portion": "פרשת השבוע",
+    "All Learning Schedules": "לוחות לימוד נוספים",
+    "Sponsor A Day of Learning": "תרמו יום לימוד בספריא",
+    "With your help, we can add more texts and translations to the library, develop new tools for learning, and keep Sefaria accessible for Torah study anytime, anywhere.": "בעזרת התרומה שלכם נוכל להוסיף מקורות, תרגומים, לפתח כלים חדשים ללימוד ולשמור על גישה חופשית ללימוד תורה, בכל מקום ובכל זמן.",
+    "Sponsor A Day": "הקדישו יום לימוד",
+
+    // Text Category Pages
+    "All Portions": "פרשות השבוע",
+    "Popular Texts": "מקורות פופולריים",
+    "Explore interconnections among texts with our interactive visualizations.": "העזרו בתרשימים הגרפיים כדי לגלות קשרים מעניינים בין מקורות.",
+    "All Visualizations": "תרשימים גרפיים נוספים",
+    "Daily Study": "לימוד יומי",
+
+    // Topics
+    "Explore Jewish Texts by Topic": "עיון בארון הספרים היהודי לפי נושא",
+    "Explore by Topic": "לימוד לפי נושאים",
+    "About Topics": "אודות \"נושאים\"",
+    "Topic pages bring you straight to selections of texts and user created source sheets about thousands of subjects. Sources that appear are drawn from existing indices of Jewish texts (like Aspaklaria) and from the sources our users include on their public source sheets.": "בדפי הנושא מלוקטים מקורות נבחרים ודפי מקורות של משתמשים על נושא מסוים. המקורות המופיעים בדפי הנושא נאספים ממאגרים קיימים של ספרות יהודית (דוגמת 'אספקלריא') ומתוך דפי מקורות פומביים של משתמשי ספריא.",
+    "Trending Topics": "נושאים נפוצים",
+    "More": "עוד",
+    "Less": "פחות",
+    "All Topics A-Z": "כל הנושאים א-ת",
+    "Browse or search our complete list of topics.": "חיפוש ברשימת הנושאים.",
+
+    // All Topics
+    "All Topics": "כל הנושאים",
+    "Reset": "לאתחל",
+    "Search Topics": "חפש נושאים",
+
+    // Community Page
+    "From the Community: Today on Sefaria": "מן הקהילה: היום בספריא",
+    "Today on Sefaria": "היום בספריא",
+    "Who to Follow": "משתמשים שכדאי לעקוב אחריהם",
+    "Explore Collections": "עיינו באסופות",
+    "Organizations, communities and individuals around the world curate and share collections of sheets for you to explore.": "ארגונים, קהילות ויחידים מרחבי העולם מציגים ומשתפים אסופות של דפי מקורות שתוכלו לגלות.",
+    "Recently Published": "פורסמו לאחרונה",
+    "Make a Sheet": "יצירת דף מקורות",
+    "Combine sources from our library with your own comments, questions, images, and videos.": "השתמשו במקורות מהספריה ושלבו בהם את התגובות, השאלות, התמונות והסרטונים שלכם.",
+    "A Living Library of Torah": "ספריה יהודית דינמית",
+
+    // Search
+    "Results for": "תוצאות עבור",
+    "Results": "תוצאות",
+    "Options": "אפשרויות",
+    "Exact Matches Only": "התאמה מדויקת למילות החיפוש",
 
     // Sheets
     "Source Sheets": "דפי מקורות",
@@ -108,7 +179,6 @@ const Strings = {
     "Please add a description to publish your sheet.": "יש להוסיף תיאור כדי לפרסם את הדף",
     "The summary description is limited to 280 characters.": "תקציר דף המקורות מוגבל ל280 תווים.",
 
-
     // Reader Panel
     "Search" : "חיפוש",
     "Search Dictionary": "חיפוש במילון",
@@ -149,29 +219,14 @@ const Strings = {
     "Location: ": "מיקום: ",
 
     // Collections
-    // Edit collection page
     "Collections": "אסופות",
+    "About Collections": "אודות \"אסופות\"",
+    "Collection": "אסופה",
+    "Collections of sheets are created by Sefaria users and can be privately, shared with friends, or made public on Sefaria.": "אסופות הן מקבצים של דפי מקורות שנוצרו על ידי משתמשי האתר. הן ניתנות לשימוש פרטי, לצורך שיתוף עם אחרים או לשימוש ציבורי באתר ספריא.",
     "Sefaria Collections": "אסופות של ספריא",
-    "Edit Collection": "עריכת אסופה",
     "Create a Collection": "יצירת אסופה",
     "Create a New Collection": "יצירת אסופה חדשה",
-    "Collection Name": "שם האסופה",
-    "Website": "כתובת אתר",
-    "Description": "תיאור",
-    "Collection Image": "תמונת האסופה",
-    "Upload Image": "העלאת תמונה",
-    "Recommended size: 350px x 350px or larger": 'גודל מומלץ: לפחות 350 פיקסל ע"ג 350 פיקסל',
-    "Default Sheet Header": "כותרת עמוד ראשונית",
-    "Recommended size: 1000px width to fill sheet, smaller images align right": "גודל מומלץ: 1000 פיקסל כדי למלא את חלל הדף. גודל קטן יותר יתיישר לימין",
-    "List on Sefaria": "הצג לכלל משתמשי ספריא",
-    "Your collection will appear on the public collections page where others can find it.": "האסופה שלך תופיע בדף האסופות הציבוריות ותהיה זמינה לעיון של משתמשות ומשתמשים אחרים.",
-    "Delete Collection": "מחיקת אסופה",
-    "Are you sure you want to delete this collection? This cannot be undone.": "האם ברצונך למחוק את האסופה הזו? אין אפשרות לבטל את הפעולה אחר כך.",
-    "You have unsaved changes to your collection.": "האסופה שלך כוללת שינויים שלא נשמרו.",
-    "Images must be smaller than ": "תמונות חייבות להיות קטנות מ",
-    "Unfortunately an error occurred uploading your file.": "אירעה שגיאה בהעלאת הקובץ שלך.",
-    "Unfortunately an error occurred saving your collection.": "אירעה שגיאה בשמירת האסופה שלך.",
-    "Unfortunately an error occurred deleting your collection.": "אירעה שגיאה במחיקת האסופה שלך.",
+
     // Collection Page
     "Owner": "מנהל/ת",
     "Editor": "עורך/ה",
@@ -179,6 +234,8 @@ const Strings = {
     "There are no sheets in this collection yet.": "לאסופה זו טרם נוספו דפי מקורות.",
     "You can add sheets to this collection on your profile.": "באפשרותך להוסיף דפי מקורות לאסופה הזאת דרך הפרופיל האישי שלך.",
     "Open Profile": "לפרופיל האישי",
+    "Search the full text of this collection for": "באפשרותך לחפש בטקסט המלא של האסופה את",
+    "No sheets matching ": "לא נמצאו דפים מתאימים ל",
     "Pinned Sheet - click to unpin": "דף מקורות נעוץ - לחצו להסרה",
     "Pinned Sheet" : "דף מקורות נעוץ",
     "Pin Sheet" : "נעיצת דף מקורות",
@@ -197,9 +254,11 @@ const Strings = {
     "Are you sure you want to remove this person from this collection?": "האם ברצונך להסיר משתמש זה מן האסופה?",
     "Are you sure you want to remove this invitation?": "האם ברצונך למחוק הזמנה זו?",
     "There was an error pinning your sheet.": "אירעה שגיאה בצירוף דף המקורות.",
+
     // Public Collections Page
     "There are no public collections yet.": "טרם נוצרו אסופות ציבוריות",
-    // Collects in Profile
+
+    // Collections in Profile
     "You can use collections to organize your sheets or public sheets you like. Collections can be shared privately or made public on Sefaria.": "באפשרותך ליצור אסופות כדי לארגן את דפי המקורות שלך או דפי מקורות פתוחים לשימוש שאהבת. את האסופות אפשר לשתף באופן פרטי או לפרסם באופן ציבורי באתר ספריא.",
     " hasn't shared any collections yet.": " טרם שיתפ/ה אסופות כלשהם",
     "Create new collection": "יצירת אסופה חדשה",
@@ -207,11 +266,43 @@ const Strings = {
     "Done": "סיום",
     "Add to Collection": "צירוף לאסופה",
 
-    "Saved": "שמורים",
+    // Edit Collection page
+    "Edit Collection": "עריכת אסופה",
+    "Collection Name": "שם האסופה",
+    "Website": "כתובת אתר",
+    "Description": "תיאור",
+    "Collection Image": "תמונת האסופה",
+    "Upload Image": "העלאת תמונה",
+    "Recommended size: 350px x 350px or larger": 'גודל מומלץ: לפחות 350 פיקסל ע"ג 350 פיקסל',
+    "Default Sheet Header": "כותרת עמוד ראשונית",
+    "Recommended size: 1000px width to fill sheet, smaller images align right": "גודל מומלץ: 1000 פיקסל כדי למלא את חלל הדף. גודל קטן יותר יתיישר לימין",
+    "List on Sefaria": "הצג לכלל משתמשי ספריא",
+    "Your collection will appear on the public collections page where others can find it.": "האסופה שלך תופיע בדף האסופות הציבוריות ותהיה זמינה לעיון של משתמשות ומשתמשים אחרים.",
+    "Delete Collection": "מחיקת אסופה",
+    "Are you sure you want to delete this collection? This cannot be undone.": "האם ברצונך למחוק את האסופה הזו? אין אפשרות לבטל את הפעולה אחר כך.",
+    "You have unsaved changes to your collection.": "האסופה שלך כוללת שינויים שלא נשמרו.",
+    "Images must be smaller than ": "תמונות חייבות להיות קטנות מ",
+    "Unfortunately an error occurred uploading your file.": "אירעה שגיאה בהעלאת הקובץ שלך.",
+    "Unfortunately an error occurred saving your collection.": "אירעה שגיאה בשמירת האסופה שלך.",
+    "Unfortunately an error occurred deleting your collection.": "אירעה שגיאה במחיקת האסופה שלך.",
 
-    // Topics
-    "More": "עוד",
-    "Less": "פחות",
+    // Saved / History / Notifications
+    "Saved": "שמורים",
+    "Notifications": "התראות",
+    "Texts and sheets that you read will be available for you to see here.": "מקורות ודפי מקורות שקראתם יהיו זמינים עבורכם כאן לעיון חוזר.",
+    "Click the bookmark icon on texts or sheets to save them here.": "לחצו על סמל הסימניה בתוך מקורות או דפי מקורות כדי לשמור מראי מקומות מסוימים כאן.",
+    "New Text": "טקסט חדש",
+    "sent you a message": "שלח/ה לך הודעה",
+    "published a new sheet": "פרסמ/ה דף מקורות חדש",
+    "liked your sheet": "שמר/ה את דף המקורות שלך",
+    "is now following you": "נרשמ/ה לעדכונים ממך",
+    "Reply": "תשובה",
+    "added you to a collection": "הוסיפ/ה אותך לאסופה",
+
+    // Learning Schedules
+    "Daily Learning": "לימוד יומי",
+    "Weekly Learning": "לימוד שבועי",
+    "Since ancient times, the Torah has been divided into sections which are read each week on a set yearly calendar. Following this practice, many other calendars have been created to help communities of learners work through specific texts together.": "מימי קדם חולקה התורה לקטעי קריאה שבועיים שנועדו לסיום הספר כולו במשך תקופת זמן של שנה. בעקבות המנהג הזה התפתחו לאורך השנים סדרי לימוד תקופתיים רבים נוספים, ובעזרתם יכולות קהילות וקבוצות של לומדים ללמוד יחד טקסטים שלמים.",
 
     //languages
     "English": "אנגלית",
@@ -274,7 +365,6 @@ const Strings = {
     "Save texts": "שמרו טקסטים לקריאה חוזרת",
     "Follow your favorite authors": "עקבו אחר הסופרים האהובים עליכם",
     "Stay in the know": "השארו מעודכנים",
-    "Sign Up": "הרשמו לספריא",
     "Already have an account?": "כבר יש לכם חשבון?",
     "Account Settings": "הגדרות",
     "Sign in": "התחברו",
@@ -295,7 +385,7 @@ const Strings = {
     "research of Dr. Michael Sperling": "המחקר של ד\"ר מיכאל ספרלינג",
     "Read the Portion": "קראו את הפרשה",
     "My Notes": "הרשומות שלי",
-    "Updates": "טקסטים חדשים",
+    "Updates": "עדכונים",
     "Preferred Translation": "תרגום מועדף",
 
     //user stats
@@ -347,17 +437,39 @@ const Strings = {
     "Your feedback is greatly appreciated. You can now edit your sheets again using the old source sheet editor. If you have any questions or additional feedback you can reach us at": "אנחנו מעריכים מאוד את המשוב שלך. כעת באפשרותך לחזור לערוך את הדפים שלך באמצעות עורך המסמכים הישן. לשאלות או למשוב נוסף אפשר לפנות אלינו בדוא\"ל:",
 
     //TextTableofContents
+    "Contents": "תוכן",
     "Download": "הורדה",
-    "Download Text": "הורדת הטקסט",
     "Table of Contents": "תוכן העניינים",
     "Hebrew Versions": "בעברית",
     "English Versions": "באנגלית",
+    "Continue Reading": "המשך קריאה",
+    "Start Reading": "התחלת קריאה",
+    "Composed": "זמן חיבור",
+
+    //Sheet Meta
+    "About this Sheet": "אודות דף המקורות",
+    "Tags": "תוויות",
 
     //Topics
     "Wikipedia": "ויקיפדיה",
     "Jewish Encyclopedia": "האנציקלופדיה היהודית",
     "Works on Sefaria": "חיבורים וכתבים בספריא",
+
+    //Module Names
+    "Download Text": "הורדת טקסט",
+    "About this Text" : "אודות ספר זה",
+    "Related Topics": "נושאים קשורים",
+
+    // FilterableList
+    "Sort by": "מיון לפי",
+
+    //Mobile Nav Header
+    "Get Help": "עזרה", //already has a similar string here but with different capitalization, maybe fix bug when not right before a launch?
+    "About Sefaria": "אודות ספריא",
+    "Saved & History": "היסטורית קריאה ושמורים",
+
   },
+
   _i18nInterfaceStringsWithContext: {
     "AddConnectionBox": {
       "Select Type": "בחר סוג קישור",
@@ -373,15 +485,51 @@ const Strings = {
     "SheetAuthorStatement": {
       "by ": "", // by line on sheets in reader, intentionally left blank
     },
+    "AboutParashah": {
+      "Torah Reading": "פרשת השבוע",
+    },
     "ConnectionPanelSection":{
       "Related Texts": "מקורות לעיון",
       "Resources": "עזרים",
       "Tools": "כלים",
     },
     "FollowButton": {
-      "Follow": "עוקב",
-      "Unfollow": "הפסק לעקוב",
-      "Following": "עקוב",
+      "Follow": "עקבו",
+      "Unfollow": "הסרת עוקב",
+      "Following": "עוקב",
+      "Follow Back": "עקבו בחזרה",
+    },
+    "DownloadVersions":{
+      "Select Format": "בחירת פורמט הורדה",
+      "Text (with Tags)": "טקסט (עם תיוגים)",
+      "Text (without Tags)": "טקסט (ללא תיוגים)",
+      "Select Version": "בחירת מהדורה/תרגום"
+    },
+    "FilterableList": {
+      "Alphabetical": "אלפביתי",
+      "Recent": "הכי חדש",
+      "Views": "הכי נצפה",
+      /*"Relevance": 'רלוונטיות', //these 3 are duplicates but it doesnt seem to work without them, why?
+      "Chronological": 'כרונולוגי',
+      "Newest": "הכי חדש",*/
+    },
+    "Header": {
+      "Texts": "מקורות",
+    },
+    "RecentlyPublished": {
+      "Load More": "דפי מקורות נוספים",
+    },
+    "ResourcesModule": {
+      "Resources": "כלי עזר",
+    },
+    "SearchFilters": {
+      "Texts": "מקורות",
+      "Topics": "נושאים",
+      "Collections": "Collections",
+    },
+    "CalendarListing": {
+      "Tanakh": "",
+      "Talmud": ""
     }
   },
 };
