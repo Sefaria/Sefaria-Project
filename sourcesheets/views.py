@@ -464,6 +464,7 @@ def collections_post_api(request, user_id, slug=None):
 
 @csrf_exempt
 def user_collections_api(request, user_id):
+    from sefaria.system.database import db
     if request.method == "GET":
         is_me = request.user.id == int(user_id)
         collections_serialized = get_user_collections(int(user_id), is_me)
@@ -797,6 +798,12 @@ def add_source_to_sheet_api(request, sheet_id):
                 del source_obj["version-"+lang]
             return lang_tc if lang_tc != "" else "..."
 
+    sheet = db.sheets.find_one({"id": int(sheet_id)})
+    if not sheet:
+        return {"error": "No sheet with id %s." % (id)}
+    if sheet["owner"] != request.user.id:
+        return jsonResponse({"error": "User can only edit their own sheet" })
+    
     source = json.loads(request.POST.get("source"))
     if not source:
         return jsonResponse({"error": "No source to copy given."})
@@ -822,16 +829,21 @@ def add_source_to_sheet_api(request, sheet_id):
 
     return jsonResponse(response)
 
-
+@login_required
 def copy_source_to_sheet_api(request, sheet_id):
     """
     API to copy a source from one sheet to another.
     """
+    from sefaria.system.database import db
     copy_sheet = request.POST.get("sheetID")
     copy_source = request.POST.get("nodeID")
     if not copy_sheet and copy_source:
         return jsonResponse({"error": "Need both a sheet and source node ID to copy."})
-
+    sheet = db.sheets.find_one({"id": int(sheet_id)})
+    if not sheet:
+        return {"error": "No sheet with id %s." % (id)}
+    if sheet["owner"] != request.user.id:
+        return jsonResponse({"error": "User can only edit their own sheet" })
     source = get_sheet_node(int(copy_sheet), int(copy_source))
     del source["node"]
     response = add_source_to_sheet(int(sheet_id), source)
