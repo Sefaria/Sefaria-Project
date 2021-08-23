@@ -10402,6 +10402,62 @@ span.ref-link-color-3 {color: blue}
   transform: translateZ(0);
 }
 
+#beitMidrashContainer{
+  background: #333333;
+  color: white;
+  height: 100%;
+  font-size: 16px;
+  font: "Roboto";
+  font-weight: 400;
+  margin: 10px;
+}
+
+#beitMidrashHeader{
+  margin: 10px;
+  color: white;
+  font-size: var(--sans-serif-h3-font-size);
+  font-weight: 500;
+}
+
+#newCall{
+  margin:10px;
+}
+
+#newCallImg {
+  background-image: url(/static/img/new-call.svg);
+  height: 12px;
+  width: 24px;
+  margin-right: 5px;
+}
+
+.beitMidrashHR {
+  width: 200px;
+  margin-left: 50px;
+  margin-right: 50px;
+  border-top: 1px solid #999999;
+}
+
+#beitMidrashUser {
+  color: white;
+  font-size: 16px;
+  font: "Roboto";
+  font-weight: 400;
+  display: flex;
+  margin: 10px;
+}
+
+#beitMidrashProfilePic {
+  background-image: url("/static/img/profile-default.png");
+  border-radius:50%;
+  height: 42.67px;
+  width: 42.67px;
+  margin-right: 7px;
+}
+
+#beitMidrashOrg {
+  font-weight: 200;
+}
+
 .chat {
   bottom: 0;
   right: 0;

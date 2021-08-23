@@ -41,14 +41,11 @@ const BeitMidrash = ({beitMidrashId}) => {
     }
 
     useEffect(()=>{
-       console.log("in first useEffect, activeChats has updated")
-        // 
-
        socket.off("received chat message")
 
        socket.on("received chat message", (user, message, room) => {
         room.userB = user;
-        room.user = {uid: Sefaria._uid, name: Sefaria.full_name};
+        room.user = {uid: Sefaria._uid, name: Sefaria.full_name, pic: Sefaria.profile_pic_url};
         
         addMessageToDataStore(user, room, message);
         console.log(activeChatRooms)
@@ -62,9 +59,12 @@ const BeitMidrash = ({beitMidrashId}) => {
     }, [activeChatRooms])
     
     useEffect(() => {
-        socket.emit("enter beit midrash", Sefaria._uid, Sefaria.full_name, beitMidrashId);
+        console.log("UseEffect with enter beit midrash has fired")
+        socket.emit("enter beit midrash", Sefaria._uid, Sefaria.full_name, Sefaria.profile_pic_url, beitMidrashId);
         socket.on("change in people", function(people) {
-            const dedupedPeople = [...new Set(people)];
+            const dedupedPeople = people.filter((person, index,self) => {
+                return index === self.findIndex((p) => p.uid === person.uid)  
+            })
             const filteredDedupedPeople = dedupedPeople.filter(person => person.beitMidrashId === beitMidrashId)
             setPeopleInBeitMidrash(filteredDedupedPeople);
         })
@@ -108,7 +108,7 @@ const BeitMidrash = ({beitMidrashId}) => {
             roomId = `${Sefaria._uid}-${user.uid}`;
         }
 
-        const room = {roomId, userB: user, user: {uid: Sefaria._uid, name: Sefaria.full_name}};
+        const room = {roomId, userB: user, user: {uid: Sefaria._uid, name: Sefaria.full_name, pic: Sefaria.profile_pic_url}};
         setActiveChatRooms(rooms => [...rooms, room]);
 
         if (!chatDataStore[roomId]) {
@@ -116,7 +116,7 @@ const BeitMidrash = ({beitMidrashId}) => {
                 [roomId]: {
                     chatMembers: [
                         user,
-                        {uid: Sefaria._uid, name: Sefaria.full_name}
+                        {uid: Sefaria._uid, name: Sefaria.full_name, pic: Sefaria.profile_pic_url}
                     ],
                     messages: []
                 }});
@@ -140,31 +140,36 @@ const BeitMidrash = ({beitMidrashId}) => {
     }
 
     const currentActiveChatUsers = activeChatRooms.reduce((acc, curr) => {return acc.concat([curr.userB.uid, curr.user.uid])}, []);
-    
+
     return (
-        <div>
-        <h1>Beit Midrash {beitMidrashId}</h1>
-        <h2>Single Learners</h2>
-            <div>
-                {peopleInBeitMidrash ? peopleInBeitMidrash
-                .filter(user => !user.roomId)
-                .map(user => {
-                    if (user.uid !== Sefaria._uid) {
-                    return <li key={user.uid}>
-                        {user.name}
-                        {currentActiveChatUsers.includes(user.uid) ? null : <button onClick={() => startChat(user)}>Chat</button>
+        <div id="beitMidrashContainer">
+            <div id="beitMidrashHeader">Chavruta {beitMidrashId}</div>
+            <div id = "newCall"><img id="newCallImg" /><span>New Call</span></div>
+            <hr className="beitMidrashHR" />
+                <div>
+                    {peopleInBeitMidrash ? peopleInBeitMidrash
+                    .filter(user => !user.roomId)
+                    .map(user => {
+                        if (user.uid !== Sefaria._uid) {
+                        return <div id="beitMidrashUser" key={user.uid}>
+                            <img id="beitMidrashProfilePic" />
+                            <div id ="beitMidrashUserText" onClick={() => startChat(user)}>
+                            {user.name}
+                            {/* {currentActiveChatUsers.includes(user.uid) ? null : <button onClick={() => startChat(user)}>Chat</button>
+                            } */}
+                            <div id="beitMidrashOrg">Organization</div>
+                            </div>
+                        </div>
+                        } else {
+                            return null
                         }
-                    </li>
-                    } else {
-                        return <li key={user.uid}>{user.name} (You)</li>
-                    }
-                }) : null}
-            </div>
-        <h2>Paired Learners</h2>
-            <div>
-            {peopleInBeitMidrash ? pairsLearning(peopleInBeitMidrash).map((pair, i)  => <li key={i}>{pair.map(user => user.name).join(", ")}</li>) : null}
-            </div>
-        <NBox content={makeChatRooms()} n={3} />
+                    }) : null}
+                </div>
+                <div>
+                {peopleInBeitMidrash ? pairsLearning(peopleInBeitMidrash).map((pair, i)  => <li key={i}>{pair.map(user => user.name).join(", ")}</li>) : null}
+                </div>
+            <hr className="beitMidrashHR" />
+            <NBox content={makeChatRooms()} n={3} />
         </div>
         
     )

@@ -78,11 +78,12 @@ io.on("connection", (socket) => {
     });
   }
 
-  function addUserToBeitMidrash(uid, fullName, beitMidrashId, socketId) {
+  function addUserToBeitMidrash(uid, fullName, profilePic, beitMidrashId, socketId) {
     peopleInBeitMidrash[socketId] = {}
     peopleInBeitMidrash[socketId]["uid"] = uid;
     peopleInBeitMidrash[socketId]["name"] = fullName;
-    peopleInBeitMidrash[socketId]["beitMidrashId"] = beitMidrashId
+    peopleInBeitMidrash[socketId]["pic"] = profilePic;
+    peopleInBeitMidrash[socketId]["beitMidrashId"] = beitMidrashId;
 
     console.log(peopleInBeitMidrash)
     socket.broadcast.emit("change in people", Object.values(peopleInBeitMidrash));
@@ -94,7 +95,7 @@ io.on("connection", (socket) => {
     socket.emit("change in people", Object.values(peopleInBeitMidrash));
   }
   
-  socket.on("enter beit midrash", (uid, fullName, beitMidrashId)=> addUserToBeitMidrash(uid, fullName, beitMidrashId, socket.id));
+  socket.on("enter beit midrash", (uid, fullName, profilePic, beitMidrashId)=> addUserToBeitMidrash(uid, fullName, profilePic, beitMidrashId, socket.id));
 
   socket.on("disconnect", () => removeUserFromBeitMidrash(socket.id));
 
