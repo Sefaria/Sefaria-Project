@@ -21,7 +21,8 @@ const BeitMidrash = ({beitMidrashId}) => {
         const initialValue = JSON.parse(saved);
         return initialValue || {};
       });
-    const [profile, setProfile] = useState({})
+    const [profile, setProfile] = useState({});
+    const [currentChatRoom, setCurrentChatRoom] = useState("");
     
     const addMessageToDataStore = (user, room, message) => {
         const roomExists = chatDataStore[room.roomId]
@@ -50,13 +51,16 @@ const BeitMidrash = ({beitMidrashId}) => {
         room.user = {uid: Sefaria._uid, name: Sefaria.full_name, pic: Sefaria.profile_pic_url, organization: profile.organization};
         
         addMessageToDataStore(user, room, message);
+
         const currentActiveChatRoomIds = activeChatRooms.map(room => {return room.roomId})
         if (!currentActiveChatRoomIds.includes(room.roomId)) {
             setActiveChatRooms(rooms=>[...rooms, room])
             socket.emit("join chat room", room);
         };
 
-    })
+        setCurrentChatRoom(room.roomId)
+
+        })
     }, [activeChatRooms])
     
     useEffect(() => {
@@ -114,7 +118,12 @@ const BeitMidrash = ({beitMidrashId}) => {
         }
 
         const room = {roomId, userB: user, user: {uid: Sefaria._uid, name: Sefaria.full_name, pic: Sefaria.profile_pic_url, organization: profile.organization}};
-        setActiveChatRooms(rooms => [...rooms, room]);
+        
+        const currentActiveChatRoomIds = activeChatRooms.map(room => {return room.roomId})
+        if (!currentActiveChatRoomIds.includes(roomId)) {
+            setActiveChatRooms(rooms => [...rooms, room]);
+        }
+        setCurrentChatRoom(roomId)
 
         if (!chatDataStore[roomId]) {
             setChatDataStore({...chatDataStore, 
@@ -128,18 +137,6 @@ const BeitMidrash = ({beitMidrashId}) => {
         }
     }
 
-    const makeChatRooms = () => {
-        return activeChatRooms.map(room => {
-            return <ChatBox 
-                        room={room} 
-                        chatDataStore = {chatDataStore}
-                        setChatDataStore = {setChatDataStore}
-                        handleCloseChat={handleCloseChat} 
-
-                    />
-        });      
-    }
-
     const handleCloseChat = (roomObj) => {
         setActiveChatRooms(activeChatRooms.filter(room => room.roomId !== roomObj.roomId));
     }
@@ -148,6 +145,7 @@ const BeitMidrash = ({beitMidrashId}) => {
   
     return (
         <div id="beitMidrashContainer">
+            <div>
             <div id="beitMidrashHeader">Chavruta {beitMidrashId}</div>
             <div id = "newCall"><img src="/static/img/camera_with_plus.svg" id="newCallImg" /><span>New Call</span></div>
             <hr className="beitMidrashHR" />
@@ -173,8 +171,21 @@ const BeitMidrash = ({beitMidrashId}) => {
                 <div>
                 {peopleInBeitMidrash ? pairsLearning(peopleInBeitMidrash).map((pair, i)  => <li key={i}>{pair.map(user => user.name).join(", ")}</li>) : null}
                 </div>
+            </div>
+            <div>
             <hr className="beitMidrashHR" />
-            <NBox content={makeChatRooms()} n={3} />
+            {activeChatRooms.map(room => {
+                if (room.roomId === currentChatRoom) {
+                    return <ChatBox 
+                                room={room} 
+                                chatDataStore = {chatDataStore}
+                                setChatDataStore = {setChatDataStore}
+                                handleCloseChat={handleCloseChat} 
+
+                            />
+                }
+            })}
+            </div>
         </div>
         
     )
@@ -223,7 +234,7 @@ const ChatBox = ({room, chatDataStore, setChatDataStore, handleCloseChat}) => {
     }, []);
 
     useEffect(()=>{
-        const lastMessage = chatBox.current.querySelector(".chat-message:last-of-type")
+        const lastMessage = chatBox.current.querySelector(".chatMessage:last-of-type")
         if (lastMessage) {
             lastMessage.scrollIntoView()
         }
@@ -259,8 +270,9 @@ const ChatBox = ({room, chatDataStore, setChatDataStore, handleCloseChat}) => {
  
     return (
     <div className="chat" ref={chatBox}>
-        <div className="chat-box-header">
-            {room["userB"]["name"]}
+        <div className="chatBoxHeader">
+            <ProfilePic len={42.67} url={room.userB.pic} name={room.userB.name} />
+            <div className="chatBoxName">{room.userB.name}</div>
             <img 
                 onClick={()=>handleConnect(room["userB"]["uid"])} 
                 src="/static/img/video-call.png" 
@@ -301,9 +313,9 @@ const Message = ({user, message}) => {
 
     return (
         <div className="chatMessage">
-                <ProfilePic len={42.67} url={user.pic} name={user.name} id="chatProfilePic" />
+                <ProfilePic len={35} url={user.pic} name={user.name} />
             <div className = "chatText">
-                <div className="chatName">{user.name}</div><span>{parsedTimeStamp}</span>
+                <div className="chatNameAndTime"><span>{user.name}</span>{"  "}<span>{parsedTimeStamp}</span></div>
                 <div>{message.message}</div> 
             </div>
         </div>

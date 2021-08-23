@@ -10409,7 +10409,11 @@ span.ref-link-color-3 {color: blue}
   font-size: 16px;
   font: "Roboto";
   font-weight: 400;
-  margin: 10px;
+  padding: 10px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between
 }
 
 #beitMidrashHeader{
@@ -10465,31 +10469,42 @@ span.ref-link-color-3 {color: blue}
 .chat {
   bottom: 0;
   right: 0;
-  border: 3px solid grey;
-  width: 200px;
-  height: 300px;
+  width: 250px;
+  height: 400px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  margin-left: 24px;
 }
+
+.chatBoxHeader {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.chatBoxName {
+  margin-left: 5px;
+}
+
 
 .chats-container {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  padding: 5px;
   margin: 5px;
 }
 
 .chatMessage {
   display: flex;
+  margin-bottom: 14px;
 }
 
-#chatText {
+.chatText {
   margin-left: 13px;
 }
 
-.chatName {
+.chatNameAndTime {
   color: #999999;
   font-size: 14px;
   font-weight: 500px;
@@ -10498,10 +10513,6 @@ span.ref-link-color-3 {color: blue}
 .chat-form {
   position: relative;
   bottom: 0;
-}
-
-.chat-box-header{
-  border: 1px solid grey;
 }
 
 @-webkit-keyframes load5 {
