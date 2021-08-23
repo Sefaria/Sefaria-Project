@@ -78,10 +78,14 @@ io.on("connection", (socket) => {
     });
   }
 
-  function addUserToBeitMidrash(uid, fullName, socketId) {
+  function addUserToBeitMidrash(uid, fullName, profilePic, organization, beitMidrashId, socketId) {
     peopleInBeitMidrash[socketId] = {}
     peopleInBeitMidrash[socketId]["uid"] = uid;
     peopleInBeitMidrash[socketId]["name"] = fullName;
+    peopleInBeitMidrash[socketId]["pic"] = profilePic;
+    peopleInBeitMidrash[socketId]["organization"] = organization
+    peopleInBeitMidrash[socketId]["beitMidrashId"] = beitMidrashId;
+
     console.log(peopleInBeitMidrash)
     socket.broadcast.emit("change in people", Object.values(peopleInBeitMidrash));
     socket.emit("change in people", Object.values(peopleInBeitMidrash));
@@ -92,7 +96,7 @@ io.on("connection", (socket) => {
     socket.emit("change in people", Object.values(peopleInBeitMidrash));
   }
   
-  socket.on("enter beit midrash", (uid, fullName)=> addUserToBeitMidrash(uid, fullName, socket.id));
+  socket.on("enter beit midrash", (uid, fullName, profilePic, organization, beitMidrashId)=> addUserToBeitMidrash(uid, fullName, profilePic, organization, beitMidrashId, socket.id));
 
   socket.on("disconnect", () => removeUserFromBeitMidrash(socket.id));
 
@@ -113,11 +117,24 @@ io.on("connection", (socket) => {
     socket.broadcast.to(socketId).emit("send room ID to client", roomId)
   });
 
-  socket.on("send chat message", (name, partnerName, message) => {
-    const socketId = Object.keys(peopleInBeitMidrash).find(key => peopleInBeitMidrash[key]["name"] === name);
-    console.log(`sending chat message to ${socketId}`)
-    socket.to(socketId).emit("received chat message", partnerName, message)
+  socket.on("send chat message", (room, message) => {
+    socket.join(room.roomId)
+    const socketId = Object.keys(peopleInBeitMidrash).find(key => peopleInBeitMidrash[key]["name"] === room.userB.name);
+    const partner = peopleInBeitMidrash[socket.id]
+    console.log(`sending chat message to ${socketId} from ${partner.name}: ${message}`)
+    socket.to(socketId).emit("received chat message", partner, message, room)
   });
+
+  socket.on("join chat room", (room) => {
+    socket.join(room.roomId)
+  })
+
+  socket.on("disconnecting", ()=> {
+    console.log("disconnecting from rooms", socket.rooms)
+    const user = peopleInBeitMidrash[socket.id]
+    const roomArray = [...socket.rooms]
+    roomArray.forEach(room => socket.to(room).emit("leaving chat room", user, room))
+  })
 
   socket.on('does room exist', function(roomID, uid) {
     let sql = `SELECT name, clients FROM chatrooms WHERE name = ?`;
@@ -251,10 +268,9 @@ io.on("connection", (socket) => {
     socket.emit("change in people", Object.values(peopleInBeitMidrash));
   })
 
-  socket.on('send sources', function(msg, room) {
-    console.log(msg)
+  socket.on('send sources', function(msg, name, room) {
     console.log(room, msg["currentlyReading"])
-    socket.to(room).emit('got sources', msg);
+    socket.to(room).emit('got sources', msg, name);
   })
 
 });
