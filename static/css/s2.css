@@ -10402,16 +10402,97 @@ span.ref-link-color-3 {color: blue}
   transform: translateZ(0);
 }
 
+#beitMidrashContainer{
+  background: #333333;
+  color: white;
+  height: 100%;
+  font-size: 16px;
+  font: "Roboto";
+  font-weight: 400;
+  margin: 10px;
+}
+
+#beitMidrashHeader{
+  padding: 10px;
+  color: white;
+  font-size: 22px;
+  font-weight: 500;
+  margin-left: 24px;
+}
+
+#newCall{
+  margin:10px;
+}
+
+#newCallImg {
+  height: 12px;
+  width: 24px;
+  margin-left: 24px;
+  margin-right: 18px;
+}
+
+.beitMidrashHR {
+  border: 0;
+  height: 0;
+  width: 200px;
+  margin-left: 50px;
+  margin-right: 50px;
+  border-top: 1px solid #999999;
+}
+
+#beitMidrashUser {
+  color: white;
+  font-size: 16px;
+  font: "Roboto";
+  font-weight: 400;
+  display: flex;
+  margin: 10px;
+  margin-left: 24px;
+}
+
+#beitMidrashProfilePic {
+  margin-right: 10px;
+}
+
+#beitMidrashUserText {
+  margin: 10px;
+}
+
+#beitMidrashOrg {
+  font-weight: 200;
+}
+
 .chat {
   bottom: 0;
   right: 0;
   border: 3px solid grey;
   width: 200px;
   height: 300px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .chats-container {
-  overflow-y: scroll;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  padding: 5px;
+  margin: 5px;
+}
+
+.chatMessage {
+  display: flex;
+}
+
+#chatText {
+  margin-left: 13px;
+}
+
+.chatName {
+  color: #999999;
+  font-size: 14px;
+  font-weight: 500px;
 }
 
 .chat-form {

@@ -27,7 +27,7 @@ const socket = io.connect('//{{ rtc_server }}');
 //broadcast channel
 const channel = Sefaria.broadcast("chavruta");
 channel.onmessage = msg => {
-  socket.emit('send sources', msg, clientRoom);
+  socket.emit('send sources', msg, Sefaria.full_name, clientRoom);
 
   //end call button
   const link = msg.history.url;
@@ -44,16 +44,17 @@ channel.onmessage = msg => {
 
 };
 
-socket.on('got sources', function(msg) {
+socket.on('got sources', function(msg, name) {
+  console.log(msg)
   const sources = msg.currentlyReading;
   const url = msg.history.url;
-  const curReadingEl = document.getElementById("currently-reading");
-  if (!!sources) {
-    curReadingEl.innerHTML = `Your chavruta is reading <br/> <img src="/static/icons/book.svg" class="navSidebarIcon" alt="book icon"><a href=${url} target="iframe">${sources}</a>`;
-  }
-  else {
-   curReadingEl.innerHTML = ``;
-  }
+  if (sources) {
+    document.getElementById("chevrutaNameHolder").classList.add("hiddenVideo")
+    document.getElementById("currently-reading").innerHTML = `${name} is on <br/>
+    <div id="currently-reading-sources">
+    <img src="/static/icons/book.svg" class="navSidebarIcon" alt="book icon"><a href=${url} target="iframe">${sources}</a></div>`;
+  };
+  
 })
 
 socket.on('return rooms', function(numRooms) {
@@ -216,6 +217,13 @@ function getNewChevruta() {
   byebye();
 }
 
+//add click event to copy bottom
+document.getElementById("chavrutaURLcontainer").addEventListener("click", ()=>{
+  let chavrutaURL = document.getElementById("chavrutaURL");
+  chavrutaURL.select();
+  document.execCommand("copy");
+})
+
 
 function toggleMute() {
   localStream.getAudioTracks()[0].enabled = !(localStream.getAudioTracks()[0].enabled);
@@ -364,13 +372,19 @@ function onCreateSessionDescriptionError(error) {
 
 function handleRemoteStreamAdded(event) {
   console.log('Remote stream added.');
+  document.getElementById("waiting").classList.add("hiddenVideo")
   remoteStream = event.stream;
   remoteVideo.srcObject = remoteStream;
+  remoteVideo.classList.remove("hiddenVideo")
+  localVideo.classList.add("pip")
   document.getElementById("chevrutaName").style.display = 'block';
 }
 
 function handleRemoteStreamRemoved(event) {
   console.log('Remote stream removed. Event: ', event);
+  document.getElementById("waiting").classList.remove("hiddenVideo")
+  remoteVideo.classList.add("hiddenVideo")
+  localVideo.classList.remove("pip")
 }
 
 function handleIceConnectionChange(event) {

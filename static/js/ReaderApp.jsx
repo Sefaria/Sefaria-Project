@@ -26,6 +26,7 @@ import {
 } from './Misc';
 import Component from 'react-class';
 import { BroadcastChannel } from 'broadcast-channel';
+import BeitMidrash from './BeitMidrash';
 
 
 class ReaderApp extends Component {
@@ -68,6 +69,7 @@ class ReaderApp extends Component {
         collectionName:          props.initialCollectionName,
         collectionSlug:          props.initialCollectionSlug,
         collectionTag:           props.initialCollectionTag,
+        beitMidrashId:           props.beit_midrash_id
       };
     }
 
@@ -153,6 +155,7 @@ class ReaderApp extends Component {
       textHighlights:          state.textHighlights          || null,
       profile:                 state.profile                 || null,
       profileTab:              state.profileTab              || "sheets",
+      beitMidrashId:           state.beitMidrashId           || null,
     };
     // if version is not set for the language you're in, see if you can retrieve it from cache
     if (this.state && panel.refs.length && ((panel.settings.language === "hebrew" && !panel.currVersions.he) || (panel.settings.language !== "hebrew" && !panel.currVersions.en ))) {
@@ -227,7 +230,7 @@ class ReaderApp extends Component {
     this.updateHistoryState(this.replaceHistory);
 
     //creates broadcast channel to send source information to chavruta
-    
+    //broadcasting only occurs when readerapp is in iframe (ie when chavruta is happening)
     if (window.location !== window.parent.location) {
       const channel = new BroadcastChannel("chavruta");
 
@@ -1839,11 +1842,11 @@ class ReaderApp extends Component {
     }
     var boxClasses = classNames({wrapBoxScroll: wrapBoxScroll});
     var boxWidth = wrapBoxScroll ? this.state.windowWidth + "px" : "100%";
-    var boxStyle = {width: boxWidth};
+    var boxStyle = {width: `calc(${boxWidth} - 300px)`};
     panels = panels.length ?
               (<div id="panelWrapBox" className={boxClasses} style={boxStyle}>
                 {panels}
-              </div>) : null;
+                 </div>) : null;
 
     var interruptingMessage = Sefaria.interruptingMessage ?
       (<InterruptingMessage
@@ -1858,10 +1861,22 @@ class ReaderApp extends Component {
     const communityPagePreviewControls = this.props.communityPreview ?
       <CommunityPagePreviewControls date={this.props.communityPreview} /> : null;
 
+    //Beit Midrash panel doesn't render in an iframe (ie in Chavruta)
+    const beitMidrashPanel = window.location === window.parent.location ? ( 
+      <div id='beitMidrash' style={{width: 300,
+                                    marginLeft: "auto",
+                                    marginRight: 0,
+                                    height: `calc(100% - 60px)`,
+                                    marginTop: 60}}>
+        <BeitMidrash beitMidrashId={this.props.beitMidrashId || null}/>
+      </div>
+    ) : null
+    
     var classDict = {readerApp: 1, multiPanel: this.props.multiPanel, singlePanel: !this.props.multiPanel};
     var interfaceLangClass = `interface-${this.props.interfaceLang}`;
     classDict[interfaceLangClass] = true;
     var classes = classNames(classDict);
+  
     return (
       <div id="readerAppWrap">
         {interruptingMessage}
@@ -1870,6 +1885,7 @@ class ReaderApp extends Component {
           {panels}
           {sefariaModal}
           {communityPagePreviewControls}
+          {beitMidrashPanel}
           <CookiesNotification />
         </div>
       </div>
