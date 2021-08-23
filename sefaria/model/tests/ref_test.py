@@ -973,7 +973,7 @@ class Test_Order_Id(object):
         assert Ref("Shabbat 12b").order_id() < Ref("Bava Kamma 17b").order_id()
 
     def test_ordering_of_complex_texts(self):
-        assert Ref("Meshech Hochma, Vaera 2").order_id() > Ref("Meshech Hochma, Shemot 6").order_id()
+        assert Ref("Meshekh Chokhmah, Vaera 2").order_id() > Ref("Meshekh Chokhmah, Shemot 6").order_id()
 
     def test_ordering_of_dictionary(self):
         i = library.get_index("Klein Dictionary")

@@ -180,16 +180,7 @@ class SheetCategorizer extends React.Component {
       <div className="categorizer">
         <div id="edit-pane">
           <h3>Topics/Tags:</h3>
-          <div className="categorize-section">
-            <input
-              type="checkbox"
-              name="noTags"
-              key="noTags"
-              checked={this.state.noTags || false}
-              onChange={this.handleNoTagsChange.bind(this)}
-            ></input>
-            <label htmlFor="noTags">No Tags</label>
-          </div>
+          
           <div className="publishBox">
             <ReactTags
               ref={this.reactTags}
@@ -202,6 +193,16 @@ class SheetCategorizer extends React.Component {
               delimiters={["Enter", "Tab", ","]}
               onInput={this.updateSuggestedTags.bind(this)}
             />
+          </div>
+          <div className="categorize-section">
+            <input
+              type="checkbox"
+              name="noTags"
+              key="noTags"
+              checked={this.state.noTags || false}
+              onChange={this.handleNoTagsChange.bind(this)}
+            ></input>
+            <label htmlFor="noTags">No Tags</label>
           </div>
           <div className="categorize-section">
             <fieldset>
