@@ -10413,10 +10413,11 @@ span.ref-link-color-3 {color: blue}
 }
 
 #beitMidrashHeader{
-  margin: 10px;
+  padding: 10px;
   color: white;
-  font-size: var(--sans-serif-h3-font-size);
+  font-size: 22px;
   font-weight: 500;
+  margin-left: 24px;
 }
 
 #newCall{
@@ -10424,13 +10425,15 @@ span.ref-link-color-3 {color: blue}
 }
 
 #newCallImg {
-  background-image: url(/static/img/new-call.svg);
   height: 12px;
   width: 24px;
-  margin-right: 5px;
+  margin-left: 24px;
+  margin-right: 18px;
 }
 
 .beitMidrashHR {
+  border: 0;
+  height: 0;
   width: 200px;
   margin-left: 50px;
   margin-right: 50px;
@@ -10444,14 +10447,15 @@ span.ref-link-color-3 {color: blue}
   font-weight: 400;
   display: flex;
   margin: 10px;
+  margin-left: 24px;
 }
 
 #beitMidrashProfilePic {
-  background-image: url("/static/img/profile-default.png");
-  border-radius:50%;
-  height: 42.67px;
-  width: 42.67px;
-  margin-right: 7px;
+  margin-right: 10px;
+}
+
+#beitMidrashUserText {
+  margin: 10px;
 }
 
 #beitMidrashOrg {
@@ -10477,6 +10481,20 @@ span.ref-link-color-3 {color: blue}
   margin: 5px;
 }
 
+.chatMessage {
+  display: flex;
+}
+
+#chatText {
+  margin-left: 13px;
+}
+
+.chatName {
+  color: #999999;
+  font-size: 14px;
+  font-weight: 500px;
+}
+
 .chat-form {
   position: relative;
   bottom: 0;
@@ -10484,34 +10502,6 @@ span.ref-link-color-3 {color: blue}
 
 .chat-box-header{
   border: 1px solid grey;
-}
-
-.chat-message{
-  margin: 3px;
-  text-align: start;
-}
-
-.chat-message.own{
-  text-align: end;
-}
-
-.chat-message span {
-  background: var(--sefaria-blue);
-  color: white;
-  border-radius: 25%;
-  padding: 3px;
-} 
-
-.chat-message.own span {
-  background: var(--medium-grey);
-  color: black;
-}
-
-.chat-notification span {
-  background: white;
-  color: grey;
-  font-size: smaller;
-  font-style: italic;
 }
 
 @-webkit-keyframes load5 {

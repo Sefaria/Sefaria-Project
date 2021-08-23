@@ -1,6 +1,7 @@
 import {
     InterfaceText,
     NBox,
+    ProfilePic
   } from './Misc';
 import React, { useState, useEffect, useRef } from 'react';
 import classNames  from 'classnames';
@@ -20,6 +21,7 @@ const BeitMidrash = ({beitMidrashId}) => {
         const initialValue = JSON.parse(saved);
         return initialValue || {};
       });
+    const [profile, setProfile] = useState({})
     
     const addMessageToDataStore = (user, room, message) => {
         const roomExists = chatDataStore[room.roomId]
@@ -45,10 +47,9 @@ const BeitMidrash = ({beitMidrashId}) => {
 
        socket.on("received chat message", (user, message, room) => {
         room.userB = user;
-        room.user = {uid: Sefaria._uid, name: Sefaria.full_name, pic: Sefaria.profile_pic_url};
+        room.user = {uid: Sefaria._uid, name: Sefaria.full_name, pic: Sefaria.profile_pic_url, organization: profile.organization};
         
         addMessageToDataStore(user, room, message);
-        console.log(activeChatRooms)
         const currentActiveChatRoomIds = activeChatRooms.map(room => {return room.roomId})
         if (!currentActiveChatRoomIds.includes(room.roomId)) {
             setActiveChatRooms(rooms=>[...rooms, room])
@@ -59,8 +60,6 @@ const BeitMidrash = ({beitMidrashId}) => {
     }, [activeChatRooms])
     
     useEffect(() => {
-        console.log("UseEffect with enter beit midrash has fired")
-        socket.emit("enter beit midrash", Sefaria._uid, Sefaria.full_name, Sefaria.profile_pic_url, beitMidrashId);
         socket.on("change in people", function(people) {
             const dedupedPeople = people.filter((person, index,self) => {
                 return index === self.findIndex((p) => p.uid === person.uid)  
@@ -68,6 +67,8 @@ const BeitMidrash = ({beitMidrashId}) => {
             const filteredDedupedPeople = dedupedPeople.filter(person => person.beitMidrashId === beitMidrashId)
             setPeopleInBeitMidrash(filteredDedupedPeople);
         })
+
+        Sefaria.profileAPI(Sefaria.slug).then(profile => {setProfile(profile)});
         
         const onDisconnect = () => {
             console.log("disconnecting")
@@ -81,6 +82,10 @@ const BeitMidrash = ({beitMidrashId}) => {
             onDisconnect()
         }
     }, [])
+
+    useEffect(()=> {
+        socket.emit("enter beit midrash", Sefaria._uid, Sefaria.full_name, Sefaria.profile_pic_url, profile.organization, beitMidrashId);
+    }, [profile])
 
     useEffect (()=> {
         localStorage.setItem("chatDataStore", JSON.stringify(chatDataStore))
@@ -108,7 +113,7 @@ const BeitMidrash = ({beitMidrashId}) => {
             roomId = `${Sefaria._uid}-${user.uid}`;
         }
 
-        const room = {roomId, userB: user, user: {uid: Sefaria._uid, name: Sefaria.full_name, pic: Sefaria.profile_pic_url}};
+        const room = {roomId, userB: user, user: {uid: Sefaria._uid, name: Sefaria.full_name, pic: Sefaria.profile_pic_url, organization: profile.organization}};
         setActiveChatRooms(rooms => [...rooms, room]);
 
         if (!chatDataStore[roomId]) {
@@ -116,7 +121,7 @@ const BeitMidrash = ({beitMidrashId}) => {
                 [roomId]: {
                     chatMembers: [
                         user,
-                        {uid: Sefaria._uid, name: Sefaria.full_name, pic: Sefaria.profile_pic_url}
+                        {uid: Sefaria._uid, name: Sefaria.full_name, pic: Sefaria.profile_pic_url, organization: profile.organization}
                     ],
                     messages: []
                 }});
@@ -140,11 +145,11 @@ const BeitMidrash = ({beitMidrashId}) => {
     }
 
     const currentActiveChatUsers = activeChatRooms.reduce((acc, curr) => {return acc.concat([curr.userB.uid, curr.user.uid])}, []);
-
+  
     return (
         <div id="beitMidrashContainer">
             <div id="beitMidrashHeader">Chavruta {beitMidrashId}</div>
-            <div id = "newCall"><img id="newCallImg" /><span>New Call</span></div>
+            <div id = "newCall"><img src="/static/img/camera_with_plus.svg" id="newCallImg" /><span>New Call</span></div>
             <hr className="beitMidrashHR" />
                 <div>
                     {peopleInBeitMidrash ? peopleInBeitMidrash
@@ -152,12 +157,12 @@ const BeitMidrash = ({beitMidrashId}) => {
                     .map(user => {
                         if (user.uid !== Sefaria._uid) {
                         return <div id="beitMidrashUser" key={user.uid}>
-                            <img id="beitMidrashProfilePic" />
+                            <ProfilePic len={42.67} url={user.pic} name={user.name} id="beitMidrashProfilePic" />
                             <div id ="beitMidrashUserText" onClick={() => startChat(user)}>
                             {user.name}
                             {/* {currentActiveChatUsers.includes(user.uid) ? null : <button onClick={() => startChat(user)}>Chat</button>
                             } */}
-                            <div id="beitMidrashOrg">Organization</div>
+                            <div id="beitMidrashOrg">{user.organization}</div>
                             </div>
                         </div>
                         } else {
@@ -251,7 +256,7 @@ const ChatBox = ({room, chatDataStore, setChatDataStore, handleCloseChat}) => {
         //user A sends connection request to user B 
         socket.emit("connect with other user", uid, Sefaria.full_name);
     }
-
+ 
     return (
     <div className="chat" ref={chatBox}>
         <div className="chat-box-header">
@@ -275,11 +280,11 @@ const ChatBox = ({room, chatDataStore, setChatDataStore, handleCloseChat}) => {
         </div>
         <div className="chats-container">
             {chatDataStore[roomId].messages.map((message, i) => {
-                return <div 
-                    key={i} 
-                    className={`${message.senderId === Sefaria._uid? "own chat-message" : "chat-message"} ${message.senderId === 0 ? "chat-notification": ""}`}>
-                        <span>{message.message}</span>
-                    </div>
+                return (
+                    message.senderId === Sefaria._uid ? 
+                        <Message user={room.user} key={i} message={message} /> :
+                        <Message user={room.userB} key={i} message={message} />
+                )
             })}
         </div>
         <form className="chat-form" onSubmit={handleSubmit}>
@@ -289,5 +294,21 @@ const ChatBox = ({room, chatDataStore, setChatDataStore, handleCloseChat}) => {
     </div>
     )
 }
+
+const Message = ({user, message}) => {
+
+    const parsedTimeStamp = new Date(message.timestamp).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit' })
+
+    return (
+        <div className="chatMessage">
+                <ProfilePic len={42.67} url={user.pic} name={user.name} id="chatProfilePic" />
+            <div className = "chatText">
+                <div className="chatName">{user.name}</div><span>{parsedTimeStamp}</span>
+                <div>{message.message}</div> 
+            </div>
+        </div>
+    )
+}
+
 
 export default BeitMidrash;
