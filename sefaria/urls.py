@@ -187,7 +187,7 @@ urlpatterns += [
     url(r'^api/sheets/(?P<sheet_id>\d+)/add$',                        sheets_views.add_source_to_sheet_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)/add_ref$',                    sheets_views.add_ref_to_sheet_api), 
     url(r'^api/sheets/(?P<parasha>.+)/get_aliyot$',                   sheets_views.get_aliyot_by_parasha_api),
-    url(r'^api/sheets/(?P<sheet_id>\d+)/copy_source$',                sheets_views.copy_source_to_sheet_api), # SEC-AUDIT: exposed endpoint allowing anyone to add sources to any sheet (unused)
+    url(r'^api/sheets/(?P<sheet_id>\d+)/copy_source$',                sheets_views.copy_source_to_sheet_api), 
     url(r'^api/sheets/(?P<sheet_id>\d+)/topics$',                     sheets_views.update_sheet_topics_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)$',                            sheets_views.sheet_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)\.(?P<node_id>\d+)$',          sheets_views.sheet_node_api),
