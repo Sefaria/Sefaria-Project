@@ -271,7 +271,13 @@ class ReaderPanel extends Component {
     this.replaceHistory = true;
     this.conditionalSetState({ refs: refs });
   }
-  setTextListHighlight(refs) {
+  setTextListHighlight(refs, showHighlight) {
+    refs = typeof refs === "string" ? [refs] : refs;
+    this.replaceHistory = true;
+    this.conditionalSetState({highlightedRefs: refs, showHighlight: showHighlight});
+    this.props.setTextListHighlight(refs);
+  }
+  setFocusedText(refs) {
     refs = typeof refs === "string" ? [refs] : refs;
     this.replaceHistory = true;
     this.conditionalSetState({highlightedRefs: refs});
@@ -569,6 +575,7 @@ class ReaderPanel extends Component {
           srefs={this.state.refs.slice()}
           currVersions={this.state.currVersions}
           highlightedRefs={this.state.highlightedRefs}
+          showHighlight={this.state.showHighlight}
           basetext={true}
           bookTitle={textColumnBookTitle}
           heBookTitle={heTextColumnBookTitle}

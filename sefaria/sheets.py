@@ -1205,16 +1205,18 @@ def change_tag(old_tag, new_tag_or_list):
 
 def get_sheet_categorization_info(find_without, skip_ids=[]):
 	"""
-	Returns the next sheetId for categorization along with all existing categories
+	Returns a pseudorandom sheetId for categorization along with all existing categories
 	:param find_without: the field that must contain no elements for the sheet to be returned
 	:param skip_ids: sheets to skip in this session:
 	"""
-	from pymongo import DESCENDING
 	if find_without == "topics":
-		sheet = sheet_to_dict(db.sheets.find({"topics": {"$in": [None, []] }, "id": {"$nin": skip_ids}, "noTags": {"$in": [None, False]}, "status": "public"}).sort("id", DESCENDING)[0]) 
-	else: # categories
-		sheet = sheet_to_dict(db.sheets.find({"categories": {"$in": [None, []] }, "id": {"$nin": skip_ids}, "status": "public", "$where": "this.includedRefs.length != this.sources.length"}).sort("id", DESCENDING)[0])
-	
+		sheet = db.sheets.aggregate([
+		{"$match": {"topics": {"$in": [None, []] }, "id": {"$nin": skip_ids}, "noTags": {"$in": [None, False]}, "status": "public"}},
+		{"$sample": {"size": 1}}]).next()
+	else: #categories
+		sheet = db.sheets.aggregate([
+		{"$match": {"categories": {"$in": [None, []] }, "sources.outsideText": {"$exists": True}, "id": {"$nin": skip_ids}, "noTags": {"$in": [None, False]}, "status": "public"}},
+		{"$sample": {"size": 1}}]).next()
 	categories_all = list(filter(lambda x: x != None, db.sheets.distinct("categories"))) # this is slow; maybe add index or ...?
 	categorize_props = {
 		"doesNotContain": find_without,
@@ -1223,7 +1225,8 @@ def get_sheet_categorization_info(find_without, skip_ids=[]):
 	}
 	return categorize_props
 
-def update_sheet_tags_categories(body):
+def update_sheet_tags_categories(body, uid):
 	update_sheet_topics(body['sheetId'], body["tags"], [])
-	noTags = datetime.now().isoformat() if body.get("noTags", False) else False
-	db.sheets.update_one({"id": body['sheetId']}, {"$set": {"categories": body['categories'], "noTags": noTags}})
+	time = datetime.now().isoformat()
+	noTags = time if body.get("noTags", False) else False
+	db.sheets.update_one({"id": body['sheetId']}, {"$set": {"categories": body['categories'], "noTags": noTags}, "$push": {"moderators": {"uid": uid, "time": time}}})
