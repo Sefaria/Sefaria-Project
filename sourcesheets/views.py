@@ -839,7 +839,7 @@ def copy_source_to_sheet_api(request, sheet_id):
     return jsonResponse(response)
 
 
-
+@login_required
 def add_ref_to_sheet_api(request, sheet_id):
     """
     API to add a source to a sheet using only a ref.
@@ -847,7 +847,7 @@ def add_ref_to_sheet_api(request, sheet_id):
     ref = request.POST.get("ref")
     if not ref:
         return jsonResponse({"error": "No ref given in post data."})
-    return jsonResponse(add_ref_to_sheet(int(sheet_id), ref))
+    return jsonResponse(add_ref_to_sheet(int(sheet_id), ref, request))
 
 
 @login_required
@@ -856,7 +856,10 @@ def update_sheet_topics_api(request, sheet_id):
     API to update tags for sheet_id.
     """
     topics = json.loads(request.POST.get("topics"))
-    old_topics = db.sheets.find_one({"id": int(sheet_id)}, {"topics":1}).get("topics", [])
+    sheet = db.sheets.find_one({"id": int(sheet_id)}, {"topics":1})
+    if sheet["owner"] != request.user.id:
+        return jsonResponse({"error": "user can only add topics to their own sheet"})
+    old_topics = sheet.get("topics", [])
     return jsonResponse(update_sheet_topics(int(sheet_id), topics, old_topics))
 
 
