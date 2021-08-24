@@ -452,7 +452,7 @@ class Test_Term_Map(object):
     def test_cats_in_map(self):
         assert "Tanakh" in library.get_simple_term_mapping()
         assert "Commentary" in library.get_simple_term_mapping()
-
+ 
     @pytest.mark.deep
     def test_cache_and_reset_of_term_map(self):
         # Check that cache works

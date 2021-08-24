@@ -1952,12 +1952,11 @@ _media: {},
       h.time_stamp = Sefaria.util.epoch_time();
     }
     if (Sefaria._uid) {
-        $.post(Sefaria.apiHost + "/api/profile/sync?no_return=1",
+        $.post(Sefaria.apiHost + "/api/profile/sync?no_return=1&annotate=1",
               {user_history: JSON.stringify(history_item_array)},
               data => {
-                //console.log("sync resp", data)
-                // Insert new item to beginning of history
-                Sefaria.userHistory.items.splice(0,0, data.created[0]);
+                // Insert new items to beginning of history
+                Sefaria.userHistory.items = data.created.concat(Sefaria.userHistory.items);
               } );
     } else {
       // we need to get the heRef for each history item
