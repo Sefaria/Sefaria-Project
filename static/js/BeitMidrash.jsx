@@ -25,6 +25,7 @@ const BeitMidrash = ({beitMidrashId}) => {
     const [currentChatRoom, setCurrentChatRoom] = useState("");
     const [beitMidrashHome, setBeitMidrashHome] = useState(true)
     const [outgoingCall, setOutgoingCall] = useState(false)
+    const [userB, setUserB] = useState({})
      
     const addMessageToDataStore = (user, room, message) => {
         const roomExists = chatDataStore[room.roomId]
@@ -75,6 +76,19 @@ const BeitMidrash = ({beitMidrashId}) => {
         })
 
         Sefaria.profileAPI(Sefaria.slug).then(profile => {setProfile(profile)});
+
+        //user B receives connection request
+        socket.on("connection request", (user) => {
+            chavrutaRequestReceived(user)
+        })
+        //sends rejection to user A
+        socket.on("send connection rejection", ()=>{
+            window.alert(`Connection rejected, sorry!`);
+        })
+        //user A gets acceptance alert
+        socket.on("send room ID to client", (room)=> {
+            window.location = `/chavruta?rid=${room}`;
+        });
         
         const onDisconnect = () => {
             console.log("disconnecting")
@@ -144,12 +158,13 @@ const BeitMidrash = ({beitMidrashId}) => {
     }
 
     const chavrutaCallInitiated = (uid) => {
-        socket.emit("connect with other user", uid, Sefaria.full_name);
+        socket.emit("connect with other user", uid, {uid: Sefaria._uid, name: Sefaria.full_name, pic: Sefaria.profile_pic_url});
         setBeitMidrashHome(false)
         setOutgoingCall(true)
     }
 
-    const chavrutaRequestReceived = () => {
+    const chavrutaRequestReceived = (user) => {
+        setUserB(user)
         setBeitMidrashHome(false)
         setOutgoingCall(false)
     } 
@@ -167,11 +182,13 @@ const BeitMidrash = ({beitMidrashId}) => {
                 setChatDataStore={setChatDataStore}
                 handleCloseChat={handleCloseChat}
                 chavrutaCallInitiated={chavrutaCallInitiated}
-                chavrutaRequestReceived={chavrutaRequestReceived} /> : 
+                chavrutaRequestReceived={chavrutaRequestReceived}
+                setUserB={setUserB} /> : 
             <ChavrutaCall 
                 outgoingCall={outgoingCall}
-                user={""}
-                userB={""} />}
+                user={user}
+                userB={userB}
+                setBeitMidrashHome={setBeitMidrashHome} />}
         </div> 
     )
 }
@@ -185,7 +202,8 @@ const BeitMidrashHome = ({beitMidrashId,
                         setChatDataStore, 
                         handleCloseChat, 
                         chavrutaCallInitiated,
-                        chavrutaRequestReceived}) => {
+                        chavrutaRequestReceived,
+                        setUserB}) => {
     return (<div>
         <div>
         <div id="beitMidrashHeader">Chavruta {beitMidrashId}</div>
@@ -226,6 +244,7 @@ const BeitMidrashHome = ({beitMidrashId,
                             handleCloseChat={handleCloseChat} 
                             chavrutaCallInitiated={chavrutaCallInitiated}
                             chavrutaRequestReceived={chavrutaRequestReceived}
+                            setUserB={setUserB}
                         />
             }
         })}
@@ -233,7 +252,18 @@ const BeitMidrashHome = ({beitMidrashId,
     </div>)
 }
 
-const ChavrutaCall = ({outgoingCall, user, userB}) => {
+const ChavrutaCall = ({outgoingCall, user, userB, setBeitMidrashHome}) => {
+    const handleCallAccepted = (name) => {
+        const room = Math.random().toString(36).substring(7);
+        socket.emit("send room ID to server", name, room);
+        window.location = `/chavruta?rid=${room}`;
+    }
+
+    const handleCallDeclined = (name) => {
+        socket.emit("connection rejected", name);
+        setBeitMidrashHome(true)
+    }
+
     return (
         outgoingCall ? 
         <div className="callContainer">
@@ -251,8 +281,8 @@ const ChavrutaCall = ({outgoingCall, user, userB}) => {
                 <img className="chavrutaCallImg" src="/static/img/partnership-initiative-image.png" />
                 <div className = "callText">Receiving call from so-and-so...</div>
                 <div id="incomingCallButtonHolder">
-                    <button id="acceptButton">Accept</button>
-                    <button id="declineButton">Decline</button>
+                    <button id="acceptButton" onClick={()=> handleCallAccepted(userB.name)}>Accept</button>
+                    <button id="declineButton" onClick={()=> handleCallDeclined(userB.name)}>Decline</button>
                 </div>
             </div>
             <div className="chavrutaFooter">Questions? Email <a href="mailto:hello@sefaria.org">hello@sefaria.org</a></div>
@@ -265,36 +295,15 @@ const ChatBox = ({room,
                 setChatDataStore, 
                 handleCloseChat,
                 chavrutaCallInitiated,
-                chavrutaRequestReceived}) => {
+                chavrutaRequestReceived,
+                setUserB}) => {
     //chat message currently being typed:
     const [chatMessage, setChatMessage] = useState(null);
     const roomId = room.roomId;
     const chatBox = useRef();
 
     useEffect(()=>{
-        //user B receives connection request
-        socket.on("connection request", (name) => {
-            chavrutaRequestReceived(name)
-
-            let connectionRequest = window.confirm(`${name} would like to learn with you. Connect?`)
-            //if user B says yes, we create a room ID and send it to server
-            if (connectionRequest) {
-                const room = Math.random().toString(36).substring(7);
-                socket.emit("send room ID to server", name, room);
-                window.location = `/chavruta?rid=${room}`;
-            } else {
-                socket.emit("connection rejected", name);
-            }
-        })
-        //sends rejection to user A
-        socket.on("send connection rejection", ()=>{
-            window.alert(`Connection rejected, sorry!`);
-        })
-        //user A gets acceptance alert
-        socket.on("send room ID to client", (room)=> {
-            window.alert("Chavruta accepted!");
-            window.location = `/chavruta?rid=${room}`;
-        });
+        setUserB(room.userB)
 
         socket.on("leaving chat room", (user, roomId)=>{
             setChatDataStore(chatDataStore => ({

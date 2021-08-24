@@ -100,10 +100,9 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => removeUserFromBeitMidrash(socket.id));
 
-  socket.on("connect with other user", (uid, name) => {
-    console.log("connecting with other user");
+  socket.on("connect with other user", (uid, user) => {
     const socketId = Object.keys(peopleInBeitMidrash).find(key => peopleInBeitMidrash[key]["uid"] === uid);
-    socket.broadcast.to(socketId).emit('connection request', name);
+    socket.broadcast.to(socketId).emit('connection request', user);
   });
 
   socket.on("connection rejected", (name) =>{
