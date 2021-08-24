@@ -1263,6 +1263,7 @@ def modify_bulk_text_api(request, title):
                 return jsonResponse({"error": "Unrecognized API key."})
             return jsonResponse(modify(apikey['uid']))
         else:
+            @staff_member_required
             @csrf_protect
             def protected_post(request):
                 return jsonResponse(modify(request.user.id))
@@ -3465,6 +3466,7 @@ def profile_sync_api(request):
         from sefaria.utils.util import epoch_time
         now = epoch_time()
         no_return = request.GET.get("no_return", False)
+        annotate = bool(int(request.GET.get("annotate", 0)))
         profile = UserProfile(id=request.user.id)
         ret = {"created": []}
         # sync items from request
@@ -3496,12 +3498,12 @@ def profile_sync_api(request):
                 # loop thru `field_data` reversed to apply `last_place` to the last item read in each book
                 for hist in reversed(field_data):
                     if 'ref' not in hist:
-                        logger.warning(f'Ref not in hist. Post data: {post[field]}. User ID: {request.user.id}')
+                        logger.warning(f'Ref not in hist. History item: {hist}. User ID: {request.user.id}')
                         continue
                     try:
                         uh = profile.process_history_item(hist, now)
                         if uh:
-                            ret["created"] += [uh.contents(for_api=True, annotate=True)]
+                            ret["created"] += [uh.contents(for_api=True, annotate=annotate)]
                     except InputError:
                         # validation failed
                         continue
@@ -3516,7 +3518,7 @@ def profile_sync_api(request):
 
             uhs = UserHistorySet({"uid": request.user.id, "server_time_stamp": {"$gt": last_sync}}, hint="uid_1_server_time_stamp_1")
             ret["last_sync"] = now
-            ret["user_history"] = [uh.contents(for_api=True, annotate=True) for uh in uhs.array()]
+            ret["user_history"] = [uh.contents(for_api=True, annotate=False) for uh in uhs.array()]
             ret["settings"] = profile.settings
             ret["settings"]["time_stamp"] = profile.attr_time_stamps["settings"]
             if post.get("client", "") == "web":

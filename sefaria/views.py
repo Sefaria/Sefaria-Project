@@ -919,7 +919,7 @@ def library_stats(request):
 def core_link_stats(request):
     return HttpResponse(get_core_link_stats(), content_type="text/csv")
 
-
+@staff_member_required
 def run_tests(request):
     # This was never fully developed, methinks
     from subprocess import call
