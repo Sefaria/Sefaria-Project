@@ -385,7 +385,7 @@ def dedupe_identical_urls(test=True):
                     "refs": page.refs,
                     "expandedRefs": page.expandedRefs,
                     "title": page.title,
-                    "description": page.description
+                    "description": getattr(page, "description", "")
                 })
         removed_count += (pages.count() - 1)
 
