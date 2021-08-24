@@ -100,10 +100,9 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => removeUserFromBeitMidrash(socket.id));
 
-  socket.on("connect with other user", (uid, name) => {
-    console.log("connecting with other user");
+  socket.on("connect with other user", (uid, user) => {
     const socketId = Object.keys(peopleInBeitMidrash).find(key => peopleInBeitMidrash[key]["uid"] === uid);
-    socket.broadcast.to(socketId).emit('connection request', name);
+    socket.broadcast.to(socketId).emit('connection request', user);
   });
 
   socket.on("connection rejected", (name) =>{
@@ -133,7 +132,12 @@ io.on("connection", (socket) => {
     console.log("disconnecting from rooms", socket.rooms)
     const user = peopleInBeitMidrash[socket.id]
     const roomArray = [...socket.rooms]
-    roomArray.forEach(room => socket.to(room).emit("leaving chat room", user, room))
+    console.log("roomArray", roomArray)
+    roomArray.forEach(room =>  {
+      if (room !== socket.Id) {
+        socket.to(room).emit("leaving chat room")
+      }
+    })
   })
 
   socket.on('does room exist', function(roomID, uid) {

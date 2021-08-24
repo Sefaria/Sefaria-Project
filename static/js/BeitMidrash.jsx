@@ -3,7 +3,7 @@ import {
     NBox,
     ProfilePic
   } from './Misc';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useImperativeHandle } from 'react';
 import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
 import $  from './sefaria/sefariaJquery';
@@ -21,8 +21,12 @@ const BeitMidrash = ({beitMidrashId}) => {
         const initialValue = JSON.parse(saved);
         return initialValue || {};
       });
-    const [profile, setProfile] = useState({})
-    
+    const [profile, setProfile] = useState({});
+    const [currentChatRoom, setCurrentChatRoom] = useState("");
+    const [beitMidrashHome, setBeitMidrashHome] = useState(true)
+    const [outgoingCall, setOutgoingCall] = useState(false)
+    const [userB, setUserB] = useState({})
+     
     const addMessageToDataStore = (user, room, message) => {
         const roomExists = chatDataStore[room.roomId]
 
@@ -50,13 +54,16 @@ const BeitMidrash = ({beitMidrashId}) => {
         room.user = {uid: Sefaria._uid, name: Sefaria.full_name, pic: Sefaria.profile_pic_url, organization: profile.organization};
         
         addMessageToDataStore(user, room, message);
+
         const currentActiveChatRoomIds = activeChatRooms.map(room => {return room.roomId})
         if (!currentActiveChatRoomIds.includes(room.roomId)) {
             setActiveChatRooms(rooms=>[...rooms, room])
             socket.emit("join chat room", room);
         };
 
-    })
+        setCurrentChatRoom(room.roomId)
+
+        })
     }, [activeChatRooms])
     
     useEffect(() => {
@@ -68,10 +75,24 @@ const BeitMidrash = ({beitMidrashId}) => {
             setPeopleInBeitMidrash(filteredDedupedPeople);
         })
 
-        Sefaria.profileAPI(Sefaria.slug).then(profile => {setProfile(profile)});
+        if (Sefaria._uid) {
+            Sefaria.profileAPI(Sefaria.slug).then(profile => {setProfile(profile)});
+        }
+
+        //user B receives connection request
+        socket.on("connection request", (user) => {
+            chavrutaRequestReceived(user)
+        })
+        //sends rejection to user A
+        socket.on("send connection rejection", ()=>{
+            setBeitMidrashHome(true)
+        })
+        //user A gets acceptance alert
+        socket.on("send room ID to client", (room)=> {
+            window.location = `/chavruta?rid=${room}`;
+        });
         
         const onDisconnect = () => {
-            console.log("disconnecting")
             socket.disconnect();
         }
         
@@ -114,7 +135,12 @@ const BeitMidrash = ({beitMidrashId}) => {
         }
 
         const room = {roomId, userB: user, user: {uid: Sefaria._uid, name: Sefaria.full_name, pic: Sefaria.profile_pic_url, organization: profile.organization}};
-        setActiveChatRooms(rooms => [...rooms, room]);
+        
+        const currentActiveChatRoomIds = activeChatRooms.map(room => {return room.roomId})
+        if (!currentActiveChatRoomIds.includes(roomId)) {
+            setActiveChatRooms(rooms => [...rooms, room]);
+        }
+        setCurrentChatRoom(roomId)
 
         if (!chatDataStore[roomId]) {
             setChatDataStore({...chatDataStore, 
@@ -128,114 +154,185 @@ const BeitMidrash = ({beitMidrashId}) => {
         }
     }
 
-    const makeChatRooms = () => {
-        return activeChatRooms.map(room => {
-            return <ChatBox 
-                        room={room} 
-                        chatDataStore = {chatDataStore}
-                        setChatDataStore = {setChatDataStore}
-                        handleCloseChat={handleCloseChat} 
-
-                    />
-        });      
-    }
-
     const handleCloseChat = (roomObj) => {
         setActiveChatRooms(activeChatRooms.filter(room => room.roomId !== roomObj.roomId));
     }
 
-    const currentActiveChatUsers = activeChatRooms.reduce((acc, curr) => {return acc.concat([curr.userB.uid, curr.user.uid])}, []);
+    const chavrutaCallInitiated = (uid) => {
+        socket.emit("connect with other user", uid, {uid: Sefaria._uid, name: Sefaria.full_name, pic: Sefaria.profile_pic_url});
+        setBeitMidrashHome(false)
+        setOutgoingCall(true)
+    }
+
+    const chavrutaRequestReceived = (user) => {
+        setUserB(user)
+        setBeitMidrashHome(false)
+        setOutgoingCall(false)
+    } 
   
     return (
         <div id="beitMidrashContainer">
-            <div id="beitMidrashHeader">Chavruta {beitMidrashId}</div>
-            <div id = "newCall"><img src="/static/img/camera_with_plus.svg" id="newCallImg" /><span>New Call</span></div>
-            <hr className="beitMidrashHR" />
-                <div>
-                    {peopleInBeitMidrash ? peopleInBeitMidrash
-                    .filter(user => !user.roomId)
-                    .map(user => {
-                        if (user.uid !== Sefaria._uid) {
-                        return <div id="beitMidrashUser" key={user.uid}>
-                            <ProfilePic len={42.67} url={user.pic} name={user.name} id="beitMidrashProfilePic" />
-                            <div id ="beitMidrashUserText" onClick={() => startChat(user)}>
-                            {user.name}
-                            {/* {currentActiveChatUsers.includes(user.uid) ? null : <button onClick={() => startChat(user)}>Chat</button>
-                            } */}
-                            <div id="beitMidrashOrg">{user.organization}</div>
-                            </div>
-                        </div>
-                        } else {
-                            return null
-                        }
-                    }) : null}
-                </div>
-                <div>
-                {peopleInBeitMidrash ? pairsLearning(peopleInBeitMidrash).map((pair, i)  => <li key={i}>{pair.map(user => user.name).join(", ")}</li>) : null}
-                </div>
-            <hr className="beitMidrashHR" />
-            <NBox content={makeChatRooms()} n={3} />
-        </div>
-        
+            { beitMidrashHome ? 
+            <BeitMidrashHome 
+                beitMidrashId = {beitMidrashId} 
+                peopleInBeitMidrash={peopleInBeitMidrash}
+                activeChatRooms={activeChatRooms}
+                currentChatRoom={currentChatRoom}
+                startChat={startChat}
+                chatDataStore={chatDataStore}
+                setChatDataStore={setChatDataStore}
+                handleCloseChat={handleCloseChat}
+                chavrutaCallInitiated={chavrutaCallInitiated}
+                chavrutaRequestReceived={chavrutaRequestReceived}
+                setUserB={setUserB} /> : 
+            <ChavrutaCall 
+                outgoingCall={outgoingCall}
+                userB={userB}
+                setBeitMidrashHome={setBeitMidrashHome} />}
+        </div> 
     )
 }
 
-const ChatBox = ({room, chatDataStore, setChatDataStore, handleCloseChat}) => {
-    //chat message currently being typed:
+const BeitMidrashHome = ({beitMidrashId, 
+                        peopleInBeitMidrash, 
+                        activeChatRooms, 
+                        currentChatRoom, 
+                        startChat, 
+                        chatDataStore, 
+                        setChatDataStore, 
+                        handleCloseChat, 
+                        chavrutaCallInitiated,
+                        chavrutaRequestReceived,
+                        setUserB,}) => {
+    return (<div>
+        <div>
+        <div id="beitMidrashHeader">Chavruta {beitMidrashId}</div>
+        <div id="newCall"><a href="/chavruta"><img src="/static/img/camera_with_plus.svg" id="newCallImg" /><span>New Call</span></a></div>
+        <hr className="beitMidrashHR" />
+            <div className="peopleInBeitMidrash">
+                {peopleInBeitMidrash && peopleInBeitMidrash.length > 1 ? peopleInBeitMidrash
+                .filter(user => !user.roomId)
+                .map(user => {
+                    if (user.uid !== Sefaria._uid) {
+                    return <div id="beitMidrashUser" key={user.uid}>
+                        <ProfilePic len={42.67} url={user.pic} name={user.name} id="beitMidrashProfilePic" />
+                        <div id ="beitMidrashUserText" onClick={() => startChat(user)}>
+                        {user.name}
+                        {/* {currentActiveChatUsers.includes(user.uid) ? null : <button onClick={() => startChat(user)}>Chat</button>
+                        } */}
+                        <div id="beitMidrashOrg">{user.organization}</div>
+                        </div>
+                    </div>
+                    } else {
+                        return null
+                    }
+                }) : <div className="noUsers">No users online.</div>}
+            </div>
+            {/* <div>
+            {peopleInBeitMidrash ? pairsLearning(peopleInBeitMidrash).map((pair, i)  => <li key={i}>{pair.map(user => user.name).join(", ")}</li>) : null}
+            </div> */}
+        </div>
+        <div>
+        <hr className="beitMidrashHR" />
+        {activeChatRooms.map(room => {
+            if (room.roomId === currentChatRoom) {
+                return <ChatBox
+                            key={room.roomId} 
+                            room={room} 
+                            chatDataStore={chatDataStore}
+                            setChatDataStore={setChatDataStore}
+                            handleCloseChat={handleCloseChat} 
+                            chavrutaCallInitiated={chavrutaCallInitiated}
+                            chavrutaRequestReceived={chavrutaRequestReceived}
+                            setUserB={setUserB}
+                        />
+            }
+        })}
+        </div>
+    </div>)
+}
+
+const ChavrutaCall = ({outgoingCall, userB, setBeitMidrashHome}) => {
+    const handleCallAccepted = (name) => {
+        const room = Math.random().toString(36).substring(7);
+        socket.emit("send room ID to server", name, room);
+        window.location = `/chavruta?rid=${room}`;
+    }
+
+    const handleCallDeclined = (name) => {
+        socket.emit("connection rejected", name);
+        setBeitMidrashHome(true)
+    }
+
+    const endCall = (name) => {
+        socket.emit("connection rejected", name)
+        setBeitMidrashHome(true)
+    }
+
+    return (
+        outgoingCall ? 
+        <div className="callContainer">
+            <div>
+                <img className="chavrutaCallImg" src={userB.pic} />
+                <div id="endCallButtonHolder">
+                    <span id="endCallIcon"><span id="endCall" className="endCallButton" onClick={()=>endCall(userB.name)}></span></span>
+                </div>
+                <div className = "callText">Calling {userB.name}...</div>
+            </div>
+            <div className="chavrutaFooter">Questions? Email <a href="mailto:hello@sefaria.org">hello@sefaria.org</a></div>
+        </div> : 
+        <div className="callContainer">
+            <div>
+                <img className="chavrutaCallImg" src={userB.pic} />
+                <div className = "callText">Receiving call from {userB.name}...</div>
+                <div id="incomingCallButtonHolder">
+                    <button id="acceptButton" onClick={()=> handleCallAccepted(userB.name)}>Accept</button>
+                    <button id="declineButton" onClick={()=> handleCallDeclined(userB.name)}>Decline</button>
+                </div>
+            </div>
+            <div className="chavrutaFooter">Questions? Email <a href="mailto:hello@sefaria.org">hello@sefaria.org</a></div>
+        </div>
+    )
+}
+
+const ChatBox = ({room, 
+                chatDataStore, 
+                setChatDataStore, 
+                handleCloseChat,
+                chavrutaCallInitiated,
+                chavrutaRequestReceived,
+                setUserB,}) => {
+                   
     const [chatMessage, setChatMessage] = useState(null);
+    const [partnerLeftNotification, setPartnerLeftNotification] = useState(false);
+    const [inputArrowBlue, setInputArrowBlue] = useState(false)
     const roomId = room.roomId;
     const chatBox = useRef();
 
     useEffect(()=>{
-        //user B receives connection request
-        socket.on("connection request", (name) => {
-            let connectionRequest = window.confirm(`${name} would like to learn with you. Connect?`)
-            //if user B says yes, we create a room ID and send it to server
-            if (connectionRequest) {
-                const room = Math.random().toString(36).substring(7);
-                socket.emit("send room ID to server", name, room);
-                window.location = `/chavruta?rid=${room}`;
-            } else {
-                socket.emit("connection rejected", name);
-            }
-        })
-        //sends rejection to user A
-        socket.on("send connection rejection", ()=>{
-            window.alert(`Connection rejected, sorry!`);
-        })
-        //user A gets acceptance alert
-        socket.on("send room ID to client", (room)=> {
-            window.alert("Chavruta accepted!");
-            window.location = `/chavruta?rid=${room}`;
-        });
+        setUserB(room.userB);
 
-        socket.on("leaving chat room", (user, roomId)=>{
-            setChatDataStore(chatDataStore => ({
-                ...chatDataStore, 
-                [roomId]: {...chatDataStore[roomId],
-                    messages: [...chatDataStore[roomId].messages, {
-                    senderId: 0,
-                    message: `${user.name} left the chat`,
-                    timestamp: Date.now()
-                    }]}
-                }));
+        socket.on("leaving chat room", ()=>{
+            console.log("your partner left the chat!")
+            setPartnerLeftNotification(true);
         })
     }, []);
 
     useEffect(()=>{
-        const lastMessage = chatBox.current.querySelector(".chat-message:last-of-type")
+        const lastMessage = chatBox.current.querySelector(".chatMessage:last-of-type")
         if (lastMessage) {
             lastMessage.scrollIntoView()
         }
 
-    }, [chatDataStore])
+    }, [chatDataStore, partnerLeftNotification])
 
     const handleChange = (e) =>{
         setChatMessage(e.target.value);
+        setInputArrowBlue(true)
     }
     
     const handleSubmit = (e) => {
-        e.preventDefault()
+        e.preventDefault();
         
         socket.emit("send chat message", room, chatMessage);
         
@@ -252,30 +349,25 @@ const ChatBox = ({room, chatDataStore, setChatDataStore, handleCloseChat}) => {
         e.target.reset();
     }
 
-    const handleConnect = (uid) => {
-        //user A sends connection request to user B 
-        socket.emit("connect with other user", uid, Sefaria.full_name);
-    }
  
     return (
     <div className="chat" ref={chatBox}>
-        <div className="chat-box-header">
-            {room["userB"]["name"]}
+        <div id="hideButtonHolder">
+            <div id="hideButton" onClick={()=>handleCloseChat(room)}>Hide{" "}<img src="/static/img/downward_carrot.svg" /></div>
+        </div>
+        <div className="chatBoxHeader">
+            <div id="chatUser">
+                <ProfilePic len={42.67} url={room.userB.pic} name={room.userB.name} />
+                <div className="chatBoxName">{room.userB.name}</div>
+            </div>
             <img 
-                onClick={()=>handleConnect(room["userB"]["uid"])} 
-                src="/static/img/video-call.png" 
-                alt="icon of video camera"
+                onClick={()=>chavrutaCallInitiated(room["userB"]["uid"])} 
+                id="greenCameraButton"
+                src="/static/img/green_camera.svg" 
+                alt="icon of green video camera"
                 role="button"
                 tabIndex="0"
                 aria-roledescription={`click to open a video call with ${room.userB.name}`}
-                />
-            <img 
-                onClick={()=>handleCloseChat(room)}
-                src="/static/img/close.png"
-                alt="icon of X"
-                role="button"
-                tabIndex="0"
-                aria-roledescription={`click to close chat with ${room.userB.name}`}
                 />
         </div>
         <div className="chats-container">
@@ -286,10 +378,11 @@ const ChatBox = ({room, chatDataStore, setChatDataStore, handleCloseChat}) => {
                         <Message user={room.userB} key={i} message={message} />
                 )
             })}
+            {partnerLeftNotification ? <div className="chatMessage">{room.userB.name} has left the chat.</div> : null}
         </div>
         <form className="chat-form" onSubmit={handleSubmit}>
-            <input type="text" className="chat-input" onChange={handleChange} />
-          <input type="submit" className="chat-submit" value="enter" />
+            <input type="text" className="chat-input" onChange={handleChange} placeholder="Send a Message"></input>
+          <input type="submit" className={inputArrowBlue? "chat-submit chat-submit-blue" : "chat-submit"} value=""/>
         </form>
     </div>
     )
@@ -301,9 +394,9 @@ const Message = ({user, message}) => {
 
     return (
         <div className="chatMessage">
-                <ProfilePic len={42.67} url={user.pic} name={user.name} id="chatProfilePic" />
+                <ProfilePic len={35} url={user.pic} name={user.name} />
             <div className = "chatText">
-                <div className="chatName">{user.name}</div><span>{parsedTimeStamp}</span>
+                <div className="chatNameAndTime"><span>{user.name}</span>{"  "}<span>{parsedTimeStamp}</span></div>
                 <div>{message.message}</div> 
             </div>
         </div>
