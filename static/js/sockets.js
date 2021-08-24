@@ -1,4 +1,4 @@
 import React, { createContext } from 'react';
 import  { io }  from 'socket.io-client';
 
-export const socket = io(`//${RTC_SERVER}`);
+export const socket = io(`//{{ rtc_server }}`);
