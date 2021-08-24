@@ -10409,7 +10409,6 @@ span.ref-link-color-3 {color: blue}
   font-size: 16px;
   font: "Roboto";
   font-weight: 400;
-  padding: 10px;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -10417,7 +10416,7 @@ span.ref-link-color-3 {color: blue}
 }
 
 #beitMidrashHeader{
-  padding: 10px;
+  padding: 20px;
   color: white;
   font-size: 22px;
   font-weight: 500;
@@ -10431,7 +10430,7 @@ span.ref-link-color-3 {color: blue}
 #newCallImg {
   height: 12px;
   width: 24px;
-  margin-left: 24px;
+  margin-left: 34px;
   margin-right: 18px;
 }
 
@@ -10451,7 +10450,7 @@ span.ref-link-color-3 {color: blue}
   font-weight: 400;
   display: flex;
   margin: 10px;
-  margin-left: 24px;
+  margin-left: 34px;
 }
 
 #beitMidrashProfilePic {
@@ -10466,6 +10465,10 @@ span.ref-link-color-3 {color: blue}
   font-weight: 200;
 }
 
+.noUsers {
+  margin-left: 35px;
+}
+
 .chat {
   bottom: 0;
   right: 0;
@@ -10477,10 +10480,35 @@ span.ref-link-color-3 {color: blue}
   margin-left: 24px;
 }
 
+#hideButtonHolder{
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+}
+
+#hideButton {
+  color: #CCCCCC;
+  font-size: 14px;
+  font-weight: 400;
+  margin-right: 25px;
+}
+
 .chatBoxHeader {
   display: flex;
   align-items: center;
   margin-bottom: 10px;
+  justify-content: space-between;
+}
+
+#chatUser {
+  display: flex;
+  align-items: center;
+}
+
+#greenCameraButton {
+  width: 24px;
+  height: 12px;
+  margin-right: 25px;
 }
 
 .chatBoxName {
@@ -10514,6 +10542,91 @@ span.ref-link-color-3 {color: blue}
   position: relative;
   bottom: 0;
 }
+
+.callContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+}
+
+.chavrutaCallImg {
+  width: 100%; 
+}
+
+.callText {
+  margin: 20px;
+  font-size: 22px;
+  font-weight: 500;
+}
+
+#endCallButtonHolder {
+  display: flex;
+  width: 80%;
+  justify-content: flex-end;
+  margin-top: -35px;
+}
+
+#endCallIcon {
+  display: inline-block;
+  position: relative;
+  background-image: url("/static/img/endcall.svg");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  opacity: 1;
+  width: 20px;
+  height: 20px;
+}
+
+.endCallButton {
+  position: absolute;
+  width: 40px;
+  height: 30px;
+  border-radius: 6px;
+  z-index: 1;
+  background-color: #CB6158;
+  left: -8.5px;
+  top: -3px;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  background-image: url("/static/img/endcall.svg");
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+#incomingCallButtonHolder {
+  display: flex;
+  justify-content: space-evenly;
+  margin: 15px;
+}
+
+#acceptButton {
+  background-color: #5D956F;
+  border-radius: 6px;
+  color: white;
+  border: 0px;
+  height: 40px;
+  width: 127.67px;
+  margin: 5px;
+}
+
+#declineButton {
+  background: #CB6158;
+  border-radius: 6px;
+  color: white;
+  border: 0px;
+  height: 40px;
+  width: 127.67px;
+  margin: 5px;
+}
+
+.chavrutaFooter {
+  font-size: 13px;
+  font-weight: 400;
+  color: #CCCCCC;
+  margin: 20px;
+}
+
 
 @-webkit-keyframes load5 {
 0%,100%{box-shadow:0 -2.6em 0 0 #ffffff,1.8em -1.8em 0 0 rgba(0,0,0,0.2),2.5em 0 0 0 rgba(0,0,0,0.2),1.75em 1.75em 0 0 rgba(0,0,0,0.2),0 2.5em 0 0 rgba(0,0,0,0.2),-1.8em 1.8em 0 0 rgba(0,0,0,0.2),-2.6em 0 0 0 rgba(0,0,0,0.5),-1.8em -1.8em 0 0 rgba(0,0,0,0.7)}

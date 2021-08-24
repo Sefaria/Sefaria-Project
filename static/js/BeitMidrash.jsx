@@ -23,7 +23,9 @@ const BeitMidrash = ({beitMidrashId}) => {
       });
     const [profile, setProfile] = useState({});
     const [currentChatRoom, setCurrentChatRoom] = useState("");
-    
+    const [beitMidrashHome, setBeitMidrashHome] = useState(true)
+    const [outgoingCall, setOutgoingCall] = useState(false)
+     
     const addMessageToDataStore = (user, room, message) => {
         const roomExists = chatDataStore[room.roomId]
 
@@ -141,57 +143,129 @@ const BeitMidrash = ({beitMidrashId}) => {
         setActiveChatRooms(activeChatRooms.filter(room => room.roomId !== roomObj.roomId));
     }
 
-    const currentActiveChatUsers = activeChatRooms.reduce((acc, curr) => {return acc.concat([curr.userB.uid, curr.user.uid])}, []);
+    const chavrutaCallInitiated = (uid) => {
+        socket.emit("connect with other user", uid, Sefaria.full_name);
+        setBeitMidrashHome(false)
+        setOutgoingCall(true)
+    }
+
+    const chavrutaRequestReceived = () => {
+        setBeitMidrashHome(false)
+        setOutgoingCall(false)
+    } 
   
     return (
         <div id="beitMidrashContainer">
-            <div>
-            <div id="beitMidrashHeader">Chavruta {beitMidrashId}</div>
-            <div id = "newCall"><img src="/static/img/camera_with_plus.svg" id="newCallImg" /><span>New Call</span></div>
-            <hr className="beitMidrashHR" />
-                <div>
-                    {peopleInBeitMidrash ? peopleInBeitMidrash
-                    .filter(user => !user.roomId)
-                    .map(user => {
-                        if (user.uid !== Sefaria._uid) {
-                        return <div id="beitMidrashUser" key={user.uid}>
-                            <ProfilePic len={42.67} url={user.pic} name={user.name} id="beitMidrashProfilePic" />
-                            <div id ="beitMidrashUserText" onClick={() => startChat(user)}>
-                            {user.name}
-                            {/* {currentActiveChatUsers.includes(user.uid) ? null : <button onClick={() => startChat(user)}>Chat</button>
-                            } */}
-                            <div id="beitMidrashOrg">{user.organization}</div>
-                            </div>
-                        </div>
-                        } else {
-                            return null
-                        }
-                    }) : null}
-                </div>
-                <div>
-                {peopleInBeitMidrash ? pairsLearning(peopleInBeitMidrash).map((pair, i)  => <li key={i}>{pair.map(user => user.name).join(", ")}</li>) : null}
-                </div>
-            </div>
-            <div>
-            <hr className="beitMidrashHR" />
-            {activeChatRooms.map(room => {
-                if (room.roomId === currentChatRoom) {
-                    return <ChatBox 
-                                room={room} 
-                                chatDataStore = {chatDataStore}
-                                setChatDataStore = {setChatDataStore}
-                                handleCloseChat={handleCloseChat} 
-
-                            />
-                }
-            })}
-            </div>
-        </div>
-        
+            { beitMidrashHome ? 
+            <BeitMidrashHome 
+                beitMidrashId = {beitMidrashId} 
+                peopleInBeitMidrash={peopleInBeitMidrash}
+                activeChatRooms={activeChatRooms}
+                currentChatRoom={currentChatRoom}
+                startChat={startChat}
+                chatDataStore={chatDataStore}
+                setChatDataStore={setChatDataStore}
+                handleCloseChat={handleCloseChat}
+                chavrutaCallInitiated={chavrutaCallInitiated}
+                chavrutaRequestReceived={chavrutaRequestReceived} /> : 
+            <ChavrutaCall 
+                outgoingCall={outgoingCall}
+                user={""}
+                userB={""} />}
+        </div> 
     )
 }
 
-const ChatBox = ({room, chatDataStore, setChatDataStore, handleCloseChat}) => {
+const BeitMidrashHome = ({beitMidrashId, 
+                        peopleInBeitMidrash, 
+                        activeChatRooms, 
+                        currentChatRoom, 
+                        startChat, 
+                        chatDataStore, 
+                        setChatDataStore, 
+                        handleCloseChat, 
+                        chavrutaCallInitiated,
+                        chavrutaRequestReceived}) => {
+    return (<div>
+        <div>
+        <div id="beitMidrashHeader">Chavruta {beitMidrashId}</div>
+        <div id="newCall"><a href="/chavruta"><img src="/static/img/camera_with_plus.svg" id="newCallImg" /><span>New Call</span></a></div>
+        <hr className="beitMidrashHR" />
+            <div>
+                {peopleInBeitMidrash && peopleInBeitMidrash.length > 1 ? peopleInBeitMidrash
+                .filter(user => !user.roomId)
+                .map(user => {
+                    if (user.uid !== Sefaria._uid) {
+                    return <div id="beitMidrashUser" key={user.uid}>
+                        <ProfilePic len={42.67} url={user.pic} name={user.name} id="beitMidrashProfilePic" />
+                        <div id ="beitMidrashUserText" onClick={() => startChat(user)}>
+                        {user.name}
+                        {/* {currentActiveChatUsers.includes(user.uid) ? null : <button onClick={() => startChat(user)}>Chat</button>
+                        } */}
+                        <div id="beitMidrashOrg">{user.organization}</div>
+                        </div>
+                    </div>
+                    } else {
+                        return null
+                    }
+                }) : <div className="noUsers">No users online.</div>}
+            </div>
+            {/* <div>
+            {peopleInBeitMidrash ? pairsLearning(peopleInBeitMidrash).map((pair, i)  => <li key={i}>{pair.map(user => user.name).join(", ")}</li>) : null}
+            </div> */}
+        </div>
+        <div>
+        <hr className="beitMidrashHR" />
+        {activeChatRooms.map(room => {
+            if (room.roomId === currentChatRoom) {
+                return <ChatBox
+                            key={room.roomId} 
+                            room={room} 
+                            chatDataStore={chatDataStore}
+                            setChatDataStore={setChatDataStore}
+                            handleCloseChat={handleCloseChat} 
+                            chavrutaCallInitiated={chavrutaCallInitiated}
+                            chavrutaRequestReceived={chavrutaRequestReceived}
+                        />
+            }
+        })}
+        </div>
+    </div>)
+}
+
+const ChavrutaCall = ({outgoingCall, user, userB}) => {
+    return (
+        outgoingCall ? 
+        <div className="callContainer">
+            <div>
+                <img className="chavrutaCallImg" src="/static/img/partnership-initiative-image.png" />
+                <div id="endCallButtonHolder">
+                    <span id="endCallIcon"><span id="endCall" className="endCallButton"></span></span>
+                </div>
+                <div className = "callText">Calling so-and-so...</div>
+            </div>
+            <div className="chavrutaFooter">Questions? Email <a href="mailto:hello@sefaria.org">hello@sefaria.org</a></div>
+        </div> : 
+        <div className="callContainer">
+            <div>
+                <img className="chavrutaCallImg" src="/static/img/partnership-initiative-image.png" />
+                <div className = "callText">Receiving call from so-and-so...</div>
+                <div id="incomingCallButtonHolder">
+                    <button id="acceptButton">Accept</button>
+                    <button id="declineButton">Decline</button>
+                </div>
+            </div>
+            <div className="chavrutaFooter">Questions? Email <a href="mailto:hello@sefaria.org">hello@sefaria.org</a></div>
+        </div>
+    )
+}
+
+const ChatBox = ({room, 
+                chatDataStore, 
+                setChatDataStore, 
+                handleCloseChat,
+                chavrutaCallInitiated,
+                chavrutaRequestReceived}) => {
     //chat message currently being typed:
     const [chatMessage, setChatMessage] = useState(null);
     const roomId = room.roomId;
@@ -200,6 +274,8 @@ const ChatBox = ({room, chatDataStore, setChatDataStore, handleCloseChat}) => {
     useEffect(()=>{
         //user B receives connection request
         socket.on("connection request", (name) => {
+            chavrutaRequestReceived(name)
+
             let connectionRequest = window.confirm(`${name} would like to learn with you. Connect?`)
             //if user B says yes, we create a room ID and send it to server
             if (connectionRequest) {
@@ -263,31 +339,25 @@ const ChatBox = ({room, chatDataStore, setChatDataStore, handleCloseChat}) => {
         e.target.reset();
     }
 
-    const handleConnect = (uid) => {
-        //user A sends connection request to user B 
-        socket.emit("connect with other user", uid, Sefaria.full_name);
-    }
  
     return (
     <div className="chat" ref={chatBox}>
+        <div id="hideButtonHolder">
+            <div id="hideButton" onClick={()=>handleCloseChat(room)}>Hide{" "}<img src="/static/img/downward_carrot.svg" /></div>
+        </div>
         <div className="chatBoxHeader">
-            <ProfilePic len={42.67} url={room.userB.pic} name={room.userB.name} />
-            <div className="chatBoxName">{room.userB.name}</div>
+            <div id="chatUser">
+                <ProfilePic len={42.67} url={room.userB.pic} name={room.userB.name} />
+                <div className="chatBoxName">{room.userB.name}</div>
+            </div>
             <img 
-                onClick={()=>handleConnect(room["userB"]["uid"])} 
-                src="/static/img/video-call.png" 
-                alt="icon of video camera"
+                onClick={()=>chavrutaCallInitiated(room["userB"]["uid"])} 
+                id="greenCameraButton"
+                src="/static/img/green_camera.svg" 
+                alt="icon of green video camera"
                 role="button"
                 tabIndex="0"
                 aria-roledescription={`click to open a video call with ${room.userB.name}`}
-                />
-            <img 
-                onClick={()=>handleCloseChat(room)}
-                src="/static/img/close.png"
-                alt="icon of X"
-                role="button"
-                tabIndex="0"
-                aria-roledescription={`click to close chat with ${room.userB.name}`}
                 />
         </div>
         <div className="chats-container">
