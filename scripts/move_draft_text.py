@@ -52,7 +52,6 @@ class ServerTextCopier(object):
         for t in necessary_terms:
             self._upload_term(t)
 
-
     def load_objects(self):
         self._index_obj = library.get_index(self._title_to_retrieve)
         if not self._index_obj:
