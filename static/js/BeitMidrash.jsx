@@ -3,7 +3,7 @@ import {
     NBox,
     ProfilePic
   } from './Misc';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useImperativeHandle } from 'react';
 import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
 import $  from './sefaria/sefariaJquery';
@@ -75,7 +75,9 @@ const BeitMidrash = ({beitMidrashId}) => {
             setPeopleInBeitMidrash(filteredDedupedPeople);
         })
 
-        Sefaria.profileAPI(Sefaria.slug).then(profile => {setProfile(profile)});
+        if (Sefaria._uid) {
+            Sefaria.profileAPI(Sefaria.slug).then(profile => {setProfile(profile)});
+        }
 
         //user B receives connection request
         socket.on("connection request", (user) => {
@@ -91,7 +93,6 @@ const BeitMidrash = ({beitMidrashId}) => {
         });
         
         const onDisconnect = () => {
-            console.log("disconnecting")
             socket.disconnect();
         }
         
@@ -202,7 +203,7 @@ const BeitMidrashHome = ({beitMidrashId,
                         handleCloseChat, 
                         chavrutaCallInitiated,
                         chavrutaRequestReceived,
-                        setUserB}) => {
+                        setUserB,}) => {
     return (<div>
         <div>
         <div id="beitMidrashHeader">Chavruta {beitMidrashId}</div>
@@ -263,22 +264,27 @@ const ChavrutaCall = ({outgoingCall, userB, setBeitMidrashHome}) => {
         setBeitMidrashHome(true)
     }
 
+    const endCall = (name) => {
+        socket.emit("connection rejected", name)
+        setBeitMidrashHome(true)
+    }
+
     return (
         outgoingCall ? 
         <div className="callContainer">
             <div>
-                <img className="chavrutaCallImg" src="/static/img/partnership-initiative-image.png" />
+                <img className="chavrutaCallImg" src={userB.pic} />
                 <div id="endCallButtonHolder">
-                    <span id="endCallIcon"><span id="endCall" className="endCallButton"></span></span>
+                    <span id="endCallIcon"><span id="endCall" className="endCallButton" onClick={()=>endCall(userB.name)}></span></span>
                 </div>
-                <div className = "callText">Calling so-and-so...</div>
+                <div className = "callText">Calling {userB.name}...</div>
             </div>
             <div className="chavrutaFooter">Questions? Email <a href="mailto:hello@sefaria.org">hello@sefaria.org</a></div>
         </div> : 
         <div className="callContainer">
             <div>
-                <img className="chavrutaCallImg" src="/static/img/partnership-initiative-image.png" />
-                <div className = "callText">Receiving call from so-and-so...</div>
+                <img className="chavrutaCallImg" src={userB.pic} />
+                <div className = "callText">Receiving call from {userB.name}...</div>
                 <div id="incomingCallButtonHolder">
                     <button id="acceptButton" onClick={()=> handleCallAccepted(userB.name)}>Accept</button>
                     <button id="declineButton" onClick={()=> handleCallDeclined(userB.name)}>Decline</button>
@@ -295,25 +301,19 @@ const ChatBox = ({room,
                 handleCloseChat,
                 chavrutaCallInitiated,
                 chavrutaRequestReceived,
-                setUserB}) => {
-    //chat message currently being typed:
+                setUserB,}) => {
+                   
     const [chatMessage, setChatMessage] = useState(null);
+    const [partnerLeftNotification, setPartnerLeftNotification] = useState(false);
     const roomId = room.roomId;
     const chatBox = useRef();
 
     useEffect(()=>{
-        setUserB(room.userB)
+        setUserB(room.userB);
 
-        socket.on("leaving chat room", (user, roomId)=>{
-            setChatDataStore(chatDataStore => ({
-                ...chatDataStore, 
-                [roomId]: {...chatDataStore[roomId],
-                    messages: [...chatDataStore[roomId].messages, {
-                    senderId: 0,
-                    message: `${user.name} left the chat`,
-                    timestamp: Date.now()
-                    }]}
-                }));
+        socket.on("leaving chat room", ()=>{
+            console.log("your partner left the chat!")
+            setPartnerLeftNotification(true);
         })
     }, []);
 
@@ -323,14 +323,14 @@ const ChatBox = ({room,
             lastMessage.scrollIntoView()
         }
 
-    }, [chatDataStore])
+    }, [chatDataStore, partnerLeftNotification])
 
     const handleChange = (e) =>{
         setChatMessage(e.target.value);
     }
     
     const handleSubmit = (e) => {
-        e.preventDefault()
+        e.preventDefault();
         
         socket.emit("send chat message", room, chatMessage);
         
@@ -376,10 +376,11 @@ const ChatBox = ({room,
                         <Message user={room.userB} key={i} message={message} />
                 )
             })}
+            {partnerLeftNotification ? <div className="chatMessage">{room.userB.name} has left the chat.</div> : null}
         </div>
         <form className="chat-form" onSubmit={handleSubmit}>
-            <input type="text" className="chat-input" onChange={handleChange} />
-          <input type="submit" className="chat-submit" value="enter" />
+            <input type="text" className="chat-input" onChange={handleChange} placeholder="Send a Message"></input>
+          <input type="submit" className="chat-submit" value=""/>
         </form>
     </div>
     )

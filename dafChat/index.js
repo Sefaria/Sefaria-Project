@@ -132,7 +132,12 @@ io.on("connection", (socket) => {
     console.log("disconnecting from rooms", socket.rooms)
     const user = peopleInBeitMidrash[socket.id]
     const roomArray = [...socket.rooms]
-    roomArray.forEach(room => socket.to(room).emit("leaving chat room", user, room))
+    console.log("roomArray", roomArray)
+    roomArray.forEach(room =>  {
+      if (room !== socket.Id) {
+        socket.to(room).emit("leaving chat room")
+      }
+    })
   })
 
   socket.on('does room exist', function(roomID, uid) {
