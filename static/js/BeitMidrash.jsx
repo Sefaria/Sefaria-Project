@@ -83,7 +83,7 @@ const BeitMidrash = ({beitMidrashId}) => {
         })
         //sends rejection to user A
         socket.on("send connection rejection", ()=>{
-            window.alert(`Connection rejected, sorry!`);
+            setBeitMidrashHome(true)
         })
         //user A gets acceptance alert
         socket.on("send room ID to client", (room)=> {
@@ -186,7 +186,6 @@ const BeitMidrash = ({beitMidrashId}) => {
                 setUserB={setUserB} /> : 
             <ChavrutaCall 
                 outgoingCall={outgoingCall}
-                user={user}
                 userB={userB}
                 setBeitMidrashHome={setBeitMidrashHome} />}
         </div> 
@@ -252,7 +251,7 @@ const BeitMidrashHome = ({beitMidrashId,
     </div>)
 }
 
-const ChavrutaCall = ({outgoingCall, user, userB, setBeitMidrashHome}) => {
+const ChavrutaCall = ({outgoingCall, userB, setBeitMidrashHome}) => {
     const handleCallAccepted = (name) => {
         const room = Math.random().toString(36).substring(7);
         socket.emit("send room ID to server", name, room);
