@@ -2438,12 +2438,12 @@ _media: {},
     }
   },
   hebrewTranslation: function(inputStr, context = null){
-    let translatedString = null;
+    let translatedString;
     if (context && context in Sefaria._i18nInterfaceStringsWithContext){
-      let translatedString = Sefaria._getStringCaseInsensitive(Sefaria._i18nInterfaceStringsWithContext[context], inputStr);
-      if (translatedString) return translatedString;
+      translatedString = Sefaria._getStringCaseInsensitive(Sefaria._i18nInterfaceStringsWithContext[context], inputStr);
+      if (translatedString !== null) return translatedString;
     }
-    if (translatedString = Sefaria._getStringCaseInsensitive(Sefaria._i18nInterfaceStrings, inputStr)) {
+    if ((translatedString = Sefaria._getStringCaseInsensitive(Sefaria._i18nInterfaceStrings, inputStr)) !== null ) {
       return translatedString;
     }
     if ((translatedString = Sefaria.hebrewTerm(inputStr)) != inputStr) {
@@ -2491,7 +2491,14 @@ _media: {},
     return Sefaria.interfaceLang != "english" ? oref.heRef : oref.ref;
   },
   _getStringCaseInsensitive: function (store, inputStr){
-     return inputStr in store ? store[inputStr] : inputStr.toLowerCase() in store ? store[inputStr.toLowerCase()] : null;
+    if(inputStr in store){
+        return store[inputStr];
+    }else if(inputStr.toLowerCase() in store){
+        return store[inputStr.toLowerCase()];
+    }else return null;
+
+    //return inputStr in store ? store[inputStr] : (inputStr.toLowerCase() in store ? store[inputStr.toLowerCase()]
+      // : null);
   },
   _cacheSiteInterfaceStrings: function() {
     // Ensure that names set in Site Settings are available for translation in JS.

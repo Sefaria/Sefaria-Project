@@ -1,10 +1,10 @@
 {
-	"title": "Sefaria is hiring!,",
+	"title": "",
 	"text": [
-		"Join the Sefaria Team! We're hiring Senior Software Engineer and Infrastructure Engineer."
+		"Donate to Sefaria today to ensure that you – and people all over the world – can continue to have unfettered access to the Jewish library.Ø",
     ],
-	"buttonLink": "https://www.sefaria.org/jobs",
-	"buttonText": "Learn More",
-	"name": "job-announcement-banner-2021",
+	"buttonLink": "https://sefaria.nationbuilder.com/supportsefaria_aeb",
+	"buttonText": "Donate",
+	"name": "elul-2021-1",
 	"schemaVersion": 1
 }

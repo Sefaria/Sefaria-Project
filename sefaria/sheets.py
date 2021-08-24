@@ -1202,3 +1202,31 @@ def change_tag(old_tag, new_tag_or_list):
 	for sheet in SheetSet({"tags": old_tag}):
 		sheet.tags = [tag for tag in sheet.tags if tag != old_tag] + new_tag_list
 		sheet.save()
+
+def get_sheet_categorization_info(find_without, skip_ids=[]):
+	"""
+	Returns a pseudorandom sheetId for categorization along with all existing categories
+	:param find_without: the field that must contain no elements for the sheet to be returned
+	:param skip_ids: sheets to skip in this session:
+	"""
+	if find_without == "topics":
+		sheet = db.sheets.aggregate([
+		{"$match": {"topics": {"$in": [None, []] }, "id": {"$nin": skip_ids}, "noTags": {"$in": [None, False]}, "status": "public"}},
+		{"$sample": {"size": 1}}]).next()
+	else: #categories
+		sheet = db.sheets.aggregate([
+		{"$match": {"categories": {"$in": [None, []] }, "sources.outsideText": {"$exists": True}, "id": {"$nin": skip_ids}, "noTags": {"$in": [None, False]}, "status": "public"}},
+		{"$sample": {"size": 1}}]).next()
+	categories_all = list(filter(lambda x: x != None, db.sheets.distinct("categories"))) # this is slow; maybe add index or ...?
+	categorize_props = {
+		"doesNotContain": find_without,
+		"sheetId": sheet['id'],
+		"allCategories": categories_all
+	}
+	return categorize_props
+
+def update_sheet_tags_categories(body, uid):
+	update_sheet_topics(body['sheetId'], body["tags"], [])
+	time = datetime.now().isoformat()
+	noTags = time if body.get("noTags", False) else False
+	db.sheets.update_one({"id": body['sheetId']}, {"$set": {"categories": body['categories'], "noTags": noTags}, "$push": {"moderators": {"uid": uid, "time": time}}})

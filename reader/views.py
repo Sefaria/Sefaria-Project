@@ -3443,7 +3443,7 @@ def profile_upload_photo(request):
         return jsonResponse({"urls": [big_pic_url, small_pic_url]})
     return jsonResponse({"error": "Unsupported HTTP method."})
 
-
+MAX_LEN_USER_HISTORY = 3000
 @api_view(["POST"])
 @catch_error_as_json
 def profile_sync_api(request):
@@ -3493,6 +3493,8 @@ def profile_sync_api(request):
                     })
                     profile_updated = True
             elif field == "user_history":
+                if len(field_data) > MAX_LEN_USER_HISTORY:
+                    return jsonResponse({"error": f"Length of user history sync too large. Maximum supported is {MAX_LEN_USER_HISTORY}."})
                 # loop thru `field_data` reversed to apply `last_place` to the last item read in each book
                 for hist in reversed(field_data):
                     if 'ref' not in hist:

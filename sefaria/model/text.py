@@ -2169,7 +2169,8 @@ class TextFamily(object):
                 query = oref.ref_regex_query()
                 query.update({"inline_citation": True})  # , "source_text_oid": {"$in": c.version_ids()}
                 if Link().load(query) is not None:
-                    text_modification_funcs += [lambda s, secs: library.get_wrapped_refs_string(s, lang=language, citing_only=True)]
+                    link_wrapping_reg, title_nodes = library.get_regex_and_titles_for_ref_wrapping(c.ja().flatten_to_string(), lang=language, citing_only=True)
+                    text_modification_funcs += [lambda s, secs: library.get_wrapped_refs_string(s, lang=language, citing_only=True, reg=link_wrapping_reg, title_nodes=title_nodes)]
             padded_sections, _ = oref.get_padded_sections()
             setattr(self, self.text_attr_map[language], c._get_text_after_modifications(text_modification_funcs, start_sections=padded_sections))
 
@@ -2916,9 +2917,10 @@ class Ref(object, metaclass=RefCacheType):
                     ref_list_list = [sub_ref.all_segment_refs() for sub_ref in sub_refs]
                     ref_list += [refs for refs in ref_list_list]
                 else:
-                    sub_ja = temp_ref.get_state_ja().subarray_with_ref(temp_ref)
+                    state_ja = self.get_state_ja("all")
+                    sub_ja = state_ja.subarray_with_ref(temp_ref)
                     ref_list_sections = [temp_ref.subref([i + 1 for i in k ]) for k in sub_ja.non_empty_sections() ]
-                    ref_list += [ref_seg for ref_sec in ref_list_sections for ref_seg in ref_sec.all_subrefs()]
+                    ref_list += [ref_seg for ref_sec in ref_list_sections for ref_seg in ref_sec.all_subrefs(state_ja=state_ja)]
 
         return ref_list
 
@@ -3558,7 +3560,7 @@ class Ref(object, metaclass=RefCacheType):
             l.append(self.subref(i + 1))
         return l
 
-    def all_subrefs(self, lang='all'):
+    def all_subrefs(self, lang='all', state_ja=None):
         """
         Return a list of all the valid :class:`Ref` objects one level deeper than this :class:`Ref`.
 
@@ -3579,8 +3581,8 @@ class Ref(object, metaclass=RefCacheType):
         if self.index_node.is_virtual:
             size = len(self.text().text)
             return self.subrefs(size)
-
-        size = self.get_state_ja(lang).sub_array_length([i - 1 for i in self.sections])
+        state_ja = state_ja or self.get_state_ja(lang)
+        size = state_ja.sub_array_length([i - 1 for i in self.sections])
         if size is None:
             size = 0
         return self.subrefs(size)
@@ -5422,7 +5424,23 @@ class Library(object):
 
         return refs
 
-    def get_wrapped_refs_string(self, st, lang=None, citing_only=False):
+    def get_regex_and_titles_for_ref_wrapping(self, st, lang, citing_only=False):
+        """
+        Returns a compiled regex and dictionary of title:node correspondences to match the references in this string
+
+        :param string st: the input string
+        :param lang: "he" or "en"
+        :param citing_only: boolean whether to use only records explicitly marked as being referenced in text
+        :return: Compiled regex, dict of title:node correspondences
+
+        """
+        unique_titles = set(self.get_titles_in_string(st, lang, citing_only))
+        title_nodes = {title: self.get_schema_node(title,lang) for title in unique_titles}
+        all_reg = self.get_multi_title_regex_string(unique_titles, lang)
+        reg = regex.compile(all_reg, regex.VERBOSE) if all_reg else None
+        return reg, title_nodes
+
+    def get_wrapped_refs_string(self, st, lang=None, citing_only=False, reg=None, title_nodes=None):
         """
         Returns a string with the list of Ref objects derived from string wrapped in <a> tags
 
@@ -5434,15 +5452,16 @@ class Library(object):
         # todo: only match titles of content nodes
         if lang is None:
             lang = "he" if is_hebrew(st) else "en"
+
+        if reg is None or title_nodes is None:
+            reg, title_nodes = self.get_regex_and_titles_for_ref_wrapping(st, lang, citing_only)
+
         from sefaria.utils.hebrew import strip_nikkud
         #st = strip_nikkud(st) doing this causes the final result to lose vowels and cantiallation
-        unique_titles = set(self.get_titles_in_string(st, lang, citing_only))
-        title_nodes = {title: self.get_schema_node(title,lang) for title in unique_titles}
 
-        all_reg = self.get_multi_title_regex_string(unique_titles, lang)
-        reg = regex.compile(all_reg, regex.VERBOSE)
-        if all_reg:
+        if reg is not None:
             st = self._wrap_all_refs_in_string(title_nodes, reg, st, lang)
+
         return st
 
     def get_multi_title_regex_string(self, titles, lang, for_js=False, anchored=False):

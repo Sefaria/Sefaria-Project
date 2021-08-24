@@ -34,7 +34,7 @@ jobs:
           python-version: '3.7'
 
       - name: Authenticate GHA Runner to GCP
-        uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+        uses: google-github-actions/setup-gcloud@master
         with:
           service_account_key: ${{ secrets.DEV_CLOUDBUILD_SA_KEY }}
           project_id: ${{ secrets.DEV_PROJECT }}

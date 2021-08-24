@@ -28,7 +28,6 @@ import Component from 'react-class';
 import { BroadcastChannel } from 'broadcast-channel';
 import BeitMidrash from './BeitMidrash';
 
-
 class ReaderApp extends Component {
   constructor(props) {
     super(props);
