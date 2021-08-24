@@ -954,7 +954,7 @@ class ModeratorButtons extends Component {
     let editTextInfo =    this.state.editing ? <EditTextInfo initTitle={this.props.title} close={(e) => this.editIndex(e)}/>
                           :
                           <div className="button white" id="edit" onClick={(e) => this.editIndex(e)}>
-                            <i className="fa fa-info-circle"></i> Edit Text Info
+                            <span className="fa fa-info-circle"  onClick={(e) => this.editIndex(e)}/> Edit Text Info
                           </div>
 
 
@@ -1061,7 +1061,7 @@ const CategoryChooser = function({categories, update}) {
       menus.push(options);
     }
   }
-  return <div id="categoryMenu" ref={categoryMenu}>
+  return <div ref={categoryMenu}>
           {menus.map((menu, index) =>
             <select key={`subcats-${index}`} id={`subcats-${index}`} onChange={handleChange}>
               <option key="chooseCategory" value="Choose a category">Choose a category</option>
@@ -1081,7 +1081,11 @@ const TitleVariants = function({titles, update}) {
     update(newTitles);
   }
   const onTitleValidate = function (title) {
-    return titles.every((item) => item.name !== title.name)
+    const validTitle = titles.every((item) => item.name !== title.name);
+    if (!validTitle) {
+      alert(title+" already exists.");
+    }
+    return validTitle;
   }
 
   return <div className="publishBox sans-serif">
@@ -1100,16 +1104,17 @@ const TitleVariants = function({titles, update}) {
 
 const EditTextInfo = function({initTitle, close}) {
   const index = useRef(null);
-  Sefaria.getIndexDetails(initTitle).then(data => index.current = data);
-  index.current = Sefaria.getIndexDetailsFromCache(initTitle);
+  if (!index.current) {
+    Sefaria.getIndexDetails(initTitle).then(data => index.current = data);
+    index.current = Sefaria.getIndexDetailsFromCache(initTitle);
+  }
+  const oldTitle = index.current.title; //save original title, in case english title gets edited
   const [enTitle, setEnTitle] = useState(index.current.title);
   const [heTitle, setHeTitle] = useState(index.current.heTitle);
   const [titleVariants, setTitleVariants] = useState(index.current.titleVariants.map((item, i) =>({["name"]: item, ["id"]: i})));
   const [heTitleVariants, setHeTitleVariants] = useState(index.current.heTitleVariants.map((item, i) =>({["name"]: item, ["id"]: i})));
   const [categories, setCategories] = useState(index.current.categories);
   const [sections, setSections] = useState(index.current.sectionNames);
-
-
 
   return (
       <div className="editTextInfo">
@@ -1197,8 +1202,8 @@ const EditTextInfo = function({initTitle, close}) {
 
           <div className="actions">
             <NewIndexSaveButton enTitle={enTitle} heTitle={heTitle} enTitleVariants={titleVariants}
-                              heTitleVariants={heTitleVariants} categories={categories} sectionNames={sections}/>
-
+                                oldTitle={oldTitle} heTitleVariants={heTitleVariants} categories={categories}
+                                sectionNames={sections}/>
           </div>
         </div>
       </div>
@@ -1206,10 +1211,7 @@ const EditTextInfo = function({initTitle, close}) {
 }
 
 
-const NewIndexSaveButton = function({enTitle, heTitle, enTitleVariants, heTitleVariants, categories, sectionNames}) {
-  const origIndex = useRef(null);
-  Sefaria.getIndexDetails(enTitle).then(data => origIndex.current = data);
-  origIndex.current = Sefaria.getIndexDetailsFromCache(enTitle);
+const NewIndexSaveButton = function({enTitle, heTitle, enTitleVariants, heTitleVariants, categories, sectionNames, oldTitle}) {
   let index = {};
   enTitleVariants = enTitleVariants.map(i => i["name"]);
   heTitleVariants = heTitleVariants.map(i => i["name"]);
@@ -1245,8 +1247,6 @@ const NewIndexSaveButton = function({enTitle, heTitle, enTitleVariants, heTitleV
         return false;
       }
     }
-
-
     if (Hebrew.containsHebrew(enTitle)) {
       alert("Please enter a primary title in English. Use the Hebrew Title field to specify a title in Hebrew.");
       return false;
@@ -1256,24 +1256,28 @@ const NewIndexSaveButton = function({enTitle, heTitle, enTitleVariants, heTitleV
     index["titleVariants"] = enTitleVariants;
     index["heTitleVariants"] = heTitleVariants;
     index["categories"] = categories;
-    if (sectionNames.length > 0) {
+    if (sectionNames && sectionNames.length > 0) {
       index["sectionNames"] = sectionNames;
     }
-
+    if (enTitle !== oldTitle) {
+      index["oldTitle"] = oldTitle;
+    }
     return true;
   }
 
   const save = function() {
     let postJSON = JSON.stringify(index);
     let title = enTitle.replace(/ /g, "_");
-
-    let message = "Saving text information...";
-    alert(message);
-    $.post("/api/index/" + title,  {"json": postJSON}, function(data) {
+    let url = "/api/v2/raw/index/" + title;
+    if ("oldTitle" in index) {
+      url += "?update=1";
+    }
+    $.post(url,  {"json": postJSON}, function(data) {
       if (data.error) {
         alert(data.error);
       } else {
         alert("Text information saved.");
+        window.location.reload(true);
       }
       }).fail( function(xhr, textStatus, errorThrown) {
         alert("Unfortunately, there was an error saving this text information. Please try again or try reloading this page.")

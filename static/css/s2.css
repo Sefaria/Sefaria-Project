@@ -2645,7 +2645,9 @@ a.navBlockTitle:hover {
 	text-align: left;
 	box-shadow: 1px 1px 5px #555;
 }
-
+.readerPanel.english #newIndex .helpText {
+  left: 0px;
+}
 .bookPage .editTextInfo .nodeTemplate {
 	display: none;
 }
