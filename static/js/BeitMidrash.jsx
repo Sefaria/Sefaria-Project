@@ -209,7 +209,7 @@ const BeitMidrashHome = ({beitMidrashId,
         <div id="beitMidrashHeader">Chavruta {beitMidrashId}</div>
         <div id="newCall"><a href="/chavruta"><img src="/static/img/camera_with_plus.svg" id="newCallImg" /><span>New Call</span></a></div>
         <hr className="beitMidrashHR" />
-            <div>
+            <div className="peopleInBeitMidrash">
                 {peopleInBeitMidrash && peopleInBeitMidrash.length > 1 ? peopleInBeitMidrash
                 .filter(user => !user.roomId)
                 .map(user => {
@@ -305,6 +305,7 @@ const ChatBox = ({room,
                    
     const [chatMessage, setChatMessage] = useState(null);
     const [partnerLeftNotification, setPartnerLeftNotification] = useState(false);
+    const [inputArrowBlue, setInputArrowBlue] = useState(false)
     const roomId = room.roomId;
     const chatBox = useRef();
 
@@ -327,6 +328,7 @@ const ChatBox = ({room,
 
     const handleChange = (e) =>{
         setChatMessage(e.target.value);
+        setInputArrowBlue(true)
     }
     
     const handleSubmit = (e) => {
@@ -380,7 +382,7 @@ const ChatBox = ({room,
         </div>
         <form className="chat-form" onSubmit={handleSubmit}>
             <input type="text" className="chat-input" onChange={handleChange} placeholder="Send a Message"></input>
-          <input type="submit" className="chat-submit" value=""/>
+          <input type="submit" className={inputArrowBlue? "chat-submit chat-submit-blue" : "chat-submit"} value=""/>
         </form>
     </div>
     )

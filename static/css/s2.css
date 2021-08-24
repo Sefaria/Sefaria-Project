@@ -10434,6 +10434,10 @@ span.ref-link-color-3 {color: blue}
   margin-right: 18px;
 }
 
+.peopleInBeitMidrash {
+  overflow-y: scroll;
+}
+
 .beitMidrashHR {
   border: 0;
   height: 0;
@@ -10569,6 +10573,10 @@ span.ref-link-color-3 {color: blue}
   margin-left: -25px;
   border: 0px;
   background-color: black;
+}
+
+.chat-submit-blue {
+  background-image: url("/static/img/chat_submit_arrow_blue.svg");
 }
 
 .callContainer {
