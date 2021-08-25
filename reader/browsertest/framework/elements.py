@@ -414,20 +414,14 @@ class SefariaTest(AbstractTest):
         if self.is_logged_in():
             return self
         self.nav_to_login()
-        try:
-            elem = self.driver.find_element_by_css_selector("#id_email")
-            elem.send_keys(user)
-            elem = self.driver.find_element_by_css_selector("#id_password")
-            elem.send_keys(password)
-            self.click("button")
-            self.wait_until_title_does_not_contain("Log in")
-            self.wait_until_clickable(".header .home")
-            return self
-        except Exception as e:
-            print(e)
-            return self
-        finally:
-            return self
+        elem = self.driver.find_element_by_css_selector("#id_email")
+        elem.send_keys(user)
+        elem = self.driver.find_element_by_css_selector("#id_password")
+        elem.send_keys(password)
+        self.click("button")
+        self.wait_until_title_does_not_contain("Log in")
+        self.wait_until_clickable(".header .home")
+        return self
 
     def is_logged_in(self):
         try:
