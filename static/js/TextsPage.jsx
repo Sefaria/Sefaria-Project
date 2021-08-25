@@ -136,25 +136,32 @@ const Dedication = () => {
 
     const [dedicationData, setDedicationData] = useState(Sefaria._tableOfContentsDedications[date]);
 
-    const $url = 'https://spreadsheets.google.com/feeds/cells/1DWVfyX8H9biliNYEy-EfAd9F-8OotGnZG9jmOVNwojs/2/public/full?alt=json';
+    function get_google_sheet_data() {
+      const url =
+        'https://docs.google.com/spreadsheets/d/11c9Yw9FdfLnfbIWqvUztCt-QICW5790dfFGgXH7IB1k/edit#gid=0';
+      const query = new google.visualization.Query(url);
+      query.setQuery('select A, B, C');
+      query.send(processSheetsData);
+    }
 
-    async function fetchDedicationData(date) {
-        const response = await $.getJSON($url).then(function (data) {
-            return {data}
-        });
-        const dedicationData = response["data"]["feed"]["entry"];
-        const enDedication = dedicationData[1]["content"]["$t"];
-        const heDedication = dedicationData[2]["content"]["$t"];
-        const enDedicationTomorrow = dedicationData[4]["content"]["$t"];
-        const heDedicationTomorrow = dedicationData[5]["content"]["$t"];
-        Sefaria._tableOfContentsDedications[dedicationData[0]["content"]["$t"]] = {"en": enDedication, "he": heDedication};
-        Sefaria._tableOfContentsDedications[dedicationData[3]["content"]["$t"]] = {"en": enDedicationTomorrow, "he": heDedicationTomorrow};
-        setDedicationData(Sefaria._tableOfContentsDedications[date]);
+    function processSheetsData(response) {
+      const data = response.getDataTable();
+      const columns = data.getNumberOfColumns();
+      const rows = data.getNumberOfRows();
+      for (let r = 0; r < rows; r++) {
+        let row = [];
+        for (let c = 0; c < columns; c++) {
+          row.push(data.getFormattedValue(r, c));
+        }
+        Sefaria._tableOfContentsDedications[row[0]] = {"en": row[1], "he": row[2]};
+      }
+      setDedicationData(Sefaria._tableOfContentsDedications[date]);
     }
 
     useEffect( () => {
         if (!dedicationData) {
-            fetchDedicationData(date);
+            google.charts.load('current');
+            google.charts.setOnLoadCallback(get_google_sheet_data);
         }
     }, []);
 
