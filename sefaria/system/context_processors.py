@@ -73,7 +73,6 @@ def global_settings(request):
         "OFFLINE":                OFFLINE,
         "GOOGLE_MAPS_API_KEY":    GOOGLE_MAPS_API_KEY,
         "SITE_SETTINGS":          SITE_SETTINGS,
-        "RTC_SERVER":             RTC_SERVER,
     }
 
 

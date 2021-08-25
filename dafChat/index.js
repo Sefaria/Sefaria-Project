@@ -33,34 +33,28 @@ const pcConfig = {
 
 //setup static server and initialize sockets
 const PORT = process.env.PORT || 8080;
-// const httpServer = require("http").createServer();
 
-const httpServer = require("http").createServer((req, res) => {
-    res.write('The DafRoulette WebRTC Server lives here.'); //write a response to the client
-    res.end(); //end the response
-});
-
-const io = require("socket.io")(httpServer, {
-  cors: {
-    origin: [
-        "http://localhost:8000",
-        "https://www.sefaria.org",
-        "https://www.sefaria.org.il",
-        "https://chavruta.cauldron.sefaria.org",
-        /\.sefaria\.org$/,
-        /\.sefaria\.org.il$/
-    ],
-    methods: ["GET", "POST"]
-  }
-});
-
-httpServer.listen(PORT)
+const io = require("socket.io")(PORT, {
+      cors: {
+        origin: [
+          "http://localhost:8000",
+          "https://www.sefaria.org",
+          "https://www.sefaria.org.il",
+          "https://chavruta.cauldron.sefaria.org",
+          /\.sefaria\.org$/,
+          /\.sefaria\.org.il$/
+        ],
+        methods: ["GET", "POST"]
+      }
+    }
+);
 
 
 const peopleInBeitMidrash = {};
 
 io.on("connection", (socket) => {
   console.log("connected")
+  socket.emit("connectionStarted");
 
   socket.on('message', function(message, roomId) {
     socket.to(roomId).emit('message', message);
@@ -131,10 +125,11 @@ io.on("connection", (socket) => {
   socket.on("disconnecting", ()=> {
     console.log("disconnecting from rooms", socket.rooms)
     const user = peopleInBeitMidrash[socket.id]
-    const roomArray = [...socket.rooms]
+    console.log(socket.rooms)
+    const roomArray = Object.entries(socket.rooms);
     console.log("roomArray", roomArray)
     roomArray.forEach(room =>  {
-      if (room !== socket.Id) {
+      if (room !== socket.id) {
         socket.to(room).emit("leaving chat room")
       }
     })
