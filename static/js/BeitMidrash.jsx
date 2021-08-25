@@ -273,7 +273,7 @@ const ChavrutaCall = ({outgoingCall, userB, setBeitMidrashHome}) => {
         outgoingCall ? 
         <div className="callContainer">
             <div>
-                <img className="chavrutaCallImg" src={userB.pic} />
+                <ProfilePic len={300} url={userB.pic} name={userB.name} />
                 <div id="endCallButtonHolder">
                     <span id="endCallIcon"><span id="endCall" className="endCallButton" onClick={()=>endCall(userB.name)}></span></span>
                 </div>
@@ -283,7 +283,7 @@ const ChavrutaCall = ({outgoingCall, userB, setBeitMidrashHome}) => {
         </div> : 
         <div className="callContainer">
             <div>
-                <img className="chavrutaCallImg" src={userB.pic} />
+                <ProfilePic len={300} url={userB.pic} name={userB.name} />
                 <div className = "callText">Receiving call from {userB.name}...</div>
                 <div id="incomingCallButtonHolder">
                     <button id="acceptButton" onClick={()=> handleCallAccepted(userB.name)}>Accept</button>

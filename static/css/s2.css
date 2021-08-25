@@ -10593,10 +10593,8 @@ span.ref-link-color-3 {color: blue}
   height: 100%;
 }
 
-.chavrutaCallImg {
-  width: 100%; 
-  height: 274px;
-  background-color: #CCCCCC
+.callContainer .default-profile-img {
+  border-radius: 0
 }
 
 .callText {
