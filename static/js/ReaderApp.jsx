@@ -1868,7 +1868,7 @@ class ReaderApp extends Component {
                                     height: `calc(100% - 60px)`,
                                     marginTop: 60}}>
           <BeitMidrash
-            socket={io(`//localhost:8080`, {autoConnect: false})}
+            socket={io(`//${Sefaria.rtc_server}`, {autoConnect: false})}
           />
       </div>
     )
