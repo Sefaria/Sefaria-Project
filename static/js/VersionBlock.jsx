@@ -360,7 +360,7 @@ class VersionsBlocksList extends Component{
       currentKeys: this.getCurrentVersionsKeys(this.props.currObjectVersions),
     }
   }
-  sortVersionsByActiveLang(prioritize=null){
+  sortVersions(prioritize=null){
     //sorts the languages of the available versions
     const standard_langs = ["en", "he"];
     //const activeLanguages = Object.values(this.props.currObjectVersions).map(({actualLanguage}) => actualLanguage);
@@ -392,7 +392,7 @@ class VersionsBlocksList extends Component{
     return currs
   }
   render(){
-      const sortedLanguages = this.sortVersionsByActiveLang(this.props.sortPrioritizeLanugage);
+      const sortedLanguages = this.sortVersions(this.props.sortPrioritizeLanugage);
       if (!this.props.versionsByLanguages) {
         return (
           <div className="versionsBox">
