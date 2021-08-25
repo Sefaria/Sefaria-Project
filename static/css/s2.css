@@ -10594,7 +10594,8 @@ span.ref-link-color-3 {color: blue}
 }
 
 .callContainer .default-profile-img {
-  border-radius: 0
+  opacity: 0.25;
+  border-radius: 0;
 }
 
 .callText {
