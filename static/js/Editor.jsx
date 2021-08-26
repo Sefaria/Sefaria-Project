@@ -162,6 +162,7 @@ export const deserialize = el => {
           const elStyles = el.getAttribute("style").split(';');
           let addlAttrs = {}
           for (const elStyle of elStyles) {
+              console.log(elStyle)
             const styleArray = elStyle.split(":");
             if (styleArray.length == 2) {
               const styleType = styleArray[0].trim()

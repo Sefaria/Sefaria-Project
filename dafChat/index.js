@@ -33,7 +33,6 @@ const pcConfig = {
 
 //setup static server and initialize sockets
 const PORT = process.env.PORT || 8080;
-// const httpServer = require("http").createServer();
 
 const httpServer = require("http").createServer((req, res) => {
     res.write('The DafRoulette WebRTC Server lives here.'); //write a response to the client
@@ -61,6 +60,7 @@ const peopleInBeitMidrash = {};
 
 io.on("connection", (socket) => {
   console.log("connected")
+  socket.emit("connectionStarted");
 
   socket.on('message', function(message, roomId) {
     socket.to(roomId).emit('message', message);
@@ -132,9 +132,9 @@ io.on("connection", (socket) => {
   socket.on("disconnecting", ()=> {
     console.log("disconnecting from rooms", socket.rooms)
     const user = peopleInBeitMidrash[socket.id]
-    const roomArray = [...socket.rooms]
+    const roomArray = Object.entries(socket.rooms);
     roomArray.forEach(room =>  {
-      if (room !== socket.Id) {
+      if (room !== socket.id) {
         socket.to(room).emit("leaving chat room")
       }
     })

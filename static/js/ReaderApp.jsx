@@ -27,6 +27,7 @@ import {
 import Component from 'react-class';
 import { BroadcastChannel } from 'broadcast-channel';
 import BeitMidrash from './BeitMidrash';
+import  { io }  from 'socket.io-client';
 
 class ReaderApp extends Component {
   constructor(props) {
@@ -68,7 +69,6 @@ class ReaderApp extends Component {
         collectionName:          props.initialCollectionName,
         collectionSlug:          props.initialCollectionSlug,
         collectionTag:           props.initialCollectionTag,
-        beitMidrashId:           props.beit_midrash_id
       };
     }
 
@@ -228,8 +228,8 @@ class ReaderApp extends Component {
     this.setContainerMode();
     this.updateHistoryState(this.replaceHistory);
 
-    //creates broadcast channel to send source information to chavruta
-    //broadcasting only occurs when readerapp is in iframe (ie when chavruta is happening)
+    // creates broadcast channel to send source information to chavruta
+    // broadcasting only occurs when readerapp is in iframe (ie when chavruta is happening)
     if (window.location !== window.parent.location) {
       const channel = new BroadcastChannel("chavruta");
 
@@ -242,7 +242,7 @@ class ReaderApp extends Component {
           return
         }
       }).filter(ele => ele).join(", ");
-      
+
       channel.postMessage({currentlyReading: currentlyReading, history: this.makeHistoryState()});
     }
   }
@@ -1861,15 +1861,17 @@ class ReaderApp extends Component {
       <CommunityPagePreviewControls date={this.props.communityPreview} /> : null;
 
     //Beit Midrash panel doesn't render in an iframe (ie in Chavruta)
-    const beitMidrashPanel = window.location === window.parent.location ? ( 
+    const beitMidrashPanel = (
       <div id='beitMidrash' style={{width: 300,
                                     marginLeft: "auto",
                                     marginRight: 0,
                                     height: `calc(100% - 60px)`,
                                     marginTop: 60}}>
-        <BeitMidrash beitMidrashId={this.props.beitMidrashId || null}/>
+          <BeitMidrash
+            socket={io(`//${Sefaria.rtc_server}`, {autoConnect: false})}
+          />
       </div>
-    ) : null
+    )
     
     var classDict = {readerApp: 1, multiPanel: this.props.multiPanel, singlePanel: !this.props.multiPanel};
     var interfaceLangClass = `interface-${this.props.interfaceLang}`;
