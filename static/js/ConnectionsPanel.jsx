@@ -31,6 +31,7 @@ import TranslationsBox from './TranslationsBox';
 import ExtendedNotes from './ExtendedNotes';
 import classNames from 'classnames';
 import Component             from 'react-class';
+import AboutSheet from './AboutSheet';
 
 
 class ConnectionsPanel extends Component {
@@ -289,7 +290,16 @@ class ConnectionsPanel extends Component {
       content = (
           <div>
               { this.state.flashMessage ? <div className="flashMessage sans-serif">{this.state.flashMessage}</div> : null }
-              { this.props.masterPanelMode === "Sheet" ? <SheetMetadataV2 setConnectionsMode={this.props.setConnectionsMode}></SheetMetadataV2> : null }
+              { this.props.masterPanelMode === "Sheet" ? 
+              (<div><ToolsButton en="About this Sheet" he="תרגומים" image="about-text.svg" onClick={() => this.props.setConnectionsMode("AboutSheet")} />
+              <ToolsButton en="Publish" he="תרגומים" image="publish.png" onClick={() => this.props.setConnectionsMode("Publish")} />
+              <ToolsButton en="Copy" he="תרגומים" image="copy.png" onClick={() => this.props.setConnectionsMode("AboutSheet")} />
+              <ToolsButton en="Add to Collection" he="תרגומים" image="add-to-collection.png" onClick={() => this.props.setConnectionsMode("AboutSheet")} />
+              <ToolsButton en="Print" he="תרגומים" image="print.png" onClick={() => this.props.setConnectionsMode("AboutSheet")} />
+              <ToolsButton en="Export to Google Docs" he="תרגומים" image="googledrive.png" onClick={() => this.props.setConnectionsMode("AboutSheet")} />
+              </div>
+              
+              )  : null }
               <ToolsButton en="About this Text" he="אודות הטקסט" image="about-text.svg" onClick={() => this.props.setConnectionsMode("About")} />
               {showConnectionSummary ?
                   <ConnectionsPanelSection title="Related Texts">
@@ -609,8 +619,10 @@ class ConnectionsPanel extends Component {
         interfaceLang={this.props.interfaceLang}
         contentLang={this.props.contentLang}
       />);
+    } else if (this.props.mode === "AboutSheet") {
+        content = (<AboutSheet/>);
     }
-
+    
     var marginless = ["Resources", "ConnectionsList", "Advanced Tools", "Share", "WebPages", "Topics", "manuscripts"].indexOf(this.props.mode) != -1;
     var classes = classNames({connectionsPanel: 1, textList: 1, marginless: marginless, fullPanel: this.props.fullPanel, singlePanel: !this.props.fullPanel});
     return (
