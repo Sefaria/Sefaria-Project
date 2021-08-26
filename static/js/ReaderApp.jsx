@@ -1863,8 +1863,8 @@ class ReaderApp extends Component {
     //Beit Midrash panel doesn't render in an iframe (ie in Chavruta)
     const beitMidrashPanel = (
       <div id='beitMidrash' style={{width: 300,
-                                    marginLeft: "auto",
-                                    marginRight: 0,
+                                    marginInlineStart: "auto",
+                                    marginInlineEnd: 0,
                                     height: `calc(100% - 60px)`,
                                     marginTop: 60}}>
           <BeitMidrash
