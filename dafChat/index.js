@@ -109,7 +109,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("send chat message", (room, message) => {
-    if (!socket.rooms.has('room.roomId')) {
+    if (!socket.rooms.has(room.roomId)) {
       socket.join(room.roomId)
     }
     const socketId = Object.keys(peopleInBeitMidrash).find(key => peopleInBeitMidrash[key]["name"] === room.userB.name);
@@ -122,10 +122,8 @@ io.on("connection", (socket) => {
     socket.join(room.roomId)
   })
 
-  socket.on("disconnecting", ()=> {
-    if (peopleInBeitMidrash[socket.id]) {
-      console.log(peopleInBeitMidrash[socket.id].name, "disconnecting from rooms", socket.rooms)
-    }
+  socket.on("disconnecting", (reason)=> {
+      console.log(`${socket.id} ${peopleInBeitMidrash[socket.id] ? peopleInBeitMidrash[socket.id].name : ""} is discconnecting from rooms ${socket.rooms} due to ${reason}`)
 
     //notify open chats that user left
     const roomArray = Object.entries(socket.rooms);
