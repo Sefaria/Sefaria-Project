@@ -59,7 +59,7 @@ httpServer.listen(PORT)
 const peopleInBeitMidrash = {};
 
 io.on("connection", (socket) => {
-  console.log(socket.id, "connected")
+  console.log(socket.id, socket.conn.remoteAddress, "connected")
   socket.emit("connectionStarted");
 
   socket.on('message', function(message, roomId) {
@@ -109,7 +109,9 @@ io.on("connection", (socket) => {
   });
 
   socket.on("send chat message", (room, message) => {
-    socket.join(room.roomId)
+    if (!socket.rooms.has('room.roomId')) {
+      socket.join(room.roomId)
+    }
     const socketId = Object.keys(peopleInBeitMidrash).find(key => peopleInBeitMidrash[key]["name"] === room.userB.name);
     const partner = peopleInBeitMidrash[socket.id]
     console.log(`sending chat message to ${socketId} from ${partner.name}: ${message}`)
