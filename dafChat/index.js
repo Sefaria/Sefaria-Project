@@ -90,16 +90,8 @@ io.on("connection", (socket) => {
     socket.broadcast.emit("change in people", Object.values(peopleInBeitMidrash));
     socket.emit("change in people", Object.values(peopleInBeitMidrash));
   }
-  function removeUserFromBeitMidrash(socketId) {
-    console.log(`removing ${peopleInBeitMidrash[socketId].name} (${peopleInBeitMidrash[socketId].uid}) from peopleinBeitMidrahsh`)
-    delete peopleInBeitMidrash[socketId];
-    socket.broadcast.emit("change in people", Object.values(peopleInBeitMidrash));
-    socket.emit("change in people", Object.values(peopleInBeitMidrash));
-  }
-  
-  socket.on("enter beit midrash", (uid, fullName, profilePic, organization, beitMidrashId)=> addUserToBeitMidrash(uid, fullName, profilePic, organization, beitMidrashId, socket.id));
 
-  socket.on("disconnect", () => removeUserFromBeitMidrash(socket.id));
+  socket.on("enter beit midrash", (uid, fullName, profilePic, organization, beitMidrashId)=> addUserToBeitMidrash(uid, fullName, profilePic, organization, beitMidrashId, socket.id));
 
   socket.on("connect with other user", (uid, user) => {
     const socketId = Object.keys(peopleInBeitMidrash).find(key => peopleInBeitMidrash[key]["uid"] === uid);
@@ -132,12 +124,18 @@ io.on("connection", (socket) => {
     if (peopleInBeitMidrash[socket.id]) {
       console.log(peopleInBeitMidrash[socket.id].name, "disconnecting from rooms", socket.rooms)
     }
+
+    //notify open chats that user left
     const roomArray = Object.entries(socket.rooms);
     roomArray.forEach(room =>  {
       if (room !== socket.id) {
         socket.to(room).emit("leaving chat room")
       }
     })
+
+    //remove user from beit midrash and update listing for clients
+    delete peopleInBeitMidrash[socket.id];
+    socket.broadcast.emit("change in people", Object.values(peopleInBeitMidrash));
   })
 
   //end of Beit Midrash code, start of RTC code
