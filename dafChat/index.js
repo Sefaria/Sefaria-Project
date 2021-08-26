@@ -13,7 +13,7 @@ const http = require('http');
 // initialize db
 const db = new sqlite3.Database('./db/chatrooms.db');
 db.run(`DROP TABLE IF EXISTS "chatrooms"`);
-console.log('creating and clearing db');
+console.log('initializing db, creating and clearing db');
 db.run(`CREATE TABLE IF NOT EXISTS "chatrooms" ("name"	TEXT UNIQUE, "clients"	INTEGER DEFAULT 0, "roomStarted"	INTEGER, "namespace"	TEXT, PRIMARY KEY("name"));`)
 const os = require('os');
 
@@ -59,7 +59,7 @@ httpServer.listen(PORT)
 const peopleInBeitMidrash = {};
 
 io.on("connection", (socket) => {
-  console.log("connected")
+  console.log(socket.id, "connected")
   socket.emit("connectionStarted");
 
   socket.on('message', function(message, roomId) {
@@ -86,12 +86,12 @@ io.on("connection", (socket) => {
     peopleInBeitMidrash[socketId]["organization"] = organization
     peopleInBeitMidrash[socketId]["beitMidrashId"] = beitMidrashId;
 
-    console.log(peopleInBeitMidrash)
+    console.log("peopleInBeitMidrash:", peopleInBeitMidrash)
     socket.broadcast.emit("change in people", Object.values(peopleInBeitMidrash));
     socket.emit("change in people", Object.values(peopleInBeitMidrash));
   }
   function removeUserFromBeitMidrash(socketId) {
-    console.log(`removing ${socketId} from peopleinBeitMidrahsh`)
+    console.log(`removing ${peopleInBeitMidrash[socketId].name} (${peopleInBeitMidrash[socketId].uid}) from peopleinBeitMidrahsh`)
     delete peopleInBeitMidrash[socketId];
     socket.broadcast.emit("change in people", Object.values(peopleInBeitMidrash));
     socket.emit("change in people", Object.values(peopleInBeitMidrash));
@@ -113,7 +113,6 @@ io.on("connection", (socket) => {
 
   socket.on("send room ID to server", (name, roomId)=> {
     const socketId = Object.keys(peopleInBeitMidrash).find(key => peopleInBeitMidrash[key]["name"] === name);
-    console.log("sending room ID to client", socketId)
     socket.broadcast.to(socketId).emit("send room ID to client", roomId)
   });
 
@@ -130,8 +129,7 @@ io.on("connection", (socket) => {
   })
 
   socket.on("disconnecting", ()=> {
-    console.log("disconnecting from rooms", socket.rooms)
-    const user = peopleInBeitMidrash[socket.id]
+    console.log(peopleInBeitMidrash[socket.id].name, "disconnecting from rooms", socket.rooms)
     const roomArray = Object.entries(socket.rooms);
     roomArray.forEach(room =>  {
       if (room !== socket.id) {
@@ -139,6 +137,8 @@ io.on("connection", (socket) => {
       }
     })
   })
+
+  //end of Beit Midrash code, start of RTC code
 
   socket.on('does room exist', function(roomID, uid) {
     let sql = `SELECT name, clients FROM chatrooms WHERE name = ?`;
