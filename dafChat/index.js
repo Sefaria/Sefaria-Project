@@ -123,7 +123,7 @@ io.on("connection", (socket) => {
   })
 
   socket.on("disconnecting", (reason)=> {
-      console.log(`${socket.id} ${peopleInBeitMidrash[socket.id] ? peopleInBeitMidrash[socket.id].name : ""} is discconnecting from rooms ${socket.rooms} due to ${reason}`)
+      console.log(`${socket.id} ${peopleInBeitMidrash[socket.id] ? peopleInBeitMidrash[socket.id].name : ""} is disconnecting from rooms`, socket.rooms, `due to ${reason}`)
 
     //notify open chats that user left
     const roomArray = Object.entries(socket.rooms);
