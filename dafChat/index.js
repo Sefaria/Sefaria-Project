@@ -34,20 +34,26 @@ const pcConfig = {
 //setup static server and initialize sockets
 const PORT = process.env.PORT || 8080;
 
-const io = require("socket.io")(PORT, {
-      cors: {
-        origin: [
-          "http://localhost:8000",
-          "https://www.sefaria.org",
-          "https://www.sefaria.org.il",
-          "https://chavruta.cauldron.sefaria.org",
-          /\.sefaria\.org$/,
-          /\.sefaria\.org.il$/
-        ],
-        methods: ["GET", "POST"]
-      }
-    }
-);
+const httpServer = require("http").createServer((req, res) => {
+    res.write('The DafRoulette WebRTC Server lives here.'); //write a response to the client
+    res.end(); //end the response
+});
+
+const io = require("socket.io")(httpServer, {
+  cors: {
+    origin: [
+        "http://localhost:8000",
+        "https://www.sefaria.org",
+        "https://www.sefaria.org.il",
+        "https://chavruta.cauldron.sefaria.org",
+        /\.sefaria\.org$/,
+        /\.sefaria\.org.il$/
+    ],
+    methods: ["GET", "POST"]
+  }
+});
+
+httpServer.listen(PORT)
 
 
 const peopleInBeitMidrash = {};
