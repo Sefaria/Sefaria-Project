@@ -107,6 +107,7 @@ class ReaderApp extends Component {
       initialAnalyticsTracked: false,
       showSignUpModal: false,
       translationLanguagePreference: props.translationLanguagePreference,
+      beitMidrashActive: Sefaria._uid ? true : false,
     };
   }
   makePanelState(state) {
@@ -179,6 +180,11 @@ class ReaderApp extends Component {
     }
     // Save all initial panels to recently viewed
     this.state.panels.map(this.saveLastPlace);
+
+    //hide Beit Midrash in an iframe (ie, if chavruta call is active)
+    if (window.location !== window.parent.location) {
+      this.setState({beitMidrashActive: false})
+    }
   }
   componentWillUnmount() {
     window.removeEventListener("popstate", this.handlePopState);
@@ -1841,7 +1847,7 @@ class ReaderApp extends Component {
     }
     var boxClasses = classNames({wrapBoxScroll: wrapBoxScroll});
     var boxWidth = wrapBoxScroll ? this.state.windowWidth + "px" : "100%";
-    var boxStyle = Sefaria._uid ? {width: `calc(${boxWidth} - 300px)`} : {width: boxWidth};
+    var boxStyle = this.state.beitMidrashActive ? {width: `calc(${boxWidth} - 300px)`} : {width: boxWidth};
     panels = panels.length ?
               (<div id="panelWrapBox" className={boxClasses} style={boxStyle}>
                 {panels}
@@ -1885,7 +1891,7 @@ class ReaderApp extends Component {
           {panels}
           {sefariaModal}
           {communityPagePreviewControls}
-          {Sefaria._uid ? beitMidrashPanel : null}
+          {this.state.beitMidrashActive ? beitMidrashPanel : null}
           <CookiesNotification />
         </div>
       </div>
