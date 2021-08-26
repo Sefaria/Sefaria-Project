@@ -12,3 +12,4 @@
    - Prod: `./deploy/deploy.bash -n prod -c cluster-1 -s dafchat -r us-east1-b -p production-deployment  -d "sefaria.org"`
 3. Edit the DNS names for for `rtc.<SEFARIA HOST>` and `coturn.<SEFARIA HOST>` in GCP DNS if SEFARIA_HOST is a sandbox, and CloudFlare if it is our root domain. These should point to the `coturn-test` or `coturn-prod` load balancer. 
 
+ 
