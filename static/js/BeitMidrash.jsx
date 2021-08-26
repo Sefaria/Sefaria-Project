@@ -46,7 +46,7 @@ const BeitMidrash = ({socket}) => {
     useEffect(() => {
         socket.connect();
 
-        socket.on("reconnect", (attempt) => {
+        socket.io.on("reconnect", (attempt) => {
             setSocketConnected(socket);
             console.log(`Reconnected after ${attempt} attempt(s)`);
             socket.emit("enter beit midrash", Sefaria._uid, Sefaria.full_name, Sefaria.profile_pic_url, profile.organization, beitMidrashId);
