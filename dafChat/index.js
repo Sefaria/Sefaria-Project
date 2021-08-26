@@ -86,7 +86,7 @@ io.on("connection", (socket) => {
     peopleInBeitMidrash[socketId]["organization"] = organization
     peopleInBeitMidrash[socketId]["beitMidrashId"] = beitMidrashId;
 
-    console.log("peopleInBeitMidrash:", peopleInBeitMidrash)
+    console.log("user added to beit midrash, current peopleInBeitMidrash:", peopleInBeitMidrash)
     socket.broadcast.emit("change in people", Object.values(peopleInBeitMidrash));
     socket.emit("change in people", Object.values(peopleInBeitMidrash));
   }
@@ -129,7 +129,9 @@ io.on("connection", (socket) => {
   })
 
   socket.on("disconnecting", ()=> {
-    console.log(peopleInBeitMidrash[socket.id].name, "disconnecting from rooms", socket.rooms)
+    if (peopleInBeitMidrash[socket.id]) {
+      console.log(peopleInBeitMidrash[socket.id].name, "disconnecting from rooms", socket.rooms)
+    }
     const roomArray = Object.entries(socket.rooms);
     roomArray.forEach(room =>  {
       if (room !== socket.id) {
@@ -266,7 +268,6 @@ io.on("connection", (socket) => {
 
   socket.on('send user info', function(userName, uid, room) {
     peopleInBeitMidrash[socket.id]["roomId"] = room; 
-    console.log(peopleInBeitMidrash)
     socket.to(room).emit('got user name', userName, uid);
     socket.broadcast.emit("change in people", Object.values(peopleInBeitMidrash));
     socket.emit("change in people", Object.values(peopleInBeitMidrash));
