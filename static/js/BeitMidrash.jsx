@@ -349,6 +349,7 @@ const ChatBox = ({room,
         e.target.reset();
     }
 
+    console.log("room.userB", room.userB)
  
     return (
     <div className="chat" ref={chatBox}>

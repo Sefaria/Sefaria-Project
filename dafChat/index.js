@@ -91,6 +91,7 @@ io.on("connection", (socket) => {
     socket.emit("change in people", Object.values(peopleInBeitMidrash));
   }
   function removeUserFromBeitMidrash(socketId) {
+    console.log(`removing ${socketId} from peopleinBeitMidrahsh`)
     delete peopleInBeitMidrash[socketId];
     socket.broadcast.emit("change in people", Object.values(peopleInBeitMidrash));
     socket.emit("change in people", Object.values(peopleInBeitMidrash));
@@ -132,7 +133,6 @@ io.on("connection", (socket) => {
     console.log("disconnecting from rooms", socket.rooms)
     const user = peopleInBeitMidrash[socket.id]
     const roomArray = [...socket.rooms]
-    console.log("roomArray", roomArray)
     roomArray.forEach(room =>  {
       if (room !== socket.Id) {
         socket.to(room).emit("leaving chat room")
