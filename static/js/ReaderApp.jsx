@@ -1841,7 +1841,7 @@ class ReaderApp extends Component {
     }
     var boxClasses = classNames({wrapBoxScroll: wrapBoxScroll});
     var boxWidth = wrapBoxScroll ? this.state.windowWidth + "px" : "100%";
-    var boxStyle = window.location === window.parent.location ? {width: `calc(${boxWidth} - 300px)`} : {width: boxWidth};
+    var boxStyle = Sefaria._uid ? {width: `calc(${boxWidth} - 300px)`} : {width: boxWidth};
     panels = panels.length ?
               (<div id="panelWrapBox" className={boxClasses} style={boxStyle}>
                 {panels}
@@ -1860,7 +1860,6 @@ class ReaderApp extends Component {
     const communityPagePreviewControls = this.props.communityPreview ?
       <CommunityPagePreviewControls date={this.props.communityPreview} /> : null;
 
-    //Beit Midrash panel doesn't render in an iframe (ie in Chavruta)
     const beitMidrashPanel = (
       <div id='beitMidrash' style={{width: 300,
                                     marginInlineStart: "auto",
@@ -1886,7 +1885,7 @@ class ReaderApp extends Component {
           {panels}
           {sefariaModal}
           {communityPagePreviewControls}
-          {beitMidrashPanel}
+          {Sefaria._uid ? beitMidrashPanel : null}
           <CookiesNotification />
         </div>
       </div>
