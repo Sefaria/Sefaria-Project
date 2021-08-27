@@ -8,9 +8,11 @@ const SheetMetadataV2 = (props) => {
     const [summary, setSummary] = useState("");
     const [status, setStatus] = useState("public");
     const [lastModified, setLastModified] = useState(null);
+    const [canEdit, setCanEdit] = useState(false)
 
     useEffect(() => {
         const sheet = Sefaria.sheets.loadSheetByID(props.masterPanelSheetId);
+
         setTags(sheet.topics.map((topic, i) => ({
             id: i,
             name: topic["asTyped"],
@@ -18,11 +20,12 @@ const SheetMetadataV2 = (props) => {
         })));
         setSummary(sheet.summary);
         setLastModified(sheet.dateModified);
+        setCanEdit(sheet.owner === Sefaria._uid);
     }, []);
 
 
     return (<div><ToolsButton en="About this Sheet" he="תרגומים" image="about-text.svg" onClick={() => props.setConnectionsMode("AboutSheet")} />
-        <ToolsButton en="Publish" he="תרגומים" image="publish.png" onClick={() => props.setConnectionsMode("Publish")} />
+        {canEdit ? <ToolsButton en="Publish" he="תרגומים" image="publish.png" onClick={() => props.setConnectionsMode("Publish")} /> : null}
         <ToolsButton en="Copy" he="תרגומים" image="copy.png" onClick={() => props.setConnectionsMode("AboutSheet")} />
         <ToolsButton en="Add to Collection" he="תרגומים" image="add-to-collection.png" onClick={() => props.setConnectionsMode("AboutSheet")} />
         <ToolsButton en="Print" he="תרגומים" image="print.png" onClick={() => props.setConnectionsMode("AboutSheet")} />
@@ -31,6 +34,7 @@ const SheetMetadataV2 = (props) => {
         {summary}
         {status}
         {lastModified}
+        {canEdit.toString()}
     </div>
     )
 }
