@@ -10593,7 +10593,8 @@ span.ref-link-color-3 {color: blue}
   height: 100%;
 }
 
-.callContainer .default-profile-img {
+.callContainer .default-profile-img, 
+.callContainer .img-circle {
   opacity: 0.25;
   border-radius: 0;
 }
