@@ -287,19 +287,22 @@ class ConnectionsPanel extends Component {
       const toolsButtonsCounts = {
         notes: Sefaria.notesTotalCount(this.props.srefs),
       }
+      // const sheetResourcesContent = (<div><ToolsButton en="About this Sheet" he="תרגומים" image="about-text.svg" onClick={() => this.props.setConnectionsMode("AboutSheet")} />
+      // <ToolsButton en="Publish" he="תרגומים" image="publish.png" onClick={() => this.props.setConnectionsMode("Publish")} />
+      // <ToolsButton en="Copy" he="תרגומים" image="copy.png" onClick={() => this.props.setConnectionsMode("AboutSheet")} />
+      // <ToolsButton en="Add to Collection" he="תרגומים" image="add-to-collection.png" onClick={() => this.props.setConnectionsMode("AboutSheet")} />
+      // <ToolsButton en="Print" he="תרגומים" image="print.png" onClick={() => this.props.setConnectionsMode("AboutSheet")} />
+      // <ToolsButton en="Export to Google Docs" he="תרגומים" image="googledrive.png" onClick={() => this.props.setConnectionsMode("AboutSheet")} />
+      // </div> 
+      // )
       content = (
           <div>
               { this.state.flashMessage ? <div className="flashMessage sans-serif">{this.state.flashMessage}</div> : null }
               { this.props.masterPanelMode === "Sheet" ? 
-              (<div><ToolsButton en="About this Sheet" he="תרגומים" image="about-text.svg" onClick={() => this.props.setConnectionsMode("AboutSheet")} />
-              <ToolsButton en="Publish" he="תרגומים" image="publish.png" onClick={() => this.props.setConnectionsMode("Publish")} />
-              <ToolsButton en="Copy" he="תרגומים" image="copy.png" onClick={() => this.props.setConnectionsMode("AboutSheet")} />
-              <ToolsButton en="Add to Collection" he="תרגומים" image="add-to-collection.png" onClick={() => this.props.setConnectionsMode("AboutSheet")} />
-              <ToolsButton en="Print" he="תרגומים" image="print.png" onClick={() => this.props.setConnectionsMode("AboutSheet")} />
-              <ToolsButton en="Export to Google Docs" he="תרגומים" image="googledrive.png" onClick={() => this.props.setConnectionsMode("AboutSheet")} />
-              </div>
-              
-              )  : null }
+               <SheetMetadataV2
+                 setConnectionsMode={this.props.setConnectionsMode}
+                 masterPanelSheetId={this.props.masterPanelSheetId}
+               /> : null }
               <ToolsButton en="About this Text" he="אודות הטקסט" image="about-text.svg" onClick={() => this.props.setConnectionsMode("About")} />
               {showConnectionSummary ?
                   <ConnectionsPanelSection title="Related Texts">
@@ -679,6 +682,7 @@ ConnectionsPanel.propTypes = {
   interfaceLang:           PropTypes.string,
   contentLang:             PropTypes.string,
   masterPanelMode:         PropTypes.string,
+  masterPanelSheetId:      PropTypes.number,
   masterPanelLanguage:     PropTypes.oneOf(["english", "bilingual", "hebrew"]),
   versionFilter:           PropTypes.array,
   recentVersionFilters:    PropTypes.array,

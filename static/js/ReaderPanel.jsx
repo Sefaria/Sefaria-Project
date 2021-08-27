@@ -710,6 +710,7 @@ class ReaderPanel extends Component {
           clearSelectedWords={this.clearSelectedWords}
           clearNamedEntity={this.props.clearNamedEntity}
           masterPanelMode={this.props.masterPanelMode}
+          masterPanelSheetId={this.props.masterPanelSheetId}
           masterPanelLanguage={this.props.masterPanelLanguage}
           versionFilter={this.state.versionFilter}
           recentVersionFilters={this.state.recentVersionFilters}
@@ -1131,6 +1132,7 @@ ReaderPanel.propTypes = {
   getHistoryRef:               PropTypes.func,
   profile:                     PropTypes.object,
   masterPanelMode:             PropTypes.string,
+  masterPanelSheetId:          PropTypes.number,
   translationLanguagePreference: PropTypes.string,
   setTranslationLanguagePreference: PropTypes.func.isRequired,
 };

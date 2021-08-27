@@ -502,18 +502,19 @@ class SheetMetadata extends Component {
             </div>);
   }
 }
+// annotating for moving metadata
 SheetMetadata.propTypes = {
   id:               PropTypes.number.isRequired,
-  mode:             PropTypes.string.isRequired,
-  settingsLanguage: PropTypes.string.isRequired,
-  versionLanguage:  PropTypes.string,
-  version:          PropTypes.string,
-  narrowPanel:      PropTypes.bool,
-  close:            PropTypes.func.isRequired,
-  openNav:          PropTypes.func.isRequired,
-  showBaseText:     PropTypes.func.isRequired,
-  selectVersion:    PropTypes.func,
-  interfaceLang:    PropTypes.string,
+  mode:             PropTypes.string.isRequired, // not used
+  settingsLanguage: PropTypes.string.isRequired, // probably handled in sidebar
+  versionLanguage:  PropTypes.string, // not used
+  version:          PropTypes.string, // not used
+  narrowPanel:      PropTypes.bool, // don't need for sidebar
+  close:            PropTypes.func.isRequired, // don't need for sidebar
+  openNav:          PropTypes.func.isRequired, // not used
+  showBaseText:     PropTypes.func.isRequired, // not used
+  selectVersion:    PropTypes.func, // not used
+  interfaceLang:    PropTypes.string, // don't need
 };
 
 
