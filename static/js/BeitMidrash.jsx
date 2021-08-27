@@ -22,6 +22,7 @@ const BeitMidrash = ({socket}) => {
     const [outgoingCall, setOutgoingCall] = useState(false)
     const [userB, setUserB] = useState({})
     const [socketConnected, setSocketConnected] = useState(false)
+    const [socketObj, setSocketObj] = useState(socket)
 
     const addMessageToDataStore = (user, room, message) => {
         const roomExists = chatDataStore[room.roomId]
@@ -44,17 +45,17 @@ const BeitMidrash = ({socket}) => {
 
 
     useEffect(() => {
-        socket.connect();
+        socketObj.connect();
 
-        socket.io.on("reconnect", (attempt) => {
+        socketObj.io.on("reconnect", (attempt) => {
             setSocketConnected(socket);
             console.log(`Reconnected after ${attempt} attempt(s)`);
-            socket.emit("enter beit midrash", Sefaria._uid, Sefaria.full_name, Sefaria.profile_pic_url, profile.organization, beitMidrashId);
+            socketObj.emit("enter beit midrash", Sefaria._uid, Sefaria.full_name, Sefaria.profile_pic_url, profile.organization, beitMidrashId);
         });
 
-        socket.on("connectionStarted", () => {setSocketConnected(socket)})
+        socketObj.on("connectionStarted", () => {setSocketConnected(true)})
 
-        socket.on("change in people", function(people) {
+        socketObj.on("change in people", function(people) {
             const dedupedPeople = people.filter((person, index,self) => {
                 return index === self.findIndex((p) => p.uid === person.uid)
             })
@@ -65,26 +66,26 @@ const BeitMidrash = ({socket}) => {
         if (Sefaria._uid) {
             Sefaria.profileAPI(Sefaria.slug).then(profile => {
                 setProfile(profile)
-                socket.emit("enter beit midrash", Sefaria._uid, Sefaria.full_name, Sefaria.profile_pic_url, profile.organization, beitMidrashId);
+                socketObj.emit("enter beit midrash", Sefaria._uid, Sefaria.full_name, Sefaria.profile_pic_url, profile.organization, beitMidrashId);
             });
         }
 
         //user B receives connection request
-        socket.on("connection request", (user) => {
+        socketObj.on("connection request", (user) => {
             chavrutaRequestReceived(user)
         })
         //sends rejection to user A
-        socket.on("send connection rejection", ()=>{
+        socketObj.on("send connection rejection", ()=>{
             setBeitMidrashHome(true)
         })
         //user A gets acceptance alert
-        socket.on("send room ID to client", (room)=> {
+        socketObj.on("send room ID to client", (room)=> {
             window.location = `/chavruta?rid=${room}`;
         });
 
         const onDisconnect = () => {
             setSocketConnected(false);
-            socket.disconnect();
+            socketObj.disconnect();
         }
 
         window.addEventListener("beforeunload", onDisconnect)
@@ -96,9 +97,9 @@ const BeitMidrash = ({socket}) => {
     }, [])
 
     useEffect(()=>{
-       socket.off("received chat message")
+       socketObj.off("received chat message")
 
-       socket.on("received chat message", (msgSender, message, room) => {
+       socketObj.on("received chat message", (msgSender, message, room) => {
         room.userB = msgSender;
         room.user = {uid: Sefaria._uid, name: Sefaria.full_name, pic: Sefaria.profile_pic_url, organization: profile.organization};
 
@@ -107,7 +108,7 @@ const BeitMidrash = ({socket}) => {
         console.log(currentActiveChatRoomIds)
         if (!currentActiveChatRoomIds.includes(room.roomId)) {
             setActiveChatRooms(rooms=>[...rooms, room])
-            socket.emit("join chat room", room);
+            socketObj.emit("join chat room", room);
         };
 
         setCurrentChatRoom(room.roomId)
@@ -193,13 +194,13 @@ const BeitMidrash = ({socket}) => {
                 chavrutaCallInitiated={chavrutaCallInitiated}
                 chavrutaRequestReceived={chavrutaRequestReceived}
                 setUserB={setUserB}
-                socket={socketConnected}
+                socket={socketObj}
             /> :
             <ChavrutaCall
                 outgoingCall={outgoingCall}
                 userB={userB}
                 setBeitMidrashHome={setBeitMidrashHome}
-                socket={socketConnected}
+                socket={socketObj}
             />}
         </div> : <LoadingMessage/>
     )
