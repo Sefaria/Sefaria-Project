@@ -706,7 +706,7 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
 
     if (inputType == "media") {
         return (
-            <div className="addInterfaceInput" onClick={(e)=> {e.stopPropagation()}}>
+            <div className="addInterfaceInput" onClick={(e)=> {e.stopPropagation()}} title="Paste a YouTube, SoundCloud or Image link...">
                 <input
                     type="text"
                     placeholder="Paste a YouTube, SoundCloud or Image link..."
