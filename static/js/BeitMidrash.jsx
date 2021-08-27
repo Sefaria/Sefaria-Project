@@ -98,11 +98,11 @@ const BeitMidrash = ({socket}) => {
     useEffect(()=>{
        socket.off("received chat message")
 
-       socket.on("received chat message", (user, message, room) => {
-        room.userB = user;
+       socket.on("received chat message", (msgSender, message, room) => {
+        room.userB = msgSender;
         room.user = {uid: Sefaria._uid, name: Sefaria.full_name, pic: Sefaria.profile_pic_url, organization: profile.organization};
 
-        addMessageToDataStore(user, room, message);
+        addMessageToDataStore(msgSender, room, message);
 
         const currentActiveChatRoomIds = activeChatRooms.map(room => {return room.roomId})
         if (!currentActiveChatRoomIds.includes(room.roomId)) {
@@ -111,7 +111,7 @@ const BeitMidrash = ({socket}) => {
         };
 
         setCurrentChatRoom(room.roomId)
-
+        console.log("activeChatRooms", activeChatRooms)
         })
     }, [activeChatRooms])
 

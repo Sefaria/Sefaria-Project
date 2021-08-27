@@ -112,10 +112,10 @@ io.on("connection", (socket) => {
     if (!socket.rooms.has(room.roomId)) {
       socket.join(room.roomId)
     }
-    const socketId = Object.keys(peopleInBeitMidrash).find(key => peopleInBeitMidrash[key]["name"] === room.userB.name);
-    const partner = peopleInBeitMidrash[socket.id]
-    console.log(`sending chat message to ${socketId} from ${partner.name}: ${message}`)
-    socket.to(socketId).emit("received chat message", partner, message, room)
+    const socketIdOfMsgReceiver = Object.keys(peopleInBeitMidrash).find(key => peopleInBeitMidrash[key]["name"] === room.userB.name);
+    const msgSender = peopleInBeitMidrash[socket.id]
+    console.log(`sending chat message to ${socketIdOfMsgReceiver} from ${msgSender.name}: ${message}`)
+    socket.to(socketIdOfMsgReceiver).emit("received chat message", msgSender, message, room)
   });
 
   socket.on("join chat room", (room) => {
