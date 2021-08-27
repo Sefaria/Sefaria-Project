@@ -103,8 +103,8 @@ const BeitMidrash = ({socket}) => {
         room.user = {uid: Sefaria._uid, name: Sefaria.full_name, pic: Sefaria.profile_pic_url, organization: profile.organization};
 
         addMessageToDataStore(msgSender, room, message);
-
-        const currentActiveChatRoomIds = activeChatRooms.map(room => {return room.roomId})
+        const currentActiveChatRoomIds = activeChatRooms.map(r => {return r.roomId})
+        console.log(currentActiveChatRoomIds)
         if (!currentActiveChatRoomIds.includes(room.roomId)) {
             setActiveChatRooms(rooms=>[...rooms, room])
             socket.emit("join chat room", room);
