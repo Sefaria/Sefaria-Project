@@ -298,8 +298,8 @@ CACHES = {
 
 
 GLOBAL_INTERRUPTING_MESSAGE = {
-    "name":       "rosh-hashannah-appeal-2021-modal",
-    "style":      "modal", # "modal" or "banner"
+    "name":       "annie-2630-08-2021-banner",
+    "style":      "banner", # "modal" or "banner"
     "repetition": 1,
     "is_fundraising": True,
     "condition":  {
