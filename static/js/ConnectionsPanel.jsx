@@ -30,10 +30,10 @@ import AboutBox from './AboutBox';
 import TranslationsBox from './TranslationsBox';
 import ExtendedNotes from './ExtendedNotes';
 import classNames from 'classnames';
-import Component             from 'react-class';
+import Component from 'react-class';
 import AboutSheet from './AboutSheet';
 
-
+const ConnectionsContext = React.createContext({});
 class ConnectionsPanel extends Component {
   constructor(props) {
     super(props);
@@ -261,6 +261,8 @@ class ConnectionsPanel extends Component {
   }
   render() {
     var content = null;
+    var connectionsContext = this.props.masterPanelMode === "Sheet" ? Sefaria.sheets.loadSheetByID(this.props.masterPanelSheetId) : {};
+
     if (!this.state.linksLoaded) {
       content = <LoadingMessage />;
     } else if (this.showSheetNodeConnectionTools(this.props.srefs, this.props.mode)) {
@@ -287,14 +289,6 @@ class ConnectionsPanel extends Component {
       const toolsButtonsCounts = {
         notes: Sefaria.notesTotalCount(this.props.srefs),
       }
-      // const sheetResourcesContent = (<div><ToolsButton en="About this Sheet" he="תרגומים" image="about-text.svg" onClick={() => this.props.setConnectionsMode("AboutSheet")} />
-      // <ToolsButton en="Publish" he="תרגומים" image="publish.png" onClick={() => this.props.setConnectionsMode("Publish")} />
-      // <ToolsButton en="Copy" he="תרגומים" image="copy.png" onClick={() => this.props.setConnectionsMode("AboutSheet")} />
-      // <ToolsButton en="Add to Collection" he="תרגומים" image="add-to-collection.png" onClick={() => this.props.setConnectionsMode("AboutSheet")} />
-      // <ToolsButton en="Print" he="תרגומים" image="print.png" onClick={() => this.props.setConnectionsMode("AboutSheet")} />
-      // <ToolsButton en="Export to Google Docs" he="תרגומים" image="googledrive.png" onClick={() => this.props.setConnectionsMode("AboutSheet")} />
-      // </div> 
-      // )
       content = (
           <div>
               { this.state.flashMessage ? <div className="flashMessage sans-serif">{this.state.flashMessage}</div> : null }
@@ -623,7 +617,8 @@ class ConnectionsPanel extends Component {
         contentLang={this.props.contentLang}
       />);
     } else if (this.props.mode === "AboutSheet") {
-        content = (<AboutSheet/>);
+        content = (<AboutSheet
+                 masterPanelSheetId={this.props.masterPanelSheetId}        />);
     }
     
     var marginless = ["Resources", "ConnectionsList", "Advanced Tools", "Share", "WebPages", "Topics", "manuscripts"].indexOf(this.props.mode) != -1;
@@ -646,7 +641,7 @@ class ConnectionsPanel extends Component {
             toggleLanguage={this.props.toggleLanguage}
             interfaceLang={this.props.interfaceLang}/> }
         <div className="texts">
-          <div className="contentInner">{content}</div>
+          <ConnectionsContext.Provider value={connectionsContext}><div className="contentInner">{content}</div></ConnectionsContext.Provider>
         </div>
       </div>);
 
@@ -1552,6 +1547,7 @@ const ConnectionsPanelSection = ({title, children}) => {
 export {
   ConnectionsPanel,
   ConnectionsPanelHeader,
+  ConnectionsContext,
   ToolsButton
 };
 
