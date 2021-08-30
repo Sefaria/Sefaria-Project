@@ -230,9 +230,9 @@ const BeitMidrashHome = ({beitMidrashId,
                 .filter(user => !user.roomId)
                 .map(user => {
                     if (user.uid !== Sefaria._uid) {
-                    return <div id="beitMidrashUser" key={user.uid}>
+                    return <div id="beitMidrashUser" key={user.uid} onClick={() => startChat(user)}>
                         <ProfilePic len={42.67} url={user.pic} name={user.name} id="beitMidrashProfilePic" />
-                        <div id ="beitMidrashUserText" onClick={() => startChat(user)}>
+                        <div id ="beitMidrashUserText">
                         {user.name}
                         {/* {currentActiveChatUsers.includes(user.uid) ? null : <button onClick={() => startChat(user)}>Chat</button>
                         } */}
