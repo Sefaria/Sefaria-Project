@@ -76,6 +76,7 @@ const BeitMidrash = ({socket}) => {
         })
         //sends rejection to user A
         socketObj.on("send connection rejection", ()=>{
+            window.alert("User is not available.");
             setBeitMidrashHome(true)
         })
         //user A gets acceptance alert
@@ -278,12 +279,12 @@ const ChavrutaCall = ({outgoingCall, userB, setBeitMidrashHome, socket}) => {
 
     const handleCallDeclined = (name) => {
         socket.emit("connection rejected", name);
-        setBeitMidrashHome(true)
+        setBeitMidrashHome(true);
     }
 
     const endCall = (name) => {
-        socket.emit("connection rejected", name)
-        setBeitMidrashHome(true)
+        socket.emit("connection rejected", name);
+        setBeitMidrashHome(true);
     }
 
     return (
