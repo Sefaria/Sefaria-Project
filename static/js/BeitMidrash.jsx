@@ -326,7 +326,6 @@ const ChatBox = ({room,
                    
     const [chatMessage, setChatMessage] = useState(null);
     const [partnerLeftNotification, setPartnerLeftNotification] = useState(false);
-    const [inputArrowBlue, setInputArrowBlue] = useState(false)
     const roomId = room.roomId;
     const chatBox = useRef();
 
@@ -349,7 +348,6 @@ const ChatBox = ({room,
 
     const handleChange = (e) =>{
         setChatMessage(e.target.value);
-        setInputArrowBlue(true)
     }
     
     const handleSubmit = (e) => {
@@ -368,6 +366,7 @@ const ChatBox = ({room,
             }]}
            }));
         e.target.reset();
+        setChatMessage(null)
     }
 
     const handleStartCall = (uid) => {
@@ -412,7 +411,10 @@ const ChatBox = ({room,
                 disabled={partnerLeftNotification ? true : false}  
                 className="chat-input" onChange={handleChange} 
                 placeholder="Send a Message"></input>
-            <input type="submit" className={inputArrowBlue? "chat-submit chat-submit-blue" : "chat-submit"} value=""/>
+            <input type="submit" 
+            className={chatMessage? "chat-submit chat-submit-blue" : "chat-submit"} 
+            disabled={!chatMessage}
+            value=""/>
         </form>
     </div>
     )
