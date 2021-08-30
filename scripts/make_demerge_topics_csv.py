@@ -22,14 +22,15 @@ def make_demerge_csv_sources(slug_to_demerge, out_file):
             "En": prettify_text(en),
             "He": prettify_text(he),
             "Ref": l.ref,
+            "Datasource": l.dataSource,
             "URL": f'https://www.sefaria.org/{oref.url()}'
         }]
     with open(out_file, 'w') as fout:
-        c = csv.DictWriter(fout, ['Id', 'En', 'He', 'Ref', 'URL'])
+        c = csv.DictWriter(fout, ['Id', 'En', 'He', 'Ref', 'Datasource', 'URL'])
         c.writeheader()
         c.writerows(rows)
 
-def make_demerge_csv_sheets(slug_to_demerge, out_file):
+def make_demerge_csv_sheets(slug_to_demerge, out_file, autotag_dict):
     query = {"topics.slug": slug_to_demerge}
     sheets = db.sheets.find(query)
     rows = []
