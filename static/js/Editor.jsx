@@ -1147,13 +1147,15 @@ const withSefariaSheet = editor => {
         // if enter in middle of line in SheetOutsideText insert soft break
         if (getClosestSheetElement(editor, editor.selection.focus.path, "SheetOutsideText") &&
             !Point.equals(editor.selection.focus, Editor.end(editor, editor.selection.focus.path))) {
+              console.log('1')
             insertBreak();
             return
         }
 
         if (getClosestSheetElement(editor, editor.selection.focus.path, "header")) {
             insertBreak();
-            Transforms.setNodes(editor, {type: "SheetOutsideText"}, {at: editor.selection.focus.path});
+            const curHeaderPath = getClosestSheetElement(editor, editor.selection.focus.path, "header")[1]
+            Transforms.setNodes(editor, {type: "SheetOutsideText"}, {at: curHeaderPath});
             return
         }
 
