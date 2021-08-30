@@ -10462,6 +10462,7 @@ span.ref-link-color-3 {color: blue}
   display: flex;
   margin: 10px;
   margin-left: 34px;
+  cursor: pointer;
 }
 
 #beitMidrashProfilePic {
@@ -10502,6 +10503,7 @@ span.ref-link-color-3 {color: blue}
   font-size: 14px;
   font-weight: 400;
   margin-right: 25px;
+  cursor: pointer;
 }
 
 .chatBoxHeader {
@@ -10520,6 +10522,7 @@ span.ref-link-color-3 {color: blue}
   width: 24px;
   height: 12px;
   margin-right: 25px;
+  cursor: pointer;
 }
 
 .chatBoxName {
