@@ -173,7 +173,7 @@ def toc_serial_to_objects(toc):
 
 
 class TocTree(object):
-    def __init__(self, lib=None):
+    def __init__(self, lib=None, mobile=False):
         """
         :param lib: Library object, in the process of being created
         """
@@ -204,7 +204,7 @@ class TocTree(object):
         for i in indx_set:
             if i.categories and i.categories[0] == "_unlisted":  # For the dummy sheet Index record
                 continue
-            node = self._make_index_node(i)
+            node = self._make_index_node(i, mobile=mobile)
             cat = self.lookup(i.categories)
             if not cat:
                 logger.warning("Failed to find category for {}".format(i.categories))
@@ -275,11 +275,15 @@ class TocTree(object):
                 cat.children.sort(key=_explicit_order_and_title)
             cat.children.sort(key=lambda node: 'zzz' + node.primary_title("en") if isinstance(node, TocCategory) and node.primary_title("en") in REVERSE_ORDER else 'a')
 
-    def _make_index_node(self, index, old_title=None):
+    def _make_index_node(self, index, old_title=None, mobile=False):
         d = index.toc_contents(include_first_section=False, include_flags=False)
 
         title = old_title or d["title"]
 
+        if mobile:
+            vs = self._vs_lookup.get(title, {})
+            d["firstSection"] = vs.get("first_section_ref", None)
+        
         if "base_text_titles" in d and len(d["base_text_titles"]) > 0:
             d["refs_to_base_texts"] = {btitle:
                 self._first_comment_lookup.get(frozenset([btitle, title]), d["firstSection"])
