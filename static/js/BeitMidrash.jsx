@@ -296,6 +296,7 @@ const ChavrutaCall = ({outgoingCall, userB, setBeitMidrashHome, socket}) => {
                 </div>
                 <div className = "callText">Calling {userB.name}...</div>
             </div>
+            <audio autoPlay loop src="/static/files/chavruta-ringtone.wav" />
             <div className="chavrutaFooter">Questions? Email <a href="mailto:hello@sefaria.org">hello@sefaria.org</a></div>
         </div> : 
         <div className="callContainer">
@@ -307,6 +308,7 @@ const ChavrutaCall = ({outgoingCall, userB, setBeitMidrashHome, socket}) => {
                     <button id="declineButton" onClick={()=> handleCallDeclined(userB.name)}>Decline</button>
                 </div>
             </div>
+            <audio autoPlay loop src="/static/files/chavruta-ringtone.wav" />
             <div className="chavrutaFooter">Questions? Email <a href="mailto:hello@sefaria.org">hello@sefaria.org</a></div>
         </div>
     )
