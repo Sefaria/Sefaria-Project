@@ -47,7 +47,7 @@ const HOTKEYS = {
 
 const LIST_TYPES = ['numbered-list', 'bulleted-list']
 
-const NO_SPACER_NEEDED_TYPES = ["SheetOutsideText", "header", "SheetComment"]
+const NO_SPACER_NEEDED_TYPES = ["SheetOutsideText", "header", "SheetComment", "list-item", "numbered-list", "bulleted-list"]
 
 const ELEMENT_TAGS = {
     A: el => ({type: 'link', url: el.getAttribute('href'), ref: el.getAttribute('data-ref'), target: el.getAttribute('target')}),
@@ -1317,6 +1317,16 @@ const withSefariaSheet = editor => {
 
                 }
 
+                if (LIST_TYPES.includes(child.type)) {
+                    Transforms.wrapNodes(editor,
+                        {
+                            type: "paragraph",
+                            children: [child],
+                        }
+                        , {at: childPath});
+                    return true;
+                }
+
                 // If it's a paragraph, covert to SheetOutisdeText
                 if (child.type === "paragraph") {
                     if (Node.string(child) !== "") {
@@ -1352,6 +1362,7 @@ const withSefariaSheet = editor => {
 
             const firstSheetItem = node.children[0];
             if (firstSheetItem.type !== "spacer" && !NO_SPACER_NEEDED_TYPES.includes(firstSheetItem.type)) {
+                console.log(firstSheetItem)
                 Transforms.insertNodes(editor, {type: 'spacer', children: [{text: ""}]}, {at: [0, 0, 0]});
                 return true;
             }
