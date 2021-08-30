@@ -407,8 +407,12 @@ const ChatBox = ({room,
             {partnerLeftNotification ? <div className="chatMessage">{room.userB.name} has left the chat.</div> : null}
         </div>
         <form className="chat-form" onSubmit={handleSubmit}>
-            <input type="text" className="chat-input" onChange={handleChange} placeholder="Send a Message"></input>
-          <input type="submit" className={inputArrowBlue? "chat-submit chat-submit-blue" : "chat-submit"} value=""/>
+            <input type="text" 
+                autoFocus  
+                disabled={partnerLeftNotification ? true : false}  
+                className="chat-input" onChange={handleChange} 
+                placeholder="Send a Message"></input>
+            <input type="submit" className={inputArrowBlue? "chat-submit chat-submit-blue" : "chat-submit"} value=""/>
         </form>
     </div>
     )
