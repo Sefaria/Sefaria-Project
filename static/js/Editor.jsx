@@ -706,10 +706,10 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
 
     if (inputType == "media") {
         return (
-            <div className="addInterfaceInput" onClick={(e)=> {e.stopPropagation()}} title="Paste a YouTube, SoundCloud or Image link...">
+            <div className="addInterfaceInput" title="We can process YouTube and SoundCloud links, and hosted mp3's and images" onClick={(e)=> {e.stopPropagation()}}>
                 <input
                     type="text"
-                    placeholder="Paste a YouTube, SoundCloud or Image link..."
+                    placeholder="Paste a media link..."
                     className="serif"
                     onClick={(e)=> {e.stopPropagation()}}
                     onChange={(e) => onMediaChange(e)}
@@ -1147,7 +1147,6 @@ const withSefariaSheet = editor => {
         // if enter in middle of line in SheetOutsideText insert soft break
         if (getClosestSheetElement(editor, editor.selection.focus.path, "SheetOutsideText") &&
             !Point.equals(editor.selection.focus, Editor.end(editor, editor.selection.focus.path))) {
-              console.log('1')
             insertBreak();
             return
         }
