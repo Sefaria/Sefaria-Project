@@ -213,12 +213,14 @@ export const deserialize = el => {
       const elStyles = el.getAttribute("style").split(';');
       for (const elStyle of elStyles) {
         const styleArray = elStyle.split(":");
+        console.log(styleArray)
         if (styleArray.length == 2) {
           const styleType = styleArray[0].trim()
           const styleValue = styleArray[1].trim()
           let attrs = {}
           attrs[styleType] = styleValue
-          return children.map(child => jsx('text', attrs, ((typeof child === "string" || Text.isText(child)) ? child : Node.string(child))))
+
+          return children.map(child => child ? jsx('text', attrs, ((typeof child === "string" || Text.isText(child)) ? child : Node.string(child))): {'text':''})
         }
       }
     }
