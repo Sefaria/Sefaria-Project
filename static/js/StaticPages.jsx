@@ -545,7 +545,7 @@ const RemoteLearningPage = () => (
                     white={true}
                     rounded={false}
                     tall={true}
-                    href="/collections/Online-Learning-Resources?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                    href="/sheets/227836?lang=bi#?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                     he_href="/sheets/227836?lang=bi#?lang=he&utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                     he="עשרת הדיברות ללמידה מרחוק"
                     en="Online Learning Resources"
