@@ -296,6 +296,7 @@ class ConnectionsPanel extends Component {
                <SheetMetadataV2
                  setConnectionsMode={this.props.setConnectionsMode}
                  masterPanelSheetId={this.props.masterPanelSheetId}
+                 toggleSignUpModal={this.props.toggleSignUpModal}
                /> : null }
               <ToolsButton en="About this Text" he="אודות הטקסט" image="about-text.svg" onClick={() => this.props.setConnectionsMode("About")} />
               {showConnectionSummary ?
