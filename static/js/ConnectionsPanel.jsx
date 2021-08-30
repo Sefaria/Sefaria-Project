@@ -10,7 +10,6 @@ import {
     ProfilePic,
     ToolTipped, InterfaceText, ContentText, EnglishText, HebrewText,
 } from './Misc';
-import SheetMetadataV2 from './SheetMetadataV2';
 
 import {
   MediaList
@@ -33,7 +32,6 @@ import classNames from 'classnames';
 import Component from 'react-class';
 import AboutSheet from './AboutSheet';
 
-const ConnectionsContext = React.createContext({});
 class ConnectionsPanel extends Component {
   constructor(props) {
     super(props);
@@ -261,7 +259,6 @@ class ConnectionsPanel extends Component {
   }
   render() {
     var content = null;
-    var connectionsContext = this.props.masterPanelMode === "Sheet" ? Sefaria.sheets.loadSheetByID(this.props.masterPanelSheetId) : {};
 
     if (!this.state.linksLoaded) {
       content = <LoadingMessage />;
@@ -293,7 +290,7 @@ class ConnectionsPanel extends Component {
           <div>
               { this.state.flashMessage ? <div className="flashMessage sans-serif">{this.state.flashMessage}</div> : null }
               { this.props.masterPanelMode === "Sheet" ? 
-               <SheetMetadataV2
+               <SheetToolsList
                  setConnectionsMode={this.props.setConnectionsMode}
                  masterPanelSheetId={this.props.masterPanelSheetId}
                  toggleSignUpModal={this.props.toggleSignUpModal}
@@ -642,7 +639,7 @@ class ConnectionsPanel extends Component {
             toggleLanguage={this.props.toggleLanguage}
             interfaceLang={this.props.interfaceLang}/> }
         <div className="texts">
-          <ConnectionsContext.Provider value={connectionsContext}><div className="contentInner">{content}</div></ConnectionsContext.Provider>
+          <div className="contentInner">{content}</div>
         </div>
       </div>);
 
@@ -729,7 +726,39 @@ ToolsList.propTypes = {
     counts:        PropTypes.object.isRequired,
 }
 
+const SheetToolsList = (props) => {
 
+  const [isOwner, setIsOwner] = useState(false); 
+  const [isPublished, setIsPublished] = useState(false);
+  const [showCollectionsModal, setShowCollectionsModal] = useState(false);
+  
+  useEffect(() => {
+      const sheet = Sefaria.sheets.loadSheetByID(props.masterPanelSheetId)
+      setIsOwner(sheet.owner === Sefaria._uid); 
+      setIsPublished(sheet.status === "public" ? true : false);
+  }, []);
+
+  const toggleCollectionsModal = () => {
+      if (!Sefaria._uid) {
+        props.toggleSignUpModal();
+      } else {
+        setShowCollectionsModal(!showCollectionsModal)
+      }
+    }
+
+  return (<div><ToolsButton en="About this Sheet" he="תרגומים" image="about-text.svg" onClick={() => props.setConnectionsMode("AboutSheet")} />
+      {isOwner ? <ToolsButton en={isPublished ? "Publish Settings" : "Publish"} he="תרגומים" image="publish.png" onClick={() => props.setConnectionsMode("Publish")} /> : null}
+      <ToolsButton en="Copy" he="תרגומים" image="copy.png" onClick={() => props.setConnectionsMode("AboutSheet")} />
+      <ToolsButton en="Add to Collection" he="תרגומים" image="add-to-collection.png" onClick={() => toggleCollectionsModal()} />
+      <ToolsButton en="Print" he="תרגומים" image="print.png" onClick={() => window.print()} />
+      <ToolsButton en="Export to Google Docs" he="תרגומים" image="googledrive.png" onClick={() => window.print()} /> 
+      {/* todo: update export to google docs button so it works */}
+      {showCollectionsModal ? <CollectionsModal
+                      sheetID={sheet.id}
+                      close={toggleCollectionsModal} />  : null}
+  </div>
+  )
+}
 class SheetNodeConnectionTools extends Component {
   // A list of Resources in addition to connections
   render() {
@@ -1548,7 +1577,6 @@ const ConnectionsPanelSection = ({title, children}) => {
 export {
   ConnectionsPanel,
   ConnectionsPanelHeader,
-  ConnectionsContext,
   ToolsButton
 };
 
