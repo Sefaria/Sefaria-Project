@@ -665,8 +665,7 @@ class UserProfile(object):
         Return a json serializble dictionary this profile which includes fields used in profile API methods
         If basic is True, only return enough data to display a profile listing
         """
-        if basic:
-            return {
+        dictionary = {
                 "id": self.id,
                 "slug": self.slug,
                 "profile_pic_url": self.profile_pic_url,
@@ -674,12 +673,24 @@ class UserProfile(object):
                 "position": self.position,
                 "organization": self.organization
             }
-        dictionary = self.to_mongo_dict()
+        if basic:
+            return dictionary
         other_info = {
             "full_name":             self.full_name,
             "followers":             self.followers.uids,
             "followees":             self.followees.uids,
-            "profile_pic_url":       self.profile_pic_url
+            "profile_pic_url":       self.profile_pic_url,
+            "jewish_education":      self.jewish_education,
+            "bio":                   self.bio,
+            "website":               self.website,
+            "location":              self.location,
+            "public_email":          self.public_email,
+            "facebook":              self.facebook,
+            "twitter":               self.twitter,
+            "linkedin":              self.linkedin,
+            "youtube":               self.youtube,
+            "pinned_sheets":         self.pinned_sheets,
+            
         }
         dictionary.update(other_info)
         return dictionary

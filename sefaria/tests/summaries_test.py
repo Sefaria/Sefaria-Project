@@ -50,7 +50,7 @@ class Test_Toc(object):
     def verify_category_node_integrity(self, node):
         # search toc doesn't have 'enComplete' or 'heComplete' empty categories don't have 'contents'
         try:
-            assert set(node.keys()) <= {'category', 'heCategory', 'contents', 'enComplete', 'heComplete', 'order', "isPrimary","searchRoot"}
+            assert set(node.keys()) <= {'category', 'heCategory', 'enDesc', 'heDesc', 'enShortDesc', 'heShortDesc', 'contents', 'enComplete', 'heComplete', 'order', "isPrimary","searchRoot"}
             if getattr(node, 'contents', None):
                 assert {'category', 'heCategory', 'contents'} <= set(node.keys())
                 assert isinstance(node['contents'], list)

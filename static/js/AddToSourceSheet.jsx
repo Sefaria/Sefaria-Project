@@ -103,7 +103,7 @@ class AddToSourceSheetBox extends Component {
         }
       } else if (this.props.srefs) { //regular use - this is currently the case when the component is loaded in the sidepanel or in the modal component via profiles and notes pages
         source.refs = this.props.srefs;
-        const { en, he } = this.props.currVersions; //the text we are adding may be non-default version
+        const { en, he } = this.props.currVersions ? this.props.currVersions : {"en": null, "he": null}; //the text we are adding may be non-default version
         if (he) { source["version-he"] = he; }
         if (en) { source["version-en"] = en; }
 

@@ -1952,12 +1952,11 @@ _media: {},
       h.time_stamp = Sefaria.util.epoch_time();
     }
     if (Sefaria._uid) {
-        $.post(Sefaria.apiHost + "/api/profile/sync?no_return=1",
+        $.post(Sefaria.apiHost + "/api/profile/sync?no_return=1&annotate=1",
               {user_history: JSON.stringify(history_item_array)},
               data => {
-                //console.log("sync resp", data)
-                // Insert new item to beginning of history
-                Sefaria.userHistory.items.splice(0,0, data.created[0]);
+                // Insert new items to beginning of history
+                Sefaria.userHistory.items = data.created.concat(Sefaria.userHistory.items);
               } );
     } else {
       // we need to get the heRef for each history item
@@ -2434,12 +2433,12 @@ _media: {},
     }
   },
   hebrewTranslation: function(inputStr, context = null){
-    let translatedString = null;
+    let translatedString;
     if (context && context in Sefaria._i18nInterfaceStringsWithContext){
-      let translatedString = Sefaria._getStringCaseInsensitive(Sefaria._i18nInterfaceStringsWithContext[context], inputStr);
-      if (translatedString) return translatedString;
+      translatedString = Sefaria._getStringCaseInsensitive(Sefaria._i18nInterfaceStringsWithContext[context], inputStr);
+      if (translatedString !== null) return translatedString;
     }
-    if (translatedString = Sefaria._getStringCaseInsensitive(Sefaria._i18nInterfaceStrings, inputStr)) {
+    if ((translatedString = Sefaria._getStringCaseInsensitive(Sefaria._i18nInterfaceStrings, inputStr)) !== null ) {
       return translatedString;
     }
     if ((translatedString = Sefaria.hebrewTerm(inputStr)) != inputStr) {
@@ -2487,7 +2486,14 @@ _media: {},
     return Sefaria.interfaceLang != "english" ? oref.heRef : oref.ref;
   },
   _getStringCaseInsensitive: function (store, inputStr){
-     return inputStr in store ? store[inputStr] : inputStr.toLowerCase() in store ? store[inputStr.toLowerCase()] : null;
+    if(inputStr in store){
+        return store[inputStr];
+    }else if(inputStr.toLowerCase() in store){
+        return store[inputStr.toLowerCase()];
+    }else return null;
+
+    //return inputStr in store ? store[inputStr] : (inputStr.toLowerCase() in store ? store[inputStr.toLowerCase()]
+      // : null);
   },
   _cacheSiteInterfaceStrings: function() {
     // Ensure that names set in Site Settings are available for translation in JS.
