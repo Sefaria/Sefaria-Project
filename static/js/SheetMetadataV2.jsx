@@ -30,7 +30,6 @@ const SheetMetadataV2 = (props) => {
         <ToolsButton en="Print" he="תרגומים" image="print.png" onClick={() => window.print()} />
         <ToolsButton en="Export to Google Docs" he="תרגומים" image="googledrive.png" onClick={() => window.print()} /> 
         {/* todo: update export to google docs button so it works */}
-        {sheet.title.stripHtml()}
         {showCollectionsModal ? <CollectionsModal
                         sheetID={sheet.id}
                         close={toggleCollectionsModal} />  : null}
