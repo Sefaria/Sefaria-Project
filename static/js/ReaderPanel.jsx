@@ -127,6 +127,7 @@ class ReaderPanel extends Component {
       this.closeConnectionsInPanel();
     } else if (this.state.mode === "Text") {
       if (this.props.multiPanel) {
+        this.conditionalSetState({showHighlight: true});
         this.props.onSegmentClick(ref);
       } else {
         this.openConnectionsInPanel(ref);
