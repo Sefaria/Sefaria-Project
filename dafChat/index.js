@@ -10,6 +10,7 @@ const nodeStatic = require('node-static');
 const http = require('http');
 
 
+
 // initialize db
 const db = new sqlite3.Database('./db/chatrooms.db');
 db.run(`DROP TABLE IF EXISTS "chatrooms"`);
@@ -112,10 +113,12 @@ io.on("connection", (socket) => {
     if (!socket.rooms.has(room.roomId)) {
       socket.join(room.roomId)
     }
-    const socketIdOfMsgReceiver = Object.keys(peopleInBeitMidrash).find(key => peopleInBeitMidrash[key]["name"] === room.userB.name);
+    const socketIdsOfMsgReceiver = Object.keys(peopleInBeitMidrash).filter(key => peopleInBeitMidrash[key]["name"] === room.userB.name);
     const msgSender = peopleInBeitMidrash[socket.id]
-    console.log(`sending chat message to ${socketIdOfMsgReceiver} from ${msgSender.name}: ${message}`)
-    socket.to(socketIdOfMsgReceiver).emit("received chat message", msgSender, message, room)
+    console.log(`sending chat message to ${socketIdsOfMsgReceiver} from ${msgSender.name}: ${message}`)
+    socketIdsOfMsgReceiver.forEach(socketId => {
+      socket.to(socketId).emit("received chat message", msgSender, message, room)
+    })
   });
 
   socket.on("join chat room", (room) => {

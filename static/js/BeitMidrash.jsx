@@ -5,44 +5,47 @@ import {
 } from './Misc';
 import React, { useState, useEffect, useRef } from 'react';
 import Sefaria  from './sefaria/sefaria';
+import { BroadcastChannel } from 'broadcast-channel';
 
 const BeitMidrash = ({socket}) => {
     const beitMidrashId = "tempString";
     const [peopleInBeitMidrash, setPeopleInBeitMidrash] = useState(null);
     const [activeChatRooms, setActiveChatRooms] = useState([]);
-    const [chatDataStore, setChatDataStore] = useState(() => {
-        // const saved = localStorage.getItem("chatDataStore");
-        // const initialValue = JSON.parse(saved);
-        const initialValue = {}
-        return initialValue || {};
-      });
+    const [chatDataStore, _setChatDataStore] = useState({});
+    const chatDataStoreRef = useRef(chatDataStore);
     const [profile, setProfile] = useState({});
     const [currentChatRoom, setCurrentChatRoom] = useState("");
-    const [beitMidrashHome, setBeitMidrashHome] = useState(true)
-    const [outgoingCall, setOutgoingCall] = useState(false)
-    const [userB, setUserB] = useState({})
-    const [socketConnected, setSocketConnected] = useState(false)
-    const [socketObj, setSocketObj] = useState(socket)
+    const [beitMidrashHome, setBeitMidrashHome] = useState(true);
+    const [outgoingCall, setOutgoingCall] = useState(false);
+    const [userB, setUserB] = useState({});
+    const [socketConnected, setSocketConnected] = useState(false);
+    const [socketObj, setSocketObj] = useState(socket);
+    const chatChannel = new BroadcastChannel('chavruta-chats');
 
+    const setChatDataStore = (data) => {
+        console.log("data", data)
+        chatDataStoreRef.current = data;
+        _setChatDataStore(data);
+    }
+    
     const addMessageToDataStore = (user, room, message) => {
-        const roomExists = chatDataStore[room.roomId]
-
-        setChatDataStore(chatDataStore => ({
-            ...chatDataStore,
+        const roomExists = chatDataStoreRef.current[room.roomId]
+        console.log("chatDataStoreRef.current", chatDataStoreRef.current)
+        console.log("roomExists", roomExists)
+        setChatDataStore({
+            ...chatDataStoreRef.current,
             [room.roomId]: {
                 chatMembers: [
                     room.userB,
                     room.user
                 ],
-                messages: [...(roomExists ? chatDataStore[room.roomId].messages : []), {
+                messages: [...(roomExists ? chatDataStoreRef.current[room.roomId].messages : []), {
                 senderId: user.uid,
                 message: message,
                 timestamp: Date.now()
                 }]}
-            }));
-
+            });
     }
-
 
     useEffect(() => {
         socketObj.connect();
@@ -101,25 +104,39 @@ const BeitMidrash = ({socket}) => {
        socketObj.off("received chat message")
 
        socketObj.on("received chat message", (msgSender, message, room) => {
-        room.userB = msgSender;
-        room.user = {uid: Sefaria._uid, name: Sefaria.full_name, pic: Sefaria.profile_pic_url, organization: profile.organization};
+            room.userB = msgSender;
+            room.user = {uid: Sefaria._uid, name: Sefaria.full_name, pic: Sefaria.profile_pic_url, organization: profile.organization};
 
-        addMessageToDataStore(msgSender, room, message);
-        const currentActiveChatRoomIds = activeChatRooms.map(r => {return r.roomId})
-        console.log(currentActiveChatRoomIds)
-        if (!currentActiveChatRoomIds.includes(room.roomId)) {
-            setActiveChatRooms(rooms=>[...rooms, room])
-            socketObj.emit("join chat room", room);
-        };
+            addMessageToDataStore(msgSender, room, message);
+            const currentActiveChatRoomIds = activeChatRooms.map(r => {return r.roomId});
+            console.log(currentActiveChatRoomIds);
+            if (!currentActiveChatRoomIds.includes(room.roomId)) {
+                setActiveChatRooms([room]);
+                socketObj.emit("join chat room", room);
+            };
 
-        setCurrentChatRoom(room.roomId)
-        console.log("activeChatRooms", activeChatRooms)
+            setCurrentChatRoom(room.roomId)
+            console.log("activeChatRooms", activeChatRooms)
         })
+
+
     }, [activeChatRooms])
 
-    useEffect (()=> {
-        // localStorage.setItem("chatDataStore", JSON.stringify(chatDataStore))
-    }, [chatDataStore]);
+    useEffect(()=>{
+        chatChannel.onmessage = (msg) => {
+            const currentActiveChatRoomIds = activeChatRooms.map(r => {return r.roomId});
+            console.log(currentActiveChatRoomIds)
+            if (!currentActiveChatRoomIds.includes(msg.room.roomId)) {
+                setActiveChatRooms([msg.room]);
+                socketObj.emit("join chat room", msg.room);
+            };
+            setCurrentChatRoom(msg.room.roomId)
+
+            console.log("msg", msg)
+            console.log("adding message to data store, ", msg.msgSender, msg.room, msg.chatMessage)
+            addMessageToDataStore(msg.msgSender, msg.room, msg.chatMessage)
+        }
+    }, [])
 
     const pairsLearning = (people) => {
         //create an array of roomIds
@@ -147,7 +164,7 @@ const BeitMidrash = ({socket}) => {
 
         const currentActiveChatRoomIds = activeChatRooms.map(room => {return room.roomId})
         if (!currentActiveChatRoomIds.includes(roomId)) {
-            setActiveChatRooms(rooms => [...rooms, room]);
+            setActiveChatRooms([room]);
         }
         setCurrentChatRoom(roomId)
 
@@ -191,11 +208,13 @@ const BeitMidrash = ({socket}) => {
                 startChat={startChat}
                 chatDataStore={chatDataStore}
                 setChatDataStore={setChatDataStore}
+                chatDataStoreRef={chatDataStoreRef}
                 handleCloseChat={handleCloseChat}
                 chavrutaCallInitiated={chavrutaCallInitiated}
                 chavrutaRequestReceived={chavrutaRequestReceived}
                 setUserB={setUserB}
                 socket={socketObj}
+                profile={profile}
             /> :
             <ChavrutaCall
                 outgoingCall={outgoingCall}
@@ -214,11 +233,13 @@ const BeitMidrashHome = ({beitMidrashId,
                         startChat,
                         chatDataStore,
                         setChatDataStore,
+                        chatDataStoreRef,
                         handleCloseChat,
                         chavrutaCallInitiated,
                         chavrutaRequestReceived,
                         setUserB,
-                        socket
+                        socket,
+                        profile
                         }) => {
 
     return (<div>
@@ -258,11 +279,13 @@ const BeitMidrashHome = ({beitMidrashId,
                             room={room}
                             chatDataStore={chatDataStore}
                             setChatDataStore={setChatDataStore}
+                            chatDataStoreRef={chatDataStoreRef}
                             handleCloseChat={handleCloseChat}
                             chavrutaCallInitiated={chavrutaCallInitiated}
                             chavrutaRequestReceived={chavrutaRequestReceived}
                             setUserB={setUserB}
                             socket={socket}
+                            profile={profile}
                         />
             }
         })}
@@ -318,11 +341,13 @@ const ChavrutaCall = ({outgoingCall, userB, setBeitMidrashHome, socket}) => {
 const ChatBox = ({room,
                 chatDataStore,
                 setChatDataStore, 
+                chatDataStoreRef,
                 handleCloseChat,
                 chavrutaCallInitiated,
                 chavrutaRequestReceived,
                 setUserB,
                 socket,
+                profile
                  }) => {
                    
     const [chatMessage, setChatMessage] = useState(null);
@@ -358,14 +383,25 @@ const ChatBox = ({room,
         
         const roomId = room.roomId;
       
-        setChatDataStore(chatDataStore => 
-            ({...chatDataStore, [roomId]: {...chatDataStore[roomId], 
-               messages: [...chatDataStore[roomId].messages, {
-                senderId: Sefaria._uid,
-                message: chatMessage,
-                timestamp: Date.now()
-            }]}
-           }));
+        const chatChannel = new BroadcastChannel('chavruta-chats');
+        const msgSender = {uid: Sefaria._uid, name: Sefaria.full_name, pic: Sefaria.profile_pic_url, organization: profile.organization}
+        console.log("chatMessage", chatMessage)
+        
+        chatChannel.postMessage({msgSender, room, chatMessage})
+        
+        // We thought we needed this to add to chatdatastore on submit, but the broadcast api appears to add it anyway
+        // even though we think it's not supposed to!
+        // So for the moment we will comment this out, but 
+        // TODO: ensure this doesn't need to be added back in
+        //
+        // setChatDataStore({...chatDataStoreRef.current, [roomId]: {...chatDataStoreRef.current[roomId], 
+        //        messages: [...chatDataStoreRef.current[roomId].messages, {
+        //         senderId: Sefaria._uid,
+        //         message: chatMessage,
+        //         timestamp: Date.now()
+        //     }]}
+        //    });
+        
         e.target.reset();
         setChatMessage(null)
     }
@@ -397,13 +433,13 @@ const ChatBox = ({room,
                 />
         </div>
         <div className="chats-container">
-            {chatDataStore[roomId].messages.map((message, i) => {
+            {chatDataStore[roomId] ? chatDataStore[roomId].messages.map((message, i) => {
                 return (
                     message.senderId === Sefaria._uid ? 
                         <Message user={room.user} key={i} message={message} /> :
                         <Message user={room.userB} key={i} message={message} />
                 )
-            })}
+            }) : <LoadingMessage /> }
             {partnerLeftNotification ? <div className="chatMessage">{room.userB.name} has left the chat.</div> : null}
         </div>
         <form className="chat-form" onSubmit={handleSubmit}>
