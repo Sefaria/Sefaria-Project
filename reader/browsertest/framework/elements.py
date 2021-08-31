@@ -265,7 +265,7 @@ class SefariaTest(AbstractTest):
     def scroll_to_css_selector(self, selector):
         # This scrolls forward.  Do we need to test and try to scroll back also?
         self.driver.execute_script(
-            "var a = document.querySelector('{}'); a.scrollIntoView(true);".format(selector)
+            "var a = document.querySelector('{}'); a.scrollIntoView({block: 'center', inline: 'nearest'});".format(selector)
         )
         time.sleep(.5)
         return self
@@ -1339,8 +1339,8 @@ class Trial(object):
                         self.set_sauce_result(driver, result.success)
                     except WebDriverException:      # Sometimes an earlier test infrastructure fail makes this throw
                         pass
-
-                driver.quit()       # had been if not self.is_local:  why?
+                if not self.is_local:   # driver will not restart locally                       
+                    driver.quit()       
 
             return result
 
