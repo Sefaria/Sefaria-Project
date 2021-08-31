@@ -28,9 +28,11 @@ import LexiconBox from './LexiconBox';
 import AboutBox from './AboutBox';
 import TranslationsBox from './TranslationsBox';
 import ExtendedNotes from './ExtendedNotes';
+import AboutSheet from './AboutSheet';
+import { CollectionsModal } from './CollectionsWidget';
+
 import classNames from 'classnames';
 import Component from 'react-class';
-import AboutSheet from './AboutSheet';
 
 class ConnectionsPanel extends Component {
   constructor(props) {
@@ -726,35 +728,37 @@ ToolsList.propTypes = {
     counts:        PropTypes.object.isRequired,
 }
 
-const SheetToolsList = (props) => {
+const SheetToolsList = ({ setConnectionsMode,
+  masterPanelSheetId,
+  toggleSignUpModal }) => {
 
   const [isOwner, setIsOwner] = useState(false); 
   const [isPublished, setIsPublished] = useState(false);
   const [showCollectionsModal, setShowCollectionsModal] = useState(false);
   
   useEffect(() => {
-      const sheet = Sefaria.sheets.loadSheetByID(props.masterPanelSheetId)
+      const sheet = Sefaria.sheets.loadSheetByID(masterPanelSheetId)
       setIsOwner(sheet.owner === Sefaria._uid); 
       setIsPublished(sheet.status === "public" ? true : false);
   }, []);
 
   const toggleCollectionsModal = () => {
       if (!Sefaria._uid) {
-        props.toggleSignUpModal();
+        toggleSignUpModal();
       } else {
         setShowCollectionsModal(!showCollectionsModal)
       }
     }
 
-  return (<div><ToolsButton en="About this Sheet" he="תרגומים" image="about-text.svg" onClick={() => props.setConnectionsMode("AboutSheet")} />
-      {isOwner ? <ToolsButton en={isPublished ? "Publish Settings" : "Publish"} he="תרגומים" imageIcon="publish.svg" onClick={() => props.setConnectionsMode("Publish")} /> : null}
-      <ToolsButton en="Copy" he="תרגומים" image="copy.png" onClick={() => props.setConnectionsMode("AboutSheet")} />
+  return (<div><ToolsButton en="About this Sheet" he="תרגומים" image="about-text.svg" onClick={() => setConnectionsMode("AboutSheet")} />
+      {isOwner ? <ToolsButton en={isPublished ? "Publish Settings" : "Publish"} he="תרגומים" imageIcon="publish.svg" onClick={() => setConnectionsMode("Publish")} /> : null}
+      <ToolsButton en="Copy" he="תרגומים" image="copy.png" onClick={() => setConnectionsMode("AboutSheet")} />
       <ToolsButton en="Add to Collection" he="תרגומים" image="add-to-collection.svg" onClick={() => toggleCollectionsModal()} />
       <ToolsButton en="Print" he="תרגומים" image="print.svg" onClick={() => window.print()} />
       <ToolsButton en="Export to Google Docs" he="תרגומים" image="googledrive.svg" onClick={() => window.print()} /> 
       {/* todo: update export to google docs button so it works */}
       {showCollectionsModal ? <CollectionsModal
-                      sheetID={sheet.id}
+                      sheetID={masterPanelSheetId}
                       close={toggleCollectionsModal} />  : null}
   </div>
   )
