@@ -79,6 +79,8 @@ io.on("connection", (socket) => {
     });
   }
 
+  let disconnectHandler;
+
   function addUserToBeitMidrash(uid, fullName, profilePic, organization, beitMidrashId, socketId) {
     peopleInBeitMidrash[socketId] = {}
     peopleInBeitMidrash[socketId]["uid"] = uid;
@@ -90,6 +92,8 @@ io.on("connection", (socket) => {
     console.log("user added to beit midrash, current peopleInBeitMidrash:", peopleInBeitMidrash)
     socket.broadcast.emit("change in people", Object.values(peopleInBeitMidrash), uid);
     socket.emit("change in people", Object.values(peopleInBeitMidrash), uid);
+
+    clearTimeout(disconnectHandler)
   }
 
   socket.on("enter beit midrash", (uid, fullName, profilePic, organization, beitMidrashId)=> addUserToBeitMidrash(uid, fullName, profilePic, organization, beitMidrashId, socket.id));
@@ -115,15 +119,23 @@ io.on("connection", (socket) => {
     }
     const socketIdsOfMsgReceiver = Object.keys(peopleInBeitMidrash).filter(key => peopleInBeitMidrash[key]["name"] === room.userB.name);
     const msgSender = peopleInBeitMidrash[socket.id]
-    console.log(`sending chat message to ${socketIdsOfMsgReceiver} from ${msgSender.name}: ${message}`)
-    socketIdsOfMsgReceiver.forEach(socketId => {
-      socket.to(socketId).emit("received chat message", msgSender, message, room)
-    })
+    if (msgSender) {
+      socketIdsOfMsgReceiver.forEach(socketId => {
+        console.log(`sending chat message to ${socketId} from ${msgSender.name}: ${message}`)
+        socket.to(socketId).emit("received chat message", msgSender, message, room)
+      })
+    }
   });
 
   socket.on("join chat room", (room) => {
     socket.join(room.roomId)
   })
+
+  const leaveBeitMidrash = (socketId) => {
+    //remove user from beit midrash and update listing for clients
+    delete peopleInBeitMidrash[socketId];
+    socket.broadcast.emit("change in people", Object.values(peopleInBeitMidrash));
+  }
 
   socket.on("disconnecting", (reason)=> {
       console.log(`${socket.id} ${peopleInBeitMidrash[socket.id] ? peopleInBeitMidrash[socket.id].name : ""} is disconnecting from rooms`, socket.rooms, `due to ${reason}`)
@@ -137,9 +149,11 @@ io.on("connection", (socket) => {
       }
     })
 
-    //remove user from beit midrash and update listing for clients
-    delete peopleInBeitMidrash[socket.id];
-    socket.broadcast.emit("change in people", Object.values(peopleInBeitMidrash));
+    const socketId = socket.id;
+    disconnectHandler = setTimeout((sockedId) => {
+      leaveBeitMidrash(socketId)
+    }, 750)
+   
   })
 
   //end of Beit Midrash code, start of RTC code
