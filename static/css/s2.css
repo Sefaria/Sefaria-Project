@@ -10583,6 +10583,7 @@ span.ref-link-color-3 {color: blue}
   margin-left: -25px;
   border: 0px;
   background-color: black;
+  cursor: pointer;
 }
 
 .chat-submit-blue {
