@@ -10,6 +10,7 @@ const nodeStatic = require('node-static');
 const http = require('http');
 
 
+
 // initialize db
 const db = new sqlite3.Database('./db/chatrooms.db');
 db.run(`DROP TABLE IF EXISTS "chatrooms"`);
@@ -78,6 +79,8 @@ io.on("connection", (socket) => {
     });
   }
 
+  let disconnectHandler;
+
   function addUserToBeitMidrash(uid, fullName, profilePic, organization, beitMidrashId, socketId) {
     peopleInBeitMidrash[socketId] = {}
     peopleInBeitMidrash[socketId]["uid"] = uid;
@@ -87,8 +90,10 @@ io.on("connection", (socket) => {
     peopleInBeitMidrash[socketId]["beitMidrashId"] = beitMidrashId;
 
     console.log("user added to beit midrash, current peopleInBeitMidrash:", peopleInBeitMidrash)
-    socket.broadcast.emit("change in people", Object.values(peopleInBeitMidrash));
-    socket.emit("change in people", Object.values(peopleInBeitMidrash));
+    socket.broadcast.emit("change in people", Object.values(peopleInBeitMidrash), uid);
+    socket.emit("change in people", Object.values(peopleInBeitMidrash), uid);
+
+    clearTimeout(disconnectHandler)
   }
 
   socket.on("enter beit midrash", (uid, fullName, profilePic, organization, beitMidrashId)=> addUserToBeitMidrash(uid, fullName, profilePic, organization, beitMidrashId, socket.id));
@@ -112,30 +117,43 @@ io.on("connection", (socket) => {
     if (!socket.rooms.has(room.roomId)) {
       socket.join(room.roomId)
     }
-    const socketIdOfMsgReceiver = Object.keys(peopleInBeitMidrash).find(key => peopleInBeitMidrash[key]["name"] === room.userB.name);
+    const socketIdsOfMsgReceiver = Object.keys(peopleInBeitMidrash).filter(key => peopleInBeitMidrash[key]["name"] === room.userB.name);
     const msgSender = peopleInBeitMidrash[socket.id]
-    console.log(`sending chat message to ${socketIdOfMsgReceiver} from ${msgSender.name}: ${message}`)
-    socket.to(socketIdOfMsgReceiver).emit("received chat message", msgSender, message, room)
+    if (msgSender) {
+      socketIdsOfMsgReceiver.forEach(socketId => {
+        console.log(`sending chat message to ${socketId} from ${msgSender.name}: ${message}`)
+        socket.to(socketId).emit("received chat message", msgSender, message, room)
+      })
+    }
   });
 
   socket.on("join chat room", (room) => {
     socket.join(room.roomId)
   })
 
+  const leaveBeitMidrash = (socketId) => {
+    //remove user from beit midrash and update listing for clients
+    delete peopleInBeitMidrash[socketId];
+    socket.broadcast.emit("change in people", Object.values(peopleInBeitMidrash));
+  }
+
   socket.on("disconnecting", (reason)=> {
       console.log(`${socket.id} ${peopleInBeitMidrash[socket.id] ? peopleInBeitMidrash[socket.id].name : ""} is disconnecting from rooms`, socket.rooms, `due to ${reason}`)
 
     //notify open chats that user left
-    const roomArray = Object.entries(socket.rooms);
+    const roomArray = Array.from(socket.rooms);
+    console.log("roomArray", roomArray)
     roomArray.forEach(room =>  {
       if (room !== socket.id) {
         socket.to(room).emit("leaving chat room")
       }
     })
 
-    //remove user from beit midrash and update listing for clients
-    delete peopleInBeitMidrash[socket.id];
-    socket.broadcast.emit("change in people", Object.values(peopleInBeitMidrash));
+    const socketId = socket.id;
+    disconnectHandler = setTimeout((sockedId) => {
+      leaveBeitMidrash(socketId)
+    }, 750)
+   
   })
 
   //end of Beit Midrash code, start of RTC code

@@ -44,6 +44,10 @@ channel.onmessage = msg => {
 
 };
 
+socket.io.on("reconnect", (attempt) => {
+  socket.join(clientRoom);
+});
+
 socket.on('got sources', function(msg, name) {
   console.log(msg)
   const sources = msg.currentlyReading;
