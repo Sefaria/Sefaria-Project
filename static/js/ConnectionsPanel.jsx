@@ -742,23 +742,53 @@ ToolsList.propTypes = {
     counts:        PropTypes.object.isRequired,
 }
 
+const SheetToolsList = (props) => {
+  const [isOwner, setIsOwner] = useState(false);
+  const [isPublished, setIsPublished] = useState(false);
+  const [showCollectionsModal, setShowCollectionsModal] = useState(false);
+  useEffect(() => {
+    const sheet = Sefaria.sheets.loadSheetByID(props.masterPanelSheetId)
+    setIsOwner(sheet.owner === Sefaria._uid);
+    setIsPublished(sheet.status === "public" ? true : false);
+  }, []);
 
+  const toggleCollectionsModal = () => {
+    if (!Sefaria._uid) {
+      props.toggleSignUpModal();
+    } else {
+      setShowCollectionsModal(!showCollectionsModal)
+    }
+  }
+
+  return (<div><ToolsButton en="About this Sheet" he="תרגומים" image="about-text.svg" onClick={() => props.setConnectionsMode("AboutSheet")} />
+    {isOwner ? <ToolsButton en={isPublished ? "Publish Settings" : "Publish"} he="תרגומים" imageIcon="publish.svg" onClick={() => props.setConnectionsMode("Publish")} /> : null}
+    <ToolsButton en="Copy" he="תרגומים" image="copy.png" onClick={() => props.setConnectionsMode("AboutSheet")} />
+    <ToolsButton en="Add to Collection" he="תרגומים" image="add-to-collection.svg" onClick={() => toggleCollectionsModal()} />
+    <ToolsButton en="Print" he="תרגומים" image="print.svg" onClick={() => window.print()} />
+    <ToolsButton en="Export to Google Docs" he="תרגומים" image="googledrive.svg" onClick={() => window.print()} />
+    {/* todo: update export to google docs button so it works */}
+    {showCollectionsModal ? <CollectionsModal
+      sheetID={sheet.id}
+      close={toggleCollectionsModal} /> : null}
+  </div>
+  )
+}
 class SheetNodeConnectionTools extends Component {
   // A list of Resources in addition to connections
   render() {
     return (<div className="resourcesList">
-              {this.props.multiPanel ?
-                <ToolsButton en="Other Text" he="טקסט נוסף" icon="search" onClick={this.props.openComparePanel} />
-              : null }
-                <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={this.props.sheetsCount} onClick={() => this.props.setConnectionsMode("Sheets")} />
-                <ToolsButton en="Feedback" he="משוב" icon="comment" onClick={() => this.props.setConnectionsMode("Feedback")} />
-            </div>);
+      {this.props.multiPanel ?
+        <ToolsButton en="Other Text" he="טקסט נוסף" icon="search" onClick={this.props.openComparePanel} />
+        : null}
+      <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={this.props.sheetsCount} onClick={() => this.props.setConnectionsMode("Sheets")} />
+      <ToolsButton en="Feedback" he="משוב" icon="comment" onClick={() => this.props.setConnectionsMode("Feedback")} />
+    </div>);
   }
 }
 SheetNodeConnectionTools.propTypes = {
-  multiPanel:         PropTypes.bool.isRequired,
+  multiPanel: PropTypes.bool.isRequired,
   setConnectionsMode: PropTypes.func.isRequired,
-  openComparePanel:   PropTypes.func.isRequired,
+  openComparePanel: PropTypes.func.isRequired,
 };
 
 
