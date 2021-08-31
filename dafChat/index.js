@@ -88,8 +88,8 @@ io.on("connection", (socket) => {
     peopleInBeitMidrash[socketId]["beitMidrashId"] = beitMidrashId;
 
     console.log("user added to beit midrash, current peopleInBeitMidrash:", peopleInBeitMidrash)
-    socket.broadcast.emit("change in people", Object.values(peopleInBeitMidrash));
-    socket.emit("change in people", Object.values(peopleInBeitMidrash));
+    socket.broadcast.emit("change in people", Object.values(peopleInBeitMidrash), uid);
+    socket.emit("change in people", Object.values(peopleInBeitMidrash), uid);
   }
 
   socket.on("enter beit midrash", (uid, fullName, profilePic, organization, beitMidrashId)=> addUserToBeitMidrash(uid, fullName, profilePic, organization, beitMidrashId, socket.id));
@@ -129,7 +129,8 @@ io.on("connection", (socket) => {
       console.log(`${socket.id} ${peopleInBeitMidrash[socket.id] ? peopleInBeitMidrash[socket.id].name : ""} is disconnecting from rooms`, socket.rooms, `due to ${reason}`)
 
     //notify open chats that user left
-    const roomArray = Object.entries(socket.rooms);
+    const roomArray = Array.from(socket.rooms);
+    console.log("roomArray", roomArray)
     roomArray.forEach(room =>  {
       if (room !== socket.id) {
         socket.to(room).emit("leaving chat room")

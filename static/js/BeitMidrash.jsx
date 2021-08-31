@@ -20,6 +20,7 @@ const BeitMidrash = ({socket}) => {
     const [userB, setUserB] = useState({});
     const [socketConnected, setSocketConnected] = useState(false);
     const [socketObj, setSocketObj] = useState(socket);
+    const [partnerLeftNotification, setPartnerLeftNotification] = useState(false);
     const chatChannel = new BroadcastChannel('chavruta-chats');
 
     const setChatDataStore = (data) => {
@@ -58,14 +59,6 @@ const BeitMidrash = ({socket}) => {
 
         socketObj.on("connectionStarted", () => {setSocketConnected(true)})
 
-        socketObj.on("change in people", function(people) {
-            const dedupedPeople = people.filter((person, index,self) => {
-                return index === self.findIndex((p) => p.uid === person.uid)
-            })
-            const filteredDedupedPeople = dedupedPeople.filter(person => person.beitMidrashId === beitMidrashId)
-            setPeopleInBeitMidrash(filteredDedupedPeople);
-        })
-
         if (Sefaria._uid) {
             Sefaria.profileAPI(Sefaria.slug).then(profile => {
                 setProfile(profile)
@@ -88,8 +81,8 @@ const BeitMidrash = ({socket}) => {
         });
 
         const onDisconnect = () => {
-            setSocketConnected(false);
             socketObj.disconnect();
+            setSocketConnected(false);
         }
 
         window.addEventListener("beforeunload", onDisconnect)
@@ -99,6 +92,23 @@ const BeitMidrash = ({socket}) => {
             onDisconnect()
         }
     }, [])
+
+    useEffect(()=> {
+        socketObj.on("change in people", function(people, uid) {
+            const dedupedPeople = people.filter((person, index,self) => {
+                return index === self.findIndex((p) => p.uid === person.uid)
+            })
+            const filteredDedupedPeople = dedupedPeople.filter(person => person.beitMidrashId === beitMidrashId);
+            setPeopleInBeitMidrash(filteredDedupedPeople);
+
+            let roomIdToCheck = uid < Sefaria._uid ? `${uid}-${Sefaria._uid}`: `${Sefaria._uid}-${uid}`;
+            console.log("roomIdToCheck", roomIdToCheck)
+            console.log("currentChatRoom", currentChatRoom)
+            if (currentChatRoom === roomIdToCheck) {
+                setPartnerLeftNotification(false)
+            }
+        })
+    }, [currentChatRoom])
 
     useEffect(()=>{
        socketObj.off("received chat message")
@@ -153,13 +163,8 @@ const BeitMidrash = ({socket}) => {
     }
 
     const startChat = (user) => {
-        let roomId;
-        if (user.uid < Sefaria._uid) {
-            roomId = `${user.uid}-${Sefaria._uid}`;
-        } else {
-            roomId = `${Sefaria._uid}-${user.uid}`;
-        }
-
+        let roomId = user.uid < Sefaria._uid ? `${user.uid}-${Sefaria._uid}`: `${Sefaria._uid}-${user.uid}` 
+      
         const room = {roomId, userB: user, user: {uid: Sefaria._uid, name: Sefaria.full_name, pic: Sefaria.profile_pic_url, organization: profile.organization}};
 
         const currentActiveChatRoomIds = activeChatRooms.map(room => {return room.roomId})
@@ -215,6 +220,8 @@ const BeitMidrash = ({socket}) => {
                 setUserB={setUserB}
                 socket={socketObj}
                 profile={profile}
+                partnerLeftNotification={partnerLeftNotification}
+                setPartnerLeftNotification={setPartnerLeftNotification}
             /> :
             <ChavrutaCall
                 outgoingCall={outgoingCall}
@@ -239,7 +246,9 @@ const BeitMidrashHome = ({beitMidrashId,
                         chavrutaRequestReceived,
                         setUserB,
                         socket,
-                        profile
+                        profile,
+                        partnerLeftNotification,
+                        setPartnerLeftNotification,
                         }) => {
 
     return (<div>
@@ -286,6 +295,8 @@ const BeitMidrashHome = ({beitMidrashId,
                             setUserB={setUserB}
                             socket={socket}
                             profile={profile}
+                            partnerLeftNotification={partnerLeftNotification}
+                            setPartnerLeftNotification={setPartnerLeftNotification}
                         />
             }
         })}
@@ -347,11 +358,12 @@ const ChatBox = ({room,
                 chavrutaRequestReceived,
                 setUserB,
                 socket,
-                profile
+                profile,
+                partnerLeftNotification,
+                setPartnerLeftNotification,
                  }) => {
                    
-    const [chatMessage, setChatMessage] = useState(null);
-    const [partnerLeftNotification, setPartnerLeftNotification] = useState(false);
+    const [chatMessage, setChatMessage] = useState("");
     const roomId = room.roomId;
     const chatBox = useRef();
 
@@ -359,7 +371,6 @@ const ChatBox = ({room,
         setUserB(room.userB);
 
         socket.on("leaving chat room", ()=>{
-            console.log("your partner left the chat!")
             setPartnerLeftNotification(true);
         })
     }, []);
@@ -403,7 +414,7 @@ const ChatBox = ({room,
         //    });
         
         e.target.reset();
-        setChatMessage(null)
+        setChatMessage("")
     }
 
     const handleStartCall = (uid) => {
@@ -422,6 +433,7 @@ const ChatBox = ({room,
                 <ProfilePic len={42.67} url={room.userB.pic} name={room.userB.name} />
                 <div className="chatBoxName">{room.userB.name}</div>
             </div>
+            {partnerLeftNotification ? null :
             <img 
                 onClick={()=>handleStartCall(room["userB"]["uid"])}
                 id="greenCameraButton"
@@ -431,6 +443,7 @@ const ChatBox = ({room,
                 tabIndex="0"
                 aria-roledescription={`click to open a video call with ${room.userB.name}`}
                 />
+            }
         </div>
         <div className="chats-container">
             {chatDataStore[roomId] ? chatDataStore[roomId].messages.map((message, i) => {
@@ -447,7 +460,8 @@ const ChatBox = ({room,
                 autoFocus  
                 disabled={partnerLeftNotification ? true : false}  
                 className="chat-input" onChange={handleChange} 
-                placeholder="Send a Message"></input>
+                placeholder="Send a Message"
+                dir={Sefaria.hebrew.isHebrew(chatMessage) ? "rtl" : "ltr"}></input>
             <input type="submit" 
             className={chatMessage? "chat-submit chat-submit-blue" : "chat-submit"} 
             disabled={!chatMessage}
@@ -466,7 +480,7 @@ const Message = ({user, message}) => {
                 <ProfilePic len={35} url={user.pic} name={user.name} />
             <div className = "chatText">
                 <div className="chatNameAndTime"><span>{user.name}</span>{"  "}<span>{parsedTimeStamp}</span></div>
-                <div>{message.message}</div> 
+                <div dir={Sefaria.hebrew.isHebrew(message.message) ? "rtl" : "ltr"}>{message.message}</div> 
             </div>
         </div>
     )
