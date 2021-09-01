@@ -265,7 +265,7 @@ class SefariaTest(AbstractTest):
     def scroll_to_css_selector(self, selector):
         # This scrolls forward.  Do we need to test and try to scroll back also?
         self.driver.execute_script(
-            "var a = document.querySelector('{}'); a.scrollIntoView({block: 'center', inline: 'nearest'});".format(selector)
+            "var a = document.querySelector('{}'); a.scrollIntoView({{block: 'center', inline: 'nearest'}});".format(selector)
         )
         time.sleep(.5)
         return self
@@ -418,7 +418,7 @@ class SefariaTest(AbstractTest):
         elem.send_keys(user)
         elem = self.driver.find_element_by_css_selector("#id_password")
         elem.send_keys(password)
-        self.click("button")
+        self.click("button[type='submit'")
         self.wait_until_title_does_not_contain("Log in")
         self.wait_until_clickable(".header .home")
         return self
@@ -477,10 +477,10 @@ class SefariaTest(AbstractTest):
         except NoSuchElementException:
             try:
                 # Mobile browsers could be in a state where a window needs to be closed.
-                self.click('.readerNavMenuCloseButton').click('.menuButton').click(".textsPageLink")
+                self.click('.readerNavMenuCloseButton').click('.readerNavMenuMenuButton').click(".textsPageLink")
             except NoSuchElementException:
                 # Mobile browsers could be in a state where commentary panel is open
-                self.click('.segment').click('.menuButton').click(".textsPageLink")
+                self.click('.segment').click('.readerNavMenuMenuButton').click(".textsPageLink")
         self.wait_until_clickable(".navBlockTitle")
         return self
 
