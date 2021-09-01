@@ -28,9 +28,11 @@ import LexiconBox from './LexiconBox';
 import AboutBox from './AboutBox';
 import TranslationsBox from './TranslationsBox';
 import ExtendedNotes from './ExtendedNotes';
-import classNames from 'classnames';
-import Component             from 'react-class';
+import AboutSheet from './AboutSheet';
+import { CollectionsModal } from './CollectionsWidget';
 
+import classNames from 'classnames';
+import Component from 'react-class';
 
 class ConnectionsPanel extends Component {
   constructor(props) {
@@ -259,6 +261,7 @@ class ConnectionsPanel extends Component {
   }
   render() {
     var content = null;
+
     if (!this.state.linksLoaded) {
       content = <LoadingMessage />;
     } else if (this.showSheetNodeConnectionTools(this.props.srefs, this.props.mode)) {
@@ -288,6 +291,12 @@ class ConnectionsPanel extends Component {
       content = (
           <div>
               { this.state.flashMessage ? <div className="flashMessage sans-serif">{this.state.flashMessage}</div> : null }
+              { this.props.masterPanelMode === "Sheet" ? 
+               <SheetToolsList
+                 setConnectionsMode={this.props.setConnectionsMode}
+                 masterPanelSheetId={this.props.masterPanelSheetId}
+                 toggleSignUpModal={this.props.toggleSignUpModal}
+               /> : null }
               <ToolsButton en="About this Text" he="אודות הטקסט" image="about-text.svg" onClick={() => this.props.setConnectionsMode("About")} />
               {showConnectionSummary ?
                   <ConnectionsPanelSection title="Related Texts">
@@ -607,8 +616,11 @@ class ConnectionsPanel extends Component {
         interfaceLang={this.props.interfaceLang}
         contentLang={this.props.contentLang}
       />);
+    } else if (this.props.mode === "AboutSheet") {
+        content = (<AboutSheet
+                 masterPanelSheetId={this.props.masterPanelSheetId}        />);
     }
-
+    
     var marginless = ["Resources", "ConnectionsList", "Advanced Tools", "Share", "WebPages", "Topics", "manuscripts"].indexOf(this.props.mode) != -1;
     var classes = classNames({connectionsPanel: 1, textList: 1, marginless: marginless, fullPanel: this.props.fullPanel, singlePanel: !this.props.fullPanel});
     return (
@@ -664,6 +676,8 @@ ConnectionsPanel.propTypes = {
   selectedNamedEntityText: PropTypes.string,
   interfaceLang:           PropTypes.string,
   contentLang:             PropTypes.string,
+  masterPanelMode:         PropTypes.string,
+  masterPanelSheetId:      PropTypes.number,
   masterPanelLanguage:     PropTypes.oneOf(["english", "bilingual", "hebrew"]),
   versionFilter:           PropTypes.array,
   recentVersionFilters:    PropTypes.array,
@@ -714,7 +728,41 @@ ToolsList.propTypes = {
     counts:        PropTypes.object.isRequired,
 }
 
+const SheetToolsList = ({ setConnectionsMode,
+  masterPanelSheetId,
+  toggleSignUpModal }) => {
 
+  const [isOwner, setIsOwner] = useState(false); 
+  const [isPublished, setIsPublished] = useState(false);
+  const [showCollectionsModal, setShowCollectionsModal] = useState(false);
+  
+  useEffect(() => {
+      const sheet = Sefaria.sheets.loadSheetByID(masterPanelSheetId)
+      setIsOwner(sheet.owner === Sefaria._uid); 
+      setIsPublished(sheet.status === "public" ? true : false);
+  }, []);
+
+  const toggleCollectionsModal = () => {
+      if (!Sefaria._uid) {
+        toggleSignUpModal();
+      } else {
+        setShowCollectionsModal(!showCollectionsModal)
+      }
+    }
+
+  return (<div><ToolsButton en="About this Sheet" he="תרגומים" image="about-text.svg" onClick={() => setConnectionsMode("AboutSheet")} />
+      {isOwner ? <ToolsButton en={isPublished ? "Publish Settings" : "Publish"} he="תרגומים" imageIcon="publish.svg" onClick={() => setConnectionsMode("Publish")} /> : null}
+      <ToolsButton en="Copy" he="תרגומים" image="copy.png" onClick={() => setConnectionsMode("AboutSheet")} />
+      <ToolsButton en="Add to Collection" he="תרגומים" image="add-to-collection.svg" onClick={() => toggleCollectionsModal()} />
+      <ToolsButton en="Print" he="תרגומים" image="print.svg" onClick={() => window.print()} />
+      <ToolsButton en="Export to Google Docs" he="תרגומים" image="googledrive.svg" onClick={() => window.print()} /> 
+      {/* todo: update export to google docs button so it works */}
+      {showCollectionsModal ? <CollectionsModal
+                      sheetID={masterPanelSheetId}
+                      close={toggleCollectionsModal} />  : null}
+  </div>
+  )
+}
 class SheetNodeConnectionTools extends Component {
   // A list of Resources in addition to connections
   render() {
@@ -1533,6 +1581,7 @@ const ConnectionsPanelSection = ({title, children}) => {
 export {
   ConnectionsPanel,
   ConnectionsPanelHeader,
+  ToolsButton
 };
 
 

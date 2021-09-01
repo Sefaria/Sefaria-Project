@@ -347,7 +347,7 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
         }
         if filter and len(filter):
             # List of sidebar modes that can function inside a URL parameter to open the sidebar in that state.
-            sidebarModes = ("Sheets", "Notes", "About", "Translations", "Translation Open",
+            sidebarModes = ("Sheets", "Notes", "About", "AboutSheet", "Translations", "Translation Open",
                             "WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts")
             if filter[0] in sidebarModes:
                 panel["connectionsMode"] = filter[0]
