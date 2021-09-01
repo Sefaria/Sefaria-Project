@@ -215,6 +215,8 @@ class SearchBar extends Component {
         }
 
         this.redirectToObject(ui.item.type, ui.item.key);
+        $(".ui-state-focus").removeClass("ui-state-focus");
+
         return false;
       },
       focus: ( event, ui ) => {

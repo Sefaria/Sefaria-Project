@@ -345,7 +345,7 @@ def test_text_helpers():
     res = model.library.get_dependant_indices(book_title="Exodus")
     assert 'Ibn Ezra on Exodus' in res
     assert 'Ramban on Exodus' in res
-    assert 'Meshech Hochma' in res
+    assert 'Meshekh Chokhmah' in res
     assert 'Abarbanel on Torah' in res
     assert 'Targum Jonathan on Exodus' in res
     assert 'Onkelos Exodus' in res
@@ -357,7 +357,7 @@ def test_text_helpers():
     res = model.library.get_dependant_indices(book_title="Exodus", dependence_type='Commentary')
     assert 'Ibn Ezra on Exodus' in res
     assert 'Ramban on Exodus' in res
-    assert 'Meshech Hochma' in res
+    assert 'Meshekh Chokhmah' in res
     assert 'Abarbanel on Torah' in res
     assert 'Harchev Davar on Exodus' in res
 
@@ -371,7 +371,7 @@ def test_text_helpers():
     assert 'Ramban on Exodus' in res
 
     assert 'Harchev Davar on Exodus' not in res
-    assert 'Meshech Hochma' not in res
+    assert 'Meshekh Chokhmah' not in res
     assert 'Abarbanel on Torah' not in res
     assert 'Exodus' not in res
     assert 'Rashi on Genesis' not in res

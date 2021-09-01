@@ -1074,7 +1074,7 @@ class PostLinks(SefariaTestCase):
         self.make_test_user()
 
     def tearDown(self):
-        LinkSet({"refs": {"$regex": 'Meshech Hochma'}, "anchorText": {"$exists": 1, "$ne": ""}}).delete()
+        LinkSet({"refs": {"$regex": 'Meshekh Chokhmah'}, "anchorText": {"$exists": 1, "$ne": ""}}).delete()
 
     def test_post_new_links(self):
         """
@@ -1090,7 +1090,7 @@ class PostLinks(SefariaTestCase):
             for j in range(1, 11):
                 link_obj = {
                     "type": "commentary",
-                    "refs": ["Meshech Hochma %d:%d" % (i, j), "%s 1:1" % rand.choice(bible_books)],
+                    "refs": ["Meshekh Chokhmah %d:%d" % (i, j), "%s 1:1" % rand.choice(bible_books)],
                     "anchorText": "עת לעשות לה' הפרו תורתך",
                 }
                 links.append(link_obj)
@@ -1098,9 +1098,9 @@ class PostLinks(SefariaTestCase):
         response = c.post("/api/links/", {'json': json.dumps(links)})
         print(response.status_code)
         self.assertEqual(200, response.status_code)
-        self.assertNotEqual(600, LinkSet({"refs": {"$regex": 'Meshech Hochma'}}).count())
+        self.assertNotEqual(600, LinkSet({"refs": {"$regex": 'Meshekh Chokhmah'}}).count())
         # Delete links
-        LinkSet({"refs": {"$regex": 'Meshech Hochma'}, "anchorText": {"$exists": 1, "$ne": ""}}).delete()
+        LinkSet({"refs": {"$regex": 'Meshekh Chokhmah'}, "anchorText": {"$exists": 1, "$ne": ""}}).delete()
 
 
 class SheetPostTest(SefariaTestCase):

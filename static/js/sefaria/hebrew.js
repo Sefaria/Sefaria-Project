@@ -51,10 +51,10 @@ class Hebrew {
     return heb;
   }
   static encodeHebrewDaf(daf, form) {
-    // Ruturns Hebrew daf strings from "32b"
-    var form = form || "short";
-    var n = parseInt(daf.slice(0,-1));
-    var a = daf.slice(-1);
+    // Returns Hebrew daf strings from "32b"
+    form = form || "short";
+    const n = parseInt(daf.slice(0,-1));
+    let a = daf.slice(-1);
     if (form === "short") {
       a = {a: ".", b: ":"}[a];
       return this.encodeHebrewNumeral(n) + a;
@@ -77,11 +77,11 @@ class Hebrew {
     // Returns true if text is (mostly) Hebrew
     // Examines up to the first 200 characters, ignoring html tags, punctuation and numbers
     text = text.stripHtml().stripNikkud();
-    var heCount = 0;
-    var enCount = 0;
-    var punctuationRE = /[0-9 .,'"?!;:\-=@#$%^&*()/<>]/;
+    let heCount = 0;
+    let enCount = 0;
+    const punctuationRE = /[0-9 .,'"?!;:\-=@#$%^&*()/<>]/;
 
-    for (var i = 0; i < Math.min(200, text.length); i++) {
+    for (let i = 0; i < Math.min(200, text.length); i++) {
       if (punctuationRE.test(text[i])) { continue; }
       if ((text.charCodeAt(i) > 0x590) && (text.charCodeAt(i) < 0x5FF)) {
         heCount++;
@@ -93,7 +93,7 @@ class Hebrew {
   }
   static containsHebrew(text) {
     // Returns true if there are any Hebrew characters in text
-    for (var i = 0; i < text.length; i++) {
+    for (let i = 0; i < text.length; i++) {
       if ((text.charCodeAt(i) > 0x590) && (text.charCodeAt(i) < 0x5FF)) {
         return true;
       }
@@ -107,7 +107,7 @@ class Hebrew {
   }
 
   static hebrewPlural(s) {
-    var known = {
+    const known = {
       "Daf":      "Dappim",
       "Mitzvah":  "Mitzvot",
       "Mitsva":   "Mitzvot",
