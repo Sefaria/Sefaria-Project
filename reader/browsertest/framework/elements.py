@@ -19,7 +19,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support.expected_conditions import title_contains, presence_of_element_located, \
     element_to_be_clickable, _find_element, visibility_of_element_located, visibility_of_any_elements_located
 from selenium.webdriver.common.keys import Keys
-from selenium.common.exceptions import NoSuchElementException, NoAlertPresentException, WebDriverException, \
+from selenium.common.exceptions import NoSuchElementException, NoAlertPresentException, TimeoutException, WebDriverException, \
     ElementClickInterceptedException, StaleElementReferenceException
 # http://selenium-python.readthedocs.io/waits.html
 # http://selenium-python.readthedocs.io/api.html#module-selenium.webdriver.support.expected_conditions
@@ -437,9 +437,12 @@ class SefariaTest(AbstractTest):
         if not self.is_logged_in():
             self.login_user()
         self.open_mobile_navigation_menu_if_needed()
-        self.click('.accountLinks .my-profile, .mobileAccountLinks a[href="/my/profile"]')
-        self.wait_until_clickable("#my-profile-link")
-        self.click("#my-profile-link")
+        try: 
+            self.click('.accountLinks .my-profile')
+            self.wait_until_clickable("#my-profile-link")
+            self.click("#my-profile-link")
+        except:
+            self.click('.mobileAccountLinks a[href="/my/profile"]')
         self.wait_until_clickable(".profile-summary")
 
         return self
@@ -474,13 +477,19 @@ class SefariaTest(AbstractTest):
 
         try:
             self.click('.header .home')
-        except NoSuchElementException:
+        except (TimeoutException, NoSuchElementException): # mobile
             try:
-                # Mobile browsers could be in a state where a window needs to be closed.
-                self.click('.readerNavMenuCloseButton').click('.readerNavMenuMenuButton').click(".textsPageLink")
-            except NoSuchElementException:
-                # Mobile browsers could be in a state where commentary panel is open
-                self.click('.segment').click('.readerNavMenuMenuButton').click(".textsPageLink")
+                self.open_mobile_navigation_menu()
+            except:
+                try:
+                    # Mobile browsers could be in a state where a window needs to be closed.
+                    self.click('.readerNavMenuCloseButton').click('.readerNavMenuMenuButton').click(".textsPageLink")
+                except NoSuchElementException:
+                    # Mobile browsers could be in a state where commentary panel is open
+                    self.click('.segment').click('.readerNavMenuMenuButton').click(".textsPageLink")
+                finally:
+                    self.open_mobile_navigation_menu()
+            self.click('.mobileNavMenu .textsPageLink')
         self.wait_until_clickable(".navBlockTitle")
         return self
 
@@ -593,11 +602,11 @@ class SefariaTest(AbstractTest):
             self.click('#siteLanguageEnglish')
 
     def open_mobile_navigation_menu(self):
-        self.click(".menuButton")
+        self.click(".menuButton, .readerNavMenuMenuButton")
 
     def open_mobile_navigation_menu_if_needed(self):
         try:
-            self.get_element(".menuButton")
+            self.get_element(".menuButton, .readerNavMenuButton")
             self.open_mobile_navigation_menu()
         except NoSuchElementException:
             pass
