@@ -5,18 +5,9 @@
 const socketIO = require('socket.io');
 const fetch = require('node-fetch');
 const jwt_decode = require('jwt-decode');
-const sqlite3 = require('sqlite3').verbose();
 const nodeStatic = require('node-static');
 const http = require('http');
 
-
-
-// initialize db
-const db = new sqlite3.Database('./db/chatrooms.db');
-db.run(`DROP TABLE IF EXISTS "chatrooms"`);
-console.log('initializing db, creating and clearing db');
-db.run(`CREATE TABLE IF NOT EXISTS "chatrooms" ("name"	TEXT UNIQUE, "clients"	INTEGER DEFAULT 0, "roomStarted"	INTEGER, "namespace"	TEXT, PRIMARY KEY("name"));`)
-const os = require('os');
 
 // configure Turn & Stun servers:
 const TURN_SERVER = `turn:${process.env.TURN_SERVER}?transport=udp`;
@@ -56,28 +47,17 @@ const io = require("socket.io")(httpServer, {
 
 httpServer.listen(PORT)
 
-
+//initialize global object for holding data on video chat rooms
+const chavrutot = {}
+//initialize global object for data on people in beit midrash
 const peopleInBeitMidrash = {};
 
 io.on("connection", (socket) => {
   console.log(socket.id, socket.conn.remoteAddress, "connected")
+  
+  //--------------------BEIT MIDRASH CODE-------------------------
+
   socket.emit("connectionStarted");
-
-  socket.on('message', function(message, roomId) {
-    socket.to(roomId).emit('message', message);
-  });
-
-  function createNewRoom(uid, namespace="dafRoulette", uroom=false) {
-    const room = uroom ? uroom : Math.random().toString(36).substring(7);
-    socket.join(room);
-    console.log(`${socket.id} created room ${room}`);
-    socket.emit('created', room);
-    db.run(`INSERT INTO chatrooms(name, clients, roomStarted, namespace) VALUES(?, ?, ?, ?)`, [room, uid, +new Date, namespace], function(err) {
-      if (err) {
-        console.log(err.message);
-      }
-    });
-  }
 
   let disconnectHandler;
 
@@ -156,55 +136,52 @@ io.on("connection", (socket) => {
    
   })
 
-  //end of Beit Midrash code, start of RTC code
+  //---------------------------------------------------------------------------------
+  //----------------end of Beit Midrash code, start of RTC code----------------------
+  //---------------------------------------------------------------------------------
 
-  socket.on('does room exist', function(roomID, uid) {
-    let sql = `SELECT name, clients FROM chatrooms WHERE name = ?`;
-    let room = roomID;
-    db.get(sql, [room], (err, row) => {
-      if (err) {
-        console.error(err.message);
-      }
+  socket.on('message', function(message, roomId) {
+    socket.to(roomId).emit('message', message);
+  }); //general function for sending messages from one client to another in Chavruta
 
-      if (!row) {
+  function createNewChavruta(uid, namespace="dafRoulette", uroom=false) {
+    const room = uroom ? uroom : Math.random().toString(36).substring(7);
+    socket.join(room);
+    console.log(`${socket.id} created room ${room}`);
+    socket.emit('created', room);
+    chavrutot[room] = {peopleInChavruta: [uid], roomStarted: Date.now(), namespace: namespace}
+  }
+
+  socket.on('does room exist', function(roomId, uid) {
+    if (chavrutot[roomId]) {
+      if (chavrutot[roomId].peopleInChavruta.length < 2 && chavrutot[roomId].peopleInChavruta[0] !== uid) {
         socket.emit('byeReceived');
-      }
-      else if (row.clients != 0 && row.clients != uid) {
-        socket.emit('byeReceived');
-      }
-    });
+      } 
+    } else {
+      socket.emit('byeReceived');
+    }
+
   });
 
 
   //default private chevruta path
   socket.on('start chevruta', function(uid, room) {
     socket.emit('creds', pcConfig)
-
-
-    db.get(`SELECT name, clients from chatrooms WHERE name = ? AND namespace = ?`, [room, "private"], (err, row) => {
-
-      if (err) {
-        return console.error(err.message);
-      }
-
-      if (!row) {
-        createNewRoom(uid, "private", room);
-      }
-
-      else if (row.clients != 0) {
+    
+    if (chavrutot[room]) {
+      if (chavrutot[room].peopleInChavruta.length === 1) {
         console.log(socket.id +' attempting to join room: '+ room)
         socket.join(room)
         console.log('Client ID ' + socket.id + ' joined room ' + room);
         socket.to(room).emit('join', room);
         socket.emit('join', room);
-        db.run(`UPDATE chatrooms SET clients=? WHERE name=?`, [0, room]);
-      }
-
-      else {
+        chavrutot[room].peopleInChavruta.push(uid)
+      } else if (chavrutot[room].peopleInChavruta.length > 1) {
         socket.emit('room full');
       }
-
-      });
+    } else {
+      createNewChavruta(uid, "private", room);
+    }
   })
 
 
@@ -212,52 +189,52 @@ io.on("connection", (socket) => {
 
 
   // Default Roulette Pathway:
-  socket.on('start roulette', function(uid, lastChevrutaID, namespace='dafRoulette' ) {
-    socket.emit('creds', pcConfig)
+  // socket.on('start roulette', function(uid, lastChevrutaID, namespace='dafRoulette' ) {
+  //   socket.emit('creds', pcConfig)
 
-    db.get(`SELECT COUNT(*) FROM chatrooms WHERE namespace=?`, [namespace], (err, rows) => {
-      if (err) {
-        return console.error(err.message);
-      }
+  //   db.get(`SELECT COUNT(*) FROM chatrooms WHERE namespace=?`, [namespace], (err, rows) => {
+  //     if (err) {
+  //       return console.error(err.message);
+  //     }
 
-      if (namespace == 'dafRoulette') {
-        let numRows = rows["COUNT(*)"];
-        socket.broadcast.emit('return rooms', numRows);
-        socket.emit('return rooms', numRows);
-      }
-        console.log('trying to find a room...')
-        db.all(`SELECT name, clients from chatrooms WHERE clients != 0 AND namespace = ? ORDER BY roomStarted`, [namespace], (err, rows) => {
+  //     if (namespace == 'dafRoulette') {
+  //       let numRows = rows["COUNT(*)"];
+  //       socket.broadcast.emit('return rooms', numRows);
+  //       socket.emit('return rooms', numRows);
+  //     }
+  //       console.log('trying to find a room...')
+  //       db.all(`SELECT name, clients from chatrooms WHERE clients != 0 AND namespace = ? ORDER BY roomStarted`, [namespace], (err, rows) => {
 
-          if (err) {
-            return console.error(err.message);
-          }
-          let foundRoom = false;
-          let rowIndex = 0;
+  //         if (err) {
+  //           return console.error(err.message);
+  //         }
+  //         let foundRoom = false;
+  //         let rowIndex = 0;
 
-          while (foundRoom == false) {
-            if (rows.length == rowIndex) {
-              createNewRoom(uid, namespace);
-              foundRoom = true;
-            }
-            else if (rows[rowIndex].clients == lastChevrutaID) {
-              console.log('Client ID ' + socket.id + 'matched w/ the same chevrusa as last time')
-              rowIndex++;
-            }
-            else {
-              const room = rows[rowIndex].name;
-              console.log(socket.id +' attempting to join room: '+ room)
-              socket.join(room);
-              console.log('Client ID ' + socket.id + ' joined room ' + room);
-              socket.to(room).emit('join', room);
-              socket.emit('join', room);
-              db.run(`UPDATE chatrooms SET clients=? WHERE name=?`, [0, room]);
+  //         while (foundRoom == false) {
+  //           if (rows.length == rowIndex) {
+  //             createNewChavruta(uid, namespace);
+  //             foundRoom = true;
+  //           }
+  //           else if (rows[rowIndex].clients == lastChevrutaID) {
+  //             console.log('Client ID ' + socket.id + 'matched w/ the same chevrusa as last time')
+  //             rowIndex++;
+  //           }
+  //           else {
+  //             const room = rows[rowIndex].name;
+  //             console.log(socket.id +' attempting to join room: '+ room)
+  //             socket.join(room);
+  //             console.log('Client ID ' + socket.id + ' joined room ' + room);
+  //             socket.to(room).emit('join', room);
+  //             socket.emit('join', room);
+  //             db.run(`UPDATE chatrooms SET clients=? WHERE name=?`, [0, room]);
               
-              foundRoom = true;
-            }
-          }
-        });
-    });
-  });
+  //             foundRoom = true;
+  //           }
+  //         }
+  //       });
+  //   });
+  // });
 
   socket.on('ipaddr', function() {
     var ifaces = os.networkInterfaces();
@@ -278,7 +255,7 @@ io.on("connection", (socket) => {
     socket.to(room).emit('message', 'bye')
     socket.leave(room);
     console.log(`bye received from ${socket.id} for room ${room}`);
-    db.run(`DELETE FROM chatrooms WHERE name=?`, room);
+    delete chavrutot[room]
     socket.emit('byeReceived');
   });
 
