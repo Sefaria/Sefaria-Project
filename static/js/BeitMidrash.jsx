@@ -7,8 +7,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Sefaria  from './sefaria/sefaria';
 import { BroadcastChannel } from 'broadcast-channel';
 
-const BeitMidrash = ({socket}) => {
-    const beitMidrashId = "tempString";
+const BeitMidrash = ({socket, beitMidrashId}) => {
     const [peopleInBeitMidrash, setPeopleInBeitMidrash] = useState(null);
     const [activeChatRooms, setActiveChatRooms] = useState([]);
     const [chatDataStore, _setChatDataStore] = useState({});
@@ -51,20 +50,7 @@ const BeitMidrash = ({socket}) => {
     useEffect(() => {
         socketObj.connect();
 
-        socketObj.io.on("reconnect", (attempt) => {
-            setSocketConnected(socket);
-            console.log(`Reconnected after ${attempt} attempt(s)`);
-            socketObj.emit("enter beit midrash", Sefaria._uid, Sefaria.full_name, Sefaria.profile_pic_url, profile.organization, beitMidrashId);
-        });
-
         socketObj.on("connectionStarted", () => {setSocketConnected(true)})
-
-        if (Sefaria._uid) {
-            Sefaria.profileAPI(Sefaria.slug).then(profile => {
-                setProfile(profile)
-                socketObj.emit("enter beit midrash", Sefaria._uid, Sefaria.full_name, Sefaria.profile_pic_url, profile.organization, beitMidrashId);
-            });
-        }
 
         //user B receives connection request
         socketObj.on("connection request", (user) => {
@@ -93,6 +79,21 @@ const BeitMidrash = ({socket}) => {
         }
     }, [])
 
+    useEffect(()=>{
+        socketObj.io.on("reconnect", (attempt) => {
+            setSocketConnected(socket);
+            console.log(`Reconnected after ${attempt} attempt(s)`);
+            socketObj.emit("enter beit midrash", Sefaria._uid, Sefaria.full_name, Sefaria.profile_pic_url, profile.organization, beitMidrashId);
+        });
+
+        if (Sefaria._uid) {
+            Sefaria.profileAPI(Sefaria.slug).then(profile => {
+                setProfile(profile)
+                socketObj.emit("enter beit midrash", Sefaria._uid, Sefaria.full_name, Sefaria.profile_pic_url, profile.organization, beitMidrashId);
+            });
+        }
+    }, [beitMidrashId])
+
     useEffect(()=> {
         socketObj.on("change in people", function(people, uid) {
             const dedupedPeople = people.filter((person, index,self) => {
@@ -108,7 +109,7 @@ const BeitMidrash = ({socket}) => {
                 setPartnerLeftNotification(false)
             }
         })
-    }, [currentChatRoom])
+    }, [currentChatRoom, beitMidrashId])
 
     useEffect(()=>{
        socketObj.off("received chat message")
