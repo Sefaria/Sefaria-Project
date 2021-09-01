@@ -425,7 +425,7 @@ class SefariaTest(AbstractTest):
 
     def is_logged_in(self):
         try:
-            self.driver.find_element_by_css_selector('.accountLinks .my-profile')
+            self.driver.find_element_by_css_selector('.accountLinks .my-profile, .mobileAccountLinks a[href="/my/profile"]')
             return True
         except NoSuchElementException:
             return False
@@ -436,8 +436,8 @@ class SefariaTest(AbstractTest):
     def nav_to_profile(self):
         if not self.is_logged_in():
             self.login_user()
-
-        self.click('.accountLinks .my-profile')
+        self.open_mobile_navigation_menu_if_needed()
+        self.click('.accountLinks .my-profile, .mobileAccountLinks a[href="/my/profile"]')
         self.wait_until_clickable("#my-profile-link")
         self.click("#my-profile-link")
         self.wait_until_clickable(".profile-summary")
