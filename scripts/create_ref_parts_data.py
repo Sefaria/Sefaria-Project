@@ -2,6 +2,7 @@ import django, re
 django.setup()
 from tqdm import tqdm
 from sefaria.model import *
+from sefaria.system.database import db
 from sefaria.model.abstract import AbstractMongoRecord
 from sefaria.model.schema import DiburHamatchilNode, DiburHamatchilNodeSet
 
@@ -19,6 +20,11 @@ def t(**kwargs):
             term.title_group.add_title(title, lang)
     term.save()
     return term
+
+
+def fast_index_save(index):
+    props = index._saveable_attrs()
+    db.index.replace_one({"_id": index._id}, props, upsert=True)
 
 
 def t_from_titled_obj(obj):
@@ -47,7 +53,7 @@ def get_dh_regexes(index, comm_term_slug):
     return reg_map.get(index.title, reg_map.get(comm_term_slug))
 
 
-def modify_commentaries():
+def modify_talmud_commentaries(fast=False):
     DiburHamatchilNodeSet().delete()
     for comm_ref_prefix, comm_term_slug, comm_cat_path in (
         ('Rashi on ', 'rashi', ['Talmud', 'Bavli', 'Rishonim on Talmud', 'Rashi']),
@@ -57,12 +63,12 @@ def modify_commentaries():
         indexes = library.get_indexes_in_category_path(comm_cat_path, True, True)
         for index in tqdm(indexes, desc=comm_term_slug, total=indexes.count()):
             # if "Nedarim" not in index.title: continue
-            add_new_fields_to_commentary_root_node(comm_ref_prefix, comm_term_slug, index)
+            add_new_fields_to_commentary_root_node(comm_ref_prefix, comm_term_slug, index, fast)
             add_dibur_hamatchils(comm_ref_prefix, index)
-            add_alt_structs(comm_ref_prefix, comm_term_slug, index)
+            add_alt_structs_to_talmud_commentaries(comm_ref_prefix, comm_term_slug, index)
 
 
-def add_new_fields_to_commentary_root_node(comm_ref_prefix, comm_term_slug, index):
+def add_new_fields_to_commentary_root_node(comm_ref_prefix, comm_term_slug, index, fast=False):
     comm_term = NonUniqueTerm.init(comm_term_slug)
     base_index = library.get_index(index.base_text_titles[0])
     n = index.nodes
@@ -74,7 +80,10 @@ def add_new_fields_to_commentary_root_node(comm_ref_prefix, comm_term_slug, inde
     n.isSegmentLevelDiburHamatchil = True
     n.referenceableSections = [True, False, True]
     n.diburHamatchilRegexes = get_dh_regexes(index, comm_term_slug)
-    index.save()
+    if fast:
+        fast_index_save(index)
+    else:
+        index.save()
 
 
 def add_dibur_hamatchils(comm_ref_prefix, index):
@@ -101,7 +110,7 @@ def add_dibur_hamatchils(comm_ref_prefix, index):
         }).save()
 
 
-def add_alt_structs(comm_ref_prefix, comm_term_slug, index):
+def add_alt_structs_to_talmud_commentaries(comm_ref_prefix, comm_term_slug, index):
     base_index = library.get_index(index.base_text_titles[0])
     base_alt_struct = base_index.get_alt_structures()['Chapters']
     for perek_node in base_alt_struct.children:
@@ -117,7 +126,7 @@ def add_alt_structs(comm_ref_prefix, comm_term_slug, index):
         delattr(perek_node, 'aloneRefPartTermPrefixes')
 
 
-def modify_talmud():
+def modify_talmud(fast=False):
     perek = NonUniqueTerm.init('perek')
     bavli = NonUniqueTerm.init('bavli')
     minor_tractates = {title for title in library.get_indexes_in_category("Minor Tractates")}
@@ -138,10 +147,13 @@ def modify_talmud():
             perek_node.ref_part_terms = [perek.slug, perek_term.slug]
             perek_node.ref_parts_optional = [True, False]
             perek_node.referenceableAlone = True
-        index.save()
+        if fast:
+            fast_index_save(index)
+        else:
+            index.save()
 
 
-def modify_tanakh():
+def modify_tanakh(fast=False):
     sefer = NonUniqueTerm.init('sefer')
     parasha = NonUniqueTerm.init('parasha')
     indexes = library.get_indexes_in_category("Tanakh", full_records=True)
@@ -161,7 +173,10 @@ def modify_tanakh():
                 parsha_node.ref_part_terms = [parasha.slug, parsha_term.slug]
                 parsha_node.ref_parts_optional = [True, False]
                 parsha_node.referenceableAlone = True
-        index.save()
+        if fast:
+            fast_index_save(index)
+        else:
+            index.save()
 
 
 def create_base_non_unique_terms():
@@ -176,7 +191,8 @@ def create_base_non_unique_terms():
     t_from_titled_obj(Term().load({"name": "Parasha"}))
 
 if __name__ == "__main__":
-    # create_base_non_unique_terms()
-    # modify_talmud()
-    modify_tanakh()
-    # modify_commentaries()
+    fast = True
+    create_base_non_unique_terms()
+    modify_talmud(fast)
+    modify_tanakh(fast)
+    modify_talmud_commentaries(fast)
