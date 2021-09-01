@@ -4730,10 +4730,13 @@ class Library(object):
                 self.set_last_cached_time()
         return self._toc_json
 
-    def get_toc_tree(self, rebuild=False):
+    def get_toc_tree(self, rebuild=False, mobile=False):
+        """
+        :param mobile: (Aug 30, 2021) Added as a patch after navigation redesign launch. Currently only adds 'firstSection' to toc for mobile export. This field is no longer required on prod but is still required on mobile until the navigation redesign happens there.
+        """
         if rebuild or not self._toc_tree:
             from sefaria.model.category import TocTree
-            self._toc_tree = TocTree(self)
+            self._toc_tree = TocTree(self, mobile=mobile)
         self._toc_tree_is_ready = True
         return self._toc_tree
 

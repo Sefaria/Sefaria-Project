@@ -4,6 +4,7 @@ sheets.py - backend core for Sefaria Source sheets
 
 Writes to MongoDB Collection: sheets
 """
+from sefaria.client.util import jsonResponse
 import sys
 import hashlib
 import urllib.request, urllib.parse, urllib.error
@@ -458,6 +459,7 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 		sheet["views"] = existing["views"]
 		sheet["owner"] = existing["owner"]
 		sheet["likes"] = existing["likes"] if "likes" in existing else []
+		sheet["dateCreated"] = existing["dateCreated"]
 		if "datePublished" in existing:
 			sheet["datePublished"] = existing["datePublished"]
 		if "noindex" in existing:
@@ -632,13 +634,15 @@ def add_source_to_sheet(id, source, note=None):
 	return {"status": "ok", "id": id, "source": source}
 
 
-def add_ref_to_sheet(id, ref):
+def add_ref_to_sheet(id, ref, request):
 	"""
 	Add source 'ref' to sheet 'id'.
 	"""
 	sheet = db.sheets.find_one({"id": id})
 	if not sheet:
 		return {"error": "No sheet with id %s." % (id)}
+	if(sheet["owner"] != request.user.id):
+		return jsonResponse({"error": "user can only add refs to their own sheet"})
 	sheet["dateModified"] = datetime.now().isoformat()
 	sheet["sources"].append({"ref": ref})
 	db.sheets.save(sheet)
