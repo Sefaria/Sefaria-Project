@@ -851,15 +851,12 @@ SimpleInterfaceBlock.propTypes = {
 };
 
 
-const SimpleContentBlock = ({en, he, classes}) => (
+const SimpleContentBlock = ({children, classes}) => (
         <div className={classes}>
-          <span className="he" dangerouslySetInnerHTML={ {__html: he } } />
-          <span className="en" dangerouslySetInnerHTML={ {__html: en } } />
+          {children}
         </div>
     );
 SimpleContentBlock.propTypes = {
-    en: PropTypes.string,
-    he: PropTypes.string,
     classes: PropTypes.string
 };
 
