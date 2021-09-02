@@ -21,20 +21,22 @@ const BeitMidrash = ({socket, beitMidrashId}) => {
     const [socketObj, setSocketObj] = useState(socket);
     const [partnerLeftNotification, setPartnerLeftNotification] = useState(false);
     const chatChannel = new BroadcastChannel('chavruta-chats');
-    const blockedUsers = [];
+    const [blockedUsers, setBlockedUsers] = useState([])
 
     
     const onBlockUser = (uid) => {
-        blockedUsers.push(uid);
+        setBlockedUsers(uids => [...uids, uid])
         console.log("user blocked!")
         console.log("blockedUsers", blockedUsers)
+
+        const filteredDedupedPeople = peopleInBeitMidrash.filter(person => person.beitMidrashId === beitMidrashId && !blockedUsers.includes(person.uid));
+        setPeopleInBeitMidrash(filteredDedupedPeople);
+
+        setCurrentChatRoom("")
     }
 
     const onUnblockUser = (uid) => {
-        const index = blockedUsers.findIndex(uid);
-        if (index > -1) {
-            blockedUsers.splice(index, 1)
-        }
+        //insert code for unblocking user
     }
 
     const setChatDataStore = (data) => {
@@ -132,6 +134,8 @@ const BeitMidrash = ({socket, beitMidrashId}) => {
             room.userB = msgSender;
             room.user = {uid: Sefaria._uid, name: Sefaria.full_name, pic: Sefaria.profile_pic_url, organization: profile.organization};
 
+            console.log("blockedUsers", blockedUsers)
+            console.log("msgSender", msgSender)
             
             if(!blockedUsers.includes(msgSender.uid)) {
                 addMessageToDataStore(msgSender, room, message);
@@ -457,11 +461,16 @@ const ChatBox = ({room,
         <div id="hideButtonHolder">
             <div id="hideButton" onClick={()=>handleCloseChat(room)}>Hide{" "}<img src="/static/img/downward_carrot.svg" /></div>
         </div>
+        <details>
+        <summary>
         <div className="chatBoxHeader">
-            <div id="chatUser" onClick={()=>setUserMenuOpen(!userMenuOpen)}>
-                <ProfilePic len={42.67} url={room.userB.pic} name={room.userB.name} />
-                <div className="chatBoxName">{room.userB.name}</div>
-            </div>
+        
+                <div id="chatUser">
+                    <ProfilePic len={42.67} url={room.userB.pic} name={room.userB.name} />
+                    <div className="chatBoxName">{room.userB.name}</div>
+                </div>
+                
+                
             {partnerLeftNotification || blockedNotification ? null :
             <img 
                 onClick={()=>handleStartCall(room["userB"]["uid"])}
@@ -473,12 +482,13 @@ const ChatBox = ({room,
                 aria-roledescription={`click to open a video call with ${room.userB.name}`}
                 />
             }
+            
         </div>
-        {/* {userMenuOpen ? <div className="userMenu" onBlur={()=>setUserMenuOpen(false)}>
+        </summary>
             <div>Profile</div>
             <div>Follow</div>
             <div className="blockButton" onClick={()=>onBlockUser(room.userB.uid)}>Block</div>
-        </div> : null} */}
+        </details>
         <div className="chats-container">
             {chatDataStore[roomId] ? chatDataStore[roomId].messages.map((message, i) => {
                 return (

@@ -10409,7 +10409,7 @@ span.ref-link-color-3 {color: blue}
   transform: translateZ(0);
 }
 
-#beitMidrashContainer{
+#beitMidrashContainer {
   background: #333333;
   color: white;
   height: 100%;
@@ -10422,7 +10422,15 @@ span.ref-link-color-3 {color: blue}
   justify-content: space-between
 }
 
-#beitMidrashHeader{
+#beitMidrashContainer summary {
+  list-style: none;
+}
+
+#beitMidrashContainer summary::-webkit-details-marker {
+  display: none;
+}
+
+#beitMidrashHeader {
   padding: 20px;
   color: white;
   font-size: 22px;
@@ -10430,7 +10438,7 @@ span.ref-link-color-3 {color: blue}
   margin-left: 24px;
 }
 
-#newCall{
+#newCall {
   margin:10px;
 }
 
@@ -10681,6 +10689,7 @@ span.ref-link-color-3 {color: blue}
 .blockButton {
   cursor: pointer;
 }
+
 
 
 @-webkit-keyframes load5 {
