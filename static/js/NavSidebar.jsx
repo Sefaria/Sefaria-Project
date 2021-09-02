@@ -202,8 +202,8 @@ const AboutText = ({index, hideTitle}) => {
         {authors.length ?
         <div className="aboutTextAuthor">
           {authors.length == 1 ?
-          <InterfaceText>Author:</InterfaceText>
-          : <InterfaceText>Authors:</InterfaceText>}
+              <span><InterfaceText>Author</InterfaceText>:</span>
+          : <span><InterfaceText>Authors</InterfaceText>:</span>}
           <span className="aboutTextAuthorText">
             &nbsp;{authors}
           </span>
