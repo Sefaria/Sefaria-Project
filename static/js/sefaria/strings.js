@@ -445,6 +445,8 @@ const Strings = {
     "Continue Reading": "המשך קריאה",
     "Start Reading": "התחלת קריאה",
     "Composed": "זמן חיבור",
+    "Author": "מחבר",
+    "Authors": "מחברים",
 
     //Sheet Meta
     "About this Sheet": "אודות דף המקורות",
