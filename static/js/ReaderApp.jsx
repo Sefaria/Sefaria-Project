@@ -401,7 +401,7 @@ class ReaderApp extends Component {
 
     // List of modes that the ConnectionsPanel may have which can be represented in a URL. 
     const sidebarModes = new Set(["Sheets", "Notes", "Translations", "Translation Open",
-      "About", "WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts"]);
+      "About", "AboutSheet", "WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts"]);
 
     for (var i = 0; i < states.length; i++) {
       // Walk through each panel, create a history object as though for this panel alone
@@ -1799,6 +1799,8 @@ class ReaderApp extends Component {
                       allOpenRefs={allOpenRefs}
                       hasSidebar={this.doesPanelHaveSidebar(i)}
                       masterPanelLanguage={panel.mode === "Connections" ? panelStates[i-1].settings.language : panel.settings.language}
+                      masterPanelMode={panel.mode === "Connections" ? panelStates[i-1].mode : null}
+                      masterPanelSheetId={panel.mode === "Connections" && panelStates[i-1].mode==="Sheet"? panelStates[i-1].sheetID : null}
                       layoutWidth={width}
                       analyticsInitialized={this.state.initialAnalyticsTracked}
                       openURL={this.openURL}

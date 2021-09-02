@@ -21,6 +21,7 @@ import PropTypes from 'prop-types';
 import ReactDOM from 'react-dom';
 import Sefaria from './sefaria/sefaria';
 import $ from './sefaria/sefariaJquery';
+import AboutSheet from './AboutSheet';
 import TextList from './TextList'
 import ConnectionsPanelHeader from './ConnectionsPanelHeader';
 import { AddToSourceSheetBox } from './AddToSourceSheet';
@@ -288,6 +289,7 @@ class ConnectionsPanel extends Component {
       content = (
           <div>
               { this.state.flashMessage ? <div className="flashMessage sans-serif">{this.state.flashMessage}</div> : null }
+              {this.props.masterPanelMode==="Sheet" ? <ToolsButton en="About this Sheet" he="אודות הטקסט" image="about-text.svg" onClick={() => this.props.setConnectionsMode("AboutSheet")} /> : null}
               <ToolsButton en="About this Text" he="אודות הטקסט" image="about-text.svg" onClick={() => this.props.setConnectionsMode("About")} />
               {showConnectionSummary ?
                   <ConnectionsPanelSection title="Related Texts">
@@ -607,6 +609,10 @@ class ConnectionsPanel extends Component {
         interfaceLang={this.props.interfaceLang}
         contentLang={this.props.contentLang}
       />);
+    } else if (this.props.mode === "AboutSheet") {
+      content = <AboutSheet
+        masterPanelSheetId={this.props.masterPanelSheetId}
+      />
     }
 
     var marginless = ["Resources", "ConnectionsList", "Advanced Tools", "Share", "WebPages", "Topics", "manuscripts"].indexOf(this.props.mode) != -1;
@@ -665,6 +671,8 @@ ConnectionsPanel.propTypes = {
   interfaceLang:           PropTypes.string,
   contentLang:             PropTypes.string,
   masterPanelLanguage:     PropTypes.oneOf(["english", "bilingual", "hebrew"]),
+  masterPanelMode:         PropTypes.string,
+  masterPanelSheetId:      PropTypes.number,
   versionFilter:           PropTypes.array,
   recentVersionFilters:    PropTypes.array,
   setVersionFilter:        PropTypes.func.isRequired,
