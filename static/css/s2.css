@@ -4569,6 +4569,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .basetext .segment.highlight,
 .sheetContent .segment.highlight .en,
 .sheetContent .segment.highlight .he,
+.sheetContent .textPreviewSegment.highlight,
 .readerPanel.bilingual.heLeft .sheetContent .segment.highlight,
 .readerPanel.bilingual.heRight .sheetContent .segment.highlight,
 .editorContent .sheetItem.highlight,
@@ -8488,6 +8489,11 @@ span.purim-emoji img{
   pointer-events: none;
 }
 
+.sheetContent .editorContent .sheetItem.noPointer iframe {
+  pointer-events: auto;
+}
+
+
 .sheetContent .editorContent .sheetItem.noPointer .element-link,
 .sheetContent .editorContent .sheetItem.noPointer .element-link a {
     cursor: pointer;
@@ -8561,6 +8567,7 @@ span.purim-emoji img{
   padding-bottom: 56.25%; /* 16:9 */
   padding-top: 25px;
   height: 0;
+  pointer-events: auto;
 }
 .youTubeContainer iframe {
   position: absolute;
@@ -8607,26 +8614,187 @@ span.purim-emoji img{
 .sheetContent .spacer:only-of-type.empty {
   line-height: inherit;
 }
-.sheetItem:only-of-type.empty .SheetOutsideText:after,
-.sheetContent .spacer:only-of-type.empty:after {
+.sheetItem:only-of-type.empty .SheetOutsideText:before,
+.sheetContent .spacer:only-of-type.empty:before {
   color: #999;
-  position: relative;
+  position: absolute;
   pointer-events: none;
 }
-.interface-english .sheetItem:only-of-type.empty .SheetOutsideText:after,
-.interface-english .spacer:only-of-type.empty:after,
-.interface-english .spacer:only-of-type.empty:after {
+.interface-english .sheetItem:only-of-type.empty .SheetOutsideText:before,
+.interface-english .spacer:only-of-type.empty:before,
+.interface-english .spacer:only-of-type.empty:before {
   content: "Write some text or type a citation (ex. 'Genesis 1:1-5') ";
-  top: -31px;
-  margin-bottom: -31px;
 }
-.interface-hebrew .sheetItem:only-of-type.empty .SheetOutsideText:after,
-.interface-hebrew .spacer:only-of-type.empty:after,
-.interface-hebrew .spacer:only-of-type.empty:after {
+.interface-hebrew .sheetItem:only-of-type.empty .SheetOutsideText:before,
+.interface-hebrew .spacer:only-of-type.empty:before,
+.interface-hebrew .spacer:only-of-type.empty:before {
   content: "הקלידו טקסט חופשי או מראה מקום (לדוגמא, בראשית א, א-ה)";
-  top: -44px;
-  margin-bottom: -44px;
 }
+.editorAddInterface {
+  position: relative;
+  pointer-events:none;
+  background-color: transparent;
+}
+.editorAddInterface:before {
+  content: "";
+  margin-inline-start:-34px;
+  position: absolute;
+  width: 25px;
+  height: 25px;
+  transform: rotate(45deg);
+  background-color; white;
+  background-image: url("/static/icons/x-plus.svg");
+  border: 1px solid var(--light-grey);
+  background-size: contain;
+  border-radius: 50%;
+  pointer-events:auto;
+  cursor: pointer;
+}
+
+.editorAddInterface.active {
+  background-color: white;
+}
+.editorAddInterface.active:before {
+  transform: rotate(0);
+}
+.editorAddInterface .editorAddInterfaceButton {
+  display: none;
+}
+
+.addInterfaceInput {
+  pointer-events: none;
+  display: inline-block;
+}
+
+.addInterfaceInput .textPreview {
+  border-inline-start: 4px solid;
+  padding-inline-start: 36px;
+  padding-inline-end: 10px;
+  padding-top: 30px;
+  padding-bottom: 30px;
+  pointer-events: auto;
+}
+
+.addInterfaceInput .textPreviewSegment {
+  display: inline;
+}
+
+.addInterfaceInput .textPreview .inner {
+  max-height: 272px;
+  overflow-y: scroll;
+  padding-inline-end: 30px;
+  position: relative;
+}
+
+.addInterfaceInput .suggestionBox,
+.addInterfaceInput .textPreview {
+  border: 1px solid var(--light-grey);
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  border-radius: 6px;
+}
+
+.addInterfaceInput .suggestionBox {
+  height: 100%;
+}
+.addInterfaceInput select.suggestionBox {
+  font-size: 22px;
+}
+
+
+.addInterfaceInput select.suggestionBox:focus > option:checked {
+  background: var(--light-grey) !important;
+}
+
+.addInterfaceInput select.suggestionBox option:checked,
+.addInterfaceInput select.suggestionBox option:hover {
+    box-shadow: 0 0 10px 100px var(--light-grey) inset;
+}
+
+.addInterfaceInput input,
+.addInterfaceInput button,
+.addInterfaceInput .suggestion {
+  pointer-events: auto;
+}
+.addInterfaceInput button,
+.addInterfaceInput .suggestion {
+  cursor: pointer;
+}
+
+.addInterfaceInput .suggestion {
+  border-inline-start: 4px solid;
+  padding-inline-start: 36px;
+  padding-inline-end: 40px;
+  padding-top: 9px;
+  padding-bottom: 9px;
+  border-bottom: 1px solid var(--lighter-grey);
+}
+
+.addInterfaceInput .suggestion:last-of-type {
+  border-bottom: none;
+}
+
+.addInterfaceInput input {
+  min-width: 350px;
+  border-radius: 250px;
+  border: none;
+  box-shadow: none;
+  box-sizing: border-box;
+  font-size: 22px;
+  padding-inline-start: 30px;
+  background: url("/static/icons/iconmonstr-magnifier-2-240.svg") no-repeat scroll 7px 7px;
+  background-color: var(--lighter-grey);
+
+}
+.addInterfaceInput input::placeholder {
+  font-size: 22px;
+  font-style: normal;
+}
+
+.addInterfaceInput input+span.helperCompletionText {
+  position: absolute;
+  margin-left: 4px;
+  color: var(--medium-grey)
+}
+
+.editorAddInterface.active .editorAddInterfaceButton {
+  width: 30px;
+  height: 30px;
+  padding: 5px;
+  display: inline-block;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  border-radius: 6px;
+  background-origin: content-box;
+  background-color: var(--lighter-grey);
+  margin-inline-end: 6px;
+  box-sizing: border-box;
+  cursor: pointer;
+  pointer-events: auto;
+}
+.editorAddInterface.active .cursorHolder {
+  display: inline-block;
+ }
+#addSourceButton.editorAddInterfaceButton {
+  background-image: url("/static/icons/quotation.svg");
+}
+#addImageButton.editorAddInterfaceButton {
+  background-image: url("/static/icons/image.svg");
+}
+#addMediaButton.editorAddInterfaceButton {
+  background-image: url("/static/icons/video.svg");
+}
+
+#addImageFileSelectorLabel {
+  width: 30px;
+  height: 30px;
+  margin-inline-start: -5px;
+  margin-top: -5px;
+  display: block;
+  position: absolute;
+  cursor: pointer;
+}
+
 .sheetContent .sheetItem .SheetOutsideText.segment p {
   margin: 0
 }
