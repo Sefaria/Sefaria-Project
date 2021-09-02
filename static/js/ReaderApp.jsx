@@ -108,6 +108,7 @@ class ReaderApp extends Component {
       showSignUpModal: false,
       translationLanguagePreference: props.translationLanguagePreference,
       beitMidrashActive: Sefaria._uid ? true : false,
+      beitMidrashId: "default",
     };
   }
   makePanelState(state) {
@@ -251,7 +252,17 @@ class ReaderApp extends Component {
 
       channel.postMessage({currentlyReading: currentlyReading, history: this.makeHistoryState()});
     }
+
+    //sets BeitMidrash ID
+    for (let i=this.state.panels.length-1; i >= 0; i--) {
+      if (this.state.panels[i].bookRef && prevState.beitMidrashId !== this.state.panels[i].bookRef) {
+        this.setState({beitMidrashId: this.state.panels[i].bookRef})
+        break
+      }
+    }
   }
+
+
   handlePopState(event) {
     var state = event.state;
     // console.log("Pop - " + window.location.pathname);
@@ -1874,6 +1885,7 @@ class ReaderApp extends Component {
                                     marginTop: 60}}>
           <BeitMidrash
             socket={io(`//${Sefaria.rtc_server}`, {autoConnect: false})}
+            beitMidrashId = {this.state.beitMidrashId}
           />
       </div>
     )
