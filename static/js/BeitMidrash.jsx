@@ -21,17 +21,30 @@ const BeitMidrash = ({socket, beitMidrashId}) => {
     const [socketObj, setSocketObj] = useState(socket);
     const [partnerLeftNotification, setPartnerLeftNotification] = useState(false);
     const chatChannel = new BroadcastChannel('chavruta-chats');
+    const blockedUsers = [];
+
+    
+    const onBlockUser = (uid) => {
+        blockedUsers.push(uid);
+        console.log("user blocked!")
+        console.log("blockedUsers", blockedUsers)
+    }
+
+    const onUnblockUser = (uid) => {
+        const index = blockedUsers.findIndex(uid);
+        if (index > -1) {
+            blockedUsers.splice(index, 1)
+        }
+    }
 
     const setChatDataStore = (data) => {
-        console.log("data", data)
         chatDataStoreRef.current = data;
         _setChatDataStore(data);
     }
     
     const addMessageToDataStore = (user, room, message) => {
         const roomExists = chatDataStoreRef.current[room.roomId]
-        console.log("chatDataStoreRef.current", chatDataStoreRef.current)
-        console.log("roomExists", roomExists)
+
         setChatDataStore({
             ...chatDataStoreRef.current,
             [room.roomId]: {
@@ -80,6 +93,8 @@ const BeitMidrash = ({socket, beitMidrashId}) => {
     }, [])
 
     useEffect(()=>{
+        socketObj.io.off("reconnect")
+
         socketObj.io.on("reconnect", (attempt) => {
             setSocketConnected(socket);
             console.log(`Reconnected after ${attempt} attempt(s)`);
@@ -99,17 +114,16 @@ const BeitMidrash = ({socket, beitMidrashId}) => {
             const dedupedPeople = people.filter((person, index,self) => {
                 return index === self.findIndex((p) => p.uid === person.uid)
             })
-            const filteredDedupedPeople = dedupedPeople.filter(person => person.beitMidrashId === beitMidrashId);
+            const filteredDedupedPeople = dedupedPeople.filter(person => person.beitMidrashId === beitMidrashId && !blockedUsers.includes(person.uid));
             setPeopleInBeitMidrash(filteredDedupedPeople);
 
             let roomIdToCheck = uid < Sefaria._uid ? `${uid}-${Sefaria._uid}`: `${Sefaria._uid}-${uid}`;
-            console.log("roomIdToCheck", roomIdToCheck)
-            console.log("currentChatRoom", currentChatRoom)
+
             if (currentChatRoom === roomIdToCheck) {
                 setPartnerLeftNotification(false)
             }
         })
-    }, [currentChatRoom, beitMidrashId])
+    }, [currentChatRoom, beitMidrashId, blockedUsers])
 
     useEffect(()=>{
        socketObj.off("received chat message")
@@ -118,33 +132,35 @@ const BeitMidrash = ({socket, beitMidrashId}) => {
             room.userB = msgSender;
             room.user = {uid: Sefaria._uid, name: Sefaria.full_name, pic: Sefaria.profile_pic_url, organization: profile.organization};
 
-            addMessageToDataStore(msgSender, room, message);
-            const currentActiveChatRoomIds = activeChatRooms.map(r => {return r.roomId});
-            console.log(currentActiveChatRoomIds);
-            if (!currentActiveChatRoomIds.includes(room.roomId)) {
-                setActiveChatRooms([room]);
-                socketObj.emit("join chat room", room);
-            };
+            
+            if(!blockedUsers.includes(msgSender.uid)) {
+                addMessageToDataStore(msgSender, room, message);
+                const currentActiveChatRoomIds = activeChatRooms.map(r => {return r.roomId});
+     
+                if (!currentActiveChatRoomIds.includes(room.roomId)) {
+                    setActiveChatRooms([room]);
+                    socketObj.emit("join chat room", room);
+                };
 
-            setCurrentChatRoom(room.roomId)
-            console.log("activeChatRooms", activeChatRooms)
+                setCurrentChatRoom(room.roomId);
+            } else {
+                socketObj.emit("user is blocked", room.userB);
+            }
         })
 
 
-    }, [activeChatRooms])
+    }, [activeChatRooms, blockedUsers])
 
     useEffect(()=>{
         chatChannel.onmessage = (msg) => {
             const currentActiveChatRoomIds = activeChatRooms.map(r => {return r.roomId});
-            console.log(currentActiveChatRoomIds)
+      
             if (!currentActiveChatRoomIds.includes(msg.room.roomId)) {
                 setActiveChatRooms([msg.room]);
                 socketObj.emit("join chat room", msg.room);
             };
             setCurrentChatRoom(msg.room.roomId)
 
-            console.log("msg", msg)
-            console.log("adding message to data store, ", msg.msgSender, msg.room, msg.chatMessage)
             addMessageToDataStore(msg.msgSender, msg.room, msg.chatMessage)
         }
     }, [])
@@ -191,7 +207,6 @@ const BeitMidrash = ({socket, beitMidrashId}) => {
     }
 
     const chavrutaCallInitiated = (uid) => {
-        console.log('connect with other user', uid)
         setBeitMidrashHome(false)
         setOutgoingCall(true)
     }
@@ -223,6 +238,8 @@ const BeitMidrash = ({socket, beitMidrashId}) => {
                 profile={profile}
                 partnerLeftNotification={partnerLeftNotification}
                 setPartnerLeftNotification={setPartnerLeftNotification}
+                onBlockUser={onBlockUser}
+                onUnblockUser={onUnblockUser}
             /> :
             <ChavrutaCall
                 outgoingCall={outgoingCall}
@@ -250,6 +267,8 @@ const BeitMidrashHome = ({beitMidrashId,
                         profile,
                         partnerLeftNotification,
                         setPartnerLeftNotification,
+                        onBlockUser,
+                        onUnblockUser
                         }) => {
 
     return (<div>
@@ -298,6 +317,8 @@ const BeitMidrashHome = ({beitMidrashId,
                             profile={profile}
                             partnerLeftNotification={partnerLeftNotification}
                             setPartnerLeftNotification={setPartnerLeftNotification}
+                            onBlockUser={onBlockUser}
+                            onUnblockUser={onUnblockUser}
                         />
             }
         })}
@@ -362,17 +383,25 @@ const ChatBox = ({room,
                 profile,
                 partnerLeftNotification,
                 setPartnerLeftNotification,
+                onBlockUser,
+                onUnblockUser
                  }) => {
                    
     const [chatMessage, setChatMessage] = useState("");
     const roomId = room.roomId;
     const chatBox = useRef();
+    const [blockedNotification, setBlockedNotification] = useState(false)
+    const [userMenuOpen, setUserMenuOpen] = useState (false)
 
     useEffect(()=>{
         setUserB(room.userB);
 
         socket.on("leaving chat room", ()=>{
             setPartnerLeftNotification(true);
+        })
+
+        socket.on("you have been blocked", ()=> {
+            setBlockedNotification(true)
         })
     }, []);
 
@@ -397,7 +426,6 @@ const ChatBox = ({room,
       
         const chatChannel = new BroadcastChannel('chavruta-chats');
         const msgSender = {uid: Sefaria._uid, name: Sefaria.full_name, pic: Sefaria.profile_pic_url, organization: profile.organization}
-        console.log("chatMessage", chatMessage)
         
         chatChannel.postMessage({msgSender, room, chatMessage})
         
@@ -430,11 +458,11 @@ const ChatBox = ({room,
             <div id="hideButton" onClick={()=>handleCloseChat(room)}>Hide{" "}<img src="/static/img/downward_carrot.svg" /></div>
         </div>
         <div className="chatBoxHeader">
-            <div id="chatUser">
+            <div id="chatUser" onClick={()=>setUserMenuOpen(!userMenuOpen)}>
                 <ProfilePic len={42.67} url={room.userB.pic} name={room.userB.name} />
                 <div className="chatBoxName">{room.userB.name}</div>
             </div>
-            {partnerLeftNotification ? null :
+            {partnerLeftNotification || blockedNotification ? null :
             <img 
                 onClick={()=>handleStartCall(room["userB"]["uid"])}
                 id="greenCameraButton"
@@ -446,6 +474,11 @@ const ChatBox = ({room,
                 />
             }
         </div>
+        {userMenuOpen ? <div className="userMenu" onBlur={()=>setUserMenuOpen(false)}>
+            <div>Profile</div>
+            <div>Follow</div>
+            <div className="blockButton" onClick={()=>onBlockUser(room.userB.uid)}>Block</div>
+        </div> : null}
         <div className="chats-container">
             {chatDataStore[roomId] ? chatDataStore[roomId].messages.map((message, i) => {
                 return (
@@ -454,12 +487,13 @@ const ChatBox = ({room,
                         <Message user={room.userB} key={i} message={message} />
                 )
             }) : <LoadingMessage /> }
-            {partnerLeftNotification ? <div className="chatMessage">{room.userB.name} has left the chat.</div> : null}
+            {partnerLeftNotification && !blockedNotification ? <div className="chatMessage">{room.userB.name} has left the chat.</div> : null}
+            {blockedNotification ? <div className="chatMessage">{room.userB.name} has blocked you.</div> : null}
         </div>
         <form className="chat-form" onSubmit={handleSubmit}>
             <input type="text" 
                 autoFocus  
-                disabled={partnerLeftNotification ? true : false}  
+                disabled={partnerLeftNotification || blockedNotification ? true : false}  
                 className="chat-input" onChange={handleChange} 
                 placeholder="Send a Message"
                 dir={Sefaria.hebrew.isHebrew(chatMessage) ? "rtl" : "ltr"}></input>

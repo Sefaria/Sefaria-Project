@@ -111,6 +111,11 @@ io.on("connection", (socket) => {
     socket.join(room.roomId)
   })
 
+  socket.on("user is blocked", (blockee) => {
+    const socketId = Object.keys(peopleInBeitMidrash).find(key => peopleInBeitMidrash[key]["uid"] === blockee.uid);
+    socket.to(socketId).emit("you have been blocked")
+  })
+
   const leaveBeitMidrash = (socketId) => {
     //remove user from beit midrash and update listing for clients
     delete peopleInBeitMidrash[socketId];

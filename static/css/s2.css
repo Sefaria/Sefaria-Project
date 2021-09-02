@@ -10516,6 +10516,7 @@ span.ref-link-color-3 {color: blue}
 #chatUser {
   display: flex;
   align-items: center;
+  cursor: pointer;
 }
 
 #greenCameraButton {
@@ -10675,6 +10676,10 @@ span.ref-link-color-3 {color: blue}
   font-weight: 400;
   color: #CCCCCC;
   margin: 20px;
+}
+
+.blockButton {
+  cursor: pointer;
 }
 
 
