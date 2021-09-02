@@ -690,7 +690,9 @@ class UserProfile(object):
             "linkedin":              self.linkedin,
             "youtube":               self.youtube,
             "pinned_sheets":         self.pinned_sheets,
-            
+            "show_editor_toggle":    self.show_editor_toggle,
+            "uses_new_editor":       self.uses_new_editor,
+            "is_sustainer":          self.is_sustainer,
         }
         dictionary.update(other_info)
         return dictionary
