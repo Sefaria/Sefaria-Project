@@ -474,11 +474,11 @@ const ChatBox = ({room,
                 />
             }
         </div>
-        {userMenuOpen ? <div className="userMenu" onBlur={()=>setUserMenuOpen(false)}>
+        {/* {userMenuOpen ? <div className="userMenu" onBlur={()=>setUserMenuOpen(false)}>
             <div>Profile</div>
             <div>Follow</div>
             <div className="blockButton" onClick={()=>onBlockUser(room.userB.uid)}>Block</div>
-        </div> : null}
+        </div> : null} */}
         <div className="chats-container">
             {chatDataStore[roomId] ? chatDataStore[roomId].messages.map((message, i) => {
                 return (
