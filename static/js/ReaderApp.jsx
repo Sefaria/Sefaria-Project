@@ -108,7 +108,8 @@ class ReaderApp extends Component {
       showSignUpModal: false,
       translationLanguagePreference: props.translationLanguagePreference,
       beitMidrashActive: Sefaria._uid ? true : false,
-      beitMidrashId: "default",
+      beitMidrashId: props.customBeitMidrashId ? props.customBeitMidrashId : "Sefaria",
+      inCustomBeitMidrash: !!props.customBeitMidrashId,
     };
   }
   makePanelState(state) {
@@ -186,6 +187,8 @@ class ReaderApp extends Component {
     if (window.location !== window.parent.location) {
       this.setState({beitMidrashActive: false})
     }
+
+    this.setBeitMidrashId()
   }
   componentWillUnmount() {
     window.removeEventListener("popstate", this.handlePopState);
@@ -253,15 +256,19 @@ class ReaderApp extends Component {
       channel.postMessage({currentlyReading: currentlyReading, history: this.makeHistoryState()});
     }
 
-    //sets BeitMidrash ID
-    for (let i=this.state.panels.length-1; i >= 0; i--) {
-      if (this.state.panels[i].bookRef && prevState.beitMidrashId !== this.state.panels[i].bookRef) {
-        this.setState({beitMidrashId: this.state.panels[i].bookRef})
-        break
+    this.setBeitMidrashId(prevState)
+  }
+
+  setBeitMidrashId (prevState) {
+    if (!this.state.inCustomBeitMidrash) {
+      for (let i=this.state.panels.length-1; i >= 0; i--) {
+        if (this.state.panels[i].bookRef && (!prevState || prevState.beitMidrashId !== this.state.panels[i].bookRef)) {
+          this.setState({beitMidrashId: this.state.panels[i].bookRef})
+          break
+        }
       }
     }
   }
-
 
   handlePopState(event) {
     var state = event.state;

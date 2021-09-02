@@ -277,7 +277,7 @@ const BeitMidrashHome = ({beitMidrashId,
 
     return (<div>
         <div>
-        <div id="beitMidrashHeader">Chavruta {beitMidrashId}</div>
+        <div id="beitMidrashHeader">Beit Midrash: {beitMidrashId}</div>
         <div id="newCall"><a href="/chavruta"><img src="/static/img/camera_with_plus.svg" id="newCallImg" /><span>New Call</span></a></div>
         <hr className="beitMidrashHR" />
             <div className="peopleInBeitMidrash">

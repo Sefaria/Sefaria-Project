@@ -43,6 +43,7 @@ urlpatterns = [
     url(r'^modtools/upload_text$', sefaria_views.modtools_upload_workflowy),
     url(r'^story_editor/?$', reader_views.story_editor),
     url(r'^torahtracker/?$', reader_views.user_stats),
+    url(r'^beit_midrash/(?P<slug>[^.]+)$', reader_views.beit_midrash),
 ]
 
 # People Pages
