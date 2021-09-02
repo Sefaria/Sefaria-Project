@@ -137,6 +137,12 @@ for irow, l in enumerate(rows):
     _(p, "heWikiLink", l[13])
     _(p, "jeLink", l[14])
     _(p, "sex", l[24])
+    if p.get_property('enBio') or p.get_property('heBio'):
+        p.description = {
+            'en': p.get_property('enBio'),
+            'he': p.get_property('heBio')
+        }
+        p.description_published = True
     p.save()
 
     # metadata links
