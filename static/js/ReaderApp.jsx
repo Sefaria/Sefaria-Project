@@ -1700,9 +1700,6 @@ class ReaderApp extends Component {
     clipdata.setData('text/html', html);
     e.preventDefault();
   }
-  setBeitMidrashStatus(status){
-    this.setState({beitMidrashStatus: status})
-  }
   rerender() {
     this.forceUpdate();
     this.setContainerMode();
@@ -1897,19 +1894,6 @@ class ReaderApp extends Component {
           <BeitMidrash
             socket={io(`//${Sefaria.rtc_server}`, {autoConnect: false})}
             beitMidrashId = {this.state.beitMidrashId}
-            setBeitMidrashStatus = {this.setBeitMidrashStatus}
-          />
-      </div>
-    )
-
-    const beitMidrashPanelClosed = (
-      <div id='beitMidrash' style={{width: 30,
-                                    marginInlineStart: "auto",
-                                    marginInlineEnd: 0,
-                                    height: `calc(100% - 60px)`,
-                                    marginTop: 60}}>
-          <BeitMidrashClosed
-            setBeitMidrashStatus = {this.setBeitMidrashStatus}
           />
       </div>
     )
@@ -1927,8 +1911,7 @@ class ReaderApp extends Component {
           {panels}
           {sefariaModal}
           {communityPagePreviewControls}
-          {this.state.beitMidrashStatus === "full" ? beitMidrashPanel : 
-            this.state.beitMidrashStatus === "closed" ? beitMidrashPanelClosed : null}
+          {beitMidrashPanel}
           <CookiesNotification />
         </div>
       </div>
