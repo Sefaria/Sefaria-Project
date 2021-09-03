@@ -8656,6 +8656,7 @@ span.purim-emoji img{
 
 .editorAddInterface.active {
   background-color: white;
+  line-height: initial;
 }
 .editorAddInterface.active:before {
   transform: rotate(0);
@@ -8738,12 +8739,15 @@ span.purim-emoji img{
 
 .addInterfaceInput input {
   min-width: 350px;
+  max-width: 450px;
   border-radius: 250px;
   border: none;
   box-shadow: none;
   box-sizing: border-box;
   font-size: 22px;
   padding-inline-start: 30px;
+  padding-top: revert;
+  margin-inline-end: 20px;
   background: url("/static/icons/iconmonstr-magnifier-2-240.svg") no-repeat scroll 7px 7px;
   background-color: var(--lighter-grey);
 
@@ -8762,7 +8766,7 @@ span.purim-emoji img{
 .editorAddInterface.active .editorAddInterfaceButton {
   width: 30px;
   height: 30px;
-  padding: 5px;
+  padding: 10px;
   display: inline-block;
   background-size: auto 12px;
   background-repeat: no-repeat;

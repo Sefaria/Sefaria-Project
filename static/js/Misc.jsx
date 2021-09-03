@@ -2393,13 +2393,12 @@ const Autocompleter = ({selectedRefCallback}) => {
     return theWidth;
   }
 
-  useEffect( /* normalize on load */
+  useEffect(
     () => {
          const element = document.querySelector('.textPreviewSegment.highlight');
-         if (element) {element.scrollIntoView()}
+         if (element) {element.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' })}
     }, [previewText]
   )
-
 
 
 
@@ -2542,8 +2541,9 @@ const Autocompleter = ({selectedRefCallback}) => {
           onChange={(e) => onChange(e.target.value)}
           value={inputValue}
           ref={inputEl}
+          size={inputValue.length}
       /><span className="helperCompletionText">{helperPromptText}</span>
-      {showAddButton ? <button onClick={(e) => {
+      {showAddButton ? <button className="button small" onClick={(e) => {
                     selectedRefCallback(inputValue)
                 }}>Add Source</button> : null}
 
