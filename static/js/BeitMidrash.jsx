@@ -7,7 +7,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Sefaria  from './sefaria/sefaria';
 import { BroadcastChannel } from 'broadcast-channel';
 
-const BeitMidrash = ({socket, beitMidrashId}) => {
+const BeitMidrash = ({socket, beitMidrashId, setBeitMidrashStatus}) => {
     const [peopleInBeitMidrash, setPeopleInBeitMidrash] = useState(null);
     const [activeChatRooms, setActiveChatRooms] = useState([]);
     const [chatDataStore, _setChatDataStore] = useState({});
@@ -223,7 +223,7 @@ const BeitMidrash = ({socket, beitMidrashId}) => {
 
     return (
         socketConnected ?
-        <div id="beitMidrashContainer">
+        <div className="beitMidrashContainer">
             { beitMidrashHome ?
             <BeitMidrashHome
                 beitMidrashId = {beitMidrashId}
@@ -244,6 +244,7 @@ const BeitMidrash = ({socket, beitMidrashId}) => {
                 setPartnerLeftNotification={setPartnerLeftNotification}
                 onBlockUser={onBlockUser}
                 onUnblockUser={onUnblockUser}
+                setBeitMidrashStatus={setBeitMidrashStatus}
             /> :
             <ChavrutaCall
                 outgoingCall={outgoingCall}
@@ -272,12 +273,13 @@ const BeitMidrashHome = ({beitMidrashId,
                         partnerLeftNotification,
                         setPartnerLeftNotification,
                         onBlockUser,
-                        onUnblockUser
+                        onUnblockUser,
+                        setBeitMidrashStatus
                         }) => {
 
     return (<div>
         <div>
-        <div id="beitMidrashHeader">Beit Midrash: {beitMidrashId}</div>
+        <div id="beitMidrashHeader">Beit Midrash: {beitMidrashId}<img src="/static/img/circled-x-white.svg" onClick={()=>setBeitMidrashStatus("closed")} /></div>
         <div id="newCall"><a href="/chavruta"><img src="/static/img/camera_with_plus.svg" id="newCallImg" /><span>New Call</span></a></div>
         <hr className="beitMidrashHR" />
             <div className="peopleInBeitMidrash">
@@ -528,6 +530,12 @@ const Message = ({user, message}) => {
                 <div dir={Sefaria.hebrew.isHebrew(message.message) ? "rtl" : "ltr"}>{message.message}</div> 
             </div>
         </div>
+    )
+}
+
+export const BeitMidrashClosed = ({setBeitMidrashStatus}) => {
+    return (
+        <div className="beitMidrashContainer"><img id="openBeitMidrashButton" src="/static/img/circled-x-white.svg" onClick={()=>setBeitMidrashStatus("full")} /></div>
     )
 }
 
