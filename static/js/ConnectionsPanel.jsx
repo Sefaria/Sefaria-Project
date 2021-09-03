@@ -612,6 +612,7 @@ class ConnectionsPanel extends Component {
     } else if (this.props.mode === "AboutSheet") {
       content = <AboutSheet
         masterPanelSheetId={this.props.masterPanelSheetId}
+        toggleSignUpModal={this.props.toggleSignUpModal}
       />
     }
 

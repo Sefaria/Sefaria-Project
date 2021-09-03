@@ -1800,7 +1800,7 @@ class ReaderApp extends Component {
                       hasSidebar={this.doesPanelHaveSidebar(i)}
                       masterPanelLanguage={panel.mode === "Connections" ? panelStates[i-1].settings.language : panel.settings.language}
                       masterPanelMode={panel.mode === "Connections" ? panelStates[i-1].mode : null}
-                      masterPanelSheetId={panel.mode === "Connections" && panelStates[i-1].mode==="Sheet"? panelStates[i-1].sheetID : null}
+                      masterPanelSheetId={panel.mode === "Connections" ? panelStates[i-1].sheetID : null}
                       layoutWidth={width}
                       analyticsInitialized={this.state.initialAnalyticsTracked}
                       openURL={this.openURL}
