@@ -1865,8 +1865,7 @@ class ReaderApp extends Component {
     }
     var boxClasses = classNames({wrapBoxScroll: wrapBoxScroll});
     var boxWidth = wrapBoxScroll ? this.state.windowWidth + "px" : "100%";
-    var boxStyle = this.state.beitMidrashStatus === "full" ? {width: `calc(${boxWidth} - 300px)`} : 
-                   this.state.beitMidrashStatus === "closed" ? {width: `calc(${boxWidth} - 30px)`} : {width: boxWidth};
+    var boxStyle = this.state.beitMidrashStatus ? {width: `calc(${boxWidth} - 300px)`} : {width: boxWidth};
     panels = panels.length ?
               (<div id="panelWrapBox" className={boxClasses} style={boxStyle}>
                 {panels}
