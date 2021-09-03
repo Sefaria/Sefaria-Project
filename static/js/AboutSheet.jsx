@@ -13,7 +13,7 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
                 setSheetSaves([...sheetSaves, hist["uid"]]);
             }
         }).catch((reason) => {
-            console.log('Error',reason.isCanceled ? 'canceled': reason);
+            console.log('Error', reason.isCanceled ? 'canceled' : reason);
         });
         return () => {
             getRefSavedHistory.cancel();
@@ -41,7 +41,34 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
             Created: {Sefaria.util.naturalTime(sheet.dateCreated, "en")}
             {sheet.views} views, {sheetSaves.length} saves.
         </div>
-    </div>)
+        {sheet.collections.length > 0 ?
+            <div className="tocDetails tagsSection">
+                <h3><InterfaceText>Collections</InterfaceText></h3>
+                {sheet.collections.map((collection) => {
+                    <div>{collection.name}</div>
+                })}
+            </div> : null
+
+        }
+
+        {sheet.topics && sheet.topics.length > 0 ?
+                    <div className="tocDetails tagsSection">
+                      <h3><InterfaceText>Tags</InterfaceText></h3>
+                      <div>
+                        {sheet.topics.map((topic, i) => (
+                            <a href={"/topics/" + topic.slug}
+                              target="_blank"
+                              className="sheetTag button"
+                              key={i}
+                            >
+                              <InterfaceText text={{en:topic.en, he:topic.he}} />
+                            </a>
+                          ))
+                        }
+                      </div>
+                    </div> : null }
+    </div>
+    )
 
 }
 
