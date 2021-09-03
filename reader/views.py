@@ -4323,8 +4323,8 @@ def chevruta_redirect(request):
     })
 
 @login_required
-def beit_midrash(request):
-    props ={"beit_midrash_id": request.GET.get("cbm", None)}
+def beit_midrash(request, slug):
+    props = {"customBeitMidrashId": slug,}
     title = _("Sefaria Beit Midrash")
     desc  = _("The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more.")
-    return menu_page(request, props, page="beit_midrash", title=title, desc=desc)
+    return menu_page(request, props, "navigation", title, desc)

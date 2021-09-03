@@ -26,7 +26,7 @@ import {
 } from './Misc';
 import Component from 'react-class';
 import { BroadcastChannel } from 'broadcast-channel';
-import BeitMidrash from './BeitMidrash';
+import BeitMidrash, {BeitMidrashClosed} from './BeitMidrash';
 import  { io }  from 'socket.io-client';
 
 class ReaderApp extends Component {
@@ -107,8 +107,9 @@ class ReaderApp extends Component {
       initialAnalyticsTracked: false,
       showSignUpModal: false,
       translationLanguagePreference: props.translationLanguagePreference,
-      beitMidrashActive: Sefaria._uid ? true : false,
-      beitMidrashId: "default",
+      beitMidrashStatus: Sefaria._uid ? "full" : false,
+      beitMidrashId: props.customBeitMidrashId ? props.customBeitMidrashId : "Sefaria",
+      inCustomBeitMidrash: !!props.customBeitMidrashId,
     };
   }
   makePanelState(state) {
@@ -184,8 +185,10 @@ class ReaderApp extends Component {
 
     //hide Beit Midrash in an iframe (ie, if chavruta call is active)
     if (window.location !== window.parent.location) {
-      this.setState({beitMidrashActive: false})
+      this.setState({beitMidrashStatus: false})
     }
+
+    this.setBeitMidrashId()
   }
   componentWillUnmount() {
     window.removeEventListener("popstate", this.handlePopState);
@@ -253,15 +256,19 @@ class ReaderApp extends Component {
       channel.postMessage({currentlyReading: currentlyReading, history: this.makeHistoryState()});
     }
 
-    //sets BeitMidrash ID
-    for (let i=this.state.panels.length-1; i >= 0; i--) {
-      if (this.state.panels[i].bookRef && prevState.beitMidrashId !== this.state.panels[i].bookRef) {
-        this.setState({beitMidrashId: this.state.panels[i].bookRef})
-        break
+    this.setBeitMidrashId(prevState)
+  }
+
+  setBeitMidrashId (prevState) {
+    if (!this.state.inCustomBeitMidrash) {
+      for (let i=this.state.panels.length-1; i >= 0; i--) {
+        if (this.state.panels[i].bookRef && (!prevState || prevState.beitMidrashId !== this.state.panels[i].bookRef)) {
+          this.setState({beitMidrashId: this.state.panels[i].bookRef})
+          break
+        }
       }
     }
   }
-
 
   handlePopState(event) {
     var state = event.state;
@@ -1693,6 +1700,9 @@ class ReaderApp extends Component {
     clipdata.setData('text/html', html);
     e.preventDefault();
   }
+  setBeitMidrashStatus(status){
+    this.setState({beitMidrashStatus: status})
+  }
   rerender() {
     this.forceUpdate();
     this.setContainerMode();
@@ -1858,7 +1868,8 @@ class ReaderApp extends Component {
     }
     var boxClasses = classNames({wrapBoxScroll: wrapBoxScroll});
     var boxWidth = wrapBoxScroll ? this.state.windowWidth + "px" : "100%";
-    var boxStyle = this.state.beitMidrashActive ? {width: `calc(${boxWidth} - 300px)`} : {width: boxWidth};
+    var boxStyle = this.state.beitMidrashStatus === "full" ? {width: `calc(${boxWidth} - 300px)`} : 
+                   this.state.beitMidrashStatus === "closed" ? {width: `calc(${boxWidth} - 30px)`} : {width: boxWidth};
     panels = panels.length ?
               (<div id="panelWrapBox" className={boxClasses} style={boxStyle}>
                 {panels}
@@ -1886,6 +1897,19 @@ class ReaderApp extends Component {
           <BeitMidrash
             socket={io(`//${Sefaria.rtc_server}`, {autoConnect: false})}
             beitMidrashId = {this.state.beitMidrashId}
+            setBeitMidrashStatus = {this.setBeitMidrashStatus}
+          />
+      </div>
+    )
+
+    const beitMidrashPanelClosed = (
+      <div id='beitMidrash' style={{width: 30,
+                                    marginInlineStart: "auto",
+                                    marginInlineEnd: 0,
+                                    height: `calc(100% - 60px)`,
+                                    marginTop: 60}}>
+          <BeitMidrashClosed
+            setBeitMidrashStatus = {this.setBeitMidrashStatus}
           />
       </div>
     )
@@ -1903,7 +1927,8 @@ class ReaderApp extends Component {
           {panels}
           {sefariaModal}
           {communityPagePreviewControls}
-          {this.state.beitMidrashActive ? beitMidrashPanel : null}
+          {this.state.beitMidrashStatus === "full" ? beitMidrashPanel : 
+            this.state.beitMidrashStatus === "closed" ? beitMidrashPanelClosed : null}
           <CookiesNotification />
         </div>
       </div>
