@@ -523,7 +523,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         panels += make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_panel, **kwargs)
 
     elif sheet == True:
-        panels += make_sheet_panel_dict(ref, filter, **{"panelDisplayLanguage": request.GET.get("lang", "bi"), "referer": request.path})
+        panels += make_sheet_panel_dict(ref, filter, **{"panelDisplayLanguage": request.GET.get("lang",request.contentLang), "referer": request.path})
 
     # Handle any panels after 1 which are identified with params like `p2`, `v2`, `l2`.
     i = 2
@@ -538,7 +538,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
 
         elif ref == "sheet":
             sheet_id = request.GET.get("s{}".format(i))
-            panelDisplayLanguage = request.GET.get("lang", "bi")
+            panelDisplayLanguage = request.GET.get("lang", request.contentLang)
             panels += make_sheet_panel_dict(sheet_id, None, **{"panelDisplayLanguage": panelDisplayLanguage})
 
         else:
@@ -1265,6 +1265,7 @@ def modify_bulk_text_api(request, title):
                 return jsonResponse({"error": "Unrecognized API key."})
             return jsonResponse(modify(apikey['uid']))
         else:
+            @staff_member_required
             @csrf_protect
             def protected_post(request):
                 return jsonResponse(modify(request.user.id))
@@ -3467,6 +3468,7 @@ def profile_sync_api(request):
         from sefaria.utils.util import epoch_time
         now = epoch_time()
         no_return = request.GET.get("no_return", False)
+        annotate = bool(int(request.GET.get("annotate", 0)))
         profile = UserProfile(id=request.user.id)
         ret = {"created": []}
         # sync items from request
@@ -3498,12 +3500,12 @@ def profile_sync_api(request):
                 # loop thru `field_data` reversed to apply `last_place` to the last item read in each book
                 for hist in reversed(field_data):
                     if 'ref' not in hist:
-                        logger.warning(f'Ref not in hist. Post data: {post[field]}. User ID: {request.user.id}')
+                        logger.warning(f'Ref not in hist. History item: {hist}. User ID: {request.user.id}')
                         continue
                     try:
                         uh = profile.process_history_item(hist, now)
                         if uh:
-                            ret["created"] += [uh.contents(for_api=True, annotate=True)]
+                            ret["created"] += [uh.contents(for_api=True, annotate=annotate)]
                     except InputError:
                         # validation failed
                         continue
@@ -3518,7 +3520,7 @@ def profile_sync_api(request):
 
             uhs = UserHistorySet({"uid": request.user.id, "server_time_stamp": {"$gt": last_sync}}, hint="uid_1_server_time_stamp_1")
             ret["last_sync"] = now
-            ret["user_history"] = [uh.contents(for_api=True, annotate=True) for uh in uhs.array()]
+            ret["user_history"] = [uh.contents(for_api=True, annotate=False) for uh in uhs.array()]
             ret["settings"] = profile.settings
             ret["settings"]["time_stamp"] = profile.attr_time_stamps["settings"]
             if post.get("client", "") == "web":

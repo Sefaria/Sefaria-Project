@@ -215,6 +215,8 @@ class SearchBar extends Component {
         }
 
         this.redirectToObject(ui.item.type, ui.item.key);
+        $(".ui-state-focus").removeClass("ui-state-focus");
+
         return false;
       },
       focus: ( event, ui ) => {
@@ -585,6 +587,9 @@ const ProfilePicMenu = ({len, url, name}) => {
             <div className="profile-menu-middle">
               <div><a className="interfaceLinks-row" id="my-profile-link" href="/my/profile">
                 <InterfaceText>Profile</InterfaceText>
+              </a></div>
+              <div><a className="interfaceLinks-row" id="new-sheet-link" href="/sheets/new">
+                <InterfaceText>Create a New Sheet</InterfaceText>
               </a></div>
               <div><a className="interfaceLinks-row" id="account-settings-link" href="/settings/account">
                 <InterfaceText>Account Settings</InterfaceText>

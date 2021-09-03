@@ -81,12 +81,12 @@ urlpatterns += [
     url(r'^settings/account?$', reader_views.account_settings),
     url(r'^settings/profile?$', reader_views.edit_profile),
     url(r'^interface/(?P<language>english|hebrew)$', reader_views.interface_language_redirect),
-    url(r'^api/profile/user_history$', reader_views.user_history_api),
+    url(r'^api/profile/user_history$', reader_views.user_history_api), 
     url(r'^api/profile/sync$', reader_views.profile_sync_api),
     url(r'^api/profile/upload-photo$', reader_views.profile_upload_photo),
     url(r'^api/profile$', reader_views.profile_api),
     url(r'^settings/account/user$', reader_views.account_user_update),
-    url(r'^api/profile/(?P<slug>[^/]+)$', reader_views.profile_get_api),
+    url(r'^api/profile/(?P<slug>[^/]+)$', reader_views.profile_get_api), 
     url(r'^api/profile/(?P<slug>[^/]+)/(?P<ftype>followers|following)$', reader_views.profile_follow_api),
     url(r'^api/user_history/saved$', reader_views.saved_history_for_ref),
     url(r'^api/interrupting-messages/read/(?P<message>.+)$', reader_views.interrupting_messages_read_api),
@@ -186,9 +186,9 @@ urlpatterns += [
     url(r'^api/sheets/?$',                                            sheets_views.save_sheet_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)/delete$',                     sheets_views.delete_sheet_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)/add$',                        sheets_views.add_source_to_sheet_api),
-    url(r'^api/sheets/(?P<sheet_id>\d+)/add_ref$',                    sheets_views.add_ref_to_sheet_api),
+    url(r'^api/sheets/(?P<sheet_id>\d+)/add_ref$',                    sheets_views.add_ref_to_sheet_api), 
     url(r'^api/sheets/(?P<parasha>.+)/get_aliyot$',                   sheets_views.get_aliyot_by_parasha_api),
-    url(r'^api/sheets/(?P<sheet_id>\d+)/copy_source$',                sheets_views.copy_source_to_sheet_api),
+    url(r'^api/sheets/(?P<sheet_id>\d+)/copy_source$',                sheets_views.copy_source_to_sheet_api), 
     url(r'^api/sheets/(?P<sheet_id>\d+)/topics$',                     sheets_views.update_sheet_topics_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)$',                            sheets_views.sheet_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)\.(?P<node_id>\d+)$',          sheets_views.sheet_node_api),
@@ -225,7 +225,7 @@ urlpatterns += [
     url(r'^api/collections/for-sheet/(?P<sheet_id>\d+)$', sheets_views.collections_for_sheet_api),
     url(r'^api/collections(/(?P<slug>[^/]+))?$', sheets_views.collections_api),
     url(r'^api/collections/(?P<slug>[^/]+)/set-role/(?P<uid>\d+)/(?P<role>[^/]+)$', sheets_views.collections_role_api),
-    url(r'^api/collections/(?P<slug>[^/]+)/invite/(?P<uid_or_email>[^/]+)(?P<uninvite>\/uninvite)?$', sheets_views.collections_invite_api),
+    url(r'^api/collections/(?P<slug>[^/]+)/invite/(?P<uid_or_email>[^/]+)(?P<uninvite>\/uninvite)?$', sheets_views.collections_invite_api), 
     url(r'^api/collections/(?P<slug>[^/]+)/(?P<action>(add|remove))/(?P<sheet_id>\d+)', sheets_views.collections_inclusion_api),
     url(r'^api/collections/(?P<slug>[^/]+)/(?P<action>(add|remove))/(?P<sheet_id>\d+)', sheets_views.collections_inclusion_api),
     url(r'^api/collections/(?P<slug>[^/]+)/pin-sheet/(?P<sheet_id>\d+)', sheets_views.collections_pin_sheet_api),
@@ -271,7 +271,8 @@ urlpatterns += [
 urlpatterns += [
     url(r'^api/locktext/(?P<title>.+)/(?P<lang>\w\w)/(?P<version>.+)$', reader_views.lock_text_api),
     url(r'^api/version/flags/(?P<title>.+)/(?P<lang>\w\w)/(?P<version>.+)$', reader_views.flag_text_api),
-]
+] 
+# SEC-AUDIT: do we also want to maybe move these to 'admin' 
 
 # Discussions
 urlpatterns += [
@@ -368,7 +369,7 @@ urlpatterns += [
 
 # File Uploads
 urlpatterns += [
-    url(r'^api/file/upload$', sefaria_views.file_upload),
+    url(r'^api/file/upload$', sefaria_views.file_upload), #SEC-AUDIT: do we limit how many files users can upload?
 ]
 
 # Send Feedback
@@ -382,7 +383,7 @@ urlpatterns += [
 ]
 
 # Admin
-urlpatterns += [
+urlpatterns += [ 
     url(r'^admin/reset/varnish/(?P<tref>.+)$', sefaria_views.reset_varnish),
     url(r'^admin/reset/cache$', sefaria_views.reset_cache),
     url(r'^admin/reset/cache/(?P<title>.+)$', sefaria_views.reset_index_cache_for_text),

@@ -19,7 +19,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support.expected_conditions import title_contains, presence_of_element_located, \
     element_to_be_clickable, _find_element, visibility_of_element_located, visibility_of_any_elements_located
 from selenium.webdriver.common.keys import Keys
-from selenium.common.exceptions import NoSuchElementException, NoAlertPresentException, WebDriverException, \
+from selenium.common.exceptions import NoSuchElementException, NoAlertPresentException, TimeoutException, WebDriverException, \
     ElementClickInterceptedException, StaleElementReferenceException
 # http://selenium-python.readthedocs.io/waits.html
 # http://selenium-python.readthedocs.io/api.html#module-selenium.webdriver.support.expected_conditions
@@ -265,7 +265,7 @@ class SefariaTest(AbstractTest):
     def scroll_to_css_selector(self, selector):
         # This scrolls forward.  Do we need to test and try to scroll back also?
         self.driver.execute_script(
-            "var a = document.querySelector('{}'); a.scrollIntoView(true);".format(selector)
+            "var a = document.querySelector('{}'); a.scrollIntoView({{block: 'center', inline: 'nearest'}});".format(selector)
         )
         time.sleep(.5)
         return self
@@ -414,24 +414,18 @@ class SefariaTest(AbstractTest):
         if self.is_logged_in():
             return self
         self.nav_to_login()
-        try:
-            elem = self.driver.find_element_by_css_selector("#id_email")
-            elem.send_keys(user)
-            elem = self.driver.find_element_by_css_selector("#id_password")
-            elem.send_keys(password)
-            self.click("button")
-            self.wait_until_title_does_not_contain("Log in")
-            self.wait_until_clickable(".header .home")
-            return self
-        except Exception as e:
-            print(e)
-            return self
-        finally:
-            return self
+        elem = self.driver.find_element_by_css_selector("#id_email")
+        elem.send_keys(user)
+        elem = self.driver.find_element_by_css_selector("#id_password")
+        elem.send_keys(password)
+        self.click("button[type='submit'")
+        self.wait_until_title_does_not_contain("Log in")
+        self.wait_until_clickable(".header .home")
+        return self
 
     def is_logged_in(self):
         try:
-            self.driver.find_element_by_css_selector('.accountLinks .my-profile')
+            self.driver.find_element_by_css_selector('.accountLinks .my-profile, .mobileAccountLinks a[href="/my/profile"]')
             return True
         except NoSuchElementException:
             return False
@@ -442,10 +436,13 @@ class SefariaTest(AbstractTest):
     def nav_to_profile(self):
         if not self.is_logged_in():
             self.login_user()
-
-        self.click('.accountLinks .my-profile')
-        self.wait_until_clickable("#my-profile-link")
-        self.click("#my-profile-link")
+        self.open_mobile_navigation_menu_if_needed()
+        try: 
+            self.click('.accountLinks .my-profile')
+            self.wait_until_clickable("#my-profile-link")
+            self.click("#my-profile-link")
+        except:
+            self.click('.mobileAccountLinks a[href="/my/profile"]')
         self.wait_until_clickable(".profile-summary")
 
         return self
@@ -480,13 +477,19 @@ class SefariaTest(AbstractTest):
 
         try:
             self.click('.header .home')
-        except NoSuchElementException:
+        except (TimeoutException, NoSuchElementException): # mobile
             try:
-                # Mobile browsers could be in a state where a window needs to be closed.
-                self.click('.readerNavMenuCloseButton').click('.menuButton').click(".textsPageLink")
-            except NoSuchElementException:
-                # Mobile browsers could be in a state where commentary panel is open
-                self.click('.segment').click('.menuButton').click(".textsPageLink")
+                self.open_mobile_navigation_menu()
+            except:
+                try:
+                    # Mobile browsers could be in a state where a window needs to be closed.
+                    self.click('.readerNavMenuCloseButton').click('.readerNavMenuMenuButton').click(".textsPageLink")
+                except NoSuchElementException:
+                    # Mobile browsers could be in a state where commentary panel is open
+                    self.click('.segment').click('.readerNavMenuMenuButton').click(".textsPageLink")
+                finally:
+                    self.open_mobile_navigation_menu()
+            self.click('.mobileNavMenu .textsPageLink')
         self.wait_until_clickable(".navBlockTitle")
         return self
 
@@ -599,11 +602,11 @@ class SefariaTest(AbstractTest):
             self.click('#siteLanguageEnglish')
 
     def open_mobile_navigation_menu(self):
-        self.click(".menuButton")
+        self.click(".menuButton, .readerNavMenuMenuButton")
 
     def open_mobile_navigation_menu_if_needed(self):
         try:
-            self.get_element(".menuButton")
+            self.get_element(".menuButton, .readerNavMenuButton")
             self.open_mobile_navigation_menu()
         except NoSuchElementException:
             pass
@@ -1345,8 +1348,8 @@ class Trial(object):
                         self.set_sauce_result(driver, result.success)
                     except WebDriverException:      # Sometimes an earlier test infrastructure fail makes this throw
                         pass
-
-                driver.quit()       # had been if not self.is_local:  why?
+                if not self.is_local:   # driver will not restart locally                       
+                    driver.quit()       
 
             return result
 
