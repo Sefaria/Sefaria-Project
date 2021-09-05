@@ -18,10 +18,12 @@ class TranslationsBox extends Component {
     };
   }
   componentDidMount() {
-    Sefaria.getVersions(this.props.sectionRef, true, this._excludedLangs, true).then(this.onVersionsLoad);
+    if(!this.isSheet()){
+      Sefaria.getVersions(this.props.sectionRef, true, this._excludedLangs, true).then(this.onVersionsLoad);
+    }
   }
   componentDidUpdate(prevProps, prevState) {
-    if (prevProps.sectionRef !== this.props.sectionRef) {
+    if (!this.isSheet() && prevProps.sectionRef !== this.props.sectionRef) {
       Sefaria.getVersions(this.props.sectionRef,true, this._excludedLangs, true).then(this.onVersionsLoad);
     }
   }
@@ -43,7 +45,17 @@ class TranslationsBox extends Component {
     this.props.setConnectionsMode("Translation Open");
     this.props.setFilter(Sefaria.getTranslateVersionsKey(versionTitle, versionLanguage));
   }
+  isSheet(){
+    return this.props.srefs[0].startsWith("Sheet");
+  }
   render() {
+    if (this.isSheet()) {
+      return (
+          <div className="versionsBox">
+            <LoadingMessage message="There are no Translations for this sheet source" heMessage="למקור זה אין תרגומים"/>
+          </div>
+      );
+    }
     if (this.props.mode == "Translation Open"){ // A single translation open in the sdiebar
       return (
         <VersionsTextList

@@ -1084,6 +1084,8 @@ def compare(request, comp_ref=None, lang=None, v1=None, v2=None):
         sec_ref = o_comp_ref.first_available_section_ref()
         if not sec_ref.is_section_level():
             sec_ref = sec_ref.section_ref()
+        if o_comp_ref.is_book_level():
+            o_comp_ref = sec_ref
         sec_ref = sec_ref.normal()
         if not o_comp_ref.is_section_level():
             ref_array = [r.normal() for r in o_comp_ref.all_subrefs()]
