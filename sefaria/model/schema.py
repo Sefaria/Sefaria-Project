@@ -1987,6 +1987,9 @@ class AddressType(object):
         """
         pass
 
+    def to_numeric_possibilities(self, lang, s):
+        return [self.toNumber(lang, s)]
+
     def toIndex(self, lang, s):
         return self.toNumber(lang, s) - 1
 
@@ -2004,16 +2007,18 @@ class AddressType(object):
         for SuperClass in cls.__mro__:  # mro gives all super classes
             if SuperClass == AddressType: break
             addr = SuperClass(0)  # somewhat hacky. trying to get access to super class implementation of `regex` but actually only AddressTalmud implements this function. Other classes just overwrite class fields which modify regex's behavior. Simplest to just instantiate the appropriate address and use it.
-            regex_str = addr.regex(lang, strict=False, group_id='section') + "$"  # must match entire string
+            regex_str = addr.regex(lang, strict=False, group_id='section', with_special_cases=True) + "$"  # must match entire string
             if regex_str is None: continue
             reg = regex.compile(regex_str, regex.VERBOSE)
             match = reg.match(s)
             if match:
-                section_str = match.group('section')
-                sections += [addr.toNumber(lang, section_str)]
-                toSections += [sections[-1]]
+                section_str = match.groupdict().get('specialCases') or match.group('section')
+                temp_sections = addr.to_numeric_possibilities(lang, section_str)
+                temp_toSections = temp_sections[:]
                 if hasattr(cls, "lacks_amud") and cls.lacks_amud(section_str, lang):
-                    toSections[-1] += 1
+                    temp_toSections = [sec+1 for sec in temp_toSections]
+                sections += temp_sections
+                toSections += temp_toSections
                     
         return sections, toSections
 
@@ -2434,12 +2439,26 @@ class AddressAliyah(AddressInteger):
 
 
 class AddressPerek(AddressInteger):
+    special_cases = {
+        "פרק קמא": [1],
+        'פ"ק': [1, 100],  # this is inherently ambiguous (1 or 100)
+        "פרק בתרא": [-1]
+    }
     section_patterns = {
         "en": r"""(?:(?:[Cc]h(apters?|\.)|[Pp]erek|s\.)?\s*)""",  # the internal ? is a hack to allow a non match, even if 'strict'
         "he": r"""(?:\u05d1?\u05e4(?:"|\u05f4|''|'\s)                  # Peh (for 'perek') maybe followed by a quote of some sort
         |\u05e4\u05bc?\u05b6?\u05e8\u05b6?\u05e7(?:\u05d9\u05b4?\u05dd)?\s*                  # or 'perek(ym)' spelled out, followed by space
         )"""
     }
+
+    def regex(self, lang, group_id=None, **kwargs):
+        reg = super().regex(lang, group_id, **kwargs)
+        if kwargs.get('with_special_cases', False):
+            reg = fr"(?:(?P<specialCases>{'|'.join(self.special_cases.keys())})|{reg})"
+        return reg
+
+    def to_numeric_possibilities(self, lang, s):
+        return self.special_cases.get(s, super().to_numeric_possibilities(lang, s))
 
 
 class AddressPasuk(AddressInteger):
