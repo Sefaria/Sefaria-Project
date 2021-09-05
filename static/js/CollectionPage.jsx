@@ -89,7 +89,6 @@ class CollectionPage extends Component {
         alert(data.error);
       } else {
         Sefaria._collections[this.props.slug] = data.collection;
-        this.sortSheetData(data.collection);
         this.setState({collectionData: data.collection});
       }
       this.pinning = false;
@@ -100,9 +99,10 @@ class CollectionPage extends Component {
     this.pinning = true;
   }
   sortSheets(option, a, b) {
-    const [ai, bi] = [a, b].map(x => this.state.collectionData.pinnedSheets.indexOf(x.id));
+    // if x is not pinned, indexOf will return -1. Add 1 to make it zero and then convert to very high number so it will be sorted after pinned sheets
+    const [ai, bi] = [a, b].map(x => (this.state.collectionData.pinnedSheets.indexOf(x.id)+1) || 1e7);
     if (ai !== bi) {
-      return  ai < bi ? -1 : 1;
+      return  ai - bi;
     
     } else if (option == "Recent") {
       return Date.parse(b.modified) - Date.parse(a.modified);
@@ -344,7 +344,7 @@ const CollectionAbout = ({collection, isAdmin, toggleLanguage}) => (
 
 
 const EditCollectionButton = ({slug}) => (
-  <a class="button small white" href={`/collections/${slug}/settings`}>
+  <a className="button small white" href={`/collections/${slug}/settings`}>
     <img className="buttonIcon" src="/static/icons/tools-write-note.svg" /><InterfaceText>Edit</InterfaceText>
   </a>
 );
