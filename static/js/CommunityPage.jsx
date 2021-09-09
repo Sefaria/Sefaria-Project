@@ -75,6 +75,7 @@ CommunityPage.propTypes = {
 
 const RecentlyPublished = ({multiPanel, toggleSignUpModal}) => {
   const options = Sefaria.interfaceLang === "hebrew" ? {"lang": "hebrew"} : {};
+  options["filtered"] = true;
   const pageSize = 18;
   const [nSheetsLoaded, setNSheetsLoded] = useState(0); // counting sheets loaded from the API, may be different than sheets displayed
   // Start with recent sheets in the cache, if any

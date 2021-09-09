@@ -297,7 +297,7 @@ CACHES = {
 }
 
 
-GLOBAL_INTERRUPTING_MESSAGE = {
+"""GLOBAL_INTERRUPTING_MESSAGE = {
     "name":       "rosh-hashannah-appeal-2021-modal",
     "style":      "modal", # "modal" or "banner"
     "repetition": 1,
@@ -308,8 +308,8 @@ GLOBAL_INTERRUPTING_MESSAGE = {
         "desktop_only": False,
         "debug": False,
     }
-}
-#GLOBAL_INTERRUPTING_MESSAGE = None
+}"""
+GLOBAL_INTERRUPTING_MESSAGE = None
 
 # Grab environment specific settings from a file which
 # is left out of the repo.

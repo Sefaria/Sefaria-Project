@@ -8691,20 +8691,24 @@ span.purim-emoji img{
   content: "";
   margin-inline-start:-34px;
   position: absolute;
-  width: 25px;
-  height: 25px;
+  width: 30px;
+  height: 30px;
   transform: rotate(45deg);
   background-color; white;
-  background-image: url("/static/icons/x-plus.svg");
+  background-image: url("/static/icons/heavy-x.svg");
   border: 1px solid var(--light-grey);
-  background-size: contain;
+  background-size: 12px;
   border-radius: 50%;
   pointer-events:auto;
   cursor: pointer;
+  background-repeat: no-repeat;
+  background-position: center;
+  box-sizing: border-box;
 }
 
 .editorAddInterface.active {
   background-color: white;
+  line-height: initial;
 }
 .editorAddInterface.active:before {
   transform: rotate(0);
@@ -8787,16 +8791,26 @@ span.purim-emoji img{
 
 .addInterfaceInput input {
   min-width: 350px;
+  max-width: 450px;
   border-radius: 250px;
   border: none;
   box-shadow: none;
   box-sizing: border-box;
   font-size: 22px;
   padding-inline-start: 30px;
-  background: url("/static/icons/iconmonstr-magnifier-2-240.svg") no-repeat scroll 7px 7px;
+  padding-top: revert;
+  margin-inline-end: 20px;
+  background: url("/static/icons/iconmonstr-magnifier-2-240.svg") no-repeat scroll left 7px top 7px;
   background-color: var(--lighter-grey);
-
 }
+.addInterfaceInput.mediaInput input {
+  background: url("/static/icons/link_grey.svg") no-repeat scroll left 7px top 7px;
+  background-color: var(--lighter-grey);
+}
+.readerApp.interface-hebrew .addInterfaceInput input {
+  background-position: right 7px top 7px;
+}
+
 .addInterfaceInput input::placeholder {
   font-size: 22px;
   font-style: normal;
@@ -8811,9 +8825,9 @@ span.purim-emoji img{
 .editorAddInterface.active .editorAddInterfaceButton {
   width: 30px;
   height: 30px;
-  padding: 5px;
+  padding: 10px;
   display: inline-block;
-  background-size: contain;
+  background-size: auto 12px;
   background-repeat: no-repeat;
   background-position: center;
   border-radius: 6px;
