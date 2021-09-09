@@ -127,7 +127,6 @@ io.on("connection", (socket) => {
 
     //notify open chats that user left
     const roomArray = Array.from(socket.rooms);
-    console.log("roomArray", roomArray)
     roomArray.forEach(room =>  {
       if (room !== socket.id) {
         socket.to(room).emit("leaving chat room")
