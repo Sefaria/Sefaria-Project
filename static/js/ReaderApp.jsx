@@ -107,7 +107,7 @@ class ReaderApp extends Component {
       initialAnalyticsTracked: false,
       showSignUpModal: false,
       translationLanguagePreference: props.translationLanguagePreference,
-      beitMidrashStatus: Sefaria._uid ? "full" : false,
+      beitMidrashStatus: Sefaria._uid && props.customBeitMidrashId ? "full" : false,
       beitMidrashId: props.customBeitMidrashId ? props.customBeitMidrashId : "Sefaria",
       inCustomBeitMidrash: !!props.customBeitMidrashId,
     };
@@ -1700,9 +1700,6 @@ class ReaderApp extends Component {
     clipdata.setData('text/html', html);
     e.preventDefault();
   }
-  setBeitMidrashStatus(status){
-    this.setState({beitMidrashStatus: status})
-  }
   rerender() {
     this.forceUpdate();
     this.setContainerMode();
@@ -1868,8 +1865,7 @@ class ReaderApp extends Component {
     }
     var boxClasses = classNames({wrapBoxScroll: wrapBoxScroll});
     var boxWidth = wrapBoxScroll ? this.state.windowWidth + "px" : "100%";
-    var boxStyle = this.state.beitMidrashStatus === "full" ? {width: `calc(${boxWidth} - 300px)`} : 
-                   this.state.beitMidrashStatus === "closed" ? {width: `calc(${boxWidth} - 30px)`} : {width: boxWidth};
+    var boxStyle = this.state.beitMidrashStatus ? {width: `calc(${boxWidth} - 300px)`} : {width: boxWidth};
     panels = panels.length ?
               (<div id="panelWrapBox" className={boxClasses} style={boxStyle}>
                 {panels}
@@ -1897,19 +1893,6 @@ class ReaderApp extends Component {
           <BeitMidrash
             socket={io(`//${Sefaria.rtc_server}`, {autoConnect: false})}
             beitMidrashId = {this.state.beitMidrashId}
-            setBeitMidrashStatus = {this.setBeitMidrashStatus}
-          />
-      </div>
-    )
-
-    const beitMidrashPanelClosed = (
-      <div id='beitMidrash' style={{width: 30,
-                                    marginInlineStart: "auto",
-                                    marginInlineEnd: 0,
-                                    height: `calc(100% - 60px)`,
-                                    marginTop: 60}}>
-          <BeitMidrashClosed
-            setBeitMidrashStatus = {this.setBeitMidrashStatus}
           />
       </div>
     )
@@ -1927,8 +1910,7 @@ class ReaderApp extends Component {
           {panels}
           {sefariaModal}
           {communityPagePreviewControls}
-          {this.state.beitMidrashStatus === "full" ? beitMidrashPanel : 
-            this.state.beitMidrashStatus === "closed" ? beitMidrashPanelClosed : null}
+          {beitMidrashPanel}
           <CookiesNotification />
         </div>
       </div>
