@@ -709,7 +709,7 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
 
     if (inputType == "media") {
         return (
-            <div className="addInterfaceInput" title="We can process YouTube and SoundCloud links, and hosted mp3's and images" onClick={(e)=> {e.stopPropagation()}}>
+            <div className="addInterfaceInput mediaInput" title="We can process YouTube and SoundCloud links, and hosted mp3's and images" onClick={(e)=> {e.stopPropagation()}}>
                 <input
                     type="text"
                     placeholder="Paste a media link..."
@@ -718,7 +718,7 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
                     onChange={(e) => onMediaChange(e)}
                     value={inputValue}
                 />
-                {showAddMediaButton ? <button onClick={(e) => {
+                {showAddMediaButton ? <button className="button small" onClick={(e) => {
                     addMedia()
                 }}>Add Media</button> : null}
             </div>

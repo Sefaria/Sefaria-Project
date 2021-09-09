@@ -8748,10 +8748,17 @@ span.purim-emoji img{
   padding-inline-start: 30px;
   padding-top: revert;
   margin-inline-end: 20px;
-  background: url("/static/icons/iconmonstr-magnifier-2-240.svg") no-repeat scroll 7px 7px;
+  background: url("/static/icons/iconmonstr-magnifier-2-240.svg") no-repeat scroll left 7px top 7px;
   background-color: var(--lighter-grey);
-
 }
+.addInterfaceInput.mediaInput input {
+  background: url("/static/icons/link_grey.svg") no-repeat scroll left 7px top 7px;
+  background-color: var(--lighter-grey);
+}
+.readerApp.interface-hebrew .addInterfaceInput input {
+  background-position: right 7px top 7px;
+}
+
 .addInterfaceInput input::placeholder {
   font-size: 22px;
   font-style: normal;
