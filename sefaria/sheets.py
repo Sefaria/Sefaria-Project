@@ -158,8 +158,11 @@ def user_sheets(user_id, sort_by="date", limit=0, skip=0, private=True):
 	return response
 
 
-def public_sheets(sort=[["datePublished", -1]], limit=50, skip=0, lang=None):
-	query = {"status": "public"}
+def public_sheets(sort=[["datePublished", -1]], limit=50, skip=0, lang=None, filtered=False):
+	if filtered:
+		query = {"status": "public", "sources.ref": {"$exists": True}}
+	else:
+		query = {"status": "public"}
 	if lang:
 		query["sheetLanguage"] = lang
 	response = {

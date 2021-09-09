@@ -959,7 +959,8 @@ def all_sheets_api(request, limiter, offset=0):
     limiter  = int(limiter)
     offset   = int(offset)
     lang     = request.GET.get("lang")
-    response = public_sheets(limit=limiter, skip=offset, lang=lang)
+    filtered = request.GET.get("filtered", False)
+    response = public_sheets(limit=limiter, skip=offset, lang=lang, filtered=filtered)
     response = jsonResponse(response, callback=request.GET.get("callback", None))
     return response
 
