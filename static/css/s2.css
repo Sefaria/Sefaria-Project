@@ -7578,6 +7578,30 @@ h3.aboutSheetHeader {
   height: 0px;
   border: 1px solid var(--light-grey);
 }
+.aboutSheetPanel div.description {
+  color: var(--dark-grey);
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: var(--sans-serif-body-font-size);
+  margin: 20px 0px;
+}
+.aboutSheetPanel h2 {
+  font-size: var(--serif-h3-font-size);
+  color: #000000;
+  text-transform: none;
+  margin: 0px;
+
+}
+div.aboutSheetPanel > div.authorStatement {
+    font-size: 16px;
+    margin: 20px 0px;
+}
+.aboutSheetPanel h3.aboutSheetSubtitle {
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  margin-top: 5px;
+  margin-bottom: 20px;
+}
 div.aboutSheetMetadata {
   color: var(--medium-grey);
   --english-font: var(--english-sans-serif-font-family);
@@ -7585,6 +7609,7 @@ div.aboutSheetMetadata {
   font-size: var(--sans-serif-small-font-size);
   display: flex;
   flex-direction: column;
+  margin: 10px 0px;
 }
 .hebrew .topicPanel .topicSource .score img {
   margin: -4px 2px 0 0;

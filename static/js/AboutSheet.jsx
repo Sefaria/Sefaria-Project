@@ -20,8 +20,10 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
         };
     }, [masterPanelSheetId]);
     return (<div className="aboutSheetPanel">
+    <div className="aboutSheetTopHeaders">
         <h2 className="aboutHeader">{title}</h2>
-        <div>Sheet</div>
+        <h3 className="aboutSheetSubtitle">Sheet</h3>
+    </div>
         <SheetAuthorStatement
             authorUrl={sheet.ownerProfileUrl}
             authorStatement={sheet.ownerName}
@@ -38,8 +40,8 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
         </SheetAuthorStatement>
         {sheet.summary ? <div className="description" dangerouslySetInnerHTML={{ __html: sheet.summary }}></div> : null}
         <div className="aboutSheetMetadata">
-            <div>Created: {Sefaria.util.naturalTime(sheet.dateCreated, "en")}</div>
-            <div>{sheet.views} views, {sheetSaves.length} saves.</div>
+            <div>Created: {Sefaria.util.localeDate(sheet.dateCreated)}</div>
+            <div>{sheet.views} views, {sheetSaves.length} Saves</div>
             {sheet.status !== 'public' ? (<div><span className="unlisted"><img src="/static/img/eye-slash.svg"/><span>{Sefaria._("Not Published")}</span></span></div>) : undefined}
         </div>
         {sheet.collections.length > 0 ?
@@ -58,7 +60,7 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
         }
 
         {sheet.topics && sheet.topics.length > 0 ?
-                    <div>
+                    <div className="readings">
                       <h3 className="aboutSheetHeader"><InterfaceText>Topics</InterfaceText></h3>
                       <hr/>
                       <div>
