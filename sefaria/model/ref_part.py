@@ -202,7 +202,8 @@ class ResolvedRawRef:
             matches += self._get_refined_refs_for_numbered_part(raw_ref_part, refined_ref_parts, node, lang)
         elif raw_ref_part.type == RefPartType.RANGE and isinstance(node, schema.JaggedArrayNode):
             matches += self._get_refined_matches_for_ranged_part(raw_ref_part, refined_ref_parts, node, lang)
-        elif raw_ref_part.type == RefPartType.NAMED and isinstance(node, schema.TitledTreeNode):
+        elif (raw_ref_part.type == RefPartType.NAMED and isinstance(node, schema.TitledTreeNode) or
+        raw_ref_part.type == RefPartType.NUMBERED and isinstance(node, schema.ArrayMapNode)):  # for case of numbered alt structs
             if node.ref_part_title_trie(lang).has_continuations(raw_ref_part.text):
                 matches += [ResolvedRawRef(self.raw_ref, refined_ref_parts, node, node.ref())]
         elif raw_ref_part.type == RefPartType.DH:
@@ -222,44 +223,41 @@ class RefPartTitleTrie:
 
     PREFIXES = {'ב'}
 
-    def __init__(self, lang, nodes=None, sub_trie=None, context=None) -> None:
+    def __init__(self, lang, nodes=None, sub_trie=None, scope=None) -> None:
         """
         :param lang:
         :param nodes:
         :param sub_trie:
-        :param context: str. context of the trie. if 'root', take into account 'aloneRefPartTermPrefixes'.
+        :param scope: str. scope of the trie. if 'alone', take into account `ref_parts` marked with scope "alone" or "any".
         """
         self.lang = lang
-        self.context = context
+        self.scope = scope
         if nodes is not None:
             self.__init_with_nodes(nodes)
         else:
             self._trie = sub_trie
 
     def __init_with_nodes(self, nodes):
+        # TODO this function is waaay too nested
         self._trie = {}
         for node in nodes:
             is_index_level = getattr(node, 'index', False) and node == node.index.nodes
-            ref_part_terms = node.ref_part_terms[:]
-            optional_terms = getattr(node, 'ref_parts_optional', [False]*len(node.ref_part_terms))[:]
-            if not is_index_level and self.context == 'root':
-                alone_prefixes = getattr(node, "aloneRefPartTermPrefixes", [])
-                ref_part_terms = alone_prefixes + ref_part_terms
-                optional_terms = [False]*len(alone_prefixes) + optional_terms
-
             curr_dict_queue = [self._trie]
-            for term_slug, optional in zip(ref_part_terms, optional_terms):
-                term = NonUniqueTerm.init(term_slug)
+            for ref_part in node.ref_parts:
+                slugs = [slug for slug, _ in filter(lambda x: is_index_level or self.scope == 'any' or x[1] in {'any', self.scope}, zip(ref_part['slugs'], ref_part['scopes']))]
+                if len(slugs) == 0: continue
+                terms = [NonUniqueTerm.init(slug) for slug in slugs]
                 len_curr_dict_queue = len(curr_dict_queue)
                 for _ in range(len_curr_dict_queue):
-                    curr_dict = curr_dict_queue[0] if optional else curr_dict_queue.pop(0)  # dont remove curr_dict if optional. leave it for next level to add to.
-                    for title in term.get_titles(self.lang):
-                        if title in curr_dict:
-                            temp_dict = curr_dict[title]
-                        else:
-                            temp_dict = {}
-                            curr_dict[title] = temp_dict
-                        curr_dict_queue += [temp_dict]
+                    curr_dict = curr_dict_queue[0] if ref_part['optional'] else curr_dict_queue.pop(0)  # dont remove curr_dict if optional. leave it for next level to add to.
+                    for term in terms:
+                        for title in term.get_titles(self.lang):
+                            if title in curr_dict:
+                                temp_dict = curr_dict[title]
+                            else:
+                                temp_dict = {}
+                                curr_dict[title] = temp_dict
+                            curr_dict_queue += [temp_dict]
             # add nodes to leaves
             # None key indicates this is a leaf                            
             for curr_dict in curr_dict_queue:
@@ -275,7 +273,7 @@ class RefPartTitleTrie:
     def get(self, key, default=None):
         sub_trie = self._trie.get(key, default)
         if sub_trie is None: return
-        return RefPartTitleTrie(self.lang, sub_trie=sub_trie)
+        return RefPartTitleTrie(self.lang, sub_trie=sub_trie, scope=self.scope)
 
     def has_continuations(self, key):
         return self.get_continuations(key, default=None) is not None
@@ -307,7 +305,7 @@ class RefPartTitleTrie:
         if len(continuations) == 0:
             return default
         merged = self._merge_n_tries(*continuations)
-        return RefPartTitleTrie(self.lang, sub_trie=merged)
+        return RefPartTitleTrie(self.lang, sub_trie=merged, scope=self.scope)
 
     def _get_continuations_recursive(self, key: str, prev_sub_tries=None):
         is_first = prev_sub_tries is None

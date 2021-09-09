@@ -907,9 +907,10 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
     def get_referenceable_alone_nodes(self):
         alone_nodes = []
         for child in self.all_children():
-            if getattr(child, "referenceableAlone", False):
+            if any([len({'alone', 'any'} & set(part['scopes'])) > 0 for part in getattr(child, "ref_parts", [])]):
                 alone_nodes += [child]
-            alone_nodes += list(filter(lambda x: getattr(x, "referenceableAlone", False), child.all_children()))
+            # TODO used to be hard-coded to include grandchildren as well. Can't be recursive unless we add this to SchemaNode as well.
+            # alone_nodes += child.get_referenceable_alone_nodes()
         return alone_nodes
 
 class IndexSet(abst.AbstractMongoSet):
@@ -5239,9 +5240,9 @@ class Library(object):
 
     def _build_root_ref_part_titles(self, lang):
         from .ref_part import RefPartTitleTrie
-        root_nodes = list(filter(lambda n: getattr(n, 'ref_part_terms', None) is not None, self.get_index_forest()))
+        root_nodes = list(filter(lambda n: getattr(n, 'ref_parts', None) is not None, self.get_index_forest()))
         alone_nodes = reduce(lambda a, b: a + b.index.get_referenceable_alone_nodes(), root_nodes, [])
-        self._root_ref_part_title_trie = RefPartTitleTrie(lang, nodes=(root_nodes + alone_nodes), context='root')
+        self._root_ref_part_title_trie = RefPartTitleTrie(lang, nodes=(root_nodes + alone_nodes), scope='alone')
         return self._root_ref_part_title_trie
 
                         

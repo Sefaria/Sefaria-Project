@@ -53,8 +53,12 @@ def get_dh_regexes(index, comm_term_slug):
     return reg_map.get(index.title, reg_map.get(comm_term_slug))
 
 
-def modify_talmud_commentaries(fast=False):
-    DiburHamatchilNodeSet().delete()
+def modify_talmud_commentaries(fast=False, create_dhs=False):
+    """
+    index_only. true when you don't want to touch existing dh's in db
+    """
+    if create_dhs:
+        DiburHamatchilNodeSet().delete()
     for comm_ref_prefix, comm_term_slug, comm_cat_path in (
         ('Rashi on ', 'rashi', ['Talmud', 'Bavli', 'Rishonim on Talmud', 'Rashi']),
         ('Tosafot on ', 'tosafot', ['Talmud', 'Bavli', 'Rishonim on Talmud', 'Tosafot']),
@@ -64,7 +68,8 @@ def modify_talmud_commentaries(fast=False):
         for index in tqdm(indexes, desc=comm_term_slug, total=indexes.count()):
             # if "Nedarim" not in index.title: continue
             add_new_fields_to_commentary_root_node(comm_ref_prefix, comm_term_slug, index, fast)
-            add_dibur_hamatchils(comm_ref_prefix, index)
+            if create_dhs:
+                add_dibur_hamatchils(comm_ref_prefix, index)
             add_alt_structs_to_talmud_commentaries(comm_ref_prefix, comm_term_slug, index)
 
 
@@ -75,8 +80,18 @@ def add_new_fields_to_commentary_root_node(comm_ref_prefix, comm_term_slug, inde
 
     masechet_slug = AbstractMongoRecord.normalize_slug(base_index.title)
     assert NonUniqueTerm.init(masechet_slug).get_primary_title('en') == base_index.title, f'base index: {base_index.title}. slug: {masechet_slug}'
-    n.ref_part_terms = [comm_term.slug, masechet_slug]
-    n.ref_parts_optional = [False, False]
+    n.ref_parts = [
+        {
+            "slugs": [comm_term.slug],
+            "optional": False,
+            "scopes": ["combined"]
+        },
+        {
+            "slugs": [masechet_slug],
+            "optional": False,
+            "scopes": ["combined"]
+        }
+    ]
     n.isSegmentLevelDiburHamatchil = True
     n.referenceableSections = [True, False, True]
     n.diburHamatchilRegexes = get_dh_regexes(index, comm_term_slug)
@@ -116,19 +131,27 @@ def add_alt_structs_to_talmud_commentaries(comm_ref_prefix, comm_term_slug, inde
     for perek_node in base_alt_struct.children:
         perek_node.wholeRef = comm_ref_prefix + perek_node.wholeRef
         perek_node.isSegmentLevelDiburHamatchil = True
-        perek_node.aloneRefPartTermPrefixes = [comm_term_slug]
+        perek_node.ref_parts = [
+            {
+                "slugs": [comm_term_slug],
+                "optional": False,
+                "scopes": ["alone"]
+            }
+        ] + perek_node.ref_parts
     base_alt_struct.validate()
     index.set_alt_structure("Chapters", base_alt_struct)
     index.save()
     for perek_node in base_alt_struct.children:
         perek_node.wholeRef = perek_node.wholeRef[len(comm_ref_prefix):]
         delattr(perek_node, 'isSegmentLevelDiburHamatchil')
-        delattr(perek_node, 'aloneRefPartTermPrefixes')
+        perek_node.ref_parts = perek_node.ref_parts[1:]
 
 
 def modify_talmud(fast=False):
     perek = NonUniqueTerm.init('perek')
     bavli = NonUniqueTerm.init('bavli')
+    perakim_num_terms = [NonUniqueTerm.init(ord_en) for ord_en in ['first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth']]
+    last_term = NonUniqueTerm.init('last')
     minor_tractates = {title for title in library.get_indexes_in_category("Minor Tractates")}
     indexes = library.get_indexes_in_category("Bavli", full_records=True)
     for index in tqdm(indexes, desc='talmud', total=indexes.count()):
@@ -138,15 +161,35 @@ def modify_talmud(fast=False):
             "titles": index.nodes.title_group.titles
         })
         index_term.save()
-        index.nodes.ref_part_terms = [bavli.slug, index_term.slug]
-        index.nodes.ref_parts_optional = [True, False]
-
+        index.nodes.ref_parts = [
+            {
+                "slugs": [bavli.slug],
+                "optional": True,
+                "scopes": ["combined"]
+            },
+            {
+                "slugs": [index_term.slug],
+                "optional": False,
+                "scopes": ["combined"]
+            }
+        ]
         # add perek terms
-        for perek_node in index.get_alt_struct_nodes():
+        perakim = index.get_alt_struct_nodes()
+        for iperek, perek_node in enumerate(perakim):
             perek_term = t(he=perek_node.get_primary_title('he'))  # TODO english titles are 'Chapter N'. Is that an issue?
-            perek_node.ref_part_terms = [perek.slug, perek_term.slug]
-            perek_node.ref_parts_optional = [True, False]
-            perek_node.referenceableAlone = True
+            is_last = iperek == len(perakim)-1
+            perek_node.ref_parts = [
+                {
+                    "slugs": [perek.slug],
+                    "optional": True,
+                    "scopes": ["any"]
+                },
+                {
+                    "slugs": [perek_term.slug, perakim_num_terms[min(iperek, 9)].slug] + ([last_term.slug] if is_last else []),  # TODO get rid of min()
+                    "optional": False,
+                    "scopes": ["any", "combined"] + (["combined"] if is_last else [])
+                }
+            ]
         if fast:
             fast_index_save(index)
         else:
@@ -163,20 +206,63 @@ def modify_tanakh(fast=False):
             "titles": index.nodes.title_group.titles
         })
         index_term.save()
-        index.nodes.ref_part_terms = [sefer.slug, index_term.slug]
-        index.nodes.ref_parts_optional = [True, False]
+        index.nodes.ref_parts = [
+            {
+                "slugs": [sefer.slug],
+                "optional": True,
+                "scopes": ["combined"]
+            },
+            {
+                "slugs": [index_term.slug],
+                "optional": False,
+                "scopes": ["combined"]
+            }
+        ]
 
         # add parsha terms
         if index.categories[-1] == 'Torah':
             for parsha_node in index.get_alt_struct_nodes():
                 parsha_term = t_from_titled_obj(parsha_node)
-                parsha_node.ref_part_terms = [parasha.slug, parsha_term.slug]
-                parsha_node.ref_parts_optional = [True, False]
-                parsha_node.referenceableAlone = True
+                parsha_node.ref_parts = [
+                    {
+                        "slugs": [parasha.slug],
+                        "optional": True,
+                        "scopes": ["any"]
+                    },
+                    {
+                        "slugs": [parsha_term.slug],
+                        "optional": False,
+                        "scopes": ["any"]
+                    }
+                ]
         if fast:
             fast_index_save(index)
         else:
             index.save()
+
+
+def create_numeric_perek_terms():
+    from sefaria.utils.hebrew import encode_hebrew_numeral
+    ord_en = ['first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth']
+    ordinals = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'ששי', 'שביעי', 'שמיני', 'תשיעי', 'עשירי']
+    cardinals = ['אחד', 'שניים', 'שלוש', 'ארבע', 'חמש', 'שש', 'שבע', 'שמנה', 'תשע', 'עשר']
+    for i in range(1, 11):
+        gemat = encode_hebrew_numeral(i, punctuation=False)
+        gemat_punc = encode_hebrew_numeral(i)
+        titles = [
+            f'פ"{gemat}',
+            gemat,
+            gemat_punc,
+            gemat_punc.replace("\u05F3", "'").replace("\u05F4", '"'),
+            cardinals[i-1],
+        ]
+        if i == 1:
+            titles += [
+                'קמא',
+                'פ"ק',
+            ]
+        t(en=ord_en[i-1], he=ordinals[i-1], alt_he=titles)
+    t(en='last', he='בתרא')
 
 
 def create_base_non_unique_terms():
@@ -189,10 +275,12 @@ def create_base_non_unique_terms():
     t(en='Perek', he='פרק')
     t(en='Sefer', he='ספר')
     t_from_titled_obj(Term().load({"name": "Parasha"}))
+    create_numeric_perek_terms()
 
 if __name__ == "__main__":
     fast = True
+    create_dhs = False
     create_base_non_unique_terms()
     modify_talmud(fast)
     modify_tanakh(fast)
-    modify_talmud_commentaries(fast)
+    modify_talmud_commentaries(fast, create_dhs)
