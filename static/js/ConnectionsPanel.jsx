@@ -33,6 +33,7 @@ import { CollectionsModal } from './CollectionsWidget';
 
 import classNames from 'classnames';
 import Component from 'react-class';
+import TextTableOfContents from "./BookPage";
 
 class ConnectionsPanel extends Component {
   constructor(props) {
@@ -297,12 +298,17 @@ class ConnectionsPanel extends Component {
           <div>
               { this.state.flashMessage ? <div className="flashMessage sans-serif">{this.state.flashMessage}</div> : null }
               { this.props.masterPanelMode === "Sheet" ? 
-               <SheetToolsList
-                 setConnectionsMode={this.props.setConnectionsMode}
-                 masterPanelSheetId={this.props.masterPanelSheetId}
-                 toggleSignUpModal={this.props.toggleSignUpModal}
-               /> : null }
-              <ToolsButton en="About this Text" he="אודות הטקסט" image="about-text.svg" onClick={() => this.props.setConnectionsMode("About")} />
+                   <SheetToolsList
+                     setConnectionsMode={this.props.setConnectionsMode}
+                     masterPanelSheetId={this.props.masterPanelSheetId}
+                     toggleSignUpModal={this.props.toggleSignUpModal}
+                   />
+                  :
+                  <>
+                  <ToolsButton en="About this Text" he="אודות הטקסט" image="about-text.svg" onClick={() => this.props.setConnectionsMode("About")} />
+                  <ToolsButton en="Table of Contents" he="תוכן העניינים" image="text-navigation.svg" onClick={() => this.props.setConnectionsMode("Navigation")} />
+                  </>
+              }
               {showConnectionSummary ?
                   <ConnectionsPanelSection title="Related Texts">
                       <ConnectionsSummary
@@ -342,6 +348,16 @@ class ConnectionsPanel extends Component {
           </div>
       );
 
+    }else if(this.props.mode == "Navigation"){
+        content = (
+            <TextTableOfContents
+                narrowPanel={this.props.narrowPanel}
+                title={this.props.title}
+                close={this.props.close}
+                showBaseText={this.props.showBaseText}
+                currVersions={this.props.currVersions}
+            />
+        );
     } else if (this.props.mode === "ConnectionsList") {
       content = (<ConnectionsSummary
                     srefs={this.props.srefs}
