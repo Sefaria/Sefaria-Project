@@ -19,7 +19,7 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
             getRefSavedHistory.cancel();
         };
     }, [masterPanelSheetId]);
-    return (<div>
+    return (<div className="aboutSheetPanel">
         <h2 className="aboutHeader">{title}</h2>
         <div>Sheet</div>
         <SheetAuthorStatement
@@ -37,34 +37,42 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
             </a>
         </SheetAuthorStatement>
         {sheet.summary ? <div className="description" dangerouslySetInnerHTML={{ __html: sheet.summary }}></div> : null}
-        <div>
-            Created: {Sefaria.util.naturalTime(sheet.dateCreated, "en")}
-            {sheet.views} views, {sheetSaves.length} saves.
+        <div className="aboutSheetMetadata">
+            <div>Created: {Sefaria.util.naturalTime(sheet.dateCreated, "en")}</div>
+            <div>{sheet.views} views, {sheetSaves.length} saves.</div>
+            {sheet.status !== 'public' ? (<div><span className="unlisted"><img src="/static/img/eye-slash.svg"/><span>{Sefaria._("Not Published")}</span></span></div>) : undefined}
         </div>
         {sheet.collections.length > 0 ?
-            <div className="tocDetails tagsSection">
-                <h3><InterfaceText>Collections</InterfaceText></h3>
-                {sheet.collections.map((collection) => {
-                    <div>{collection.name}</div>
-                })}
+            <div className="aboutLinks">
+                <h3 className="aboutSheetHeader"><InterfaceText>Collections</InterfaceText></h3>
+                <hr/>
+                <div>
+                <ul className="aboutSheetLinks">
+                {sheet.collections.map((collection, i) => (
+                    <li key={i}><a href={"/collections/"+collection.slug}><InterfaceText>{collection.name}</InterfaceText></a></li>
+                ))}
+                </ul>
+                </div>
             </div> : null
 
         }
 
         {sheet.topics && sheet.topics.length > 0 ?
-                    <div className="tocDetails tagsSection">
-                      <h3><InterfaceText>Tags</InterfaceText></h3>
+                    <div>
+                      <h3 className="aboutSheetHeader"><InterfaceText>Topics</InterfaceText></h3>
+                      <hr/>
                       <div>
-                        {sheet.topics.map((topic, i) => (
-                            <a href={"/topics/" + topic.slug}
+                      <ul className="aboutSheetLinks">
+                      {sheet.topics.map((topic, i) => (
+                            <li key={i}><a href={"/topics/" + topic.slug}
                               target="_blank"
-                              className="sheetTag button"
-                              key={i}
+
                             >
                               <InterfaceText text={{en:topic.en, he:topic.he}} />
-                            </a>
+                            </a></li>
                           ))
                         }
+                      </ul>
                       </div>
                     </div> : null }
     </div>

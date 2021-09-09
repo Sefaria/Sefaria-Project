@@ -7559,6 +7559,33 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   margin: -4px 0 0 2px;
   opacity: 0.6;
 }
+ul.aboutSheetLinks {
+  list-style-type: none;
+  padding-left: 0;
+  --english-font: var(--english-serif-font-family);
+  --hebrew-font: var(--hebrew-serif-font-family);
+  font-size: var(--serif-body-font-size);
+}
+h3.aboutSheetHeader {
+  text-transform: none;
+  color: var(--dark-grey);
+  font-size: var(--sans-serif-h3-font-size);
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  margin-bottom: 10px;
+}
+.aboutSheetPanel hr {
+  height: 0px;
+  border: 1px solid var(--light-grey);
+}
+div.aboutSheetMetadata {
+  color: var(--medium-grey);
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: var(--sans-serif-small-font-size);
+  display: flex;
+  flex-direction: column;
+}
 .hebrew .topicPanel .topicSource .score img {
   margin: -4px 2px 0 0;
 }
