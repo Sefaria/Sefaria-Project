@@ -107,7 +107,7 @@ class ReaderApp extends Component {
       initialAnalyticsTracked: false,
       showSignUpModal: false,
       translationLanguagePreference: props.translationLanguagePreference,
-      beitMidrashStatus: Sefaria._uid && props.customBeitMidrashId ? "full" : false,
+      beitMidrashStatus: Sefaria._uid && props.customBeitMidrashId ? true : false,
       beitMidrashId: props.customBeitMidrashId ? props.customBeitMidrashId : "Sefaria",
       inCustomBeitMidrash: !!props.customBeitMidrashId,
     };
@@ -1910,7 +1910,7 @@ class ReaderApp extends Component {
           {panels}
           {sefariaModal}
           {communityPagePreviewControls}
-          {beitMidrashPanel}
+          {beitMidrashStatus ? beitMidrashPanel : null}
           <CookiesNotification />
         </div>
       </div>
