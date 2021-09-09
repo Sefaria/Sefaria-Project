@@ -190,6 +190,10 @@ def modify_talmud(fast=False):
                     "scopes": ["any", "combined"] + (["combined"] if is_last else [])
                 }
             ]
+        try:
+            delattr(index.nodes, 'checkFirst')
+        except KeyError:
+            pass
         if fast:
             fast_index_save(index)
         else:
@@ -241,6 +245,38 @@ def modify_tanakh(fast=False):
             index.save()
 
 
+def modify_mishnah(fast=False):
+    def remove_prefixes(title_dict:dict):
+        title_dict = title_dict.copy()
+        title_dict['text'] = re.sub(fr'^({"|".join(mishnah.get_titles())}) ', '', title_dict['text'])
+        return title_dict
+
+    mishnah = NonUniqueTerm.init('mishnah')
+    indexes = library.get_indexes_in_category("Mishnah", full_records=True)
+    for index in tqdm(indexes, desc='mishnah', total=indexes.count()):
+        index_term = NonUniqueTerm({
+            "slug": index.title,
+            "titles": list(map(remove_prefixes, index.nodes.title_group.titles))
+        })
+        index_term.save()
+        index.nodes.ref_parts = [
+            {
+                "slugs": [mishnah.slug],
+                "optional": True,
+                "scopes": ["combined"]
+            },
+            {
+                "slugs": [index_term.slug],
+                "optional": False,
+                "scopes": ["combined"]
+            }
+        ]
+        if fast:
+            fast_index_save(index)
+        else:
+            index.save()
+
+
 def create_numeric_perek_terms():
     from sefaria.utils.hebrew import encode_hebrew_numeral
     ord_en = ['first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth']
@@ -270,6 +306,7 @@ def create_base_non_unique_terms():
 
     t(en='Bavli', he='בבלי')
     t(en='Rashi', he='רש"י')
+    t(en='Mishnah', he='משנה', alt_en=['M.', 'M', 'Mishna'], alt_he=['משנה'])
     t(en='Tosafot', he='תוספות', alt_he=["תוס'", 'תוד"ה', 'תד"ה',])
     t(en='Ran', he='ר"ן')
     t(en='Perek', he='פרק')
@@ -283,4 +320,5 @@ if __name__ == "__main__":
     create_base_non_unique_terms()
     modify_talmud(fast)
     modify_tanakh(fast)
+    modify_mishnah(fast)
     modify_talmud_commentaries(fast, create_dhs)

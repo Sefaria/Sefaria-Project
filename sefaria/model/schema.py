@@ -2440,9 +2440,9 @@ class AddressAliyah(AddressInteger):
 
 class AddressPerek(AddressInteger):
     special_cases = {
-        "פרק קמא": [1],
+        "קמא": [1, 141],
         'פ"ק': [1, 100],  # this is inherently ambiguous (1 or 100)
-        "פרק בתרא": [-1]
+        "בתרא": [-1]
     }
     section_patterns = {
         "en": r"""(?:(?:[Cc]h(apters?|\.)|[Pp]erek|s\.)?\s*)""",  # the internal ? is a hack to allow a non match, even if 'strict'
