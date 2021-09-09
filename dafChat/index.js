@@ -270,7 +270,7 @@ io.on("connection", (socket) => {
   })
 
   socket.on('send sources', function(msg, name, room) {
-    console.log(room, msg["currentlyReading"])
+    console.log("received sources", room, msg["currentlyReading"])
     socket.to(room).emit('got sources', msg, name);
   })
 

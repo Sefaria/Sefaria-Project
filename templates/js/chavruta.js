@@ -27,7 +27,8 @@ const socket = io.connect('//{{ rtc_server }}');
 //broadcast channel
 const channel = Sefaria.broadcast("chavruta");
 const onChannelUpdate = (msg) => {
-socket.emit('send sources', msg, Sefaria.full_name, clientRoom);
+  console.log("onChannelUpdate", msg, clientRoom)
+  socket.emit('send sources', msg, Sefaria.full_name, clientRoom);
 
   //end call button
   const link = msg.history.url;
@@ -48,6 +49,7 @@ channel.addEventListener("message", (msg) => {
 });
 
 socket.io.on("reconnect", (attempt) => {
+  console.log("reconnected after", attempt, "attempts")
   socket.join(clientRoom);
   channel.removeEventListener("message")
   channel.addEventListener("message", (msg) => {
