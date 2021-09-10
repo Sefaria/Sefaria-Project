@@ -50,7 +50,7 @@ channel.addEventListener("message", (msg) => {
 
 socket.io.on("reconnect", (attempt) => {
   console.log("reconnected after", attempt, "attempts")
-  socket.join(clientRoom);
+  socket.emit('rejoin room', clientRoom)
   channel.removeEventListener("message")
   channel.addEventListener("message", (msg) => {
     onChannelUpdate(msg)

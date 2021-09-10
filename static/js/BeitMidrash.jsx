@@ -275,7 +275,7 @@ const BeitMidrashHome = ({beitMidrashId,
                         onUnblockUser,
                         }) => {
 
-    return (<div>
+    return (<div className="beitMidrashHomeContainer">
         <div>
         <div id="beitMidrashHeader">Beit Midrash</div>
         <div id="newCall"><a href="/chavruta"><img src="/static/img/camera_with_plus.svg" id="newCallImg" /><span>New Call</span></a></div>

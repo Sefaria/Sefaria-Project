@@ -274,4 +274,8 @@ io.on("connection", (socket) => {
     socket.to(room).emit('got sources', msg, name);
   })
 
+  socket.on('rejoin room', (room) => {
+    socket.join(room)
+  })
+
 });
