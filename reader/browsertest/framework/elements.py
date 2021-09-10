@@ -717,7 +717,7 @@ class SefariaTest(AbstractTest):
         try:
             self.click(selector)
         except:
-            self.click("a[data-name='more'")
+            self.click("a[data-name='more']")
             self.click(selector)
 
     def close_tab_and_return_to_prev_tab(self):
