@@ -418,7 +418,7 @@ class SefariaTest(AbstractTest):
         elem.send_keys(user)
         elem = self.driver.find_element_by_css_selector("#id_password")
         elem.send_keys(password)
-        self.click("button[type='submit'")
+        self.click("button#login-submit-button")
         self.wait_until_title_does_not_contain("Log in")
         self.wait_until_clickable(".header .home")
         return self
