@@ -1884,7 +1884,7 @@ class ReaderApp extends Component {
     const communityPagePreviewControls = this.props.communityPreview ?
       <CommunityPagePreviewControls date={this.props.communityPreview} /> : null;
 
-    const beitMidrashPanel = (
+    const beitMidrashPanel = this.state.beitMidrashStatus ? (
       <div id='beitMidrash' style={{width: 300,
                                     marginInlineStart: "auto",
                                     marginInlineEnd: 0,
@@ -1895,7 +1895,7 @@ class ReaderApp extends Component {
             beitMidrashId = {this.state.beitMidrashId}
           />
       </div>
-    )
+    ) : null
     
     var classDict = {readerApp: 1, multiPanel: this.props.multiPanel, singlePanel: !this.props.multiPanel};
     var interfaceLangClass = `interface-${this.props.interfaceLang}`;
@@ -1910,7 +1910,7 @@ class ReaderApp extends Component {
           {panels}
           {sefariaModal}
           {communityPagePreviewControls}
-          {beitMidrashStatus ? beitMidrashPanel : null}
+          {beitMidrashPanel}
           <CookiesNotification />
         </div>
       </div>
