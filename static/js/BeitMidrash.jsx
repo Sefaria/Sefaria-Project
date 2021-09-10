@@ -347,6 +347,14 @@ const ChavrutaCall = ({outgoingCall, userB, setBeitMidrashHome, socket}) => {
         setBeitMidrashHome(true);
     }
 
+    const callTimedOut = () => {
+        setBeitMidrashHome(true)
+    }
+
+    useEffect(()=>{
+        setTimeout(callTimedOut, 28000)
+    }, [])
+
     return (
         outgoingCall ? 
         <div className="callContainer">

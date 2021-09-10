@@ -10859,6 +10859,7 @@ span.ref-link-color-3 {color: blue}
   height: 40px;
   width: 127.67px;
   margin: 5px;
+  cursor: pointer;
 }
 
 #declineButton {
@@ -10869,6 +10870,7 @@ span.ref-link-color-3 {color: blue}
   height: 40px;
   width: 127.67px;
   margin: 5px;
+  cursor: pointer; 
 }
 
 .chavrutaFooter {
