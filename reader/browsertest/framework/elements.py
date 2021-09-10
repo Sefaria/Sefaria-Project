@@ -714,7 +714,11 @@ class SefariaTest(AbstractTest):
 
     def click_sidebar_entry(self, data_name):
         selector = "div[class='categoryFilter'][data-name='" + data_name + "']"
-        self.click(selector)
+        try:
+            self.click(selector)
+        except:
+            self.click("a[data-name='more'")
+            self.click(selector)
 
     def close_tab_and_return_to_prev_tab(self):
         self.driver.switch_to_window(self.driver.window_handles[1])
