@@ -848,7 +848,11 @@ class SefariaTest(AbstractTest):
 
     def find_category_filter(self, name):
         selector = '.categoryFilter[data-name="{}"]'.format(name)
-        self.wait_until_clickable(selector)
+        try:
+            self.wait_until_clickable(selector)
+        except:
+            self.click("a[data-name='More']")
+            self.wait_until_clickable(selector)
         return self.driver.find_element_by_css_selector(selector)
 
     def find_text_filter(self, name):
