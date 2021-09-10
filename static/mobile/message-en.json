@@ -1,1 +1,8 @@
-null
+{
+	"title": "Sponsor a Day",
+	"text": ["This Tishrei, Sponsor a Day of Learning so that you can honor, celebrate, and memorialize your loved ones in Sefaria's library."],
+	"buttonLink": "https://sefaria.nationbuilder.com/sponsor",
+	"buttonText": "Sign up Today",
+	"name": "tishrei-2021-sponsor",
+	"schemaVersion": 1
+}
