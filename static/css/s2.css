@@ -10430,6 +10430,13 @@ span.ref-link-color-3 {color: blue}
   display: none;
 }
 
+.beitMidrashHomeContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+}
+
 #beitMidrashHeader {
   padding: 20px;
   color: white;
@@ -10495,11 +10502,12 @@ span.ref-link-color-3 {color: blue}
   bottom: 0;
   right: 0;
   width: 250px;
-  height: 400px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
   margin-left: 24px;
+  max-height: 300px;
+  margin-bottom: 20px;
 }
 
 #hideButtonHolder{
