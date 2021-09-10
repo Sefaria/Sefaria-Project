@@ -99,7 +99,7 @@ class AbstractTest(object):
                 self.recover_exception(e)
             except Exception:
                 return self.fail("Exception in {}.body()\n{}".format(self.name(), traceback.format_exc()))
-
+        # this code is unreachable -- should it be deleted?
         try:
             self.driver.execute_script('"**** Exit {} ****"'.format(self.name()))
             self.teardown()
