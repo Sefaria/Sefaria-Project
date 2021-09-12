@@ -365,6 +365,15 @@ class RefResolver:
                 part_type = RefPartType.span_label_to_enum(part_span.label_)
                 dh_cont = None
                 if part_type == RefPartType.DH:
+                    """
+                    if ipart == len(raw_ref_part_spans) - 1:
+                        if ispan == len(raw_ref_spans) - 1:
+                            dh_cont = st[span.end+1:]
+                        else:
+                            dh_cont = st[span.end:next_span.start]
+                    else:
+                        dh_cont = st[part_span.end+1:next_part_span.start]
+                    """
                     dh_cont = None  # TODO FILL IN
                 raw_ref_parts += [RawRefPart(part_type, part_span, dh_cont)]
             raw_refs += [RawRef(raw_ref_parts, span)]
