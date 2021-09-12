@@ -3550,9 +3550,13 @@ class Ref(object, metaclass=RefCacheType):
 
         d = self._core_dict()
 
-        ja = self.get_state_ja() if any([sec < 0 for sec in subsections]) else None
-        ja_inds = [sec - 1 for sec in self.sections + subsections]
-        subsections = [(ja.sub_array_length(ja_inds[:len(self.sections) + i]) + sec + 1) if sec < 0 else sec for i, sec in enumerate(subsections)]
+        if any([sec < 0 for sec in subsections]):
+            # only load state_ja when a negative index exists
+            ja = self.get_state_ja()
+            ja_inds = [sec - 1 for sec in self.sections + subsections]
+            for i, sec in enumerate(subsections):
+                if sec >= 0: continue
+                subsections[i] = ja.sub_array_length(ja_inds[:len(self.sections) + i]) + sec + 1
         d["sections"] += subsections
         d["toSections"] += subsections
         return Ref(_obj=d)
