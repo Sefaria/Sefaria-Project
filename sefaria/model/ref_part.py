@@ -13,6 +13,8 @@ LABEL_TO_REF_PART_TYPE_ATTR = {
     "מספר": "NUMBERED",
     "דה": "DH",
     "סימן-טווח": "RANGE_SYMBOL",
+    "לקמן-להלן": "RELATIVE",
+    "שם": "IBID",
 }
 class RefPartType(Enum):
     NAMED = "named"
@@ -20,6 +22,8 @@ class RefPartType(Enum):
     DH = "dibur_hamatchil"
     RANGE_SYMBOL = "range_symbol"
     RANGE = "range"
+    RELATIVE = "relative"
+    IBID = "ibid"
 
     @classmethod
     def span_label_to_enum(cls, span_label: str) -> 'RefPartType':
@@ -166,6 +170,8 @@ class ResolvedRawRef:
                 refined_refs += [refined_ref]
             except InputError:
                 continue
+            except AssertionError as e:
+                print(self.ref.normal(), e)
         return [ResolvedRawRef(self.raw_ref, refined_ref_parts, node, refined_ref) for refined_ref in refined_refs]
 
     def _get_refined_matches_for_ranged_sections(self, sections: List['RawRefPart'], refined_ref_parts: List['RawRefPart'], node, lang):
@@ -221,7 +227,7 @@ class ResolvedRawRef:
 
 class RefPartTitleTrie:
 
-    PREFIXES = {'ב'}
+    PREFIXES = {'ב', 'וב', 'ע'}  # careful of Ayin prefix...
 
     def __init__(self, lang, nodes=None, sub_trie=None, scope=None) -> None:
         """
@@ -343,11 +349,14 @@ class RefResolver:
         self.raw_ref_model = raw_ref_model
         self.raw_ref_part_model = raw_ref_part_model
     
-    def resolve_refs_in_string(self, context_ref: text.Ref, st: str) -> List['ResolvedRawRef']:
+    def resolve_refs_in_string(self, context_ref: text.Ref, st: str, with_failures=False) -> List['ResolvedRawRef']:
         raw_refs = self._get_raw_refs_in_string(st)
         resolved = []
         for raw_ref in raw_refs:
-            resolved += self.resolve_raw_ref(context_ref, raw_ref)
+            temp_resolved = self.resolve_raw_ref(context_ref, raw_ref)
+            if len(temp_resolved) == 0 and with_failures:
+                resolved += [ResolvedRawRef(raw_ref, [], None, None)]
+            resolved += temp_resolved
         return resolved
 
     def _get_raw_refs_in_string(self, st: str) -> List['RawRef']:
@@ -395,11 +404,11 @@ class RefResolver:
                 resolved.ambiguous = True
         return resolved_list
 
-    def get_unrefined_ref_part_matches(self, context_ref: text.Ref, raw_ref: 'RawRef') -> list:
+    def get_unrefined_ref_part_matches(self, context_ref: text.Ref, raw_ref: 'RawRef') -> List['ResolvedRawRef']:
         from .text import library
-        return self._get_unrefined_ref_part_matches_recursive(raw_ref, library.get_root_ref_part_title_trie(self.lang))
+        return self._get_unrefined_ref_part_matches_recursive(context_ref, raw_ref, library.get_root_ref_part_title_trie(self.lang))
 
-    def _get_unrefined_ref_part_matches_recursive(self, raw_ref: RawRef, title_trie: RefPartTitleTrie, prev_ref_parts: list=None) -> list:
+    def _get_unrefined_ref_part_matches_recursive(self, context_ref: text.Ref, raw_ref: RawRef, title_trie: RefPartTitleTrie, prev_ref_parts: list=None) -> List['ResolvedRawRef']:
         ref_parts = raw_ref.raw_ref_parts
         prev_ref_parts = prev_ref_parts or []
         matches = []
@@ -412,7 +421,7 @@ class RefResolver:
             if None in temp_title_trie:
                 matches += [ResolvedRawRef(raw_ref, temp_prev_ref_parts, node, (node.nodes if isinstance(node, text.Index) else node).ref()) for node in temp_title_trie[None]]
             temp_ref_parts = [ref_parts[j] for j in range(len(ref_parts)) if j != i]
-            matches += self._get_unrefined_ref_part_matches_recursive(RawRef(temp_ref_parts, raw_ref.span), temp_title_trie, temp_prev_ref_parts)
+            matches += self._get_unrefined_ref_part_matches_recursive(context_ref, RawRef(temp_ref_parts, raw_ref.span), temp_title_trie, temp_prev_ref_parts)
         return self._prune_unrefined_ref_part_matches(matches)
 
     def refine_ref_part_matches(self, ref_part_matches: list, raw_ref: 'RawRef') -> list:

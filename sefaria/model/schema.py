@@ -2452,6 +2452,7 @@ class AddressAliyah(AddressInteger):
 class AddressPerek(AddressInteger):
     special_cases = {
         "פרק קמא": [1, 141],
+        "פירקא קמא": [1, 141],
         'פ"ק': [1, 100],  # this is inherently ambiguous (1 or 100)
         "פרק בתרא": [-1]
     }
