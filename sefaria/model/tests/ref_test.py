@@ -422,6 +422,16 @@ class Test_Ref(object):
         assert Ref("Rashi on Exodus 5").subref([5,5]) == Ref("Rashi on Exodus 5:5:5")
         assert Ref("Rashi on Exodus").subref([5,5,5]) == Ref("Rashi on Exodus 5:5:5")
 
+    def test_negative_subref(self):
+        assert Ref("Exodus").subref(-1) == Ref("Exodus 40")
+        assert Ref("Exodus").subref(-3).subref(-4) == Ref("Exodus 38:28")
+        assert Ref("Rashi on Exodus").subref(-5) == Ref("Rashi on Exodus 36")
+        assert Ref("Rashi on Exodus 5").subref(-1) == Ref("Rashi on Exodus 5:23")
+        assert Ref("Rashi on Exodus 5:7").subref(-2) == Ref("Rashi on Exodus 5:7:3")
+
+        assert Ref("Exodus").subref([5, -1]) == Ref("Exodus 5:23")
+        assert Ref("Rashi on Exodus 5").subref([5, -1]) == Ref("Rashi on Exodus 5:5:1")
+
     def test_all_subrefs(self):
         assert Ref("Genesis").all_subrefs()[49] == Ref("Genesis 50")
         assert Ref("Genesis 40").all_subrefs()[22] == Ref("Genesis 40:23")
