@@ -3538,15 +3538,21 @@ class Ref(object, metaclass=RefCacheType):
         """
         Returns a more specific reference than the current Ref
 
-        :param subsection: int or list - the subsection(s) of the current Ref
+        :param subsections: int or list - the subsections of the current Ref.
+        If a section in subsections is negative, will calculate the last section for that depth. NOTE: this requires access to state_ja so this is a bit slower.
         :return: :class:`Ref`
         """
         if isinstance(subsections, int):
             subsections = [subsections]
-        assert self.index_node.depth >= len(self.sections) + len(subsections), "Tried to get subref of bottom level ref: {}".format(self.normal())
+        new_depth = len(self.sections) + len(subsections)
+        assert self.index_node.depth >= new_depth, "Tried to get subref of bottom level ref: {}".format(self.normal())
         assert not self.is_range(), "Tried to get subref of ranged ref".format(self.normal())
 
         d = self._core_dict()
+
+        ja = self.get_state_ja() if any([sec < 0 for sec in subsections]) else None
+        ja_inds = [sec - 1 for sec in self.sections + subsections]
+        subsections = [(ja.sub_array_length(ja_inds[:len(self.sections) + i]) + sec + 1) if sec < 0 else sec for i, sec in enumerate(subsections)]
         d["sections"] += subsections
         d["toSections"] += subsections
         return Ref(_obj=d)
