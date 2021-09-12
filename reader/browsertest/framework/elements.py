@@ -1513,8 +1513,6 @@ def highlight(element):
     time.sleep(.3)
     apply_style(original_style)
 
-
-
 class one_of_these_texts_present_in_element(object):
     """ An expectation for checking if the given text is present in the
     specified element.
