@@ -1527,7 +1527,7 @@ const insertSource = (editor, ref) => {
     const nodeAbove = getNodeAbove(path, editor)
     const nodeBelow = getNodeBelow(path, editor)
 
-    Sefaria.getText(ref).then(text => {
+    Sefaria.getText(ref, {stripItags: 1}).then(text => {
         const enText = Array.isArray(text.text) ? `<p>${text.text.flat(Infinity).join("</p><p>")}</p>` : text.text;
         const heText = Array.isArray(text.text) ? `<p>${text.he.flat(Infinity).join("</p><p>")}</p>` : text.he;
         let fragment = [{
