@@ -49,6 +49,9 @@ class NonUniqueTerm(abst.AbstractMongoRecord, schema.AbstractTitledObject):
     def _set_derived_attributes(self):
         self.set_titles(getattr(self, "titles", None))
 
+    def key(self):
+        return f'{self.__class__.__name__}|{self.slug}'
+
 class NonUniqueTermSet(abst.AbstractMongoSet):
     recordClass = NonUniqueTerm
 
