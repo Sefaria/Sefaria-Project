@@ -88,6 +88,9 @@ class RawRefPart(TrieEntry):
     def get_text(self):
         return self.span.text
 
+    def get_dh_text_to_match(self):
+        return self.text.replace('ד"ה', '')
+
     text = property(get_text)
 
 class RangedRawRefParts(RawRefPart):

@@ -1076,8 +1076,7 @@ class DiburHamatchilNode(abst.AbstractMongoRecord):
 
     def fuzzy_match_score(self, raw_ref_part):
         # TODO improve this amazing algorithm
-        part_text = raw_ref_part.text.replace('ד"ה ', '')
-        if part_text in self.dibur_hamatchil:
+        if raw_ref_part.get_dh_text_to_match() in self.dibur_hamatchil:
             return 1.0
         return 0.0
 
