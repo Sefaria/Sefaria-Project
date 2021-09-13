@@ -99,7 +99,7 @@ class AbstractTest(object):
                 self.recover_exception(e)
             except Exception:
                 return self.fail("Exception in {}.body()\n{}".format(self.name(), traceback.format_exc()))
-
+        # this code is unreachable -- should it be deleted?
         try:
             self.driver.execute_script('"**** Exit {} ****"'.format(self.name()))
             self.teardown()
@@ -418,7 +418,7 @@ class SefariaTest(AbstractTest):
         elem.send_keys(user)
         elem = self.driver.find_element_by_css_selector("#id_password")
         elem.send_keys(password)
-        self.click("button[type='submit'")
+        self.click("button#login-submit-button")
         self.wait_until_title_does_not_contain("Log in")
         self.wait_until_clickable(".header .home")
         return self
@@ -714,7 +714,11 @@ class SefariaTest(AbstractTest):
 
     def click_sidebar_entry(self, data_name):
         selector = "div[class='categoryFilter'][data-name='" + data_name + "']"
-        self.click(selector)
+        try:
+            self.click(selector)
+        except:
+            self.click("a[data-name='More']")
+            self.click(selector)
 
     def close_tab_and_return_to_prev_tab(self):
         self.driver.switch_to_window(self.driver.window_handles[1])
@@ -844,7 +848,11 @@ class SefariaTest(AbstractTest):
 
     def find_category_filter(self, name):
         selector = '.categoryFilter[data-name="{}"]'.format(name)
-        self.wait_until_clickable(selector)
+        try:
+            self.wait_until_clickable(selector)
+        except:
+            self.click("a[data-name='More']")
+            self.wait_until_clickable(selector)
         return self.driver.find_element_by_css_selector(selector)
 
     def find_text_filter(self, name):
@@ -1504,8 +1512,6 @@ def highlight(element):
     apply_style("background: yellow; border: 2px solid red;")
     time.sleep(.3)
     apply_style(original_style)
-
-
 
 class one_of_these_texts_present_in_element(object):
     """ An expectation for checking if the given text is present in the
