@@ -73,8 +73,13 @@
     "regenerator-runtime": "^0.13.7",
     "request": "^2.72.0",
     "sanitize-html": "^1.16.3",
+<<<<<<< Updated upstream
     "slate": "0.65.3",
     "slate-history": "0.65.3",
+=======
+    "slate": "^0.63.0",
+    "slate-history": "0.62.0",
+>>>>>>> Stashed changes
     "slate-hyperscript": "0.62.0",
     "slate-react": "0.65.3",
     "source-list-map": "^2.0.0",
@@ -85,7 +90,7 @@
     "winston": "^3.3.3"
   },
   "devDependencies": {
-    "@babel/cli": "^7.6.0",
+    "@babel/cli": "^7.14.5",
     "@babel/core": "^7.6.0",
     "@babel/plugin-proposal-object-rest-spread": "^7.5.5",
     "@babel/plugin-transform-async-to-generator": "^7.5.0",

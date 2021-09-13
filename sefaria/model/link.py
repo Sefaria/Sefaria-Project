@@ -84,6 +84,8 @@ class Link(abst.AbstractMongoRecord):
                 if hasattr(self, 'score') and hasattr(self, 'charLevelData'):
                     samelink.score = self.score
                     samelink.charLevelData = self.charLevelData
+                    if samelink.generated_by == "add_links_from_text":
+                        samelink.type = self.type
                     raise DuplicateRecordError("Updated existing link with the new score and charLevelData data")
 
                 elif not self.auto and self.type and not samelink.type:
