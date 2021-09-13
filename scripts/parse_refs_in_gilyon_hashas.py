@@ -1,0 +1,46 @@
+from typing import List
+import django
+django.setup()
+import spacy, csv
+from spacy import Language
+from sefaria.model import *
+from sefaria.model.ref_part import ResolvedRawRef
+from tqdm import tqdm
+from sefaria.spacy_function_registry import custom_tokenizer_factory  # used by spacy.load()
+
+def model(project_name: str) -> Language:
+    return spacy.load(f'/home/nss/sefaria/data/research/prodigy/output/{project_name}/model-last')
+
+def parse_segment(oref: Ref, resolver: RefResolver) -> List[ResolvedRawRef]:
+    tc = TextChunk(oref, 'he')
+    return resolver.resolve_refs_in_string(oref, tc.text, with_failures=True)
+
+def parse_book(title, resolver: RefResolver) -> list:
+    index = library.get_index(title)
+    resolved = []
+    for segment in tqdm(index.all_segment_refs()):
+        temp_resolved = parse_segment(segment, resolver)
+        resolved += [(segment, temp_resolved)]
+    return resolved
+
+def save_resolved_refs(resolved):
+    total, num_resolved = 0, 0
+    with open('/home/nss/sefaria/project/data/gilyon_refs_resolved.csv', 'w') as fout:
+        c = csv.DictWriter(fout, ['Input Ref', 'Found Citation', 'Found Ref'])
+        c.writeheader()
+        for input_ref, resolved_for_seg in resolved:
+            for resolved_raw_ref in resolved_for_seg:
+                total += 1
+                row = {
+                    "Input Ref": input_ref.normal(),
+                    "Found Citation": resolved_raw_ref.raw_ref.text,
+                }
+                if resolved_raw_ref.ref is not None:
+                    num_resolved += 1
+                    row['Found Ref'] = resolved_raw_ref.ref.normal()
+                c.writerow(row)
+    print(f"Percent Resolved: {num_resolved}/{total} ({round(num_resolved/total*100, 2)}%)")
+if __name__ == '__main__':
+    resolver = RefResolver('he', model('ref_tagging_gilyon'), model('sub_citation'))
+    resolved = parse_book("Gilyon HaShas on Berakhot", resolver)
+    save_resolved_refs(resolved)

@@ -1,6 +1,7 @@
 from collections import defaultdict
 from typing import List, Union
 from enum import Enum
+from functools import reduce
 from sefaria.system.exceptions import InputError
 from . import abstract as abst
 from . import text
@@ -29,7 +30,11 @@ class RefPartType(Enum):
     def span_label_to_enum(cls, span_label: str) -> 'RefPartType':
         return getattr(cls, LABEL_TO_REF_PART_TYPE_ATTR[span_label])
 
-class NonUniqueTerm(abst.AbstractMongoRecord, schema.AbstractTitledObject):
+class TrieEntry:
+    def key(self):
+        return hash(self)
+
+class NonUniqueTerm(abst.AbstractMongoRecord, schema.AbstractTitledObject, TrieEntry):
     collection = "non_unique_terms"
     required_attrs = [
         "slug",
@@ -55,7 +60,7 @@ class NonUniqueTerm(abst.AbstractMongoRecord, schema.AbstractTitledObject):
 class NonUniqueTermSet(abst.AbstractMongoSet):
     recordClass = NonUniqueTerm
 
-class RawRefPart:
+class RawRefPart(TrieEntry):
     
     def __init__(self, type: 'RefPartType', span: Union[Token, Span], potential_dh_continuation: str=None) -> None:
         self.span = span
@@ -76,6 +81,9 @@ class RawRefPart:
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+    def key(self):
+        return self.text
 
     def get_text(self):
         return self.span.text
@@ -146,9 +154,10 @@ class RawRef:
 
 class ResolvedRawRef:
 
-    def __init__(self, raw_ref: 'RawRef', resolved_ref_parts: List['RawRefPart'], node, ref: text.Ref) -> None:
+    def __init__(self, raw_ref: 'RawRef', resolved_ref_parts: List['RawRefPart'], node, ref: text.Ref, resolved_context_terms: List[NonUniqueTerm]=None) -> None:
         self.raw_ref = raw_ref
         self.resolved_ref_parts = resolved_ref_parts
+        self.resolved_context_terms = resolved_context_terms
         self.node = node
         self.ref = ref
         self.ambiguous = False
@@ -213,7 +222,7 @@ class ResolvedRawRef:
             matches += self._get_refined_matches_for_ranged_part(raw_ref_part, refined_ref_parts, node, lang)
         elif (raw_ref_part.type == RefPartType.NAMED and isinstance(node, schema.TitledTreeNode) or
         raw_ref_part.type == RefPartType.NUMBERED and isinstance(node, schema.ArrayMapNode)):  # for case of numbered alt structs
-            if node.ref_part_title_trie(lang).has_continuations(raw_ref_part.text):
+            if node.ref_part_title_trie(lang).has_continuations(raw_ref_part.key()):
                 matches += [ResolvedRawRef(self.raw_ref, refined_ref_parts, node, node.ref())]
         elif raw_ref_part.type == RefPartType.DH:
             if isinstance(node, schema.JaggedArrayNode):
@@ -317,7 +326,6 @@ class RefPartTitleTrie:
 
     @staticmethod
     def _merge_n_tries(*tries):
-        from functools import reduce
         if len(tries) == 1:
             return tries[0]
         return reduce(RefPartTitleTrie._merge_two_tries, tries)
@@ -422,22 +430,44 @@ class RefResolver:
 
     def get_unrefined_ref_part_matches(self, context_ref: text.Ref, raw_ref: 'RawRef') -> List['ResolvedRawRef']:
         from .text import library
-        return self._get_unrefined_ref_part_matches_recursive(context_ref, raw_ref, library.get_root_ref_part_title_trie(self.lang))
+        root_trie = library.get_root_ref_part_title_trie(self.lang)
+        context_free_matches = self._get_unrefined_ref_part_matches_recursive(raw_ref, root_trie)
+        context_full_matches = self._get_unrefined_ref_part_matches_for_base_text_context(context_ref, raw_ref, root_trie)
+        return context_full_matches + context_free_matches
 
-    def _get_unrefined_ref_part_matches_recursive(self, context_ref: text.Ref, raw_ref: RawRef, title_trie: RefPartTitleTrie, prev_ref_parts: list=None) -> List['ResolvedRawRef']:
-        ref_parts = raw_ref.raw_ref_parts
-        prev_ref_parts = prev_ref_parts or []
+    def _get_unrefined_ref_part_matches_for_base_text_context(self, context_ref: text.Ref, raw_ref: RawRef, root_trie: RefPartTitleTrie) -> List[NonUniqueTerm]:
         matches = []
-        for i, ref_part in enumerate(ref_parts):
-            # no need to consider other types at root level
-            if ref_part.type != RefPartType.NAMED: continue
-            temp_prev_ref_parts = prev_ref_parts + [ref_part]
-            temp_title_trie = title_trie.get_continuations(ref_part.text)
+        for title in getattr(context_ref.index, 'base_text_titles', []):
+            base_index = text.library.get_index(title)
+            context_terms = [NonUniqueTerm.init(slug) for slug in reduce(lambda a, b: a + b['slugs'], getattr(base_index.nodes, 'ref_parts', []), [])]
+            if len(context_terms) == 0: continue
+            temp_matches = self._get_unrefined_ref_part_matches_recursive(raw_ref, root_trie, context_terms=context_terms)
+            matches += list(filter(lambda x: len(x.resolved_ref_parts) and len(x.resolved_context_terms), temp_matches))
+        return matches
+
+    def _get_unrefined_ref_part_matches_recursive(self, raw_ref: RawRef, title_trie: RefPartTitleTrie, prev_ref_parts: list=None, context_terms: List[NonUniqueTerm]=None, prev_context_terms=None) -> List['ResolvedRawRef']:
+        ref_parts = raw_ref.raw_ref_parts
+        context_terms = context_terms or []
+        prev_ref_parts = prev_ref_parts or []
+        prev_context_terms = prev_context_terms or []
+        matches = []
+        trie_entries: List[TrieEntry] = ref_parts + context_terms
+        for i, trie_entry in enumerate(trie_entries):
+            temp_prev_ref_parts, temp_prev_context_terms = prev_ref_parts, prev_context_terms
+            if isinstance(trie_entry, RawRefPart):
+                # no need to consider other types at root level
+                if trie_entry.type != RefPartType.NAMED: continue
+                temp_prev_ref_parts = prev_ref_parts + [trie_entry]
+            else:
+                temp_prev_context_terms = prev_context_terms + [trie_entry]
+            temp_title_trie = title_trie.get_continuations(trie_entry.key())
             if temp_title_trie is None: continue
             if None in temp_title_trie:
-                matches += [ResolvedRawRef(raw_ref, temp_prev_ref_parts, node, (node.nodes if isinstance(node, text.Index) else node).ref()) for node in temp_title_trie[None]]
+                matches += [ResolvedRawRef(raw_ref, temp_prev_ref_parts, node, (node.nodes if isinstance(node, text.Index) else node).ref(), temp_prev_context_terms) for node in temp_title_trie[None]]
             temp_ref_parts = [ref_parts[j] for j in range(len(ref_parts)) if j != i]
-            matches += self._get_unrefined_ref_part_matches_recursive(context_ref, RawRef(temp_ref_parts, raw_ref.span), temp_title_trie, temp_prev_ref_parts)
+            temp_context_terms = [context_terms[j] for j in range(len(context_terms)) if j != (i-len(ref_parts))]
+            matches += self._get_unrefined_ref_part_matches_recursive(RawRef(temp_ref_parts, raw_ref.span), temp_title_trie, prev_ref_parts=temp_prev_ref_parts, context_terms=temp_context_terms, prev_context_terms=temp_prev_context_terms)
+
         return self._prune_unrefined_ref_part_matches(matches)
 
     def refine_ref_part_matches(self, ref_part_matches: list, raw_ref: 'RawRef') -> list:
