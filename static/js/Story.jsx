@@ -531,7 +531,7 @@ const TextPassage = ({text, afterSave, toggleSignUpModal}) => {
       </SaveLine>
       <ColorBarBox tref={text.ref}>
           <StoryBodyBlock>
-            <ContentText html={{en: text.en, he: text.he}} overrideLanguage={overrideLanguage}/>
+            <ContentText html={{en: text.en, he: text.he}} overrideLanguage={overrideLanguage} bilingualOrder={["he", "en"]} />
           </StoryBodyBlock>
       </ColorBarBox>
     </StoryFrame>
