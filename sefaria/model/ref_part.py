@@ -259,14 +259,7 @@ class RefPartTitleTrie:
                 len_curr_dict_queue = len(curr_dict_queue)
                 for _ in range(len_curr_dict_queue):
                     curr_dict = curr_dict_queue[0] if ref_part['optional'] else curr_dict_queue.pop(0)  # dont remove curr_dict if optional. leave it for next level to add to.
-                    for term in terms:
-                        for title in term.get_titles(self.lang):
-                            if title in curr_dict:
-                                temp_dict = curr_dict[title]
-                            else:
-                                temp_dict = {}
-                                curr_dict[title] = temp_dict
-                            curr_dict_queue += [temp_dict]
+                    curr_dict_queue += self.__get_sub_tries_for_terms(terms, curr_dict)
             # add nodes to leaves
             # None key indicates this is a leaf                            
             for curr_dict in curr_dict_queue:
@@ -275,6 +268,24 @@ class RefPartTitleTrie:
                     curr_dict[None] += [leaf_node]
                 else:
                     curr_dict[None] = [leaf_node]
+
+    @staticmethod
+    def __get_sub_trie_for_new_key(key: str, curr_trie: dict) -> dict:
+        if key in curr_trie:
+            sub_trie = curr_trie[key]
+        else:
+            sub_trie = {}
+            curr_trie[key] = sub_trie
+        return sub_trie
+
+    def __get_sub_tries_for_terms(self, terms: List[NonUniqueTerm], curr_trie: dict) -> List[dict]:
+        sub_tries = []
+        for term in terms:
+            for title in term.get_titles(self.lang):
+                sub_tries += [self.__get_sub_trie_for_new_key(title, curr_trie)]
+            # also add term's key to trie for lookups from context ref parts
+            sub_tries += [self.__get_sub_trie_for_new_key(term.key(), curr_trie)]
+        return sub_tries
 
     def __getitem__(self, key):
         return self.get(key)        
@@ -287,12 +298,13 @@ class RefPartTitleTrie:
     def has_continuations(self, key):
         return self.get_continuations(key, default=None) is not None
 
-    def _merge_two_tries(self, a, b):
+    @staticmethod
+    def _merge_two_tries(a, b):
         "merges b into a"
         for key in b:
             if key in a:
                 if isinstance(a[key], dict) and isinstance(b[key], dict):
-                    self._merge_two_tries(a[key], b[key])
+                    RefPartTitleTrie._merge_two_tries(a[key], b[key])
                 elif a[key] == b[key]:
                     pass  # same leaf value
                 elif isinstance(a[key], list) and isinstance(b[key], list):
@@ -303,11 +315,12 @@ class RefPartTitleTrie:
                 a[key] = b[key]
         return a
 
-    def _merge_n_tries(self, *tries):
+    @staticmethod
+    def _merge_n_tries(*tries):
         from functools import reduce
         if len(tries) == 1:
             return tries[0]
-        return reduce(self._merge_two_tries, tries)
+        return reduce(RefPartTitleTrie._merge_two_tries, tries)
 
     def get_continuations(self, key, default=None):
         continuations = self._get_continuations_recursive(key)
