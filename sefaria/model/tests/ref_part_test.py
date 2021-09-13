@@ -81,7 +81,7 @@ def test_referenceable_child():
     [create_raw_ref_data("Job 1", 'he', "פרק קמא בפסחים", [slice(0, 2), 2], [RPT.NUMBERED, RPT.NAMED]), ("Pesachim 2a:1-21a:7", "Mishnah Pesachim 1")],  # numbered talmud perek
     [create_raw_ref_data("Job 1", 'he', 'פ"ק בפסחים', [0, 1], [RPT.NUMBERED, RPT.NAMED]), ("Pesachim 2a:1-21a:7", "Mishnah Pesachim 1")],  # numbered talmud perek
     [create_raw_ref_data("Job 1", 'he', "פרק ה בפסחים", [slice(0, 2), 2], [RPT.NUMBERED, RPT.NAMED]), ("Pesachim 58a:1-65b:9", "Mishnah Pesachim 5")],  # numbered talmud perek
-    [create_raw_ref_data("Job 1", 'he', 'פ"ה בפסחים', [0, 1], [RPT.NUMBERED, RPT.NAMED]), ("Pesachim 58a:1-65b:9", "Mishnah Pesachim 5")],  # numbered talmud perek
+    [create_raw_ref_data("Job 1", 'he', 'פ"ה בפסחים', [0, 1], [RPT.NUMBERED, RPT.NAMED]), ("Pesachim 58a:1-65b:9", "Mishnah Pesachim 5", "Pesachim 85")],  # numbered talmud perek
     [create_raw_ref_data("Job 1", 'he', "פרק בתרא בפסחים", [slice(0, 2), 2], [RPT.NUMBERED, RPT.NAMED]), ("Mishnah Pesachim 10", "Pesachim 99b:1-121b:3",)],  # numbered talmud perek
     # Dibur hamatchils
     [create_raw_ref_data("Job 1", 'he', "רש\"י יום טוב ד\"ה שמא יפשע", [0, slice(1, 3), slice(3, 6)], [RPT.NAMED, RPT.NAMED, RPT.DH]), ("Rashi on Beitzah 15b:8:1",)],
@@ -93,13 +93,14 @@ def test_referenceable_child():
     [create_raw_ref_data("Job 1", 'he', 'ספר בראשית פרק יג פסוק א עד פרק יד פסוק ד', [slice(0, 2), slice(2, 4), slice(4, 6), 6, slice(7, 9), slice(9, 11)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED, RPT.NUMBERED]), ("Genesis 13:1-14:4",)],
     [create_raw_ref_data("Job 1", 'he', 'בראשית יג:א-יד:ד', [0, 1, 3, 4, 5, 7], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED, RPT.NUMBERED]), ("Genesis 13:1-14:4",)],
     # Base text context
-    [create_raw_ref_data("Gilyon HaShas on Berakhot 2a", 'he', 'ובתוס\' כ"ז ע"ב ד"ה והלכתא', [0, slice(1, 3), slice(3, 5)], [RPT.NAMED, RPT.NUMBERED, RPT.DH]), ("Tosafot on Berakhot 27b:14:2",)],
+    [create_raw_ref_data("Gilyon HaShas on Berakhot 2a", 'he', 'ובתוס\' כ"ז ע"ב ד"ה והלכתא', [slice(0, 2), slice(2, 4), slice(4, 6)], [RPT.NAMED, RPT.NUMBERED, RPT.DH]), ("Tosafot on Berakhot 27b:14:2",)],
 ])
 def test_resolve_raw_ref(resolver_data, expected_trefs):
     ref_resolver, raw_ref, context_ref = resolver_data
     print('Input:', raw_ref.text)
     matches = ref_resolver.resolve_raw_ref(context_ref, raw_ref)
     matched_orefs = sorted([match.ref for match in matches], key=lambda x: x.normal())
+    assert len(expected_trefs) == len(matched_orefs)
     for expected_tref, matched_oref in zip(sorted(expected_trefs, key=lambda x: x), matched_orefs):
         assert matched_oref == Ref(expected_tref)
 
@@ -127,6 +128,8 @@ def test_full_pipeline_ref_resolver(input_str, expected_trefs):
 def test_get_all_possible_sections_from_string(input_addr_str, AddressClass, expected_sections):
     exp_secs, exp2secs = expected_sections
     sections, toSections = AddressClass.get_all_possible_sections_from_string('he', input_addr_str)
+    sections = sorted(sections)
+    toSections = sorted(toSections)
     assert sections == exp_secs
     assert toSections == exp2secs
 

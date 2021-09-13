@@ -242,7 +242,7 @@ class ResolvedRawRef:
 
 class RefPartTitleTrie:
 
-    PREFIXES = {'ב', 'וב', 'ע'}  # careful of Ayin prefix...
+    PREFIXES = {'ב', 'וב', 'ע', 'ו'}  # careful of Ayin prefix...
 
     def __init__(self, lang, nodes=None, sub_trie=None, scope=None) -> None:
         """

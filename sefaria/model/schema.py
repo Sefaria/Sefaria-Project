@@ -2029,7 +2029,9 @@ class AddressType(object):
                     temp_toSections = [sec+1 for sec in temp_toSections]
                 sections += temp_sections
                 toSections += temp_toSections
-                    
+        # make sure section, toSection pairs are unique
+        if len(sections) > 0:
+            sections, toSections = zip(*{(sec, toSec) for sec, toSec in zip(sections, toSections)})
         return sections, toSections
 
     @classmethod
