@@ -1203,6 +1203,7 @@ const withSefariaSheet = editor => {
             editor.ensureEditableSpaceAtTopAndBottom,
             editor.replaceSpacerWithOutsideText,
             editor.liftSpacer,
+            editor.ensureNodeId,
             editor.liftSheetElement,
             editor.enforceTextOnlyInBoxedSheetElement,
             editor.ensureEditableSpaceBeforeAndAfterBoxedElements,
@@ -1375,7 +1376,7 @@ const withSefariaSheet = editor => {
     editor.replaceSpacerWithOutsideText = (node, path) => {
         if (node.type === "spacer") {
             if (Node.string(node) !== "") {
-                Transforms.setNodes(editor, {type: "SheetOutsideText"}, {at: path});
+                Transforms.setNodes(editor, {type: "SheetOutsideText", node: node.node}, {at: path});
             }
         }
     };
@@ -1389,6 +1390,18 @@ const withSefariaSheet = editor => {
             }
         }
     };
+
+    // Ensure all SheetItems have node #
+    editor.ensureNodeId = (node, path) => {
+        const sheetElementTypes = Object.values(sheet_item_els);
+
+        if (sheetElementTypes.includes(node.type)) {
+            if (!node.node) {
+                Transforms.setNodes(editor, {node: editor.children[0].nextNode}, {at: path});
+                incrementNextSheetNode(editor)
+            }
+        }
+    }
 
     // If a sheet element gets stuck inside some other element, lift it up to top level
     editor.liftSheetElement = (node, path) => {

@@ -1,1 +1,8 @@
-null
+{
+	"title": "יום לימוד",
+	"text": ["בתשרי הזה אנו מציעים לכם להקדיש יום לימוד. בדרך זו אתם יכולים להוקיר, לחגוג ולזכור את יקיריכם באמצעות הספרייה של ספריא."],
+	"buttonLink": "https://sefaria.nationbuilder.com/sponsor",
+	"buttonText": "להרשמה עכשיו",
+	"name": "tishrei-2021-sponsor",
+	"schemaVersion": 1
+}
