@@ -98,7 +98,7 @@ InterfaceText.propTypes = {
   className: PropTypes.string
 };
 
-const ContentText = ({text, html, overrideLanguage, defaultToInterfaceOnBilingual=false}) => {
+const ContentText = ({text, html, overrideLanguage, defaultToInterfaceOnBilingual=false, bilingualOrder = null}) => {
   /**
    * Renders content language throughout the site (content that comes from the database and is not interface language)
    * Gets the active content language from Context and renders only the appropriate child(ren) for given language
@@ -111,9 +111,18 @@ const ContentText = ({text, html, overrideLanguage, defaultToInterfaceOnBilingua
   const contentLanguage = useContext(ContentLanguageContext);
   const languageToFilter = (defaultToInterfaceOnBilingual && contentLanguage.language === "bilingual") ? Sefaria.interfaceLang : (overrideLanguage ? overrideLanguage : contentLanguage.language);
   const langShort = languageToFilter.slice(0,2);
-  let renderedItems = Object.entries(contentVariable).filter(([lang, _])=>{
-    return (languageToFilter === "bilingual") ? true : ((lang === langShort) ? true : false);
-  });
+  let renderedItems = Object.entries(contentVariable);
+  if(languageToFilter == "bilingual"){
+    if(bilingualOrder !== null){
+      renderedItems.sort(function(a, b){
+        return bilingualOrder.indexOf(a[0]) - bilingualOrder.indexOf(b[0]);
+      });
+    }
+  }else{
+    renderedItems = renderedItems.filter(([lang, _])=>{
+      return lang === langShort;
+    });
+  }
   return renderedItems.map( x =>
       isDangerouslySetInnerHTML ?
           <span className={x[0]} lang={x[0]} key={x[0]} dangerouslySetInnerHTML={{__html: x[1]}}/>
