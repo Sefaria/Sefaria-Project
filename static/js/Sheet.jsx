@@ -200,7 +200,7 @@ class SheetContent extends Component {
     if (e.target.tagName.toLowerCase() === 'a') {
       e.preventDefault();
       e.stopPropagation();
-      const href = event.target.href;
+      const href = e.target.href;
       let path = href;
       try {
         const url = new URL(href);
@@ -211,21 +211,12 @@ class SheetContent extends Component {
         path = url.pathname;
       } catch { }
 
-      let match;
-      if (path && Sefaria.isRef(path.slice(1))) {
-        this.props.onRefClick(Sefaria.humanRef(path.slice(1)), [], true)
-
-      } else if (path && (match = path.match(/^\/sheets\/(\d+(\.\d+)?)/))) {
-        const sheetId = match[1];
-        this.props.onRefClick("Sheet " + sheetId, null, true);
-      
-      } else {
-        const opened = this.props.openURL(path);
-        if (!opened) {
-          window.open(e.target.href, "_blank");
-        }
+      const replace = !(path && (Sefaria.isRef(path.slice(1)) || path.match(/^\/sheets\/(\d+(\.\d+)?)/)));
+      const opened = this.props.openURL(href, replace);
+      if (!opened) {
+        window.open(e.target.href, "_blank");
       }
-    }    
+    }
   }
   render() {
     var sources = this.props.sources.length ? this.props.sources.map(function(source, i) {
