@@ -197,6 +197,8 @@ class SheetContent extends Component {
     }
   }
   handleLinkClick(e) {
+    // unclear to me what this adds beyond ReaderApp.handleInAppClick()
+    // leaving this here for now
     if (e.target.tagName.toLowerCase() === 'a') {
       e.preventDefault();
       e.stopPropagation();
