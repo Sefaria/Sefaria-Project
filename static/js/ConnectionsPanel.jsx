@@ -33,7 +33,7 @@ import { CollectionsModal } from './CollectionsWidget';
 
 import classNames from 'classnames';
 import Component from 'react-class';
-import TextTableOfContents from "./BookPage";
+import {TextTableOfContents} from "./BookPage";
 
 class ConnectionsPanel extends Component {
   constructor(props) {
