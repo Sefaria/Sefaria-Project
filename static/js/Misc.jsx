@@ -2408,7 +2408,7 @@ const Autocompleter = ({selectedRefCallback}) => {
   useEffect(
     () => {
          const element = document.querySelector('.textPreviewSegment.highlight');
-         if (element) {element.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' })}
+         if (element) {element.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'start' })}
     }, [previewText]
   )
 
@@ -2564,6 +2564,7 @@ const Autocompleter = ({selectedRefCallback}) => {
                 }}>Add Source</button> : null}
 
       {currentSuggestions && currentSuggestions.length > 0 ?
+          <div className="suggestionBoxContainer">
           <select
               ref={suggestionEl}
               className="suggestionBox"
@@ -2573,13 +2574,15 @@ const Autocompleter = ({selectedRefCallback}) => {
           >
             {mapSuggestions(currentSuggestions)}
           </select>
-
+          </div>
           : null
       }
 
       {previewText ?
-          <div className="textPreview">
-            <div className="inner">{previewText}</div>
+          <div className="textPreviewContainer">
+            <div className="textPreview">
+              <div className="inner">{previewText}</div>
+            </div>
           </div>
 
           : null

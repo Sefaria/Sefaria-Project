@@ -8637,7 +8637,7 @@ span.purim-emoji img{
 }
 .editorAddInterface:before {
   content: "";
-  margin-inline-start:-34px;
+  margin-inline-start:-46px;
   position: absolute;
   width: 30px;
   height: 30px;
@@ -8645,7 +8645,7 @@ span.purim-emoji img{
   background-color; white;
   background-image: url("/static/icons/heavy-x.svg");
   border: 1px solid var(--light-grey);
-  background-size: 12px;
+  background-size: 14px;
   border-radius: 50%;
   pointer-events:auto;
   cursor: pointer;
@@ -8677,6 +8677,16 @@ span.purim-emoji img{
   padding-top: 30px;
   padding-bottom: 30px;
   pointer-events: auto;
+  margin-top: 10px;
+  background-color: white;
+}
+
+.addInterfaceInput .button {
+  font-size: 14px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  height: 30px;
+  position: absolute;
 }
 
 .addInterfaceInput .textPreviewSegment {
@@ -8688,6 +8698,12 @@ span.purim-emoji img{
   overflow-y: scroll;
   padding-inline-end: 30px;
   position: relative;
+}
+
+.addInterfaceInput .suggestionBoxContainer,
+.addInterfaceInput .textPreviewContainer {
+  position: absolute;
+  z-index: 1;
 }
 
 .addInterfaceInput .suggestionBox,
