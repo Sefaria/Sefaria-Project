@@ -31,7 +31,7 @@ import TranslationsBox from './TranslationsBox';
 import ExtendedNotes from './ExtendedNotes';
 import classNames from 'classnames';
 import Component from 'react-class';
-import TextTableOfContents from "./BookPage";
+import {TextTableOfContents} from "./BookPage";
 
 
 class ConnectionsPanel extends Component {
