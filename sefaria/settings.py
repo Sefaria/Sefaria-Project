@@ -298,8 +298,8 @@ CACHES = {
 
 
 GLOBAL_INTERRUPTING_MESSAGE = {
-    "name":       "tishrei-2021-banner",
-    "style":      "banner", # "modal" or "banner"
+    "name":       "yom-kippur-2021-modal",
+    "style":      "modal", # "modal" or "banner"
     "repetition": 1,
     "is_fundraising": True,
     "condition":  {

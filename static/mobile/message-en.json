@@ -1,8 +1,13 @@
 {
-	"title": "Sponsor a Day",
-	"text": ["This Tishrei, Sponsor a Day of Learning so that you can honor, celebrate, and memorialize your loved ones in Sefaria's library."],
-	"buttonLink": "https://sefaria.nationbuilder.com/sponsor",
-	"buttonText": "Sign up Today",
-	"name": "tishrei-2021-sponsor",
+	"title": "Friends,",
+	"text": [
+		"Jewish texts are our collective inheritance and Sefaria needs you to ensure that our library is accessible and available to all. \n",
+		"Sefaria is a non-profit organization dedicated to building the future of Jewish learning. Make a donation today so we can acquire, digitize, and make accessible even more new texts to millions of learners worldwide. \n",
+		"May you be sealed for a new year of health, happiness, and even more learning in Sefaria's living library,\n",
+		"Team Sefaria"
+	],
+	"buttonLink": "https://sefaria.nationbuilder.com/supportsefaria_aeb",
+	"buttonText": "Donate",
+	"name": "yom-kippur-2021",
 	"schemaVersion": 1
 }
