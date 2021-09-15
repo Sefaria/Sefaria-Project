@@ -1929,6 +1929,15 @@ _media: {},
       $.post(`${Sefaria.apiHost}/api/messages`, data, resolve);
     });
   },
+  chatMessageAPI: (roomId, senderId, timestamp, messageContent) => {
+    const data = {json: JSON.stringify({roomId: roomId, senderId: senderId, timestamp, messageContent})};
+    return new Promise((resolve, reject) => {
+      $.post(`${Sefaria.apiHost}/api/chat-messages`, data, resolve);
+    })
+  },
+  getChatMessagesAPI: (roomId) => {
+    return Sefaria._ApiPromise(Sefaria.apiHost + `/api/chat-messages/?room_id=${roomId}`);
+  },
   getRefSavedHistory: tref => {
     return Sefaria._ApiPromise(Sefaria.apiHost + `/api/user_history/saved?tref=${tref}`);
   },

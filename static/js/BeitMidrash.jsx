@@ -347,6 +347,14 @@ const ChavrutaCall = ({outgoingCall, userB, setBeitMidrashHome, socket}) => {
         setBeitMidrashHome(true);
     }
 
+    const callTimedOut = () => {
+        setBeitMidrashHome(true)
+    }
+
+    useEffect(()=>{
+        setTimeout(callTimedOut, 28000)
+    }, [])
+
     return (
         outgoingCall ? 
         <div className="callContainer">
@@ -396,6 +404,9 @@ const ChatBox = ({room,
     const chatBox = useRef();
     const [blockedNotification, setBlockedNotification] = useState(false)
     const [userMenuOpen, setUserMenuOpen] = useState (false)
+    const [storedChatMessages, setStoredChatMessages] = useState(null)
+    const [showChats, setShowChats] = useState(false)
+
 
     useEffect(()=>{
         setUserB(room.userB);
@@ -407,7 +418,17 @@ const ChatBox = ({room,
         socket.on("you have been blocked", ()=> {
             setBlockedNotification(true)
         })
+        
+        Sefaria.getChatMessagesAPI(roomId).then(chats => setStoredChatMessages(chats))
     }, []);
+
+    useEffect(()=>{
+        if (storedChatMessages) {
+            setShowChats(true)
+        } else {
+            setShowChats(false)
+        }
+    }, [storedChatMessages])
 
     useEffect(()=>{
         const lastMessage = chatBox.current.querySelector(".chatMessage:last-of-type")
@@ -415,7 +436,7 @@ const ChatBox = ({room,
             lastMessage.scrollIntoView()
         }
 
-    }, [chatDataStore, partnerLeftNotification])
+    }, [chatDataStore, partnerLeftNotification, showChats])
 
     const handleChange = (e) =>{
         setChatMessage(e.target.value);
@@ -432,6 +453,8 @@ const ChatBox = ({room,
         const msgSender = {uid: Sefaria._uid, name: Sefaria.full_name, pic: Sefaria.profile_pic_url, organization: profile.organization}
         
         chatChannel.postMessage({msgSender, room, chatMessage})
+
+        Sefaria.chatMessageAPI(roomId, Sefaria._uid, Date.now(), chatMessage)
         
         // We thought we needed this to add to chatdatastore on submit, but the broadcast api appears to add it anyway
         // even though we think it's not supposed to!
@@ -455,7 +478,8 @@ const ChatBox = ({room,
         chavrutaCallInitiated(uid)
     }
 
- 
+    console.log("storedChatMessages", storedChatMessages)
+
     return (
     <div className="chat" ref={chatBox}>
         <div id="hideButtonHolder">
@@ -490,6 +514,14 @@ const ChatBox = ({room,
             <div className="blockButton" onClick={()=>onBlockUser(room.userB.uid)}>Block</div>
         </details>
         <div className="chats-container">
+            {showChats ? storedChatMessages.map((message, i) => {
+                return (
+                    message.senderId === Sefaria._uid ? 
+                        <Message user={room.user} key={i} message={message} /> :
+                        <Message user={room.userB} key={i} message={message} />
+                )
+            }) : <LoadingMessage /> 
+            }
             {chatDataStore[roomId] ? chatDataStore[roomId].messages.map((message, i) => {
                 return (
                     message.senderId === Sefaria._uid ? 

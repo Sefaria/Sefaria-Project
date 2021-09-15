@@ -10687,7 +10687,7 @@ span.ref-link-color-3 {color: blue}
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  margin-left: 24px;
+  margin-inline-start: 24px;
   max-height: 300px;
   margin-bottom: 20px;
 }
@@ -10727,7 +10727,7 @@ span.ref-link-color-3 {color: blue}
 }
 
 .chatBoxName {
-  margin-left: 5px;
+  margin-inline-start: 5px;
 }
 
 
@@ -10859,6 +10859,7 @@ span.ref-link-color-3 {color: blue}
   height: 40px;
   width: 127.67px;
   margin: 5px;
+  cursor: pointer;
 }
 
 #declineButton {
@@ -10869,6 +10870,7 @@ span.ref-link-color-3 {color: blue}
   height: 40px;
   width: 127.67px;
   margin: 5px;
+  cursor: pointer; 
 }
 
 .chavrutaFooter {

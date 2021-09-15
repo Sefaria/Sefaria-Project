@@ -8,7 +8,6 @@ const jwt_decode = require('jwt-decode');
 const nodeStatic = require('node-static');
 const http = require('http');
 
-
 // configure Turn & Stun servers:
 const TURN_SERVER = `turn:${process.env.TURN_SERVER}?transport=udp`;
 const pcConfig = {
@@ -105,6 +104,7 @@ io.on("connection", (socket) => {
         socket.to(socketId).emit("received chat message", msgSender, message, room)
       })
     }
+    
   });
 
   socket.on("join chat room", (room) => {

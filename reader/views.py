@@ -3310,6 +3310,32 @@ def leaderboard(request):
         'leaders1': top_contributors(1),
     })
 
+def post_chat_message(room_id, sender_id, timestamp, message_content):
+    message = Message({"room_id": room_id, 
+                        "sender_id": sender_id, 
+                        "timestamp": timestamp, 
+                        "message_content": message_content})
+    message.save()
+
+def get_chat_messages(room_id):
+    messages = MessageSet({"room_id": room_id}).client_contents()
+    return messages
+
+@catch_error_as_json
+def chat_message_api(request):
+    if request.method == "POST":
+        messageJSON = request.POST.get("json")
+        messageJSON = json.loads(messageJSON)
+        message = Message({"room_id": messageJSON["roomId"], 
+                        "sender_id": messageJSON["senderId"], 
+                        "timestamp": messageJSON["timestamp"], 
+                        "message": messageJSON["messageContent"]})
+        message.save()
+    if request.method == "GET":
+        room_id = request.GET.get("room_id")
+        messages = MessageSet({"room_id": room_id}).client_contents()
+        return jsonResponse(messages)
+    return jsonResponse({"error": "Unsupported HTTP method."})
 
 @ensure_csrf_cookie
 @sanitize_get_params

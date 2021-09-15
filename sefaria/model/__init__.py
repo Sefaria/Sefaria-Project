@@ -45,6 +45,7 @@ from .webpage import WebPage, WebPageSet
 from .media import Media, MediaSet
 from .topic import Topic, PersonTopic, AuthorTopic, TopicLinkType, IntraTopicLink, RefTopicLink, TopicLinkType, TopicDataSource, TopicSet, PersonTopicSet, AuthorTopicSet, TopicLinkTypeSet, RefTopicLinkSet, IntraTopicLinkSet, TopicLinkSetHelper
 from .manuscript import Manuscript, ManuscriptSet, ManuscriptPage, ManuscriptPageSet
+from .chatroom import Chatroom, ChatroomSet, Message, MessageSet
 
 from . import dependencies
 
