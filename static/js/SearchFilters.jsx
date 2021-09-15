@@ -154,10 +154,12 @@ TextSearchFilters.propTypes = {
 };
 
 
-const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged}) => {
+const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged, searchable}) => {
   if (!filters || !filters.length) { return null; }
 
-  let content = filters.map(filter => (
+  const [displayedFilters, setFilters] = useState(filters);
+
+  let content = displayedFilters.map(filter => (
     <SearchFilter
       filter={filter}
       updateSelected={updateSelected}
@@ -169,11 +171,30 @@ const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged}) =
     content = <PagedList items={content} />
   }
 
+  const beginsWithStringOrSelected = (item, filterValue) => {
+    if (item.selected || item.title.toLowerCase().startsWith(filterValue.toLowerCase()) || item.heTitle.startsWith(filterValue)) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  const updateFilters = text => {
+    if (text && text != "") {
+      setFilters(filters.filter(x => beginsWithStringOrSelected(x, text)));
+    } else {
+      setFilters(filters);
+    }
+  }
+  // need hebrew for placeholder/title
+  const search = searchable ? <input class="searchBox" placeholder={`Search ${name}`} title={`Type to Filter ${name} Shown`} onChange={e => updateFilters(e.target.value)}></input> : null;
+
   return (
     <div className="searchFilterGroup">
       <h2>
         <InterfaceText context="SearchFilters">{name}</InterfaceText>
       </h2>
+      {search}
       {content}
     </div>
   );
@@ -322,7 +343,9 @@ class SheetSearchFilters extends Component {
           name="Topics"
           filters={tagFilters}
           updateSelected={this.props.updateAppliedFilter}
-          paged={true} />
+          paged={true} 
+          searchable={true}
+          />
 
         <SearchFilterGroup
           name="Collections"

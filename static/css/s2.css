@@ -3531,6 +3531,20 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .searchFilters .showMore:hover {
   text-decoration: underline;
 }
+.searchFilters .searchBox {
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  padding-left: 10px;
+  text-align: inherit;
+  background: #EDEDEC;
+  border-radius: 250px;
+  border: none;
+  width: 140px;
+  height: 30px;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
 .dropdown-option-list {
   margin-top: 10px;
   background: white;
