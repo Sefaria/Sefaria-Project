@@ -8518,10 +8518,10 @@ span.purim-emoji img{
   background-color: white;
   padding: 0;
   border-radius: 6px;
-  border: 1px solid #CCCCCC;
   z-index: 1;
-  top: -30px;
+  top: -38px;
   pointer-events: auto;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
 }
 
 .sheetContent .element-link .popup input {

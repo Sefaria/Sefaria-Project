@@ -1640,6 +1640,7 @@ const Link = ({ attributes, children, element }) => {
   const selected = useSelected();
   const [linkPopoverVisible, setLinkPopoverVisible] = useState(false);
   const [urlValue, setUrlValue] = useState(element.url);
+  const [showLinkRemoveButton, setShowLinkRemoveButton] = useState(false);
   const [currentSlateRange, setCurrentSlateRange] = useState(editor.linkOverrideSelection)
 
 
@@ -1699,6 +1700,7 @@ const Link = ({ attributes, children, element }) => {
         Transforms.setNodes(editor, { url: fixUrl(newUrl) }, {at: linkPath});
     }
 
+    const linkPopoverOpen = linkPopoverVisible || (editor.showLinkOverride && Path.isDescendant(editor.linkOverrideSelection.anchor.path, ReactEditor.findPath(editor, element)))
 
   return (
     <div
@@ -1710,12 +1712,16 @@ const Link = ({ attributes, children, element }) => {
         <a
             href={element.url}
             onClick={(e) => onClick(e, element.url)}
+            onMouseEnter={(e)=> {if (!linkPopoverOpen) {
+                setShowLinkRemoveButton(true)
+            }
+            }}
         >
             {children}
         </a>
 
       {/* Show popup on hover and also force it open when a new link is created  */}
-      {linkPopoverVisible || (editor.showLinkOverride && Path.isDescendant(editor.linkOverrideSelection.anchor.path, ReactEditor.findPath(editor, element))) ? (
+      {linkPopoverOpen ? (
         <div className="popup" contentEditable={false} onBlur={closePopup}>
           <input
               type="text"
@@ -1724,7 +1730,7 @@ const Link = ({ attributes, children, element }) => {
               className="sans-serif"
               onChange={(e) => urlChange(e)}
           />
-          <button onClick={() => xClicked()}>✕</button>
+            {showLinkRemoveButton ? <button onClick={() => xClicked()}>✕</button> : null}
         </div>
       ) : null }
 

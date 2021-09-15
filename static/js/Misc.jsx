@@ -2408,7 +2408,7 @@ const Autocompleter = ({selectedRefCallback}) => {
   useEffect(
     () => {
          const element = document.querySelector('.textPreviewSegment.highlight');
-         if (element) {element.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'start' })}
+         if (element) {element.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' })}
     }, [previewText]
   )
 
