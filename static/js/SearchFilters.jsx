@@ -187,7 +187,7 @@ const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged, se
     }
   }
   // need hebrew for placeholder/title
-  const search = searchable ? <input class="searchBox" placeholder={`Search ${name}`} title={`Type to Filter ${name} Shown`} onChange={e => updateFilters(e.target.value)}></input> : null;
+  const search = searchable ? <input class="searchBox" placeholder={Sefaria._(`Search ${name}`)} title={`Type to Filter ${name} Shown`} onChange={e => updateFilters(e.target.value)}></input> : null;
 
   return (
     <div className="searchFilterGroup">

@@ -71,6 +71,7 @@ const Strings = {
     "All Topics": "כל הנושאים",
     "Reset": "לאתחל",
     "Search Topics": "חפש נושאים",
+    
 
     // Community Page
     "From the Community: Today on Sefaria": "מן הקהילה: היום בספריא",
