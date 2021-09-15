@@ -11,11 +11,36 @@ class Chatroom(abst.AbstractMongoRecord):
     """
 
     collection = 'chatrooms'
-    history_noun = 'chatroom'
 
     required_attrs = [
         'room_id',
-        'sender_id',
-        'message',
-        'timestamp'
+        'messages'
     ]
+
+    def post_message(self, room_id=None, sender_id=None, timestamp=None, message_content=None):
+        self.room_id = room_id
+        self.messages = {"sender_id": sender_id, "timestamp": timestamp, "message_content": message_content}
+        return self
+
+
+class ChatroomSet(abst.AbstractMongoSet):
+    recordClass = Chatroom
+
+class Message(abst.AbstractMongoRecord):
+    collection = 'messages'
+
+    required_attrs = [
+        "room_id",
+        "sender_id",
+        "timestamp",
+        "message"
+    ]
+
+    def client_contents(self):
+        return self.contents()
+
+class MessageSet(abst.AbstractMongoSet):
+    recordClass = Message
+
+    def client_contents(self):
+        return [x.client_contents() for x in self]

@@ -307,6 +307,7 @@ urlpatterns += [
     url(r'^daf-roulette/?$', reader_views.daf_roulette_redirect),
     url(r'^chavruta/?$', reader_views.chevruta_redirect),
     url(r'^beit-midrash/?$', reader_views.beit_midrash),
+    url(r'^api/chat-messages/?$', reader_views.chat_message_api)
 ]
 
 # Registration
