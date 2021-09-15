@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 import Sefaria from './sefaria/sefaria';
 import $ from './sefaria/sefariaJquery';
@@ -156,6 +156,10 @@ TextSearchFilters.propTypes = {
 
 const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged, searchable}) => {
   if (!filters || !filters.length) { return null; }
+
+  useEffect(() => {
+    updateFilters("");
+  }, [filters])
 
   const [displayedFilters, setFilters] = useState(filters);
 
