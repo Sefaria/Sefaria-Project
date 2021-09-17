@@ -503,7 +503,6 @@ def find_sites_to_be_excluded(flag=100):
                 if common[1] > flag:
                     print("{} may need exclusions set because of ref {} with count {}".format(website, common[0], common[1]))
 
-    #check_daf_yomi_and_parashat_hashavua(all_sites)
 
 def check_daf_yomi_and_parashat_hashavua(sites):
     previous = datetime.now() - timedelta(10)
