@@ -2803,6 +2803,10 @@ a.navBlockTitle:hover {
   padding: 0 6px;
   box-sizing: border-box;
 }
+.connectionsPanel .textTableOfContents .sectionLink{
+  background-color: #ffffff;
+  color: #000000;
+}
 .textTableOfContents .sectionName {
   display: none;
 }
