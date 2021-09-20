@@ -158,7 +158,8 @@ const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged, se
   if (!filters || !filters.length) { return null; }
 
   useEffect(() => {
-    updateFilters("");
+    const filterValue = document.getElementById(`filter${name}`)?.value ? document.getElementById(`filter${name}`)?.value : "";
+    updateFilters(filterValue);
   }, [filters])
 
   const [displayedFilters, setFilters] = useState(filters);
@@ -191,7 +192,7 @@ const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged, se
     }
   }
   // need hebrew for placeholder/title
-  const search = searchable ? <input class="searchBox" placeholder={Sefaria._(`Search ${name}`)} title={`Type to Filter ${name} Shown`} onChange={e => updateFilters(e.target.value)}></input> : null;
+  const search = searchable ? <input class="searchBox" id={`filter${name}`} placeholder={Sefaria._(`Search ${name}`)} title={`Type to Filter ${name} Shown`} onChange={e => updateFilters(e.target.value)}></input> : null;
 
   return (
     <div className="searchFilterGroup">
