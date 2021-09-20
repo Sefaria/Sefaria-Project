@@ -753,8 +753,9 @@ def sheet_stats(request):
 
 
     html += "\n\nYearly Totals Sheets / Public Sheets / Sheet Creators:\n\n"
-    start = datetime.today().replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
-    years = 4
+    today = datetime.today()
+    start = today.replace(year=today.year+1, month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+    years = 5
     for i in range(years):
         end      = start
         start    = end - relativedelta(years=1)

@@ -2398,7 +2398,10 @@ const SefariaEditor = (props) => {
 
         }
 
-            <button className="editorSidebarToggle" onClick={(e)=>onEditorSidebarToggleClick(e) } aria-label="Click to open the sidebar" />
+            { /* show sidebar toggle only when there's content on the page */
+                document.querySelectorAll(".sheetItem").length > 0 ?
+                    <button className="editorSidebarToggle" onClick={(e) => onEditorSidebarToggleClick(e)} aria-label="Click to open the sidebar"/> : null
+            }
 
         <SheetMetaDataBox>
             <SheetTitle tabIndex={0} title={sheet.title} editable={true} blurCallback={() => saveDocument(currentDocument)}/>

@@ -7209,6 +7209,9 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 }
 .editorSidebarToggle::after {
   content: url("/static/img/3vdots.svg");
+  position: absolute;
+  top: 7px;
+  left: 13px;
 }
 .collectionListingImage {
   height: 100%;
@@ -9045,8 +9048,8 @@ cursor: pointer;
   pointer-events: none;
   user-select: none;
 }
-.sheetItem .SheetSource:after,
-.sheetItem .SheetOutsideBiText:after {
+.readerPanel.bilingual .sheetItem .SheetSource:after,
+.readerPanel.bilingual .sheetItem .SheetOutsideBiText:after {
   content: " ";
   display: block;
   clear: both;
