@@ -625,15 +625,15 @@ class SheetMedia extends Component {
     if (this.isImage()) {
       mediaLink = '<img class="addedMedia" src="' + mediaURL + '" />';
     }
-    else if (mediaURL.toLowerCase().indexOf('youtube') > 0) {
+    else if (mediaURL.match(/https?:\/\/www\.youtube\.com\/embed\/.+?rel=0&amp;showinfo=0$/i) != null) {
       mediaLink = '<div class="youTubeContainer"><iframe width="100%" height="100%" src=' + mediaURL + ' frameborder="0" allowfullscreen></iframe></div>';
     }
 
-    else if (mediaURL.toLowerCase().indexOf('vimeo') > 0) {
+    else if (mediaURL.toLowerCase().match(/https?:\/\/player\.vimeo\.com\/.*/i) != null) {
       mediaLink = '<div class="youTubeContainer"><iframe width="100%" height="100%" src=' + mediaURL + ' frameborder="0"  allow="autoplay; fullscreen" allowfullscreen></iframe></div>';
     }
 
-    else if (mediaURL.toLowerCase().indexOf('soundcloud') > 0) {
+    else if (mediaURL.match(/https?:\/\/w\.soundcloud\.com\/player\/\?url=.*/i) != null) {
       mediaLink = '<iframe width="100%" height="166" scrolling="no" frameborder="no" src="' + mediaURL + '"></iframe>';
     }
 

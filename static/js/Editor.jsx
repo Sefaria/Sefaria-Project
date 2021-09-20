@@ -903,17 +903,15 @@ const Element = props => {
             if (element.mediaUrl.match(/\.(jpeg|jpg|gif|png)$/i) != null) {
               mediaComponent = <div className="SheetMedia media"><img className="addedMedia" src={element.mediaUrl} />{children}</div>
             }
-            else if (element.mediaUrl.toLowerCase().indexOf('youtube') > 0) {
+            else if (element.mediaUrl.match(/https?:\/\/www\.youtube\.com\/embed\/.+?rel=0&amp;showinfo=0$/i) != null) {
               mediaComponent = <div className="media fullWidth SheetMedia"><div className="youTubeContainer"><iframe width="100%" height="100%" src={element.mediaUrl} frameBorder="0" allowFullScreen></iframe>{children}</div></div>
             }
-            else if (element.mediaUrl.toLowerCase().indexOf('soundcloud') > 0) {
+            else if (element.mediaUrl.match(/https?:\/\/w\.soundcloud\.com\/player\/\?url=.*/i) != null) {
               mediaComponent = <div className="SheetMedia media fullWidth"><iframe width="100%" height="166" scrolling="no" frameBorder="no" src={element.mediaUrl}></iframe>{children}</div>
             }
-
             else if (element.mediaUrl.match(/\.(mp3)$/i) != null) {
               mediaComponent= <div className="SheetMedia media fullWidth"><audio src={element.mediaUrl} type="audio/mpeg" controls>Your browser does not support the audio element.</audio>{children}</div>
             }
-
             else {
               mediaComponent = <div className="SheetMedia media fullWidth">{children}</div>
             }
@@ -2398,10 +2396,7 @@ const SefariaEditor = (props) => {
 
         }
 
-            { /* show sidebar toggle only when there's content on the page */
-                document.querySelectorAll(".sheetItem").length > 0 ?
-                    <button className="editorSidebarToggle" onClick={(e) => onEditorSidebarToggleClick(e)} aria-label="Click to open the sidebar"/> : null
-            }
+            <button className="editorSidebarToggle" onClick={(e)=>onEditorSidebarToggleClick(e) } aria-label="Click to open the sidebar" />
 
         <SheetMetaDataBox>
             <SheetTitle tabIndex={0} title={sheet.title} editable={true} blurCallback={() => saveDocument(currentDocument)}/>
