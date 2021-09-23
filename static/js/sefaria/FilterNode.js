@@ -40,7 +40,7 @@ class FilterNode {
           results = results.concat(this.children[i].getLeafNodes(searchFilterText));
       }
       if (searchFilterText && searchFilterText != "") {
-          results = results.filter(x => x.title.toLowerCase().startsWith(searchFilterText));
+          results = results.filter(x => x.title.match(new RegExp(`(?:^|.+\\s)${searchFilterText}.*`, "i")) || x.heTitle.match(new RegExp(`(?:^|.+\\s)${searchFilterText}.*`, "i")));
       }
       return results;
   }

@@ -178,10 +178,10 @@ const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged, se
     content = <PagedList items={content} />
   }
 
-  const beginsWithStringOrSelected = (item, filterValue) => {
-    if (item.selected || item.title.toLowerCase().startsWith(filterValue.toLowerCase()) || item.heTitle.startsWith(filterValue)) {
+  const hasWordStartingWithOrSelected = (item, filterValue) => {
+    if (item.selected || item.title.match(new RegExp(`(?:^|.+\\s)${filterValue}.*`, "i")) || item.heTitle.match(new RegExp(`(?:^|.+\\s)${filterValue}.*`, "i"))) {
       return true;
-    } else if (item.children.filter(x => beginsWithStringOrSelected(x, filterValue)).length > 0) {
+    } else if (item.children.filter(x => hasWordStartingWithOrSelected(x, filterValue)).length > 0) {
       return true;
     }
     else {
@@ -191,7 +191,7 @@ const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged, se
 
   const updateFilters = text => {
     if (text && text != "") {
-      setFilters(filters.filter(x => beginsWithStringOrSelected(x, text)));
+      setFilters(filters.filter(x => hasWordStartingWithOrSelected(x, text)));
     } else {
       setFilters(filters);
     }
@@ -293,8 +293,8 @@ class SearchFilter extends Component {
       this.toggleExpanded();
     }
   }
-  autoExpand() {
-    return this.props.filterSearchValue !== null && this.props.filterSearchValue !== "" && this.props.expandable;
+  autoExpand(filter) {
+    return this.props.filterSearchValue !== null && this.props.filterSearchValue !== "" && this.props.expandable && filter.getLeafNodes(this.props.filterSearchValue).length > 0;
   }
   render() {
     const { filter, expandable } = this.props;
@@ -327,7 +327,7 @@ class SearchFilter extends Component {
           </div>
           {this.props.expandable ? <i className="fa fa-angle-down" onClick={this.toggleExpanded} /> : null}
         </li>
-        {this.state.expanded || this.autoExpand() ? 
+        {this.state.expanded || this.autoExpand(filter) ? 
         <li>
           <div className="searchFilterBooks">
             {filter.getLeafNodes(this.props.filterSearchValue).map(subFilter => (
