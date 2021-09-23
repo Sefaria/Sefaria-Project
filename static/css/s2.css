@@ -3540,7 +3540,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   background: #EDEDEC;
   border-radius: 250px;
   border: none;
-  width: 140px;
+  width: calc(100% - 10px);
   height: 30px;
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
