@@ -191,8 +191,12 @@ const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged, se
       setFilters(filters);
     }
   }
+  const clearInput = () => {
+    document.getElementById(`filter${name}`).value = "";
+    updateFilters("");
+  }
   // need hebrew for placeholder/title
-  const search = searchable ? <input class="searchBox" id={`filter${name}`} placeholder={Sefaria._(`Search ${name}`)} title={`Type to Filter ${name} Shown`} onChange={e => updateFilters(e.target.value)}></input> : null;
+  const search = searchable ? <div class="searchBox"><input id={`filter${name}`} placeholder={Sefaria._(`Search ${name}`)} title={`Type to Filter ${name} Shown`} onChange={e => updateFilters(e.target.value)}></input><button aria-label="Clear input" onClick={clearInput}><i class="fa fa-times searchFilterIcon" aria-hidden="true" tabIndex="0"></i></button></div>  : null;
 
   return (
     <div className="searchFilterGroup">

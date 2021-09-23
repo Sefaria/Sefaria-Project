@@ -3545,6 +3545,17 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
+.searchFilters .searchFilterIcon {
+  float: right;
+}
+.searchBox #filterTopics {
+  width: calc(100% - 10px);
+  background-color: transparent;
+  border: 0;
+}
+.searchBox button {
+  border:0;
+}
 .dropdown-option-list {
   margin-top: 10px;
   background: white;
