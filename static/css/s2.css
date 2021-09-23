@@ -3548,7 +3548,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchFilters .searchFilterIcon {
   float: right;
 }
-.searchBox #filterTopics {
+.searchBox input {
   width: calc(100% - 10px);
   background-color: transparent;
   border: 0;

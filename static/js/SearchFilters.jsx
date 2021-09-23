@@ -128,6 +128,7 @@ class TextSearchFilters extends Component {
       <div className="searchFilterBoxes">
         <SearchFilterGroup
           name="Texts"
+          searchable={true}
           filters={this.props.availableFilters}
           updateSelected={this.props.updateAppliedFilter}
           expandable={true} />
@@ -169,6 +170,7 @@ const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged, se
       filter={filter}
       updateSelected={updateSelected}
       expandable={expandable}
+      filterSearchValue={document.getElementById(`filter${name}`)?.value}
       key={filter.aggKey}/>
   ));
 
@@ -179,7 +181,10 @@ const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged, se
   const beginsWithStringOrSelected = (item, filterValue) => {
     if (item.selected || item.title.toLowerCase().startsWith(filterValue.toLowerCase()) || item.heTitle.startsWith(filterValue)) {
       return true;
-    } else {
+    } else if (item.children.filter(x => beginsWithStringOrSelected(x, filterValue)).length > 0) {
+      return true;
+    }
+    else {
       return false;
     }
   }
@@ -288,6 +293,9 @@ class SearchFilter extends Component {
       this.toggleExpanded();
     }
   }
+  autoExpand() {
+    return this.props.filterSearchValue !== null && this.props.filterSearchValue !== "" && this.props.expandable;
+  }
   render() {
     const { filter, expandable } = this.props;
     const toggleMessage = "Press enter to toggle search filter for " + filter.title + ".";
@@ -319,10 +327,10 @@ class SearchFilter extends Component {
           </div>
           {this.props.expandable ? <i className="fa fa-angle-down" onClick={this.toggleExpanded} /> : null}
         </li>
-        {this.state.expanded ? 
+        {this.state.expanded || this.autoExpand() ? 
         <li>
           <div className="searchFilterBooks">
-            {filter.getLeafNodes().map(subFilter => (
+            {filter.getLeafNodes(this.props.filterSearchValue).map(subFilter => (
               <SearchFilter
                 filter={subFilter}
                 updateSelected={this.props.updateSelected}
