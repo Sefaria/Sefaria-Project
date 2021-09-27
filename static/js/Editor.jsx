@@ -664,15 +664,24 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
         return null;
       }
       const youtube_re = /https?:\/\/(www\.)?(youtu(?:\.be|be\.com)\/(?:.*v(?:\/|=)|(?:.*\/)?)([\w'-]+))/i;
+      let vimeo_re = /^.*(vimeo\.com\/)((channels\/[A-z]+\/)|(groups\/[A-z]+\/videos\/)|(video\/))?([0-9]+)/;
       let m;
       if ((m = youtube_re.exec(url)) !== null) {
         if (m.index === youtube_re.lastIndex) {
           youtube_re.lastIndex++;
         }
-          if (m.length>0) {
-            return ('https://www.youtube.com/embed/'+m[m.length-1]+'?rel=0&amp;showinfo=0')
+        if (m.length>0) {
+            return "https://www.youtube.com/embed/"+m[m.length-1]+"?rel=0&amp;showinfo=0";
+        }
+      }
+      else if ((m = vimeo_re.exec(url)) !== null) {
+          if (m.index === vimeo_re.lastIndex) {
+              vimeo_re.lastIndex++;
           }
-      } else if (url.match(/^https?:\/\/(www\.)?.+\.(jpeg|jpg|gif|png)$/i) != null) {
+          if (m.length > 0) {
+              return "https://player.vimeo.com/video/" + m[6];
+          }
+    } else if (url.match(/^https?:\/\/(www\.)?.+\.(jpeg|jpg|gif|png)$/i) != null) {
         return url;
       } else if (url.match(/^https?:\/\/(www\.)?.+\.(mp3)$/i) != null) {
         return url;
@@ -899,12 +908,15 @@ const Element = props => {
 
         case 'SheetMedia':
             let mediaComponent
-
+            let vimeoRe = /^.*(vimeo\.com\/)((channels\/[A-z]+\/)|(groups\/[A-z]+\/videos\/)|(video\/))?([0-9]+)/;        
             if (element.mediaUrl.match(/\.(jpeg|jpg|gif|png)$/i) != null) {
               mediaComponent = <div className="SheetMedia media"><img className="addedMedia" src={element.mediaUrl} />{children}</div>
             }
             else if (element.mediaUrl.match(/https?:\/\/www\.youtube\.com\/embed\/.+?rel=0&amp;showinfo=0$/i) != null) {
               mediaComponent = <div className="media fullWidth SheetMedia"><div className="youTubeContainer"><iframe width="100%" height="100%" src={element.mediaUrl} frameBorder="0" allowFullScreen></iframe>{children}</div></div>
+            }
+            else if (vimeoRe.exec(element.mediaUrl) !== null) {
+                mediaComponent = <iframe width="560" height="315" src={element.mediaUrl} frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>;
             }
             else if (element.mediaUrl.match(/https?:\/\/w\.soundcloud\.com\/player\/\?url=.*/i) != null) {
               mediaComponent = <div className="SheetMedia media fullWidth"><iframe width="100%" height="166" scrolling="no" frameBorder="no" src={element.mediaUrl}></iframe>{children}</div>
