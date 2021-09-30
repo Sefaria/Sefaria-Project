@@ -213,7 +213,6 @@ export const deserialize = el => {
       const elStyles = el.getAttribute("style").split(';');
       for (const elStyle of elStyles) {
         const styleArray = elStyle.split(":");
-        console.log(styleArray)
         if (styleArray.length == 2) {
           const styleType = styleArray[0].trim()
           const styleValue = styleArray[1].trim()
@@ -728,11 +727,12 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
             <div className="addInterfaceInput mediaInput" title="We can process YouTube and SoundCloud links, and hosted mp3's and images" onClick={(e)=> {e.stopPropagation()}}>
                 <input
                     type="text"
-                    placeholder="Paste a media link..."
+                    placeholder="Paste a link to an image, video, or audio"
                     className="serif"
                     onClick={(e)=> {e.stopPropagation()}}
                     onChange={(e) => onMediaChange(e)}
                     value={inputValue}
+                    size={100}
                 />
                 {showAddMediaButton ? <button className="button small" onClick={(e) => {
                     addMedia()
@@ -1700,12 +1700,17 @@ const Link = ({ attributes, children, element }) => {
         // Transforms.collapse(editor);
     }
 
-    const closePopup = () => {
+    const closePopup = (e) => {
+        if (e.target.value === "") {
+            Transforms.select(editor, currentSlateRange);
+            editor.removeLink();
+        }
         editor.showLinkOverride = false;
         editor.linkOverrideSelection = null;
     }
 
     const fixUrl = (s) => {
+        if (s == "") return
         try {
             let url = new URL(s)
             return(url)
@@ -1745,7 +1750,7 @@ const Link = ({ attributes, children, element }) => {
 
       {/* Show popup on hover and also force it open when a new link is created  */}
       {linkPopoverOpen ? (
-        <div className="popup" contentEditable={false} onBlur={closePopup}>
+        <div className="popup" contentEditable={false} onBlur={(e) => closePopup(e)}>
           <input
               type="text"
               value={urlValue}
