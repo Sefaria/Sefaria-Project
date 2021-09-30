@@ -689,6 +689,12 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
         return 'https://w.soundcloud.com/player/?url='+ url + '&amp;color=ff5500&amp;auto_play=false&amp;hide_related=true&amp;show_comments=false&amp;show_user=true&amp;show_reposts=false';
       } else if ((m = /^https?:\/\/open\.spotify\.com\/(?:embed\/)?(\w+)\/(\w+)\/?/i.exec(url)) != null) {
           return `https://open.spotify.com/embed/${m[1]}/${m[2]}`;
+      } else if ((m = /^https?:\/\/bandcamp.com\/EmbeddedPlayer(\/\w+\=\w+)+(\/)?/i.exec(url)) != null) {
+          if (!url.includes("artwork=small")) { // force small artwork because height calculation for large artwork depends on width
+            return m[2] ? url + "artwork=small" : url + "/artwork=small";
+          } else {
+              return url;
+          }
       } else {
         return false
       }
@@ -924,7 +930,9 @@ const Element = props => {
                 mediaComponent = <div className="SheetMedia media fullWidth"><iframe width="100%" height="380" scrolling="no" frameBorder="no" src={element.mediaUrl}></iframe>{children}</div>
             }
             else if (element.mediaUrl.match(/https?:\/\/w\.soundcloud\.com\/player\/\?url=.*/i) != null) {
-              mediaComponent = <div className="SheetMedia media fullWidth"><iframe width="100%" height="166" scrolling="no" frameBorder="no" src={element.mediaUrl}></iframe>{children}</div>
+              mediaComponent = <div className="SheetMedia media fullWidth"><iframe style="border: 0; width: 100%; height: 120px;" scrolling="no" frameBorder="no" src={element.mediaUrl}></iframe>{children}</div>
+            } else if (element.mediaUrl.match(/^https?:\/\/bandcamp.com\/EmbeddedPlayer(\/\w+\=\w+)+\/?/i)) {
+                mediaComponent = <div className="SheetMedia media fullWidth"><iframe width="100%" height="120" scrolling="no" frameBorder="no" src={element.mediaUrl}></iframe>{children}</div>
             }
             else if (element.mediaUrl.match(/\.(mp3)$/i) != null) {
               mediaComponent= <div className="SheetMedia media fullWidth"><audio src={element.mediaUrl} type="audio/mpeg" controls>Your browser does not support the audio element.</audio>{children}</div>
