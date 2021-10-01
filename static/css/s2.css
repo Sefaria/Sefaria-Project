@@ -556,6 +556,8 @@ input.noselect {
   padding: 0;
   flex: 1;
   height: 100%;
+  margin-bottom: 1px;
+  font-size: var(--serif-body-font-size);
 }
 .header .searchBox input::placeholder {
   font-style: normal;
@@ -3544,6 +3546,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   height: 30px;
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
+  margin-bottom: 10px;
 }
 .searchFilters .searchFilterIcon {
   float: right;
@@ -7681,7 +7684,6 @@ body.interface-english .publishBox .react-tags__suggestions ul {
     padding: 4px 7px 2px;
     position: initial;
     vertical-align: 0px;
-
 }
 .header .searchBox .keyboardInputInitiator {
     display: none;
