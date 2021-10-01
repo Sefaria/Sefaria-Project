@@ -553,6 +553,7 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
   const [unsavedChanges, setUnsavedChanges] = useState(false)
   const [sourceActive, setSourceActive] = useState(false)
   const [activeSourceLangContent, setActiveSourceLangContent] = useState(null)
+  const [isDragging, setIsDragging] = useState(false)
   const selected = useSelected()
   const focused = useFocused()
   const cancelEvent = (event) => event.preventDefault()
@@ -613,8 +614,45 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
   };
   const heClasses = {he: 1, selected: isActive, editable: activeSourceLangContent == "he" ? true : false };
   const enClasses = {en: 1, selected: isActive, editable: activeSourceLangContent == "en" ? true : false };
+  const dragStart = (e) => {
+      console.log(e.target)
+
+      let range = document.createRange();
+      range.selectNode(e.target);
+
+      const node = ReactEditor.toSlateRange(parentEditor, range)
+
+      console.log(node)
+
+      Transforms.select(parentEditor, node);
+      Transforms.move(parentEditor, { distance: 1, unit: 'character', reverse: true, edge: 'anchor' })
+      Transforms.move(parentEditor, { distance: 1, unit: 'character', edge: 'focus' })
+
+      // const fragment = Node.fragment(parentEditor, parentEditor.selection)
+      // console.log(fragment)
+      // const string = JSON.stringify(fragment)
+      // const encoded = window.btoa(encodeURIComponent(string))
+      // e.dataTransfer.setData('application/x-slate-fragment', encoded)
+      //
+      // e.dataTransfer.setData('text/html', e.target.innerHTML)
+      // e.dataTransfer.setData('text/plain', e.target.text)
+      // e.dataTransfer.effectAllowed = 'move';
+      //
+      // ReactEditor.setFragmentData(parentEditor, e.dataTransfer)
+      setIsDragging(true)
+  }
+
+  const dragEnd = (e) => {
+      setIsDragging(false)
+  }
 
   return (
+      <div
+          draggable={true}
+          className={isDragging ? "boxedSheetItem dragged" : "boxedSheetItem"}
+          onDragStart={(e)=>{dragStart(e)}}
+          onDragEnd={(e)=>{dragEnd(e)}}
+      >
     <div className={classNames(sheetItemClasses)} data-sheet-node={element.node} data-sefaria-ref={element.ref} style={{ pointerEvents: (isActive) ? 'none' : 'auto'}}>
     <div {...attributes} contentEditable={false} onBlur={(e) => onBlur(e) } onClick={(e) => onClick(e)} className={classNames(classes)} style={{"borderInlineStartColor": Sefaria.palette.refColor(element.ref)}}>
       <div className={classNames(heClasses)} style={{ pointerEvents: (isActive) ? 'auto' : 'none'}}>
@@ -648,6 +686,7 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
       <div className="clearFix"></div>
       {children}
       </div>
+          </div>
   );
 };
 
@@ -2307,7 +2346,7 @@ const SefariaEditor = (props) => {
     const onCutorCopy = event => {
         const nodeAbove = Editor.above(editor, { match: n => Editor.isBlock(editor, n) })
 
-        if (nodeAbove[0].type == "SheetSource") {
+        if (nodeAbove && nodeAbove[0].type == "SheetSource") {
             editor.cuttingSource = true;
             //can't select an empty void -- so we select before and after as well
             Transforms.move(editor, { distance: 1, unit: 'character', reverse: true, edge: 'anchor' })
@@ -2315,6 +2354,13 @@ const SefariaEditor = (props) => {
         }
 
     };
+
+    const onDrop = event => {
+        const data = event.dataTransfer
+        console.log(data)
+        ReactEditor.insertData(editor, data)
+    };
+
 
     const onBlur = event => {
       editor.blurSelection = editor.selection
@@ -2441,6 +2487,7 @@ const SefariaEditor = (props) => {
                   onCut={onCutorCopy}
                   onCopy={onCutorCopy}
                   onBlur={onBlur}
+                  onDrop={onDrop}
                   onDOMBeforeInput={beforeInput}
                 />
             </Slate>
