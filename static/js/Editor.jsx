@@ -619,26 +619,20 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
 
       let range = document.createRange();
       range.selectNode(e.target);
-
       const slateRange = ReactEditor.toSlateRange(parentEditor, range)
-
-      Transforms.select(parentEditor, slateRange);
-      Transforms.move(parentEditor, { distance: 1, unit: 'character', reverse: true, edge: 'anchor' })
-      Transforms.move(parentEditor, { distance: 1, unit: 'character', edge: 'focus' })
-
       parentEditor.dragging = true
+      const fragment = Node.fragment(parentEditor, slateRange)
+      ReactEditor.deselect(parentEditor)
 
-      // const fragment = Node.fragment(parentEditor, parentEditor.selection)
-      // console.log(fragment)
-      // const string = JSON.stringify(fragment)
-      // const encoded = window.btoa(encodeURIComponent(string))
-      // e.dataTransfer.setData('application/x-slate-fragment', encoded)
-      //
-      // e.dataTransfer.setData('text/html', e.target.innerHTML)
-      // e.dataTransfer.setData('text/plain', e.target.text)
-      // e.dataTransfer.effectAllowed = 'move';
-      //
-      // ReactEditor.setFragmentData(parentEditor, e.dataTransfer)
+      const string = JSON.stringify(fragment)
+      const encoded = window.btoa(encodeURIComponent(string))
+      e.dataTransfer.setData('application/x-slate-fragment', encoded)
+
+      e.dataTransfer.setData('text/html', e.target.innerHTML)
+      e.dataTransfer.setData('text/plain', e.target.text)
+      e.dataTransfer.effectAllowed = 'move';
+
+      ReactEditor.setFragmentData(parentEditor, e.dataTransfer)
       setIsDragging(true)
   }
 
@@ -2357,12 +2351,12 @@ const SefariaEditor = (props) => {
     };
 
     const onDrop = event => {
-        if (editor.dragging) {
-          // Timeout required b/c we want this to fire after drop to delete extra character that came with the source
-          setTimeout(() => {
-            editor.deleteBackward()
-          }, 100);
-        }
+        // if (editor.dragging) {
+        //   // Timeout required b/c we want this to fire after drop to delete extra character that came with the source
+        //   setTimeout(() => {
+        //     editor.deleteBackward()
+        //   }, 100);
+        // }
         editor.dragging = false
     };
 
