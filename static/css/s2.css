@@ -3550,6 +3550,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: flex;
   align-items: center;
   padding-left: 10px;
+  padding-right: 10px;
   text-align: inherit;
   background: #EDEDEC;
   border-radius: 250px;
