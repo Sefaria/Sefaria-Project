@@ -3656,7 +3656,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   background-color: var(--lighter-grey);
   padding: 20px 15px;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   color:  var(--dark-grey);
 }
 .mobileSearchFiltersHeader .readerNavMenuCloseButton {
@@ -3665,6 +3665,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   height: 20px;
   display: block;
   line-height: 20px;
+  position: absolute;
+  margin-right: 100%;
+  margin-left: 45px;
 }
 .mobileSearchFilters .searchFilters {
   flex-grow:  1;
