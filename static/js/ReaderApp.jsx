@@ -243,15 +243,7 @@ class ReaderApp extends Component {
     if (window.location !== window.parent.location) {
       const channel = new BroadcastChannel("chavruta");
 
-      const currentlyReading = this.state.panels.map((panel) => {
-        if (panel.mode === "Text") {
-          return panel.currentlyVisibleRef
-        } else if (panel.filter.length !== 0) {
-          return panel.filter[0]
-        } else {
-          return
-        }
-      }).filter(ele => ele).join(", ");
+      const currentlyReading = this.generateCurrentlyReadingString(this.state.panels)
 
       channel.postMessage({currentlyReading: currentlyReading, history: this.makeHistoryState()});
     }
@@ -1640,6 +1632,19 @@ class ReaderApp extends Component {
     }
     return false;
   }
+  generateCurrentlyReadingString(panels) {
+    const string = panels.map((panel) => {
+      if (panel.mode === "Text") {
+        return panel.currentlyVisibleRef
+      } else if (panel.filter.length !== 0) {
+        return panel.filter[0]
+      } else {
+        return
+      }
+    }).filter(ele => ele).join(", ");
+
+    return string
+  }
   handleCopyEvent(e) {
     // Custom processing of Copy/Paste
     // - Ensure we don't copy hidden English or Hebrew text
@@ -1893,6 +1898,7 @@ class ReaderApp extends Component {
           <BeitMidrash
             socket={io(`//${Sefaria.rtc_server}`, {autoConnect: false})}
             beitMidrashId = {this.state.beitMidrashId}
+            currentlyReading = {this.generateCurrentlyReadingString(this.state.panels)}
           />
       </div>
     ) : null

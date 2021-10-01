@@ -10641,7 +10641,7 @@ span.ref-link-color-3 {color: blue}
 }
 
 .peopleInBeitMidrash {
-  overflow-y: scroll;
+  overflow-y: auto;
 }
 
 .beitMidrashHR {

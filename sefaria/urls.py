@@ -43,7 +43,6 @@ urlpatterns = [
     url(r'^modtools/upload_text$', sefaria_views.modtools_upload_workflowy),
     url(r'^story_editor/?$', reader_views.story_editor),
     url(r'^torahtracker/?$', reader_views.user_stats),
-    url(r'^beit_midrash/(?P<slug>[^.]+)$', reader_views.beit_midrash),
 ]
 
 # People Pages
@@ -306,7 +305,7 @@ urlpatterns += [
 urlpatterns += [
     url(r'^daf-roulette/?$', reader_views.daf_roulette_redirect),
     url(r'^chavruta/?$', reader_views.chevruta_redirect),
-    url(r'^beit-midrash/?$', reader_views.beit_midrash),
+    url(r'^beit-midrash/(?P<slug>[^.]+)$', reader_views.beit_midrash),
     url(r'^api/chat-messages/?$', reader_views.chat_message_api)
 ]
 

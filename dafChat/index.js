@@ -34,6 +34,7 @@ const io = require("socket.io")(httpServer, {
   cors: {
     origin: [
         "http://localhost:8000",
+        "http://0.0.0.0:8000",
         "https://www.sefaria.org",
         "https://www.sefaria.org.il",
         "https://chavruta.cauldron.sefaria.org",
@@ -60,13 +61,14 @@ io.on("connection", (socket) => {
 
   let disconnectHandler;
 
-  function addUserToBeitMidrash(uid, fullName, profilePic, organization, beitMidrashId, socketId) {
+  function addUserToBeitMidrash(uid, fullName, profilePic, organization, currentlyReading, beitMidrashId, socketId) {
     peopleInBeitMidrash[socketId] = {}
     peopleInBeitMidrash[socketId]["uid"] = uid;
     peopleInBeitMidrash[socketId]["name"] = fullName;
     peopleInBeitMidrash[socketId]["pic"] = profilePic;
     peopleInBeitMidrash[socketId]["organization"] = organization
     peopleInBeitMidrash[socketId]["beitMidrashId"] = beitMidrashId;
+    peopleInBeitMidrash[socketId]["currentlyReading"] = currentlyReading;
 
     console.log("user added to beit midrash, current peopleInBeitMidrash:", peopleInBeitMidrash)
     socket.broadcast.emit("change in people", Object.values(peopleInBeitMidrash), uid);
@@ -75,7 +77,15 @@ io.on("connection", (socket) => {
     clearTimeout(disconnectHandler)
   }
 
-  socket.on("enter beit midrash", (uid, fullName, profilePic, organization, beitMidrashId)=> addUserToBeitMidrash(uid, fullName, profilePic, organization, beitMidrashId, socket.id));
+  socket.on("update currently reading", (uid, currentlyReading) => {
+    if (!peopleInBeitMidrash[socket.id]) return
+    console.log(uid, ": ", currentlyReading)
+    peopleInBeitMidrash[socket.id]["currentlyReading"] = currentlyReading;
+    socket.broadcast.emit("change in people", Object.values(peopleInBeitMidrash), uid);
+    socket.emit("change in people", Object.values(peopleInBeitMidrash), uid);
+  })
+
+  socket.on("enter beit midrash", (uid, fullName, profilePic, organization, currentlyReading, beitMidrashId)=> addUserToBeitMidrash(uid, fullName, profilePic, organization, currentlyReading, beitMidrashId, socket.id));
 
   socket.on("connect with other user", (uid, user) => {
     const socketId = Object.keys(peopleInBeitMidrash).find(key => peopleInBeitMidrash[key]["uid"] === uid);

@@ -7,7 +7,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Sefaria  from './sefaria/sefaria';
 import { BroadcastChannel } from 'broadcast-channel';
 
-const BeitMidrash = ({socket, beitMidrashId}) => {
+const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
     const [peopleInBeitMidrash, setPeopleInBeitMidrash] = useState(null);
     const [activeChatRooms, setActiveChatRooms] = useState([]);
     const [chatDataStore, _setChatDataStore] = useState({});
@@ -94,19 +94,24 @@ const BeitMidrash = ({socket, beitMidrashId}) => {
         }
     }, [])
 
+    useEffect(()=> {
+        socketObj.emit("update currently reading", Sefaria._uid, currentlyReading);
+        console.log(currentlyReading)
+    }, [currentlyReading])
+
     useEffect(()=>{
         socketObj.io.off("reconnect")
 
         socketObj.io.on("reconnect", (attempt) => {
             setSocketConnected(socket);
             console.log(`Reconnected after ${attempt} attempt(s)`);
-            socketObj.emit("enter beit midrash", Sefaria._uid, Sefaria.full_name, Sefaria.profile_pic_url, profile.organization, beitMidrashId);
+            socketObj.emit("enter beit midrash", Sefaria._uid, Sefaria.full_name, Sefaria.profile_pic_url, profile.organization, currentlyReading, beitMidrashId);
         });
 
         if (Sefaria._uid) {
             Sefaria.profileAPI(Sefaria.slug).then(profile => {
                 setProfile(profile)
-                socketObj.emit("enter beit midrash", Sefaria._uid, Sefaria.full_name, Sefaria.profile_pic_url, profile.organization, beitMidrashId);
+                socketObj.emit("enter beit midrash", Sefaria._uid, Sefaria.full_name, Sefaria.profile_pic_url, profile.organization, currentlyReading, beitMidrashId);
             });
         }
     }, [beitMidrashId])
@@ -291,7 +296,7 @@ const BeitMidrashHome = ({beitMidrashId,
                         {user.name}
                         {/* {currentActiveChatUsers.includes(user.uid) ? null : <button onClick={() => startChat(user)}>Chat</button>
                         } */}
-                        <div id="beitMidrashOrg">{user.organization}</div>
+                        <div id="beitMidrashOrg">{user.currentlyReading !== "" ? `is learning ${user.currentlyReading}`: ""}</div>
                         </div>
                     </div>
                     } else {
