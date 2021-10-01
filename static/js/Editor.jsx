@@ -620,13 +620,13 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
       let range = document.createRange();
       range.selectNode(e.target);
 
-      const node = ReactEditor.toSlateRange(parentEditor, range)
+      const slateRange = ReactEditor.toSlateRange(parentEditor, range)
 
-      console.log(node)
-
-      Transforms.select(parentEditor, node);
+      Transforms.select(parentEditor, slateRange);
       Transforms.move(parentEditor, { distance: 1, unit: 'character', reverse: true, edge: 'anchor' })
       Transforms.move(parentEditor, { distance: 1, unit: 'character', edge: 'focus' })
+
+      parentEditor.dragging = true
 
       // const fragment = Node.fragment(parentEditor, parentEditor.selection)
       // console.log(fragment)
@@ -643,6 +643,7 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
   }
 
   const dragEnd = (e) => {
+      console.log(1)
       setIsDragging(false)
   }
 
@@ -2356,9 +2357,13 @@ const SefariaEditor = (props) => {
     };
 
     const onDrop = event => {
-        const data = event.dataTransfer
-        console.log(data)
-        ReactEditor.insertData(editor, data)
+        if (editor.dragging) {
+          // Timeout required b/c we want this to fire after drop to delete extra character that came with the source
+          setTimeout(() => {
+            editor.deleteBackward()
+          }, 100);
+        }
+        editor.dragging = false
     };
 
 
