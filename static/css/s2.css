@@ -3328,9 +3328,21 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   color: #000;
   border-bottom: 4px solid var(--medium-grey);
 }
+
 .searchContent .searchResultList {
   padding-top: 25px;
+  max-width: 665px;
+  padding-top: 25px;
+  max-width: 665px;
 }
+
+@media (min-width: 701px) {
+  /* prevent width of left-pane from changing due to content size when filters applied */
+  .searchContent .searchResultList {
+    width: 60vw;
+  }
+}
+
 .searchContent .searchFilters h2 {
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
