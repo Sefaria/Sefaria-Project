@@ -97,6 +97,7 @@ class TextColumn extends Component {
   }
   handleTextSelection() {
     const selection = window.getSelection();
+    let refs = [];
     if (selection.type === "Range") {
       //console.log("handling range");
       const $start  = $(Sefaria.util.getSelectionBoundaryElement(true)).closest(".segment");
@@ -108,7 +109,6 @@ class TextColumn extends Component {
       start = start == -1 ? end : start;
       end = end == -1 ? start : end;
       $segments = $segments.slice(start, end+1);
-      let refs      = [];
 
       $segments.each(function() {
         refs.push($(this).attr("data-ref"));
@@ -116,7 +116,9 @@ class TextColumn extends Component {
 
       //console.log("Setting highlights by Text Selection");
       //console.log(refs);
-      this.props.setTextListHighlight(refs);
+      if (refs.length > 0) {
+        this.props.setTextListHighlight(refs);
+      }
     }
     //const selectedWords = selection.toString(); //this doesnt work in Chrome, as it does not skip elements marked with css `user-select: none` as it should.
     const selectedWords = Sefaria.util.getNormalizedSelectionString(); //this gets around the above issue
