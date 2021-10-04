@@ -90,6 +90,7 @@ const Strings = {
     "Exact Matches Only": "התאמה מדויקת למילות החיפוש",
 
     // Sheets
+    "Create a New Sheet": "יצירת דף מקורות",
     "Source Sheets": "דפי מקורות",
     "Start a New Source Sheet": "התחלת דף מקורות חדש",
     "Untitled Source Sheet" : "דף מקורות ללא שם",
