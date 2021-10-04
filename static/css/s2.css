@@ -3559,16 +3559,18 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   height: 30px;
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: var(--sans-serif-body-font-size);
   margin-bottom: 10px;
 }
 .searchFilters .searchFilterIcon {
   float: right;
   margin: 0px -5px 1px 0px;
 }
-.searchBox input {
+.searchBox input.searchFiltersInput {
   width: calc(100% - 10px);
   background-color: transparent;
   border: 0;
+  font-size: var(--sans-serif-body-font-size);
 }
 .searchBox button {
   border:0;
