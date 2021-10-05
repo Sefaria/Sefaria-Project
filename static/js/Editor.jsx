@@ -620,14 +620,13 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
       let range = document.createRange();
       range.selectNode(e.target);
       const slateRange = ReactEditor.toSlateRange(parentEditor, range)
-      parentEditor.dragging = true
+      parentEditor.dragging = slateRange
       const fragment = Node.fragment(parentEditor, slateRange)
       ReactEditor.deselect(parentEditor)
 
       const string = JSON.stringify(fragment)
       const encoded = window.btoa(encodeURIComponent(string))
       e.dataTransfer.setData('application/x-slate-fragment', encoded)
-
       e.dataTransfer.setData('text/html', e.target.innerHTML)
       e.dataTransfer.setData('text/plain', e.target.text)
       e.dataTransfer.effectAllowed = 'move';
@@ -636,17 +635,11 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
       setIsDragging(true)
   }
 
-  const dragEnd = (e) => {
-      console.log(1)
-      setIsDragging(false)
-  }
-
   return (
       <div
           draggable={true}
           className={isDragging ? "boxedSheetItem dragged" : "boxedSheetItem"}
           onDragStart={(e)=>{dragStart(e)}}
-          onDragEnd={(e)=>{dragEnd(e)}}
       >
     <div className={classNames(sheetItemClasses)} data-sheet-node={element.node} data-sefaria-ref={element.ref} style={{ pointerEvents: (isActive) ? 'none' : 'auto'}}>
     <div {...attributes} contentEditable={false} onBlur={(e) => onBlur(e) } onClick={(e) => onClick(e)} className={classNames(classes)} style={{"borderInlineStartColor": Sefaria.palette.refColor(element.ref)}}>
@@ -912,8 +905,7 @@ const Element = props => {
           const spacerSelected = useSelected();
           return (
             <div className="spacer empty">
-              {spacerSelected ? <AddInterface {...props} /> : <>{children}</>}
-
+              {spacerSelected && document.getSelection().isCollapsed ?  <AddInterface {...props} /> : <>{children}</>}
             </div>
           );
         case 'SheetSource':
@@ -2374,13 +2366,10 @@ const SefariaEditor = (props) => {
     };
 
     const onDrop = event => {
-        // if (editor.dragging) {
-        //   // Timeout required b/c we want this to fire after drop to delete extra character that came with the source
-        //   setTimeout(() => {
-        //     editor.deleteBackward()
-        //   }, 100);
-        // }
-        editor.dragging = false
+        if (editor.dragging) {
+            Transforms.delete(editor, {at: editor.dragging});
+            editor.dragging = false
+        }
     };
 
 
