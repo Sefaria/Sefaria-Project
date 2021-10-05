@@ -920,7 +920,7 @@ const Element = props => {
             if (element.mediaUrl.match(/\.(jpeg|jpg|gif|png)$/i) != null) {
               mediaComponent = <div className="SheetMedia media"><img className="addedMedia" src={element.mediaUrl} />{children}</div>
             }
-            else if (element.mediaUrl.match(/https?:\/\/www\.youtube\.com\/embed\/.+?rel=0&amp;showinfo=0$/i) != null) {
+            else if (element.mediaUrl.match(/https?:\/\/www\.youtube\.com\/embed\/.+?rel=0(&amp;|&)showinfo=0$/i) != null) {
               mediaComponent = <div className="media fullWidth SheetMedia"><div className="youTubeContainer"><iframe width="100%" height="100%" src={element.mediaUrl} frameBorder="0" allowFullScreen></iframe>{children}</div></div>
             }
             else if (vimeoRe.exec(element.mediaUrl) !== null) {

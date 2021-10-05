@@ -625,7 +625,7 @@ class SheetMedia extends Component {
     if (this.isImage()) {
       mediaLink = '<img class="addedMedia" src="' + mediaURL + '" />';
     }
-    else if (mediaURL.match(/https?:\/\/www\.youtube\.com\/embed\/.+?rel=0&amp;showinfo=0$/i) != null) {
+    else if (mediaURL.match(/https?:\/\/www\.youtube\.com\/embed\/.+?rel=0(&amp;|&)showinfo=0$/i) != null) {
       mediaLink = '<div class="youTubeContainer"><iframe width="100%" height="100%" src=' + mediaURL + ' frameborder="0" allowfullscreen></iframe></div>';
     }
 

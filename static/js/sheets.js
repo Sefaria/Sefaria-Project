@@ -3029,7 +3029,7 @@ function buildSource($target, source, appendOrInsert) {
 			mediaClass = "media";
 			wrapperClass += (!sjs.is_owner && sjs.current.hideImages ? " hidden" : "");
 		}
-		else if (source.media.match(/https?:\/\/www\.youtube\.com\/embed\/.+?rel=0&amp;showinfo=0$/i) != null) {
+		else if (source.media.match(/https?:\/\/www\.youtube\.com\/embed\/.+?rel=0(&amp;|&)showinfo=0$/i) != null) {
 			mediaLink = '<iframe width="560" height="315" src='+source.media+' frameborder="0" allowfullscreen></iframe>'
 		}
 		else if (source.media.toLowerCase().match(/https?:\/\/w\.soundcloud\.com\/player\/\?url=.*/i) != null) {
