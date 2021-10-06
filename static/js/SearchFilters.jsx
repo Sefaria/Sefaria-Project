@@ -179,9 +179,11 @@ const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged, se
   }
 
   const hasWordStartingWithOrSelected = (item, filterValue) => {
-    if (item.selected || item.title.match(new RegExp(`(?:^|.+\\s)${filterValue}.*`, "i")) || item.heTitle.match(new RegExp(`(?:^|.+\\s)${filterValue}.*`, "i"))) {
+    let escapedFilterValue = filterValue.replace("-", "\-");
+    escapedFilterValue = escapedFilterValue.replace(/[^\w\s\-]/g, "");
+    if (item.selected || item.title.match(new RegExp(`(?:^|.+\\s)${escapedFilterValue}.*`, "i")) || item.heTitle.match(new RegExp(`(?:^|.+\\s)${escapedFilterValue}.*`, "i"))) {
       return true;
-    } else if (item.children.filter(x => hasWordStartingWithOrSelected(x, filterValue)).length > 0) {
+    } else if (item.children.filter(x => hasWordStartingWithOrSelected(x, escapedFilterValue)).length > 0) {
       return true;
     }
     else {
