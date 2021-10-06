@@ -3541,6 +3541,11 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   cursor: pointer;
   font-size: 14px;
   margin-top: 4px;
+  background: none!important;
+  border: none;
+  padding: 0!important;
+  color: inherit;
+
 }
 .searchContent .searchFilters .showMore:hover {
   text-decoration: underline;

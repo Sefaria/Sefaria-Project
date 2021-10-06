@@ -406,9 +406,9 @@ const PagedList = ({items, initial=8, pageSize=20}) => {
     <>
       {items.slice(0, cutoff)}
       {items.length > cutoff ?
-      <a href="javascript:void(0);" className="showMore sans-serif" onClick={() => {setCutoff(cutoff + pageSize);}}>
+      <button className="showMore sans-serif" onClick={() => {setCutoff(cutoff + pageSize);}}>
         <InterfaceText>See More</InterfaceText>
-      </a>
+      </button>
       : null}
     </>
   );
