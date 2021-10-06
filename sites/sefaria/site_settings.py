@@ -10,5 +10,5 @@ SITE_SETTINGS = {
 		"en": "The Sefaria Library",
 		"he": "האוסף של ספריא",
 	},
-	"SUPPORTED_TRANSLATION_LANGUAGES": [],  # leaving this out until German Talmud deploy ['en', 'es', 'fr', 'de']
+	"SUPPORTED_TRANSLATION_LANGUAGES": ['en', 'es', 'fr', 'de'],
 }
