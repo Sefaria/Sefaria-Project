@@ -92,6 +92,7 @@ const Strings = {
     "Search Texts": "חפש מקורות",
 
     // Sheets
+    "Create a New Sheet": "יצירת דף מקורות",
     "Source Sheets": "דפי מקורות",
     "Start a New Source Sheet": "התחלת דף מקורות חדש",
     "Untitled Source Sheet" : "דף מקורות ללא שם",

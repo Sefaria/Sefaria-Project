@@ -309,7 +309,7 @@ def dedupe_webpages(test=True):
     """Normalizes URLs of all webpages and deletes multiple entries that normalize to the same URL"""
     norm_count = 0
     dedupe_count = 0
-    webpages = WebPageSet({"url": {"$regex": "why-learn-gemara"}})
+    webpages = WebPageSet()
     for i, webpage in enumerate(webpages):
         if i % 100000 == 0:
             print(i)

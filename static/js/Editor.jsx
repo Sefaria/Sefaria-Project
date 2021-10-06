@@ -663,20 +663,37 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
         return null;
       }
       const youtube_re = /https?:\/\/(www\.)?(youtu(?:\.be|be\.com)\/(?:.*v(?:\/|=)|(?:.*\/)?)([\w'-]+))/i;
+      let vimeo_re = /^.*(vimeo\.com\/)((channels\/[A-z]+\/)|(groups\/[A-z]+\/videos\/)|(video\/))?([0-9]+)/;
       let m;
       if ((m = youtube_re.exec(url)) !== null) {
         if (m.index === youtube_re.lastIndex) {
           youtube_re.lastIndex++;
         }
-          if (m.length>0) {
-            return ('https://www.youtube.com/embed/'+m[m.length-1]+'?rel=0&amp;showinfo=0')
+        if (m.length>0) {
+            return "https://www.youtube.com/embed/"+m[m.length-1]+"?rel=0&amp;showinfo=0";
+        }
+      }
+      else if ((m = vimeo_re.exec(url)) !== null) {
+          if (m.index === vimeo_re.lastIndex) {
+              vimeo_re.lastIndex++;
           }
-      } else if (url.match(/^https?:\/\/(www\.)?.+\.(jpeg|jpg|gif|png)$/i) != null) {
+          if (m.length > 0) {
+              return "https://player.vimeo.com/video/" + m[6];
+          }
+    } else if (url.match(/^https?:\/\/(www\.)?.+\.(jpeg|jpg|gif|png)$/i) != null) {
         return url;
       } else if (url.match(/^https?:\/\/(www\.)?.+\.(mp3)$/i) != null) {
         return url;
       } else if (url.match(/^https?:\/\/(www\.|m\.)?soundcloud\.com\/[\w\-\.]+\/[\w\-\.]+\/?/i) != null) {
         return 'https://w.soundcloud.com/player/?url='+ url + '&amp;color=ff5500&amp;auto_play=false&amp;hide_related=true&amp;show_comments=false&amp;show_user=true&amp;show_reposts=false';
+      } else if ((m = /^https?:\/\/open\.spotify\.com\/(?:embed\/)?(\w+)\/(\w+)\/?/i.exec(url)) != null) {
+          return `https://open.spotify.com/embed/${m[1]}/${m[2]}`;
+      } else if ((m = /^https?:\/\/bandcamp.com\/EmbeddedPlayer(\/\w+\=\w+)+(\/)?/i.exec(url)) != null) {
+          if (!url.includes("artwork=small")) { // force small artwork because height calculation for large artwork depends on width
+            return m[2] ? url + "artwork=small" : url + "/artwork=small";
+          } else {
+              return url;
+          }
       } else {
         return false
       }
@@ -899,21 +916,27 @@ const Element = props => {
 
         case 'SheetMedia':
             let mediaComponent
-
+            let vimeoRe = /^.*(vimeo\.com\/)((channels\/[A-z]+\/)|(groups\/[A-z]+\/videos\/)|(video\/))?([0-9]+)/;        
             if (element.mediaUrl.match(/\.(jpeg|jpg|gif|png)$/i) != null) {
               mediaComponent = <div className="SheetMedia media"><img className="addedMedia" src={element.mediaUrl} />{children}</div>
             }
-            else if (element.mediaUrl.toLowerCase().indexOf('youtube') > 0) {
+            else if (element.mediaUrl.match(/https?:\/\/www\.youtube\.com\/embed\/.+?rel=0(&amp;|&)showinfo=0$/i) != null) {
               mediaComponent = <div className="media fullWidth SheetMedia"><div className="youTubeContainer"><iframe width="100%" height="100%" src={element.mediaUrl} frameBorder="0" allowFullScreen></iframe>{children}</div></div>
             }
-            else if (element.mediaUrl.toLowerCase().indexOf('soundcloud') > 0) {
-              mediaComponent = <div className="SheetMedia media fullWidth"><iframe width="100%" height="166" scrolling="no" frameBorder="no" src={element.mediaUrl}></iframe>{children}</div>
+            else if (vimeoRe.exec(element.mediaUrl) !== null) {
+                mediaComponent = <div className="SheetMedia media fullWidth"><iframe width="100%" height="315" src={element.mediaUrl} frameborder="0" allow="autoplay; fullscreen" allowfullscreen>{children}</iframe></div>;
             }
-
+            else if (element.mediaUrl.match(/^https?:\/\/open\.spotify\.com\/embed\/\w+\/\w+/i) != null) {
+                mediaComponent = <div className="SheetMedia media fullWidth"><iframe width="100%" height="380" scrolling="no" frameBorder="no" src={element.mediaUrl}></iframe>{children}</div>
+            }
+            else if (element.mediaUrl.match(/https?:\/\/w\.soundcloud\.com\/player\/\?url=.*/i) != null) {
+              mediaComponent = <div className="SheetMedia media fullWidth"><iframe style="border: 0; width: 100%; height: 120px;" scrolling="no" frameBorder="no" src={element.mediaUrl}></iframe>{children}</div>
+            } else if (element.mediaUrl.match(/^https?:\/\/bandcamp.com\/EmbeddedPlayer(\/\w+\=\w+)+\/?/i)) {
+                mediaComponent = <div className="SheetMedia media fullWidth"><iframe width="100%" height="120" scrolling="no" frameBorder="no" src={element.mediaUrl}></iframe>{children}</div>
+            }
             else if (element.mediaUrl.match(/\.(mp3)$/i) != null) {
               mediaComponent= <div className="SheetMedia media fullWidth"><audio src={element.mediaUrl} type="audio/mpeg" controls>Your browser does not support the audio element.</audio>{children}</div>
             }
-
             else {
               mediaComponent = <div className="SheetMedia media fullWidth">{children}</div>
             }
@@ -2403,10 +2426,7 @@ const SefariaEditor = (props) => {
 
         }
 
-            { /* show sidebar toggle only when there's content on the page */
-                document.querySelectorAll(".sheetItem").length > 0 ?
-                    <button className="editorSidebarToggle" onClick={(e) => onEditorSidebarToggleClick(e)} aria-label="Click to open the sidebar"/> : null
-            }
+            <button className="editorSidebarToggle" onClick={(e)=>onEditorSidebarToggleClick(e) } aria-label="Click to open the sidebar" />
 
         <SheetMetaDataBox>
             <SheetTitle tabIndex={0} title={sheet.title} editable={true} blurCallback={() => saveDocument(currentDocument)}/>
