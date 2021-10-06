@@ -13,7 +13,6 @@ import {
   ToggleSet,
 } from './Misc';
 
-
 class SearchFilters extends Component {
   constructor(props) {
     super(props);
@@ -190,12 +189,28 @@ const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged, se
     }
   }
 
+  const wordSelected = (item) => {
+    if (item.selected) {
+      return -1;
+    } else {
+      return 1;
+    }
+  }
+
   const updateFilters = text => {
     if (text && text != "") {
-      setFilters(filters.filter(x => hasWordStartingWithOrSelected(x, text)));
+      if (!expandable) {
+        setFilters(filters.filter(x => hasWordStartingWithOrSelected(x, text)).sort(x => wordSelected(x)));
+      } else { // don't sort
+        setFilters(filters.filter(x => hasWordStartingWithOrSelected(x, text)));
+      }
       setShowClearInputButton(true);
     } else {
-      setFilters(filters);
+      if (!expandable) {
+        setFilters(filters.sort(x => wordSelected(x)));
+      } else {
+        setFilters(filters);
+      }
       setShowClearInputButton(false);
     }
   }
