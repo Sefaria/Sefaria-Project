@@ -72,6 +72,7 @@ const Strings = {
     "Reset": "לאתחל",
     "Search Topics": "חפש נושאים",
 
+
     // Community Page
     "From the Community: Today on Sefaria": "מן הקהילה: היום בספריא",
     "Today on Sefaria": "היום בספריא",
@@ -88,6 +89,7 @@ const Strings = {
     "Results": "תוצאות",
     "Options": "אפשרויות",
     "Exact Matches Only": "התאמה מדויקת למילות החיפוש",
+    "Search Texts": "חפש מקורות",
 
     // Sheets
     "Create a New Sheet": "יצירת דף מקורות",
@@ -528,7 +530,7 @@ const Strings = {
     "SearchFilters": {
       "Texts": "מקורות",
       "Topics": "נושאים",
-      "Collections": "Collections",
+      "Collections": "באסופות",
     },
     "CalendarListing": {
       "Tanakh": "",

@@ -556,6 +556,8 @@ input.noselect {
   padding: 0;
   flex: 1;
   height: 100%;
+  margin-bottom: 1px;
+  font-size: var(--serif-body-font-size);
 }
 .header .searchBox input::placeholder {
   font-style: normal;
@@ -3326,9 +3328,21 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   color: #000;
   border-bottom: 4px solid var(--medium-grey);
 }
+
 .searchContent .searchResultList {
   padding-top: 25px;
+  max-width: 665px;
+  padding-top: 25px;
+  max-width: 665px;
 }
+
+@media (min-width: 701px) {
+  /* prevent width of left-pane from changing due to content size when filters applied */
+  .searchContent .searchResultList {
+    width: 60vw;
+  }
+}
+
 .searchContent .searchFilters h2 {
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
@@ -3527,9 +3541,44 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   cursor: pointer;
   font-size: 14px;
   margin-top: 4px;
+  background: none!important;
+  border: none;
+  padding: 0!important;
+  color: inherit;
+
 }
 .searchContent .searchFilters .showMore:hover {
   text-decoration: underline;
+}
+.searchFilters .searchBox {
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  padding-left: 10px;
+  padding-right: 10px;
+  text-align: inherit;
+  background: #EDEDEC;
+  border-radius: 250px;
+  border: none;
+  width: calc(100% - 10px);
+  height: 30px;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: var(--sans-serif-body-font-size);
+  margin-bottom: 10px;
+}
+.searchFilters .searchFilterIcon {
+  float: right;
+  margin: 0px -5px 1px 0px;
+}
+.searchBox input.searchFiltersInput {
+  width: calc(100% - 10px);
+  background-color: transparent;
+  border: 0;
+  font-size: var(--sans-serif-body-font-size);
+}
+.searchBox button {
+  border:0;
 }
 .dropdown-option-list {
   margin-top: 10px;
@@ -3615,7 +3664,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   background-color: var(--lighter-grey);
   padding: 20px 15px;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   color:  var(--dark-grey);
 }
 .mobileSearchFiltersHeader .readerNavMenuCloseButton {
@@ -3624,6 +3673,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   height: 20px;
   display: block;
   line-height: 20px;
+  position: absolute;
+  margin-right: 100%;
+  margin-left: 45px;
 }
 .mobileSearchFilters .searchFilters {
   flex-grow:  1;
@@ -7655,7 +7707,6 @@ body.interface-english .publishBox .react-tags__suggestions ul {
     padding: 4px 7px 2px;
     position: initial;
     vertical-align: 0px;
-
 }
 .header .searchBox .keyboardInputInitiator {
     display: none;
