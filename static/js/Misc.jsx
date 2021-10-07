@@ -2511,19 +2511,23 @@ const Autocompleter = ({selectedRefCallback}) => {
 
 
   const generatePreviewText = (ref) => {
-        Sefaria.getText(ref, {context:1}).then(text => {
+        Sefaria.getText(ref, {context:1, stripItags: 1}).then(text => {
            const segments = Sefaria.makeSegments(text, true);
            console.log(segments)
-          const previewHTML =  segments.map((segment, i) => {
+           const previewHTML =  segments.map((segment, i) => {
             {
+              const heOnly = !segment.en;
+              const enOnly = !segment.he;
+              const overrideLanguage = (enOnly || heOnly) ? (heOnly ? "hebrew" : "english") : null;
+
               return(
                   <div
-                      className={classNames({'textPreviewSegment': 1, highlight: segment.highlight})}
+                      className={classNames({'textPreviewSegment': 1, highlight: segment.highlight, heOnly: heOnly, enOnly: enOnly})}
                       key={segment.ref}>
                     <sup><ContentText
                         text={{"en": segment.number, "he": Sefaria.hebrew.encodeHebrewNumeral(segment.number)}}
                         defaultToInterfaceOnBilingual={true}
-                    /></sup> <ContentText html={{"he": segment.he+ " ", "en": segment.en+ " " }} defaultToInterfaceOnBilingual={true}/>
+                    /></sup> <ContentText html={{"he": segment.he+ " ", "en": segment.en+ " " }} defaultToInterfaceOnBilingual={!overrideLanguage} overrideLanguage={overrideLanguage} bilingualOrder={["en", "he"]}/>
                   </div>
               )
             }
@@ -2560,6 +2564,7 @@ const Autocompleter = ({selectedRefCallback}) => {
                 }}>Add Source</button> : null}
 
       {currentSuggestions && currentSuggestions.length > 0 ?
+          <div className="suggestionBoxContainer">
           <select
               ref={suggestionEl}
               className="suggestionBox"
@@ -2569,13 +2574,15 @@ const Autocompleter = ({selectedRefCallback}) => {
           >
             {mapSuggestions(currentSuggestions)}
           </select>
-
+          </div>
           : null
       }
 
       {previewText ?
-          <div className="textPreview">
-            <div className="inner">{previewText}</div>
+          <div className="textPreviewContainer">
+            <div className="textPreview">
+              <div className="inner">{previewText}</div>
+            </div>
           </div>
 
           : null

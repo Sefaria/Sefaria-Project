@@ -59,7 +59,7 @@ class SearchSheetResult extends Component {
                     <span className='tagsViews'>
                     {tags.map((topic, i) => {
                         return (
-                          <a href={`/topics/${topic[1]}`} target="_blank">
+                          <a href={`/topics/${topic[1]}`} target="_blank" key={`link${topic[1]}${i}`}>
                               <InterfaceText text={{en: topic[0], he: topic[2]}} />
                           </a>
                         );
