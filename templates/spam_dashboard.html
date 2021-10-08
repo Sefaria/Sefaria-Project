@@ -34,6 +34,7 @@
 
         <div style="margin: 80px">
             <h1>{{ title }}</h1>
+            <p style="color:red"><em>Marking an account or sheet as spam will result in a user's entire data being erased and their account set to inactive. It is not reversible, and this is the only warning. Please use carefully.</em></p>
             <form action='/admin/spam' method='post' id='spam_form'>{% csrf_token %}</form>
             {% if type == "sheet" %}
                 <input type="hidden" name="type" value="sheet" form='spam_form'/>
