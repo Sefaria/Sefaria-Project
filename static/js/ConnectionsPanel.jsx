@@ -32,6 +32,7 @@ import ExtendedNotes from './ExtendedNotes';
 import classNames from 'classnames';
 import Component from 'react-class';
 import {TextTableOfContents} from "./BookPage";
+import { CollectionsModal } from './CollectionsWidget';
 
 
 class ConnectionsPanel extends Component {
@@ -295,12 +296,12 @@ class ConnectionsPanel extends Component {
       content = (
           <div>
               { this.state.flashMessage ? <div className="flashMessage sans-serif">{this.state.flashMessage}</div> : null }
-              {this.props.masterPanelMode==="Sheet" ? <ToolsButton en="About this Sheet" he="אודות הטקסט" image="about-text.svg" onClick={() => this.props.setConnectionsMode("AboutSheet")} /> :
-                  <>
-                  <ToolsButton en="About this Text" he="אודות הטקסט" image="about-text.svg" onClick={() => this.props.setConnectionsMode("About")} />
-                  <ToolsButton en="Table of Contents" he="תוכן העניינים" image="text-navigation.svg" onClick={() => this.props.setConnectionsMode("Navigation")} />
-                  </>
-              }
+              { this.props.masterPanelMode === "Sheet" ? 
+               <SheetToolsList
+                 setConnectionsMode={this.props.setConnectionsMode}
+                 masterPanelSheetId={this.props.masterPanelSheetId}
+                 toggleSignUpModal={this.props.toggleSignUpModal}
+               /> : null }
               {showConnectionSummary ?
                   <ConnectionsPanelSection title="Related Texts">
                       <ConnectionsSummary
@@ -742,34 +743,37 @@ ToolsList.propTypes = {
     counts:        PropTypes.object.isRequired,
 }
 
-const SheetToolsList = (props) => {
+const SheetToolsList = ({ setConnectionsMode,
+  masterPanelSheetId,
+  toggleSignUpModal }) => {
+
   const [isOwner, setIsOwner] = useState(false);
   const [isPublished, setIsPublished] = useState(false);
   const [showCollectionsModal, setShowCollectionsModal] = useState(false);
   useEffect(() => {
-    const sheet = Sefaria.sheets.loadSheetByID(props.masterPanelSheetId)
+    const sheet = Sefaria.sheets.loadSheetByID(masterPanelSheetId)
     setIsOwner(sheet.owner === Sefaria._uid);
     setIsPublished(sheet.status === "public" ? true : false);
   }, []);
 
   const toggleCollectionsModal = () => {
     if (!Sefaria._uid) {
-      props.toggleSignUpModal();
+      toggleSignUpModal();
     } else {
       setShowCollectionsModal(!showCollectionsModal)
     }
   }
 
-  return (<div><ToolsButton en="About this Sheet" he="תרגומים" image="about-text.svg" onClick={() => props.setConnectionsMode("AboutSheet")} />
-    {isOwner ? <ToolsButton en={isPublished ? "Publish Settings" : "Publish"} he="תרגומים" imageIcon="publish.svg" onClick={() => props.setConnectionsMode("Publish")} /> : null}
-    <ToolsButton en="Copy" he="תרגומים" image="copy.png" onClick={() => props.setConnectionsMode("AboutSheet")} />
-    <ToolsButton en="Add to Collection" he="תרגומים" image="add-to-collection.svg" onClick={() => toggleCollectionsModal()} />
-    <ToolsButton en="Print" he="תרגומים" image="print.svg" onClick={() => window.print()} />
-    <ToolsButton en="Export to Google Docs" he="תרגומים" image="googledrive.svg" onClick={() => window.print()} />
-    {/* todo: update export to google docs button so it works */}
-    {showCollectionsModal ? <CollectionsModal
-      sheetID={sheet.id}
-      close={toggleCollectionsModal} /> : null}
+  return (<div><ToolsButton en="About this Sheet" he="תרגומים" image="about-text.svg" onClick={() => setConnectionsMode("AboutSheet")} />
+      {isOwner ? <ToolsButton en={isPublished ? "Publish Settings" : "Publish"} he="תרגומים" imageIcon="publish.svg" onClick={() => setConnectionsMode("Publish")} /> : null}
+      <ToolsButton en="Copy" he="תרגומים" image="copy.png" onClick={() => setConnectionsMode("AboutSheet")} />
+      <ToolsButton en="Add to Collection" he="תרגומים" image="add-to-collection.svg" onClick={() => toggleCollectionsModal()} />
+      <ToolsButton en="Print" he="תרגומים" image="print.svg" onClick={() => window.print()} />
+      <ToolsButton en="Export to Google Docs" he="תרגומים" image="googledrive.svg" onClick={() => window.print()} /> 
+      {/* todo: update export to google docs button so it works */}
+      {showCollectionsModal ? <CollectionsModal
+                      sheetID={masterPanelSheetId}
+                      close={toggleCollectionsModal} />  : null}
   </div>
   )
 }
@@ -786,9 +790,9 @@ class SheetNodeConnectionTools extends Component {
   }
 }
 SheetNodeConnectionTools.propTypes = {
-  multiPanel: PropTypes.bool.isRequired,
+  multiPanel:         PropTypes.bool.isRequired,
   setConnectionsMode: PropTypes.func.isRequired,
-  openComparePanel: PropTypes.func.isRequired,
+  openComparePanel:   PropTypes.func.isRequired,
 };
 
 
