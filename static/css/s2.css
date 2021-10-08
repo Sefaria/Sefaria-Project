@@ -9109,6 +9109,27 @@ cursor: pointer;
   opacity: .2;
 }
 
+.dragIcon {
+  background-color: #F0F8FF;
+  width: auto;
+  height: 30px;
+  border-inline-start: 4px solid;
+  font-size: 22px;
+  padding-top: 10px;
+  padding-left: 10px;
+  padding-right: 10px;
+  text-align: center;
+  margin-top: auto;
+  margin-right: auto;
+}
+.dragIconContainer {
+  position: absolute;
+  left: -9999px;
+  display: flex;
+  flex-direction: column;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
 .feedbackBox p {
   font-size: 16px;
   letter-spacing: 1px;

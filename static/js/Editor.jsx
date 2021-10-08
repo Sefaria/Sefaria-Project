@@ -615,8 +615,6 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
   const heClasses = {he: 1, selected: isActive, editable: activeSourceLangContent == "he" ? true : false };
   const enClasses = {en: 1, selected: isActive, editable: activeSourceLangContent == "en" ? true : false };
   const dragStart = (e) => {
-      console.log(e.target)
-
       let range = document.createRange();
       range.selectNode(e.target);
       const slateRange = ReactEditor.toSlateRange(parentEditor, range)
@@ -631,6 +629,35 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
       e.dataTransfer.setData('text/plain', e.target.text)
       e.dataTransfer.effectAllowed = 'move';
 
+
+
+
+      const dragIcon = document.createElement('div');
+      dragIcon.classList.add("dragIcon");
+      dragIcon.classList.add("serif");
+      dragIcon.style.borderInlineStartColor = Sefaria.palette.refColor(element.ref);
+      dragIcon.innerHTML = element.ref;
+
+      const clientRect = e.target.getBoundingClientRect();
+      console.log()
+
+      const dragIconContainer = document.createElement('div');
+      dragIconContainer.classList.add("dragIconContainer");
+      dragIconContainer.style.height = `${clientRect.height}px`;
+      dragIconContainer.style.width = `${clientRect.width}px`;
+
+      document.body.appendChild(dragIconContainer);
+      dragIconContainer.appendChild(dragIcon);
+
+      const offsetX    = (e.clientX - clientRect.left);
+      const offsetY    = (e.clientY - clientRect.top);
+      console.log(offsetX)
+      console.log(offsetY)
+      console.log(clientRect)
+      e.dataTransfer.setDragImage(dragIconContainer, 0, clientRect.height);
+
+
+
       ReactEditor.setFragmentData(parentEditor, e.dataTransfer)
       setIsDragging(true)
   }
@@ -640,6 +667,13 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
           draggable={true}
           className={isDragging ? "boxedSheetItem dragged" : "boxedSheetItem"}
           onDragStart={(e)=>{dragStart(e)}}
+          onDragEnd={(e)=>{setIsDragging(false)}}
+          onDrop={(e)=> {
+              e.preventDefault();
+              e.stopPropagation();
+              parentEditor.dragging = false;
+          }
+          }
       >
     <div className={classNames(sheetItemClasses)} data-sheet-node={element.node} data-sefaria-ref={element.ref} style={{ pointerEvents: (isActive) ? 'none' : 'auto'}}>
     <div {...attributes} contentEditable={false} onBlur={(e) => onBlur(e) } onClick={(e) => onClick(e)} className={classNames(classes)} style={{"borderInlineStartColor": Sefaria.palette.refColor(element.ref)}}>
