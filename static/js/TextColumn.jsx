@@ -51,7 +51,7 @@ class TextColumn extends Component {
       // console.log("scroll to highlight for mobile connections open")
       this.scrollToHighlighted();
 
-    } else if (this.state.showScrollPlaceholders && !prevState.showScrollPlaceholders) {
+    } else if (this.state.showScrollPlaceholders && !prevState.showScrollPlaceholders && !this.initialScrollTopSet) {
       // After scroll placeholders are first rendered, scroll down so top placeholder 
       // is out of view and scrolling up is possible.
       // console.log("scrolling for ScrollPlaceholders first render")

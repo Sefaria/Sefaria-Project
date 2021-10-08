@@ -359,6 +359,7 @@ Sefaria = extend(Sefaria, {
       enVersion:  settings.enVersion  || null,
       heVersion:  settings.heVersion  || null,
       multiple:   settings.multiple   || 0,
+      stripItags: settings.stripItags || 0,
       wrapLinks:  ("wrapLinks" in settings) ? settings.wrapLinks : 1,
       wrapNamedEntities: ("wrapNamedEntities" in settings) ? settings.wrapNamedEntities : 1, 
       translationLanguagePreference: settings.translationLanguagePreference || null,
@@ -589,6 +590,7 @@ Sefaria = extend(Sefaria, {
       wrapLinks:  settings.wrapLinks,
       wrapNamedEntities: settings.wrapNamedEntities,
       multiple:   settings.multiple,
+      stripItags: settings.stripItags,
       transLangPref: settings.translationLanguagePreference,
     });
     let url = "/api/texts/" + Sefaria.normRef(ref);

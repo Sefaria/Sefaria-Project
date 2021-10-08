@@ -390,7 +390,7 @@ class ReadingHistory(SefariaTest):
     
     single_panel = False
     every_build = True
-    initial_url = "/login"
+    initial_url = "/texts"
 
     def body(self):
         # Using a short chapter can cause the text to fail if the following section is
@@ -580,7 +580,7 @@ class BrowserBackAndForward(SefariaTest):
 class SaveNewSourceSheet(SefariaTest):
     every_build = True
     single_panel = False  # No source sheets on mobile
-    initial_url = "/login"
+    initial_url = "/texts"
 
     def body(self):
         self.login_user()
@@ -651,7 +651,7 @@ class EditTextPagesLoad(SefariaTest):
     #todo: build a no-load reader test to match this
     every_build = True
     single_panel = False
-    initial_url = "/login"
+    initial_url = "/texts"
 
     def body(self):
         self.login_user()

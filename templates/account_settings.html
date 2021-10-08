@@ -63,7 +63,7 @@
             <span class="int-en">Preferred Translation Language</span>
 			<span class="int-he">שפה מועדפת לתרגום</span>
         </label>
-		<div class="toggleSet quadrupleOption control-elem" role="radiogroup">
+		<div class="toggleSet toggleSetToggleBox blueStyle quadrupleOption control-elem" role="radiogroup">
             {% for name, lang in lang_names_and_codes %}
 			<div role="radio" data-value="{{lang}}" class="toggleOption {% if translation_language_preference == lang %} on{% endif %}" tabindex="{% if translation_language_preference == lang %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
                 <span class="int-bi">{{name}}</span>

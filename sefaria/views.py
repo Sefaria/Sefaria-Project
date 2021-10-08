@@ -752,8 +752,9 @@ def sheet_stats(request):
 
 
     html += "\n\nYearly Totals Sheets / Public Sheets / Sheet Creators:\n\n"
-    start = datetime.today().replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
-    years = 4
+    today = datetime.today()
+    start = today.replace(year=today.year+1, month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+    years = 5
     for i in range(years):
         end      = start
         start    = end - relativedelta(years=1)
@@ -830,35 +831,12 @@ def categorize_sheets(request):
     return render(request, "static/categorize-sheets.html", context)
 
 @staff_member_required
-def spam_dashboard(request):
+def sheet_spam_dashboard(request):
 
     from django.contrib.auth.models import User
 
     if request.method == 'POST':
-
-        spam_sheet_ids = list(map(int, request.POST.getlist("spam_sheets[]", [])))
-        reviewed_sheet_ids = list(map(int, request.POST.getlist("reviewed_sheets[]", [])))
-
-        db.sheets.update_many({"id": {"$in": reviewed_sheet_ids}}, {"$set": {"reviewed": True}})
-
-        spammers = db.sheets.find({"id": {"$in": spam_sheet_ids}}, {"owner": 1}).distinct("owner")
-
-        for spammer in spammers:
-            try:
-                spammer_account = User.objects.get(id=spammer)
-                spammer_account.is_active = False
-                spammer_account.save()
-            except:
-                continue
-
-        db.sheets.delete_many({"id": {"$in": spam_sheet_ids}})
-
-        return render_template(request, 'spam_dashboard.html', None, {
-            "deleted_sheets": len(spam_sheet_ids),
-            "sheet_ids": spam_sheet_ids,
-            "reviewed_sheets": len(reviewed_sheet_ids),
-            "spammers_deactivated": len(spammers)
-        })
+        return jsonResponse({"error": "Unsupported Method: {}".format(request.method)})
 
     else:
         date = request.GET.get("date", None)
@@ -869,7 +847,7 @@ def spam_dashboard(request):
         else:
             date = request.GET.get("date", datetime.now() - timedelta(days=30))
 
-        earliest_new_user_id = User.objects.filter(date_joined__gte=date)[0].id
+        earliest_new_user_id = User.objects.filter(date_joined__gte=date).order_by('date_joined')[0].id
 
         regex = r'.*(?!href=[\'"](\/|http(s)?:\/\/(www\.)?sefaria).+[\'"])(href).*'
         sheets = db.sheets.find({"sources.ref": {"$exists": False}, "dateCreated": {"$gt": date.strftime("%Y-%m-%dT%H:%M:%S.%f")}, "owner": {"$gt": earliest_new_user_id}, "includedRefs": {"$size": 0}, "reviewed": {"$ne": True}, "$or": [{"sources.outsideText": {"$regex": regex}}, {"sources.comment": {"$regex": regex}}, {"sources.outsideBiText.en": {"$regex": regex}}, {"sources.outsideBiText.he": {"$regex": regex}}]})
@@ -882,7 +860,118 @@ def spam_dashboard(request):
         return render_template(request, 'spam_dashboard.html', None, {
             "title": "Potential Spam Sheets since %s" % date.strftime("%Y-%m-%d"),
             "sheets": sheets_list,
+            "type": "sheet",
         })
+
+@staff_member_required
+def profile_spam_dashboard(request):
+
+    from django.contrib.auth.models import User
+
+    if request.method == 'POST':
+        return jsonResponse({"error": "Unsupported Method: {}".format(request.method)})
+
+    else:
+        date = request.GET.get("date", None)
+
+        if date:
+            date = datetime.strptime(date, '%Y-%m-%d')
+
+        else:
+            date = request.GET.get("date", datetime.now() - timedelta(days=30))
+
+        earliest_new_user_id = User.objects.filter(date_joined__gte=date).order_by('date_joined')[0].id
+
+        users_to_check = db.profiles.find(
+            {'website': {"$ne": ""}, 'bio': {"$ne": ""}, "id": {"$gt": earliest_new_user_id},
+             "reviewed": {"$ne": True}})
+
+        profiles_list = []
+
+        for user in users_to_check:
+            history_count = db.user_history.find({'uid': user['id']}).count()
+            if history_count < 10:
+                profiles_list.append({"id": user["id"], "slug": user["slug"], "bio": strip_tags(user["bio"][0:250]), "website": user["website"][0:50]})
+
+        return render_template(request, 'spam_dashboard.html', None, {
+            "title": "Potential Spam Profiles since %s" % date.strftime("%Y-%m-%d"),
+            "profiles": profiles_list,
+            "type": "profile",
+        })
+
+
+
+
+@staff_member_required
+def spam_dashboard(request):
+    from django.contrib.auth.models import User
+
+
+    def purge_spammer_account_data(spammer_id):
+        # Delete Sheets
+        db.sheets.delete_many({"owner": spammer_id})
+        # Delete Notes
+        db.notes.delete_many({"owner": spammer_id})
+        # Delete Notifcations
+        db.notifications.delete_many({"uid": spammer_id})
+        # Delete Following Relationships
+        db.following.delete_many({"follower": spammer_id})
+        db.following.delete_many({"followee": spammer_id})
+        # Delete Profile
+        db.profiles.delete_one({"id": spammer_id})
+
+        # Set account inactive
+        spammer_account = User.objects.get(id=spammer_id)
+        spammer_account.is_active = False
+        spammer_account.save()
+
+
+    if request.method == 'POST':
+        req_type = request.POST.get("type")
+
+        if req_type == "sheet":
+            spam_sheet_ids = list(map(int, request.POST.getlist("spam_sheets[]", [])))
+            reviewed_sheet_ids = list(map(int, request.POST.getlist("reviewed_sheets[]", [])))
+            db.sheets.update_many({"id": {"$in": reviewed_sheet_ids}}, {"$set": {"reviewed": True}})
+            spammers = db.sheets.find({"id": {"$in": spam_sheet_ids}}, {"owner": 1}).distinct("owner")
+            db.sheets.delete_many({"id": {"$in": spam_sheet_ids}})
+
+            for spammer in spammers:
+                try:
+                    purge_spammer_account_data(spammer)
+                except:
+                    continue
+
+            return render_template(request, 'spam_dashboard.html', None, {
+                "deleted": len(spam_sheet_ids),
+                "ids": spam_sheet_ids,
+                "reviewed": len(reviewed_sheet_ids),
+                "spammers_deactivated": len(spammers)
+            })
+
+        elif req_type == "profile":
+            spam_profile_ids = list(map(int, request.POST.getlist("spam_profiles[]", [])))
+            reviewed_profile_ids = list(map(int, request.POST.getlist("reviewed_profiles[]", [])))
+            db.profiles.update_many({"id": {"$in": reviewed_profile_ids}}, {"$set": {"reviewed": True}})
+
+            for spammer in spam_profile_ids:
+                try:
+                    purge_spammer_account_data(spammer)
+                except:
+                    continue
+
+            return render_template(request, 'spam_dashboard.html', None, {
+                "deleted": len(spam_profile_ids),
+                "ids": spam_profile_ids,
+                "reviewed": len(reviewed_profile_ids),
+                "spammers_deactivated": len(spam_profile_ids)
+            })
+
+        else:
+            return jsonResponse({"error": "Unknown post type."})
+
+    else:
+        return jsonResponse({"error": "Unsupported Method: {}".format(request.method)})
 
 @staff_member_required
 def versions_csv(request):
