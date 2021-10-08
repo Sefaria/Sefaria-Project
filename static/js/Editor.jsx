@@ -627,7 +627,7 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
       e.dataTransfer.setData('application/x-slate-fragment', encoded)
       e.dataTransfer.setData('text/html', e.target.innerHTML)
       e.dataTransfer.setData('text/plain', e.target.text)
-      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.effectAllowed = 'copy';
 
 
 
@@ -639,7 +639,6 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
       dragIcon.innerHTML = element.ref;
 
       const clientRect = e.target.getBoundingClientRect();
-      console.log()
 
       const dragIconContainer = document.createElement('div');
       dragIconContainer.classList.add("dragIconContainer");
@@ -662,12 +661,16 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
       setIsDragging(true)
   }
 
+    const dragEnd = (e) => {
+      setIsDragging(false)
+    }
+
   return (
       <div
           draggable={true}
           className={isDragging ? "boxedSheetItem dragged" : "boxedSheetItem"}
           onDragStart={(e)=>{dragStart(e)}}
-          onDragEnd={(e)=>{setIsDragging(false)}}
+          onDragEnd={(e)=>{dragEnd(e)}}
           onDrop={(e)=> {
               e.preventDefault();
               e.stopPropagation();
