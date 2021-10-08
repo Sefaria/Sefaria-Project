@@ -8696,7 +8696,7 @@ span.purim-emoji img{
   width: 30px;
   height: 30px;
   transform: rotate(45deg);
-  background-color; white;
+  background-color: white;
   background-image: url("/static/icons/heavy-x.svg");
   border: 1px solid var(--light-grey);
   background-size: 14px;
@@ -9384,7 +9384,7 @@ cursor: pointer;
 }
 .interface-hebrew textarea,
 .interface-hebrew textarea::placeholder,
-.interface-hebrew input,
+.interface-hebrew input
 {
   font-family: var(--hebrew-sans-serif-font-family);
 }
