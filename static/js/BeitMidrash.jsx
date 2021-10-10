@@ -14,7 +14,7 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
     const chatDataStoreRef = useRef(chatDataStore);
     const [profile, setProfile] = useState({});
     const [currentChatRoom, setCurrentChatRoom] = useState("");
-    const [beitMidrashHome, setBeitMidrashHome] = useState(true);
+    const [currentScreen, setCurrentScreen] = useState("chavrutaVideo");
     const [outgoingCall, setOutgoingCall] = useState(false);
     const [userB, setUserB] = useState({});
     const [socketConnected, setSocketConnected] = useState(false);
@@ -74,7 +74,7 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
         //sends rejection to user A
         socketObj.on("send connection rejection", ()=>{
             window.alert("User is not available.");
-            setBeitMidrashHome(true)
+            setCurrentScreen("home")
         })
         //user A gets acceptance alert
         socketObj.on("send room ID to client", (room)=> {
@@ -216,20 +216,20 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
     }
 
     const chavrutaCallInitiated = (uid) => {
-        setBeitMidrashHome(false)
+        setCurrentScreen("callingChavruta")
         setOutgoingCall(true)
     }
 
     const chavrutaRequestReceived = (user) => {
         setUserB(user)
-        setBeitMidrashHome(false)
+        setCurrentScreen("callingChavruta")
         setOutgoingCall(false)
     }
 
     return (
         socketConnected ?
         <div className="beitMidrashContainer">
-            { beitMidrashHome ?
+            { currentScreen == "home" ?
             <BeitMidrashHome
                 beitMidrashId = {beitMidrashId}
                 peopleInBeitMidrash={peopleInBeitMidrash}
@@ -250,12 +250,20 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
                 onBlockUser={onBlockUser}
                 onUnblockUser={onUnblockUser}
             /> :
+                currentScreen == "callingChavruta" ?
             <ChavrutaCall
                 outgoingCall={outgoingCall}
                 userB={userB}
-                setBeitMidrashHome={setBeitMidrashHome}
+                setCurrentScreen={setCurrentScreen}
                 socket={socketObj}
-            />}
+            /> :
+            <ChavrutaVideo
+                socket={socketObj}
+                startingRoom="test_room_id"
+
+            />
+
+            }
         </div> : <LoadingMessage/>
     )
 }
@@ -335,7 +343,7 @@ const BeitMidrashHome = ({beitMidrashId,
     </div>)
 }
 
-const ChavrutaCall = ({outgoingCall, userB, setBeitMidrashHome, socket}) => {
+const ChavrutaCall = ({outgoingCall, userB, setCurrentScreen, socket}) => {
     const handleCallAccepted = (name) => {
         const room = Math.random().toString(36).substring(7);
         socket.emit("send room ID to server", name, room);
@@ -344,16 +352,16 @@ const ChavrutaCall = ({outgoingCall, userB, setBeitMidrashHome, socket}) => {
 
     const handleCallDeclined = (name) => {
         socket.emit("connection rejected", name);
-        setBeitMidrashHome(true);
+        setCurrentScreen("home");
     }
 
     const endCall = (name) => {
         socket.emit("connection rejected", name);
-        setBeitMidrashHome(true);
+        setCurrentScreen("home");
     }
 
     const callTimedOut = () => {
-        setBeitMidrashHome(true)
+        setCurrentScreen("home")
     }
 
     useEffect(()=>{
@@ -566,6 +574,317 @@ const Message = ({user, message}) => {
             </div>
         </div>
     )
+}
+
+const ChavrutaVideo = ({socket, startingRoom}) => {
+    const [isChannelReady, setIsChannelReady] = useState(false);
+    const [isInitiator, setIsInitiator] = useState(false);
+    const [isStarted, setIsStarted] = useState(false);
+    const [localStream, setLocalStream] = useState(null);
+    const [pc, setPc] = useState(null);
+    const [remoteStream, setRemoteStream] = useState(null);
+    const [pcConfig, setPcConfig] = useState(null);
+    const [clientRoom, setClientRoom] = useState(null);
+    const [chavrutaTime, setChavrutaTime] = useState(0);
+    const [partnerName, setPartnerName] = useState(null)
+    const [partnerId, setPartnerId] = useState(null)
+    const localVideo = useRef();
+    const remoteVideo = useRef();
+    const [audioEnabled, setAudioEnabled] = useState(true)
+
+    // Set up audio and video regardless of what devices are present.
+    const sdpConstraints = {
+      offerToReceiveAudio: true,
+      offerToReceiveVideo: true
+    };
+
+useEffect( () => {
+    maybeStart();
+}, [isStarted, localStream, isChannelReady])
+
+useEffect(() => {
+
+    socket.on('creds', function(conf) {
+      console.log('got creds')
+      setPcConfig(conf);
+    });
+
+    socket.on('created', function(room) {
+      console.log('Created room ' + room);
+      setIsInitiator(true);
+      setClientRoom(room);
+    });
+
+    socket.on('join', function(room) {
+      console.log('user joined room: ' + room);
+      setClientRoom(room);
+      console.log('setting channel to ready')
+      setIsChannelReady(true);
+      socket.emit('send user info', Sefaria.full_name, Sefaria._uid, room);
+    });
+
+    socket.on('got user name', function(userName, uid) {
+      setPartnerName(userName)
+      setPartnerId(uid)
+    });
+
+    socket.on('byeReceived', function(){
+      console.log('bye received')
+
+      window.onbeforeunload = null;
+      location.reload();
+    });
+
+    //TODO :: add in code re: chavruta is learning.....
+
+    // socket.on('got sources', function(msg, name) {
+    //   console.log(msg)
+    //   const sources = msg.currentlyReading;
+    //   const url = msg.history.url;
+    //   if (sources) {
+    //     document.getElementById("chevrutaNameHolder").classList.add("hiddenVideo")
+    //     document.getElementById("currently-reading").innerHTML = `${name} is on <br/>
+    //     <div id="currently-reading-sources">
+    //     <img src="/static/icons/book.svg" class="navSidebarIcon" alt="book icon"><a href=${url} target="iframe">${sources}</a></div>`;
+    //   };
+    //
+    // })
+
+    socket.on('message', function(message) {
+      console.log('Client received message:', message);
+      if (message.type === 'offer') {
+        if (!isInitiator && !isStarted) {
+          maybeStart();
+        }
+        pc.setRemoteDescription(new RTCSessionDescription(message));
+        doAnswer();
+      } else if (message.type === 'answer' && isStarted) {
+        pc.setRemoteDescription(new RTCSessionDescription(message));
+      } else if (message.type === 'candidate' && isStarted) {
+        const candidate = new RTCIceCandidate({
+          sdpMLineIndex: message.label,
+          candidate: message.candidate
+        });
+        pc.addIceCandidate(candidate);
+      } else if (message === 'bye') {
+        handleRemoteHangup();
+      }
+    });
+
+    // socket.on('room full', function() {
+    //   alert("The room you selected is full. Please try again later.")
+    // })
+
+
+    navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: true
+      })
+      .then((stream) => {
+        setLocalStream(stream);
+        localVideo.current.srcObject = stream;
+        socket.emit('start chevruta', Sefaria._uid, startingRoom);
+        console.log('Adding local stream.');
+      })
+      .catch(function(e) {
+        alert("There was an error starting your video. Usually this is because your camera is being used by another program. Please check and try again.");
+      });
+
+
+        return () => {
+        //on unload
+        }
+
+
+    }, [])
+
+    const toggleMute = () => {
+      const isAudioEnabled = localStream.getAudioTracks()[0].enabled;
+      localStream.getAudioTracks()[0].enabled = !(isAudioEnabled)
+      setAudioEnabled(!isAudioEnabled);
+    }
+
+const maybeStart = () => {
+  console.log('maybeStart() ', isStarted, localStream, isChannelReady);
+  if (!isStarted && typeof localStream !== 'undefined' && isChannelReady) {
+    createPeerConnection();
+    pc.addStream(localStream);
+    setIsStarted(true);
+    if (isInitiator) {
+      doCall();
+    }
+  }
+}
+
+
+const doCall = () => {
+  console.log('Sending offer to peer');
+  pc.createOffer(setLocalAndSendMessage, handleCreateOfferError);
+}
+
+const doAnswer = () => {
+  console.log('Sending answer to peer.');
+  pc.createAnswer().then(
+    setLocalAndSendMessage,
+    onCreateSessionDescriptionError
+  );
+}
+
+const setLocalAndSendMessage = (sessionDescription) => {
+  pc.setLocalDescription(sessionDescription);
+  // console.log('setLocalAndSendMessage sending message', sessionDescription);
+  sendMessage(sessionDescription);
+}
+
+const handleCreateOfferError = (event) => {
+  console.log('createOffer() error: ', event);
+}
+
+const onCreateSessionDescriptionError = (error) => {
+  trace('Failed to create session description: ' + error.toString());
+}
+
+
+const sendMessage = (message) => {
+  console.log('Client sending message: ', message);
+  console.log(clientRoom)
+  socket.emit('message', message, clientRoom);
+}
+
+const createPeerConnection = () => {
+  console.log('creating peer connection')
+  try {
+    if (location.hostname !== 'localhost') {
+      setPc(new RTCPeerConnection(pcConfig));
+    } else {
+      setPc(new RTCPeerConnection(null));
+    }
+    pc.onicecandidate = handleIceCandidate;
+    pc.onaddstream = handleRemoteStreamAdded;
+    pc.onremovestream = handleRemoteStreamRemoved;
+    pc.oniceconnectionstatechange = handleIceConnectionChange;
+    console.log('Created RTCPeerConnnection');
+
+  } catch (e) {
+    console.log('Failed to create PeerConnection, exception: ' + e.message);
+    alert('Cannot create RTCPeerConnection object.');
+    return;
+  }
+}
+
+const handleIceCandidate = (event) => {
+  // console.log('icecandidate event: ', event);
+  if (event.candidate) {
+    sendMessage({
+      type: 'candidate',
+      label: event.candidate.sdpMLineIndex,
+      id: event.candidate.sdpMid,
+      candidate: event.candidate.candidate
+    });
+  } else {
+    console.log('End of candidates.');
+  }
+}
+
+const handleRemoteStreamAdded = (event) => {
+  console.log('Remote stream added.');
+  document.getElementById("waiting").classList.add("hiddenVideo")
+  remoteStream = event.stream;
+  remoteVideo.srcObject = remoteStream;
+  remoteVideo.classList.remove("hiddenVideo")
+  localVideo.classList.add("pip")
+  document.getElementById("chevrutaName").style.display = 'block';
+}
+
+const handleRemoteStreamRemoved = (event) => {
+  console.log('Remote stream removed. Event: ', event);
+  document.getElementById("waiting").classList.remove("hiddenVideo")
+  remoteVideo.classList.add("hiddenVideo")
+  localVideo.classList.remove("pip")
+}
+
+const handleIceConnectionChange = (event) => {
+  if (pc.iceConnectionState == "failed") {
+    byebye();
+  }
+  //"disconnected" could be a temporary state caused by any number of factors that could be automatically fixed w/o intervention
+  // this gives the app a chance to re-establish the connection before restarting
+  else if(pc.iceConnectionState == "disconnected") {
+        console.log("iceConnection is disconnected -- waiting 5 seconds to see if reconnects")
+        setTimeout(function(){
+        if (pc.iceConnectionState == "disconnected") {
+          byebye();
+        }
+    }, 5000);
+  }
+  console.log(pc.iceConnectionState);
+}
+
+const handleRemoteHangup = () => {
+  window.onbeforeunload = null;
+  location.reload();
+}
+
+const byebye = () => {
+    socket.emit('bye', clientRoom);
+}
+
+
+    return (
+        <div>
+            <div id="videos" className={audioEnabled ? "" : "muted"}>
+                <video id="localVideo" ref={localVideo} className="flippedVideo" autoPlay playsInline disablePictureInPicture
+                       muted></video>
+                <video id="remoteVideo" ref={remoteVideo} className="hiddenVideo" autoPlay playsInline disablePictureInPicture></video>
+
+                <div id="buttonHolder">
+                    <span id="micIcon">
+                        <span id="enMute" className="muteButton int-en" tabIndex={0} title={!audioEnabled ? "Turn on microphone" : "Turn off microphone" } onClick={() => toggleMute()}></span>
+                        <span id="heMute" className="muteButton int-he" tabIndex={0} title={!audioEnabled ? "הפעל את המיקרופון" : "כבה את המיקרופון" } onClick={() => toggleMute()}></span>
+                    </span>
+                    <span id="endCallIcon">
+                        <span id="end-call" className="endCallButton int-en" tabIndex={0} title="End Call" onClick={(e) => endCall(e)} role="link"></span>
+                    </span>
+                </div>
+
+                <input type="hidden" id="chevrutaUID" value={partnerId} />
+            </div>
+
+
+            <div id="chevrutaNameHolder">{partnerName}</div>
+            <div id="currently-reading"></div>
+
+            <div id="waiting">
+                Waiting for someone to join...
+                <p className="int-en">
+                    Share this link with your chavruta to start a video call
+                </p>
+
+                <p className="int-he">
+                    Share this link with your chavruta to start a video call
+                </p>
+
+            </div>
+
+
+            <p>{isChannelReady}</p>
+            <p>{isInitiator}</p>
+            <p>{isStarted}</p>
+            {/*<p>{pcConfig}</p>*/}
+
+            <div className="chavrutaFooter">
+                <p className="int-en">
+                    Questions? Email <a href="mailto:hello@sefaria.org">hello@sefaria.org</a>
+                </p>
+
+                <p className="int-he">
+                    לשאלות פנו/כתבו לדוא"ל <a href="mailto:hello@sefaria.org">hello@sefaria.org</a>
+                </p>
+            </div>
+
+
+        </div>
+            )
 }
 
 export default BeitMidrash;

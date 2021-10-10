@@ -10671,8 +10671,100 @@ span.ref-link-color-3 {color: blue}
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  justify-content: space-between
+  justify-content: space-between;
 }
+
+.beitMidrashContainer video {
+  width: 100%;
+ }
+
+.beitMidrashContainer video.flippedVideo {
+  transform: rotateY(180deg);
+}
+
+.beitMidrashContainer video.pip {
+  position: absolute;
+  height: 50px;
+  top: 15px;
+  inset-inline-end: 10px;
+  text-align: end;
+  width: initial;
+  border-radius: 6px;
+}
+
+.beitMidrashContainer video.hiddenVideo {
+  display: none;
+}
+
+.beitMidrashContainer .muteButton {
+  position: absolute;
+  width: 40px;
+  height: 30px;
+  border-radius: 6px;
+  z-index: 1;
+  background-color: #999999;
+  opacity: 0.5;
+  left: -8.5px;
+  top: -3px;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+}
+
+.beitMidrashContainer #micIcon {
+  display: inline-block;
+  position: relative;
+  background-image: url("/static/img/unmute.svg");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  opacity: 1;
+  width: 20px;
+  height: 20px;
+}
+
+.beitMidrashContainer .muted #micIcon {
+  background-image: url("/static/img/mute.svg");
+}
+.beitMidrashContainer .muted .muteButton {
+  background-color: #CB6158;
+}
+
+.beitMidrashContainer #buttonHolder {
+  display: flex;
+  width: 80%;
+  justify-content: space-between;
+  margin-top: -35px;
+}
+
+.beitMidrashContainer .endCallButton {
+  position: absolute;
+  width: 40px;
+  height: 30px;
+  border-radius: 6px;
+  z-index: 1;
+  background-color: #CB6158;
+  left: -8.5px;
+  top: -3px;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  background-image: url("/static/img/endcall.svg");
+  background-position: center;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+
+.beitMidrashContainer #endCallIcon {
+  display: inline-block;
+  position: relative;
+  background-image: url("/static/img/endcall.svg");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  opacity: 1;
+  width: 20px;
+  height: 20px;
+}
+
+
 
 .beitMidrashContainer summary {
   list-style: none;
@@ -10698,6 +10790,8 @@ span.ref-link-color-3 {color: blue}
   display: flex;
   justify-content: space-between;
 }
+
+
 
 #newCall {
   margin:10px;
