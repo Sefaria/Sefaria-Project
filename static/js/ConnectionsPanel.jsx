@@ -346,8 +346,8 @@ class ConnectionsPanel extends Component {
                 narrowPanel={this.props.narrowPanel}
                 title={this.props.title}
                 close={this.props.close}
-                showBaseText={this.props.showBaseText}
                 currVersions={this.props.currVersions}
+                navigatePanel={this.props.navigatePanel}
             />
         );
     } else if (this.props.mode === "ConnectionsList") {

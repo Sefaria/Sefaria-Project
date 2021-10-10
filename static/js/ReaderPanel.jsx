@@ -682,8 +682,7 @@ class ReaderPanel extends Component {
           setVersionFilter={this.setVersionFilter}
           viewExtendedNotes={this.props.viewExtendedNotes.bind(null, "Connections")}
           checkIntentTimer={this.props.checkIntentTimer}
-          close={this.closeMenus}
-          showBaseText={this.showBaseText} //these two were added for future adding toc to the sidebar
+          navigatePanel={this.props.navigatePanel}
           translationLanguagePreference={this.props.translationLanguagePreference}
           key="connections" />
       );
