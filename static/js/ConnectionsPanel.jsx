@@ -706,7 +706,7 @@ ConnectionsPanel.propTypes = {
 const ResourcesList = ({setConnectionsMode, counts}) => {
   // A list of Resources in addition to connection
     return (
-        <div className="resourcesList">
+        <div className="toolButtonsList">
             <ToolsButton en="Translations" he="תרגומים" image="translation.svg" count={counts["translations"]} onClick={() => setConnectionsMode("Translations")} />
             <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={counts["sheets"]} onClick={() => setConnectionsMode("Sheets")} />
             <ToolsButton en="Web Pages" he="דפי אינטרנט" image="webpages.svg" count={counts["webpages"]} onClick={() => setConnectionsMode("WebPages")} />
@@ -724,7 +724,7 @@ ResourcesList.propTypes = {
 const ToolsList = ({setConnectionsMode, toggleSignUpModal, openComparePanel, counts}) => {
   // A list of Resources in addition to connection
     return (
-        <div className="resourcesList">
+        <div className="toolButtonsList">
               <ToolsButton en="Add to Sheet" he="הוספה לדף מקורות" image="sheetsplus.svg" onClick={() => !Sefaria._uid ? toggleSignUpModal() : setConnectionsMode("Add To Sheet", {"addSource": "mainPanel"})} />
               <ToolsButton en="Dictionaries" he="מילונים" image="dictionaries.svg" onClick={() => setConnectionsMode("Lexicon")} />
               {openComparePanel ? <ToolsButton en="Compare Text" he="טקסט להשוואה" image="compare-panel.svg" onClick={openComparePanel} /> : null }
@@ -746,7 +746,7 @@ ToolsList.propTypes = {
 class SheetNodeConnectionTools extends Component {
   // A list of Resources in addition to connections
   render() {
-    return (<div className="resourcesList">
+    return (<div className="toolButtonsList">
               {this.props.multiPanel ?
                 <ToolsButton en="Other Text" he="טקסט נוסף" icon="search" onClick={this.props.openComparePanel} />
               : null }
