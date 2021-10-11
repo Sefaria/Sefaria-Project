@@ -297,10 +297,9 @@ class ConnectionsPanel extends Component {
           <div>
               { this.state.flashMessage ? <div className="flashMessage sans-serif">{this.state.flashMessage}</div> : null }
               { this.props.masterPanelMode === "Sheet" ? 
-               <SheetToolsList
+               <AboutSheetButton
                  setConnectionsMode={this.props.setConnectionsMode}
                  masterPanelSheetId={this.props.masterPanelSheetId}
-                 toggleSignUpModal={this.props.toggleSignUpModal}
                /> : null }
               {showConnectionSummary ?
                   <ConnectionsPanelSection title="Related Texts">
@@ -332,6 +331,8 @@ class ConnectionsPanel extends Component {
                   null
               }
               <ConnectionsPanelSection title={"Tools"}>
+              
+                {this.props.masterPanelMode === "Sheet" ? <SheetToolsList /> : null}
                 <ToolsList
                     setConnectionsMode={this.props.setConnectionsMode}
                     toggleSignUpModal = {this.props.toggleSignUpModal}
@@ -743,37 +744,47 @@ ToolsList.propTypes = {
     counts:        PropTypes.object.isRequired,
 }
 
-const SheetToolsList = ({ setConnectionsMode,
-  masterPanelSheetId,
-  toggleSignUpModal }) => {
+const AboutSheetButton = ({setConnectionsMode, masterPanelSheetId}) => {
 
   const [isOwner, setIsOwner] = useState(false);
-  const [isPublished, setIsPublished] = useState(false);
-  const [showCollectionsModal, setShowCollectionsModal] = useState(false);
   useEffect(() => {
     const sheet = Sefaria.sheets.loadSheetByID(masterPanelSheetId)
     setIsOwner(sheet.owner === Sefaria._uid);
-    setIsPublished(sheet.status === "public" ? true : false);
   }, []);
 
-  const toggleCollectionsModal = () => {
-    if (!Sefaria._uid) {
-      toggleSignUpModal();
-    } else {
-      setShowCollectionsModal(!showCollectionsModal)
-    }
-  }
+  return (<div>
+    {isOwner ? <ToolsButton en="Publish Settings" he="תרגומים" image="about-text.svg" onClick={() => setConnectionsMode("AboutSheet")} /> : <ToolsButton en="About this Sheet" he="תרגומים" image="about-text.svg" onClick={() => setConnectionsMode("AboutSheet")} />}
+  </div>);
+}
 
-  return (<div><ToolsButton en="About this Sheet" he="תרגומים" image="about-text.svg" onClick={() => setConnectionsMode("AboutSheet")} />
-      {isOwner ? <ToolsButton en={isPublished ? "Publish Settings" : "Publish"} he="תרגומים" imageIcon="publish.svg" onClick={() => setConnectionsMode("Publish")} /> : null}
-      <ToolsButton en="Copy" he="תרגומים" image="copy.png" onClick={() => setConnectionsMode("AboutSheet")} />
-      <ToolsButton en="Add to Collection" he="תרגומים" image="add-to-collection.svg" onClick={() => toggleCollectionsModal()} />
+const SheetToolsList = () => {
+
+  // const [isOwner, setIsOwner] = useState(false);
+  // const [isPublished, setIsPublished] = useState(false);
+  const [showCollectionsModal, setShowCollectionsModal] = useState(false);
+  // useEffect(() => {
+  //   const sheet = Sefaria.sheets.loadSheetByID(masterPanelSheetId)
+    // setIsOwner(sheet.owner === Sefaria._uid);
+    // setIsPublished(sheet.status === "public" ? true : false);
+  // }, []);
+
+  // const toggleCollectionsModal = () => {
+  //   if (!Sefaria._uid) {
+  //     toggleSignUpModal();
+  //   } else {
+  //     setShowCollectionsModal(!showCollectionsModal)
+  //   }
+  // }
+
+  return (<div>
+      <ToolsButton en="Copy" he="תרגומים" image="copy.png" onClick={() => null} />
+      {/* <ToolsButton en="Add to Collection" he="תרגומים" image="add-to-collection.svg" onClick={() => toggleCollectionsModal()} /> */}
       <ToolsButton en="Print" he="תרגומים" image="print.svg" onClick={() => window.print()} />
       <ToolsButton en="Export to Google Docs" he="תרגומים" image="googledrive.svg" onClick={() => window.print()} /> 
       {/* todo: update export to google docs button so it works */}
-      {showCollectionsModal ? <CollectionsModal
+      {/* {showCollectionsModal ? <CollectionsModal
                       sheetID={masterPanelSheetId}
-                      close={toggleCollectionsModal} />  : null}
+                      close={toggleCollectionsModal} />  : null} */}
   </div>
   )
 }
