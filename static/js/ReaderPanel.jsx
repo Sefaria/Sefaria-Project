@@ -1148,11 +1148,11 @@ class ReaderControls extends Component {
   }
   openTextToc(e) {
     e.preventDefault();
-    this.props.openSidePanel();
+    this.props.openMenu("text toc");
   }
   openSheetMeta(e) {
     e.preventDefault();
-    this.props.openMenu("sheet meta");
+    this.props.openSidePanel();
   }
   componentDidMount() {
     const title = this.props.currentRef;
