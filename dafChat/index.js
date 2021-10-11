@@ -52,6 +52,13 @@ const chavrutot = {}
 //initialize global object for data on people in beit midrash
 const peopleInBeitMidrash = {};
 
+// globals for chavruta
+  let users = {};
+  let maximum = 2;
+  let socketToRoom = {};
+
+
+
 io.on("connection", (socket) => {
   console.log(socket.id, socket.conn.remoteAddress, "connected")
   
@@ -70,7 +77,7 @@ io.on("connection", (socket) => {
     peopleInBeitMidrash[socketId]["beitMidrashId"] = beitMidrashId;
     peopleInBeitMidrash[socketId]["currentlyReading"] = currentlyReading;
 
-    console.log("user added to beit midrash, current peopleInBeitMidrash:", peopleInBeitMidrash)
+    // console.log("user added to beit midrash, current peopleInBeitMidrash:", peopleInBeitMidrash)
     socket.broadcast.emit("change in people", Object.values(peopleInBeitMidrash), uid);
     socket.emit("change in people", Object.values(peopleInBeitMidrash), uid);
 
@@ -79,13 +86,16 @@ io.on("connection", (socket) => {
 
   socket.on("update currently reading", (uid, currentlyReading) => {
     if (!peopleInBeitMidrash[socket.id]) return
-    console.log(uid, ": ", currentlyReading)
+    // console.log(uid, ": ", currentlyReading)
     peopleInBeitMidrash[socket.id]["currentlyReading"] = currentlyReading;
     socket.broadcast.emit("change in people", Object.values(peopleInBeitMidrash), uid);
     socket.emit("change in people", Object.values(peopleInBeitMidrash), uid);
   })
 
-  socket.on("enter beit midrash", (uid, fullName, profilePic, organization, currentlyReading, beitMidrashId)=> addUserToBeitMidrash(uid, fullName, profilePic, organization, currentlyReading, beitMidrashId, socket.id));
+  socket.on("enter beit midrash", (uid, fullName, profilePic, organization, currentlyReading, beitMidrashId)=> {
+    addUserToBeitMidrash(uid, fullName, profilePic, organization, currentlyReading, beitMidrashId, socket.id)
+    socket.emit('creds', pcConfig)
+  });
 
   socket.on("connect with other user", (uid, user) => {
     const socketId = Object.keys(peopleInBeitMidrash).find(key => peopleInBeitMidrash[key]["uid"] === uid);
@@ -110,7 +120,7 @@ io.on("connection", (socket) => {
     const msgSender = peopleInBeitMidrash[socket.id]
     if (msgSender) {
       socketIdsOfMsgReceiver.forEach(socketId => {
-        console.log(`sending chat message to ${socketId} from ${msgSender.name}: ${message}`)
+        // console.log(`sending chat message to ${socketId} from ${msgSender.name}: ${message}`)
         socket.to(socketId).emit("received chat message", msgSender, message, room)
       })
     }
@@ -133,7 +143,7 @@ io.on("connection", (socket) => {
   }
 
   socket.on("disconnecting", (reason)=> {
-      console.log(`${socket.id} ${peopleInBeitMidrash[socket.id] ? peopleInBeitMidrash[socket.id].name : ""} is disconnecting from rooms`, socket.rooms, `due to ${reason}`)
+      // console.log(`${socket.id} ${peopleInBeitMidrash[socket.id] ? peopleInBeitMidrash[socket.id].name : ""} is disconnecting from rooms`, socket.rooms, `due to ${reason}`)
 
     //notify open chats that user left
     const roomArray = Array.from(socket.rooms);
@@ -154,7 +164,72 @@ io.on("connection", (socket) => {
   //----------------end of Beit Midrash code, start of RTC code----------------------
   //---------------------------------------------------------------------------------
 
+
+
+  socket.on("candidate", (candidate) => {
+    console.log("candidate: " + socket.id);
+    socket.broadcast.emit("getCandidate", candidate);
+  });
+
+  socket.on("join_room", (data) => {
+    console.log(users[data.room])
+    if (users[data.room]) {
+      console.log(1)
+      const length = users[data.room].length;
+      if (length === maximum) {
+        socket.to(socket.id).emit("room_full");
+        return;
+      }
+      users[data.room].push({ id: socket.id });
+    } else {
+      console.log(2)
+      users[data.room] = [{ id: socket.id }];
+    }
+    socketToRoom[socket.id] = data.room;
+    console.log(users)
+    console.log(socketToRoom)
+
+    socket.join(data.room);
+
+    const usersInThisRoom = users[data.room].filter(
+      (user) => user.id !== socket.id
+    );
+
+    console.log(usersInThisRoom);
+
+    io.sockets.to(socket.id).emit("all_users", usersInThisRoom);
+  });
+
+
+  socket.on("offer", (sdp) => {
+    console.log("offer: " + socket.id);
+    socket.broadcast.emit("getOffer", sdp);
+  });
+
+  socket.on("answer", (sdp) => {
+    console.log("answer: " + socket.id);
+    socket.broadcast.emit("getAnswer", sdp);
+  });
+
+
+  socket.on("chavruta closed", () => {
+    console.log(`[${socketToRoom[socket.id]}]: ${socket.id} exit`);
+    const roomID = socketToRoom[socket.id];
+    let room = users[roomID];
+    if (room) {
+      room = room.filter((user) => user.id !== socket.id);
+      users[roomID] = room;
+      if (room.length === 0) {
+        delete users[roomID];
+        return;
+      }
+    }
+    socket.broadcast.to(room).emit("user_exit", { id: socket.id });
+    console.log(users);
+  });
+
   socket.on('message', function(message, roomId) {
+    // console.log(socket, roomId, message)
     socket.to(roomId).emit('message', message);
   }); //general function for sending messages from one client to another in Chavruta
 
@@ -180,8 +255,7 @@ io.on("connection", (socket) => {
 
   //default private chevruta path
   socket.on('start chevruta', function(uid, room) {
-    socket.emit('creds', pcConfig)
-    
+
     if (chavrutot[room]) {
       if (chavrutot[room].peopleInChavruta.length === 1) {
         console.log(socket.id +' attempting to join room: '+ room)
@@ -197,58 +271,6 @@ io.on("connection", (socket) => {
       createNewChavruta(uid, "private", room);
     }
   })
-
-
-
-
-
-  // Default Roulette Pathway:
-  // socket.on('start roulette', function(uid, lastChevrutaID, namespace='dafRoulette' ) {
-  //   socket.emit('creds', pcConfig)
-
-  //   db.get(`SELECT COUNT(*) FROM chatrooms WHERE namespace=?`, [namespace], (err, rows) => {
-  //     if (err) {
-  //       return console.error(err.message);
-  //     }
-
-  //     if (namespace == 'dafRoulette') {
-  //       let numRows = rows["COUNT(*)"];
-  //       socket.broadcast.emit('return rooms', numRows);
-  //       socket.emit('return rooms', numRows);
-  //     }
-  //       console.log('trying to find a room...')
-  //       db.all(`SELECT name, clients from chatrooms WHERE clients != 0 AND namespace = ? ORDER BY roomStarted`, [namespace], (err, rows) => {
-
-  //         if (err) {
-  //           return console.error(err.message);
-  //         }
-  //         let foundRoom = false;
-  //         let rowIndex = 0;
-
-  //         while (foundRoom == false) {
-  //           if (rows.length == rowIndex) {
-  //             createNewChavruta(uid, namespace);
-  //             foundRoom = true;
-  //           }
-  //           else if (rows[rowIndex].clients == lastChevrutaID) {
-  //             console.log('Client ID ' + socket.id + 'matched w/ the same chevrusa as last time')
-  //             rowIndex++;
-  //           }
-  //           else {
-  //             const room = rows[rowIndex].name;
-  //             console.log(socket.id +' attempting to join room: '+ room)
-  //             socket.join(room);
-  //             console.log('Client ID ' + socket.id + ' joined room ' + room);
-  //             socket.to(room).emit('join', room);
-  //             socket.emit('join', room);
-  //             db.run(`UPDATE chatrooms SET clients=? WHERE name=?`, [0, room]);
-              
-  //             foundRoom = true;
-  //           }
-  //         }
-  //       });
-  //   });
-  // });
 
   socket.on('ipaddr', function() {
     var ifaces = os.networkInterfaces();
