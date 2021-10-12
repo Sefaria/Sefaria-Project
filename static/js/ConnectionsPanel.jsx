@@ -296,12 +296,18 @@ class ConnectionsPanel extends Component {
       content = (
           <div>
               { this.state.flashMessage ? <div className="flashMessage sans-serif">{this.state.flashMessage}</div> : null }
-              { this.props.masterPanelMode === "Sheet" ?
-               <SheetToolsList
-                 setConnectionsMode={this.props.setConnectionsMode}
-                 masterPanelSheetId={this.props.masterPanelSheetId}
-                 toggleSignUpModal={this.props.toggleSignUpModal}
-               /> : null }
+              {this.props.masterPanelMode==="Sheet" ?
+                  <SheetToolsList
+                     setConnectionsMode={this.props.setConnectionsMode}
+                     masterPanelSheetId={this.props.masterPanelSheetId}
+                     toggleSignUpModal={this.props.toggleSignUpModal}
+                   />
+                  :
+                  <>
+                  <ToolsButton en="About this Text" he="אודות הטקסט" image="about-text.svg" onClick={() => this.props.setConnectionsMode("About")} />
+                  <ToolsButton en="Table of Contents" he="תוכן העניינים" image="text-navigation.svg" onClick={() => this.props.setConnectionsMode("Navigation")} />
+                  </>
+              }
               {showConnectionSummary ?
                   <ConnectionsPanelSection title="Related Texts">
                       <ConnectionsSummary
