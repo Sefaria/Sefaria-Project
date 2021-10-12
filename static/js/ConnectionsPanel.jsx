@@ -780,6 +780,8 @@ const SheetToolsList = ({toggleSignUpModal, masterPanelSheetId}) => {
   // const [isOwner, setIsOwner] = useState(false);
   // const [isPublished, setIsPublished] = useState(false);
   const [copyText, setCopyText] = useState({en: "Copy", he: "העתקה"});
+  const [googleDriveText, setGoogleDriveText] =  useState({en: "Export to Google Drive", he: "ייצוא ל-גוגל דרייב"});
+  const [googleDriveLink, setGoogleDriveLink] = useState("");
   const [copiedSheetId, setCopiedSheetId] = useState(0);
   const sheet = Sefaria.sheets.loadSheetByID(masterPanelSheetId);
   const [showCollectionsModal, setShowCollectionsModal] = useState(false);
@@ -842,12 +844,42 @@ const SheetToolsList = ({toggleSignUpModal, masterPanelSheetId}) => {
       // TODO: open copied sheet
     }
   }
+  
+  const googleDriveExport = () => {
+    // $("#overlay").show();
+    // sjs.alert.message('<span class="int-en">Syncing with Google Docs...</span><span class="int-he">מייצא לגוגל דרייב...</span>');
+    if (googleDriveText.en === "Open Sheet in Google Drive") {
+      Sefaria.util.openInNewTab(googleDriveLink);
+    } else {
+      Sefaria.track.sheets("Export to Google Drive");
 
+      $.ajax({
+        type: "POST",
+        url: "/api/sheets/" + sheet.id + "/export_to_drive",
+        success: function (data) {
+          if ("error" in data) {
+            console.log(data.error.message);
+            setGoogleDriveText({ en: "Syncing with Google Docs...", he: "מייצא לגוגל דרייב..." })
+            // Export Failed
+          } else {
+            // Export succeeded
+            setGoogleDriveLink(data.webViewLink);
+            setGoogleDriveText({ en: "Open Sheet in Google Drive", he: "לפתיחה בגוגל דרייב" })
+          }
+        },
+        statusCode: {
+          401: function () {
+            window.location.href = "/gauth?next=" + encodeURIComponent(window.location.protocol + '//' + window.location.host + window.location.pathname + "?editor=1#onload=exportToDrive");
+          }
+        }
+      });
+    }
+  }
   return (<div>
       <ToolsButton en={copyText.en} he={copyText.he} image="copy.png" onClick={() => copySheet()} />
       {/* <ToolsButton en="Add to Collection" he="תרגומים" image="add-to-collection.svg" onClick={() => toggleCollectionsModal()} /> */}
       <ToolsButton en="Print" he="תרגומים" image="print.svg" onClick={() => window.print()} />
-      <ToolsButton en="Export to Google Docs" he="תרגומים" image="googledrive.svg" onClick={() => window.print()} />
+      <ToolsButton en={googleDriveText.en} he={googleDriveText.he} image="googledrive.svg" onClick={() => googleDriveExport()} />
       {/* todo: update export to google docs button so it works */}
       {/* {showCollectionsModal ? <CollectionsModal
                       sheetID={masterPanelSheetId}
