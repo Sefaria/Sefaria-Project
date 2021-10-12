@@ -838,7 +838,7 @@ class ReaderApp extends Component {
   handleSegmentClick(n, ref, sheetNode) {
     // Handle a click on a text segment `ref` in from panel in position `n`
     // Update or add panel after this one to be a TextList
-    var refs = typeof ref == "string" ? [ref] : ref;
+    const refs = typeof ref == "string" ? [ref] : ref;
 
     if (sheetNode) {
       this.setSheetHighlight(n, sheetNode);
@@ -847,7 +847,7 @@ class ReaderApp extends Component {
       this.setTextListHighlight(n, refs);
     }
 
-    var nodeRef = sheetNode ? this.state.panels[n].sheetID + "." + sheetNode : null;
+    const nodeRef = sheetNode ? this.state.panels[n].sheetID + "." + sheetNode : null;
 
     if (this.currentlyConnecting()) { return }
 
@@ -1181,6 +1181,32 @@ class ReaderApp extends Component {
         panel.settings.language = panelLang !== "bilingual" ? panelLang : (versionLanguage === "he" ? "hebrew" : "english");
         masterPanel.settings.language = panelLang;
       }
+    }
+    this.setState({panels: this.state.panels});
+  }
+  navigatePanel(n, ref, currVersions={en: null, he: null}) {
+    // Sets the ref on panel `n` and cascades to any attached panels (Text + Connections)
+    let panel = this.state.panels[n];
+    // next few lines adapted from ReaderPanel.showBaseText()
+    let refs, currentlyVisibleRef, highlightedRefs;
+    if (ref.constructor == Array) {
+      // When called with an array, set highlight for the whole spanning range
+      refs = ref;
+      currentlyVisibleRef = Sefaria.humanRef(ref);
+      let splitArray = refs.map(ref => Sefaria.splitRangingRef(ref));
+      highlightedRefs = [].concat.apply([], splitArray);
+    } else {
+      refs = [ref];
+      currentlyVisibleRef = ref;
+      highlightedRefs = [];
+    }
+    Object.assign(panel, {refs: refs, currentlyVisibleRef: currentlyVisibleRef, highlightedRefs: highlightedRefs});
+    if((this.state.panels.length > n+1) && this.state.panels[n+1].mode == "Connections"){
+      let connectionsPanel =  this.state.panels[n+1];
+      Object.assign(connectionsPanel, {refs: refs, currentlyVisibleRef: currentlyVisibleRef, highlightedRefs: highlightedRefs});
+    } else if (n-1 >= 0 && this.state.panels[n].mode === "Connections") {
+      let masterPanel = this.state.panels[n-1];
+      Object.assign(masterPanel, {refs: refs, currentlyVisibleRef: currentlyVisibleRef, highlightedRefs: highlightedRefs});
     }
     this.setState({panels: this.state.panels});
   }
@@ -1753,6 +1779,7 @@ class ReaderApp extends Component {
       var selectVersion                  = this.selectVersion.bind(null, i);
       var viewExtendedNotes              = this.viewExtendedNotes.bind(this, i);
       var backFromExtendedNotes          = this.backFromExtendedNotes.bind(this, i);
+      var navigatePanel                  = this.navigatePanel.bind(null, i)
 
       var ref   = panel.refs && panel.refs.length ? panel.refs[0] : null;
       var oref  = ref ? Sefaria.parseRef(ref) : null;
@@ -1813,6 +1840,7 @@ class ReaderApp extends Component {
                       clearNamedEntity={clearNamedEntity}
                       translationLanguagePreference={this.state.translationLanguagePreference}
                       setTranslationLanguagePreference={this.setTranslationLanguagePreference}
+                      navigatePanel={navigatePanel}
                     />
                   </div>);
     }

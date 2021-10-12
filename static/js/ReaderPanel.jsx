@@ -125,12 +125,12 @@ class ReaderPanel extends Component {
     // Todo: Move the multiple instances of this out to a utils file
     return Sefaria.util.clone(panel);
   }
-  handleBaseSegmentClick(ref) {
+  handleBaseSegmentClick(ref, showHighlight = true) {
     if (this.state.mode === "TextAndConnections") {
       this.closeConnectionsInPanel();
     } else if (this.state.mode === "Text") {
       if (this.props.multiPanel) {
-        this.conditionalSetState({showHighlight: true});
+        this.conditionalSetState({showHighlight: showHighlight});
         this.props.onSegmentClick(ref);
       } else {
         this.openConnectionsInPanel(ref);
@@ -138,6 +138,12 @@ class ReaderPanel extends Component {
     }
   }
   handleSheetSegmentClick(source) {
+    if(source === 0){
+      //the click may be coming from the sheet reader controls, and so we need to find
+      // the first node or the node thats in the url
+      const sheet = Sefaria.sheets.loadSheetByID(this.state.sheetID); // Should already be loaded and in cache
+      source = this.state.highlightedNode ? sheet.sources.find(source => source.node === this.state.highlightedNode) : sheet.sources[0];
+    }
     this.conditionalSetState({highlightedNode: source.node});
     const sheetRef = "Sheet " + this.state.sheetID + ":" + source.node;
     if (this.state.mode ==="SheetAndConnections") {
@@ -718,8 +724,7 @@ class ReaderPanel extends Component {
           setVersionFilter={this.setVersionFilter}
           viewExtendedNotes={this.props.viewExtendedNotes.bind(null, "Connections")}
           checkIntentTimer={this.props.checkIntentTimer}
-          close={this.closeMenus}
-          showBaseText={this.showBaseText} //these two were added for future adding toc to the sidebar
+          navigatePanel={this.props.navigatePanel}
           translationLanguagePreference={this.props.translationLanguagePreference}
           key="connections" />
       );
@@ -1043,6 +1048,8 @@ class ReaderPanel extends Component {
             setConnectionsCategory={this.setConnectionsCategory}
             openMenu={this.openMenu}
             closeMenus={this.closeMenus}
+            onTextTitleClick={this.handleBaseSegmentClick}
+            onSheetTitleClick={this.handleSheetSegmentClick}
             openMobileNavMenu={this.props.openMobileNavMenu}
             openDisplaySettings={this.openDisplaySettings}
             currentLayout={this.currentLayout}
@@ -1146,13 +1153,13 @@ class ReaderControls extends Component {
     super(props);
     this.state = {};
   }
-  openTextToc(e) {
+  openTextConnectionsPanel(e) {
     e.preventDefault();
-    this.props.openMenu("text toc");
+    this.props.onTextTitleClick(this.props.currentRef, false);
   }
-  openSheetMeta(e) {
+  openSheetConnectionsPanel(e) {
     e.preventDefault();
-    this.props.openSidePanel();
+    this.props.onSheetTitleClick(0);
   }
   componentDidMount() {
     const title = this.props.currentRef;
@@ -1221,7 +1228,7 @@ class ReaderControls extends Component {
         />
       </div>
       :
-      <div className={"readerTextToc" + (categoryAttribution ? ' attributed' : '')} onClick={this.props.sheetID ? this.openSheetMeta : this.openTextToc}>
+      <div className={"readerTextToc" + (categoryAttribution ? ' attributed' : '')} onClick={this.props.sheetID ? this.openSheetConnectionsPanel : this.openTextConnectionsPanel}>
         <div className={"readerTextTocBox" + (this.props.sheetID ? " sheetBox" : "")} role="heading" aria-level="1" aria-live="polite">
           <div>
             <a href={url} aria-label={"Show table of contents for " + title} >

@@ -300,7 +300,12 @@ class ConnectionsPanel extends Component {
                <AboutSheetButton
                  setConnectionsMode={this.props.setConnectionsMode}
                  masterPanelSheetId={this.props.masterPanelSheetId}
-               /> : null }
+               /> : 
+                  <>
+                  <ToolsButton en="About this Text" he="אודות הטקסט" image="about-text.svg" onClick={() => this.props.setConnectionsMode("About")} />
+                  <ToolsButton en="Table of Contents" he="תוכן העניינים" image="text-navigation.svg" onClick={() => this.props.setConnectionsMode("Navigation")} />
+                  </>
+              }
               {showConnectionSummary ?
                   <ConnectionsPanelSection title="Related Texts">
                       <ConnectionsSummary
@@ -322,6 +327,15 @@ class ConnectionsPanel extends Component {
               }
               {showResourceButtons ?
                   <ConnectionsPanelSection title={"Resources"}>
+                    {
+                        //ironically we need the masterpanel mode to be sheet to indicate a sheet is loaded, but the
+                        // title prop to be something other than "Sheet" to indicate that a real source is being
+                        // looked at
+                        (this.props.masterPanelMode == "Sheet" && this.props.title !== "Sheet") ?
+                            <ToolsButton en="About this Source" he="אודות מקור זה" image="about-text.svg" onClick={() => this.props.setConnectionsMode("About")} />
+                            :
+                            null
+                    }
                     <ResourcesList
                         setConnectionsMode={this.props.setConnectionsMode}
                         counts={resourcesButtonCounts}
@@ -348,8 +362,8 @@ class ConnectionsPanel extends Component {
                 narrowPanel={this.props.narrowPanel}
                 title={this.props.title}
                 close={this.props.close}
-                showBaseText={this.props.showBaseText}
                 currVersions={this.props.currVersions}
+                navigatePanel={this.props.navigatePanel}
             />
         );
     } else if (this.props.mode === "ConnectionsList") {
@@ -705,10 +719,10 @@ ConnectionsPanel.propTypes = {
 };
 
 
-const ResourcesList = ({setConnectionsMode, counts}) => {
+const ResourcesList = ({masterPanelMode, setConnectionsMode, counts}) => {
   // A list of Resources in addition to connection
     return (
-        <div className="resourcesList">
+        <div className="toolButtonsList">
             <ToolsButton en="Translations" he="תרגומים" image="translation.svg" count={counts["translations"]} onClick={() => setConnectionsMode("Translations")} />
             <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={counts["sheets"]} onClick={() => setConnectionsMode("Sheets")} />
             <ToolsButton en="Web Pages" he="דפי אינטרנט" image="webpages.svg" count={counts["webpages"]} onClick={() => setConnectionsMode("WebPages")} />
@@ -726,7 +740,7 @@ ResourcesList.propTypes = {
 const ToolsList = ({setConnectionsMode, toggleSignUpModal, openComparePanel, counts}) => {
   // A list of Resources in addition to connection
     return (
-        <div className="resourcesList">
+        <div className="toolButtonsList">
               <ToolsButton en="Add to Sheet" he="הוספה לדף מקורות" image="sheetsplus.svg" onClick={() => !Sefaria._uid ? toggleSignUpModal() : setConnectionsMode("Add To Sheet", {"addSource": "mainPanel"})} />
               <ToolsButton en="Dictionaries" he="מילונים" image="dictionaries.svg" onClick={() => setConnectionsMode("Lexicon")} />
               {openComparePanel ? <ToolsButton en="Compare Text" he="טקסט להשוואה" image="compare-panel.svg" onClick={openComparePanel} /> : null }
@@ -780,7 +794,7 @@ const SheetToolsList = () => {
       <ToolsButton en="Copy" he="תרגומים" image="copy.png" onClick={() => null} />
       {/* <ToolsButton en="Add to Collection" he="תרגומים" image="add-to-collection.svg" onClick={() => toggleCollectionsModal()} /> */}
       <ToolsButton en="Print" he="תרגומים" image="print.svg" onClick={() => window.print()} />
-      <ToolsButton en="Export to Google Docs" he="תרגומים" image="googledrive.svg" onClick={() => window.print()} /> 
+      <ToolsButton en="Export to Google Docs" he="תרגומים" image="googledrive.svg" onClick={() => window.print()} />
       {/* todo: update export to google docs button so it works */}
       {/* {showCollectionsModal ? <CollectionsModal
                       sheetID={masterPanelSheetId}
@@ -791,7 +805,7 @@ const SheetToolsList = () => {
 class SheetNodeConnectionTools extends Component {
   // A list of Resources in addition to connections
   render() {
-    return (<div className="resourcesList">
+    return (<div className="toolButtonsList">
       {this.props.multiPanel ?
         <ToolsButton en="Other Text" he="טקסט נוסף" icon="search" onClick={this.props.openComparePanel} />
         : null}
