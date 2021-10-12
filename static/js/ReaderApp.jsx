@@ -838,7 +838,7 @@ class ReaderApp extends Component {
   handleSegmentClick(n, ref, sheetNode) {
     // Handle a click on a text segment `ref` in from panel in position `n`
     // Update or add panel after this one to be a TextList
-    var refs = typeof ref == "string" ? [ref] : ref;
+    const refs = typeof ref == "string" ? [ref] : ref;
 
     if (sheetNode) {
       this.setSheetHighlight(n, sheetNode);
@@ -847,7 +847,7 @@ class ReaderApp extends Component {
       this.setTextListHighlight(n, refs);
     }
 
-    var nodeRef = sheetNode ? this.state.panels[n].sheetID + "." + sheetNode : null;
+    const nodeRef = sheetNode ? this.state.panels[n].sheetID + "." + sheetNode : null;
 
     if (this.currentlyConnecting()) { return }
 
