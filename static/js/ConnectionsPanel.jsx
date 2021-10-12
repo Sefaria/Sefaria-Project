@@ -297,7 +297,7 @@ class ConnectionsPanel extends Component {
           <div>
               { this.state.flashMessage ? <div className="flashMessage sans-serif">{this.state.flashMessage}</div> : null }
               { this.props.masterPanelMode === "Sheet" ? 
-               <AboutSheetButton
+               <AboutSheetButtons
                  setConnectionsMode={this.props.setConnectionsMode}
                  masterPanelSheetId={this.props.masterPanelSheetId}
                /> : 
@@ -351,6 +351,7 @@ class ConnectionsPanel extends Component {
                 masterPanelSheetId={this.props.masterPanelSheetId} /> : null}
                 <ToolsList
                     setConnectionsMode={this.props.setConnectionsMode}
+                    masterPanelMode={this.props.masterPanelMode}
                     toggleSignUpModal={this.props.toggleSignUpModal}
                     openComparePanel={this.props.multiPanel? this.props.openComparePanel : null}
                     counts={toolsButtonsCounts} />
@@ -739,7 +740,7 @@ ResourcesList.propTypes = {
   counts:        PropTypes.object.isRequired,
 }
 
-const ToolsList = ({setConnectionsMode, toggleSignUpModal, openComparePanel, counts}) => {
+const ToolsList = ({setConnectionsMode, toggleSignUpModal, openComparePanel, counts, masterPanelMode}) => {
   // A list of Resources in addition to connection
     return (
         <div className="toolButtonsList">
@@ -748,7 +749,7 @@ const ToolsList = ({setConnectionsMode, toggleSignUpModal, openComparePanel, cou
               {openComparePanel ? <ToolsButton en="Compare Text" he="טקסט להשוואה" image="compare-panel.svg" onClick={openComparePanel} /> : null }
               <ToolsButton en="Notes" he="הערות" image="notes.svg" alwaysShow={true} count={counts["notes"]} onClick={() => !Sefaria._uid ? toggleSignUpModal() : setConnectionsMode("Notes")} />
               <ToolsButton en="Chavruta" he="חברותא" image="chavruta.svg" onClick={() => !Sefaria._uid ? toggleSignUpModal() : setConnectionsMode("Chavruta")} />
-              <ToolsButton en="Share" he="שיתוף" image="share.svg" onClick={() => setConnectionsMode("Share")} />
+              {masterPanelMode !== "Sheet" ? <ToolsButton en="Share" he="שיתוף" image="share.svg" onClick={() => setConnectionsMode("Share")} /> : null }
               <ToolsButton en="Feedback" he="משוב" image="feedback.svg" onClick={() => setConnectionsMode("Feedback")} />
               <ToolsButton en="Advanced" he="כלים מתקדמים" image="advancedtools.svg" onClick={() => setConnectionsMode("Advanced Tools")} />
         </div>
@@ -760,7 +761,7 @@ ToolsList.propTypes = {
     counts:        PropTypes.object.isRequired,
 }
 
-const AboutSheetButton = ({setConnectionsMode, masterPanelSheetId}) => {
+const AboutSheetButtons = ({setConnectionsMode, masterPanelSheetId}) => {
 
   const [isOwner, setIsOwner] = useState(false);
   useEffect(() => {
@@ -770,6 +771,7 @@ const AboutSheetButton = ({setConnectionsMode, masterPanelSheetId}) => {
 
   return (<div>
     {isOwner ? <ToolsButton en="Publish Settings" he="תרגומים" image="about-text.svg" onClick={() => setConnectionsMode("AboutSheet")} /> : <ToolsButton en="About this Sheet" he="תרגומים" image="about-text.svg" onClick={() => setConnectionsMode("AboutSheet")} />}
+    <ToolsButton en="Share" he="שיתוף" image="share.svg" onClick={() => setConnectionsMode("Share")} /> 
   </div>);
 }
 
@@ -779,7 +781,6 @@ const SheetToolsList = ({toggleSignUpModal, masterPanelSheetId}) => {
   // const [isPublished, setIsPublished] = useState(false);
   const [copyText, setCopyText] = useState({en: "Copy", he: "העתקה"});
   const [copiedSheetId, setCopiedSheetId] = useState(0);
-  const [hebrewCopyText, setHebrewCopyText] = useState("");
   const sheet = Sefaria.sheets.loadSheetByID(masterPanelSheetId);
   const [showCollectionsModal, setShowCollectionsModal] = useState(false);
   // useEffect(() => {
