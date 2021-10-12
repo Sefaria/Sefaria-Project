@@ -332,6 +332,7 @@ class ConnectionsPanel extends Component {
                     <ResourcesList
                         setConnectionsMode={this.props.setConnectionsMode}
                         counts={resourcesButtonCounts}
+                        masterPanelMode={this.props.masterPanelMode}
                     />
                   </ConnectionsPanelSection>
                   :
@@ -710,10 +711,11 @@ ConnectionsPanel.propTypes = {
 };
 
 
-const ResourcesList = ({setConnectionsMode, counts}) => {
+const ResourcesList = ({masterPanelMode, setConnectionsMode, counts}) => {
   // A list of Resources in addition to connection
     return (
         <div className="toolButtonsList">
+            {masterPanelMode == "Sheet" ? <ToolsButton en="About this Source" he="אודות מקור זה" image="about-text.svg" onClick={() => setConnectionsMode("About")} /> : null}
             <ToolsButton en="Translations" he="תרגומים" image="translation.svg" count={counts["translations"]} onClick={() => setConnectionsMode("Translations")} />
             <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={counts["sheets"]} onClick={() => setConnectionsMode("Sheets")} />
             <ToolsButton en="Web Pages" he="דפי אינטרנט" image="webpages.svg" count={counts["webpages"]} onClick={() => setConnectionsMode("WebPages")} />
