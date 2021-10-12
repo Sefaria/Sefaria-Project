@@ -78,18 +78,17 @@ class WebPage(abst.AbstractMongoRecord):
             "remove url params": lambda url: re.sub(r"\?.+", "", url),
             "remove utm params": lambda url: re.sub(r"\?utm_.+", "", url),
             "remove fbclid param": lambda url: re.sub(r"\?fbclid=.+", "", url),
-            "add www": lambda url: re.sub(r"^(https?://)(?!www\.)", r"\1www.", url),
             "remove www": lambda url: re.sub(r"^(https?://)www\.", r"\1", url),
             "remove mediawiki params": lambda url: re.sub(r"&amp;.+", "", url),
             "remove sort param": lambda url: re.sub(r"\?sort=.+", "", url),
             "remove all params after id": lambda url: re.sub(r"(\?id=\d+).+$", r"\1", url)
         }
-        global_rules = ["remove hash", "remove utm params", "remove fbclid param"]
+        global_rules = ["remove hash", "remove utm params", "remove fbclid param", "remove www", "use https"]
         domain = WebPage.domain_for_url(url)
         site_rules = global_rules
         site_data = WebPage.site_data_for_domain(domain)
         if site_data and site_data["is_whitelisted"]:
-            site_rules += site_data.get("normalization_rules", [])
+            site_rules += [x for x in site_data.get("normalization_rules", []) if x not in global_rules]
         for rule in site_rules:
             url = rewrite_rules[rule](url)
 
@@ -310,7 +309,7 @@ def dedupe_webpages(test=True):
     """Normalizes URLs of all webpages and deletes multiple entries that normalize to the same URL"""
     norm_count = 0
     dedupe_count = 0
-    webpages = WebPageSet({"url": {"$regex": "why-learn-gemara"}})
+    webpages = WebPageSet()
     for i, webpage in enumerate(webpages):
         if i % 100000 == 0:
             print(i)
@@ -448,12 +447,13 @@ def find_webpages_without_websites(test=True, hit_threshold=50, last_linker_acti
     unactive_unacknowledged_sites = {}  # WebSites we don't yet have in DB, and we have correpsonding WebPages but they have not been accessed recently
     last_active_threshold = datetime.today() - timedelta(days=last_linker_activity_day)
 
+    bad_regexes = WebPage.excluded_pages_url_regex()[:-1] + "|\d{3}\.\d{3}\.\d{3}\.\d{3})"  #delete any page that matches the regex produced by excluded_pages_url_regex() or in IP form
     for i, webpage in enumerate(webpages):
         if i % 100000 == 0:
             print(i)
         updated_recently = webpage.lastUpdated > last_active_threshold
         website = webpage.get_website(dict_only=True)
-        if website == {} and len(webpage.domain.strip()) > 0:
+        if website == {} and len(webpage.domain.strip()) > 0 and re.search(bad_regexes, webpage.url) is None:
             if updated_recently:
                 new_active_sites[webpage.domain] += 1
             else:
@@ -503,7 +503,6 @@ def find_sites_to_be_excluded(flag=100):
                 if common[1] > flag:
                     print("{} may need exclusions set because of ref {} with count {}".format(website, common[0], common[1]))
 
-    #check_daf_yomi_and_parashat_hashavua(all_sites)
 
 def check_daf_yomi_and_parashat_hashavua(sites):
     previous = datetime.now() - timedelta(10)

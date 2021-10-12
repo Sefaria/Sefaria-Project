@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 import Sefaria from './sefaria/sefaria';
 import $ from './sefaria/sefariaJquery';
@@ -12,7 +12,6 @@ import {
   CloseButton,
   ToggleSet,
 } from './Misc';
-
 
 class SearchFilters extends Component {
   constructor(props) {
@@ -128,6 +127,7 @@ class TextSearchFilters extends Component {
       <div className="searchFilterBoxes">
         <SearchFilterGroup
           name="Texts"
+          searchable={true}
           filters={this.props.availableFilters}
           updateSelected={this.props.updateAppliedFilter}
           expandable={true} />
@@ -154,14 +154,23 @@ TextSearchFilters.propTypes = {
 };
 
 
-const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged}) => {
+const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged, searchable}) => {
   if (!filters || !filters.length) { return null; }
 
-  let content = filters.map(filter => (
+  useEffect(() => {
+    const filterValue = document.getElementById(`filter${name}`)?.value ? document.getElementById(`filter${name}`)?.value : "";
+    updateFilters(filterValue);
+  }, [filters])
+
+  const [displayedFilters, setFilters] = useState(filters);
+  const [showClearInputButton, setShowClearInputButton] = useState(false)
+
+  let content = displayedFilters.map(filter => (
     <SearchFilter
       filter={filter}
       updateSelected={updateSelected}
       expandable={expandable}
+      filterSearchValue={document.getElementById(`filter${name}`)?.value}
       key={filter.aggKey}/>
   ));
 
@@ -169,11 +178,58 @@ const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged}) =
     content = <PagedList items={content} />
   }
 
+  const hasWordStartingWithOrSelected = (item, filterValue) => {
+    let escapedFilterValue = filterValue.replace("-", "\-");
+    escapedFilterValue = escapedFilterValue.replace(/[^\w\s\-]/g, "");
+    if (item.selected || item.title.match(new RegExp(`(?:^|.+\\s)${escapedFilterValue}.*`, "i")) || item.heTitle.match(new RegExp(`(?:^|.+\\s)${escapedFilterValue}.*`, "i"))) {
+      return true;
+    } else if (item.children.filter(x => hasWordStartingWithOrSelected(x, escapedFilterValue)).length > 0) {
+      return true;
+    }
+    else {
+      return false;
+    }
+  }
+
+  const wordSelected = (item) => {
+    if (item.selected) {
+      return -1;
+    } else {
+      return 1;
+    }
+  }
+
+  const updateFilters = text => {
+    if (text && text != "") {
+      if (!expandable) {
+        setFilters(filters.filter(x => hasWordStartingWithOrSelected(x, text)).sort(x => wordSelected(x)));
+      } else { // don't sort
+        setFilters(filters.filter(x => hasWordStartingWithOrSelected(x, text)));
+      }
+      setShowClearInputButton(true);
+    } else {
+      if (!expandable) {
+        setFilters(filters.sort(x => wordSelected(x)));
+      } else {
+        setFilters(filters);
+      }
+      setShowClearInputButton(false);
+    }
+  }
+  const clearInput = () => {
+    document.getElementById(`filter${name}`).value = "";
+    updateFilters("");
+  }
+  // need hebrew for placeholder/title
+  const clearInputButton = <button aria-label="Clear input" onClick={clearInput}><img src="/static/icons/heavy-x.svg" className="searchFilterIcon" aria-hidden="true" tabIndex="0"></img></button>;
+  const search = searchable ? <div className="searchBox"><input id={`filter${name}`} className="searchFiltersInput" placeholder={Sefaria._(`Search ${name}`)} title={`Type to Filter ${name} Shown`} onChange={e => updateFilters(e.target.value)}></input>{showClearInputButton ? clearInputButton : null}</div>  : null;
+
   return (
     <div className="searchFilterGroup">
       <h2>
         <InterfaceText context="SearchFilters">{name}</InterfaceText>
       </h2>
+      {search}
       {content}
     </div>
   );
@@ -258,6 +314,9 @@ class SearchFilter extends Component {
       this.toggleExpanded();
     }
   }
+  autoExpand(filter) {
+    return this.props.filterSearchValue !== undefined && this.props.filterSearchValue !== null && this.props.filterSearchValue !== "" && this.props.expandable && filter.getLeafNodes(this.props.filterSearchValue).length > 0;
+  }
   render() {
     const { filter, expandable } = this.props;
     const toggleMessage = "Press enter to toggle search filter for " + filter.title + ".";
@@ -289,14 +348,14 @@ class SearchFilter extends Component {
           </div>
           {this.props.expandable ? <i className="fa fa-angle-down" onClick={this.toggleExpanded} /> : null}
         </li>
-        {this.state.expanded ? 
+        {this.state.expanded || this.autoExpand(filter) ? 
         <li>
           <div className="searchFilterBooks">
-            {filter.getLeafNodes().map(subFilter => (
+            {filter.getLeafNodes(this.props.filterSearchValue).map(subFilter => (
               <SearchFilter
                 filter={subFilter}
                 updateSelected={this.props.updateSelected}
-                key={filter.aggKey} />
+                key={subFilter.aggKey} />
             ))}
           </div>
         </li> : null}
@@ -322,7 +381,9 @@ class SheetSearchFilters extends Component {
           name="Topics"
           filters={tagFilters}
           updateSelected={this.props.updateAppliedFilter}
-          paged={true} />
+          paged={true} 
+          searchable={true}
+          />
 
         <SearchFilterGroup
           name="Collections"
@@ -345,9 +406,9 @@ const PagedList = ({items, initial=8, pageSize=20}) => {
     <>
       {items.slice(0, cutoff)}
       {items.length > cutoff ?
-      <a href="javascript:void(0);" className="showMore sans-serif" onClick={() => {setCutoff(cutoff + pageSize);}}>
+      <button className="showMore sans-serif" onClick={() => {setCutoff(cutoff + pageSize);}}>
         <InterfaceText>See More</InterfaceText>
-      </a>
+      </button>
       : null}
     </>
   );

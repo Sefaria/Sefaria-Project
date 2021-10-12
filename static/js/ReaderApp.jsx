@@ -921,7 +921,7 @@ class ReaderApp extends Component {
       e.preventDefault();
     }
   }
-  openURL(href) {
+  openURL(href, replace=true) {
     // Attempts to open `href` in app, return true if successful.
     href = href.startsWith("/") ? "https://www.sefaria.org" + href : href;
     let url;
@@ -936,7 +936,7 @@ class ReaderApp extends Component {
     }
     const path = url.pathname;
     const params = url.searchParams;
-
+    const openPanel = replace ? this.openPanel : this.openPanelAtEnd;
     if (path === "/") {
       this.showLibrary();
 
@@ -972,7 +972,7 @@ class ReaderApp extends Component {
 
     } else if (path.match(/^\/sheets\/\d+/)) {
       if (params.get("editor")) { return false; }
-      this.openPanel("Sheet " + path.slice(8));
+      openPanel("Sheet " + path.slice(8));
 
     } else if (path === "/topics") {
       this.showTopics();
@@ -994,7 +994,7 @@ class ReaderApp extends Component {
 
     } else if (Sefaria.isRef(path.slice(1))) {
       const currVersions = {en: params.get("ven"), he: params.get("vhe")};
-      this.openPanel(Sefaria.humanRef(path.slice(1)), currVersions);
+      openPanel(Sefaria.humanRef(path.slice(1)), currVersions);
 
     } else {
       return false

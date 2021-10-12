@@ -3029,14 +3029,14 @@ function buildSource($target, source, appendOrInsert) {
 			mediaClass = "media";
 			wrapperClass += (!sjs.is_owner && sjs.current.hideImages ? " hidden" : "");
 		}
-		else if (source.media.toLowerCase().indexOf('youtube') > 0) {
+		else if (source.media.match(/https?:\/\/www\.youtube\.com\/embed\/.+?rel=0(&amp;|&)showinfo=0$/i) != null) {
 			mediaLink = '<iframe width="560" height="315" src='+source.media+' frameborder="0" allowfullscreen></iframe>'
 		}
-		else if (source.media.toLowerCase().indexOf('soundcloud') > 0) {
+		else if (source.media.toLowerCase().match(/https?:\/\/w\.soundcloud\.com\/player\/\?url=.*/i) != null) {
 			mediaLink = '<iframe width="100%" height="166" scrolling="no" frameborder="no" src="'+source.media+'"></iframe>'
 			mediaClass = "media fullWidth";
 		}
-		else if (source.media.toLowerCase().indexOf('vimeo') > 0) {
+		else if (source.media.match(/https?:\/\/player\.vimeo\.com\/.*/i) != null) {
 			mediaLink = '<iframe width="560" height="315" src='+source.media+' frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>'
 		}
 		else if (source.media.match(/\.(mp3)$/i) != null) {

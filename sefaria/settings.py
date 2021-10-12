@@ -296,19 +296,20 @@ CACHES = {
     }
 }
 
-
-"""GLOBAL_INTERRUPTING_MESSAGE = {
-    "name":       "rosh-hashannah-appeal-2021-modal",
-    "style":      "modal", # "modal" or "banner"
+'''
+GLOBAL_INTERRUPTING_MESSAGE = {
+    "name":       "tishrei-thanks-2021-banner",
+    "style":      "banner", # "modal" or "banner"
     "repetition": 1,
-    "is_fundraising": True,
+    "is_fundraising": False,
     "condition":  {
         "returning_only": False,
         "english_only": False,
         "desktop_only": False,
         "debug": False,
     }
-}"""
+}
+'''
 GLOBAL_INTERRUPTING_MESSAGE = None
 
 # Grab environment specific settings from a file which
