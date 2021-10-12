@@ -229,30 +229,6 @@ io.on("connection", (socket) => {
     console.log(users);
   });
 
-  socket.on('message', function(message, roomId) {
-    // console.log(socket, roomId, message)
-    socket.to(roomId).emit('message', message);
-  }); //general function for sending messages from one client to another in Chavruta
-
-  function createNewChavruta(uid, namespace="dafRoulette", uroom=false) {
-    const room = uroom ? uroom : Math.random().toString(36).substring(7);
-    socket.join(room);
-    console.log(`${socket.id} created room ${room}`);
-    socket.emit('created', room);
-    chavrutot[room] = {peopleInChavruta: [uid], roomStarted: Date.now(), namespace: namespace}
-  }
-
-  socket.on('does room exist', function(roomId, uid) {
-    if (chavrutot[roomId]) {
-      if (chavrutot[roomId].peopleInChavruta.length < 2 && chavrutot[roomId].peopleInChavruta[0] !== uid) {
-        socket.emit('byeReceived');
-      } 
-    } else {
-      socket.emit('byeReceived');
-    }
-
-  });
-
 
   //default private chevruta path
   socket.on('start chevruta', function(uid, room) {
@@ -296,7 +272,7 @@ io.on("connection", (socket) => {
     socket.emit('byeReceived');
   });
 
-  socket.on('send user info', function(userName, uid, room) { 
+  socket.on('send user info', function(userName, uid, room) {
     socket.to(room).emit('got user name', userName, uid);
     socket.broadcast.emit("change in people", Object.values(peopleInBeitMidrash));
     socket.emit("change in people", Object.values(peopleInBeitMidrash));

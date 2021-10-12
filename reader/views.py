@@ -587,6 +587,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         "initialNavigationCategories":    None,
         "initialNavigationTopicCategory": None,
         "initialNavigationTopicTitle":    None,
+        "customBeitMidrashId":            request.GET.get("beitMidrash", None)
     }
     if sheet == None:
         title = primary_ref.he_normal() if request.interfaceLang == "hebrew" else primary_ref.normal()
@@ -4353,8 +4354,13 @@ def chevruta_redirect(request):
 @login_required
 def beit_midrash(request, slug):
     chavrutaId = request.GET.get("cid", None)
-    starting_ref = urllib.parse.quote(request.GET.get("ref", ""))
-    props = {"customBeitMidrashId": slug,}
-    title = _("Sefaria Beit Midrash")
-    desc  = _("The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more.")
-    return menu_page(request, props, "navigation", title, desc)
+    starting_ref = request.GET.get("ref", None)
+
+    if starting_ref:
+        return redirect(f"/{urllib.parse.quote(starting_ref)}?beitMidrash={slug}")
+
+    else:
+        props = {"customBeitMidrashId": slug,}
+        title = _("Sefaria Beit Midrash")
+        desc  = _("The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more.")
+        return menu_page(request, props, "navigation", title, desc)

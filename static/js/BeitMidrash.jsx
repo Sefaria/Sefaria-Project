@@ -266,7 +266,7 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
             /> :
             <ChavrutaVideo
                 socket={socketObj}
-                chavrutaId="test_room_id"
+                chavrutaId={currentChatRoom}
                 pcConfig={pcConfig}
                 userB={userB}
                 setCurrentScreen={setCurrentScreen}
@@ -683,6 +683,11 @@ const ChavrutaVideo = ({socket, chavrutaId, pcConfig, setCurrentScreen, userB}) 
          pc = new RTCPeerConnection(null);
         }
 
+        socket.on("room_full"), () => {
+            pc.close
+            alert("Room is full")
+            setCurrentScreen("home")
+        }
 
         socket.on("all_users", (allUsers) => {
           if (allUsers.length > 0) {
