@@ -556,6 +556,8 @@ input.noselect {
   padding: 0;
   flex: 1;
   height: 100%;
+  margin-bottom: 1px;
+  font-size: var(--serif-body-font-size);
 }
 .header .searchBox input::placeholder {
   font-style: normal;
@@ -3326,9 +3328,21 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   color: #000;
   border-bottom: 4px solid var(--medium-grey);
 }
+
 .searchContent .searchResultList {
   padding-top: 25px;
+  max-width: 665px;
+  padding-top: 25px;
+  max-width: 665px;
 }
+
+@media (min-width: 701px) {
+  /* prevent width of left-pane from changing due to content size when filters applied */
+  .searchContent .searchResultList {
+    width: 60vw;
+  }
+}
+
 .searchContent .searchFilters h2 {
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
@@ -3527,9 +3541,44 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   cursor: pointer;
   font-size: 14px;
   margin-top: 4px;
+  background: none!important;
+  border: none;
+  padding: 0!important;
+  color: inherit;
+
 }
 .searchContent .searchFilters .showMore:hover {
   text-decoration: underline;
+}
+.searchFilters .searchBox {
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  padding-left: 10px;
+  padding-right: 10px;
+  text-align: inherit;
+  background: #EDEDEC;
+  border-radius: 250px;
+  border: none;
+  width: calc(100% - 10px);
+  height: 30px;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: var(--sans-serif-body-font-size);
+  margin-bottom: 10px;
+}
+.searchFilters .searchFilterIcon {
+  float: right;
+  margin: 0px -5px 1px 0px;
+}
+.searchBox input.searchFiltersInput {
+  width: calc(100% - 10px);
+  background-color: transparent;
+  border: 0;
+  font-size: var(--sans-serif-body-font-size);
+}
+.searchBox button {
+  border:0;
 }
 .dropdown-option-list {
   margin-top: 10px;
@@ -3615,7 +3664,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   background-color: var(--lighter-grey);
   padding: 20px 15px;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   color:  var(--dark-grey);
 }
 .mobileSearchFiltersHeader .readerNavMenuCloseButton {
@@ -3624,6 +3673,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   height: 20px;
   display: block;
   line-height: 20px;
+  position: absolute;
+  margin-right: 100%;
+  margin-left: 45px;
 }
 .mobileSearchFilters .searchFilters {
   flex-grow:  1;
@@ -7207,6 +7259,9 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 }
 .editorSidebarToggle::after {
   content: url("/static/img/3vdots.svg");
+  position: absolute;
+  top: 7px;
+  left: 13px;
 }
 .collectionListingImage {
   height: 100%;
@@ -7664,7 +7719,6 @@ body.interface-english .publishBox .react-tags__suggestions ul {
     padding: 4px 7px 2px;
     position: initial;
     vertical-align: 0px;
-
 }
 .header .searchBox .keyboardInputInitiator {
     display: none;
@@ -8530,10 +8584,10 @@ span.purim-emoji img{
   background-color: white;
   padding: 0;
   border-radius: 6px;
-  border: 1px solid #CCCCCC;
   z-index: 1;
-  top: -30px;
+  top: -38px;
   pointer-events: auto;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
 }
 
 .sheetContent .element-link .popup input {
@@ -8649,22 +8703,26 @@ span.purim-emoji img{
 }
 .editorAddInterface:before {
   content: "";
-  margin-inline-start:-34px;
+  margin-inline-start:-46px;
   position: absolute;
-  width: 25px;
-  height: 25px;
+  width: 30px;
+  height: 30px;
   transform: rotate(45deg);
-  background-color; white;
-  background-image: url("/static/icons/x-plus.svg");
+  background-color: white;
+  background-image: url("/static/icons/heavy-x.svg");
   border: 1px solid var(--light-grey);
-  background-size: contain;
+  background-size: 14px;
   border-radius: 50%;
   pointer-events:auto;
   cursor: pointer;
+  background-repeat: no-repeat;
+  background-position: center;
+  box-sizing: border-box;
 }
 
 .editorAddInterface.active {
   background-color: white;
+  line-height: initial;
 }
 .editorAddInterface.active:before {
   transform: rotate(0);
@@ -8685,6 +8743,16 @@ span.purim-emoji img{
   padding-top: 30px;
   padding-bottom: 30px;
   pointer-events: auto;
+  margin-top: 10px;
+  background-color: white;
+}
+
+.addInterfaceInput .button {
+  font-size: 14px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  height: 30px;
+  position: absolute;
 }
 
 .addInterfaceInput .textPreviewSegment {
@@ -8696,6 +8764,12 @@ span.purim-emoji img{
   overflow-y: scroll;
   padding-inline-end: 30px;
   position: relative;
+}
+
+.addInterfaceInput .suggestionBoxContainer,
+.addInterfaceInput .textPreviewContainer {
+  position: absolute;
+  z-index: 1;
 }
 
 .addInterfaceInput .suggestionBox,
@@ -8747,16 +8821,26 @@ span.purim-emoji img{
 
 .addInterfaceInput input {
   min-width: 350px;
+  max-width: 450px;
   border-radius: 250px;
   border: none;
   box-shadow: none;
   box-sizing: border-box;
   font-size: 22px;
   padding-inline-start: 30px;
-  background: url("/static/icons/iconmonstr-magnifier-2-240.svg") no-repeat scroll 7px 7px;
+  padding-top: revert;
+  margin-inline-end: 20px;
+  background: url("/static/icons/iconmonstr-magnifier-2-240.svg") no-repeat scroll left 7px top 7px;
   background-color: var(--lighter-grey);
-
 }
+.addInterfaceInput.mediaInput input {
+  background: url("/static/icons/link_grey.svg") no-repeat scroll left 7px top 7px;
+  background-color: var(--lighter-grey);
+}
+.readerApp.interface-hebrew .addInterfaceInput input {
+  background-position: right 7px top 7px;
+}
+
 .addInterfaceInput input::placeholder {
   font-size: 22px;
   font-style: normal;
@@ -8771,9 +8855,9 @@ span.purim-emoji img{
 .editorAddInterface.active .editorAddInterfaceButton {
   width: 30px;
   height: 30px;
-  padding: 5px;
+  padding: 10px;
   display: inline-block;
-  background-size: contain;
+  background-size: auto 12px;
   background-repeat: no-repeat;
   background-position: center;
   border-radius: 6px;
@@ -9013,8 +9097,8 @@ cursor: pointer;
   pointer-events: none;
   user-select: none;
 }
-.sheetItem .SheetSource:after,
-.sheetItem .SheetOutsideBiText:after {
+.readerPanel.bilingual .sheetItem .SheetSource:after,
+.readerPanel.bilingual .sheetItem .SheetOutsideBiText:after {
   content: " ";
   display: block;
   clear: both;
@@ -9278,7 +9362,7 @@ cursor: pointer;
 }
 .interface-hebrew textarea,
 .interface-hebrew textarea::placeholder,
-.interface-hebrew input,
+.interface-hebrew input
 {
   font-family: var(--hebrew-sans-serif-font-family);
 }

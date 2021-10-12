@@ -113,7 +113,9 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
                 if lang in supported_translation_langs:
                     translation_language_preference_suggestion = lang
                     break             
-
+        if translation_language_preference_suggestion == "en":
+            # dont ever suggest English to our users
+            translation_language_preference_suggestion = None
         request.LANGUAGE_CODE = interface[0:2]
         request.interfaceLang = interface
         request.contentLang   = content

@@ -139,6 +139,36 @@ class AbstractIndex(object):
     def publication_time_period(self):
         return None
 
+    def contents_with_content_counts(self):
+        """
+        Returns the `contents` dictionary with each node annotated with section lengths info
+        from version_state.
+        """
+        contents = self.contents(v2=True)
+        vstate   = self.versionState()
+
+        def simplify_version_state(vstate_node):
+            return aggregate_available_texts(vstate_node["_all"]["availableTexts"])
+
+        def aggregate_available_texts(available):
+            """Returns a jagged arrary of ints that counts the number of segments in each section,
+            (by throwing out the number of versions of each segment)"""
+            if len(available) == 0 or type(available[0]) is int:
+                return len(available)
+            else:
+                return [aggregate_available_texts(x) for x in available]
+
+        def annotate_schema(schema, vstate):
+            if "nodes" in schema:
+                for node in schema["nodes"]:
+                    if "key" in node:
+                        annotate_schema(node, vstate[node["key"]])
+            else:
+                schema["content_counts"] = simplify_version_state(vstate)
+
+        annotate_schema(contents["schema"], vstate.content)
+        return contents
+
 
 class Index(abst.AbstractMongoRecord, AbstractIndex):
     """
@@ -3135,10 +3165,12 @@ class Ref(object, metaclass=RefCacheType):
         else:
             current_ending_ref = self
 
-        # calculate the number of "paddings" required to get down to segment level
-        max_depth = self.index_node.depth - len(self.sections)
+        max_depth = self.index_node.depth - len(self.sections)  # calculate the number of "paddings" required to get down to segment level
 
-        d['sections'] += [1] * max_depth
+        if len(d['sections']) == 0:
+            d['sections'] = self.first_available_section_ref().all_subrefs()[0].sections
+        else:
+            d['sections'] += [1] * max_depth
 
         state_ja = current_ending_ref.get_state_ja()
 

@@ -30,14 +30,17 @@ class FilterNode {
   hasChildren() {
       return (this.children.length > 0);
   }
-  getLeafNodes() {
+  getLeafNodes(searchFilterText) {
       //Return ordered array of leaf (book) level filters
       if (!this.hasChildren()) {
           return [this];
       }
       var results = [];
       for (var i = 0; i < this.children.length; i++) {
-          results = results.concat(this.children[i].getLeafNodes());
+          results = results.concat(this.children[i].getLeafNodes(searchFilterText));
+      }
+      if (searchFilterText && searchFilterText != "") {
+          results = results.filter(x => x.title.match(new RegExp(`(?:^|.+\\s)${searchFilterText}.*`, "i")) || x.heTitle.match(new RegExp(`(?:^|.+\\s)${searchFilterText}.*`, "i")));
       }
       return results;
   }

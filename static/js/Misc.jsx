@@ -98,7 +98,7 @@ InterfaceText.propTypes = {
   className: PropTypes.string
 };
 
-const ContentText = ({text, html, overrideLanguage, defaultToInterfaceOnBilingual=false}) => {
+const ContentText = ({text, html, overrideLanguage, defaultToInterfaceOnBilingual=false, bilingualOrder = null}) => {
   /**
    * Renders content language throughout the site (content that comes from the database and is not interface language)
    * Gets the active content language from Context and renders only the appropriate child(ren) for given language
@@ -106,14 +106,26 @@ const ContentText = ({text, html, overrideLanguage, defaultToInterfaceOnBilingua
    * html {{html: object}} a dictionary {en: "some html", he: "some translated html"} to use for each language in the case where it needs to be dangerously set html
    * overrideLanguage a string with the language name (full not 2 letter) to force to render to overriding what the content language context says. Can be useful if calling object determines one langugae is missing in a dynamic way
    * defaultToInterfaceOnBilingual use if you want components not to render all languages in bilingual mode, and default them to what the interface language is
+   * bilingualOrder is an array of short language notations (e.g. ["he", "en"]) meant to tell the component what
+   * order to render the bilingual langauage elements in (as opposed to the unguaranteed order by default).
    */
   const [contentVariable, isDangerouslySetInnerHTML]  = html ? [html, true] : [text, false];
   const contentLanguage = useContext(ContentLanguageContext);
   const languageToFilter = (defaultToInterfaceOnBilingual && contentLanguage.language === "bilingual") ? Sefaria.interfaceLang : (overrideLanguage ? overrideLanguage : contentLanguage.language);
   const langShort = languageToFilter.slice(0,2);
-  let renderedItems = Object.entries(contentVariable).filter(([lang, _])=>{
-    return (languageToFilter === "bilingual") ? true : ((lang === langShort) ? true : false);
-  });
+  let renderedItems = Object.entries(contentVariable);
+  if(languageToFilter == "bilingual"){
+    if(bilingualOrder !== null){
+      //nifty function that sorts one array according to the order of a second array.
+      renderedItems.sort(function(a, b){
+        return bilingualOrder.indexOf(a[0]) - bilingualOrder.indexOf(b[0]);
+      });
+    }
+  }else{
+    renderedItems = renderedItems.filter(([lang, _])=>{
+      return lang === langShort;
+    });
+  }
   return renderedItems.map( x =>
       isDangerouslySetInnerHTML ?
           <span className={x[0]} lang={x[0]} key={x[0]} dangerouslySetInnerHTML={{__html: x[1]}}/>
@@ -2393,13 +2405,12 @@ const Autocompleter = ({selectedRefCallback}) => {
     return theWidth;
   }
 
-  useEffect( /* normalize on load */
+  useEffect(
     () => {
          const element = document.querySelector('.textPreviewSegment.highlight');
-         if (element) {element.scrollIntoView()}
+         if (element) {element.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' })}
     }, [previewText]
   )
-
 
 
 
@@ -2500,19 +2511,23 @@ const Autocompleter = ({selectedRefCallback}) => {
 
 
   const generatePreviewText = (ref) => {
-        Sefaria.getText(ref, {context:1}).then(text => {
+        Sefaria.getText(ref, {context:1, stripItags: 1}).then(text => {
            const segments = Sefaria.makeSegments(text, true);
            console.log(segments)
-          const previewHTML =  segments.map((segment, i) => {
+           const previewHTML =  segments.map((segment, i) => {
             {
+              const heOnly = !segment.en;
+              const enOnly = !segment.he;
+              const overrideLanguage = (enOnly || heOnly) ? (heOnly ? "hebrew" : "english") : null;
+
               return(
                   <div
-                      className={classNames({'textPreviewSegment': 1, highlight: segment.highlight})}
+                      className={classNames({'textPreviewSegment': 1, highlight: segment.highlight, heOnly: heOnly, enOnly: enOnly})}
                       key={segment.ref}>
                     <sup><ContentText
                         text={{"en": segment.number, "he": Sefaria.hebrew.encodeHebrewNumeral(segment.number)}}
                         defaultToInterfaceOnBilingual={true}
-                    /></sup> <ContentText html={{"he": segment.he+ " ", "en": segment.en+ " " }} defaultToInterfaceOnBilingual={true}/>
+                    /></sup> <ContentText html={{"he": segment.he+ " ", "en": segment.en+ " " }} defaultToInterfaceOnBilingual={!overrideLanguage} overrideLanguage={overrideLanguage} bilingualOrder={["en", "he"]}/>
                   </div>
               )
             }
@@ -2542,12 +2557,14 @@ const Autocompleter = ({selectedRefCallback}) => {
           onChange={(e) => onChange(e.target.value)}
           value={inputValue}
           ref={inputEl}
+          size={inputValue.length}
       /><span className="helperCompletionText">{helperPromptText}</span>
-      {showAddButton ? <button onClick={(e) => {
+      {showAddButton ? <button className="button small" onClick={(e) => {
                     selectedRefCallback(inputValue)
                 }}>Add Source</button> : null}
 
       {currentSuggestions && currentSuggestions.length > 0 ?
+          <div className="suggestionBoxContainer">
           <select
               ref={suggestionEl}
               className="suggestionBox"
@@ -2557,13 +2574,15 @@ const Autocompleter = ({selectedRefCallback}) => {
           >
             {mapSuggestions(currentSuggestions)}
           </select>
-
+          </div>
           : null
       }
 
       {previewText ?
-          <div className="textPreview">
-            <div className="inner">{previewText}</div>
+          <div className="textPreviewContainer">
+            <div className="textPreview">
+              <div className="inner">{previewText}</div>
+            </div>
           </div>
 
           : null

@@ -16,16 +16,16 @@
 {% block content %}
 
 
-    {% if deleted_sheets or reviewed_sheets %}
+    {% if deleted or reviewed %}
         <div style="margin: 80px">
 
-            <div>Deleted {{ deleted_sheets }} sheets</div>
+            <div>Deleted {{ deleted }} sheets</div>
             <div>
-                {% for o in spam_sheet_ids %}
+                {% for o in ids %}
                     <span> {{ o }} </span>
                 {% endfor %}
             </div>
-            <div>Marked {{ reviewed_sheets }} as reviewed</div>
+            <div>Marked {{ reviewed }} as reviewed</div>
             <div>Deactivated {{ spammers_deactivated }} spam accounts</div>
 
         </div>
@@ -34,27 +34,58 @@
 
         <div style="margin: 80px">
             <h1>{{ title }}</h1>
+            <p style="color:red"><em>Marking an account or sheet as spam will result in a user's entire data being erased and their account set to inactive. It is not reversible, and this is the only warning. Please use carefully.</em></p>
             <form action='/admin/spam' method='post' id='spam_form'>{% csrf_token %}</form>
-            <table>
-                <thead>
-                <th>Sheet Name</th>
-                <th>Owner Name</th>
-                <th>Is Spam</th>
-                <th>Is Not Spam</th>
-                </thead>
-                <tbody>
-                {% for sheet in sheets %}
-                    <tr>
-                        <td><a href='/sheets/{{ sheet.id }}' target='_blank'>{{ sheet.title }}</a></td>
-                        <td>{{ sheet.owner|safe }}</td>
-                        <td><input type='checkbox' name='spam_sheets[]' value='{{ sheet.id }}' form='spam_form'/></td>
-                        <td><input type='checkbox' name='reviewed_sheets[]' value='{{ sheet.id }}' form='spam_form'/>
-                        </td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
-            <input type='submit' value='Mark Sheets' form='spam_form'/></html>
+            {% if type == "sheet" %}
+                <input type="hidden" name="type" value="sheet" form='spam_form'/>
+                <table>
+                    <thead>
+                    <th>Sheet Name</th>
+                    <th>Owner Name</th>
+                    <th>Is Spam</th>
+                    <th>Is Not Spam</th>
+                    </thead>
+                    <tbody>
+                    {% for sheet in sheets %}
+                        <tr>
+                            <td><a href='/sheets/{{ sheet.id }}' target='_blank'>{{ sheet.title }}</a></td>
+                            <td>{{ sheet.owner|safe }}</td>
+                            <td><input type='checkbox' name='spam_sheets[]' value='{{ sheet.id }}' form='spam_form'/></td>
+                            <td><input type='checkbox' name='reviewed_sheets[]' value='{{ sheet.id }}' form='spam_form'/>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+
+            {% elif type == "profile" %}
+                <input type="hidden" name="type" value="profile" form='spam_form'/>
+                <table>
+                    <thead>
+                    <th>Name</th>
+                    <th>About</th>
+                    <th>URL</th>
+                    <th>Is Spam</th>
+                    <th>Is Not Spam</th>
+                    </thead>
+                    <tbody>
+                    {% for profile in profiles %}
+                        <tr>
+                            <td><a href='/profile/{{ profile.slug }}' target='_blank'>{{ profile.slug }}</a></td>
+                            <td>{{ profile.bio }}</td>
+                            <td>{{ profile.website }}</td>
+                            <td><input type='checkbox' name='spam_profiles[]' value='{{ profile.id }}' form='spam_form'/></td>
+                            <td><input type='checkbox' name='reviewed_profiles[]' value='{{ profile.id }}' form='spam_form'/>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+
+
+            {% endif %}
+
+            <input type='submit' value='Submit' form='spam_form'/></html>
         </div>
 
     {% endif %}
