@@ -346,10 +346,12 @@ class ConnectionsPanel extends Component {
               }
               <ConnectionsPanelSection title={"Tools"}>
               
-                {this.props.masterPanelMode === "Sheet" ? <SheetToolsList /> : null}
+                {this.props.masterPanelMode === "Sheet" ? <SheetToolsList
+                toggleSignUpModal={this.props.toggleSignUpModal}
+                masterPanelSheetId={this.props.masterPanelSheetId} /> : null}
                 <ToolsList
                     setConnectionsMode={this.props.setConnectionsMode}
-                    toggleSignUpModal = {this.props.toggleSignUpModal}
+                    toggleSignUpModal={this.props.toggleSignUpModal}
                     openComparePanel={this.props.multiPanel? this.props.openComparePanel : null}
                     counts={toolsButtonsCounts} />
               </ConnectionsPanelSection>
@@ -771,15 +773,19 @@ const AboutSheetButton = ({setConnectionsMode, masterPanelSheetId}) => {
   </div>);
 }
 
-const SheetToolsList = () => {
+const SheetToolsList = ({toggleSignUpModal, masterPanelSheetId}) => {
 
   // const [isOwner, setIsOwner] = useState(false);
   // const [isPublished, setIsPublished] = useState(false);
+  const [copyText, setCopyText] = useState({en: "Copy", he: "העתקה"});
+  const [copiedSheetId, setCopiedSheetId] = useState(0);
+  const [hebrewCopyText, setHebrewCopyText] = useState("");
+  const sheet = Sefaria.sheets.loadSheetByID(masterPanelSheetId);
   const [showCollectionsModal, setShowCollectionsModal] = useState(false);
   // useEffect(() => {
   //   const sheet = Sefaria.sheets.loadSheetByID(masterPanelSheetId)
-    // setIsOwner(sheet.owner === Sefaria._uid);
-    // setIsPublished(sheet.status === "public" ? true : false);
+  //   setIsOwner(sheet.owner === Sefaria._uid);
+  //   setIsPublished(sheet.status === "public" ? true : false);
   // }, []);
 
   // const toggleCollectionsModal = () => {
@@ -790,8 +796,54 @@ const SheetToolsList = () => {
   //   }
   // }
 
+  const filterAndSaveCopiedSheetData = (data) => {
+    var newSheet = Sefaria.util.clone(data);
+    newSheet.status = "unlisted";
+    newSheet.title = newSheet.title + " (Copy)";
+
+    if (Sefaria._uid != newSheet.owner) {
+        newSheet.via = newSheet.id;
+        newSheet.viaOwner = newSheet.owner;
+        newSheet.owner = Sefaria._uid
+    }
+    delete newSheet.id;
+    delete newSheet.ownerName;
+    delete newSheet.views;
+    delete newSheet.dateCreated;
+    delete newSheet.dateModified;
+    delete newSheet.displayedCollection;
+    delete newSheet.collectionName;
+    delete newSheet.collectionImage;
+    delete newSheet.likes;
+    delete newSheet.promptedToPublish;
+    delete newSheet._id;
+
+    var postJSON = JSON.stringify(newSheet);
+    $.post("/api/sheets/", {"json": postJSON}, (data) => {
+        if (data.id)  {
+          setCopiedSheetId(data.id);
+          setCopyText({en: "Open Copied Sheet", he: "מעבר ל-דף המקורות"});
+        } else if ("error" in data) {
+          setCopyText({en: "Sorry, there was an error.", he: "סליחה, ארעה שגיאה"});
+          console.log(data.error);
+        }
+    })
+  }
+
+  const copySheet = () => {
+    if (!Sefaria._uid) {
+        toggleSignUpModal();
+    } else if (copyText.en === "Copy") {
+        setCopyText({en: "Copying...", he: "מעתיק..."});
+        filterAndSaveCopiedSheetData(sheet);
+    } else if (copyText.en === "Open Copied Sheet") {
+      window.location.href = `/sheets/${copiedSheetId}`
+      // TODO: open copied sheet
+    }
+  }
+
   return (<div>
-      <ToolsButton en="Copy" he="תרגומים" image="copy.png" onClick={() => null} />
+      <ToolsButton en={copyText.en} he={copyText.he} image="copy.png" onClick={() => copySheet()} />
       {/* <ToolsButton en="Add to Collection" he="תרגומים" image="add-to-collection.svg" onClick={() => toggleCollectionsModal()} /> */}
       <ToolsButton en="Print" he="תרגומים" image="print.svg" onClick={() => window.print()} />
       <ToolsButton en="Export to Google Docs" he="תרגומים" image="googledrive.svg" onClick={() => window.print()} />
