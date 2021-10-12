@@ -99,17 +99,17 @@ io.on("connection", (socket) => {
 
   socket.on("connect with other user", (uid, user) => {
     const socketId = Object.keys(peopleInBeitMidrash).find(key => peopleInBeitMidrash[key]["uid"] === uid);
-    socket.broadcast.to(socketId).emit('connection request', user);
+    socket.to(socketId).emit('connection request', user);
   });
 
   socket.on("connection rejected", (name) =>{
     const socketId = Object.keys(peopleInBeitMidrash).find(key => peopleInBeitMidrash[key]["name"] === name);
-    socket.broadcast.to(socketId).emit("send connection rejection")
+    socket.to(socketId).emit("send connection rejection")
   });
 
   socket.on("send room ID to server", (name, roomId)=> {
     const socketId = Object.keys(peopleInBeitMidrash).find(key => peopleInBeitMidrash[key]["name"] === name);
-    socket.broadcast.to(socketId).emit("send room ID to client", roomId)
+    socket.to(socketId).emit("send room ID to client", roomId)
   });
 
   socket.on("send chat message", (room, message) => {
@@ -166,12 +166,12 @@ io.on("connection", (socket) => {
 
 
 
-  socket.on("candidate", (candidate) => {
+  socket.on("candidate", (candidate, chavrutaId) => {
     console.log("candidate: " + socket.id);
-    socket.broadcast.emit("getCandidate", candidate);
+    socket.to(chavrutaId).emit("getCandidate", candidate);
   });
 
-  socket.on("join_room", (data) => {
+  socket.on("join_chavruta", (data) => {
     console.log(users[data.room])
     if (users[data.room]) {
       console.log(1)
@@ -201,14 +201,14 @@ io.on("connection", (socket) => {
   });
 
 
-  socket.on("offer", (sdp) => {
+  socket.on("offer", (sdp, chavrutaId) => {
     console.log("offer: " + socket.id);
-    socket.broadcast.emit("getOffer", sdp);
+    socket.to(chavrutaId).emit("getOffer", sdp);
   });
 
-  socket.on("answer", (sdp) => {
+  socket.on("answer", (sdp, chavrutaId) => {
     console.log("answer: " + socket.id);
-    socket.broadcast.emit("getAnswer", sdp);
+    socket.to(chavrutaId).emit("getAnswer", sdp);
   });
 
 
@@ -216,6 +216,7 @@ io.on("connection", (socket) => {
     console.log(`[${socketToRoom[socket.id]}]: ${socket.id} exit`);
     const roomID = socketToRoom[socket.id];
     let room = users[roomID];
+    console.log(room)
     if (room) {
       room = room.filter((user) => user.id !== socket.id);
       users[roomID] = room;
@@ -224,7 +225,7 @@ io.on("connection", (socket) => {
         return;
       }
     }
-    socket.broadcast.to(room).emit("user_exit", { id: socket.id });
+    socket.to(roomID).emit("user_exit");
     console.log(users);
   });
 

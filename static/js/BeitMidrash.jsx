@@ -14,7 +14,7 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
     const chatDataStoreRef = useRef(chatDataStore);
     const [profile, setProfile] = useState({});
     const [currentChatRoom, setCurrentChatRoom] = useState("");
-    const [currentScreen, setCurrentScreen] = useState("chavrutaVideo");
+    const [currentScreen, setCurrentScreen] = useState("home");
     const [outgoingCall, setOutgoingCall] = useState(false);
     const [userB, setUserB] = useState({});
     const [socketConnected, setSocketConnected] = useState(false);
@@ -85,7 +85,7 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
         })
         //user A gets acceptance alert
         socketObj.on("send room ID to client", (room)=> {
-            window.location = `/chavruta?rid=${room}`;
+            setCurrentScreen("chavrutaVideo")
         });
 
         const onDisconnect = () => {
@@ -266,8 +266,10 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
             /> :
             <ChavrutaVideo
                 socket={socketObj}
-                startingRoom="test_room_id"
+                chavrutaId="test_room_id"
                 pcConfig={pcConfig}
+                userB={userB}
+                setCurrentScreen={setCurrentScreen}
             />
 
             }
@@ -354,7 +356,7 @@ const ChavrutaCall = ({outgoingCall, userB, setCurrentScreen, socket}) => {
     const handleCallAccepted = (name) => {
         const room = Math.random().toString(36).substring(7);
         socket.emit("send room ID to server", name, room);
-        window.location = `/chavruta?rid=${room}`;
+        setCurrentScreen("chavrutaVideo")
     }
 
     const handleCallDeclined = (name) => {
@@ -367,12 +369,15 @@ const ChavrutaCall = ({outgoingCall, userB, setCurrentScreen, socket}) => {
         setCurrentScreen("home");
     }
 
-    const callTimedOut = () => {
-        setCurrentScreen("home")
-    }
 
     useEffect(()=>{
-        setTimeout(callTimedOut, 28000)
+        const callTimeOut = setTimeout(() => {
+        setCurrentScreen("home")
+    }, 28000)
+
+        return () => {
+            clearTimeout(callTimeOut);
+        }
     }, [])
 
     return (
@@ -583,12 +588,11 @@ const Message = ({user, message}) => {
     )
 }
 
-const ChavrutaVideo = ({socket, startingRoom, pcConfig}) => {
+const ChavrutaVideo = ({socket, chavrutaId, pcConfig, setCurrentScreen, userB}) => {
     const localVideo = useRef();
     const remoteVideo = useRef();
     const [localStream, setLocalStream] = useState()
     const [audioEnabled, setAudioEnabled] = useState(true)
-    const [partnerName, setPartnerName] = useState("ploni alamoni")
     let pc;
 
     const toggleMute = () => {
@@ -603,6 +607,11 @@ const ChavrutaVideo = ({socket, startingRoom, pcConfig}) => {
       offerToReceiveVideo: true
     };
 
+    const endChavruta = () => {
+        console.log('end call')
+        setCurrentScreen("home")
+    }
+
     const setVideoTracks = async () => {
         try {
           const stream = await navigator.mediaDevices.getUserMedia({
@@ -616,7 +625,7 @@ const ChavrutaVideo = ({socket, startingRoom, pcConfig}) => {
           });
           pc.onicecandidate = (e) => {
             if (e.candidate) {
-              socket.emit("candidate", e.candidate);
+              socket.emit("candidate", e.candidate, chavrutaId);
             }
           };
           pc.oniceconnectionstatechange = (e) => {
@@ -624,11 +633,9 @@ const ChavrutaVideo = ({socket, startingRoom, pcConfig}) => {
           };
           pc.ontrack = (ev) => {
               remoteVideo.current.srcObject = ev.streams[0];
-              remoteVideo.current.classList.remove("hiddenVideo")
-              localVideo.current.classList.add("pip")
           };
-          socket.emit("join_room", {
-            room: startingRoom,
+          socket.emit("join_chavruta", {
+            room: chavrutaId,
           });
         } catch (e) {
           console.error(e);
@@ -644,7 +651,7 @@ const ChavrutaVideo = ({socket, startingRoom, pcConfig}) => {
             offerToReceiveVideo: true,
           });
           await pc.setLocalDescription(new RTCSessionDescription(sdp));
-          socket.emit("offer", sdp);
+          socket.emit("offer", sdp, chavrutaId);
         } catch (e) {
           console.error(e);
         }
@@ -660,7 +667,7 @@ const ChavrutaVideo = ({socket, startingRoom, pcConfig}) => {
           });
           console.log("create answer");
           await pc.setLocalDescription(new RTCSessionDescription(mySdp));
-          socket.emit("answer", mySdp);
+          socket.emit("answer", mySdp, chavrutaId);
         } catch (e) {
           console.error(e);
         }
@@ -701,8 +708,11 @@ const ChavrutaVideo = ({socket, startingRoom, pcConfig}) => {
           }
         );
 
-        socket.on("user_exit", (data) => {
-            console.log(data)
+        socket.on("user_exit", () => {
+            console.log()
+            pc.close()
+            console.log('user-exit')
+            setCurrentScreen("home")
         }
         )
 
@@ -724,9 +734,9 @@ const ChavrutaVideo = ({socket, startingRoom, pcConfig}) => {
     return (
         <div>
             <div id="videos" className={audioEnabled ? "" : "muted"}>
-                <video id="localVideo" ref={localVideo} className="flippedVideo" autoPlay playsInline disablePictureInPicture
+                <video id="localVideo" ref={localVideo} className="flippedVideo pip" autoPlay playsInline disablePictureInPicture
                        muted></video>
-                <video id="remoteVideo" ref={remoteVideo} className="hiddenVideo" autoPlay playsInline disablePictureInPicture></video>
+                <video id="remoteVideo" ref={remoteVideo} poster={userB.pic} autoPlay playsInline disablePictureInPicture></video>
 
                 <div id="buttonHolder">
                     <span id="micIcon">
@@ -734,14 +744,14 @@ const ChavrutaVideo = ({socket, startingRoom, pcConfig}) => {
                         <span id="heMute" className="muteButton int-he" tabIndex={0} title={!audioEnabled ? "הפעל את המיקרופון" : "כבה את המיקרופון" } onClick={() => toggleMute()}></span>
                     </span>
                     <span id="endCallIcon">
-                        <span id="end-call" className="endCallButton int-en" tabIndex={0} title="End Call" onClick={(e) => endCall(e)} role="link"></span>
+                        <span id="end-call" className="endCallButton int-en" tabIndex={0} title="End Call" onClick={(e) => endChavruta(e)} role="link"></span>
                     </span>
                 </div>
 
             </div>
 
 
-            <div id="chevrutaNameHolder">{partnerName}</div>
+            <div id="chevrutaNameHolder">{userB.name}</div>
             <div id="currently-reading"></div>
 
             <div id="waiting">

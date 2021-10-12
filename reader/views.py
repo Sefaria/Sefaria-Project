@@ -4352,6 +4352,8 @@ def chevruta_redirect(request):
 
 @login_required
 def beit_midrash(request, slug):
+    chavrutaId = request.GET.get("cid", None)
+    starting_ref = urllib.parse.quote(request.GET.get("ref", ""))
     props = {"customBeitMidrashId": slug,}
     title = _("Sefaria Beit Midrash")
     desc  = _("The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more.")
