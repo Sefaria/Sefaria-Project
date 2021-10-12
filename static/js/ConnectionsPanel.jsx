@@ -329,7 +329,15 @@ class ConnectionsPanel extends Component {
               }
               {showResourceButtons ?
                   <ConnectionsPanelSection title={"Resources"}>
-                    {(this.props.masterPanelMode == "Sheet" && this.props.title !== "Sheet") ? <ToolsButton en="About this Source" he="אודות מקור זה" image="about-text.svg" onClick={() => this.props.setConnectionsMode("About")} /> : null}
+                    {
+                        //ironically we need the masterpanel mode to be sheet to indicate a sheet is loaded, but the
+                        // title prop to be something other than "Sheet" to indicate that a real source is being
+                        // looked at
+                        (this.props.masterPanelMode == "Sheet" && this.props.title !== "Sheet") ?
+                            <ToolsButton en="About this Source" he="אודות מקור זה" image="about-text.svg" onClick={() => this.props.setConnectionsMode("About")} />
+                            :
+                            null
+                    }
                     <ResourcesList
                         setConnectionsMode={this.props.setConnectionsMode}
                         counts={resourcesButtonCounts}
