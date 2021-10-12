@@ -38,12 +38,12 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
                 <InterfaceText>{sheet.ownerName}</InterfaceText>
             </a>
         </SheetAuthorStatement>
-        {sheet.summary ? <div className="description" dangerouslySetInnerHTML={{ __html: sheet.summary }}></div> : null}
         <div className="aboutSheetMetadata">
-            <div>Created: {Sefaria.util.localeDate(sheet.dateCreated)}</div>
+            <div>{Sefaria.util.localeDate(sheet.dateCreated)}</div>
             <div>{sheet.views} views, {sheetSaves.length} Saves</div>
             {sheet.status !== 'public' ? (<div><span className="unlisted"><img src="/static/img/eye-slash.svg"/><span>{Sefaria._("Not Published")}</span></span></div>) : undefined}
         </div>
+        {sheet.summary ? <div className="description" dangerouslySetInnerHTML={{ __html: sheet.summary }}></div> : null}
         {sheet.collections.length > 0 ?
             <div className="aboutLinks">
                 <h3 className="aboutSheetHeader"><InterfaceText>Collections</InterfaceText></h3>
