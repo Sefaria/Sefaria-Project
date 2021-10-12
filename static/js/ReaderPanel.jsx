@@ -50,6 +50,9 @@ class ReaderPanel extends Component {
     state.width = this.props.multiPanel ? 1000 : 500; // Assume we're in a small panel not using multipanel 
 
     this.state = state;
+    this.sheetRef = React.createRef();
+    this.readerContentRef = React.createRef();
+
     return;
   }
   componentDidMount() {
@@ -551,10 +554,41 @@ class ReaderPanel extends Component {
     let bookRef = this.state.bookRef ? this.state.bookRef : this.currentBook();
     this.props.backFromExtendedNotes(bookRef, this.state.currVersions);
   }
+  whereIsElementInViewport(element) {
+    const elementbbox = element.getBoundingClientRect();
+    const vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0)
+    if (elementbbox.top >= 200 && elementbbox.bottom < vh) {
+        return "in viewport"
+    }
+    if (elementbbox.bottom >= vh/2 && element) {
+        return "past half"
+    }
+  };
+  getHighlightedByScrollPos() {
+    let segmentToHighlight = null
+
+    const segments = this.readerContentRef.current.querySelectorAll(".sheetItem");
+
+    for (let segment of segments) {
+        const elementLoc = this.whereIsElementInViewport(segment);
+        if (elementLoc === "in viewport" || elementLoc === "past half") {
+            segmentToHighlight = segment;
+            break;
+        }
+    }
+
+    return segmentToHighlight
+  };
+  openSidePanel() {
+    const highlighted = this.getHighlightedByScrollPos();
+    highlighted.click();
+  }
   render() {
     if (this.state.error) {
       return (
-        <div className="readerContent">
+        <div
+        ref={this.readerContentRef}
+        className="readerContent">
           <div className="readerError">
             <span className="int-en">Something went wrong! Please use the back button or the menus above to get back on track.</span>
             <span className="int-he">ארעה תקלה במערכת. אנא חזרו לתפריט הראשי או אחורנית על ידי שימוש בכפתורי התפריט או החזור.</span>
@@ -616,6 +650,8 @@ class ReaderPanel extends Component {
     if (this.state.mode === "Sheet" || this.state.mode === "SheetAndConnections" ) {
       items.push(
         <Sheet
+          nodeRef={this.sheetRef}
+          adjustHighlightedAndVisible={this.adjustSheetHighlightedAndVisible}
           panelPosition ={this.props.panelPosition}
           id={this.state.sheetID}
           key={"sheet-"+this.state.sheetID}
@@ -993,7 +1029,7 @@ class ReaderPanel extends Component {
     );
     return (
       <ContentLanguageContext.Provider value={contextContentLang}>
-        <div className={classes} onKeyDown={this.handleKeyPress} role="region" id={"panel-"+this.props.panelPosition}>
+        <div ref={this.readerContentRef} className={classes} onKeyDown={this.handleKeyPress} role="region" id={"panel-"+this.props.panelPosition}>
           {hideReaderControls ? null :
           <ReaderControls
             showBaseText={this.showBaseText}
@@ -1018,6 +1054,7 @@ class ReaderPanel extends Component {
             openDisplaySettings={this.openDisplaySettings}
             currentLayout={this.currentLayout}
             onError={this.onError}
+            openSidePanel={this.openSidePanel}
             connectionsMode={this.state.filter.length && this.state.connectionsMode === "Connections" ? "Connection Text" : this.state.connectionsMode}
             connectionsCategory={this.state.connectionsCategory}
             closePanel={this.props.closePanel}
@@ -1102,6 +1139,8 @@ ReaderPanel.propTypes = {
   toggleSignUpModal:           PropTypes.func.isRequired,
   getHistoryRef:               PropTypes.func,
   profile:                     PropTypes.object,
+  masterPanelMode:             PropTypes.string,
+  masterPanelSheetId:          PropTypes.number,
   translationLanguagePreference: PropTypes.string,
   setTranslationLanguagePreference: PropTypes.func.isRequired,
 };
@@ -1288,6 +1327,7 @@ ReaderControls.propTypes = {
   connectionsMode:         PropTypes.string,
   connectionsCategory:     PropTypes.string,
   multiPanel:              PropTypes.bool,
+  openSidePanel:           PropTypes.func.isRequired,
   interfaceLang:           PropTypes.string,
   toggleSignUpModal:       PropTypes.func.isRequired,
   historyObject:           PropTypes.object,
