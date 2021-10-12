@@ -1208,7 +1208,7 @@ class ReaderApp extends Component {
       let masterPanel = this.state.panels[n-1];
       Object.assign(masterPanel, {refs: refs, currentlyVisibleRef: currentlyVisibleRef, highlightedRefs: highlightedRefs});
     }
-    if(panel.mode == "TextAndConnections"){
+    if(panel.mode == "TextAndConnections"){ // we want single panel mode to return to text mode after navigating
       updatePanelObj["highlightedRefs"] = [];
       updatePanelObj["mode"] = "Text";
     }
