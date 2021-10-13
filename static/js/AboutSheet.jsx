@@ -150,7 +150,7 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
         updatedSheet.status = newPublishState;
         updatedSheet.lastModified = lastModified;
         delete updatedSheet._id;
-        setIsPublished(isPublished);
+        setIsPublished(!isPublished);
         const postJSON = JSON.stringify(updatedSheet);
         postSheet(postJSON);
 
