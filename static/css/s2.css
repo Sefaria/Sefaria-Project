@@ -8387,7 +8387,7 @@ body.interface-hebrew .publishBox .react-tags__search-input::placeholder, body.i
 
 .publishSettingsEditMode .publishButton .publishedText {
   text-align: left;
-  margin: 0 15px 0 20px;
+  margin: 5px 15px 0 20px;
   font-size: var(--sans-serif-body-font-size);
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
@@ -8396,7 +8396,9 @@ body.interface-hebrew .publishBox .react-tags__search-input::placeholder, body.i
 .publishSettingsEditMode .button.published {
   background-color: #EDEDEC;
   border: 1px solid #CCCCCC;
-  color: #666666
+  color: #666666;
+  height: fit-content;
+  align-self: center;
 }
 
 .publishBox .react-tags__suggestions ul {

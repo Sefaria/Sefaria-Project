@@ -262,8 +262,7 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
             sheetId={sheet.id}
         ></CollectionsEditor>
             {isPublished ? <div className={"publishButton"}>
-            <div className="publishedText"><InterfaceText>Your Sheet is published on Sefaria and visible to others.
-</InterfaceText></div>
+            <div className="publishedText">Your Sheet is <span style={{fontWeight:"600", color: "var(--sefaria-blue)"}}>published</span> on Sefaria and visible to others.</div>
             <button className="button published" onClick={togglePublish}>
                 <InterfaceText>Unpublish</InterfaceText>
             </button>
