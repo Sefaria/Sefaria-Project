@@ -200,7 +200,7 @@ class ReaderPanel extends Component {
   }
   closeSheetConnectionsInPanel() {
     // Return to the original text in the ReaderPanel contents
-    this.conditionalSetState({highlightedNode: [], highlightedRefs: [], mode: "Sheet"});
+    this.conditionalSetState({highlightedNode: null, highlightedRefs: [], mode: "Sheet"});
   }
   handleSheetClick(e, sheet, highlightedNode, highlightedRefsInSheet) {
     e.preventDefault();

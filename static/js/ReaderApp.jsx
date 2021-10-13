@@ -1200,7 +1200,7 @@ class ReaderApp extends Component {
       currentlyVisibleRef = ref;
       highlightedRefs = [];
     }
-    Object.assign(panel, {refs: refs, currentlyVisibleRef: currentlyVisibleRef, highlightedRefs: highlightedRefs});
+    let updatePanelObj = {refs: refs, currentlyVisibleRef: currentlyVisibleRef, highlightedRefs: highlightedRefs}
     if((this.state.panels.length > n+1) && this.state.panels[n+1].mode == "Connections"){
       let connectionsPanel =  this.state.panels[n+1];
       Object.assign(connectionsPanel, {refs: refs, currentlyVisibleRef: currentlyVisibleRef, highlightedRefs: highlightedRefs});
@@ -1208,6 +1208,11 @@ class ReaderApp extends Component {
       let masterPanel = this.state.panels[n-1];
       Object.assign(masterPanel, {refs: refs, currentlyVisibleRef: currentlyVisibleRef, highlightedRefs: highlightedRefs});
     }
+    if(panel.mode == "TextAndConnections"){ // we want single panel mode to return to text mode after navigating
+      updatePanelObj["highlightedRefs"] = [];
+      updatePanelObj["mode"] = "Text";
+    }
+    Object.assign(panel, updatePanelObj);
     this.setState({panels: this.state.panels});
   }
   viewExtendedNotes(n, method, title, versionLanguage, versionName) {
