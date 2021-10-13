@@ -312,7 +312,7 @@ const BeitMidrashHome = ({beitMidrashId,
     return (<div className="beitMidrashHomeContainer">
         <div>
         <div id="beitMidrashHeader">Beit Midrash</div>
-        <div id="newCall"><a href="/chavruta"><img src="/static/img/camera_with_plus.svg" id="newCallImg" /><span>New Call</span></a></div>
+        {/*<div id="newCall"><a href="/chavruta"><img src="/static/img/camera_with_plus.svg" id="newCallImg" /><span>New Call</span></a></div>*/}
         <hr className="beitMidrashHR" />
             <div className="peopleInBeitMidrash">
                 {peopleInBeitMidrash && peopleInBeitMidrash.length > 1 ? peopleInBeitMidrash
@@ -648,6 +648,7 @@ const ChavrutaVideo = ({socket, chavrutaId, pcConfig, setCurrentScreen, userB}) 
           };
           socket.emit("join_chavruta", {
             room: chavrutaId,
+            id: Sefaria._uid
           });
         } catch (e) {
           console.error(e);
@@ -736,6 +737,7 @@ const ChavrutaVideo = ({socket, chavrutaId, pcConfig, setCurrentScreen, userB}) 
         setVideoTracks();
 
         return () => {
+            console.log('woooo')
           if (pc) {
             pc.close();
           }
@@ -768,20 +770,20 @@ const ChavrutaVideo = ({socket, chavrutaId, pcConfig, setCurrentScreen, userB}) 
             </div>
 
 
-            <div id="chevrutaNameHolder">{userB.name}</div>
-            <div id="currently-reading"></div>
+            {/*<div id="chevrutaNameHolder">{userB.name}</div>*/}
+            {/*<div id="currently-reading"></div>*/}
 
-            <div id="waiting">
-                Waiting for someone to join...
-                <p className="int-en">
-                    Share this link with your chavruta to start a video call
-                </p>
+            {/*<div id="waiting">*/}
+            {/*    Waiting for someone to join...*/}
+            {/*    <p className="int-en">*/}
+            {/*        Share this link with your chavruta to start a video call*/}
+            {/*    </p>*/}
 
-                <p className="int-he">
-                    Share this link with your chavruta to start a video call
-                </p>
+            {/*    <p className="int-he">*/}
+            {/*        Share this link with your chavruta to start a video call*/}
+            {/*    </p>*/}
 
-            </div>
+            {/*</div>*/}
 
 
             <div className="chavrutaFooter">

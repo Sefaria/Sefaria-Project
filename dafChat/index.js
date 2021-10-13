@@ -180,10 +180,10 @@ io.on("connection", (socket) => {
         socket.to(socket.id).emit("room_full");
         return;
       }
-      users[data.room].push({ id: socket.id });
+      users[data.room].push({ id: socket.id, sid: data.id });
     } else {
       console.log(2)
-      users[data.room] = [{ id: socket.id }];
+      users[data.room] = [{ id: socket.id, sid: data.id }];
     }
     socketToRoom[socket.id] = data.room;
     console.log(users)
@@ -215,18 +215,11 @@ io.on("connection", (socket) => {
   socket.on("chavruta closed", () => {
     console.log(`[${socketToRoom[socket.id]}]: ${socket.id} exit`);
     const roomID = socketToRoom[socket.id];
-    let room = users[roomID];
-    console.log(room)
-    if (room) {
-      room = room.filter((user) => user.id !== socket.id);
-      users[roomID] = room;
-      if (room.length === 0) {
-        delete users[roomID];
-        return;
-      }
+    if (users[roomID]) {
+      delete users[roomID];
     }
     socket.to(roomID).emit("user_exit");
-    console.log(users);
+    console.log("users", users);
   });
 
   socket.on('ipaddr', function() {

@@ -10685,7 +10685,7 @@ span.ref-link-color-3 {color: blue}
 .beitMidrashContainer video.pip {
   position: absolute;
   height: 50px;
-  top: 15px;
+  top: 75px;
   inset-inline-end: 10px;
   text-align: end;
   width: initial;
@@ -10734,6 +10734,7 @@ span.ref-link-color-3 {color: blue}
   width: 80%;
   justify-content: space-between;
   margin-top: -35px;
+  margin-inline-start: 25px;
 }
 
 .beitMidrashContainer .endCallButton {
