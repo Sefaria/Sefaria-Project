@@ -6903,7 +6903,24 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 
 .shareInputBox {
-  padding: 34px;
+  padding: 10px 34px;
+  display:flex;
+}
+
+.shareInputBox .shareDropdown {
+  display: inline-block;
+  height: 20px;
+  width: fit-content;  
+  margin: 0 3px;
+  border: 0;
+  color: var(--sefaria-blue);
+  font-weight: 600;
+}
+
+.shareInputBox span {
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: var(--sans-serif-body-font-size);
 }
 
 .shareInput {

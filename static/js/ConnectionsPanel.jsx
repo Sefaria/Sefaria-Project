@@ -1291,8 +1291,10 @@ class ShareBox extends Component {
   constructor(props) {
     super(props);
     const sheet = Sefaria.sheets.loadSheetByID(this.props.masterPanelSheetId);
-    this.state = { sheet: sheet,
-    shareValue: sheet.options.collaboration ? sheet.options.collaboration : "none"}
+    this.state = {
+      sheet: sheet,
+      shareValue: sheet.options.collaboration ? sheet.options.collaboration : "none"
+    }
   }
   componentDidMount() {
     this.focusInput();
@@ -1300,75 +1302,82 @@ class ShareBox extends Component {
   componentDidUpdate(prevProps, prevState) {
     this.focusInput();
     if (this.state.shareValue != prevState.shareValue) {
-        new Promise((resolve, reject) => Sefaria.sheets.loadSheetByID(this.props.masterPanelSheetId, sheet => resolve(sheet))).then(updatedSheet => {
+      new Promise((resolve, reject) => Sefaria.sheets.loadSheetByID(this.props.masterPanelSheetId, sheet => resolve(sheet))).then(updatedSheet => {
         updatedSheet.options.collaboration = this.state.shareValue;
         updatedSheet.lastModified = updatedSheet.dateModified
         delete updatedSheet._id;
         delete updatedSheet.error;
         const postJSON = JSON.stringify(updatedSheet);
         this.postSheet(postJSON)
-        })
-
-      }
-    }
-    focusInput() {
-      $(ReactDOM.findDOMNode(this)).find("input").select();
-    }
-
-    postSheet(postJSON) {
-      $.post("/api/sheets/", { "json": postJSON }, (data) => {
-        if (data.id) {
-          console.log('saved...')
-          Sefaria.sheets._loadSheetByID[data.id] = data;
-        } else {
-          console.log(data);
-        }
       })
-    }
-    updateShareOptions(event){
-      this.setState({ shareValue: event.target.value });
-    }
-    render() {
-      var url = this.props.url;
 
-      var shareFacebook = function () {
-        Sefaria.util.openInNewTab("https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(url));
-      };
-      var shareTwitter = function () {
-        Sefaria.util.openInNewTab("https://twitter.com/share?url=" + encodeURIComponent(url));
-      };
-      var shareEmail = function () {
-        Sefaria.util.openInNewTab("mailto:?&subject=Text on Sefaria&body=" + url);
-      };
-      var classes = classNames({ textList: 1, fullPanel: this.props.fullPanel });
-      return (
-        <div>
+    }
+  }
+  focusInput() {
+    $(ReactDOM.findDOMNode(this)).find("input").select();
+  }
+
+  postSheet(postJSON) {
+    $.post("/api/sheets/", { "json": postJSON }, (data) => {
+      if (data.id) {
+        console.log('saved...')
+        Sefaria.sheets._loadSheetByID[data.id] = data;
+      } else {
+        console.log(data);
+      }
+    })
+  }
+  updateShareOptions(event) {
+    this.setState({ shareValue: event.target.value });
+  }
+  render() {
+    var url = this.props.url;
+
+    var shareFacebook = function () {
+      Sefaria.util.openInNewTab("https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(url));
+    };
+    var shareTwitter = function () {
+      Sefaria.util.openInNewTab("https://twitter.com/share?url=" + encodeURIComponent(url));
+    };
+    var shareEmail = function () {
+      Sefaria.util.openInNewTab("mailto:?&subject=Text on Sefaria&body=" + url);
+    };
+    var classes = classNames({ textList: 1, fullPanel: this.props.fullPanel });
+    return (
+      <div>
+        <ConnectionsPanelSection title="Share Link">
           <div className="shareInputBox">
             <input className="shareInput" value={this.props.url} />
           </div>
-          <div>
-            {this.state.sheet && Sefaria._uid === this.state.sheet.owner ? <select
+          {this.state.sheet && Sefaria._uid === this.state.sheet.owner ? 
+          <div className="shareInputBox">
+            <span> People with this link can </span>
+            <select
+              className="shareDropdown"
               name="Share"
               onChange={this.updateShareOptions.bind(this)}
               value={this.state.shareValue}>
               <option value="none">View</option>
               <option value="anyone-can-add">Add</option>
               <option value="anyone-can-edit">Edit</option>
-            </select> : null}
-          </div>
-          <ToolsButton en="Facebook" he="פייסבוק" icon="facebook-official" onClick={shareFacebook} />
-          <ToolsButton en="Twitter" he="טוויטר" icon="twitter" onClick={shareTwitter} />
-          <ToolsButton en="Email" he="אימייל" icon="envelope-o" onClick={shareEmail} />
-        </div>);
-    }
+            </select> 
+          </div> : null}
+        </ConnectionsPanelSection>
+        <ConnectionsPanelSection title="More Options">
+        <ToolsButton en="Share on Facebook" he="פייסבוק" icon="facebook-official" onClick={shareFacebook} />
+        <ToolsButton en="Share on Twitter" he="טוויטר" icon="twitter" onClick={shareTwitter} />
+        <ToolsButton en="Share on Email" he="אימייל" icon="envelope-o" onClick={shareEmail} />
+        </ConnectionsPanelSection>
+      </div>);
   }
+}
 ShareBox.propTypes = {
-    url: PropTypes.string.isRequired,
-    setConnectionsMode: PropTypes.func.isRequired,
-    closePanel: PropTypes.func.isRequired,
-    fullPanel: PropTypes.bool,
-    masterPanelSheetId: PropTypes.number.isRequired
-  };
+  url: PropTypes.string.isRequired,
+  setConnectionsMode: PropTypes.func.isRequired,
+  closePanel: PropTypes.func.isRequired,
+  fullPanel: PropTypes.bool,
+  masterPanelSheetId: PropTypes.number.isRequired
+};
 
 
 class AddNoteBox extends Component {
