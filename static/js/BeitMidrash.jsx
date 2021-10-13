@@ -77,6 +77,9 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
         //user B receives connection request
         socketObj.on("connection request", (user) => {
             chavrutaRequestReceived(user)
+            const roomId = user.uid < Sefaria._uid ? `${user.uid}-${Sefaria._uid}`: `${Sefaria._uid}-${user.uid}`
+            setCurrentChatRoom(roomId)
+
         })
         //sends rejection to user A
         socketObj.on("send connection rejection", ()=>{
@@ -196,8 +199,8 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
     }
 
     const startChat = (user) => {
-        let roomId = user.uid < Sefaria._uid ? `${user.uid}-${Sefaria._uid}`: `${Sefaria._uid}-${user.uid}` 
-      
+        let roomId = user.uid < Sefaria._uid ? `${user.uid}-${Sefaria._uid}`: `${Sefaria._uid}-${user.uid}`
+
         const room = {roomId, userB: user, user: {uid: Sefaria._uid, name: Sefaria.full_name, pic: Sefaria.profile_pic_url, organization: profile.organization}};
 
         const currentActiveChatRoomIds = activeChatRooms.map(room => {return room.roomId})

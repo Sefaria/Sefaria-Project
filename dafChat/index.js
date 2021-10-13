@@ -229,26 +229,6 @@ io.on("connection", (socket) => {
     console.log(users);
   });
 
-
-  //default private chevruta path
-  socket.on('start chevruta', function(uid, room) {
-
-    if (chavrutot[room]) {
-      if (chavrutot[room].peopleInChavruta.length === 1) {
-        console.log(socket.id +' attempting to join room: '+ room)
-        socket.join(room)
-        console.log('Client ID ' + socket.id + ' joined room ' + room);
-        socket.to(room).emit('join', room);
-        socket.emit('join', room);
-        chavrutot[room].peopleInChavruta.push(uid)
-      } else if (chavrutot[room].peopleInChavruta.length > 1) {
-        socket.emit('room full');
-      }
-    } else {
-      createNewChavruta(uid, "private", room);
-    }
-  })
-
   socket.on('ipaddr', function() {
     var ifaces = os.networkInterfaces();
     for (var dev in ifaces) {
@@ -259,29 +239,6 @@ io.on("connection", (socket) => {
       });
     }
   });
-
-  socket.on('report user', function(room){
-    socket.to(room).emit('user reported');
-  });
-
-  socket.on('bye', function(room){
-    socket.to(room).emit('message', 'bye')
-    socket.leave(room);
-    console.log(`bye received from ${socket.id} for room ${room}`);
-    delete chavrutot[room];
-    socket.emit('byeReceived');
-  });
-
-  socket.on('send user info', function(userName, uid, room) {
-    socket.to(room).emit('got user name', userName, uid);
-    socket.broadcast.emit("change in people", Object.values(peopleInBeitMidrash));
-    socket.emit("change in people", Object.values(peopleInBeitMidrash));
-  })
-
-  socket.on('send sources', function(msg, name, room) {
-    console.log("received sources", room, msg["currentlyReading"])
-    socket.to(room).emit('got sources', msg, name);
-  })
 
   socket.on('rejoin room', (room) => {
     socket.join(room)
