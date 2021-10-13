@@ -1290,11 +1290,20 @@ ToolsButton.propTypes = {
 class ShareBox extends Component {
   constructor(props) {
     super(props);
-    const sheet = Sefaria.sheets.loadSheetByID(this.props.masterPanelSheetId);
-    this.state = {
-      sheet: sheet,
-      shareValue: sheet.options.collaboration ? sheet.options.collaboration : "none"
+    if (this.props.masterPanelSheetId) {
+      const sheet = Sefaria.sheets.loadSheetByID(this.props.masterPanelSheetId);
+      this.state = {
+        sheet: sheet,
+        shareValue: sheet.options.collaboration ? sheet.options.collaboration : "none"
+      } 
     }
+    else {
+        this.state = {
+          sheet: null,
+          shareValue: null
+        }
+      }
+
   }
   componentDidMount() {
     this.focusInput();
@@ -1310,7 +1319,6 @@ class ShareBox extends Component {
         const postJSON = JSON.stringify(updatedSheet);
         this.postSheet(postJSON)
       })
-
     }
   }
   focusInput() {
@@ -1349,24 +1357,24 @@ class ShareBox extends Component {
           <div className="shareInputBox">
             <input className="shareInput" value={this.props.url} />
           </div>
-          {this.state.sheet && Sefaria._uid === this.state.sheet.owner ? 
-          <div className="shareInputBox">
-            <span> People with this link can </span>
-            <select
-              className="shareDropdown"
-              name="Share"
-              onChange={this.updateShareOptions.bind(this)}
-              value={this.state.shareValue}>
-              <option value="none">View</option>
-              <option value="anyone-can-add">Add</option>
-              <option value="anyone-can-edit">Edit</option>
-            </select> 
-          </div> : null}
+          {this.state.sheet && Sefaria._uid === this.state.sheet.owner ?
+            <div className="shareInputBox">
+              <span> People with this link can </span>
+              <select
+                className="shareDropdown"
+                name="Share"
+                onChange={this.updateShareOptions.bind(this)}
+                value={this.state.shareValue}>
+                <option value="none">View</option>
+                <option value="anyone-can-add">Add</option>
+                <option value="anyone-can-edit">Edit</option>
+              </select>
+            </div> : null}
         </ConnectionsPanelSection>
         <ConnectionsPanelSection title="More Options">
-        <ToolsButton en="Share on Facebook" he="פייסבוק" icon="facebook-official" onClick={shareFacebook} />
-        <ToolsButton en="Share on Twitter" he="טוויטר" icon="twitter" onClick={shareTwitter} />
-        <ToolsButton en="Share on Email" he="אימייל" icon="envelope-o" onClick={shareEmail} />
+          <ToolsButton en="Share on Facebook" he="פייסבוק" icon="facebook-official" onClick={shareFacebook} />
+          <ToolsButton en="Share on Twitter" he="טוויטר" icon="twitter" onClick={shareTwitter} />
+          <ToolsButton en="Share on Email" he="אימייל" icon="envelope-o" onClick={shareEmail} />
         </ConnectionsPanelSection>
       </div>);
   }
@@ -1376,7 +1384,7 @@ ShareBox.propTypes = {
   setConnectionsMode: PropTypes.func.isRequired,
   closePanel: PropTypes.func.isRequired,
   fullPanel: PropTypes.bool,
-  masterPanelSheetId: PropTypes.number.isRequired
+  masterPanelSheetId: PropTypes.number
 };
 
 
