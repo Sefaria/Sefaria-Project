@@ -617,7 +617,7 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
   const dragStart = (e) => {
       let range = document.createRange();
       range.selectNode(e.target);
-      const slateRange = ReactEditor.toSlateRange(parentEditor, range)
+      const slateRange = ReactEditor.toSlateRange(parentEditor, range, {exactMatch: false})
       parentEditor.dragging = slateRange
       const fragment = Node.fragment(parentEditor, slateRange)
       ReactEditor.deselect(parentEditor)
