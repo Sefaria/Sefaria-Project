@@ -109,40 +109,40 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
 
     const isFormValidated = () => {
         if ((!summary || summary.trim() == '') && tags.length == 0) {
-          setValidation({
-            validationMsg: Sefaria._("Please add a description and topics to publish your sheet."),
-            validationFailed: "both"
-          });
-          return false
+            setValidation({
+                validationMsg: Sefaria._("Please add a description and topics to publish your sheet."),
+                validationFailed: "both"
+            });
+            return false
         }
         else if (!summary || summary.trim() == '') {
-          setValidation({
-            validationMsg: Sefaria._("Please add a description to publish your sheet."),
-            validationFailed: "summary"
-          });
-          return false
+            setValidation({
+                validationMsg: Sefaria._("Please add a description to publish your sheet."),
+                validationFailed: "summary"
+            });
+            return false
         }
-    
+
         else if (tags.length == 0) {
-          setValidation({
-            validationMsg: Sefaria._("Please add topics to publish your sheet."),
-            validationFailed: "topics"
-          });
-          return false
+            setValidation({
+                validationMsg: Sefaria._("Please add topics to publish your sheet."),
+                validationFailed: "topics"
+            });
+            return false
         }
-    
+
         else {
-          setValidation({
-            validationMsg: "",
-            validationFailed: "none"
-          });
-          return true
+            setValidation({
+                validationMsg: "",
+                validationFailed: "none"
+            });
+            return true
         }
-      }
+    }
 
     const togglePublish = async () => {
         if (!isPublished) {
-            if (!(this.isFormValidated())) { return }
+            if (!(isFormValidated())) { return }
         }
 
         const newPublishState = isPublished ? "unlisted" : "public";
@@ -152,7 +152,7 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
         delete updatedSheet._id;
         setIsPublished(isPublished);
         const postJSON = JSON.stringify(updatedSheet);
-        this.postSheet(postJSON);
+        postSheet(postJSON);
 
     }
 
@@ -223,7 +223,7 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
 
     </div>;
 
-    const publishSettingsEditMode = <div className={isPublished ? "publishBox transparentBackground sans-serif" : "publishBox sans-serif"}>
+    const publishSettingsEditMode = <div className="publishSettingsEditMode"><div className={isPublished ? "publishBox transparentBackground sans-serif" : "publishBox sans-serif"}>
         {!isPublished ? <p><InterfaceText>Publish your sheet on Sefaria for others to discover.</InterfaceText></p> : null}
         <h3 className="aboutSheetHeader"><InterfaceText>Summary</InterfaceText></h3>
         <hr></hr>
@@ -249,14 +249,25 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
                 onInput={updateSuggestedTags}
             />
         </div>
-        {validation.validationFailed == "none" ? null :  <p className="error"><InterfaceText>{validation.validationMsg}</InterfaceText></p> }
+        {validation.validationFailed == "none" ? null : <p className="error"><InterfaceText>{validation.validationMsg}</InterfaceText></p>}
 
-        <div className={"publishButton"}>
-            <button className={isPublished ? "button published" : "button"} onClick={togglePublish}>
-                <InterfaceText>{isPublished ? "Unpublish" : "Publish"}</InterfaceText>
+        {!isPublished ? <div className={"publishButton"}>
+            <button className="button" onClick={togglePublish}>
+                <InterfaceText>Publish</InterfaceText>
             </button>
-        </div>
+        </div> : null}
 
+    </div>
+        <CollectionsEditor
+            sheetId={sheet.id}
+        ></CollectionsEditor>
+            {isPublished ? <div className={"publishButton"}>
+            <div className="publishedText"><InterfaceText>Your Sheet is published on Sefaria and visible to others.
+</InterfaceText></div>
+            <button className="button published" onClick={togglePublish}>
+                <InterfaceText>Unpublish</InterfaceText>
+            </button>
+        </div> : null}
     </div>
 
     return (<div className="aboutSheetPanel">
@@ -292,5 +303,133 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
     )
 
 }
+
+
+const CollectionsEditor = ({ sheetId }) => {
+    // A box that lets you control which of your collections `sheetId` belongs to
+
+    const initialCollectionsSort = (cs, csSelected) => {
+        // When first opened, sort checked collections to top, but don't reshuffle when user clicks check of open modal
+        if (!cs || !csSelected) { return null; }
+        return cs.sort((a, b) => {
+            let aSel, bSel;
+            [aSel, bSel] = [a, b].map(x => !!csSelected.filter(y => y.slug === x.slug).length)
+            if (aSel == bSel) { return a.lastModified > b.lastModified ? -1 : 1; }
+            else { return aSel ? -1 : 1; }
+        });
+    };
+    const [collectionsSelected, setCollectionsSelected] = useState(Sefaria.getUserCollectionsForSheetFromCache(sheetId));
+    let initialCollections = Sefaria.getUserCollectionsFromCache(Sefaria._uid);
+    initialCollections = initialCollections ? initialCollectionsSort(initialCollections.slice(), collectionsSelected) : null;
+    const [collections, setCollections] = useState(initialCollections);
+    const [dataLoaded, setDataLoaded] = useState(!!collections && !!collectionsSelected);
+    const [newName, setNewName] = useState("");
+    const [changed, setChanged] = useState(false);
+
+    // Make sure we have loaded the user's list of collections, 
+    // and which collections this sheet belongs to for this user
+    useEffect(() => {
+        if (!dataLoaded) {
+            Promise.all([
+                Sefaria.getUserCollections(Sefaria._uid),
+                Sefaria.getUserCollectionsForSheet(sheetId)
+            ])
+                .then(() => {
+                    const initialCollectionsSelected = Sefaria.getUserCollectionsForSheetFromCache(sheetId);
+                    const initialSortedCollections = initialCollectionsSort(Sefaria.getUserCollectionsFromCache(Sefaria._uid), initialCollectionsSelected);
+                    setCollections(initialSortedCollections);
+                    setCollectionsSelected(initialCollectionsSelected);
+                    setDataLoaded(true);
+                });
+        }
+    }, []);
+
+    const onCheckChange = (collection, checked) => {
+        // When a checkmark changes, add or remove this sheet from that collection
+        let url, newCollectionsSelected;
+        if (checked) {
+            newCollectionsSelected = [...collectionsSelected, collection];
+            url = `/api/collections/${collection.slug}/add/${sheetId}`;
+        } else {
+            newCollectionsSelected = collectionsSelected.filter(x => x.slug !== collection.slug);
+            url = `/api/collections/${collection.slug}/remove/${sheetId}`;
+        }
+
+        $.post(url, data => handleCollectionInclusionChange(data));
+        Sefaria._userCollectionsForSheet[sheetId] = newCollectionsSelected;
+        setCollectionsSelected(newCollectionsSelected);
+    };
+
+    const handleCollectionInclusionChange = (data) => {
+        // When a sheet has been added or removed, update collections list data in cache
+        let newCollections = Sefaria.getUserCollectionsFromCache(Sefaria._uid).filter(c => c.slug != data.collection.slug);
+        // Put the new collection first since it's just been modified
+        newCollections = [data.collectionListing, ...newCollections];
+        // Update in cache, but not in Component state -- prevents the list from jumping around
+        // while you're looking at it, but show this collection first next time you see the list.
+        Sefaria._userCollections[Sefaria._uid] = newCollections;
+        // Update cache for this collection's full listing, which has now changed
+        Sefaria._collections[data.collection.slug] = data.collection;
+        // Update sheet cache
+        Sefaria.sheets._loadSheetByID[sheetId] = data.sheet;
+        Sefaria.sheets.updateUserSheets(data.sheetListing, Sefaria._uid, true, true);
+        setChanged(true);
+    };
+
+    const onNameChange = event => setNewName(event.target.value);
+
+    const onCreateClick = () => {
+        const collection = { name: newName };
+        $.post("/api/collections", { json: JSON.stringify(collection) }, (data) => {
+            if ("error" in data) {
+                alert(data.error);
+                return;
+            }
+            setNewName("");
+            const newCollections = [data.collection, ...collections];
+            Sefaria._userCollections[Sefaria._uid] = newCollections;
+            setCollections(newCollections);
+            onCheckChange(data.collection, true);
+        });
+    };
+
+    return <div>      <div className="collectionsEditorTop">
+        <h3 className="aboutSheetHeader"><InterfaceText>Collections</InterfaceText></h3>
+        <hr />
+    </div><div className="collectionsWidget">
+            <div className="collectionsWidgetList serif">
+                {!dataLoaded ? null :
+                    collections.map((collection, i) => {
+                        return <label className="checkmarkLabel" key={i + collection.name}>
+                            <input
+                                type="checkbox"
+                                onChange={event => onCheckChange(collection, event.target.checked)}
+                                checked={collectionsSelected.filter(x => x.slug === collection.slug).length ? "checked" : ""} />
+                            <span className="checkmark"></span>
+                            {collection.name}
+                        </label>
+                    })}
+                {dataLoaded && collections.length == 0 ?
+                    <span className={"emptyMessage"}>
+                        <InterfaceText>
+                            You can use collections to organize your sheets or public sheets you like. Collections can shared privately or made public on Sefaria.
+                        </InterfaceText>
+                    </span> : null}
+            </div>
+            <div className="collectionsEditorCreate">
+                <span className="collectionsWidgetPlus">+</span>
+                <div className="collectionsWidgetCreateInputBox">
+                    <input className="collectionsWidgetCreateInput" placeholder={Sefaria._("Create new collection")} value={newName} onChange={onNameChange} />
+                </div>
+                {newName.length ?
+                    <div className="button extraSmall white collectionsWidgetCreateButton" onClick={onCreateClick}>
+                        <InterfaceText>Create</InterfaceText>
+                    </div>
+                    : null}
+            </div>
+        </div>
+    </div>
+};
+
 
 export default AboutSheet;

@@ -8361,6 +8361,27 @@ body.interface-hebrew .publishBox .react-tags__search-input::placeholder, body.i
   color: #666666
 }
 
+.publishSettingsEditMode .publishButton {
+  margin: 18px 0;
+  text-align: end;
+  flex-direction: row;
+  display: flex;
+}
+
+.publishSettingsEditMode .publishButton .publishedText {
+  text-align: left;
+  margin: 0 15px 0 20px;
+  font-size: var(--sans-serif-body-font-size);
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
+
+.publishSettingsEditMode .button.published {
+  background-color: #EDEDEC;
+  border: 1px solid #CCCCCC;
+  color: #666666
+}
+
 .publishBox .react-tags__suggestions ul {
   position: absolute;
   inset-inline-start: 0;
@@ -11954,6 +11975,11 @@ body .homeFeedWrapper.userStats {
   text-align: start;
 }
 
+.collectionsEditorTop {
+  margin-bottom: 15px;
+}
+
+
 .collectionsWidgetTitle {
   flex-grow: 1;
   font-size: 22px;
@@ -12001,6 +12027,12 @@ body .homeFeedWrapper.userStats {
   border-bottom: 1px solid #ccc;
   display: flex;
   align-items: center;
+}
+
+.collectionsEditorCreate {
+  display: flex;
+  align-items: center;
+  padding: 0px 20px;
 }
 
 .collectionsWidgetPlus {
