@@ -69,17 +69,9 @@ def run_job(test=True, api=True):
 	print("{} total pages.  Deleted {}.\n".format(after_total_pages, total_pages-after_total_pages))
 	print("{} total connections.  Deleted {}.\n".format(after_total_links, total_links-after_total_links))
 
-	# if email:
-	# 	sys.stdout = sys.__stdout__
-	# 	with open("email2.txt", 'r') as f:
-	# 		text = "<br/>".join(list(f))
-	# 	subject = "webpage cronjob"
-	# 	from_email = "Sefaria <hello@sefaria.org>"
-	# 	to = "dev@sefaria.org"
-	#
-	# 	msg = EmailMultiAlternatives(subject, text, from_email, [to])
-	# 	msg.content_subtype = "html"  # Main content is now text/html
-	# 	msg.send()
+	print(sites_to_delete)
+	print(sites_to_create)
+	print(sites_excluded)
 
 
 def profile_job():
@@ -93,5 +85,8 @@ def profile_job():
 
 
 if __name__ == "__main__":
-	run_job(False)
+	delete, keep = find_sites_that_may_have_removed_linker(last_linker_activity_day=40)
+	for r in delete:
+		print(r)
+	#run_job(False)
 

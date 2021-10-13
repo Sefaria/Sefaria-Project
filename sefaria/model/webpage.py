@@ -400,11 +400,14 @@ def dedupe_identical_urls(test=True):
 
 
 def clean_webpages(test=True):
+    url_bad_regexes = WebPage.excluded_pages_url_regex()[:-1] + "|\d{3}\.\d{3}\.\d{3}\.\d{3})"  #delete any page that matches the regex produced by excluded_pages_url_regex() or in IP form
+
     """ Delete webpages matching patterns deemed not worth including"""
     pages = WebPageSet({"$or": [
-            {"url": {"$regex": WebPage.excluded_pages_url_regex()}},
+            {"url": {"$regex": url_bad_regexes}},
             {"title": {"$regex": WebPage.excluded_pages_title_regex()}},
-            {"refs": {"$eq": []}}
+            {"refs": {"$eq": []}},
+             {"domain": ""}
         ]})
 
     if not test:
@@ -453,12 +456,11 @@ def find_webpages_without_websites(test=True, hit_threshold=50, last_linker_acti
     # if we then get 5 new pages in the next hour, they won't correspond to an actual site. the way to deal with this
     # is to make sure the unactive_threshold, which determines which pages we delete, is significantly older than the active_threshold. let's pick 10 days
 
-    bad_regexes = WebPage.excluded_pages_url_regex()[:-1] + "|\d{3}\.\d{3}\.\d{3}\.\d{3})"  #delete any page that matches the regex produced by excluded_pages_url_regex() or in IP form
     for i, webpage in enumerate(webpages):
         if i % 100000 == 0:
             print(i)
         website = webpage.get_website(dict_only=True)
-        if website == {} and len(webpage.domain.strip()) > 0 and re.search(bad_regexes, webpage.url) is None:
+        if website == {}:
             if webpage.lastUpdated > active_threshold:
                 new_active_sites[webpage.domain] += 1
             elif webpage.lastUpdated < unactive_threshold:
@@ -466,19 +468,11 @@ def find_webpages_without_websites(test=True, hit_threshold=50, last_linker_acti
                     unactive_unacknowledged_sites[webpage.domain] = []
                 unactive_unacknowledged_sites[webpage.domain].append(webpage)
 
-    sites_added = []
+    sites_added = {}
     for site, hits in new_active_sites.items():
         if hits > hit_threshold:
-            newsite = WebSite()
-            newsite.name = site
-            newsite.domains = [site]
-            newsite.is_whitelisted = True
-            newsite.linker_installed = True
-            print("Created new WebSite with name='{}'".format(site))
-            sites_added.append(site)
+            sites_added[site] = f"{site} should be created because it has {hits} pages in last {last_linker_activity_day} days"
 
-    print(sites_added)
-    print("****")
     for site, hits in unactive_unacknowledged_sites.items():
         if site not in new_active_sites.keys():  # if True, site has not been updated recently
             print("Deleting {} with {} pages".format(site, len(unactive_unacknowledged_sites[site])))
@@ -507,7 +501,8 @@ def find_sites_to_be_excluded(flag=100):
             most_common = all_sites[website].most_common(10)
             for common in most_common:
                 if common[1] > flag:
-                    sites_to_exclude.append((website, common[0], common[1]))
+                    sites_to_exclude[website] = f"{website} may need exclusions set due to Ref {common[0]} with {common[1]} pages."
+    return sites_to_exclude
 
 
 def check_daf_yomi_and_parashat_hashavua(sites):
@@ -554,28 +549,37 @@ def find_sites_that_may_have_removed_linker(last_linker_activity_day=20):
     Checks for each site whether there has been a webpage hit with the linker in the last `last_linker_activity_day` days
     Prints an alert for each site that doesn't meet this criterion
     """
-    sites_to_delete = []
+    sites_to_delete = {}
+    sites_to_keep = {}
     from datetime import datetime, timedelta
     last_active_threshold = datetime.today() - timedelta(days=last_linker_activity_day)
     webpages_without_websites = 0
     for data in get_website_cache():
          if data["is_whitelisted"]:  # we only care about whitelisted sites
             for domain in data['domains']:
-                ws = WebPageSet({"url": {"$regex": re.escape(domain)}}, limit=1, sort=[['lastUpdated', -1]])
+                ws = WebPageSet({"url": {"$regex": re.escape(domain)}}, limit=1000, sort=[['lastUpdated', -1]])
+                keep = True
                 if ws.count() == 0:
-                    print(f"Alert! {domain} has no pages")
-                    sites_to_delete.append(domain)
+                    sites_to_delete[domain] = f"{domain} has no pages"
+                    keep = False
                 else:
-                    webpage = ws.array()[0]  # lastUpdated webpage for this domain
+                    ws_array = ws.array()
+                    webpage = ws_array[0]  # lastUpdated webpage for this domain
                     website = webpage.get_website()
                     if website:
                         website.linker_installed = webpage.lastUpdated > last_active_threshold
                         if not website.linker_installed:
+                            keep = False
                             print(f"Alert! {domain} has removed the linker!")
-                        sites_to_delete.append(domain)
+                            num_pages = len(ws_array)
+                            sites_to_delete[domain] = f"{domain} has {num_pages} pages, but has not used the linker in {last_linker_activity_day} days. {webpage.url} is the oldest page."
                     else:
                         print("Alert! Can't find website {} corresponding to webpage {}".format(data["name"], webpage.url))
                         webpages_without_websites += 1
+                        continue
+                if keep:
+                    assert domain not in sites_to_delete
+                    sites_to_keep[domain] = True
     if webpages_without_websites > 0:
         print("Found {} webpages without websites".format(webpages_without_websites))
-    return sites_to_delete
+    return sites_to_delete, sites_to_keep
