@@ -66,7 +66,7 @@ io.on("connection", (socket) => {
 
   socket.emit("connectionStarted");
 
-  let disconnectHandler;
+  let disconnectHandler = {};
 
   function addUserToBeitMidrash(uid, fullName, profilePic, organization, currentlyReading, beitMidrashId, socketId) {
     peopleInBeitMidrash[socketId] = {}
@@ -81,7 +81,7 @@ io.on("connection", (socket) => {
     socket.broadcast.emit("change in people", Object.values(peopleInBeitMidrash), uid);
     socket.emit("change in people", Object.values(peopleInBeitMidrash), uid);
 
-    clearTimeout(disconnectHandler)
+    clearTimeout(disconnectHandler[socketId])
   }
 
   socket.on("update currently reading", (uid, currentlyReading) => {
@@ -154,9 +154,9 @@ io.on("connection", (socket) => {
     })
 
     const socketId = socket.id;
-    disconnectHandler = setTimeout((sockedId) => {
+    disconnectHandler[socketId] = setTimeout((sockedId) => {
       leaveBeitMidrash(socketId)
-    }, 750)
+    }, 1000)
    
   })
 

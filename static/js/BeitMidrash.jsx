@@ -24,14 +24,27 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
     const [blockedUsers, setBlockedUsers] = useState([])
     const [pcConfig, setPcConfig] = useState(null);
 
-    
+
+    const filterDedupeAndSortPeople = (people) => {
+        const dedupedPeople = people.filter((person, index,self) => {
+            return index === self.findIndex((p) => p.uid === person.uid)
+        })
+        const filteredDedupedPeople = dedupedPeople.filter(person => person.beitMidrashId === beitMidrashId && !blockedUsers.includes(person.uid));
+        const sortedPeople = filteredDedupedPeople.sort(function(a, b){
+            if(a.name < b.name) { return -1; }
+            if(a.name > b.name) { return 1; }
+            return 0;
+        })
+
+        return (sortedPeople)
+    }
+
     const onBlockUser = (uid) => {
         setBlockedUsers(uids => [...uids, uid])
         console.log("user blocked!")
         console.log("blockedUsers", blockedUsers)
 
-        const filteredDedupedPeople = peopleInBeitMidrash.filter(person => person.beitMidrashId === beitMidrashId && !blockedUsers.includes(person.uid));
-        setPeopleInBeitMidrash(filteredDedupedPeople);
+        setPeopleInBeitMidrash(filterDedupeAndSortPeople(peopleInBeitMidrash));
 
         setCurrentChatRoom("")
     }
@@ -128,11 +141,7 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
 
     useEffect(()=> {
         socketObj.on("change in people", function(people, uid) {
-            const dedupedPeople = people.filter((person, index,self) => {
-                return index === self.findIndex((p) => p.uid === person.uid)
-            })
-            const filteredDedupedPeople = dedupedPeople.filter(person => person.beitMidrashId === beitMidrashId && !blockedUsers.includes(person.uid));
-            setPeopleInBeitMidrash(filteredDedupedPeople);
+            setPeopleInBeitMidrash(filterDedupeAndSortPeople(people));
 
             let roomIdToCheck = uid < Sefaria._uid ? `${uid}-${Sefaria._uid}`: `${Sefaria._uid}-${uid}`;
 
