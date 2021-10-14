@@ -876,7 +876,10 @@ const SheetToolsList = ({ toggleSignUpModal, masterPanelSheetId }) => {
   const googleDriveExport = () => {
     // $("#overlay").show();
     // sjs.alert.message('<span class="int-en">Syncing with Google Docs...</span><span class="int-he">מייצא לגוגל דרייב...</span>');
-    if (googleDriveText.en === "Open Sheet in Google Drive") {
+    if (!Sefaria._uid) {
+      toggleSignUpModal();
+    }
+    else if (googleDriveText.en === "Open Sheet in Google Drive") {
       Sefaria.util.openInNewTab(googleDriveLink);
     } else {
       Sefaria.track.sheets("Export to Google Drive");
@@ -1301,14 +1304,14 @@ class ShareBox extends Component {
       this.state = {
         sheet: sheet,
         shareValue: sheet.options.collaboration ? sheet.options.collaboration : "none"
-      } 
+      }
     }
     else {
-        this.state = {
-          sheet: null,
-          shareValue: null
-        }
+      this.state = {
+        sheet: null,
+        shareValue: null
       }
+    }
 
   }
   componentDidMount() {
