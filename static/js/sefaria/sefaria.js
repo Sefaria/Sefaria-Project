@@ -1507,10 +1507,15 @@ _media: {},
       // Sort first by page language matching interface language
       if (a.isHebrew !== b.isHebrew) { return (b.isHebrew ? -1 : 1) * (Sefaria.interfaceLang === "hebrew" ? -1 : 1); }
 
-      // 3: exact match, 2: range match: 1: section match
-      var aSpecificity, bSpecificity;
-      [aSpecificity, bSpecificity] = [a, b].map(page => page.anchorRef === ref ? 3 : (page.anchorRef.indexOf("-") !== -1 ? 2 : 1));
-      if (aSpecificity !== bSpecificity) {return aSpecificity > bSpecificity ? -1 : 1};
+      // Second, sort by how many anchorRefExpanded refs there are.  Intuition: Genesis 1:2 should come before Genesis 1:2-5, which in turn should come before Genesis 1
+      var aNumAnchorRefs, bNumAnchorRefs;
+      [aNumAnchorRefs, bNumAnchorRefs] = [a, b].map(page => page.anchorRefExpanded.length);
+      if (aNumAnchorRefs !== bNumAnchorRefs) {return (bNumAnchorRefs > aNumAnchorRefs) ? -1 : 1};
+
+      // Third, sort on whether this is a range.  Genesis 1 should come before Genesis 1-2
+      var aIsRange, bIsRange;
+      [aIsRange, bIsRange] = [a, b].map(page => page.anchorRef.indexOf("-") !== -1 ? true : false);
+      if (aIsRange !== bIsRange) { return bIsRange ? -1 : 1; }
 
       return (a.linkerHits > b.linkerHits) ? -1 : 1
     });
