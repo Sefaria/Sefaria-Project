@@ -650,9 +650,9 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
 
       const offsetX    = (e.clientX - clientRect.left);
       const offsetY    = (e.clientY - clientRect.top);
-      console.log(offsetX)
-      console.log(offsetY)
-      console.log(clientRect)
+      // console.log(offsetX)
+      // console.log(offsetY)
+      // console.log(clientRect)
       e.dataTransfer.setDragImage(dragIconContainer, 0, clientRect.height);
 
 
@@ -933,7 +933,8 @@ const Element = props => {
     const sheetItemClasses = {
         sheetItem: 1,
         empty: !(Node.string(element)),
-        noPointer: ["SheetSource", "SheetOutsideBiText"].indexOf(element.type) === -1,
+        // noPointer: ["SheetSource", "SheetOutsideBiText"].indexOf(element.type) === -1,
+        noPointer: 0,
         highlight: (useSlate().highlightedNode === element.node)
     };
 
@@ -941,7 +942,7 @@ const Element = props => {
         case 'spacer':
           const spacerSelected = useSelected();
           return (
-            <div className="spacer empty">
+            <div className="spacer empty" {...attributes}>
               {spacerSelected && document.getSelection().isCollapsed ?  <AddInterface {...props} /> : <>{children}</>}
             </div>
           );
@@ -1046,7 +1047,7 @@ const Element = props => {
         case 'paragraph':
             const pClasses = {center: element["text-align"] == "center" };
             return (
-                <div className={classNames(pClasses)}>
+                <div className={classNames(pClasses)} {...attributes}>
                     {element.loading ? <div className="sourceLoader"></div> : null}
                     {children}
                 </div>
@@ -2404,10 +2405,32 @@ const SefariaEditor = (props) => {
 
     const onDrop = event => {
         if (editor.dragging) {
-            Transforms.delete(editor, {at: editor.dragging});
+            event.preventDefault();
+
+            const elem = document.elementFromPoint(event.clientX, event.clientY)
+            const node = ReactEditor.toSlateNode(editor, elem)
+            const dropPath = ReactEditor.findPath(editor, node)
+
+            if (Path.compare(dropPath, editor.dragging.anchor.path) < 0) {
+                Transforms.delete(editor, {at: editor.dragging});
+                Transforms.select(editor, Editor.end(editor, dropPath));
+                editor.insertData(event.dataTransfer)
+            }
+            else {
+                Transforms.select(editor, Editor.end(editor, dropPath));
+                editor.insertData(event.dataTransfer)
+                Transforms.delete(editor, {at: editor.dragging});
+            }
+
             editor.dragging = false
         }
     };
+
+    const onDragOver = event => {
+        if (editor.dragging) {
+            event.preventDefault()
+        }
+    }
 
 
     const onBlur = event => {
@@ -2530,6 +2553,7 @@ const SefariaEditor = (props) => {
                   spellCheck
                   onKeyDown={onKeyDown}
                   onCut={onCutorCopy}
+                  onDragOver={onDragOver}
                   onCopy={onCutorCopy}
                   onBlur={onBlur}
                   onDrop={onDrop}
