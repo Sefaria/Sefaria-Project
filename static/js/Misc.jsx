@@ -2401,7 +2401,6 @@ const Autocompleter = ({selectedRefCallback}) => {
     document.body.appendChild(tmp);
     const theWidth = tmp.getBoundingClientRect().width;
     document.body.removeChild(tmp);
-    console.log(theWidth)
     return theWidth;
   }
 

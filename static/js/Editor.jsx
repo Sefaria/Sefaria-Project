@@ -672,9 +672,10 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
               parentEditor.dragging = false;
           }
           }
+          {...attributes}
       >
     <div className={classNames(sheetItemClasses)} data-sheet-node={element.node} data-sefaria-ref={element.ref} style={{ pointerEvents: (isActive) ? 'none' : 'auto'}}>
-    <div {...attributes} contentEditable={false} onBlur={(e) => onBlur(e) } onClick={(e) => onClick(e)} className={classNames(classes)} style={{"borderInlineStartColor": Sefaria.palette.refColor(element.ref)}}>
+    <div  contentEditable={false} onBlur={(e) => onBlur(e) } onClick={(e) => onClick(e)} className={classNames(classes)} style={{"borderInlineStartColor": Sefaria.palette.refColor(element.ref)}}>
       <div className={classNames(heClasses)} style={{ pointerEvents: (isActive) ? 'auto' : 'none'}}>
           {element.heRef ? <div className="ref" contentEditable={false} style={{ userSelect: 'none' }}>{element.heRef}</div> : null }
           <div className="sourceContentText">
@@ -1159,7 +1160,7 @@ async function getRefInText(editor, returnSourceIfFound) {
 
 
 const withSefariaSheet = editor => {
-    const {insertData, insertBreak, isVoid, normalizeNode, deleteBackward, setFragmentData} = editor;
+    const {insertData, insertBreak, isVoid, normalizeNode, deleteBackward, deleteForward, setFragmentData} = editor;
 
     //Hack to override this built-in which often returns null when programmatically selecting the whole SheetSource
     Transforms.deselect = () => {
@@ -1168,6 +1169,13 @@ const withSefariaSheet = editor => {
     editor.isVoid = element => {
         return (voidElements.includes(element.type)) ? true : isVoid(element)
     };
+
+    editor.deleteForward = () => {
+
+        console.log(editor.selection)
+        deleteForward(editor);
+
+    }
 
 
     editor.deleteBackward = () => {
@@ -1208,7 +1216,7 @@ const withSefariaSheet = editor => {
                 }
                 return
             } else {
-                Editor.deleteForward(editor);
+                deleteForward(editor);
                 return;
             }
         }
@@ -1274,6 +1282,8 @@ const withSefariaSheet = editor => {
         const [node, path] = entry;
 
         const normalizers = [
+            editor.ensureNoNestedSheetsinSheet,
+            editor.ensureNoNestedSheetContents,
             editor.decorateSheetOutsideText,
             editor.wrapSheetOutsideTextChildren,
             editor.mergeSheetOutsideTextBlocks,
@@ -1290,7 +1300,6 @@ const withSefariaSheet = editor => {
             editor.onlyTextAndRefsInBoxedElements,
             editor.addPlaceholdersForEmptyText,
             editor.liftHeader,
-
         ];
 
         for (let normalizer of normalizers) {
@@ -1304,6 +1313,18 @@ const withSefariaSheet = editor => {
 
     // Normalization functions take (node, path) and return true if they make a change.
     // They are registered in editor.normalizeNode
+
+    editor.ensureNoNestedSheetsinSheet = (node, path) => {
+        if (node.type === "Sheet" && Path.parent(path).length > 0) {
+            Transforms.unwrapNodes(editor, {at: path});
+            return true
+        }
+    }
+
+    editor.ensureNoNestedSheetContents = (node, path) => {
+        if (node.type === "SheetContent" && Node.parent(editor, path).type !== "Sheet") {
+            Transforms.unwrapNodes(editor, {at: path});        }
+    }
 
     editor.liftHeader = (node, path) => {
         if (node.type === "header") {
@@ -1503,13 +1524,18 @@ const withSefariaSheet = editor => {
         const sheetElementTypes = Object.values(sheet_item_els);
 
         if (["SheetSource", "SheetOutsideBiText"].includes(node.type)) {
-            //anything pasted into a sheet source object or a sheet outsideBiText will be treated just as text content
-            for (const [child, childPath] of Node.children(editor, path)) {
-                if (sheetElementTypes.includes(child.type)) {
-                    Transforms.unwrapNodes(editor, {at: childPath});
-                    return true;
+            if (node.children && node.children.length > 1) {
+                Transforms.removeNodes(node, {at: [0]})
                 }
-            }
+
+
+            //anything pasted into a sheet source object or a sheet outsideBiText will be treated just as text content
+            // for (const [child, childPath] of Node.children(editor, path)) {
+            //     if (sheetElementTypes.includes(child.type)) {
+            //         Transforms.unwrapNodes(editor, {at: childPath});
+            //         return true;
+            //     }
+            // }
         }
     };
 
@@ -2399,23 +2425,41 @@ const SefariaEditor = (props) => {
     const onDrop = event => {
         if (editor.dragging) {
             event.preventDefault();
-
             const elem = document.elementFromPoint(event.clientX, event.clientY)
             const node = ReactEditor.toSlateNode(editor, elem)
-            const dropPath = ReactEditor.findPath(editor, node)
+            const dropPath = Editor.end(editor, ReactEditor.findPath(editor, node)).path
 
-            if (Path.compare(dropPath, editor.dragging.anchor.path) < 0) {
-                Transforms.delete(editor, {at: editor.dragging});
-                Transforms.select(editor, Editor.end(editor, dropPath));
-                editor.insertData(event.dataTransfer)
-            }
-            else {
-                Transforms.select(editor, Editor.end(editor, dropPath));
-                editor.insertData(event.dataTransfer)
-                Transforms.delete(editor, {at: editor.dragging});
-            }
+            console.log(node)
+            console.log(dropPath)
 
-            editor.dragging = false
+
+                        console.log(Path.compare(dropPath, editor.dragging.anchor.path))
+                        //
+                        if (Path.compare(dropPath, editor.dragging.anchor.path) < 0) {
+                            Transforms.delete(editor, {at: editor.dragging});
+                            Transforms.select(editor, Editor.end(editor, dropPath));
+                            Transforms.insertText(editor, " ")
+                            editor.insertData(event.dataTransfer)
+                            console.log('up')
+                            Transforms.move(editor, { distance: 1, unit: 'character', reverse: true, })
+                            editor.deleteBackward()
+
+
+                         } else if (Path.compare(dropPath, editor.dragging.anchor.path) > 0) {
+                            Transforms.select(editor, Editor.start(editor, dropPath));
+                            Transforms.insertText(editor, " ")
+                            editor.insertData(event.dataTransfer)
+                            Transforms.delete(editor, {at: editor.dragging});
+                            console.log('down')
+                            Transforms.move(editor, { distance: 1, unit: 'character', reverse: true, })
+                            editor.deleteBackward()
+
+                        }
+
+                        editor.dragging = false
+
+                        console.log(editor.children)
+
         }
     };
 
@@ -2507,9 +2551,9 @@ const SefariaEditor = (props) => {
         {
           /* debugger */
 
-          // <div style={{position: 'fixed', left: 0, top: 0, width: 300, height: '100%', backgroundColor: '#ddd', fontSize: 12, zIndex: 9999, whiteSpace: 'pre', overflow: "scroll"}}>
-          // {JSON.stringify(editor.children[0,0], null, 4)}
-          // </div>
+          <div style={{position: 'fixed', left: 0, top: 0, width: 300, height: '100%', backgroundColor: '#ddd', fontSize: 12, zIndex: 9999, whiteSpace: 'pre', overflow: "scroll"}}>
+          {JSON.stringify(editor.children[0,0], null, 4)}
+          </div>
 
         }
 
