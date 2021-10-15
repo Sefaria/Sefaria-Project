@@ -648,11 +648,6 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
       document.body.appendChild(dragIconContainer);
       dragIconContainer.appendChild(dragIcon);
 
-      const offsetX    = (e.clientX - clientRect.left);
-      const offsetY    = (e.clientY - clientRect.top);
-      // console.log(offsetX)
-      // console.log(offsetY)
-      // console.log(clientRect)
       e.dataTransfer.setDragImage(dragIconContainer, 0, clientRect.height);
 
 
@@ -933,8 +928,6 @@ const Element = props => {
     const sheetItemClasses = {
         sheetItem: 1,
         empty: !(Node.string(element)),
-        // noPointer: ["SheetSource", "SheetOutsideBiText"].indexOf(element.type) === -1,
-        noPointer: 0,
         highlight: (useSlate().highlightedNode === element.node)
     };
 
