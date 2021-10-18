@@ -8883,7 +8883,8 @@ span.purim-emoji img{
 }
 .sheetContent .sheetItem .SheetSource.segment,
 .sheetContent .sheetItem .SheetOutsideBiText.segment {
-  margin-top: 14px;
+  margin-top: 30px;
+  margin-bottom:30px;
 }
 .sheetContent .text.loading {
   cursor: wait;
@@ -9030,8 +9031,8 @@ cursor: pointer;
   border-top: 2px solid #CCE6FF;
   border-bottom: 2px solid #CCE6FF;
   border-inline-end: 2px solid #CCE6FF;
-  margin-top: 12px;
-  margin-bottom: 12px;
+  margin-top: 28px;
+  margin-bottom: 28px;
   margin-inline-end: -2px;
   cursor: text;
 }
