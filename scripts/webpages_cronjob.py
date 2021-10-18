@@ -3,10 +3,10 @@ django.setup()
 from sefaria.model.webpage import *
 import cProfile, pstats
 import requests
-from sefaria.local_settings import TRELLO_KEY, TRELLO_TOKEN
 import json
+import argparse
 
-
+TRELLO_KEY = TRELLO_TOKEN = -1
 def run_job(test=True, board_id="", idList_mapping={}, members_mapping={}):
 	board = TrelloBoard(board_id=board_id)
 	board.get_lists()
@@ -131,8 +131,16 @@ class TrelloBoard:
 
 
 if __name__ == "__main__":
+	parser = argparse.ArgumentParser()
+	parser.add_argument("-k", "--key",
+						help="API Key")
+	parser.add_argument("-t", "--token",
+						help="API token")
+	args = parser.parse_args()
 	members_mapping = {"Linker uninstalled": ["53c2c1b503849ae6a6e56870", "5f0c575790c4a913b3992da2"],
 					   "Site uses linker but is not whitelisted": ["53c2c1b503849ae6a6e56870", "5f0c575790c4a913b3992da2"],
 					   "Websites that may need exclusions set": ["53c2c1b503849ae6a6e56870"]}
 	idList_mapping = {"Linker uninstalled": "615b2fda735fdd1a4a7fa2df", "Site uses linker but is not whitelisted": "615b2fdf8c2799427ada5574", "Websites that may need exclusions set": '615b2ff66487a70d3ea3b3b4'}
+	TRELLO_KEY = args.key
+	TRELLO_TOKEN = args.token
 	run_job(board_id='615b2cf55893576270ef630d', idList_mapping=idList_mapping, members_mapping=members_mapping)
