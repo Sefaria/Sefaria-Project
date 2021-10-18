@@ -9099,46 +9099,14 @@ cursor: pointer;
 .boxedSheetItem + .spacer {
   margin-top: -30px;
   margin-bottom: -30px;
-  animation-name: spacerAnimationShrink;
-  animation-duration: .5s;
+  transition: all .5s ease-in-out;
 }
 
 .boxedSheetItem + .spacer.spacerSelected {
   margin-top: unset;
   margin-bottom:30px;
-  animation-name: spacerAnimation;
-  animation-duration: .5s;
+  transition: all .5s ease-in-out;
 }
-/* 
-.heLeft.bilingual .boxedSheetItem + .spacer.spacerSelected, 
-.heRight.bilingual .boxedSheetItem + .spacer.spacerSelected {
-  margin-top: unset;
-} */
-/* 
-@keyframes spacerAnimation {
-  from {
-    margin-top: -30px;
-    margin-bottom: -30px;
-  }
-
-  to {
-    margin-top: unset;
-    margin-bottom: 30px;
-  }
-}
-
-
-@keyframes spacerAnimationShrink {
-  to {
-    margin-top: -30px;
-    margin-bottom: -30px;
-  }
-
-  from {
-    margin-top: 30px;
-    margin-bottom: 30px;
-  }
-}  */
 
 .boxedSheetItem[draggable] {
   -moz-user-select: none;
