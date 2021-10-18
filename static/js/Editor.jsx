@@ -640,15 +640,17 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
 
       const clientRect = e.target.getBoundingClientRect();
 
-      const dragIconContainer = document.createElement('div');
-      dragIconContainer.classList.add("dragIconContainer");
-      dragIconContainer.style.height = `${clientRect.height}px`;
-      dragIconContainer.style.width = `${clientRect.width}px`;
+      // const dragIconContainer = document.createElement('div');
+      // dragIconContainer.classList.add("dragIconContainer");
+      // dragIconContainer.style.height = `${clientRect.height}px`;
+      // dragIconContainer.style.width = `${clientRect.width}px`;
 
-      document.body.appendChild(dragIconContainer);
-      dragIconContainer.appendChild(dragIcon);
+      // document.body.appendChild(dragIconContainer);
+      // dragIconContainer.appendChild(dragIcon);
+      // e.dataTransfer.setDragImage(dragIconContainer, 0, clientRect.height);
 
-      e.dataTransfer.setDragImage(dragIconContainer, 0, clientRect.height);
+      document.body.appendChild(dragIcon);
+      e.dataTransfer.setDragImage(dragIcon, 0, 0);
 
 
 
@@ -974,7 +976,7 @@ const Element = props => {
 
         case 'SheetMedia':
             let mediaComponent
-            let vimeoRe = /^.*(vimeo\.com\/)((channels\/[A-z]+\/)|(groups\/[A-z]+\/videos\/)|(video\/))?([0-9]+)/;        
+            let vimeoRe = /^.*(vimeo\.com\/)((channels\/[A-z]+\/)|(groups\/[A-z]+\/videos\/)|(video\/))?([0-9]+)/;
             if (element.mediaUrl.match(/\.(jpeg|jpg|gif|png)$/i) != null) {
               mediaComponent = <div className="SheetMedia media"><img className="addedMedia" src={element.mediaUrl} />{children}</div>
             }
