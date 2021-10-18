@@ -9044,6 +9044,8 @@ cursor: pointer;
   padding-inline-end: 20px;
   margin-inline-start: -16px;
   margin-inline-end: -20px;
+  padding-top: 15px;
+  padding-bottom: 15px;
 }
 .interface-hebrew .sheetItem .SheetSource .he,
 .interface-hebrew .sheetItem .SheetSource .en,
@@ -9087,12 +9089,57 @@ cursor: pointer;
   content: " ";
   display: block;
   clear: both;
-  height: 15px;
+  height: 0;
   background-color: #FBFBFA;
 }
 .sheetItem .SheetMedia {
   margin-bottom: 14px;
 }
+
+.boxedSheetItem + .spacer {
+  margin-top: -30px;
+  margin-bottom: -30px;
+  animation-name: spacerAnimationShrink;
+  animation-duration: .5s;
+}
+
+.boxedSheetItem + .spacer.spacerSelected {
+  margin-top: unset;
+  margin-bottom:30px;
+  animation-name: spacerAnimation;
+  animation-duration: .5s;
+}
+/* 
+.heLeft.bilingual .boxedSheetItem + .spacer.spacerSelected, 
+.heRight.bilingual .boxedSheetItem + .spacer.spacerSelected {
+  margin-top: unset;
+} */
+/* 
+@keyframes spacerAnimation {
+  from {
+    margin-top: -30px;
+    margin-bottom: -30px;
+  }
+
+  to {
+    margin-top: unset;
+    margin-bottom: 30px;
+  }
+}
+
+
+@keyframes spacerAnimationShrink {
+  to {
+    margin-top: -30px;
+    margin-bottom: -30px;
+  }
+
+  from {
+    margin-top: 30px;
+    margin-bottom: 30px;
+  }
+}  */
+
 .boxedSheetItem[draggable] {
   -moz-user-select: none;
   -khtml-user-select: none;

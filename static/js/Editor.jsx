@@ -937,8 +937,13 @@ const Element = props => {
     switch (element.type) {
         case 'spacer':
           const spacerSelected = useSelected();
+          const spacerClasses = {
+            spacerSelected: spacerSelected, 
+            spacer: 1,
+            empty: 1
+          }
           return (
-            <div className="spacer empty" {...attributes}>
+            <div className={classNames(spacerClasses)} {...attributes}>
               {spacerSelected && document.getSelection().isCollapsed ?  <AddInterface {...props} /> : <>{children}</>}
             </div>
           );
