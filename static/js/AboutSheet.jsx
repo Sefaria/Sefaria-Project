@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { SheetAuthorStatement, InterfaceText, ProfilePic } from "./Misc";
+import {SheetAuthorStatement, InterfaceText, ProfilePic, EnglishText, HebrewText} from "./Misc";
 import Sefaria from "./sefaria/sefaria";
 import ReactTags from 'react-tag-autocomplete'
 import { useDebounce } from "./Hooks";
@@ -209,12 +209,11 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
                 <div>
                     <ul className="aboutSheetLinks">
                         {sheet.topics.map((topic, i) => (
-                            <li key={i}><a href={"/topics/" + topic.slug}
-                                target="_blank"
-
-                            >
-                                <InterfaceText text={{ en: topic.en, he: topic.he }} />
-                            </a></li>
+                            <li key={i}>
+                                <a href={"/topics/" + topic.slug} target="_blank">
+                                    <InterfaceText text={{ en: topic.en, he: topic.he }} />
+                                </a>
+                            </li>
                         ))
                         }
                     </ul>
@@ -258,21 +257,27 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
         </div> : null}
 
     </div>
-        <CollectionsEditor
-            sheetId={sheet.id}
-        ></CollectionsEditor>
-            {isPublished ? <div className={"publishButton"}>
-            <div className="publishedText">Your Sheet is <span style={{fontWeight:"600", color: "var(--sefaria-blue)"}}>published</span> on Sefaria and visible to others.</div>
-            <button className="button published" onClick={togglePublish}>
-                <InterfaceText>Unpublish</InterfaceText>
-            </button>
-        </div> : null}
+        <CollectionsEditor sheetId={sheet.id}/>
+        {isPublished ?
+            <div className={"publishButton"}>
+                <div className="publishedText">
+                    <InterfaceText>
+                        <EnglishText>Your Sheet is <span className="publishedTextBold">published</span> on Sefaria and visible to others.</EnglishText>
+                        <HebrewText>דף המקורות שלך <span className="publishedTextBold">מפורסם</span> בספריא וגלוי למשתמשים אחרים</HebrewText>
+                    </InterfaceText>
+                </div>
+                <button className="button published" onClick={togglePublish}>
+                    <InterfaceText>Unpublish</InterfaceText>
+                </button>
+            </div>
+            : null
+        }
     </div>
 
     return (<div className="aboutSheetPanel">
         <div className="aboutSheetTopHeaders">
             <h2 className="aboutHeader">{title}</h2>
-            <h3 className="aboutSheetSubtitle">Sheet</h3>
+            <h3 className="aboutSheetSubtitle"><InterfaceText>Sheet</InterfaceText></h3>
         </div>
         <SheetAuthorStatement
             authorUrl={sheet.ownerProfileUrl}
@@ -290,7 +295,7 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
         </SheetAuthorStatement>
         <div className="aboutSheetMetadata">
             <div>{Sefaria.util.localeDate(sheet.dateCreated)}</div>
-            <div>{sheet.views} views, {sheetSaves.length} Saves</div>
+            <div>{sheet.views} {Sefaria._("Views")}, {sheetSaves.length} {Sefaria._("Saves")}</div>
             {/* {sheet.status !== 'public' ? (<div><span className="unlisted"><img src="/static/img/eye-slash.svg"/><span>{Sefaria._("Not Published")}</span></span></div>) : undefined} */}
         </div>
         {

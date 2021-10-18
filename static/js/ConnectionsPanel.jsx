@@ -772,7 +772,11 @@ const AboutSheetButtons = ({ setConnectionsMode, masterPanelSheetId }) => {
   }, []);
 
   return (<div>
-    {isOwner ? <ToolsButton en="Publish Settings" he="תרגומים" image="about-text.svg" onClick={() => setConnectionsMode("AboutSheet")} /> : <ToolsButton en="About this Sheet" he="תרגומים" image="about-text.svg" onClick={() => setConnectionsMode("AboutSheet")} />}
+    {isOwner ?
+        <ToolsButton en="Publish Settings" he="הגדרות פרסום" image="about-text.svg" onClick={() => setConnectionsMode("AboutSheet")} />
+        :
+        <ToolsButton en="About this Sheet" he="אודות דף המקורות" image="about-text.svg" onClick={() => setConnectionsMode("AboutSheet")} />
+    }
     <ToolsButton en="Share" he="שיתוף" image="share.svg" onClick={() => setConnectionsMode("Share")} />
   </div>);
 }
@@ -783,7 +787,9 @@ const SheetToolsList = ({ toggleSignUpModal, masterPanelSheetId }) => {
   // const [isPublished, setIsPublished] = useState(false);
   const [copyText, setCopyText] = useState({ en: "Copy", he: "העתקה" });
   const urlHashObject = Sefaria.util.parseHash(Sefaria.util.parseUrl(window.location).hash).afterLoading;
-  const [googleDriveText, setGoogleDriveText] = urlHashObject === "exportToDrive" ? useState({ en: "Syncing with Google Docs...", he: "מייצא לגוגל דרייב..." }) : useState({ en: "Export to Google Drive", he: "ייצוא ל-גוגל דרייב" });
+  const [googleDriveText, setGoogleDriveText] = urlHashObject === "exportToDrive" ? useState({ en: "Syncing with" +
+        " Google Docs...", he: "מייצא לגוגל דוקס..." }) : useState({ en: "Export to Google Drive", he: "ייצוא" +
+        " לגוגל דוקס" });
   const [googleDriveLink, setGoogleDriveLink] = useState("");
   const [copiedSheetId, setCopiedSheetId] = useState(0);
   const sheet = Sefaria.sheets.loadSheetByID(masterPanelSheetId);
@@ -807,7 +813,7 @@ const SheetToolsList = ({ toggleSignUpModal, masterPanelSheetId }) => {
           } else {
             // Export succeeded
             setGoogleDriveLink(data.webViewLink);
-            setGoogleDriveText({ en: "Open Sheet in Google Drive", he: "לפתיחה בגוגל דרייב" })
+            setGoogleDriveText({ en: "Open Sheet in Google Drive", he: "ייצוא הסתיים. לפתיחה בגוגל דוקס" })
           }
         },
         statusCode: {
@@ -853,7 +859,7 @@ const SheetToolsList = ({ toggleSignUpModal, masterPanelSheetId }) => {
     $.post("/api/sheets/", { "json": postJSON }, (data) => {
       if (data.id) {
         setCopiedSheetId(data.id);
-        setCopyText({ en: "Open Copied Sheet", he: "מעבר ל-דף המקורות" });
+        setCopyText({ en: "Open Copied Sheet", he: "צפייה בדף המקורות" });
       } else if ("error" in data) {
         setCopyText({ en: "Sorry, there was an error.", he: "סליחה, ארעה שגיאה" });
         console.log(data.error);
@@ -883,13 +889,13 @@ const SheetToolsList = ({ toggleSignUpModal, masterPanelSheetId }) => {
       Sefaria.util.openInNewTab(googleDriveLink);
     } else {
       Sefaria.track.sheets("Export to Google Drive");
-      setGoogleDriveText({ en: "Syncing with Google Docs...", he: "מייצא לגוגל דרייב..." })
+      setGoogleDriveText({ en: "Syncing with Google Docs...", he: "מייצא לגוגל דוקס..." })
     }
   }
   return (<div>
     <ToolsButton en={copyText.en} he={copyText.he} image="copy.png" onClick={() => copySheet()} />
     {/* <ToolsButton en="Add to Collection" he="תרגומים" image="add-to-collection.svg" onClick={() => toggleCollectionsModal()} /> */}
-    <ToolsButton en="Print" he="תרגומים" image="print.svg" onClick={() => window.print()} />
+    <ToolsButton en="Print" he="הדפסה" image="print.svg" onClick={() => window.print()} />
     <ToolsButton en={googleDriveText.en} he={googleDriveText.he} image="googledrive.svg" onClick={() => googleDriveExport()} />
     {/* todo: update export to google docs button so it works */}
     {/* {showCollectionsModal ? <CollectionsModal
@@ -1368,15 +1374,15 @@ class ShareBox extends Component {
           </div>
           {this.state.sheet && Sefaria._uid === this.state.sheet.owner ?
             <div className="shareInputBox">
-              <span> People with this link can </span>
+              <InterfaceText>People with this link can</InterfaceText>
               <select
                 className="shareDropdown"
                 name="Share"
                 onChange={this.updateShareOptions.bind(this)}
                 value={this.state.shareValue}>
-                <option value="none">View</option>
-                <option value="anyone-can-add">Add</option>
-                <option value="anyone-can-edit">Edit</option>
+                <option value="none">{Sefaria._("View", "Sheet Share")}</option>
+                <option value="anyone-can-add">{Sefaria._("Add", "Sheet Share")}</option>
+                <option value="anyone-can-edit">{Sefaria._("Edit", "Sheet Share")}</option>
               </select>
             </div> : null}
         </ConnectionsPanelSection>
