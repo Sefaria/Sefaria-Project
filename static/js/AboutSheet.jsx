@@ -287,7 +287,7 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
                 url={sheet.ownerImageUrl}
                 len={30}
                 name={sheet.ownerName}
-                outerStyle={{ width: "30px", height: "30px", display: "inline-block", verticalAlign: "middle", marginRight: "10px" }}
+                outerStyle={{ width: "30px", height: "30px", display: "inline-block", verticalAlign: "middle", marginInlineEnd: "10px" }}
             />
             <a href={sheet.ownerProfileUrl}>
                 <InterfaceText>{sheet.ownerName}</InterfaceText>

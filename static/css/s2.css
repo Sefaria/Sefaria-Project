@@ -8391,6 +8391,11 @@ body.interface-hebrew .publishBox .react-tags__search-input::placeholder, body.i
   font-size: var(--sans-serif-body-font-size);
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
+  color: var(--dark-grey);
+}
+.publishSettingsEditMode .publishButton .publishedText .publishedTextBold{
+  font-weight: bold;
+  color: black;
 }
 
 .publishSettingsEditMode .button.published {
@@ -8930,7 +8935,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 
 ul.aboutSheetLinks {
   list-style-type: none;
-  padding-left: 0;
+  padding-inline-start: 0;
   --english-font: var(--english-serif-font-family);
   --hebrew-font: var(--hebrew-serif-font-family);
   font-size: var(--serif-body-font-size);
