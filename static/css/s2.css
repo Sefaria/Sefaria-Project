@@ -7034,10 +7034,6 @@ a .button:hover {
   pointer-events: none;
   width: auto;
 }
-.sheetMetaDataBox .title:focus:before {
-  content: "\200B"; /* zero-width space required so that chrome doesn't cause change in size of box on focus/blur */
-  width: 0;
-}
 .publishBox {
   text-align: start;
   background-color: #EDEDEC;
