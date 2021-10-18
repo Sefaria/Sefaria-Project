@@ -3,75 +3,59 @@ django.setup()
 from sefaria.model.webpage import *
 import cProfile, pstats
 import requests
+from sefaria.local_settings import TRELLO_KEY, TRELLO_TOKEN
+import json
 
 
-#https://trello.com/b/FbwZo9kw/webpages
-# create class for dealing with posts... we have 3 lists on board: a) delete, b) create), c) exclusions
-# for exclusions, we need name of site, all refs and their count
-# for creating site, we need site name and how many days we tracked and how many pages there are
-# for deleting site, we need site name and how many days we tracked and most recent day of newest page or message saying it has no pages
-# so basically, we need three variables in class, site_name, type, and message
-# site_name and type should uniquely identify a card since type corresponds to lists
-def get_lists_on_board():
-	#Get Lists on a Board
-	#GET /1/boards/{id}/lists
-	pass
-
-def get_cards_in_list():
-	#GET /1/lists/{id}/cards
-	pass
-
-def delete_card():
-	#DELETE / 1 / cards / {id}
-	pass
-
-def create_card():
-	#POST /1/cards
-	pass
-
-def get_card():
-	#GET /1/cards/{id}
-	pass
-
-def update_card():
-	#PUT / 1 / cards / {id}
-	pass
-
-def run_job(test=True, api=True):
-	sites_to_delete = []
-	sites_to_create = []
-	sites_excluded = []
+def run_job(test=True, board_id="", idList_mapping={}, members_mapping={}):
+	board = TrelloBoard(board_id=board_id)
+	board.get_lists()
+	sites = {}
 
 	sites_that_may_have_removed_linker_days = 20  # num of days we care about in find_sites_that_may_have_removed_linker and find_webpages_without_websites
 	webpages_without_websites_days = sites_that_may_have_removed_linker_days # same timeline is relevant
 
 	print("Original webpage stats...")
-	total_pages, total_links = webpages_stats()
-	print("{} total pages.\n".format(total_pages))
-	print("{} total connections.\n".format(total_links))
-
-	print("Cleaning webpages...")
-	clean_webpages(test=test)
-	dedupe_webpages(test=test)
+	# total_pages, total_links = webpages_stats()
+	# print("{} total pages.\n".format(total_pages))
+	# print("{} total connections.\n".format(total_links))
+	#
+	# print("Cleaning webpages...")
+	# clean_webpages(test=test)
+	# dedupe_webpages(test=test)
 
 
 	print("Find sites that no longer have linker...")
-	sites_to_delete += find_sites_that_may_have_removed_linker(last_linker_activity_day=sites_that_may_have_removed_linker_days)
+	sites["Linker uninstalled"] = find_sites_that_may_have_removed_linker(last_linker_activity_day=sites_that_may_have_removed_linker_days)
 	print("Looking for webpages that have no corresponding website.  If WebPages have been accessed in last 20 days, create a new WebSite for them.  Otherwise, delete them.")
-	sites_to_create += find_webpages_without_websites(test=test, hit_threshold=50, last_linker_activity_day=webpages_without_websites_days)
+	sites["Site uses linker but is not whitelisted"] = find_webpages_without_websites(test=test, hit_threshold=50, last_linker_activity_day=webpages_without_websites_days)
 
 
 	flag = 500
 	print("Looking for websites where the same Ref appears in at least {} pages...".format(flag))
-	sites_excluded += find_sites_to_be_excluded(flag=flag)
+	sites["Websites that may need exclusions set"] = find_sites_to_be_excluded(flag=flag)
+	#
+	# after_total_pages, after_total_links = webpages_stats()
+	# print("{} total pages.  Deleted {}.\n".format(after_total_pages, total_pages-after_total_pages))
+	# print("{} total connections.  Deleted {}.\n".format(after_total_links, total_links-after_total_links))
 
-	after_total_pages, after_total_links = webpages_stats()
-	print("{} total pages.  Deleted {}.\n".format(after_total_pages, total_pages-after_total_pages))
-	print("{} total connections.  Deleted {}.\n".format(after_total_links, total_links-after_total_links))
+	# given list type and site, either create new card or update existing card with message of site object
+	for kind, sites_to_handle in sites.items():
+		for site_name_in_DB in sites_to_handle:
+			comment = sites_to_handle[site_name_in_DB]
+			already_on_trello = False
+			for site_on_trello in board.lists[idList_mapping[kind]]:
+				site_name_on_trello = site_on_trello['name']
+				if site_name_in_DB == site_name_on_trello:
+					already_on_trello = True
+					board.add_comment(site_on_trello, comment)
+					break
+			if not already_on_trello:
+				card = board.create_card(site_name_in_DB, idList_mapping[kind], members_mapping[kind])
+				board.add_comment(card, comment)
 
-	print(sites_to_delete)
-	print(sites_to_create)
-	print(sites_excluded)
+
+
 
 
 def profile_job():
@@ -83,10 +67,72 @@ def profile_job():
 	stats.print_stats()
 
 
+class TrelloBoard:
+	def __init__(self, board_id="", lists={}):
+		self.board_id = board_id
+		self.lists = lists
+
+	def get_lists(self):
+		board_url = f"https://api.trello.com/1/boards/{self.board_id}/lists?key={TRELLO_KEY}&token={TRELLO_TOKEN}"
+
+		response = requests.request(
+		   "GET",
+		   board_url,
+		   headers={"Accept": "application/json"}
+		)
+		if response.status_code == 200:
+			for l in json.loads(response.content):
+				self.lists[l['id']] = []
+				list_url = f"https://api.trello.com/1/lists/{l['id']}/cards?key={TRELLO_KEY}&token={TRELLO_TOKEN}"
+				response = requests.request(
+					"GET",
+					list_url,
+					headers={"Accept": "application/json"}
+				)
+				if response.status_code == 200:
+					self.lists[l['id']] = json.loads(response.content)
+				else:
+					raise Exception(response.content)
+		else:
+			raise Exception(response.content)
+
+	def create_card(self, site_name, idList, members):
+		url = f"https://api.trello.com/1/cards?idList={idList}&name={site_name}&key={TRELLO_KEY}&token={TRELLO_TOKEN}"
+		response = requests.request(
+			"POST",
+			url,
+			headers={"Accept": "application/json"}
+		)
+		if response.status_code != 200:
+			raise Exception(response.content)
+		else:
+			card = json.loads(response.content)
+			for member in members:
+				url = f"https://api.trello.com/1/cards/{card['id']}/idMembers?value={member}&key={TRELLO_KEY}&token={TRELLO_TOKEN}"
+				response = requests.request(
+					"POST",
+					url,
+					headers={"Accept": "application/json"}
+				)
+				if response.status_code != 200:
+					raise Exception(response.content)
+			return card
+
+
+	def add_comment(self, site_on_trello, comment):
+		url = f"https://api.trello.com/1/cards/{site_on_trello['id']}/actions/comments?text={comment}&key={TRELLO_KEY}&token={TRELLO_TOKEN}"
+		response = requests.request(
+			"POST",
+			url,
+			headers={"Accept": "application/json"}
+		)
+		if response.status_code != 200:
+			raise Exception(response.content)
+
 
 if __name__ == "__main__":
-	delete, keep = find_sites_that_may_have_removed_linker(last_linker_activity_day=40)
-	for r in delete:
-		print(r)
-	#run_job(False)
-
+	members_mapping = {"Linker uninstalled": ["53c2c1b503849ae6a6e56870", "5f0c575790c4a913b3992da2"],
+					   "Site uses linker but is not whitelisted": ["53c2c1b503849ae6a6e56870", "5f0c575790c4a913b3992da2"],
+					   "Websites that may need exclusions set": ["53c2c1b503849ae6a6e56870"]}
+	idList_mapping = {"Linker uninstalled": "615b2fda735fdd1a4a7fa2df", "Site uses linker but is not whitelisted": "615b2fdf8c2799427ada5574", "Websites that may need exclusions set": '615b2ff66487a70d3ea3b3b4'}
+	run_job(board_id='615b2cf55893576270ef630d', idList_mapping=idList_mapping, members_mapping=members_mapping)

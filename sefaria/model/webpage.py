@@ -485,7 +485,7 @@ def find_webpages_without_websites(test=True, hit_threshold=50, last_linker_acti
 
 def find_sites_to_be_excluded(flag=100):
     all_sites = {}
-    sites_to_exclude = []
+    sites_to_exclude = {}
     for i, webpage in enumerate(WebPageSet()):
         if i % 100000 == 0:
             print(i)
@@ -582,4 +582,4 @@ def find_sites_that_may_have_removed_linker(last_linker_activity_day=20):
                     sites_to_keep[domain] = True
     if webpages_without_websites > 0:
         print("Found {} webpages without websites".format(webpages_without_websites))
-    return sites_to_delete, sites_to_keep
+    return sites_to_delete
