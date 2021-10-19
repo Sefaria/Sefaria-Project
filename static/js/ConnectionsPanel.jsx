@@ -1389,7 +1389,7 @@ class ShareBox extends Component {
         <ConnectionsPanelSection title="More Options">
           <ToolsButton en="Share on Facebook" he="פייסבוק" icon="facebook-official" onClick={shareFacebook} />
           <ToolsButton en="Share on Twitter" he="טוויטר" icon="twitter" onClick={shareTwitter} />
-          <ToolsButton en="Share on Email" he="אימייל" icon="envelope-o" onClick={shareEmail} />
+          <ToolsButton en="Share by Email" he="אימייל" icon="envelope-o" onClick={shareEmail} />
         </ConnectionsPanelSection>
       </div>);
   }
