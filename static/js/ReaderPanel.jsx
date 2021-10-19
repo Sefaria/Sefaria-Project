@@ -1232,9 +1232,6 @@ class ReaderControls extends Component {
         <div className={"readerTextTocBox" + (this.props.sheetID ? " sheetBox" : "")} role="heading" aria-level="1" aria-live="polite">
           <div>
             <a href={url} aria-label={"Show table of contents for " + title} >
-              { title ?
-              <i className="fa fa-angle-down invisible"></i> : null }
-
               { this.props.sheetID ?
               <img src={"/static/img/sheet.svg"} className="sheetTocIcon" alt="" /> : null}
 
@@ -1250,7 +1247,6 @@ class ReaderControls extends Component {
                 </span>
               </h1>
               }
-              { title ? (<i className="fa fa-angle-down"></i>) : null }
               { showVersion ?
               <span className="readerTextVersion">
                 <span className="en">{versionTitle}</span>
