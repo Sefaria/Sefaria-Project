@@ -6885,6 +6885,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .toolsButton .toolsButtonIcon {
   color: #999;
   font-size: 20px;
+  width: 20px;
   margin-top: -1px;
 }
 
