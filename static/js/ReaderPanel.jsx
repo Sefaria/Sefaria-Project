@@ -1035,6 +1035,7 @@ class ReaderPanel extends Component {
             showBaseText={this.showBaseText}
             toggleSheetEditMode={this.toggleSheetEditMode}
             currentRef={this.state.currentlyVisibleRef}
+            highlightedRefs={this.state.highlightedRefs}
             sheetID={this.state.sheetID}
             sheetTitle={sheetTitle}
             currentMode={this.currentMode.bind(this)}
@@ -1155,7 +1156,9 @@ class ReaderControls extends Component {
   }
   openTextConnectionsPanel(e) {
     e.preventDefault();
-    this.props.onTextTitleClick(this.props.currentRef, false);
+    if(!this.props.highlightedRefs.length){ //Prevent click on title from opening connections panel if its already open
+      this.props.onTextTitleClick(this.props.currentRef, false);
+    }
   }
   openSheetConnectionsPanel(e) {
     e.preventDefault();
