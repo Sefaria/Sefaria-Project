@@ -8264,6 +8264,7 @@ a .button:hover {
 div.transparentBackground.publishBox {
   background-color: inherit;
   border-radius: 0px;
+  padding: 0px 20px;
   color: inherit;
 }
 
