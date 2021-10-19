@@ -8380,7 +8380,7 @@ body.interface-hebrew .publishBox .react-tags__search-input::placeholder, body.i
 }
 
 .publishSettingsEditMode .publishButton {
-  margin: 18px 0;
+  margin: 38px 0;
   text-align: end;
   flex-direction: row;
   display: flex;
