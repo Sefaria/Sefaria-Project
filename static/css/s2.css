@@ -8316,7 +8316,7 @@ div.transparentBackground.publishBox {
 
 .publishBox textarea {
   width: 100%;
-  height: 100%;
+  height: 100px;
   resize: none;
   box-sizing: border-box;
   font-size: 16px;
@@ -9000,7 +9000,12 @@ h3.aboutSheetHeader {
   font-size: var(--sans-serif-h3-font-size);
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
-  margin-bottom: 10px;
+  margin-bottom: 17px;
+  margin-top: 36px;
+  padding-bottom: 18px;
+  border-style: none none solid none;
+  border-color: var(--light-grey);
+  border-width: 1px;
 }
 
 .aboutSheetPanel hr {
