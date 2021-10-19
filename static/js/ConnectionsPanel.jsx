@@ -1353,6 +1353,17 @@ class ShareBox extends Component {
   updateShareOptions(event) {
     this.setState({ shareValue: event.target.value });
   }
+  copySheetLink() {
+    var copyText = document.getElementById("sheetShareLink");
+    copyText.select();
+    copyText.setSelectionRange(0, 99999); // For mobile devices
+
+    if (!navigator.clipboard) { // fallback if navigator.clipboard does not work
+      document.execCommand('copy');
+    } else {
+      navigator.clipboard.writeText(copyText.value);
+    }
+  }
   render() {
     var url = this.props.url;
 
@@ -1370,10 +1381,11 @@ class ShareBox extends Component {
       <div>
         <ConnectionsPanelSection title="Share Link">
           <div className="shareInputBox">
-            <input className="shareInput" value={this.props.url} />
+            <input className="shareInput" id="sheetShareLink" value={this.props.url} />
+            <button className="shareInputButton" aria-label="Copy Link to Sheet" onClick={this.copySheetLink.bind(this)}><img src="/static/icons/copy.svg" className="copyLinkIcon" aria-hidden="true" tabIndex="0"></img></button>
           </div>
           {this.state.sheet && Sefaria._uid === this.state.sheet.owner ?
-            <div className="shareInputBox">
+            <div className="shareSettingsBox">
               <InterfaceText>People with this link can</InterfaceText>
               <select
                 className="shareDropdown"
