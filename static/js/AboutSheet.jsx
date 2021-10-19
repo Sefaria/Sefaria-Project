@@ -251,7 +251,7 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
         {validation.validationFailed == "none" ? null : <p className="error"><InterfaceText>{validation.validationMsg}</InterfaceText></p>}
 
         {!isPublished ? <div className={"publishButton"}>
-            <button className="button" onClick={togglePublish}>
+            <button className="button notPublished" onClick={togglePublish}>
                 <InterfaceText>Publish</InterfaceText>
             </button>
         </div> : null}
