@@ -8443,11 +8443,14 @@ body.interface-hebrew .publishBox .react-tags__search-input::placeholder, body.i
 }
 
 .publishSettingsEditMode .button.published {
-  background-color: #EDEDEC;
+  background-color: #FFFFFF;
   border: 1px solid #CCCCCC;
-  color: #666666;
+  color: var(--dark-grey);
   height: fit-content;
   align-self: center;
+  border-radius: 6px;
+  box-sizing: border-box;
+  box-shadow: none;
 }
 
 .publishBox .react-tags__suggestions ul {
