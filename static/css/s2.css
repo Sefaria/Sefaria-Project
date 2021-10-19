@@ -10666,12 +10666,11 @@ span.ref-link-color-3 {color: blue}
   color: white;
   height: 100%;
   font-size: 16px;
-  font: "Roboto";
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
   font-weight: 400;
   box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+  position: relative;
 }
 
 .beitMidrashContainer video {
@@ -10776,10 +10775,13 @@ span.ref-link-color-3 {color: blue}
 }
 
 .beitMidrashHomeContainer {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 300px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  height: 100%;
 }
 
 #beitMidrashHeader {
@@ -10807,6 +10809,9 @@ span.ref-link-color-3 {color: blue}
 
 .peopleInBeitMidrash {
   overflow-y: auto;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .beitMidrashHR {
@@ -10848,13 +10853,12 @@ span.ref-link-color-3 {color: blue}
 .chat {
   bottom: 0;
   right: 0;
-  width: 250px;
   overflow: hidden;
+  height: 300px;
   display: flex;
   flex-direction: column;
-  margin-inline-start: 24px;
-  max-height: 300px;
   margin-bottom: 20px;
+  padding-top: 20px;
 }
 
 #hideButtonHolder{
@@ -10874,7 +10878,7 @@ span.ref-link-color-3 {color: blue}
 .chatBoxHeader {
   display: flex;
   align-items: center;
-  margin-bottom: 10px;
+  margin: 5px 24px;
   justify-content: space-between;
 }
 
@@ -10905,7 +10909,8 @@ span.ref-link-color-3 {color: blue}
 
 .chatMessage {
   display: flex;
-  margin-bottom: 14px;
+  margin: 7px 24px;
+
 }
 
 .chatText {

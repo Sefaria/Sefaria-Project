@@ -310,57 +310,52 @@ const BeitMidrashHome = ({beitMidrashId,
                         }) => {
 
     return (<div className="beitMidrashHomeContainer">
-        <div>
-        <div id="beitMidrashHeader">Beit Midrash</div>
-        {/*<div id="newCall"><a href="/chavruta"><img src="/static/img/camera_with_plus.svg" id="newCallImg" /><span>New Call</span></a></div>*/}
-        <hr className="beitMidrashHR" />
+            {/*<div id="newCall"><a href="/chavruta"><img src="/static/img/camera_with_plus.svg" id="newCallImg" /><span>New Call</span></a></div>*/}
+            <div id="beitMidrashHeader">Beit Midrash</div>
             <div className="peopleInBeitMidrash">
                 {peopleInBeitMidrash && peopleInBeitMidrash.length > 1 ? peopleInBeitMidrash
-                .filter(user => !user.roomId)
-                .map(user => {
-                    if (user.uid !== Sefaria._uid) {
-                    return <div id="beitMidrashUser" key={user.uid} onClick={() => startChat(user)}>
-                        <ProfilePic len={42.67} url={user.pic} name={user.name} id="beitMidrashProfilePic" />
-                        <div id ="beitMidrashUserText">
-                        {user.name}
-                        {/* {currentActiveChatUsers.includes(user.uid) ? null : <button onClick={() => startChat(user)}>Chat</button>
+                    .filter(user => !user.roomId)
+                    .map(user => {
+                        if (user.uid !== Sefaria._uid) {
+                            return <div id="beitMidrashUser" key={user.uid} onClick={() => startChat(user)}>
+                                <ProfilePic len={42.67} url={user.pic} name={user.name} id="beitMidrashProfilePic"/>
+                                <div id="beitMidrashUserText">
+                                    {user.name}
+                                    {/* {currentActiveChatUsers.includes(user.uid) ? null : <button onClick={() => startChat(user)}>Chat</button>
                         } */}
-                        <div id="beitMidrashOrg">{user.currentlyReading !== "" ? `is learning ${user.currentlyReading}`: ""}</div>
-                        </div>
-                    </div>
-                    } else {
-                        return null
-                    }
-                }) : <div className="noUsers">No users online.</div>}
+                                    <div
+                                        id="beitMidrashOrg">{user.currentlyReading !== "" ? `is learning ${user.currentlyReading}` : ""}</div>
+                                </div>
+                            </div>
+                        } else {
+                            return null
+                        }
+                    }) : <div className="noUsers">No users online.</div>}
             </div>
             {/* <div>
             {peopleInBeitMidrash ? pairsLearning(peopleInBeitMidrash).map((pair, i)  => <li key={i}>{pair.map(user => user.name).join(", ")}</li>) : null}
             </div> */}
-        </div>
-        <div>
-        <hr className="beitMidrashHR" />
-        {activeChatRooms.map(room => {
-            if (room.roomId === currentChatRoom) {
-                return <ChatBox
-                            key={room.roomId}
-                            room={room}
-                            chatDataStore={chatDataStore}
-                            setChatDataStore={setChatDataStore}
-                            chatDataStoreRef={chatDataStoreRef}
-                            handleCloseChat={handleCloseChat}
-                            chavrutaCallInitiated={chavrutaCallInitiated}
-                            chavrutaRequestReceived={chavrutaRequestReceived}
-                            setUserB={setUserB}
-                            socket={socket}
-                            profile={profile}
-                            partnerLeftNotification={partnerLeftNotification}
-                            setPartnerLeftNotification={setPartnerLeftNotification}
-                            onBlockUser={onBlockUser}
-                            onUnblockUser={onUnblockUser}
-                        />
-            }
-        })}
-        </div>
+            {activeChatRooms.map(room => {
+                if (room.roomId === currentChatRoom) {
+                    return <ChatBox
+                        key={room.roomId}
+                        room={room}
+                        chatDataStore={chatDataStore}
+                        setChatDataStore={setChatDataStore}
+                        chatDataStoreRef={chatDataStoreRef}
+                        handleCloseChat={handleCloseChat}
+                        chavrutaCallInitiated={chavrutaCallInitiated}
+                        chavrutaRequestReceived={chavrutaRequestReceived}
+                        setUserB={setUserB}
+                        socket={socket}
+                        profile={profile}
+                        partnerLeftNotification={partnerLeftNotification}
+                        setPartnerLeftNotification={setPartnerLeftNotification}
+                        onBlockUser={onBlockUser}
+                        onUnblockUser={onUnblockUser}
+                    />
+                }
+            })}
     </div>)
 }
 
