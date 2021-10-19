@@ -8351,6 +8351,7 @@ body.interface-hebrew .publishBox .react-tags__search-input::placeholder, body.i
   content: '\2715';
   color: #AAA;
   margin-inline-start: 8px;
+  vertical-align: middle;
   font-size: 10px;
 }
 
