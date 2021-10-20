@@ -14,6 +14,7 @@ import {
     CollectionStatement,
     ProfilePic,
     InterfaceText,
+    Autocompleter,
 } from './Misc';
 
 import classNames from 'classnames';
@@ -46,7 +47,7 @@ const HOTKEYS = {
 
 const LIST_TYPES = ['numbered-list', 'bulleted-list']
 
-const NO_SPACER_NEEDED_TYPES = ["SheetOutsideText", "header", "SheetComment"]
+const NO_SPACER_NEEDED_TYPES = ["SheetOutsideText", "header", "SheetComment", "list-item", "numbered-list", "bulleted-list"]
 
 const ELEMENT_TAGS = {
     A: el => ({type: 'link', url: el.getAttribute('href'), ref: el.getAttribute('data-ref'), target: el.getAttribute('target')}),
@@ -217,7 +218,8 @@ export const deserialize = el => {
           const styleValue = styleArray[1].trim()
           let attrs = {}
           attrs[styleType] = styleValue
-          return children.map(child => jsx('text', attrs, ((typeof child === "string" || Text.isText(child)) ? child : Node.string(child))))
+
+          return children.map(child => child ? jsx('text', attrs, ((typeof child === "string" || Text.isText(child)) ? child : Node.string(child))): {'text':''})
         }
       }
     }
@@ -542,7 +544,7 @@ function isSourceEditable(e, editor) {
 }
 
 const BoxedSheetElement = ({ attributes, children, element }) => {
-  const editor = useSlate();
+  const parentEditor = useSlate();
 
   const sheetSourceEnEditor = useMemo(() => withLinks(withHistory(withReact(createEditor()))), [])
   const sheetSourceHeEditor = useMemo(() => withLinks(withHistory(withReact(createEditor()))), [])
@@ -565,7 +567,7 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
 
   useEffect(
       () => {
-        Transforms.setNodes(editor, {heText: sheetHeSourceValue, enText: sheetEnSourceValue}, {at: ReactEditor.findPath(editor, element)});
+        Transforms.setNodes(parentEditor, {heText: sheetHeSourceValue, enText: sheetEnSourceValue}, {at: ReactEditor.findPath(parentEditor, element)});
       },
       [sourceActive]
   );
@@ -590,9 +592,19 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
     setActiveSourceLangContent(null)
   }
 
+    const onKeyDown = (event, editor) => {
+        for (const hotkey in HOTKEYS) {
+            if (isHotkey(hotkey, event)) {
+                event.preventDefault();
+                const format = HOTKEYS[hotkey];
+                console.log(format)
+                toggleFormat(editor, format)
+            }
+        }
+    }
 
   const isActive = selected;
-  const sheetItemClasses = {sheetItem: 1, highlight: editor.highlightedNode == element.node}
+  const sheetItemClasses = {sheetItem: 1, highlight: parentEditor.highlightedNode == element.node}
   const classes = {
       SheetSource: element.ref ? 1 : 0,
       SheetOutsideBiText: element.ref ? 0 : 1,
@@ -613,6 +625,8 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
             <Editable
               readOnly={!sourceActive}
               renderLeaf={props => <Leaf {...props} />}
+              onKeyDown={(e) => onKeyDown(e, sheetSourceHeEditor)}
+
             />
           </Slate>
         </div>
@@ -625,6 +639,7 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
             <Editable
               readOnly={!sourceActive}
               renderLeaf={props => <Leaf {...props} />}
+              onKeyDown={(e) => onKeyDown(e, sheetSourceEnEditor)}
             />
           </Slate>
         </div>
@@ -635,6 +650,219 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
       </div>
   );
 };
+
+const AddInterfaceInput = ({ inputType, resetInterface }) => {
+    const editor = useSlate();
+    const [inputValue, setInputValue] = useState("");
+    const [showAddMediaButton, setShowAddMediaButton] = useState(false);
+
+    const isMediaLink = (url) => {
+        console.log(url)
+
+      if (url.match(/^https?/i) == null) {
+        return null;
+      }
+      const youtube_re = /https?:\/\/(www\.)?(youtu(?:\.be|be\.com)\/(?:.*v(?:\/|=)|(?:.*\/)?)([\w'-]+))/i;
+      let vimeo_re = /^.*(vimeo\.com\/)((channels\/[A-z]+\/)|(groups\/[A-z]+\/videos\/)|(video\/))?([0-9]+)/;
+      let m;
+      if ((m = youtube_re.exec(url)) !== null) {
+        if (m.index === youtube_re.lastIndex) {
+          youtube_re.lastIndex++;
+        }
+        if (m.length>0) {
+            return "https://www.youtube.com/embed/"+m[m.length-1]+"?rel=0&amp;showinfo=0";
+        }
+      }
+      else if ((m = vimeo_re.exec(url)) !== null) {
+          if (m.index === vimeo_re.lastIndex) {
+              vimeo_re.lastIndex++;
+          }
+          if (m.length > 0) {
+              return "https://player.vimeo.com/video/" + m[6];
+          }
+    } else if (url.match(/^https?:\/\/(www\.)?.+\.(jpeg|jpg|gif|png)$/i) != null) {
+        return url;
+      } else if (url.match(/^https?:\/\/(www\.)?.+\.(mp3)$/i) != null) {
+        return url;
+      } else if (url.match(/^https?:\/\/(www\.|m\.)?soundcloud\.com\/[\w\-\.]+\/[\w\-\.]+\/?/i) != null) {
+        return 'https://w.soundcloud.com/player/?url='+ url + '&amp;color=ff5500&amp;auto_play=false&amp;hide_related=true&amp;show_comments=false&amp;show_user=true&amp;show_reposts=false';
+      } else if ((m = /^https?:\/\/open\.spotify\.com\/(?:embed\/)?(\w+)\/(\w+)\/?/i.exec(url)) != null) {
+          return `https://open.spotify.com/embed/${m[1]}/${m[2]}`;
+      } else if ((m = /^https?:\/\/bandcamp.com\/EmbeddedPlayer(\/\w+\=\w+)+(\/)?/i.exec(url)) != null) {
+          if (!url.includes("artwork=small")) { // force small artwork because height calculation for large artwork depends on width
+            return m[2] ? url + "artwork=small" : url + "/artwork=small";
+          } else {
+              return url;
+          }
+      } else {
+        return false
+      }
+    }
+
+    const onMediaChange = (e) => {
+        const newValue = e.target.value;
+        setInputValue(newValue)
+        setShowAddMediaButton(isMediaLink(newValue))
+    }
+    const addMedia = () => {
+        const fragment = {
+            type: "SheetMedia",
+            mediaUrl: isMediaLink(inputValue),
+            node: editor.children[0].nextNode,
+            children: [{text: ""}]
+        };
+        incrementNextSheetNode(editor);
+        Transforms.insertNodes(editor, fragment);
+        Editor.normalize(editor, { force: true })
+        Transforms.move(editor);
+    }
+
+    const selectedRefCallback = (ref) => {
+          insertSource(editor, ref)
+    }
+
+
+    if (inputType == "media") {
+        return (
+            <div className="addInterfaceInput mediaInput" title="We can process YouTube and SoundCloud links, and hosted mp3's and images" onClick={(e)=> {e.stopPropagation()}}>
+                <input
+                    type="text"
+                    placeholder="Paste a link to an image, video, or audio"
+                    className="serif"
+                    onClick={(e)=> {e.stopPropagation()}}
+                    onChange={(e) => onMediaChange(e)}
+                    value={inputValue}
+                    size={100}
+                />
+                {showAddMediaButton ? <button className="button small" onClick={(e) => {
+                    addMedia()
+                }}>Add Media</button> : null}
+            </div>
+        )
+    }
+
+    else if (inputType == "source") {
+        return (
+            <Autocompleter
+                selectedRefCallback={selectedRefCallback}
+            />
+        )
+    }
+
+        else {return(null)}
+
+}
+
+const AddInterface = ({ attributes, children, element }) => {
+    const editor = useSlate();
+    const [active, setActive] = useState(false)
+    const [itemToAdd, setItemToAdd] = useState(null)
+
+    const resetInterface = () => {
+        setActive(false);
+        setItemToAdd(null);
+    }
+
+
+    const toggleEditorAddInterface = (e) => {
+        setActive(!active)
+        setItemToAdd(null);
+
+    }
+    const addInterfaceClasses = {
+        active: active,
+        editorAddInterface: 1,
+    };
+
+    const addSourceClicked = (e) => {
+        e.stopPropagation();
+        setItemToAdd('source');
+          // Timeout required b/c it takes a moment for react to rerender before focusing on the new input
+          setTimeout(() => {
+              document.querySelector(".addInterfaceInput input").focus()
+          }, 100);
+
+    }
+
+    const addMediaClicked = (e) => {
+        e.stopPropagation();
+        setItemToAdd("media");
+          // Timeout required b/c it takes a moment for react to rerender before focusing on the new input
+          setTimeout(() => {
+              document.querySelector(".addInterfaceInput input").focus()
+          }, 100);
+    }
+
+    const addImageClicked = (e) => {
+        e.stopPropagation();
+        setItemToAdd(null);
+        setActive(!active)
+    }
+    const fileInput = useRef(null);
+
+    const uploadImage = (imageData) => {
+        const formData = new FormData();
+        formData.append('file', imageData.replace(/data:image\/(jpe?g|png|gif);base64,/, ""));
+        // formData.append('file', imageData);
+
+        $.ajax({
+            url: Sefaria.apiHost + "/api/sheets/upload-image",
+            type: 'POST',
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function(data) {
+                console.log(data.url)
+                insertMedia(editor, data.url)
+            },
+            error: function(e) {
+                console.log("photo upload ERROR", e);
+            }
+        });
+    };
+
+    const onFileSelect = (e) => {
+        const file = fileInput.current.files[0];
+        if (file == null)
+        return;
+            if (/\.(jpe?g|png|gif)$/i.test(file.name)) {
+                const reader = new FileReader();
+
+                reader.addEventListener("load", function() {
+                  uploadImage(reader.result);
+                }, false);
+
+                reader.addEventListener("onerror", function() {
+                  alert(reader.error);
+                }, false);
+
+                reader.readAsDataURL(file);
+            } else {
+              alert('not an image');
+            }
+    }
+
+    return (
+      <div role="button" title={active ? "Close menu" : "Add a source, image, or other media"} contentEditable={!active} suppressContentEditableWarning={true} aria-label={active ? "Close menu" : "Add a source, image, or other media"} className={classNames(addInterfaceClasses)} onClick={(e) => toggleEditorAddInterface(e)}>
+          {itemToAdd == null ? <>
+              <div role="button" title="Add a source" aria-label="Add a source" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addSourceClicked(e)} id="addSourceButton"></div>
+              <div role="button" title="Add an image" aria-label="Add an image" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addImageClicked(e)} id="addImageButton">
+                  <label htmlFor="addImageFileSelector" id="addImageFileSelectorLabel"></label>
+              </div>
+              <input id="addImageFileSelector" type="file" style={{ display: "none"}} onChange={onFileSelect} ref={fileInput} />
+              <div role="button" title="Add media" aria-label="Add media" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addMediaClicked(e)} id="addMediaButton"></div>
+          </> :
+
+              <AddInterfaceInput
+                inputType={itemToAdd}
+                resetInterface={resetInterface}
+              />
+
+          }
+          <div className="cursorHolder" contentEditable={true} suppressContentEditableWarning={true}>{children}</div>
+      </div>
+    )
+}
 
 const Element = props => {
     const { attributes, children, element } = props;
@@ -647,9 +875,11 @@ const Element = props => {
 
     switch (element.type) {
         case 'spacer':
+          const spacerSelected = useSelected();
           return (
             <div className="spacer empty">
-              {children}
+              {spacerSelected ? <AddInterface {...props} /> : <>{children}</>}
+
             </div>
           );
         case 'SheetSource':
@@ -686,21 +916,27 @@ const Element = props => {
 
         case 'SheetMedia':
             let mediaComponent
-
+            let vimeoRe = /^.*(vimeo\.com\/)((channels\/[A-z]+\/)|(groups\/[A-z]+\/videos\/)|(video\/))?([0-9]+)/;        
             if (element.mediaUrl.match(/\.(jpeg|jpg|gif|png)$/i) != null) {
               mediaComponent = <div className="SheetMedia media"><img className="addedMedia" src={element.mediaUrl} />{children}</div>
             }
-            else if (element.mediaUrl.toLowerCase().indexOf('youtube') > 0) {
+            else if (element.mediaUrl.match(/https?:\/\/www\.youtube\.com\/embed\/.+?rel=0(&amp;|&)showinfo=0$/i) != null) {
               mediaComponent = <div className="media fullWidth SheetMedia"><div className="youTubeContainer"><iframe width="100%" height="100%" src={element.mediaUrl} frameBorder="0" allowFullScreen></iframe>{children}</div></div>
             }
-            else if (element.mediaUrl.toLowerCase().indexOf('soundcloud') > 0) {
-              mediaComponent = <div className="SheetMedia media fullWidth"><iframe width="100%" height="166" scrolling="no" frameBorder="no" src={element.mediaUrl}></iframe>{children}</div>
+            else if (vimeoRe.exec(element.mediaUrl) !== null) {
+                mediaComponent = <div className="SheetMedia media fullWidth"><iframe width="100%" height="315" src={element.mediaUrl} frameborder="0" allow="autoplay; fullscreen" allowfullscreen>{children}</iframe></div>;
             }
-
+            else if (element.mediaUrl.match(/^https?:\/\/open\.spotify\.com\/embed\/\w+\/\w+/i) != null) {
+                mediaComponent = <div className="SheetMedia media fullWidth"><iframe width="100%" height="380" scrolling="no" frameBorder="no" src={element.mediaUrl}></iframe>{children}</div>
+            }
+            else if (element.mediaUrl.match(/https?:\/\/w\.soundcloud\.com\/player\/\?url=.*/i) != null) {
+              mediaComponent = <div className="SheetMedia media fullWidth"><iframe style="border: 0; width: 100%; height: 120px;" scrolling="no" frameBorder="no" src={element.mediaUrl}></iframe>{children}</div>
+            } else if (element.mediaUrl.match(/^https?:\/\/bandcamp.com\/EmbeddedPlayer(\/\w+\=\w+)+\/?/i)) {
+                mediaComponent = <div className="SheetMedia media fullWidth"><iframe width="100%" height="120" scrolling="no" frameBorder="no" src={element.mediaUrl}></iframe>{children}</div>
+            }
             else if (element.mediaUrl.match(/\.(mp3)$/i) != null) {
               mediaComponent= <div className="SheetMedia media fullWidth"><audio src={element.mediaUrl} type="audio/mpeg" controls>Your browser does not support the audio element.</audio>{children}</div>
             }
-
             else {
               mediaComponent = <div className="SheetMedia media fullWidth">{children}</div>
             }
@@ -849,7 +1085,7 @@ async function getRefInText(editor, returnSourceIfFound) {
           Transforms.move(editor, { distance: selectDistance, unit: 'character', reverse: true, edge: 'anchor' })
           Editor.removeMark(editor, "isRef")
           Transforms.delete(editor);
-          insertSource(editor, ref["ref"], paragraphPath)
+          insertSource(editor, ref["ref"])
         }
         return ref
       }
@@ -879,6 +1115,7 @@ const withSefariaSheet = editor => {
 
     editor.deleteBackward = () => {
         const atStartOfDoc = Point.equals(editor.selection.focus, Editor.start(editor, [0, 0]));
+        const atEndOfDoc = Point.equals(editor.selection.focus, Editor.end(editor, [0, 0]));
         if (atStartOfDoc) {
             return
         }
@@ -894,13 +1131,23 @@ const withSefariaSheet = editor => {
                 inSpacer = true;
             }
 
+            if (atEndOfDoc && inSpacer) {
+                Transforms.move(editor, {reverse: true})
+                return
+            }
+
             //we do a dance to see if we'll accidently delete a sheetsource and select it instead if we will
             Transforms.move(editor, {reverse: true})
             if (getClosestSheetElement(editor, editor.selection.focus.path, "SheetSource")) {
                 //deletes the extra spacer space that would otherwise be left behind
                 if (inSpacer) {
-                    Transforms.move(editor);
-                    Editor.deleteForward(editor)
+                    Transforms.move(editor, {distance: 2});
+                    if (getClosestSheetElement(editor, editor.selection.focus.path, "SheetSource")) {
+                            Transforms.move(editor, {reverse: true, distance: 2})
+                    }
+                    else {
+                        deleteBackward();
+                    }
                 }
                 return
             } else {
@@ -931,10 +1178,22 @@ const withSefariaSheet = editor => {
 
         if (getClosestSheetElement(editor, editor.selection.focus.path, "header")) {
             insertBreak();
-            Transforms.setNodes(editor, {type: "SheetOutsideText"}, {at: editor.selection.focus.path});
+            const curHeaderPath = getClosestSheetElement(editor, editor.selection.focus.path, "header")[1]
+            Transforms.setNodes(editor, {type: "SheetOutsideText"}, {at: curHeaderPath});
             return
         }
 
+        const isListItemAndNotEmpty = editor => {
+          const [list] = Editor.nodes(editor, { match: n => LIST_TYPES.includes(!Editor.isEditor(n) && SlateElement.isElement(n) && n.type)})
+          const curNode = Node.get(editor, editor.selection.focus.path);
+            if (list && Node.string(curNode) !== "") {return true}
+            else {return false}
+        };
+
+        if (isListItemAndNotEmpty(editor)) {
+            insertBreak();
+            return
+        }
 
         getRefInText(editor, true).then(query => {
             if (query["is_segment"] || query["is_section"]) {
@@ -949,18 +1208,8 @@ const withSefariaSheet = editor => {
 
 
     editor.insertData = data => {
-        const text = data.getData('text/plain');
-
-        const pastedMediaLink = parseMediaLink(text);
-
-        if (pastedMediaLink) {
-            event.preventDefault();
-            insertMedia(editor, pastedMediaLink)
-
-        } else {
-            insertData(data);
-            checkAndFixDuplicateSheetNodeNumbers(editor);
-        }
+        insertData(data);
+        checkAndFixDuplicateSheetNodeNumbers(editor);
     };
 
 
@@ -977,6 +1226,7 @@ const withSefariaSheet = editor => {
             editor.ensureEditableSpaceAtTopAndBottom,
             editor.replaceSpacerWithOutsideText,
             editor.liftSpacer,
+            editor.ensureNodeId,
             editor.liftSheetElement,
             editor.enforceTextOnlyInBoxedSheetElement,
             editor.ensureEditableSpaceBeforeAndAfterBoxedElements,
@@ -1093,6 +1343,16 @@ const withSefariaSheet = editor => {
 
                 }
 
+                if (LIST_TYPES.includes(child.type)) {
+                    Transforms.wrapNodes(editor,
+                        {
+                            type: "paragraph",
+                            children: [child],
+                        }
+                        , {at: childPath});
+                    return true;
+                }
+
                 // If it's a paragraph, covert to SheetOutisdeText
                 if (child.type === "paragraph") {
                     if (Node.string(child) !== "") {
@@ -1128,6 +1388,7 @@ const withSefariaSheet = editor => {
 
             const firstSheetItem = node.children[0];
             if (firstSheetItem.type !== "spacer" && !NO_SPACER_NEEDED_TYPES.includes(firstSheetItem.type)) {
+                console.log(firstSheetItem)
                 Transforms.insertNodes(editor, {type: 'spacer', children: [{text: ""}]}, {at: [0, 0, 0]});
                 return true;
             }
@@ -1138,7 +1399,7 @@ const withSefariaSheet = editor => {
     editor.replaceSpacerWithOutsideText = (node, path) => {
         if (node.type === "spacer") {
             if (Node.string(node) !== "") {
-                Transforms.setNodes(editor, {type: "SheetOutsideText"}, {at: path});
+                Transforms.setNodes(editor, {type: "SheetOutsideText", node: node.node}, {at: path});
             }
         }
     };
@@ -1152,6 +1413,18 @@ const withSefariaSheet = editor => {
             }
         }
     };
+
+    // Ensure all SheetItems have node #
+    editor.ensureNodeId = (node, path) => {
+        const sheetElementTypes = Object.values(sheet_item_els);
+
+        if (sheetElementTypes.includes(node.type)) {
+            if (!node.node) {
+                Transforms.setNodes(editor, {node: editor.children[0].nextNode}, {at: path});
+                incrementNextSheetNode(editor)
+            }
+        }
+    }
 
     // If a sheet element gets stuck inside some other element, lift it up to top level
     editor.liftSheetElement = (node, path) => {
@@ -1229,38 +1502,11 @@ const withSefariaSheet = editor => {
 return editor
 };
 
-const parseMediaLink = (url) => {
-
-  if (url.match(/^https?/i) == null) {
-    return null;
-  }
-  const youtube_re = /https?:\/\/(www\.)?(youtu(?:\.be|be\.com)\/(?:.*v(?:\/|=)|(?:.*\/)?)([\w'-]+))/i;
-  let m;
-  if ((m = youtube_re.exec(url)) !== null) {
-    if (m.index === youtube_re.lastIndex) {
-      youtube_re.lastIndex++;
-    }
-      if (m.length>0) {
-        return ('https://www.youtube.com/embed/'+m[m.length-1]+'?rel=0&amp;showinfo=0')
-      }
-  } else if (url.match(/^https?:\/\/(www\.)?.+\.(jpeg|jpg|gif|png)$/i) != null) {
-    return url;
-  } else if (url.match(/^https?:\/\/(www\.)?.+\.(mp3)$/i) != null) {
-    return url;
-  } else if (url.match(/^https?:\/\/(www\.|m\.)?soundcloud\.com\/[\w\-\.]+\/[\w\-\.]+\/?/i) != null) {
-    return 'https://w.soundcloud.com/player/?url='+ url + '&amp;color=ff5500&amp;auto_play=false&amp;hide_related=true&amp;show_comments=false&amp;show_user=true&amp;show_reposts=false';
-  } else {
-    return
-  }
-}
-
 const incrementNextSheetNode = (editor) => {
   Transforms.setNodes(editor, {nextNode: editor.children[0].nextNode + 1}, {at: [0]});
 }
 
-const addItemToSheet = (editor, fragment, position) => {
-    // const closestSheetItem = getClosestSheetElement(editor, editor.selection.focus.path, "SheetItem")[1];
-    // const nextSheetItemPath = Path.isPath(position) ? position : position == "top" ? closestSheetItem : getNextSheetItemPath(closestSheetItem);
+const addItemToSheet = (editor, fragment) => {
     incrementNextSheetNode(editor);
     Transforms.insertNodes(editor, fragment);
     Editor.normalize(editor, { force: true })
@@ -1292,18 +1538,19 @@ const insertMedia = (editor, mediaUrl) => {
                   text: ""
               }]
   };
-  addItemToSheet(editor, fragment, "bottom");
+  addItemToSheet(editor, fragment);
   Transforms.move(editor);
 }
 
-const insertSource = (editor, ref, path) => {
+const insertSource = (editor, ref) => {
+    const path = editor.selection.anchor.path;
 
     Transforms.setNodes(editor, { loading: true }, {at: path});
 
     const nodeAbove = getNodeAbove(path, editor)
     const nodeBelow = getNodeBelow(path, editor)
 
-    Sefaria.getText(ref).then(text => {
+    Sefaria.getText(ref, {stripItags: 1}).then(text => {
         const enText = Array.isArray(text.text) ? `<p>${text.text.flat(Infinity).join("</p><p>")}</p>` : text.text;
         const heText = Array.isArray(text.text) ? `<p>${text.he.flat(Infinity).join("</p><p>")}</p>` : text.he;
         let fragment = [{
@@ -1323,7 +1570,7 @@ const insertSource = (editor, ref, path) => {
           fragment.push({type: 'spacer', children: [{text: ""}]})
         }
         Transforms.setNodes(editor, { loading: false }, { at: path });
-        addItemToSheet(editor, fragment, path ? path : "bottom");
+        addItemToSheet(editor, fragment);
         checkAndFixDuplicateSheetNodeNumbers(editor)
         if (nodeAbove.node && (nodeAbove.node.type == "SheetOutsideText" || nodeAbove.node.type == "paragraph" ) ) {
           Transforms.delete(editor, {at: path})
@@ -1416,6 +1663,7 @@ const Link = ({ attributes, children, element }) => {
   const selected = useSelected();
   const [linkPopoverVisible, setLinkPopoverVisible] = useState(false);
   const [urlValue, setUrlValue] = useState(element.url);
+  const [showLinkRemoveButton, setShowLinkRemoveButton] = useState(false);
   const [currentSlateRange, setCurrentSlateRange] = useState(editor.linkOverrideSelection)
 
 
@@ -1427,7 +1675,7 @@ const Link = ({ attributes, children, element }) => {
         if (!editor.selection || editor.linkOverrideSelection) {return}
         let range = document.createRange();
         range.selectNode(e.target);
-        setCurrentSlateRange(ReactEditor.toSlateRange(editor, range))
+        setCurrentSlateRange(ReactEditor.toSlateRange(editor, range, {exactMatch: false}))
         showLinkHoverTimeout = setTimeout(function () {
             Transforms.select(editor, currentSlateRange);
             setLinkPopoverVisible(true)
@@ -1452,12 +1700,17 @@ const Link = ({ attributes, children, element }) => {
         // Transforms.collapse(editor);
     }
 
-    const closePopup = () => {
+    const closePopup = (e) => {
+        if (e.target.value === "") {
+            Transforms.select(editor, currentSlateRange);
+            editor.removeLink();
+        }
         editor.showLinkOverride = false;
         editor.linkOverrideSelection = null;
     }
 
     const fixUrl = (s) => {
+        if (s == "") return
         try {
             let url = new URL(s)
             return(url)
@@ -1475,6 +1728,7 @@ const Link = ({ attributes, children, element }) => {
         Transforms.setNodes(editor, { url: fixUrl(newUrl) }, {at: linkPath});
     }
 
+    const linkPopoverOpen = linkPopoverVisible || (editor.showLinkOverride && Path.isDescendant(editor.linkOverrideSelection.anchor.path, ReactEditor.findPath(editor, element)))
 
   return (
     <div
@@ -1486,13 +1740,17 @@ const Link = ({ attributes, children, element }) => {
         <a
             href={element.url}
             onClick={(e) => onClick(e, element.url)}
+            onMouseEnter={(e)=> {if (!linkPopoverOpen) {
+                setShowLinkRemoveButton(true)
+            }
+            }}
         >
             {children}
         </a>
 
       {/* Show popup on hover and also force it open when a new link is created  */}
-      {linkPopoverVisible || (editor.showLinkOverride && Path.isDescendant(editor.linkOverrideSelection.anchor.path, ReactEditor.findPath(editor, element))) ? (
-        <div className="popup" contentEditable={false} onBlur={closePopup}>
+      {linkPopoverOpen ? (
+        <div className="popup" contentEditable={false} onBlur={(e) => closePopup(e)}>
           <input
               type="text"
               value={urlValue}
@@ -1500,7 +1758,7 @@ const Link = ({ attributes, children, element }) => {
               className="sans-serif"
               onChange={(e) => urlChange(e)}
           />
-          <button onClick={() => xClicked()}>✕</button>
+            {showLinkRemoveButton ? <button onClick={() => xClicked()}>✕</button> : null}
         </div>
       ) : null }
 
@@ -1513,30 +1771,11 @@ const Link = ({ attributes, children, element }) => {
 
 
 const withLinks = editor => {
-    const { insertData, insertText, isInline } = editor
+    const { isInline } = editor
 
     editor.isInline = element => {
         return element.type === 'link' ? true : isInline(element)
     };
-
-    editor.insertText = text => {
-        if (text && Sefaria.util.isUrl(text)) {
-            wrapLink(editor, text)
-        } else {
-            insertText(text)
-        }
-    };
-
-    editor.insertData = data => {
-        const text = data.getData('text/plain')
-
-        if (text && Sefaria.util.isUrl(text)) {
-            wrapLink(editor, text)
-        } else {
-            insertData(data)
-        }
-    };
-
 
     editor.createLinkNode = (href, text) => ({
         type: "link",
@@ -1633,7 +1872,6 @@ const isFormatActive = (editor, format) => {
 };
 
 const toggleBlock = (editor, format) => {
-    console.log(format)
   const isActive = isBlockActive(editor, format)
   const isList = LIST_TYPES.includes(format)
 
@@ -1746,7 +1984,9 @@ const HoverMenu = (opt) => {
             <FormatButton editor={editor} format="underline"/>
             {buttons == "basic" ? null : <>
                 <AddLinkButton/>
-                <BlockButton editor={editor} format="header"/>
+                <BlockButton editor={editor} format="header" icon="header" />
+                <BlockButton editor={editor} format="numbered-list" icon="list-ol" />
+                <BlockButton editor={editor} format="bulleted-list" icon="list-ul" />
             </>
             }
 
@@ -1770,7 +2010,7 @@ const AddLinkButton = () => {
                   // Timeout required b/c it takes a moment for react to rerender before focusing on the new input
                   setTimeout(() => {
                       document.querySelector(".popup input").focus()
-                  }, 50);
+                  }, 200);
 
               }}
         >
@@ -1798,10 +2038,10 @@ const FormatButton = ({format}) => {
     )
 };
 
-const BlockButton = ({format}) => {
+const BlockButton = ({format, icon}) => {
     const editor = useSlate()
     const isActive = isBlockActive(editor, format);
-    const iconName = "fa-" + format;
+    const iconName = "fa-" + icon;
     const classes = {fa: 1, active: isActive};
     classes[iconName] = 1;
 

@@ -11,7 +11,7 @@ import {
     SimpleContentBlock,
     FollowButton,
     SimpleLinkedBlock,
-    ProfileListing,
+    ProfileListing, ContentText,
 } from './Misc';
 
 
@@ -107,7 +107,9 @@ const NewIndexStory = (props) => {
         </SaveLine>
         <DangerousInterfaceBlock classes="storyBody contentText" en={props.data.en} he={props.data.he}/>
         {props.data.ref?<ColorBarBox tref={props.data.ref}>
-            <StoryBodyBlock en={props.data.text.en} he={props.data.text.he}/>
+            <StoryBodyBlock>
+                <ContentText html={{en:props.data.text.en, he:props.data.text.he}} />
+            </StoryBodyBlock>
         </ColorBarBox>:""}
         {props.data.ref?<ReadMoreLink url={"/" + Sefaria.normRef(props.data.ref)}/>:""}
     </StoryFrame>
@@ -144,7 +146,9 @@ const NewVersionStory = (props) => {
         </SaveLine>
         <DangerousInterfaceBlock classes="storyBody contentText" en={props.data.en} he={props.data.he}/>
         {props.data.ref?<ColorBarBox tref={props.data.ref}>
-            <StoryBodyBlock en={props.data.text.en} he={props.data.text.he}/>
+            <StoryBodyBlock>
+                <ContentText html={{en: props.data.text.en, he: props.data.text.he}} />
+            </StoryBodyBlock>
         </ColorBarBox>:""}
         {props.data.ref?<ReadMoreLink url={"/" + Sefaria.normRef(props.data.ref)}/>:""}
     </StoryFrame>
@@ -326,7 +330,9 @@ const TextPassageStory = (props) => {
             <StoryTitleBlock en={props.data.title.en} he={props.data.title.he} url={url}/>
         </SaveLine>
         <ColorBarBox tref={props.data.ref}>
-            <StoryBodyBlock en={props.data.text.en} he={props.data.text.he}/>
+            <StoryBodyBlock>
+                <ContentText html={{en: props.data.text.en, he: props.data.text.he}} />
+            </StoryBodyBlock>
         </ColorBarBox>
         <ReadMoreLink url={url}/>
     </StoryFrame>
@@ -460,8 +466,10 @@ const StoryTitleBlock = ({url, he, en, children}) => {
 };
 
 
-const StoryBodyBlock = ({en, he}) => (
-    <SimpleContentBlock classes="storyBody" en={en} he={he}/>
+const StoryBodyBlock = ({children}) => (
+    <SimpleContentBlock classes="storyBody">
+        {children}
+    </SimpleContentBlock>
 );
 
 
@@ -475,7 +483,9 @@ const StoryTextList = ({texts, toggleSignUpModal}) => (
 const StoryTextListItem = ({text, toggleSignUpModal}) => (
     <div className="storyTextListItem">
         <ColorBarBox tref={text.ref} >
-            <StoryBodyBlock en={text.en} he={text.he}/>
+            <StoryBodyBlock>
+                <ContentText html={{en: text.en, he: text.he}} />
+            </StoryBodyBlock>
         </ColorBarBox>
         <SaveLine dref={text.ref} toggleSignUpModal={toggleSignUpModal}>
             <SimpleLinkedBlock url={"/" + Sefaria.normRef(text.ref)} en={text.ref} he={text.heRef} classes="contentText citationLine"/>
@@ -505,6 +515,9 @@ const TextPassage = ({text, afterSave, toggleSignUpModal}) => {
                         .map(vlang=>`&v${vlang}=${versions[vlang]}`)
                         .join("")
                         .replace("&","?");
+  const heOnly = !text.en;
+  const enOnly = !text.he;
+  const overrideLanguage = (enOnly || heOnly) ? (heOnly ? "hebrew" : "english") : null;
 
   return (
     <StoryFrame cls="textPassageStory">
@@ -517,7 +530,9 @@ const TextPassage = ({text, afterSave, toggleSignUpModal}) => {
           <StoryTitleBlock en={text.ref} he={text.heRef} url={url}/>
       </SaveLine>
       <ColorBarBox tref={text.ref}>
-          <StoryBodyBlock en={text.en || text.he} he={text.he || text.en}/>
+          <StoryBodyBlock>
+            <ContentText html={{en: text.en, he: text.he}} overrideLanguage={overrideLanguage} bilingualOrder={["he", "en"]} />
+          </StoryBodyBlock>
       </ColorBarBox>
     </StoryFrame>
   );

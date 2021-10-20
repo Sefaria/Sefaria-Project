@@ -53,7 +53,6 @@ class ServerTextCopier(object):
         for t in necessary_terms:
             self._upload_term(t)
 
-
     def load_objects(self):
         self._index_obj = library.get_index(self._title_to_retrieve)
         if not self._index_obj:
@@ -126,8 +125,9 @@ class ServerTextCopier(object):
                 self._make_post_request_to_server(self._prepare_text_api_call(node.full_title()), version_payload)
             if flags:
                 self._make_post_request_to_server(self._prepare_version_attrs_api_call(ver.title, ver.language, ver.versionTitle), flags)
-        if self._post_links:
-            if self._post_links_step < 0 or self._post_links_step > len(self._linkset):
+
+        if self._post_links and len(self._linkset) > 0:
+            if self._post_links_step <= 0 or self._post_links_step > len(self._linkset):
                 self._post_links_step = len(self._linkset)
             links = [l.contents() for l in self._linkset if not getattr(l, 'source_text_oid', None)]
             for i in range(0, len(links), self._post_links_step):

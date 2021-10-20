@@ -556,6 +556,8 @@ input.noselect {
   padding: 0;
   flex: 1;
   height: 100%;
+  margin-bottom: 1px;
+  font-size: var(--serif-body-font-size);
 }
 .header .searchBox input::placeholder {
   font-style: normal;
@@ -3551,9 +3553,21 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   color: #000;
   border-bottom: 4px solid var(--medium-grey);
 }
+
 .searchContent .searchResultList {
   padding-top: 25px;
+  max-width: 665px;
+  padding-top: 25px;
+  max-width: 665px;
 }
+
+@media (min-width: 701px) {
+  /* prevent width of left-pane from changing due to content size when filters applied */
+  .searchContent .searchResultList {
+    width: 60vw;
+  }
+}
+
 .searchContent .searchFilters h2 {
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
@@ -3752,9 +3766,44 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   cursor: pointer;
   font-size: 14px;
   margin-top: 4px;
+  background: none!important;
+  border: none;
+  padding: 0!important;
+  color: inherit;
+
 }
 .searchContent .searchFilters .showMore:hover {
   text-decoration: underline;
+}
+.searchFilters .searchBox {
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  padding-left: 10px;
+  padding-right: 10px;
+  text-align: inherit;
+  background: #EDEDEC;
+  border-radius: 250px;
+  border: none;
+  width: calc(100% - 10px);
+  height: 30px;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: var(--sans-serif-body-font-size);
+  margin-bottom: 10px;
+}
+.searchFilters .searchFilterIcon {
+  float: right;
+  margin: 0px -5px 1px 0px;
+}
+.searchBox input.searchFiltersInput {
+  width: calc(100% - 10px);
+  background-color: transparent;
+  border: 0;
+  font-size: var(--sans-serif-body-font-size);
+}
+.searchBox button {
+  border:0;
 }
 .dropdown-option-list {
   margin-top: 10px;
@@ -3840,7 +3889,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   background-color: var(--lighter-grey);
   padding: 20px 15px;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   color:  var(--dark-grey);
 }
 .mobileSearchFiltersHeader .readerNavMenuCloseButton {
@@ -3849,6 +3898,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   height: 20px;
   display: block;
   line-height: 20px;
+  position: absolute;
+  margin-right: 100%;
+  margin-left: 45px;
 }
 .mobileSearchFilters .searchFilters {
   flex-grow:  1;
@@ -4794,6 +4846,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .basetext .segment.highlight,
 .sheetContent .segment.highlight .en,
 .sheetContent .segment.highlight .he,
+.sheetContent .textPreviewSegment.highlight,
 .readerPanel.bilingual.heLeft .sheetContent .segment.highlight,
 .readerPanel.bilingual.heRight .sheetContent .segment.highlight,
 .editorContent .sheetItem.highlight,
@@ -7419,6 +7472,9 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 }
 .editorSidebarToggle::after {
   content: url("/static/img/3vdots.svg");
+  position: absolute;
+  top: 7px;
+  left: 13px;
 }
 .collectionListingImage {
   height: 100%;
@@ -7876,7 +7932,6 @@ body.interface-english .publishBox .react-tags__suggestions ul {
     padding: 4px 7px 2px;
     position: initial;
     vertical-align: 0px;
-
 }
 .header .searchBox .keyboardInputInitiator {
     display: none;
@@ -8713,6 +8768,11 @@ span.purim-emoji img{
   pointer-events: none;
 }
 
+.sheetContent .editorContent .sheetItem.noPointer iframe {
+  pointer-events: auto;
+}
+
+
 .sheetContent .editorContent .sheetItem.noPointer .element-link,
 .sheetContent .editorContent .sheetItem.noPointer .element-link a {
     cursor: pointer;
@@ -8737,10 +8797,10 @@ span.purim-emoji img{
   background-color: white;
   padding: 0;
   border-radius: 6px;
-  border: 1px solid #CCCCCC;
   z-index: 1;
-  top: -30px;
+  top: -38px;
   pointer-events: auto;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
 }
 
 .sheetContent .element-link .popup input {
@@ -8786,6 +8846,7 @@ span.purim-emoji img{
   padding-bottom: 56.25%; /* 16:9 */
   padding-top: 25px;
   height: 0;
+  pointer-events: auto;
 }
 .youTubeContainer iframe {
   position: absolute;
@@ -8832,26 +8893,217 @@ span.purim-emoji img{
 .sheetContent .spacer:only-of-type.empty {
   line-height: inherit;
 }
-.sheetItem:only-of-type.empty .SheetOutsideText:after,
-.sheetContent .spacer:only-of-type.empty:after {
+.sheetItem:only-of-type.empty .SheetOutsideText:before,
+.sheetContent .spacer:only-of-type.empty:before {
   color: #999;
-  position: relative;
+  position: absolute;
   pointer-events: none;
 }
-.interface-english .sheetItem:only-of-type.empty .SheetOutsideText:after,
-.interface-english .spacer:only-of-type.empty:after,
-.interface-english .spacer:only-of-type.empty:after {
+.interface-english .sheetItem:only-of-type.empty .SheetOutsideText:before,
+.interface-english .spacer:only-of-type.empty:before,
+.interface-english .spacer:only-of-type.empty:before {
   content: "Write some text or type a citation (ex. 'Genesis 1:1-5') ";
-  top: -31px;
-  margin-bottom: -31px;
 }
-.interface-hebrew .sheetItem:only-of-type.empty .SheetOutsideText:after,
-.interface-hebrew .spacer:only-of-type.empty:after,
-.interface-hebrew .spacer:only-of-type.empty:after {
+.interface-hebrew .sheetItem:only-of-type.empty .SheetOutsideText:before,
+.interface-hebrew .spacer:only-of-type.empty:before,
+.interface-hebrew .spacer:only-of-type.empty:before {
   content: "הקלידו טקסט חופשי או מראה מקום (לדוגמא, בראשית א, א-ה)";
-  top: -44px;
-  margin-bottom: -44px;
 }
+.editorAddInterface {
+  position: relative;
+  pointer-events:none;
+  background-color: transparent;
+}
+.editorAddInterface:before {
+  content: "";
+  margin-inline-start:-46px;
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  transform: rotate(45deg);
+  background-color: white;
+  background-image: url("/static/icons/heavy-x.svg");
+  border: 1px solid var(--light-grey);
+  background-size: 14px;
+  border-radius: 50%;
+  pointer-events:auto;
+  cursor: pointer;
+  background-repeat: no-repeat;
+  background-position: center;
+  box-sizing: border-box;
+}
+
+.editorAddInterface.active {
+  background-color: white;
+  line-height: initial;
+}
+.editorAddInterface.active:before {
+  transform: rotate(0);
+}
+.editorAddInterface .editorAddInterfaceButton {
+  display: none;
+}
+
+.addInterfaceInput {
+  pointer-events: none;
+  display: inline-block;
+}
+
+.addInterfaceInput .textPreview {
+  border-inline-start: 4px solid;
+  padding-inline-start: 36px;
+  padding-inline-end: 10px;
+  padding-top: 30px;
+  padding-bottom: 30px;
+  pointer-events: auto;
+  margin-top: 10px;
+  background-color: white;
+}
+
+.addInterfaceInput .button {
+  font-size: 14px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  height: 30px;
+  position: absolute;
+}
+
+.addInterfaceInput .textPreviewSegment {
+  display: inline;
+}
+
+.addInterfaceInput .textPreview .inner {
+  max-height: 272px;
+  overflow-y: scroll;
+  padding-inline-end: 30px;
+  position: relative;
+}
+
+.addInterfaceInput .suggestionBoxContainer,
+.addInterfaceInput .textPreviewContainer {
+  position: absolute;
+  z-index: 1;
+}
+
+.addInterfaceInput .suggestionBox,
+.addInterfaceInput .textPreview {
+  border: 1px solid var(--light-grey);
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  border-radius: 6px;
+}
+
+.addInterfaceInput .suggestionBox {
+  height: 100%;
+}
+.addInterfaceInput select.suggestionBox {
+  font-size: 22px;
+}
+
+
+.addInterfaceInput select.suggestionBox:focus > option:checked {
+  background: var(--light-grey) !important;
+}
+
+.addInterfaceInput select.suggestionBox option:checked,
+.addInterfaceInput select.suggestionBox option:hover {
+    box-shadow: 0 0 10px 100px var(--light-grey) inset;
+}
+
+.addInterfaceInput input,
+.addInterfaceInput button,
+.addInterfaceInput .suggestion {
+  pointer-events: auto;
+}
+.addInterfaceInput button,
+.addInterfaceInput .suggestion {
+  cursor: pointer;
+}
+
+.addInterfaceInput .suggestion {
+  border-inline-start: 4px solid;
+  padding-inline-start: 36px;
+  padding-inline-end: 40px;
+  padding-top: 9px;
+  padding-bottom: 9px;
+  border-bottom: 1px solid var(--lighter-grey);
+}
+
+.addInterfaceInput .suggestion:last-of-type {
+  border-bottom: none;
+}
+
+.addInterfaceInput input {
+  min-width: 350px;
+  max-width: 450px;
+  border-radius: 250px;
+  border: none;
+  box-shadow: none;
+  box-sizing: border-box;
+  font-size: 22px;
+  padding-inline-start: 30px;
+  padding-top: revert;
+  margin-inline-end: 20px;
+  background: url("/static/icons/iconmonstr-magnifier-2-240.svg") no-repeat scroll left 7px top 7px;
+  background-color: var(--lighter-grey);
+}
+.addInterfaceInput.mediaInput input {
+  background: url("/static/icons/link_grey.svg") no-repeat scroll left 7px top 7px;
+  background-color: var(--lighter-grey);
+}
+.readerApp.interface-hebrew .addInterfaceInput input {
+  background-position: right 7px top 7px;
+}
+
+.addInterfaceInput input::placeholder {
+  font-size: 22px;
+  font-style: normal;
+}
+
+.addInterfaceInput input+span.helperCompletionText {
+  position: absolute;
+  margin-left: 4px;
+  color: var(--medium-grey)
+}
+
+.editorAddInterface.active .editorAddInterfaceButton {
+  width: 30px;
+  height: 30px;
+  padding: 10px;
+  display: inline-block;
+  background-size: auto 12px;
+  background-repeat: no-repeat;
+  background-position: center;
+  border-radius: 6px;
+  background-origin: content-box;
+  background-color: var(--lighter-grey);
+  margin-inline-end: 6px;
+  box-sizing: border-box;
+  cursor: pointer;
+  pointer-events: auto;
+}
+.editorAddInterface.active .cursorHolder {
+  display: inline-block;
+ }
+#addSourceButton.editorAddInterfaceButton {
+  background-image: url("/static/icons/quotation.svg");
+}
+#addImageButton.editorAddInterfaceButton {
+  background-image: url("/static/icons/image.svg");
+}
+#addMediaButton.editorAddInterfaceButton {
+  background-image: url("/static/icons/video.svg");
+}
+
+#addImageFileSelectorLabel {
+  width: 30px;
+  height: 30px;
+  margin-inline-start: -5px;
+  margin-top: -5px;
+  display: block;
+  position: absolute;
+  cursor: pointer;
+}
+
 .sheetContent .sheetItem .SheetOutsideText.segment p {
   margin: 0
 }
@@ -9058,8 +9310,8 @@ cursor: pointer;
   pointer-events: none;
   user-select: none;
 }
-.sheetItem .SheetSource:after,
-.sheetItem .SheetOutsideBiText:after {
+.readerPanel.bilingual .sheetItem .SheetSource:after,
+.readerPanel.bilingual .sheetItem .SheetOutsideBiText:after {
   content: " ";
   display: block;
   clear: both;
@@ -9323,7 +9575,7 @@ cursor: pointer;
 }
 .interface-hebrew textarea,
 .interface-hebrew textarea::placeholder,
-.interface-hebrew input,
+.interface-hebrew input
 {
   font-family: var(--hebrew-sans-serif-font-family);
 }

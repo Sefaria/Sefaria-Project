@@ -132,6 +132,9 @@ class ConnectionsPanel extends Component {
     });
     this._savedHistorySegments.add(ref);
   }
+  isSheet(){
+    return this.props.srefs[0].startsWith("Sheet");
+  }
   isSegmentVisible(segment) {
     const threshold = 100;
     const $segment = $(segment);
@@ -166,7 +169,9 @@ class ConnectionsPanel extends Component {
           linksLoaded: true,
         });
     }
-    Sefaria.getVersions(ref, false, ["he"], true).then(versions => this.setState({availableTranslations: versions})); //for counting translations
+    if (!this.isSheet()){
+        Sefaria.getVersions(ref, false, ["he"], true).then(versions => this.setState({availableTranslations: versions})); //for counting translations
+    }
   }
   reloadData() {
     this.setState({
@@ -500,7 +505,6 @@ class ConnectionsPanel extends Component {
         <TopicList
           contentLang={this.props.contentLang}
           srefs={this.props.srefs}
-          sectionRef={this.sectionRef()}
           interfaceLang={this.props.interfaceLang}
           key={`Topics-${this.props.srefs.join("|")}`}
         />
@@ -854,7 +858,13 @@ class MySheetsList extends Component {
     var content = sheets.length ? sheets.filter(sheet => {
       // Don't show sheets as connections to themselves
       return sheet.id !== this.props.connectedSheet;
-    }).map(sheet => {
+    }).filter(
+        // filters out duplicate sheets by sheet ID number
+        (sheet, index, self) =>
+            index === self.findIndex((s) => (
+                s.id === sheet.id
+            ))
+    ).map(sheet => {
       return (<SheetListing sheet={sheet} key={sheet.sheetUrl} handleSheetClick={this.props.handleSheetClick} connectedRefs={this.props.srefs} />)
     }, this) : null;
     return content && content.length ? (<div className="sheetList">{content}</div>) : null;
@@ -892,18 +902,10 @@ PublicSheetsList.propTypes = {
 };
 
 
-const TopicList = ({ srefs, sectionRef, interfaceLang, contentLang }) => {
+const TopicList = ({ srefs, interfaceLang, contentLang }) => {
   // segment ref topicList can be undefined even if loaded
   // but section ref topicList is null when loading and array when loaded
   const topics = Sefaria.topicsByRef(srefs);
-  const topicsBySectionRef =  Sefaria.topicsByRef(sectionRef);
-  if(!topicsBySectionRef){
-      return (
-          <div className="webpageList empty">
-            <LoadingMessage />
-          </div>
-      );
-  }
   return (
     <div className={`topicList ${contentLang === 'hebrew' ? 'topicsHe' : 'topicsEn'}`}>
       {(!topics || !topics.length) ? (

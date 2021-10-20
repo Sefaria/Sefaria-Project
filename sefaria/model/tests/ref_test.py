@@ -393,6 +393,8 @@ class Test_Ref(object):
         assert Ref("Zohar 1:3b:12-1:4b:12").starting_refs_of_span(True) == [Ref("Zohar 1:3b:12"), Ref("Zohar 1:4a"), Ref("Zohar 1:4b")]
 
     def test_as_ranged_segment_ref(self):
+        assert Ref("Zohar").as_ranged_segment_ref() == Ref("Zohar 1:1a:1-4:211b:1")
+        assert Ref("Berakhot").as_ranged_segment_ref() == Ref("Berakhot 2a:1-64a:15")
         assert Ref('Genesis').as_ranged_segment_ref() == Ref('Genesis.1.1-50.26')
         assert Ref('Shabbat.3a.1').as_ranged_segment_ref() == Ref('Shabbat.3a.1')
         assert Ref('Rashi on Shabbat.3b').as_ranged_segment_ref() == Ref('Rashi on Shabbat.3b.1.1-3b.13.1')
@@ -971,7 +973,7 @@ class Test_Order_Id(object):
         assert Ref("Shabbat 12b").order_id() < Ref("Bava Kamma 17b").order_id()
 
     def test_ordering_of_complex_texts(self):
-        assert Ref("Meshech Hochma, Vaera 2").order_id() > Ref("Meshech Hochma, Shemot 6").order_id()
+        assert Ref("Meshekh Chokhmah, Vaera 2").order_id() > Ref("Meshekh Chokhmah, Shemot 6").order_id()
 
     def test_ordering_of_dictionary(self):
         i = library.get_index("Klein Dictionary")

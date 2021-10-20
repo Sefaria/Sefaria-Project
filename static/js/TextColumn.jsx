@@ -51,7 +51,7 @@ class TextColumn extends Component {
       // console.log("scroll to highlight for mobile connections open")
       this.scrollToHighlighted();
 
-    } else if (this.state.showScrollPlaceholders && !prevState.showScrollPlaceholders) {
+    } else if (this.state.showScrollPlaceholders && !prevState.showScrollPlaceholders && !this.initialScrollTopSet) {
       // After scroll placeholders are first rendered, scroll down so top placeholder 
       // is out of view and scrolling up is possible.
       // console.log("scrolling for ScrollPlaceholders first render")
@@ -158,7 +158,7 @@ class TextColumn extends Component {
 
     if (this.node.scrollHeight < this.node.clientHeight) { return; }
 
-    if (this.$container.find(".segment.highlight").length) {
+    if (this.$container.find(".segment.invisibleHighlight").length) {
       // If there is a highlight the initial position scrolls to it.
       this.scrollToHighlighted();
 
@@ -176,7 +176,7 @@ class TextColumn extends Component {
     if (!this._isMounted) { return; }
     const $container   = this.$container;
     const $readerPanel = $container.closest(".readerPanel");
-    const $highlighted = $container.find(".segment.highlight").first();
+    const $highlighted = $container.find(".segment.invisibleHighlight").first();
     if ($highlighted.length) {
       const adjust = this.scrollPlaceholderHeight + this.scrollPlaceholderMargin;
       let top = $highlighted.position().top + adjust - this.highlightThreshhold;
@@ -319,11 +319,12 @@ class TextColumn extends Component {
     this.props.setCurrentlyVisibleRef(sectionRef);
 
     // don't move around highlighted segment when scrolling a single panel,
-    const shouldHighlight = this.props.hasSidebar || this.props.mode === "TextAndConnections";
-
-    if (shouldHighlight) {
-      const ref = $segment.attr("data-ref");
-      this.props.setTextListHighlight(ref);
+    const shouldShowHighlight = this.props.hasSidebar || this.props.mode === "TextAndConnections";
+    const ref = $segment.attr("data-ref");
+    if (shouldShowHighlight) {
+      this.props.setTextListHighlight(ref, true)
+    } else {
+      this.props.setTextListHighlight(ref, false)
     }
   }
   render() {
@@ -336,6 +337,7 @@ class TextColumn extends Component {
         sref={ref}
         currVersions={this.props.currVersions}
         highlightedRefs={this.props.highlightedRefs}
+        showHighlight={this.props.showHighlight}
         textHighlights={this.props.textHighlights}
         hideTitle={isDictionary}
         basetext={true}

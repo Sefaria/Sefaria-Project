@@ -201,7 +201,7 @@ class Collection(abst.AbstractMongoRecord):
 
     def sheet_contents(self, authenticated=False):
         from sefaria.sheets import sheet_list
-        if authenticated == False and getattr(self, "listed", False):
+        if authenticated is False and getattr(self, "listed", False):
             query = {"status": "public", "id": {"$in": self.sheets}}
         else:
             query = {"status": {"$in": ["unlisted", "public"]}, "id": {"$in": self.sheets}}

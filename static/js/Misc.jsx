@@ -11,6 +11,7 @@ import { usePaginatedDisplay } from './Hooks';
 import {ContentLanguageContext} from './context';
 import ReactCrop from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
+import {Editor} from "slate";
 
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
@@ -97,7 +98,7 @@ InterfaceText.propTypes = {
   className: PropTypes.string
 };
 
-const ContentText = ({text, html, overrideLanguage, defaultToInterfaceOnBilingual=false}) => {
+const ContentText = ({text, html, overrideLanguage, defaultToInterfaceOnBilingual=false, bilingualOrder = null}) => {
   /**
    * Renders content language throughout the site (content that comes from the database and is not interface language)
    * Gets the active content language from Context and renders only the appropriate child(ren) for given language
@@ -105,14 +106,26 @@ const ContentText = ({text, html, overrideLanguage, defaultToInterfaceOnBilingua
    * html {{html: object}} a dictionary {en: "some html", he: "some translated html"} to use for each language in the case where it needs to be dangerously set html
    * overrideLanguage a string with the language name (full not 2 letter) to force to render to overriding what the content language context says. Can be useful if calling object determines one langugae is missing in a dynamic way
    * defaultToInterfaceOnBilingual use if you want components not to render all languages in bilingual mode, and default them to what the interface language is
+   * bilingualOrder is an array of short language notations (e.g. ["he", "en"]) meant to tell the component what
+   * order to render the bilingual langauage elements in (as opposed to the unguaranteed order by default).
    */
   const [contentVariable, isDangerouslySetInnerHTML]  = html ? [html, true] : [text, false];
   const contentLanguage = useContext(ContentLanguageContext);
   const languageToFilter = (defaultToInterfaceOnBilingual && contentLanguage.language === "bilingual") ? Sefaria.interfaceLang : (overrideLanguage ? overrideLanguage : contentLanguage.language);
   const langShort = languageToFilter.slice(0,2);
-  let renderedItems = Object.entries(contentVariable).filter(([lang, _])=>{
-    return (languageToFilter === "bilingual") ? true : ((lang === langShort) ? true : false);
-  });
+  let renderedItems = Object.entries(contentVariable);
+  if(languageToFilter == "bilingual"){
+    if(bilingualOrder !== null){
+      //nifty function that sorts one array according to the order of a second array.
+      renderedItems.sort(function(a, b){
+        return bilingualOrder.indexOf(a[0]) - bilingualOrder.indexOf(b[0]);
+      });
+    }
+  }else{
+    renderedItems = renderedItems.filter(([lang, _])=>{
+      return lang === langShort;
+    });
+  }
   return renderedItems.map( x =>
       isDangerouslySetInnerHTML ?
           <span className={x[0]} lang={x[0]} key={x[0]} dangerouslySetInnerHTML={{__html: x[1]}}/>
@@ -850,15 +863,12 @@ SimpleInterfaceBlock.propTypes = {
 };
 
 
-const SimpleContentBlock = ({en, he, classes}) => (
+const SimpleContentBlock = ({children, classes}) => (
         <div className={classes}>
-          <span className="he" dangerouslySetInnerHTML={ {__html: he } } />
-          <span className="en" dangerouslySetInnerHTML={ {__html: en } } />
+          {children}
         </div>
     );
 SimpleContentBlock.propTypes = {
-    en: PropTypes.string,
-    he: PropTypes.string,
     classes: PropTypes.string
 };
 
@@ -931,7 +941,7 @@ class ToggleSet extends Component {
             style={style}
             image={option.image}
             fa={option.fa}
-            content={option.content} />))}     
+            content={option.content} />))}
         </div>
       </div>);
   }
@@ -1311,14 +1321,14 @@ class ProfileListing extends Component {
             en={name}
             he={name}
           >
-            <FollowButton 
+            <FollowButton
               large={false}
               uid={uid}
               following={is_followed}
               disableUnfollow={true}
               toggleSignUpModal={toggleSignUpModal} />
           </SimpleLinkedBlock>
-          {!!organization ? 
+          {!!organization ?
           <SimpleInterfaceBlock
             classes="authorOrganization"
             en={organization}
@@ -1528,12 +1538,12 @@ const CollectionListing = ({data}) => {
     <div className="collectionListing">
       <div className="left-content">
         <div className="collectionListingText">
-          
+
           <a href={collectionUrl} className="collectionListingName">
             <img className="collectionListingImage" src={imageUrl} alt="Collection Icon"/>
             {data.name}
           </a>
-         
+
           <div className="collectionListingDetails">
             {data.listed ? null :
               (<span className="unlisted">
@@ -1543,13 +1553,13 @@ const CollectionListing = ({data}) => {
 
             {data.listed ? null :
             <span className="collectionListingDetailSeparator">•</span> }
-            
+
             <span className="collectionListingDetail collectionListingSheetCount">
               <InterfaceText>{`${data.sheetCount} `}</InterfaceText>
               <InterfaceText>Sheets</InterfaceText>
             </span>
 
-            {data.memberCount > 1 ? 
+            {data.memberCount > 1 ?
             <span className="collectionListingDetailSeparator">•</span> : null }
 
             {data.memberCount > 1 ?
@@ -2046,12 +2056,12 @@ const CategoryAttribution = ({categories, linked = true, asEdition}) => {
   if (!attribution) { return null; }
 
   const en = asEdition ? attribution.englishAsEdition : attribution.english;
-  const he = asEdition ? attribution.hebrewAsEdition : attribution.hebrew;  
+  const he = asEdition ? attribution.hebrewAsEdition : attribution.hebrew;
   const str = <ContentText text={{en, he}} defaultToInterfaceOnBilingual={true} />;
-  
-  const content = linked ? 
+
+  const content = linked ?
       <a href={attribution.link}>{str}</a> : str;
-  
+
   return <div className="categoryAttribution">{content}</div>;
 };
 
@@ -2356,6 +2366,232 @@ const SheetMetaDataBox = (props) => (
   </div>
 );
 
+const Autocompleter = ({selectedRefCallback}) => {
+  const [inputValue, setInputValue] = useState("");
+  const [currentSuggestions, setCurrentSuggestions] = useState(null);
+  const [previewText, setPreviewText] = useState(null);
+  const [helperPromptText, setHelperPromptText] = useState(null);
+  const [showAddButton, setShowAddButton] = useState(false);
+
+  const suggestionEl = useRef(null);
+  const inputEl = useRef(null);
+
+
+  const getWidthOfInput = () => {
+    //Create a temporary div w/ all of the same styles as the input since we can't measure the input
+    let tmp = document.createElement("div");
+    const inputEl = document.querySelector('.addInterfaceInput input');
+    const styles = window.getComputedStyle(inputEl);
+    //Reduce function required b/c cssText returns "" on Firefox
+    const cssText = Object.values(styles).reduce(
+        (css, propertyName) =>
+            `${css}${propertyName}:${styles.getPropertyValue(
+                propertyName
+            )};`
+    );
+    tmp.style.cssText = cssText
+
+    //otherwise it will always return the width of container instead of the content
+    tmp.style.removeProperty('width')
+    tmp.style.removeProperty('min-width')
+    tmp.style.removeProperty('min-inline-size')
+    tmp.style.removeProperty('inline-size')
+
+    tmp.innerHTML = inputEl.value.trim().replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    document.body.appendChild(tmp);
+    const theWidth = tmp.getBoundingClientRect().width;
+    document.body.removeChild(tmp);
+    console.log(theWidth)
+    return theWidth;
+  }
+
+  useEffect(
+    () => {
+         const element = document.querySelector('.textPreviewSegment.highlight');
+         if (element) {element.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' })}
+    }, [previewText]
+  )
+
+
+
+
+  const getSuggestions = (input) => {
+    setInputValue(input)
+    if (input == "") {
+      setPreviewText(null)
+      setHelperPromptText(null)
+      setCurrentSuggestions(null)
+      return
+    }
+    Sefaria.getName(input, true, 5).then(d => {
+
+      if (d.is_section || d.is_segment) {
+        setCurrentSuggestions(null)
+        generatePreviewText(input);
+        setHelperPromptText(null)
+        setShowAddButton(true)
+        return
+      }
+      else {
+        setShowAddButton(false)
+        setPreviewText(null)
+      }
+
+      //We want to show address completions when book exists but not once we start typing further
+      if (d.is_book && isNaN(input.trim().slice(-1))) {
+        setHelperPromptText(d.addressExamples[0])
+        document.querySelector('.addInterfaceInput input+span.helperCompletionText').style.left = `${getWidthOfInput()}px`;
+      }
+      else {
+        setHelperPromptText(null)
+      }
+
+      const suggestions = d.completion_objects
+          .map((suggestion, index) => ({
+            name: suggestion.title,
+            key: suggestion.key,
+            border_color: Sefaria.palette.refColor(suggestion.key)
+          })
+      )
+      setCurrentSuggestions(suggestions);
+    })
+  }
+
+  const resizeInputIfNeeded = () => {
+    const currentWidth = getWidthOfInput()
+    if (currentWidth > 350) {document.querySelector('.addInterfaceInput input').style.width = `${currentWidth+20}px`}
+  }
+
+  const onChange = (input) => {
+    getSuggestions(input);
+    resizeInputIfNeeded()
+  }
+
+
+  const Suggestion = ({title, color}) => {
+    return(<option
+              className="suggestion"
+              onClick={(e)=>{
+                  e.stopPropagation()
+                  setInputValue(title)
+                  getSuggestions(title)
+                  resizeInputIfNeeded()
+                  inputEl.current.focus()
+                }
+              }
+              style={{"borderInlineStartColor": color}}
+           >{title}</option>)
+
+  }
+  const mapSuggestions = (suggestions) => {
+    const div = suggestions.map((suggestion, index) => (
+
+        (<Suggestion
+           title={suggestion.name}
+           color={suggestion.border_color}
+           key={index}
+        />)
+
+    ))
+
+  return(div)
+  }
+
+  const onKeyDown = e => {
+    if (e.key === 'Enter' && showAddButton) {
+      selectedRefCallback(inputValue)
+    }
+
+    else if (e.key === 'ArrowDown' && currentSuggestions && currentSuggestions.length > 0) {
+      suggestionEl.current.focus();
+      (suggestionEl.current).firstChild.selected = 'selected';
+    }
+
+  }
+
+
+  const generatePreviewText = (ref) => {
+        Sefaria.getText(ref, {context:1, stripItags: 1}).then(text => {
+           const segments = Sefaria.makeSegments(text, true);
+           console.log(segments)
+           const previewHTML =  segments.map((segment, i) => {
+            {
+              const heOnly = !segment.en;
+              const enOnly = !segment.he;
+              const overrideLanguage = (enOnly || heOnly) ? (heOnly ? "hebrew" : "english") : null;
+
+              return(
+                  <div
+                      className={classNames({'textPreviewSegment': 1, highlight: segment.highlight, heOnly: heOnly, enOnly: enOnly})}
+                      key={segment.ref}>
+                    <sup><ContentText
+                        text={{"en": segment.number, "he": Sefaria.hebrew.encodeHebrewNumeral(segment.number)}}
+                        defaultToInterfaceOnBilingual={true}
+                    /></sup> <ContentText html={{"he": segment.he+ " ", "en": segment.en+ " " }} defaultToInterfaceOnBilingual={!overrideLanguage} overrideLanguage={overrideLanguage} bilingualOrder={["en", "he"]}/>
+                  </div>
+              )
+            }
+          })
+          setPreviewText(previewHTML)
+        })
+  }
+
+   const checkEnterOnSelect = (e) => {
+      console.log(e.key)
+      if (e.key === 'Enter') {
+        setInputValue(e.target.value);
+        getSuggestions(e.target.value);
+        inputEl.current.focus();
+      }
+    }
+
+
+  return(
+    <div className="addInterfaceInput" onClick={(e) => {e.stopPropagation()}} title="Add a source from Sefaria's library">
+      <input
+          type="text"
+          placeholder="Search for a text..."
+          className="serif"
+          onKeyDown={(e) => onKeyDown(e)}
+          onClick={(e) => {e.stopPropagation()}}
+          onChange={(e) => onChange(e.target.value)}
+          value={inputValue}
+          ref={inputEl}
+          size={inputValue.length}
+      /><span className="helperCompletionText">{helperPromptText}</span>
+      {showAddButton ? <button className="button small" onClick={(e) => {
+                    selectedRefCallback(inputValue)
+                }}>Add Source</button> : null}
+
+      {currentSuggestions && currentSuggestions.length > 0 ?
+          <div className="suggestionBoxContainer">
+          <select
+              ref={suggestionEl}
+              className="suggestionBox"
+              size={currentSuggestions.length}
+              multiple
+              onKeyDown={(e) => checkEnterOnSelect(e)}
+          >
+            {mapSuggestions(currentSuggestions)}
+          </select>
+          </div>
+          : null
+      }
+
+      {previewText ?
+          <div className="textPreviewContainer">
+            <div className="textPreview">
+              <div className="inner">{previewText}</div>
+            </div>
+          </div>
+
+          : null
+
+      }
+
+    </div>
+    )
+}
 
 export {
   SimpleInterfaceBlock,
@@ -2414,5 +2650,6 @@ export {
   SheetAuthorStatement,
   SheetTitle,
   InterfaceLanguageMenu,
+  Autocompleter,
   DonateLink,
 };

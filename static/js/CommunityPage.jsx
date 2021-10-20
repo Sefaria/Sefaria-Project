@@ -37,7 +37,7 @@ const CommunityPage = ({multiPanel, toggleSignUpModal, initialWidth}) => {
   if (dataLoaded) {
     const {parashah, calendar, discover, featured} = Sefaria.community;
     const sheets = [parashah, calendar, discover, featured].filter(x => !!x)
-      .map(x => <FeaturedSheet sheet={x.sheet} key={x.sheet.id} toggleSignUpModal={toggleSignUpModal} trackClicks={true}/>);    
+      .map(x => x.sheet ? <FeaturedSheet sheet={x.sheet} key={x.sheet.id} toggleSignUpModal={toggleSignUpModal} trackClicks={true}/> : null);
     featuredContent = (
       <>
         <ResponsiveNBox content={sheets.slice(0,2)} stretch={true} initialWidth={initialWidth} />
@@ -75,6 +75,7 @@ CommunityPage.propTypes = {
 
 const RecentlyPublished = ({multiPanel, toggleSignUpModal}) => {
   const options = Sefaria.interfaceLang === "hebrew" ? {"lang": "hebrew"} : {};
+  options["filtered"] = true;
   const pageSize = 18;
   const [nSheetsLoaded, setNSheetsLoded] = useState(0); // counting sheets loaded from the API, may be different than sheets displayed
   // Start with recent sheets in the cache, if any

@@ -357,12 +357,10 @@ class VersionsBlocksList extends Component{
   constructor(props) {
     super(props);
     this.state = {
-      //We only want this calculated when component is created, so it doesnt cause a massive re-render/reshuffle in order every time a version is selected
-      sortedLanguages: this.sortVersionsByActiveLang(this.props.sortPrioritizeLanugage),
       currentKeys: this.getCurrentVersionsKeys(this.props.currObjectVersions),
     }
   }
-  sortVersionsByActiveLang(prioritize=null){
+  sortVersions(prioritize=null){
     //sorts the languages of the available versions
     const standard_langs = ["en", "he"];
     //const activeLanguages = Object.values(this.props.currObjectVersions).map(({actualLanguage}) => actualLanguage);
@@ -394,6 +392,7 @@ class VersionsBlocksList extends Component{
     return currs
   }
   render(){
+      const sortedLanguages = this.sortVersions(this.props.sortPrioritizeLanugage);
       if (!this.props.versionsByLanguages) {
         return (
           <div className="versionsBox">
@@ -404,7 +403,7 @@ class VersionsBlocksList extends Component{
       return (
         <div className="versionsBox">
           {
-            this.state.sortedLanguages.map((lang) => (
+            sortedLanguages.map((lang) => (
               <div key={lang}>
                 { this.props.showLanguageHeaders ?
                   <div className="versionLanguage sans-serif">

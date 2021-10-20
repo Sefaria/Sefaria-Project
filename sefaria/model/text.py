@@ -139,6 +139,36 @@ class AbstractIndex(object):
     def publication_time_period(self):
         return None
 
+    def contents_with_content_counts(self):
+        """
+        Returns the `contents` dictionary with each node annotated with section lengths info
+        from version_state.
+        """
+        contents = self.contents(v2=True)
+        vstate   = self.versionState()
+
+        def simplify_version_state(vstate_node):
+            return aggregate_available_texts(vstate_node["_all"]["availableTexts"])
+
+        def aggregate_available_texts(available):
+            """Returns a jagged arrary of ints that counts the number of segments in each section,
+            (by throwing out the number of versions of each segment)"""
+            if len(available) == 0 or type(available[0]) is int:
+                return len(available)
+            else:
+                return [aggregate_available_texts(x) for x in available]
+
+        def annotate_schema(schema, vstate):
+            if "nodes" in schema:
+                for node in schema["nodes"]:
+                    if "key" in node:
+                        annotate_schema(node, vstate[node["key"]])
+            else:
+                schema["content_counts"] = simplify_version_state(vstate)
+
+        annotate_schema(contents["schema"], vstate.content)
+        return contents
+
 
 class Index(abst.AbstractMongoRecord, AbstractIndex):
     """
@@ -2169,7 +2199,8 @@ class TextFamily(object):
                 query = oref.ref_regex_query()
                 query.update({"inline_citation": True})  # , "source_text_oid": {"$in": c.version_ids()}
                 if Link().load(query) is not None:
-                    text_modification_funcs += [lambda s, secs: library.get_wrapped_refs_string(s, lang=language, citing_only=True)]
+                    link_wrapping_reg, title_nodes = library.get_regex_and_titles_for_ref_wrapping(c.ja().flatten_to_string(), lang=language, citing_only=True)
+                    text_modification_funcs += [lambda s, secs: library.get_wrapped_refs_string(s, lang=language, citing_only=True, reg=link_wrapping_reg, title_nodes=title_nodes)]
             padded_sections, _ = oref.get_padded_sections()
             setattr(self, self.text_attr_map[language], c._get_text_after_modifications(text_modification_funcs, start_sections=padded_sections))
 
@@ -3130,10 +3161,12 @@ class Ref(object, metaclass=RefCacheType):
         else:
             current_ending_ref = self
 
-        # calculate the number of "paddings" required to get down to segment level
-        max_depth = self.index_node.depth - len(self.sections)
+        max_depth = self.index_node.depth - len(self.sections)  # calculate the number of "paddings" required to get down to segment level
 
-        d['sections'] += [1] * max_depth
+        if len(d['sections']) == 0:
+            d['sections'] = self.first_available_section_ref().all_subrefs()[0].sections
+        else:
+            d['sections'] += [1] * max_depth
 
         state_ja = current_ending_ref.get_state_ja()
 
@@ -4717,10 +4750,13 @@ class Library(object):
                 self.set_last_cached_time()
         return self._toc_json
 
-    def get_toc_tree(self, rebuild=False):
+    def get_toc_tree(self, rebuild=False, mobile=False):
+        """
+        :param mobile: (Aug 30, 2021) Added as a patch after navigation redesign launch. Currently only adds 'firstSection' to toc for mobile export. This field is no longer required on prod but is still required on mobile until the navigation redesign happens there.
+        """
         if rebuild or not self._toc_tree:
             from sefaria.model.category import TocTree
-            self._toc_tree = TocTree(self)
+            self._toc_tree = TocTree(self, mobile=mobile)
         self._toc_tree_is_ready = True
         return self._toc_tree
 
@@ -5423,7 +5459,23 @@ class Library(object):
 
         return refs
 
-    def get_wrapped_refs_string(self, st, lang=None, citing_only=False):
+    def get_regex_and_titles_for_ref_wrapping(self, st, lang, citing_only=False):
+        """
+        Returns a compiled regex and dictionary of title:node correspondences to match the references in this string
+
+        :param string st: the input string
+        :param lang: "he" or "en"
+        :param citing_only: boolean whether to use only records explicitly marked as being referenced in text
+        :return: Compiled regex, dict of title:node correspondences
+
+        """
+        unique_titles = set(self.get_titles_in_string(st, lang, citing_only))
+        title_nodes = {title: self.get_schema_node(title,lang) for title in unique_titles}
+        all_reg = self.get_multi_title_regex_string(unique_titles, lang)
+        reg = regex.compile(all_reg, regex.VERBOSE) if all_reg else None
+        return reg, title_nodes
+
+    def get_wrapped_refs_string(self, st, lang=None, citing_only=False, reg=None, title_nodes=None):
         """
         Returns a string with the list of Ref objects derived from string wrapped in <a> tags
 
@@ -5435,15 +5487,16 @@ class Library(object):
         # todo: only match titles of content nodes
         if lang is None:
             lang = "he" if is_hebrew(st) else "en"
+
+        if reg is None or title_nodes is None:
+            reg, title_nodes = self.get_regex_and_titles_for_ref_wrapping(st, lang, citing_only)
+
         from sefaria.utils.hebrew import strip_nikkud
         #st = strip_nikkud(st) doing this causes the final result to lose vowels and cantiallation
-        unique_titles = set(self.get_titles_in_string(st, lang, citing_only))
-        title_nodes = {title: self.get_schema_node(title,lang) for title in unique_titles}
 
-        all_reg = self.get_multi_title_regex_string(unique_titles, lang)
-        reg = regex.compile(all_reg, regex.VERBOSE)
-        if all_reg:
+        if reg is not None:
             st = self._wrap_all_refs_in_string(title_nodes, reg, st, lang)
+
         return st
 
     def get_multi_title_regex_string(self, titles, lang, for_js=False, anchored=False):
