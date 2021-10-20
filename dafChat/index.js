@@ -81,7 +81,7 @@ io.on("connection", (socket) => {
     socket.broadcast.emit("change in people", Object.values(peopleInBeitMidrash), uid);
     socket.emit("change in people", Object.values(peopleInBeitMidrash), uid);
 
-    clearTimeout(disconnectHandler[socketId])
+    clearTimeout(disconnectHandler[uid])
   }
 
   socket.on("update currently reading", (uid, currentlyReading) => {
@@ -154,7 +154,7 @@ io.on("connection", (socket) => {
     })
 
     const socketId = socket.id;
-    disconnectHandler[socketId] = setTimeout((sockedId) => {
+    disconnectHandler[peopleInBeitMidrash[socketId]["uid"]] = setTimeout((sockedId) => {
       leaveBeitMidrash(socketId)
     }, 1000)
    
