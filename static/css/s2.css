@@ -6888,6 +6888,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .toolsButton .toolsButtonIcon {
   color: #999;
   font-size: 20px;
+  width: 20px;
   margin-top: -1px;
 }
 
@@ -6905,19 +6906,24 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-inline-start: 15px;
 }
 
-.shareInputBox {
-  padding: 10px 34px;
-  display:flex;
-}
-
-.shareInputBox .shareDropdown {
+.shareSettingsBox .shareDropdown {
   display: inline-block;
   height: 20px;
-  width: fit-content;  
+  width: fit-content;
+  width: intrinsic;           /* Safari/WebKit uses a non-standard name */
+  width: -moz-max-content;    /* Firefox/Gecko */
   margin: 0 3px;
   border: 0;
   color: var(--sefaria-blue);
   font-weight: 600;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: var(--sans-serif-body-font-size);
+}
+
+.shareInputBox .copyLinkIcon {
+  float: right;
+  margin: 0px -5px 1px 0px;
 }
 
 .shareInputBox span {
@@ -6926,16 +6932,52 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: var(--sans-serif-body-font-size);
 }
 
+.shareInputBox {
+  display: flex;
+  box-sizing: border-box;
+  border-radius: 7px;
+  border: none;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 20%);
+  font-size: var(--sans-serif-body-font-size);
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  color: #666;
+  padding: 20px 20px;
+  margin: 19px 33px;
+}
+
 .shareInput {
   width: 100%;
   box-sizing: border-box;
   border-radius: 7px;
   border: none;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-  font-size: 18px;
+  font-size: var(--sans-serif-body-font-size);
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: #666;
-  padding: 20px 26px;
+  text-overflow: ellipsis;
+}
+
+.shareInputBox .shareInputButton {
+  background-color: #fff;
+  border: 0;
+  margin-inline-start: 20px;
+}
+
+.shareInputBox .shareInputButton:active {
+  background-color: var(--light-grey);
+  border: 0;
+  margin-inline-start: 20px;
+}
+
+.shareSettingsBox {
+  display: flex;
+  box-sizing: border-box;
+  border-radius: 7px;
+  border: none;
+  font-size: var(--sans-serif-body-font-size);
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  color: var(--dark-grey);
+  margin: 20px 34px;
 }
 
 .addToSourceSheetBox {
@@ -8215,9 +8257,9 @@ a .button:hover {
   text-align: start;
   background-color: #EDEDEC;
   border-radius: 6px;
-  padding: 10px 15px;
+  padding: 10px 20px;
   max-width: 540px;
-  margin: 0 -15px;
+  margin: 20px -20px;
   font-size: 16px;
   color: #666;
 }
@@ -8225,6 +8267,7 @@ a .button:hover {
 div.transparentBackground.publishBox {
   background-color: inherit;
   border-radius: 0px;
+  padding: 0px 20px;
   color: inherit;
 }
 
@@ -8277,7 +8320,7 @@ div.transparentBackground.publishBox {
 
 .publishBox textarea {
   width: 100%;
-  height: 100%;
+  height: 100px;
   resize: none;
   box-sizing: border-box;
   font-size: 16px;
@@ -8354,6 +8397,7 @@ body.interface-hebrew .publishBox .react-tags__search-input::placeholder, body.i
   content: '\2715';
   color: #AAA;
   margin-inline-start: 8px;
+  vertical-align: middle;
   font-size: 10px;
 }
 
@@ -8381,10 +8425,15 @@ body.interface-hebrew .publishBox .react-tags__search-input::placeholder, body.i
   color: #666666
 }
 
+.publishBox .publishButton .button {
+  padding: 15px 20px;
+}
+
 .publishSettingsEditMode .publishButton {
-  margin: 18px 0;
+  margin: 14px 0 0;
   text-align: end;
   flex-direction: row;
+  justify-content: flex-end;
   display: flex;
 }
 
@@ -8396,17 +8445,22 @@ body.interface-hebrew .publishBox .react-tags__search-input::placeholder, body.i
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   color: var(--dark-grey);
 }
-.publishSettingsEditMode .publishButton .publishedText .publishedTextBold{
+
+.publishSettingsEditMode .publishButton .publishedText .publishedTextBold {
   font-weight: bold;
   color: black;
 }
 
 .publishSettingsEditMode .button.published {
-  background-color: #EDEDEC;
+  background-color: #FFFFFF;
   border: 1px solid #CCCCCC;
-  color: #666666;
+  color: var(--dark-grey);
   height: fit-content;
   align-self: center;
+  border-radius: 6px;
+  box-sizing: border-box;
+  box-shadow: none;
+  padding: 9px 10px;
 }
 
 .publishBox .react-tags__suggestions ul {
@@ -8950,7 +9004,12 @@ h3.aboutSheetHeader {
   font-size: var(--sans-serif-h3-font-size);
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
-  margin-bottom: 10px;
+  margin-bottom: 17px;
+  margin-top: 36px;
+  padding-bottom: 18px;
+  border-style: none none solid none;
+  border-color: var(--light-grey);
+  border-width: 1px;
 }
 
 .aboutSheetPanel hr {
@@ -12005,7 +12064,6 @@ body .homeFeedWrapper.userStats {
 .collectionsEditorTop {
   margin-bottom: 15px;
 }
-
 
 .collectionsWidgetTitle {
   flex-grow: 1;
