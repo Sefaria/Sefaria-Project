@@ -76,6 +76,12 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
             });
     }
 
+    const reEnterBeitMidrash = (attempt) => {
+        setSocketConnected(socket);
+        console.log(`Reconnected after ${attempt} attempt(s)`);
+        socketObj.emit("enter beit midrash", Sefaria._uid, Sefaria.full_name, Sefaria.profile_pic_url, profile.organization, currentlyReading, beitMidrashId);
+    }
+
     useEffect(() => {
         socketObj.connect();
 
@@ -125,11 +131,7 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
     useEffect(()=>{
         socketObj.io.off("reconnect")
 
-        socketObj.io.on("reconnect", (attempt) => {
-            setSocketConnected(socket);
-            console.log(`Reconnected after ${attempt} attempt(s)`);
-            socketObj.emit("enter beit midrash", Sefaria._uid, Sefaria.full_name, Sefaria.profile_pic_url, profile.organization, currentlyReading, beitMidrashId);
-        });
+        socketObj.io.on("reconnect", reEnterBeitMidrash);
 
         if (Sefaria._uid) {
             Sefaria.profileAPI(Sefaria.slug).then(profile => {

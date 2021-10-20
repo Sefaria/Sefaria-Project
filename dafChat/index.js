@@ -77,7 +77,7 @@ io.on("connection", (socket) => {
     peopleInBeitMidrash[socketId]["beitMidrashId"] = beitMidrashId;
     peopleInBeitMidrash[socketId]["currentlyReading"] = currentlyReading;
 
-    // console.log("user added to beit midrash, current peopleInBeitMidrash:", peopleInBeitMidrash)
+    console.log("user added to beit midrash, current peopleInBeitMidrash:", peopleInBeitMidrash)
     socket.broadcast.emit("change in people", Object.values(peopleInBeitMidrash), uid);
     socket.emit("change in people", Object.values(peopleInBeitMidrash), uid);
 
@@ -86,7 +86,7 @@ io.on("connection", (socket) => {
 
   socket.on("update currently reading", (uid, currentlyReading) => {
     if (!peopleInBeitMidrash[socket.id]) return
-    // console.log(uid, ": ", currentlyReading)
+    console.log(uid, ": ", currentlyReading)
     peopleInBeitMidrash[socket.id]["currentlyReading"] = currentlyReading;
     socket.broadcast.emit("change in people", Object.values(peopleInBeitMidrash), uid);
     socket.emit("change in people", Object.values(peopleInBeitMidrash), uid);
