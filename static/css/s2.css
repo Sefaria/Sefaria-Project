@@ -3187,6 +3187,9 @@ a.navBlockTitle:hover {
   margin-top: 20px;
   margin-bottom: 20px;
 }
+.connectionsPanel .textTableOfContents .structToggles {
+  margin-top: 0;
+}
 
 .textTableOfContents .structToggles .structTogglesInner {
   display: flex;
