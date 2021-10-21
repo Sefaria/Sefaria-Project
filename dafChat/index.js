@@ -157,7 +157,7 @@ io.on("connection", (socket) => {
     const socketId = socket.id;
     disconnectHandler[peopleInBeitMidrash[socketId]["uid"]] = setTimeout((sockedId) => {
       leaveBeitMidrash(socketId)
-    }, 1000)
+    }, 2000)
    
   })
 

@@ -633,6 +633,17 @@ const ChavrutaVideo = ({socket, chavrutaId, pcConfig, setCurrentScreen, activeCh
         setCurrentScreen("home")
     }
 
+    const stopVideoTracks = () => {
+      const stream = localVideo.current.srcObject;
+      const tracks = stream.getTracks();
+
+      tracks.forEach(function(track) {
+        track.stop();
+      });
+
+      localVideo.current.srcObject = null;
+    }
+
     const setVideoTracks = async () => {
         try {
           const stream = await navigator.mediaDevices.getUserMedia({
@@ -750,7 +761,9 @@ const ChavrutaVideo = ({socket, chavrutaId, pcConfig, setCurrentScreen, activeCh
           if (pc) {
             pc.close();
           }
-          socket.emit('chavruta closed')
+
+            stopVideoTracks()
+            socket.emit('chavruta closed')
         };
 
 
@@ -778,6 +791,9 @@ const ChavrutaVideo = ({socket, chavrutaId, pcConfig, setCurrentScreen, activeCh
 
             </div>
 
+            {/*<div className="beitMidrashOrg">{activeChavruta.currentlyReading !== "" ? `${activeChavruta.name} is learning ${activeChavruta.currentlyReading}` : ""}</div>*/}
+
+
 
             {/*<div id="chevrutaNameHolder">{activeChavruta.name}</div>*/}
             {/*<div id="currently-reading"></div>*/}
@@ -797,11 +813,11 @@ const ChavrutaVideo = ({socket, chavrutaId, pcConfig, setCurrentScreen, activeCh
 
             <div className="chavrutaFooter">
                 <p className="int-en">
-                    Questions? Email <a href="mailto:hello@sefaria.org">hello@sefaria.org</a>
+                    Questions? Email <a href="mailto:hello@sefaria.org" target="_blank">hello@sefaria.org</a>
                 </p>
 
                 <p className="int-he">
-                    לשאלות פנו/כתבו לדוא"ל <a href="mailto:hello@sefaria.org">hello@sefaria.org</a>
+                    לשאלות פנו/כתבו לדוא"ל <a href="mailto:hello@sefaria.org" target="_blank">hello@sefaria.org</a>
                 </p>
             </div>
 
