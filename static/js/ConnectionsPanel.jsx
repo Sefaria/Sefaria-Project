@@ -785,11 +785,20 @@ const SheetToolsList = ({ toggleSignUpModal, masterPanelSheetId }) => {
 
   // const [isOwner, setIsOwner] = useState(false);
   // const [isPublished, setIsPublished] = useState(false);
-  const [copyText, setCopyText] = useState({ en: "Copy", he: "העתקה" });
+  const googleDriveState = {
+    export: { en: "Export to Google Docs", he: "ייצוא לגוגל דוקס" },
+    exporting: {en: "Exporting to Google Docs...", he: "מייצא לגוגל דוקס...", greyColor: true},
+    exportComplete: { en: "Export Complete", he: "ייצוא הסתיים", secondaryEn: "Open in Google", secondaryHe: "לפתיחה בגוגל דוקס", greyColor: true}
+  }
+  const copyState = {
+    copy: { en: "Copy", he: "העתקה" },
+    copying: { en: "Copying...", he: "מעתיק...", greyColor: true},
+    copied: { en: "Sheet Copied", he: "הדף מועתק", secondaryHe: "צפייה בדף המקורות", secondaryEn: "View Copy", greyColor: true },
+    error: { en: "Sorry, there was an error.", he: "סליחה, ארעה שגיאה" }
+  }
+  const [copyText, setCopyText] = useState(copyState.copy);
   const urlHashObject = Sefaria.util.parseHash(Sefaria.util.parseUrl(window.location).hash).afterLoading;
-  const [googleDriveText, setGoogleDriveText] = urlHashObject === "exportToDrive" ? useState({ en: "Syncing with" +
-        " Google Docs...", he: "מייצא לגוגל דוקס..." }) : useState({ en: "Export to Google Drive", he: "ייצוא" +
-        " לגוגל דוקס" });
+  const [googleDriveText, setGoogleDriveText] = urlHashObject === "exportToDrive" ? useState(googleDriveState.exporting) : useState(googleDriveState.export);
   const [googleDriveLink, setGoogleDriveLink] = useState("");
   const [copiedSheetId, setCopiedSheetId] = useState(0);
   const sheet = Sefaria.sheets.loadSheetByID(masterPanelSheetId);
@@ -803,7 +812,7 @@ const SheetToolsList = ({ toggleSignUpModal, masterPanelSheetId }) => {
   // }, []);
 
   useEffect(() => {
-    if (googleDriveText.en === "Syncing with Google Docs...") {
+    if (googleDriveText.en == googleDriveState.exporting.en) {
 
       $.ajax({
         type: "POST",
@@ -815,7 +824,7 @@ const SheetToolsList = ({ toggleSignUpModal, masterPanelSheetId }) => {
           } else {
             // Export succeeded
             setGoogleDriveLink(data.webViewLink);
-            setGoogleDriveText({ en: "Open Sheet in Google Drive", he: "ייצוא הסתיים. לפתיחה בגוגל דוקס" })
+            setGoogleDriveText(googleDriveState.exportComplete)
           }
         },
         statusCode: {
@@ -834,6 +843,8 @@ const SheetToolsList = ({ toggleSignUpModal, masterPanelSheetId }) => {
   //     setShowCollectionsModal(!showCollectionsModal)
   //   }
   // }
+
+
 
   const filterAndSaveCopiedSheetData = (data) => {
     var newSheet = Sefaria.util.clone(data);
@@ -861,9 +872,9 @@ const SheetToolsList = ({ toggleSignUpModal, masterPanelSheetId }) => {
     $.post("/api/sheets/", { "json": postJSON }, (data) => {
       if (data.id) {
         setCopiedSheetId(data.id);
-        setCopyText({ en: "Open Copied Sheet", he: "צפייה בדף המקורות" });
+        setCopyText(copyState.copied);
       } else if ("error" in data) {
-        setCopyText({ en: "Sorry, there was an error.", he: "סליחה, ארעה שגיאה" });
+        setCopyText(copyState.error);
         console.log(data.error);
       }
     })
@@ -872,10 +883,10 @@ const SheetToolsList = ({ toggleSignUpModal, masterPanelSheetId }) => {
   const copySheet = () => {
     if (!Sefaria._uid) {
       toggleSignUpModal();
-    } else if (copyText.en === "Copy") {
-      setCopyText({ en: "Copying...", he: "מעתיק..." });
+    } else if (copyText.en === copyState.copy.en) {
+      setCopyText(copyState.copying);
       filterAndSaveCopiedSheetData(sheet);
-    } else if (copyText.en === "Open Copied Sheet") {
+    } else if (copyText.en === copyState.copied.en) {
       window.location.href = `/sheets/${copiedSheetId}`
       // TODO: open copied sheet
     }
@@ -887,18 +898,18 @@ const SheetToolsList = ({ toggleSignUpModal, masterPanelSheetId }) => {
     if (!Sefaria._uid) {
       toggleSignUpModal();
     }
-    else if (googleDriveText.en === "Open Sheet in Google Drive") {
+    else if (googleDriveText.en === googleDriveState.exportComplete.en) {
       Sefaria.util.openInNewTab(googleDriveLink);
     } else {
-      Sefaria.track.sheets("Export to Google Drive");
-      setGoogleDriveText({ en: "Syncing with Google Docs...", he: "מייצא לגוגל דוקס..." })
+      Sefaria.track.sheets("Export to Google Docs");
+      setGoogleDriveText(googleDriveState.exporting)
     }
   }
   return (<div>
-    <ToolsButton en={copyText.en} he={copyText.he} image="copy.png" greyColor={copyText.secondaryEn} onClick={() => copySheet()} />
+    <ToolsButton en={copyText.en} he={copyText.he} secondaryEn={copyText.secondaryEn} secondaryHe={copyText.secondaryHe} image="copy.png" greyColor={!!copyText.secondaryEn} onClick={() => copySheet()} />
     {/* <ToolsButton en="Add to Collection" he="תרגומים" image="add-to-collection.svg" onClick={() => toggleCollectionsModal()} /> */}
     <ToolsButton en="Print" he="הדפסה" image="print.svg" onClick={() => window.print()} />
-    <ToolsButton en={googleDriveText.en} he={googleDriveText.he} image="googledrive.svg" onClick={() => googleDriveExport()} />
+    <ToolsButton en={googleDriveText.en} he={googleDriveText.he} greyColor={!!googleDriveText.secondaryEn} secondaryEn={googleDriveText.secondaryEn} secondaryHe={googleDriveText.secondaryHe} image="googledrive.svg" onClick={() => googleDriveExport()} />
     {/* todo: update export to google docs button so it works */}
     {/* {showCollectionsModal ? <CollectionsModal
                       sheetID={masterPanelSheetId}
@@ -1293,7 +1304,7 @@ const ToolsButton = ({ en, he, icon, image, count = null, onClick, control = "in
           {count ? (<span className="connectionsCount">({count})</span>) : null}
         </span>
       </a>
-      {secondaryEn && secondaryHe ? <a className="toolsSecondaryButton" onClick={clickHandler}><InterfaceText text={{ en: secondaryEn, he: secondaryHe }} /></a> : null}
+      {secondaryEn && secondaryHe ? <a className="toolsSecondaryButton" onClick={clickHandler}><InterfaceText text={{ en: secondaryEn, he: secondaryHe }} /> <img className="linkArrow" src={`/static/img/${Sefaria.interfaceLang === "hebrew" ? "arrow-left-bold" : "arrow-right-bold"}.svg`} aria-hidden="true"></img></a> : null}
       </div>
       : null
   );
