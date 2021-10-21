@@ -6939,6 +6939,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   font-size: var(--sans-serif-body-font-size);
+  align-self: flex-end;
 }
 
 .shareInputBox .copyLinkIcon {
