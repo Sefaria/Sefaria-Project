@@ -136,6 +136,12 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
             setSocketConnected(socket);
             console.log(`Reconnected after ${attempt} attempt(s)`);
             socketObj.emit("enter beit midrash", Sefaria._uid, Sefaria.full_name, Sefaria.profile_pic_url, profile.organization, currentlyReading, beitMidrashId);
+
+            if (currentScreen == "chavrutaVideo") {
+                const roomID =  activeChavruta.uid < Sefaria._uid ? `${activeChavruta.uid}-${Sefaria._uid}`: `${Sefaria._uid}-${activeChavruta.uid}`
+                socketObj.emit("rejoin chavruta room", roomID)
+            }
+
         });
 
         if (Sefaria._uid) {
