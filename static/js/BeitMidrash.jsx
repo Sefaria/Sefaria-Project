@@ -336,12 +336,12 @@ const BeitMidrashHome = ({beitMidrashId,
                         };
 
                         if (user.uid !== Sefaria._uid) {
+                            console.log(user)
                             return <div className={classNames(userClasses)} key={user.uid} onClick={() => startChat(user)}>
                                 <ProfilePic len={42.67} url={user.pic} name={user.name} id="beitMidrashProfilePic"/>
                                 <div className="beitMidrashUserText">
                                     {user.name}
-                                    {/* {currentActiveChatUsers.includes(user.uid) ? null : <button onClick={() => startChat(user)}>Chat</button>
-                        } */}
+                                    {user.inChavruta ? <i className="fa fa-headphones" title={`${user.name} is current in a chavruta`}></i> : null}
                                     <div
                                         className="beitMidrashOrg">{user.currentlyReading !== "" ? `is learning ${user.currentlyReading}` : ""}</div>
                                 </div>
@@ -524,7 +524,6 @@ const ChatBox = ({room,
         socket.emit("connect with other user", uid, {uid: Sefaria._uid, name: Sefaria.full_name, pic: Sefaria.profile_pic_url});
         chavrutaCallInitiated(uid)
     }
-
     return (activeChavruta ?
     <div className="chat" ref={chatBox}>
         <div id="hideButtonHolder">
@@ -540,8 +539,8 @@ const ChatBox = ({room,
                 </div>
                 
                 
-            {partnerLeftNotification || blockedNotification ? null :
-            <img 
+            {partnerLeftNotification || blockedNotification || activeChavruta.inChavruta ? null :
+            <img
                 onClick={()=>handleStartCall(room["activeChatPartner"]["uid"])}
                 id="greenCameraButton"
                 src="/static/img/green_camera.svg" 
