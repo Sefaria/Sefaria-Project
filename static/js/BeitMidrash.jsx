@@ -150,7 +150,7 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
                 socketObj.emit("enter beit midrash", Sefaria._uid, Sefaria.full_name, Sefaria.profile_pic_url, profile.organization, currentlyReading, beitMidrashId);
             });
         }
-    }, [beitMidrashId, currentlyReading])
+    }, [beitMidrashId, currentlyReading, currentScreen])
 
     useEffect(()=> {
         socketObj.on("change in people", function(people, uid) {

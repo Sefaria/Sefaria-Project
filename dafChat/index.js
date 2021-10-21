@@ -173,9 +173,8 @@ io.on("connection", (socket) => {
   });
 
   socket.on("join_chavruta", (data) => {
-    console.log(users[data.room])
-
     peopleInBeitMidrash[socket.id]["inChavruta"] = true;
+    console.log(users[data.room])
     socket.broadcast.emit("change in people", Object.values(peopleInBeitMidrash));
     socket.emit("change in people", Object.values(peopleInBeitMidrash));
 
@@ -240,7 +239,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on('rejoin room', (room) => {
+  socket.on('rejoin chavruta room', (room) => {
     peopleInBeitMidrash[socket.id]["inChavruta"] = true;
     socket.broadcast.emit("change in people", Object.values(peopleInBeitMidrash));
     socket.emit("change in people", Object.values(peopleInBeitMidrash));
