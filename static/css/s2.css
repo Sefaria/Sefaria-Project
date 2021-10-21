@@ -10823,7 +10823,7 @@ span.ref-link-color-3 {color: blue}
   border-top: 1px solid #999999;
 }
 
-#beitMidrashUser {
+.beitMidrashUser {
   color: white;
   font-size: 16px;
   font: "Roboto";
@@ -10834,15 +10834,24 @@ span.ref-link-color-3 {color: blue}
   cursor: pointer;
 }
 
+.beitMidrashUser.unreadMessages::after {
+    content: '';
+   display: inline-block;
+   width: 15px;
+   height: 15px;
+   border-radius: 100%;
+   background-color: var(--halakhah-red);
+}
+
 #beitMidrashProfilePic {
   margin-right: 10px;
 }
 
-#beitMidrashUserText {
+.beitMidrashUserText {
   margin: 10px;
 }
 
-#beitMidrashOrg {
+.beitMidrashOrg {
   font-weight: 200;
 }
 

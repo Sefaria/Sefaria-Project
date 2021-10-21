@@ -5,6 +5,7 @@ import {
 } from './Misc';
 import React, { useState, useEffect, useRef } from 'react';
 import Sefaria  from './sefaria/sefaria';
+import classNames from 'classnames';
 import { BroadcastChannel } from 'broadcast-channel';
 
 const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
@@ -23,6 +24,7 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
     const chatChannel = new BroadcastChannel('chavruta-chats');
     const [blockedUsers, setBlockedUsers] = useState([])
     const [pcConfig, setPcConfig] = useState(null);
+    const [usersWithUnreadMsgs, setUsersWithUnreadMsgs] = useState([])
 
 
     const filterDedupeAndSortPeople = (people) => {
@@ -61,6 +63,10 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
     const addMessageToDataStore = (uid, room, message, now) => {
         const roomExists = chatDataStoreRef.current[room.roomId]
 
+        if (currentChatRoom != room.roomId) {
+            setUsersWithUnreadMsgs(prevArray => [...prevArray, uid]);
+        }
+
         setChatDataStore({
             ...chatDataStoreRef.current,
             [room.roomId]: {
@@ -72,7 +78,8 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
                 senderId: uid,
                 message: message,
                 timestamp: now
-                }]}
+                }],
+            }
             });
     }
 
@@ -158,7 +165,7 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
             room.activeChatPartner = msgSender;
             room.me = {uid: Sefaria._uid, name: Sefaria.full_name, pic: Sefaria.profile_pic_url, organization: profile.organization};
 
-            setActiveChavruta(msgSender)
+            // setActiveChavruta(msgSender)
 
             // console.log("blockedUsers", blockedUsers)
             // console.log("msgSender", msgSender)
@@ -168,14 +175,14 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
                 console.log(now)
 
                 addMessageToDataStore(msgSender.uid, room, message, now);
+                console.log(activeChatRooms)
                 const currentActiveChatRoomIds = activeChatRooms.map(r => {return r.roomId});
      
                 if (!currentActiveChatRoomIds.includes(room.roomId)) {
                     setActiveChatRooms([room]);
                     socketObj.emit("join chat room", room);
                 };
-                console.log(chatDataStore)
-                setCurrentChatRoom(room.roomId);
+                // setCurrentChatRoom(room.roomId);
             } else {
                 socketObj.emit("user is blocked", msgSender);
             }
@@ -193,7 +200,7 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
                 setActiveChatRooms([msg.room]);
                 socketObj.emit("join chat room", msg.room);
             };
-            setCurrentChatRoom(msg.room.roomId)
+            // setCurrentChatRoom(msg.room.roomId)
             addMessageToDataStore(msg.msgSender.uid, msg.room, msg.chatMessage, msg.now)
         }
     }, [])
@@ -213,6 +220,7 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
     }
 
     const startChat = (activeChatPartner) => {
+        setUsersWithUnreadMsgs(usersWithUnreadMsgs.filter(users => users !== activeChatPartner.uid));
         setActiveChavruta(activeChatPartner);
         let roomId = activeChatPartner.uid < Sefaria._uid ? `${activeChatPartner.uid}-${Sefaria._uid}`: `${Sefaria._uid}-${activeChatPartner.uid}`
 
@@ -239,6 +247,7 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
 
     const handleCloseChat = (roomObj) => {
         setActiveChatRooms(activeChatRooms.filter(room => room.roomId !== roomObj.roomId));
+        setCurrentChatRoom("")
     }
 
     const chavrutaCallInitiated = (uid) => {
@@ -262,6 +271,7 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
                 activeChatRooms={activeChatRooms}
                 currentChatRoom={currentChatRoom}
                 startChat={startChat}
+                usersWithUnreadMsgs={usersWithUnreadMsgs}
                 chatDataStore={chatDataStore}
                 handleCloseChat={handleCloseChat}
                 chavrutaCallInitiated={chavrutaCallInitiated}
@@ -310,6 +320,7 @@ const BeitMidrashHome = ({beitMidrashId,
                         setPartnerLeftNotification,
                         onBlockUser,
                         onUnblockUser,
+                        usersWithUnreadMsgs
                         }) => {
 
     return (<div className="beitMidrashHomeContainer">
@@ -319,15 +330,20 @@ const BeitMidrashHome = ({beitMidrashId,
                 {peopleInBeitMidrash && peopleInBeitMidrash.length > 1 ? peopleInBeitMidrash
                     .filter(user => !user.roomId)
                     .map(user => {
+                        const userClasses = {
+                            unreadMessages: usersWithUnreadMsgs.includes(user.uid),
+                            beitMidrashUser: 1,
+                        };
+
                         if (user.uid !== Sefaria._uid) {
-                            return <div id="beitMidrashUser" key={user.uid} onClick={() => startChat(user)}>
+                            return <div className={classNames(userClasses)} key={user.uid} onClick={() => startChat(user)}>
                                 <ProfilePic len={42.67} url={user.pic} name={user.name} id="beitMidrashProfilePic"/>
-                                <div id="beitMidrashUserText">
+                                <div className="beitMidrashUserText">
                                     {user.name}
                                     {/* {currentActiveChatUsers.includes(user.uid) ? null : <button onClick={() => startChat(user)}>Chat</button>
                         } */}
                                     <div
-                                        id="beitMidrashOrg">{user.currentlyReading !== "" ? `is learning ${user.currentlyReading}` : ""}</div>
+                                        className="beitMidrashOrg">{user.currentlyReading !== "" ? `is learning ${user.currentlyReading}` : ""}</div>
                                 </div>
                             </div>
                         } else {
@@ -464,6 +480,10 @@ const ChatBox = ({room,
         }
 
     }, [chatDataStore, partnerLeftNotification, showChats])
+
+    useEffect( () => {
+        console.log(chatDataStore)
+    }, [chatDataStore])
 
     const handleChange = (e) =>{
         setChatMessage(e.target.value);
