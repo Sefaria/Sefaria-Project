@@ -27,7 +27,8 @@ import Component   from 'react-class';
 import {ContentLanguageContext} from './context';
 import Hebrew from './sefaria/hebrew.js';
 import Cookies from 'js-cookie';
-import ReactTags from 'react-tag-autocomplete'
+import ReactTags from 'react-tag-autocomplete';
+import './../css/static.css';
 
 
 
@@ -1088,16 +1089,18 @@ const TitleVariants = function({titles, update}) {
     return validTitle;
   }
 
-  return <div className="publishBox sans-serif">
+  return <div className="section">
+           <div className="publishBox sans-serif">
                   <ReactTags
                       allowNew={true}
                       tags={titles}
                       onDelete={onTitleDelete}
-                      placeholderText={Sefaria._("...")}
+                      placeholderText={Sefaria._("Add a title...")}
                       delimiters={["Enter", "Tab", ","]}
                       onAddition={onTitleAddition}
                       onValidate={onTitleValidate}
                     />
+           </div>
         </div>
 }
 
@@ -1118,94 +1121,71 @@ const EditTextInfo = function({initTitle, close}) {
 
   return (
       <div className="editTextInfo">
-        <div id="newIndex">
-          <div id="newIndexMsg">Sefaria doesn't yet know about the text {enTitle}.
-            <div className="sub">Please provide some basic information about this text.</div>
-          </div>
-          <div id="cancel" onClick={close} className="btn-xs">X</div>
-          <div className="fieldSet">
-            <div className="fieldLabel">
-              <div className="help">?
-                  <div className="helpText">
-                    The primary title of a text. Texts may have multiple titles which can be entered below, but this will be the default way of referring to this text.
-                    <br/><br/>
-                    Titles in this field must use Roman chacters, but may be transliterations. Add titles in Hebrew characters below.
-                  </div>
+      <div className="static">
+        <div className="inner">
+          <div id="newIndex">
+            <div className="headerWithButtons">
+              <div className="start"></div>
+              <h1>
+                <span className="int-en">Index Editor</span>
+                <span className="int-he">עריכת מאפייני אינדקס</span>
+              </h1>
+              <div className="end" id="cancel" onClick={close}>
+                <a className="button small transparent control-elem" href="/my/profile">
+                  <span className="int-en">Cancel</span>
+                  <span className="int-he">ביטול</span>
+                </a>
+                <NewIndexSaveButton enTitle={enTitle} heTitle={heTitle} enTitleVariants={titleVariants}
+                                  oldTitle={oldTitle} heTitleVariants={heTitleVariants} categories={categories}
+                                  sectionNames={sections}/>
               </div>
-              Text Title
             </div>
-            <input id="textTitle" onBlur={(e) => setEnTitle(e.target.value)} defaultValue={enTitle}/>
-          </div>
-
-          <div className="fieldSet">
-            <div className="fieldLabel">
-              <div className="help">?
-                  <div className="helpText">
-                    The primary title of a text in Hebrew characters. Alternate Hebrew titles may also be added under "Alternate Titles" below.
-                  </div>
-              </div>
-              Hebrew Title
-            </div>
-            <input id="heTitle" onBlur={(e) => setHeTitle(e.target.value)} defaultValue={heTitle}/>
-          </div>
-
-          <div className="fieldSet" id="textCategories">
-            <div className="fieldLabel">
-              <div className="help">?
-                <div className="helpText">
-                  A category for the text. Categories are used in searching and grouping texts.
-                </div>
-              </div>
-              Category
-            </div>
-            <CategoryChooser update={setCategories} categories={categories}/>
-          </div>
-          {index.current.hasOwnProperty("sectionNames") ?
-          <div className="fieldSet" id="textStructureFieldSet">
-            <div className="fieldLabel">
-              <div className="help">?
-                <div className="helpText">
-                  A Text's Structure is represented by the hieracrchy of different types of sections that make up the text.
-                  <br/><br/>For example, texts of the Tanakh like Genesis are divided into "Chapters" which are then divided into "Verses".
-                  <br/><br/>Larger texts, such as the Mishneh Torah, may have more levels in their hierarchy, for example "Book" > "Section" > "Chapter" > "Law".
-                </div>
-              </div>
-              Text Structure
-            </div>
-            <SectionTypesBox updateParent={setSections} sections={sections} canEdit={index.current === {}}/>
-          </div> : null}
-
-          <div className="fieldSet">
+            <div className="section">
               <div className="fieldLabel">
-                <div className="help">?
-                  <div className="helpText">
-                  Alternate English Titles can include alternate translations, alternate transliterations spellings, and abbreviations.<br/><br/>Press enter after each title variant to seprate it from others.
-                  </div>
-                </div>
-                Alternate English Titles
-                <span className="optional">(optional)</span>
+                Text Title
               </div>
-          </div>
-          <TitleVariants update={setTitleVariants} titles={titleVariants}/>
-
-          <div className="fieldSet">
-            <div className="fieldLabel">
-                <div className="help">?
-                  <div className="helpText">
-                    Alternate Hebrew Titles can include alternate spellings and abbreviations.<br/><br/>Press enter after each title variant to seprate it from others.
-                  </div>
-                </div>
-                Alternate Hebrew Titles<span className="optional">(optional)</span>
+              <input id="textTitle" onBlur={(e) => setEnTitle(e.target.value)} defaultValue={enTitle}/>
             </div>
-          </div>
-          <TitleVariants update={setHeTitleVariants} titles={heTitleVariants}/>
 
-          <div className="actions">
-            <NewIndexSaveButton enTitle={enTitle} heTitle={heTitle} enTitleVariants={titleVariants}
-                                oldTitle={oldTitle} heTitleVariants={heTitleVariants} categories={categories}
-                                sectionNames={sections}/>
+            <div className="section">
+              <div className="fieldLabel">
+                Hebrew Title
+              </div>
+              <input id="heTitle" onBlur={(e) => setHeTitle(e.target.value)} defaultValue={heTitle}/>
+            </div>
+
+            <div className="section">
+              <div className="fieldLabel">
+                Category
+              </div>
+              <CategoryChooser update={setCategories} categories={categories}/>
+            </div>
+            {index.current.hasOwnProperty("sectionNames") ?
+            <div className="section">
+              <div className="fieldLabel">
+                Text Structure
+              </div>
+              <SectionTypesBox updateParent={setSections} sections={sections} canEdit={index.current === {}}/>
+            </div> : null}
+
+            <div className="section">
+                <div className="fieldLabel">
+                  Alternate English Titles
+                  <div className="optional">Optional</div>
+                </div>
+            </div>
+            <TitleVariants update={setTitleVariants} titles={titleVariants}/>
+
+            <div className="section">
+              <div className="fieldLabel">
+                  Alternate Hebrew Titles
+                  <div className="optional">Optional</div>
+              </div>
+            </div>
+            <TitleVariants update={setHeTitleVariants} titles={heTitleVariants}/>
           </div>
         </div>
+      </div>
       </div>
   );
 }
@@ -1290,7 +1270,10 @@ const NewIndexSaveButton = function({enTitle, heTitle, enTitleVariants, heTitleV
     }
   }
 
-  return <span onClick={validateThenSave} className="btn-xs">Save</span>;
+  return <div onClick={validateThenSave} id="saveAccountSettings" className="button small blue control-elem" tabIndex="0" role="button">
+              <span className="int-en">Save</span>
+              <span className="int-he">שמירה</span>
+          </div>
 }
 
 

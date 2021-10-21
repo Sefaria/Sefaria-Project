@@ -2442,21 +2442,23 @@ a.navBlockTitle:hover {
 
 }
 
+.bookPage .editTextInfo .static .inner {
+  padding: 5px 0 100px;
+}
+.bookPage .editTextInfo .static input {
+  cursor: auto;
+}
 .bookPage .editTextInfo #newIndex {
   margin: 100px auto;
   font-size: 23px;
 }
-.readerPanel.hebrew #newIndex .publishBox {
-  margin-left: 350px;
-}
-.readerPanel.english #newIndex .publishBox {
-  margin-left: 280px;
-}
+
 .bookPage .editTextInfo #newIndex .publishBox {
   text-align: start;
   background-color: #EDEDEC;
   border-radius: 6px;
-  padding: 10px 25px;
+  padding: 0 0 0 0;
+  margin: 0 0 0 0;
   font-size: 16px;
   color: #666;
 }
@@ -2485,16 +2487,14 @@ a.navBlockTitle:hover {
 }
 
 .bookPage .editTextInfo #newIndex .optional {
-	display: block;
-	font-size: 15px;
-	color: #A6A4DD;
-	margin-left: 25px;
+	font-size: 13px;
+    color: var(--light-grey);
 }
 
 .bookPage .editTextInfo #newIndex input {
 	font-size: 15px;
 	padding: 2px;
-	width: 500px;
+	width: 650px;
 	margin-left: 5px;
 }
 
@@ -2527,7 +2527,7 @@ a.navBlockTitle:hover {
 }
 
 .bookPage .editTextInfo #newIndex select {
-	width: 500px;
+	width: 650px;
 }
 
 .bookPage .editTextInfo #newIndex #otherCategory {
@@ -2602,11 +2602,6 @@ a.navBlockTitle:hover {
   margin-top: 50px;
 }
 
-.bookPage .editTextInfo #newIndex #cancel {
-  position: fixed;
-  left: 0px;
-  top: 75px;
-}
 
 .bookPage .editTextInfo #newIndex .help {
 	color: white;
@@ -7272,6 +7267,10 @@ a .button:hover {
   margin: 0 auto;
   font-size: 16px;
   color: #666;
+}
+.editTextInfo .publishBox {
+  width: 650px;
+  max-width: 650px;
 }
 .publishBox .smallText .int-en, .publishBox .smallText .int-he.enInHe {
   color: #666;

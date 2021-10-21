@@ -724,7 +724,7 @@ p.registration-links a:hover{
 #donatePage ul li{
   list-style: none;
   font-size: 18px;
-  line-height: 27px
+  line-height: 27px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 /*.interface-hebrew #donatePage .faq p.question:before {
@@ -1113,7 +1113,7 @@ p.registration-links a:hover{
   padding: 15px;
   text-align: center;
   display: block;
-  width 100%;
+  width: 100%;
   margin: 10px;
   font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 13px;
