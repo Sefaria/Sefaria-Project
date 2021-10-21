@@ -70,6 +70,6 @@ if __name__ == '__main__':
         if args.cat1 and args.cat2:
             regenerate_bare_links_api(args.cat1, args.cat2)
             regenerate_link_count_api(args.cat1, args.cat2)
-        elif args.vertree:
+        if args.vertree:
             regenerate_version_status_tree()
 
