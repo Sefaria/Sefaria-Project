@@ -112,16 +112,16 @@ io.on("connection", (socket) => {
     socket.to(socketId).emit("send room ID to client", roomId)
   });
 
-  socket.on("send chat message", (room, message) => {
+  socket.on("send chat message", (room, message, now) => {
     if (!socket.rooms.has(room.roomId)) {
       socket.join(room.roomId)
     }
-    const socketIdsOfMsgReceiver = Object.keys(peopleInBeitMidrash).filter(key => peopleInBeitMidrash[key]["name"] === room.userB.name);
+    const socketIdsOfMsgReceiver = Object.keys(peopleInBeitMidrash).filter(key => peopleInBeitMidrash[key]["name"] === room.activeChatPartner.name);
     const msgSender = peopleInBeitMidrash[socket.id]
     if (msgSender) {
       socketIdsOfMsgReceiver.forEach(socketId => {
         // console.log(`sending chat message to ${socketId} from ${msgSender.name}: ${message}`)
-        socket.to(socketId).emit("received chat message", msgSender, message, room)
+        socket.to(socketId).emit("received chat message", msgSender, message, room, now)
       })
     }
     

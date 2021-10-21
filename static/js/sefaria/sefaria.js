@@ -2000,26 +2000,6 @@ _media: {},
     }
     Sefaria.last_place = history_item_array.filter(x=>!x.secondary).concat(Sefaria.last_place);  // while technically we should remove dup. books, this list is only used on client
   },
-  getRefSavedHistory: tref => {
-    return Sefaria._ApiPromise(Sefaria.apiHost + `/api/user_history/saved?tref=${tref}`);
-  },
-  followAPI: (slug, ftype) => {
-    return Sefaria._ApiPromise(Sefaria.apiHost + `/api/profile/${slug}/${ftype}`);
-  },
-  messageAPI: (uid, message) => {
-    const data = {json: JSON.stringify({recipient: uid, message: message.escapeHtml()})};
-    return new Promise((resolve, reject) => {
-      $.post(`${Sefaria.apiHost}/api/messages`, data, resolve);
-    });
-  },
-  _profiles: {},
-  profileAPI: slug => {
-    return Sefaria._cachedApiPromise({
-      url:   Sefaria.apiHost + "/api/profile/" + slug,
-      key:   slug,
-      store: Sefaria._profiles
-    });
-  },
   uploadProfilePhoto: (formData) => {
     return new Promise((resolve, reject) => {
       if (Sefaria._uid) {
