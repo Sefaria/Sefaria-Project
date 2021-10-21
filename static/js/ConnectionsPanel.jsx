@@ -895,7 +895,7 @@ const SheetToolsList = ({ toggleSignUpModal, masterPanelSheetId }) => {
     }
   }
   return (<div>
-    <ToolsButton en={copyText.en} he={copyText.he} image="copy.png" onClick={() => copySheet()} />
+    <ToolsButton en={copyText.en} he={copyText.he} image="copy.png" greyColor={copyText.secondaryEn} onClick={() => copySheet()} />
     {/* <ToolsButton en="Add to Collection" he="תרגומים" image="add-to-collection.svg" onClick={() => toggleCollectionsModal()} /> */}
     <ToolsButton en="Print" he="הדפסה" image="print.svg" onClick={() => window.print()} />
     <ToolsButton en={googleDriveText.en} he={googleDriveText.he} image="googledrive.svg" onClick={() => googleDriveExport()} />
@@ -1266,7 +1266,7 @@ AdvancedToolsList.propTypes = {
 };
 
 
-const ToolsButton = ({ en, he, icon, image, count = null, onClick, control = "interface", typeface = "system", alwaysShow = false }) => {
+const ToolsButton = ({ en, he, icon, image, count = null, onClick, control = "interface", typeface = "system", alwaysShow = false, secondaryHe, secondaryEn, greyColor=false }) => {
   const clickHandler = (e) => {
     e.preventDefault();
     onClick();
@@ -1282,16 +1282,20 @@ const ToolsButton = ({ en, he, icon, image, count = null, onClick, control = "in
   }
   const url = Sefaria.util.replaceUrlParam("with", en);
   const nameClass = en.camelize();
-  const wrapperClasses = classNames({ toolsButton: 1, [nameClass]: 1, [control + "Control"]: 1, [typeface + "Typeface"]: 1, noselect: 1 })
+  const wrapperClasses = classNames({ toolsButton: 1, [nameClass]: 1, [control + "Control"]: 1, [typeface + "Typeface"]: 1, noselect: 1, greyColor: greyColor })
   return (
     count == null || count > 0 || alwaysShow ?
+    <div className="toolsButtonContainer">
       <a href={url} className={wrapperClasses} data-name={en} onClick={clickHandler}>
         {iconElem}
         <span className="toolsButtonText">
           {control == "interface" ? <InterfaceText text={{ en: en, he: he }} /> : <ContentText text={{ en: en, he: he }} />}
           {count ? (<span className="connectionsCount">({count})</span>) : null}
         </span>
-      </a> : null
+      </a>
+      {secondaryEn && secondaryHe ? <a className="toolsSecondaryButton" onClick={clickHandler}><InterfaceText text={{ en: secondaryEn, he: secondaryHe }} /></a> : null}
+      </div>
+      : null
   );
 }
 ToolsButton.propTypes = {
@@ -1301,6 +1305,9 @@ ToolsButton.propTypes = {
   image: PropTypes.string,
   count: PropTypes.number,
   onClick: PropTypes.func,
+  greyColor: PropTypes.bool,
+  secondaryEn: PropTypes.string,
+  secondaryHe: PropTypes.string
 };
 
 

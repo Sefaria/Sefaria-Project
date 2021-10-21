@@ -6773,7 +6773,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   background-image: url("/static/icons/add-to-sheet.svg");
 }
 
-.toolsButton {
+.toolsButtonContainer {
   display: flex;
   justify-content: flex-start;
   color: #000;
@@ -6783,6 +6783,22 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   letter-spacing: 1px;
   margin: 20px 34px;
   align-items: center;
+  flex-wrap: wrap;
+}
+
+.toolsButton {
+  background: none;
+  padding: 0;
+  border: 0px;
+  flex: 1;
+}
+
+.toolsSecondaryButton {
+  color: var(--dark-grey);
+}
+
+.toolsButtonContainer .toolsButton.greyColor {
+  color: var(--dark-grey);
 }
 
 .toolsButton .toolsButtonText .connectionsCount::before {
