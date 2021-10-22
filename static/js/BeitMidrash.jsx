@@ -131,7 +131,6 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
 
     useEffect(()=>{
         socketObj.io.off("reconnect")
-
         socketObj.io.on("reconnect", (attempt) => {
             setSocketConnected(socket);
             console.log(`Reconnected after ${attempt} attempt(s)`);
@@ -141,16 +140,18 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
                 const roomID =  activeChavruta.uid < Sefaria._uid ? `${activeChavruta.uid}-${Sefaria._uid}`: `${Sefaria._uid}-${activeChavruta.uid}`
                 socketObj.emit("rejoin chavruta room", roomID)
             }
-
         });
+    }, [beitMidrashId, currentlyReading, currentScreen])
 
+    useEffect(()=>{
         if (Sefaria._uid) {
             Sefaria.profileAPI(Sefaria.slug).then(profile => {
                 setProfile(profile)
                 socketObj.emit("enter beit midrash", Sefaria._uid, Sefaria.full_name, Sefaria.profile_pic_url, profile.organization, currentlyReading, beitMidrashId);
             });
         }
-    }, [beitMidrashId, currentlyReading, currentScreen])
+    }, [beitMidrashId])
+
 
     useEffect(()=> {
         socketObj.on("change in people", function(people, uid) {
