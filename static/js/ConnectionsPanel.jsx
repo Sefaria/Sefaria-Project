@@ -906,7 +906,7 @@ const SheetToolsList = ({ toggleSignUpModal, masterPanelSheetId }) => {
     }
   }
   return (<div>
-    <ToolsButton en={copyText.en} he={copyText.he} secondaryEn={copyText.secondaryEn} secondaryHe={copyText.secondaryHe} image="copy.png" greyColor={!!copyText.secondaryEn} onClick={() => copySheet()} />
+    <ToolsButton en={copyText.en} he={copyText.he} secondaryEn={copyText.secondaryEn} secondaryHe={copyText.secondaryHe} image="copy.png" greyColor={!!copyText.secondaryEn || copyText.greyColor} onClick={() => copySheet()} />
     {/* <ToolsButton en="Add to Collection" he="תרגומים" image="add-to-collection.svg" onClick={() => toggleCollectionsModal()} /> */}
     <ToolsButton en="Print" he="הדפסה" image="print.svg" onClick={() => window.print()} />
     <ToolsButton en={googleDriveText.en} he={googleDriveText.he} greyColor={!!googleDriveText.secondaryEn} secondaryEn={googleDriveText.secondaryEn} secondaryHe={googleDriveText.secondaryHe} image="googledrive.svg" onClick={() => googleDriveExport()} />

@@ -6799,6 +6799,11 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   height: var(--sans-serif-small-font-size);
   margin-inline-start: 30px;
+  align-self: flex-start;
+}
+
+.linkArrow {
+  height: var(--sans-serif-small-font-size);
 }
 
 .toolsButtonContainer .toolsButton.greyColor {
