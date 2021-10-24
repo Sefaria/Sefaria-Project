@@ -134,11 +134,15 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
         socketObj.io.on("reconnect", (attempt) => {
             setSocketConnected(socket);
             console.log(`Reconnected after ${attempt} attempt(s)`);
-            socketObj.emit("enter beit midrash", Sefaria._uid, Sefaria.full_name, Sefaria.profile_pic_url, profile.organization, currentlyReading, beitMidrashId);
 
             if (currentScreen == "chavrutaVideo") {
                 const roomID =  activeChavruta.uid < Sefaria._uid ? `${activeChavruta.uid}-${Sefaria._uid}`: `${Sefaria._uid}-${activeChavruta.uid}`
                 socketObj.emit("rejoin chavruta room", roomID)
+                socketObj.emit("enter beit midrash", Sefaria._uid, Sefaria.full_name, Sefaria.profile_pic_url, profile.organization, currentlyReading, beitMidrashId, true);
+            }
+
+            else {
+                socketObj.emit("enter beit midrash", Sefaria._uid, Sefaria.full_name, Sefaria.profile_pic_url, profile.organization, currentlyReading, beitMidrashId, false);
             }
         });
     }, [beitMidrashId, currentlyReading, currentScreen])
@@ -147,7 +151,7 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
         if (Sefaria._uid) {
             Sefaria.profileAPI(Sefaria.slug).then(profile => {
                 setProfile(profile)
-                socketObj.emit("enter beit midrash", Sefaria._uid, Sefaria.full_name, Sefaria.profile_pic_url, profile.organization, currentlyReading, beitMidrashId);
+                socketObj.emit("enter beit midrash", Sefaria._uid, Sefaria.full_name, Sefaria.profile_pic_url, profile.organization, currentlyReading, beitMidrashId, false);
             });
         }
     }, [beitMidrashId])
@@ -536,8 +540,8 @@ const ChatBox = ({room,
         <div id="hideButtonHolder">
             <div id="hideButton" onClick={()=>handleCloseChat(room)}>Hide{" "}<img src="/static/img/downward_carrot.svg" /></div>
         </div>
-        <details>
-        <summary>
+        {/*<details>*/}
+        {/*<summary>*/}
         <div className="chatBoxHeader">
         
                 <div id="chatUser">
@@ -559,11 +563,11 @@ const ChatBox = ({room,
             }
             
         </div>
-        </summary>
-            <div>Profile</div>
-            <div>Follow</div>
-            <div className="blockButton" onClick={()=>onBlockUser(activeChavruta.uid)}>Block</div>
-        </details>
+        {/*</summary>*/}
+        {/*    <div>Profile</div>*/}
+        {/*    <div>Follow</div>*/}
+        {/*    <div className="blockButton" onClick={()=>onBlockUser(activeChavruta.uid)}>Block</div>*/}
+        {/*</details>*/}
         <div className="chats-container">
             {/*{// chat archive*/}
 
@@ -764,13 +768,12 @@ const ChavrutaVideo = ({socket, chavrutaId, pcConfig, setCurrentScreen, activeCh
         setVideoTracks();
 
         return () => {
-            console.log('woooo')
           if (pc) {
             pc.close();
           }
 
             stopVideoTracks()
-            socket.emit('chavruta closed')
+            socket.emit('chavruta closed', chavrutaId)
         };
 
 

@@ -55,7 +55,6 @@ const peopleInBeitMidrash = {};
 // globals for chavruta
   let users = {};
   let maximum = 2;
-  let socketToRoom = {};
 
 
 
@@ -68,7 +67,7 @@ io.on("connection", (socket) => {
 
   let disconnectHandler = {};
 
-  function addUserToBeitMidrash(uid, fullName, profilePic, organization, currentlyReading, beitMidrashId, socketId) {
+  function addUserToBeitMidrash(uid, fullName, profilePic, organization, currentlyReading, beitMidrashId, socketId, inChavruta) {
     peopleInBeitMidrash[socketId] = {}
     peopleInBeitMidrash[socketId]["uid"] = uid;
     peopleInBeitMidrash[socketId]["name"] = fullName;
@@ -76,7 +75,7 @@ io.on("connection", (socket) => {
     peopleInBeitMidrash[socketId]["organization"] = organization
     peopleInBeitMidrash[socketId]["beitMidrashId"] = beitMidrashId;
     peopleInBeitMidrash[socketId]["currentlyReading"] = currentlyReading;
-    peopleInBeitMidrash[socketId]["inChavruta"] = false;
+    peopleInBeitMidrash[socketId]["inChavruta"] = inChavruta;
 
     console.log("user added to beit midrash, current peopleInBeitMidrash:", peopleInBeitMidrash)
     socket.broadcast.emit("change in people", Object.values(peopleInBeitMidrash), uid);
@@ -93,8 +92,9 @@ io.on("connection", (socket) => {
     socket.emit("change in people", Object.values(peopleInBeitMidrash), uid);
   })
 
-  socket.on("enter beit midrash", (uid, fullName, profilePic, organization, currentlyReading, beitMidrashId)=> {
-    addUserToBeitMidrash(uid, fullName, profilePic, organization, currentlyReading, beitMidrashId, socket.id)
+  socket.on("enter beit midrash", (uid, fullName, profilePic, organization, currentlyReading, beitMidrashId, inChavruta)=> {
+    console.log(uid, ": ", "entered the beit midrash")
+    addUserToBeitMidrash(uid, fullName, profilePic, organization, currentlyReading, beitMidrashId, socket.id, inChavruta)
     socket.emit('creds', pcConfig)
   });
 
@@ -121,7 +121,7 @@ io.on("connection", (socket) => {
     const msgSender = peopleInBeitMidrash[socket.id]
     if (msgSender) {
       socketIdsOfMsgReceiver.forEach(socketId => {
-        // console.log(`sending chat message to ${socketId} from ${msgSender.name}: ${message}`)
+        console.log(`sending chat message to ${socketId} from ${msgSender.name}: ${message}`)
         socket.to(socketId).emit("received chat message", msgSender, message, room, now)
       })
     }
@@ -140,11 +140,12 @@ io.on("connection", (socket) => {
   const leaveBeitMidrash = (socketId) => {
     //remove user from beit midrash and update listing for clients
     delete peopleInBeitMidrash[socketId];
+    console.log("user left beit midrash, current peopleInBeitMidrash:", peopleInBeitMidrash)
     socket.broadcast.emit("change in people", Object.values(peopleInBeitMidrash));
   }
 
   socket.on("disconnecting", (reason)=> {
-      // console.log(`${socket.id} ${peopleInBeitMidrash[socket.id] ? peopleInBeitMidrash[socket.id].name : ""} is disconnecting from rooms`, socket.rooms, `due to ${reason}`)
+      console.log(`${socket.id} ${peopleInBeitMidrash[socket.id] ? peopleInBeitMidrash[socket.id].name : ""} is disconnecting from rooms`, socket.rooms, `due to ${reason}`)
 
     //notify open chats that user left
     const roomArray = Array.from(socket.rooms);
@@ -190,7 +191,6 @@ io.on("connection", (socket) => {
       console.log(2)
       users[data.room] = [{ id: socket.id, sid: data.id }];
     }
-    socketToRoom[socket.id] = data.room;
 
     socket.join(data.room);
 
@@ -214,9 +214,7 @@ io.on("connection", (socket) => {
   });
 
 
-  socket.on("chavruta closed", () => {
-    console.log(`[${socketToRoom[socket.id]}]: ${socket.id} exit`);
-    const roomID = socketToRoom[socket.id];
+  socket.on("chavruta closed", (roomID) => {
     peopleInBeitMidrash[socket.id]["inChavruta"] = false;
     socket.broadcast.emit("change in people", Object.values(peopleInBeitMidrash));
     socket.emit("change in people", Object.values(peopleInBeitMidrash));
@@ -240,10 +238,6 @@ io.on("connection", (socket) => {
   });
 
   socket.on('rejoin chavruta room', (room) => {
-    peopleInBeitMidrash[socket.id]["inChavruta"] = true;
-    socket.broadcast.emit("change in people", Object.values(peopleInBeitMidrash));
-    socket.emit("change in people", Object.values(peopleInBeitMidrash));
-
     socket.join(room)
   })
 
