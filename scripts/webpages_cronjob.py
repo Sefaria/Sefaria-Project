@@ -149,15 +149,14 @@ if __name__ == "__main__":
 	BOARD_ID = args.board
 
 	idList_mapping = {}
-	url = 'https://api.trello.com/1/boards/615b2cf55893576270ef630d/lists?key={TRELLO_KEY}&token={TRELLO_TOKEN}'
+	url = f'https://api.trello.com/1/boards/{BOARD_ID}/lists?key={TRELLO_KEY}&token={TRELLO_TOKEN}'
 	response = requests.request(
-		"POST",
+		"GET",
 		url,
 		headers={"Accept": "application/json"}
 	)
 	for list_on_board in json.loads(response.content):
-		pos = lists.index(list_on_board["name"])
-		if pos != -1:
+		if list_on_board["name"] in lists:
 			idList_mapping["name"] = list_on_board["id"]
 
 	run_job(board_id=BOARD_ID, idList_mapping=idList_mapping, members_mapping=members_mapping)
