@@ -136,11 +136,28 @@ if __name__ == "__main__":
 						help="API Key")
 	parser.add_argument("-t", "--token",
 						help="API token")
+	parser.add_argument("-b", "--board",
+						help="Board ID")
 	args = parser.parse_args()
 	members_mapping = {"Linker uninstalled": ["53c2c1b503849ae6a6e56870", "5f0c575790c4a913b3992da2"],
 					   "Site uses linker but is not whitelisted": ["53c2c1b503849ae6a6e56870", "5f0c575790c4a913b3992da2"],
 					   "Websites that may need exclusions set": ["53c2c1b503849ae6a6e56870"]}
-	idList_mapping = {"Linker uninstalled": "615b2fda735fdd1a4a7fa2df", "Site uses linker but is not whitelisted": "615b2fdf8c2799427ada5574", "Websites that may need exclusions set": '615b2ff66487a70d3ea3b3b4'}
+	lists = ["Linker uninstalled", "Site uses linker but is not whitelisted", "Websites that may need exclusions set"]
+
 	TRELLO_KEY = args.key
 	TRELLO_TOKEN = args.token
-	run_job(board_id='615b2cf55893576270ef630d', idList_mapping=idList_mapping, members_mapping=members_mapping)
+	BOARD_ID = args.board
+
+	idList_mapping = {}
+	url = 'https://api.trello.com/1/boards/615b2cf55893576270ef630d/lists?key={TRELLO_KEY}&token={TRELLO_TOKEN}'
+	response = requests.request(
+		"POST",
+		url,
+		headers={"Accept": "application/json"}
+	)
+	for list_on_board in json.loads(response.content):
+		pos = lists.index(list_on_board["name"])
+		if pos != -1:
+			idList_mapping["name"] = list_on_board["id"]
+
+	run_job(board_id=BOARD_ID, idList_mapping=idList_mapping, members_mapping=members_mapping)

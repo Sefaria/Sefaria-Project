@@ -497,11 +497,12 @@ def find_sites_to_be_excluded(flag=100):
                 all_sites[website["name"]][ref] += 1
 
     for website in all_sites:
+        sites_to_exclude[website] = ""
         if len(all_sites[website]) > 0:
             most_common = all_sites[website].most_common(10)
             for common in most_common:
                 if common[1] > flag:
-                    sites_to_exclude[website] = f"{website} may need exclusions set due to Ref {common[0]} with {common[1]} pages."
+                    sites_to_exclude[website] += f"{website} may need exclusions set due to Ref {common[0]} with {common[1]} pages.\n"
     return sites_to_exclude
 
 
