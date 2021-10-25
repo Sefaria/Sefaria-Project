@@ -717,6 +717,9 @@ const ChavrutaVideo = ({socket, chavrutaId, pcConfig, setCurrentScreen, activeCh
         }
     };
 
+    useEffect( () => {
+        console.log(activeChavruta)
+    }, [activeChavruta])
 
 
     useEffect(() => {

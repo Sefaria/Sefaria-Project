@@ -174,7 +174,12 @@ io.on("connection", (socket) => {
   });
 
   socket.on("join_chavruta", (data) => {
-    peopleInBeitMidrash[socket.id]["inChavruta"] = true;
+    try {
+      peopleInBeitMidrash[socket.id]["inChavruta"] = true;
+    }
+    catch (e) {
+      console.log(e)
+    }
     console.log(users[data.room])
     socket.broadcast.emit("change in people", Object.values(peopleInBeitMidrash));
     socket.emit("change in people", Object.values(peopleInBeitMidrash));
