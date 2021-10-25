@@ -458,6 +458,7 @@ const Strings = {
     //Topics
     "Wikipedia": "ויקיפדיה",
     "Jewish Encyclopedia": "האנציקלופדיה היהודית",
+    "National Library of Israel": "הספרייה הלאומית",
     "Works on Sefaria": "חיבורים וכתבים בספריא",
 
     //Module Names
