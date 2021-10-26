@@ -682,7 +682,11 @@ const ReadingsComponent = ({ parashaData, tref }) => (
   </div>
 );
 
-
+const propKeys = [
+  {en: 'enWikiLink', he: 'heWikiLink', title: 'Wikipedia'},
+  {en: 'jeLink', he: 'jeLink', title: 'Jewish Encyclopedia'},
+  {en: 'nliLink', he: 'nliLink', title: 'National Library of Israel'},
+];
 const TopicMetaData = ({ timePeriod, properties={} }) => {
   const tpSection = !!timePeriod ? (
     <TopicSideSection title={{en: "Lived", he: "תקופת פעילות"}}>
@@ -690,22 +694,13 @@ const TopicMetaData = ({ timePeriod, properties={} }) => {
       <div className="systemText topicMetaData"><InterfaceText text={timePeriod.yearRange} /></div>
     </TopicSideSection>
   ) : null;
-  const propValues = [
-    {
-      url: {
-        en: (properties['enWikiLink'] || {})['value'],
-        he: (properties['heWikiLink'] || {})['value'],
-      },
-      title: 'Wikipedia',
+  const propValues = propKeys.map(keyObj => ({
+    url: {
+      en: (properties[keyObj.en] || {})['value'],
+      he: (properties[keyObj.he] || {})['value'],
     },
-    {
-      url: {
-        en: (properties['jeLink'] || {})['value'],
-        he: (properties['jeLink'] || {})['value'],
-      },
-      title: 'Jewish Encyclopedia',
-    }
-  ];
+    title: keyObj.title,
+  }));
   const hasProps = propValues.reduce((accum, curr) => accum || curr.url.en || curr.url.he, false);
   const propsSection = hasProps ? (
     <TopicSideSection title={{en: "Learn More", he: "לקריאה נוספת"}}>
