@@ -33,7 +33,7 @@ def run_job(test=True, board_id="", idList_mapping={}, members_mapping={}):
 
 	flag = 500
 	print("Looking for websites where the same Ref appears in at least {} pages...".format(flag))
-	sites["Websites that may need exclusions set"] = find_sites_to_be_excluded(flag=flag)
+	#sites["Websites that may need exclusions set"] = find_sites_to_be_excluded(flag=flag)
 	#
 	# after_total_pages, after_total_links = webpages_stats()
 	# print("{} total pages.  Deleted {}.\n".format(after_total_pages, total_pages-after_total_pages))
@@ -43,16 +43,17 @@ def run_job(test=True, board_id="", idList_mapping={}, members_mapping={}):
 	for kind, sites_to_handle in sites.items():
 		for site_name_in_DB in sites_to_handle:
 			comment = sites_to_handle[site_name_in_DB]
-			already_on_trello = False
-			for site_on_trello in board.lists[idList_mapping[kind]]:
-				site_name_on_trello = site_on_trello['name']
-				if site_name_in_DB == site_name_on_trello:
-					already_on_trello = True
-					board.add_comment(site_on_trello, comment)
-					break
-			if not already_on_trello:
-				card = board.create_card(site_name_in_DB, idList_mapping[kind], members_mapping[kind])
-				board.add_comment(card, comment)
+			if len(comment) > 0:
+				already_on_trello = False
+				for site_on_trello in board.lists[idList_mapping[kind]]:
+					site_name_on_trello = site_on_trello['name']
+					if site_name_in_DB == site_name_on_trello:
+						already_on_trello = True
+						#board.add_comment(site_on_trello, comment)
+						break
+				if not already_on_trello:
+					card = board.create_card(site_name_in_DB, idList_mapping[kind], members_mapping[kind])
+					board.add_comment(card, comment)
 
 
 
@@ -157,6 +158,6 @@ if __name__ == "__main__":
 	)
 	for list_on_board in json.loads(response.content):
 		if list_on_board["name"] in lists:
-			idList_mapping["name"] = list_on_board["id"]
+			idList_mapping[list_on_board["name"]] = list_on_board["id"]
 
 	run_job(board_id=BOARD_ID, idList_mapping=idList_mapping, members_mapping=members_mapping)
