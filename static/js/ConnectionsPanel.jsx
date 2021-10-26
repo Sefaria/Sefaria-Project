@@ -302,10 +302,10 @@ class ConnectionsPanel extends Component {
               setConnectionsMode={this.props.setConnectionsMode}
               masterPanelSheetId={this.props.masterPanelSheetId}
             /> :
-            <>
+            <div class="topToolsButtons">
               <ToolsButton en="About this Text" he="אודות הטקסט" image="about-text.svg" onClick={() => this.props.setConnectionsMode("About")} />
               <ToolsButton en="Table of Contents" he="תוכן העניינים" image="text-navigation.svg" onClick={() => this.props.setConnectionsMode("Navigation")} />
-            </>
+            </div>
           }
           {showConnectionSummary ?
             <ConnectionsPanelSection title="Related Texts">
@@ -771,7 +771,7 @@ const AboutSheetButtons = ({ setConnectionsMode, masterPanelSheetId }) => {
     setIsOwner(sheet.owner === Sefaria._uid);
   }, []);
 
-  return (<div>
+  return (<div class="topToolsButtons">
     {isOwner ?
         <ToolsButton en="Publish Settings" he="הגדרות פרסום" image="about-text.svg" onClick={() => setConnectionsMode("AboutSheet")} />
         :

@@ -6025,7 +6025,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-inline-start: 5px;
 }
 
-.connectionsPanel .toolsButton.aboutThisText {
+.connectionsPanel .topToolsButtons {
   margin-top: 30px;
 }
 
