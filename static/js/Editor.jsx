@@ -1754,7 +1754,8 @@ const Link = ({ attributes, children, element }) => {
   const [linkPopoverVisible, setLinkPopoverVisible] = useState(false);
   const [urlValue, setUrlValue] = useState(element.url);
   const [showLinkRemoveButton, setShowLinkRemoveButton] = useState(false);
-  const [currentSlateRange, setCurrentSlateRange] = useState(editor.linkOverrideSelection)
+  const [currentSlateRange, setCurrentSlateRange] = useState(editor.linkOverrideSelection);
+  const [editingUrl, setEditingUrl] = useState(false);
 
 
   let showLinkHoverTimeout;
@@ -1772,11 +1773,13 @@ const Link = ({ attributes, children, element }) => {
         }, 500, e);
     }
     const onBlur = (e, url) => {
-        clearTimeout(showLinkHoverTimeout)
-        hideLinkHoverTimeout = setTimeout(function () {
-            setLinkPopoverVisible(false)
-            setCurrentSlateRange(null)
-        }, 500);
+        if (!editingUrl) {
+            clearTimeout(showLinkHoverTimeout)
+            hideLinkHoverTimeout = setTimeout(function () {
+                setLinkPopoverVisible(false)
+                setCurrentSlateRange(null)
+            }, 500);
+        }
     }
     const onClick = (e, url) => {
         window.open(url, '_blank').focus();
@@ -1791,6 +1794,8 @@ const Link = ({ attributes, children, element }) => {
     }
 
     const closePopup = (e) => {
+        setEditingUrl(false)
+        setLinkPopoverVisible(false)
         if (e.target.value === "") {
             Transforms.select(editor, currentSlateRange);
             editor.removeLink();
@@ -1840,7 +1845,7 @@ const Link = ({ attributes, children, element }) => {
 
       {/* Show popup on hover and also force it open when a new link is created  */}
       {linkPopoverOpen ? (
-        <div className="popup" contentEditable={false} onBlur={(e) => closePopup(e)}>
+        <div className="popup" contentEditable={false} onFocus={() => setEditingUrl(true)} onBlur={(e) => closePopup(e)}>
           <input
               type="text"
               value={urlValue}
