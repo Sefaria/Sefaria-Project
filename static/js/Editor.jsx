@@ -789,7 +789,7 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
             <div className="addInterfaceInput mediaInput" title="We can process YouTube and SoundCloud links, and hosted mp3's and images" onClick={(e)=> {e.stopPropagation()}}>
                 <input
                     type="text"
-                    placeholder="Paste a link to an image, video, or audio"
+                    placeholder={Sefaria._("Paste a link to an image, video, or audio")}
                     className="serif"
                     onClick={(e)=> {e.stopPropagation()}}
                     onChange={(e) => onMediaChange(e)}
@@ -907,12 +907,12 @@ const AddInterface = ({ attributes, children, element }) => {
     return (
       <div role="button" title={active ? "Close menu" : "Add a source, image, or other media"} contentEditable={!active} suppressContentEditableWarning={true} aria-label={active ? "Close menu" : "Add a source, image, or other media"} className={classNames(addInterfaceClasses)} onClick={(e) => toggleEditorAddInterface(e)}>
           {itemToAdd == null ? <>
-              <div role="button" title="Add a source" aria-label="Add a source" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addSourceClicked(e)} id="addSourceButton"></div>
-              <div role="button" title="Add an image" aria-label="Add an image" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addImageClicked(e)} id="addImageButton">
+              <div role="button" title={Sefaria._("Add a source")} aria-label="Add a source" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addSourceClicked(e)} id="addSourceButton"></div>
+              <div role="button" title={Sefaria._("Add an image")} aria-label="Add an image" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addImageClicked(e)} id="addImageButton">
                   <label htmlFor="addImageFileSelector" id="addImageFileSelectorLabel"></label>
               </div>
               <input id="addImageFileSelector" type="file" style={{ display: "none"}} onChange={onFileSelect} ref={fileInput} />
-              <div role="button" title="Add media" aria-label="Add media" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addMediaClicked(e)} id="addMediaButton"></div>
+              <div role="button" title={Sefaria._("Add media")} aria-label="Add media" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addMediaClicked(e)} id="addMediaButton"></div>
           </> :
 
               <AddInterfaceInput

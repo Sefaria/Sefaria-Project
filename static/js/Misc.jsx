@@ -2549,7 +2549,7 @@ const Autocompleter = ({selectedRefCallback}) => {
     <div className="addInterfaceInput" onClick={(e) => {e.stopPropagation()}} title="Add a source from Sefaria's library">
       <input
           type="text"
-          placeholder="Search for a text..."
+          placeholder={Sefaria._("Search for a text...")}
           className="serif"
           onKeyDown={(e) => onKeyDown(e)}
           onClick={(e) => {e.stopPropagation()}}
