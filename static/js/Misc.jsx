@@ -2438,8 +2438,8 @@ const Autocompleter = ({selectedRefCallback}) => {
 
       //We want to show address completions when book exists but not once we start typing further
       if (d.is_book && isNaN(input.trim().slice(-1))) {
-        setHelperPromptText(d.addressExamples[0])
-        document.querySelector('.addInterfaceInput input+span.helperCompletionText').style.left = `${getWidthOfInput()}px`;
+        setHelperPromptText(<InterfaceText text={{en: d.addressExamples[0], he: d.heAddressExamples[0]}} />)
+        document.querySelector('.addInterfaceInput input+span.helperCompletionText').style.insetInlineStart = `${getWidthOfInput()}px`;
       }
       else {
         setHelperPromptText(null)
@@ -2557,7 +2557,7 @@ const Autocompleter = ({selectedRefCallback}) => {
           value={inputValue}
           ref={inputEl}
           size={inputValue.length}
-      /><span className="helperCompletionText">{helperPromptText}</span>
+      /><span className="helperCompletionText sans-serif-in-hebrew">{helperPromptText}</span>
       {showAddButton ? <button className="button small" onClick={(e) => {
                     selectedRefCallback(inputValue)
                 }}>Add Source</button> : null}

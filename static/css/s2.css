@@ -8843,8 +8843,8 @@ span.purim-emoji img{
 
 .addInterfaceInput input+span.helperCompletionText {
   position: absolute;
-  margin-left: 4px;
-  color: var(--medium-grey)
+  margin-inline-start: 4px;
+  color: var(--medium-grey);
 }
 
 .editorAddInterface.active .editorAddInterfaceButton {
