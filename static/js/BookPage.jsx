@@ -28,7 +28,10 @@ import {ContentLanguageContext} from './context';
 import Hebrew from './sefaria/hebrew.js';
 import Cookies from 'js-cookie';
 import ReactTags from 'react-tag-autocomplete';
-import './../css/static.css';
+if (typeof document !== 'undefined') {
+  // only include css client-side
+  require('./../css/static.css');
+}
 
 
 
