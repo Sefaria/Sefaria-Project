@@ -9068,6 +9068,28 @@ cursor: pointer;
   margin-inline-end: -16px;
 }
 
+.readerPanel.english .sheetItem .SheetSource .he,
+.readerPanel.english .sheetItem .SheetSource .en,
+.readerPanel.english .sheetItem .SheetOutsideBiText .he,
+.readerPanel.english .sheetItem .SheetOutsideBiText .en,
+.readerPanel.hebrew  .sheetItem .SheetSource .he,
+.readerPanel.hebrew  .sheetItem .SheetSource .en,
+.readerPanel.hebrew  .sheetItem .SheetOutsideBiText .he,
+.readerPanel.hebrew  .sheetItem .SheetOutsideBiText .en
+{
+  padding-inline-start: initial;
+  padding-inline-end: initial;
+  margin-inline-start: initial;
+  margin-inline-end: initial;
+}
+
+.readerPanel.english .sheetItem .SheetSource.segment,
+.readerPanel.hebrew .sheetItem .SheetSource.segment {
+  padding-top: 15px;
+  padding-bottom: 15px;
+}
+
+
 .sheetItem .SheetSource .he.editable.selected .sourceContentText,
 .sheetItem .SheetSource .en.editable.selected .sourceContentText,
 .sheetItem .SheetOutsideBiText .he.editable.selected .sourceContentText,
