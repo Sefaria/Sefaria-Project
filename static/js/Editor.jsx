@@ -628,7 +628,7 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
       e.dataTransfer.setData('text/html', e.target.innerHTML)
       e.dataTransfer.setData('text/plain', e.target.text)
       e.dataTransfer.effectAllowed = 'copy';
-      
+
       const dragIcon = document.createElement('div');
       dragIcon.classList.add("dragIcon");
       dragIcon.classList.add("serif");
@@ -1846,7 +1846,7 @@ const Link = ({ attributes, children, element }) => {
           <input
               type="text"
               value={urlValue}
-              placeholder="Enter link URL"
+              placeholder={Sefaria._("Enter link URL")}
               className="sans-serif"
               onChange={(e) => urlChange(e)}
           />

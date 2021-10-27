@@ -107,6 +107,7 @@ const Strings = {
     "Copy" : "העתקה",
     "Edit": "עריכה",
     "View in Editor": "לתצוגת עריכה",
+     "Enter link URL": "הכנס קישור",
     "Copied" : "הועתק",
     "Copying..." : "מעתיק...",
     "Delete": "מחיקה",
