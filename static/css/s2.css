@@ -8837,7 +8837,7 @@ span.purim-emoji img{
   background-color: var(--lighter-grey);
 }
 .readerApp.interface-hebrew .addInterfaceInput input {
-  background-position: right 7px top 7px;
+  background-position: right 7px top 11px;
 }
 
 .addInterfaceInput input::placeholder {
