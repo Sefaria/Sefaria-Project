@@ -36,6 +36,7 @@ if (typeof document !== 'undefined') {
 
 
 
+
 class BookPage extends Component {
   // Menu for the Table of Contents for a single text
   constructor(props) {
