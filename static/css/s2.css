@@ -9067,6 +9067,46 @@ cursor: pointer;
   margin-inline-start: -20px;
   margin-inline-end: -16px;
 }
+.interface-hebrew .bilingual.heLeft .sheetItem .SheetOutsideBiText .he,
+.interface-hebrew .bilingual.heLeft .sheetItem .SheetSource .he,
+.interface-hebrew .bilingual.heRight .sheetItem .SheetOutsideBiText .en,
+.interface-hebrew .bilingual.heRight .sheetItem .SheetSource .en,
+.interface-english .bilingual.heRight .sheetItem .SheetOutsideBiText .he,
+.interface-english .bilingual.heRight .sheetItem .SheetSource .he,
+.interface-english .bilingual.heLeft .sheetItem .SheetOutsideBiText .en,
+.interface-english .bilingual.heLeft .sheetItem .SheetSource .en {
+  padding-inline-end: 20px;
+  margin-inline-end: 0px;
+  padding-inline-start: 20px;
+  margin-inline-start: 0px;
+}
+.interface-hebrew .bilingual.heLeft .sheetItem .SheetOutsideBiText .en,
+.interface-hebrew .bilingual.heLeft .sheetItem .SheetSource .en,
+.interface-english .bilingual.heLeft .sheetItem .SheetOutsideBiText .he,
+.interface-english .bilingual.heLeft .sheetItem .SheetSource .he {
+  padding-inline-end: 16px;
+  margin-inline-end: 0px;
+  padding-inline-start: 20px;
+  margin-inline-start: 0px;
+}
+
+.interface-hebrew .bilingual.heRight .sheetItem .SheetOutsideBiText .he,
+.interface-hebrew .bilingual.heRight .sheetItem .SheetSource .he,
+.interface-english .bilingual.heRight .sheetItem .SheetOutsideBiText .en,
+.interface-english .bilingual.heRight .sheetItem .SheetSource .en {
+  padding-inline-end: 20px;
+  margin-inline-end: 0px;
+  padding-inline-start: 16px;
+  margin-inline-start: 0px;
+}
+
+.readerPanel.bilingual.heRight .sheetItem .SheetSource,
+.readerPanel.bilingual.heRight .sheetItem .SheetOutsideBiText,
+.readerPanel.bilingual.heLeft .sheetItem .SheetSource,
+.readerPanel.bilingual.heLeft .sheetItem .SheetOutsideBiText {
+  padding-left: 0;
+  padding-right: 0;
+}
 
 .readerPanel.english .sheetItem .SheetSource .he,
 .readerPanel.english .sheetItem .SheetSource .en,
