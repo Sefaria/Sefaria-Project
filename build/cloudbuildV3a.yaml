@@ -29,7 +29,7 @@ steps:
 
 
   # Build artifacts
-  - name: gcr.io/kaniko-project/executor:latest
+  - name: gcr.io/kaniko-project/executor:v1.6.0
     args:
       - --destination=gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:$SHORT_SHA
       - --destination=gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:$TAG_NAME
@@ -40,7 +40,7 @@ steps:
     id: web_container
     wait_for: [ "-" ]
 
-  - name: gcr.io/kaniko-project/executor:latest
+  - name: gcr.io/kaniko-project/executor:v1.6.0
     args:
       - --destination=gcr.io/${PROJECT_ID}/sefaria-node-${_ENV_NAME}:$SHORT_SHA
       - --destination=gcr.io/${PROJECT_ID}/sefaria-node-${_ENV_NAME}:$TAG_NAME
@@ -51,7 +51,7 @@ steps:
     id: nodejs_container
     wait_for: [ "-" ]
   
-  - name: gcr.io/kaniko-project/executor:latest
+  - name: gcr.io/kaniko-project/executor:v1.6.0
     args:
       - --destination=gcr.io/${PROJECT_ID}/sefaria-asset-${_ENV_NAME}:$SHORT_SHA
       - --destination=gcr.io/${PROJECT_ID}/sefaria-asset-${_ENV_NAME}:$TAG_NAME
