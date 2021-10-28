@@ -907,6 +907,7 @@ def profile_spam_dashboard(request):
 def spam_dashboard(request):
     from django.contrib.auth.models import User
 
+
     def purge_spammer_account_data(spammer_id):
         # Delete Sheets
         db.sheets.delete_many({"owner": spammer_id})
@@ -917,8 +918,6 @@ def spam_dashboard(request):
         # Delete Following Relationships
         db.following.delete_many({"follower": spammer_id})
         db.following.delete_many({"followee": spammer_id})
-        # Delete Sheet Likes
-        db.sheets.update_many({"likes": spammer_id}, {"$pull": {"likes": spammer_id}})
         # Delete Profile
         db.profiles.delete_one({"id": spammer_id})
 
@@ -926,6 +925,7 @@ def spam_dashboard(request):
         spammer_account = User.objects.get(id=spammer_id)
         spammer_account.is_active = False
         spammer_account.save()
+
 
     if request.method == 'POST':
         req_type = request.POST.get("type")

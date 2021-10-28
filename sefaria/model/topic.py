@@ -74,6 +74,8 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
 
     def _normalize(self):
         super()._normalize()
+        for title in self.title_group.titles:
+            title['text'] = title['text'].strip()
         self.titles = self.title_group.titles
 
     def set_titles(self, titles):
