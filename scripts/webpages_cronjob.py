@@ -5,6 +5,7 @@ import cProfile, pstats
 import requests
 import json
 import argparse
+from sefaria.model import *
 
 TRELLO_KEY = TRELLO_TOKEN = -1
 def run_job(test=True, board_id="", idList_mapping={}, members_mapping={}):
@@ -16,13 +17,13 @@ def run_job(test=True, board_id="", idList_mapping={}, members_mapping={}):
 	webpages_without_websites_days = sites_that_may_have_removed_linker_days # same timeline is relevant
 
 	print("Original webpage stats...")
-	total_pages, total_links = webpages_stats()
-	print("{} total pages.\n".format(total_pages))
-	print("{} total connections.\n".format(total_links))
-
-	print("Cleaning webpages...")
-	clean_webpages(test=test)
-	dedupe_webpages(test=test)
+	# total_pages, total_links = webpages_stats()
+	# print("{} total pages.\n".format(total_pages))
+	# print("{} total connections.\n".format(total_links))
+	#
+	# print("Cleaning webpages...")
+	# clean_webpages(test=test)
+	# dedupe_webpages(test=test)
 
 
 	print("Find sites that no longer have linker...")
@@ -140,16 +141,55 @@ def delete_bad_refs(BOARD_ID, TRELLO_KEY, TRELLO_TOKEN):
 	)
 	board = TrelloBoard(board_id=BOARD_ID)
 	board.get_lists()
+	modified_pages = []
+	deleted_pages = []
+	all_deleted = []
+	all_modified = []
 	for list_on_board in json.loads(response.content):
 		if list_on_board["name"] == 'Todo: After setting exclusions, delete old, bad refs and delete web page if it has 0 refs':
-			for card in list_on_board["id"]:
-				url = f'https://api.trello.com/1/cards/{id}?key={TRELLO_KEY}&token={TRELLO_TOKEN}'
+			for card in board.lists[list_on_board["id"]]:
+				print()
+				print(card["name"])
+				all_deleted += deleted_pages
+				all_modified += modified_pages
+				modified_pages = []
+				deleted_pages = []
+
+				url = f'https://api.trello.com/1/cards/{card["id"]}?key={TRELLO_KEY}&token={TRELLO_TOKEN}'
 				response = requests.request(
 					"GET",
 					url,
 					headers={"Accept": "application/json"}
 				)
-				card = json.loads(response.content)
+				site = json.loads(response.content)
+				name = site["name"]
+				domains = list(WebSiteSet({"name": name}))[0].domains
+				domains = "|".join(domains)
+				refs = site["desc"].split(", ")
+				only_old_refs = False
+				if refs[0].startswith("Older than 20 days: "):
+					refs[0] = refs[0].replace("Older than 20 days: ", "")
+					only_old_refs = True
+
+				for bad_ref in refs:
+					ws = WebPageSet({"url": {"$regex": domains}, "refs": bad_ref}).array()
+					threshold = datetime.today() - timedelta(days=30)
+					if only_old_refs:
+						ws = [w for w in ws if w.lastUpdated < threshold]
+					for w in ws:
+						w.refs = [r for r in w.refs if r not in refs]
+						if len(w.refs) > 0:
+							w.expandedRefs = Ref.expand_refs(w.refs)
+							w.save()
+							modified_pages.append(w.url)
+						else:
+							w.delete()
+							deleted_pages.append(w.url)
+	print(all_modified)
+	print(all_deleted)
+
+
+
 
 
 if __name__ == "__main__":
@@ -160,7 +200,7 @@ if __name__ == "__main__":
 						help="API token")
 	parser.add_argument("-b", "--board",
 						help="Board ID")
-	parser.add_argument("-d", "--delete", default=False, help="Use this option to delete bad refs instead of running the default job.")
+	parser.add_argument("-d", "--delete", default='no', help="Use this option to delete bad refs instead of running the default job.")
 	args = parser.parse_args()
 	members_mapping = {"Linker uninstalled": ["53c2c1b503849ae6a6e56870", "5f0c575790c4a913b3992da2"],
 					   "Site uses linker but is not whitelisted": ["53c2c1b503849ae6a6e56870", "5f0c575790c4a913b3992da2"],
@@ -180,7 +220,7 @@ if __name__ == "__main__":
 		headers={"Accept": "application/json"}
 	)
 
-	if not DELETE:
+	if DELETE == 'no':
 		for list_on_board in json.loads(response.content):
 			if list_on_board["name"] in lists:
 				idList_mapping[list_on_board["name"]] = list_on_board["id"]
