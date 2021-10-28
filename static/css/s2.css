@@ -6804,6 +6804,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 
 .linkArrow {
   height: var(--sans-serif-small-font-size);
+  position: relative;
+  top: 1px;
 }
 
 .toolsButtonContainer .toolsButton.greyColor {
