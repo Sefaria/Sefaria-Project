@@ -9171,6 +9171,31 @@ cursor: pointer;
   margin-bottom: 14px;
 }
 
+.readerPanel.bilingual.heRight .SheetSource {
+  background-image:
+  linear-gradient(
+    to left,
+    #fff,
+    #fff 50%,
+    #FBFBFA 50%,
+    #FBFBFA 100%,
+    #fff 100%
+  );
+}
+
+.readerPanel.bilingual.heLeft .SheetSource {
+  background-image:
+  linear-gradient(
+    to right, 
+    #fff,
+    #fff 50%,
+    #FBFBFA 50%,
+    #FBFBFA 100%,
+    #fff 100%
+  );
+}
+
+
 .boxedSheetItem + .spacer {
   margin-top: -30px;
   margin-bottom: -30px;
