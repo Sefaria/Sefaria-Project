@@ -676,7 +676,7 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
     <div className={classNames(sheetItemClasses)} data-sheet-node={element.node} data-sefaria-ref={element.ref} style={{ pointerEvents: (isActive) ? 'none' : 'auto'}}>
     <div  contentEditable={false} onBlur={(e) => onBlur(e) } onClick={(e) => onClick(e)} className={classNames(classes)} style={{"borderInlineStartColor": Sefaria.palette.refColor(element.ref)}}>
       <div className={classNames(heClasses)} style={{ pointerEvents: (isActive) ? 'auto' : 'none'}}>
-          {element.heRef ? <div className="ref" contentEditable={false} style={{ userSelect: 'none' }}>{element.heRef}</div> : null }
+          {element.heRef ? <div className="ref" contentEditable={false} style={{ userSelect: 'none', pointerEvents: 'auto' }}><a href={`/${element.ref}`}>{element.heRef}</a></div> : null }
           <div className="sourceContentText">
           <Slate editor={sheetSourceHeEditor} value={sheetHeSourceValue} onChange={value => onHeChange(value)}>
           <HoverMenu buttons="basic"/>
@@ -690,7 +690,7 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
         </div>
       </div>
       <div className={classNames(enClasses)} style={{ pointerEvents: (isActive) ? 'auto' : 'none'}}>
-        {element.ref ? <div className="ref" contentEditable={false} style={{ userSelect: 'none' }}>{element.ref}</div> : null }
+        {element.ref ? <div className="ref" contentEditable={false} style={{ userSelect: 'none', pointerEvents: 'auto' }}><a href={`/${element.ref}`}>{element.ref}</a></div> : null }
         <div className="sourceContentText">
           <Slate editor={sheetSourceEnEditor} value={sheetEnSourceValue} onChange={value => onEnChange(value)}>
           <HoverMenu buttons="basic"/>
