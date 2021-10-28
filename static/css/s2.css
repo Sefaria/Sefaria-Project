@@ -6786,6 +6786,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   flex-wrap: wrap;
 }
 
+.toolsButtonContainer .toolsButtonText,
+.toolsButtonContainer .toolsSecondaryButton {
+  position: relative;
+  top: 1.5px;
+}
+
 .toolsButton {
   background: none;
   padding: 0;
