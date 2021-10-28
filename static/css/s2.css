@@ -4567,8 +4567,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .heRight.bilingual .sheetItem.enOnly > p > .en,
 .heRight.bilingual .sheetItem.heOnly > p > .he {
   width: 100%;
-  padding-right: 0;
-  padding-left: 0;
 }
 .readerPanel .sheetItem.heOnly > .en,
 .readerPanel .sheetItem.heOnly > p > .en {
