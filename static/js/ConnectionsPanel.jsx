@@ -253,7 +253,7 @@ class ConnectionsPanel extends Component {
     return (srefs)
   }
   showSheetNodeConnectionTools(ref, mode) {
-    var dontShowModes = ["Share", "Feedback", "Sheets"];
+    const dontShowModes = ["Share", "Feedback", "Sheets"];
     if (ref.indexOf("Sheet") !== -1 && !dontShowModes.includes(mode)) {
       return true
     }
@@ -267,7 +267,7 @@ class ConnectionsPanel extends Component {
     this.props.setFilter(Sefaria.getTranslateVersionsKey(versionTitle, versionLanguage));
   }
   render() {
-    var content = null;
+    let content = null;
     if (!this.state.linksLoaded) {
       content = <LoadingMessage />;
     } else if (this.showSheetNodeConnectionTools(this.props.srefs, this.props.mode)) {
@@ -407,7 +407,7 @@ class ConnectionsPanel extends Component {
       />);
 
     } else if (this.props.mode === "Sheets") {
-      var connectedSheet = this.props.nodeRef ? this.props.nodeRef.split(".")[0] : null;
+      const connectedSheet = this.props.nodeRef ? this.props.nodeRef.split(".")[0] : null;
       content = (<div>
         {this.props.srefs[0].indexOf("Sheet") === -1 ?
           <MySheetsList
@@ -656,8 +656,8 @@ class ConnectionsPanel extends Component {
       />
     }
 
-    var marginless = ["Resources", "ConnectionsList", "Advanced Tools", "Share", "WebPages", "Topics", "manuscripts"].indexOf(this.props.mode) != -1;
-    var classes = classNames({ connectionsPanel: 1, textList: 1, marginless: marginless, fullPanel: this.props.fullPanel, singlePanel: !this.props.fullPanel });
+    const marginless = ["Resources", "ConnectionsList", "Advanced Tools", "Share", "WebPages", "Topics", "manuscripts"].indexOf(this.props.mode) != -1;
+    let classes = classNames({ connectionsPanel: 1, textList: 1, marginless: marginless, fullPanel: this.props.fullPanel, singlePanel: !this.props.fullPanel });
     return (
       <div className={classes} key={this.props.mode}>
         {this.props.fullPanel ? null :
@@ -728,7 +728,6 @@ const ResourcesList = ({ masterPanelMode, setConnectionsMode, counts }) => {
   // A list of Resources in addition to connection
   return (
     <div className="toolButtonsList">
-      <ToolsButton en="Translations" he="תרגומים" image="translation.svg" count={counts["translations"]} onClick={() => setConnectionsMode("Translations")} />
       <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={counts["sheets"]} onClick={() => setConnectionsMode("Sheets")} />
       <ToolsButton en="Web Pages" he="דפי אינטרנט" image="webpages.svg" count={counts["webpages"]} onClick={() => setConnectionsMode("WebPages")} />
       <ToolsButton en="Topics" he="נושאים" image="hashtag-icon.svg" count={counts["topics"]} onClick={() => setConnectionsMode("Topics")} />
@@ -847,7 +846,7 @@ const SheetToolsList = ({ toggleSignUpModal, masterPanelSheetId }) => {
 
 
   const filterAndSaveCopiedSheetData = (data) => {
-    var newSheet = Sefaria.util.clone(data);
+    let newSheet = Sefaria.util.clone(data);
     newSheet.status = "unlisted";
     newSheet.title = newSheet.title + " (Copy)";
 
@@ -868,7 +867,7 @@ const SheetToolsList = ({ toggleSignUpModal, masterPanelSheetId }) => {
     delete newSheet.promptedToPublish;
     delete newSheet._id;
 
-    var postJSON = JSON.stringify(newSheet);
+    const postJSON = JSON.stringify(newSheet);
     $.post("/api/sheets/", { "json": postJSON }, (data) => {
       if (data.id) {
         setCopiedSheetId(data.id);
@@ -1052,8 +1051,8 @@ ConnectionsSummary.propTypes = {
 class MySheetsList extends Component {
   // List of my sheets for a ref in the Sidebar
   render() {
-    var sheets = Sefaria.sheets.userSheetsByRef(this.props.srefs);
-    var content = sheets.length ? sheets.filter(sheet => {
+    const sheets = Sefaria.sheets.userSheetsByRef(this.props.srefs);
+    let content = sheets.length ? sheets.filter(sheet => {
       // Don't show sheets as connections to themselves
       return sheet.id !== this.props.connectedSheet;
     }).filter(
@@ -1077,8 +1076,8 @@ MySheetsList.propTypes = {
 class PublicSheetsList extends Component {
   // List of public sheets for a ref in the sidebar
   render() {
-    var sheets = Sefaria.sheets.sheetsByRef(this.props.srefs);
-    var content = sheets.length ? sheets.filter(sheet => {
+    const sheets = Sefaria.sheets.sheetsByRef(this.props.srefs);
+    let content = sheets.length ? sheets.filter(sheet => {
       // My sheets are shown already in MySheetList
       return sheet.owner !== Sefaria._uid && sheet.id !== this.props.connectedSheet;
     }).sort((a, b) => {
@@ -1230,50 +1229,49 @@ WebPagesList.propTypes = {
   srefs: PropTypes.array.isRequired,
 };
 
-class AdvancedToolsList extends Component {
-  render() {
-    var editText = this.props.canEditText ? function () {
-      var refString = this.props.srefs[0];
-      var currentPath = Sefaria.util.currentPath();
-      var currentLangParam;
-      const langCode = this.props.masterPanelLanguage.slice(0, 2);
-      if (this.props.currVersions[langCode]) {
-        refString += "/" + encodeURIComponent(langCode) + "/" + encodeURIComponent(this.props.currVersions[langCode]);
+const AdvancedToolsList = ({srefs, canEditText, currVersions, setConnectionsMode, masterPanelLanguage, toggleSignUpModal}) => {
+    const editText = canEditText ? function () {
+      let refString = srefs[0];
+      let currentPath = Sefaria.util.currentPath();
+      let currentLangParam;
+      const langCode = masterPanelLanguage.slice(0, 2);
+      if (currVersions[langCode]) {
+        refString += "/" + encodeURIComponent(langCode) + "/" + encodeURIComponent(currVersions[langCode]);
       }
-      var path = "/edit/" + refString;
-      var nextParam = "?next=" + encodeURIComponent(currentPath);
+      let path = "/edit/" + refString;
+      let nextParam = "?next=" + encodeURIComponent(currentPath);
       path += nextParam;
       //console.log(path);
       Sefaria.track.event("Tools", "Edit Text Click", refString,
         { hitCallback: () => window.location = path }
       );
-    }.bind(this) : null;
+    } : null;
 
-    var addTranslation = function () {
-      if (!Sefaria._uid) { this.props.toggleSignUpModal() }
-
+    const addTranslation = function () {
+      if (!Sefaria._uid) { toggleSignUpModal() }
       else {
-        var nextParam = "?next=" + Sefaria.util.currentPath();
-        Sefaria.track.event("Tools", "Add Translation Click", this.props.srefs[0],
-          { hitCallback: () => { window.location = "/translate/" + this.props.srefs[0] + nextParam } }
+        let nextParam = "?next=" + Sefaria.util.currentPath();
+        Sefaria.track.event("Tools", "Add Translation Click", srefs[0],
+          { hitCallback: () => { window.location = "/translate/" + srefs[0] + nextParam } }
         );
       }
-    }.bind(this);
+    };
 
     return (
       <div>
         <ToolsButton en="Add Translation" he="הוספת תרגום" image="tools-translate.svg" onClick={addTranslation} />
-        <ToolsButton en="Add Connection" he="הוספת קישור לטקסט אחר" image="tools-add-connection.svg" onClick={() => !Sefaria._uid ? this.props.toggleSignUpModal() : this.props.setConnectionsMode("Add Connection")} />
+        <ToolsButton en="Add Connection" he="הוספת קישור לטקסט אחר" image="tools-add-connection.svg" onClick={() => !Sefaria._uid ? toggleSignUpModal() : setConnectionsMode("Add Connection")} />
         {editText ? (<ToolsButton en="Edit Text" he="עריכת טקסט" image="tools-edit-text.svg" onClick={editText} />) : null}
-      </div>);
-  }
+      </div>
+    );
 }
 AdvancedToolsList.propTypes = {
-  srefs: PropTypes.array.isRequired,  // an array of ref strings
-  canEditText: PropTypes.bool,
-  currVersions: PropTypes.object,
-  setConnectionsMode: PropTypes.func.isRequired,
-  masterPanelLanguage: PropTypes.oneOf(["english", "hebrew", "bilingual"]),
+  srefs:                PropTypes.array.isRequired,  // an array of ref strings
+  canEditText:          PropTypes.bool,
+  currVersions:         PropTypes.object,
+  setConnectionsMode:   PropTypes.func.isRequired,
+  masterPanelLanguage:  PropTypes.oneOf(["english", "hebrew", "bilingual"]),
+  toggleSignUpModal:    PropTypes.func,
 };
 
 
@@ -1374,7 +1372,7 @@ class ShareBox extends Component {
     this.setState({ shareValue: event.target.value });
   }
   copySheetLink() {
-    var copyText = document.getElementById("sheetShareLink");
+    const copyText = document.getElementById("sheetShareLink");
     copyText.select();
     copyText.setSelectionRange(0, 99999); // For mobile devices
 
@@ -1385,18 +1383,18 @@ class ShareBox extends Component {
     }
   }
   render() {
-    var url = this.props.url;
+    const url = this.props.url;
 
-    var shareFacebook = function () {
+    const shareFacebook = function () {
       Sefaria.util.openInNewTab("https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(url));
     };
-    var shareTwitter = function () {
+    const shareTwitter = function () {
       Sefaria.util.openInNewTab("https://twitter.com/share?url=" + encodeURIComponent(url));
     };
-    var shareEmail = function () {
+    const shareEmail = function () {
       Sefaria.util.openInNewTab("mailto:?&subject=Text on Sefaria&body=" + url);
     };
-    var classes = classNames({ textList: 1, fullPanel: this.props.fullPanel });
+    const classes = classNames({ textList: 1, fullPanel: this.props.fullPanel });
     return (
       <div>
         <ConnectionsPanelSection title="Share Link">
@@ -1450,20 +1448,18 @@ class AddNoteBox extends Component {
     $(ReactDOM.findDOMNode(this)).find(".noteText").focus();
   }
   saveNote() {
-    console.log(this.props)
-    var text = $(ReactDOM.findDOMNode(this)).find(".noteText").val();
+    const text = $(ReactDOM.findDOMNode(this)).find(".noteText").val();
     if (!text) { return; }
-    var note = {
+    let note = {
       text: text,
       refs: this.props.srefs,
       type: "note",
       public: !this.state.isPrivate
     };
-    console.log(note)
 
     if (this.props.noteId) { note._id = this.props.noteId; }
-    var postData = { json: JSON.stringify(note) };
-    var url = "/api/notes/";
+    const postData = { json: JSON.stringify(note) };
+    const url = "/api/notes/";
     $.post(url, postData, function (data) {
       if (data.error) {
         alert(data.error);
@@ -1499,8 +1495,8 @@ class AddNoteBox extends Component {
     if (!Sefaria._uid) {
       return (<div className="addNoteBox"><LoginPrompt /></div>);
     }
-    var privateClasses = classNames({ notePrivateButton: 1, active: this.state.isPrivate });
-    var publicClasses = classNames({ notePublicButton: 1, active: !this.state.isPrivate });
+    //const privateClasses = classNames({ notePrivateButton: 1, active: this.state.isPrivate });
+    //const publicClasses = classNames({ notePublicButton: 1, active: !this.state.isPrivate });
     return (
       <div className="addNoteBox">
         <textarea className="noteText" placeholder={Sefaria._("Write a note...")} defaultValue={this.props.noteText}></textarea>
@@ -1563,9 +1559,9 @@ class MyNotes extends Component {
     this.forceUpdate();
   }
   render() {
-    var myNotesData = Sefaria.privateNotes(this.props.srefs);
-    var myNotes = myNotesData ? myNotesData.map(function (note) {
-      var editNote = function () {
+    const myNotesData = Sefaria.privateNotes(this.props.srefs);
+    const myNotes = myNotesData ? myNotesData.map(function (note) {
+      let editNote = function () {
         this.props.editNote(note);
       }.bind(this);
       return (<Note
@@ -1594,8 +1590,8 @@ MyNotes.propTypes = {
 class PublicNotes extends Component {
   // List of Publc notes a ref or range or refs.
   render() {
-    var notes = Sefaria.notes(this.props.srefs);
-    var content = notes ? notes.filter(function (note) {
+    const notes = Sefaria.notes(this.props.srefs);
+    const content = notes ? notes.filter(function (note) {
       // Exlude my notes, shown already in MyNotes.
       return note.owner !== Sefaria._uid;
     }).map(function (note) {
