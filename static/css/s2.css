@@ -6790,7 +6790,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   background: none;
   padding: 0;
   border: 0px;
-  flex: 1;
+  flex: 1 1 auto;
 }
 
 .toolsSecondaryButton {
