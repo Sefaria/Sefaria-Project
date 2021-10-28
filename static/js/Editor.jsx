@@ -935,7 +935,7 @@ const Element = props => {
         case 'spacer':
           const spacerSelected = useSelected();
           const spacerClasses = {
-            spacerSelected: spacerSelected, 
+            spacerSelected: spacerSelected,
             spacer: 1,
             empty: 1
           }
@@ -2313,7 +2313,6 @@ const SefariaEditor = (props) => {
           scrollTimeOutId = setTimeout(
               () => {
                   if(props.hasSidebar) {
-                      ReactEditor.deselect(editor);
                       onEditorSidebarToggleClick()
                   }
               }, 200
@@ -2329,7 +2328,6 @@ const SefariaEditor = (props) => {
             let sheetElementTypes = Object.values(sheet_item_els);
               for(const node of Node.ancestors(editor, editor.selection.focus.path)) {
                   if (sheetElementTypes.includes(node[0].type)) {
-                    console.log(editor)
                       if (node[0].node != editor.highlightedNode) {
                         updateSidebar(node[0].node, node[0].ref)
                         if (node[0].type != "SheetSource") {
