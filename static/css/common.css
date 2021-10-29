@@ -709,3 +709,16 @@ a:active {
 .clearFix {
   clear: both;
 }
+.static {
+  font-size: 16px;
+  background-color: #FBFBFA;
+}
+.static .inner {
+  width: 90%;
+  max-width: 660px;
+  margin: 0 auto;
+  padding: 140px 0 100px;
+}
+.static .section {
+  margin-bottom: 30px;
+}

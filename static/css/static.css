@@ -17,16 +17,7 @@
 .interface-hebrew .static .englishOnly {
   direction:ltr;
 }
-.static {
-  font-size: 16px;
-  background-color: #FBFBFA;
-}
-.static .inner {
-  width: 90%;
-  max-width: 660px;
-  margin: 0 auto;
-  padding: 140px 0 100px;
-}
+
 #register.static .inner {
   width: 302px;
 }
@@ -74,9 +65,6 @@
 }
 .static p a {
   text-decoration: underline;
-}
-.static .section {
-  margin-bottom: 30px;
 }
 .static input {
   padding: 20px 20px;
