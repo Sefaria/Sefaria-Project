@@ -883,9 +883,17 @@ def profile_spam_dashboard(request):
 
         earliest_new_user_id = User.objects.filter(date_joined__gte=date).order_by('date_joined')[0].id
 
+        regex = r'.*(?!href=[\'"](\/|http(s)?:\/\/(www\.)?sefaria).+[\'"])(href).*'
+
         users_to_check = db.profiles.find(
-            {'website': {"$ne": ""}, 'bio': {"$ne": ""}, "id": {"$gt": earliest_new_user_id},
-             "reviewed": {"$ne": True}})
+            {'$or': [
+                {'website': {"$ne": ""}, 'bio': {"$ne": ""}, "id": {"$gt": earliest_new_user_id},
+                      "reviewed": {"$ne": True}},
+                {'bio': {"$regex": regex}, "id": {"$gt": earliest_new_user_id}, "reviewed": {"$ne": True}}
+            ]
+        })
+
+
 
         profiles_list = []
 
