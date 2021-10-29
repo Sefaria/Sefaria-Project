@@ -6942,9 +6942,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .shareSettingsBox .shareDropdown {
   display: inline-block;
   height: 20px;
-  width: fit-content;
-  width: intrinsic;           /* Safari/WebKit uses a non-standard name */
-  width: -moz-max-content;    /* Firefox/Gecko */
+  width: 52px;
   margin: 0 3px;
   border: 0;
   color: var(--sefaria-blue);
@@ -6953,6 +6951,16 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   font-size: var(--sans-serif-body-font-size);
   align-self: flex-end;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  bottom: 1px;
+  position: relative;
+  background-color: Transparent;
+  background-image: url(/static/icons/arrow-down-bold.svg);
+  background-repeat: no-repeat;
+  background-position: right;
+  background-size: 12px;
 }
 
 .shareInputBox .copyLinkIcon {
