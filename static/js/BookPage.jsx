@@ -1259,6 +1259,9 @@ const NewIndexSaveButton = function({enTitle, heTitle, enTitleVariants, heTitleV
         window.location.reload(true);
       }
       }).fail( function(xhr, textStatus, errorThrown) {
+        console.log(xhr);
+        console.log(textStatus);
+        console.log(errorThrown);
         alert("Unfortunately, there was an error saving this text information. Please try again or try reloading this page.")
       });
   };
