@@ -7236,7 +7236,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   width: 30px;
   border-radius: 30px;
   border: none;
-  background-color: #FBFBFA;
+  background-color: var(--sefaria-blue);
   cursor: pointer;
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
 }
