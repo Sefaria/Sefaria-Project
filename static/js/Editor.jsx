@@ -2075,8 +2075,8 @@ const HoverMenu = (opt) => {
             <FormatButton editor={editor} format="bold" />
             <FormatButton editor={editor} format="italic" />
             <FormatButton editor={editor} format="underline" />
-            <HighlightButton />
             {buttons == "basic" ? null : <>
+            <HighlightButton />
                 <AddLinkButton />
                 <BlockButton editor={editor} format="header" icon="header" />
                 <BlockButton editor={editor} format="numbered-list" icon="list-ol" />
