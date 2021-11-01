@@ -6786,11 +6786,17 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   flex-wrap: wrap;
 }
 
+.toolsButtonContainer .toolsButtonText,
+.toolsButtonContainer .toolsSecondaryButton {
+  position: relative;
+  top: 1.5px;
+}
+
 .toolsButton {
   background: none;
   padding: 0;
   border: 0px;
-  flex: 1;
+  flex: 1 1 auto;
 }
 
 .toolsSecondaryButton {
@@ -6804,6 +6810,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 
 .linkArrow {
   height: var(--sans-serif-small-font-size);
+  position: relative;
+  top: 1px;
 }
 
 .toolsButtonContainer .toolsButton.greyColor {
@@ -6934,9 +6942,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .shareSettingsBox .shareDropdown {
   display: inline-block;
   height: 20px;
-  width: fit-content;
-  width: intrinsic;           /* Safari/WebKit uses a non-standard name */
-  width: -moz-max-content;    /* Firefox/Gecko */
+  width: 52px;
   margin: 0 3px;
   border: 0;
   color: var(--sefaria-blue);
@@ -6945,6 +6951,16 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   font-size: var(--sans-serif-body-font-size);
   align-self: flex-end;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  bottom: 1px;
+  position: relative;
+  background-color: Transparent;
+  background-image: url(/static/icons/arrow-down-bold.svg);
+  background-repeat: no-repeat;
+  background-position: right;
+  background-size: 12px;
 }
 
 .shareInputBox .copyLinkIcon {
@@ -8305,10 +8321,6 @@ div.transparentBackground.publishBox {
   color: red;
 }
 
-.publishBox textarea {
-  margin-bottom: 20px;
-}
-
 .publishBox p {
   margin-bottom: 15px;
 }
@@ -8355,7 +8367,8 @@ div.transparentBackground.publishBox {
   border-radius: 6px;
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
   font-style: normal;
-  padding: 10px;
+  padding: 10px 10px 4px 10px;
+  margin-bottom: 0px;
 }
 
 .publishBox textarea::placeholder {
@@ -8464,8 +8477,11 @@ body.interface-hebrew .publishBox .react-tags__search-input::placeholder, body.i
 }
 
 .publishSettingsEditMode .publishButton .publishedText {
-  text-align: left;
-  margin: 5px 15px 0 20px;
+  text-align: start;
+  margin-top: 5px;
+  margin-bottom: 0px;
+  margin-inline-start: 0px;
+  margin-inline-end: 15px;
   font-size: var(--sans-serif-body-font-size);
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
