@@ -395,14 +395,14 @@ Sefaria = extend(Sefaria, {
         });
   },
   _bulkTexts: {},
-  getBulkText: function(refs, asSizedString=false, minChar=null, maxChar=null) {
+  getBulkText: function(refs, asSizedString=false, minChar=null, maxChar=null, transLangPref=null) {
     if (refs.length === 0) { return Promise.resolve({}); }
 
     const MAX_URL_LENGTH = 3800;
     const hostStr = `${Sefaria.apiHost}/api/bulktext/`;
 
     let paramStr = '';
-    for (let [paramKey, paramVal] of Object.entries({asSizedString, minChar, maxChar})) {
+    for (let [paramKey, paramVal] of Object.entries({asSizedString, minChar, maxChar, transLangPref})) {
       paramStr = !!paramVal ? paramStr + `&${paramKey}=${paramVal}` : paramStr;
     }
     paramStr = paramStr.replace(/&/,'?');

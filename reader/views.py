@@ -300,6 +300,13 @@ def old_versions_redirect(request, tref, lang, version):
     response['Location'] += "&{}".format(params) if params else ""
     return response
 
+def get_connections_mode(filter):
+    # List of sidebar modes that can function inside a URL parameter to open the sidebar in that state.
+    sidebarModes = ("Sheets", "Notes", "About", "Navigation", "Translations", "Translation Open","WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts")
+    if filter[0] in sidebarModes:
+        return filter[0], True
+    else:
+        return "TextList", False
 
 def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **kwargs):
     """
@@ -348,14 +355,9 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
             "versionFilter": versionFilter,
         }
         if filter and len(filter):
-            # List of sidebar modes that can function inside a URL parameter to open the sidebar in that state.
-            sidebarModes = ("Sheets", "Notes", "About", "Translations", "Translation Open",
-                            "WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts")
-            if filter[0] in sidebarModes:
-                panel["connectionsMode"] = filter[0]
+            panel["connectionsMode"], deleteFilter = get_connections_mode(filter)
+            if deleteFilter == True:
                 del panel['filter']
-            else:
-                panel["connectionsMode"] = "TextList"
 
         settings_override = {}
         panelDisplayLanguage = kwargs.get("connectionsPanelDisplayLanguage", None) if mode == "Connections" else kwargs.get("panelDisplayLanguage", None)
@@ -366,7 +368,7 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
             settings_override.update({"aliyotTorah": aliyotOverride})
         if settings_override:
             panel["settings"] = settings_override
-        if mode != "Connections":
+        if mode != "Connections" and oref != None:
             try:
                 text_family = TextFamily(oref, version=panel["currVersions"]["en"], lang="en", version2=panel["currVersions"]["he"], lang2="he", commentary=False,
                                   context=True, pad=True, alts=True, wrapLinks=False, translationLanguagePreference=kwargs.get("translationLanguagePreference", None)).contents()
@@ -434,7 +436,7 @@ def make_sheet_panel_dict(sheet_id, filter, **kwargs):
 
     ref = None
     if highlighted_node:
-        ref = next((element["ref"] for element in sheet["sources"] if element.get("ref") and element["node"] == int(highlighted_node)), None)
+        ref = next((element["ref"] for element in sheet["sources"] if element.get("ref") and element["node"] == int(highlighted_node)), 'Sheet '+ str(sheet_id) + '.' + str(highlighted_node))
 
     panelDisplayLanguage = kwargs.get("panelDisplayLanguage")
     if panelDisplayLanguage:
@@ -3311,31 +3313,39 @@ def leaderboard(request):
         'leaders1': top_contributors(1),
     })
 
-def post_chat_message(room_id, sender_id, timestamp, message_content):
-    message = Message({"room_id": room_id, 
-                        "sender_id": sender_id, 
-                        "timestamp": timestamp, 
-                        "message_content": message_content})
-    message.save()
-
-def get_chat_messages(room_id):
-    messages = MessageSet({"room_id": room_id}).client_contents()
-    return messages
-
 @catch_error_as_json
 def chat_message_api(request):
     if request.method == "POST":
         messageJSON = request.POST.get("json")
         messageJSON = json.loads(messageJSON)
-        message = Message({"room_id": messageJSON["roomId"], 
+
+        room_id = messageJSON["roomId"]
+        uids = room_id.split("-")
+        if str(request.user.id) not in uids:
+            return jsonResponse({"error": "Only members of a chatroom can post to it."})
+
+
+        message = Message({"room_id": room_id,
                         "sender_id": messageJSON["senderId"], 
                         "timestamp": messageJSON["timestamp"], 
                         "message": messageJSON["messageContent"]})
         message.save()
+        return jsonResponse({"status": "ok"})
+
     if request.method == "GET":
         room_id = request.GET.get("room_id")
-        messages = MessageSet({"room_id": room_id}).client_contents()
+        uids = room_id.split("-")
+
+
+        if str(request.user.id) not in uids:
+            return jsonResponse({"error": "Only members of a chatroom can view it."})
+
+        skip = int(request.GET.get("skip", 0))
+        limit = int(request.GET.get("limit", 10))
+
+        messages = MessageSet({"room_id": room_id}, sort=[("timestamp", -1)], limit=limit, skip=skip).client_contents()
         return jsonResponse(messages)
+
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 @ensure_csrf_cookie
@@ -4073,7 +4083,7 @@ def explore(request, topCat, bottomCat, book1, book2, lang=None):
         "MidrashRabbah": {
             "title": "Midrash Rabbah",
             "heTitle": "מדרש רבה",
-            "shapeParam": "Midrash/Aggadic Midrash/Midrash Rabbah",
+            "shapeParam": "Midrash/Aggadah/Midrash Rabbah",
             "linkCountParam": "Midrash Rabbah",
             "colorByBook": True,
         },

@@ -11,8 +11,6 @@ import { BroadcastChannel } from 'broadcast-channel';
 const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
     const [peopleInBeitMidrash, setPeopleInBeitMidrash] = useState(null);
     const [activeChatRooms, setActiveChatRooms] = useState([]);
-    const [chatDataStore, _setChatDataStore] = useState({});
-    const chatDataStoreRef = useRef(chatDataStore);
     const [profile, setProfile] = useState({});
     const [currentChatRoom, setCurrentChatRoom] = useState("");
     const [currentScreen, setCurrentScreen] = useState("home");
@@ -25,6 +23,7 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
     const [blockedUsers, setBlockedUsers] = useState([])
     const [pcConfig, setPcConfig] = useState(null);
     const [usersWithUnreadMsgs, setUsersWithUnreadMsgs] = useState([])
+    const [shouldUpdateChats, setShouldUpdateChats] = useState(false)
 
 
     const filterDedupeAndSortPeople = (people) => {
@@ -55,32 +54,14 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
         //insert code for unblocking user
     }
 
-    const setChatDataStore = (data) => {
-        chatDataStoreRef.current = data;
-        _setChatDataStore(data);
-    }
-    
     const addMessageToDataStore = (uid, room, message, now) => {
-        const roomExists = chatDataStoreRef.current[room.roomId]
-
+        console.log('adding to datastore')
         if (currentChatRoom != room.roomId) {
             setUsersWithUnreadMsgs(prevArray => [...prevArray, uid]);
         }
+        setShouldUpdateChats(true)
 
-        setChatDataStore({
-            ...chatDataStoreRef.current,
-            [room.roomId]: {
-                chatMembers: [
-                    room.activeChatPartner,
-                    room.me
-                ],
-                messages: [...(roomExists ? chatDataStoreRef.current[room.roomId].messages : []), {
-                senderId: uid,
-                message: message,
-                timestamp: now
-                }],
-            }
-            });
+        console.log(shouldUpdateChats)
     }
 
     useEffect(() => {
@@ -123,6 +104,10 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
             onDisconnect()
         }
     }, [])
+
+    useEffect( () => {
+        console.log(shouldUpdateChats)
+    }, [shouldUpdateChats])
 
     useEffect(()=> {
         socketObj.emit("update currently reading", Sefaria._uid, currentlyReading);
@@ -183,10 +168,8 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
             
             if(!blockedUsers.includes(msgSender.uid)) {
                 console.log('received chat message', message)
-                console.log(now)
 
                 addMessageToDataStore(msgSender.uid, room, message, now);
-                console.log(activeChatRooms)
                 const currentActiveChatRoomIds = activeChatRooms.map(r => {return r.roomId});
      
                 if (!currentActiveChatRoomIds.includes(room.roomId)) {
@@ -243,17 +226,6 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
             setActiveChatRooms([room]);
         }
         setCurrentChatRoom(roomId)
-
-        if (!chatDataStore[roomId]) {
-            setChatDataStore({...chatDataStore,
-                [roomId]: {
-                    chatMembers: [
-                        activeChatPartner,
-                        me
-                    ],
-                    messages: []
-                }});
-        }
     }
 
     const handleCloseChat = (roomObj) => {
@@ -283,12 +255,13 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
                 currentChatRoom={currentChatRoom}
                 startChat={startChat}
                 usersWithUnreadMsgs={usersWithUnreadMsgs}
-                chatDataStore={chatDataStore}
                 handleCloseChat={handleCloseChat}
                 chavrutaCallInitiated={chavrutaCallInitiated}
                 chavrutaRequestReceived={chavrutaRequestReceived}
                 activeChavruta={activeChavruta}
                 socket={socketObj}
+                shouldUpdateChats={shouldUpdateChats}
+                setShouldUpdateChats={setShouldUpdateChats}
                 profile={profile}
                 partnerLeftNotification={partnerLeftNotification}
                 setPartnerLeftNotification={setPartnerLeftNotification}
@@ -320,7 +293,6 @@ const BeitMidrashHome = ({beitMidrashId,
                         activeChatRooms,
                         currentChatRoom,
                         startChat,
-                        chatDataStore,
                         handleCloseChat,
                         chavrutaCallInitiated,
                         chavrutaRequestReceived,
@@ -331,7 +303,9 @@ const BeitMidrashHome = ({beitMidrashId,
                         setPartnerLeftNotification,
                         onBlockUser,
                         onUnblockUser,
-                        usersWithUnreadMsgs
+                        usersWithUnreadMsgs,
+                        shouldUpdateChats,
+                        setShouldUpdateChats
                         }) => {
 
     return (<div className="beitMidrashHomeContainer">
@@ -347,7 +321,6 @@ const BeitMidrashHome = ({beitMidrashId,
                         };
 
                         if (user.uid !== Sefaria._uid) {
-                            console.log(user)
                             return <div className={classNames(userClasses)} key={user.uid} onClick={() => startChat(user)}>
                                 <ProfilePic len={42.67} url={user.pic} name={user.name} id="beitMidrashProfilePic"/>
                                 <div className="beitMidrashUserText">
@@ -370,12 +343,13 @@ const BeitMidrashHome = ({beitMidrashId,
                     return <ChatBox
                         key={room.roomId}
                         room={room}
-                        chatDataStore={chatDataStore}
                         handleCloseChat={handleCloseChat}
                         chavrutaCallInitiated={chavrutaCallInitiated}
                         chavrutaRequestReceived={chavrutaRequestReceived}
                         activeChavruta={activeChavruta}
                         socket={socket}
+                        shouldUpdateChats={shouldUpdateChats}
+                        setShouldUpdateChats={setShouldUpdateChats}
                         profile={profile}
                         partnerLeftNotification={partnerLeftNotification}
                         setPartnerLeftNotification={setPartnerLeftNotification}
@@ -444,7 +418,6 @@ const ChavrutaCall = ({outgoingCall, activeChavruta, setCurrentScreen, socket}) 
 }
 
 const ChatBox = ({room,
-                chatDataStore,
                 handleCloseChat,
                 chavrutaCallInitiated,
                 activeChavruta,
@@ -452,6 +425,8 @@ const ChatBox = ({room,
                 profile,
                 partnerLeftNotification,
                 setPartnerLeftNotification,
+                shouldUpdateChats,
+                setShouldUpdateChats,
                 onBlockUser,
                 onUnblockUser
                  }) => {
@@ -473,8 +448,18 @@ const ChatBox = ({room,
             setBlockedNotification(true)
         })
         
-        // Sefaria.getChatMessagesAPI(roomId).then(chats => setStoredChatMessages(chats))
+        Sefaria.getChatMessagesAPI(roomId).then(chats => setStoredChatMessages(chats.reverse()))
     }, []);
+
+    useEffect( () => {
+        console.log(shouldUpdateChats)
+        if (shouldUpdateChats) {
+            Sefaria.getChatMessagesAPI(roomId).then(chats => {
+                setStoredChatMessages(chats.reverse())
+            })
+            setShouldUpdateChats(false)
+        }
+    }, [shouldUpdateChats])
 
     useEffect(()=>{
         if (storedChatMessages) {
@@ -490,11 +475,7 @@ const ChatBox = ({room,
             lastMessage.scrollIntoView()
         }
 
-    }, [chatDataStore, partnerLeftNotification, showChats])
-
-    useEffect( () => {
-        console.log(chatDataStore)
-    }, [chatDataStore])
+    }, [storedChatMessages, partnerLeftNotification, showChats])
 
     const handleChange = (e) =>{
         setChatMessage(e.target.value);
@@ -512,7 +493,7 @@ const ChatBox = ({room,
         
         chatChannel.postMessage({msgSender, room, chatMessage, now})
 
-        // Sefaria.chatMessageAPI(roomId, Sefaria._uid, Date.now(), chatMessage)
+        Sefaria.chatMessageAPI(roomId, Sefaria._uid, Date.now(), chatMessage).then( (res)=> {console.log(res)} )
         
         // We thought we needed this to add to chatdatastore on submit, but the broadcast api appears to add it anyway
         // even though we think it's not supposed to!
@@ -569,23 +550,16 @@ const ChatBox = ({room,
         {/*    <div className="blockButton" onClick={()=>onBlockUser(activeChavruta.uid)}>Block</div>*/}
         {/*</details>*/}
         <div className="chats-container">
-            {/*{// chat archive*/}
-
-            {/*    showChats ? storedChatMessages.map((message, i) => {*/}
-            {/*    return (*/}
-            {/*        message.senderId === Sefaria._uid ?*/}
-            {/*            <Message user={room.me} key={i} message={message} /> :*/}
-            {/*            <Message user={room.activeChatPartner} key={i} message={message} />*/}
-            {/*    )*/}
-            {/*}) : <LoadingMessage />*/}
-            {/*}*/}
-            {chatDataStore[roomId] ? chatDataStore[roomId].messages.map((message, i) => {
+            {
+                showChats ? storedChatMessages.map((message, i) => {
                 return (
-                    message.senderId === Sefaria._uid ?
+                    message["sender_id"] === Sefaria._uid ?
                         <Message user={room.me} key={i} message={message} /> :
                         <Message user={room.activeChatPartner} key={i} message={message} />
                 )
-            }) : <LoadingMessage /> }
+            }) : <LoadingMessage />
+            }
+
             {partnerLeftNotification && !blockedNotification ? <div className="chatMessage">{room.activeChatPartner.name} has left the chat.</div> : null}
             {blockedNotification ? <div className="chatMessage">{room.activeChatPartner.name} has blocked you.</div> : null}
         </div>

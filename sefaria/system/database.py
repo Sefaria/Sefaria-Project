@@ -141,6 +141,7 @@ def ensure_indices(active_db=None):
         ('manuscript_pages', [[("manuscript_slug", pymongo.ASCENDING), ("page_id", pymongo.ASCENDING)]], {'unique': True}),
         ('manuscripts', ['slug'], {}),
         ('manuscripts', ['title'], {}),
+        ('messages', [[("room_id", pymongo.ASCENDING), ("timestamp", pymongo.DESCENDING)]], {}),
     ]
 
     for col, args, kwargs in indices:
