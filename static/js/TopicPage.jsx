@@ -29,10 +29,11 @@ import {
 const norm_hebrew_ref = tref => tref.replace(/[׳״]/g, '');
 
 
-const fetchBulkText = inRefs =>
+const fetchBulkText = (translationLanguagePreference, inRefs) =>
   Sefaria.getBulkText(
     inRefs.map(x => x.ref),
-    true, 500, 600
+    true, 500, 600,
+    translationLanguagePreference
   ).then(outRefs => {
     for (let tempRef of inRefs) {
       // annotate outRefs with `order` and `dataSources` from `topicRefs`
@@ -313,36 +314,39 @@ const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDis
     </div>
 );}
 
+const useTabDisplayData = (translationLanguagePreference) => {
+  const getTabDisplayData = useCallback(() => [
+    {
+      key: 'popular-writing-of',
+      fetcher: fetchBulkText.bind(null, translationLanguagePreference),
+      sortOptions: ['Relevance', 'Chronological'],
+      filterFunc: refFilter,
+      sortFunc: refSort,
+      renderWrapper: refRenderWrapper,
+    },
+    {
+      key: 'sources',
+      fetcher: fetchBulkText.bind(null, translationLanguagePreference),
+      sortOptions: ['Relevance', 'Chronological'],
+      filterFunc: refFilter,
+      sortFunc: refSort,
+      renderWrapper: refRenderWrapper,
+    },
+    {
+      key: 'sheets',
+      fetcher: fetchBulkSheet,
+      sortOptions: ['Relevance', 'Views', 'Newest'],
+      filterFunc: sheetFilter,
+      sortFunc: sheetSort,
+      renderWrapper: sheetRenderWrapper,
+    }
+  ], [translationLanguagePreference]);
+  return getTabDisplayData();
+};
 
-const TAB_DISPLAY_DATA = [
-  {
-    key: 'popular-writing-of',
-    fetcher: fetchBulkText,
-    sortOptions: ['Relevance', 'Chronological'],
-    filterFunc: refFilter,
-    sortFunc: refSort,
-    renderWrapper: refRenderWrapper,
-  },
-  {
-    key: 'sources',
-    fetcher: fetchBulkText,
-    sortOptions: ['Relevance', 'Chronological'],
-    filterFunc: refFilter,
-    sortFunc: refSort,
-    renderWrapper: refRenderWrapper,
-  },
-  {
-    key: 'sheets',
-    fetcher: fetchBulkSheet,
-    sortOptions: ['Relevance', 'Views', 'Newest'],
-    filterFunc: sheetFilter,
-    sortFunc: sheetSort,
-    renderWrapper: sheetRenderWrapper,
-  }
-]; 
 const TopicPage = ({
   tab, topic, topicTitle, setTopic, setNavTopic, openTopics, multiPanel, showBaseText, navHome, 
-  toggleSignUpModal, openDisplaySettings, updateTopicsTab, openSearch
+  toggleSignUpModal, openDisplaySettings, updateTopicsTab, openSearch, translationLanguagePreference,
 }) => {
     const defaultTopicData = {primaryTitle: topicTitle, tabs: {}, isLoading: true};
     const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(topic) || defaultTopicData);
@@ -350,6 +354,7 @@ const TopicPage = ({
     const [refsToFetchByTab, setRefsToFetchByTab] = useState({});
     const [parashaData, setParashaData] = useState(null);
     const [showFilterHeader, setShowFilterHeader] = useState(false);
+    const tabDisplayData = useTabDisplayData(translationLanguagePreference);
 
     const scrollableElement = useRef();
 
@@ -384,7 +389,7 @@ const TopicPage = ({
     // Set up tabs and register incremental load hooks
     const displayTabs = [];
     let onClickFilterIndex = 2;
-    for (let tabObj of TAB_DISPLAY_DATA) {
+    for (let tabObj of tabDisplayData) {
       const { key } = tabObj;
       useIncrementalLoad(
         tabObj.fetcher,
@@ -447,7 +452,7 @@ const TopicPage = ({
                           onClickArray={{[onClickFilterIndex]: ()=>setShowFilterHeader(!showFilterHeader)}}
                         >
                           {
-                            TAB_DISPLAY_DATA.map(tabObj => {
+                            tabDisplayData.map(tabObj => {
                               const { key, sortOptions, filterFunc, sortFunc, renderWrapper } = tabObj;
                               const displayTab = displayTabs.find(x => x.id === key);
                               if (!displayTab) { return null; }
