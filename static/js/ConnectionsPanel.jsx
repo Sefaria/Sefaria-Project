@@ -334,8 +334,10 @@ class ConnectionsPanel extends Component {
                 // title prop to be something other than "Sheet" to indicate that a real source is being
                 // looked at
                 (this.props.masterPanelMode == "Sheet" && this.props.title !== "Sheet") ?
-                    <ToolsButton en="About this Source" he="אודות מקור זה" image="about-text.svg" onClick={() => this.props.setConnectionsMode("About")} />
-                    <ToolsButton en="Translations" he="תרגומים" image="translation.svg" count={resourcesButtonCounts["translations"]} onClick={() => this.props.setConnectionsMode("Translations")} />
+                    <>
+                      <ToolsButton en="About this Source" he="אודות מקור זה" image="about-text.svg" onClick={() => this.props.setConnectionsMode("About")} />
+                      <ToolsButton en="Translations" he="תרגומים" image="translation.svg" count={resourcesButtonCounts["translations"]} onClick={() => this.props.setConnectionsMode("Translations")} />
+                    </>
                   :
                   null
               }
