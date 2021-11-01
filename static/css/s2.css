@@ -9095,6 +9095,11 @@ div.aboutSheetMetadata {
   flex-direction: column;
   margin: 10px 0px;
 }
+div.aboutSheetMetadata span:not(:first-child)::before{
+  content: '•';
+  margin-inline-start: 4px;
+  margin-inline-end: 4px;
+}
 
 .hebrew .topicPanel .topicSource .score img {
   margin: -4px 2px 0 0;

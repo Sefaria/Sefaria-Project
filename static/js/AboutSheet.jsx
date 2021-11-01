@@ -290,7 +290,11 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
             </a>
         </SheetAuthorStatement>
         <div className="aboutSheetMetadata">
-            <div>{Sefaria.util.localeDate(sheet.dateCreated)} {'\u2022'} {sheet.views} {Sefaria._("Views")} {'\u2022'} {sheetSaves.length} {Sefaria._("Saves")}</div>
+            <div>
+                <span>{Sefaria.util.localeDate(sheet.dateCreated)}</span>
+                <span>{sheet.views} {Sefaria._("Views")}</span>
+                <span>{sheetSaves.length} {Sefaria._("Saves")}</span>
+            </div>
             {/* {sheet.status !== 'public' ? (<div><span className="unlisted"><img src="/static/img/eye-slash.svg"/><span>{Sefaria._("Not Published")}</span></span></div>) : undefined} */}
         </div>
         {
