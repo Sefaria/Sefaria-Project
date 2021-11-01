@@ -1957,7 +1957,7 @@ const toggleFormat = (editor, format) => {
 
 const isFormatActive = (editor, format) => {
   const [match] = Editor.nodes(editor, {
-    match: n => n[format] === true,
+    match: n => !!n[format] === true,
     mode: 'all',
   });
   return !!match
@@ -2033,6 +2033,7 @@ const Leaf = ({attributes, children, leaf}) => {
 const HoverMenu = (opt) => {
     const buttons = (opt["buttons"])
     const ref = useRef();
+    const [showHighlightColors, setShowHighlightColors] = useState(false);
     const editor = useSlate();
 
     useEffect(() => {
@@ -2071,17 +2072,17 @@ const HoverMenu = (opt) => {
     const root = window.document.getElementById('s2');
     return ReactDOM.createPortal(
         <div ref={ref} className="hoverMenu">
-            <FormatButton editor={editor} format="bold"/>
-            <FormatButton editor={editor} format="italic"/>
-            <FormatButton editor={editor} format="underline"/>
+            <FormatButton editor={editor} format="bold" />
+            <FormatButton editor={editor} format="italic" />
+            <FormatButton editor={editor} format="underline" />
+            <HighlightButton />
             {buttons == "basic" ? null : <>
-                <AddLinkButton/>
+                <AddLinkButton />
                 <BlockButton editor={editor} format="header" icon="header" />
                 <BlockButton editor={editor} format="numbered-list" icon="list-ol" />
                 <BlockButton editor={editor} format="bulleted-list" icon="list-ul" />
             </>
             }
-
         </div>,
         root
     )
@@ -2127,6 +2128,70 @@ const FormatButton = ({format}) => {
         >
       <i className={classNames(classes)}/>
     </span>
+    )
+};
+
+
+const HighlightButton = () => {
+    const editor = useSlate();
+    const ref = useRef();
+    const [showPortal, setShowPortal] = useState(false);
+    const isActive = isFormatActive(editor, "background-color");
+    const classes = {fa: 1, active: isActive, "fa-pencil": 1};
+    const colors = ["#CCB479", "#D4896C", "#AB4E66", "#5D956F", "#5A99B7"];
+    const colorButtons = <>{colors.map(x => <button onClick={e => {
+        const isActive = isFormatActive(editor, "background-color");
+                if (isActive) {
+                    Editor.removeMark(editor,  "background-color")
+                } else {
+                    Editor.addMark(editor,  "background-color", x)
+                }
+  }}><div className="highlightDot" style={{"background-color":x}}></div></button>
+    )}</>
+
+    useEffect(() => {
+        const el = ref.current;
+        if (el) {
+            const domSelection = window.getSelection();
+            const domRange = domSelection.getRangeAt(0);
+            const rect = domRange.getBoundingClientRect();
+
+            el.style.opacity = 1;
+            el.style.top = "30px";
+
+            const checkIfClickedOutside = e => {
+                if (showPortal && ref.current && !ref.current.contains(e.target)) {
+                    setShowPortal(false)
+                }
+            }
+            document.addEventListener("mousedown", checkIfClickedOutside)
+            return () => {
+                // Cleanup the event listener
+                document.removeEventListener("mousedown", checkIfClickedOutside)
+            }
+        }
+
+    }, [showPortal])
+    return (
+        <>
+        <span className="hoverButton"
+            onMouseDown={event => {
+                event.preventDefault();
+                setShowPortal(true);
+                // const isActive = isFormatActive(editor, "background-color");
+                // if (isActive) {
+                //     Editor.removeMark(editor,  "background-color")
+                // } else {
+                //     Editor.addMark(editor,  "background-color", "#FFFF00")
+                // }
+            }}
+        >
+      <i className={classNames(classes)}/>
+    </span>
+    {showPortal ? <div className="highlightMenu" ref={ref}>
+    {colorButtons}
+    </div> : null}
+    </>
     )
 };
 

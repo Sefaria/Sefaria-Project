@@ -10635,7 +10635,6 @@ a.topicLexiconTitle.contentText {
   margin: 5px;
 }
 .hoverMenu {
-  padding: 8px 10px 6px;
   position: absolute;
   z-index: 1;
   top: -10000px;
@@ -10645,7 +10644,19 @@ a.topicLexiconTitle.contentText {
   background-color: #333333;
   border-radius: 4px;
   transition: opacity 0.75s;
+  padding: 8px 10px 6px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.highlightDot {
+  height: 10px;
+  width: 10px;
+  background-color: #bbb;
+  border-radius: 50%;
+  display: inline-block;}
+.highlightMenu {
+  position: absolute;
+  z-index: 1;
+
 }
 .hoverButton {
   padding: 10px;
