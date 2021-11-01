@@ -92,6 +92,7 @@ var clientConfig = config({
             const unlinked = [];
             console.log(path.resolve(buildDir + 'client'));
             fs.readdir(path.resolve(buildDir + 'client'), function (err, files) {
+                if (typeof files === 'undefined') { return; }  // we've started to see cases where files is undefined on cloudbuilds. adding this here as a patch.
                 files.forEach(function (file) {
                     if (!newlyCreatedAssets[file]) {
                         fs.unlink(path.resolve(buildDir + 'client/' + file), (err) => {
