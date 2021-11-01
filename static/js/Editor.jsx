@@ -1955,9 +1955,9 @@ const toggleFormat = (editor, format) => {
   }
 };
 
-const isFormatActive = (editor, format) => {
+const isFormatActive = (editor, format, value=null) => {
   const [match] = Editor.nodes(editor, {
-    match: n => !!n[format] === true,
+    match: n => n[format] === (value ? value : true),
     mode: 'all',
   });
   return !!match
@@ -2138,27 +2138,20 @@ const HighlightButton = () => {
     const [showPortal, setShowPortal] = useState(false);
     const isActive = isFormatActive(editor, "background-color");
     const classes = {fa: 1, active: isActive, "fa-pencil": 1};
-    const colors = ["#CCB479", "#D4896C", "#AB4E66", "#5D956F", "#5A99B7"];
-    const colorButtons = <>{colors.map(x => <button onClick={e => {
-        const isActive = isFormatActive(editor, "background-color");
-                if (isActive) {
-                    Editor.removeMark(editor,  "background-color")
-                } else {
-                    Editor.addMark(editor,  "background-color", x)
-                }
-  }}><div className="highlightDot" style={{"background-color":x}}></div></button>
+    const colors = ["#E6DABC", "#EAC4B6", "#D5A7B3", "#AECAB7", "#ADCCDB"]; // 50% gold, orange, rose, green, blue 
+    const colorButtons = <>{colors.map(color => <button className="highlightButton" onClick={e => {
+        const isActive = isFormatActive(editor, "background-color", color);
+        if (isActive) {
+            Editor.removeMark(editor, "background-color")
+        } else {
+            Editor.addMark(editor, "background-color", color)
+        }
+  }}><div className="highlightDot" style={{"background-color":color}}></div></button>
     )}</>
 
     useEffect(() => {
         const el = ref.current;
         if (el) {
-            const domSelection = window.getSelection();
-            const domRange = domSelection.getRangeAt(0);
-            const rect = domRange.getBoundingClientRect();
-
-            el.style.opacity = 1;
-            el.style.top = "30px";
-
             const checkIfClickedOutside = e => {
                 if (showPortal && ref.current && !ref.current.contains(e.target)) {
                     setShowPortal(false)
@@ -2190,7 +2183,11 @@ const HighlightButton = () => {
     </span>
     {showPortal ? <div className="highlightMenu" ref={ref}>
     {colorButtons}
-    </div> : null}
+    <button className="highlightButton" onClick={e => {
+        Editor.removeMark(editor, "background-color")
+    }}>
+    <i className="fa fa-ban highlightCancel"></i>
+  </button></div> : null}
     </>
     )
 };
