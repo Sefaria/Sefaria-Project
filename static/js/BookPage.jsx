@@ -909,10 +909,10 @@ class ModeratorButtons extends Component {
     this.setState({expanded: false});
   }
   editIndex(e) {
-    if (e.target.id === "edit") {
+    if (e.currentTarget.id === "edit") {
       this.setState({editing: true});
     }
-    else if(e.target.id === "cancel") {
+    else if(e.currentTarget.id === "cancel") {
       this.setState({editing: false});
     }
   }
@@ -951,10 +951,10 @@ class ModeratorButtons extends Component {
                 <i className="fa fa-cog"></i>
               </div>);
     }
-    let editTextInfo =    this.state.editing ? <EditTextInfo initTitle={this.props.title} close={(e) => this.editIndex(e)}/>
+    let editTextInfo =    this.state.editing ? <EditTextInfo initTitle={this.props.title} close={this.editIndex}/>
                           :
                           <div className="button white" id="edit" onClick={(e) => this.editIndex(e)}>
-                            <span className="fa fa-info-circle"  onClick={(e) => this.editIndex(e)}/> Edit Text Info
+                            <span className="fa fa-info-circle"/> Edit Text Info
                           </div>
 
 
@@ -1116,12 +1116,17 @@ const EditTextInfo = function({initTitle, close}) {
   const [titleVariants, setTitleVariants] = useState(index.current.titleVariants.map((item, i) =>({["name"]: item, ["id"]: i})));
   const [heTitleVariants, setHeTitleVariants] = useState(index.current.heTitleVariants.map((item, i) =>({["name"]: item, ["id"]: i})));
   const [categories, setCategories] = useState(index.current.categories);
+  const [savingStatus, setSavingStatus] = useState(false);
   const [sections, setSections] = useState(index.current.sectionNames);
+  const toggleInProgress = function() {
+    setSavingStatus(!savingStatus);
+  }
 
   return (
       <div className="editTextInfo">
       <div className="static">
         <div className="inner">
+          {savingStatus ? <div class="collectionsWidget">Saving text information...<br/><br/>(processing title changes may take some time)</div> : null}
           <div id="newIndex">
             <div className="headerWithButtons">
               <div className="start"></div>
@@ -1129,14 +1134,14 @@ const EditTextInfo = function({initTitle, close}) {
                 <span className="int-en">Index Editor</span>
                 <span className="int-he">עריכת מאפייני אינדקס</span>
               </h1>
-              <div className="end" id="cancel" onClick={close}>
-                <a className="button small transparent control-elem" href="/my/profile">
+              <div className="end">
+                <a onClick={(e) => close(e)} id="cancel" className="button small transparent control-elem">
                   <span className="int-en">Cancel</span>
                   <span className="int-he">ביטול</span>
                 </a>
                 <NewIndexSaveButton enTitle={enTitle} heTitle={heTitle} enTitleVariants={titleVariants}
                                   oldTitle={oldTitle} heTitleVariants={heTitleVariants} categories={categories}
-                                  sectionNames={sections}/>
+                                  sectionNames={sections} toggleInProgress={toggleInProgress}/>
               </div>
             </div>
             <div className="section">
@@ -1190,7 +1195,7 @@ const EditTextInfo = function({initTitle, close}) {
 }
 
 
-const NewIndexSaveButton = function({enTitle, heTitle, enTitleVariants, heTitleVariants, categories, sectionNames, oldTitle}) {
+const NewIndexSaveButton = function({enTitle, heTitle, enTitleVariants, heTitleVariants, categories, sectionNames, oldTitle, toggleInProgress}) {
   let index = {};
   enTitleVariants = enTitleVariants.map(i => i["name"]);
   heTitleVariants = heTitleVariants.map(i => i["name"]);
@@ -1251,19 +1256,20 @@ const NewIndexSaveButton = function({enTitle, heTitle, enTitleVariants, heTitleV
     if ("oldTitle" in index) {
       url += "?update=1";
     }
+    toggleInProgress();
     $.post(url,  {"json": postJSON}, function(data) {
       if (data.error) {
         alert(data.error);
+        toggleInProgress();
       } else {
         alert("Text information saved.");
-        window.location.reload(true);
+        window.location.href = "/admin/reset/"+index["title"];
       }
       }).fail( function(xhr, textStatus, errorThrown) {
-        console.log(xhr);
-        console.log(textStatus);
-        console.log(errorThrown);
         alert("Unfortunately, there was an error saving this text information. Please try again or try reloading this page.")
+        window.location.href = "/admin/reset/"+index["title"];
       });
+
   };
 
   const validateThenSave = function () {

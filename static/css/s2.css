@@ -10471,6 +10471,17 @@ body .homeFeedWrapper.userStats {
   width: 340px;
   box-shadow: 0 1px 8px rgba(0,0,0,.2);
 }
+.bookPage .editTextInfo .collectionsWidget {
+  width: 580px;
+  box-shadow: 0 1px 8px rgba(0,0,0,.2);
+  height: 100px;
+  position:  absolute;
+  padding: 50px 50px 0 50px;
+  text-align: center;
+  margin-top: 200px;
+}
+
+
 .collectionsWidget {
   background-color: white;
   border-radius: 8px;
