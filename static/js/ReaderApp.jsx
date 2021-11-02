@@ -237,17 +237,6 @@ class ReaderApp extends Component {
 
     this.setContainerMode();
     this.updateHistoryState(this.replaceHistory);
-
-    // creates broadcast channel to send source information to chavruta
-    // broadcasting only occurs when readerapp is in iframe (ie when chavruta is happening)
-    if (window.location !== window.parent.location) {
-      const channel = new BroadcastChannel("chavruta");
-
-      const currentlyReading = this.generateCurrentlyReadingString(this.state.panels)
-
-      channel.postMessage({currentlyReading: currentlyReading, history: this.makeHistoryState()});
-    }
-
     this.setBeitMidrashId(prevState)
   }
 
@@ -1632,19 +1621,11 @@ class ReaderApp extends Component {
     }
     return false;
   }
-  generateCurrentlyReadingString(panels) {
-    const string = panels.map((panel) => {
-      if (panel.mode === "Text") {
-        return panel.currentlyVisibleRef
-      } else if (panel.filter.length !== 0) {
-        return panel.filter[0]
-      } else {
-        return
-      }
-    }).filter(ele => ele).join(", ");
-
-    return string
+  generateCurrentlyReading() {
+    const currentHistoryState = this.makeHistoryState();
+    return {title: currentHistoryState.title, url: currentHistoryState.url};
   }
+
   handleCopyEvent(e) {
     // Custom processing of Copy/Paste
     // - Ensure we don't copy hidden English or Hebrew text
@@ -1897,7 +1878,7 @@ class ReaderApp extends Component {
           <BeitMidrash
             socket={io(`//${Sefaria.rtc_server}`, {autoConnect: false})}
             beitMidrashId = {this.state.beitMidrashId}
-            currentlyReading = {this.generateCurrentlyReadingString(this.state.panels)}
+            currentlyReading = {this.generateCurrentlyReading()}
           />
       </div>
     ) : null

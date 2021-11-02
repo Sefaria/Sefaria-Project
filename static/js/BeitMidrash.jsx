@@ -314,7 +314,7 @@ const BeitMidrashHome = ({beitMidrashId,
                                     {user.name}
                                     {user.inChavruta ? <i className="fa fa-headphones" title={`${user.name} is current in a chavruta`}></i> : null}
                                     <div
-                                        className="beitMidrashOrg">{user.currentlyReading !== "" ? `is learning ${user.currentlyReading}` : ""}</div>
+                                        className="beitMidrashOrg"><a href={user.currentlyReading.url}>{`is learning ${user.currentlyReading.title}`}</a></div>
                                 </div>
                             </div>
                         } else {
