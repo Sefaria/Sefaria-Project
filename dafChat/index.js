@@ -113,7 +113,7 @@ io.on("connection", (socket) => {
     socket.to(socketId).emit("send room ID to client", roomId)
   });
 
-  socket.on("send chat message", (room, message, now) => {
+  socket.on("send chat message", (room) => {
     if (!socket.rooms.has(room.roomId)) {
       socket.join(room.roomId)
     }
@@ -121,8 +121,8 @@ io.on("connection", (socket) => {
     const msgSender = peopleInBeitMidrash[socket.id]
     if (msgSender) {
       socketIdsOfMsgReceiver.forEach(socketId => {
-        console.log(`sending chat message to ${socketId} from ${msgSender.name}: ${message}`)
-        socket.to(socketId).emit("received chat message", msgSender, message, room, now)
+        console.log(`sending chat message to ${socketId} from ${msgSender.name}`)
+        socket.to(socketId).emit("received chat message", msgSender, room)
       })
     }
     
