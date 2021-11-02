@@ -6974,6 +6974,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 
 .shareInputBox {
+  position: relative;
   display: flex;
   box-sizing: border-box;
   border-radius: 7px;
@@ -6987,7 +6988,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 
 .shareInput {
-  width: 100%;
+  width: calc(100% - 40px);
   box-sizing: border-box;
   border-radius: 7px;
   border: none;
@@ -6999,8 +7000,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 
 .shareInputBox .shareInputButton {
   background-color: #fff;
+  position: absolute;
   border: 0;
-  margin-inline-start: 20px;
+  margin-inline-start: calc(100% - 60px);
 }
 
 .shareInputBox .shareInputButton:active {

@@ -1340,11 +1340,7 @@ class ShareBox extends Component {
     }
 
   }
-  componentDidMount() {
-    this.focusInput();
-  }
   componentDidUpdate(prevProps, prevState) {
-    this.focusInput();
     if (this.state.shareValue != prevState.shareValue) {
       new Promise((resolve, reject) => Sefaria.sheets.loadSheetByID(this.props.masterPanelSheetId, sheet => resolve(sheet))).then(updatedSheet => {
         updatedSheet.options.collaboration = this.state.shareValue;
@@ -1401,8 +1397,8 @@ class ShareBox extends Component {
       <div>
         <ConnectionsPanelSection title="Share Link">
           <div className="shareInputBox">
-            <input className="shareInput" id="sheetShareLink" value={this.props.url} />
-            <button className="shareInputButton" aria-label="Copy Link to Sheet" onClick={this.copySheetLink.bind(this)}><img src="/static/icons/copy.svg" className="copyLinkIcon" aria-hidden="true" tabIndex="0"></img></button>
+            <button tabindex="0" className="shareInputButton" aria-label="Copy Link to Sheet" onClick={this.copySheetLink.bind(this)}><img src="/static/icons/copy.svg" className="copyLinkIcon" aria-hidden="true"></img></button>
+            <input tabindex="0" className="shareInput" id="sheetShareLink" value={this.props.url} />
           </div>
           {this.state.sheet && Sefaria._uid === this.state.sheet.owner ?
             <div className="shareSettingsBox">
