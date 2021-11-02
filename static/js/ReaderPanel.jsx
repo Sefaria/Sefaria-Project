@@ -841,6 +841,7 @@ class ReaderPanel extends Component {
             openDisplaySettings={this.openDisplaySettings}
             toggleSignUpModal={this.props.toggleSignUpModal}
             updateTopicsTab={this.props.updateTopicsTab}
+            translationLanguagePreference={this.props.translationLanguagePreference}
             key={"TopicPage"}
           />
         );
