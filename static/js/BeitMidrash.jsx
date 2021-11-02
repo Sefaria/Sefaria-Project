@@ -638,6 +638,31 @@ const ChavrutaVideo = ({socket, chavrutaId, pcConfig, setCurrentScreen, activeCh
             }
           };
           pc.oniceconnectionstatechange = (e) => {
+            if (pc.iceConnectionState == "failed") {
+                if (pc) {
+                    pc.close();
+                }
+
+                stopVideoTracks()
+                socket.emit('chavruta closed', chavrutaId);
+                setCurrentScreen("home");
+              }
+              //"disconnected" could be a temporary state caused by any number of factors that could be automatically fixed w/o intervention
+              // this gives the app a chance to re-establish the connection before restarting
+              else if(pc.iceConnectionState == "disconnected") {
+                    console.log("iceConnection is disconnected -- waiting 5 seconds to see if reconnects")
+                    setTimeout(function(){
+                    if (pc.iceConnectionState == "disconnected") {
+                        if (pc) {
+                            pc.close();
+                        }
+        
+                        stopVideoTracks()
+                        socket.emit('chavruta closed', chavrutaId);
+                        setCurrentScreen("home");                    }
+                }, 5000);
+              }
+              console.log(pc.iceConnectionState);
             console.log(e);
           };
           pc.ontrack = (ev) => {
