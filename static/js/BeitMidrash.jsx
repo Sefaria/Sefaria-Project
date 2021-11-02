@@ -461,11 +461,15 @@ const ChatBox = ({room,
     }, [storedChatMessages])
 
     useEffect(()=>{
-        const lastMessage = chatBox.current.querySelector(".chatMessage:last-of-type")
-        if (lastMessage) {
-            lastMessage.scrollIntoView()
+        try {
+            const lastMessage = chatBox.current.querySelector(".chatMessage:last-of-type")
+            if (lastMessage) {
+                lastMessage.scrollIntoView()
+            }
         }
-
+        catch (e) {
+            console.log(e)
+        }
     }, [storedChatMessages, partnerLeftNotification, showChats])
 
     const handleChange = (e) =>{
@@ -591,7 +595,6 @@ const ChavrutaVideo = ({socket, chavrutaId, pcConfig, setCurrentScreen, activeCh
     const [localStream, setLocalStream] = useState()
     const [audioEnabled, setAudioEnabled] = useState(true)
     let pc;
-    console.log(activeChavruta);
 
     const toggleMute = () => {
       const isAudioEnabled = localStream.getAudioTracks()[0].enabled;
@@ -611,17 +614,30 @@ const ChavrutaVideo = ({socket, chavrutaId, pcConfig, setCurrentScreen, activeCh
     }
 
     const stopVideoTracks = () => {
-      const stream = localVideo.current.srcObject;
-      const tracks = stream.getTracks();
+        try {
+            const stream = localVideo.current.srcObject;
+            const tracks = stream.getTracks();
 
-      tracks.forEach(function(track) {
-        track.stop();
-      });
+            tracks.forEach(function (track) {
+                track.stop();
+            });
 
-      localVideo.current.srcObject = null;
+            localVideo.current.srcObject = null;
+        }
+        catch (e) {
+            console.log(e)
+        }
+    }
+
+    const closeChavruta = () => {
+            stopVideoTracks()
+            socket.emit('chavruta closed', chavrutaId);
+            setCurrentScreen("home");
     }
 
     const setVideoTracks = async () => {
+
+
         try {
           const stream = await navigator.mediaDevices.getUserMedia({
             video: true,
@@ -638,32 +654,25 @@ const ChavrutaVideo = ({socket, chavrutaId, pcConfig, setCurrentScreen, activeCh
             }
           };
           pc.oniceconnectionstatechange = (e) => {
-            if (pc.iceConnectionState == "failed") {
-                if (pc) {
-                    pc.close();
-                }
+            if (!pc) {
+                closeChavruta()
+            }
 
-                stopVideoTracks()
-                socket.emit('chavruta closed', chavrutaId);
-                setCurrentScreen("home");
-              }
+            else if (pc.iceConnectionState == "failed") {
+                pc.close();
+                closeChavruta()
+            }
               //"disconnected" could be a temporary state caused by any number of factors that could be automatically fixed w/o intervention
               // this gives the app a chance to re-establish the connection before restarting
-              else if(pc.iceConnectionState == "disconnected") {
+            else if(pc.iceConnectionState == "disconnected") {
                     console.log("iceConnection is disconnected -- waiting 5 seconds to see if reconnects")
                     setTimeout(function(){
-                    if (pc.iceConnectionState == "disconnected") {
-                        if (pc) {
-                            pc.close();
-                        }
-        
-                        stopVideoTracks()
-                        socket.emit('chavruta closed', chavrutaId);
-                        setCurrentScreen("home");                    }
+                    if (pc && pc.iceConnectionState == "disconnected") {
+                        pc.close();
+                        closeChavruta()
+                    }
                 }, 5000);
-              }
-              console.log(pc.iceConnectionState);
-            console.log(e);
+            }
           };
           pc.ontrack = (ev) => {
               remoteVideo.current.srcObject = ev.streams[0];
@@ -707,11 +716,6 @@ const ChavrutaVideo = ({socket, chavrutaId, pcConfig, setCurrentScreen, activeCh
           console.error(e);
         }
     };
-
-    useEffect( () => {
-        console.log(activeChavruta)
-    }, [activeChavruta])
-
 
     useEffect(() => {
 
@@ -774,9 +778,21 @@ const ChavrutaVideo = ({socket, chavrutaId, pcConfig, setCurrentScreen, activeCh
 
     }, []);
 
+    useEffect( () => {
+        if (!activeChavruta) {
+            if (pc) {
+                pc.close();
+            }
+            closeChavruta()
+        }
+    }, [activeChavruta])
+
 
 
     return (
+
+        <>
+        {activeChavruta ?
         <>
             <div id="videos" className={audioEnabled ? "" : "muted"}>
                 <video id="localVideo" ref={localVideo} className="flippedVideo pip" autoPlay playsInline disablePictureInPicture
@@ -807,8 +823,9 @@ const ChavrutaVideo = ({socket, chavrutaId, pcConfig, setCurrentScreen, activeCh
                     לשאלות פנו/כתבו לדוא"ל <a href="mailto:hello@sefaria.org" target="_blank">hello@sefaria.org</a>
                 </p>
             </div>
+        </>
 
-
+        : <LoadingMessage /> }
         </>
             )
 }
