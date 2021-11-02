@@ -142,6 +142,9 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
 
             let roomIdToCheck = uid < Sefaria._uid ? `${uid}-${Sefaria._uid}`: `${Sefaria._uid}-${uid}`;
 
+            if (activeChavruta) {
+                setActiveChavruta(people.filter(person => person.uid === activeChavruta.uid)[0]);
+            }
             if (currentChatRoom === roomIdToCheck) {
                 setPartnerLeftNotification(false)
             }
@@ -588,6 +591,7 @@ const ChavrutaVideo = ({socket, chavrutaId, pcConfig, setCurrentScreen, activeCh
     const [localStream, setLocalStream] = useState()
     const [audioEnabled, setAudioEnabled] = useState(true)
     let pc;
+    console.log(activeChavruta);
 
     const toggleMute = () => {
       const isAudioEnabled = localStream.getAudioTracks()[0].enabled;
@@ -748,7 +752,7 @@ const ChavrutaVideo = ({socket, chavrutaId, pcConfig, setCurrentScreen, activeCh
 
 
     return (
-        <div>
+        <>
             <div id="videos" className={audioEnabled ? "" : "muted"}>
                 <video id="localVideo" ref={localVideo} className="flippedVideo pip" autoPlay playsInline disablePictureInPicture
                        muted></video>
@@ -765,26 +769,9 @@ const ChavrutaVideo = ({socket, chavrutaId, pcConfig, setCurrentScreen, activeCh
                 </div>
 
             </div>
-
-            {/*<div className="beitMidrashOrg">{activeChavruta.currentlyReading !== "" ? `${activeChavruta.name} is learning ${activeChavruta.currentlyReading}` : ""}</div>*/}
-
-
-
-            {/*<div id="chevrutaNameHolder">{activeChavruta.name}</div>*/}
-            {/*<div id="currently-reading"></div>*/}
-
-            {/*<div id="waiting">*/}
-            {/*    Waiting for someone to join...*/}
-            {/*    <p className="int-en">*/}
-            {/*        Share this link with your chavruta to start a video call*/}
-            {/*    </p>*/}
-
-            {/*    <p className="int-he">*/}
-            {/*        Share this link with your chavruta to start a video call*/}
-            {/*    </p>*/}
-
-            {/*</div>*/}
-
+            <div id="currentlyReadingContainer">
+                {activeChavruta.currentlyReading ? <div className="currentlyReading"><img src="/static/icons/book.svg" class="navSidebarIcon" alt="book icon" /><a href={activeChavruta.currentlyReading.url}>{activeChavruta.currentlyReading.title}</a></div> : null }
+            </div>
 
             <div className="chavrutaFooter">
                 <p className="int-en">
@@ -797,7 +784,7 @@ const ChavrutaVideo = ({socket, chavrutaId, pcConfig, setCurrentScreen, activeCh
             </div>
 
 
-        </div>
+        </>
             )
 }
 

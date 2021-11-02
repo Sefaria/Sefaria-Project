@@ -10831,7 +10831,7 @@ span.ref-link-color-3 {color: blue}
 .beitMidrashContainer video.pip {
   position: absolute;
   height: 50px;
-  top: 75px;
+  top: 20px;
   inset-inline-end: 10px;
   text-align: end;
   width: initial;
@@ -10881,6 +10881,7 @@ span.ref-link-color-3 {color: blue}
   justify-content: space-between;
   margin-top: -35px;
   margin-inline-start: 25px;
+  padding-bottom: 35px;
 }
 
 .beitMidrashContainer .endCallButton {
@@ -11197,6 +11198,10 @@ span.ref-link-color-3 {color: blue}
   width: 127.67px;
   margin: 5px;
   cursor: pointer; 
+}
+
+#currentlyReadingContainer {
+  margin: 5px 20px;
 }
 
 .chavrutaFooter {
