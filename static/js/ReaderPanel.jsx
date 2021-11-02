@@ -525,7 +525,7 @@ class ReaderPanel extends Component {
       return data.indexTitle;
     } else {
       let pRef = Sefaria.parseRef(this.currentRef());
-      return "book" in pRef ? pRef.book : null;
+      return "index" in pRef ? pRef.index : ("book" in pRef ? pRef.book : null);
     }
   }
   currentCategory() {
