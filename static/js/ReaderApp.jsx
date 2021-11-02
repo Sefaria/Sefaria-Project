@@ -915,8 +915,8 @@ class ReaderApp extends Component {
     if (!href) {
       return;
     }
-
-    const handled = this.openURL(href);
+    const replacePanel = !(el.classList.contains("refInSheet")) // ensure text refs on sheet open in new panel
+    const handled = this.openURL(href,replacePanel);
     if (handled) {
       e.preventDefault();
     }
@@ -1835,7 +1835,6 @@ class ReaderApp extends Component {
                       masterPanelSheetId={panel.mode === "Connections" ? panelStates[i-1].sheetID : null}
                       layoutWidth={width}
                       analyticsInitialized={this.state.initialAnalyticsTracked}
-                      openURL={this.openURL}
                       saveLastPlace={this.saveLastPlace}
                       checkIntentTimer={this.checkIntentTimer}
                       openMobileNavMenu={this.toggleMobileNavMenu}

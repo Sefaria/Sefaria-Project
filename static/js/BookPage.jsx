@@ -26,6 +26,7 @@ import Component   from 'react-class';
 import {ContentLanguageContext} from './context';
 
 
+
 class BookPage extends Component {
   // Menu for the Table of Contents for a single text
   constructor(props) {
