@@ -5846,7 +5846,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 
 .gridBox .gridBoxItem {
   flex: 1;
-  /* HACK: overflow hidden will hide any box shadow beneath (b/c overflow cuts off at padding-box) can get around this by increasing padding-box and decreasing margin-box. see here https://stackoverflow.com/questions/33949013/css-overflow-hidden-cuts-shadow*/
+
+   /* HACK: overflow hidden will hide any box shadow beneath (b/c overflow cuts off at padding-box) can get around this by increasing padding-box and decreasing margin-box. see here https://stackoverflow.com/questions/33949013/css-overflow-hidden-cuts-shadow*/
   display: flex;
   flex-direction: column;
   padding: 5px;
@@ -6973,6 +6974,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 
 .shareInputBox {
+  position: relative;
   display: flex;
   box-sizing: border-box;
   border-radius: 7px;
@@ -6986,7 +6988,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 
 .shareInput {
-  width: 100%;
+  width: calc(100% - 40px);
   box-sizing: border-box;
   border-radius: 7px;
   border: none;
@@ -6998,8 +7000,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 
 .shareInputBox .shareInputButton {
   background-color: #fff;
+  position: absolute;
   border: 0;
-  margin-inline-start: 20px;
+  margin-inline-start: calc(100% - 60px);
 }
 
 .shareInputBox .shareInputButton:active {
@@ -10534,23 +10537,14 @@ span.purim-emoji img {
   margin-top: 30px;
   margin-bottom:30px;
 }
-
-/* there was a conflict here
-.sheetContent .sheetItem .SheetSource.segment, .sheetContent .sheetItem .SheetOutsideBiText.segment {
-  margin-top: 14px;
-}
- */
-
 .sheetContent .text.loading {
   cursor: wait;
 }
-
 .oldSheetNotice, .oldSheetNotice a, .editSheetNotice, .editSheetNotice a {
   font-size: 12px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: #999;
 }
-
 .cookiesNotification {
   position: fixed;
   z-index: 9999;
@@ -10799,8 +10793,6 @@ section.SheetSource .segmentNumber, section.SheetSource .SheetOutsideBiText {
 .sheetItem .SheetMedia {
   margin-bottom: 14px;
 }
-
-
 .readerPanel.bilingual.heRight .SheetSource {
   background-image:
   linear-gradient(
@@ -10812,7 +10804,6 @@ section.SheetSource .segmentNumber, section.SheetSource .SheetOutsideBiText {
     #fff 100%
   );
 }
-
 .readerPanel.bilingual.heLeft .SheetSource {
   background-image:
   linear-gradient(
@@ -10871,7 +10862,6 @@ section.SheetSource .segmentNumber, section.SheetSource .SheetOutsideBiText {
   flex-direction: column;
   background-color: rgba(255, 255, 255, 0.1);
 }
-
 .feedbackBox p {
   font-size: 16px;
   letter-spacing: 1px;
