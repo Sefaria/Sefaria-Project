@@ -110,7 +110,7 @@ def get_sheet_node(sheet_id=None, node_id=None):
 
 def get_sheet_for_panel(id=None):
 	sheet = get_sheet(id)
-	if "error" in sheet:
+	if "error" in sheet and sheet["error"] != "Sheet updated.":
 		return sheet
 	if "assigner_id" in sheet:
 		asignerData = public_user_data(sheet["assigner_id"])
@@ -158,8 +158,11 @@ def user_sheets(user_id, sort_by="date", limit=0, skip=0, private=True):
 	return response
 
 
-def public_sheets(sort=[["datePublished", -1]], limit=50, skip=0, lang=None):
-	query = {"status": "public"}
+def public_sheets(sort=[["datePublished", -1]], limit=50, skip=0, lang=None, filtered=False):
+	if filtered:
+		query = {"status": "public", "sources.ref": {"$exists": True}}
+	else:
+		query = {"status": "public"}
 	if lang:
 		query["sheetLanguage"] = lang
 	response = {

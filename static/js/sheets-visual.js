@@ -194,7 +194,7 @@ $(".sheetItem").resizable({
 
         if (mediaSource.match(/\.(jpeg|jpg|gif|png)$/i) != null) {
             mediaLink = '<img class="addedMedia" src="' + mediaSource + '" />';
-        } else if (mediaSource.toLowerCase().indexOf('youtube') > 0) {
+        } else if (mediaSource.match(/https?:\/\/www\.youtube\.com\/embed\/.+?rel=0&amp;showinfo=0$/i) != null) {
             mediaLink = '<div class="videoWrapper"><iframe width="560" height="315" src=' + mediaSource + ' frameborder="0" allowfullscreen></iframe></div>'
         } else if (mediaSource.match(/\.(mp3)$/i) != null) {
             mediaLink = '<audio src="' + mediaSource + '" type="audio/mpeg" controls>Your browser does not support the audio element.</audio>';

@@ -358,6 +358,7 @@ Sefaria = extend(Sefaria, {
       enVersion:  settings.enVersion  || null,
       heVersion:  settings.heVersion  || null,
       multiple:   settings.multiple   || 0,
+      stripItags: settings.stripItags || 0,
       wrapLinks:  ("wrapLinks" in settings) ? settings.wrapLinks : 1,
       wrapNamedEntities: ("wrapNamedEntities" in settings) ? settings.wrapNamedEntities : 1, 
       translationLanguagePreference: settings.translationLanguagePreference || null,
@@ -384,7 +385,7 @@ Sefaria = extend(Sefaria, {
         .then(d => {
             //swap out original versions from the server with the ones that Sefaria client side has sorted and updated with some fields.
             // This happens before saving the text to cache so that both caches are consistent
-            if(d.versions){
+            if(d?.versions?.length){
                 let versions = Sefaria._saveVersions(d.sectionRef, d.versions);
                 d.versions = Sefaria._makeVersions(versions, false, null, false);
             }
@@ -393,14 +394,14 @@ Sefaria = extend(Sefaria, {
         });
   },
   _bulkTexts: {},
-  getBulkText: function(refs, asSizedString=false, minChar=null, maxChar=null) {
+  getBulkText: function(refs, asSizedString=false, minChar=null, maxChar=null, transLangPref=null) {
     if (refs.length === 0) { return Promise.resolve({}); }
 
     const MAX_URL_LENGTH = 3800;
     const hostStr = `${Sefaria.apiHost}/api/bulktext/`;
 
     let paramStr = '';
-    for (let [paramKey, paramVal] of Object.entries({asSizedString, minChar, maxChar})) {
+    for (let [paramKey, paramVal] of Object.entries({asSizedString, minChar, maxChar, transLangPref})) {
       paramStr = !!paramVal ? paramStr + `&${paramKey}=${paramVal}` : paramStr;
     }
     paramStr = paramStr.replace(/&/,'?');
@@ -449,7 +450,7 @@ Sefaria = extend(Sefaria, {
     }
     this._api(Sefaria.apiHost + this._textUrl(ref, settings), function(data) {
         //save versions and then text so both caches have updated versions
-        if(data.versions){
+        if(data?.versions?.length){
             let versions = this._saveVersions(data.sectionRef, data.versions);
             data.versions = this._makeVersions(versions, false, null, false);
         }
@@ -561,7 +562,7 @@ Sefaria = extend(Sefaria, {
           .reduce((obj, [lang, version]) => {
               if(version?.merged){ //this would be the best guess of the merged language's version currently
                   obj[lang] = version;
-              }else{
+              }else if (version?.actualLanguage){
                  obj[version.actualLanguage] = version;
               }
             return obj;
@@ -588,6 +589,7 @@ Sefaria = extend(Sefaria, {
       wrapLinks:  settings.wrapLinks,
       wrapNamedEntities: settings.wrapNamedEntities,
       multiple:   settings.multiple,
+      stripItags: settings.stripItags,
       transLangPref: settings.translationLanguagePreference,
     });
     let url = "/api/texts/" + Sefaria.normRef(ref);
@@ -2589,13 +2591,18 @@ Sefaria.unpackDataFromProps = function(props) {
       if (panel.text) {
         let settings = {context: 1, enVersion: panel.enVersion, heVersion: panel.heVersion};
         //save versions first, so their new format is also saved on text cache
-        let versions = Sefaria._saveVersions(panel.text.sectionRef, panel.text.versions);
-        panel.text.versions = Sefaria._makeVersions(versions, false, null, false);
+        if(panel.text?.versions?.length){
+            let versions = Sefaria._saveVersions(panel.text.sectionRef, panel.text.versions);
+            panel.text.versions = Sefaria._makeVersions(versions, false, null, false);
+        }
+
         Sefaria._saveText(panel.text, settings);
       }
       if(panel.bookRef){
-        let versions = Sefaria._saveVersions(panel.bookRef, panel.versions);
-        panel.versions = Sefaria._makeVersions(versions, false, null, false);
+         if(panel.versions?.length){
+            let versions = Sefaria._saveVersions(panel.bookRef, panel.versions);
+            panel.versions = Sefaria._makeVersions(versions, false, null, false);
+         }
       }
       if (panel.indexDetails) {
         Sefaria._indexDetails[panel.bookRef] = panel.indexDetails;

@@ -601,7 +601,7 @@ class TextSegment extends Component {
         {segmentNumber}
         {linkCountElement}
         <p className="segmentText">
-          <ContentText overrideLanguage={overrideLanguage} html={{"he": he+ " ", "en": en+ " " }}/>
+          <ContentText overrideLanguage={overrideLanguage} html={{"he": he+ " ", "en": en+ " " }} bilingualOrder={["he", "en"]}/>
         </p>
 
         <div className="clearFix"></div>

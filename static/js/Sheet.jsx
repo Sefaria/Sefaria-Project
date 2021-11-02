@@ -69,7 +69,6 @@ class Sheet extends Component {
           title={sheet.title}
           onRefClick={this.props.onRefClick}
           sheetSourceClick={this.props.onSegmentClick}
-          openURL={this.props.openURL}
           highlightedNode={this.props.highlightedNode}
           highlightedRefsInSheet={this.props.highlightedRefsInSheet}
           scrollToHighlighted={this.props.scrollToHighlighted}
@@ -195,37 +194,6 @@ class SheetContent extends Component {
         $highlighted.focus();
       }
     }
-  }
-  handleLinkClick(e) {
-    if (e.target.tagName.toLowerCase() === 'a') {
-      e.preventDefault();
-      e.stopPropagation();
-      const href = event.target.href;
-      let path = href;
-      try {
-        const url = new URL(href);
-        // Allow absolute URLs pointing to Sefaria. TODO generalize to any domain of current deployment.
-        if (url.hostname.indexOf("sefaria.org") === -1) {
-          path = null;
-        }
-        path = url.pathname;
-      } catch { }
-
-      let match;
-      if (path && Sefaria.isRef(path.slice(1))) {
-        this.props.onRefClick(Sefaria.humanRef(path.slice(1)), [], true)
-
-      } else if (path && (match = path.match(/^\/sheets\/(\d+(\.\d+)?)/))) {
-        const sheetId = match[1];
-        this.props.onRefClick("Sheet " + sheetId, null, true);
-      
-      } else {
-        const opened = this.props.openURL(path);
-        if (!opened) {
-          window.open(e.target.href, "_blank");
-        }
-      }
-    }    
   }
   render() {
     var sources = this.props.sources.length ? this.props.sources.map(function(source, i) {
@@ -353,7 +321,7 @@ class SheetContent extends Component {
         </SheetMetaDataBox>
 
         <div className="text">
-          <div className="textInner" onMouseUp={this.handleTextSelection} onClick={this.handleLinkClick}>
+          <div className="textInner" onMouseUp={this.handleTextSelection}>
             {sources}
           </div>
         </div>
@@ -632,15 +600,15 @@ class SheetMedia extends Component {
     if (this.isImage()) {
       mediaLink = '<img class="addedMedia" src="' + mediaURL + '" />';
     }
-    else if (mediaURL.toLowerCase().indexOf('youtube') > 0) {
+    else if (mediaURL.match(/https?:\/\/www\.youtube\.com\/embed\/.+?rel=0(&amp;|&)showinfo=0$/i) != null) {
       mediaLink = '<div class="youTubeContainer"><iframe width="100%" height="100%" src=' + mediaURL + ' frameborder="0" allowfullscreen></iframe></div>';
     }
 
-    else if (mediaURL.toLowerCase().indexOf('vimeo') > 0) {
+    else if (mediaURL.toLowerCase().match(/https?:\/\/player\.vimeo\.com\/.*/i) != null) {
       mediaLink = '<div class="youTubeContainer"><iframe width="100%" height="100%" src=' + mediaURL + ' frameborder="0"  allow="autoplay; fullscreen" allowfullscreen></iframe></div>';
     }
 
-    else if (mediaURL.toLowerCase().indexOf('soundcloud') > 0) {
+    else if (mediaURL.match(/https?:\/\/w\.soundcloud\.com\/player\/\?url=.*/i) != null) {
       mediaLink = '<iframe width="100%" height="166" scrolling="no" frameborder="no" src="' + mediaURL + '"></iframe>';
     }
 

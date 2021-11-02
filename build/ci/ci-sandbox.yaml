@@ -82,7 +82,7 @@ steps:
       - mongo_restore
 
   # Build artifacts
-  - name: gcr.io/kaniko-project/executor:latest
+  - name: gcr.io/kaniko-project/executor:v1.6.0
     args:
       - --destination=gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:$SHORT_SHA
       - --destination=gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:gha-${_ENV_NAME}
@@ -97,7 +97,7 @@ steps:
     wait_for:
       - sefaria_repo_clone
 
-  - name: gcr.io/kaniko-project/executor:latest
+  - name: gcr.io/kaniko-project/executor:v1.6.0
     args:
       - --destination=gcr.io/${PROJECT_ID}/sefaria-node-${_ENV_NAME}:$SHORT_SHA
       - --destination=gcr.io/${PROJECT_ID}/sefaria-node-${_ENV_NAME}:gha-${_ENV_NAME}
@@ -112,7 +112,7 @@ steps:
     wait_for:
       - sefaria_repo_clone
   
-  - name: gcr.io/kaniko-project/executor:latest
+  - name: gcr.io/kaniko-project/executor:v1.6.0
     args:
       - --destination=gcr.io/${PROJECT_ID}/sefaria-asset-${_ENV_NAME}:$SHORT_SHA
       - --destination=gcr.io/${PROJECT_ID}/sefaria-asset-${_ENV_NAME}:gha-${_ENV_NAME}

@@ -213,7 +213,6 @@ export const deserialize = el => {
       const elStyles = el.getAttribute("style").split(';');
       for (const elStyle of elStyles) {
         const styleArray = elStyle.split(":");
-        console.log(styleArray)
         if (styleArray.length == 2) {
           const styleType = styleArray[0].trim()
           const styleValue = styleArray[1].trim()
@@ -554,6 +553,7 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
   const [unsavedChanges, setUnsavedChanges] = useState(false)
   const [sourceActive, setSourceActive] = useState(false)
   const [activeSourceLangContent, setActiveSourceLangContent] = useState(null)
+  const [isDragging, setIsDragging] = useState(false)
   const selected = useSelected()
   const focused = useFocused()
   const cancelEvent = (event) => event.preventDefault()
@@ -614,12 +614,69 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
   };
   const heClasses = {he: 1, selected: isActive, editable: activeSourceLangContent == "he" ? true : false };
   const enClasses = {en: 1, selected: isActive, editable: activeSourceLangContent == "en" ? true : false };
+  const dragStart = (e) => {
+      let range = document.createRange();
+      range.selectNode(e.target);
+      const slateRange = ReactEditor.toSlateRange(parentEditor, range, {exactMatch: false})
+      parentEditor.dragging = slateRange
+      const fragment = Node.fragment(parentEditor, slateRange)
+      ReactEditor.deselect(parentEditor)
+
+      const string = JSON.stringify(fragment)
+      const encoded = window.btoa(encodeURIComponent(string))
+      e.dataTransfer.setData('application/x-slate-fragment', encoded)
+      e.dataTransfer.setData('text/html', e.target.innerHTML)
+      e.dataTransfer.setData('text/plain', e.target.text)
+      e.dataTransfer.effectAllowed = 'copy';
+
+      const dragIcon = document.createElement('div');
+      dragIcon.classList.add("dragIcon");
+      dragIcon.classList.add("serif");
+      dragIcon.style.borderInlineStartColor = Sefaria.palette.refColor(element.ref);
+      dragIcon.innerHTML = Sefaria.interfaceLang === "hebrew" ? element.heRef : element.ref;
+
+      const clientRect = e.target.getBoundingClientRect();
+
+      // const dragIconContainer = document.createElement('div');
+      // dragIconContainer.classList.add("dragIconContainer");
+      // dragIconContainer.style.height = `${clientRect.height}px`;
+      // dragIconContainer.style.width = `${clientRect.width}px`;
+
+      // document.body.appendChild(dragIconContainer);
+      // dragIconContainer.appendChild(dragIcon);
+      // e.dataTransfer.setDragImage(dragIconContainer, 0, clientRect.height);
+
+      document.body.appendChild(dragIcon);
+      e.dataTransfer.setDragImage(dragIcon, 0, 0);
+
+
+
+      ReactEditor.setFragmentData(parentEditor, e.dataTransfer)
+      setIsDragging(true)
+  }
+
+    const dragEnd = (e) => {
+      setIsDragging(false)
+    }
 
   return (
+      <div
+          draggable={true}
+          className={isDragging ? "boxedSheetItem dragged" : "boxedSheetItem"}
+          onDragStart={(e)=>{dragStart(e)}}
+          onDragEnd={(e)=>{dragEnd(e)}}
+          onDrop={(e)=> {
+              e.preventDefault();
+              e.stopPropagation();
+              parentEditor.dragging = false;
+          }
+          }
+          {...attributes}
+      >
     <div className={classNames(sheetItemClasses)} data-sheet-node={element.node} data-sefaria-ref={element.ref} style={{ pointerEvents: (isActive) ? 'none' : 'auto'}}>
-    <div {...attributes} contentEditable={false} onBlur={(e) => onBlur(e) } onClick={(e) => onClick(e)} className={classNames(classes)} style={{"borderInlineStartColor": Sefaria.palette.refColor(element.ref)}}>
+    <div  contentEditable={false} onBlur={(e) => onBlur(e) } onClick={(e) => onClick(e)} className={classNames(classes)} style={{"borderInlineStartColor": Sefaria.palette.refColor(element.ref)}}>
       <div className={classNames(heClasses)} style={{ pointerEvents: (isActive) ? 'auto' : 'none'}}>
-          {element.heRef ? <div className="ref" contentEditable={false} style={{ userSelect: 'none' }}>{element.heRef}</div> : null }
+          {element.heRef ? <div className="ref" contentEditable={false} style={{ userSelect: 'none', pointerEvents: 'auto' }}><a className="refInSheet" href={`/${element.ref}`}>{element.heRef}</a></div> : null }
           <div className="sourceContentText">
           <Slate editor={sheetSourceHeEditor} value={sheetHeSourceValue} onChange={value => onHeChange(value)}>
           <HoverMenu buttons="basic"/>
@@ -633,7 +690,7 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
         </div>
       </div>
       <div className={classNames(enClasses)} style={{ pointerEvents: (isActive) ? 'auto' : 'none'}}>
-        {element.ref ? <div className="ref" contentEditable={false} style={{ userSelect: 'none' }}>{element.ref}</div> : null }
+        {element.ref ? <div className="ref" contentEditable={false} style={{ userSelect: 'none', pointerEvents: 'auto' }}><a className="refInSheet" href={`/${element.ref}`}>{element.ref}</a></div> : null }
         <div className="sourceContentText">
           <Slate editor={sheetSourceEnEditor} value={sheetEnSourceValue} onChange={value => onEnChange(value)}>
           <HoverMenu buttons="basic"/>
@@ -649,6 +706,7 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
       <div className="clearFix"></div>
       {children}
       </div>
+          </div>
   );
 };
 
@@ -664,20 +722,37 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
         return null;
       }
       const youtube_re = /https?:\/\/(www\.)?(youtu(?:\.be|be\.com)\/(?:.*v(?:\/|=)|(?:.*\/)?)([\w'-]+))/i;
+      let vimeo_re = /^.*(vimeo\.com\/)((channels\/[A-z]+\/)|(groups\/[A-z]+\/videos\/)|(video\/))?([0-9]+)/;
       let m;
       if ((m = youtube_re.exec(url)) !== null) {
         if (m.index === youtube_re.lastIndex) {
           youtube_re.lastIndex++;
         }
-          if (m.length>0) {
-            return ('https://www.youtube.com/embed/'+m[m.length-1]+'?rel=0&amp;showinfo=0')
+        if (m.length>0) {
+            return "https://www.youtube.com/embed/"+m[m.length-1]+"?rel=0&amp;showinfo=0";
+        }
+      }
+      else if ((m = vimeo_re.exec(url)) !== null) {
+          if (m.index === vimeo_re.lastIndex) {
+              vimeo_re.lastIndex++;
           }
-      } else if (url.match(/^https?:\/\/(www\.)?.+\.(jpeg|jpg|gif|png)$/i) != null) {
+          if (m.length > 0) {
+              return "https://player.vimeo.com/video/" + m[6];
+          }
+    } else if (url.match(/^https?:\/\/(www\.)?.+\.(jpeg|jpg|gif|png)$/i) != null) {
         return url;
       } else if (url.match(/^https?:\/\/(www\.)?.+\.(mp3)$/i) != null) {
         return url;
       } else if (url.match(/^https?:\/\/(www\.|m\.)?soundcloud\.com\/[\w\-\.]+\/[\w\-\.]+\/?/i) != null) {
         return 'https://w.soundcloud.com/player/?url='+ url + '&amp;color=ff5500&amp;auto_play=false&amp;hide_related=true&amp;show_comments=false&amp;show_user=true&amp;show_reposts=false';
+      } else if ((m = /^https?:\/\/open\.spotify\.com\/(?:embed\/)?(\w+)\/(\w+)\/?/i.exec(url)) != null) {
+          return `https://open.spotify.com/embed/${m[1]}/${m[2]}`;
+      } else if ((m = /^https?:\/\/bandcamp.com\/EmbeddedPlayer(\/\w+\=\w+)+(\/)?/i.exec(url)) != null) {
+          if (!url.includes("artwork=small")) { // force small artwork because height calculation for large artwork depends on width
+            return m[2] ? url + "artwork=small" : url + "/artwork=small";
+          } else {
+              return url;
+          }
       } else {
         return false
       }
@@ -708,16 +783,17 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
 
     if (inputType == "media") {
         return (
-            <div className="addInterfaceInput" title="We can process YouTube and SoundCloud links, and hosted mp3's and images" onClick={(e)=> {e.stopPropagation()}}>
+            <div className="addInterfaceInput mediaInput" title="We can process YouTube and SoundCloud links, and hosted mp3's and images" onClick={(e)=> {e.stopPropagation()}}>
                 <input
                     type="text"
-                    placeholder="Paste a media link..."
+                    placeholder={Sefaria._("Paste a link to an image, video, or audio")}
                     className="serif"
                     onClick={(e)=> {e.stopPropagation()}}
                     onChange={(e) => onMediaChange(e)}
                     value={inputValue}
+                    size={100}
                 />
-                {showAddMediaButton ? <button onClick={(e) => {
+                {showAddMediaButton ? <button className="button small" onClick={(e) => {
                     addMedia()
                 }}>Add Media</button> : null}
             </div>
@@ -828,12 +904,12 @@ const AddInterface = ({ attributes, children, element }) => {
     return (
       <div role="button" title={active ? "Close menu" : "Add a source, image, or other media"} contentEditable={!active} suppressContentEditableWarning={true} aria-label={active ? "Close menu" : "Add a source, image, or other media"} className={classNames(addInterfaceClasses)} onClick={(e) => toggleEditorAddInterface(e)}>
           {itemToAdd == null ? <>
-              <div role="button" title="Add a source" aria-label="Add a source" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addSourceClicked(e)} id="addSourceButton"></div>
-              <div role="button" title="Add an image" aria-label="Add an image" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addImageClicked(e)} id="addImageButton">
+              <div role="button" title={Sefaria._("Add a source")} aria-label="Add a source" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addSourceClicked(e)} id="addSourceButton"></div>
+              <div role="button" title={Sefaria._("Add an image")} aria-label="Add an image" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addImageClicked(e)} id="addImageButton">
                   <label htmlFor="addImageFileSelector" id="addImageFileSelectorLabel"></label>
               </div>
               <input id="addImageFileSelector" type="file" style={{ display: "none"}} onChange={onFileSelect} ref={fileInput} />
-              <div role="button" title="Add media" aria-label="Add media" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addMediaClicked(e)} id="addMediaButton"></div>
+              <div role="button" title={Sefaria._("Add media")} aria-label="Add media" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addMediaClicked(e)} id="addMediaButton"></div>
           </> :
 
               <AddInterfaceInput
@@ -852,17 +928,20 @@ const Element = props => {
     const sheetItemClasses = {
         sheetItem: 1,
         empty: !(Node.string(element)),
-        noPointer: ["SheetSource", "SheetOutsideBiText"].indexOf(element.type) === -1,
         highlight: (useSlate().highlightedNode === element.node)
     };
 
     switch (element.type) {
         case 'spacer':
           const spacerSelected = useSelected();
+          const spacerClasses = {
+            spacerSelected: spacerSelected,
+            spacer: 1,
+            empty: 1
+          }
           return (
-            <div className="spacer empty">
-              {spacerSelected ? <AddInterface {...props} /> : <>{children}</>}
-
+            <div className={classNames(spacerClasses)} {...attributes}>
+              {spacerSelected && document.getSelection().isCollapsed ?  <AddInterface {...props} /> : <>{children}</>}
             </div>
           );
         case 'SheetSource':
@@ -899,21 +978,27 @@ const Element = props => {
 
         case 'SheetMedia':
             let mediaComponent
-
+            let vimeoRe = /^.*(vimeo\.com\/)((channels\/[A-z]+\/)|(groups\/[A-z]+\/videos\/)|(video\/))?([0-9]+)/;
             if (element.mediaUrl.match(/\.(jpeg|jpg|gif|png)$/i) != null) {
               mediaComponent = <div className="SheetMedia media"><img className="addedMedia" src={element.mediaUrl} />{children}</div>
             }
-            else if (element.mediaUrl.toLowerCase().indexOf('youtube') > 0) {
+            else if (element.mediaUrl.match(/https?:\/\/www\.youtube\.com\/embed\/.+?rel=0(&amp;|&)showinfo=0$/i) != null) {
               mediaComponent = <div className="media fullWidth SheetMedia"><div className="youTubeContainer"><iframe width="100%" height="100%" src={element.mediaUrl} frameBorder="0" allowFullScreen></iframe>{children}</div></div>
             }
-            else if (element.mediaUrl.toLowerCase().indexOf('soundcloud') > 0) {
-              mediaComponent = <div className="SheetMedia media fullWidth"><iframe width="100%" height="166" scrolling="no" frameBorder="no" src={element.mediaUrl}></iframe>{children}</div>
+            else if (vimeoRe.exec(element.mediaUrl) !== null) {
+                mediaComponent = <div className="SheetMedia media fullWidth"><iframe width="100%" height="315" src={element.mediaUrl} frameborder="0" allow="autoplay; fullscreen" allowfullscreen>{children}</iframe></div>;
             }
-
+            else if (element.mediaUrl.match(/^https?:\/\/open\.spotify\.com\/embed\/\w+\/\w+/i) != null) {
+                mediaComponent = <div className="SheetMedia media fullWidth"><iframe width="100%" height="380" scrolling="no" frameBorder="no" src={element.mediaUrl}></iframe>{children}</div>
+            }
+            else if (element.mediaUrl.match(/https?:\/\/w\.soundcloud\.com\/player\/\?url=.*/i) != null) {
+              mediaComponent = <div className="SheetMedia media fullWidth"><iframe style="border: 0; width: 100%; height: 120px;" scrolling="no" frameBorder="no" src={element.mediaUrl}></iframe>{children}</div>
+            } else if (element.mediaUrl.match(/^https?:\/\/bandcamp.com\/EmbeddedPlayer(\/\w+\=\w+)+\/?/i)) {
+                mediaComponent = <div className="SheetMedia media fullWidth"><iframe width="100%" height="120" scrolling="no" frameBorder="no" src={element.mediaUrl}></iframe>{children}</div>
+            }
             else if (element.mediaUrl.match(/\.(mp3)$/i) != null) {
               mediaComponent= <div className="SheetMedia media fullWidth"><audio src={element.mediaUrl} type="audio/mpeg" controls>Your browser does not support the audio element.</audio>{children}</div>
             }
-
             else {
               mediaComponent = <div className="SheetMedia media fullWidth">{children}</div>
             }
@@ -960,7 +1045,7 @@ const Element = props => {
         case 'paragraph':
             const pClasses = {center: element["text-align"] == "center" };
             return (
-                <div className={classNames(pClasses)}>
+                <div className={classNames(pClasses)} {...attributes}>
                     {element.loading ? <div className="sourceLoader"></div> : null}
                     {children}
                 </div>
@@ -1079,7 +1164,7 @@ async function getRefInText(editor, returnSourceIfFound) {
 
 
 const withSefariaSheet = editor => {
-    const {insertData, insertBreak, isVoid, normalizeNode, deleteBackward, setFragmentData} = editor;
+    const {insertData, insertBreak, isVoid, normalizeNode, deleteBackward, deleteForward, setFragmentData} = editor;
 
     //Hack to override this built-in which often returns null when programmatically selecting the whole SheetSource
     Transforms.deselect = () => {
@@ -1088,6 +1173,13 @@ const withSefariaSheet = editor => {
     editor.isVoid = element => {
         return (voidElements.includes(element.type)) ? true : isVoid(element)
     };
+
+    editor.deleteForward = () => {
+
+        console.log(editor.selection)
+        deleteForward(editor);
+
+    }
 
 
     editor.deleteBackward = () => {
@@ -1128,7 +1220,7 @@ const withSefariaSheet = editor => {
                 }
                 return
             } else {
-                Editor.deleteForward(editor);
+                deleteForward(editor);
                 return;
             }
         }
@@ -1194,6 +1286,8 @@ const withSefariaSheet = editor => {
         const [node, path] = entry;
 
         const normalizers = [
+            editor.ensureNoNestedSheetsinSheet,
+            editor.ensureNoNestedSheetContents,
             editor.decorateSheetOutsideText,
             editor.wrapSheetOutsideTextChildren,
             editor.mergeSheetOutsideTextBlocks,
@@ -1203,13 +1297,13 @@ const withSefariaSheet = editor => {
             editor.ensureEditableSpaceAtTopAndBottom,
             editor.replaceSpacerWithOutsideText,
             editor.liftSpacer,
+            editor.ensureNodeId,
             editor.liftSheetElement,
             editor.enforceTextOnlyInBoxedSheetElement,
             editor.ensureEditableSpaceBeforeAndAfterBoxedElements,
             editor.onlyTextAndRefsInBoxedElements,
             editor.addPlaceholdersForEmptyText,
             editor.liftHeader,
-
         ];
 
         for (let normalizer of normalizers) {
@@ -1223,6 +1317,18 @@ const withSefariaSheet = editor => {
 
     // Normalization functions take (node, path) and return true if they make a change.
     // They are registered in editor.normalizeNode
+
+    editor.ensureNoNestedSheetsinSheet = (node, path) => {
+        if (node.type === "Sheet" && Path.parent(path).length > 0) {
+            Transforms.unwrapNodes(editor, {at: path});
+            return true
+        }
+    }
+
+    editor.ensureNoNestedSheetContents = (node, path) => {
+        if (node.type === "SheetContent" && Node.parent(editor, path).type !== "Sheet") {
+            Transforms.unwrapNodes(editor, {at: path});        }
+    }
 
     editor.liftHeader = (node, path) => {
         if (node.type === "header") {
@@ -1375,7 +1481,7 @@ const withSefariaSheet = editor => {
     editor.replaceSpacerWithOutsideText = (node, path) => {
         if (node.type === "spacer") {
             if (Node.string(node) !== "") {
-                Transforms.setNodes(editor, {type: "SheetOutsideText"}, {at: path});
+                Transforms.setNodes(editor, {type: "SheetOutsideText", node: node.node}, {at: path});
             }
         }
     };
@@ -1389,6 +1495,18 @@ const withSefariaSheet = editor => {
             }
         }
     };
+
+    // Ensure all SheetItems have node #
+    editor.ensureNodeId = (node, path) => {
+        const sheetElementTypes = Object.values(sheet_item_els);
+
+        if (sheetElementTypes.includes(node.type)) {
+            if (!node.node) {
+                Transforms.setNodes(editor, {node: editor.children[0].nextNode}, {at: path});
+                incrementNextSheetNode(editor)
+            }
+        }
+    }
 
     // If a sheet element gets stuck inside some other element, lift it up to top level
     editor.liftSheetElement = (node, path) => {
@@ -1410,13 +1528,18 @@ const withSefariaSheet = editor => {
         const sheetElementTypes = Object.values(sheet_item_els);
 
         if (["SheetSource", "SheetOutsideBiText"].includes(node.type)) {
-            //anything pasted into a sheet source object or a sheet outsideBiText will be treated just as text content
-            for (const [child, childPath] of Node.children(editor, path)) {
-                if (sheetElementTypes.includes(child.type)) {
-                    Transforms.unwrapNodes(editor, {at: childPath});
-                    return true;
+            if (node.children && node.children.length > 1) {
+                Transforms.removeNodes(node, {at: [0]})
                 }
-            }
+
+
+            //anything pasted into a sheet source object or a sheet outsideBiText will be treated just as text content
+            // for (const [child, childPath] of Node.children(editor, path)) {
+            //     if (sheetElementTypes.includes(child.type)) {
+            //         Transforms.unwrapNodes(editor, {at: childPath});
+            //         return true;
+            //     }
+            // }
         }
     };
 
@@ -1514,7 +1637,7 @@ const insertSource = (editor, ref) => {
     const nodeAbove = getNodeAbove(path, editor)
     const nodeBelow = getNodeBelow(path, editor)
 
-    Sefaria.getText(ref).then(text => {
+    Sefaria.getText(ref, {stripItags: 1}).then(text => {
         const enText = Array.isArray(text.text) ? `<p>${text.text.flat(Infinity).join("</p><p>")}</p>` : text.text;
         const heText = Array.isArray(text.text) ? `<p>${text.he.flat(Infinity).join("</p><p>")}</p>` : text.he;
         let fragment = [{
@@ -1627,7 +1750,9 @@ const Link = ({ attributes, children, element }) => {
   const selected = useSelected();
   const [linkPopoverVisible, setLinkPopoverVisible] = useState(false);
   const [urlValue, setUrlValue] = useState(element.url);
-  const [currentSlateRange, setCurrentSlateRange] = useState(editor.linkOverrideSelection)
+  const [showLinkRemoveButton, setShowLinkRemoveButton] = useState(false);
+  const [currentSlateRange, setCurrentSlateRange] = useState(editor.linkOverrideSelection);
+  const [editingUrl, setEditingUrl] = useState(false);
 
 
   let showLinkHoverTimeout;
@@ -1645,11 +1770,13 @@ const Link = ({ attributes, children, element }) => {
         }, 500, e);
     }
     const onBlur = (e, url) => {
-        clearTimeout(showLinkHoverTimeout)
-        hideLinkHoverTimeout = setTimeout(function () {
-            setLinkPopoverVisible(false)
-            setCurrentSlateRange(null)
-        }, 500);
+        if (!editingUrl) {
+            clearTimeout(showLinkHoverTimeout)
+            hideLinkHoverTimeout = setTimeout(function () {
+                setLinkPopoverVisible(false)
+                setCurrentSlateRange(null)
+            }, 500);
+        }
     }
     const onClick = (e, url) => {
         window.open(url, '_blank').focus();
@@ -1663,12 +1790,19 @@ const Link = ({ attributes, children, element }) => {
         // Transforms.collapse(editor);
     }
 
-    const closePopup = () => {
+    const closePopup = (e) => {
+        setEditingUrl(false)
+        setLinkPopoverVisible(false)
+        if (e.target.value === "") {
+            Transforms.select(editor, currentSlateRange);
+            editor.removeLink();
+        }
         editor.showLinkOverride = false;
         editor.linkOverrideSelection = null;
     }
 
     const fixUrl = (s) => {
+        if (s == "") return
         try {
             let url = new URL(s)
             return(url)
@@ -1686,6 +1820,7 @@ const Link = ({ attributes, children, element }) => {
         Transforms.setNodes(editor, { url: fixUrl(newUrl) }, {at: linkPath});
     }
 
+    const linkPopoverOpen = linkPopoverVisible || (editor.showLinkOverride && Path.isDescendant(editor.linkOverrideSelection.anchor.path, ReactEditor.findPath(editor, element)))
 
   return (
     <div
@@ -1697,21 +1832,25 @@ const Link = ({ attributes, children, element }) => {
         <a
             href={element.url}
             onClick={(e) => onClick(e, element.url)}
+            onMouseEnter={(e)=> {if (!linkPopoverOpen) {
+                setShowLinkRemoveButton(true)
+            }
+            }}
         >
             {children}
         </a>
 
       {/* Show popup on hover and also force it open when a new link is created  */}
-      {linkPopoverVisible || (editor.showLinkOverride && Path.isDescendant(editor.linkOverrideSelection.anchor.path, ReactEditor.findPath(editor, element))) ? (
-        <div className="popup" contentEditable={false} onBlur={closePopup}>
+      {linkPopoverOpen ? (
+        <div className="popup" contentEditable={false} onFocus={() => setEditingUrl(true)} onBlur={(e) => closePopup(e)}>
           <input
               type="text"
               value={urlValue}
-              placeholder="Enter link URL"
+              placeholder={Sefaria._("Enter link URL")}
               className="sans-serif"
               onChange={(e) => urlChange(e)}
           />
-          <button onClick={() => xClicked()}>✕</button>
+            {showLinkRemoveButton ? <button onClick={() => xClicked()}>✕</button> : null}
         </div>
       ) : null }
 
@@ -2174,7 +2313,6 @@ const SefariaEditor = (props) => {
           scrollTimeOutId = setTimeout(
               () => {
                   if(props.hasSidebar) {
-                      ReactEditor.deselect(editor);
                       onEditorSidebarToggleClick()
                   }
               }, 200
@@ -2190,7 +2328,6 @@ const SefariaEditor = (props) => {
             let sheetElementTypes = Object.values(sheet_item_els);
               for(const node of Node.ancestors(editor, editor.selection.focus.path)) {
                   if (sheetElementTypes.includes(node[0].type)) {
-                    console.log(editor)
                       if (node[0].node != editor.highlightedNode) {
                         updateSidebar(node[0].node, node[0].ref)
                         if (node[0].type != "SheetSource") {
@@ -2283,7 +2420,7 @@ const SefariaEditor = (props) => {
     const onCutorCopy = event => {
         const nodeAbove = Editor.above(editor, { match: n => Editor.isBlock(editor, n) })
 
-        if (nodeAbove[0].type == "SheetSource") {
+        if (nodeAbove && nodeAbove[0].type == "SheetSource") {
             editor.cuttingSource = true;
             //can't select an empty void -- so we select before and after as well
             Transforms.move(editor, { distance: 1, unit: 'character', reverse: true, edge: 'anchor' })
@@ -2291,6 +2428,54 @@ const SefariaEditor = (props) => {
         }
 
     };
+
+    const onDrop = event => {
+        if (editor.dragging) {
+            event.preventDefault();
+            const elem = document.elementFromPoint(event.clientX, event.clientY)
+            const node = ReactEditor.toSlateNode(editor, elem)
+            const dropPath = Editor.end(editor, ReactEditor.findPath(editor, node)).path
+
+            console.log(node)
+            console.log(dropPath)
+
+
+                        console.log(Path.compare(dropPath, editor.dragging.anchor.path))
+                        //
+                        if (Path.compare(dropPath, editor.dragging.anchor.path) < 0) {
+                            Transforms.delete(editor, {at: editor.dragging});
+                            Transforms.select(editor, Editor.end(editor, dropPath));
+                            Transforms.insertText(editor, " ")
+                            editor.insertData(event.dataTransfer)
+                            console.log('up')
+                            Transforms.move(editor, { distance: 1, unit: 'character', reverse: true, })
+                            editor.deleteBackward()
+
+
+                         } else if (Path.compare(dropPath, editor.dragging.anchor.path) > 0) {
+                            Transforms.select(editor, Editor.start(editor, dropPath));
+                            Transforms.insertText(editor, " ")
+                            editor.insertData(event.dataTransfer)
+                            Transforms.delete(editor, {at: editor.dragging});
+                            console.log('down')
+                            Transforms.move(editor, { distance: 1, unit: 'character', reverse: true, })
+                            editor.deleteBackward()
+
+                        }
+
+                        editor.dragging = false
+
+                        console.log(editor.children)
+
+        }
+    };
+
+    const onDragOver = event => {
+        if (editor.dragging) {
+            event.preventDefault()
+        }
+    }
+
 
     const onBlur = event => {
       editor.blurSelection = editor.selection
@@ -2412,8 +2597,10 @@ const SefariaEditor = (props) => {
                   spellCheck
                   onKeyDown={onKeyDown}
                   onCut={onCutorCopy}
+                  onDragOver={onDragOver}
                   onCopy={onCutorCopy}
                   onBlur={onBlur}
+                  onDrop={onDrop}
                   onDOMBeforeInput={beforeInput}
                 />
             </Slate>

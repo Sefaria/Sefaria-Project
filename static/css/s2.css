@@ -525,7 +525,7 @@ input.noselect {
   background: transparent;
   padding: 0;
 }
-.header .my-profile, 
+.header .my-profile,
 .header .notifications {
   display: inline-block;
   vertical-align: middle;
@@ -556,6 +556,8 @@ input.noselect {
   padding: 0;
   flex: 1;
   height: 100%;
+  margin-bottom: 1px;
+  font-size: var(--serif-body-font-size);
 }
 .header .searchBox input::placeholder {
   font-style: normal;
@@ -1904,7 +1906,7 @@ div.interfaceLinks-row a {
 }
 .topicPanel h1 {
   --english-font: var(--english-serif-font-family);
-  --hebrew-font: var(--hebrew-serif-font-family); 
+  --hebrew-font: var(--hebrew-serif-font-family);
 }
 .topicPanel h1 .int.en {
   font-size: 30px;
@@ -2376,7 +2378,7 @@ a.navBlockTitle:hover {
 }
 .readerNavCategoryMenu .categoryDescription.long {
   margin: -8px 0 20px 0;
-} 
+}
 .readerNavCategoryMenu .content .category,
 .readerNavCategoryMenu .content .gridBox {
   margin-bottom: 40px;
@@ -3326,9 +3328,21 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   color: #000;
   border-bottom: 4px solid var(--medium-grey);
 }
+
 .searchContent .searchResultList {
   padding-top: 25px;
+  max-width: 665px;
+  padding-top: 25px;
+  max-width: 665px;
 }
+
+@media (min-width: 701px) {
+  /* prevent width of left-pane from changing due to content size when filters applied */
+  .searchContent .searchResultList {
+    width: 60vw;
+  }
+}
+
 .searchContent .searchFilters h2 {
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
@@ -3527,9 +3541,44 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   cursor: pointer;
   font-size: 14px;
   margin-top: 4px;
+  background: none!important;
+  border: none;
+  padding: 0!important;
+  color: inherit;
+
 }
 .searchContent .searchFilters .showMore:hover {
   text-decoration: underline;
+}
+.searchFilters .searchBox {
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  padding-left: 10px;
+  padding-right: 10px;
+  text-align: inherit;
+  background: #EDEDEC;
+  border-radius: 250px;
+  border: none;
+  width: calc(100% - 10px);
+  height: 30px;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: var(--sans-serif-body-font-size);
+  margin-bottom: 10px;
+}
+.searchFilters .searchFilterIcon {
+  float: right;
+  margin: 0px -5px 1px 0px;
+}
+.searchBox input.searchFiltersInput {
+  width: calc(100% - 10px);
+  background-color: transparent;
+  border: 0;
+  font-size: var(--sans-serif-body-font-size);
+}
+.searchBox button {
+  border:0;
 }
 .dropdown-option-list {
   margin-top: 10px;
@@ -3615,7 +3664,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   background-color: var(--lighter-grey);
   padding: 20px 15px;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   color:  var(--dark-grey);
 }
 .mobileSearchFiltersHeader .readerNavMenuCloseButton {
@@ -3624,6 +3673,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   height: 20px;
   display: block;
   line-height: 20px;
+  position: absolute;
+  margin-right: 100%;
+  margin-left: 45px;
 }
 .mobileSearchFilters .searchFilters {
   flex-grow:  1;
@@ -4216,7 +4268,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .toggleSet.punctuationTalmud .toggleOption {
   font-size: 14px;
 }
-.toggleSet.vowels .toggleOption.all span span, 
+.toggleSet.vowels .toggleOption.all span span,
 .toggleSet.vowels .toggleOption.partial span span {
   position: relative;
   top: -3px;
@@ -4237,7 +4289,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   border-bottom-right-radius: 4px;
   border-right: 1px solid #999;
 }
-.toggleOption.on, 
+.toggleOption.on,
 .toggleOption:hover {
   background-color: white;
   color: black;
@@ -4515,8 +4567,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .heRight.bilingual .sheetItem.enOnly > p > .en,
 .heRight.bilingual .sheetItem.heOnly > p > .he {
   width: 100%;
-  padding-right: 0;
-  padding-left: 0;
 }
 .readerPanel .sheetItem.heOnly > .en,
 .readerPanel .sheetItem.heOnly > p > .en {
@@ -5020,7 +5070,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .gridBox .gridBoxItem {
   flex: 1;
-  
+
    /* HACK: overflow hidden will hide any box shadow beneath (b/c overflow cuts off at padding-box) can get around this by increasing padding-box and decreasing margin-box. see here https://stackoverflow.com/questions/33949013/css-overflow-hidden-cuts-shadow*/
   display: flex;
   flex-direction: column;
@@ -6551,7 +6601,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 #appLoading img.int-he {
   width: 150px;
   height: 49px;
-  margin-bottom: 6px; 
+  margin-bottom: 6px;
 }
 .emptyDesktop {
   margin-top: 200px;
@@ -6982,10 +7032,10 @@ a .button:hover {
   pointer-events: none;
   width: auto;
 }
-.sheetMetaDataBox .title:focus:before {
-  content: "\200B"; /* zero-width space required so that chrome doesn't cause change in size of box on focus/blur */
-  width: 0;
+.interface-hebrew .sheetMetaDataBox .title:empty:before {
+  content: "ללא שם";
 }
+
 .publishBox {
   text-align: start;
   background-color: #EDEDEC;
@@ -7186,15 +7236,25 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   width: 30px;
   border-radius: 30px;
   border: none;
-  background-color: #FBFBFA;
+  background-color: var(--sefaria-blue);
   cursor: pointer;
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
 }
+
+.interface-hebrew .editorSidebarToggle {
+  left: 30px;
+  right: auto;
+}
+
+
 .editorSidebarToggle:active {
   box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.25);
 }
 .editorSidebarToggle::after {
   content: url("/static/img/3vdots.svg");
+  position: absolute;
+  top: 7px;
+  left: 13px;
 }
 .collectionListingImage {
   height: 100%;
@@ -7493,7 +7553,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 }
 .alphabeticalTopicsNav a {
   display: inline-block;
-  margin-bottom: 10px;  
+  margin-bottom: 10px;
 }
 .alphabeticalTopicsNav a + a {
   margin-inline-start: 10px;
@@ -7652,7 +7712,6 @@ body.interface-english .publishBox .react-tags__suggestions ul {
     padding: 4px 7px 2px;
     position: initial;
     vertical-align: 0px;
-
 }
 .header .searchBox .keyboardInputInitiator {
     display: none;
@@ -8518,10 +8577,14 @@ span.purim-emoji img{
   background-color: white;
   padding: 0;
   border-radius: 6px;
-  border: 1px solid #CCCCCC;
   z-index: 1;
-  top: -30px;
+  top: -38px;
   pointer-events: auto;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+.interface-hebrew .sheetContent .element-link .popup {
+  direction: rtl;
 }
 
 .sheetContent .element-link .popup input {
@@ -8637,22 +8700,26 @@ span.purim-emoji img{
 }
 .editorAddInterface:before {
   content: "";
-  margin-inline-start:-34px;
+  margin-inline-start:-46px;
   position: absolute;
-  width: 25px;
-  height: 25px;
+  width: 30px;
+  height: 30px;
   transform: rotate(45deg);
-  background-color; white;
-  background-image: url("/static/icons/x-plus.svg");
+  background-color: white;
+  background-image: url("/static/icons/heavy-x.svg");
   border: 1px solid var(--light-grey);
-  background-size: contain;
+  background-size: 14px;
   border-radius: 50%;
   pointer-events:auto;
   cursor: pointer;
+  background-repeat: no-repeat;
+  background-position: center;
+  box-sizing: border-box;
 }
 
 .editorAddInterface.active {
   background-color: white;
+  line-height: initial;
 }
 .editorAddInterface.active:before {
   transform: rotate(0);
@@ -8673,6 +8740,16 @@ span.purim-emoji img{
   padding-top: 30px;
   padding-bottom: 30px;
   pointer-events: auto;
+  margin-top: 10px;
+  background-color: white;
+}
+
+.addInterfaceInput .button {
+  font-size: 14px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  height: 30px;
+  position: absolute;
 }
 
 .addInterfaceInput .textPreviewSegment {
@@ -8684,6 +8761,12 @@ span.purim-emoji img{
   overflow-y: scroll;
   padding-inline-end: 30px;
   position: relative;
+}
+
+.addInterfaceInput .suggestionBoxContainer,
+.addInterfaceInput .textPreviewContainer {
+  position: absolute;
+  z-index: 1;
 }
 
 .addInterfaceInput .suggestionBox,
@@ -8735,16 +8818,27 @@ span.purim-emoji img{
 
 .addInterfaceInput input {
   min-width: 350px;
+  max-width: 450px;
   border-radius: 250px;
   border: none;
   box-shadow: none;
   box-sizing: border-box;
   font-size: 22px;
   padding-inline-start: 30px;
-  background: url("/static/icons/iconmonstr-magnifier-2-240.svg") no-repeat scroll 7px 7px;
+  padding-top: revert;
+  margin-inline-end: 20px;
+  background: url("/static/icons/iconmonstr-magnifier-2-240.svg") no-repeat scroll left 7px top 7px;
   background-color: var(--lighter-grey);
-
 }
+.addInterfaceInput.mediaInput input {
+  background: url("/static/icons/link_grey.svg") no-repeat scroll left 7px top 7px;
+  background-color: var(--lighter-grey);
+}
+.readerApp.interface-hebrew .addInterfaceInput input {
+  background-position: right 7px top 7px;
+  font-family: var(--hebrew-serif-font-family);
+}
+
 .addInterfaceInput input::placeholder {
   font-size: 22px;
   font-style: normal;
@@ -8752,16 +8846,16 @@ span.purim-emoji img{
 
 .addInterfaceInput input+span.helperCompletionText {
   position: absolute;
-  margin-left: 4px;
-  color: var(--medium-grey)
+  margin-inline-start: 4px;
+  color: var(--medium-grey);
 }
 
 .editorAddInterface.active .editorAddInterfaceButton {
   width: 30px;
   height: 30px;
-  padding: 5px;
+  padding: 10px;
   display: inline-block;
-  background-size: contain;
+  background-size: auto 12px;
   background-repeat: no-repeat;
   background-position: center;
   border-radius: 6px;
@@ -8803,7 +8897,8 @@ span.purim-emoji img{
 }
 .sheetContent .sheetItem .SheetSource.segment,
 .sheetContent .sheetItem .SheetOutsideBiText.segment {
-  margin-top: 14px;
+  margin-top: 30px;
+  margin-bottom:30px;
 }
 .sheetContent .text.loading {
   cursor: wait;
@@ -8950,8 +9045,8 @@ cursor: pointer;
   border-top: 2px solid #CCE6FF;
   border-bottom: 2px solid #CCE6FF;
   border-inline-end: 2px solid #CCE6FF;
-  margin-top: 12px;
-  margin-bottom: 12px;
+  margin-top: 28px;
+  margin-bottom: 28px;
   margin-inline-end: -2px;
   cursor: text;
 }
@@ -8963,6 +9058,8 @@ cursor: pointer;
   padding-inline-end: 20px;
   margin-inline-start: -16px;
   margin-inline-end: -20px;
+  padding-top: 15px;
+  padding-bottom: 15px;
 }
 .interface-hebrew .sheetItem .SheetSource .he,
 .interface-hebrew .sheetItem .SheetSource .en,
@@ -8973,6 +9070,68 @@ cursor: pointer;
   margin-inline-start: -20px;
   margin-inline-end: -16px;
 }
+.interface-hebrew .bilingual.heLeft .sheetItem .SheetOutsideBiText .he,
+.interface-hebrew .bilingual.heLeft .sheetItem .SheetSource .he,
+.interface-hebrew .bilingual.heRight .sheetItem .SheetOutsideBiText .en,
+.interface-hebrew .bilingual.heRight .sheetItem .SheetSource .en,
+.interface-english .bilingual.heRight .sheetItem .SheetOutsideBiText .he,
+.interface-english .bilingual.heRight .sheetItem .SheetSource .he,
+.interface-english .bilingual.heLeft .sheetItem .SheetOutsideBiText .en,
+.interface-english .bilingual.heLeft .sheetItem .SheetSource .en {
+  padding-inline-end: 20px;
+  margin-inline-end: 0px;
+  padding-inline-start: 20px;
+  margin-inline-start: 0px;
+}
+.interface-hebrew .bilingual.heLeft .sheetItem .SheetOutsideBiText .en,
+.interface-hebrew .bilingual.heLeft .sheetItem .SheetSource .en,
+.interface-english .bilingual.heLeft .sheetItem .SheetOutsideBiText .he,
+.interface-english .bilingual.heLeft .sheetItem .SheetSource .he {
+  padding-inline-end: 16px;
+  margin-inline-end: 0px;
+  padding-inline-start: 20px;
+  margin-inline-start: 0px;
+}
+
+.interface-hebrew .bilingual.heRight .sheetItem .SheetOutsideBiText .he,
+.interface-hebrew .bilingual.heRight .sheetItem .SheetSource .he,
+.interface-english .bilingual.heRight .sheetItem .SheetOutsideBiText .en,
+.interface-english .bilingual.heRight .sheetItem .SheetSource .en {
+  padding-inline-end: 20px;
+  margin-inline-end: 0px;
+  padding-inline-start: 16px;
+  margin-inline-start: 0px;
+}
+
+.readerPanel.bilingual.heRight .sheetItem .SheetSource,
+.readerPanel.bilingual.heRight .sheetItem .SheetOutsideBiText,
+.readerPanel.bilingual.heLeft .sheetItem .SheetSource,
+.readerPanel.bilingual.heLeft .sheetItem .SheetOutsideBiText {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.readerPanel.english .sheetItem .SheetSource .he,
+.readerPanel.english .sheetItem .SheetSource .en,
+.readerPanel.english .sheetItem .SheetOutsideBiText .he,
+.readerPanel.english .sheetItem .SheetOutsideBiText .en,
+.readerPanel.hebrew  .sheetItem .SheetSource .he,
+.readerPanel.hebrew  .sheetItem .SheetSource .en,
+.readerPanel.hebrew  .sheetItem .SheetOutsideBiText .he,
+.readerPanel.hebrew  .sheetItem .SheetOutsideBiText .en
+{
+  padding-inline-start: initial;
+  padding-inline-end: initial;
+  margin-inline-start: initial;
+  margin-inline-end: initial;
+}
+
+.readerPanel.english .sheetItem .SheetSource.segment,
+.readerPanel.hebrew .sheetItem .SheetSource.segment {
+  padding-top: 15px;
+  padding-bottom: 15px;
+}
+
 
 .sheetItem .SheetSource .he.editable.selected .sourceContentText,
 .sheetItem .SheetSource .en.editable.selected .sourceContentText,
@@ -9001,17 +9160,89 @@ cursor: pointer;
   pointer-events: none;
   user-select: none;
 }
-.sheetItem .SheetSource:after,
-.sheetItem .SheetOutsideBiText:after {
+.readerPanel.bilingual .sheetItem .SheetSource:after,
+.readerPanel.bilingual .sheetItem .SheetOutsideBiText:after {
   content: " ";
   display: block;
   clear: both;
-  height: 15px;
+  height: 0;
   background-color: #FBFBFA;
 }
 .sheetItem .SheetMedia {
   margin-bottom: 14px;
 }
+
+.readerPanel.bilingual.heRight .SheetSource {
+  background-image:
+  linear-gradient(
+    to left,
+    #fff,
+    #fff 50%,
+    #FBFBFA 50%,
+    #FBFBFA 100%,
+    #fff 100%
+  );
+}
+
+.readerPanel.bilingual.heLeft .SheetSource {
+  background-image:
+  linear-gradient(
+    to right, 
+    #fff,
+    #fff 50%,
+    #FBFBFA 50%,
+    #FBFBFA 100%,
+    #fff 100%
+  );
+}
+
+
+.boxedSheetItem + .spacer {
+  margin-top: -30px;
+  margin-bottom: -30px;
+  transition: all .5s ease-in-out;
+}
+
+.boxedSheetItem + .spacer.spacerSelected {
+  margin-top: unset;
+  margin-bottom:30px;
+  transition: all .5s ease-in-out;
+}
+
+.boxedSheetItem[draggable] {
+  -moz-user-select: none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -khtml-user-drag: element;
+  -webkit-user-drag: element;
+}
+
+.boxedSheetItem.dragged {
+  opacity: .2;
+}
+
+.dragIcon {
+  background-color: #F0F8FF;
+  width: auto;
+  height: 30px;
+  left: -3000px;
+  border-inline-start: 4px solid;
+  font-size: 22px;
+  padding-top: 10px;
+  padding-left: 10px;
+  padding-right: 10px;
+  text-align: center;
+  position: absolute;
+}
+.dragIconContainer {
+  position: absolute;
+  left: -9999px;
+  display: flex;
+  flex-direction: column;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
 .feedbackBox p {
   font-size: 16px;
   letter-spacing: 1px;
@@ -9266,7 +9497,7 @@ cursor: pointer;
 }
 .interface-hebrew textarea,
 .interface-hebrew textarea::placeholder,
-.interface-hebrew input,
+.interface-hebrew input
 {
   font-family: var(--hebrew-sans-serif-font-family);
 }

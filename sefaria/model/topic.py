@@ -64,6 +64,8 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
 
     def _normalize(self):
         super()._normalize()
+        for title in self.title_group.titles:
+            title['text'] = title['text'].strip()
         self.titles = self.title_group.titles
 
     def set_titles(self, titles):
@@ -171,7 +173,7 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
         """
         has_desc = False
         for temp_desc in getattr(self, 'description', {}).values():
-            has_desc = has_desc or len(temp_desc) > 0
+            has_desc = has_desc or (isinstance(temp_desc, str) and len(temp_desc) > 0)
         return has_desc
 
     def set_slug_to_primary_title(self) -> None:
