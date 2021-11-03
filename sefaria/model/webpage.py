@@ -483,7 +483,8 @@ def find_webpages_without_websites(test=True, hit_threshold=50, last_linker_acti
     return sites_added
 
 
-def find_sites_to_be_excluded(flag=100):
+def find_sites_to_be_excluded_by_flag(flag=100):
+    # this function looks for any website which has more webpages than 'flag' of any ref
     all_sites = {}
     sites_to_exclude = {}
     for i, webpage in enumerate(WebPageSet()):
@@ -505,6 +506,8 @@ def find_sites_to_be_excluded(flag=100):
                     sites_to_exclude[website] += f"{website} may need exclusions set due to Ref {common[0]} with {common[1]} pages.\n"
     return sites_to_exclude
 
+
+    # this function looks at each website's total amount of webpages and then
 
 def check_daf_yomi_and_parashat_hashavua(sites):
     previous = datetime.now() - timedelta(10)

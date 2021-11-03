@@ -34,7 +34,7 @@ def run_job(test=True, board_id="", idList_mapping={}, members_mapping={}):
 
 	flag = 500
 	print("Looking for websites where the same Ref appears in at least {} pages...".format(flag))
-	#sites["Websites that may need exclusions set"] = find_sites_to_be_excluded(flag=flag)
+	#sites["Websites that may need exclusions set"] = find_sites_to_be_excluded_by_flag(flag=flag)
 	#
 	# after_total_pages, after_total_links = webpages_stats()
 	# print("{} total pages.  Deleted {}.\n".format(after_total_pages, total_pages-after_total_pages))
@@ -193,6 +193,7 @@ def delete_bad_refs(BOARD_ID, TRELLO_KEY, TRELLO_TOKEN):
 
 
 if __name__ == "__main__":
+	dedupe_webpages(False)
 	parser = argparse.ArgumentParser()
 	parser.add_argument("-k", "--key",
 						help="API Key")
