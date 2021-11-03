@@ -193,7 +193,6 @@ def delete_bad_refs(BOARD_ID, TRELLO_KEY, TRELLO_TOKEN):
 
 
 if __name__ == "__main__":
-	dedupe_webpages(False)
 	parser = argparse.ArgumentParser()
 	parser.add_argument("-k", "--key",
 						help="API Key")
