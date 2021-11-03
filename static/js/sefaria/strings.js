@@ -92,6 +92,11 @@ const Strings = {
     "Search Texts": "חפש מקורות",
 
     // Sheets
+    "Search for a text...": "חפש מקור בספריא",
+    "Paste a link to an image, video, or audio": "הוסף קישור לתמונה, סרטון, או אודיו",
+    "Add media": "הוסף מדיה",
+    "Add an image": "הוסף תמונה",
+    "Add a source": "הוסף מקור",
     "Create a New Sheet": "יצירת דף מקורות",
     "Source Sheets": "דפי מקורות",
     "Start a New Source Sheet": "התחלת דף מקורות חדש",
@@ -102,6 +107,7 @@ const Strings = {
     "Copy" : "העתקה",
     "Edit": "עריכה",
     "View in Editor": "לתצוגת עריכה",
+     "Enter link URL": "הכנס קישור",
     "Copied" : "הועתק",
     "Copying..." : "מעתיק...",
     "Delete": "מחיקה",
