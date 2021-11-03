@@ -1198,7 +1198,7 @@ class ReaderApp extends Component {
     } else {
       refs = [ref];
       currentlyVisibleRef = ref;
-      highlightedRefs = [];
+      highlightedRefs = [ref];
     }
     let updatePanelObj = {refs: refs, currentlyVisibleRef: currentlyVisibleRef, highlightedRefs: highlightedRefs}
     if((this.state.panels.length > n+1) && this.state.panels[n+1].mode == "Connections"){
@@ -1207,10 +1207,6 @@ class ReaderApp extends Component {
     } else if (n-1 >= 0 && this.state.panels[n].mode === "Connections") {
       let masterPanel = this.state.panels[n-1];
       Object.assign(masterPanel, {refs: refs, currentlyVisibleRef: currentlyVisibleRef, highlightedRefs: highlightedRefs});
-    }
-    if(panel.mode == "TextAndConnections"){ // we want single panel mode to return to text mode after navigating
-      updatePanelObj["highlightedRefs"] = [];
-      updatePanelObj["mode"] = "Text";
     }
     Object.assign(panel, updatePanelObj);
     this.setState({panels: this.state.panels});
