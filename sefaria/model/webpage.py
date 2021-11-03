@@ -47,11 +47,16 @@ class WebPage(abst.AbstractMongoRecord):
     def _init_defaults(self):
         self.linkerHits = 0
 
+    def _normalize_refs(self):
+        ref_has_contents = lambda x: len(text.Ref(x).text('he').text) > 0 or len(text.Ref(x).text('en').text) > 0
+        self.refs = [text.Ref(ref).normal() for ref in self.refs if text.Ref.is_ref(ref)]
+        self.refs = [r for r in self.refs if ref_has_contents(r)]
+        self.refs = list(set(self.refs))
+
     def _normalize(self):
         super(WebPage, self)._normalize()
         self.url = WebPage.normalize_url(self.url)
-        self.refs = [text.Ref(ref).normal() for ref in self.refs if text.Ref.is_ref(ref)]
-        self.refs = list(set(self.refs))
+        self._normalize_refs()
         self.expandedRefs = text.Ref.expand_refs(self.refs)
 
     def _validate(self):
@@ -118,6 +123,8 @@ class WebPage(abst.AbstractMongoRecord):
         sites = get_website_cache()
         for site in sites:
             bad_urls += site.get("bad_urls", [])
+            for domain in site["domains"]:
+                bad_urls += [f"{domain}\\/search\\?", f"{domain}\\/search\\/$", f"{domain}\\/search$"]
         return "({})".format("|".join(bad_urls))
 
     @staticmethod
@@ -402,6 +409,8 @@ def dedupe_identical_urls(test=True):
 def clean_webpages(test=True):
     url_bad_regexes = WebPage.excluded_pages_url_regex()[:-1] + "|\d{3}\.\d{3}\.\d{3}\.\d{3})"  #delete any page that matches the regex produced by excluded_pages_url_regex() or in IP form
 
+
+
     """ Delete webpages matching patterns deemed not worth including"""
     pages = WebPageSet({"$or": [
             {"url": {"$regex": url_bad_regexes}},
@@ -482,11 +491,9 @@ def find_webpages_without_websites(test=True, hit_threshold=50, last_linker_acti
 
     return sites_added
 
-
-def find_sites_to_be_excluded_by_flag(flag=100):
-    # this function looks for any website which has more webpages than 'flag' of any ref
+def find_sites_to_be_excluded():
+    # returns all sites dictionary and each entry has a Counter of refs
     all_sites = {}
-    sites_to_exclude = {}
     for i, webpage in enumerate(WebPageSet()):
         if i % 100000 == 0:
             print(i)
@@ -496,7 +503,12 @@ def find_sites_to_be_excluded_by_flag(flag=100):
                 all_sites[website["name"]] = Counter()
             for ref in webpage.refs:
                 all_sites[website["name"]][ref] += 1
+    return all_sites
 
+def find_sites_to_be_excluded_by_flag(flag=100):
+    # this function looks for any website which has more webpages than 'flag' of any ref
+    all_sites = find_sites_to_be_excluded()
+    sites_to_exclude = {}
     for website in all_sites:
         sites_to_exclude[website] = ""
         if len(all_sites[website]) > 0:
@@ -506,8 +518,16 @@ def find_sites_to_be_excluded_by_flag(flag=100):
                     sites_to_exclude[website] += f"{website} may need exclusions set due to Ref {common[0]} with {common[1]} pages.\n"
     return sites_to_exclude
 
-
-    # this function looks at each website's total amount of webpages and then
+def find_sites_to_be_excluded_by_top_refs(num_refs=5):
+    # this function looks for every website's top 'num_refs' most common refs
+    sites_to_exclude = {}
+    all_sites = find_sites_to_be_excluded()
+    for website in all_sites:
+        sites_to_exclude[website] = ""
+        if len(all_sites[website]) > 0:
+            most_common = all_sites[website].most_common(num_refs)
+            sites_to_exclude[website] = most_common
+    return sites_to_exclude
 
 def check_daf_yomi_and_parashat_hashavua(sites):
     previous = datetime.now() - timedelta(10)
