@@ -69,7 +69,6 @@ class Sheet extends Component {
           title={sheet.title}
           onRefClick={this.props.onRefClick}
           sheetSourceClick={this.props.onSegmentClick}
-          openURL={this.props.openURL}
           highlightedNode={this.props.highlightedNode}
           highlightedRefsInSheet={this.props.highlightedRefsInSheet}
           scrollToHighlighted={this.props.scrollToHighlighted}
@@ -193,30 +192,6 @@ class SheetContent extends Component {
       $container[0].scrollTop = top;
       if ($readerPanel.attr("id") === $(".readerPanel:last").attr("id")) {
         $highlighted.focus();
-      }
-    }
-  }
-  handleLinkClick(e) {
-    // unclear to me what this adds beyond ReaderApp.handleInAppClick()
-    // leaving this here for now
-    if (e.target.tagName.toLowerCase() === 'a') {
-      e.preventDefault();
-      e.stopPropagation();
-      const href = e.target.href;
-      let path = href;
-      try {
-        const url = new URL(href);
-        // Allow absolute URLs pointing to Sefaria. TODO generalize to any domain of current deployment.
-        if (url.hostname.indexOf("sefaria.org") === -1) {
-          path = null;
-        }
-        path = url.pathname;
-      } catch { }
-
-      const replace = !(path && (Sefaria.isRef(path.slice(1)) || path.match(/^\/sheets\/(\d+(\.\d+)?)/)));
-      const opened = this.props.openURL(href, replace);
-      if (!opened) {
-        window.open(e.target.href, "_blank");
       }
     }
   }
@@ -346,7 +321,7 @@ class SheetContent extends Component {
         </SheetMetaDataBox>
 
         <div className="text">
-          <div className="textInner" onMouseUp={this.handleTextSelection} onClick={this.handleLinkClick}>
+          <div className="textInner" onMouseUp={this.handleTextSelection}>
             {sources}
           </div>
         </div>
@@ -625,7 +600,7 @@ class SheetMedia extends Component {
     if (this.isImage()) {
       mediaLink = '<img class="addedMedia" src="' + mediaURL + '" />';
     }
-    else if (mediaURL.match(/https?:\/\/www\.youtube\.com\/embed\/.+?rel=0&amp;showinfo=0$/i) != null) {
+    else if (mediaURL.match(/https?:\/\/www\.youtube\.com\/embed\/.+?rel=0(&amp;|&)showinfo=0$/i) != null) {
       mediaLink = '<div class="youTubeContainer"><iframe width="100%" height="100%" src=' + mediaURL + ' frameborder="0" allowfullscreen></iframe></div>';
     }
 

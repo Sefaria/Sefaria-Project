@@ -51,7 +51,7 @@ class Footer extends Component {
             </Section>
 
             <Section en="Tools" he="כלים">
-                <Link href="/educators" en="Teach with Sefaria" he="לַמדו עם ספריא" />
+                <Link href="/educators" en="Teach with Sefaria" he="מלמדים עם ספריא" />
                 <Link href="/sheets" en="Source Sheets" he="דפי מקורות" />
                 <Link href="/visualizations" en="Visualizations" he="תרשימים גרפיים" />
                 <Link href="/mobile" en="Mobile Apps" he="ספריא בנייד" />

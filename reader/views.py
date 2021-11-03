@@ -298,6 +298,13 @@ def old_versions_redirect(request, tref, lang, version):
     response['Location'] += "&{}".format(params) if params else ""
     return response
 
+def get_connections_mode(filter):
+    # List of sidebar modes that can function inside a URL parameter to open the sidebar in that state.
+    sidebarModes = ("Sheets", "Notes", "About", "Navigation", "Translations", "Translation Open","WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts")
+    if filter[0] in sidebarModes:
+        return filter[0], True
+    else:
+        return "TextList", False
 
 def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **kwargs):
     """
@@ -346,14 +353,9 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
             "versionFilter": versionFilter,
         }
         if filter and len(filter):
-            # List of sidebar modes that can function inside a URL parameter to open the sidebar in that state.
-            sidebarModes = ("Sheets", "Notes", "About", "Translations", "Translation Open",
-                            "WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts")
-            if filter[0] in sidebarModes:
-                panel["connectionsMode"] = filter[0]
+            panel["connectionsMode"], deleteFilter = get_connections_mode(filter)
+            if deleteFilter == True:
                 del panel['filter']
-            else:
-                panel["connectionsMode"] = "TextList"
 
         settings_override = {}
         panelDisplayLanguage = kwargs.get("connectionsPanelDisplayLanguage", None) if mode == "Connections" else kwargs.get("panelDisplayLanguage", None)
@@ -364,7 +366,7 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
             settings_override.update({"aliyotTorah": aliyotOverride})
         if settings_override:
             panel["settings"] = settings_override
-        if mode != "Connections":
+        if mode != "Connections" and oref != None:
             try:
                 text_family = TextFamily(oref, version=panel["currVersions"]["en"], lang="en", version2=panel["currVersions"]["he"], lang2="he", commentary=False,
                                   context=True, pad=True, alts=True, wrapLinks=False, translationLanguagePreference=kwargs.get("translationLanguagePreference", None)).contents()
@@ -432,7 +434,7 @@ def make_sheet_panel_dict(sheet_id, filter, **kwargs):
 
     ref = None
     if highlighted_node:
-        ref = next((element["ref"] for element in sheet["sources"] if element.get("ref") and element["node"] == int(highlighted_node)), None)
+        ref = next((element["ref"] for element in sheet["sources"] if element.get("ref") and element["node"] == int(highlighted_node)), 'Sheet '+ str(sheet_id) + '.' + str(highlighted_node))
 
     panelDisplayLanguage = kwargs.get("panelDisplayLanguage")
     if panelDisplayLanguage:
@@ -4044,7 +4046,7 @@ def explore(request, topCat, bottomCat, book1, book2, lang=None):
         "MidrashRabbah": {
             "title": "Midrash Rabbah",
             "heTitle": "מדרש רבה",
-            "shapeParam": "Midrash/Aggadic Midrash/Midrash Rabbah",
+            "shapeParam": "Midrash/Aggadah/Midrash Rabbah",
             "linkCountParam": "Midrash Rabbah",
             "colorByBook": True,
         },
