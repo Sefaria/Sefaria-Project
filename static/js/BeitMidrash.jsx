@@ -144,6 +144,7 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
 
 
     useEffect(()=> {
+        socketObj.off("change in people");
         socketObj.on("change in people", function(people, uid) {
             setPeopleInBeitMidrash(filterDedupeAndSortPeople(people));
 
@@ -162,7 +163,8 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
                 setPartnerLeftNotification(false)
             }
         })
-    }, [currentChatRoom, beitMidrashId, blockedUsers])
+
+    }, [currentChatRoom, beitMidrashId, blockedUsers, activeChavruta, currentScreen])
 
     useEffect(()=>{
        socketObj.off("received chat message")
@@ -332,7 +334,7 @@ const BeitMidrashHome = ({beitMidrashId,
                                     {user.name}
                                     {user.inChavruta ? <i className="fa fa-headphones" title={`${user.name} is current in a chavruta`}></i> : null}
                                     <div
-                                        className="beitMidrashOrg"><a href={user.currentlyReading.url}>{`is learning ${user.currentlyReading.title}`}</a></div>
+                                        className="beitMidrashOrg">{user.currentlyReading ? <a href={user.currentlyReading.url}>{`is learning ${user.currentlyReading.title}`}</a> : null}</div>
                                 </div>
                             </div>
                         } else {

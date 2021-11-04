@@ -673,7 +673,7 @@ class ReaderApp extends Component {
     if("aliyot" in histories[0]) {
         url += "&aliyot=" + histories[0].aliyot;
     }
-    hist = {state: {panels: states}, url: url, title: title};
+    hist = {state: {panels: states}, url: url, title: title, mode: histories[0].mode};
     for (var i = 1; i < histories.length; i++) {
       if ((histories[i-1].mode === "Text" && histories[i].mode === "Connections") ||
         (histories[i-1].mode === "Sheet" && histories[i].mode === "Connections")) {
@@ -1623,7 +1623,17 @@ class ReaderApp extends Component {
   }
   generateCurrentlyReading() {
     const currentHistoryState = this.makeHistoryState();
-    return {title: currentHistoryState.title, url: currentHistoryState.url};
+    const inBeitMidrash = ["navigation", "text toc", "book toc", "sheet meta", "topics", "Text", "TextAndConnections", "Sheet", "SheetAndConnections"];
+    const indexSefaria = currentHistoryState.title.indexOf("| Sefaria")
+    if (indexSefaria >= 0) {
+      currentHistoryState.title = currentHistoryState.title.slice(0, indexSefaria);
+    }
+    if (inBeitMidrash.includes(currentHistoryState.mode)) {
+      return {title: currentHistoryState.title, url: currentHistoryState.url, mode: currentHistoryState.mode};
+    } else {
+      return null;
+    }
+
   }
 
   handleCopyEvent(e) {
