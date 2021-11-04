@@ -70,24 +70,26 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
           setPcConfig(conf);
         });
 
-
         socketObj.on("connectionStarted", () => {setSocketConnected(true)})
 
-        //user B receives connection request
         socketObj.on("connection request", (user) => {
             chavrutaRequestReceived(user)
             const roomId = user.uid < Sefaria._uid ? `${user.uid}-${Sefaria._uid}`: `${Sefaria._uid}-${user.uid}`
             setCurrentChatRoom(roomId)
-
         })
-        //sends rejection to user A
+
         socketObj.on("send connection rejection", ()=>{
             window.alert("User is not available.");
             setCurrentScreen("home")
         })
-        //user A gets acceptance alert
+
         socketObj.on("send room ID to client", (room)=> {
             setCurrentScreen("chavrutaVideo")
+        });
+
+        socketObj.on("duplicate user", () => {
+            window.alert("The Beit Midrash can only be open in one window" );
+            window.location.href="/";
         });
 
         const onDisconnect = () => {

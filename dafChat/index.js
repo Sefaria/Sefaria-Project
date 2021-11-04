@@ -60,7 +60,7 @@ const peopleInBeitMidrash = {};
 
 io.on("connection", (socket) => {
   console.log(socket.id, socket.conn.remoteAddress, "connected")
-  
+
   //--------------------BEIT MIDRASH CODE-------------------------
 
   socket.emit("connectionStarted");
@@ -68,6 +68,9 @@ io.on("connection", (socket) => {
   let disconnectHandler = {};
 
   function addUserToBeitMidrash(uid, fullName, profilePic, organization, currentlyReading, beitMidrashId, socketId, inChavruta) {
+
+    const existingSocketIdForUser = Object.keys(peopleInBeitMidrash).find(key => peopleInBeitMidrash[key]["uid"] === uid);
+
     peopleInBeitMidrash[socketId] = {}
     peopleInBeitMidrash[socketId]["uid"] = uid;
     peopleInBeitMidrash[socketId]["name"] = fullName;
@@ -78,6 +81,15 @@ io.on("connection", (socket) => {
     peopleInBeitMidrash[socketId]["inChavruta"] = inChavruta;
 
     console.log("user added to beit midrash, current peopleInBeitMidrash:", peopleInBeitMidrash)
+
+    if (existingSocketIdForUser) {
+      delete peopleInBeitMidrash[existingSocketIdForUser];
+
+      socket.to(existingSocketIdForUser).emit('duplicate user');
+
+      console.log('deleted duplicate user')
+    }
+
     socket.broadcast.emit("change in people", Object.values(peopleInBeitMidrash), uid);
     socket.emit("change in people", Object.values(peopleInBeitMidrash), uid);
 
@@ -156,10 +168,12 @@ io.on("connection", (socket) => {
     })
 
     const socketId = socket.id;
-    disconnectHandler[peopleInBeitMidrash[socketId]["uid"]] = setTimeout((sockedId) => {
-      leaveBeitMidrash(socketId)
-    }, 2000)
-   
+    if (peopleInBeitMidrash[socketId]) {
+      disconnectHandler[peopleInBeitMidrash[socketId]["uid"]] = setTimeout((sockedId) => {
+        leaveBeitMidrash(socketId)
+      }, 2000)
+    }
+
   })
 
   //---------------------------------------------------------------------------------
