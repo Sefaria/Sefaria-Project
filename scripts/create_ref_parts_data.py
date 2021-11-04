@@ -321,4 +321,4 @@ if __name__ == "__main__":
     modify_talmud(fast)
     modify_tanakh(fast)
     modify_mishnah(fast)
-    modify_talmud_commentaries(fast, create_dhs)
+    modify_talmud_commentaries(fast, create_dhs)  # on first run, rerun because ArrayMapNodes are cached
