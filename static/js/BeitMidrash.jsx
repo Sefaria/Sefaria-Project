@@ -17,6 +17,7 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
     const [outgoingCall, setOutgoingCall] = useState(false);
     const [activeChavruta, setActiveChavruta] = useState(null)
     const [socketConnected, setSocketConnected] = useState(false);
+    const [chavrutaOnline, setChavrutaOnline] = useState(false);
     const [socketObj, setSocketObj] = useState(socket);
     const [partnerLeftNotification, setPartnerLeftNotification] = useState(false);
     const chatChannel = new BroadcastChannel('chavruta-chats');
@@ -135,6 +136,12 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
         }
     }, [beitMidrashId])
 
+    useEffect(() => {
+        if(activeChavruta) {
+            setChavrutaOnline(true);
+        }
+    }, [activeChavruta])
+
 
     useEffect(()=> {
         socketObj.on("change in people", function(people, uid) {
@@ -142,8 +149,14 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
 
             let roomIdToCheck = uid < Sefaria._uid ? `${uid}-${Sefaria._uid}`: `${Sefaria._uid}-${uid}`;
 
-            if (activeChavruta) {
-                setActiveChavruta(people.filter(person => person.uid === activeChavruta.uid)[0]);
+            // show what chavruta is learning and handle if user hangs up
+            if (activeChavruta && currentScreen === "chavrutaVideo") {
+                const myChavruta = people.filter(person => person.uid === activeChavruta.uid)[0];
+                if(myChavruta) {
+                    setActiveChavruta(myChavruta);
+                } else {
+                    setChavrutaOnline(false);
+                }
             }
             if (currentChatRoom === roomIdToCheck) {
                 setPartnerLeftNotification(false)
@@ -224,12 +237,13 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
     }
 
     const chavrutaCallInitiated = (uid) => {
+        setChavrutaOnline(true);
         setCurrentScreen("callingChavruta")
         setOutgoingCall(true)
     }
 
     const chavrutaRequestReceived = (user) => {
-        setActiveChavruta(user)
+        setActiveChavruta(user);
         setCurrentScreen("callingChavruta")
         setOutgoingCall(false)
     }
@@ -268,6 +282,7 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
             <ChavrutaVideo
                 socket={socketObj}
                 chavrutaId={currentChatRoom}
+                chavrutaOnline={chavrutaOnline}
                 pcConfig={pcConfig}
                 activeChavruta={activeChavruta}
                 setCurrentScreen={setCurrentScreen}
@@ -511,7 +526,8 @@ const ChatBox = ({room,
         socket.emit("connect with other user", uid, {uid: Sefaria._uid, name: Sefaria.full_name, pic: Sefaria.profile_pic_url});
         chavrutaCallInitiated(uid)
     }
-    return (activeChavruta ?
+    return (
+        activeChavruta ?
     <div className="chat" ref={chatBox}>
         <div id="hideButtonHolder">
             <div id="hideButton" onClick={()=>handleCloseChat(room)}>Hide{" "}<img src="/static/img/downward_carrot.svg" /></div>
@@ -589,7 +605,7 @@ const Message = ({user, message}) => {
     )
 }
 
-const ChavrutaVideo = ({socket, chavrutaId, pcConfig, setCurrentScreen, activeChavruta}) => {
+const ChavrutaVideo = ({socket, chavrutaId, pcConfig, setCurrentScreen, activeChavruta, chavrutaOnline}) => {
     const localVideo = useRef();
     const remoteVideo = useRef();
     const [localStream, setLocalStream] = useState()
@@ -779,13 +795,13 @@ const ChavrutaVideo = ({socket, chavrutaId, pcConfig, setCurrentScreen, activeCh
     }, []);
 
     useEffect( () => {
-        if (!activeChavruta) {
+        if (!chavrutaOnline) {
             if (pc) {
                 pc.close();
             }
             closeChavruta()
         }
-    }, [activeChavruta])
+    }, [chavrutaOnline])
 
 
 
