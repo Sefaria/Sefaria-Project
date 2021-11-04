@@ -1510,7 +1510,7 @@ _media: {},
       // Second, sort by how many anchorRefExpanded refs there are.  Intuition: Genesis 1:2 should come before Genesis 1:2-5, which in turn should come before Genesis 1
       var aNumAnchorRefs, bNumAnchorRefs;
       [aNumAnchorRefs, bNumAnchorRefs] = [a, b].map(page => page.anchorRefExpanded.length);
-      if (aNumAnchorRefs !== bNumAnchorRefs) { return (bNumAnchorRefs > aNumAnchorRefs) ? -1 : 1 };
+      if (aNumAnchorRefs !== bNumAnchorRefs) {  return (aNumAnchorRefs - bNumAnchorRefs); }
 
       // Genesis 2 should come before Genesis 1-3
       var aIsRange, bIsRange;

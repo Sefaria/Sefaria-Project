@@ -79,3 +79,15 @@ def test_update_blank_title_from_linker(create_good_web_page):
 	assert WebPage().add_or_update_from_linker(data) == "saved"
 	print(WebPage().load({"url": data["url"]}).contents())
 	assert WebPage().load({"url": data["url"]}).title == title_good_url
+
+
+
+def test_add_search_URL():
+	urls = ["https://opensiddur.org/search/", "https://opensiddur.org/search?q=prayer", "https://opensiddur.org/search"]
+	for url in urls:
+		linker_data = {'url': url,
+		 'title': '"On Prayer," by Abraham Joshua Heschel (1969) • the Open Siddur Project ✍ פְּרוֺיֶּקט הַסִּדּוּר הַפָּתוּחַ',
+		 'description': 'Rabbi Dr. Abraham Joshua Heschel\'s speech, "On Prayer," delivered at an inter-religious convocation held under the auspices of the U.S. Liturgical Conference in Milwaukee, Wisconsin, on August 28, 1969. His talk was printed in the journal Conservative Judaism v.25:1 Fall 1970, p.1-12.   . . .',
+		 'refs': ['Psalms 1–41', 'Psalms 42–72', 'Psalms 73–89', 'Psalms 90–106', 'Psalms 107–150', 'Psalms 130:1',
+				  'Psalms 63:2-4', 'Psalms 42:2-4']}
+		print(WebPage.add_or_update_from_linker(linker_data))

@@ -48,10 +48,8 @@ class WebPage(abst.AbstractMongoRecord):
         self.linkerHits = 0
 
     def _normalize_refs(self):
-        ref_has_contents = lambda x: len(text.Ref(x).text('he').text) > 0 or len(text.Ref(x).text('en').text) > 0
-        self.refs = [text.Ref(ref).normal() for ref in self.refs if text.Ref.is_ref(ref)]
-        self.refs = [r for r in self.refs if ref_has_contents(r)]
-        self.refs = list(set(self.refs))
+        self.refs = {text.Ref(ref).normal() for ref in self.refs if text.Ref.is_ref(ref) and not text.Ref(ref).is_empty()}
+        self.refs = list(self.refs)
 
     def _normalize(self):
         super(WebPage, self)._normalize()
@@ -124,7 +122,8 @@ class WebPage(abst.AbstractMongoRecord):
         for site in sites:
             bad_urls += site.get("bad_urls", [])
             for domain in site["domains"]:
-                bad_urls += [f"{domain}\\/search\\?", f"{domain}\\/search\\/$", f"{domain}\\/search$"]
+                if site["is_whitelisted"]:
+                    bad_urls += [re.escape(domain)+"/search?", re.escape(domain)+"/search[/]?$"]
         return "({})".format("|".join(bad_urls))
 
     @staticmethod
@@ -505,7 +504,7 @@ def find_sites_to_be_excluded():
                 all_sites[website["name"]][ref] += 1
     return all_sites
 
-def find_sites_to_be_excluded_by_flag(flag=100):
+def find_sites_to_be_excluded_absolute(flag=100):
     # this function looks for any website which has more webpages than 'flag' of any ref
     all_sites = find_sites_to_be_excluded()
     sites_to_exclude = {}
@@ -518,15 +517,16 @@ def find_sites_to_be_excluded_by_flag(flag=100):
                     sites_to_exclude[website] += f"{website} may need exclusions set due to Ref {common[0]} with {common[1]} pages.\n"
     return sites_to_exclude
 
-def find_sites_to_be_excluded_by_top_refs(num_refs=5):
-    # this function looks for every website's top 'num_refs' most common refs
+def find_sites_to_be_excluded_relative(flag=25, relative_percent=3):
+    # this function looks for any website which has more webpages than 'flag' of any ref AND the amount of pages of this ref is a significant percentage of site's total refs
     sites_to_exclude = {}
     all_sites = find_sites_to_be_excluded()
     for website in all_sites:
-        sites_to_exclude[website] = ""
-        if len(all_sites[website]) > 0:
-            most_common = all_sites[website].most_common(num_refs)
-            sites_to_exclude[website] = most_common
+        total = sum(all_sites[website].values())
+        top_10 = all_sites[website].most_common(10)
+        for c in top_10:
+            if c[1] > flag and 100.0*float(c[1])/total > relative_percent:
+                sites_to_exclude[website] = c
     return sites_to_exclude
 
 def check_daf_yomi_and_parashat_hashavua(sites):
