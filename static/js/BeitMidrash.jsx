@@ -6,7 +6,6 @@ import {
 import React, { useState, useEffect, useRef } from 'react';
 import Sefaria  from './sefaria/sefaria';
 import classNames from 'classnames';
-import { BroadcastChannel } from 'broadcast-channel';
 
 const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
     const [peopleInBeitMidrash, setPeopleInBeitMidrash] = useState(null);
@@ -20,7 +19,6 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
     const [chavrutaOnline, setChavrutaOnline] = useState(false);
     const [socketObj, setSocketObj] = useState(socket);
     const [partnerLeftNotification, setPartnerLeftNotification] = useState(false);
-    const chatChannel = new BroadcastChannel('chavruta-chats');
     const [blockedUsers, setBlockedUsers] = useState([])
     const [pcConfig, setPcConfig] = useState(null);
     const [usersWithUnreadMsgs, setUsersWithUnreadMsgs] = useState([])
@@ -177,14 +175,19 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
 
             if(!blockedUsers.includes(msgSender.uid)) {
 
-                processMessage(msgSender.uid, room);
                 const currentActiveChatRoomIds = activeChatRooms.map(r => {return r.roomId});
      
                 if (!currentActiveChatRoomIds.includes(room.roomId)) {
-                    setActiveChatRooms([room]);
                     socketObj.emit("join chat room", room);
                 };
-                // setCurrentChatRoom(room.roomId);
+                if (currentActiveChatRoomIds.length == 0) {
+                    setActiveChatRooms([room]);
+                    setCurrentChatRoom(room.roomId);
+                    setActiveChavruta(room.activeChatPartner);
+                }
+
+                processMessage(msgSender.uid, room);
+
             } else {
                 socketObj.emit("user is blocked", msgSender);
             }
@@ -192,19 +195,6 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
 
 
     }, [activeChatRooms, blockedUsers])
-
-    useEffect(()=>{
-        chatChannel.onmessage = (msg) => {
-            console.log('chat channel', msg)
-            const currentActiveChatRoomIds = activeChatRooms.map(r => {return r.roomId});
-      
-            if (!currentActiveChatRoomIds.includes(msg.room.roomId)) {
-                setActiveChatRooms([msg.room]);
-                socketObj.emit("join chat room", msg.room);
-            };
-            processMessage(msg.msgSender.uid, msg.room)
-        }
-    }, [])
 
     const pairsLearning = (people) => {
         //create an array of roomIds
@@ -502,30 +492,14 @@ const ChatBox = ({room,
         
         const roomId = room.roomId;
       
-        const chatChannel = new BroadcastChannel('chavruta-chats');
         const msgSender = {uid: Sefaria._uid, name: Sefaria.full_name, pic: Sefaria.profile_pic_url, organization: profile.organization}
-        
-        chatChannel.postMessage({msgSender, room, chatMessage, now})
 
         Sefaria.chatMessageAPI(roomId, Sefaria._uid, Date.now(), chatMessage).then( (res)=> {
             Sefaria.getChatMessagesAPI(roomId).then(chats => {
                 setStoredChatMessages(chats)
             })
         } )
-        
-        // We thought we needed this to add to chatdatastore on submit, but the broadcast api appears to add it anyway
-        // even though we think it's not supposed to!
-        // So for the moment we will comment this out, but 
-        // TODO: ensure this doesn't need to be added back in
-        //
-        // setChatDataStore({...chatDataStoreRef.current, [roomId]: {...chatDataStoreRef.current[roomId], 
-        //        messages: [...chatDataStoreRef.current[roomId].messages, {
-        //         senderId: Sefaria._uid,
-        //         message: chatMessage,
-        //         timestamp: now
-        //     }]}
-        //    });
-        
+
         e.target.reset();
         setChatMessage("")
     }
