@@ -811,7 +811,7 @@ const ChavrutaVideo = ({socket, chavrutaId, pcConfig, setCurrentScreen, activeCh
 
             </div>
             <div id="currentlyReadingContainer">
-                {activeChavruta.currentlyReading ? <div className="currentlyReading"><img src="/static/icons/book.svg" class="navSidebarIcon" alt="book icon" /><a href={activeChavruta.currentlyReading.url}>{activeChavruta.currentlyReading.title}</a></div> : null }
+                {activeChavruta.currentlyReading ? <div className="currentlyReading">{activeChavruta.name} is learning <a href={activeChavruta.currentlyReading.url}>{activeChavruta.currentlyReading.title}</a></div> : null }
             </div>
 
             <div className="chavrutaFooter">
