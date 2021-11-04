@@ -600,13 +600,16 @@ const ChatBox = ({room,
 
 const Message = ({user, message}) => {
 
-    const parsedTimeStamp = new Date(message.timestamp).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit' })
+    const messageDate = new Date(message.timestamp);
+    const parsedDateStamp = messageDate.toLocaleDateString();
+    const parsedTimeStamp = messageDate.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit' })
+    const displayTimeStamp = parsedDateStamp === new Date().toLocaleDateString() ? parsedTimeStamp : parsedDateStamp + ' ' + parsedTimeStamp;
 
     return (
         <div className="chatMessage">
                 <ProfilePic len={35} url={user.pic} name={user.name} />
             <div className = "chatText">
-                <div className="chatNameAndTime"><span>{user.name}</span>{"  "}<span>{parsedTimeStamp}</span></div>
+                <div className="chatNameAndTime"><span>{user.name}</span>{"  "}<span>{displayTimeStamp}</span></div>
                 <div dir={Sefaria.hebrew.isHebrew(message.message) ? "rtl" : "ltr"}>{message.message}</div> 
             </div>
         </div>
