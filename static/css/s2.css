@@ -10977,9 +10977,13 @@ span.ref-link-color-3 {color: blue}
   font: "Roboto";
   font-weight: 400;
   display: flex;
-  margin: 10px;
-  margin-left: 34px;
+  padding: 10px;
+  padding-inline-start: 34px;
   cursor: pointer;
+}
+
+.beitMidrashUser:hover {
+  background-color: #555;
 }
 
 .beitMidrashUser.unreadMessages::after {
