@@ -115,13 +115,13 @@ io.on("connection", (socket) => {
     socket.to(socketId).emit('connection request', user);
   });
 
-  socket.on("connection rejected", (name) =>{
-    const socketId = Object.keys(peopleInBeitMidrash).find(key => peopleInBeitMidrash[key]["name"] === name);
+  socket.on("connection rejected", (uid) =>{
+    const socketId = Object.keys(peopleInBeitMidrash).find(key => peopleInBeitMidrash[key]["uid"] === uid);
     socket.to(socketId).emit("send connection rejection")
   });
 
-  socket.on("send room ID to server", (name, roomId)=> {
-    const socketId = Object.keys(peopleInBeitMidrash).find(key => peopleInBeitMidrash[key]["name"] === name);
+  socket.on("send room ID to server", (uid, roomId)=> {
+    const socketId = Object.keys(peopleInBeitMidrash).find(key => peopleInBeitMidrash[key]["uid"] === uid);
     socket.to(socketId).emit("send room ID to client", roomId)
   });
 

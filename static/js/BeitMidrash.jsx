@@ -371,19 +371,19 @@ const BeitMidrashHome = ({beitMidrashId,
 }
 
 const ChavrutaCall = ({outgoingCall, activeChavruta, setCurrentScreen, socket}) => {
-    const handleCallAccepted = (name) => {
+    const handleCallAccepted = (uid) => {
         const room = Math.random().toString(36).substring(7);
-        socket.emit("send room ID to server", name, room);
+        socket.emit("send room ID to server", uid, room);
         setCurrentScreen("chavrutaVideo")
     }
 
-    const handleCallDeclined = (name) => {
-        socket.emit("connection rejected", name);
+    const handleCallDeclined = (uid) => {
+        socket.emit("connection rejected", uid);
         setCurrentScreen("home");
     }
 
-    const endCall = (name) => {
-        socket.emit("connection rejected", name);
+    const endCall = (uid) => {
+        socket.emit("connection rejected", uid);
         setCurrentScreen("home");
     }
 
@@ -404,7 +404,7 @@ const ChavrutaCall = ({outgoingCall, activeChavruta, setCurrentScreen, socket}) 
             <div>
                 <ProfilePic len={300} url={activeChavruta.pic} name={activeChavruta.name} />
                 <div id="endCallButtonHolder">
-                    <span id="endCallIcon"><span id="endCall" className="endCallButton" onClick={()=>endCall(activeChavruta.name)}></span></span>
+                    <span id="endCallIcon"><span id="endCall" className="endCallButton" onClick={()=>endCall(activeChavruta.uid)}></span></span>
                 </div>
                 <div className = "callText">Calling {activeChavruta.name}...</div>
             </div>
@@ -416,8 +416,8 @@ const ChavrutaCall = ({outgoingCall, activeChavruta, setCurrentScreen, socket}) 
                 <ProfilePic len={300} url={activeChavruta.pic} name={activeChavruta.name} />
                 <div className = "callText">Receiving call from {activeChavruta.name}...</div>
                 <div id="incomingCallButtonHolder">
-                    <button id="acceptButton" onClick={()=> handleCallAccepted(activeChavruta.name)}>Accept</button>
-                    <button id="declineButton" onClick={()=> handleCallDeclined(activeChavruta.name)}>Decline</button>
+                    <button id="acceptButton" onClick={()=> handleCallAccepted(activeChavruta.uid)}>Accept</button>
+                    <button id="declineButton" onClick={()=> handleCallDeclined(activeChavruta.uid)}>Decline</button>
                 </div>
             </div>
             <audio autoPlay loop src="/static/files/chavruta-ringtone.wav" />
