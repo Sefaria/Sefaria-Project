@@ -50,7 +50,7 @@ const Modules = ({type, props}) => {
   if (!type) { return null; }
   const ModuleType = moduleTypes[type];
   return <ModuleType {...props} />
-}
+};
 
 
 const Module = ({children, blue, wide}) => {
