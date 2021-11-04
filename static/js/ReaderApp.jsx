@@ -1567,6 +1567,7 @@ class ReaderApp extends Component {
       $.cookie("translation_language_preference", lang, {path: "/"});
       $.cookie("translation_language_preference_suggested", JSON.stringify(1), {path: "/"});
     }
+    Sefaria.track.event("Reader", "Set Translation Language Preference", lang);
     Sefaria.editProfileAPI({settings: {translation_language_preference: lang, translation_language_preference_suggested: suggested}});
     this.setState({translationLanguagePreference: lang});
   }
