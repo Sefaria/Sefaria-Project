@@ -503,7 +503,11 @@ const ChatBox = ({room,
         
         chatChannel.postMessage({msgSender, room, chatMessage, now})
 
-        Sefaria.chatMessageAPI(roomId, Sefaria._uid, Date.now(), chatMessage).then( (res)=> {console.log(res)} )
+        Sefaria.chatMessageAPI(roomId, Sefaria._uid, Date.now(), chatMessage).then( (res)=> {
+            Sefaria.getChatMessagesAPI(roomId).then(chats => {
+                setStoredChatMessages(chats)
+            })
+        } )
         
         // We thought we needed this to add to chatdatastore on submit, but the broadcast api appears to add it anyway
         // even though we think it's not supposed to!
