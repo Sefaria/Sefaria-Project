@@ -403,7 +403,7 @@ const ChavrutaCall = ({outgoingCall, activeChavruta, setCurrentScreen, socket}) 
                 </div>
                 <div className = "callText">Calling {activeChavruta.name}...</div>
             </div>
-            <audio autoPlay loop src="/static/files/chavruta-ringtone.wav" />
+            <audio autoPlay loop src="/static/files/chavruta_ringtone.mp3" />
             <div className="chavrutaFooter">Questions? Email <a href="mailto:hello@sefaria.org">hello@sefaria.org</a></div>
         </div> : 
         <div className="callContainer">
