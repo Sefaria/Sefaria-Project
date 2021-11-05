@@ -4919,11 +4919,17 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .segment img {
   max-width: 100%;
 }
+.segment i[data-overlay="Vilna Pages"] {
+  display: inline-block;
+}
 .segment i[data-overlay="Vilna Pages"]:after {
     color: #FF4444;
 	content: attr(data-value);
     font-size: .4em;
     vertical-align: super;
+}
+.segment i[data-overlay="Venice Columns"] {
+  display: inline-block;
 }
 .segment i[data-overlay="Venice Columns"]:after {
     color: #4444ff;

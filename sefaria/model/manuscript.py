@@ -5,6 +5,8 @@ from sefaria.system.exceptions import InputError, DuplicateRecordError, Manuscri
 from sefaria.system.database import db
 from sefaria.model.abstract import AbstractMongoRecord, AbstractMongoSet
 from sefaria.model.text import Ref
+import structlog
+logger = structlog.get_logger(__name__)
 
 
 
@@ -210,6 +212,27 @@ class ManuscriptPageSet(AbstractMongoSet):
 
                 results.append(contents)
         return results
+
+
+def process_index_title_change_in_manuscript_links(indx, **kwargs):
+    from sefaria.system.exceptions import InputError
+
+    print("Cascading ManuscriptPage from {} to {}".format(kwargs['old'], kwargs['new']))
+
+    # ensure that the regex library we're using here is the same regex library being used in `Ref.regex`
+    from .text import re as reg_reg
+    patterns = [pattern.replace(reg_reg.escape(indx.title), reg_reg.escape(kwargs["old"]))
+                for pattern in Ref(indx.title).regex(as_list=True)]
+    queries = [{'expanded_refs': {'$regex': pattern}} for pattern in patterns]
+    objs = ManuscriptPageSet({"$or": queries})
+    for o in objs:
+        o.contained_refs = [r.replace(kwargs["old"], kwargs["new"], 1) if reg_reg.search('|'.join(patterns), r) else r for r in o.contained_refs]
+        o.expanded_refs = [r.replace(kwargs["old"], kwargs["new"], 1) if reg_reg.search('|'.join(patterns), r) else r
+                            for r in o.expanded_refs]
+        try:
+            o.save()
+        except InputError:
+            logger.warning("Failed to convert ref data from: {} to {}".format(kwargs['old'], kwargs['new']))
 
 
 def process_slug_change_in_manuscript(man, **kwargs):
