@@ -43,7 +43,7 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
         setBlockedUsers(uids => [...uids, uid])
         console.log("user blocked!")
         console.log("blockedUsers", blockedUsers)
-
+        Sefaria.track.event("BeitMidrash", "Blocked User", "");
         setPeopleInBeitMidrash(filterDedupeAndSortPeople(peopleInBeitMidrash));
 
         setCurrentChatRoom("")
@@ -211,6 +211,7 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
     }
 
     const startChat = (activeChatPartner) => {
+        Sefaria.track.event("BeitMidrash", "Opened Chat With User", "Had Notifications", usersWithUnreadMsgs.includes(activeChatPartner.uid));
         setUsersWithUnreadMsgs(usersWithUnreadMsgs.filter(users => users !== activeChatPartner.uid));
         setActiveChavruta(activeChatPartner);
         let roomId = activeChatPartner.uid < Sefaria._uid ? `${activeChatPartner.uid}-${Sefaria._uid}`: `${Sefaria._uid}-${activeChatPartner.uid}`
@@ -232,6 +233,7 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
 
     const chavrutaCallInitiated = (uid) => {
         setChavrutaOnline(true);
+        Sefaria.track.event("BeitMidrash", "Initiated Chavruta Call", "");
         setCurrentScreen("callingChavruta")
         setOutgoingCall(true)
     }
@@ -362,17 +364,20 @@ const BeitMidrashHome = ({beitMidrashId,
 
 const ChavrutaCall = ({outgoingCall, activeChavruta, setCurrentScreen, socket}) => {
     const handleCallAccepted = (uid) => {
+        Sefaria.track.event("BeitMidrash", "Accepted Call", "");
         const room = Math.random().toString(36).substring(7);
         socket.emit("send room ID to server", uid, room);
         setCurrentScreen("chavrutaVideo")
     }
 
     const handleCallDeclined = (uid) => {
+        Sefaria.track.event("BeitMidrash", "Declined Call", "");
         socket.emit("connection rejected", uid);
         setCurrentScreen("home");
     }
 
     const endCall = (uid) => {
+        Sefaria.track.event("BeitMidrash", "Accepted Call", "Call Length");
         socket.emit("connection rejected", uid);
         setCurrentScreen("home");
     }
@@ -437,7 +442,6 @@ const ChatBox = ({room,
     const [storedChatMessages, setStoredChatMessages] = useState(null)
     const [showChats, setShowChats] = useState(false)
 
-
     useEffect(()=>{
         socket.on("leaving chat room", ()=>{
             setPartnerLeftNotification(true);
@@ -481,6 +485,16 @@ const ChatBox = ({room,
         }
     }, [storedChatMessages, partnerLeftNotification, showChats])
 
+    const handleChatAnalytics = () => {
+        const totalChats = storedChatMessages ? storedChatMessages.length : 0;
+        Sefaria.track.event("BeitMidrash", "Sent Chat", "Prior Chats in Chat History", totalChats);
+        if (totalChats === 0) {
+            Sefaria.track.event("BeitMidrash", "Sent Initial Chat")
+        } else if (storedChatMessages.filter(chat => chat.sender_id === Sefaria._uid).length === 0) {
+            Sefaria.track.event("BeitMidrash", "Sent First Response Chat in History", "Prior Chats in Chat History",totalChats)
+        }
+    }
+
     const handleChange = (e) =>{
         setChatMessage(e.target.value);
     }
@@ -493,6 +507,7 @@ const ChatBox = ({room,
         const roomId = room.roomId;
       
         const msgSender = {uid: Sefaria._uid, name: Sefaria.full_name, pic: Sefaria.profile_pic_url, organization: profile.organization}
+        handleChatAnalytics();
 
         Sefaria.chatMessageAPI(roomId, Sefaria._uid, Date.now(), chatMessage).then( (res)=> {
             Sefaria.getChatMessagesAPI(roomId).then(chats => {
@@ -596,6 +611,7 @@ const ChavrutaVideo = ({socket, chavrutaId, pcConfig, setCurrentScreen, activeCh
     const [localStream, setLocalStream] = useState()
     const [audioEnabled, setAudioEnabled] = useState(true)
     let pc;
+    let chavrutaTime = 0;
 
     const toggleMute = () => {
       const isAudioEnabled = localStream.getAudioTracks()[0].enabled;
@@ -766,12 +782,19 @@ const ChavrutaVideo = ({socket, chavrutaId, pcConfig, setCurrentScreen, activeCh
 
         setVideoTracks();
 
+        let chavrutaTimeId = setInterval(function () {
+            chavrutaTime = chavrutaTime + 1;
+            console.log(chavrutaTime);
+        }, 60000);
+
         return () => {
           if (pc) {
             pc.close();
           }
 
             stopVideoTracks()
+            Sefaria.track.event("BeitMidrash", "Chavruta Ended", "Minutes Learned", chavrutaTime);
+            clearInterval(chavrutaTimeId);
             socket.emit('chavruta closed', chavrutaId)
         };
 
