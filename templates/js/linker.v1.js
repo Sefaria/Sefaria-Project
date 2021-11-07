@@ -232,6 +232,7 @@
 
         if (matchedTitles.length == 0) {
             console.log("No book titles found to link to Sefaria.");
+            ns._trackPage();
             return;
         }
 
@@ -363,8 +364,15 @@
     };
 
     ns._trackPage = function() {
-        if (ns.trackedMatches.length == 0) { return; }
-
+        if (ns.trackedMatches.length === 0 && ns.matches.length > 0) {
+            // we want to track page in two cases:
+            // 1) if there are trackedMatches found
+            // or 2) if there are no trackMatches found AND no matches found, as we want to send a message
+            // to api/linker_track so that the backend will delete the webpage.
+            // however, this if statement is a third case:
+            // when there are no trackMatches found but there are matches found, we don't want to track page
+            return;
+        }
         var robots = document.head.querySelector("meta[name~=robots]");
         if (robots && robots.content.includes("noindex")) { return; }
 
