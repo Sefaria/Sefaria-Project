@@ -90,4 +90,4 @@ def test_add_search_URL():
 		 'description': 'Rabbi Dr. Abraham Joshua Heschel\'s speech, "On Prayer," delivered at an inter-religious convocation held under the auspices of the U.S. Liturgical Conference in Milwaukee, Wisconsin, on August 28, 1969. His talk was printed in the journal Conservative Judaism v.25:1 Fall 1970, p.1-12.   . . .',
 		 'refs': ['Psalms 1–41', 'Psalms 42–72', 'Psalms 73–89', 'Psalms 90–106', 'Psalms 107–150', 'Psalms 130:1',
 				  'Psalms 63:2-4', 'Psalms 42:2-4']}
-		print(WebPage.add_or_update_from_linker(linker_data))
+		assert WebPage.add_or_update_from_linker(linker_data) == "excluded"
