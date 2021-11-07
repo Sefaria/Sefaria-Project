@@ -301,7 +301,7 @@ def linker_data_api(request, titles):
             res["error"] = title_regex.pop("error")
         res["regexes"] = title_regex
         url = request.GET.get("url", "")
-        domain = WebPage.domain_for_url(url)
+        domain = WebPage.domain_for_url(WebPage.normalize_url(url))
 
         website_match = WebSiteSet({"domains": domain})  # we know there can only be 0 or 1 matches found because of a constraint
                                                          # enforced in Sefaria-Data/sources/WebSites/populate_web_sites.py
