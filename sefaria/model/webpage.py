@@ -15,7 +15,7 @@ from collections import Counter
 from sefaria.utils.calendars import daf_yomi, parashat_hashavua_and_haftara
 from datetime import datetime, timedelta
 from sefaria.system.exceptions import InputError
-
+from tqdm import tqdm
 class WebPage(abst.AbstractMongoRecord):
     collection = 'webpages'
 
@@ -316,9 +316,7 @@ def dedupe_webpages(test=True):
     norm_count = 0
     dedupe_count = 0
     webpages = WebPageSet()
-    for i, webpage in enumerate(webpages):
-        if i % 100000 == 0:
-            print(i)
+    for i, webpage in tqdm(enumerate(webpages)):
         norm = WebPage.normalize_url(webpage.url)
         if webpage.url != norm:
             normpage = WebPage().load(norm)
@@ -464,9 +462,7 @@ def find_webpages_without_websites(test=True, hit_threshold=50, last_linker_acti
     # if we then get 5 new pages in the next hour, they won't correspond to an actual site. the way to deal with this
     # is to make sure the unactive_threshold, which determines which pages we delete, is significantly older than the active_threshold. let's pick 10 days
 
-    for i, webpage in enumerate(webpages):
-        if i % 100000 == 0:
-            print(i)
+    for i, webpage in tqdm(enumerate(webpages)):
         website = webpage.get_website(dict_only=True)
         if website == {}:
             if webpage.lastUpdated > active_threshold:
@@ -493,9 +489,7 @@ def find_webpages_without_websites(test=True, hit_threshold=50, last_linker_acti
 def find_sites_to_be_excluded():
     # returns all sites dictionary and each entry has a Counter of refs
     all_sites = {}
-    for i, webpage in enumerate(WebPageSet()):
-        if i % 100000 == 0:
-            print(i)
+    for i, webpage in tqdm(enumerate(WebPageSet())):
         website = webpage.get_website(dict_only=True)
         if website != {}:
             if website["name"] not in all_sites:
@@ -519,14 +513,14 @@ def find_sites_to_be_excluded_absolute(flag=100):
 
 def find_sites_to_be_excluded_relative(flag=25, relative_percent=3):
     # this function looks for any website which has more webpages than 'flag' of any ref AND the amount of pages of this ref is a significant percentage of site's total refs
-    sites_to_exclude = {}
+    sites_to_exclude = defaultdict(list)
     all_sites = find_sites_to_be_excluded()
     for website in all_sites:
         total = sum(all_sites[website].values())
         top_10 = all_sites[website].most_common(10)
         for c in top_10:
             if c[1] > flag and 100.0*float(c[1])/total > relative_percent:
-                sites_to_exclude[website] = c
+                sites_to_exclude[website].append(c)
     return sites_to_exclude
 
 def check_daf_yomi_and_parashat_hashavua(sites):
