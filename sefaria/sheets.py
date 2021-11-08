@@ -470,8 +470,10 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 
 		# make sure sheets never get saved with an "error: field to the db...
 		# Not entirely sure why the error "Sheet updated." sneaks into the db sometimes.
-		del sheet["error"]
-		del existing["error"]
+		if "error" in sheet:
+			del sheet["error"]
+		if "error" in existing:
+			del existing["error"]
 
 		existing.update(sheet)
 		sheet = existing
