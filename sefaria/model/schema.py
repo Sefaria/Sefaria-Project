@@ -2009,6 +2009,7 @@ class AddressType(object):
         """
         sections = []
         toSections = []
+        addr_classes = []
         for SuperClass in cls.__mro__:  # mro gives all super classes
             if SuperClass == AddressType: break
             addr = SuperClass(0)  # somewhat hacky. trying to get access to super class implementation of `regex` but actually only AddressTalmud implements this function. Other classes just overwrite class fields which modify regex's behavior. Simplest to just instantiate the appropriate address and use it.
@@ -2029,10 +2030,11 @@ class AddressType(object):
                     temp_toSections = [sec+1 for sec in temp_toSections]
                 sections += temp_sections
                 toSections += temp_toSections
+                addr_classes += [SuperClass]*len(temp_sections)
         # make sure section, toSection pairs are unique
         if len(sections) > 0:
             sections, toSections = zip(*{(sec, toSec) for sec, toSec in zip(sections, toSections)})
-        return sections, toSections
+        return sections, toSections, addr_classes
 
     @classmethod
     def toStr(cls, lang, i, **kwargs):

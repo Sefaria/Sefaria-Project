@@ -174,15 +174,17 @@ class ResolvedRawRef:
             return ResolvedRawRef(self.raw_ref, refined_ref_parts, max_node, text.Ref(max_node.ref))
 
     def _get_refined_refs_for_numbered_part(self, raw_ref_part: 'RawRefPart', refined_ref_parts: List['RawRefPart'], node, lang) -> List['ResolvedRawRef']:
-        possible_sections, possible_to_sections = node.address_class(0).get_all_possible_sections_from_string(lang, raw_ref_part.text)
+        possible_sections, possible_to_sections, addr_classes = node.address_class(0).get_all_possible_sections_from_string(lang, raw_ref_part.text)
         refined_refs = []
-        for sec, toSec in zip(possible_sections, possible_to_sections):
+        addr_classes_used = []
+        for sec, toSec, addr_class in zip(possible_sections, possible_to_sections, addr_classes):
             try:
                 refined_ref = self.ref.subref(sec)
                 if toSec != sec:
                     to_ref = self.ref.subref(toSec)
                     refined_ref = refined_ref.to(to_ref)
                 refined_refs += [refined_ref]
+                addr_classes_used += [addr_class]
             except InputError:
                 continue
             except AssertionError as e:
