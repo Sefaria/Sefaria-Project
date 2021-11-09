@@ -195,7 +195,7 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
         })
 
 
-    }, [activeChatRooms, blockedUsers])
+    }, [activeChatRooms, blockedUsers, currentChatRoom])
 
     const pairsLearning = (people) => {
         //create an array of roomIds
@@ -211,9 +211,14 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
         return Object.values(pairs);
     }
 
+    const markRead = (uid) => {
+        setUsersWithUnreadMsgs(usersWithUnreadMsgs.filter(users => users !== uid));
+    }
+
     const startChat = (activeChatPartner) => {
         Sefaria.track.event("BeitMidrash", "Opened Chat With User", "Had Notifications", usersWithUnreadMsgs.includes(activeChatPartner.uid));
-        setUsersWithUnreadMsgs(usersWithUnreadMsgs.filter(users => users !== activeChatPartner.uid));
+        // setUsersWithUnreadMsgs(usersWithUnreadMsgs.filter(users => users !== activeChatPartner.uid));
+        markRead(activeChatPartner.uid)
         setActiveChavruta(activeChatPartner);
         let roomId = activeChatPartner.uid < Sefaria._uid ? `${activeChatPartner.uid}-${Sefaria._uid}`: `${Sefaria._uid}-${activeChatPartner.uid}`
 
@@ -260,6 +265,7 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
                 chavrutaCallInitiated={chavrutaCallInitiated}
                 chavrutaRequestReceived={chavrutaRequestReceived}
                 activeChavruta={activeChavruta}
+                markRead={markRead}
                 socket={socketObj}
                 shouldUpdateChats={shouldUpdateChats}
                 setShouldUpdateChats={setShouldUpdateChats}
@@ -307,7 +313,8 @@ const BeitMidrashHome = ({beitMidrashId,
                         onUnblockUser,
                         usersWithUnreadMsgs,
                         shouldUpdateChats,
-                        setShouldUpdateChats
+                        setShouldUpdateChats,
+                        markRead
                         }) => {
 
     return (<div className="beitMidrashHomeContainer">
@@ -352,6 +359,7 @@ const BeitMidrashHome = ({beitMidrashId,
                         socket={socket}
                         shouldUpdateChats={shouldUpdateChats}
                         setShouldUpdateChats={setShouldUpdateChats}
+                        markRead={markRead}
                         profile={profile}
                         partnerLeftNotification={partnerLeftNotification}
                         setPartnerLeftNotification={setPartnerLeftNotification}
@@ -432,6 +440,7 @@ const ChatBox = ({room,
                 setPartnerLeftNotification,
                 shouldUpdateChats,
                 setShouldUpdateChats,
+                markRead,
                 onBlockUser,
                 onUnblockUser
                  }) => {
@@ -504,7 +513,7 @@ const ChatBox = ({room,
         e.preventDefault();
         const now = Date.now()
         socket.emit("send chat message", room);
-        
+        markRead(room.activeChatPartner.uid)
         const roomId = room.roomId;
       
         const msgSender = {uid: Sefaria._uid, name: Sefaria.full_name, pic: Sefaria.profile_pic_url, organization: profile.organization}
