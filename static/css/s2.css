@@ -2447,10 +2447,18 @@ a.navBlockTitle:hover {
 }
 .bookPage .editTextInfo .static input {
   cursor: auto;
+  color: #000000;
+}
+.bookPage .editTextInfo .static label {
+  margin-bottom: 15px;
 }
 .bookPage .editTextInfo #newIndex {
   margin: 100px auto;
-  font-size: 23px;
+  font-size: 16px;
+  font-weight: normal;
+  color: #000;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
 
 .bookPage .editTextInfo #newIndex .publishBox {
@@ -2459,123 +2467,56 @@ a.navBlockTitle:hover {
   border-radius: 6px;
   padding: 0 0 0 0;
   margin: 0 0 0 0;
-  font-size: 16px;
-  color: #666;
+  width: 660px;
+  max-width: 660px;
+}
+.bookPage .editTextInfo #newIndex .publishBox .react-tags__selected-tag-name {
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-size: 18px;
+  font-weight: normal;
+  color: #000;
+}
+.bookPage .editTextInfo #newIndex .publishBox input {
+  box-shadow: none;
 }
 
-.bookPage .editTextInfo #newIndexMsg {
-  display: none;
-  font-size: 29px;
-  margin-bottom: 27px;
-  text-align: center;
-  line-height: 1.2
-}
-
-
-.bookPage .editTextInfo #newIndexMsg .sub {
-	font-size: 21px;
-	color: #555;
-}
-
-.bookPage .editTextInfo #newIndex .fieldSet {
-	margin: 25px 300px 0px 300px;
-}
-
-
-.bookPage .editTextInfo #newIndex .fieldLabel {
-	font-size: 20px;
+.bookPage .editTextInfo #newIndex .publishBox .react-tags__search {
+  padding: 0 0 0 0;
 }
 
 .bookPage .editTextInfo #newIndex .optional {
 	font-size: 13px;
     color: var(--light-grey);
+    font: var(--english-sans-serif-font-family);
 }
 
 .bookPage .editTextInfo #newIndex input {
-	font-size: 15px;
-	padding: 2px;
-	width: 650px;
-	margin-left: 5px;
-}
-
-
-.bookPage .editTextInfo #textTitleVariants, #textHeTitleVariants {
-	display: inline-block;
-	width: 500px;
-	margin: 0 0 0 5px;
-	font-size: 14px;
-}
-
-.bookPage .editTextInfo #textTitleVariants input,
-#textHeTitleVariants input {
-	width: auto;
-}
-
-.bookPage .editTextInfo #textHeTitleVariants {
-	direction: rtl;
-}
-
-.bookPage .editTextInfo #newIndex #textTitle {
-	font-size: 20px;
-	padding: 4px;
+    padding: 4px 10px 4px 10px;
+    width: 640px;
+	height: 30px;
+	margin: 0 0 10px 0;
 }
 
 .bookPage .editTextInfo #newIndex #heTitle {
-	font-size: 20px;
-	padding: 4px;
 	direction: rtl;
+}
+.bookPage .editTextInfo .static label {
+  text-align: left;
 }
 
 .bookPage .editTextInfo #newIndex select {
-	width: 650px;
-}
-
-.bookPage .editTextInfo #newIndex #otherCategory {
-	width: 240px;
-	display: none;
-}
-
-.bookPage .editTextInfo #newIndex #sectionTypesBox, .bookPage .editTextInfo #newIndex #sectionNamesBox, #newIndex #shorthandsBox {
-	display: inline-block;
-	width: 515px;
-	line-height: 33px;
+	width: 660px;
+    border-radius: 7px;
+    box-shadow: 0px 1px 3px rgba(0,0,0,0.2);
+    border: none;
+    margin: 0 0 10px 0;
+    padding: 4px 10px 4px 10px;
 }
 
 .bookPage .editTextInfo #newIndex .sectionType input{
 	width: 100px;
-	margin: 0px 5px;
+	margin: 0 5px;
 	font-size: 16px;
-}
-
-.bookPage .editTextInfo #newIndex .sectionName input {
-	width: 280px;
-}
-
-.bookPage .editTextInfo #newIndex .sectionName .name {
-	font-size: 15px;
-}
-
-.bookPage .editTextInfo #newIndex #addSection, #newIndex #addShorthand {
-	color: #777;
-	cursor: pointer;
-	font-size: 15px;
-	margin-left: 5px;
-	display: inline-block;
-}
-
-
-.bookPage .editTextInfo #sectionTypesBox.fixedDepth #addSection,
-.bookPage .editTextInfo #sectionTypesBox.fixedDepth .remove {
-	display: none;
-}
-
-.bookPage .editTextInfo #newIndex .shorthand input {
-	width: 212px;
-}
-
-.bookPage .editTextInfo #newIndex #addShorthand {
-	text-align: right;
-	display: block;
 }
 
 .bookPage .editTextInfo #newIndex .remove {
@@ -2602,46 +2543,6 @@ a.navBlockTitle:hover {
   margin-top: 50px;
 }
 
-
-.bookPage .editTextInfo #newIndex .help {
-	color: white;
-	position: relative;
-	background: #A6A4DD;
-	display: inline-block;
-	height: 18px;
-	width: 18px;
-	line-height: 18px;
-	border-radius: 9px;
-	text-align: center;
-	font-size: 14px;
-	font-family: sans-serif;
-	font-weight: bold;
-	cursor: pointer;
-	vertical-align: 15%;
-	margin-right: 1px;
-}
-
-.bookPage .editTextInfo #newIndex .help:hover .helpText {
-	display: block;
-}
-
-.bookPage .editTextInfo #newIndex .helpText {
-	display: none;
-	top: 24px;
-	left: -450px;
-    position: absolute;
-	background: #eee;
-	color: black;
-	font-weight: normal;
-	padding: 13px 24px;
-	line-height: 23px;
-	border-radius: 10px;
-	width: 670px;
-	font-size: 17px;
-	z-index: 5;
-	text-align: left;
-	box-shadow: 1px 1px 5px #555;
-}
 .readerPanel.english #newIndex .helpText {
   left: 0px;
 }
@@ -7268,10 +7169,7 @@ a .button:hover {
   font-size: 16px;
   color: #666;
 }
-.editTextInfo .publishBox {
-  width: 650px;
-  max-width: 650px;
-}
+
 .publishBox .smallText .int-en, .publishBox .smallText .int-he.enInHe {
   color: #666;
 }

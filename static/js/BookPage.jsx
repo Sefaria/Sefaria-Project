@@ -995,7 +995,7 @@ const SectionTypesBox = function({sections, canEdit, updateParent}) {
     updateParent(newSections);
   }
 
-  return <div id="sectionTypesBox" ref={box}>
+  return <div id="sBox" ref={box}>
             {sections.map(function(section, i) {
               if (i === 0) {
                 return <input onBlur={updateSelfAndParent} className={'sectionType'} defaultValue={section}/>;
@@ -1089,7 +1089,7 @@ const TitleVariants = function({titles, update}) {
   }
 
   return <div className="section">
-           <div className="publishBox sans-serif">
+           <div className="publishBox">
                   <ReactTags
                       allowNew={true}
                       tags={titles}
@@ -1129,8 +1129,7 @@ const EditTextInfo = function({initTitle, close}) {
           {savingStatus ? <div class="collectionsWidget">Saving text information...<br/><br/>(processing title changes may take some time)</div> : null}
           <div id="newIndex">
             <div className="headerWithButtons">
-              <div className="start"></div>
-              <h1>
+              <h1 className="pageTitle">
                 <span className="int-en">Index Editor</span>
                 <span className="int-he">עריכת מאפייני אינדקס</span>
               </h1>
@@ -1145,46 +1144,32 @@ const EditTextInfo = function({initTitle, close}) {
               </div>
             </div>
             <div className="section">
-              <div className="fieldLabel">
-                Text Title
-              </div>
+                <label><InterfaceText>Text Title</InterfaceText></label>
               <input id="textTitle" onBlur={(e) => setEnTitle(e.target.value)} defaultValue={enTitle}/>
             </div>
 
             <div className="section">
-              <div className="fieldLabel">
-                Hebrew Title
-              </div>
+              <label><InterfaceText>Hebrew Title</InterfaceText></label>
               <input id="heTitle" onBlur={(e) => setHeTitle(e.target.value)} defaultValue={heTitle}/>
             </div>
 
             <div className="section">
-              <div className="fieldLabel">
-                Category
-              </div>
+              <label><InterfaceText>Category</InterfaceText></label>
               <CategoryChooser update={setCategories} categories={categories}/>
             </div>
             {index.current.hasOwnProperty("sectionNames") ?
             <div className="section">
-              <div className="fieldLabel">
-                Text Structure
-              </div>
+              <div><label><InterfaceText>Text Structure</InterfaceText></label></div>
               <SectionTypesBox updateParent={setSections} sections={sections} canEdit={index.current === {}}/>
             </div> : null}
 
             <div className="section">
-                <div className="fieldLabel">
-                  Alternate English Titles
-                  <div className="optional">Optional</div>
-                </div>
+              <label><InterfaceText>Alternate English Titles</InterfaceText><div className="optional">Optional</div></label>
             </div>
             <TitleVariants update={setTitleVariants} titles={titleVariants}/>
 
             <div className="section">
-              <div className="fieldLabel">
-                  Alternate Hebrew Titles
-                  <div className="optional">Optional</div>
-              </div>
+              <label><InterfaceText>Alternate Hebrew Titles</InterfaceText><div className="optional">Optional</div></label>
             </div>
             <TitleVariants update={setHeTitleVariants} titles={heTitleVariants}/>
           </div>
