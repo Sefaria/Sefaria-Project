@@ -488,7 +488,8 @@ class ReaderApp extends Component {
               hist.mode  = "topic";
             } else if (state.navigationTopicCategory) {
               hist.title = state.navigationTopicTitle[shortLang] + " | " + Sefaria._("Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.");
-              hist.url   =  "topics/category/" + state.navigationTopicCategory;;
+              hist.url   =  "topics/category/" + state.navigationTopicCategory;
+              hist.mode  = "topicCat";
             } else {
               hist.url   = "topics";
               hist.title = Sefaria._("Topics | " + siteName);
@@ -1624,7 +1625,7 @@ class ReaderApp extends Component {
   }
   generateCurrentlyReading() {
     const currentHistoryState = this.makeHistoryState();
-    const inBeitMidrash = ["navigation", "text toc", "book toc", "sheet meta", "topics", "Text", "TextAndConnections", "Sheet", "SheetAndConnections"];
+    const inBeitMidrash = ["navigation", "text toc", "book toc", "sheet meta", "topics", "topic", "topicCat", "Text", "TextAndConnections", "Sheet", "SheetAndConnections"];
     const indexSefaria = currentHistoryState.title.indexOf("| Sefaria")
     if (indexSefaria >= 0) {
       currentHistoryState.title = currentHistoryState.title.slice(0, indexSefaria);
