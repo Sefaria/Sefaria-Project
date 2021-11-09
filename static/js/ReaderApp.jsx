@@ -1623,15 +1623,26 @@ class ReaderApp extends Component {
     }
     return false;
   }
+  getDisplayString(mode) {
+    const learningStatus = ["text toc", "book toc", "sheet meta",  "Text", "TextAndConnections", "SheetAndConnections"];
+    const topicStatus = ["topicCat", "topic"]
+    if(mode.includes("sheet")) {
+      return "learning the Sheet"
+    } else if (topicStatus.includes(mode)) {
+      return "viewing the topic"
+    }
+    else if(learningStatus.includes(mode)) {
+      return "learning";
+    } else {
+      return "currently viewing"
+    }
+  }
   generateCurrentlyReading() {
     const currentHistoryState = this.makeHistoryState();
     const inBeitMidrash = ["navigation", "text toc", "book toc", "sheet meta", "topics", "topic", "topicCat", "Text", "TextAndConnections", "Sheet", "SheetAndConnections"];
-    const indexSefaria = currentHistoryState.title.indexOf("| Sefaria")
-    if (indexSefaria >= 0) {
-      currentHistoryState.title = currentHistoryState.title.slice(0, indexSefaria);
-    }
+    currentHistoryState.title = currentHistoryState.title.match(/[^|]*/)[0];
     if (inBeitMidrash.includes(currentHistoryState.mode)) {
-      return {title: currentHistoryState.title, url: currentHistoryState.url, mode: currentHistoryState.mode};
+      return {title: currentHistoryState.title, url: currentHistoryState.url, mode: currentHistoryState.mode, display: this.getDisplayString(currentHistoryState.mode)};
     } else {
       return null;
     }

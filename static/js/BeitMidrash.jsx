@@ -329,7 +329,7 @@ const BeitMidrashHome = ({beitMidrashId,
                                     {user.name}
                                     {user.inChavruta ? <i className="fa fa-headphones" title={`${user.name} is current in a chavruta`}></i> : null}
                                     <div
-                                        className="beitMidrashOrg">{user.currentlyReading ? <a href={user.currentlyReading.url}>{`is learning ${user.currentlyReading.title}`}</a> : null}</div>
+                                        className="beitMidrashOrg">{user.currentlyReading ? <a href={user.currentlyReading.url}>{`is ${user.currentlyReading.display} ${user.currentlyReading.title}`}</a> : null}</div>
                                 </div>
                             </div>
                         } else {
@@ -836,7 +836,7 @@ const ChavrutaVideo = ({socket, chavrutaId, pcConfig, setCurrentScreen, activeCh
 
             </div>
             <div id="currentlyReadingContainer">
-                {activeChavruta.currentlyReading ? <div className="currentlyReading">{activeChavruta.name} is learning <a href={activeChavruta.currentlyReading.url}>{activeChavruta.currentlyReading.title}</a></div> : null }
+                {activeChavruta.currentlyReading ? <div className="currentlyReading">{activeChavruta.name} is {activeChavruta.currentlyReading.display} <a href={activeChavruta.currentlyReading.url}>{activeChavruta.currentlyReading.title}</a></div> : null }
             </div>
 
             <div className="chavrutaFooter">
