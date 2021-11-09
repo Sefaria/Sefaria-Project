@@ -57,6 +57,7 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
         if (currentChatRoom != room.roomId) {
             setUsersWithUnreadMsgs(prevArray => [...prevArray, uid]);
         }
+        new Audio("/static/files/chime.wav").play();
         setShouldUpdateChats(true)
     }
 
