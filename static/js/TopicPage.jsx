@@ -690,7 +690,7 @@ const ReadingsComponent = ({ parashaData, tref }) => (
 const propKeys = [
   {en: 'enWikiLink', he: 'heWikiLink', title: 'Wikipedia'},
   {en: 'jeLink', he: 'jeLink', title: 'Jewish Encyclopedia'},
-  {en: 'nliLink', he: 'nliLink', title: 'National Library of Israel'},
+  {en: 'enNliLink', he: 'heNliLink', title: 'National Library of Israel'},
 ];
 const TopicMetaData = ({ timePeriod, properties={} }) => {
   const tpSection = !!timePeriod ? (

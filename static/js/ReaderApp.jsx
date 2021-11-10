@@ -709,7 +709,7 @@ class ReaderApp extends Component {
       currentUrl += window.location.hash;
       hist.url += window.location.hash;
     }
-    
+
     if (replace) {
       history.replaceState(hist.state, hist.title, hist.url);
       // console.log("Replace History - " + hist.url);
