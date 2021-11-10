@@ -1205,7 +1205,7 @@ class ReaderApp extends Component {
     } else {
       refs = [ref];
       currentlyVisibleRef = ref;
-      highlightedRefs = [ref];
+      highlightedRefs = (panel.mode == "TextAndConnections") ? [ref] : [];
     }
     let updatePanelObj = {refs: refs, currentlyVisibleRef: currentlyVisibleRef, highlightedRefs: highlightedRefs}
     if((this.state.panels.length > n+1) && this.state.panels[n+1].mode == "Connections"){
