@@ -74,7 +74,7 @@ def load_data_from_sheet(url):
   return keyed_data
 
 
-def get_community_page_items(date=None, language="englsih", diaspora=True, refresh=False):
+def get_community_page_items(date=None, language="english", diaspora=True, refresh=False):
   """
   Retruns processed community page items
   """
