@@ -10842,6 +10842,19 @@ section.SheetSource .segmentNumber, section.SheetSource .SheetOutsideBiText {
   opacity: .2;
 }
 
+.draggedOver.draggedOverBefore::before {
+  content: "";
+  display: block;
+  background-color: #D2DCFF;
+  width: 100%;
+}
+.draggedOver.draggedOverAfter::after {
+  content: "";
+  display: block;
+  background-color: #D2DCFF;
+  width: 100%;
+}
+
 .dragIcon {
   background-color: #F0F8FF;
   width: auto;

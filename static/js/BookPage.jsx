@@ -101,7 +101,6 @@ class BookPage extends Component {
     let currentVersion = {
       ... currObjectVersions[currentLanguage],
       ...{
-        sources: currentLanguage == "he" ? d.heSources : d.sources,
         language:               currentLanguage,
         versionTitle:           currentLanguage == "he" ? d.heVersionTitle : d.versionTitle,
         versionSource:          currentLanguage == "he" ? d.heVersionSource : d.versionSource,
@@ -187,7 +186,7 @@ class BookPage extends Component {
       fullBookPage: this.isBookToc(),
       narrowPanel: this.props.narrowPanel,
       compare: this.props.compare,
-      noLangToggleInHebrew: Sefaria.interfaceLang == 'hebrew'
+      noLangToggleInHebrew: Sefaria.interfaceLang === 'hebrew'
     });
 
     return (
