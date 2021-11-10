@@ -2031,9 +2031,13 @@ class AddressType(object):
                 sections += temp_sections
                 toSections += temp_toSections
                 addr_classes += [SuperClass]*len(temp_sections)
-        # make sure section, toSection pairs are unique
+
         if len(sections) > 0:
-            sections, toSections = zip(*{(sec, toSec) for sec, toSec in zip(sections, toSections)})
+            # make sure section, toSection pairs are unique. prefer higher level address_types since these are more generic
+            section_map = {}
+            for i, (sec, toSec, addr) in enumerate(zip(sections, toSections, addr_classes)):
+                section_map[(sec, toSec)] = (i, sec, toSec, addr)
+            _, sections, toSections, addr_classes = zip(*sorted(section_map.values(), key=lambda x: x[0]))
         return sections, toSections, addr_classes
 
     @classmethod

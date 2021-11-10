@@ -71,6 +71,7 @@ def test_referenceable_child():
     [create_raw_ref_data("Job 1", 'he', 'ספר בראשית פרק יג פסוק א', [slice(0, 2), slice(2, 4), slice(4, 6)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Genesis 13:1",)],
     [create_raw_ref_data("Job 1", 'he', "משנה ברכות פרק קמא", [0, 1, slice(2, 4)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ("Mishnah Berakhot 1",)],
     [create_raw_ref_data("Job 1", 'he', "משנה ברכות פרק בתרא", [0, 1, slice(2, 4)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ("Mishnah Berakhot 9",)],
+    [create_raw_ref_data("Job 1", 'he', 'שמות א ב', [0, 1, 2], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Exodus 1:2",)],
 
     # Named alt structs
     [create_raw_ref_data("Job 1", 'he', "פרק אלו דברים בפסחים", [slice(0, 3), 3], [RPT.NAMED, RPT.NAMED]), ("Pesachim 65b:10-73b:16",)],  # talmud perek (that's ambiguous)
@@ -124,20 +125,21 @@ def test_full_pipeline_ref_resolver(input_str, lang, expected_trefs):
         assert matched_oref == Ref(expected_tref)
 
 @pytest.mark.parametrize(('input_addr_str', 'AddressClass','expected_sections'), [
-    ['פ"ח', schema.AddressPerek, ([8, 88], [8, 88])],
-    ['מ"ד', schema.AddressTalmud, ([87], [88])],
-    ['מ"ד.', schema.AddressTalmud, ([87], [87])],
-    ['מ"ד ע"ב', schema.AddressTalmud, ([88], [88])],
-    ['מ"ד', schema.AddressMishnah, ([4, 44], [4, 44])],
-    ['פ"ק', schema.AddressPerek, ([1, 100], [1, 100])],
+    ['פ"ח', schema.AddressPerek, ([8, 88], [8, 88], [schema.AddressPerek, schema.AddressInteger])],
+    ['מ"ד', schema.AddressTalmud, ([87], [88], [schema.AddressTalmud])],
+    ['מ"ד.', schema.AddressTalmud, ([87], [87], [schema.AddressTalmud])],
+    ['מ"ד ע"ב', schema.AddressTalmud, ([88], [88], [schema.AddressTalmud])],
+    ['מ"ד', schema.AddressMishnah, ([4, 44], [4, 44], [schema.AddressMishnah, schema.AddressInteger])],
+    ['פ"ק', schema.AddressPerek, ([1, 100], [1, 100], [schema.AddressPerek, schema.AddressPerek])],
 ])
 def test_get_all_possible_sections_from_string(input_addr_str, AddressClass, expected_sections):
-    exp_secs, exp2secs = expected_sections
-    sections, toSections = AddressClass.get_all_possible_sections_from_string('he', input_addr_str)
+    exp_secs, exp2secs, exp_addrs = expected_sections
+    sections, toSections, addr_classes = AddressClass.get_all_possible_sections_from_string('he', input_addr_str)
     sections = sorted(sections)
     toSections = sorted(toSections)
     assert sections == exp_secs
     assert toSections == exp2secs
+    assert list(addr_classes) == exp_addrs
 
 @pytest.mark.parametrize(('raw_ref_params', 'expected_section_slices'), [
     [create_raw_ref_params('he', "בראשית א:א-ב", [0, 1, 3, 4, 5], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED]), (slice(1,3),slice(4,5))],  # standard case

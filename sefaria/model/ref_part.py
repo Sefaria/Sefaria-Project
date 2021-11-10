@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import List, Union
+from typing import List, Union, Dict
 from enum import Enum
 from functools import reduce
 from sefaria.system.exceptions import InputError
@@ -123,6 +123,7 @@ class RawRef:
     
     def __init__(self, raw_ref_parts: list, span: Union[Token, Span]) -> None:
         self.raw_ref_parts = self._group_ranged_parts(raw_ref_parts)
+        self.prev_num_parts_map = self._get_prev_num_parts_map(self.raw_ref_parts)
         self.span = span
 
     def _group_ranged_parts(self, raw_ref_parts: List['RawRefPart']) -> List['RawRefPart']:
@@ -150,6 +151,16 @@ class RawRef:
                             raw_ref_parts[toSection_slice.stop:]
         return new_raw_ref_parts
 
+    def _get_prev_num_parts_map(self, raw_ref_parts: List[RawRefPart]) -> Dict[RawRefPart, RawRefPart]:
+        if len(raw_ref_parts) == 0: return {}
+        prev_num_parts_map = {}
+        prev_part = raw_ref_parts[0]
+        for part in raw_ref_parts[1:]:
+            if prev_part.type == RefPartType.NUMBERED and part.type == RefPartType.NUMBERED:
+                prev_num_parts_map[part] = prev_part
+            prev_part = part
+        return prev_num_parts_map
+
     def get_text(self):
         return self.span.text
 
@@ -168,6 +179,11 @@ class ResolvedRawRef:
     def get_unused_ref_parts(self, raw_ref: 'RawRef'):
         return [ref_part for ref_part in raw_ref.raw_ref_parts if ref_part not in self.resolved_ref_parts]
 
+    def has_prev_unused_numbered_ref_part(self, raw_ref_part: RawRefPart) -> bool:
+        prev_part = self.raw_ref.prev_num_parts_map.get(raw_ref_part, None)
+        if prev_part is None: return False
+        return prev_part not in self.resolved_ref_parts
+
     def _get_refined_match_for_dh_part(self, raw_ref_part: 'RawRefPart', refined_ref_parts: List['RawRefPart'], node: schema.DiburHamatchilNodeSet):
         max_node, max_score = node.best_fuzzy_match_score(raw_ref_part)
         if max_score == 1.0:
@@ -178,6 +194,14 @@ class ResolvedRawRef:
         refined_refs = []
         addr_classes_used = []
         for sec, toSec, addr_class in zip(possible_sections, possible_to_sections, addr_classes):
+            if self.has_prev_unused_numbered_ref_part(raw_ref_part) and addr_class == schema.AddressInteger:
+                """
+                If raw_ref has NUMBERED parts [a, b]
+                and part b matches before part a
+                and part b gets matched as AddressInteger
+                discard match because AddressInteger parts need to match in order
+                """
+                continue
             try:
                 refined_ref = self.ref.subref(sec)
                 if toSec != sec:
