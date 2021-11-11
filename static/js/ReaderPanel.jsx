@@ -1154,9 +1154,12 @@ class ReaderControls extends Component {
     super(props);
     this.state = {};
   }
+  isConnectionsPanelOpenHeuristic(){
+    return !!this.props.highlightedRefs.length
+  }
   openTextConnectionsPanel(e) {
     e.preventDefault();
-    if(!this.props.highlightedRefs.length){ //Prevent click on title from opening connections panel if its already open
+    if(!this.isConnectionsPanelOpenHeuristic()){ //Prevent click on title from opening connections panel if its already open
       this.props.onTextTitleClick(this.props.currentRef, false);
     }
   }
@@ -1215,6 +1218,8 @@ class ReaderControls extends Component {
     const showVersion = this.props.currVersions.en && (this.props.settings.language === "english" || this.props.settings.language === "bilingual");
     const versionTitle = this.props.currVersions.en ? this.props.currVersions.en.replace(/_/g," ") : "";
     const url = this.props.sheetID ? "/sheets/" + this.props.sheetID : oref ? "/" + Sefaria.normRef(oref.book) : Sefaria.normRef(this.props.currentRef);
+    const readerTextTocClasses = classNames({readerTextToc: 1, attributed: !!categoryAttribution, connected: this.isConnectionsPanelOpenHeuristic()})
+
 
     let centerContent = connectionsHeader ?
       <div className="readerTextToc">
@@ -1231,7 +1236,7 @@ class ReaderControls extends Component {
         />
       </div>
       :
-      <div className={"readerTextToc" + (categoryAttribution ? ' attributed' : '')} onClick={this.props.sheetID ? this.openSheetConnectionsPanel : this.openTextConnectionsPanel}>
+      <div className={readerTextTocClasses} onClick={this.props.sheetID ? this.openSheetConnectionsPanel : this.openTextConnectionsPanel}>
         <div className={"readerTextTocBox" + (this.props.sheetID ? " sheetBox" : "")} role="heading" aria-level="1" aria-live="polite">
           <div>
             <a href={url} aria-label={"Show Connection Panel contents for " + title} >

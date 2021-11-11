@@ -4836,6 +4836,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   min-width: 0;
   /* see https://css-tricks.com/flexbox-truncated-text/ */
 }
+.readerControls .readerTextToc.connected, .readerControls .readerTextToc.connected a{
+  cursor: initial;
+}
 
 .readerTextTocHeader.readerTextToc {
   font-size: 16px;
