@@ -839,7 +839,7 @@ const ChavrutaVideo = ({socket, chavrutaId, pcConfig, setCurrentScreen, activeCh
                         <span id="heMute" className="muteButton int-he" tabIndex={0} title={!audioEnabled ? "הפעל את המיקרופון" : "כבה את המיקרופון" } onClick={() => toggleMute()}></span>
                     </span>
                     <span id="endCallIcon">
-                        <span id="end-call" className="endCallButton int-en" tabIndex={0} title="End Call" onClick={(e) => endChavruta(e)} role="link"></span>
+                        <span id="end-call" className="endCallButton int-en" tabIndex={0} title={Sefaria._("End Call")} onClick={(e) => endChavruta(e)} role="link"></span>
                     </span>
                 </div>
 
