@@ -1,7 +1,6 @@
 # coding=utf-8
 from urllib.parse import urlparse
 import regex as re
-from datetime import datetime
 from collections import defaultdict
 
 from . import abstract as abst
@@ -388,7 +387,8 @@ def dedupe_identical_urls(test=True):
                     "refs": page.refs,
                     "expandedRefs": page.expandedRefs,
                     "title": page.title,
-                    "description": getattr(page, "description", "")
+                    "description": getattr(page, "description", ""),
+                    "lastUpdated": page.lastUpdated
                 })
         removed_count += (pages.count() - 1)
 
@@ -431,6 +431,7 @@ def webpages_stats():
     total_pages  = webpages.count()
     total_links  = []
     websites = {}
+    year_data = Counter()
 
     for webpage in webpages:
         website = webpage.get_website()
@@ -439,6 +440,8 @@ def webpages_stats():
                 websites[website] = 0
             websites[website] += 1
         total_links += webpage.refs
+        year = int((datetime.today() - webpage.lastUpdated).days / 365.0)
+        year_data[year] += 1
 
     total_links = len(set(total_links))
 
@@ -446,7 +449,7 @@ def webpages_stats():
         website.num_webpages = num
         website.save()
 
-    return (total_pages, total_links)
+    return (total_pages, total_links, year_data)
 
 
 def find_webpages_without_websites(test=True, hit_threshold=50, last_linker_activity_day=20):
@@ -559,9 +562,6 @@ def check_daf_yomi_and_parashat_hashavua(sites):
         if parasha > 10:
             print("{} may have parasha on every page.".format(site))
 
-
-
-
 def find_sites_that_may_have_removed_linker(last_linker_activity_day=20):
     """
     Checks for each site whether there has been a webpage hit with the linker in the last `last_linker_activity_day` days
@@ -575,22 +575,20 @@ def find_sites_that_may_have_removed_linker(last_linker_activity_day=20):
     for data in get_website_cache():
          if data["is_whitelisted"]:  # we only care about whitelisted sites
             for domain in data['domains']:
-                ws = WebPageSet({"url": {"$regex": re.escape(domain)}}, limit=1000, sort=[['lastUpdated', -1]])
+                ws = WebPageSet({"url": {"$regex": re.escape(domain)}}, limit=1, sort=[['lastUpdated', -1]])
                 keep = True
                 if ws.count() == 0:
                     sites_to_delete[domain] = f"{domain} has no pages"
                     keep = False
                 else:
-                    ws_array = ws.array()
-                    webpage = ws_array[0]  # lastUpdated webpage for this domain
+                    webpage = ws[0]  # lastUpdated webpage for this domain
                     website = webpage.get_website()
                     if website:
                         website.linker_installed = webpage.lastUpdated > last_active_threshold
                         if not website.linker_installed:
                             keep = False
                             print(f"Alert! {domain} has removed the linker!")
-                            num_pages = len(ws_array)
-                            sites_to_delete[domain] = f"{domain} has {num_pages} pages, but has not used the linker in {last_linker_activity_day} days. {webpage.url} is the oldest page."
+                            sites_to_delete[domain] = f"{domain} has {website.num_webpages} pages, but has not used the linker in {last_linker_activity_day} days. {webpage.url} is the oldest page."
                     else:
                         print("Alert! Can't find website {} corresponding to webpage {}".format(data["name"], webpage.url))
                         webpages_without_websites += 1
@@ -601,3 +599,4 @@ def find_sites_that_may_have_removed_linker(last_linker_activity_day=20):
     if webpages_without_websites > 0:
         print("Found {} webpages without websites".format(webpages_without_websites))
     return sites_to_delete
+
