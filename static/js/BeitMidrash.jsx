@@ -319,7 +319,7 @@ const BeitMidrashHome = ({beitMidrashId,
 
     return (<div className="beitMidrashHomeContainer">
             {/*<div id="newCall"><a href="/chavruta"><img src="/static/img/camera_with_plus.svg" id="newCallImg" /><span>New Call</span></a></div>*/}
-            <div id="beitMidrashHeader">Beit Midrash</div>
+            <div id="beitMidrashHeader"><InterfaceText>Beit Midrash</InterfaceText></div>
             <div className="peopleInBeitMidrash">
                 {peopleInBeitMidrash && peopleInBeitMidrash.length > 1 ? peopleInBeitMidrash
                     .filter(user => !user.roomId)
@@ -336,7 +336,7 @@ const BeitMidrashHome = ({beitMidrashId,
                                     {user.name}
                                     {user.inChavruta ? <i className="fa fa-headphones" title={`${user.name} is current in a chavruta`}></i> : null}
                                     <div
-                                        className="beitMidrashOrg">{user.currentlyReading ? <a href={user.currentlyReading.url}>{`is ${user.currentlyReading.display} ${user.currentlyReading.title}`}</a> : null}</div>
+                                        className="beitMidrashOrg">{user.currentlyReading ? <a href={user.currentlyReading.url}><InterfaceText>{`is ${user.currentlyReading.display}`}</InterfaceText> {`${user.currentlyReading.title}`}</a> : null}</div>
                                 </div>
                             </div>
                         } else {
@@ -418,10 +418,10 @@ const ChavrutaCall = ({outgoingCall, activeChavruta, setCurrentScreen, socket}) 
         <div className="callContainer">
             <div>
                 <ProfilePic len={300} url={activeChavruta.pic} name={activeChavruta.name} />
-                <div className = "callText">Receiving call from {activeChavruta.name}...</div>
+                <div className = "callText">{activeChavruta.name} <InterfaceText>is calling you...</InterfaceText></div>
                 <div id="incomingCallButtonHolder">
-                    <button id="acceptButton" onClick={()=> handleCallAccepted(activeChavruta.uid)}>Accept</button>
-                    <button id="declineButton" onClick={()=> handleCallDeclined(activeChavruta.uid)}>Decline</button>
+                    <button id="acceptButton" onClick={()=> handleCallAccepted(activeChavruta.uid)}><InterfaceText>Accept</InterfaceText></button>
+                    <button id="declineButton" onClick={()=> handleCallDeclined(activeChavruta.uid)}><InterfaceText>Decline</InterfaceText></button>
                 </div>
             </div>
             <audio autoPlay loop src="/static/files/chavruta-ringtone.wav" />
@@ -537,7 +537,7 @@ const ChatBox = ({room,
         activeChavruta ?
     <div className="chat" ref={chatBox}>
         <div id="hideButtonHolder">
-            <div id="hideButton" onClick={()=>handleCloseChat(room)}>Hide{" "}<img src="/static/img/downward_carrot.svg" /></div>
+            <div id="hideButton" onClick={()=>handleCloseChat(room)}><InterfaceText>Hide</InterfaceText>{" "}<img src="/static/img/downward_carrot.svg" /></div>
         </div>
         {/*<details>*/}
         {/*<summary>*/}
@@ -586,7 +586,7 @@ const ChatBox = ({room,
                 autoFocus  
                 // disabled={partnerLeftNotification || blockedNotification ? true : false}
                 className="chat-input" onChange={handleChange} 
-                placeholder="Send a Message"
+                placeholder={Sefaria._("Send a Message")}
                 dir={Sefaria.hebrew.isHebrew(chatMessage) ? "rtl" : "ltr"}></input>
             <input type="submit" 
             className={chatMessage? "chat-submit chat-submit-blue" : "chat-submit"} 
