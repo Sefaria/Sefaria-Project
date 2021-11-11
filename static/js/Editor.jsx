@@ -635,17 +635,6 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
       dragIcon.style.borderInlineStartColor = Sefaria.palette.refColor(element.ref);
       dragIcon.innerHTML = Sefaria.interfaceLang === "hebrew" ? element.heRef : element.ref;
 
-      const clientRect = e.target.getBoundingClientRect();
-
-      // const dragIconContainer = document.createElement('div');
-      // dragIconContainer.classList.add("dragIconContainer");
-      // dragIconContainer.style.height = `${clientRect.height}px`;
-      // dragIconContainer.style.width = `${clientRect.width}px`;
-
-      // document.body.appendChild(dragIconContainer);
-      // dragIconContainer.appendChild(dragIcon);
-      // e.dataTransfer.setDragImage(dragIconContainer, 0, clientRect.height);
-
       document.body.appendChild(dragIcon);
       e.dataTransfer.setDragImage(dragIcon, 0, 0);
 
@@ -2496,38 +2485,37 @@ const SefariaEditor = (props) => {
             event.preventDefault();
             const elem = document.elementFromPoint(event.clientX, event.clientY)
             const node = ReactEditor.toSlateNode(editor, elem)
-            const dropPath = Editor.end(editor, ReactEditor.findPath(editor, node)).path
 
-            console.log(node)
-            console.log(dropPath)
+            const clientRect = event.target.getBoundingClientRect();
+            const midY = (clientRect.bottom + clientRect.top)/2
 
+            const dropPath = event.clientY < midY ?
+                Editor.before(editor, ReactEditor.findPath(editor, node)).path :
+                Editor.after(editor, ReactEditor.findPath(editor, node)).path
 
-                        console.log(Path.compare(dropPath, editor.dragging.anchor.path))
-                        //
-                        if (Path.compare(dropPath, editor.dragging.anchor.path) < 0) {
-                            Transforms.delete(editor, {at: editor.dragging});
-                            Transforms.select(editor, Editor.end(editor, dropPath));
-                            Transforms.insertText(editor, " ")
-                            editor.insertData(event.dataTransfer)
-                            console.log('up')
-                            Transforms.move(editor, { distance: 1, unit: 'character', reverse: true, })
-                            editor.deleteBackward()
+            if (Path.compare(dropPath, editor.dragging.anchor.path) < 0) {
+                Transforms.delete(editor, {at: editor.dragging});
+                Transforms.select(editor, Editor.end(editor, dropPath));
+                Transforms.insertText(editor, " ")
+                editor.insertData(event.dataTransfer)
+                Transforms.move(editor, { distance: 1, unit: 'character', reverse: true, })
+                editor.deleteBackward()
+            }
+            else if (Path.compare(dropPath, editor.dragging.anchor.path) > 0) {
+                Transforms.select(editor, Editor.start(editor, dropPath));
+                Transforms.insertText(editor, " ")
+                editor.insertData(event.dataTransfer)
+                Transforms.delete(editor, {at: editor.dragging});
+                Transforms.move(editor, { distance: 1, unit: 'character', reverse: true, })
+                editor.deleteBackward()
+            }
 
+            editor.dragging = false
 
-                         } else if (Path.compare(dropPath, editor.dragging.anchor.path) > 0) {
-                            Transforms.select(editor, Editor.start(editor, dropPath));
-                            Transforms.insertText(editor, " ")
-                            editor.insertData(event.dataTransfer)
-                            Transforms.delete(editor, {at: editor.dragging});
-                            console.log('down')
-                            Transforms.move(editor, { distance: 1, unit: 'character', reverse: true, })
-                            editor.deleteBackward()
-
-                        }
-
-                        editor.dragging = false
-
-                        console.log(editor.children)
+            const removeStyles = editorContainer.current.querySelectorAll(".draggedOver");
+            for (let nodeToCheck of removeStyles) {
+                nodeToCheck.classList.remove("draggedOver", "draggedOverAfter", "draggedOverBefore")
+            }
 
         }
     };
@@ -2535,6 +2523,35 @@ const SefariaEditor = (props) => {
     const onDragOver = event => {
         if (editor.dragging) {
             event.preventDefault()
+
+            const removeStyles = editorContainer.current.querySelectorAll(".draggedOver");
+            for (let nodeToCheck of removeStyles) {
+                nodeToCheck.classList.remove("draggedOver", "draggedOverAfter", "draggedOverBefore")
+            }
+
+            const elem = document.elementFromPoint(event.clientX, event.clientY)
+            const node = ReactEditor.toSlateNode(editor, elem)
+
+            const clientRect = event.target.getBoundingClientRect();
+            const midY = (clientRect.bottom + clientRect.top)/2
+
+            const dropBefore = event.clientY < midY
+            const dropPath = dropBefore ?
+                Editor.before(editor, ReactEditor.findPath(editor, node)).path :
+                Editor.after(editor, ReactEditor.findPath(editor, node)).path
+
+            const domNode = ReactEditor.toDOMNode(editor, Node.get(editor, dropPath))
+            domNode.classList.add("draggedOver");
+            domNode.classList.add(dropBefore ? "draggedOverAfter" : "draggedOverBefore");
+
+
+            console.log(dropPath)
+            console.log(domNode)
+
+
+            // const curDragPos = compareDragPos(event)
+            // const domNode = ReactEditor.toDOMNode(editor, node)
+            // console.log(curDragPos[1])
         }
     }
 

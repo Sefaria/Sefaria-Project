@@ -3187,6 +3187,9 @@ a.navBlockTitle:hover {
   margin-top: 20px;
   margin-bottom: 20px;
 }
+.connectionsPanel .textTableOfContents .structToggles {
+  margin-top: 0;
+}
 
 .textTableOfContents .structToggles .structTogglesInner {
   display: flex;
@@ -3252,6 +3255,11 @@ a.navBlockTitle:hover {
   cursor: pointer;
   padding: 0 6px;
   box-sizing: border-box;
+}
+
+.connectionsPanel .textTableOfContents .sectionLink {
+  background-color: #ffffff;
+  color: #000000;
 }
 
 .textTableOfContents .sectionName {
@@ -4828,6 +4836,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   min-width: 0;
   /* see https://css-tricks.com/flexbox-truncated-text/ */
 }
+.readerControls .readerTextToc.connected, .readerControls .readerTextToc.connected a{
+  cursor: initial;
+}
 
 .readerTextTocHeader.readerTextToc {
   font-size: 16px;
@@ -6015,7 +6026,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-inline-start: 5px;
 }
 
-.connectionsPanel .toolsButton.aboutThisText {
+.connectionsPanel .topToolsButtons {
   margin-top: 30px;
 }
 
@@ -6763,7 +6774,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   background-image: url("/static/icons/add-to-sheet.svg");
 }
 
-.toolsButton {
+.toolsButtonContainer {
   display: flex;
   justify-content: flex-start;
   color: #000;
@@ -6773,6 +6784,39 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   letter-spacing: 1px;
   margin: 20px 34px;
   align-items: center;
+  flex-wrap: wrap;
+}
+
+.toolsButtonContainer .toolsButtonText,
+.toolsButtonContainer .toolsSecondaryButton {
+  position: relative;
+  top: 1.5px;
+}
+
+.toolsButton {
+  background: none;
+  padding: 0;
+  border: 0px;
+  flex: 1 1 auto;
+}
+
+.toolsSecondaryButton {
+  color: var(--dark-grey);
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  height: var(--sans-serif-small-font-size);
+  margin-inline-start: 30px;
+  align-self: flex-start;
+}
+
+.linkArrow {
+  height: var(--sans-serif-small-font-size);
+  position: relative;
+  top: 1px;
+}
+
+.toolsButtonContainer .toolsButton.greyColor {
+  color: var(--dark-grey);
 }
 
 .toolsButton .toolsButtonText .connectionsCount::before {
@@ -6878,6 +6922,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .toolsButton .toolsButtonIcon {
   color: #999;
   font-size: 20px;
+  width: 20px;
   margin-top: -1px;
 }
 
@@ -6895,20 +6940,89 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-inline-start: 15px;
 }
 
-.shareInputBox {
-  padding: 34px;
+.shareSettingsBox .shareDropdown {
+  display: inline-block;
+  height: 20px;
+  width: 52px;
+  margin: 0 3px;
+  border: 0;
+  color: var(--sefaria-blue);
+  font-weight: 600;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: var(--sans-serif-body-font-size);
+  align-self: flex-end;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  bottom: 1px;
+  position: relative;
+  background-color: Transparent;
+  background-image: url(/static/icons/arrow-down-bold.svg);
+  background-repeat: no-repeat;
+  background-position: right;
+  background-size: 12px;
 }
 
-.shareInput {
-  width: 100%;
+.shareInputBox .copyLinkIcon {
+  float: right;
+  margin: 0px -5px 1px 0px;
+}
+
+.shareInputBox span {
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: var(--sans-serif-body-font-size);
+}
+
+.shareInputBox {
+  position: relative;
+  display: flex;
   box-sizing: border-box;
   border-radius: 7px;
   border: none;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-  font-size: 18px;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 20%);
+  font-size: var(--sans-serif-body-font-size);
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: #666;
-  padding: 20px 26px;
+  padding: 20px 20px;
+  margin: 19px 33px;
+}
+
+.shareInput {
+  width: calc(100% - 40px);
+  box-sizing: border-box;
+  border-radius: 7px;
+  border: none;
+  font-size: var(--sans-serif-body-font-size);
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  color: #666;
+  text-overflow: ellipsis;
+}
+
+.shareInputBox .shareInputButton {
+  background-color: #fff;
+  position: absolute;
+  border: 0;
+  margin-inline-start: calc(100% - 60px);
+}
+
+.shareInputBox .shareInputButton:active {
+  background-color: var(--light-grey);
+  border: 0;
+  margin-inline-start: 20px;
+}
+
+.shareSettingsBox {
+  display: flex;
+  box-sizing: border-box;
+  border-radius: 7px;
+  border: none;
+  font-size: var(--sans-serif-body-font-size);
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  color: var(--dark-grey);
+  margin: 20px 34px;
 }
 
 .addToSourceSheetBox {
@@ -8186,11 +8300,18 @@ a .button:hover {
   text-align: start;
   background-color: #EDEDEC;
   border-radius: 6px;
-  padding: 10px 25px;
+  padding: 10px 20px;
   max-width: 540px;
-  margin: 0 auto;
+  margin: 20px -20px;
   font-size: 16px;
   color: #666;
+}
+
+div.transparentBackground.publishBox {
+  background-color: inherit;
+  border-radius: 0px;
+  padding: 0px 20px;
+  color: inherit;
 }
 
 .publishBox .smallText .int-en, .publishBox .smallText .int-he.enInHe {
@@ -8199,6 +8320,10 @@ a .button:hover {
 
 .publishBox p.error {
   color: red;
+}
+
+.publishBox p {
+  margin-bottom: 15px;
 }
 
 .publishBox .error .react-tags, .publishBox textarea.error {
@@ -8224,8 +8349,6 @@ a .button:hover {
   border-bottom: none;
   border-right: none;
   border-left: none;
-  margin-left: -25px;
-  margin-right: -25px;
   border-top: 1px solid #CCC;
   margin-top: 20px;
 }
@@ -8236,7 +8359,7 @@ a .button:hover {
 
 .publishBox textarea {
   width: 100%;
-  height: 100%;
+  height: 100px;
   resize: none;
   box-sizing: border-box;
   font-size: 16px;
@@ -8245,7 +8368,8 @@ a .button:hover {
   border-radius: 6px;
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
   font-style: normal;
-  padding: 10px;
+  padding: 10px 10px 4px 10px;
+  margin-bottom: 0px;
 }
 
 .publishBox textarea::placeholder {
@@ -8313,6 +8437,7 @@ body.interface-hebrew .publishBox .react-tags__search-input::placeholder, body.i
   content: '\2715';
   color: #AAA;
   margin-inline-start: 8px;
+  vertical-align: middle;
   font-size: 10px;
 }
 
@@ -8340,8 +8465,45 @@ body.interface-hebrew .publishBox .react-tags__search-input::placeholder, body.i
   color: #666666
 }
 
-.publishBox p {
-  margin-bottom: 9px;
+.publishBox .publishButton .button {
+  padding: 15px 20px;
+}
+
+.publishSettingsEditMode .publishButton {
+  margin: 14px 0 0;
+  text-align: end;
+  flex-direction: row;
+  justify-content: flex-end;
+  display: flex;
+}
+
+.publishSettingsEditMode .publishButton .publishedText {
+  text-align: start;
+  margin-top: 5px;
+  margin-bottom: 0px;
+  margin-inline-start: 0px;
+  margin-inline-end: 15px;
+  font-size: var(--sans-serif-body-font-size);
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  color: var(--dark-grey);
+}
+
+.publishSettingsEditMode .publishButton .publishedText .publishedTextBold {
+  font-weight: bold;
+  color: black;
+}
+
+.publishSettingsEditMode .button.published {
+  background-color: #FFFFFF;
+  border: 1px solid #CCCCCC;
+  color: var(--dark-grey);
+  height: fit-content;
+  align-self: center;
+  border-radius: 6px;
+  box-sizing: border-box;
+  box-shadow: none;
+  padding: 9px 10px;
 }
 
 .publishBox .react-tags__suggestions ul {
@@ -8413,7 +8575,6 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   cursor: pointer;
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
 }
-
 .interface-hebrew .editorSidebarToggle {
   left: 30px;
   right: auto;
@@ -8874,6 +9035,75 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   vertical-align: middle;
   margin: -4px 0 0 2px;
   opacity: 0.6;
+}
+
+ul.aboutSheetLinks {
+  list-style-type: none;
+  padding-inline-start: 0;
+  --english-font: var(--english-serif-font-family);
+  --hebrew-font: var(--hebrew-serif-font-family);
+  font-size: var(--serif-body-font-size);
+}
+
+h3.aboutSheetHeader {
+  text-transform: none;
+  color: var(--dark-grey);
+  font-size: var(--sans-serif-h3-font-size);
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  margin-bottom: 17px;
+  margin-top: 36px;
+  padding-bottom: 18px;
+  border-style: none none solid none;
+  border-color: var(--light-grey);
+  border-width: 1px;
+}
+
+.aboutSheetPanel hr {
+  height: 0px;
+  border: 1px solid var(--light-grey);
+}
+
+.aboutSheetPanel div.description {
+  color: var(--dark-grey);
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: var(--sans-serif-body-font-size);
+  margin: 20px 0px;
+}
+
+.aboutSheetPanel h2 {
+  font-size: var(--serif-h3-font-size);
+  color: #000000;
+  text-transform: none;
+  margin: 0px;
+}
+
+div.aboutSheetPanel>div.authorStatement {
+  font-size: 16px;
+  margin: 20px 0px;
+}
+
+.aboutSheetPanel h3.aboutSheetSubtitle {
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  margin-top: 5px;
+  margin-bottom: 20px;
+}
+
+div.aboutSheetMetadata {
+  color: var(--medium-grey);
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: var(--sans-serif-small-font-size);
+  display: flex;
+  flex-direction: column;
+  margin: 10px 0px;
+}
+div.aboutSheetMetadata span:not(:first-child)::before{
+  content: '•';
+  margin-inline-start: 4px;
+  margin-inline-end: 4px;
 }
 
 .hebrew .topicPanel .topicSource .score img {
@@ -10303,8 +10533,8 @@ span.purim-emoji img {
 .sheetContent .sheetItem .SheetOutsideText.segment {
   margin: 0
 }
-
-.sheetContent .sheetItem .SheetSource.segment, .sheetContent .sheetItem .SheetOutsideBiText.segment {
+.sheetContent .sheetItem .SheetSource.segment,
+.sheetContent .sheetItem .SheetOutsideBiText.segment {
   margin-top: 30px;
   margin-bottom: 30px;
 }
@@ -10312,8 +10542,10 @@ span.purim-emoji img {
 .sheetContent .text.loading {
   cursor: wait;
 }
-
-.oldSheetNotice, .oldSheetNotice a, .editSheetNotice, .editSheetNotice a {
+.oldSheetNotice,
+.oldSheetNotice a,
+.editSheetNotice,
+.editSheetNotice a {
   font-size: 12px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: #999;
@@ -10509,7 +10741,11 @@ section.SheetSource .segmentNumber, section.SheetSource .SheetOutsideBiText {
   padding-bottom: 15px;
 }
 
-.sheetItem .SheetSource .he.editable.selected .sourceContentText, .sheetItem .SheetSource .en.editable.selected .sourceContentText, .sheetItem .SheetOutsideBiText .he.editable.selected .sourceContentText, .sheetItem .SheetOutsideBiText .en.editable.selected .sourceContentText {
+
+.sheetItem .SheetSource .he.editable.selected .sourceContentText,
+.sheetItem .SheetSource .en.editable.selected .sourceContentText,
+.sheetItem .SheetOutsideBiText .he.editable.selected .sourceContentText,
+.sheetItem .SheetOutsideBiText .en.editable.selected .sourceContentText {
   background-color: #FFFFFF;
   box-shadow: inset 0px 0px 3px rgba(0, 0, 0, 0.3);
   border-radius: 6px;
@@ -10543,11 +10779,9 @@ section.SheetSource .segmentNumber, section.SheetSource .SheetOutsideBiText {
 .sheetItem .SheetMedia {
   margin-bottom: 14px;
 }
-
 .readerPanel.bilingual.heRight .SheetSource {
   background-image: linear-gradient( to left, #fff, #fff 50%, #FBFBFA 50%, #FBFBFA 100%, #fff 100%);
 }
-
 .readerPanel.bilingual.heLeft .SheetSource {
   background-image: linear-gradient( to right, #fff, #fff 50%, #FBFBFA 50%, #FBFBFA 100%, #fff 100%);
 }
@@ -10577,6 +10811,19 @@ section.SheetSource .segmentNumber, section.SheetSource .SheetOutsideBiText {
   opacity: .2;
 }
 
+.draggedOver.draggedOverBefore::before {
+  content: "";
+  display: block;
+  background-color: #D2DCFF;
+  width: 100%;
+}
+.draggedOver.draggedOverAfter::after {
+  content: "";
+  display: block;
+  background-color: #D2DCFF;
+  width: 100%;
+}
+
 .dragIcon {
   background-color: #F0F8FF;
   width: auto;
@@ -10598,7 +10845,6 @@ section.SheetSource .segmentNumber, section.SheetSource .SheetOutsideBiText {
   flex-direction: column;
   background-color: rgba(255, 255, 255, 0.1);
 }
-
 .feedbackBox p {
   font-size: 16px;
   letter-spacing: 1px;
@@ -11984,6 +12230,10 @@ body .homeFeedWrapper.userStats {
   text-align: start;
 }
 
+.collectionsEditorTop {
+  margin-bottom: 15px;
+}
+
 .collectionsWidgetTitle {
   flex-grow: 1;
   font-size: 22px;
@@ -12031,6 +12281,12 @@ body .homeFeedWrapper.userStats {
   border-bottom: 1px solid #ccc;
   display: flex;
   align-items: center;
+}
+
+.collectionsEditorCreate {
+  display: flex;
+  align-items: center;
+  padding: 0px 20px;
 }
 
 .collectionsWidgetPlus {
