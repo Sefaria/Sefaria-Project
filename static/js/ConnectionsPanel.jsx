@@ -772,6 +772,7 @@ const AboutSheetButtons = ({ setConnectionsMode, masterPanelSheetId }) => {
   useEffect(() => {
     const sheet = Sefaria.sheets.loadSheetByID(masterPanelSheetId)
     setIsOwner(sheet.owner === Sefaria._uid);
+    console.log(sheet)
   }, []);
 
   return (<div class="topToolsButtons">
@@ -780,6 +781,12 @@ const AboutSheetButtons = ({ setConnectionsMode, masterPanelSheetId }) => {
         :
         <ToolsButton en="About this Sheet" he="אודות דף המקורות" image="about-text.svg" onClick={() => setConnectionsMode("AboutSheet")} />
     }
+    {isOwner && !Sefaria._uses_new_editor ?
+        <ToolsButton en="Edit" he="עריכה" image="note.svg" onClick={() => {
+          window.location = `//${window.location.host}/sheets/${masterPanelSheetId}?editor=1`;
+        }} />
+        : null }
+
     <ToolsButton en="Share" he="שיתוף" image="share.svg" onClick={() => setConnectionsMode("Share")} />
   </div>);
 }
