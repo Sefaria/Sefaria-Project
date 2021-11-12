@@ -11000,12 +11000,13 @@ span.ref-link-color-3 {color: blue}
 }
 
 .beitMidrashUser.unreadMessages::after {
-    content: '';
-   display: inline-block;
-   width: 15px;
-   height: 15px;
-   border-radius: 100%;
-   background-color: var(--halakhah-red);
+  content: '';
+  display: inline-block;
+  width: 15px;
+  height: 15px;
+  border-radius: 100%;
+  background-color: var(--halakhah-red);
+  flex-shrink: 0;
 }
 
 #beitMidrashProfilePic {
