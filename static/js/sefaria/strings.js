@@ -419,7 +419,7 @@ const Strings = {
     "Hide": "הסתרה",
     "Send a Message": "שליחת הודעה",
     "is calling you...": "מתקשר אלייך",
-    "Calling": "מתקשר אלייך",
+    "Calling": "מתקשר",
     "Accept": "קבלת שיחה",
     "Decline": "דחיית שיחה",
     "is learning":"לומד",
