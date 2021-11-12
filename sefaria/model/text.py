@@ -5896,6 +5896,16 @@ def process_index_change_in_core_cache(indx, **kwargs):
             invalidate_title(indx.title)
 
 
+def process_index_change_in_alt_structs(indx, **kwargs):
+    # Note: this function is only a place holder.
+    old_title = kwargs["old"]
+    new_title = kwargs["new"]
+    if hasattr(indx, 'alt_structs'):
+        #make the change
+        # print("Cascading Alt_struct refs from  {} to {}".format(kwargs['old'], kwargs['new']))
+        pass
+
+
 def process_index_change_in_toc(indx, **kwargs):
     old_ref = kwargs.get('orig_vals').get('title') if kwargs.get('orig_vals') else None
     library.update_index_in_toc(indx, old_ref=old_ref)
