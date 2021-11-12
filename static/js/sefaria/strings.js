@@ -92,6 +92,9 @@ const Strings = {
     "Search Texts": "חפש מקורות",
 
     // Sheets
+    "Sheet": "דף מקורות",
+    "About this Sheet": "אודות דף המקורות",
+    "Tags": "תוויות",
     "Search for a text...": "חפש מקור בספריא",
     "Paste a link to an image, video, or audio": "הוסף קישור לתמונה, סרטון, או אודיו",
     "Add media": "הוסף מדיה",
@@ -169,6 +172,8 @@ const Strings = {
     "Create New" : "יצירת חדש",
     "Close" : "סגירה",
     "Reset": "איפוס",
+    "Views": "צפיות",
+    "Saves": "שמירות",
 
     //publish flow:
     "Not Published" : "לא פורסם",
@@ -179,14 +184,16 @@ const Strings = {
     "on Sefaria and visible to others through search and topics.": ".בספריא ומשתמשים אחרים יכולים למצוא אותו בחיפוש ובדפי הנושא",
     "List your sheet on Sefaria for others to discover.": ".רישום דף המקורות שלך בספריא באופן שמשתמשים אחרים יוכלו למצוא אותו",
     "Summary": "תקציר דף המקורות",
-    "Write a short description of your sheet..." : "תיאור קצר של דף המקורות שלך...",
-    "Add a topic...": "הוספת נושא",
+    "Write a short description of your sheet..." : "תיאור קצר של דף המקורות...",
+    "Add a topic...": "הוספת נושא...",
     "Publish": "פרסום דף המקורות",
-    "Unpublish": "ביטול פרסום",
+    "Unpublish": "ביטול",
     "Please add a description and topics to publish your sheet.": "יש להוסיף תיאור ונושאים כדי לפרסם את הדף",
     "Please add topics to publish your sheet.": "יש להוסיף נושאים כדי לפרסם את הדף",
     "Please add a description to publish your sheet.": "יש להוסיף תיאור כדי לפרסם את הדף",
     "The summary description is limited to 280 characters.": "תקציר דף המקורות מוגבל ל280 תווים.",
+    "People with this link can": "משתמשים עם קישור זה יכולים",
+    "Publish your sheet on Sefaria for others to discover.": "פרסמו את דף המקורות בספריא כדי שאחרים יוכלו ללמוד ממנו.",
 
     // Reader Panel
     "Search" : "חיפוש",
@@ -448,7 +455,7 @@ const Strings = {
     "Did you encounter any issues while using the new editor? For example:": "האם נתקלת בבעיות בעת השימוש בעורך החדש? למשל...",
     "Technical problems": "בעיות טכניות",
     "Difficulties using the editor": "קושי להשתמש בעורך",
-    "Missing features ": "תכונות חסרות",
+    "Missing features": "תכונות חסרות",
     "Tell us about it...": "ספר/י לנו על כך...",
     "Submit Feedback": "לשליחת המשוב",
     "Thank you!": "תודה רבה!",
@@ -468,10 +475,6 @@ const Strings = {
     "Composed": "זמן חיבור",
     "Author": "מחבר",
     "Authors": "מחברים",
-
-    //Sheet Meta
-    "About this Sheet": "אודות דף המקורות",
-    "Tags": "תוויות",
 
     //Topics
     "Wikipedia": "ויקיפדיה",
@@ -516,6 +519,8 @@ const Strings = {
       "Related Texts": "מקורות לעיון",
       "Resources": "עזרים",
       "Tools": "כלים",
+      "Share Link": "שיתוף קישור",
+      "More Options": "אפשרויות נוספות",
     },
     "FollowButton": {
       "Follow": "עקבו",
@@ -554,6 +559,11 @@ const Strings = {
     "CalendarListing": {
       "Tanakh": "",
       "Talmud": ""
+    },
+    "Sheet Share": {
+      "View": "לצפות",
+      "Add": "להוסיף",
+      "Edit": "לערוך",
     }
   },
 };
