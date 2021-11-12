@@ -62,6 +62,7 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
     }
 
     useEffect(() => {
+        hj('event', 'entered_beit_midrash');
         socketObj.connect();
 
         socket.on('creds', function(conf) {
@@ -342,7 +343,7 @@ const BeitMidrashHome = ({beitMidrashId,
                         } else {
                             return null
                         }
-                    }) : <div className="noUsers">No users online.</div>}
+                    }) : <div className="noUsers"><InterfaceText>No users online.</InterfaceText></div>}
             </div>
             {/* <div>
             {peopleInBeitMidrash ? pairsLearning(peopleInBeitMidrash).map((pair, i)  => <li key={i}>{pair.map(user => user.name).join(", ")}</li>) : null}

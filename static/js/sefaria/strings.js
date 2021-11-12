@@ -422,6 +422,7 @@ const Strings = {
     "Learn with a Chavruta": "לימוד בחברותא",
     "Share this link with your chavruta to start a video call with this text": "כדי להתחיל שיחת וידאו, שתפו עם החברותא שלכם את הקישור הבא:",
     "Start Call": "התחלת שיחה",
+    "No users online.": "אין כרגע לומדים מחוברים",
 
     // Subscribe & Register
     "Please enter a valid email address.": 'כתובת הדוא"ל שהוזנה אינה תקינה.',
