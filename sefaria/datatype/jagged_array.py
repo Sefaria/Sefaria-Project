@@ -660,7 +660,6 @@ class JaggedTextArray(JaggedArray):
         if _cur is None:
             _cur = self._store
         if isinstance(_cur, str):
-            print(self.get_offset_sections(_curSections, start_sections))
             return func(_cur, self.get_offset_sections(_curSections, start_sections))
         elif isinstance(_cur, list):
             return [self.modify_by_function(func, start_sections, temp_curr, _curSections + [i]) for i, temp_curr in enumerate(_cur)]
