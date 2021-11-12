@@ -245,6 +245,7 @@ def modify_text_by_function(title, vtitle, lang, rewrite_function, uid, needs_re
         assert isinstance(ja, JaggedTextArray)
         modified_text = ja.modify_by_function(rewrite_function)
         if needs_rewrite_function(ja.array()):
+            print(oref)
             modify_text(uid, oref, vtitle, lang, modified_text, **kwargs)
 
 
