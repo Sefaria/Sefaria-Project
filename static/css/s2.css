@@ -11090,6 +11090,7 @@ span.ref-link-color-3 {color: blue}
 
 .chatText {
   margin-left: 13px;
+  flex-grow: 1;
 }
 
 .chatNameAndTime {
