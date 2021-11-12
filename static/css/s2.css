@@ -4923,19 +4923,21 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: inline-block;
 }
 .segment i[data-overlay="Vilna Pages"]:after {
-    color: #FF4444;
+    color: grey;
 	content: attr(data-value);
     font-size: .4em;
-    vertical-align: super;
+    font-style: normal;
+    font-family: var(--english-sans-serif-font-family);
 }
 .segment i[data-overlay="Venice Columns"] {
   display: inline-block;
 }
 .segment i[data-overlay="Venice Columns"]:after {
-    color: #4444ff;
+    color: grey;
 	content: attr(data-value);
     font-size: .4em;
-    vertical-align: super;
+    font-style: normal;
+    font-family: var(--english-sans-serif-font-family);
 }
 .connectionsPanelHeader{
   display: flex;
