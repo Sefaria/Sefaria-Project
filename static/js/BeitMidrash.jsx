@@ -411,7 +411,7 @@ const ChavrutaCall = ({outgoingCall, activeChavruta, setCurrentScreen, socket}) 
                 <div id="endCallButtonHolder">
                     <span id="endCallIcon"><span id="endCall" className="endCallButton" onClick={()=>endCall(activeChavruta.uid)}></span></span>
                 </div>
-                <div className = "callText">Calling {activeChavruta.name}...</div>
+                <div className = "callText"><InterfaceText>Calling</InterfaceText> {activeChavruta.name}...</div>
             </div>
             <audio autoPlay loop src="/static/files/chavruta_ringtone.mp3" />
                 <div className="chavrutaFooter">
