@@ -582,16 +582,17 @@ const ChatBox = ({room,
             {/*{blockedNotification ? <div className="chatMessage">{room.activeChatPartner.name} has blocked you.</div> : null}*/}
         </div>
         <form className="chat-form" onSubmit={handleSubmit}>
-            <input type="text" 
+            <div className="chat-input-holder"><input type="text" 
                 autoFocus  
                 // disabled={partnerLeftNotification || blockedNotification ? true : false}
                 className="chat-input" onChange={handleChange} 
                 placeholder={Sefaria._("Send a Message")}
-                dir={Sefaria.hebrew.isHebrew(chatMessage) ? "rtl" : "ltr"}></input>
+                dir={Sefaria.hebrew.isHebrew(chatMessage) || (chatMessage === "" && Sefaria.interfaceLang === "hebrew") ? "rtl" : "ltr"}></input>
             <input type="submit" 
             className={chatMessage? "chat-submit chat-submit-blue" : "chat-submit"} 
             disabled={!chatMessage}
             value=""/>
+            </div>
         </form>
     </div> : <LoadingMessage />
     )

@@ -10950,7 +10950,7 @@ span.ref-link-color-3 {color: blue}
   color: white;
   font-size: 22px;
   font-weight: 500;
-  margin-left: 24px;
+  margin-inline-start: 24px;
   display: flex;
   justify-content: space-between;
 }
@@ -11045,7 +11045,7 @@ span.ref-link-color-3 {color: blue}
   color: #CCCCCC;
   font-size: 14px;
   font-weight: 400;
-  margin-right: 25px;
+  margin-inline-end: 25px;
   cursor: pointer;
 }
 
@@ -11104,18 +11104,31 @@ span.ref-link-color-3 {color: blue}
   align-items: center;
 }
 
-.chat-input {
-  color: white;
-  background: black;
+.chat-input-holder {
+  background-color: black;
+  margin: 0 24px;
+  display: flex;
+  flex-direction: row;
   border-radius: 6px;
   border: 0px;
   height: 30px;
-  width: 75%; 
-  margin-left: 13px;
+  width: 100%; 
+  justify-content: space-between;
+}
+
+.chat-input {
+  color: white;
+  background: transparent;
+  border: 0;
   display: flex;
   justify-content: flex-end;
-  padding-right: 30px;
-  padding-left: 10px;
+  padding-inline-end: 12px;
+  padding-inline-start: 12px;
+  flex-grow:1;
+}
+
+.chat-input:active {
+  outline: none;
 }
 
 .chat-submit {
@@ -11124,8 +11137,8 @@ span.ref-link-color-3 {color: blue}
   background-repeat: no-repeat;
   background-size: contain;
   height: 18px;
+  margin-top: 5px;
   width: 20.57px;
-  margin-left: -25px;
   border: 0px;
   background-color: black;
   cursor: pointer;
