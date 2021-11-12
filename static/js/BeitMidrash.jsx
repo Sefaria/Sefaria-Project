@@ -601,9 +601,10 @@ const ChatBox = ({room,
 const Message = ({user, message}) => {
 
     const messageDate = new Date(message.timestamp);
-    const parsedDateStamp = messageDate.toLocaleDateString();
-    const parsedTimeStamp = messageDate.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit' })
-    const displayTimeStamp = parsedDateStamp === new Date().toLocaleDateString() ? parsedTimeStamp : parsedDateStamp + ' ' + parsedTimeStamp;
+    const languageOption = Sefaria.interfaceLang === "hebrew" ? 'he-IL' : [];
+    const parsedDateStamp =  messageDate.toLocaleDateString(languageOption);
+    const parsedTimeStamp = messageDate.toLocaleTimeString(languageOption, {hour: '2-digit', minute: '2-digit' });
+    const displayTimeStamp = parsedDateStamp === new Date().toLocaleDateString(languageOption) ? parsedTimeStamp : parsedDateStamp + ' ' + parsedTimeStamp;
 
     return (
         <div className="chatMessage">
