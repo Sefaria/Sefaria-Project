@@ -624,7 +624,7 @@ const Message = ({user, message}) => {
     const displayTimeStamp = parsedDateStamp === new Date().toLocaleDateString(languageOption) ? parsedTimeStamp : parsedDateStamp + ' ' + parsedTimeStamp;
 
     return (
-        <div className="chatMessage">
+        <div className="chatMessage" data-hj-suppress>
                 <ProfilePic len={35} url={user.pic} name={user.name} />
             <div className = "chatText">
                 <div className="chatNameAndTime"><span>{user.name}</span>{"  "}<span>{displayTimeStamp}</span></div>
