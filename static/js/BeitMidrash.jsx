@@ -589,7 +589,7 @@ const ChatBox = ({room,
                 placeholder={Sefaria._("Send a Message")}
                 dir={Sefaria.hebrew.isHebrew(chatMessage) || (chatMessage === "" && Sefaria.interfaceLang === "hebrew") ? "rtl" : "ltr"}></input>
             <input type="submit" 
-            className={chatMessage? "chat-submit chat-submit-blue" : "chat-submit"} 
+            className={classNames({"chat-submit": 1, "chat-submit-blue": !!chatMessage, "chat-submit-hebrew": Sefaria.interfaceLang === "hebrew"})} 
             disabled={!chatMessage}
             value=""/>
             </div>

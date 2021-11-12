@@ -11150,6 +11150,15 @@ span.ref-link-color-3 {color: blue}
   background-image: url("/static/img/chat_submit_arrow_blue.svg");
 }
 
+.chat-submit-hebrew {
+  -moz-transform: scaleX(-1);
+  -o-transform: scaleX(-1);
+  -webkit-transform: scaleX(-1);
+  transform: scaleX(-1);
+  filter: FlipH;
+  -ms-filter: "FlipH";
+}
+
 .callContainer {
   display: flex;
   flex-direction: column;
