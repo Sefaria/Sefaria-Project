@@ -413,7 +413,15 @@ const ChavrutaCall = ({outgoingCall, activeChavruta, setCurrentScreen, socket}) 
                 <div className = "callText">Calling {activeChavruta.name}...</div>
             </div>
             <audio autoPlay loop src="/static/files/chavruta_ringtone.mp3" />
-            <div className="chavrutaFooter">Questions? Email <a href="mailto:hello@sefaria.org">hello@sefaria.org</a></div>
+                <div className="chavrutaFooter">
+                    <p className="int-en">
+                        Questions? Email <a href="mailto:hello@sefaria.org" target="_blank">hello@sefaria.org</a>
+                    </p>
+
+                    <p className="int-he">
+                        לשאלות פנו/כתבו לדוא"ל <a href="mailto:hello@sefaria.org" target="_blank">hello@sefaria.org</a>
+                    </p>
+                </div>
         </div> : 
         <div className="callContainer">
             <div>
@@ -425,7 +433,15 @@ const ChavrutaCall = ({outgoingCall, activeChavruta, setCurrentScreen, socket}) 
                 </div>
             </div>
             <audio autoPlay loop src="/static/files/chavruta-ringtone.wav" />
-            <div className="chavrutaFooter">Questions? Email <a href="mailto:hello@sefaria.org">hello@sefaria.org</a></div>
+            <div className="chavrutaFooter">
+            <p className="int-en">
+                    Questions? Email <a href="mailto:hello@sefaria.org" target="_blank">hello@sefaria.org</a>
+                </p>
+
+                <p className="int-he">
+                    לשאלות פנו/כתבו לדוא"ל <a href="mailto:hello@sefaria.org" target="_blank">hello@sefaria.org</a>
+                </p>
+            </div>
         </div>
     )
 }
@@ -841,7 +857,7 @@ const ChavrutaVideo = ({socket, chavrutaId, pcConfig, setCurrentScreen, activeCh
                         <span id="heMute" className="muteButton int-he" tabIndex={0} title={!audioEnabled ? "הפעל את המיקרופון" : "כבה את המיקרופון" } onClick={() => toggleMute()}></span>
                     </span>
                     <span id="endCallIcon">
-                        <span id="end-call" className="endCallButton int-en" tabIndex={0} title={Sefaria._("End Call")} onClick={(e) => endChavruta(e)} role="link"></span>
+                        <span id="end-call" className="endCallButton" tabIndex={0} title={Sefaria._("End Call")} onClick={(e) => endChavruta(e)} role="link"></span>
                     </span>
                 </div>
 
