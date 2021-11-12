@@ -2344,7 +2344,7 @@ const SefariaEditor = (props) => {
 
     useEffect( /* normalize on load */
         () => {
-
+            hj('event', 'using_new_editor');
             Editor.normalize(editor, { force: true })
         }, []
     )
