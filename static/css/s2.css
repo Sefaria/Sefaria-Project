@@ -6472,6 +6472,14 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 
 .webpageList .website {
   text-align: start;
+  display: flex;
+  justify-content: flex-start;
+  color: #000;
+  cursor: pointer;
+  font-size: 16px;
+  letter-spacing: 1px;
+  margin: 20px 34px;
+  align-items: center;
 }
 
 .webpageList .website .icon {
@@ -6526,6 +6534,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 13px;
   color: #999;
   margin-top: 5px;
+}
+
+.webpageList .website .siteName {
+  margin-inline-start: 15px;
 }
 
 .manuscript .meta span, .manuscript .meta a {
@@ -6835,13 +6847,21 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   direction: rtl;
 }
 
-.toolsButton.topicButton {
+.topicButton {
+  display: flex;
+  justify-content: flex-start;
+  color: #000;
+  cursor: pointer;
+  font-size: 16px;
   flex-direction: column;
   letter-spacing: unset;
   align-items: initial;
   border-top: 1px solid #E5E5E5;
   padding: 20px 34px;
   margin: initial;
+}
+.topicButton:hover {
+  text-decoration: none;
 }
 
 .topicButton .topicButtonTitle {
