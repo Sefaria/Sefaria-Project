@@ -265,10 +265,19 @@ class ResolvedRawRef:
         # TODO sham and directional cases
         return matches
 
+PREFIXES = {'ב', 'וב', 'ע', 'ו'}  # careful of Ayin prefix...
+def get_prefixless_inds(st: str) -> List[int]:
+    """
+    get possible indices of start of string `st` with prefixes stripped
+    """
+    starti_list = []
+    for prefix in PREFIXES:
+        if not st.startswith(prefix): continue
+        starti_list += [len(prefix)]
+    return starti_list
 
 class RefPartTitleTrie:
 
-    PREFIXES = {'ב', 'וב', 'ע', 'ו'}  # careful of Ayin prefix...
 
     def __init__(self, lang, nodes=None, sub_trie=None, scope=None) -> None:
         """
@@ -372,9 +381,7 @@ class RefPartTitleTrie:
         key = key.strip()
         starti_list = [0]
         if self.lang == 'he' and is_first:
-            for prefix in self.PREFIXES:
-                if not key.startswith(prefix): continue
-                starti_list += [len(prefix)]
+            starti_list += get_prefixless_inds(key)
         for starti in starti_list:
             for endi in reversed(range(len(key)+1)):
                 sub_key = key[starti:endi]
@@ -444,6 +451,7 @@ class TermMatcher:
     Used in context matching.
     """
     def __init__(self, lang: str, nonunique_terms: NonUniqueTermSet) -> None:
+        self.lang = lang
         self._str2term_map = defaultdict(list)
         for term in nonunique_terms:
             for title in term.get_titles(lang):
@@ -453,7 +461,11 @@ class TermMatcher:
         matches = []
         for part in ref_parts:
             if part.type != RefPartType.NAMED: continue
-            matches += self._str2term_map.get(part.text, [])
+            starti_inds = [0]
+            if self.lang == 'he':
+                starti_inds += get_prefixless_inds(part.text)
+            for starti in starti_inds:
+                matches += self._str2term_map.get(part.text[starti:], [])
         matches = list({m.slug: m for m in matches}.values())  # unique
         return matches
 

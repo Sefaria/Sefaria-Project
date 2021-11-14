@@ -96,7 +96,7 @@ def test_referenceable_child():
     [create_raw_ref_data("Job 1", 'he', 'ספר בראשית פרק יג פסוק א עד פרק יד פסוק ד', [slice(0, 2), slice(2, 4), slice(4, 6), 6, slice(7, 9), slice(9, 11)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED, RPT.NUMBERED]), ("Genesis 13:1-14:4",)],
     [create_raw_ref_data("Job 1", 'he', 'בראשית יג:א-יד:ד', [0, 1, 3, 4, 5, 7], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED, RPT.NUMBERED]), ("Genesis 13:1-14:4",)],
     # Base text context
-    [create_raw_ref_data("Rashi on Berakhot 2a", 'he', 'תוס\' כ"ז ע"ב ד"ה והלכתא', [slice(0, 2), slice(2, 4), slice(4, 6)], [RPT.NAMED, RPT.NUMBERED, RPT.DH]), ("Tosafot on Berakhot 27b:14:2",)],
+    [create_raw_ref_data("Rashi on Berakhot 2a", 'he', 'ובתוס\' כ"ז ע"ב ד"ה והלכתא', [slice(0, 2), slice(2, 4), slice(4, 6)], [RPT.NAMED, RPT.NUMBERED, RPT.DH]), ("Tosafot on Berakhot 27b:14:2",)],
 
     # YERUSHALMI EN
     [create_raw_ref_data("Jerusalem Talmud Shabbat 1:1", 'en', 'Bavli 2a', [0, 1], [RPT.NAMED, RPT.NUMBERED]), ("Shabbat 2a",)],
