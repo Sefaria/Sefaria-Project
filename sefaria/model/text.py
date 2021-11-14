@@ -5281,9 +5281,10 @@ class Library(object):
 
     def _build_ref_resolver(self):
         import spacy
-        from .ref_part import RefPartTitleTrie, RefPartTitleGraph, RefResolver
+        from .ref_part import RefPartTitleTrie, RefPartTitleGraph, RefResolver, TermMatcher, NonUniqueTermSet
         root_nodes = list(filter(lambda n: getattr(n, 'ref_parts', None) is not None, self.get_index_forest()))
         alone_nodes = reduce(lambda a, b: a + b.index.get_referenceable_alone_nodes(), root_nodes, [])
+        non_unique_terms = NonUniqueTermSet()
         ref_part_title_graph = RefPartTitleGraph(root_nodes)
         self._ref_resolver = RefResolver(
             {k: spacy.load(v) for k, v in RAW_REF_MODEL_BY_LANG_FILEPATH.items()},
@@ -5292,7 +5293,11 @@ class Library(object):
                 "en": RefPartTitleTrie('en', nodes=(root_nodes + alone_nodes), scope='alone'),
                 "he": RefPartTitleTrie('he', nodes=(root_nodes + alone_nodes), scope='alone')
             },
-            ref_part_title_graph
+            ref_part_title_graph,
+            {
+                "en": TermMatcher('en', non_unique_terms),
+                "he": TermMatcher('he', non_unique_terms),
+            }
         )
         return self._ref_resolver
                         

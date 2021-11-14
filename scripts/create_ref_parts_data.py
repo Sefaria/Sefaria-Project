@@ -311,7 +311,7 @@ class RefPartModifier:
     def create_base_non_unique_terms(self):
         NonUniqueTermSet().delete()
 
-        self.t(en='Bavli', he='בבלי', alt_en=['Babylonian Talmud', 'B.T.', 'BT'])
+        self.t(en='Bavli', he='בבלי', alt_en=['Babylonian Talmud', 'B.T.', 'BT', 'Babli'])
         self.t(en='Rashi', he='רש"י')
         self.t(en='Mishnah', he='משנה', alt_en=['M.', 'M', 'Mishna', 'Mishnah'])
         self.t(en='Tosefta', he='תוספתא', alt_en=['Tosephta', 'T.', 'Tosef.', 'Tos.'])
