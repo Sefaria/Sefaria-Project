@@ -50,6 +50,9 @@ class ReaderPanel extends Component {
     state.width = this.props.multiPanel ? 1000 : 500; // Assume we're in a small panel not using multipanel 
 
     this.state = state;
+    this.sheetRef = React.createRef();
+    this.readerContentRef = React.createRef();
+
     return;
   }
   componentDidMount() {
@@ -122,12 +125,12 @@ class ReaderPanel extends Component {
     // Todo: Move the multiple instances of this out to a utils file
     return Sefaria.util.clone(panel);
   }
-  handleBaseSegmentClick(ref) {
+  handleBaseSegmentClick(ref, showHighlight = true) {
     if (this.state.mode === "TextAndConnections") {
       this.closeConnectionsInPanel();
     } else if (this.state.mode === "Text") {
       if (this.props.multiPanel) {
-        this.conditionalSetState({showHighlight: true});
+        this.conditionalSetState({showHighlight: showHighlight});
         this.props.onSegmentClick(ref);
       } else {
         this.openConnectionsInPanel(ref);
@@ -135,6 +138,12 @@ class ReaderPanel extends Component {
     }
   }
   handleSheetSegmentClick(source) {
+    if(source === 0){
+      //the click may be coming from the sheet reader controls, and so we need to find
+      // the first node or the node thats in the url
+      const sheet = Sefaria.sheets.loadSheetByID(this.state.sheetID); // Should already be loaded and in cache
+      source = this.state.highlightedNode ? sheet.sources.find(source => source.node === this.state.highlightedNode) : sheet.sources[0];
+    }
     this.conditionalSetState({highlightedNode: source.node});
     const sheetRef = "Sheet " + this.state.sheetID + ":" + source.node;
     if (this.state.mode ==="SheetAndConnections") {
@@ -191,7 +200,7 @@ class ReaderPanel extends Component {
   }
   closeSheetConnectionsInPanel() {
     // Return to the original text in the ReaderPanel contents
-    this.conditionalSetState({highlightedNode: [], highlightedRefs: [], mode: "Sheet"});
+    this.conditionalSetState({highlightedNode: null, highlightedRefs: [], mode: "Sheet"});
   }
   handleSheetClick(e, sheet, highlightedNode, highlightedRefsInSheet) {
     e.preventDefault();
@@ -516,7 +525,7 @@ class ReaderPanel extends Component {
       return data.indexTitle;
     } else {
       let pRef = Sefaria.parseRef(this.currentRef());
-      return "book" in pRef ? pRef.book : null;
+      return "index" in pRef ? pRef.index : ("book" in pRef ? pRef.book : null);
     }
   }
   currentCategory() {
@@ -545,10 +554,41 @@ class ReaderPanel extends Component {
     let bookRef = this.state.bookRef ? this.state.bookRef : this.currentBook();
     this.props.backFromExtendedNotes(bookRef, this.state.currVersions);
   }
+  whereIsElementInViewport(element) {
+    const elementbbox = element.getBoundingClientRect();
+    const vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0)
+    if (elementbbox.top >= 200 && elementbbox.bottom < vh) {
+        return "in viewport"
+    }
+    if (elementbbox.bottom >= vh/2 && element) {
+        return "past half"
+    }
+  };
+  getHighlightedByScrollPos() {
+    let segmentToHighlight = null
+
+    const segments = this.readerContentRef.current.querySelectorAll(".sheetItem");
+
+    for (let segment of segments) {
+        const elementLoc = this.whereIsElementInViewport(segment);
+        if (elementLoc === "in viewport" || elementLoc === "past half") {
+            segmentToHighlight = segment;
+            break;
+        }
+    }
+
+    return segmentToHighlight
+  };
+  openSidePanel() {
+    const highlighted = this.getHighlightedByScrollPos();
+    highlighted.click();
+  }
   render() {
     if (this.state.error) {
       return (
-        <div className="readerContent">
+        <div
+        ref={this.readerContentRef}
+        className="readerContent">
           <div className="readerError">
             <span className="int-en">Something went wrong! Please use the back button or the menus above to get back on track.</span>
             <span className="int-he">ארעה תקלה במערכת. אנא חזרו לתפריט הראשי או אחורנית על ידי שימוש בכפתורי התפריט או החזור.</span>
@@ -610,6 +650,8 @@ class ReaderPanel extends Component {
     if (this.state.mode === "Sheet" || this.state.mode === "SheetAndConnections" ) {
       items.push(
         <Sheet
+          nodeRef={this.sheetRef}
+          adjustHighlightedAndVisible={this.adjustSheetHighlightedAndVisible}
           panelPosition ={this.props.panelPosition}
           id={this.state.sheetID}
           key={"sheet-"+this.state.sheetID}
@@ -674,13 +716,14 @@ class ReaderPanel extends Component {
           clearSelectedWords={this.clearSelectedWords}
           clearNamedEntity={this.props.clearNamedEntity}
           masterPanelLanguage={this.props.masterPanelLanguage}
+          masterPanelMode={this.props.initialState.mode === "SheetAndConnections" && this.props.multiPanel === false ? "Sheet" : this.props.masterPanelMode}
+          masterPanelSheetId={this.props.initialState.mode === "SheetAndConnections" && this.props.multiPanel === false ? this.props.initialState.sheetID : this.props.masterPanelSheetId}
           versionFilter={this.state.versionFilter}
           recentVersionFilters={this.state.recentVersionFilters}
           setVersionFilter={this.setVersionFilter}
           viewExtendedNotes={this.props.viewExtendedNotes.bind(null, "Connections")}
           checkIntentTimer={this.props.checkIntentTimer}
-          close={this.closeMenus}
-          showBaseText={this.showBaseText} //these two were added for future adding toc to the sidebar
+          navigatePanel={this.props.navigatePanel}
           translationLanguagePreference={this.props.translationLanguagePreference}
           key="connections" />
       );
@@ -986,12 +1029,13 @@ class ReaderPanel extends Component {
     );
     return (
       <ContentLanguageContext.Provider value={contextContentLang}>
-        <div className={classes} onKeyDown={this.handleKeyPress} role="region" id={"panel-"+this.props.panelPosition}>
+        <div ref={this.readerContentRef} className={classes} onKeyDown={this.handleKeyPress} role="region" id={"panel-"+this.props.panelPosition}>
           {hideReaderControls ? null :
           <ReaderControls
             showBaseText={this.showBaseText}
             toggleSheetEditMode={this.toggleSheetEditMode}
             currentRef={this.state.currentlyVisibleRef}
+            highlightedRefs={this.state.highlightedRefs}
             sheetID={this.state.sheetID}
             sheetTitle={sheetTitle}
             currentMode={this.currentMode.bind(this)}
@@ -1005,10 +1049,13 @@ class ReaderPanel extends Component {
             setConnectionsCategory={this.setConnectionsCategory}
             openMenu={this.openMenu}
             closeMenus={this.closeMenus}
+            onTextTitleClick={this.handleBaseSegmentClick}
+            onSheetTitleClick={this.handleSheetSegmentClick}
             openMobileNavMenu={this.props.openMobileNavMenu}
             openDisplaySettings={this.openDisplaySettings}
             currentLayout={this.currentLayout}
             onError={this.onError}
+            openSidePanel={this.openSidePanel}
             connectionsMode={this.state.filter.length && this.state.connectionsMode === "Connections" ? "Connection Text" : this.state.connectionsMode}
             connectionsCategory={this.state.connectionsCategory}
             closePanel={this.props.closePanel}
@@ -1093,6 +1140,8 @@ ReaderPanel.propTypes = {
   toggleSignUpModal:           PropTypes.func.isRequired,
   getHistoryRef:               PropTypes.func,
   profile:                     PropTypes.object,
+  masterPanelMode:             PropTypes.string,
+  masterPanelSheetId:          PropTypes.number,
   translationLanguagePreference: PropTypes.string,
   setTranslationLanguagePreference: PropTypes.func.isRequired,
 };
@@ -1105,13 +1154,18 @@ class ReaderControls extends Component {
     super(props);
     this.state = {};
   }
-  openTextToc(e) {
-    e.preventDefault();
-    this.props.openMenu("text toc");
+  isConnectionsPanelOpenHeuristic(){
+    return !!this.props.highlightedRefs.length
   }
-  openSheetMeta(e) {
+  openTextConnectionsPanel(e) {
     e.preventDefault();
-    this.props.openMenu("sheet meta");
+    if(!this.isConnectionsPanelOpenHeuristic()){ //Prevent click on title from opening connections panel if its already open
+      this.props.onTextTitleClick(this.props.currentRef, false);
+    }
+  }
+  openSheetConnectionsPanel(e) {
+    e.preventDefault();
+    this.props.onSheetTitleClick(0);
   }
   componentDidMount() {
     const title = this.props.currentRef;
@@ -1164,6 +1218,8 @@ class ReaderControls extends Component {
     const showVersion = this.props.currVersions.en && (this.props.settings.language === "english" || this.props.settings.language === "bilingual");
     const versionTitle = this.props.currVersions.en ? this.props.currVersions.en.replace(/_/g," ") : "";
     const url = this.props.sheetID ? "/sheets/" + this.props.sheetID : oref ? "/" + Sefaria.normRef(oref.book) : Sefaria.normRef(this.props.currentRef);
+    const readerTextTocClasses = classNames({readerTextToc: 1, attributed: !!categoryAttribution, connected: this.isConnectionsPanelOpenHeuristic()})
+
 
     let centerContent = connectionsHeader ?
       <div className="readerTextToc">
@@ -1180,16 +1236,12 @@ class ReaderControls extends Component {
         />
       </div>
       :
-      <div className={"readerTextToc" + (categoryAttribution ? ' attributed' : '')} onClick={this.props.sheetID ? this.openSheetMeta : this.openTextToc}>
+      <div className={readerTextTocClasses} onClick={this.props.sheetID ? this.openSheetConnectionsPanel : this.openTextConnectionsPanel}>
         <div className={"readerTextTocBox" + (this.props.sheetID ? " sheetBox" : "")} role="heading" aria-level="1" aria-live="polite">
           <div>
-            <a href={url} aria-label={"Show table of contents for " + title} >
-              { title ?
-              <i className="fa fa-angle-down invisible"></i> : null }
-
+            <a href={url} aria-label={"Show Connection Panel contents for " + title} >
               { this.props.sheetID ?
               <img src={"/static/img/sheet.svg"} className="sheetTocIcon" alt="" /> : null}
-
               { this.props.sheetID ?
               <h1 style={{direction: Sefaria.hebrew.isHebrew(title) ? "rtl" : "ltr"}}>
                 {title}
@@ -1202,7 +1254,6 @@ class ReaderControls extends Component {
                 </span>
               </h1>
               }
-              { title ? (<i className="fa fa-angle-down"></i>) : null }
               { showVersion ?
               <span className="readerTextVersion">
                 <span className="en">{versionTitle}</span>
@@ -1279,6 +1330,7 @@ ReaderControls.propTypes = {
   connectionsMode:         PropTypes.string,
   connectionsCategory:     PropTypes.string,
   multiPanel:              PropTypes.bool,
+  openSidePanel:           PropTypes.func.isRequired,
   interfaceLang:           PropTypes.string,
   toggleSignUpModal:       PropTypes.func.isRequired,
   historyObject:           PropTypes.object,
