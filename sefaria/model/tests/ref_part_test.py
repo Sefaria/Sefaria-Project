@@ -45,9 +45,8 @@ def create_raw_ref_params(lang, input_str, span_indexes, part_types):
     return [RawRefPart(part_type, part_span) for part_type, part_span in zip(part_types, part_spans)], span
 
 def create_raw_ref_data(context_tref, lang, input_str, span_indexes, part_types):
-    ref_resolver = RefResolver(lang, None, None)
     raw_ref = RawRef(*create_raw_ref_params(lang, input_str, span_indexes, part_types))
-    return ref_resolver, raw_ref, Ref(context_tref)
+    return raw_ref, Ref(context_tref), lang
 
 
 def test_duplicate_terms(duplicate_terms):
@@ -103,24 +102,23 @@ def test_referenceable_child():
     [create_raw_ref_data("Jerusalem Talmud Shabbat 1:1", 'en', 'Babli 2a', [0, 1], [RPT.NAMED, RPT.NUMBERED]), ("Shabbat 2a",)],
 ])
 def test_resolve_raw_ref(resolver_data, expected_trefs):
-    ref_resolver, raw_ref, context_ref = resolver_data
+    ref_resolver = library.get_ref_resolver()
+    raw_ref, context_ref, lang = resolver_data
     print('Input:', raw_ref.text)
-    matches = ref_resolver.resolve_raw_ref(context_ref, raw_ref)
+    matches = ref_resolver.resolve_raw_ref(lang, context_ref, raw_ref)
     matched_orefs = sorted([match.ref for match in matches], key=lambda x: x.normal())
     assert len(expected_trefs) == len(matched_orefs)
     for expected_tref, matched_oref in zip(sorted(expected_trefs, key=lambda x: x), matched_orefs):
         assert matched_oref == Ref(expected_tref)
 
-he_ref_resolver = RefResolver('he', model('ref_tagging_gilyon'), model('sub_citation'))
-en_ref_resolver = RefResolver('en', model('yerushalmi_refs'), model('yerushalmi_sub_refs'))
 @pytest.mark.parametrize(('input_str', 'lang', 'expected_trefs'), [
     ["""גמ' שמזונותן עליך. עיין ביצה דף טו ע"ב רש"י ד"ה שמא יפשע:""", 'he', ("Rashi on Beitzah 15b:8:1",)],
     ["""שם אלא ביתך ל"ל. ע' מנחות מד ע"א תד"ה טלית:""", 'he', ("Tosafot on Menachot 44a:12:1",)],
     ["""גמ' במה מחנכין. עי' מנחות דף עח ע"א תוס' ד"ה אחת:""", 'he',("Tosafot on Menachot 78a:10:1",)],
 ])
 def test_full_pipeline_ref_resolver(input_str, lang, expected_trefs):
-    ref_resolver = he_ref_resolver if lang == 'he' else en_ref_resolver
-    resolved = ref_resolver.resolve_refs_in_string(Ref("Job 1"), input_str)
+    ref_resolver = library.get_ref_resolver()
+    resolved = ref_resolver.resolve_refs_in_string(lang, Ref("Job 1"), input_str)
     assert len(resolved) == len(expected_trefs)
     resolved_orefs = sorted([match.ref for match in resolved], key=lambda x: x.normal())
     for expected_tref, matched_oref in zip(sorted(expected_trefs, key=lambda x: x), resolved_orefs):

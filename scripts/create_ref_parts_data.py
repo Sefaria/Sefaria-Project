@@ -264,6 +264,8 @@ class RefPartModifier:
                 if not generic_term:
                     print(generic_title)
                     continue
+                if cat == "Yerushalmi":
+                    index.nodes.addressTypes[0] = "Perek"
                 index.nodes.ref_parts = [
                     {
                         "slugs": [base_term.slug],

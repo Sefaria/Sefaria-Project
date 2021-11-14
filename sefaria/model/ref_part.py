@@ -290,7 +290,7 @@ class RefPartTitleTrie:
         for node in nodes:
             is_index_level = getattr(node, 'index', False) and node == node.index.nodes
             curr_dict_queue = [self._trie]
-            for ref_part in node.ref_parts:
+            for ref_part in getattr(node, 'ref_parts', []):
                 slugs = [slug for slug, _ in filter(lambda x: is_index_level or self.scope == 'any' or x[1] in {'any', self.scope}, zip(ref_part['slugs'], ref_part['scopes']))]
                 if len(slugs) == 0: continue
                 terms = [NonUniqueTerm.init(slug) for slug in slugs]
@@ -394,34 +394,66 @@ class RefPartTitleTrie:
         for item in self._trie:
             yield item
 
+class RefPartTitleGraph:
+    """
+    DAG which represents connections between ref parts in index titles
+    where each connection is a pair of consecutive ref parts
+    """
+    def __init__(self, nodes: List[schema.TitledTreeNode]):
+        from itertools import product
+
+        self._graph = defaultdict(set)
+        for node in nodes:
+            ref_parts = getattr(node, 'ref_parts', [])
+            for i, ref_part in enumerate(ref_parts[:-1]):
+                slugs = ref_part['slugs']
+                next_slugs = ref_parts[i+1]['slugs']
+                for slug1, slug2 in product(slugs, next_slugs):
+                    self._graph[slug1].add(slug2)
+
+    def parent_has_child(self, parent, child):
+        """
+        For case where context is Yerushalmi Berakhot 1:1 and ref is Shabbat 1:1. Want to infer that we're referring to
+        Yerushalmi Shabbat
+        """
+        return child in self._graph[parent]
+
+    def do_parents_share_child(self, parent1, parent2, child):
+        """
+        For case where context is Yerushalmi Berakhot 1:1 and ref is Bavli 2a. Want to infer that we're referring to
+        Bavli Berakhot 2a b/c Yerushalmi and Bavli share child Berakhot
+        """
+        return self.parent_has_child(parent1, child) and self.parent_has_child(parent2, child)
 
 class RefResolver:
 
-    def __init__(self, lang, raw_ref_model: Language, raw_ref_part_model: Language) -> None:
-        self.lang = lang
-        self.raw_ref_model = raw_ref_model
-        self.raw_ref_part_model = raw_ref_part_model
+    def __init__(self, raw_ref_model_by_lang: Dict[str, Language], raw_ref_part_model_by_lang: Dict[str, Language],
+                 ref_part_title_trie_by_lang: Dict[str, RefPartTitleTrie], ref_part_title_graph: RefPartTitleGraph) -> None:
+        self._raw_ref_model_by_lang = raw_ref_model_by_lang
+        self._raw_ref_part_model_by_lang = raw_ref_part_model_by_lang
+        self._ref_part_title_trie_by_lang = ref_part_title_trie_by_lang
+        self._ref_part_title_graph = ref_part_title_graph
     
-    def resolve_refs_in_string(self, context_ref: text.Ref, st: str, with_failures=False) -> List['ResolvedRawRef']:
-        raw_refs = self._get_raw_refs_in_string(st)
+    def resolve_refs_in_string(self, lang: str, context_ref: text.Ref, st: str, with_failures=False) -> List['ResolvedRawRef']:
+        raw_refs = self._get_raw_refs_in_string(lang, st)
         resolved = []
         for raw_ref in raw_refs:
-            temp_resolved = self.resolve_raw_ref(context_ref, raw_ref)
+            temp_resolved = self.resolve_raw_ref(lang, context_ref, raw_ref)
             if len(temp_resolved) == 0 and with_failures:
                 resolved += [ResolvedRawRef(raw_ref, [], None, None)]
             resolved += temp_resolved
         return resolved
 
-    def _get_raw_refs_in_string(self, st: str) -> List['RawRef']:
+    def _get_raw_refs_in_string(self, lang: str, st: str) -> List['RawRef']:
         """
         ml_raw_ref_out
         ml_raw_ref_part_out
         parse ml out
         """
         raw_refs: List['RawRef'] = []
-        raw_ref_spans = self._get_raw_ref_spans_in_string(st)
+        raw_ref_spans = self._get_raw_ref_spans_in_string(lang, st)
         for span in raw_ref_spans:
-            raw_ref_part_spans = self._get_raw_ref_part_spans_in_string(span.text)
+            raw_ref_part_spans = self._get_raw_ref_part_spans_in_string(lang, span.text)
             raw_ref_parts = []
             for part_span in raw_ref_part_spans:
                 part_type = RefPartType.span_label_to_enum(part_span.label_)
@@ -441,25 +473,42 @@ class RefResolver:
             raw_refs += [RawRef(raw_ref_parts, span)]
         return raw_refs
 
-    def _get_raw_ref_spans_in_string(self, st: str) -> List[Span]:
-        doc = self.raw_ref_model(st)
+    def raw_ref_model(self, lang: str, st: str):
+        try:
+            return self._raw_ref_model_by_lang[lang](st)
+        except KeyError as e:
+            raise KeyError(f"No Raw Ref Model for lang `{lang}`")
+
+    def raw_ref_part_model(self, lang: str, st: str):
+        try:
+            return self._raw_ref_part_model_by_lang[lang](st)
+        except KeyError as e:
+            raise KeyError(f"No Raw Ref Part Model for lang `{lang}`")
+
+    def ref_part_title_trie(self, lang: str):
+        try:
+            return self._ref_part_title_trie_by_lang[lang]
+        except KeyError as e:
+            raise KeyError(f"No Raw Ref Part Title Trie for lang `{lang}`")
+
+    def _get_raw_ref_spans_in_string(self, lang: str, st: str) -> List[Span]:
+        doc = self.raw_ref_model(lang, st)
         return doc.ents
 
-    def _get_raw_ref_part_spans_in_string(self, st: str) -> List[Span]:
-        doc = self.raw_ref_part_model(st)
+    def _get_raw_ref_part_spans_in_string(self, lang: str, st: str) -> List[Span]:
+        doc = self.raw_ref_part_model(lang, st)
         return doc.ents
 
-    def resolve_raw_ref(self, context_ref: text.Ref, raw_ref: 'RawRef') -> List['ResolvedRawRef']:
-        unrefined_matches = self.get_unrefined_ref_part_matches(context_ref, raw_ref)
-        resolved_list = self.refine_ref_part_matches(unrefined_matches, raw_ref)
+    def resolve_raw_ref(self, lang: str, context_ref: text.Ref, raw_ref: 'RawRef') -> List['ResolvedRawRef']:
+        unrefined_matches = self.get_unrefined_ref_part_matches(lang, context_ref, raw_ref)
+        resolved_list = self.refine_ref_part_matches(lang, unrefined_matches, raw_ref)
         if len(resolved_list) > 1:
             for resolved in resolved_list:
                 resolved.ambiguous = True
         return resolved_list
 
-    def get_unrefined_ref_part_matches(self, context_ref: text.Ref, raw_ref: 'RawRef') -> List['ResolvedRawRef']:
-        from .text import library
-        root_trie = library.get_root_ref_part_title_trie(self.lang)
+    def get_unrefined_ref_part_matches(self, lang: str, context_ref: text.Ref, raw_ref: 'RawRef') -> List['ResolvedRawRef']:
+        root_trie = self.ref_part_title_trie(lang)
         context_free_matches = self._get_unrefined_ref_part_matches_recursive(raw_ref, root_trie)
         context_full_matches = self._get_unrefined_ref_part_matches_for_base_text_context(context_ref, raw_ref, root_trie)
         return context_full_matches + context_free_matches
@@ -499,7 +548,7 @@ class RefResolver:
 
         return self._prune_unrefined_ref_part_matches(matches)
 
-    def refine_ref_part_matches(self, ref_part_matches: list, raw_ref: 'RawRef') -> list:
+    def refine_ref_part_matches(self, lang: str, ref_part_matches: list, raw_ref: 'RawRef') -> list:
         fully_refined = []
         match_queue = ref_part_matches[:]
         while len(match_queue) > 0:
@@ -515,7 +564,7 @@ class RefResolver:
                 children = match.node.all_children()
             for child in children:
                 for ref_part in unused_ref_parts:
-                    temp_matches = match.get_refined_matches(ref_part, child, self.lang)
+                    temp_matches = match.get_refined_matches(ref_part, child, lang)
                     match_queue += temp_matches
                     if len(temp_matches) > 0: has_match = True
             if not has_match:

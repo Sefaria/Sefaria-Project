@@ -35,7 +35,7 @@ from sefaria.system.exceptions import InputError, BookNameError, PartialRefInput
 from sefaria.utils.hebrew import is_hebrew, hebrew_term
 from sefaria.utils.util import list_depth
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
-from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH, MULTISERVER_ENABLED
+from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH, MULTISERVER_ENABLED, RAW_REF_MODEL_BY_LANG_FILEPATH, RAW_REF_PART_MODEL_BY_LANG_FILEPATH
 from sefaria.system.multiserver.coordinator import server_coordinator
 
 """
@@ -4652,7 +4652,7 @@ class Library(object):
         self._simple_term_mapping = {}
         self._full_term_mapping = {}
         self._simple_term_mapping_json = None
-        self._root_ref_part_title_trie = None
+        self._ref_resolver = None
 
         # Topics
         self._topic_mapping = {}
@@ -5273,20 +5273,28 @@ class Library(object):
         self._topic_mapping = {t.slug: {"en": t.get_primary_title("en"), "he": t.get_primary_title("he")} for t in TopicSet()}
         return self._topic_mapping
 
-    def get_root_ref_part_title_trie(self, lang, rebuild=False):
-        # TODO create separate trie for English
-        trie = self._root_ref_part_title_trie
-        if not trie or rebuild:
-            trie = self._build_root_ref_part_titles(lang)
-        return trie
+    def get_ref_resolver(self, rebuild=False):
+        resolver = self._ref_resolver
+        if not resolver or rebuild:
+            resolver = self._build_ref_resolver()
+        return resolver
 
-    def _build_root_ref_part_titles(self, lang):
-        from .ref_part import RefPartTitleTrie
+    def _build_ref_resolver(self):
+        import spacy
+        from .ref_part import RefPartTitleTrie, RefPartTitleGraph, RefResolver
         root_nodes = list(filter(lambda n: getattr(n, 'ref_parts', None) is not None, self.get_index_forest()))
         alone_nodes = reduce(lambda a, b: a + b.index.get_referenceable_alone_nodes(), root_nodes, [])
-        self._root_ref_part_title_trie = RefPartTitleTrie(lang, nodes=(root_nodes + alone_nodes), scope='alone')
-        return self._root_ref_part_title_trie
-
+        ref_part_title_graph = RefPartTitleGraph(root_nodes)
+        self._ref_resolver = RefResolver(
+            {k: spacy.load(v) for k, v in RAW_REF_MODEL_BY_LANG_FILEPATH.items()},
+            {k: spacy.load(v) for k, v in RAW_REF_PART_MODEL_BY_LANG_FILEPATH.items()},
+            {
+                "en": RefPartTitleTrie('en', nodes=(root_nodes + alone_nodes), scope='alone'),
+                "he": RefPartTitleTrie('he', nodes=(root_nodes + alone_nodes), scope='alone')
+            },
+            ref_part_title_graph
+        )
+        return self._ref_resolver
                         
     #todo: only used in bio scripts
     def get_index_forest(self):
