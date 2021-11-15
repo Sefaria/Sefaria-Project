@@ -53,7 +53,7 @@ if __name__ == "__main__":
         }
         success = post_text("Joshua", send_text, server=server, API_KEY=key)
         if success is None:
-            time.sleep(180)
+            print("Restore failed.  Cauldron likely down.")
         check_texts("Joshua", orig_joshua_text)
         send_text = {
             "language": "en",
@@ -63,7 +63,7 @@ if __name__ == "__main__":
         }
         success = post_text("II Samuel", send_text, server=server, API_KEY=key)
         if success is None:
-            time.sleep(180)
+            print("Restore failed.  Cauldron likely down.")
         check_texts("II Samuel", orig_samuel_text)
 
 

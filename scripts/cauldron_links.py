@@ -160,12 +160,13 @@ if __name__ == "__main__":
         assert os.path.exists(samuel_path), "Did not download II Samuel links yet.  Therefore, can't delete them."
         success = delete_link("II Samuel", API_KEY=key, server=server)
         if success is None:
-            time.sleep(120)
+            print("Restore failed.  Cauldron likely down.")
         old_links = get_links("II Samuel", server=server)
         assert len(old_links) == 0, "Links not successfully deleted"
         success = post_link(orig_II_Samuel_links, server=server, API_KEY=key)
         if success is None:
-            time.sleep(180)
+            print("Restore failed.  Cauldron likely down.")
+
 
     # 2. create additional links for II Samuel based on current Joshua links
     additional_II_Samuel_links = []
