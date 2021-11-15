@@ -1090,19 +1090,17 @@ const TitleVariants = function({titles, update}) {
     return validTitle;
   }
 
-  return <div className="section">
-           <div className="publishBox">
-                  <ReactTags
-                      allowNew={true}
-                      tags={titles}
-                      onDelete={onTitleDelete}
-                      placeholderText={Sefaria._("Add a title...")}
-                      delimiters={["Enter", "Tab", ","]}
-                      onAddition={onTitleAddition}
-                      onValidate={onTitleValidate}
-                    />
-           </div>
-        </div>
+  return <div className="publishBox">
+                <ReactTags
+                    allowNew={true}
+                    tags={titles}
+                    onDelete={onTitleDelete}
+                    placeholderText={Sefaria._("Add a title...")}
+                    delimiters={["Enter", "Tab", ","]}
+                    onAddition={onTitleAddition}
+                    onValidate={onTitleValidate}
+                  />
+         </div>
 }
 
 
@@ -1166,14 +1164,15 @@ const EditTextInfo = function({initTitle, close}) {
             </div> : null}
 
             <div className="section">
-              <label><InterfaceText>Alternate English Titles</InterfaceText></label><label><div className="optional">Optional</div></label>
+              <div><InterfaceText>Alternate English Titles</InterfaceText></div><label><span className="optional">Optional</span></label>
+
+              <TitleVariants update={setTitleVariants} titles={titleVariants}/>
             </div>
-            <TitleVariants update={setTitleVariants} titles={titleVariants}/>
 
             <div className="section">
-              <label><InterfaceText>Alternate Hebrew Titles</InterfaceText></label><label><div className="optional">Optional</div></label>
+              <div><InterfaceText>Alternate Hebrew Titles</InterfaceText></div><label><span className="optional">Optional</span></label>
+              <TitleVariants update={setHeTitleVariants} titles={heTitleVariants}/>
             </div>
-            <TitleVariants update={setHeTitleVariants} titles={heTitleVariants}/>
           </div>
         </div>
       </div>
