@@ -573,8 +573,22 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
       [sourceActive]
   );
 
+  const onMouseDown = (e) => {
+      //Slate tries to auto position the cursor, but on long boxed sources this leads to jumping. This hack should fix it.
+
+      const elementTop = e.currentTarget.offsetTop;
+      const divTop = document.querySelector(".sheetsInPanel").offsetTop;
+      const elementRelativeTop = elementTop - divTop;
+
+      const rect = e.currentTarget.getBoundingClientRect();
+      const clickOffset = e.clientY - rect.top
+
+      e.currentTarget.querySelector(".boxedSourceChildren").style.top = `${elementRelativeTop + clickOffset}px`;
+
+  }
 
   const onClick = (e) => {
+
     if ((e.target).closest('.he') && sourceActive) {
       setActiveSourceLangContent('he')
     }
@@ -652,6 +666,7 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
       <div
           draggable={true}
           className={isDragging ? "boxedSheetItem dragged" : "boxedSheetItem"}
+          onMouseDown={(e) => onMouseDown(e)}
           onDragStart={(e)=>{dragStart(e)}}
           onDragEnd={(e)=>{dragEnd(e)}}
           onDrop={(e)=> {
@@ -693,8 +708,8 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
       </div>
       </div>
       <div className="clearFix"></div>
-      {children}
       </div>
+          <div className="boxedSourceChildren">{children}</div>
           </div>
   );
 };
@@ -1273,7 +1288,7 @@ const withSefariaSheet = editor => {
 
     editor.normalizeNode = entry => {
         const [node, path] = entry;
-        
+
         const normalizers = [
             editor.ensureNoNestedSheetsinSheet,
             editor.ensureNoNestedSheetContents,
@@ -2065,7 +2080,7 @@ const HoverMenu = (opt) => {
             <FormatButton editor={editor} format="italic" />
             <FormatButton editor={editor} format="underline" />
             {buttons == "basic" ? null : <>
-            <HighlightButton />
+                <HighlightButton />
                 <AddLinkButton />
                 <BlockButton editor={editor} format="header" icon="header" />
                 <BlockButton editor={editor} format="numbered-list" icon="list-ol" />
@@ -2128,7 +2143,7 @@ const HighlightButton = () => {
     const isActive = isFormatActive(editor, "background-color");
     const classes = {fa: 1, active: isActive, "fa-pencil": 1};
     const colors = ["#E6DABC", "#EAC4B6", "#D5A7B3", "#AECAB7", "#ADCCDB"]; // 50% gold, orange, rose, green, blue 
-    const colorButtons = <>{colors.map(color => <button className="highlightButton" onClick={e => {
+    const colorButtons = <>{colors.map(color => <button key={`highlight-${color.replace("#", "")}`} className="highlightButton" onClick={e => {
         const isActive = isFormatActive(editor, "background-color", color);
         if (isActive) {
             Editor.removeMark(editor, "background-color")
@@ -2447,7 +2462,7 @@ const SefariaEditor = (props) => {
            */
           if (editor.selection == null) return
 
-          try {
+        try {
             /*
               Need a try/catch because sometimes you get an error like:
               Cannot resolve a DOM node from Slate node: {"type":"p","children":[{"text":"","by":-1,"at":-1}]}

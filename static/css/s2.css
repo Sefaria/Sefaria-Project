@@ -10835,6 +10835,11 @@ section.SheetSource .segmentNumber, section.SheetSource .SheetOutsideBiText {
   opacity: .2;
 }
 
+.boxedSheetItem .boxedSourceChildren {
+  position: absolute;
+  top: 0;
+}
+
 .draggedOver.draggedOverBefore::before {
   content: "";
   display: block;
