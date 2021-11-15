@@ -175,6 +175,8 @@ GOOGLE_ANALYTICS_CODE = 'your google analytics code'
 GOOGLE_MAPS_API_KEY = None  # currently used for shavuot map
 MIXPANEL_CODE = 'you mixpanel code here'
 
+HOTJAR_ID = None
+
 AWS_ACCESS_KEY = None
 AWS_SECRET_KEY = None
 S3_BUCKET = "bucket-name"

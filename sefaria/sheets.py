@@ -58,6 +58,8 @@ def get_sheet(id=None):
 		return {"error": "Couldn't find sheet with id: %s" % (id)}
 	s["topics"] = add_langs_to_topics(s.get("topics", []))
 	s["_id"] = str(s["_id"])
+	collections = CollectionSet({"sheets": id, "listed": True})
+	s["collections"] = [{"name": collection.name, "slug": collection.slug} for collection in collections]
 	return s
 
 
@@ -467,6 +469,13 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 			sheet["datePublished"] = existing["datePublished"]
 		if "noindex" in existing:
 			sheet["noindex"] = existing["noindex"]
+
+		# make sure sheets never get saved with an "error: field to the db...
+		# Not entirely sure why the error "Sheet updated." sneaks into the db sometimes.
+		if "error" in sheet:
+			del sheet["error"]
+		if "error" in existing:
+			del existing["error"]
 
 		existing.update(sheet)
 		sheet = existing

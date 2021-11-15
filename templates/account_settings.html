@@ -24,8 +24,8 @@
     </div>
 	<div id="emailNotifications" class="section">
 		<label class="control-elem">
-            <span class="int-en">Email Frequency (Maximum)</span>
-			<span class="int-he">תדירות שליחת אימייל (מקסימלית)</span>
+            <span class="int-en">Notification Frequency (Maximum)</span>
+			<span class="int-he">תדירות שליחת הודעות (מקסימלית)</span>
         </label>
 		<div class="toggleSet toggleSetToggleBox blueStyle tripleOption control-elem" role="radiogroup">
 			<div role="radio" data-value="daily" class="toggleOption {% if profile.settings.email_notifications == "daily" %} on{% endif %}" tabindex="{% if profile.settings.email_notifications == "daily" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
@@ -162,13 +162,14 @@
             });
 
 			$("#saveAccountSettings").click(function(){
+			    const $newTransLangPref = $("#translationLanguagePreference .toggleOption.on").attr("data-value");
 				let profile = {
                     settings: {
                         email_notifications: $("#emailNotifications .toggleOption.on").attr("data-value"),
                         interface_language: $("#siteLanguage .toggleOption.on").attr("data-value"),
                         textual_custom: $("#textualCustom .toggleOption.on").attr("data-value"),
                         reading_history: $("#readingHistory .toggleOption.on").attr("data-value") === "true" ? true : false,
-                        translation_language_preference: $("#translationLanguagePreference .toggleOption.on").attr("data-value"),
+                        translation_language_preference: $newTransLangPref,
                         translation_language_preference_suggested: true,
                     }
 				};
@@ -183,6 +184,9 @@
 						const $newLang = $("#siteLanguage .toggleOption.on").attr("data-value");
 						if($newLang != $curLang){
 						    Sefaria.track.setInterfaceLanguage("interface language account settings", $newLang);
+                        }
+						if ($newTransLangPref !== "{{ translation_language_preference }}") {
+                            Sefaria.track.event("Reader", "Set Translation Language Preference", $newTransLangPref);
                         }
 						window.location = "/my/profile";
 					}

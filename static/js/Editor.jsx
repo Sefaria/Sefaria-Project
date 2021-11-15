@@ -553,6 +553,7 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
   const [unsavedChanges, setUnsavedChanges] = useState(false)
   const [sourceActive, setSourceActive] = useState(false)
   const [activeSourceLangContent, setActiveSourceLangContent] = useState(null)
+  const [isDragging, setIsDragging] = useState(false)
   const selected = useSelected()
   const focused = useFocused()
   const cancelEvent = (event) => event.preventDefault()
@@ -613,12 +614,58 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
   };
   const heClasses = {he: 1, selected: isActive, editable: activeSourceLangContent == "he" ? true : false };
   const enClasses = {en: 1, selected: isActive, editable: activeSourceLangContent == "en" ? true : false };
+  const dragStart = (e) => {
+      let range = document.createRange();
+      range.selectNode(e.target);
+      const slateRange = ReactEditor.toSlateRange(parentEditor, range, {exactMatch: false})
+      parentEditor.dragging = slateRange
+      const fragment = Node.fragment(parentEditor, slateRange)
+      ReactEditor.deselect(parentEditor)
+
+      const string = JSON.stringify(fragment)
+      const encoded = window.btoa(encodeURIComponent(string))
+      e.dataTransfer.setData('application/x-slate-fragment', encoded)
+      e.dataTransfer.setData('text/html', e.target.innerHTML)
+      e.dataTransfer.setData('text/plain', e.target.text)
+      e.dataTransfer.effectAllowed = 'copy';
+
+      const dragIcon = document.createElement('div');
+      dragIcon.classList.add("dragIcon");
+      dragIcon.classList.add("serif");
+      dragIcon.style.borderInlineStartColor = Sefaria.palette.refColor(element.ref);
+      dragIcon.innerHTML = Sefaria.interfaceLang === "hebrew" ? element.heRef : element.ref;
+
+      document.body.appendChild(dragIcon);
+      e.dataTransfer.setDragImage(dragIcon, 0, 0);
+
+
+
+      ReactEditor.setFragmentData(parentEditor, e.dataTransfer)
+      setIsDragging(true)
+  }
+
+    const dragEnd = (e) => {
+      setIsDragging(false)
+    }
 
   return (
+      <div
+          draggable={true}
+          className={isDragging ? "boxedSheetItem dragged" : "boxedSheetItem"}
+          onDragStart={(e)=>{dragStart(e)}}
+          onDragEnd={(e)=>{dragEnd(e)}}
+          onDrop={(e)=> {
+              e.preventDefault();
+              e.stopPropagation();
+              parentEditor.dragging = false;
+          }
+          }
+          {...attributes}
+      >
     <div className={classNames(sheetItemClasses)} data-sheet-node={element.node} data-sefaria-ref={element.ref} style={{ pointerEvents: (isActive) ? 'none' : 'auto'}}>
-    <div {...attributes} contentEditable={false} onBlur={(e) => onBlur(e) } onClick={(e) => onClick(e)} className={classNames(classes)} style={{"borderInlineStartColor": Sefaria.palette.refColor(element.ref)}}>
+    <div  contentEditable={false} onBlur={(e) => onBlur(e) } onClick={(e) => onClick(e)} className={classNames(classes)} style={{"borderInlineStartColor": Sefaria.palette.refColor(element.ref)}}>
       <div className={classNames(heClasses)} style={{ pointerEvents: (isActive) ? 'auto' : 'none'}}>
-          {element.heRef ? <div className="ref" contentEditable={false} style={{ userSelect: 'none' }}>{element.heRef}</div> : null }
+          {element.heRef ? <div className="ref" contentEditable={false} style={{ userSelect: 'none', pointerEvents: 'auto' }}><a className="refInSheet" href={`/${element.ref}`}>{element.heRef}</a></div> : null }
           <div className="sourceContentText">
           <Slate editor={sheetSourceHeEditor} value={sheetHeSourceValue} onChange={value => onHeChange(value)}>
           <HoverMenu buttons="basic"/>
@@ -632,7 +679,7 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
         </div>
       </div>
       <div className={classNames(enClasses)} style={{ pointerEvents: (isActive) ? 'auto' : 'none'}}>
-        {element.ref ? <div className="ref" contentEditable={false} style={{ userSelect: 'none' }}>{element.ref}</div> : null }
+        {element.ref ? <div className="ref" contentEditable={false} style={{ userSelect: 'none', pointerEvents: 'auto' }}><a className="refInSheet" href={`/${element.ref}`}>{element.ref}</a></div> : null }
         <div className="sourceContentText">
           <Slate editor={sheetSourceEnEditor} value={sheetEnSourceValue} onChange={value => onEnChange(value)}>
           <HoverMenu buttons="basic"/>
@@ -648,6 +695,7 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
       <div className="clearFix"></div>
       {children}
       </div>
+          </div>
   );
 };
 
@@ -727,7 +775,7 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
             <div className="addInterfaceInput mediaInput" title="We can process YouTube and SoundCloud links, and hosted mp3's and images" onClick={(e)=> {e.stopPropagation()}}>
                 <input
                     type="text"
-                    placeholder="Paste a link to an image, video, or audio"
+                    placeholder={Sefaria._("Paste a link to an image, video, or audio")}
                     className="serif"
                     onClick={(e)=> {e.stopPropagation()}}
                     onChange={(e) => onMediaChange(e)}
@@ -845,12 +893,12 @@ const AddInterface = ({ attributes, children, element }) => {
     return (
       <div role="button" title={active ? "Close menu" : "Add a source, image, or other media"} contentEditable={!active} suppressContentEditableWarning={true} aria-label={active ? "Close menu" : "Add a source, image, or other media"} className={classNames(addInterfaceClasses)} onClick={(e) => toggleEditorAddInterface(e)}>
           {itemToAdd == null ? <>
-              <div role="button" title="Add a source" aria-label="Add a source" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addSourceClicked(e)} id="addSourceButton"></div>
-              <div role="button" title="Add an image" aria-label="Add an image" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addImageClicked(e)} id="addImageButton">
+              <div role="button" title={Sefaria._("Add a source")} aria-label="Add a source" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addSourceClicked(e)} id="addSourceButton"></div>
+              <div role="button" title={Sefaria._("Add an image")} aria-label="Add an image" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addImageClicked(e)} id="addImageButton">
                   <label htmlFor="addImageFileSelector" id="addImageFileSelectorLabel"></label>
               </div>
               <input id="addImageFileSelector" type="file" style={{ display: "none"}} onChange={onFileSelect} ref={fileInput} />
-              <div role="button" title="Add media" aria-label="Add media" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addMediaClicked(e)} id="addMediaButton"></div>
+              <div role="button" title={Sefaria._("Add media")} aria-label="Add media" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addMediaClicked(e)} id="addMediaButton"></div>
           </> :
 
               <AddInterfaceInput
@@ -869,17 +917,20 @@ const Element = props => {
     const sheetItemClasses = {
         sheetItem: 1,
         empty: !(Node.string(element)),
-        noPointer: ["SheetSource", "SheetOutsideBiText"].indexOf(element.type) === -1,
         highlight: (useSlate().highlightedNode === element.node)
     };
 
     switch (element.type) {
         case 'spacer':
           const spacerSelected = useSelected();
+          const spacerClasses = {
+            spacerSelected: spacerSelected,
+            spacer: 1,
+            empty: 1
+          }
           return (
-            <div className="spacer empty">
-              {spacerSelected ? <AddInterface {...props} /> : <>{children}</>}
-
+            <div className={classNames(spacerClasses)} {...attributes}>
+              {spacerSelected && document.getSelection().isCollapsed ?  <AddInterface {...props} /> : <>{children}</>}
             </div>
           );
         case 'SheetSource':
@@ -916,7 +967,7 @@ const Element = props => {
 
         case 'SheetMedia':
             let mediaComponent
-            let vimeoRe = /^.*(vimeo\.com\/)((channels\/[A-z]+\/)|(groups\/[A-z]+\/videos\/)|(video\/))?([0-9]+)/;        
+            let vimeoRe = /^.*(vimeo\.com\/)((channels\/[A-z]+\/)|(groups\/[A-z]+\/videos\/)|(video\/))?([0-9]+)/;
             if (element.mediaUrl.match(/\.(jpeg|jpg|gif|png)$/i) != null) {
               mediaComponent = <div className="SheetMedia media"><img className="addedMedia" src={element.mediaUrl} />{children}</div>
             }
@@ -983,7 +1034,7 @@ const Element = props => {
         case 'paragraph':
             const pClasses = {center: element["text-align"] == "center" };
             return (
-                <div className={classNames(pClasses)}>
+                <div className={classNames(pClasses)} {...attributes}>
                     {element.loading ? <div className="sourceLoader"></div> : null}
                     {children}
                 </div>
@@ -1102,7 +1153,7 @@ async function getRefInText(editor, returnSourceIfFound) {
 
 
 const withSefariaSheet = editor => {
-    const {insertData, insertBreak, isVoid, normalizeNode, deleteBackward, setFragmentData} = editor;
+    const {insertData, insertBreak, isVoid, normalizeNode, deleteBackward, deleteForward, setFragmentData} = editor;
 
     //Hack to override this built-in which often returns null when programmatically selecting the whole SheetSource
     Transforms.deselect = () => {
@@ -1111,6 +1162,13 @@ const withSefariaSheet = editor => {
     editor.isVoid = element => {
         return (voidElements.includes(element.type)) ? true : isVoid(element)
     };
+
+    editor.deleteForward = () => {
+
+        console.log(editor.selection)
+        deleteForward(editor);
+
+    }
 
 
     editor.deleteBackward = () => {
@@ -1151,7 +1209,7 @@ const withSefariaSheet = editor => {
                 }
                 return
             } else {
-                Editor.deleteForward(editor);
+                deleteForward(editor);
                 return;
             }
         }
@@ -1217,6 +1275,8 @@ const withSefariaSheet = editor => {
         const [node, path] = entry;
 
         const normalizers = [
+            editor.ensureNoNestedSheetsinSheet,
+            editor.ensureNoNestedSheetContents,
             editor.decorateSheetOutsideText,
             editor.wrapSheetOutsideTextChildren,
             editor.mergeSheetOutsideTextBlocks,
@@ -1233,7 +1293,6 @@ const withSefariaSheet = editor => {
             editor.onlyTextAndRefsInBoxedElements,
             editor.addPlaceholdersForEmptyText,
             editor.liftHeader,
-
         ];
 
         for (let normalizer of normalizers) {
@@ -1247,6 +1306,18 @@ const withSefariaSheet = editor => {
 
     // Normalization functions take (node, path) and return true if they make a change.
     // They are registered in editor.normalizeNode
+
+    editor.ensureNoNestedSheetsinSheet = (node, path) => {
+        if (node.type === "Sheet" && Path.parent(path).length > 0) {
+            Transforms.unwrapNodes(editor, {at: path});
+            return true
+        }
+    }
+
+    editor.ensureNoNestedSheetContents = (node, path) => {
+        if (node.type === "SheetContent" && Node.parent(editor, path).type !== "Sheet") {
+            Transforms.unwrapNodes(editor, {at: path});        }
+    }
 
     editor.liftHeader = (node, path) => {
         if (node.type === "header") {
@@ -1446,13 +1517,18 @@ const withSefariaSheet = editor => {
         const sheetElementTypes = Object.values(sheet_item_els);
 
         if (["SheetSource", "SheetOutsideBiText"].includes(node.type)) {
-            //anything pasted into a sheet source object or a sheet outsideBiText will be treated just as text content
-            for (const [child, childPath] of Node.children(editor, path)) {
-                if (sheetElementTypes.includes(child.type)) {
-                    Transforms.unwrapNodes(editor, {at: childPath});
-                    return true;
+            if (node.children && node.children.length > 1) {
+                Transforms.removeNodes(node, {at: [0]})
                 }
-            }
+
+
+            //anything pasted into a sheet source object or a sheet outsideBiText will be treated just as text content
+            // for (const [child, childPath] of Node.children(editor, path)) {
+            //     if (sheetElementTypes.includes(child.type)) {
+            //         Transforms.unwrapNodes(editor, {at: childPath});
+            //         return true;
+            //     }
+            // }
         }
     };
 
@@ -1664,7 +1740,8 @@ const Link = ({ attributes, children, element }) => {
   const [linkPopoverVisible, setLinkPopoverVisible] = useState(false);
   const [urlValue, setUrlValue] = useState(element.url);
   const [showLinkRemoveButton, setShowLinkRemoveButton] = useState(false);
-  const [currentSlateRange, setCurrentSlateRange] = useState(editor.linkOverrideSelection)
+  const [currentSlateRange, setCurrentSlateRange] = useState(editor.linkOverrideSelection);
+  const [editingUrl, setEditingUrl] = useState(false);
 
 
   let showLinkHoverTimeout;
@@ -1682,11 +1759,13 @@ const Link = ({ attributes, children, element }) => {
         }, 500, e);
     }
     const onBlur = (e, url) => {
-        clearTimeout(showLinkHoverTimeout)
-        hideLinkHoverTimeout = setTimeout(function () {
-            setLinkPopoverVisible(false)
-            setCurrentSlateRange(null)
-        }, 500);
+        if (!editingUrl) {
+            clearTimeout(showLinkHoverTimeout)
+            hideLinkHoverTimeout = setTimeout(function () {
+                setLinkPopoverVisible(false)
+                setCurrentSlateRange(null)
+            }, 500);
+        }
     }
     const onClick = (e, url) => {
         window.open(url, '_blank').focus();
@@ -1701,6 +1780,8 @@ const Link = ({ attributes, children, element }) => {
     }
 
     const closePopup = (e) => {
+        setEditingUrl(false)
+        setLinkPopoverVisible(false)
         if (e.target.value === "") {
             Transforms.select(editor, currentSlateRange);
             editor.removeLink();
@@ -1750,11 +1831,11 @@ const Link = ({ attributes, children, element }) => {
 
       {/* Show popup on hover and also force it open when a new link is created  */}
       {linkPopoverOpen ? (
-        <div className="popup" contentEditable={false} onBlur={(e) => closePopup(e)}>
+        <div className="popup" contentEditable={false} onFocus={() => setEditingUrl(true)} onBlur={(e) => closePopup(e)}>
           <input
               type="text"
               value={urlValue}
-              placeholder="Enter link URL"
+              placeholder={Sefaria._("Enter link URL")}
               className="sans-serif"
               onChange={(e) => urlChange(e)}
           />
@@ -1863,9 +1944,9 @@ const toggleFormat = (editor, format) => {
   }
 };
 
-const isFormatActive = (editor, format) => {
+const isFormatActive = (editor, format, value=null) => {
   const [match] = Editor.nodes(editor, {
-    match: n => n[format] === true,
+    match: n => n[format] === (value ? value : true),
     mode: 'all',
   });
   return !!match
@@ -1941,6 +2022,7 @@ const Leaf = ({attributes, children, leaf}) => {
 const HoverMenu = (opt) => {
     const buttons = (opt["buttons"])
     const ref = useRef();
+    const [showHighlightColors, setShowHighlightColors] = useState(false);
     const editor = useSlate();
 
     useEffect(() => {
@@ -1979,17 +2061,17 @@ const HoverMenu = (opt) => {
     const root = window.document.getElementById('s2');
     return ReactDOM.createPortal(
         <div ref={ref} className="hoverMenu">
-            <FormatButton editor={editor} format="bold"/>
-            <FormatButton editor={editor} format="italic"/>
-            <FormatButton editor={editor} format="underline"/>
+            <FormatButton editor={editor} format="bold" />
+            <FormatButton editor={editor} format="italic" />
+            <FormatButton editor={editor} format="underline" />
             {buttons == "basic" ? null : <>
-                <AddLinkButton/>
+            <HighlightButton />
+                <AddLinkButton />
                 <BlockButton editor={editor} format="header" icon="header" />
                 <BlockButton editor={editor} format="numbered-list" icon="list-ol" />
                 <BlockButton editor={editor} format="bulleted-list" icon="list-ul" />
             </>
             }
-
         </div>,
         root
     )
@@ -2035,6 +2117,67 @@ const FormatButton = ({format}) => {
         >
       <i className={classNames(classes)}/>
     </span>
+    )
+};
+
+
+const HighlightButton = () => {
+    const editor = useSlate();
+    const ref = useRef();
+    const [showPortal, setShowPortal] = useState(false);
+    const isActive = isFormatActive(editor, "background-color");
+    const classes = {fa: 1, active: isActive, "fa-pencil": 1};
+    const colors = ["#E6DABC", "#EAC4B6", "#D5A7B3", "#AECAB7", "#ADCCDB"]; // 50% gold, orange, rose, green, blue 
+    const colorButtons = <>{colors.map(color => <button className="highlightButton" onClick={e => {
+        const isActive = isFormatActive(editor, "background-color", color);
+        if (isActive) {
+            Editor.removeMark(editor, "background-color")
+        } else {
+            Editor.addMark(editor, "background-color", color)
+        }
+  }}><div className="highlightDot" style={{"background-color":color}}></div></button>
+    )}</>
+
+    useEffect(() => {
+        const el = ref.current;
+        if (el) {
+            const checkIfClickedOutside = e => {
+                if (showPortal && ref.current && !ref.current.contains(e.target)) {
+                    setShowPortal(false)
+                }
+            }
+            document.addEventListener("mousedown", checkIfClickedOutside)
+            return () => {
+                // Cleanup the event listener
+                document.removeEventListener("mousedown", checkIfClickedOutside)
+            }
+        }
+
+    }, [showPortal])
+    return (
+        <>
+        <span className="hoverButton"
+            onMouseDown={event => {
+                event.preventDefault();
+                setShowPortal(true);
+                // const isActive = isFormatActive(editor, "background-color");
+                // if (isActive) {
+                //     Editor.removeMark(editor,  "background-color")
+                // } else {
+                //     Editor.addMark(editor,  "background-color", "#FFFF00")
+                // }
+            }}
+        >
+      <i className={classNames(classes)}/>
+    </span>
+    {showPortal ? <div className="highlightMenu" ref={ref}>
+    {colorButtons}
+    <button className="highlightButton" onClick={e => {
+        Editor.removeMark(editor, "background-color")
+    }}>
+    <i className="fa fa-ban highlightCancel"></i>
+  </button></div> : null}
+    </>
     )
 };
 
@@ -2201,7 +2344,7 @@ const SefariaEditor = (props) => {
 
     useEffect( /* normalize on load */
         () => {
-
+            hj('event', 'using_new_editor');
             Editor.normalize(editor, { force: true })
         }, []
     )
@@ -2221,7 +2364,6 @@ const SefariaEditor = (props) => {
           scrollTimeOutId = setTimeout(
               () => {
                   if(props.hasSidebar) {
-                      ReactEditor.deselect(editor);
                       onEditorSidebarToggleClick()
                   }
               }, 200
@@ -2237,7 +2379,6 @@ const SefariaEditor = (props) => {
             let sheetElementTypes = Object.values(sheet_item_els);
               for(const node of Node.ancestors(editor, editor.selection.focus.path)) {
                   if (sheetElementTypes.includes(node[0].type)) {
-                    console.log(editor)
                       if (node[0].node != editor.highlightedNode) {
                         updateSidebar(node[0].node, node[0].ref)
                         if (node[0].type != "SheetSource") {
@@ -2330,7 +2471,7 @@ const SefariaEditor = (props) => {
     const onCutorCopy = event => {
         const nodeAbove = Editor.above(editor, { match: n => Editor.isBlock(editor, n) })
 
-        if (nodeAbove[0].type == "SheetSource") {
+        if (nodeAbove && nodeAbove[0].type == "SheetSource") {
             editor.cuttingSource = true;
             //can't select an empty void -- so we select before and after as well
             Transforms.move(editor, { distance: 1, unit: 'character', reverse: true, edge: 'anchor' })
@@ -2338,6 +2479,82 @@ const SefariaEditor = (props) => {
         }
 
     };
+
+    const onDrop = event => {
+        if (editor.dragging) {
+            event.preventDefault();
+            const elem = document.elementFromPoint(event.clientX, event.clientY)
+            const node = ReactEditor.toSlateNode(editor, elem)
+
+            const clientRect = event.target.getBoundingClientRect();
+            const midY = (clientRect.bottom + clientRect.top)/2
+
+            const dropPath = event.clientY < midY ?
+                Editor.before(editor, ReactEditor.findPath(editor, node)).path :
+                Editor.after(editor, ReactEditor.findPath(editor, node)).path
+
+            if (Path.compare(dropPath, editor.dragging.anchor.path) < 0) {
+                Transforms.delete(editor, {at: editor.dragging});
+                Transforms.select(editor, Editor.end(editor, dropPath));
+                Transforms.insertText(editor, " ")
+                editor.insertData(event.dataTransfer)
+                Transforms.move(editor, { distance: 1, unit: 'character', reverse: true, })
+                editor.deleteBackward()
+            }
+            else if (Path.compare(dropPath, editor.dragging.anchor.path) > 0) {
+                Transforms.select(editor, Editor.start(editor, dropPath));
+                Transforms.insertText(editor, " ")
+                editor.insertData(event.dataTransfer)
+                Transforms.delete(editor, {at: editor.dragging});
+                Transforms.move(editor, { distance: 1, unit: 'character', reverse: true, })
+                editor.deleteBackward()
+            }
+
+            editor.dragging = false
+
+            const removeStyles = editorContainer.current.querySelectorAll(".draggedOver");
+            for (let nodeToCheck of removeStyles) {
+                nodeToCheck.classList.remove("draggedOver", "draggedOverAfter", "draggedOverBefore")
+            }
+
+        }
+    };
+
+    const onDragOver = event => {
+        if (editor.dragging) {
+            event.preventDefault()
+
+            const removeStyles = editorContainer.current.querySelectorAll(".draggedOver");
+            for (let nodeToCheck of removeStyles) {
+                nodeToCheck.classList.remove("draggedOver", "draggedOverAfter", "draggedOverBefore")
+            }
+
+            const elem = document.elementFromPoint(event.clientX, event.clientY)
+            const node = ReactEditor.toSlateNode(editor, elem)
+
+            const clientRect = event.target.getBoundingClientRect();
+            const midY = (clientRect.bottom + clientRect.top)/2
+
+            const dropBefore = event.clientY < midY
+            const dropPath = dropBefore ?
+                Editor.before(editor, ReactEditor.findPath(editor, node)).path :
+                Editor.after(editor, ReactEditor.findPath(editor, node)).path
+
+            const domNode = ReactEditor.toDOMNode(editor, Node.get(editor, dropPath))
+            domNode.classList.add("draggedOver");
+            domNode.classList.add(dropBefore ? "draggedOverAfter" : "draggedOverBefore");
+
+
+            console.log(dropPath)
+            console.log(domNode)
+
+
+            // const curDragPos = compareDragPos(event)
+            // const domNode = ReactEditor.toDOMNode(editor, node)
+            // console.log(curDragPos[1])
+        }
+    }
+
 
     const onBlur = event => {
       editor.blurSelection = editor.selection
@@ -2459,8 +2676,10 @@ const SefariaEditor = (props) => {
                   spellCheck
                   onKeyDown={onKeyDown}
                   onCut={onCutorCopy}
+                  onDragOver={onDragOver}
                   onCopy={onCutorCopy}
                   onBlur={onBlur}
+                  onDrop={onDrop}
                   onDOMBeforeInput={beforeInput}
                 />
             </Slate>
