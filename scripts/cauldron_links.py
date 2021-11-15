@@ -1,13 +1,8 @@
-import django
-django.setup()
 import json
 import requests
-import codecs
 import argparse
-from sefaria.model import *
 from tqdm import tqdm
-import os, os.path
-import time
+import os.path
 
 
 def delete_link(id_or_ref, server="", API_KEY="", VERBOSE=False):
