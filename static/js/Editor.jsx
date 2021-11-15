@@ -1783,6 +1783,7 @@ const Link = ({ attributes, children, element }) => {
         }
     }
     const onClick = (e, url) => {
+        e.preventDefault();
         window.open(url, '_blank').focus();
     }
 
