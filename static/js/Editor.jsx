@@ -420,7 +420,7 @@ function renderSheetItem(source) {
 }
 
 function parseSheetItemHTML(rawhtml) {
-    const preparseHtml = rawhtml.replace(/\u00A0/g, ' ').replace(/(\r\n|\n|\r)/gm, "");
+    const preparseHtml = rawhtml.replace(/\u00A0/g, ' ').replace(/(\r\n|\n|\r|\t)/gm, "");
     const parsed = new DOMParser().parseFromString(preparseHtml, 'text/html');
     const fragment = deserialize(parsed.body);
     const slateJSON = fragment.length > 0 ? fragment : [{text: ''}];
@@ -1273,6 +1273,8 @@ const withSefariaSheet = editor => {
 
     editor.normalizeNode = entry => {
         const [node, path] = entry;
+
+        console.log(editor)
 
         const normalizers = [
             editor.ensureNoNestedSheetsinSheet,
