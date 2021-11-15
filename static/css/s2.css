@@ -9839,6 +9839,10 @@ body #keyboardInputMaster tbody tr td table tbody tr td:hover, body #keyboardInp
   line-height: 19px;
   color: var(--dark-grey);
   margin-bottom: 22px;
+  display: flex;
+}
+.readerPanel.hebrew .aboutBox .aboutAuthor .aboutAuthorInner{
+  direction: rtl;
 }
 
 .aboutBox .aboutAuthor .authorName {
