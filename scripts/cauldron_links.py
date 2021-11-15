@@ -135,9 +135,9 @@ if __name__ == "__main__":
     server = args.server
     key = args.key
     restore = True if args.restore == '1' else False
-    samuel_path = "../data/cauldron_tests/orig_samuel_links.json"
-    joshua_path = "../data/cauldron_tests/orig_joshua_links.json"
-    additional_samuel_path = "../data/cauldron_tests/new_samuel_links.json"
+    samuel_path = "orig_samuel_links.json"
+    joshua_path = "orig_joshua_links.json"
+    additional_samuel_path = "new_samuel_links.json"
 
     # 1. load links. then, if restore is True, first delete anything posted in last run and make sure this succeeded
     if os.path.exists(samuel_path):
