@@ -6,6 +6,8 @@ import codecs
 import argparse
 from sefaria.model import *
 from tqdm import tqdm
+import os, os.path
+import time
 
 
 def delete_link(id_or_ref, server="", API_KEY="", VERBOSE=False):
@@ -17,10 +19,10 @@ def delete_link(id_or_ref, server="", API_KEY="", VERBOSE=False):
     return result
 
 def post_link(info, server="", API_KEY="", skip_lang_check=True, VERBOSE=False, method="POST", dump_json=False):
+    print(f"Attempting to post a total of {len(info)} links...")
     if dump_json:
         with open('links_dump.json', 'w') as fp:
             json.dump(info, fp)
-    print(f"Attempting to post {len(info)} links to {server}.")
     url = server+'/api/links/' if not skip_lang_check else server+"/api/links/?skip_lang_check=1"
     result = http_request(url, body={'apikey': API_KEY}, json_payload=info, method=method)
     if VERBOSE:
@@ -54,16 +56,14 @@ def http_request(url, params=None, body=None, json_payload=None, method="GET"):
     except ValueError:
         success = False
         json_response = ''
-        with codecs.open('errors.html', 'w', 'utf-8') as outfile:
-            outfile.write(response.text)
 
     if success:
         print("\033[92m{} request to {} successful\033[0m".format(method, url))
         return json_response
     else:
+        print(response.text)
         print("\033[91m{} request to {} failed\033[0m".format(method, url))
-        return response.text
-
+        return None
 
 def get_links(ref, server="", msg=False):
     ref = ref.replace(" ", "_")
@@ -71,10 +71,10 @@ def get_links(ref, server="", msg=False):
     results = http_request(url)
     if msg:
         print(f"Found {len(results)} for {ref} on server {server}.")
-    if not isinstance(results, dict):
-        print(results)
-    else:
+    if isinstance(results, list):
         return results
+    else:
+        return []
 
 
 def get_text(ref, lang="", versionTitle="", server="http://draft.sefaria.org"):
@@ -113,67 +113,88 @@ def post_text(ref, text, index_count="off", skip_links=False, server="", API_KEY
         params['skip_links'] = True
     return http_request(url, params=params, body=body, json_payload=text, method="POST")
 
-
-def post_link_in_steps(links, step=0, API_KEY="", server=""):
-    if step == 0:
-        post_link(links, server=server, API_KEY=API_KEY)
-    else:
-        pos = 0
-        print(f"Attempting to post a total of {len(links)} links...")
-        for i in range(0, len(links), step):
-            post_link(links[pos:pos+step], server=server, API_KEY=API_KEY)
-            pos += step
-
 def check_links(current_II_Samuel_links, orig_II_Samuel_links, additional_II_Samuel_links):
-    try:
-        found = {str(sorted([l["ref"], l["anchorRef"]])) for l in current_II_Samuel_links}
-        orig_II_Samuel_links = {str(sorted([l["ref"], l["anchorRef"]])) for l in orig_II_Samuel_links}
-        additional_II_Samuel_links = {str(sorted(l["refs"])) for l in additional_II_Samuel_links}
-        expecting = additional_II_Samuel_links.union(orig_II_Samuel_links)
+    found = {str(sorted([l["ref"], l["anchorRef"]])) for l in current_II_Samuel_links}
+    orig_II_Samuel_links = {str(sorted(l["refs"])) for l in orig_II_Samuel_links}
+    additional_II_Samuel_links = {str(sorted(l["refs"])) for l in additional_II_Samuel_links}
+    expecting = additional_II_Samuel_links.union(orig_II_Samuel_links)
+    if len(found) != len(expecting):
         print(f"Finding {len(found)} on {server} and expecting {len(expecting)}")
-    except Exception as e:
-        print(e)
-
-def check_perakim(perek1, perek2):
-    differences = 0
-    for i, line in enumerate(perek1):
-        if line != perek2[i]:
-            print(f"Difference at line {i}...")
-            differences += 1
-    if differences == 0:
-        print("No differences found!")
+    if len(expecting) - len(found) >= len(additional_II_Samuel_links):
+        print("Post was likely unsuccessful.")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-k", "--key",
                         help="API Key")
-    parser.add_argument("-d", "--destination",
+    parser.add_argument("-s", "--server",
                         help="Sefaria server")
-    parser.add_argument("-q", "--quantity", default=0, help="Amount of links to post in each post.")
+    parser.add_argument("-q", "--quantity", default=-1, help="Amount of links to post.")  # -1 means post all links
+    parser.add_argument("-r", "--restore", help="Restore cauldron to original condition. Delete anything posted in last run.", default=0)
     args = parser.parse_args()
-    server = args.destination
+    server = args.server
     key = args.key
-    quantity = int(args.quantity)
+    restore = True if args.restore == '1' else False
+    samuel_path = "../data/cauldron_tests/orig_samuel_links.json"
+    joshua_path = "../data/cauldron_tests/orig_joshua_links.json"
+    additional_samuel_path = "../data/cauldron_tests/new_samuel_links.json"
 
-    # 1. create additional links for II Samuel based on current Joshua links
-    orig_II_Samuel_links = get_links("II Samuel", server=server, msg=True)
-    Joshua_links = get_links("Joshua", server=server, msg=True)
+    # 1. load links. then, if restore is True, first delete anything posted in last run and make sure this succeeded
+    if os.path.exists(samuel_path):
+        orig_II_Samuel_links = json.load(open(samuel_path, 'r'))
+    else:
+        orig_II_Samuel_links = get_links("II Samuel", server=server, msg=True)
+        for i, l in tqdm(enumerate(orig_II_Samuel_links)):
+            orig_II_Samuel_links[i] = {"refs": [l["ref"], l["anchorRef"]], "auto": True, "generated_by": "chaos script", "type": "Commentary"}
+        json.dump(orig_II_Samuel_links, open(samuel_path, 'w'))
+
+    if os.path.exists(joshua_path):
+        Joshua_links = json.load(open(joshua_path, 'r'))
+    else:
+        Joshua_links = get_links("Joshua", server=server, msg=True)
+        for i, l in tqdm(enumerate(Joshua_links)):
+            Joshua_links[i] = {"refs": [l["ref"], l["anchorRef"]], "auto": True, "generated_by": "chaos script", "type": "Commentary"}
+        json.dump(Joshua_links, open(joshua_path, 'w'))
+
+    if restore:
+        assert os.path.exists(samuel_path), "Did not download II Samuel links yet.  Therefore, can't delete them."
+        success = delete_link("II Samuel", API_KEY=key, server=server)
+        if success is None:
+            time.sleep(120)
+        old_links = get_links("II Samuel", server=server)
+        assert len(old_links) == 0, "Links not successfully deleted"
+        success = post_link(orig_II_Samuel_links, server=server, API_KEY=key)
+        if success is None:
+            time.sleep(180)
+
+    # 2. create additional links for II Samuel based on current Joshua links
     additional_II_Samuel_links = []
-    for i, l in tqdm(enumerate(Joshua_links)):
-        if "II Samuel" not in l["ref"]:
-            l["anchorRef"] = l["anchorRef"].replace("Joshua", "II Samuel")
-            additional_II_Samuel_links.append({"refs": [l["ref"], l["anchorRef"]], "auto": True, "generated_by": "chaos script", "type": "Commentary"})
+    if os.path.exists(additional_samuel_path):
+        additional_II_Samuel_links = json.load(open(additional_samuel_path, 'r'))
+    else:
+        for i, l in tqdm(enumerate(Joshua_links)):
+            which_ref = 0 if l["refs"][0].startswith("Joshua") else 1
+            new_samuel_ref = l["refs"][which_ref].replace("Joshua", "II Samuel")
+            other_ref = l["refs"][1-which_ref]
+            additional_II_Samuel_links.append({"refs": [new_samuel_ref, other_ref], "auto": True, "generated_by": "chaos script", "type": "Commentary"})
+        json.dump(additional_II_Samuel_links, open(additional_samuel_path, 'w'))
 
-    # 2. post additional II Samuel links and then make sure we successfully posted
-    post_link_in_steps(additional_II_Samuel_links, step=quantity, API_KEY=key, server=server)
+    # 3. post additional II Samuel links and then make sure we successfully posted
+    quantity = int(args.quantity)
+    additional_II_Samuel_links = additional_II_Samuel_links[0:quantity] if quantity > 0 else additional_II_Samuel_links
+    if quantity > len(additional_II_Samuel_links):
+        print(f"Warning: Cannot post {quantity} as there are only {len(additional_II_Samuel_links)} links to post")
+    post_link(additional_II_Samuel_links, server=server, API_KEY=key)
     current_II_Samuel_links = get_links("II Samuel", server=server)
     check_links(current_II_Samuel_links, orig_II_Samuel_links, additional_II_Samuel_links)
 
-    # 3. clean up server.  delete all links in II Samuel and then post local II Samuel links. finally confirm they're back
+    # 4. clean up server.  delete all links in II Samuel and then post local II Samuel links. finally confirm they're back
     delete_link("II Samuel", API_KEY=key, server=server)
-    for i, l in tqdm(enumerate(orig_II_Samuel_links)):
-        orig_II_Samuel_links[i] = {"refs": [l["ref"], l["anchorRef"]], "auto": True, "generated_by": "chaos script", "type": "Commentary"}
-    post_link_in_steps(orig_II_Samuel_links, step=quantity, API_KEY=key, server=server)
+    post_link(orig_II_Samuel_links, API_KEY=key, server=server)
     final_II_Samuel_links = get_links("II Samuel", server=server)
-    print(f"Finding {len(final_II_Samuel_links)} and expecting {len(orig_II_Samuel_links)} on {server}")
+    if len(final_II_Samuel_links) == 0:
+        print(f"Delete successful but post unsuccessful")
+    elif len(final_II_Samuel_links) != len(orig_II_Samuel_links):
+        print(f"Finding {len(final_II_Samuel_links)} and expecting {len(orig_II_Samuel_links)} on {server}.  Post unsuccessful")
+
 

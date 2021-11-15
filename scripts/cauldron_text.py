@@ -1,37 +1,89 @@
 from cauldron_links import *
+def load_text(title, path):
+    if os.path.exists(path):
+        return json.load(open(path, 'r'))
+    else:
+        text = []
+        for i in range(24):
+            temp = get_text(f"{title} {i+1}", "en", versionTitle=vtitle, server=server)
+            assert isinstance(temp, dict) and "text" in temp.keys(), temp
+            text.append(temp["text"])
+        json.dump(text, open(path, 'w'))
+        return text
+
+def check_texts(title1, title2_text):
+    for i in range(24):
+        if i % 5 == 0:      # dont need to check every perek
+            title2_perek = title2_text[i]
+            title1_perek = get_text(f"{title1} {i+1}", "en", versionTitle=vtitle, server=server)
+            if title1_perek is None:
+                print("GET request failed")
+            else:
+                title1_perek = title1_perek["text"]
+                if title1_perek != title2_perek:
+                    print("Difference at perek {i+1}")
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-k", "--key",
                         help="API Key")
-    parser.add_argument("-d", "--destination",
+    parser.add_argument("-s", "--server",
                         help="Sefaria server")
+    parser.add_argument("-r", "--restore", help="1 or 0.  Restore cauldron to original condition. Delete anything posted in last run.", default=0)
     args = parser.parse_args()
-    server = args.destination
+    server = args.server
     key = args.key
-
-    # 1. replace Joshua with II Samuel's text.  first store Joshua so we can put it back after
+    restore = True if args.restore == '1' else False
+    samuel_path = "../data/cauldron_tests/orig_samuel_text.json"
+    joshua_path = "../data/cauldron_tests/orig_joshua_text.json"
     vtitle = "Tanakh: The Holy Scriptures, published by JPS"
-    orig_joshua_text = TextChunk(Ref("Joshua"), vtitle=vtitle).text
-    orig_joshua_perek_1 = get_text("Joshua 1", "en", versionTitle=vtitle, server=server)["text"]
-    orig_samuel_perek_1 = get_text("II Samuel 1", "en", versionTitle=vtitle, server=server)["text"]
-    samuel_text = TextChunk(Ref("II Samuel"), vtitle=vtitle).text
+
+    # 1. if restore is True, first delete anything posted in last run and make sure this succeeded
+    if restore:
+        print("Restoring...")
+        assert os.path.exists(joshua_path) and os.path.exists(samuel_path), "Didn't yet download Joshua and II Samuel.  Can't restore."
+        orig_samuel_text = json.load(open(samuel_path, 'r'))
+        orig_joshua_text = json.load(open(joshua_path, 'r'))
+        send_text = {
+            "language": "en",
+            "versionTitle": vtitle,
+            "versionSource": "https://www.sefaria.org",
+            "text": orig_joshua_text
+        }
+        success = post_text("Joshua", send_text, server=server, API_KEY=key)
+        if success is None:
+            time.sleep(180)
+        check_texts("Joshua", orig_joshua_text)
+        send_text = {
+            "language": "en",
+            "versionTitle": vtitle,
+            "versionSource": "https://www.sefaria.org",
+            "text": orig_samuel_text
+        }
+        success = post_text("II Samuel", send_text, server=server, API_KEY=key)
+        if success is None:
+            time.sleep(180)
+        check_texts("II Samuel", orig_samuel_text)
+
+
+    # 2. replace Joshua with II Samuel's text.
+    orig_samuel_text = load_text("II Samuel", samuel_path)
+    orig_joshua_text = load_text("Joshua", joshua_path)
     send_text = {
         "language": "en",
         "versionTitle": vtitle,
         "versionSource": "https://www.sefaria.org",
-        "text": samuel_text
+        "text": orig_samuel_text
     }
-
     post_text("Joshua", send_text, server=server, API_KEY=key)
-
-    # 2. confirm Joshua 1 is now II Samuel 1
-    new_joshua_perek_1 = get_text("Joshua 1", "en", versionTitle=vtitle, server=server)["text"]
-    print(f"Expecting {server} II Samuel 1 to be identical with Joshua 1...")
-    check_perakim(new_joshua_perek_1, orig_samuel_perek_1)
+    print("https://ste.cauldron.sefaria.org/Joshua should now contain the text of II Samuel.")
 
 
-    # 3. restore Joshua and confirm we restored it
+    # 3. confirm Joshua is now II Samuel by checking some of the perakim
+    check_texts("Joshua", orig_samuel_text)
+
+    # 4. restore Joshua and confirm we restored it
     send_text = {
         "language": "en",
         "versionTitle": vtitle,
@@ -39,7 +91,5 @@ if __name__ == "__main__":
         "text": orig_joshua_text
     }
     post_text("Joshua", send_text, server=server, API_KEY=key)
-    restored_joshua_perek_1 = get_text("Joshua 1", "en", versionTitle=vtitle, server=server)["text"]
-    print(f"Expecting {server} Joshua 1 to be restored to original...")
-    check_perakim(restored_joshua_perek_1, orig_joshua_perek_1)
-
+    check_texts("Joshua", orig_joshua_text)
+    print("https://ste.cauldron.sefaria.org/Joshua should now contain the text of Joshua.")
