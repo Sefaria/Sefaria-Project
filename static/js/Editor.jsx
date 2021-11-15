@@ -1273,9 +1273,7 @@ const withSefariaSheet = editor => {
 
     editor.normalizeNode = entry => {
         const [node, path] = entry;
-
-        console.log(editor)
-
+        
         const normalizers = [
             editor.ensureNoNestedSheetsinSheet,
             editor.ensureNoNestedSheetContents,
