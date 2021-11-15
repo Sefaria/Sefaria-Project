@@ -25,6 +25,7 @@ class RefPartModifier:
                 term.title_group.add_title(kwargs.get(lang), lang, primary=True)
             for title in kwargs.get(f"alt_{lang}", []):
                 term.title_group.add_title(title, lang)
+        term.ref_part_role = kwargs['ref_part_role']
         term.save()
         return term
 
@@ -34,12 +35,12 @@ class RefPartModifier:
         db.index.replace_one({"_id": index._id}, props, upsert=True)
 
 
-    def t_from_titled_obj(self, obj):
+    def t_from_titled_obj(self, obj, ref_part_role):
         en_title = obj.get_primary_title('en')
         he_title = obj.get_primary_title('he')
         alt_en_titles = [title for title in obj.title_group.all_titles('en') if title != en_title]
         alt_he_titles = [title for title in obj.title_group.all_titles('he') if title != he_title]
-        return self.t(en=en_title, he=he_title, alt_en=alt_en_titles, alt_he=alt_he_titles)
+        return self.t(en=en_title, he=he_title, alt_en=alt_en_titles, alt_he=alt_he_titles, ref_part_role=ref_part_role)
 
 
     def get_dh(self, s, regexes, oref):
@@ -179,7 +180,7 @@ class RefPartModifier:
             # add perek terms
             perakim = index.get_alt_struct_nodes()
             for iperek, perek_node in enumerate(perakim):
-                perek_term = self.t(he=perek_node.get_primary_title('he'))  # TODO english titles are 'Chapter N'. Is that an issue?
+                perek_term = self.t(he=perek_node.get_primary_title('he'), ref_part_role='structural')  # TODO english titles are 'Chapter N'. Is that an issue?
                 is_last = iperek == len(perakim)-1
                 perek_node.ref_parts = [
                     {
@@ -210,7 +211,8 @@ class RefPartModifier:
         for index in tqdm(indexes, desc='tanakh', total=indexes.count()):
             index_term = NonUniqueTerm({
                 "slug": index.title,
-                "titles": index.nodes.title_group.titles
+                "titles": index.nodes.title_group.titles,
+                "ref_part_role": "structural"
             })
             index_term.save()
             index.nodes.ref_parts = [
@@ -229,7 +231,7 @@ class RefPartModifier:
             # add parsha terms
             if index.categories[-1] == 'Torah':
                 for parsha_node in index.get_alt_struct_nodes():
-                    parsha_term = self.t_from_titled_obj(parsha_node)
+                    parsha_term = self.t_from_titled_obj(parsha_node, ref_part_role='structural')
                     parsha_node.ref_parts = [
                         {
                             "slugs": [parasha.slug],
@@ -304,23 +306,23 @@ class RefPartModifier:
                     'קמא',
                     'פ"ק',
                 ]
-            self.t(en=ord_en[i-1], he=ordinals[i-1], alt_he=titles)
-        self.t(en='last', he='בתרא')
+            self.t(en=ord_en[i-1], he=ordinals[i-1], alt_he=titles, ref_part_role='structural')
+        self.t(en='last', he='בתרא', ref_part_role='structural')
 
 
     def create_base_non_unique_terms(self):
         NonUniqueTermSet().delete()
 
-        self.t(en='Bavli', he='בבלי', alt_en=['Babylonian Talmud', 'B.T.', 'BT', 'Babli'])
-        self.t(en='Rashi', he='רש"י')
-        self.t(en='Mishnah', he='משנה', alt_en=['M.', 'M', 'Mishna', 'Mishnah'])
-        self.t(en='Tosefta', he='תוספתא', alt_en=['Tosephta', 'T.', 'Tosef.', 'Tos.'])
-        self.t(en='Yerushalmi', he='יורשלמי', alt_en=['Jerusalem Talmud', 'J.T.', 'JT'])
-        self.t(en='Tosafot', he='תוספות', alt_he=["תוס'", 'תוד"ה', 'תד"ה',])
-        self.t(en='Ran', he='ר"ן')
-        self.t(en='Perek', he='פרק')
-        self.t(en='Sefer', he='ספר')
-        self.t_from_titled_obj(Term().load({"name": "Parasha"}))
+        self.t(en='Bavli', he='בבלי', alt_en=['Babylonian Talmud', 'B.T.', 'BT', 'Babli'], ref_part_role='structural')
+        self.t(en='Rashi', he='רש"י', ref_part_role='structural')
+        self.t(en='Mishnah', he='משנה', alt_en=['M.', 'M', 'Mishna', 'Mishnah'], ref_part_role='structural')
+        self.t(en='Tosefta', he='תוספתא', alt_en=['Tosephta', 'T.', 'Tosef.', 'Tos.'], ref_part_role='structural')
+        self.t(en='Yerushalmi', he='יורשלמי', alt_en=['Jerusalem Talmud', 'J.T.', 'JT'],ref_part_role='structural')
+        self.t(en='Tosafot', he='תוספות', alt_he=["תוס'", 'תוד"ה', 'תד"ה',], ref_part_role='structural')
+        self.t(en='Ran', he='ר"ן', ref_part_role='structural')
+        self.t(en='Perek', he='פרק', ref_part_role='alt_title')
+        self.t(en='Sefer', he='ספר', ref_part_role='alt_title')
+        self.t_from_titled_obj(Term().load({"name": "Parasha"}), ref_part_role='alt_title')
         self.create_numeric_perek_terms()
 
     def create_shas_terms(self):
@@ -353,7 +355,7 @@ class RefPartModifier:
         for (generic_title_en, generic_title_he), alt_titles in sorted(title_map.items(), key=lambda x: x[0]):
             alt_he = [tit for tit in alt_titles if is_hebrew(tit) and tit != generic_title_he]
             alt_en = [tit for tit in alt_titles if not is_hebrew(tit) and tit != generic_title_en]
-            term = self.t(en=generic_title_en, he=generic_title_he, alt_en=alt_en, alt_he=alt_he)
+            term = self.t(en=generic_title_en, he=generic_title_he, alt_en=alt_en, alt_he=alt_he, ref_part_role='structural')
             title_term_map[generic_title_en] = term
         return title_term_map
 

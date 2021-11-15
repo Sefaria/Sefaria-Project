@@ -41,6 +41,9 @@ class NonUniqueTerm(abst.AbstractMongoRecord, schema.AbstractTitledObject, TrieE
         "slug",
         "titles"
     ]
+    optional_attrs = [
+        "ref_part_role",  # currently either "structural" or "alt_title". structural should be used for terms that used to define a logical relationship between ref parts (e.g. 'yerushalmi'). "alt_title" is for parts that are only included to generate more alt_titles (e.g. 'sefer')
+    ]
     slug_fields = ['slug']
 
     title_group = None
@@ -169,13 +172,19 @@ class RawRef:
 
 class ResolvedRawRef:
 
-    def __init__(self, raw_ref: 'RawRef', resolved_ref_parts: List['RawRefPart'], node, ref: text.Ref, resolved_context_terms: List[NonUniqueTerm]=None) -> None:
+    def __init__(self, raw_ref: 'RawRef', resolved_ref_parts: List['RawRefPart'], node, ref: text.Ref, resolved_context_terms: List[NonUniqueTerm]=None, ambiguous=False) -> None:
         self.raw_ref = raw_ref
         self.resolved_ref_parts = resolved_ref_parts
         self.resolved_context_terms = resolved_context_terms
         self.node = node
         self.ref = ref
-        self.ambiguous = False
+        self.ambiguous = ambiguous
+
+    def clone(self, **kwargs) -> 'ResolvedRawRef':
+        """
+        Return new ResolvedRawRef with all the same data except modifications specified in kwargs
+        """
+        return ResolvedRawRef(**{**self.__dict__, **kwargs})
 
     def get_unused_ref_parts(self, raw_ref: 'RawRef'):
         return [ref_part for ref_part in raw_ref.raw_ref_parts if ref_part not in self.resolved_ref_parts]
@@ -188,7 +197,7 @@ class ResolvedRawRef:
     def _get_refined_match_for_dh_part(self, raw_ref_part: 'RawRefPart', refined_ref_parts: List['RawRefPart'], node: schema.DiburHamatchilNodeSet):
         max_node, max_score = node.best_fuzzy_match_score(raw_ref_part)
         if max_score == 1.0:
-            return ResolvedRawRef(self.raw_ref, refined_ref_parts, max_node, text.Ref(max_node.ref))
+            return self.clone(resolved_ref_parts=refined_ref_parts, node=max_node, ref=text.Ref(max_node.ref))
 
     def _get_refined_refs_for_numbered_part(self, raw_ref_part: 'RawRefPart', refined_ref_parts: List['RawRefPart'], node, lang) -> List['ResolvedRawRef']:
         possible_sections, possible_to_sections, addr_classes = node.address_class(0).get_all_possible_sections_from_string(lang, raw_ref_part.text)
@@ -214,10 +223,10 @@ class ResolvedRawRef:
                 continue
             except AssertionError as e:
                 print(self.ref.normal(), e)
-        return [ResolvedRawRef(self.raw_ref, refined_ref_parts, node, refined_ref) for refined_ref in refined_refs]
+        return [self.clone(resolved_ref_parts=refined_ref_parts, node=node, ref=refined_ref) for refined_ref in refined_refs]
 
     def _get_refined_matches_for_ranged_sections(self, sections: List['RawRefPart'], refined_ref_parts: List['RawRefPart'], node, lang):
-        resolved_raw_refs = [ResolvedRawRef(self.raw_ref, refined_ref_parts, node, node.ref())]
+        resolved_raw_refs = [self.clone(resolved_ref_parts=refined_ref_parts, node=node, ref=node.ref())]
         is_first_pass = True
         for section_part in sections:
             queue_len = len(resolved_raw_refs)
@@ -236,7 +245,7 @@ class ResolvedRawRef:
         ranged_resolved_raw_refs = []
         for section, toSection in product(section_resolved_raw_refs, toSection_resolved_raw_refs):
             try:
-                ranged_resolved_raw_refs += [ResolvedRawRef(self.raw_ref, refined_ref_parts, section.node, section.ref.to(toSection.ref))]
+                ranged_resolved_raw_refs += [self.clone(resolved_ref_parts=refined_ref_parts, node=section.node, ref=section.ref.to(toSection.ref))]
             except InputError:
                 continue
         return ranged_resolved_raw_refs
@@ -252,7 +261,7 @@ class ResolvedRawRef:
         elif (raw_ref_part.type == RefPartType.NAMED and isinstance(node, schema.TitledTreeNode) or
         raw_ref_part.type == RefPartType.NUMBERED and isinstance(node, schema.ArrayMapNode)):  # for case of numbered alt structs
             if node.ref_part_title_trie(lang).has_continuations(raw_ref_part.key()):
-                matches += [ResolvedRawRef(self.raw_ref, refined_ref_parts, node, node.ref())]
+                matches += [self.clone(resolved_ref_parts=refined_ref_parts, node=node, ref=node.ref())]
         elif raw_ref_part.type == RefPartType.DH:
             if isinstance(node, schema.JaggedArrayNode):
                 # jagged array node can be skipped entirely if it has a dh child
@@ -264,6 +273,11 @@ class ResolvedRawRef:
                     matches += [dh_match]
         # TODO sham and directional cases
         return matches
+
+    def get_num_resolved(self):
+        return len(self.resolved_ref_parts) + len(self.resolved_context_terms)
+
+    num_resolved = property(get_num_resolved)
 
 PREFIXES = {'ב', 'וב', 'ע', 'ו'}  # careful of Ayin prefix...
 def get_prefixless_inds(st: str) -> List[int]:
@@ -410,8 +424,8 @@ class RefPartTitleGraph:
         for node in nodes:
             ref_parts = getattr(node, 'ref_parts', [])
             for i, ref_part in enumerate(ref_parts[:-1]):
-                slugs = ref_part['slugs']
-                next_slugs = ref_parts[i+1]['slugs']
+                slugs = filter(lambda x: NonUniqueTerm.init(x).ref_part_role == "structural", ref_part['slugs'])
+                next_slugs = filter(lambda x: NonUniqueTerm.init(x).ref_part_role == "structural", ref_parts[i+1]['slugs'])
                 for slug1, slug2 in product(slugs, next_slugs):
                     self._graph[slug1].add(slug2)
 
@@ -431,7 +445,7 @@ class RefPartTitleGraph:
 
     def get_parent_for_children(self, context_slugs: list, input_slugs: list) -> Optional[str]:
         for slugs in context_slugs:
-            for context_slug in slugs:
+            for context_slug in slugs['slugs']:
                 for input_slug in input_slugs:
                     if self.parent_has_child(context_slug, input_slug):
                         return context_slug
@@ -480,7 +494,7 @@ class RefResolver:
         self._ref_part_title_graph = ref_part_title_graph
         self._term_matcher_by_lang = term_matcher_by_lang
     
-    def resolve_refs_in_string(self, lang: str, context_ref: text.Ref, st: str, with_failures=False) -> List['ResolvedRawRef']:
+    def resolve_refs_in_string(self, lang: str, context_ref: text.Ref, st: str, with_failures=False) -> List[ResolvedRawRef]:
         raw_refs = self._get_raw_refs_in_string(lang, st)
         resolved = []
         for raw_ref in raw_refs:
@@ -577,7 +591,7 @@ class RefResolver:
         prev_ref_parts = prev_ref_parts or []
         prev_context_terms = prev_context_terms or []
         matches = []
-        trie_entries: List[TrieEntry] = ref_parts + context_terms
+        trie_entries: List[TrieEntry] = context_terms + ref_parts
         for i, trie_entry in enumerate(trie_entries):
             temp_prev_ref_parts, temp_prev_context_terms = prev_ref_parts, prev_context_terms
             if isinstance(trie_entry, RawRefPart):
@@ -590,8 +604,8 @@ class RefResolver:
             if temp_title_trie is None: continue
             if None in temp_title_trie:
                 matches += [ResolvedRawRef(raw_ref, temp_prev_ref_parts, node, (node.nodes if isinstance(node, text.Index) else node).ref(), temp_prev_context_terms) for node in temp_title_trie[None]]
-            temp_ref_parts = [ref_parts[j] for j in range(len(ref_parts)) if j != i]
-            temp_context_terms = [context_terms[j] for j in range(len(context_terms)) if j != (i-len(ref_parts))]
+            temp_ref_parts = [ref_parts[j] for j in range(len(ref_parts)) if j != (i-len(context_terms))]
+            temp_context_terms = [context_terms[j] for j in range(len(context_terms)) if j != i]
             matches += self._get_unrefined_ref_part_matches_recursive(lang, RawRef(temp_ref_parts, raw_ref.span), temp_title_trie, prev_ref_parts=temp_prev_ref_parts, context_terms=temp_context_terms, prev_context_terms=temp_prev_context_terms)
 
         return self._prune_unrefined_ref_part_matches(matches)
@@ -620,7 +634,7 @@ class RefResolver:
         
         return self._prune_refined_ref_part_matches(fully_refined)
 
-    def _prune_unrefined_ref_part_matches(self, ref_part_matches: List['ResolvedRawRef']) -> List['ResolvedRawRef']:
+    def _prune_unrefined_ref_part_matches(self, ref_part_matches: List[ResolvedRawRef]) -> List[ResolvedRawRef]:
         index_match_map = defaultdict(list)
         for match in ref_part_matches:
             key = match.node.title if isinstance(match.node, text.Index) else match.node.ref().normal()
@@ -630,17 +644,20 @@ class RefResolver:
             pruned_matches += [max(match_list, key=lambda m: len(m.resolved_ref_parts))]
         return pruned_matches
 
-    def _prune_refined_ref_part_matches(self, ref_part_matches: List['ResolvedRawRef']) -> List['ResolvedRawRef']:
+    def _prune_refined_ref_part_matches(self, ref_part_matches: List[ResolvedRawRef]) -> List[ResolvedRawRef]:
         """
         So far simply returns all matches with the maximum number of resolved_ref_parts
         """
         max_ref_parts = 0
         max_ref_part_matches = []
         for match in ref_part_matches:
-            if len(match.resolved_ref_parts) > max_ref_parts:
-                max_ref_parts = len(match.resolved_ref_parts)
+            if match.num_resolved > max_ref_parts:
+                max_ref_parts = match.num_resolved
                 max_ref_part_matches = [match]
-            elif len(match.resolved_ref_parts) == max_ref_parts:
+            elif match.num_resolved == max_ref_parts:
                 max_ref_part_matches += [match]
+
+        # remove matches that have empty refs
+        max_ref_part_matches = list(filter(lambda x: not x.ref.is_empty(), max_ref_part_matches))
         return max_ref_part_matches
 
