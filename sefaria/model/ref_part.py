@@ -576,7 +576,20 @@ class RefResolver:
         context_swaps = getattr(context_ref.index.nodes, 'ref_resolver_context_swaps', None)
         context_free_matches = self._get_unrefined_ref_part_matches_recursive(lang, raw_ref, context_swaps=context_swaps)
         context_full_matches = self._get_unrefined_ref_part_matches_for_graph_context(lang, context_ref, raw_ref, context_swaps=context_swaps)
-        return context_full_matches + context_free_matches
+        matches = context_full_matches + context_free_matches
+        if len(matches) == 0:
+            # TODO current assumption is only need to add context title if no matches. but it's possible this is necessary even if there were matches
+            title_context_matches = self._get_unrefined_ref_part_matches_for_title_context(lang, context_ref, raw_ref, context_swaps=context_swaps)
+            matches = title_context_matches
+        return matches
+
+    def _get_unrefined_ref_part_matches_for_title_context(self, lang: str, context_ref: text.Ref, raw_ref: RawRef, context_swaps: Dict[str, str]=None) -> List[ResolvedRawRef]:
+        context_ref_part_terms = [[NonUniqueTerm.init(slug) for slug in inner_ref_parts['slugs']] for inner_ref_parts in getattr(context_ref.index.nodes, 'ref_parts', [])]
+        matches = []
+        for context_terms in product(*context_ref_part_terms):
+            temp_matches = self._get_unrefined_ref_part_matches_recursive(lang, raw_ref, context_terms=list(context_terms), context_swaps=context_swaps)
+            matches += list(filter(lambda x: len(x.resolved_context_terms), temp_matches))
+        return matches
 
     def _get_unrefined_ref_part_matches_for_graph_context(self, lang: str, context_ref: text.Ref, raw_ref: RawRef, context_swaps: Dict[str, str]=None) -> List[ResolvedRawRef]:
         matches = []
@@ -608,7 +621,7 @@ class RefResolver:
 
     def _get_unrefined_ref_part_matches_recursive(self, lang: str, raw_ref: RawRef, title_trie: RefPartTitleTrie=None, prev_ref_parts: list=None, context_terms: List[NonUniqueTerm]=None, prev_context_terms=None, context_swaps: Dict[str, str]=None) -> List['ResolvedRawRef']:
         title_trie = title_trie or self.get_ref_part_title_trie(lang)
-        ref_parts, context_swaps = self._get_context_swaps(lang, raw_ref.raw_ref_parts, context_swaps)
+        ref_parts, context_swaps = self._get_context_swaps(lang, raw_ref.raw_ref_parts, context_swaps)  # TODO only needs to be run first time
         context_terms = context_terms or []
         context_terms += context_swaps
         prev_ref_parts = prev_ref_parts or []
