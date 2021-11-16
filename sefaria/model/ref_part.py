@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import List, Union, Dict, Optional
+from typing import List, Union, Dict, Optional, Tuple
 from enum import Enum
 from functools import reduce
 from itertools import product
@@ -42,7 +42,7 @@ class NonUniqueTerm(abst.AbstractMongoRecord, schema.AbstractTitledObject, TrieE
         "titles"
     ]
     optional_attrs = [
-        "ref_part_role",  # currently either "structural" or "alt_title". structural should be used for terms that used to define a logical relationship between ref parts (e.g. 'yerushalmi'). "alt_title" is for parts that are only included to generate more alt_titles (e.g. 'sefer')
+        "ref_part_role",  # currently either "structural", "context_swap" or "alt_title". structural should be used for terms that used to define a logical relationship between ref parts (e.g. 'yerushalmi'). "alt_title" is for parts that are only included to generate more alt_titles (e.g. 'sefer'). "context_swap" is for parts that are meant to be swapped via SchemaNode.ref_resolver_context_swaps
     ]
     slug_fields = ['slug']
 
@@ -471,15 +471,20 @@ class TermMatcher:
             for title in term.get_titles(lang):
                 self._str2term_map[title] += [term]
 
+    def match_term(self, ref_part: RawRefPart) -> List[NonUniqueTerm]:
+        matches = []
+        if ref_part.type != RefPartType.NAMED: return matches
+        starti_inds = [0]
+        if self.lang == 'he':
+            starti_inds += get_prefixless_inds(ref_part.text)
+        for starti in starti_inds:
+            matches += self._str2term_map.get(ref_part.text[starti:], [])
+        return matches
+
     def match_terms(self, ref_parts: List[RawRefPart]) -> List[NonUniqueTerm]:
         matches = []
         for part in ref_parts:
-            if part.type != RefPartType.NAMED: continue
-            starti_inds = [0]
-            if self.lang == 'he':
-                starti_inds += get_prefixless_inds(part.text)
-            for starti in starti_inds:
-                matches += self._str2term_map.get(part.text[starti:], [])
+            matches += self.match_term(part)
         matches = list({m.slug: m for m in matches}.values())  # unique
         return matches
 
@@ -568,11 +573,12 @@ class RefResolver:
         return resolved_list
 
     def get_unrefined_ref_part_matches(self, lang: str, context_ref: text.Ref, raw_ref: 'RawRef') -> List['ResolvedRawRef']:
-        context_free_matches = self._get_unrefined_ref_part_matches_recursive(lang, raw_ref)
-        context_full_matches = self._get_unrefined_ref_part_matches_for_graph_context(lang, context_ref, raw_ref)
+        context_swaps = getattr(context_ref.index.nodes, 'ref_resolver_context_swaps', None)
+        context_free_matches = self._get_unrefined_ref_part_matches_recursive(lang, raw_ref, context_swaps=context_swaps)
+        context_full_matches = self._get_unrefined_ref_part_matches_for_graph_context(lang, context_ref, raw_ref, context_swaps=context_swaps)
         return context_full_matches + context_free_matches
 
-    def _get_unrefined_ref_part_matches_for_graph_context(self, lang: str, context_ref: text.Ref, raw_ref: RawRef) -> List[ResolvedRawRef]:
+    def _get_unrefined_ref_part_matches_for_graph_context(self, lang: str, context_ref: text.Ref, raw_ref: RawRef, context_swaps: Dict[str, str]=None) -> List[ResolvedRawRef]:
         matches = []
         context_ref_part_slugs = getattr(context_ref.index.nodes, 'ref_parts', [])
         raw_ref_term_slugs = [term.slug for term in self.get_term_matcher(lang).match_terms(raw_ref.raw_ref_parts)]
@@ -580,14 +586,31 @@ class RefResolver:
         context_child = self._ref_part_title_graph.get_shared_child(context_ref_part_slugs, raw_ref_term_slugs)
         for context_slug in (context_parent, context_child):
             if context_slug is None: continue
-            temp_matches = self._get_unrefined_ref_part_matches_recursive(lang, raw_ref, context_terms=[NonUniqueTerm.init(context_slug)])
+            temp_matches = self._get_unrefined_ref_part_matches_recursive(lang, raw_ref, context_terms=[NonUniqueTerm.init(context_slug)], context_swaps=context_swaps)
             matches += list(filter(lambda x: len(x.resolved_ref_parts) and len(x.resolved_context_terms), temp_matches))
         return matches
 
-    def _get_unrefined_ref_part_matches_recursive(self, lang: str, raw_ref: RawRef, title_trie: RefPartTitleTrie=None, prev_ref_parts: list=None, context_terms: List[NonUniqueTerm]=None, prev_context_terms=None) -> List['ResolvedRawRef']:
+    def _get_context_swaps(self, lang: str, ref_parts: List[RawRefPart], context_swaps: Dict[str, str]=None) -> Tuple[List[RawRefPart], List[NonUniqueTerm]]:
+        final_ref_parts, final_terms = [], []
+        term_matcher = self.get_term_matcher(lang)
+        if context_swaps is None: return ref_parts, []
+        for part in ref_parts:
+            # TODO assumes only one match in term_matches
+            term_matches = term_matcher.match_term(part)
+            found_match = False
+            for match in term_matches:
+                if match.slug not in context_swaps: continue
+                final_terms += [NonUniqueTerm.init(slug) for slug in context_swaps[match.slug]]
+                found_match = True
+                break
+            if not found_match: final_ref_parts += [part]
+        return final_ref_parts, final_terms
+
+    def _get_unrefined_ref_part_matches_recursive(self, lang: str, raw_ref: RawRef, title_trie: RefPartTitleTrie=None, prev_ref_parts: list=None, context_terms: List[NonUniqueTerm]=None, prev_context_terms=None, context_swaps: Dict[str, str]=None) -> List['ResolvedRawRef']:
         title_trie = title_trie or self.get_ref_part_title_trie(lang)
-        ref_parts = raw_ref.raw_ref_parts
+        ref_parts, context_swaps = self._get_context_swaps(lang, raw_ref.raw_ref_parts, context_swaps)
         context_terms = context_terms or []
+        context_terms += context_swaps
         prev_ref_parts = prev_ref_parts or []
         prev_context_terms = prev_context_terms or []
         matches = []

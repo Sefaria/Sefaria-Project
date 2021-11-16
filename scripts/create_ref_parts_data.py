@@ -268,6 +268,10 @@ class RefPartModifier:
                     continue
                 if cat == "Yerushalmi":
                     index.nodes.addressTypes[0] = "Perek"
+                    index.nodes.ref_resolver_context_swaps = {
+                        "halakha": [base_term.slug, generic_term.slug]
+                    }
+                    index.nodes.referenceableSections = [True, True, False]
                 index.nodes.ref_parts = [
                     {
                         "slugs": [base_term.slug],
@@ -322,6 +326,7 @@ class RefPartModifier:
         self.t(en='Ran', he='ר"ן', ref_part_role='structural')
         self.t(en='Perek', he='פרק', ref_part_role='alt_title')
         self.t(en='Sefer', he='ספר', ref_part_role='alt_title')
+        self.t(en='Halakha', he='הלכה', alt_en=['Halakhah', 'Halacha', 'Halachah'], ref_part_role='context_swap')
         self.t_from_titled_obj(Term().load({"name": "Parasha"}), ref_part_role='alt_title')
         self.create_numeric_perek_terms()
 

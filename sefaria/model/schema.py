@@ -1188,7 +1188,7 @@ class SchemaNode(TitledTreeNode):
 
     """
     is_virtual = False
-    optional_param_keys = ["ref_parts"]
+    optional_param_keys = ["ref_parts", "ref_resolver_context_swaps"]
 
     def __init__(self, serial=None, **kwargs):
         """
