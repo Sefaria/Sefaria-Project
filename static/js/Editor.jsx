@@ -2176,12 +2176,6 @@ const HighlightButton = () => {
             onMouseDown={event => {
                 event.preventDefault();
                 setShowPortal(true);
-                // const isActive = isFormatActive(editor, "background-color");
-                // if (isActive) {
-                //     Editor.removeMark(editor,  "background-color")
-                // } else {
-                //     Editor.addMark(editor,  "background-color", "#FFFF00")
-                // }
             }}
         >
       <i className={classNames(classes)}/>
@@ -2360,8 +2354,12 @@ const SefariaEditor = (props) => {
 
     useEffect( /* normalize on load */
         () => {
-            hj('event', 'using_new_editor');
-            Editor.normalize(editor, { force: true })
+            try {
+                hj('event', 'using_new_editor');
+                Editor.normalize(editor, { force: true });
+            } catch {
+                console.error('hj failed')
+            }
         }, []
     )
 
