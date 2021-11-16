@@ -1990,7 +1990,7 @@ class AddressType(object):
     def is_special_case(self, s):
         return s in self.special_cases
 
-    def to_numeric_possibilities(self, lang, s):
+    def to_numeric_possibilities(self, lang, s, **kwargs):
         if s in self.special_cases:
             return self.special_cases[s]
         return [self.toNumber(lang, s)]
@@ -2002,10 +2002,11 @@ class AddressType(object):
         return {name: number}
 
     @classmethod
-    def get_all_possible_sections_from_string(cls, lang, s):
+    def get_all_possible_sections_from_string(cls, lang, s, fromSections=None):
         """
         For string `s`, parse to sections using all address types that `cls` inherits from
         Useful for parsing ambiguous sections, e.g. for AddressPerek פ"ח = 8 but for its superclass AddressInteger, it equals 88.
+        :param fromSections: optional. in case of parsing toSections, these represent the sections. Used for parsing edge-case of toSections='b' which is relative to sections
         """
         sections = []
         toSections = []
@@ -2024,7 +2025,7 @@ class AddressType(object):
                 if match:
                     section_str = match.group('section')
             if section_str:
-                temp_sections = addr.to_numeric_possibilities(lang, section_str)
+                temp_sections = addr.to_numeric_possibilities(lang, section_str, fromSections=fromSections)
                 temp_toSections = temp_sections[:]
                 if hasattr(cls, "lacks_amud") and cls.lacks_amud(section_str, lang):
                     temp_toSections = [sec+1 for sec in temp_toSections]
@@ -2109,6 +2110,11 @@ class AddressTalmud(AddressType):
     amud_patterns = {
         "en": "[ABabᵃᵇ]",
         "he": '''([.:]|[,\\s]+{})'''.format(he_pattern)  # Either (1) period / colon (2) some separator + he_pattern
+    }
+    special_cases = {
+        "B": [None],
+        "b": [None],
+        "ᵇ": [None],
     }
 
     @classmethod
@@ -2282,6 +2288,13 @@ class AddressTalmud(AddressType):
 
     def storage_offset(self):
         return 2
+
+    def to_numeric_possibilities(self, lang, s, **kwargs):
+        fromSections = kwargs['fromSections']
+        if s in self.special_cases:
+            # currently assuming only special case is 'b'
+            return [fromSec[-1]+1 for fromSec in fromSections]
+        return [self.toNumber(lang, s)]
 
 
 class AddressFolio(AddressType):
