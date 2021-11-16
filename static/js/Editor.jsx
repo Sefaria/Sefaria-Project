@@ -420,7 +420,7 @@ function renderSheetItem(source) {
 }
 
 function parseSheetItemHTML(rawhtml) {
-    const preparseHtml = rawhtml.replace(/\u00A0/g, ' ').replace(/(\r\n|\n|\r)/gm, "");
+    const preparseHtml = rawhtml.replace(/\u00A0/g, ' ').replace(/(\r\n|\n|\r|\t)/gm, "");
     const parsed = new DOMParser().parseFromString(preparseHtml, 'text/html');
     const fragment = deserialize(parsed.body);
     const slateJSON = fragment.length > 0 ? fragment : [{text: ''}];
@@ -573,8 +573,22 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
       [sourceActive]
   );
 
+  const onMouseDown = (e) => {
+      //Slate tries to auto position the cursor, but on long boxed sources this leads to jumping. This hack should fix it.
+
+      const elementTop = e.currentTarget.offsetTop;
+      const divTop = document.querySelector(".sheetsInPanel").offsetTop;
+      const elementRelativeTop = elementTop - divTop;
+
+      const rect = e.currentTarget.getBoundingClientRect();
+      const clickOffset = e.clientY - rect.top
+
+      e.currentTarget.querySelector(".boxedSourceChildren").style.top = `${elementRelativeTop + clickOffset}px`;
+
+  }
 
   const onClick = (e) => {
+
     if ((e.target).closest('.he') && sourceActive) {
       setActiveSourceLangContent('he')
     }
@@ -635,17 +649,6 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
       dragIcon.style.borderInlineStartColor = Sefaria.palette.refColor(element.ref);
       dragIcon.innerHTML = Sefaria.interfaceLang === "hebrew" ? element.heRef : element.ref;
 
-      const clientRect = e.target.getBoundingClientRect();
-
-      // const dragIconContainer = document.createElement('div');
-      // dragIconContainer.classList.add("dragIconContainer");
-      // dragIconContainer.style.height = `${clientRect.height}px`;
-      // dragIconContainer.style.width = `${clientRect.width}px`;
-
-      // document.body.appendChild(dragIconContainer);
-      // dragIconContainer.appendChild(dragIcon);
-      // e.dataTransfer.setDragImage(dragIconContainer, 0, clientRect.height);
-
       document.body.appendChild(dragIcon);
       e.dataTransfer.setDragImage(dragIcon, 0, 0);
 
@@ -663,6 +666,7 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
       <div
           draggable={true}
           className={isDragging ? "boxedSheetItem dragged" : "boxedSheetItem"}
+          onMouseDown={(e) => onMouseDown(e)}
           onDragStart={(e)=>{dragStart(e)}}
           onDragEnd={(e)=>{dragEnd(e)}}
           onDrop={(e)=> {
@@ -704,8 +708,8 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
       </div>
       </div>
       <div className="clearFix"></div>
-      {children}
       </div>
+          <div className="boxedSourceChildren">{children}</div>
           </div>
   );
 };
@@ -1779,6 +1783,7 @@ const Link = ({ attributes, children, element }) => {
         }
     }
     const onClick = (e, url) => {
+        e.preventDefault();
         window.open(url, '_blank').focus();
     }
 
@@ -1955,9 +1960,9 @@ const toggleFormat = (editor, format) => {
   }
 };
 
-const isFormatActive = (editor, format) => {
+const isFormatActive = (editor, format, value=null) => {
   const [match] = Editor.nodes(editor, {
-    match: n => n[format] === true,
+    match: n => n[format] === (value ? value : true),
     mode: 'all',
   });
   return !!match
@@ -2033,6 +2038,7 @@ const Leaf = ({attributes, children, leaf}) => {
 const HoverMenu = (opt) => {
     const buttons = (opt["buttons"])
     const ref = useRef();
+    const [showHighlightColors, setShowHighlightColors] = useState(false);
     const editor = useSlate();
 
     useEffect(() => {
@@ -2071,17 +2077,17 @@ const HoverMenu = (opt) => {
     const root = window.document.getElementById('s2');
     return ReactDOM.createPortal(
         <div ref={ref} className="hoverMenu">
-            <FormatButton editor={editor} format="bold"/>
-            <FormatButton editor={editor} format="italic"/>
-            <FormatButton editor={editor} format="underline"/>
+            <FormatButton editor={editor} format="bold" />
+            <FormatButton editor={editor} format="italic" />
+            <FormatButton editor={editor} format="underline" />
             {buttons == "basic" ? null : <>
-                <AddLinkButton/>
+                <HighlightButton />
+                <AddLinkButton />
                 <BlockButton editor={editor} format="header" icon="header" />
                 <BlockButton editor={editor} format="numbered-list" icon="list-ol" />
                 <BlockButton editor={editor} format="bulleted-list" icon="list-ul" />
             </>
             }
-
         </div>,
         root
     )
@@ -2127,6 +2133,67 @@ const FormatButton = ({format}) => {
         >
       <i className={classNames(classes)}/>
     </span>
+    )
+};
+
+
+const HighlightButton = () => {
+    const editor = useSlate();
+    const ref = useRef();
+    const [showPortal, setShowPortal] = useState(false);
+    const isActive = isFormatActive(editor, "background-color");
+    const classes = {fa: 1, active: isActive, "fa-pencil": 1};
+    const colors = ["#E6DABC", "#EAC4B6", "#D5A7B3", "#AECAB7", "#ADCCDB"]; // 50% gold, orange, rose, green, blue 
+    const colorButtons = <>{colors.map(color => <button key={`highlight-${color.replace("#", "")}`} className="highlightButton" onClick={e => {
+        const isActive = isFormatActive(editor, "background-color", color);
+        if (isActive) {
+            Editor.removeMark(editor, "background-color")
+        } else {
+            Editor.addMark(editor, "background-color", color)
+        }
+  }}><div className="highlightDot" style={{"background-color":color}}></div></button>
+    )}</>
+
+    useEffect(() => {
+        const el = ref.current;
+        if (el) {
+            const checkIfClickedOutside = e => {
+                if (showPortal && ref.current && !ref.current.contains(e.target)) {
+                    setShowPortal(false)
+                }
+            }
+            document.addEventListener("mousedown", checkIfClickedOutside)
+            return () => {
+                // Cleanup the event listener
+                document.removeEventListener("mousedown", checkIfClickedOutside)
+            }
+        }
+
+    }, [showPortal])
+    return (
+        <>
+        <span className="hoverButton"
+            onMouseDown={event => {
+                event.preventDefault();
+                setShowPortal(true);
+                // const isActive = isFormatActive(editor, "background-color");
+                // if (isActive) {
+                //     Editor.removeMark(editor,  "background-color")
+                // } else {
+                //     Editor.addMark(editor,  "background-color", "#FFFF00")
+                // }
+            }}
+        >
+      <i className={classNames(classes)}/>
+    </span>
+    {showPortal ? <div className="highlightMenu" ref={ref}>
+    {colorButtons}
+    <button className="highlightButton" onClick={e => {
+        Editor.removeMark(editor, "background-color")
+    }}>
+    <i className="fa fa-ban highlightCancel"></i>
+  </button></div> : null}
+    </>
     )
 };
 
@@ -2293,7 +2360,7 @@ const SefariaEditor = (props) => {
 
     useEffect( /* normalize on load */
         () => {
-
+            hj('event', 'using_new_editor');
             Editor.normalize(editor, { force: true })
         }, []
     )
@@ -2396,7 +2463,7 @@ const SefariaEditor = (props) => {
            */
           if (editor.selection == null) return
 
-          try {
+        try {
             /*
               Need a try/catch because sometimes you get an error like:
               Cannot resolve a DOM node from Slate node: {"type":"p","children":[{"text":"","by":-1,"at":-1}]}
@@ -2434,38 +2501,37 @@ const SefariaEditor = (props) => {
             event.preventDefault();
             const elem = document.elementFromPoint(event.clientX, event.clientY)
             const node = ReactEditor.toSlateNode(editor, elem)
-            const dropPath = Editor.end(editor, ReactEditor.findPath(editor, node)).path
 
-            console.log(node)
-            console.log(dropPath)
+            const clientRect = event.target.getBoundingClientRect();
+            const midY = (clientRect.bottom + clientRect.top)/2
 
+            const dropPath = event.clientY < midY ?
+                Editor.before(editor, ReactEditor.findPath(editor, node)).path :
+                Editor.after(editor, ReactEditor.findPath(editor, node)).path
 
-                        console.log(Path.compare(dropPath, editor.dragging.anchor.path))
-                        //
-                        if (Path.compare(dropPath, editor.dragging.anchor.path) < 0) {
-                            Transforms.delete(editor, {at: editor.dragging});
-                            Transforms.select(editor, Editor.end(editor, dropPath));
-                            Transforms.insertText(editor, " ")
-                            editor.insertData(event.dataTransfer)
-                            console.log('up')
-                            Transforms.move(editor, { distance: 1, unit: 'character', reverse: true, })
-                            editor.deleteBackward()
+            if (Path.compare(dropPath, editor.dragging.anchor.path) < 0) {
+                Transforms.delete(editor, {at: editor.dragging});
+                Transforms.select(editor, Editor.end(editor, dropPath));
+                Transforms.insertText(editor, " ")
+                editor.insertData(event.dataTransfer)
+                Transforms.move(editor, { distance: 1, unit: 'character', reverse: true, })
+                editor.deleteBackward()
+            }
+            else if (Path.compare(dropPath, editor.dragging.anchor.path) > 0) {
+                Transforms.select(editor, Editor.start(editor, dropPath));
+                Transforms.insertText(editor, " ")
+                editor.insertData(event.dataTransfer)
+                Transforms.delete(editor, {at: editor.dragging});
+                Transforms.move(editor, { distance: 1, unit: 'character', reverse: true, })
+                editor.deleteBackward()
+            }
 
+            editor.dragging = false
 
-                         } else if (Path.compare(dropPath, editor.dragging.anchor.path) > 0) {
-                            Transforms.select(editor, Editor.start(editor, dropPath));
-                            Transforms.insertText(editor, " ")
-                            editor.insertData(event.dataTransfer)
-                            Transforms.delete(editor, {at: editor.dragging});
-                            console.log('down')
-                            Transforms.move(editor, { distance: 1, unit: 'character', reverse: true, })
-                            editor.deleteBackward()
-
-                        }
-
-                        editor.dragging = false
-
-                        console.log(editor.children)
+            const removeStyles = editorContainer.current.querySelectorAll(".draggedOver");
+            for (let nodeToCheck of removeStyles) {
+                nodeToCheck.classList.remove("draggedOver", "draggedOverAfter", "draggedOverBefore")
+            }
 
         }
     };
@@ -2473,6 +2539,35 @@ const SefariaEditor = (props) => {
     const onDragOver = event => {
         if (editor.dragging) {
             event.preventDefault()
+
+            const removeStyles = editorContainer.current.querySelectorAll(".draggedOver");
+            for (let nodeToCheck of removeStyles) {
+                nodeToCheck.classList.remove("draggedOver", "draggedOverAfter", "draggedOverBefore")
+            }
+
+            const elem = document.elementFromPoint(event.clientX, event.clientY)
+            const node = ReactEditor.toSlateNode(editor, elem)
+
+            const clientRect = event.target.getBoundingClientRect();
+            const midY = (clientRect.bottom + clientRect.top)/2
+
+            const dropBefore = event.clientY < midY
+            const dropPath = dropBefore ?
+                Editor.before(editor, ReactEditor.findPath(editor, node)).path :
+                Editor.after(editor, ReactEditor.findPath(editor, node)).path
+
+            const domNode = ReactEditor.toDOMNode(editor, Node.get(editor, dropPath))
+            domNode.classList.add("draggedOver");
+            domNode.classList.add(dropBefore ? "draggedOverAfter" : "draggedOverBefore");
+
+
+            console.log(dropPath)
+            console.log(domNode)
+
+
+            // const curDragPos = compareDragPos(event)
+            // const domNode = ReactEditor.toDOMNode(editor, node)
+            // console.log(curDragPos[1])
         }
     }
 

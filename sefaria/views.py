@@ -301,7 +301,7 @@ def linker_data_api(request, titles):
             res["error"] = title_regex.pop("error")
         res["regexes"] = title_regex
         url = request.GET.get("url", "")
-        domain = WebPage.domain_for_url(url)
+        domain = WebPage.domain_for_url(WebPage.normalize_url(url))
 
         website_match = WebSiteSet({"domains": domain})  # we know there can only be 0 or 1 matches found because of a constraint
                                                          # enforced in Sefaria-Data/sources/WebSites/populate_web_sites.py
@@ -1081,8 +1081,9 @@ def bulk_download_versions_api(request):
 
     content = file_like_object.getvalue()
     response = HttpResponse(content, content_type="application/zip")
-    filename = "{}-{}-{}-{}.zip".format(list(filter(str.isalnum, str(title_pattern))), list(filter(str.isalnum, str(version_title_pattern))), language, format).encode('utf-8')
+    filename = "{}-{}-{}-{}.zip".format(''.join(list(filter(str.isalnum, str(title_pattern)))), ''.join(list(filter(str.isalnum, str(version_title_pattern)))), language, format)
     response["Content-Disposition"] = 'attachment; filename="{}"'.format(filename)
+    response["charset"] = 'utf-8'
     return response
 
 

@@ -73,7 +73,7 @@ class AboutBox extends Component {
       if (d) {
           detailSection = (<div className="detailsSection">
                   <h2 className="aboutHeader">
-                      <span className="int-en">About This Text</span>
+                      <span className="int-en">About this Text</span>
                       <span className="int-he">אודות ספר זה</span>
                   </h2>
                   <div className="aboutTitle">
@@ -146,7 +146,7 @@ class AboutBox extends Component {
       detailSection = (
         <div className="detailsSection sans-serif">
           <h2 className="aboutHeader">
-            <InterfaceText>About This Text</InterfaceText>
+            <InterfaceText>About this Text</InterfaceText>
           </h2>
           <a href={bookPageUrl} className="aboutTitle serif">
             <ContentText text={{en: d.title, he:d.heTitle}}/>
@@ -156,13 +156,14 @@ class AboutBox extends Component {
           </span>
           { authorsEn && authorsEn.length ?
             <div className="aboutAuthor">
-              <span className="authorLabel">
-                  <ContentText text={{en:"Author:", he: "מחבר:"}} />
+              <span className="aboutAuthorInner">
+                  <span className="authorLabel">
+                      <ContentText text={{en:"Author:", he: "מחבר:"}} />
+                  </span>
+                  <span className="authorName">
+                      <ContentText text={{en:authorsEn, he: authorsHe}} />
+                  </span>
               </span>
-              <span className="authorName">
-                  <ContentText text={{en:authorsEn, he: authorsHe}} />
-              </span>
-
             </div> : null
           }
           <div className="aboutDesc">

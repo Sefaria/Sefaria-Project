@@ -347,8 +347,10 @@ class TextTableOfContents extends Component {
       let ref = $a.attr("data-ref");
       ref = decodeURIComponent(ref);
       ref = Sefaria.humanRef(ref);
-      this.props.close();
-      this.props.showBaseText(ref, false, this.props.currVersions);
+      if(this.props?.close){
+        this.props.close();
+      }
+      this.props.navigatePanel ? this.props.navigatePanel(ref, this.props.currVersions) : this.props.showBaseText(ref, false, this.props.currVersions);
       e.preventDefault();
     }
   }
