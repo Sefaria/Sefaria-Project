@@ -629,9 +629,7 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
   const heClasses = {he: 1, selected: isActive, editable: activeSourceLangContent == "he" ? true : false };
   const enClasses = {en: 1, selected: isActive, editable: activeSourceLangContent == "en" ? true : false };
   const dragStart = (e) => {
-      let range = document.createRange();
-      range.selectNode(e.target);
-      const slateRange = ReactEditor.toSlateRange(parentEditor, range, {exactMatch: false})
+      const slateRange = ReactEditor.findEventRange(parentEditor, e)
       parentEditor.dragging = slateRange
       const fragment = Node.fragment(parentEditor, slateRange)
       ReactEditor.deselect(parentEditor)
@@ -2354,12 +2352,10 @@ const SefariaEditor = (props) => {
 
     useEffect( /* normalize on load */
         () => {
-            try {
-                hj('event', 'using_new_editor');
-                Editor.normalize(editor, { force: true });
-            } catch {
-                console.error('hj failed')
-            }
+            Editor.normalize(editor, { force: true });
+
+            //TODO: Check that we still need/want this temporary analytics tracking code
+            try {hj('event', 'using_new_editor');} catch {console.error('hj failed')}
         }, []
     )
 
@@ -2550,17 +2546,24 @@ const SefariaEditor = (props) => {
             const midY = (clientRect.bottom + clientRect.top)/2
 
             const dropBefore = event.clientY < midY
-            const dropPath = dropBefore ?
-                Editor.before(editor, ReactEditor.findPath(editor, node)).path :
-                Editor.after(editor, ReactEditor.findPath(editor, node)).path
 
-            const domNode = ReactEditor.toDOMNode(editor, Node.get(editor, dropPath))
-            domNode.classList.add("draggedOver");
-            domNode.classList.add(dropBefore ? "draggedOverAfter" : "draggedOverBefore");
+            try {
+                const dropPath = dropBefore ?
+                    Editor.before(editor, ReactEditor.findPath(editor, node)).path :
+                    Editor.after(editor, ReactEditor.findPath(editor, node)).path
+
+                const domNode = ReactEditor.toDOMNode(editor, Node.get(editor, dropPath))
+                domNode.classList.add("draggedOver");
+                domNode.classList.add(dropBefore ? "draggedOverAfter" : "draggedOverBefore");
+
+            }
+            catch (e) {
+                console.log('error finding droppath', e)
+            }
 
 
-            console.log(dropPath)
-            console.log(domNode)
+            // console.log(dropPath)
+            // console.log(domNode)
 
 
             // const curDragPos = compareDragPos(event)
