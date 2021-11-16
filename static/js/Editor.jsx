@@ -4,7 +4,6 @@ import {withHistory} from 'slate-history'
 import {Editor, createEditor, Range, Node, Transforms, Path, Text, Point, Element as SlateElement} from 'slate'
 import {Slate, Editable, ReactEditor, withReact, useSlate, useSelected, useFocused} from 'slate-react'
 import isHotkey from 'is-hotkey'
-
 import Sefaria from './sefaria/sefaria';
 
 import {
@@ -20,6 +19,9 @@ import {
 import classNames from 'classnames';
 import $ from "./sefaria/sefariaJquery";
 import ReactDOM from "react-dom";
+
+const isChrome = window.chrome; //also returns true for MS Edge
+
 
 // Mapping from Sheet doc format source types to Slate block element types
 const sheet_item_els = {
@@ -575,7 +577,6 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
 
   const onMouseDown = (e) => {
       //Slate tries to auto position the cursor, but on long boxed sources this leads to jumping. This hack should fix it.
-
       const elementTop = e.currentTarget.offsetTop;
       const divTop = document.querySelector(".sheetsInPanel").offsetTop;
       const elementRelativeTop = elementTop - divTop;
@@ -587,22 +588,33 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
 
   }
 
+  const suppressParentContentEditable = (toggle) => {
+      // Chrome treats nested contenteditables as one giant editor so keyboard shortcuts like `Control + A` or `Alt + Up`
+      // Don't work as expected -- this hack fixes that
+      document.querySelector('[role="textbox"]').setAttribute("contenteditable", toggle)
+  }
+
   const onClick = (e) => {
 
     if ((e.target).closest('.he') && sourceActive) {
-      setActiveSourceLangContent('he')
+        setActiveSourceLangContent('he')
+        if (isChrome) {suppressParentContentEditable(false)}
+
     }
     else if ((e.target).closest('.en') && sourceActive) {
-      setActiveSourceLangContent('en')
+        setActiveSourceLangContent('en')
+        if (isChrome) {suppressParentContentEditable(false)}
     }
     else {
-      setActiveSourceLangContent(null)
+        setActiveSourceLangContent(null)
+        if (isChrome) {suppressParentContentEditable(true)}
     }
     setSourceActive(true)
 
   }
 
   const onBlur = (e) => {
+    if (isChrome) {suppressParentContentEditable(true)}
     setSourceActive(false)
     setActiveSourceLangContent(null)
   }
@@ -953,7 +965,7 @@ const Element = props => {
 
         case 'SheetOutsideBiText':
             return (
-              <BoxedSheetElement {...props} />
+              <BoxedSheetElement {...props} {...attributes} />
             );
 
 
