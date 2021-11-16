@@ -2356,10 +2356,10 @@ const SefariaEditor = (props) => {
         () => {
             try {
                 hj('event', 'using_new_editor');
-                Editor.normalize(editor, { force: true });
             } catch {
                 console.error('hj failed')
             }
+            Editor.normalize(editor, { force: true });
         }, []
     )
 
