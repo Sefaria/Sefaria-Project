@@ -62,7 +62,11 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
     }
 
     useEffect(() => {
-        hj('event', 'entered_beit_midrash');
+        try {
+            hj('event', 'entered_beit_midrash');
+        } catch {
+            console.error('hotjar failed - entered_beit_midrash')
+        }
         socketObj.connect();
 
         socket.on('creds', function(conf) {
