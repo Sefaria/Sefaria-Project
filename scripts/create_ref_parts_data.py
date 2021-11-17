@@ -366,11 +366,12 @@ class RefPartModifier:
 
     def modify_all(self):
         fast = True
-        create_dhs = False
+        create_dhs = True
         self.modify_talmud(fast)
         self.modify_tanakh(fast)
         self.modify_rest_of_shas(fast)
         self.modify_talmud_commentaries(fast, create_dhs)  # on first run, rerun because ArrayMapNodes are cached
+
 
 if __name__ == "__main__":
     modifier = RefPartModifier()

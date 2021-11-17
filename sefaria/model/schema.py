@@ -1067,7 +1067,7 @@ class DiburHamatchilNode(abst.AbstractMongoRecord):
     """
     Very likely possible to use VirtualNode and add these nodes as children of JANs and ArrayMapNodes. But that can be a little complicated
     """
-    collection="dibur_hamatchils"
+    collection = "dibur_hamatchils"
     required_attrs = [
         "dibur_hamatchil",
         "container_refs",
