@@ -606,7 +606,7 @@ const ChatBox = ({room,
             <div className="chat-input-holder"><input type="text" 
                 autoFocus  
                 // disabled={partnerLeftNotification || blockedNotification ? true : false}
-                className="chat-input" onChange={handleChange} 
+                className="chat-input" onInput={handleChange} 
                 placeholder={Sefaria._("Send a Message")}
                 dir={Sefaria.hebrew.isHebrew(chatMessage) || (chatMessage === "" && Sefaria.interfaceLang === "hebrew") ? "rtl" : "ltr"}></input>
             <input type="submit" 
