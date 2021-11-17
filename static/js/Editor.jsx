@@ -642,7 +642,7 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
   const enClasses = {en: 1, selected: isActive, editable: activeSourceLangContent == "en" ? true : false };
   const dragStart = (e) => {
       const slateRange = ReactEditor.findEventRange(parentEditor, e)
-      parentEditor.dragging = slateRange
+      parentEditor.dragging = true
       const fragment = Node.fragment(parentEditor, slateRange)
       ReactEditor.deselect(parentEditor)
 
@@ -2343,6 +2343,7 @@ const SefariaEditor = (props) => {
     const [currentDocument, setCurrentDocument] = useState(initValue);
     const [unsavedChanges, setUnsavedChanges] = useState(false);
     const [lastModified, setlastModified] = useState(props.data.dateModified);
+    const [dropZone, setDropZone] = useState(null)
 
     useEffect(
         () => {
@@ -2361,6 +2362,22 @@ const SefariaEditor = (props) => {
         },
         [currentDocument[0].children[0]] // Only re-call effect if value or delay changes
     );
+
+    useEffect(
+        () => {
+            const removeStyles = editorContainer.current.querySelectorAll(".draggedOver");
+            for (let nodeToCheck of removeStyles) {
+                nodeToCheck.classList.remove("draggedOver", "draggedOverAfter", "draggedOverBefore")
+            }
+
+            if (dropZone) {
+                dropZone["node"].classList.add("draggedOver");
+                dropZone["node"].classList.add(dropZone["dropBefore"] ? "draggedOverAfter" : "draggedOverBefore");
+            }
+
+        }, [dropZone]
+    )
+
 
     useEffect( /* normalize on load */
         () => {
@@ -2505,51 +2522,35 @@ const SefariaEditor = (props) => {
     const onDrop = event => {
         if (editor.dragging) {
             event.preventDefault();
-            const elem = document.elementFromPoint(event.clientX, event.clientY)
-            const node = ReactEditor.toSlateNode(editor, elem)
+            const dropPath = dropZone["path"]
 
-            const clientRect = event.target.getBoundingClientRect();
-            const midY = (clientRect.bottom + clientRect.top)/2
+            console.log(dropPath)
 
-            const dropPath = event.clientY < midY ?
-                Editor.before(editor, ReactEditor.findPath(editor, node)).path :
-                Editor.after(editor, ReactEditor.findPath(editor, node)).path
-
-            if (Path.compare(dropPath, editor.dragging.anchor.path) < 0) {
-                Transforms.delete(editor, {at: editor.dragging});
-                Transforms.select(editor, Editor.end(editor, dropPath));
-                Transforms.insertText(editor, " ")
+            if (dropZone["dropBefore"]) {
+                Transforms.select(editor, Editor.end(editor, dropPath))
                 editor.insertData(event.dataTransfer)
-                Transforms.move(editor, { distance: 1, unit: 'character', reverse: true, })
-                editor.deleteBackward()
             }
-            else if (Path.compare(dropPath, editor.dragging.anchor.path) > 0) {
-                Transforms.select(editor, Editor.start(editor, dropPath));
-                Transforms.insertText(editor, " ")
+
+            else {
+                Transforms.select(editor, Editor.start(editor, dropPath))
                 editor.insertData(event.dataTransfer)
-                Transforms.delete(editor, {at: editor.dragging});
-                Transforms.move(editor, { distance: 1, unit: 'character', reverse: true, })
-                editor.deleteBackward()
             }
 
-            editor.dragging = false
-
-            const removeStyles = editorContainer.current.querySelectorAll(".draggedOver");
-            for (let nodeToCheck of removeStyles) {
-                nodeToCheck.classList.remove("draggedOver", "draggedOverAfter", "draggedOverBefore")
-            }
+            setDropZone[null]
 
         }
     };
 
+    const onDragEnd = event => {
+            const slateRange = ReactEditor.findEventRange(editor, event)
+            editor.blurSelection
+            Transforms.delete(editor, {at: slateRange});
+            editor.dragging = false
+    }
+
     const onDragOver = event => {
         if (editor.dragging) {
             event.preventDefault()
-
-            const removeStyles = editorContainer.current.querySelectorAll(".draggedOver");
-            for (let nodeToCheck of removeStyles) {
-                nodeToCheck.classList.remove("draggedOver", "draggedOverAfter", "draggedOverBefore")
-            }
 
             const elem = document.elementFromPoint(event.clientX, event.clientY)
             const node = ReactEditor.toSlateNode(editor, elem)
@@ -2565,22 +2566,12 @@ const SefariaEditor = (props) => {
                     Editor.after(editor, ReactEditor.findPath(editor, node)).path
 
                 const domNode = ReactEditor.toDOMNode(editor, Node.get(editor, dropPath))
-                domNode.classList.add("draggedOver");
-                domNode.classList.add(dropBefore ? "draggedOverAfter" : "draggedOverBefore");
 
+                setDropZone({node: domNode, dropBefore: dropBefore, path: dropPath})
             }
             catch (e) {
-                console.log('error finding droppath', e)
+                setDropZone(null)
             }
-
-
-            // console.log(dropPath)
-            // console.log(domNode)
-
-
-            // const curDragPos = compareDragPos(event)
-            // const domNode = ReactEditor.toDOMNode(editor, node)
-            // console.log(curDragPos[1])
         }
     }
 
@@ -2707,6 +2698,7 @@ const SefariaEditor = (props) => {
                   onCut={onCutorCopy}
                   onDragOver={onDragOver}
                   onCopy={onCutorCopy}
+                  onDragEnd={onDragEnd}
                   onBlur={onBlur}
                   onDrop={onDrop}
                   onDOMBeforeInput={beforeInput}

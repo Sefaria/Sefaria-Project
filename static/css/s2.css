@@ -9493,13 +9493,13 @@ cursor: pointer;
 }
 
 .draggedOver.draggedOverBefore::before {
-  content: "";
+  content: "​"; /* zwsp required for chrome to display content */
   display: block;
   background-color: #D2DCFF;
   width: 100%;
 }
 .draggedOver.draggedOverAfter::after {
-  content: "";
+  content: "​"; /* zwsp required for chrome to display content */
   display: block;
   background-color: #D2DCFF;
   width: 100%;
