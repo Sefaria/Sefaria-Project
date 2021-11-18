@@ -307,7 +307,10 @@ class ResolvedRawRef:
     num_resolved = property(get_num_resolved)
     order_key = property(get_order_key)
 
+
 PREFIXES = {'ב', 'וב', 'ע', 'ו'}  # careful of Ayin prefix...
+
+
 def get_prefixless_inds(st: str) -> List[int]:
     """
     get possible indices of start of string `st` with prefixes stripped
@@ -318,8 +321,8 @@ def get_prefixless_inds(st: str) -> List[int]:
         starti_list += [len(prefix)]
     return starti_list
 
-class RefPartTitleTrie:
 
+class RefPartTitleTrie:
 
     def __init__(self, lang, nodes=None, sub_trie=None, scope=None) -> None:
         """
@@ -592,12 +595,38 @@ class RefResolver:
         doc = self.get_raw_ref_part_model(lang)(st)
         return doc.ents
 
+    @staticmethod
+    def split_non_cts_parts(raw_ref: RawRef) -> List[RawRef]:
+        if not any(part.type == RefPartType.NON_CTS for part in raw_ref.raw_ref_parts): return [raw_ref]
+        split_raw_refs = []
+        curr_parts = []
+        for ipart, part in enumerate(raw_ref.raw_ref_parts):
+            if part.type != RefPartType.NON_CTS:
+                curr_parts += [part]
+            if part.type == RefPartType.NON_CTS or ipart == len(raw_ref.raw_ref_parts) - 1:
+                if len(curr_parts) == 0: continue
+                start_span = curr_parts[0].span
+                end_span = curr_parts[-1].span
+                start_token_i = start_span.start if isinstance(start_span, Span) else start_span.i
+                end_token_i = end_span.end if isinstance(end_span, Span) else (end_span.i + 1)
+                temp_raw_ref_span = start_span.doc[start_token_i:end_token_i]
+                split_raw_refs += [RawRef(curr_parts, temp_raw_ref_span)]
+                curr_parts = []
+        return split_raw_refs
+
     def resolve_raw_ref(self, lang: str, context_ref: text.Ref, raw_ref: 'RawRef') -> List['ResolvedRawRef']:
-        unrefined_matches = self.get_unrefined_ref_part_matches(lang, context_ref, raw_ref)
-        resolved_list = self.refine_ref_part_matches(lang, unrefined_matches, raw_ref)
-        if len(resolved_list) > 1:
-            for resolved in resolved_list:
-                resolved.ambiguous = True
+        split_raw_refs = self.split_non_cts_parts(raw_ref)
+        resolved_list = []
+        for i, temp_raw_ref in enumerate(split_raw_refs):
+            if i > 0 and len(resolved_list) > 0:
+                # TODO assumes context is only first resolved ref
+                context_ref = resolved_list[0].ref
+            unrefined_matches = self.get_unrefined_ref_part_matches(lang, context_ref, temp_raw_ref)
+            temp_resolved_list = self.refine_ref_part_matches(lang, unrefined_matches, temp_raw_ref)
+            if len(temp_resolved_list) > 1:
+                for resolved in temp_resolved_list:
+                    resolved.ambiguous = True
+            resolved_list += temp_resolved_list
         return resolved_list
 
     def get_unrefined_ref_part_matches(self, lang: str, context_ref: text.Ref, raw_ref: 'RawRef') -> List['ResolvedRawRef']:
