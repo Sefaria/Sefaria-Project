@@ -20,8 +20,6 @@ import classNames from 'classnames';
 import $ from "./sefaria/sefariaJquery";
 import ReactDOM from "react-dom";
 
-const isChrome = (typeof window !== "undefined") ? window.chrome : false; //also returns true for MS Edge
-
 // Mapping from Sheet doc format source types to Slate block element types
 const sheet_item_els = {
     ref: 'SheetSource',
@@ -600,23 +598,23 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
 
     if ((e.target).closest('.he') && sourceActive) {
         setActiveSourceLangContent('he')
-        if (isChrome) {suppressParentContentEditable(false)}
+        if (window.chrome) {suppressParentContentEditable(false)}
 
     }
     else if ((e.target).closest('.en') && sourceActive) {
         setActiveSourceLangContent('en')
-        if (isChrome) {suppressParentContentEditable(false)}
+        if (window.chrome) {suppressParentContentEditable(false)}
     }
     else {
         setActiveSourceLangContent(null)
-        if (isChrome) {suppressParentContentEditable(true)}
+        if (window.chrome) {suppressParentContentEditable(true)}
     }
     setSourceActive(true)
 
   }
 
   const onBlur = (e) => {
-    if (isChrome) {suppressParentContentEditable(true)}
+    if (window.chrome) {suppressParentContentEditable(true)}
     setSourceActive(false)
     setActiveSourceLangContent(null)
   }
