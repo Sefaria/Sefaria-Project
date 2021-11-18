@@ -105,7 +105,6 @@ TODO
 - why are "Halacha" and "Mishna" not being marked as ref parts?
 - figure out how to throw out bad matches
 - how to deal with "Mishnah 2"? Maybe a context swap?
-- non-cts type (test: Babli 30b,31a)
 
 Alt titles to deal with
 - Ex. rabba 15(17
