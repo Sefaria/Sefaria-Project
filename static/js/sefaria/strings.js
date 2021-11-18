@@ -236,6 +236,8 @@ const Strings = {
 
     // Collections
     "Collections": "אסופות",
+    "My Collections": "אסופות שלי",
+    "Public Collections": "אסופות ציבוריות",
     "About Collections": "אודות \"אסופות\"",
     "Collection": "אסופה",
     "Collections of sheets are created by Sefaria users and can be privately, shared with friends, or made public on Sefaria.": "אסופות הן מקבצים של דפי מקורות שנוצרו על ידי משתמשי האתר. הן ניתנות לשימוש פרטי, לצורך שיתוף עם אחרים או לשימוש ציבורי באתר ספריא.",
