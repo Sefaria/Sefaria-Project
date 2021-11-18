@@ -200,7 +200,7 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
             </div> : null
 
         }
-        <CollectionsEditor sheetId={sheet.id}/>
+        {!!Sefaria._uid ? <CollectionsEditor sheetId={sheet.id}/> : null }
 
 
         {sheet.topics && sheet.topics.length > 0 ?
