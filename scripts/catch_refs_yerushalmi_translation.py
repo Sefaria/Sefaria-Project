@@ -2,7 +2,7 @@ import django, csv, json
 from typing import List, Optional, Union, Tuple
 django.setup()
 from sefaria.model import *
-from sefaria.model.ref_part import ResolvedRawRef
+from sefaria.model.ref_part import ResolvedRawRef, RefPartType
 from sefaria.helper.normalization import NormalizerComposer
 
 
@@ -41,8 +41,10 @@ class YerushalmiCatcher:
 
     def catch_refs_in_ref(self, st: str, en_tref: str, he_tref: str, version: Version) -> None:
         print(en_tref)
+        context_ref = Ref(en_tref)
         norm_st = self.normalizer.normalize(st)
-        resolved_refs = self.resolver.resolve_refs_in_string(self.lang, Ref(en_tref), norm_st, with_failures=True)
+        resolved_refs = self.resolver.resolve_refs_in_string(self.lang, context_ref, norm_st, with_failures=True)
+        resolved_refs = self.post_process_resolved_refs(resolved_refs, context_ref)
         norm_indices = [r.raw_ref.char_indices for r in resolved_refs]
         mapping = self.normalizer.get_mapping_after_normalization(st)
         orig_indices = self.normalizer.convert_normalized_indices_to_unnormalized_indices(norm_indices, mapping)
@@ -61,6 +63,17 @@ class YerushalmiCatcher:
     def finish(self):
         self.output_file.close()
 
+    @staticmethod
+    def post_process_resolved_refs(resolved_refs: List[ResolvedRawRef], context_ref: Ref) -> List[ResolvedRawRef]:
+        for resolved_ref in resolved_refs:
+            parts = resolved_ref.raw_ref.raw_ref_parts
+            if resolved_ref.ref.is_book_level():
+                resolved_ref.ref = None
+            if len(parts) == 2 and parts[0].text == "Mishnah" and parts[1].type == RefPartType.NUMBERED:
+                mishnah = resolved_ref.ref.sections[0]
+                perek = context_ref.sections[0]
+                resolved_ref.ref = Ref(f"{context_ref.index.title} {perek}:{mishnah}:1")  # super hacky, but what can ya do?
+        return resolved_refs
 
 if __name__ == '__main__':
     catcher = YerushalmiCatcher('en', 'Guggenheimer Translation 2.1')
@@ -71,6 +84,7 @@ if __name__ == '__main__':
 post processing
 - if both vilna and lieberman tosefta match, choose lieberman
 - if "Note" or "Notes" is in raw_ref, look up in note map
+if "Mishnah" and one number in raw_ref, add perek from context
 
 TODO
 - why are "Halacha" and "Mishna" not being marked as ref parts?
@@ -83,6 +97,7 @@ Alt titles to deal with
 - Mekhilta dR. Ismael Bo Chap. 14
 - Sifry Num. 84, 161
 - Midrash Ps.
+- Tanhuma Mas`e 6
 
 Examples to train on
 Jerusalem Talmud Taanit 1:1:18
