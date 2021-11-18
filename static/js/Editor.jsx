@@ -22,7 +22,6 @@ import ReactDOM from "react-dom";
 
 const isChrome = (typeof window !== "undefined") ? window.chrome : false; //also returns true for MS Edge
 
-
 // Mapping from Sheet doc format source types to Slate block element types
 const sheet_item_els = {
     ref: 'SheetSource',
@@ -556,6 +555,7 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
   const [sourceActive, setSourceActive] = useState(false)
   const [activeSourceLangContent, setActiveSourceLangContent] = useState(null)
   const [isDragging, setIsDragging] = useState(false)
+  const [canUseDOM, setCanUseDOM] = useState(false)
   const selected = useSelected()
   const focused = useFocused()
   const cancelEvent = (event) => event.preventDefault()
@@ -574,6 +574,8 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
       },
       [sourceActive]
   );
+
+  useEffect(() => {setCanUseDOM(true)}, [])
 
   const onMouseDown = (e) => {
       //Slate tries to auto position the cursor, but on long boxed sources this leads to jumping. This hack should fix it.
@@ -693,7 +695,7 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
           {element.heRef ? <div className="ref" contentEditable={false} style={{ userSelect: 'none', pointerEvents: 'auto' }}><a className="refInSheet" href={`/${element.ref}`}>{element.heRef}</a></div> : null }
           <div className="sourceContentText">
           <Slate editor={sheetSourceHeEditor} value={sheetHeSourceValue} onChange={value => onHeChange(value)}>
-          <HoverMenu buttons="basic"/>
+          {canUseDOM ? <HoverMenu buttons="basic"/> : null }
             <Editable
               readOnly={!sourceActive}
               renderLeaf={props => <Leaf {...props} />}
@@ -707,7 +709,7 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
         {element.ref ? <div className="ref" contentEditable={false} style={{ userSelect: 'none', pointerEvents: 'auto' }}><a className="refInSheet" href={`/${element.ref}`}>{element.ref}</a></div> : null }
         <div className="sourceContentText">
           <Slate editor={sheetSourceEnEditor} value={sheetEnSourceValue} onChange={value => onEnChange(value)}>
-          <HoverMenu buttons="basic"/>
+          {canUseDOM ? <HoverMenu buttons="basic"/> : null }
             <Editable
               readOnly={!sourceActive}
               renderLeaf={props => <Leaf {...props} />}
@@ -2084,18 +2086,19 @@ const HoverMenu = (opt) => {
 
     });
 
+
     const root = window.document.getElementById('s2');
     return ReactDOM.createPortal(
         <div ref={ref} className="hoverMenu">
-            <FormatButton editor={editor} format="bold" />
-            <FormatButton editor={editor} format="italic" />
-            <FormatButton editor={editor} format="underline" />
+            <FormatButton editor={editor} format="bold"/>
+            <FormatButton editor={editor} format="italic"/>
+            <FormatButton editor={editor} format="underline"/>
             {buttons == "basic" ? null : <>
-                <HighlightButton />
-                <AddLinkButton />
-                <BlockButton editor={editor} format="header" icon="header" />
-                <BlockButton editor={editor} format="numbered-list" icon="list-ol" />
-                <BlockButton editor={editor} format="bulleted-list" icon="list-ul" />
+                <HighlightButton/>
+                <AddLinkButton/>
+                <BlockButton editor={editor} format="header" icon="header"/>
+                <BlockButton editor={editor} format="numbered-list" icon="list-ol"/>
+                <BlockButton editor={editor} format="bulleted-list" icon="list-ul"/>
             </>
             }
         </div>,
@@ -2337,16 +2340,21 @@ function saveSheetContent(doc, lastModified) {
 const SefariaEditor = (props) => {
     const editorContainer = useRef();
     const sheet = props.data;
-    const initValue = transformSheetJsonToSlate(sheet);
+    const initValue = [{type: "sheet", children: [{text: ""}]}];
     const renderElement = useCallback(props => <Element {...props} />, []);
     const [value, setValue] = useState(initValue);
     const [currentDocument, setCurrentDocument] = useState(initValue);
     const [unsavedChanges, setUnsavedChanges] = useState(false);
     const [lastModified, setlastModified] = useState(props.data.dateModified);
     const [dropZone, setDropZone] = useState(null)
+    const [canUseDOM, setCanUseDOM] = useState(false);
 
     useEffect(
         () => {
+            if (!canUseDOM) {
+                return
+            }
+
             setUnsavedChanges(true);
             // Update debounced value after delay
             const handler = setTimeout(() => {
@@ -2382,7 +2390,8 @@ const SefariaEditor = (props) => {
     useEffect( /* normalize on load */
         () => {
             Editor.normalize(editor, { force: true });
-
+            setCanUseDOM(true)
+            setValue(transformSheetJsonToSlate(sheet))
             //TODO: Check that we still need/want this temporary analytics tracking code
             try {hj('event', 'using_new_editor');} catch {console.error('hj failed')}
         }, []
@@ -2691,7 +2700,7 @@ const SefariaEditor = (props) => {
                 image={sheet.collectionImage}
             />
         </SheetMetaDataBox>
-
+            {canUseDOM ?
             <Slate editor={editor} value={value} onChange={(value) => onChange(value)}>
                 <HoverMenu buttons="all"/>
                 <Editable
@@ -2707,7 +2716,7 @@ const SefariaEditor = (props) => {
                   onDrop={onDrop}
                   onDOMBeforeInput={beforeInput}
                 />
-            </Slate>
+            </Slate> : null }
         </div>
     )
 };
