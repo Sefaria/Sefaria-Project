@@ -5282,6 +5282,8 @@ class Library(object):
     def _build_ref_resolver(self):
         import spacy
         from .ref_part import RefPartTitleTrie, RefPartTitleGraph, RefResolver, TermMatcher, NonUniqueTermSet
+        from sefaria.spacy_function_registry import inner_punct_tokenizer_factory  # used by spacy.load()
+
         root_nodes = list(filter(lambda n: getattr(n, 'ref_parts', None) is not None, self.get_index_forest()))
         alone_nodes = reduce(lambda a, b: a + b.index.get_referenceable_alone_nodes(), root_nodes, [])
         non_unique_terms = NonUniqueTermSet()

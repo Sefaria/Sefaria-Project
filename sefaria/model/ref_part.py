@@ -11,13 +11,24 @@ from spacy.tokens import Span, Token
 from spacy.language import Language
 
 LABEL_TO_REF_PART_TYPE_ATTR = {
+    # HE
     "כותרת": 'NAMED',
     "מספר": "NUMBERED",
     "דה": "DH",
     "סימן-טווח": "RANGE_SYMBOL",
     "לקמן-להלן": "RELATIVE",
     "שם": "IBID",
+    # EN
+    "title": 'NAMED',
+    "number": "NUMBERED",
+    "DH": "DH",
+    "range-symbol": "RANGE_SYMBOL",
+    "dir-ibid": "RELATIVE",
+    "ibid": "IBID",
+    "non-cts": "NON_CTS",
 }
+
+
 class RefPartType(Enum):
     NAMED = "named"
     NUMBERED = "numbered"
@@ -26,6 +37,7 @@ class RefPartType(Enum):
     RANGE = "range"
     RELATIVE = "relative"
     IBID = "ibid"
+    NON_CTS = "non_cts"
 
     @classmethod
     def span_label_to_enum(cls, span_label: str) -> 'RefPartType':
@@ -168,7 +180,16 @@ class RawRef:
     def get_text(self):
         return self.span.text
 
+    def get_char_indices(self) -> Tuple[int, int]:
+        if isinstance(self.span, Span):
+            return self.span.start_char, self.span.end_char
+        elif isinstance(self.span, Token):
+            idx = self.span.idx
+            return idx, idx+1
+
     text = property(get_text)
+    char_indices = property(get_char_indices)
+
 
 class ResolvedRawRef:
 
@@ -277,7 +298,14 @@ class ResolvedRawRef:
     def get_num_resolved(self):
         return len(self.resolved_ref_parts) + len(self.resolved_context_terms)
 
+    def get_order_key(self):
+        """
+        For sorting
+        """
+        return len(self.resolved_ref_parts), len(self.resolved_context_terms)
+
     num_resolved = property(get_num_resolved)
+    order_key = property(get_order_key)
 
 PREFIXES = {'ב', 'וב', 'ע', 'ו'}  # careful of Ayin prefix...
 def get_prefixless_inds(st: str) -> List[int]:
@@ -573,25 +601,26 @@ class RefResolver:
         return resolved_list
 
     def get_unrefined_ref_part_matches(self, lang: str, context_ref: text.Ref, raw_ref: 'RawRef') -> List['ResolvedRawRef']:
-        context_swaps = getattr(context_ref.index.nodes, 'ref_resolver_context_swaps', None)
-        context_free_matches = self._get_unrefined_ref_part_matches_recursive(lang, raw_ref, context_swaps=context_swaps)
-        context_full_matches = self._get_unrefined_ref_part_matches_for_graph_context(lang, context_ref, raw_ref, context_swaps=context_swaps)
+        context_swap_map = getattr(context_ref.index.nodes, 'ref_resolver_context_swaps', None)
+        ref_parts, context_swaps = self._get_context_swaps(lang, raw_ref.raw_ref_parts, context_swap_map)
+        context_free_matches = self._get_unrefined_ref_part_matches_recursive(lang, raw_ref, ref_parts=ref_parts, context_swaps=context_swaps)
+        context_full_matches = self._get_unrefined_ref_part_matches_for_graph_context(lang, context_ref, raw_ref, ref_parts=ref_parts, context_swaps=context_swaps)
         matches = context_full_matches + context_free_matches
         if len(matches) == 0:
             # TODO current assumption is only need to add context title if no matches. but it's possible this is necessary even if there were matches
-            title_context_matches = self._get_unrefined_ref_part_matches_for_title_context(lang, context_ref, raw_ref, context_swaps=context_swaps)
+            title_context_matches = self._get_unrefined_ref_part_matches_for_title_context(lang, context_ref, raw_ref, ref_parts=ref_parts, context_swaps=context_swaps)
             matches = title_context_matches
         return matches
 
-    def _get_unrefined_ref_part_matches_for_title_context(self, lang: str, context_ref: text.Ref, raw_ref: RawRef, context_swaps: Dict[str, str]=None) -> List[ResolvedRawRef]:
+    def _get_unrefined_ref_part_matches_for_title_context(self, lang: str, context_ref: text.Ref, raw_ref: RawRef, ref_parts: list, context_swaps: List[NonUniqueTerm]=None) -> List[ResolvedRawRef]:
         context_ref_part_terms = [[NonUniqueTerm.init(slug) for slug in inner_ref_parts['slugs']] for inner_ref_parts in getattr(context_ref.index.nodes, 'ref_parts', [])]
         matches = []
         for context_terms in product(*context_ref_part_terms):
-            temp_matches = self._get_unrefined_ref_part_matches_recursive(lang, raw_ref, context_terms=list(context_terms), context_swaps=context_swaps)
+            temp_matches = self._get_unrefined_ref_part_matches_recursive(lang, raw_ref, ref_parts=ref_parts, context_terms=list(context_terms), context_swaps=context_swaps)
             matches += list(filter(lambda x: len(x.resolved_context_terms), temp_matches))
         return matches
 
-    def _get_unrefined_ref_part_matches_for_graph_context(self, lang: str, context_ref: text.Ref, raw_ref: RawRef, context_swaps: Dict[str, str]=None) -> List[ResolvedRawRef]:
+    def _get_unrefined_ref_part_matches_for_graph_context(self, lang: str, context_ref: text.Ref, raw_ref: RawRef, ref_parts: list, context_swaps: List[NonUniqueTerm]=None) -> List[ResolvedRawRef]:
         matches = []
         context_ref_part_slugs = getattr(context_ref.index.nodes, 'ref_parts', [])
         raw_ref_term_slugs = [term.slug for term in self.get_term_matcher(lang).match_terms(raw_ref.raw_ref_parts)]
@@ -599,7 +628,7 @@ class RefResolver:
         context_child = self._ref_part_title_graph.get_shared_child(context_ref_part_slugs, raw_ref_term_slugs)
         for context_slug in (context_parent, context_child):
             if context_slug is None: continue
-            temp_matches = self._get_unrefined_ref_part_matches_recursive(lang, raw_ref, context_terms=[NonUniqueTerm.init(context_slug)], context_swaps=context_swaps)
+            temp_matches = self._get_unrefined_ref_part_matches_recursive(lang, raw_ref, ref_parts=ref_parts, context_terms=[NonUniqueTerm.init(context_slug)], context_swaps=context_swaps)
             matches += list(filter(lambda x: len(x.resolved_ref_parts) and len(x.resolved_context_terms), temp_matches))
         return matches
 
@@ -619,11 +648,10 @@ class RefResolver:
             if not found_match: final_ref_parts += [part]
         return final_ref_parts, final_terms
 
-    def _get_unrefined_ref_part_matches_recursive(self, lang: str, raw_ref: RawRef, title_trie: RefPartTitleTrie=None, prev_ref_parts: list=None, context_terms: List[NonUniqueTerm]=None, prev_context_terms=None, context_swaps: Dict[str, str]=None) -> List['ResolvedRawRef']:
+    def _get_unrefined_ref_part_matches_recursive(self, lang: str, raw_ref: RawRef, title_trie: RefPartTitleTrie=None, ref_parts: list=None, prev_ref_parts: list=None, context_terms: List[NonUniqueTerm]=None, prev_context_terms=None, context_swaps: List[NonUniqueTerm]=None) -> List['ResolvedRawRef']:
         title_trie = title_trie or self.get_ref_part_title_trie(lang)
-        ref_parts, context_swaps = self._get_context_swaps(lang, raw_ref.raw_ref_parts, context_swaps)  # TODO only needs to be run first time
         context_terms = context_terms or []
-        context_terms += context_swaps
+        context_terms += context_swaps or []
         prev_ref_parts = prev_ref_parts or []
         prev_context_terms = prev_context_terms or []
         matches = []
@@ -642,7 +670,7 @@ class RefResolver:
                 matches += [ResolvedRawRef(raw_ref, temp_prev_ref_parts, node, (node.nodes if isinstance(node, text.Index) else node).ref(), temp_prev_context_terms) for node in temp_title_trie[None]]
             temp_ref_parts = [ref_parts[j] for j in range(len(ref_parts)) if j != (i-len(context_terms))]
             temp_context_terms = [context_terms[j] for j in range(len(context_terms)) if j != i]
-            matches += self._get_unrefined_ref_part_matches_recursive(lang, RawRef(temp_ref_parts, raw_ref.span), temp_title_trie, prev_ref_parts=temp_prev_ref_parts, context_terms=temp_context_terms, prev_context_terms=temp_prev_context_terms)
+            matches += self._get_unrefined_ref_part_matches_recursive(lang, raw_ref, temp_title_trie, ref_parts=temp_ref_parts, prev_ref_parts=temp_prev_ref_parts, context_terms=temp_context_terms, prev_context_terms=temp_prev_context_terms)
 
         return self._prune_unrefined_ref_part_matches(matches)
 
@@ -670,7 +698,8 @@ class RefResolver:
         
         return self._prune_refined_ref_part_matches(fully_refined)
 
-    def _prune_unrefined_ref_part_matches(self, ref_part_matches: List[ResolvedRawRef]) -> List[ResolvedRawRef]:
+    @staticmethod
+    def _prune_unrefined_ref_part_matches(ref_part_matches: List[ResolvedRawRef]) -> List[ResolvedRawRef]:
         index_match_map = defaultdict(list)
         for match in ref_part_matches:
             key = match.node.title if isinstance(match.node, text.Index) else match.node.ref().normal()
@@ -680,20 +709,20 @@ class RefResolver:
             pruned_matches += [max(match_list, key=lambda m: len(m.resolved_ref_parts))]
         return pruned_matches
 
-    def _prune_refined_ref_part_matches(self, ref_part_matches: List[ResolvedRawRef]) -> List[ResolvedRawRef]:
+    @staticmethod
+    def _prune_refined_ref_part_matches(resolved_refs: List[ResolvedRawRef]) -> List[ResolvedRawRef]:
         """
         So far simply returns all matches with the maximum number of resolved_ref_parts
         """
-        max_ref_parts = 0
-        max_ref_part_matches = []
-        for match in ref_part_matches:
-            if match.num_resolved > max_ref_parts:
-                max_ref_parts = match.num_resolved
-                max_ref_part_matches = [match]
-            elif match.num_resolved == max_ref_parts:
-                max_ref_part_matches += [match]
+        if len(resolved_refs) == 0: return resolved_refs
+        resolved_refs.sort(key=lambda x: x.order_key, reverse=True)
+        top_order_key = resolved_refs[0].order_key
+        max_resolved_refs = []
+        for resolved_ref in resolved_refs:
+            if resolved_ref.order_key != top_order_key: break
+            max_resolved_refs += [resolved_ref]
 
         # remove matches that have empty refs
-        max_ref_part_matches = list(filter(lambda x: not x.ref.is_empty(), max_ref_part_matches))
-        return max_ref_part_matches
+        max_resolved_refs = list(filter(lambda x: not x.ref.is_empty(), max_resolved_refs))
+        return max_resolved_refs
 

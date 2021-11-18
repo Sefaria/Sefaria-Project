@@ -61,7 +61,7 @@ class RefPartModifier:
         return reg_map.get(index.title, reg_map.get(comm_term_slug))
 
 
-    def modify_talmud_commentaries(self, fast=False, create_dhs=False):
+    def modify_talmud_commentaries(self, fast=False, create_dhs=False, add_alt_structs=False):
         """
         index_only. true when you don't want to touch existing dh's in db
         """
@@ -78,7 +78,8 @@ class RefPartModifier:
                 self.add_new_fields_to_commentary_root_node(comm_ref_prefix, comm_term_slug, index, fast)
                 if create_dhs:
                     self.add_dibur_hamatchils(comm_ref_prefix, index)
-                self.add_alt_structs_to_talmud_commentaries(comm_ref_prefix, comm_term_slug, index)
+                if add_alt_structs:
+                    self.add_alt_structs_to_talmud_commentaries(comm_ref_prefix, comm_term_slug, index)
 
 
     def add_new_fields_to_commentary_root_node(self, comm_ref_prefix, comm_term_slug, index, fast=False):
@@ -205,13 +206,29 @@ class RefPartModifier:
 
 
     def modify_tanakh(self, fast=False):
+        hard_coded_title_map = {
+            "I Samuel": ["1S."],
+            "II Samuel": ["2S."],
+            "I Kings": ["1K."],
+            "II Kings": ["2K."],
+            "Zechariah": ["Sach."],
+        }
         sefer = NonUniqueTerm.init('sefer')
         parasha = NonUniqueTerm.init('parasha')
         indexes = library.get_indexes_in_category("Tanakh", full_records=True)
         for index in tqdm(indexes, desc='tanakh', total=indexes.count()):
+            titles = index.nodes.title_group.titles
+            titles += [{
+                "text": alt_title,
+                "lang": "en"
+            } for alt_title in hard_coded_title_map.get(index.title, [])]
+            titles += [{
+                "text": alt_title_obj['text'].replace('.', ' .'),
+                "lang": "en"
+            } for alt_title_obj in titles if re.search(r'\.$', alt_title_obj['text']) is not None]
             index_term = NonUniqueTerm({
                 "slug": index.title,
-                "titles": index.nodes.title_group.titles,
+                "titles": titles,
                 "ref_part_role": "structural"
             })
             index_term.save()
@@ -259,8 +276,9 @@ class RefPartModifier:
             base_term = NonUniqueTerm.init(cat.lower())
             indexes = library.get_indexes_in_category(cat, full_records=True)
             for index in tqdm(indexes, desc=cat, total=indexes.count()):
-                if '(Lieberman)' in index.title: continue
                 generic_title = index.title.replace(title_prefix, '')
+                if '(Lieberman)' in index.title:
+                    generic_title = generic_title.replace(' (Lieberman)', '')
                 generic_title = title_swaps.get(generic_title, generic_title)
                 generic_term = self.shas_map[generic_title]
                 if not generic_term:
@@ -336,6 +354,17 @@ class RefPartModifier:
         """
         from collections import defaultdict
         from sefaria.utils.hebrew import is_hebrew
+        hard_coded_title_map = {
+            "Rosh Hashanah": ["Roš Haššanah"],
+            "Sheviit": ["Ševi‘it"],
+            "Moed Katan": ["Mo‘ed qatan", "Mo‘ed Qatan"],
+            "Eduyot": ["Idiut"],
+            "Kilayim": ["Kilaim"],
+            "Demai": ["Demay"],
+            "Shekalim": ["Šeqalim"],
+            "Oholot": ["Ahilut"],
+            "Shabbat": ["Šabbat"],
+        }
         title_map = defaultdict(set)
         repls = ['M.', 'M', 'Mishna', 'Mishnah', 'משנה', 'Masechet', 'Masekhet', 'משנה מסכת', 'Tractate', 'Talmud', 'BT', 'T.B.', 'Maseches', 'Tosefta', 'T.', 'Tos.', 'Tosef.']
         repl_reg = fr'^({"|".join(re.escape(r) for r in repls)}) '
@@ -360,17 +389,19 @@ class RefPartModifier:
         for (generic_title_en, generic_title_he), alt_titles in sorted(title_map.items(), key=lambda x: x[0]):
             alt_he = [tit for tit in alt_titles if is_hebrew(tit) and tit != generic_title_he]
             alt_en = [tit for tit in alt_titles if not is_hebrew(tit) and tit != generic_title_en]
+            alt_en += hard_coded_title_map.get(generic_title_en, [])
             term = self.t(en=generic_title_en, he=generic_title_he, alt_en=alt_en, alt_he=alt_he, ref_part_role='structural')
             title_term_map[generic_title_en] = term
         return title_term_map
 
     def modify_all(self):
         fast = True
-        create_dhs = True
+        create_dhs = False
+        add_comm_alt_structs = False
         self.modify_talmud(fast)
         self.modify_tanakh(fast)
         self.modify_rest_of_shas(fast)
-        self.modify_talmud_commentaries(fast, create_dhs)  # on first run, rerun because ArrayMapNodes are cached
+        self.modify_talmud_commentaries(fast, create_dhs, add_comm_alt_structs)  # on first run, rerun because ArrayMapNodes are cached
 
 
 if __name__ == "__main__":

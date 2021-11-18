@@ -9,7 +9,7 @@ from spacy.lang.he import Hebrew
 from spacy.lang.en import English
 from spacy.language import Language
 from sefaria.model import schema
-from sefaria.spacy_function_registry import inner_punct_tokenizer_factory  # used by spacy.load()
+
 
 @pytest.fixture(scope='module')
 def duplicate_terms():
@@ -88,11 +88,11 @@ def test_resolved_raw_ref_clone():
     [create_raw_ref_data("Job 1", 'he', "רש\"י פרק מאימתי", [0, slice(1, 3)], [RPT.NAMED, RPT.NAMED]), ("Rashi on Berakhot 2a:1-13a:15",)],  # rashi perek
     [create_raw_ref_data("Job 1", 'he', "רש\"י פרק כל כנויי נזירות בנזיר ד\"ה כל כינויי נזירות", [0, slice(1, 5), 5, slice(6, 10)], [RPT.NAMED, RPT.NAMED, RPT.NAMED, RPT.DH]), ("Rashi on Nazir 2a:1:1",)],  # rashi perek dibur hamatchil
     # Numbered alt structs
-    [create_raw_ref_data("Job 1", 'he', "פרק קמא בפסחים", [slice(0, 2), 2], [RPT.NUMBERED, RPT.NAMED]), ("Pesachim 2a:1-21a:7", "Mishnah Pesachim 1", "Tosefta Pesachim 1", "Jerusalem Talmud Pesachim 1")],  # numbered talmud perek
-    [create_raw_ref_data("Job 1", 'he', 'פ"ק בפסחים', [0, 1], [RPT.NUMBERED, RPT.NAMED]), ("Pesachim 2a:1-21a:7", "Mishnah Pesachim 1", "Tosefta Pesachim 1", "Jerusalem Talmud Pesachim 1")],  # numbered talmud perek
-    [create_raw_ref_data("Job 1", 'he', "פרק ה בפסחים", [slice(0, 2), 2], [RPT.NUMBERED, RPT.NAMED]), ("Pesachim 58a:1-65b:9", "Mishnah Pesachim 5", "Tosefta Pesachim 5", "Jerusalem Talmud Pesachim 5")],  # numbered talmud perek
-    [create_raw_ref_data("Job 1", 'he', 'פ"ה בפסחים', [0, 1], [RPT.NUMBERED, RPT.NAMED]), ("Pesachim 58a:1-65b:9", "Mishnah Pesachim 5", "Pesachim 85", "Tosefta Pesachim 5", "Jerusalem Talmud Pesachim 5")],  # numbered talmud perek
-    [create_raw_ref_data("Job 1", 'he', "פרק בתרא בפסחים", [slice(0, 2), 2], [RPT.NUMBERED, RPT.NAMED]), ("Mishnah Pesachim 10", "Pesachim 99b:1-121b:3", "Tosefta Pesachim 10", "Jerusalem Talmud Pesachim 10")],  # numbered talmud perek
+    [create_raw_ref_data("Job 1", 'he', "פרק קמא בפסחים", [slice(0, 2), 2], [RPT.NUMBERED, RPT.NAMED]), ("Pesachim 2a:1-21a:7", "Mishnah Pesachim 1", "Tosefta Pesachim 1", "Tosefta Pesachim (Lieberman) 1", "Jerusalem Talmud Pesachim 1")],  # numbered talmud perek
+    [create_raw_ref_data("Job 1", 'he', 'פ"ק בפסחים', [0, 1], [RPT.NUMBERED, RPT.NAMED]), ("Pesachim 2a:1-21a:7", "Mishnah Pesachim 1", "Tosefta Pesachim 1", "Jerusalem Talmud Pesachim 1", "Tosefta Pesachim (Lieberman) 1")],  # numbered talmud perek
+    [create_raw_ref_data("Job 1", 'he', "פרק ה בפסחים", [slice(0, 2), 2], [RPT.NUMBERED, RPT.NAMED]), ("Pesachim 58a:1-65b:9", "Mishnah Pesachim 5", "Tosefta Pesachim 5", "Jerusalem Talmud Pesachim 5", "Tosefta Pesachim (Lieberman) 5")],  # numbered talmud perek
+    [create_raw_ref_data("Job 1", 'he', 'פ"ה בפסחים', [0, 1], [RPT.NUMBERED, RPT.NAMED]), ("Pesachim 58a:1-65b:9", "Mishnah Pesachim 5", "Pesachim 85", "Tosefta Pesachim 5", "Jerusalem Talmud Pesachim 5", "Tosefta Pesachim (Lieberman) 5")],  # numbered talmud perek
+    [create_raw_ref_data("Job 1", 'he', "פרק בתרא בפסחים", [slice(0, 2), 2], [RPT.NUMBERED, RPT.NAMED]), ("Mishnah Pesachim 10", "Pesachim 99b:1-121b:3", "Tosefta Pesachim 10", "Jerusalem Talmud Pesachim 10", "Tosefta Pesachim (Lieberman) 10")],  # numbered talmud perek
     # Dibur hamatchils
     [create_raw_ref_data("Job 1", 'he', "רש\"י יום טוב ד\"ה שמא יפשע", [0, slice(1, 3), slice(3, 6)], [RPT.NAMED, RPT.NAMED, RPT.DH]), ("Rashi on Beitzah 15b:8:1",)],
     [create_raw_ref_data("Job 1", 'he', "רש\"י ביצה ד\"ה שמא יפשע", [0, 1, slice(2, 5)], [RPT.NAMED, RPT.NAMED, RPT.DH]), ("Rashi on Beitzah 15b:8:1",)],
@@ -113,6 +113,8 @@ def test_resolved_raw_ref_clone():
     [create_raw_ref_data("Jerusalem Talmud Shabbat 1:1", 'en', '2:3', [0, 2], [RPT.NUMBERED, RPT.NUMBERED]), ("Jerusalem Talmud Shabbat 2:3",)],
     [create_raw_ref_data("Jerusalem Talmud Shabbat 1:1", 'en', 'Chapter 2, Note 34', [slice(0, 2), slice(3, 5)], [RPT.NUMBERED, RPT.NUMBERED]), ("Jerusalem Talmud Shabbat 2:1:4",)],
     [create_raw_ref_data("Jerusalem Talmud Shabbat 1:1", 'en', 'Yalqut Psalms 116', [0, 1, 2], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ("Yalkut Shimoni on Nach 874:1-875:4",)],
+    [create_raw_ref_data("Jerusalem Talmud Sheviit 1:1:3", 'en', 'Tosephta Ševi‘it 1:1', [0, slice(1,4), 4, 6], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Tosefta Sheviit 1:1", "Tosefta Sheviit (Lieberman) 1:1")],
+
 ])
 def test_resolve_raw_ref(resolver_data, expected_trefs):
     ref_resolver = library.get_ref_resolver()
@@ -120,9 +122,14 @@ def test_resolve_raw_ref(resolver_data, expected_trefs):
     print('Input:', raw_ref.text)
     matches = ref_resolver.resolve_raw_ref(lang, context_ref, raw_ref)
     matched_orefs = sorted([match.ref for match in matches], key=lambda x: x.normal())
+    if len(expected_trefs) != len(matched_orefs):
+        print(f"Found {len(matched_orefs)} refs instead of {len(expected_trefs)}")
+        for matched_oref in matched_orefs:
+            print("-", matched_oref.normal())
     assert len(expected_trefs) == len(matched_orefs)
     for expected_tref, matched_oref in zip(sorted(expected_trefs, key=lambda x: x), matched_orefs):
         assert matched_oref == Ref(expected_tref)
+
 
 @pytest.mark.parametrize(('input_str', 'lang', 'expected_trefs'), [
     ["""גמ' שמזונותן עליך. עיין ביצה דף טו ע"ב רש"י ד"ה שמא יפשע:""", 'he', ("Rashi on Beitzah 15b:8:1",)],
