@@ -212,6 +212,9 @@ class RefPartModifier:
             "I Kings": ["1K."],
             "II Kings": ["2K."],
             "Zechariah": ["Sach."],
+            "I Chronicles": ["1Chr."],
+            "II Chronicles": ["2Chr."],
+            "Lamentations": ["Thr."],
         }
         sefer = NonUniqueTerm.init('sefer')
         parasha = NonUniqueTerm.init('parasha')
@@ -364,6 +367,9 @@ class RefPartModifier:
             "Shekalim": ["Šeqalim"],
             "Oholot": ["Ahilut"],
             "Shabbat": ["Šabbat"],
+            "Bava Batra": ["Bava batra"],
+            "Bava Metzia": ["Bava mesi`a"],
+            "Berakhot": ["Berkahot"],
         }
         title_map = defaultdict(set)
         repls = ['M.', 'M', 'Mishna', 'Mishnah', 'משנה', 'Masechet', 'Masekhet', 'משנה מסכת', 'Tractate', 'Talmud', 'BT', 'T.B.', 'Maseches', 'Tosefta', 'T.', 'Tos.', 'Tosef.']

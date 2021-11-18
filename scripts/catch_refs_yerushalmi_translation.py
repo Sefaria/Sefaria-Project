@@ -1,4 +1,4 @@
-import django, csv, json
+import django, csv, json, re
 from typing import List, Optional, Union, Tuple
 django.setup()
 from sefaria.model import *
@@ -65,14 +65,29 @@ class YerushalmiCatcher:
 
     @staticmethod
     def post_process_resolved_refs(resolved_refs: List[ResolvedRawRef], context_ref: Ref) -> List[ResolvedRawRef]:
+        prev_resolved_ref = None
         for resolved_ref in resolved_refs:
             parts = resolved_ref.raw_ref.raw_ref_parts
-            if resolved_ref.ref.is_book_level():
-                resolved_ref.ref = None
-            if len(parts) == 2 and parts[0].text == "Mishnah" and parts[1].type == RefPartType.NUMBERED:
-                mishnah = resolved_ref.ref.sections[0]
-                perek = context_ref.sections[0]
-                resolved_ref.ref = Ref(f"{context_ref.index.title} {perek}:{mishnah}:1")  # super hacky, but what can ya do?
+            if resolved_ref.ref is not None:
+                if resolved_ref.ref.is_book_level():
+                    resolved_ref.ref = None
+                elif len(parts) == 2 and parts[0].text in {"Mishnah", "Mishnaiot"} and parts[1].type in {RefPartType.NUMBERED, RefPartType.RANGE}:
+                    mishnah_sec = resolved_ref.ref.sections[0]
+                    mishnah_toSec = resolved_ref.ref.toSections[0]
+                    if mishnah_sec != mishnah_toSec:
+                        end_secs = f"{mishnah_sec}:1-{mishnah_toSec}:1"
+                    else:
+                        end_secs = mishnah_sec
+                    perek = context_ref.sections[0]
+                    resolved_ref.ref = Ref(f"{context_ref.index.title} {perek}:{end_secs}")  # super hacky, but what can ya do?
+            if resolved_ref.ref is None:
+                if len(parts) == 1 and re.search(r"^[vV]\. \d+", parts[0].text) is not None and prev_resolved_ref is not None and prev_resolved_ref.ref is not None and prev_resolved_ref.ref.primary_category == "Tanakh":
+                    pasuk = re.search(r"^[vV]\. (\d+)", parts[0].text).group(1)
+                    perek = prev_resolved_ref.ref.sections[0]
+                    resolved_ref.ref = Ref(f"{prev_resolved_ref.ref.index.title} {perek}:{pasuk}")
+            prev_resolved_ref = resolved_ref
+
+
         return resolved_refs
 
 if __name__ == '__main__':
@@ -90,7 +105,7 @@ TODO
 - why are "Halacha" and "Mishna" not being marked as ref parts?
 - figure out how to throw out bad matches
 - how to deal with "Mishnah 2"? Maybe a context swap?
-- non-cts type
+- non-cts type (test: Babli 30b,31a)
 
 Alt titles to deal with
 - Ex. rabba 15(17
@@ -98,8 +113,11 @@ Alt titles to deal with
 - Sifry Num. 84, 161
 - Midrash Ps.
 - Tanhuma Mas`e 6
+- Thr. rabba
 
 Examples to train on
 Jerusalem Talmud Taanit 1:1:18
-Jerusalem Talmud Taanit 1:1:18
+Jerusalem Talmud Taanit 2:4:1
+Jerusalem Talmud Taanit 2:2:3
+Jerusalem Talmud Taanit 4:7:2
 """
