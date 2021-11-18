@@ -20,7 +20,7 @@ import classNames from 'classnames';
 import $ from "./sefaria/sefariaJquery";
 import ReactDOM from "react-dom";
 
-const isChrome = window.chrome; //also returns true for MS Edge
+const isChrome = (typeof window !== "undefined") ? window.chrome : false; //also returns true for MS Edge
 
 
 // Mapping from Sheet doc format source types to Slate block element types
