@@ -2639,10 +2639,14 @@ const SefariaEditor = (props) => {
 
     const onEditorSidebarToggleClick = event => {
         const segmentToHighlight = getHighlightedByScrollPos()
-        if (!segmentToHighlight) {return}
-        const sheetNode = segmentToHighlight.getAttribute("data-sheet-node")
-        const sheetRef = segmentToHighlight.getAttribute("data-sefaria-ref")
-        updateSidebar(sheetNode, sheetRef)
+        if (!segmentToHighlight) {
+            updateSidebar(sheet.id, null)
+        }
+        else {
+            const sheetNode = segmentToHighlight.getAttribute("data-sheet-node")
+            const sheetRef = segmentToHighlight.getAttribute("data-sefaria-ref")
+            updateSidebar(sheetNode, sheetRef)
+        }
     };
 
 
