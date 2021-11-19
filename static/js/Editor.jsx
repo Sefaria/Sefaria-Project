@@ -651,7 +651,7 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
       e.dataTransfer.setData('application/x-slate-fragment', encoded)
       e.dataTransfer.setData('text/html', e.target.innerHTML)
       e.dataTransfer.setData('text/plain', e.target.text)
-      e.dataTransfer.effectAllowed = 'copy';
+      e.dataTransfer.effectAllowed = 'move';
 
       const dragIcon = document.createElement('div');
       dragIcon.classList.add("dragIcon");
@@ -672,6 +672,19 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
       setIsDragging(false)
     }
 
+    const dragOver = (e) => {
+      if (parentEditor.dragging) {
+          e.preventDefault()
+          e.dataTransfer.dropEffect = "move";
+      }
+    }
+
+    const drop = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      parentEditor.dragging = false;
+    }
+
   return (
       <div
           draggable={true}
@@ -679,12 +692,9 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
           onMouseDown={(e) => onMouseDown(e)}
           onDragStart={(e)=>{dragStart(e)}}
           onDragEnd={(e)=>{dragEnd(e)}}
-          onDrop={(e)=> {
-              e.preventDefault();
-              e.stopPropagation();
-              parentEditor.dragging = false;
-          }
-          }
+          onDragEnter={(e)=>{e.preventDefault()}}
+          onDragOver={(e)=>{dragOver(e)}}
+          onDrop={(e)=> {drop(e)}}
           {...attributes}
       >
     <div className={classNames(sheetItemClasses)} data-sheet-node={element.node} data-sefaria-ref={element.ref} style={{ pointerEvents: (isActive) ? 'none' : 'auto'}}>
@@ -1321,8 +1331,13 @@ const withSefariaSheet = editor => {
         ];
 
         for (let normalizer of normalizers) {
-            const changeWasMade = normalizer(node, path);
-            if (changeWasMade) return;
+            try {
+                const changeWasMade = normalizer(node, path);
+                if (changeWasMade) return;
+            }
+            catch (e) {
+                console.log(`Error at ${normalizer}`, e )
+            }
         }
 
         // Fall back to the original `normalizeNode` to enforce other constraints.
@@ -2526,59 +2541,16 @@ const SefariaEditor = (props) => {
 
     };
 
-    const onDrop = event => {
-        if (editor.dragging) {
-            event.preventDefault();
-            const dropPath = dropZone["path"]
-
-            console.log(dropPath)
-
-            if (dropZone["dropBefore"]) {
-                Transforms.select(editor, Editor.end(editor, dropPath))
-                editor.insertData(event.dataTransfer)
-            }
-
-            else {
-                Transforms.select(editor, Editor.start(editor, dropPath))
-                editor.insertData(event.dataTransfer)
-            }
-
-            setDropZone[null]
-
-        }
-    };
-
     const onDragEnd = event => {
-            const slateRange = ReactEditor.findEventRange(editor, event)
+        if (editor.dragging) {
             editor.blurSelection
-            Transforms.delete(editor, {at: slateRange});
             editor.dragging = false
+        }
     }
 
-    const onDragOver = event => {
+    const onDragCheck = event => {
         if (editor.dragging) {
             event.preventDefault()
-
-            const elem = document.elementFromPoint(event.clientX, event.clientY)
-            const node = ReactEditor.toSlateNode(editor, elem)
-
-            const clientRect = event.target.getBoundingClientRect();
-            const midY = (clientRect.bottom + clientRect.top)/2
-
-            const dropBefore = event.clientY < midY
-
-            try {
-                const dropPath = dropBefore ?
-                    Editor.before(editor, ReactEditor.findPath(editor, node)).path :
-                    Editor.after(editor, ReactEditor.findPath(editor, node)).path
-
-                const domNode = ReactEditor.toDOMNode(editor, Node.get(editor, dropPath))
-
-                setDropZone({node: domNode, dropBefore: dropBefore, path: dropPath})
-            }
-            catch (e) {
-                setDropZone(null)
-            }
         }
     }
 
@@ -2707,11 +2679,11 @@ const SefariaEditor = (props) => {
                   spellCheck
                   onKeyDown={onKeyDown}
                   onCut={onCutorCopy}
-                  onDragOver={onDragOver}
-                  onCopy={onCutorCopy}
+                  onDragOver={onDragCheck}
+                  onDragEnter={onDragCheck}
                   onDragEnd={onDragEnd}
+                  onCopy={onCutorCopy}
                   onBlur={onBlur}
-                  onDrop={onDrop}
                   onDOMBeforeInput={beforeInput}
                 />
             </Slate> : null }
