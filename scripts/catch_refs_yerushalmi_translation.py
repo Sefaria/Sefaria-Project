@@ -1,10 +1,12 @@
 import django, csv, json, re
 from typing import List, Optional, Union, Tuple
 django.setup()
+from tqdm import tqdm
 from sefaria.model import *
 from sefaria.model.ref_part import ResolvedRawRef, RefPartType
 from sefaria.helper.normalization import NormalizerComposer
 
+VTITLE = 'Guggenheimer Translation 2.1'
 
 def get_window_around_match(start_char:int, end_char:int, text:str, window:int=10) -> tuple:
     before_window, after_window = '', ''
@@ -23,6 +25,7 @@ def get_window_around_match(start_char:int, end_char:int, text:str, window:int=1
 class YerushalmiCatcher:
 
     def __init__(self, lang: str, vtitle: str):
+        self.footnote_map = self.create_footnote_mapping()
         self.lang = lang
         self.vtitle = vtitle
         self.resolver = library.get_ref_resolver()
@@ -30,6 +33,34 @@ class YerushalmiCatcher:
         self.output_file = open('../data/yerushalmi_translation_refs.csv', 'w')
         self.output_csv = csv.DictWriter(self.output_file, ['Context Ref', 'Before', 'Raw Ref', 'After', 'Raw Ref', 'Parsed Ref', 'Ref Parts'])
         self.output_csv.writeheader()
+
+    @staticmethod
+    def create_footnote_mapping():
+        from bs4 import BeautifulSoup
+        footnote_map = {}
+
+        def footnote_mapper(s: str, en_tref: str, he_tref: str, version: Version) -> None:
+            nonlocal footnote_map
+            chapter_ref = Ref(en_tref.split(':')[0])
+            soup = BeautifulSoup("<root>{}</root>".format(s), 'lxml')
+            itag_list = soup.find_all(TextChunk._find_itags)
+            for itag in itag_list:
+                if itag.name != 'sup': continue  # technically possible but dont think this happens
+                try:
+                    footnote_text = itag.text.replace(',', '')
+                    footnote_num = int(footnote_text)
+                except ValueError:
+                    # print(f"non-numeric footnote {itag.text}")
+                    continue
+                if footnote_num in footnote_map: continue  # only map to the first occurrence of footnote_num
+                footnote_map[(chapter_ref.normal(), footnote_num)] = en_tref
+
+        for title in tqdm(library.get_indexes_in_category("Yerushalmi")):
+            version = Version().load({"title": title, "versionTitle": VTITLE, "language": "en"})
+            if version is None: print("None version", title); continue
+            version.walk_thru_contents(footnote_mapper)
+
+        return footnote_map
 
     def catch_refs_in_category(self, cat: str):
         for title in library.get_indexes_in_category(cat):
@@ -63,8 +94,23 @@ class YerushalmiCatcher:
     def finish(self):
         self.output_file.close()
 
-    @staticmethod
-    def post_process_resolved_refs(resolved_refs: List[ResolvedRawRef], context_ref: Ref) -> List[ResolvedRawRef]:
+    def get_note_ref(self, raw_ref_text, context_ref: Ref) -> Optional[Ref]:
+        m = re.search(r"Notes? (\d+)(?:[\-–](\d+))?", raw_ref_text)
+        sec_fn = int(m.group(1))
+        try:
+            toSec_fn = int(m.group(2))
+        except (IndexError, TypeError):
+            toSec_fn = None
+        chap_ref = context_ref.normal().split(':')[0]
+        sec = self.footnote_map.get((chap_ref, sec_fn), None)
+        toSec = self.footnote_map.get((chap_ref, toSec_fn), None)
+        if sec is not None:
+            new_ref = Ref(sec)
+            if toSec is not None:
+                new_ref = new_ref.to(Ref(toSec))
+            return new_ref
+
+    def post_process_resolved_refs(self, resolved_refs: List[ResolvedRawRef], context_ref: Ref) -> List[ResolvedRawRef]:
         prev_resolved_ref = None
         for resolved_ref in resolved_refs:
             parts = resolved_ref.raw_ref.raw_ref_parts
@@ -80,20 +126,27 @@ class YerushalmiCatcher:
                         end_secs = mishnah_sec
                     perek = context_ref.sections[0]
                     resolved_ref.ref = Ref(f"{context_ref.index.title} {perek}:{end_secs}")  # super hacky, but what can ya do?
+                elif resolved_ref.ref.index.title.startswith('Jerusalem Talmud ') and re.search(r"Notes? \d+", resolved_ref.raw_ref.text) is not None:
+                    note_ref = self.get_note_ref(resolved_ref.raw_ref.text, resolved_ref.ref)
+                    if note_ref is not None:
+                        resolved_ref.ref = note_ref
             if resolved_ref.ref is None:
                 if len(parts) == 1 and re.search(r"^[vV]\. \d+", parts[0].text) is not None and prev_resolved_ref is not None and prev_resolved_ref.ref is not None and prev_resolved_ref.ref.primary_category == "Tanakh":
                     pasuk = re.search(r"^[vV]\. (\d+)", parts[0].text).group(1)
                     perek = prev_resolved_ref.ref.sections[0]
                     resolved_ref.ref = Ref(f"{prev_resolved_ref.ref.index.title} {perek}:{pasuk}")
+                elif re.search(r"^Notes? \d+", resolved_ref.raw_ref.text) is not None:
+                    note_ref = self.get_note_ref(resolved_ref.raw_ref.text, context_ref)
+                    if note_ref is not None:
+                        resolved_ref.ref = note_ref
             prev_resolved_ref = resolved_ref
-
 
         return resolved_refs
 
 
 if __name__ == '__main__':
-    catcher = YerushalmiCatcher('en', 'Guggenheimer Translation 2.1')
-    catcher.catch_refs_in_title('Jerusalem Talmud Taanit')
+    catcher = YerushalmiCatcher('en', VTITLE)
+    catcher.catch_refs_in_title('Jerusalem Talmud Yevamot')
     catcher.finish()
 
 """
@@ -118,4 +171,5 @@ Jerusalem Talmud Taanit 1:1:18
 Jerusalem Talmud Taanit 2:4:1
 Jerusalem Talmud Taanit 2:2:3
 Jerusalem Talmud Taanit 4:7:2
+Jerusalem Talmud Yevamot 1:2:9
 """
