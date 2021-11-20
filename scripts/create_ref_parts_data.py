@@ -13,6 +13,7 @@ class RefPartModifier:
     def __init__(self):
         self.create_base_non_unique_terms()
         self.shas_map = self.create_shas_terms()
+        self.tanakh_map = self.create_tanakh_terms()
 
     def t(self, **kwargs):
         slug = kwargs.get('en', kwargs.get('he'))
@@ -154,7 +155,6 @@ class RefPartModifier:
             delattr(perek_node, 'isSegmentLevelDiburHamatchil')
             perek_node.ref_parts = perek_node.ref_parts[1:]
 
-
     def modify_talmud(self, fast=False):
         perek = NonUniqueTerm.init('perek')
         bavli = NonUniqueTerm.init('bavli')
@@ -204,37 +204,12 @@ class RefPartModifier:
             else:
                 index.save()
 
-
     def modify_tanakh(self, fast=False):
-        hard_coded_title_map = {
-            "I Samuel": ["1S."],
-            "II Samuel": ["2S."],
-            "I Kings": ["1K."],
-            "II Kings": ["2K."],
-            "Zechariah": ["Sach."],
-            "I Chronicles": ["1Chr."],
-            "II Chronicles": ["2Chr."],
-            "Lamentations": ["Thr."],
-        }
         sefer = NonUniqueTerm.init('sefer')
         parasha = NonUniqueTerm.init('parasha')
         indexes = library.get_indexes_in_category("Tanakh", full_records=True)
         for index in tqdm(indexes, desc='tanakh', total=indexes.count()):
-            titles = index.nodes.title_group.titles
-            titles += [{
-                "text": alt_title,
-                "lang": "en"
-            } for alt_title in hard_coded_title_map.get(index.title, [])]
-            titles += [{
-                "text": alt_title_obj['text'].replace('.', ' .'),
-                "lang": "en"
-            } for alt_title_obj in titles if re.search(r'\.$', alt_title_obj['text']) is not None]
-            index_term = NonUniqueTerm({
-                "slug": index.title,
-                "titles": titles,
-                "ref_part_role": "structural"
-            })
-            index_term.save()
+            index_term = self.tanakh_map[index.title]
             index.nodes.ref_parts = [
                 {
                     "slugs": [sefer.slug],
@@ -268,7 +243,6 @@ class RefPartModifier:
                 self.fast_index_save(index)
             else:
                 index.save()
-
 
     def modify_rest_of_shas(self, fast=False):
         title_swaps = {
@@ -310,6 +284,39 @@ class RefPartModifier:
                 else:
                     index.save()
 
+    def modify_midrash_rabbah(self, fast=False):
+        indexes = library.get_indexes_in_category("Midrash Rabbah", full_records=True)
+        tanakh_title_map = {
+            "Bereishit": "Genesis",
+            "Shemot": "Exodus",
+            "Vayikra": "Leviticus",
+            "Bamidbar": "Numbers",
+            "Devarim": "Deuteronomy",
+            "Eichah": "Lamentations",
+            "Kohelet": "Ecclesiastes",
+            "Shir HaShirim": "Song of Songs",
+        }
+        rabbah_term = NonUniqueTerm.init('rabbah')
+        for index in tqdm(indexes, desc='midrash rabbah', total=indexes.count()):
+            tanakh_title = index.title.replace(" Rabbah", "")
+            tanakh_title = tanakh_title_map.get(tanakh_title, tanakh_title)
+            tanakh_term = self.tanakh_map.get(tanakh_title)
+            index.nodes.ref_parts = [
+                {
+                    "slugs": [tanakh_term.slug],
+                    "optional": False,
+                    "scopes": ["combined"],
+                },
+                {
+                    "slugs": [rabbah_term.slug],
+                    "optional": False,
+                    "scopes": ["combined"],
+                },
+            ]
+            if fast:
+                self.fast_index_save(index)
+            else:
+                index.save()
 
     def create_numeric_perek_terms(self):
         from sefaria.utils.hebrew import encode_hebrew_numeral
@@ -334,7 +341,6 @@ class RefPartModifier:
             self.t(en=ord_en[i-1], he=ordinals[i-1], alt_he=titles, ref_part_role='structural')
         self.t(en='last', he='בתרא', ref_part_role='structural')
 
-
     def create_base_non_unique_terms(self):
         NonUniqueTermSet().delete()
 
@@ -344,6 +350,8 @@ class RefPartModifier:
         self.t(en='Tosefta', he='תוספתא', alt_en=['Tosephta', 'T.', 'Tosef.', 'Tos.'], ref_part_role='structural')
         self.t(en='Yerushalmi', he='יורשלמי', alt_en=['Jerusalem Talmud', 'J.T.', 'JT'],ref_part_role='structural')
         self.t(en='Tosafot', he='תוספות', alt_he=["תוס'", 'תוד"ה', 'תד"ה',], ref_part_role='structural')
+        self.t(en='Midrash Rabbah', he='מדרש רבה', alt_en=['Midrash Rabba', 'Midrash Rabah'], alt_he=['מדרש רבא'], ref_part_role='structural')  # TODO no good way to compose titles for midrash rabbah...
+        self.t(en='Rabbah', he='רבה', alt_en=['Rabba', 'Rabah', 'Rab.', 'R.', 'Rab .', 'R .', 'rabba'], alt_he=['רבא'], ref_part_role='structural')
         self.t(en='Ran', he='ר"ן', ref_part_role='structural')
         self.t(en='Perek', he='פרק', ref_part_role='alt_title')
         self.t(en='Sefer', he='ספר', ref_part_role='alt_title')
@@ -400,6 +408,38 @@ class RefPartModifier:
             title_term_map[generic_title_en] = term
         return title_term_map
 
+    def create_tanakh_terms(self):
+        hard_coded_title_map = {
+            "I Samuel": ["1S."],
+            "II Samuel": ["2S."],
+            "I Kings": ["1K."],
+            "II Kings": ["2K."],
+            "Zechariah": ["Sach."],
+            "I Chronicles": ["1Chr."],
+            "II Chronicles": ["2Chr."],
+            "Lamentations": ["Thr."],
+        }
+        indexes = library.get_indexes_in_category("Tanakh", full_records=True)
+        title_term_map = {}
+        for index in tqdm(indexes, desc='tanakh', total=indexes.count()):
+            titles = index.nodes.title_group.titles
+            titles += [{
+                "text": alt_title,
+                "lang": "en"
+            } for alt_title in hard_coded_title_map.get(index.title, [])]
+            titles += [{
+                "text": alt_title_obj['text'].replace('.', ' .'),
+                "lang": "en"
+            } for alt_title_obj in titles if re.search(r'\.$', alt_title_obj['text']) is not None]
+            index_term = NonUniqueTerm({
+                "slug": index.title,
+                "titles": titles,
+                "ref_part_role": "structural"
+            })
+            index_term.save()
+            title_term_map[index.title] = index_term
+        return title_term_map
+
     def modify_all(self):
         fast = True
         create_dhs = False
@@ -408,6 +448,7 @@ class RefPartModifier:
         self.modify_tanakh(fast)
         self.modify_rest_of_shas(fast)
         self.modify_talmud_commentaries(fast, create_dhs, add_comm_alt_structs)  # on first run, rerun because ArrayMapNodes are cached
+        self.modify_midrash_rabbah(fast)
 
 
 if __name__ == "__main__":

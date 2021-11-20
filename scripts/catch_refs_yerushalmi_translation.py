@@ -90,6 +90,7 @@ class YerushalmiCatcher:
 
         return resolved_refs
 
+
 if __name__ == '__main__':
     catcher = YerushalmiCatcher('en', 'Guggenheimer Translation 2.1')
     catcher.catch_refs_in_title('Jerusalem Talmud Taanit')
@@ -102,9 +103,7 @@ post processing
 if "Mishnah" and one number in raw_ref, add perek from context
 
 TODO
-- why are "Halacha" and "Mishna" not being marked as ref parts?
 - figure out how to throw out bad matches
-- how to deal with "Mishnah 2"? Maybe a context swap?
 
 Alt titles to deal with
 - Ex. rabba 15(17
