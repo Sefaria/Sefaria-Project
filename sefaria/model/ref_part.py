@@ -43,6 +43,12 @@ class RefPartType(Enum):
     def span_label_to_enum(cls, span_label: str) -> 'RefPartType':
         return getattr(cls, LABEL_TO_REF_PART_TYPE_ATTR[span_label])
 
+
+class ResolvedContextType(Enum):
+    GRAPH = "graph"
+    TITLE = "title"
+
+
 class TrieEntry:
     def key(self):
         return hash(self)
@@ -196,13 +202,14 @@ class RawRef:
 
 class ResolvedRawRef:
 
-    def __init__(self, raw_ref: 'RawRef', resolved_ref_parts: List['RawRefPart'], node, ref: text.Ref, resolved_context_terms: List[NonUniqueTerm]=None, ambiguous=False) -> None:
+    def __init__(self, raw_ref: 'RawRef', resolved_ref_parts: List['RawRefPart'], node, ref: text.Ref, resolved_context_terms: List[NonUniqueTerm]=None, ambiguous=False, context_type: ResolvedContextType=None) -> None:
         self.raw_ref = raw_ref
         self.resolved_ref_parts = resolved_ref_parts
         self.resolved_context_terms = resolved_context_terms
         self.node = node
         self.ref = ref
         self.ambiguous = ambiguous
+        self.context_type = context_type
 
     def clone(self, **kwargs) -> 'ResolvedRawRef':
         """
@@ -650,8 +657,9 @@ class RefResolver:
         matches = []
         for context_terms in product(*context_ref_part_terms):
             temp_matches = self._get_unrefined_ref_part_matches_recursive(lang, raw_ref, ref_parts=ref_parts, context_terms=list(context_terms), context_swaps=context_swaps)
-            # throw out matches that don't use context or that don't use every ref part (b/c there's a high risk that these are false positives)
-            matches += list(filter(lambda x: len(x.resolved_context_terms) and len(x.resolved_ref_parts) == len(raw_ref.raw_ref_parts), temp_matches))
+            matches += list(filter(lambda x: len(x.resolved_context_terms), temp_matches))
+        for m in matches:
+            m.context_type = ResolvedContextType.TITLE
         return matches
 
     def _get_unrefined_ref_part_matches_for_graph_context(self, lang: str, context_ref: text.Ref, raw_ref: RawRef, ref_parts: list, context_swaps: List[NonUniqueTerm]=None) -> List[ResolvedRawRef]:
@@ -664,6 +672,8 @@ class RefResolver:
             if context_slug is None: continue
             temp_matches = self._get_unrefined_ref_part_matches_recursive(lang, raw_ref, ref_parts=ref_parts, context_terms=[NonUniqueTerm.init(context_slug)], context_swaps=context_swaps)
             matches += list(filter(lambda x: len(x.resolved_ref_parts) and len(x.resolved_context_terms), temp_matches))
+        for m in matches:
+            m.context_type = ResolvedContextType.GRAPH
         return matches
 
     def _get_context_swaps(self, lang: str, ref_parts: List[RawRefPart], context_swaps: Dict[str, str]=None) -> Tuple[List[RawRefPart], List[NonUniqueTerm]]:
@@ -758,5 +768,8 @@ class RefResolver:
 
         # remove matches that have empty refs
         max_resolved_refs = list(filter(lambda x: not x.ref.is_empty(), max_resolved_refs))
+
+        # remove title context matches that don't match all ref parts to avoid false positives
+        max_resolved_refs = list(filter(lambda x: x.context_type != ResolvedContextType.TITLE or len(x.resolved_ref_parts) == len(x.raw_ref.raw_ref_parts), max_resolved_refs))
         return max_resolved_refs
 
