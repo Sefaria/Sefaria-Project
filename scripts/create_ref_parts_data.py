@@ -351,7 +351,7 @@ class RefPartModifier:
         self.t(en='Yerushalmi', he='יורשלמי', alt_en=['Jerusalem Talmud', 'J.T.', 'JT'],ref_part_role='structural')
         self.t(en='Tosafot', he='תוספות', alt_he=["תוס'", 'תוד"ה', 'תד"ה',], alt_en=['Tosaphot'], ref_part_role='structural')
         self.t(en='Midrash Rabbah', he='מדרש רבה', alt_en=['Midrash Rabba', 'Midrash Rabah'], alt_he=['מדרש רבא'], ref_part_role='structural')  # TODO no good way to compose titles for midrash rabbah...
-        self.t(en='Rabbah', he='רבה', alt_en=['Rabba', 'Rabah', 'Rab.', 'R.', 'Rab .', 'R .', 'rabba', 'r.', 'r .'], alt_he=['רבא'], ref_part_role='structural')
+        self.t(en='Rabbah', he='רבה', alt_en=['Rabba', 'Rabah', 'Rab.', 'R.', 'Rab .', 'R .', 'rabba', 'r.', 'r .', 'rabbati'], alt_he=['רבא'], ref_part_role='structural')
         self.t(en='Ran', he='ר"ן', ref_part_role='structural')
         self.t(en='Perek', he='פרק', ref_part_role='alt_title')
         self.t(en='Sefer', he='ספר', ref_part_role='alt_title')
@@ -370,11 +370,12 @@ class RefPartModifier:
             "Beitzah": ["Yom Tov", "Besah"],
             "Berakhot": ["Berkahot"],
             "Bava Batra": ["Bava batra", "Baba batra"],
-            "Bava Kamma": ["Bava kamma", "Bava kama", "Baba kamma", "Baba kama", "Bava qama", "Baba qama", "Bava Qama", "Baba Qama"],
+            "Bava Kamma": ["Bava kamma", "Bava kama", "Baba kamma", "Baba kama", "Bava qama", "Baba qama", "Bava Qama", "Baba Qama", "Bava qamma", "Bava Qamma"],
             "Bava Metzia": ["Bava mesi`a", "Baba Mesi‘a", "Baba mesi`a", "Bava Mesi‘a", "Bava mesi‘a"],
             "Chullin": ["Hulin"],
             "Demai": ["Demay"],
             "Eduyot": ["Idiut"],
+            "Horayot": ["Horaiot"],
             "Kiddushin": ["Qiddušin"],
             "Kilayim": ["Kilaim"],
             "Makhshirin": ["Makhširin"],
@@ -383,11 +384,12 @@ class RefPartModifier:
             "Negaim": ["Negaˋim"],
             "Oholot": ["Ahilut", "Ahilot"],
             "Pesachim": ["Pisha"],
-            "Rosh Hashanah": ["Roš Haššanah"],
+            "Rosh Hashanah": ["Roš Haššanah", "Rosh Haššanah"],
             "Shabbat": ["Šabbat"],
             "Shekalim": ["Šeqalim"],
             "Sheviit": ["Ševi‘it", "Ševiˋit"],
-            "Shevuot": ["Šebuot"],
+            "Shevuot": ["Šebuot", "Ševuˋot", "Ševu‘ot"],
+            "Taanit": ["Ta ˋ anit", "Taˋanit", "Ta‘anit"],
             "Zevachim": ["Zevahim", "Zebahim"],
         }
         title_map = defaultdict(set)
@@ -428,7 +430,9 @@ class RefPartModifier:
             "Zechariah": ["Sach."],
             "I Chronicles": ["1Chr."],
             "II Chronicles": ["2Chr."],
-            "Lamentations": ["Thr."],
+            "Lamentations": ["Thr.", "Threni"],
+            "Ruth": ["Ru."],
+            "Deuteronomy": ["D eut."],
         }
         indexes = library.get_indexes_in_category("Tanakh", full_records=True)
         title_term_map = {}

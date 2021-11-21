@@ -3,6 +3,7 @@ from typing import List, Optional, Union, Tuple
 django.setup()
 from tqdm import tqdm
 from sefaria.model import *
+from sefaria.system.exceptions import InputError
 from sefaria.model.ref_part import ResolvedRawRef, RefPartType
 from sefaria.helper.normalization import NormalizerComposer
 
@@ -107,7 +108,10 @@ class YerushalmiCatcher:
         if sec is not None:
             new_ref = Ref(sec)
             if toSec is not None:
-                new_ref = new_ref.to(Ref(toSec))
+                try:
+                    new_ref = new_ref.to(Ref(toSec))
+                except InputError:
+                    pass
             return new_ref
 
     def post_process_resolved_refs(self, resolved_refs: List[ResolvedRawRef], context_ref: Ref) -> List[ResolvedRawRef]:
@@ -163,7 +167,7 @@ class YerushalmiCatcher:
 
 if __name__ == '__main__':
     catcher = YerushalmiCatcher('en', VTITLE)
-    catcher.catch_refs_in_title('Jerusalem Talmud Niddah')
+    catcher.catch_refs_in_title('Jerusalem Talmud Sanhedrin')
     catcher.finish()
 
 """
@@ -176,7 +180,6 @@ TODO
 - Midrash refs
 - Retrain models
 - Find missing alt titles
-- Fix span indices (Jerusalem Talmud Bava Kamma 1:1:4)
 
 Alt titles to deal with
 - Ex. rabba 15(17
@@ -202,6 +205,11 @@ Alt titles to deal with
 - Hošen Mišpat §95 Note 67
 - Śemahot 1:13
 - Sifra Mesora‘ Parašah 4(4
+- Megillat Ta ˋ anit 6
+- Yalqut Šimˋony 736
+- Midrash Samuel 7(5
+- Seder Olam Chap. 2
+- Tanhuma Qorah 2 (Buber 4
 
 Examples to train on
 Jerusalem Talmud Taanit 1:1:18
@@ -234,4 +242,10 @@ Jerusalem Talmud Niddah 1:4:3
 Jerusalem Talmud Niddah 2:1:6
 Jerusalem Talmud Niddah 3:2:9
 Jerusalem Talmud Niddah 3:3:4
+Jerusalem Talmud Sanhedrin 1:1:1
+Jerusalem Talmud Sanhedrin 1:2:5
+Jerusalem Talmud Sanhedrin 1:2:17
+Jerusalem Talmud Sanhedrin 1:3:7
+Jerusalem Talmud Sanhedrin 2:6:4
+Jerusalem Talmud Sanhedrin 2:6:7
 """
