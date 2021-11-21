@@ -1276,15 +1276,24 @@ const withSefariaSheet = editor => {
             return
         }
 
-        const isListItemAndNotEmpty = editor => {
+        const isListItem = editor => {
           const [list] = Editor.nodes(editor, { match: n => LIST_TYPES.includes(!Editor.isEditor(n) && SlateElement.isElement(n) && n.type)})
-          const curNode = Node.get(editor, editor.selection.focus.path);
-            if (list && Node.string(curNode) !== "") {return true}
-            else {return false}
-        };
+          return list
+        }
 
-        if (isListItemAndNotEmpty(editor)) {
-            insertBreak();
+        const isEmpty = editor => {
+          const curNode = Node.get(editor, editor.selection.focus.path);
+          return Node.string(curNode) === ""
+        }
+
+        if (isListItem(editor)) {
+            if (isEmpty(editor)) {
+                Transforms.insertNodes(editor, {type: 'spacer', children: [{text: ""}]});
+                deleteBackward()
+            }
+            else {
+                insertBreak();
+            }
             return
         }
 
