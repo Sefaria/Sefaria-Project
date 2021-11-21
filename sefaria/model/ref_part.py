@@ -123,7 +123,7 @@ class RawRefPart(TrieEntry):
 
     def get_dh_text_to_match(self):
         import re
-        m = re.match(r'^(?:(?:\u05d3"\u05d4|s\.v\.) )?(.+)$', self.text)
+        m = re.match(r'^(?:(?:\u05d3"\u05d4|s ?\. ?v ?\.) )?(.+?)$', self.text)
         if m is None: return
         return m.group(1)
 

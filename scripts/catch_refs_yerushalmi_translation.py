@@ -148,6 +148,9 @@ class YerushalmiCatcher:
                     resolved_ref.ref = Ref(f"{prev_resolved_ref.ref.index.title} {sections}")
                 elif len(parts) == 1 and re.search(r"^vv ?\. \d+", parts[0].text) is not None and prev_resolved_ref is not None and prev_resolved_ref.ref is not None and prev_resolved_ref.ref.primary_category == "Tanakh":
                     sections = re.sub(r"^vv ?\. ", "", parts[0].text)
+                    if ':' not in sections:
+                        # need to pull perek from prev ref
+                        sections = f"{prev_resolved_ref.ref.sections[0]}:{sections}"
                     title = prev_resolved_ref.ref.index.title
                     resolved_ref.ref = Ref(f"{title} {sections}")
                 elif re.search(r"^Notes? \d+", resolved_ref.raw_ref.text) is not None:
@@ -176,9 +179,7 @@ post processing
 
 TODO
 - Chapter 1, Notes 34, 143 non-cts notes (row 209 of Pesachim)
-- for vv., check if : to see if you need to pull perek from prev ref
 - Midrash refs
-- Retrain models
 - Find missing alt titles
 
 Alt titles to deal with
