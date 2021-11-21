@@ -150,6 +150,12 @@ class YerushalmiCatcher:
                     note_ref = self.get_note_ref(resolved_ref.raw_ref.text, context_ref)
                     if note_ref is not None:
                         resolved_ref.ref = note_ref
+                elif re.search(r"^Chapter \d+ ?.+ Notes? \d+", resolved_ref.raw_ref.text) is not None:
+                    chapter_num = re.search(r"^Chapter (\d+)", resolved_ref.raw_ref.text).group(1)
+                    temp_context_ref = Ref(f"{context_ref.index.title} {chapter_num}")
+                    note_ref = self.get_note_ref(resolved_ref.raw_ref.text, temp_context_ref)
+                    if note_ref is not None:
+                        resolved_ref.ref = note_ref
             prev_resolved_ref = resolved_ref
 
         return resolved_refs
@@ -157,7 +163,7 @@ class YerushalmiCatcher:
 
 if __name__ == '__main__':
     catcher = YerushalmiCatcher('en', VTITLE)
-    catcher.catch_refs_in_title('Jerusalem Talmud Pesachim')
+    catcher.catch_refs_in_title('Jerusalem Talmud Niddah')
     catcher.finish()
 
 """
@@ -165,9 +171,12 @@ post processing
 
 
 TODO
-- figure out how to throw out bad matches (especially ones that resolve to title context like "Derekh Eres Rabba 1")
-- "Chapter 1, Note 104" no longer works b/c we're stricter on title context
+- Chapter 1, Notes 34, 143 non-cts notes (row 209 of Pesachim)
 - for vv., check if : to see if you need to pull perek from prev ref
+- Midrash refs
+- Retrain models
+- Find missing alt titles
+- Fix span indices (Jerusalem Talmud Bava Kamma 1:1:4)
 
 Alt titles to deal with
 - Ex. rabba 15(17
@@ -184,6 +193,15 @@ Alt titles to deal with
 - Šulhan Arukh Yoreh Deˋa 89(4
 - Or Zaruaˋ II §229
 - Sifra Wayyiqra II (Hovah) Pereq 11(3
+- Sifra, Introduction 5
+- Tanhuma Buber Šemini 10
+- Deut. rabba Eqeb 1 (some
+- Rashba, Novellae ad 78b
+- Maimonides ( Hilkhot Hovel umazziq 2:2
+- Rosh (Chapter 8, §1
+- Hošen Mišpat §95 Note 67
+- Śemahot 1:13
+- Sifra Mesora‘ Parašah 4(4
 
 Examples to train on
 Jerusalem Talmud Taanit 1:1:18
@@ -200,4 +218,20 @@ Jerusalem Talmud Pesachim 4:9:3
 Jerusalem Talmud Pesachim 5:4:6
 Jerusalem Talmud Pesachim 5:8:3
 Jerusalem Talmud Pesachim 7:7:8
+Jerusalem Talmud Bava Kamma 1:1:4
+Jerusalem Talmud Bava Kamma 1:1:5
+Jerusalem Talmud Bava Kamma 1:1:8
+Jerusalem Talmud Bava Kamma 1:1:10
+Jerusalem Talmud Bava Kamma 2:6:1
+Jerusalem Talmud Bava Kamma 3:1:2
+Jerusalem Talmud Bava Kamma 4:3:2
+Jerusalem Talmud Bava Kamma 6:5:2
+Jerusalem Talmud Bava Kamma 7:1:2
+Jerusalem Talmud Bava Kamma 7:5:1
+Jerusalem Talmud Bava Kamma 9:6:2
+Jerusalem Talmud Niddah 1:1:1
+Jerusalem Talmud Niddah 1:4:3
+Jerusalem Talmud Niddah 2:1:6
+Jerusalem Talmud Niddah 3:2:9
+Jerusalem Talmud Niddah 3:3:4
 """

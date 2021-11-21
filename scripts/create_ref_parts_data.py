@@ -366,24 +366,29 @@ class RefPartModifier:
         from collections import defaultdict
         from sefaria.utils.hebrew import is_hebrew
         hard_coded_title_map = {
+            "Avodah Zarah": ["Avodah zarah"],
             "Beitzah": ["Yom Tov", "Besah"],
             "Berakhot": ["Berkahot"],
             "Bava Batra": ["Bava batra", "Baba batra"],
-            "Bava Kamma": ["Bava kamma", "Bava kama", "Baba kamma", "Baba kama"],
-            "Bava Metzia": ["Bava mesi`a", "Baba Mesi‘a", "Baba mesi`a", "Bava Mesi‘a"],
+            "Bava Kamma": ["Bava kamma", "Bava kama", "Baba kamma", "Baba kama", "Bava qama", "Baba qama", "Bava Qama", "Baba Qama"],
+            "Bava Metzia": ["Bava mesi`a", "Baba Mesi‘a", "Baba mesi`a", "Bava Mesi‘a", "Bava mesi‘a"],
+            "Chullin": ["Hulin"],
             "Demai": ["Demay"],
             "Eduyot": ["Idiut"],
             "Kiddushin": ["Qiddušin"],
             "Kilayim": ["Kilaim"],
+            "Makhshirin": ["Makhširin"],
+            "Meilah": ["Me‘ilah", "Meˋilah"],
             "Moed Katan": ["Mo‘ed qatan", "Mo‘ed Qatan", "Moˋed qatan", "Moˋed Qatan"],
             "Negaim": ["Negaˋim"],
-            "Oholot": ["Ahilut"],
+            "Oholot": ["Ahilut", "Ahilot"],
             "Pesachim": ["Pisha"],
             "Rosh Hashanah": ["Roš Haššanah"],
             "Shabbat": ["Šabbat"],
             "Shekalim": ["Šeqalim"],
             "Sheviit": ["Ševi‘it", "Ševiˋit"],
-            "Zevachim": ["Zevahim"],
+            "Shevuot": ["Šebuot"],
+            "Zevachim": ["Zevahim", "Zebahim"],
         }
         title_map = defaultdict(set)
         repls = ['M.', 'M', 'Mishna', 'Mishnah', 'משנה', 'Masechet', 'Masekhet', 'משנה מסכת', 'Tractate', 'Talmud', 'BT', 'T.B.', 'Maseches', 'Tosefta', 'T.', 'Tos.', 'Tosef.']

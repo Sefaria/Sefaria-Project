@@ -44,9 +44,10 @@ class RefPartType(Enum):
         return getattr(cls, LABEL_TO_REF_PART_TYPE_ATTR[span_label])
 
 
-class ResolvedContextType(Enum):
+class ResolutionMethod(Enum):
     GRAPH = "graph"
     TITLE = "title"
+    NON_CTS = "non_cts"
 
 
 class TrieEntry:
@@ -202,14 +203,14 @@ class RawRef:
 
 class ResolvedRawRef:
 
-    def __init__(self, raw_ref: 'RawRef', resolved_ref_parts: List['RawRefPart'], node, ref: text.Ref, resolved_context_terms: List[NonUniqueTerm]=None, ambiguous=False, context_type: ResolvedContextType=None) -> None:
+    def __init__(self, raw_ref: 'RawRef', resolved_ref_parts: List['RawRefPart'], node, ref: text.Ref, resolved_context_terms: List[NonUniqueTerm]=None, ambiguous=False, resolution_method: ResolutionMethod=None) -> None:
         self.raw_ref = raw_ref
         self.resolved_ref_parts = resolved_ref_parts
         self.resolved_context_terms = resolved_context_terms
         self.node = node
         self.ref = ref
         self.ambiguous = ambiguous
-        self.context_type = context_type
+        self.resolution_method = resolution_method
 
     def clone(self, **kwargs) -> 'ResolvedRawRef':
         """
@@ -635,14 +636,22 @@ class RefResolver:
         split_raw_refs = self.split_non_cts_parts(raw_ref)
         resolved_list = []
         for i, temp_raw_ref in enumerate(split_raw_refs):
-            if i > 0 and len(resolved_list) > 0:
+            is_non_cts = i > 0 and len(resolved_list) > 0
+            if is_non_cts:
                 # TODO assumes context is only first resolved ref
                 context_ref = resolved_list[0].ref
             unrefined_matches = self.get_unrefined_ref_part_matches(lang, context_ref, temp_raw_ref)
+            if is_non_cts:
+                # resolution will start at context_ref.sections - len(ref parts). rough heuristic
+                for match in unrefined_matches:
+                    match.ref = match.ref.subref(context_ref.sections[:-len(temp_raw_ref.raw_ref_parts)])
             temp_resolved_list = self.refine_ref_part_matches(lang, unrefined_matches, temp_raw_ref)
             if len(temp_resolved_list) > 1:
                 for resolved in temp_resolved_list:
                     resolved.ambiguous = True
+            if is_non_cts:
+                for resolved in temp_resolved_list:
+                    resolved.resolution_method = ResolutionMethod.NON_CTS
             resolved_list += temp_resolved_list
         return resolved_list
 
@@ -665,7 +674,7 @@ class RefResolver:
             temp_matches = self._get_unrefined_ref_part_matches_recursive(lang, raw_ref, ref_parts=ref_parts, context_terms=list(context_terms), context_swaps=context_swaps)
             matches += list(filter(lambda x: len(x.resolved_context_terms), temp_matches))
         for m in matches:
-            m.context_type = ResolvedContextType.TITLE
+            m.resolution_method = ResolutionMethod.TITLE
         return matches
 
     def _get_unrefined_ref_part_matches_for_graph_context(self, lang: str, context_ref: text.Ref, raw_ref: RawRef, ref_parts: list, context_swaps: List[NonUniqueTerm]=None) -> List[ResolvedRawRef]:
@@ -679,7 +688,7 @@ class RefResolver:
             temp_matches = self._get_unrefined_ref_part_matches_recursive(lang, raw_ref, ref_parts=ref_parts, context_terms=[NonUniqueTerm.init(context_slug)], context_swaps=context_swaps)
             matches += list(filter(lambda x: len(x.resolved_ref_parts) and len(x.resolved_context_terms), temp_matches))
         for m in matches:
-            m.context_type = ResolvedContextType.GRAPH
+            m.resolution_method = ResolutionMethod.GRAPH
         return matches
 
     def _get_context_swaps(self, lang: str, ref_parts: List[RawRefPart], context_swaps: Dict[str, str]=None) -> Tuple[List[RawRefPart], List[NonUniqueTerm]]:
@@ -778,6 +787,6 @@ class RefResolver:
         max_resolved_refs = list(filter(lambda x: not x.ref.is_empty(), max_resolved_refs))
 
         # remove title context matches that don't match all ref parts to avoid false positives
-        max_resolved_refs = list(filter(lambda x: x.context_type not in {ResolvedContextType.TITLE, ResolvedContextType.GRAPH} or len(x.resolved_ref_parts) == len(x.raw_ref.raw_ref_parts), max_resolved_refs))
+        max_resolved_refs = list(filter(lambda x: x.resolution_method not in {ResolutionMethod.TITLE, ResolutionMethod.GRAPH} or len(x.resolved_ref_parts) == len(x.raw_ref.raw_ref_parts), max_resolved_refs))
         return max_resolved_refs
 
