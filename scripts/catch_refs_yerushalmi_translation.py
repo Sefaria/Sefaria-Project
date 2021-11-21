@@ -183,6 +183,7 @@ Alt titles to deal with
 - Sifry zuta Behaˋalotekha 9(2
 - Šulhan Arukh Yoreh Deˋa 89(4
 - Or Zaruaˋ II §229
+- Sifra Wayyiqra II (Hovah) Pereq 11(3
 
 Examples to train on
 Jerusalem Talmud Taanit 1:1:18

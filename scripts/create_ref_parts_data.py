@@ -375,14 +375,15 @@ class RefPartModifier:
             "Eduyot": ["Idiut"],
             "Kiddushin": ["Qiddušin"],
             "Kilayim": ["Kilaim"],
-            "Moed Katan": ["Mo‘ed qatan", "Mo‘ed Qatan"],
+            "Moed Katan": ["Mo‘ed qatan", "Mo‘ed Qatan", "Moˋed qatan", "Moˋed Qatan"],
             "Negaim": ["Negaˋim"],
             "Oholot": ["Ahilut"],
             "Pesachim": ["Pisha"],
             "Rosh Hashanah": ["Roš Haššanah"],
             "Shabbat": ["Šabbat"],
             "Shekalim": ["Šeqalim"],
-            "Sheviit": ["Ševi‘it"],
+            "Sheviit": ["Ševi‘it", "Ševiˋit"],
+            "Zevachim": ["Zevahim"],
         }
         title_map = defaultdict(set)
         repls = ['M.', 'M', 'Mishna', 'Mishnah', 'משנה', 'Masechet', 'Masekhet', 'משנה מסכת', 'Tractate', 'Talmud', 'BT', 'T.B.', 'Maseches', 'Tosefta', 'T.', 'Tos.', 'Tosef.']

@@ -731,7 +731,9 @@ class RefResolver:
             match = match_queue.pop(0)
             unused_ref_parts = match.get_unused_ref_parts(raw_ref)
             has_match = False
-            if isinstance(match.node, schema.NumberedTitledTreeNode):
+            if match.node is None:
+                children = []
+            elif isinstance(match.node, schema.NumberedTitledTreeNode):
                 child = match.node.get_referenceable_child(match.ref)
                 children = [] if child is None else [child]
             elif isinstance(match.node, schema.DiburHamatchilNode):
@@ -776,6 +778,6 @@ class RefResolver:
         max_resolved_refs = list(filter(lambda x: not x.ref.is_empty(), max_resolved_refs))
 
         # remove title context matches that don't match all ref parts to avoid false positives
-        max_resolved_refs = list(filter(lambda x: x.context_type != ResolvedContextType.TITLE or len(x.resolved_ref_parts) == len(x.raw_ref.raw_ref_parts), max_resolved_refs))
+        max_resolved_refs = list(filter(lambda x: x.context_type not in {ResolvedContextType.TITLE, ResolvedContextType.GRAPH} or len(x.resolved_ref_parts) == len(x.raw_ref.raw_ref_parts), max_resolved_refs))
         return max_resolved_refs
 
