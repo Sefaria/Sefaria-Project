@@ -115,7 +115,7 @@ def test_resolved_raw_ref_clone():
     [create_raw_ref_data("Jerusalem Talmud Shabbat 1:1", 'en', 'Yalqut Psalms 116', [0, 1, 2], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ("Yalkut Shimoni on Nach 874:1-875:4",)],
     [create_raw_ref_data("Jerusalem Talmud Sheviit 1:1:3", 'en', 'Tosephta Ševi‘it 1:1', [0, slice(1,4), 4, 6], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Tosefta Sheviit 1:1", "Tosefta Sheviit (Lieberman) 1:1")],
     [create_raw_ref_data("Jerusalem Talmud Taanit 1:1:3", 'en', 'Babli 28b,31a', [0, 1, 2, 3], [RPT.NAMED, RPT.NUMBERED, RPT.NON_CTS, RPT.NUMBERED]), ("Taanit 28b", "Taanit 31a")],
-    [create_raw_ref_data("Jerusalem Talmud Taanit 1:1:3", 'en', 'Roš Haššanah 4, Notes 42–43', [slice(0, 2), 2, slice(4, 6), 6, 7], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED]), ("Jerusalem Talmud Rosh Hashanah 4",)],  # failing b/c we don't support note refs
+    [create_raw_ref_data("Jerusalem Talmud Taanit 1:1:3", 'en', 'Roš Haššanah 4, Notes 42–43', [slice(0, 2), 2, slice(4, 6), 6, 7], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED]), ("Jerusalem Talmud Rosh Hashanah 4",)],  # this is currently testing resolution of partial ranged refs since we don't support Note refs.
     [create_raw_ref_data("Jerusalem Talmud Pesachim 1:1:3", 'en', 'Tosaphot 85a, s.v. ולרבינא', [0, 1, slice(3, 8)], [RPT.NAMED, RPT.NUMBERED, RPT.DH]), ("Tosafot on Pesachim 85a:14:1",)],
     [create_raw_ref_data("Jerusalem Talmud Pesachim 1:1:3", 'en', 'Unknown book 2', [slice(0, 2), 1], [RPT.NAMED, RPT.NUMBERED]), tuple()],  # make sure title context doesn't match this
 ])

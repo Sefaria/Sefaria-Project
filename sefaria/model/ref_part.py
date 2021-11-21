@@ -259,6 +259,7 @@ class ResolvedRawRef:
 
     def _get_refined_matches_for_ranged_sections(self, sections: List['RawRefPart'], refined_ref_parts: List['RawRefPart'], node, lang, fromSections: list=None):
         resolved_raw_refs = [self.clone(resolved_ref_parts=refined_ref_parts, node=node, ref=node.ref())]
+        incomplete_resolved_raw_refs = []
         is_first_pass = True
         for section_part in sections:
             queue_len = len(resolved_raw_refs)
@@ -267,19 +268,24 @@ class ResolvedRawRef:
                 if not is_first_pass:
                     temp_resolved_raw_ref.node = temp_resolved_raw_ref.node.get_referenceable_child(temp_resolved_raw_ref.ref)
                 is_first_pass = False
-                resolved_raw_refs += temp_resolved_raw_ref._get_refined_refs_for_numbered_part(section_part, refined_ref_parts, temp_resolved_raw_ref.node, lang, fromSections)
-
-        return resolved_raw_refs
+                next_resolved_raw_refs = temp_resolved_raw_ref._get_refined_refs_for_numbered_part(section_part, refined_ref_parts, temp_resolved_raw_ref.node, lang, fromSections)
+                resolved_raw_refs += next_resolved_raw_refs
+                if len(next_resolved_raw_refs) == 0:
+                    incomplete_resolved_raw_refs += [temp_resolved_raw_ref]
+        return resolved_raw_refs, incomplete_resolved_raw_refs
 
     def _get_refined_matches_for_ranged_part(self, raw_ref_part: 'RangedRawRefParts', refined_ref_parts: List['RawRefPart'], node, lang) -> List['ResolvedRawRef']:
-        section_resolved_raw_refs = self._get_refined_matches_for_ranged_sections(raw_ref_part.sections, refined_ref_parts, node, lang)
-        toSection_resolved_raw_refs = self._get_refined_matches_for_ranged_sections(raw_ref_part.toSections, refined_ref_parts, node, lang, fromSections=[x.ref.sections for x in section_resolved_raw_refs])
+        section_resolved_raw_refs, incomplete_section_refs = self._get_refined_matches_for_ranged_sections(raw_ref_part.sections, refined_ref_parts, node, lang)
+        toSection_resolved_raw_refs, _ = self._get_refined_matches_for_ranged_sections(raw_ref_part.toSections, refined_ref_parts, node, lang, fromSections=[x.ref.sections for x in section_resolved_raw_refs])
         ranged_resolved_raw_refs = []
         for section, toSection in product(section_resolved_raw_refs, toSection_resolved_raw_refs):
             try:
                 ranged_resolved_raw_refs += [self.clone(resolved_ref_parts=refined_ref_parts, node=section.node, ref=section.ref.to(toSection.ref))]
             except InputError:
                 continue
+        if len(section_resolved_raw_refs) == 0:
+            # TODO do we only want to include incomplete refs when they are no complete ones? probably.
+            ranged_resolved_raw_refs += incomplete_section_refs
         return ranged_resolved_raw_refs
 
 
