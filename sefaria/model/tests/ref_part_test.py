@@ -135,18 +135,21 @@ def test_resolve_raw_ref(resolver_data, expected_trefs):
         assert matched_oref == Ref(expected_tref)
 
 
-@pytest.mark.parametrize(('input_str', 'lang', 'expected_trefs'), [
-    ["""גמ' שמזונותן עליך. עיין ביצה דף טו ע"ב רש"י ד"ה שמא יפשע:""", 'he', ("Rashi on Beitzah 15b:8:1",)],
-    ["""שם אלא ביתך ל"ל. ע' מנחות מד ע"א תד"ה טלית:""", 'he', ("Tosafot on Menachot 44a:12:1",)],
-    ["""גמ' במה מחנכין. עי' מנחות דף עח ע"א תוס' ד"ה אחת:""", 'he',("Tosafot on Menachot 78a:10:1",)],
+@pytest.mark.parametrize(('context_tref', 'input_str', 'lang', 'expected_trefs'), [
+    ["Job 1", """גמ' שמזונותן עליך. עיין ביצה דף טו ע"ב רש"י ד"ה שמא יפשע:""", 'he', ("Rashi on Beitzah 15b:8:1",)],
+    ["Job 1", """שם אלא ביתך ל"ל. ע' מנחות מד ע"א תד"ה טלית:""", 'he', ("Tosafot on Menachot 44a:12:1",)],
+    ["Job 1", """גמ' במה מחנכין. עי' מנחות דף עח ע"א תוס' ד"ה אחת:""", 'he',("Tosafot on Menachot 78a:10:1",)],
+    ["Job 1", """cf. Ex. 9:6,5""", 'en', ("Exodus 9:6", "Exodus 9:5")],
 ])
-def test_full_pipeline_ref_resolver(input_str, lang, expected_trefs):
+def test_full_pipeline_ref_resolver(context_tref, input_str, lang, expected_trefs):
     ref_resolver = library.get_ref_resolver()
-    resolved = ref_resolver.resolve_refs_in_string(lang, Ref("Job 1"), input_str)
+    resolved = ref_resolver.resolve_refs_in_string(lang, Ref(context_tref), input_str)
     assert len(resolved) == len(expected_trefs)
     resolved_orefs = sorted([match.ref for match in resolved], key=lambda x: x.normal())
     for expected_tref, matched_oref in zip(sorted(expected_trefs, key=lambda x: x), resolved_orefs):
         assert matched_oref == Ref(expected_tref)
+    for match in resolved:
+        assert input_str[slice(*match.raw_ref.char_indices)] == match.raw_ref.text
 
 @pytest.mark.parametrize(('input_addr_str', 'AddressClass','expected_sections'), [
     ['פ"ח', schema.AddressPerek, ([8, 88], [8, 88], [schema.AddressPerek, schema.AddressInteger])],

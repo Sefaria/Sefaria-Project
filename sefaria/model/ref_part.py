@@ -29,6 +29,16 @@ LABEL_TO_REF_PART_TYPE_ATTR = {
 }
 
 
+def span_inds(span: Union[Token, Span]) -> Tuple[int, int]:
+    """
+    For some reason, spacy makes it difficult to deal with indices in tokens and spans
+    These classes use different fields for their indices
+    This function unifies access to indices
+    """
+    start = span.start if isinstance(span, Span) else span.i
+    end = span.end if isinstance(span, Span) else (span.i+1)
+    return start, end
+
 class RefPartType(Enum):
     NAMED = "named"
     NUMBERED = "numbered"
@@ -137,11 +147,11 @@ class RangedRawRefParts(RawRefPart):
     def __ne__(self, other):
         return not self.__eq__(other)
 
-    def _get_full_span(self, sections, toSections):
+    @staticmethod
+    def _get_full_span(sections, toSections):
         start_span = sections[0].span
-        end_span = toSections[-1].span
-        start_token_i = start_span.start if isinstance(start_span, Span) else start_span.i
-        end_token_i = end_span.end if isinstance(end_span, Span) else (end_span.i + 1)
+        start_token_i = span_inds(start_span)[0]
+        end_token_i = span_inds(toSections[-1].span)[1]
         return start_span.doc[start_token_i:end_token_i]
 
 
@@ -152,7 +162,8 @@ class RawRef:
         self.prev_num_parts_map = self._get_prev_num_parts_map(self.raw_ref_parts)
         self.span = span
 
-    def _group_ranged_parts(self, raw_ref_parts: List['RawRefPart']) -> List['RawRefPart']:
+    @staticmethod
+    def _group_ranged_parts(raw_ref_parts: List['RawRefPart']) -> List['RawRefPart']:
         ranged_symbol_ind = None
         for i, part in enumerate(raw_ref_parts):
             if part.type == RefPartType.RANGE_SYMBOL:
@@ -177,7 +188,8 @@ class RawRef:
                             raw_ref_parts[toSection_slice.stop:]
         return new_raw_ref_parts
 
-    def _get_prev_num_parts_map(self, raw_ref_parts: List[RawRefPart]) -> Dict[RawRefPart, RawRefPart]:
+    @staticmethod
+    def _get_prev_num_parts_map(raw_ref_parts: List[RawRefPart]) -> Dict[RawRefPart, RawRefPart]:
         if len(raw_ref_parts) == 0: return {}
         prev_num_parts_map = {}
         prev_part = raw_ref_parts[0]
@@ -186,6 +198,18 @@ class RawRef:
                 prev_num_parts_map[part] = prev_part
             prev_part = part
         return prev_num_parts_map
+
+    def subspan(self, part_slice: slice) -> Union[Token, Span]:
+        """
+        Return subspan covered by `raw_ref_parts`, relative to self.span
+        Assumes raw_ref_parts are in order
+        """
+        parts = self.raw_ref_parts[part_slice]
+        start_token_i = span_inds(parts[0].span)[0]
+        end_token_i = span_inds(parts[-1].span)[1]
+
+        offset_i = span_inds(self.span)[0]
+        return self.span.doc[offset_i+start_token_i:offset_i+end_token_i]
 
     def get_text(self):
         return self.span.text
@@ -507,6 +531,7 @@ class RefPartTitleGraph:
                     if self.do_parents_share_child(context_slug1, input_slug, context_slug2):
                         return context_slug2
 
+
 class TermMatcher:
     """
     Used to match raw ref parts to non-unique terms naively.
@@ -618,18 +643,15 @@ class RefResolver:
         if not any(part.type == RefPartType.NON_CTS for part in raw_ref.raw_ref_parts): return [raw_ref]
         split_raw_refs = []
         curr_parts = []
+        curr_part_start = 0
         for ipart, part in enumerate(raw_ref.raw_ref_parts):
             if part.type != RefPartType.NON_CTS:
                 curr_parts += [part]
             if part.type == RefPartType.NON_CTS or ipart == len(raw_ref.raw_ref_parts) - 1:
                 if len(curr_parts) == 0: continue
-                start_span = curr_parts[0].span
-                end_span = curr_parts[-1].span
-                start_token_i = start_span.start if isinstance(start_span, Span) else start_span.i
-                end_token_i = end_span.end if isinstance(end_span, Span) else (end_span.i + 1)
-                temp_raw_ref_span = start_span.doc[start_token_i:end_token_i]
-                split_raw_refs += [RawRef(curr_parts, temp_raw_ref_span)]
+                split_raw_refs += [RawRef(curr_parts, raw_ref.subspan(slice(curr_part_start, ipart+1)))]
                 curr_parts = []
+                curr_part_start = ipart
         return split_raw_refs
 
     def resolve_raw_ref(self, lang: str, context_ref: text.Ref, raw_ref: 'RawRef') -> List['ResolvedRawRef']:
