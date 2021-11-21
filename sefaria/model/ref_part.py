@@ -105,7 +105,10 @@ class RawRefPart(TrieEntry):
         return self.span.text
 
     def get_dh_text_to_match(self):
-        return self.text.replace('ד"ה ', '')
+        import re
+        m = re.match(r'^(?:(?:\u05d3"\u05d4|s\.v\.) )?(.+)$', self.text)
+        if m is None: return
+        return m.group(1)
 
     text = property(get_text)
 
@@ -148,7 +151,7 @@ class RawRef:
             if part.type == RefPartType.RANGE_SYMBOL:
                 ranged_symbol_ind = i
                 break
-        if ranged_symbol_ind is None: return raw_ref_parts
+        if ranged_symbol_ind is None or ranged_symbol_ind == len(raw_ref_parts) - 1: return raw_ref_parts
         section_slice, toSection_slice = None, None
         for i in range(ranged_symbol_ind-1, -1, -1):
             if i == 0 or raw_ref_parts[i-1].type != RefPartType.NUMBERED:
@@ -221,6 +224,7 @@ class ResolvedRawRef:
             return self.clone(resolved_ref_parts=refined_ref_parts, node=max_node, ref=text.Ref(max_node.ref))
 
     def _get_refined_refs_for_numbered_part(self, raw_ref_part: 'RawRefPart', refined_ref_parts: List['RawRefPart'], node, lang, fromSections: List[RawRefPart]=None) -> List['ResolvedRawRef']:
+        if node is None: return []
         possible_sections, possible_to_sections, addr_classes = node.address_class(0).get_all_possible_sections_from_string(lang, raw_ref_part.text, fromSections)
         refined_refs = []
         addr_classes_used = []
@@ -646,7 +650,8 @@ class RefResolver:
         matches = []
         for context_terms in product(*context_ref_part_terms):
             temp_matches = self._get_unrefined_ref_part_matches_recursive(lang, raw_ref, ref_parts=ref_parts, context_terms=list(context_terms), context_swaps=context_swaps)
-            matches += list(filter(lambda x: len(x.resolved_context_terms), temp_matches))
+            # throw out matches that don't use context or that don't use every ref part (b/c there's a high risk that these are false positives)
+            matches += list(filter(lambda x: len(x.resolved_context_terms) and len(x.resolved_ref_parts) == len(raw_ref.raw_ref_parts), temp_matches))
         return matches
 
     def _get_unrefined_ref_part_matches_for_graph_context(self, lang: str, context_ref: text.Ref, raw_ref: RawRef, ref_parts: list, context_swaps: List[NonUniqueTerm]=None) -> List[ResolvedRawRef]:

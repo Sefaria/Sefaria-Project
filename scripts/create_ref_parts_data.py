@@ -346,16 +346,16 @@ class RefPartModifier:
 
         self.t(en='Bavli', he='בבלי', alt_en=['Babylonian Talmud', 'B.T.', 'BT', 'Babli'], ref_part_role='structural')
         self.t(en='Rashi', he='רש"י', ref_part_role='structural')
-        self.t(en='Mishnah', he='משנה', alt_en=['M.', 'M', 'Mishna', 'Mishnah'], ref_part_role='structural')
+        self.t(en='Mishnah', he='משנה', alt_en=['M.', 'M', 'Mishna', 'Mishnah', 'Mishnaiot'], ref_part_role='structural')
         self.t(en='Tosefta', he='תוספתא', alt_en=['Tosephta', 'T.', 'Tosef.', 'Tos.'], ref_part_role='structural')
         self.t(en='Yerushalmi', he='יורשלמי', alt_en=['Jerusalem Talmud', 'J.T.', 'JT'],ref_part_role='structural')
-        self.t(en='Tosafot', he='תוספות', alt_he=["תוס'", 'תוד"ה', 'תד"ה',], ref_part_role='structural')
+        self.t(en='Tosafot', he='תוספות', alt_he=["תוס'", 'תוד"ה', 'תד"ה',], alt_en=['Tosaphot'], ref_part_role='structural')
         self.t(en='Midrash Rabbah', he='מדרש רבה', alt_en=['Midrash Rabba', 'Midrash Rabah'], alt_he=['מדרש רבא'], ref_part_role='structural')  # TODO no good way to compose titles for midrash rabbah...
-        self.t(en='Rabbah', he='רבה', alt_en=['Rabba', 'Rabah', 'Rab.', 'R.', 'Rab .', 'R .', 'rabba'], alt_he=['רבא'], ref_part_role='structural')
+        self.t(en='Rabbah', he='רבה', alt_en=['Rabba', 'Rabah', 'Rab.', 'R.', 'Rab .', 'R .', 'rabba', 'r.', 'r .'], alt_he=['רבא'], ref_part_role='structural')
         self.t(en='Ran', he='ר"ן', ref_part_role='structural')
         self.t(en='Perek', he='פרק', ref_part_role='alt_title')
         self.t(en='Sefer', he='ספר', ref_part_role='alt_title')
-        self.t(en='Halakha', he='הלכה', alt_en=['Halakhah', 'Halacha', 'Halachah'], ref_part_role='context_swap')
+        self.t(en='Halakha', he='הלכה', alt_en=['Halakhah', 'Halacha', 'Halachah', 'Halakhot'], ref_part_role='context_swap')
         self.t_from_titled_obj(Term().load({"name": "Parasha"}), ref_part_role='alt_title')
         self.create_numeric_perek_terms()
 
@@ -366,18 +366,23 @@ class RefPartModifier:
         from collections import defaultdict
         from sefaria.utils.hebrew import is_hebrew
         hard_coded_title_map = {
-            "Rosh Hashanah": ["Roš Haššanah"],
-            "Sheviit": ["Ševi‘it"],
-            "Moed Katan": ["Mo‘ed qatan", "Mo‘ed Qatan"],
-            "Eduyot": ["Idiut"],
-            "Kilayim": ["Kilaim"],
-            "Demai": ["Demay"],
-            "Shekalim": ["Šeqalim"],
-            "Oholot": ["Ahilut"],
-            "Shabbat": ["Šabbat"],
-            "Bava Batra": ["Bava batra"],
-            "Bava Metzia": ["Bava mesi`a"],
+            "Beitzah": ["Yom Tov", "Besah"],
             "Berakhot": ["Berkahot"],
+            "Bava Batra": ["Bava batra", "Baba batra"],
+            "Bava Kamma": ["Bava kamma", "Bava kama", "Baba kamma", "Baba kama"],
+            "Bava Metzia": ["Bava mesi`a", "Baba Mesi‘a", "Baba mesi`a", "Bava Mesi‘a"],
+            "Demai": ["Demay"],
+            "Eduyot": ["Idiut"],
+            "Kiddushin": ["Qiddušin"],
+            "Kilayim": ["Kilaim"],
+            "Moed Katan": ["Mo‘ed qatan", "Mo‘ed Qatan"],
+            "Negaim": ["Negaˋim"],
+            "Oholot": ["Ahilut"],
+            "Pesachim": ["Pisha"],
+            "Rosh Hashanah": ["Roš Haššanah"],
+            "Shabbat": ["Šabbat"],
+            "Shekalim": ["Šeqalim"],
+            "Sheviit": ["Ševi‘it"],
         }
         title_map = defaultdict(set)
         repls = ['M.', 'M', 'Mishna', 'Mishnah', 'משנה', 'Masechet', 'Masekhet', 'משנה מסכת', 'Tractate', 'Talmud', 'BT', 'T.B.', 'Maseches', 'Tosefta', 'T.', 'Tos.', 'Tosef.']

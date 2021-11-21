@@ -130,11 +130,22 @@ class YerushalmiCatcher:
                     note_ref = self.get_note_ref(resolved_ref.raw_ref.text, resolved_ref.ref)
                     if note_ref is not None:
                         resolved_ref.ref = note_ref
+                elif resolved_ref.ambiguous and '/'.join(resolved_ref.ref.index.categories).startswith('Tosefta/Vilna Edition/'):
+                    # delete vilan tosefta when liberman exists
+                    resolved_ref.ref = None
             if resolved_ref.ref is None:
-                if len(parts) == 1 and re.search(r"^[vV]\. \d+", parts[0].text) is not None and prev_resolved_ref is not None and prev_resolved_ref.ref is not None and prev_resolved_ref.ref.primary_category == "Tanakh":
-                    pasuk = re.search(r"^[vV]\. (\d+)", parts[0].text).group(1)
-                    perek = prev_resolved_ref.ref.sections[0]
-                    resolved_ref.ref = Ref(f"{prev_resolved_ref.ref.index.title} {perek}:{pasuk}")
+                if 1 <= len(parts) <= 2 and re.search(r"^[vV] ?\. \d+", parts[0].text) is not None and prev_resolved_ref is not None and prev_resolved_ref.ref is not None and prev_resolved_ref.ref.primary_category == "Tanakh":
+                    if len(parts) == 1:
+                        pasuk = re.search(r"^[vV] ?\. (\d+)", parts[0].text).group(1)
+                        perek = prev_resolved_ref.ref.sections[0]
+                        sections = f"{perek}:{pasuk}"
+                    else:
+                        sections = re.sub(r"^[vV] ?\. ", "", resolved_ref.raw_ref.text)
+                    resolved_ref.ref = Ref(f"{prev_resolved_ref.ref.index.title} {sections}")
+                elif len(parts) == 1 and re.search(r"^vv ?\. \d+", parts[0].text) is not None and prev_resolved_ref is not None and prev_resolved_ref.ref is not None and prev_resolved_ref.ref.primary_category == "Tanakh":
+                    sections = re.sub(r"^vv ?\. ", "", parts[0].text)
+                    title = prev_resolved_ref.ref.index.title
+                    resolved_ref.ref = Ref(f"{title} {sections}")
                 elif re.search(r"^Notes? \d+", resolved_ref.raw_ref.text) is not None:
                     note_ref = self.get_note_ref(resolved_ref.raw_ref.text, context_ref)
                     if note_ref is not None:
@@ -146,25 +157,32 @@ class YerushalmiCatcher:
 
 if __name__ == '__main__':
     catcher = YerushalmiCatcher('en', VTITLE)
-    catcher.catch_refs_in_title('Jerusalem Talmud Yevamot')
+    catcher.catch_refs_in_title('Jerusalem Talmud Pesachim')
     catcher.finish()
 
 """
 post processing
-- if both vilna and lieberman tosefta match, choose lieberman
-- if "Note" or "Notes" is in raw_ref, look up in note map
-if "Mishnah" and one number in raw_ref, add perek from context
+
 
 TODO
-- figure out how to throw out bad matches
+- figure out how to throw out bad matches (especially ones that resolve to title context like "Derekh Eres Rabba 1")
+- "Chapter 1, Note 104" no longer works b/c we're stricter on title context
+- for vv., check if : to see if you need to pull perek from prev ref
 
 Alt titles to deal with
 - Ex. rabba 15(17
 - Mekhilta dR. Ismael Bo Chap. 14
+- Sifra Qedošim Pereq 11(8
 - Sifry Num. 84, 161
 - Midrash Ps.
 - Tanhuma Mas`e 6
 - Thr. rabba
+- Sifry Deut . #288
+- Derekh Eres Rabba 1
+- Bemidbar rabba, Tanhuma , both Pesiqtot , to Huqqat ( Parah )
+- Sifry zuta Behaˋalotekha 9(2
+- Šulhan Arukh Yoreh Deˋa 89(4
+- Or Zaruaˋ II §229
 
 Examples to train on
 Jerusalem Talmud Taanit 1:1:18
@@ -172,4 +190,13 @@ Jerusalem Talmud Taanit 2:4:1
 Jerusalem Talmud Taanit 2:2:3
 Jerusalem Talmud Taanit 4:7:2
 Jerusalem Talmud Yevamot 1:2:9
+Jerusalem Talmud Yevamot 1:1:6
+Jerusalem Talmud Pesachim 7:1:10
+Jerusalem Talmud Pesachim 1:5:2
+Jerusalem Talmud Pesachim 9:6:2
+Jerusalem Talmud Pesachim 10:6:3
+Jerusalem Talmud Pesachim 4:9:3
+Jerusalem Talmud Pesachim 5:4:6
+Jerusalem Talmud Pesachim 5:8:3
+Jerusalem Talmud Pesachim 7:7:8
 """
