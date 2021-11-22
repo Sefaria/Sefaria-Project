@@ -4333,34 +4333,6 @@ def rollout_health_api(request):
 
     return http.JsonResponse(resp, status=statusCode)
 
-
-@login_required
-def daf_roulette_redirect(request):
-    return render_template(request,'static/chavruta.html', None, {
-        "rtc_server": RTC_SERVER,
-        "room_id": "",
-        "starting_ref": "todays-daf-yomi",
-        "roulette": "1",
-    })
-
-
-@login_required
-def chevruta_redirect(request):
-    room_id = request.GET.get("rid", None)
-    starting_ref = urllib.parse.quote(request.GET.get("ref", ""))
-    roulette = request.GET.get("roulette", "0")
-
-    if room_id is None:
-        x = uuid.uuid4()
-        room_id = str(x)[:22]
-
-    return render_template(request,'static/chavruta.html', None, {
-        "rtc_server": RTC_SERVER,
-        "room_id": room_id,
-        "starting_ref": starting_ref,
-        "roulette": roulette
-    })
-
 @login_required
 def beit_midrash(request, slug):
     chavrutaId = request.GET.get("cid", None)

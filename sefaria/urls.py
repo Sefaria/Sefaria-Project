@@ -303,8 +303,6 @@ urlpatterns += [
 
 # Chavruta URLs
 urlpatterns += [
-    url(r'^daf-roulette/?$', reader_views.daf_roulette_redirect),
-    url(r'^chavruta/?$', reader_views.chevruta_redirect),
     url(r'^beit-midrash/(?P<slug>[^.]+)$', reader_views.beit_midrash),
     url(r'^api/chat-messages/?$', reader_views.chat_message_api)
 ]
@@ -356,12 +354,6 @@ urlpatterns += [
     url(r'^api/linker-track$', sefaria_views.linker_tracking_api),
 
 ]
-
-# chavruta.js -
-urlpatterns += [
-    url(r'^chavruta\.js$', sefaria_views.chavruta_js)
-]
-
 
 urlpatterns += [
     url(r'^api/passages/(?P<refs>.+)$', sefaria_views.passages_api),
