@@ -47,6 +47,7 @@ class ConnectionsPanel extends Component {
       availableTranslations: [],
       linksLoaded: false, // has the list of refs been loaded
       connectionSummaryCollapsed: true,
+      currentlyVisibleSectionRef: Sefaria.sectionRef(this.props.currentlyVisibleRef) || this.props.currentlyVisibleRef,
     };
   }
   toggleTopLevelCollapsed() {
@@ -176,6 +177,7 @@ class ConnectionsPanel extends Component {
     if (!this.isSheet()) {
       Sefaria.getVersions(ref, false, ["he"], true).then(versions => this.setState({ availableTranslations: versions })); //for counting translations
     }
+    this.setState({currentlyVisibleSectionRef: Sefaria.sectionRef(this.props.currentlyVisibleRef)});
   }
   reloadData() {
     this.setState({
@@ -372,6 +374,7 @@ class ConnectionsPanel extends Component {
           close={this.props.close}
           currVersions={this.props.currVersions}
           navigatePanel={this.props.navigatePanel}
+          currentlyVisibleSectionRef={this.state.currentlyVisibleSectionRef}
         />
       );
     } else if (this.props.mode === "ConnectionsList") {

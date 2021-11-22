@@ -3256,12 +3256,14 @@ a.navBlockTitle:hover {
   padding: 0 6px;
   box-sizing: border-box;
 }
-
 .connectionsPanel .textTableOfContents .sectionLink {
   background-color: #ffffff;
   color: #000000;
 }
-
+.textTableOfContents .sectionLink.current{
+  background-color: var(--sefaria-blue);
+  color: #FFFFFF;
+}
 .textTableOfContents .sectionName {
   display: none;
 }
@@ -3315,6 +3317,12 @@ a.navBlockTitle:hover {
 
 .textTableOfContents .schema-node-toc {
   display: block;
+}
+
+.textTableOfContents .schema-node-toc.linked.current,
+.textTableOfContents .schema-node-toc.linked.current .schema-node-title {
+  color: var(--sefaria-blue);
+  font-weight: bold;
 }
 
 .textTableOfContents .schema-node-toc:not(.linked)>.schema-node-title:after {

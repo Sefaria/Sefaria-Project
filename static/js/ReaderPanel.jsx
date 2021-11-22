@@ -688,6 +688,7 @@ class ReaderPanel extends Component {
           interfaceLang={this.props.interfaceLang}
           contentLang={this.state.settings.language}
           title={this.currentBook()}
+          currentlyVisibleRef={this.state.currentlyVisibleRef}
           currVersions={this.state.currVersions}
           fullPanel={this.props.multiPanel}
           multiPanel={this.props.multiPanel}
