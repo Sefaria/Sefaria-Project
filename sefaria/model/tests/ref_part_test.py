@@ -146,7 +146,7 @@ def test_resolve_raw_ref(resolver_data, expected_trefs):
 ])
 def test_full_pipeline_ref_resolver(context_tref, input_str, lang, expected_trefs):
     ref_resolver = library.get_ref_resolver()
-    resolved = ref_resolver.resolve_refs_in_string(lang, Ref(context_tref), input_str)
+    resolved = ref_resolver.bulk_resolve_refs(lang, [Ref(context_tref)], [input_str])[0]
     assert len(resolved) == len(expected_trefs)
     resolved_orefs = sorted([match.ref for match in resolved], key=lambda x: x.normal())
     for expected_tref, matched_oref in zip(sorted(expected_trefs, key=lambda x: x), resolved_orefs):

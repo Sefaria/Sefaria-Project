@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import List, Union, Dict, Optional, Tuple
+from typing import List, Union, Dict, Optional, Tuple, Generator
 from enum import Enum
 from functools import reduce
 from itertools import product
@@ -7,9 +7,11 @@ from sefaria.system.exceptions import InputError
 from . import abstract as abst
 from . import text
 from . import schema
+import spacy
 from spacy.tokens import Span, Token
 from spacy.language import Language
 
+spacy.prefer_gpu()
 LABEL_TO_REF_PART_TYPE_ATTR = {
     # HE
     "כותרת": 'NAMED',
@@ -258,7 +260,10 @@ class ResolvedRawRef:
 
     def _get_refined_refs_for_numbered_part(self, raw_ref_part: 'RawRefPart', refined_ref_parts: List['RawRefPart'], node, lang, fromSections: List[RawRefPart]=None) -> List['ResolvedRawRef']:
         if node is None: return []
-        possible_sections, possible_to_sections, addr_classes = node.address_class(0).get_all_possible_sections_from_string(lang, raw_ref_part.text, fromSections)
+        try:
+            possible_sections, possible_to_sections, addr_classes = node.address_class(0).get_all_possible_sections_from_string(lang, raw_ref_part.text, fromSections)
+        except IndexError:
+            return []
         refined_refs = []
         addr_classes_used = []
         for sec, toSec, addr_class in zip(possible_sections, possible_to_sections, addr_classes):
@@ -575,45 +580,52 @@ class RefResolver:
         self._ref_part_title_trie_by_lang = ref_part_title_trie_by_lang
         self._ref_part_title_graph = ref_part_title_graph
         self._term_matcher_by_lang = term_matcher_by_lang
-    
-    def resolve_refs_in_string(self, lang: str, context_ref: text.Ref, st: str, with_failures=False) -> List[ResolvedRawRef]:
-        raw_refs = self._get_raw_refs_in_string(lang, st)
+
+    def bulk_resolve_refs(self, lang: str, context_refs: List[text.Ref], input: List[str], with_failures=False) -> List[List[ResolvedRawRef]]:
+        all_raw_refs = self._bulk_get_raw_refs(lang, input)
         resolved = []
-        for raw_ref in raw_refs:
-            temp_resolved = self.resolve_raw_ref(lang, context_ref, raw_ref)
-            if len(temp_resolved) == 0 and with_failures:
-                resolved += [ResolvedRawRef(raw_ref, [], None, None)]
-            resolved += temp_resolved
+        for context_ref, raw_refs in zip(context_refs, all_raw_refs):
+            inner_resolved = []
+            for raw_ref in raw_refs:
+                temp_resolved = self.resolve_raw_ref(lang, context_ref, raw_ref)
+                if len(temp_resolved) == 0 and with_failures:
+                    inner_resolved += [ResolvedRawRef(raw_ref, [], None, None)]
+                inner_resolved += temp_resolved
+            resolved += [inner_resolved]
         return resolved
 
-    def _get_raw_refs_in_string(self, lang: str, st: str) -> List['RawRef']:
-        """
-        ml_raw_ref_out
-        ml_raw_ref_part_out
-        parse ml out
-        """
-        raw_refs: List['RawRef'] = []
-        raw_ref_spans = self._get_raw_ref_spans_in_string(lang, st)
-        for span in raw_ref_spans:
-            raw_ref_part_spans = self._get_raw_ref_part_spans_in_string(lang, span.text)
-            raw_ref_parts = []
-            for part_span in raw_ref_part_spans:
-                part_type = RefPartType.span_label_to_enum(part_span.label_)
-                dh_cont = None
-                if part_type == RefPartType.DH:
-                    """
-                    if ipart == len(raw_ref_part_spans) - 1:
-                        if ispan == len(raw_ref_spans) - 1:
-                            dh_cont = st[span.end+1:]
+    def _bulk_get_raw_refs(self, lang: str, input: List[str]) -> List[List[RawRef]]:
+        all_raw_ref_spans = list(self._bulk_get_raw_ref_spans(lang, input))
+        ref_part_input = reduce(lambda a, b: a + [(sub_b.text, b[0]) for sub_b in b[1]], enumerate(all_raw_ref_spans), [])
+        all_raw_ref_part_spans = list(self._bulk_get_raw_ref_part_spans(lang, ref_part_input, as_tuples=True))
+        all_raw_ref_part_span_map = defaultdict(list)
+        for ref_part_span, input_idx in all_raw_ref_part_spans:
+            all_raw_ref_part_span_map[input_idx] += [ref_part_span]
+
+        all_raw_refs = []
+        for input_idx, raw_ref_spans in enumerate(all_raw_ref_spans):
+            raw_ref_part_spans = all_raw_ref_part_span_map[input_idx]
+            raw_refs = []
+            for span, part_span_list in zip(raw_ref_spans, raw_ref_part_spans):
+                raw_ref_parts = []
+                for part_span in part_span_list:
+                    part_type = RefPartType.span_label_to_enum(part_span.label_)
+                    dh_cont = None
+                    if part_type == RefPartType.DH:
+                        """
+                        if ipart == len(raw_ref_part_spans) - 1:
+                            if ispan == len(raw_ref_spans) - 1:
+                                dh_cont = st[span.end+1:]
+                            else:
+                                dh_cont = st[span.end:next_span.start]
                         else:
-                            dh_cont = st[span.end:next_span.start]
-                    else:
-                        dh_cont = st[part_span.end+1:next_part_span.start]
-                    """
-                    dh_cont = None  # TODO FILL IN
-                raw_ref_parts += [RawRefPart(part_type, part_span, dh_cont)]
-            raw_refs += [RawRef(raw_ref_parts, span)]
-        return raw_refs
+                            dh_cont = st[part_span.end+1:next_part_span.start]
+                        """
+                        dh_cont = None  # TODO FILL IN
+                    raw_ref_parts += [RawRefPart(part_type, part_span, dh_cont)]
+                raw_refs += [RawRef(raw_ref_parts, span)]
+            all_raw_refs += [raw_refs]
+        return all_raw_refs
 
     def __get_attr_by_lang(self, lang: str, by_lang_attr: dict, error_msg: str):
         try:
@@ -637,9 +649,25 @@ class RefResolver:
         doc = self.get_raw_ref_model(lang)(st)
         return doc.ents
 
+    def _bulk_get_raw_ref_spans(self, lang: str, input: List[str], batch_size=150, **kwargs) -> Generator[List[Span], None, None]:
+        for doc in self.get_raw_ref_model(lang).pipe(input, batch_size=batch_size, **kwargs):
+            if kwargs.get('as_tuples', False):
+                doc, context = doc
+                yield doc.ents, context
+            else:
+                yield doc.ents
+
     def _get_raw_ref_part_spans_in_string(self, lang: str, st: str) -> List[Span]:
         doc = self.get_raw_ref_part_model(lang)(st)
         return doc.ents
+
+    def _bulk_get_raw_ref_part_spans(self, lang: str, input: List[str], batch_size=None, **kwargs) -> Generator[List[Span], None, None]:
+        for doc in self.get_raw_ref_part_model(lang).pipe(input, batch_size=batch_size or len(input), **kwargs):
+            if kwargs.get('as_tuples', False):
+                doc, context = doc
+                yield doc.ents, context
+            else:
+                yield doc.ents
 
     @staticmethod
     def split_non_cts_parts(raw_ref: RawRef) -> List[RawRef]:

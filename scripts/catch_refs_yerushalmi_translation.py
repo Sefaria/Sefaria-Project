@@ -68,14 +68,25 @@ class YerushalmiCatcher:
             self.catch_refs_in_title(title)
 
     def catch_refs_in_title(self, title: str):
+        self.resolver_input = []
         version = Version().load({"title": title, "language": self.lang, "versionTitle": self.vtitle})
+        version.walk_thru_contents(self.collect_resolver_input)
+        context_refs, input_text = zip(*self.resolver_input)
+        all_resolved_refs = self.resolver.bulk_resolve_refs(self.lang, context_refs, input_text, with_failures=True)
+        self.resolved_refs_by_context = {}
+        for context_ref, resolved_refs in zip(context_refs, all_resolved_refs):
+            self.resolved_refs_by_context[context_ref.normal()] = resolved_refs
         version.walk_thru_contents(self.catch_refs_in_ref)
 
-    def catch_refs_in_ref(self, st: str, en_tref: str, he_tref: str, version: Version) -> None:
-        print(en_tref)
+
+    def collect_resolver_input(self, st: str, en_tref: str, he_tref: str, version: Version) -> None:
         context_ref = Ref(en_tref)
         norm_st = self.normalizer.normalize(st)
-        resolved_refs = self.resolver.resolve_refs_in_string(self.lang, context_ref, norm_st, with_failures=True)
+        self.resolver_input += [(context_ref, norm_st)]
+
+    def catch_refs_in_ref(self, st: str, en_tref: str, he_tref: str, version: Version) -> None:
+        context_ref = Ref(en_tref)
+        resolved_refs = self.resolved_refs_by_context[en_tref]
         resolved_refs = self.post_process_resolved_refs(resolved_refs, context_ref)
         norm_indices = [r.raw_ref.char_indices for r in resolved_refs]
         mapping = self.normalizer.get_mapping_after_normalization(st)
@@ -170,7 +181,7 @@ class YerushalmiCatcher:
 
 if __name__ == '__main__':
     catcher = YerushalmiCatcher('en', VTITLE)
-    catcher.catch_refs_in_title('Jerusalem Talmud Ketubot')
+    catcher.catch_refs_in_title('Jerusalem Talmud Yevamot')
     catcher.finish()
 
 """
@@ -217,40 +228,6 @@ Mesora
 - Seder Olam Chap. 2
 
 Examples to train on
-Jerusalem Talmud Taanit 1:1:18
-Jerusalem Talmud Taanit 2:4:1
-Jerusalem Talmud Taanit 2:2:3
-Jerusalem Talmud Taanit 4:7:2
-Jerusalem Talmud Yevamot 1:2:9
-Jerusalem Talmud Yevamot 1:1:6
-Jerusalem Talmud Pesachim 7:1:10
-Jerusalem Talmud Pesachim 1:5:2
-Jerusalem Talmud Pesachim 9:6:2
-Jerusalem Talmud Pesachim 10:6:3
-Jerusalem Talmud Pesachim 4:9:3
-Jerusalem Talmud Pesachim 5:4:6
-Jerusalem Talmud Pesachim 5:8:3
-Jerusalem Talmud Pesachim 7:7:8
-Jerusalem Talmud Bava Kamma 1:1:4
-Jerusalem Talmud Bava Kamma 1:1:5
-Jerusalem Talmud Bava Kamma 1:1:8
-Jerusalem Talmud Bava Kamma 1:1:10
-Jerusalem Talmud Bava Kamma 2:6:1
-Jerusalem Talmud Bava Kamma 3:1:2
-Jerusalem Talmud Bava Kamma 4:3:2
-Jerusalem Talmud Bava Kamma 6:5:2
-Jerusalem Talmud Bava Kamma 7:1:2
-Jerusalem Talmud Bava Kamma 7:5:1
-Jerusalem Talmud Bava Kamma 9:6:2
-Jerusalem Talmud Niddah 1:1:1
-Jerusalem Talmud Niddah 1:4:3
-Jerusalem Talmud Niddah 2:1:6
-Jerusalem Talmud Niddah 3:2:9
-Jerusalem Talmud Niddah 3:3:4
-Jerusalem Talmud Sanhedrin 1:1:1
-Jerusalem Talmud Sanhedrin 1:2:5
-Jerusalem Talmud Sanhedrin 1:2:17
-Jerusalem Talmud Sanhedrin 1:3:7
-Jerusalem Talmud Sanhedrin 2:6:4
-Jerusalem Talmud Sanhedrin 2:6:7
+Jerusalem Talmud Yevamot 2:4:8
+
 """
