@@ -179,6 +179,7 @@ class RawRef:
             if i == len(raw_ref_parts) - 1 or raw_ref_parts[i+1].type != RefPartType.NUMBERED:
                 toSection_slice = slice(ranged_symbol_ind+1, i+1)
                 break
+        if section_slice is None: return raw_ref_parts
         sections = raw_ref_parts[section_slice]
         toSections = sections[:]
         num_explicit_to_sections = toSection_slice.stop - toSection_slice.start
@@ -317,12 +318,13 @@ class ResolvedRawRef:
     def get_refined_matches(self, raw_ref_part: 'RawRefPart', node, lang: str) -> List['ResolvedRawRef']:
         refined_ref_parts = self.resolved_ref_parts + [raw_ref_part]
         matches = []
-        if raw_ref_part.type == RefPartType.NUMBERED and isinstance(node, schema.JaggedArrayNode):
+        if raw_ref_part.type == RefPartType.NUMBERED and isinstance(node, schema.JaggedArrayNode) and node.parent is None:
             matches += self._get_refined_refs_for_numbered_part(raw_ref_part, refined_ref_parts, node, lang)
         elif raw_ref_part.type == RefPartType.RANGE and isinstance(node, schema.JaggedArrayNode):
             matches += self._get_refined_matches_for_ranged_part(raw_ref_part, refined_ref_parts, node, lang)
         elif (raw_ref_part.type == RefPartType.NAMED and isinstance(node, schema.TitledTreeNode) or
-        raw_ref_part.type == RefPartType.NUMBERED and isinstance(node, schema.ArrayMapNode)):  # for case of numbered alt structs
+        raw_ref_part.type == RefPartType.NUMBERED and isinstance(node, schema.ArrayMapNode)) or \
+        raw_ref_part.type == RefPartType.NUMBERED and isinstance(node, schema.SchemaNode): # for case of numbered alt structs or schema nodes that look numbered (e.g. perakim and parshiot of Sifra)
             if node.ref_part_title_trie(lang).has_continuations(raw_ref_part.key()):
                 matches += [self.clone(resolved_ref_parts=refined_ref_parts, node=node, ref=node.ref())]
         elif raw_ref_part.type == RefPartType.DH:
@@ -666,7 +668,10 @@ class RefResolver:
             if is_non_cts:
                 # resolution will start at context_ref.sections - len(ref parts). rough heuristic
                 for match in unrefined_matches:
-                    match.ref = match.ref.subref(context_ref.sections[:-len(temp_raw_ref.raw_ref_parts)])
+                    try:
+                        match.ref = match.ref.subref(context_ref.sections[:-len(temp_raw_ref.raw_ref_parts)])
+                    except AttributeError:
+                        continue
             temp_resolved_list = self.refine_ref_part_matches(lang, unrefined_matches, temp_raw_ref)
             if len(temp_resolved_list) > 1:
                 for resolved in temp_resolved_list:
@@ -769,8 +774,10 @@ class RefResolver:
                 children = [] if child is None else [child]
             elif isinstance(match.node, schema.DiburHamatchilNode):
                 children = []
+            elif isinstance(match.node, text.Index):
+                children = match.node.referenceable_children()
             else:
-                children = match.node.all_children()
+                children = match.node.children
             for child in children:
                 for ref_part in unused_ref_parts:
                     temp_matches = match.get_refined_matches(ref_part, child, lang)

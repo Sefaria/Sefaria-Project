@@ -170,7 +170,7 @@ class YerushalmiCatcher:
 
 if __name__ == '__main__':
     catcher = YerushalmiCatcher('en', VTITLE)
-    catcher.catch_refs_in_title('Jerusalem Talmud Sanhedrin')
+    catcher.catch_refs_in_title('Jerusalem Talmud Ketubot')
     catcher.finish()
 
 """
@@ -184,33 +184,37 @@ TODO
 
 Alt titles to deal with
 - Ex. rabba 15(17
+- Deut. rabba Eqeb 1 (some
+
 - Mekhilta dR. Ismael Bo Chap. 14
 - Sifra Qedošim Pereq 11(8
-- Sifry Num. 84, 161
-- Midrash Ps.
-- Tanhuma Mas`e 6
-- Thr. rabba
-- Sifry Deut . #288
-- Derekh Eres Rabba 1
-- Bemidbar rabba, Tanhuma , both Pesiqtot , to Huqqat ( Parah )
-- Sifry zuta Behaˋalotekha 9(2
-- Šulhan Arukh Yoreh Deˋa 89(4
-- Or Zaruaˋ II §229
 - Sifra Wayyiqra II (Hovah) Pereq 11(3
 - Sifra, Introduction 5
+- Sifra Mesora‘ Parašah 4(4
+Sifra Ahare Parašah 2(1
+Mesora
+
+- Sifry Num. 84, 161
+- Sifry Deut . #288
+- Sifry zuta Behaˋalotekha 9(2
+- Midrash Ps.
+- Tanhuma Mas`e 6
 - Tanhuma Buber Šemini 10
-- Deut. rabba Eqeb 1 (some
+- Tanhuma Qorah 2 (Buber 4
+- Derekh Eres Rabba 1
+- Šulhan Arukh Yoreh Deˋa 89(4
+- Hošen Mišpat §95 Note 67
+- Or Zaruaˋ II §229
+- Midrash Samuel 7(5
+
+
 - Rashba, Novellae ad 78b
 - Maimonides ( Hilkhot Hovel umazziq 2:2
 - Rosh (Chapter 8, §1
-- Hošen Mišpat §95 Note 67
 - Śemahot 1:13
-- Sifra Mesora‘ Parašah 4(4
 - Megillat Ta ˋ anit 6
 - Yalqut Šimˋony 736
-- Midrash Samuel 7(5
 - Seder Olam Chap. 2
-- Tanhuma Qorah 2 (Buber 4
 
 Examples to train on
 Jerusalem Talmud Taanit 1:1:18

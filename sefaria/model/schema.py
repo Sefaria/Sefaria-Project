@@ -1047,20 +1047,26 @@ class NumberedTitledTreeNode(TitledTreeNode):
         return d
 
     def get_referenceable_child(self, context_ref=None, **kwargs) -> 'NumberedTitledTreeNode':
-        next_refereceable_depth = 1
-        # if `referenceableSections` is not define, assume they're all referenceable
-        if getattr(self, 'referenceableSections', False):
-            while next_refereceable_depth < len(self.referenceableSections) and not self.referenceableSections[next_refereceable_depth]:
-                next_refereceable_depth += 1
-        serial = self.serialize()
-        serial['depth'] -= next_refereceable_depth
-        for list_attr in ('addressTypes', 'sectionNames', 'lengths', 'referenceableSections'):
-            # truncate every list attribute by `next_referenceable_depth`
-            if list_attr not in serial: continue
-            serial[list_attr] = serial[list_attr][next_refereceable_depth:]
-        if serial['depth'] <= 1 and getattr(self, 'isSegmentLevelDiburHamatchil', False):
-            return DiburHamatchilNodeSet({"container_refs": context_ref.normal()})
-        if self.depth <= 1: return
+        # TODO this function is confusing. It modifies and detaches JAN from tree to create an artificial child.
+        # JANs are a special case since they act as two nodes at once; a SchemaNode and the first level of a JaggedArray
+        if self.parent is None or not isinstance(self, JaggedArrayNode):
+            next_refereceable_depth = 1
+            # if `referenceableSections` is not define, assume they're all referenceable
+            if getattr(self, 'referenceableSections', False):
+                while next_refereceable_depth < len(self.referenceableSections) and not self.referenceableSections[next_refereceable_depth]:
+                    next_refereceable_depth += 1
+            serial = self.serialize()
+            serial['depth'] -= next_refereceable_depth
+            for list_attr in ('addressTypes', 'sectionNames', 'lengths', 'referenceableSections'):
+                # truncate every list attribute by `next_referenceable_depth`
+                if list_attr not in serial: continue
+                serial[list_attr] = serial[list_attr][next_refereceable_depth:]
+            if serial['depth'] <= 1 and getattr(self, 'isSegmentLevelDiburHamatchil', False):
+                return DiburHamatchilNodeSet({"container_refs": context_ref.normal()})
+            if self.depth <= 1: return
+        else:
+            # If parent exists, this JAN is still attached to its original tree. Need to return the same node but detached to indicate this should be only interpreted as a JA and not a SchemaNode
+            serial = self.serialize()
         return self.__class__(serial=serial, index=getattr(self, 'index', None), **kwargs)
 
 class DiburHamatchilNode(abst.AbstractMongoRecord):

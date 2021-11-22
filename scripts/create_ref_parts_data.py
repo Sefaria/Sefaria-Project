@@ -13,7 +13,8 @@ class RefPartModifier:
     def __init__(self):
         self.create_base_non_unique_terms()
         self.shas_map = self.create_shas_terms()
-        self.tanakh_map = self.create_tanakh_terms()
+        self.tanakh_map, self.parsha_map = self.create_tanakh_terms()
+        self.perek_number_map = self.create_numeric_perek_terms()
 
     def t(self, **kwargs):
         slug = kwargs.get('en', kwargs.get('he'))
@@ -158,8 +159,6 @@ class RefPartModifier:
     def modify_talmud(self, fast=False):
         perek = NonUniqueTerm.init('perek')
         bavli = NonUniqueTerm.init('bavli')
-        perakim_num_terms = [NonUniqueTerm.init(ord_en) for ord_en in ['first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth']]
-        last_term = NonUniqueTerm.init('last')
         minor_tractates = {title for title in library.get_indexes_in_category("Minor Tractates")}
         indexes = library.get_indexes_in_category("Bavli", full_records=True)
         for index in tqdm(indexes, desc='talmud', total=indexes.count()):
@@ -190,7 +189,7 @@ class RefPartModifier:
                         "scopes": ["any"]
                     },
                     {
-                        "slugs": [perek_term.slug, perakim_num_terms[min(iperek, 9)].slug] + ([last_term.slug] if is_last else []),  # TODO get rid of min()
+                        "slugs": [perek_term.slug, self.perek_number_map[min(iperek+1, 30)].slug] + ([self.perek_number_map['last'].slug] if is_last else []),  # TODO get rid of min()
                         "optional": False,
                         "scopes": ["any", "combined"] + (["combined"] if is_last else [])
                     }
@@ -226,7 +225,7 @@ class RefPartModifier:
             # add parsha terms
             if index.categories[-1] == 'Torah':
                 for parsha_node in index.get_alt_struct_nodes():
-                    parsha_term = self.t_from_titled_obj(parsha_node, ref_part_role='structural')
+                    parsha_term = self.parsha_map[parsha_node.get_primary_title('en')]
                     parsha_node.ref_parts = [
                         {
                             "slugs": [parasha.slug],
@@ -318,28 +317,116 @@ class RefPartModifier:
             else:
                 index.save()
 
+    def modify_sifra(self, fast=False):
+        parsha_map = {
+            "Shemini": "Shmini",
+            "Acharei Mot": "Achrei Mot",
+        }
+        other_node_map = {
+            "Braita d'Rabbi Yishmael": ["Introduction", "Wayyiqra"],
+            "Vayikra Dibbura d'Nedavah": [],
+            "Vayikra Dibbura d'Chovah": [],
+            "Tazria Parashat Yoledet": [],
+            "Tazria Parashat Nega'im": [],
+            "Metzora Parashat Zavim": [],
+        }
+        other_perek_node_map = {
+            "Mechilta d'Miluim": [],
+        }
+        index = library.get_index('Sifra')
+        index.nodes.ref_parts = [
+            {
+                "slugs": ['sifra'],
+                "optional": False,
+                "scopes": ["combined"],
+            },
+        ]
+        for node in index.nodes.children:
+            node_title = node.get_primary_title('en')
+            node_title_he = node.get_primary_title('he')
+            parsha_title = parsha_map.get(node_title, node_title)
+            parsha_term = self.parsha_map.get(parsha_title, None)
+            if parsha_term is None:
+                alt_titles = other_node_map[node_title]
+                node_term = self.t(en=node_title, he=node_title_he, alt_en=alt_titles, ref_part_role='structural')
+                node.ref_parts = [
+                    {
+                        "slugs": [node_term.slug],
+                        "optional": False,
+                        "scopes": ["combined"],
+                    },
+                ]
+            else:
+                node.ref_parts = [
+                    {
+                        "slugs": [parsha_term.slug],
+                        "optional": False,
+                        "scopes": ["combined"],
+                    },
+                ]
+            for par_per_node in node.children:
+                temp_title = par_per_node.get_primary_title('en')
+                named_term_slug = None
+                if 'Chapter' in temp_title:
+                    named_term_slug = 'perek'
+                elif 'Section' in temp_title:
+                    named_term_slug = 'parasha'
+                if named_term_slug is None:
+                    alt_titles = other_perek_node_map[re.search(r'^(.+) \d+$', temp_title).group(1)]
+                    named_term_slug = self.t(en=temp_title, he=par_per_node.get_primary_title('he'), alt_en=alt_titles, ref_part_role='structural').slug
+                num_match = re.search(' (\d+)$', temp_title)
+                if num_match is None:
+                    print(node_title, temp_title)
+                    continue
+                num_term = self.perek_number_map[int(num_match.group(1))]
+                par_per_node.ref_parts = [
+                    {
+                        "slugs": [named_term_slug],
+                        "optional": False,
+                        "scopes": ["combined"],
+                    },
+                    {
+                        "slugs": [num_term.slug],
+                        "optional": False,
+                        "scopes": ["combined"],
+                    }
+                ]
+
+        if fast:
+            self.fast_index_save(index)
+        else:
+            index.save()
+
     def create_numeric_perek_terms(self):
         from sefaria.utils.hebrew import encode_hebrew_numeral
-        ord_en = ['first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth']
+        ord_en = ['First', 'Second', 'Third', 'Fourth', 'Fifth', 'Sixth', 'Seventh', 'Eighth', 'Ninth', 'Tenth', 'Eleventh', 'Twelfth', 'Thirteenth', 'Fourteenth', 'Fifteenth', 'Sixteenth', 'Seventeenth', 'Eighteenth', 'Nineteenth', 'Twentieth', 'Twenty First', 'Twenty Second', 'Twenty Third', 'Twenty Fourth', 'Twenty Fifth', 'Twenty Sixth', 'Twenty Seventh', 'Twenty Eighth', 'Twenty Ninth', 'Thirtieth']
         ordinals = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'ששי', 'שביעי', 'שמיני', 'תשיעי', 'עשירי']
-        cardinals = ['אחד', 'שניים', 'שלוש', 'ארבע', 'חמש', 'שש', 'שבע', 'שמנה', 'תשע', 'עשר']
-        for i in range(1, 11):
+        cardinals = ['אחד', 'שניים', 'שלוש', 'ארבע', 'חמש', 'שש', 'שבע', 'שמנה', 'תשע', 'עשר', 'אחד עשרה', 'שניים עשרה', 'שלוש עשרה', 'ארבע עשרה', 'חמש עשרה', 'שש עשרה', 'שבע עשרה', 'שמונה עשרה', 'תשע עשרה', 'עשרים', 'עשרים ואחד', 'עשרים ושניים', 'עשרים ושלוש', 'עשרים וארבע', 'עשרים וחמש', 'עשרים ושש', 'עשרים ושבע', 'עשרים ושמונה', 'עשרים ותשע', 'שלושים']
+        term_map = {}
+        for i in range(1, 31):
             gemat = encode_hebrew_numeral(i, punctuation=False)
             gemat_punc = encode_hebrew_numeral(i)
-            titles = [
+            alt_he = [
                 f'פ"{gemat}',
                 gemat,
                 gemat_punc,
                 gemat_punc.replace("\u05F3", "'").replace("\u05F4", '"'),
                 cardinals[i-1],
             ]
+            alt_en = [
+                str(i),
+                ord_en[i-1].lower(),
+            ]
             if i == 1:
-                titles += [
+                alt_he += [
                     'קמא',
                     'פ"ק',
                 ]
-            self.t(en=ord_en[i-1], he=ordinals[i-1], alt_he=titles, ref_part_role='structural')
-        self.t(en='last', he='בתרא', ref_part_role='structural')
+            primary_he = ordinals[i-1] if i < len(ordinals) else cardinals[i-1]
+            term = self.t(en=ord_en[i-1], he=primary_he, alt_he=alt_he, alt_en=alt_en, ref_part_role='structural')
+            term_map[i] = term
+        term_map['last'] = self.t(en='last', he='בתרא', ref_part_role='structural')
+        return term_map
 
     def create_base_non_unique_terms(self):
         NonUniqueTermSet().delete()
@@ -352,12 +439,13 @@ class RefPartModifier:
         self.t(en='Tosafot', he='תוספות', alt_he=["תוס'", 'תוד"ה', 'תד"ה',], alt_en=['Tosaphot'], ref_part_role='structural')
         self.t(en='Midrash Rabbah', he='מדרש רבה', alt_en=['Midrash Rabba', 'Midrash Rabah'], alt_he=['מדרש רבא'], ref_part_role='structural')  # TODO no good way to compose titles for midrash rabbah...
         self.t(en='Rabbah', he='רבה', alt_en=['Rabba', 'Rabah', 'Rab.', 'R.', 'Rab .', 'R .', 'rabba', 'r.', 'r .', 'rabbati'], alt_he=['רבא'], ref_part_role='structural')
+        self.t(en='Sifra', he='סיפרא', ref_part_role='structural')
         self.t(en='Ran', he='ר"ן', ref_part_role='structural')
-        self.t(en='Perek', he='פרק', ref_part_role='alt_title')
+        self.t(en='Perek', he='פרק', alt_en=["Pereq", 'Chapter'], ref_part_role='alt_title')
+        self.t(en='Parasha', he='פרשה', alt_en=['Parashah', 'Parašah', 'Parsha', 'Paraša'], ref_part_role='alt_title')
         self.t(en='Sefer', he='ספר', ref_part_role='alt_title')
         self.t(en='Halakha', he='הלכה', alt_en=['Halakhah', 'Halacha', 'Halachah', 'Halakhot'], ref_part_role='context_swap')
         self.t_from_titled_obj(Term().load({"name": "Parasha"}), ref_part_role='alt_title')
-        self.create_numeric_perek_terms()
 
     def create_shas_terms(self):
         """
@@ -422,7 +510,7 @@ class RefPartModifier:
         return title_term_map
 
     def create_tanakh_terms(self):
-        hard_coded_title_map = {
+        hard_coded_tanakh_map = {
             "I Samuel": ["1S."],
             "II Samuel": ["2S."],
             "I Kings": ["1K."],
@@ -434,14 +522,24 @@ class RefPartModifier:
             "Ruth": ["Ru."],
             "Deuteronomy": ["D eut."],
         }
+        hard_coded_parsha_map = {
+            "Metzora": ["Mesora‘", "Mesora"],
+            "Kedoshim": ["Qedošim"],
+            "Vayikra": ["Wayyiqra"],
+            "Bechukotai": ["Behuqqotai"],
+            "Tazria": ["Tazria‘", "Tazria`"],
+            "Tzav": ["Saw"],
+            "Achrei Mot": ["Ahare", "Aḥare Mot", "Ahare Mot"],
+        }
         indexes = library.get_indexes_in_category("Tanakh", full_records=True)
-        title_term_map = {}
+        tanakh_term_map = {}
+        parsha_term_map = {}
         for index in tqdm(indexes, desc='tanakh', total=indexes.count()):
             titles = index.nodes.title_group.titles
             titles += [{
                 "text": alt_title,
                 "lang": "en"
-            } for alt_title in hard_coded_title_map.get(index.title, [])]
+            } for alt_title in hard_coded_tanakh_map.get(index.title, [])]
             titles += [{
                 "text": alt_title_obj['text'].replace('.', ' .'),
                 "lang": "en"
@@ -452,8 +550,28 @@ class RefPartModifier:
                 "ref_part_role": "structural"
             })
             index_term.save()
-            title_term_map[index.title] = index_term
-        return title_term_map
+            tanakh_term_map[index.title] = index_term
+
+            # parasha
+            if index.categories[-1] == 'Torah':
+                for parsha_node in index.get_alt_struct_nodes():
+                    titles = parsha_node.title_group.titles
+                    titles += [{
+                        "text": alt_title,
+                        "lang": "en"
+                    } for alt_title in hard_coded_parsha_map.get(parsha_node.get_primary_title('en'), [])]
+                    titles += [{
+                        "text": alt_title_obj['text'].replace('.', ' .'),
+                        "lang": "en"
+                    } for alt_title_obj in titles if re.search(r'\.$', alt_title_obj['text']) is not None]
+                    parsha_term = NonUniqueTerm({
+                        "slug": parsha_node.get_primary_title('en'),
+                        "titles": titles,
+                        "ref_part_role": "structural"
+                    })
+                    parsha_term.save()
+                    parsha_term_map[parsha_term.get_primary_title('en')] = parsha_term
+        return tanakh_term_map, parsha_term_map
 
     def modify_all(self):
         fast = True
@@ -464,6 +582,7 @@ class RefPartModifier:
         self.modify_rest_of_shas(fast)
         self.modify_talmud_commentaries(fast, create_dhs, add_comm_alt_structs)  # on first run, rerun because ArrayMapNodes are cached
         self.modify_midrash_rabbah(fast)
+        self.modify_sifra(fast)
 
 
 if __name__ == "__main__":

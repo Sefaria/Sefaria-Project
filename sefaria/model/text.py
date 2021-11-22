@@ -930,13 +930,16 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         else:
             return self.categories[0]
 
-    def all_children(self):
-        # parallel to TreeNodes's all_children(). Allows full traversal of an index's nodes
-        return [self.nodes] + self.get_alt_struct_nodes()
+    def referenceable_children(self):
+        # parallel to TreeNodes's `children`. Allows full traversal of an index's nodes
+        default_children = self.nodes.children
+        if len(default_children) == 0:
+            default_children = [self.nodes]
+        return default_children + self.get_alt_struct_nodes()
 
     def get_referenceable_alone_nodes(self):
         alone_nodes = []
-        for child in self.all_children():
+        for child in self.referenceable_children():
             if any([len({'alone', 'any'} & set(part['scopes'])) > 0 for part in getattr(child, "ref_parts", [])]):
                 alone_nodes += [child]
             # TODO used to be hard-coded to include grandchildren as well. Can't be recursive unless we add this to SchemaNode as well.
