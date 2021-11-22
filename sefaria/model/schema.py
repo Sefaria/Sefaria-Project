@@ -2298,7 +2298,7 @@ class AddressTalmud(AddressType):
 
     def to_numeric_possibilities(self, lang, s, **kwargs):
         fromSections = kwargs['fromSections']
-        if s in self.special_cases:
+        if s in self.special_cases and fromSections:
             # currently assuming only special case is 'b'
             return [fromSec[-1]+1 for fromSec in fromSections]
         return [self.toNumber(lang, s)]

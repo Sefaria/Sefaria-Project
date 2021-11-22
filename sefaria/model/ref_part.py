@@ -8,6 +8,7 @@ from . import abstract as abst
 from . import text
 from . import schema
 import spacy
+from tqdm import tqdm
 from spacy.tokens import Span, Token
 from spacy.language import Language
 
@@ -262,7 +263,7 @@ class ResolvedRawRef:
         if node is None: return []
         try:
             possible_sections, possible_to_sections, addr_classes = node.address_class(0).get_all_possible_sections_from_string(lang, raw_ref_part.text, fromSections)
-        except IndexError:
+        except (IndexError, TypeError, KeyError):
             return []
         refined_refs = []
         addr_classes_used = []
@@ -284,8 +285,8 @@ class ResolvedRawRef:
                 addr_classes_used += [addr_class]
             except InputError:
                 continue
-            except AssertionError as e:
-                print(self.ref.normal(), e)
+            except AssertionError:
+                continue
         return [self.clone(resolved_ref_parts=refined_ref_parts, node=node, ref=refined_ref) for refined_ref in refined_refs]
 
     def _get_refined_matches_for_ranged_sections(self, sections: List['RawRefPart'], refined_ref_parts: List['RawRefPart'], node, lang, fromSections: list=None):
@@ -581,10 +582,13 @@ class RefResolver:
         self._ref_part_title_graph = ref_part_title_graph
         self._term_matcher_by_lang = term_matcher_by_lang
 
-    def bulk_resolve_refs(self, lang: str, context_refs: List[text.Ref], input: List[str], with_failures=False) -> List[List[ResolvedRawRef]]:
+    def bulk_resolve_refs(self, lang: str, context_refs: List[text.Ref], input: List[str], with_failures=False, verbose=False) -> List[List[ResolvedRawRef]]:
         all_raw_refs = self._bulk_get_raw_refs(lang, input)
         resolved = []
-        for context_ref, raw_refs in zip(context_refs, all_raw_refs):
+        iter = zip(context_refs, all_raw_refs)
+        if verbose:
+            iter = tqdm(iter, total=len(context_refs))
+        for context_ref, raw_refs in iter:
             inner_resolved = []
             for raw_ref in raw_refs:
                 temp_resolved = self.resolve_raw_ref(lang, context_ref, raw_ref)

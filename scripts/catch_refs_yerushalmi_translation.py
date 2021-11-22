@@ -72,7 +72,7 @@ class YerushalmiCatcher:
         version = Version().load({"title": title, "language": self.lang, "versionTitle": self.vtitle})
         version.walk_thru_contents(self.collect_resolver_input)
         context_refs, input_text = zip(*self.resolver_input)
-        all_resolved_refs = self.resolver.bulk_resolve_refs(self.lang, context_refs, input_text, with_failures=True)
+        all_resolved_refs = self.resolver.bulk_resolve_refs(self.lang, context_refs, input_text, with_failures=True, verbose=True)
         self.resolved_refs_by_context = {}
         for context_ref, resolved_refs in zip(context_refs, all_resolved_refs):
             self.resolved_refs_by_context[context_ref.normal()] = resolved_refs
@@ -181,7 +181,7 @@ class YerushalmiCatcher:
 
 if __name__ == '__main__':
     catcher = YerushalmiCatcher('en', VTITLE)
-    catcher.catch_refs_in_title('Jerusalem Talmud Yevamot')
+    catcher.catch_refs_in_title('Jerusalem Talmud Nazir')
     catcher.finish()
 
 """
