@@ -284,9 +284,11 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
             <ChavrutaCall
                 outgoingCall={outgoingCall}
                 activeChavruta={activeChavruta}
+                startChat={startChat}
                 setCurrentScreen={setCurrentScreen}
                 socket={socketObj}
             /> :
+            <>
             <ChavrutaVideo
                 socket={socketObj}
                 chavrutaId={currentChatRoom}
@@ -295,6 +297,29 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
                 activeChavruta={activeChavruta}
                 setCurrentScreen={setCurrentScreen}
             />
+             {activeChatRooms.map(room => {
+                if (room.roomId === currentChatRoom) {
+                    return <ChatBox
+                        key={room.roomId}
+                        room={room}
+                        handleCloseChat={handleCloseChat}
+                        chavrutaCallInitiated={chavrutaCallInitiated}
+                        chavrutaRequestReceived={chavrutaRequestReceived}
+                        activeChavruta={activeChavruta}
+                        socket={socket}
+                        shouldUpdateChats={shouldUpdateChats}
+                        setShouldUpdateChats={setShouldUpdateChats}
+                        markRead={markRead}
+                        profile={profile}
+                        partnerLeftNotification={partnerLeftNotification}
+                        setPartnerLeftNotification={setPartnerLeftNotification}
+                        onBlockUser={onBlockUser}
+                        onUnblockUser={onUnblockUser}
+                        hideHideButton={true}
+                    />
+                }
+            })}
+            </>
 
             }
         </div> : <LoadingMessage/>
@@ -376,10 +401,11 @@ const BeitMidrashHome = ({beitMidrashId,
     </div>)
 }
 
-const ChavrutaCall = ({outgoingCall, activeChavruta, setCurrentScreen, socket}) => {
+const ChavrutaCall = ({outgoingCall, activeChavruta, setCurrentScreen, socket, startChat}) => {
     const handleCallAccepted = (uid) => {
         Sefaria.track.event("BeitMidrash", "Accepted Call", "");
         const room = Math.random().toString(36).substring(7);
+        startChat(activeChavruta);
         socket.emit("send room ID to server", uid, room);
         setCurrentScreen("chavrutaVideo")
     }
@@ -462,6 +488,7 @@ const ChatBox = ({room,
                 shouldUpdateChats,
                 setShouldUpdateChats,
                 markRead,
+                hideHideButton,
                 onBlockUser,
                 onUnblockUser
                  }) => {
@@ -557,9 +584,10 @@ const ChatBox = ({room,
     return (
         activeChavruta ?
     <div className="chat" ref={chatBox}>
+        {!hideHideButton ?
         <div id="hideButtonHolder">
             <div id="hideButton" onClick={()=>handleCloseChat(room)}><InterfaceText>Hide</InterfaceText>{" "}<img src="/static/img/downward_carrot.svg" /></div>
-        </div>
+        </div> : null }
         {/*<details>*/}
         {/*<summary>*/}
         <div className="chatBoxHeader">

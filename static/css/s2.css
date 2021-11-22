@@ -13023,6 +13023,7 @@ span.ref-link-color-3 {
 .chats-container {
   overflow-y: auto;
   display: flex;
+  flex-grow:2;
   flex-direction: column;
   margin: 5px;
 }
