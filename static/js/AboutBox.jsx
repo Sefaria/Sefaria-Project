@@ -156,13 +156,14 @@ class AboutBox extends Component {
           </span>
           { authorsEn && authorsEn.length ?
             <div className="aboutAuthor">
-              <span className="authorLabel">
-                  <ContentText text={{en:"Author:", he: "מחבר:"}} />
+              <span className="aboutAuthorInner">
+                  <span className="authorLabel">
+                      <ContentText text={{en:"Author:", he: "מחבר:"}} />
+                  </span>
+                  <span className="authorName">
+                      <ContentText text={{en:authorsEn, he: authorsHe}} />
+                  </span>
               </span>
-              <span className="authorName">
-                  <ContentText text={{en:authorsEn, he: authorsHe}} />
-              </span>
-
             </div> : null
           }
           <div className="aboutDesc">

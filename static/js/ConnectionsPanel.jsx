@@ -775,7 +775,7 @@ const AboutSheetButtons = ({ setConnectionsMode, masterPanelSheetId }) => {
     console.log(sheet)
   }, []);
 
-  return (<div class="topToolsButtons">
+  return (<div className="topToolsButtons">
     {isOwner ?
         <ToolsButton en="Publish Settings" he="הגדרות פרסום" image="about-text.svg" onClick={() => setConnectionsMode("AboutSheet")} />
         :
@@ -1143,7 +1143,7 @@ const TopicListItem = ({ topic, interfaceLang, srefs }) => {
     dataSourceText = `${Sefaria._('This topic is connected to ')}"${Sefaria._r(srefs[0])}" ${Sefaria._('by')} ${Object.values(topic.dataSources).map(d => d[langKey]).join(' & ')}.`;
   }
   return (
-    <a href={`/topics/${topic.topic}`} className="toolsButton topicButton" target="_blank">
+    <a href={`/topics/${topic.topic}`} className="topicButton" target="_blank">
       <span className="topicButtonTitle">
         <span className="contentText">
           <span className="en">{topic.title.en}</span>
@@ -1193,9 +1193,9 @@ class WebPagesList extends Component {
       });
       sites = Object.values(sites).sort(this.webSitesSort);
       content = sites.map(site => {
-        return (<div className="website toolsButton" onClick={() => this.setFilter(site.name)} key={site.name}>
+        return (<div className="website" onClick={() => this.setFilter(site.name)} key={site.name}>
           <img className="icon" src={site.faviconUrl} />
-          <span className="siteName toolsButtonText">{site.name} <span className="connectionsCount">({site.count})</span></span>
+          <span className="siteName">{site.name} <span className="connectionsCount">({site.count})</span></span>
         </div>);
       });
     } else {
