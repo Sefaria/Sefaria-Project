@@ -25,7 +25,6 @@ import {
   CommunityPagePreviewControls,
 } from './Misc';
 import Component from 'react-class';
-import { BroadcastChannel } from 'broadcast-channel';
 import BeitMidrash, {BeitMidrashClosed} from './BeitMidrash';
 import  { io }  from 'socket.io-client';
 
