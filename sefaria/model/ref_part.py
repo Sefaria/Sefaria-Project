@@ -318,6 +318,7 @@ class ResolvedRawRef:
     def get_refined_matches(self, raw_ref_part: 'RawRefPart', node, lang: str) -> List['ResolvedRawRef']:
         refined_ref_parts = self.resolved_ref_parts + [raw_ref_part]
         matches = []
+        # see NumberedTitledTreeNode.get_referenceable_child() for why we check if parent is None
         if raw_ref_part.type == RefPartType.NUMBERED and isinstance(node, schema.JaggedArrayNode) and node.parent is None:
             matches += self._get_refined_refs_for_numbered_part(raw_ref_part, refined_ref_parts, node, lang)
         elif raw_ref_part.type == RefPartType.RANGE and isinstance(node, schema.JaggedArrayNode):
