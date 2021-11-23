@@ -631,7 +631,7 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
     }
 
   const isActive = selected;
-  const sheetItemClasses = {sheetItem: 1, highlight: parentEditor.highlightedNode == element.node}
+  const sheetItemClasses = {sheetItem: 1, highlight: parentEditor.highlightedNode === (element.node ? element.node.toString() : null)}
   const classes = {
       SheetSource: element.ref ? 1 : 0,
       SheetOutsideBiText: element.ref ? 0 : 1,
@@ -952,7 +952,7 @@ const Element = props => {
     const sheetItemClasses = {
         sheetItem: 1,
         empty: !(Node.string(element)),
-        highlight: (useSlate().highlightedNode === element.node)
+        highlight: (useSlate().highlightedNode === (element.node ? element.node.toString() : null))
     };
 
     switch (element.type) {
