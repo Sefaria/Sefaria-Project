@@ -2630,7 +2630,7 @@ Sefaria.unpackDataFromProps = function(props) {
       "is_history_enabled",
       "translation_language_preference_suggestion",
       "following",
-
+      "blocking",
       "calendars",
       "notificationCount",
       "notifications",

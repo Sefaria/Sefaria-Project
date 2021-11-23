@@ -190,6 +190,7 @@ def base_props(request):
             "is_history_enabled": profile.settings.get("reading_history", True),
             "translationLanguagePreference": request.translation_language_preference,
             "following": profile.followees.uids,
+            "blocking": profile.blockees.uids,
             "calendars": get_todays_calendar_items(**_get_user_calendar_params(request)),
             "notificationCount": profile.unread_notification_count(),
             "notifications": profile.recent_notifications().client_contents(),
@@ -209,6 +210,7 @@ def base_props(request):
             "is_history_enabled": True,
             "translationLanguagePreference": request.translation_language_preference,
             "following": [],
+            "blocking": [],
             "calendars": get_todays_calendar_items(**_get_user_calendar_params(request)),
             "notificationCount": 0,
             "notifications": [],
@@ -2940,6 +2942,25 @@ def follow_list_api(request, kind, uid):
         f = FolloweesSet(int(uid))
 
     return jsonResponse(annotate_user_list(f.uids))
+
+@catch_error_as_json
+def block_api(request, action, uid):
+    """
+    API for following and unfollowing another user.
+    """
+    if request.method != "POST":
+        return jsonResponse({"error": "Unsupported HTTP method."})
+
+    if not request.user.is_authenticated:
+        return jsonResponse({"error": "You must be logged in to follow."})
+
+    block = BlockRelationship(blocker=request.user.id, blockee=int(uid))
+    if action == "block":
+        block.block()
+    elif action == "unblock":
+        block.unblock()
+
+    return jsonResponse({"status": "ok"})
 
 
 def background_data_api(request):

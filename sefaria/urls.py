@@ -242,6 +242,11 @@ urlpatterns += [
     url(r'^api/(?P<kind>(followers|followees))/(?P<uid>\d+)$', reader_views.follow_list_api),
 ]
 
+# Blocking API
+urlpatterns += [
+    url(r'^api/(?P<action>(block|unblock))/(?P<uid>\d+)$', reader_views.block_api),
+]
+
 # Topics API
 urlpatterns += [
     url(r'^api/topics$', reader_views.topics_list_api),

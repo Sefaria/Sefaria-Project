@@ -7,6 +7,7 @@ import {
 import React, { useState, useEffect, useRef } from 'react';
 import Sefaria  from './sefaria/sefaria';
 import classNames from 'classnames';
+import $ from "./sefaria/sefariaJquery";
 
 const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
     const [peopleInBeitMidrash, setPeopleInBeitMidrash] = useState(null);
@@ -20,7 +21,7 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
     const [chavrutaOnline, setChavrutaOnline] = useState(false);
     const [socketObj, setSocketObj] = useState(socket);
     const [partnerLeftNotification, setPartnerLeftNotification] = useState(false);
-    const [blockedUsers, setBlockedUsers] = useState([])
+    const [blockedUsers, setBlockedUsers] = useState(Sefaria.blocking)
     const [pcConfig, setPcConfig] = useState(null);
     const [usersWithUnreadMsgs, setUsersWithUnreadMsgs] = useState([])
     const [shouldUpdateChats, setShouldUpdateChats] = useState(false)
@@ -41,12 +42,11 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
     }
 
     const onBlockUser = (uid) => {
-        setBlockedUsers(uids => [...uids, uid])
-        console.log("user blocked!")
-        console.log("blockedUsers", blockedUsers)
-        Sefaria.track.event("BeitMidrash", "Blocked User", "");
-
-        setCurrentChatRoom("")
+        $.post("/api/block/" + uid, {}, data => {
+            Sefaria.track.event("BeitMidrash", "Blocked User", uid);
+            setBlockedUsers(uids => [...uids, uid])
+            setCurrentChatRoom("")
+        });
     }
 
     const onUnblockUser = (uid) => {
