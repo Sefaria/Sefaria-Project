@@ -306,7 +306,7 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
                         chavrutaCallInitiated={chavrutaCallInitiated}
                         chavrutaRequestReceived={chavrutaRequestReceived}
                         activeChavruta={activeChavruta}
-                        socket={socket}
+                        socket={socketObj}
                         shouldUpdateChats={shouldUpdateChats}
                         setShouldUpdateChats={setShouldUpdateChats}
                         markRead={markRead}
