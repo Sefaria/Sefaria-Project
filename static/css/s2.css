@@ -11379,6 +11379,15 @@ span.ref-link-color-3 {color: blue}
   flex: 1;
 }
 
+.beitMidrashUserHeader {
+  display: flex;
+  flex-direction: row;
+}
+
+.beitMidrashUserNameStatus {
+  flex-grow: 1;
+}
+
 .beitMidrashOrg {
   font-weight: 200;
 }

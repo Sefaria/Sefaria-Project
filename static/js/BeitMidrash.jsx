@@ -365,9 +365,13 @@ const UserInBeitMidrash = ({user, userClasses, startChat, onBlockUser}) => {
     <div className={classNames(userClasses)} key={user.uid} onClick={() => startChat(user)}>
         <ProfilePic len={42} url={user.pic} name={user.name} id="beitMidrashProfilePic"/>
         <div className="beitMidrashUserText">
+            <div className="beitMidrashUserHeader">
+            <div className="beitMidrashUserNameStatus">
             {user.name}
             {user.inChavruta ? <i className="fa fa-headphones" title={`${user.name} is current in a chavruta`}></i> : null}
-            <span className="userDetailsToggle" onClick={()=>{setUserDetailsOpen(true)}}>⋯</span>
+            </div>
+            <img src="/static/icons/ellipses.svg" className="userDetailsToggle" aria-label="toggle user details" onClick={()=>{setUserDetailsOpen(true)}}/>
+            </div>
             <div
               tabIndex={0}
               onBlur={()=>{setUserDetailsOpen(false)}}
