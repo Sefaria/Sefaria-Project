@@ -704,7 +704,7 @@ const Message = ({user, message}) => {
 
     return (
         <div className="chatMessage" data-hj-suppress>
-                <ProfilePic len={35} url={user.pic} name={user.name} />
+                <ProfilePic len={34} url={user.pic} name={user.name} />
             <div className = "chatText">
                 <div className="chatNameAndTime"><span>{user.name}</span>{"  "}<span>{displayTimeStamp}</span></div>
                 <div dir={Sefaria.hebrew.isHebrew(message.message) ? "rtl" : "ltr"}>{message.message}</div>

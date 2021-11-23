@@ -11449,10 +11449,11 @@ span.ref-link-color-3 {color: blue}
 .chatMessage {
   display: flex;
   margin: 7px 0;
+  margin-inline-start: 4px;
 }
 
 .chatText {
-  margin-left: 13px;
+  margin-inline-start: 13px;
   flex-grow: 1;
 }
 
@@ -11472,10 +11473,12 @@ span.ref-link-color-3 {color: blue}
 .chat-input-holder {
   background-color: black;
   display: flex;
+  align-items: center;
   flex-direction: row;
   border-radius: 6px;
+  padding: 0 15px;
   border: 0px;
-  height: 30px;
+  height: 50px;
   width: 100%;
   justify-content: space-between;
 }
@@ -11486,9 +11489,8 @@ span.ref-link-color-3 {color: blue}
   border: 0;
   display: flex;
   justify-content: flex-end;
-  padding-inline-end: 12px;
-  padding-inline-start: 12px;
   flex-grow:1;
+  font-size: 16px;
 }
 
 .chat-input:active {
@@ -11500,9 +11502,8 @@ span.ref-link-color-3 {color: blue}
   background-position: center;
   background-repeat: no-repeat;
   background-size: contain;
-  height: 18px;
-  margin-top: 5px;
-  width: 20.57px;
+  height: 20px;
+  width: 18px;
   border: 0px;
   background-color: black;
   cursor: pointer;
