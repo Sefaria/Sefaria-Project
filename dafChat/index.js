@@ -67,7 +67,7 @@ io.on("connection", (socket) => {
 
   let disconnectHandler = {};
 
-  function addUserToBeitMidrash(uid, fullName, profilePic, organization, currentlyReading, beitMidrashId, socketId, inChavruta) {
+  function addUserToBeitMidrash(uid, fullName, profilePic, slug, currentlyReading, beitMidrashId, socketId, inChavruta) {
 
     const existingSocketIdForUser = Object.keys(peopleInBeitMidrash).find(key => peopleInBeitMidrash[key]["uid"] === uid);
 
@@ -75,7 +75,7 @@ io.on("connection", (socket) => {
     peopleInBeitMidrash[socketId]["uid"] = uid;
     peopleInBeitMidrash[socketId]["name"] = fullName;
     peopleInBeitMidrash[socketId]["pic"] = profilePic;
-    peopleInBeitMidrash[socketId]["organization"] = organization
+    peopleInBeitMidrash[socketId]["slug"] = slug
     peopleInBeitMidrash[socketId]["beitMidrashId"] = beitMidrashId;
     peopleInBeitMidrash[socketId]["currentlyReading"] = currentlyReading;
     peopleInBeitMidrash[socketId]["inChavruta"] = inChavruta;
@@ -104,9 +104,9 @@ io.on("connection", (socket) => {
     socket.emit("change in people", Object.values(peopleInBeitMidrash), uid);
   })
 
-  socket.on("enter beit midrash", (uid, fullName, profilePic, organization, currentlyReading, beitMidrashId, inChavruta)=> {
+  socket.on("enter beit midrash", (uid, fullName, profilePic, slug, currentlyReading, beitMidrashId, inChavruta)=> {
     console.log(uid, ": ", "entered the beit midrash")
-    addUserToBeitMidrash(uid, fullName, profilePic, organization, currentlyReading, beitMidrashId, socket.id, inChavruta)
+    addUserToBeitMidrash(uid, fullName, profilePic, slug, currentlyReading, beitMidrashId, socket.id, inChavruta)
     socket.emit('creds', pcConfig)
   });
 
@@ -119,6 +119,12 @@ io.on("connection", (socket) => {
     const socketId = Object.keys(peopleInBeitMidrash).find(key => peopleInBeitMidrash[key]["uid"] === uid);
     socket.to(socketId).emit("send connection rejection")
   });
+
+  socket.on("call cancelled", (uid) =>{
+    const socketId = Object.keys(peopleInBeitMidrash).find(key => peopleInBeitMidrash[key]["uid"] === uid);
+    socket.to(socketId).emit("send call cancelled")
+  });
+
 
   socket.on("send room ID to server", (uid, roomId)=> {
     const socketId = Object.keys(peopleInBeitMidrash).find(key => peopleInBeitMidrash[key]["uid"] === uid);
@@ -137,16 +143,11 @@ io.on("connection", (socket) => {
         socket.to(socketId).emit("received chat message", msgSender, room)
       })
     }
-    
+
   });
 
   socket.on("join chat room", (room) => {
     socket.join(room.roomId)
-  })
-
-  socket.on("user is blocked", (blockee) => {
-    const socketId = Object.keys(peopleInBeitMidrash).find(key => peopleInBeitMidrash[key]["uid"] === blockee.uid);
-    socket.to(socketId).emit("you have been blocked")
   })
 
   const leaveBeitMidrash = (socketId) => {

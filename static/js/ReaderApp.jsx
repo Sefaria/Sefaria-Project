@@ -25,7 +25,6 @@ import {
   CommunityPagePreviewControls,
 } from './Misc';
 import Component from 'react-class';
-import { BroadcastChannel } from 'broadcast-channel';
 import BeitMidrash, {BeitMidrashClosed} from './BeitMidrash';
 import  { io }  from 'socket.io-client';
 
@@ -891,7 +890,10 @@ class ReaderApp extends Component {
     if (this.currentlyConnecting()) { return }
 
     this.openTextListAt(n+1, refs, nodeRef);
-    if ($(".readerPanel")[n+1] && window.getSelection().isCollapsed) { //Focus on the first focusable element of the newly loaded panel if text not selected. Mostly for a11y
+
+    if ($(".readerPanel")[n+1] && window.getSelection().isCollapsed && window.getSelection().anchorNode.nodeType !== 3) {
+      //Focus on the first focusable element of the newly loaded panel if text not selected and not actively typing
+      // in editor. Exists for a11y
       var curPanel = $(".readerPanel")[n+1];
       $(curPanel).find(':focusable').first().focus();
     }

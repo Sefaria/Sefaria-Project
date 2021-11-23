@@ -1,1 +1,11 @@
-null
+{
+	"title": "Sefaria Community,",
+	"text": [
+		"נשמח אם תהיו שותפים בעיצוב עתידה של ספריא!\n",
+		"אנא ענו על הסקר שלנו- כדי לסייע לנו להתקדם ולהשתפר.\n"
+    ],
+	"buttonLink": "https://www.surveymonkey.com/r/ZFH7G8V?source=App",
+	"buttonText": "למענה על הסקר",
+	"name": "survey-2021-1",
+	"schemaVersion": 1
+}

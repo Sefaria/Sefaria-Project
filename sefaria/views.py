@@ -258,23 +258,6 @@ def sefaria_js(request):
     return render(request, "js/sefaria.js", attrs, content_type= "text/javascript; charset=utf-8")
 
 
-def chavruta_js(request):
-    """
-    Javascript for chavruta [required to pass server attribute].
-    """
-    client_user = UserProfile(id=request.user.id)
-    roulette = request.GET.get("roulette", "0")
-
-    attrs = {
-        "rtc_server": RTC_SERVER,
-        "client_name": client_user.first_name + " " + client_user.last_name,
-        "client_uid": client_user.id,
-        "roulette": roulette
-    }
-
-
-    return render(request, "js/chavruta.js", attrs, content_type="text/javascript; charset=utf-8")
-
 def linker_js(request, linker_version=None):
     """
     Javascript of Linker plugin.
@@ -1080,8 +1063,9 @@ def bulk_download_versions_api(request):
 
     content = file_like_object.getvalue()
     response = HttpResponse(content, content_type="application/zip")
-    filename = "{}-{}-{}-{}.zip".format(list(filter(str.isalnum, str(title_pattern))), list(filter(str.isalnum, str(version_title_pattern))), language, format).encode('utf-8')
+    filename = "{}-{}-{}-{}.zip".format(''.join(list(filter(str.isalnum, str(title_pattern)))), ''.join(list(filter(str.isalnum, str(version_title_pattern)))), language, format)
     response["Content-Disposition"] = 'attachment; filename="{}"'.format(filename)
+    response["charset"] = 'utf-8'
     return response
 
 
