@@ -363,7 +363,7 @@ const UserInBeitMidrash = ({user, userClasses, startChat, onBlockUser}) => {
 
   return (
     <div className={classNames(userClasses)} key={user.uid} onClick={() => startChat(user)}>
-        <ProfilePic len={42.67} url={user.pic} name={user.name} id="beitMidrashProfilePic"/>
+        <ProfilePic len={42} url={user.pic} name={user.name} id="beitMidrashProfilePic"/>
         <div className="beitMidrashUserText">
             {user.name}
             {user.inChavruta ? <i className="fa fa-headphones" title={`${user.name} is current in a chavruta`}></i> : null}
@@ -500,15 +500,28 @@ const ChavrutaCall = ({outgoingCall, activeChavruta, setCurrentScreen, socket, s
     }, [])
 
     return (
-        outgoingCall ?
-        <div className="callContainer">
+        <div className={outgoingCall ? "callContainer outgoing" : "callContainer incoming"}>
             <div>
                 <ProfilePic len={300} url={activeChavruta.pic} name={activeChavruta.name} />
-                <div id="endCallButtonHolder">
-                    <span id="endCallIcon"><span id="endCall" className="endCallButton" onClick={()=>callCancelled(activeChavruta.uid)}></span></span>
+                {outgoingCall ? <div id="endCallButtonHolder">
+                    <span id="endCallIcon"><span id="endCall" className="endCallButton"
+                                                 onClick={() => callCancelled(activeChavruta.uid)}></span></span>
+                </div> : null}
+                <div className = "callText">
+                    {outgoingCall ?
+                        <span><InterfaceText>Calling</InterfaceText> {activeChavruta.name}...</span>
+                    : <span>{activeChavruta.name} <InterfaceText>is calling you...</InterfaceText></span>
+                    }
                 </div>
-                <div className = "callText"><InterfaceText>Calling</InterfaceText> {activeChavruta.name}...</div>
             </div>
+            {outgoingCall ? null :
+                <div id="incomingCallButtonHolder">
+                    <button id="acceptButton" onClick={() => handleCallAccepted(activeChavruta.uid)}>
+                        <InterfaceText>Accept</InterfaceText></button>
+                    <button id="declineButton" onClick={() => handleCallDeclined(activeChavruta.uid)}>
+                        <InterfaceText>Decline</InterfaceText></button>
+                </div>
+            }
             <audio autoPlay loop src="/static/files/chavruta_ringtone.mp3" />
                 <div className="chavrutaFooter">
                     <p className="int-en">
@@ -519,26 +532,6 @@ const ChavrutaCall = ({outgoingCall, activeChavruta, setCurrentScreen, socket, s
                         לשאלות פנו/כתבו לדוא"ל <a href="mailto:hello@sefaria.org" target="_blank">hello@sefaria.org</a>
                     </p>
                 </div>
-        </div> :
-        <div className="callContainer">
-            <div>
-                <ProfilePic len={300} url={activeChavruta.pic} name={activeChavruta.name} />
-                <div className = "callText">{activeChavruta.name} <InterfaceText>is calling you...</InterfaceText></div>
-                <div id="incomingCallButtonHolder">
-                    <button id="acceptButton" onClick={()=> handleCallAccepted(activeChavruta.uid)}><InterfaceText>Accept</InterfaceText></button>
-                    <button id="declineButton" onClick={()=> handleCallDeclined(activeChavruta.uid)}><InterfaceText>Decline</InterfaceText></button>
-                </div>
-            </div>
-            <audio autoPlay loop src="/static/files/chavruta-ringtone.wav" />
-            <div className="chavrutaFooter">
-            <p className="int-en">
-                    Questions? Email <a href="mailto:hello@sefaria.org" target="_blank">hello@sefaria.org</a>
-                </p>
-
-                <p className="int-he">
-                    לשאלות פנו/כתבו לדוא"ל <a href="mailto:hello@sefaria.org" target="_blank">hello@sefaria.org</a>
-                </p>
-            </div>
         </div>
     )
 }
@@ -654,7 +647,7 @@ const ChatBox = ({room,
         <div className="chatBoxHeader">
 
                 <div id="chatUser">
-                    <ProfilePic len={42.67} url={activeChavruta.pic} name={activeChavruta.name} />
+                    <ProfilePic len={42} url={activeChavruta.pic} name={activeChavruta.name} />
                     <div className="chatBoxName">{activeChavruta.name}</div>
                 </div>
 
@@ -685,15 +678,16 @@ const ChatBox = ({room,
 
         </div>
         <form className="chat-form" onSubmit={handleSubmit}>
-            <div className="chat-input-holder"><input type="text"
+            <div className="chat-input-holder">
+                <input type="text"
                 autoFocus
                 className="chat-input" onInput={handleChange}
                 placeholder={Sefaria._("Send a Message")}
                 dir={Sefaria.hebrew.isHebrew(chatMessage) || (chatMessage === "" && Sefaria.interfaceLang === "hebrew") ? "rtl" : "ltr"}></input>
-            <input type="submit"
-            className={classNames({"chat-submit": 1, "chat-submit-blue": !!chatMessage, "chat-submit-hebrew": Sefaria.interfaceLang === "hebrew"})}
-            disabled={!chatMessage}
-            value=""/>
+                <input type="submit"
+                className={classNames({"chat-submit": 1, "chat-submit-blue": !!chatMessage, "chat-submit-hebrew": Sefaria.interfaceLang === "hebrew"})}
+                disabled={!chatMessage}
+                value=""/>
             </div>
         </form>
     </div> : <LoadingMessage />

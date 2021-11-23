@@ -1913,7 +1913,7 @@ class ReaderApp extends Component {
     }
     var boxClasses = classNames({wrapBoxScroll: wrapBoxScroll});
     var boxWidth = wrapBoxScroll ? this.state.windowWidth + "px" : "100%";
-    var boxStyle = this.state.beitMidrashStatus ? {width: `calc(${boxWidth} - 300px)`} : {width: boxWidth};
+    var boxStyle = this.state.beitMidrashStatus ? {width: `calc(${boxWidth} - 330px)`} : {width: boxWidth};
     panels = panels.length ?
               (<div id="panelWrapBox" className={boxClasses} style={boxStyle}>
                 {panels}
@@ -1933,7 +1933,7 @@ class ReaderApp extends Component {
       <CommunityPagePreviewControls date={this.props.communityPreview} /> : null;
 
     const beitMidrashPanel = this.state.beitMidrashStatus ? (
-      <div id='beitMidrash' style={{width: 300,
+      <div id='beitMidrash' style={{width: 330,
                                     marginInlineStart: "auto",
                                     marginInlineEnd: 0,
                                     height: `calc(100% - 60px)`,

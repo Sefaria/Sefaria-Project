@@ -11264,17 +11264,16 @@ span.ref-link-color-3 {color: blue}
   top: 0;
   bottom: 0;
   left: 0;
-  width: 300px;
+  margin-top: 14px;
   display: flex;
   flex-direction: column;
 }
 
 #beitMidrashHeader {
-  padding: 20px;
   color: white;
   font-size: 22px;
   font-weight: 500;
-  margin-inline-start: 24px;
+  margin-inline-start: 30px;
   display: flex;
   justify-content: space-between;
 }
@@ -11297,6 +11296,8 @@ span.ref-link-color-3 {color: blue}
   flex-grow: 1;
   display: flex;
   flex-direction: column;
+  margin: 10px 30px;
+  border-top: 1px solid #999999;
 }
 
 .beitMidrashHR {
@@ -11314,8 +11315,9 @@ span.ref-link-color-3 {color: blue}
   font: "Roboto";
   font-weight: 400;
   display: flex;
-  padding: 10px;
-  padding-inline-start: 34px;
+  gap: 10px;
+  width: 270px;
+  padding-top: 10px;
   cursor: pointer;
 }
 
@@ -11375,7 +11377,8 @@ span.ref-link-color-3 {color: blue}
 }
 
 .beitMidrashUserText {
-  margin: 10px;
+  margin: 0;
+  flex: 1;
 }
 
 .beitMidrashOrg {
@@ -11393,8 +11396,10 @@ span.ref-link-color-3 {color: blue}
   height: 300px;
   display: flex;
   flex-direction: column;
-  margin-bottom: 20px;
   padding-top: 20px;
+  margin: 10px 30px 20px;
+  border-top: 1px solid #999999;
+
 }
 
 #hideButtonHolder{
@@ -11407,14 +11412,13 @@ span.ref-link-color-3 {color: blue}
   color: #CCCCCC;
   font-size: 14px;
   font-weight: 400;
-  margin-inline-end: 25px;
   cursor: pointer;
 }
 
 .chatBoxHeader {
   display: flex;
   align-items: center;
-  margin: 5px 24px;
+  margin-top: 5px;
   justify-content: space-between;
 }
 
@@ -11427,12 +11431,11 @@ span.ref-link-color-3 {color: blue}
 #greenCameraButton {
   width: 24px;
   height: 12px;
-  margin-right: 25px;
   cursor: pointer;
 }
 
 .chatBoxName {
-  margin-inline-start: 5px;
+  margin-inline-start: 10px;
 }
 
 
@@ -11441,13 +11444,11 @@ span.ref-link-color-3 {color: blue}
   display: flex;
   flex-grow:2;
   flex-direction: column;
-  margin: 5px;
 }
 
 .chatMessage {
   display: flex;
-  margin: 7px 24px;
-
+  margin: 7px 0;
 }
 
 .chatText {
@@ -11470,7 +11471,6 @@ span.ref-link-color-3 {color: blue}
 
 .chat-input-holder {
   background-color: black;
-  margin: 0 24px;
   display: flex;
   flex-direction: row;
   border-radius: 6px;
@@ -11534,11 +11534,14 @@ span.ref-link-color-3 {color: blue}
   border-radius: 0;
 }
 
-.callText {
-  margin: 20px;
-  margin-top: 50px;
+.callContainer .callText {
+  margin: 53px 29px 23px;
   font-size: 22px;
   font-weight: 500;
+}
+
+.callContainer.incoming .callText {
+  margin: 23px 29px;
 }
 
 #endCallButtonHolder {
