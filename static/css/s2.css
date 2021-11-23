@@ -11354,7 +11354,7 @@ span.ref-link-color-3 {color: blue}
   margin-block-end: 0;
   padding-inline-start: 0;
   padding-left: 0;
-  padding: 15px;
+  margin: 15px;
   float: inline-end;
 }
 
@@ -11378,6 +11378,21 @@ span.ref-link-color-3 {color: blue}
   margin: 0;
   flex: 1;
 }
+
+.beitMidrashUserText li div.largeFollowButton,
+.beitMidrashUserText li img {
+  display: inline-block;
+}
+.beitMidrashUserText li img {
+  margin-bottom: -2px;
+  margin-inline-end: 4px;
+}
+
+.beitMidrashUserText li {
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
 
 .beitMidrashUserHeader {
   display: flex;

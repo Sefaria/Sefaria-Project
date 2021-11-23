@@ -379,15 +379,16 @@ const UserInBeitMidrash = ({user, userClasses, startChat, onBlockUser}) => {
               ref={userDetailsMenu}
             >
               <ul>
-                <li onClick={() => {window.open(`/profile/${user.slug}`)}}>View Profile</li>
-                <li><FollowButton
+                <li onClick={() => {window.open(`/profile/${user.slug}`)}}>
+                <img src="/static/icons/profile.svg" aria-hidden="true"/> View Profile</li>
+                <li><img src="/static/icons/follow.svg" aria-hidden="true"/> <FollowButton
                               large={true}
                               uid={user.uid}
                               following={Sefaria.following.indexOf(user.uid) > -1}
                             />
 
                 </li>
-                <li onClick={() => {onBlockUser(user.uid)}}>Mute</li>
+                <li onClick={() => {onBlockUser(user.uid)}}><img src="/static/icons/circle-backslash.svg" aria-hidden="true"/> Mute</li>
               </ul>
             </div>
 
