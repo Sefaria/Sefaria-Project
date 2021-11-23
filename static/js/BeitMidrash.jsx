@@ -466,6 +466,16 @@ const BeitMidrashHome = ({beitMidrashId,
                     />
                 }
             })}
+        <div className="beitMidrashHomeFooter">
+            <p className="int-en">
+                Questions? Email <a href="mailto:hello@sefaria.org" target="_blank">hello@sefaria.org</a>
+            </p>
+
+            <p className="int-he">
+                לשאלות פנו/כתבו לדוא"ל <a href="mailto:hello@sefaria.org" target="_blank">hello@sefaria.org</a>
+            </p>
+        </div>
+
     </div>)
 }
 

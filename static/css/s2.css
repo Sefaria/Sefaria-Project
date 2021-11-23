@@ -11267,6 +11267,7 @@ span.ref-link-color-3 {color: blue}
   margin-top: 14px;
   display: flex;
   flex-direction: column;
+  width: 100%;
 }
 
 #beitMidrashHeader {
@@ -11614,6 +11615,17 @@ span.ref-link-color-3 {color: blue}
   font-weight: 400;
   color: #CCCCCC;
   margin: 20px;
+}
+
+.beitMidrashHomeFooter {
+  font-size: 13px;
+  font-weight: 400;
+  color: #CCCCCC;
+  margin: 0 30px;
+}
+
+.beitMidrashHomeFooter p {
+  margin-top: 0;
 }
 
 .blockButton {
