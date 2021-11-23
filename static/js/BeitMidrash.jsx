@@ -420,6 +420,7 @@ const BeitMidrashHome = ({beitMidrashId,
             {/*<div id="newCall"><a href="/chavruta"><img src="/static/img/camera_with_plus.svg" id="newCallImg" /><span>New Call</span></a></div>*/}
             <div id="beitMidrashHeader"><InterfaceText>Beit Midrash</InterfaceText></div>
             <div className="peopleInBeitMidrash">
+                <div className="peopleInBeitMidrashInnerContainer">
                 {peopleInBeitMidrash && peopleInBeitMidrash.length > 1 ? peopleInBeitMidrash
                     .filter(user => !user.roomId)
                     .map(user => {
@@ -439,6 +440,7 @@ const BeitMidrashHome = ({beitMidrashId,
                             return null
                         }
                     }) : <div className="noUsers"><InterfaceText>No users online.</InterfaceText></div>}
+                </div>
             </div>
             {/* <div>
             {peopleInBeitMidrash ? pairsLearning(peopleInBeitMidrash).map((pair, i)  => <li key={i}>{pair.map(user => user.name).join(", ")}</li>) : null}

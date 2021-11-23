@@ -11293,6 +11293,7 @@ span.ref-link-color-3 {color: blue}
 
 .peopleInBeitMidrash {
   overflow-y: auto;
+  overflow-x:hidden;
   flex-grow: 1;
   display: flex;
   flex-direction: column;
@@ -11300,13 +11301,9 @@ span.ref-link-color-3 {color: blue}
   border-top: 1px solid #999999;
 }
 
-.beitMidrashHR {
-  border: 0;
-  height: 0;
-  width: 200px;
-  margin-left: 50px;
-  margin-right: 50px;
-  border-top: 1px solid #999999;
+.peopleInBeitMidrashInnerContainer {
+    width:100%;
+    overflow:visible;
 }
 
 .beitMidrashUser {
@@ -11327,6 +11324,7 @@ span.ref-link-color-3 {color: blue}
 
 .beitMidrashUser .userDetailsToggle {
   float: inline-end;
+  margin-inline-end: 15px;
   color:  var(--medium-grey);
   font-weight: bolder;
   display: none;
