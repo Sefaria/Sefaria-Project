@@ -213,7 +213,10 @@ class RawRef:
         end_token_i = span_inds(parts[-1].span)[1]
 
         offset_i = span_inds(self.span)[0]
-        return self.span.doc[offset_i+start_token_i:offset_i+end_token_i]
+        subspan = self.span.doc[offset_i+start_token_i:offset_i+end_token_i]
+        # unfortunately, the two models were trained using different tokenizers leading to potential differences in token indexes
+        assert subspan.text == parts[0].span.doc[start_token_i:end_token_i].text, f"{subspan.text} != {parts[0].span.doc[start_token_i:end_token_i].text}"
+        return subspan
 
     def get_text(self):
         return self.span.text
@@ -684,9 +687,14 @@ class RefResolver:
                 curr_parts += [part]
             if part.type == RefPartType.NON_CTS or ipart == len(raw_ref.raw_ref_parts) - 1:
                 if len(curr_parts) == 0: continue
-                split_raw_refs += [RawRef(curr_parts, raw_ref.subspan(slice(curr_part_start, ipart+1)))]
+                curr_part_end = ipart  # exclude curr part which is NON_CTS
+                if ipart == len(raw_ref.raw_ref_parts) - 1: curr_part_end = ipart + 1  # include curr part
+                try:
+                    split_raw_refs += [RawRef(curr_parts, raw_ref.subspan(slice(curr_part_start, curr_part_end)))]
+                except AssertionError:
+                    pass
                 curr_parts = []
-                curr_part_start = ipart
+                curr_part_start = ipart+1
         return split_raw_refs
 
     def resolve_raw_ref(self, lang: str, context_ref: text.Ref, raw_ref: 'RawRef') -> List['ResolvedRawRef']:

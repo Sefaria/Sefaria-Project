@@ -476,7 +476,7 @@ class RefPartModifier:
             "Shabbat": ["Šabbat"],
             "Shekalim": ["Šeqalim"],
             "Sheviit": ["Ševi‘it", "Ševiˋit"],
-            "Shevuot": ["Šebuot", "Ševuˋot", "Ševu‘ot"],
+            "Shevuot": ["Šebuot", "Ševuˋot", "Ševu‘ot", "Šebuot"],
             "Taanit": ["Ta ˋ anit", "Taˋanit", "Ta‘anit"],
             "Zevachim": ["Zevahim", "Zebahim"],
         }
