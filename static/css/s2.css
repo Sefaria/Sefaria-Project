@@ -11152,6 +11152,9 @@ span.ref-link-color-3 {color: blue}
   font-weight: 400;
   box-sizing: border-box;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .beitMidrashContainer video {
