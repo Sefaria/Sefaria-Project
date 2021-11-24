@@ -2948,11 +2948,12 @@ def block_api(request, action, uid):
     """
     API for following and unfollowing another user.
     """
+    
     if request.method != "POST":
-        return jsonResponse({"error": "Unsupported HTTP method."})
+        return jsonResponse({"error": "Unsupported HTTP method."}, status=405)
 
     if not request.user.is_authenticated:
-        return jsonResponse({"error": "You must be logged in to follow."})
+        return jsonResponse({"error": "You must be logged in to follow."}, status=401)
 
     block = BlockRelationship(blocker=request.user.id, blockee=int(uid))
     if action == "block":
