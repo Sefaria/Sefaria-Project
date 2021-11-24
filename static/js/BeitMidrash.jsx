@@ -41,11 +41,31 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
         return (sortedPeople)
     }
 
-    const onBlockUser = (uid) => {
-        $.post("/api/block/" + uid, {}, data => {
-            Sefaria.track.event("BeitMidrash", "Blocked User", uid);
-            setBlockedUsers(uids => [...uids, uid])
+    const onBlockUser = (user) => {
+        $.post("/api/block/" + user.uid, {}, data => {
+            Sefaria.track.event("BeitMidrash", "Blocked User", user.uid);
+            setBlockedUsers(uids => [...uids, user.uid])
             setCurrentChatRoom("")
+        });
+
+
+        const feedback = {
+          type: "beit_midrash_report",
+          msg: `${Sefaria.full_name} (${Sefaria._uid}) reported ${user.name} (${user.uid}) in the BeitMidrash`,
+          uid: Sefaria._uid,
+          url: window.location.href,
+        };
+        const postData = {json: JSON.stringify(feedback)};
+        const url = "/api/send_feedback";
+
+        $.post(url, postData, function (data) {
+          if (data.error) {
+              console.log(data.error);
+          } else {
+              console.log(data);
+          }
+        }.bind(this)).fail(function (xhr, textStatus, errorThrown) {
+          alert(Sefaria._("Unfortunately, there was an error sending this feedback. Please try again or try reloading this page."));
         });
     }
 
@@ -391,7 +411,7 @@ const UserInBeitMidrash = ({user, userClasses, startChat, onBlockUser}) => {
                             />
 
                 </li>
-                  <li onClick={() => {onBlockUser(user.uid)}}><img src="/static/icons/circle-backslash.svg" aria-hidden="true"/><InterfaceText>Mute & Report</InterfaceText></li>
+                  <li onClick={() => {onBlockUser(user)}}><img src="/static/icons/circle-backslash.svg" aria-hidden="true"/><InterfaceText>Mute & Report</InterfaceText></li>
               </ul>
             </div>
 
