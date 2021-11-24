@@ -1016,10 +1016,14 @@ const BlockReportModal = ({showBlockReportModal, onClose, setBlockedUsers, setCu
         onClose();
     }
     const muteUser = () => {
+        
      $.post("/api/block/" + user.uid, {}, data => {
             Sefaria.track.event("BeitMidrash", "Blocked User", user.uid);
             setBlockedUsers(uids => [...uids, user.uid])
-            setCurrentChatRoom("")
+            setCurrentChatRoom("");
+            setModalState(modalStates.muteCompleted);
+        }).fail(function (xhr, textStatus, errorThrown) {
+            setModalState(modalStates.muteFailed); 
         });
 
         const feedback = {
@@ -1033,12 +1037,11 @@ const BlockReportModal = ({showBlockReportModal, onClose, setBlockedUsers, setCu
 
         $.post(url, postData, function (data) {
           if (data.error) {
-              setModalState(modalStates.muteCompleted);
+              console.log(data.error)
           } else {
-              setModalState(modalStates.muteCompleted);
+              console.log(data)
           }
         }.bind(this)).fail(function (xhr, textStatus, errorThrown) {
-              setModalState(modalStates.muteFailed);
             alert(Sefaria._("Unfortunately, there was an error sending this feedback. Please try again or try reloading this page."));
         });
     }
