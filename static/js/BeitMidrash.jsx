@@ -542,7 +542,7 @@ const ChavrutaCall = ({outgoingCall, activeChavruta, setCurrentScreen, socket, s
     return (
         <div className={outgoingCall ? "callContainer outgoing" : "callContainer incoming"}>
             <div>
-                <ProfilePic len={300} url={activeChavruta.pic} name={activeChavruta.name} />
+                <ProfilePic len={330} url={activeChavruta.pic} name={activeChavruta.name} />
                 {outgoingCall ? <div id="endCallButtonHolder">
                     <span id="endCallIcon"><span id="endCall" className="endCallButton"
                                                  onClick={() => callCancelled(activeChavruta.uid)}></span></span>
