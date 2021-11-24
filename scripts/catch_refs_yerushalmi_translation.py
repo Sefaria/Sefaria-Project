@@ -104,7 +104,6 @@ class YerushalmiCatcher:
         version.walk_thru_contents(self.catch_refs_in_ref)
         output_file.close()
 
-
     def collect_resolver_input(self, st: str, en_tref: str, he_tref: str, version: Version) -> None:
         context_ref = Ref(en_tref)
         norm_st = self.normalizer.normalize(st)
@@ -162,6 +161,15 @@ class YerushalmiCatcher:
                     mishnah_toSec = resolved_ref.ref.toSections[0]
                     if mishnah_sec != mishnah_toSec:
                         end_secs = f"{mishnah_sec}:1-{mishnah_toSec}:1"
+                    else:
+                        end_secs = str(mishnah_sec) + ":1"
+                    perek = context_ref.sections[0]
+                    resolved_ref.ref = Ref(f"{context_ref.index.title} {perek}:{end_secs}")  # super hacky, but what can ya do?
+                elif len(parts) == 2 and parts[0].text in {'Halakhah', 'Halacha', 'Halachah', 'Halakhot'} and parts[1].type in {RefPartType.NUMBERED, RefPartType.RANGE}:
+                    mishnah_sec = resolved_ref.ref.sections[0]
+                    mishnah_toSec = resolved_ref.ref.toSections[0]
+                    if mishnah_sec != mishnah_toSec:
+                        end_secs = f"{mishnah_sec}-{mishnah_toSec}"
                     else:
                         end_secs = mishnah_sec
                     perek = context_ref.sections[0]
@@ -270,7 +278,7 @@ class YerushalmiCatcher:
         def create_text_map(s, en_tref, he_tref, v):
             nonlocal link_obj_by_ref, text_map
             # remove previous wrapped links
-            s = re.sub(r'<a href.+?>', '', s)
+            s = re.sub(r'<a href[^>]+?>', '', s)
             s = s.replace('</a>', '')
             links = link_obj_by_ref.get(en_tref, [])
             new_text = self.get_wrapped_ref_link_string(links, s, en_tref)
@@ -296,8 +304,8 @@ class YerushalmiCatcher:
 
 if __name__ == '__main__':
     catcher = YerushalmiCatcher('en', VTITLE, "../data/vilna_to_zukermandel_tosefta_map.json")
-    # catcher.catch_refs_in_title('Jerusalem Talmud Chagigah')
-    catcher.wrap_refs_in_title('Jerusalem Talmud Chagigah')
+    catcher.catch_refs_in_title('Jerusalem Talmud Moed Katan')
+    catcher.wrap_refs_in_title('Jerusalem Talmud Moed Katan')
 
 """
 post processing
