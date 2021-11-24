@@ -123,7 +123,6 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
 
     useEffect(()=> {
         socketObj.emit("update currently reading", Sefaria._uid, currentlyReading);
-        console.log(currentlyReading)
     }, [currentlyReading])
 
     useEffect(()=>{
@@ -181,7 +180,6 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
 
 
     useEffect(()=> {
-      console.log(blockedUsers)
         socketObj.off("change in people");
         socketObj.on("change in people", function(people, uid) {
             setPeopleInBeitMidrash(filterDedupeAndSortPeople(people));
@@ -316,44 +314,49 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
                 onUnblockUser={onUnblockUser}
             /> :
                 currentScreen == "callingChavruta" ?
-            <ChavrutaCall
-                outgoingCall={outgoingCall}
-                activeChavruta={activeChavruta}
-                startChat={startChat}
-                setCurrentScreen={setCurrentScreen}
-                socket={socketObj}
-            /> :
             <>
-            <ChavrutaVideo
-                socket={socketObj}
-                chavrutaId={currentChatRoom}
-                chavrutaOnline={chavrutaOnline}
-                pcConfig={pcConfig}
-                activeChavruta={activeChavruta}
-                setCurrentScreen={setCurrentScreen}
-            />
-             {activeChatRooms.map(room => {
-                if (room.roomId === currentChatRoom) {
-                    return <ChatBox
-                        key={room.roomId}
-                        room={room}
-                        handleCloseChat={handleCloseChat}
-                        chavrutaCallInitiated={chavrutaCallInitiated}
-                        chavrutaRequestReceived={chavrutaRequestReceived}
-                        activeChavruta={activeChavruta}
-                        socket={socketObj}
-                        shouldUpdateChats={shouldUpdateChats}
-                        setShouldUpdateChats={setShouldUpdateChats}
-                        markRead={markRead}
-                        profile={profile}
-                        partnerLeftNotification={partnerLeftNotification}
-                        setPartnerLeftNotification={setPartnerLeftNotification}
-                        onBlockUser={onBlockUser}
-                        onUnblockUser={onUnblockUser}
-                        hideHideButton={true}
-                    />
-                }
-            })}
+                <ChavrutaCall
+                    outgoingCall={outgoingCall}
+                    activeChavruta={activeChavruta}
+                    startChat={startChat}
+                    setCurrentScreen={setCurrentScreen}
+                    socket={socketObj}
+                />
+                <BeitMidrashFooter />
+            </>
+            :
+            <>
+                <ChavrutaVideo
+                    socket={socketObj}
+                    chavrutaId={currentChatRoom}
+                    chavrutaOnline={chavrutaOnline}
+                    pcConfig={pcConfig}
+                    activeChavruta={activeChavruta}
+                    setCurrentScreen={setCurrentScreen}
+                />
+                 {activeChatRooms.map(room => {
+                    if (room.roomId === currentChatRoom) {
+                        return <ChatBox
+                            key={room.roomId}
+                            room={room}
+                            handleCloseChat={handleCloseChat}
+                            chavrutaCallInitiated={chavrutaCallInitiated}
+                            chavrutaRequestReceived={chavrutaRequestReceived}
+                            activeChavruta={activeChavruta}
+                            socket={socketObj}
+                            shouldUpdateChats={shouldUpdateChats}
+                            setShouldUpdateChats={setShouldUpdateChats}
+                            markRead={markRead}
+                            profile={profile}
+                            partnerLeftNotification={partnerLeftNotification}
+                            setPartnerLeftNotification={setPartnerLeftNotification}
+                            onBlockUser={onBlockUser}
+                            onUnblockUser={onUnblockUser}
+                            hideHideButton={true}
+                        />
+                    }
+                })}
+                <BeitMidrashFooter />
             </>
 
             }
@@ -410,6 +413,18 @@ const UserInBeitMidrash = ({user, userClasses, startChat, onBlockUser}) => {
   )
 }
 
+const BeitMidrashFooter = () => {
+    return(<div className="beitMidrashHomeFooter">
+            <p className="int-en">
+                Questions? Email <a href="mailto:hello@sefaria.org" target="_blank">hello@sefaria.org</a>
+            </p>
+
+            <p className="int-he">
+                לשאלות פנו/כתבו לדוא"ל <a href="mailto:hello@sefaria.org" target="_blank">hello@sefaria.org</a>
+            </p>
+        </div>
+    )
+}
 
 const BeitMidrashHome = ({beitMidrashId,
                         peopleInBeitMidrash,
@@ -482,16 +497,7 @@ const BeitMidrashHome = ({beitMidrashId,
                     />
                 }
             })}
-        <div className="beitMidrashHomeFooter">
-            <p className="int-en">
-                Questions? Email <a href="mailto:hello@sefaria.org" target="_blank">hello@sefaria.org</a>
-            </p>
-
-            <p className="int-he">
-                לשאלות פנו/כתבו לדוא"ל <a href="mailto:hello@sefaria.org" target="_blank">hello@sefaria.org</a>
-            </p>
-        </div>
-
+        <BeitMidrashFooter />
     </div>)
 }
 
@@ -551,15 +557,6 @@ const ChavrutaCall = ({outgoingCall, activeChavruta, setCurrentScreen, socket, s
                 </div>
             }
             <audio autoPlay loop src="/static/files/chavruta_ringtone.mp3" />
-                <div className="chavrutaFooter">
-                    <p className="int-en">
-                        Questions? Email <a href="mailto:hello@sefaria.org" target="_blank">hello@sefaria.org</a>
-                    </p>
-
-                    <p className="int-he">
-                        לשאלות פנו/כתבו לדוא"ל <a href="mailto:hello@sefaria.org" target="_blank">hello@sefaria.org</a>
-                    </p>
-                </div>
         </div>
     )
 }
@@ -972,16 +969,6 @@ const ChavrutaVideo = ({socket, chavrutaId, pcConfig, setCurrentScreen, activeCh
             </div>
             <div id="currentlyReadingContainer">
                 {activeChavruta.currentlyReading ? <div className="currentlyReading">{activeChavruta.name} is {activeChavruta.currentlyReading.display} <a href={activeChavruta.currentlyReading.url}>{activeChavruta.currentlyReading.title}</a></div> : null }
-            </div>
-
-            <div className="chavrutaFooter">
-                <p className="int-en">
-                    Questions? Email <a href="mailto:hello@sefaria.org" target="_blank">hello@sefaria.org</a>
-                </p>
-
-                <p className="int-he">
-                    לשאלות פנו/כתבו לדוא"ל <a href="mailto:hello@sefaria.org" target="_blank">hello@sefaria.org</a>
-                </p>
             </div>
         </>
 

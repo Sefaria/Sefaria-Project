@@ -11214,7 +11214,6 @@ span.ref-link-color-3 {color: blue}
   position: relative;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
 }
 
 .beitMidrashContainer video {
@@ -11697,6 +11696,7 @@ span.ref-link-color-3 {color: blue}
 
 #currentlyReadingContainer {
   margin: 5px 20px;
+  flex-grow: 1;
 }
 
 .chavrutaFooter {
