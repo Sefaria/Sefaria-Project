@@ -11218,8 +11218,8 @@ span.ref-link-color-3 {color: blue}
 }
 
 .beitMidrashContainer video {
-  height: 330px;
- }
+  width: 100%;
+}
 
 .beitMidrashContainer video.flippedVideo {
   transform: rotateY(180deg);
