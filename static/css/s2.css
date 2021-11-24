@@ -11279,8 +11279,6 @@ span.ref-link-color-3 {color: blue}
   justify-content: space-between;
 }
 
-
-
 #newCall {
   margin:10px;
 }
@@ -11386,7 +11384,14 @@ span.ref-link-color-3 {color: blue}
 }
 .beitMidrashUserText li img {
   margin-bottom: -2px;
-  margin-inline-end: 4px;
+  margin-inline-end: 9px;
+}
+.bm-follow-button {
+  color: white;
+  display: inline-block;
+}
+.bm-follow-button img {
+  width: 16px;
 }
 
 .beitMidrashUserText li {

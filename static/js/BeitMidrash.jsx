@@ -380,15 +380,18 @@ const UserInBeitMidrash = ({user, userClasses, startChat, onBlockUser}) => {
             >
               <ul>
                 <li onClick={() => {window.open(`/profile/${user.slug}`)}}>
-                <img src="/static/icons/profile.svg" aria-hidden="true"/> View Profile</li>
-                <li><img src="/static/icons/follow.svg" aria-hidden="true"/> <FollowButton
+                    <img src="/static/icons/profile.svg" aria-hidden="true"/><InterfaceText>View Profile</InterfaceText></li>
+                <li>
+                    <FollowButton
                               large={true}
                               uid={user.uid}
                               following={Sefaria.following.indexOf(user.uid) > -1}
+                              classes="bm-follow-button"
+                              icon={true}
                             />
 
                 </li>
-                <li onClick={() => {onBlockUser(user.uid)}}><img src="/static/icons/circle-backslash.svg" aria-hidden="true"/> Mute</li>
+                  <li onClick={() => {onBlockUser(user.uid)}}><img src="/static/icons/circle-backslash.svg" aria-hidden="true"/><InterfaceText>Mute & Report</InterfaceText></li>
               </ul>
             </div>
 

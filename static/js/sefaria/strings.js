@@ -433,6 +433,8 @@ const Strings = {
     "Share this link with your chavruta to start a video call with this text": "כדי להתחיל שיחת וידאו, שתפו עם החברותא שלכם את הקישור הבא:",
     "Start Call": "התחלת שיחה",
     "No users online.": "אין כרגע לומדים מחוברים",
+    "View Profile": "צפה בפרופיל",
+    "Mute & Report": "השתק ודווח",
 
     // Subscribe & Register
     "Please enter a valid email address.": 'כתובת הדוא"ל שהוזנה אינה תקינה.',
