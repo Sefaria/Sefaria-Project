@@ -657,7 +657,7 @@ class RefResolver:
         return doc.ents
 
     def _bulk_get_raw_ref_spans(self, lang: str, input: List[str], batch_size=150, **kwargs) -> Generator[List[Span], None, None]:
-        for doc in self.get_raw_ref_model(lang).pipe(input, batch_size=batch_size, **kwargs):
+        for doc in self.get_raw_ref_model(lang).pipe(input, batch_size=batch_size, n_process=16, **kwargs):
             if kwargs.get('as_tuples', False):
                 doc, context = doc
                 yield doc.ents, context
@@ -669,7 +669,7 @@ class RefResolver:
         return doc.ents
 
     def _bulk_get_raw_ref_part_spans(self, lang: str, input: List[str], batch_size=None, **kwargs) -> Generator[List[Span], None, None]:
-        for doc in self.get_raw_ref_part_model(lang).pipe(input, batch_size=batch_size or len(input), **kwargs):
+        for doc in self.get_raw_ref_part_model(lang).pipe(input, batch_size=batch_size or len(input), n_process=16, **kwargs):
             if kwargs.get('as_tuples', False):
                 doc, context = doc
                 yield doc.ents, context

@@ -2,6 +2,7 @@ import django, csv, json, re
 from typing import List, Optional, Union, Tuple
 django.setup()
 from tqdm import tqdm
+from collections import defaultdict
 from sefaria.model import *
 from sefaria.system.exceptions import InputError
 from sefaria.model.ref_part import ResolvedRawRef, RefPartType
@@ -25,15 +26,35 @@ def get_window_around_match(start_char:int, end_char:int, text:str, window:int=1
 
 class YerushalmiCatcher:
 
-    def __init__(self, lang: str, vtitle: str):
+    def __init__(self, lang: str, vtitle: str, vilna_zm_map_file):
         self.footnote_map = self.create_footnote_mapping()
         self.lang = lang
         self.vtitle = vtitle
+        self.create_zm_vilna_map(vilna_zm_map_file)
         self.resolver = library.get_ref_resolver()
         self.normalizer = NormalizerComposer(['unidecode', 'html', 'maqaf', 'cantillation', 'double-space'])
-        self.output_file = open('../data/yerushalmi_translation_refs.csv', 'w')
-        self.output_csv = csv.DictWriter(self.output_file, ['Context Ref', 'Before', 'Raw Ref', 'After', 'Raw Ref', 'Parsed Ref', 'Ref Parts'])
-        self.output_csv.writeheader()
+
+    def create_zm_vilna_map(self, vilna_zm_map_file):
+        with open(vilna_zm_map_file, 'r') as fin:
+            # need to flip mapping to be in direction that we need
+            self.zm_vilna_map = {}
+            vilna_zm_map = json.load(fin)
+            for vilna_ref, zm_ref in vilna_zm_map.items():
+                vilna_oref = Ref(vilna_ref)
+                title = vilna_oref.index.title
+                sec, seg, toSec, toSeg = re.split(r'[\-:]', zm_ref)
+                if sec != toSec:
+                    print(zm_ref, vilna_ref)
+                    # this seems like an error. Yishai is looking into it
+                    continue
+                for temp_seg in range(int(seg), int(toSeg) + 1):
+                    zm_ref = f'{title} {sec}:{temp_seg}'
+                    if zm_ref in self.zm_vilna_map:
+                        curr_vilna_oref = self.zm_vilna_map[zm_ref]
+                        assert curr_vilna_oref.precedes(vilna_oref)
+                        self.zm_vilna_map[zm_ref] = curr_vilna_oref.to(vilna_oref)
+                    else:
+                        self.zm_vilna_map[zm_ref] = vilna_oref
 
     @staticmethod
     def create_footnote_mapping():
@@ -68,6 +89,10 @@ class YerushalmiCatcher:
             self.catch_refs_in_title(title)
 
     def catch_refs_in_title(self, title: str):
+        output_file = open(f'../data/yerushalmi refs/{title}.csv', 'w')
+        self.output_csv = csv.DictWriter(output_file, ['Context Ref', 'Before', 'Raw Ref', 'After', 'Raw Ref', 'Parsed Ref', 'Ref Parts', 'Start Char', 'End Char'])
+        self.output_csv.writeheader()
+
         self.resolver_input = []
         version = Version().load({"title": title, "language": self.lang, "versionTitle": self.vtitle})
         version.walk_thru_contents(self.collect_resolver_input)
@@ -77,6 +102,7 @@ class YerushalmiCatcher:
         for context_ref, resolved_refs in zip(context_refs, all_resolved_refs):
             self.resolved_refs_by_context[context_ref.normal()] = resolved_refs
         version.walk_thru_contents(self.catch_refs_in_ref)
+        output_file.close()
 
 
     def collect_resolver_input(self, st: str, en_tref: str, he_tref: str, version: Version) -> None:
@@ -101,10 +127,9 @@ class YerushalmiCatcher:
                 "Raw Ref": resolved_ref.raw_ref.text,
                 "Parsed Ref": resolved_ref.ref.normal() if resolved_ref.ref is not None else "",
                 "Ref Parts": "|".join(part.text for part in resolved_ref.raw_ref.raw_ref_parts),
+                "Start Char": start_char,
+                "End Char": end_char,
             })
-
-    def finish(self):
-        self.output_file.close()
 
     def get_note_ref(self, raw_ref_text, context_ref: Ref) -> Optional[Ref]:
         m = re.search(r"Notes? (\d+)(?:[\-–](\d+))?", raw_ref_text)
@@ -148,6 +173,24 @@ class YerushalmiCatcher:
                 elif resolved_ref.ambiguous and '/'.join(resolved_ref.ref.index.categories).startswith('Tosefta/Vilna Edition/'):
                     # delete vilan tosefta when liberman exists
                     resolved_ref.ref = None
+                elif resolved_ref.ambiguous and '/'.join(resolved_ref.ref.index.categories).startswith('Tosefta/Lieberman Edition/'):
+                    # mark as non-ambiguous
+                    resolved_ref.ambiguous = False
+                elif not resolved_ref.ambiguous and '/'.join(resolved_ref.ref.index.categories).startswith('Tosefta/Vilna Edition/'):
+                    # actually zm. map to vilna
+                    zm_oref = resolved_ref.ref
+                    if len(zm_oref.all_segment_refs()) > 1:
+                        try:
+                            vilna_orefs = [self.zm_vilna_map[r.normal()] for r in zm_oref.all_segment_refs()]
+                            vilna_orefs.sort(key=lambda x: x.order_id())
+                            vilna_oref = vilna_orefs[0].to(vilna_orefs[-1])
+                        except KeyError:
+                            vilna_oref = None
+                    else:
+                        vilna_oref = self.zm_vilna_map.get(resolved_ref.ref.normal(), None)
+                    if vilna_oref is None:
+                        print("FAILED to map", resolved_ref.ref.normal())
+                    resolved_ref.ref = vilna_oref
             if resolved_ref.ref is None:
                 if 1 <= len(parts) <= 2 and re.search(r"^[vV] ?\. \d+", parts[0].text) is not None and prev_resolved_ref is not None and prev_resolved_ref.ref is not None and prev_resolved_ref.ref.primary_category == "Tanakh":
                     if len(parts) == 1:
@@ -175,14 +218,86 @@ class YerushalmiCatcher:
                     if note_ref is not None:
                         resolved_ref.ref = note_ref
             prev_resolved_ref = resolved_ref
-
+            # remove empty refs
+            if resolved_ref.ref is not None and resolved_ref.ref.is_empty():
+                resolved_ref.ref = None
+            if resolved_ref.ambiguous:
+                # remove ambiguous refs
+                resolved_ref.ref = None
         return resolved_refs
+
+    def get_wrapped_ref_link_string(self, links, s, context_ref):
+        """
+        Shamelessly copy-pasted
+        Parallel to library.get_wrapped_refs_string
+        Returns `s` with every link in `links` wrapped in an a-tag
+        """
+        if len(links) == 0:
+            return s
+        links.sort(key=lambda x: x['startChar'])
+
+        # replace all mentions with `dummy_char` so they can later be easily replaced using re.sub()
+        # this ensures char locations are preserved
+        dummy_char = "█"
+        char_list = list(s)
+        start_char_to_slug = {}
+        for link in links:
+            start = link['startChar']
+            end = link['endChar']
+            mention = s[start:end]
+            if self.normalizer.normalize(mention) != link['text']:
+                # dont link if current text at startChar:endChar doesn't match text on link
+                print(context_ref, self.normalizer.normalize(mention), 'not equal', link['text'])
+                continue
+            start_char_to_slug[start] = (mention, link['refURL'], link['ref'])
+            char_list[start:end] = list(dummy_char*(end-start))
+        dummy_text = "".join(char_list)
+
+        def repl(match):
+            try:
+                mention, ref_url, ref = start_char_to_slug[match.start()]
+            except KeyError:
+                return match.group()
+            return f"""<a href="/{ref_url}" class="refLink" data-ref="{ref}">{mention}</a>"""
+        return re.sub(fr"{dummy_char}+", repl, dummy_text)
+
+    def wrap_refs_in_title(self, title):
+        from sefaria.tracker import modify_bulk_text
+
+        link_obj_by_ref = defaultdict(list)
+        text_map = {}
+
+        def create_text_map(s, en_tref, he_tref, v):
+            nonlocal link_obj_by_ref, text_map
+            # remove previous wrapped links
+            s = re.sub(r'<a href.+?>', '', s)
+            s = s.replace('</a>', '')
+            links = link_obj_by_ref.get(en_tref, [])
+            new_text = self.get_wrapped_ref_link_string(links, s, en_tref)
+            text_map[en_tref] = new_text
+
+        with open(f'../data/yerushalmi refs/{title}.csv', 'r') as fin:
+            cin = csv.DictReader(fin)
+            for row in cin:
+                if len(row['Parsed Ref']) == 0: continue
+                oref = Ref(row['Parsed Ref'])
+                if oref.is_empty(): continue
+                link_obj_by_ref[row['Context Ref']] += [{
+                    "text": row['Raw Ref'],
+                    "startChar": int(row['Start Char']),
+                    "endChar": int(row["End Char"]),
+                    "ref": oref.normal(),
+                    "refURL": oref.url()
+                }]
+        version = Version().load({"title": title, "versionTitle": self.vtitle, "language": self.lang})
+        version.walk_thru_contents(create_text_map)
+        modify_bulk_text(5842, version, text_map, skip_links=True)
 
 
 if __name__ == '__main__':
-    catcher = YerushalmiCatcher('en', VTITLE)
-    catcher.catch_refs_in_title('Jerusalem Talmud Nazir')
-    catcher.finish()
+    catcher = YerushalmiCatcher('en', VTITLE, "../data/vilna_to_zukermandel_tosefta_map.json")
+    # catcher.catch_refs_in_title('Jerusalem Talmud Chagigah')
+    catcher.wrap_refs_in_title('Jerusalem Talmud Chagigah')
 
 """
 post processing
