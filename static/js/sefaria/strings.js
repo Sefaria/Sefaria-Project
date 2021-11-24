@@ -435,6 +435,7 @@ const Strings = {
     "No users online.": "אין כרגע לומדים מחוברים",
     "View Profile": "צפה בפרופיל",
     "Mute & Report": "השתק ודווח",
+    "Mute": "השתק",
 
     // Subscribe & Register
     "Please enter a valid email address.": 'כתובת הדוא"ל שהוזנה אינה תקינה.',

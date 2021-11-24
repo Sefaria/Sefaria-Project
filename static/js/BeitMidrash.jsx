@@ -12,6 +12,7 @@ import $ from "./sefaria/sefariaJquery";
 const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
     const [peopleInBeitMidrash, setPeopleInBeitMidrash] = useState(null);
     const [activeChatRooms, setActiveChatRooms] = useState([]);
+    const [showBlockReportModal, setShowBlockReportModal] = useState(false);
     const [profile, setProfile] = useState({});
     const [currentChatRoom, setCurrentChatRoom] = useState("");
     const [currentScreen, setCurrentScreen] = useState("home");
@@ -25,7 +26,7 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
     const [pcConfig, setPcConfig] = useState(null);
     const [usersWithUnreadMsgs, setUsersWithUnreadMsgs] = useState([])
     const [shouldUpdateChats, setShouldUpdateChats] = useState(false)
-
+    const [userToBlock, setUserToBlock] = useState(null);
 
     const filterDedupeAndSortPeople = (people) => {
         const dedupedPeople = people.filter((person, index,self) => {
@@ -41,32 +42,14 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
         return (sortedPeople)
     }
 
+    const onCloseModal = () => {
+        setUserToBlock(null);
+        setShowBlockReportModal(false);
+    }
+
     const onBlockUser = (user) => {
-        $.post("/api/block/" + user.uid, {}, data => {
-            Sefaria.track.event("BeitMidrash", "Blocked User", user.uid);
-            setBlockedUsers(uids => [...uids, user.uid])
-            setCurrentChatRoom("")
-        });
-
-
-        const feedback = {
-          type: "beit_midrash_report",
-          msg: `${Sefaria.full_name} (${Sefaria._uid}) reported ${user.name} (${user.uid}) in the BeitMidrash`,
-          uid: Sefaria._uid,
-          url: window.location.href,
-        };
-        const postData = {json: JSON.stringify(feedback)};
-        const url = "/api/send_feedback";
-
-        $.post(url, postData, function (data) {
-          if (data.error) {
-              console.log(data.error);
-          } else {
-              console.log(data);
-          }
-        }.bind(this)).fail(function (xhr, textStatus, errorThrown) {
-          alert(Sefaria._("Unfortunately, there was an error sending this feedback. Please try again or try reloading this page."));
-        });
+        setUserToBlock(user);
+        setShowBlockReportModal(true);
     }
 
     const onUnblockUser = (uid) => {
@@ -305,6 +288,11 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
     return (
         socketConnected ?
         <div className="beitMidrashContainer">
+            <BlockReportModal showBlockReportModal={showBlockReportModal} onClose={onCloseModal}
+                setBlockedUsers={setBlockedUsers}
+                setCurrentChatRoom={setCurrentChatRoom}
+                user={userToBlock}
+            />
             { currentScreen == "home" ?
             <BeitMidrashHome
                 beitMidrashId = {beitMidrashId}
@@ -1000,6 +988,87 @@ const ChavrutaVideo = ({socket, chavrutaId, pcConfig, setCurrentScreen, activeCh
         : <LoadingMessage /> }
         </>
             )
+}
+
+const BlockReportModal = ({showBlockReportModal, onClose, setBlockedUsers, setCurrentChatRoom, user}) => {
+    const modalStates = {
+        initial: "initial",
+        muteCompleted: "muteCompleted",
+        muteFailed: "muteFailed"
+    }
+    const [modalState, setModalState] = useState(modalStates.initial)
+    
+    const blockDescription = {
+        en: "Upon muting, you will no longer see this user in the Beit Midrash and you will no longer receive messages or receive video chat invitations from this user.",
+        he: "אחרי ביצוע השתקה למשתמש זה, לא תראו עוד את המשתמש בבית המדרש ולא תקבלו יותר הודעות או הזמנות לשיחות וידאו ממשתמש זה."
+    }
+    const actionCompleteDescription = {
+        en: "Your request has been completed. If you need further assistance, please email hello@sefaria.org.",
+        he: "בקשתכם הושלמה. אם אתם זקוקים לעזרה נוספת, אנא פנו באימייל לכתובת hello@sefaria.org."
+    }
+    const muteFailedDescription = {
+        en: "Mute Failed. If you need further assistance, please email hello@sefaria.org.",
+        he: "Mute Failed. אם אתם זקוקים לעזרה נוספת, אנא פנו באימייל לכתובת hello@sefaria.org."
+    }
+
+    const closeAndReset = () => {
+        setModalState(modalStates.initial);
+        onClose();
+    }
+    const muteUser = () => {
+     $.post("/api/block/" + user.uid, {}, data => {
+            Sefaria.track.event("BeitMidrash", "Blocked User", user.uid);
+            setBlockedUsers(uids => [...uids, user.uid])
+            setCurrentChatRoom("")
+        });
+
+        const feedback = {
+          type: "beit_midrash_report",
+          msg: `${Sefaria.full_name} (${Sefaria._uid}) reported ${user.name} (${user.uid}) in the BeitMidrash`,
+          uid: Sefaria._uid,
+          url: window.location.href,
+        };
+        const postData = {json: JSON.stringify(feedback)};
+        const url = "/api/send_feedback";
+
+        $.post(url, postData, function (data) {
+          if (data.error) {
+              setModalState(modalStates.muteCompleted);
+          } else {
+              setModalState(modalStates.muteCompleted);
+          }
+        }.bind(this)).fail(function (xhr, textStatus, errorThrown) {
+              setModalState(modalStates.muteFailed);
+            alert(Sefaria._("Unfortunately, there was an error sending this feedback. Please try again or try reloading this page."));
+        });
+    }
+      return (
+        showBlockReportModal ? <div id="interruptingMessageBox" className="sefariaModalBox">
+          <div id="interruptingMessageOverlay" onClick={onClose}></div>
+          <div id="interruptingMessage" className="beitMidrashModalContentBox">
+            <div className="sefariaModalContent">
+              <h2 className="sans-serif sans-serif-in-hebrew">
+                <InterfaceText>Mute</InterfaceText>
+              </h2>
+              <div className="beitMidrashModalInnerContent">
+                <InterfaceText text={modalState === modalStates.muteCompleted ? actionCompleteDescription : modalState === modalStates.muteFailed ? muteFailedDescription : blockDescription}/>
+              </div>
+              <div className="buttonContainer">
+              {modalState === modalStates.muteCompleted || modalState === modalStates.muteFailed ? 
+              <button className="button dark-grey" onClick={onClose}><InterfaceText >Close</InterfaceText></button>
+              : <>
+                <button onClick={onClose} className="button light-grey control-elem" >
+                    <InterfaceText>Cancel</InterfaceText>
+                </button>
+                <button onClick={muteUser} className="button red control-elem" >
+                    <InterfaceText >Mute</InterfaceText>
+                </button></>
+              }
+              </div>
+            </div>
+          </div>
+        </div> : null
+      );
 }
 
 export default BeitMidrash;

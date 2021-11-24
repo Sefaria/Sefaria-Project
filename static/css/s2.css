@@ -100,6 +100,7 @@ a, a:hover {
   --sefaria-blue: #18345D;
   --highlight-blue: #DDEEFF;
   --highlight-blue-light: #F0F7FF;
+  --beit-midrash-grey: #333333;
   --dark-grey: #666666;
   --medium-grey: #999999;
   --light-grey: #CCCCCC;
@@ -1024,10 +1025,69 @@ div.interfaceLinks-row a {
     border-radius: 0;
   }
 }
+#interruptingMessage.beitMidrashModalContentBox {
+  height: 230px;
+  width: 450px;
+  text-align: start;
+  background-color: var(--beit-midrash-grey);
+  color: var(--light-grey);
+  padding: 15px;
+  border-color: transparent;
+  border-radius: 5px;
+}
+@media (max-width: 450px) {
+  #interruptingMessage.beitMidrashModalContentBox {
+    max-width: 100%;
+    max-height: 100%;
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+  }
+}
+
+#interruptingMessage.beitMidrashModalContentBox .buttonContainer {
+  display: flex;
+  flex-direction: row;
+  width: calc(100% + 20px);
+  margin: 0 -10px;
+}
+
+#interruptingMessage.beitMidrashModalContentBox button {
+  margin: 10px;
+}
+
+#interruptingMessage.beitMidrashModalContentBox button.red {
+  background-color: var(--responsa-red);
+  color: white;
+}
+
+#interruptingMessage.beitMidrashModalContentBox .sefariaModalContent h2 {
+  margin-top: 0px;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
+
+#interruptingMessage.beitMidrashModalContentBox button.light-grey {
+  background-color: var(--lighter-grey);
+  color: var(--dark-grey);
+}
+
+#interruptingMessage.beitMidrashModalContentBox button.dark-grey {
+  background-color: var(--beit-midrash-grey);
+  color: var(--light-grey);
+  border: 1px var(--light-grey) solid;
+}
+
+.beitMidrashModalInnerContent {
+  margin-bottom: 10px;
+}
+
 .sefariaModalContent {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  justify-content: space-between;
+  height: 100%;
   font-size: 16px;
   line-height: 1.5;
 }
