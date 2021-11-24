@@ -189,7 +189,7 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
     const publishSettingsReadOnly = <div> {sheet.summary ? <div className="description" dangerouslySetInnerHTML={{ __html: sheet.summary }}></div> : null}
         {sheet.collections.length > 0 ?
             <div className="aboutLinks">
-                <h3 className="aboutSheetHeader"><InterfaceText>Collections</InterfaceText></h3>
+                <h3 className="aboutSheetHeader"><InterfaceText>Public Collections</InterfaceText></h3>
                 <div>
                     <ul className="aboutSheetLinks">
                         {sheet.collections.map((collection, i) => (
@@ -200,6 +200,8 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
             </div> : null
 
         }
+        {!!Sefaria._uid ? <CollectionsEditor sheetId={sheet.id}/> : null }
+
 
         {sheet.topics && sheet.topics.length > 0 ?
             <div className="readings">
@@ -397,7 +399,7 @@ const CollectionsEditor = ({ sheetId }) => {
     };
 
     return <div>      <div className="collectionsEditorTop">
-        <h3 className="aboutSheetHeader"><InterfaceText>Collections</InterfaceText></h3>
+        <h3 className="aboutSheetHeader"><InterfaceText>My Collections</InterfaceText></h3>
     </div><div className="collectionsWidget">
             <div className="collectionsWidgetList serif">
                 {!dataLoaded ? null :

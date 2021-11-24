@@ -775,7 +775,7 @@ const AboutSheetButtons = ({ setConnectionsMode, masterPanelSheetId }) => {
     console.log(sheet)
   }, []);
 
-  return (<div class="topToolsButtons">
+  return (<div className="topToolsButtons">
     {isOwner ?
         <ToolsButton en="Publish Settings" he="הגדרות פרסום" image="about-text.svg" onClick={() => setConnectionsMode("AboutSheet")} />
         :
