@@ -10,6 +10,7 @@ from sefaria.helper.normalization import NormalizerComposer
 
 VTITLE = 'Guggenheimer Translation 2.1'
 
+
 def get_window_around_match(start_char:int, end_char:int, text:str, window:int=10) -> tuple:
     before_window, after_window = '', ''
 
@@ -26,7 +27,8 @@ def get_window_around_match(start_char:int, end_char:int, text:str, window:int=1
 
 class YerushalmiCatcher:
 
-    def __init__(self, lang: str, vtitle: str, vilna_zm_map_file):
+    def __init__(self, lang: str, vtitle: str, vilna_zm_map_file, gug_vilna_map_file):
+        self.create_gug_vilna_map(gug_vilna_map_file)
         self.footnote_map = self.create_footnote_mapping()
         self.lang = lang
         self.vtitle = vtitle
@@ -51,10 +53,39 @@ class YerushalmiCatcher:
                     zm_ref = f'{title} {sec}:{temp_seg}'
                     if zm_ref in self.zm_vilna_map:
                         curr_vilna_oref = self.zm_vilna_map[zm_ref]
-                        assert curr_vilna_oref.precedes(vilna_oref)
+                        if curr_vilna_oref.contains(vilna_oref):
+                            continue
+                        curr_vilna_oref, vilna_oref = (curr_vilna_oref, vilna_oref) if curr_vilna_oref.precedes(vilna_oref) else (vilna_oref, curr_vilna_oref)
                         self.zm_vilna_map[zm_ref] = curr_vilna_oref.to(vilna_oref)
                     else:
                         self.zm_vilna_map[zm_ref] = vilna_oref
+
+    def create_gug_vilna_map(self, gug_vilna_map_file):
+        """
+        sample gug key: "sabbat-chapter11-mishna1-p1"
+        "kilaim-chapter9-mishna4-halacha4-p17"
+        """
+        self.gug_vilna_map = {}
+        with open(gug_vilna_map_file, 'r') as fin:
+            gug_vilna_map_raw = json.load(fin)
+            for gug_raw, vilna in gug_vilna_map_raw.items():
+                vilna_oref = Ref(vilna)
+                gug_match = re.search(r"chapter(\d+)-mishnau?(\d+)-p\d+$", gug_raw)
+                if gug_match is not None:
+                    gug_tref = f"{vilna_oref.index.title} {gug_match.group(1)}:{gug_match.group(2)}:1"
+                else:
+                    # halacha
+                    gug_match = re.search(r"chapter(\d+)-mishnau?\d+-halachau?(\d+)-p\d+a?$", gug_raw)
+                    gug_tref = f"{vilna_oref.index.title} {gug_match.group(1)}:{gug_match.group(2)}"
+
+                if gug_tref in self.gug_vilna_map:
+                    curr_vilna_oref = self.gug_vilna_map[gug_tref]
+                    if curr_vilna_oref.contains(vilna_oref):
+                        continue
+                    curr_vilna_oref, vilna_oref = (curr_vilna_oref, vilna_oref) if curr_vilna_oref.precedes(vilna_oref) else (vilna_oref, curr_vilna_oref)
+                    self.gug_vilna_map[gug_tref] = curr_vilna_oref.to(vilna_oref)
+                else:
+                    self.gug_vilna_map[gug_tref] = vilna_oref
 
     @staticmethod
     def create_footnote_mapping():
@@ -225,6 +256,44 @@ class YerushalmiCatcher:
                     note_ref = self.get_note_ref(resolved_ref.raw_ref.text, temp_context_ref)
                     if note_ref is not None:
                         resolved_ref.ref = note_ref
+
+            # map gug to vilna. this is dirty...
+            if resolved_ref.ref is not None and re.match(r'(Mishnah|Jerusalem Talmud) ', resolved_ref.ref.index.title) is not None and "Note" not in resolved_ref.raw_ref.text:
+                oref = resolved_ref.ref
+                gug_keys = []
+                if oref.index.title.startswith('Jerusalem Talmud '):
+                    is_mishna_level = len(oref.sections) == 3
+                    section_refs = set()
+                    for seg_ref in oref.all_segment_refs():
+                        section_refs.add(seg_ref.section_ref().normal())
+                    for sec_ref in section_refs:
+                        if is_mishna_level:
+                            sec_ref += ':1'
+                        gug_keys += [sec_ref]
+                else:
+                    # mishnah
+                    shas_title = re.match('Mishnah (.+?) \d+(?::\d+)?$', oref.normal()).group(1)
+                    for seg_ref in oref.all_segment_refs():
+                        gug_keys += [f'Jerusalem Talmud {shas_title} {seg_ref.sections[0]}:{seg_ref.sections[1]}:1']
+                curr_vilna_oref = None
+                try:
+                    for gug_key in gug_keys:
+                        vilna_oref = self.gug_vilna_map[gug_key]
+                        if curr_vilna_oref is not None:
+                            if curr_vilna_oref.contains(vilna_oref):
+                                continue
+                            curr_vilna_oref, vilna_oref = (curr_vilna_oref, vilna_oref) if curr_vilna_oref.precedes(
+                                vilna_oref) else (vilna_oref, curr_vilna_oref)
+                            curr_vilna_oref = curr_vilna_oref.to(vilna_oref)
+                        else:
+                            curr_vilna_oref = vilna_oref
+                    resolved_ref.ref = curr_vilna_oref
+                    print("SUCCESSFUL gug=>vilna map", oref.normal(), '=>', resolved_ref.ref.normal(), "CONTEXT:", context_ref.normal())
+                except (KeyError, AttributeError):
+                    print("FAILED gug=>vilna map", oref.normal(), "CONTEXT:", context_ref.normal())
+                    resolved_ref.ref = None
+
+
             prev_resolved_ref = resolved_ref
             # remove empty refs
             if resolved_ref.ref is not None and resolved_ref.ref.is_empty():
@@ -303,9 +372,9 @@ class YerushalmiCatcher:
 
 
 if __name__ == '__main__':
-    catcher = YerushalmiCatcher('en', VTITLE, "../data/vilna_to_zukermandel_tosefta_map.json")
-    catcher.catch_refs_in_title('Jerusalem Talmud Moed Katan')
-    catcher.wrap_refs_in_title('Jerusalem Talmud Moed Katan')
+    catcher = YerushalmiCatcher('en', VTITLE, "../data/vilna_to_zukermandel_tosefta_map.json", "../data/gug_to_vilna_mishna_and_halacha_map.json")
+    catcher.catch_refs_in_title('Jerusalem Talmud Horayot')
+    catcher.wrap_refs_in_title('Jerusalem Talmud Horayot')
 
 """
 post processing
@@ -353,4 +422,6 @@ Mesora
 Examples to train on
 Jerusalem Talmud Yevamot 2:4:8
 
+If ref is to JT
+or to Mishnah look up in map
 """
