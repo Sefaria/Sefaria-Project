@@ -1119,7 +1119,7 @@ const EditTextInfo = function({initTitle, close}) {
   const [savingStatus, setSavingStatus] = useState(false);
   const [sections, setSections] = useState(index.current.sectionNames);
   const toggleInProgress = function() {
-    setSavingStatus(!savingStatus);
+    setSavingStatus(savingStatus => !savingStatus);
   }
 
   return (
@@ -1252,8 +1252,8 @@ const NewIndexSaveButton = function({enTitle, heTitle, enTitleVariants, heTitleV
         window.location.href = "/admin/reset/"+index["title"];
       }
       }).fail( function(xhr, textStatus, errorThrown) {
-        alert("Unfortunately, there was an error saving this text information. Please try again or try reloading this page.")
-        window.location.href = "/admin/reset/"+index["title"];
+        alert("Unfortunately, there may have been an error saving this text information.");
+        window.location.href = "/admin/reset/"+index["title"];  // often this occurs when save occurs successfully but there is simply a timeout on cauldron so try resetting it
       });
 
   };
