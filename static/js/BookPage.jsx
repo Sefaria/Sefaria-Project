@@ -929,7 +929,7 @@ class ModeratorButtons extends Component {
       return;
     }
 
-    const url = "/api/index/" + title;
+    const url = "/api/v2/index/" + title;
     $.ajax({
       url: url,
       type: "DELETE",
