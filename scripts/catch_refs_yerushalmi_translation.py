@@ -29,12 +29,21 @@ class YerushalmiCatcher:
 
     def __init__(self, lang: str, vtitle: str, vilna_zm_map_file, gug_vilna_map_file):
         self.create_gug_vilna_map(gug_vilna_map_file)
+        self.mishna_not_in_yerushalmi = self.get_mishna_not_in_yerushalmi()
         self.footnote_map = self.create_footnote_mapping()
         self.lang = lang
         self.vtitle = vtitle
         self.create_zm_vilna_map(vilna_zm_map_file)
         self.resolver = library.get_ref_resolver()
         self.normalizer = NormalizerComposer(['unidecode', 'html', 'maqaf', 'cantillation', 'double-space'])
+
+
+    def get_mishna_not_in_yerushalmi(self):
+        mishna = library.get_indexes_in_category("Mishnah")
+        yerush = library.get_indexes_in_category("Yerushalmi")
+        mtits = [m.replace('Mishnah ', '') for m in mishna]
+        ytits = [y.replace('Jerusalem Talmud ', '') for y in yerush]
+        return set(mtits).difference(set(ytits))
 
     def create_zm_vilna_map(self, vilna_zm_map_file):
         with open(vilna_zm_map_file, 'r') as fin:
@@ -260,12 +269,16 @@ class YerushalmiCatcher:
             # map gug to vilna. this is dirty...
             if resolved_ref.ref is not None and re.match(r'(Mishnah|Jerusalem Talmud) ', resolved_ref.ref.index.title) is not None and "Note" not in resolved_ref.raw_ref.text:
                 oref = resolved_ref.ref
+                skip = False
                 gug_keys = []
                 if oref.index.title.startswith('Jerusalem Talmud '):
                     is_mishna_level = len(oref.sections) == 3
-                    section_refs = set()
-                    for seg_ref in oref.all_segment_refs():
-                        section_refs.add(seg_ref.section_ref().normal())
+                    if is_mishna_level:
+                        section_refs = set()
+                        for seg_ref in oref.all_segment_refs():
+                            section_refs.add(seg_ref.section_ref().normal())
+                    else:
+                        section_refs = [r.normal() for r in oref.split_spanning_ref()]
                     for sec_ref in section_refs:
                         if is_mishna_level:
                             sec_ref += ':1'
@@ -273,6 +286,10 @@ class YerushalmiCatcher:
                 else:
                     # mishnah
                     shas_title = re.match('Mishnah (.+?) \d+(?::\d+)?$', oref.normal()).group(1)
+                    if shas_title in self.mishna_not_in_yerushalmi:
+                        # not mappable. still possible the mishna is incorrect though
+                        print("SKIPPING mishna", oref.normal(), "CONTEXT", context_ref.normal())
+                        skip = True
                     for seg_ref in oref.all_segment_refs():
                         gug_keys += [f'Jerusalem Talmud {shas_title} {seg_ref.sections[0]}:{seg_ref.sections[1]}:1']
                 curr_vilna_oref = None
@@ -287,8 +304,9 @@ class YerushalmiCatcher:
                             curr_vilna_oref = curr_vilna_oref.to(vilna_oref)
                         else:
                             curr_vilna_oref = vilna_oref
-                    resolved_ref.ref = curr_vilna_oref
-                    print("SUCCESSFUL gug=>vilna map", oref.normal(), '=>', resolved_ref.ref.normal(), "CONTEXT:", context_ref.normal())
+                    if not skip:
+                        resolved_ref.ref = curr_vilna_oref
+                    # print("SUCCESSFUL gug=>vilna map", oref.normal(), '=>', resolved_ref.ref.normal(), "CONTEXT:", context_ref.normal())
                 except (KeyError, AttributeError):
                     print("FAILED gug=>vilna map", oref.normal(), "CONTEXT:", context_ref.normal())
                     resolved_ref.ref = None
@@ -374,7 +392,7 @@ class YerushalmiCatcher:
 if __name__ == '__main__':
     catcher = YerushalmiCatcher('en', VTITLE, "../data/vilna_to_zukermandel_tosefta_map.json", "../data/gug_to_vilna_mishna_and_halacha_map.json")
     catcher.catch_refs_in_title('Jerusalem Talmud Horayot')
-    catcher.wrap_refs_in_title('Jerusalem Talmud Horayot')
+    # catcher.wrap_refs_in_title('Jerusalem Talmud Horayot')
 
 """
 post processing
