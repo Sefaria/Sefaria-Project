@@ -258,24 +258,6 @@ def sefaria_js(request):
     return render(request, "js/sefaria.js", attrs, content_type= "text/javascript; charset=utf-8")
 
 
-def chavruta_js(request):
-    """
-    Javascript for chavruta [required to pass server attribute].
-    """
-    client_user = UserProfile(id=request.user.id)
-    roulette = request.GET.get("roulette", "0")
-
-    attrs = {
-        "rtc_server": RTC_SERVER,
-        "client_name": client_user.first_name + " " + client_user.last_name,
-        "client_uid": client_user.id,
-        "roulette": roulette
-    }
-
-
-    return render(request, "js/chavruta.js", attrs, content_type="text/javascript; charset=utf-8")
-
-
 def linker_js(request, linker_version=None):
     """
     Javascript of Linker plugin.

@@ -100,6 +100,7 @@ a, a:hover {
   --sefaria-blue: #18345D;
   --highlight-blue: #DDEEFF;
   --highlight-blue-light: #F0F7FF;
+  --beit-midrash-grey: #333333;
   --dark-grey: #666666;
   --medium-grey: #999999;
   --light-grey: #CCCCCC;
@@ -1024,10 +1025,69 @@ div.interfaceLinks-row a {
     border-radius: 0;
   }
 }
+#interruptingMessage.beitMidrashModalContentBox {
+  height: 230px;
+  width: 450px;
+  text-align: start;
+  background-color: var(--beit-midrash-grey);
+  color: var(--light-grey);
+  padding: 15px;
+  border-color: transparent;
+  border-radius: 5px;
+}
+@media (max-width: 450px) {
+  #interruptingMessage.beitMidrashModalContentBox {
+    max-width: 100%;
+    max-height: 100%;
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+  }
+}
+
+#interruptingMessage.beitMidrashModalContentBox .buttonContainer {
+  display: flex;
+  flex-direction: row;
+  width: calc(100% + 20px);
+  margin: 0 -10px;
+}
+
+#interruptingMessage.beitMidrashModalContentBox button {
+  margin: 10px;
+}
+
+#interruptingMessage.beitMidrashModalContentBox button.red {
+  background-color: var(--responsa-red);
+  color: white;
+}
+
+#interruptingMessage.beitMidrashModalContentBox .sefariaModalContent h2 {
+  margin-top: 0px;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
+
+#interruptingMessage.beitMidrashModalContentBox button.light-grey {
+  background-color: var(--lighter-grey);
+  color: var(--dark-grey);
+}
+
+#interruptingMessage.beitMidrashModalContentBox button.dark-grey {
+  background-color: var(--beit-midrash-grey);
+  color: var(--light-grey);
+  border: 1px var(--light-grey) solid;
+}
+
+.beitMidrashModalInnerContent {
+  margin-bottom: 10px;
+}
+
 .sefariaModalContent {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  justify-content: space-between;
+  height: 100%;
   font-size: 16px;
   line-height: 1.5;
 }
@@ -9452,7 +9512,7 @@ cursor: pointer;
 .readerPanel.bilingual.heLeft .SheetSource {
   background-image:
   linear-gradient(
-    to right, 
+    to right,
     #fff,
     #fff 50%,
     #FBFBFA 50%,
@@ -11141,6 +11201,535 @@ span.ref-link-color-3 {color: blue}
   -ms-transform: translateZ(0);
   transform: translateZ(0);
 }
+
+.beitMidrashContainer {
+  background: #333333;
+  color: white;
+  height: 100%;
+  font-size: 16px;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-weight: 400;
+  box-sizing: border-box;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.beitMidrashContainer video {
+  width: 100%;
+}
+
+.beitMidrashContainer video.flippedVideo {
+  transform: rotateY(180deg);
+}
+
+.beitMidrashContainer video.pip {
+  position: absolute;
+  height: 50px;
+  top: 20px;
+  inset-inline-end: 10px;
+  text-align: end;
+  width: initial;
+  border-radius: 6px;
+}
+
+.beitMidrashContainer video.hiddenVideo {
+  display: none;
+}
+
+.beitMidrashContainer .muteButton {
+  position: absolute;
+  width: 40px;
+  height: 30px;
+  border-radius: 6px;
+  z-index: 1;
+  background-color: #999999;
+  opacity: 0.5;
+  left: -8.5px;
+  top: -3px;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+}
+
+.beitMidrashContainer #micIcon {
+  display: inline-block;
+  position: relative;
+  background-image: url("/static/img/unmute.svg");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  opacity: 1;
+  width: 20px;
+  height: 20px;
+}
+
+.beitMidrashContainer .muted #micIcon {
+  background-image: url("/static/img/mute.svg");
+}
+.beitMidrashContainer .muted .muteButton {
+  background-color: #CB6158;
+}
+
+.beitMidrashContainer #buttonHolder {
+  display: flex;
+  width: 80%;
+  justify-content: space-between;
+  margin-top: -35px;
+  margin-inline-start: 25px;
+  padding-bottom: 35px;
+}
+
+.beitMidrashContainer .endCallButton {
+  position: absolute;
+  width: 40px;
+  height: 30px;
+  border-radius: 6px;
+  z-index: 1;
+  background-color: #CB6158;
+  left: -8.5px;
+  top: -3px;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  background-image: url("/static/img/endcall.svg");
+  background-position: center;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+
+.beitMidrashContainer #endCallIcon {
+  display: inline-block;
+  position: relative;
+  background-image: url("/static/img/endcall.svg");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  opacity: 1;
+  width: 20px;
+  height: 20px;
+}
+
+
+
+.beitMidrashContainer summary {
+  list-style: none;
+}
+
+.beitMidrashContainer summary::-webkit-details-marker {
+  display: none;
+}
+
+.beitMidrashHomeContainer {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+#beitMidrashHeader {
+  color: white;
+  font-size: 22px;
+  font-weight: 500;
+  margin-inline-start: 30px;
+  display: flex;
+  justify-content: space-between;
+}
+
+#newCall {
+  margin:10px;
+}
+
+#newCallImg {
+  height: 12px;
+  width: 24px;
+  margin-left: 34px;
+  margin-right: 18px;
+}
+
+.peopleInBeitMidrash {
+  overflow-y: auto;
+  overflow-x:hidden;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  margin: 10px 30px;
+  border-top: 1px solid #999999;
+}
+
+.peopleInBeitMidrashInnerContainer {
+    width:100%;
+    overflow:visible;
+}
+
+.beitMidrashUser {
+  color: white;
+  font-size: 16px;
+  font: "Roboto";
+  font-weight: 400;
+  display: flex;
+  gap: 10px;
+  width: 270px;
+  padding-top: 10px;
+  cursor: pointer;
+}
+
+.beitMidrashUser:hover {
+  background-color: #555;
+}
+
+.beitMidrashUser .userDetailsToggle {
+  float: inline-end;
+  margin-inline-end: 15px;
+  color:  var(--medium-grey);
+  font-weight: bolder;
+  display: none;
+}
+
+.beitMidrashUser:hover .userDetailsToggle {
+  display: block;
+}
+
+.beitMidrashUser .userDetailsMenu {
+  position: absolute;
+  background-color: black;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  border-radius: 6px;
+  right: 20px;
+}
+.beitMidrashUser .userDetailsMenu.hidden {
+  right: -99999px;
+}
+.beitMidrashUser .largeFollowButton {
+  all: revert;
+}
+
+.beitMidrashUser .userDetailsMenu ul {
+  list-style-type: none;
+  margin-block-start: 0;
+  margin-block-end: 0;
+  padding-inline-start: 0;
+  padding-left: 0;
+  margin: 15px;
+  float: inline-end;
+}
+
+
+.beitMidrashUser.unreadMessages::after {
+  content: '';
+  display: inline-block;
+  width: 15px;
+  height: 15px;
+  border-radius: 100%;
+  background-color: var(--halakhah-red);
+  flex-shrink: 0;
+}
+
+
+#beitMidrashProfilePic {
+  margin-right: 10px;
+}
+
+.beitMidrashUserText {
+  margin: 0;
+  flex: 1;
+}
+
+.beitMidrashUserText li div.largeFollowButton,
+.beitMidrashUserText li img {
+  display: inline-block;
+}
+.beitMidrashUserText li img {
+  margin-bottom: -2px;
+  margin-inline-end: 9px;
+}
+.bm-follow-button {
+  color: white;
+  display: inline-block;
+}
+.bm-follow-button img {
+  width: 16px;
+}
+
+.beitMidrashUserText li {
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+
+.beitMidrashUserHeader {
+  display: flex;
+  flex-direction: row;
+}
+
+.beitMidrashUserNameStatus {
+  flex-grow: 1;
+}
+
+.beitMidrashOrg {
+  font-weight: 200;
+}
+
+.noUsers {
+  margin-left: 35px;
+}
+
+.chat {
+  bottom: 0;
+  right: 0;
+  overflow: hidden;
+  height: 300px;
+  display: flex;
+  flex-direction: column;
+  padding-top: 20px;
+  margin: 10px 30px 20px;
+  border-top: 1px solid #999999;
+
+}
+
+#hideButtonHolder{
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+}
+
+#hideButton {
+  color: #CCCCCC;
+  font-size: 14px;
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.chatBoxHeader {
+  display: flex;
+  align-items: center;
+  margin-top: 5px;
+  justify-content: space-between;
+}
+
+#chatUser {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+#greenCameraButton {
+  width: 24px;
+  height: 12px;
+  cursor: pointer;
+}
+
+.chatBoxName {
+  margin-inline-start: 10px;
+}
+
+
+.chats-container {
+  overflow-y: auto;
+  display: flex;
+  flex-grow:2;
+  flex-direction: column;
+}
+
+.chatMessage {
+  display: flex;
+  margin: 7px 0;
+  margin-inline-start: 4px;
+}
+
+.chatText {
+  margin-inline-start: 13px;
+  flex-grow: 1;
+}
+
+.chatNameAndTime {
+  color: #999999;
+  font-size: 14px;
+  font-weight: 500px;
+}
+
+.chat-form {
+  position: relative;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+}
+
+.chat-input-holder {
+  background-color: black;
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  border-radius: 6px;
+  padding: 0 15px;
+  border: 0px;
+  height: 50px;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.chat-input {
+  color: white;
+  background: transparent;
+  border: 0;
+  display: flex;
+  justify-content: flex-end;
+  flex-grow:1;
+  font-size: 16px;
+}
+
+.chat-input:active {
+  outline: none;
+}
+
+.chat-submit {
+  background-image: url("/static/img/chat_submit_arrow.svg");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  height: 20px;
+  width: 18px;
+  border: 0px;
+  background-color: black;
+  cursor: pointer;
+}
+
+.chat-submit-blue {
+  background-image: url("/static/img/chat_submit_arrow_blue.svg");
+}
+
+.chat-submit-hebrew {
+  -moz-transform: scaleX(-1);
+  -o-transform: scaleX(-1);
+  -webkit-transform: scaleX(-1);
+  transform: scaleX(-1);
+  filter: FlipH;
+  -ms-filter: "FlipH";
+}
+
+.callContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+}
+
+.callContainer .default-profile-img,
+.callContainer .img-circle {
+  opacity: 0.25;
+  border-radius: 0;
+}
+
+.callContainer .callText {
+  margin: 53px 29px 23px;
+  font-size: 22px;
+  font-weight: 500;
+}
+
+.callContainer.incoming .callText {
+  margin: 23px 29px;
+}
+
+#endCallButtonHolder {
+  display: flex;
+  width: 80%;
+  justify-content: flex-end;
+  margin-top: -50px;
+}
+
+#endCallIcon {
+  display: inline-block;
+  position: relative;
+  background-image: url("/static/img/endcall.svg");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  opacity: 1;
+  width: 20px;
+  height: 20px;
+}
+
+.endCallButton {
+  position: absolute;
+  width: 40px;
+  height: 30px;
+  border-radius: 6px;
+  z-index: 1;
+  background-color: #CB6158;
+  left: -8.5px;
+  top: -3px;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  background-image: url("/static/img/endcall.svg");
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+#incomingCallButtonHolder {
+  display: flex;
+  justify-content: space-evenly;
+  margin: 15px;
+}
+
+#acceptButton {
+  background-color: #5D956F;
+  border-radius: 6px;
+  color: white;
+  border: 0px;
+  height: 40px;
+  width: 127.67px;
+  margin: 5px;
+  cursor: pointer;
+}
+
+#declineButton {
+  background: #CB6158;
+  border-radius: 6px;
+  color: white;
+  border: 0px;
+  height: 40px;
+  width: 127.67px;
+  margin: 5px;
+  cursor: pointer;
+}
+
+#currentlyReadingContainer {
+  margin: 5px 20px;
+  flex-grow: 1;
+}
+
+.chavrutaFooter {
+  font-size: 13px;
+  font-weight: 400;
+  color: #CCCCCC;
+  margin: 20px;
+}
+
+.beitMidrashHomeFooter {
+  font-size: 13px;
+  font-weight: 400;
+  color: #CCCCCC;
+  margin: 0 30px;
+}
+
+.beitMidrashHomeFooter p {
+  margin-top: 0;
+}
+
+.blockButton {
+  cursor: pointer;
+}
+
+#openBeitMidrashButton {
+  transform: rotate(45deg);
+  margin-top: 20px;
+  height: 18px;
+  width: 18px;
+  margin-inline-start: 6px;
+}
+
+
 @-webkit-keyframes load5 {
 0%,100%{box-shadow:0 -2.6em 0 0 #ffffff,1.8em -1.8em 0 0 rgba(0,0,0,0.2),2.5em 0 0 0 rgba(0,0,0,0.2),1.75em 1.75em 0 0 rgba(0,0,0,0.2),0 2.5em 0 0 rgba(0,0,0,0.2),-1.8em 1.8em 0 0 rgba(0,0,0,0.2),-2.6em 0 0 0 rgba(0,0,0,0.5),-1.8em -1.8em 0 0 rgba(0,0,0,0.7)}
 12.5%{box-shadow:0 -2.6em 0 0 rgba(0,0,0,0.7),1.8em -1.8em 0 0 #ffffff,2.5em 0 0 0 rgba(0,0,0,0.2),1.75em 1.75em 0 0 rgba(0,0,0,0.2),0 2.5em 0 0 rgba(0,0,0,0.2),-1.8em 1.8em 0 0 rgba(0,0,0,0.2),-2.6em 0 0 0 rgba(0,0,0,0.2),-1.8em -1.8em 0 0 rgba(0,0,0,0.5)}
