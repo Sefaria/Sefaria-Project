@@ -1245,8 +1245,8 @@ const NewIndexSaveButton = function({enTitle, heTitle, enTitleVariants, heTitleV
     toggleInProgress();
     $.post(url,  {"json": postJSON}, function(data) {
       if (data.error) {
-        alert(data.error);
         toggleInProgress();
+        alert(data.error);
       } else {
         alert("Text information saved.");
         window.location.href = "/admin/reset/"+index["title"];
