@@ -4934,7 +4934,27 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .segment img {
   max-width: 100%;
 }
-.connectionsPanelHeader{
+.segment i[data-overlay="Vilna Pages"] {
+  display: inline-block;
+}
+.segment i[data-overlay="Vilna Pages"]:after {
+    color: grey;
+	content: attr(data-value);
+    font-size: .4em;
+    font-style: normal;
+    font-family: var(--english-sans-serif-font-family);
+}
+.segment i[data-overlay="Venice Columns"] {
+  display: inline-block;
+}
+.segment i[data-overlay="Venice Columns"]:after {
+    color: grey;
+	content: attr(data-value);
+    font-size: .4em;
+    font-style: normal;
+    font-family: var(--english-sans-serif-font-family);
+}
+.connectionsPanelHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;

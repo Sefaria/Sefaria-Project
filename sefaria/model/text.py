@@ -395,6 +395,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         :return:
         """
         self.struct_objs[name] = struct_obj
+        self.struct_objs[name].title_group = self.nodes.title_group
 
     def get_alt_structure(self, name):
         """
@@ -1023,10 +1024,14 @@ class AbstractTextRecord(object):
     """
     """
     text_attr = "chapter"
-    ALLOWED_TAGS    = ("i", "b", "br", "u", "strong", "em", "big", "small", "img", "sup", "span", "a")
+    ALLOWED_TAGS    = ("i", "b", "br", "u", "strong", "em", "big", "small", "img", "sup", "sub", "span", "a")
     ALLOWED_ATTRS   = {
         'span':['class', 'dir'],
-        'i': ['data-commentator', 'data-order', 'class', 'data-label', 'dir'],
+        # There are three uses of i tags.
+        # footnotes: uses content internal to <i> tag.
+        # commentary placement: uses 'data-commentator', 'data-order', 'data-label'
+        # structure placement (e.g. page transitions): uses 'data-overlay', 'data-value'
+        'i': ['data-overlay', 'data-value', 'data-commentator', 'data-order', 'class', 'data-label', 'dir'],
         'img': lambda name, value: name == 'src' and value.startswith("data:image/"),
         'a': ['dir', 'class', 'href', 'data-ref'],
     }
@@ -1217,7 +1222,8 @@ class AbstractTextRecord(object):
         if isinstance(tag, Tag):
             is_footnote = tag.name == "sup" and isinstance(tag.next_sibling, Tag) and tag.next_sibling.name == "i" and 'footnote' in tag.next_sibling.get('class', '')
             is_inline_commentator = tag.name == "i" and len(tag.get('data-commentator', '')) > 0
-            return is_footnote or is_inline_commentator
+            is_page_marker = tag.name == "i" and len(tag.get('data-overlay','')) > 0
+            return is_footnote or is_inline_commentator or is_page_marker
         return False
 
     @staticmethod
@@ -2254,7 +2260,7 @@ class TextFamily(object):
                         val = {"en":[], "he":[]}
 
                         try:
-                            val = alts_ja.get_element(indxs)
+                            val = alts_ja.get_element(indxs) or val
                         except IndexError:
                             pass
 
@@ -2276,9 +2282,7 @@ class TextFamily(object):
                                 val = {"en":[], "he":[]}
 
                                 try:
-                                    a = alts_ja.get_element(indxs)
-                                    if a:
-                                        val = a
+                                    val = alts_ja.get_element(indxs) or val
                                 except IndexError:
                                     pass
 
@@ -5948,6 +5952,16 @@ def process_index_change_in_core_cache(indx, **kwargs):
         elif USE_VARNISH:
             from sefaria.system.varnish.wrapper import invalidate_title
             invalidate_title(indx.title)
+
+
+def process_index_change_in_alt_structs(indx, **kwargs):
+    # Note: this function is only a place holder.
+    old_title = kwargs["old"]
+    new_title = kwargs["new"]
+    if hasattr(indx, 'alt_structs'):
+        #make the change
+        # print("Cascading Alt_struct refs from  {} to {}".format(kwargs['old'], kwargs['new']))
+        pass
 
 
 def process_index_change_in_toc(indx, **kwargs):

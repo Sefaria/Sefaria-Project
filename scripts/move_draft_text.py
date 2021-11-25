@@ -106,8 +106,10 @@ class ServerTextCopier(object):
                     # only bother posting nodes that have content.
                     found_non_empty_content = True
                     if node_num == len(content_nodes):
-                        self._make_post_request_to_server(self._prepare_text_api_call(
-                            node.full_title(force_update=True), count_after=True), version_payload)
+                        # try:
+                        self._make_post_request_to_server(self._prepare_text_api_call(node.full_title(force_update=True), count_after=True), version_payload)
+                        # except:
+                        #     pass
                     else:
                         self._make_post_request_to_server(self._prepare_text_api_call(
                             node.full_title(force_update=True)), version_payload)
