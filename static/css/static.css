@@ -17,7 +17,6 @@
 .interface-hebrew .static .englishOnly {
   direction:ltr;
 }
-
 #register.static .inner {
   width: 302px;
 }
@@ -66,7 +65,6 @@
 .static p a {
   text-decoration: underline;
 }
-
 .static a {
   color: #333;
 }
@@ -86,7 +84,6 @@
 .static .refLink:hover {
   text-decoration: underline;
 }
-
 .static .page-title{
   margin-bottom: 50px;
 }

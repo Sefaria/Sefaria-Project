@@ -5070,7 +5070,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   left: 0;
   position: absolute;
   text-align: justify;
-  margin: 0 auto
+  margin: 0 auto;
   background-color: #FBFBFA;
 }
 .textList.marginless .texts,
@@ -7250,7 +7250,6 @@ a .button:hover {
   font-size: 16px;
   color: #666;
 }
-
 
 div.transparentBackground.publishBox {
   background-color: inherit;
@@ -10832,14 +10831,6 @@ body .homeFeedWrapper.userStats {
 	margin: -5px 11px 0 -32px;
 }
 
-.bookPage .editTextInfo #newIndex .actions {
-  text-align: center;
-  margin-top: 50px;
-}
-
-.readerPanel.english #newIndex .helpText {
-  left: 0px;
-}
 .bookPage .editTextInfo .nodeTemplate {
 	display: none;
 }

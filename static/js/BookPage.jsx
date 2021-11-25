@@ -26,7 +26,6 @@ import PropTypes  from 'prop-types';
 import Component   from 'react-class';
 import {ContentLanguageContext} from './context';
 import Hebrew from './sefaria/hebrew.js';
-import Cookies from 'js-cookie';
 import ReactTags from 'react-tag-autocomplete';
 
 

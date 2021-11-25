@@ -125,7 +125,6 @@ class ServerTextCopier(object):
                 self._make_post_request_to_server(self._prepare_text_api_call(node.full_title()), version_payload)
             if flags:
                 self._make_post_request_to_server(self._prepare_version_attrs_api_call(ver.title, ver.language, ver.versionTitle), flags)
-
         if self._post_links and len(self._linkset) > 0:
             if self._post_links_step <= 0 or self._post_links_step > len(self._linkset):
                 self._post_links_step = len(self._linkset)
