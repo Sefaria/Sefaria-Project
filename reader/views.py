@@ -1515,7 +1515,7 @@ def index_node_api(request, title):
 
 @catch_error_as_json
 @csrf_exempt
-def index_api(request, title, raw=True):
+def index_api(request, title, raw=False):
     """
     API for manipulating text index records (aka "Text Info")
     """
