@@ -1,31 +1,32 @@
 import {
     InterfaceText,
     LoadingMessage,
-    ProfilePic
+    ProfilePic,
+    FollowButton,
 } from './Misc';
 import React, { useState, useEffect, useRef } from 'react';
 import Sefaria  from './sefaria/sefaria';
 import classNames from 'classnames';
-import { BroadcastChannel } from 'broadcast-channel';
+import $ from "./sefaria/sefariaJquery";
 
 const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
     const [peopleInBeitMidrash, setPeopleInBeitMidrash] = useState(null);
     const [activeChatRooms, setActiveChatRooms] = useState([]);
-    const [chatDataStore, _setChatDataStore] = useState({});
-    const chatDataStoreRef = useRef(chatDataStore);
+    const [showBlockReportModal, setShowBlockReportModal] = useState(false);
     const [profile, setProfile] = useState({});
     const [currentChatRoom, setCurrentChatRoom] = useState("");
     const [currentScreen, setCurrentScreen] = useState("home");
     const [outgoingCall, setOutgoingCall] = useState(false);
     const [activeChavruta, setActiveChavruta] = useState(null)
     const [socketConnected, setSocketConnected] = useState(false);
+    const [chavrutaOnline, setChavrutaOnline] = useState(false);
     const [socketObj, setSocketObj] = useState(socket);
     const [partnerLeftNotification, setPartnerLeftNotification] = useState(false);
-    const chatChannel = new BroadcastChannel('chavruta-chats');
-    const [blockedUsers, setBlockedUsers] = useState([])
+    const [blockedUsers, setBlockedUsers] = useState(Sefaria.blocking)
     const [pcConfig, setPcConfig] = useState(null);
     const [usersWithUnreadMsgs, setUsersWithUnreadMsgs] = useState([])
-
+    const [shouldUpdateChats, setShouldUpdateChats] = useState(false)
+    const [userToBlock, setUserToBlock] = useState(null);
 
     const filterDedupeAndSortPeople = (people) => {
         const dedupedPeople = people.filter((person, index,self) => {
@@ -41,49 +42,34 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
         return (sortedPeople)
     }
 
-    const onBlockUser = (uid) => {
-        setBlockedUsers(uids => [...uids, uid])
-        console.log("user blocked!")
-        console.log("blockedUsers", blockedUsers)
+    const onCloseModal = () => {
+        setUserToBlock(null);
+        setShowBlockReportModal(false);
+    }
 
-        setPeopleInBeitMidrash(filterDedupeAndSortPeople(peopleInBeitMidrash));
-
-        setCurrentChatRoom("")
+    const onBlockUser = (user) => {
+        setUserToBlock(user);
+        setShowBlockReportModal(true);
     }
 
     const onUnblockUser = (uid) => {
         //insert code for unblocking user
     }
 
-    const setChatDataStore = (data) => {
-        chatDataStoreRef.current = data;
-        _setChatDataStore(data);
-    }
-    
-    const addMessageToDataStore = (uid, room, message, now) => {
-        const roomExists = chatDataStoreRef.current[room.roomId]
-
+    const processMessage = (uid, room) => {
         if (currentChatRoom != room.roomId) {
             setUsersWithUnreadMsgs(prevArray => [...prevArray, uid]);
         }
-
-        setChatDataStore({
-            ...chatDataStoreRef.current,
-            [room.roomId]: {
-                chatMembers: [
-                    room.activeChatPartner,
-                    room.me
-                ],
-                messages: [...(roomExists ? chatDataStoreRef.current[room.roomId].messages : []), {
-                senderId: uid,
-                message: message,
-                timestamp: now
-                }],
-            }
-            });
+        new Audio("/static/files/chime.wav").play();
+        setShouldUpdateChats(true)
     }
 
     useEffect(() => {
+        try {
+            hj('event', 'entered_beit_midrash');
+        } catch {
+            console.error('hotjar failed - entered_beit_midrash')
+        }
         socketObj.connect();
 
         socket.on('creds', function(conf) {
@@ -91,28 +77,38 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
           setPcConfig(conf);
         });
 
-
         socketObj.on("connectionStarted", () => {setSocketConnected(true)})
 
-        //user B receives connection request
-        socketObj.on("connection request", (user) => {
-            chavrutaRequestReceived(user)
-            const roomId = user.uid < Sefaria._uid ? `${user.uid}-${Sefaria._uid}`: `${Sefaria._uid}-${user.uid}`
-            setCurrentChatRoom(roomId)
+        // socketObj.on("connection request", (user) => {
+        //   console.log(user.uid)
+        //   console.log(blockedUsers)
+        //   if (!blockedUsers.includes(user.uid)) {
+        //     chavrutaRequestReceived(user)
+        //     const roomId = user.uid < Sefaria._uid ? `${user.uid}-${Sefaria._uid}`: `${Sefaria._uid}-${user.uid}`
+        //     setCurrentChatRoom(roomId)
+        //   }
+        // })
 
-        })
-        //sends rejection to user A
         socketObj.on("send connection rejection", ()=>{
             window.alert("User is not available.");
             setCurrentScreen("home")
         })
-        //user A gets acceptance alert
+
+        socketObj.on("send call cancelled", ()=>{
+          setCurrentScreen("home")
+        })
+
+
         socketObj.on("send room ID to client", (room)=> {
             setCurrentScreen("chavrutaVideo")
         });
 
+        socketObj.on("duplicate user", () => {
+            window.alert("The Beit Midrash can only be open in one window" );
+            window.location.href="/";
+        });
+
         const onDisconnect = () => {
-            socketObj.emit('chavruta closed')
             socketObj.disconnect();
             setSocketConnected(false);
         }
@@ -127,90 +123,112 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
 
     useEffect(()=> {
         socketObj.emit("update currently reading", Sefaria._uid, currentlyReading);
-        console.log(currentlyReading)
     }, [currentlyReading])
 
     useEffect(()=>{
         socketObj.io.off("reconnect")
-
         socketObj.io.on("reconnect", (attempt) => {
             setSocketConnected(socket);
             console.log(`Reconnected after ${attempt} attempt(s)`);
-            socketObj.emit("enter beit midrash", Sefaria._uid, Sefaria.full_name, Sefaria.profile_pic_url, profile.organization, currentlyReading, beitMidrashId);
+            setShouldUpdateChats(true)
 
             if (currentScreen == "chavrutaVideo") {
                 const roomID =  activeChavruta.uid < Sefaria._uid ? `${activeChavruta.uid}-${Sefaria._uid}`: `${Sefaria._uid}-${activeChavruta.uid}`
                 socketObj.emit("rejoin chavruta room", roomID)
+                socketObj.emit("enter beit midrash", Sefaria._uid, Sefaria.full_name, Sefaria.profile_pic_url, profile.slug, currentlyReading, beitMidrashId, true);
             }
 
+            else {
+                socketObj.emit("enter beit midrash", Sefaria._uid, Sefaria.full_name, Sefaria.profile_pic_url, profile.slug, currentlyReading, beitMidrashId, false);
+            }
         });
+    }, [beitMidrashId, currentlyReading, currentScreen])
 
+    useEffect(()=>{
         if (Sefaria._uid) {
             Sefaria.profileAPI(Sefaria.slug).then(profile => {
                 setProfile(profile)
-                socketObj.emit("enter beit midrash", Sefaria._uid, Sefaria.full_name, Sefaria.profile_pic_url, profile.organization, currentlyReading, beitMidrashId);
+                socketObj.emit("enter beit midrash", Sefaria._uid, Sefaria.full_name, Sefaria.profile_pic_url, profile.slug, currentlyReading, beitMidrashId, false);
             });
         }
-    }, [beitMidrashId, currentlyReading, currentScreen])
+    }, [beitMidrashId])
+
+    useEffect(() => {
+        if(activeChavruta) {
+            setChavrutaOnline(true);
+        }
+    }, [activeChavruta])
+
+    useEffect(()=>{
+      if (peopleInBeitMidrash) {
+        setPeopleInBeitMidrash(filterDedupeAndSortPeople(peopleInBeitMidrash))
+        setCurrentChatRoom("")
+      }
+
+      socketObj.off("connection request");
+      socketObj.on("connection request", (user) => {
+        console.log(user.uid)
+        console.log(blockedUsers)
+        if (!blockedUsers.includes(user.uid)) {
+          chavrutaRequestReceived(user)
+          const roomId = user.uid < Sefaria._uid ? `${user.uid}-${Sefaria._uid}`: `${Sefaria._uid}-${user.uid}`
+          setCurrentChatRoom(roomId)
+        }
+      })
+
+    }, [blockedUsers])
+
 
     useEffect(()=> {
+        socketObj.off("change in people");
         socketObj.on("change in people", function(people, uid) {
             setPeopleInBeitMidrash(filterDedupeAndSortPeople(people));
 
             let roomIdToCheck = uid < Sefaria._uid ? `${uid}-${Sefaria._uid}`: `${Sefaria._uid}-${uid}`;
 
+            // show what chavruta is learning and handle if user hangs up
+            if (activeChavruta && currentScreen === "chavrutaVideo") {
+                const myChavruta = people.filter(person => person.uid === activeChavruta.uid)[0];
+                if(myChavruta) {
+                    setActiveChavruta(myChavruta);
+                } else {
+                    setChavrutaOnline(false);
+                }
+            }
             if (currentChatRoom === roomIdToCheck) {
                 setPartnerLeftNotification(false)
             }
         })
-    }, [currentChatRoom, beitMidrashId, blockedUsers])
+
+    }, [currentChatRoom, beitMidrashId, blockedUsers, activeChavruta, currentScreen])
 
     useEffect(()=>{
        socketObj.off("received chat message")
 
-       socketObj.on("received chat message", (msgSender, message, room, now) => {
+       socketObj.on("received chat message", (msgSender, room) => {
             room.activeChatPartner = msgSender;
-            room.me = {uid: Sefaria._uid, name: Sefaria.full_name, pic: Sefaria.profile_pic_url, organization: profile.organization};
+            room.me = {uid: Sefaria._uid, name: Sefaria.full_name, pic: Sefaria.profile_pic_url, slug: profile.slug};
 
-            // setActiveChavruta(msgSender)
-
-            // console.log("blockedUsers", blockedUsers)
-            // console.log("msgSender", msgSender)
-            
             if(!blockedUsers.includes(msgSender.uid)) {
-                console.log('received chat message', message)
-                console.log(now)
 
-                addMessageToDataStore(msgSender.uid, room, message, now);
-                console.log(activeChatRooms)
                 const currentActiveChatRoomIds = activeChatRooms.map(r => {return r.roomId});
-     
+
                 if (!currentActiveChatRoomIds.includes(room.roomId)) {
-                    setActiveChatRooms([room]);
                     socketObj.emit("join chat room", room);
                 };
-                // setCurrentChatRoom(room.roomId);
-            } else {
-                socketObj.emit("user is blocked", msgSender);
+                if (currentActiveChatRoomIds.length == 0) {
+                    setActiveChatRooms([room]);
+                    setCurrentChatRoom(room.roomId);
+                    setActiveChavruta(room.activeChatPartner);
+                }
+
+                processMessage(msgSender.uid, room);
+
             }
         })
 
 
-    }, [activeChatRooms, blockedUsers])
-
-    useEffect(()=>{
-        chatChannel.onmessage = (msg) => {
-            console.log('chat channel', msg)
-            const currentActiveChatRoomIds = activeChatRooms.map(r => {return r.roomId});
-      
-            if (!currentActiveChatRoomIds.includes(msg.room.roomId)) {
-                setActiveChatRooms([msg.room]);
-                socketObj.emit("join chat room", msg.room);
-            };
-            // setCurrentChatRoom(msg.room.roomId)
-            addMessageToDataStore(msg.msgSender.uid, msg.room, msg.chatMessage, msg.now)
-        }
-    }, [])
+    }, [activeChatRooms, blockedUsers, currentChatRoom])
 
     const pairsLearning = (people) => {
         //create an array of roomIds
@@ -226,12 +244,18 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
         return Object.values(pairs);
     }
 
+    const markRead = (uid) => {
+        setUsersWithUnreadMsgs(usersWithUnreadMsgs.filter(users => users !== uid));
+    }
+
     const startChat = (activeChatPartner) => {
-        setUsersWithUnreadMsgs(usersWithUnreadMsgs.filter(users => users !== activeChatPartner.uid));
+        Sefaria.track.event("BeitMidrash", "Opened Chat With User", "Had Notifications", usersWithUnreadMsgs.includes(activeChatPartner.uid));
+        // setUsersWithUnreadMsgs(usersWithUnreadMsgs.filter(users => users !== activeChatPartner.uid));
+        markRead(activeChatPartner.uid)
         setActiveChavruta(activeChatPartner);
         let roomId = activeChatPartner.uid < Sefaria._uid ? `${activeChatPartner.uid}-${Sefaria._uid}`: `${Sefaria._uid}-${activeChatPartner.uid}`
 
-        const me = {uid: Sefaria._uid, name: Sefaria.full_name, pic: Sefaria.profile_pic_url, organization: profile.organization}
+        const me = {uid: Sefaria._uid, name: Sefaria.full_name, pic: Sefaria.profile_pic_url, slug: profile.slug}
         const room = {roomId, activeChatPartner: activeChatPartner, me: me};
 
         const currentActiveChatRoomIds = activeChatRooms.map(room => {return room.roomId})
@@ -239,17 +263,6 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
             setActiveChatRooms([room]);
         }
         setCurrentChatRoom(roomId)
-
-        if (!chatDataStore[roomId]) {
-            setChatDataStore({...chatDataStore,
-                [roomId]: {
-                    chatMembers: [
-                        activeChatPartner,
-                        me
-                    ],
-                    messages: []
-                }});
-        }
     }
 
     const handleCloseChat = (roomObj) => {
@@ -258,12 +271,14 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
     }
 
     const chavrutaCallInitiated = (uid) => {
+        setChavrutaOnline(true);
+        Sefaria.track.event("BeitMidrash", "Initiated Chavruta Call", "");
         setCurrentScreen("callingChavruta")
         setOutgoingCall(true)
     }
 
     const chavrutaRequestReceived = (user) => {
-        setActiveChavruta(user)
+        setActiveChavruta(user);
         setCurrentScreen("callingChavruta")
         setOutgoingCall(false)
     }
@@ -271,6 +286,11 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
     return (
         socketConnected ?
         <div className="beitMidrashContainer">
+            <BlockReportModal showBlockReportModal={showBlockReportModal} onClose={onCloseModal}
+                setBlockedUsers={setBlockedUsers}
+                setCurrentChatRoom={setCurrentChatRoom}
+                user={userToBlock}
+            />
             { currentScreen == "home" ?
             <BeitMidrashHome
                 beitMidrashId = {beitMidrashId}
@@ -279,12 +299,14 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
                 currentChatRoom={currentChatRoom}
                 startChat={startChat}
                 usersWithUnreadMsgs={usersWithUnreadMsgs}
-                chatDataStore={chatDataStore}
                 handleCloseChat={handleCloseChat}
                 chavrutaCallInitiated={chavrutaCallInitiated}
                 chavrutaRequestReceived={chavrutaRequestReceived}
                 activeChavruta={activeChavruta}
+                markRead={markRead}
                 socket={socketObj}
+                shouldUpdateChats={shouldUpdateChats}
+                setShouldUpdateChats={setShouldUpdateChats}
                 profile={profile}
                 partnerLeftNotification={partnerLeftNotification}
                 setPartnerLeftNotification={setPartnerLeftNotification}
@@ -292,22 +314,115 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
                 onUnblockUser={onUnblockUser}
             /> :
                 currentScreen == "callingChavruta" ?
-            <ChavrutaCall
-                outgoingCall={outgoingCall}
-                activeChavruta={activeChavruta}
-                setCurrentScreen={setCurrentScreen}
-                socket={socketObj}
-            /> :
-            <ChavrutaVideo
-                socket={socketObj}
-                chavrutaId={currentChatRoom}
-                pcConfig={pcConfig}
-                activeChavruta={activeChavruta}
-                setCurrentScreen={setCurrentScreen}
-            />
+            <>
+                <ChavrutaCall
+                    outgoingCall={outgoingCall}
+                    activeChavruta={activeChavruta}
+                    startChat={startChat}
+                    setCurrentScreen={setCurrentScreen}
+                    socket={socketObj}
+                />
+                <BeitMidrashFooter />
+            </>
+            :
+            <>
+                <ChavrutaVideo
+                    socket={socketObj}
+                    chavrutaId={currentChatRoom}
+                    chavrutaOnline={chavrutaOnline}
+                    pcConfig={pcConfig}
+                    activeChavruta={activeChavruta}
+                    setCurrentScreen={setCurrentScreen}
+                />
+                 {activeChatRooms.map(room => {
+                    if (room.roomId === currentChatRoom) {
+                        return <ChatBox
+                            key={room.roomId}
+                            room={room}
+                            handleCloseChat={handleCloseChat}
+                            chavrutaCallInitiated={chavrutaCallInitiated}
+                            chavrutaRequestReceived={chavrutaRequestReceived}
+                            activeChavruta={activeChavruta}
+                            socket={socketObj}
+                            shouldUpdateChats={shouldUpdateChats}
+                            setShouldUpdateChats={setShouldUpdateChats}
+                            markRead={markRead}
+                            profile={profile}
+                            partnerLeftNotification={partnerLeftNotification}
+                            setPartnerLeftNotification={setPartnerLeftNotification}
+                            onBlockUser={onBlockUser}
+                            onUnblockUser={onUnblockUser}
+                            hideHideButton={true}
+                        />
+                    }
+                })}
+                <BeitMidrashFooter />
+            </>
 
             }
         </div> : <LoadingMessage/>
+    )
+}
+
+const UserInBeitMidrash = ({user, userClasses, startChat, onBlockUser}) => {
+  const [userDetailsOpen, setUserDetailsOpen] = useState(false);
+  const userDetailsMenu = useRef();
+
+  useEffect(()=>{
+    userDetailsMenu.current.focus();
+  }, [userDetailsOpen])
+
+  return (
+    <div className={classNames(userClasses)} key={user.uid} onClick={() => startChat(user)}>
+        <ProfilePic len={42} url={user.pic} name={user.name} id="beitMidrashProfilePic"/>
+        <div className="beitMidrashUserText">
+            <div className="beitMidrashUserHeader">
+            <div className="beitMidrashUserNameStatus">
+            {user.name}
+            {user.inChavruta ? <i className="fa fa-headphones" title={`${user.name} is current in a chavruta`}></i> : null}
+            </div>
+            <img src="/static/icons/ellipses.svg" className="userDetailsToggle" aria-label="toggle user details" onClick={()=>{setUserDetailsOpen(true)}}/>
+            </div>
+            <div
+              tabIndex={0}
+              onBlur={()=>{setUserDetailsOpen(false)}}
+              className={userDetailsOpen ? "userDetailsMenu" : "userDetailsMenu hidden"}
+              ref={userDetailsMenu}
+            >
+              <ul>
+                <li onClick={() => {window.open(`/profile/${user.slug}`)}}>
+                    <img src="/static/icons/profile.svg" aria-hidden="true"/><InterfaceText>View Profile</InterfaceText></li>
+                <li>
+                    <FollowButton
+                              large={true}
+                              uid={user.uid}
+                              following={Sefaria.following.indexOf(user.uid) > -1}
+                              classes="bm-follow-button"
+                              icon={true}
+                            />
+
+                </li>
+                  <li onClick={() => {onBlockUser(user)}}><img src="/static/icons/circle-backslash.svg" aria-hidden="true"/><InterfaceText>Mute & Report</InterfaceText></li>
+              </ul>
+            </div>
+
+            <div
+                className="beitMidrashOrg">{user.currentlyReading ? <a href={user.currentlyReading.url}><InterfaceText>{`is ${user.currentlyReading.display}`}</InterfaceText> {`${user.currentlyReading.title}`}</a> : null}</div>
+        </div>
+    </div>
+  )
+}
+
+const BeitMidrashFooter = () => {
+    return(<div className="beitMidrashHomeFooter">
+            <p className="int-en">
+                Questions? Email <a href="mailto:hello@sefaria.org" target="_blank">hello@sefaria.org</a>
+            </p>
+
+            <p className="int-he">
+                לשאלות פנו/כתבו לדוא"ל <a href="mailto:hello@sefaria.org" target="_blank">hello@sefaria.org</a>
+            </p>
+        </div>
     )
 }
 
@@ -316,7 +431,6 @@ const BeitMidrashHome = ({beitMidrashId,
                         activeChatRooms,
                         currentChatRoom,
                         startChat,
-                        chatDataStore,
                         handleCloseChat,
                         chavrutaCallInitiated,
                         chavrutaRequestReceived,
@@ -327,13 +441,17 @@ const BeitMidrashHome = ({beitMidrashId,
                         setPartnerLeftNotification,
                         onBlockUser,
                         onUnblockUser,
-                        usersWithUnreadMsgs
+                        usersWithUnreadMsgs,
+                        shouldUpdateChats,
+                        setShouldUpdateChats,
+                        markRead
                         }) => {
 
     return (<div className="beitMidrashHomeContainer">
             {/*<div id="newCall"><a href="/chavruta"><img src="/static/img/camera_with_plus.svg" id="newCallImg" /><span>New Call</span></a></div>*/}
-            <div id="beitMidrashHeader">Beit Midrash</div>
+            <div id="beitMidrashHeader"><InterfaceText>Beit Midrash</InterfaceText></div>
             <div className="peopleInBeitMidrash">
+                <div className="peopleInBeitMidrashInnerContainer">
                 {peopleInBeitMidrash && peopleInBeitMidrash.length > 1 ? peopleInBeitMidrash
                     .filter(user => !user.roomId)
                     .map(user => {
@@ -343,20 +461,17 @@ const BeitMidrashHome = ({beitMidrashId,
                         };
 
                         if (user.uid !== Sefaria._uid) {
-                            console.log(user)
-                            return <div className={classNames(userClasses)} key={user.uid} onClick={() => startChat(user)}>
-                                <ProfilePic len={42.67} url={user.pic} name={user.name} id="beitMidrashProfilePic"/>
-                                <div className="beitMidrashUserText">
-                                    {user.name}
-                                    {user.inChavruta ? <i className="fa fa-headphones" title={`${user.name} is current in a chavruta`}></i> : null}
-                                    <div
-                                        className="beitMidrashOrg">{user.currentlyReading !== "" ? `is learning ${user.currentlyReading}` : ""}</div>
-                                </div>
-                            </div>
+                            return <UserInBeitMidrash
+                                    user={user}
+                                    userClasses={userClasses}
+                                    startChat={startChat}
+                                    onBlockUser={onBlockUser}
+                                   />
                         } else {
                             return null
                         }
-                    }) : <div className="noUsers">No users online.</div>}
+                    }) : <div className="noUsers"><InterfaceText>No users online.</InterfaceText></div>}
+                </div>
             </div>
             {/* <div>
             {peopleInBeitMidrash ? pairsLearning(peopleInBeitMidrash).map((pair, i)  => <li key={i}>{pair.map(user => user.name).join(", ")}</li>) : null}
@@ -366,12 +481,14 @@ const BeitMidrashHome = ({beitMidrashId,
                     return <ChatBox
                         key={room.roomId}
                         room={room}
-                        chatDataStore={chatDataStore}
                         handleCloseChat={handleCloseChat}
                         chavrutaCallInitiated={chavrutaCallInitiated}
                         chavrutaRequestReceived={chavrutaRequestReceived}
                         activeChavruta={activeChavruta}
                         socket={socket}
+                        shouldUpdateChats={shouldUpdateChats}
+                        setShouldUpdateChats={setShouldUpdateChats}
+                        markRead={markRead}
                         profile={profile}
                         partnerLeftNotification={partnerLeftNotification}
                         setPartnerLeftNotification={setPartnerLeftNotification}
@@ -380,23 +497,28 @@ const BeitMidrashHome = ({beitMidrashId,
                     />
                 }
             })}
+        <BeitMidrashFooter />
     </div>)
 }
 
-const ChavrutaCall = ({outgoingCall, activeChavruta, setCurrentScreen, socket}) => {
-    const handleCallAccepted = (name) => {
+const ChavrutaCall = ({outgoingCall, activeChavruta, setCurrentScreen, socket, startChat}) => {
+    const handleCallAccepted = (uid) => {
+        Sefaria.track.event("BeitMidrash", "Accepted Call", "");
         const room = Math.random().toString(36).substring(7);
-        socket.emit("send room ID to server", name, room);
+        startChat(activeChavruta);
+        socket.emit("send room ID to server", uid, room);
         setCurrentScreen("chavrutaVideo")
     }
 
-    const handleCallDeclined = (name) => {
-        socket.emit("connection rejected", name);
+    const handleCallDeclined = (uid) => {
+        Sefaria.track.event("BeitMidrash", "Declined Call", "");
+        socket.emit("connection rejected", uid);
         setCurrentScreen("home");
     }
 
-    const endCall = (name) => {
-        socket.emit("connection rejected", name);
+    const callCancelled = (uid) => {
+        Sefaria.track.event("BeitMidrash", "Call Cancelled", "");
+        socket.emit("call cancelled", uid);
         setCurrentScreen("home");
     }
 
@@ -412,35 +534,34 @@ const ChavrutaCall = ({outgoingCall, activeChavruta, setCurrentScreen, socket}) 
     }, [])
 
     return (
-        outgoingCall ? 
-        <div className="callContainer">
+        <div className={outgoingCall ? "callContainer outgoing" : "callContainer incoming"}>
             <div>
-                <ProfilePic len={300} url={activeChavruta.pic} name={activeChavruta.name} />
-                <div id="endCallButtonHolder">
-                    <span id="endCallIcon"><span id="endCall" className="endCallButton" onClick={()=>endCall(activeChavruta.name)}></span></span>
+                <ProfilePic len={330} url={activeChavruta.pic} name={activeChavruta.name} />
+                {outgoingCall ? <div id="endCallButtonHolder">
+                    <span id="endCallIcon"><span id="endCall" className="endCallButton"
+                                                 onClick={() => callCancelled(activeChavruta.uid)}></span></span>
+                </div> : null}
+                <div className = "callText">
+                    {outgoingCall ?
+                        <span><InterfaceText>Calling</InterfaceText> {activeChavruta.name}...</span>
+                    : <span>{activeChavruta.name} <InterfaceText>is calling you...</InterfaceText></span>
+                    }
                 </div>
-                <div className = "callText">Calling {activeChavruta.name}...</div>
             </div>
-            <audio autoPlay loop src="/static/files/chavruta-ringtone.wav" />
-            <div className="chavrutaFooter">Questions? Email <a href="mailto:hello@sefaria.org">hello@sefaria.org</a></div>
-        </div> : 
-        <div className="callContainer">
-            <div>
-                <ProfilePic len={300} url={activeChavruta.pic} name={activeChavruta.name} />
-                <div className = "callText">Receiving call from {activeChavruta.name}...</div>
+            {outgoingCall ? null :
                 <div id="incomingCallButtonHolder">
-                    <button id="acceptButton" onClick={()=> handleCallAccepted(activeChavruta.name)}>Accept</button>
-                    <button id="declineButton" onClick={()=> handleCallDeclined(activeChavruta.name)}>Decline</button>
+                    <button id="acceptButton" onClick={() => handleCallAccepted(activeChavruta.uid)}>
+                        <InterfaceText>Accept</InterfaceText></button>
+                    <button id="declineButton" onClick={() => handleCallDeclined(activeChavruta.uid)}>
+                        <InterfaceText>Decline</InterfaceText></button>
                 </div>
-            </div>
-            <audio autoPlay loop src="/static/files/chavruta-ringtone.wav" />
-            <div className="chavrutaFooter">Questions? Email <a href="mailto:hello@sefaria.org">hello@sefaria.org</a></div>
+            }
+            <audio autoPlay loop src="/static/files/chavruta_ringtone.mp3" />
         </div>
     )
 }
 
 const ChatBox = ({room,
-                chatDataStore,
                 handleCloseChat,
                 chavrutaCallInitiated,
                 activeChavruta,
@@ -448,29 +569,38 @@ const ChatBox = ({room,
                 profile,
                 partnerLeftNotification,
                 setPartnerLeftNotification,
+                shouldUpdateChats,
+                setShouldUpdateChats,
+                markRead,
+                hideHideButton,
                 onBlockUser,
                 onUnblockUser
                  }) => {
-                   
+
     const [chatMessage, setChatMessage] = useState("");
     const roomId = room.roomId;
     const chatBox = useRef();
-    const [blockedNotification, setBlockedNotification] = useState(false)
     const [storedChatMessages, setStoredChatMessages] = useState(null)
     const [showChats, setShowChats] = useState(false)
-
 
     useEffect(()=>{
         socket.on("leaving chat room", ()=>{
             setPartnerLeftNotification(true);
         })
 
-        socket.on("you have been blocked", ()=> {
-            setBlockedNotification(true)
+        Sefaria.getChatMessagesAPI(roomId).then(chats => {
+            setStoredChatMessages(chats)
         })
-        
-        // Sefaria.getChatMessagesAPI(roomId).then(chats => setStoredChatMessages(chats))
     }, []);
+
+    useEffect( () => {
+        if (shouldUpdateChats) {
+            Sefaria.getChatMessagesAPI(roomId).then(chats => {
+                setStoredChatMessages(chats)
+            })
+            setShouldUpdateChats(false)
+        }
+    }, [shouldUpdateChats])
 
     useEffect(()=>{
         if (storedChatMessages) {
@@ -481,48 +611,47 @@ const ChatBox = ({room,
     }, [storedChatMessages])
 
     useEffect(()=>{
-        const lastMessage = chatBox.current.querySelector(".chatMessage:last-of-type")
-        if (lastMessage) {
-            lastMessage.scrollIntoView()
+        try {
+            const lastMessage = chatBox.current.querySelector(".chatMessage:last-of-type")
+            if (lastMessage) {
+                lastMessage.scrollIntoView()
+            }
         }
+        catch (e) {
+            console.log(e)
+        }
+    }, [storedChatMessages, partnerLeftNotification, showChats])
 
-    }, [chatDataStore, partnerLeftNotification, showChats])
-
-    useEffect( () => {
-        console.log(chatDataStore)
-    }, [chatDataStore])
+    const handleChatAnalytics = () => {
+        const totalChats = storedChatMessages ? storedChatMessages.length : 0;
+        Sefaria.track.event("BeitMidrash", "Sent Chat", "Prior Chats in Chat History", totalChats);
+        if (totalChats === 0) {
+            Sefaria.track.event("BeitMidrash", "Sent Initial Chat")
+        } else if (storedChatMessages.filter(chat => chat.sender_id === Sefaria._uid).length === 0) {
+            Sefaria.track.event("BeitMidrash", "Sent First Response Chat in History", "Prior Chats in Chat History",totalChats)
+        }
+    }
 
     const handleChange = (e) =>{
         setChatMessage(e.target.value);
     }
-    
+
     const handleSubmit = (e) => {
         e.preventDefault();
         const now = Date.now()
-        socket.emit("send chat message", room, chatMessage, now);
-        
+        socket.emit("send chat message", room);
+        markRead(room.activeChatPartner.uid)
         const roomId = room.roomId;
-      
-        const chatChannel = new BroadcastChannel('chavruta-chats');
-        const msgSender = {uid: Sefaria._uid, name: Sefaria.full_name, pic: Sefaria.profile_pic_url, organization: profile.organization}
-        
-        chatChannel.postMessage({msgSender, room, chatMessage, now})
 
-        // Sefaria.chatMessageAPI(roomId, Sefaria._uid, Date.now(), chatMessage)
-        
-        // We thought we needed this to add to chatdatastore on submit, but the broadcast api appears to add it anyway
-        // even though we think it's not supposed to!
-        // So for the moment we will comment this out, but 
-        // TODO: ensure this doesn't need to be added back in
-        //
-        // setChatDataStore({...chatDataStoreRef.current, [roomId]: {...chatDataStoreRef.current[roomId], 
-        //        messages: [...chatDataStoreRef.current[roomId].messages, {
-        //         senderId: Sefaria._uid,
-        //         message: chatMessage,
-        //         timestamp: now
-        //     }]}
-        //    });
-        
+        const msgSender = {uid: Sefaria._uid, name: Sefaria.full_name, pic: Sefaria.profile_pic_url, slug: profile.slug}
+        handleChatAnalytics();
+
+        Sefaria.chatMessageAPI(roomId, Sefaria._uid, Date.now(), chatMessage).then( (res)=> {
+            Sefaria.getChatMessagesAPI(roomId).then(chats => {
+                setStoredChatMessages(chats)
+            })
+        } )
+
         e.target.reset();
         setChatMessage("")
     }
@@ -531,71 +660,60 @@ const ChatBox = ({room,
         socket.emit("connect with other user", uid, {uid: Sefaria._uid, name: Sefaria.full_name, pic: Sefaria.profile_pic_url});
         chavrutaCallInitiated(uid)
     }
-    return (activeChavruta ?
+    return (
+        activeChavruta ?
     <div className="chat" ref={chatBox}>
+        {!hideHideButton ?
         <div id="hideButtonHolder">
-            <div id="hideButton" onClick={()=>handleCloseChat(room)}>Hide{" "}<img src="/static/img/downward_carrot.svg" /></div>
-        </div>
-        <details>
-        <summary>
+            <div id="hideButton" onClick={()=>handleCloseChat(room)}><InterfaceText>Hide</InterfaceText>{" "}<img src="/static/img/downward_carrot.svg" /></div>
+        </div> : null }
+        {/*<details>*/}
+        {/*<summary>*/}
         <div className="chatBoxHeader">
-        
+
                 <div id="chatUser">
-                    <ProfilePic len={42.67} url={activeChavruta.pic} name={activeChavruta.name} />
+                    <ProfilePic len={42} url={activeChavruta.pic} name={activeChavruta.name} />
                     <div className="chatBoxName">{activeChavruta.name}</div>
                 </div>
-                
-                
-            {partnerLeftNotification || blockedNotification || activeChavruta.inChavruta ? null :
+
+
+            { activeChavruta.inChavruta ? null :
             <img
                 onClick={()=>handleStartCall(room["activeChatPartner"]["uid"])}
                 id="greenCameraButton"
-                src="/static/img/green_camera.svg" 
+                src="/static/img/green_camera.svg"
                 alt="icon of green video camera"
                 role="button"
                 tabIndex="0"
                 aria-roledescription={`click to open a video call with ${activeChavruta.name}`}
                 />
             }
-            
-        </div>
-        </summary>
-            <div>Profile</div>
-            <div>Follow</div>
-            <div className="blockButton" onClick={()=>onBlockUser(activeChavruta.uid)}>Block</div>
-        </details>
-        <div className="chats-container">
-            {/*{// chat archive*/}
 
-            {/*    showChats ? storedChatMessages.map((message, i) => {*/}
-            {/*    return (*/}
-            {/*        message.senderId === Sefaria._uid ?*/}
-            {/*            <Message user={room.me} key={i} message={message} /> :*/}
-            {/*            <Message user={room.activeChatPartner} key={i} message={message} />*/}
-            {/*    )*/}
-            {/*}) : <LoadingMessage />*/}
-            {/*}*/}
-            {chatDataStore[roomId] ? chatDataStore[roomId].messages.map((message, i) => {
+        </div>
+        <div className="chats-container">
+            {
+                showChats ? storedChatMessages.sort((a,b) => a.timestamp - b.timestamp).map((message, i) => {
                 return (
-                    message.senderId === Sefaria._uid ?
+                    message["sender_id"] === Sefaria._uid ?
                         <Message user={room.me} key={i} message={message} /> :
                         <Message user={room.activeChatPartner} key={i} message={message} />
                 )
-            }) : <LoadingMessage /> }
-            {partnerLeftNotification && !blockedNotification ? <div className="chatMessage">{room.activeChatPartner.name} has left the chat.</div> : null}
-            {blockedNotification ? <div className="chatMessage">{room.activeChatPartner.name} has blocked you.</div> : null}
+            }) : <LoadingMessage />
+            }
+
         </div>
         <form className="chat-form" onSubmit={handleSubmit}>
-            <input type="text" 
-                autoFocus  
-                disabled={partnerLeftNotification || blockedNotification ? true : false}  
-                className="chat-input" onChange={handleChange} 
-                placeholder="Send a Message"
-                dir={Sefaria.hebrew.isHebrew(chatMessage) ? "rtl" : "ltr"}></input>
-            <input type="submit" 
-            className={chatMessage? "chat-submit chat-submit-blue" : "chat-submit"} 
-            disabled={!chatMessage}
-            value=""/>
+            <div className="chat-input-holder">
+                <input type="text"
+                autoFocus
+                className="chat-input" onInput={handleChange}
+                placeholder={Sefaria._("Send a Message")}
+                dir={Sefaria.hebrew.isHebrew(chatMessage) || (chatMessage === "" && Sefaria.interfaceLang === "hebrew") ? "rtl" : "ltr"}></input>
+                <input type="submit"
+                className={classNames({"chat-submit": 1, "chat-submit-blue": !!chatMessage, "chat-submit-hebrew": Sefaria.interfaceLang === "hebrew"})}
+                disabled={!chatMessage}
+                value=""/>
+            </div>
         </form>
     </div> : <LoadingMessage />
     )
@@ -603,25 +721,30 @@ const ChatBox = ({room,
 
 const Message = ({user, message}) => {
 
-    const parsedTimeStamp = new Date(message.timestamp).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit' })
+    const messageDate = new Date(message.timestamp);
+    const languageOption = Sefaria.interfaceLang === "hebrew" ? 'he-IL' : [];
+    const parsedDateStamp =  messageDate.toLocaleDateString(languageOption);
+    const parsedTimeStamp = messageDate.toLocaleTimeString(languageOption, {hour: '2-digit', minute: '2-digit' });
+    const displayTimeStamp = parsedDateStamp === new Date().toLocaleDateString(languageOption) ? parsedTimeStamp : parsedDateStamp + ' ' + parsedTimeStamp;
 
     return (
-        <div className="chatMessage">
-                <ProfilePic len={35} url={user.pic} name={user.name} />
+        <div className="chatMessage" data-hj-suppress>
+                <ProfilePic len={34} url={user.pic} name={user.name} />
             <div className = "chatText">
-                <div className="chatNameAndTime"><span>{user.name}</span>{"  "}<span>{parsedTimeStamp}</span></div>
-                <div dir={Sefaria.hebrew.isHebrew(message.message) ? "rtl" : "ltr"}>{message.message}</div> 
+                <div className="chatNameAndTime"><span>{user.name}</span>{"  "}<span>{displayTimeStamp}</span></div>
+                <div dir={Sefaria.hebrew.isHebrew(message.message) ? "rtl" : "ltr"}>{message.message}</div>
             </div>
         </div>
     )
 }
 
-const ChavrutaVideo = ({socket, chavrutaId, pcConfig, setCurrentScreen, activeChavruta}) => {
+const ChavrutaVideo = ({socket, chavrutaId, pcConfig, setCurrentScreen, activeChavruta, chavrutaOnline}) => {
     const localVideo = useRef();
     const remoteVideo = useRef();
     const [localStream, setLocalStream] = useState()
     const [audioEnabled, setAudioEnabled] = useState(true)
     let pc;
+    let chavrutaTime = 0;
 
     const toggleMute = () => {
       const isAudioEnabled = localStream.getAudioTracks()[0].enabled;
@@ -641,17 +764,30 @@ const ChavrutaVideo = ({socket, chavrutaId, pcConfig, setCurrentScreen, activeCh
     }
 
     const stopVideoTracks = () => {
-      const stream = localVideo.current.srcObject;
-      const tracks = stream.getTracks();
+        try {
+            const stream = localVideo.current.srcObject;
+            const tracks = stream.getTracks();
 
-      tracks.forEach(function(track) {
-        track.stop();
-      });
+            tracks.forEach(function (track) {
+                track.stop();
+            });
 
-      localVideo.current.srcObject = null;
+            localVideo.current.srcObject = null;
+        }
+        catch (e) {
+            console.log(e)
+        }
+    }
+
+    const closeChavruta = () => {
+            stopVideoTracks()
+            socket.emit('chavruta closed', chavrutaId);
+            setCurrentScreen("home");
     }
 
     const setVideoTracks = async () => {
+
+
         try {
           const stream = await navigator.mediaDevices.getUserMedia({
             video: true,
@@ -668,7 +804,25 @@ const ChavrutaVideo = ({socket, chavrutaId, pcConfig, setCurrentScreen, activeCh
             }
           };
           pc.oniceconnectionstatechange = (e) => {
-            console.log(e);
+            if (!pc) {
+                closeChavruta()
+            }
+
+            else if (pc.iceConnectionState == "failed") {
+                pc.close();
+                closeChavruta()
+            }
+              //"disconnected" could be a temporary state caused by any number of factors that could be automatically fixed w/o intervention
+              // this gives the app a chance to re-establish the connection before restarting
+            else if(pc.iceConnectionState == "disconnected") {
+                    console.log("iceConnection is disconnected -- waiting 5 seconds to see if reconnects")
+                    setTimeout(function(){
+                    if (pc && pc.iceConnectionState == "disconnected") {
+                        pc.close();
+                        closeChavruta()
+                    }
+                }, 5000);
+            }
           };
           pc.ontrack = (ev) => {
               remoteVideo.current.srcObject = ev.streams[0];
@@ -712,8 +866,6 @@ const ChavrutaVideo = ({socket, chavrutaId, pcConfig, setCurrentScreen, activeCh
           console.error(e);
         }
     };
-
-
 
     useEffect(() => {
 
@@ -763,24 +915,42 @@ const ChavrutaVideo = ({socket, chavrutaId, pcConfig, setCurrentScreen, activeCh
 
         setVideoTracks();
 
+        let chavrutaTimeId = setInterval(function () {
+            chavrutaTime = chavrutaTime + 1;
+            console.log(chavrutaTime);
+        }, 60000);
+
         return () => {
-            console.log('woooo')
           if (pc) {
             pc.close();
           }
 
             stopVideoTracks()
-            socket.emit('chavruta closed')
+            Sefaria.track.event("BeitMidrash", "Chavruta Ended", "Minutes Learned", chavrutaTime);
+            clearInterval(chavrutaTimeId);
+            socket.emit('chavruta closed', chavrutaId)
         };
 
 
 
     }, []);
 
+    useEffect( () => {
+        if (!chavrutaOnline) {
+            if (pc) {
+                pc.close();
+            }
+            closeChavruta()
+        }
+    }, [chavrutaOnline])
+
 
 
     return (
-        <div>
+
+        <>
+        {activeChavruta ?
+        <>
             <div id="videos" className={audioEnabled ? "" : "muted"}>
                 <video id="localVideo" ref={localVideo} className="flippedVideo pip" autoPlay playsInline disablePictureInPicture
                        muted></video>
@@ -792,45 +962,103 @@ const ChavrutaVideo = ({socket, chavrutaId, pcConfig, setCurrentScreen, activeCh
                         <span id="heMute" className="muteButton int-he" tabIndex={0} title={!audioEnabled ? "הפעל את המיקרופון" : "כבה את המיקרופון" } onClick={() => toggleMute()}></span>
                     </span>
                     <span id="endCallIcon">
-                        <span id="end-call" className="endCallButton int-en" tabIndex={0} title="End Call" onClick={(e) => endChavruta(e)} role="link"></span>
+                        <span id="end-call" className="endCallButton" tabIndex={0} title={Sefaria._("End Call")} onClick={(e) => endChavruta(e)} role="link"></span>
                     </span>
                 </div>
 
             </div>
-
-            {/*<div className="beitMidrashOrg">{activeChavruta.currentlyReading !== "" ? `${activeChavruta.name} is learning ${activeChavruta.currentlyReading}` : ""}</div>*/}
-
-
-
-            {/*<div id="chevrutaNameHolder">{activeChavruta.name}</div>*/}
-            {/*<div id="currently-reading"></div>*/}
-
-            {/*<div id="waiting">*/}
-            {/*    Waiting for someone to join...*/}
-            {/*    <p className="int-en">*/}
-            {/*        Share this link with your chavruta to start a video call*/}
-            {/*    </p>*/}
-
-            {/*    <p className="int-he">*/}
-            {/*        Share this link with your chavruta to start a video call*/}
-            {/*    </p>*/}
-
-            {/*</div>*/}
-
-
-            <div className="chavrutaFooter">
-                <p className="int-en">
-                    Questions? Email <a href="mailto:hello@sefaria.org" target="_blank">hello@sefaria.org</a>
-                </p>
-
-                <p className="int-he">
-                    לשאלות פנו/כתבו לדוא"ל <a href="mailto:hello@sefaria.org" target="_blank">hello@sefaria.org</a>
-                </p>
+            <div id="currentlyReadingContainer">
+                {activeChavruta.currentlyReading ? <div className="currentlyReading">{activeChavruta.name} is {activeChavruta.currentlyReading.display} <a href={activeChavruta.currentlyReading.url}>{activeChavruta.currentlyReading.title}</a></div> : null }
             </div>
+        </>
 
-
-        </div>
+        : <LoadingMessage /> }
+        </>
             )
+}
+
+const BlockReportModal = ({showBlockReportModal, onClose, setBlockedUsers, setCurrentChatRoom, user}) => {
+    const modalStates = {
+        initial: "initial",
+        muteCompleted: "muteCompleted",
+        muteFailed: "muteFailed"
+    }
+    const [modalState, setModalState] = useState(modalStates.initial)
+    
+    const blockDescription = {
+        en: "Upon muting, you will no longer see this user in the Beit Midrash and you will no longer receive messages or receive video chat invitations from this user.",
+        he: "אחרי ביצוע השתקה למשתמש זה, לא תראו עוד את המשתמש בבית המדרש ולא תקבלו יותר הודעות או הזמנות לשיחות וידאו ממשתמש זה."
+    }
+    const actionCompleteDescription = {
+        en: "Your request has been completed. If you need further assistance, please email hello@sefaria.org.",
+        he: "בקשתכם הושלמה. אם אתם זקוקים לעזרה נוספת, אנא פנו באימייל לכתובת hello@sefaria.org."
+    }
+    const muteFailedDescription = {
+        en: "Mute Failed. If you need further assistance, please email hello@sefaria.org.",
+        he: "Mute Failed. אם אתם זקוקים לעזרה נוספת, אנא פנו באימייל לכתובת hello@sefaria.org."
+    }
+
+    const closeAndReset = () => {
+        setModalState(modalStates.initial);
+        onClose();
+    }
+    const muteUser = () => {
+        
+     $.post("/api/block/" + user.uid, {}, data => {
+            Sefaria.track.event("BeitMidrash", "Blocked User", user.uid);
+            setBlockedUsers(uids => [...uids, user.uid])
+            setCurrentChatRoom("");
+            setModalState(modalStates.muteCompleted);
+        }).fail(function (xhr, textStatus, errorThrown) {
+            setModalState(modalStates.muteFailed); 
+        });
+
+        const feedback = {
+          type: "beit_midrash_report",
+          msg: `${Sefaria.full_name} (${Sefaria._uid}) reported ${user.name} (${user.uid}) in the BeitMidrash`,
+          uid: Sefaria._uid,
+          url: window.location.href,
+        };
+        const postData = {json: JSON.stringify(feedback)};
+        const url = "/api/send_feedback";
+
+        $.post(url, postData, function (data) {
+          if (data.error) {
+              console.log(data.error)
+          } else {
+              console.log(data)
+          }
+        }.bind(this)).fail(function (xhr, textStatus, errorThrown) {
+            alert(Sefaria._("Unfortunately, there was an error sending this feedback. Please try again or try reloading this page."));
+        });
+    }
+      return (
+        showBlockReportModal ? <div id="interruptingMessageBox" className="sefariaModalBox">
+          <div id="interruptingMessageOverlay" onClick={onClose}></div>
+          <div id="interruptingMessage" className="beitMidrashModalContentBox">
+            <div className="sefariaModalContent">
+              <h2 className="sans-serif sans-serif-in-hebrew">
+                <InterfaceText>Mute</InterfaceText>
+              </h2>
+              <div className="beitMidrashModalInnerContent">
+                <InterfaceText text={modalState === modalStates.muteCompleted ? actionCompleteDescription : modalState === modalStates.muteFailed ? muteFailedDescription : blockDescription}/>
+              </div>
+              <div className="buttonContainer">
+              {modalState === modalStates.muteCompleted || modalState === modalStates.muteFailed ? 
+              <button className="button dark-grey" onClick={onClose}><InterfaceText >Close</InterfaceText></button>
+              : <>
+                <button onClick={onClose} className="button light-grey control-elem" >
+                    <InterfaceText>Cancel</InterfaceText>
+                </button>
+                <button onClick={muteUser} className="button red control-elem" >
+                    <InterfaceText >Mute</InterfaceText>
+                </button></>
+              }
+              </div>
+            </div>
+          </div>
+        </div> : null
+      );
 }
 
 export default BeitMidrash;

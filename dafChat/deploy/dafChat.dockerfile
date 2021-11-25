@@ -5,7 +5,6 @@ FROM node:12
 # ENV TURN_SECRET
 
 WORKDIR /usr/src/app
-RUN mkdir -p ./db && touch ./db/chatrooms.db
 
 COPY ./ ./
 RUN npm install

@@ -50,6 +50,7 @@ if len(unhandled) > 0:
     print("\n******************\n")
 
 for l in rows:
+    needs_save = False
     try:
         i = library.get_index(l[0])
     except Exception as e:
@@ -59,8 +60,10 @@ for l in rows:
         current_authors = set(getattr(i, "authors", []) or [])
     except TypeError:
         current_authors = set()
-    sheet_authors = list(set([a.strip() for a in l[1].split(",") if AuthorTopic.is_author(a.strip())]))
-    setattr(i, "authors", sheet_authors)
+    sheet_authors = set([a.strip() for a in l[1].split(",") if AuthorTopic.is_author(a.strip())])
+    if sheet_authors != current_authors:
+        setattr(i, "authors", list(sheet_authors))
+        needs_save = True
     attrs = [("enDesc", l[2]),
         ("heDesc", l[3]),
         ("enShortDesc", l[4]),
@@ -72,7 +75,6 @@ for l in rows:
         ("pubPlace", l[10]), # publication place
         ("era", eras.get(l[11]))]
 
-    needs_save = False
     for aname, value in attrs:
         obj_val = getattr(i, aname, "")
         if (obj_val or value) and (obj_val != value):

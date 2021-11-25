@@ -1269,7 +1269,7 @@ class FollowButton extends Component {
     }
   }
   render() {
-    const classes = classNames({
+    const classes = this.props.classes ? this.props.classes : classNames({
       largeFollowButton: this.props.large,
       smallFollowButton: !this.props.large,
       following: this.state.following,
@@ -1280,6 +1280,7 @@ class FollowButton extends Component {
     buttonText = buttonText === "Follow" && this.props.followBack ? "Follow Back" : buttonText;
     return ( 
       <div className={classes} onMouseEnter={this.onMouseEnter} onMouseLeave={this.onMouseLeave} onClick={this.onClick}>
+        {this.props.icon ? <img src={`/static/icons/${this.state.following ? this.state.hovering ?  "checkmark" : "checkmark" : "follow"}.svg`} aria-hidden="true"/> : null}
         <InterfaceText context={"FollowButton"}>{buttonText}</InterfaceText>
       </div>
     );
