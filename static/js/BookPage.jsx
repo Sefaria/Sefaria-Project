@@ -802,8 +802,10 @@ class ArrayMapNode extends Component {
           section = i+1;
           heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
         }
+        let currentPlace = ref == this.props?.currentlyVisibleSectionRef;
+        const linkClasses = classNames({"sectionLink": 1, "current": currentPlace}); 
         return (
-          <a className="sectionLink" href={"/" + Sefaria.normRef(ref)} data-ref={ref} key={i}>
+          <a className={linkClasses} href={"/" + Sefaria.normRef(ref)} data-ref={ref} key={i}>
             <ContentText text={{en:section, he:heSection}}/>
           </a>
         );
@@ -812,8 +814,11 @@ class ArrayMapNode extends Component {
       return (<div>{sectionLinks}</div>);
 
     } else {
+      let currentPlace = this.props?.currentlyVisibleSectionRef && 
+          (this.props.schema.wholeRef == this.props?.currentlyVisibleSectionRef || (Sefaria.refContains(this.props.schema.wholeRef, this.props?.currentlyVisibleSectionRef)));
+      const linkClasses = classNames({"schema-node-toc": 1, "linked":1, "current": currentPlace}); 
       return (
-        <a className="schema-node-toc linked" href={"/" + Sefaria.normRef(this.props.schema.wholeRef)} data-ref={this.props.schema.wholeRef}>
+        <a className={linkClasses} href={"/" + Sefaria.normRef(this.props.schema.wholeRef)} data-ref={this.props.schema.wholeRef}>
           <span className="schema-node-title" role="heading" aria-level="3">
             <ContentText text={{en:this.props.schema.title, he:this.props.schema.heTitle}}/>
           </span>
@@ -832,8 +837,10 @@ class DictionaryNode extends Component {
       let sectionLinks = this.props.schema.headwordMap.map(function(m,i) {
       let letter = m[0];
       let ref = m[1];
+      let currentPlace = ref == this.props?.currentlyVisibleSectionRef;
+      const linkClasses = classNames({"sectionLink": 1, "current": currentPlace}); 
       return (
-          <a className="sectionLink" href={"/" + Sefaria.normRef(ref)} data-ref={ref} key={i}>
+          <a className={linkClasses} href={"/" + Sefaria.normRef(ref)} data-ref={ref} key={i}>
             <ContentText text={{en:letter, he:letter}} />
           </a>
         );
