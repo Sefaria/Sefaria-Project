@@ -1,11 +1,11 @@
 {
 	"title": "Sefaria Community,",
 	"text": [
-		"Your opinion matters — Be a part of Sefaria's future!\n",
-		"Please take our user survey to help us understand your experience and improve our offerings. You will receive a special thank you for your participation.\n",
+		"In celebration of Chanukah and #GivingTuesday colliding, please help Sefaria raise $18,000 for the library!",
+		"Every donation counts towards expanding access to Jewish texts and improving your learning experience.",
     ],
-	"buttonLink": "https://www.surveymonkey.com/r/sefariasurvey2021_en?source=App",
-	"buttonText": "Take the Survey",
-	"name": "survey-2021-1",
+	"buttonLink": "https://sefaria.nationbuilder.com/givingtuesday",
+	"buttonText": "Donate Today",
+	"name": "pre-giving-tuesday-2021-banner",
 	"schemaVersion": 1
 }

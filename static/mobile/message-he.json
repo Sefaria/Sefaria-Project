@@ -1,11 +1,11 @@
 {
 	"title": "Sefaria Community,",
 	"text": [
-		"נשמח אם תהיו שותפים בעיצוב עתידה של ספריא!\n",
-		"אנא ענו על הסקר שלנו- כדי לסייע לנו להתקדם ולהשתפר.\n"
+		"היום הוא יום הנתינה הבינלאומי, וזו ההזדמנות שלך לעזור לספריא לסלול דרכים חדשות ומקוריות להגדלת תחומי ההשפעה והתפוצה של אוצרות הספרות היהודית.",
+		"תרמו לרגל #יום–הנתינה–הבינלאומי."
     ],
-	"buttonLink": "https://www.surveymonkey.com/r/ZFH7G8V?source=App",
-	"buttonText": "למענה על הסקר",
-	"name": "survey-2021-1",
+	"buttonLink": "https://sefaria.nationbuilder.com/givingtuesday",
+	"buttonText": "לתרומה כעת",
+	"name": "pre-giving-tuesday-2021-banner",
 	"schemaVersion": 1
 }
