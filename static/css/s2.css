@@ -11612,7 +11612,6 @@ span.ref-link-color-3 {color: blue}
 .callContainer {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   height: 100%;
 }
 
