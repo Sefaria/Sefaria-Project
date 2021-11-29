@@ -1,1 +1,11 @@
-null
+{
+	"title": "",
+	"text": [
+		"In celebration of Chanukah and #GivingTuesday colliding, please help Sefaria raise $18,000 for the library!",
+		"Every donation counts towards expanding access to Jewish texts and improving your learning experience."
+    ],
+	"buttonLink": "https://sefaria.nationbuilder.com/givingtuesday",
+	"buttonText": "Donate Today",
+	"name": "pre-giving-tuesday-2021-banner-2",
+	"schemaVersion": 1
+}

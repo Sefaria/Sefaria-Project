@@ -5,16 +5,8 @@
 const socketIO = require('socket.io');
 const fetch = require('node-fetch');
 const jwt_decode = require('jwt-decode');
-const sqlite3 = require('sqlite3').verbose();
 const nodeStatic = require('node-static');
 const http = require('http');
-
-// initialize db
-const db = new sqlite3.Database('./db/chatrooms.db');
-db.run(`DROP TABLE IF EXISTS "chatrooms"`);
-console.log('creating and clearing db');
-db.run(`CREATE TABLE IF NOT EXISTS "chatrooms" ("name"	TEXT UNIQUE, "clients"	INTEGER DEFAULT 0, "roomStarted"	INTEGER, "namespace"	TEXT, PRIMARY KEY("name"));`)
-const os = require('os');
 
 // configure Turn & Stun servers:
 const TURN_SERVER = `turn:${process.env.TURN_SERVER}?transport=udp`;
@@ -32,138 +24,226 @@ const pcConfig = {
 
 //setup static server and initialize sockets
 const PORT = process.env.PORT || 8080;
-const fileServer = new(nodeStatic.Server)();
-const app = http.createServer(function(req, res) {
-    fileServer.serve(req, res);
-    // console.log(req.headers)
-}).listen(PORT);
 
-const io = socketIO.listen(app);
+const httpServer = require("http").createServer((req, res) => {
+    res.write('The DafRoulette WebRTC Server lives here.'); //write a response to the client
+    res.end(); //end the response
+});
+
+const io = require("socket.io")(httpServer, {
+  cors: {
+    origin: [
+        "http://localhost:8000",
+        "http://0.0.0.0:8000",
+        "https://www.sefaria.org",
+        "https://www.sefaria.org.il",
+        "https://chavruta.cauldron.sefaria.org",
+        /\.sefaria\.org$/,
+        /\.sefaria\.org.il$/
+    ],
+    methods: ["GET", "POST"]
+  }
+});
+
+httpServer.listen(PORT)
+
+//initialize global object for holding data on video chat rooms
+const chavrutot = {}
+//initialize global object for data on people in beit midrash
+const peopleInBeitMidrash = {};
+
+// globals for chavruta
+  let users = {};
+  let maximum = 2;
 
 
 
-io.sockets.on('connection', function(socket) {
+io.on("connection", (socket) => {
+  console.log(socket.id, socket.conn.remoteAddress, "connected")
 
-  socket.on('message', function(message, roomId) {
-    socket.to(roomId).emit('message', message);
-  });
+  //--------------------BEIT MIDRASH CODE-------------------------
 
-  function createNewRoom(uid, namespace="dafRoulette", uroom=false) {
-    const room = uroom ? uroom : Math.random().toString(36).substring(7);
-    socket.join(room, () => {
-      console.log(`${socket.id} created room ${room}`);
-      socket.emit('created', room);
-      db.run(`INSERT INTO chatrooms(name, clients, roomStarted, namespace) VALUES(?, ?, ?, ?)`, [room, uid, +new Date, namespace], function(err) {
-        if (err) {
-          console.log(err.message);
-        }
-      });
-    });
+  socket.emit("connectionStarted");
+
+  let disconnectHandler = {};
+
+  function addUserToBeitMidrash(uid, fullName, profilePic, slug, currentlyReading, beitMidrashId, socketId, inChavruta) {
+
+    const existingSocketIdForUser = Object.keys(peopleInBeitMidrash).find(key => peopleInBeitMidrash[key]["uid"] === uid);
+
+    peopleInBeitMidrash[socketId] = {}
+    peopleInBeitMidrash[socketId]["uid"] = uid;
+    peopleInBeitMidrash[socketId]["name"] = fullName;
+    peopleInBeitMidrash[socketId]["pic"] = profilePic;
+    peopleInBeitMidrash[socketId]["slug"] = slug
+    peopleInBeitMidrash[socketId]["beitMidrashId"] = beitMidrashId;
+    peopleInBeitMidrash[socketId]["currentlyReading"] = currentlyReading;
+    peopleInBeitMidrash[socketId]["inChavruta"] = inChavruta;
+
+    console.log("user added to beit midrash, current peopleInBeitMidrash:", peopleInBeitMidrash)
+
+    if (existingSocketIdForUser) {
+      delete peopleInBeitMidrash[existingSocketIdForUser];
+
+      socket.to(existingSocketIdForUser).emit('duplicate user');
+
+      console.log('deleted duplicate user')
+    }
+
+    socket.broadcast.emit("change in people", Object.values(peopleInBeitMidrash), uid);
+    socket.emit("change in people", Object.values(peopleInBeitMidrash), uid);
+
+    clearTimeout(disconnectHandler[uid])
   }
 
+  socket.on("update currently reading", (uid, currentlyReading) => {
+    if (!peopleInBeitMidrash[socket.id]) return
+    console.log(uid, ": ", currentlyReading)
+    peopleInBeitMidrash[socket.id]["currentlyReading"] = currentlyReading;
+    socket.broadcast.emit("change in people", Object.values(peopleInBeitMidrash), uid);
+    socket.emit("change in people", Object.values(peopleInBeitMidrash), uid);
+  })
 
+  socket.on("enter beit midrash", (uid, fullName, profilePic, slug, currentlyReading, beitMidrashId, inChavruta)=> {
+    console.log(uid, ": ", "entered the beit midrash")
+    addUserToBeitMidrash(uid, fullName, profilePic, slug, currentlyReading, beitMidrashId, socket.id, inChavruta)
+    socket.emit('creds', pcConfig)
+  });
 
+  socket.on("connect with other user", (uid, user) => {
+    const socketId = Object.keys(peopleInBeitMidrash).find(key => peopleInBeitMidrash[key]["uid"] === uid);
+    socket.to(socketId).emit('connection request', user);
+  });
 
-  socket.on('does room exist', function(roomID, uid) {
-    let sql = `SELECT name, clients FROM chatrooms WHERE name = ?`;
-    let room = roomID;
-    db.get(sql, [room], (err, row) => {
-      if (err) {
-        console.error(err.message);
-      }
+  socket.on("connection rejected", (uid) =>{
+    const socketId = Object.keys(peopleInBeitMidrash).find(key => peopleInBeitMidrash[key]["uid"] === uid);
+    socket.to(socketId).emit("send connection rejection")
+  });
 
-      if (!row) {
-        socket.emit('byeReceived');
-      }
-      else if (row.clients != 0 && row.clients != uid) {
-        socket.emit('byeReceived');
-      }
-    });
+  socket.on("call cancelled", (uid) =>{
+    const socketId = Object.keys(peopleInBeitMidrash).find(key => peopleInBeitMidrash[key]["uid"] === uid);
+    socket.to(socketId).emit("send call cancelled")
   });
 
 
-  //default private chevruta path
-  socket.on('start chevruta', function(uid, room) {
-    socket.emit('creds', pcConfig)
+  socket.on("send room ID to server", (uid, roomId)=> {
+    const socketId = Object.keys(peopleInBeitMidrash).find(key => peopleInBeitMidrash[key]["uid"] === uid);
+    socket.to(socketId).emit("send room ID to client", roomId)
+  });
 
+  socket.on("send chat message", (room) => {
+    if (!socket.rooms.has(room.roomId)) {
+      socket.join(room.roomId)
+    }
+    const socketIdsOfMsgReceiver = Object.keys(peopleInBeitMidrash).filter(key => peopleInBeitMidrash[key]["name"] === room.activeChatPartner.name);
+    const msgSender = peopleInBeitMidrash[socket.id]
+    if (msgSender) {
+      socketIdsOfMsgReceiver.forEach(socketId => {
+        console.log(`sending chat message to ${socketId} from ${msgSender.name}`)
+        socket.to(socketId).emit("received chat message", msgSender, room)
+      })
+    }
 
-    db.get(`SELECT name, clients from chatrooms WHERE name = ? AND namespace = ?`, [room, "private"], (err, row) => {
+  });
 
-      if (err) {
-        return console.error(err.message);
-      }
-
-      if (!row) {
-        createNewRoom(uid, "private", room);
-      }
-
-      else if (row.clients != 0) {
-        console.log(socket.id +' attempting to join room: '+ room)
-        socket.join(room, () => {
-          console.log('Client ID ' + socket.id + ' joined room ' + room);
-          socket.to(room).emit('join', room);
-          socket.emit('join', room);
-          db.run(`UPDATE chatrooms SET clients=? WHERE name=?`, [0, room]);
-        })
-      }
-
-      else {
-        socket.emit('room full');
-      }
-
-      });
+  socket.on("join chat room", (room) => {
+    socket.join(room.roomId)
   })
 
+  const leaveBeitMidrash = (socketId) => {
+    //remove user from beit midrash and update listing for clients
+    delete peopleInBeitMidrash[socketId];
+    console.log("user left beit midrash, current peopleInBeitMidrash:", peopleInBeitMidrash)
+    socket.broadcast.emit("change in people", Object.values(peopleInBeitMidrash));
+  }
 
+  socket.on("disconnecting", (reason)=> {
+      console.log(`${socket.id} ${peopleInBeitMidrash[socket.id] ? peopleInBeitMidrash[socket.id].name : ""} is disconnecting from rooms`, socket.rooms, `due to ${reason}`)
 
-
-
-  // Default Roulette Pathway:
-  socket.on('start roulette', function(uid, lastChevrutaID, namespace='dafRoulette' ) {
-    socket.emit('creds', pcConfig)
-
-    db.get(`SELECT COUNT(*) FROM chatrooms WHERE namespace=?`, [namespace], (err, rows) => {
-      if (err) {
-        return console.error(err.message);
+    //notify open chats that user left
+    const roomArray = Array.from(socket.rooms);
+    roomArray.forEach(room =>  {
+      if (room !== socket.id) {
+        socket.to(room).emit("leaving chat room")
       }
+    })
 
-      if (namespace == 'dafRoulette') {
-        let numRows = rows["COUNT(*)"];
-        socket.broadcast.emit('return rooms', numRows);
-        socket.emit('return rooms', numRows);
+    const socketId = socket.id;
+    if (peopleInBeitMidrash[socketId]) {
+      disconnectHandler[peopleInBeitMidrash[socketId]["uid"]] = setTimeout((sockedId) => {
+        leaveBeitMidrash(socketId)
+      }, 2000)
+    }
+
+  })
+
+  //---------------------------------------------------------------------------------
+  //----------------end of Beit Midrash code, start of RTC code----------------------
+  //---------------------------------------------------------------------------------
+
+
+
+  socket.on("candidate", (candidate, chavrutaId) => {
+    console.log("candidate: " + socket.id);
+    socket.to(chavrutaId).emit("getCandidate", candidate);
+  });
+
+  socket.on("join_chavruta", (data) => {
+    try {
+      peopleInBeitMidrash[socket.id]["inChavruta"] = true;
+    }
+    catch (e) {
+      console.log(e)
+    }
+    console.log(users[data.room])
+    socket.broadcast.emit("change in people", Object.values(peopleInBeitMidrash));
+    socket.emit("change in people", Object.values(peopleInBeitMidrash));
+
+    if (users[data.room]) {
+      console.log(1)
+      const length = users[data.room].length;
+      if (length === maximum) {
+        socket.to(socket.id).emit("room_full");
+        return;
       }
-        console.log('trying to find a room...')
-        db.all(`SELECT name, clients from chatrooms WHERE clients != 0 AND namespace = ? ORDER BY roomStarted`, [namespace], (err, rows) => {
+      users[data.room].push({ id: socket.id, sid: data.id });
+    } else {
+      console.log(2)
+      users[data.room] = [{ id: socket.id, sid: data.id }];
+    }
 
-          if (err) {
-            return console.error(err.message);
-          }
-          let foundRoom = false;
-          let rowIndex = 0;
+    socket.join(data.room);
 
-          while (foundRoom == false) {
-            if (rows.length == rowIndex) {
-              createNewRoom(uid, namespace);
-              foundRoom = true;
-            }
-            else if (rows[rowIndex].clients == lastChevrutaID) {
-              console.log('Client ID ' + socket.id + 'matched w/ the same chevrusa as last time')
-              rowIndex++;
-            }
-            else {
-              const room = rows[rowIndex].name;
-              console.log(socket.id +' attempting to join room: '+ room)
-              socket.join(room, () => {
-                console.log('Client ID ' + socket.id + ' joined room ' + room);
-                socket.to(room).emit('join', room);
-                socket.emit('join', room);
-                db.run(`UPDATE chatrooms SET clients=? WHERE name=?`, [0, room]);
-              });
-              foundRoom = true;
-            }
-          }
-        });
-    });
+    const usersInThisRoom = users[data.room].filter(
+      (user) => user.id !== socket.id
+    );
+
+
+    io.sockets.to(socket.id).emit("all_users", usersInThisRoom);
+  });
+
+
+  socket.on("offer", (sdp, chavrutaId) => {
+    console.log("offer: " + socket.id);
+    socket.to(chavrutaId).emit("getOffer", sdp);
+  });
+
+  socket.on("answer", (sdp, chavrutaId) => {
+    console.log("answer: " + socket.id);
+    socket.to(chavrutaId).emit("getAnswer", sdp);
+  });
+
+
+  socket.on("chavruta closed", (roomID) => {
+    peopleInBeitMidrash[socket.id]["inChavruta"] = false;
+    socket.broadcast.emit("change in people", Object.values(peopleInBeitMidrash));
+    socket.emit("change in people", Object.values(peopleInBeitMidrash));
+
+    if (users[roomID]) {
+      delete users[roomID];
+    }
+    socket.to(roomID).emit("user_exit");
+    console.log("users", users);
   });
 
   socket.on('ipaddr', function() {
@@ -177,21 +257,8 @@ io.sockets.on('connection', function(socket) {
     }
   });
 
-  socket.on('report user', function(room){
-    socket.to(room).emit('user reported');
-  });
-
-  socket.on('bye', function(room){
-    socket.to(room).emit('message', 'bye')
-    socket.leave(room, () => {
-        console.log(`bye received from ${socket.id} for room ${room}`);
-        db.run(`DELETE FROM chatrooms WHERE name=?`, room);
-        socket.emit('byeReceived');
-    });
-  });
-
-  socket.on('send user info', function(userName, uid, room) {
-    socket.to(room).emit('got user name', userName, uid);
+  socket.on('rejoin chavruta room', (room) => {
+    socket.join(room)
   })
 
 });
