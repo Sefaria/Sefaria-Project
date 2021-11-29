@@ -11256,12 +11256,13 @@ span.ref-link-color-3 {color: blue}
   display: inline-block;
   position: relative;
   background-image: url("/static/img/unmute.svg");
-  background-position: center;
+  /* background-position: center; */
   background-repeat: no-repeat;
-  background-size: contain;
+  background-size: auto;
   opacity: 1;
   width: 20px;
-  height: 20px;
+  height: 22px;
+  background-position: 5px;
 }
 
 .beitMidrashContainer .muted #micIcon {
