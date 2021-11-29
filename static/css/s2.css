@@ -11469,6 +11469,10 @@ span.ref-link-color-3 {color: blue}
   flex-grow: 1;
 }
 
+.beitMidrashUserNameStatus .fa-headphones {
+  margin-inline-start: 5px;
+}
+
 .beitMidrashOrg {
   font-weight: 200;
 }
