@@ -11276,7 +11276,7 @@ span.ref-link-color-3 {color: blue}
   width: 80%;
   justify-content: space-between;
   margin-top: -50px;
-  margin-inline-start: 25px;
+  margin-inline-start: 30px;
   padding-bottom: 50px;
 }
 
@@ -11694,7 +11694,7 @@ span.ref-link-color-3 {color: blue}
 }
 
 #currentlyReadingContainer {
-  margin: 5px 20px;
+  margin: 5px 30px;
   flex-grow: 1;
 }
 
