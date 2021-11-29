@@ -1,11 +1,12 @@
 {
-	"title": "",
+	"title": "Sefaria Community,",
 	"text": [
-		"In celebration of Chanukah and #GivingTuesday colliding, please help Sefaria raise $18,000 for the library!",
-		"Every donation counts towards expanding access to Jewish texts and improving your learning experience."
+		"Please join thousands of users today – from all around the world – who will be empowered to act with generosity this #GivingTuesday to support free Torah on Sefaria.",
+		"Join the movement by making a donation today to help us reach our one-day goal of raising $18,000 for the library.",
+		"When you do, you’ll empower Sefaria to continue its vital work of keeping the library running and bug free, and acquiring and digitizing new texts and translations."
     ],
 	"buttonLink": "https://sefaria.nationbuilder.com/givingtuesday",
-	"buttonText": "Donate Today",
-	"name": "pre-giving-tuesday-2021-banner-2",
+	"buttonText": "Give Today",
+	"name": "giving-tuesday-2021-modal-1",
 	"schemaVersion": 1
 }
