@@ -11372,7 +11372,8 @@ span.ref-link-color-3 {color: blue}
   font-weight: 400;
   display: flex;
   gap: 10px;
-  width: 270px;
+  /* width: 270px; */
+  padding-inline-end: 10px;
   padding-top: 10px;
   cursor: pointer;
 }
