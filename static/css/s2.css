@@ -11516,7 +11516,8 @@ span.ref-link-color-3 {color: blue}
   bottom: 0;
   right: 0;
   overflow: hidden;
-  height: 300px;
+  min-height: 300px;
+  max-height: 300px;
   display: flex;
   flex-direction: column;
   padding-top: 20px;
