@@ -168,6 +168,7 @@ class ITagNormalizer(AbstractNormalizer):
         return all_itags, soup
 
     def find_text_to_remove(self, s:str, **kwargs) -> list:
+        lenient = kwargs.get('lenient', False)  # if lenient, fail gracefully when you can't find an itag
         all_itags, _ = ITagNormalizer._get_all_itags(s)
         next_start = 0
         text_to_remove = []
@@ -176,7 +177,12 @@ class ITagNormalizer(AbstractNormalizer):
             start = s.find(itag_text, next_start)
             end = start+len(itag_text)
             if start == -1:
-                raise Exception(f"Couldn't find itag with text '{itag_text}' in\n{s}\nnext_start = {next_start}")
+                exception_text = f"Couldn't find itag with text '{itag_text}' in\n{s}\nnext_start = {next_start}"
+                if lenient:
+                    print(exception_text)
+                    continue
+                else:
+                    raise Exception(exception_text)
             text_to_remove += [((start, end), self.repl)]
             next_start = start + 1
 
@@ -242,7 +248,7 @@ class NormalizerComposer(AbstractNormalizer):
         mappings = []
         snorm = s
         for step in self.steps:
-            temp_text_to_remove = step.find_text_to_remove(snorm)
+            temp_text_to_remove = step.find_text_to_remove(snorm, **kwargs)
             if len(temp_text_to_remove) == 0:
                 text_to_remove_inds, text_to_remove_repls = [], []
             else:
@@ -251,8 +257,8 @@ class NormalizerComposer(AbstractNormalizer):
                 text_to_remove_inds = step.convert_normalized_indices_to_unnormalized_indices(text_to_remove_inds, mapping)
             temp_text_to_remove = list(zip(text_to_remove_inds, text_to_remove_repls))
             all_text_to_remove += [temp_text_to_remove]
-            mappings += [step.get_mapping_after_normalization(snorm)]
-            snorm = step.normalize(snorm)
+            mappings += [step.get_mapping_after_normalization(snorm, **kwargs)]
+            snorm = step.normalize(snorm, **kwargs)
         # merge any overlapping ranges
         # later edits should override earlier ones
         final_text_to_remove = reduce(lambda a, b: self.merge_removal_inds(a, b), all_text_to_remove)

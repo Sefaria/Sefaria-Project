@@ -1,10 +1,13 @@
 import django, csv, json, re
 from typing import List, Optional, Union, Tuple
 django.setup()
+from lxml import etree
+from io import StringIO
+from lxml.etree import XMLSyntaxError
 from tqdm import tqdm
 from collections import defaultdict
 from sefaria.model import *
-from sefaria.system.exceptions import InputError
+from sefaria.system.exceptions import InputError, DuplicateRecordError
 from sefaria.model.ref_part import ResolvedRawRef, RefPartType
 from sefaria.helper.normalization import NormalizerComposer
 
@@ -126,7 +129,13 @@ class YerushalmiCatcher:
 
     def catch_refs_in_category(self, cat: str):
         for title in library.get_indexes_in_category(cat):
+            print(title)
             self.catch_refs_in_title(title)
+
+    def wrap_refs_in_category(self, cat: str, output_html=False):
+        for title in library.get_indexes_in_category(cat):
+            print('wrap', title)
+            self.wrap_refs_in_title(title, output_html=output_html)
 
     def catch_refs_in_title(self, title: str):
         output_file = open(f'../data/yerushalmi refs/{title}.csv', 'w')
@@ -172,6 +181,8 @@ class YerushalmiCatcher:
 
     def get_note_ref(self, raw_ref_text, context_ref: Ref) -> Optional[Ref]:
         m = re.search(r"Notes? (\d+)(?:[\-–](\d+))?", raw_ref_text)
+        if m is None:
+            return None
         sec_fn = int(m.group(1))
         try:
             toSec_fn = int(m.group(2))
@@ -191,6 +202,7 @@ class YerushalmiCatcher:
 
     def post_process_resolved_refs(self, resolved_refs: List[ResolvedRawRef], context_ref: Ref) -> List[ResolvedRawRef]:
         prev_resolved_ref = None
+        verses_reg = r"^[vV](?:erses?| ?\.)"
         for resolved_ref in resolved_refs:
             parts = resolved_ref.raw_ref.raw_ref_parts
             if resolved_ref.ref is not None:
@@ -240,13 +252,13 @@ class YerushalmiCatcher:
                         print("FAILED to map", resolved_ref.ref.normal())
                     resolved_ref.ref = vilna_oref
             if resolved_ref.ref is None:
-                if 1 <= len(parts) <= 2 and re.search(r"^[vV] ?\. \d+", parts[0].text) is not None and prev_resolved_ref is not None and prev_resolved_ref.ref is not None and prev_resolved_ref.ref.primary_category == "Tanakh":
+                if 1 <= len(parts) <= 2 and re.search(fr"{verses_reg} \d+", parts[0].text) is not None and prev_resolved_ref is not None and prev_resolved_ref.ref is not None and prev_resolved_ref.ref.primary_category == "Tanakh":
                     if len(parts) == 1:
-                        pasuk = re.search(r"^[vV] ?\. (\d+)", parts[0].text).group(1)
+                        pasuk = re.search(fr"{verses_reg} (\d+)", parts[0].text).group(1)
                         perek = prev_resolved_ref.ref.sections[0]
                         sections = f"{perek}:{pasuk}"
                     else:
-                        sections = re.sub(r"^[vV] ?\. ", "", resolved_ref.raw_ref.text)
+                        sections = re.sub(fr"^{verses_reg} ", "", resolved_ref.raw_ref.text)
                     resolved_ref.ref = Ref(f"{prev_resolved_ref.ref.index.title} {sections}")
                 elif len(parts) == 1 and re.search(r"^vv ?\. \d+", parts[0].text) is not None and prev_resolved_ref is not None and prev_resolved_ref.ref is not None and prev_resolved_ref.ref.primary_category == "Tanakh":
                     sections = re.sub(r"^vv ?\. ", "", parts[0].text)
@@ -265,11 +277,31 @@ class YerushalmiCatcher:
                     note_ref = self.get_note_ref(resolved_ref.raw_ref.text, temp_context_ref)
                     if note_ref is not None:
                         resolved_ref.ref = note_ref
+                elif "Note" in resolved_ref.raw_ref.text:
+                    # note ref to another masechet
+                    span_end = None
+                    raw_ref = resolved_ref.raw_ref
+                    for i, part in enumerate(raw_ref.raw_ref_parts):
+                        if "Note" in part.text:
+                            span_end = i
+                            break
+                    if span_end is not None:
+                        subspan_slice = slice(0, span_end)
+                        subspan = raw_ref.subspan(subspan_slice)
+                        new_raw_ref = RawRef(raw_ref.raw_ref_parts[subspan_slice], subspan)
+                        temp_resolved_refs = self.resolver.resolve_raw_ref('en', context_ref, new_raw_ref)
+                        for temp_resolved_ref in temp_resolved_refs:
+                            temp_ref = temp_resolved_ref.ref
+                            if temp_ref is not None and temp_ref.index.title.startswith("Jerusalem Talmud"):
+                                note_ref = self.get_note_ref(resolved_ref.raw_ref.text, temp_ref)
+                                if note_ref is not None:
+                                    resolved_ref.ref = note_ref
 
             # map gug to vilna. this is dirty...
             if resolved_ref.ref is not None and re.match(r'(Mishnah|Jerusalem Talmud) ', resolved_ref.ref.index.title) is not None and "Note" not in resolved_ref.raw_ref.text:
                 oref = resolved_ref.ref
                 skip = False
+                ref_prob_ok = False
                 gug_keys = []
                 if oref.index.title.startswith('Jerusalem Talmud '):
                     is_mishna_level = len(oref.sections) == 3
@@ -285,9 +317,14 @@ class YerushalmiCatcher:
                         gug_keys += [sec_ref]
                 else:
                     # mishnah
-                    shas_title = re.match('Mishnah (.+?) \d+(?::\d+)?$', oref.normal()).group(1)
-                    if shas_title in self.mishna_not_in_yerushalmi:
+                    shas_match = re.match('Mishnah (.+?) \d+(?::\d+)?$', oref.normal())
+                    shas_title = None
+                    if shas_match is not None:
+                        shas_title = shas_match.group(1)
+                    if shas_title is None or shas_title in self.mishna_not_in_yerushalmi:
                         # not mappable. still possible the mishna is incorrect though
+                        if shas_title in self.mishna_not_in_yerushalmi:
+                            ref_prob_ok = True
                         print("SKIPPING mishna", oref.normal(), "CONTEXT", context_ref.normal())
                         skip = True
                     for seg_ref in oref.all_segment_refs():
@@ -304,12 +341,14 @@ class YerushalmiCatcher:
                             curr_vilna_oref = curr_vilna_oref.to(vilna_oref)
                         else:
                             curr_vilna_oref = vilna_oref
-                    if not skip:
+                    if not skip or ref_prob_ok:
                         resolved_ref.ref = curr_vilna_oref
                     # print("SUCCESSFUL gug=>vilna map", oref.normal(), '=>', resolved_ref.ref.normal(), "CONTEXT:", context_ref.normal())
                 except (KeyError, AttributeError):
-                    print("FAILED gug=>vilna map", oref.normal(), "CONTEXT:", context_ref.normal())
-                    resolved_ref.ref = None
+                    if not ref_prob_ok:
+                        if not skip:
+                            print("FAILED gug=>vilna map", oref.normal(), "CONTEXT:", context_ref.normal())
+                        resolved_ref.ref = None
 
 
             prev_resolved_ref = resolved_ref
@@ -320,6 +359,18 @@ class YerushalmiCatcher:
                 # remove ambiguous refs
                 resolved_ref.ref = None
         return resolved_refs
+
+    def valid_html_indices(self, start, end, s):
+        for s_offset, e_offset in ((0, 0), (-1, 0), (-2, 0), (-3, 0), (-4, 0)):
+            temp_start = max(0, start+s_offset)
+            temp_end = min(len(s)-1, end+e_offset)
+            temp_mention = s[temp_start:temp_end]
+            try:
+                etree.parse(StringIO(temp_mention), etree.HTMLParser(recover=False))
+                return temp_start, temp_end
+            except XMLSyntaxError:
+                pass
+        return -1, -1
 
     def get_wrapped_ref_link_string(self, links, s, context_ref):
         """
@@ -344,6 +395,11 @@ class YerushalmiCatcher:
                 # dont link if current text at startChar:endChar doesn't match text on link
                 print(context_ref, self.normalizer.normalize(mention), 'not equal', link['text'])
                 continue
+            start, end = self.valid_html_indices(start, end, s)
+            mention = s[start:end]  # update
+            if start == -1:
+                print("NO VALID HTML", mention, context_ref)
+                continue
             start_char_to_slug[start] = (mention, link['refURL'], link['ref'])
             char_list[start:end] = list(dummy_char*(end-start))
         dummy_text = "".join(char_list)
@@ -353,10 +409,11 @@ class YerushalmiCatcher:
                 mention, ref_url, ref = start_char_to_slug[match.start()]
             except KeyError:
                 return match.group()
-            return f"""<a href="/{ref_url}" class="refLink" data-ref="{ref}">{mention}</a>"""
+            classes = f'class="refLink {"na" if ref == "N/A" else ""}"'
+            return f"""<a href="/{ref_url}" {classes} data-ref="{ref}">{mention}</a>"""
         return re.sub(fr"{dummy_char}+", repl, dummy_text)
 
-    def wrap_refs_in_title(self, title):
+    def wrap_refs_in_title(self, title, output_html=False):
         from sefaria.tracker import modify_bulk_text
 
         link_obj_by_ref = defaultdict(list)
@@ -371,28 +428,129 @@ class YerushalmiCatcher:
             new_text = self.get_wrapped_ref_link_string(links, s, en_tref)
             text_map[en_tref] = new_text
 
+        def make_html_row(tref, s):
+            oref = Ref(tref)
+            s = s.replace('href="/', 'href="https://jt4.cauldron.sefaria.org/')
+            return f"""
+            <p><a href="https://jt4.cauldron.sefaria.org/{oref.url()}">{tref}</a></p>
+            <p>{s}</p>
+            """
+
         with open(f'../data/yerushalmi refs/{title}.csv', 'r') as fin:
             cin = csv.DictReader(fin)
             for row in cin:
-                if len(row['Parsed Ref']) == 0: continue
-                oref = Ref(row['Parsed Ref'])
-                if oref.is_empty(): continue
+                oref = None if len(row['Parsed Ref']) == 0 else Ref(row['Parsed Ref'])
+                if oref is None or oref.is_empty():
+                    ref = "N/A"
+                    ref_url = "N/A"
+                else:
+                    ref = oref.normal()
+                    ref_url = oref.url()
+
                 link_obj_by_ref[row['Context Ref']] += [{
                     "text": row['Raw Ref'],
                     "startChar": int(row['Start Char']),
                     "endChar": int(row["End Char"]),
-                    "ref": oref.normal(),
-                    "refURL": oref.url()
+                    "ref": ref,
+                    "refURL": ref_url
                 }]
         version = Version().load({"title": title, "versionTitle": self.vtitle, "language": self.lang})
         version.walk_thru_contents(create_text_map)
-        modify_bulk_text(5842, version, text_map, skip_links=True)
+        if output_html:
+            html = f"""
+            <html>
+                <head>
+                    <style>
+                        body {{
+                            width: 600px;
+                            margin-right: auto;
+                            margin-left: auto;
+                        }}
+                        .na {{
+                            color: red;
+                        }}
+                    </style>
+                </head>
+                <body>
+                {" ".join(make_html_row(x[0], x[1]) for x in sorted(text_map.items(), key=lambda x: Ref(x[0]).order_id()))}
+                </body
+            </html>
+            """
+            with open(f'../data/yerushalmi refs/html/{title}.html', 'w') as fout:
+                fout.write(html)
+        else:
+            modify_bulk_text(5842, version, text_map, skip_links=True)
+
+    def create_link_objects_in_title(self, title):
+        CHAR_DIST = 6  # maximum distance of start of citation from end of footnote i-tag to be considered a link object
+
+        footnote_end_char_map = defaultdict(list)
+        footnote_span_map = defaultdict(set)
+        footnote_reg = re.compile(r'<i class="footnote">')
+        normalizer = NormalizerComposer(['br-tag', 'itag'])
+        def footnote_mapper(s, en_tref, he_tref, v):
+            nonlocal footnote_end_char_map, footnote_reg, normalizer, footnote_span_map
+            for m in footnote_reg.finditer(s):
+                footnote_end_char_map[en_tref] += [m.end()]
+            itags = normalizer.find_text_to_remove(s, lenient=False)
+            for (start, end), _ in itags:
+                footnote_span_map[en_tref] |= set(range(start , end))
+
+        version = Version().load({"title": title, "versionTitle": VTITLE, "language": "en"})
+        if version is None: print("None version", title); return
+        version.walk_thru_contents(footnote_mapper)
+
+        links = []
+        with open(f'../data/yerushalmi refs/{title}.csv', 'r') as fin:
+            cin = csv.DictReader(fin)
+            for row in cin:
+                if len(row['Parsed Ref']) == 0: continue
+                start_char = int(row['Start Char'])
+                context_ref = row['Context Ref']
+                potential_link = {
+                    "refs": [context_ref, row['Parsed Ref']],
+                    "generated_by": "yerushalmi_refs_inline",
+                    "inline_citation": True
+                }
+                fn_end_chars = footnote_end_char_map[context_ref]
+                fn_indexes = footnote_span_map[context_ref]
+                if start_char in fn_indexes:
+                    # citation in a footnote. make sure it's close the beginning
+                    for end_char in fn_end_chars:
+                        dist = (start_char - end_char)
+                        if dist >= 0 and dist <= CHAR_DIST:
+                            links += [potential_link]
+                            footnote_end_char_map[context_ref] += [int(row['End Char'])]  # for a string of refs in a row
+                            break
+                else:
+                    # outside footnote
+                    links += [potential_link]
+
+        for l in tqdm(links, desc='save links'):
+            try:
+                Link(l).save()
+            except (KeyError, DuplicateRecordError):
+                pass
+
+    def create_link_objects_in_category(self, category):
+        """
+        only citations next to footnote i-tags will be made into link objects
+        """
+
+        for title in library.get_indexes_in_category(category):
+            self.create_link_objects_in_title(title)
 
 
 if __name__ == '__main__':
     catcher = YerushalmiCatcher('en', VTITLE, "../data/vilna_to_zukermandel_tosefta_map.json", "../data/gug_to_vilna_mishna_and_halacha_map.json")
-    catcher.catch_refs_in_title('Jerusalem Talmud Horayot')
-    # catcher.wrap_refs_in_title('Jerusalem Talmud Horayot')
+    # catcher.catch_refs_in_category('Yerushalmi')
+    # catcher.wrap_refs_in_category('Yerushalmi', output_html=True)
+    LinkSet({"generated_by": "yerushalmi_refs_inline"}).delete()
+    catcher.create_link_objects_in_category('Yerushalmi')
+
+    # catcher.catch_refs_in_title(f'Jerusalem Talmud Berakhot')
+    # catcher.create_link_objects_in_title('Jerusalem Talmud Berakhot')
+    # catcher.wrap_refs_in_title(f'Jerusalem Talmud Challah', output_html=True)
 
 """
 post processing
@@ -439,6 +597,34 @@ Mesora
 
 Examples to train on
 Jerusalem Talmud Yevamot 2:4:8
+Jerusalem Talmud Chagigah 2:5:2
+Jerusalem Talmud Chagigah 3:2:5
+Jerusalem Talmud Horayot 1:1:2
+Jerusalem Talmud Horayot 1:1:4
+Jerusalem Talmud Horayot 3:2:14
+Jerusalem Talmud Horayot 1:8:3
+Jerusalem Talmud Horayot 1:8:5
+Jerusalem Talmud Horayot 2:1:2
+Jerusalem Talmud Horayot 2:5:3
+Jerusalem Talmud Shabbat 7:2:8
+Jerusalem Talmud Shabbat 1:8:6
+Jerusalem Talmud Shabbat 12:1:6
+Jerusalem Talmud Shabbat 16:5:2
+Jerusalem Talmud Shabbat 16:7:2
+Jerusalem Talmud Shabbat 17:6:2
+Jerusalem Talmud Shabbat 21:3:1
+Jerusalem Talmud Shabbat 19:5:2
+Jerusalem Talmud Shabbat 1:8:3
+Jerusalem Talmud Shabbat 7:2:36
+Jerusalem Talmud Shabbat 17:1:3
+Jerusalem Talmud Berakhot 1:1:1
+Jerusalem Talmud Berakhot 9:1:4
+Jerusalem Talmud Berakhot 2:8:3
+Jerusalem Talmud Berakhot 2:4:16
+Jerusalem Talmud Berakhot 2:4:5
+Jerusalem Talmud Berakhot 2:3:16
+
+Jerusalem Talmud Shabbat 1:7:2 check dh is parsed correctly
 
 If ref is to JT
 or to Mishnah look up in map

@@ -323,9 +323,9 @@ class RefPartModifier:
             "Acharei Mot": "Achrei Mot",
         }
         other_node_map = {
-            "Braita d'Rabbi Yishmael": ["Introduction", "Wayyiqra"],
-            "Vayikra Dibbura d'Nedavah": [],
-            "Vayikra Dibbura d'Chovah": [],
+            "Braita d'Rabbi Yishmael": ["Introduction"],
+            "Vayikra Dibbura d'Nedavah": ["Wayyiqra 1", "Wayyiqra I"],
+            "Vayikra Dibbura d'Chovah": ["Wayyiqra 2", "Wayyiqra II"],
             "Tazria Parashat Yoledet": [],
             "Tazria Parashat Nega'im": [],
             "Metzora Parashat Zavim": [],
@@ -442,7 +442,7 @@ class RefPartModifier:
         self.t(en='Sifra', he='סיפרא', ref_part_role='structural')
         self.t(en='Ran', he='ר"ן', ref_part_role='structural')
         self.t(en='Perek', he='פרק', alt_en=["Pereq", 'Chapter'], ref_part_role='alt_title')
-        self.t(en='Parasha', he='פרשה', alt_en=['Parashah', 'Parašah', 'Parsha', 'Paraša'], ref_part_role='alt_title')
+        self.t(en='Parasha', he='פרשה', alt_en=['Parashah', 'Parašah', 'Parsha', 'Paraša', 'Paršetah', 'Paršeta', 'Parsheta', 'Parshetah'], ref_part_role='alt_title')
         self.t(en='Sefer', he='ספר', ref_part_role='alt_title')
         self.t(en='Halakha', he='הלכה', alt_en=['Halakhah', 'Halacha', 'Halachah', 'Halakhot'], ref_part_role='context_swap')
         self.t_from_titled_obj(Term().load({"name": "Parasha"}), ref_part_role='alt_title')
@@ -454,30 +454,43 @@ class RefPartModifier:
         from collections import defaultdict
         from sefaria.utils.hebrew import is_hebrew
         hard_coded_title_map = {
-            "Avodah Zarah": ["Avodah zarah"],
-            "Beitzah": ["Yom Tov", "Besah"],
+            "Avodah Zarah": ["Avodah zarah", "ˋAvodah zarah"],
+            "Beitzah": ["Yom Tov", "Besah", "Beẓah", "Bezah"],
             "Berakhot": ["Berkahot"],
-            "Bava Batra": ["Bava batra", "Baba batra"],
+            "Bava Batra": ["Bava batra", "Baba batra", "Bava bathra"],
             "Bava Kamma": ["Bava kamma", "Bava kama", "Baba kamma", "Baba kama", "Bava qama", "Baba qama", "Bava Qama", "Baba Qama", "Bava qamma", "Bava Qamma"],
-            "Bava Metzia": ["Bava mesi`a", "Baba Mesi‘a", "Baba mesi`a", "Bava Mesi‘a", "Bava mesi‘a"],
+            "Bava Metzia": ["Bava mesi`a", "Baba Mesi‘a", "Baba mesi`a", "Bava Mesi‘a", "Bava mesi‘a", "Bava mesiaˋ", "Baba meẓi‘a"],
             "Chullin": ["Hulin"],
             "Demai": ["Demay"],
             "Eduyot": ["Idiut"],
             "Horayot": ["Horaiot"],
-            "Kiddushin": ["Qiddušin"],
-            "Kilayim": ["Kilaim"],
+            "Kelim Batra": ["Kelim Baba Batra", "Kelim Baba batra", "Kelim Bava batra", "Kelim Bava bathra"],
+            "Kelim Kamma": ["Kelim Bava qamma", "Kelim Baba qamma", "Kelim Bava qama"],
+            "Kelim Metzia": ["Kelim Bava meṣiaˋ", "Kelim mesi`a", "Kelim Bava Meṣiaˋ"],
+            "Kiddushin": ["Qiddušin", "Qiddusin"],
+            "Keritut": ["Kritut", "Kritot", "Keritot"],
+            "Kilayim": ["Kilaim", "Kil’aim", "Kil`aim"],
+            "Maaserot": ["Maserot", "Maˋserot", "Maasrot", "Maˋsrot"],
             "Makhshirin": ["Makhširin"],
+            "Makkot": ["Makkot", "Makot"],
             "Meilah": ["Me‘ilah", "Meˋilah"],
-            "Moed Katan": ["Mo‘ed qatan", "Mo‘ed Qatan", "Moˋed qatan", "Moˋed Qatan"],
+            "Menachot": ["Menaḥot"],
+            "Mikvaot": ["Miqwaot", "Miqwa’ot", "Miqwaˋot"],
+            "Moed Katan": ["Mo‘ed qatan", "Mo‘ed Qatan", "Moˋed qatan", "Moˋed Qatan", "Moëd qaṭan", "Mašqin", "Masqin"],
+            "Nedarim": ["N'edarim", "Nˋedarim"],
             "Negaim": ["Negaˋim"],
             "Oholot": ["Ahilut", "Ahilot"],
-            "Pesachim": ["Pisha"],
+            "Oktzin": ["Uqeẓin", "Uqezin", "Uqesin"],
+            "Pesachim": ["Pisha", "Psachim", "Pesachim", "Pesaḥim"],
             "Rosh Hashanah": ["Roš Haššanah", "Rosh Haššanah"],
-            "Shabbat": ["Šabbat"],
+            "Shabbat": ["Šabbat", "Sabbat"],
             "Shekalim": ["Šeqalim"],
             "Sheviit": ["Ševi‘it", "Ševiˋit"],
-            "Shevuot": ["Šebuot", "Ševuˋot", "Ševu‘ot", "Šebuot"],
-            "Taanit": ["Ta ˋ anit", "Taˋanit", "Ta‘anit"],
+            "Shevuot": ["Šebuot", "Ševuˋot", "Ševu‘ot", "Šebuot", "Ševuot"],
+            "Taanit": ["Ta ˋ anit", "Taˋanit", "Ta‘anit", "Taˋaniot", "Taäniot", "Taänit"],
+            "Yadayim": ["Yadaim"],
+            "Yevamot": ["Yebamot", "Jebamot", "Jebamoth"],
+            "Yoma": ["Kippurim"],
             "Zevachim": ["Zevahim", "Zebahim"],
         }
         title_map = defaultdict(set)
@@ -511,16 +524,22 @@ class RefPartModifier:
 
     def create_tanakh_terms(self):
         hard_coded_tanakh_map = {
+            "Ezekiel": ["Ezechiel"],
             "I Samuel": ["1S."],
             "II Samuel": ["2S."],
-            "I Kings": ["1K."],
-            "II Kings": ["2K."],
+            "I Kings": ["1K.", "1Kings"],
+            "II Kings": ["2K.", "2Kings"],
             "Zechariah": ["Sach."],
             "I Chronicles": ["1Chr."],
             "II Chronicles": ["2Chr."],
-            "Lamentations": ["Thr.", "Threni"],
+            "Lamentations": ["Thr.", "Threni", "Lament.", "Ekha"],
+            "Zephaniah": ["Soph."],
             "Ruth": ["Ru."],
+            "Song of Songs": ["Cant."],
+            "Psalms": ["Pss."],
             "Deuteronomy": ["D eut."],
+            "Ecclesiastes": ["Qohelet"],
+            "Malachi": ["Maleachi"],
         }
         hard_coded_parsha_map = {
             "Metzora": ["Mesora‘", "Mesora"],

@@ -1083,7 +1083,7 @@ class DiburHamatchilNode(abst.AbstractMongoRecord):
     def fuzzy_match_score(self, raw_ref_part):
         # TODO improve this amazing algorithm
         dh = raw_ref_part.get_dh_text_to_match()
-        if dh is not None and dh in self.dibur_hamatchil:
+        if dh is not None and self.dibur_hamatchil.startswith(dh):
             return 1.0
         return 0.0
 

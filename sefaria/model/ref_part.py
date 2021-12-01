@@ -657,7 +657,7 @@ class RefResolver:
         return doc.ents
 
     def _bulk_get_raw_ref_spans(self, lang: str, input: List[str], batch_size=150, **kwargs) -> Generator[List[Span], None, None]:
-        for doc in self.get_raw_ref_model(lang).pipe(input, batch_size=batch_size, n_process=16, **kwargs):
+        for doc in self.get_raw_ref_model(lang).pipe(input, batch_size=batch_size, **kwargs):
             if kwargs.get('as_tuples', False):
                 doc, context = doc
                 yield doc.ents, context
@@ -669,7 +669,7 @@ class RefResolver:
         return doc.ents
 
     def _bulk_get_raw_ref_part_spans(self, lang: str, input: List[str], batch_size=None, **kwargs) -> Generator[List[Span], None, None]:
-        for doc in self.get_raw_ref_part_model(lang).pipe(input, batch_size=batch_size or len(input), n_process=16, **kwargs):
+        for doc in self.get_raw_ref_part_model(lang).pipe(input, batch_size=batch_size or len(input), **kwargs):
             if kwargs.get('as_tuples', False):
                 doc, context = doc
                 yield doc.ents, context
@@ -711,7 +711,7 @@ class RefResolver:
                 for match in unrefined_matches:
                     try:
                         match.ref = match.ref.subref(context_ref.sections[:-len(temp_raw_ref.raw_ref_parts)])
-                    except AttributeError:
+                    except (InputError, AttributeError):
                         continue
             temp_resolved_list = self.refine_ref_part_matches(lang, unrefined_matches, temp_raw_ref)
             if len(temp_resolved_list) > 1:
@@ -854,7 +854,8 @@ class RefResolver:
             max_resolved_refs += [resolved_ref]
 
         # remove matches that have empty refs
-        max_resolved_refs = list(filter(lambda x: not x.ref.is_empty(), max_resolved_refs))
+        # TODO removing for now b/c of yerushalmi project. doesn't seem necessary to happen here anyway.
+        # max_resolved_refs = list(filter(lambda x: not x.ref.is_empty(), max_resolved_refs))
 
         # remove title context matches that don't match all ref parts to avoid false positives
         max_resolved_refs = list(filter(lambda x: x.resolution_method not in {ResolutionMethod.TITLE, ResolutionMethod.GRAPH} or len(x.resolved_ref_parts) == len(x.raw_ref.raw_ref_parts), max_resolved_refs))
