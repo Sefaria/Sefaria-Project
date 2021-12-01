@@ -377,7 +377,9 @@ const UserInBeitMidrash = ({user, userClasses, startChat, onBlockUser}) => {
   const userDetailsMenu = useRef();
 
   useEffect(()=>{
-    userDetailsMenu.current.focus();
+      if (userDetailsOpen == true) {
+        userDetailsMenu.current.focus();
+      }
   }, [userDetailsOpen])
 
   return (
