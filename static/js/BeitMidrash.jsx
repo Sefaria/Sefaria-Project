@@ -388,7 +388,7 @@ const UserInBeitMidrash = ({user, userClasses, startChat, onBlockUser}) => {
               onBlur={()=>{setUserDetailsOpen(false)}}
               className={userDetailsOpen ? "userDetailsMenu" : "userDetailsMenu hidden"}
               ref={userDetailsMenu}
-            >
+              dir={Sefaria.interfaceLang === "hebrew" ? "rtl" : "ltr"}>
               <ul>
                 <li onClick={() => {window.open(`/profile/${user.slug}`)}}>
                     <img src="/static/icons/profile.svg" aria-hidden="true"/><InterfaceText>View Profile</InterfaceText></li>

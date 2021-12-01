@@ -11276,12 +11276,13 @@ span.ref-link-color-3 {color: blue}
   display: inline-block;
   position: relative;
   background-image: url("/static/img/unmute.svg");
-  background-position: center;
+  /* background-position: center; */
   background-repeat: no-repeat;
-  background-size: contain;
+  background-size: auto;
   opacity: 1;
   width: 20px;
-  height: 20px;
+  height: 22px;
+  background-position: 5px;
 }
 
 .beitMidrashContainer .muted #micIcon {
@@ -11295,9 +11296,9 @@ span.ref-link-color-3 {color: blue}
   display: flex;
   width: 80%;
   justify-content: space-between;
-  margin-top: -35px;
-  margin-inline-start: 25px;
-  padding-bottom: 35px;
+  margin-top: -50px;
+  margin-inline-start: 30px;
+  padding-bottom: 50px;
 }
 
 .beitMidrashContainer .endCallButton {
@@ -11417,10 +11418,20 @@ span.ref-link-color-3 {color: blue}
   background-color: black;
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
   border-radius: 6px;
-  right: 20px;
+  right: 30px;
 }
+.beitMidrashUser .userDetailsMenu[dir="rtl"] {
+  position: absolute;
+  background-color: black;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  border-radius: 6px;
+  left: 30px;
+  right: auto;
+}
+
 .beitMidrashUser .userDetailsMenu.hidden {
   right: -99999px;
+  left: auto;
 }
 .beitMidrashUser .largeFollowButton {
   all: revert;
@@ -11486,6 +11497,10 @@ span.ref-link-color-3 {color: blue}
 
 .beitMidrashUserNameStatus {
   flex-grow: 1;
+}
+
+.beitMidrashUserNameStatus .fa-headphones {
+  margin-inline-start: 5px;
 }
 
 .beitMidrashOrg {
@@ -11632,7 +11647,6 @@ span.ref-link-color-3 {color: blue}
 .callContainer {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   height: 100%;
 }
 
@@ -11715,7 +11729,7 @@ span.ref-link-color-3 {color: blue}
 }
 
 #currentlyReadingContainer {
-  margin: 5px 20px;
+  margin: 5px 30px;
   flex-grow: 1;
 }
 

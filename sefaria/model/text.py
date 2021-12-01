@@ -1283,7 +1283,8 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         "extendedNotes",
         "extendedNotesHebrew",
         "purchaseInformationImage",
-        "purchaseInformationURL"
+        "purchaseInformationURL",
+        "hasManuallyWrappedRefs",  # true for texts where refs were manually wrapped in a-tags. no need to run linker at run-time.
     ]
 
     def __str__(self):
@@ -1907,6 +1908,13 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
         else:
             raise Exception("Called TextChunk.version() on merged TextChunk.")
 
+    def has_manually_wrapped_refs(self):
+        try:
+            return getattr(self.version(), 'hasManuallyWrappedRefs', False)
+        except:
+            # merged version
+            return False
+
     def nonempty_segment_refs(self):
         """
 
@@ -2198,7 +2206,7 @@ class TextFamily(object):
                     text_modification_funcs += [lambda s, secs: library.get_wrapped_named_entities_string(ne_by_secs[tuple(secs)], s)]
             if stripItags:
                 text_modification_funcs += [lambda s, secs: c._strip_itags(s), lambda s, secs: ' '.join(s.split()).strip()]
-            if wrapLinks and c.version_ids():
+            if wrapLinks and c.version_ids() and not c.has_manually_wrapped_refs():
                 #only wrap links if we know there ARE links- get the version, since that's the only reliable way to get it's ObjectId
                 #then count how many links came from that version. If any- do the wrapping.
                 from . import Link
