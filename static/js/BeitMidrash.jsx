@@ -27,6 +27,7 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
     const [usersWithUnreadMsgs, setUsersWithUnreadMsgs] = useState([])
     const [shouldUpdateChats, setShouldUpdateChats] = useState(false)
     const [userToBlock, setUserToBlock] = useState(null);
+    const [currentActiveChatRoom, setCurrentActiveChatRoom] = useState(null);
 
     const filterDedupeAndSortPeople = (people) => {
         const dedupedPeople = people.filter((person, index,self) => {
@@ -230,6 +231,15 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
 
     }, [activeChatRooms, blockedUsers, currentChatRoom])
 
+    useEffect(() => {
+        const myChatRoom = activeChatRooms.filter(room => room.roomId = currentChatRoom);
+        const chatRoom =  myChatRoom.length >= 1 ? myChatRoom[0] : null;
+        if (!currentActiveChatRoom || (chatRoom && currentActiveChatRoom.roomId !== chatRoom.roomId)) {
+            setCurrentActiveChatRoom(chatRoom);
+        }
+    }, [currentChatRoom, activeChatRooms, currentActiveChatRoom])
+
+
     const pairsLearning = (people) => {
         //create an array of roomIds
         const rooms = people.map(user => user.roomId);
@@ -312,6 +322,7 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
                 setPartnerLeftNotification={setPartnerLeftNotification}
                 onBlockUser={onBlockUser}
                 onUnblockUser={onUnblockUser}
+                currentActiveChatRoom={currentActiveChatRoom}
             /> :
                 currentScreen == "callingChavruta" ?
             <>
@@ -334,28 +345,25 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
                     activeChavruta={activeChavruta}
                     setCurrentScreen={setCurrentScreen}
                 />
-                 {activeChatRooms.map(room => {
-                    if (room.roomId === currentChatRoom) {
-                        return <ChatBox
-                            key={room.roomId}
-                            room={room}
-                            handleCloseChat={handleCloseChat}
-                            chavrutaCallInitiated={chavrutaCallInitiated}
-                            chavrutaRequestReceived={chavrutaRequestReceived}
-                            activeChavruta={activeChavruta}
-                            socket={socketObj}
-                            shouldUpdateChats={shouldUpdateChats}
-                            setShouldUpdateChats={setShouldUpdateChats}
-                            markRead={markRead}
-                            profile={profile}
-                            partnerLeftNotification={partnerLeftNotification}
-                            setPartnerLeftNotification={setPartnerLeftNotification}
-                            onBlockUser={onBlockUser}
-                            onUnblockUser={onUnblockUser}
-                            hideHideButton={true}
-                        />
-                    }
-                })}
+                {currentActiveChatRoom ? 
+                <ChatBox
+                        key={currentActiveChatRoom.roomId}
+                        room={currentActiveChatRoom}
+                        handleCloseChat={handleCloseChat}
+                        chavrutaCallInitiated={chavrutaCallInitiated}
+                        chavrutaRequestReceived={chavrutaRequestReceived}
+                        activeChavruta={activeChavruta}
+                        socket={socketObj}
+                        shouldUpdateChats={shouldUpdateChats}
+                        setShouldUpdateChats={setShouldUpdateChats}
+                        markRead={markRead}
+                        profile={profile}
+                        partnerLeftNotification={partnerLeftNotification}
+                        setPartnerLeftNotification={setPartnerLeftNotification}
+                        onBlockUser={onBlockUser}
+                        onUnblockUser={onUnblockUser}
+                    /> :
+                    null}
                 <BeitMidrashFooter />
             </>
 
@@ -426,10 +434,8 @@ const BeitMidrashFooter = () => {
     )
 }
 
-const BeitMidrashHome = ({beitMidrashId,
+const BeitMidrashHome = ({
                         peopleInBeitMidrash,
-                        activeChatRooms,
-                        currentChatRoom,
                         startChat,
                         handleCloseChat,
                         chavrutaCallInitiated,
@@ -444,8 +450,9 @@ const BeitMidrashHome = ({beitMidrashId,
                         usersWithUnreadMsgs,
                         shouldUpdateChats,
                         setShouldUpdateChats,
-                        markRead
-                        }) => {
+                        markRead,
+                        currentActiveChatRoom
+                        }) => {             
 
     return (<div className="beitMidrashHomeContainer">
             {/*<div id="newCall"><a href="/chavruta"><img src="/static/img/camera_with_plus.svg" id="newCallImg" /><span>New Call</span></a></div>*/}
@@ -476,7 +483,26 @@ const BeitMidrashHome = ({beitMidrashId,
             {/* <div>
             {peopleInBeitMidrash ? pairsLearning(peopleInBeitMidrash).map((pair, i)  => <li key={i}>{pair.map(user => user.name).join(", ")}</li>) : null}
             </div> */}
-            {activeChatRooms.map(room => {
+            {currentActiveChatRoom ? 
+                <ChatBox
+                        key={currentActiveChatRoom.roomId}
+                        room={currentActiveChatRoom}
+                        handleCloseChat={handleCloseChat}
+                        chavrutaCallInitiated={chavrutaCallInitiated}
+                        chavrutaRequestReceived={chavrutaRequestReceived}
+                        activeChavruta={activeChavruta}
+                        socket={socket}
+                        shouldUpdateChats={shouldUpdateChats}
+                        setShouldUpdateChats={setShouldUpdateChats}
+                        markRead={markRead}
+                        profile={profile}
+                        partnerLeftNotification={partnerLeftNotification}
+                        setPartnerLeftNotification={setPartnerLeftNotification}
+                        onBlockUser={onBlockUser}
+                        onUnblockUser={onUnblockUser}
+                    /> :
+                    null}
+            {/* {activeChatRooms.map(room => {
                 if (room.roomId === currentChatRoom) {
                     return <ChatBox
                         key={room.roomId}
@@ -495,8 +521,8 @@ const BeitMidrashHome = ({beitMidrashId,
                         onBlockUser={onBlockUser}
                         onUnblockUser={onUnblockUser}
                     />
-                }
-            })}
+                } */}
+            
         <BeitMidrashFooter />
     </div>)
 }
