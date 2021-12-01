@@ -1754,14 +1754,14 @@ class ReaderApp extends Component {
 
 
   placeInAppAd() {
-    const context = this.getUserContext()
+    const context = this.getUserContext();
 
     const ads = [
       {
         messageName: "beitMidrash-Torah-dec-1-1",
         messageHTML: "<p>" +
-            "<a href='/beit-midrash/chanukah?ref=Sheet.355999&utm_source=sefaria&utm_medium=banner&utm_campaign=beitmidrashtest'>" +
-            "Learning the Weekly Torah Portion? Join us in our new Beit Midrash." +
+            "<a href='/beit-midrash/chanukah?ref=Sheet.355999'>" +
+            "Learning the Weekly Torah Portion? Join us in our new Beit Midrash!" +
             "</a></p>",
         style: "banner",
         repetition: 1,
@@ -1769,23 +1769,23 @@ class ReaderApp extends Component {
           isLoggedIn: true,
           interfaceLang: "english",
           dt_start: Date.parse("1 Dec 2021 12:00:00 UTC"),
-          dt_end: Date.parse("1 Dec 2021 13:00:00 UTC"),
+          dt_end: Date.parse("3 Dec 2021 05:00:00 UTC"),
           keywordTargets: ["Genesis"],
         }
       },
       {
         messageName: "beitMidrash-dafyomi-dec-1-1",
         messageHTML: "<p>" +
-            "<a href='/beit-midrash/chanukah?ref=Sheet.355999&utm_source=sefaria&utm_medium=banner&utm_campaign=beitmidrashtest'>" +
-            "Learning Daf Yomi? Join us in our new Beit Midrash." +
+            "<a href='/beit-midrash/chanukah?ref=Sheet.355999'>" +
+            "Learning Daf Yomi? Join us in our new Beit Midrash!" +
             "</a></p>",
         style: "banner",
         repetition: 1,
         trigger: {
           isLoggedIn: true,
           interfaceLang: "english",
-          dt_start: Date.parse("2 Dec 2020 02:00:00 UTC"),
-          dt_end: Date.parse("2 Dec 2021 03:00:00 UTC"),
+          dt_start: Date.parse("1 Dec 2020 02:00:00 UTC"),
+          dt_end: Date.parse("3 Dec 2021 05:00:00 UTC"),
           keywordTargets: ["Taanit"],
         }
       }
@@ -1795,8 +1795,8 @@ class ReaderApp extends Component {
     const currentAd = ads.filter(ad => {
 
          return (
-             ad.trigger.isLoggedIn == !!context.isLoggedIn &&
-             ad.trigger.interfaceLang == context.interfaceLang &&
+             ad.trigger.isLoggedIn === !!context.isLoggedIn &&
+             ad.trigger.interfaceLang === context.interfaceLang &&
              (Sefaria._inBrowser && !document.cookie.includes(`${ad.messageName}_${ad.repetition}`)) &&
              context.dt > ad.trigger.dt_start && context.dt < ad.trigger.dt_end &&
              context.keywordTargets.some(kw => ad.trigger.keywordTargets.includes(kw))
@@ -1815,21 +1815,21 @@ class ReaderApp extends Component {
   }
 
   getUserContext() {
-    const refs = this.state.panels.map(panel => panel.currentlyVisibleRef || panel.bookRef)
-    const books = refs.map(ref => Sefaria.parseRef(ref).book)
+    const refs = this.state.panels.map(panel => panel.currentlyVisibleRef || panel.bookRef);
+    const books = refs.map(ref => Sefaria.parseRef(ref).book);
     const triggers = refs.map(ref => Sefaria.refCategories(ref))
           .concat(books)
           .concat(refs)
-          .flat()
-    const deDupedTriggers = [...new Set(triggers.map(JSON.stringify))].map(JSON.parse)
-    console.log(deDupedTriggers)
+          .flat();
+    const deDupedTriggers = [...new Set(triggers.map(JSON.stringify))].map(JSON.parse);
+    console.log(deDupedTriggers);
 
     const context = {
       isLoggedIn: Sefaria._uid,
       interfaceLang: Sefaria.interfaceLang,
       dt: Sefaria.util.epoch_time(new Date())*1000,
       keywordTargets: refs ? deDupedTriggers : []
-    }
+    };
     return context
   }
 
