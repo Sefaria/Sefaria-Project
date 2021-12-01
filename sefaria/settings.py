@@ -298,10 +298,10 @@ CACHES = {
 
 
 GLOBAL_INTERRUPTING_MESSAGE = {
-    "name":       "pre-giving-tuesday-2021-banner",
-    "style":      "banner", # "modal" or "banner"
-    "repetition": 2,
-    "is_fundraising": True,
+    "name":       "giving-tuesday-2021-modal",
+    "style":      "modal", # "modal" or "banner"
+    "repetition": 1,
+    "is_fundraising": False,
     "condition":  {
         "returning_only": False,
         "english_only": False,
