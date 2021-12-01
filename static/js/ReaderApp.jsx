@@ -182,11 +182,6 @@ class ReaderApp extends Component {
     // Save all initial panels to recently viewed
     this.state.panels.map(this.saveLastPlace);
 
-    //hide Beit Midrash in an iframe (ie, if chavruta call is active)
-    if (window.location !== window.parent.location) {
-      this.setState({beitMidrashStatus: false})
-    }
-
     this.setBeitMidrashId()
   }
   componentWillUnmount() {
@@ -1754,6 +1749,12 @@ class ReaderApp extends Component {
 
 
   placeInAppAd() {
+    console.log(this.state.inCustomBeitMidrash)
+
+    if (this.state.inCustomBeitMidrash) {
+      return (null)
+    }
+
     const context = this.getUserContext();
 
     const ads = [
