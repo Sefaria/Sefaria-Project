@@ -104,7 +104,7 @@ def post_modify_text(user, action, oref, lang, vtitle, old_text, curr_text, vers
 
         if USE_VARNISH:
             invalidate_linked(oref)
-    
+    # rabbis_move(oref, vtitle)
     count_and_index(oref, lang, vtitle, to_count=kwargs.get("count_after", 1))
 
 
