@@ -258,21 +258,26 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
         setUsersWithUnreadMsgs(usersWithUnreadMsgs.filter(users => users !== uid));
     }
 
-    const startChat = (activeChatPartner) => {
-        Sefaria.track.event("BeitMidrash", "Opened Chat With User", "Had Notifications", usersWithUnreadMsgs.includes(activeChatPartner.uid));
-        // setUsersWithUnreadMsgs(usersWithUnreadMsgs.filter(users => users !== activeChatPartner.uid));
-        markRead(activeChatPartner.uid)
-        setActiveChavruta(activeChatPartner);
-        let roomId = activeChatPartner.uid < Sefaria._uid ? `${activeChatPartner.uid}-${Sefaria._uid}`: `${Sefaria._uid}-${activeChatPartner.uid}`
+    const startChat = (activeChatPartner, e=null) => {
+        if(e && e.target.name === 'toggleUserDetails') {
+            e.preventDefault();
+            e.stopPropagation();
+        } else {
+            Sefaria.track.event("BeitMidrash", "Opened Chat With User", "Had Notifications", usersWithUnreadMsgs.includes(activeChatPartner.uid));
+            // setUsersWithUnreadMsgs(usersWithUnreadMsgs.filter(users => users !== activeChatPartner.uid));
+            markRead(activeChatPartner.uid)
+            setActiveChavruta(activeChatPartner);
+            let roomId = activeChatPartner.uid < Sefaria._uid ? `${activeChatPartner.uid}-${Sefaria._uid}` : `${Sefaria._uid}-${activeChatPartner.uid}`
 
-        const me = {uid: Sefaria._uid, name: Sefaria.full_name, pic: Sefaria.profile_pic_url, slug: profile.slug}
-        const room = {roomId, activeChatPartner: activeChatPartner, me: me};
+            const me = { uid: Sefaria._uid, name: Sefaria.full_name, pic: Sefaria.profile_pic_url, slug: profile.slug }
+            const room = { roomId, activeChatPartner: activeChatPartner, me: me };
 
-        const currentActiveChatRoomIds = activeChatRooms.map(room => {return room.roomId})
-        if (!currentActiveChatRoomIds.includes(roomId)) {
-            setActiveChatRooms([room]);
+            const currentActiveChatRoomIds = activeChatRooms.map(room => { return room.roomId })
+            if (!currentActiveChatRoomIds.includes(roomId)) {
+                setActiveChatRooms([room]);
+            }
+            setCurrentChatRoom(roomId)
         }
-        setCurrentChatRoom(roomId)
     }
 
     const handleCloseChat = (roomObj) => {
@@ -383,7 +388,7 @@ const UserInBeitMidrash = ({user, userClasses, startChat, onBlockUser}) => {
   }, [userDetailsOpen])
 
   return (
-    <div className={classNames(userClasses)} key={user.uid} onClick={() => startChat(user)}>
+    <div className={classNames(userClasses)} key={user.uid} onClick={e => startChat(user, e)}>
         <ProfilePic len={42} url={user.pic} name={user.name} id="beitMidrashProfilePic"/>
         <div className="beitMidrashUserText">
             <div className="beitMidrashUserHeader">
@@ -391,7 +396,7 @@ const UserInBeitMidrash = ({user, userClasses, startChat, onBlockUser}) => {
             {user.name}
             {user.inChavruta ? <i className="fa fa-headphones" title={`${user.name} is current in a chavruta`}></i> : null}
             </div>
-            <img src="/static/icons/ellipses.svg" className="userDetailsToggle" aria-label="toggle user details" onClick={()=>{setUserDetailsOpen(true)}}/>
+            <img src="/static/icons/ellipses.svg" className="userDetailsToggle" aria-label="toggle user details" name="toggleUserDetails" onClick={()=>{setUserDetailsOpen(true)}}/>
             </div>
             <div
               tabIndex={0}
