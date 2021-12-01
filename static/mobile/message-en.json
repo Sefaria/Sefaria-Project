@@ -1,11 +1,12 @@
 {
 	"title": "Sefaria Community,",
 	"text": [
-		"Your opinion matters — Be a part of Sefaria's future!\n",
-		"Please take our user survey to help us understand your experience and improve our offerings. You will receive a special thank you for your participation.\n",
+		"Please join thousands of users today – from all around the world – who will be empowered to act with generosity this #GivingTuesday to support free Torah on Sefaria.",
+		"Join the movement by making a donation today to help us reach our one-day goal of raising $18,000 for the library.",
+		"When you do, you’ll empower Sefaria to continue its vital work of keeping the library running and bug free, and acquiring and digitizing new texts and translations."
     ],
-	"buttonLink": "https://www.surveymonkey.com/r/sefariasurvey2021_en?source=App",
-	"buttonText": "Take the Survey",
-	"name": "survey-2021-1",
+	"buttonLink": "https://sefaria.nationbuilder.com/givingtuesday",
+	"buttonText": "Give Today",
+	"name": "giving-tuesday-2021-modal-1",
 	"schemaVersion": 1
 }

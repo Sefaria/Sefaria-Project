@@ -14,6 +14,7 @@ from html import unescape
 import redis
 import os
 import re
+import uuid
 
 from rest_framework.decorators import api_view
 from django.template.loader import render_to_string
@@ -168,7 +169,7 @@ def base_props(request):
     """
     from sefaria.model.user_profile import UserProfile, UserWrapper
     from sefaria.site.site_settings import SITE_SETTINGS
-    from sefaria.settings import DEBUG, GLOBAL_INTERRUPTING_MESSAGE
+    from sefaria.settings import DEBUG, GLOBAL_INTERRUPTING_MESSAGE, RTC_SERVER
 
     if hasattr(request, "init_shared_cache"):
         logger.warning("Shared cache disappeared while application was running")
@@ -189,6 +190,7 @@ def base_props(request):
             "is_history_enabled": profile.settings.get("reading_history", True),
             "translationLanguagePreference": request.translation_language_preference,
             "following": profile.followees.uids,
+            "blocking": profile.blockees.uids,
             "calendars": get_todays_calendar_items(**_get_user_calendar_params(request)),
             "notificationCount": profile.unread_notification_count(),
             "notifications": profile.recent_notifications().client_contents(),
@@ -208,6 +210,7 @@ def base_props(request):
             "is_history_enabled": True,
             "translationLanguagePreference": request.translation_language_preference,
             "following": [],
+            "blocking": [],
             "calendars": get_todays_calendar_items(**_get_user_calendar_params(request)),
             "notificationCount": 0,
             "notifications": [],
@@ -236,6 +239,7 @@ def base_props(request):
         "trendingTopics": trending_topics(days=7, ntags=5),
         "_siteSettings": SITE_SETTINGS,
         "_debug": DEBUG,
+        "rtc_server": RTC_SERVER
     })
     return user_data
 
@@ -587,6 +591,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         "initialNavigationCategories":    None,
         "initialNavigationTopicCategory": None,
         "initialNavigationTopicTitle":    None,
+        "customBeitMidrashId":            request.GET.get("beitMidrash", None)
     }
     if sheet == None:
         title = primary_ref.he_normal() if request.interfaceLang == "hebrew" else primary_ref.normal()
@@ -2938,6 +2943,26 @@ def follow_list_api(request, kind, uid):
 
     return jsonResponse(annotate_user_list(f.uids))
 
+@catch_error_as_json
+def block_api(request, action, uid):
+    """
+    API for following and unfollowing another user.
+    """
+    
+    if request.method != "POST":
+        return jsonResponse({"error": "Unsupported HTTP method."}, status=405)
+
+    if not request.user.is_authenticated:
+        return jsonResponse({"error": "You must be logged in to follow."}, status=401)
+
+    block = BlockRelationship(blocker=request.user.id, blockee=int(uid))
+    if action == "block":
+        block.block()
+    elif action == "unblock":
+        block.unblock()
+
+    return jsonResponse({"status": "ok"})
+
 
 def background_data_api(request):
     """
@@ -3310,6 +3335,40 @@ def leaderboard(request):
         'leaders1': top_contributors(1),
     })
 
+@catch_error_as_json
+def chat_message_api(request):
+    if request.method == "POST":
+        messageJSON = request.POST.get("json")
+        messageJSON = json.loads(messageJSON)
+
+        room_id = messageJSON["roomId"]
+        uids = room_id.split("-")
+        if str(request.user.id) not in uids:
+            return jsonResponse({"error": "Only members of a chatroom can post to it."})
+
+
+        message = Message({"room_id": room_id,
+                        "sender_id": messageJSON["senderId"], 
+                        "timestamp": messageJSON["timestamp"], 
+                        "message": messageJSON["messageContent"]})
+        message.save()
+        return jsonResponse({"status": "ok"})
+
+    if request.method == "GET":
+        room_id = request.GET.get("room_id")
+        uids = room_id.split("-")
+
+
+        if str(request.user.id) not in uids:
+            return jsonResponse({"error": "Only members of a chatroom can view it."})
+
+        skip = int(request.GET.get("skip", 0))
+        limit = int(request.GET.get("limit", 10))
+
+        messages = MessageSet({"room_id": room_id}, sort=[("timestamp", -1)], limit=limit, skip=skip).client_contents()
+        return jsonResponse(messages)
+
+    return jsonResponse({"error": "Unsupported HTTP method."})
 
 @ensure_csrf_cookie
 @sanitize_get_params
@@ -4296,29 +4355,16 @@ def rollout_health_api(request):
 
     return http.JsonResponse(resp, status=statusCode)
 
-
 @login_required
-def daf_roulette_redirect(request):
-    return render_template(request,'static/chavruta.html', None, {
-        "rtc_server": RTC_SERVER,
-        "room_id": "",
-        "starting_ref": "todays-daf-yomi",
-        "roulette": "1",
-    })
+def beit_midrash(request, slug):
+    chavrutaId = request.GET.get("cid", None)
+    starting_ref = request.GET.get("ref", None)
 
+    if starting_ref:
+        return redirect(f"/{urllib.parse.quote(starting_ref)}?beitMidrash={slug}")
 
-@login_required
-def chevruta_redirect(request):
-    room_id = request.GET.get("rid", None)
-    starting_ref = request.GET.get("ref", "Genesis 1")
-    roulette = request.GET.get("roulette", "0")
-
-    if room_id is None:
-        raise Http404('Missing room ID.')
-
-    return render_template(request,'static/chavruta.html', None, {
-        "rtc_server": RTC_SERVER,
-        "room_id": room_id,
-        "starting_ref": starting_ref,
-        "roulette": roulette
-    })
+    else:
+        props = {"customBeitMidrashId": slug,}
+        title = _("Sefaria Beit Midrash")
+        desc  = _("The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more.")
+        return menu_page(request, props, "navigation", title, desc)

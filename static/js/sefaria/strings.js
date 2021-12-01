@@ -416,10 +416,26 @@ const Strings = {
     "Average Sefaria User" : "משתמש ממוצע בספריא",
     "Etc": "שאר",
 
-    // Chavruta
+    // Chavruta and Beit Midrash
+    "Beit Midrash": "בית המדרש",
+    "Hide": "הסתרה",
+    "Send a Message": "שליחת הודעה",
+    "is calling you...": "מתקשר אלייך",
+    "Calling": "מתקשר",
+    "Accept": "קבלת שיחה",
+    "Decline": "דחיית שיחה",
+    "is learning":"לומד",
+    "is learning the Sheet": "מעיין בדף המקורות",
+    "is viewing the topic": "מעיין בדף הנושא",
+    "is currently viewing": "מעיין בדף",
+    "End Call": "ניתוק",
     "Learn with a Chavruta": "לימוד בחברותא",
     "Share this link with your chavruta to start a video call with this text": "כדי להתחיל שיחת וידאו, שתפו עם החברותא שלכם את הקישור הבא:",
     "Start Call": "התחלת שיחה",
+    "No users online.": "אין כרגע לומדים מחוברים",
+    "View Profile": "צפה בפרופיל",
+    "Mute & Report": "השתק ודווח",
+    "Mute": "השתק",
 
     // Subscribe & Register
     "Please enter a valid email address.": 'כתובת הדוא"ל שהוזנה אינה תקינה.',
