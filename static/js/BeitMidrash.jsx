@@ -234,7 +234,7 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
     useEffect(() => {
         const myChatRoom = activeChatRooms.filter(room => room.roomId = currentChatRoom);
         const chatRoom =  myChatRoom.length >= 1 ? myChatRoom[0] : null;
-        if (!currentActiveChatRoom || (chatRoom && currentActiveChatRoom.roomId !== chatRoom.roomId)) {
+        if (!currentActiveChatRoom || !chatRoom || (currentActiveChatRoom.roomId !== chatRoom.roomId)) {
             setCurrentActiveChatRoom(chatRoom);
         }
     }, [currentChatRoom, activeChatRooms, currentActiveChatRoom])
@@ -352,6 +352,7 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
                 />
                 {currentActiveChatRoom ? 
                 <ChatBox
+                        hideHideButton={true}
                         key={currentActiveChatRoom.roomId}
                         room={currentActiveChatRoom}
                         handleCloseChat={handleCloseChat}
