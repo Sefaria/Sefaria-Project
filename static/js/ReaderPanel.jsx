@@ -45,9 +45,11 @@ import {
 class ReaderPanel extends Component {
   constructor(props) {
     super(props);
+
     let state = this.clonePanel(props.initialState);
     state["initialAnalyticsTracked"] = false;
     state.width = this.props.multiPanel ? 1000 : 500; // Assume we're in a small panel not using multipanel 
+    state.showHighlight = state.showHighlight || this.props.hasSidebar || this.props.mode === "TextAndConnections";
 
     this.state = state;
     this.sheetRef = React.createRef();
