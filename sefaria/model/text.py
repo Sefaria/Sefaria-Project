@@ -1244,6 +1244,8 @@ class AbstractTextRecord(object):
                 self.sanitize_text(getattr(self, self.text_attr, None))
         )
 
+    def has_manually_wrapped_refs(self):
+        return True
 
 class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaContent):
     """
