@@ -1,10 +1,11 @@
 {
 	"title": "",
 	"text": [
-		"Sefaria's global community showed up this #GivingTuesday and created a wave of radical generosity that is worth celebrating. Thank you to everyone who gave – and to our whole community – for your generous support for and trust in Sefaria."
+		"Your opinion matters — Be a part of Sefaria's future!\n",
+		"Please take our user survey to help us understand your experience and improve our offerings. You will receive a special thank you for your participation.\n"
     ],
-	"buttonLink": "",
-	"buttonText": "",
-	"name": "post-giving-tuesday-2021-banner-1",
+	"buttonLink": "https://www.surveymonkey.com/r/sefariasurvey2021_en?source=App",
+	"buttonText": "Take the Survey",
+	"name": "survey-2021-3",
 	"schemaVersion": 1
 }
