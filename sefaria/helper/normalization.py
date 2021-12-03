@@ -167,6 +167,19 @@ class ITagNormalizer(AbstractNormalizer):
                 pass  # it's an inline commentator
         return all_itags, soup
 
+    def _find_itag_start(self, itag_text: str, s: str, search_start: int) -> int:
+        """
+        There can be minor differences in itag created by bs4
+        Try to find start of itag regardless
+        """
+        start = -1
+        for end_char in range(len(itag_text), round(len(itag_text)/2), -10):
+            truncated_itag = itag_text[:end_char]
+            start = s.find(truncated_itag, search_start)
+            if start != -1:
+                break
+        return start
+
     def find_text_to_remove(self, s:str, **kwargs) -> list:
         lenient = kwargs.get('lenient', False)  # if lenient, fail gracefully when you can't find an itag
         all_itags, _ = ITagNormalizer._get_all_itags(s)
@@ -174,7 +187,7 @@ class ITagNormalizer(AbstractNormalizer):
         text_to_remove = []
         for itag in all_itags:
             itag_text = itag.decode()
-            start = s.find(itag_text, next_start)
+            start = self._find_itag_start(itag_text, s, next_start)
             end = start+len(itag_text)
             if start == -1:
                 exception_text = f"Couldn't find itag with text '{itag_text}' in\n{s}\nnext_start = {next_start}"

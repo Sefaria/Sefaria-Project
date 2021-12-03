@@ -11,7 +11,7 @@ from sefaria.system.exceptions import InputError, DuplicateRecordError
 from sefaria.model.ref_part import ResolvedRawRef, RefPartType
 from sefaria.helper.normalization import NormalizerComposer
 
-VTITLE = 'Guggenheimer Translation 2.1'
+VTITLE = 'The Jerusalem Talmud, translation and commentary by Heinrich W. Guggenheimer. Berlin, De Gruyter, 1999-2015'
 
 
 def get_window_around_match(start_char:int, end_char:int, text:str, window:int=10) -> tuple:
@@ -133,9 +133,11 @@ class YerushalmiCatcher:
             self.catch_refs_in_title(title)
 
     def wrap_refs_in_category(self, cat: str, output_html=False):
+        total = 0
         for title in library.get_indexes_in_category(cat):
             print('wrap', title)
-            self.wrap_refs_in_title(title, output_html=output_html)
+            total += self.wrap_refs_in_title(title, output_html=output_html)
+        return total
 
     def catch_refs_in_title(self, title: str):
         output_file = open(f'../data/yerushalmi refs/{title}.csv', 'w')
@@ -409,19 +411,23 @@ class YerushalmiCatcher:
                 mention, ref_url, ref = start_char_to_slug[match.start()]
             except KeyError:
                 return match.group()
-            classes = f'class="refLink {"na" if ref == "N/A" else ""}"'
-            return f"""<a href="/{ref_url}" {classes} data-ref="{ref}">{mention}</a>"""
+            if ref == "N/A":
+                classes = f'class="refLink na"'
+            else:
+                classes = f'class="refLink"'
+            return f"""<a {classes} data-ref="{ref}" href="/{ref_url}">{mention}</a>"""
         return re.sub(fr"{dummy_char}+", repl, dummy_text)
 
-    def wrap_refs_in_title(self, title, output_html=False):
+    def wrap_refs_in_title(self, title, output_html=False, skip_empty=True):
         from sefaria.tracker import modify_bulk_text
-
+        total = 0
         link_obj_by_ref = defaultdict(list)
         text_map = {}
 
         def create_text_map(s, en_tref, he_tref, v):
             nonlocal link_obj_by_ref, text_map
             # remove previous wrapped links
+            s = re.sub(r'<a class[^>]+?>', '', s)
             s = re.sub(r'<a href[^>]+?>', '', s)
             s = s.replace('</a>', '')
             links = link_obj_by_ref.get(en_tref, [])
@@ -441,12 +447,14 @@ class YerushalmiCatcher:
             for row in cin:
                 oref = None if len(row['Parsed Ref']) == 0 else Ref(row['Parsed Ref'])
                 if oref is None or oref.is_empty():
+                    if skip_empty:
+                       continue
                     ref = "N/A"
                     ref_url = "N/A"
                 else:
                     ref = oref.normal()
                     ref_url = oref.url()
-
+                total += 1
                 link_obj_by_ref[row['Context Ref']] += [{
                     "text": row['Raw Ref'],
                     "startChar": int(row['Start Char']),
@@ -480,6 +488,7 @@ class YerushalmiCatcher:
                 fout.write(html)
         else:
             modify_bulk_text(5842, version, text_map, skip_links=True)
+        return total
 
     def create_link_objects_in_title(self, title):
         CHAR_DIST = 6  # maximum distance of start of citation from end of footnote i-tag to be considered a link object
@@ -543,14 +552,15 @@ class YerushalmiCatcher:
 
 if __name__ == '__main__':
     catcher = YerushalmiCatcher('en', VTITLE, "../data/vilna_to_zukermandel_tosefta_map.json", "../data/gug_to_vilna_mishna_and_halacha_map.json")
-    # catcher.catch_refs_in_category('Yerushalmi')
-    # catcher.wrap_refs_in_category('Yerushalmi', output_html=True)
-    LinkSet({"generated_by": "yerushalmi_refs_inline"}).delete()
-    catcher.create_link_objects_in_category('Yerushalmi')
+    catcher.catch_refs_in_category('Yerushalmi')
+    total = catcher.wrap_refs_in_category('Yerushalmi')
+    print('Total wrapped refs', total)
+    # LinkSet({"generated_by": "yerushalmi_refs_inline"}).delete()
+    # catcher.create_link_objects_in_category('Yerushalmi')
 
-    # catcher.catch_refs_in_title(f'Jerusalem Talmud Berakhot')
+    # catcher.catch_refs_in_title(f'Jerusalem Talmud Yoma')
     # catcher.create_link_objects_in_title('Jerusalem Talmud Berakhot')
-    # catcher.wrap_refs_in_title(f'Jerusalem Talmud Challah', output_html=True)
+    # catcher.wrap_refs_in_title(f'Jerusalem Talmud Yoma')
 
 """
 post processing
