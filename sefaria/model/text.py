@@ -2581,7 +2581,7 @@ class Ref(object, metaclass=RefCacheType):
             pass
 
     def __reinit_tref(self, new_tref):
-        logger.warning("__reinit_tref from {} to {}".format(self.tref, new_tref))
+        logger.debug("__reinit_tref from {} to {}".format(self.tref, new_tref))
         self.tref = new_tref
         self.__clean_tref()
         self._lang = "en"
