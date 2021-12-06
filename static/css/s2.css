@@ -10765,12 +10765,36 @@ body .homeFeedWrapper.userStats {
   max-width: 660px;
 }
 .bookPage .editTextInfo #newIndex .publishBox .react-tags__selected-tag-name {
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  --english-font: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  --hebrew-font: "Heebo", sans-serif;
   font-size: 18px;
   font-weight: normal;
   color: #000;
 }
-
+#categoryChooserMenu {
+  overflow: hidden;
+  background: url("/static/img/arrow-down.png") 620px 20px/10px 10px no-repeat #ffffff;
+  width: 660px;
+  height: 50px;
+  margin: 0 0 10px 0;
+  border-radius: 7px;
+  box-shadow: 0px 1px 3px rgb(0 0 0 / 20%);
+  border: none;
+}
+#categoryChooserMenu img {
+  opacity: 0.43;
+  padding: 0 5px;
+  height: 10px;
+  width: 10px;
+}
+#categoryChooserMenu select {
+  background: transparent;
+  font-size: 16px;
+  width: 680px;
+  border: none;
+  margin: 0 0 10px 0;
+  padding: 4px 10px 4px 10px;
+}
 .bookPage .editTextInfo #newIndex .publishBox .react-tags__selected-tag {
   margin: 0 12px 12px 0;
   padding: 12px 14px;
@@ -10804,16 +10828,6 @@ body .homeFeedWrapper.userStats {
 .bookPage .editTextInfo .static label {
   text-align: left;
 }
-
-.bookPage .editTextInfo #newIndex select {
-	width: 660px;
-    border-radius: 7px;
-    box-shadow: 0px 1px 3px rgba(0,0,0,0.2);
-    border: none;
-    margin: 0 0 10px 0;
-    padding: 4px 10px 4px 10px;
-}
-
 .bookPage .editTextInfo #newIndex .sectionType input{
 	width: 100px;
 	margin: 0 5px;

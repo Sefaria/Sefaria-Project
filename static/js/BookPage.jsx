@@ -1019,7 +1019,7 @@ const CategoryChooser = function({categories, update}) {
   const handleChange = function(e) {
     let newCategories = [];
     for (let i=0; i<categoryMenu.current.children.length; i++) {
-      let el = categoryMenu.current.children[i];
+      let el = categoryMenu.current.children[i].children[0];
       if (el.options[el.selectedIndex].value === "Choose a category" || (i > 0 && Sefaria.tocItemsByCategories(newCategories.slice(0, i+1)).length === 0)) {
         //first test says dont include "Choose a category" and anything after it in categories.
         //second test is if categories are ["Talmud", "Prophets"], set categories to ["Talmud"]
@@ -1064,10 +1064,12 @@ const CategoryChooser = function({categories, update}) {
   }
   return <div ref={categoryMenu}>
           {menus.map((menu, index) =>
-            <select key={`subcats-${index}`} id={`subcats-${index}`} onChange={handleChange}>
+            <div id="categoryChooserMenu">
+              <select key={`subcats-${index}`} id={`subcats-${index}`} onChange={handleChange}>
               <option key="chooseCategory" value="Choose a category">Choose a category</option>
               {menu}
-           </select>)}
+              </select>
+            </div>)}
          </div>
 }
 
