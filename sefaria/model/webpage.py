@@ -207,7 +207,7 @@ class WebPage(abst.AbstractMongoRecord):
         return title if len(title) else self._site_data["name"]
 
     def clean_description(self):
-        description = self.description
+        description = getattr(self, "description", "")
         for uhoh_string in ["*/", "*******"]:
             if description.find(uhoh_string) != -1:
                 return None
