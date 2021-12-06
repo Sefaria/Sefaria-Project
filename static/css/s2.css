@@ -2718,7 +2718,8 @@ a.navBlockTitle:hover {
 }
 .bookPage .moderatorSection .button {
   padding: 12px 16px;
-  font-size: 13px;
+  font-size: 16px;
+  margin: 0 0 0 10px;
 }
 .bookPage .moderatorSection .moderatorSectionMessage {
   margin-top: 20px;
@@ -10769,6 +10770,12 @@ body .homeFeedWrapper.userStats {
   font-weight: normal;
   color: #000;
 }
+
+.bookPage .editTextInfo #newIndex .publishBox .react-tags__selected-tag {
+  margin: 0 12px 12px 0;
+  padding: 12px 14px;
+}
+
 .bookPage .editTextInfo #newIndex .publishBox input {
   box-shadow: none;
 }
@@ -10786,7 +10793,8 @@ body .homeFeedWrapper.userStats {
 .bookPage .editTextInfo #newIndex input {
     padding: 4px 10px 4px 10px;
     width: 640px;
-	height: 30px;
+	height: 50px;
+    font-size: 16px;
 	margin: 0 0 10px 0;
 }
 
@@ -10829,6 +10837,9 @@ body .homeFeedWrapper.userStats {
 
 .bookPage .editTextInfo #newIndex .sectionType .remove {
 	margin: -5px 11px 0 -32px;
+}
+.bookPage .editTextInfo #newIndex a {
+    color: #666;
 }
 
 .bookPage .editTextInfo .nodeTemplate {
