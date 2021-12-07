@@ -10773,7 +10773,7 @@ body .homeFeedWrapper.userStats {
 }
 #categoryChooserMenu {
   overflow: hidden;
-  background: url("/static/img/arrow-down.png") 620px 20px/10px 10px no-repeat #ffffff;
+  background: url("/static/img/arrow-down.png") 640px 20px/10px 10px no-repeat #ffffff;
   width: 660px;
   height: 50px;
   margin: 0 0 10px 0;
