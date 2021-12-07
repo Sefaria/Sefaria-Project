@@ -7,7 +7,7 @@ from . import abstract as abst
 from . import text
 from sefaria.system.database import db
 from sefaria.system.cache import in_memory_cache
-
+import bleach
 import structlog
 logger = structlog.get_logger(__name__)
 from collections import Counter
@@ -105,7 +105,8 @@ class WebPage(abst.AbstractMongoRecord):
         because it matches a title/url we want to exclude or has no refs"""
         if len(self.refs) == 0:
             return True
-        if len(self.url.encode('utf-8')) > 1000:
+        bleached_url = bleach.clean(self.url.encode('utf-8'), tags=self.ALLOWED_TAGS, attributes=self.ALLOWED_ATTRS)
+        if len(bleached_url) > 1000:
             # url field is indexed. Mongo doesn't allow indexing a field over 1000 bytes
             from sefaria.system.database import db
             db.webpages_long_urls.insert_one(self.contents())
@@ -129,7 +130,7 @@ class WebPage(abst.AbstractMongoRecord):
     def excluded_pages_title_regex():
         bad_titles = [
             r"Page \d+ of \d+",  # Rabbi Sacks paged archives
-            r"^Page not found$",   # JTS 404 pages include links to content
+            r"Page [nN]{1}ot [fF]{1}ound$",  # 404 pages include links to content
             r"^JTS Torah Online$"  # JTS search result pages
         ]
         return "({})".format("|".join(bad_titles))
