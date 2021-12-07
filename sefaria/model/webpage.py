@@ -416,6 +416,14 @@ def clean_webpages(test=True):
              {"domain": ""}
         ]})
 
+    for page in WebPageSet({"$expr": {"$gt": [{"$strLenCP": "$url"}, 1000]}}):
+        # url field is indexed. Mongo doesn't allow indexing a field over 1000 bytes
+        from sefaria.system.database import db
+        db.webpages_long_urls.insert_one(page.contents())
+        print(f"Moving {page.url} to long urls DB...")
+        page.delete()
+
+
     if not test:
         pages.delete()
         print("Deleted {} pages.".format(pages.count()))
