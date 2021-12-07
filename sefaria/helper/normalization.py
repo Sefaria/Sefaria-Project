@@ -141,28 +141,25 @@ class ITagNormalizer(AbstractNormalizer):
 
     @staticmethod
     def _find_itags(tag):
-        """
-        Copied from sefaria.model.text.AbstractTextRecord to avoid making this file dependent on sefaria project
-        """
-        if isinstance(tag, Tag):
-            is_footnote = tag.name == "sup" and isinstance(tag.next_sibling, Tag) and tag.next_sibling.name == "i" and 'footnote' in tag.next_sibling.get('class', '')
-            is_inline_commentator = tag.name == "i" and len(tag.get('data-commentator', '')) > 0
-            return is_footnote or is_inline_commentator
-        return False
+        from sefaria.model.text import AbstractTextRecord
+        return AbstractTextRecord._find_itags(tag)
 
     @staticmethod
     def _get_all_itags(s):
         """
-        Copied from sefaria.model.text.AbstractTextRecord to avoid making this file dependent on sefaria project
+        Very similar to sefaria.model.text.AbstractTextRecord
         Originally called `_strip_itags`
         """
+        from sefaria.model.text import AbstractTextRecord
+
         all_itags = []
         soup = BeautifulSoup(f"<root>{s}</root>", 'lxml')
         itag_list = soup.find_all(ITagNormalizer._find_itags)
         for itag in itag_list:
             all_itags += [itag]
             try:
-                all_itags += [itag.next_sibling]  # it's a footnote
+                if AbstractTextRecord._itag_is_footnote(itag):
+                    all_itags += [itag.next_sibling]  # it's a footnote
             except AttributeError:
                 pass  # it's an inline commentator
         return all_itags, soup
