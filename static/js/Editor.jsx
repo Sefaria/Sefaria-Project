@@ -1017,7 +1017,7 @@ const Element = props => {
                 mediaComponent = <div className="SheetMedia media fullWidth"><iframe width="100%" height="380" scrolling="no" frameBorder="no" src={element.mediaUrl}></iframe>{children}</div>
             }
             else if (element.mediaUrl.match(/https?:\/\/w\.soundcloud\.com\/player\/\?url=.*/i) != null) {
-              mediaComponent = <div className="SheetMedia media fullWidth"><iframe style="border: 0; width: 100%; height: 120px;" scrolling="no" frameBorder="no" src={element.mediaUrl}></iframe>{children}</div>
+              mediaComponent = <div className="SheetMedia media fullWidth"><iframe style={{ border: '0', width: '100%', height: '120px' }} scrolling="no" frameBorder="no" src={element.mediaUrl}></iframe>{children}</div>
             } else if (element.mediaUrl.match(/^https?:\/\/bandcamp.com\/EmbeddedPlayer(\/\w+\=\w+)+\/?/i)) {
                 mediaComponent = <div className="SheetMedia media fullWidth"><iframe width="100%" height="120" scrolling="no" frameBorder="no" src={element.mediaUrl}></iframe>{children}</div>
             }
