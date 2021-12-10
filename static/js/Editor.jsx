@@ -470,10 +470,10 @@ function transformSheetJsonToSlate(sheet) {
 
       // needed for now b/c headers are saved as OutsideTexts for backwards compatability w/ old sheets
       const sourceIsHeader = source["outsideText"] && source["outsideText"].startsWith("<h1>");
+      const prevSourceIsHeader = i > 0 && sheet.sources[i-1]["outsideText"] && sheet.sources[i-1]["outsideText"].startsWith("<h1>");
       const isCurrentSourceAnOutsideText = !!source["outsideText"];
       const isPrevSourceAnOutsideText = !!(i > 0 && sheet.sources[i-1]["outsideText"]);
-
-      if (!(isPrevSourceAnOutsideText || isCurrentSourceAnOutsideText) || (isPrevSourceAnOutsideText && isCurrentSourceAnOutsideText && !sourceIsHeader) ) {
+      if (!(isPrevSourceAnOutsideText || isCurrentSourceAnOutsideText) || (isPrevSourceAnOutsideText && isCurrentSourceAnOutsideText && !sourceIsHeader && !prevSourceIsHeader) ) {
           sourceNodes.push({
             type: "spacer",
             children: [{text: ""}]
@@ -2371,6 +2371,7 @@ const SefariaEditor = (props) => {
     const [lastModified, setlastModified] = useState(props.data.dateModified);
     const [dropZone, setDropZone] = useState(null)
     const [canUseDOM, setCanUseDOM] = useState(false);
+    const [readyForNormalize, setReadyForNormalize] = useState(false);
 
     useEffect(
         () => {
@@ -2412,12 +2413,20 @@ const SefariaEditor = (props) => {
 
     useEffect( /* normalize on load */
         () => {
-            Editor.normalize(editor, { force: true });
             setCanUseDOM(true)
             setValue(transformSheetJsonToSlate(sheet))
+            setReadyForNormalize(true)
             //TODO: Check that we still need/want this temporary analytics tracking code
             try {hj('event', 'using_new_editor');} catch {console.error('hj failed')}
         }, []
+    )
+
+    useEffect(
+        () => {
+            if (readyForNormalize) {
+                Editor.normalize(editor, {force: true});
+            }
+        }, [readyForNormalize]
     )
 
 

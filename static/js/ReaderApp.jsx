@@ -1749,7 +1749,6 @@ class ReaderApp extends Component {
 
 
   placeInAppAd() {
-    console.log(this.state.inCustomBeitMidrash)
 
     if (this.state.inCustomBeitMidrash) {
       return (null)
@@ -1823,7 +1822,6 @@ class ReaderApp extends Component {
           .concat(refs)
           .flat();
     const deDupedTriggers = [...new Set(triggers.map(JSON.stringify))].map(JSON.parse);
-    console.log(deDupedTriggers);
 
     const context = {
       isLoggedIn: Sefaria._uid,
