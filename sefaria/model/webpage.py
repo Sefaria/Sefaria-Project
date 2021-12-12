@@ -207,7 +207,7 @@ class WebPage(abst.AbstractMongoRecord):
         return title if len(title) else self._site_data["name"]
 
     def clean_description(self):
-        description = self.description
+        description = getattr(self, "description", "")
         for uhoh_string in ["*/", "*******"]:
             if description.find(uhoh_string) != -1:
                 return None
@@ -415,6 +415,14 @@ def clean_webpages(test=True):
             {"refs": {"$eq": []}},
              {"domain": ""}
         ]})
+
+    for page in WebPageSet({"$expr": {"$gt": [{"$strLenCP": "$url"}, 1000]}}):
+        # url field is indexed. Mongo doesn't allow indexing a field over 1000 bytes
+        from sefaria.system.database import db
+        db.webpages_long_urls.insert_one(page.contents())
+        print(f"Moving {page.url} to long urls DB...")
+        page.delete()
+
 
     if not test:
         pages.delete()

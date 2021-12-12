@@ -25,6 +25,8 @@ import {
   CommunityPagePreviewControls,
 } from './Misc';
 import Component from 'react-class';
+import BeitMidrash, {BeitMidrashClosed} from './BeitMidrash';
+import  { io }  from 'socket.io-client';
 
 class ReaderApp extends Component {
   constructor(props) {
@@ -104,6 +106,9 @@ class ReaderApp extends Component {
       initialAnalyticsTracked: false,
       showSignUpModal: false,
       translationLanguagePreference: props.translationLanguagePreference,
+      beitMidrashStatus: Sefaria._uid && props.customBeitMidrashId ? true : false,
+      beitMidrashId: props.customBeitMidrashId ? props.customBeitMidrashId : "Sefaria",
+      inCustomBeitMidrash: !!props.customBeitMidrashId,
     };
   }
   makePanelState(state) {
@@ -151,6 +156,7 @@ class ReaderApp extends Component {
       textHighlights:          state.textHighlights          || null,
       profile:                 state.profile                 || null,
       profileTab:              state.profileTab              || "sheets",
+      beitMidrashId:           state.beitMidrashId           || null,
     };
     // if version is not set for the language you're in, see if you can retrieve it from cache
     if (this.state && panel.refs.length && ((panel.settings.language === "hebrew" && !panel.currVersions.he) || (panel.settings.language !== "hebrew" && !panel.currVersions.en ))) {
@@ -175,6 +181,8 @@ class ReaderApp extends Component {
     }
     // Save all initial panels to recently viewed
     this.state.panels.map(this.saveLastPlace);
+
+    this.setBeitMidrashId()
   }
   componentWillUnmount() {
     window.removeEventListener("popstate", this.handlePopState);
@@ -223,7 +231,20 @@ class ReaderApp extends Component {
 
     this.setContainerMode();
     this.updateHistoryState(this.replaceHistory);
+    this.setBeitMidrashId(prevState)
   }
+
+  setBeitMidrashId (prevState) {
+    if (!this.state.inCustomBeitMidrash) {
+      for (let i=this.state.panels.length-1; i >= 0; i--) {
+        if (this.state.panels[i].bookRef && (!prevState || prevState.beitMidrashId !== this.state.panels[i].bookRef)) {
+          this.setState({beitMidrashId: this.state.panels[i].bookRef})
+          break
+        }
+      }
+    }
+  }
+
   handlePopState(event) {
     var state = event.state;
     // console.log("Pop - " + window.location.pathname);
@@ -461,7 +482,8 @@ class ReaderApp extends Component {
               hist.mode  = "topic";
             } else if (state.navigationTopicCategory) {
               hist.title = state.navigationTopicTitle[shortLang] + " | " + Sefaria._("Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.");
-              hist.url   =  "topics/category/" + state.navigationTopicCategory;;
+              hist.url   =  "topics/category/" + state.navigationTopicCategory;
+              hist.mode  = "topicCat";
             } else {
               hist.url   = "topics";
               hist.title = Sefaria._("Topics | " + siteName);
@@ -536,6 +558,10 @@ class ReaderApp extends Component {
             hist.url = "texts/history";
             hist.mode = "history";
             break;
+          case "beit_midrash":
+            hist.title = Sefaria._("Sefaria Beit Midrash");
+            hist.url = "beit-midrash";
+            hist.mode = "beit-midrash";
         }
 
       } else if (state.mode === "Text") {
@@ -649,7 +675,7 @@ class ReaderApp extends Component {
     if("aliyot" in histories[0]) {
         url += "&aliyot=" + histories[0].aliyot;
     }
-    hist = {state: {panels: states}, url: url, title: title};
+    hist = {state: {panels: states}, url: url, title: title, mode: histories[0].mode};
     for (var i = 1; i < histories.length; i++) {
       if ((histories[i-1].mode === "Text" && histories[i].mode === "Connections") ||
         (histories[i-1].mode === "Sheet" && histories[i].mode === "Connections")) {
@@ -859,7 +885,10 @@ class ReaderApp extends Component {
     if (this.currentlyConnecting()) { return }
 
     this.openTextListAt(n+1, refs, nodeRef);
-    if ($(".readerPanel")[n+1] && window.getSelection().isCollapsed) { //Focus on the first focusable element of the newly loaded panel if text not selected. Mostly for a11y
+
+    if ($(".readerPanel")[n+1] && window.getSelection().isCollapsed && window.getSelection().anchorNode.nodeType !== 3) {
+      //Focus on the first focusable element of the newly loaded panel if text not selected and not actively typing
+      // in editor. Exists for a11y
       var curPanel = $(".readerPanel")[n+1];
       $(curPanel).find(':focusable').first().focus();
     }
@@ -1625,6 +1654,32 @@ class ReaderApp extends Component {
     }
     return false;
   }
+  getDisplayString(mode) {
+    const learningStatus = ["text toc", "book toc", "sheet meta",  "Text", "TextAndConnections", "SheetAndConnections"];
+    const topicStatus = ["topicCat", "topic"]
+    if(mode.includes("sheet")) {
+      return "learning the Sheet"
+    } else if (topicStatus.includes(mode)) {
+      return "viewing the topic"
+    }
+    else if(learningStatus.includes(mode)) {
+      return "learning";
+    } else {
+      return "currently viewing"
+    }
+  }
+  generateCurrentlyReading() {
+    const currentHistoryState = this.makeHistoryState();
+    const inBeitMidrash = ["navigation", "text toc", "book toc", "sheet meta", "topics", "topic", "topicCat", "Text", "TextAndConnections", "Sheet", "SheetAndConnections"];
+    currentHistoryState.title = currentHistoryState.title.match(/[^|]*/)[0];
+    if (inBeitMidrash.includes(currentHistoryState.mode)) {
+      return {title: currentHistoryState.title, url: currentHistoryState.url, mode: currentHistoryState.mode, display: this.getDisplayString(currentHistoryState.mode)};
+    } else {
+      return null;
+    }
+
+  }
+
   handleCopyEvent(e) {
     // Custom processing of Copy/Paste
     // - Ensure we don't copy hidden English or Hebrew text
@@ -1689,9 +1744,97 @@ class ReaderApp extends Component {
     this.forceUpdate();
     this.setContainerMode();
   }
+
+  //TODO: Get ads out of code.
+
+
+  placeInAppAd() {
+
+    if (this.state.inCustomBeitMidrash) {
+      return (null)
+    }
+
+    const context = this.getUserContext();
+
+    const ads = [
+      {
+        messageName: "beitMidrash-Torah-dec-1-1",
+        messageHTML: "<p>" +
+            "<a href='/beit-midrash/chanukah?ref=Sheet.355999'>" +
+            "Learning the Weekly Torah Portion? Join us in our new Beit Midrash!" +
+            "</a></p>",
+        style: "banner",
+        repetition: 1,
+        trigger: {
+          isLoggedIn: true,
+          interfaceLang: "english",
+          dt_start: Date.parse("1 Dec 2021 12:00:00 UTC"),
+          dt_end: Date.parse("3 Dec 2021 05:00:00 UTC"),
+          keywordTargets: ["Genesis"],
+        }
+      },
+      {
+        messageName: "beitMidrash-dafyomi-dec-1-1",
+        messageHTML: "<p>" +
+            "<a href='/beit-midrash/chanukah?ref=Sheet.355999'>" +
+            "Learning Daf Yomi? Join us in our new Beit Midrash!" +
+            "</a></p>",
+        style: "banner",
+        repetition: 1,
+        trigger: {
+          isLoggedIn: true,
+          interfaceLang: "english",
+          dt_start: Date.parse("1 Dec 2020 02:00:00 UTC"),
+          dt_end: Date.parse("3 Dec 2021 05:00:00 UTC"),
+          keywordTargets: ["Taanit"],
+        }
+      }
+
+    ];
+    
+    const currentAd = ads.filter(ad => {
+
+         return (
+             ad.trigger.isLoggedIn === !!context.isLoggedIn &&
+             ad.trigger.interfaceLang === context.interfaceLang &&
+             (Sefaria._inBrowser && !document.cookie.includes(`${ad.messageName}_${ad.repetition}`)) &&
+             context.dt > ad.trigger.dt_start && context.dt < ad.trigger.dt_end &&
+             context.keywordTargets.some(kw => ad.trigger.keywordTargets.includes(kw))
+         )
+        }
+    );
+
+        return (currentAd.length > 0 ? <InterruptingMessage
+          messageName={currentAd[0].messageName}
+          messageHTML={currentAd[0].messageHTML}
+          style={currentAd[0].style}
+          repetition={currentAd[0].repetition}
+          onClose={this.rerender}
+          /> : null)
+
+  }
+
+  getUserContext() {
+    const refs = this.state.panels.map(panel => panel.currentlyVisibleRef || panel.bookRef);
+    const books = refs.map(ref => Sefaria.parseRef(ref).book);
+    const triggers = refs.map(ref => Sefaria.refCategories(ref))
+          .concat(books)
+          .concat(refs)
+          .flat();
+    const deDupedTriggers = [...new Set(triggers.map(JSON.stringify))].map(JSON.parse);
+
+    const context = {
+      isLoggedIn: Sefaria._uid,
+      interfaceLang: Sefaria.interfaceLang,
+      dt: Sefaria.util.epoch_time(new Date())*1000,
+      keywordTargets: refs ? deDupedTriggers : []
+    };
+    return context
+  }
+
+
   render() {
     var panelStates = this.state.panels;
-
     var evenWidth;
     var widths;
     var unit;
@@ -1854,11 +1997,11 @@ class ReaderApp extends Component {
     }
     var boxClasses = classNames({wrapBoxScroll: wrapBoxScroll});
     var boxWidth = wrapBoxScroll ? this.state.windowWidth + "px" : "100%";
-    var boxStyle = {width: boxWidth};
+    var boxStyle = this.state.beitMidrashStatus ? {width: `calc(${boxWidth} - 330px)`} : {width: boxWidth};
     panels = panels.length ?
               (<div id="panelWrapBox" className={boxClasses} style={boxStyle}>
                 {panels}
-              </div>) : null;
+                 </div>) : null;
 
     var interruptingMessage = Sefaria.interruptingMessage ?
       (<InterruptingMessage
@@ -1866,17 +2009,32 @@ class ReaderApp extends Component {
           messageHTML={Sefaria.interruptingMessage.html}
           style={Sefaria.interruptingMessage.style}
           repetition={Sefaria.interruptingMessage.repetition}
-          onClose={this.rerender} />) : null;
+          onClose={this.rerender} />) : this.placeInAppAd();
     const sefariaModal = (
       <SignUpModal onClose={this.toggleSignUpModal} show={this.state.showSignUpModal} />
     );
     const communityPagePreviewControls = this.props.communityPreview ?
       <CommunityPagePreviewControls date={this.props.communityPreview} /> : null;
 
+    const beitMidrashPanel = this.state.beitMidrashStatus ? (
+      <div id='beitMidrash' style={{width: 330,
+                                    marginInlineStart: "auto",
+                                    marginInlineEnd: 0,
+                                    height: `calc(100% - 60px)`,
+                                    marginTop: 60}}>
+          <BeitMidrash
+            socket={io(`//${Sefaria.rtc_server}`, {autoConnect: false})}
+            beitMidrashId = {this.state.beitMidrashId}
+            currentlyReading = {this.generateCurrentlyReading()}
+          />
+      </div>
+    ) : null
+    
     var classDict = {readerApp: 1, multiPanel: this.props.multiPanel, singlePanel: !this.props.multiPanel};
     var interfaceLangClass = `interface-${this.props.interfaceLang}`;
     classDict[interfaceLangClass] = true;
     var classes = classNames(classDict);
+  
     return (
       <div id="readerAppWrap">
         {interruptingMessage}
@@ -1885,6 +2043,7 @@ class ReaderApp extends Component {
           {panels}
           {sefariaModal}
           {communityPagePreviewControls}
+          {beitMidrashPanel}
           <CookiesNotification />
         </div>
       </div>

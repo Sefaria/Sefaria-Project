@@ -23,6 +23,7 @@ if not hasattr(sys, '_doc_build'):
 
 from . import abstract as abst
 from sefaria.model.following import FollowersSet, FolloweesSet, general_follow_recommendations
+from sefaria.model.blocking import BlockersSet, BlockeesSet
 from sefaria.model.text import Ref, TextChunk
 from sefaria.system.database import db
 from sefaria.utils.util import epoch_time
@@ -160,7 +161,8 @@ class UserHistory(abst.AbstractMongoRecord):
                         "en": TextChunk(ref, "en").as_sized_string(),
                         "he": TextChunk(ref, "he").as_sized_string()
                     }
-            except:
+            except Exception as e:
+                logger.warning("Failed to retrieve text for history Ref: {}".format(d['ref']))
                 return d
         return d
 
@@ -374,6 +376,10 @@ class UserProfile(object):
         # Followers
         self.followers = FollowersSet(self.id)
         self.followees = FolloweesSet(self.id)
+
+        # Blocks
+        self.blockees = BlockeesSet(self.id)
+        self.blockers = BlockersSet(self.id)
 
         # Google API token
         self.gauth_token = None

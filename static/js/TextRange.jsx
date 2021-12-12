@@ -242,6 +242,7 @@ class TextRange extends Component {
     $text.find(".linkCount").show();
   }
   onFootnoteClick(event) {
+    event.preventDefault();
     $(event.target).closest("sup").next("i.footnote").toggle();
     this.placeSegmentNumbers();
   }
