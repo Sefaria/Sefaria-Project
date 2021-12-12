@@ -1,11 +1,10 @@
 {
 	"title": "",
 	"text": [
-		"Your opinion matters — Be a part of Sefaria's future!\n",
-		"Please take our user survey to help us understand your experience and improve our offerings. You will receive a special thank you for your participation.\n"
+		"Sustainers help us plan for the future, make new acquisitions, and grow our offerings. Join 1,200 Sefaria Sustainers by setting up a monthly donation today!"
     ],
-	"buttonLink": "https://www.surveymonkey.com/r/sefariasurvey2021_en?source=App",
-	"buttonText": "Take the Survey",
-	"name": "survey-2021-4",
+	"buttonLink": "https://sefaria.nationbuilder.com/sustainers_b",
+	"buttonText": "Make a Monthly Donation",
+	"name": "12122021-sustainers-banner-1",
 	"schemaVersion": 1
 }
