@@ -460,7 +460,7 @@ def export_schemas():
 
         with open(path + title + ".json", "w") as f:
             try:
-                f.write(make_json(i.contents(v2=True)))
+                f.write(make_json(i.contents()))
 
             except InputError as e:
                 print("InputError: %s" % e)
