@@ -2593,6 +2593,51 @@ const Autocompleter = ({selectedRefCallback}) => {
     )
 }
 
+const Ad = ({context}) => {
+    function get_google_sheet_data() {
+      const url =
+        'https://docs.google.com/spreadsheets/d/1DTvu-VnYPAtL17pqinxv0WQrUShByVOUOI2AVbdrUJI/edit#gid=0';
+      const query = new google.visualization.Query(url);
+      query.setQuery('select A, B, C, D, E, F, G, H, I, J, K, L, M, N');
+      query.send(processSheetsData);
+    }
+
+    function generateMsgHTML(data) {
+      return ""
+    }
+
+    function processSheetsData(response) {
+      const data = response.getDataTable();
+      const columns = data.getNumberOfColumns();
+      const rows = data.getNumberOfRows();
+      for (let r = 0; r < rows; r++) {
+        let row = [];
+        for (let c = 0; c < columns; c++) {
+          row.push(data.getFormattedValue(r, c));
+        }
+        console.log(row)
+        Sefaria._inAppAds.push(
+            {
+              campaignId: row[0],
+              messageHTML: generateMsgHTML(row),
+              style: row[13],
+              repetition: 1,
+              trigger: {
+                isLoggedIn: row[4],
+                interfaceLang: row[3],
+                dt_start: row[1],
+                dt_end: row[2],
+                keywordTargets: row[5].split(","),
+              }
+            }
+        )
+      }
+      setAdData(Sefaria._inAppAds);
+    }
+
+
+}
+
 export {
   SimpleInterfaceBlock,
   DangerousInterfaceBlock,
