@@ -2042,7 +2042,7 @@ _media: {},
         });
   },
   _tableOfContentsDedications: {},
-  _inAppAds: [],
+  _inAppAds: null,
   _stories: {
     stories: [],
     page: 0
