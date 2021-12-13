@@ -130,7 +130,7 @@ class WebPage(abst.AbstractMongoRecord):
     def excluded_pages_title_regex():
         bad_titles = [
             r"Page \d+ of \d+",  # Rabbi Sacks paged archives
-            r"Page [nN]{1}ot [fF]{1}ound$",  # 404 pages include links to content
+            r"Page [nN]ot [fF]ound$",  # 404 pages include links to content
             r"^JTS Torah Online$"  # JTS search result pages
         ]
         return "({})".format("|".join(bad_titles))
