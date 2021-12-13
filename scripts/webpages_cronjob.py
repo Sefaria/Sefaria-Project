@@ -17,9 +17,10 @@ def run_job(test=True, board_id="", idList_mapping={}, members_mapping={}):
 	webpages_without_websites_days = sites_that_may_have_removed_linker_days # same timeline is relevant
 
 	print("Original webpage stats...")
-	total_pages, total_links = webpages_stats()
+	total_pages, total_links, year_data = webpages_stats()
 	print("{} total pages.\n".format(total_pages))
 	print("{} total connections.\n".format(total_links))
+	print("{} by year".format(year_data))
 
 	print("Cleaning webpages...")
 	clean_webpages(test=test)
