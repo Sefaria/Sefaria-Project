@@ -89,13 +89,13 @@ Sefaria = extend(Sefaria, {
 
       response.index      = index;
       response.book       = book;
-      response.sections   = nums ? nums.split(" ") : [];
-      response.toSections = nums ? nums.split(" ") : [];
+      response.sections   = nums ? nums.split(" ").map(x => parseInt(x)) : [];
+      response.toSections = nums ? nums.split(" ").map(x => parseInt(x)) : [];
       response.ref        = q;
 
       // Parse range end (if any)
       if (toSplit.length === 2) {
-          const toSections = toSplit[1].replace(/[.:]/g, " ").split(" ");
+          const toSections = toSplit[1].replace(/[.:]/g, " ").split(" ").map(x => parseInt(x));
           const diff = response.sections.length - toSections.length;
           for (let i = diff; i < toSections.length + diff; i++) {
               response.toSections[i] = toSections[i-diff];
@@ -234,12 +234,14 @@ Sefaria = extend(Sefaria, {
     // Returns true is `ref1` contains `ref2`
     const oRef1 = Sefaria.parseRef(ref1);
     const oRef2 = Sefaria.parseRef(ref2);
+    //need to convert to ints, add ancestors for complex and copy logic from server
 
     if ("error" in oRef1 || "error" in oRef2) { return null; }
 
     if (oRef2.index !== oRef2.index || oRef1.book !== oRef2.book) { return false; }
-
-    for (let i = 0; i < oRef1.sections.length; i++) {
+    
+    const sectionsLen = Math.min(oRef1.sections.length, oRef2.sections.length);
+    for (let i = 0; i < sectionsLen; i++) {
       if (oRef1.sections[i] <= oRef2.sections[i] && oRef1.toSections[i] >= oRef2.toSections[i]) {
         return true;
       } else if (oRef1.sections[i] > oRef2.sections[i] || oRef1.toSections[i] < oRef2.toSections[i]) {
