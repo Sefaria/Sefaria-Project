@@ -4583,14 +4583,14 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .basetext .segment {
   margin-bottom: 26px;
 }
-.hebrew.segmented .segment > .he,
+/*.hebrew.segmented .segment > .he,
 .hebrew.segmented .segment > p > .he{
   display: block;
 }
 .hebrew.continuous .segment > .he,
 .hebrew.continuous .segment > p > .he{
   display: inline;
-}
+}*/
 .bilingual .segment > .he,
 .bilingual .segment > p > .he{
   display: block;
