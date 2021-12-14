@@ -8,7 +8,7 @@ import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Component from 'react-class';
 import { usePaginatedDisplay } from './Hooks';
-import {ContentLanguageContext} from './context';
+import {ContentLanguageContext, AdContext} from './context';
 import ReactCrop from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import {Editor} from "slate";
@@ -1909,7 +1909,7 @@ InterruptingMessage.propTypes = {
   messageName: PropTypes.string.isRequired,
   messageHTML: PropTypes.string.isRequired,
   style:       PropTypes.string.isRequired,
-  repetition:  PropTypes.number.isRequired,
+  repetition:  PropTypes.number.isRequired, // manual toggle to refresh an existing message
   onClose:     PropTypes.func.isRequired
 };
 
@@ -2593,106 +2593,11 @@ const Autocompleter = ({selectedRefCallback}) => {
     )
 }
 
-const Ad = ({context}) => {
-    const [inAppAds, setInAppAds] = useState(Sefaria._inAppAds);
-    const [matchingAd, setMatchingAd] = useState(null);
-    useEffect(() => {
-      // if (!inAppAds) {
-        google.charts.load("current");
-        google.charts.setOnLoadCallback(getAds)
-      // }
-    }, []);
-    useEffect(() => {
-      if(inAppAds) {
-        const matchingAds = getCurrentMatchingAds();
-        console.log(matchingAds);
-        setMatchingAd(matchingAds.length ? matchingAds[0] : null);
-      }
-    }, [context, inAppAds]);
-
-    function getAds() {
-        const url = 
-        'https://docs.google.com/spreadsheets/d/1UJw2Akyv3lbLqBoZaFVWhaAp-FUQ-YZfhprL_iNhhQc/edit#gid=0'
-        console.log(url);
-        const query = new google.visualization.Query(url);
-        console.log(query);
-        query.setQuery('select A, B, C, D, E, F, G, H, I, J, K, L, M, N');
-        console.log(query);
-        query.send(processSheetsData);
-        console.log(query);
-    }
-   
-        
-  function getCurrentMatchingAds() {
-    console.log(inAppAds);
-    return inAppAds.filter(ad => {
-      console.log(ad);
-      return (
-        !!ad.trigger.isLoggedIn === !!context.isLoggedIn &&
-        ad.trigger.interfaceLang === context.interfaceLang &&
-        context.dt > ad.trigger.dt_start && context.dt < ad.trigger.dt_end &&
-        context.keywordTargets.some(kw => ad.trigger.keywordTargets.includes(kw))
-      )
-    })
-  }
-
-    function processSheetsData(response) {
-      if (response.isError()) {
-        alert('Error in query: ' + response.getMessage() + ' ' + response.getDetailedMessage());
-        return;
-      }
-      console.log(response);
-      const data = response.getDataTable();
-      console.log(data);
-      const columns = data.getNumberOfColumns();
-      const rows = data.getNumberOfRows();
-      Sefaria._inAppAds = [];
-      for (let r = 0; r < rows; r++) {
-        let row = [];
-        for (let c = 0; c < columns; c++) {
-          row.push(data.getFormattedValue(r, c));
-        }
-        console.log(row)
-        Sefaria._inAppAds.push(
-            {
-              campaignId: row[0],
-              title: row[6],
-              bodyText: row[7],
-              buttonText: row[8],
-              buttonUrl: row[9],
-              buttonIcon: row[10],
-              buttonLocation: row[11],
-              buttonBgColor: row[12],
-              style: row[13],
-              repetition: 1,
-              trigger: {
-                isLoggedIn: row[4],
-                interfaceLang: row[3],
-                dt_start: Date.parse(row[1]),
-                dt_end: Date.parse(row[2]),
-                keywordTargets: row[5].split(","),
-              }
-            }
-        )
-      }
-      setInAppAds(Sefaria._inAppAds);
-    }
-
-    return (matchingAd ? <div>
-      <h3>{matchingAd.title}</h3>
-      <p>{matchingAd.bodyText}</p>
-      <a href={matchingAd.buttonUrl}>{matchingAd.buttonText}</a>
-      </div>
-      : null)
-
-}
-
 export {
   SimpleInterfaceBlock,
   DangerousInterfaceBlock,
   SimpleContentBlock,
   SimpleLinkedBlock,
-  Ad,
   BlockLink,
   CategoryColorLine,
   CategoryAttribution,

@@ -2253,6 +2253,52 @@ a.navBlockTitle:hover {
   border-bottom: none;
   margin-bottom: 0px;
 }
+.sidebarAd {
+  padding: 0px 44px;
+}
+.sidebarAd h3 {
+  margin: 0 0 20px;
+  font-size: 22px;
+  text-transform: none;
+  letter-spacing: 0;
+  border-bottom: 1px solid var(--light-grey);
+  padding-bottom: 14px;
+  font-weight: 500;
+  height: auto;
+}
+.sidebarAd.blue {
+  padding: 33px 44px;
+  background-color: var(--sefaria-blue);
+  color: #FFF;
+}
+.sidebarAd.blue h3 {
+  color: #fff
+}
+.sidebarAd.blue a.button {
+  padding: 10px 14px;
+  width: fit-content;
+  text-align: center;
+  display: inline-block;
+  color: var(--sefaria-blue);
+  background-color: white;
+}
+.sidebarAd a.button img {
+  height: 18px;
+  width: 18px;
+  margin-inline-end: 10px;
+  vertical-align: middle;
+  margin-top: -2px;
+}
+.sidebarAd.blue a.button img {
+  color: var(--sefaria-blue)
+}
+.sidebarAd a {
+  margin-inline-start: 0px;
+}
+.sidebarAd.blue.button a:hover {
+  color: var(--sefaria-blue);
+}
+
 .readerPanel .communityPage h2 {
   text-transform: none;
   font-size: 22px;

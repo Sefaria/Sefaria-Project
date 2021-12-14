@@ -9,7 +9,7 @@ import $ from './sefaria/sefariaJquery';
 import EditCollectionPage from './EditCollectionPage';
 import Footer from './Footer';
 import SearchState from './sefaria/searchState';
-import {ContentLanguageContext} from './context';
+import {ContentLanguageContext, AdContext} from './context';
 import {
   ContestLandingPage,
   RemoteLearningPage,
@@ -22,9 +22,9 @@ import {
   SignUpModal,
   InterruptingMessage,
   CookiesNotification,
-  CommunityPagePreviewControls,
-  Ad
+  CommunityPagePreviewControls
 } from './Misc';
+import { Ad } from './Ad'
 import Component from 'react-class';
 import BeitMidrash, {BeitMidrashClosed} from './BeitMidrash';
 import  { io }  from 'socket.io-client';
@@ -1747,20 +1747,22 @@ class ReaderApp extends Component {
   }
 
   getUserContext() {
-    const refs = this.state.panels.map(panel => panel.currentlyVisibleRef || panel.bookRef);
+    const refs = this.state.panels.map(panel => panel.currentlyVisibleRef || panel.bookRef || panel.navigationCategories).flat();
     const books = refs.map(ref => Sefaria.parseRef(ref).book);
     const triggers = refs.map(ref => Sefaria.refCategories(ref))
           .concat(books)
           .concat(refs)
-          .flat();
+          .flat()
+          .filter(ref => !!ref);
     const deDupedTriggers = [...new Set(triggers.map(JSON.stringify))].map(JSON.parse);
-
+    console.log(deDupedTriggers);
     const context = {
       isLoggedIn: Sefaria._uid,
       interfaceLang: Sefaria.interfaceLang,
       dt: Sefaria.util.epoch_time(new Date())*1000,
       keywordTargets: refs ? deDupedTriggers : []
     };
+    console.log(context);
     return context
   }
 
@@ -1941,7 +1943,7 @@ class ReaderApp extends Component {
           messageHTML={Sefaria.interruptingMessage.html}
           style={Sefaria.interruptingMessage.style}
           repetition={Sefaria.interruptingMessage.repetition}
-          onClose={this.rerender} />) : null;
+          onClose={this.rerender} />) : <Ad rerender={this.rerender} adType="banner"/>;
     const sefariaModal = (
       <SignUpModal onClose={this.toggleSignUpModal} show={this.state.showSignUpModal} />
     );
@@ -1968,9 +1970,9 @@ class ReaderApp extends Component {
     var classes = classNames(classDict);
   
     return (
+      <AdContext.Provider value={this.getUserContext()}>
       <div id="readerAppWrap">
         {interruptingMessage}
-        <Ad context={this.getUserContext()} />
         <div className={classes} onClick={this.handleInAppLinkClick}>
           {header}
           {panels}
@@ -1980,6 +1982,7 @@ class ReaderApp extends Component {
           <CookiesNotification />
         </div>
       </div>
+      </AdContext.Provider>
     );
   }
 }
