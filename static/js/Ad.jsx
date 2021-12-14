@@ -36,7 +36,8 @@ const Ad = ({adType, rerender}) => {
         ad.trigger.interfaceLang === context.interfaceLang &&
         ad.adType === adType &&
         context.dt > ad.trigger.dt_start && context.dt < ad.trigger.dt_end &&
-        context.keywordTargets.some(kw => ad.trigger.keywordTargets.includes(kw)) &&
+        (context.keywordTargets.some(kw => ad.trigger.keywordTargets.includes(kw)) ||
+        !context.keywordTargets.some(kw => ad.trigger.excludeKeywordTargets.includes(kw))) &&
         /* line below checks if ad with particular repetition number has been seen before and is a banner */
         (Sefaria._inBrowser && !document.cookie.includes(`${ad.campaignId}_${ad.repetition}`) || ad.adType === "sidebar") 
       )
@@ -60,6 +61,10 @@ const Ad = ({adType, rerender}) => {
           row.push(data.getFormattedValue(r, c));
         }
         console.log(row)
+        const keywordTargetsArray = row[5].split(",");
+        const excludeKeywordTargets = keywordTargetsArray.filter(x => x.indexOf("!") === 0);
+        excludeKeywordTargets = excludeKeywordTargets.map(x => x.slice(1));
+        keywordTargetsArray = keywordTargetsArray.filter(x => x.indexOf("!") !== 0)
         Sefaria._inAppAds.push(
             {
               campaignId: row[0],
@@ -79,7 +84,8 @@ const Ad = ({adType, rerender}) => {
                 interfaceLang: row[3],
                 dt_start: Date.parse(row[1]),
                 dt_end: Date.parse(row[2]),
-                keywordTargets: row[5].split(","),
+                keywordTargets: keywordTargetsArray,
+                excludeKeywordTargets: excludeKeywordTargets
               }
             }
         )
@@ -90,7 +96,7 @@ const Ad = ({adType, rerender}) => {
 
     function styleAd() {
         if (adType === "banner") {
-            const bannerHtml = matchingAd.bodyText;
+            const bannerHtml = matchingAd.bodyText + `<a href=${matchingAd.buttonUrl}>${matchingAd.buttonText}</a>`;
             return <InterruptingMessage
             messageName={matchingAd.campaignId}
             messageHTML={bannerHtml}
@@ -104,9 +110,9 @@ const Ad = ({adType, rerender}) => {
         })
         return <div className={classes}>
             <h3>{matchingAd.title}</h3>
-            {matchingAd.buttonLocation === "above" ?
+            {matchingAd.buttonLocation === "below" ?
                 <><p>{matchingAd.bodyText}</p><a className={matchingAd.buttonStyle} href={matchingAd.buttonUrl}>
-                <img src={`/static/img/${matchingAd.buttonIcon}.png`} aria-hidden="true" />
+                <img src={`/static/icons/${matchingAd.buttonIcon}`} aria-hidden="true" />
                 {matchingAd.buttonText}</a></> :
                 <><a className={matchingAd.buttonStyle} href={matchingAd.buttonUrl}>                <img src={`/static/img/${matchingAd.buttonIcon}.png`} aria-hidden="true" />{matchingAd.buttonText}</a><p>{matchingAd.bodyText}</p></>}
         </div>
