@@ -2285,6 +2285,16 @@ a.navBlockTitle:hover {
 .sidebarAd a.button img {
   height: 18px;
   width: 18px;
+  filter: invert(1);
+  margin-inline-end: 10px;
+  vertical-align: middle;
+  margin-top: -2px;
+}
+.sidebarAd a.button.blue img {
+  height: 18px;
+  width: 18px;
+  filter: invert(0);
+  color: var(--sefaria-blue);
   margin-inline-end: 10px;
   vertical-align: middle;
   margin-top: -2px;

@@ -100,7 +100,7 @@ const Ad = ({adType, rerender}) => {
         } else {
         const classes = classNames({
             sidebarAd: 1,
-            blue: matchingAd.hasBlueBackground,
+            blue: parseInt(matchingAd.hasBlueBackground),
         })
         return <div className={classes}>
             <h3>{matchingAd.title}</h3>
