@@ -141,6 +141,7 @@ class ReaderApp extends Component {
       collectionTag:           state.collectionTag           || null,
       searchQuery:             state.searchQuery             || null,
       searchTab:               state.searchTab               || 'text',
+      showHighlight:           state.showHighlight           || null,
       topicsTab:               state.topicsTab               || 'sources',
       textSearchState:         state.textSearchState         || new SearchState({ type: 'text' }),
       sheetSearchState:        state.sheetSearchState        || new SearchState({ type: 'sheet' }),
@@ -1035,8 +1036,8 @@ class ReaderApp extends Component {
 
     } else if (Sefaria.isRef(path.slice(1))) {
       const currVersions = {en: params.get("ven"), he: params.get("vhe")};
-      openPanel(Sefaria.humanRef(path.slice(1)), currVersions);
-
+      const options = {showHighlight: path.slice(1).indexOf("-") !== -1};   // showHighlight when ref is ranged
+      openPanel(Sefaria.humanRef(path.slice(1)), currVersions, options);
     } else {
       return false
     }
