@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Iterable
 import django
 django.setup()
 import spacy, csv
@@ -11,17 +11,18 @@ from sefaria.spacy_function_registry import custom_tokenizer_factory  # used by 
 def model(project_name: str) -> Language:
     return spacy.load(f'/home/nss/sefaria/data/research/prodigy/output/{project_name}/model-last')
 
-def parse_segment(oref: Ref, resolver: RefResolver) -> List[ResolvedRawRef]:
-    tc = TextChunk(oref, 'he')
-    return resolver.resolve_refs_in_string(oref, tc.text, with_failures=True)
+def parse_book(title: str, resolver: RefResolver) -> Iterable:
+    input_text = []
+    input_context_refs = []
+    def collect_input(s: str, en_tref: str, he_tref: str, v: Version) -> None:
+        nonlocal input_text, input_context_refs
+        input_text += [s]
+        input_context_refs += [Ref(en_tref)]
 
-def parse_book(title, resolver: RefResolver) -> list:
-    index = library.get_index(title)
-    resolved = []
-    for segment in tqdm(index.all_segment_refs()):
-        temp_resolved = parse_segment(segment, resolver)
-        resolved += [(segment, temp_resolved)]
-    return resolved
+    version = VersionSet({"title": title, "language": "he"}).array()[0]
+    version.walk_thru_contents(collect_input)
+    resolved = resolver.bulk_resolve_refs('he', input_context_refs, input_text, with_failures=True, verbose=True)
+    return zip(input_context_refs, resolved)
 
 def save_resolved_refs(resolved):
     total, num_resolved = 0, 0
@@ -40,7 +41,8 @@ def save_resolved_refs(resolved):
                     row['Found Ref'] = resolved_raw_ref.ref.normal()
                 c.writerow(row)
     print(f"Percent Resolved: {num_resolved}/{total} ({round(num_resolved/total*100, 2)}%)")
+
 if __name__ == '__main__':
-    resolver = RefResolver('he', model('ref_tagging_gilyon'), model('sub_citation'))
+    resolver = library.get_ref_resolver()
     resolved = parse_book("Gilyon HaShas on Berakhot", resolver)
     save_resolved_refs(resolved)
