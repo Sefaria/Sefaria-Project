@@ -302,7 +302,7 @@ class ConnectionsPanel extends Component {
               setConnectionsMode={this.props.setConnectionsMode}
               masterPanelSheetId={this.props.masterPanelSheetId}
             /> :
-            <div class="topToolsButtons">
+            <div className="topToolsButtons">
               <ToolsButton en="About this Text" he="אודות הטקסט" image="about-text.svg" onClick={() => this.props.setConnectionsMode("About")} />
               <ToolsButton en="Table of Contents" he="תוכן העניינים" image="text-navigation.svg" onClick={() => this.props.setConnectionsMode("Navigation")} />
               <ToolsButton en="Translations" he="תרגומים" image="translation.svg"  onClick={() => this.props.setConnectionsMode("Translations")} />
