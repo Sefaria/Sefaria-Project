@@ -1674,7 +1674,7 @@ function NewsletterSignUpForm(props) {
   }
 
   function handleSubscribe() {
-    var email = input;
+    const email = input;
     if (Sefaria.util.isValidEmailAddress(email)) {
       setSubscribeMessage("Subscribing...");
       var list = Sefaria.interfaceLang == "hebrew" ? "Announcements_General_Hebrew" : "Announcements_General";

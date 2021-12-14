@@ -149,7 +149,7 @@ def render_react_component(component, props):
         # Catch timeouts, however they may come.
         if isinstance(e, socket.timeout) or (hasattr(e, "reason") and isinstance(e.reason, socket.timeout)):
             props = json.loads(props) if isinstance(props, str) else props
-            logger.exception("Node timeout: {} / {} / {} / {}\n".format(
+            logger.warning("Node timeout: {} / {} / {} / {}\n".format(
                     props.get("initialPath"),
                     "MultiPanel" if props.get("multiPanel", True) else "Mobile",
                     "Logged In" if props.get("loggedIn", False) else "Logged Out",
@@ -158,7 +158,7 @@ def render_react_component(component, props):
             return render_to_string("elements/loading.html", context={"SITE_SETTINGS": SITE_SETTINGS})
         else:
             # If anything else goes wrong with Node, just fall back to client-side rendering
-            logger.exception("Node error: Fell back to client-side rendering.")
+            logger.warning("Node error: Fell back to client-side rendering.")
             return render_to_string("elements/loading.html", context={"SITE_SETTINGS": SITE_SETTINGS})
 
 
