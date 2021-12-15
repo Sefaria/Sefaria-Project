@@ -249,6 +249,8 @@ class LexiconEntrySubClassMapping(object):
         'Jastrow Dictionary': JastrowDictionaryEntry,
         "Jastrow Unabbreviated" : JastrowDictionaryEntry,
         'Klein Dictionary': KleinDictionaryEntry,
+        'Sefer HaShorashim': StrongsDictionaryEntry,
+        'Sefer HaShorashim, Animadversions by Elias Levita': StrongsDictionaryEntry
     }
 
     @classmethod
