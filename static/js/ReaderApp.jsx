@@ -951,7 +951,9 @@ class ReaderApp extends Component {
     if (!href) {
       return;
     }
-    const replacePanel = !(el.classList.contains("refInSheet")) // ensure text refs on sheet open in new panel
+    //All links within sheet content should open in a new panel
+    const isSheet = !!(el.closest(".sheetItem"))
+    const replacePanel = !(isSheet)
     const handled = this.openURL(href,replacePanel);
     if (handled) {
       e.preventDefault();
@@ -966,9 +968,11 @@ class ReaderApp extends Component {
     } catch {
       return false;
     }
-    // Allow absolute URLs pointing to Sefaria. TODO generalize to any domain of current deploy.
+    // Open non-Sefaria urls in new tab/window
+    // TODO generalize to any domain of current deploy.
     if (url.hostname.indexOf("www.sefaria.org") === -1) {
-      return false;
+      window.open(url, '_blank')
+      return true;
     }
     const path = url.pathname;
     const params = url.searchParams;
