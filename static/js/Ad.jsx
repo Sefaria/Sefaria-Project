@@ -59,8 +59,8 @@ const Ad = ({adType, rerender}) => {
         for (let c = 0; c < columns; c++) {
           row.push(data.getFormattedValue(r, c));
         }
-        const keywordTargetsArray = row[5].split(",");
-        const excludeKeywordTargets = keywordTargetsArray.filter(x => x.indexOf("!") === 0);
+        let keywordTargetsArray = row[5].split(",");
+        let excludeKeywordTargets = keywordTargetsArray.filter(x => x.indexOf("!") === 0);
         excludeKeywordTargets = excludeKeywordTargets.map(x => x.slice(1));
         keywordTargetsArray = keywordTargetsArray.filter(x => x.indexOf("!") !== 0)
         Sefaria._inAppAds.push(
