@@ -2255,6 +2255,7 @@ a.navBlockTitle:hover {
 }
 .sidebarAd {
   padding: 0px 44px;
+  color: var(--dark-grey);
 }
 .sidebarAd h3 {
   margin: 0 0 20px;
@@ -2299,6 +2300,25 @@ a.navBlockTitle:hover {
 }
 .sidebarAd.blue.button a:hover {
   color: var(--sefaria-blue);
+}
+
+.sidebarAdNavButton img {
+    height: 18px;
+    width: 18px;
+    margin-inline-end: 10px;
+    vertical-align: middle;
+    margin-top: -4px;
+}
+
+a.sidebarAdNavButton {
+  --english-font: var(--english-serif-font-family);
+  --hebrew-font: var(--hebrew-serif-font-family);
+  font-size: var(--serif-body-font-size);
+  color: #000;
+}
+
+.blue a.sidebarAdNavButton {
+  color: #fff;
 }
 
 .readerPanel .communityPage h2 {
