@@ -49,9 +49,7 @@ const Ad = ({adType, rerender}) => {
         alert('Error in query: ' + response.getMessage() + ' ' + response.getDetailedMessage());
         return;
       }
-      console.log(response);
       const data = response.getDataTable();
-      console.log(data);
       const columns = data.getNumberOfColumns();
       const rows = data.getNumberOfRows();
       Sefaria._inAppAds = [];
@@ -60,7 +58,6 @@ const Ad = ({adType, rerender}) => {
         for (let c = 0; c < columns; c++) {
           row.push(data.getFormattedValue(r, c));
         }
-        console.log(row)
         const keywordTargetsArray = row[5].split(",");
         const excludeKeywordTargets = keywordTargetsArray.filter(x => x.indexOf("!") === 0);
         excludeKeywordTargets = excludeKeywordTargets.map(x => x.slice(1));
