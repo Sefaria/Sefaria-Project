@@ -2,6 +2,7 @@ import React, {useState, useContext, useEffect} from 'react';
 import { AdContext } from './context';
 import classNames from 'classnames';
 import { InterruptingMessage } from './Misc';
+import Sefaria from './sefaria/sefaria';
 const Ad = ({adType, rerender}) => {
     const [inAppAds, setInAppAds] = useState(Sefaria._inAppAds);
     const [matchingAd, setMatchingAd] = useState(null);
@@ -93,7 +94,8 @@ const Ad = ({adType, rerender}) => {
 
     function styleAd() {
         if (adType === "banner") {
-            const bannerHtml = matchingAd.bodyText + `<a href=${matchingAd.buttonUrl}>${matchingAd.buttonText}</a>`;
+            Sefaria.track.event("BannerMessages", "View", matchingAd.campaignId); // TODO?: check when scrolled into view
+            const bannerHtml = matchingAd.bodyText + `<a href="${matchingAd.buttonUrl}" onClick="Sefaria.track.event('BannerMessages', 'Click', '${matchingAd.campaignId}')">${matchingAd.buttonText}</a>`;
             return <InterruptingMessage
             messageName={matchingAd.campaignId}
             messageHTML={bannerHtml}
@@ -101,6 +103,7 @@ const Ad = ({adType, rerender}) => {
             repetition={matchingAd.repetition}
             onClose={rerender} />
         } else {
+        Sefaria.track.event("SidebarMessages", "View", matchingAd.campaignId); // TODO?: check when scrolled into view
         const classes = classNames({
             sidebarAd: 1,
             blue: parseInt(matchingAd.hasBlueBackground),
@@ -108,16 +111,19 @@ const Ad = ({adType, rerender}) => {
         return <div className={classes}>
             <h3>{matchingAd.title}</h3>
             {matchingAd.buttonLocation === "below" ?
-                <><p>{matchingAd.bodyText}</p><a className={matchingAd.buttonStyle} href={matchingAd.buttonUrl}>
-                <img src={`/static/icons/${matchingAd.buttonIcon}`} aria-hidden="true" />
-                {matchingAd.buttonText}</a></> :
-                <><a className={matchingAd.buttonStyle} href={matchingAd.buttonUrl}>                <img src={`/static/img/${matchingAd.buttonIcon}.png`} aria-hidden="true" />{matchingAd.buttonText}</a><p>{matchingAd.bodyText}</p></>}
+                <><p>{matchingAd.bodyText}</p>{getButton()}</> :
+                <>{getButton()}<p>{matchingAd.bodyText}</p></>}
         </div>
         }
     }
 
-    return (matchingAd ? styleAd()
-      : null)
+    function getButton() {
+        return <a className={matchingAd.buttonStyle} href={matchingAd.buttonUrl} onClick={() => Sefaria.track.event("SidebarMessages", "Click", matchingAd.campaignId)}>
+        <img src={`/static/icons/${matchingAd.buttonIcon}`} aria-hidden="true" />
+        {matchingAd.buttonText}</a>
+    }
+
+    return matchingAd ? styleAd() : null
 
 }
 
