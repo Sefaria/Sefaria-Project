@@ -3,6 +3,8 @@ import { AdContext } from './context';
 import classNames from 'classnames';
 import { InterruptingMessage } from './Misc';
 import Sefaria from './sefaria/sefaria';
+import ReactDomServer from 'react-dom/server';
+
 const Ad = ({adType, rerender}) => {
     const [inAppAds, setInAppAds] = useState(Sefaria._inAppAds);
     const [matchingAd, setMatchingAd] = useState(null);
@@ -24,8 +26,20 @@ const Ad = ({adType, rerender}) => {
         const url = 
         'https://docs.google.com/spreadsheets/d/1UJw2Akyv3lbLqBoZaFVWhaAp-FUQ-YZfhprL_iNhhQc/edit#gid=0'
         const query = new google.visualization.Query(url);
-        query.setQuery('select A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q');
+        query.setQuery('select A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P');
         query.send(processSheetsData);
+    }
+
+    function showToUser(ad) {
+        if (ad.trigger.showTo === "all") {
+            return true;
+        } else if (ad.trigger.showTo === "loggedIn" && context.isLoggedIn) {
+            return true;
+        } else if (ad.trigger.showTo === "loggedOut" && !context.isLoggedIn) {
+            return true;
+        } else {
+            return false;
+        }
     }
    
         
@@ -33,12 +47,12 @@ const Ad = ({adType, rerender}) => {
     // TODO: refine matching algorithm to order by matchingness?
     return inAppAds.filter(ad => {
       return (
-        !!ad.trigger.isLoggedIn === !!context.isLoggedIn &&
+        showToUser(ad) &&
         ad.trigger.interfaceLang === context.interfaceLang &&
         ad.adType === adType &&
         context.dt > ad.trigger.dt_start && context.dt < ad.trigger.dt_end &&
         (context.keywordTargets.some(kw => ad.trigger.keywordTargets.includes(kw)) ||
-        !context.keywordTargets.some(kw => ad.trigger.excludeKeywordTargets.includes(kw))) &&
+        (ad.trigger.excludeKeywordTargets.length !== 0 && !context.keywordTargets.some(kw => ad.trigger.excludeKeywordTargets.includes(kw)))) &&
         /* line below checks if ad with particular repetition number has been seen before and is a banner */
         (Sefaria._inBrowser && !document.cookie.includes(`${ad.campaignId}_${ad.repetition}`) || ad.adType === "sidebar") 
       )
@@ -72,13 +86,12 @@ const Ad = ({adType, rerender}) => {
               buttonUrl: row[9],
               buttonIcon: row[10],
               buttonLocation: row[11],
-              buttonBgColor: row[12],
-              adType: row[13],
-              hasBlueBackground: row[14],
-              repetition: row[15],
-              buttonStyle: row[16],
+              adType: row[12],
+              hasBlueBackground: parseInt(row[13]),
+              repetition: row[14],
+              buttonStyle: row[15],
               trigger: {
-                isLoggedIn: row[4],
+                showTo: row[4] ,
                 interfaceLang: row[3],
                 dt_start: Date.parse(row[1]),
                 dt_end: Date.parse(row[2]),
@@ -92,10 +105,26 @@ const Ad = ({adType, rerender}) => {
       
     }
 
+    // TODO: refactor once old InterruptingMessage pattern is retired
+    function createBannerHtml() {
+        return `<div id="bannerTextBox">
+	<span class="${context.interfaceLang === "hebrew" ? "int-he" : "int-en" }" style="font-weight: bold">
+        ${matchingAd.bodyText}
+    </span>
+</div>
+<div id="bannerButtonBox">
+	<a class="button white ${context.interfaceLang === "hebrew" ? "int-he" : "int-en" }" href="${matchingAd.buttonUrl}"
+    onClick="() => {Sefaria.track.event('BannerMessages', 'Click', ${matchingAd.campaignId})}"
+    target="_blank">
+        <span>${matchingAd.buttonText}</span>
+    </a>
+</div>`
+    }
+
     function styleAd() {
         if (adType === "banner") {
             Sefaria.track.event("BannerMessages", "View", matchingAd.campaignId); // TODO?: check when scrolled into view
-            const bannerHtml = matchingAd.bodyText + `<a href="${matchingAd.buttonUrl}" onClick="Sefaria.track.event('BannerMessages', 'Click', '${matchingAd.campaignId}')">${matchingAd.buttonText}</a>`;
+            const bannerHtml = createBannerHtml();
             return <InterruptingMessage
             messageName={matchingAd.campaignId}
             messageHTML={bannerHtml}
@@ -106,7 +135,7 @@ const Ad = ({adType, rerender}) => {
         Sefaria.track.event("SidebarMessages", "View", matchingAd.campaignId); // TODO?: check when scrolled into view
         const classes = classNames({
             sidebarAd: 1,
-            blue: parseInt(matchingAd.hasBlueBackground),
+            blue: matchingAd.hasBlueBackground,
         })
         return <div className={classes}>
             <h3>{matchingAd.title}</h3>
