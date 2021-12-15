@@ -10,17 +10,24 @@ const Ad = ({adType, rerender}) => {
     const [matchingAd, setMatchingAd] = useState(null);
     const context = useContext(AdContext);
     useEffect(() => {
-      // if (!inAppAds) {
         google.charts.load("current");
         google.charts.setOnLoadCallback(getAds)
-      // }
     }, []);
     useEffect(() => {
       if(inAppAds) {
         const matchingAds = getCurrentMatchingAds();
-        setMatchingAd(matchingAds.length ? matchingAds[0] : null);
+        if (matchingAds.length) {
+            setMatchingAd(matchingAds[0]);
+        } else {
+            setMatchingAd(null);
+        }
       }
     }, [context, inAppAds]);
+    useEffect(() => {
+        if(matchingAd) {
+            Sefaria.track.event(`${matchingAd.adType}Messages`, "View", matchingAd.campaignId); 
+        }
+    }, [matchingAd])
 
     function getAds() {
         const url = 
@@ -123,7 +130,6 @@ const Ad = ({adType, rerender}) => {
 
     function styleAd() {
         if (adType === "banner") {
-            Sefaria.track.event("BannerMessages", "View", matchingAd.campaignId); // TODO?: check when scrolled into view
             const bannerHtml = createBannerHtml();
             return <InterruptingMessage
             messageName={matchingAd.campaignId}
@@ -132,7 +138,6 @@ const Ad = ({adType, rerender}) => {
             repetition={matchingAd.repetition}
             onClose={rerender} />
         } else {
-        Sefaria.track.event("SidebarMessages", "View", matchingAd.campaignId); // TODO?: check when scrolled into view
         const classes = classNames({
             sidebarAd: 1,
             blue: matchingAd.hasBlueBackground,
