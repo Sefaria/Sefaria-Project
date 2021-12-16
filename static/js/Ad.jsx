@@ -8,6 +8,7 @@ import ReactDomServer from 'react-dom/server';
 const Ad = ({adType, rerender}) => {
     const [inAppAds, setInAppAds] = useState(Sefaria._inAppAds);
     const [matchingAd, setMatchingAd] = useState(null);
+    const [prevMatchingAdId, setPrevMatchingAdId] = useState(null)
     const context = useContext(AdContext);
     useEffect(() => {
         google.charts.load("current");
@@ -24,8 +25,9 @@ const Ad = ({adType, rerender}) => {
       }
     }, [context, inAppAds]);
     useEffect(() => {
-        if(matchingAd) {
+        if(matchingAd && matchingAd.campaignId != prevMatchingAdId) {
             Sefaria.track.promoView(matchingAd.campaignId, matchingAd.adType)
+            setPrevMatchingAdId(matchingAd.campaignId)
         }
     }, [matchingAd])
 

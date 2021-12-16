@@ -37,6 +37,7 @@ class Track {
           'id': id,
           'position': position
         });
+        ga('send', 'event', 'Internal Promotions', 'view', id);
     }
 
     static promoClick(id, position) {
