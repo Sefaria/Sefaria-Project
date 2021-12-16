@@ -492,7 +492,7 @@ const TopicPage = ({
                       timePeriod={topicData.timePeriod}
                       properties={topicData.properties} />
                     : null }
-                    <Ad/>
+                    <Ad adType="sidebar"/>
                 </div>
             </div>
             <Footer />
