@@ -31,6 +31,26 @@ class Track {
             setTimeout(value.hitCallback, 1000)
         }
     }
+    static promoView(id, position) {
+        // Promo details provided in a promoFieldObject. Can add name, and creative if we desire.
+        ga('ec:addPromo', {
+          'id': id,
+          'position': position
+        });
+    }
+
+    static promoClick(id, position) {
+        // Identify the promotion that was clicked.
+        ga('ec:addPromo', {
+          'id': id,
+          'position': position
+        });
+
+        // Send the promo_click action with an event.
+        ga('ec:setAction', 'promo_click');
+        ga('send', 'event', 'Internal Promotions', 'click', id);
+    }
+
     static pageview(url) {
         ga(SET, 'page', url);
         ga(SEND, 'pageview');

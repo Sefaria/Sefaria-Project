@@ -25,7 +25,7 @@ const Ad = ({adType, rerender}) => {
     }, [context, inAppAds]);
     useEffect(() => {
         if(matchingAd) {
-            Sefaria.track.event(`${matchingAd.adType}Messages`, "View", matchingAd.campaignId); 
+            Sefaria.track.promoView(matchingAd.campaignId, matchingAd.adType)
         }
     }, [matchingAd])
 
@@ -121,7 +121,7 @@ const Ad = ({adType, rerender}) => {
 </div>
 <div id="bannerButtonBox">
 	<a class="button white ${context.interfaceLang === "hebrew" ? "int-he" : "int-en" }" href="${matchingAd.buttonUrl}"
-    onClick="() => {Sefaria.track.event('BannerMessages', 'Click', ${matchingAd.campaignId})}"
+    onClick="() => {Sefaria.track.promoClick(${matchingAd.campaignId}, ${matchingAd.adType})}"
     target="_blank">
         <span>${matchingAd.buttonText}</span>
     </a>
@@ -152,7 +152,7 @@ const Ad = ({adType, rerender}) => {
     }
 
     function getButton() {
-        return <a className={matchingAd.buttonStyle} href={matchingAd.buttonUrl} onClick={() => Sefaria.track.event("SidebarMessages", "Click", matchingAd.campaignId)}>
+        return <a className={matchingAd.buttonStyle} href={matchingAd.buttonUrl} onClick={() => Sefaria.track.promoClick(matchingAd.campaignId, matchingAd.adType)}>
         <img src={`/static/icons/${matchingAd.buttonIcon}`} aria-hidden="true" />
         {matchingAd.buttonText}</a>
     }
