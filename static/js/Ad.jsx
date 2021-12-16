@@ -139,7 +139,7 @@ const Ad = ({adType, rerender}) => {
             onClose={rerender} />
         } else {
         const classes = classNames({
-            sidebarAd: 1,
+            sidebarPromo: 1,
             blue: matchingAd.hasBlueBackground,
         })
         return <div className={classes}>
