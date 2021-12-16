@@ -1482,7 +1482,7 @@ class VirtualNode(TitledTreeNode):
 
 class DictionaryEntryNode(TitledTreeNode):
     is_virtual = True
-    supported_languages = ["en"]
+    supported_languages = ["en", "he"]
 
     def __init__(self, parent, title=None, tref=None, word=None, lexicon_entry=None):
         """
