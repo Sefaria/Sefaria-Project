@@ -14,7 +14,6 @@ const NavSidebar = ({modules}) => {
         props={m.props || {}} 
         key={i} />
     )}
-    <Ad adType="sidebar"/>
   </div>
 };
 
@@ -23,7 +22,7 @@ const Modules = ({type, props}) => {
   // Choose the appropriate module component to render by `type`
   const moduleTypes = {
     "AboutSefaria":           AboutSefaria,
-    "Ad":                     Ad,
+    "Promo":                  Promo,
     "Resources":              Resources,
     "TheJewishLibrary":       TheJewishLibrary,
     "AboutTextCategory":      AboutTextCategory,
@@ -80,6 +79,11 @@ const TitledText = ({enTitle, heTitle, enText, heText}) => {
   </Module>
 };
 
+const Promo = () =>
+    <Module>
+        <Ad adType="sidebar"/>
+    </Module>
+;
 
 const AboutSefaria = ({hideTitle}) => (
   <Module>

@@ -2254,10 +2254,16 @@ a.navBlockTitle:hover {
   margin-bottom: 0px;
 }
 .sidebarPromo {
-  padding: 0px 44px;
   color: var(--dark-grey);
+  padding-right: 44px;
+  padding-left: 44px;
 }
-.sidebarAd h3 {
+.navSidebarModule .sidebarPromo {
+  margin-right: -44px;
+  margin-left: -44px;
+}
+
+.sidebarPromo h3 {
   margin: 0 0 20px;
   font-size: 22px;
   text-transform: none;
@@ -2267,15 +2273,16 @@ a.navBlockTitle:hover {
   font-weight: 500;
   height: auto;
 }
-.sidebarAd.blue {
-  padding: 33px 44px;
+.sidebarPromo.blue {
+  padding-top: 33px;
+  padding-bottom: 33px;
   background-color: var(--sefaria-blue);
   color: #FFF;
 }
-.sidebarAd.blue h3 {
+.sidebarPromo.blue h3 {
   color: #fff
 }
-.sidebarAd.blue a.button {
+.sidebarPromo.blue a.button {
   padding: 10px 14px;
   width: fit-content;
   text-align: center;
@@ -2283,7 +2290,7 @@ a.navBlockTitle:hover {
   color: var(--sefaria-blue);
   background-color: white;
 }
-.sidebarAd a.button img {
+.sidebarPromo a.button img {
   height: 18px;
   width: 18px;
   filter: invert(1);
@@ -2292,33 +2299,22 @@ a.navBlockTitle:hover {
   margin-top: -2px;
 }
 
-.sidebarAd.blue a.button img {
+.sidebarPromo.blue a.button img {
   filter: invert(0);
 }
-.sidebarAd a {
+.sidebarPromo a {
   margin-inline-start: 0px;
 }
-.sidebarAd.blue.button a:hover {
+.sidebarPromo.blue.button a:hover {
   color: var(--sefaria-blue);
 }
 
-.sidebarAdNavButton img {
+.sidebarPromo img {
     height: 18px;
     width: 18px;
     margin-inline-end: 10px;
     vertical-align: middle;
     margin-top: -4px;
-}
-
-a.sidebarAdNavButton {
-  --english-font: var(--english-serif-font-family);
-  --hebrew-font: var(--hebrew-serif-font-family);
-  font-size: var(--serif-body-font-size);
-  color: #000;
-}
-
-.blue a.sidebarAdNavButton {
-  color: #fff;
 }
 
 .readerPanel .communityPage h2 {
