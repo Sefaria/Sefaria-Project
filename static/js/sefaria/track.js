@@ -33,23 +33,23 @@ class Track {
     }
     static promoView(id, position) {
         // Promo details provided in a promoFieldObject. Can add name, and creative if we desire.
-        ga('ec:addPromo', {
+        ga(trackerName + '.ec:addPromo', {
           'id': id,
           'position': position
         });
-        ga('send', 'event', 'Internal Promotions', 'view', id);
+        ga(SEND, 'event', 'Internal Promotions', 'view', id, { nonInteraction: true });
     }
 
     static promoClick(id, position) {
         // Identify the promotion that was clicked.
-        ga('ec:addPromo', {
+        ga(trackerName + '.ec:addPromo', {
           'id': id,
           'position': position
         });
 
         // Send the promo_click action with an event.
         ga('ec:setAction', 'promo_click');
-        ga('send', 'event', 'Internal Promotions', 'click', id);
+        ga(SEND, 'event', 'Internal Promotions', 'click', id);
     }
 
     static pageview(url) {
