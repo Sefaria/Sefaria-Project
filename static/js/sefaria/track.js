@@ -1,14 +1,17 @@
 var ga;
+let tracker, trackerName;
 if (typeof window !== 'undefined' && typeof window.ga === "function" && typeof window.ga.getAll == "function" && window.ga.getAll().length > 0) {
   ga = window.ga;
-  var trackerName = ga.getAll()[0].get("name"); // Google Tag Manager assigns a Tracker Name
+  tracker = ga.getAll()[0];
+  trackerName = tracker.get("name"); // Google Tag Manager assigns a Tracker Name
   window.onerror = function(msg, url, lineNumber) {
       ga(trackerName + ".send", 'event', 'Javascript Errors',  msg, url + ':' + lineNumber);
   };
+  ga(trackerName + '.require', 'ec');
 } else {
   ga = function() {}; // Fail gracefully if we reach one of these methods server side or when GA doesn't load properly
   ga._mock = true;
-  var trackerName = "mock";
+  trackerName = "mock";
 }
 var SET = trackerName + ".set";
 var SEND = trackerName + ".send";
@@ -48,7 +51,7 @@ class Track {
         });
 
         // Send the promo_click action with an event.
-        ga('ec:setAction', 'promo_click');
+        ga(trackerName + '.ec:setAction', 'promo_click');
         ga(SEND, 'event', 'Internal Promotions', 'click', id);
     }
 
