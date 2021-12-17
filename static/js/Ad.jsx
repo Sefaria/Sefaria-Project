@@ -122,7 +122,7 @@ const Ad = ({adType, rerender}) => {
 </div>
 <div id="bannerButtonBox">
 	<a class="button white ${context.interfaceLang === "hebrew" ? "int-he" : "int-en" }" href="${matchingAd.buttonUrl}"
-    onClick="() => {Sefaria.track.promoClick(${matchingAd.campaignId}, ${matchingAd.adType})}"
+    onClick="Sefaria.track.promoClick('${matchingAd.campaignId}', '${matchingAd.adType}');"
     target="_blank">
         <span>${matchingAd.buttonText}</span>
     </a>
