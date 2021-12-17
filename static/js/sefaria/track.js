@@ -38,6 +38,7 @@ class Track {
         // Promo details provided in a promoFieldObject. Can add name, and creative if we desire.
         ga(trackerName + '.ec:addPromo', {
           'id': id,
+          'name': id,
           'position': position
         });
         ga(SEND, 'event', 'Internal Promotions', 'view', id, { nonInteraction: true });
@@ -47,6 +48,7 @@ class Track {
         // Identify the promotion that was clicked.
         ga(trackerName + '.ec:addPromo', {
           'id': id,
+          'name': id,
           'position': position
         });
 
