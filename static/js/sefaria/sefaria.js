@@ -234,15 +234,21 @@ Sefaria = extend(Sefaria, {
     // Returns true is `ref1` contains `ref2`
     const oRef1 = Sefaria.parseRef(ref1);
     const oRef2 = Sefaria.parseRef(ref2);
+    //need to convert to ints, add ancestors for complex and copy logic from server
 
     if ("error" in oRef1 || "error" in oRef2) { return null; }
-
+    
+    //We need numerical representations of the sections, and not to trip up on talmud sections
     if (oRef2.index !== oRef2.index || oRef1.book !== oRef2.book) { return false; }
-
-    for (let i = 0; i < oRef1.sections.length; i++) {
-      if (oRef1.sections[i] <= oRef2.sections[i] && oRef1.toSections[i] >= oRef2.toSections[i]) {
+    const [oRef1sections, oRef1toSections, oRef2sections, oRef2toSections] = [oRef1.sections, oRef1.toSections, oRef2.sections, oRef2.toSections].map(arr => 
+        arr.map(x => x.match(/\d+[ab]/) ? Sefaria.hebrew.dafToInt(x) : parseInt(x))
+    )
+      
+    const sectionsLen = Math.min(oRef1sections.length, oRef2sections.length);
+    for (let i = 0; i < sectionsLen; i++) {
+      if (oRef1sections[i] <= oRef2sections[i] && oRef1toSections[i] >= oRef2toSections[i]) {
         return true;
-      } else if (oRef1.sections[i] > oRef2.sections[i] || oRef1.toSections[i] < oRef2.toSections[i]) {
+      } else if (oRef1sections[i] > oRef2sections[i] || oRef1toSections[i] < oRef2toSections[i]) {
         return false;
       }
     }
