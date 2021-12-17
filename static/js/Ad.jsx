@@ -3,7 +3,6 @@ import { AdContext } from './context';
 import classNames from 'classnames';
 import { InterruptingMessage } from './Misc';
 import Sefaria from './sefaria/sefaria';
-import ReactDomServer from 'react-dom/server';
 
 const Ad = ({adType, rerender}) => {
     const [inAppAds, setInAppAds] = useState(Sefaria._inAppAds);

@@ -2262,7 +2262,6 @@ a.navBlockTitle:hover {
   margin-right: -44px;
   margin-left: -44px;
 }
-
 .sidebarPromo h3 {
   margin: 0 0 20px;
   font-size: 22px;
@@ -2308,7 +2307,6 @@ a.navBlockTitle:hover {
 .sidebarPromo.blue.button a:hover {
   color: var(--sefaria-blue);
 }
-
 .sidebarPromo img {
     height: 18px;
     width: 18px;
@@ -2316,7 +2314,6 @@ a.navBlockTitle:hover {
     vertical-align: middle;
     margin-top: -4px;
 }
-
 .readerPanel .communityPage h2 {
   text-transform: none;
   font-size: 22px;
