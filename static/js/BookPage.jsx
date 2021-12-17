@@ -765,7 +765,7 @@ class JaggedArrayNodeSection extends Component {
           heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
         }
       let ref  = (this.props.refPath + ":" + section).replace(":", " ") + this.refPathTerminal(contentCounts[i]);
-      let currentPlace = ref == this.props?.currentlyVisibleSectionRef;
+      let currentPlace = ref == this.props?.currentlyVisibleSectionRef || ref == this.props?.currentlyVisibleRef; //the second clause is for depth 1 texts
       const linkClasses = classNames({"sectionLink": 1, "current": currentPlace}); 
       let link = (
         <a className={linkClasses} href={"/" + Sefaria.normRef(ref)} data-ref={ref} key={i}>
