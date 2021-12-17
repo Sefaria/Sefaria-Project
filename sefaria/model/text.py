@@ -1203,12 +1203,15 @@ class AbstractTextRecord(object):
         return t
 
     @staticmethod
+    def _itag_is_footnote(tag):
+        return tag.name == "sup" and isinstance(tag.next_sibling, Tag) and tag.next_sibling.name == "i" and 'footnote' in tag.next_sibling.get('class', '')
+
+    @staticmethod
     def _find_itags(tag):
         if isinstance(tag, Tag):
-            is_footnote = tag.name == "sup" and isinstance(tag.next_sibling, Tag) and tag.next_sibling.name == "i" and 'footnote' in tag.next_sibling.get('class', '')
             is_inline_commentator = tag.name == "i" and len(tag.get('data-commentator', '')) > 0
             is_page_marker = tag.name == "i" and len(tag.get('data-overlay','')) > 0
-            return is_footnote or is_inline_commentator or is_page_marker
+            return AbstractTextRecord._itag_is_footnote(tag) or is_inline_commentator or is_page_marker
         return False
 
     @staticmethod
@@ -1217,7 +1220,8 @@ class AbstractTextRecord(object):
         itag_list = soup.find_all(AbstractTextRecord._find_itags)
         for itag in itag_list:
             try:
-                itag.next_sibling.decompose()  # it's a footnote
+                if AbstractTextRecord._itag_is_footnote(itag):
+                    itag.next_sibling.decompose()  # it's a footnote
             except AttributeError:
                 pass  # it's an inline commentator
             itag.decompose()

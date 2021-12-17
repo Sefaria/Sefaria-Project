@@ -2241,120 +2241,6 @@ const BlockButton = ({format, icon}) => {
     )
 }
 
-
-function saveSheetContent(doc, lastModified) {
-    const sheetTitle = document.querySelector(".sheetContent .sheetMetaDataBox .title") ? document.querySelector(".sheetContent .sheetMetaDataBox .title").textContent : "Untitled"
-
-    const sheetContent = doc.children.find(el => el.type == "SheetContent").children;
-
-    const sources = sheetContent.map(item => {
-        const sheetItem = item;
-        switch (sheetItem.type) {
-            case 'SheetSource':
-
-                const enSerializedSourceText = (sheetItem.enText.reduce( (concatenatedSegments, currentSegment) => {
-                  return concatenatedSegments + serialize(currentSegment)
-                }, "" ) );
-
-                const heSerializedSourceText = (sheetItem.heText.reduce( (concatenatedSegments, currentSegment) => {
-                  return concatenatedSegments + serialize(currentSegment)
-                }, "" ) );
-
-                let source = {
-                    "ref": sheetItem.ref,
-                    "heRef": sheetItem.heRef,
-                    "text": {
-                        "en": enSerializedSourceText !== "" ? enSerializedSourceText : "...",
-                        "he": heSerializedSourceText !== "" ? heSerializedSourceText : "...",
-                    },
-                    ...sheetItem.options && { options: sheetItem.options },
-                    "node": sheetItem.node,
-                };
-                return (source);
-            case 'SheetOutsideBiText':
-
-                const enSerializedOutsideText = (sheetItem.enText.reduce( (concatenatedSegments, currentSegment) => {
-                  return concatenatedSegments + serialize(currentSegment)
-                }, "" ) );
-
-                const heSerializedOutsideText = (sheetItem.heText.reduce( (concatenatedSegments, currentSegment) => {
-                  return concatenatedSegments + serialize(currentSegment)
-                }, "" ) );
-
-                let outsideBiText = {
-                    "outsideBiText": {
-                        "en": enSerializedOutsideText !== "" ? enSerializedOutsideText : "...",
-                        "he": heSerializedOutsideText !== "" ? heSerializedOutsideText : "...",
-                    },
-                    ...sheetItem.options && { options: sheetItem.options },
-                    "node": sheetItem.node,
-
-                };
-                return outsideBiText;
-
-            case 'SheetComment':
-                return ({
-                    "comment": serialize(sheetItem),
-                    ...sheetItem.options && { options: sheetItem.options },
-                    "node": sheetItem.node,
-                });
-
-            case 'SheetOutsideText':
-               const outsideTextText = serialize(sheetItem)
-               //Add space to empty outside texts to preseve line breaks from old sheets.
-               return ({
-                    "outsideText": (outsideTextText=="<p></p>" || outsideTextText=="<div></div>") ? "<p> </p>" : outsideTextText,
-                    ...sheetItem.options && { options: sheetItem.options },
-                    "node": sheetItem.node,
-                });
-
-            case 'SheetMedia':
-                return({
-                    "media": sheetItem.mediaUrl,
-                    ...sheetItem.options && { options: sheetItem.options },
-                    "node": sheetItem.node,
-                });
-
-            case 'header':
-                const headerContent = serialize(sheetItem)
-                return({
-                    "outsideText": `<h1>${headerContent}</h1>`,
-                    ...sheetItem.options && { options: sheetItem.options },
-                    "node": sheetItem.node,
-                });
-
-
-            case 'spacer':
-              return;
-
-            default:
-                // console.log("Error saving:")
-                // console.log(sheetItem)
-                return;
-        }
-
-    });
-    let sheet = {
-        status: doc.status,
-        id: doc.id,
-        promptedToPublish: doc.promptedToPublish,
-        lastModified: lastModified,
-        summary: doc.summary,
-        options: doc.options,
-        tags: doc.tags,
-        displayedCollection: doc.displayedCollection,
-        title: sheetTitle === "" ? "Untitled" : sheetTitle,
-        sources: sources.filter(x => !!x),
-        nextNode: doc.nextNode,
-    };
-    // title: sheetTitle == "" ? "Untitled" : sheetTitle,
-
-    return JSON.stringify(sheet);
-
-}
-
-
-
 const SefariaEditor = (props) => {
     const editorContainer = useRef();
     const sheet = props.data;
@@ -2480,6 +2366,117 @@ const SefariaEditor = (props) => {
       }
     }, [props.highlightedNode, props.hasSidebar]
   );
+
+    function saveSheetContent(doc, lastModified) {
+        const sheetTitle = editorContainer.current.querySelector(".sheetContent .sheetMetaDataBox .title") ? editorContainer.current.querySelector(".sheetContent .sheetMetaDataBox .title").textContent : "Untitled"
+        console.log(sheetTitle)
+        const sheetContent = doc.children.find(el => el.type == "SheetContent").children;
+
+        const sources = sheetContent.map(item => {
+            const sheetItem = item;
+            switch (sheetItem.type) {
+                case 'SheetSource':
+
+                    const enSerializedSourceText = (sheetItem.enText.reduce( (concatenatedSegments, currentSegment) => {
+                      return concatenatedSegments + serialize(currentSegment)
+                    }, "" ) );
+
+                    const heSerializedSourceText = (sheetItem.heText.reduce( (concatenatedSegments, currentSegment) => {
+                      return concatenatedSegments + serialize(currentSegment)
+                    }, "" ) );
+
+                    let source = {
+                        "ref": sheetItem.ref,
+                        "heRef": sheetItem.heRef,
+                        "text": {
+                            "en": enSerializedSourceText !== "" ? enSerializedSourceText : "...",
+                            "he": heSerializedSourceText !== "" ? heSerializedSourceText : "...",
+                        },
+                        ...sheetItem.options && { options: sheetItem.options },
+                        "node": sheetItem.node,
+                    };
+                    return (source);
+                case 'SheetOutsideBiText':
+
+                    const enSerializedOutsideText = (sheetItem.enText.reduce( (concatenatedSegments, currentSegment) => {
+                      return concatenatedSegments + serialize(currentSegment)
+                    }, "" ) );
+
+                    const heSerializedOutsideText = (sheetItem.heText.reduce( (concatenatedSegments, currentSegment) => {
+                      return concatenatedSegments + serialize(currentSegment)
+                    }, "" ) );
+
+                    let outsideBiText = {
+                        "outsideBiText": {
+                            "en": enSerializedOutsideText !== "" ? enSerializedOutsideText : "...",
+                            "he": heSerializedOutsideText !== "" ? heSerializedOutsideText : "...",
+                        },
+                        ...sheetItem.options && { options: sheetItem.options },
+                        "node": sheetItem.node,
+
+                    };
+                    return outsideBiText;
+
+                case 'SheetComment':
+                    return ({
+                        "comment": serialize(sheetItem),
+                        ...sheetItem.options && { options: sheetItem.options },
+                        "node": sheetItem.node,
+                    });
+
+                case 'SheetOutsideText':
+                   const outsideTextText = serialize(sheetItem)
+                   //Add space to empty outside texts to preseve line breaks from old sheets.
+                   return ({
+                        "outsideText": (outsideTextText=="<p></p>" || outsideTextText=="<div></div>") ? "<p> </p>" : outsideTextText,
+                        ...sheetItem.options && { options: sheetItem.options },
+                        "node": sheetItem.node,
+                    });
+
+                case 'SheetMedia':
+                    return({
+                        "media": sheetItem.mediaUrl,
+                        ...sheetItem.options && { options: sheetItem.options },
+                        "node": sheetItem.node,
+                    });
+
+                case 'header':
+                    const headerContent = serialize(sheetItem)
+                    return({
+                        "outsideText": `<h1>${headerContent}</h1>`,
+                        ...sheetItem.options && { options: sheetItem.options },
+                        "node": sheetItem.node,
+                    });
+
+
+                case 'spacer':
+                  return;
+
+                default:
+                    // console.log("Error saving:")
+                    // console.log(sheetItem)
+                    return;
+            }
+
+        });
+        let sheet = {
+            status: doc.status,
+            id: doc.id,
+            promptedToPublish: doc.promptedToPublish,
+            lastModified: lastModified,
+            summary: doc.summary,
+            options: doc.options,
+            tags: doc.tags,
+            displayedCollection: doc.displayedCollection,
+            title: sheetTitle === "" ? "Untitled" : sheetTitle,
+            sources: sources.filter(x => !!x),
+            nextNode: doc.nextNode,
+        };
+        // title: sheetTitle == "" ? "Untitled" : sheetTitle,
+
+        return JSON.stringify(sheet);
+
+    }
 
 
     function saveDocument(doc) {
