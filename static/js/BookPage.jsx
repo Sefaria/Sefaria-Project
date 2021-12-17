@@ -827,7 +827,7 @@ class ArrayMapNode extends Component {
 
     } else {
       let currentPlace = this.props?.currentlyVisibleSectionRef && 
-          (this.props.schema.wholeRef == this.props?.currentlyVisibleSectionRef || (Sefaria.refContains(this.props.schema.wholeRef, this.props?.currentlyVisibleSectionRef)));
+          (this.props.schema.wholeRef == this.props?.currentlyVisibleRef || (Sefaria.refContains(this.props.schema.wholeRef, this.props?.currentlyVisibleRef)));
       const linkClasses = classNames({"schema-node-toc": 1, "linked":1, "current": currentPlace}); 
       return (
         <a className={linkClasses} href={"/" + Sefaria.normRef(this.props.schema.wholeRef)} data-ref={this.props.schema.wholeRef}>
