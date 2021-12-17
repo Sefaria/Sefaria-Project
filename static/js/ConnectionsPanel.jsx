@@ -380,6 +380,7 @@ class ConnectionsPanel extends Component {
           close={this.props.close}
           currVersions={this.props.currVersions}
           navigatePanel={this.props.navigatePanel}
+          currentlyVisibleRef={this.props.currentlyVisibleRef}
           currentlyVisibleSectionRef={this.state.currentlyVisibleSectionRef}
         />
       );

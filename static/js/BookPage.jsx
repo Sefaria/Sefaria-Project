@@ -410,6 +410,7 @@ class TextTableOfContents extends Component {
                 refPath={this.props.title}
                 topLevel={true}
                 topLevelHeader={"Chapters"}
+                currentlyVisibleRef={this.props.currentlyVisibleRef}
                 currentlyVisibleSectionRef={this.props.currentlyVisibleSectionRef}
               />
               <div className="torahNavParshiot">
@@ -419,6 +420,7 @@ class TextTableOfContents extends Component {
                   refPath={this.props.title}
                   topLevel={true}
                   topLevelHeader={"Torah Portions"}
+                  currentlyVisibleRef={this.props.currentlyVisibleRef}
                   currentlyVisibleSectionRef={this.props.currentlyVisibleSectionRef}
                 />
               </div>
@@ -430,6 +432,7 @@ class TextTableOfContents extends Component {
                       addressTypes={this.state.indexDetails.schema.addressTypes}
                       refPath={this.props.title}
                       topLevel={true}
+                      currentlyVisibleRef={this.props.currentlyVisibleRef}
                       currentlyVisibleSectionRef={this.props.currentlyVisibleSectionRef}
 
           />;
@@ -441,6 +444,7 @@ class TextTableOfContents extends Component {
                     addressTypes={this.state.indexDetails.schema.addressTypes}
                     refPath={this.props.title}
                     topLevel={true}
+                    currentlyVisibleRef={this.props.currentlyVisibleRef}
                     currentlyVisibleSectionRef={this.props.currentlyVisibleSectionRef}
                     />;
         break;
@@ -535,16 +539,17 @@ class SchemaNode extends Component {
             refPath={this.props.refPath}
             topLevel={this.props.topLevel}
             topLevelHeader={this.props.topLevelHeader}
+            currentlyVisibleRef={this.props.currentlyVisibleRef}
             currentlyVisibleSectionRef={this.props.currentlyVisibleSectionRef}
           />
         );
       } else if (this.props.schema.nodeType === "ArrayMapNode") {
         return (
-          <ArrayMapNode schema={this.props.schema} currentlyVisibleSectionRef={this.props.currentlyVisibleSectionRef} />
+          <ArrayMapNode schema={this.props.schema} currentlyVisibleRef={this.props.currentlyVisibleRef} currentlyVisibleSectionRef={this.props.currentlyVisibleSectionRef} />
         );
       } else if (this.props.schema.nodeType === "DictionaryNode") {
         return (
-          <DictionaryNode schema={this.props.schema} currentlyVisibleSectionRef={this.props.currentlyVisibleSectionRef} />
+          <DictionaryNode schema={this.props.schema} currentlyVisibleRef={this.props.currentlyVisibleRef} currentlyVisibleSectionRef={this.props.currentlyVisibleSectionRef} />
         );
       }
 
@@ -570,15 +575,16 @@ class SchemaNode extends Component {
                 <SchemaNode
                   schema={node}
                   refPath={this.props.refPath + ", " + node.title}
+                  currentlyVisibleRef={this.props.currentlyVisibleRef}
                   currentlyVisibleSectionRef={this.props.currentlyVisibleSectionRef}/>
               </div>
               : null }
             </div>);
         } else if (node.nodeType == "ArrayMapNode") {
           // ArrayMapNode with only wholeRef
-          return <ArrayMapNode schema={node} currentlyVisibleSectionRef={this.props.currentlyVisibleSectionRef} key={i}/>;
+          return <ArrayMapNode schema={node} currentlyVisibleRef={this.props.currentlyVisibleRef} currentlyVisibleSectionRef={this.props.currentlyVisibleSectionRef} key={i}/>;
         } else if (node.nodeType == "DictionaryNode") {
-          return <DictionaryNode schema={node} currentlyVisibleSectionRef={this.props.currentlyVisibleSectionRef} key={i}/>;
+          return <DictionaryNode schema={node} currentlyVisibleRef={this.props.currentlyVisibleRef} currentlyVisibleSectionRef={this.props.currentlyVisibleSectionRef} key={i}/>;
         } else if (node.depth == 1 && !node.default) {
           // SchemaNode title that points straight to content
           //we check if this happens to be where the reader is currently at
@@ -609,6 +615,7 @@ class SchemaNode extends Component {
                   schema={node}
                   contentLang={this.props.contentLang}
                   refPath={this.props.refPath + (node.default ? "" : ", " + node.title)}
+                  currentlyVisibleRef={this.props.currentlyVisibleRef}
                   currentlyVisibleSectionRef={this.props.currentlyVisibleSectionRef}
                 />
               </div>
@@ -650,6 +657,7 @@ class JaggedArrayNode extends Component {
                 addressTypes={this.props.schema.addressTypes.slice(0, -zoom)}
                 contentCounts={this.props.schema.content_counts}
                 refPath={this.props.refPath}
+                currentlyVisibleRef={this.props.currentlyVisibleRef}
                 currentlyVisibleSectionRef={this.props.currentlyVisibleSectionRef}
               />);
     }
@@ -670,6 +678,7 @@ class JaggedArrayNode extends Component {
                 addressTypes={this.props.schema.addressTypes}
                 contentCounts={this.props.schema.content_counts}
                 refPath={this.props.refPath}
+                currentlyVisibleRef={this.props.currentlyVisibleRef}
                 currentlyVisibleSectionRef={this.props.currentlyVisibleSectionRef}
           />
         </>
@@ -732,6 +741,7 @@ class JaggedArrayNodeSection extends Component {
               addressTypes={this.props.addressTypes.slice(1)}
               contentCounts={this.props.contentCounts[i]}
               refPath={this.props.refPath + ":" + enSection}
+              currentlyVisibleRef={this.props.currentlyVisibleRef}
               currentlyVisibleSectionRef={this.props.currentlyVisibleSectionRef}/>
           </div>);
       }
