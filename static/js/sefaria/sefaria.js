@@ -245,9 +245,21 @@ Sefaria = extend(Sefaria, {
     )
       
     const sectionsLen = Math.min(oRef1sections.length, oRef2sections.length);
+    //duplicated from server side logic to finally fix
     for (let i = 0; i < sectionsLen; i++) {
-      if (oRef1sections[i] > oRef2sections[i] || oRef1toSections[i] < oRef2toSections[i]) {
+      if (oRef2toSections[i] > oRef1toSections[i]) {
         return false;
+      }
+      if (oRef2toSections[i] < oRef1toSections[i]) {
+        break;
+      }
+    }
+    for (let i = 0; i < sectionsLen; i++) {
+      if (oRef2sections[i] < oRef1sections[i]) {
+        return false;
+      }
+      if (oRef2sections[i] > oRef1sections[i]) {
+        break;
       }
     }
     return true;
