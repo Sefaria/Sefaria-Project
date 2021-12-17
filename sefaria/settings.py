@@ -298,7 +298,7 @@ CACHES = {
 
 
 GLOBAL_INTERRUPTING_MESSAGE = {
-    "name":       "14122021-donate-banner",
+    "name":       "17122021-donate-banner",
     "style":      "banner", # "modal" or "banner"
     "repetition": 1,
     "is_fundraising": False,
