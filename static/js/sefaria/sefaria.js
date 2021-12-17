@@ -246,13 +246,11 @@ Sefaria = extend(Sefaria, {
       
     const sectionsLen = Math.min(oRef1sections.length, oRef2sections.length);
     for (let i = 0; i < sectionsLen; i++) {
-      if (oRef1sections[i] <= oRef2sections[i] && oRef1toSections[i] >= oRef2toSections[i]) {
-        return true;
-      } else if (oRef1sections[i] > oRef2sections[i] || oRef1toSections[i] < oRef2toSections[i]) {
+      if (oRef1sections[i] > oRef2sections[i] || oRef1toSections[i] < oRef2toSections[i]) {
         return false;
       }
     }
-    return null;
+    return true;
   },
   refCategories: function(ref) {
     // Returns the text categories for `ref`
