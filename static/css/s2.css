@@ -2253,6 +2253,67 @@ a.navBlockTitle:hover {
   border-bottom: none;
   margin-bottom: 0px;
 }
+.sidebarPromo {
+  color: var(--dark-grey);
+  padding-right: 44px;
+  padding-left: 44px;
+}
+.navSidebarModule .sidebarPromo {
+  margin-right: -44px;
+  margin-left: -44px;
+}
+.sidebarPromo h3 {
+  margin: 0 0 20px;
+  font-size: 22px;
+  text-transform: none;
+  letter-spacing: 0;
+  border-bottom: 1px solid var(--light-grey);
+  padding-bottom: 14px;
+  font-weight: 500;
+  height: auto;
+}
+.sidebarPromo.blue {
+  padding-top: 33px;
+  padding-bottom: 33px;
+  background-color: var(--sefaria-blue);
+  color: #FFF;
+}
+.sidebarPromo.blue h3 {
+  color: #fff
+}
+.sidebarPromo.blue a.button {
+  padding: 10px 14px;
+  width: fit-content;
+  text-align: center;
+  display: inline-block;
+  color: var(--sefaria-blue);
+  background-color: white;
+}
+.sidebarPromo a.button img {
+  height: 18px;
+  width: 18px;
+  filter: invert(1);
+  margin-inline-end: 10px;
+  vertical-align: middle;
+  margin-top: -2px;
+}
+
+.sidebarPromo.blue a.button img {
+  filter: invert(0);
+}
+.sidebarPromo a {
+  margin-inline-start: 0px;
+}
+.sidebarPromo.blue.button a:hover {
+  color: var(--sefaria-blue);
+}
+.sidebarPromo img {
+    height: 18px;
+    width: 18px;
+    margin-inline-end: 10px;
+    vertical-align: middle;
+    margin-top: -4px;
+}
 .readerPanel .communityPage h2 {
   text-transform: none;
   font-size: 22px;

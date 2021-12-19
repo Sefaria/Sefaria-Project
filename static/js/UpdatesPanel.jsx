@@ -88,7 +88,7 @@ class UpdatesPanel extends Component {
     });
   }
   render() {
-    const sidebarModules = [{type: "StayConnected"}];
+    const sidebarModules = [{type: "Promo"}, {type: "StayConnected"}];
 
     return (
       <div className="readerNavMenu sans-serif">

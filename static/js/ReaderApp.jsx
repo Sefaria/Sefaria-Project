@@ -9,7 +9,7 @@ import $ from './sefaria/sefariaJquery';
 import EditCollectionPage from './EditCollectionPage';
 import Footer from './Footer';
 import SearchState from './sefaria/searchState';
-import {ContentLanguageContext} from './context';
+import {ContentLanguageContext, AdContext} from './context';
 import {
   ContestLandingPage,
   RemoteLearningPage,
@@ -22,8 +22,9 @@ import {
   SignUpModal,
   InterruptingMessage,
   CookiesNotification,
-  CommunityPagePreviewControls,
+  CommunityPagePreviewControls
 } from './Misc';
+import { Ad } from './Ad'
 import Component from 'react-class';
 import BeitMidrash, {BeitMidrashClosed} from './BeitMidrash';
 import  { io }  from 'socket.io-client';
@@ -1748,90 +1749,23 @@ class ReaderApp extends Component {
     this.setContainerMode();
   }
 
-  //TODO: Get ads out of code.
-
-
-  placeInAppAd() {
-
-    if (this.state.inCustomBeitMidrash) {
-      return (null)
-    }
-
-    const context = this.getUserContext();
-
-    const ads = [
-      {
-        messageName: "beitMidrash-Torah-dec-1-1",
-        messageHTML: "<p>" +
-            "<a href='/beit-midrash/chanukah?ref=Sheet.355999'>" +
-            "Learning the Weekly Torah Portion? Join us in our new Beit Midrash!" +
-            "</a></p>",
-        style: "banner",
-        repetition: 1,
-        trigger: {
-          isLoggedIn: true,
-          interfaceLang: "english",
-          dt_start: Date.parse("1 Dec 2021 12:00:00 UTC"),
-          dt_end: Date.parse("3 Dec 2021 05:00:00 UTC"),
-          keywordTargets: ["Genesis"],
-        }
-      },
-      {
-        messageName: "beitMidrash-dafyomi-dec-1-1",
-        messageHTML: "<p>" +
-            "<a href='/beit-midrash/chanukah?ref=Sheet.355999'>" +
-            "Learning Daf Yomi? Join us in our new Beit Midrash!" +
-            "</a></p>",
-        style: "banner",
-        repetition: 1,
-        trigger: {
-          isLoggedIn: true,
-          interfaceLang: "english",
-          dt_start: Date.parse("1 Dec 2020 02:00:00 UTC"),
-          dt_end: Date.parse("3 Dec 2021 05:00:00 UTC"),
-          keywordTargets: ["Taanit"],
-        }
-      }
-
-    ];
-    
-    const currentAd = ads.filter(ad => {
-
-         return (
-             ad.trigger.isLoggedIn === !!context.isLoggedIn &&
-             ad.trigger.interfaceLang === context.interfaceLang &&
-             (Sefaria._inBrowser && !document.cookie.includes(`${ad.messageName}_${ad.repetition}`)) &&
-             context.dt > ad.trigger.dt_start && context.dt < ad.trigger.dt_end &&
-             context.keywordTargets.some(kw => ad.trigger.keywordTargets.includes(kw))
-         )
-        }
-    );
-
-        return (currentAd.length > 0 ? <InterruptingMessage
-          messageName={currentAd[0].messageName}
-          messageHTML={currentAd[0].messageHTML}
-          style={currentAd[0].style}
-          repetition={currentAd[0].repetition}
-          onClose={this.rerender}
-          /> : null)
-
-  }
-
   getUserContext() {
-    const refs = this.state.panels.map(panel => panel.currentlyVisibleRef || panel.bookRef);
+    const refs = this.state.panels.map(panel => panel.currentlyVisibleRef || panel.bookRef || panel.navigationCategories).flat();
     const books = refs.map(ref => Sefaria.parseRef(ref).book);
     const triggers = refs.map(ref => Sefaria.refCategories(ref))
           .concat(books)
           .concat(refs)
-          .flat();
+          .flat()
+          .filter(ref => !!ref);
     const deDupedTriggers = [...new Set(triggers.map(JSON.stringify))].map(JSON.parse);
-
+    console.log(deDupedTriggers);
     const context = {
       isLoggedIn: Sefaria._uid,
       interfaceLang: Sefaria.interfaceLang,
       dt: Sefaria.util.epoch_time(new Date())*1000,
       keywordTargets: refs ? deDupedTriggers : []
     };
+    console.log(context);
     return context
   }
 
@@ -2012,7 +1946,7 @@ class ReaderApp extends Component {
           messageHTML={Sefaria.interruptingMessage.html}
           style={Sefaria.interruptingMessage.style}
           repetition={Sefaria.interruptingMessage.repetition}
-          onClose={this.rerender} />) : this.placeInAppAd();
+          onClose={this.rerender} />) : <Ad rerender={this.rerender} adType="banner"/>;
     const sefariaModal = (
       <SignUpModal onClose={this.toggleSignUpModal} show={this.state.showSignUpModal} />
     );
@@ -2039,6 +1973,7 @@ class ReaderApp extends Component {
     var classes = classNames(classDict);
   
     return (
+      <AdContext.Provider value={this.getUserContext()}>
       <div id="readerAppWrap">
         {interruptingMessage}
         <div className={classes} onClick={this.handleInAppLinkClick}>
@@ -2050,6 +1985,7 @@ class ReaderApp extends Component {
           <CookiesNotification />
         </div>
       </div>
+      </AdContext.Provider>
     );
   }
 }

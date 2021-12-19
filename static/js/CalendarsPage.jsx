@@ -33,6 +33,7 @@ const CalendarsPage = ({multiPanel, initialWidth}) => {
     multiPanel ? {type: "AboutLearningSchedules"} : {type: null},
     {type: "StayConnected"},
     {type: "SupportSefaria"},
+    {type: "Promo"},
   ];
 
   return (
