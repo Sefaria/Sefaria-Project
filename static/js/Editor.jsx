@@ -2377,6 +2377,19 @@ const SefariaEditor = (props) => {
     }, [props.highlightedNode, props.hasSidebar]
   );
 
+  useEffect(() => {
+      if(canUseDOM) {
+        if (props.highlightedNode) {
+              var $highlighted = document.querySelectorAll(`.sheetItem[data-sheet-node='${props.highlightedNode}']`)[0];
+              if ($highlighted) {
+                  var offset = props.multiPanel ? 200 : 70; // distance from the top of screen that we want highlighted segments to appear below.
+                  var top = $highlighted.getBoundingClientRect().top - offset;
+                  $('.sheetsInPanel')[0].scroll({top: top});
+              }
+          }
+      }
+  }, [canUseDOM])
+
     function saveSheetContent(doc, lastModified) {
         const sheetTitle = editorContainer.current.querySelector(".sheetContent .sheetMetaDataBox .title") ? editorContainer.current.querySelector(".sheetContent .sheetMetaDataBox .title").textContent : "Untitled"
         console.log(sheetTitle)
