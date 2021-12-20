@@ -1843,9 +1843,19 @@ const Link = ({ attributes, children, element }) => {
             let url = new URL(s)
             return(url)
         }
-
         catch {
+            if(Sefaria.util.isValidEmailAddress(s)) {
+                return(`mailto:${s}`)
+            }
             return(`http://${s}`)
+        }
+    }
+
+    const stripMailto = (url) => {
+        if(url.startsWith('mailto:')) {
+            return url.slice("7");
+        } else {
+            return url;
         }
     }
 
@@ -1880,7 +1890,7 @@ const Link = ({ attributes, children, element }) => {
         <div className="popup" contentEditable={false} onFocus={() => setEditingUrl(true)} onBlur={(e) => closePopup(e)}>
           <input
               type="text"
-              value={urlValue}
+              value={stripMailto(urlValue)}
               placeholder={Sefaria._("Enter link URL")}
               className="sans-serif"
               onChange={(e) => urlChange(e)}
