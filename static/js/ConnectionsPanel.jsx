@@ -455,58 +455,58 @@ class ConnectionsPanel extends Component {
           setConnectionsMode={this.props.setConnectionsMode} />
       </div>);
 
-    // } else if (this.props.mode === "Chavruta") {
-    //   const uuid = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-    //   const chevrutaURL = `${window.location.host}/chavruta?ref=${window.location.pathname.replace(/\//, '')}&rid=${uuid}`
-    //
-    //   content = (<div className="chavruta">
-    //     <div className="headerText">{Sefaria._("Learn with a Chavruta")}</div>
-    //
-    //     <div className="fakeBrowser">
-    //       <div className="fakeBrowserHeader">
-    //         <div className="fakeBrowserButtons">
-    //           <div className="fakeBrowserButton red"></div>
-    //           <div className="fakeBrowserButton yellow"></div>
-    //           <div className="fakeBrowserButton green"></div>
-    //         </div>
-    //         <div className="fakeBrowserURLBar">sefaria.org</div>
-    //       </div>
-    //       <div className="fakeBrowserMain">
-    //         <div className="fakeBrowserLeft">
-    //           <div className="fakeBrowserButtonAvatar"><ProfilePic len={68} url={Sefaria.profile_pic_url} name={Sefaria.full_name} /></div>
-    //           <div className="fakeBrowserButtonAvatar"><img src="/static/img/anon_user.svg" /></div>
-    //         </div>
-    //         <div className="fakeBrowserRight">
-    //           <hr />
-    //           <hr />
-    //           <hr />
-    //           <hr />
-    //           <hr />
-    //           <hr />
-    //           <hr />
-    //           <hr />
-    //           <hr />
-    //           <hr />
-    //           <hr />
-    //           <hr />
-    //         </div>
-    //       </div>
-    //     </div>
-    //     <p>{Sefaria._("Share this link with your chavruta to start a video call with this text")}</p>
-    //     <p>
-    //       <input
-    //         id="chavrutaURL"
-    //         type="text"
-    //         value={chevrutaURL}
-    //         onFocus={(e) => event.target.select()}
-    //       />
-    //     </p>
-    //
-    //     <p>
-    //       <a className="button fillWidth startChavrutaButton" href={"//" + chevrutaURL}><img src="/static/img/video.svg" />{Sefaria._("Start Call")}</a>
-    //     </p>
-    //   </div>);
-    //
+    } else if (this.props.mode === "Chavruta") {
+      const uuid = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+      const chevrutaURL = `${window.location.host}/beit-midrash/${uuid}?ref=${window.location.pathname.replace(/\//, '')}`
+
+      content = (<div className="chavruta">
+        <div className="headerText">{Sefaria._("Learn with a Chavruta")}</div>
+
+        <div className="fakeBrowser">
+          <div className="fakeBrowserHeader">
+            <div className="fakeBrowserButtons">
+              <div className="fakeBrowserButton red"></div>
+              <div className="fakeBrowserButton yellow"></div>
+              <div className="fakeBrowserButton green"></div>
+            </div>
+            <div className="fakeBrowserURLBar">sefaria.org</div>
+          </div>
+          <div className="fakeBrowserMain">
+            <div className="fakeBrowserLeft">
+              <div className="fakeBrowserButtonAvatar"><ProfilePic len={68} url={Sefaria.profile_pic_url} name={Sefaria.full_name} /></div>
+              <div className="fakeBrowserButtonAvatar"><img src="/static/img/anon_user.svg" /></div>
+            </div>
+            <div className="fakeBrowserRight">
+              <hr />
+              <hr />
+              <hr />
+              <hr />
+              <hr />
+              <hr />
+              <hr />
+              <hr />
+              <hr />
+              <hr />
+              <hr />
+              <hr />
+            </div>
+          </div>
+        </div>
+        <p>{Sefaria._("Share this link with your chavruta to start a video call with this text")}</p>
+        <p>
+          <input
+            id="chavrutaURL"
+            type="text"
+            value={chevrutaURL}
+            onFocus={(e) => event.target.select()}
+          />
+        </p>
+
+        <p>
+          <a className="button fillWidth startChavrutaButton" href={"//" + chevrutaURL}><img src="/static/img/video.svg" />{Sefaria._("Start Call")}</a>
+        </p>
+      </div>);
+
 
 
     } else if (this.props.mode === "Notes") {
@@ -754,7 +754,7 @@ const ToolsList = ({ setConnectionsMode, toggleSignUpModal, openComparePanel, co
       <ToolsButton en="Dictionaries" he="מילונים" image="dictionaries.svg" onClick={() => setConnectionsMode("Lexicon")} />
       {openComparePanel ? <ToolsButton en="Compare Text" he="טקסט להשוואה" image="compare-panel.svg" onClick={openComparePanel} /> : null}
       <ToolsButton en="Notes" he="הערות" image="notes.svg" alwaysShow={true} count={counts["notes"]} onClick={() => !Sefaria._uid ? toggleSignUpModal() : setConnectionsMode("Notes")} />
-      {/*<ToolsButton en="Chavruta" he="חברותא" image="chavruta.svg" onClick={() => !Sefaria._uid ? toggleSignUpModal() : setConnectionsMode("Chavruta")} />*/}
+      <ToolsButton en="Chavruta" he="חברותא" image="chavruta.svg" onClick={() => !Sefaria._uid ? toggleSignUpModal() : setConnectionsMode("Chavruta")} />
       {masterPanelMode !== "Sheet" ? <ToolsButton en="Share" he="שיתוף" image="share.svg" onClick={() => setConnectionsMode("Share")} /> : null}
       <ToolsButton en="Feedback" he="משוב" image="feedback.svg" onClick={() => setConnectionsMode("Feedback")} />
       <ToolsButton en="Advanced" he="כלים מתקדמים" image="advancedtools.svg" onClick={() => setConnectionsMode("Advanced Tools")} />
