@@ -1678,6 +1678,19 @@ class DictionaryNode(VirtualNode):
         else:
             return ""
 
+    # This is identical to SchemaNode.ref() and DictionaryEntryNode.ref().  Inherit?
+    def ref(self):
+        from . import text
+        d = {
+            "index": self.index,
+            "book": self.full_title("en"),
+            "primary_category": self.index.get_primary_category(),
+            "index_node": self,
+            "sections": [],
+            "toSections": []
+        }
+        return text.Ref(_obj=d)
+
 
 class SheetNode(NumberedTitledTreeNode):
     is_virtual = True
