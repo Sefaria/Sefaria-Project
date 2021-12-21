@@ -594,7 +594,7 @@ class RefPartModifier:
 
     def modify_all(self):
         fast = True
-        create_dhs = True
+        create_dhs = False
         add_comm_alt_structs = True
         self.modify_talmud(fast)
         self.modify_tanakh(fast)
@@ -603,7 +603,14 @@ class RefPartModifier:
         self.modify_midrash_rabbah(fast)
         self.modify_sifra(fast)
 
-
+def reset_yerushalmi():
+    for title in library.get_indexes_in_category('Yerushalmi'):
+        oref = Ref(title)
+        library.refresh_index_record_in_cache(oref.index)
+        library.reset_text_titles_cache()
+        vs = VersionState(index=oref.index)
+        vs.refresh()
+        library.update_index_in_toc(oref.index)
 if __name__ == "__main__":
     modifier = RefPartModifier()
     modifier.modify_all()
