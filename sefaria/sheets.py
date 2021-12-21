@@ -17,6 +17,7 @@ from functools import wraps
 from bson.son import SON
 from collections import defaultdict
 from pymongo.errors import DuplicateKeyError
+import uuid
 
 import sefaria.model as model
 import sefaria.model.abstract as abstract
@@ -491,7 +492,8 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 		old_topics = []
 		topics_diff = topic_list_diff(old_topics, sheet.get("topics", []))
 
-		#ensure that sheet sources have nodes (primarily for sheets posted via API)
+		# ensure that sheet sources have nodes (primarily for sheets posted via API)
+		# and ensure that images from copied sheets hosted on google cloud get duplicated as well
 		nextNode = sheet.get("nextNode", 1)
 		sheet["nextNode"] = nextNode
 		checked_sources = []
@@ -499,6 +501,12 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 			if "node" not in source:
 				source["node"] = nextNode
 				nextNode += 1
+			if "media" in source and source["media"].startswith(GoogleStorageManager.BASE_URL):
+				old_file = (re.findall(r"/([^/]+)$", source["media"])[0])
+				to_file = f"{user_id}-{uuid.uuid1()}.{source['media'][-3:].lower()}"
+				bucket_name = GoogleStorageManager.UGC_SHEET_BUCKET
+				duped_image_url = GoogleStorageManager.duplicate_file(old_file, to_file, bucket_name)
+				source["media"] = duped_image_url
 			checked_sources.append(source)
 		sheet["sources"] = checked_sources
 

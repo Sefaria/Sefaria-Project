@@ -701,7 +701,7 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
     <div className={classNames(sheetItemClasses)} data-sheet-node={element.node} data-sefaria-ref={element.ref} style={{ pointerEvents: (isActive) ? 'none' : 'auto'}}>
     <div  contentEditable={false} onBlur={(e) => onBlur(e) } onClick={(e) => onClick(e)} className={classNames(classes)} style={{"borderInlineStartColor": Sefaria.palette.refColor(element.ref)}}>
       <div className={classNames(heClasses)} style={{ pointerEvents: (isActive) ? 'auto' : 'none'}}>
-          {element.heRef ? <div className="ref" contentEditable={false} style={{ userSelect: 'none', pointerEvents: 'auto' }}><a className="refInSheet" href={`/${element.ref}`}>{element.heRef}</a></div> : null }
+          {element.heRef ? <div className="ref" contentEditable={false} style={{ userSelect: 'none', pointerEvents: 'auto' }}><a href={`/${element.ref}`}>{element.heRef}</a></div> : null }
           <div className="sourceContentText">
           <Slate editor={sheetSourceHeEditor} value={sheetHeSourceValue} onChange={value => onHeChange(value)}>
           {canUseDOM ? <HoverMenu buttons="basic"/> : null }
@@ -715,7 +715,7 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
         </div>
       </div>
       <div className={classNames(enClasses)} style={{ pointerEvents: (isActive) ? 'auto' : 'none'}}>
-        {element.ref ? <div className="ref" contentEditable={false} style={{ userSelect: 'none', pointerEvents: 'auto' }}><a className="refInSheet" href={`/${element.ref}`}>{element.ref}</a></div> : null }
+        {element.ref ? <div className="ref" contentEditable={false} style={{ userSelect: 'none', pointerEvents: 'auto' }}><a href={`/${element.ref}`}>{element.ref}</a></div> : null }
         <div className="sourceContentText">
           <Slate editor={sheetSourceEnEditor} value={sheetEnSourceValue} onChange={value => onEnChange(value)}>
           {canUseDOM ? <HoverMenu buttons="basic"/> : null }
@@ -1817,10 +1817,6 @@ const Link = ({ attributes, children, element }) => {
             }, 500);
         }
     }
-    const onClick = (e, url) => {
-        e.preventDefault();
-        window.open(url, '_blank').focus();
-    }
 
     const xClicked = () => {
         Transforms.select(editor, currentSlateRange);
@@ -1847,9 +1843,19 @@ const Link = ({ attributes, children, element }) => {
             let url = new URL(s)
             return(url)
         }
-
         catch {
+            if(Sefaria.util.isValidEmailAddress(s)) {
+                return(`mailto:${s}`)
+            }
             return(`http://${s}`)
+        }
+    }
+
+    const stripMailto = (url) => {
+        if(url.startsWith('mailto:')) {
+            return url.slice("7");
+        } else {
+            return url;
         }
     }
 
@@ -1871,7 +1877,6 @@ const Link = ({ attributes, children, element }) => {
     >
         <a
             href={element.url}
-            onClick={(e) => onClick(e, element.url)}
             onMouseEnter={(e)=> {if (!linkPopoverOpen) {
                 setShowLinkRemoveButton(true)
             }
@@ -1885,7 +1890,7 @@ const Link = ({ attributes, children, element }) => {
         <div className="popup" contentEditable={false} onFocus={() => setEditingUrl(true)} onBlur={(e) => closePopup(e)}>
           <input
               type="text"
-              value={urlValue}
+              value={stripMailto(urlValue)}
               placeholder={Sefaria._("Enter link URL")}
               className="sans-serif"
               onChange={(e) => urlChange(e)}
@@ -2246,120 +2251,6 @@ const BlockButton = ({format, icon}) => {
     )
 }
 
-
-function saveSheetContent(doc, lastModified) {
-    const sheetTitle = document.querySelector(".sheetContent .sheetMetaDataBox .title") ? document.querySelector(".sheetContent .sheetMetaDataBox .title").textContent : "Untitled"
-
-    const sheetContent = doc.children.find(el => el.type == "SheetContent").children;
-
-    const sources = sheetContent.map(item => {
-        const sheetItem = item;
-        switch (sheetItem.type) {
-            case 'SheetSource':
-
-                const enSerializedSourceText = (sheetItem.enText.reduce( (concatenatedSegments, currentSegment) => {
-                  return concatenatedSegments + serialize(currentSegment)
-                }, "" ) );
-
-                const heSerializedSourceText = (sheetItem.heText.reduce( (concatenatedSegments, currentSegment) => {
-                  return concatenatedSegments + serialize(currentSegment)
-                }, "" ) );
-
-                let source = {
-                    "ref": sheetItem.ref,
-                    "heRef": sheetItem.heRef,
-                    "text": {
-                        "en": enSerializedSourceText !== "" ? enSerializedSourceText : "...",
-                        "he": heSerializedSourceText !== "" ? heSerializedSourceText : "...",
-                    },
-                    ...sheetItem.options && { options: sheetItem.options },
-                    "node": sheetItem.node,
-                };
-                return (source);
-            case 'SheetOutsideBiText':
-
-                const enSerializedOutsideText = (sheetItem.enText.reduce( (concatenatedSegments, currentSegment) => {
-                  return concatenatedSegments + serialize(currentSegment)
-                }, "" ) );
-
-                const heSerializedOutsideText = (sheetItem.heText.reduce( (concatenatedSegments, currentSegment) => {
-                  return concatenatedSegments + serialize(currentSegment)
-                }, "" ) );
-
-                let outsideBiText = {
-                    "outsideBiText": {
-                        "en": enSerializedOutsideText !== "" ? enSerializedOutsideText : "...",
-                        "he": heSerializedOutsideText !== "" ? heSerializedOutsideText : "...",
-                    },
-                    ...sheetItem.options && { options: sheetItem.options },
-                    "node": sheetItem.node,
-
-                };
-                return outsideBiText;
-
-            case 'SheetComment':
-                return ({
-                    "comment": serialize(sheetItem),
-                    ...sheetItem.options && { options: sheetItem.options },
-                    "node": sheetItem.node,
-                });
-
-            case 'SheetOutsideText':
-               const outsideTextText = serialize(sheetItem)
-               //Add space to empty outside texts to preseve line breaks from old sheets.
-               return ({
-                    "outsideText": (outsideTextText=="<p></p>" || outsideTextText=="<div></div>") ? "<p> </p>" : outsideTextText,
-                    ...sheetItem.options && { options: sheetItem.options },
-                    "node": sheetItem.node,
-                });
-
-            case 'SheetMedia':
-                return({
-                    "media": sheetItem.mediaUrl,
-                    ...sheetItem.options && { options: sheetItem.options },
-                    "node": sheetItem.node,
-                });
-
-            case 'header':
-                const headerContent = serialize(sheetItem)
-                return({
-                    "outsideText": `<h1>${headerContent}</h1>`,
-                    ...sheetItem.options && { options: sheetItem.options },
-                    "node": sheetItem.node,
-                });
-
-
-            case 'spacer':
-              return;
-
-            default:
-                // console.log("Error saving:")
-                // console.log(sheetItem)
-                return;
-        }
-
-    });
-    let sheet = {
-        status: doc.status,
-        id: doc.id,
-        promptedToPublish: doc.promptedToPublish,
-        lastModified: lastModified,
-        summary: doc.summary,
-        options: doc.options,
-        tags: doc.tags,
-        displayedCollection: doc.displayedCollection,
-        title: sheetTitle === "" ? "Untitled" : sheetTitle,
-        sources: sources.filter(x => !!x),
-        nextNode: doc.nextNode,
-    };
-    // title: sheetTitle == "" ? "Untitled" : sheetTitle,
-
-    return JSON.stringify(sheet);
-
-}
-
-
-
 const SefariaEditor = (props) => {
     const editorContainer = useRef();
     const sheet = props.data;
@@ -2485,6 +2376,130 @@ const SefariaEditor = (props) => {
       }
     }, [props.highlightedNode, props.hasSidebar]
   );
+
+  useEffect(() => {
+      if(canUseDOM) {
+        if (props.highlightedNode) {
+              var $highlighted = document.querySelectorAll(`.sheetItem[data-sheet-node='${props.highlightedNode}']`)[0];
+              if ($highlighted) {
+                  var offset = props.multiPanel ? 200 : 70; // distance from the top of screen that we want highlighted segments to appear below.
+                  var top = $highlighted.getBoundingClientRect().top - offset;
+                  $('.sheetsInPanel')[0].scroll({top: top});
+              }
+          }
+      }
+  }, [canUseDOM])
+
+    function saveSheetContent(doc, lastModified) {
+        const sheetTitle = editorContainer.current.querySelector(".sheetContent .sheetMetaDataBox .title") ? editorContainer.current.querySelector(".sheetContent .sheetMetaDataBox .title").textContent : "Untitled"
+        console.log(sheetTitle)
+        const sheetContent = doc.children.find(el => el.type == "SheetContent").children;
+
+        const sources = sheetContent.map(item => {
+            const sheetItem = item;
+            switch (sheetItem.type) {
+                case 'SheetSource':
+
+                    const enSerializedSourceText = (sheetItem.enText.reduce( (concatenatedSegments, currentSegment) => {
+                      return concatenatedSegments + serialize(currentSegment)
+                    }, "" ) );
+
+                    const heSerializedSourceText = (sheetItem.heText.reduce( (concatenatedSegments, currentSegment) => {
+                      return concatenatedSegments + serialize(currentSegment)
+                    }, "" ) );
+
+                    let source = {
+                        "ref": sheetItem.ref,
+                        "heRef": sheetItem.heRef,
+                        "text": {
+                            "en": enSerializedSourceText !== "" ? enSerializedSourceText : "...",
+                            "he": heSerializedSourceText !== "" ? heSerializedSourceText : "...",
+                        },
+                        ...sheetItem.options && { options: sheetItem.options },
+                        "node": sheetItem.node,
+                    };
+                    return (source);
+                case 'SheetOutsideBiText':
+
+                    const enSerializedOutsideText = (sheetItem.enText.reduce( (concatenatedSegments, currentSegment) => {
+                      return concatenatedSegments + serialize(currentSegment)
+                    }, "" ) );
+
+                    const heSerializedOutsideText = (sheetItem.heText.reduce( (concatenatedSegments, currentSegment) => {
+                      return concatenatedSegments + serialize(currentSegment)
+                    }, "" ) );
+
+                    let outsideBiText = {
+                        "outsideBiText": {
+                            "en": enSerializedOutsideText !== "" ? enSerializedOutsideText : "...",
+                            "he": heSerializedOutsideText !== "" ? heSerializedOutsideText : "...",
+                        },
+                        ...sheetItem.options && { options: sheetItem.options },
+                        "node": sheetItem.node,
+
+                    };
+                    return outsideBiText;
+
+                case 'SheetComment':
+                    return ({
+                        "comment": serialize(sheetItem),
+                        ...sheetItem.options && { options: sheetItem.options },
+                        "node": sheetItem.node,
+                    });
+
+                case 'SheetOutsideText':
+                   const outsideTextText = serialize(sheetItem)
+                   //Add space to empty outside texts to preseve line breaks from old sheets.
+                   return ({
+                        "outsideText": (outsideTextText=="<p></p>" || outsideTextText=="<div></div>") ? "<p> </p>" : outsideTextText,
+                        ...sheetItem.options && { options: sheetItem.options },
+                        "node": sheetItem.node,
+                    });
+
+                case 'SheetMedia':
+                    return({
+                        "media": sheetItem.mediaUrl,
+                        ...sheetItem.options && { options: sheetItem.options },
+                        "node": sheetItem.node,
+                    });
+
+                case 'header':
+                    const headerContent = serialize(sheetItem)
+                    return({
+                        "outsideText": `<h1>${headerContent}</h1>`,
+                        ...sheetItem.options && { options: sheetItem.options },
+                        "node": sheetItem.node,
+                    });
+
+
+                case 'spacer':
+                  return;
+
+                default:
+                    // console.log("Error saving:")
+                    // console.log(sheetItem)
+                    return;
+            }
+
+        });
+        let sheet = {
+            status: doc.status,
+            id: doc.id,
+            promptedToPublish: doc.promptedToPublish,
+            lastModified: lastModified,
+            summary: doc.summary,
+            options: doc.options,
+            tags: doc.tags,
+            displayedCollection: doc.displayedCollection,
+            title: sheetTitle === "" ? "Untitled" : sheetTitle,
+            sources: sources.filter(x => !!x),
+            nextNode: doc.nextNode,
+        };
+        // title: sheetTitle == "" ? "Untitled" : sheetTitle,
+
+        return JSON.stringify(sheet);
+
+    }
 
 
     function saveDocument(doc) {

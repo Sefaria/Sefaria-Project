@@ -2042,6 +2042,7 @@ _media: {},
         });
   },
   _tableOfContentsDedications: {},
+  _inAppAds: null,
   _stories: {
     stories: [],
     page: 0

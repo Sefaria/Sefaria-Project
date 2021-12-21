@@ -94,6 +94,7 @@ class Sheet extends Component {
           <SefariaEditor
             data={sheet}
             hasSidebar={this.props.hasSidebar}
+            multiPanel={this.props.multiPanel}
             sheetSourceClick={this.props.onSegmentClick}
             highlightedNode={this.props.highlightedNode}
             highlightedRefsInSheet={this.props.highlightedRefsInSheet}

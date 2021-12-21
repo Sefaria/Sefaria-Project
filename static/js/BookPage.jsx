@@ -176,6 +176,7 @@ class BookPage extends Component {
     const sidebarModules = !this.state.indexDetails ? [] :
       [
         this.props.multiPanel ? {type: "AboutText", props: {index: this.state.indexDetails}} : {type: null},
+        {type: "Promo"},
         {type: "RelatedTopics", props: { title: this.props.title}},
         !isDictionary ? {type: "DownloadVersions", props:{sref: this.props.title}} : {type: null},
       ];
