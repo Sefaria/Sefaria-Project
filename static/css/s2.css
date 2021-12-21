@@ -1384,6 +1384,7 @@ div.interfaceLinks-row a {
 }
 .readerPanel.english .en {
   display: inline;
+  background-color: white;
 }
 .readerPanel.hebrew .he {
   display: inline;
