@@ -1843,9 +1843,19 @@ const Link = ({ attributes, children, element }) => {
             let url = new URL(s)
             return(url)
         }
-
         catch {
+            if(Sefaria.util.isValidEmailAddress(s)) {
+                return(`mailto:${s}`)
+            }
             return(`http://${s}`)
+        }
+    }
+
+    const stripMailto = (url) => {
+        if(url.startsWith('mailto:')) {
+            return url.slice("7");
+        } else {
+            return url;
         }
     }
 
@@ -1880,7 +1890,7 @@ const Link = ({ attributes, children, element }) => {
         <div className="popup" contentEditable={false} onFocus={() => setEditingUrl(true)} onBlur={(e) => closePopup(e)}>
           <input
               type="text"
-              value={urlValue}
+              value={stripMailto(urlValue)}
               placeholder={Sefaria._("Enter link URL")}
               className="sans-serif"
               onChange={(e) => urlChange(e)}
@@ -2366,6 +2376,19 @@ const SefariaEditor = (props) => {
       }
     }, [props.highlightedNode, props.hasSidebar]
   );
+
+  useEffect(() => {
+      if(canUseDOM) {
+        if (props.highlightedNode) {
+              var $highlighted = document.querySelectorAll(`.sheetItem[data-sheet-node='${props.highlightedNode}']`)[0];
+              if ($highlighted) {
+                  var offset = props.multiPanel ? 200 : 70; // distance from the top of screen that we want highlighted segments to appear below.
+                  var top = $highlighted.getBoundingClientRect().top - offset;
+                  $('.sheetsInPanel')[0].scroll({top: top});
+              }
+          }
+      }
+  }, [canUseDOM])
 
     function saveSheetContent(doc, lastModified) {
         const sheetTitle = editorContainer.current.querySelector(".sheetContent .sheetMetaDataBox .title") ? editorContainer.current.querySelector(".sheetContent .sheetMetaDataBox .title").textContent : "Untitled"
