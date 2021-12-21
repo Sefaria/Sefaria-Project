@@ -2443,7 +2443,9 @@ def get_name_completions(name, limit, ref_only, topic_override=False):
     ref = None
     topic = None
     if topic_override:
-        topic = Topic().load({"titles.text": name})
+        topic_set = TopicSet({"titles.text": name}, sort=[("numSources", -1)], limit=1)
+        if topic_set.count() > 0:
+            topic = topic_set.array()[0]
     try:
         ref = Ref(name)
         inode = ref.index_node
