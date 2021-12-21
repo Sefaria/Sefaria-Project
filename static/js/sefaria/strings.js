@@ -411,6 +411,7 @@ const Strings = {
     "Category": "קטגוריה",
     "Alternate Hebrew Titles": "חלופות כותר עבריות",
     "Alternate English Titles": "חלופות כותר לועזיות",
+    "Optional": "אופציונלי",
 
     //user stats
     "Torah Tracker" : "לימוד במספרים",

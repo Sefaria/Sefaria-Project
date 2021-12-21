@@ -1165,13 +1165,13 @@ const EditTextInfo = function({initTitle, close}) {
             </div> : null}
 
             <div className="section">
-              <div><InterfaceText>Alternate English Titles</InterfaceText></div><label><span className="optional">Optional</span></label>
+              <div><InterfaceText>Alternate English Titles</InterfaceText></div><label><span className="optional"><InterfaceText>Optional</InterfaceText></span></label>
 
               <TitleVariants update={setTitleVariants} titles={titleVariants}/>
             </div>
 
             <div className="section">
-              <div><InterfaceText>Alternate Hebrew Titles</InterfaceText></div><label><span className="optional">Optional</span></label>
+              <div><InterfaceText>Alternate Hebrew Titles</InterfaceText></div><label><span className="optional"><InterfaceText>Optional</InterfaceText></span></label>
               <TitleVariants update={setHeTitleVariants} titles={heTitleVariants}/>
             </div>
           </div>
