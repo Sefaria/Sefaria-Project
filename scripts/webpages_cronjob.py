@@ -44,6 +44,7 @@ def run_job(test=True, board_id="", idList_mapping={}, members_mapping={}):
 
 	# given list type and site, either create new card or update existing card with message of site object
 	for kind, sites_to_handle in sites.items():
+		print(f"{kind} -> {sites_to_handle}")
 		for site_name_in_DB in sites_to_handle:
 			comment = sites_to_handle[site_name_in_DB]
 			if len(comment) > 0:
