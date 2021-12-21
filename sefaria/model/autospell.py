@@ -103,7 +103,11 @@ class AutoCompleter(object):
             normal_topics_names = [self.normalizer(n) for n in tnames]
 
             def sub_order_fn(t: Topic) -> int:
-                return PAD - getattr(t, 'numSources', 0) - 1
+                sub_order = PAD - getattr(t, 'numSources', 0) - 1
+                if isinstance(t, AuthorTopic):
+                    # give a bonus to authors so they don't get drowned out by topics
+                    sub_order -= 100
+                return sub_order
             self.title_trie.add_titles_from_set(ts, "get_titles", "get_primary_title", "slug", 4 * PAD, sub_order_fn)
             self.spell_checker.train_phrases(tnames)
             self.ngram_matcher.train_phrases(tnames, normal_topics_names)
