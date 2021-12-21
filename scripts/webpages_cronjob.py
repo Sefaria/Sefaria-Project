@@ -17,13 +17,14 @@ def run_job(test=True, board_id="", idList_mapping={}, members_mapping={}):
 	webpages_without_websites_days = sites_that_may_have_removed_linker_days # same timeline is relevant
 
 	print("Original webpage stats...")
-	# total_pages, total_links = webpages_stats()
-	# print("{} total pages.\n".format(total_pages))
-	# print("{} total connections.\n".format(total_links))
-	#
-	# print("Cleaning webpages...")
-	# clean_webpages(test=test)
-	# dedupe_webpages(test=test)
+	total_pages, total_links, year_data = webpages_stats()
+	print("{} total pages.\n".format(total_pages))
+	print("{} total connections.\n".format(total_links))
+	print("{} by year".format(year_data))
+
+	print("Cleaning webpages...")
+	clean_webpages(test=test)
+	dedupe_webpages(test=test)
 
 
 	print("Find sites that no longer have linker...")
@@ -34,11 +35,12 @@ def run_job(test=True, board_id="", idList_mapping={}, members_mapping={}):
 
 	flag = 500
 	print("Looking for websites where the same Ref appears in at least {} pages...".format(flag))
-	#sites["Websites that may need exclusions set"] = find_sites_to_be_excluded(flag=flag)
-	#
-	# after_total_pages, after_total_links = webpages_stats()
-	# print("{} total pages.  Deleted {}.\n".format(after_total_pages, total_pages-after_total_pages))
-	# print("{} total connections.  Deleted {}.\n".format(after_total_links, total_links-after_total_links))
+	sites["Websites that may need exclusions set"] = find_sites_to_be_excluded_relative(relative_percent=3)
+
+	total_pages, total_links, year_data = webpages_stats()
+	print("{} total pages now.\n".format(total_pages))
+	print("{} total connections now.\n".format(total_links))
+	print("{} by year".format(year_data))
 
 	# given list type and site, either create new card or update existing card with message of site object
 	for kind, sites_to_handle in sites.items():
@@ -55,9 +57,6 @@ def run_job(test=True, board_id="", idList_mapping={}, members_mapping={}):
 				if not already_on_trello:
 					card = board.create_card(site_name_in_DB, idList_mapping[kind], members_mapping[kind])
 					board.add_comment(card, comment)
-
-
-
 
 
 def profile_job():
@@ -225,6 +224,6 @@ if __name__ == "__main__":
 			if list_on_board["name"] in lists:
 				idList_mapping[list_on_board["name"]] = list_on_board["id"]
 
-		run_job(board_id=BOARD_ID, idList_mapping=idList_mapping, members_mapping=members_mapping)
+		run_job(test=False, board_id=BOARD_ID, idList_mapping=idList_mapping, members_mapping=members_mapping)
 	else:
 		delete_bad_refs(BOARD_ID, TRELLO_KEY, TRELLO_TOKEN)

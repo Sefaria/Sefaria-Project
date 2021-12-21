@@ -4,7 +4,6 @@ import {withHistory} from 'slate-history'
 import {Editor, createEditor, Range, Node, Transforms, Path, Text, Point, Element as SlateElement} from 'slate'
 import {Slate, Editable, ReactEditor, withReact, useSlate, useSelected, useFocused} from 'slate-react'
 import isHotkey from 'is-hotkey'
-
 import Sefaria from './sefaria/sefaria';
 
 import {
@@ -163,6 +162,7 @@ export const deserialize = el => {
           const elStyles = el.getAttribute("style").split(';');
           let addlAttrs = {}
           for (const elStyle of elStyles) {
+              console.log(elStyle)
             const styleArray = elStyle.split(":");
             if (styleArray.length == 2) {
               const styleType = styleArray[0].trim()
@@ -420,7 +420,7 @@ function renderSheetItem(source) {
 }
 
 function parseSheetItemHTML(rawhtml) {
-    const preparseHtml = rawhtml.replace(/\u00A0/g, ' ').replace(/(\r\n|\n|\r)/gm, "");
+    const preparseHtml = rawhtml.replace(/\u00A0/g, ' ').replace(/(\r\n|\n|\r|\t)/gm, "");
     const parsed = new DOMParser().parseFromString(preparseHtml, 'text/html');
     const fragment = deserialize(parsed.body);
     const slateJSON = fragment.length > 0 ? fragment : [{text: ''}];
@@ -470,10 +470,10 @@ function transformSheetJsonToSlate(sheet) {
 
       // needed for now b/c headers are saved as OutsideTexts for backwards compatability w/ old sheets
       const sourceIsHeader = source["outsideText"] && source["outsideText"].startsWith("<h1>");
+      const prevSourceIsHeader = i > 0 && sheet.sources[i-1]["outsideText"] && sheet.sources[i-1]["outsideText"].startsWith("<h1>");
       const isCurrentSourceAnOutsideText = !!source["outsideText"];
       const isPrevSourceAnOutsideText = !!(i > 0 && sheet.sources[i-1]["outsideText"]);
-
-      if (!(isPrevSourceAnOutsideText || isCurrentSourceAnOutsideText) || (isPrevSourceAnOutsideText && isCurrentSourceAnOutsideText && !sourceIsHeader) ) {
+      if (!(isPrevSourceAnOutsideText || isCurrentSourceAnOutsideText) || (isPrevSourceAnOutsideText && isCurrentSourceAnOutsideText && !sourceIsHeader && !prevSourceIsHeader) ) {
           sourceNodes.push({
             type: "spacer",
             children: [{text: ""}]
@@ -554,6 +554,7 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
   const [sourceActive, setSourceActive] = useState(false)
   const [activeSourceLangContent, setActiveSourceLangContent] = useState(null)
   const [isDragging, setIsDragging] = useState(false)
+  const [canUseDOM, setCanUseDOM] = useState(false)
   const selected = useSelected()
   const focused = useFocused()
   const cancelEvent = (event) => event.preventDefault()
@@ -573,22 +574,48 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
       [sourceActive]
   );
 
+  useEffect(() => {setCanUseDOM(true)}, [])
+
+  const onMouseDown = (e) => {
+      //Slate tries to auto position the cursor, but on long boxed sources this leads to jumping. This hack should fix it.
+      const elementTop = e.currentTarget.offsetTop;
+      const divTop = document.querySelector(".sheetsInPanel").offsetTop;
+      const elementRelativeTop = elementTop - divTop;
+
+      const rect = e.currentTarget.getBoundingClientRect();
+      const clickOffset = e.clientY - rect.top
+
+      e.currentTarget.querySelector(".boxedSourceChildren").style.top = `${elementRelativeTop + clickOffset}px`;
+
+  }
+
+  const suppressParentContentEditable = (toggle) => {
+      // Chrome treats nested contenteditables as one giant editor so keyboard shortcuts like `Control + A` or `Alt + Up`
+      // Don't work as expected -- this hack fixes that
+      document.querySelector('[role="textbox"]').setAttribute("contenteditable", toggle)
+  }
 
   const onClick = (e) => {
+
     if ((e.target).closest('.he') && sourceActive) {
-      setActiveSourceLangContent('he')
+        setActiveSourceLangContent('he')
+        if (window.chrome) {suppressParentContentEditable(false)}
+
     }
     else if ((e.target).closest('.en') && sourceActive) {
-      setActiveSourceLangContent('en')
+        setActiveSourceLangContent('en')
+        if (window.chrome) {suppressParentContentEditable(false)}
     }
     else {
-      setActiveSourceLangContent(null)
+        setActiveSourceLangContent(null)
+        if (window.chrome) {suppressParentContentEditable(true)}
     }
     setSourceActive(true)
 
   }
 
   const onBlur = (e) => {
+    if (window.chrome) {suppressParentContentEditable(true)}
     setSourceActive(false)
     setActiveSourceLangContent(null)
   }
@@ -605,7 +632,7 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
     }
 
   const isActive = selected;
-  const sheetItemClasses = {sheetItem: 1, highlight: parentEditor.highlightedNode == element.node}
+  const sheetItemClasses = {sheetItem: 1, highlight: parentEditor.highlightedNode === (element.node ? element.node.toString() : null)}
   const classes = {
       SheetSource: element.ref ? 1 : 0,
       SheetOutsideBiText: element.ref ? 0 : 1,
@@ -615,10 +642,8 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
   const heClasses = {he: 1, selected: isActive, editable: activeSourceLangContent == "he" ? true : false };
   const enClasses = {en: 1, selected: isActive, editable: activeSourceLangContent == "en" ? true : false };
   const dragStart = (e) => {
-      let range = document.createRange();
-      range.selectNode(e.target);
-      const slateRange = ReactEditor.toSlateRange(parentEditor, range, {exactMatch: false})
-      parentEditor.dragging = slateRange
+      const slateRange = ReactEditor.findEventRange(parentEditor, e)
+      parentEditor.dragging = true
       const fragment = Node.fragment(parentEditor, slateRange)
       ReactEditor.deselect(parentEditor)
 
@@ -627,24 +652,13 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
       e.dataTransfer.setData('application/x-slate-fragment', encoded)
       e.dataTransfer.setData('text/html', e.target.innerHTML)
       e.dataTransfer.setData('text/plain', e.target.text)
-      e.dataTransfer.effectAllowed = 'copy';
+      e.dataTransfer.effectAllowed = 'move';
 
       const dragIcon = document.createElement('div');
       dragIcon.classList.add("dragIcon");
       dragIcon.classList.add("serif");
       dragIcon.style.borderInlineStartColor = Sefaria.palette.refColor(element.ref);
       dragIcon.innerHTML = Sefaria.interfaceLang === "hebrew" ? element.heRef : element.ref;
-
-      const clientRect = e.target.getBoundingClientRect();
-
-      // const dragIconContainer = document.createElement('div');
-      // dragIconContainer.classList.add("dragIconContainer");
-      // dragIconContainer.style.height = `${clientRect.height}px`;
-      // dragIconContainer.style.width = `${clientRect.width}px`;
-
-      // document.body.appendChild(dragIconContainer);
-      // dragIconContainer.appendChild(dragIcon);
-      // e.dataTransfer.setDragImage(dragIconContainer, 0, clientRect.height);
 
       document.body.appendChild(dragIcon);
       e.dataTransfer.setDragImage(dragIcon, 0, 0);
@@ -659,27 +673,38 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
       setIsDragging(false)
     }
 
+    const dragOver = (e) => {
+      if (parentEditor.dragging) {
+          e.preventDefault()
+          e.dataTransfer.dropEffect = "move";
+      }
+    }
+
+    const drop = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      parentEditor.dragging = false;
+    }
+
   return (
       <div
           draggable={true}
           className={isDragging ? "boxedSheetItem dragged" : "boxedSheetItem"}
+          onMouseDown={(e) => onMouseDown(e)}
           onDragStart={(e)=>{dragStart(e)}}
           onDragEnd={(e)=>{dragEnd(e)}}
-          onDrop={(e)=> {
-              e.preventDefault();
-              e.stopPropagation();
-              parentEditor.dragging = false;
-          }
-          }
+          onDragEnter={(e)=>{e.preventDefault()}}
+          onDragOver={(e)=>{dragOver(e)}}
+          onDrop={(e)=> {drop(e)}}
           {...attributes}
       >
     <div className={classNames(sheetItemClasses)} data-sheet-node={element.node} data-sefaria-ref={element.ref} style={{ pointerEvents: (isActive) ? 'none' : 'auto'}}>
     <div  contentEditable={false} onBlur={(e) => onBlur(e) } onClick={(e) => onClick(e)} className={classNames(classes)} style={{"borderInlineStartColor": Sefaria.palette.refColor(element.ref)}}>
       <div className={classNames(heClasses)} style={{ pointerEvents: (isActive) ? 'auto' : 'none'}}>
-          {element.heRef ? <div className="ref" contentEditable={false} style={{ userSelect: 'none', pointerEvents: 'auto' }}><a className="refInSheet" href={`/${element.ref}`}>{element.heRef}</a></div> : null }
+          {element.heRef ? <div className="ref" contentEditable={false} style={{ userSelect: 'none', pointerEvents: 'auto' }}><a href={`/${element.ref}`}>{element.heRef}</a></div> : null }
           <div className="sourceContentText">
           <Slate editor={sheetSourceHeEditor} value={sheetHeSourceValue} onChange={value => onHeChange(value)}>
-          <HoverMenu buttons="basic"/>
+          {canUseDOM ? <HoverMenu buttons="basic"/> : null }
             <Editable
               readOnly={!sourceActive}
               renderLeaf={props => <Leaf {...props} />}
@@ -690,10 +715,10 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
         </div>
       </div>
       <div className={classNames(enClasses)} style={{ pointerEvents: (isActive) ? 'auto' : 'none'}}>
-        {element.ref ? <div className="ref" contentEditable={false} style={{ userSelect: 'none', pointerEvents: 'auto' }}><a className="refInSheet" href={`/${element.ref}`}>{element.ref}</a></div> : null }
+        {element.ref ? <div className="ref" contentEditable={false} style={{ userSelect: 'none', pointerEvents: 'auto' }}><a href={`/${element.ref}`}>{element.ref}</a></div> : null }
         <div className="sourceContentText">
           <Slate editor={sheetSourceEnEditor} value={sheetEnSourceValue} onChange={value => onEnChange(value)}>
-          <HoverMenu buttons="basic"/>
+          {canUseDOM ? <HoverMenu buttons="basic"/> : null }
             <Editable
               readOnly={!sourceActive}
               renderLeaf={props => <Leaf {...props} />}
@@ -704,8 +729,8 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
       </div>
       </div>
       <div className="clearFix"></div>
-      {children}
       </div>
+          <div className="boxedSourceChildren">{children}</div>
           </div>
   );
 };
@@ -928,7 +953,7 @@ const Element = props => {
     const sheetItemClasses = {
         sheetItem: 1,
         empty: !(Node.string(element)),
-        highlight: (useSlate().highlightedNode === element.node)
+        highlight: (useSlate().highlightedNode === (element.node ? element.node.toString() : null))
     };
 
     switch (element.type) {
@@ -951,7 +976,7 @@ const Element = props => {
 
         case 'SheetOutsideBiText':
             return (
-              <BoxedSheetElement {...props} />
+              <BoxedSheetElement {...props} {...attributes} />
             );
 
 
@@ -992,7 +1017,7 @@ const Element = props => {
                 mediaComponent = <div className="SheetMedia media fullWidth"><iframe width="100%" height="380" scrolling="no" frameBorder="no" src={element.mediaUrl}></iframe>{children}</div>
             }
             else if (element.mediaUrl.match(/https?:\/\/w\.soundcloud\.com\/player\/\?url=.*/i) != null) {
-              mediaComponent = <div className="SheetMedia media fullWidth"><iframe style="border: 0; width: 100%; height: 120px;" scrolling="no" frameBorder="no" src={element.mediaUrl}></iframe>{children}</div>
+              mediaComponent = <div className="SheetMedia media fullWidth"><iframe style={{ border: '0', width: '100%', height: '120px' }} scrolling="no" frameBorder="no" src={element.mediaUrl}></iframe>{children}</div>
             } else if (element.mediaUrl.match(/^https?:\/\/bandcamp.com\/EmbeddedPlayer(\/\w+\=\w+)+\/?/i)) {
                 mediaComponent = <div className="SheetMedia media fullWidth"><iframe width="100%" height="120" scrolling="no" frameBorder="no" src={element.mediaUrl}></iframe>{children}</div>
             }
@@ -1252,15 +1277,24 @@ const withSefariaSheet = editor => {
             return
         }
 
-        const isListItemAndNotEmpty = editor => {
+        const isListItem = editor => {
           const [list] = Editor.nodes(editor, { match: n => LIST_TYPES.includes(!Editor.isEditor(n) && SlateElement.isElement(n) && n.type)})
-          const curNode = Node.get(editor, editor.selection.focus.path);
-            if (list && Node.string(curNode) !== "") {return true}
-            else {return false}
-        };
+          return list
+        }
 
-        if (isListItemAndNotEmpty(editor)) {
-            insertBreak();
+        const isEmpty = editor => {
+          const curNode = Node.get(editor, editor.selection.focus.path);
+          return Node.string(curNode) === ""
+        }
+
+        if (isListItem(editor)) {
+            if (isEmpty(editor)) {
+                Transforms.insertNodes(editor, {type: 'spacer', children: [{text: ""}]});
+                deleteBackward()
+            }
+            else {
+                insertBreak();
+            }
             return
         }
 
@@ -1307,8 +1341,13 @@ const withSefariaSheet = editor => {
         ];
 
         for (let normalizer of normalizers) {
-            const changeWasMade = normalizer(node, path);
-            if (changeWasMade) return;
+            try {
+                const changeWasMade = normalizer(node, path);
+                if (changeWasMade) return;
+            }
+            catch (e) {
+                console.log(`Error at ${normalizer}`, e )
+            }
         }
 
         // Fall back to the original `normalizeNode` to enforce other constraints.
@@ -1778,9 +1817,6 @@ const Link = ({ attributes, children, element }) => {
             }, 500);
         }
     }
-    const onClick = (e, url) => {
-        window.open(url, '_blank').focus();
-    }
 
     const xClicked = () => {
         Transforms.select(editor, currentSlateRange);
@@ -1807,9 +1843,19 @@ const Link = ({ attributes, children, element }) => {
             let url = new URL(s)
             return(url)
         }
-
         catch {
+            if(Sefaria.util.isValidEmailAddress(s)) {
+                return(`mailto:${s}`)
+            }
             return(`http://${s}`)
+        }
+    }
+
+    const stripMailto = (url) => {
+        if(url.startsWith('mailto:')) {
+            return url.slice("7");
+        } else {
+            return url;
         }
     }
 
@@ -1831,7 +1877,6 @@ const Link = ({ attributes, children, element }) => {
     >
         <a
             href={element.url}
-            onClick={(e) => onClick(e, element.url)}
             onMouseEnter={(e)=> {if (!linkPopoverOpen) {
                 setShowLinkRemoveButton(true)
             }
@@ -1845,7 +1890,7 @@ const Link = ({ attributes, children, element }) => {
         <div className="popup" contentEditable={false} onFocus={() => setEditingUrl(true)} onBlur={(e) => closePopup(e)}>
           <input
               type="text"
-              value={urlValue}
+              value={stripMailto(urlValue)}
               placeholder={Sefaria._("Enter link URL")}
               className="sans-serif"
               onChange={(e) => urlChange(e)}
@@ -1955,9 +2000,9 @@ const toggleFormat = (editor, format) => {
   }
 };
 
-const isFormatActive = (editor, format) => {
+const isFormatActive = (editor, format, value=null) => {
   const [match] = Editor.nodes(editor, {
-    match: n => n[format] === true,
+    match: n => n[format] === (value ? value : true),
     mode: 'all',
   });
   return !!match
@@ -2033,6 +2078,7 @@ const Leaf = ({attributes, children, leaf}) => {
 const HoverMenu = (opt) => {
     const buttons = (opt["buttons"])
     const ref = useRef();
+    const [showHighlightColors, setShowHighlightColors] = useState(false);
     const editor = useSlate();
 
     useEffect(() => {
@@ -2068,6 +2114,7 @@ const HoverMenu = (opt) => {
 
     });
 
+
     const root = window.document.getElementById('s2');
     return ReactDOM.createPortal(
         <div ref={ref} className="hoverMenu">
@@ -2075,13 +2122,13 @@ const HoverMenu = (opt) => {
             <FormatButton editor={editor} format="italic"/>
             <FormatButton editor={editor} format="underline"/>
             {buttons == "basic" ? null : <>
+                <HighlightButton/>
                 <AddLinkButton/>
-                <BlockButton editor={editor} format="header" icon="header" />
-                <BlockButton editor={editor} format="numbered-list" icon="list-ol" />
-                <BlockButton editor={editor} format="bulleted-list" icon="list-ul" />
+                <BlockButton editor={editor} format="header" icon="header"/>
+                <BlockButton editor={editor} format="numbered-list" icon="list-ol"/>
+                <BlockButton editor={editor} format="bulleted-list" icon="list-ul"/>
             </>
             }
-
         </div>,
         root
     )
@@ -2130,6 +2177,61 @@ const FormatButton = ({format}) => {
     )
 };
 
+
+const HighlightButton = () => {
+    const editor = useSlate();
+    const ref = useRef();
+    const [showPortal, setShowPortal] = useState(false);
+    const isActive = isFormatActive(editor, "background-color");
+    const classes = {fa: 1, active: isActive, "fa-pencil": 1};
+    const colors = ["#E6DABC", "#EAC4B6", "#D5A7B3", "#AECAB7", "#ADCCDB"]; // 50% gold, orange, rose, green, blue 
+    const colorButtons = <>{colors.map(color => <button key={`highlight-${color.replace("#", "")}`} className="highlightButton" onClick={e => {
+        const isActive = isFormatActive(editor, "background-color", color);
+        if (isActive) {
+            Editor.removeMark(editor, "background-color")
+        } else {
+            Editor.addMark(editor, "background-color", color)
+        }
+  }}><div className="highlightDot" style={{"background-color":color}}></div></button>
+    )}</>
+
+    useEffect(() => {
+        const el = ref.current;
+        if (el) {
+            const checkIfClickedOutside = e => {
+                if (showPortal && ref.current && !ref.current.contains(e.target)) {
+                    setShowPortal(false)
+                }
+            }
+            document.addEventListener("mousedown", checkIfClickedOutside)
+            return () => {
+                // Cleanup the event listener
+                document.removeEventListener("mousedown", checkIfClickedOutside)
+            }
+        }
+
+    }, [showPortal])
+    return (
+        <>
+        <span className="hoverButton"
+            onMouseDown={event => {
+                event.preventDefault();
+                setShowPortal(true);
+            }}
+        >
+      <i className={classNames(classes)}/>
+    </span>
+    {showPortal ? <div className="highlightMenu" ref={ref}>
+    {colorButtons}
+    <button className="highlightButton" onClick={e => {
+        Editor.removeMark(editor, "background-color")
+    }}>
+    <i className="fa fa-ban highlightCancel"></i>
+  </button></div> : null}
+    </>
+    )
+};
+
 const BlockButton = ({format, icon}) => {
     const editor = useSlate()
     const isActive = isBlockActive(editor, format);
@@ -2149,132 +2251,25 @@ const BlockButton = ({format, icon}) => {
     )
 }
 
-
-function saveSheetContent(doc, lastModified) {
-    const sheetTitle = document.querySelector(".sheetContent .sheetMetaDataBox .title") ? document.querySelector(".sheetContent .sheetMetaDataBox .title").textContent : "Untitled"
-
-    const sheetContent = doc.children.find(el => el.type == "SheetContent").children;
-
-    const sources = sheetContent.map(item => {
-        const sheetItem = item;
-        switch (sheetItem.type) {
-            case 'SheetSource':
-
-                const enSerializedSourceText = (sheetItem.enText.reduce( (concatenatedSegments, currentSegment) => {
-                  return concatenatedSegments + serialize(currentSegment)
-                }, "" ) );
-
-                const heSerializedSourceText = (sheetItem.heText.reduce( (concatenatedSegments, currentSegment) => {
-                  return concatenatedSegments + serialize(currentSegment)
-                }, "" ) );
-
-                let source = {
-                    "ref": sheetItem.ref,
-                    "heRef": sheetItem.heRef,
-                    "text": {
-                        "en": enSerializedSourceText !== "" ? enSerializedSourceText : "...",
-                        "he": heSerializedSourceText !== "" ? heSerializedSourceText : "...",
-                    },
-                    ...sheetItem.options && { options: sheetItem.options },
-                    "node": sheetItem.node,
-                };
-                return (source);
-            case 'SheetOutsideBiText':
-
-                const enSerializedOutsideText = (sheetItem.enText.reduce( (concatenatedSegments, currentSegment) => {
-                  return concatenatedSegments + serialize(currentSegment)
-                }, "" ) );
-
-                const heSerializedOutsideText = (sheetItem.heText.reduce( (concatenatedSegments, currentSegment) => {
-                  return concatenatedSegments + serialize(currentSegment)
-                }, "" ) );
-
-                let outsideBiText = {
-                    "outsideBiText": {
-                        "en": enSerializedOutsideText !== "" ? enSerializedOutsideText : "...",
-                        "he": heSerializedOutsideText !== "" ? heSerializedOutsideText : "...",
-                    },
-                    ...sheetItem.options && { options: sheetItem.options },
-                    "node": sheetItem.node,
-
-                };
-                return outsideBiText;
-
-            case 'SheetComment':
-                return ({
-                    "comment": serialize(sheetItem),
-                    ...sheetItem.options && { options: sheetItem.options },
-                    "node": sheetItem.node,
-                });
-
-            case 'SheetOutsideText':
-               const outsideTextText = serialize(sheetItem)
-               //Add space to empty outside texts to preseve line breaks from old sheets.
-               return ({
-                    "outsideText": (outsideTextText=="<p></p>" || outsideTextText=="<div></div>") ? "<p> </p>" : outsideTextText,
-                    ...sheetItem.options && { options: sheetItem.options },
-                    "node": sheetItem.node,
-                });
-
-            case 'SheetMedia':
-                return({
-                    "media": sheetItem.mediaUrl,
-                    ...sheetItem.options && { options: sheetItem.options },
-                    "node": sheetItem.node,
-                });
-
-            case 'header':
-                const headerContent = serialize(sheetItem)
-                return({
-                    "outsideText": `<h1>${headerContent}</h1>`,
-                    ...sheetItem.options && { options: sheetItem.options },
-                    "node": sheetItem.node,
-                });
-
-
-            case 'spacer':
-              return;
-
-            default:
-                // console.log("Error saving:")
-                // console.log(sheetItem)
-                return;
-        }
-
-    });
-    let sheet = {
-        status: doc.status,
-        id: doc.id,
-        promptedToPublish: doc.promptedToPublish,
-        lastModified: lastModified,
-        summary: doc.summary,
-        options: doc.options,
-        tags: doc.tags,
-        displayedCollection: doc.displayedCollection,
-        title: sheetTitle === "" ? "Untitled" : sheetTitle,
-        sources: sources.filter(x => !!x),
-        nextNode: doc.nextNode,
-    };
-    // title: sheetTitle == "" ? "Untitled" : sheetTitle,
-
-    return JSON.stringify(sheet);
-
-}
-
-
-
 const SefariaEditor = (props) => {
     const editorContainer = useRef();
     const sheet = props.data;
-    const initValue = transformSheetJsonToSlate(sheet);
+    const initValue = [{type: "sheet", children: [{text: ""}]}];
     const renderElement = useCallback(props => <Element {...props} />, []);
     const [value, setValue] = useState(initValue);
     const [currentDocument, setCurrentDocument] = useState(initValue);
     const [unsavedChanges, setUnsavedChanges] = useState(false);
     const [lastModified, setlastModified] = useState(props.data.dateModified);
+    const [dropZone, setDropZone] = useState(null)
+    const [canUseDOM, setCanUseDOM] = useState(false);
+    const [readyForNormalize, setReadyForNormalize] = useState(false);
 
     useEffect(
         () => {
+            if (!canUseDOM) {
+                return
+            }
+
             setUnsavedChanges(true);
             // Update debounced value after delay
             const handler = setTimeout(() => {
@@ -2291,11 +2286,38 @@ const SefariaEditor = (props) => {
         [currentDocument[0].children[0]] // Only re-call effect if value or delay changes
     );
 
+    useEffect(
+        () => {
+            const removeStyles = editorContainer.current.querySelectorAll(".draggedOver");
+            for (let nodeToCheck of removeStyles) {
+                nodeToCheck.classList.remove("draggedOver", "draggedOverAfter", "draggedOverBefore")
+            }
+
+            if (dropZone) {
+                dropZone["node"].classList.add("draggedOver");
+                dropZone["node"].classList.add(dropZone["dropBefore"] ? "draggedOverAfter" : "draggedOverBefore");
+            }
+
+        }, [dropZone]
+    )
+
+
     useEffect( /* normalize on load */
         () => {
-
-            Editor.normalize(editor, { force: true })
+            setCanUseDOM(true)
+            setValue(transformSheetJsonToSlate(sheet))
+            setReadyForNormalize(true)
+            //TODO: Check that we still need/want this temporary analytics tracking code
+            try {hj('event', 'using_new_editor');} catch {console.error('hj failed')}
         }, []
+    )
+
+    useEffect(
+        () => {
+            if (readyForNormalize) {
+                Editor.normalize(editor, {force: true});
+            }
+        }, [readyForNormalize]
     )
 
 
@@ -2355,6 +2377,130 @@ const SefariaEditor = (props) => {
     }, [props.highlightedNode, props.hasSidebar]
   );
 
+  useEffect(() => {
+      if(canUseDOM) {
+        if (props.highlightedNode) {
+              var $highlighted = document.querySelectorAll(`.sheetItem[data-sheet-node='${props.highlightedNode}']`)[0];
+              if ($highlighted) {
+                  var offset = props.multiPanel ? 200 : 70; // distance from the top of screen that we want highlighted segments to appear below.
+                  var top = $highlighted.getBoundingClientRect().top - offset;
+                  $('.sheetsInPanel')[0].scroll({top: top});
+              }
+          }
+      }
+  }, [canUseDOM])
+
+    function saveSheetContent(doc, lastModified) {
+        const sheetTitle = editorContainer.current.querySelector(".sheetContent .sheetMetaDataBox .title") ? editorContainer.current.querySelector(".sheetContent .sheetMetaDataBox .title").textContent : "Untitled"
+        console.log(sheetTitle)
+        const sheetContent = doc.children.find(el => el.type == "SheetContent").children;
+
+        const sources = sheetContent.map(item => {
+            const sheetItem = item;
+            switch (sheetItem.type) {
+                case 'SheetSource':
+
+                    const enSerializedSourceText = (sheetItem.enText.reduce( (concatenatedSegments, currentSegment) => {
+                      return concatenatedSegments + serialize(currentSegment)
+                    }, "" ) );
+
+                    const heSerializedSourceText = (sheetItem.heText.reduce( (concatenatedSegments, currentSegment) => {
+                      return concatenatedSegments + serialize(currentSegment)
+                    }, "" ) );
+
+                    let source = {
+                        "ref": sheetItem.ref,
+                        "heRef": sheetItem.heRef,
+                        "text": {
+                            "en": enSerializedSourceText !== "" ? enSerializedSourceText : "...",
+                            "he": heSerializedSourceText !== "" ? heSerializedSourceText : "...",
+                        },
+                        ...sheetItem.options && { options: sheetItem.options },
+                        "node": sheetItem.node,
+                    };
+                    return (source);
+                case 'SheetOutsideBiText':
+
+                    const enSerializedOutsideText = (sheetItem.enText.reduce( (concatenatedSegments, currentSegment) => {
+                      return concatenatedSegments + serialize(currentSegment)
+                    }, "" ) );
+
+                    const heSerializedOutsideText = (sheetItem.heText.reduce( (concatenatedSegments, currentSegment) => {
+                      return concatenatedSegments + serialize(currentSegment)
+                    }, "" ) );
+
+                    let outsideBiText = {
+                        "outsideBiText": {
+                            "en": enSerializedOutsideText !== "" ? enSerializedOutsideText : "...",
+                            "he": heSerializedOutsideText !== "" ? heSerializedOutsideText : "...",
+                        },
+                        ...sheetItem.options && { options: sheetItem.options },
+                        "node": sheetItem.node,
+
+                    };
+                    return outsideBiText;
+
+                case 'SheetComment':
+                    return ({
+                        "comment": serialize(sheetItem),
+                        ...sheetItem.options && { options: sheetItem.options },
+                        "node": sheetItem.node,
+                    });
+
+                case 'SheetOutsideText':
+                   const outsideTextText = serialize(sheetItem)
+                   //Add space to empty outside texts to preseve line breaks from old sheets.
+                   return ({
+                        "outsideText": (outsideTextText=="<p></p>" || outsideTextText=="<div></div>") ? "<p> </p>" : outsideTextText,
+                        ...sheetItem.options && { options: sheetItem.options },
+                        "node": sheetItem.node,
+                    });
+
+                case 'SheetMedia':
+                    return({
+                        "media": sheetItem.mediaUrl,
+                        ...sheetItem.options && { options: sheetItem.options },
+                        "node": sheetItem.node,
+                    });
+
+                case 'header':
+                    const headerContent = serialize(sheetItem)
+                    return({
+                        "outsideText": `<h1>${headerContent}</h1>`,
+                        ...sheetItem.options && { options: sheetItem.options },
+                        "node": sheetItem.node,
+                    });
+
+
+                case 'spacer':
+                  return;
+
+                default:
+                    // console.log("Error saving:")
+                    // console.log(sheetItem)
+                    return;
+            }
+
+        });
+        let sheet = {
+            status: doc.status,
+            id: doc.id,
+            promptedToPublish: doc.promptedToPublish,
+            lastModified: lastModified,
+            summary: doc.summary,
+            options: doc.options,
+            tags: doc.tags,
+            displayedCollection: doc.displayedCollection,
+            title: sheetTitle === "" ? "Untitled" : sheetTitle,
+            sources: sources.filter(x => !!x),
+            nextNode: doc.nextNode,
+        };
+        // title: sheetTitle == "" ? "Untitled" : sheetTitle,
+
+        return JSON.stringify(sheet);
+
+    }
+
 
     function saveDocument(doc) {
         const json = saveSheetContent(doc[0], lastModified);
@@ -2396,7 +2542,7 @@ const SefariaEditor = (props) => {
            */
           if (editor.selection == null) return
 
-          try {
+        try {
             /*
               Need a try/catch because sometimes you get an error like:
               Cannot resolve a DOM node from Slate node: {"type":"p","children":[{"text":"","by":-1,"at":-1}]}
@@ -2429,48 +2575,14 @@ const SefariaEditor = (props) => {
 
     };
 
-    const onDrop = event => {
+    const onDragEnd = event => {
         if (editor.dragging) {
-            event.preventDefault();
-            const elem = document.elementFromPoint(event.clientX, event.clientY)
-            const node = ReactEditor.toSlateNode(editor, elem)
-            const dropPath = Editor.end(editor, ReactEditor.findPath(editor, node)).path
-
-            console.log(node)
-            console.log(dropPath)
-
-
-                        console.log(Path.compare(dropPath, editor.dragging.anchor.path))
-                        //
-                        if (Path.compare(dropPath, editor.dragging.anchor.path) < 0) {
-                            Transforms.delete(editor, {at: editor.dragging});
-                            Transforms.select(editor, Editor.end(editor, dropPath));
-                            Transforms.insertText(editor, " ")
-                            editor.insertData(event.dataTransfer)
-                            console.log('up')
-                            Transforms.move(editor, { distance: 1, unit: 'character', reverse: true, })
-                            editor.deleteBackward()
-
-
-                         } else if (Path.compare(dropPath, editor.dragging.anchor.path) > 0) {
-                            Transforms.select(editor, Editor.start(editor, dropPath));
-                            Transforms.insertText(editor, " ")
-                            editor.insertData(event.dataTransfer)
-                            Transforms.delete(editor, {at: editor.dragging});
-                            console.log('down')
-                            Transforms.move(editor, { distance: 1, unit: 'character', reverse: true, })
-                            editor.deleteBackward()
-
-                        }
-
-                        editor.dragging = false
-
-                        console.log(editor.children)
-
+            editor.blurSelection
+            editor.dragging = false
         }
-    };
+    }
 
-    const onDragOver = event => {
+    const onDragCheck = event => {
         if (editor.dragging) {
             event.preventDefault()
         }
@@ -2540,10 +2652,14 @@ const SefariaEditor = (props) => {
 
     const onEditorSidebarToggleClick = event => {
         const segmentToHighlight = getHighlightedByScrollPos()
-        if (!segmentToHighlight) {return}
-        const sheetNode = segmentToHighlight.getAttribute("data-sheet-node")
-        const sheetRef = segmentToHighlight.getAttribute("data-sefaria-ref")
-        updateSidebar(sheetNode, sheetRef)
+        if (!segmentToHighlight) {
+            updateSidebar(sheet.id, null)
+        }
+        else {
+            const sheetNode = segmentToHighlight.getAttribute("data-sheet-node")
+            const sheetRef = segmentToHighlight.getAttribute("data-sefaria-ref")
+            updateSidebar(sheetNode, sheetRef)
+        }
     };
 
 
@@ -2588,7 +2704,7 @@ const SefariaEditor = (props) => {
                 image={sheet.collectionImage}
             />
         </SheetMetaDataBox>
-
+            {canUseDOM ?
             <Slate editor={editor} value={value} onChange={(value) => onChange(value)}>
                 <HoverMenu buttons="all"/>
                 <Editable
@@ -2597,13 +2713,14 @@ const SefariaEditor = (props) => {
                   spellCheck
                   onKeyDown={onKeyDown}
                   onCut={onCutorCopy}
-                  onDragOver={onDragOver}
+                  onDragOver={onDragCheck}
+                  onDragEnter={onDragCheck}
+                  onDragEnd={onDragEnd}
                   onCopy={onCutorCopy}
                   onBlur={onBlur}
-                  onDrop={onDrop}
                   onDOMBeforeInput={beforeInput}
                 />
-            </Slate>
+            </Slate> : null }
         </div>
     )
 };

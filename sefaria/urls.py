@@ -242,6 +242,11 @@ urlpatterns += [
     url(r'^api/(?P<kind>(followers|followees))/(?P<uid>\d+)$', reader_views.follow_list_api),
 ]
 
+# Blocking API
+urlpatterns += [
+    url(r'^api/(?P<action>(block|unblock))/(?P<uid>\d+)$', reader_views.block_api),
+]
+
 # Topics API
 urlpatterns += [
     url(r'^api/topics$', reader_views.topics_list_api),
@@ -299,8 +304,12 @@ urlpatterns += [
 urlpatterns += [
     url(r'^random/link$',        reader_views.random_redirect),
     url(r'^random/?$',           reader_views.random_text_page),
-    url(r'^daf-roulette/?$',     reader_views.daf_roulette_redirect),
-    url(r'^chavruta/?$',         reader_views.chevruta_redirect),
+]
+
+# Chavruta URLs
+urlpatterns += [
+    url(r'^beit-midrash/(?P<slug>[^.]+)$', reader_views.beit_midrash),
+    url(r'^api/chat-messages/?$', reader_views.chat_message_api)
 ]
 
 # Registration
@@ -350,12 +359,6 @@ urlpatterns += [
     url(r'^api/linker-track$', sefaria_views.linker_tracking_api),
 
 ]
-
-# chavruta.js -
-urlpatterns += [
-    url(r'^chavruta\.js$', sefaria_views.chavruta_js)
-]
-
 
 urlpatterns += [
     url(r'^api/passages/(?P<refs>.+)$', sefaria_views.passages_api),

@@ -413,7 +413,8 @@ def protected_collections_post_api(request, user_id, slug=None):
 def collections_get_api(request, slug=None):
     if not slug:
         return jsonResponse(CollectionSet.get_collection_listing(request.user.id))
-    collection_obj = Collection().load({"slug": unquote(slug)})
+    uslug = unquote(slug)
+    collection_obj = Collection().load({"$or": [{"slug": uslug}, {"privateSlug": uslug}]})
     if not collection_obj:
         return jsonResponse({"error": "No collection with slug '{}'".format(slug)})
     is_member = request.user.is_authenticated and collection_obj.is_member(request.user.id)

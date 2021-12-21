@@ -101,7 +101,6 @@ class BookPage extends Component {
     let currentVersion = {
       ... currObjectVersions[currentLanguage],
       ...{
-        sources: currentLanguage == "he" ? d.heSources : d.sources,
         language:               currentLanguage,
         versionTitle:           currentLanguage == "he" ? d.heVersionTitle : d.versionTitle,
         versionSource:          currentLanguage == "he" ? d.heVersionSource : d.versionSource,
@@ -147,6 +146,8 @@ class BookPage extends Component {
       catUrl  = "/texts/" + index.categories.slice(0, index.categories.indexOf("Commentary") + 1).join("/");
     } else if (category == "Targum") {
       catUrl  = "/texts/" + index.categories.slice(0, index.categories.indexOf("Targum") + 1).join("/");
+    } else if (category == "Talmud") {
+      catUrl  = "/texts/" + index.categories.slice(0, index.categories.indexOf("Talmud") + 2).join("/");
     } else {
       catUrl  = "/texts/" + category;
     }
@@ -175,6 +176,7 @@ class BookPage extends Component {
     const sidebarModules = !this.state.indexDetails ? [] :
       [
         this.props.multiPanel ? {type: "AboutText", props: {index: this.state.indexDetails}} : {type: null},
+        {type: "Promo"},
         {type: "RelatedTopics", props: { title: this.props.title}},
         !isDictionary ? {type: "DownloadVersions", props:{sref: this.props.title}} : {type: null},
       ];
@@ -187,7 +189,7 @@ class BookPage extends Component {
       fullBookPage: this.isBookToc(),
       narrowPanel: this.props.narrowPanel,
       compare: this.props.compare,
-      noLangToggleInHebrew: Sefaria.interfaceLang == 'hebrew'
+      noLangToggleInHebrew: Sefaria.interfaceLang === 'hebrew'
     });
 
     return (
@@ -346,8 +348,10 @@ class TextTableOfContents extends Component {
       let ref = $a.attr("data-ref");
       ref = decodeURIComponent(ref);
       ref = Sefaria.humanRef(ref);
-      this.props.close();
-      this.props.showBaseText(ref, false, this.props.currVersions);
+      if(this.props?.close){
+        this.props.close();
+      }
+      this.props.navigatePanel ? this.props.navigatePanel(ref, this.props.currVersions) : this.props.showBaseText(ref, false, this.props.currVersions);
       e.preventDefault();
     }
   }

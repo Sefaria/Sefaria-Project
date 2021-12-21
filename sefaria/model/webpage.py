@@ -1,21 +1,20 @@
 # coding=utf-8
 from urllib.parse import urlparse
 import regex as re
-from datetime import datetime
 from collections import defaultdict
 
 from . import abstract as abst
 from . import text
 from sefaria.system.database import db
 from sefaria.system.cache import in_memory_cache
-
+import bleach
 import structlog
 logger = structlog.get_logger(__name__)
 from collections import Counter
 from sefaria.utils.calendars import daf_yomi, parashat_hashavua_and_haftara
 from datetime import datetime, timedelta
 from sefaria.system.exceptions import InputError
-
+from tqdm import tqdm
 class WebPage(abst.AbstractMongoRecord):
     collection = 'webpages'
 
@@ -47,11 +46,14 @@ class WebPage(abst.AbstractMongoRecord):
     def _init_defaults(self):
         self.linkerHits = 0
 
+    def _normalize_refs(self):
+        self.refs = {text.Ref(ref).normal() for ref in self.refs if text.Ref.is_ref(ref) and not text.Ref(ref).is_empty()}
+        self.refs = list(self.refs)
+
     def _normalize(self):
         super(WebPage, self)._normalize()
         self.url = WebPage.normalize_url(self.url)
-        self.refs = [text.Ref(ref).normal() for ref in self.refs if text.Ref.is_ref(ref)]
-        self.refs = list(set(self.refs))
+        self._normalize_refs()
         self.expandedRefs = text.Ref.expand_refs(self.refs)
 
     def _validate(self):
@@ -103,7 +105,8 @@ class WebPage(abst.AbstractMongoRecord):
         because it matches a title/url we want to exclude or has no refs"""
         if len(self.refs) == 0:
             return True
-        if len(self.url.encode('utf-8')) > 1000:
+        bleached_url = bleach.clean(self.url.encode('utf-8'), tags=self.ALLOWED_TAGS, attributes=self.ALLOWED_ATTRS)
+        if len(bleached_url) > 1000:
             # url field is indexed. Mongo doesn't allow indexing a field over 1000 bytes
             from sefaria.system.database import db
             db.webpages_long_urls.insert_one(self.contents())
@@ -118,13 +121,16 @@ class WebPage(abst.AbstractMongoRecord):
         sites = get_website_cache()
         for site in sites:
             bad_urls += site.get("bad_urls", [])
+            for domain in site["domains"]:
+                if site["is_whitelisted"]:
+                    bad_urls += [re.escape(domain)+"/search?", re.escape(domain)+"/search[/]?$"]
         return "({})".format("|".join(bad_urls))
 
     @staticmethod
     def excluded_pages_title_regex():
         bad_titles = [
             r"Page \d+ of \d+",  # Rabbi Sacks paged archives
-            r"^Page not found$",   # JTS 404 pages include links to content
+            r"Page [nN]ot [fF]ound$",  # 404 pages include links to content
             r"^JTS Torah Online$"  # JTS search result pages
         ]
         return "({})".format("|".join(bad_titles))
@@ -202,7 +208,7 @@ class WebPage(abst.AbstractMongoRecord):
         return title if len(title) else self._site_data["name"]
 
     def clean_description(self):
-        description = self.description
+        description = getattr(self, "description", "")
         for uhoh_string in ["*/", "*******"]:
             if description.find(uhoh_string) != -1:
                 return None
@@ -310,9 +316,7 @@ def dedupe_webpages(test=True):
     norm_count = 0
     dedupe_count = 0
     webpages = WebPageSet()
-    for i, webpage in enumerate(webpages):
-        if i % 100000 == 0:
-            print(i)
+    for i, webpage in tqdm(enumerate(webpages)):
         norm = WebPage.normalize_url(webpage.url)
         if webpage.url != norm:
             normpage = WebPage().load(norm)
@@ -384,7 +388,8 @@ def dedupe_identical_urls(test=True):
                     "refs": page.refs,
                     "expandedRefs": page.expandedRefs,
                     "title": page.title,
-                    "description": getattr(page, "description", "")
+                    "description": getattr(page, "description", ""),
+                    "lastUpdated": page.lastUpdated
                 })
         removed_count += (pages.count() - 1)
 
@@ -402,6 +407,8 @@ def dedupe_identical_urls(test=True):
 def clean_webpages(test=True):
     url_bad_regexes = WebPage.excluded_pages_url_regex()[:-1] + "|\d{3}\.\d{3}\.\d{3}\.\d{3})"  #delete any page that matches the regex produced by excluded_pages_url_regex() or in IP form
 
+
+
     """ Delete webpages matching patterns deemed not worth including"""
     pages = WebPageSet({"$or": [
             {"url": {"$regex": url_bad_regexes}},
@@ -409,6 +416,14 @@ def clean_webpages(test=True):
             {"refs": {"$eq": []}},
              {"domain": ""}
         ]})
+
+    for page in WebPageSet({"$expr": {"$gt": [{"$strLenCP": "$url"}, 1000]}}):
+        # url field is indexed. Mongo doesn't allow indexing a field over 1000 bytes
+        from sefaria.system.database import db
+        db.webpages_long_urls.insert_one(page.contents())
+        print(f"Moving {page.url} to long urls DB...")
+        page.delete()
+
 
     if not test:
         pages.delete()
@@ -425,6 +440,7 @@ def webpages_stats():
     total_pages  = webpages.count()
     total_links  = []
     websites = {}
+    year_data = Counter()
 
     for webpage in webpages:
         website = webpage.get_website()
@@ -433,6 +449,8 @@ def webpages_stats():
                 websites[website] = 0
             websites[website] += 1
         total_links += webpage.refs
+        year = int((datetime.today() - webpage.lastUpdated).days / 365.0)
+        year_data[year] += 1
 
     total_links = len(set(total_links))
 
@@ -440,7 +458,7 @@ def webpages_stats():
         website.num_webpages = num
         website.save()
 
-    return (total_pages, total_links)
+    return (total_pages, total_links, year_data)
 
 
 def find_webpages_without_websites(test=True, hit_threshold=50, last_linker_activity_day=20):
@@ -456,9 +474,7 @@ def find_webpages_without_websites(test=True, hit_threshold=50, last_linker_acti
     # if we then get 5 new pages in the next hour, they won't correspond to an actual site. the way to deal with this
     # is to make sure the unactive_threshold, which determines which pages we delete, is significantly older than the active_threshold. let's pick 10 days
 
-    for i, webpage in enumerate(webpages):
-        if i % 100000 == 0:
-            print(i)
+    for i, webpage in tqdm(enumerate(webpages)):
         website = webpage.get_website(dict_only=True)
         if website == {}:
             if webpage.lastUpdated > active_threshold:
@@ -482,20 +498,22 @@ def find_webpages_without_websites(test=True, hit_threshold=50, last_linker_acti
 
     return sites_added
 
-
-def find_sites_to_be_excluded(flag=100):
+def find_sites_to_be_excluded():
+    # returns all sites dictionary and each entry has a Counter of refs
     all_sites = {}
-    sites_to_exclude = {}
-    for i, webpage in enumerate(WebPageSet()):
-        if i % 100000 == 0:
-            print(i)
+    for i, webpage in tqdm(enumerate(WebPageSet())):
         website = webpage.get_website(dict_only=True)
         if website != {}:
             if website["name"] not in all_sites:
                 all_sites[website["name"]] = Counter()
             for ref in webpage.refs:
                 all_sites[website["name"]][ref] += 1
+    return all_sites
 
+def find_sites_to_be_excluded_absolute(flag=100):
+    # this function looks for any website which has more webpages than 'flag' of any ref
+    all_sites = find_sites_to_be_excluded()
+    sites_to_exclude = {}
     for website in all_sites:
         sites_to_exclude[website] = ""
         if len(all_sites[website]) > 0:
@@ -505,6 +523,17 @@ def find_sites_to_be_excluded(flag=100):
                     sites_to_exclude[website] += f"{website} may need exclusions set due to Ref {common[0]} with {common[1]} pages.\n"
     return sites_to_exclude
 
+def find_sites_to_be_excluded_relative(flag=25, relative_percent=3):
+    # this function looks for any website which has more webpages than 'flag' of any ref AND the amount of pages of this ref is a significant percentage of site's total refs
+    sites_to_exclude = defaultdict(list)
+    all_sites = find_sites_to_be_excluded()
+    for website in all_sites:
+        total = sum(all_sites[website].values())
+        top_10 = all_sites[website].most_common(10)
+        for c in top_10:
+            if c[1] > flag and 100.0*float(c[1])/total > relative_percent:
+                sites_to_exclude[website].append(c)
+    return sites_to_exclude
 
 def check_daf_yomi_and_parashat_hashavua(sites):
     previous = datetime.now() - timedelta(10)
@@ -542,9 +571,6 @@ def check_daf_yomi_and_parashat_hashavua(sites):
         if parasha > 10:
             print("{} may have parasha on every page.".format(site))
 
-
-
-
 def find_sites_that_may_have_removed_linker(last_linker_activity_day=20):
     """
     Checks for each site whether there has been a webpage hit with the linker in the last `last_linker_activity_day` days
@@ -558,22 +584,20 @@ def find_sites_that_may_have_removed_linker(last_linker_activity_day=20):
     for data in get_website_cache():
          if data["is_whitelisted"]:  # we only care about whitelisted sites
             for domain in data['domains']:
-                ws = WebPageSet({"url": {"$regex": re.escape(domain)}}, limit=1000, sort=[['lastUpdated', -1]])
+                ws = WebPageSet({"url": {"$regex": re.escape(domain)}}, limit=1, sort=[['lastUpdated', -1]])
                 keep = True
                 if ws.count() == 0:
                     sites_to_delete[domain] = f"{domain} has no pages"
                     keep = False
                 else:
-                    ws_array = ws.array()
-                    webpage = ws_array[0]  # lastUpdated webpage for this domain
+                    webpage = ws[0]  # lastUpdated webpage for this domain
                     website = webpage.get_website()
                     if website:
                         website.linker_installed = webpage.lastUpdated > last_active_threshold
                         if not website.linker_installed:
                             keep = False
                             print(f"Alert! {domain} has removed the linker!")
-                            num_pages = len(ws_array)
-                            sites_to_delete[domain] = f"{domain} has {num_pages} pages, but has not used the linker in {last_linker_activity_day} days. {webpage.url} is the oldest page."
+                            sites_to_delete[domain] = f"{domain} has {website.num_webpages} pages, but has not used the linker in {last_linker_activity_day} days. {webpage.url} is the oldest page."
                     else:
                         print("Alert! Can't find website {} corresponding to webpage {}".format(data["name"], webpage.url))
                         webpages_without_websites += 1
@@ -584,3 +608,4 @@ def find_sites_that_may_have_removed_linker(last_linker_activity_day=20):
     if webpages_without_websites > 0:
         print("Found {} webpages without websites".format(webpages_without_websites))
     return sites_to_delete
+

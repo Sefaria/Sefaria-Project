@@ -1507,12 +1507,17 @@ _media: {},
       // Sort first by page language matching interface language
       if (a.isHebrew !== b.isHebrew) { return (b.isHebrew ? -1 : 1) * (Sefaria.interfaceLang === "hebrew" ? -1 : 1); }
 
-      // 3: exact match, 2: range match: 1: section match
-      var aSpecificity, bSpecificity;
-      [aSpecificity, bSpecificity] = [a, b].map(page => page.anchorRef === ref ? 3 : (page.anchorRef.indexOf("-") !== -1 ? 2 : 1));
-      if (aSpecificity !== bSpecificity) {return aSpecificity > bSpecificity ? -1 : 1};
+      // Second, sort by how many anchorRefExpanded refs there are.  Intuition: Genesis 1:2 should come before Genesis 1:2-5, which in turn should come before Genesis 1
+      var aNumAnchorRefs, bNumAnchorRefs;
+      [aNumAnchorRefs, bNumAnchorRefs] = [a, b].map(page => page.anchorRefExpanded.length);
+      if (aNumAnchorRefs !== bNumAnchorRefs) {  return (aNumAnchorRefs - bNumAnchorRefs); }
 
-      return (a.linkerHits > b.linkerHits) ? -1 : 1
+      // Genesis 2 should come before Genesis 1-3
+      var aIsRange, bIsRange;
+      [aIsRange, bIsRange] = [a, b].map(page => page.anchorRef.indexOf("-") !== -1);
+      if (aIsRange !== bIsRange) { return bIsRange ? -1 : 1; }
+
+      return (a.linkerHits > b.linkerHits) ? -1 : 1;
     });
     this._processedWebpages[ref] = webpages;
     return webpages;
@@ -1930,6 +1935,15 @@ _media: {},
       $.post(`${Sefaria.apiHost}/api/messages`, data, resolve);
     });
   },
+  chatMessageAPI: (roomId, senderId, timestamp, messageContent) => {
+    const data = {json: JSON.stringify({roomId: roomId, senderId: senderId, timestamp, messageContent})};
+    return new Promise((resolve, reject) => {
+      $.post(`${Sefaria.apiHost}/api/chat-messages`, data, resolve);
+    })
+  },
+  getChatMessagesAPI: (roomId) => {
+    return Sefaria._ApiPromise(Sefaria.apiHost + `/api/chat-messages/?room_id=${roomId}`);
+  },
   getRefSavedHistory: tref => {
     return Sefaria._ApiPromise(Sefaria.apiHost + `/api/user_history/saved?tref=${tref}`);
   },
@@ -1990,26 +2004,6 @@ _media: {},
     }
     Sefaria.last_place = history_item_array.filter(x=>!x.secondary).concat(Sefaria.last_place);  // while technically we should remove dup. books, this list is only used on client
   },
-  getRefSavedHistory: tref => {
-    return Sefaria._ApiPromise(Sefaria.apiHost + `/api/user_history/saved?tref=${tref}`);
-  },
-  followAPI: (slug, ftype) => {
-    return Sefaria._ApiPromise(Sefaria.apiHost + `/api/profile/${slug}/${ftype}`);
-  },
-  messageAPI: (uid, message) => {
-    const data = {json: JSON.stringify({recipient: uid, message: message.escapeHtml()})};
-    return new Promise((resolve, reject) => {
-      $.post(`${Sefaria.apiHost}/api/messages`, data, resolve);
-    });
-  },
-  _profiles: {},
-  profileAPI: slug => {
-    return Sefaria._cachedApiPromise({
-      url:   Sefaria.apiHost + "/api/profile/" + slug,
-      key:   slug,
-      store: Sefaria._profiles
-    });
-  },
   uploadProfilePhoto: (formData) => {
     return new Promise((resolve, reject) => {
       if (Sefaria._uid) {
@@ -2048,6 +2042,7 @@ _media: {},
         });
   },
   _tableOfContentsDedications: {},
+  _inAppAds: null,
   _stories: {
     stories: [],
     page: 0
@@ -2636,7 +2631,7 @@ Sefaria.unpackDataFromProps = function(props) {
       "is_history_enabled",
       "translation_language_preference_suggestion",
       "following",
-
+      "blocking",
       "calendars",
       "notificationCount",
       "notifications",
@@ -2652,6 +2647,7 @@ Sefaria.unpackDataFromProps = function(props) {
       "trendingTopics",
       "_siteSettings",
       "_debug",
+      "rtc_server"
   ];
   for (const element of dataPassedAsProps) {
       if (element in props) {
@@ -2684,8 +2680,10 @@ Sefaria.palette = palette;
 
 Sefaria.palette.indexColor = function(title) {
       return title && Sefaria.index(title) ?
-      Sefaria.palette.categoryColor(Sefaria.index(title).categories[0]):
-      Sefaria.palette.categoryColor("Other");
+          Sefaria.index(title)['primary_category'] ?
+              Sefaria.palette.categoryColor(Sefaria.index(title)['primary_category']):
+                Sefaria.palette.categoryColor(Sefaria.index(title).categories[0]):
+          Sefaria.palette.categoryColor("Other");
 };
 Sefaria.palette.refColor = ref => Sefaria.palette.indexColor(Sefaria.parseRef(ref).index);
 

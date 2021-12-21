@@ -4,6 +4,7 @@ import PropTypes  from 'prop-types';
 import Sefaria  from './sefaria/sefaria';
 import {DonateLink, EnglishText, HebrewText, NewsletterSignUpForm} from './Misc'
 import {InterfaceText, ProfileListing, Dropdown} from './Misc';
+import { Ad } from './Ad'
 
 const NavSidebar = ({modules}) => {
   return <div className="navSidebar sans-serif">
@@ -21,6 +22,7 @@ const Modules = ({type, props}) => {
   // Choose the appropriate module component to render by `type`
   const moduleTypes = {
     "AboutSefaria":           AboutSefaria,
+    "Promo":                  Promo,
     "Resources":              Resources,
     "TheJewishLibrary":       TheJewishLibrary,
     "AboutTextCategory":      AboutTextCategory,
@@ -50,7 +52,7 @@ const Modules = ({type, props}) => {
   if (!type) { return null; }
   const ModuleType = moduleTypes[type];
   return <ModuleType {...props} />
-}
+};
 
 
 const Module = ({children, blue, wide}) => {
@@ -77,6 +79,11 @@ const TitledText = ({enTitle, heTitle, enText, heText}) => {
   </Module>
 };
 
+const Promo = () =>
+    <Module>
+        <Ad adType="sidebar"/>
+    </Module>
+;
 
 const AboutSefaria = ({hideTitle}) => (
   <Module>

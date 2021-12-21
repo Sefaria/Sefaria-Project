@@ -70,7 +70,7 @@
         WebFont.load({
           google: {
             families: ['Crimson Text:400,700'],
-            text: 'ăǎġḥḤḫḳḲŏšṭżūŻāīēḗîìi̧ ̆̄'
+            text: 'ăǎġḥḤḫḳḲŏŠšṭżūẓŻāīēḗîїìi̧ ̆̄'
           },
           typekit: {
             id: 'aeg8div' // Adobe Garamond Pro
@@ -110,6 +110,22 @@
     })(window,document,'script','dataLayer',"{{ GOOGLE_TAG_MANAGER_CODE }}");</script>
     <!-- End Google Tag Manager -->
     {% endif %}
+
+
+    {% if HOTJAR_ID %}
+    <!-- Hotjar Tracking Code for https://www.sefaria.org -->
+    <script>
+        (function(h,o,t,j,a,r){
+            h.hj=h.hj||function(){(h.hj.q=h.hj.q||[]).push(arguments)};
+            h._hjSettings={hjid:{{ HOTJAR_ID }},hjsv:6};
+            a=o.getElementsByTagName('head')[0];
+            r=o.createElement('script');r.async=1;
+            r.src=t+h._hjSettings.hjid+j+h._hjSettings.hjsv;
+            a.appendChild(r);
+        })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
+    </script>
+    {% endif %}
+
 
 </head>
 
@@ -184,6 +200,12 @@
         static_url:    {{ STATIC_PREFIX }},
       };
 
+      {% endautoescape %}
+    </script>
+
+    <script>
+      {% autoescape off %}
+        RTC_SERVER = "{{ RTC_SERVER }}"
       {% endautoescape %}
     </script>
 

@@ -296,9 +296,9 @@ CACHES = {
     }
 }
 
-'''
+
 GLOBAL_INTERRUPTING_MESSAGE = {
-    "name":       "tishrei-thanks-2021-banner",
+    "name":       "17122021-donate-banner",
     "style":      "banner", # "modal" or "banner"
     "repetition": 1,
     "is_fundraising": False,
@@ -311,7 +311,7 @@ GLOBAL_INTERRUPTING_MESSAGE = {
 }
 '''
 GLOBAL_INTERRUPTING_MESSAGE = None
-
+'''
 # Grab environment specific settings from a file which
 # is left out of the repo.
 try: 

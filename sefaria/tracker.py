@@ -36,6 +36,7 @@ def modify_text(user, oref, vtitle, lang, text, vsource=None, **kwargs):
     if vsource:
         chunk.versionSource = vsource  # todo: log this change
     if chunk.save():
+        kwargs['skip_links'] = kwargs.get('skip_links', False) or chunk.has_manually_wrapped_refs()
         post_modify_text(user, action, oref, lang, vtitle, old_text, chunk.text, chunk.full_version._id, **kwargs)
 
     return chunk
@@ -80,6 +81,7 @@ def modify_bulk_text(user: int, version: model.Version, text_map: dict, vsource=
 
     for old_text, new_text, oref in change_map.values():
         if oref.normal() in error_map: continue
+        kwargs['skip_links'] = kwargs.get('skip_links', False) or getattr(version, 'hasManuallyWrappedRefs', False)
         post_modify_text(user, kwargs.get("type"), oref, version.language, version.versionTitle, old_text, new_text, version._id, **kwargs)
 
     return error_map
@@ -104,7 +106,7 @@ def post_modify_text(user, action, oref, lang, vtitle, old_text, curr_text, vers
 
         if USE_VARNISH:
             invalidate_linked(oref)
-    
+    # rabbis_move(oref, vtitle)
     count_and_index(oref, lang, vtitle, to_count=kwargs.get("count_after", 1))
 
 
