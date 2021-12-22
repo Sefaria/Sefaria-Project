@@ -10922,8 +10922,11 @@ body .homeFeedWrapper.userStats {
 .bookPage .editTextInfo #newIndex #heTitle {
 	direction: rtl;
 }
-.bookPage .editTextInfo .static label {
+.interface-english .bookPage .editTextInfo .static label {
   text-align: left;
+}
+.interface-hebrew .bookPage .editTextInfo .static label {
+  text-align: right
 }
 .bookPage .editTextInfo #newIndex .sectionType input{
 	width: 100px;
