@@ -9,7 +9,7 @@ import $ from './sefaria/sefariaJquery';
 import EditCollectionPage from './EditCollectionPage';
 import Footer from './Footer';
 import SearchState from './sefaria/searchState';
-import {ContentLanguageContext} from './context';
+import {ContentLanguageContext, AdContext} from './context';
 import {
   ContestLandingPage,
   RemoteLearningPage,
@@ -22,8 +22,9 @@ import {
   SignUpModal,
   InterruptingMessage,
   CookiesNotification,
-  CommunityPagePreviewControls,
+  CommunityPagePreviewControls
 } from './Misc';
+import { Ad } from './Ad'
 import Component from 'react-class';
 import BeitMidrash, {BeitMidrashClosed} from './BeitMidrash';
 import  { io }  from 'socket.io-client';
@@ -141,6 +142,7 @@ class ReaderApp extends Component {
       collectionTag:           state.collectionTag           || null,
       searchQuery:             state.searchQuery             || null,
       searchTab:               state.searchTab               || 'text',
+      showHighlight:           state.showHighlight           || null,
       topicsTab:               state.topicsTab               || 'sources',
       textSearchState:         state.textSearchState         || new SearchState({ type: 'text' }),
       sheetSearchState:        state.sheetSearchState        || new SearchState({ type: 'sheet' }),
@@ -181,11 +183,6 @@ class ReaderApp extends Component {
     }
     // Save all initial panels to recently viewed
     this.state.panels.map(this.saveLastPlace);
-
-    //hide Beit Midrash in an iframe (ie, if chavruta call is active)
-    if (window.location !== window.parent.location) {
-      this.setState({beitMidrashStatus: false})
-    }
 
     this.setBeitMidrashId()
   }
@@ -956,7 +953,9 @@ class ReaderApp extends Component {
     if (!href) {
       return;
     }
-    const replacePanel = !(el.classList.contains("refInSheet")) // ensure text refs on sheet open in new panel
+    //All links within sheet content should open in a new panel
+    const isSheet = !!(el.closest(".sheetItem"))
+    const replacePanel = !(isSheet)
     const handled = this.openURL(href,replacePanel);
     if (handled) {
       e.preventDefault();
@@ -971,9 +970,11 @@ class ReaderApp extends Component {
     } catch {
       return false;
     }
-    // Allow absolute URLs pointing to Sefaria. TODO generalize to any domain of current deploy.
+    // Open non-Sefaria urls in new tab/window
+    // TODO generalize to any domain of current deploy.
     if (url.hostname.indexOf("www.sefaria.org") === -1) {
-      return false;
+      window.open(url, '_blank')
+      return true;
     }
     const path = url.pathname;
     const params = url.searchParams;
@@ -1012,7 +1013,6 @@ class ReaderApp extends Component {
       this.showUserStats();
 
     } else if (path.match(/^\/sheets\/\d+/)) {
-      if (params.get("editor")) { return false; }
       openPanel("Sheet " + path.slice(8));
 
     } else if (path === "/topics") {
@@ -1035,8 +1035,8 @@ class ReaderApp extends Component {
 
     } else if (Sefaria.isRef(path.slice(1))) {
       const currVersions = {en: params.get("ven"), he: params.get("vhe")};
-      openPanel(Sefaria.humanRef(path.slice(1)), currVersions);
-
+      const options = {showHighlight: path.slice(1).indexOf("-") !== -1};   // showHighlight when ref is ranged
+      openPanel(Sefaria.humanRef(path.slice(1)), currVersions, options);
     } else {
       return false
     }
@@ -1749,6 +1749,28 @@ class ReaderApp extends Component {
     this.forceUpdate();
     this.setContainerMode();
   }
+
+  getUserContext() {
+    const refs = this.state.panels.map(panel => panel.currentlyVisibleRef || panel.bookRef || panel.navigationCategories).flat();
+    const books = refs.map(ref => Sefaria.parseRef(ref).book);
+    const triggers = refs.map(ref => Sefaria.refCategories(ref))
+          .concat(books)
+          .concat(refs)
+          .flat()
+          .filter(ref => !!ref);
+    const deDupedTriggers = [...new Set(triggers.map(JSON.stringify))].map(JSON.parse);
+    console.log(deDupedTriggers);
+    const context = {
+      isLoggedIn: Sefaria._uid,
+      interfaceLang: Sefaria.interfaceLang,
+      dt: Sefaria.util.epoch_time(new Date())*1000,
+      keywordTargets: refs ? deDupedTriggers : []
+    };
+    console.log(context);
+    return context
+  }
+
+
   render() {
     var panelStates = this.state.panels;
     var evenWidth;
@@ -1925,7 +1947,7 @@ class ReaderApp extends Component {
           messageHTML={Sefaria.interruptingMessage.html}
           style={Sefaria.interruptingMessage.style}
           repetition={Sefaria.interruptingMessage.repetition}
-          onClose={this.rerender} />) : null;
+          onClose={this.rerender} />) : <Ad rerender={this.rerender} adType="banner"/>;
     const sefariaModal = (
       <SignUpModal onClose={this.toggleSignUpModal} show={this.state.showSignUpModal} />
     );
@@ -1952,6 +1974,7 @@ class ReaderApp extends Component {
     var classes = classNames(classDict);
   
     return (
+      <AdContext.Provider value={this.getUserContext()}>
       <div id="readerAppWrap">
         {interruptingMessage}
         <div className={classes} onClick={this.handleInAppLinkClick}>
@@ -1963,6 +1986,7 @@ class ReaderApp extends Component {
           <CookiesNotification />
         </div>
       </div>
+      </AdContext.Provider>
     );
   }
 }

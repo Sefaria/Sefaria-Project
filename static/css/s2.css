@@ -1384,6 +1384,7 @@ div.interfaceLinks-row a {
 }
 .readerPanel.english .en {
   display: inline;
+  background-color: white;
 }
 .readerPanel.hebrew .he {
   display: inline;
@@ -2252,6 +2253,67 @@ a.navBlockTitle:hover {
 .navSidebarModule.wide h3 {
   border-bottom: none;
   margin-bottom: 0px;
+}
+.sidebarPromo {
+  color: var(--dark-grey);
+  padding-right: 44px;
+  padding-left: 44px;
+}
+.navSidebarModule .sidebarPromo {
+  margin-right: -44px;
+  margin-left: -44px;
+}
+.sidebarPromo h3 {
+  margin: 0 0 20px;
+  font-size: 22px;
+  text-transform: none;
+  letter-spacing: 0;
+  border-bottom: 1px solid var(--light-grey);
+  padding-bottom: 14px;
+  font-weight: 500;
+  height: auto;
+}
+.sidebarPromo.blue {
+  padding-top: 33px;
+  padding-bottom: 33px;
+  background-color: var(--sefaria-blue);
+  color: #FFF;
+}
+.sidebarPromo.blue h3 {
+  color: #fff
+}
+.sidebarPromo.blue a.button {
+  padding: 10px 14px;
+  width: fit-content;
+  text-align: center;
+  display: inline-block;
+  color: var(--sefaria-blue);
+  background-color: white;
+}
+.sidebarPromo a.button img {
+  height: 18px;
+  width: 18px;
+  filter: invert(1);
+  margin-inline-end: 10px;
+  vertical-align: middle;
+  margin-top: -2px;
+}
+
+.sidebarPromo.blue a.button img {
+  filter: invert(0);
+}
+.sidebarPromo a {
+  margin-inline-start: 0px;
+}
+.sidebarPromo.blue.button a:hover {
+  color: var(--sefaria-blue);
+}
+.sidebarPromo img {
+    height: 18px;
+    width: 18px;
+    margin-inline-end: 10px;
+    vertical-align: middle;
+    margin-top: -4px;
 }
 .readerPanel .communityPage h2 {
   text-transform: none;
@@ -4576,9 +4638,19 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .basetext .segment {
   margin-bottom: 26px;
 }
+.hebrew.segmented .segment > .he,
+.hebrew.segmented .segment > p > .he{
+  display: block;
+}
+.hebrew.continuous .segment > .he,
+.hebrew.continuous .segment > p > .he{
+  display: inline;
+}
 .bilingual .segment > .he,
+.bilingual .segment > p > .he{
+  display: block;
+}
 .bilingual .segment > .en,
-.bilingual .segment > p > .he,
 .bilingual .segment > p > .en {
   display: block;
 }
@@ -4995,7 +5067,27 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .segment img {
   max-width: 100%;
 }
-.connectionsPanelHeader{
+.segment i[data-overlay="Vilna Pages"] {
+  display: inline-block;
+}
+.segment i[data-overlay="Vilna Pages"]:after {
+    color: grey;
+	content: attr(data-value);
+    font-size: .4em;
+    font-style: normal;
+    font-family: var(--english-sans-serif-font-family);
+}
+.segment i[data-overlay="Venice Columns"] {
+  display: inline-block;
+}
+.segment i[data-overlay="Venice Columns"]:after {
+    color: grey;
+	content: attr(data-value);
+    font-size: .4em;
+    font-style: normal;
+    font-family: var(--english-sans-serif-font-family);
+}
+.connectionsPanelHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -11406,12 +11498,13 @@ span.ref-link-color-3 {color: blue}
   display: inline-block;
   position: relative;
   background-image: url("/static/img/unmute.svg");
-  background-position: center;
+  /* background-position: center; */
   background-repeat: no-repeat;
-  background-size: contain;
+  background-size: auto;
   opacity: 1;
   width: 20px;
-  height: 20px;
+  height: 22px;
+  background-position: 5px;
 }
 
 .beitMidrashContainer .muted #micIcon {
@@ -11425,9 +11518,9 @@ span.ref-link-color-3 {color: blue}
   display: flex;
   width: 80%;
   justify-content: space-between;
-  margin-top: -35px;
-  margin-inline-start: 25px;
-  padding-bottom: 35px;
+  margin-top: -50px;
+  margin-inline-start: 30px;
+  padding-bottom: 50px;
 }
 
 .beitMidrashContainer .endCallButton {
@@ -11512,6 +11605,7 @@ span.ref-link-color-3 {color: blue}
 .peopleInBeitMidrashInnerContainer {
     width:100%;
     overflow:visible;
+    position: relative;
 }
 
 .beitMidrashUser {
@@ -11521,7 +11615,8 @@ span.ref-link-color-3 {color: blue}
   font-weight: 400;
   display: flex;
   gap: 10px;
-  width: 270px;
+  /* width: 270px; */
+  padding-inline-end: 10px;
   padding-top: 10px;
   cursor: pointer;
 }
@@ -11547,10 +11642,20 @@ span.ref-link-color-3 {color: blue}
   background-color: black;
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
   border-radius: 6px;
-  right: 20px;
+  right: 0px;
 }
+.beitMidrashUser .userDetailsMenu[dir="rtl"] {
+  position: absolute;
+  background-color: black;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  border-radius: 6px;
+  left: 0px;
+  right: auto;
+}
+
 .beitMidrashUser .userDetailsMenu.hidden {
   right: -99999px;
+  left: auto;
 }
 .beitMidrashUser .largeFollowButton {
   all: revert;
@@ -11618,19 +11723,40 @@ span.ref-link-color-3 {color: blue}
   flex-grow: 1;
 }
 
+.beitMidrashUserNameStatus .fa-headphones {
+  margin-inline-start: 5px;
+}
+
 .beitMidrashOrg {
   font-weight: 200;
 }
 
 .noUsers {
-  margin-left: 35px;
+  margin-top: 10px;
+}
+.noUsers input {
+    background: #FBFBFA;
+    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+    border-radius: 6px;
+    border: none;
+    width: calc(100% - 22px);
+    padding: 15px 11px;
+    font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+    color: #666;
+    font-style: normal;
+    font-weight: normal;
+    font-size: 16px;
+    line-height: 19px;
+    margin-top: 10px;
+}
 }
 
 .chat {
   bottom: 0;
   right: 0;
   overflow: hidden;
-  height: 300px;
+  min-height: 300px;
+  max-height: 300px;
   display: flex;
   flex-direction: column;
   padding-top: 20px;
@@ -11762,7 +11888,6 @@ span.ref-link-color-3 {color: blue}
 .callContainer {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   height: 100%;
 }
 
@@ -11845,7 +11970,7 @@ span.ref-link-color-3 {color: blue}
 }
 
 #currentlyReadingContainer {
-  margin: 5px 20px;
+  margin: 5px 30px;
   flex-grow: 1;
 }
 

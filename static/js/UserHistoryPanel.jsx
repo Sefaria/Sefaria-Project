@@ -39,6 +39,7 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
   );
 
   const sidebarModules = [
+    {type: "Promo"},
     {type: "GetTheApp"},
     {type: "SupportSefaria"},
   ];
@@ -144,34 +145,37 @@ const UserHistoryList = ({store, scrollableRef, menuOpen, toggleSignUpModal}) =>
           </div>
         );
 
-        return item.is_sheet ?
-          <SheetBlock 
-            sheet={{
-              sheet_id:               item.sheet_id,
-              sheet_title:            item.title,
-              publisher_name:         item.ownerName,
-              publisher_id:           item.owner,
-              publisher_image:        item.ownerImageUrl,
-              publisher_url:          item.ownerProfileUrl,
+        if (item.is_sheet) {
+          return <SheetBlock sheet={{
+              sheet_id: item.sheet_id,
+              sheet_title: item.title,
+              publisher_name: item.ownerName,
+              publisher_id: item.owner,
+              publisher_image: item.ownerImageUrl,
+              publisher_url: item.ownerProfileUrl,
               publisher_organization: item.ownerOrganization,
-              publisher_followed:     Sefaria.following.includes(item.owner),
+              publisher_followed: Sefaria.following.includes(item.owner),
             }}
             afterSave={timeStamp}
             smallfonts={true}
-            key={key} />
-          :
+            key={key}
+          />
+        }else if (!!item?.text) {
           // item.versions
-          <TextPassage
-            text={{
-              ref: item.ref,
-              heRef: item.he_ref,
-              en: item.text.en,
-              he: item.text.he,
-              versions: item.versions,
-            }}
-            afterSave={timeStamp}
-            toggleSignUpModal={toggleSignUpModal}
-            key={key} />;
+          return <TextPassage text={{
+                ref: item.ref,
+                heRef: item.he_ref,
+                en: item.text.en,
+                he: item.text.he,
+                versions: item.versions,
+              }}
+             afterSave={timeStamp}
+             toggleSignUpModal={toggleSignUpModal}
+             key={key}
+          />;
+        }else{
+          return null;
+        }
       })}
     </div>
   );

@@ -151,6 +151,8 @@ class BookPage extends Component {
       catUrl  = "/texts/" + index.categories.slice(0, index.categories.indexOf("Commentary") + 1).join("/");
     } else if (category == "Targum") {
       catUrl  = "/texts/" + index.categories.slice(0, index.categories.indexOf("Targum") + 1).join("/");
+    } else if (category == "Talmud") {
+      catUrl  = "/texts/" + index.categories.slice(0, index.categories.indexOf("Talmud") + 2).join("/");
     } else {
       catUrl  = "/texts/" + category;
     }
@@ -179,6 +181,7 @@ class BookPage extends Component {
     const sidebarModules = !this.state.indexDetails ? [] :
       [
         this.props.multiPanel ? {type: "AboutText", props: {index: this.state.indexDetails}} : {type: null},
+        {type: "Promo"},
         {type: "RelatedTopics", props: { title: this.props.title}},
         !isDictionary ? {type: "DownloadVersions", props:{sref: this.props.title}} : {type: null},
       ];

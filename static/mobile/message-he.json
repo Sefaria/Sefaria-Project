@@ -1,11 +1,9 @@
 {
-	"title": "Sefaria Community,",
+	"title": "",
 	"text": [
-		"נשמח אם תהיו שותפים בעיצוב עתידה של ספריא!\n",
-		"אנא ענו על הסקר שלנו- כדי לסייע לנו להתקדם ולהשתפר.\n"
+		"בין אם השתתפתם בוובינר, השתמשתם בכלים של ספריא ללמידה מרחוק או נעזרתם במדפי הספרים הדיגיטליים שלנו – שנת 2021 הייתה שנה מלאה בלימוד. תרמו עוד היום כדי שנוכל למלא את שנת 2022 בכלים ובפיצ'רים שישדרגו את הלימוד שלכם!"
     ],
-	"buttonLink": "https://www.surveymonkey.com/r/ZFH7G8V?source=App",
-	"buttonText": "למענה על הסקר",
-	"name": "survey-2021-1",
+	"buttonLink": "https://sefaria.nationbuilder.com/il_mobile_ahb",
+	"buttonText": "תמכו בתורה לכולם",
+	"name": "17122021-donate-banner-1",
 	"schemaVersion": 1
-}

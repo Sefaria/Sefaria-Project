@@ -161,7 +161,8 @@ class UserHistory(abst.AbstractMongoRecord):
                         "en": TextChunk(ref, "en").as_sized_string(),
                         "he": TextChunk(ref, "he").as_sized_string()
                     }
-            except:
+            except Exception as e:
+                logger.warning("Failed to retrieve text for history Ref: {}".format(d['ref']))
                 return d
         return d
 

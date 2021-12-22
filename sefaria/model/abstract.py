@@ -159,9 +159,9 @@ class AbstractMongoRecord(object):
         """
         if not self.can_delete():
             if force:
-                logger.error("Forcing delete of {}.".format(str(self)))
+                logger.warning("Forcing delete of {}.".format(str(self)))
             else:
-                logger.error("Failed to delete {}.".format(str(self)))
+                logger.warning("Failed to delete {}.".format(str(self)))
                 return
 
         if self.is_new():

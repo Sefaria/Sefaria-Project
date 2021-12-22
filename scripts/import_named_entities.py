@@ -338,10 +338,10 @@ def get_raw_mentions():
     all_mentions = []
     with open(f"{DATASETS_NAMED_ENTITY_LOC}/ner_output_talmud.json", "r") as fin:
         all_mentions += json.load(fin)
-    # with open(f"{DATASETS_NAMED_ENTITY_LOC}/ner_output_mishnah.json", "r") as fin:
-    #     all_mentions += json.load(fin)
-    # with open("data/ner_output_talmud.json", "r") as fin:
-    #     all_mentions += json.load(fin)
+    with open(f"{DATASETS_NAMED_ENTITY_LOC}/ner_output_mishnah.json", "r") as fin:
+        all_mentions += json.load(fin)
+    with open(f"{DATASETS_NAMED_ENTITY_LOC}/ner_output_bavli.json", "r") as fin:
+        all_mentions += json.load(fin)
     # with open("data/ner_output_tanakh.json", "r") as fin:
     #     all_mentions += json.load(fin)
     return all_mentions
@@ -350,14 +350,15 @@ if __name__ == "__main__":
     # import_bonayich_into_topics()
     # import_rabi_rav_rabbis_into_topics()
     add_ambiguous_topics()
-    add_mentions(library.get_indexes_in_category('Bavli'))  # this should be the only relevant command to run going forward
+    add_mentions()  # this should be the only relevant command to run going forward
     # add_new_alt_titles()
     # merge_duplicate_rabbis()
     # delete_bonayich_rabbis_from_topics()
 """
 kubectl cp commands
 POD=devpod-noah-846cdffc8b-8l5wl
-kubectl cp /home/nss/sefaria/datasets/ner/sefaria/ner_output_talmud.json $POD:/app/data
+kubectl cp /home/nss/sefaria/datasets/ner/sefaria/ner_output_bavli.json $POD:/app/data
+kubectl cp /home/nss/sefaria/datasets/ner/sefaria/ner_output_yerushalmi.json $POD:/app/data
 kubectl cp /home/nss/sefaria/datasets/ner/sefaria/ner_output_mishnah.json $POD:/app/data
 kubectl cp /home/nss/sefaria/project/scripts/import_named_entities.py $POD:/app/scripts
 

@@ -27,6 +27,7 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
     const [usersWithUnreadMsgs, setUsersWithUnreadMsgs] = useState([])
     const [shouldUpdateChats, setShouldUpdateChats] = useState(false)
     const [userToBlock, setUserToBlock] = useState(null);
+    const [currentActiveChatRoom, setCurrentActiveChatRoom] = useState(null);
 
     const filterDedupeAndSortPeople = (people) => {
         const dedupedPeople = people.filter((person, index,self) => {
@@ -230,6 +231,15 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
 
     }, [activeChatRooms, blockedUsers, currentChatRoom])
 
+    useEffect(() => {
+        const myChatRoom = activeChatRooms.filter(room => room.roomId = currentChatRoom);
+        const chatRoom =  myChatRoom.length >= 1 ? myChatRoom[0] : null;
+        if (!currentActiveChatRoom || !chatRoom || (currentActiveChatRoom.roomId !== chatRoom.roomId)) {
+            setCurrentActiveChatRoom(chatRoom);
+        }
+    }, [currentChatRoom, activeChatRooms, currentActiveChatRoom])
+
+
     const pairsLearning = (people) => {
         //create an array of roomIds
         const rooms = people.map(user => user.roomId);
@@ -248,21 +258,26 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
         setUsersWithUnreadMsgs(usersWithUnreadMsgs.filter(users => users !== uid));
     }
 
-    const startChat = (activeChatPartner) => {
-        Sefaria.track.event("BeitMidrash", "Opened Chat With User", "Had Notifications", usersWithUnreadMsgs.includes(activeChatPartner.uid));
-        // setUsersWithUnreadMsgs(usersWithUnreadMsgs.filter(users => users !== activeChatPartner.uid));
-        markRead(activeChatPartner.uid)
-        setActiveChavruta(activeChatPartner);
-        let roomId = activeChatPartner.uid < Sefaria._uid ? `${activeChatPartner.uid}-${Sefaria._uid}`: `${Sefaria._uid}-${activeChatPartner.uid}`
+    const startChat = (activeChatPartner, e=null) => {
+        if(e && e.target.name === 'toggleUserDetails') {
+            e.preventDefault();
+            e.stopPropagation();
+        } else {
+            Sefaria.track.event("BeitMidrash", "Opened Chat With User", "Had Notifications", usersWithUnreadMsgs.includes(activeChatPartner.uid));
+            // setUsersWithUnreadMsgs(usersWithUnreadMsgs.filter(users => users !== activeChatPartner.uid));
+            markRead(activeChatPartner.uid)
+            setActiveChavruta(activeChatPartner);
+            let roomId = activeChatPartner.uid < Sefaria._uid ? `${activeChatPartner.uid}-${Sefaria._uid}` : `${Sefaria._uid}-${activeChatPartner.uid}`
 
-        const me = {uid: Sefaria._uid, name: Sefaria.full_name, pic: Sefaria.profile_pic_url, slug: profile.slug}
-        const room = {roomId, activeChatPartner: activeChatPartner, me: me};
+            const me = { uid: Sefaria._uid, name: Sefaria.full_name, pic: Sefaria.profile_pic_url, slug: profile.slug }
+            const room = { roomId, activeChatPartner: activeChatPartner, me: me };
 
-        const currentActiveChatRoomIds = activeChatRooms.map(room => {return room.roomId})
-        if (!currentActiveChatRoomIds.includes(roomId)) {
-            setActiveChatRooms([room]);
+            const currentActiveChatRoomIds = activeChatRooms.map(room => { return room.roomId })
+            if (!currentActiveChatRoomIds.includes(roomId)) {
+                setActiveChatRooms([room]);
+            }
+            setCurrentChatRoom(roomId)
         }
-        setCurrentChatRoom(roomId)
     }
 
     const handleCloseChat = (roomObj) => {
@@ -312,6 +327,7 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
                 setPartnerLeftNotification={setPartnerLeftNotification}
                 onBlockUser={onBlockUser}
                 onUnblockUser={onUnblockUser}
+                currentActiveChatRoom={currentActiveChatRoom}
             /> :
                 currentScreen == "callingChavruta" ?
             <>
@@ -334,28 +350,26 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
                     activeChavruta={activeChavruta}
                     setCurrentScreen={setCurrentScreen}
                 />
-                 {activeChatRooms.map(room => {
-                    if (room.roomId === currentChatRoom) {
-                        return <ChatBox
-                            key={room.roomId}
-                            room={room}
-                            handleCloseChat={handleCloseChat}
-                            chavrutaCallInitiated={chavrutaCallInitiated}
-                            chavrutaRequestReceived={chavrutaRequestReceived}
-                            activeChavruta={activeChavruta}
-                            socket={socketObj}
-                            shouldUpdateChats={shouldUpdateChats}
-                            setShouldUpdateChats={setShouldUpdateChats}
-                            markRead={markRead}
-                            profile={profile}
-                            partnerLeftNotification={partnerLeftNotification}
-                            setPartnerLeftNotification={setPartnerLeftNotification}
-                            onBlockUser={onBlockUser}
-                            onUnblockUser={onUnblockUser}
-                            hideHideButton={true}
-                        />
-                    }
-                })}
+                {currentActiveChatRoom ? 
+                <ChatBox
+                        hideHideButton={true}
+                        key={currentActiveChatRoom.roomId}
+                        room={currentActiveChatRoom}
+                        handleCloseChat={handleCloseChat}
+                        chavrutaCallInitiated={chavrutaCallInitiated}
+                        chavrutaRequestReceived={chavrutaRequestReceived}
+                        activeChavruta={activeChavruta}
+                        socket={socketObj}
+                        shouldUpdateChats={shouldUpdateChats}
+                        setShouldUpdateChats={setShouldUpdateChats}
+                        markRead={markRead}
+                        profile={profile}
+                        partnerLeftNotification={partnerLeftNotification}
+                        setPartnerLeftNotification={setPartnerLeftNotification}
+                        onBlockUser={onBlockUser}
+                        onUnblockUser={onUnblockUser}
+                    /> :
+                    null}
                 <BeitMidrashFooter />
             </>
 
@@ -369,11 +383,13 @@ const UserInBeitMidrash = ({user, userClasses, startChat, onBlockUser}) => {
   const userDetailsMenu = useRef();
 
   useEffect(()=>{
-    userDetailsMenu.current.focus();
+      if (userDetailsOpen == true) {
+        userDetailsMenu.current.focus();
+      }
   }, [userDetailsOpen])
 
   return (
-    <div className={classNames(userClasses)} key={user.uid} onClick={() => startChat(user)}>
+    <div className={classNames(userClasses)} key={user.uid} onClick={e => startChat(user, e)}>
         <ProfilePic len={42} url={user.pic} name={user.name} id="beitMidrashProfilePic"/>
         <div className="beitMidrashUserText">
             <div className="beitMidrashUserHeader">
@@ -381,14 +397,14 @@ const UserInBeitMidrash = ({user, userClasses, startChat, onBlockUser}) => {
             {user.name}
             {user.inChavruta ? <i className="fa fa-headphones" title={`${user.name} is current in a chavruta`}></i> : null}
             </div>
-            <img src="/static/icons/ellipses.svg" className="userDetailsToggle" aria-label="toggle user details" onClick={()=>{setUserDetailsOpen(true)}}/>
+            <img src="/static/icons/ellipses.svg" className="userDetailsToggle" aria-label="toggle user details" name="toggleUserDetails" onClick={()=>{setUserDetailsOpen(true)}}/>
             </div>
             <div
               tabIndex={0}
               onBlur={()=>{setUserDetailsOpen(false)}}
               className={userDetailsOpen ? "userDetailsMenu" : "userDetailsMenu hidden"}
               ref={userDetailsMenu}
-            >
+              dir={Sefaria.interfaceLang === "hebrew" ? "rtl" : "ltr"}>
               <ul>
                 <li onClick={() => {window.open(`/profile/${user.slug}`)}}>
                     <img src="/static/icons/profile.svg" aria-hidden="true"/><InterfaceText>View Profile</InterfaceText></li>
@@ -426,11 +442,10 @@ const BeitMidrashFooter = () => {
     )
 }
 
-const BeitMidrashHome = ({beitMidrashId,
+const BeitMidrashHome = ({
                         peopleInBeitMidrash,
-                        activeChatRooms,
-                        currentChatRoom,
                         startChat,
+                        beitMidrashId,
                         handleCloseChat,
                         chavrutaCallInitiated,
                         chavrutaRequestReceived,
@@ -444,8 +459,9 @@ const BeitMidrashHome = ({beitMidrashId,
                         usersWithUnreadMsgs,
                         shouldUpdateChats,
                         setShouldUpdateChats,
-                        markRead
-                        }) => {
+                        markRead,
+                        currentActiveChatRoom
+                        }) => {             
 
     return (<div className="beitMidrashHomeContainer">
             {/*<div id="newCall"><a href="/chavruta"><img src="/static/img/camera_with_plus.svg" id="newCallImg" /><span>New Call</span></a></div>*/}
@@ -470,13 +486,40 @@ const BeitMidrashHome = ({beitMidrashId,
                         } else {
                             return null
                         }
-                    }) : <div className="noUsers"><InterfaceText>No users online.</InterfaceText></div>}
+                    }) : <div className="noUsers">
+                            <InterfaceText>Share this link with your chavruta to start a video call with this text</InterfaceText>
+                            <input
+                                id="chavrutaURL"
+                                type="text"
+                                value={`${window.location.host}/beit-midrash/${beitMidrashId}?ref=${window.location.pathname.replace(/\//, '')}`}
+                                onFocus={(e) => event.target.select()}
+                            />
+                         </div>}
                 </div>
             </div>
             {/* <div>
             {peopleInBeitMidrash ? pairsLearning(peopleInBeitMidrash).map((pair, i)  => <li key={i}>{pair.map(user => user.name).join(", ")}</li>) : null}
             </div> */}
-            {activeChatRooms.map(room => {
+            {currentActiveChatRoom ? 
+                <ChatBox
+                        key={currentActiveChatRoom.roomId}
+                        room={currentActiveChatRoom}
+                        handleCloseChat={handleCloseChat}
+                        chavrutaCallInitiated={chavrutaCallInitiated}
+                        chavrutaRequestReceived={chavrutaRequestReceived}
+                        activeChavruta={activeChavruta}
+                        socket={socket}
+                        shouldUpdateChats={shouldUpdateChats}
+                        setShouldUpdateChats={setShouldUpdateChats}
+                        markRead={markRead}
+                        profile={profile}
+                        partnerLeftNotification={partnerLeftNotification}
+                        setPartnerLeftNotification={setPartnerLeftNotification}
+                        onBlockUser={onBlockUser}
+                        onUnblockUser={onUnblockUser}
+                    /> :
+                    null}
+            {/* {activeChatRooms.map(room => {
                 if (room.roomId === currentChatRoom) {
                     return <ChatBox
                         key={room.roomId}
@@ -495,8 +538,8 @@ const BeitMidrashHome = ({beitMidrashId,
                         onBlockUser={onBlockUser}
                         onUnblockUser={onUnblockUser}
                     />
-                }
-            })}
+                } */}
+            
         <BeitMidrashFooter />
     </div>)
 }

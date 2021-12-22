@@ -22,6 +22,7 @@ const CommunityPage = ({multiPanel, toggleSignUpModal, initialWidth}) => {
   const sidebarModules = [
     {type: "JoinTheConversation"},
     {type: dataLoaded ? "WhoToFollow" : null, props: {toggleSignUpModal}},
+    {type: "Promo"},
     {type: "ExploreCollections"},
     {type: "SupportSefaria", props: {blue: true}},
     {type: "StayConnected"},

@@ -52,7 +52,7 @@ if len(unhandled) > 0:
 for l in rows:
     needs_save = False
     try:
-        i = library.get_index(l[0])
+        i = library.get_index(l[0].strip())
     except Exception as e:
         print("Count not load {}. {}".format(l[0], e))
         continue
