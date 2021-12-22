@@ -2778,10 +2778,15 @@ a.navBlockTitle:hover {
 .bookPage .moderatorSectionExpand:hover {
   text-decoration: underline;
 }
-.bookPage .moderatorSection .button {
+.interface-english .bookPage .moderatorSection .button {
   padding: 12px 16px;
   font-size: 16px;
   margin: 0 0 0 10px;
+}
+.interface-hebrew .bookPage .moderatorSection .button {
+  padding: 12px 16px;
+  font-size: 16px;
+  margin: 0 10px 0 0;
 }
 .bookPage .moderatorSection .moderatorSectionMessage {
   margin-top: 20px;
