@@ -49,6 +49,10 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
         com["inline_reference"]  = getattr(link, "inline_reference", None)
     if getattr(link, "highlightedWords", None):
         com["highlightedWords"] = getattr(link, "highlightedWords", None)
+    if getattr(link, "showOnIndex", None):
+        com["showOnIndex"] = getattr(link, "showOnIndex", None)
+    if getattr(link, "versionTitle", None):
+        com["versionTitle"] = getattr(link, "versionTitle", None)
 
     compDate = getattr(linkRef.index, "compDate", None)
     if compDate:
@@ -176,7 +180,7 @@ def get_links(tref, with_text=True, with_sheet_links=False, version_links=False)
     # for storing all the section level texts that need to be looked up
     texts = {}
 
-    linkset = LinkSet(query_or_ref={"refs": nRef, "showOnIndex": oref.index.title, "versionTitle": {"$exists": True}}) if version_links else LinkSet(oref)
+    linkset = LinkSet(query_or_ref={"refs": {"$regex": "^"+nRef}, "showOnIndex": oref.index.title, "versionTitle": {"$exists": True}}) if version_links else LinkSet(oref)
     # For all links that mention ref (in any position)
     for link in linkset:
         # each link contains 2 refs in a list
