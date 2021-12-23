@@ -813,6 +813,15 @@ ArrayMapNode.propTypes = {
 class DictionaryNode extends Component {
   render() {
     if (this.props.schema.headwordMap) {
+      const header = this.props.schema.title ? (
+          <div className="specialNavSectionHeader">
+            <ContentText text={{en:this.props.schema.title , he:this.props.schema.heTitle }}/>
+          </div>
+      ) : (
+          <div className="specialNavSectionHeader">
+            <ContentText text={{en: "Browse By Letter", he: 'לפי סדר הא"ב'}}/>
+          </div>
+      );
       let sectionLinks = this.props.schema.headwordMap.map(function(m,i) {
       let letter = m[0];
       let ref = m[1];
@@ -825,9 +834,7 @@ class DictionaryNode extends Component {
       return (
           <div className="schema-node-toc">
             <div className="schema-node-contents">
-              <div className="specialNavSectionHeader">
-                <ContentText text={{en: "Browse By Letter", he: 'לפי סדר הא"ב'}}/>
-              </div>
+              {header}
               <div className="tocLevel">{sectionLinks}</div>
             </div>
           </div>

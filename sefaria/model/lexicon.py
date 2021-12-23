@@ -141,8 +141,14 @@ class DictionaryEntry(LexiconEntry):
         return text
 
     def headword_string(self):
-        return ', '.join(
-            ['<strong dir="rtl">{}</strong>'.format(hw) for hw in [self.headword] + getattr(self, 'alt_headwords', [])])
+        headwords = [self.headword] + getattr(self, 'alt_headwords', [])
+        if self.contents()['parent_lexicon_details']['version_lang'] == 'he':
+            headwords = [f'<big>{hw}</big>' for hw in headwords]
+        string = ', '.join(
+            ['<strong dir="rtl">{}</strong>'.format(hw) for hw in headwords])
+        if self.contents()['parent_lexicon_details']['version_lang'] == 'he':
+            string += '\xa0\xa0'
+        return string
 
     def word_count(self):
         return JaggedTextArray(self.as_strings()).word_count()
@@ -249,8 +255,8 @@ class LexiconEntrySubClassMapping(object):
         'Jastrow Dictionary': JastrowDictionaryEntry,
         "Jastrow Unabbreviated" : JastrowDictionaryEntry,
         'Klein Dictionary': KleinDictionaryEntry,
-        'Sefer HaShorashim': KleinDictionaryEntry,
-        'Sefer HaShorashim, Animadversions by Elias Levita': KleinDictionaryEntry
+        'Sefer HaShorashim': StrongsDictionaryEntry,
+        'Sefer HaShorashim, Animadversions by Elias Levita': StrongsDictionaryEntry
     }
 
     @classmethod
