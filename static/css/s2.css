@@ -7630,7 +7630,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
-.collectionListingDetails, .scheduleListingDetails img {
+.scheduleListingDetails img {
   height: 18px;
   width: 18px;
   margin-inline-end: 10px;
