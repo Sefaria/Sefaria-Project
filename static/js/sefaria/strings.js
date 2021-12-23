@@ -175,6 +175,10 @@ const Strings = {
     "Views": "צפיות",
     "Saves": "שמירות",
 
+    // Schedules
+    "Schedules": "לוח זמנים",
+    "Create a New Learning Schedule": "יצירת לו״ז לימוד חדש",
+
     //publish flow:
     "Not Published" : "לא פורסם",
     "Publish Settings": "הגדרות פרסום",
