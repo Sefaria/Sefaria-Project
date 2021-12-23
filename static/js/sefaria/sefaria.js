@@ -972,6 +972,7 @@ Sefaria = extend(Sefaria, {
     return this._cachedApiPromise({url, key, store: this._lexiconLookups});
   },
   _links: {},
+  _versionLinks: {},
   getLinks: function(ref) {
     // When there is an error in the returned data, this calls `reject` rather than returning empty.
     return new Promise((resolve, reject) => {
@@ -1001,6 +1002,13 @@ Sefaria = extend(Sefaria, {
     this._cacheIndexFromLinks(data);
     return l;
   },
+  _saveVersionLinkData: function(ref, data) {
+    ref = Sefaria.humanRef(ref);
+    const l = this._saveVersionLinksByRef(data);
+    this._versionLinks[ref] = data;
+    this._cacheIndexFromLinks(data);
+    return l;
+  },
   _cacheIndexFromLinks: function(links) {
     // Cache partial index information (title, Hebrew title, categories) found in link data.
     for (let i=0; i < links.length; i++) {
@@ -1017,6 +1025,9 @@ Sefaria = extend(Sefaria, {
   },
   _saveLinksByRef: function(data) {
     return this._saveItemsByRef(data, this._links);
+  },
+  _saveVersionLinksByRef: function(data) {
+    return this._saveItemsByRef(data, this._versionLinks);
   },
   _saveItemsByRef: function(data, store) {
     // For a set of items from the API, save each set split by the specific ref the items points to.
@@ -1590,6 +1601,7 @@ _media: {},
       // Save link, note, and sheet data, and retain the split data from each of these saves
       var split_data = {
           links: this._saveLinkData(ref, data.links),
+          versionLinks: this._saveVersionLinkData(ref, data.versionLinks),
           notes: this._saveNoteData(ref, data.notes),
           sheets: this.sheets._saveSheetsByRefData(ref, data.sheets),
           webpages: this._saveItemsByRef(data.webpages, this._webpages),
@@ -1599,7 +1611,7 @@ _media: {},
       };
 
        // Build split related data from individual split data arrays
-      ["links", "notes", "sheets", "webpages", "media"].forEach(obj_type => {
+      ["links", "versionLinks", "notes", "sheets", "webpages", "media"].forEach(obj_type => {
         for (var ref in split_data[obj_type]) {
           if (split_data[obj_type].hasOwnProperty(ref)) {
             if (!(ref in this._related)) {
