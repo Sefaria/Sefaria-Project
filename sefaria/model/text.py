@@ -1263,6 +1263,8 @@ class AbstractTextRecord(object):
                 self.sanitize_text(getattr(self, self.text_attr, None))
         )
 
+    def has_manually_wrapped_refs(self):
+        return True
 
 class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaContent):
     """
@@ -2598,7 +2600,7 @@ class Ref(object, metaclass=RefCacheType):
             pass
 
     def __reinit_tref(self, new_tref):
-        logger.warning("__reinit_tref from {} to {}".format(self.tref, new_tref))
+        logger.debug("__reinit_tref from {} to {}".format(self.tref, new_tref))
         self.tref = new_tref
         self.__clean_tref()
         self._lang = "en"
@@ -3195,7 +3197,10 @@ class Ref(object, metaclass=RefCacheType):
         max_depth = self.index_node.depth - len(self.sections)  # calculate the number of "paddings" required to get down to segment level
 
         if len(d['sections']) == 0:
-            d['sections'] = self.first_available_section_ref().all_subrefs()[0].sections
+            segment_refs = self.all_segment_refs()
+            if segment_refs == []:
+                return self
+            d["sections"] = segment_refs[0].sections
         else:
             d['sections'] += [1] * max_depth
 

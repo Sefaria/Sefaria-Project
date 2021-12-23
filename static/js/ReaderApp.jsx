@@ -9,7 +9,7 @@ import $ from './sefaria/sefariaJquery';
 import EditCollectionPage from './EditCollectionPage';
 import Footer from './Footer';
 import SearchState from './sefaria/searchState';
-import {ContentLanguageContext} from './context';
+import {ContentLanguageContext, AdContext} from './context';
 import {
   ContestLandingPage,
   RemoteLearningPage,
@@ -22,8 +22,9 @@ import {
   SignUpModal,
   InterruptingMessage,
   CookiesNotification,
-  CommunityPagePreviewControls,
+  CommunityPagePreviewControls
 } from './Misc';
+import { Ad } from './Ad'
 import Component from 'react-class';
 import BeitMidrash, {BeitMidrashClosed} from './BeitMidrash';
 import  { io }  from 'socket.io-client';
@@ -141,6 +142,7 @@ class ReaderApp extends Component {
       collectionTag:           state.collectionTag           || null,
       searchQuery:             state.searchQuery             || null,
       searchTab:               state.searchTab               || 'text',
+      showHighlight:           state.showHighlight           || null,
       topicsTab:               state.topicsTab               || 'sources',
       textSearchState:         state.textSearchState         || new SearchState({ type: 'text' }),
       sheetSearchState:        state.sheetSearchState        || new SearchState({ type: 'sheet' }),
@@ -181,11 +183,6 @@ class ReaderApp extends Component {
     }
     // Save all initial panels to recently viewed
     this.state.panels.map(this.saveLastPlace);
-
-    //hide Beit Midrash in an iframe (ie, if chavruta call is active)
-    if (window.location !== window.parent.location) {
-      this.setState({beitMidrashStatus: false})
-    }
 
     this.setBeitMidrashId()
   }
@@ -427,7 +424,7 @@ class ReaderApp extends Component {
 
     // List of modes that the ConnectionsPanel may have which can be represented in a URL. 
     const sidebarModes = new Set(["Sheets", "Notes", "Translations", "Translation Open",
-      "About", "AboutSheet", "Navigation", "WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts"]);
+      "About", "AboutSheet", "Navigation", "WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon"]);
 
     for (var i = 0; i < states.length; i++) {
       // Walk through each panel, create a history object as though for this panel alone
@@ -595,6 +592,11 @@ class ReaderApp extends Component {
         if (state.connectionsMode === "Translation Open" && state.versionFilter.length) {
           hist.versionFilter = state.versionFilter[0];
         }
+        if (state.connectionsMode === "Lexicon") {
+          if (state.selectedWords.length) { hist.selectedWords = state.selectedWords; }
+          if (state.selectedNamedEntity) { hist.selectedNamedEntity = state.selectedNamedEntity; }
+          if (state.selectedNamedEntityText) { hist.selectedNamedEntityText = state.selectedNamedEntityText; }
+        }
         hist.title    = Sefaria._r(ref)  + Sefaria._(" with ") + Sefaria._(hist.sources === "all" ? "Connections" : hist.sources);
         hist.url      = Sefaria.normRef(ref); // + "?with=" + sources;
         hist.mode     = "Connections";
@@ -698,6 +700,15 @@ class ReaderApp extends Component {
           if(histories[1].versionFilter) {
             hist.url += "&vside=" + Sefaria.util.encodeVtitle(histories[1].versionFilter);
           }
+          if (histories[1].selectedWords) {
+            hist.url += "&lookup=" + encodeURIComponent(histories[1].selectedWords);
+          }
+          if (histories[1].selectedNamedEntity) {
+            hist.url += "&namedEntity=" + histories[1].selectedNamedEntity;
+          }
+          if (histories[1].selectedNamedEntityText) {
+            hist.url += "&namedEntityText=" + encodeURIComponent(histories[1].selectedNamedEntityText);
+          }
           hist.url += "&with=" + histories[1].sources;
 
           hist.title = sheetAndCommentary ? histories[0].title : histories[1].title;
@@ -714,6 +725,15 @@ class ReaderApp extends Component {
           }
           if(histories[i].versionFilter) {
             hist.url += "&vside" + (i) + "=" + Sefaria.util.encodeVtitle(histories[i].versionFilter);
+          }
+          if (histories[i].selectedWords) {
+            hist.url += `&lookup${i}=${encodeURIComponent(histories[i].selectedWords)}`;
+          }
+          if (histories[i].selectedNamedEntity) {
+            hist.url += `&namedEntity${i}=${histories[i].selectedNamedEntity}`;
+          }
+          if (histories[i].selectedNamedEntityText) {
+            hist.url += `&namedEntityText${i}=${encodeURIComponent(histories[i].selectedNamedEntityText)}`;
           }
           hist.url   += "&w" + i + "=" + histories[i].sources; //.replace("with=", "with" + i + "=").replace("?", "&");
           hist.title += Sefaria._(" & ") + histories[i].title; // TODO this doesn't trim title properly
@@ -956,7 +976,9 @@ class ReaderApp extends Component {
     if (!href) {
       return;
     }
-    const replacePanel = !(el.classList.contains("refInSheet")) // ensure text refs on sheet open in new panel
+    //All links within sheet content should open in a new panel
+    const isSheet = !!(el.closest(".sheetItem"))
+    const replacePanel = !(isSheet)
     const handled = this.openURL(href,replacePanel);
     if (handled) {
       e.preventDefault();
@@ -971,9 +993,11 @@ class ReaderApp extends Component {
     } catch {
       return false;
     }
-    // Allow absolute URLs pointing to Sefaria. TODO generalize to any domain of current deploy.
+    // Open non-Sefaria urls in new tab/window
+    // TODO generalize to any domain of current deploy.
     if (url.hostname.indexOf("www.sefaria.org") === -1) {
-      return false;
+      window.open(url, '_blank')
+      return true;
     }
     const path = url.pathname;
     const params = url.searchParams;
@@ -1012,7 +1036,6 @@ class ReaderApp extends Component {
       this.showUserStats();
 
     } else if (path.match(/^\/sheets\/\d+/)) {
-      if (params.get("editor")) { return false; }
       openPanel("Sheet " + path.slice(8));
 
     } else if (path === "/topics") {
@@ -1035,8 +1058,8 @@ class ReaderApp extends Component {
 
     } else if (Sefaria.isRef(path.slice(1))) {
       const currVersions = {en: params.get("ven"), he: params.get("vhe")};
-      openPanel(Sefaria.humanRef(path.slice(1)), currVersions);
-
+      const options = {showHighlight: path.slice(1).indexOf("-") !== -1};   // showHighlight when ref is ranged
+      openPanel(Sefaria.humanRef(path.slice(1)), currVersions, options);
     } else {
       return false
     }
@@ -1750,86 +1773,23 @@ class ReaderApp extends Component {
     this.setContainerMode();
   }
 
-  //TODO: Get ads out of code.
-
-
-  placeInAppAd() {
-    const context = this.getUserContext()
-
-    const ads = [
-      {
-        messageName: "beitMidrash-Torah-dec-1-1",
-        messageHTML: "<p>" +
-            "<a href='/beit-midrash/chanukah?ref=Sheet.355999&utm_source=sefaria&utm_medium=banner&utm_campaign=beitmidrashtest'>" +
-            "Learning the Weekly Torah Portion? Join us in our new Beit Midrash." +
-            "</a></p>",
-        style: "banner",
-        repetition: 1,
-        trigger: {
-          isLoggedIn: true,
-          interfaceLang: "english",
-          dt_start: Date.parse("1 Dec 2021 12:00:00 UTC"),
-          dt_end: Date.parse("1 Dec 2021 13:00:00 UTC"),
-          keywordTargets: ["Genesis"],
-        }
-      },
-      {
-        messageName: "beitMidrash-dafyomi-dec-1-1",
-        messageHTML: "<p>" +
-            "<a href='/beit-midrash/chanukah?ref=Sheet.355999&utm_source=sefaria&utm_medium=banner&utm_campaign=beitmidrashtest'>" +
-            "Learning Daf Yomi? Join us in our new Beit Midrash." +
-            "</a></p>",
-        style: "banner",
-        repetition: 1,
-        trigger: {
-          isLoggedIn: true,
-          interfaceLang: "english",
-          dt_start: Date.parse("2 Dec 2020 02:00:00 UTC"),
-          dt_end: Date.parse("2 Dec 2021 03:00:00 UTC"),
-          keywordTargets: ["Taanit"],
-        }
-      }
-
-    ];
-    
-    const currentAd = ads.filter(ad => {
-
-         return (
-             ad.trigger.isLoggedIn == !!context.isLoggedIn &&
-             ad.trigger.interfaceLang == context.interfaceLang &&
-             (Sefaria._inBrowser && !document.cookie.includes(`${ad.messageName}_${ad.repetition}`)) &&
-             context.dt > ad.trigger.dt_start && context.dt < ad.trigger.dt_end &&
-             context.keywordTargets.some(kw => ad.trigger.keywordTargets.includes(kw))
-         )
-        }
-    );
-
-        return (currentAd.length > 0 ? <InterruptingMessage
-          messageName={currentAd[0].messageName}
-          messageHTML={currentAd[0].messageHTML}
-          style={currentAd[0].style}
-          repetition={currentAd[0].repetition}
-          onClose={this.rerender}
-          /> : null)
-
-  }
-
   getUserContext() {
-    const refs = this.state.panels.map(panel => panel.currentlyVisibleRef || panel.bookRef)
-    const books = refs.map(ref => Sefaria.parseRef(ref).book)
+    const refs = this.state.panels.map(panel => panel.currentlyVisibleRef || panel.bookRef || panel.navigationCategories).flat();
+    const books = refs.map(ref => Sefaria.parseRef(ref).book);
     const triggers = refs.map(ref => Sefaria.refCategories(ref))
           .concat(books)
           .concat(refs)
           .flat()
-    const deDupedTriggers = [...new Set(triggers.map(JSON.stringify))].map(JSON.parse)
-    console.log(deDupedTriggers)
-
+          .filter(ref => !!ref);
+    const deDupedTriggers = [...new Set(triggers.map(JSON.stringify))].map(JSON.parse);
+    console.log(deDupedTriggers);
     const context = {
       isLoggedIn: Sefaria._uid,
       interfaceLang: Sefaria.interfaceLang,
       dt: Sefaria.util.epoch_time(new Date())*1000,
       keywordTargets: refs ? deDupedTriggers : []
-    }
+    };
+    console.log(context);
     return context
   }
 
@@ -2010,7 +1970,7 @@ class ReaderApp extends Component {
           messageHTML={Sefaria.interruptingMessage.html}
           style={Sefaria.interruptingMessage.style}
           repetition={Sefaria.interruptingMessage.repetition}
-          onClose={this.rerender} />) : this.placeInAppAd();
+          onClose={this.rerender} />) : <Ad rerender={this.rerender} adType="banner"/>;
     const sefariaModal = (
       <SignUpModal onClose={this.toggleSignUpModal} show={this.state.showSignUpModal} />
     );
@@ -2037,6 +1997,7 @@ class ReaderApp extends Component {
     var classes = classNames(classDict);
   
     return (
+      <AdContext.Provider value={this.getUserContext()}>
       <div id="readerAppWrap">
         {interruptingMessage}
         <div className={classes} onClick={this.handleInAppLinkClick}>
@@ -2048,6 +2009,7 @@ class ReaderApp extends Component {
           <CookiesNotification />
         </div>
       </div>
+      </AdContext.Provider>
     );
   }
 }

@@ -1,12 +1,10 @@
 {
-	"title": "Sefaria Community,",
+	"title": "",
 	"text": [
-		"Please join thousands of users today – from all around the world – who will be empowered to act with generosity this #GivingTuesday to support free Torah on Sefaria.",
-		"Join the movement by making a donation today to help us reach our one-day goal of raising $18,000 for the library.",
-		"When you do, you’ll empower Sefaria to continue its vital work of keeping the library running and bug free, and acquiring and digitizing new texts and translations."
+	"Sefaria is a 501(c)(3) non-profit organization. If you haven't yet, make your tax-deductible donation before the end of the year so that we can add new texts to the library and make Torah more accessible in 2022."
     ],
-	"buttonLink": "https://sefaria.nationbuilder.com/givingtuesday",
-	"buttonText": "Give Today",
-	"name": "giving-tuesday-2021-modal-1",
+	"buttonLink": "https://sefaria.nationbuilder.com/supportsefaria_aeb",
+	"buttonText": "Donate Now",
+	"name": "22122021-donate-banner-1",
 	"schemaVersion": 1
 }

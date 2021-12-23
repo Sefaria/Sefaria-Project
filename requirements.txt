@@ -43,7 +43,7 @@ pathos==0.2.6
 pillow==8.0.1
 psycopg2==2.8.6
 py2-py3-django-email-as-username==1.7.1
-pymongo>=3.7
+pymongo==3.12.*
 pytest==6.1.1
 pytz
 pyyaml==5.3.1

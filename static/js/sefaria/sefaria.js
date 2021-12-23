@@ -2042,6 +2042,7 @@ _media: {},
         });
   },
   _tableOfContentsDedications: {},
+  _inAppAds: null,
   _stories: {
     stories: [],
     page: 0
@@ -2679,8 +2680,10 @@ Sefaria.palette = palette;
 
 Sefaria.palette.indexColor = function(title) {
       return title && Sefaria.index(title) ?
-      Sefaria.palette.categoryColor(Sefaria.index(title).categories[0]):
-      Sefaria.palette.categoryColor("Other");
+          Sefaria.index(title)['primary_category'] ?
+              Sefaria.palette.categoryColor(Sefaria.index(title)['primary_category']):
+                Sefaria.palette.categoryColor(Sefaria.index(title).categories[0]):
+          Sefaria.palette.categoryColor("Other");
 };
 Sefaria.palette.refColor = ref => Sefaria.palette.indexColor(Sefaria.parseRef(ref).index);
 

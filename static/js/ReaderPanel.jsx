@@ -45,10 +45,10 @@ import {
 class ReaderPanel extends Component {
   constructor(props) {
     super(props);
+
     let state = this.clonePanel(props.initialState);
     state["initialAnalyticsTracked"] = false;
     state.width = this.props.multiPanel ? 1000 : 500; // Assume we're in a small panel not using multipanel 
-
     this.state = state;
     this.sheetRef = React.createRef();
     this.readerContentRef = React.createRef();
@@ -608,6 +608,7 @@ class ReaderPanel extends Component {
 
     if (this.state.mode === "Text" || this.state.mode === "TextAndConnections") {
       const oref  = Sefaria.parseRef(this.state.refs[0]);
+      const showHighlight = this.state.showHighlight || (this.state.highlightedRefs.length > 1);
       const index = oref && oref.index ? Sefaria.index(oref.index) : null;
       const [textColumnBookTitle, heTextColumnBookTitle] = index ? [index.title, index.heTitle] : [null, null];
       items.push(
@@ -616,7 +617,7 @@ class ReaderPanel extends Component {
           srefs={this.state.refs.slice()}
           currVersions={this.state.currVersions}
           highlightedRefs={this.state.highlightedRefs}
-          showHighlight={this.state.showHighlight}
+          showHighlight={showHighlight}
           basetext={true}
           bookTitle={textColumnBookTitle}
           heBookTitle={heTextColumnBookTitle}
@@ -655,6 +656,7 @@ class ReaderPanel extends Component {
           panelPosition ={this.props.panelPosition}
           id={this.state.sheetID}
           key={"sheet-"+this.state.sheetID}
+          multiPanel={this.props.multiPanel}
           highlightedNode={this.state.highlightedNode}
           highlightedRefsInSheet={this.state.highlightedRefsInSheet}
           scrollToHighlighted={this.state.scrollToHighlighted}
