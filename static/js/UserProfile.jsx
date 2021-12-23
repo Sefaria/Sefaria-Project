@@ -12,6 +12,7 @@ import {
   SheetListing,
   ProfileListing,
   ProfilePic,
+  ScheduleListing,
   MessageModal,
   FollowButton,
   InterfaceText,
@@ -34,12 +35,13 @@ class UserProfile extends Component {
     const tabs = [
       { id: "sheets", text: "Sheets", icon: "/static/icons/sheet.svg" },
       { id: "collections", text: "Collections", icon: "/static/icons/collection.svg" },
+      { id: "schedules", text: "Schedules", icon: "/static/icons/calendar.svg"},
       { id: "followers", text: "Followers", invisible: true },
       { id: "following", text: "Following", invisible: true },
       { id: "torah-tracker", text: "Torah Tracker", invisible: Sefaria._uid !== props.profile.id, icon: "/static/icons/chart-icon.svg", href: "/torahtracker", applink: true, justifyright: true}
     ];
     if (showNotes) {
-      tabs.splice(2, 0, { id: "notes", text: Sefaria._("Notes"), icon: "/static/icons/note.svg" });
+      tabs.splice(3, 0, { id: "notes", text: Sefaria._("Notes"), icon: "/static/icons/note.svg" });
     }
     if (showBio) {
       tabs.push({ id: "about", text: Sefaria._("About"), icon: "/static/icons/info.svg" });
@@ -116,6 +118,68 @@ class UserProfile extends Component {
         <a href="/collections/new" className="resourcesLink sans-serif">
           <img src="/static/icons/collection.svg" alt="Collection icon" />
             <InterfaceText>Create a New Collection</InterfaceText>
+        </a>
+      </div>
+    );
+  }
+  getSchedules() {
+    return Sefaria.getUserSchedules(this.props.profile.id);
+  }
+  getSchedulesFromCache() {
+    return Sefaria.getUserSchedulesFromCache(this.props.profile.id);
+  }
+  filterSchedules(currFilter, collection) {
+    const n = text => text.toLowerCase();
+    currFilter = n(currFilter);
+    return n(collection.name).indexOf(currFilter) > -1;
+  }
+  sortSchedules(currSortOption, collectionA, collectionB) {
+    switch(currSortOption) {
+      case "Recent":
+        return collectionB.lastModified > collectionA.lastModified ? 1 : -1;
+        break;
+      case "Name":
+        return collectionB.name > collectionA.name ? -1 : 1;
+        break;
+    }
+  }
+  handleSchedules() {
+    // Rerender Collections tab when data changes in cache.
+    this.setState({ refreshCollectionsData: Math.random(), refreshSheetData: Math.random() });
+  }
+  renderEmptySchedulesList() {
+    if (Sefaria._uid !== this.props.profile.id) {
+     return (
+        <div className="emptyList">
+          <div className="emptyListText">
+            <InterfaceText>{this.props.profile.full_name}</InterfaceText>
+            <InterfaceText> hasn't shared any collections yet.</InterfaceText>
+          </div>
+        </div>);
+    }
+    return (
+      <div className="emptyList">
+        <div className="emptyListText">
+          <InterfaceText>You can use collections to organize your sheets or public sheets you like. Collections can be shared privately or made public on Sefaria.</InterfaceText>
+        </div>
+        <a href="/schedule/new" className="resourcesLink sans-serif">
+          <img src="/static/icons/calendar.svg" alt="Schedule icon" />
+            <InterfaceText>Create a New Learning Schedule</InterfaceText>
+        </a>
+      </div>);
+  }
+  renderSchedules(collection) {
+    return (
+      <ScheduleListing key={collection.slug} data={collection} />
+    );
+  }
+  renderSchedulesHeader() {
+    if (Sefaria._uid !== this.props.profile.id) { return null; }
+    return (
+      <div className="sheet-header">
+        <a href="/schedule/new" className="resourcesLink sans-serif">
+          <img src="/static/icons/calendar.svg" alt="Schedule icon" />
+            <InterfaceText>Create a New Learning Schedule</InterfaceText>
         </a>
       </div>
     );
@@ -400,6 +464,19 @@ class UserProfile extends Component {
                     getData={this.getCollections}
                     data={this.getCollectionsFromCache()}
                     refreshData={this.state.refreshCollectionsData}
+                  />
+                   <FilterableList
+                    key="schedule"
+                    pageSize={1e6}
+                    filterFunc={this.filterSchedules}
+                    sortFunc={this.sortSchedules}
+                    renderItem={this.renderSchedules}
+                    renderEmptyList={this.renderEmptySchedulesList}
+                    renderHeader={this.renderSchedulesHeader}
+                    sortOptions={["Recent", "Name"]}
+                    getData={this.getSchedules}
+                    data={this.getSchedulesFromCache()}
+                    // refreshData={this.state.refreshSchedules}
                   />
                   {
                     this.state.showNotes ? (

@@ -7283,15 +7283,17 @@ a .button:hover {
 .readerPanel .collectionsList .heCollections .gridBox {
   direction: rtl;
 }
-.collectionListing {
+.collectionListing, .scheduleListing {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
 }
-.profile-page .collectionListing {
+.profile-page .collectionListing,
+.profile-page .scheduleListing {
   padding: 20px 0;
 }
-.collectionListing .left-content {
+.collectionListing .left-content,
+.scheduleListing .left-content {
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -7622,9 +7624,18 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 .collectionListingName:hover {
   color: #333;
 }
-.collectionListingDetails {
+.collectionListingDetails, .scheduleListingDetails {
   color: #999;
-  font-size: 14px;
+  font-size: var(--sans-serif-body-font-size);
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
+.collectionListingDetails, .scheduleListingDetails img {
+  height: 18px;
+  width: 18px;
+  margin-inline-end: 10px;
+  vertical-align: middle;
+  margin-top: -4px;
 }
 .collectionListingMembership {
   text-transform: capitalize;
@@ -10099,9 +10110,20 @@ cursor: pointer;
   position: relative;
   top: -2px;
 }
-.profile-page .collectionListingName {
+.profile-page .scheduleListingImage {
+  width: 18px;
+  height: 18px;
+  vertical-align: middle;
+  margin: 0;
+  margin-inline-end: 10px;
+  position: relative;
+  top: -2px;
+}
+.profile-page .collectionListingName,
+.profile-page .scheduleListingName {
   font-size: 18px;
   margin-bottom: 10px;
+  display: block;
 }
 .profile-page .collectionListing + .collectionListing {
   border-top: 0;

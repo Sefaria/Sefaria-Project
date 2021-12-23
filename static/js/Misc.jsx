@@ -1575,6 +1575,36 @@ const CollectionListing = ({data}) => {
   );
 }
 
+const ScheduleListing = ({data}) => {
+  const imageUrl = "/static/icons/calendar.svg";
+  const collectionUrl = "/schedule/" + data.slug;
+  return (
+    <div className="scheduleListing">
+      <div className="left-content">
+        <div className="scheduleListingText">
+
+          <a href={collectionUrl} className="scheduleListingName">
+            <img className="scheduleListingImage" src={imageUrl} alt="Collection Icon"/>
+            <InterfaceText>
+            {data.name}
+            </InterfaceText>
+          </a>
+
+          <div className="scheduleListingDetails">
+            <span className="scheduleListingDetail scheduleListingSheetCount">
+              <a href={`/${data.ref.url}`}>
+              <img src="/static/icons/book.svg" alt="book icon" />
+              <InterfaceText text={data.ref.displayValue} />
+              </a>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
 
 class Note extends Component {
   // Public or private note in the Sidebar.
@@ -2637,6 +2667,7 @@ export {
   SearchButton,
   SaveButton,
   SignUpModal,
+  ScheduleListing,
   SheetListing,
   SheetAccessIcon,
   SheetTopicLink,
