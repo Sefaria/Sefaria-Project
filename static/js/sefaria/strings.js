@@ -176,7 +176,7 @@ const Strings = {
     "Saves": "שמירות",
 
     // Schedules
-    "Schedules": "לוח זמנים",
+    "Schedules": "לוחות זמנים",
     "Create a New Learning Schedule": "יצירת לו״ז לימוד חדש",
 
     //publish flow:
