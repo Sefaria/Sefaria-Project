@@ -207,6 +207,10 @@ class RashiDictionaryEntry(DictionaryEntry):
     required_attrs = DictionaryEntry.required_attrs + ["content", "orig_word", "orig_ref", "catane_number"]
 
 
+class RidDictionaryEntry(DictionaryEntry):
+    required_attrs = DictionaryEntry.required_attrs + ["rid"]
+
+
 class JastrowDictionaryEntry(DictionaryEntry):
     required_attrs = DictionaryEntry.required_attrs + ["rid"]
     
@@ -255,8 +259,8 @@ class LexiconEntrySubClassMapping(object):
         'Jastrow Dictionary': JastrowDictionaryEntry,
         "Jastrow Unabbreviated" : JastrowDictionaryEntry,
         'Klein Dictionary': KleinDictionaryEntry,
-        'Sefer HaShorashim': KleinDictionaryEntry,
-        'Sefer HaShorashim, Animadversions by Elias Levita': KleinDictionaryEntry
+        'Sefer HaShorashim': RidDictionaryEntry,
+        'Sefer HaShorashim, Animadversions by Elias Levita': RidDictionaryEntry
     }
 
     @classmethod
