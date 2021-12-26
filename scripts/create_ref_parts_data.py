@@ -5,12 +5,15 @@ django.setup()
 from tqdm import tqdm
 from sefaria.model import *
 from sefaria.system.database import db
+from collections import defaultdict
+from sefaria.utils.hebrew import is_hebrew
 from sefaria.model.abstract import AbstractMongoRecord
 from sefaria.model.schema import DiburHamatchilNode, DiburHamatchilNodeSet
 
 class RefPartModifier:
 
     def __init__(self):
+        self.mt_map = self.create_mt_terms()
         self.create_base_non_unique_terms()
         self.shas_map = self.create_shas_terms()
         self.tanakh_map, self.parsha_map = self.create_tanakh_terms()
@@ -451,8 +454,6 @@ class RefPartModifier:
         """
         create generic shas terms that can be reused for mishnah, tosefta, bavli and yerushalmi
         """
-        from collections import defaultdict
-        from sefaria.utils.hebrew import is_hebrew
         hard_coded_title_map = {
             "Avodah Zarah": ["Avodah zarah", "ˋAvodah zarah"],
             "Beitzah": ["Yom Tov", "Besah", "Beẓah", "Bezah"],
@@ -592,10 +593,33 @@ class RefPartModifier:
                     parsha_term_map[parsha_term.get_primary_title('en')] = parsha_term
         return tanakh_term_map, parsha_term_map
 
+    def create_mt_terms(self):
+        hard_coded_title_map = {
+
+        }
+        title_map = defaultdict(set)
+        repls = ['Mishneh Torah,', 'Rambam,', 'רמב"ם,', 'משנה תורה,', 'רמב"ם', 'משנה תורה', 'רמב״ם,', 'רמב״ם']
+        repl_reg = fr'^({"|".join(re.escape(r) for r in repls)}) '
+
+        indexes = library.get_indexes_in_category("Mishneh Torah", full_records=True)
+        for index in indexes:
+            title_map[(index.title.replace('Mishneh Torah, ', ''), index.get_title('he').replace('משנה תורה, ', ''))] |= {
+                re.sub(r'<[^>]+>', '', re.sub(repl_reg, '', tit['text'])) for tit in index.nodes.title_group.titles}
+
+        title_term_map = {}
+        for (generic_title_en, generic_title_he), alt_titles in sorted(title_map.items(), key=lambda x: x[0]):
+            alt_he = [tit for tit in alt_titles if is_hebrew(tit) and tit != generic_title_he]
+            alt_en = [tit for tit in alt_titles if not is_hebrew(tit) and tit != generic_title_en]
+            alt_en += hard_coded_title_map.get(generic_title_en, [])
+            term = self.t(en=generic_title_en, he=generic_title_he, alt_en=alt_en, alt_he=alt_he,
+                          ref_part_role='structural')
+            title_term_map[generic_title_en] = term
+        return title_term_map
+
     def modify_all(self):
         fast = True
         create_dhs = False
-        add_comm_alt_structs = True
+        add_comm_alt_structs = False
         self.modify_talmud(fast)
         self.modify_tanakh(fast)
         self.modify_rest_of_shas(fast)
@@ -603,14 +627,7 @@ class RefPartModifier:
         self.modify_midrash_rabbah(fast)
         self.modify_sifra(fast)
 
-def reset_yerushalmi():
-    for title in library.get_indexes_in_category('Yerushalmi'):
-        oref = Ref(title)
-        library.refresh_index_record_in_cache(oref.index)
-        library.reset_text_titles_cache()
-        vs = VersionState(index=oref.index)
-        vs.refresh()
-        library.update_index_in_toc(oref.index)
+
 if __name__ == "__main__":
     modifier = RefPartModifier()
     modifier.modify_all()

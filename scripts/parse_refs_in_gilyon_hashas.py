@@ -6,14 +6,12 @@ from spacy import Language
 from sefaria.model import *
 from sefaria.model.ref_part import ResolvedRawRef
 from tqdm import tqdm
-from sefaria.spacy_function_registry import custom_tokenizer_factory  # used by spacy.load()
 
-def model(project_name: str) -> Language:
-    return spacy.load(f'/home/nss/sefaria/data/research/prodigy/output/{project_name}/model-last')
 
 def parse_book(title: str, resolver: RefResolver) -> Iterable:
     input_text = []
     input_context_refs = []
+
     def collect_input(s: str, en_tref: str, he_tref: str, v: Version) -> None:
         nonlocal input_text, input_context_refs
         input_text += [s]
@@ -24,9 +22,10 @@ def parse_book(title: str, resolver: RefResolver) -> Iterable:
     resolved = resolver.bulk_resolve_refs('he', input_context_refs, input_text, with_failures=True, verbose=True)
     return zip(input_context_refs, resolved)
 
+
 def save_resolved_refs(resolved):
     total, num_resolved = 0, 0
-    with open('/home/nss/sefaria/project/data/gilyon_refs_resolved.csv', 'w') as fout:
+    with open('../data/gilyon_refs_resolved.csv', 'w') as fout:
         c = csv.DictWriter(fout, ['Input Ref', 'Found Citation', 'Found Ref'])
         c.writeheader()
         for input_ref, resolved_for_seg in resolved:
@@ -41,6 +40,7 @@ def save_resolved_refs(resolved):
                     row['Found Ref'] = resolved_raw_ref.ref.normal()
                 c.writerow(row)
     print(f"Percent Resolved: {num_resolved}/{total} ({round(num_resolved/total*100, 2)}%)")
+
 
 if __name__ == '__main__':
     resolver = library.get_ref_resolver()

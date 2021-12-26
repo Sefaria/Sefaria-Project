@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import List, Union, Dict, Optional, Tuple, Generator
+from typing import List, Union, Dict, Optional, Tuple, Generator, Iterable
 from enum import Enum
 from functools import reduce
 from itertools import product
