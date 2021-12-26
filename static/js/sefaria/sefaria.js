@@ -972,7 +972,6 @@ Sefaria = extend(Sefaria, {
     return this._cachedApiPromise({url, key, store: this._lexiconLookups});
   },
   _links: {},
-  _versionLinks: {},
   getLinks: function(ref) {
     // When there is an error in the returned data, this calls `reject` rather than returning empty.
     return new Promise((resolve, reject) => {
@@ -1002,13 +1001,6 @@ Sefaria = extend(Sefaria, {
     this._cacheIndexFromLinks(data);
     return l;
   },
-  _saveVersionLinkData: function(ref, data) {
-    ref = Sefaria.humanRef(ref);
-    const l = this._saveVersionLinksByRef(data);
-    this._versionLinks[ref] = data;
-    this._cacheIndexFromLinks(data);
-    return l;
-  },
   _cacheIndexFromLinks: function(links) {
     // Cache partial index information (title, Hebrew title, categories) found in link data.
     for (let i=0; i < links.length; i++) {
@@ -1025,9 +1017,6 @@ Sefaria = extend(Sefaria, {
   },
   _saveLinksByRef: function(data) {
     return this._saveItemsByRef(data, this._links);
-  },
-  _saveVersionLinksByRef: function(data) {
-    return this._saveItemsByRef(data, this._versionLinks);
   },
   _saveItemsByRef: function(data, store) {
     // For a set of items from the API, save each set split by the specific ref the items points to.

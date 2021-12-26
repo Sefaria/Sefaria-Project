@@ -49,10 +49,8 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
         com["inline_reference"]  = getattr(link, "inline_reference", None)
     if getattr(link, "highlightedWords", None):
         com["highlightedWords"] = getattr(link, "highlightedWords", None)
-    if getattr(link, "showOnIndex", None):
-        com["showOnIndex"] = getattr(link, "showOnIndex", None)
-    if getattr(link, "versionTitle", None):
-        com["versionTitle"] = getattr(link, "versionTitle", None)
+    if getattr(link, "versionTitles", None):
+        com["versionTitles"] = getattr(link, "versionTitles", None)
 
     compDate = getattr(linkRef.index, "compDate", None)
     if compDate:
@@ -163,13 +161,11 @@ def get_notes(oref, public=True, uid=None, context=1):
     return notes
 
 
-def get_links(tref, with_text=True, with_sheet_links=False, version_links=False):
+def get_links(tref, with_text=True, with_sheet_links=False):
     """
     Return a list of links tied to 'ref' in client format.
     If `with_text`, retrieve texts for each link.
     If `with_sheet_links` include sheet results for sheets in collections which are listed in the TOC.
-    If `version_links`, only include links with attribute `versionTitle`.
-    Otherwise, only include links without attribute `versionTitle`
     """
     links = []
     oref = Ref(tref)
@@ -180,7 +176,7 @@ def get_links(tref, with_text=True, with_sheet_links=False, version_links=False)
     # for storing all the section level texts that need to be looked up
     texts = {}
 
-    linkset = LinkSet(query_or_ref={"refs": {"$regex": "^"+nRef}, "showOnIndex": oref.index.title, "versionTitle": {"$exists": True}}) if version_links else LinkSet(oref)
+    linkset = LinkSet(oref)
     # For all links that mention ref (in any position)
     for link in linkset:
         # each link contains 2 refs in a list
