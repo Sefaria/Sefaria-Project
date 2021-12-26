@@ -1601,7 +1601,6 @@ _media: {},
       // Save link, note, and sheet data, and retain the split data from each of these saves
       var split_data = {
           links: this._saveLinkData(ref, data.links),
-          versionLinks: this._saveVersionLinkData(ref, data.versionLinks),
           notes: this._saveNoteData(ref, data.notes),
           sheets: this.sheets._saveSheetsByRefData(ref, data.sheets),
           webpages: this._saveItemsByRef(data.webpages, this._webpages),
@@ -1611,7 +1610,7 @@ _media: {},
       };
 
        // Build split related data from individual split data arrays
-      ["links", "versionLinks", "notes", "sheets", "webpages", "media"].forEach(obj_type => {
+      ["links", "notes", "sheets", "webpages", "media"].forEach(obj_type => {
         for (var ref in split_data[obj_type]) {
           if (split_data[obj_type].hasOwnProperty(ref)) {
             if (!(ref in this._related)) {
@@ -1621,6 +1620,7 @@ _media: {},
           }
         }
       }, this);
+
 
       // Save the original data after the split data - lest a split version overwrite it.
       this._related[ref] = originalData;
