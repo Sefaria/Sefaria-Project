@@ -1384,7 +1384,6 @@ div.interfaceLinks-row a {
 }
 .readerPanel.english .en {
   display: inline;
-  background-color: white;
 }
 .readerPanel.hebrew .he {
   display: inline;
@@ -4735,6 +4734,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .readerPanel .sheetItem.enOnly > .en,
 .readerPanel .sheetItem.enOnly > p > .en {
   display: block;
+}
+.readerPanel.english .SheetSource .sheetItem.segment .en {
+  background-color: white;
 }
 .heLeft.bilingual .segment > .en,
 .heRight.bilingual .segment > .he ,
