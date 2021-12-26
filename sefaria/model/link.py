@@ -5,7 +5,7 @@ Writes to MongoDB Collection: links
 
 import regex as re
 from bson.objectid import ObjectId
-from sefaria.model.text import AbstractTextRecord
+from sefaria.model.text import AbstractTextRecord, VersionSet
 from sefaria.system.exceptions import DuplicateRecordError, InputError, BookNameError
 from sefaria.system.database import db
 from . import abstract as abst
@@ -58,6 +58,11 @@ class Link(abst.AbstractMongoRecord):
 
     def _validate(self):
         assert super(Link, self)._validate()
+
+        if self.type == "essay" and hasattr(self, "versionTitles"):    # when type is 'essay', versionTitles should correspond to indices referred to in self.refs
+            for ref, versionTitle in zip(self.refs, self.versionTitles):
+                index_title = text.Ref(ref).index.title
+                assert VersionSet({"title": index_title, "versionTitle": versionTitle}).count() > 0, f"No version found for book {index_title} and versionTitle {versionTitle}"
 
         if False in self.refs:
             return False
