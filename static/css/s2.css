@@ -5427,6 +5427,26 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   justify-content: space-between;
   align-items: center;
 }
+.essayGroup a:hover {
+  text-decoration: none;
+}
+.essayGroup .filterText {
+  margin-inline-start: 15px;
+  margin-inline-end: auto;
+}
+.essayGroup .filterInner:before{
+  width: 18px;
+  height: 16px;
+  content: '';
+  -webkit-mask: url("/static/img/connection-book.svg") no-repeat;
+  mask: url("/static/img/connection-book.svg") no-repeat;
+  -webkit-mask-size: cover;
+  mask-size: cover;
+  line-height: 25px;
+  /**transform: scale(0.95);*/
+  display: inline-block;
+  background-color: #3B5849;
+}
 .categoryFilterGroup.withBooks {
   /*border-bottom: 1px solid #E5E5E5;*/
   border-top: 4px solid;

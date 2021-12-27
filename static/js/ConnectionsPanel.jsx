@@ -1011,16 +1011,16 @@ class ConnectionsSummary extends Component {
       let essayLinksBySourceRef = Sefaria.essayLinksBySourceRef(refs);
       Object.values(essayLinksBySourceRef).forEach(function(link, i) {
         const essayTextFilter = <TextFilter
-                          srefs={this.props.srefs}
-                          key={i}
-                          book={link.index_title}
-                          heBook={link.heTitle}
-                          hasEnglish={link.sourceHasEn}
-                          category={link.category}
-                          updateRecent={true}
-                          setFilter={this.props.setFilter}
-                          hideCounts={true}
-                          on={false} />;
+                                    srefs={this.props.srefs}
+                                    key={i}
+                                    book={link.index_title}
+                                    heBook={link.heTitle}
+                                    hasEnglish={link.sourceHasEn}
+                                    category={link.category}
+                                    updateRecent={true}
+                                    setFilter={this.props.setFilter}
+                                    hideCounts={true}
+                                    on={false} />;
         essaySummary.push(essayTextFilter);
       }.bind(this));
     }
@@ -1064,7 +1064,7 @@ class ConnectionsSummary extends Component {
 
     return (
       <div>
-        {isTopLevel ? essaySummary : null}
+        {isTopLevel ? <div className={"essayGroup"}>{essaySummary}</div> : null}
         {connectionsSummary}
         {summaryToggle}
       </div>
