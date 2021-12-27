@@ -93,16 +93,9 @@ class RefPartModifier:
         n = index.nodes
 
         base_index_term = self.shas_map[base_index.title]
-        n.ref_parts = [
+        n.match_templates = [
             {
-                "slugs": [comm_term.slug],
-                "optional": False,
-                "scopes": ["combined"]
-            },
-            {
-                "slugs": [base_index_term.slug],
-                "optional": False,
-                "scopes": ["combined"]
+                "term_slugs": [comm_term.slug, base_index_term.slug],
             }
         ]
         n.isSegmentLevelDiburHamatchil = True
@@ -112,7 +105,6 @@ class RefPartModifier:
             self.fast_index_save(index)
         else:
             index.save()
-
 
     def add_dibur_hamatchils(self, comm_ref_prefix, index):
         base_index = library.get_index(index.base_text_titles[0])
@@ -137,27 +129,37 @@ class RefPartModifier:
                 "ref": segment_ref.normal()
             }).save()
 
-
     def add_alt_structs_to_talmud_commentaries(self, comm_ref_prefix, comm_term_slug, index):
         base_index = library.get_index(index.base_text_titles[0])
         base_alt_struct = base_index.get_alt_structures()['Chapters']
+        base_templates = []
         for perek_node in base_alt_struct.children:
             perek_node.wholeRef = comm_ref_prefix + perek_node.wholeRef
             perek_node.isSegmentLevelDiburHamatchil = True
-            perek_node.ref_parts = [
-                {
-                    "slugs": [comm_term_slug],
-                    "optional": False,
-                    "scopes": ["alone"]
-                }
-            ] + perek_node.ref_parts
+            base_templates += [perek_node.match_templates[:]]
+            alone_templates = []
+            combined_templates = []
+            for template in perek_node.match_templates:
+                temp_template = template.copy()
+                temp_template['term_slugs'] = [comm_term_slug] + template['term_slugs']
+                temp_template['scope'] = 'alone'
+                alone_templates += [temp_template]
+            for template in perek_node.match_templates:
+                # remove 'any' scope which doesn't apply to commentary perakim
+                temp_template = template.copy()
+                try:
+                    del temp_template['scope']
+                except KeyError:
+                    pass
+                combined_templates += [temp_template]
+            perek_node.match_templates = alone_templates + combined_templates
         base_alt_struct.validate()
         index.set_alt_structure("Chapters", base_alt_struct)
         index.save()
-        for perek_node in base_alt_struct.children:
+        for iperek, perek_node in enumerate(base_alt_struct.children):
             perek_node.wholeRef = perek_node.wholeRef[len(comm_ref_prefix):]
             delattr(perek_node, 'isSegmentLevelDiburHamatchil')
-            perek_node.ref_parts = perek_node.ref_parts[1:]
+            perek_node.match_templates = base_templates[iperek]
 
     def modify_talmud(self, fast=False):
         perek = NonUniqueTerm.init('perek')
@@ -168,16 +170,12 @@ class RefPartModifier:
             if index.title in minor_tractates: continue
             index_term = self.shas_map[index.title]
             index_term.save()
-            index.nodes.ref_parts = [
+            index.nodes.match_templates = [
                 {
-                    "slugs": [bavli.slug],
-                    "optional": True,
-                    "scopes": ["combined"]
+                    "term_slugs": [bavli.slug, index_term.slug],
                 },
                 {
-                    "slugs": [index_term.slug],
-                    "optional": False,
-                    "scopes": ["combined"]
+                    "term_slugs": [index_term.slug],
                 }
             ]
             # add perek terms
@@ -185,18 +183,31 @@ class RefPartModifier:
             for iperek, perek_node in enumerate(perakim):
                 perek_term = self.t(he=perek_node.get_primary_title('he'), ref_part_role='structural')  # TODO english titles are 'Chapter N'. Is that an issue?
                 is_last = iperek == len(perakim)-1
-                perek_node.ref_parts = [
+                perek_node.match_templates = [
                     {
-                        "slugs": [perek.slug],
-                        "optional": True,
-                        "scopes": ["any"]
+                        "term_slugs": [perek.slug, perek_term.slug],
+                        "scope": "any"
                     },
                     {
-                        "slugs": [perek_term.slug, self.perek_number_map[min(iperek+1, 30)].slug] + ([self.perek_number_map['last'].slug] if is_last else []),  # TODO get rid of min()
-                        "optional": False,
-                        "scopes": ["any", "combined"] + (["combined"] if is_last else [])
-                    }
+                        "term_slugs": [perek.slug, self.perek_number_map[min(iperek+1, 30)].slug]
+                    },
+                    {
+                        "term_slugs": [perek_term.slug],
+                        "scope": "any"
+                    },
+                    {
+                        "term_slugs": [self.perek_number_map[min(iperek + 1, 30)].slug]
+                    },
                 ]
+                if is_last:
+                    perek_node.match_templates += [
+                        {
+                            "term_slugs": [perek.slug, self.perek_number_map['last'].slug]
+                        },
+                        {
+                            "term_slugs": [self.perek_number_map['last'].slug]
+                        }
+                    ]
             try:
                 delattr(index.nodes, 'checkFirst')
             except KeyError:
@@ -212,16 +223,12 @@ class RefPartModifier:
         indexes = library.get_indexes_in_category("Tanakh", full_records=True)
         for index in tqdm(indexes, desc='tanakh', total=indexes.count()):
             index_term = self.tanakh_map[index.title]
-            index.nodes.ref_parts = [
+            index.nodes.match_templates = [
                 {
-                    "slugs": [sefer.slug],
-                    "optional": True,
-                    "scopes": ["combined"]
+                    "term_slugs": [sefer.slug, index_term.slug],
                 },
                 {
-                    "slugs": [index_term.slug],
-                    "optional": False,
-                    "scopes": ["combined"]
+                    "term_slugs": [index_term.slug],
                 }
             ]
 
@@ -229,16 +236,14 @@ class RefPartModifier:
             if index.categories[-1] == 'Torah':
                 for parsha_node in index.get_alt_struct_nodes():
                     parsha_term = self.parsha_map[parsha_node.get_primary_title('en')]
-                    parsha_node.ref_parts = [
+                    parsha_node.match_templates = [
                         {
-                            "slugs": [parasha.slug],
-                            "optional": True,
-                            "scopes": ["any"]
+                            "term_slugs": [parasha.slug, parsha_term.slug],
+                            "scope": "any"
                         },
                         {
-                            "slugs": [parsha_term.slug],
-                            "optional": False,
-                            "scopes": ["any"]
+                            "term_slugs": [parsha_term.slug],
+                            "scope": "any"
                         }
                     ]
             if fast:
@@ -269,16 +274,12 @@ class RefPartModifier:
                         "halakha": [base_term.slug, generic_term.slug]
                     }
                     index.nodes.referenceableSections = [True, True, False]
-                index.nodes.ref_parts = [
+                index.nodes.match_templates = [
                     {
-                        "slugs": [base_term.slug],
-                        "optional": True,
-                        "scopes": ["combined"]
+                        "term_slugs": [base_term.slug, generic_term.slug],
                     },
                     {
-                        "slugs": [generic_term.slug],
-                        "optional": False,
-                        "scopes": ["combined"]
+                        "term_slugs": [generic_term.slug],
                     }
                 ]
                 if fast:
@@ -299,20 +300,17 @@ class RefPartModifier:
             "Shir HaShirim": "Song of Songs",
         }
         rabbah_term = NonUniqueTerm.init('rabbah')
+        mid_rab_term = NonUniqueTerm.init('midrash-rabbah')
         for index in tqdm(indexes, desc='midrash rabbah', total=indexes.count()):
             tanakh_title = index.title.replace(" Rabbah", "")
             tanakh_title = tanakh_title_map.get(tanakh_title, tanakh_title)
             tanakh_term = self.tanakh_map.get(tanakh_title)
-            index.nodes.ref_parts = [
+            index.nodes.match_templates = [
                 {
-                    "slugs": [tanakh_term.slug],
-                    "optional": False,
-                    "scopes": ["combined"],
+                    "term_slugs": [tanakh_term.slug, rabbah_term.slug],
                 },
                 {
-                    "slugs": [rabbah_term.slug],
-                    "optional": False,
-                    "scopes": ["combined"],
+                    "term_slugs": [mid_rab_term.slug, tanakh_term.slug],
                 },
             ]
             if fast:
@@ -337,12 +335,10 @@ class RefPartModifier:
             "Mechilta d'Miluim": [],
         }
         index = library.get_index('Sifra')
-        index.nodes.ref_parts = [
+        index.nodes.match_templates = [
             {
-                "slugs": ['sifra'],
-                "optional": False,
-                "scopes": ["combined"],
-            },
+                "term_slugs": ['sifra']
+            }
         ]
         for node in index.nodes.children:
             node_title = node.get_primary_title('en')
@@ -352,20 +348,16 @@ class RefPartModifier:
             if parsha_term is None:
                 alt_titles = other_node_map[node_title]
                 node_term = self.t(en=node_title, he=node_title_he, alt_en=alt_titles, ref_part_role='structural')
-                node.ref_parts = [
+                node.match_templates = [
                     {
-                        "slugs": [node_term.slug],
-                        "optional": False,
-                        "scopes": ["combined"],
-                    },
+                        "term_slugs": [node_term.slug]
+                    }
                 ]
             else:
-                node.ref_parts = [
+                node.match_templates = [
                     {
-                        "slugs": [parsha_term.slug],
-                        "optional": False,
-                        "scopes": ["combined"],
-                    },
+                        "term_slugs": [parsha_term.slug]
+                    }
                 ]
             for par_per_node in node.children:
                 temp_title = par_per_node.get_primary_title('en')
@@ -382,16 +374,9 @@ class RefPartModifier:
                     print(node_title, temp_title)
                     continue
                 num_term = self.perek_number_map[int(num_match.group(1))]
-                par_per_node.ref_parts = [
+                par_per_node.match_templates = [
                     {
-                        "slugs": [named_term_slug],
-                        "optional": False,
-                        "scopes": ["combined"],
-                    },
-                    {
-                        "slugs": [num_term.slug],
-                        "optional": False,
-                        "scopes": ["combined"],
+                        "term_slugs": [named_term_slug, num_term.slug]
                     }
                 ]
 
@@ -619,7 +604,7 @@ class RefPartModifier:
     def modify_all(self):
         fast = True
         create_dhs = False
-        add_comm_alt_structs = False
+        add_comm_alt_structs = True
         self.modify_talmud(fast)
         self.modify_tanakh(fast)
         self.modify_rest_of_shas(fast)

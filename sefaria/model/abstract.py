@@ -20,7 +20,14 @@ from sefaria.system.exceptions import InputError
 logger = structlog.get_logger(__name__)
 
 
-class AbstractMongoRecord(object):
+class AbstractMongoRecordMeta(type):
+
+    def __init__(cls, name, parents, dct):
+        super().__init__(name, parents, dct)
+        cls._init_cache = {}  # cache for instances instantiated using cls.init()
+
+
+class AbstractMongoRecord(object, metaclass=AbstractMongoRecordMeta):
     """
     AbstractMongoRecord - superclass of classes representing mongo records.
     "collection" attribute is set on subclass
@@ -39,7 +46,7 @@ class AbstractMongoRecord(object):
     ALLOWED_ATTRS = bleach.ALLOWED_ATTRIBUTES
 
     @classmethod
-    def init(cls, slug:str) -> 'AbstractMongoRecord':
+    def init(cls, slug: str) -> 'AbstractMongoRecord':
         """
         Convenience func to avoid using .load() when you're only passing a slug
         Applicable only if class defines `slug_fields`
@@ -48,7 +55,10 @@ class AbstractMongoRecord(object):
         """
         if len(cls.slug_fields) != 1:
             raise Exception("Can only call init() if exactly one slug field is defined.")
-        return cls().load({cls.slug_fields[0]: slug})
+        if slug not in cls._init_cache:
+            instance = cls().load({cls.slug_fields[0]: slug})
+            cls._init_cache[slug] = instance
+        return cls._init_cache[slug]
 
     def __init__(self, attrs=None):
         if attrs is None:

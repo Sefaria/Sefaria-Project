@@ -103,7 +103,7 @@ def test_resolved_raw_ref_clone():
     [create_raw_ref_data("Job 1", 'he', 'ספר בראשית פרק יג פסוק א עד פרק יד פסוק ד', [slice(0, 2), slice(2, 4), slice(4, 6), 6, slice(7, 9), slice(9, 11)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED, RPT.NUMBERED]), ("Genesis 13:1-14:4",)],
     [create_raw_ref_data("Job 1", 'he', 'בראשית יג:א-יד:ד', [0, 1, 3, 4, 5, 7], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED, RPT.NUMBERED]), ("Genesis 13:1-14:4",)],
     # Base text context
-    [create_raw_ref_data("Rashi on Berakhot 2a", 'he', 'ובתוס\' כ"ז ע"ב ד"ה והלכתא', [slice(0, 2), slice(2, 4), slice(4, 6)], [RPT.NAMED, RPT.NUMBERED, RPT.DH]), ("Tosafot on Berakhot 27b:14:2",)],
+    [create_raw_ref_data("Rashi on Berakhot 2a", 'he', 'ובתוס\' כ"ז ע"ב ד"ה והלכתא', [slice(0, 2), slice(2, 4), slice(4, 6)], [RPT.NAMED, RPT.NUMBERED, RPT.DH]), ("Tosafot on Berakhot 27b:14:2",)],  # shared context child via graph context
 
     # YERUSHALMI EN
     [create_raw_ref_data("Jerusalem Talmud Shabbat 1:1", 'en', 'Bavli 2a', [0, 1], [RPT.NAMED, RPT.NUMBERED]), ("Shabbat 2a",)],
@@ -123,8 +123,8 @@ def test_resolved_raw_ref_clone():
     [create_raw_ref_data("Jerusalem Talmud Pesachim 1:1:3", 'en', 'Sifra Behar Parašah 6(5', [0, 1, slice(2, 4), 5], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Sifra, Behar, Section 6 5",)],
     [create_raw_ref_data("Jerusalem Talmud Pesachim 1:1:3", 'en', 'Sifra Saw Parashah 2(9–10', [0, 1, slice(2, 8)], [RPT.NAMED, RPT.NAMED, RPT.NAMED]), ("Sifra, Tzav",)], # if raw ref gets broken into incorrect parts, make sure it handles it correctly
 
-    #gilyon hashas
-    [create_raw_ref_data("Gilyon Hashas Berakhot 2b:1", 'he', '''תוס' ד"ה משעה''', [slice(0, 2), slice(2, 4)], [RPT.NAMED, RPT.NUMBERED]), ("Tosafot on Berakhot 2b:5:1",)],  # commentator with implied book and daf from context commentator
+    # gilyon hashas
+    [create_raw_ref_data("Gilyon HaShas on Berakhot 2b:1", 'he', '''תוס' ד"ה משעה''', [slice(0, 2), slice(2, 4)], [RPT.NAMED, RPT.NUMBERED]), ("Tosafot on Berakhot 2b:5:1",)],  # commentator with implied book and daf from context commentator
 ])
 def test_resolve_raw_ref(resolver_data, expected_trefs):
     ref_resolver = library.get_ref_resolver()

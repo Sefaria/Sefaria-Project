@@ -940,8 +940,9 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
     def get_referenceable_alone_nodes(self):
         alone_nodes = []
+        alone_scopes = {'any', 'alone'}
         for child in self.referenceable_children():
-            if any([len({'alone', 'any'} & set(part['scopes'])) > 0 for part in getattr(child, "ref_parts", [])]):
+            if any(template.scope in alone_scopes for template in child.get_match_templates()):
                 alone_nodes += [child]
             # TODO used to be hard-coded to include grandchildren as well. Can't be recursive unless we add this to SchemaNode as well.
             # alone_nodes += child.get_referenceable_alone_nodes()
@@ -5308,7 +5309,7 @@ class Library(object):
         from .ref_part import RefPartTitleTrie, RefPartTitleGraph, RefResolver, TermMatcher, NonUniqueTermSet
         from sefaria.spacy_function_registry import inner_punct_tokenizer_factory  # used by spacy.load()
 
-        root_nodes = list(filter(lambda n: getattr(n, 'ref_parts', None) is not None, self.get_index_forest()))
+        root_nodes = list(filter(lambda n: getattr(n, 'match_templates', None) is not None, self.get_index_forest()))
         alone_nodes = reduce(lambda a, b: a + b.index.get_referenceable_alone_nodes(), root_nodes, [])
         non_unique_terms = NonUniqueTermSet()
         ref_part_title_graph = RefPartTitleGraph(root_nodes)
@@ -5326,8 +5327,7 @@ class Library(object):
             }
         )
         return self._ref_resolver
-                        
-    #todo: only used in bio scripts
+
     def get_index_forest(self):
         """
         :return: list of root Index nodes.

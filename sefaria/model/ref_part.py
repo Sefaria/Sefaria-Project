@@ -42,6 +42,7 @@ def span_inds(span: Union[Token, Span]) -> Tuple[int, int]:
     end = span.end if isinstance(span, Span) else (span.i+1)
     return start, end
 
+
 class RefPartType(Enum):
     NAMED = "named"
     NUMBERED = "numbered"
@@ -66,6 +67,7 @@ class ResolutionMethod(Enum):
 class TrieEntry:
     def key(self):
         return hash(self)
+
 
 class NonUniqueTerm(abst.AbstractMongoRecord, schema.AbstractTitledObject, TrieEntry):
     collection = "non_unique_terms"
@@ -93,8 +95,23 @@ class NonUniqueTerm(abst.AbstractMongoRecord, schema.AbstractTitledObject, TrieE
     def key(self):
         return f'{self.__class__.__name__}|{self.slug}'
 
+
 class NonUniqueTermSet(abst.AbstractMongoSet):
     recordClass = NonUniqueTerm
+
+
+class MatchTemplate:
+
+    def __init__(self, term_slugs, scope='combined'):
+        self.term_slugs = term_slugs
+        self.scope = scope
+
+    def get_terms(self) -> Iterable[NonUniqueTerm]:
+        for slug in self.term_slugs:
+            yield NonUniqueTerm.init(slug)
+
+    terms = property(get_terms)
+
 
 class RawRefPart(TrieEntry):
     
@@ -131,6 +148,7 @@ class RawRefPart(TrieEntry):
         return m.group(1)
 
     text = property(get_text)
+
 
 class RangedRawRefParts(RawRefPart):
     """
@@ -383,7 +401,7 @@ class RefPartTitleTrie:
         :param lang:
         :param nodes:
         :param sub_trie:
-        :param scope: str. scope of the trie. if 'alone', take into account `ref_parts` marked with scope "alone" or "any".
+        :param scope: str. scope of the trie. if 'alone', take into account `match_templates` marked with scope "alone" or "any".
         """
         self.lang = lang
         self.scope = scope
@@ -393,26 +411,27 @@ class RefPartTitleTrie:
             self._trie = sub_trie
 
     def __init_with_nodes(self, nodes):
+        from .schema import TitledTreeNode
         self._trie = {}
         for node in nodes:
+            assert isinstance(node, TitledTreeNode)
             is_index_level = getattr(node, 'index', False) and node == node.index.nodes
-            curr_dict_queue = [self._trie]
-            for ref_part in getattr(node, 'ref_parts', []):
-                slugs = [slug for slug, _ in filter(lambda x: is_index_level or self.scope == 'any' or x[1] in {'any', self.scope}, zip(ref_part['slugs'], ref_part['scopes']))]
-                if len(slugs) == 0: continue
-                terms = [NonUniqueTerm.init(slug) for slug in slugs]  # TODO consider using term cache here
-                len_curr_dict_queue = len(curr_dict_queue)
-                for _ in range(len_curr_dict_queue):
-                    curr_dict = curr_dict_queue[0] if ref_part['optional'] else curr_dict_queue.pop(0)  # dont remove curr_dict if optional. leave it for next level to add to.
-                    curr_dict_queue += self.__get_sub_tries_for_terms(terms, curr_dict)
-            # add nodes to leaves
-            # None key indicates this is a leaf                            
-            for curr_dict in curr_dict_queue:
-                leaf_node = node.index if is_index_level else node
-                if None in curr_dict:
-                    curr_dict[None] += [leaf_node]
-                else:
-                    curr_dict[None] = [leaf_node]
+            for match_template in node.get_match_templates():
+                if not is_index_level and self.scope != 'any' and match_template.scope != 'any' and self.scope != match_template.scope: continue
+                curr_dict_queue = [self._trie]
+                for term in match_template.terms:
+                    len_curr_dict_queue = len(curr_dict_queue)
+                    for _ in range(len_curr_dict_queue):
+                        curr_dict = curr_dict_queue.pop(0)
+                        curr_dict_queue += self.__get_sub_tries_for_term(term, curr_dict)
+                # add nodes to leaves
+                # None key indicates this is a leaf
+                for curr_dict in curr_dict_queue:
+                    leaf_node = node.index if is_index_level else node
+                    if None in curr_dict:
+                        curr_dict[None] += [leaf_node]
+                    else:
+                        curr_dict[None] = [leaf_node]
 
     @staticmethod
     def __get_sub_trie_for_new_key(key: str, curr_trie: dict) -> dict:
@@ -423,13 +442,12 @@ class RefPartTitleTrie:
             curr_trie[key] = sub_trie
         return sub_trie
 
-    def __get_sub_tries_for_terms(self, terms: List[NonUniqueTerm], curr_trie: dict) -> List[dict]:
+    def __get_sub_tries_for_term(self, term: NonUniqueTerm, curr_trie: dict) -> List[dict]:
         sub_tries = []
-        for term in terms:
-            for title in term.get_titles(self.lang):
-                sub_tries += [self.__get_sub_trie_for_new_key(title, curr_trie)]
-            # also add term's key to trie for lookups from context ref parts
-            sub_tries += [self.__get_sub_trie_for_new_key(term.key(), curr_trie)]
+        for title in term.get_titles(self.lang):
+            sub_tries += [self.__get_sub_trie_for_new_key(title, curr_trie)]
+        # also add term's key to trie for lookups from context ref parts
+        sub_tries += [self.__get_sub_trie_for_new_key(term.key(), curr_trie)]
         return sub_tries
 
     def __getitem__(self, key):
@@ -499,20 +517,21 @@ class RefPartTitleTrie:
         for item in self._trie:
             yield item
 
+
 class RefPartTitleGraph:
     """
-    DAG which represents connections between ref parts in index titles
-    where each connection is a pair of consecutive ref parts
+    DAG which represents connections between terms in index titles
+    where each connection is a pair of consecutive terms
     """
     def __init__(self, nodes: List[schema.TitledTreeNode]):
         self._graph = defaultdict(set)
         for node in nodes:
-            ref_parts = getattr(node, 'ref_parts', [])
-            for i, ref_part in enumerate(ref_parts[:-1]):
-                slugs = filter(lambda x: NonUniqueTerm.init(x).ref_part_role == "structural", ref_part['slugs'])
-                next_slugs = filter(lambda x: NonUniqueTerm.init(x).ref_part_role == "structural", ref_parts[i+1]['slugs'])
-                for slug1, slug2 in product(slugs, next_slugs):
-                    self._graph[slug1].add(slug2)
+            for i, match_template in enumerate(node.get_match_templates()):
+                terms = list(match_template.terms)
+                for term in terms[:-1]:
+                    next_term = terms[i+1]
+                    if term.ref_part_role == 'structural' and next_term.ref_part_role == 'structural':
+                        self._graph[term.slug].add(next_term.slug)
 
     def parent_has_child(self, parent: str, child: str) -> bool:
         """
@@ -528,20 +547,20 @@ class RefPartTitleGraph:
         """
         return self.parent_has_child(parent1, child) and self.parent_has_child(parent2, child)
 
-    def get_parent_for_children(self, context_slugs: list, input_slugs: list) -> Optional[str]:
-        for slugs in context_slugs:
-            for context_slug in slugs['slugs']:
+    def get_parent_for_children(self, context_match_templates: List[MatchTemplate], input_slugs: list) -> Optional[str]:
+        for template in context_match_templates:
+            for context_slug in template.term_slugs:
                 for input_slug in input_slugs:
                     if self.parent_has_child(context_slug, input_slug):
                         return context_slug
 
-    def get_shared_child(self, context_slugs: List[List[str]], input_slugs: List[str]) -> Optional[str]:
-        for i, slugs in enumerate(context_slugs[:-1]):
-            next_slugs = context_slugs[i + 1]
-            for context_slug1, context_slug2 in product(slugs['slugs'], next_slugs['slugs']):
+    def get_shared_child(self, context_match_templates: List[MatchTemplate], input_slugs: List[str]) -> Optional[str]:
+        for template in context_match_templates:
+            for i, context_slug in enumerate(template.term_slugs[:-1]):
+                next_context_slug = template.term_slugs[i+1]
                 for input_slug in input_slugs:
-                    if self.do_parents_share_child(context_slug1, input_slug, context_slug2):
-                        return context_slug2
+                    if self.do_parents_share_child(context_slug, input_slug, next_context_slug):
+                        return next_context_slug
 
 
 class TermMatcher:
@@ -573,6 +592,7 @@ class TermMatcher:
             matches += self.match_term(part)
         matches = list({m.slug: m for m in matches}.values())  # unique
         return matches
+
 
 class RefResolver:
 
@@ -747,10 +767,10 @@ class RefResolver:
 
     def _get_unrefined_ref_part_matches_for_graph_context(self, lang: str, context_ref: text.Ref, raw_ref: RawRef, ref_parts: list, context_swaps: List[NonUniqueTerm]=None) -> List[ResolvedRawRef]:
         matches = []
-        context_ref_part_slugs = getattr(context_ref.index.nodes, 'ref_parts', [])
+        context_match_templates = list(context_ref.index.nodes.get_match_templates())
         raw_ref_term_slugs = [term.slug for term in self.get_term_matcher(lang).match_terms(raw_ref.raw_ref_parts)]
-        context_parent = self._ref_part_title_graph.get_parent_for_children(context_ref_part_slugs, raw_ref_term_slugs)
-        context_child = self._ref_part_title_graph.get_shared_child(context_ref_part_slugs, raw_ref_term_slugs)
+        context_parent = self._ref_part_title_graph.get_parent_for_children(context_match_templates, raw_ref_term_slugs)
+        context_child = self._ref_part_title_graph.get_shared_child(context_match_templates, raw_ref_term_slugs)
         for context_slug in (context_parent, context_child):
             if context_slug is None: continue
             temp_matches = self._get_unrefined_ref_part_matches_recursive(lang, raw_ref, ref_parts=ref_parts, context_terms=[NonUniqueTerm.init(context_slug)], context_swaps=context_swaps)
@@ -861,3 +881,17 @@ class RefResolver:
         max_resolved_refs = list(filter(lambda x: x.resolution_method not in {ResolutionMethod.TITLE, ResolutionMethod.GRAPH} or len(x.resolved_ref_parts) == len(x.raw_ref.raw_ref_parts), max_resolved_refs))
         return max_resolved_refs
 
+"""
+raw_ref_matchers: [
+    {
+        term_slugs: List[str],
+        scope: any|alone|combined [default: combined]
+    }
+]
+
+e.g
+{
+    ref_parts: ["rashi", "berakhot"],
+    scope: "any"
+}
+"""
