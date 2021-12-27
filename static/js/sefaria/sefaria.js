@@ -1213,6 +1213,9 @@ Sefaria = extend(Sefaria, {
     const summary = {};
     for (let i = 0; i < links.length; i++) {
       const link = links[i];
+      if (link["type"] === "essay") {
+        continue;
+      }
       // Count Category
       if (link.category in summary) {
         summary[link.category].count += 1;
