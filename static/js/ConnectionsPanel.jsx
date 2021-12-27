@@ -16,7 +16,7 @@ import {
   MediaList
 } from './Media';
 
-import { CategoryFilter, } from './ConnectionFilters';
+import { CategoryFilter, TextFilter } from './ConnectionFilters';
 import React, { useRef, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import ReactDOM from 'react-dom';
@@ -968,6 +968,7 @@ class ConnectionsSummary extends Component {
     const isTopLevel = !this.props.category;
     const baseCat = oref ? oref["categories"][0] : null;
     let summary = Sefaria.linkSummary(refs, excludedSheet);
+    let essaySummary = [];
 
     if (!summary) { return null; }
 
@@ -1007,6 +1008,21 @@ class ConnectionsSummary extends Component {
       });
 
       summary = topSummary;
+      let essayLinksBySourceRef = Sefaria.essayLinksBySourceRef(refs);
+      Object.values(essayLinksBySourceRef).forEach(function(link, i) {
+        const essayTextFilter = <TextFilter
+                          srefs={this.props.srefs}
+                          key={i}
+                          book={link.index_title}
+                          heBook={link.heTitle}
+                          hasEnglish={link.sourceHasEn}
+                          category={link.category}
+                          updateRecent={true}
+                          setFilter={this.props.setFilter}
+                          hideCounts={true}
+                          on={false} />;
+        essaySummary.push(essayTextFilter);
+      }.bind(this));
     }
 
     let connectionsSummary = summary.map(function (cat, i) {
@@ -1048,6 +1064,7 @@ class ConnectionsSummary extends Component {
 
     return (
       <div>
+        {isTopLevel ? essaySummary : null}
         {connectionsSummary}
         {summaryToggle}
       </div>

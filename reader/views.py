@@ -2042,9 +2042,8 @@ def related_api(request, tref):
     elif request.GET.get("private", False) and not request.user.is_authenticated:
         response = {"error": "You must be logged in to access private content."}
     else:
-        links = get_links(tref, with_text=False, with_sheet_links=request.GET.get("with_sheet_links", False))
         response = {
-            "links": links,
+            "links": get_links(tref, with_text=False, with_sheet_links=request.GET.get("with_sheet_links", False)),
             "sheets": get_sheets_for_ref(tref),
             "notes": [],  # get_notes(oref, public=True) # Hiding public notes for now
             "webpages": get_webpages_for_ref(tref),

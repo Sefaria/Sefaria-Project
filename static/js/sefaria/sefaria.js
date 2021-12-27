@@ -1100,6 +1100,23 @@ Sefaria = extend(Sefaria, {
     links.map((link) => {dedupedLinks[key(link)] = link});
     return Object.values(dedupedLinks);
   },
+  essayLinksBySourceRef: function(ref) {
+    let links = [];
+    ref.map(function(r) {
+      const newlinks = Sefaria.getLinksFromCache(r);
+      links = links.concat(newlinks);
+    });
+    links = this._dedupeLinks(links); // by aggregating links to each ref above, we can get duplicates of links to spanning refs
+    let essayLinks = {};
+    for (let i=0; i<links.length; i++) {
+      let whichRef = "";
+      if (links[i]["type"] === "essay" && "anchorVersionTitle" in links[i] && "sourceVersionTitle" in links[i]) {
+        essayLinks[links[i]["sourceRef"]] = links[i];
+      }
+    }
+    return essayLinks;
+  }
+  ,
   _linkSummaries: {},
   linkSummary: function(ref, excludedSheet) {
     // Returns an ordered array summarizing the link counts by category and text

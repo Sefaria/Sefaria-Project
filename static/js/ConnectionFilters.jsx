@@ -216,4 +216,5 @@ RecentFilterSet.propTypes = {
 export {
   CategoryFilter,
   RecentFilterSet,
+  TextFilter
 };
