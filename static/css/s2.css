@@ -4567,12 +4567,15 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .interface-hebrew .readerPanel.english .textRange,
 .interface-hebrew .readerPanel.english .categoryFilterGroup,
 .interface-hebrew .readerPanel.bilingual .categoryFilterGroup,
+.interface-hebrew .readerPanel.english .essayGroup,
+.interface-hebrew .readerPanel.bilingual .essayGroup,
 .interface-hebrew .readerPanel.english .textTableOfContents,
 .interface-hebrew .readerPanel.bilingual .textTableOfContents {
   direction: ltr;
 }
 .interface-english .readerPanel.hebrew .textRange,
 .interface-english .readerPanel.hebrew .categoryFilterGroup,
+.interface-english .readerPanel.hebrew .essayGroup,
 .interface-english .readerPanel.hebrew .structToggles,
 .interface-english .readerPanel.hebrew .textTableOfContents,
 .interface-english .readerPanel.hebrew .connectionsPanel .toolsButton.more,
@@ -5446,6 +5449,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   /**transform: scale(0.95);*/
   display: inline-block;
   background-color: #3B5849;
+}
+.essayGroup .textFilter {
+  padding: 0 0 0 0;
 }
 .categoryFilterGroup.withBooks {
   /*border-bottom: 1px solid #E5E5E5;*/
