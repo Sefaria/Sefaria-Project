@@ -125,6 +125,9 @@ def test_resolved_raw_ref_clone():
 
     # gilyon hashas
     [create_raw_ref_data("Gilyon HaShas on Berakhot 2b:1", 'he', '''תוס' ד"ה משעה''', [slice(0, 2), slice(2, 4)], [RPT.NAMED, RPT.NUMBERED]), ("Tosafot on Berakhot 2b:5:1",)],  # commentator with implied book and daf from context commentator
+
+    # specific books
+    [create_raw_ref_data("Job 1", 'he', 'טור אורח חיים סימן א', [0, slice(1, 3), slice(3, 5)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ("Tur, Orach Chaim 1", )],
 ])
 def test_resolve_raw_ref(resolver_data, expected_trefs):
     ref_resolver = library.get_ref_resolver()

@@ -526,10 +526,11 @@ class RefPartTitleGraph:
     def __init__(self, nodes: List[schema.TitledTreeNode]):
         self._graph = defaultdict(set)
         for node in nodes:
-            for i, match_template in enumerate(node.get_match_templates()):
+            for match_template in node.get_match_templates():
+                if len(match_template.term_slugs) < 2: continue
                 terms = list(match_template.terms)
-                for term in terms[:-1]:
-                    next_term = terms[i+1]
+                for iterm, term in enumerate(terms[:-1]):
+                    next_term = terms[iterm+1]
                     if term.ref_part_role == 'structural' and next_term.ref_part_role == 'structural':
                         self._graph[term.slug].add(next_term.slug)
 

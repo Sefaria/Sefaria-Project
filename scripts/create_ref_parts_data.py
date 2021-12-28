@@ -8,16 +8,19 @@ from sefaria.system.database import db
 from collections import defaultdict
 from sefaria.utils.hebrew import is_hebrew
 from sefaria.model.abstract import AbstractMongoRecord
-from sefaria.model.schema import DiburHamatchilNode, DiburHamatchilNodeSet
+from sefaria.model.schema import DiburHamatchilNode, DiburHamatchilNodeSet, TitleGroup
+
 
 class RefPartModifier:
 
     def __init__(self):
-        self.mt_map = self.create_mt_terms()
+        self.old_term_map = {}
         self.create_base_non_unique_terms()
         self.shas_map = self.create_shas_terms()
         self.tanakh_map, self.parsha_map = self.create_tanakh_terms()
         self.perek_number_map = self.create_numeric_perek_terms()
+        self.mt_map = self.create_mt_terms()
+        self.sa_map = self.create_sa_terms()
 
     def t(self, **kwargs):
         slug = kwargs.get('en', kwargs.get('he'))
@@ -39,12 +42,12 @@ class RefPartModifier:
         props = index._saveable_attrs()
         db.index.replace_one({"_id": index._id}, props, upsert=True)
 
-
     def t_from_titled_obj(self, obj, ref_part_role):
-        en_title = obj.get_primary_title('en')
-        he_title = obj.get_primary_title('he')
-        alt_en_titles = [title for title in obj.title_group.all_titles('en') if title != en_title]
-        alt_he_titles = [title for title in obj.title_group.all_titles('he') if title != he_title]
+        title_group = obj if isinstance(obj, TitleGroup) else obj.title_group
+        en_title = title_group.primary_title('en')
+        he_title = title_group.primary_title('he')
+        alt_en_titles = [title for title in title_group.all_titles('en') if title != en_title]
+        alt_he_titles = [title for title in title_group.all_titles('he') if title != he_title]
         return self.t(en=en_title, he=he_title, alt_en=alt_en_titles, alt_he=alt_he_titles, ref_part_role=ref_part_role)
 
 
@@ -217,6 +220,31 @@ class RefPartModifier:
             else:
                 index.save()
 
+    def modify_base_text_commentaries(self, base_text_title, base_match_templates, fast=False):
+        # commentaries
+        comm_indexes = IndexSet({"base_text_titles": base_text_title})
+        for comm_index in comm_indexes:
+            try:
+                comm_term = self.old_term_map[comm_index.collective_title]
+            except KeyError:
+                print(
+                    f"\nMissing commentary term for '{comm_index.collective_title}' used on index '{comm_index.title}'")
+                continue
+            except AttributeError:
+                print(f"No collective title for '{comm_index.title}'")
+                continue
+            comm_match_templates = []
+            for template in base_match_templates:
+                temp_match_template = template.copy()
+                temp_match_template['term_slugs'] = [comm_term.slug] + template['term_slugs']
+                comm_match_templates += [temp_match_template]
+            comm_index.nodes.match_templates = comm_match_templates
+            if fast:
+                self.fast_index_save(comm_index)
+            else:
+                comm_index.save()
+
+
     def modify_tanakh(self, fast=False):
         sefer = NonUniqueTerm.init('sefer')
         parasha = NonUniqueTerm.init('parasha')
@@ -250,6 +278,7 @@ class RefPartModifier:
                 self.fast_index_save(index)
             else:
                 index.save()
+            self.modify_base_text_commentaries(index.title, [{"term_slugs": [index_term.slug]}], fast=fast)
 
     def modify_rest_of_shas(self, fast=False):
         title_swaps = {
@@ -385,6 +414,78 @@ class RefPartModifier:
         else:
             index.save()
 
+    def modify_mishneh_torah(self, fast=False):
+        for index in tqdm(library.get_indexes_in_category("Mishneh Torah", full_records=True), desc='mishneh torah'):
+            term_key = index.title.replace("Mishneh Torah, ", "")
+            term = self.mt_map[term_key]
+            index.nodes.match_templates = [
+                {
+                    "term_slugs": ["mishneh-torah", "hilchot", term.slug]
+                },
+                {
+                    "term_slugs": ["mishneh-torah", term.slug]
+                },
+                {
+                    "term_slugs": ["rambam", "hilchot", term.slug]
+                },
+                {
+                    "term_slugs": ["rambam", term.slug]
+                },
+                {
+                    "term_slugs": ["hilchot", term.slug]
+                }
+            ]
+            if fast:
+                self.fast_index_save(index)
+            else:
+                index.save()
+
+            base_match_templates = [
+                {"term_slugs": ['hilchot', term.slug]},
+                {"term_slugs": [term.slug]},
+            ]
+            self.modify_base_text_commentaries(index.title, base_match_templates, fast=fast)
+
+    def modify_tur(self, fast=False):
+        index = library.get_index('Tur')
+        sa_title_swaps = {
+           "Orach Chaim": "Orach Chayim",
+            "Yoreh Deah": "Yoreh De'ah"
+        }
+        term = self.t_from_titled_obj(TitleGroup(index.schema['titles']), ref_part_role='structural')
+        index.nodes.match_templates = [
+            {
+                "term_slugs": [term.slug]
+            }
+        ]
+        for node in index.nodes.children:
+            node_title = node.get_primary_title('en')
+            node_title = sa_title_swaps.get(node_title, node_title)
+            sa_term = self.sa_map.get(node_title, None)
+            node.match_templates = [
+                {
+                    "term_slugs": [sa_term.slug]
+                }
+            ]
+        if fast:
+            self.fast_index_save(index)
+        else:
+            index.save()
+
+    def modify_shulchan_arukh(self, fast=False):
+        for index in library.get_indexes_in_category("Shulchan Arukh", full_records=True):
+            term_key = index.title.replace("Shulchan Arukh, ", "")
+            sa_term = self.sa_map[term_key]
+            index.nodes.match_templates = [
+                {"term_slugs": ["shulchan-arukh", sa_term.slug]},
+                {"term_slugs": [sa_term.slug]},
+            ]
+            self.modify_base_text_commentaries(index.title, [{"term_slugs": [sa_term.slug]}], fast)
+            if fast:
+                self.fast_index_save(index)
+            else:
+                index.save()
+
     def create_numeric_perek_terms(self):
         from sefaria.utils.hebrew import encode_hebrew_numeral
         ord_en = ['First', 'Second', 'Third', 'Fourth', 'Fifth', 'Sixth', 'Seventh', 'Eighth', 'Ninth', 'Tenth', 'Eleventh', 'Twelfth', 'Thirteenth', 'Fourteenth', 'Fifteenth', 'Sixteenth', 'Seventeenth', 'Eighteenth', 'Nineteenth', 'Twentieth', 'Twenty First', 'Twenty Second', 'Twenty Third', 'Twenty Fourth', 'Twenty Fifth', 'Twenty Sixth', 'Twenty Seventh', 'Twenty Eighth', 'Twenty Ninth', 'Thirtieth']
@@ -433,7 +534,23 @@ class RefPartModifier:
         self.t(en='Parasha', he='פרשה', alt_en=['Parashah', 'Parašah', 'Parsha', 'Paraša', 'Paršetah', 'Paršeta', 'Parsheta', 'Parshetah'], ref_part_role='alt_title')
         self.t(en='Sefer', he='ספר', ref_part_role='alt_title')
         self.t(en='Halakha', he='הלכה', alt_en=['Halakhah', 'Halacha', 'Halachah', 'Halakhot'], ref_part_role='context_swap')
+        self.t(en='Mishneh Torah', he='משנה תורה', alt_en=["Mishnah Torah"], ref_part_role='structural')
+        self.t(en='Rambam', he='רמב"ם', ref_part_role='structural')
+        self.t(en='Shulchan Arukh', he='שולחן ערוך', alt_en=['shulchan aruch', 'Shulchan Aruch', 'Shulḥan Arukh', 'Shulhan Arukh', 'S.A.', 'SA', 'Shulḥan Arukh'], alt_he=['שו"ע', 'שלחן ערוך'], ref_part_role='structural')
+        self.t(en='Hilchot', he='הלכות', alt_en=['Laws of', 'Laws', 'Hilkhot', 'Hilhot'], alt_he=["הל'"], ref_part_role='alt_title')
         self.t_from_titled_obj(Term().load({"name": "Parasha"}), ref_part_role='alt_title')
+        for old_term in TermSet({"scheme": {"$in": ["toc_categories", "commentary_works"]}}):
+            new_term = self.t_from_titled_obj(old_term, ref_part_role='structural')
+            self.old_term_map[old_term.name] = new_term
+        missing_old_term_names = [
+            "Lechem Mishneh", "Mishneh LaMelech", "Melekhet Shelomoh", "Targum Jonathan", "Onkelos", "Targum Neofiti",
+            "Targum Jerusalem", "Tafsir Rasag", "Kitzur Baal HaTurim", "Rav Hirsch", "Pitchei Teshuva",
+            "Chatam Sofer", "Rabbi Akiva Eiger", "Dagul MeRevava", "Yad Ephraim", "Kereti", "Peleti", "Chiddushei Hilkhot Niddah",
+            "Tiferet Yisrael"
+        ]
+        for name in missing_old_term_names:
+            new_term = self.t_from_titled_obj(Term().load({"name": name}), ref_part_role='structural')
+            self.old_term_map[name] = new_term
 
     def create_shas_terms(self):
         """
@@ -601,16 +718,42 @@ class RefPartModifier:
             title_term_map[generic_title_en] = term
         return title_term_map
 
+    def create_sa_terms(self):
+        hard_coded_title_map = {
+
+        }
+        title_map = defaultdict(set)
+        repls = ['shulchan aruch', 'Shulchan Aruch', 'Shulchan Arukh', 'Shulḥan Arukh', 'Shulhan Arukh', 'S.A.', 'SA', 'שולחן ערוך', 'שו"ע', 'שלחן ערוך', 'שו”ע', 'שו״ע', 'Shulḥan Arukh']
+        repl_reg = fr'^({"|".join(re.escape(r) for r in repls)}),? ?'
+
+        indexes = library.get_indexes_in_category("Shulchan Arukh", full_records=True)
+        for index in indexes:
+            title_map[(index.title.replace('Shulchan Arukh, ', ''), index.get_title('he'))] |= {
+                re.sub(r'<[^>]+>', '', re.sub(repl_reg, '', tit['text'])).replace('סי\'', '').strip() for tit in index.nodes.title_group.titles}
+
+        title_term_map = {}
+        for (generic_title_en, generic_title_he), alt_titles in sorted(title_map.items(), key=lambda x: x[0]):
+            alt_he = [tit for tit in alt_titles if is_hebrew(tit) and tit != generic_title_he]
+            alt_en = [tit for tit in alt_titles if not is_hebrew(tit) and tit != generic_title_en]
+            alt_en += hard_coded_title_map.get(generic_title_en, [])
+            term = self.t(en=generic_title_en, he=generic_title_he, alt_en=alt_en, alt_he=alt_he,
+                          ref_part_role='structural')
+            title_term_map[generic_title_en] = term
+        return title_term_map
+
     def modify_all(self):
         fast = True
         create_dhs = False
-        add_comm_alt_structs = True
+        add_comm_alt_structs = False
         self.modify_talmud(fast)
         self.modify_tanakh(fast)
         self.modify_rest_of_shas(fast)
         self.modify_talmud_commentaries(fast, create_dhs, add_comm_alt_structs)  # on first run, rerun because ArrayMapNodes are cached
         self.modify_midrash_rabbah(fast)
         self.modify_sifra(fast)
+        self.modify_mishneh_torah(fast)
+        self.modify_tur(fast)
+        self.modify_shulchan_arukh(fast)
 
 
 if __name__ == "__main__":
