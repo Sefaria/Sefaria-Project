@@ -124,7 +124,7 @@ def test_resolved_raw_ref_clone():
     [create_raw_ref_data("Jerusalem Talmud Pesachim 1:1:3", 'en', 'Sifra Saw Parashah 2(9–10', [0, 1, slice(2, 8)], [RPT.NAMED, RPT.NAMED, RPT.NAMED]), ("Sifra, Tzav",)], # if raw ref gets broken into incorrect parts, make sure it handles it correctly
 
     # gilyon hashas
-    [create_raw_ref_data("Gilyon HaShas on Berakhot 2b:1", 'he', '''תוס' ד"ה משעה''', [slice(0, 2), slice(2, 4)], [RPT.NAMED, RPT.NUMBERED]), ("Tosafot on Berakhot 2b:5:1",)],  # commentator with implied book and daf from context commentator
+    [create_raw_ref_data("Gilyon HaShas on Berakhot 51b:1", 'he', '''תוספות ד"ה אין''', [0, slice(1, 3)], [RPT.NAMED, RPT.DH]), ("Tosafot on Berakhot 51b:8:1",)],  # commentator with implied book and daf from context commentator
 
     # specific books
     [create_raw_ref_data("Job 1", 'he', 'טור אורח חיים סימן א', [0, slice(1, 3), slice(3, 5)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ("Tur, Orach Chaim 1", )],

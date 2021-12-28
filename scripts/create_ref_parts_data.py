@@ -64,7 +64,8 @@ class RefPartModifier:
         reg_map = {
             "rashi": ['^(.+?)[\-–]', '\.(.+?)$', "^(?:(?:מתני'|גמ')\s?)?(.+)$"],
             "ran": ['^(.+?)[\-–]', "^(?:(?:מתני'|גמ')\s?)?(.+)$"],
-            "tosafot": ['^(.+?)[\-–\.]', "^(?:(?:מתני'|גמ')\s?)?(.+)$"]
+            "tosafot": ['^(.+?)[\-–\.]', "^(?:(?:מתני'|גמ')\s?)?(.+)$"],
+            "gilyon-hashas": ["^<b>(.+?)</b>"],
         }
         return reg_map.get(index.title, reg_map.get(comm_term_slug))
 
@@ -79,10 +80,10 @@ class RefPartModifier:
             ('Rashi on ', 'rashi', ['Talmud', 'Bavli', 'Rishonim on Talmud', 'Rashi']),
             ('Tosafot on ', 'tosafot', ['Talmud', 'Bavli', 'Rishonim on Talmud', 'Tosafot']),
             ('Ran on ', 'ran', ['Talmud', 'Bavli', 'Rishonim on Talmud', 'Ran']),
+            ('Gilyon HaShas on ', 'gilyon-hashas', ['Talmud', 'Bavli', 'Acharonim on Talmud', 'Gilyon HaShas']),
         ):
             indexes = library.get_indexes_in_category_path(comm_cat_path, True, True)
             for index in tqdm(indexes, desc=comm_term_slug, total=indexes.count()):
-                # if "Nedarim" not in index.title: continue
                 self.add_new_fields_to_commentary_root_node(comm_ref_prefix, comm_term_slug, index, fast)
                 if create_dhs:
                     self.add_dibur_hamatchils(comm_ref_prefix, index)
@@ -526,6 +527,7 @@ class RefPartModifier:
         self.t(en='Tosefta', he='תוספתא', alt_en=['Tosephta', 'T.', 'Tosef.', 'Tos.'], ref_part_role='structural')
         self.t(en='Yerushalmi', he='יורשלמי', alt_en=['Jerusalem Talmud', 'J.T.', 'JT'],ref_part_role='structural')
         self.t(en='Tosafot', he='תוספות', alt_he=["תוס'", 'תוד"ה', 'תד"ה',], alt_en=['Tosaphot'], ref_part_role='structural')
+        self.t(en='Gilyon HaShas', he='גליון הש"ס', ref_part_role='structural')
         self.t(en='Midrash Rabbah', he='מדרש רבה', alt_en=['Midrash Rabba', 'Midrash Rabah'], alt_he=['מדרש רבא'], ref_part_role='structural')  # TODO no good way to compose titles for midrash rabbah...
         self.t(en='Rabbah', he='רבה', alt_en=['Rabba', 'Rabah', 'Rab.', 'R.', 'Rab .', 'R .', 'rabba', 'r.', 'r .', 'rabbati'], alt_he=['רבא'], ref_part_role='structural')
         self.t(en='Sifra', he='סיפרא', ref_part_role='structural')
