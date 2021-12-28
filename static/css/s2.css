@@ -10861,7 +10861,7 @@ body .homeFeedWrapper.userStats {
   padding: 0 0 0 0;
   margin: 0 0 0 0;
   width: 660px;
-  max-width: 660px;
+  max-width: 100%;
 }
 .bookPage .editTextInfo #newIndex .publishBox .react-tags__selected-tag-name {
   --english-font: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
@@ -10880,12 +10880,6 @@ body .homeFeedWrapper.userStats {
   box-shadow: 0px 1px 3px rgb(0 0 0 / 20%);
   border: none;
 }
-#categoryChooserMenu img {
-  opacity: 0.43;
-  padding: 0 5px;
-  height: 10px;
-  width: 10px;
-}
 #categoryChooserMenu select {
   background: transparent;
   font-size: 16px;
@@ -10894,6 +10888,14 @@ body .homeFeedWrapper.userStats {
   margin: 0 0 10px 0;
   padding: 4px 25px 4px 10px;
 }
+
+#categoryChooserMenu img {
+  opacity: 0.43;
+  padding: 0 5px;
+  height: 10px;
+  width: 10px;
+}
+
 .bookPage .editTextInfo #newIndex .publishBox .react-tags__selected-tag {
   margin: 0 12px 12px 0;
   padding: 12px 14px;
@@ -10908,21 +10910,22 @@ body .homeFeedWrapper.userStats {
 }
 
 .bookPage .editTextInfo #newIndex .optional {
-	font-size: 13px;
-    color: var(--light-grey);
-    font: var(--english-sans-serif-font-family);
+  font-size: 13px;
+  color: var(--light-grey);
+  font: var(--english-sans-serif-font-family);
 }
 
 .bookPage .editTextInfo #newIndex input {
-    padding: 4px 10px 4px 10px;
-    width: 640px;
-	height: 50px;
-    font-size: 16px;
-	margin: 0 0 10px 0;
+  padding: 4px 10px 4px 10px;
+  width: 640px;
+  height: 50px;
+  font-size: 16px;
+  margin: 0 0 10px 0;
+  max-width: 100%;
 }
 
 .bookPage .editTextInfo #newIndex #heTitle {
-	direction: rtl;
+  direction: rtl;
 }
 .interface-english .bookPage .editTextInfo .static label {
   text-align: left;
@@ -10961,7 +10964,21 @@ body .homeFeedWrapper.userStats {
 .bookPage .editTextInfo .nodeTemplate {
 	display: none;
 }
-
+@media screen and (max-width: 680px) {
+  #categoryChooserMenu {
+    background: url("/static/img/arrow-down.png") 300px 20px/10px 10px no-repeat #ffffff;
+    width: 320px;
+  }
+  #categoryChooserMenu select {
+    width: 340px;
+  }
+  .bookPage .editTextInfo #newIndex input {
+    width: 300px;
+  }
+  .bookPage .editTextInfo #newIndex .publishBox {
+    width: 320px;
+  }
+}
 
 .collectionsModalBox {
   position: fixed;
