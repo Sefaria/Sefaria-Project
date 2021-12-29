@@ -1070,7 +1070,7 @@ Sefaria = extend(Sefaria, {
     return links.length;
   },
   _filterLinks: function(links, filter) {
-    // Filters array `links` for only those thart match array `filter`.
+    // Filters array `links` for only those that match array `filter`.
     // If `filter` ends with "|Quoting" return Quoting Commentary only,
     // otherwise commentary `filters` will return only links with type `commentary`
     if (filter.length == 0) { return links; }
@@ -1078,6 +1078,7 @@ Sefaria = extend(Sefaria, {
     var filterAndSuffix = filter[0].split("|");
     filter              = [filterAndSuffix[0]];
     var isQuoting       = filterAndSuffix.length == 2 && filterAndSuffix[1] == "Quoting";
+    var isEssay         = filterAndSuffix.length == 2 && filterAndSuffix[1] == "Essay";
     var index           = Sefaria.index(filter);
     var isCommentary    = index && !isQuoting &&
                             (index.categories[0] == "Commentary" || index.primary_category == "Commentary");
@@ -1085,6 +1086,7 @@ Sefaria = extend(Sefaria, {
     return links.filter(function(link){
       if (isCommentary && link.category !== "Commentary") { return false; }
       if (isQuoting && link.category !== "Quoting Commentary") { return false; }
+      if (isEssay) { return link.type === "essay" && Sefaria.util.inArray(link.displayedText["en"], filter) !== -1; }
 
       return (Sefaria.util.inArray(link.category, filter) !== -1 ||
               Sefaria.util.inArray(link["collectiveTitle"]["en"], filter) !== -1 );
@@ -1110,7 +1112,7 @@ Sefaria = extend(Sefaria, {
     let essayLinks = {};
     for (let i=0; i<links.length; i++) {
       let whichRef = "";
-      if (links[i]["type"] === "essay" && "anchorVersionTitle" in links[i] && "sourceVersionTitle" in links[i]) {
+      if (links[i]["type"] === "essay" && "anchorVersionTitle" in links[i] && "sourceVersionTitle" in links[i] && "displayedText" in links[i]) {
         essayLinks[links[i]["sourceRef"]] = links[i];
       }
     }

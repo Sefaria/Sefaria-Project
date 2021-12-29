@@ -49,9 +49,10 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
         com["inline_reference"]  = getattr(link, "inline_reference", None)
     if getattr(link, "highlightedWords", None):
         com["highlightedWords"] = getattr(link, "highlightedWords", None)
-    if getattr(link, "versionTitles", None) and link.type == "essay":
+    if getattr(link, "versionTitles", None) and link.type == "essay" and getattr(link, "displayedText", None):
         com["anchorVersionTitle"] = link.versionTitles[pos]
         com["sourceVersionTitle"] = link.versionTitles[linkPos]
+        com["displayedText"] = getattr(link, "displayedText", None)
 
     compDate = getattr(linkRef.index, "compDate", None)
     if compDate:

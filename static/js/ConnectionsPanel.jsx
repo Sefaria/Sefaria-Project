@@ -1009,20 +1009,27 @@ class ConnectionsSummary extends Component {
 
       summary = topSummary;
       let essayLinksBySourceRef = Sefaria.essayLinksBySourceRef(refs);
-      Object.values(essayLinksBySourceRef).forEach(function(link, i) {
-        const essayTextFilter = <TextFilter
-                                    srefs={this.props.srefs}
-                                    key={i}
-                                    book={link.index_title}
-                                    heBook={link.heTitle}
-                                    hasEnglish={link.sourceHasEn}
-                                    category={link.category}
-                                    updateRecent={true}
-                                    setFilter={this.props.setFilter}
-                                    hideCounts={true}
-                                    on={false} />;
-        essaySummary.push(essayTextFilter);
-      }.bind(this));
+      if (Object.keys(essayLinksBySourceRef).length > 0) {
+        Object.values(essayLinksBySourceRef).forEach(function (link, i) {
+          const essayTextFilter = <TextFilter
+              setConnectionsMode={this.props.setConnectionsMode}
+              srefs={this.props.srefs}
+              key={i}
+              book={link.index_title}
+              heBook={link.heTitle}
+              hasEnglish={link.sourceHasEn}
+              category={link.category}
+              updateRecent={true}
+              setFilter={this.props.setFilter}
+              hideCounts={true}
+              enDisplayText={link.displayedText["en"]}
+              heDisplayText={link.displayedText["he"]}
+              filterSuffix={"Essay"}
+              on={false}/>;
+          essaySummary.push(essayTextFilter);
+        }.bind(this));
+        essaySummary = <div className={"essayGroup"}>{essaySummary}</div>;
+      }
     }
 
     let connectionsSummary = summary.map(function (cat, i) {
@@ -1064,7 +1071,7 @@ class ConnectionsSummary extends Component {
 
     return (
       <div>
-        {isTopLevel ? <div className={"essayGroup"}>{essaySummary}</div> : null}
+        {isTopLevel ? essaySummary : null}
         {connectionsSummary}
         {summaryToggle}
       </div>

@@ -117,6 +117,7 @@ class ConnectionsPanelHeader extends Component {
                       {title}
                       {!this.props.multiPanel && this.props.previousCategory && this.props.connectionsMode == "TextList" ?
                       <RecentFilterSet
+                        setConnectionsMode={this.props.setConnectionsMode}
                         srefs={this.props.baseRefs}
                         asHeader={true}
                         filter={this.props.filter}

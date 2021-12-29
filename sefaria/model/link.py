@@ -43,7 +43,8 @@ class Link(abst.AbstractMongoRecord):
         "charLevelData",     # list of length 2. Containing 2 dicts coresponding to the refs list, each dict consists of the following keys: ["startChar","endChar","versionTitle","language"]. *if one of the refs is a Pasuk the startChar and endChar keys are startWord and endWord. This attribute was created for the quotation finder
         "score",             # int. represents how "good"/accurate the link is. introduced for quotations finder
         "inline_citation",    # bool acts as a flag for wrapped refs logic to run on the segments where this citation is inline.
-        "versionTitles"       # only for cases when type is `essay`: list of versionTitles corresponding to `refs`, where first versionTitle corresponds to Index of first ref, and one of these values can be null
+        "versionTitles",      # only for cases when type is `essay`: list of versionTitles corresponding to `refs`, where first versionTitle corresponds to Index of first ref, and one of these values can be null
+        "displayedText"       # only for cases when type is `essay`: dictionary where each entry is a language, such as en or he, with a display str
     ]
 
     def _normalize(self):
@@ -63,6 +64,7 @@ class Link(abst.AbstractMongoRecord):
             for ref, versionTitle in zip(self.refs, self.versionTitles):
                 index_title = text.Ref(ref).index.title
                 assert VersionSet({"title": index_title, "versionTitle": versionTitle}).count() > 0, f"No version found for book {index_title} and versionTitle {versionTitle}"
+            assert hasattr(self, "displayedText") and isinstance(self.displayedText, dict), "When setting versionTitles on Link obj, you must also set the displayedText field as a dictionary."
 
         if False in self.refs:
             return False
