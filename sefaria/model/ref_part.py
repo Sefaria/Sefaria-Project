@@ -13,6 +13,9 @@ from spacy.tokens import Span, Token
 from spacy.language import Language
 
 spacy.prefer_gpu()
+
+# keys correspond named entity labels in spacy models
+# values are properties in RefPartType
 LABEL_TO_REF_PART_TYPE_ATTR = {
     # HE
     "כותרת": 'NAMED',
@@ -55,21 +58,35 @@ class RefPartType(Enum):
 
     @classmethod
     def span_label_to_enum(cls, span_label: str) -> 'RefPartType':
+        """
+        Convert span label from spacy named entity to RefPartType
+        """
         return getattr(cls, LABEL_TO_REF_PART_TYPE_ATTR[span_label])
 
 
 class ResolutionMethod(Enum):
+    """
+    Possible methods for resolving refs
+    Used to mark ResolvedRawRefs
+    """
     GRAPH = "graph"
     TITLE = "title"
     NON_CTS = "non_cts"
 
 
 class TrieEntry:
+    """
+    Base class for entries in RefPartTitleTrie
+    """
     def key(self):
         return hash(self)
 
 
 class NonUniqueTerm(abst.AbstractMongoRecord, schema.AbstractTitledObject, TrieEntry):
+    """
+    The successor of the old `Term` class
+    Doesn't require titles to be globally unique
+    """
     collection = "non_unique_terms"
     required_attrs = [
         "slug",
@@ -101,7 +118,9 @@ class NonUniqueTermSet(abst.AbstractMongoSet):
 
 
 class MatchTemplate:
-
+    """
+    Template for matching a SchemaNode to a RawRef
+    """
     def __init__(self, term_slugs, scope='combined'):
         self.term_slugs = term_slugs
         self.scope = scope
@@ -114,7 +133,10 @@ class MatchTemplate:
 
 
 class RawRefPart(TrieEntry):
-    
+    """
+    Immutable part of a RawRef
+    Represents a unit of text used to find a match to a SchemaNode
+    """
     def __init__(self, type: 'RefPartType', span: Union[Token, Span], potential_dh_continuation: str=None) -> None:
         self.span = span
         self.type = type
@@ -177,7 +199,10 @@ class RangedRawRefParts(RawRefPart):
 
 
 class RawRef:
-    
+    """
+    Span of text which may represent one or more Refs
+    Contains RawRefParts
+    """
     def __init__(self, raw_ref_parts: list, span: Union[Token, Span]) -> None:
         self.raw_ref_parts = self._group_ranged_parts(raw_ref_parts)
         self.prev_num_parts_map = self._get_prev_num_parts_map(self.raw_ref_parts)
@@ -185,6 +210,9 @@ class RawRef:
 
     @staticmethod
     def _group_ranged_parts(raw_ref_parts: List['RawRefPart']) -> List['RawRefPart']:
+        """
+        Preprocessing function to group together RawRefParts which represent ranged sections
+        """
         ranged_symbol_ind = None
         for i, part in enumerate(raw_ref_parts):
             if part.type == RefPartType.RANGE_SYMBOL:
@@ -212,6 +240,11 @@ class RawRef:
 
     @staticmethod
     def _get_prev_num_parts_map(raw_ref_parts: List[RawRefPart]) -> Dict[RawRefPart, RawRefPart]:
+        """
+        Helper function to avoid matching NUMBERED RawRefParts that match AddressInteger sections out of order
+        AddressInteger sections must resolve in order because resolving out of order would be meaningless
+        Returns a map from NUMBERED RawRefParts to directly preceeding NUMBERED RawRefParts
+        """
         if len(raw_ref_parts) == 0: return {}
         prev_num_parts_map = {}
         prev_part = raw_ref_parts[0]
@@ -223,8 +256,7 @@ class RawRef:
 
     def subspan(self, part_slice: slice) -> Union[Token, Span]:
         """
-        Return subspan covered by `raw_ref_parts`, relative to self.span
-        Assumes raw_ref_parts are in order
+        Return subspan covered by `part_slice`, relative to self.span
         """
         parts = self.raw_ref_parts[part_slice]
         start_token_i = span_inds(parts[0].span)[0]
@@ -237,9 +269,15 @@ class RawRef:
         return subspan
 
     def get_text(self):
+        """
+        Return text of underlying span
+        """
         return self.span.text
 
     def get_char_indices(self) -> Tuple[int, int]:
+        """
+        Return start and end char indices of underlying text
+        """
         if isinstance(self.span, Span):
             return self.span.start_char, self.span.end_char
         elif isinstance(self.span, Token):
@@ -251,6 +289,9 @@ class RawRef:
 
 
 class ResolvedRawRef:
+    """
+    Partial or complete resolution of a RawRef
+    """
 
     def __init__(self, raw_ref: 'RawRef', resolved_ref_parts: List['RawRefPart'], node, ref: text.Ref, resolved_context_terms: List[NonUniqueTerm]=None, ambiguous=False, resolution_method: ResolutionMethod=None) -> None:
         self.raw_ref = raw_ref
@@ -268,14 +309,26 @@ class ResolvedRawRef:
         return ResolvedRawRef(**{**self.__dict__, **kwargs})
 
     def get_unused_ref_parts(self, raw_ref: 'RawRef'):
+        """
+        Return ref parts which haven't yet been used in this match
+        """
         return [ref_part for ref_part in raw_ref.raw_ref_parts if ref_part not in self.resolved_ref_parts]
 
     def has_prev_unused_numbered_ref_part(self, raw_ref_part: RawRefPart) -> bool:
+        """
+        Helper function to avoid matching AddressInteger sections out of order
+        Returns True if there is a RawRefPart which immediately precedes `raw_ref_part` and is not yet included in this match
+        """
         prev_part = self.raw_ref.prev_num_parts_map.get(raw_ref_part, None)
         if prev_part is None: return False
         return prev_part not in self.resolved_ref_parts
 
     def _get_refined_match_for_dh_part(self, raw_ref_part: 'RawRefPart', refined_ref_parts: List['RawRefPart'], node: schema.DiburHamatchilNodeSet):
+        """
+        Finds dibur hamatchil ref which best matches `raw_ref_part`
+        Currently a very simplistic algorithm
+        If there is a DH match, return the corresponding ResolvedRawRef
+        """
         max_node, max_score = node.best_fuzzy_match_score(raw_ref_part)
         if max_score == 1.0:
             return self.clone(resolved_ref_parts=refined_ref_parts, node=max_node, ref=text.Ref(max_node.ref))
