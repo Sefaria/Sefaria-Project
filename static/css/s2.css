@@ -7630,6 +7630,27 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
+.scheduleFormContainer {
+  background-color: white;
+  border-top: 4px solid white;
+  border-bottom: 120px solid white;
+  margin: -4px 0 -120px -1000px;
+  width: 100%;
+}
+.scheduleForm {
+  display: flex;
+  flex-direction: row;
+}
+.scheduleForm .scheduleBox {
+    align-items: center;
+    flex: 1;
+    margin: 30px;
+    padding: 6px;
+    border: 3px dotted var(--light-grey);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
 .scheduleListingDetails img {
   height: 18px;
   width: 18px;

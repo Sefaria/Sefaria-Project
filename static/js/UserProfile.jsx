@@ -17,6 +17,8 @@ import {
   FollowButton,
   InterfaceText,
 } from './Misc';
+import { setState } from 'expect';
+import {usePrevious } from './Hooks'
 
 class UserProfile extends Component {
   constructor(props) {
@@ -465,6 +467,8 @@ class UserProfile extends Component {
                     data={this.getCollectionsFromCache()}
                     refreshData={this.state.refreshCollectionsData}
                   />
+                  <>
+                  <LearningSchedule/>
                    <FilterableList
                     key="schedule"
                     pageSize={1e6}
@@ -478,6 +482,7 @@ class UserProfile extends Component {
                     data={this.getSchedulesFromCache()}
                     // refreshData={this.state.refreshSchedules}
                   />
+                  </>
                   {
                     this.state.showNotes ? (
                       <FilterableList
@@ -537,6 +542,57 @@ UserProfile.propTypes = {
   profile: PropTypes.object.isRequired,
 };
 
+const LearningSchedule = ({slug, showSchedule}) => {
+  const scheduleStates = {
+    SelectScheduleType: "SelectScheduleType",
+    CreateExistingSchedule: "CreateExistingSchedule",
+    CreateCustomSchedule: "CreateCustomSchedule",
+    AlertsAndSettings: "AlertsAndSettings",
+    None: "None"
+  }
+  const [scheduleFormState, setScheduleFormState] = useState(slug ? scheduleStates.AlertsAndSettings : scheduleStates.SelectScheduleType );
+  const prevFormState = usePrevious(scheduleFormState)
+
+  const backButton = () => {
+    setScheduleFormState(prevFormState);
+  }
+    
+  const getFormContents = () => {
+    switch(scheduleFormState) {
+      case scheduleStates.SelectScheduleType:
+        return (
+          <>
+            <div className="scheduleBox">
+              <div>Follow a schedule (like daf yomi, 929, or the weekly parsha) where you'll learn the same thing as other learners around the world.</div>
+              <button className="small button" onClick={() => setScheduleFormState(scheduleStates.CreateExistingSchedule)}>Existing Schedule</button>
+            </div>
+            <div className="scheduleBox">
+              <div>Generate your own schedule. You pick the text and how quickly you'll learn it.</div>
+              <button class="small button" onClick={() => setScheduleFormState(scheduleStates.CreateCustomSchedule)}>Custom Schedule</button>
+            </div>
+          </>
+          )
+      case scheduleStates.CreateExistingSchedule:
+        return <>Create Existing Schedule</>
+      case scheduleStates.CreateCustomSchedule:
+          return <>Create Custom Schedule</>
+      case scheduleStates.AlertsAndSettings:
+        return <>Alerts and Settings</>
+      case scheduleStates.None:
+        return null
+      default:
+        return <>nada</>;
+    }
+  }
+    return (
+      <div className="scheduleFormContainer">
+      <button onClick={backButton}>Back</button>
+      <div className="scheduleForm">
+        {scheduleFormState ? getFormContents() : null}
+      </div>
+      </div>
+    )
+}
 
 const EditorToggleHeader = ({usesneweditor}) => {
  const [feedbackHeaderState, setFeedbackHeaderState] = useState("hidden")
@@ -644,7 +700,6 @@ const EditorToggleHeader = ({usesneweditor}) => {
    </>
  )
 }
-
 
 const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowing, toggleSignUpModal }) => {
   // collect info about this profile in `infoList`
@@ -754,6 +809,5 @@ ProfileSummary.propTypes = {
   openFollowing: PropTypes.func.isRequired,
   toggleSignUpModal: PropTypes.func.isRequired,
 };
-
 
 export default UserProfile;
