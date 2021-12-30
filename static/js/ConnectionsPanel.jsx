@@ -1009,8 +1009,8 @@ class ConnectionsSummary extends Component {
 
       summary = topSummary;
       let essayLinksBySourceRef = Sefaria.essayLinksBySourceRef(refs);
-      if (Object.keys(essayLinksBySourceRef).length > 0) {
-        Object.values(essayLinksBySourceRef).forEach(function (link, i) {
+      if (essayLinksBySourceRef.length > 0) {
+        essayLinksBySourceRef.forEach(function (link, i) {
           const essayTextFilter = <TextFilter
               setConnectionsMode={this.props.setConnectionsMode}
               srefs={this.props.srefs}

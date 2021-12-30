@@ -1109,13 +1109,13 @@ Sefaria = extend(Sefaria, {
       links = links.concat(newlinks);
     });
     links = this._dedupeLinks(links); // by aggregating links to each ref above, we can get duplicates of links to spanning refs
-    let essayLinks = {};
+    let essayLinks = [];
     for (let i=0; i<links.length; i++) {
       if (links[i]["type"] === "essay" && "anchorVersionTitle" in links[i] && "sourceVersionTitle" in links[i] && "displayedText" in links[i]) {
-        essayLinks[links[i]["sourceRef"]] = links[i];
+        essayLinks.push(links[i]);
       }
     }
-    return essayLinks;
+    return essayLinks.sort((a, b) => Sefaria.refContains(a["sourceRef"], b["sourceRef"]));
   }
   ,
   _linkSummaries: {},
