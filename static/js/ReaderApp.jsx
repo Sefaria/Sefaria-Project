@@ -424,7 +424,7 @@ class ReaderApp extends Component {
 
     // List of modes that the ConnectionsPanel may have which can be represented in a URL. 
     const sidebarModes = new Set(["Sheets", "Notes", "Translations", "Translation Open",
-      "About", "AboutSheet", "Navigation", "WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts"]);
+      "About", "AboutSheet", "Navigation", "WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon"]);
 
     for (var i = 0; i < states.length; i++) {
       // Walk through each panel, create a history object as though for this panel alone
@@ -592,6 +592,11 @@ class ReaderApp extends Component {
         if (state.connectionsMode === "Translation Open" && state.versionFilter.length) {
           hist.versionFilter = state.versionFilter[0];
         }
+        if (state.connectionsMode === "Lexicon") {
+          if (state.selectedWords.length) { hist.selectedWords = state.selectedWords; }
+          if (state.selectedNamedEntity) { hist.selectedNamedEntity = state.selectedNamedEntity; }
+          if (state.selectedNamedEntityText) { hist.selectedNamedEntityText = state.selectedNamedEntityText; }
+        }
         hist.title    = Sefaria._r(ref)  + Sefaria._(" with ") + Sefaria._(hist.sources === "all" ? "Connections" : hist.sources);
         hist.url      = Sefaria.normRef(ref); // + "?with=" + sources;
         hist.mode     = "Connections";
@@ -695,6 +700,15 @@ class ReaderApp extends Component {
           if(histories[1].versionFilter) {
             hist.url += "&vside=" + Sefaria.util.encodeVtitle(histories[1].versionFilter);
           }
+          if (histories[1].selectedWords) {
+            hist.url += "&lookup=" + encodeURIComponent(histories[1].selectedWords);
+          }
+          if (histories[1].selectedNamedEntity) {
+            hist.url += "&namedEntity=" + histories[1].selectedNamedEntity;
+          }
+          if (histories[1].selectedNamedEntityText) {
+            hist.url += "&namedEntityText=" + encodeURIComponent(histories[1].selectedNamedEntityText);
+          }
           hist.url += "&with=" + histories[1].sources;
 
           hist.title = sheetAndCommentary ? histories[0].title : histories[1].title;
@@ -711,6 +725,15 @@ class ReaderApp extends Component {
           }
           if(histories[i].versionFilter) {
             hist.url += "&vside" + (i) + "=" + Sefaria.util.encodeVtitle(histories[i].versionFilter);
+          }
+          if (histories[i].selectedWords) {
+            hist.url += `&lookup${i}=${encodeURIComponent(histories[i].selectedWords)}`;
+          }
+          if (histories[i].selectedNamedEntity) {
+            hist.url += `&namedEntity${i}=${histories[i].selectedNamedEntity}`;
+          }
+          if (histories[i].selectedNamedEntityText) {
+            hist.url += `&namedEntityText${i}=${encodeURIComponent(histories[i].selectedNamedEntityText)}`;
           }
           hist.url   += "&w" + i + "=" + histories[i].sources; //.replace("with=", "with" + i + "=").replace("?", "&");
           hist.title += Sefaria._(" & ") + histories[i].title; // TODO this doesn't trim title properly

@@ -663,9 +663,7 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
       document.body.appendChild(dragIcon);
       e.dataTransfer.setDragImage(dragIcon, 0, 0);
 
-
-
-      ReactEditor.setFragmentData(parentEditor, e.dataTransfer)
+      ReactEditor.setFragmentData(parentEditor, e.dataTransfer, "drag")
       setIsDragging(true)
   }
 
@@ -1189,7 +1187,7 @@ async function getRefInText(editor, returnSourceIfFound) {
 
 
 const withSefariaSheet = editor => {
-    const {insertData, insertBreak, isVoid, normalizeNode, deleteBackward, deleteForward, setFragmentData} = editor;
+    const {insertData, insertBreak, isVoid, normalizeNode, deleteBackward, deleteForward, setFragmentData, insertFragmentData} = editor;
 
     //Hack to override this built-in which often returns null when programmatically selecting the whole SheetSource
     Transforms.deselect = () => {
@@ -1203,6 +1201,22 @@ const withSefariaSheet = editor => {
 
         console.log(editor.selection)
         deleteForward(editor);
+
+    }
+
+    editor.insertFragmentData = (data) => {
+        if (editor.dragging && getClosestSheetElement(editor, editor.selection.focus.path, "spacer")) {
+            editor.insertText(' ') // this is start of dance that's required to ensure that dnd data gets moved properly
+            insertFragmentData(data)
+            Transforms.move(editor, {reverse: true}) // dance part ii
+            deleteBackward(); // dance finale.
+            Editor.normalize(editor, { force: true })
+            editor.dragging = false
+        }
+        else {
+            editor.dragging = false
+            insertFragmentData(data)
+        }
 
     }
 
@@ -1320,36 +1334,36 @@ const withSefariaSheet = editor => {
         const [node, path] = entry;
 
         const normalizers = [
-            editor.ensureNoNestedSheetsinSheet,
-            editor.ensureNoNestedSheetContents,
-            editor.decorateSheetOutsideText,
-            editor.wrapSheetOutsideTextChildren,
-            editor.mergeSheetOutsideTextBlocks,
-            editor.convertEmptyOutsideTextIntoSpacer,
-            editor.convertEmptyParagraphToSpacer,
-            editor.wrapSheetContentElements,
-            editor.ensureEditableSpaceAtTopAndBottom,
-            editor.replaceSpacerWithOutsideText,
-            editor.liftSpacer,
-            editor.ensureNodeId,
-            editor.liftSheetElement,
-            editor.enforceTextOnlyInBoxedSheetElement,
-            editor.ensureEditableSpaceBeforeAndAfterBoxedElements,
-            editor.onlyTextAndRefsInBoxedElements,
-            editor.addPlaceholdersForEmptyText,
-            editor.liftHeader,
+            {name:"ensureNoNestedSheetsinSheet", function: editor.ensureNoNestedSheetsinSheet},
+            {name: "ensureNoNestedSheetContents", function: editor.ensureNoNestedSheetContents},
+            {name: "decorateSheetOutsideText", function: editor.decorateSheetOutsideText},
+            {name: "wrapSheetOutsideTextChildren", function: editor.wrapSheetOutsideTextChildren},
+            {name: "mergeSheetOutsideTextBlocks", function: editor.mergeSheetOutsideTextBlocks},
+            {name: "convertEmptyOutsideTextIntoSpacer", function: editor.convertEmptyOutsideTextIntoSpacer},
+            {name: "convertEmptyParagraphToSpacer", function: editor.convertEmptyParagraphToSpacer},
+            {name: "wrapSheetContentElements", function: editor.wrapSheetContentElements},
+            {name: "ensureEditableSpaceAtTopAndBottom", function: editor.ensureEditableSpaceAtTopAndBottom},
+            {name: "replaceSpacerWithOutsideText", function: editor.replaceSpacerWithOutsideText},
+            {name: "liftSpacer", function: editor.liftSpacer},
+            {name: "ensureNodeId", function: editor.ensureNodeId},
+            {name: "liftSheetElement", function: editor.liftSheetElement},
+            {name: "ensureEditableSpaceBeforeAndAfterBoxedElements", function: editor.ensureEditableSpaceBeforeAndAfterBoxedElements},
+            {name: "onlyTextAndRefsInBoxedElements", function: editor.onlyTextAndRefsInBoxedElements},
+            {name: "addPlaceholdersForEmptyText", function: editor.addPlaceholdersForEmptyText},
+            {name: "liftHeader", function: editor.liftHeader},
+            {name: "ensureSingleSpacerBetweenBoxedSources", function: editor.ensureSingleSpacerBetweenBoxedSources}
         ];
 
         for (let normalizer of normalizers) {
             try {
-                const changeWasMade = normalizer(node, path);
+                const changeWasMade = normalizer["function"](node, path);
                 if (changeWasMade) return;
             }
             catch (e) {
-                console.log(`Error at ${normalizer}`, e )
+                console.log(`Error at ${normalizer["name"]}`, e )
+                console.log(editor.children[0,0])
             }
         }
-
         // Fall back to the original `normalizeNode` to enforce other constraints.
         normalizeNode(entry);
     };
@@ -1561,37 +1575,54 @@ const withSefariaSheet = editor => {
         }
     };
 
-    // Only allow text inside SheetSource and SheetOutsideBiText
-    editor.enforceTextOnlyInBoxedSheetElement = (node, path) => {
-        // SheetSource, SheetComment, SheetOutsideText, SheetOutsideBiText, SheetMedia
-        const sheetElementTypes = Object.values(sheet_item_els);
-
-        if (["SheetSource", "SheetOutsideBiText"].includes(node.type)) {
-            if (node.children && node.children.length > 1) {
-                Transforms.removeNodes(node, {at: [0]})
-                }
-
-
-            //anything pasted into a sheet source object or a sheet outsideBiText will be treated just as text content
-            // for (const [child, childPath] of Node.children(editor, path)) {
-            //     if (sheetElementTypes.includes(child.type)) {
-            //         Transforms.unwrapNodes(editor, {at: childPath});
-            //         return true;
-            //     }
-            // }
-        }
-    };
-
     editor.ensureEditableSpaceBeforeAndAfterBoxedElements = (node, path) => {
         if (["SheetSource", "SheetOutsideBiText"].includes(node.type)) {
-            const nextPath = Path.next(path);
-            if (Node.get(editor, nextPath).type !== "spacer" && Node.get(editor, Path.next(path)).type !== "SheetOutsideText") {
-                console.log(nextPath);
+
+            if (Node.parent(editor, path).children.length == 1) {return false}
+
+            const nextPath = Path.next(path)
+            const prevPath = Path.previous(path);
+
+            const nextNode = Node.get(editor, nextPath)
+            const prevNode = Node.get(editor, prevPath)
+
+            let addedSpacer = false
+            if (nextNode.type !== "spacer" && nextNode.type !== "SheetOutsideText") {
                 Transforms.insertNodes(editor, {type: 'spacer', children: [{text: ""}]}, {at: nextPath});
-                return true;
+                addedSpacer = true;
             }
+            if (prevNode.type !== "spacer" && prevNode.type !== "SheetOutsideText") {
+                Transforms.insertNodes(editor, {type: 'spacer', children: [{text: ""}]}, {at: path});
+                addedSpacer = true;
+            }
+
+            return addedSpacer
         }
     };
+
+    editor.ensureSingleSpacerBetweenBoxedSources = (node, path) => {
+        if (node.type === "spacer") {
+            try {
+                const nextPath = Path.next(path)
+                const prevPath = Path.previous(path);
+
+                const nextNode = Node.get(editor, nextPath)
+                const prevNode = Node.get(editor, prevPath)
+
+                const prevIsBoxed = ["SheetSource", "SheetOutsideBiText"].includes(prevNode.type)
+                const nextIsBoxed = ["SheetSource", "SheetOutsideBiText"].includes(nextNode.type)
+
+                if ((nextNode.type === "spacer" && prevIsBoxed) || (prevNode === "spacer" && nextIsBoxed)) {
+                    Transforms.delete(editor, {at: path})
+                    return true
+                }
+            }
+            catch {
+                return false
+            }
+        }
+    }
+
 
     editor.onlyTextAndRefsInBoxedElements = (node, path) => {
         if (node.type === "he" || node.type === "en") {
