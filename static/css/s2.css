@@ -5452,6 +5452,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .essayGroup .textFilter {
   padding: 0 0 0 0;
+  margin: 19px 34px;
 }
 .categoryFilterGroup.withBooks {
   /*border-bottom: 1px solid #E5E5E5;*/

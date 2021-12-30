@@ -83,9 +83,9 @@ class TextFilter extends Component {
   // A clickable representation of connections by Text or Commentator
   handleClick(e) {
     e.preventDefault();
-    if (this.props.filterSuffix === "Essay") {
-      this.props.setConnectionsMode("Resources");
-    }
+    // if (this.props.filterSuffix === "Essay" && "setConnectionsMode" in this.props) {
+    //   this.props.setConnectionsMode("Resources");
+    // }
     const name = "enDisplayText" in this.props ? this.props["enDisplayText"] : this.props.book;
     let filter = this.props.filterSuffix ? name + "|" + this.props.filterSuffix : name;
     this.props.setFilter(filter, this.props.updateRecent);
@@ -191,6 +191,7 @@ class RecentFilterSet extends Component {
     }
     recentFilters = recentFilters.map(function(book) {
      return (<TextFilter
+                setConnectionsMode={this.props.setConnectionsMode}
                 srefs={this.props.srefs}
                 key={book.filterKey}
                 book={book.book}
@@ -215,11 +216,12 @@ class RecentFilterSet extends Component {
   }
 }
 RecentFilterSet.propTypes = {
-  srefs:         PropTypes.array.isRequired,
-  filter:        PropTypes.array.isRequired,
-  recentFilters: PropTypes.array.isRequired,
-  inHeader:      PropTypes.bool,
-  setFilter:     PropTypes.func.isRequired,
+  srefs:              PropTypes.array.isRequired,
+  filter:             PropTypes.array.isRequired,
+  recentFilters:      PropTypes.array.isRequired,
+  inHeader:           PropTypes.bool,
+  setFilter:          PropTypes.func.isRequired,
+  setConnectionsMode: PropTypes.func,
 };
 
 export {

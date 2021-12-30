@@ -388,7 +388,7 @@ class ConnectionsPanel extends Component {
         setConnectionsMode={this.props.setConnectionsMode}
         setConnectionsCategory={this.props.setConnectionsCategory} />);
 
-    } else if (this.props.mode === "TextList") {
+    } else if (this.props.mode === "TextList" || this.props.mode === "EssayList") {
       content = (<TextList
         panelPosition={this.props.panelPosition}
         srefs={this.checkSrefs(this.props.srefs)}

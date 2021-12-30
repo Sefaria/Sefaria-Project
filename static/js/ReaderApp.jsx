@@ -1425,7 +1425,8 @@ class ReaderApp extends Component {
         connectionsPanel.recentFilters = [filter].concat(connectionsPanel.recentFilters);
       }
       connectionsPanel.filter = [filter];
-      connectionsPanel.connectionsMode = "TextList";
+      var filterAndSuffix = filter.split("|");
+      connectionsPanel.connectionsMode = filterAndSuffix.length == 2 && filterAndSuffix[1] == "Essay" ? "EssayList" : "TextList";
     } else {
       connectionsPanel.filter = [];
       connectionsPanel.connectionsMode = "ConnectionsList";
