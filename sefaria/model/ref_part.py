@@ -875,9 +875,33 @@ class RefResolver:
 
         return self._prune_unrefined_ref_part_matches(matches)
 
-    def refine_ref_part_matches(self, lang: str, ref_part_matches: list, raw_ref: 'RawRef') -> list:
+    def refine_ref_part_matches(self, lang: str, ref_part_matches: list, raw_ref: RawRef) -> List[ResolvedRawRef]:
+        matches = []
+        for unrefined_match in ref_part_matches:
+            matches += self._get_refined_ref_part_matches_recursive(lang, unrefined_match, raw_ref)
+        return matches
+
+    @staticmethod
+    def _get_common_section_indexes(context_index: text.Index, match_index: text.Index, common_index: text.Index) -> Optional[int]:
+        """
+        :param context_index: Index of context ref where we are searching
+        :param match_index: Index of current match we are trying to refine
+        :param common_index: Index
+        """
+
+    def _get_refined_ref_part_matches_for_section_context(self, lang: str, context_ref: text.Ref, ref_part_match: ResolvedRawRef, raw_ref: RawRef) -> List[ResolvedRawRef]:
+        """
+        Tries to infer sections from context ref and uses them to refine `ref_part_match`
+        """
+        context_base_text_titles = set(getattr(context_ref.index, 'base_text_titles', []))
+        match_base_text_titles = set(getattr(ref_part_match.ref.index, 'base_text_titles', []))
+        for common_base_text in (context_base_text_titles & match_base_text_titles):
+            common_index = text.library.get_index(common_base_text)
+
+
+    def _get_refined_ref_part_matches_recursive(self, lang: str, ref_part_match: ResolvedRawRef, raw_ref: RawRef) -> List[ResolvedRawRef]:
         fully_refined = []
-        match_queue = ref_part_matches[:]
+        match_queue = [ref_part_match]
         while len(match_queue) > 0:
             match = match_queue.pop(0)
             unused_ref_parts = match.get_unused_ref_parts(raw_ref)
