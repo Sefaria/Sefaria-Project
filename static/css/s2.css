@@ -7631,6 +7631,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
 .scheduleFormContainer {
+  border: 1000px solid white;
   background-color: white;
   border-top: 4px solid white;
   border-bottom: 120px solid white;

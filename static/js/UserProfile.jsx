@@ -17,8 +17,6 @@ import {
   FollowButton,
   InterfaceText,
 } from './Misc';
-import { setState } from 'expect';
-import {usePrevious } from './Hooks'
 
 class UserProfile extends Component {
   constructor(props) {
@@ -551,10 +549,16 @@ const LearningSchedule = ({slug, showSchedule}) => {
     None: "None"
   }
   const [scheduleFormState, setScheduleFormState] = useState(slug ? scheduleStates.AlertsAndSettings : scheduleStates.SelectScheduleType );
-  const prevFormState = usePrevious(scheduleFormState)
+  const [scheduleFormStateArray, setScheduleFormStateArray] = useState([]);
+
+  const forward = newState => {
+    setScheduleFormStateArray([...scheduleFormStateArray, scheduleFormState])
+    setScheduleFormState(newState);
+  }
 
   const backButton = () => {
-    setScheduleFormState(prevFormState);
+    setScheduleFormState(scheduleFormStateArray.slice(-1)[0]);
+    setScheduleFormStateArray(scheduleFormStateArray.slice(0, -1))
   }
     
   const getFormContents = () => {
@@ -564,11 +568,11 @@ const LearningSchedule = ({slug, showSchedule}) => {
           <>
             <div className="scheduleBox">
               <div>Follow a schedule (like daf yomi, 929, or the weekly parsha) where you'll learn the same thing as other learners around the world.</div>
-              <button className="small button" onClick={() => setScheduleFormState(scheduleStates.CreateExistingSchedule)}>Existing Schedule</button>
+              <button className="small button" onClick={() => forward(scheduleStates.CreateExistingSchedule)}>Existing Schedule</button>
             </div>
             <div className="scheduleBox">
               <div>Generate your own schedule. You pick the text and how quickly you'll learn it.</div>
-              <button class="small button" onClick={() => setScheduleFormState(scheduleStates.CreateCustomSchedule)}>Custom Schedule</button>
+              <button class="small button" onClick={() => forward(scheduleStates.CreateCustomSchedule)}>Custom Schedule</button>
             </div>
           </>
           )
