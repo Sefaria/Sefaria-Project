@@ -1022,8 +1022,8 @@ class ConnectionsSummary extends Component {
               updateRecent={true}
               setFilter={this.props.setFilter}
               hideCounts={true}
-              enDisplayText={link.displayedText["en"]}
-              heDisplayText={link.displayedText["he"]}
+              enDisplayText={link.displayedText}
+              heDisplayText={Sefaria.hebrewTerm(link.displayedText)}
               filterSuffix={"Essay"}
               on={false}/>;
           essaySummary.push(essayTextFilter);

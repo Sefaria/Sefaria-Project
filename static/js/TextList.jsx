@@ -243,7 +243,6 @@ class TextList extends Component {
         <div>
           {this.props.fullPanel ?
           <RecentFilterSet
-            setConnectionsMode={this.props.setConnectionsMode}
             srefs={this.props.srefs}
             asHeader={false}
             filter={this.props.filter}

@@ -145,7 +145,6 @@ class VersionsTextList extends Component {
       (<LoadingMessage />) :
       (<div className="versionsTextList">
         <RecentFilterSet
-          setConnectionsMode={this.props.setConnectionsMode}
           srefs={this.props.srefs}
           asHeader={false}
           filter={this.props.vFilter}

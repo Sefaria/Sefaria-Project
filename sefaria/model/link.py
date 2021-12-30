@@ -44,7 +44,7 @@ class Link(abst.AbstractMongoRecord):
         "score",             # int. represents how "good"/accurate the link is. introduced for quotations finder
         "inline_citation",    # bool acts as a flag for wrapped refs logic to run on the segments where this citation is inline.
         "versionTitles",      # only for cases when type is `essay`: list of versionTitles corresponding to `refs`, where first versionTitle corresponds to Index of first ref, and one of these values can be null
-        "displayedText"       # only for cases when type is `essay`: dictionary where each entry is a language, such as en or he, with a display str
+        "displayedText"       # only for cases when type is `essay`: name of corresponding Term to be used for display of essays
     ]
 
     def _normalize(self):
@@ -60,11 +60,12 @@ class Link(abst.AbstractMongoRecord):
     def _validate(self):
         assert super(Link, self)._validate()
 
-        if self.type == "essay" and hasattr(self, "versionTitles"):    # when type is 'essay', versionTitles should correspond to indices referred to in self.refs
+        if self.type == "essay":   # when type is 'essay', versionTitles should correspond to indices referred to in self.refs
+            assert hasattr(self, "versionTitles") and hasattr(self, "displayedText"), "You must set versionTitles and displayedText fields for type 'essay'."
+            assert text.Term().load({"name": self.displayedText}), "The 'displayedText' field must match name of existing Term."
             for ref, versionTitle in zip(self.refs, self.versionTitles):
                 index_title = text.Ref(ref).index.title
                 assert VersionSet({"title": index_title, "versionTitle": versionTitle}).count() > 0, f"No version found for book {index_title} and versionTitle {versionTitle}"
-            assert hasattr(self, "displayedText") and isinstance(self.displayedText, dict), "When setting versionTitles on Link obj, you must also set the displayedText field as a dictionary."
 
         if False in self.refs:
             return False
@@ -120,7 +121,6 @@ class Link(abst.AbstractMongoRecord):
                     # logger.debug("save_link: More specific link exists: " + link["refs"][1] + " and " + preciselink["refs"][1])
                     raise DuplicateRecordError("A more precise link already exists: {} - {}".format(preciselink.refs[0], preciselink.refs[1]))
                 # else: # this is a good new link
-
 
         if not getattr(self, "_skip_lang_check", False):
             self._set_available_langs()
