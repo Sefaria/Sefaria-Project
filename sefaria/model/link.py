@@ -65,7 +65,8 @@ class Link(abst.AbstractMongoRecord):
             assert text.Term().load({"name": self.displayedText}), "The 'displayedText' field must match name of existing Term."
             for ref, versionTitle in zip(self.refs, self.versionTitles):
                 index_title = text.Ref(ref).index.title
-                assert VersionSet({"title": index_title, "versionTitle": versionTitle}).count() > 0, f"No version found for book {index_title} and versionTitle {versionTitle}"
+                if versionTitle not in ["all", "none"]:
+                    assert VersionSet({"title": index_title, "versionTitle": versionTitle}).count() > 0, f"No version found for book {index_title} and versionTitle {versionTitle}"
 
         if False in self.refs:
             return False
