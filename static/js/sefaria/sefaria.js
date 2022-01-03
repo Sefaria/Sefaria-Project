@@ -1102,7 +1102,7 @@ Sefaria = extend(Sefaria, {
     links.map((link) => {dedupedLinks[key(link)] = link});
     return Object.values(dedupedLinks);
   },
-  essayLinksBySourceRef: function(ref) {
+  essayLinks: function(ref, versions) {
     let links = [];
     ref.map(function(r) {
       const newlinks = Sefaria.getLinksFromCache(r);
@@ -1111,7 +1111,8 @@ Sefaria = extend(Sefaria, {
     links = this._dedupeLinks(links); // by aggregating links to each ref above, we can get duplicates of links to spanning refs
     let essayLinks = [];
     for (let i=0; i<links.length; i++) {
-      if (links[i]["type"] === "essay" && "anchorVersionTitle" in links[i] && "sourceVersionTitle" in links[i] && "displayedText" in links[i]) {
+      if (links[i]["type"] === "essay" && "anchorVersionTitle" in links[i] && links[i]["anchorVersionTitle"] !== "none" && "displayedText" in links[i]) {
+        // only add to essayLinks if it is an essay link that has displayedText and its anchorVersionTitle indicates it should show on this ref
         essayLinks.push(links[i]);
       }
     }

@@ -312,6 +312,7 @@ class ConnectionsPanel extends Component {
           {showConnectionSummary ?
             <ConnectionsPanelSection title="Related Texts">
               <ConnectionsSummary
+                currObjectVersions={this.state.currObjectVersions}
                 srefs={this.props.srefs}
                 showBooks={false}
                 multiPanel={this.props.multiPanel}
@@ -1008,9 +1009,9 @@ class ConnectionsSummary extends Component {
       });
 
       summary = topSummary;
-      let essayLinksBySourceRef = Sefaria.essayLinksBySourceRef(refs);
-      if (essayLinksBySourceRef.length > 0) {
-        essayLinksBySourceRef.forEach(function (link, i) {
+      let essayLinks = Sefaria.essayLinks(refs, this.props.currObjectVersions);
+      if (essayLinks.length > 0) {
+        essayLinks.forEach(function (link, i) {
           const essayTextFilter = <TextFilter
               setConnectionsMode={this.props.setConnectionsMode}
               srefs={this.props.srefs}
@@ -1089,6 +1090,7 @@ ConnectionsSummary.propTypes = {
   setConnectionsMode: PropTypes.func,
   setFilter: PropTypes.func,
   setConnectionsCategory: PropTypes.func.isRequired,
+  currObjectVersions: PropTypes.object
 };
 
 
