@@ -253,7 +253,6 @@ export {
   useScrollToLoad,
   usePaginatedScroll,
   usePaginatedDisplay,
-  usePrevious,
   useDebounce,
   useIncrementalLoad,
 };
