@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Component from 'react-class';
 import PropTypes  from 'prop-types';
 import Sefaria  from './sefaria/sefaria';
@@ -552,6 +552,23 @@ const LearningSchedule = ({slug, showSchedule}) => {
   }
   const [scheduleFormState, setScheduleFormState] = useState(slug ? scheduleStates.AlertsAndSettings : scheduleStates.SelectScheduleType );
   const [scheduleFormStateArray, setScheduleFormStateArray] = useState([]);
+  const [schedule, setSchedule] = useState(null);
+  const [scheduleOptions, setScheduleOptions] = useState({})
+
+  // update schedule object
+  useEffect(() => {
+    console.log(schedule);
+    setScheduleOptions(prevScheduleOptions => {
+      return {
+      ...prevScheduleOptions,
+      schedule: schedule
+    }});
+  }, [schedule])
+
+  // right now just log schedule
+  useEffect(() => {
+    console.log(scheduleOptions);
+  }, [scheduleOptions])
 
   const forward = newState => {
     setScheduleFormStateArray([...scheduleFormStateArray, scheduleFormState])
@@ -582,7 +599,8 @@ const LearningSchedule = ({slug, showSchedule}) => {
         const calendars = reformatCalendars();
         console.log(calendars);
         return <>Create Existing Schedule 
-        <div><select onChange={handleOnChange}>
+        <div><select onChange={$event => setSchedule($event.target.value)} value={schedule}>
+          <InterfaceOption key="none" text="None" value=""></InterfaceOption>
           {calendars.map(cal => {
             return <InterfaceOption key={cal.title.en} text={cal.title} value={cal.title.en}></InterfaceOption>
           })}
