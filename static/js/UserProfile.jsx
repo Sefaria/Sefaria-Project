@@ -55,6 +55,7 @@ class UserProfile extends Component {
       showBio,
       tabs,
       tabIndex,
+      showSchedule: false
     };
   }
   _getMessageModalRef(ref) { this._messageModalRef = ref; }
@@ -178,13 +179,16 @@ class UserProfile extends Component {
   renderSchedulesHeader() {
     if (Sefaria._uid !== this.props.profile.id) { return null; }
     return (
-      <div className="sheet-header">
-        <a href="/schedule/new" className="resourcesLink sans-serif">
+      <div className="schedulesHeader">
+        <button onClick={() => this.setState({showSchedule: true})} className="resourcesLink sans-serif">
           <img src="/static/icons/calendar.svg" alt="Schedule icon" />
             <InterfaceText>Create a New Learning Schedule</InterfaceText>
-        </a>
+        </button>
       </div>
     );
+  }
+  closeSchedule() {
+    this.setState({showSchedule:false})
   }
   getNotes() {
     return new Promise((resolve, reject) => {
@@ -468,7 +472,7 @@ class UserProfile extends Component {
                     refreshData={this.state.refreshCollectionsData}
                   />
                   <>
-                  <LearningSchedule/>
+                  {this.state.showSchedule ? <LearningSchedule closeSchedule={this.closeSchedule}/> : null}
                    <FilterableList
                     key="schedule"
                     pageSize={1e6}
@@ -542,7 +546,7 @@ UserProfile.propTypes = {
   profile: PropTypes.object.isRequired,
 };
 
-const LearningSchedule = ({slug, showSchedule}) => {
+const LearningSchedule = ({slug, closeSchedule}) => {
   const scheduleStates = {
     SelectScheduleType: "SelectScheduleType",
     CreateExistingSchedule: "CreateExistingSchedule",
@@ -554,6 +558,7 @@ const LearningSchedule = ({slug, showSchedule}) => {
   const [scheduleFormStateArray, setScheduleFormStateArray] = useState([]);
   const [schedule, setSchedule] = useState(null);
   const [scheduleOptions, setScheduleOptions] = useState({})
+  const calendars = reformatCalendars();
 
   // update schedule object
   useEffect(() => {
@@ -579,32 +584,55 @@ const LearningSchedule = ({slug, showSchedule}) => {
     setScheduleFormState(scheduleFormStateArray.slice(-1)[0]);
     setScheduleFormStateArray(scheduleFormStateArray.slice(0, -1))
   }
+
+  const askCloseSchedule = () => {
+    if(confirm("Are you sure you want to close the schedule before saving?")) {
+      closeSchedule();
+    }
+  }
+
+  const getScheduleInfo = () => {
+    const selectedSchedule = calendars.filter(x => x.title.en === schedule)[0];
+    return selectedSchedule ? (<InterfaceText text={selectedSchedule.description}></InterfaceText>) : <InterfaceText>Select a schedule to view a description</InterfaceText>;
+  }
+
+  const selectSchedule = () => {
+    if(schedule && schedule !== "") {
+      forward(scheduleStates.AlertsAndSettings);
+    } else {
+      alert("Please select a schedule to continue")
+    }
+  }
     
   const getFormContents = () => {
     switch(scheduleFormState) {
       case scheduleStates.SelectScheduleType:
         return (
-          <>
+          <div className="scheduleFormHorizontal">
             <div className="scheduleBox">
               <div>Follow a schedule (like daf yomi, 929, or the weekly parsha) where you'll learn the same thing as other learners around the world.</div>
               <button className="small button" onClick={() => forward(scheduleStates.CreateExistingSchedule)}>Existing Schedule</button>
             </div>
             <div className="scheduleBox">
               <div>Generate your own schedule. You pick the text and how quickly you'll learn it.</div>
-              <button class="small button" onClick={() => forward(scheduleStates.CreateCustomSchedule)}>Custom Schedule</button>
+              <button className="small button" onClick={() => forward(scheduleStates.CreateCustomSchedule)}>Custom Schedule</button>
             </div>
-          </>
+          </div>
           )
       case scheduleStates.CreateExistingSchedule:
-        const calendars = reformatCalendars();
         console.log(calendars);
-        return <>Create Existing Schedule 
-        <div><select onChange={$event => setSchedule($event.target.value)} value={schedule}>
+        return <><h3>Create Existing Schedule </h3>
+        <div><select onChange={$event => setSchedule($event.target.value)} value={schedule || ""}>
           <InterfaceOption key="none" text="None" value=""></InterfaceOption>
           {calendars.map(cal => {
             return <InterfaceOption key={cal.title.en} text={cal.title} value={cal.title.en}></InterfaceOption>
           })}
-        </select></div>
+        </select>
+        <div className="scheduleDescription">
+        {getScheduleInfo()}
+        </div>
+        <button className="small button" onClick={() => selectSchedule()}>Select this Schedule</button>
+        </div>
         </>
       case scheduleStates.CreateCustomSchedule:
           return <>Create Custom Schedule<div></div></>
@@ -618,10 +646,13 @@ const LearningSchedule = ({slug, showSchedule}) => {
   }
     return (
       <div className="scheduleFormContainer">
-      <button onClick={backButton}>Back</button>
-      <div className="scheduleForm">
-        {scheduleFormState ? getFormContents() : null}
-      </div>
+        <div className="scheduleFormHorizontal">
+          <button onClick={backButton}>Back</button>
+          <button onClick={askCloseSchedule}>Close</button>
+        </div>
+        <div className="scheduleForm">
+          {scheduleFormState ? getFormContents() : null}
+        </div>
       </div>
     )
 }

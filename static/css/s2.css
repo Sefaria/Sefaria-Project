@@ -7632,6 +7632,9 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
+.schedulesHeader button {
+  border: none;
+}
 .scheduleFormContainer {
   border: 1000px solid white;
   background-color: white;
@@ -7640,9 +7643,17 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   margin: -4px 0 -120px -1000px;
   width: 100%;
 }
-.scheduleForm {
+.scheduleFormContainer .scheduleFormHorizontal {
   display: flex;
   flex-direction: row;
+}
+.scheduleForm {
+  display: flex;
+  flex-direction: column;
+}
+.scheduleForm div.scheduleDescription {
+  color: var(--dark-grey);
+  margin: 12px 0px;
 }
 .scheduleForm .scheduleBox {
     align-items: center;
