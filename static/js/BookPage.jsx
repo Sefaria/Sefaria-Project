@@ -846,7 +846,7 @@ ArrayMapNode.propTypes = {
 class DictionaryNode extends Component {
   render() {
     if (this.props.schema.headwordMap) {
-      let sectionLinks = this.props.schema.headwordMap.map(function(m,i) {
+      let sectionLinks = this.props.schema.headwordMap.map((m,i) =>{
       let letter = m[0];
       let ref = m[1];
       let currentPlace = ref == this.props?.currentlyVisibleSectionRef;
