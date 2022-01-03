@@ -591,9 +591,22 @@ const LearningSchedule = ({slug, closeSchedule}) => {
     }
   }
 
-  const getScheduleInfo = () => {
+  const getScheduleInfo = (type) => {
     const selectedSchedule = calendars.filter(x => x.title.en === schedule)[0];
-    return selectedSchedule ? (<InterfaceText text={selectedSchedule.description}></InterfaceText>) : <InterfaceText>Select a schedule to view a description</InterfaceText>;
+    let interfaceText;
+    switch(type) {
+      case "description":
+        interfaceText = selectedSchedule ? (<InterfaceText text={selectedSchedule.description}></InterfaceText>) : <InterfaceText>Select a schedule to view a description</InterfaceText>;
+        break;
+      case "title":
+        interfaceText = selectedSchedule ? (<InterfaceText text={selectedSchedule.title}></InterfaceText>) : <InterfaceText>Custom Schedule</InterfaceText>;
+        break;
+      default:
+        interfaceText = null;
+        break;
+    }
+    return interfaceText;
+     
   }
 
   const selectSchedule = () => {
@@ -608,6 +621,8 @@ const LearningSchedule = ({slug, closeSchedule}) => {
     switch(scheduleFormState) {
       case scheduleStates.SelectScheduleType:
         return (
+          <>
+          <h3>Select a schedule type</h3>
           <div className="scheduleFormHorizontal">
             <div className="scheduleBox">
               <div>Follow a schedule (like daf yomi, 929, or the weekly parsha) where you'll learn the same thing as other learners around the world.</div>
@@ -618,6 +633,7 @@ const LearningSchedule = ({slug, closeSchedule}) => {
               <button className="small button" onClick={() => forward(scheduleStates.CreateCustomSchedule)}>Custom Schedule</button>
             </div>
           </div>
+          </>
           )
       case scheduleStates.CreateExistingSchedule:
         console.log(calendars);
@@ -629,7 +645,7 @@ const LearningSchedule = ({slug, closeSchedule}) => {
           })}
         </select>
         <div className="scheduleDescription">
-        {getScheduleInfo()}
+        {getScheduleInfo("description")}
         </div>
         <button className="small button" onClick={() => selectSchedule()}>Select this Schedule</button>
         </div>
@@ -637,7 +653,21 @@ const LearningSchedule = ({slug, closeSchedule}) => {
       case scheduleStates.CreateCustomSchedule:
           return <>Create Custom Schedule<div></div></>
       case scheduleStates.AlertsAndSettings:
-        return <>Alerts and Settings</>
+        return <><h3>Alerts and Settings</h3>
+        <div>
+          <span className="label">Learning Schedule: </span><span>{getScheduleInfo("title")}</span>
+          <div className="scheduleDescription"><span>{getScheduleInfo("description")}</span></div>
+        </div>
+        <div>
+          <span className="label">Alerts:</span>
+            <input type="checkbox" id="email" name="email"
+            checked />
+            <label for="email">Send Email</label>
+            <input type="checkbox" id="text-message" name="text-message"
+            checked />
+            <label for="text-message">Send Text</label>
+        </div>
+        </>
       case scheduleStates.None:
         return null
       default:

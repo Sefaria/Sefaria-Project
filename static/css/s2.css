@@ -7651,6 +7651,9 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   display: flex;
   flex-direction: column;
 }
+.scheduleForm .label {
+  font-weight: bold;
+}
 .scheduleForm div.scheduleDescription {
   color: var(--dark-grey);
   margin: 12px 0px;
