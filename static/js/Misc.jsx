@@ -50,6 +50,12 @@ const __filterChildrenByLanguage = (children, language) => {
   return newChildren;
 };
 
+const InterfaceOption = ({text, value}) => {
+  const lang = Sefaria.interfaceLang === "hebrew" ? "he" : "en";
+  const displayText = text[lang] ? text[lang] : text["en"] ? Sefaria._(text["en"]) : Sefaria._(text); // returns correct language then english then text if only one language provided
+  return <option key={value} value={value}>{displayText}</option>
+}
+
 const InterfaceText = ({text, html, children, context}) => {
   /**
    * Renders a single span for interface string with either class `int-en`` or `int-he` depending on Sefaria.interfaceLang.
@@ -2645,6 +2651,7 @@ export {
   GlobalWarningMessage,
   InterruptingMessage,
   InterfaceText,
+  InterfaceOption,
   ContentText,
   EnglishText,
   HebrewText,

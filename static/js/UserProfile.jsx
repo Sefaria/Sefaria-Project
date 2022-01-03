@@ -16,7 +16,9 @@ import {
   MessageModal,
   FollowButton,
   InterfaceText,
+  InterfaceOption
 } from './Misc';
+import { CalendarsPage, reformatCalendars } from './CalendarsPage';
 
 class UserProfile extends Component {
   constructor(props) {
@@ -577,9 +579,17 @@ const LearningSchedule = ({slug, showSchedule}) => {
           </>
           )
       case scheduleStates.CreateExistingSchedule:
-        return <>Create Existing Schedule</>
+        const calendars = reformatCalendars();
+        console.log(calendars);
+        return <>Create Existing Schedule 
+        <div><select onChange={handleOnChange}>
+          {calendars.map(cal => {
+            return <InterfaceOption key={cal.title.en} text={cal.title} value={cal.title.en}></InterfaceOption>
+          })}
+        </select></div>
+        </>
       case scheduleStates.CreateCustomSchedule:
-          return <>Create Custom Schedule</>
+          return <>Create Custom Schedule<div></div></>
       case scheduleStates.AlertsAndSettings:
         return <>Alerts and Settings</>
       case scheduleStates.None:

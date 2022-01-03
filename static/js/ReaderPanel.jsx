@@ -26,7 +26,7 @@ import UserHistoryPanel  from './UserHistoryPanel';
 import UserProfile  from './UserProfile';
 import UpdatesPanel  from './UpdatesPanel';
 import CommunityPage  from './CommunityPage';
-import CalendarsPage from './CalendarsPage'
+import { CalendarsPage } from './CalendarsPage'
 import StoryEditor  from './StoryEditor';
 import UserStats  from './UserStats';
 import ModeratorToolsPanel  from './ModeratorToolsPanel';
