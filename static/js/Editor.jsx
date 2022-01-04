@@ -2333,11 +2333,13 @@ const SefariaEditor = (props) => {
     )
 
 
-    useEffect( /* normalize on load */
+    useEffect(
         () => {
+            /* normalize on load */
             setCanUseDOM(true)
             setValue(transformSheetJsonToSlate(sheet))
             setReadyForNormalize(true)
+
             //TODO: Check that we still need/want this temporary analytics tracking code
             try {hj('event', 'using_new_editor');} catch {console.error('hj failed')}
         }, []
@@ -2347,6 +2349,13 @@ const SefariaEditor = (props) => {
         () => {
             if (readyForNormalize) {
                 Editor.normalize(editor, {force: true});
+
+                //set cursor to top of doc
+                Transforms.select(editor, {
+                  anchor: {path: [0, 0], offset: 0},
+                  focus: {path: [0, 0], offset: 0},
+                });
+
             }
         }, [readyForNormalize]
     )
@@ -2750,6 +2759,7 @@ const SefariaEditor = (props) => {
                   onCopy={onCutorCopy}
                   onBlur={onBlur}
                   onDOMBeforeInput={beforeInput}
+                  autoFocus
                 />
             </Slate> : null }
         </div>

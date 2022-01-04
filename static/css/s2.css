@@ -9128,7 +9128,7 @@ span.purim-emoji img{
   height: 30px;
   transform: rotate(45deg);
   background-color: white;
-  background-image: url("/static/icons/heavy-x.svg");
+  background-image: url("/static/icons/heavy-x-dark.svg");
   border: 1px solid var(--light-grey);
   background-size: 14px;
   border-radius: 50%;
@@ -9137,6 +9137,14 @@ span.purim-emoji img{
   background-repeat: no-repeat;
   background-position: center;
   box-sizing: border-box;
+  box-shadow: 0px 1px 3px 0px #00000040;
+}
+
+.editorAddInterface:hover::before {
+background-color: var(--lighter-grey);
+}
+.editorAddInterface.active:hover::before {
+background-color: white;
 }
 
 .editorAddInterface.active {
