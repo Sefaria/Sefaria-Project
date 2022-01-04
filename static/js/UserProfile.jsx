@@ -627,16 +627,27 @@ const LearningSchedule = ({slug, closeSchedule}) => {
         return (
           <>
           <h3>Select a schedule type</h3>
-          <div className="scheduleFormHorizontal">
+          {/* <div className="scheduleFormHorizontal"> */}
             <div className="scheduleBox">
               <div>Follow a schedule (like daf yomi, 929, or the weekly parsha) where you'll learn the same thing as other learners around the world.</div>
-              <button className="small button" onClick={() => forward(scheduleStates.CreateExistingSchedule)}>Existing Schedule</button>
+                <div className="scheduleSelect"><select onChange={$event => setSchedule($event.target.value)} value={schedule || ""}>
+                  <InterfaceOption key="none" text="None" value=""></InterfaceOption>
+                  {calendars.map(cal => {
+                    return <InterfaceOption key={cal.title.en} text={cal.title} value={cal.title.en}></InterfaceOption>
+                  })}
+                </select>
+                  <div className="scheduleDescription">
+                    {getScheduleInfo("description")}
+                  </div>
+                  <button className="small button" onClick={() => selectSchedule()}>Select this Schedule</button>
+                </div>
+              {/* <button className="small button" onClick={() => forward(scheduleStates.CreateExistingSchedule)}>Existing Schedule</button> */}
             </div>
             <div className="scheduleBox">
               <div>Generate your own schedule. You pick the text and how quickly you'll learn it.</div>
               <button className="small button" onClick={() => forward(scheduleStates.CreateCustomSchedule)}>Custom Schedule</button>
             </div>
-          </div>
+          {/* </div> */}
           </>
           )
       case scheduleStates.CreateExistingSchedule:

@@ -7659,7 +7659,6 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   margin: 12px 0px;
 }
 .scheduleForm .scheduleBox {
-    align-items: center;
     flex: 1;
     margin: 30px;
     padding: 6px;
@@ -7670,6 +7669,9 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 }
 .scheduleForm .scheduleFormHorizontal .phoneNumberInput {
   margin-inline-start: 10px;
+}
+.scheduleForm .scheduleSelect {
+  width: 100%
 }
 .scheduleListingDetails img {
   height: 18px;
