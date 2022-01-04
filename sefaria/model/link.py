@@ -43,8 +43,8 @@ class Link(abst.AbstractMongoRecord):
         "charLevelData",     # list of length 2. Containing 2 dicts coresponding to the refs list, each dict consists of the following keys: ["startChar","endChar","versionTitle","language"]. *if one of the refs is a Pasuk the startChar and endChar keys are startWord and endWord. This attribute was created for the quotation finder
         "score",             # int. represents how "good"/accurate the link is. introduced for quotations finder
         "inline_citation",    # bool acts as a flag for wrapped refs logic to run on the segments where this citation is inline.
-        "versionTitles",      # only for cases when type is `essay`: list of versionTitles corresponding to `refs`, where first versionTitle corresponds to Index of first ref, and one of these values can be null
-        "displayedText"       # only for cases when type is `essay`: name of corresponding Term to be used for display of essays
+        "versions",          # only for cases when type is `essay`: list of versionTitles corresponding to `refs`, where first versionTitle corresponds to Index of first ref, and each value is a dictionary of language and title of version
+        "displayedText"       # only for cases when type is `essay`: dictionary of en and he strings to be displayed
     ]
 
     def _normalize(self):
@@ -61,12 +61,17 @@ class Link(abst.AbstractMongoRecord):
         assert super(Link, self)._validate()
 
         if self.type == "essay":   # when type is 'essay', versionTitles should correspond to indices referred to in self.refs
-            assert hasattr(self, "versionTitles") and hasattr(self, "displayedText"), "You must set versionTitles and displayedText fields for type 'essay'."
-            assert text.Term().load({"name": self.displayedText}), "The 'displayedText' field must match name of existing Term."
-            for ref, versionTitle in zip(self.refs, self.versionTitles):
+            assert hasattr(self, "versions") and hasattr(self, "displayedText"), "You must set versions and displayedText fields for type 'essay'."
+            assert isinstance(self.displayedText, dict) and "en" in self.displayedText and "he" in self.displayedText, \
+                "displayedText field must be dictionary of he and en."
+            for ref, version in zip(self.refs, self.versions):
+                versionTitle = version["title"]
+                versionLanguage = version["language"] if "language" in version else None
                 index_title = text.Ref(ref).index.title
-                if versionTitle not in ["all", "none"]:
-                    assert VersionSet({"title": index_title, "versionTitle": versionTitle}).count() > 0, f"No version found for book {index_title} and versionTitle {versionTitle}"
+                if versionTitle not in ["ALL", "NONE"]:
+                    assert VersionSet({"title": index_title, "versionTitle": versionTitle, "language": versionLanguage}).count() > 0, \
+                        f"No version found for book {index_title}, versionTitle {versionTitle}, language {versionLanguage}"
+
 
         if False in self.refs:
             return False
@@ -87,7 +92,10 @@ class Link(abst.AbstractMongoRecord):
             # Don't bother saving a connection that already exists, or that has a more precise link already
             if self.refs != sorted(self.refs) and hasattr(self, 'charLevelData'):
                 self.charLevelData.reverse()
+            orig_refs = self.refs
             self.refs = sorted(self.refs) #make sure ref order is deterministic
+            if orig_refs != self.refs:    #if reversed self.refs, make sure to reverse self.versions
+                self.versions = self.versions[::-1]
             samelink = Link().load({"refs": self.refs})
 
             if samelink:

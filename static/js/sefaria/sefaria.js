@@ -1086,7 +1086,7 @@ Sefaria = extend(Sefaria, {
     return links.filter(function(link){
       if (isCommentary && link.category !== "Commentary") { return false; }
       if (isQuoting && link.category !== "Quoting Commentary") { return false; }
-      if (isEssay) { return link.type === "essay" && Sefaria.util.inArray(link.displayedText, filter) !== -1; }
+      if (isEssay) { return link.type === "essay" && Sefaria.util.inArray(link.displayedText["en"], filter) !== -1; }
 
       return (Sefaria.util.inArray(link.category, filter) !== -1 ||
               Sefaria.util.inArray(link["collectiveTitle"]["en"], filter) !== -1 );
@@ -1111,8 +1111,7 @@ Sefaria = extend(Sefaria, {
     links = this._dedupeLinks(links); // by aggregating links to each ref above, we can get duplicates of links to spanning refs
     let essayLinks = [];
     for (let i=0; i<links.length; i++) {
-      if (links[i]["type"] === "essay" && "anchorVersionTitle" in links[i] && links[i]["anchorVersionTitle"] !== "none" && "displayedText" in links[i]) {
-        // only add to essayLinks if it is an essay link that has displayedText and its anchorVersionTitle indicates it should show on this ref
+      if (links[i]["type"] === "essay" && "displayedText" in links[i]) {
         essayLinks.push(links[i]);
       }
     }
