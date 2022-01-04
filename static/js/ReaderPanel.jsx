@@ -1034,6 +1034,7 @@ class ReaderPanel extends Component {
           {hideReaderControls ? null :
           <ReaderControls
             showBaseText={this.showBaseText}
+            hasSidebar={this.state.hasSidebar}
             toggleSheetEditMode={this.toggleSheetEditMode}
             currentRef={this.state.currentlyVisibleRef}
             highlightedRefs={this.state.highlightedRefs}
@@ -1155,12 +1156,9 @@ class ReaderControls extends Component {
     super(props);
     this.state = {};
   }
-  isConnectionsPanelOpenHeuristic(){
-    return !!this.props.highlightedRefs.length
-  }
   openTextConnectionsPanel(e) {
     e.preventDefault();
-    if(!this.isConnectionsPanelOpenHeuristic()){ //Prevent click on title from opening connections panel if its already open
+    if(!this.props.hasSidebar){ //Prevent click on title from opening connections panel if its already open
       this.props.onTextTitleClick(this.props.currentRef, false);
     }
   }
@@ -1219,7 +1217,7 @@ class ReaderControls extends Component {
     const showVersion = this.props.currVersions.en && (this.props.settings.language === "english" || this.props.settings.language === "bilingual");
     const versionTitle = this.props.currVersions.en ? this.props.currVersions.en.replace(/_/g," ") : "";
     const url = this.props.sheetID ? "/sheets/" + this.props.sheetID : oref ? "/" + Sefaria.normRef(oref.book) : Sefaria.normRef(this.props.currentRef);
-    const readerTextTocClasses = classNames({readerTextToc: 1, attributed: !!categoryAttribution, connected: this.isConnectionsPanelOpenHeuristic()})
+    const readerTextTocClasses = classNames({readerTextToc: 1, attributed: !!categoryAttribution, connected: this.props.hasSidebar})
 
 
     let centerContent = connectionsHeader ?
