@@ -557,7 +557,8 @@ const LearningSchedule = ({slug, closeSchedule}) => {
   const [scheduleFormState, setScheduleFormState] = useState(slug ? scheduleStates.AlertsAndSettings : scheduleStates.SelectScheduleType );
   const [scheduleFormStateArray, setScheduleFormStateArray] = useState([]);
   const [schedule, setSchedule] = useState(null);
-  const [scheduleOptions, setScheduleOptions] = useState({})
+  const [scheduleOptions, setScheduleOptions] = useState({});
+  const [alerts, setAlerts] = useState({email: false, textMessage: false});
   const calendars = reformatCalendars();
 
   // update schedule object
@@ -566,9 +567,10 @@ const LearningSchedule = ({slug, closeSchedule}) => {
     setScheduleOptions(prevScheduleOptions => {
       return {
       ...prevScheduleOptions,
-      schedule: schedule
+      schedule: schedule,
+      alerts: alerts
     }});
-  }, [schedule])
+  }, [schedule, alerts])
 
   // right now just log schedule
   useEffect(() => {
@@ -616,7 +618,6 @@ const LearningSchedule = ({slug, closeSchedule}) => {
       alert("Please select a schedule to continue")
     }
   }
-    
   const getFormContents = () => {
     switch(scheduleFormState) {
       case scheduleStates.SelectScheduleType:
@@ -660,12 +661,12 @@ const LearningSchedule = ({slug, closeSchedule}) => {
         </div>
         <div>
           <span className="label">Alerts:</span>
-            <input type="checkbox" id="email" name="email"
-            checked />
-            <label for="email">Send Email</label>
-            <input type="checkbox" id="text-message" name="text-message"
-            checked />
-            <label for="text-message">Send Text</label>
+            <input type="checkbox" id="email" key="email" name="email"
+            checked={alerts.email} onChange={() => setAlerts(prevAlerts => {return {...prevAlerts, email: !prevAlerts.email}})} />
+            <label htmlFor="email">Send Email</label>
+            <input type="checkbox" id="text-message" key="text-message" name="text-message"
+            checked={alerts.textMessage} onChange={() => setAlerts(prevAlerts => {return {...prevAlerts, textMessage: !prevAlerts.textMessage}})} />
+            <label htmlFor="text-message">Send Text</label>
         </div>
         </>
       case scheduleStates.None:
