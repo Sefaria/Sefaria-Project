@@ -93,7 +93,7 @@ class TextFilter extends Component {
   }
   render() {
     const classes = classNames({textFilter: 1, on: this.props.on, lowlight: this.props.count == 0});
-    const color = this.props.filterSuffix === "Essay" ? "#3B5849" : Sefaria.palette.categoryColor(this.props.category);
+    const color = this.props.filterSuffix === "Essay" ? "var(--essay-links-green)" : Sefaria.palette.categoryColor(this.props.category);
     const style = {"--category-color": color};
     const enBook = this.props.book == this.props.category ? this.props.book.toUpperCase() : this.props.book;
     const showCount = !this.props.hideCounts && !!this.props.count;
