@@ -844,12 +844,22 @@ ArrayMapNode.propTypes = {
 
 
 class DictionaryNode extends Component {
+  getCurrentLetter(){
+    if(this.props?.currentlyVisibleSectionRef){
+      const rf = this.props.currentlyVisibleSectionRef;
+      const letterSectionRf = rf.substring(0, rf.lastIndexOf(",") + 3); //get the first character after the last comma (plus space plus the letter)
+      console.log("letter: ", letterSectionRf);
+      return letterSectionRf;
+    }
+    return null;
+  }
   render() {
     if (this.props.schema.headwordMap) {
+      const letterSection = this.getCurrentLetter();
       let sectionLinks = this.props.schema.headwordMap.map((m,i) =>{
       let letter = m[0];
       let ref = m[1];
-      let currentPlace = ref == this.props?.currentlyVisibleSectionRef;
+      let currentPlace = letterSection ? ref == letterSection : false;
       const linkClasses = classNames({"sectionLink": 1, "current": currentPlace}); 
       return (
           <a className={linkClasses} href={"/" + Sefaria.normRef(ref)} data-ref={ref} key={i}>
