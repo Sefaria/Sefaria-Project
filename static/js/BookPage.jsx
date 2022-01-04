@@ -844,11 +844,14 @@ ArrayMapNode.propTypes = {
 
 
 class DictionaryNode extends Component {
-  getCurrentLetter(){
+  getCurrentLetter(){ 
+    //we need this so we can tell what letter of the alphabet a user is currently looking at based on the current ref, since the letters arent actually super
+    // sections. 
     if(this.props?.currentlyVisibleSectionRef){
       const rf = this.props.currentlyVisibleSectionRef;
-      const letterSectionRf = rf.substring(0, rf.lastIndexOf(",") + 3); //get the first character after the last comma (plus space plus the letter)
-      console.log("letter: ", letterSectionRf);
+      const letterSectionRf = rf.substring(0, rf.lastIndexOf(",") + 3); 
+      //get the substring up to the character after the last comma (and the space) thats the letter of the
+      // alphabet we are on
       return letterSectionRf;
     }
     return null;
