@@ -559,6 +559,7 @@ const LearningSchedule = ({slug, closeSchedule}) => {
   const [schedule, setSchedule] = useState(null);
   const [scheduleOptions, setScheduleOptions] = useState({});
   const [alerts, setAlerts] = useState({email: false, textMessage: false});
+  const [phoneNumber, setPhoneNumber] = useState("");
   const calendars = reformatCalendars();
 
   // update schedule object
@@ -568,7 +569,8 @@ const LearningSchedule = ({slug, closeSchedule}) => {
       return {
       ...prevScheduleOptions,
       schedule: schedule,
-      alerts: alerts
+      alerts: alerts,
+      phoneNumber: phoneNumber
     }});
   }, [schedule, alerts])
 
@@ -618,6 +620,7 @@ const LearningSchedule = ({slug, closeSchedule}) => {
       alert("Please select a schedule to continue")
     }
   }
+  
   const getFormContents = () => {
     switch(scheduleFormState) {
       case scheduleStates.SelectScheduleType:
@@ -659,14 +662,17 @@ const LearningSchedule = ({slug, closeSchedule}) => {
           <span className="label">Learning Schedule: </span><span>{getScheduleInfo("title")}</span>
           <div className="scheduleDescription"><span>{getScheduleInfo("description")}</span></div>
         </div>
-        <div>
+        <div className="scheduleFormHorizontal">
           <span className="label">Alerts:</span>
             <input type="checkbox" id="email" key="email" name="email"
             checked={alerts.email} onChange={() => setAlerts(prevAlerts => {return {...prevAlerts, email: !prevAlerts.email}})} />
             <label htmlFor="email">Send Email</label>
             <input type="checkbox" id="text-message" key="text-message" name="text-message"
-            checked={alerts.textMessage} onChange={() => setAlerts(prevAlerts => {return {...prevAlerts, textMessage: !prevAlerts.textMessage}})} />
-            <label htmlFor="text-message">Send Text</label>
+          checked={alerts.textMessage} onChange={() => setAlerts(prevAlerts => {return {...prevAlerts, textMessage: !prevAlerts.textMessage}})} />
+            <label htmlFor="text-message">Send Text</label>{alerts.textMessage ? <PhoneNumberInput setPhoneNumber={setPhoneNumber}/> : null }
+        </div>
+        <div>
+        <button className="small button" onClick={() => closeSchedule()}>Save and Close</button>
         </div>
         </>
       case scheduleStates.None:
@@ -686,6 +692,10 @@ const LearningSchedule = ({slug, closeSchedule}) => {
         </div>
       </div>
     )
+}
+
+const PhoneNumberInput = ({setPhoneNumber}) => {
+  return(<div className="phoneNumberInput">+1<input type="tel" placeholder="###-###-####" onChange={$event => setPhoneNumber($event)}></input></div>) // TODO: make this better
 }
 
 const EditorToggleHeader = ({usesneweditor}) => {
