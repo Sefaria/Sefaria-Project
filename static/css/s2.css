@@ -125,6 +125,7 @@ a, a:hover {
   --reference-orange: #D4896C;
   --miscelaneous-green: #3B5849;
   --selected-option: #000000;
+  --select-blue: #0B71E7;
 }
 /* Font Family */
 body, .sans-serif {
@@ -9107,12 +9108,12 @@ span.purim-emoji img{
 .interface-english .sheetItem:only-of-type.empty .SheetOutsideText:before,
 .interface-english .spacer:only-of-type.empty:before,
 .interface-english .spacer:only-of-type.empty:before {
-  content: "Write some text or type a citation (ex. 'Genesis 1:1-5') ";
+  content: "Write something... ";
 }
 .interface-hebrew .sheetItem:only-of-type.empty .SheetOutsideText:before,
 .interface-hebrew .spacer:only-of-type.empty:before,
 .interface-hebrew .spacer:only-of-type.empty:before {
-  content: "הקלידו טקסט חופשי או מראה מקום (לדוגמא, בראשית א, א-ה)";
+  content: "לכתוב משהו...";
 }
 .editorAddInterface {
   position: relative;
@@ -9463,9 +9464,9 @@ cursor: pointer;
 
 .sheetItem .SheetSource.selected.segment,
 .sheetItem .SheetOutsideBiText.selected.segment {
-  border-top: 2px solid #CCE6FF;
-  border-bottom: 2px solid #CCE6FF;
-  border-inline-end: 2px solid #CCE6FF;
+  border-top: 2px solid var(--select-blue);
+  border-bottom: 2px solid var(--select-blue);
+  border-inline-end: 2px solid var(--select-blue);
   margin-top: 28px;
   margin-bottom: 28px;
   margin-inline-end: -2px;
