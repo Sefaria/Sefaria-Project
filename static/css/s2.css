@@ -9615,6 +9615,15 @@ cursor: pointer;
   );
 }
 
+.bilingual.heLeft .sheetContent .boxedSheetItem,
+.bilingual.heRight .sheetContent .boxedSheetItem {
+  margin-bottom: 30px;
+}
+
+.bilingual.heLeft .sheetContent .sheetItem .SheetSource.segment,
+.bilingual.heRight .sheetContent .sheetItem .SheetSource.segment {
+  margin-bottom: 0;
+}
 
 .boxedSheetItem + .spacer {
   margin-top: -30px;
