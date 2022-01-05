@@ -686,7 +686,7 @@ const LearningSchedule = ({slug, closeSchedule}) => {
           The text you have selected contains {unitCount.toString()} verses.
           </div>
           <div className="scheduleFormHorizontal">
-          <span className="label">{unit} per day: </span>
+          <span className="label">{unit} per day: </span> <input type="number"></input>
           </div>
           </div>
 
