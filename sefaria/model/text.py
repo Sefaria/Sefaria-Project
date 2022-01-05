@@ -5409,6 +5409,12 @@ class Library(object):
 
         return IndexSet(q) if full_records else IndexSet(q).distinct("title")
 
+    def get_indexes_in_corpus(self, corpus: str, include_dependant=False, full_records=False) -> Union[IndexSet, list]:
+        q = {'corpora': corpus}
+        if not include_dependant:
+            q['dependence'] = {'$in': [False, None]}
+        return IndexSet(q) if full_records else IndexSet(q).distinct("title")
+
     def get_indices_by_collective_title(self, collective_title, full_records=False):
         q = {'collective_title': collective_title}
         return IndexSet(q) if full_records else IndexSet(q).distinct("title")

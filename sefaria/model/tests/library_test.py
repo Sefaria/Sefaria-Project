@@ -437,6 +437,10 @@ class Test_Library(object):
         n2 = library.get_schema_node("שמות", "he")
         assert node == n2
 
+    def test_get_indexes_in_corpus(self):
+        for corpus, count in [('Tanakh', 39), ('Mishnah', 63), ('Bavli', 37), ('Yerushalmi', 39)]:
+            assert len(library.get_indexes_in_corpus(corpus)) == count
+
 
 class Test_Term_Map(object):
     @classmethod
