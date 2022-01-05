@@ -1287,6 +1287,8 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         "versionUrl",  # bad data?
         "versionTitleInHebrew",  # stores the Hebrew translation of the versionTitle
         "versionNotesInHebrew",  # stores VersionNotes in Hebrew
+        "shortVersionTitle",
+        "shortHeVersionTitle",
         "extendedNotes",
         "extendedNotesHebrew",
         "purchaseInformationImage",
