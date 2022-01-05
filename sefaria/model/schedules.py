@@ -7,7 +7,7 @@ import regex as re
 from sefaria.model import *
 from sefaria.system.database import db
 from . import abstract as abst
-import datetime
+from datetime import *
 
 import structlog
 logger = structlog.get_logger(__name__)
@@ -39,7 +39,7 @@ class PersonalSchedule(abst.AbstractMongoRecord):
         "calendar_schedule" # calendar
     ]
 
-    def __init__(self, user_id, schedule_name, pace=None, time_frame=(datetime.datetime.utcnow(), datetime.datetime.utcnow()), time_of_notification=None, contact_on_shabbat=True, contact_by_sms=False, contact_by_email=False, book=None, corpus=None, calendar_schedule=None):
+    def __init__(self, user_id, schedule_name, pace=None, time_frame=(datetime.utcnow(), datetime.utcnow()), time_of_notification=None, contact_on_shabbat=False, contact_by_sms=False, contact_by_email=False, book=None, corpus=None, calendar_schedule=None):
         super().__init__()
         self.user_id = user_id
         self.schedule_name = schedule_name
@@ -47,7 +47,7 @@ class PersonalSchedule(abst.AbstractMongoRecord):
         self.start_date = time_frame[0]
         self.end_date = time_frame[1]
         self.active = True
-        self.date_created = datetime.datetime.utcnow()
+        self.date_created = datetime.utcnow()
         self.time_of_notification = time_of_notification
         self.contact_on_shabbat = contact_on_shabbat
         self.contact_by_sms = contact_by_sms
@@ -76,20 +76,20 @@ class PersonalSchedule(abst.AbstractMongoRecord):
         Return a json serializable dictionary which includes all data to be saved in mongo (as opposed to postgres)
         """
         d = {
-            "user_id"	:	self.user_id	,
-            "schedule_name"	:	self.schedule_name	,
-            "pace"	:self.pace	,
-            "start_date"	:	self.start_date	,
-            "end_date"	:	self.end_date	,
-            "active":	self.active	,
-            "datetime"	:	self.date_created	,
-            "time_of_notification"	:	self.time_of_notification	,
-            "contact_on_shabbat"	:	self.contact_on_shabbat	,
-            "contact_by_sms"	:	self.contact_by_sms	,
-            "contact_by_email"	:	self.contact_by_email	,
-            "book"	:	self.book	,
-            "corpus"	:	self.corpus	,
-            "calendar_schedule"	:	self.calendar_schedule	,
+            "user_id":	            self.user_id	,
+            "schedule_name":	    self.schedule_name	,
+            "pace":                 self.pace	,  # int
+            "start_date":           self.start_date	,
+            "end_date":             self.end_date	,
+            "active":               self.active	,
+            "datetime":	            self.date_created	,
+            "time_of_notification":	self.time_of_notification	,
+            "contact_on_shabbat":	self.contact_on_shabbat	,
+            "contact_by_sms":	    self.contact_by_sms	,
+            "contact_by_email":	    self.contact_by_email	,
+            "book":	                self.book	,
+            "corpus":	            self.corpus	,
+            "calendar_schedule":	self.calendar_schedule	,
         }
         return d
 
@@ -106,18 +106,43 @@ class PersonalSchedule(abst.AbstractMongoRecord):
     def edit_notifications(self):
         pass
 
+    def ref_chunks(self, lst, n):
+        chunks = []
+        for i in range(0, len(lst), n):
+            ref_str = lst[i].normal() + "-" + re.search('(\d+:?\d*\d$)',
+                                                          lst[min(i + 6, len(lst) - 1)].normal()).group(1)
+            chunks.append(Ref(ref_str))
+        return chunks
+
     def divide_the_text(self):
         """
         Given a list of segments and (start_time, end_time) calculates the portions
         :return: list of ranged-refs
         """
-        pass
+        if self.pace:
+            chunks = self.ref_chunks(self.all_segs, self.pace)
+        # elif self.end_date:
+        #     self.start_date - self.end_date
+        return chunks
 
     def create_full_schedule_run(self):
         if self.calendar_schedule:
             PersonalScheduleNotification()
         elif self.book:
-            PersonalScheduleNotification()
+            ind = library.get_index(self.book)
+            self.all_segs = ind.all_segment_refs()
+            chunks = self.divide_the_text()
+            date = self.start_date
+            psn = None
+            for ref_chunk in chunks:
+                date = date + timedelta(days=1)
+                if self.contact_by_sms:
+                    psn = PersonalScheduleNotification(self, ref_chunk, 'sms', date)
+                if self.contact_by_email:
+                    psn = PersonalScheduleNotification(self, ref_chunk, 'email', date)
+
+                if psn:
+                    psn.save()
         elif self.corpus:
             for ind in library.get_indexes_in_category(self.corpus):
                 pss = PersonalSchedule.copy(self)
@@ -134,6 +159,7 @@ class PersonalScheduleNotification(abst.AbstractMongoRecord):
     collection = 'personal_schedule_notification'
 
     required_attrs = [
+        "user_id",
         "schedule_name",
         "ref",
         "notification_type",    # sms/email (or other)
@@ -142,17 +168,18 @@ class PersonalScheduleNotification(abst.AbstractMongoRecord):
     ]
 
     optional_attrs = [
-        "email_address",
-        "phone_number",
+        # "email_address",
+        # "phone_number",
         "sent",         # bool
         "clicked",      # bool
     ]
 
     def __init__(self, ps, ref, notification_type, date):
         super().__init__()
+        self.user_id =ps.user_id
         self.schedule_name = ps.schedule_name
         self.ref = ref
-        self.ping_time = ps.time_of_notification + date
+        self.ping_time = (ps.time_of_notification, date)
         self.notification_type = notification_type
         profile = db.profiles.find_one({"id": ps.user_id})
         if self.notification_type == 'email':
@@ -160,6 +187,21 @@ class PersonalScheduleNotification(abst.AbstractMongoRecord):
         elif self.notification_type == 'sms':
             self.phone_number = profile["phone_number"]
 
+    def to_mongo_dict(self):
+        """
+        Return a json serializable dictionary which includes all data to be saved in mongo (as opposed to postgres)
+        """
+        d = {
+            "user_id": self.user_id,
+            "schedule_name": self.schedule_name,
+            "ref": self.ref,
+            "notification_type": self.notification_type,  # sms/email (or other)
+            "ping_time": self.ping_time
+        }
+        return d
+
+    def save(self, override_dependencies=False):
+        db.schedule_notification.save(self.to_mongo_dict())
 
 class PersonalScheduleNotificationSet(abst.AbstractMongoSet):
     recordClass = PersonalScheduleNotification
