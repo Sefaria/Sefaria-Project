@@ -19,6 +19,7 @@ import {
   InterfaceOption
 } from './Misc';
 import { CalendarsPage, reformatCalendars } from './CalendarsPage';
+import { Autocompleter } from './Editor'
 
 class UserProfile extends Component {
   constructor(props) {
@@ -559,7 +560,12 @@ const LearningSchedule = ({slug, closeSchedule}) => {
   const [schedule, setSchedule] = useState(null);
   const [scheduleOptions, setScheduleOptions] = useState({});
   const [alerts, setAlerts] = useState({email: false, textMessage: false});
+  const [startRef, setStartRef] = useState("");
+  const [endRef, setEndRef] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [unit, setUnit] = useState("verses")
+  const [unitCount, setUnitCount] = useState(50);
+  const [rateUnit, setRateUnit] = useState(3);
   const calendars = reformatCalendars();
 
   // update schedule object
@@ -568,11 +574,13 @@ const LearningSchedule = ({slug, closeSchedule}) => {
     setScheduleOptions(prevScheduleOptions => {
       return {
       ...prevScheduleOptions,
-      schedule: schedule,
+      schedule,
       alerts: alerts,
-      phoneNumber: phoneNumber
+      phoneNumber,
+      startRef,
+      endRef
     }});
-  }, [schedule, alerts])
+  }, [schedule, alerts, startRef, endRef])
 
   // right now just log schedule
   useEffect(() => {
@@ -645,7 +653,7 @@ const LearningSchedule = ({slug, closeSchedule}) => {
             </div>
             <div className="scheduleBox">
               <div>Generate your own schedule. You pick the text and how quickly you'll learn it.</div>
-              <button className="small button" onClick={() => forward(scheduleStates.CreateCustomSchedule)}>Custom Schedule</button>
+              <button className="small button white" onClick={() => forward(scheduleStates.CreateCustomSchedule)}>Custom Schedule</button>
             </div>
           {/* </div> */}
           </>
@@ -666,14 +674,31 @@ const LearningSchedule = ({slug, closeSchedule}) => {
         </div>
         </>
       case scheduleStates.CreateCustomSchedule:
-          return <>Create Custom Schedule<div></div></>
+          return <><h3>Create Custom Schedule</h3>
+          <div className="scheduleBox">
+          <div className="scheduleFormHorizontal" id="alertsContainer">
+          <span className="label">Text to learn: </span>
+          {/* <Autocompleter
+                selectedRefCallback={setStartRef}
+            /> */}
+          </div>
+          <div className="scheduleDescription">
+          The text you have selected contains {unitCount.toString()} verses.
+          </div>
+          <div className="scheduleFormHorizontal">
+          <span className="label">{unit} per day: </span>
+          </div>
+          </div>
+
+          </>
       case scheduleStates.AlertsAndSettings:
         return <><h3>Alerts and Settings</h3>
+        <div className="scheduleBox">
         <div>
-          <span className="label">Learning Schedule: </span><span>{getScheduleInfo("title")}</span>
+          <span className="label">Learning Schedule: </span><span>{getScheduleInfo("title")}</span> <button onClick={backButton}>Select a different schedule</button>
           <div className="scheduleDescription"><span>{getScheduleInfo("description")}</span></div>
         </div>
-        <div className="scheduleFormHorizontal">
+        <div className="scheduleFormHorizontal" id="alertsContainer">
           <span className="label">Alerts:</span>
             <input type="checkbox" id="email" key="email" name="email"
             checked={alerts.email} onChange={() => setAlerts(prevAlerts => {return {...prevAlerts, email: !prevAlerts.email}})} />
@@ -685,6 +710,7 @@ const LearningSchedule = ({slug, closeSchedule}) => {
         <div>
         <button className="small button" onClick={() => closeSchedule()}>Save and Close</button>
         </div>
+        </div>
         </>
       case scheduleStates.None:
         return null
@@ -694,12 +720,11 @@ const LearningSchedule = ({slug, closeSchedule}) => {
   }
     return (
       <div className="scheduleFormContainer">
-        <div className="scheduleFormHorizontal">
-          <button onClick={backButton}>Back</button>
-          <button onClick={askCloseSchedule}>Close</button>
-        </div>
         <div className="scheduleForm">
           {scheduleFormState ? getFormContents() : null}
+        </div>
+        <div className="scheduleFormHorizontal">
+          <button onClick={askCloseSchedule}>Close</button>
         </div>
       </div>
     )
@@ -707,6 +732,13 @@ const LearningSchedule = ({slug, closeSchedule}) => {
 
 const PhoneNumberInput = ({setPhoneNumber}) => {
   return(<div className="phoneNumberInput">+1<input type="tel" placeholder="###-###-####" onChange={$event => setPhoneNumber($event)}></input></div>) // TODO: make this better
+}
+
+const RateDateCalculator = ({numberOfVerses}) => {
+  const [startDate, setStartDate] = useState(new Date(new Date().setHours(0,0,0,0)));
+  return(<div>
+
+  </div>)
 }
 
 const EditorToggleHeader = ({usesneweditor}) => {
