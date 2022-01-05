@@ -539,6 +539,7 @@ class SchemaNode extends Component {
               title={this.props.refPath}
               showBaseText={this.props.showBaseText}
               currVersions={this.props.currVersions}
+              lexiconName={node.lexiconName}
           />
         );
       }
@@ -579,6 +580,7 @@ class SchemaNode extends Component {
               title={this.props.refPath}
               showBaseText={this.props.showBaseText}
               currVersions={this.props.currVersions}
+              lexiconName={node.lexiconName}
           />;
         } else if (node.depth == 1 && !node.default) {
           // SchemaNode title that points straight to content
