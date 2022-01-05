@@ -101,7 +101,14 @@ class AutoCompleter(object):
             ts = ts_gte10.array() + authors.array()
             tnames = [name for t in ts for name in t.get_titles(lang)]
             normal_topics_names = [self.normalizer(n) for n in tnames]
-            self.title_trie.add_titles_from_set(ts, "get_titles", "get_primary_title", "slug", 4 * PAD)
+
+            def sub_order_fn(t: Topic) -> int:
+                sub_order = PAD - getattr(t, 'numSources', 0) - 1
+                if isinstance(t, AuthorTopic):
+                    # give a bonus to authors so they don't get drowned out by topics
+                    sub_order -= 100
+                return sub_order
+            self.title_trie.add_titles_from_set(ts, "get_titles", "get_primary_title", "slug", 4 * PAD, sub_order_fn)
             self.spell_checker.train_phrases(tnames)
             self.ngram_matcher.train_phrases(tnames, normal_topics_names)
         if include_users:
@@ -458,13 +465,14 @@ class TitleTrie(datrie.Trie):
                 "order": order
             }
 
-    def add_titles_from_set(self, recordset, all_names_method, primary_name_method, keyattr, order):
+    def add_titles_from_set(self, recordset, all_names_method, primary_name_method, keyattr, base_order, sub_order_fn=None):
         """
 
         :param recordset: Instance of a subclass of AbstractMongoSet, or a List of objects
         :param all_names_method: Name of method that will return list of titles, when passed lang
         :param primary_name_method: Name of method that will return primary title, when passed lang
         :param keyattr: Name of attribute that will give key to object
+        :param sub_order_fn: optional function which takes an AbstractMongoRecord as a parameter and returns an integer between 0 and PAD-1 inclusive. the lower the number, the higher ranked this object will be among objects of the same type.
         :return:
         """
         done = set()
@@ -472,7 +480,7 @@ class TitleTrie(datrie.Trie):
             key = getattr(obj, keyattr, None)
             if not key:
                 continue
-
+            sub_order = 0 if sub_order_fn is None else sub_order_fn(obj)
             title = getattr(obj, primary_name_method)(self.lang)
             if title:
                 norm_title = self.normalizer(title)
@@ -482,7 +490,7 @@ class TitleTrie(datrie.Trie):
                     "type": obj.__class__.__name__,
                     "key": tuple(key) if isinstance(key, list) else key,
                     "is_primary": True,
-                    "order": order
+                    "order": base_order + sub_order
                 }
 
             titles = getattr(obj, all_names_method)(self.lang)
@@ -496,7 +504,7 @@ class TitleTrie(datrie.Trie):
                     "type": obj.__class__.__name__,
                     "key": tuple(key) if isinstance(key, list) else key,
                     "is_primary": False,
-                    "order": order
+                    "order": base_order + sub_order
                 }
 
 
