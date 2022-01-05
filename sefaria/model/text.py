@@ -4948,8 +4948,9 @@ class Library(object):
 
     def build_lexicon_auto_completers(self):
         from .autospell import LexiconTrie
+        from .lexicon import LexiconSet
         self._lexicon_auto_completer = {
-            lexicon: LexiconTrie(lexicon) for lexicon in ["Jastrow Dictionary", "Klein Dictionary"]
+            lexicon.name: LexiconTrie(lexicon.name) for lexicon in LexiconSet({'should_autocomplete': True})
         }
         self._lexicon_auto_completer_is_ready = True
 

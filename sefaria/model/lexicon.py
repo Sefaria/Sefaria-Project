@@ -60,7 +60,8 @@ class Lexicon(abst.AbstractMongoRecord):
         'text_categories',
         'index_title',          # The title of the Index record that corresponds to this Lexicon
         'version_title',        # The title of the Version record that corresponds to this Lexicon
-        'version_lang'          # The language of the Version record that corresponds to this Lexicon
+        'version_lang',         # The language of the Version record that corresponds to this Lexicon
+        'should_autocomplete'   # enables search box
     ]
 
     def word_count(self):
@@ -68,6 +69,10 @@ class Lexicon(abst.AbstractMongoRecord):
 
     def entry_set(self):
         return LexiconEntrySet({"parent_lexicon": self.name})
+
+
+class LexiconSet(abst.AbstractMongoSet):
+    recordClass = Lexicon
 
 
 class Dictionary(Lexicon):
@@ -208,11 +213,11 @@ class RashiDictionaryEntry(DictionaryEntry):
 
 
 class RidDictionaryEntry(DictionaryEntry):
-    required_attrs = DictionaryEntry.required_attrs + ["rid"]
+    required_attrs = DictionaryEntry.required_attrs + ["rid", "should_autocomplete"]
 
 
 class JastrowDictionaryEntry(DictionaryEntry):
-    required_attrs = DictionaryEntry.required_attrs + ["rid"]
+    required_attrs = DictionaryEntry.required_attrs + ["rid", "should_autocomplete"]
     
     def get_sense(self, sense):
         text = ''
@@ -238,7 +243,7 @@ class JastrowDictionaryEntry(DictionaryEntry):
 
 
 class KleinDictionaryEntry(DictionaryEntry):
-    required_attrs = DictionaryEntry.required_attrs + ["content", "rid"]
+    required_attrs = DictionaryEntry.required_attrs + ["content", "rid", "should_autocomplete"]
     
     def get_sense(self, sense):
         text = ''
