@@ -1262,7 +1262,7 @@ class ReaderControls extends Component {
     let displayVersionTitle = this.props.settings.language === 'hebrew' ? this.state.displayVersionTitle.he : this.state.displayVersionTitle.en;
     if (categoryAttribution) { displayVersionTitle = `(${displayVersionTitle})`; }
     const url = this.props.sheetID ? "/sheets/" + this.props.sheetID : oref ? "/" + Sefaria.normRef(oref.book) : Sefaria.normRef(this.props.currentRef);
-    const readerTextTocClasses = classNames({readerTextToc: 1, attributed: !!categoryAttribution, connected: this.isConnectionsPanelOpenHeuristic()})
+    const readerTextTocClasses = classNames({readerTextToc: 1, attributed: !!categoryAttribution || this.shouldShowVersion(), connected: this.isConnectionsPanelOpenHeuristic()})
 
 
     let centerContent = connectionsHeader ?
