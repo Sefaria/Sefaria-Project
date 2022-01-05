@@ -1288,7 +1288,7 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         "versionTitleInHebrew",  # stores the Hebrew translation of the versionTitle
         "versionNotesInHebrew",  # stores VersionNotes in Hebrew
         "shortVersionTitle",
-        "shortHeVersionTitle",
+        "shortVersionTitleInHebrew",
         "extendedNotes",
         "extendedNotesHebrew",
         "purchaseInformationImage",
@@ -2099,6 +2099,14 @@ class TextFamily(object):
         "versionTitleInHebrew": {
             "en": "versionTitleInHebrew",
             "he": "heVersionTitleInHebrew",
+        },
+        "shortVersionTitle": {
+            "en": "shortVersionTitle",
+            "he": "heShortVersionTitle",
+        },
+        "shortVersionTitleInHebrew": {
+            "en": "shortVersionTitleInHebrew",
+            "he": "heShortVersionTitleInHebrew",
         },
         "versionSource": {
             "en": "versionSource",
@@ -4312,7 +4320,7 @@ class Ref(object, metaclass=RefCacheType):
         """
         fields = ["title", "versionTitle", "versionSource", "language", "status", "license", "versionNotes",
                   "digitizedBySefaria", "priority", "versionTitleInHebrew", "versionNotesInHebrew", "extendedNotes",
-                  "extendedNotesHebrew", "purchaseInformationImage", "purchaseInformationURL"]
+                  "extendedNotesHebrew", "purchaseInformationImage", "purchaseInformationURL", "shortVersionTitle"]
         versions = VersionSet(self.condition_query())
         version_list = []
         if self.is_book_level():
