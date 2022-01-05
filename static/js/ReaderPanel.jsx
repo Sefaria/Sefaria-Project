@@ -1154,7 +1154,9 @@ class ReaderControls extends Component {
   // contains controls for display, navigation etc.
   constructor(props) {
     super(props);
-    this.state = {};
+    this.state = {
+      displayVersionTitle: {},  // lang codes as keys and version title to display in header as values. prefers shortVersionTitle when available but falls back on versionTitle
+    };
   }
   isConnectionsPanelOpenHeuristic(){
     return !!this.props.highlightedRefs.length
@@ -1169,6 +1171,40 @@ class ReaderControls extends Component {
     e.preventDefault();
     this.props.onSheetTitleClick(0);
   }
+  shouldShowVersion(props) {
+    props = props || this.props;
+    return props.settings.language === "english" || props.settings.language === "bilingual";
+  }
+  setDisplayVersionTitle(version) {
+    const en = version.shortVersionTitle || version.versionTitle;
+    this.setState({
+      displayVersionTitle: {
+        en,
+        he: version.shortVersionTitleInHebrew || en,
+      }
+    });
+  }
+  loadTranslations() {
+    /**
+     * Preload translation versions to get shortVersionTitle to display
+     */
+    if (!this.shouldShowVersion()) { return; }
+    Sefaria.getVersions(this.props.currentRef, false, ['en']).then(versionList => {
+      if (!this.props.currVersions.en) {
+        // default version. choose highest priority
+        if (versionList.length === 0) { return; }
+        versionList.sort((a, b) => b.priority - a.priority);
+        this.setDisplayVersionTitle(versionList[0]);
+        return;
+      }
+      for (version of versionList) {
+        if (version.versionTitle === this.props.currVersions.en) {
+          this.setDisplayVersionTitle(version);
+          break;
+        }
+      }
+    });
+  }
   componentDidMount() {
     const title = this.props.currentRef;
     if (title) {
@@ -1178,6 +1214,12 @@ class ReaderControls extends Component {
         this.setState({runningQuery: null});   // Causes re-render
       });
       this.setState({runningQuery: Sefaria.makeCancelable(getTextPromise)});
+    }
+    this.loadTranslations();
+  }
+  componentDidUpdate(prevProps, prevState) {
+    if (this.shouldShowVersion() !== this.shouldShowVersion(prevProps)) {
+      this.loadTranslations();
     }
   }
   componentWillUnmount() {
@@ -1217,8 +1259,8 @@ class ReaderControls extends Component {
     const mode              = this.props.currentMode();
     const hideHeader        = !this.props.multiPanel && mode === "Connections";
     const connectionsHeader = this.props.multiPanel && mode === "Connections";
-    const showVersion = this.props.currVersions.en && (this.props.settings.language === "english" || this.props.settings.language === "bilingual");
-    const versionTitle = this.props.currVersions.en ? this.props.currVersions.en.replace(/_/g," ") : "";
+    let displayVersionTitle = this.props.settings.language === 'hebrew' ? this.state.displayVersionTitle.he : this.state.displayVersionTitle.en;
+    if (categoryAttribution) { displayVersionTitle = `(${displayVersionTitle})`; }
     const url = this.props.sheetID ? "/sheets/" + this.props.sheetID : oref ? "/" + Sefaria.normRef(oref.book) : Sefaria.normRef(this.props.currentRef);
     const readerTextTocClasses = classNames({readerTextToc: 1, attributed: !!categoryAttribution, connected: this.isConnectionsPanelOpenHeuristic()})
 
@@ -1256,15 +1298,16 @@ class ReaderControls extends Component {
                 </span>
               </h1>
               }
-              { showVersion ?
-              <span className="readerTextVersion">
-                <span className="en">{versionTitle}</span>
-              </span> : null}
             </a>
           </div>
           <div onClick={this.stopPropagation}>
-            {categoryAttribution ?
-            <CategoryAttribution categories={oref.categories} linked={false} /> : null }
+            {categoryAttribution ? <CategoryAttribution categories={oref.categories} linked={false} /> : null }
+            {
+              this.shouldShowVersion() && displayVersionTitle ?
+              <span className="readerTextVersion">
+                <span className="en">{displayVersionTitle}</span>
+              </span> : null
+            }
           </div>
         </div>
       </div>;

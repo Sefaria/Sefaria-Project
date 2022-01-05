@@ -4154,6 +4154,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-overflow: ellipsis;
   overflow: hidden;
   padding: 0 2px;
+  display: inline;
 }
 .readerControls .readerTextToc .categoryAttribution .he {
   font-style: normal;
@@ -4317,7 +4318,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   overflow: hidden;
 }
 .readerControls .readerTextToc .readerTextVersion {
-  font-style: italic;
+  font-size: 15px;
   color: #999;
 }
 .readerControls .readerTextToc .readerTextVersion .en{

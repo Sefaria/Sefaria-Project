@@ -21,6 +21,8 @@ class VersionBlock extends Component {
       "digitizedBySefaria",
       "status",
       "versionTitleInHebrew",
+      "shortVersionTitle",
+      "shortVersionTitleInHebrew",
       "versionNotesInHebrew",
       "purchaseInformationImage",
       "purchaseInformationURL",
@@ -215,6 +217,12 @@ class VersionBlock extends Component {
 
             <label htmlFor="versionTitleInHebrew" className="">Hebrew Version Title</label>
             <input id="versionTitleInHebrew" name="versionTitleInHebrew" className="" type="text" value={this.state.versionTitleInHebrew} onChange={this.handleInputChange} />
+
+            <label htmlFor="shortVersionTitle" className="">Short Version Title</label>
+            <input id="shortVersionTitle" name="shortVersionTitle" className="" type="text" value={this.state.shortVersionTitle} onChange={this.handleInputChange} />
+
+            <label htmlFor="shortVersionTitleInHebrew" className="">Short Hebrew Version Title</label>
+            <input id="shortVersionTitleInHebrew" name="shortVersionTitleInHebrew" className="" type="text" value={this.state.shortVersionTitleInHebrew} onChange={this.handleInputChange} />
 
             <label htmlFor="versionSource">Version Source</label>
             <input id="versionSource" name="versionSource" className="" type="text" value={this.state.versionSource} onChange={this.handleInputChange} />

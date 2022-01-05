@@ -2053,7 +2053,7 @@ LoadingMessage.propTypes = {
 
 
 const CategoryAttribution = ({categories, linked = true, asEdition}) => {
-  var attribution = Sefaria.categoryAttribution(categories);
+  const attribution = Sefaria.categoryAttribution(categories);
   if (!attribution) { return null; }
 
   const en = asEdition ? attribution.englishAsEdition : attribution.english;
