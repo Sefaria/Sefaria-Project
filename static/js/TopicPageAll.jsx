@@ -43,6 +43,7 @@ class TopicPageAll extends Component {
   }
   render() {
     const sidebarModules = [
+      {type: "Promo"},
       {type: "TrendingTopics"},
       {type: "JoinTheConversation"},
       {type: "GetTheApp"},

@@ -4,6 +4,11 @@ const ContentLanguageContext = React.createContext({
 });
 ContentLanguageContext.displayName = 'ContentLanguageContext'; //This lets us see this name in the devtools
 
+const AdContext = React.createContext({
+});
+AdContext.displayName = 'AdContext';
+
 export {
   ContentLanguageContext,
+  AdContext
 };

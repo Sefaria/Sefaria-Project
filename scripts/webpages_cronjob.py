@@ -36,13 +36,15 @@ def run_job(test=True, board_id="", idList_mapping={}, members_mapping={}):
 	flag = 500
 	print("Looking for websites where the same Ref appears in at least {} pages...".format(flag))
 	sites["Websites that may need exclusions set"] = find_sites_to_be_excluded_relative(relative_percent=3)
-	#
-	after_total_pages, after_total_links = webpages_stats()
-	print("{} total pages.  Deleted {}.\n".format(after_total_pages, total_pages-after_total_pages))
-	print("{} total connections.  Deleted {}.\n".format(after_total_links, total_links-after_total_links))
+
+	total_pages, total_links, year_data = webpages_stats()
+	print("{} total pages now.\n".format(total_pages))
+	print("{} total connections now.\n".format(total_links))
+	print("{} by year".format(year_data))
 
 	# given list type and site, either create new card or update existing card with message of site object
 	for kind, sites_to_handle in sites.items():
+		print(f"{kind} -> {sites_to_handle}")
 		for site_name_in_DB in sites_to_handle:
 			comment = sites_to_handle[site_name_in_DB]
 			if len(comment) > 0:
@@ -223,6 +225,6 @@ if __name__ == "__main__":
 			if list_on_board["name"] in lists:
 				idList_mapping[list_on_board["name"]] = list_on_board["id"]
 
-		run_job(board_id=BOARD_ID, idList_mapping=idList_mapping, members_mapping=members_mapping)
+		run_job(test=False, board_id=BOARD_ID, idList_mapping=idList_mapping, members_mapping=members_mapping)
 	else:
 		delete_bad_refs(BOARD_ID, TRELLO_KEY, TRELLO_TOKEN)

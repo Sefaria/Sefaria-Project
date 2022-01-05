@@ -3,6 +3,7 @@ import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
 import { useIncrementalLoad } from './Hooks';
+import { Ad } from './Ad';
 import { NavSidebar } from './NavSidebar';
 import Footer from './Footer';
 import {
@@ -236,6 +237,7 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
       });
 
     const sidebarModules = [
+      {type: "Promo"},
       {type: "TrendingTopics"},
       {type: "SponsorADay"},
     ];
@@ -491,6 +493,7 @@ const TopicPage = ({
                       timePeriod={topicData.timePeriod}
                       properties={topicData.properties} />
                     : null }
+                    <Ad adType="sidebar"/>
                 </div>
             </div>
             <Footer />

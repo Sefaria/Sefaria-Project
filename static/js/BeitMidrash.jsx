@@ -445,6 +445,7 @@ const BeitMidrashFooter = () => {
 const BeitMidrashHome = ({
                         peopleInBeitMidrash,
                         startChat,
+                        beitMidrashId,
                         handleCloseChat,
                         chavrutaCallInitiated,
                         chavrutaRequestReceived,
@@ -485,7 +486,15 @@ const BeitMidrashHome = ({
                         } else {
                             return null
                         }
-                    }) : <div className="noUsers"><InterfaceText>No users online.</InterfaceText></div>}
+                    }) : <div className="noUsers">
+                            <InterfaceText>Share this link with your chavruta to start a video call with this text</InterfaceText>
+                            <input
+                                id="chavrutaURL"
+                                type="text"
+                                value={`${window.location.host}/beit-midrash/${beitMidrashId}?ref=${window.location.pathname.replace(/\//, '')}`}
+                                onFocus={(e) => event.target.select()}
+                            />
+                         </div>}
                 </div>
             </div>
             {/* <div>
