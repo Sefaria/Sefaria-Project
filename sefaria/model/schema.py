@@ -1480,11 +1480,7 @@ class VirtualNode(TitledTreeNode):
         pass
 
     def supports_language(self, lang):
-        if isinstance(self, SheetLibraryNode):
-            return True
-        elif isinstance(self, DictionaryNode):
-            return True if lang == self.lexicon.version_lang else False
-
+        raise Exception("supports_language needs to be overriden by subclasses")
 
 class DictionaryEntryNode(TitledTreeNode):
     is_virtual = True
@@ -1696,6 +1692,9 @@ class DictionaryNode(VirtualNode):
         }
         return text.Ref(_obj=d)
 
+    def supports_language(self, lang):
+        return True if lang == self.lexicon.version_lang else False
+
 
 class SheetNode(NumberedTitledTreeNode):
     is_virtual = True
@@ -1828,6 +1827,10 @@ class SheetLibraryNode(VirtualNode):
         d = super(SheetLibraryNode, self).serialize(**kwargs)
         d["nodeType"] = "SheetLibraryNode"
         return d
+
+    def supports_language(self, lang):
+        return True
+
 """
 {
     "title" : "Sheet",
