@@ -2384,9 +2384,9 @@ def schedule_api(request):
         except BookNameError as e:
             return jsonResponse({"error": e})
         return jsonResponse({
-            "num of learning chunks": len(chunks),
+            "num_of_learning_chunks": len(chunks),
             "pace" : pace,
-            "end date" : end_date
+            "end_date" : end_date
         })
 
 @catch_error_as_json
