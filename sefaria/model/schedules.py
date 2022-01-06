@@ -9,6 +9,7 @@ from sefaria.system.database import db
 from . import abstract as abst
 from datetime import *
 from sefaria.system.exceptions import BookNameError
+import functools
 
 import structlog
 logger = structlog.get_logger(__name__)
@@ -111,15 +112,15 @@ class PersonalSchedule(abst.AbstractMongoRecord):
         if self.calendar_schedule:
             PersonalScheduleNotification()
         elif self.book:
-            chunks = divide_the_text(self.book, self.pace, self.start_date, self.end_date)
+            chunks, _, _ = divide_the_text(self.book, self.pace, self.start_date, self.end_date)
             date = self.start_date
             psn = None
             for ref_chunk in chunks:
                 date = date + timedelta(days=1)
                 if self.contact_by_sms:
-                    psn = PersonalScheduleNotification(self, ref_chunk, 'sms', date)
+                    psn = PersonalScheduleNotification(self, ref_chunk.normal(), 'sms', date)
                 if self.contact_by_email:
-                    psn = PersonalScheduleNotification(self, ref_chunk, 'email', date)
+                    psn = PersonalScheduleNotification(self, ref_chunk.normal(), 'email', date)
 
                 if psn:
                     psn.save()
@@ -148,8 +149,8 @@ class PersonalScheduleNotification(abst.AbstractMongoRecord):
     ]
 
     optional_attrs = [
-        # "email_address",
-        # "phone_number",
+        "email_address",
+        "phone_number",
         "sent",         # bool
         "clicked",      # bool
     ]
@@ -187,7 +188,7 @@ class PersonalScheduleNotificationSet(abst.AbstractMongoSet):
 
 
 def ref_chunks(lst, n, remainder=0):
-    #todo: use remainder to devide more uniform distribution of the learning units over the days
+    # def c_ranged_ref
 
     chunks = []
     len_lst = len(lst)
@@ -195,10 +196,17 @@ def ref_chunks(lst, n, remainder=0):
     cnt = 0
     while i < len_lst:
         j = 1 if cnt < remainder else 0
-        tr1 = lst[i].normal()
-        tr2 = lst[min(i + n + j-1, len_lst - 1)].normal()
-        ref_str = tr1 + "-" + re.search('(\d+:?\d*\d$)', tr2).group(1)
-        chunks.append(Ref(ref_str))
+        tr1 = lst[i]
+        tr2 = lst[min(i + n + j-1, len_lst - 1)]
+        if tr1.index_node == tr2.index_node:
+            ref_str = tr1.to(tr2) #tr1.normal() + "-" + re.search('(\d+:?\d*\d$)', tr2.normal()).group(1)
+            chunks.append(ref_str)
+        else:
+            tr11 = tr1.index_node.last_section_ref().last_segment_ref()
+            ref_str1 = tr1.to(tr11)
+            tr21 = tr2.index_node.first_section_ref().all_subrefs()[0]
+            ref_str2 = tr21.to(tr2)
+            chunks.append((ref_str1, ref_str2))
         i += n+j
         cnt+=1
     return chunks
@@ -212,6 +220,18 @@ def convert2datetime(d):
     return d
 
 
+def lst_learning_unit(ind):
+    """
+    from fixed table or by choice get the size of the basic unit for the chunks
+    this can be segments (pesukim) or sections (dapim/perakim)
+    """
+    if 'Talmud' in ind.categories:
+        lst = ind.all_section_refs()
+    else:  # elif 'Tanakh' in ind.categories:
+        lst = ind.all_segment_refs()
+    return lst
+
+
 def divide_the_text(text, pace=None, start_date=datetime.utcnow(), end_date = None):
     """
     Given a list of segments and (start_time, end_time) calculates the portions
@@ -222,17 +242,27 @@ def divide_the_text(text, pace=None, start_date=datetime.utcnow(), end_date = No
     inds = library.get_indexes_in_category(text)
     chunks = []
     if inds:
-        for ind_name in inds:
-            chunks.extend(divide_the_text(ind_name, pace=pace)[0])
+        flat_toc = library.get_toc_tree().flatten()
+        def toc_sort(a):
+            try:
+                return flat_toc.index(a)
+            except:
+                return 9999
+
+        inds = sorted(inds, key=toc_sort)
+        all_segs = functools.reduce(lambda x, y: x+y, [lst_learning_unit(library.get_index(ind_name)) for ind_name in inds])
+
     else:
         # try:
         ind = library.get_index(text)
         # except BookNameError as e:
         #     return e
-        all_segs = ind.all_segment_refs()
-        if pace:
-            chunks = ref_chunks(all_segs, pace)
-        elif end_date:
-            pace, remainder = divmod(len(all_segs), (end_date-start_date).days+1)
-            chunks = ref_chunks(all_segs, pace, remainder)
-        return chunks, pace, start_date + timedelta(days=len(chunks))
+        all_segs = lst_learning_unit(ind)
+    if pace:
+        chunks = ref_chunks(all_segs, pace)
+    elif end_date:
+        days = (end_date-start_date).days+1
+        assert days <= len(all_segs), 'you have more days than learning units of this text, you can take on a bigger challenge'
+        pace, remainder = divmod(len(all_segs), days)
+        chunks = ref_chunks(all_segs, pace, remainder)
+    return chunks, pace, start_date + timedelta(days=len(chunks))
