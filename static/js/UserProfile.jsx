@@ -547,6 +547,64 @@ UserProfile.propTypes = {
   profile: PropTypes.object.isRequired,
 };
 
+const CustomLearningSchedulePicker = ({currentValues, onUpdate}) => {
+
+  const [startRef, setStartRef] = currentValues ? useState(currentValues.startRef) : useState("");
+  const [endRef, setEndRef] = currentValues ? useState(currentValues.endRef) :useState("");
+  const [startDate, setStartDate] = currentValues ? useState(currentValues.startDate) :useState(new Date());
+  const [endDate, setEndDate] = currentValues ? useState(currentValues.endDate) :useState(null);
+  const [rate, setRate] = currentValues ? useState(currentValues.rate) : useState("2");
+  const [rateUnit, setRateUnit] = currentValues ? useState(currentValues.rateUnit) :useState("Verses");
+  const [unitCount, setUnitCount] = currentValues ? useState(currentValues.unitCount) :useState(null);
+  const dropdownTexts = Sefaria.tocObjectByCategories(['Tanakh']).contents.slice(0,2).map(subCat => subCat.contents.map(item => {return {en: item.title, he: item.heTitle}})).flat()
+  // $.get(`/api/schedule?text=${startRef}&pace=${rate}`, applyNewValues);
+
+  useEffect(() => {
+    $.get(`/api/schedule?text=${startRef}&pace=${rate}`, applyNewValues);
+  }, [rate, startRef])
+
+  const applyNewValues = (data) => {
+    if(data.pace.toString() === rate) {
+      setEndDate(new Date(data.end_date));
+      onUpdate({
+        startRef,
+        endRef,
+        startDate,
+        endDate,
+        rate,
+        rateUnit,
+        unitCount
+      })
+    }
+    if(true) { // TODO: check text matches
+      setUnitCount(data.num_of_learning_chunks)
+    }
+  }
+
+  return (
+    <>
+      <div className="scheduleFormHorizontal" id="alertsContainer">
+        <span className="label">Text to learn: </span>
+        <select onChange={$event => setStartRef($event.target.value)} value={startRef || ""}>
+          <InterfaceOption key="none" text="None" value=""></InterfaceOption>
+          {dropdownTexts.map(text => {
+            return <InterfaceOption key={text.en} text={text} value={text.en}></InterfaceOption>
+          })}
+        </select>
+      </div>
+      <div className="scheduleDescription">
+        {unitCount ? <>The text you have selected contains {unitCount.toString()} verses.</> : null}
+      </div>
+      <div className="scheduleFormHorizontal">
+        <span className="label">{rateUnit} per day: </span> <input min="1" type="number" value={rate} onChange={$event => setRate($event.target.value)}></input>
+      </div>
+      <div className="scheduleFormHorizontal">
+        <span className="label">Completion date: </span> {Sefaria.util.localeDate(endDate)}
+      </div>
+    </>
+  )
+}
+
 const LearningSchedule = ({slug, closeSchedule}) => {
   const scheduleStates = {
     SelectScheduleType: "SelectScheduleType",
@@ -560,12 +618,8 @@ const LearningSchedule = ({slug, closeSchedule}) => {
   const [schedule, setSchedule] = useState(null);
   const [scheduleOptions, setScheduleOptions] = useState({});
   const [alerts, setAlerts] = useState({email: false, textMessage: false});
-  const [startRef, setStartRef] = useState("");
-  const [endRef, setEndRef] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [unit, setUnit] = useState("verses")
-  const [unitCount, setUnitCount] = useState(50);
-  const [rateUnit, setRateUnit] = useState(3);
+  const [customScheduleValues, setCustomScheduleValues] = useState(null);
   const calendars = reformatCalendars();
 
   // update schedule object
@@ -577,15 +631,27 @@ const LearningSchedule = ({slug, closeSchedule}) => {
       schedule,
       alerts: alerts,
       phoneNumber,
-      startRef,
-      endRef
+      startRef: customScheduleValues ? customScheduleValues.startRef : null,
+      endRef: customScheduleValues? customScheduleValues.endRef : null,
+      startDate: customScheduleValues ? customScheduleValues.startDate : null,
+      endDate: customScheduleValues ? customScheduleValues.endDate : null,
+      rate: customScheduleValues ? customScheduleValues.rate : null,
+      rateUnit: customScheduleValues ? customScheduleValues.rateUnit : null,
     }});
-  }, [schedule, alerts, startRef, endRef])
+  }, [schedule, alerts, phoneNumber, customScheduleValues])
 
   // right now just log schedule
   useEffect(() => {
     console.log(scheduleOptions);
   }, [scheduleOptions])
+
+  useEffect(() => {
+    if(scheduleFormState === scheduleStates.CreateCustomSchedule) {
+      setSchedule(null); // get rid of non-custom schedule value if we are using a custom schedule
+    } if (scheduleFormState === scheduleStates.AlertsAndSettings && schedule) {
+      setCustomScheduleValues(null); // reset custom schedule values if we have decided on a non-custom schedule
+    }
+  }, [scheduleFormState])
 
   const forward = newState => {
     setScheduleFormStateArray([...scheduleFormStateArray, scheduleFormState])
@@ -603,6 +669,11 @@ const LearningSchedule = ({slug, closeSchedule}) => {
     }
   }
 
+  const saveAndClose = () => {
+    alert(JSON.stringify(scheduleOptions));
+    closeSchedule();
+  }
+
   const getScheduleInfo = (type) => {
     const selectedSchedule = calendars.filter(x => x.title.en === schedule)[0];
     let interfaceText;
@@ -611,7 +682,7 @@ const LearningSchedule = ({slug, closeSchedule}) => {
         interfaceText = selectedSchedule ? (<InterfaceText text={selectedSchedule.description}></InterfaceText>) : <InterfaceText>Select a schedule to view a description</InterfaceText>;
         break;
       case "title":
-        interfaceText = selectedSchedule ? (<InterfaceText text={selectedSchedule.title}></InterfaceText>) : <InterfaceText>Custom Schedule</InterfaceText>;
+        interfaceText = selectedSchedule ? (<InterfaceText text={selectedSchedule.title}></InterfaceText>) : <InterfaceText>Custom Schedule: {startRef}</InterfaceText>;
         break;
       default:
         interfaceText = null;
@@ -626,6 +697,14 @@ const LearningSchedule = ({slug, closeSchedule}) => {
       forward(scheduleStates.AlertsAndSettings);
     } else {
       alert("Please select a schedule to continue")
+    }
+  }
+
+  const selectCustomSchedule = () => {
+    if(customScheduleValues && customScheduleValues.startRef) {
+      forward(scheduleStates.AlertsAndSettings);
+    } else {
+      alert("Please select a text and a rate to continue");
     }
   }
   
@@ -675,21 +754,11 @@ const LearningSchedule = ({slug, closeSchedule}) => {
         </>
       case scheduleStates.CreateCustomSchedule:
           return <><h3>Create Custom Schedule</h3>
-          <div className="scheduleBox">
-          <div className="scheduleFormHorizontal" id="alertsContainer">
-          <span className="label">Text to learn: </span>
-          {/* <Autocompleter
-                selectedRefCallback={setStartRef}
-            /> */}
-          </div>
-          <div className="scheduleDescription">
-          The text you have selected contains {unitCount.toString()} verses.
-          </div>
-          <div className="scheduleFormHorizontal">
-          <span className="label">{unit} per day: </span> <input type="number"></input>
-          </div>
-          </div>
-
+            <div className="scheduleBox">
+              <div><button onClick={backButton}>Back</button></div>
+              <CustomLearningSchedulePicker currentValues={customScheduleValues} onUpdate={setCustomScheduleValues} />
+              <button className="small button" onClick={() => selectCustomSchedule()}>Select this Schedule</button>
+            </div>
           </>
       case scheduleStates.AlertsAndSettings:
         return <><h3>Alerts and Settings</h3>
@@ -698,7 +767,7 @@ const LearningSchedule = ({slug, closeSchedule}) => {
           <span className="label">Learning Schedule: </span><span>{getScheduleInfo("title")}</span> <button onClick={backButton}>Select a different schedule</button>
           <div className="scheduleDescription"><span>{getScheduleInfo("description")}</span></div>
         </div>
-        <div className="scheduleFormHorizontal" id="alertsContainer">
+        <div className="scheduleFormHorizontal">
           <span className="label">Alerts:</span>
             <input type="checkbox" id="email" key="email" name="email"
             checked={alerts.email} onChange={() => setAlerts(prevAlerts => {return {...prevAlerts, email: !prevAlerts.email}})} />
@@ -708,7 +777,7 @@ const LearningSchedule = ({slug, closeSchedule}) => {
             <label htmlFor="text-message">Send Text</label>{alerts.textMessage ? <PhoneNumberInput setPhoneNumber={setPhoneNumber}/> : null }
         </div>
         <div>
-        <button className="small button" onClick={() => closeSchedule()}>Save and Close</button>
+        <button className="small button" onClick={() => saveAndClose()}>Save and Close</button>
         </div>
         </div>
         </>
@@ -731,14 +800,7 @@ const LearningSchedule = ({slug, closeSchedule}) => {
 }
 
 const PhoneNumberInput = ({setPhoneNumber}) => {
-  return(<div className="phoneNumberInput">+1<input type="tel" placeholder="###-###-####" onChange={$event => setPhoneNumber($event)}></input></div>) // TODO: make this better
-}
-
-const RateDateCalculator = ({numberOfVerses}) => {
-  const [startDate, setStartDate] = useState(new Date(new Date().setHours(0,0,0,0)));
-  return(<div>
-
-  </div>)
+  return(<div className="phoneNumberInput">+1<input type="tel" placeholder="###-###-####" onChange={$event => setPhoneNumber($event.target.value)}></input></div>) // TODO: make this better
 }
 
 const EditorToggleHeader = ({usesneweditor}) => {
