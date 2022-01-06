@@ -181,6 +181,7 @@ class PersonalScheduleNotification(abst.AbstractMongoRecord):
     def save(self, override_dependencies=False):
         db.schedule_notification.save(self.to_mongo_dict())
 
+
 class PersonalScheduleNotificationSet(abst.AbstractMongoSet):
     recordClass = PersonalScheduleNotification
 
@@ -190,12 +191,25 @@ def ref_chunks(lst, n, remainder=0):
 
     chunks = []
     len_lst = len(lst)
-    for cnt, i in enumerate(range(0, len_lst, n)):
+    i = 0
+    cnt = 0
+    while i < len_lst:
         j = 1 if cnt < remainder else 0
-        ref_str = lst[i].normal() + "-" + re.search('(\d+:?\d*\d$)',
-                                                      lst[min(i + n + j, len(lst) - 1)].normal()).group(1)
+        tr1 = lst[i].normal()
+        tr2 = lst[min(i + n + j-1, len_lst - 1)].normal()
+        ref_str = tr1 + "-" + re.search('(\d+:?\d*\d$)', tr2).group(1)
         chunks.append(Ref(ref_str))
+        i += n+j
+        cnt+=1
     return chunks
+
+
+def convert2datetime(d):
+    if isinstance(d, str):
+        split_date = d.split("-")
+        d = datetime(year=int(split_date[0]), month=int(split_date[1]), day=int(split_date[2]))
+    assert isinstance(d, datetime)
+    return d
 
 
 def divide_the_text(text, pace=None, start_date=datetime.utcnow(), end_date = None):
@@ -203,11 +217,13 @@ def divide_the_text(text, pace=None, start_date=datetime.utcnow(), end_date = No
     Given a list of segments and (start_time, end_time) calculates the portions
     :return: list of ranged-refs
     """
+    start_date = convert2datetime(start_date)
+    end_date = convert2datetime(end_date)
     inds = library.get_indexes_in_category(text)
     chunks = []
     if inds:
-        for ind in [library.get_index(i) for i in inds]:
-            chunks.extend(divide_the_text(ind, pace))
+        for ind_name in inds:
+            chunks.extend(divide_the_text(ind_name, pace=pace)[0])
     else:
         # try:
         ind = library.get_index(text)
@@ -217,9 +233,6 @@ def divide_the_text(text, pace=None, start_date=datetime.utcnow(), end_date = No
         if pace:
             chunks = ref_chunks(all_segs, pace)
         elif end_date:
-            if isinstance(end_date, str):
-                split_date = end_date.split("-")
-                end_date = datetime(year=int(split_date[0]), month=int(split_date[1]), day=int(split_date[2]))
-                pace, remainder = divmod(len(all_segs),(end_date-start_date).days)
-            chunks = ref_chunks(all_segs, pace+1, 0)
+            pace, remainder = divmod(len(all_segs), (end_date-start_date).days+1)
+            chunks = ref_chunks(all_segs, pace, remainder)
         return chunks, pace, start_date + timedelta(days=len(chunks))
