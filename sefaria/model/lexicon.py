@@ -213,11 +213,11 @@ class RashiDictionaryEntry(DictionaryEntry):
 
 
 class RidDictionaryEntry(DictionaryEntry):
-    required_attrs = DictionaryEntry.required_attrs + ["rid", "should_autocomplete"]
+    required_attrs = DictionaryEntry.required_attrs + ["rid"]
 
 
 class JastrowDictionaryEntry(DictionaryEntry):
-    required_attrs = DictionaryEntry.required_attrs + ["rid", "should_autocomplete"]
+    required_attrs = DictionaryEntry.required_attrs + ["rid"]
     
     def get_sense(self, sense):
         text = ''
@@ -243,7 +243,7 @@ class JastrowDictionaryEntry(DictionaryEntry):
 
 
 class KleinDictionaryEntry(DictionaryEntry):
-    required_attrs = DictionaryEntry.required_attrs + ["content", "rid", "should_autocomplete"]
+    required_attrs = DictionaryEntry.required_attrs + ["content", "rid"]
     
     def get_sense(self, sense):
         text = ''
