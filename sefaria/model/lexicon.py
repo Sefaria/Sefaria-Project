@@ -147,12 +147,8 @@ class DictionaryEntry(LexiconEntry):
 
     def headword_string(self):
         headwords = [self.headword] + getattr(self, 'alt_headwords', [])
-        if self.contents()['parent_lexicon_details']['version_lang'] == 'he':
-            headwords = [f'<big>{hw}</big>' for hw in headwords]
         string = ', '.join(
             ['<strong dir="rtl">{}</strong>'.format(hw) for hw in headwords])
-        if self.contents()['parent_lexicon_details']['version_lang'] == 'he':
-            string += '\xa0\xa0'
         return string
 
     def word_count(self):
@@ -212,8 +208,13 @@ class RashiDictionaryEntry(DictionaryEntry):
     required_attrs = DictionaryEntry.required_attrs + ["content", "orig_word", "orig_ref", "catane_number"]
 
 
-class RidDictionaryEntry(DictionaryEntry):
+class HebrewDictionaryEntry(DictionaryEntry):
     required_attrs = DictionaryEntry.required_attrs + ["rid"]
+
+    def headword_string(self):
+        headwords = [self.headword] + getattr(self, 'alt_headwords', [])
+        string = ', '.join([f'<strong><big>{hw}</big></strong>' for hw in headwords]) + '\xa0\xa0'
+        return string
 
 
 class JastrowDictionaryEntry(DictionaryEntry):
@@ -264,8 +265,8 @@ class LexiconEntrySubClassMapping(object):
         'Jastrow Dictionary': JastrowDictionaryEntry,
         "Jastrow Unabbreviated" : JastrowDictionaryEntry,
         'Klein Dictionary': KleinDictionaryEntry,
-        'Sefer HaShorashim': RidDictionaryEntry,
-        'Animadversions by Elias Levita on Sefer HaShorashim': RidDictionaryEntry
+        'Sefer HaShorashim': HebrewDictionaryEntry,
+        'Animadversions by Elias Levita on Sefer HaShorashim': HebrewDictionaryEntry
     }
 
     @classmethod

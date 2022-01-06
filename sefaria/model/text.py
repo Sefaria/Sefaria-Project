@@ -2032,7 +2032,7 @@ class VirtualTextChunk(AbstractTextRecord):
         self.is_merged = False
         self.sources = []
 
-        if self.lang != self._oref.index_node.parent.lexicon.version_lang:
+        if not self._oref.index_node.parent.supports_language(self.lang):
             self.text = []
             self._versions = []
             return

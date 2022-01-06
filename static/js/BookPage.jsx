@@ -535,7 +535,6 @@ class SchemaNode extends Component {
         return (
           <DictionaryNode
               schema={this.props.schema}
-              lexiconName={this.props.lexiconName}
               title={this.props.refPath}
               showBaseText={this.props.showBaseText}
               currVersions={this.props.currVersions}
@@ -829,15 +828,10 @@ class DictionaryNode extends Component {
               showBaseText={this.props.showBaseText}
               contextSelector=".bookPage"
               currVersions={this.props.currVersions}/>;
-      const header = this.props.schema.title ? (
-          <div className="specialNavSectionHeader">
-            <ContentText text={{en:this.props.schema.title , he:this.props.schema.heTitle }}/>
-          </div>
+      const contentText = this.props.schema.title ? (
+        <ContentText text={{en:this.props.schema.title , he:this.props.schema.heTitle }}/>
       ) : (
-          <div className="specialNavSectionHeader">
-            <ContentText text={{en: "Browse By Letter", he: 'לפי סדר הא"ב'}}/>
-          </div>
-      );
+        <ContentText text={{en: "Browse By Letter", he: 'לפי סדר הא"ב'}}/>);
       let sectionLinks = this.props.schema.headwordMap.map(function(m,i) {
       let letter = m[0];
       let ref = m[1];
@@ -851,7 +845,9 @@ class DictionaryNode extends Component {
           <div className="schema-node-toc">
             <div className="schema-node-contents">
               {dictionarySearch}
-              {header}
+              <div className="specialNavSectionHeader">
+                {contentText}
+              </div>
               <div className="tocLevel">{sectionLinks}</div>
             </div>
           </div>

@@ -1479,6 +1479,12 @@ class VirtualNode(TitledTreeNode):
     def last_child(self):
         pass
 
+    def supports_language(self, lang):
+        if isinstance(self, SheetLibraryNode):
+            return True
+        elif isinstance(self, DictionaryNode):
+            return True if lang == self.lexicon.version_lang else False
+
 
 class DictionaryEntryNode(TitledTreeNode):
     is_virtual = True
