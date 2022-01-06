@@ -661,7 +661,7 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
       dragIcon.innerHTML = Sefaria.interfaceLang === "hebrew" ? element.heRef : element.ref;
 
       document.body.appendChild(dragIcon);
-      e.dataTransfer.setDragImage(dragIcon, 0, 0);
+      e.dataTransfer.setDragImage(dragIcon, 0, 15);
 
       ReactEditor.setFragmentData(parentEditor, e.dataTransfer, "drag")
       setIsDragging(true)
