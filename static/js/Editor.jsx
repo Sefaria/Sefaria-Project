@@ -1284,14 +1284,24 @@ const withSefariaSheet = editor => {
           return Node.string(curNode) === ""
         }
 
+
         if (isListItem(editor)) {
             if (isEmpty(editor)) {
                 Transforms.insertNodes(editor, {type: 'spacer', children: [{text: ""}]});
                 deleteBackward()
             }
+
+            else if (isLinkActive(editor)) {
+                // insert an extra space on an active link before creating new line. It prevents link from continuing to next li
+                editor.insertText(' ')
+                insertBreak();
+                editor.removeLink()
+            }
+
             else {
                 insertBreak();
             }
+            removeMarks(editor)
             return
         }
 
@@ -2031,6 +2041,20 @@ const isFormatActive = (editor, format, value=null) => {
   });
   return !!match
 };
+
+const removeMarks = (editor) => {
+    editor.removeMark('italic');
+    editor.removeMark('bold');
+    editor.removeMark('underline');
+    editor.removeMark('big');
+    editor.removeMark('small');
+    editor.removeMark('superscript');
+    editor.removeMark('isRef');
+    editor.removeMark('color');
+    editor.removeMark('background-color');
+    editor.removeMark('text-align');
+}
+
 
 const toggleBlock = (editor, format) => {
   const isActive = isBlockActive(editor, format)
