@@ -2369,6 +2369,25 @@ def calendars_api(request):
                                  "calendar_items": calendars},
                                 callback=request.GET.get("callback", None))
 
+@catch_error_as_json
+@csrf_exempt
+def schedule_api(request):
+    if request.method == "GET":
+        text = request.GET.get("text", None)
+        if text is None:
+            return jsonResponse({"error": "no Text was sent."})
+        pace = request.GET.get("pace", 0)
+        start_date = request.GET.get("start_date", datetime.utcnow())
+        end_date = request.GET.get("end_date", None)
+        try:
+            chunks, pace, end_date = schedules.divide_the_text(text, int(pace), start_date, end_date)
+        except BookNameError as e:
+            return jsonResponse({"error": e})
+        return jsonResponse({
+            "num of learning chunks": len(chunks),
+            "pace" : pace,
+            "end date" : end_date
+        })
 
 @catch_error_as_json
 @csrf_exempt

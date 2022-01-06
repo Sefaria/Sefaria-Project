@@ -8,6 +8,7 @@ from sefaria.model import *
 from sefaria.system.database import db
 from . import abstract as abst
 from datetime import *
+from sefaria.system.exceptions import BookNameError
 
 import structlog
 logger = structlog.get_logger(__name__)
@@ -106,32 +107,11 @@ class PersonalSchedule(abst.AbstractMongoRecord):
     def edit_notifications(self):
         pass
 
-    def ref_chunks(self, lst, n):
-        chunks = []
-        for i in range(0, len(lst), n):
-            ref_str = lst[i].normal() + "-" + re.search('(\d+:?\d*\d$)',
-                                                          lst[min(i + 6, len(lst) - 1)].normal()).group(1)
-            chunks.append(Ref(ref_str))
-        return chunks
-
-    def divide_the_text(self):
-        """
-        Given a list of segments and (start_time, end_time) calculates the portions
-        :return: list of ranged-refs
-        """
-        if self.pace:
-            chunks = self.ref_chunks(self.all_segs, self.pace)
-        # elif self.end_date:
-        #     self.start_date - self.end_date
-        return chunks
-
     def create_full_schedule_run(self):
         if self.calendar_schedule:
             PersonalScheduleNotification()
         elif self.book:
-            ind = library.get_index(self.book)
-            self.all_segs = ind.all_segment_refs()
-            chunks = self.divide_the_text()
+            chunks = divide_the_text(self.book, self.pace, self.start_date, self.end_date)
             date = self.start_date
             psn = None
             for ref_chunk in chunks:
@@ -176,7 +156,6 @@ class PersonalScheduleNotification(abst.AbstractMongoRecord):
 
     def __init__(self, ps, ref, notification_type, date):
         super().__init__()
-        self.user_id =ps.user_id
         self.schedule_name = ps.schedule_name
         self.ref = ref
         self.ping_time = (ps.time_of_notification, date)
@@ -192,7 +171,6 @@ class PersonalScheduleNotification(abst.AbstractMongoRecord):
         Return a json serializable dictionary which includes all data to be saved in mongo (as opposed to postgres)
         """
         d = {
-            "user_id": self.user_id,
             "schedule_name": self.schedule_name,
             "ref": self.ref,
             "notification_type": self.notification_type,  # sms/email (or other)
@@ -205,3 +183,43 @@ class PersonalScheduleNotification(abst.AbstractMongoRecord):
 
 class PersonalScheduleNotificationSet(abst.AbstractMongoSet):
     recordClass = PersonalScheduleNotification
+
+
+def ref_chunks(lst, n, remainder=0):
+    #todo: use remainder to devide more uniform distribution of the learning units over the days
+
+    chunks = []
+    len_lst = len(lst)
+    for cnt, i in enumerate(range(0, len_lst, n)):
+        j = 1 if cnt < remainder else 0
+        ref_str = lst[i].normal() + "-" + re.search('(\d+:?\d*\d$)',
+                                                      lst[min(i + n + j, len(lst) - 1)].normal()).group(1)
+        chunks.append(Ref(ref_str))
+    return chunks
+
+
+def divide_the_text(text, pace=None, start_date=datetime.utcnow(), end_date = None):
+    """
+    Given a list of segments and (start_time, end_time) calculates the portions
+    :return: list of ranged-refs
+    """
+    inds = library.get_indexes_in_category(text)
+    chunks = []
+    if inds:
+        for ind in [library.get_index(i) for i in inds]:
+            chunks.extend(divide_the_text(ind, pace))
+    else:
+        # try:
+        ind = library.get_index(text)
+        # except BookNameError as e:
+        #     return e
+        all_segs = ind.all_segment_refs()
+        if pace:
+            chunks = ref_chunks(all_segs, pace)
+        elif end_date:
+            if isinstance(end_date, str):
+                split_date = end_date.split("-")
+                end_date = datetime(year=int(split_date[0]), month=int(split_date[1]), day=int(split_date[2]))
+                pace, remainder = divmod(len(all_segs),(end_date-start_date).days)
+            chunks = ref_chunks(all_segs, pace+1, 0)
+        return chunks, pace, start_date + timedelta(days=len(chunks))
