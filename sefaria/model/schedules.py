@@ -117,6 +117,7 @@ class PersonalSchedule(abst.AbstractMongoRecord):
         db.schedules.save(self.to_mongo_dict())
 
     def delete(self, force=False, override_dependencies=False):
+        # step one, delete all PersonalScheduleNotification of this ps
         pass
 
     def edit_notifications(self):

@@ -2371,7 +2371,7 @@ def calendars_api(request):
 
 @catch_error_as_json
 @csrf_exempt
-def schedule_api(request):
+def schedule_calculate_api(request):
     if request.method == "GET":
         text = request.GET.get("text", None)
         if text is None:
@@ -2388,6 +2388,14 @@ def schedule_api(request):
             "pace" : pace,
             "end_date" : end_date
         })
+
+@catch_error_as_json
+@csrf_exempt
+def schedule_api(request):
+    if request.method == "POST":
+        j = json.loads(request.POST.get("json"))
+        ps = PersonalSchedule(j.contents())
+        ps.save()
 
 @catch_error_as_json
 @csrf_exempt
