@@ -111,22 +111,23 @@ class PersonalSchedule(abst.AbstractMongoRecord):
     def create_full_schedule_run(self):
         if self.calendar_schedule:
             PersonalScheduleNotification()
-        elif self.book:
-            chunks, _, _ = divide_the_text(self.book, self.pace, self.start_date, self.end_date)
+        else:
+            text = self.book if self.book else self.corpus
+            chunks, _, _ = divide_the_text(text, self.pace, self.start_date, self.end_date)
             date = self.start_date
             psn = None
             for ref_chunk in chunks:
                 date = date + timedelta(days=1)
+                if not isinstance(ref_chunk, Ref):
+                    continue  # todo: deal with 2 refs in one chunk
                 if self.contact_by_sms:
                     psn = PersonalScheduleNotification(self, ref_chunk.normal(), 'sms', date)
+                    psn.save()
                 if self.contact_by_email:
                     psn = PersonalScheduleNotification(self, ref_chunk.normal(), 'email', date)
-
-                if psn:
                     psn.save()
-        elif self.corpus:
-            for ind in library.get_indexes_in_category(self.corpus):
-                pss = PersonalSchedule.copy(self)
+
+
 
 
 class PersonalScheduleSet(abst.AbstractMongoSet):
@@ -165,13 +166,15 @@ class PersonalScheduleNotification(abst.AbstractMongoRecord):
         if self.notification_type == 'email':
             self.email_address = profile["public_email"]
         elif self.notification_type == 'sms':
-            self.phone_number = profile["phone_number"]
+            self.phone_number = profile.get("phone_number", "missing number")
 
     def to_mongo_dict(self):
         """
         Return a json serializable dictionary which includes all data to be saved in mongo (as opposed to postgres)
         """
         d = {
+            # "sms" : self.phone_number,
+            # "email" : self.email_address,
             "schedule_name": self.schedule_name,
             "ref": self.ref,
             "notification_type": self.notification_type,  # sms/email (or other)
