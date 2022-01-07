@@ -108,7 +108,7 @@ class PersonalSchedule(abst.AbstractMongoRecord):
     def edit_notifications(self):
         pass
 
-    def create_full_schedule_run(self):
+    def create_full_schedule_run(self, lang = 'en'):
         if self.calendar_schedule:
             PersonalScheduleNotification()
         else:
@@ -118,13 +118,15 @@ class PersonalSchedule(abst.AbstractMongoRecord):
             psn = None
             for ref_chunk in chunks:
                 date = date + timedelta(days=1)
-                if not isinstance(ref_chunk, Ref):
-                    continue  # todo: deal with 2 refs in one chunk
+                if isinstance(ref_chunk, Ref):
+                    ref_str = ref_chunk.normal(lang)
+                else:
+                    ref_str = f"{ref_chunk[0].normal()} ,{ref_chunk[1].normal()}"
                 if self.contact_by_sms:
-                    psn = PersonalScheduleNotification(self, ref_chunk.normal(), 'sms', date)
+                    psn = PersonalScheduleNotification(self, ref_str, 'sms', date)
                     psn.save()
                 if self.contact_by_email:
-                    psn = PersonalScheduleNotification(self, ref_chunk.normal(), 'email', date)
+                    psn = PersonalScheduleNotification(self, ref_str, 'email', date)
                     psn.save()
 
 
@@ -166,15 +168,15 @@ class PersonalScheduleNotification(abst.AbstractMongoRecord):
         if self.notification_type == 'email':
             self.email_address = profile["public_email"]
         elif self.notification_type == 'sms':
-            self.phone_number = profile.get("phone_number", "missing number")
+            self.phone_number = profile.get("phone_number", None)
 
     def to_mongo_dict(self):
         """
         Return a json serializable dictionary which includes all data to be saved in mongo (as opposed to postgres)
         """
         d = {
-            # "sms" : self.phone_number,
-            # "email" : self.email_address,
+            # "phone_number" : self.phone_number,
+            # "email_address" : self.email_address,
             "schedule_name": self.schedule_name,
             "ref": self.ref,
             "notification_type": self.notification_type,  # sms/email (or other)
@@ -183,7 +185,7 @@ class PersonalScheduleNotification(abst.AbstractMongoRecord):
         return d
 
     def save(self, override_dependencies=False):
-        db.schedule_notification.save(self.to_mongo_dict())
+        db.schedule_notification.save(self.contents())
 
 
 class PersonalScheduleNotificationSet(abst.AbstractMongoSet):
