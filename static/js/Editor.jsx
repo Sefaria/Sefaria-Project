@@ -1886,7 +1886,7 @@ const Link = ({ attributes, children, element }) => {
     }
 
     const stripMailto = (url) => {
-        if(url.startsWith('mailto:')) {
+        if(url && url.startsWith('mailto:')) {
             return url.slice("7");
         } else {
             return url;
