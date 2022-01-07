@@ -10,9 +10,23 @@ from . import abstract as abst
 from datetime import *
 from sefaria.system.exceptions import BookNameError
 import functools
-
+from sefaria.utils import calendars
 import structlog
 logger = structlog.get_logger(__name__)
+
+d_calendar = {
+    "Parashat Hashavua": calendars.get_parasha,
+    # "Haftarah": calendars.make_haftarah_response_from_calendar_entry,
+    "Daf Yomi": calendars.daf_yomi,
+    "929": calendars.daily_929,
+    "Daily Mishnah": calendars.daily_mishnayot,
+    "Daily Rambam": calendars.daily_rambam,
+    "Daily Rambam (3 Chapters)": calendars.daily_rambam_three,
+    "Daf a Week": calendars.daf_weekly,
+    "Halakhah Yomit": calendars.halakhah_yomit,
+    "Arukh HaShulchan Yomi": calendars.arukh_hashulchan,
+    "Tanakh Yomi": calendars.tanakh_yomi
+}
 
 
 class PersonalSchedule(abst.AbstractMongoRecord):
@@ -41,13 +55,13 @@ class PersonalSchedule(abst.AbstractMongoRecord):
         "calendar_schedule" # calendar
     ]
 
-    def __init__(self, user_id, schedule_name, pace=None, time_frame=(datetime.utcnow(), datetime.utcnow()), time_of_notification=None, contact_on_shabbat=False, contact_by_sms=False, contact_by_email=False, book=None, corpus=None, calendar_schedule=None):
+    def __init__(self, user_id, schedule_name, pace=None, start_date=datetime.utcnow(), end_date=datetime.utcnow() + timedelta(days=365), time_of_notification=None, contact_on_shabbat=False, contact_by_sms=False, contact_by_email=False, book=None, corpus=None, calendar_schedule=None):
         super().__init__()
         self.user_id = user_id
         self.schedule_name = schedule_name
         self.pace = pace
-        self.start_date = time_frame[0]
-        self.end_date = time_frame[1]
+        self.start_date = convert2datetime(start_date)
+        self.end_date = convert2datetime(end_date)
         self.active = True
         self.date_created = datetime.utcnow()
         self.time_of_notification = time_of_notification
@@ -108,26 +122,34 @@ class PersonalSchedule(abst.AbstractMongoRecord):
     def edit_notifications(self):
         pass
 
+    def create_notifications(self, ref_str, date):
+        if self.contact_by_sms:
+            psn = PersonalScheduleNotification(self, ref_str, 'sms', date)
+            psn.save()
+        if self.contact_by_email:
+            psn = PersonalScheduleNotification(self, ref_str, 'email', date)
+            psn.save()
+
     def create_full_schedule_run(self, lang = 'en'):
+        date = self.start_date
         if self.calendar_schedule:
-            PersonalScheduleNotification()
+            for day in range(0, (self.end_date-self.start_date).days+1):
+                date = date + timedelta(days=1)
+                calendar_func = d_calendar.get(self.calendar_schedule)
+                # try:
+                ref_str = calendar_func(date)[0]['ref']
+                # except
+                self.create_notifications(ref_str, date)
         else:
             text = self.book if self.book else self.corpus
             chunks, _, _ = divide_the_text(text, self.pace, self.start_date, self.end_date)
-            date = self.start_date
-            psn = None
             for ref_chunk in chunks:
                 date = date + timedelta(days=1)
                 if isinstance(ref_chunk, Ref):
                     ref_str = ref_chunk.normal(lang)
                 else:
                     ref_str = f"{ref_chunk[0].normal()} ,{ref_chunk[1].normal()}"
-                if self.contact_by_sms:
-                    psn = PersonalScheduleNotification(self, ref_str, 'sms', date)
-                    psn.save()
-                if self.contact_by_email:
-                    psn = PersonalScheduleNotification(self, ref_str, 'email', date)
-                    psn.save()
+                self.create_notifications(ref_str, date)
 
 
 
@@ -162,7 +184,7 @@ class PersonalScheduleNotification(abst.AbstractMongoRecord):
         super().__init__()
         self.schedule_name = ps.schedule_name
         self.ref = ref
-        self.ping_time = (ps.time_of_notification, date)
+        self.ping_time = (ps.time_of_notification, str(date.date()))
         self.notification_type = notification_type
         profile = db.profiles.find_one({"id": ps.user_id})
         if self.notification_type == 'email':
@@ -170,19 +192,6 @@ class PersonalScheduleNotification(abst.AbstractMongoRecord):
         elif self.notification_type == 'sms':
             self.phone_number = profile.get("phone_number", None)
 
-    def to_mongo_dict(self):
-        """
-        Return a json serializable dictionary which includes all data to be saved in mongo (as opposed to postgres)
-        """
-        d = {
-            # "phone_number" : self.phone_number,
-            # "email_address" : self.email_address,
-            "schedule_name": self.schedule_name,
-            "ref": self.ref,
-            "notification_type": self.notification_type,  # sms/email (or other)
-            "ping_time": self.ping_time
-        }
-        return d
 
     def save(self, override_dependencies=False):
         db.schedule_notification.save(self.contents())

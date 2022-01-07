@@ -11,11 +11,20 @@ class TestPersonalScheduleNotification(object):
         ps.save()
         ps.create_full_schedule_run()
 
-    def test_creating_notifactions_category(self):
+    def test_creating_notifactions_corpus(self):
         ps = PersonalSchedule(30044, "Torah", pace=5, corpus="Torah", contact_by_sms=True, contact_by_email=False)
         ps.save()
         ps.create_full_schedule_run()
 
+    def test_creating_notifactions_calendar_schedule(self):
+        ps = PersonalSchedule(30044, "Daf Yomi", calendar_schedule="Daf Yomi", contact_by_sms=True, contact_by_email=False)
+        ps.save()
+        ps.create_full_schedule_run()
+
+    def test_creating_notifactions_calendar_end_date(self):
+        ps = PersonalSchedule(30044, "try Daf Yomi", calendar_schedule="Daf Yomi", end_date="2022-5-3", contact_by_sms=True, contact_by_email=False)
+        ps.save()
+        ps.create_full_schedule_run()
 
 class TestDivideText(object):
 
