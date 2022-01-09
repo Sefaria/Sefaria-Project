@@ -70,7 +70,7 @@ class Link(abst.AbstractMongoRecord):
                 index_title = text.Ref(ref).index.title
                 if versionTitle not in ["ALL", "NONE"]:
                     assert VersionSet({"title": index_title, "versionTitle": versionTitle, "language": versionLanguage}).count() > 0, \
-                        f"No version found for book {index_title}, versionTitle {versionTitle}, language {versionLanguage}"
+                        f"No version found for book '{index_title}', with versionTitle '{versionTitle}', and language '{versionLanguage}'"
 
 
         if False in self.refs:
