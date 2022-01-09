@@ -125,6 +125,7 @@ a, a:hover {
   --reference-orange: #D4896C;
   --miscelaneous-green: #3B5849;
   --selected-option: #000000;
+  --select-blue: #0B71E7;
 }
 /* Font Family */
 body, .sans-serif {
@@ -9113,12 +9114,12 @@ span.purim-emoji img{
 .interface-english .sheetItem:only-of-type.empty .SheetOutsideText:before,
 .interface-english .spacer:only-of-type.empty:before,
 .interface-english .spacer:only-of-type.empty:before {
-  content: "Write some text or type a citation (ex. 'Genesis 1:1-5') ";
+  content: "Write something... ";
 }
 .interface-hebrew .sheetItem:only-of-type.empty .SheetOutsideText:before,
 .interface-hebrew .spacer:only-of-type.empty:before,
 .interface-hebrew .spacer:only-of-type.empty:before {
-  content: "הקלידו טקסט חופשי או מראה מקום (לדוגמא, בראשית א, א-ה)";
+  content: "לכתוב משהו...";
 }
 .editorAddInterface {
   position: relative;
@@ -9133,7 +9134,7 @@ span.purim-emoji img{
   height: 30px;
   transform: rotate(45deg);
   background-color: white;
-  background-image: url("/static/icons/heavy-x.svg");
+  background-image: url("/static/icons/heavy-x-dark.svg");
   border: 1px solid var(--light-grey);
   background-size: 14px;
   border-radius: 50%;
@@ -9142,6 +9143,14 @@ span.purim-emoji img{
   background-repeat: no-repeat;
   background-position: center;
   box-sizing: border-box;
+  box-shadow: 0px 1px 3px 0px #00000040;
+}
+
+.editorAddInterface:hover::before {
+background-color: var(--lighter-grey);
+}
+.editorAddInterface.active:hover::before {
+background-color: white;
 }
 
 .editorAddInterface.active {
@@ -9469,9 +9478,9 @@ cursor: pointer;
 
 .sheetItem .SheetSource.selected.segment,
 .sheetItem .SheetOutsideBiText.selected.segment {
-  border-top: 2px solid #CCE6FF;
-  border-bottom: 2px solid #CCE6FF;
-  border-inline-end: 2px solid #CCE6FF;
+  border-top: 2px solid var(--select-blue);
+  border-bottom: 2px solid var(--select-blue);
+  border-inline-end: 2px solid var(--select-blue);
   margin-top: 28px;
   margin-bottom: 28px;
   margin-inline-end: -2px;
@@ -9621,6 +9630,15 @@ cursor: pointer;
   );
 }
 
+.bilingual.heLeft .sheetContent .boxedSheetItem,
+.bilingual.heRight .sheetContent .boxedSheetItem {
+  margin-bottom: 30px;
+}
+
+.bilingual.heLeft .sheetContent .sheetItem .SheetSource.segment,
+.bilingual.heRight .sheetContent .sheetItem .SheetSource.segment {
+  margin-bottom: 0;
+}
 
 .boxedSheetItem + .spacer {
   margin-top: -30px;

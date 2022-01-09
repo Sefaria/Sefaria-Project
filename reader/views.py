@@ -2443,7 +2443,7 @@ def get_name_completions(name, limit, ref_only, topic_override=False):
     ref = None
     topic = None
     if topic_override:
-        topic_set = TopicSet({"titles.text": name}, sort=[("numSources", -1)], limit=1)
+        topic_set = TopicSet({"titles.text": re.compile(fr'^{re.escape(name)}$', flags=re.IGNORECASE)}, sort=[("numSources", -1)], limit=1)
         if topic_set.count() > 0:
             topic = topic_set.array()[0]
     try:

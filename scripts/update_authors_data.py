@@ -69,6 +69,9 @@ for l in rows:
     if re.search(fr'^{re.escape(AbstractMongoRecord.normalize_slug(primary_title))}\d*$', slug) is None:
         print(f"ERROR: slug '{slug}' does not match primary title '{primary_title}'. Expected slug '{AbstractMongoRecord.normalize_slug(primary_title)}'")
         has_slug_issues = True
+    if len(l[9]) == 0:
+        print(f"ERROR: slug '{slug}' must have column 'Halachic Era' filled in.")
+        has_slug_issues = True
     if len(slug.strip()) == 0: continue
     internal_slug_count[slug] += 1
 for slug, count in internal_slug_count.items():
