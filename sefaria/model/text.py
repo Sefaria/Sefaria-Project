@@ -2149,7 +2149,7 @@ class TextFamily(object):
         "he": "heSources"
     }
 
-    def __init__(self, oref, context=1, commentary=True, version=None, lang=None, version2=None, lang2=None, pad=True, alts=False, wrapLinks=False, stripItags=False, wrapNamedEntities=False, translationLanguagePreference=None):
+    def __init__(self, oref, context=1, commentary=True, version=None, lang=None, version2=None, lang2=None, pad=True, alts=False, wrapLinks=False, stripItags=False, wrapNamedEntities=False, translationLanguagePreference=None, vtitlePreference=None, vtitlePreference2=None):
         """
         :param oref:
         :param context:
@@ -2163,6 +2163,8 @@ class TextFamily(object):
         :param wrapLinks: whether to return the text requested with all internal citations marked up as html links <a>
         :param stripItags: whether to strip inline commentator tags and inline footnotes from text
         :param wrapNamedEntities: whether to return the text requested with all known named entities marked up as html links <a>.
+        :param vtitlePreference: Preference for a specific version. Ignored if `version` is passed.
+        :param vtitlePreference2: Ditto of vtitlePreference but for lang2
         :return:
         """
         if pad:
@@ -2196,11 +2198,12 @@ class TextFamily(object):
             if language == 'en': tc_kwargs['actual_lang'] = translationLanguagePreference
             if language in {lang, lang2}:
                 curr_version = version if language == lang else version2
-                c = TextChunk(vtitle=curr_version, **tc_kwargs)
+                curr_vtitle_pref = vtitlePreference if language == lang else vtitlePreference2
+                c = TextChunk(vtitle=(curr_version or curr_vtitle_pref), **tc_kwargs)
                 if len(c._versions) == 0:  # indicates `version` doesn't exist
-                    if tc_kwargs.get('actual_lang', False) and not curr_version:
+                    if (tc_kwargs.get('actual_lang', False) or curr_vtitle_pref) and not curr_version:
                         # actual_lang is only used if curr_version is not passed
-                        del tc_kwargs['actual_lang']
+                        tc_kwargs.pop('actual_lang', None)
                         c = TextChunk(vtitle=curr_version, **tc_kwargs)
                     elif curr_version:
                         self._nonExistantVersions[language] = curr_version

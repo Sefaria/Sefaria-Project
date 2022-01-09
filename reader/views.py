@@ -1316,14 +1316,28 @@ def texts_api(request, tref):
         wrapNamedEntities = bool(int(request.GET.get("wrapNamedEntities", False)))
         stripItags = bool(int(request.GET.get("stripItags", False)))
         multiple = int(request.GET.get("multiple", 0))  # Either undefined, or a positive integer (indicating how many sections forward) or negative integer (indicating backward)
-        translationLanguagePreference = request.GET.get("transLangPref", None)
+        translationLanguagePreference = request.GET.get("transLangPref", None)  # as opposed to vlangPref, this refers to the actual lang of the text
+
+        def _parse_vpref(vpref: str):
+            if vpref is None:
+                return None, None
+            assert vpref.count("|") != 1
+            return vpref.split("|")
+        try:
+            vtitlePref, vlangPref = _parse_vpref(request.GET.get("versionPref", None))  # vlangPref refers to the lang of the version in the db
+        except AssertionError:
+            return jsonResponse({"error": "versionPref must contain a version title and version language separated by a pipe (|)"}, cb)
 
         def _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context, pad=pad,
-                      alts=alts, wrapLinks=wrapLinks, layer_name=layer_name, wrapNamedEntities=wrapNamedEntities, translationLanguagePreference=translationLanguagePreference):
+                      alts=alts, wrapLinks=wrapLinks, layer_name=layer_name, wrapNamedEntities=wrapNamedEntities):
             text_family_kwargs = dict(version=versionEn, lang="en", version2=versionHe, lang2="he",
                                       commentary=commentary, context=context, pad=pad, alts=alts,
                                       wrapLinks=wrapLinks, stripItags=stripItags, wrapNamedEntities=wrapNamedEntities,
                                       translationLanguagePreference=translationLanguagePreference)
+            vtitlePrefKey = "vtitlePreference"
+            if vlangPref == "he":
+                vtitlePrefKey += "2"  # 2 corresponds to lang2 which is constant (for some reason)
+            text_family_kwargs[vtitlePrefKey] = vtitlePref
             try:
                 text = TextFamily(oref, **text_family_kwargs).contents()
             except AttributeError as e:
