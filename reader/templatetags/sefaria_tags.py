@@ -393,7 +393,7 @@ def sum_counts(counts):
 
 @register.filter(is_safe=True)
 def percent_available(array, key):
-	return array[key]["percentAvailable"]
+	return array.get(key, {}).get("percentAvailable", 0.0)
 
 
 @register.filter(is_safe=True)
