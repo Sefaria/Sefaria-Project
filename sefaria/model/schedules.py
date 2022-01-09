@@ -55,7 +55,7 @@ class PersonalSchedule(abst.AbstractMongoRecord):
         "calendar_schedule" # calendar
     ]
 
-    def __init__(self, user_id, schedule_name, pace=None, start_date=datetime.utcnow(), end_date=datetime.utcnow() + timedelta(days=365), time_of_notification=None, contact_on_shabbat=False, contact_by_sms=False, contact_by_email=False, book=None, corpus=None, calendar_schedule=None):
+    def __init__(self, user_id=None, schedule_name='', pace=None, start_date=datetime.utcnow(), end_date=datetime.utcnow() + timedelta(days=365), time_of_notification=None, contact_on_shabbat=False, contact_by_sms=False, contact_by_email=False, book=None, corpus=None, calendar_schedule=None):
         super().__init__()
         self.user_id = user_id
         self.schedule_name = schedule_name

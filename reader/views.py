@@ -2389,13 +2389,16 @@ def schedule_calculate_api(request):
             "end_date" : end_date
         })
 
+
 @catch_error_as_json
-@csrf_exempt
 def schedule_api(request):
     if request.method == "POST":
         j = json.loads(request.POST.get("json"))
-        ps = PersonalSchedule(j.contents())
+        user_id = request.user.id
+        ps = PersonalSchedule(user_id, **j)
         ps.save()
+        ps.create_full_schedule_run()
+
 
 @catch_error_as_json
 @csrf_exempt
