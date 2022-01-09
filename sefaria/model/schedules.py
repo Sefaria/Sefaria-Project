@@ -219,9 +219,12 @@ def ref_chunks(lst, n, remainder=0):
         else:
             tr11 = tr1.index_node.last_section_ref().last_segment_ref()
             ref_str1 = tr1.to(tr11)
-            tr21 = tr2.index_node.first_section_ref().all_subrefs()[0]
-            ref_str2 = tr21.to(tr2)
-            chunks.append((ref_str1, ref_str2))
+            try:
+                tr21 = tr2.index_node.first_section_ref().all_subrefs()[0] #todo:look into this logic for Talmud
+                ref_str2 = tr21.to(tr2)
+                chunks.append((ref_str1, ref_str2))
+            except:
+                chunks.append(ref_str1)
         i += n+j
         cnt+=1
     return chunks
@@ -231,7 +234,7 @@ def convert2datetime(d):
     if isinstance(d, str):
         split_date = d.split("-")
         d = datetime(year=int(split_date[0]), month=int(split_date[1]), day=int(split_date[2]))
-    assert isinstance(d, datetime)
+    assert isinstance(d, datetime) if d else True
     return d
 
 
@@ -247,7 +250,7 @@ def lst_learning_unit(ind):
     return lst
 
 
-def divide_the_text(text, pace=None, start_date=datetime.utcnow(), end_date = None):
+def divide_the_text(text, pace=None, start_date=datetime.utcnow(), end_date=None):
     """
     Given a list of segments and (start_time, end_time) calculates the portions
     :return: list of ranged-refs
