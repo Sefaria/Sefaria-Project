@@ -661,7 +661,7 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
       dragIcon.innerHTML = Sefaria.interfaceLang === "hebrew" ? element.heRef : element.ref;
 
       document.body.appendChild(dragIcon);
-      e.dataTransfer.setDragImage(dragIcon, 0, 0);
+      e.dataTransfer.setDragImage(dragIcon, 0, 15);
 
       ReactEditor.setFragmentData(parentEditor, e.dataTransfer, "drag")
       setIsDragging(true)
@@ -1187,7 +1187,7 @@ async function getRefInText(editor, returnSourceIfFound) {
 
 
 const withSefariaSheet = editor => {
-    const {insertData, insertBreak, isVoid, normalizeNode, deleteBackward, deleteForward, setFragmentData, insertFragmentData} = editor;
+    const {insertData, insertText, insertBreak, isVoid, normalizeNode, deleteBackward, deleteForward, setFragmentData} = editor;
 
     //Hack to override this built-in which often returns null when programmatically selecting the whole SheetSource
     Transforms.deselect = () => {
@@ -1203,23 +1203,6 @@ const withSefariaSheet = editor => {
         deleteForward(editor);
 
     }
-
-    editor.insertFragmentData = (data) => {
-        if (editor.dragging && getClosestSheetElement(editor, editor.selection.focus.path, "spacer")) {
-            editor.insertText(' ') // this is start of dance that's required to ensure that dnd data gets moved properly
-            insertFragmentData(data)
-            Transforms.move(editor, {reverse: true}) // dance part ii
-            deleteBackward(); // dance finale.
-            Editor.normalize(editor, { force: true })
-            editor.dragging = false
-        }
-        else {
-            editor.dragging = false
-            insertFragmentData(data)
-        }
-
-    }
-
 
     editor.deleteBackward = () => {
         const atStartOfDoc = Point.equals(editor.selection.focus, Editor.start(editor, [0, 0]));
@@ -1301,14 +1284,24 @@ const withSefariaSheet = editor => {
           return Node.string(curNode) === ""
         }
 
+
         if (isListItem(editor)) {
             if (isEmpty(editor)) {
                 Transforms.insertNodes(editor, {type: 'spacer', children: [{text: ""}]});
                 deleteBackward()
             }
+
+            else if (isLinkActive(editor)) {
+                // insert an extra space on an active link before creating new line. It prevents link from continuing to next li
+                editor.insertText(' ')
+                insertBreak();
+                editor.removeLink()
+            }
+
             else {
                 insertBreak();
             }
+            removeMarks(editor)
             return
         }
 
@@ -1325,7 +1318,17 @@ const withSefariaSheet = editor => {
 
 
     editor.insertData = data => {
-        insertData(data);
+        if (editor.dragging && getClosestSheetElement(editor, editor.selection.focus.path, "spacer")) {
+            editor.insertText(' ') // this is start of dance that's required to ensure that dnd data gets moved properly
+            insertData(data)
+            Transforms.move(editor, {reverse: true}) // dance part ii
+            deleteBackward(); // dance finale.
+            Editor.normalize(editor, { force: true })
+        }
+        else {
+            insertData(data)
+        }
+        editor.dragging = false
         checkAndFixDuplicateSheetNodeNumbers(editor);
     };
 
@@ -1883,7 +1886,7 @@ const Link = ({ attributes, children, element }) => {
     }
 
     const stripMailto = (url) => {
-        if(url.startsWith('mailto:')) {
+        if(url && url.startsWith('mailto:')) {
             return url.slice("7");
         } else {
             return url;
@@ -2038,6 +2041,20 @@ const isFormatActive = (editor, format, value=null) => {
   });
   return !!match
 };
+
+const removeMarks = (editor) => {
+    editor.removeMark('italic');
+    editor.removeMark('bold');
+    editor.removeMark('underline');
+    editor.removeMark('big');
+    editor.removeMark('small');
+    editor.removeMark('superscript');
+    editor.removeMark('isRef');
+    editor.removeMark('color');
+    editor.removeMark('background-color');
+    editor.removeMark('text-align');
+}
+
 
 const toggleBlock = (editor, format) => {
   const isActive = isBlockActive(editor, format)
@@ -2432,7 +2449,6 @@ const SefariaEditor = (props) => {
 
     function saveSheetContent(doc, lastModified) {
         const sheetTitle = editorContainer.current.querySelector(".sheetContent .sheetMetaDataBox .title") ? editorContainer.current.querySelector(".sheetContent .sheetMetaDataBox .title").textContent : "Untitled"
-        console.log(sheetTitle)
         const sheetContent = doc.children.find(el => el.type == "SheetContent").children;
 
         const sources = sheetContent.map(item => {
@@ -2544,7 +2560,7 @@ const SefariaEditor = (props) => {
 
     function saveDocument(doc) {
         const json = saveSheetContent(doc[0], lastModified);
-        console.log('saving...');
+        // console.log('saving...');
 
         $.post("/api/sheets/", {"json": json}, res => {
             setlastModified(res.dateModified);

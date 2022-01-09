@@ -148,7 +148,7 @@ class Test_Ref(object):
         assert Ref("Pesach Haggadah, Magid").all_context_refs() == [Ref("Pesach Haggadah, Magid")]
 
         # Don't choke on Virtual nodes
-        assert Ref("Jastrow, ג").all_context_refs() == [Ref("Jastrow, ג")]
+        assert Ref("Jastrow, ג").all_context_refs() == [Ref("Jastrow, ג"), Ref('Jastrow<d>')]
 
     # These won't work unless the sheet is present in the db
     @pytest.mark.deep
