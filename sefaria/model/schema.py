@@ -1693,7 +1693,7 @@ class DictionaryNode(VirtualNode):
         return text.Ref(_obj=d)
 
     def supports_language(self, lang):
-        return True if lang == self.lexicon.version_lang else False
+        return lang == self.lexicon.version_lang
 
 
 class SheetNode(NumberedTitledTreeNode):
