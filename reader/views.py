@@ -1321,7 +1321,8 @@ def texts_api(request, tref):
         def _parse_vpref(vpref: str):
             if vpref is None:
                 return None, None
-            assert vpref.count("|") != 1
+            assert vpref.count("|") == 1
+            vpref = vpref.replace("_", " ")
             return vpref.split("|")
         try:
             vtitlePref, vlangPref = _parse_vpref(request.GET.get("versionPref", None))  # vlangPref refers to the lang of the version in the db
