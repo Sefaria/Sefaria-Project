@@ -2035,7 +2035,7 @@ class VirtualTextChunk(AbstractTextRecord):
         self.is_merged = False
         self.sources = []
 
-        if self.lang not in self._oref.index_node.supported_languages:
+        if not self._oref.index_node.parent.supports_language(self.lang):
             self.text = []
             self._versions = []
             return
@@ -4963,8 +4963,9 @@ class Library(object):
 
     def build_lexicon_auto_completers(self):
         from .autospell import LexiconTrie
+        from .lexicon import LexiconSet
         self._lexicon_auto_completer = {
-            lexicon: LexiconTrie(lexicon) for lexicon in ["Jastrow Dictionary", "Klein Dictionary"]
+            lexicon.name: LexiconTrie(lexicon.name) for lexicon in LexiconSet({'should_autocomplete': True})
         }
         self._lexicon_auto_completer_is_ready = True
 
