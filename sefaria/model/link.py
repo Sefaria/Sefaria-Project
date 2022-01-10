@@ -94,7 +94,8 @@ class Link(abst.AbstractMongoRecord):
                 self.charLevelData.reverse()
             orig_refs = self.refs
             self.refs = sorted(self.refs) #make sure ref order is deterministic
-            if orig_refs != self.refs:    #if reversed self.refs, make sure to reverse self.versions
+            if orig_refs != self.refs and getattr(self, "versions", False):
+                #if reversed self.refs, make sure to reverse self.versions
                 self.versions = self.versions[::-1]
             samelink = Link().load({"refs": self.refs})
 
