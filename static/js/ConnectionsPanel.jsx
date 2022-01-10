@@ -198,7 +198,7 @@ class ConnectionsPanel extends Component {
   }
   getData(cb) {
     // Gets data about this text from cache, which may be null.
-    return Sefaria.getText(this.props.srefs[0], { context: 1, enVersion: this.props.currVersions.en, heVersion: this.props.currVersions.he, translationLanguagePreference: this.props.translationLanguagePreference }).then(cb);
+    return Sefaria.getText(this.props.srefs[0], { context: 1, enVersion: this.props.currVersions.en, heVersion: this.props.currVersions.he, translationLanguagePreference: this.props.translationLanguagePreference, versionPref: this.props.versionPref}).then(cb);
   }
   getVersionFromData(d, lang) {
     //d - data received from this.getData()

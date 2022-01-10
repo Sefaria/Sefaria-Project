@@ -30,11 +30,11 @@ import {
 const norm_hebrew_ref = tref => tref.replace(/[׳״]/g, '');
 
 
-const fetchBulkText = (translationLanguagePreference, inRefs) =>
+const fetchBulkText = (translationLanguagePreference, versionPref, inRefs) =>
   Sefaria.getBulkText(
     inRefs.map(x => x.ref),
     true, 500, 600,
-    translationLanguagePreference
+    translationLanguagePreference, versionPref
   ).then(outRefs => {
     for (let tempRef of inRefs) {
       // annotate outRefs with `order` and `dataSources` from `topicRefs`
@@ -316,11 +316,11 @@ const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDis
     </div>
 );}
 
-const useTabDisplayData = (translationLanguagePreference) => {
+const useTabDisplayData = (translationLanguagePreference, versionPref) => {
   const getTabDisplayData = useCallback(() => [
     {
       key: 'popular-writing-of',
-      fetcher: fetchBulkText.bind(null, translationLanguagePreference),
+      fetcher: fetchBulkText.bind(null, translationLanguagePreference, versionPref),
       sortOptions: ['Relevance', 'Chronological'],
       filterFunc: refFilter,
       sortFunc: refSort,
@@ -328,7 +328,7 @@ const useTabDisplayData = (translationLanguagePreference) => {
     },
     {
       key: 'sources',
-      fetcher: fetchBulkText.bind(null, translationLanguagePreference),
+      fetcher: fetchBulkText.bind(null, translationLanguagePreference, versionPref),
       sortOptions: ['Relevance', 'Chronological'],
       filterFunc: refFilter,
       sortFunc: refSort,
@@ -342,13 +342,13 @@ const useTabDisplayData = (translationLanguagePreference) => {
       sortFunc: sheetSort,
       renderWrapper: sheetRenderWrapper,
     }
-  ], [translationLanguagePreference]);
+  ], [translationLanguagePreference, versionPref]);
   return getTabDisplayData();
 };
 
 const TopicPage = ({
   tab, topic, topicTitle, setTopic, setNavTopic, openTopics, multiPanel, showBaseText, navHome, 
-  toggleSignUpModal, openDisplaySettings, updateTopicsTab, openSearch, translationLanguagePreference,
+  toggleSignUpModal, openDisplaySettings, updateTopicsTab, openSearch, translationLanguagePreference, versionPref
 }) => {
     const defaultTopicData = {primaryTitle: topicTitle, tabs: {}, isLoading: true};
     const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(topic) || defaultTopicData);
@@ -356,7 +356,7 @@ const TopicPage = ({
     const [refsToFetchByTab, setRefsToFetchByTab] = useState({});
     const [parashaData, setParashaData] = useState(null);
     const [showFilterHeader, setShowFilterHeader] = useState(false);
-    const tabDisplayData = useTabDisplayData(translationLanguagePreference);
+    const tabDisplayData = useTabDisplayData(translationLanguagePreference, versionPref);
 
     const scrollableElement = useRef();
 

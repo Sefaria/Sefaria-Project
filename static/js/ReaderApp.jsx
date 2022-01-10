@@ -1662,6 +1662,19 @@ class ReaderApp extends Component {
     Sefaria.editProfileAPI({settings: {translation_language_preference: lang, translation_language_preference_suggested: suggested}});
     this.setState({translationLanguagePreference: lang});
   }
+  setVersionPref(versionTitle, lang, title) {
+    const versionPrefObj = JSON.parse($.cookie("versionPref") || "{}");
+    const corpus = title // TODO get corpus
+    if (versionTitle === null) {
+      delete versionPrefObj[corpus];
+    } else {
+      versionPrefObj[corpus] = { title: versionTitle, lang };
+    }
+    Sefaria.track.event("Reader", "Set Translation Language Preference", lang);
+      $.cookie("translation_language_preference", lang, {path: "/"});
+      $.cookie("translation_language_preference_suggested", JSON.stringify(1), {path: "/"});
+    this.setState({translationLanguagePreference: lang});
+  }
   doesPanelHaveSidebar(n) {
     return this.state.panels.length > n+1 && this.state.panels[n+1].mode == "Connections";
   }
