@@ -560,12 +560,24 @@ const CustomLearningSchedulePicker = ({currentValues, onUpdate}) => {
   // $.get(`/api/schedule?text=${startRef}&pace=${rate}`, applyNewValues);
 
   useEffect(() => {
-    $.get(`/api/schedule/pace-calculation?text=${startRef}&pace=${rate}`, applyNewValues);
+    if (startRef) {
+      $.get(`/api/schedule/pace-calculation?text=${startRef}&pace=${rate}`, applyNewValues);
+    } else {
+      setEndDate(null);
+      setUnitCount(null)
+      onUpdate({
+        startRef: null,
+        endRef: null,
+        rate: null,
+        unitCount: null
+      })
+    }
   }, [rate, startRef])
 
   const applyNewValues = (data) => {
     if(data.pace.toString() === rate) {
       setEndDate(new Date(data.end_date));
+      setUnitCount(data.num_of_learning_chunks)
       onUpdate({
         startRef,
         endRef,
@@ -575,9 +587,6 @@ const CustomLearningSchedulePicker = ({currentValues, onUpdate}) => {
         rateUnit,
         unitCount
       })
-    }
-    if(true) { // TODO: check text matches
-      setUnitCount(data.num_of_learning_chunks)
     }
   }
 
@@ -599,7 +608,7 @@ const CustomLearningSchedulePicker = ({currentValues, onUpdate}) => {
         <span className="label">{rateUnit} per day: </span> <input min="1" type="number" value={rate} onChange={$event => setRate($event.target.value)}></input>
       </div>
       <div className="scheduleFormHorizontal">
-        <span className="label">Completion date: </span> {Sefaria.util.localeDate(endDate)}
+        <span className="label">Completion date: </span> {endDate ? Sefaria.util.localeDate(endDate) : null}
       </div>
     </>
   )
@@ -621,6 +630,7 @@ const LearningSchedule = ({slug, closeSchedule}) => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [customScheduleValues, setCustomScheduleValues] = useState(null);
   const calendars = reformatCalendars();
+  const schedulesUrl = '/api/schedule/new'; // TODO: change when PR for api change goes through
 
   // update schedule object
   useEffect(() => {
@@ -670,7 +680,24 @@ const LearningSchedule = ({slug, closeSchedule}) => {
   }
 
   const saveAndClose = () => {
-    alert(JSON.stringify(scheduleOptions));
+    const postData = {
+      start_date: scheduleOptions.startDate,
+      end_date: scheduleOptions.endDate,
+      pace: scheduleOptions.rate,
+      book: scheduleOptions.startRef,
+      calendar_schedule: scheduleOptions.schedule,
+      contact_by_email: scheduleOptions.email,
+      contact_by_sms: scheduleOptions.textMessage,
+      phone_number: scheduleOptions.phoneNumber
+    }
+    $.post(schedulesUrl, {"json": JSON.stringify(postData)}, function (data) {
+      if (data.error) {
+          alert(data.error);
+      } else {
+          console.log(data);
+      }
+    });
+    alert(JSON.stringify(postData));
     closeSchedule();
   }
 
@@ -679,10 +706,10 @@ const LearningSchedule = ({slug, closeSchedule}) => {
     let interfaceText;
     switch(type) {
       case "description":
-        interfaceText = selectedSchedule ? (<InterfaceText text={selectedSchedule.description}></InterfaceText>) : <InterfaceText>Select a schedule to view a description</InterfaceText>;
+        interfaceText = selectedSchedule ? (<InterfaceText text={selectedSchedule.description}></InterfaceText>) : !customScheduleValues ? (<InterfaceText>Select a schedule to view a description</InterfaceText>) : null;
         break;
       case "title":
-        interfaceText = selectedSchedule ? (<InterfaceText text={selectedSchedule.title}></InterfaceText>) : <InterfaceText>Custom Schedule: {startRef}</InterfaceText>;
+        interfaceText = selectedSchedule ? (<InterfaceText text={selectedSchedule.title}></InterfaceText>) : (<>Custom Schedule: {customScheduleValues.startRef}</>);
         break;
       default:
         interfaceText = null;
