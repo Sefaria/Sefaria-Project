@@ -6195,8 +6195,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 
 .shareInputBox .shareInputButton:active {
   background-color: var(--light-grey);
-  border: 0;
-  margin-inline-start: 20px;
 }
 
 .shareSettingsBox {
