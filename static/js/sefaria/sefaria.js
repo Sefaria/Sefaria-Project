@@ -1112,7 +1112,12 @@ Sefaria = extend(Sefaria, {
     let essayLinks = [];
     for (let i=0; i<links.length; i++) {
       if (links[i]["type"] === "essay" && "displayedText" in links[i]) {
-        essayLinks.push(links[i]);
+        const linkLang = links[i]["anchorVersion"]["language"];
+        const currVersionTitle = versions[linkLang]["versionTitle"];
+        const linkVersionTitle = links[i]["anchorVersion"]["title"];
+        if (currVersionTitle === linkVersionTitle) {
+          essayLinks.push(links[i]);
+        }
       }
     }
     return essayLinks.sort((a, b) => Sefaria.refContains(a["sourceRef"], b["sourceRef"]));
