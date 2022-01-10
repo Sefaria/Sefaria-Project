@@ -33,7 +33,7 @@ class PersonalSchedule(abst.AbstractMongoRecord):
     """
     A custom learning schedule
     """
-    collection = 'personal_schedule'
+    collection = 'schedules'
 
     required_attrs = [
         "user_id",          # int
@@ -50,29 +50,29 @@ class PersonalSchedule(abst.AbstractMongoRecord):
         "contact_on_shabbat",
         "contact_by_sms",
         "contact_by_email",
+        "pace",
         "book",             # index
         "corpus",           # category
         "calendar_schedule" # calendar
     ]
 
-    def __init__(self, user_id=None, schedule_name='', pace=None, start_date=datetime.utcnow(), end_date=datetime.utcnow() + timedelta(days=365), time_of_notification=None, contact_on_shabbat=False, contact_by_sms=False, contact_by_email=False, book=None, corpus=None, calendar_schedule=None):
-        super().__init__()
-        self.user_id = user_id
-        self.schedule_name = schedule_name
-        self.pace = pace
-        self.start_date = convert2datetime(start_date)
-        self.end_date = convert2datetime(end_date)
-        self.active = True
-        self.date_created = datetime.utcnow()
-        self.time_of_notification = time_of_notification
-        self.contact_on_shabbat = contact_on_shabbat
-        self.contact_by_sms = contact_by_sms
-        self.contact_by_email = contact_by_email
-        self.book = book
-        self.corpus = corpus
-        self.calendar_schedule = calendar_schedule
-
     def _normalize(self):
+        if not getattr(self, "start_date", None):
+            self.start_date = datetime.utcnow()
+        if not getattr(self, "end_date", None):
+            self.end_date = datetime.utcnow() + timedelta(days=365)
+
+        self.date_created = datetime.utcnow()
+
+        self.active                 = getattr(self, "active", True)
+        self.time_of_notification   = getattr(self, "time_of_notification", None)
+        self.contact_on_shabbat     = getattr(self, "contact_on_shabbat", False)
+        self.contact_by_sms         = getattr(self, "time_of_notification", False)
+        self.contact_by_email       = getattr(self, "time_of_notification", False)
+        self.book                   = getattr(self, "book", None)
+        self.corpus                 = getattr(self, "corpus", None)
+        self.calendar_schedule      = getattr(self, "calendar_schedule", None)
+
         pass
 
     def _validate(self):
@@ -86,35 +86,6 @@ class PersonalSchedule(abst.AbstractMongoRecord):
 
     def _sanitize(self):
         pass
-
-    def to_mongo_dict(self):
-        """
-        Return a json serializable dictionary which includes all data to be saved in mongo (as opposed to postgres)
-        """
-        d = {
-            "user_id":	            self.user_id	,
-            "schedule_name":	    self.schedule_name	,
-            "pace":                 self.pace	,  # int
-            "start_date":           self.start_date	,
-            "end_date":             self.end_date	,
-            "active":               self.active	,
-            "datetime":	            self.date_created	,
-            "time_of_notification":	self.time_of_notification	,
-            "contact_on_shabbat":	self.contact_on_shabbat	,
-            "contact_by_sms":	    self.contact_by_sms	,
-            "contact_by_email":	    self.contact_by_email	,
-            "book":	                self.book	,
-            "corpus":	            self.corpus	,
-            "calendar_schedule":	self.calendar_schedule	,
-        }
-        return d
-
-    def save(self, override_dependencies=False):
-        self._normalize()
-        self._validate()
-        self._sanitize()
-        self._pre_save()
-        db.schedules.save(self.to_mongo_dict())
 
     def delete(self, force=False, override_dependencies=False):
         # step one, delete all PersonalScheduleNotification of this ps
