@@ -593,7 +593,7 @@ const CustomLearningSchedulePicker = ({currentValues, onUpdate}) => {
         </select>
       </div>
       <div className="scheduleDescription">
-        {unitCount ? <>The text you have selected contains {unitCount.toString()} verses.</> : null}
+        {unitCount ? <>It will take you {unitCount.toString()} days to finish learning this text.</> : null}
       </div>
       <div className="scheduleFormHorizontal">
         <span className="label">{rateUnit} per day: </span> <input min="1" type="number" value={rate} onChange={$event => setRate($event.target.value)}></input>
