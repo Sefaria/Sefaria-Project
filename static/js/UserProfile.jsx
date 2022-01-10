@@ -697,7 +697,6 @@ const LearningSchedule = ({slug, closeSchedule}) => {
           console.log(data);
       }
     });
-    alert(JSON.stringify(postData));
     closeSchedule();
   }
 
