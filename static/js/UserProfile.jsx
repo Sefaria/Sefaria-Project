@@ -560,7 +560,7 @@ const CustomLearningSchedulePicker = ({currentValues, onUpdate}) => {
   // $.get(`/api/schedule?text=${startRef}&pace=${rate}`, applyNewValues);
 
   useEffect(() => {
-    $.get(`/api/schedule?text=${startRef}&pace=${rate}`, applyNewValues);
+    $.get(`/api/schedule/pace-calculation?text=${startRef}&pace=${rate}`, applyNewValues);
   }, [rate, startRef])
 
   const applyNewValues = (data) => {
