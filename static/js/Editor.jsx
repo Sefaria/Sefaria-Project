@@ -1885,14 +1885,6 @@ const Link = ({ attributes, children, element }) => {
         }
     }
 
-    const stripMailto = (url) => {
-        if(url && url.startsWith('mailto:')) {
-            return url.slice("7");
-        } else {
-            return url;
-        }
-    }
-
     const urlChange = (e) => {
         const newUrl = e.target.value;
         setUrlValue(newUrl)
@@ -1924,7 +1916,7 @@ const Link = ({ attributes, children, element }) => {
         <div className="popup" contentEditable={false} onFocus={() => setEditingUrl(true)} onBlur={(e) => closePopup(e)}>
           <input
               type="text"
-              value={stripMailto(urlValue)}
+              value={urlValue}
               placeholder={Sefaria._("Enter link URL")}
               className="sans-serif"
               onChange={(e) => urlChange(e)}
