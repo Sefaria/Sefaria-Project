@@ -1320,6 +1320,7 @@ def texts_api(request, tref):
         multiple = int(request.GET.get("multiple", 0))  # Either undefined, or a positive integer (indicating how many sections forward) or negative integer (indicating backward)
         translationLanguagePreference = request.GET.get("transLangPref", None)  # as opposed to vlangPref, this refers to the actual lang of the text
 
+        # version preference
         def _parse_vpref(vpref: str):
             if vpref is None:
                 return None, None
