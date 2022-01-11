@@ -882,17 +882,16 @@ class DictionaryNode extends Component {
         <ContentText text={{en:this.props.schema.title , he:this.props.schema.heTitle }}/>
       ) : (
         <ContentText text={{en: "Browse By Letter", he: 'לפי סדר הא"ב'}}/>);
-      let sectionLinks = this.props.schema.headwordMap.map(function(m,i) {
       const letterSection = this.getCurrentLetter();
-      let sectionLinks = this.props.schema.headwordMap.map((m,i) =>{
-      let letter = m[0];
-      let ref = m[1];
-      let currentPlace = letterSection ? ref == letterSection : false;
-      const linkClasses = classNames({"sectionLink": 1, "current": currentPlace}); 
-      return (
-          <a className={linkClasses} href={"/" + Sefaria.normRef(ref)} data-ref={ref} key={i}>
-            <ContentText text={{en:letter, he:letter}} />
-          </a>
+      let sectionLinks = this.props.schema.headwordMap.map((m, i) => {
+        let letter = m[0];
+        let ref = m[1];
+        let currentPlace = letterSection ? ref == letterSection : false;
+        const linkClasses = classNames({"sectionLink": 1, "current": currentPlace});
+        return (
+            <a className={linkClasses} href={"/" + Sefaria.normRef(ref)} data-ref={ref} key={i}>
+              <ContentText text={{en: letter, he: letter}}/>
+            </a>
         );
       });
       return (
