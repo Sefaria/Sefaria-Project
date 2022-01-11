@@ -642,7 +642,7 @@ const LearningSchedule = ({slug, closeSchedule}) => {
       schedule,
       alerts: alerts,
       phoneNumber,
-      alertTime: new Date(new Date().toDateString() + " 08:00").getTime() / 1000,
+      alertTime: new Date(new Date().toDateString() + " " + alertTime).toUTCString(),
       startRef: customScheduleValues ? customScheduleValues.startRef : null,
       endRef: customScheduleValues? customScheduleValues.endRef : null,
       startDate: customScheduleValues ? customScheduleValues.startDate : null,
@@ -807,7 +807,7 @@ const LearningSchedule = ({slug, closeSchedule}) => {
         </div>
         <div className="scheduleFormHorizontal">
           <span className="label">Time to send Alert:</span>
-            <input type="time" id="alertTime" key="alertTime" name="alertTime"
+            <input type="time" id="alertTime" key="alertTime" name="alertTime" step="3600"
             value={alertTime} onChange={$event => {setAlertTime($event.target.value)}} />
             <span>{Intl.DateTimeFormat().resolvedOptions().timeZone}</span>
         </div>
