@@ -937,6 +937,14 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         else:
             return self.categories[0]
 
+    def get_primary_corpus(self):
+        """
+        Primary corpus used for setting version preference by
+        """
+        corpora = getattr(self, "corpora", [])
+        if len(corpora) > 0:
+            return corpora[0]
+
 
 class IndexSet(abst.AbstractMongoSet):
     """

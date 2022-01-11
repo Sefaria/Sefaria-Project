@@ -3,6 +3,7 @@ import $ from "./sefariaJquery";
 class VersionPreferences {
     constructor(versionPrefsByCorpus) {
         this._versionPrefsByCorpus = versionPrefsByCorpus || {};
+        this.update_cookie();
     }
     getVersionPref(sref) {
         const title = Sefaria.parseRef(sref).index
@@ -17,9 +18,10 @@ class VersionPreferences {
 
         // side effects
         Sefaria.track.event("Reader", "Set Version Preference", `${corpus}|${lang}`);
-        $.cookie("version_preferences", JSON.stringify(prefsClone), {path: "/"});
-
         return new VersionPreferences(prefsClone);
+    }
+    update_cookie() {
+        $.cookie("version_preferences", JSON.stringify(this._versionPrefsByCorpus), {path: "/"});
     }
 }
 

@@ -120,7 +120,7 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
         # VERSION PREFERENCE
         import json
         version_preferences_by_corpus_cookie = json.loads(request.COOKIES.get("version_preferences_by_corpus", "null"))
-        request.version_preferences_by_corpus = (profile is not None and profile.settings.get("version_preferences_by_corpus", None)) or version_preferences_by_corpus_cookie
+        request.version_preferences_by_corpus = (profile is not None and getattr(profile, "version_preferences_by_corpus", None)) or version_preferences_by_corpus_cookie
         request.LANGUAGE_CODE = interface[0:2]
         request.interfaceLang = interface
         request.contentLang   = content
