@@ -108,7 +108,7 @@ class ReaderApp extends Component {
       initialAnalyticsTracked: false,
       showSignUpModal: false,
       translationLanguagePreference: props.translationLanguagePreference,
-      versionPreferences: new VersionPreferences(props.versionPrefsByCorpus),
+      versionPreferences: new VersionPreferences(props.initialVersionPrefsByCorpus),
       beitMidrashStatus: Sefaria._uid && props.customBeitMidrashId ? true : false,
       beitMidrashId: props.customBeitMidrashId ? props.customBeitMidrashId : "Sefaria",
       inCustomBeitMidrash: !!props.customBeitMidrashId,
