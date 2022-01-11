@@ -1113,9 +1113,9 @@ Sefaria = extend(Sefaria, {
     for (let i=0; i<links.length; i++) {
       if (links[i]["type"] === "essay" && "displayedText" in links[i]) {
         const linkLang = links[i]["anchorVersion"]["language"];
-        const currVersionTitle = versions[linkLang] ? versions[linkLang]["versionTitle"] : null;
-        const linkVersionTitle = "title" in links[i]["anchorVersion"] ? links[i]["anchorVersion"]["title"] : null;
-        if (currVersionTitle && currVersionTitle === linkVersionTitle) {
+        const currVersionTitle = versions[linkLang] ? versions[linkLang]["versionTitle"] : "NONE";
+        const linkVersionTitle = links[i]["anchorVersion"]["title"];
+        if (linkVersionTitle === "ALL" || (linkVersionTitle !== "NONE" && currVersionTitle === linkVersionTitle)) {
           essayLinks.push(links[i]);
         }
       }
