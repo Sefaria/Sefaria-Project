@@ -17,12 +17,12 @@ class TestPersonalScheduleNotification(object):
         sched.create_full_schedule_run()
 
     def test_creating_notifactions_calendar_schedule(self):
-        ps = PersonalSchedule({"user_id": 30044, "schedule_name": "Daf Yomi", "calendar_schedule":"Daf Yomi", "contact_by_sms":True, "contact_by_email":False})
+        ps = PersonalSchedule({"user_id": 30044, "schedule_name": "Daf Yomi", "calendar_schedule": "Daf Yomi", "contact_by_sms":True, "contact_by_email":False})
         sched = ps.save()
         sched.create_full_schedule_run()
 
     def test_creating_notifactions_calendar_end_date(self):
-        ps = PersonalSchedule({"user_id": 30044, "schedule_name": "try Daf Yomi", "calendar_schedule":"Daf Yomi", "end_date":"2022-5-3", "contact_by_sms":True, "contact_by_email":False})
+        ps = PersonalSchedule({"user_id": 30044, "schedule_name": "try Parashat Hashavua", "calendar_schedule": "Parashat Hashavua", "end_date":"2022-5-3", "contact_by_sms":True, "contact_by_email":False})
         sched = ps.save()
         sched.create_full_schedule_run()
 

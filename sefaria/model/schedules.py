@@ -58,7 +58,6 @@ class PersonalSchedule(abst.AbstractMongoRecord):
 
     def _normalize(self):
         print(self)
-
         if not getattr(self, "start_date", None):
             self.start_date = datetime.utcnow()
         if not getattr(self, "end_date", None):
@@ -66,7 +65,8 @@ class PersonalSchedule(abst.AbstractMongoRecord):
 
         self.date_created = datetime.utcnow()
 
-
+        self.start_date = convert2datetime(self.start_date)
+        self.end_date = convert2datetime(self.end_date)
         self.active                 = getattr(self, "active", True)
         self.time_of_notification   = getattr(self, "time_of_notification", None)
         self.contact_on_shabbat     = getattr(self, "contact_on_shabbat", False)
@@ -131,9 +131,11 @@ class PersonalSchedule(abst.AbstractMongoRecord):
             for day in range(0, (self.end_date-self.start_date).days+1):
                 date = date + timedelta(days=1)
                 calendar_func = d_calendar.get(self.calendar_schedule)
-                # try:
-                ref_str = calendar_func(date)[0]['ref']
-                # except
+                try:
+                    ref_str = calendar_func(date)[0]['ref']
+                except KeyError:
+                    print(calendar_func(date).keys())
+                    return
                 self.create_notifications(ref_str, date)
         else:
             text = self.book if self.book else self.corpus
@@ -218,8 +220,9 @@ def ref_chunks(lst, n, remainder=0):
 
 def convert2datetime(d):
     if isinstance(d, str):
-        split_date = d.split("-")
-        d = datetime(year=int(split_date[0]), month=int(split_date[1]), day=int(split_date[2]))
+        d = datetime.strptime(d, '%Y-%m-%d')
+        # split_date = d.split("-")
+        # d = datetime(year=int(split_date[0]), month=int(split_date[1]), day=int(split_date[2]))
     assert isinstance(d, datetime) if d else True
     return d
 
