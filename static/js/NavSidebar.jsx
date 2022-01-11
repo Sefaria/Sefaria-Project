@@ -202,7 +202,7 @@ const AboutText = ({index, hideTitle}) => {
   return (
     <Module>
       {hideTitle ? null :
-          <ModuleTitle>About this Text</ModuleTitle>}
+          <ModuleTitle>About This Text</ModuleTitle>}
       { composed || authors.length ?
       <div className="aboutTextMetadata">
 
