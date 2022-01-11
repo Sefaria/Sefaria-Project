@@ -687,6 +687,7 @@ const LearningSchedule = ({slug, closeSchedule}) => {
       end_date: scheduleOptions.endDate,
       pace: scheduleOptions.rate,
       book: scheduleOptions.startRef,
+      time_of_notification: scheduleOptions.alertTime,
       calendar_schedule: scheduleOptions.schedule,
       contact_by_email: scheduleOptions.email,
       contact_by_sms: scheduleOptions.textMessage,
