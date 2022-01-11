@@ -346,6 +346,7 @@ class UserProfile(object):
         self.bio                   = ""
         self.website               = ""
         self.location              = ""
+        self.mobile_phone          = ""
         self.public_email          = ""
         self.youtube               = ""
         self.facebook              = ""
@@ -647,6 +648,7 @@ class UserProfile(object):
             "bio":                   self.bio,
             "website":               self.website,
             "location":              self.location,
+            "mobile_phone":          self.mobile_phone,
             "public_email":          self.public_email,
             "facebook":              self.facebook,
             "twitter":               self.twitter,
@@ -690,6 +692,7 @@ class UserProfile(object):
             "bio":                   self.bio,
             "website":               self.website,
             "location":              self.location,
+            "mobile_phone":          self.mobile_phone,
             "public_email":          self.public_email,
             "facebook":              self.facebook,
             "twitter":               self.twitter,

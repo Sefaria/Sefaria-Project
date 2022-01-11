@@ -2394,10 +2394,18 @@ def schedule_calculate_api(request):
 def schedule_api(request):
     if request.method == "POST":
         j = json.loads(request.POST.get("json"))
-        user_id = request.user.id
-        ps = PersonalSchedule(user_id, **j)
-        ps.save()
-        ps.create_full_schedule_run()
+        #TODO: deal w/ cell phone number coming in via post -- i.e. validate & send to `UserProfile`
+        ps = PersonalSchedule({"user_id": request.user.id}, **j)
+        sched = ps.save()
+        sched.create_full_schedule_run()
+
+        return jsonResponse(sched.contents())
+
+    if request.method == "GET":
+        res = PersonalScheduleSet({"user_id": request.user.id}, sort=[("_id", -1)]).client_contents()
+        return jsonResponse(res)
+
+    return jsonResponse({"error": "Unsupported HTTP method."})
 
 
 @catch_error_as_json
