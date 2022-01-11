@@ -626,7 +626,9 @@ class ConnectionsPanel extends Component {
         srefs={this.props.srefs}
         sectionRef={this.state.sectionRef}
         openVersionInReader={this.props.selectVersion}
-        viewExtendedNotes={this.props.viewExtendedNotes} />);
+        viewExtendedNotes={this.props.viewExtendedNotes}
+        setVersionPreference={this.props.setVersionPreference}
+      />);
 
     } else if (this.props.mode === "Translations" || this.props.mode === "Translation Open") {
       content = (<TranslationsBox
@@ -645,6 +647,7 @@ class ConnectionsPanel extends Component {
         onCitationClick={this.props.onCitationClick}
         translationLanguagePreference={this.props.translationLanguagePreference}
         versionPreferences={this.props.versionPreferences}
+        setVersionPreference={this.props.setVersionPreference}
       />);
 
     } else if (this.props.mode === "extended notes") {
@@ -704,6 +707,7 @@ ConnectionsPanel.propTypes = {
   title: PropTypes.string.isRequired,
   currVersions: PropTypes.object.isRequired,
   selectVersion: PropTypes.func.isRequired,
+  setVersionPreference: PropTypes.func.isRequired,
   noteBeingEdited: PropTypes.object,
   fullPanel: PropTypes.bool,
   multiPanel: PropTypes.bool,

@@ -478,7 +478,7 @@ class UserProfile(object):
         """
         Convenince method to keep update logic in one place
         """
-        self.update({corpus: {"vtitle": vtitle, "lang": lang}})
+        self.update({"version_preferences_by_corpus": {corpus: {"vtitle": vtitle, "lang": lang}}})
 
     def save(self):
         """

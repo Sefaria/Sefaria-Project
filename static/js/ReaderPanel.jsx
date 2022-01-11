@@ -729,6 +729,7 @@ class ReaderPanel extends Component {
           navigatePanel={this.props.navigatePanel}
           translationLanguagePreference={this.props.translationLanguagePreference}
           versionPreferences={this.props.versionPreferences}
+          setVersionPreference={this.props.setVersionPreference}
           key="connections" />
       );
     }
@@ -1150,7 +1151,7 @@ ReaderPanel.propTypes = {
   translationLanguagePreference: PropTypes.string,
   setTranslationLanguagePreference: PropTypes.func.isRequired,
   versionPreferences:          PropTypes.object,
-  setVersionPreferences:       PropTypes.func.isRequired,
+  setVersionPreference:        PropTypes.func.isRequired,
 };
 
 

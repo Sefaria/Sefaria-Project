@@ -278,6 +278,7 @@ class BookPage extends Component {
                      openVersionInReader={this.openVersion}
                      currentRef={this.props.currentRef}
                      viewExtendedNotes={this.props.viewExtendedNotes}
+                     setVersionPreference={this.props.setVersionPreference}
                    />
                  </TabView>
 
@@ -895,6 +896,7 @@ class VersionsList extends Component {
         currentRef={this.props.currentRef}
         firstSectionRef={"firstSectionRef" in v ? v.firstSectionRef : null}
         openVersionInReader={this.props.openVersionInReader}
+        setVersionPreference={this.props.setVersionPreference}
         viewExtendedNotes={this.props.viewExtendedNotes}
         key={v.versionTitle + "/" + v.language}/>
      );
@@ -910,6 +912,7 @@ VersionsList.propTypes = {
   currObjectVersions:        PropTypes.object,
   openVersionInReader:       PropTypes.func,
   viewExtendedNotes:         PropTypes.func,
+  setVersionPreference:      PropTypes.func,
 };
 
 

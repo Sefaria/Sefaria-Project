@@ -1331,11 +1331,6 @@ def texts_api(request, tref):
             vtitlePref, vlangPref = _parse_vpref(request.GET.get("versionPref", None))  # vlangPref refers to the lang of the version in the db
         except AssertionError:
             return jsonResponse({"error": "versionPref must contain a version title and version language separated by a pipe (|)"}, cb)
-        if request.user.is_authenticated:
-            # only set version pref for english versions currently
-            user_profile = UserProfile(user_obj=request.user)
-            user_profile.update_version_preference(oref.index.get_primary_corpus(), versionEn, "en")
-            user_profile.save()
 
         def _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context, pad=pad,
                       alts=alts, wrapLinks=wrapLinks, layer_name=layer_name, wrapNamedEntities=wrapNamedEntities):

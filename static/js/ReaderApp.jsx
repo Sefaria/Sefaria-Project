@@ -1664,8 +1664,9 @@ class ReaderApp extends Component {
     Sefaria.editProfileAPI({settings: {translation_language_preference: lang, translation_language_preference_suggested: suggested}});
     this.setState({translationLanguagePreference: lang});
   }
-  setVersionPreferences(versionTitle, lang, title) {
-    this.setState({versionPreferences: this.state.versionPreferences.update(title, versionTitle, lang)});
+  setVersionPreference(sref, vtitle, lang) {
+    if (lang !== 'en') { return; }  // Currently only tracking preferences for translations
+    this.setState({versionPreferences: this.state.versionPreferences.update(sref, vtitle, lang)});
   }
   doesPanelHaveSidebar(n) {
     return this.state.panels.length > n+1 && this.state.panels[n+1].mode == "Connections";
@@ -1956,7 +1957,7 @@ class ReaderApp extends Component {
                       translationLanguagePreference={this.state.translationLanguagePreference}
                       setTranslationLanguagePreference={this.setTranslationLanguagePreference}
                       versionPreferences={this.state.versionPreferences}
-                      setVersionPreferences={this.setVersionPreferences}
+                      setVersionPreference={this.setVersionPreference}
                       navigatePanel={navigatePanel}
                     />
                   </div>);

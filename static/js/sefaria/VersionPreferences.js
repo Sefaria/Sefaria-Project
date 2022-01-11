@@ -1,4 +1,5 @@
 import $ from "./sefariaJquery";
+import Sefaria from "./sefaria";
 
 class VersionPreferences {
     constructor(versionPrefsByCorpus) {
@@ -10,14 +11,16 @@ class VersionPreferences {
         const corpus = Sefaria.index(title).corpus;
         return this._versionPrefsByCorpus[corpus];
     }
-    update(sref, versionTitle, lang) {
+    update(sref, vtitle, lang) {
         const title = Sefaria.parseRef(sref).index
         const corpus = Sefaria.index(title).corpus;
         const prefsClone = Sefaria.util.clone(this._versionPrefsByCorpus);
-        prefsClone[corpus] = { vtitle: versionTitle, lang };
+        prefsClone[corpus] = { vtitle, lang };
 
         // side effects
-        Sefaria.track.event("Reader", "Set Version Preference", `${corpus}|${lang}`);
+        Sefaria.track.event("Reader", "Set Version Preference", `${corpus}|${vtitle}|${lang}`);
+        Sefaria.editProfileAPI({version_preferences_by_corpus: {[corpus]: {vtitle, lang}}})
+
         return new VersionPreferences(prefsClone);
     }
     update_cookie() {

@@ -87,6 +87,7 @@ class TranslationsBox extends Component {
           openVersionInReader={this.props.openVersionInReader}
           openVersionInSidebar={this.openVersionInSidebar}
           viewExtendedNotes={this.props.viewExtendedNotes}
+          setVersionPreference={this.props.setVersionPreference}
         />
       );
     }
@@ -106,6 +107,7 @@ TranslationsBox.propTypes = {
   onCitationClick:          PropTypes.func.isRequired,
   translationLanguagePreference: PropTypes.string,
   versionPreferences:       PropTypes.object,
+  setVersionPreference:     PropTypes.func.isRequired,
 };
 
 
