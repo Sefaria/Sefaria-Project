@@ -7,24 +7,24 @@ from datetime import *
 class TestPersonalScheduleNotification(object):
 
     def test_creating_notifactions_book(self):
-        ps = PersonalSchedule(30044, "Genesis", pace=5, book="Genesis", contact_by_sms=False, contact_by_email=True)
-        ps.save()
-        ps.create_full_schedule_run()
+        ps = PersonalSchedule({"user_id": 30044, "schedule_name": "Genesis", "pace":5, "book": "Genesis", "contact_by_sms": False, "contact_by_email":True})
+        sched = ps.save()
+        sched.create_full_schedule_run()
 
     def test_creating_notifactions_corpus(self):
-        ps = PersonalSchedule(30044, "Torah", pace=5, corpus="Torah", contact_by_sms=True, contact_by_email=False)
-        ps.save()
-        ps.create_full_schedule_run()
+        ps = PersonalSchedule({"user_id": 30044, "schedule_name": "Torah", "pace":5, "corpus":"Torah", "contact_by_sms":True, "contact_by_email":False})
+        sched = ps.save()
+        sched.create_full_schedule_run()
 
     def test_creating_notifactions_calendar_schedule(self):
-        ps = PersonalSchedule(30044, "Daf Yomi", calendar_schedule="Daf Yomi", contact_by_sms=True, contact_by_email=False)
-        ps.save()
-        ps.create_full_schedule_run()
+        ps = PersonalSchedule({"user_id": 30044, "schedule_name": "Daf Yomi", "calendar_schedule":"Daf Yomi", "contact_by_sms":True, "contact_by_email":False})
+        sched = ps.save()
+        sched.create_full_schedule_run()
 
     def test_creating_notifactions_calendar_end_date(self):
-        ps = PersonalSchedule(30044, "try Daf Yomi", calendar_schedule="Daf Yomi", end_date="2022-5-3", contact_by_sms=True, contact_by_email=False)
-        ps.save()
-        ps.create_full_schedule_run()
+        ps = PersonalSchedule({"user_id": 30044, "schedule_name": "try Daf Yomi", "calendar_schedule":"Daf Yomi", "end_date":"2022-5-3", "contact_by_sms":True, "contact_by_email":False})
+        sched = ps.save()
+        sched.create_full_schedule_run()
 
 class TestDivideText(object):
 
