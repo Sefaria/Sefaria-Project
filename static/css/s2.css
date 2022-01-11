@@ -7673,9 +7673,6 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 .scheduleForm .scheduleSelect {
   width: 100%
 }
-.scheduleForm #alertsContainer {
-  height: 40px;
-}
 .scheduleForm select {
   height: 20px;
   width: auto;
