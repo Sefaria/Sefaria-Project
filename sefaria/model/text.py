@@ -847,6 +847,10 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         if getattr(self, "dependence", False):
             toc_contents_dict["dependence"] = self.dependence
 
+        if len(getattr(self, "corpora", [])) > 0:
+            # first elem in corpora is the main corpus
+            toc_contents_dict["corpus"] = self.corpora[0]
+
         if include_first_section:
             firstSection = Ref(self.title).first_available_section_ref()
             toc_contents_dict["firstSection"] = firstSection.normal() if firstSection else None

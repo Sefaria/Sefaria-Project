@@ -360,6 +360,7 @@ class TextColumn extends Component {
         layoutWidth={this.props.layoutWidth}
         unsetTextHighlight={this.props.unsetTextHighlight}
         translationLanguagePreference={this.props.translationLanguagePreference}
+        versionPreferences={this.props.versionPreferences}
         key={ref} />);
     }.bind(this));
 
@@ -423,6 +424,7 @@ TextColumn.propTypes = {
   textHighlights:         PropTypes.array,
   unsetTextHighlight:     PropTypes.func,
   translationLanguagePreference: PropTypes.string,
+  versionPreferences:     PropTypes.object,
 };
 
 

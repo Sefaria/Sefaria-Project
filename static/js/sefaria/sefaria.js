@@ -395,7 +395,7 @@ Sefaria = extend(Sefaria, {
         });
   },
   _bulkTexts: {},
-  getBulkText: function(refs, asSizedString=false, minChar=null, maxChar=null, transLangPref=null, versionPref=null) {
+  getBulkText: function(refs, asSizedString=false, minChar=null, maxChar=null, transLangPref=null) {
     if (refs.length === 0) { return Promise.resolve({}); }
 
     const MAX_URL_LENGTH = 3800;
@@ -582,8 +582,8 @@ Sefaria = extend(Sefaria, {
     return licenseMap;
   },
   _getVersionPrefUrlParam(versionPref) {
-    const {title, lang} = versionPref;
-    return `&versionPref=${encodeURIComponent(title.replace(/ /g,"_"))}|${lang}`;
+    const {vtitle, lang} = versionPref;
+    return `&versionPref=${encodeURIComponent(vtitle.replace(/ /g,"_"))}|${lang}`;
   },
   _textUrl: function(ref, settings) {
     // copy the parts of settings that are used as parameters, but not other

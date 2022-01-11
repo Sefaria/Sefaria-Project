@@ -30,11 +30,11 @@ import {
 const norm_hebrew_ref = tref => tref.replace(/[׳״]/g, '');
 
 
-const fetchBulkText = (translationLanguagePreference, versionPref, inRefs) =>
+const fetchBulkText = (translationLanguagePreference, inRefs) =>
   Sefaria.getBulkText(
     inRefs.map(x => x.ref),
     true, 500, 600,
-    translationLanguagePreference, versionPref
+    translationLanguagePreference
   ).then(outRefs => {
     for (let tempRef of inRefs) {
       // annotate outRefs with `order` and `dataSources` from `topicRefs`
@@ -316,11 +316,11 @@ const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDis
     </div>
 );}
 
-const useTabDisplayData = (translationLanguagePreference, versionPref) => {
+const useTabDisplayData = (translationLanguagePreference) => {
   const getTabDisplayData = useCallback(() => [
     {
       key: 'popular-writing-of',
-      fetcher: fetchBulkText.bind(null, translationLanguagePreference, versionPref),
+      fetcher: fetchBulkText.bind(null, translationLanguagePreference),
       sortOptions: ['Relevance', 'Chronological'],
       filterFunc: refFilter,
       sortFunc: refSort,
@@ -328,7 +328,7 @@ const useTabDisplayData = (translationLanguagePreference, versionPref) => {
     },
     {
       key: 'sources',
-      fetcher: fetchBulkText.bind(null, translationLanguagePreference, versionPref),
+      fetcher: fetchBulkText.bind(null, translationLanguagePreference),
       sortOptions: ['Relevance', 'Chronological'],
       filterFunc: refFilter,
       sortFunc: refSort,
@@ -342,7 +342,7 @@ const useTabDisplayData = (translationLanguagePreference, versionPref) => {
       sortFunc: sheetSort,
       renderWrapper: sheetRenderWrapper,
     }
-  ], [translationLanguagePreference, versionPref]);
+  ], [translationLanguagePreference]);
   return getTabDisplayData();
 };
 

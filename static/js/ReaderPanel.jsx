@@ -645,6 +645,7 @@ class ReaderPanel extends Component {
           textHighlights={this.state.textHighlights}
           unsetTextHighlight={this.props.unsetTextHighlight}
           translationLanguagePreference={this.props.translationLanguagePreference}
+          versionPreferences={this.props.versionPreferences}
           key={`${textColumnBookTitle ? textColumnBookTitle : "empty"}-TextColumn`} />
       );
     }
@@ -727,6 +728,7 @@ class ReaderPanel extends Component {
           checkIntentTimer={this.props.checkIntentTimer}
           navigatePanel={this.props.navigatePanel}
           translationLanguagePreference={this.props.translationLanguagePreference}
+          versionPreferences={this.props.versionPreferences}
           key="connections" />
       );
     }
@@ -1146,6 +1148,8 @@ ReaderPanel.propTypes = {
   masterPanelSheetId:          PropTypes.number,
   translationLanguagePreference: PropTypes.string,
   setTranslationLanguagePreference: PropTypes.func.isRequired,
+  versionPreferences:          PropTypes.object,
+  setVersionPreferences:       PropTypes.func.isRequired,
 };
 
 
@@ -1209,7 +1213,8 @@ class ReaderControls extends Component {
     const title = this.props.currentRef;
     if (title) {
       // If we don't have this data yet, rerender when we do so we can set the Hebrew title
-      const getTextPromise = Sefaria.getText(title, {context: 1, translationLanguagePreference: this.props.translationLanguagePreference, versionPref: this.props.versionPref}).then(data => {
+      const versionPref = this.props.versionPreferences.getVersionPref(title);
+      const getTextPromise = Sefaria.getText(title, {context: 1, translationLanguagePreference: this.props.translationLanguagePreference, versionPref}).then(data => {
         if ("error" in data) { this.props.onError(data.error); }
         this.setState({runningQuery: null});   // Causes re-render
       });

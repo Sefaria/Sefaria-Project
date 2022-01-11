@@ -198,7 +198,8 @@ class ConnectionsPanel extends Component {
   }
   getData(cb) {
     // Gets data about this text from cache, which may be null.
-    return Sefaria.getText(this.props.srefs[0], { context: 1, enVersion: this.props.currVersions.en, heVersion: this.props.currVersions.he, translationLanguagePreference: this.props.translationLanguagePreference, versionPref: this.props.versionPref}).then(cb);
+    const versionPref = this.props.versionPreferences.getVersionPref(this.props.srefs[0]);
+    return Sefaria.getText(this.props.srefs[0], { context: 1, enVersion: this.props.currVersions.en, heVersion: this.props.currVersions.he, translationLanguagePreference: this.props.translationLanguagePreference, versionPref}).then(cb);
   }
   getVersionFromData(d, lang) {
     //d - data received from this.getData()
@@ -409,6 +410,7 @@ class ConnectionsPanel extends Component {
         selectedWords={this.props.selectedWords}
         checkVisibleSegments={this.checkVisibleSegments}
         translationLanguagePreference={this.props.translationLanguagePreference}
+        versionPreferences={this.props.versionPreferences}
       />);
 
     } else if (this.props.mode === "Sheets") {
@@ -642,6 +644,7 @@ class ConnectionsPanel extends Component {
         viewExtendedNotes={this.props.viewExtendedNotes}
         onCitationClick={this.props.onCitationClick}
         translationLanguagePreference={this.props.translationLanguagePreference}
+        versionPreferences={this.props.versionPreferences}
       />);
 
     } else if (this.props.mode === "extended notes") {
@@ -726,6 +729,7 @@ ConnectionsPanel.propTypes = {
   clearSelectedWords: PropTypes.func.isRequired,
   clearNamedEntity: PropTypes.func.isRequired,
   translationLanguagePreference: PropTypes.string,
+  versionPreferences: PropTypes.object,
 };
 
 

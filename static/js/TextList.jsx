@@ -227,6 +227,7 @@ class TextList extends Component {
                                       inlineReference={link.inline_reference || null}
                                       onCitationClick={this.props.onCitationClick}
                                       translationLanguagePreference={this.props.translationLanguagePreference}
+                                      versionPreferences={this.props.versionPreferences}
                                     />
                                     <ConnectionButtons>
                                       <OpenConnectionTabButton srefs={[link.sourceRef]} openInTabCallback={this.props.onTextClick}/>
@@ -274,6 +275,7 @@ TextList.propTypes = {
   selectedWords:           PropTypes.string,
   checkVisibleSegments:    PropTypes.func.isRequired,
   translationLanguagePreference: PropTypes.string,
+  versionPreferences:      PropTypes.object,
 };
 
 const DeleteConnectionButton = ({delUrl, connectionDeleteCallback}) =>{

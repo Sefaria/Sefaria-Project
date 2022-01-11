@@ -24,7 +24,8 @@ import {
   CookiesNotification,
   CommunityPagePreviewControls
 } from './Misc';
-import { Ad } from './Ad'
+import { Ad } from './Ad';
+import VersionPreferences from "./sefaria/VersionPreferences";
 import Component from 'react-class';
 import BeitMidrash, {BeitMidrashClosed} from './BeitMidrash';
 import  { io }  from 'socket.io-client';
@@ -107,6 +108,7 @@ class ReaderApp extends Component {
       initialAnalyticsTracked: false,
       showSignUpModal: false,
       translationLanguagePreference: props.translationLanguagePreference,
+      versionPreferences: new VersionPreferences(props.versionPrefsByCorpus),
       beitMidrashStatus: Sefaria._uid && props.customBeitMidrashId ? true : false,
       beitMidrashId: props.customBeitMidrashId ? props.customBeitMidrashId : "Sefaria",
       inCustomBeitMidrash: !!props.customBeitMidrashId,
@@ -1662,18 +1664,8 @@ class ReaderApp extends Component {
     Sefaria.editProfileAPI({settings: {translation_language_preference: lang, translation_language_preference_suggested: suggested}});
     this.setState({translationLanguagePreference: lang});
   }
-  setVersionPref(versionTitle, lang, title) {
-    const versionPrefObj = JSON.parse($.cookie("versionPref") || "{}");
-    const corpus = title // TODO get corpus
-    if (versionTitle === null) {
-      delete versionPrefObj[corpus];
-    } else {
-      versionPrefObj[corpus] = { title: versionTitle, lang };
-    }
-    Sefaria.track.event("Reader", "Set Translation Language Preference", lang);
-      $.cookie("translation_language_preference", lang, {path: "/"});
-      $.cookie("translation_language_preference_suggested", JSON.stringify(1), {path: "/"});
-    this.setState({translationLanguagePreference: lang});
+  setVersionPreferences(versionTitle, lang, title) {
+    this.setState({versionPreferences: this.state.versionPreferences.update(title, versionTitle, lang)});
   }
   doesPanelHaveSidebar(n) {
     return this.state.panels.length > n+1 && this.state.panels[n+1].mode == "Connections";
@@ -1963,6 +1955,8 @@ class ReaderApp extends Component {
                       clearNamedEntity={clearNamedEntity}
                       translationLanguagePreference={this.state.translationLanguagePreference}
                       setTranslationLanguagePreference={this.setTranslationLanguagePreference}
+                      versionPreferences={this.state.versionPreferences}
+                      setVersionPreferences={this.setVersionPreferences}
                       navigatePanel={navigatePanel}
                     />
                   </div>);
