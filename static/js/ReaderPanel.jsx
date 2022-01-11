@@ -1202,7 +1202,7 @@ class ReaderControls extends Component {
         this.setDisplayVersionTitle(versionList[0]);
         return;
       }
-      for (version of versionList) {
+      for (let version of versionList) {
         if (version.versionTitle === this.props.currVersions.en) {
           this.setDisplayVersionTitle(version);
           break;
@@ -1224,7 +1224,10 @@ class ReaderControls extends Component {
     this.loadTranslations();
   }
   componentDidUpdate(prevProps, prevState) {
-    if (this.shouldShowVersion() !== this.shouldShowVersion(prevProps)) {
+    if (
+      this.shouldShowVersion() !== this.shouldShowVersion(prevProps) ||
+      this.props.currVersions !== prevProps.currVersions
+    ) {
       this.loadTranslations();
     }
   }
