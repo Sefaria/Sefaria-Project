@@ -1070,6 +1070,7 @@ class ReaderPanel extends Component {
             connectionData={this.state.connectionData}
             translationLanguagePreference={this.props.translationLanguagePreference}
             setTranslationLanguagePreference={this.props.setTranslationLanguagePreference}
+            versionPreferences={this.props.versionPreferences}
           />}
 
           {(items.length > 0 && !menu) ?
