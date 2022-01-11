@@ -627,6 +627,7 @@ const LearningSchedule = ({slug, closeSchedule}) => {
   const [schedule, setSchedule] = useState(null);
   const [scheduleOptions, setScheduleOptions] = useState({});
   const [alerts, setAlerts] = useState({email: false, textMessage: false});
+  const [alertTime, setAlertTime] = useState("08:00");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [customScheduleValues, setCustomScheduleValues] = useState(null);
   const calendars = reformatCalendars();
@@ -641,6 +642,7 @@ const LearningSchedule = ({slug, closeSchedule}) => {
       schedule,
       alerts: alerts,
       phoneNumber,
+      alertTime: new Date(new Date().toDateString() + " 08:00").getTime() / 1000,
       startRef: customScheduleValues ? customScheduleValues.startRef : null,
       endRef: customScheduleValues? customScheduleValues.endRef : null,
       startDate: customScheduleValues ? customScheduleValues.startDate : null,
@@ -648,7 +650,7 @@ const LearningSchedule = ({slug, closeSchedule}) => {
       rate: customScheduleValues ? customScheduleValues.rate : null,
       rateUnit: customScheduleValues ? customScheduleValues.rateUnit : null,
     }});
-  }, [schedule, alerts, phoneNumber, customScheduleValues])
+  }, [schedule, alerts, phoneNumber, alertTime, customScheduleValues])
 
   // right now just log schedule
   useEffect(() => {
@@ -801,6 +803,12 @@ const LearningSchedule = ({slug, closeSchedule}) => {
             <input type="checkbox" id="text-message" key="text-message" name="text-message"
           checked={alerts.textMessage} onChange={() => setAlerts(prevAlerts => {return {...prevAlerts, textMessage: !prevAlerts.textMessage}})} />
             <label htmlFor="text-message">Send Text</label>{alerts.textMessage ? <PhoneNumberInput setPhoneNumber={setPhoneNumber}/> : null }
+        </div>
+        <div className="scheduleFormHorizontal">
+          <span className="label">Time to send Alert:</span>
+            <input type="time" id="alertTime" key="alertTime" name="alertTime"
+            value={alertTime} onChange={$event => {setAlertTime($event.target.value)}} />
+            <span>{Intl.DateTimeFormat().resolvedOptions().timeZone}</span>
         </div>
         <div>
         <button className="small button" onClick={() => saveAndClose()}>Save and Close</button>
