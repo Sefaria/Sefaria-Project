@@ -97,8 +97,7 @@ class PersonalSchedule(abst.AbstractMongoRecord):
     def edit_notifications(self):
         pass
 
-    def create_notifications(self, ref_str, date):
-        notification_type = "sms" if self.contact_by_sms == True else "email"
+    def create_notification(self, ref_str, date, notification_type):
         profile = UserProfile(id=self.user_id)
 
         psn = PersonalScheduleNotification({
@@ -116,6 +115,14 @@ class PersonalSchedule(abst.AbstractMongoRecord):
             psn.email_address = profile.email
 
         psn.save()
+
+
+    def create_notifications(self, ref_str, date):
+        if self.contact_by_sms == True:
+            self.create_notification(ref_str, date, "sms")
+
+        if self.contact_by_email == True:
+            self.create_notification(ref_str, date, "email")
 
 
     def create_full_schedule_run(self, lang = 'en'):
