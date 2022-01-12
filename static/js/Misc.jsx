@@ -2402,7 +2402,7 @@ const SheetMetaDataBox = (props) => (
   </div>
 );
 
-const Autocompleter = ({selectedRefCallback}) => {
+const Autocompleter = ({selectedRefCallback, selectionType, additionalValues}) => {
   const [inputValue, setInputValue] = useState("");
   const [currentSuggestions, setCurrentSuggestions] = useState(null);
   const [previewText, setPreviewText] = useState(null);
@@ -2447,49 +2447,61 @@ const Autocompleter = ({selectedRefCallback}) => {
     }, [previewText]
   )
 
-
-
-
   const getSuggestions = (input) => {
-    setInputValue(input)
+    setInputValue(input);
     if (input == "") {
-      setPreviewText(null)
-      setHelperPromptText(null)
-      setCurrentSuggestions(null)
-      return
+      setPreviewText(null);
+      setHelperPromptText(null);
+      setCurrentSuggestions(null);
+      return;
     }
     Sefaria.getName(input, true, 5).then(d => {
+    switch (selectionType ? selectionType : "") {
+      case "bookOnly":
+        if (d.is_book) {
+          setCurrentSuggestions(null)
+          generatePreviewText(input);
+          setHelperPromptText(null)
+          setShowAddButton(true)
+          return
+        }
+        else {
+          setShowAddButton(false)
+          setPreviewText(null)
+        }
+        break;
+      default:
 
-      if (d.is_section || d.is_segment) {
-        setCurrentSuggestions(null)
-        generatePreviewText(input);
-        setHelperPromptText(null)
-        setShowAddButton(true)
-        return
-      }
-      else {
-        setShowAddButton(false)
-        setPreviewText(null)
-      }
+          if (d.is_section || d.is_segment) {
+            setCurrentSuggestions(null)
+            generatePreviewText(input);
+            setHelperPromptText(null)
+            setShowAddButton(true)
+            return
+          }
+          else {
+            setShowAddButton(false)
+            setPreviewText(null)
+          }
 
-      //We want to show address completions when book exists but not once we start typing further
-      if (d.is_book && isNaN(input.trim().slice(-1))) {
-        setHelperPromptText(<InterfaceText text={{en: d.addressExamples[0], he: d.heAddressExamples[0]}} />)
-        document.querySelector('.addInterfaceInput input+span.helperCompletionText').style.insetInlineStart = `${getWidthOfInput()}px`;
-      }
-      else {
-        setHelperPromptText(null)
-      }
-
-      const suggestions = d.completion_objects
-          .map((suggestion, index) => ({
-            name: suggestion.title,
-            key: suggestion.key,
-            border_color: Sefaria.palette.refColor(suggestion.key)
-          })
-      )
-      setCurrentSuggestions(suggestions);
-    })
+          //We want to show address completions when book exists but not once we start typing further
+          if (d.is_book && isNaN(input.trim().slice(-1))) {
+            setHelperPromptText(<InterfaceText text={{ en: d.addressExamples[0], he: d.heAddressExamples[0] }} />)
+            document.querySelector('.addInterfaceInput input+span.helperCompletionText').style.insetInlineStart = `${getWidthOfInput()}px`;
+          }
+          else {
+            setHelperPromptText(null)
+          }
+          }
+          const suggestions = d.completion_objects
+            .map((suggestion, index) => ({
+              name: suggestion.title,
+              key: suggestion.key,
+              border_color: Sefaria.palette.refColor(suggestion.key)
+            })
+            )
+          setCurrentSuggestions(suggestions);
+        });
   }
 
   const resizeInputIfNeeded = () => {

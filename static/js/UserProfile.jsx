@@ -559,7 +559,7 @@ const BookCorpusAutocompleter = ({updateSelectedItem}) => {
     setSelectedItem(value);
     setShowAutocompleter(false);
   }
-  return (showAutocompleter ? <Autocompleter selectedRefCallback={onSelect}/> : <button onClick={() => setShowAutocompleter(true)}>{selectedItem ? selectedItem.toString() : null}</button>)
+  return (showAutocompleter ? <Autocompleter selectedRefCallback={onSelect} selectionType="bookOnly"/> : <button onClick={() => setShowAutocompleter(true)}>{selectedItem ? selectedItem.toString() : null}</button>)
 }
 
 
