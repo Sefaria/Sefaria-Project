@@ -7635,6 +7635,10 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 .schedulesHeader button {
   border: none;
 }
+
+.emptyList .scheduleButton {
+  border: none;
+}
 .scheduleFormContainer {
   border: 1000px solid white;
   background-color: white;

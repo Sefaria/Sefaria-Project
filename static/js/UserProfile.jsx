@@ -148,8 +148,8 @@ class UserProfile extends Component {
     }
   }
   handleSchedules() {
-    // Rerender Collections tab when data changes in cache.
-    this.setState({ refreshCollectionsData: Math.random(), refreshSheetData: Math.random() });
+    // Rerender Schedules tab when data changes in cache. TODO:: Why is this broken?
+    this.setState({ refreshSchedules: Math.random() });
   }
   renderEmptySchedulesList() {
     if (Sefaria._uid !== this.props.profile.id) {
@@ -164,17 +164,17 @@ class UserProfile extends Component {
     return (
       <div className="emptyList">
         <div className="emptyListText">
-          <InterfaceText>You can use collections to organize your sheets or public sheets you like. Collections can be shared privately or made public on Sefaria.</InterfaceText>
+          <InterfaceText>You can create schedules to remind you to learn via email or SMS.</InterfaceText>
         </div>
-        <a href="/schedule/new" className="resourcesLink sans-serif">
+        <button onClick={() => this.setState({showSchedule: true})} className="resourcesLink sans-serif scheduleButton">
           <img src="/static/icons/calendar.svg" alt="Schedule icon" />
             <InterfaceText>Create a New Learning Schedule</InterfaceText>
-        </a>
+        </button>
       </div>);
   }
   renderSchedules(collection) {
     return (
-      <ScheduleListing key={collection.slug} data={collection} />
+      <ScheduleListing key={collection.schedule_name} data={collection} />
     );
   }
   renderSchedulesHeader() {
@@ -473,7 +473,7 @@ class UserProfile extends Component {
                     refreshData={this.state.refreshCollectionsData}
                   />
                   <>
-                  {this.state.showSchedule ? <LearningSchedule closeSchedule={this.closeSchedule}/> : null}
+                  {this.state.showSchedule ? <LearningSchedule handleSchedules={this.handleSchedules} closeSchedule={this.closeSchedule}/> : null}
                    <FilterableList
                     key="schedule"
                     pageSize={1e6}
@@ -485,7 +485,7 @@ class UserProfile extends Component {
                     sortOptions={["Recent", "Name"]}
                     getData={this.getSchedules}
                     data={this.getSchedulesFromCache()}
-                    // refreshData={this.state.refreshSchedules}
+                    refreshData={this.state.refreshSchedules}
                   />
                   </>
                   {
@@ -557,11 +557,10 @@ const CustomLearningSchedulePicker = ({currentValues, onUpdate}) => {
   const [rateUnit, setRateUnit] = currentValues ? useState(currentValues.rateUnit) :useState("Verses");
   const [unitCount, setUnitCount] = currentValues ? useState(currentValues.unitCount) :useState(null);
   const dropdownTexts = Sefaria.tocObjectByCategories(['Tanakh']).contents.slice(0,2).map(subCat => subCat.contents.map(item => {return {en: item.title, he: item.heTitle}})).flat()
-  // $.get(`/api/schedule?text=${startRef}&pace=${rate}`, applyNewValues);
 
   useEffect(() => {
     if (startRef) {
-      $.get(`/api/schedule/pace-calculation?text=${startRef}&pace=${rate}`, applyNewValues);
+      $.get(`/api/schedules/pace-calculation?text=${startRef}&pace=${rate}`, applyNewValues);
     } else {
       setEndDate(null);
       setUnitCount(null)
@@ -614,7 +613,7 @@ const CustomLearningSchedulePicker = ({currentValues, onUpdate}) => {
   )
 }
 
-const LearningSchedule = ({slug, closeSchedule}) => {
+const LearningSchedule = ({slug, closeSchedule, handleSchedules}) => {
   const scheduleStates = {
     SelectScheduleType: "SelectScheduleType",
     CreateExistingSchedule: "CreateExistingSchedule",
@@ -630,19 +629,18 @@ const LearningSchedule = ({slug, closeSchedule}) => {
   const [alertTime, setAlertTime] = useState("08:00");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [customScheduleValues, setCustomScheduleValues] = useState(null);
-  const calendars = reformatCalendars();
-  const schedulesUrl = '/api/schedule/new'; // TODO: change when PR for api change goes through
+  const calendars = reformatCalendars().filter(cal => (!!cal.isDaily));
+  const schedulesUrl = '/api/schedules/';
 
   // update schedule object
   useEffect(() => {
-    console.log(schedule);
     setScheduleOptions(prevScheduleOptions => {
       return {
       ...prevScheduleOptions,
       schedule,
       alerts: alerts,
       phoneNumber,
-      alertTime: new Date(new Date().toDateString() + " " + alertTime).toUTCString(),
+      alertTime: new Date(new Date().toDateString() + " " + alertTime).getUTCHours(),
       startRef: customScheduleValues ? customScheduleValues.startRef : null,
       endRef: customScheduleValues? customScheduleValues.endRef : null,
       startDate: customScheduleValues ? customScheduleValues.startDate : null,
@@ -653,9 +651,9 @@ const LearningSchedule = ({slug, closeSchedule}) => {
   }, [schedule, alerts, phoneNumber, alertTime, customScheduleValues])
 
   // right now just log schedule
-  useEffect(() => {
-    console.log(scheduleOptions);
-  }, [scheduleOptions])
+  // useEffect(() => {
+  //   console.log(scheduleOptions);
+  // }, [scheduleOptions])
 
   useEffect(() => {
     if(scheduleFormState === scheduleStates.CreateCustomSchedule) {
@@ -683,14 +681,14 @@ const LearningSchedule = ({slug, closeSchedule}) => {
 
   const saveAndClose = () => {
     const postData = {
-      start_date: scheduleOptions.startDate,
-      end_date: scheduleOptions.endDate,
+      start_date: scheduleOptions.startDate ? new Date(scheduleOptions.startDate).toISOString().split('T')[0] : null,
+      end_date: scheduleOptions.endDate ? new Date(scheduleOptions.endDate).toISOString().split('T')[0] : null,
       pace: scheduleOptions.rate,
       book: scheduleOptions.startRef,
       time_of_notification: scheduleOptions.alertTime,
       calendar_schedule: scheduleOptions.schedule,
-      contact_by_email: scheduleOptions.email,
-      contact_by_sms: scheduleOptions.textMessage,
+      contact_by_email: scheduleOptions.alerts.email,
+      contact_by_sms: scheduleOptions.alerts.textMessage,
       phone_number: scheduleOptions.phoneNumber
     }
     $.post(schedulesUrl, {"json": JSON.stringify(postData)}, function (data) {
@@ -698,6 +696,7 @@ const LearningSchedule = ({slug, closeSchedule}) => {
           alert(data.error);
       } else {
           console.log(data);
+          handleSchedules()
       }
     });
     closeSchedule();
