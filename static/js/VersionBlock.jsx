@@ -21,6 +21,8 @@ class VersionBlock extends Component {
       "digitizedBySefaria",
       "status",
       "versionTitleInHebrew",
+      "shortVersionTitle",
+      "shortVersionTitleInHebrew",
       "versionNotesInHebrew",
       "purchaseInformationImage",
       "purchaseInformationURL",
@@ -50,6 +52,7 @@ class VersionBlock extends Component {
     e.preventDefault();
     if (this.props.openVersionInReader) {
       this.props.openVersionInReader(this.props.version.versionTitle, this.props.version.language);
+      this.props.setVersionPreference(this.props.currentRef, this.props.version.versionTitle, this.props.version.language);
     }
   }
   handleInputChange(event) {
@@ -216,6 +219,12 @@ class VersionBlock extends Component {
             <label htmlFor="versionTitleInHebrew" className="">Hebrew Version Title</label>
             <input id="versionTitleInHebrew" name="versionTitleInHebrew" className="" type="text" value={this.state.versionTitleInHebrew} onChange={this.handleInputChange} />
 
+            <label htmlFor="shortVersionTitle" className="">Short Version Title</label>
+            <input id="shortVersionTitle" name="shortVersionTitle" className="" type="text" value={this.state.shortVersionTitle} onChange={this.handleInputChange} />
+
+            <label htmlFor="shortVersionTitleInHebrew" className="">Short Hebrew Version Title</label>
+            <input id="shortVersionTitleInHebrew" name="shortVersionTitleInHebrew" className="" type="text" value={this.state.shortVersionTitleInHebrew} onChange={this.handleInputChange} />
+
             <label htmlFor="versionSource">Version Source</label>
             <input id="versionSource" name="versionSource" className="" type="text" value={this.state.versionSource} onChange={this.handleInputChange} />
 
@@ -346,6 +355,7 @@ VersionBlock.propTypes = {
   viewExtendedNotes:      PropTypes.func,
   sidebarDisplay:         PropTypes.bool,
   rendermode:             PropTypes.string,
+  setVersionPreference:   PropTypes.func,
 };
 VersionBlock.defaultProps = {
   showHistory: true,
@@ -426,6 +436,7 @@ class VersionsBlocksList extends Component{
                       openVersionInSidebar={this.props.openVersionInSidebar}
                       viewExtendedNotes={this.props.viewExtendedNotes}
                       isCurrent={this.isVersionCurrent(v)}
+                      setVersionPreference={this.props.setVersionPreference}
                     />
                   ))
                 }
@@ -446,6 +457,7 @@ VersionsBlocksList.propTypes={
   openVersionInSidebar: PropTypes.func,
   viewExtendedNotes: PropTypes.func,
   showLanguageHeaders: PropTypes.bool,
+  setVersionPreference: PropTypes.func,
 };
 VersionsBlocksList.defaultProps = {
   displayCurrentVersions: true,

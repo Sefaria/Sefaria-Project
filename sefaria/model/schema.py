@@ -1547,10 +1547,11 @@ class VirtualNode(TitledTreeNode):
     def last_child(self):
         pass
 
+    def supports_language(self, lang):
+        raise Exception("supports_language needs to be overriden by subclasses")
 
 class DictionaryEntryNode(TitledTreeNode):
     is_virtual = True
-    supported_languages = ["en"]
 
     def __init__(self, parent, title=None, tref=None, word=None, lexicon_entry=None):
         """
@@ -1746,6 +1747,22 @@ class DictionaryNode(VirtualNode):
         else:
             return ""
 
+    # This is identical to SchemaNode.ref() and DictionaryEntryNode.ref().  Inherit?
+    def ref(self):
+        from . import text
+        d = {
+            "index": self.index,
+            "book": self.full_title("en"),
+            "primary_category": self.index.get_primary_category(),
+            "index_node": self,
+            "sections": [],
+            "toSections": []
+        }
+        return text.Ref(_obj=d)
+
+    def supports_language(self, lang):
+        return lang == self.lexicon.version_lang
+
 
 class SheetNode(NumberedTitledTreeNode):
     is_virtual = True
@@ -1878,6 +1895,10 @@ class SheetLibraryNode(VirtualNode):
         d = super(SheetLibraryNode, self).serialize(**kwargs)
         d["nodeType"] = "SheetLibraryNode"
         return d
+
+    def supports_language(self, lang):
+        return True
+
 """
 {
     "title" : "Sheet",

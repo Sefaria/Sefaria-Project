@@ -91,8 +91,8 @@ class Test_find_citation_in_text(object):
         assert In("(בדברים לב ובספרות ג ב)").looking_for('רות').with_parenthesis().finds_nothing()
 
     def test_regex_string_he_in_parentheses_3(self):
-        assert In('<p>[שיר השירים א ירושלמי כתובות (דף כח:) בשורות א]')\
-            .looking_for('ירושלמי כתובות').with_parenthesis().finds("Jerusalem Talmud Ketubot 28b")
+        assert In('<p>[שיר השירים א ירושלמי כתובות (פרק א הלכה ב) בשורות א]')\
+            .looking_for('ירושלמי כתובות').with_parenthesis().finds("Jerusalem Talmud Ketubot 1:2")
 
         assert In('<p>[שיר השירים א ירושלמי כתובות (דף כח:) בשורות א]')\
             .looking_for('שיר השירים').with_parenthesis().finds("Song of Songs 1")

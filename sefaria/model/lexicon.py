@@ -60,7 +60,8 @@ class Lexicon(abst.AbstractMongoRecord):
         'text_categories',
         'index_title',          # The title of the Index record that corresponds to this Lexicon
         'version_title',        # The title of the Version record that corresponds to this Lexicon
-        'version_lang'          # The language of the Version record that corresponds to this Lexicon
+        'version_lang',         # The language of the Version record that corresponds to this Lexicon
+        'should_autocomplete'   # enables search box
     ]
 
     def word_count(self):
@@ -68,6 +69,10 @@ class Lexicon(abst.AbstractMongoRecord):
 
     def entry_set(self):
         return LexiconEntrySet({"parent_lexicon": self.name})
+
+
+class LexiconSet(abst.AbstractMongoSet):
+    recordClass = Lexicon
 
 
 class Dictionary(Lexicon):
@@ -141,8 +146,10 @@ class DictionaryEntry(LexiconEntry):
         return text
 
     def headword_string(self):
-        return ', '.join(
-            ['<strong dir="rtl">{}</strong>'.format(hw) for hw in [self.headword] + getattr(self, 'alt_headwords', [])])
+        headwords = [self.headword] + getattr(self, 'alt_headwords', [])
+        string = ', '.join(
+            ['<strong dir="rtl">{}</strong>'.format(hw) for hw in headwords])
+        return string
 
     def word_count(self):
         return JaggedTextArray(self.as_strings()).word_count()
@@ -201,6 +208,15 @@ class RashiDictionaryEntry(DictionaryEntry):
     required_attrs = DictionaryEntry.required_attrs + ["content", "orig_word", "orig_ref", "catane_number"]
 
 
+class HebrewDictionaryEntry(DictionaryEntry):
+    required_attrs = DictionaryEntry.required_attrs + ["rid"]
+
+    def headword_string(self):
+        headwords = [self.headword] + getattr(self, 'alt_headwords', [])
+        string = ', '.join([f'<strong><big>{hw}</big></strong>' for hw in headwords]) + '\xa0\xa0'
+        return string
+
+
 class JastrowDictionaryEntry(DictionaryEntry):
     required_attrs = DictionaryEntry.required_attrs + ["rid"]
     
@@ -249,6 +265,8 @@ class LexiconEntrySubClassMapping(object):
         'Jastrow Dictionary': JastrowDictionaryEntry,
         "Jastrow Unabbreviated" : JastrowDictionaryEntry,
         'Klein Dictionary': KleinDictionaryEntry,
+        'Sefer HaShorashim': HebrewDictionaryEntry,
+        'Animadversions by Elias Levita on Sefer HaShorashim': HebrewDictionaryEntry
     }
 
     @classmethod

@@ -362,6 +362,7 @@ Sefaria = extend(Sefaria, {
       wrapLinks:  ("wrapLinks" in settings) ? settings.wrapLinks : 1,
       wrapNamedEntities: ("wrapNamedEntities" in settings) ? settings.wrapNamedEntities : 1, 
       translationLanguagePreference: settings.translationLanguagePreference || null,
+      versionPref: settings.versionPref || null,
     };
     return settings;
   },
@@ -580,6 +581,10 @@ Sefaria = extend(Sefaria, {
     }
     return licenseMap;
   },
+  _getVersionPrefUrlParam(versionPref) {
+    const {vtitle, lang} = versionPref;
+    return `&versionPref=${encodeURIComponent(vtitle.replace(/ /g,"_"))}|${lang}`;
+  },
   _textUrl: function(ref, settings) {
     // copy the parts of settings that are used as parameters, but not other
     const params = param({
@@ -595,6 +600,7 @@ Sefaria = extend(Sefaria, {
     let url = "/api/texts/" + Sefaria.normRef(ref);
     if (settings.enVersion) { url += "&ven=" + encodeURIComponent(settings.enVersion.replace(/ /g,"_")); }
     if (settings.heVersion) { url += "&vhe=" + encodeURIComponent(settings.heVersion.replace(/ /g,"_")); }
+    if (settings.versionPref) { url += Sefaria._getVersionPrefUrlParam(settings.versionPref); }
     url += "&" + params;
     return url.replace("&","?"); // make sure first param has a '?'
   },
@@ -606,6 +612,7 @@ Sefaria = extend(Sefaria, {
       if (settings.enVersion) { key += "&ven=" + settings.enVersion; }
       if (settings.heVersion) { key += "&vhe=" + settings.heVersion; }
       if (settings.translationLanguagePreference) { key += "&transLangPref=" + settings.translationLanguagePreference}
+      if (settings.versionPref) { key += Sefaria._getVersionPrefUrlParam(settings.versionPref); }
       key = settings.context ? key + "|CONTEXT" : key;
     }
     return key;
@@ -2697,7 +2704,8 @@ Sefaria.setup = function(data) {
     // And store current uid in analytics id
     Sefaria._analytics_uid = Sefaria._uid;
     Sefaria._makeBooksDict();
-    Sefaria.virtualBooksDict = {"Jastrow": 1, "Klein Dictionary": 1, "Jastrow Unabbreviated": 1};  //Todo: Wire this up to the server
+    Sefaria.virtualBooksDict = {"Jastrow": 1, "Klein Dictionary": 1, "Jastrow Unabbreviated": 1,
+    'Sefer HaShorashim': 1, 'Animadversions by Elias Levita on Sefer HaShorashim': 1};  //Todo: Wire this up to the server
     Sefaria._cacheFromToc(Sefaria.toc);
     Sefaria._cacheHebrewTerms(Sefaria.terms);
     Sefaria._cacheSiteInterfaceStrings();

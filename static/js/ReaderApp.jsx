@@ -24,7 +24,8 @@ import {
   CookiesNotification,
   CommunityPagePreviewControls
 } from './Misc';
-import { Ad } from './Ad'
+import { Ad } from './Ad';
+import VersionPreferences from "./sefaria/VersionPreferences";
 import Component from 'react-class';
 import BeitMidrash, {BeitMidrashClosed} from './BeitMidrash';
 import  { io }  from 'socket.io-client';
@@ -107,6 +108,7 @@ class ReaderApp extends Component {
       initialAnalyticsTracked: false,
       showSignUpModal: false,
       translationLanguagePreference: props.translationLanguagePreference,
+      versionPreferences: new VersionPreferences(props.initialVersionPrefsByCorpus),
       beitMidrashStatus: Sefaria._uid && props.customBeitMidrashId ? true : false,
       beitMidrashId: props.customBeitMidrashId ? props.customBeitMidrashId : "Sefaria",
       inCustomBeitMidrash: !!props.customBeitMidrashId,
@@ -1662,6 +1664,10 @@ class ReaderApp extends Component {
     Sefaria.editProfileAPI({settings: {translation_language_preference: lang, translation_language_preference_suggested: suggested}});
     this.setState({translationLanguagePreference: lang});
   }
+  setVersionPreference(sref, vtitle, lang) {
+    if (lang !== 'en') { return; }  // Currently only tracking preferences for translations
+    this.setState({versionPreferences: this.state.versionPreferences.update(sref, vtitle, lang)});
+  }
   doesPanelHaveSidebar(n) {
     return this.state.panels.length > n+1 && this.state.panels[n+1].mode == "Connections";
   }
@@ -1782,14 +1788,12 @@ class ReaderApp extends Component {
           .flat()
           .filter(ref => !!ref);
     const deDupedTriggers = [...new Set(triggers.map(JSON.stringify))].map(JSON.parse);
-    console.log(deDupedTriggers);
     const context = {
       isLoggedIn: Sefaria._uid,
       interfaceLang: Sefaria.interfaceLang,
       dt: Sefaria.util.epoch_time(new Date())*1000,
       keywordTargets: refs ? deDupedTriggers : []
     };
-    console.log(context);
     return context
   }
 
@@ -1952,6 +1956,8 @@ class ReaderApp extends Component {
                       clearNamedEntity={clearNamedEntity}
                       translationLanguagePreference={this.state.translationLanguagePreference}
                       setTranslationLanguagePreference={this.setTranslationLanguagePreference}
+                      versionPreferences={this.state.versionPreferences}
+                      setVersionPreference={this.setVersionPreference}
                       navigatePanel={navigatePanel}
                     />
                   </div>);

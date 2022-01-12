@@ -67,6 +67,7 @@ class TranslationsBox extends Component {
           setConnectionsMode={this.props.setConnectionsMode}
           onCitationClick={this.props.onCitationClick}
           translationLanguagePreference={this.props.translationLanguagePreference}
+          versionPreferences={this.props.versionPreferences}
         />
       );
     }else if(this.props.mode == "Translations"){
@@ -86,6 +87,7 @@ class TranslationsBox extends Component {
           openVersionInReader={this.props.openVersionInReader}
           openVersionInSidebar={this.openVersionInSidebar}
           viewExtendedNotes={this.props.viewExtendedNotes}
+          setVersionPreference={this.props.setVersionPreference}
         />
       );
     }
@@ -104,6 +106,8 @@ TranslationsBox.propTypes = {
   onRangeClick:             PropTypes.func.isRequired,
   onCitationClick:          PropTypes.func.isRequired,
   translationLanguagePreference: PropTypes.string,
+  versionPreferences:       PropTypes.object,
+  setVersionPreference:     PropTypes.func.isRequired,
 };
 
 
@@ -159,6 +163,7 @@ class VersionsTextList extends Component {
           basetext={false}
           onCitationClick={this.props.onCitationClick}
           translationLanguagePreference={this.props.translationLanguagePreference}
+          versionPreferences={this.props.versionPreferences}
         />
         <ConnectionButtons>
           <OpenConnectionTabButton srefs={this.props.srefs} openInTabCallback={onRangeClick}/>
@@ -175,6 +180,7 @@ VersionsTextList.propTypes = {
   onRangeClick:    PropTypes.func.isRequired,
   onCitationClick: PropTypes.func.isRequired,
   translationLanguagePreference: PropTypes.string,
+  versionPreferences: PropTypes.object,
 };
 
 
