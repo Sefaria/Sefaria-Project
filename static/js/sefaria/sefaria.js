@@ -2394,12 +2394,11 @@ _media: {},
   getUserCollectionsForSheetFromCache(sheetID) {
     return Sefaria._userCollectionsForSheet[sheetID];
   },
-  _userSchedules: {123: [{"name": "Daf Yomi", "ref": {"displayValue": {"en": "Megillah 10", "he": "מגילה י׳"}, "url": "https://www.sefaria.org/Megillah.10a.1-10b.30"}, "slug": "fake_slug"}]}, // TODO: replace with real data
+  _userSchedules: {},
   getUserSchedules: function(uid) {
-    // TODO: return real data
     return this._cachedApiPromise({
-      url: `${Sefaria.apiHost}/api/schedules/user-schedules/${uid}`,
-      key: 123, // TODO: change to uid
+      url: `${Sefaria.apiHost}/api/schedules/`,
+      key: uid,
       store: Sefaria._userSchedules
     });
   },

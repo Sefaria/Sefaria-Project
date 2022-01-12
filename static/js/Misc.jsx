@@ -1582,8 +1582,9 @@ const CollectionListing = ({data}) => {
 }
 
 const ScheduleListing = ({data}) => {
+
   const imageUrl = "/static/icons/calendar.svg";
-  const scheduleUrl = "/schedule/" + data.slug;
+  const scheduleUrl = `/${data.schedule_name}`;
   return (
     <div className="scheduleListing">
       <div className="left-content">
@@ -1592,16 +1593,14 @@ const ScheduleListing = ({data}) => {
           <a href={scheduleUrl} className="scheduleListingName">
             <img className="scheduleListingImage" src={imageUrl} alt="Collection Icon"/>
             <InterfaceText>
-            {data.name}
+            {data.schedule_name}
             </InterfaceText>
           </a>
 
           <div className="scheduleListingDetails">
             <span className="scheduleListingDetail scheduleListingSheetCount">
-              <a href={`${data.ref.url}`}>
               <img src="/static/icons/book.svg" alt="book icon" />
-              <InterfaceText text={data.ref.displayValue} />
-              </a>
+              <span>{`${new Date(data.start_date).toLocaleDateString()}-${new Date(data.end_date).toLocaleDateString()}`}</span>
             </span>
           </div>
         </div>

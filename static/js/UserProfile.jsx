@@ -148,8 +148,8 @@ class UserProfile extends Component {
     }
   }
   handleSchedules() {
-    // Rerender Collections tab when data changes in cache.
-    this.setState({ refreshCollectionsData: Math.random(), refreshSheetData: Math.random() });
+    // Rerender Schedules tab when data changes in cache. TODO:: Why is this broken?
+    this.setState({ refreshSchedules: Math.random() });
   }
   renderEmptySchedulesList() {
     if (Sefaria._uid !== this.props.profile.id) {
@@ -164,7 +164,7 @@ class UserProfile extends Component {
     return (
       <div className="emptyList">
         <div className="emptyListText">
-          <InterfaceText>You can use collections to organize your sheets or public sheets you like. Collections can be shared privately or made public on Sefaria.</InterfaceText>
+          <InterfaceText>You can create schedules to remind you to learn via email or SMS.</InterfaceText>
         </div>
         <a href="/schedule/new" className="resourcesLink sans-serif">
           <img src="/static/icons/calendar.svg" alt="Schedule icon" />
@@ -174,7 +174,7 @@ class UserProfile extends Component {
   }
   renderSchedules(collection) {
     return (
-      <ScheduleListing key={collection.slug} data={collection} />
+      <ScheduleListing key={collection.schedule_name} data={collection} />
     );
   }
   renderSchedulesHeader() {
@@ -473,7 +473,7 @@ class UserProfile extends Component {
                     refreshData={this.state.refreshCollectionsData}
                   />
                   <>
-                  {this.state.showSchedule ? <LearningSchedule closeSchedule={this.closeSchedule}/> : null}
+                  {this.state.showSchedule ? <LearningSchedule handleSchedules={this.handleSchedules} closeSchedule={this.closeSchedule}/> : null}
                    <FilterableList
                     key="schedule"
                     pageSize={1e6}
@@ -485,7 +485,7 @@ class UserProfile extends Component {
                     sortOptions={["Recent", "Name"]}
                     getData={this.getSchedules}
                     data={this.getSchedulesFromCache()}
-                    // refreshData={this.state.refreshSchedules}
+                    refreshData={this.state.refreshSchedules}
                   />
                   </>
                   {
@@ -613,7 +613,7 @@ const CustomLearningSchedulePicker = ({currentValues, onUpdate}) => {
   )
 }
 
-const LearningSchedule = ({slug, closeSchedule}) => {
+const LearningSchedule = ({slug, closeSchedule, handleSchedules}) => {
   const scheduleStates = {
     SelectScheduleType: "SelectScheduleType",
     CreateExistingSchedule: "CreateExistingSchedule",
@@ -634,7 +634,6 @@ const LearningSchedule = ({slug, closeSchedule}) => {
 
   // update schedule object
   useEffect(() => {
-    console.log(schedule);
     setScheduleOptions(prevScheduleOptions => {
       return {
       ...prevScheduleOptions,
@@ -652,9 +651,9 @@ const LearningSchedule = ({slug, closeSchedule}) => {
   }, [schedule, alerts, phoneNumber, alertTime, customScheduleValues])
 
   // right now just log schedule
-  useEffect(() => {
-    console.log(scheduleOptions);
-  }, [scheduleOptions])
+  // useEffect(() => {
+  //   console.log(scheduleOptions);
+  // }, [scheduleOptions])
 
   useEffect(() => {
     if(scheduleFormState === scheduleStates.CreateCustomSchedule) {
@@ -697,6 +696,7 @@ const LearningSchedule = ({slug, closeSchedule}) => {
           alert(data.error);
       } else {
           console.log(data);
+          handleSchedules()
       }
     });
     closeSchedule();
