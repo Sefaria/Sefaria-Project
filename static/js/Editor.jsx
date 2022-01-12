@@ -2774,4 +2774,4 @@ const SefariaEditor = (props) => {
     )
 };
 
-export default SefariaEditor;
+export {SefariaEditor, Autocompleter};

@@ -547,6 +547,22 @@ UserProfile.propTypes = {
   profile: PropTypes.object.isRequired,
 };
 
+
+const BookCorpusAutocompleter = ({updateSelectedItem}) => {
+  const [selectedItem, setSelectedItem] = useState("");
+  const [showAutocompleter, setShowAutocompleter] = useState(true);
+  useEffect(() => {
+    console.log(selectedItem);
+    updateSelectedItem(selectedItem);
+  }, [selectedItem])
+  const onSelect = (value) => {
+    setSelectedItem(value);
+    setShowAutocompleter(false);
+  }
+  return (showAutocompleter ? <Autocompleter selectedRefCallback={onSelect}/> : <button onClick={() => setShowAutocompleter(true)}>{selectedItem ? selectedItem.toString() : null}</button>)
+}
+
+
 const CustomLearningSchedulePicker = ({currentValues, onUpdate}) => {
 
   const [startRef, setStartRef] = currentValues ? useState(currentValues.startRef) : useState("");
@@ -593,12 +609,13 @@ const CustomLearningSchedulePicker = ({currentValues, onUpdate}) => {
     <>
       <div className="scheduleFormHorizontal" id="alertsContainer">
         <span className="label">Text to learn: </span>
-        <select onChange={$event => setStartRef($event.target.value)} value={startRef || ""}>
+        {/* <select onChange={$event => setStartRef($event.target.value)} value={startRef || ""}>
           <InterfaceOption key="none" text="None" value=""></InterfaceOption>
           {dropdownTexts.map(text => {
             return <InterfaceOption key={text.en} text={text} value={text.en}></InterfaceOption>
           })}
-        </select>
+        </select> */}
+        <BookCorpusAutocompleter updateSelectedItem={setStartRef} />
       </div>
       <div className="scheduleDescription">
         {unitCount ? <>It will take you {unitCount.toString()} days to finish learning this text.</> : null}
