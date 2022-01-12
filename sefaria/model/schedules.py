@@ -98,13 +98,14 @@ class PersonalSchedule(abst.AbstractMongoRecord):
     def edit_notifications(self):
         pass
 
-    def create_notification(self, ref_str, date, notification_type):
+    def create_notification(self, ref_str, refs, date, notification_type):
         profile = UserProfile(id=self.user_id)
 
         psn = PersonalScheduleNotification({
             "user_id": self.user_id,
             "schedule_name": self.schedule_name,
-            "ref": ref_str,
+            "refStr": ref_str,
+            "refs":  refs,
             "notification_type": notification_type,
             "ping_time": date
         })
@@ -117,15 +118,13 @@ class PersonalSchedule(abst.AbstractMongoRecord):
 
         psn.save()
 
-
-    def create_notifications(self, ref_str, date):
+    def create_notifications(self, ref_str, refs, date):
         dt = date + timedelta(hours=self.time_of_notification)
         if self.contact_by_sms == True:
-            self.create_notification(ref_str, dt, "sms")
+            self.create_notification(ref_str, refs, dt, "sms")
 
         if self.contact_by_email == True:
-            self.create_notification(ref_str, dt, "email")
-
+            self.create_notification(ref_str, refs, dt, "email")
 
     def create_full_schedule_run(self, lang = 'en'):
         date = self.start_date
@@ -138,17 +137,18 @@ class PersonalSchedule(abst.AbstractMongoRecord):
                 except KeyError:
                     print(calendar_func(date).keys())
                     return
-                self.create_notifications(ref_str, date)
+                refs = {"start_ref": ref_str, "end_ref": ref_str}
+                self.create_notifications(ref_str, refs, date)
         else:
             text = self.book if self.book else self.corpus
-            chunks, _, _ = divide_the_text(text, self.pace, self.start_date, self.end_date)
-            for ref_chunk in chunks:
+            chunks, _, _, refs = divide_the_text(text, self.pace, self.start_date, self.end_date)
+            for ref_chunk, r in zip(chunks, refs):
                 date = date + timedelta(days=1)
                 if isinstance(ref_chunk, Ref):
                     ref_str = ref_chunk.normal(lang)
                 else:
-                    ref_str = f"{ref_chunk[0].normal()} ,{ref_chunk[1].normal()}"
-                self.create_notifications(ref_str, date)
+                    ref_str = f"{ref_chunk[0].normal()}, {ref_chunk[1].normal()}"
+                self.create_notifications(ref_str, r, date)
 
     def client_contents(self):
         contents = self.contents()
@@ -174,7 +174,7 @@ class PersonalScheduleNotification(abst.AbstractMongoRecord):
     required_attrs = [
         "user_id",
         "schedule_name",
-        "ref",
+        "refStr",
         "notification_type",    # sms/email (or other)
         "ping_time",  # time (with date) in UTC
 
@@ -185,6 +185,7 @@ class PersonalScheduleNotification(abst.AbstractMongoRecord):
         "phone_number",
         "sent",         # bool
         "clicked",      # bool
+        "refs"
     ]
 
 
@@ -193,9 +194,8 @@ class PersonalScheduleNotificationSet(abst.AbstractMongoSet):
 
 
 def ref_chunks(lst, n, remainder=0):
-    # def c_ranged_ref
-
-    chunks = []
+    ranged_chunks = []
+    refs = []
     len_lst = len(lst)
     i = 0
     cnt = 0
@@ -203,21 +203,23 @@ def ref_chunks(lst, n, remainder=0):
         j = 1 if cnt < remainder else 0
         tr1 = lst[i]
         tr2 = lst[min(i + n + j-1, len_lst - 1)]
+        refs.append({"start_ref": tr1.normal(), "end_ref": tr2.normal()})
         if tr1.index_node == tr2.index_node:
             ref_str = tr1.to(tr2) #tr1.normal() + "-" + re.search('(\d+:?\d*\d$)', tr2.normal()).group(1)
-            chunks.append(ref_str)
+            ranged_chunks.append(ref_str)
+
         else:
             tr11 = tr1.index_node.last_section_ref().last_segment_ref()
             ref_str1 = tr1.to(tr11)
             try:
                 tr21 = tr2.index_node.first_section_ref().all_subrefs()[0] #todo:look into this logic for Talmud
                 ref_str2 = tr21.to(tr2)
-                chunks.append((ref_str1, ref_str2))
+                ranged_chunks.append((ref_str1, ref_str2))
             except:
-                chunks.append(ref_str1)
+                ranged_chunks.append(ref_str1)
         i += n+j
         cnt+=1
-    return chunks
+    return ranged_chunks, refs
 
 
 def convert2datetime(d):
@@ -268,10 +270,10 @@ def divide_the_text(text, pace=None, start_date=datetime.utcnow(), end_date=None
         #     return e
         all_segs = lst_learning_unit(ind)
     if pace:
-        chunks = ref_chunks(all_segs, pace)
+        chunks, refs = ref_chunks(all_segs, pace)
     elif end_date:
         days = (end_date-start_date).days+1
         assert days <= len(all_segs), 'you have more days than learning units of this text, you can take on a bigger challenge'
         pace, remainder = divmod(len(all_segs), days)
-        chunks = ref_chunks(all_segs, pace, remainder)
-    return chunks, pace, start_date + timedelta(days=len(chunks))
+        chunks, refs = ref_chunks(all_segs, pace, remainder)
+    return chunks, pace, start_date + timedelta(days=len(chunks)), refs
