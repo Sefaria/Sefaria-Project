@@ -6,7 +6,7 @@ import sanitizeHtml  from 'sanitize-html';
 import Component from 'react-class'
 import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
-import { SefariaEditor } from './Editor';
+import SefariaEditor from './Editor';
 import {
   InterfaceText,
   LoadingMessage,

@@ -5,6 +5,7 @@ import Sefaria  from './sefaria/sefaria';
 import NoteListing  from './NoteListing';
 import Footer  from './Footer';
 import {
+  Autocompleter,
   CollectionListing,
   FilterableList,
   LoadingMessage,
@@ -19,7 +20,6 @@ import {
   InterfaceOption
 } from './Misc';
 import { CalendarsPage, reformatCalendars } from './CalendarsPage';
-import { Autocompleter } from './Editor'
 
 class UserProfile extends Component {
   constructor(props) {
