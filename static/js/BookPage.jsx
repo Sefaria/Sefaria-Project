@@ -397,6 +397,7 @@ class TextTableOfContents extends Component {
               lexiconName={this.state.indexDetails.lexiconName}
               title={this.props.title}
               showBaseText={this.props.showBaseText}
+              navigatePanel={this.props.navigatePanel}
               contextSelector=".bookPage"
               currVersions={this.props.currVersions}/> : null);
     let content;
