@@ -2380,7 +2380,7 @@ def schedule_calculate_api(request):
         start_date = request.GET.get("start_date", datetime.utcnow())
         end_date = request.GET.get("end_date", None)
         try:
-            chunks, pace, end_date = schedules.divide_the_text(text, int(pace), start_date, end_date)
+            chunks, pace, end_date, refs = schedules.divide_the_text(text, int(pace), start_date, end_date)
         except BookNameError as e:
             return jsonResponse({"error": e})
         return jsonResponse({
