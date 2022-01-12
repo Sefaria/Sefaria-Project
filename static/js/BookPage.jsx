@@ -398,7 +398,7 @@ class TextTableOfContents extends Component {
               title={this.props.title}
               showBaseText={this.props.showBaseText}
               navigatePanel={this.props.navigatePanel}
-              contextSelector=".bookPage"
+              contextSelector=".textTableOfContents"
               currVersions={this.props.currVersions}/> : null);
     let content;
     switch(this.state.tab) {
