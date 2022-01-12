@@ -2395,7 +2395,17 @@ def schedule_api(request):
     if request.method == "POST":
         j = json.loads(request.POST.get("json"))
         #TODO: deal w/ cell phone number coming in via post -- i.e. validate & send to `UserProfile`
-        ps = PersonalSchedule({"user_id": request.user.id}, **j)
+
+        data = ({"user_id": request.user.id, **j})
+        if data['book']:
+            data["schedule_name"] = data['book']
+        elif data["calendar_schedule"]:
+            data["schedule_name"] = data["calendar_schedule"]
+        else:
+            data["schedule_name"] = "Untitled"
+
+        ps = PersonalSchedule(data)
+
         sched = ps.save()
         sched.create_full_schedule_run()
 

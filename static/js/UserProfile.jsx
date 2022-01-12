@@ -557,11 +557,10 @@ const CustomLearningSchedulePicker = ({currentValues, onUpdate}) => {
   const [rateUnit, setRateUnit] = currentValues ? useState(currentValues.rateUnit) :useState("Verses");
   const [unitCount, setUnitCount] = currentValues ? useState(currentValues.unitCount) :useState(null);
   const dropdownTexts = Sefaria.tocObjectByCategories(['Tanakh']).contents.slice(0,2).map(subCat => subCat.contents.map(item => {return {en: item.title, he: item.heTitle}})).flat()
-  // $.get(`/api/schedule?text=${startRef}&pace=${rate}`, applyNewValues);
 
   useEffect(() => {
     if (startRef) {
-      $.get(`/api/schedule/pace-calculation?text=${startRef}&pace=${rate}`, applyNewValues);
+      $.get(`/api/schedules/pace-calculation?text=${startRef}&pace=${rate}`, applyNewValues);
     } else {
       setEndDate(null);
       setUnitCount(null)
@@ -630,8 +629,8 @@ const LearningSchedule = ({slug, closeSchedule}) => {
   const [alertTime, setAlertTime] = useState("08:00");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [customScheduleValues, setCustomScheduleValues] = useState(null);
-  const calendars = reformatCalendars();
-  const schedulesUrl = '/api/schedule/new'; // TODO: change when PR for api change goes through
+  const calendars = reformatCalendars().filter(cal => (!!cal.isDaily));
+  const schedulesUrl = '/api/schedules/';
 
   // update schedule object
   useEffect(() => {
@@ -642,7 +641,7 @@ const LearningSchedule = ({slug, closeSchedule}) => {
       schedule,
       alerts: alerts,
       phoneNumber,
-      alertTime: new Date(new Date().toDateString() + " " + alertTime).toUTCString(),
+      alertTime: new Date(new Date().toDateString() + " " + alertTime).getUTCHours(),
       startRef: customScheduleValues ? customScheduleValues.startRef : null,
       endRef: customScheduleValues? customScheduleValues.endRef : null,
       startDate: customScheduleValues ? customScheduleValues.startDate : null,
@@ -683,14 +682,14 @@ const LearningSchedule = ({slug, closeSchedule}) => {
 
   const saveAndClose = () => {
     const postData = {
-      start_date: scheduleOptions.startDate,
-      end_date: scheduleOptions.endDate,
+      start_date: scheduleOptions.startDate ? new Date(scheduleOptions.startDate).toISOString().split('T')[0] : null,
+      end_date: scheduleOptions.endDate ? new Date(scheduleOptions.endDate).toISOString().split('T')[0] : null,
       pace: scheduleOptions.rate,
       book: scheduleOptions.startRef,
       time_of_notification: scheduleOptions.alertTime,
       calendar_schedule: scheduleOptions.schedule,
-      contact_by_email: scheduleOptions.email,
-      contact_by_sms: scheduleOptions.textMessage,
+      contact_by_email: scheduleOptions.alerts.email,
+      contact_by_sms: scheduleOptions.alerts.textMessage,
       phone_number: scheduleOptions.phoneNumber
     }
     $.post(schedulesUrl, {"json": JSON.stringify(postData)}, function (data) {

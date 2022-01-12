@@ -64,7 +64,8 @@ class PersonalSchedule(abst.AbstractMongoRecord):
             self.end_date = datetime.utcnow() + timedelta(days=365)
 
         self.date_created = datetime.utcnow()
-
+        if self.pace:
+            self.pace = int(self.pace)
         self.start_date = convert2datetime(self.start_date)
         self.end_date = convert2datetime(self.end_date)
         self.active                 = getattr(self, "active", True)
@@ -118,11 +119,12 @@ class PersonalSchedule(abst.AbstractMongoRecord):
 
 
     def create_notifications(self, ref_str, date):
+        dt = date + timedelta(hours=self.time_of_notification)
         if self.contact_by_sms == True:
-            self.create_notification(ref_str, date, "sms")
+            self.create_notification(ref_str, dt, "sms")
 
         if self.contact_by_email == True:
-            self.create_notification(ref_str, date, "email")
+            self.create_notification(ref_str, dt, "email")
 
 
     def create_full_schedule_run(self, lang = 'en'):
