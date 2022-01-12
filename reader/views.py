@@ -517,6 +517,8 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
             raise Http404
         if versionHe and not Version().load({"versionTitle": versionHe, "language": "he"}):
             raise Http404
+        versionEn, versionHe = override_version_with_preference(oref, request, versionEn, versionHe)
+
         kwargs = {
             "panelDisplayLanguage": request.GET.get("lang", request.contentLang),
             'extended notes': int(request.GET.get("notes", 0)),
@@ -570,7 +572,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
                     versionEn = request.GET.get("v{}".format(i)).replace("_", " ") if request.GET.get("v{}".format(i)) else None
                 else: # he
                     versionHe = request.GET.get("v{}".format(i)).replace("_", " ") if request.GET.get("v{}".format(i)) else None
-
+            versionEn, versionHe = override_version_with_preference(oref, request, versionEn, versionHe)
             filter   = request.GET.get("w{}".format(i)).replace("_", " ").split("+") if request.GET.get("w{}".format(i)) else None
             filter   = [] if filter == ["all"] else filter
             versionFilter = [request.GET.get("vside").replace("_", " ")] if request.GET.get("vside") else []
@@ -767,6 +769,36 @@ def get_search_params(get_dict, i=None):
         "sheetFilters": sheet_filters,
         "sheetFilterAggTypes": sheet_agg_types,
     }
+
+
+def get_version_preference_params(request):
+    raw_vpref = request.GET.get("versionPref", None)
+
+    if raw_vpref is None:
+        return None, None
+    assert raw_vpref.count("|") == 1
+    raw_vpref = raw_vpref.replace("_", " ")
+    vtitle_pref, vlang_pref = raw_vpref.split("|")
+    return vtitle_pref,  vlang_pref
+
+
+def get_version_preference_from_dict(oref, version_preferences_by_corpus):
+    corpus = oref.index.get_primary_corpus()
+    vpref_dict = version_preferences_by_corpus.get(corpus, None)
+    if vpref_dict is None:
+        return None, None
+    return vpref_dict['vtitle'], vpref_dict['lang']
+
+
+def override_version_with_preference(oref, request, versionEn, versionHe):
+    vtitlePref, vlangPref = get_version_preference_from_dict(oref, request.version_preferences_by_corpus)
+    if vtitlePref is not None and Version().load({"versionTitle": vtitlePref, "language": vlangPref, "title": oref.index.title}):
+        # vpref exists and the version exists for this text
+        if vlangPref == "en" and not versionEn:
+            versionEn = vtitlePref
+        elif vlangPref == "he" and not versionHe:
+            versionHe = vtitlePref
+    return versionEn, versionHe
 
 
 @ensure_csrf_cookie
@@ -1319,18 +1351,10 @@ def texts_api(request, tref):
         stripItags = bool(int(request.GET.get("stripItags", False)))
         multiple = int(request.GET.get("multiple", 0))  # Either undefined, or a positive integer (indicating how many sections forward) or negative integer (indicating backward)
         translationLanguagePreference = request.GET.get("transLangPref", None)  # as opposed to vlangPref, this refers to the actual lang of the text
-
-        # version preference
-        def _parse_vpref(vpref: str):
-            if vpref is None:
-                return None, None
-            assert vpref.count("|") == 1
-            vpref = vpref.replace("_", " ")
-            return vpref.split("|")
         try:
-            vtitlePref, vlangPref = _parse_vpref(request.GET.get("versionPref", None))  # vlangPref refers to the lang of the version in the db
+            vtitlePref, vlangPref = get_version_preference_params(request)
         except AssertionError:
-            return jsonResponse({"error": "versionPref must contain a version title and version language separated by a pipe (|)"}, cb)
+            return jsonResponse({"error": "version pref must contain a version title and version language separated by a pipe (|)"}, cb)
 
         def _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context, pad=pad,
                       alts=alts, wrapLinks=wrapLinks, layer_name=layer_name, wrapNamedEntities=wrapNamedEntities):
