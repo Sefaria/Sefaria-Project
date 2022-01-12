@@ -166,10 +166,10 @@ class UserProfile extends Component {
         <div className="emptyListText">
           <InterfaceText>You can create schedules to remind you to learn via email or SMS.</InterfaceText>
         </div>
-        <a href="/schedule/new" className="resourcesLink sans-serif">
+        <button onClick={() => this.setState({showSchedule: true})} className="resourcesLink sans-serif scheduleButton">
           <img src="/static/icons/calendar.svg" alt="Schedule icon" />
             <InterfaceText>Create a New Learning Schedule</InterfaceText>
-        </a>
+        </button>
       </div>);
   }
   renderSchedules(collection) {
