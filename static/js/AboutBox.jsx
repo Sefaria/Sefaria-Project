@@ -73,7 +73,7 @@ class AboutBox extends Component {
       if (d) {
           detailSection = (<div className="detailsSection">
                   <h2 className="aboutHeader">
-                      <span className="int-en">About this Text</span>
+                      <span className="int-en">About This Text</span>
                       <span className="int-he">אודות ספר זה</span>
                   </h2>
                   <div className="aboutTitle">
@@ -146,7 +146,7 @@ class AboutBox extends Component {
       detailSection = (
         <div className="detailsSection sans-serif">
           <h2 className="aboutHeader">
-            <InterfaceText>About this Text</InterfaceText>
+            <InterfaceText>About This Text</InterfaceText>
           </h2>
           <a href={bookPageUrl} className="aboutTitle serif">
             <ContentText text={{en: d.title, he:d.heTitle}}/>
