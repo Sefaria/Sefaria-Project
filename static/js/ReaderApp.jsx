@@ -1782,14 +1782,12 @@ class ReaderApp extends Component {
           .flat()
           .filter(ref => !!ref);
     const deDupedTriggers = [...new Set(triggers.map(JSON.stringify))].map(JSON.parse);
-    console.log(deDupedTriggers);
     const context = {
       isLoggedIn: Sefaria._uid,
       interfaceLang: Sefaria.interfaceLang,
       dt: Sefaria.util.epoch_time(new Date())*1000,
       keywordTargets: refs ? deDupedTriggers : []
     };
-    console.log(context);
     return context
   }
 

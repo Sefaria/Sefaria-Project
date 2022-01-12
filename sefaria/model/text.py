@@ -250,7 +250,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             contents = self.nodes.as_index_contents()
             if with_content_counts:
                 contents["schema"] = self.annotate_schema_with_content_counts(contents["schema"])
-                contents["firstSectionRef"] = Ref(self.title).first_available_section_ref().normal()
+                first_ref = self.versionSet().array()[0].first_section_ref()
+                contents["firstSectionRef"] = first_ref.normal()
         else:
             contents = self.legacy_form(force_complex=force_complex)
 
@@ -2031,7 +2032,7 @@ class VirtualTextChunk(AbstractTextRecord):
         self.is_merged = False
         self.sources = []
 
-        if self.lang not in self._oref.index_node.supported_languages:
+        if not self._oref.index_node.parent.supports_language(self.lang):
             self.text = []
             self._versions = []
             return
@@ -4948,8 +4949,9 @@ class Library(object):
 
     def build_lexicon_auto_completers(self):
         from .autospell import LexiconTrie
+        from .lexicon import LexiconSet
         self._lexicon_auto_completer = {
-            lexicon: LexiconTrie(lexicon) for lexicon in ["Jastrow Dictionary", "Klein Dictionary"]
+            lexicon.name: LexiconTrie(lexicon.name) for lexicon in LexiconSet({'should_autocomplete': True})
         }
         self._lexicon_auto_completer_is_ready = True
 

@@ -391,13 +391,6 @@ class TextTableOfContents extends Component {
                     tabOptions={structTabOptions}
                     activeTab={this.state.tab}
                     narrowPanel={this.props.narrowPanel} /> : null);
-    const dictionarySearch = (isDictionary ?
-                  <DictionarySearch
-                  lexiconName={this.state.indexDetails.lexiconName}
-                  title={this.props.title}
-                  showBaseText={this.props.showBaseText}
-                  contextSelector=".bookPage"
-                  currVersions={this.props.currVersions}/> : null);
 
     let content;
     switch(this.state.tab) {
@@ -429,6 +422,8 @@ class TextTableOfContents extends Component {
                       addressTypes={this.state.indexDetails.schema.addressTypes}
                       refPath={this.props.title}
                       topLevel={true}
+                      showBaseText={this.props.showBaseText}
+                      currVersions={this.props.currVersions}
 
           />;
         }
@@ -447,7 +442,6 @@ class TextTableOfContents extends Component {
           <div className="textTableOfContents">
             <div className="tocTools">
               {toggle}
-              {dictionarySearch}
             </div>
             <div className="tocContent">
               {content}
@@ -539,7 +533,13 @@ class SchemaNode extends Component {
         );
       } else if (this.props.schema.nodeType === "DictionaryNode") {
         return (
-          <DictionaryNode schema={this.props.schema} />
+          <DictionaryNode
+              schema={this.props.schema}
+              title={this.props.refPath}
+              showBaseText={this.props.showBaseText}
+              currVersions={this.props.currVersions}
+              lexiconName={node.lexiconName}
+          />
         );
       }
 
@@ -572,7 +572,15 @@ class SchemaNode extends Component {
           // ArrayMapNode with only wholeRef
           return <ArrayMapNode schema={node} key={i}/>;
         } else if (node.nodeType == "DictionaryNode") {
-          return <DictionaryNode schema={node} key={i}/>;
+          return <DictionaryNode
+              schema={node}
+              key={i}
+              lexiconName={this.props.lexiconName}
+              title={this.props.refPath}
+              showBaseText={this.props.showBaseText}
+              currVersions={this.props.currVersions}
+              lexiconName={node.lexiconName}
+          />;
         } else if (node.depth == 1 && !node.default) {
           // SchemaNode title that points straight to content
           path = this.props.refPath + ", " + node.title;
@@ -813,6 +821,17 @@ ArrayMapNode.propTypes = {
 class DictionaryNode extends Component {
   render() {
     if (this.props.schema.headwordMap) {
+      const dictionarySearch =
+              <DictionarySearch
+              lexiconName={this.props.lexiconName}
+              title={this.props.title}
+              showBaseText={this.props.showBaseText}
+              contextSelector=".bookPage"
+              currVersions={this.props.currVersions}/>;
+      const contentText = this.props.schema.title ? (
+        <ContentText text={{en:this.props.schema.title , he:this.props.schema.heTitle }}/>
+      ) : (
+        <ContentText text={{en: "Browse By Letter", he: 'לפי סדר הא"ב'}}/>);
       let sectionLinks = this.props.schema.headwordMap.map(function(m,i) {
       let letter = m[0];
       let ref = m[1];
@@ -825,8 +844,9 @@ class DictionaryNode extends Component {
       return (
           <div className="schema-node-toc">
             <div className="schema-node-contents">
+              {dictionarySearch}
               <div className="specialNavSectionHeader">
-                <ContentText text={{en: "Browse By Letter", he: 'לפי סדר הא"ב'}}/>
+                {contentText}
               </div>
               <div className="tocLevel">{sectionLinks}</div>
             </div>
