@@ -361,6 +361,7 @@ class TextColumn extends Component {
         unsetTextHighlight={this.props.unsetTextHighlight}
         translationLanguagePreference={this.props.translationLanguagePreference}
         versionPreferences={this.props.versionPreferences}
+        setCurrVersions={this.props.setCurrVersions}
         key={ref} />);
     }.bind(this));
 

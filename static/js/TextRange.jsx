@@ -129,6 +129,14 @@ class TextRange extends Component {
       return;
     }
 
+    // make sure currVersions matches versions returned, due to translationLanguagePreference and versionPreferences
+    if (this.props.setCurrVersions) {
+      this.props.setCurrVersions({
+        en: data.versionTitle,
+        he: data.heVersionTitle,
+      });
+    }
+
     // If this is a ref to a super-section, rewrite it to first available section
     if (this.props.basetext && data.textDepth - data.sections.length > 1 && data.firstAvailableSectionRef) {
       this.props.showBaseText(data.firstAvailableSectionRef, true, this.props.currVersions);
