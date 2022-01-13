@@ -250,7 +250,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             contents = self.nodes.as_index_contents()
             if with_content_counts:
                 contents["schema"] = self.annotate_schema_with_content_counts(contents["schema"])
-                first_ref = self.versionSet().array()[0].first_section_ref()
+                first_ref = VersionSet({"title": self.title, "versionTitle": {"$not": {"$regex": "pending"}}})[0].first_section_ref()
                 contents["firstSectionRef"] = first_ref.normal()
         else:
             contents = self.legacy_form(force_complex=force_complex)

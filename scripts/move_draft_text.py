@@ -60,7 +60,7 @@ class ServerTextCopier(object):
         self._version_objs = []
         if self._versions_to_retrieve:
             if self._versions_to_retrieve == 'all':
-                self._version_objs = VersionSet({'title': self._title_to_retrieve}).array()
+                self._version_objs = VersionSet({'title': self._title_to_retrieve, "versionTitle": {"$not": {"$regex": "pending"}}}).array()
             else:
                 for version in self._versions_to_retrieve:
                     version['title'] = self._title_to_retrieve
