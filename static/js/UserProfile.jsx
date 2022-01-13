@@ -562,8 +562,6 @@ const BookCorpusAutocompleter = ({updateSelectedItem}) => {
   return (showAutocompleter ? <Autocompleter selectedRefCallback={onSelect}
     refsOnly={false}
     showSuggestionsFx={(d,inp) => !d.is_book || !d.is_ref || d.completion_objects.map(x => x.title).filter(x => x.toLowerCase().startsWith(inp.toLowerCase()) & x.length > inp.length)}
-    showAddressCompletionsFx={() => false}
-    showPreviewFx={() => false}
     showAddButtonFx={d => d.is_book || d.is_ref}
   /> : <button onClick={() => setShowAutocompleter(true)}>{selectedItem ? selectedItem.toString() : null}</button>)
 }

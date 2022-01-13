@@ -2475,14 +2475,14 @@ const Autocompleter = ({selectedRefCallback, refsOnly, showSuggestionsFx, showAd
       }
 
       //We want to show address completions when book exists but not once we start typing further
-      if (showAddressCompletionsFx(d) && isNaN(input.trim().slice(-1))) {
+      if (showAddressCompletionsFx && showAddressCompletionsFx(d) && isNaN(input.trim().slice(-1))) {
         setHelperPromptText(<InterfaceText text={{ en: d.addressExamples[0], he: d.heAddressExamples[0] }} />)
         document.querySelector('.addInterfaceInput input+span.helperCompletionText').style.insetInlineStart = `${getWidthOfInput()}px`;
       } else {
         setHelperPromptText(null)
       }
 
-      if (showPreviewFx(d)) {
+      if (showPreviewFx && showPreviewFx(d)) {
         generatePreviewText(input);
       } else {
         setPreviewText(null)
