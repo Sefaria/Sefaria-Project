@@ -2636,9 +2636,7 @@ Sefaria.unpackDataFromProps = function(props) {
   if (props.collectionListing) {
       Sefaria._collectionsList.list = props.collectionListing;
   }
-  if (props.versionPrefsByCorpus) {
-      Sefaria.versionPreferences = new VersionPreferences(props.versionPrefsByCorpus);
-  }
+  Sefaria.versionPreferences = new VersionPreferences(props.versionPrefsByCorpus);
   Sefaria.util._initialPath = props.initialPath ? props.initialPath : "/";
   const dataPassedAsProps = [
       "_uid",

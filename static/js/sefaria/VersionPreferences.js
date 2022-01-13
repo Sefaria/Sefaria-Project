@@ -18,7 +18,7 @@ class VersionPreferences {
         return new VersionPreferences(prefsClone);
     }
     update_cookie() {
-        $.cookie("version_preferences", JSON.stringify(this._versionPrefsByCorpus), {path: "/"});
+        $.cookie("version_preferences_by_corpus", JSON.stringify(this._versionPrefsByCorpus), {path: "/"});
     }
 }
 
