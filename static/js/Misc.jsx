@@ -2465,6 +2465,10 @@ const Autocompleter = ({selectedRefCallback, refsOnly, showSuggestionsFx, showAd
             border_color: Sefaria.palette.refColor(suggestion.key)
           }))
 
+        if (filterResultsFx) {
+          suggestions = suggestions.filter(filterResultsFx);
+        }
+
         setCurrentSuggestions(suggestions);
       } else {
         setCurrentSuggestions(null);
