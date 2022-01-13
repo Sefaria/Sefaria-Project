@@ -52,7 +52,7 @@ class VersionBlock extends Component {
     e.preventDefault();
     if (this.props.openVersionInReader) {
       this.props.openVersionInReader(this.props.version.versionTitle, this.props.version.language);
-      this.props.setVersionPreference(this.props.currentRef, this.props.version.versionTitle, this.props.version.language);
+      Sefaria.setVersionPreference(this.props.currentRef, this.props.version.versionTitle, this.props.version.language);
     }
   }
   handleInputChange(event) {
@@ -355,7 +355,6 @@ VersionBlock.propTypes = {
   viewExtendedNotes:      PropTypes.func,
   sidebarDisplay:         PropTypes.bool,
   rendermode:             PropTypes.string,
-  setVersionPreference:   PropTypes.func,
 };
 VersionBlock.defaultProps = {
   showHistory: true,
@@ -436,7 +435,6 @@ class VersionsBlocksList extends Component{
                       openVersionInSidebar={this.props.openVersionInSidebar}
                       viewExtendedNotes={this.props.viewExtendedNotes}
                       isCurrent={this.isVersionCurrent(v)}
-                      setVersionPreference={this.props.setVersionPreference}
                     />
                   ))
                 }
@@ -457,7 +455,6 @@ VersionsBlocksList.propTypes={
   openVersionInSidebar: PropTypes.func,
   viewExtendedNotes: PropTypes.func,
   showLanguageHeaders: PropTypes.bool,
-  setVersionPreference: PropTypes.func,
 };
 VersionsBlocksList.defaultProps = {
   displayCurrentVersions: true,

@@ -231,7 +231,6 @@ class AboutBox extends Component {
               openVersionInReader={this.props.openVersionInReader}
               openVersionInSidebar={this.openVersionInSidebar}
               viewExtendedNotes={this.props.viewExtendedNotes}
-              setVersionPreference={this.props.setVersionPreference}
             />
       </div> : null );
 
