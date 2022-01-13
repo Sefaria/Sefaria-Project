@@ -1,3 +1,5 @@
+import VersionPreferences from "./VersionPreferences";
+
 var extend     = require('extend'),
     param      = require('querystring').stringify;
 import Search from './search';
@@ -571,6 +573,15 @@ Sefaria = extend(Sefaria, {
   },
   getTranslateVersionsKey: (vTitle, lang) => `${vTitle}|${lang}`,
   deconstructVersionsKey: (versionsKey) => versionsKey.split('|'),
+  setVersionPreference(sref, vtitle, lang) {
+    if (lang !== 'en') { return; }  // Currently only tracking preferences for translations
+    const title = Sefaria.parseRef(sref).index
+    const corpus = Sefaria.index(title).corpus;
+    Sefaria.versionPreferences = Sefaria.versionPreferences.update(corpus, vtitle, lang);
+
+    Sefaria.track.event("Reader", "Set Version Preference", `${corpus}|${vtitle}|${lang}`);
+    Sefaria.editProfileAPI({version_preferences_by_corpus: {[corpus]: {vtitle, lang}}})
+  },
   getLicenseMap: function() {
     const licenseMap = {
       "Public Domain": "https://en.wikipedia.org/wiki/Public_domain",
@@ -2625,6 +2636,7 @@ Sefaria.unpackDataFromProps = function(props) {
   if (props.collectionListing) {
       Sefaria._collectionsList.list = props.collectionListing;
   }
+  Sefaria.versionPreferences = new VersionPreferences(props.versionPrefsByCorpus);
   Sefaria.util._initialPath = props.initialPath ? props.initialPath : "/";
   const dataPassedAsProps = [
       "_uid",

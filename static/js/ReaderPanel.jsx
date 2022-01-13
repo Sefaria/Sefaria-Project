@@ -648,7 +648,6 @@ class ReaderPanel extends Component {
           textHighlights={this.state.textHighlights}
           unsetTextHighlight={this.props.unsetTextHighlight}
           translationLanguagePreference={this.props.translationLanguagePreference}
-          versionPreferences={this.props.versionPreferences}
           setCurrVersions={this.setCurrVersions}
           key={`${textColumnBookTitle ? textColumnBookTitle : "empty"}-TextColumn`} />
       );
@@ -732,8 +731,6 @@ class ReaderPanel extends Component {
           checkIntentTimer={this.props.checkIntentTimer}
           navigatePanel={this.props.navigatePanel}
           translationLanguagePreference={this.props.translationLanguagePreference}
-          versionPreferences={this.props.versionPreferences}
-          setVersionPreference={this.props.setVersionPreference}
           key="connections" />
       );
     }
@@ -1075,7 +1072,6 @@ class ReaderPanel extends Component {
             connectionData={this.state.connectionData}
             translationLanguagePreference={this.props.translationLanguagePreference}
             setTranslationLanguagePreference={this.props.setTranslationLanguagePreference}
-            versionPreferences={this.props.versionPreferences}
           />}
 
           {(items.length > 0 && !menu) ?
@@ -1154,8 +1150,6 @@ ReaderPanel.propTypes = {
   masterPanelSheetId:          PropTypes.number,
   translationLanguagePreference: PropTypes.string,
   setTranslationLanguagePreference: PropTypes.func.isRequired,
-  versionPreferences:          PropTypes.object,
-  setVersionPreference:        PropTypes.func.isRequired,
 };
 
 
@@ -1199,7 +1193,7 @@ class ReaderControls extends Component {
      * Preload translation versions to get shortVersionTitle to display
      */
     if (!this.shouldShowVersion()) { return; }
-    Sefaria.getVersions(this.props.currentRef, false, ['en']).then(versionList => {
+    Sefaria.getVersions(this.props.currentRef, false, ['he'], true).then(versionList => {
       if (!this.props.currVersions.en) {
         // default version. choose highest priority
         if (versionList.length === 0) { return; }
@@ -1219,7 +1213,7 @@ class ReaderControls extends Component {
     const title = this.props.currentRef;
     if (title) {
       // If we don't have this data yet, rerender when we do so we can set the Hebrew title
-      const versionPref = this.props.versionPreferences.getVersionPref(title);
+      const versionPref = Sefaria.versionPreferences.getVersionPref(title);
       const getTextPromise = Sefaria.getText(title, {context: 1, translationLanguagePreference: this.props.translationLanguagePreference, versionPref}).then(data => {
         if ("error" in data) { this.props.onError(data.error); }
         this.setState({runningQuery: null});   // Causes re-render

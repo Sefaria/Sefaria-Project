@@ -35,7 +35,6 @@ class TextRange extends Component {
     if (this.props.currVersions.en !== nextProps.currVersions.en) { return true; }
     if (this.props.currVersions.he !== nextProps.currVersions.he) { return true; }
     if (this.props.translationLanguagePreference !== nextProps.translationLanguagePreference) { return true; }
-    if (this.props.versionPreferences !== nextProps.versionPreferences) { return true; }
     if (this.props.showHighlight !== nextProps.showHighlight) { return true; }
     // todo: figure out when and if this component receives settings at all
     if (nextProps.settings && this.props.settings &&
@@ -103,7 +102,7 @@ class TextRange extends Component {
       enVersion: this.props.currVersions.en || null,
       heVersion: this.props.currVersions.he || null,
       translationLanguagePreference: this.props.translationLanguagePreference,
-      versionPref: this.props.versionPreferences.getVersionPref(this.props.sref),
+      versionPref: Sefaria.versionPreferences.getVersionPref(this.props.sref),
     };
     let data = Sefaria.getTextFromCache(this.props.sref, settings);
 
@@ -193,7 +192,7 @@ class TextRange extends Component {
          enVersion: this.props.currVersions.en || null,
          heVersion: this.props.currVersions.he || null,
          translationLanguagePreference: this.props.translationLanguagePreference,
-         versionPref: this.props.versionPreferences.getVersionPref(data.next),
+         versionPref: Sefaria.versionPreferences.getVersionPref(data.next),
        }).then(ds => Array.isArray(ds) ? ds.map(d => this._prefetchLinksAndNotes(d)) : this._prefetchLinksAndNotes(ds));
      }
      if (data.prev) {
@@ -203,7 +202,7 @@ class TextRange extends Component {
          enVersion: this.props.currVersions.en || null,
          heVersion: this.props.currVersions.he || null,
          translationLanguagePreference: this.props.translationLanguagePreference,
-         versionPref: this.props.versionPreferences.getVersionPref(data.prev),
+         versionPref: Sefaria.versionPreferences.getVersionPref(data.prev),
        }).then(ds => Array.isArray(ds) ? ds.map(d => this._prefetchLinksAndNotes(d)) : this._prefetchLinksAndNotes(ds));
      }
      if (data.indexTitle) {
@@ -458,7 +457,6 @@ TextRange.propTypes = {
   inlineReference:        PropTypes.object,
   textHighlights:         PropTypes.array,
   translationLanguagePreference: PropTypes.string,
-  versionPreferences:     PropTypes.object,
 };
 TextRange.defaultProps = {
   currVersions: {en:null,he:null},
