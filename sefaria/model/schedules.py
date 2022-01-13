@@ -14,6 +14,7 @@ from sefaria.utils import calendars
 from sefaria.client.util import send_email
 
 import structlog
+import uuid
 logger = structlog.get_logger(__name__)
 
 d_calendar = {
@@ -38,12 +39,12 @@ class PersonalSchedule(abst.AbstractMongoRecord):
     collection = 'schedules'
 
     required_attrs = [
+        "id",
         "user_id",          # int
         "start_date",       # date
         "end_date",         # date
         "active",           # bool
         "schedule_name"     # string
-        # "scheduled_text"    # ScheduledText obj
     ]
 
     optional_attrs = [
@@ -78,6 +79,7 @@ class PersonalSchedule(abst.AbstractMongoRecord):
         self.book                   = getattr(self, "book", None)
         self.corpus                 = getattr(self, "corpus", None)
         self.calendar_schedule      = getattr(self, "calendar_schedule", None)
+        self.id = getattr(self, "id", str(uuid.uuid1()))
 
         pass
 
@@ -106,6 +108,7 @@ class PersonalSchedule(abst.AbstractMongoRecord):
         psn = PersonalScheduleNotification({
             "user_id": self.user_id,
             "schedule_name": self.schedule_name,
+            "schedule_id": self.id,
             "refStr": ref_str,
             "refs":  refs,
             "notification_type": notification_type,
@@ -158,7 +161,7 @@ class PersonalSchedule(abst.AbstractMongoRecord):
         contents["end_date"] = datetime.strftime(contents["end_date"], '%Y-%m-%d')
         contents["start_date"] = datetime.strftime(contents["start_date"], '%Y-%m-%d')
         contents["date_created"] = datetime.strftime(contents["date_created"], '%Y-%m-%d')
-        contents["next_scheduled_reading"] = get_next_scheduled_reading_for_uid(self.user_id)
+        contents["next_scheduled_reading"] = get_next_scheduled_reading(self.id)
         return contents
 
 
@@ -178,6 +181,7 @@ class PersonalScheduleNotification(abst.AbstractMongoRecord):
     required_attrs = [
         "user_id",
         "schedule_name",
+        "schedule_id",
         "refStr",
         "notification_type",    # sms/email (or other)
         "ping_time",  # time (with date) in UTC
@@ -298,14 +302,13 @@ def send_notifications_at_time():
         notification.sent = True
         notification.save()
 
-def get_next_scheduled_reading_for_uid(uid):
+def get_next_scheduled_reading(id):
     dt = datetime.utcnow()
-    next_reading = PersonalScheduleNotificationSet({"user_id": uid, "sent": False, "ping_time": {"$gte": dt}}, limit=1)
-    res = None
-    if len(next_reading) > 0:
-        res = {
-            "refStr": next_reading[0].refStr,
-            "refs": next_reading[0].refs,
-            "date": datetime.strftime(next_reading[0].ping_time, '%Y-%m-%d')
-        }
-    return res
+    psns = PersonalScheduleNotificationSet({"schedule_id": id, "sent": False, "ping_time": {"$gte": dt}}, sort=[("ping_time", 1)], limit=1)
+    next_reading = [{"refStr": x.refStr, "refs": x.refs, "date": datetime.strftime(x.ping_time, '%Y-%m-%d')} for x in psns]
+    try:
+        return next_reading[0]
+    except IndexError:
+        return(None)
+
+
