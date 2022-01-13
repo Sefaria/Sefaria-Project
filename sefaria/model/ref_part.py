@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import List, Union, Dict, Optional, Tuple, Generator, Iterable
+from typing import List, Union, Dict, Optional, Tuple, Generator, Iterable, Set
 from enum import Enum
 from functools import reduce
 from itertools import product
@@ -882,12 +882,25 @@ class RefResolver:
         return matches
 
     @staticmethod
-    def _get_common_section_indexes(context_index: text.Index, match_index: text.Index, common_index: text.Index) -> Optional[int]:
+    def _get_common_section_indexes(context_index: text.Index, match_index: text.Index, common_index: text.Index) -> List[int]:
         """
+        Currently doesn't work if any of the indexes are complex texts
+        Returns list of common section indexes relative to `context_index`
         :param context_index: Index of context ref where we are searching
         :param match_index: Index of current match we are trying to refine
         :param common_index: Index
         """
+        def get_section_set(index: text.Index) -> Set[Tuple[str, str]]:
+            root_node = index.nodes.get_default_child() or index.nodes
+            try:
+                return set(zip(root_node.addressTypes, root_node.sectionNames))
+            except AttributeError:
+                # complex text
+                return set()
+        context_sec_set = get_section_set(context_index)
+        match_sec_set   = get_section_set(match_index)
+        common_sec_set  = get_section_set(common_index) & match_sec_set & context_sec_set
+
 
     def _get_refined_ref_part_matches_for_section_context(self, lang: str, context_ref: text.Ref, ref_part_match: ResolvedRawRef, raw_ref: RawRef) -> List[ResolvedRawRef]:
         """
