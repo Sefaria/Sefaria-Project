@@ -824,16 +824,28 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
     }
 
     else if (inputType == "source") {
+        const isSectionOrSegment = (res) => {
+            if (res.is_section || res.is_segment) {
+                return true;
+            } else {
+                return false
+            }
+        }
         return (
-            <Autocompleter
+            <Autocompleter 
                 selectedRefCallback={selectedRefCallback}
-            />
-        )
+                refsOnly={true}
+                showSuggestionsFx={(d) => !isSectionOrSegment(d)} 
+                showPreviewFx={isSectionOrSegment}
+                showAddressCompletionsFx={(d) => d.is_book}
+                showAddButtonFx={isSectionOrSegment}
+                />)
     }
 
-        else {return(null)}
-
+    else { return (null) }
 }
+
+
 
 const AddInterface = ({ attributes, children, element }) => {
     const editor = useSlate();

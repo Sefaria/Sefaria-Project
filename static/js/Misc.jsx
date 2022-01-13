@@ -2402,7 +2402,7 @@ const SheetMetaDataBox = (props) => (
   </div>
 );
 
-const Autocompleter = ({selectedRefCallback}) => {
+const Autocompleter = ({selectedRefCallback, refsOnly, showSuggestionsFx, showAddressCompletionsFx, showPreviewFx, showAddButtonFx }) => {
   const [inputValue, setInputValue] = useState("");
   const [currentSuggestions, setCurrentSuggestions] = useState(null);
   const [previewText, setPreviewText] = useState(null);
@@ -2447,9 +2447,6 @@ const Autocompleter = ({selectedRefCallback}) => {
     }, [previewText]
   )
 
-
-
-
   const getSuggestions = (input) => {
     setInputValue(input)
     if (input == "") {
@@ -2458,37 +2455,40 @@ const Autocompleter = ({selectedRefCallback}) => {
       setCurrentSuggestions(null)
       return
     }
-    Sefaria.getName(input, true, 5).then(d => {
+    Sefaria.getName(input, refsOnly, 5).then(d => {
 
-      if (d.is_section || d.is_segment) {
-        setCurrentSuggestions(null)
-        generatePreviewText(input);
-        setHelperPromptText(null)
-        setShowAddButton(true)
-        return
-      }
-      else {
-        setShowAddButton(false)
-        setPreviewText(null)
-      }
-
-      //We want to show address completions when book exists but not once we start typing further
-      if (d.is_book && isNaN(input.trim().slice(-1))) {
-        setHelperPromptText(<InterfaceText text={{en: d.addressExamples[0], he: d.heAddressExamples[0]}} />)
-        document.querySelector('.addInterfaceInput input+span.helperCompletionText').style.insetInlineStart = `${getWidthOfInput()}px`;
-      }
-      else {
-        setHelperPromptText(null)
-      }
-
-      const suggestions = d.completion_objects
+      if (showSuggestionsFx(d)) {
+        const suggestions = d.completion_objects
           .map((suggestion, index) => ({
             name: suggestion.title,
             key: suggestion.key,
             border_color: Sefaria.palette.refColor(suggestion.key)
-          })
-      )
-      setCurrentSuggestions(suggestions);
+          }))
+
+        setCurrentSuggestions(suggestions);
+      } else {
+        setCurrentSuggestions(null);
+      }
+
+      //We want to show address completions when book exists but not once we start typing further
+      if (showAddressCompletionsFx(d) && isNaN(input.trim().slice(-1))) {
+        setHelperPromptText(<InterfaceText text={{ en: d.addressExamples[0], he: d.heAddressExamples[0] }} />)
+        document.querySelector('.addInterfaceInput input+span.helperCompletionText').style.insetInlineStart = `${getWidthOfInput()}px`;
+      } else {
+        setHelperPromptText(null)
+      }
+
+      if (showPreviewFx(d)) {
+        generatePreviewText(input);
+      } else {
+        setPreviewText(null)
+      }
+
+      if (showAddButtonFx(d)) {
+        setShowAddButton(true);
+      } else {
+        setShowAddButton(false);
+      }
     })
   }
 
