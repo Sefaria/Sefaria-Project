@@ -1193,7 +1193,7 @@ class ReaderControls extends Component {
      * Preload translation versions to get shortVersionTitle to display
      */
     if (!this.shouldShowVersion()) { return; }
-    Sefaria.getVersions(this.props.currentRef, false, ['en']).then(versionList => {
+    Sefaria.getVersions(this.props.currentRef, false, ['he'], true).then(versionList => {
       if (!this.props.currVersions.en) {
         // default version. choose highest priority
         if (versionList.length === 0) { return; }
