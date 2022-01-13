@@ -11,6 +11,8 @@ from datetime import *
 from sefaria.system.exceptions import BookNameError
 import functools
 from sefaria.utils import calendars
+from sefaria.client.util import send_email
+
 import structlog
 logger = structlog.get_logger(__name__)
 
@@ -107,7 +109,8 @@ class PersonalSchedule(abst.AbstractMongoRecord):
             "refStr": ref_str,
             "refs":  refs,
             "notification_type": notification_type,
-            "ping_time": date
+            "ping_time": date,
+            "sent": False
         })
 
         if notification_type == "sms":
@@ -155,6 +158,7 @@ class PersonalSchedule(abst.AbstractMongoRecord):
         contents["end_date"] = datetime.strftime(contents["end_date"], '%Y-%m-%d')
         contents["start_date"] = datetime.strftime(contents["start_date"], '%Y-%m-%d')
         contents["date_created"] = datetime.strftime(contents["date_created"], '%Y-%m-%d')
+        contents["next_scheduled_reading"] = get_next_scheduled_reading_for_uid(self.user_id)
         return contents
 
 
@@ -277,3 +281,31 @@ def divide_the_text(text, pace=None, start_date=datetime.utcnow(), end_date=None
         pace, remainder = divmod(len(all_segs), days)
         chunks, refs = ref_chunks(all_segs, pace, remainder)
     return chunks, pace, start_date + timedelta(days=len(chunks)), refs
+
+
+def send_notifications_at_time():
+    dt = datetime.utcnow()
+    notifications = PersonalScheduleNotificationSet({"sent": False, "ping_time": {"$lte": dt}})
+    for notification in notifications:
+        profile = UserProfile(id=notification.user_id)
+        msg_text = f"Dear {profile.first_name},\n\nToday it's time to learn {notification.refStr}\n\nFrom,\n\nYour friends at Sefaria"
+        if notification.notification_type == "email":
+            send_email(f"Learning Reminder for {notification.schedule_name}", msg_text, "hello@sefaria.org", profile.email)
+        elif notification.notification_type == "sms":
+            # write twilio code
+            pass
+
+        notification.sent = True
+        notification.save()
+
+def get_next_scheduled_reading_for_uid(uid):
+    dt = datetime.utcnow()
+    next_reading = PersonalScheduleNotificationSet({"user_id": uid, "sent": False, "ping_time": {"$gte": dt}}, limit=1)
+    res = None
+    if len(next_reading) > 0:
+        res = {
+            "refStr": next_reading[0].refStr,
+            "refs": next_reading[0].refs,
+            "date": datetime.strftime(next_reading[0].ping_time, '%Y-%m-%d')
+        }
+    return res

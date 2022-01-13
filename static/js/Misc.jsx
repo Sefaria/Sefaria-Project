@@ -1600,7 +1600,7 @@ const ScheduleListing = ({data}) => {
           <div className="scheduleListingDetails">
             <span className="scheduleListingDetail scheduleListingSheetCount">
               <img src="/static/icons/book.svg" alt="book icon" />
-              <span>{`${new Date(data.start_date).toLocaleDateString()}-${new Date(data.end_date).toLocaleDateString()}`}</span>
+              <span><a href={`/${data.next_scheduled_reading.refs.start_ref}`}>{`${data.next_scheduled_reading.refStr}`}</a></span>
             </span>
           </div>
         </div>

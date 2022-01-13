@@ -142,6 +142,8 @@ def ensure_indices(active_db=None):
         ('manuscripts', ['slug'], {}),
         ('manuscripts', ['title'], {}),
         ('messages', [[("room_id", pymongo.ASCENDING), ("timestamp", pymongo.DESCENDING)]], {}),
+        ('schedule_notifications', [[("ping_time", pymongo.ASCENDING), ("user_id", pymongo.ASCENDING), ("sent", pymongo.ASCENDING)]], {}),
+        ('schedules', [[("user_id", pymongo.ASCENDING)]], {}),
     ]
 
     for col, args, kwargs in indices:
