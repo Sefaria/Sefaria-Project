@@ -2402,7 +2402,7 @@ const SheetMetaDataBox = (props) => (
   </div>
 );
 
-const Autocompleter = ({selectedRefCallback, refsOnly, showSuggestionsFx, showAddressCompletionsFx, showPreviewFx, showAddButtonFx }) => {
+const Autocompleter = ({selectedRefCallback, refsOnly, showSuggestionsFx, showAddressCompletionsFx, showPreviewFx, showAddButtonFx, filterResultsFx }) => {
   const [inputValue, setInputValue] = useState("");
   const [currentSuggestions, setCurrentSuggestions] = useState(null);
   const [previewText, setPreviewText] = useState(null);
@@ -2457,7 +2457,7 @@ const Autocompleter = ({selectedRefCallback, refsOnly, showSuggestionsFx, showAd
     }
     Sefaria.getName(input, refsOnly, 5).then(d => {
 
-      if (showSuggestionsFx(d)) {
+      if (showSuggestionsFx(d, input)) {
         const suggestions = d.completion_objects
           .map((suggestion, index) => ({
             name: suggestion.title,
