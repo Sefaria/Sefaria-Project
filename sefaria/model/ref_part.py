@@ -82,6 +82,24 @@ class TrieEntry:
         return hash(self)
 
 
+class SectionContext:
+    """
+    Represents a section in a context ref
+    Used for injecting section context into a match which is missing sections (e.g. 'Tosafot on Berakhot DH abcd' is missing a daf)
+    """
+    def __init__(self, addr_type: schema.AddressType, section_name: str, section_index: int, address: int) -> None:
+        """
+        :param addr_type: AddressType of section
+        :param section_name: Name of section
+        :param section_index: Index of section in node.sections
+        :param address: Actual address, to be interpretted by `addr_type`
+        """
+        self.addr_type = addr_type
+        self.section_name = section_name
+        self.section_index = section_index
+        self.address = address
+
+
 class NonUniqueTerm(abst.AbstractMongoRecord, schema.AbstractTitledObject, TrieEntry):
     """
     The successor of the old `Term` class
@@ -882,11 +900,11 @@ class RefResolver:
         return matches
 
     @staticmethod
-    def _get_common_section_indexes(context_index: text.Index, match_index: text.Index, common_index: text.Index) -> List[int]:
+    def _get_section_contexts(context_ref: text.Ref, match_index: text.Index, common_index: text.Index) -> List[SectionContext]:
         """
         Currently doesn't work if any of the indexes are complex texts
-        Returns list of common section indexes relative to `context_index`
-        :param context_index: Index of context ref where we are searching
+        Returns list section contexts extracted from `context_node`
+        :param context_ref: context ref where we are searching
         :param match_index: Index of current match we are trying to refine
         :param common_index: Index
         """
@@ -897,10 +915,18 @@ class RefResolver:
             except AttributeError:
                 # complex text
                 return set()
-        context_sec_set = get_section_set(context_index)
-        match_sec_set   = get_section_set(match_index)
-        common_sec_set  = get_section_set(common_index) & match_sec_set & context_sec_set
-
+        context_node = context_ref.index_node
+        context_sec_list = list(zip(context_node.addressTypes, context_node.sectionNames))
+        match_sec_set  = get_section_set(match_index)
+        common_sec_set = get_section_set(common_index) & match_sec_set & set(context_sec_list)
+        if len(common_sec_set) == 0: return []
+        sec_contexts = []
+        for isec, sec_tuple in enumerate(context_sec_list):
+            if sec_tuple in common_sec_set:
+                addr_type_str, sec_name = sec_tuple
+                addr_type = schema.AddressType.to_class_by_address_type(addr_type_str)
+                sec_contexts += [SectionContext(addr_type, sec_name, isec, context_ref.sections[isec])]
+        return sec_contexts
 
     def _get_refined_ref_part_matches_for_section_context(self, lang: str, context_ref: text.Ref, ref_part_match: ResolvedRawRef, raw_ref: RawRef) -> List[ResolvedRawRef]:
         """
@@ -910,6 +936,8 @@ class RefResolver:
         match_base_text_titles = set(getattr(ref_part_match.ref.index, 'base_text_titles', []))
         for common_base_text in (context_base_text_titles & match_base_text_titles):
             common_index = text.library.get_index(common_base_text)
+            sec_contexts = self._get_section_contexts(context_ref, ref_part_match.ref.index, common_index)
+
 
 
     def _get_refined_ref_part_matches_recursive(self, lang: str, ref_part_match: ResolvedRawRef, raw_ref: RawRef) -> List[ResolvedRawRef]:

@@ -177,6 +177,7 @@ def test_get_all_possible_sections_from_string(input_addr_str, AddressClass, exp
     assert toSections == exp2secs
     assert list(addr_classes) == exp_addrs
 
+
 @pytest.mark.parametrize(('raw_ref_params', 'expected_section_slices'), [
     [create_raw_ref_params('he', "בראשית א:א-ב", [0, 1, 3, 4, 5], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED]), (slice(1,3),slice(4,5))],  # standard case
     [create_raw_ref_params('he', "א:א-ב", [0, 2, 3, 4], [RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED]), (slice(0,2),slice(3,4))],  # only numbered sections
@@ -208,3 +209,15 @@ def test_group_ranged_parts(raw_ref_params, expected_section_slices):
         full_span = start_span.doc[start_token_i:end_token_i]
         assert ranged_raw_ref_parts.span.text == full_span.text
     assert raw_ref.raw_ref_parts == expected_raw_ref_parts
+
+
+@pytest.mark.parametrize(('context_tref', 'match_title', 'common_title', 'addr_str', 'sec_name', 'sec_index', 'address'), [
+    ['Rashi on Berakhot 12b:1:1', 'Tosafot on Berakhot', 'Berakhot', 'Talmud', 'Daf', 0, 21]
+])
+def test_get_section_contexts(context_tref, match_title, common_title, addr_str, sec_name, sec_index, address):
+    context_ref = Ref(context_tref)
+    match_index = library.get_index(match_title)
+    common_index = library.get_index(common_title)
+    section_contexts = RefResolver._get_section_contexts(context_ref, match_index, common_index)
+    assert len(section_contexts) == 1
+    assert section_contexts[0] == SectionContext(schema.AddressType.to_class_by_address_type(addr_str), sec_name, sec_index, address)
