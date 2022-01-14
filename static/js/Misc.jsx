@@ -2402,7 +2402,7 @@ const SheetMetaDataBox = (props) => (
   </div>
 );
 
-const Autocompleter = ({selectedRefCallback, refsOnly, showSuggestionsFx, showAddressCompletionsFx, showPreviewFx, showAddButtonFx, filterResultsFx }) => {
+const Autocompleter = ({selectedRefCallback, refsOnly, showSuggestionsFx, showAddressCompletionsFx, showPreviewFx, showAddButtonFx, filterResultsFx, limit }) => {
   const [inputValue, setInputValue] = useState("");
   const [currentSuggestions, setCurrentSuggestions] = useState(null);
   const [previewText, setPreviewText] = useState(null);
@@ -2411,6 +2411,7 @@ const Autocompleter = ({selectedRefCallback, refsOnly, showSuggestionsFx, showAd
 
   const suggestionEl = useRef(null);
   const inputEl = useRef(null);
+  const defaultAutocompleteLimit = 5;
 
 
   const getWidthOfInput = () => {
@@ -2471,7 +2472,8 @@ const Autocompleter = ({selectedRefCallback, refsOnly, showSuggestionsFx, showAd
             key: suggestion.key,
             type: suggestion.type,
             border_color: Sefaria.palette.refColor(suggestion.key)
-          }));
+          }))
+          .slice(0, limit ? limit : defaultAutocompleteLimit);
 
         setCurrentSuggestions(suggestions);
       } else {
