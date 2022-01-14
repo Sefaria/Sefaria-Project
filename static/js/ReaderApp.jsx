@@ -976,6 +976,14 @@ class ReaderApp extends Component {
     if (!href) {
       return;
     }
+    //on mobile just replace panel w/ any link
+    if (!this.props.multiPanel) {
+      const handled = this.openURL(href, true);
+      if (handled) {
+        e.preventDefault();
+      }
+      return
+    }
     //All links within sheet content should open in a new panel
     const isSheet = !!(el.closest(".sheetItem"))
     const replacePanel = !(isSheet)
