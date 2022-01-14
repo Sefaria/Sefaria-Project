@@ -548,9 +548,10 @@ UserProfile.propTypes = {
 };
 
 
-const BookCorpusAutocompleter = ({updateSelectedItem}) => {
+const BookCorpusAutocompleter = ({updateSelectedItem, scheduleCorpora}) => {
   const [selectedItem, setSelectedItem] = useState("");
   const [showAutocompleter, setShowAutocompleter] = useState(true);
+
   useEffect(() => {
     console.log(selectedItem);
     updateSelectedItem(selectedItem);
@@ -562,7 +563,8 @@ const BookCorpusAutocompleter = ({updateSelectedItem}) => {
   return (showAutocompleter ? <Autocompleter selectedRefCallback={onSelect}
     refsOnly={false}
     showSuggestionsFx={(d,inp) => !d.is_book || !d.is_ref || d.completion_objects.map(x => x.title).filter(x => x.toLowerCase().startsWith(inp.toLowerCase()) & x.length > inp.length)}
-    showAddButtonFx={d => d.is_book || d.is_ref}
+    showAddButtonFx={(d, inp) => d.is_book || scheduleCorpora.includes(inp.toLowerCase())}
+    filterResultsFx={completion_obj => completion_obj.type === "ref" || (completion_obj.type === "TocCategory" && scheduleCorpora.includes(completion_obj.title.toLowerCase()))}
   /> : <button onClick={() => setShowAutocompleter(true)}>{selectedItem ? selectedItem.toString() : null}</button>)
 }
 
@@ -571,27 +573,45 @@ const CustomLearningSchedulePicker = ({currentValues, onUpdate}) => {
 
   const [startRef, setStartRef] = currentValues ? useState(currentValues.startRef) : useState("");
   const [endRef, setEndRef] = currentValues ? useState(currentValues.endRef) :useState("");
+  const [book, setBook] = currentValues ? useState(currentValues.book) : useState("");
+  const [corpus, setCorpus] = currentValues ? useState(currentValues.corpus) : useState("");
   const [startDate, setStartDate] = currentValues ? useState(currentValues.startDate) :useState(new Date());
   const [endDate, setEndDate] = currentValues ? useState(currentValues.endDate) :useState(null);
   const [rate, setRate] = currentValues ? useState(currentValues.rate) : useState("2");
   const [rateUnit, setRateUnit] = currentValues ? useState(currentValues.rateUnit) :useState("Verses");
   const [unitCount, setUnitCount] = currentValues ? useState(currentValues.unitCount) :useState(null);
   const dropdownTexts = Sefaria.tocObjectByCategories(['Tanakh']).contents.slice(0,2).map(subCat => subCat.contents.map(item => {return {en: item.title, he: item.heTitle}})).flat()
+  const scheduleCorpora = ["torah", "tanakh", "mishnah", "midrash rabbah", "talmud bavli", "talmud yerushalmi",
+  "mishneh torah", "shulchan arukh"];
 
   useEffect(() => {
-    if (startRef) {
-      $.get(`/api/schedules/pace-calculation?text=${startRef}&pace=${rate}`, applyNewValues);
+    if (book !== "") {
+      $.get(`/api/schedules/pace-calculation?text=${book}&pace=${rate}`, applyNewValues);
+    } else if (corpus !== "") {
+      $.get(`/api/schedules/pace-calculation?text=${corpus}&pace=${rate}`, applyNewValues);
     } else {
       setEndDate(null);
       setUnitCount(null)
       onUpdate({
         startRef: null,
         endRef: null,
+        book: null,
+        corpus: null,
         rate: null,
         unitCount: null
       })
     }
-  }, [rate, startRef])
+  }, [rate, book, corpus])
+
+  const setBookOrCorpus = (value) => {
+    if (scheduleCorpora.includes(value.toLowerCase())) {
+      setBook("");
+      setCorpus(value);
+    } else {
+      setCorpus("");
+      setBook(value);
+    }
+  }
 
   const applyNewValues = (data) => {
     if(data.pace.toString() === rate) {
@@ -600,6 +620,8 @@ const CustomLearningSchedulePicker = ({currentValues, onUpdate}) => {
       onUpdate({
         startRef,
         endRef,
+        book,
+        corpus,
         startDate,
         endDate,
         rate,
@@ -619,7 +641,7 @@ const CustomLearningSchedulePicker = ({currentValues, onUpdate}) => {
             return <InterfaceOption key={text.en} text={text} value={text.en}></InterfaceOption>
           })}
         </select> */}
-        <BookCorpusAutocompleter updateSelectedItem={setStartRef} />
+        <BookCorpusAutocompleter updateSelectedItem={setBookOrCorpus} scheduleCorpora={scheduleCorpora} />
       </div>
       <div className="scheduleDescription">
         {unitCount ? <>It will take you {unitCount.toString()} days to finish learning this text.</> : null}
@@ -664,6 +686,8 @@ const LearningSchedule = ({slug, closeSchedule, handleSchedules}) => {
       alertTime: new Date(new Date().toDateString() + " " + alertTime).getUTCHours(),
       startRef: customScheduleValues ? customScheduleValues.startRef : null,
       endRef: customScheduleValues? customScheduleValues.endRef : null,
+      book: customScheduleValues? customScheduleValues.book : null,
+      corpus: customScheduleValues? customScheduleValues.corpus : null,
       startDate: customScheduleValues ? customScheduleValues.startDate : null,
       endDate: customScheduleValues ? customScheduleValues.endDate : null,
       rate: customScheduleValues ? customScheduleValues.rate : null,
@@ -705,7 +729,8 @@ const LearningSchedule = ({slug, closeSchedule, handleSchedules}) => {
       start_date: scheduleOptions.startDate ? new Date(scheduleOptions.startDate).toISOString().split('T')[0] : null,
       end_date: scheduleOptions.endDate ? new Date(scheduleOptions.endDate).toISOString().split('T')[0] : null,
       pace: scheduleOptions.rate,
-      book: scheduleOptions.startRef,
+      book: scheduleOptions.book,
+      corpus: scheduleOptions.corpus,
       time_of_notification: scheduleOptions.alertTime,
       calendar_schedule: scheduleOptions.schedule,
       contact_by_email: scheduleOptions.alerts.email,
@@ -750,7 +775,7 @@ const LearningSchedule = ({slug, closeSchedule, handleSchedules}) => {
   }
 
   const selectCustomSchedule = () => {
-    if(customScheduleValues && customScheduleValues.startRef) {
+    if(customScheduleValues && (customScheduleValues.book || customScheduleValues.corpus)) {
       forward(scheduleStates.AlertsAndSettings);
     } else {
       alert("Please select a text and a rate to continue");

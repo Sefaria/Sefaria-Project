@@ -2455,19 +2455,23 @@ const Autocompleter = ({selectedRefCallback, refsOnly, showSuggestionsFx, showAd
       setCurrentSuggestions(null)
       return
     }
-    Sefaria.getName(input, refsOnly, 5).then(d => {
+    Sefaria.getName(input, refsOnly, 20).then(d => {
 
       if (showSuggestionsFx(d, input)) {
         const suggestions = d.completion_objects
+          .filter(completion_obj => {
+            if (filterResultsFx) {
+              return filterResultsFx(completion_obj);
+            } else {
+              return true;
+            }
+          })
           .map((suggestion, index) => ({
             name: suggestion.title,
             key: suggestion.key,
+            type: suggestion.type,
             border_color: Sefaria.palette.refColor(suggestion.key)
-          }))
-
-        if (filterResultsFx) {
-          suggestions = suggestions.filter(filterResultsFx);
-        }
+          }));
 
         setCurrentSuggestions(suggestions);
       } else {
@@ -2488,7 +2492,7 @@ const Autocompleter = ({selectedRefCallback, refsOnly, showSuggestionsFx, showAd
         setPreviewText(null)
       }
 
-      if (showAddButtonFx(d)) {
+      if (showAddButtonFx(d, input)) {
         setShowAddButton(true);
       } else {
         setShowAddButton(false);
