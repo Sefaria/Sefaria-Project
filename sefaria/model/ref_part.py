@@ -92,12 +92,25 @@ class SectionContext:
         :param addr_type: AddressType of section
         :param section_name: Name of section
         :param section_index: Index of section in node.sections
-        :param address: Actual address, to be interpretted by `addr_type`
+        :param address: Actual address, to be interpreted by `addr_type`
         """
         self.addr_type = addr_type
         self.section_name = section_name
         self.section_index = section_index
         self.address = address
+
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and self.__hash__() == other.__hash__()
+
+    def __hash__(self):
+        return hash(f"{self.addr_type.__class__}|{self.section_name}|{self.section_index}|{self.address}")
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __repr__(self):
+        addr_name = self.addr_type.__class__.__name__
+        return f"{self.__class__.__name__}({addr_name}(0), '{self.section_name}', {self.section_index}, {self.address})"
 
 
 class NonUniqueTerm(abst.AbstractMongoRecord, schema.AbstractTitledObject, TrieEntry):

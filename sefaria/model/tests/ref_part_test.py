@@ -212,7 +212,7 @@ def test_group_ranged_parts(raw_ref_params, expected_section_slices):
 
 
 @pytest.mark.parametrize(('context_tref', 'match_title', 'common_title', 'addr_str', 'sec_name', 'sec_index', 'address'), [
-    ['Rashi on Berakhot 12b:1:1', 'Tosafot on Berakhot', 'Berakhot', 'Talmud', 'Daf', 0, 21]
+    ['Gilyon HaShas on Berakhot 12b:1', 'Tosafot on Berakhot', 'Berakhot', 'Talmud', 'Daf', 0, 24]
 ])
 def test_get_section_contexts(context_tref, match_title, common_title, addr_str, sec_name, sec_index, address):
     context_ref = Ref(context_tref)
@@ -220,4 +220,5 @@ def test_get_section_contexts(context_tref, match_title, common_title, addr_str,
     common_index = library.get_index(common_title)
     section_contexts = RefResolver._get_section_contexts(context_ref, match_index, common_index)
     assert len(section_contexts) == 1
+    print(section_contexts[0])
     assert section_contexts[0] == SectionContext(schema.AddressType.to_class_by_address_type(addr_str), sec_name, sec_index, address)
