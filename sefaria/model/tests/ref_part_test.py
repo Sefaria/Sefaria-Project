@@ -222,3 +222,9 @@ def test_get_section_contexts(context_tref, match_title, common_title, addr_str,
     assert len(section_contexts) == 1
     print(section_contexts[0])
     assert section_contexts[0] == SectionContext(schema.AddressType.to_class_by_address_type(addr_str), sec_name, sec_index, address)
+
+
+def test_address_matches_section_context():
+    r = Ref("Berakhot")
+    sec_con = SectionContext(schema.AddressType.to_class_by_address_type('Talmud'), 'Daf', 0, 34)
+    assert r.index_node.address_matches_section_context(0, sec_con)

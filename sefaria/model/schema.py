@@ -1074,6 +1074,19 @@ class NumberedTitledTreeNode(TitledTreeNode):
             serial = self.serialize()
         return self.__class__(serial=serial, index=getattr(self, 'index', None), **kwargs)
 
+    def address_matches_section_context(self, section_index, section_context) -> bool:
+        """
+        Does the address at index `section_index` match the address in `section_context`?
+        """
+        from .ref_part import SectionContext
+        assert isinstance(section_context, SectionContext)
+        if section_index != section_context.section_index: return False
+        addr_type = AddressType.to_class_by_address_type(self.addressTypes[section_index])
+        if addr_type.__class__ != section_context.addr_type.__class__: return False
+        if self.sectionNames[section_index] != section_context.section_name: return False
+        return True
+
+
 class DiburHamatchilNode(abst.AbstractMongoRecord):
     """
     Very likely possible to use VirtualNode and add these nodes as children of JANs and ArrayMapNodes. But that can be a little complicated
