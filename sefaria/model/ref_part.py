@@ -828,10 +828,9 @@ class RefResolver:
         return matches
 
     def _get_unrefined_ref_part_matches_for_title_context(self, lang: str, context_ref: text.Ref, raw_ref: RawRef, ref_parts: list, context_swaps: List[NonUniqueTerm]=None) -> List[ResolvedRawRef]:
-        context_ref_part_terms = [[NonUniqueTerm.init(slug) for slug in inner_ref_parts['slugs']] for inner_ref_parts in getattr(context_ref.index.nodes, 'ref_parts', [])]
         matches = []
-        for context_terms in product(*context_ref_part_terms):
-            temp_matches = self._get_unrefined_ref_part_matches_recursive(lang, raw_ref, ref_parts=ref_parts, context_terms=list(context_terms), context_swaps=context_swaps)
+        for template in context_ref.index.nodes.get_match_templates():
+            temp_matches = self._get_unrefined_ref_part_matches_recursive(lang, raw_ref, ref_parts=ref_parts, context_terms=list(template.terms), context_swaps=context_swaps)
             matches += list(filter(lambda x: len(x.resolved_context_terms), temp_matches))
         for m in matches:
             m.resolution_method = ResolutionMethod.TITLE
@@ -897,7 +896,7 @@ class RefResolver:
         matches = []
         for unrefined_match in ref_part_matches:
             matches += self._get_refined_ref_part_matches_recursive(lang, unrefined_match, raw_ref)
-        return matches
+        return self._prune_refined_ref_part_matches(matches)
 
     @staticmethod
     def _get_section_contexts(context_ref: text.Ref, match_index: text.Index, common_index: text.Index) -> List[SectionContext]:
@@ -938,8 +937,6 @@ class RefResolver:
             common_index = text.library.get_index(common_base_text)
             sec_contexts = self._get_section_contexts(context_ref, ref_part_match.ref.index, common_index)
 
-
-
     def _get_refined_ref_part_matches_recursive(self, lang: str, ref_part_match: ResolvedRawRef, raw_ref: RawRef) -> List[ResolvedRawRef]:
         fully_refined = []
         match_queue = [ref_part_match]
@@ -965,8 +962,7 @@ class RefResolver:
                     if len(temp_matches) > 0: has_match = True
             if not has_match:
                 fully_refined += [match]
-        
-        return self._prune_refined_ref_part_matches(fully_refined)
+        return fully_refined
 
     @staticmethod
     def _prune_unrefined_ref_part_matches(ref_part_matches: List[ResolvedRawRef]) -> List[ResolvedRawRef]:

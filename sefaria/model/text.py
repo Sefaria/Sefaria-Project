@@ -35,7 +35,7 @@ from sefaria.system.exceptions import InputError, BookNameError, PartialRefInput
 from sefaria.utils.hebrew import is_hebrew, hebrew_term
 from sefaria.utils.util import list_depth
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
-from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH, MULTISERVER_ENABLED
+from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH, MULTISERVER_ENABLED, RAW_REF_MODEL_BY_LANG_FILEPATH, RAW_REF_PART_MODEL_BY_LANG_FILEPATH
 from sefaria.system.multiserver.coordinator import server_coordinator
 
 """
@@ -930,6 +930,23 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             return self.dependence.capitalize()
         else:
             return self.categories[0]
+
+    def referenceable_children(self):
+        # parallel to TreeNodes's `children`. Allows full traversal of an index's nodes
+        default_children = self.nodes.children
+        if len(default_children) == 0:
+            default_children = [self.nodes]
+        return default_children + self.get_alt_struct_nodes()
+
+    def get_referenceable_alone_nodes(self):
+        alone_nodes = []
+        alone_scopes = {'any', 'alone'}
+        for child in self.referenceable_children():
+            if any(template.scope in alone_scopes for template in child.get_match_templates()):
+                alone_nodes += [child]
+            # TODO used to be hard-coded to include grandchildren as well. Can't be recursive unless we add this to SchemaNode as well.
+            # alone_nodes += child.get_referenceable_alone_nodes()
+        return alone_nodes
 
 
 class IndexSet(abst.AbstractMongoSet):
@@ -3579,15 +3596,25 @@ class Ref(object, metaclass=RefCacheType):
         """
         Returns a more specific reference than the current Ref
 
-        :param subsection: int or list - the subsection(s) of the current Ref
+        :param subsections: int or list - the subsections of the current Ref.
+        If a section in subsections is negative, will calculate the last section for that depth. NOTE: this requires access to state_ja so this is a bit slower.
         :return: :class:`Ref`
         """
         if isinstance(subsections, int):
             subsections = [subsections]
-        assert self.index_node.depth >= len(self.sections) + len(subsections), "Tried to get subref of bottom level ref: {}".format(self.normal())
+        new_depth = len(self.sections) + len(subsections)
+        assert self.index_node.depth >= new_depth, "Tried to get subref of bottom level ref: {}".format(self.normal())
         assert not self.is_range(), "Tried to get subref of ranged ref".format(self.normal())
 
         d = self._core_dict()
+
+        if any([sec < 0 for sec in subsections]):
+            # only load state_ja when a negative index exists
+            ja = self.get_state_ja()
+            ja_inds = [sec - 1 for sec in self.sections + subsections]
+            for i, sec in enumerate(subsections):
+                if sec >= 0: continue
+                subsections[i] = ja.sub_array_length(ja_inds[:len(self.sections) + i]) + sec + 1
         d["sections"] += subsections
         d["toSections"] += subsections
         return Ref(_obj=d)
@@ -4651,6 +4678,7 @@ class Library(object):
         self._simple_term_mapping = {}
         self._full_term_mapping = {}
         self._simple_term_mapping_json = None
+        self._ref_resolver = None
 
         # Topics
         self._topic_mapping = {}
@@ -5271,7 +5299,36 @@ class Library(object):
         self._topic_mapping = {t.slug: {"en": t.get_primary_title("en"), "he": t.get_primary_title("he")} for t in TopicSet()}
         return self._topic_mapping
 
-    #todo: only used in bio scripts
+    def get_ref_resolver(self, rebuild=False):
+        resolver = self._ref_resolver
+        if not resolver or rebuild:
+            resolver = self._build_ref_resolver()
+        return resolver
+
+    def _build_ref_resolver(self):
+        import spacy
+        from .ref_part import RefPartTitleTrie, RefPartTitleGraph, RefResolver, TermMatcher, NonUniqueTermSet
+        from sefaria.spacy_function_registry import inner_punct_tokenizer_factory  # used by spacy.load()
+
+        root_nodes = list(filter(lambda n: getattr(n, 'match_templates', None) is not None, self.get_index_forest()))
+        alone_nodes = reduce(lambda a, b: a + b.index.get_referenceable_alone_nodes(), root_nodes, [])
+        non_unique_terms = NonUniqueTermSet()
+        ref_part_title_graph = RefPartTitleGraph(root_nodes)
+        self._ref_resolver = RefResolver(
+            {k: spacy.load(v) for k, v in RAW_REF_MODEL_BY_LANG_FILEPATH.items()},
+            {k: spacy.load(v) for k, v in RAW_REF_PART_MODEL_BY_LANG_FILEPATH.items()},
+            {
+                "en": RefPartTitleTrie('en', nodes=(root_nodes + alone_nodes), scope='alone'),
+                "he": RefPartTitleTrie('he', nodes=(root_nodes + alone_nodes), scope='alone')
+            },
+            ref_part_title_graph,
+            {
+                "en": TermMatcher('en', non_unique_terms),
+                "he": TermMatcher('he', non_unique_terms),
+            }
+        )
+        return self._ref_resolver
+
     def get_index_forest(self):
         """
         :return: list of root Index nodes.
@@ -5614,7 +5671,8 @@ class Library(object):
             while len(toSections) < len(sections):
                 toSections.append(sections[len(sections) - len(toSections) - 1])
             toSections.reverse()
-
+        # return seems to ignore all previous logic...
+        # leaving this function in case errors that were thrown in above logic act as validation?
         return Ref(ref_match.group())
 
     def _build_ref_from_string(self, title=None, st=None, lang="en"):

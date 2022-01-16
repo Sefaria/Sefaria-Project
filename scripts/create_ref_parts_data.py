@@ -746,7 +746,7 @@ class RefPartModifier:
     def modify_all(self):
         fast = True
         create_dhs = False
-        add_comm_alt_structs = False
+        add_comm_alt_structs = True
         self.modify_talmud(fast)
         self.modify_tanakh(fast)
         self.modify_rest_of_shas(fast)
