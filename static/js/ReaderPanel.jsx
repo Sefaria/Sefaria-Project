@@ -1195,7 +1195,7 @@ class ReaderControls extends Component {
     let sectionString = "";
     let heSectionString = "";
     let categoryAttribution = null;
-    const oref = Sefaria.ref(this.props.currentRef);
+    const oref = Sefaria.getRefFromCache(this.props.currentRef);
 
     if (this.props.sheetID) {
       if (this.props.sheetTitle === null) {
