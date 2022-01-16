@@ -125,6 +125,9 @@ def test_resolved_raw_ref_clone():
 
     # gilyon hashas
     [create_raw_ref_data("Gilyon HaShas on Berakhot 51b:1", 'he', '''תוספות ד"ה אין''', [0, slice(1, 3)], [RPT.NAMED, RPT.DH]), ("Tosafot on Berakhot 51b:8:1",)],  # commentator with implied book and daf from context commentator
+    [create_raw_ref_data("Gilyon HaShas on Berakhot 21a:3", 'he', '''קדושין טו ע"ב תוס' ד"ה א"ק''', [0, slice(1, 3), slice(3, 5), slice(5, 7)], [RPT.NAMED, RPT.NUMBERED, RPT.NAMED, RPT.DH]), ("Tosafot on Kiddushin 15b:4:1",)],  # abbrev in DH
+    [create_raw_ref_data("Gilyon HaShas on Berakhot 21a:3", 'he', '''בב"מ פח ע"ב''', [0, slice(1, 3)], [RPT.NAMED, RPT.NUMBERED]), ("Bava Metzia 88b",)],  # TODO should this match Gilyon HaShas as well?
+    [create_raw_ref_data("Gilyon HaShas on Berakhot 2a:2", 'he', '''תוס' לקמן ד ע"ב ד"ה דאר"י''', [slice(0, 2), 2, slice(3, 5), slice(5, 7)], [RPT.NAMED, RPT.RELATIVE, RPT.NUMBERED, RPT.DH]), ("Tosafot on Berakhot 4b:6:1",)],  # likaman + abbrev in DH
 
     # specific books
     [create_raw_ref_data("Job 1", 'he', 'טור אורח חיים סימן א', [0, slice(1, 3), slice(3, 5)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ("Tur, Orach Chaim 1", )],
