@@ -129,6 +129,7 @@ class ReaderPanel extends Component {
     if (this.state.mode === "TextAndConnections") {
       this.closeConnectionsInPanel();
     } else if (this.state.mode === "Text") {
+      Sefaria.track.event("Reader", "Open Connections Panel", ref);
       if (this.props.multiPanel) {
         this.conditionalSetState({showHighlight: showHighlight});
         this.props.onSegmentClick(ref);
@@ -1161,6 +1162,7 @@ class ReaderControls extends Component {
   openTextConnectionsPanel(e) {
     e.preventDefault();
     if(!this.props.hasSidebar){ //Prevent click on title from opening connections panel if its already open
+      Sefaria.track.event("Reader", "Open Connections Panel from Header", this.props.currentRef);
       this.props.onTextTitleClick(this.props.currentRef, false);
     }
   }
