@@ -472,11 +472,17 @@ class TextSegment extends Component {
     }
   }
   handleClick(event) {
-    if ($(event.target).hasClass("refLink")) {
+    // grab refLink from target or parent (sometimes there is an <i> within refLink forcing us to look for the parent)
+    const refLink = $(event.target).hasClass("refLink") ? $(event.target) : ($(event.target.parentElement).hasClass("refLink") ? $(event.target.parentElement) : null);
+    if (refLink) {
       //Click of citation
       event.preventDefault();
-      let ref = Sefaria.humanRef($(event.target).attr("data-ref"));
-      this.props.onCitationClick(ref, this.props.sref, true);
+      let ref = Sefaria.humanRef(refLink.attr("data-ref"));
+      const vtitle = refLink.attr("vtitle");
+      const vlang = refLink.attr("vlang");
+      let currVersions = {"en": null, "he": null};
+      currVersions[vlang] = vtitle;
+      this.props.onCitationClick(ref, this.props.sref, true, currVersions);
       event.stopPropagation();
       Sefaria.track.event("Reader", "Citation Link Click", ref);
     } else if ($(event.target).hasClass("namedEntityLink")) {

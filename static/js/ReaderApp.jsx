@@ -923,7 +923,7 @@ class ReaderApp extends Component {
       this.closePanel(n+1);
     }
   }
-  handleCitationClick(n, citationRef, textRef, replace) {
+  handleCitationClick(n, citationRef, textRef, replace, currVersions) {
     // Handle clicking on the citation `citationRef` which was found inside of `textRef` in panel `n`.
     // If `replace`, replace a following panel with this citation, otherwise open a new panel after.
     if (this.state.panels.length > n+1  &&
@@ -933,7 +933,7 @@ class ReaderApp extends Component {
     if (textRef) {
       this.setTextListHighlight(n, textRef);
     }
-    this.openPanelAt(n, citationRef, null, {scrollToHighlighted: !!replace});
+    this.openPanelAt(n, citationRef, currVersions, {scrollToHighlighted: !!replace});
   }
   openNamedEntityInNewPanel(n, textRef, namedEntityState) {
     //this.setTextListHighlight(n, [textRef]);

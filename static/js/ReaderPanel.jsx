@@ -161,11 +161,11 @@ class ReaderPanel extends Component {
       }
     }
   }
-  handleCitationClick(citationRef, textRef, replace) {
+  handleCitationClick(citationRef, textRef, replace, currVersions) {
     if (this.props.multiPanel) {
-      this.props.onCitationClick(citationRef, textRef, replace);
+      this.props.onCitationClick(citationRef, textRef, replace, currVersions);
     } else {
-      this.showBaseText(citationRef);
+      this.showBaseText(citationRef, currVersions);
     }
   }
   handleTextListClick(ref, replaceHistory, currVersions) {
