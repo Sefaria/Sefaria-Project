@@ -92,6 +92,14 @@ class TrieEntry:
         return hash(self)
 
 
+class LeafTrieEntry:
+    pass
+
+
+# static entry which represents a leaf entry in RefPartTitleTrie
+LEAF_TRIE_ENTRY = LeafTrieEntry()
+
+
 class NonUniqueTerm(abst.AbstractMongoRecord, schema.AbstractTitledObject, TrieEntry):
     """
     The successor of the old `Term` class
@@ -515,7 +523,11 @@ def get_prefixless_inds(st: str) -> List[int]:
 
 
 class RefPartTitleTrie:
-
+    """
+    Trie for titles. Keys are titles from match_templates on nodes.
+    E.g. if there is match template with term slugs ["term1", "term2"], term1 has title "Term 1", term2 has title "Term 2"
+    then an entry in the trie would be {"Term 1": {"Term 2": ...}}
+    """
     def __init__(self, lang, nodes=None, sub_trie=None, scope=None) -> None:
         """
         :param lang:
@@ -545,13 +557,12 @@ class RefPartTitleTrie:
                         curr_dict = curr_dict_queue.pop(0)
                         curr_dict_queue += self.__get_sub_tries_for_term(term, curr_dict)
                 # add nodes to leaves
-                # None key indicates this is a leaf
                 for curr_dict in curr_dict_queue:
                     leaf_node = node.index if is_index_level else node
-                    if None in curr_dict:
-                        curr_dict[None] += [leaf_node]
+                    if LEAF_TRIE_ENTRY in curr_dict:
+                        curr_dict[LEAF_TRIE_ENTRY] += [leaf_node]
                     else:
-                        curr_dict[None] = [leaf_node]
+                        curr_dict[LEAF_TRIE_ENTRY] = [leaf_node]
 
     @staticmethod
     def __get_sub_trie_for_new_key(key: str, curr_trie: dict) -> dict:
@@ -943,8 +954,8 @@ class RefResolver:
                 temp_prev_context_terms = prev_context_terms + [trie_entry]
             temp_title_trie = title_trie.get_continuations(trie_entry.key())
             if temp_title_trie is None: continue
-            if None in temp_title_trie:
-                matches += [ResolvedRawRef(raw_ref, temp_prev_ref_parts, node, (node.nodes if isinstance(node, text.Index) else node).ref(), temp_prev_context_terms) for node in temp_title_trie[None]]
+            if LEAF_TRIE_ENTRY in temp_title_trie:
+                matches += [ResolvedRawRef(raw_ref, temp_prev_ref_parts, node, (node.nodes if isinstance(node, text.Index) else node).ref(), temp_prev_context_terms) for node in temp_title_trie[LEAF_TRIE_ENTRY]]
             temp_ref_parts = [ref_parts[j] for j in range(len(ref_parts)) if j != (i-len(context_terms))]
             temp_context_terms = [context_terms[j] for j in range(len(context_terms)) if j != i]
             matches += self._get_unrefined_ref_part_matches_recursive(lang, raw_ref, temp_title_trie, ref_parts=temp_ref_parts, prev_ref_parts=temp_prev_ref_parts, context_terms=temp_context_terms, prev_context_terms=temp_prev_context_terms)
