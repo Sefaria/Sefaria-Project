@@ -128,6 +128,8 @@ def test_resolved_raw_ref_clone():
     [create_raw_ref_data("Gilyon HaShas on Berakhot 21a:3", 'he', '''קדושין טו ע"ב תוס' ד"ה א"ק''', [0, slice(1, 3), slice(3, 5), slice(5, 7)], [RPT.NAMED, RPT.NUMBERED, RPT.NAMED, RPT.DH]), ("Tosafot on Kiddushin 15b:4:1",)],  # abbrev in DH
     [create_raw_ref_data("Gilyon HaShas on Berakhot 21a:3", 'he', '''בב"מ פח ע"ב''', [0, slice(1, 3)], [RPT.NAMED, RPT.NUMBERED]), ("Bava Metzia 88b",)],  # TODO should this match Gilyon HaShas as well?
     [create_raw_ref_data("Gilyon HaShas on Berakhot 2a:2", 'he', '''תוס' לקמן ד ע"ב ד"ה דאר"י''', [slice(0, 2), 2, slice(3, 5), slice(5, 7)], [RPT.NAMED, RPT.RELATIVE, RPT.NUMBERED, RPT.DH]), ("Tosafot on Berakhot 4b:6:1",)],  # likaman + abbrev in DH
+    [create_raw_ref_data("Gilyon HaShas on Berakhot 48b:1", 'he', '''תשב"ץ ח"ב (ענין קסא''', [0, 1, slice(3, 5)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Sefer HaTashbetz, Part II 161",)],  # complex text
+    [create_raw_ref_data("Gilyon HaShas on Berakhot 30a:2", 'he', '''ותוס' שם ד"ה תרי''', [slice(0, 2), 2, slice(3, 5)], [RPT.NAMED, RPT.IBID, RPT.DH]), ("Tosafot on Berakhot 17b:5:1",)],  # Ibid. TODO need to add context "Berakhot 17b"
 
     # specific books
     [create_raw_ref_data("Job 1", 'he', 'טור אורח חיים סימן א', [0, slice(1, 3), slice(3, 5)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ("Tur, Orach Chaim 1", )],
@@ -152,6 +154,7 @@ def test_resolve_raw_ref(resolver_data, expected_trefs):
     ["Job 1", """שם אלא ביתך ל"ל. ע' מנחות מד ע"א תד"ה טלית:""", 'he', ("Tosafot on Menachot 44a:12:1",)],
     ["Job 1", """גמ' במה מחנכין. עי' מנחות דף עח ע"א תוס' ד"ה אחת:""", 'he',("Tosafot on Menachot 78a:10:1",)],
     ["Job 1", """cf. Ex. 9:6,5""", 'en', ("Exodus 9:6", "Exodus 9:5")],
+    ["Gilyon HaShas on Berakhot 25b:1", 'רש"י תמורה כח ע"ב ד"ה נעבד שהוא מותר. זה רש"י מאוד יפה.', 'he', ("Rashi on Temurah 28b:4:2",)],
 ])
 def test_full_pipeline_ref_resolver(context_tref, input_str, lang, expected_trefs):
     ref_resolver = library.get_ref_resolver()

@@ -526,7 +526,7 @@ class RefPartModifier:
         self.t(en='Mishnah', he='משנה', alt_en=['M.', 'M', 'Mishna', 'Mishnah', 'Mishnaiot'], ref_part_role='structural')
         self.t(en='Tosefta', he='תוספתא', alt_en=['Tosephta', 'T.', 'Tosef.', 'Tos.'], ref_part_role='structural')
         self.t(en='Yerushalmi', he='יורשלמי', alt_en=['Jerusalem Talmud', 'J.T.', 'JT'],ref_part_role='structural')
-        self.t(en='Tosafot', he='תוספות', alt_he=["תוס'", 'תוד"ה', 'תד"ה',], alt_en=['Tosaphot'], ref_part_role='structural')
+        self.t(en='Tosafot', he='תוספות', alt_he=["תוס'", 'תוד"ה', 'תד"ה', "תו'"], alt_en=['Tosaphot'], ref_part_role='structural')
         self.t(en='Gilyon HaShas', he='גליון הש"ס', ref_part_role='structural')
         self.t(en='Midrash Rabbah', he='מדרש רבה', alt_en=['Midrash Rabba', 'Midrash Rabah'], alt_he=['מדרש רבא'], ref_part_role='structural')  # TODO no good way to compose titles for midrash rabbah...
         self.t(en='Rabbah', he='רבה', alt_en=['Rabba', 'Rabah', 'Rab.', 'R.', 'Rab .', 'R .', 'rabba', 'r.', 'r .', 'rabbati'], alt_he=['רבא'], ref_part_role='structural')
@@ -761,3 +761,15 @@ class RefPartModifier:
 if __name__ == "__main__":
     modifier = RefPartModifier()
     modifier.modify_all()
+
+"""
+Add parts to Gilyon CSV
+
+Texts to add
+- commentary on Mishnah (Tosafot Yom Tov)
+- Magen Avraham should have title "Magen Avraham" by itself
+- Mishnah Berurah
+- במס' דרך ארץ רבה פ"ג
+מדרש תנחומא ר"פ וירא
+בשאלתות דרא"ג פ' לך לך
+"""

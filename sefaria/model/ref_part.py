@@ -46,6 +46,14 @@ def span_inds(span: Union[Token, Span]) -> Tuple[int, int]:
     return start, end
 
 
+def span_char_inds(span: Union[Span, Token]) -> Tuple[int, int]:
+    if isinstance(span, Span):
+        return span.start_char, span.end_char
+    elif isinstance(span, Token):
+        idx = span.idx
+        return idx, idx + len(span)
+
+
 class RefPartType(Enum):
     NAMED = "named"
     NUMBERED = "numbered"
@@ -139,7 +147,7 @@ class RawRefPart(TrieEntry):
     """
     is_context = False
 
-    def __init__(self, type: 'RefPartType', span: Union[Token, Span], potential_dh_continuation: str=None) -> None:
+    def __init__(self, type: 'RefPartType', span: Union[Token, Span], potential_dh_continuation: Union[Span, Token] = None) -> None:
         self.span = span
         self.type = type
         self.potential_dh_continuation = potential_dh_continuation
@@ -148,13 +156,13 @@ class RawRefPart(TrieEntry):
         return f"{self.__class__.__name__}: {self.span}, Type = {self.type}"
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({self.span}, {self.potential_dh_continuation})"
+        return f"{self.__class__.__name__}({self.span}, {self.dh_cont_text})"
 
     def __eq__(self, other):
         return isinstance(other, self.__class__) and self.__hash__() == other.__hash__()
 
     def __hash__(self):
-        return hash(f"{self.type}|{self.span.__hash__()}|{self.potential_dh_continuation}")
+        return hash(f"{self.type}|{self.span.__hash__()}|{self.dh_cont_text}")
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -166,11 +174,20 @@ class RawRefPart(TrieEntry):
     def text(self):
         return self.span.text
 
-    def get_dh_text_to_match(self):
+    @property
+    def dh_cont_text(self):
+        return '' if self.potential_dh_continuation is None else self.potential_dh_continuation.text
+
+    def get_dh_text_to_match(self) -> Iterable[str]:
         import re
         m = re.match(r'^(?:(?:\u05d3"\u05d4|s ?\. ?v ?\.) )?(.+?)$', self.text)
-        if m is None: return
-        return m.group(1)
+        if m is not None:
+            dh = m.group(1)
+            if self.potential_dh_continuation:
+                for i in range(len(self.potential_dh_continuation), 0, -1):
+                    yield f"{dh} {self.potential_dh_continuation[:i]}"
+            # no matter what yield just the dh
+            yield dh
 
 
 class SectionContext(RawRefPart):
@@ -310,24 +327,19 @@ class RawRef:
         assert subspan.text == parts[0].span.doc[start_token_i:end_token_i].text, f"{subspan.text} != {parts[0].span.doc[start_token_i:end_token_i].text}"
         return subspan
 
-    def get_text(self):
+    @property
+    def text(self):
         """
         Return text of underlying span
         """
         return self.span.text
 
-    def get_char_indices(self) -> Tuple[int, int]:
+    @property
+    def char_indices(self) -> Tuple[int, int]:
         """
         Return start and end char indices of underlying text
         """
-        if isinstance(self.span, Span):
-            return self.span.start_char, self.span.end_char
-        elif isinstance(self.span, Token):
-            idx = self.span.idx
-            return idx, idx+1
-
-    text = property(get_text)
-    char_indices = property(get_char_indices)
+        return span_char_inds(self.span)
 
 
 class ResolvedRawRef:
@@ -372,7 +384,8 @@ class ResolvedRawRef:
         Currently a very simplistic algorithm
         If there is a DH match, return the corresponding ResolvedRawRef
         """
-        max_node, max_score = node.best_fuzzy_match_score(raw_ref_part)
+        max_node, max_score, max_dh = node.best_fuzzy_match_score(raw_ref_part)
+        # TODO modify self with final dh
         if max_score == 1.0:
             return self.clone(resolved_ref_parts=refined_ref_parts, node=max_node, ref=text.Ref(max_node.ref))
 
@@ -738,22 +751,24 @@ class RefResolver:
         for input_idx, raw_ref_spans in enumerate(all_raw_ref_spans):
             raw_ref_part_spans = all_raw_ref_part_span_map[input_idx]
             raw_refs = []
-            for span, part_span_list in zip(raw_ref_spans, raw_ref_part_spans):
+            for ispan, (span, part_span_list) in enumerate(zip(raw_ref_spans, raw_ref_part_spans)):
                 raw_ref_parts = []
-                for part_span in part_span_list:
+                for ipart, part_span in enumerate(part_span_list):
                     part_type = RefPartType.span_label_to_enum(part_span.label_)
                     dh_cont = None
                     if part_type == RefPartType.DH:
-                        """
-                        if ipart == len(raw_ref_part_spans) - 1:
+                        if ipart == len(part_span_list) - 1:
+                            curr_doc = span.doc
+                            _, span_end = span_inds(span)
                             if ispan == len(raw_ref_spans) - 1:
-                                dh_cont = st[span.end+1:]
+                                dh_cont = curr_doc[span_end:]
                             else:
-                                dh_cont = st[span.end:next_span.start]
+                                next_span_start, _ = span_inds(raw_ref_spans[ispan+1])
+                                dh_cont = curr_doc[span_end:next_span_start]
                         else:
-                            dh_cont = st[part_span.end+1:next_part_span.start]
-                        """
-                        dh_cont = None  # TODO FILL IN
+                            _, part_span_end = span_inds(part_span)
+                            next_part_span_start = span_inds(part_span_list[ipart+1])
+                            dh_cont = part_span.doc[part_span_end:next_part_span_start]
                     raw_ref_parts += [RawRefPart(part_type, part_span, dh_cont)]
                 raw_refs += [RawRef(raw_ref_parts, span)]
             all_raw_refs += [raw_refs]

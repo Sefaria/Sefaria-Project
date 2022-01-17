@@ -1100,10 +1100,11 @@ class DiburHamatchilNode(abst.AbstractMongoRecord):
 
     def fuzzy_match_score(self, raw_ref_part):
         # TODO improve this amazing algorithm
-        dh = raw_ref_part.get_dh_text_to_match()
-        if dh is not None and self.dibur_hamatchil.startswith(dh):
-            return 1.0
-        return 0.0
+        for dh in raw_ref_part.get_dh_text_to_match():
+            if self.dibur_hamatchil.startswith(dh):
+                return 1.0, dh
+        return 0.0, ''
+
 
 class DiburHamatchilNodeSet(abst.AbstractMongoSet):
     recordClass = DiburHamatchilNode
@@ -1111,12 +1112,14 @@ class DiburHamatchilNodeSet(abst.AbstractMongoSet):
     def best_fuzzy_match_score(self, raw_ref_part):
         max_score = 0.0
         max_node = None
+        max_dh = ''
         for node in self:
-            score = node.fuzzy_match_score(raw_ref_part)
-            if score > max_score:
+            score, dh = node.fuzzy_match_score(raw_ref_part)
+            if (score, len(dh)) > (max_score, len(max_dh)):
                 max_score = score
                 max_node = node
-        return max_node, max_score
+                max_dh = dh
+        return max_node, max_score, max_dh
 
 
 class ArrayMapNode(NumberedTitledTreeNode):
