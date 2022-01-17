@@ -1086,18 +1086,3 @@ class RefResolver:
         # remove title context matches that don't match all ref parts to avoid false positives
         max_resolved_refs = list(filter(lambda x: x.resolution_method not in {ResolutionMethod.TITLE, ResolutionMethod.GRAPH} or len([p for p in x.resolved_ref_parts if not p.is_context]) == len(x.raw_ref.raw_ref_parts), max_resolved_refs))
         return max_resolved_refs
-
-"""
-raw_ref_matchers: [
-    {
-        term_slugs: List[str],
-        scope: any|alone|combined [default: combined]
-    }
-]
-
-e.g
-{
-    ref_parts: ["rashi", "berakhot"],
-    scope: "any"
-}
-"""
