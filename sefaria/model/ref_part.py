@@ -34,8 +34,10 @@ LABEL_TO_REF_PART_TYPE_ATTR = {
     "non-cts": "NON_CTS",
 }
 
+SpanOrToken = Union[Span, Token]  # convenience type since Spans and Tokens are very similar
 
-def span_inds(span: Union[Token, Span]) -> Tuple[int, int]:
+
+def span_inds(span: SpanOrToken) -> Tuple[int, int]:
     """
     For some reason, spacy makes it difficult to deal with indices in tokens and spans
     These classes use different fields for their indices
@@ -46,7 +48,7 @@ def span_inds(span: Union[Token, Span]) -> Tuple[int, int]:
     return start, end
 
 
-def span_char_inds(span: Union[Span, Token]) -> Tuple[int, int]:
+def span_char_inds(span: SpanOrToken) -> Tuple[int, int]:
     if isinstance(span, Span):
         return span.start_char, span.end_char
     elif isinstance(span, Token):
@@ -157,10 +159,14 @@ class RawRefPart(TrieEntry):
     """
     is_context = False
     is_id = False
+    max_dh_continuation_len = 4  # max num tokens in potential_dh_continuation. more likely doesn't add more information
 
-    def __init__(self, type: 'RefPartType', span: Union[Token, Span], potential_dh_continuation: Union[Span, Token] = None) -> None:
+    def __init__(self, type: 'RefPartType', span: SpanOrToken, potential_dh_continuation: SpanOrToken = None) -> None:
         self.span = span
         self.type = type
+        if potential_dh_continuation is not None:
+            if isinstance(potential_dh_continuation, Span) and len(potential_dh_continuation) > self.max_dh_continuation_len:
+                potential_dh_continuation = potential_dh_continuation[:self.max_dh_continuation_len]
         self.potential_dh_continuation = potential_dh_continuation
 
     def __str__(self):
@@ -273,7 +279,7 @@ class RawRef:
     Span of text which may represent one or more Refs
     Contains RawRefParts
     """
-    def __init__(self, raw_ref_parts: list, span: Union[Token, Span]) -> None:
+    def __init__(self, raw_ref_parts: list, span: SpanOrToken) -> None:
         self.raw_ref_parts = self._group_ranged_parts(raw_ref_parts)
         self.prev_num_parts_map = self._get_prev_num_parts_map(self.raw_ref_parts)
         self.span = span
@@ -324,7 +330,7 @@ class RawRef:
             prev_part = part
         return prev_num_parts_map
 
-    def subspan(self, part_slice: slice) -> Union[Token, Span]:
+    def subspan(self, part_slice: slice) -> SpanOrToken:
         """
         Return subspan covered by `part_slice`, relative to self.span
         """
@@ -779,22 +785,28 @@ class RefResolver:
                     part_type = RefPartType.span_label_to_enum(part_span.label_)
                     dh_cont = None
                     if part_type == RefPartType.DH:
-                        if ipart == len(part_span_list) - 1:
-                            curr_doc = span.doc
-                            _, span_end = span_inds(span)
-                            if ispan == len(raw_ref_spans) - 1:
-                                dh_cont = curr_doc[span_end:]
-                            else:
-                                next_span_start, _ = span_inds(raw_ref_spans[ispan+1])
-                                dh_cont = curr_doc[span_end:next_span_start]
-                        else:
-                            _, part_span_end = span_inds(part_span)
-                            next_part_span_start = span_inds(part_span_list[ipart+1])
-                            dh_cont = part_span.doc[part_span_end:next_part_span_start]
+                        dh_cont = self._get_dh_continuation(ispan, ipart, raw_ref_spans, part_span_list, span, part_span)
                     raw_ref_parts += [RawRefPart(part_type, part_span, dh_cont)]
                 raw_refs += [RawRef(raw_ref_parts, span)]
             all_raw_refs += [raw_refs]
         return all_raw_refs
+    
+    @staticmethod
+    def _get_dh_continuation(ispan: int, ipart: int, raw_ref_spans: List[SpanOrToken], part_span_list: List[SpanOrToken], span: SpanOrToken, part_span: SpanOrToken) -> Optional[SpanOrToken]:
+        if ipart == len(part_span_list) - 1:
+            curr_doc = span.doc
+            _, span_end = span_inds(span)
+            if ispan == len(raw_ref_spans) - 1:
+                dh_cont = curr_doc[span_end:]
+            else:
+                next_span_start, _ = span_inds(raw_ref_spans[ispan + 1])
+                dh_cont = curr_doc[span_end:next_span_start]
+        else:
+            _, part_span_end = span_inds(part_span)
+            next_part_span_start = span_inds(part_span_list[ipart + 1])
+            dh_cont = part_span.doc[part_span_end:next_part_span_start]
+
+        return dh_cont
 
     def __get_attr_by_lang(self, lang: str, by_lang_attr: dict, error_msg: str):
         try:
