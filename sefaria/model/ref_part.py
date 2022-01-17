@@ -86,6 +86,8 @@ class TrieEntry:
     """
     Base class for entries in RefPartTitleTrie
     """
+    is_id = False  # is key an ID which shouldn't be manipulated with string functions?
+
     def key(self):
         return hash(self)
 
@@ -104,7 +106,7 @@ class NonUniqueTerm(abst.AbstractMongoRecord, schema.AbstractTitledObject, TrieE
         "ref_part_role",  # currently either "structural", "context_swap" or "alt_title". structural should be used for terms that used to define a logical relationship between ref parts (e.g. 'yerushalmi'). "alt_title" is for parts that are only included to generate more alt_titles (e.g. 'sefer'). "context_swap" is for parts that are meant to be swapped via SchemaNode.ref_resolver_context_swaps
     ]
     slug_fields = ['slug']
-
+    is_id = True
     title_group = None
     
     def _normalize(self):
@@ -146,6 +148,7 @@ class RawRefPart(TrieEntry):
     Represents a unit of text used to find a match to a SchemaNode
     """
     is_context = False
+    is_id = False
 
     def __init__(self, type: 'RefPartType', span: Union[Token, Span], potential_dh_continuation: Union[Span, Token] = None) -> None:
         self.span = span
@@ -471,7 +474,7 @@ class ResolvedRawRef:
         elif (part.type == RefPartType.NAMED and isinstance(node, schema.TitledTreeNode) or
               part.type == RefPartType.NUMBERED and isinstance(node, schema.ArrayMapNode)) or \
         part.type == RefPartType.NUMBERED and isinstance(node, schema.SchemaNode): # for case of numbered alt structs or schema nodes that look numbered (e.g. perakim and parshiot of Sifra)
-            if node.ref_part_title_trie(lang).has_continuations(part.key()):
+            if node.ref_part_title_trie(lang).has_continuations(part.key(), key_is_id=part.is_id):
                 matches += [self.clone(resolved_ref_parts=refined_ref_parts, node=node, ref=node.ref())]
         elif part.type == RefPartType.DH:
             if isinstance(node, schema.JaggedArrayNode):
@@ -575,8 +578,13 @@ class RefPartTitleTrie:
         if sub_trie is None: return
         return RefPartTitleTrie(self.lang, sub_trie=sub_trie, scope=self.scope)
 
-    def has_continuations(self, key):
-        return self.get_continuations(key, default=None) is not None
+    def has_continuations(self, key: str, key_is_id=False) -> bool:
+        """
+        Does trie have continuations for `key`?
+        :param key: key to look up in trie. may need to be split into multiple keys to find a continuation.
+        :param key_is_id: True if key is ID that cannot be split into smaller keys (e.g. slug).
+        """
+        return self.get_continuations(key, default=None, key_is_id=key_is_id) is not None
 
     @staticmethod
     def _merge_two_tries(a, b):
@@ -601,16 +609,19 @@ class RefPartTitleTrie:
             return tries[0]
         return reduce(RefPartTitleTrie._merge_two_tries, tries)
 
-    def get_continuations(self, key, default=None):
-        continuations = self._get_continuations_recursive(key)
+    def get_continuations(self, key: str, default=None, key_is_id=False):
+        continuations = self._get_continuations_recursive(key, key_is_id=key_is_id)
         if len(continuations) == 0:
             return default
         merged = self._merge_n_tries(*continuations)
         return RefPartTitleTrie(self.lang, sub_trie=merged, scope=self.scope)
 
-    def _get_continuations_recursive(self, key: str, prev_sub_tries=None):
+    def _get_continuations_recursive(self, key: str, prev_sub_tries=None, key_is_id=False):
         is_first = prev_sub_tries is None
         prev_sub_tries = prev_sub_tries or self._trie
+        if key_is_id:
+            # dont attempt to split key
+            return [prev_sub_tries[key]] if key in prev_sub_tries else []
         next_sub_tries = []
         key = key.strip()
         starti_list = [0]
