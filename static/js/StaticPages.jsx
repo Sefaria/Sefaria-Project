@@ -1461,17 +1461,12 @@ const Feature = ({enTitle, heTitle, enText, heText, enImg, heImg, enImgAlt, heIm
 const ButtonRow = ({children, light, white, enTitle, heTitle}) => (
     <div className={classNames({
         "buttonRow": 1,
-        "staticPageBlockInner": 1, 
         "blockVerticalPadding": 1, 
         "lightgreyBackground": light,
         "greyBackground": !white && !light
     })}>
-        {enTitle && heTitle ? 
-            <h2 className="staticPageH2">
-                <SimpleInterfaceBlock en={enTitle} he={heTitle} />
-            </h2>
-            : null }
-        <div className="flexContainer">{children}</div>
+        {enTitle && heTitle ?  <H2Block en={enTitle} he={heTitle}/> : null }
+        <div className="staticPageBlockInner flexContainer">{children}</div>
     </div>
 );
 

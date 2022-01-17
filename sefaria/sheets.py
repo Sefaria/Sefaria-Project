@@ -518,6 +518,10 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 			broadcast_sheet_publication(user_id, sheet["id"])
 		if sheet["status"] != "public":
 			# UNPUBLISH
+			if SEARCH_INDEX_ON_SAVE and not search_override:
+				es_index_name = search.get_new_and_current_index_names("sheet")['current']
+				search.delete_sheet(es_index_name, sheet['id'])
+
 			delete_sheet_publication(sheet["id"], user_id)  # remove history
 			UserStorySet({"storyForm": "publishSheet",
 								"uid": user_id,

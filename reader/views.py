@@ -304,7 +304,7 @@ def old_versions_redirect(request, tref, lang, version):
 
 def get_connections_mode(filter):
     # List of sidebar modes that can function inside a URL parameter to open the sidebar in that state.
-    sidebarModes = ("Sheets", "Notes", "About", "AboutSheet", "Navigation", "Translations", "Translation Open","WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts")
+    sidebarModes = ("Sheets", "Notes", "About", "AboutSheet", "Navigation", "Translations", "Translation Open","WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon")
     if filter[0] in sidebarModes:
         return filter[0], True
     else:
@@ -364,6 +364,9 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
         settings_override = {}
         panelDisplayLanguage = kwargs.get("connectionsPanelDisplayLanguage", None) if mode == "Connections" else kwargs.get("panelDisplayLanguage", None)
         aliyotOverride = kwargs.get("aliyotOverride")
+        panel["selectedWords"] = kwargs.get("selectedWords", None)
+        panel["selectedNamedEntity"] = kwargs.get("selectedNamedEntity", None)
+        panel["selectedNamedEntityText"] = kwargs.get("selectedNamedEntityText", None)
         if panelDisplayLanguage:
             settings_override.update({"language" : short_to_long_lang_code(panelDisplayLanguage)})
         if aliyotOverride:
@@ -524,6 +527,9 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
                 kwargs["connectionsPanelDisplayLanguage"] = lang2 if lang2 in ["en", "he"] else lang1 if lang1 in ["en", "he"] else request.interfaceLang[0:2]
         if request.GET.get("aliyot", None):
             kwargs["aliyotOverride"] = "aliyotOn" if int(request.GET.get("aliyot")) == 1 else "aliyotOff"
+        kwargs["selectedWords"] = request.GET.get("lookup", None)
+        kwargs["selectedNamedEntity"] = request.GET.get("namedEntity", None)
+        kwargs["selectedNamedEntityText"] = request.GET.get("namedEntityText", None)
         panels += make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_panel, **kwargs)
 
     elif sheet == True:
@@ -573,7 +579,9 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
             }
             if request.GET.get("aliyot{}".format(i), None):
                 kwargs["aliyotOverride"] = "aliyotOn" if int(request.GET.get("aliyot{}".format(i))) == 1 else "aliyotOff"
-
+            kwargs["selectedWords"] = request.GET.get(f"lookup{i}", None)
+            kwargs["selectedNamedEntity"] = request.GET.get(f"namedEntity{i}", None)
+            kwargs["selectedNamedEntityText"] = request.GET.get(f"namedEntityText{i}", None)
             if (versionEn and not Version().load({"versionTitle": versionEn, "language": "en"})) or \
                 (versionHe and not Version().load({"versionTitle": versionHe, "language": "he"})):
                 i += 1
@@ -2443,7 +2451,9 @@ def get_name_completions(name, limit, ref_only, topic_override=False):
     ref = None
     topic = None
     if topic_override:
-        topic = Topic().load({"titles.text": name})
+        topic_set = TopicSet({"titles.text": re.compile(fr'^{re.escape(name)}$', flags=re.IGNORECASE)}, sort=[("numSources", -1)], limit=1)
+        if topic_set.count() > 0:
+            topic = topic_set.array()[0]
     try:
         ref = Ref(name)
         inode = ref.index_node
