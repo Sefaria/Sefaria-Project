@@ -477,38 +477,25 @@ Sefaria = extend(Sefaria, {
   },
   translateISOLanguageCode(code, native = false) {
     //takes two-letter ISO 639.2 code and returns full language name
-    const codeMap = {
-      "en": "English",
-      "he": "Hebrew",
-      "yi": "Yiddish",
-      "fi": "Finnish",
-      "pt": "Portuguese",
-      "es": "Spanish",
-      "fr": "French",
-      "de": "German",
-      "ar": "Arabic",
-      "it": "Italian",
-      "pl": "Polish",
-      "ru": "Russian",
-      "eo": "Esperanto",
-      "fa": "Farsi",
-    };
-    const motherTongueCodeMap = {
-      "en": "English",
-      "he": "עברית",
-      "yi": "יידיש",
-      "pt": "Português",
-      "es": "Español",
-      "fr": "Français",
-      "de": "Deutsch",
-      "ar": "عربى",
-      "it": "Italiano",
-      "pl": "Polskie",
-      "ru": "Pусский",
-      "eo": "Esperanto",
+    const ISOMap = {
+        "ar": {"name": "Arabic", "nativeName": "عربى"},
+        "de": {"name": "German", "nativeName": "Deutsch"},
+        "en": {"name": "English", "nativeName": "English"},
+        "eo": {"name": "Esperanto", "nativeName": "Esperanto"},
+        "es": {"name": "Spanish", "nativeName": "Español"},
+        "fa": {"name": "Persian", "nativeName": "فارسی"},
+        "fi": {"name": "Finnish", "nativeName": "suomen kieli"},
+        "fr": {"name": "French", "nativeName": "Français"},
+        "he": {"name": "Hebrew", "nativeName": "עברית"},
+        "it": {"name": "Italian", "nativeName": "Italiano"},
+        "lad": {"name": "Ladino", "nativeName": "Judeo-español"},
+        "pl": {"name": "Polish", "nativeName": "Polskie"},
+        "pt": {"name": "Portuguese", "nativeName": "Português"},
+        "ru": {"name": "Russian", "nativeName": "Pусский"},
+        "yi": {"name": "Yiddish", "nativeName": "יידיש"},
     }
-    if (inMotherTongue) { return motherTongueCodeMap[code.toLowerCase()] || code; }
-    return codeMap[code.toLowerCase()] || code;
+    const lookupVar = native ? "nativeName" : "name";
+    return ISOMap[code.toLowerCase()][lookupVar] || code; 
   },
   _versions: {},
   _translateVersions: {},

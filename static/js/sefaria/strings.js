@@ -335,8 +335,9 @@ const Strings = {
     "Italian": "איטלקית",
     "Polish": "פולנית",
     "Russian": "רוסית",
-    "Esparanto": "אספרנטו",
-    "Persian": "פרסי",
+    "Esperanto": "אספרנטו",
+    "Persian": "פרסית",
+    "Ladino" : "לאדינו",
 
     "On": "הצג",
     "Off": "הסתר",
