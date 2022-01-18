@@ -490,7 +490,7 @@ Sefaria = extend(Sefaria, {
       "it": "Italian",
       "pl": "Polish",
       "ru": "Russian",
-      "eo": "Esparanto",
+      "eo": "Esperanto",
       "fa": "Farsi",
     };
     const motherTongueCodeMap = {
@@ -563,7 +563,7 @@ Sefaria = extend(Sefaria, {
       //let generalCount = 0;
       for (let v of versions) {
         //generalCount++;
-        const matches = v.versionTitle.match(new RegExp("\\[([a-z]{2})\\]$")); // two-letter ISO language code
+        const matches = v.versionTitle.match(new RegExp("\\[([a-z]{2,3})\\]$")); // two-letter ISO language code
         const lang = matches ? matches[1] : v.language;
         v.actualLanguage = lang; //add actual language onto the object. Hopefully its then available always.
         //Sort each language into its own bucket
