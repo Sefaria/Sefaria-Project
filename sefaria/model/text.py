@@ -250,8 +250,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             contents = self.nodes.as_index_contents()
             if with_content_counts:
                 contents["schema"] = self.annotate_schema_with_content_counts(contents["schema"])
-                first_ref = self.versionSet().array()[0].first_section_ref()
-                contents["firstSectionRef"] = first_ref.normal()
+                contents["firstSectionRef"] = Ref(self.title).first_available_section_ref().normal()
 
             contents = self.expand_metadata_on_contents(contents)
         return contents
@@ -3378,6 +3377,7 @@ class Ref(object, metaclass=RefCacheType):
     def first_available_section_ref(self):
         """
         Returns a :class:`Ref` to the first section inside of or following this :class:`Ref` that has some content.
+        Return first available segment ref is `self` is depth 1
 
         Returns ``None`` if self is empty and no following :class:`Ref` has content.
 
@@ -3400,7 +3400,12 @@ class Ref(object, metaclass=RefCacheType):
         else:
             return None
 
-        return r.next_section_ref() if r.is_empty() else r
+        if r.is_book_level():
+            # r is depth 1. return first segment
+            r = r.subref([1])
+            return r.next_segment_ref() if r.is_empty() else r
+        else:
+            return r.next_section_ref() if r.is_empty() else r
 
     #Don't store results on Ref cache - state objects change, and don't yet propogate to this Cache
     def get_state_node(self, meta=None, hint=None):

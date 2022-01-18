@@ -129,6 +129,7 @@ class ReaderPanel extends Component {
     if (this.state.mode === "TextAndConnections") {
       this.closeConnectionsInPanel();
     } else if (this.state.mode === "Text") {
+      Sefaria.track.event("Reader", "Open Connections Panel", ref);
       if (this.props.multiPanel) {
         this.conditionalSetState({showHighlight: showHighlight});
         this.props.onSegmentClick(ref);
@@ -690,6 +691,7 @@ class ReaderPanel extends Component {
           interfaceLang={this.props.interfaceLang}
           contentLang={this.state.settings.language}
           title={this.currentBook()}
+          currentlyVisibleRef={this.state.currentlyVisibleRef}
           currVersions={this.state.currVersions}
           fullPanel={this.props.multiPanel}
           multiPanel={this.props.multiPanel}
@@ -1035,6 +1037,7 @@ class ReaderPanel extends Component {
           {hideReaderControls ? null :
           <ReaderControls
             showBaseText={this.showBaseText}
+            hasSidebar={this.state.hasSidebar}
             toggleSheetEditMode={this.toggleSheetEditMode}
             currentRef={this.state.currentlyVisibleRef}
             highlightedRefs={this.state.highlightedRefs}
@@ -1156,12 +1159,10 @@ class ReaderControls extends Component {
     super(props);
     this.state = {};
   }
-  isConnectionsPanelOpenHeuristic(){
-    return !!this.props.highlightedRefs.length
-  }
   openTextConnectionsPanel(e) {
     e.preventDefault();
-    if(!this.isConnectionsPanelOpenHeuristic()){ //Prevent click on title from opening connections panel if its already open
+    if(!this.props.hasSidebar){ //Prevent click on title from opening connections panel if its already open
+      Sefaria.track.event("Reader", "Open Connections Panel from Header", this.props.currentRef);
       this.props.onTextTitleClick(this.props.currentRef, false);
     }
   }
@@ -1194,7 +1195,7 @@ class ReaderControls extends Component {
     let sectionString = "";
     let heSectionString = "";
     let categoryAttribution = null;
-    const oref = Sefaria.ref(this.props.currentRef);
+    const oref = Sefaria.getRefFromCache(this.props.currentRef);
 
     if (this.props.sheetID) {
       if (this.props.sheetTitle === null) {
@@ -1220,7 +1221,7 @@ class ReaderControls extends Component {
     const showVersion = this.props.currVersions.en && (this.props.settings.language === "english" || this.props.settings.language === "bilingual");
     const versionTitle = this.props.currVersions.en ? this.props.currVersions.en.replace(/_/g," ") : "";
     const url = this.props.sheetID ? "/sheets/" + this.props.sheetID : oref ? "/" + Sefaria.normRef(oref.book) : Sefaria.normRef(this.props.currentRef);
-    const readerTextTocClasses = classNames({readerTextToc: 1, attributed: !!categoryAttribution, connected: this.isConnectionsPanelOpenHeuristic()})
+    const readerTextTocClasses = classNames({readerTextToc: 1, attributed: !!categoryAttribution, connected: this.props.hasSidebar})
 
 
     let centerContent = connectionsHeader ?

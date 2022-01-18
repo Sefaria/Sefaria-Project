@@ -179,11 +179,12 @@ rowmap = {
     16: 'child-of',
     17: 'grandchild-of',
     18: 'child-in-law-of',
-    19: 'taught',
-    20: 'member-of',
-    21: 'corresponded-with',
-    22: 'opposed',
-    23: 'cousin-of',
+    19: 'sibling-in-law-of',
+    20: 'taught',
+    21: 'member-of',
+    22: 'corresponded-with',
+    23: 'opposed',
+    24: 'cousin-of',
 }
 flip_link_dir = {'taught'}
 print("\n*** Adding relationships ***\n")
