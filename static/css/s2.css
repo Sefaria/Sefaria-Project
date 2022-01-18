@@ -10993,6 +10993,9 @@ body .homeFeedWrapper.userStats {
     background: url("/static/img/arrow-down.png") 300px 20px/10px 10px no-repeat #ffffff;
     width: 320px;
   }
+  .bookPage .editTextInfo .static .headerWithButtons h1 {
+    margin: 30px;
+  }
   #categoryChooserMenu select {
     width: 340px;
   }
