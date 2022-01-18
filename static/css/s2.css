@@ -7658,6 +7658,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 }
 .scheduleForm .label {
   font-weight: bold;
+  white-space: nowrap;
 }
 .scheduleForm div.scheduleDescription {
   color: var(--dark-grey);
