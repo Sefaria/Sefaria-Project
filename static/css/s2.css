@@ -9223,6 +9223,7 @@ background-color: white;
   pointer-events: none;
   display: inline-block;
   position: relative;
+  width: 100%;
 }
 
 .addInterfaceInput .textPreview {
