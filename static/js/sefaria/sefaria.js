@@ -475,7 +475,7 @@ Sefaria = extend(Sefaria, {
     }.bind(this));
     return null;
   },
-  translateISOLanguageCode(code, inMotherTongue) {
+  translateISOLanguageCode(code, native = false) {
     //takes two-letter ISO 639.2 code and returns full language name
     const codeMap = {
       "en": "English",
