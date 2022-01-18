@@ -58,6 +58,7 @@ class SearchResultList extends Component {
       this.updateTotalResults();
     }
     componentDidMount() {
+        this.getTopics();
         this._executeAllQueries();
         $(ReactDOM.findDOMNode(this)).closest(".content").on("scroll.infiteScroll", this.handleScroll);
     }
@@ -86,6 +87,9 @@ class SearchResultList extends Component {
           }
         });
       }
+    }
+    getTopics() {
+
     }
     updateRunningQuery(type, ajax) {
       this.state.runningQueries[type] = ajax;
@@ -286,6 +290,8 @@ class SearchResultList extends Component {
               key={result._id}
               onResultClick={this.props.onResultClick} />
           );
+          results.splice(2, 0, topics);
+
 
         } else if (tab == "sheet") {
           results = this.state.hits.sheet.map(result =>
