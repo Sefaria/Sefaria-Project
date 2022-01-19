@@ -174,7 +174,7 @@ class UserProfile extends Component {
   }
   renderSchedules(collection) {
     return (
-      <ScheduleListing key={collection.schedule_name} data={collection} />
+      <ScheduleListing key={collection.schedule_name+Math.random()} data={collection} />
     );
   }
   renderSchedulesHeader() {
