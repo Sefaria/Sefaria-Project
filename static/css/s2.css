@@ -3476,6 +3476,11 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   max-width: 665px;
 }
 
+ .searchContent .searchResultList #searchTopics {
+  border-top: 1px solid #EDEDEC;
+  border-bottom: 1px solid #EDEDEC;
+}
+
 @media (min-width: 701px) {
   /* prevent width of left-pane from changing due to content size when filters applied */
   .searchContent .searchResultList {

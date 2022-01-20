@@ -108,11 +108,11 @@ class SearchResultList extends Component {
                     });
                 }
                 else if (topic.type === 'TocCategory') {
-                    const lastCat = topic.key.pop(topic.length - 1);
+                    const lastCat = topic.key.pop(topic.key.length - 1);
                     let relevantCats = [];
-                    if (topic.key.length > 1) {
+                    if (topic.key.length > 0) {
                         relevantCats = Sefaria.tocItemsByCategories(topic.key);
-                        searchTopic["topicCat"] = topic.key[topic.length - 1];
+                        searchTopic["topicCat"] = topic.key[topic.key.length - 1];
                         searchTopic["url"] = "/texts/"+searchTopic["topicCat"];
                     }
                     else {
@@ -355,7 +355,7 @@ class SearchResultList extends Component {
               onResultClick={this.props.onResultClick} />
           );
           if (this.state.topics.length > 0) {
-              const topics = this.state.topics.map(t => {
+              let topics = this.state.topics.map(t => {
                   return <div>
                             <div className="topicTitle pageTitle">
                               <h1>
@@ -374,7 +374,13 @@ class SearchResultList extends Component {
                             </div>
                         </div>
               });
-              results.splice(2, 0, topics);
+              if (results.length > 0) {
+                  topics = <div id="searchTopics">{topics}</div>
+                  results.splice(2, 0, topics);
+              }
+              else {
+                  results = topics;
+              }
           }
 
 
