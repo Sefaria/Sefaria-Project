@@ -48,6 +48,7 @@ class ConnectionsPanel extends Component {
       availableTranslations: [],
       linksLoaded: false, // has the list of refs been loaded
       connectionSummaryCollapsed: true,
+      currentlyVisibleSectionRef: Sefaria.sectionRef(this.props.currentlyVisibleRef),
     };
   }
   toggleTopLevelCollapsed() {
@@ -176,6 +177,13 @@ class ConnectionsPanel extends Component {
     }
     if (!this.isSheet()) {
       Sefaria.getVersions(ref, false, ["he"], true).then(versions => this.setState({ availableTranslations: versions })); //for counting translations
+      Sefaria.getRef(this.props.currentlyVisibleRef).then(data => { //this does not properly return a secionRef for a spanning/ranged ref
+        const currRef = (typeof data == "string") ? Sefaria.sectionRef(data) : data["sectionRef"]; //this is an annoying consequence of getRef not actually returning a
+        // consistent response. Its either the ref from cache or the entire text api response if async. 
+        this.setState({currentlyVisibleSectionRef: currRef});
+      });
+      //this.setState({currentlyVisibleSectionRef: Sefaria.sectionRef(this.props.currentlyVisibleRef)});
+      
     }
   }
   reloadData() {
@@ -375,6 +383,8 @@ class ConnectionsPanel extends Component {
           close={this.props.close}
           currVersions={this.props.currVersions}
           navigatePanel={this.props.navigatePanel}
+          currentlyVisibleRef={this.props.currentlyVisibleRef}
+          currentlyVisibleSectionRef={this.state.currentlyVisibleSectionRef}
         />
       );
     } else if (this.props.mode === "ConnectionsList") {

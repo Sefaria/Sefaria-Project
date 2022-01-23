@@ -236,19 +236,35 @@ Sefaria = extend(Sefaria, {
     // Returns true is `ref1` contains `ref2`
     const oRef1 = Sefaria.parseRef(ref1);
     const oRef2 = Sefaria.parseRef(ref2);
+    //need to convert to ints, add ancestors for complex and copy logic from server
 
     if ("error" in oRef1 || "error" in oRef2) { return null; }
-
+    
+    //We need numerical representations of the sections, and not to trip up on talmud sections
     if (oRef2.index !== oRef2.index || oRef1.book !== oRef2.book) { return false; }
-
-    for (let i = 0; i < oRef1.sections.length; i++) {
-      if (oRef1.sections[i] <= oRef2.sections[i] && oRef1.toSections[i] >= oRef2.toSections[i]) {
-        return true;
-      } else if (oRef1.sections[i] > oRef2.sections[i] || oRef1.toSections[i] < oRef2.toSections[i]) {
+    const [oRef1sections, oRef1toSections, oRef2sections, oRef2toSections] = [oRef1.sections, oRef1.toSections, oRef2.sections, oRef2.toSections].map(arr => 
+        arr.map(x => x.match(/\d+[ab]/) ? Sefaria.hebrew.dafToInt(x) : parseInt(x))
+    )
+      
+    const sectionsLen = Math.min(oRef1sections.length, oRef2sections.length);
+    //duplicated from server side logic to finally fix
+    for (let i = 0; i < sectionsLen; i++) {
+      if (oRef2toSections[i] > oRef1toSections[i]) {
         return false;
       }
+      if (oRef2toSections[i] < oRef1toSections[i]) {
+        break;
+      }
     }
-    return null;
+    for (let i = 0; i < sectionsLen; i++) {
+      if (oRef2sections[i] < oRef1sections[i]) {
+        return false;
+      }
+      if (oRef2sections[i] > oRef1sections[i]) {
+        break;
+      }
+    }
+    return true;
   },
   refCategories: function(ref) {
     // Returns the text categories for `ref`
@@ -462,40 +478,27 @@ Sefaria = extend(Sefaria, {
     }.bind(this));
     return null;
   },
-  translateISOLanguageCode(code, inMotherTongue) {
+  translateISOLanguageCode(code, native = false) {
     //takes two-letter ISO 639.2 code and returns full language name
-    const codeMap = {
-      "en": "English",
-      "he": "Hebrew",
-      "yi": "Yiddish",
-      "fi": "Finnish",
-      "pt": "Portuguese",
-      "es": "Spanish",
-      "fr": "French",
-      "de": "German",
-      "ar": "Arabic",
-      "it": "Italian",
-      "pl": "Polish",
-      "ru": "Russian",
-      "eo": "Esparanto",
-      "fa": "Farsi",
-    };
-    const motherTongueCodeMap = {
-      "en": "English",
-      "he": "עברית",
-      "yi": "יידיש",
-      "pt": "Português",
-      "es": "Español",
-      "fr": "Français",
-      "de": "Deutsch",
-      "ar": "عربى",
-      "it": "Italiano",
-      "pl": "Polskie",
-      "ru": "Pусский",
-      "eo": "Esperanto",
+    const ISOMap = {
+        "ar": {"name": "Arabic", "nativeName": "عربى"},
+        "de": {"name": "German", "nativeName": "Deutsch"},
+        "en": {"name": "English", "nativeName": "English"},
+        "eo": {"name": "Esperanto", "nativeName": "Esperanto"},
+        "es": {"name": "Spanish", "nativeName": "Español"},
+        "fa": {"name": "Persian", "nativeName": "فارسی"},
+        "fi": {"name": "Finnish", "nativeName": "suomen kieli"},
+        "fr": {"name": "French", "nativeName": "Français"},
+        "he": {"name": "Hebrew", "nativeName": "עברית"},
+        "it": {"name": "Italian", "nativeName": "Italiano"},
+        "lad": {"name": "Ladino", "nativeName": "Judeo-español"},
+        "pl": {"name": "Polish", "nativeName": "Polskie"},
+        "pt": {"name": "Portuguese", "nativeName": "Português"},
+        "ru": {"name": "Russian", "nativeName": "Pусский"},
+        "yi": {"name": "Yiddish", "nativeName": "יידיש"},
     }
-    if (inMotherTongue) { return motherTongueCodeMap[code.toLowerCase()] || code; }
-    return codeMap[code.toLowerCase()] || code;
+    const lookupVar = native ? "nativeName" : "name";
+    return ISOMap[code.toLowerCase()][lookupVar] || code; 
   },
   _versions: {},
   _translateVersions: {},
@@ -550,7 +553,7 @@ Sefaria = extend(Sefaria, {
       //let generalCount = 0;
       for (let v of versions) {
         //generalCount++;
-        const matches = v.versionTitle.match(new RegExp("\\[([a-z]{2})\\]$")); // two-letter ISO language code
+        const matches = v.versionTitle.match(new RegExp("\\[([a-z]{2,3})\\]$")); // two-letter ISO language code
         const lang = matches ? matches[1] : v.language;
         v.actualLanguage = lang; //add actual language onto the object. Hopefully its then available always.
         //Sort each language into its own bucket
@@ -915,6 +918,7 @@ Sefaria = extend(Sefaria, {
     });
   },
   getRefFromCache: function(ref) {
+    if (!ref) return null;
     const versionedKey = this._refmap[this._refKey(ref)] || this._refmap[this._refKey(ref, {context:1})];
     if (versionedKey) { return this._getOrBuildTextData(versionedKey); }
     return null;
