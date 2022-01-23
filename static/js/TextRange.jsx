@@ -102,6 +102,7 @@ class TextRange extends Component {
       enVersion: this.props.currVersions.en || null,
       heVersion: this.props.currVersions.he || null,
       translationLanguagePreference: this.props.translationLanguagePreference,
+      versionPref: Sefaria.versionPreferences.getVersionPref(this.props.sref),
     };
     let data = Sefaria.getTextFromCache(this.props.sref, settings);
 
@@ -125,6 +126,14 @@ class TextRange extends Component {
       // console.log("Re-rewriting spanning ref")
       this.props.showBaseText(data.spanningRefs, true, this.props.version, this.props.versionLanguage);
       return;
+    }
+
+    // make sure currVersions matches versions returned, due to translationLanguagePreference and versionPreferences
+    if (this.props.setCurrVersions) {
+      this.props.setCurrVersions({
+        en: data.versionTitle,
+        he: data.heVersionTitle,
+      });
     }
 
     // If this is a ref to a super-section, rewrite it to first available section
@@ -183,6 +192,7 @@ class TextRange extends Component {
          enVersion: this.props.currVersions.en || null,
          heVersion: this.props.currVersions.he || null,
          translationLanguagePreference: this.props.translationLanguagePreference,
+         versionPref: Sefaria.versionPreferences.getVersionPref(data.next),
        }).then(ds => Array.isArray(ds) ? ds.map(d => this._prefetchLinksAndNotes(d)) : this._prefetchLinksAndNotes(ds));
      }
      if (data.prev) {
@@ -192,6 +202,7 @@ class TextRange extends Component {
          enVersion: this.props.currVersions.en || null,
          heVersion: this.props.currVersions.he || null,
          translationLanguagePreference: this.props.translationLanguagePreference,
+         versionPref: Sefaria.versionPreferences.getVersionPref(data.prev),
        }).then(ds => Array.isArray(ds) ? ds.map(d => this._prefetchLinksAndNotes(d)) : this._prefetchLinksAndNotes(ds));
      }
      if (data.indexTitle) {

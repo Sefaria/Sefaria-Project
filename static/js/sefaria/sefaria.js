@@ -1,3 +1,5 @@
+import VersionPreferences from "./VersionPreferences";
+
 var extend     = require('extend'),
     param      = require('querystring').stringify;
 import Search from './search';
@@ -362,6 +364,7 @@ Sefaria = extend(Sefaria, {
       wrapLinks:  ("wrapLinks" in settings) ? settings.wrapLinks : 1,
       wrapNamedEntities: ("wrapNamedEntities" in settings) ? settings.wrapNamedEntities : 1, 
       translationLanguagePreference: settings.translationLanguagePreference || null,
+      versionPref: settings.versionPref || null,
     };
     return settings;
   },
@@ -570,6 +573,15 @@ Sefaria = extend(Sefaria, {
   },
   getTranslateVersionsKey: (vTitle, lang) => `${vTitle}|${lang}`,
   deconstructVersionsKey: (versionsKey) => versionsKey.split('|'),
+  setVersionPreference(sref, vtitle, lang) {
+    if (lang !== 'en') { return; }  // Currently only tracking preferences for translations
+    const title = Sefaria.parseRef(sref).index
+    const corpus = Sefaria.index(title).corpus;
+    Sefaria.versionPreferences = Sefaria.versionPreferences.update(corpus, vtitle, lang);
+
+    Sefaria.track.event("Reader", "Set Version Preference", `${corpus}|${vtitle}|${lang}`);
+    Sefaria.editProfileAPI({version_preferences_by_corpus: {[corpus]: {vtitle, lang}}})
+  },
   getLicenseMap: function() {
     const licenseMap = {
       "Public Domain": "https://en.wikipedia.org/wiki/Public_domain",
@@ -579,6 +591,10 @@ Sefaria = extend(Sefaria, {
       "CC-BY-NC": "https://creativecommons.org/licenses/by-nc/4.0/"
     }
     return licenseMap;
+  },
+  _getVersionPrefUrlParam(versionPref) {
+    const {vtitle, lang} = versionPref;
+    return `&versionPref=${encodeURIComponent(vtitle.replace(/ /g,"_"))}|${lang}`;
   },
   _textUrl: function(ref, settings) {
     // copy the parts of settings that are used as parameters, but not other
@@ -595,6 +611,7 @@ Sefaria = extend(Sefaria, {
     let url = "/api/texts/" + Sefaria.normRef(ref);
     if (settings.enVersion) { url += "&ven=" + encodeURIComponent(settings.enVersion.replace(/ /g,"_")); }
     if (settings.heVersion) { url += "&vhe=" + encodeURIComponent(settings.heVersion.replace(/ /g,"_")); }
+    if (settings.versionPref) { url += Sefaria._getVersionPrefUrlParam(settings.versionPref); }
     url += "&" + params;
     return url.replace("&","?"); // make sure first param has a '?'
   },
@@ -606,6 +623,7 @@ Sefaria = extend(Sefaria, {
       if (settings.enVersion) { key += "&ven=" + settings.enVersion; }
       if (settings.heVersion) { key += "&vhe=" + settings.heVersion; }
       if (settings.translationLanguagePreference) { key += "&transLangPref=" + settings.translationLanguagePreference}
+      if (settings.versionPref) { key += Sefaria._getVersionPrefUrlParam(settings.versionPref); }
       key = settings.context ? key + "|CONTEXT" : key;
     }
     return key;
@@ -2645,6 +2663,7 @@ Sefaria.unpackDataFromProps = function(props) {
   if (props.collectionListing) {
       Sefaria._collectionsList.list = props.collectionListing;
   }
+  Sefaria.versionPreferences = new VersionPreferences(props.versionPrefsByCorpus);
   Sefaria.util._initialPath = props.initialPath ? props.initialPath : "/";
   const dataPassedAsProps = [
       "_uid",

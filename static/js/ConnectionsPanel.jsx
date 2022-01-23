@@ -198,7 +198,8 @@ class ConnectionsPanel extends Component {
   }
   getData(cb) {
     // Gets data about this text from cache, which may be null.
-    return Sefaria.getText(this.props.srefs[0], { context: 1, enVersion: this.props.currVersions.en, heVersion: this.props.currVersions.he, translationLanguagePreference: this.props.translationLanguagePreference }).then(cb);
+    const versionPref = Sefaria.versionPreferences.getVersionPref(this.props.srefs[0]);
+    return Sefaria.getText(this.props.srefs[0], { context: 1, enVersion: this.props.currVersions.en, heVersion: this.props.currVersions.he, translationLanguagePreference: this.props.translationLanguagePreference, versionPref}).then(cb);
   }
   getVersionFromData(d, lang) {
     //d - data received from this.getData()
@@ -625,7 +626,8 @@ class ConnectionsPanel extends Component {
         srefs={this.props.srefs}
         sectionRef={this.state.sectionRef}
         openVersionInReader={this.props.selectVersion}
-        viewExtendedNotes={this.props.viewExtendedNotes} />);
+        viewExtendedNotes={this.props.viewExtendedNotes}
+      />);
 
     } else if (this.props.mode === "Translations" || this.props.mode === "Translation Open") {
       content = (<TranslationsBox

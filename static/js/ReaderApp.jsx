@@ -24,7 +24,7 @@ import {
   CookiesNotification,
   CommunityPagePreviewControls
 } from './Misc';
-import { Ad } from './Ad'
+import { Ad } from './Ad';
 import Component from 'react-class';
 import BeitMidrash, {BeitMidrashClosed} from './BeitMidrash';
 import  { io }  from 'socket.io-client';
