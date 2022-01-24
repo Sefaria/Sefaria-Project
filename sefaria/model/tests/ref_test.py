@@ -635,7 +635,7 @@ class Test_normal_forms(object):
         assert Ref('Genesis').first_available_section_ref() == Ref('Genesis 1')
         assert Ref('Siddur Ashkenaz').first_available_section_ref() == Ref('Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Modeh Ani')
         assert Ref('Penei Moshe on Jerusalem Talmud Shabbat 2').first_available_section_ref() == Ref('Penei Moshe on Jerusalem Talmud Shabbat 2:1:1')
-        assert Ref('Animadversions by Elias Levita on Sefer HaShorashim').first_available_section_ref() == Ref('Animadversions by Elias Levita on Sefer HaShorashim').first_available_section_ref()
+        assert Ref('Animadversions by Elias Levita on Sefer HaShorashim').first_available_section_ref() == Ref('Animadversions by Elias Levita on Sefer HaShorashim, אבב')
 
 
 
