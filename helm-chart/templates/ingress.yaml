@@ -1,0 +1,114 @@
+{{if eq (substr 0 4 .Values.deployEnv) "prod"}}
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ingress-{{ .Values.deployEnv }}
+  annotations:
+    kubernetes.io/ingress.global-static-ip-name: "sefaria-{{ .Values.deployEnv }}"
+spec:
+  tls:
+    - secretName: origin-tls-{{ .Values.deployEnv }}
+    - secretName: origin-il-tls-{{ .Values.deployEnv }}
+  rules:
+    - host: "{{ substr 0 4 .Values.deployEnv }}.sefaria.org"
+      http:
+        paths:
+          - path: /*
+            backend:
+              serviceName: nginx-{{ .Values.deployEnv }}
+              servicePort: 80
+    - host: "{{ substr 0 4 .Values.deployEnv }}.sefaria.org.il"
+      http:
+        paths:
+          - path: /*
+            backend:
+              serviceName: nginx-{{ .Values.deployEnv }}
+              servicePort: 80
+    - host: sefaria.org
+      http:
+        paths:
+          - path: /*
+            backend:
+              serviceName: nginx-{{ .Values.deployEnv }}
+              servicePort: 80
+    - host: sefaria.org.il
+      http:
+        paths:
+          - path: /*
+            backend:
+              serviceName: nginx-{{ .Values.deployEnv }}
+              servicePort: 80
+    - host: www.sefaria.org
+      http:
+        paths:
+          - path: /*
+            backend:
+              serviceName: nginx-{{ .Values.deployEnv }}
+              servicePort: 80
+    - host: www.sefaria.org.il
+      http:
+        paths:
+          - path: /*
+            backend:
+              serviceName: nginx-{{ .Values.deployEnv }}
+              servicePort: 80
+
+    - host: rollout.sefaria.org
+      http:
+        paths:
+          - path: /*
+            backend:
+              serviceName: nginx-{{ .Values.deployEnv }}
+              servicePort: 80
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: origin-tls-{{ .Values.deployEnv }}
+type: kubernetes.io/tls
+data:
+  tls.crt: {{ .Files.Get (printf "secrets/tls/%s/origin.crt" (substr 0 4 .Values.deployEnv)) | b64enc }}
+  tls.key: {{ .Files.Get (printf "secrets/tls/%s/origin.key" (substr 0 4 .Values.deployEnv)) | b64enc }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: origin-il-tls-{{ .Values.deployEnv }}
+type: kubernetes.io/tls
+data:
+  tls.crt: {{ .Files.Get (printf "secrets/tls/%s/origin-il.crt" (substr 0 4 .Values.deployEnv)) | b64enc }}
+  tls.key: {{ .Files.Get (printf "secrets/tls/%s/origin-il.key" (substr 0 4 .Values.deployEnv)) | b64enc }}
+...
+{{end}}
+
+{{if eq .Values.deployEnv "democracy"}}
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ingress-{{ .Values.deployEnv }}
+  annotations:
+    kubernetes.io/ingress.global-static-ip-name: "sefaria-{{ .Values.deployEnv }}"
+spec:
+  tls:
+    - secretName: origin-tls-{{ .Values.deployEnv }}
+  rules:
+    - host: democracy.sefaria.org
+      http:
+        paths:
+          - path: /*
+            backend:
+              serviceName: nginx-{{ .Values.deployEnv }}
+              servicePort: 80
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: origin-tls-{{ .Values.deployEnv }}
+type: kubernetes.io/tls
+data:
+  tls.crt: {{ .Files.Get (printf "secrets/tls/%s/origin.crt" (substr 0 4 .Values.deployEnv)) | b64enc }}
+  tls.key: {{ .Files.Get (printf "secrets/tls/%s/origin.key" (substr 0 4 .Values.deployEnv)) | b64enc }}
+{{end}}

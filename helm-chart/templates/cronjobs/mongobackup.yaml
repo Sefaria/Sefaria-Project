@@ -1,0 +1,106 @@
+{{if eq (substr 0 4 .Values.deployEnv) "prod"}}
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: {{ .Values.deployEnv }}-mongobackup
+spec:
+  concurrencyPolicy: Replace
+  schedule: "0 0 * * *"
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        spec:
+          volumes:
+          - name: backup-manager-secret
+            secret:
+              secretName: backup-manager-secret
+          - name: create-dumps-script
+            secret:
+              secretName: create-dumps-{{ .Values.deployEnv }}
+              defaultMode: 0744
+          - name: upload-dumps-script
+            secret:
+              secretName: upload-dumps-{{ .Values.deployEnv }}
+              defaultMode: 0744
+          - name: shared-volume
+            emptyDir: {}
+
+          affinity:
+            podAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+              - labelSelector:
+                  matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                    - mongo
+                topologyKey: kubernetes.io/hostname
+
+          initContainers:
+          - name: mongo-dumper
+            image:  mongo:4.4
+            volumeMounts:
+            - name: shared-volume
+              mountPath: /mongodumps/shared_volume
+            - name: create-dumps-script
+              mountPath: /scripts/create-dumps.sh
+              subPath: create-dumps.sh
+              readOnly: true
+            command: ["bash"]
+            args: ["-c", "/scripts/create-dumps.sh"]
+            resources:
+              limits:
+                memory: "500Mi"
+          containers:
+          - name: mongodump-uploader
+            image:  google/cloud-sdk
+            volumeMounts:
+            - name: shared-volume
+              mountPath: /mongodumps/shared_volume
+            - name: backup-manager-secret
+              mountPath: /conf
+            - name: upload-dumps-script
+              mountPath: /scripts/upload-dumps.sh
+              subPath: upload-dumps.sh
+              readOnly: true
+            env:
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /conf/BackupManagerKey.json
+            - name: SLACK_URL
+              valueFrom:
+                secretKeyRef:
+                  name: slack-webhook-{{ .Values.deployEnv }}
+                  key: slack-webhook
+            command: ["bash"]
+            args: ["-c", "/scripts/upload-dumps.sh"]
+            resources:
+              limits:
+                memory: "500Mi"
+
+          restartPolicy: OnFailure
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 2
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: create-dumps-{{ .Values.deployEnv }}
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+  namespace: default
+data:
+  create-dumps.sh: {{ .Files.Get "scripts/mongo/create-dumps.sh" | b64enc }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: upload-dumps-{{ .Values.deployEnv }}
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+  namespace: default
+data:
+  upload-dumps.sh: {{ .Files.Get "scripts/mongo/upload-dumps.sh" | b64enc }}
+...
+{{end}}

@@ -1,0 +1,386 @@
+---
+releaseImageTag: cf66cfb # Need to pass this value when applying the helm chart (This is the $BUILD_ID )
+sandbox: "false"
+sandboxName: ""
+deployEnv: "deadbeef" # This value should not appear in finalized templates # Need to pass this value when applying the helm chart
+contentSandbox: "false"
+previousServicesCount: "3"
+projectID: development-205018 # Need to pass this value when applying the helm chart
+
+web:
+  containerImage: 
+    repoLocation: gcr.io/
+    repoName: /sefaria-web-
+  replicaCount: 7
+  resources:
+    web:   
+      gunicornWorkerCount: 5
+      gunicornThreadCount: 5
+      request:
+        memory: "10Gi"
+        cpu: "1500m"
+      limit:
+        memory: "11Gi"
+        cpu: "2000m"
+    djangoLog:
+      request:
+        memory: "100Mi"
+        cpu: "50m"
+      limit:
+        memory: "150Mi"
+        cpu: "100m"
+  small:
+    replicaCount: 1
+    resources:
+      web:
+        gunicornWorkerCount: 1
+        gunicornThreadCount: 1
+        request:
+          memory: "3Gi"
+          cpu: "500m"
+        limit:
+          memory: "4Gi"
+          cpu: "1500m"
+      djangoLog:
+        request:
+          memory: "100Mi"
+          cpu: "50m"
+        limit:
+          memory: "150Mi"
+          cpu: "100m"
+  medium: 
+    replicaCount: 1
+    resources:
+      web:   
+        gunicornWorkerCount: 1
+        gunicornThreadCount: 1
+        request:
+          memory: "3Gi"
+          cpu: "500m"
+        limit:
+          memory: "4Gi"
+          cpu: "1500m"
+      djangoLog:
+        request:
+          memory: "100Mi"
+          cpu: "50m"
+        limit:
+          memory: "150Mi"
+          cpu: "100m"
+  prod:
+    replicaCount: 7
+    resources:
+      web:   
+        gunicornWorkerCount: 5
+        gunicornThreadCount: 5
+        request:
+          memory: "10Gi"
+          cpu: "1500m"
+        limit:
+          memory: "11Gi"
+          cpu: "2000m"
+      djangoLog:
+        request:
+          memory: "100Mi"
+          cpu: "50m"
+        limit:
+          memory: "150Mi"
+          cpu: "100m"   
+  democracy: 
+    replicaCount: 1
+    resources:
+      web:   
+        gunicornWorkerCount: 5
+        gunicornThreadCount: 5
+        request:
+          memory: "9Gi"
+          cpu: "1000m"
+        limit:
+          memory: "10Gi"
+          cpu: "2000m"
+      djangoLog:
+        request:
+          memory: "100Mi"
+          cpu: "50m"
+        limit:
+          memory: "150Mi"
+          cpu: "100m"
+
+redis:
+  resources:
+    request:
+      memory: "700Mi"
+      cpu: "200m"
+    limit:
+      memory: "700Mi"
+      cpu: "200m"
+  small:
+    replicaCount: 1
+    resources:
+      request:
+        memory: "250Mi"
+        cpu: "100m"
+      limit:
+        memory: "500Mi"
+        cpu: "120m"
+  medium:
+    replicaCount: 1
+    resources:
+      request:
+        memory: "250Mi"
+        cpu: "100m"
+      limit:
+        memory: "500Mi"
+        cpu: "120m"
+  prod:
+    replicaCount: 1
+    resources:
+      request:
+        memory: "500Mi"
+        cpu: "100m"
+      limit:
+        memory: "1500Mi"
+        cpu: "200m"
+  democracy:
+    replicaCount: 1
+    resources:
+      request:
+        memory: "256Mi"
+        cpu: "80m"
+      limit:
+        memory: "512Mi"
+        cpu: "120m"
+
+nodejs:
+  containerImage: gcr.io/production-deployment/sefaria-node
+  replicaCount: 4
+  resources:
+    request:
+      memory: "1Gi"
+      cpu: "1000m"
+    limit:
+      memory: "1500Mi"
+      cpu: "1500m"
+  small:
+    replicaCount: 1
+    resources:
+      request:
+        memory: "400Mi"
+        cpu: "200m"
+      limit:
+        memory: "600Mi"
+        cpu: "400m"
+  medium:
+    replicaCount: 1
+    resources:
+      request:
+        memory: "400Mi"
+        cpu: "200m"
+      limit:
+        memory: "600Mi"
+        cpu: "400m"
+  prod:
+    replicaCount: 4
+    resources:
+      request:
+        memory: "1Gi"
+        cpu: "1000m"
+      limit:
+        memory: "1500Mi"
+        cpu: "1500m"
+  democracy:
+    replicaCount: 1
+    resources:
+      request:
+        memory: "300Mi"
+        cpu: "100m"
+      limit:
+        memory: "500Mi"
+        cpu: "300m"
+
+varnish:
+  replicaCount: 1
+  resources:
+    request:
+      memory: "16Gi" # must be in megabibytes, because we pass it into the malloc definition
+      cpu: "500m"
+    limit:
+      memory: "16Gi"
+      cpu: "1000m"
+  logging: {}
+  tuning:
+    # malloc should be ~75% of the memory request.
+    malloc: "14440m"
+    nuke_limit: "400"
+    # Threading
+    # http://book.varnish-software.com/4.0/chapters/Tuning.html#details-of-threading-parameters
+    thread_pools: 2 # Default: 2
+    thread_pool_max: 5000 # Default: 5000; should be a function of resources.request.memory
+    thread_pool_min: 100 # Default: 100
+    # Timers
+    # http://book.varnish-software.com/4.0/chapters/Tuning.html#timers
+    first_byte_timeout: 60 # Default 60s
+    between_bytes_timeout: 60 # Default 60s
+  small:
+    replicaCount: 1
+    resources:
+      request:
+        memory: "25Mi"
+        cpu: "10m"
+      limit:
+        memory: "300Mi"
+        cpu: "100m"
+    tuning:
+      malloc: "250m"
+      nuke_limit: "400000"
+      thread_pools: 2 # Default: 2
+      thread_pool_max: 23000 # Default: 5000; should be a function of resources.request.memory
+      thread_pool_min: 100 # Default: 100
+      first_byte_timeout: 90 # Default 60s
+      between_bytes_timeout: 90 # Default 60s
+  medium:
+    replicaCount: 1
+    resources:
+      request:
+        memory: "2500Mi"
+        cpu: "300m"
+      limit:
+        memory: "2700Mi"
+        cpu: "400m"
+    tuning:
+      malloc: "1875m"
+      nuke_limit: "400000"
+      thread_pools: 2 # Default: 2
+      thread_pool_max: 23000 # Default: 5000; should be a function of resources.request.memory
+      thread_pool_min: 100 # Default: 100
+      first_byte_timeout: 90 # Default 60s
+      between_bytes_timeout: 90 # Default 60s
+  prod:
+    replicaCount: 1
+    resources:
+      request:
+        memory: "16Gi"
+        cpu: "1000m"
+      limit:
+        memory: "18Gi"
+        cpu: "1500m"
+    tuning:
+      malloc: "14440m"
+      nuke_limit: "400"
+      thread_pools: 2 # Default: 2
+      thread_pool_max: 5000 # Default: 5000; should be a function of resources.request.memory
+      thread_pool_min: 100 # Default: 100
+      first_byte_timeout: 60 # Default 60s
+      between_bytes_timeout: 60 # Default 60s
+  democracy:
+    replicaCount: 1
+    resources:
+      request:
+        memory: "400Mi"
+        cpu: "200m"
+      limit:
+        memory: "600Mi"
+        cpu: "600m"
+    tuning:
+      malloc: "300m"
+      nuke_limit: "400"
+      thread_pools: 2 # Default: 2
+      thread_pool_max: 5000 # Default: 5000; should be a function of resources.request.memory
+      thread_pool_min: 100 # Default: 100
+      first_byte_timeout: 60 # Default 60s
+      between_bytes_timeout: 60 # Default 60s
+
+nginx:
+  containerImage: gcr.io/production-deployment/sefaria-asset
+  replicaCount: 2
+  resources:
+    request:
+      memory: "500Mi"
+      cpu: "150m"
+    limit:
+      memory: "500Mi"
+      cpu: "300m"
+  small:
+    replicaCount: 1
+    resources:
+      request:
+        memory: "200Mi"
+        cpu: "80m"
+      limit:
+        memory: "300Mi"
+        cpu: "150m"
+  medium:
+    replicaCount: 1
+    resources:
+      request:
+        memory: "200Mi"
+        cpu: "80m"
+      limit:
+        memory: "300Mi"
+        cpu: "150m"
+  prod:
+    replicaCount: 2
+    resources:
+      request:
+        memory: "200Mi"
+        cpu: "100m"
+      limit:
+        memory: "300Mi"
+        cpu: "150m"
+  democracy:
+    replicaCount: 1
+    resources:
+      request:
+        memory: "100Mi"
+        cpu: "100m"
+      limit:
+        memory: "300Mi"
+        cpu: "150m"
+
+monitor:
+  containerImage: gcr.io/production-deployment/sefaria-web
+  replicaCount: 1
+  resources:
+    request:
+      memory: "500Mi"
+      cpu: "150m"
+    limit:
+      memory: "500Mi"
+      cpu: "200m" 
+  small:
+    replicaCount: 1
+    resources:
+      request:
+        memory: "300Mi"
+        cpu: "50m"
+      limit:
+        memory: "400Mi"
+        cpu: "100m"
+  medium:
+    replicaCount: 1
+    resources:
+      request:
+        memory: "300Mi"
+        cpu: "50m"
+      limit:
+        memory: "400Mi"
+        cpu: "100m"
+  prod:
+    replicaCount: 1
+    resources:
+      request:
+        memory: "400Mi"
+        cpu: "80m"
+      limit:
+        memory: "500Mi"
+        cpu: "150m" 
+  democracy:
+    replicaCount: 1
+    resources:
+      request:
+        memory: "200Mi"
+        cpu: "80m"
+      limit:
+        memory: "300Mi"
+        cpu: "150m" 
+...
