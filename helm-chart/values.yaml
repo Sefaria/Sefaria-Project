@@ -53,6 +53,10 @@ nodejs:
       cpu: "1500m"
 
 varnish:
+  containerImage:
+    repoLocation: gcr.io
+    RepoName: sefaria-varnish
+    tag: v6
   replicaCount: 1
   resources:
     request:
