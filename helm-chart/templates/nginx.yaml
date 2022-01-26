@@ -140,7 +140,7 @@ spec:
 
       containers:
       - name: nginx
-        image: "{{ .Values.nginx.containerImage }}:{{ .Values.releaseImageTag }}"
+        image: "{{ .Values.nginx.containerImage.repoLocation }}/{{ .Values.projectID }}/{{ .Values.nginx.containerImage.repoName }}-{{ .Values.deployEnv }}:{{- if eq .Values.sandbox "true" }}sandbox-{{- end }}{{ .Values.releaseImageTag }}"
         imagePullPolicy: Always
         command: ["bash", "-c"]
         # https://serverfault.com/questions/577370/how-can-i-use-environment-variables-in-nginx-conf

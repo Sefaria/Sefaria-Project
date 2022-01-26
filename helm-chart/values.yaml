@@ -81,7 +81,9 @@ varnish:
     between_bytes_timeout: 60 # Default 60s
 
 nginx:
-  containerImage: gcr.io/production-deployment/sefaria-asset
+  containerImage: 
+    repoLocation: gcr.io
+    repoName: sefaria-asset
   replicaCount: 2
   resources:
     request:
