@@ -2,8 +2,9 @@ from __future__ import annotations
 from typing import Optional, Union, List
 
 import strawberry
+
+from sefaria.graphql.models.versions import GraphVersion, get_versions
 from sefaria.model import Index, library
-from dataclasses import dataclass
 from sefaria.graphql.utils import JSONScalar
 from sefaria.system.exceptions import BookNameError
 
@@ -43,6 +44,10 @@ class GraphIndex:
     schema: JSONScalar
     altStructs: Optional[JSONScalar]
 
+    @strawberry.field
+    def versions(self, language: Union[str, None] = None, version_title: Union[str, None] = None) -> List[GraphVersion]:
+        return get_versions(self.title, language, version_title)
+
 
 def get_index(title: str) -> Union[GraphIndex, None]:
     try:
@@ -54,5 +59,5 @@ def get_index(title: str) -> Union[GraphIndex, None]:
         categories=index_obj.categories,
         node=JaNode.from_index(index_obj),
         schema=index_obj.schema,
-        altStructs=getattr(index_obj, 'alt_structs', None)
+        altStructs=getattr(index_obj, 'alt_structs', None),
     )

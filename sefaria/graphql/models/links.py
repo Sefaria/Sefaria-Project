@@ -26,8 +26,7 @@ class GraphLinkSet:
     query_info: str
 
 
-def get_links(reference: str) -> GraphLinkSet:
-    # todo: Limit ref scope to avoid massive
+def get_links_outer_query(reference: str) -> GraphLinkSet:
     try:
         oref = Ref(reference)
     except InputError:
@@ -40,3 +39,13 @@ def get_links(reference: str) -> GraphLinkSet:
         helper = LinkQueryInfo.ALL.value
     links = [GraphLink(link.refs) for link in ls.array()]
     return GraphLinkSet(links=links, query_info=helper)
+
+
+def get_links_inner_query(reference: str) -> List[GraphLink]:
+    """
+    simplified query method to be used in nested queries.
+    Nested queries strictly limit the scope of the query, thus avoiding bad names and large results
+    """
+    oref = Ref(reference)
+    ls = oref.linkset()
+    return [GraphLink(link.refs) for link in ls.array()]
