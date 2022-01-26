@@ -94,7 +94,9 @@ nginx:
       cpu: "300m"
 
 monitor:
-  containerImage: gcr.io/production-deployment/sefaria-web
+  containerImage: 
+    repoLocation: gcr.io
+    repoName: sefaria-web
   replicaCount: 1
   resources:
     request:

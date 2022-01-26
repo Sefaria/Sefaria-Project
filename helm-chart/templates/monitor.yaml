@@ -87,7 +87,7 @@ spec:
 
       containers:
       - name: monitor
-        image: "{{ .Values.monitor.containerImage }}:{{ .Values.releaseImageTag }}"
+        image: "{{ .Values.monitor.containerImage.repoLocation }}/{{ .Values.projectID }}/{{ .Values.monitor.containerImage.repoName }}-{{ .Values.deployEnv }}:{{- if eq .Values.sandbox "true" }}sandbox-{{- end }}{{ .Values.releaseImageTag }}"
         imagePullPolicy: Always
         args: [ "mkdir -p /log && touch /log/sefaria_book_errors.log && python multiserver-monitor.py" ]
         env:
