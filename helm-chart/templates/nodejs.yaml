@@ -96,7 +96,7 @@ spec:
         {{end}}
       containers:
       - name: node
-        image: "{{ .Values.nodejs.containerImage.repoLocation }}{{ .Values.projectID }}{{ .Values.nodejs.containerImage.repoName }}{{ .Values.deployEnv }}:{{- if eq .Values.sandbox "true" }}sandbox-{{- end }}{{ .Values.releaseImageTag }}"
+        image: "{{ .Values.nodejs.containerImage.repoLocation }}/{{ .Values.projectID }}/{{ .Values.nodejs.containerImage.repoName }}-{{ .Values.deployEnv }}:{{- if eq .Values.sandbox "true" }}sandbox-{{- end }}{{ .Values.releaseImageTag }}"
         imagePullPolicy: Always
         env:
           - name: randomstringtoforceredeployments

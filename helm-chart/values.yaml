@@ -9,8 +9,8 @@ projectID: development-205018 # Need to pass this value when applying the helm c
 
 web:
   containerImage: 
-    repoLocation: gcr.io/
-    repoName: /sefaria-web-
+    repoLocation: gcr.io
+    repoName: sefaria-web
   replicaCount: 7
   resources:
     web:   
@@ -41,8 +41,8 @@ redis:
 
 nodejs:
   containerImage: 
-    repoLocation: gcr.io/
-    RepoName: /sefaria-node
+    repoLocation: gcr.io
+    RepoName: sefaria-node
   replicaCount: 4
   resources:
     request:
