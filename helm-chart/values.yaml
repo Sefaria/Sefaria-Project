@@ -40,7 +40,9 @@ redis:
       cpu: "200m"
 
 nodejs:
-  containerImage: gcr.io/production-deployment/sefaria-node
+  containerImage: 
+    repoLocation: gcr.io/
+    RepoName: /sefaria-node
   replicaCount: 4
   resources:
     request:
