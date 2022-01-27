@@ -11,56 +11,15 @@ spec:
     - secretName: origin-tls-{{ .Values.deployEnv }}
     - secretName: origin-il-tls-{{ .Values.deployEnv }}
   rules:
-    - host: "{{ substr 0 4 .Values.deployEnv }}.sefaria.org"
+    {{- range .Values.ingress.hosts }}
+    - host: {{ tpl .host . | quote }}
       http:
         paths:
-          - path: /*
+          - path: {{ .path | default "/*" | quote }}
             backend:
-              serviceName: nginx-{{ .Values.deployEnv }}
-              servicePort: 80
-    - host: "{{ substr 0 4 .Values.deployEnv }}.sefaria.org.il"
-      http:
-        paths:
-          - path: /*
-            backend:
-              serviceName: nginx-{{ .Values.deployEnv }}
-              servicePort: 80
-    - host: sefaria.org
-      http:
-        paths:
-          - path: /*
-            backend:
-              serviceName: nginx-{{ .Values.deployEnv }}
-              servicePort: 80
-    - host: sefaria.org.il
-      http:
-        paths:
-          - path: /*
-            backend:
-              serviceName: nginx-{{ .Values.deployEnv }}
-              servicePort: 80
-    - host: www.sefaria.org
-      http:
-        paths:
-          - path: /*
-            backend:
-              serviceName: nginx-{{ .Values.deployEnv }}
-              servicePort: 80
-    - host: www.sefaria.org.il
-      http:
-        paths:
-          - path: /*
-            backend:
-              serviceName: nginx-{{ .Values.deployEnv }}
-              servicePort: 80
-
-    - host: rollout.sefaria.org
-      http:
-        paths:
-          - path: /*
-            backend:
-              serviceName: nginx-{{ .Values.deployEnv }}
-              servicePort: 80
+              serviceName: {{ .serviceName | default "nginx" }}-{{ .Values.deployEnv }}
+              servicePort: {{ .port | default "80" }}
+    {{- end }}
 
 ---
 apiVersion: v1

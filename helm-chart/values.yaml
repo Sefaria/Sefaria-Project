@@ -80,6 +80,19 @@ varnish:
     first_byte_timeout: 60 # Default 60s
     between_bytes_timeout: 60 # Default 60s
 
+ingress:
+  hosts: # You can set parth: serviceName: and port: for each host. By default they are set to '/*', 'nginx', '80' for each. Do note that changing this means you'll have to change the nginx service as well.
+    - host: "{{ .Values.deployEnv }}.sefaria.org"
+      path: /*
+      serviceName: nginx
+      port: 80
+    - host: "{{ .Values.deployEnv }}.sefaria.org.il"
+    - host: sefaria.org
+    - host: sefaria.org.il
+    - host: www.sefaria.org
+    - host: www.sefaria.org.il
+    - host: rollout.sefaria.org
+
 nginx:
   containerImage: 
     repoLocation: gcr.io
