@@ -106,7 +106,7 @@ spec:
           - name: DJANGO_PORT
             value: "80"
           - name: DEBUG
-            value: {{if eq (substr 0 4 .Values.deployEnv) "prod"}}"false"{{else}}"true"{{end}}
+            value: {{ if eq .Values.deployEnv "prod" }}"false"{{else}}"true"{{end}}
           - name: REDIS_HOST
             value: redis-{{ .Values.deployEnv }}
         ports:

@@ -1,4 +1,4 @@
-{{if eq (substr 0 4 .Values.deployEnv) "prod"}}
+{{ if eq .Values.deployEnv "prod" }}
 ---
 apiVersion: extensions/v1beta1
 kind: Ingress

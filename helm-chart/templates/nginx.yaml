@@ -187,7 +187,7 @@ spec:
           # Eventually delete this conditional by bringing PROD into line
           # and automatically generating the name, a la "search-{{ .Values.deployEnv }}"
           - name: SEARCH_HOST
-            {{if eq (substr 0 4 .Values.deployEnv) "prod"}}
+            {{ if eq .Values.deployEnv "prod" }}
             value: elasticsearch-data
             {{else if eq .Values.deployEnv "democracy"}}
             value: search-democracy
