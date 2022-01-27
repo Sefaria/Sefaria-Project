@@ -1146,7 +1146,7 @@ Sefaria = extend(Sefaria, {
   }
   ,
   _linkSummaries: {},
-  linkSummary: function(ref, excludedSheet, excludeEssayLinks=true) {
+  linkSummary: function(ref, excludedSheet, cacheResults=true) {
     // Returns an ordered array summarizing the link counts by category and text
     // Takes either a single string `ref` or an array of refs strings.
     // If `excludedSheet` is present, exclude links to that sheet ID.
@@ -1242,9 +1242,6 @@ Sefaria = extend(Sefaria, {
     const summary = {};
     for (let i = 0; i < links.length; i++) {
       const link = links[i];
-      if (link["type"] === "essay" && excludeEssayLinks) {
-        continue;
-      }
       // Count Category
       if (link.category in summary) {
         summary[link.category].count += 1;
@@ -1313,7 +1310,9 @@ Sefaria = extend(Sefaria, {
       orderB = orderB === -1 ? categoryOrder.length : orderB;
       return orderA - orderB;
     });
-    Sefaria._linkSummaries[cacheKey] = summaryList;
+    if (cacheResults) {
+        Sefaria._linkSummaries[cacheKey] = summaryList;
+    }
     return summaryList;
   },
   linkSummaryBookSort: function(category, a, b, byHebrew) {
