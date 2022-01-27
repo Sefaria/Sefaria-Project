@@ -6,6 +6,7 @@ deployEnv: "deadbeef" # This value should not appear in finalized templates # Ne
 contentSandbox: "false"
 previousServicesCount: "3"
 projectID: development-205018 # Need to pass this value when applying the helm chart
+slackWebhook: "https://hooks.slack.com/services/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"
 
 web:
   containerImage: 
