@@ -291,8 +291,8 @@ class ConnectionsPanel extends Component {
         />
       </div>);
     } else if (this.props.mode === "Resources") {
-      const summary = Sefaria.linkSummary(this.props.srefs, this.props.nodeRef ? this.props.nodeRef.split(".")[0] : null, false);
-      const showConnectionSummary = summary.length > 0;
+      const summary = Sefaria.linkSummary(this.props.srefs, this.props.nodeRef ? this.props.nodeRef.split(".")[0] : null);
+      const showConnectionSummary = summary.length > 0 || Sefaria.hasEssayLinks(this.props.srefs);
       const resourcesButtonCounts = {
         sheets: Sefaria.sheets.sheetsTotalCount(this.props.srefs),
         webpages: Sefaria.webPagesByRef(this.props.srefs).length,

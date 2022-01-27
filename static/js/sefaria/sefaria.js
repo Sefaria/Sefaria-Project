@@ -1124,6 +1124,15 @@ Sefaria = extend(Sefaria, {
     links.map((link) => {dedupedLinks[key(link)] = link});
     return Object.values(dedupedLinks);
   },
+  hasEssayLinks: function(ref) {
+      let links = [];
+      ref.map(function(r) {
+          const newlinks = Sefaria.getLinksFromCache(r);
+          links = links.concat(newlinks);
+      });
+      links = links.filter(l => l["type"] === "essay");
+      return links.length > 0;
+  }
   essayLinks: function(ref, versions) {
     let links = [];
     ref.map(function(r) {
@@ -1146,11 +1155,10 @@ Sefaria = extend(Sefaria, {
   }
   ,
   _linkSummaries: {},
-  linkSummary: function(ref, excludedSheet, cacheResults=true) {
+  linkSummary: function(ref, excludedSheet) {
     // Returns an ordered array summarizing the link counts by category and text
     // Takes either a single string `ref` or an array of refs strings.
     // If `excludedSheet` is present, exclude links to that sheet ID.
-    // If `excludeEssayLinks` is true, do not include links of type 'essay'
     const categoryOrderOverrides = {
         "Tanakh": [
             "Talmud",
@@ -1242,6 +1250,9 @@ Sefaria = extend(Sefaria, {
     const summary = {};
     for (let i = 0; i < links.length; i++) {
       const link = links[i];
+      if (link["type"] === "essay") {
+        continue;
+      }
       // Count Category
       if (link.category in summary) {
         summary[link.category].count += 1;
@@ -1310,9 +1321,7 @@ Sefaria = extend(Sefaria, {
       orderB = orderB === -1 ? categoryOrder.length : orderB;
       return orderA - orderB;
     });
-    if (cacheResults) {
-        Sefaria._linkSummaries[cacheKey] = summaryList;
-    }
+    Sefaria._linkSummaries[cacheKey] = summaryList;
     return summaryList;
   },
   linkSummaryBookSort: function(category, a, b, byHebrew) {
