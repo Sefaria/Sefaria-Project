@@ -1146,10 +1146,11 @@ Sefaria = extend(Sefaria, {
   }
   ,
   _linkSummaries: {},
-  linkSummary: function(ref, excludedSheet) {
+  linkSummary: function(ref, excludedSheet, excludeEssayLinks=true) {
     // Returns an ordered array summarizing the link counts by category and text
     // Takes either a single string `ref` or an array of refs strings.
     // If `excludedSheet` is present, exclude links to that sheet ID.
+    // If `excludeEssayLinks` is true, do not include links of type 'essay'
     const categoryOrderOverrides = {
         "Tanakh": [
             "Talmud",
@@ -1241,7 +1242,7 @@ Sefaria = extend(Sefaria, {
     const summary = {};
     for (let i = 0; i < links.length; i++) {
       const link = links[i];
-      if (link["type"] === "essay") {
+      if (link["type"] === "essay" && excludeEssayLinks) {
         continue;
       }
       // Count Category
