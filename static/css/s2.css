@@ -2932,12 +2932,14 @@ a.navBlockTitle:hover {
   padding: 0 6px;
   box-sizing: border-box;
 }
-
 .connectionsPanel .textTableOfContents .sectionLink {
   background-color: #ffffff;
   color: #000000;
 }
-
+.textTableOfContents .sectionLink.current{
+  background-color: var(--sefaria-blue);
+  color: #FFFFFF;
+}
 .textTableOfContents .sectionName {
   display: none;
 }
@@ -2982,7 +2984,13 @@ a.navBlockTitle:hover {
 .textTableOfContents .schema-node-toc {
   display: block;
 }
-.textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title:after {
+.textTableOfContents .schema-node-toc.linked.current,
+.textTableOfContents .schema-node-toc.linked.current .schema-node-title {
+  color: var(--sefaria-blue);
+  font-weight: bold;
+}
+
+.textTableOfContents .schema-node-toc:not(.linked)>.schema-node-title:after {
   content: "\f105";
   display: inline-block;
   font-size: inherit;
@@ -4155,6 +4163,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-overflow: ellipsis;
   overflow: hidden;
   padding: 0 2px;
+  display: inline;
 }
 .readerControls .readerTextToc .categoryAttribution .he {
   font-style: normal;
@@ -4318,7 +4327,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   overflow: hidden;
 }
 .readerControls .readerTextToc .readerTextVersion {
-  font-style: italic;
+  font-size: 15px;
   color: #999;
 }
 .readerControls .readerTextToc .readerTextVersion .en{
@@ -4641,14 +4650,14 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .basetext .segment {
   margin-bottom: 26px;
 }
-.hebrew.segmented .segment > .he,
+/*.hebrew.segmented .segment > .he,
 .hebrew.segmented .segment > p > .he{
   display: block;
 }
 .hebrew.continuous .segment > .he,
 .hebrew.continuous .segment > p > .he{
   display: inline;
-}
+}*/
 .bilingual .segment > .he,
 .bilingual .segment > p > .he{
   display: block;
@@ -6288,8 +6297,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 
 .shareInputBox .shareInputButton:active {
   background-color: var(--light-grey);
-  border: 0;
-  margin-inline-start: 20px;
 }
 
 .shareSettingsBox {

@@ -48,6 +48,7 @@ class ConnectionsPanel extends Component {
       availableTranslations: [],
       linksLoaded: false, // has the list of refs been loaded
       connectionSummaryCollapsed: true,
+      currentlyVisibleSectionRef: Sefaria.sectionRef(this.props.currentlyVisibleRef),
     };
   }
   toggleTopLevelCollapsed() {
@@ -176,6 +177,13 @@ class ConnectionsPanel extends Component {
     }
     if (!this.isSheet()) {
       Sefaria.getVersions(ref, false, ["he"], true).then(versions => this.setState({ availableTranslations: versions })); //for counting translations
+      Sefaria.getRef(this.props.currentlyVisibleRef).then(data => { //this does not properly return a secionRef for a spanning/ranged ref
+        const currRef = (typeof data == "string") ? Sefaria.sectionRef(data) : data["sectionRef"]; //this is an annoying consequence of getRef not actually returning a
+        // consistent response. Its either the ref from cache or the entire text api response if async. 
+        this.setState({currentlyVisibleSectionRef: currRef});
+      });
+      //this.setState({currentlyVisibleSectionRef: Sefaria.sectionRef(this.props.currentlyVisibleRef)});
+      
     }
   }
   reloadData() {
@@ -198,7 +206,8 @@ class ConnectionsPanel extends Component {
   }
   getData(cb) {
     // Gets data about this text from cache, which may be null.
-    return Sefaria.getText(this.props.srefs[0], { context: 1, enVersion: this.props.currVersions.en, heVersion: this.props.currVersions.he, translationLanguagePreference: this.props.translationLanguagePreference }).then(cb);
+    const versionPref = Sefaria.versionPreferences.getVersionPref(this.props.srefs[0]);
+    return Sefaria.getText(this.props.srefs[0], { context: 1, enVersion: this.props.currVersions.en, heVersion: this.props.currVersions.he, translationLanguagePreference: this.props.translationLanguagePreference, versionPref}).then(cb);
   }
   getVersionFromData(d, lang) {
     //d - data received from this.getData()
@@ -374,6 +383,8 @@ class ConnectionsPanel extends Component {
           close={this.props.close}
           currVersions={this.props.currVersions}
           navigatePanel={this.props.navigatePanel}
+          currentlyVisibleRef={this.props.currentlyVisibleRef}
+          currentlyVisibleSectionRef={this.state.currentlyVisibleSectionRef}
         />
       );
     } else if (this.props.mode === "ConnectionsList") {
@@ -625,7 +636,8 @@ class ConnectionsPanel extends Component {
         srefs={this.props.srefs}
         sectionRef={this.state.sectionRef}
         openVersionInReader={this.props.selectVersion}
-        viewExtendedNotes={this.props.viewExtendedNotes} />);
+        viewExtendedNotes={this.props.viewExtendedNotes}
+      />);
 
     } else if (this.props.mode === "Translations" || this.props.mode === "Translation Open") {
       content = (<TranslationsBox

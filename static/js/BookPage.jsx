@@ -110,6 +110,8 @@ class BookPage extends Component {
         versionNotes:           currentLanguage == "he" ? d.heVersionNotes : d.versionNotes,
         digitizedBySefaria:     currentLanguage == "he" ? d.heDigitizedBySefaria : d.digitizedBySefaria,
         versionTitleInHebrew: currentLanguage == "he" ? d.heVersionTitleInHebrew : d.VersionTitleInHebrew,
+        shortVersionTitle:    currentLanguage == "he" ? d.heShortVersionTitle : d.shortVersionTitle,
+        shortVersionTitleInHebrew: currentLanguage == "he" ? d.heShortVersionTitleInHebrew : d.shortVersionTitleInHebrew,
         versionNotesInHebrew: currentLanguage == "he" ? d.heVersionNotesInHebrew : d.VersionNotesInHebrew,
         extendedNotes:        currentLanguage == "he" ? d.heExtendedNotes : d.extendedNotes,
         extendedNotesHebrew:  currentLanguage == "he" ? d.extendedNotesHebrew : d.heExtendedNotesHebrew,
@@ -391,7 +393,15 @@ class TextTableOfContents extends Component {
                     tabOptions={structTabOptions}
                     activeTab={this.state.tab}
                     narrowPanel={this.props.narrowPanel} /> : null);
-
+    
+   const dictionarySearch = (isDictionary ?
+              <DictionarySearch
+              lexiconName={this.state.indexDetails.lexiconName}
+              title={this.props.title}
+              showBaseText={this.props.showBaseText}
+              navigatePanel={this.props.navigatePanel}
+              contextSelector=".textTableOfContents"
+              currVersions={this.props.currVersions}/> : null);
     let content;
     switch(this.state.tab) {
       case "schema":
@@ -404,6 +414,8 @@ class TextTableOfContents extends Component {
                 refPath={this.props.title}
                 topLevel={true}
                 topLevelHeader={"Chapters"}
+                currentlyVisibleRef={this.props.currentlyVisibleRef}
+                currentlyVisibleSectionRef={this.props.currentlyVisibleSectionRef}
               />
               <div className="torahNavParshiot">
                 <SchemaNode
@@ -412,6 +424,8 @@ class TextTableOfContents extends Component {
                   refPath={this.props.title}
                   topLevel={true}
                   topLevelHeader={"Torah Portions"}
+                  currentlyVisibleRef={this.props.currentlyVisibleRef}
+                  currentlyVisibleSectionRef={this.props.currentlyVisibleSectionRef}
                 />
               </div>
             </>
@@ -422,8 +436,8 @@ class TextTableOfContents extends Component {
                       addressTypes={this.state.indexDetails.schema.addressTypes}
                       refPath={this.props.title}
                       topLevel={true}
-                      showBaseText={this.props.showBaseText}
-                      currVersions={this.props.currVersions}
+                      currentlyVisibleRef={this.props.currentlyVisibleRef}
+                      currentlyVisibleSectionRef={this.props.currentlyVisibleSectionRef}
 
           />;
         }
@@ -433,7 +447,10 @@ class TextTableOfContents extends Component {
                     schema={alts[this.state.tab]}
                     addressTypes={this.state.indexDetails.schema.addressTypes}
                     refPath={this.props.title}
-                    topLevel={true} />;
+                    topLevel={true}
+                    currentlyVisibleRef={this.props.currentlyVisibleRef}
+                    currentlyVisibleSectionRef={this.props.currentlyVisibleSectionRef}
+                    />;
         break;
     }
 
@@ -442,6 +459,7 @@ class TextTableOfContents extends Component {
           <div className="textTableOfContents">
             <div className="tocTools">
               {toggle}
+              {dictionarySearch}
             </div>
             <div className="tocContent">
               {content}
@@ -525,20 +543,20 @@ class SchemaNode extends Component {
             refPath={this.props.refPath}
             topLevel={this.props.topLevel}
             topLevelHeader={this.props.topLevelHeader}
+            currentlyVisibleRef={this.props.currentlyVisibleRef}
+            currentlyVisibleSectionRef={this.props.currentlyVisibleSectionRef}
           />
         );
       } else if (this.props.schema.nodeType === "ArrayMapNode") {
         return (
-          <ArrayMapNode schema={this.props.schema} />
+          <ArrayMapNode schema={this.props.schema} currentlyVisibleRef={this.props.currentlyVisibleRef} currentlyVisibleSectionRef={this.props.currentlyVisibleSectionRef} />
         );
       } else if (this.props.schema.nodeType === "DictionaryNode") {
         return (
           <DictionaryNode
               schema={this.props.schema}
-              title={this.props.refPath}
-              showBaseText={this.props.showBaseText}
-              currVersions={this.props.currVersions}
-              lexiconName={node.lexiconName}
+              currentlyVisibleRef={this.props.currentlyVisibleRef} 
+              currentlyVisibleSectionRef={this.props.currentlyVisibleSectionRef}
           />
         );
       }
@@ -564,28 +582,30 @@ class SchemaNode extends Component {
               <div className="schema-node-contents">
                 <SchemaNode
                   schema={node}
-                  refPath={this.props.refPath + ", " + node.title} />
+                  refPath={this.props.refPath + ", " + node.title}
+                  currentlyVisibleRef={this.props.currentlyVisibleRef}
+                  currentlyVisibleSectionRef={this.props.currentlyVisibleSectionRef}/>
               </div>
               : null }
             </div>);
         } else if (node.nodeType == "ArrayMapNode") {
           // ArrayMapNode with only wholeRef
-          return <ArrayMapNode schema={node} key={i}/>;
+          return <ArrayMapNode schema={node} currentlyVisibleRef={this.props.currentlyVisibleRef} currentlyVisibleSectionRef={this.props.currentlyVisibleSectionRef} key={i}/>;
         } else if (node.nodeType == "DictionaryNode") {
-          return <DictionaryNode
-              schema={node}
+          return <DictionaryNode 
+              schema={node} 
+              currentlyVisibleRef={this.props.currentlyVisibleRef} 
+              currentlyVisibleSectionRef={this.props.currentlyVisibleSectionRef} 
               key={i}
-              lexiconName={this.props.lexiconName}
-              title={this.props.refPath}
-              showBaseText={this.props.showBaseText}
-              currVersions={this.props.currVersions}
-              lexiconName={node.lexiconName}
           />;
         } else if (node.depth == 1 && !node.default) {
           // SchemaNode title that points straight to content
+          //we check if this happens to be where the reader is currently at
           path = this.props.refPath + ", " + node.title;
+          let currentPlace = path == this.props?.currentlyVisibleSectionRef;
+          const linkClasses = classNames({"schema-node-toc": 1, "linked": 1, "current": currentPlace})
           return (
-            <a className="schema-node-toc linked" href={"/" + Sefaria.normRef(path)} data-ref={path} key={i}>
+            <a className={linkClasses} href={"/" + Sefaria.normRef(path)} data-ref={path} key={i}>
               <span className="schema-node-title" role="heading" aria-level="3">
                 <ContentText text={{en:node.title , he:node.heTitle }}/>
               </span>
@@ -607,7 +627,10 @@ class SchemaNode extends Component {
                 <JaggedArrayNode
                   schema={node}
                   contentLang={this.props.contentLang}
-                  refPath={this.props.refPath + (node.default ? "" : ", " + node.title)} />
+                  refPath={this.props.refPath + (node.default ? "" : ", " + node.title)}
+                  currentlyVisibleRef={this.props.currentlyVisibleRef}
+                  currentlyVisibleSectionRef={this.props.currentlyVisibleSectionRef}
+                />
               </div>
               : null }
             </div>);
@@ -646,7 +669,10 @@ class JaggedArrayNode extends Component {
                 sectionNames={this.props.schema.sectionNames.slice(0, -zoom)}
                 addressTypes={this.props.schema.addressTypes.slice(0, -zoom)}
                 contentCounts={this.props.schema.content_counts}
-                refPath={this.props.refPath} />);
+                refPath={this.props.refPath}
+                currentlyVisibleRef={this.props.currentlyVisibleRef}
+                currentlyVisibleSectionRef={this.props.currentlyVisibleSectionRef}
+              />);
     }
     let topLevelHeader = this.props.topLevel && (this.props.schema?.depth <= 2 || this.props.topLevelHeader) ? (
         <div className="specialNavSectionHeader">
@@ -664,7 +690,10 @@ class JaggedArrayNode extends Component {
                 sectionNames={this.props.schema.sectionNames}
                 addressTypes={this.props.schema.addressTypes}
                 contentCounts={this.props.schema.content_counts}
-                refPath={this.props.refPath} />
+                refPath={this.props.refPath}
+                currentlyVisibleRef={this.props.currentlyVisibleRef}
+                currentlyVisibleSectionRef={this.props.currentlyVisibleSectionRef}
+          />
         </>
     );
   }
@@ -724,7 +753,9 @@ class JaggedArrayNodeSection extends Component {
               sectionNames={this.props.sectionNames.slice(1)}
               addressTypes={this.props.addressTypes.slice(1)}
               contentCounts={this.props.contentCounts[i]}
-              refPath={this.props.refPath + ":" + enSection} />
+              refPath={this.props.refPath + ":" + enSection}
+              currentlyVisibleRef={this.props.currentlyVisibleRef}
+              currentlyVisibleSectionRef={this.props.currentlyVisibleSectionRef}/>
           </div>);
       }
       return ( <div className="tocLevel">{content}</div> );
@@ -747,8 +778,10 @@ class JaggedArrayNodeSection extends Component {
           heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
         }
       let ref  = (this.props.refPath + ":" + section).replace(":", " ") + this.refPathTerminal(contentCounts[i]);
+      let currentPlace = ref == this.props?.currentlyVisibleSectionRef || ref == this.props?.currentlyVisibleRef; //the second clause is for depth 1 texts
+      const linkClasses = classNames({"sectionLink": 1, "current": currentPlace}); 
       let link = (
-        <a className="sectionLink" href={"/" + Sefaria.normRef(ref)} data-ref={ref} key={i}>
+        <a className={linkClasses} href={"/" + Sefaria.normRef(ref)} data-ref={ref} key={i}>
           <ContentText text={{en:section, he:heSection}}/>
         </a>
       );
@@ -794,8 +827,10 @@ class ArrayMapNode extends Component {
           section = i+1;
           heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
         }
+        let currentPlace = ref == this.props?.currentlyVisibleSectionRef;
+        const linkClasses = classNames({"sectionLink": 1, "current": currentPlace}); 
         return (
-          <a className="sectionLink" href={"/" + Sefaria.normRef(ref)} data-ref={ref} key={i}>
+          <a className={linkClasses} href={"/" + Sefaria.normRef(ref)} data-ref={ref} key={i}>
             <ContentText text={{en:section, he:heSection}}/>
           </a>
         );
@@ -804,8 +839,11 @@ class ArrayMapNode extends Component {
       return (<div>{sectionLinks}</div>);
 
     } else {
+      let currentPlace = this.props?.currentlyVisibleSectionRef && 
+          (this.props.schema.wholeRef == this.props?.currentlyVisibleRef || (Sefaria.refContains(this.props.schema.wholeRef, this.props?.currentlyVisibleRef)));
+      const linkClasses = classNames({"schema-node-toc": 1, "linked":1, "current": currentPlace}); 
       return (
-        <a className="schema-node-toc linked" href={"/" + Sefaria.normRef(this.props.schema.wholeRef)} data-ref={this.props.schema.wholeRef}>
+        <a className={linkClasses} href={"/" + Sefaria.normRef(this.props.schema.wholeRef)} data-ref={this.props.schema.wholeRef}>
           <span className="schema-node-title" role="heading" aria-level="3">
             <ContentText text={{en:this.props.schema.title, he:this.props.schema.heTitle}}/>
           </span>
@@ -819,34 +857,41 @@ ArrayMapNode.propTypes = {
 
 
 class DictionaryNode extends Component {
+  getCurrentLetter(){ 
+    //we need this so we can tell what letter of the alphabet a user is currently looking at based on the current ref, since the letters arent actually super
+    // sections. 
+    if(this.props?.currentlyVisibleSectionRef){
+      const rf = this.props.currentlyVisibleSectionRef;
+      const letterSectionRf = rf.substring(0, rf.lastIndexOf(",") + 3); 
+      //get the substring up to the character after the last comma (and the space) thats the letter of the
+      // alphabet we are on
+      return letterSectionRf;
+    }
+    return null;
+  }
   render() {
     if (this.props.schema.headwordMap) {
-      const dictionarySearch =
-              <DictionarySearch
-              lexiconName={this.props.lexiconName}
-              title={this.props.title}
-              showBaseText={this.props.showBaseText}
-              contextSelector=".bookPage"
-              currVersions={this.props.currVersions}/>;
-      const contentText = this.props.schema.title ? (
+      const headerText = this.props.schema.title ? (
         <ContentText text={{en:this.props.schema.title , he:this.props.schema.heTitle }}/>
       ) : (
         <ContentText text={{en: "Browse By Letter", he: 'לפי סדר הא"ב'}}/>);
-      let sectionLinks = this.props.schema.headwordMap.map(function(m,i) {
-      let letter = m[0];
-      let ref = m[1];
-      return (
-          <a className="sectionLink" href={"/" + Sefaria.normRef(ref)} data-ref={ref} key={i}>
-            <ContentText text={{en:letter, he:letter}} />
-          </a>
+      const letterSection = this.getCurrentLetter();
+      let sectionLinks = this.props.schema.headwordMap.map((m, i) => {
+        let letter = m[0];
+        let ref = m[1];
+        let currentPlace = letterSection ? ref == letterSection : false;
+        const linkClasses = classNames({"sectionLink": 1, "current": currentPlace});
+        return (
+            <a className={linkClasses} href={"/" + Sefaria.normRef(ref)} data-ref={ref} key={i}>
+              <ContentText text={{en: letter, he: letter}}/>
+            </a>
         );
       });
       return (
           <div className="schema-node-toc">
             <div className="schema-node-contents">
-              {dictionarySearch}
               <div className="specialNavSectionHeader">
-                {contentText}
+                {headerText}
               </div>
               <div className="tocLevel">{sectionLinks}</div>
             </div>

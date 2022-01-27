@@ -24,7 +24,7 @@ import {
   CookiesNotification,
   CommunityPagePreviewControls
 } from './Misc';
-import { Ad } from './Ad'
+import { Ad } from './Ad';
 import Component from 'react-class';
 import BeitMidrash, {BeitMidrashClosed} from './BeitMidrash';
 import  { io }  from 'socket.io-client';
@@ -975,6 +975,14 @@ class ReaderApp extends Component {
     const href = el.getAttribute('href');
     if (!href) {
       return;
+    }
+    //on mobile just replace panel w/ any link
+    if (!this.props.multiPanel) {
+      const handled = this.openURL(href, true);
+      if (handled) {
+        e.preventDefault();
+      }
+      return
     }
     //All links within sheet content should open in a new panel
     const isSheet = !!(el.closest(".sheetItem"))

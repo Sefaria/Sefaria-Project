@@ -139,14 +139,14 @@ class DictionarySearch extends Component {
     console.log(word)
     if (this.props.showWordList) {
       this.props.showWordList(word);
-    } else if (this.props.showBaseText) {
+    } else if (this.props.navigatePanel || this.props.showBaseText) {
       const ref = this.props.title + ", " + word;
       Sefaria.getText(ref).then(data => {
         // Check that this ref exists first before trying to open a panel
         if ("error" in data) {
           return;
         }
-        this.props.showBaseText(ref, false, this.props.currVersions);
+        this.props.navigatePanel ? this.props.navigatePanel(ref, this.props.currVersions) : this.props.showBaseText(ref, false, this.props.currVersions);
       })
     }
   }

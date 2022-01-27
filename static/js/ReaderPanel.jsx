@@ -129,6 +129,7 @@ class ReaderPanel extends Component {
     if (this.state.mode === "TextAndConnections") {
       this.closeConnectionsInPanel();
     } else if (this.state.mode === "Text") {
+      Sefaria.track.event("Reader", "Open Connections Panel", ref);
       if (this.props.multiPanel) {
         this.conditionalSetState({showHighlight: showHighlight});
         this.props.onSegmentClick(ref);
@@ -170,6 +171,9 @@ class ReaderPanel extends Component {
   }
   handleTextListClick(ref, replaceHistory, currVersions) {
     this.showBaseText(ref, replaceHistory, currVersions);
+  }
+  setCurrVersions(currVersions) {
+    this.conditionalSetState({ currVersions });
   }
   openConnectionsInPanel(ref, additionalState) {
     let refs = typeof ref == "string" ? [ref] : ref;
@@ -645,6 +649,7 @@ class ReaderPanel extends Component {
           textHighlights={this.state.textHighlights}
           unsetTextHighlight={this.props.unsetTextHighlight}
           translationLanguagePreference={this.props.translationLanguagePreference}
+          setCurrVersions={this.setCurrVersions}
           key={`${textColumnBookTitle ? textColumnBookTitle : "empty"}-TextColumn`} />
       );
     }
@@ -690,6 +695,7 @@ class ReaderPanel extends Component {
           interfaceLang={this.props.interfaceLang}
           contentLang={this.state.settings.language}
           title={this.currentBook()}
+          currentlyVisibleRef={this.state.currentlyVisibleRef}
           currVersions={this.state.currVersions}
           fullPanel={this.props.multiPanel}
           multiPanel={this.props.multiPanel}
@@ -1035,6 +1041,7 @@ class ReaderPanel extends Component {
           {hideReaderControls ? null :
           <ReaderControls
             showBaseText={this.showBaseText}
+            hasSidebar={this.state.hasSidebar}
             toggleSheetEditMode={this.toggleSheetEditMode}
             currentRef={this.state.currentlyVisibleRef}
             highlightedRefs={this.state.highlightedRefs}
@@ -1154,14 +1161,14 @@ class ReaderControls extends Component {
   // contains controls for display, navigation etc.
   constructor(props) {
     super(props);
-    this.state = {};
-  }
-  isConnectionsPanelOpenHeuristic(){
-    return !!this.props.highlightedRefs.length
+    this.state = {
+      displayVersionTitle: {},  // lang codes as keys and version title to display in header as values. prefers shortVersionTitle when available but falls back on versionTitle
+    };
   }
   openTextConnectionsPanel(e) {
     e.preventDefault();
-    if(!this.isConnectionsPanelOpenHeuristic()){ //Prevent click on title from opening connections panel if its already open
+    if(!this.props.hasSidebar){ //Prevent click on title from opening connections panel if its already open
+      Sefaria.track.event("Reader", "Open Connections Panel from Header", this.props.currentRef);
       this.props.onTextTitleClick(this.props.currentRef, false);
     }
   }
@@ -1169,15 +1176,59 @@ class ReaderControls extends Component {
     e.preventDefault();
     this.props.onSheetTitleClick(0);
   }
+  shouldShowVersion(props) {
+    props = props || this.props;
+    return props.settings.language === "english" || props.settings.language === "bilingual";
+  }
+  setDisplayVersionTitle(version) {
+    const en = version.shortVersionTitle || version.versionTitle;
+    this.setState({
+      displayVersionTitle: {
+        en,
+        he: version.shortVersionTitleInHebrew || en,
+      }
+    });
+  }
+  loadTranslations() {
+    /**
+     * Preload translation versions to get shortVersionTitle to display
+     */
+    if (!this.shouldShowVersion()) { return; }
+    Sefaria.getVersions(this.props.currentRef, false, ['he'], true).then(versionList => {
+      if (!this.props.currVersions.en) {
+        // default version. choose highest priority
+        if (versionList.length === 0) { return; }
+        versionList.sort((a, b) => b.priority - a.priority);
+        this.setDisplayVersionTitle(versionList[0]);
+        return;
+      }
+      for (let version of versionList) {
+        if (version.versionTitle === this.props.currVersions.en) {
+          this.setDisplayVersionTitle(version);
+          break;
+        }
+      }
+    });
+  }
   componentDidMount() {
     const title = this.props.currentRef;
     if (title) {
       // If we don't have this data yet, rerender when we do so we can set the Hebrew title
-      const getTextPromise = Sefaria.getText(title, {context: 1, translationLanguagePreference: this.props.translationLanguagePreference}).then(data => {
+      const versionPref = Sefaria.versionPreferences.getVersionPref(title);
+      const getTextPromise = Sefaria.getText(title, {context: 1, translationLanguagePreference: this.props.translationLanguagePreference, versionPref}).then(data => {
         if ("error" in data) { this.props.onError(data.error); }
         this.setState({runningQuery: null});   // Causes re-render
       });
       this.setState({runningQuery: Sefaria.makeCancelable(getTextPromise)});
+    }
+    this.loadTranslations();
+  }
+  componentDidUpdate(prevProps, prevState) {
+    if (
+      this.shouldShowVersion() !== this.shouldShowVersion(prevProps) ||
+      this.props.currVersions !== prevProps.currVersions
+    ) {
+      this.loadTranslations();
     }
   }
   componentWillUnmount() {
@@ -1194,7 +1245,7 @@ class ReaderControls extends Component {
     let sectionString = "";
     let heSectionString = "";
     let categoryAttribution = null;
-    const oref = Sefaria.ref(this.props.currentRef);
+    const oref = Sefaria.getRefFromCache(this.props.currentRef);
 
     if (this.props.sheetID) {
       if (this.props.sheetTitle === null) {
@@ -1217,10 +1268,10 @@ class ReaderControls extends Component {
     const mode              = this.props.currentMode();
     const hideHeader        = !this.props.multiPanel && mode === "Connections";
     const connectionsHeader = this.props.multiPanel && mode === "Connections";
-    const showVersion = this.props.currVersions.en && (this.props.settings.language === "english" || this.props.settings.language === "bilingual");
-    const versionTitle = this.props.currVersions.en ? this.props.currVersions.en.replace(/_/g," ") : "";
+    let displayVersionTitle = this.props.settings.language === 'hebrew' ? this.state.displayVersionTitle.he : this.state.displayVersionTitle.en;
+    if (categoryAttribution) { displayVersionTitle = `(${displayVersionTitle})`; }
     const url = this.props.sheetID ? "/sheets/" + this.props.sheetID : oref ? "/" + Sefaria.normRef(oref.book) : Sefaria.normRef(this.props.currentRef);
-    const readerTextTocClasses = classNames({readerTextToc: 1, attributed: !!categoryAttribution, connected: this.isConnectionsPanelOpenHeuristic()})
+    const readerTextTocClasses = classNames({readerTextToc: 1, attributed: !!categoryAttribution || this.shouldShowVersion(), connected: this.props.hasSidebar});
 
 
     let centerContent = connectionsHeader ?
@@ -1256,15 +1307,16 @@ class ReaderControls extends Component {
                 </span>
               </h1>
               }
-              { showVersion ?
-              <span className="readerTextVersion">
-                <span className="en">{versionTitle}</span>
-              </span> : null}
             </a>
           </div>
           <div onClick={this.stopPropagation}>
-            {categoryAttribution ?
-            <CategoryAttribution categories={oref.categories} linked={false} /> : null }
+            {categoryAttribution ? <CategoryAttribution categories={oref.categories} linked={false} /> : null }
+            {
+              this.shouldShowVersion() && displayVersionTitle ?
+              <span className="readerTextVersion">
+                <span className="en">{displayVersionTitle}</span>
+              </span> : null
+            }
           </div>
         </div>
       </div>;

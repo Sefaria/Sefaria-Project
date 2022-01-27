@@ -211,7 +211,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         "is_cited",             # (bool) only indexes with this attribute set to True will be picked up as a citation in a text by default
         "lexiconName",          # (str) For dictionaries - the name used in the Lexicon collection
         "dedication",           # (dict) Dedication texts, keyed by language
-        "hidden"                # (bool) Default false.  If not present, Index is visible in all TOCs.  True value hides the text in the main TOC, but keeps it in the search toc.
+        "hidden",               # (bool) Default false.  If not present, Index is visible in all TOCs.  True value hides the text in the main TOC, but keeps it in the search toc.
+        "corpora",              # (list[str]) List of corpora that this index is included in. Currently these are just strings without validation. First element is used to group texts for determining version preference within a corpus.
     ]
 
     def __str__(self):
@@ -250,8 +251,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             contents = self.nodes.as_index_contents()
             if with_content_counts:
                 contents["schema"] = self.annotate_schema_with_content_counts(contents["schema"])
-                first_ref = self.versionSet().array()[0].first_section_ref()
-                contents["firstSectionRef"] = first_ref.normal()
+                contents["firstSectionRef"] = Ref(self.title).first_available_section_ref().normal()
         else:
             contents = self.legacy_form(force_complex=force_complex)
 
@@ -846,6 +846,10 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         if getattr(self, "dependence", False):
             toc_contents_dict["dependence"] = self.dependence
 
+        if len(getattr(self, "corpora", [])) > 0:
+            # first elem in corpora is the main corpus
+            toc_contents_dict["corpus"] = self.corpora[0]
+
         if include_first_section:
             firstSection = Ref(self.title).first_available_section_ref()
             toc_contents_dict["firstSection"] = firstSection.normal() if firstSection else None
@@ -931,6 +935,14 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             return self.dependence.capitalize()
         else:
             return self.categories[0]
+
+    def get_primary_corpus(self):
+        """
+        Primary corpus used for setting version preference by
+        """
+        corpora = getattr(self, "corpora", [])
+        if len(corpora) > 0:
+            return corpora[0]
 
 
 class IndexSet(abst.AbstractMongoSet):
@@ -1287,6 +1299,8 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         "versionUrl",  # bad data?
         "versionTitleInHebrew",  # stores the Hebrew translation of the versionTitle
         "versionNotesInHebrew",  # stores VersionNotes in Hebrew
+        "shortVersionTitle",
+        "shortVersionTitleInHebrew",
         "extendedNotes",
         "extendedNotesHebrew",
         "purchaseInformationImage",
@@ -2098,6 +2112,14 @@ class TextFamily(object):
             "en": "versionTitleInHebrew",
             "he": "heVersionTitleInHebrew",
         },
+        "shortVersionTitle": {
+            "en": "shortVersionTitle",
+            "he": "heShortVersionTitle",
+        },
+        "shortVersionTitleInHebrew": {
+            "en": "shortVersionTitleInHebrew",
+            "he": "heShortVersionTitleInHebrew",
+        },
         "versionSource": {
             "en": "versionSource",
             "he": "heVersionSource"
@@ -2138,7 +2160,7 @@ class TextFamily(object):
         "he": "heSources"
     }
 
-    def __init__(self, oref, context=1, commentary=True, version=None, lang=None, version2=None, lang2=None, pad=True, alts=False, wrapLinks=False, stripItags=False, wrapNamedEntities=False, translationLanguagePreference=None):
+    def __init__(self, oref, context=1, commentary=True, version=None, lang=None, version2=None, lang2=None, pad=True, alts=False, wrapLinks=False, stripItags=False, wrapNamedEntities=False, translationLanguagePreference=None, vtitlePreference=None, vtitlePreference2=None):
         """
         :param oref:
         :param context:
@@ -2152,6 +2174,8 @@ class TextFamily(object):
         :param wrapLinks: whether to return the text requested with all internal citations marked up as html links <a>
         :param stripItags: whether to strip inline commentator tags and inline footnotes from text
         :param wrapNamedEntities: whether to return the text requested with all known named entities marked up as html links <a>.
+        :param vtitlePreference: Preference for a specific version. Ignored if `version` is passed.
+        :param vtitlePreference2: Ditto of vtitlePreference but for lang2
         :return:
         """
         if pad:
@@ -2185,11 +2209,12 @@ class TextFamily(object):
             if language == 'en': tc_kwargs['actual_lang'] = translationLanguagePreference
             if language in {lang, lang2}:
                 curr_version = version if language == lang else version2
-                c = TextChunk(vtitle=curr_version, **tc_kwargs)
+                curr_vtitle_pref = vtitlePreference if language == lang else vtitlePreference2
+                c = TextChunk(vtitle=(curr_version or curr_vtitle_pref), **tc_kwargs)
                 if len(c._versions) == 0:  # indicates `version` doesn't exist
-                    if tc_kwargs.get('actual_lang', False) and not curr_version:
+                    if (tc_kwargs.get('actual_lang', False) or curr_vtitle_pref) and not curr_version:
                         # actual_lang is only used if curr_version is not passed
-                        del tc_kwargs['actual_lang']
+                        tc_kwargs.pop('actual_lang', None)
                         c = TextChunk(vtitle=curr_version, **tc_kwargs)
                     elif curr_version:
                         self._nonExistantVersions[language] = curr_version
@@ -3415,6 +3440,7 @@ class Ref(object, metaclass=RefCacheType):
     def first_available_section_ref(self):
         """
         Returns a :class:`Ref` to the first section inside of or following this :class:`Ref` that has some content.
+        Return first available segment ref is `self` is depth 1
 
         Returns ``None`` if self is empty and no following :class:`Ref` has content.
 
@@ -3437,7 +3463,12 @@ class Ref(object, metaclass=RefCacheType):
         else:
             return None
 
-        return r.next_section_ref() if r.is_empty() else r
+        if r.is_book_level():
+            # r is depth 1. return first segment
+            r = r.subref([1])
+            return r.next_segment_ref() if r.is_empty() else r
+        else:
+            return r.next_section_ref() if r.is_empty() else r
 
     #Don't store results on Ref cache - state objects change, and don't yet propogate to this Cache
     def get_state_node(self, meta=None, hint=None):
@@ -4310,7 +4341,7 @@ class Ref(object, metaclass=RefCacheType):
         """
         fields = ["title", "versionTitle", "versionSource", "language", "status", "license", "versionNotes",
                   "digitizedBySefaria", "priority", "versionTitleInHebrew", "versionNotesInHebrew", "extendedNotes",
-                  "extendedNotesHebrew", "purchaseInformationImage", "purchaseInformationURL"]
+                  "extendedNotesHebrew", "purchaseInformationImage", "purchaseInformationURL", "shortVersionTitle", "shortVersionTitleInHebrew"]
         versions = VersionSet(self.condition_query())
         version_list = []
         if self.is_book_level():
@@ -5397,6 +5428,12 @@ class Library(object):
         for icat, cat in enumerate(path):
             q[f'categories.{icat}'] = cat
 
+        return IndexSet(q) if full_records else IndexSet(q).distinct("title")
+
+    def get_indexes_in_corpus(self, corpus: str, include_dependant=False, full_records=False) -> Union[IndexSet, list]:
+        q = {'corpora': corpus}
+        if not include_dependant:
+            q['dependence'] = {'$in': [False, None]}
         return IndexSet(q) if full_records else IndexSet(q).distinct("title")
 
     def get_indices_by_collective_title(self, collective_title, full_records=False):
