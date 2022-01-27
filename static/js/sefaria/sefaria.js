@@ -1132,7 +1132,7 @@ Sefaria = extend(Sefaria, {
       });
       links = links.filter(l => l["type"] === "essay");
       return links.length > 0;
-  }
+  },
   essayLinks: function(ref, versions) {
     let links = [];
     ref.map(function(r) {
