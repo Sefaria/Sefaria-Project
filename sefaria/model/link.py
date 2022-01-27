@@ -62,8 +62,8 @@ class Link(abst.AbstractMongoRecord):
 
         if self.type == "essay":   # when type is 'essay', versionTitles should correspond to indices referred to in self.refs
             assert hasattr(self, "versions") and hasattr(self, "displayedText"), "You must set versions and displayedText fields for type 'essay'."
-            assert isinstance(self.displayedText, dict) and "en" in self.displayedText and "he" in self.displayedText, \
-                "displayedText field must be dictionary of he and en."
+            assert "en" in self.displayedText[0] and "he" in self.displayedText[0] and "en" in self.displayedText[1] and "he" in self.displayedText[1], \
+                "displayedText field must be a list of dictionaries with 'he' and 'en' fields."
             for ref, version in zip(self.refs, self.versions):
                 versionTitle = version["title"]
                 versionLanguage = version["language"] if "language" in version else None

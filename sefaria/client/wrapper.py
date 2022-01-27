@@ -52,7 +52,7 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
     if getattr(link, "versions", None) and link.type == "essay" and getattr(link, "displayedText", None):
         com["anchorVersion"] = {"title": link.versions[pos]["title"], "language": link.versions[pos].get("language", None)}
         com["sourceVersion"] = {"title": link.versions[linkPos]["title"], "language": link.versions[linkPos].get("language", None)}
-        com["displayedText"] = getattr(link, "displayedText", None)
+        com["displayedText"] = link.displayedText[linkPos]  # we only want source displayedText
 
     compDate = getattr(linkRef.index, "compDate", None)
     if compDate:
