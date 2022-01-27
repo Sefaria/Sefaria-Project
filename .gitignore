@@ -130,4 +130,3 @@ static/sheetrank.json
 # Miscellaneous #
 #################
 /dafChat/deploy/dafchat/valuesGeneration/_generatedHelmValues.yaml
-helm-chart/pipeline-flow.md
