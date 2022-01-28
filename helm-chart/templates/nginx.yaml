@@ -198,10 +198,10 @@ spec:
             {{end}}
       volumes:
         - name:  nginx-conf
-          secret:
-            secretName: nginx-conf-{{ .Values.deployEnv }}
+          configMap:
+            Name: nginx-conf-{{ .Values.deployEnv }}
         - name: robots-txt
-          secret: 
-            secretName: robots-txt-{{ .Values.deployEnv }}
+          configMap:
+            Name: robots-txt-{{ .Values.deployEnv }}
 ...
       

@@ -175,8 +175,8 @@ spec:
           secret:
             secretName: school-lookup-data-{{ .Values.deployEnv }}
         - name: gunicorn-config
-          secret: 
-              secretName: gunicorn-config-{{ .Values.deployEnv }}
+          configMap:
+            Name: gunicorn-config-{{ .Values.deployEnv }}
 ---
 # for use outside the stack
 apiVersion: v1

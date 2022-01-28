@@ -11,8 +11,6 @@ releaseImageTag: cf66cfb
 sandbox: "false"
 # Setting this to true setsup liveness, readiness & startup probes on the web pod. 
 contentSandbox: "false"
-# Sets up the sandbox name 
-sandboxName: ""
 
 # This value sets the name of the environment and it's associated objects. Some suggestions for the values are prod/dev/test
 deployEnv: "dev" 
