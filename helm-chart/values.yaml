@@ -1,11 +1,30 @@
 ---
-releaseImageTag: cf66cfb # Need to pass this value when applying the helm chart (This is the $BUILD_ID )
+# Need to pass $BUILD_ID to this key when applying the helm chart in CI. 
+# or 
+# Set the commit hash for a particular buiild to deploy built image for that commit ID. (NOTE: This would work only if the image is built for that commit ID.)
+releaseImageTag: cf66cfb 
+
+# Setting this to true will make this a sandbox environment. It'll set the following:
+# - nodeAffinity for the Monitor, Nodejs, Redis, Varnish, Web & Nginx pod to schedule opn node where preemptible=true
+# - Set appropriate labels to Nginx pod
+# - Requests images with the tag "sandbox-<releaseImageTag>"
 sandbox: "false"
-sandboxName: ""
-deployEnv: "deadbeef" # This value should not appear in finalized templates # Need to pass this value when applying the helm chart
+# Setting this to true setsup liveness, readiness & startup probes on the web pod. 
 contentSandbox: "false"
+# Sets up the sandbox name 
+sandboxName: ""
+
+# This value sets the name of the environment and it's associated objects. Some suggestions for the values are prod/dev/test
+deployEnv: "dev" 
+
+# Helps create services for nginx, nodeja, varnish and web pods with appropriate tags that help ArgoCD do blue green deployments.
 previousServicesCount: "3"
-projectID: development-205018 # Need to pass this value when applying the helm chart
+
+# This is the project ID for images coming from gcr. Ther are two possible values for this currently development-205018 / production-deployment.
+# Should pass ${PROJECT_ID} value to this when applying the helm chart in the CI pipeline.
+projectID: development-205018 
+
+# This is used in mongobackup & reindex-elasticsearch cron jobs.
 slackWebhook: "https://hooks.slack.com/services/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"
 
 web:
