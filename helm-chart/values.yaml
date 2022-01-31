@@ -2,7 +2,7 @@
 # Need to pass $BUILD_ID to this key when applying the helm chart in CI. 
 # or 
 # Set the commit hash for a particular buiild to deploy built image for that commit ID. (NOTE: This would work only if the image is built for that commit ID.)
-releaseImageTag: cf66cfb 
+releaseImageTag: 
 
 # Setting this to true will make this a sandbox environment. It'll set the following:
 # - nodeAffinity for the Monitor, Nodejs, Redis, Varnish, Web & Nginx pod to schedule opn node where preemptible=true
@@ -23,7 +23,7 @@ previousServicesCount: "3"
 projectID: development-205018 
 
 # This is used in mongobackup & reindex-elasticsearch cron jobs.
-slackWebhook: "https://hooks.slack.com/services/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"
+slackWebhook: ""
 
 web:
   containerImage: 
