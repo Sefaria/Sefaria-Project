@@ -47,6 +47,15 @@ web:
       limit:
         memory: "150Mi"
         cpu: "100m"
+  secrets:
+    googleClient: 
+    backupManager: 
+      key:
+      serviceAccount:
+    logging:
+      prod: 
+      dev: 
+    schoolLookup:
 
 redis:
   resources:
@@ -97,6 +106,8 @@ varnish:
     # http://book.varnish-software.com/4.0/chapters/Tuning.html#timers
     first_byte_timeout: 60 # Default 60s
     between_bytes_timeout: 60 # Default 60s
+  secrets:
+    varnish:
 
 ingress:
   hosts: # You can set parth: serviceName: and port: for each host. By default they are set to '/*', 'nginx', '80' for each. Do note that changing this means you'll have to change the nginx service as well.
@@ -136,4 +147,7 @@ monitor:
     limit:
       memory: "500Mi"
       cpu: "200m" 
+
+secrets:
+  localSettings: 
 ...
