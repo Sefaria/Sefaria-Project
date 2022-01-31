@@ -187,15 +187,15 @@ spec:
           # Eventually delete this conditional by bringing PROD into line
           # and automatically generating the name, a la "search-{{ .Values.deployEnv }}"
           - name: SEARCH_HOST
-            {{ if eq .Values.deployEnv "prod" }}
+            {{- if eq .Values.deployEnv "prod" }}
             value: elasticsearch-data
-            {{else if eq .Values.deployEnv "democracy"}}
+            {{- else if eq .Values.deployEnv "democracy" }}
             value: search-democracy
-            {{else if eq .Values.sandbox "true"}}
+            {{- else if eq .Values.sandbox "true" }}
             value: elasticsearch-data
-            {{else}}
+            {{- else }}
             value: search-{{.Values.deployEnv}}
-            {{end}}
+            {{- end }}
       volumes:
         - name:  nginx-conf
           configMap:
