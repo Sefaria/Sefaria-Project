@@ -12,7 +12,7 @@ spec:
     matchLabels:
       app: redis-{{ .Values.deployEnv }}
   revisionHistoryLimit: 0
-  replicas: 1
+  replicas: {{ .Values.redis.replicaCount }}
   template:
     metadata:
       labels:
