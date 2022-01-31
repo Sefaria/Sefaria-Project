@@ -199,9 +199,9 @@ spec:
       volumes:
         - name:  nginx-conf
           configMap:
-            Name: nginx-conf-{{ .Values.deployEnv }}
+            name: nginx-conf-{{ .Values.deployEnv }}
         - name: robots-txt
           configMap:
-            Name: robots-txt-{{ .Values.deployEnv }}
+            name: robots-txt-{{ .Values.deployEnv }}
 ...
       
