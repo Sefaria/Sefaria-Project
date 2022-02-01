@@ -149,7 +149,10 @@ class UserProfile extends Component {
   }
   handleSchedules() {
     // Rerender Schedules tab when data changes in cache. TODO:: Why is this broken?
-    this.setState({ refreshSchedules: Math.random() });
+    delete Sefaria._userSchedules[Sefaria._uid];
+    Sefaria.getUserSchedules().then(() => {
+      this.setState({ refreshSchedules: Math.random() });
+    })
   }
   renderEmptySchedulesList() {
     if (Sefaria._uid !== this.props.profile.id) {
@@ -484,7 +487,6 @@ class UserProfile extends Component {
                     renderHeader={this.renderSchedulesHeader}
                     sortOptions={["Recent", "Name"]}
                     getData={this.getSchedules}
-                    data={this.getSchedulesFromCache()}
                     refreshData={this.state.refreshSchedules}
                   />
                   </>
