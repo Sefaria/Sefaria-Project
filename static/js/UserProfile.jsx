@@ -135,7 +135,7 @@ class UserProfile extends Component {
   filterSchedules(currFilter, collection) {
     const n = text => text.toLowerCase();
     currFilter = n(currFilter);
-    return n(collection.name).indexOf(currFilter) > -1;
+    return n(collection.schedule_name).indexOf(currFilter) > -1;
   }
   sortSchedules(currSortOption, collectionA, collectionB) {
     switch(currSortOption) {
@@ -174,7 +174,7 @@ class UserProfile extends Component {
   }
   renderSchedules(collection) {
     return (
-      <ScheduleListing key={collection.schedule_name} data={collection} />
+      <ScheduleListing key={collection.schedule_name+Math.random()} data={collection} />
     );
   }
   renderSchedulesHeader() {
