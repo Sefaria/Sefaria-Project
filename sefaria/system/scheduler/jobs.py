@@ -2,6 +2,7 @@
 from sefaria.model.story import TextPassageStoryFactory, AuthorStoryFactory, TopicListStoryFactory, \
     TopicTextsStoryFactory, UserSheetsFactory, CollectionSheetListFactory, SheetListFactory, MultiTextStoryFactory
 
+from sefaria.model.schedules import send_notifications_at_time
 
 def remove_jobs(scheduler):
     [j.remove() for j in scheduler.get_jobs()]
@@ -22,6 +23,8 @@ def add_jobs(scheduler):
 
     scheduler.add_job(SheetListFactory.create_featured_story, "cron", id="FeaturedSheets", replace_existing=True,
                       day_of_week="wed", hour="14", minute="0")
+
+    scheduler.add_job(send_notifications_at_time, "cron", id="learningSchedSender", replace_existing=True, hour="*", minute="1")
 
 
 def _add_parasha_jobs(scheduler):
