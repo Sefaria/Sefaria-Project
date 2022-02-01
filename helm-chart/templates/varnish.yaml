@@ -111,7 +111,7 @@ spec:
 
       containers:
       - name: varnish
-        image: {{ .Values.varnish.containerImage.repoLocation }}/{{ .Values.projectID }}/{{ .Values.varnish.containerImage.repoName }}:{{- if eq .Values.sandbox "true" }}sandbox-{{- end }}{{ .Values.varnish.containerImage.tag }} # Need to check if this image exists in the "development-205018" Project ID
+        image: "{{ .Values.varnish.containerImage.imageRegistry }}:{{ .Values.varnish.containerImage.tag }}"
         imagePullPolicy: Always
         command: ["bash", "-c"] 
         # args: [ "envsubst < /etc/varnish/sefaria.template.vcl > /etc/varnish/sefaria.vcl && exec /usr/sbin/varnishd -j unix,user=varnish -F -f /etc/varnish/sefaria.vcl -a :8040 -T :6082 -S /varnish-secret/varnish-secret -s malloc,14440m -p nuke_limit=400" ]

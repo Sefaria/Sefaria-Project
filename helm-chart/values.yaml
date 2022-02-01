@@ -18,17 +18,13 @@ deployEnv: "dev"
 # Helps create services for nginx, nodeja, varnish and web pods with appropriate tags that help ArgoCD do blue green deployments.
 previousServicesCount: "3"
 
-# This is the project ID for images coming from gcr. Ther are two possible values for this currently development-205018 / production-deployment.
-# Should pass ${PROJECT_ID} value to this when applying the helm chart in the CI pipeline.
-projectID: development-205018 
-
 # This is used in mongobackup & reindex-elasticsearch cron jobs.
 slackWebhook: ""
 
 web:
   containerImage: 
-    repoLocation: gcr.io
-    repoName: sefaria-web
+    imageRegistry: gcr.io/production-deployment/sefaria-web # Full path of the image registry imclusive of the image name
+    tag: # Commit id of the repo for which the image build has been triggered.
   replicaCount: 1
   resources:
     web:
@@ -58,6 +54,9 @@ web:
     schoolLookup:
 
 redis:
+  containerImage:
+    imageRegistry: redis # Full path of the image registry inclusive of the image name
+    tag: latest # Version of varnish that's required for the application.
   replicaCount: 1
   resources:
     request:
@@ -69,8 +68,8 @@ redis:
 
 nodejs:
   containerImage: 
-    repoLocation: gcr.io
-    RepoName: sefaria-node
+    imageRegistry: gcr.io/production-deployment/sefaria-node # Full path of the image registry inclusive of the image name
+    tag: # Commit id of the repo for which the image build has been triggered.
   replicaCount: 1
   resources:
     request:
@@ -82,9 +81,8 @@ nodejs:
 
 varnish:
   containerImage:
-    repoLocation: gcr.io
-    RepoName: sefaria-varnish
-    tag: v6
+    imageRegistry: gcr.io/production-deployment/sefaria-varnish # Full path of the image registry inclusive of the image name
+    tag: v6 # Version of varnish that's required for the application.
   logging: {}
   replicaCount: 1
   resources:
@@ -125,8 +123,8 @@ ingress:
 
 nginx:
   containerImage: 
-    repoLocation: gcr.io
-    repoName: sefaria-asset
+    imageRegistry: gcr.io/production-deployment/sefaria-asset # Full path of the image registry inclusive of the image name
+    tag: # Commit id of the repo for which the image build has been triggered.
   replicaCount: 1
   resources:
     request:
@@ -138,8 +136,8 @@ nginx:
 
 monitor:
   containerImage: 
-    repoLocation: gcr.io
-    repoName: sefaria-web
+    imageRegistry: gcr.io/production-deployment/sefaria-web # Full path of the image registry imclusive of the image name
+    tag: # Commit id of the repo for which the image build has been triggered.
   replicaCount: 1
   resources:
     request:
@@ -150,5 +148,6 @@ monitor:
       cpu: "100m" 
 
 secrets:
-  localSettings: 
+  localSettings: |- 
+    # This is where the local settings go if you're on your local. Please ensure indentation for the whole file is consistent with the first line indentation
 ...

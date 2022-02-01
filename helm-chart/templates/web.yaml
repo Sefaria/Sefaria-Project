@@ -71,7 +71,7 @@ spec:
 
       containers:
       - name: web
-        image: "{{ .Values.web.containerImage.repoLocation }}/{{ .Values.projectID }}/{{ .Values.web.containerImage.repoName }}-{{ .Values.deployEnv }}:{{- if eq .Values.sandbox "true" }}sandbox-{{- end }}{{ .Values.releaseImageTag }}"
+        image: "{{ .Values.web.containerImage.imageRegistry }}:{{ .Values.web.containerImage.tag }}"
         imagePullPolicy: Always
         args: [ "python manage.py migrate && gunicorn sefaria.wsgi --access-logfile - --error-logfile - --timeout 300 --threads {{ .Values.web.resources.web.gunicornThreadCount }} --worker-tmp-dir /dev/shm -b 0.0.0.0:80" ]
         env:

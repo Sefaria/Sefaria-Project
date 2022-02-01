@@ -43,7 +43,7 @@ spec:
       {{end}}
       containers:
       - name: redis
-        image: redis
+        image: "{{ .Values.redis.containerImage.imageRegistry }}:{{ .Values.redis.containerImage.tag }}"
         imagePullPolicy: Always
         ports:
         - containerPort: 6379
