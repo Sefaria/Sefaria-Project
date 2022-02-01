@@ -49,6 +49,13 @@ spec:
                 values:
                 - mongo
             topologyKey: kubernetes.io/hostname
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - "web-{{ .Values.deployEnv }}"
+            topologyKey: kubernetes.io/hostname
         {{if eq .Values.sandbox "true"}}
         nodeAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
