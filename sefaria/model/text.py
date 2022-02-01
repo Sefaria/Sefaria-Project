@@ -1281,6 +1281,7 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         "priority",
         "license",
         "versionNotes",
+        "formatAsPoetry",
         "digitizedBySefaria",
         "method",
         "heversionSource",  # bad data?
@@ -2132,6 +2133,11 @@ class TextFamily(object):
             "he": "heLicense",
             "default": "unknown"
         },
+        "formatAsPoetry": { # Setup for Fox translation. Perhaps we want in other places as well?
+            "he": "formatHeAsPoetry",
+            "en": "formatEnAsPoetry",
+            "default": False,
+        }
     }
     sourceMap = {
         "en": "sources",
