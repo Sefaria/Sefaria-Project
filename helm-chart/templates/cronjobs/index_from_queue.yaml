@@ -26,7 +26,7 @@ spec:
           volumes:
           - name: local-settings
             secret:
-              secretName: local-settings-{{ .Values.deployEnv }}
+              secretName: {{- if .Values.secrets.localSettings.ref }} {{- .Values.secrets.localSettings.ref }} {{- else }} local-settings-{{ .Values.deployEnv }} {{- end }}
           containers:
           - name: index-from-queue
             image: "{{ .Values.web.containerImage }}:{{ .Values.releaseImageTag }}"

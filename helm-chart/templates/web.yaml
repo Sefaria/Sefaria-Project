@@ -158,25 +158,25 @@ spec:
       volumes:
         - name:  local-settings
           secret:
-            secretName: local-settings-{{ .Values.deployEnv }}
+            secretName: {{- if .Values.secrets.localSettings.ref }} {{- .Values.secrets.localSettings.ref }} {{- else }} local-settings-{{ .Values.deployEnv }} {{- end }}
         - name: client-secret
           secret:
-            secretName: google-client-secret-{{ .Values.deployEnv }}
+            secretName: {{- if .Values.web.secrets.googleClient.data }}google-client-secret-{{ .Values.deployEnv }} {{- else }} {{- .Values.web.secrets.googleClient.ref }} {{- end }} # needs to be checked if it's a reference object or the data object we created.
         - name: backup-manager-secret  # used to access google cloud
           secret:
-            secretName: backup-manager-secret-{{ .Values.deployEnv }}
+            secretName: {{- if .Values.secrets.backupManager.ref }} {{- .Values.secrets.backupManager.ref }} {{- else }} backup-manager-secret-{{ .Values.deployEnv }} {{- end }}
         - name: logging-secret
           secret:
-            secretName: logging-secret-{{ .Values.deployEnv }}
+            secretName: {{- if .Values.web.secrets.logging.ref }} {{- .Values.web.secrets.logging.ref }} {{- else }} logging-secret-{{ .Values.deployEnv }} {{- end }}
         - name: varnish-secret
           secret:
-            secretName: varnish-secret-{{ .Values.deployEnv }}
+            secretName: {{- if .Values.varnish.secrets.varnish.ref }} {{- .Values.varnish.secrets.varnish.ref }} {{- else }} varnish-secret-{{ .Values.deployEnv }} {{- end }}
         - name: school-lookup-data
           secret:
-            secretName: school-lookup-data-{{ .Values.deployEnv }}
+            secretName: {{- if .Values.web.secrets.schoolLookup.ref }} {{- .Values.web.secrets.schoolLookup.ref }} {{- else }} school-lookup-data-{{ .Values.deployEnv }} {{- end }}
         - name: gunicorn-config
           configMap:
-            Name: gunicorn-config-{{ .Values.deployEnv }}
+            name: gunicorn-config-{{ .Values.deployEnv }}
 ---
 # for use outside the stack
 apiVersion: v1

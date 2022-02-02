@@ -136,5 +136,5 @@ spec:
       volumes:
         - name: varnish-secret
           secret:
-            secretName: varnish-secret-{{ .Values.deployEnv }}
+            secretName: {{- if .Values.varnish.secrets.varnish.ref }} {{- .Values.varnish.secrets.varnish.ref }} {{- else }} varnish-secret-{{ .Values.deployEnv }} {{- end }}
 ...

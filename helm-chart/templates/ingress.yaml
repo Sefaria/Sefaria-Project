@@ -8,8 +8,8 @@ metadata:
     kubernetes.io/ingress.global-static-ip-name: "sefaria-{{ .Values.deployEnv }}"
 spec:
   tls:
-    - secretName: origin-tls-{{ .Values.deployEnv }}
-    - secretName: origin-il-tls-{{ .Values.deployEnv }}
+    - secretName: {{- if .Values.ingress.secrets.originTls.ref }} {{- .Values.ingress.secrets.originTls.ref }} {{- else }} origin-tls-{{ .Values.deployEnv }} {{- end }}
+    - secretName: {{- if .Values.ingress.secrets.originIlTls.ref }} {{- .Values.ingress.secrets.originIlTls.ref }} {{- else }} origin-il-tls-{{ .Values.deployEnv }} {{- end }}
   rules:
     {{- range .Values.ingress.hosts }}
     - host: {{ tpl .host . | quote }}
@@ -22,27 +22,31 @@ spec:
     {{- end }}
 
 ---
+{{- if and .Values.ingress.secrets.originTls.cert.data .Values.ingress.secrets.originTls.key.data }}
 apiVersion: v1
 kind: Secret
 metadata:
   name: origin-tls-{{ .Values.deployEnv }}
 type: kubernetes.io/tls
 data:
-  tls.crt: {{ .Files.Get (printf "secrets/tls/%s/origin.crt" (substr 0 4 .Values.deployEnv)) | b64enc }}
-  tls.key: {{ .Files.Get (printf "secrets/tls/%s/origin.key" (substr 0 4 .Values.deployEnv)) | b64enc }}
+  tls.crt: {{ .Values.ingress.secrets.originTls.cert.data | b64enc }}
+  tls.key: {{ .Values.ingress.secrets.originTls.key.data | b64enc }}
+{{- end }}
 ---
+{{- if and .Values.ingress.secrets.originIlTls.cert.data .Values.ingress.secrets.originIlTls.key.data }}
 apiVersion: v1
 kind: Secret
 metadata:
   name: origin-il-tls-{{ .Values.deployEnv }}
 type: kubernetes.io/tls
 data:
-  tls.crt: {{ .Files.Get (printf "secrets/tls/%s/origin-il.crt" (substr 0 4 .Values.deployEnv)) | b64enc }}
-  tls.key: {{ .Files.Get (printf "secrets/tls/%s/origin-il.key" (substr 0 4 .Values.deployEnv)) | b64enc }}
+  tls.crt: {{ .Values.ingress.secrets.originIlTls.cert.data | b64enc }}
+  tls.key: {{ .Values.ingress.secrets.originIlTls.key.data | b64enc }}
+{{- end }}
 ...
-{{end}}
+{{- end }}
 
-{{if eq .Values.deployEnv "democracy"}}
+{{- if eq .Values.deployEnv "democracy" }}
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -52,7 +56,7 @@ metadata:
     kubernetes.io/ingress.global-static-ip-name: "sefaria-{{ .Values.deployEnv }}"
 spec:
   tls:
-    - secretName: origin-tls-{{ .Values.deployEnv }}
+    - secretName: {{- if .Values.ingress.secrets.originTls.ref }} {{- .Values.ingress.secrets.originTls.ref }} {{- else }} origin-tls-{{ .Values.deployEnv }} {{- end }}
   rules:
     - host: democracy.sefaria.org
       http:
@@ -62,12 +66,14 @@ spec:
               serviceName: nginx-{{ .Values.deployEnv }}
               servicePort: 80
 ---
+{{- if and .Values.ingress.secrets.originTls.cert.data .Values.ingress.secrets.originTls.key.data }}
 apiVersion: v1
 kind: Secret
 metadata:
   name: origin-tls-{{ .Values.deployEnv }}
 type: kubernetes.io/tls
 data:
-  tls.crt: {{ .Files.Get (printf "secrets/tls/%s/origin.crt" (substr 0 4 .Values.deployEnv)) | b64enc }}
-  tls.key: {{ .Files.Get (printf "secrets/tls/%s/origin.key" (substr 0 4 .Values.deployEnv)) | b64enc }}
-{{end}}
+  tls.crt: {{ .Values.ingress.secrets.originTls.cert.data | b64enc }}
+  tls.key: {{ .Values.ingress.secrets.originTls.key.data | b64enc }}
+{{- end }}
+{{- end }}

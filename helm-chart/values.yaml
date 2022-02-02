@@ -44,14 +44,15 @@ web:
         memory: "150Mi"
         cpu: "100m"
   secrets:
-    googleClient: 
-    backupManager: 
-      key:
-      serviceAccount:
+    googleClient:
+      data: # for local testing purposes or CI pipeline use input a value
+      ref: # Reference to an existing secret in the cluster
     logging:
-      prod: 
-      dev: 
+      ref: # Reference to an existing secret in the cluster
+      data: # for local testing purposes or CI pipeline use input a value
     schoolLookup:
+      ref: # Reference to an existing secret in the cluster
+      data: # for local testing purposes or CI pipeline use input a value
 
 redis:
   containerImage:
@@ -107,9 +108,11 @@ varnish:
     between_bytes_timeout: 90 # Default 60s
   secrets:
     varnish:
+      ref: # Reference to an existing secret in the cluster
+      data: # for local testing purposes or CI pipeline use input a value 
 
 ingress:
-  hosts: # You can set parth: serviceName: and port: for each host. By default they are set to '/*', 'nginx', '80' for each. Do note that changing this means you'll have to change the nginx service as well.
+  hosts: # You can set path: serviceName: and port: for each host. By default they are set to '/*', 'nginx', '80' respectively for each. Do note that changing this means you'll have to change the nginx service as well.
     - host: "{{ .Values.deployEnv }}.sefaria.org"
       path: /*
       serviceName: nginx
@@ -120,6 +123,21 @@ ingress:
     - host: www.sefaria.org
     - host: www.sefaria.org.il
     - host: rollout.sefaria.org
+  secrets:
+    # This TLS is referenced for Prod and Democracy deployments. Use the ref: or data: fields for either deployments.
+    originTls: 
+      ref: # Reference to an existing secret in the cluster 
+      cert:
+        data: # for local testing purposes or CI pipeline use input a value 
+      key: 
+        data: # for local testing purposes or CI pipeline use input a value 
+    # This TLS is referenced only for Prod deployments.
+    originIlTls: 
+      ref: # Reference to an existing secret in the cluster 
+      cert:
+        data: # for local testing purposes or CI pipeline use input a value 
+      key: 
+        data: # for local testing purposes or CI pipeline use input a value 
 
 nginx:
   containerImage: 
@@ -148,6 +166,14 @@ monitor:
       cpu: "100m" 
 
 secrets:
-  localSettings: |- 
+  localSettings: 
+    ref: # Reference to an existing secret in the cluster
+    data: |-
     # This is where the local settings go if you're on your local. Please ensure indentation for the whole file is consistent with the first line indentation
+  backupManager: 
+    ref:
+    key:
+      data: 
+    serviceAccount:
+      data: 
 ...
