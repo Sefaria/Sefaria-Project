@@ -3604,6 +3604,38 @@ def profile_sync_api(request):
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 
+@catch_error_as_json
+@login_required
+@api_view(["POST"])
+def delete_user_account_api(request):
+    # Deletes the user and emails sefaria staff for followup
+    from sefaria.utils.user import delete_user_account
+    from emailusernames.utils import get_user, user_exists
+    from django.core.mail import EmailMultiAlternatives
+    
+    if not request.user.is_authenticated:
+        return jsonResponse({"error": _("You must be logged in to delete your account.")})
+    uid = request.user.id
+    user_email = request.user.email
+    email_subject = "User Account Deletion Followup"
+    email_msg = "User {} has requested deletion of his account".format(user_email)
+    reply_email = None
+    try:
+        delete_user_account(uid, False)
+        email_msg += "\n\n The request was completed automatically."
+        reply_email = user_email
+    except Exception as e: 
+        # There are on rare occasions ForeignKeyViolation exceptions due to records in gauth_credentialsmodel or gauth_flowmodel in the sql db not getting 
+        # removed properly
+        logger.error("User {} deletion failed. {}".format(uid, e))
+        email_msg += "\n\n The request failed to complete automatically. The user has been directed to email in his request."
+    msg = EmailMultiAlternatives(email_subject, 
+                                 email_msg, from_email="Sefaria System <dev@sefaria.org>", 
+                                 to=["Sefaria <hello@sefaria.org>"], 
+                                 reply_to=[reply_email if reply_email else "hello@sefaria.org"])
+    msg.send()
+    
+
 def get_url_params_user_history(request):
     saved = request.GET.get("saved", None)
     if saved is not None:
