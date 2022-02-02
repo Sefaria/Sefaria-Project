@@ -1293,30 +1293,32 @@ class ReaderControls extends Component {
         <div className={"readerTextTocBox" + (this.props.sheetID ? " sheetBox" : "")} role="heading" aria-level="1" aria-live="polite">
           <div>
             <a href={url} aria-label={"Show Connection Panel contents for " + title} >
-              { this.props.sheetID ?
-              <img src={"/static/img/sheet.svg"} className="sheetTocIcon" alt="" /> : null}
-              { this.props.sheetID ?
-              <h1 style={{direction: Sefaria.hebrew.isHebrew(title) ? "rtl" : "ltr"}}>
-                {title}
-              </h1>
-              :
-              <h1>
-                <ContentText text={{en: title, he: heTitle}} defaultToInterfaceOnBilingual={true} />
-                <span className="sectionString">
-                  <ContentText text={{en: sectionString, he: heSectionString }} defaultToInterfaceOnBilingual={true} />
-                </span>
-              </h1>
-              }
+              <div className="readerControlsTitle">
+                { this.props.sheetID ?
+                <img src={"/static/img/sheet.svg"} className="sheetTocIcon" alt="" /> : null}
+                { this.props.sheetID ?
+                <h1 style={{direction: Sefaria.hebrew.isHebrew(title) ? "rtl" : "ltr"}}>
+                  {title}
+                </h1>
+                :
+                <h1>
+                  <ContentText text={{en: title, he: heTitle}} defaultToInterfaceOnBilingual={true} />
+                  <span className="sectionString">
+                    <ContentText text={{en: sectionString, he: heSectionString }} defaultToInterfaceOnBilingual={true} />
+                  </span>
+                </h1>
+                }
+              </div>
+              <div>
+                {categoryAttribution ? <CategoryAttribution categories={oref.categories} linked={false} /> : null }
+                {
+                  this.shouldShowVersion() && displayVersionTitle ?
+                  <span className="readerTextVersion">
+                    <span className="en">{displayVersionTitle}</span>
+                  </span> : null
+                }
+              </div>
             </a>
-          </div>
-          <div onClick={this.stopPropagation}>
-            {categoryAttribution ? <CategoryAttribution categories={oref.categories} linked={false} /> : null }
-            {
-              this.shouldShowVersion() && displayVersionTitle ?
-              <span className="readerTextVersion">
-                <span className="en">{displayVersionTitle}</span>
-              </span> : null
-            }
           </div>
         </div>
       </div>;

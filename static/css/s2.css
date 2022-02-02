@@ -4142,6 +4142,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .readerControls .readerTextToc .readerTextTocBox a {
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.readerControls .readerTextToc .readerTextTocBox a .readerControlsTitle {
+  display: flex;
   align-items: center;
   justify-content: center;
 }
