@@ -1224,8 +1224,8 @@ class ReaderApp extends Component {
     let panelLang;
     if (versionName && versionLanguage) {
       panel.currVersions[versionLanguage] = versionName;
-      if ((versionLanguage === "he" && !!panel.currVersions["en"]) ||
-          (versionLanguage === "en" && !!panel.currVersions["he"])) { // if both versionLanguages are set, try to show them both
+      if ((versionLanguage === "he" && panel.settings.language === 'english') ||
+          (versionLanguage === "en" && panel.settings.language === 'hebrew')) { // if lang of version isn't visible, display it
         panelLang = "bilingual";
       } else if (versionLanguage === "he") {
         panelLang = "hebrew";
