@@ -5385,6 +5385,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   -webkit-tap-hightlight-color: rgba(0,0,0,0); /* pulled from common.css; should apply more broadly? */
 }
 .categoryFilter:not(.withBooks) .filterInner:before{
+  min-width: 18px;
   width: 18px;
   height: 16px;
   content: '';
@@ -5469,6 +5470,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-align: left
 }
 .essayGroup .filterInner:before{
+  min-width: 18px;
   width: 18px;
   height: 16px;
   content: '';
