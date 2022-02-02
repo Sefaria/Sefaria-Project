@@ -5466,6 +5466,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .essayGroup .filterText {
   margin-inline-start: 15px;
   margin-inline-end: auto;
+  text-align: left
 }
 .essayGroup .filterInner:before{
   width: 18px;
