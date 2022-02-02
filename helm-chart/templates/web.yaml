@@ -158,7 +158,7 @@ spec:
       volumes:
         - name:  local-settings
           secret:
-            secretName: {{- if .Values.secrets.localSettings.ref }} {{- .Values.secrets.localSettings.ref }} {{- else }} local-settings-{{ .Values.deployEnv }} {{- end }}
+            secretName: {{- template "secrets.localSettingsName" . }}
         - name: client-secret
           secret:
             secretName: {{- if .Values.web.secrets.googleClient.data }}google-client-secret-{{ .Values.deployEnv }} {{- else }} {{- .Values.web.secrets.googleClient.ref }} {{- end }} # needs to be checked if it's a reference object or the data object we created.

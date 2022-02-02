@@ -13,7 +13,7 @@
 #       volumes:
 #         - name: local-settings
 #           secret:
-#             secretName: {{- if .Values.secrets.localSettings.ref }} {{- .Values.secrets.localSettings.ref }} {{- else }} local-settings-{{ .Values.deployEnv }} {{- end }}
+#             secretName: {{- template "secrets.localSettingsName" . }}
 #       containers:
 #         - name: regenerate
 #           image:  gcr.io/production-deployment/sefaria-web:{{ .Values.releaseImageTag }}
