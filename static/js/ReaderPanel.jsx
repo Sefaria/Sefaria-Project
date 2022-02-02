@@ -1309,7 +1309,7 @@ class ReaderControls extends Component {
                 </h1>
                 }
               </div>
-              <div>
+              <div className="readerTextVersion">
                 {categoryAttribution ? <CategoryAttribution categories={oref.categories} linked={false} /> : null }
                 {
                   this.shouldShowVersion() && displayVersionTitle ?

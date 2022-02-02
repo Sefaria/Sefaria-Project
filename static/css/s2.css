@@ -4331,6 +4331,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
+  max-width: 100%;
 }
 .readerControls .readerTextToc .readerTextVersion {
   font-size: 15px;
