@@ -44,7 +44,7 @@ spec:
             - name: SLACK_URL
               valueFrom:
                 secretKeyRef:
-                  name: slack-webhook-{{ .Values.deployEnv }}
+                  name: {{- if .Values.secrets.slackWebhook.data }} {{- .Values.secrets.slackWebhook.data }} {{- else }} "slack-webhook-"{{ .Values.deployEnv }} {{- end -}}
                   key: slack-webhook
             volumeMounts:
               - mountPath: /app/sefaria/local_settings.py
