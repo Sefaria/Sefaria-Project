@@ -364,7 +364,7 @@ class ResolvedRawRef:
     Partial or complete resolution of a RawRef
     """
 
-    def __init__(self, raw_ref: 'RawRef', resolved_ref_parts: List['RawRefPart'], node, ref: text.Ref, resolved_context_terms: List[NonUniqueTerm]=None, ambiguous=False, resolution_method: ResolutionMethod=None) -> None:
+    def __init__(self, raw_ref: 'RawRef', resolved_ref_parts: List['RawRefPart'], node, ref: text.Ref, resolved_context_terms: List[NonUniqueTerm]=None, ambiguous=False, resolution_method: ResolutionMethod=None, context_ref: text.Ref=None) -> None:
         self.raw_ref = raw_ref
         self.resolved_ref_parts = resolved_ref_parts
         self.resolved_context_terms = resolved_context_terms
@@ -372,6 +372,7 @@ class ResolvedRawRef:
         self.ref = ref
         self.ambiguous = ambiguous
         self.resolution_method = resolution_method
+        self.context_ref = context_ref
 
     def clone(self, **kwargs) -> 'ResolvedRawRef':
         """
@@ -762,7 +763,7 @@ class RefResolver:
             for raw_ref in raw_refs:
                 temp_resolved = self.resolve_raw_ref(lang, context_ref, raw_ref)
                 if len(temp_resolved) == 0 and with_failures:
-                    inner_resolved += [ResolvedRawRef(raw_ref, [], None, None)]
+                    inner_resolved += [ResolvedRawRef(raw_ref, [], None, None, context_ref=context_ref)]
                 inner_resolved += temp_resolved
             resolved += [inner_resolved]
         return resolved
@@ -888,11 +889,11 @@ class RefResolver:
                     except (InputError, AttributeError):
                         continue
             temp_resolved_list = self.refine_ref_part_matches(lang, context_ref, unrefined_matches, temp_raw_ref)
-            if len(temp_resolved_list) > 1:
-                for resolved in temp_resolved_list:
+            for resolved in temp_resolved_list:
+                resolved.context_ref = context_ref
+                if len(temp_resolved_list) > 1:
                     resolved.ambiguous = True
-            if is_non_cts:
-                for resolved in temp_resolved_list:
+                if is_non_cts:
                     resolved.resolution_method = ResolutionMethod.NON_CTS
             resolved_list += temp_resolved_list
         return resolved_list
