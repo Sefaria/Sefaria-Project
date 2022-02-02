@@ -292,6 +292,9 @@ class TextRange extends Component {
       heTitle          = "טעינה...";
       ref              = null;
     }
+    const formatEnAsPoetry = data && data.formatEnAsPoetry
+    const formatHeAsPoetry = data && data.formatHeAsPoetry
+
     const showNumberLabel =  data && data.categories &&
                               data.categories[0] !== "Liturgy" &&
                               data.categories[0] !== "Reference";
@@ -363,6 +366,8 @@ class TextRange extends Component {
             onFootnoteClick={this.onFootnoteClick}
             onNamedEntityClick={this.props.onNamedEntityClick}
             unsetTextHighlight={this.props.unsetTextHighlight}
+            formatEnAsPoetry={formatEnAsPoetry}
+            formatHeAsPoetry={formatHeAsPoetry}
           />
         </span>
       );
@@ -558,6 +563,12 @@ class TextSegment extends Component {
     }
     return text;
   }
+
+  addPoetrySpans(text) {
+    const textArray = text.split("<br>").map(t => (`<span class='poetry'>${t}</span>`) ).join("<br>")
+    return(textArray)
+  }
+
   render() {
     let linkCountElement = null;
     let he = this.props.he || "";
@@ -569,6 +580,9 @@ class TextSegment extends Component {
     }
     he = this.addHighlights(he);
     en = this.addHighlights(en);
+
+    en = this.props.formatEnAsPoetry ? this.addPoetrySpans(en) : en
+    he = this.props.formatHeAsPoetry ? this.addPoetrySpans(he) : he
 
     const heOnly = !this.props.en;
     const enOnly = !this.props.he;

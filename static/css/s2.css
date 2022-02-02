@@ -4650,6 +4650,23 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .basetext .segment {
   margin-bottom: 26px;
 }
+.segment .segmentText .poetry {
+  text-indent: -30px;
+  padding-inline-start: 30px;
+  display: inline-block;
+}
+
+.continuous .segment .segmentText .poetry {
+  text-indent: initial;
+  padding-inline-start: initial;
+  display: inline;
+  margin-inline-end: .5em;
+}
+
+.continuous .segment .segmentText br {
+  display: none;
+}
+
 /*.hebrew.segmented .segment > .he,
 .hebrew.segmented .segment > p > .he{
   display: block;

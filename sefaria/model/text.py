@@ -1224,7 +1224,8 @@ class AbstractTextRecord(object):
         if isinstance(tag, Tag):
             is_inline_commentator = tag.name == "i" and len(tag.get('data-commentator', '')) > 0
             is_page_marker = tag.name == "i" and len(tag.get('data-overlay','')) > 0
-            return AbstractTextRecord._itag_is_footnote(tag) or is_inline_commentator or is_page_marker
+            is_tanakh_end_sup = tag.name == "sup" and tag.get('class') == ['endFootnote']  # footnotes like this occur in JPS english
+            return AbstractTextRecord._itag_is_footnote(tag) or is_inline_commentator or is_page_marker or is_tanakh_end_sup
         return False
 
     @staticmethod
@@ -1293,6 +1294,7 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         "priority",
         "license",
         "versionNotes",
+        "formatAsPoetry",
         "digitizedBySefaria",
         "method",
         "heversionSource",  # bad data?
@@ -2154,6 +2156,11 @@ class TextFamily(object):
             "he": "heLicense",
             "default": "unknown"
         },
+        "formatAsPoetry": { # Setup for Fox translation. Perhaps we want in other places as well?
+            "he": "formatHeAsPoetry",
+            "en": "formatEnAsPoetry",
+            "default": False,
+        }
     }
     sourceMap = {
         "en": "sources",
@@ -3456,10 +3463,8 @@ class Ref(object, metaclass=RefCacheType):
             try:
                 r = first_leaf.ref().padded_ref()
             except Exception as e: #VirtualNodes dont have a .ref() function so fall back to VersionState
-               if self.is_book_level():
-                   from .version_state import VersionState
-                   vs = VersionState(self.index, proj={"title": 1, "first_section_ref": 1})
-                   return Ref(vs.first_section_ref) if (vs is not None) else None
+                if self.is_book_level():
+                    return self.index.versionSet().array()[0].first_section_ref()
         else:
             return None
 
