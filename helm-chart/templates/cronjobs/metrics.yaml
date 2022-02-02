@@ -14,7 +14,7 @@ spec:
           volumes:
           - name: local-settings
             secret:
-              secretName: {{- template "secrets.localSettingsName" . }}
+              secretName: {{- template "secrets.localSettings" . }}
           - name: metrics
             image: "{{ .Values.web.containerImage }}:{{ .Values.releaseImageTag }}"
             env:

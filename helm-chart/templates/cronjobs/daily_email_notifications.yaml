@@ -14,7 +14,7 @@ spec:
           volumes:
           - name: local-settings
             secret:
-              secretName: {{- if .Values.secrets.localSettings.ref }} {{- .Values.secrets.localSettings.ref }} {{- else }} local-settings-{{ .Values.deployEnv }} {{- end }}
+              secretName: {{- template "secrets.localSettings" . }}
           containers:
           - name: daily-email-notifications
             image: "{{ .Values.web.containerImage }}:{{ .Values.releaseImageTag }}"

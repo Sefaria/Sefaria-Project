@@ -15,7 +15,7 @@ spec:
           volumes:
           - name: backup-manager-secret
             secret:
-              secretName: {{- if .Values.secrets.backupManager.ref }} {{- .Values.secrets.backupManager.ref }} {{- else }} backup-manager-secret-{{ .Values.deployEnv }} {{- end }}
+              secretName: {{- template "secrets.backupManager" . }}
           - name: create-dumps-script
             configMap:
               name: create-dumps-{{ .Values.deployEnv }}
@@ -69,7 +69,7 @@ spec:
             - name: SLACK_URL
               valueFrom:
                 secretKeyRef:
-                  name: {{- if .Values.secrets.slackWebhook.data }} {{- .Values.secrets.slackWebhook.data }} {{- else }} "slack-webhook-"{{ .Values.deployEnv }} {{- end -}}
+                  name: {{- template "secrets.slackWebhook" . }}
                   key: slack-webhook
             command: ["bash"]
             args: ["-c", "/scripts/upload-dumps.sh"]

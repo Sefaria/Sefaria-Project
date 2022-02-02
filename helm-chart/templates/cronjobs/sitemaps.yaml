@@ -14,10 +14,10 @@ spec:
           volumes:
           - name: backup-manager-secret
             secret:
-              secretName: {{- if .Values.secrets.backupManager.ref }} {{- .Values.secrets.backupManager.ref }} {{- else }} backup-manager-secret-{{ .Values.deployEnv }} {{- end }}backup-manager-secret
+              secretName: {{- template "secrets.backupManager" . }}
           - name: local-settings
             secret:
-              secretName: {{- if .Values.secrets.localSettings.ref }} {{- .Values.secrets.localSettings.ref }} {{- else }} local-settings-{{ .Values.deployEnv }} {{- end }}
+              secretName: {{- template "secrets.localSettings" . }}
           - name: shared-volume
             emptyDir: {}
 

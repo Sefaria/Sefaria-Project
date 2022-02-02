@@ -25,7 +25,7 @@ spec:
           volumes:
           - name: local-settings
             secret:
-              secretName: {{- if .Values.secrets.localSettings.ref }} {{- .Values.secrets.localSettings.ref }} {{- else }} local-settings-{{ .Values.deployEnv }} {{- end }}
+              secretName: {{- template "secrets.localSettings" . }}
           containers:
           - name: reindex-elastic-search
             image: "{{ .Values.web.containerImage }}:{{ .Values.releaseImageTag }}"
@@ -44,7 +44,7 @@ spec:
             - name: SLACK_URL
               valueFrom:
                 secretKeyRef:
-                  name: {{- if .Values.secrets.slackWebhook.data }} {{- .Values.secrets.slackWebhook.data }} {{- else }} "slack-webhook-"{{ .Values.deployEnv }} {{- end -}}
+                  name: {{- template "secrets.slackWebhook" . }}
                   key: slack-webhook
             volumeMounts:
               - mountPath: /app/sefaria/local_settings.py
