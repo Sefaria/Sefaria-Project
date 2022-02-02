@@ -1214,6 +1214,213 @@ const PBSC2020LandingPage = () => (
     </StaticPage>
 );
 
+const PBSC2021LandingPage = () => (
+    <StaticPage>
+        <Header
+            enTitle="Powered by Sefaria Contest 2021"
+            enText="Explore the Projects"
+            enImg="/static/img/pbsc-2020-landing-page/codemockup3.png"
+            enImgAlt=""
+            heTitle="תחרות פיתוח התוכנה של ספריא 2021"
+            heText="גלו את המיזמים"
+            heImg="/static/img/pbsc-2020-landing-page/codemockup3.png"
+            heImgAlt=""
+        />
+
+        <GreyBox>
+            <H2Block en="Inviting Innovation" he="הזמנה לחידוש"/>
+            <EnBlock padded={true}>
+                <p>In an effort to seed the digital future of Jewish texts, the Powered by Sefaria Contest was launched in July 2020 — inviting the global Sefaria community to make use of our free and open digital dataset of Jewish texts, translations, and interconnections. Over the years, dozens of third parties have created apps, visualizations, and conducted research using our data or API, and we wanted to see what else our community could dream up. The second annual Powered by Sefaria Contest saw tremendous enthusiasm and welcomed many high quality submissions from Sefaria users around the world. <strong>Keep reading to learn more about the two winners and some innovative honorable mentions.</strong></p>
+            </EnBlock>
+            <HeBlock padded={true}>
+                <p>מתוך רצון לזרוע את זרעי העתיד הדיגיטלי של ארון הספרים היהודי, השקנו בשנת 2020 את תחרות פיתוח התוכנה של ספריא, ובה הזמנו את הקהילה הגלובלית של ספריא להשתמש במערך הנתונים הדיגיטלי הפתוח והחופשי של מקורות יהודיים, תרגומים וקישורים בין־טקסטואליים. לאורך השנים היינו עדים לעשרות מפתחי גוף שלישי שהשתמשו בנתונים או ב־API שלנו ליצירת יישומונים והדמיות ולצורכי מחקר, ורצינו לבדוק אילו רעיונות נוספים יש בקהילה שלנו. התחרות הפגישה אותנו עם התלהבות יוצאת מן הכלל ועם תוצרים באיכות גבוהה שקיבלנו ממשתמשי ספריא ברחבי העולם. המשיכו לקרוא כדי ללמוד על שני המנצחים ועל מיזמים נוספים שזכו בציון לשבח.</p>
+            </HeBlock>
+            <Spacer/>
+        </GreyBox>
+
+        <GreyBox light={true}>
+            <H2Block en="Grand Prize Winner" he="זוכה הפרס הכללי"/>
+        </GreyBox>
+
+        <Feature
+            enTitle="Sefaria Chavrusa"
+            enText="Gershon Binder<br/><br/>Sefaria Chavrusa is designed to increase accessibility by introducing a text-to-speech feature on Sefaria. Most text-to-speech options struggle with Hebrew; Sefaria Chavrusa is a solution for people who use screen readers, are unfamiliar with reading Hebrew, or just prefer hearing texts read aloud.  It also allows for customized voices with different accents including Chassidish, Litvish, and Israeli."
+            enImg="/static/img/pbsc-2021-landing-page/sefariachavrusa.png"
+            enImgAlt="Screenshot of Sefaria Chavrusa"
+            heTitle="או 'חברותא עם ספריא'"
+            heText="מאת גרשון בינדר<br><br>'חברותא עם ספריא' היא כלי שנועד להגביר את נגישותם של טקסטים בספריא על ידי השמעה קולית של טקסטים. כיום מרבית הכלים שהופכים טקסט לשמע מתקשים לעשות זאת בעברית, ועל כן 'חברותא עם ספריא' תסייע למשתמשים שנעזרים בקוראי מסך, למשתמשים שאינם מנוסים דיים בקריאת עברית או למשתמשים שפשוט מעדיפים לשמוע את המקורות בקול. המיזם מאפשר שימוש בקולות מותאמים אישית עם מבטאים לבחירה, כגון חסידי, אשכנזי או ישראלי."
+            heImg="/static/img/pbsc-2021-landing-page/sefariachavrusa.png"
+            heImgAlt="Screenshot of Sefaria Chavrusa"
+            borderColor={palette.colors.yellow}
+            link="https://www.youtube.com/watch?v=wnvw6H9BWDw&feature=youtu.be"
+        />
+
+        <GreyBox>
+            <H2Block en="Meet the Grand Prize Winner" he="פגשו את זוכה הפרס הכללי"/>
+            <EnBlock padded={true}>
+                <p>Originally from Huntington, Long Island, Gershon Binder is a senior at Lander College for Men working toward a degree in Computer Science. He is a graphic and web designer working with 3D rendering and Unreal Engine. He currently lives in Queens, New York.</p>
+            </EnBlock>
+            <HeBlock padded={true}>
+                <p>גרשון בינדר מהנטינגטון שבלונג איילנד במדינת ניו יורק הוא סטודנט למדעי המחשב בשנתו האחרונה בקולג' לנדר לגברים. בינדר הוא מעצב אתרים ומעצב גרפי ועובד עם מודלים תלת-ממדיים ועם מנוע Unreal. כיום מתגורר בקווינס שבניו יורק.</p>
+            </HeBlock>
+            <H2Block en="What Our Team Had to Say" he=""/>
+            <Section>
+                <UserQuote
+                    enText="“I was really impressed with the quality of the speech, even for unvowelized texts.  One of the things that we learned early at Sefaria is that making a text digital opens it up to people with low vision.  But the quality of Rabbinic Hebrew text-to-speech has always been poor, especially in comparison with English. This project gave me hope that we could provide low-sighted users a truly excellent spoken version of all of our texts.”"
+                    heText=""
+                    enName="Lev Israel, Chief Data Officer at Sefaria"
+                    heName=''
+                    image="/static/img/pbsc-2021-landing-page/lev.png"
+                />
+            </Section>
+
+        </GreyBox>
+
+        <GreyBox light={true}>
+            <H2Block en="Women in Tech Winner" he="זוכת פרס נשים מפתחות טכנולוגיה"/>
+        </GreyBox>
+
+        <Feature
+            enTitle="Torah Chanting Source Sheet Generator"
+            enText="By Valerie Monaco<br><br>The Torah Chanting Source Sheet Generator takes a range of Torah verses and provides a generated Sefaria sheet loaded with features for people learning how to chant, including trope identification and highlighting, trope cantillation tunes, and full verse chanting audio files."
+            enImg="/static/img/pbsc-2021-landing-page/torahchanting.png"
+            enImgAlt="Screenshot of Torah Chanting Source Sheet Generator"
+            heTitle="מחולל דפי מקורות לקריאה בתורה"
+            heText='מאת ולרי מונקו<br><br>"מחולל דפי המקורות לקריאה בתורה"  אוסף מגוון  פסוקים מן התורה כדי לחולל בעזרתם דף מקורות הכולל כלי עזר לקריאה בתורה – זיהוי והדגשה של טעמי המקרא, הדגמות שמע של טעמי המקרא וכן קובצי שמע של פסוקים מלאים.'
+            heImg="/static/img/pbsc-2021-landing-page/torahchanting.png"
+            heImgAlt="Screenshot of Torah Chanting Source Sheet Generator"
+            borderColor={palette.colors.raspberry}
+            link="https://www.torahchantinghelper.net/"
+        />
+
+        <GreyBox>
+            <H2Block en="Meet the Women in Tech Winner" he="פגשו את זוכת פרס נשים מפתחות טכנולוגיה"/>
+            <EnBlock padded={true}>
+                <p>The Torah Chanting Source Sheet Generator was created by Valerie Monaco, who officially converted to Judaism in 2013. In addition to being members at Rodef Shalom in Pittsburgh, PA, she and her wife are very involved with Congregation Bet Tikvah. Valerie works as a Senior Data Analyst for the City of Pittsburgh and has graduate degrees in psychology and human-computer interaction. As she was studying chanting, Valerie found it was difficult without a shared visual resource, and setting up a useful sheet “by hand” was time-consuming and had limitations. The Torah Chanting Source Sheet Generator eases the process of creating sheets to make it easier for people to spend their time learning.</p>
+            </EnBlock>
+            <HeBlock padded={true}>
+                <p>"מחולל דפי המקורות לקריאה בתורה" נוצר על ידי ולרי מונקו, שהתגיירה בשנת 2013. נוסף על חברותן בקהילת "רודף שלום" בפיטסבורג שבפנסילבניה, היא ובת זוגה הן גם שותפות נלהבות בקהילת "בית תקווה". ולרי היא אנליסטית דאטה בכירה בעיריית פיטסבורג ובעלת תואר ראשון בפסיכולוגיה ובקשרי אדם־מחשב. כאשר למדה לקרוא בתורה גילתה ולרי שקשה לעשות זאת ללא דף מקורות ויזואלי משותף, ושהכנת דף שימושי כזה באופן ידני תיארך זמן רב ויהיו לה מגבלות. "מחולל דפי המקורות לקריאה בתורה" מקל על תהליך יצירת דפי המקורות ומאפשר להקדיש יותר זמן ללימוד.</p>
+            </HeBlock>
+            <H2Block en="What Our Team Had to Say" he=""/>
+            <Section>
+                <UserQuote
+                    enText="“One of the most powerful things about Sefaria is how our tools and resources can be harnessed to provide access and ease of use for folks to grow into their Judaism and Torah learning whenever they're ready. As an adult b'nai mitzvah student Valerie knows this first hand, and her extension of our API and resources to create a tool that simplifies the process of learning Torah reading by automatically creating interactive trope exercises and highlighting trop phrases in a given selection of text is exactly the kind of project that would have been much more difficult to create without our open APIs and data.”"
+                    heText=""
+                    enName="Russel Neiss, Sr. Product Engineer at Sefaria"
+                    heName=''
+                    image="/static/img/pbsc-2021-landing-page/russel.png"
+                />
+            </Section>
+        </GreyBox>
+
+        <GreyBox light={true}>
+            <H2Block en="Honorable Mentions" he="מיזמים שזכו בציון לשבח"/>
+        </GreyBox>
+
+        <Feature
+            enTitle="he_Toranit"
+            enText="By Zeev Pekar<br><br>Ivrit Toranit is a free spelling dictionary. It includes Hebrew from different eras,  as well as Western and Eastern Aramaic. The dictionary is designed to reduce the ‘mispellings’ wrongly detected by the modern Hebrew spell checkers when working with Torah literature."
+            enImg="/static/img/pbsc-2021-landing-page/he_toranit.png"
+            enImgAlt="he_Toranit screenshot"
+            heTitle="התורנית"
+            heText='מאת זאב פקר<br><br>"עברית תורנית" היא מילון איות ללא תשלום הכולל עברית מתקופות שונות וכן ארמית מזרחית ומערבית. המילון נועד להפחית את "שגיאות הכתיב" שבודקי האיות, הפועלים על פי העברית המודרנית, מרבים למצוא ולהתריע עליהן בעת עבודה עם ספרות תורנית.'
+            heImg="/static/img/pbsc-2021-landing-page/he_toranit.png"
+            heImgAlt="he_Toranit screenshot"
+            borderColor={palette.colors.green}
+            link="https://gitlab.com/pninim.org/he_TORANIT"
+        />
+
+
+        <Feature
+            enTitle="ShenaimMikra - Text to Speech"
+            enText="By Abraham Saiovici<br><br>ShnaimMikra Text-to-Speech is an application that pulls in the weekly Parsha along with the Rashis and synthesizes the text into speech, providing a way of hearing the Parsha on the go. Handy for long commutes!"
+            enImg="/static/img/pbsc-2021-landing-page/shenaim mikra.png"
+            enImgAlt="ShenaimMikra - Text to Speech"
+            heTitle="שניימקרא – טקסט לשמע"
+            heText='מאת אברהם סיוביצ’י<br><br>"שניימקרא – טקסט לשמע" הוא יישומון השולף את פרשת השבוע עם פרשנות רש"י מסנתז את הטקסט לשמע ומאפשר לשמוע את הפרשה "בלכתך בדרך". שימושי מאוד לנסיעות ארוכות לעבודה!'
+            heImg="/static/img/pbsc-2021-landing-page/shenaim mikra.png"
+            heImgAlt="שניימקרא – טקסט לשמע"
+            borderColor={palette.colors.paleblue}
+            link="http://shnaim-mikra-abe.s3-website-us-east-1.amazonaws.com/"
+        />
+
+
+        <Feature
+            enTitle="Verse-Based Search"
+            enText="By Oren Mishali<br><br>An innovative tool that helps users search for sources by quotations. On selecting a set of verses, the site generates a list of texts that quote verses from the set. This tool provides an different way to quickly find relevant sources - sorting results by their relationship to a specific verse rather than topic or text"
+            enImg="/static/img/pbsc-2021-landing-page/verse search.png"
+            enImgAlt="Verse-Based Search"
+            heTitle="חיפוש מבוסס פסוקים"
+            heText='מאת אורן משעלי<br><br>"חיפוש מבוסס פסוקים" הוא כלי חדשני שעוזר למשתמשים לחפש מקורות על פי ציטוטים. באמצעות בחירה של סדרת פסוקים, האתר מחולל רשימה של טקסטים המצטטים פסוקים בסדרה. הכלי הזה מספק דרך חלופית למציאת מקורות רלוונטיים במהירות – הוא ממיין תוצאות על פי הקשר שלהם לפסוק מסוים במקום לפי הקשר שלהם לנושא או לטקסט.'
+            heImg="/static/img/pbsc-2021-landing-page/verse search.png"
+            heImgAlt="חיפוש מבוסס פסוקים"
+            borderColor={palette.colors.blue}
+            link="http://jbse.cs.technion.ac.il/#/show?uri=section-tanach-1-1"
+        />
+
+
+        <Feature
+            enTitle="Stories of the Zohar"
+            enText="By Shir Yochanan<br><br>A digital resource of the stories of the sages that appear in the Zohar, allowing easy perusal of the stories. The site includes mapping of all the stories of the Zohar according to parshas and topics, as well as accompanying visuals and links to similar stories."
+            enImg="/static/img/pbsc-2021-landing-page/zohar stories.png"
+            enImgAlt="Daf Yomi Crossword"
+            heTitle="סיפורי הזוהר"
+            heText='מאת שיר יוחנן<br><br>זהו משאב דיגיטלי לסיפורי החכמים שבזוהר, המאפשר קריאה מעמיקה בקלות. האתר כולל מיפוי של כל סיפורי הזוהר על פי פרשות ונושאים, וכן הדמיות המלוות את הסיפורים וקישורים לסיפורים דומים. '
+            heImg="/static/img/pbsc-2021-landing-page/zohar stories.png"
+            heImgAlt="תשבץ דף יומי"
+            borderColor={palette.colors.orange}
+            link="https://www.zohar-stories.com/"
+        />
+
+
+        <CallToActionFooterWithButton
+            href="https://github.com/Sefaria/Sefaria-Project"
+            he_href="https://github.com/Sefaria/Sefaria-Project"
+            enText="Want to create something of your own?"
+            heText="רוצה ליצור משהו משלך?"
+            enButtonText="GitHub"
+            heButtonText="גיטהאב"
+        />
+
+        <ButtonRow white={true} enTitle="Explore the 2020 projects" heTitle="גלו את מיזמי 2020">
+            { [
+                ["Talmud Sidebar Extension", "תוסף סרגל הכלים של התלמוד", "https://chrome.google.com/webstore/detail/talmud-sidebar-extension/dmpiiciebnbekblfbcdeogjkbbmeeimi"],
+                ["Mizmor Shir", "מזמור שיר", "http://mizmor-shir.herokuapp.com/"],
+                ["Shulkhan", "שולחן", "http://josephtepperman.com/shulkhan.htm"],
+                ["Goof - Body parts in Tefillah", "גוף: איברי הגוף בתפילה", "https://goof.surge.sh/"],
+                ["Capish - Interactive Learning", "קאפיש: לימוד אינטראקטיבי", "https://capish.me/"],
+                ["Daf Yomi Crossword", "תשבץ דף יומי", "http://ee.cooper.edu/~goldfarb/daf"],
+                ["Sefer Similarity Map", "ספר– מפת דמיון בין טקסטים", "https://jhostyk.github.io/SeferSimilarityMap"],
+                ["Custom Mikraot Gedolot", "מקראות גדולות בהתאמה אישית", "http://ec2-3-129-165-55.us-east-2.compute.amazonaws.com:3002/"],
+                ["Sefaria Space: (Topic Museum + Text Mania)", "מרחב ספריא (מוזיאון נושאי + טָרֶפֶת טקסט)", "https://sefaria-space.web.app/"],
+                ["The Rabbinic Citation Network", "רשת ציטוטים של חכמי התלמוד", "http://www.rabbiniccitations.jewishstudies.digitalscholarship.brown.edu/blog/"],
+                ["T'Feeling", "פילינג", "https://tfeeling.netlify.app"],
+                ["CiteMakor", "המצ'טט", "https://twitter.com/CiteMakor"],
+                ["Gifaria", "גיפַריא", "https://tiger-tang.shinyapps.io/gifaria"],
+                ["The Taryag Mitzvos", "תרי\"ג מצוות", "https://thetaryag.com/"],
+                ["3D Tanach Family Tree", "אילן יוחסין תנ\"כי תלת ממדי", "http://www.basehasefer.com"],
+                ["Gematriaphone", "גימטריה קולית", "http://alexboxer.com/gematriaphone"],
+                ["sefaria-connections", "קשרי ספריא", "https://charlesloder.github.io/sefaria-connections"],
+                ["SefariAcrostic", "ספריאקרוסטיכון", "https://20gordone.github.io/SefariaContest"],
+
+            ].map(i =>
+                <SimpleButton
+                    white={true}
+                    rounded={false}
+                    tall={true}
+                    newTab={true}
+                    href={i[2]}
+                    he_href={i[2]}
+                    he={i[1]}
+                    en={i[0]}
+                />)
+            }
+        </ButtonRow>
+
+    </StaticPage>
+);
+
+
 
 const StaticPage = ({children, optionalClass=""}) => {
     var staticPageClass = "staticPage";
@@ -1509,6 +1716,7 @@ export {
     RemoteLearningPage,
     SheetsLandingPage,
     PBSC2020LandingPage,
+    PBSC2021LandingPage,
     ContestLandingPage,
     RambanLandingPage,
     EducatorsPage
