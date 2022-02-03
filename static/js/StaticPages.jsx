@@ -674,10 +674,13 @@ const EducatorsPage = () => (
   <StaticPage>
     <HeaderForEducatorsPage/>
     <GreyBox>
-      <H2Block en="Empower and Engage" he=""/>
+      <H2Block en="Empower and Engage" he="מסע של גילוי"/>
       <EnBlock padded={true}>
         <p>Empower your students with Sefaria’s free library of digital texts, in Hebrew and English translation, and use our teaching materials to spark creativity and foster independence. Learn new ways of teaching and engaging your students in the centuries-old conversation around Jewish texts, and join Sefaria’s Educator community.</p>
       </EnBlock>
+      <HeBlock padded={true}>
+        <p>            דמיינו את התלמידים שלכם  מטיילים במסדרונות ספריית ענק ושולפים ספרים עתיקים וחדשים בהם מתגלים דמויות, רעיונות ומחשבות מתוך העולם היהודי שנכתבו במשך 3000 שנה. בספריא החלום הופך למציאות. הובילו את התלמידים למסע של גילוי ולמידה בין המקורות של ארון הספרים היהודי.</p>
+      </HeBlock>
       <Spacer/>
     </GreyBox>
 
@@ -687,18 +690,18 @@ const EducatorsPage = () => (
       enText="Whether you’re a pro or a new user, Sefaria has resources to help you and your students learn and thrive. Join a Sefaria webinar, browse our tutorials, sign up for our Educator course, or request a custom workshop for your team or your students."
       enImg="/static/img/educators-landing-page/teaching-with-sefaria-library.png"
       enImgAlt="Professional Development"
-      heTitle="Professional Development"
-      heText="Whether you’re a pro or a new user, Sefaria has resources to help you and your students learn and thrive. Join a Sefaria webinar, browse our tutorials, sign up for our Educator course, or request a custom workshop for your team or your students."
-      heImg="/static/img/educators-landing-page/teaching-with-sefaria-library.png"
+      heTitle="איך להשתמש באתר?"
+      heText='נתחיל בהתחלה: "המדריך למשתמש בספריא" מורכב מיחידות מודרכות בהן נלמדות צעד אחר צעד האפשרויות השונות באתר ספריא. באסופה "ספריא לתלמידים" נמצאות הדרכות על השימוש באתר שמותאמות במיוחד עבור למידה עצמאית של תלמידים. כדי ללמוד ולהכיר חלק מסוים באתר תוכלו להשתמש באסופה של "שאלות נפוצות".'
+      heImg="/static/img/educators-landing-page/teaching-with-sefaria-library-heb.png"
       heImgAlt="Professional Development"
       borderColor={palette.colors.darkblue}
     />
 
     <ButtonRow white={true} enTitle="" heTitle="">
       { [
-          ["Online Educator Course", "", "https://sefaria.typeform.com/to/tJVexqpG"],
-          ["Lesson Plans on Sefaria", "", "/collections/pedagogy-on-sefaria-exemplary-lesson-plans"],
-          ["Schedule A Workshop", "", "https://sefaria.typeform.com/to/Pl3biam8"]
+          ["Online Educator Course", "מדריך למשתמש בספריא", "https://sefaria.typeform.com/to/tJVexqpG", "https://www.sefaria.org.il/sheets/361600?lang=he"],
+          ["Lesson Plans on Sefaria", "ספריא לתלמידים", "/collections/pedagogy-on-sefaria-exemplary-lesson-plans", "https://www.sefaria.org.il/collections/KGMlHrvA"],
+          ["Schedule A Workshop", "שאלות נפוצות", "https://sefaria.typeform.com/to/Pl3biam8", "https://www.sefaria.org.il/collections/%D7%A9%D7%90%D7%9C%D7%95%D7%AA-%D7%A0%D7%A4%D7%95%D7%A6%D7%95%D7%AA-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90"]
       ].map(i =>
           <SimpleButton
               white={true}
@@ -706,8 +709,8 @@ const EducatorsPage = () => (
               tall={true}
               newTab={true}
               href={i[2]}
-              he_href={i[2]}
-              he={i[0]}
+              he_href={i[3]}
+              he={i[1]}
               en={i[0]}
           />)
       }
@@ -718,9 +721,9 @@ const EducatorsPage = () => (
       enText="Stay up to date with the latest news and resources from Sefaria. Learn from other educators’ experiences teaching and using Sefaria’s resources, and get inspired to try new things in your work. Discover our adaptable lesson plans and resources, or find learning materials and activities ready-to-go for your classroom!"
       enImg="/static/img/educators-landing-page/megillah-activity.png"
       enImgAlt="Resources for Educators"
-      heTitle=""
-      heText=""
-      heImg="/static/img/educators-landing-page/megillah-activity.png"
+      heTitle="מערכי שיעור וחומרי הוראה"
+      heText="צוות החינוך של ספריא יצר ואסף עבורכם המורים, חומרי הוראה בעזרתם תוכלו להעשיר ולהעמיק את הלמידה. <br><br>לפניכם אסופה של מערכי שיעור בנושאים שונים, הצעה לתהליך של עבודת חקר באמצעות ספריא ורעיונות להערכה חלופית."
+      heImg="/static/img/educators-landing-page/369968.png"
       heImgAlt=""
       borderColor={palette.colors.gold}
       link=""
@@ -728,9 +731,9 @@ const EducatorsPage = () => (
 
     <ButtonRow white={true} enTitle="" heTitle="">
       { [
-          ["Past Educator Newsletters", "", "/collections/qZ0UWi5y"],
-          ["Sefaria in Action", "", "/sheets/311116?lang=bi"],
-          ["For Your Students", "", "/sheets/311291?lang=bi"]
+          ["Past Educator Newsletters", "10 רעיונות להערכה חלופית", "/collections/qZ0UWi5y", "https://www.sefaria.org.il/sheets/281661?lang=he"],
+          ["Sefaria in Action", "עבודת חקר: מסע בין מקורות", "/sheets/311116?lang=bi", "https://www.sefaria.org.il/collections/%D7%A2%D7%91%D7%95%D7%93%D7%AA-%D7%97%D7%A7%D7%A8-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90-%D7%9E%D7%A1%D7%A2-%D7%91%D7%99%D7%9F-%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA"],
+          ["For Your Students", "מערכי שיעור", "/sheets/311291?lang=bi", "https://www.sefaria.org.il/sheets/361593?lang=he"]
       ].map(i =>
           <SimpleButton
               white={true}
@@ -738,8 +741,8 @@ const EducatorsPage = () => (
               tall={true}
               newTab={true}
               href={i[2]}
-              he_href={i[2]}
-              he={i[0]}
+              he_href={i[3]}
+              he={i[1]}
               en={i[0]}
           />)
       }
@@ -749,18 +752,18 @@ const EducatorsPage = () => (
       enText="Browse our FAQ’s and learn more about how to use Sefaria’s tools to study and to teach. Sefaria’s Learning Team is always available to support you and your students or answer any questions you might have. If there are texts, translations, lesson plans, or student materials that would enhance your teaching, please share that with us as well."
       enImg="/static/img/educators-landing-page/tutorials-for-educators.png"
       enImgAlt="Sefaria for Educators How-Tos"
-      heTitle=""
-      heText=""
-      heImg="/static/img/educators-landing-page/tutorials-for-educators.png"
+      heTitle="גם את זה יש בספריא! אל תחמיצו!"
+      heText='מאגר ספריא הוא גדול ובתוכו אפשרויות לימוד רבות. מוזמנים לעיין באסופות מעניינות ושימושיות, להכיר את עמוד הקהילה והתכנים שבו וגם לגלות את "הסודות של ספריא"'
+      heImg="/static/img/educators-landing-page/228260.png"
       heImgAlt=""
       borderColor={palette.colors.red}
     />
 
     <ButtonRow white={true} enTitle="" heTitle="">
       { [
-          ["Educator FAQ", "", "/collections/tutorials-for-educators"],
-          ["Request New Resources", "", "https://sefaria.typeform.com/to/aaZmi4JD"],
-          ["Webinars for Educators", "", "/collections/qJLU68HQ"]
+          ["Educator FAQ", "אסופות מומלצות", "/collections/tutorials-for-educators","https://www.sefaria.org.il/sheets/360599?lang=he"],
+          ["Request New Resources", "עמוד הקהילה", "https://sefaria.typeform.com/to/aaZmi4JD","https://www.sefaria.org.il/community"],
+          ["Webinars for Educators", "הסודות של ספריא", "/collections/qJLU68HQ","https://www.sefaria.org.il/sheets/228260.2?lang=he"]
       ].map(i =>
           <SimpleButton
               white={true}
@@ -768,23 +771,29 @@ const EducatorsPage = () => (
               tall={true}
               newTab={true}
               href={i[2]}
-              he_href={i[2]}
-              he={i[0]}
+              he_href={i[3]}
+              he={i[1]}
               en={i[0]}
           />)
       }
     </ButtonRow>
 
     <GreyBox>
-      <H2Block en="Get in touch" he=""/>
+      <H2Block en="Get in touch" he="אנחנו רוצים לשמוע מכם"/>
       <EnBlock padded={true}>
           <p>Was your teaching enhanced by Sefaria? Did you have a “Sefaria moment” with your students? Share it with us! We love to hear how educators are using Sefaria in the field and we learn from the feedback we receive. We are also available to answer all of your Sefaria questions. Write to us at education@sefaria.org.</p>
       </EnBlock>
+      <HeBlock padded={true}>
+          <p>אנחנו לומדים רבות ממורים ותלמידים שמספרים לנו על ההתנסות שלהם עם ספריא. נשמח מאד אם תשתפו אותנו בחוויית הלימוד שלכם. אתם מוזמנים ליצור איתנו קשר כדי לתאם הדרכה למורים וגם לתלמידים,  לספר לנו על חוויית הלמידה עם ספריא ולהתייעץ איתנו בכל דבר ועניין</p>
+          <p>כתבו לנו לכתובת המייל hello@sefaria.org</p>
+
+      </HeBlock>
       <Spacer/>
     </GreyBox>
 
-    <H2Block en="What the educators have to say…" he=""/>
+    <H2Block en="What the educators have to say…" he="מורים ותלמידים ממליצים"/>
 
+    <EnBlock>
     <Section>
       <UserQuote
           heText=""
@@ -815,10 +824,39 @@ const EducatorsPage = () => (
         image="/static/img/educators-landing-page/Yael Goldfischer.png"
       />
     </Section>
+    </EnBlock>
+
+
+    <HeBlock>
+    <Section>
+      <UserQuote
+          heText='מצאתי ש-"ספריא" היא דרך טובה להמחיש לתלמידים את מה שהתגלה לנו והפעים אותנו, ומה שאנחנו לפעמים מתקשים להסביר להם: שהיהדות היא מארג שלם של הקשרים, שאינו מפסיק ליצור ולהתקיים. ב-"ספריא" ההקשרים האלה נראים לעין, מתגלים בקליק, ולוקחים את התלמיד/ה איתם למסע מסחרר שאינו נגמר: דבר מוביל לדבר, דבר קשור לדבר: פסוק לפרשנות, למדרש, לדף לימוד, לשיר עכשווי שבו מצוטט פסוק, שגם עליו יש מדרש, וכך הלאה וכך הלאה. "ספריא" היא המחשה של העושר הבלתי-נתפס של היצירה היהודית, והיא גם הזמנה לקחת בו חלק ולהוסיף את החוליה שלך לשלשלת הזהב.'
+          enText=""
+          enName=""
+          heName='יורם גלילי, מורה לתושב"ע, מנחה מורים במשרד החינוך ובתכנית בארי של מכון הרטמן'
+          image="/static/img/educators-landing-page/yoram-galil.png"
+      />
+      <UserQuote
+          enText=""
+          heText='עבורי ספריא הוא מרחב פעילות חינוכי רב ענפים, בית מדרש דיגיטלי שלם. משמש עבורי כספריה  ללימוד ולהכנת חומרי לימוד ודפי מקורות  לתלמידיי. עבור תלמידיי זה המקום שאליו נכנסים לחפש, לקרא ולבנות דפי מקורות אותם הם לומדים בחברותא ומלמדים את חבריהם.    דבר גדול הוא שתלמיד נכנס כל פעם להיכל, לספריה שלמה מחפש ומדפדף  ואגב כך  נחשף לעושר גדול - זה דבר חשוב מאין כמותו. כך  שלפעמים מחפשים אתונות ומוצאים מלוכה.'
+          enName=""
+          heName='איציק רבי, מורה ומדריך ארצי לתושב"ע ומשפט עברי בחינוך הממלכתי, מנחה להוראת תרבות יהודית ישראלית בתכנית בארי של מכון הרטמן'
+          image="/static/img/educators-landing-page/izhak-rabi.png"
+      />
+      <UserQuote
+        heText='אני משתמשת בספריא לא פעם כמורה - לעתים בהכנת השיעורים בעצמי , אבל בעיקר - ככלי מעשי עבור התלמידות: עבור גישה לפרשנים ומקורות שלא נגישים להן בכיתה או בבית, להדגמת הקישוריות בין סוגיות בגמרא לבין פסיקת ההלכה, להיכרות עם הדמויות המוזכרות במקורות חז"ל, ועוד. הכלי של דפי מקורות הוא נהדר כפרוייקט הערכה חלופית - תהליך של איתור חומרים, חשיבה על היחס ביניהם, והגעה לתוצר שיכול להיות מעניין גם לחברותיהן לכיתה וגם לציבור הרחב דרך האתר.'
+        enText=""
+        enName=""
+        heName='אביגיל גרוס-גלמן, מובילה רוחנית בתיכון "פלך" לבנות בזכרון יעקב'
+        image="/static/img/educators-landing-page/avigail-gross.png"
+      />
+    </Section>
+    </HeBlock>
+
 
     <div className="staticPageCallToActionFooter">
       <div className="staticPageBlockInner flexContainer">
-        <SimpleInterfaceBlock classes="callToActionText" en="Sign up for our mailing list to get updates in your inbox" he="Sign up for our mailing list to get updates in your inbox" />
+        <SimpleInterfaceBlock classes="callToActionText" en="Sign up for our mailing list to get updates in your inbox" he="קבלו עדכונים והפניות למקורות מעניינים" />
         <EducatorSubscribeButton/>
       </div>
     </div>
@@ -1504,7 +1542,7 @@ const EducatorSubscribeButton = () => {
           <span className="int-en">{email.length === 0 ? <a href="/register?educator=true&next=/educators">{enActionText.current}</a> : enActionText.current}<img src="/static/img/circled-arrow-right.svg"/></span>
         </div>
         <div onClick={handleClick} className={classNames({button:1, flexContainer:1, "int-he":1, white: true, tall: false, rounded:true})}>
-          <span className="int-he">{email.length === 0 ? <a href="/register?educator=true&next=/educators">{heActionText.current}</a> : heActionText.current}<img src="/static/img/circled-arrow-right.svg"/></span>
+          <span className="int-he">{email.length === 0 ? <a href="/register?educator=true&next=/educators">{heActionText.current}</a> : heActionText.current}<img src="/static/img/circled-arrow-left.svg"/></span>
         </div>
       </div>
       <div className={`signUpEducatorsMessage ${messageStyle}`}>{message}<br/></div>
@@ -1514,8 +1552,8 @@ const EducatorSubscribeButton = () => {
 const HeaderForEducatorsPage = () => {
   var enTitle="Teach with Sefaria"
   var enText="Discover the power of digital texts and tools in your classroom. Explore Sefaria’s many resources to enrich teaching and learning in your community."
-  var heText="Discover the power of digital texts and tools in your classroom. Explore Sefaria’s many resources to enrich teaching and learning in your community."
-  var heTitle="Teach with Sefaria"
+  var heText="גלו כיצד להעשיר את הלמידה וההוראה באמצעות מאגר מקורות דיגיטלי. באתר אפשרויות רבות ללומדים:  תוכלו למצוא מקורות, להיפגש עם מגוון של חומרי הוראה ולחזק את התלמידים שלכם כלומדים עצמאיים."
+  var heTitle="מלמדים עם ספריא"
 
   return <div className="staticPageHeader educators">
     <div className="staticPageBlockInner flexContainer">
