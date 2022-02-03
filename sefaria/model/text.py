@@ -1211,7 +1211,8 @@ class AbstractTextRecord(object):
         if isinstance(tag, Tag):
             is_inline_commentator = tag.name == "i" and len(tag.get('data-commentator', '')) > 0
             is_page_marker = tag.name == "i" and len(tag.get('data-overlay','')) > 0
-            return AbstractTextRecord._itag_is_footnote(tag) or is_inline_commentator or is_page_marker
+            is_tanakh_end_sup = tag.name == "sup" and tag.get('class') == ['endFootnote']  # footnotes like this occur in JPS english
+            return AbstractTextRecord._itag_is_footnote(tag) or is_inline_commentator or is_page_marker or is_tanakh_end_sup
         return False
 
     @staticmethod
@@ -2031,7 +2032,7 @@ class VirtualTextChunk(AbstractTextRecord):
         self.is_merged = False
         self.sources = []
 
-        if not self._oref.index_node.parent.supports_language(self.lang):
+        if self._oref.index_node.parent and not self._oref.index_node.parent.supports_language(self.lang):
             self.text = []
             self._versions = []
             return

@@ -15,6 +15,7 @@ import {
   RemoteLearningPage,
   SheetsLandingPage,
   PBSC2020LandingPage,
+  PBSC2021LandingPage,
   RambanLandingPage,
   EducatorsPage
 } from './StaticPages';
@@ -2074,6 +2075,7 @@ export {
   SheetsLandingPage,
   ContestLandingPage,
   PBSC2020LandingPage,
+  PBSC2021LandingPage,
   RambanLandingPage,
   EducatorsPage
 };
