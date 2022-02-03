@@ -1,7 +1,7 @@
 {{/*
 Create the name of the local-settings secret
 */}}
-{{- define "secrets.localSettings" -}}
+{{- define "secrets.localSettings" -}} # {{- template "secrets.localSettings" . }}
 {{- if .Values.secrets.localSettings.ref }}
 {{ .Values.secrets.localSettings.ref }}
 {{- else }}
@@ -9,14 +9,14 @@ local-settings-{{ .Values.deployEnv }}
 {{- end }}
 {{- end }}
 
-{{- define "secrets.googleClient" -}}
+{{- define "secrets.googleClient" -}} # {{- template "secrets.googleClient" . }}
 {{- if .Values.web.secrets.googleClient.ref }}
 {{- .Values.web.secrets.googleClient.ref }}
 {{- else }} google-client-secret-{{ .Values.deployEnv }}
 {{- end }}
 {{- end }}
 
-{{- define "secrets.backupManager" -}}
+{{- define "secrets.backupManager" -}} # {{- template "secrets.backupManager" . }}
 {{- if .Values.secrets.backupManager.ref }}
 {{- .Values.secrets.backupManager.ref }}
 {{- else }} 

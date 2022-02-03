@@ -168,19 +168,19 @@ spec:
             secretName: {{- template "secrets.localSettingsName" . }}
         - name: client-secret
           secret:
-            secretName: {{- if .Values.web.secrets.googleClient.data }}google-client-secret-{{ .Values.deployEnv }} {{- else }} {{- .Values.web.secrets.googleClient.ref }} {{- end }} # needs to be checked if it's a reference object or the data object we created.
+            secretName: {{- template "secrets.googleClient" . }} # needs to be checked if it's a reference object or the data object we created.
         - name: backup-manager-secret  # used to access google cloud
           secret:
-            secretName: {{- if .Values.secrets.backupManager.ref }} {{- .Values.secrets.backupManager.ref }} {{- else }} backup-manager-secret-{{ .Values.deployEnv }} {{- end }}
+            secretName: {{- template "secrets.backupManager" . }}
         - name: logging-secret
           secret:
-            secretName: {{- if .Values.web.secrets.logging.ref }} {{- .Values.web.secrets.logging.ref }} {{- else }} logging-secret-{{ .Values.deployEnv }} {{- end }}
+            secretName: {{- template "secrets.logging" . }}
         - name: varnish-secret
           secret:
-            secretName: {{- if .Values.varnish.secrets.varnish.ref }} {{- .Values.varnish.secrets.varnish.ref }} {{- else }} varnish-secret-{{ .Values.deployEnv }} {{- end }}
+            secretName: {{- template "secrets.varnish" . }}
         - name: school-lookup-data
           secret:
-            secretName: {{- if .Values.web.secrets.schoolLookup.ref }} {{- .Values.web.secrets.schoolLookup.ref }} {{- else }} school-lookup-data-{{ .Values.deployEnv }} {{- end }}
+            secretName: {{- template "secrets.schoolLookup" . }}
         - name: gunicorn-config
           configMap:
             name: gunicorn-config-{{ .Values.deployEnv }}
