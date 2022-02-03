@@ -1339,6 +1339,9 @@ def texts_api(request, tref):
         commentary = bool(int(request.GET.get("commentary", False)))
         pad        = bool(int(request.GET.get("pad", 1)))
         versionEn  = request.GET.get("ven", None)
+        firstAvailableRef = bool(int(request.GET.get("firstAvailableRef", False)))  # use first available ref, which may not be the same as oref
+        if firstAvailableRef:
+            oref = oref.first_available_section_ref()
         if versionEn:
             versionEn = versionEn.replace("_", " ")
         versionHe  = request.GET.get("vhe", None)
