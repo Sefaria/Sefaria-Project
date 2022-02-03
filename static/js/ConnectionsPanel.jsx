@@ -443,15 +443,17 @@ class ConnectionsPanel extends Component {
         }
       </div>);
     } else if (this.props.mode == "Add To Sheet") {
-      let refForSheet, versionsForSheet, selectedWordsForSheet;
+      let refForSheet, versionsForSheet, selectedWordsForSheet, nodeRef;
+      // add source from connections
       if (this.props.connectionData && this.props.connectionData.hasOwnProperty("addSource") && this.props.connectionData["addSource"] == 'connectionsPanel') {
         refForSheet = this.props.connectionData.hasOwnProperty("connectionRefs") ? this.props.connectionData["connectionRefs"] : this.props.srefs;
         versionsForSheet = this.props.connectionData.hasOwnProperty("versions") ? this.props.connectionData["versions"] : { "en": null, "he": null };
         selectedWordsForSheet = null;
-      } else {
+      } else { // add source from sheet itself
         refForSheet = this.props.srefs;
         versionsForSheet = this.props.currVersions;
         selectedWordsForSheet = this.props.selectedWords;
+        nodeRef = this.props.nodeRef;
       }
       content = (<div>
         <AddToSourceSheetBox
@@ -459,7 +461,7 @@ class ConnectionsPanel extends Component {
           currVersions={versionsForSheet} //sidebar doesn't actually do versions
           contentLanguage={this.props.masterPanelLanguage}
           selectedWords={selectedWordsForSheet}
-          nodeRef={this.props.nodeRef}
+          nodeRef={nodeRef}
           fullPanel={this.props.fullPanel}
           toggleSignUpModal={this.props.toggleSignUpModal}
           setConnectionsMode={this.props.setConnectionsMode} />
