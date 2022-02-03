@@ -1301,13 +1301,13 @@ const PBSC2021LandingPage = () => (
             <HeBlock padded={true}>
                 <p>גרשון בינדר מהנטינגטון שבלונג איילנד במדינת ניו יורק הוא סטודנט למדעי המחשב בשנתו האחרונה בקולג' לנדר לגברים. בינדר הוא מעצב אתרים ומעצב גרפי ועובד עם מודלים תלת-ממדיים ועם מנוע Unreal. כיום מתגורר בקווינס שבניו יורק.</p>
             </HeBlock>
-            <H2Block en="What Our Team Had to Say" he=""/>
-            <Section>
+            <H2Block en="What Our Team Had to Say" he="מה יש לצוות שלנו להגיד על זה"/>
+            <Section noPadding={true}>
                 <UserQuote
                     enText="“I was really impressed with the quality of the speech, even for unvowelized texts.  One of the things that we learned early at Sefaria is that making a text digital opens it up to people with low vision.  But the quality of Rabbinic Hebrew text-to-speech has always been poor, especially in comparison with English. This project gave me hope that we could provide low-sighted users a truly excellent spoken version of all of our texts.”"
-                    heText=""
+                    heText="התרשמתי מאוד מאיכות הדיבור, אפילו עבור טקסטים ללא ניקוד. אחד הדברים שגילינו בשלב מוקדם בספריא הוא שהפיכת טקסט לדיגיטלי מאפשרת ללקויי ראיה להינות מהטקסטים שלנו. הבעיה היא שהעברה של מקורות רבניים מטקסט כתוב לדיבור פוגעת באיכות של הטקסט. הפרויקט הזה נתן לי תקווה שנוכל לספק למשתמשים לקויי ראייה גרסה מדוברת מעולה באמת של כל הטקסטים שלנו."
                     enName="Lev Israel, Chief Data Officer at Sefaria"
-                    heName=''
+                    heName='לב ישראל, מנהל נתונים ראשי, בספריא'
                     image="/static/img/pbsc-2021-landing-page/lev.png"
                 />
             </Section>
@@ -1339,13 +1339,13 @@ const PBSC2021LandingPage = () => (
             <HeBlock padded={true}>
                 <p>"מחולל דפי המקורות לקריאה בתורה" נוצר על ידי ולרי מונקו, שהתגיירה בשנת 2013. נוסף על חברותן בקהילת "רודף שלום" בפיטסבורג שבפנסילבניה, היא ובת זוגה הן גם שותפות נלהבות בקהילת "בית תקווה". ולרי היא אנליסטית דאטה בכירה בעיריית פיטסבורג ובעלת תואר ראשון בפסיכולוגיה ובקשרי אדם־מחשב. כאשר למדה לקרוא בתורה גילתה ולרי שקשה לעשות זאת ללא דף מקורות ויזואלי משותף, ושהכנת דף שימושי כזה באופן ידני תיארך זמן רב ויהיו לה מגבלות. "מחולל דפי המקורות לקריאה בתורה" מקל על תהליך יצירת דפי המקורות ומאפשר להקדיש יותר זמן ללימוד.</p>
             </HeBlock>
-            <H2Block en="What Our Team Had to Say" he=""/>
-            <Section>
+            <H2Block en="What Our Team Had to Say" he="מה יש לצוות שלנו להגיד על זה"/>
+            <Section noPadding={true}>
                 <UserQuote
                     enText="“One of the most powerful things about Sefaria is how our tools and resources can be harnessed to provide access and ease of use for folks to grow into their Judaism and Torah learning whenever they're ready. As an adult b'nai mitzvah student Valerie knows this first hand, and her extension of our API and resources to create a tool that simplifies the process of learning Torah reading by automatically creating interactive trope exercises and highlighting trop phrases in a given selection of text is exactly the kind of project that would have been much more difficult to create without our open APIs and data.”"
                     heText=""
                     enName="Russel Neiss, Sr. Product Engineer at Sefaria"
-                    heName=''
+                    heName='רזיאל ניס, מהנדס מוצר בכיר, בספריא'
                     image="/static/img/pbsc-2021-landing-page/russel.png"
                 />
             </Section>
@@ -1598,8 +1598,11 @@ const Header = ({enTitle, heTitle, enText, heText, enImg, heImg, enImgAlt, heImg
     </div>
 };
 
-const Section = ({children}) =>
-    <div className={"staticPageBlockInner staticPageSection"}>
+const Section = ({children, noPadding}) =>
+    <div className={classNames({
+        "staticPageBlockInner": 1,
+        "staticPageSection": !noPadding,
+    })}>
         {children}
     </div>;
 
