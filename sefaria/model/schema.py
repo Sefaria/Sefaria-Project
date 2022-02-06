@@ -2570,7 +2570,8 @@ class AddressSiman(AddressInteger):
     section_patterns = {
         "en": r"""(?:(?:[Ss]iman)?\s*)""",
         "he": r"""(?:\u05d1?
-            (?:\u05e1\u05b4?\u05d9\u05de\u05b8?\u05df\s+)			# Siman spelled out with optional nikud, with a space after
+            (?:[\u05e1\u05e8](?:"|\u05f4|'')\u05e1\s+)  # (reish or samekh) gershayim samekh. (start or end of siman)
+            |(?:\u05e1\u05b4?\u05d9\u05de\u05b8?\u05df\s+)			# Siman spelled out with optional nikud, with a space after
             |(?:\u05e1\u05d9(?:["\u05f4'\u05f3\u2018\u2019](?:['\u05f3\u2018\u2019]|\s+)))		# or Samech, Yued (for 'Siman') maybe followed by a quote of some sort
         )"""
     }
