@@ -7,11 +7,12 @@ Issues:
    Number like 2000 is ambiguous
    Okay to construct 15/16 and then make tet-vav/etc?
 """
-
+import dataclasses
 import re
 import regex
 import math
-
+from typing import List
+import itertools
 from sefaria.system.decorators import memoized
 import structlog
 logger = structlog.get_logger(__name__)
@@ -524,3 +525,98 @@ def hebrew_parasha_name(value):
 			logger.error(str(e))
 			parasha = value
 		return parasha
+
+
+########
+# Hebrew Abbrev Matching
+########
+
+def get_abbr(abbr: str, unabbr: List[str], match=lambda x, y: x.startswith(y), lang='he'):
+	abbr = re.sub('[^א-ת]', '', abbr) if lang == 'he' else re.sub('[^a-z]', '', abbr)
+	indexes = [[index for index, letter in enumerate(abbr) if word[0] == letter] for w, word in enumerate(unabbr)]
+	first_empty_ind = None
+	for i in range(len(indexes)):
+		if len(indexes[i]) == 0:
+			if i == 0: return None  # nothing matched
+			first_empty_ind = i
+			break
+	indexes = indexes[:first_empty_ind]
+	choices = itertools.product(*indexes)
+	for choice in choices:
+		if choice[0] != 0: continue
+		longest_desc_choice = []
+		for i, j in zip(choice, choice[1:] + (None,)):
+			longest_desc_choice += [i]
+			if j is None or i >= j: break
+		choice = longest_desc_choice
+		temp_unabbr = unabbr[:len(choice)]
+		choice += [None]
+		if all(match(temp_unabbr[n], abbr[choice[n]:choice[n + 1]]) for n in range(len(temp_unabbr))):
+			return temp_unabbr
+	return None
+
+
+@dataclasses.dataclass
+class Abbrev:
+	abbr: str
+	unabbr: List[str]
+	iabbr: int
+	unabbr_slice: slice
+
+
+def is_abbr(word):
+	return re.search(r'[^"״]["״][^"״]', word) is not None
+
+
+def get_all_abbrs(abbr_words, unabbr_words) -> List[Abbrev]:
+	"""
+	Get all abbreviations in `abbr_words`
+	"""
+	abbrevs = []
+	for iabbr, abbr in enumerate(abbr_words):
+		if not is_abbr(abbr): continue
+		for iother in range(len(unabbr_words)):
+			unabbr = get_abbr(abbr, unabbr_words[iother:])
+			if unabbr:
+				unabbr_slice = slice(iother, iother+len(unabbr))
+				abbrevs += [Abbrev(abbr, unabbr, iabbr, unabbr_slice)]
+	return abbrevs
+
+
+def hebrew_starts_with(he: str, other_he: str) -> False:
+	"""
+	does `he` start with `other_he`?
+	includes possible abbreviation expansion
+	TODO. in future may include fuzzy matching
+	"""
+	he_words = he.split()
+	other_words = other_he.split()
+	he_abbrs = get_all_abbrs(he_words, other_words)
+	other_abbrs = get_all_abbrs(other_words, he_words)
+
+	ihe, iother = 0, 0
+	iabbr, i_other_abbr = 0, 0
+	while ihe < len(he_words) and iother < len(other_words):
+		if iabbr < len(he_abbrs) and he_abbrs[iabbr].iabbr == ihe:
+			ihe += 1
+			iother += len(he_abbrs[iabbr].unabbr)
+			iabbr += 1
+			continue
+		if i_other_abbr < len(other_abbrs) and other_abbrs[i_other_abbr].iabbr == iother:
+			ihe += len(other_abbrs[i_other_abbr].unabbr)
+			iother += 1
+			i_other_abbr += 1
+			continue
+		if other_words[iother] != he_words[ihe]:
+			break
+		ihe += 1
+		iother += 1
+	return iother == len(other_words)
+
+
+########
+# Hebrew Abbrev Matching END
+########
+
+
+
