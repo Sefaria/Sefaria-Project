@@ -16,7 +16,8 @@ import os
 import re
 import uuid
 
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from django.template.loader import render_to_string
 from django.shortcuts import render, redirect
 from django.http import Http404, QueryDict
@@ -3606,6 +3607,7 @@ def profile_sync_api(request):
 
 @catch_error_as_json
 @api_view(["DELETE"])
+@permission_classes([IsAuthenticated])
 def delete_user_account_api(request):
     # Deletes the user and emails sefaria staff for followup
     from sefaria.utils.user import delete_user_account
