@@ -508,8 +508,8 @@ class TextSegment extends Component {
       if (!this.props.onNamedEntityClick) { return; }
 
       let topicSlug = namedEntityLink.attr("data-slug");
-      Sefaria.util.selectElementContents(event.target);
-      this.props.onNamedEntityClick(topicSlug, this.props.sref, event.target.innerText);
+      Sefaria.util.selectElementContents(namedEntityLink[0]);
+      this.props.onNamedEntityClick(topicSlug, this.props.sref, namedEntityLink[0].innerText);
       event.stopPropagation();
       Sefaria.track.event("Reader", "Named Entity Link Click", topicSlug);
     } else if ($(event.target).is("sup") || $(event.target).parents("sup").size()) {
