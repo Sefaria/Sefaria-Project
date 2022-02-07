@@ -490,6 +490,7 @@ class TextSegment extends Component {
   handleClick(event) {
     // grab refLink from target or parent (sometimes there is an <i> within refLink forcing us to look for the parent)
     const refLink = $(event.target).hasClass("refLink") ? $(event.target) : ($(event.target.parentElement).hasClass("refLink") ? $(event.target.parentElement) : null);
+    const namedEntityLink = $(event.target).closest("a.namedEntityLink");
     if (refLink) {
       //Click of citation
       event.preventDefault();
@@ -501,12 +502,12 @@ class TextSegment extends Component {
       this.props.onCitationClick(ref, this.props.sref, true, currVersions);
       event.stopPropagation();
       Sefaria.track.event("Reader", "Citation Link Click", ref);
-    } else if ($(event.target).closest("a.namedEntityLink").length > 0) {
+    } else if (namedEntityLink.length > 0) {
       //Click of named entity
       event.preventDefault();
       if (!this.props.onNamedEntityClick) { return; }
 
-      let topicSlug = $(event.target).attr("data-slug");
+      let topicSlug = namedEntityLink.attr("data-slug");
       Sefaria.util.selectElementContents(event.target);
       this.props.onNamedEntityClick(topicSlug, this.props.sref, event.target.innerText);
       event.stopPropagation();
