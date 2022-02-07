@@ -3514,7 +3514,7 @@ def profile_upload_photo(request):
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 MAX_LEN_USER_HISTORY = 3000
-@api_view(["POST"])
+@api_view(["DELETE"])
 @catch_error_as_json
 def profile_sync_api(request):
     """
