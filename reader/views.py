@@ -3514,7 +3514,7 @@ def profile_upload_photo(request):
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 MAX_LEN_USER_HISTORY = 3000
-@api_view(["DELETE"])
+@api_view(["POST"])
 @catch_error_as_json
 def profile_sync_api(request):
     """
@@ -3605,7 +3605,7 @@ def profile_sync_api(request):
 
 
 @catch_error_as_json
-@api_view(["POST"])
+@api_view(["DELETE"])
 def delete_user_account_api(request):
     # Deletes the user and emails sefaria staff for followup
     from sefaria.utils.user import delete_user_account
