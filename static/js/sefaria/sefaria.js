@@ -381,6 +381,7 @@ Sefaria = extend(Sefaria, {
       wrapNamedEntities: ("wrapNamedEntities" in settings) ? settings.wrapNamedEntities : 1, 
       translationLanguagePreference: settings.translationLanguagePreference || null,
       versionPref: settings.versionPref || null,
+      firstAvailableRef: settings.firstAvailableRef || 1,
     };
     return settings;
   },
@@ -610,6 +611,7 @@ Sefaria = extend(Sefaria, {
       multiple:   settings.multiple,
       stripItags: settings.stripItags,
       transLangPref: settings.translationLanguagePreference,
+      firstAvailableRef: settings.firstAvailableRef,
     });
     let url = "/api/texts/" + Sefaria.normRef(ref);
     if (settings.enVersion) { url += "&ven=" + encodeURIComponent(settings.enVersion.replace(/ /g,"_")); }
