@@ -396,16 +396,15 @@ class ResolvedRawRef:
         if prev_part is None: return False
         return prev_part not in self.resolved_ref_parts
 
-    def _get_refined_match_for_dh_part(self, raw_ref_part: 'RawRefPart', refined_ref_parts: List['RawRefPart'], node: schema.DiburHamatchilNodeSet):
+    def _get_refined_matches_for_dh_part(self, raw_ref_part: 'RawRefPart', refined_ref_parts: List['RawRefPart'], node: schema.DiburHamatchilNodeSet):
         """
         Finds dibur hamatchil ref which best matches `raw_ref_part`
         Currently a very simplistic algorithm
         If there is a DH match, return the corresponding ResolvedRawRef
         """
-        max_node, max_score, max_dh = node.best_fuzzy_match_score(raw_ref_part)
+        best_matches = node.best_fuzzy_matches(raw_ref_part)
         # TODO modify self with final dh
-        if max_score == 1.0:
-            return self.clone(resolved_ref_parts=refined_ref_parts, node=max_node, ref=text.Ref(max_node.ref))
+        return [self.clone(resolved_ref_parts=refined_ref_parts, node=max_node, ref=text.Ref(max_node.ref)) for _, max_node, _ in best_matches]
 
     def _get_refined_refs_for_numbered_part(self, raw_ref_part: RawRefPart, refined_ref_parts: List[RawRefPart], node, lang, fromSections: List[RawRefPart]=None) -> List['ResolvedRawRef']:
         if node is None: return []
@@ -497,9 +496,7 @@ class ResolvedRawRef:
                 # technically doesn't work if there is a referenceable child in between ja and dh node
                 node = node.get_referenceable_child(self.ref)
             if isinstance(node, schema.DiburHamatchilNodeSet):
-                dh_match = self._get_refined_match_for_dh_part(part, refined_ref_parts, node)
-                if dh_match is not None:
-                    matches += [dh_match]
+                matches += self._get_refined_matches_for_dh_part(part, refined_ref_parts, node)
         # TODO sham and directional cases
         return matches
 

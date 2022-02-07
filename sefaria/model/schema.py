@@ -1099,27 +1099,32 @@ class DiburHamatchilNode(abst.AbstractMongoRecord):
     ]
 
     def fuzzy_match_score(self, raw_ref_part):
-        # TODO improve this amazing algorithm
+        from sefaria.utils.hebrew import hebrew_starts_with
         for dh in raw_ref_part.get_dh_text_to_match():
-            if self.dibur_hamatchil.startswith(dh):
+            if hebrew_starts_with(self.dibur_hamatchil, dh):
                 return 1.0, dh
-        return 0.0, ''
+        return 0.0, None
 
 
 class DiburHamatchilNodeSet(abst.AbstractMongoSet):
     recordClass = DiburHamatchilNode
 
-    def best_fuzzy_match_score(self, raw_ref_part):
-        max_score = 0.0
-        max_node = None
-        max_dh = ''
+    def best_fuzzy_matches(self, raw_ref_part, score_leeway=0.01, threshold=0.9):
+        """
+        :param raw_ref_part: of type "DH" to match
+        :param score_leeway: all scores within `score_leeway` of the highest score are returned
+        :param threshold: scores below `threshold` aren't returned
+        """
+        best_list = [(0.0, None, '')]
         for node in self:
             score, dh = node.fuzzy_match_score(raw_ref_part)
-            if (score, len(dh)) > (max_score, len(max_dh)):
-                max_score = score
-                max_node = node
-                max_dh = dh
-        return max_node, max_score, max_dh
+            if dh is None: continue
+            curr_score, _, curr_dh = best_list[-1]
+            if (score, len(dh)) >= (curr_score, len(curr_dh)):
+                # TODO being lazy and only filtering lower matches at the end
+                best_list += [(score, node, dh)]
+        best_score, _, best_dh = best_list[-1]
+        return [best for best in best_list if best[0] > threshold and best[0] + score_leeway >= best_score and len(best[2]) == len(best_dh)]
 
 
 class ArrayMapNode(NumberedTitledTreeNode):
