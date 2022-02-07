@@ -12,7 +12,7 @@ import Sefaria  from './sefaria/sefaria';
 import PropTypes  from 'prop-types';
 import TextRange  from './TextRange';
 import Component      from 'react-class';
-
+import classNames from 'classnames';
 
 class TextList extends Component {
   constructor(props) {
@@ -216,7 +216,8 @@ class TextList extends Component {
                                     key={i + link.anchorRef} />);
                         } else {
                           var hideTitle = link.category === "Commentary" && this.props.filter[0] !== "Commentary";
-                          return (<div className="textListTextRangeBox" key={i + link.sourceRef}>
+                          const classes = classNames({ textListTextRangeBox: 1,  typeQF: link.type === 'quotation_auto'});
+                          return (<div className={classes} key={i + link.sourceRef}>
                                     <TextRange
                                       panelPosition ={this.props.panelPosition}
                                       sref={link.sourceRef}

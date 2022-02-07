@@ -5978,6 +5978,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .textListTextRangeBox {
   position: relative;
 }
+
+.textListTextRangeBox.typeQF {
+  color: red;
+}
 .textListTextRangeBox .textRange{
   margin-bottom: 0;
   padding-bottom: 0;
