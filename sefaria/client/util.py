@@ -9,6 +9,7 @@ from urllib.parse import unquote
 from django.http import HttpResponse, JsonResponse
 from django.core.mail import EmailMultiAlternatives
 from functools import wraps
+from twilio.rest import Client
 
 from sefaria import settings as sls
 
@@ -129,3 +130,12 @@ def send_email(subject, message_html, from_email, to_email):
     msg.send()
 
     return True
+
+def send_sms(message, to):
+    if sls.TWILIO_ACCT_SID and sls.TWILIO_AUTH_TOKEN and sls.TWILIO_PHONE_NUM:
+        client = Client(sls.TWILIO_ACCT_SID, sls.TWILIO_AUTH_TOKEN)
+
+        message = client.messages.create(
+            to=to,
+            from_=sls.TWILIO_PHONE_NUM,
+            body=message)

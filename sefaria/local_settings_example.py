@@ -143,6 +143,11 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 #    "MANDRILL_API_KEY": "your api key",
 # }
 
+# Twilio Text Messaging
+TWILIO_ACCT_SID = None
+TWILIO_AUTH_TOKEN = None
+TWILIO_PHONE_NUM = None
+
 MONGO_HOST = "localhost"
 MONGO_PORT = 27017
 # Name of the MongoDB database to use.

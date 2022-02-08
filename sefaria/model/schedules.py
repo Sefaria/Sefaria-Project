@@ -11,7 +11,7 @@ from datetime import *
 from sefaria.system.exceptions import BookNameError
 import functools
 from sefaria.utils import calendars
-from sefaria.client.util import send_email
+from sefaria.client.util import send_email, send_sms
 
 import structlog
 import uuid
@@ -296,8 +296,7 @@ def send_notifications_at_time():
         if notification.notification_type == "email":
             send_email(f"Learning Reminder for {notification.schedule_name}", msg_text, "hello@sefaria.org", profile.email)
         elif notification.notification_type == "sms":
-            # write twilio code
-            pass
+            send_sms(msg_text, profile.mobile_phone)
 
         notification.sent = True
         notification.save()

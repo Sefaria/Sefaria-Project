@@ -2395,9 +2395,16 @@ def schedule_calculate_api(request):
 def schedule_api(request):
     if request.method == "POST":
         j = json.loads(request.POST.get("json"))
-        #TODO: deal w/ cell phone number coming in via post -- i.e. validate & send to `UserProfile`
 
+        #TODO: deal w/ cell phone number validation
         data = ({"user_id": request.user.id, **j})
+        if data["phone_number"] != "":
+            pn = f'+1{data["phone_number"].replace("-", "")}'
+            profile = UserProfile(id=request.user.id)
+            profile.update({"mobile_phone": pn})
+            profile.save()
+            public_user_data(request.user.id, ignore_cache=True)  # reset user data cache
+
         if data['book']:
             data["schedule_name"] = data['book']
         elif data["calendar_schedule"]:
