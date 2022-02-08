@@ -364,7 +364,7 @@ class ResolvedRawRef:
     Partial or complete resolution of a RawRef
     """
 
-    def __init__(self, raw_ref: 'RawRef', resolved_ref_parts: List['RawRefPart'], node, ref: text.Ref, resolved_context_terms: List[NonUniqueTerm]=None, ambiguous=False, resolution_method: ResolutionMethod=None, context_ref: text.Ref=None) -> None:
+    def __init__(self, raw_ref: RawRef, resolved_ref_parts: List[RawRefPart], node, ref: text.Ref, resolved_context_terms: List[NonUniqueTerm]=None, ambiguous=False, resolution_method: ResolutionMethod=None, context_ref: text.Ref=None) -> None:
         self.raw_ref = raw_ref
         self.resolved_ref_parts = resolved_ref_parts
         self.resolved_context_terms = resolved_context_terms
@@ -879,6 +879,9 @@ class RefResolver:
                 context_ref = resolved_list[0].ref
             unrefined_matches = self.get_unrefined_ref_part_matches(lang, context_ref, temp_raw_ref)
             if is_non_cts:
+                # filter unrefined matches to matches that resolved previously
+                resolved_titles = {r.ref.index.title for r in resolved_list}
+                unrefined_matches = list(filter(lambda x: x.ref.index.title in resolved_titles, unrefined_matches))
                 # resolution will start at context_ref.sections - len(ref parts). rough heuristic
                 for match in unrefined_matches:
                     try:
@@ -909,9 +912,10 @@ class RefResolver:
 
     def _get_unrefined_ref_part_matches_for_title_context(self, lang: str, context_ref: text.Ref, raw_ref: RawRef, ref_parts: list, context_swaps: List[NonUniqueTerm]=None) -> List[ResolvedRawRef]:
         matches = []
-        for template in context_ref.index.nodes.get_match_templates():
-            temp_matches = self._get_unrefined_ref_part_matches_recursive(lang, raw_ref, ref_parts=ref_parts, context_terms=list(template.terms), context_swaps=context_swaps)
-            matches += list(filter(lambda x: len(x.resolved_context_terms), temp_matches))
+        # assumption is longest template will be uniquest. is there a reason to consider other templates?
+        longest_template = max(context_ref.index.nodes.get_match_templates(), key=lambda x: len(list(x.terms)))
+        temp_matches = self._get_unrefined_ref_part_matches_recursive(lang, raw_ref, ref_parts=ref_parts, context_terms=list(longest_template.terms), context_swaps=context_swaps)
+        matches += list(filter(lambda x: len(x.resolved_context_terms), temp_matches))
         for m in matches:
             m.resolution_method = ResolutionMethod.TITLE
         return matches
