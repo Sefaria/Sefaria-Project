@@ -225,4 +225,15 @@ var categorizeSheetsConfig = config({
 
 })
 
-module.exports = [clientConfig, serverConfig, diffConfig, exploreConfig, sefariajsConfig, jsonEditorConfig, timelineConfig, categorizeSheetsConfig];
+var linkerV3Config = config({
+    context: path.resolve('./static/js'),
+    entry: './linker.v3/linker.v3',
+    mode: 'development', // can be overriden via cli
+    output: {
+        path: path.resolve(buildDir + 'linker.v3'),
+        filename: 'linker.v3.js'
+    }
+
+})
+
+module.exports = [clientConfig, serverConfig, diffConfig, exploreConfig, sefariajsConfig, jsonEditorConfig, timelineConfig, categorizeSheetsConfig, linkerV3Config];

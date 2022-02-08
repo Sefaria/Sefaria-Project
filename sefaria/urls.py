@@ -349,6 +349,7 @@ urlpatterns += [
 # Linker js, text upload & download
 urlpatterns += [
     url(r'^linker\.?v?([0-9]+)?\.js$', sefaria_views.linker_js),
+    url(r'^api/wrap-refs$', sefaria_views.wrap_refs),
     url(r'^api/regexs/(?P<titles>.+)$', sefaria_views.title_regex_api),
     url(r'^api/linker-data/(?P<titles>.+)$', sefaria_views.linker_data_api),
     url(r'^api/bulktext/(?P<refs>.+)$', sefaria_views.bulktext_api),
