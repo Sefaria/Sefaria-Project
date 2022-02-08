@@ -75,13 +75,18 @@ a, a:hover {
   font-weight: bold;
   unicode-range: U+0041-007A;
 }
+@font-face {
+  font-family: 'Noto Color Emoji'; 
+  src: url('/static/fonts/NotoColorEmoji.ttf');
+  unicode-range: U+1F1E6-1F1FF;
+}
 :root {
   /* font stacks */
   --english-sans-serif-font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   --hebrew-sans-serif-font-family: "Heebo", "Roboto", sans-serif;
 
   --english-serif-font-family: "HebrewInEnglish Serif Font", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
-  --hebrew-serif-font-family: "EnglishInHebrew Serif Font", "Taamey Frank", "adobe-garamond-pro", "Crimson Text", "Times New Roman", serif;
+  --hebrew-serif-font-family: "Noto Color Emoji", "EnglishInHebrew Serif Font", "Taamey Frank", "adobe-garamond-pro", "Crimson Text", "Times New Roman", serif;
 
   --serif-h1-font-size: 48px;
   --serif-h2-font-size: 30px;
@@ -2931,12 +2936,14 @@ a.navBlockTitle:hover {
   padding: 0 6px;
   box-sizing: border-box;
 }
-
 .connectionsPanel .textTableOfContents .sectionLink {
   background-color: #ffffff;
   color: #000000;
 }
-
+.textTableOfContents .sectionLink.current{
+  background-color: var(--sefaria-blue);
+  color: #FFFFFF;
+}
 .textTableOfContents .sectionName {
   display: none;
 }
@@ -2981,7 +2988,13 @@ a.navBlockTitle:hover {
 .textTableOfContents .schema-node-toc {
   display: block;
 }
-.textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title:after {
+.textTableOfContents .schema-node-toc.linked.current,
+.textTableOfContents .schema-node-toc.linked.current .schema-node-title {
+  color: var(--sefaria-blue);
+  font-weight: bold;
+}
+
+.textTableOfContents .schema-node-toc:not(.linked)>.schema-node-title:after {
   content: "\f105";
   display: inline-block;
   font-size: inherit;
@@ -4637,14 +4650,14 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .basetext .segment {
   margin-bottom: 26px;
 }
-.hebrew.segmented .segment > .he,
+/*.hebrew.segmented .segment > .he,
 .hebrew.segmented .segment > p > .he{
   display: block;
 }
 .hebrew.continuous .segment > .he,
 .hebrew.continuous .segment > p > .he{
   display: inline;
-}
+}*/
 .bilingual .segment > .he,
 .bilingual .segment > p > .he{
   display: block;
@@ -6260,8 +6273,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 
 .shareInputBox .shareInputButton:active {
   background-color: var(--light-grey);
-  border: 0;
-  margin-inline-start: 20px;
 }
 
 .shareSettingsBox {

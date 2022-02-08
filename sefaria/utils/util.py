@@ -19,7 +19,7 @@ def epoch_time(since=None):
     return total_seconds(since - epoch)
 
 
-def graceful_exception(logger=None, return_value=[], exception_type=Exception):
+def graceful_exception(logger=None, logLevel="exception", return_value=[], exception_type=Exception):
     def argumented_decorator(func):
         @wraps(func)
         def decorated_function(*args, **kwargs):
@@ -27,7 +27,7 @@ def graceful_exception(logger=None, return_value=[], exception_type=Exception):
                 return func(*args, **kwargs)
             except exception_type as e:
                 if logger:
-                    logger.exception(str(e))
+                    logger.exception(str(e)) if logLevel == "exception" else logger.warning(str(e))
             return return_value
         return decorated_function
     return argumented_decorator

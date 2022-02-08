@@ -48,6 +48,7 @@ class ConnectionsPanel extends Component {
       availableTranslations: [],
       linksLoaded: false, // has the list of refs been loaded
       connectionSummaryCollapsed: true,
+      currentlyVisibleSectionRef: Sefaria.sectionRef(this.props.currentlyVisibleRef),
     };
   }
   toggleTopLevelCollapsed() {
@@ -176,6 +177,13 @@ class ConnectionsPanel extends Component {
     }
     if (!this.isSheet()) {
       Sefaria.getVersions(ref, false, ["he"], true).then(versions => this.setState({ availableTranslations: versions })); //for counting translations
+      Sefaria.getRef(this.props.currentlyVisibleRef).then(data => { //this does not properly return a secionRef for a spanning/ranged ref
+        const currRef = (typeof data == "string") ? Sefaria.sectionRef(data) : data["sectionRef"]; //this is an annoying consequence of getRef not actually returning a
+        // consistent response. Its either the ref from cache or the entire text api response if async. 
+        this.setState({currentlyVisibleSectionRef: currRef});
+      });
+      //this.setState({currentlyVisibleSectionRef: Sefaria.sectionRef(this.props.currentlyVisibleRef)});
+      
     }
   }
   reloadData() {
@@ -373,6 +381,8 @@ class ConnectionsPanel extends Component {
           close={this.props.close}
           currVersions={this.props.currVersions}
           navigatePanel={this.props.navigatePanel}
+          currentlyVisibleRef={this.props.currentlyVisibleRef}
+          currentlyVisibleSectionRef={this.state.currentlyVisibleSectionRef}
         />
       );
     } else if (this.props.mode === "ConnectionsList") {
@@ -433,15 +443,17 @@ class ConnectionsPanel extends Component {
         }
       </div>);
     } else if (this.props.mode == "Add To Sheet") {
-      let refForSheet, versionsForSheet, selectedWordsForSheet;
+      let refForSheet, versionsForSheet, selectedWordsForSheet, nodeRef;
+      // add source from connections
       if (this.props.connectionData && this.props.connectionData.hasOwnProperty("addSource") && this.props.connectionData["addSource"] == 'connectionsPanel') {
         refForSheet = this.props.connectionData.hasOwnProperty("connectionRefs") ? this.props.connectionData["connectionRefs"] : this.props.srefs;
         versionsForSheet = this.props.connectionData.hasOwnProperty("versions") ? this.props.connectionData["versions"] : { "en": null, "he": null };
         selectedWordsForSheet = null;
-      } else {
+      } else { // add source from sheet itself
         refForSheet = this.props.srefs;
         versionsForSheet = this.props.currVersions;
         selectedWordsForSheet = this.props.selectedWords;
+        nodeRef = this.props.nodeRef;
       }
       content = (<div>
         <AddToSourceSheetBox
@@ -449,7 +461,7 @@ class ConnectionsPanel extends Component {
           currVersions={versionsForSheet} //sidebar doesn't actually do versions
           contentLanguage={this.props.masterPanelLanguage}
           selectedWords={selectedWordsForSheet}
-          nodeRef={this.props.nodeRef}
+          nodeRef={nodeRef}
           fullPanel={this.props.fullPanel}
           toggleSignUpModal={this.props.toggleSignUpModal}
           setConnectionsMode={this.props.setConnectionsMode} />

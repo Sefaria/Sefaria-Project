@@ -250,8 +250,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             contents = self.nodes.as_index_contents()
             if with_content_counts:
                 contents["schema"] = self.annotate_schema_with_content_counts(contents["schema"])
-                first_ref = self.versionSet().array()[0].first_section_ref()
-                contents["firstSectionRef"] = first_ref.normal()
+                contents["firstSectionRef"] = Ref(self.title).first_available_section_ref().normal()
         else:
             contents = self.legacy_form(force_complex=force_complex)
 
@@ -1212,7 +1211,8 @@ class AbstractTextRecord(object):
         if isinstance(tag, Tag):
             is_inline_commentator = tag.name == "i" and len(tag.get('data-commentator', '')) > 0
             is_page_marker = tag.name == "i" and len(tag.get('data-overlay','')) > 0
-            return AbstractTextRecord._itag_is_footnote(tag) or is_inline_commentator or is_page_marker
+            is_tanakh_end_sup = tag.name == "sup" and tag.get('class') == ['endFootnote']  # footnotes like this occur in JPS english
+            return AbstractTextRecord._itag_is_footnote(tag) or is_inline_commentator or is_page_marker or is_tanakh_end_sup
         return False
 
     @staticmethod
@@ -2032,7 +2032,7 @@ class VirtualTextChunk(AbstractTextRecord):
         self.is_merged = False
         self.sources = []
 
-        if not self._oref.index_node.parent.supports_language(self.lang):
+        if self._oref.index_node.parent and not self._oref.index_node.parent.supports_language(self.lang):
             self.text = []
             self._versions = []
             return
@@ -3415,6 +3415,7 @@ class Ref(object, metaclass=RefCacheType):
     def first_available_section_ref(self):
         """
         Returns a :class:`Ref` to the first section inside of or following this :class:`Ref` that has some content.
+        Return first available segment ref is `self` is depth 1
 
         Returns ``None`` if self is empty and no following :class:`Ref` has content.
 
@@ -3430,14 +3431,17 @@ class Ref(object, metaclass=RefCacheType):
             try:
                 r = first_leaf.ref().padded_ref()
             except Exception as e: #VirtualNodes dont have a .ref() function so fall back to VersionState
-               if self.is_book_level():
-                   from .version_state import VersionState
-                   vs = VersionState(self.index, proj={"title": 1, "first_section_ref": 1})
-                   return Ref(vs.first_section_ref) if (vs is not None) else None
+                if self.is_book_level():
+                    return self.index.versionSet().array()[0].first_section_ref()
         else:
             return None
 
-        return r.next_section_ref() if r.is_empty() else r
+        if r.is_book_level():
+            # r is depth 1. return first segment
+            r = r.subref([1])
+            return r.next_segment_ref() if r.is_empty() else r
+        else:
+            return r.next_section_ref() if r.is_empty() else r
 
     #Don't store results on Ref cache - state objects change, and don't yet propogate to this Cache
     def get_state_node(self, meta=None, hint=None):

@@ -574,6 +574,17 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
       [sourceActive]
   );
 
+  useEffect(
+      () => {
+          if (!selected) {
+              setSourceActive(false)
+              setActiveSourceLangContent(null)
+          }
+      },
+      [selected]
+  );
+
+
   useEffect(() => {setCanUseDOM(true)}, [])
 
   const onMouseDown = (e) => {
