@@ -93,6 +93,7 @@ def test_resolved_raw_ref_clone():
     [create_raw_ref_data("Job 1", 'he', "פרק ה בפסחים", [slice(0, 2), 2], [RPT.NUMBERED, RPT.NAMED]), ("Pesachim 58a:1-65b:9", "Mishnah Pesachim 5", "Tosefta Pesachim 5", "Jerusalem Talmud Pesachim 5", "Tosefta Pesachim (Lieberman) 5")],  # numbered talmud perek
     pytest.param(create_raw_ref_data("Job 1", 'he', 'פ"ה בפסחים', [0, 1], [RPT.NUMBERED, RPT.NAMED]), ("Pesachim 58a:1-65b:9", "Mishnah Pesachim 5", "Pesachim 85", "Tosefta Pesachim 5", "Jerusalem Talmud Pesachim 5", "Tosefta Pesachim (Lieberman) 5"), marks=pytest.mark.xfail(reason='need to add lengths to yerushalmi and tosefta lieberman')),  # numbered talmud perek
     [create_raw_ref_data("Job 1", 'he', "פרק בתרא בפסחים", [slice(0, 2), 2], [RPT.NUMBERED, RPT.NAMED]), ("Mishnah Pesachim 10", "Pesachim 99b:1-121b:3", "Tosefta Pesachim 10", "Jerusalem Talmud Pesachim 10", "Tosefta Pesachim (Lieberman) 10")],  # numbered talmud perek
+    [create_raw_ref_data("Job 1", 'he', '''מגמ' דרפ"ו דנדה''', [slice(0, 2), 2, 3], [RPT.NAMED, RPT.NUMBERED, RPT.NAMED]), ("Niddah 48a:11-54b:9",)],  # prefixes in front of perek name
     # Dibur hamatchils
     [create_raw_ref_data("Job 1", 'he', "רש\"י יום טוב ד\"ה שמא יפשע", [0, slice(1, 3), slice(3, 6)], [RPT.NAMED, RPT.NAMED, RPT.DH]), ("Rashi on Beitzah 15b:8:1",)],
     [create_raw_ref_data("Job 1", 'he', "רש\"י ביצה ד\"ה שמא יפשע", [0, 1, slice(2, 5)], [RPT.NAMED, RPT.NAMED, RPT.DH]), ("Rashi on Beitzah 15b:8:1",)],

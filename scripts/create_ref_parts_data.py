@@ -168,6 +168,7 @@ class RefPartModifier:
     def modify_talmud(self, fast=False):
         perek = NonUniqueTerm.init('perek')
         bavli = NonUniqueTerm.init('bavli')
+        gemara = NonUniqueTerm.init('gemara')
         minor_tractates = {title for title in library.get_indexes_in_category("Minor Tractates")}
         indexes = library.get_indexes_in_category("Bavli", full_records=True)
         for index in tqdm(indexes, desc='talmud', total=indexes.count()):
@@ -177,6 +178,9 @@ class RefPartModifier:
             index.nodes.match_templates = [
                 {
                     "term_slugs": [bavli.slug, index_term.slug],
+                },
+                {
+                    "term_slugs": [gemara.slug, index_term.slug],
                 },
                 {
                     "term_slugs": [index_term.slug],
@@ -498,6 +502,8 @@ class RefPartModifier:
             gemat_punc = encode_hebrew_numeral(i)
             alt_he = [
                 f'פ"{gemat}',
+                f'רפ"{gemat}',
+                f'ספ"{gemat}',
                 gemat,
                 gemat_punc,
                 gemat_punc.replace("\u05F3", "'").replace("\u05F4", '"'),
@@ -522,6 +528,7 @@ class RefPartModifier:
         NonUniqueTermSet().delete()
 
         self.t(en='Bavli', he='בבלי', alt_en=['Babylonian Talmud', 'B.T.', 'BT', 'Babli'], ref_part_role='structural')
+        self.t(en="Gemara", he="גמרא", alt_he=["גמ'"], ref_part_role='structural')
         self.t(en='Rashi', he='רש"י', ref_part_role='structural')
         self.t(en='Mishnah', he='משנה', alt_en=['M.', 'M', 'Mishna', 'Mishnah', 'Mishnaiot'], ref_part_role='structural')
         self.t(en='Tosefta', he='תוספתא', alt_en=['Tosephta', 'T.', 'Tosef.', 'Tos.'], ref_part_role='structural')

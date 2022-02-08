@@ -512,7 +512,7 @@ class ResolvedRawRef:
         return len(self.resolved_ref_parts), len(self.resolved_context_terms)
 
 
-PREFIXES = {'ב', 'וב', 'ע', 'ו'}  # careful of Ayin prefix...
+PREFIXES = {'ב', 'וב', 'ע', 'ו', 'ד', 'מ'}  # careful of Ayin prefix...
 
 
 def get_prefixless_inds(st: str) -> List[int]:
