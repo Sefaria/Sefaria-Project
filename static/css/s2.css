@@ -75,13 +75,18 @@ a, a:hover {
   font-weight: bold;
   unicode-range: U+0041-007A;
 }
+@font-face {
+  font-family: 'Noto Color Emoji'; 
+  src: url('/static/fonts/NotoColorEmoji.ttf');
+  unicode-range: U+1F1E6-1F1FF;
+}
 :root {
   /* font stacks */
   --english-sans-serif-font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   --hebrew-sans-serif-font-family: "Heebo", "Roboto", sans-serif;
 
   --english-serif-font-family: "HebrewInEnglish Serif Font", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
-  --hebrew-serif-font-family: "EnglishInHebrew Serif Font", "Taamey Frank", "adobe-garamond-pro", "Crimson Text", "Times New Roman", serif;
+  --hebrew-serif-font-family: "Noto Color Emoji", "EnglishInHebrew Serif Font", "Taamey Frank", "adobe-garamond-pro", "Crimson Text", "Times New Roman", serif;
 
   --serif-h1-font-size: 48px;
   --serif-h2-font-size: 30px;
