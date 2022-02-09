@@ -1,73 +1,85 @@
 {{/*
 Create the name of the local-settings secret
 */}}
-{{- define "secrets.localSettings" -}} # {{- template "secrets.localSettings" . }}
+{{/*{{- define "localSettings.env" }} 
+{{- range $key, $val := $.Values.localSettings }}
+          - name: {{ $key }}
+            valueFrom:
+              configMapKeyRef:
+                name: local-settings-{{ $.Values.deployEnv }}
+                key: {{ $key }}
+{{- end }}
+{{- end }}
+*/}}
+
+{{- define "secrets.localSettings" -}} 
 {{- if .Values.secrets.localSettings.ref }}
 {{ .Values.secrets.localSettings.ref }}
-{{- else }}
-local-settings-{{ .Values.deployEnv }}
+{{- else -}}
+local-settings-secrets-{{ .Values.deployEnv }}
 {{- end }}
 {{- end }}
 
-{{- define "secrets.googleClient" -}} # {{- template "secrets.googleClient" . }}
-{{- if .Values.web.secrets.googleClient.ref }}
+{{- define "secrets.googleClient" }} 
+{{- if .Values.web.secrets.googleClient.ref -}}
 {{- .Values.web.secrets.googleClient.ref }}
-{{- else }} google-client-secret-{{ .Values.deployEnv }}
+{{- else -}}
+google-client-secret-{{ .Values.deployEnv }}
 {{- end }}
 {{- end }}
 
-{{- define "secrets.backupManager" -}} # {{- template "secrets.backupManager" . }}
-{{- if .Values.secrets.backupManager.ref }}
+{{- define "secrets.backupManager" }} 
+{{- if .Values.secrets.backupManager.ref -}}
 {{- .Values.secrets.backupManager.ref }}
-{{- else }} 
+{{- else -}} 
 backup-manager-secret-{{ .Values.deployEnv }} 
 {{- end }}
 {{- end }}
 
-{{- define "secrets.logging" -}} # {{- template "secrets.logging" . }}
-{{- if .Values.web.secrets.logging.ref }}
+{{- define "secrets.logging" }} 
+{{- if .Values.web.secrets.logging.ref -}}
 {{- .Values.web.secrets.logging.ref }}
-{{- else }}
+{{- else -}}
 logging-secret-{{ .Values.deployEnv }}
 {{- end }}
 {{- end }}
 
-{{- define "secrets.varnish" -}} # {{- template "secrets.varnish" . }}
-{{- if .Values.varnish.secrets.varnish.ref }}
-{{- .Values.varnish.secrets.varnish.ref }}
-{{- else }}
+{{- define "secrets.varnish" }} 
+{{- if .Values.varnish.secrets.varnish.ref -}}
+{{ .Values.varnish.secrets.varnish.ref }}
+{{- else -}}
 varnish-secret-{{ .Values.deployEnv }}
 {{- end }}
 {{- end }}
 
-{{- define "secrets.schoolLookup" -}} # {{- template "secrets.schoolLookup" . }}
-{{- if .Values.web.secrets.schoolLookup.ref }}
+{{- define "secrets.schoolLookup" }} 
+{{- if .Values.web.secrets.schoolLookup.ref -}}
 {{- .Values.web.secrets.schoolLookup.ref }}
-{{- else }}
+{{- else -}}
 school-lookup-data-{{ .Values.deployEnv }}
 {{- end }}
 {{- end }}
 
-{{- define "secrets.slackWebhook" -}} # {{- template "secrets.slackWebhook" . }}
-{{- if .Values.secrets.slackWebhook.data }}
-{{- .Values.secrets.slackWebhook.data }}
-{{- else }}
+{{- define "secrets.slackWebhook" }} 
+{{- if .Values.secrets.slackWebhook.ref -}}
+{{- .Values.secrets.slackWebhook.ref }}
+{{- else -}}
 slack-webhook-{{ .Values.deployEnv }}
-{{- end -}}
+{{- end }}
 {{- end }}
 
-{{- define "secrets.originTls" -}} # {{- template "secrets.originTls" . }}
-{{- if .Values.ingress.secrets.originTls.ref }}
+{{- define "secrets.originTls" }} 
+{{- if .Values.ingress.secrets.originTls.ref -}}
 {{- .Values.ingress.secrets.originTls.ref }}
-{{- else }}
+{{- else -}}
 origin-tls-{{ .Values.deployEnv }}
 {{- end }}
 {{- end }}
 
-{{- define "secrets.originIlTls" -}} # {{- template "secrets.originIlTls" . }}
-{{- if .Values.ingress.secrets.originIlTls.ref }}
+{{- define "secrets.originIlTls" }} 
+{{- if .Values.ingress.secrets.originIlTls.ref -}}
 {{- .Values.ingress.secrets.originIlTls.ref }}
-{{- else }}
+{{- else -}}
 origin-il-tls-{{ .Values.deployEnv }}
 {{- end }}
 {{- end }}

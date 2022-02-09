@@ -349,3 +349,320 @@ data:
 
 ---
 
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: local-settings-{{ .Values.deployEnv }}
+  labels:
+    deployEnv: {{ .Values.deployEnv | quote }}
+data: 
+  DEBUG: "{{ .Values.localSettings.DEBUG }}"
+  DOMAIN_LANGUAGE: {{ .Values.localSettings.DOMAIN_LANGUAGE | toJson | quote }}
+  MONGO_HOST: {{ .Values.localSettings.MONGO_HOST | quote }}
+  APSCHEDULER_NAME: {{ .Values.localSettings.APSCHEDULER_NAME | quote }}
+  SEARCH_ADMIN: {{ .Values.localSettings.SEARCH_ADMIN | quote }}
+  TURN_SERVER: {{ .Values.localSettings.TURN_SERVER | quote }}
+  USE_CLOUDFLARE: "{{ .Values.localSettings.USE_CLOUDFLARE }}"
+  FRONT_END_URL: {{ .Values.localSettings.FRONT_END_URL | quote }}
+  OFFLINE: "{{ .Values.localSettings.OFFLINE }}"
+  DOWN_FOR_MAINTENANCE: "{{ .Values.localSettings.DOWN_FOR_MAINTENANCE }}"
+  MAINTENANCE_MESSAGE: {{ .Values.localSettings.MAINTENANCE_MESSAGE | quote }}
+  GLOBAL_WARNING: "{{ .Values.localSettings.GLOBAL_WARNING }}"
+  GLOBAL_WARNING_MESSAGE: {{ .Values.localSettings.GLOBAL_WARNING_MESSAGE | quote }}
+  local_settings.py: |-
+    from socket import gethostname, gethostbyname
+    from datetime import timedelta
+    try:
+        import structlog
+    except ImportError:
+        structlog = None
+    import sefaria.system.logging as sefaria_logging
+    import os
+    import re
+    import json
+
+    requiredEnvars = [
+        "REDIS_HOST",
+        "NODEJS_HOST",
+        "VARNISH_HOST",
+    ]
+
+    for envvar in requiredEnvars:
+        if envvar not in os.environ:
+            print(envvar + " is a required environment variable that is not present.")
+
+    # Define the external hosts
+    redisHost = os.getenv("REDIS_HOST")
+    nodejsHost = os.getenv("NODEJS_HOST")
+    varnishHost = os.getenv("VARNISH_HOST")
+
+    ALLOWED_HOSTS = ["*"]
+
+    DEBUG = os.getenv("DEBUG")
+    OFFLINE = os.getenv("OFFLINE")
+    DOWN_FOR_MAINTENANCE = os.getenv("DOWN_FOR_MAINTENANCE")
+    MAINTENANCE_MESSAGE =  os.getenv("MAINTENANCE_MESSAGE")
+    GLOBAL_WARNING = os.getenv("GLOBAL_WARNING")
+    GLOBAL_WARNING_MESSAGE = os.getenv("GLOBAL_WARNING_MESSAGE")
+
+    DOMAIN_LANGUAGES = json.loads(os.getenv("DOMAIN_LANGUAGE"))
+    ADMINS = (
+        ('Sefaria Developers', 'dev@sefaria.org'),
+    )
+
+    MANAGERS = ADMINS
+
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'sefaria_auth',
+            'USER': os.getenv("DATABASES_USER"),
+            'PASSWORD': os.getenv("DATABASES_PASS"),
+            'HOST': os.getenv("DATABASES_HOST"),
+            'PORT': os.getenv("DATABASES_PORT"),
+        }
+    }
+
+    CACHES = {
+        "shared": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": "redis://{}:6379/1".format(redisHost),
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+                "SERIALIZER": "sefaria.system.serializers.JSONSerializer",
+            },
+            "TIMEOUT": None,
+        },
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": "redis://{}:6379/0".format(redisHost),
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            },
+            "TIMEOUT": 60 * 60 * 24 * 30,
+        },
+    }
+
+    SESSION_CACHE_ALIAS = "default"
+    USER_AGENTS_CACHE = 'default'
+    SHARED_DATA_CACHE_ALIAS = 'shared'
+
+    SITE_PACKAGE = "sites.sefaria"
+
+    GEOIP_DATABASE = 'data/geoip/GeoLiteCity.dat'
+    GEOIPV6_DATABASE = 'data/geoip/GeoLiteCityv6.dat'
+
+    # Multiserver
+    MULTISERVER_ENABLED = True
+    MULTISERVER_REDIS_SERVER = redisHost
+    MULTISERVER_REDIS_PORT = 6379
+    MULTISERVER_REDIS_DB = 0
+    MULTISERVER_REDIS_EVENT_CHANNEL = "msync"   # Message queue on Redis
+    MULTISERVER_REDIS_CONFIRM_CHANNEL = "mconfirm"   # Message queue on Redis
+
+    # OAUTH these fields dont need to be filled in. they are only required for oauth2client to __init__ successfully
+    GOOGLE_OAUTH2_CLIENT_ID = os.getenv("GOOGLE_OAUTH2_CLIENT_ID")
+    GOOGLE_OAUTH2_CLIENT_SECRET = os.getenv("GOOGLE_OAUTH2_CLIENT_SECRET")
+    # This is the field that is actually used
+    GOOGLE_OAUTH2_CLIENT_SECRET_FILEPATH = "/client-secret/client_secrets.json"
+
+    SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+    SESSION_CACHE_ALIAS = "default"
+
+    SECRET_KEY = os.getenv("SECRET_KEY")
+
+    EMAIL_BACKEND = 'anymail.backends.mandrill.EmailBackend'
+    DEFAULT_FROM_EMAIL = "Sefaria <hello@sefaria.org>"
+    ANYMAIL = {
+        "MANDRILL_API_KEY": os.getenv("MANDRILL_API_KEY"),
+    }
+    SERVER_EMAIL = 'dev@sefaria.org'
+
+    MONGO_HOST = os.getenv("MONGO_HOST")
+    MONGO_PORT = 27017
+    SEFARIA_DB = os.getenv("SEFARIA_DB")
+    SEFARIA_DB_USER = os.getenv("SEFARIA_DB_USER")
+    SEFARIA_DB_PASSWORD = os.getenv("SEFARIA_DB_PASSWORD")
+    APSCHEDULER_NAME = os.getenv("APSCHEDULER_NAME")
+
+    SEARCH_HOST = "/api/search"
+    SEARCH_ADMIN = os.getenv("SEARCH_ADMIN")
+    SEARCH_ADMIN_USER = os.getenv("SEARCH_ADMIN_USER")
+    SEARCH_ADMIN_PW = os.getenv("SEARCH_ADMIN_PW")
+    SEARCH_ADMIN_K8S = os.getenv("SEARCH_ADMIN_K8S")
+    SEARCH_INDEX_ON_SAVE = True
+    SEARCH_INDEX_NAME = "sefaria"
+    SEARCH_INDEX_NAME_TEXT = 'text'  # name of the ElasticSearch index to use
+    SEARCH_INDEX_NAME_SHEET = 'sheet'
+    SEARCH_INDEX_NAME_MERGED = 'merged'
+
+    # DafRoulette server
+    RTC_SERVER = 'rtc.sefaria.org'
+    TURN_SERVER = os.getenv("TURN_SERVER") #coturn.cauldron.sefaria.org
+    TURN_SECRET= os.getenv("TURN_SECRET")
+    TURN_USER = os.getenv("TURN_USER")
+
+    USE_NODE = True
+    NODE_HOST = "http://{}:3000".format(nodejsHost)
+    NODE_TIMEOUT = 5
+
+    SEFARIA_DATA_PATH = '/export' # used for exporting texts
+    SEFARIA_EXPORT_PATH = '/export'
+
+    SEFARIA_BOT_API_KEY = os.getenv("SEFARIA_BOT_API_KEY")
+
+    CLOUDFLARE_ZONE= os.getenv("CLOUDFLARE_ZONE")
+    CLOUDFLARE_EMAIL= os.getenv("CLOUDFLARE_EMAIL")
+    CLOUDFLARE_TOKEN= os.getenv("CLOUDFLARE_TOKEN")
+    USE_CLOUDFLARE= os.getenv("USE_CLOUDFLARE")
+
+    GOOGLE_TAG_MANAGER_CODE = os.getenv("GOOGLE_TAG_MANAGER_CODE")
+    GOOGLE_ANALYTICS_CODE = os.getenv("GOOGLE_ANALYTICS_CODE")
+    GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
+    GOOGLE_APPLICATION_CREDENTIALS_FILEPATH = "/google-cloud-secret/BackupManagerKey.json"
+    MIXPANEL_CODE = os.getenv("MIXPANEL_CODE")
+
+    HOTJAR_ID = os.getenv("HOTJAR_ID")
+
+    AWS_ACCESS_KEY = os.getenv("AWS_ACCESS_KEY")
+    AWS_SECRET_KEY = os.getenv("AWS_SECRET_KEY")
+    S3_BUCKET = os.getenv("S3_BUCKET")
+
+    NATIONBUILDER = True
+    NATIONBUILDER_SLUG = "sefaria"
+    NATIONBUILDER_TOKEN = os.getenv("NATIONBUILDER_TOKEN")
+    NATIONBUILDER_CLIENT_ID = os.getenv("NATIONBUILDER_CLIENT_ID")
+    NATIONBUILDER_CLIENT_SECRET = os.getenv("NATIONBUILDER_CLIENT_SECRET")
+
+    DISABLE_INDEX_SAVE = False
+
+    # Turns off search autocomplete suggestions, which are reinitialized on every server reload
+    # which can be annoying for local development.
+    DISABLE_AUTOCOMPLETER = False
+
+    PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE = "/school-lookup-data/schools.tsv"
+
+
+    MAILCHIMP = True
+    MAILCHIMP_API_KEY = os.getenv("MAILCHIMP_API_KEY")
+    MAILCHIMP_ANNOUNCE_ID = os.getenv("MAILCHIMP_ANNOUNCE_ID")
+    MAILCHIMP_WEBHOOK_KEY = os.getenv("MAILCHIMP_WEBHOOK_KEY")
+
+    USE_VARNISH = True
+    FRONT_END_URL = os.getenv("FRONT_END_URL")
+    VARNISH_ADM_ADDR = "{}:6082".format(varnishHost)
+    VARNISH_HOST = varnishHost
+    VARNISH_FRNT_PORT = 8040
+    VARNISH_SECRET = "/varnish-secret/varnish-secret"
+    USE_VARNISH_ESI = False
+
+    RECAPTCHA_PUBLIC_KEY = os.getenv("RECAPTCHA_PUBLIC_KEY")
+    RECAPTCHA_PRIVATE_KEY = os.getenv("RECAPTCHA_PRIVATE_KEY")
+    NOCAPTCHA = True
+
+    # Simple JWT
+    SIMPLE_JWT = {
+        'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+        'REFRESH_TOKEN_LIFETIME': timedelta(days=90),
+        'ROTATE_REFRESH_TOKENS': True,
+        'SIGNING_KEY': os.getenv("SIMPLE_JWT_SIGNING_KEY"),
+    }
+
+    MOBILE_APP_KEY = os.getenv("MOBILE_APP_KEY")
+
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'formatters': {
+            "json_formatter": {
+                "()": structlog.stdlib.ProcessorFormatter,
+                "processor": structlog.processors.JSONRenderer(),
+            },
+        },
+        'handlers': {
+            'default': {
+                "class": "logging.StreamHandler",
+                "formatter": "json_formatter",
+            },
+        },
+        'loggers': {
+            '': {
+                'handlers': ['default'],
+                'propagate': False,
+            },
+            'django': {
+                'handlers': ['default'],
+                'propagate': False,
+            },
+            'django.request': {
+                'handlers': ['default'],
+                'propagate': False,
+            },
+        }
+    }
+
+    # TODO: Make the logging format more configurable based on specific objects being defined.
+    # LOGGING = {
+    #     'version': 1,
+    #     'disable_existing_loggers': False,
+    #     'formatters': {
+    #         "json_formatter": {
+    #             "()": structlog.stdlib.ProcessorFormatter,
+    #             "processor": structlog.processors.JSONRenderer(),
+    #         },
+    #         json.loads(os.getenv("LOGGING_FORMATTERS_STANDARD")),
+    #         json.loads(os.getenv("LOGGING_FORMATTERS_SIMPLE")),
+    #         json.loads(os.getenv("LOGGING_FORMATTERS_VERBOSE")),
+    #         json.loads(os.getenv("LOGGING_FORMATTERS_PLAIN_CONSOLE")),
+    #         json.loads(os.getenv("LOGGING_FORMATTERS_KEY_VALUE")),
+    #     },
+    #     'filters': {
+    #         json.loads(os.getenv("LOGGING_FILTERS_REQUIRE_DEBUG_FALSE")),
+    #         json.loads(os.getenv("LOGGING_FILTERS_EXCLUBE_ERRORS")),
+    #         json.loads(os.getenv("LOGGING_FILTERS_FILTER_BOOK_NAME_ERROR"))
+    #     },
+    #     'handlers': {
+    #         json.loads(os.getenv("LOGGING_HANDLERS_DEFAULT")),
+    #         json.loads(os.getenv("LOGGING_HANDLERS_REQUEST_HANDLER")),
+    #         json.loads(os.getenv("LOGGING_HANDLERS_CONSOLE")),
+    #         json.loads(os.getenv("LOGGING_HANDLERS_CONSOLE_STRUCT")),
+    #         json.loads(os.getenv("LOGGING_HANDLERS_JSON_FILE")),
+    #         json.loads(os.getenv("LOGGING_HANDLERS_FLAT_LINE_FILE")),
+    #         json.loads(os.getenv("LOGGING_HANDLERS_BOOK_NAME_ERRORS")),
+    #         json.loads(os.getenv("LOGGING_HANDLERS_NULL")),
+    #         json.loads(os.getenv("LOGGING_HANDLERS_MAIL_ADMINS")),
+    # 	    json.loads(os.getenv("LOGGING_HANDLERS_SLACK_ERROR")),
+    #         json.loads(os.getenv("LOGGING_HANDLERS_CLOUDFLARE_RESPONSE_HANDLER"))
+    #     },
+    #     'loggers': {
+    #         json.loads(os.getenv("LOGGING_LOGGERS_")),
+    #         json.loads(os.getenv("LOGGING_LOGGERS_CLOUDFLARE")),
+    #         json.loads(os.getenv("LOGGING_LOGGERS_DJANGO")),
+    #         json.loads(os.getenv("LOGGING_LOGGERS_DJANGO_REQUEST")),
+    #         json.loads(os.getenv("LOGGING_LOGGERS_DJANGO_STRUCTLOG")),
+    #         json.loads(os.getenv("LOGGING_LOGGERS_DJANGO_STRUCTLOG_DEMO_PROJECT")),
+    #     }
+    # }
+
+    GLOBAL_INTERRUPTING_MESSAGE = None
+
+    structlog.configure(
+        processors=[
+            structlog.stdlib.filter_by_level,
+            structlog.processors.TimeStamper(fmt="iso"),
+            structlog.stdlib.add_logger_name,
+            sefaria_logging.add_severity,
+            structlog.stdlib.PositionalArgumentsFormatter(),
+            structlog.processors.StackInfoRenderer(),
+            sefaria_logging.log_exception_info,
+            structlog.processors.UnicodeDecoder(),
+            sefaria_logging.decompose_request_info,
+            structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
+        ],
+        context_class=structlog.threadlocal.wrap_dict(dict),
+        logger_factory=structlog.stdlib.LoggerFactory(),
+        wrapper_class=structlog.stdlib.BoundLogger,
+        cache_logger_on_first_use=True,
+    )
+
+---

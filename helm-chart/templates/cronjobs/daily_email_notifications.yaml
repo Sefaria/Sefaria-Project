@@ -13,8 +13,11 @@ spec:
         spec:
           volumes:
           - name: local-settings
-            secret:
-              secretName: {{- template "secrets.localSettings" . }}
+            configMap:
+              name: local-settings-{{ .Values.deployEnv }}
+              items:
+                - key: local_settings.py
+                  path: local_settings.py
           containers:
           - name: daily-email-notifications
             image: "{{ .Values.web.containerImage }}:{{ .Values.releaseImageTag }}"
@@ -25,6 +28,11 @@ spec:
               value: "node-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
             - name: VARNISH_HOST
               value: "varnish-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+            envFrom:
+              - secretRef:
+                name: {{ template "secrets.localSettings" . }}
+              - configMapRef:
+                name: local-settings-{{ .Values.deployEnv }}
             volumeMounts:
               - mountPath: /app/sefaria/local_settings.py
                 name: local-settings

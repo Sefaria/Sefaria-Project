@@ -52,7 +52,7 @@ spec:
       labels:
         app: monitor-{{ .Values.deployEnv }}
         tier: application-{{ .Values.deployEnv }}
-        deployEnv: "{{ .Values.deployEnv }}"
+        deployEnv: {{ .Values.deployEnv | quote }}
         stackRole: monitor
     spec:
       affinity:
@@ -65,7 +65,7 @@ spec:
                 values:
                 - mongo
             topologyKey: kubernetes.io.hostname
-        {{if eq .Values.sandbox "true"}}
+        {{- if eq .Values.sandbox "true" }}
         nodeAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
             - weight: 100
@@ -83,7 +83,7 @@ spec:
                     operator: In
                     values:
                       - "true"
-        {{end}}
+        {{- end }}
 
       containers:
       - name: monitor
@@ -99,6 +99,11 @@ spec:
             value: "node-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
           - name: VARNISH_HOST
             value: "varnish-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+        envFrom:
+          - secretRef:
+              name: {{ template "secrets.localSettings" . }}
+          - configMapRef:
+              name: local-settings-{{ .Values.deployEnv }}
         resources:
           requests:
             memory: "{{ .Values.monitor.resources.request.memory }}"
@@ -116,9 +121,12 @@ spec:
           readOnly: true
       volumes:
         - name:  local-settings
-          secret:
-            secretName: {{- template "secrets.localSettings" . }}
+          configMap:
+            name: local-settings-{{ .Values.deployEnv }}
+            items:
+              - key: local_settings.py
+                path: local_settings.py
         - name: varnish-secret
           secret:
-            secretName: {{- template "secrets.varnish" . }}
+            secretName: {{ template "secrets.varnish" . }}
 ...

@@ -101,6 +101,11 @@ spec:
             value: "varnish-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
           - name: HELM_REVISION
             value: "{{ .Release.Revision }}"
+        envFrom:
+          - secretRef:
+              name: {{ template "secrets.localSettings" . }}
+          - configMapRef:
+              name: local-settings-{{ .Values.deployEnv }}
         ports:
           - containerPort: 80
             protocol: TCP
@@ -164,23 +169,26 @@ spec:
           readOnly: true
       volumes:
         - name:  local-settings
-          secret:
-            secretName: {{- template "secrets.localSettingsName" . }}
+          configMap:
+            name: local-settings-{{ .Values.deployEnv }}
+            items:
+              - key: local_settings.py
+                path: local_settings.py
         - name: client-secret
           secret:
-            secretName: {{- template "secrets.googleClient" . }} # needs to be checked if it's a reference object or the data object we created.
+            secretName: {{ template "secrets.googleClient" . }} # needs to be checked if it's a reference object or the data object we created.
         - name: backup-manager-secret  # used to access google cloud
           secret:
-            secretName: {{- template "secrets.backupManager" . }}
+            secretName: {{ template "secrets.backupManager" . }}
         - name: logging-secret
           secret:
-            secretName: {{- template "secrets.logging" . }}
+            secretName: {{ template "secrets.logging" . }}
         - name: varnish-secret
           secret:
-            secretName: {{- template "secrets.varnish" . }}
+            secretName: {{ template "secrets.varnish" . }}
         - name: school-lookup-data
           secret:
-            secretName: {{- template "secrets.schoolLookup" . }}
+            secretName: {{ template "secrets.schoolLookup" . }}
         - name: gunicorn-config
           configMap:
             name: gunicorn-config-{{ .Values.deployEnv }}

@@ -89,7 +89,7 @@ spec:
                 values:
                 - mongo
             topologyKey: kubernetes.io.hostname
-        {{if eq .Values.sandbox "true"}}
+        {{- if eq .Values.sandbox "true" }}
         nodeAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
             - weight: 100
@@ -107,7 +107,7 @@ spec:
                     operator: In
                     values:
                       - "true"
-        {{end}}
+        {{- end }}
 
       containers:
       - name: varnish
@@ -136,5 +136,5 @@ spec:
       volumes:
         - name: varnish-secret
           secret:
-            secretName: {{- template "secrets.varnish" . }}
+            secretName: {{ template "secrets.varnish" . }}
 ...

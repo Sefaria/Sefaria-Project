@@ -164,16 +164,109 @@ monitor:
 
 secrets:
   localSettings: 
-    ref: # Reference to an existing secret in the cluster
-    data: |-
-    # This is where the local settings go if you're on your local. Please ensure indentation for the whole file is consistent with the first line indentation
+    ref: 
+    # Add the value of these variables in the data: field for local use only. 
+    # Also, it is understood that if you're adding one value you're adding variable values 
+    DATABASES_HOST:
+      data: "test"
+    DATABASES_PASS:
+      data: "test"
+    DATABASES_USER:
+      data: "test"
+    DATABASES_PORT:
+      data: "test"
+    GOOGLE_OAUTH2_CLIENT_ID:
+      data: "test"
+    GOOGLE_OAUTH2_CLIENT_SECRET:
+      data: "test"
+    SECRET_KEY:
+      data: "test"
+    MANDRILL_API_KEY:
+      data: "test"
+    SEFARIA_DB:
+      data: "test"
+    SEFARIA_DB_USER:
+      data: "test"
+    SEFARIA_DB_PASSWORD:
+      data: "test"
+    SEARCH_ADMIN_USER:
+      data: "test"
+    SEARCH_ADMIN_PW:
+      data: "test"
+    SEARCH_ADMIN_K8S:
+      data: "test"
+    TURN_SECRET:
+      data: "test"
+    TURN_USER:
+      data: "test"
+    SEFARIA_BOT_API_KEY:
+      data: "test"
+    CLOUDFLARE_ZONE:
+      data: "test"
+    CLOUDFLARE_EMAIL:
+      data: "test"
+    CLOUDFLARE_TOKEN:
+      data: "test"
+    GOOGLE_TAG_MANAGER_CODE:
+      data: "test"
+    GOOGLE_ANALYTICS_CODE:
+      data: "test"
+    GOOGLE_MAPS_API_KEY:
+      data: "test"
+    MIXPANEL_CODE:
+      data: "test"
+    HOTJAR_ID:
+      data: "test"
+    AWS_ACCESS_KEY:
+      data: "test"
+    AWS_SECRET_KEY:
+      data: "test"
+    S3_BUCKET:
+      data: "test"
+    NATIONBUILDER_TOKEN:
+      data: "test"
+    NATIONBUILDER_CLIENT_ID:
+      data: "test"
+    NATIONBUILDER_CLIENT_SECRET:
+      data: "test"
+    MAILCHIMP_API_KEY:
+      data: "test"
+    MAILCHIMP_ANNOUNCE_ID:
+      data: "test"
+    MAILCHIMP_WEBHOOK_KEY:
+      data: "test"
+    RECAPTCHA_PUBLIC_KEY:
+      data: "test"
+    RECAPTCHA_PRIVATE_KEY:
+      data: "test"
+    SIMPLE_JWT_SIGNING_KEY:
+      data: "test"
+    MOBILE_APP_KEY:
+      data: "test"
   backupManager: 
     ref:
     key:
-      data: 
+      data: "test"
     serviceAccount:
-      data: 
+      data: "test"
   slackWebhook: # This is used in mongobackup & reindex-elasticsearch cron jobs.
     ref: 
-    data: 
+    data: "test"
+
+localSettings:
+  DEBUG: False
+  DOMAIN_LANGUAGE:
+    https://www.sefaria.org: english
+    https://www.sefaria.org.il: hebrew
+  MONGO_HOST: "mongo"
+  APSCHEDULER_NAME: "apscheduler-${ENV_NAME}"
+  SEARCH_ADMIN: "http://elasticsearch-data:9200"
+  TURN_SERVER: ''
+  USE_CLOUDFLARE: true
+  FRONT_END_URL: "http://www.sefaria.org" # "http://${ENV_NAME}.sandbox.sefaria.org"
+  OFFLINE: False
+  DOWN_FOR_MAINTENANCE: False
+  MAINTENANCE_MESSAGE: "Sefaria is down for scheduled maintenance. We expect to be back online within 15 minutes. Thank you for your patience."
+  GLOBAL_WARNING: False
+  GLOBAL_WARNING_MESSAGE: "Sefaria will be in <b>Read-Only</b> mode for scheduled maintenance from 4:45pm-6:45pm Pacific time. Edits will <b>not</b> be saved during that time."
 ...

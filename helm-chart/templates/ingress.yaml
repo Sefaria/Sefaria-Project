@@ -8,8 +8,8 @@ metadata:
     kubernetes.io/ingress.global-static-ip-name: "sefaria-{{ .Values.deployEnv }}"
 spec:
   tls:
-    - secretName: {{- template "secrets.originTls" . }}
-    - secretName: {{- template "secrets.originIlTls" . }}
+    - secretName: {{ template "secrets.originTls" . }}
+    - secretName: {{ template "secrets.originIlTls" . }}
   rules:
     {{- range .Values.ingress.hosts }}
     - host: {{ tpl .host . | quote }}
@@ -56,7 +56,7 @@ metadata:
     kubernetes.io/ingress.global-static-ip-name: "sefaria-{{ .Values.deployEnv }}"
 spec:
   tls:
-    - secretName: {{- template "secrets.originTls" . }}
+    - secretName: {{ template "secrets.originTls" . }}
   rules:
     - host: democracy.sefaria.org
       http:
