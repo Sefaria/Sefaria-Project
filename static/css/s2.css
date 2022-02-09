@@ -3483,6 +3483,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
  .searchContent .searchResultList #searchTopics {
   border-top: 1px solid #EDEDEC;
   border-bottom: 1px solid #EDEDEC;
+  padding-top: 10px;
+  padding-bottom: 10px;
 }
 
 @media (min-width: 701px) {

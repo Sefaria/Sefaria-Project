@@ -94,6 +94,10 @@ class SearchResultList extends Component {
         //use getName for this.props.query and then filter out exact matches, then for ref or TocCategory or topic proceed accordingly
         Sefaria.getName(this.props.query).then(d => {
             let topics = d.completion_objects.filter(obj => obj.title.toUpperCase() === this.props.query.toUpperCase());
+            const hasAuthor = topics.some(obj => obj.type === "AuthorTopic");
+            if (hasAuthor) {
+                topics = topics.filter(obj => obj.type !== "TocCategory");  //TocCategory is unhelpful if we have author
+            }
             topics.map(topic => {
                 let searchTopic = {};
                 if (topic.type === 'ref') {
