@@ -1988,7 +1988,7 @@ div.interfaceLinks-row a {
   text-align: center;
 }
 .readerTocTopics .topicDescSearchResult {
-  margin: 10px 0 40px 0;
+  margin: 10px 0 30px 0;
 }
 .readerTocTopics .topicTitle .int-he {
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
@@ -3482,9 +3482,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
  .searchContent .searchResultList #searchTopics {
   border-top: 1px solid #EDEDEC;
   border-bottom: 1px solid #EDEDEC;
-  padding-top: 10px;
+  padding-top: 15px;
   padding-bottom: 5px;
-  margin-bottom: 15px;
+  margin-bottom: 25px;
 }
 
 @media (min-width: 701px) {
