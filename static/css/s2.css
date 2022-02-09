@@ -1987,6 +1987,10 @@ div.interfaceLinks-row a {
   margin: 10px 0 40px 0;
   text-align: center;
 }
+.readerTocTopics .topicDescSearchResult {
+  text-align: left;
+  margin: 10px 0 40px 0;
+}
 .readerTocTopics .topicTitle .int-he {
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 }

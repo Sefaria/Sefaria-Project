@@ -11,6 +11,7 @@ import SearchTextResult from './SearchTextResult';
 import SearchSheetResult from './SearchSheetResult';
 import SearchFilters from './SearchFilters';
 import SearchState from './sefaria/searchState';
+import Strings from "./sefaria/strings.js"
 import {
   DropdownModal,
   DropdownButton,
@@ -103,24 +104,16 @@ class SearchResultList extends Component {
                         searchTopic["heTitle"] = book["heTitle"];
                         searchTopic["topicCat"] = book["categories"][0];
                         searchTopic["heTopicCat"] = Sefaria.toc.filter(cat => cat.category === searchTopic["topicCat"])[0]["heCategory"];
-                        searchTopic["url"] = "/texts/"+searchTopic["topicCat"];
+                        searchTopic["url"] = "/"+searchTopic["title"];
                     this.setState({topics: this.state.topics.concat([searchTopic])});
                     });
                 }
                 else if (topic.type === 'TocCategory') {
-                    const lastCat = topic.key.pop(topic.key.length - 1);
-                    let relevantCats = [];
-                    if (topic.key.length > 0) {
-                        relevantCats = Sefaria.tocItemsByCategories(topic.key);
-                        searchTopic["topicCat"] = topic.key[topic.key.length - 1];
-                        searchTopic["url"] = "/texts/"+searchTopic["topicCat"];
-                    }
-                    else {
-                        relevantCats = Sefaria.toc;
-                        searchTopic["topicCat"] = "Texts";
-                        searchTopic["url"] = "/texts";
-                    }
+                    searchTopic["url"] = "/texts/"+topic.key.join("/");
+                    searchTopic["topicCat"] = "Texts";
                     searchTopic["heTopicCat"] = Sefaria.terms[searchTopic["topicCat"]]["he"];
+                    const lastCat = topic.key.pop(topic.key.length - 1);
+                    const relevantCats = topic.key.length === 0 ? Sefaria.toc : Sefaria.tocItemsByCategories(topic.key);
                     const relevantSubCat = relevantCats.filter(cat => "category" in cat && cat.category === lastCat)[0];
                     searchTopic["enDesc"] = relevantSubCat["enDesc"];
                     searchTopic["heDesc"] = relevantSubCat["heDesc"];
@@ -133,15 +126,14 @@ class SearchResultList extends Component {
                         searchTopic["title"] = d["primaryTitle"]["en"];
                         searchTopic["heTitle"] = d["primaryTitle"]["he"];
                         const typeObj = Sefaria.topicTocCategory(topic.key);
+                        searchTopic["url"] = "/topics/"+topic.key;
                         if (!typeObj) {
                             searchTopic["topicCat"] = "Topics";
-                            searchTopic["heTopicCat"] = "נושאים";
-                            searchTopic["url"] = "/topics";
+                            searchTopic["heTopicCat"] = Strings._i18nInterfaceStrings["Topics"];
                         }
                         else {
                             searchTopic["topicCat"] = typeObj["en"];
                             searchTopic["heTopicCat"] = typeObj["he"];
-                            searchTopic["url"] = "/topics/category/"+searchTopic["topicCat"];
                         }
                         if ("description" in d) {
                             searchTopic["enDesc"] = d["description"]["en"];
@@ -356,7 +348,7 @@ class SearchResultList extends Component {
           );
           if (this.state.topics.length > 0) {
               let topics = this.state.topics.map(t => {
-                  return <div>
+                  return <div className="readerTocTopics">
                             <div className="topicTitle pageTitle">
                               <h1>
                                 <InterfaceText text={{en:t["title"], he:t["heTitle"]}}/>
@@ -368,7 +360,7 @@ class SearchResultList extends Component {
                                   <span className="int-he">{t["heTopicCat"]}</span>
                                  </a>
                             </div>
-                            <div className="topicDescription systemText">
+                            <div className="topicDescSearchResult systemText">
                                   <span className="int-en">{t["enDesc"]}</span>
                                   <span className="int-he">{t["heDesc"]}</span>
                             </div>
