@@ -83,7 +83,8 @@ class TextFilter extends Component {
   // A clickable representation of connections by Text or Commentator
   handleClick(e) {
     e.preventDefault();
-    let filter = this.props.filterSuffix ? this.props.book + "|" + this.props.filterSuffix : this.props.book;
+    const name = "enDisplayText" in this.props ? this.props["enDisplayText"] : this.props.book;
+    let filter = this.props.filterSuffix ? name + "|" + this.props.filterSuffix : name;
     this.props.setFilter(filter, this.props.updateRecent);
     if (Sefaria.site) {
       if (this.props.inRecentFilters) { Sefaria.track.event("Reader", "Text Filter in Recent Click", filter); }
@@ -92,19 +93,21 @@ class TextFilter extends Component {
   }
   render() {
     const classes = classNames({textFilter: 1, on: this.props.on, lowlight: this.props.count == 0});
-    const color = Sefaria.palette.categoryColor(this.props.category);
+    const color = this.props.filterSuffix === "Essay" ? "var(--essay-links-green)" : Sefaria.palette.categoryColor(this.props.category);
     const style = {"--category-color": color};
-    const name = this.props.book == this.props.category ? this.props.book.toUpperCase() : this.props.book;
+    const enBook = this.props.book == this.props.category ? this.props.book.toUpperCase() : this.props.book;
     const showCount = !this.props.hideCounts && !!this.props.count;
-    const url = (this.props.srefs && this.props.srefs.length > 0)?"/" + Sefaria.normRef(this.props.srefs[0]) + "?with=" + name:"";
+    const url = (this.props.srefs && this.props.srefs.length > 0)?"/" + Sefaria.normRef(this.props.srefs[0]) + "?with=" + enBook:"";
     const upperClass = classNames({uppercase: this.props.book === this.props.category});
+    const name = "enDisplayText" in this.props ? this.props["enDisplayText"] : enBook;
+    const heName = "heDisplayText" in this.props ? this.props["heDisplayText"] : this.props.heBook;
     return (
       <a href={url} onClick={this.handleClick}>
-        <div data-name={name} className={classes} style={style} >
+        <div data-name={enBook} className={classes} style={style} >
             <div className={upperClass}>
                 <span className="filterInner">
                   <span className="filterText">
-                    <ContentText text={{en: name, he: this.props.heBook }} />
+                    <ContentText text={{en: name, he: heName }} />
                     {showCount ? <span className="connectionsCount">&nbsp;({this.props.count})</span> : null}
                   </span>
                   <span className="en">
@@ -126,6 +129,8 @@ TextFilter.propTypes = {
   updateRecent:    PropTypes.bool,
   inRecentFilters: PropTypes.bool,
   filterSuffix:    PropTypes.string,  // Optionally add a string to the filter parameter set (but not displayed)
+  enDisplayedText: PropTypes.string,  // displayedText fields used when link is 'essay' and we don't want to show the book title
+  heDisplayedText: PropTypes.string,
 };
 
 
@@ -206,14 +211,15 @@ class RecentFilterSet extends Component {
   }
 }
 RecentFilterSet.propTypes = {
-  srefs:         PropTypes.array.isRequired,
-  filter:        PropTypes.array.isRequired,
-  recentFilters: PropTypes.array.isRequired,
-  inHeader:      PropTypes.bool,
-  setFilter:     PropTypes.func.isRequired,
+  srefs:              PropTypes.array.isRequired,
+  filter:             PropTypes.array.isRequired,
+  recentFilters:      PropTypes.array.isRequired,
+  inHeader:           PropTypes.bool,
+  setFilter:          PropTypes.func.isRequired,
 };
 
 export {
   CategoryFilter,
   RecentFilterSet,
+  TextFilter
 };

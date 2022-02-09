@@ -16,7 +16,7 @@ import {
   MediaList
 } from './Media';
 
-import { CategoryFilter, } from './ConnectionFilters';
+import { CategoryFilter, TextFilter } from './ConnectionFilters';
 import React, { useRef, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import ReactDOM from 'react-dom';
@@ -206,7 +206,8 @@ class ConnectionsPanel extends Component {
   }
   getData(cb) {
     // Gets data about this text from cache, which may be null.
-    return Sefaria.getText(this.props.srefs[0], { context: 1, enVersion: this.props.currVersions.en, heVersion: this.props.currVersions.he, translationLanguagePreference: this.props.translationLanguagePreference }).then(cb);
+    const versionPref = Sefaria.versionPreferences.getVersionPref(this.props.srefs[0]);
+    return Sefaria.getText(this.props.srefs[0], { context: 1, enVersion: this.props.currVersions.en, heVersion: this.props.currVersions.he, translationLanguagePreference: this.props.translationLanguagePreference, versionPref}).then(cb);
   }
   getVersionFromData(d, lang) {
     //d - data received from this.getData()
@@ -290,7 +291,8 @@ class ConnectionsPanel extends Component {
         />
       </div>);
     } else if (this.props.mode === "Resources") {
-      const showConnectionSummary = Sefaria.linkSummary(this.props.srefs, this.props.nodeRef ? this.props.nodeRef.split(".")[0] : null).length > 0;
+      const summary = Sefaria.linkSummary(this.props.srefs, this.props.nodeRef ? this.props.nodeRef.split(".")[0] : null);
+      const showConnectionSummary = summary.length > 0 || Sefaria.hasEssayLinks(this.props.srefs);
       const resourcesButtonCounts = {
         sheets: Sefaria.sheets.sheetsTotalCount(this.props.srefs),
         webpages: Sefaria.webPagesByRef(this.props.srefs).length,
@@ -314,12 +316,13 @@ class ConnectionsPanel extends Component {
             <div className="topToolsButtons">
               <ToolsButton en="About this Text" he="אודות הטקסט" image="about-text.svg" onClick={() => this.props.setConnectionsMode("About")} />
               <ToolsButton en="Table of Contents" he="תוכן העניינים" image="text-navigation.svg" onClick={() => this.props.setConnectionsMode("Navigation")} />
-              <ToolsButton en="Translations" he="תרגומים" image="translation.svg"  onClick={() => this.props.setConnectionsMode("Translations")} />
+              <ToolsButton en="Translations" he="תרגומים" image="translation.svg"  onClick={() => this.props.setConnectionsMode("Translations")} count={resourcesButtonCounts.translations} />
             </div>
           }
           {showConnectionSummary ?
             <ConnectionsPanelSection title="Related Texts">
               <ConnectionsSummary
+                currObjectVersions={this.state.currObjectVersions}
                 srefs={this.props.srefs}
                 showBooks={false}
                 multiPanel={this.props.multiPanel}
@@ -398,7 +401,7 @@ class ConnectionsPanel extends Component {
         setConnectionsMode={this.props.setConnectionsMode}
         setConnectionsCategory={this.props.setConnectionsCategory} />);
 
-    } else if (this.props.mode === "TextList") {
+    } else if (this.props.mode === "TextList" || this.props.mode === "EssayList") {
       content = (<TextList
         panelPosition={this.props.panelPosition}
         srefs={this.checkSrefs(this.props.srefs)}
@@ -443,15 +446,17 @@ class ConnectionsPanel extends Component {
         }
       </div>);
     } else if (this.props.mode == "Add To Sheet") {
-      let refForSheet, versionsForSheet, selectedWordsForSheet;
+      let refForSheet, versionsForSheet, selectedWordsForSheet, nodeRef;
+      // add source from connections
       if (this.props.connectionData && this.props.connectionData.hasOwnProperty("addSource") && this.props.connectionData["addSource"] == 'connectionsPanel') {
         refForSheet = this.props.connectionData.hasOwnProperty("connectionRefs") ? this.props.connectionData["connectionRefs"] : this.props.srefs;
         versionsForSheet = this.props.connectionData.hasOwnProperty("versions") ? this.props.connectionData["versions"] : { "en": null, "he": null };
         selectedWordsForSheet = null;
-      } else {
+      } else { // add source from sheet itself
         refForSheet = this.props.srefs;
         versionsForSheet = this.props.currVersions;
         selectedWordsForSheet = this.props.selectedWords;
+        nodeRef = this.props.nodeRef;
       }
       content = (<div>
         <AddToSourceSheetBox
@@ -459,7 +464,7 @@ class ConnectionsPanel extends Component {
           currVersions={versionsForSheet} //sidebar doesn't actually do versions
           contentLanguage={this.props.masterPanelLanguage}
           selectedWords={selectedWordsForSheet}
-          nodeRef={this.props.nodeRef}
+          nodeRef={nodeRef}
           fullPanel={this.props.fullPanel}
           toggleSignUpModal={this.props.toggleSignUpModal}
           setConnectionsMode={this.props.setConnectionsMode} />
@@ -634,7 +639,8 @@ class ConnectionsPanel extends Component {
         srefs={this.props.srefs}
         sectionRef={this.state.sectionRef}
         openVersionInReader={this.props.selectVersion}
-        viewExtendedNotes={this.props.viewExtendedNotes} />);
+        viewExtendedNotes={this.props.viewExtendedNotes}
+      />);
 
     } else if (this.props.mode === "Translations" || this.props.mode === "Translation Open") {
       content = (<TranslationsBox
@@ -978,6 +984,7 @@ class ConnectionsSummary extends Component {
     const isTopLevel = !this.props.category;
     const baseCat = oref ? oref["categories"][0] : null;
     let summary = Sefaria.linkSummary(refs, excludedSheet);
+    let essaySummary = [];
 
     if (!summary) { return null; }
 
@@ -1017,6 +1024,28 @@ class ConnectionsSummary extends Component {
       });
 
       summary = topSummary;
+      let essayLinks = Sefaria.essayLinks(refs, this.props.currObjectVersions);
+      if (essayLinks.length > 0) {
+        essayLinks.forEach(function (link, i) {
+          const essayTextFilter = <TextFilter
+              setConnectionsMode={this.props.setConnectionsMode}
+              srefs={this.props.srefs}
+              key={i}
+              book={link.index_title}
+              heBook={link.heTitle}
+              hasEnglish={link.sourceHasEn}
+              category={link.category}
+              updateRecent={true}
+              setFilter={this.props.setFilter}
+              hideCounts={true}
+              enDisplayText={link.displayedText["en"]}
+              heDisplayText={link.displayedText["he"]}
+              filterSuffix={"Essay"}
+              on={false}/>;
+          essaySummary.push(essayTextFilter);
+        }.bind(this));
+        essaySummary = <div className={"essayGroup"}>{essaySummary}</div>;
+      }
     }
 
     let connectionsSummary = summary.map(function (cat, i) {
@@ -1058,6 +1087,7 @@ class ConnectionsSummary extends Component {
 
     return (
       <div>
+        {isTopLevel ? essaySummary : null}
         {connectionsSummary}
         {summaryToggle}
       </div>
@@ -1075,6 +1105,7 @@ ConnectionsSummary.propTypes = {
   setConnectionsMode: PropTypes.func,
   setFilter: PropTypes.func,
   setConnectionsCategory: PropTypes.func.isRequired,
+  currObjectVersions: PropTypes.object
 };
 
 

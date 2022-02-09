@@ -164,13 +164,23 @@ class ITagNormalizer(AbstractNormalizer):
                 pass  # it's an inline commentator
         return all_itags, soup
 
-    def find_text_to_remove(self, s:str, **kwargs) -> list:
+    @staticmethod
+    def _find_tag_text_start(s: str, itag_text: str, prev_start: int) -> int:
+        start = None
+        end = len(itag_text)
+        decrement = 50
+        while start is None or (start == -1 and end > decrement):
+            start = s.find(itag_text[:end], prev_start)
+            end -= decrement
+        return start
+
+    def find_text_to_remove(self, s: str, **kwargs) -> list:
         all_itags, _ = ITagNormalizer._get_all_itags(s)
         next_start = 0
         text_to_remove = []
         for itag in all_itags:
             itag_text = itag.decode()
-            start = s.find(itag_text, next_start)
+            start = self._find_tag_text_start(s, itag_text, next_start)
             end = start+len(itag_text)
             if start == -1:
                 raise Exception(f"Couldn't find itag with text '{itag_text}' in\n{s}\nnext_start = {next_start}")
