@@ -2,6 +2,7 @@
 from sefaria.model.story import TextPassageStoryFactory, AuthorStoryFactory, TopicListStoryFactory, \
     TopicTextsStoryFactory, UserSheetsFactory, CollectionSheetListFactory, SheetListFactory, MultiTextStoryFactory
 
+from sefaria.model.trend import setAllTrends
 
 def remove_jobs(scheduler):
     [j.remove() for j in scheduler.get_jobs()]
@@ -22,6 +23,9 @@ def add_jobs(scheduler):
 
     scheduler.add_job(SheetListFactory.create_featured_story, "cron", id="FeaturedSheets", replace_existing=True,
                       day_of_week="wed", hour="14", minute="0")
+
+    scheduler.add_job(setAllTrends, "cron", id="UserSheetTraits", replace_existing=True,
+                      day_of_week="fri", hour="23", minute="50")
 
 
 def _add_parasha_jobs(scheduler):

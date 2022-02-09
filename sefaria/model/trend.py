@@ -64,7 +64,8 @@ class DateRange(object):
     @classmethod
     def this_hebrew_year(cls):
         #todo: improve me!
-        return cls("this_hebrew_year", datetime(2019, 9, 30), datetime(2020, 9, 18))
+        return cls("this_hebrew_year", datetime(2021, 9, 6), datetime(2022, 9, 25))
+        # return cls("this_hebrew_year", datetime(2019, 9, 30), datetime(2020, 9, 18))
 
         # last year
         #return cls("this_hebrew_year", datetime(2018, 9, 10), datetime(2019, 9, 29))
@@ -152,7 +153,6 @@ class Trend(abst.AbstractMongoRecord):
 
 class TrendSet(abst.AbstractMongoSet):
     recordClass = Trend
-
 
 def setUserSheetTraits():
     TrendSet({"name": "SheetsRead"}).delete()
@@ -474,6 +474,10 @@ class TrendFactory(object):
     def _process_users(self, users, period):
         pass
 
+def setAllTrends():
+    setUserSheetTraits()
+    setUserLanguageTraits()
+    setCategoryTraits()
 
 class EnglishToleranceFactory(TrendFactory):
     name = "EnglishTolerance"
@@ -481,6 +485,7 @@ class EnglishToleranceFactory(TrendFactory):
     datatype = "float"   # int, float, str, bool, dict
     for_user = True
     for_group = False
+    
 
 
 class HebrewAbilityFactory(TrendFactory):
