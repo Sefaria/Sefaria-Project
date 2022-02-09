@@ -233,6 +233,7 @@ const Strings = {
     "Public Domain": "בנחלת הכלל",
     "Copyright: JPS, 1985": "זכויות שמורות ל-JPS, 1985",
     "Location: ": "מיקום: ",
+    "Translations": "תרגומים",
 
     // Collections
     "Collections": "אסופות",
