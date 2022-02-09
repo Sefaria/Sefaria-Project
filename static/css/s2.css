@@ -10475,6 +10475,10 @@ body .homeFeedWrapper .content {
     margin: 0;
   }
 }
+.sideColumn .topicSideColumn {
+  margin-bottom: 20px;
+}
+
 .sideColumn .section {
   margin-bottom: 70px;
 }

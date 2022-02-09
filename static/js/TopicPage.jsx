@@ -626,7 +626,7 @@ const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, set
     : null
   );
   return (
-    <div>
+    <div className={"topicSideColumn"}>
       { readingsComponent }
       { topicMetaData }
       { linksComponent }
