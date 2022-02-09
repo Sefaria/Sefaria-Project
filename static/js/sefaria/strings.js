@@ -211,6 +211,7 @@ const Strings = {
     "Select Translation": "בחירת תרגום",
     "Merged from": "נוצר ממיזוג",
     "Source" : "מקור",
+    "Sources": "מקורות",
     "Digitization" : "דיגיטציה",
     "License" : "רשיון",
     "Revision History" : "היסטורית עריכה",

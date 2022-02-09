@@ -143,9 +143,18 @@ class SearchResultList extends Component {
                             searchTopic["enDesc"] = d["description"]["en"];
                             searchTopic["heDesc"] = d["description"]["he"];
                         }
+                        else {
+                            const numSources = d.tabs.sources.refs.length;
+                            const numSheets = d.tabs.sheets.refs.length;
+                            const sources = numSources === 1 ? "1 source" : `${numSources} sources`;
+                            const sheets = numSheets === 1 ? "1 sheet" : `${numSheets} sheets`;
+                            const heSources = numSources === 1 ? `1 ${Strings._i18nInterfaceStrings["Source"]}` : `${numSources} ${Strings._i18nInterfaceStrings["Sources"]}`;
+                            const heSheets = numSheets === 1 ? `1 ${Strings._i18nInterfaceStrings["Sheet"]}` : `${numSources} ${Strings._i18nInterfaceStrings["Source Sheets"]}`;
+                            searchTopic["enDesc"] = `${sources} ∙ ${sheets}`;
+                            searchTopic["heDesc"] = `${heSources} ∙ ${heSheets}`;
+                        }
                         this.setState({topics: this.state.topics.concat([searchTopic])});
                     });
-
                 }
             })
         });

@@ -1988,7 +1988,6 @@ div.interfaceLinks-row a {
   text-align: center;
 }
 .readerTocTopics .topicDescSearchResult {
-  text-align: left;
   margin: 10px 0 40px 0;
 }
 .readerTocTopics .topicTitle .int-he {
@@ -3485,6 +3484,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   border-bottom: 1px solid #EDEDEC;
   padding-top: 10px;
   padding-bottom: 10px;
+  margin-bottom: 15px;
 }
 
 @media (min-width: 701px) {
