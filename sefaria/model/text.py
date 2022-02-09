@@ -3456,7 +3456,7 @@ class Ref(object, metaclass=RefCacheType):
         # todo: This is now stored on the VersionState. Look for performance gains.
         if isinstance(self.index_node, JaggedArrayNode):
             r = self.padded_ref()
-        elif isinstance(self.index_node, SchemaNode):
+        elif isinstance(self.index_node, TitledTreeNode):
             first_leaf = self.index_node.first_leaf()
             if not first_leaf:
                 return None
