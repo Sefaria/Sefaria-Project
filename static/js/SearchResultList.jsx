@@ -99,6 +99,7 @@ class SearchResultList extends Component {
                 topics = topics.filter(obj => obj.type !== "TocCategory");  //TocCategory is unhelpful if we have author
             }
             topics.map(topic => {
+                console.log(topic);
                 let searchTopic = {};
                 if (topic.type === 'ref') {
                     Sefaria.getIndexDetails(topic.key).then(book => {
@@ -119,11 +120,13 @@ class SearchResultList extends Component {
                     const lastCat = topic.key.pop(topic.key.length - 1);
                     const relevantCats = topic.key.length === 0 ? Sefaria.toc : Sefaria.tocItemsByCategories(topic.key);
                     const relevantSubCat = relevantCats.filter(cat => "category" in cat && cat.category === lastCat)[0];
-                    searchTopic["enDesc"] = relevantSubCat["enDesc"];
-                    searchTopic["heDesc"] = relevantSubCat["heDesc"];
-                    searchTopic["title"] = relevantSubCat["category"];
-                    searchTopic["heTitle"] = relevantSubCat["heCategory"];
-                    this.setState({topics: this.state.topics.concat([searchTopic])});
+                    if (relevantSubCat) {
+                        searchTopic["enDesc"] = relevantSubCat["enDesc"];
+                        searchTopic["heDesc"] = relevantSubCat["heDesc"];
+                        searchTopic["title"] = relevantSubCat["category"];
+                        searchTopic["heTitle"] = relevantSubCat["heCategory"];
+                        this.setState({topics: this.state.topics.concat([searchTopic])});
+                    }
                 }
                 else {
                     Sefaria.getTopic(topic.key, {annotate_time_period: true}).then(d => {
