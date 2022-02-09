@@ -338,6 +338,9 @@ class Completions(object):
         if self.limit and len(set(self._raw_completion_strings)) >= self.limit:
             return
 
+        # This string of characters deeper in the string
+        self._collect_candidates_later_in_string(do_autocorrect=False)
+
         if not self.do_autocorrect:
             return 
 
@@ -347,15 +350,25 @@ class Completions(object):
             [cs, co] = self.get_new_continuations_from_string(edit)
             self._raw_completion_strings += cs
             self._completion_objects += co
-            if self.limit and len(set(self._raw_completion_strings)) >= self.limit:
+            if self._is_past_limit():
                 return
 
+        # A minor variations of this string of characters deeper in the string
+        self._collect_candidates_later_in_string(do_autocorrect=True)
 
-        # This string of characters, or a minor variations thereof, deeper in the string
+        return
+
+    def _is_past_limit(self):
+        return self.limit and len(set(self._raw_completion_strings)) >= self.limit
+
+    def _collect_candidates_later_in_string(self, do_autocorrect=True):
+        if do_autocorrect:
+            tokens = self.auto_completer.spell_checker.correct_phrase(self.normal_string)
+        else:
+            tokens = splitter.split(self.normal_string)
+
         try:
-            for suggestion in self.auto_completer.ngram_matcher.guess_titles(
-                self.auto_completer.spell_checker.correct_phrase(self.normal_string)
-            ):
+            for suggestion in self.auto_completer.ngram_matcher.guess_titles(tokens):
                 k = normalizer(self.lang)(suggestion)
                 try:
                     all_v = self.auto_completer.title_trie[k]
@@ -365,10 +378,11 @@ class Completions(object):
                     if (v["type"], v["key"]) not in self.keys_covered:
                         self._completion_objects += [v]
                         self._raw_completion_strings += [v["title"]]
+                        self.keys_covered.add((v["type"], v["key"]))
+                        if self._is_past_limit():
+                            return
         except ValueError:
             pass
-
-        return
 
     def get_new_continuations_from_string(self, str):
         """
