@@ -166,7 +166,7 @@ class ReaderPanel extends Component {
     if (this.props.multiPanel) {
       this.props.onCitationClick(citationRef, textRef, replace, currVersions);
     } else {
-      this.showBaseText(citationRef, currVersions);
+      this.showBaseText(citationRef, replace, currVersions);
     }
   }
   handleTextListClick(ref, replaceHistory, currVersions) {
