@@ -323,6 +323,7 @@ urlpatterns += [
     url(r'^api/register/$', sefaria_views.register_api),
     url(r'^api/login/$', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     url(r'^api/login/refresh/$', TokenRefreshView.as_view(), name='token_refresh'),
+    url(r'^api/account/delete$', reader_views.delete_user_account_api),
 ]
 
 # Compare Page

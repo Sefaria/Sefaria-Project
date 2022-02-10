@@ -104,7 +104,7 @@ def heb_string_to_int(n):
 	764
 	'''
 
-	n = re.sub('[\u05F4"\u201c\u201d]', '', n)  # remove gershayim, double quote, or fancy double quote
+	n = re.sub('[\u05F4"\u201c\u201d\u200e]', '', n)  # remove gershayim, double quote, fancy double quote, LTR Control Character
 	return sum(map(heb_to_int, n))
 
 @memoized

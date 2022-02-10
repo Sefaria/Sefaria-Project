@@ -2955,7 +2955,7 @@ display: none;
   width: 18px;
   opacity: 0.2;
   position: absolute;
-  margin-left: 10px;
+  margin-inline-start: 10px;
 }
 .staticPage .simpleButtonWrapper.signUpEducators, .staticPage .staticPageHeaderTextBox .simpleButtonWrapper.signUpEducators {
   width: 100%;
