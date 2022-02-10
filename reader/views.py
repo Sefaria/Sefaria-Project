@@ -1342,7 +1342,8 @@ def texts_api(request, tref):
         versionEn  = request.GET.get("ven", None)
         firstAvailableRef = bool(int(request.GET.get("firstAvailableRef", False)))  # use first available ref, which may not be the same as oref
         if firstAvailableRef:
-            oref = oref.first_available_section_ref()
+            temp_oref = oref.first_available_section_ref()
+            oref = temp_oref or oref  # don't overwrite oref if first available section ref fails
         if versionEn:
             versionEn = versionEn.replace("_", " ")
         versionHe  = request.GET.get("vhe", None)
