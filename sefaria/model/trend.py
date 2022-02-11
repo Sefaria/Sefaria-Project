@@ -78,10 +78,14 @@ class DateRange(object):
         #todo: add try catch
         today = date.today()
         this_gregorian_year_rh = cls.new_years_dict[today.year]
-        if (this_gregorian_year_rh.date() > today):
-            return cls("this_hebrew_year", cls.new_years_dict[today.year-1], this_gregorian_year_rh)
-        else:
-            return cls("this_hebrew_year", this_gregorian_year_rh, cls.new_years_dict[today.year+1])
+        try:
+            if (this_gregorian_year_rh.date() > today):
+                return cls("this_hebrew_year", cls.new_years_dict[today.year-1], this_gregorian_year_rh)
+            else:
+                return cls("this_hebrew_year", this_gregorian_year_rh, cls.new_years_dict[today.year+1])
+        except:
+            latest_year = max(cls.new_years_dict.get.keys())
+            return cls("this_hebrew_year", cls.new_years_dict[latest_year-1], latest_year)
 
     def needs_clause(self):
         return self.start or self.end
