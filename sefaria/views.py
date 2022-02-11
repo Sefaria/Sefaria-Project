@@ -326,7 +326,7 @@ def bundle_many_texts(refs, useTextFamily=False, as_sized_string=False, min_char
             oref = model.Ref(tref)
             lang = "he" if is_hebrew(tref) else "en"
             if useTextFamily:
-                text_fam = model.TextFamily(oref, commentary=0, context=0, pad=False, translationLanguagePreference=translation_language_preference)
+                text_fam = model.TextFamily(oref, commentary=0, context=0, pad=False, translationLanguagePreference=translation_language_preference, stripItags=True)
                 he = text_fam.he
                 en = text_fam.text
                 res[tref] = {
