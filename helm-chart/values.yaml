@@ -224,7 +224,7 @@ localSettings:
   APSCHEDULER_NAME: "apscheduler-${ENV_NAME}"
   SEARCH_ADMIN: "http://elasticsearch-data:9200"
   TURN_SERVER: ''
-  USE_CLOUDFLARE: true
+  USE_CLOUDFLARE: false
   FRONT_END_URL: "http://www.sefaria.org" # "http://${ENV_NAME}.sandbox.sefaria.org"
   OFFLINE: False
   DOWN_FOR_MAINTENANCE: False
