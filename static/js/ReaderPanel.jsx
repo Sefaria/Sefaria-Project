@@ -1178,7 +1178,8 @@ class ReaderControls extends Component {
   }
   shouldShowVersion(props) {
     props = props || this.props;
-    return props.settings.language === "english" || props.settings.language === "bilingual";
+    // maybe one day sheets will have versions (e.g Nachama) but for now, let's ignore that possibility
+    return !props.sheetID && (props.settings.language === "english" || props.settings.language === "bilingual");
   }
   setDisplayVersionTitle(version) {
     const en = version.shortVersionTitle || version.versionTitle;
