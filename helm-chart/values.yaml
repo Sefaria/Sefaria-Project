@@ -67,7 +67,7 @@ redis:
 nodejs:
   containerImage: 
     imageRegistry: gcr.io/production-deployment/sefaria-node # Full path of the image registry inclusive of the image name
-    tag: # Commit id of the repo for which the image build has been triggered.
+    tag: latest # Commit id of the repo for which the image build has been triggered.
   replicaCount: 1
   resources:
     request:
@@ -139,7 +139,7 @@ ingress:
 nginx:
   containerImage: 
     imageRegistry: gcr.io/production-deployment/sefaria-asset # Full path of the image registry inclusive of the image name
-    tag: # Commit id of the repo for which the image build has been triggered.
+    tag: latest # Commit id of the repo for which the image build has been triggered.
   replicaCount: 1
   resources:
     request:
