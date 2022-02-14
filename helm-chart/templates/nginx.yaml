@@ -9,10 +9,9 @@ metadata:
     sandbox: "{{ .Values.sandbox }}"
     {{if eq .Values.sandbox "true"}}
     sandbox-name: "{{ .Values.deployEnv }}"
-    sandbox-subdomain: cauldron
     {{end}}
 spec:
-  type: NodePort
+  type: {{ if eq .Values.sandbox "true" }}ClusterIP{{ else }}NodePort{{end}}
   ports:
   - name: http
     port: 80
@@ -31,10 +30,10 @@ metadata:
     sandbox: "{{ .Values.sandbox }}"
     {{if eq .Values.sandbox "true"}}
     sandbox-name: "{{ .Values.deployEnv }}"
-    sandbox-subdomain: cauldron
+    argoPreview: "true"
     {{end}}
 spec:
-  type: NodePort
+  type: {{ if eq .Values.sandbox "true" }}ClusterIP{{ else }}NodePort{{end}}
   ports:
   - name: http
     port: 80
@@ -53,12 +52,12 @@ metadata:
     deployEnv: "{{ $.Values.deployEnv }}"
     app: nginx-{{ $.Values.deployEnv }}
     sandbox: "{{ $.Values.sandbox }}"
+    releaseRevision: "{{ $v }}"
     {{if eq $.Values.sandbox "true"}}
     sandbox-name: "{{ $.Values.deployEnv }}"
-    sandbox-subdomain: cauldron
     {{end}}
 spec:
-  type: NodePort
+  type: {{ if eq .Values.sandbox "true" }}ClusterIP{{ else }}NodePort{{end}}
   ports:
   - name: http
     port: 80

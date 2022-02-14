@@ -118,8 +118,5 @@ spec:
           limits:
             memory: "{{ .Values.nodejs.resources.limit.memory }}"
             cpu: "{{ .Values.nodejs.resources.limit.cpu }}"
-      volumes:
-        - name: logdir
-          emptyDir: {}
-...
+      ...
   

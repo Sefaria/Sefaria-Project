@@ -77,3 +77,22 @@ data:
   tls.key: {{ .Values.ingress.secrets.originTls.key.data | b64enc }}
 {{- end }}
 {{- end }}
+---
+{{ if eq .Values.sandbox "true" }}
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: {{ .Values.deployEnv }} 
+  annotations:
+    kubernetes.io/ingress.class: nginx-ingress
+spec:
+  tls:
+    - secretName: cauldron-wildcard-letsencrypt       #wildcard cert managed via infrastructure
+  rules:
+  - host: "{{ .Values.deployEnv }}.cauldron.sefaria.org"
+    http:
+      paths:
+        - backend:
+            serviceName: nginx-{{ .Values.deployEnv }}
+            servicePort: 80
+{{ end }}
