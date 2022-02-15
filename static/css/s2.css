@@ -3483,10 +3483,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .searchResultList #searchTopics {
   border-top: 1px solid #EDEDEC;
   border-bottom: 1px solid #EDEDEC;
-  padding-top: 15px;
+  padding-top: 30px;
   padding-bottom: 5px;
   margin-bottom: 25px;
-  margin-top: 15px;
 }
 .searchResultList .searchTopic {
   margin-bottom: 40px;
