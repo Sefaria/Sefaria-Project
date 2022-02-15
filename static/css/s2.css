@@ -1152,6 +1152,15 @@ div.interfaceLinks-row a {
   border: 1px solid #CCC;
   background-color: white;
 }
+#interruptingMessageContentBox.hasColorLine{
+  border-top: none;
+}
+.colorLine {
+  width: 100%;
+  height: 4px;
+  z-index: 101;
+  background: linear-gradient(90deg, #00505E 0% 14.2%, #5698B4 14.2% 28.4%, #CCB37C 28.4% 42.67%, #5B9370 42.67% 56.85%, #823241 56.85% 71%, #5A4474 71% 85.2%, #AD4F66 85.2% 100%)
+}
 #interruptingMessageClose.sefariaModalClose {
   color: white;
 }
