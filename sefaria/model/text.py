@@ -2811,7 +2811,10 @@ class Ref(object, metaclass=RefCacheType):
             base_wout_title = base.replace(title + " ", "")
             address_class.parse_range_end(self, parts, base_wout_title)
         elif len(parts) == 2: # Parse range end portion, if it exists
-            self._parse_range_end(re.split("[.:, ]+", parts[1]))
+            try:
+                self.toSections = Ref(parts[1]).sections
+            except InputError:
+                self._parse_range_end(re.split("[.:, ]+", parts[1]))
 
 
     def _parse_range_end(self, range_parts):
