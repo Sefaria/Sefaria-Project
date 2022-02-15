@@ -14,6 +14,7 @@ from sefaria.system.database import db
 from sefaria.utils.util import graceful_exception
 from sefaria.utils.hebrew import encode_hebrew_numeral, hebrew_parasha_name
 from sefaria.site.site_settings import SITE_SETTINGS
+from sefaria.model.schema import Term
 
 import structlog
 logger = structlog.get_logger(__name__)
@@ -353,6 +354,30 @@ def parashat_hashavua_and_haftara(datetime_obj, diaspora=True, custom=None, para
     return parasha_items
 
 
+@graceful_exception(logger=logger, return_value=[])
+def hok_leyisrael(datetime_obj, diaspora=True, parasha=None):
+
+    def get_hok_parasha(datetime_obj, diaspora=diaspora, parasha=parasha):
+        parasha = get_parasha(datetime_obj, diaspora=diaspora, parasha=parasha)['parasha']
+        parasha = parasha.replace('Lech-Lecha', 'Lech Lecha')
+        parasha = parasha.split('-')[0]
+        if parasha == 'Shmini Atzeret':
+            parasha = "V'Zot HaBerachah"
+        parasha_term = Term().load({'category': 'Torah Portions', 'titles': {'$elemMatch': {'text': parasha}}})
+        if not parasha_term:
+            parasha_term = get_hok_parasha(datetime_obj + datetime.timedelta(7), diaspora=diaspora, parasha=parasha)
+        return parasha_term
+
+    parasha_term = get_hok_parasha(datetime_obj, diaspora=diaspora, parasha=parasha)
+    parasha_he = [title['text'] for title in parasha_term.titles if title['lang']=='he' and 'primary' in title][0]
+    return [{
+        "title": {"en": "Chok LeYisrael", "he": 'חק לישראל'},
+        "displayValue": {"en": parasha_term.name, "he": parasha_he},
+        "url": f'collections/חק-לישראל?tag={parasha_he.replace(" ", "%20")}',
+        "order": 12,
+        "category": 'Tanakh'
+    }]
+
 def get_all_calendar_items(datetime_obj, diaspora=True, custom="sephardi"):
     if not SITE_SETTINGS["TORAH_SPECIFIC"]:
         return []
@@ -368,6 +393,7 @@ def get_all_calendar_items(datetime_obj, diaspora=True, custom="sephardi"):
     cal_items += arukh_hashulchan(datetime_obj)
     cal_items += tanakh_yomi(datetime_obj)
     cal_items += tikkunei_yomi(datetime_obj)
+    cal_items += hok_leyisrael(datetime_obj, diaspora=diaspora)
     cal_items = [item for item in cal_items if item]
     return cal_items
 
