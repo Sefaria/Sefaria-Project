@@ -1031,7 +1031,7 @@ class AbstractTextRecord(object):
         # structure placement (e.g. page transitions): uses 'data-overlay', 'data-value'
         'i': ['data-overlay', 'data-value', 'data-commentator', 'data-order', 'class', 'data-label', 'dir'],
         'img': lambda name, value: name == 'src' and value.startswith("data:image/"),
-        'a': ['dir', 'class', 'href', 'data-ref'],
+        'a': ['dir', 'class', 'href', 'data-ref', "data-ven", "data-vhe"],
     }
 
     def word_count(self):

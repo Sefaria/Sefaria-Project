@@ -124,7 +124,7 @@ class TextRange extends Component {
       // Replace ReaderPanel contents with split refs if ref is spanning
       // Pass parameter to showBaseText to replaceHistory - normalization should't add a step to history
       // console.log("Re-rewriting spanning ref")
-      this.props.showBaseText(data.spanningRefs, true, this.props.version, this.props.versionLanguage);
+      this.props.showBaseText(data.spanningRefs, true, this.props.currVersions, this.props.versionLanguage);
       return;
     }
 
@@ -495,10 +495,9 @@ class TextSegment extends Component {
       //Click of citation
       event.preventDefault();
       let ref = Sefaria.humanRef(refLink.attr("data-ref"));
-      const vtitle = refLink.attr("vtitle");
-      const vlang = refLink.attr("vlang");
-      let currVersions = {"en": null, "he": null};
-      currVersions[vlang] = vtitle;
+      const ven = refLink.attr("data-ven") ? refLink.attr("data-ven") : null;
+      const vhe = refLink.attr("data-vhe") ? refLink.attr("data-vhe") : null;
+      let currVersions = {"en": ven, "he": vhe};
       this.props.onCitationClick(ref, this.props.sref, true, currVersions);
       event.stopPropagation();
       Sefaria.track.event("Reader", "Citation Link Click", ref);
