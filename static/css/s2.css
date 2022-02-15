@@ -3495,8 +3495,11 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-top: 10px;
 }
 .searchResultList .searchTopic .topicSourcesSheets {
-  color: #666666;
   margin-top: 10px;
+}
+.searchResultList .searchTopic .topicSourcesSheets.systemText .int-en,
+.searchResultList .searchTopic .topicSourcesSheets.systemText .int-he {
+  color: #666666;
 }
 
 @media (min-width: 701px) {

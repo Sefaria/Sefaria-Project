@@ -359,7 +359,7 @@ class SearchResultList extends Component {
           if (this.state.topics.length > 0) {
               let topics = this.state.topics.map(t => {
                   const sources = <a href={t["url"]+"?tabs=sources"}><InterfaceText>Sources</InterfaceText></a>;
-                  const sheets = <a href={t["url"]+"?tabs=sheets"}><InterfaceText>Source Sheets</InterfaceText></a>;
+                  const sheets = <a href={t["url"]+"?tabs=sheets"}><InterfaceText>Sheets</InterfaceText></a>;
                   return <div className="searchTopic">
                             <div className="topicTitle">
                               <h1>
@@ -375,7 +375,7 @@ class SearchResultList extends Component {
                                 </div> : null}
                             {"numSources" in t ?
                                 <div className="topicSourcesSheets systemText">
-                                    <span className="int-en">{t["numSources"]}</span> {sources} ∙ <span className="int-en">{t["numSheets"]}</span> {sheets}
+                                    <InterfaceText>{t["numSources"]}</InterfaceText> {sources} ∙ <InterfaceText>{t["numSheets"]}</InterfaceText> {sheets}
                                 </div> : null}
                         </div>
               });
