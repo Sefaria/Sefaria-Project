@@ -16,7 +16,8 @@ import os
 import re
 import uuid
 
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from django.template.loader import render_to_string
 from django.shortcuts import render, redirect
 from django.http import Http404, QueryDict
@@ -189,6 +190,7 @@ def base_props(request):
             "profile_pic_url": profile.profile_pic_url,
             "is_history_enabled": profile.settings.get("reading_history", True),
             "translationLanguagePreference": request.translation_language_preference,
+            "versionPrefsByCorpus": request.version_preferences_by_corpus,
             "following": profile.followees.uids,
             "blocking": profile.blockees.uids,
             "calendars": get_todays_calendar_items(**_get_user_calendar_params(request)),
@@ -209,6 +211,7 @@ def base_props(request):
             "profile_pic_url": "",
             "is_history_enabled": True,
             "translationLanguagePreference": request.translation_language_preference,
+            "versionPrefsByCorpus": request.version_preferences_by_corpus,
             "following": [],
             "blocking": [],
             "calendars": get_todays_calendar_items(**_get_user_calendar_params(request)),
@@ -515,6 +518,8 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
             raise Http404
         if versionHe and not Version().load({"versionTitle": versionHe, "language": "he"}):
             raise Http404
+        versionEn, versionHe = override_version_with_preference(oref, request, versionEn, versionHe)
+
         kwargs = {
             "panelDisplayLanguage": request.GET.get("lang", request.contentLang),
             'extended notes': int(request.GET.get("notes", 0)),
@@ -568,7 +573,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
                     versionEn = request.GET.get("v{}".format(i)).replace("_", " ") if request.GET.get("v{}".format(i)) else None
                 else: # he
                     versionHe = request.GET.get("v{}".format(i)).replace("_", " ") if request.GET.get("v{}".format(i)) else None
-
+            versionEn, versionHe = override_version_with_preference(oref, request, versionEn, versionHe)
             filter   = request.GET.get("w{}".format(i)).replace("_", " ").split("+") if request.GET.get("w{}".format(i)) else None
             filter   = [] if filter == ["all"] else filter
             versionFilter = [request.GET.get("vside").replace("_", " ")] if request.GET.get("vside") else []
@@ -765,6 +770,36 @@ def get_search_params(get_dict, i=None):
         "sheetFilters": sheet_filters,
         "sheetFilterAggTypes": sheet_agg_types,
     }
+
+
+def get_version_preference_params(request):
+    raw_vpref = request.GET.get("versionPref", None)
+
+    if raw_vpref is None:
+        return None, None
+    assert raw_vpref.count("|") == 1
+    raw_vpref = raw_vpref.replace("_", " ")
+    vtitle_pref, vlang_pref = raw_vpref.split("|")
+    return vtitle_pref,  vlang_pref
+
+
+def get_version_preference_from_dict(oref, version_preferences_by_corpus):
+    corpus = oref.index.get_primary_corpus()
+    vpref_dict = version_preferences_by_corpus.get(corpus, None)
+    if vpref_dict is None:
+        return None, None
+    return vpref_dict['vtitle'], vpref_dict['lang']
+
+
+def override_version_with_preference(oref, request, versionEn, versionHe):
+    vtitlePref, vlangPref = get_version_preference_from_dict(oref, request.version_preferences_by_corpus)
+    if vtitlePref is not None and Version().load({"versionTitle": vtitlePref, "language": vlangPref, "title": oref.index.title}):
+        # vpref exists and the version exists for this text
+        if vlangPref == "en" and not versionEn:
+            versionEn = vtitlePref
+        elif vlangPref == "he" and not versionHe:
+            versionHe = vtitlePref
+    return versionEn, versionHe
 
 
 @ensure_csrf_cookie
@@ -1305,6 +1340,10 @@ def texts_api(request, tref):
         commentary = bool(int(request.GET.get("commentary", False)))
         pad        = bool(int(request.GET.get("pad", 1)))
         versionEn  = request.GET.get("ven", None)
+        firstAvailableRef = bool(int(request.GET.get("firstAvailableRef", False)))  # use first available ref, which may not be the same as oref
+        if firstAvailableRef:
+            temp_oref = oref.first_available_section_ref()
+            oref = temp_oref or oref  # don't overwrite oref if first available section ref fails
         if versionEn:
             versionEn = versionEn.replace("_", " ")
         versionHe  = request.GET.get("vhe", None)
@@ -1316,14 +1355,22 @@ def texts_api(request, tref):
         wrapNamedEntities = bool(int(request.GET.get("wrapNamedEntities", False)))
         stripItags = bool(int(request.GET.get("stripItags", False)))
         multiple = int(request.GET.get("multiple", 0))  # Either undefined, or a positive integer (indicating how many sections forward) or negative integer (indicating backward)
-        translationLanguagePreference = request.GET.get("transLangPref", None)
+        translationLanguagePreference = request.GET.get("transLangPref", None)  # as opposed to vlangPref, this refers to the actual lang of the text
+        try:
+            vtitlePref, vlangPref = get_version_preference_params(request)
+        except AssertionError:
+            return jsonResponse({"error": "version pref must contain a version title and version language separated by a pipe (|)"}, cb)
 
         def _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context, pad=pad,
-                      alts=alts, wrapLinks=wrapLinks, layer_name=layer_name, wrapNamedEntities=wrapNamedEntities, translationLanguagePreference=translationLanguagePreference):
+                      alts=alts, wrapLinks=wrapLinks, layer_name=layer_name, wrapNamedEntities=wrapNamedEntities):
             text_family_kwargs = dict(version=versionEn, lang="en", version2=versionHe, lang2="he",
                                       commentary=commentary, context=context, pad=pad, alts=alts,
                                       wrapLinks=wrapLinks, stripItags=stripItags, wrapNamedEntities=wrapNamedEntities,
                                       translationLanguagePreference=translationLanguagePreference)
+            vtitlePrefKey = "vtitlePreference"
+            if vlangPref == "he":
+                vtitlePrefKey += "2"  # 2 corresponds to lang2 which is constant (for some reason)
+            text_family_kwargs[vtitlePrefKey] = vtitlePref
             try:
                 text = TextFamily(oref, **text_family_kwargs).contents()
             except AttributeError as e:
@@ -3606,6 +3653,7 @@ def profile_sync_api(request):
 
 @catch_error_as_json
 @api_view(["DELETE"])
+@permission_classes([IsAuthenticated])
 def delete_user_account_api(request):
     # Deletes the user and emails sefaria staff for followup
     from sefaria.utils.user import delete_user_account

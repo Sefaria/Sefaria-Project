@@ -29,7 +29,7 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
     });
     const [summary, setSummary] = useState(sheet.summary);
     const getRefSavedHistory = Sefaria.makeCancelable(Sefaria.getRefSavedHistory("Sheet " + masterPanelSheetId));
-    const debouncedSummary = useDebounce(summary, 250);
+    const debouncedSummary = Sefaria._uid == sheet.owner ? useDebounce(summary, 250) : null;
     useEffect(() => {
         getRefSavedHistory.promise.then(data => {
             for (let hist of data) {
@@ -44,6 +44,7 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
     }, [masterPanelSheetId]);
 
     useEffect(() => {
+        if (debouncedSummary == null) {return}
         saveSummary();
     }, [debouncedSummary])
 

@@ -102,6 +102,7 @@ class TextRange extends Component {
       enVersion: this.props.currVersions.en || null,
       heVersion: this.props.currVersions.he || null,
       translationLanguagePreference: this.props.translationLanguagePreference,
+      versionPref: Sefaria.versionPreferences.getVersionPref(this.props.sref),
     };
     let data = Sefaria.getTextFromCache(this.props.sref, settings);
 
@@ -123,8 +124,16 @@ class TextRange extends Component {
       // Replace ReaderPanel contents with split refs if ref is spanning
       // Pass parameter to showBaseText to replaceHistory - normalization should't add a step to history
       // console.log("Re-rewriting spanning ref")
-      this.props.showBaseText(data.spanningRefs, true, this.props.version, this.props.versionLanguage);
+      this.props.showBaseText(data.spanningRefs, true, this.props.currVersions, this.props.versionLanguage);
       return;
+    }
+
+    // make sure currVersions matches versions returned, due to translationLanguagePreference and versionPreferences
+    if (this.props.setCurrVersions) {
+      this.props.setCurrVersions({
+        en: data.versionTitle,
+        he: data.heVersionTitle,
+      });
     }
 
     // If this is a ref to a super-section, rewrite it to first available section
@@ -183,6 +192,7 @@ class TextRange extends Component {
          enVersion: this.props.currVersions.en || null,
          heVersion: this.props.currVersions.he || null,
          translationLanguagePreference: this.props.translationLanguagePreference,
+         versionPref: Sefaria.versionPreferences.getVersionPref(data.next),
        }).then(ds => Array.isArray(ds) ? ds.map(d => this._prefetchLinksAndNotes(d)) : this._prefetchLinksAndNotes(ds));
      }
      if (data.prev) {
@@ -192,6 +202,7 @@ class TextRange extends Component {
          enVersion: this.props.currVersions.en || null,
          heVersion: this.props.currVersions.he || null,
          translationLanguagePreference: this.props.translationLanguagePreference,
+         versionPref: Sefaria.versionPreferences.getVersionPref(data.prev),
        }).then(ds => Array.isArray(ds) ? ds.map(d => this._prefetchLinksAndNotes(d)) : this._prefetchLinksAndNotes(ds));
      }
      if (data.indexTitle) {
@@ -281,6 +292,9 @@ class TextRange extends Component {
       heTitle          = "טעינה...";
       ref              = null;
     }
+    const formatEnAsPoetry = data && data.formatEnAsPoetry
+    const formatHeAsPoetry = data && data.formatHeAsPoetry
+
     const showNumberLabel =  data && data.categories &&
                               data.categories[0] !== "Liturgy" &&
                               data.categories[0] !== "Reference";
@@ -352,6 +366,8 @@ class TextRange extends Component {
             onFootnoteClick={this.onFootnoteClick}
             onNamedEntityClick={this.props.onNamedEntityClick}
             unsetTextHighlight={this.props.unsetTextHighlight}
+            formatEnAsPoetry={formatEnAsPoetry}
+            formatHeAsPoetry={formatHeAsPoetry}
           />
         </span>
       );
@@ -472,21 +488,27 @@ class TextSegment extends Component {
     }
   }
   handleClick(event) {
-    if ($(event.target).hasClass("refLink")) {
+    // grab refLink from target or parent (sometimes there is an <i> within refLink forcing us to look for the parent)
+    const refLink = $(event.target).hasClass("refLink") ? $(event.target) : ($(event.target.parentElement).hasClass("refLink") ? $(event.target.parentElement) : null);
+    const namedEntityLink = $(event.target).closest("a.namedEntityLink");
+    if (refLink) {
       //Click of citation
       event.preventDefault();
-      let ref = Sefaria.humanRef($(event.target).attr("data-ref"));
-      this.props.onCitationClick(ref, this.props.sref, true);
+      let ref = Sefaria.humanRef(refLink.attr("data-ref"));
+      const ven = refLink.attr("data-ven") ? refLink.attr("data-ven") : null;
+      const vhe = refLink.attr("data-vhe") ? refLink.attr("data-vhe") : null;
+      let currVersions = {"en": ven, "he": vhe};
+      this.props.onCitationClick(ref, this.props.sref, true, currVersions);
       event.stopPropagation();
       Sefaria.track.event("Reader", "Citation Link Click", ref);
-    } else if ($(event.target).hasClass("namedEntityLink")) {
+    } else if (namedEntityLink.length > 0) {
       //Click of named entity
       event.preventDefault();
       if (!this.props.onNamedEntityClick) { return; }
 
-      let topicSlug = $(event.target).attr("data-slug");
-      Sefaria.util.selectElementContents(event.target);
-      this.props.onNamedEntityClick(topicSlug, this.props.sref, event.target.innerText);
+      let topicSlug = namedEntityLink.attr("data-slug");
+      Sefaria.util.selectElementContents(namedEntityLink[0]);
+      this.props.onNamedEntityClick(topicSlug, this.props.sref, namedEntityLink[0].innerText);
       event.stopPropagation();
       Sefaria.track.event("Reader", "Named Entity Link Click", topicSlug);
     } else if ($(event.target).is("sup") || $(event.target).parents("sup").size()) {
@@ -541,6 +563,12 @@ class TextSegment extends Component {
     }
     return text;
   }
+
+  addPoetrySpans(text) {
+    const textArray = text.split("<br>").map(t => (`<span class='poetry'>${t}</span>`) ).join("<br>")
+    return(textArray)
+  }
+
   render() {
     let linkCountElement = null;
     let he = this.props.he || "";
@@ -552,6 +580,9 @@ class TextSegment extends Component {
     }
     he = this.addHighlights(he);
     en = this.addHighlights(en);
+
+    en = this.props.formatEnAsPoetry ? this.addPoetrySpans(en) : en
+    he = this.props.formatHeAsPoetry ? this.addPoetrySpans(he) : he
 
     const heOnly = !this.props.en;
     const enOnly = !this.props.he;

@@ -1360,7 +1360,7 @@ const PBSC2021LandingPage = () => (
             enText="By Zeev Pekar<br><br>Ivrit Toranit is a free spelling dictionary. It includes Hebrew from different eras,  as well as Western and Eastern Aramaic. The dictionary is designed to reduce the ‘mispellings’ wrongly detected by the modern Hebrew spell checkers when working with Torah literature."
             enImg="/static/img/pbsc-2021-landing-page/he_toranit.png"
             enImgAlt="he_Toranit screenshot"
-            heTitle="התורנית"
+            heTitle="עברית תורנית"
             heText='מאת זאב פקר<br><br>"עברית תורנית" היא מילון איות ללא תשלום הכולל עברית מתקופות שונות וכן ארמית מזרחית ומערבית. המילון נועד להפחית את "שגיאות הכתיב" שבודקי האיות, הפועלים על פי העברית המודרנית, מרבים למצוא ולהתריע עליהן בעת עבודה עם ספרות תורנית.'
             heImg="/static/img/pbsc-2021-landing-page/he_toranit.png"
             heImgAlt="he_Toranit screenshot"
@@ -1399,11 +1399,11 @@ const PBSC2021LandingPage = () => (
 
         <Feature
             enTitle="Stories of the Zohar"
-            enText="By Shir Yochanan<br><br>A digital resource of the stories of the sages that appear in the Zohar, allowing easy perusal of the stories. The site includes mapping of all the stories of the Zohar according to parshas and topics, as well as accompanying visuals and links to similar stories."
+            enText="By Yair Gardin<br><br>A digital resource of the stories of the sages that appear in the Zohar, allowing easy perusal of the stories. The site includes mapping of all the stories of the Zohar according to parshas and topics, as well as accompanying visuals and links to similar stories."
             enImg="/static/img/pbsc-2021-landing-page/zohar stories.png"
             enImgAlt="Daf Yomi Crossword"
             heTitle="סיפורי הזוהר"
-            heText='מאת שיר יוחנן<br><br>זהו משאב דיגיטלי לסיפורי החכמים שבזוהר, המאפשר קריאה מעמיקה בקלות. האתר כולל מיפוי של כל סיפורי הזוהר על פי פרשות ונושאים, וכן הדמיות המלוות את הסיפורים וקישורים לסיפורים דומים. '
+            heText='מאת יאיר גרדין<br><br>זהו משאב דיגיטלי לסיפורי החכמים שבזוהר, המאפשר קריאה מעמיקה בקלות. האתר כולל מיפוי של כל סיפורי הזוהר על פי פרשות ונושאים, וכן הדמיות המלוות את הסיפורים וקישורים לסיפורים דומים. '
             heImg="/static/img/pbsc-2021-landing-page/zohar stories.png"
             heImgAlt="תשבץ דף יומי"
             borderColor={palette.colors.orange}
