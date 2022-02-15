@@ -2812,9 +2812,13 @@ class Ref(object, metaclass=RefCacheType):
             address_class.parse_range_end(self, parts, base_wout_title)
         elif len(parts) == 2: # Parse range end portion, if it exists
             try:
+                second_part = Ref(parts[1])
+                assert second_part.book == self.book, "the two sides of the range have different books"
                 self.toSections = Ref(parts[1]).sections
             except InputError:
                 self._parse_range_end(re.split("[.:, ]+", parts[1]))
+            except AssertionError:
+                raise InputError("the two sides of the range have different books: '{}'.".format(self.tref))
 
 
     def _parse_range_end(self, range_parts):
