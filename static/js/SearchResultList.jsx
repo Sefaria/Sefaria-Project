@@ -146,15 +146,9 @@ class SearchResultList extends Component {
                             searchTopic["enDesc"] = d["description"]["en"];
                             searchTopic["heDesc"] = d["description"]["he"];
                         }
-                        else {
-                            const numSources = d.tabs.sources.refs.length;
-                            const numSheets = d.tabs.sheets.refs.length;
-                            const sources = numSources === 1 ? "1 source" : `${numSources} sources`;
-                            const sheets = numSheets === 1 ? "1 sheet" : `${numSheets} sheets`;
-                            const heSources = numSources === 1 ? `1 ${Strings._i18nInterfaceStrings["Source"]}` : `${numSources} ${Strings._i18nInterfaceStrings["Sources"]}`;
-                            const heSheets = numSheets === 1 ? `1 ${Strings._i18nInterfaceStrings["Sheet"]}` : `${numSources} ${Strings._i18nInterfaceStrings["Source Sheets"]}`;
-                            searchTopic["enDesc"] = `${sources} ∙ ${sheets}`;
-                            searchTopic["heDesc"] = `${heSources} ∙ ${heSheets}`;
+                        if (d.tabs?.sources) {
+                            searchTopic["numSources"] = d.tabs.sources.refs.length;
+                            searchTopic["numSheets"] = d.tabs.sheets.refs.length;
                         }
                         this.setState({topics: this.state.topics.concat([searchTopic])});
                     });
@@ -364,22 +358,25 @@ class SearchResultList extends Component {
           );
           if (this.state.topics.length > 0) {
               let topics = this.state.topics.map(t => {
-                  return <div className="readerTocTopics">
-                            <div className="topicTitle pageTitle">
+                  const sources = <a href={t["url"]+"?tabs=sources"}><InterfaceText>Sources</InterfaceText></a>;
+                  const sheets = <a href={t["url"]+"?tabs=sheets"}><InterfaceText>Source Sheets</InterfaceText></a>;
+                  return <div className="searchTopic">
+                            <div className="topicTitle">
                               <h1>
-                                <InterfaceText text={{en:t["title"], he:t["heTitle"]}}/>
+                                  <a href={t["url"]}><InterfaceText text={{en:t["title"], he:t["heTitle"]}}/></a>
                               </h1>
                             </div>
                             <div className="topicCategory sectionTitleText">
-                                 <a href={t["url"]}>
-                                  <span className="int-en">{t["topicCat"]}</span>
-                                  <span className="int-he">{t["heTopicCat"]}</span>
-                                 </a>
+                                <InterfaceText text={{en:t["topicCat"], he:t["heTopicCat"]}}/>
                             </div>
-                            <div className="topicDescSearchResult systemText">
-                                  <span className="int-en">{t["enDesc"]}</span>
-                                  <span className="int-he">{t["heDesc"]}</span>
-                            </div>
+                            {"enDesc" in t ?
+                                <div className="topicDescSearchResult systemText">
+                                   <InterfaceText text={{en:t["enDesc"], he:t["heDesc"]}}/>
+                                </div> : null}
+                            {"numSources" in t ?
+                                <div className="topicSourcesSheets systemText">
+                                    <span className="int-en">{t["numSources"]}</span> {sources} ∙ <span className="int-en">{t["numSheets"]}</span> {sheets}
+                                </div> : null}
                         </div>
               });
               if (results.length > 0) {

@@ -1987,9 +1987,6 @@ div.interfaceLinks-row a {
   margin: 10px 0 40px 0;
   text-align: center;
 }
-.readerTocTopics .topicDescSearchResult {
-  margin: 10px 0 30px 0;
-}
 .readerTocTopics .topicTitle .int-he {
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 }
@@ -3479,12 +3476,27 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   max-width: 665px;
 }
 
- .searchContent .searchResultList #searchTopics {
+.searchResultList .topicTitle .int-en, .searchResultList .topicTitle .int-he {
+  font-size: 24px;
+}
+
+.searchContent .searchResultList #searchTopics {
   border-top: 1px solid #EDEDEC;
   border-bottom: 1px solid #EDEDEC;
   padding-top: 15px;
   padding-bottom: 5px;
   margin-bottom: 25px;
+  margin-top: 15px;
+}
+.searchResultList .searchTopic {
+  margin-bottom: 40px;
+}
+.searchResultList .searchTopic .topicDescSearchResult {
+  margin-top: 10px;
+}
+.searchResultList .searchTopic .topicSourcesSheets {
+  color: #666666;
+  margin-top: 10px;
 }
 
 @media (min-width: 701px) {
