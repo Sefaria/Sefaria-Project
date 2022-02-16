@@ -778,7 +778,7 @@ class JaggedArrayNodeSection extends Component {
           heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
         }
       let ref  = (this.props.refPath + ":" + section).replace(":", " ") + this.refPathTerminal(contentCounts[i]);
-      let currentPlace = ref == this.props?.currentlyVisibleSectionRef || ref == this.props?.currentlyVisibleRef; //the second clause is for depth 1 texts
+      let currentPlace = ref == this.props?.currentlyVisibleSectionRef || ref == this.props?.currentlyVisibleRef || Sefaria.refContains(this.props?.currentlyVisibleSectionRef, ref); //the second clause is for depth 1 texts
       const linkClasses = classNames({"sectionLink": 1, "current": currentPlace}); 
       let link = (
         <a className={linkClasses} href={"/" + Sefaria.normRef(ref)} data-ref={ref} key={i}>
@@ -827,7 +827,7 @@ class ArrayMapNode extends Component {
           section = i+1;
           heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
         }
-        let currentPlace = ref == this.props?.currentlyVisibleSectionRef;
+        let currentPlace = ref == this.props?.currentlyVisibleSectionRef  || ref == this.props?.currentlyVisibleRef || Sefaria.refContains(ref, this.props?.currentlyVisibleRef);
         const linkClasses = classNames({"sectionLink": 1, "current": currentPlace}); 
         return (
           <a className={linkClasses} href={"/" + Sefaria.normRef(ref)} data-ref={ref} key={i}>
