@@ -2986,6 +2986,9 @@ a.navBlockTitle:hover {
   margin-bottom: 10px;
   cursor: pointer;
 }
+.textTableOfContents .torahNavParshiot .schema-node-title {
+  font-size: 24px;
+}
 .textTableOfContents .schema-node-toc {
   display: block;
 }
