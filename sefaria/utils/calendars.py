@@ -323,7 +323,6 @@ def get_parasha(datetime_obj, diaspora=True, parasha=None):
         query["parasha"] = re.compile('(?:(?<=^)|(?<=-)){}(?=-|$)'.format(parasha))
     p = db.parshiot.find(query, limit=1).sort([("date", 1)])
     p = next(p)
-
     return p
 
 
@@ -356,20 +355,20 @@ def parashat_hashavua_and_haftara(datetime_obj, diaspora=True, custom=None, para
 
 
 @graceful_exception(logger=logger, return_value=[])
-def hok_leyisrael(datetime_obj, diaspora=True, parasha=None):
+def hok_leyisrael(datetime_obj, diaspora=True):
 
-    def get_hok_parasha(datetime_obj, diaspora=diaspora, parasha=parasha):
-        parasha = get_parasha(datetime_obj, diaspora=diaspora, parasha=parasha)['parasha']
+    def get_hok_parasha(datetime_obj, diaspora=diaspora):
+        parasha = get_parasha(datetime_obj, diaspora=diaspora)['parasha']
         parasha = parasha.replace('Lech-Lecha', 'Lech Lecha')
         parasha = parasha.split('-')[0]
         if parasha == 'Shmini Atzeret':
             parasha = "V'Zot HaBerachah"
         parasha_term = Term().load({'category': 'Torah Portions', 'titles': {'$elemMatch': {'text': parasha}}})
         if not parasha_term:
-            parasha_term = get_hok_parasha(datetime_obj + datetime.timedelta(7), diaspora=diaspora, parasha=parasha)
+            parasha_term = get_hok_parasha(datetime_obj + datetime.timedelta(7), diaspora=diaspora)
         return parasha_term
 
-    parasha_term = get_hok_parasha(datetime_obj, diaspora=diaspora, parasha=parasha)
+    parasha_term = get_hok_parasha(datetime_obj, diaspora=diaspora)
     parasha_he = parasha_term.get_primary_title('he')
     return [{
         "title": {"en": "Chok LeYisrael", "he": 'חק לישראל'},
