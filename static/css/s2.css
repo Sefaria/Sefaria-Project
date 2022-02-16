@@ -1152,6 +1152,15 @@ div.interfaceLinks-row a {
   border: 1px solid #CCC;
   background-color: white;
 }
+#interruptingMessageContentBox.hasColorLine{
+  border-top: none;
+}
+.colorLine {
+  width: 100%;
+  height: 4px;
+  z-index: 101;
+  background: linear-gradient(90deg, var(--tanakh-teal) 0% 10%, var(--mishnah-blue) 10% 20%, var(--talmud-gold) 20% 30%, var(--midrash-green) 30% 40%, var(--halakhah-red) 40% 50%, var(--kabbalah-purple) 50% 60%, var(--liturgy-rose) 60% 70%, var(--philosophy-purple) 70% 80%, var(--taanitic-green) 80% 90%, var(--chasidut-green) 90% 100%)
+}
 #interruptingMessageClose.sefariaModalClose {
   color: white;
 }

@@ -1895,7 +1895,8 @@ class InterruptingMessage extends Component {
       return  <div id="interruptingMessageBox" className={this.state.animationStarted ? "" : "hidden"}>
           <div id="interruptingMessageOverlay"></div>
           <div id="interruptingMessage">
-            <div id="interruptingMessageContentBox">
+            <div className="colorLine"></div>
+            <div id="interruptingMessageContentBox" className="hasColorLine">
               <div id="interruptingMessageClose" onClick={this.close}>×</div>
               <div id="interruptingMessageContent" dangerouslySetInnerHTML={ {__html: this.props.messageHTML} }></div>
             </div>
