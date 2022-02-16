@@ -7,6 +7,7 @@ Uses MongoDB collections: dafyomi, parshiot
 import datetime
 import p929
 import re
+import urllib
 from django.utils import timezone
 
 import sefaria.model as model
@@ -369,11 +370,11 @@ def hok_leyisrael(datetime_obj, diaspora=True, parasha=None):
         return parasha_term
 
     parasha_term = get_hok_parasha(datetime_obj, diaspora=diaspora, parasha=parasha)
-    parasha_he = [title['text'] for title in parasha_term.titles if title['lang']=='he' and 'primary' in title][0]
+    parasha_he = parasha_term.get_primary_title('he')
     return [{
         "title": {"en": "Chok LeYisrael", "he": 'חק לישראל'},
         "displayValue": {"en": parasha_term.name, "he": parasha_he},
-        "url": f'collections/חק-לישראל?tag={parasha_he.replace(" ", "%20")}',
+        "url": f'collections/חק-לישראל?tag={urllib.parse.quote(parasha_he)}',
         "order": 12,
         "category": 'Tanakh'
     }]
