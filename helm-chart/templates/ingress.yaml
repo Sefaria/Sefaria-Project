@@ -1,11 +1,13 @@
-{{ if eq .Values.deployEnv "prod" }}
----
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: ingress-{{ .Values.deployEnv }}
   annotations:
+    {{- if eq .Values.sandbox "true" }}
+    kubernetes.io/ingress.class: nginx-ingress
+    {{- else }}
     kubernetes.io/ingress.global-static-ip-name: "sefaria-{{ .Values.deployEnv }}"
+    {{- end }}
 spec:
   tls:
     - secretName: {{ template "secrets.originTls" . }}
@@ -20,9 +22,8 @@ spec:
               serviceName: {{ .serviceName | default "nginx" }}-{{ .Values.deployEnv }}
               servicePort: {{ .port | default "80" }}
     {{- end }}
-
 ---
-{{- if and .Values.ingress.secrets.originTls.cert.data .Values.ingress.secrets.originTls.key.data }}
+{{- if and .Values.ingress.secrets.originTls.cert.data .Values.ingress.secrets.originTls.key.data ( or ( eq .Values.deployEnv "prod" ) ( eq .Values.deployEnv "democracy" ) ) }}
 apiVersion: v1
 kind: Secret
 metadata:
@@ -33,7 +34,7 @@ data:
   tls.key: {{ .Values.ingress.secrets.originTls.key.data | b64enc }}
 {{- end }}
 ---
-{{- if and .Values.ingress.secrets.originIlTls.cert.data .Values.ingress.secrets.originIlTls.key.data }}
+{{- if and .Values.ingress.secrets.originIlTls.cert.data .Values.ingress.secrets.originIlTls.key.data ( eq .Values.deployEnv "prod" ) }}
 apiVersion: v1
 kind: Secret
 metadata:
@@ -43,56 +44,4 @@ data:
   tls.crt: {{ .Values.ingress.secrets.originIlTls.cert.data | b64enc }}
   tls.key: {{ .Values.ingress.secrets.originIlTls.key.data | b64enc }}
 {{- end }}
-...
-{{- end }}
 
-{{- if eq .Values.deployEnv "democracy" }}
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: ingress-{{ .Values.deployEnv }}
-  annotations:
-    kubernetes.io/ingress.global-static-ip-name: "sefaria-{{ .Values.deployEnv }}"
-spec:
-  tls:
-    - secretName: {{ template "secrets.originTls" . }}
-  rules:
-    - host: democracy.sefaria.org
-      http:
-        paths:
-          - path: /*
-            backend:
-              serviceName: nginx-{{ .Values.deployEnv }}
-              servicePort: 80
----
-{{- if and .Values.ingress.secrets.originTls.cert.data .Values.ingress.secrets.originTls.key.data }}
-apiVersion: v1
-kind: Secret
-metadata:
-  name: origin-tls-{{ .Values.deployEnv }}
-type: kubernetes.io/tls
-data:
-  tls.crt: {{ .Values.ingress.secrets.originTls.cert.data | b64enc }}
-  tls.key: {{ .Values.ingress.secrets.originTls.key.data | b64enc }}
-{{- end }}
-{{- end }}
----
-{{ if eq .Values.sandbox "true" }}
-apiVersion: extensions/v1beta1
-kind: Ingress
-metadata:
-  name: {{ .Values.deployEnv }} 
-  annotations:
-    kubernetes.io/ingress.class: nginx-ingress
-spec:
-  tls:
-    - secretName: cauldron-wildcard-letsencrypt       #wildcard cert managed via infrastructure
-  rules:
-  - host: "{{ .Values.deployEnv }}.cauldron.sefaria.org"
-    http:
-      paths:
-        - backend:
-            serviceName: nginx-{{ .Values.deployEnv }}
-            servicePort: 80
-{{ end }}

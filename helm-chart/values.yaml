@@ -110,20 +110,14 @@ varnish:
 
 ingress:
   hosts: # You can set path: serviceName: and port: for each host. By default they are set to '/*', 'nginx', '80' respectively for each. Do note that changing this means you'll have to change the nginx service as well.
-    - host: "{{ .Values.deployEnv }}.sefaria.org"
+    - host: "{{ .Values.deployEnv }}.cauldron.sefaria.org"
       path: /*
       serviceName: nginx
       port: 80
-    - host: "{{ .Values.deployEnv }}.sefaria.org.il"
-    - host: sefaria.org
-    - host: sefaria.org.il
-    - host: www.sefaria.org
-    - host: www.sefaria.org.il
-    - host: rollout.sefaria.org
   secrets:
     # This TLS is referenced for Prod and Democracy deployments. Use the ref: or data: fields for either deployments.
     originTls: 
-      ref: # Reference to an existing secret in the cluster 
+      ref: # Reference to an existing secret in the cluster "cauldron-wildcard-letsencrypt" is for sandboxes  #wildcard cert managed via infrastructure
       cert:
         data: # for local testing purposes or CI pipeline use input a value 
       key: 
