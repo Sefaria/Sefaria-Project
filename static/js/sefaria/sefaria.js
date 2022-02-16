@@ -382,6 +382,7 @@ Sefaria = extend(Sefaria, {
       translationLanguagePreference: settings.translationLanguagePreference || null,
       versionPref: settings.versionPref || null,
       firstAvailableRef: settings.firstAvailableRef || 1,
+      fallbackOnDefaultVersion: settings.fallbackOnDefaultVersion || 1,
     };
     return settings;
   },
@@ -612,11 +613,17 @@ Sefaria = extend(Sefaria, {
       stripItags: settings.stripItags,
       transLangPref: settings.translationLanguagePreference,
       firstAvailableRef: settings.firstAvailableRef,
+      fallbackOnDefaultVersion: settings.fallbackOnDefaultVersion,
     });
     let url = "/api/texts/" + Sefaria.normRef(ref);
     if (settings.enVersion) { url += "&ven=" + encodeURIComponent(settings.enVersion.replace(/ /g,"_")); }
     if (settings.heVersion) { url += "&vhe=" + encodeURIComponent(settings.heVersion.replace(/ /g,"_")); }
-    if (settings.versionPref) { url += Sefaria._getVersionPrefUrlParam(settings.versionPref); }
+    if (settings.versionPref) {
+        const versionPrefKey = `${settings.versionPref.lang}Version`;
+        if (!settings[versionPrefKey]) {
+            settings[versionPrefKey] = settings.versionPref.vtitle;
+        }
+    }
     url += "&" + params;
     return url.replace("&","?"); // make sure first param has a '?'
   },

@@ -128,13 +128,7 @@ class TextRange extends Component {
       return;
     }
 
-    // make sure currVersions matches versions returned, due to translationLanguagePreference and versionPreferences
-    if (this.props.setCurrVersions) {
-      this.props.setCurrVersions({
-        en: data.versionTitle,
-        he: data.heVersionTitle,
-      });
-    }
+    this._updateCurrVersions(data.versionTitle, data.heVersionTitle);
 
     // If this is a ref to a super-section, rewrite it to first available section
     if (this.props.basetext && data.textDepth - data.sections.length > 1 && data.firstAvailableSectionRef) {
@@ -149,6 +143,20 @@ class TextRange extends Component {
         this.placeSegmentNumbers();
         this.props.onTextLoad && this.props.onTextLoad(data.ref); // Don't call until the text is actually rendered
       }.bind(this));
+    }
+  }
+  _updateCurrVersions(enVTitle, heVTitle) {
+    // make sure currVersions matches versions returned, due to translationLanguagePreference and versionPreferences
+    if (this.props.setCurrVersions) {
+      // vtitles can be null when merged. dont overwrite in this case
+      const newVersions = {
+        en: enVTitle || this.props.currVersions.en,
+        he: heVTitle || this.props.currVersions.he,
+      };
+      if (!Sefaria.util.object_equals(this.props.currVersions, newVersions)) {
+        console.log("New Version not equal", newVersions, this.props.currVersions)
+        this.props.setCurrVersions(newVersions);
+      }
     }
   }
   _prefetchLinksAndNotes(data) {
