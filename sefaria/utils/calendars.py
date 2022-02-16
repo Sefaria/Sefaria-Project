@@ -187,7 +187,7 @@ def tikkunei_yomi(datetime_obj):
         "displayValue": {"en": display_en, "he": display_he},
         "url": rf.url(),
         "ref": rf.normal(),
-        "order": 12,
+        "order": 13,
         "category": rf.index.get_primary_category()
     })
     return tikkunei_items
