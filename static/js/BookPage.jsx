@@ -420,7 +420,7 @@ class TextTableOfContents extends Component {
               <div className="torahNavParshiot">
                 <SchemaNode
                   schema={alts["Parasha"]}
-                  addressTypes={this.state.indexDetails.schema.addressTypes}
+                  addressTypes={alts["Parasha"]["nodes"][0]["addressTypes"]}
                   refPath={this.props.title}
                   topLevel={true}
                   topLevelHeader={"Torah Portions"}

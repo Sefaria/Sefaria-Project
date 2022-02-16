@@ -2937,6 +2937,18 @@ a.navBlockTitle:hover {
   padding: 0 6px;
   box-sizing: border-box;
 }
+.textTableOfContents .torahNavParshiot .sectionLink {
+  display: initial;
+  background-color: initial;
+  font-size: 14px;
+  margin: 0;
+  padding: 0 4px;
+  line-height: 30px;
+  color: var(--medium-grey);
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  
+}
 .connectionsPanel .textTableOfContents .sectionLink {
   background-color: #ffffff;
   color: #000000;
@@ -2988,6 +3000,7 @@ a.navBlockTitle:hover {
 }
 .textTableOfContents .torahNavParshiot .schema-node-title {
   font-size: 24px;
+  margin-bottom: 0;
 }
 .textTableOfContents .schema-node-toc {
   display: block;
@@ -2997,7 +3010,6 @@ a.navBlockTitle:hover {
   color: var(--sefaria-blue);
   font-weight: bold;
 }
-
 .textTableOfContents .schema-node-toc:not(.linked)>.schema-node-title:after {
   content: "\f105";
   display: inline-block;
@@ -3030,8 +3042,10 @@ a.navBlockTitle:hover {
   display: block;
   width: 100%;
 }
-.textTableOfContents .schema-node-contents > .tocLevel > .schema-node-toc:not(.janode),
-.torahNavParshiot .tocLevel .schema-node-toc{
+.textTableOfContents .torahNavParshiot .schema-node-contents {
+  margin-bottom: 0;
+}
+.textTableOfContents .schema-node-contents > .tocLevel > .schema-node-toc:not(.janode){
   margin-inline-start: 15px;
 }
 .textTableOfContents .schema-node-contents.closed {
@@ -3042,6 +3056,14 @@ a.navBlockTitle:hover {
 }
 .textTableOfContents .tocLevel {
   display: block;
+}
+.textTableOfContents .torahNavParshiot .tocLevel {
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: space-between;
+}
+.textTableOfContents .torahNavParshiot .tocLevel .schema-node-toc {
+  flex: 1 1 50%;
 }
 .textTableOfContents > .tocLevel > .schema-node-toc {
   margin: 10px 0;
