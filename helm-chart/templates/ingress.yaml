@@ -11,7 +11,9 @@ metadata:
 spec:
   tls:
     - secretName: {{ template "secrets.originTls" . }}
+    {{- if eq .Values.deployEnv "prod" }}
     - secretName: {{ template "secrets.originIlTls" . }}
+    {{- end }}
   rules:
     {{- range .Values.ingress.hosts }}
     - host: {{ tpl .host . | quote }}
