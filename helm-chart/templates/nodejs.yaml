@@ -75,7 +75,7 @@ spec:
                 values:
                 - mongo
             topologyKey: kubernetes.io.hostname
-        {{if eq .Values.sandbox "true"}}
+        {{- if eq .Values.sandbox "true" }}
         nodeAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
             - weight: 100
@@ -93,7 +93,7 @@ spec:
                     operator: In
                     values:
                       - "true"
-        {{end}}
+        {{- end }}
       containers:
       - name: node
         image: "{{ .Values.nodejs.containerImage.imageRegistry }}:{{ .Values.nodejs.containerImage.tag }}"
@@ -118,5 +118,4 @@ spec:
           limits:
             memory: "{{ .Values.nodejs.resources.limit.memory }}"
             cpu: "{{ .Values.nodejs.resources.limit.cpu }}"
-      ...
   

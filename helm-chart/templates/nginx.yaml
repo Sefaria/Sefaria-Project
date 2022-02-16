@@ -57,7 +57,7 @@ metadata:
     sandbox-name: "{{ $.Values.deployEnv }}"
     {{end}}
 spec:
-  type: {{ if eq .Values.sandbox "true" }}ClusterIP{{ else }}NodePort{{end}}
+  type: {{ if eq $.Values.sandbox "true" }}ClusterIP{{ else }}NodePort{{end}}
   ports:
   - name: http
     port: 80

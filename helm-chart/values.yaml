@@ -117,18 +117,18 @@ ingress:
   secrets:
     # This TLS is referenced for Prod and Democracy deployments. Use the ref: or data: fields for either deployments.
     originTls: 
+    # If you're using a refenrece to an existing secret then the data: section should be commented out and vice-versa.
       ref: # Reference to an existing secret in the cluster "cauldron-wildcard-letsencrypt" is for sandboxes  #wildcard cert managed via infrastructure
-      cert:
-        data: # for local testing purposes or CI pipeline use input a value 
-      key: 
-        data: # for local testing purposes or CI pipeline use input a value 
+      data: # for local testing purposes or CI pipeline use input a value 
+        cert:
+        key: 
     # This TLS is referenced only for Prod deployments.
     originIlTls: 
+    # If you're using a refenrece to an existing secret then the data: section should be commented out and vice-versa.
       ref: # Reference to an existing secret in the cluster 
-      cert:
-        data: # for local testing purposes or CI pipeline use input a value 
-      key: 
-        data: # for local testing purposes or CI pipeline use input a value 
+      data: # for local testing purposes or CI pipeline use input a value 
+        cert:
+        key: 
 
 nginx:
   containerImage: 
@@ -157,7 +157,8 @@ monitor:
       cpu: "100m" 
 
 secrets:
-  localSettings: 
+  localSettings:
+  # If you're using a refenrece to an existing secret then the data: section should be commented out and vice-versa. 
     ref: 
     # Add the value of these variables in the data: field for local use only. 
     # Also, it is understood that if you're adding one value you're adding variable values 
@@ -200,14 +201,15 @@ secrets:
     SIMPLE_JWT_SIGNING_KEY:
     MOBILE_APP_KEY:
   backupManager: 
+  # If you're using a refenrece to an existing secret then the data: section should be commented out and vice-versa.
     ref:
-    key:
-      data: "test"
-    serviceAccount:
-      data: "test"
+    data: 
+      key:
+      serviceAccount:
   slackWebhook: # This is used in mongobackup & reindex-elasticsearch cron jobs.
+  # If you're using a refenrece to an existing secret then the data: section should be commented out and vice-versa.
     ref: 
-    data: "test"
+    data: 
 
 localSettings:
   DEBUG: False

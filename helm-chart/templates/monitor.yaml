@@ -84,7 +84,6 @@ spec:
                     values:
                       - "true"
         {{- end }}
-
       containers:
       - name: monitor
         image: "{{ .Values.monitor.containerImage.imageRegistry }}:{{ .Values.monitor.containerImage.tag }}"

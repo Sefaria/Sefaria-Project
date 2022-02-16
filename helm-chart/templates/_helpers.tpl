@@ -14,7 +14,7 @@ Create the name of the local-settings secret
 
 {{- define "secrets.localSettings" -}} 
 {{- if .Values.secrets.localSettings.ref }}
-{{ .Values.secrets.localSettings.ref }}
+{{- .Values.secrets.localSettings.ref }}
 {{- else -}}
 local-settings-secrets-{{ .Values.deployEnv }}
 {{- end }}
@@ -46,7 +46,7 @@ logging-secret-{{ .Values.deployEnv }}
 
 {{- define "secrets.varnish" }} 
 {{- if .Values.varnish.secrets.varnish.ref -}}
-{{ .Values.varnish.secrets.varnish.ref }}
+{{- .Values.varnish.secrets.varnish.ref }}
 {{- else -}}
 varnish-secret-{{ .Values.deployEnv }}
 {{- end }}
