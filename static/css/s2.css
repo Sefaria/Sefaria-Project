@@ -2937,7 +2937,8 @@ a.navBlockTitle:hover {
   padding: 0 6px;
   box-sizing: border-box;
 }
-.textTableOfContents .torahNavParshiot .sectionLink {
+.textTableOfContents .torahNavParshiot .sectionLink,
+.connectionsPanel .textTableOfContents .torahNavParshiot .sectionLink{
   display: initial;
   background-color: initial;
   font-size: 14px;
@@ -2947,7 +2948,6 @@ a.navBlockTitle:hover {
   color: var(--medium-grey);
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
-  
 }
 .connectionsPanel .textTableOfContents .sectionLink {
   background-color: #ffffff;
