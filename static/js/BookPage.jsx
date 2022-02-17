@@ -388,6 +388,7 @@ class TextTableOfContents extends Component {
               b.name == defaultStruct ? 1 : 0;
     }.bind(this));
     const showToggle = !(isDictionary || isTorah) && structTabOptions.length > 1;
+    const toggleNames = showToggle ? structTabOptions.map(x => x.text) : [];
     const toggle = (showToggle ?
                   <TabbedToggleSet
                     tabOptions={structTabOptions}
@@ -410,6 +411,7 @@ class TextTableOfContents extends Component {
             <>
               <SchemaNode
                 schema={this.state.indexDetails.schema}
+                topToggleTitles={toggleNames}
                 addressTypes={this.state.indexDetails.schema.addressTypes}
                 refPath={this.props.title}
                 topLevel={true}
@@ -434,6 +436,7 @@ class TextTableOfContents extends Component {
         } else {
           content = <SchemaNode
                       schema={this.state.indexDetails.schema}
+                      topToggleTitles={toggleNames}
                       addressTypes={this.state.indexDetails.schema.addressTypes}
                       refPath={this.props.title}
                       topLevel={true}
@@ -543,6 +546,7 @@ class SchemaNode extends Component {
         return (
           <JaggedArrayNode
             schema={this.props.schema}
+            topToggleTitles={this.props.topToggleTitles}
             refPath={this.props.refPath}
             topLevel={this.props.topLevel}
             topLevelHeader={this.props.topLevelHeader}
@@ -630,6 +634,7 @@ class SchemaNode extends Component {
               <div className="schema-node-contents">
                 <JaggedArrayNode
                   schema={node}
+                  topToggleTitles={this.props.topToggleTitles}
                   contentLang={this.props.contentLang}
                   refPath={this.props.refPath + (node.default ? "" : ", " + node.title)}
                   currentlyVisibleRef={this.props.currentlyVisibleRef}
@@ -678,11 +683,12 @@ class JaggedArrayNode extends Component {
                 currentlyVisibleSectionRef={this.props.currentlyVisibleSectionRef}
               />);
     }
-    let topLevelHeader = this.props.topLevel && (this.props.schema?.depth <= 2 || this.props.topLevelHeader) ? (
+    const specialHeaderText = this.props.topLevelHeader || this.props.schema?.sectionNames[0] || "Chapters";
+    let topLevelHeader = !this.props.topToggleTitles.includes(specialHeaderText) && (this.props.topLevel && (this.props.schema?.depth <= 2 || this.props.topLevelHeader)) ? (
         <div className="specialNavSectionHeader">
           <ContentText text={{
-            en: this.props.topLevelHeader || this.props.schema?.sectionNames[0] || "Chapters",
-            he: Sefaria.hebrewTranslation(this.props.topLevelHeader || this.props.schema?.sectionNames[0] || "Chapters")
+            en: specialHeaderText,
+            he: Sefaria.hebrewTranslation(specialHeaderText)
           }}/>
         </div>
     ) : null;
