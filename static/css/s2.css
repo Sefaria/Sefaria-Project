@@ -252,7 +252,7 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
 .smallText .int-en,
 .smallText .int-he.enInHe {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: normal;
   color: #999;
 }
@@ -303,7 +303,7 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
 .smallText .int-he,
 .smallText .int-en.heInEn {
   font-family: "Heebo", sans-serif;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: normal;
   color: #999;
 }
@@ -1868,20 +1868,32 @@ div.interfaceLinks-row a {
   margin-bottom: 40px;
 }
 .topicPanel .readings .parasha-date {
+  font-style: italic;
+}
+.topicPanel .readings .parasha-date > span:first-child::after {
+  content: '•';
+  color: #999;
+  font-size: 15px;
+  margin: 0 5px;
 }
 .topicPanel .readings .sectionTitleText {
   margin-top: 15px;
 }
 .topicPanel .readings .sectionTitleText .int-en,
 .topicPanel .readings .sectionTitleText .int-he {
-  font-size: 13px;
+  font-size: 16px;
+  line-height: 18.75px;
+  text-transform: initial;
+}
+.topicPanel .readings .parasha .navSidebarLink {
+  margin-bottom: 0;
+}
+.topicPanel .readings .parasha .aliyot {
+  margin-inline-start: 25px;
 }
 .topicPanel .readings .haftarot {
   display: flex;
   flex-direction: column;
-}
-.topicPanel .readings .sectionTitleText:first-child {
-  margin-top: 20px;
 }
 .topicPanel .mainColumn {
   padding: 0 40px;
@@ -7960,11 +7972,6 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   display: inline-block;
   min-height: 50px;
   line-height: 50px;
-}
-.topicPanel .smallText .separator {
-  color: #999;
-  font-size: 20px;
-  margin: 0 3px;
 }
 .topicFilterBox {
   display: flex;

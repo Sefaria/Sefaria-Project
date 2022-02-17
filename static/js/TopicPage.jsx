@@ -671,7 +671,6 @@ const ReadingsComponent = ({ parashaData, tref }) => (
     </h2>
     <span className="smallText parasha-date">
       <InterfaceText text={{en:Sefaria.util.localeDate(parashaData.date), he:Sefaria.util.localeDate(parashaData.date)}} />
-      <span className="separator">·</span>
       <InterfaceText text={parashaData.he_date} />
     </span>
     <div className="parasha">
