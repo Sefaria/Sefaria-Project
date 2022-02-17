@@ -106,7 +106,11 @@ def nationbuilder_get_all(endpoint_func, args=[]):
             raise Exception("Error when attempting to connect to and process " + next_endpoint)
         
     session.close()
-    
+
+def update_user_flags(profile, flag, value): 
+    # updates our database user, not nb
+    profile.update({flag: value})
+    profile.save()
 
 def get_nation_builder_connection():
     access_token_url = "http://%s.nationbuilder.com/oauth/token" % sls.NATIONBUILDER_SLUG
@@ -121,7 +125,6 @@ def get_nation_builder_connection():
     )
     token = sls.NATIONBUILDER_TOKEN
     session = service.get_session(token)
-
     return session
 
 def send_email(subject, message_html, from_email, to_email):
