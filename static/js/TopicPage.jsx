@@ -671,7 +671,7 @@ const ReadingsComponent = ({ parashaData, tref }) => (
     </h2>
     <span className="smallText parasha-date">
       <InterfaceText text={{en:Sefaria.util.localeDate(parashaData.date), he:Sefaria.util.localeDate(parashaData.date)}} />
-      <InterfaceText text={parashaData.he_date} />
+      <InterfaceText text={{en:Sefaria.util.hebrewCalendarDateStr(parashaData.date), he:Sefaria.util.hebrewCalendarDateStr(parashaData.date)}} />
     </span>
     <div className="parasha">
         <div className="sectionTitleText"><InterfaceText text={{en:"Torah", he:"תורה"}} /></div>
