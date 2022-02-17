@@ -21,7 +21,7 @@ previousServicesCount: "3"
 web:
   containerImage: 
     imageRegistry: gcr.io/production-deployment/sefaria-web # Full path of the image registry imclusive of the image name
-    tag: # Commit id of the repo for which the image build has been triggered.
+    tag: latest # Commit id of the repo for which the image build has been triggered.
   replicaCount: 1
   resources:
     web:
@@ -42,14 +42,14 @@ web:
         cpu: "100m"
   secrets:
     googleClient:
-      data: # for local testing purposes or CI pipeline use input a value
+      # data: # for local testing purposes or CI pipeline use input a value
       ref: # Reference to an existing secret in the cluster
     logging:
       ref: # Reference to an existing secret in the cluster
-      data: # for local testing purposes or CI pipeline use input a value
+      # data: # for local testing purposes or CI pipeline use input a value
     schoolLookup:
       ref: # Reference to an existing secret in the cluster
-      data: # for local testing purposes or CI pipeline use input a value
+      # data: # for local testing purposes or CI pipeline use input a value
 
 redis:
   containerImage:
@@ -106,7 +106,7 @@ varnish:
   secrets:
     varnish:
       ref: # Reference to an existing secret in the cluster
-      data: # for local testing purposes or CI pipeline use input a value 
+      # data: # for local testing purposes or CI pipeline use input a value 
 
 ingress:
   hosts: # You can set path: serviceName: and port: for each host. By default they are set to '/*', 'nginx', '80' respectively for each. Do note that changing this means you'll have to change the nginx service as well.
@@ -119,16 +119,16 @@ ingress:
     originTls: 
     # If you're using a refenrece to an existing secret then the data: section should be commented out and vice-versa.
       ref: # Reference to an existing secret in the cluster "cauldron-wildcard-letsencrypt" is for sandboxes  #wildcard cert managed via infrastructure
-      data: # for local testing purposes or CI pipeline use input a value 
-        cert:
-        key: 
+      # data: # for local testing purposes or CI pipeline use input a value 
+      #   cert:
+      #   key: 
     # This TLS is referenced only for Prod deployments.
     originIlTls: 
     # If you're using a refenrece to an existing secret then the data: section should be commented out and vice-versa.
       ref: # Reference to an existing secret in the cluster 
-      data: # for local testing purposes or CI pipeline use input a value 
-        cert:
-        key: 
+      # data: # for local testing purposes or CI pipeline use input a value 
+      #   cert:
+      #   key: 
 
 nginx:
   containerImage: 
@@ -146,7 +146,7 @@ nginx:
 monitor:
   containerImage: 
     imageRegistry: gcr.io/production-deployment/sefaria-web # Full path of the image registry imclusive of the image name
-    tag: # Commit id of the repo for which the image build has been triggered.
+    tag: latest # Commit id of the repo for which the image build has been triggered.
   replicaCount: 1
   resources:
     request:
@@ -203,13 +203,13 @@ secrets:
   backupManager: 
   # If you're using a refenrece to an existing secret then the data: section should be commented out and vice-versa.
     ref:
-    data: 
-      key:
-      serviceAccount:
+    # data: 
+    #   key:
+    #   serviceAccount:
   slackWebhook: # This is used in mongobackup & reindex-elasticsearch cron jobs.
   # If you're using a refenrece to an existing secret then the data: section should be commented out and vice-versa.
     ref: 
-    data: 
+    # data: 
 
 localSettings:
   DEBUG: False
