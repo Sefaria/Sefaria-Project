@@ -3052,14 +3052,14 @@ a.navBlockTitle:hover {
 .textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title.open:not(.fixed):after {
   content: "\f107";
 }
-.readerPanel.hebrew .textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title:after,
-.readerApp.interface-hebrew .noLangToggleInHebrew .textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title:after {
+.readerPanel.hebrew .textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title:not(.fixed):after,
+.readerApp.interface-hebrew .noLangToggleInHebrew .textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title:not(.fixed):after {
   content: "\f104";
   font-size: 122%;
   margin-inline-start: 9px;
 }
-.readerPanel.hebrew .textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title.open:after,
-.readerApp.interface-hebrew .noLangToggleInHebrew .textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title.open:after {
+.readerPanel.hebrew .textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title.open:not(.fixed):after,
+.readerApp.interface-hebrew .noLangToggleInHebrew .textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title.open:not(.fixed):after {
   content: "\f107";
 }
 .textTableOfContents .schema-node-contents {
