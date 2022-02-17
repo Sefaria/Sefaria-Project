@@ -18,7 +18,7 @@ import {
     InterfaceText,
     FilterableList,
     ToolTipped,
-    SimpleLinkedBlock, ContentText,
+    SimpleLinkedBlock,
 } from './Misc';
 
 
