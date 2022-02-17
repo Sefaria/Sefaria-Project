@@ -11,14 +11,14 @@ import {
   TextPassage,
 } from './Story';
 import {
-  TabView,
-  LoadingMessage,
-  Link,
-  ResponsiveNBox,
-  InterfaceText,
-  FilterableList,
-  ToolTipped,
-  SimpleLinkedBlock,
+    TabView,
+    LoadingMessage,
+    Link,
+    ResponsiveNBox,
+    InterfaceText,
+    FilterableList,
+    ToolTipped,
+    SimpleLinkedBlock, ContentText,
 } from './Misc';
 
 
@@ -677,6 +677,20 @@ const ReadingsComponent = ({ parashaData, tref }) => (
 
     <div className="sectionTitleText"><InterfaceText text={{en:"Torah", he:"תורה"}} /></div>
     <a href={'/' + tref.url} className="contentText"><InterfaceText text={{en:tref.en, he:norm_hebrew_ref(tref.he)}} /></a>
+    <div className="aliyot"> 
+    {
+        parashaData.parasha?.extraDetails?.aliyot?.map((aliya, index) => {
+           let sectionNum = index+1;
+           let sectionStr = sectionNum <= 7 ? sectionNum : 'M';
+           let heSectionStr = sectionNum <= 7 ? Sefaria.hebrew.encodeHebrewNumeral(sectionNum) : 'מ';
+           return (
+              <a className="sectionLink" href={"/" + Sefaria.normRef(aliya)} data-ref={aliya} key={aliya}>
+                <InterfaceText text={{en:sectionStr, he:heSectionStr}}/>
+              </a>
+            );    
+        }) ?? null
+    }  
+    </div>
     <div className="sectionTitleText"><InterfaceText text={{en:"Haftarah", he:"הפטרה"}}/></div>
     {parashaData.haftarah?<div className="haftarot">
         {

@@ -2947,7 +2947,8 @@ a.navBlockTitle:hover {
   box-sizing: border-box;
 }
 .textTableOfContents .torahNavParshiot .sectionLink,
-.connectionsPanel .textTableOfContents .torahNavParshiot .sectionLink{
+.connectionsPanel .textTableOfContents .torahNavParshiot .sectionLink,
+.topicPanel .readings .sectionLink{
   display: initial;
   background-color: initial;
   font-size: 14px;
