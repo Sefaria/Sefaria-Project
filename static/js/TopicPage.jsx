@@ -674,33 +674,43 @@ const ReadingsComponent = ({ parashaData, tref }) => (
       <span className="separator">·</span>
       <InterfaceText text={parashaData.he_date} />
     </span>
-
-    <div className="sectionTitleText"><InterfaceText text={{en:"Torah", he:"תורה"}} /></div>
-    <a href={'/' + tref.url} className="contentText"><InterfaceText text={{en:tref.en, he:norm_hebrew_ref(tref.he)}} /></a>
-    <div className="aliyot"> 
-    {
-        parashaData.parasha?.extraDetails?.aliyot?.map((aliya, index) => {
-           let sectionNum = index+1;
-           let sectionStr = sectionNum <= 7 ? sectionNum : 'M';
-           let heSectionStr = sectionNum <= 7 ? Sefaria.hebrew.encodeHebrewNumeral(sectionNum) : 'מ';
-           return (
-              <a className="sectionLink" href={"/" + Sefaria.normRef(aliya)} data-ref={aliya} key={aliya}>
-                <InterfaceText text={{en:sectionStr, he:heSectionStr}}/>
-              </a>
-            );    
-        }) ?? null
-    }  
-    </div>
-    <div className="sectionTitleText"><InterfaceText text={{en:"Haftarah", he:"הפטרה"}}/></div>
-    {parashaData.haftarah?<div className="haftarot">
+    <div className="parasha">
+        <div className="sectionTitleText"><InterfaceText text={{en:"Torah", he:"תורה"}} /></div>
+        <div className="navSidebarLink ref serif">
+            <img src="/static/icons/book.svg" className="navSidebarIcon" alt="book icon" />  
+            <a href={'/' + tref.url} className="contentText"><InterfaceText text={{en:tref.en, he:norm_hebrew_ref(tref.he)}} /></a>
+        </div>
+        <div className="aliyot"> 
         {
-          parashaData.haftarah.map(h => (
-            <a href={'/' + h.url} className="contentText" key={h.url}>
-              <InterfaceText text={{en:h.displayValue.en, he:norm_hebrew_ref(h.displayValue.he)}} />
-            </a>
-          ))
-        }
-    </div>:""}
+            parashaData.parasha?.extraDetails?.aliyot?.map((aliya, index) => {
+               let sectionNum = index+1;
+               let sectionStr = sectionNum <= 7 ? sectionNum : 'M';
+               let heSectionStr = sectionNum <= 7 ? Sefaria.hebrew.encodeHebrewNumeral(sectionNum) : 'מ';
+               return (
+                  <a className="sectionLink" href={"/" + Sefaria.normRef(aliya)} data-ref={aliya} key={aliya}>
+                    <InterfaceText text={{en:sectionStr, he:heSectionStr}}/>
+                  </a>
+                );    
+            }) ?? null
+        }  
+        </div>
+    </div>    
+    <div className="haftarah">
+        <div className="sectionTitleText"><InterfaceText text={{en:"Haftarah", he:"הפטרה"}}/></div>
+        {parashaData.haftarah ?
+            <div className="haftarot">
+            {
+              parashaData.haftarah.map(h => (
+                <div className="navSidebarLink ref serif">
+                    <img src="/static/icons/book.svg" className="navSidebarIcon" alt="book icon" />    
+                    <a href={'/' + h.url} className="contentText" key={h.url}>
+                      <InterfaceText text={{en:h.displayValue.en, he:norm_hebrew_ref(h.displayValue.he)}} />
+                    </a>
+                </div>
+              ))
+            }
+            </div> : ""}
+    </div>
   </div>
 );
 
