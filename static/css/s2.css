@@ -3035,7 +3035,7 @@ a.navBlockTitle:hover {
   color: var(--sefaria-blue);
   font-weight: bold;
 }
-.textTableOfContents .schema-node-toc:not(.linked)>.schema-node-title:after {
+.textTableOfContents .schema-node-toc:not(.linked)>.schema-node-title:not(.fixed):after {
   content: "\f105";
   display: inline-block;
   font-size: inherit;
@@ -3049,7 +3049,7 @@ a.navBlockTitle:hover {
   top: -2px;
   color: var(--medium-grey);
 }
-.textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title.open:after {
+.textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title.open:not(.fixed):after {
   content: "\f107";
 }
 .readerPanel.hebrew .textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title:after,

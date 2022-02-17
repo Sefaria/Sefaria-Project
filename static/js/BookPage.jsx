@@ -424,6 +424,7 @@ class TextTableOfContents extends Component {
                   refPath={this.props.title}
                   topLevel={true}
                   topLevelHeader={"Torah Portions"}
+                  disableSubCollapse={true}
                   currentlyVisibleRef={this.props.currentlyVisibleRef}
                   currentlyVisibleSectionRef={this.props.currentlyVisibleSectionRef}
                 />
@@ -527,10 +528,12 @@ class SchemaNode extends Component {
     super(props);
     this.state = {
       // Collapse nodes below top level, and those that aren't default or makred includedSections
-      collapsed: "nodes" in props.schema ? props.schema.nodes.map(node => !(props.topLevel || node.default || node.includeSections)) : []
+      collapsed: "nodes" in props.schema ? props.schema.nodes.map(node => !(props.topLevel || props.disableSubCollapse || node.default || node.includeSections)) : []
     };
   }
   toggleCollapse(i) {
+    if(this.props.disableSubCollapse) return;
+    
     this.state.collapsed[i] = !this.state.collapsed[i];
     this.setState({collapsed: this.state.collapsed});
   }
@@ -568,11 +571,12 @@ class SchemaNode extends Component {
         if ("nodes" in node || ("refs" in node && node.refs.length && includeSections)) {
           // SchemaNode with children (nodes) or ArrayMapNode with depth (refs)
           path = this.props.refPath + ", " + node.title;
+          const keyPressFunc = this.props.disableSubCollapse ? null : (e) => { this.toggleCollapse(i) }
           return (
             <div className="schema-node-toc" data-ref={path} key={i}>
-              <span className={`schema-node-title ${this.state.collapsed[i] ? "collapsed" : "open"}`}
-                    onClick={this.toggleCollapse.bind(null, i)}
-                    onKeyPress={function(e) {e.charCode == 13 ? this.toggleCollapse(i):null}.bind(this)}
+              <span className={`schema-node-title ${this.state.collapsed[i] ? "collapsed" : "open"} ${this.props.disableSubCollapse ? "fixed" : ""}`}
+                    onClick={()=> {this.toggleCollapse(i)}}
+                    onKeyPress={(e) => {e.charCode == 13 ? this.toggleCollapse(i):null}}
                     role="heading"
                     aria-level="3"
                     aria-hidden="true" tabIndex={0}>
