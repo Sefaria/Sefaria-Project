@@ -1,14 +1,17 @@
-from sefaria.system.database import db #consider moving all of the nb stuff to a separate file
-from sefaria import settings as sls
+from urllib.parse import unquote
 from rauth import OAuth2Service
 import time
+
+from sefaria.system.database import db #consider moving all of the nb stuff to a separate file
+from sefaria import settings as sls
+
+base_url = "https://"+sls.NATIONBUILDER_SLUG+".nationbuilder.com"
 
 def get_by_tag(tag_name):
     return f"/api/v1/tags/{tag_name}/people" 
 
 def nationbuilder_update_tags():
     session = get_nationbuilder_connection()
-    base_url = "https://"+sls.NATIONBUILDER_SLUG+".nationbuilder.com"
     for profile in db.profiles.find({}):
         pass
 
@@ -16,7 +19,6 @@ def nationbuilder_update_tags():
 
 def nationbuilder_get_all(endpoint_func, args=[]):
     session = get_nationbuilder_connection()
-    base_url = "https://"+sls.NATIONBUILDER_SLUG+".nationbuilder.com"
     next_endpoint = endpoint_func(*args)
     while(next_endpoint):
         for attempt in range(0,3):
@@ -51,7 +53,7 @@ def get_nationbuilder_connection():
         name = "NationBuilder",
         authorize_url = authorize_url,
         access_token_url = access_token_url,
-        base_url = "%s.nationbuilder.com" % sls.NATIONBUILDER_SLUG
+        base_url = base_url
     )
     token = sls.NATIONBUILDER_TOKEN
     session = service.get_session(token)
