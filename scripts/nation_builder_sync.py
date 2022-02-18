@@ -2,7 +2,7 @@ import django
 django.setup()
 from sefaria.model.user_profile import UserProfile
 from sefaria.system.database import db
-from sefaria.client.util import get_by_tag, nationbuilder_get_all, update_user_flags
+from sefaria.helper.nationbuilder import get_by_tag, nationbuilder_get_all, update_user_flags
 
 # Get list of sustainers
 sustainers = {profile["id"]: profile for profile in db.profiles.find({"is_sustainer": True})}
