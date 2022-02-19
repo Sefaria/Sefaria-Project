@@ -359,7 +359,7 @@ data:
   DEBUG: "{{ .Values.localSettings.DEBUG }}"
   DOMAIN_LANGUAGE: {{ .Values.localSettings.DOMAIN_LANGUAGE | toJson | quote }}
   MONGO_HOST: {{ .Values.localSettings.MONGO_HOST | quote }}
-  APSCHEDULER_NAME: {{ .Values.localSettings.APSCHEDULER_NAME | quote }}
+  APSCHEDULER_NAME: {{ tpl .Values.localSettings.APSCHEDULER_NAME . | quote }}
   SEARCH_ADMIN: {{ .Values.localSettings.SEARCH_ADMIN | quote }}
   TURN_SERVER: {{ .Values.localSettings.TURN_SERVER | quote }}
   USE_CLOUDFLARE: "{{ .Values.localSettings.USE_CLOUDFLARE }}"
@@ -398,11 +398,11 @@ data:
 
     ALLOWED_HOSTS = ["*"]
 
-    DEBUG = os.getenv("DEBUG")
-    OFFLINE = os.getenv("OFFLINE")
-    DOWN_FOR_MAINTENANCE = os.getenv("DOWN_FOR_MAINTENANCE")
+    DEBUG = os.getenv("DEBUG").lower() == "true"
+    OFFLINE = os.getenv("OFFLINE").lower() == "true"
+    DOWN_FOR_MAINTENANCE = os.getenv("DOWN_FOR_MAINTENANCE").lower() == "true"
     MAINTENANCE_MESSAGE =  os.getenv("MAINTENANCE_MESSAGE")
-    GLOBAL_WARNING = os.getenv("GLOBAL_WARNING")
+    GLOBAL_WARNING = os.getenv("GLOBAL_WARNING").lower() == "true"
     GLOBAL_WARNING_MESSAGE = os.getenv("GLOBAL_WARNING_MESSAGE")
 
     DOMAIN_LANGUAGES = json.loads(os.getenv("DOMAIN_LANGUAGE"))
@@ -480,7 +480,11 @@ data:
 
     MONGO_HOST = os.getenv("MONGO_HOST")
     MONGO_PORT = 27017
+    {{- if eq .Values.sandbox "true" }}
+    SEFARIA_DB = os.getenv("SEFARIA_DB") + "-" + {{ .Values.deployEnv | quote }}
+    {{- else }}
     SEFARIA_DB = os.getenv("SEFARIA_DB")
+    {{- end }}
     SEFARIA_DB_USER = os.getenv("SEFARIA_DB_USER")
     SEFARIA_DB_PASSWORD = os.getenv("SEFARIA_DB_PASSWORD")
     APSCHEDULER_NAME = os.getenv("APSCHEDULER_NAME")
@@ -514,7 +518,7 @@ data:
     CLOUDFLARE_ZONE= os.getenv("CLOUDFLARE_ZONE")
     CLOUDFLARE_EMAIL= os.getenv("CLOUDFLARE_EMAIL")
     CLOUDFLARE_TOKEN= os.getenv("CLOUDFLARE_TOKEN")
-    USE_CLOUDFLARE= os.getenv("USE_CLOUDFLARE")
+    USE_CLOUDFLARE= os.getenv("USE_CLOUDFLARE").lower() == "true"
 
     GOOGLE_TAG_MANAGER_CODE = os.getenv("GOOGLE_TAG_MANAGER_CODE")
     GOOGLE_ANALYTICS_CODE = os.getenv("GOOGLE_ANALYTICS_CODE")
