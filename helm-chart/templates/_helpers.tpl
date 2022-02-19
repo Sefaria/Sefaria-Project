@@ -83,3 +83,11 @@ origin-tls-{{ .Values.deployEnv }}
 origin-il-tls-{{ .Values.deployEnv }}
 {{- end }}
 {{- end }}
+
+{{- define "mongoSnapshotLocation" }} 
+{{- if .Values.mongoSnapshotLocation -}}
+{{- .Values.mongoSnapshotLocation }}
+{{- else -}}
+gs://sefaria-mongo-backup/private_dump_small_{{ now | date "02.01.06" }}.tar.gz
+{{- end }}
+{{- end }}

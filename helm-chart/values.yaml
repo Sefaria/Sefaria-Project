@@ -18,6 +18,8 @@ deployEnv: "dev"
 # Helps create services for nginx, nodeja, varnish and web pods with appropriate tags that help ArgoCD do blue green deployments.
 previousServicesCount: "3"
 
+mongoSnapshotLocation: # write the full path to the back up if you want to start the environment from a specific backup else leave blank.
+
 web:
   containerImage: 
     imageRegistry: gcr.io/production-deployment/sefaria-web # Full path of the image registry imclusive of the image name
