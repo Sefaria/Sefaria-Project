@@ -215,9 +215,9 @@ secrets:
 
 localSettings:
   DEBUG: False
-  DOMAIN_LANGUAGE:
-    https://www.sefaria.org: english
-    https://www.sefaria.org.il: hebrew
+  DOMAIN_LANGUAGE: {}
+    # https://www.sefaria.org: english
+    # https://www.sefaria.org.il: hebrew
   MONGO_HOST: "mongo"
   APSCHEDULER_NAME: "apscheduler-${ENV_NAME}"
   SEARCH_ADMIN: "http://elasticsearch-data:9200"
