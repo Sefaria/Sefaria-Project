@@ -19,8 +19,7 @@ spec:
     - host: {{ tpl .host $ | quote }}
       http:
         paths:
-          - path: {{ .path | default "/*" | quote }}
-            pathType: ImplementationSpecific
+          - pathType: ImplementationSpecific
             backend:
               service:
                 name: {{ .serviceName | default "nginx" }}-{{ $.Values.deployEnv }}
