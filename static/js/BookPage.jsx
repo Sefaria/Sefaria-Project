@@ -388,6 +388,7 @@ class TextTableOfContents extends Component {
               b.name == defaultStruct ? 1 : 0;
     }.bind(this));
     const showToggle = !(isDictionary || isTorah) && structTabOptions.length > 1;
+    const toggleNames = showToggle ? structTabOptions.map(x => x.text) : [];
     const toggle = (showToggle ?
                   <TabbedToggleSet
                     tabOptions={structTabOptions}
@@ -410,6 +411,7 @@ class TextTableOfContents extends Component {
             <>
               <SchemaNode
                 schema={this.state.indexDetails.schema}
+                topToggleTitles={toggleNames}
                 addressTypes={this.state.indexDetails.schema.addressTypes}
                 refPath={this.props.title}
                 topLevel={true}
@@ -420,10 +422,11 @@ class TextTableOfContents extends Component {
               <div className="torahNavParshiot">
                 <SchemaNode
                   schema={alts["Parasha"]}
-                  addressTypes={this.state.indexDetails.schema.addressTypes}
+                  addressTypes={alts["Parasha"]["nodes"][0]["addressTypes"]}
                   refPath={this.props.title}
                   topLevel={true}
                   topLevelHeader={"Torah Portions"}
+                  disableSubCollapse={true}
                   currentlyVisibleRef={this.props.currentlyVisibleRef}
                   currentlyVisibleSectionRef={this.props.currentlyVisibleSectionRef}
                 />
@@ -433,6 +436,7 @@ class TextTableOfContents extends Component {
         } else {
           content = <SchemaNode
                       schema={this.state.indexDetails.schema}
+                      topToggleTitles={toggleNames}
                       addressTypes={this.state.indexDetails.schema.addressTypes}
                       refPath={this.props.title}
                       topLevel={true}
@@ -527,10 +531,12 @@ class SchemaNode extends Component {
     super(props);
     this.state = {
       // Collapse nodes below top level, and those that aren't default or makred includedSections
-      collapsed: "nodes" in props.schema ? props.schema.nodes.map(node => !(props.topLevel || node.default || node.includeSections)) : []
+      collapsed: "nodes" in props.schema ? props.schema.nodes.map(node => !(props.topLevel || props.disableSubCollapse || node.default || node.includeSections)) : []
     };
   }
   toggleCollapse(i) {
+    if(this.props.disableSubCollapse) return;
+    
     this.state.collapsed[i] = !this.state.collapsed[i];
     this.setState({collapsed: this.state.collapsed});
   }
@@ -540,6 +546,7 @@ class SchemaNode extends Component {
         return (
           <JaggedArrayNode
             schema={this.props.schema}
+            topToggleTitles={this.props.topToggleTitles}
             refPath={this.props.refPath}
             topLevel={this.props.topLevel}
             topLevelHeader={this.props.topLevelHeader}
@@ -568,11 +575,12 @@ class SchemaNode extends Component {
         if ("nodes" in node || ("refs" in node && node.refs.length && includeSections)) {
           // SchemaNode with children (nodes) or ArrayMapNode with depth (refs)
           path = this.props.refPath + ", " + node.title;
+          const keyPressFunc = this.props.disableSubCollapse ? null : (e) => { this.toggleCollapse(i) }
           return (
             <div className="schema-node-toc" data-ref={path} key={i}>
-              <span className={`schema-node-title ${this.state.collapsed[i] ? "collapsed" : "open"}`}
-                    onClick={this.toggleCollapse.bind(null, i)}
-                    onKeyPress={function(e) {e.charCode == 13 ? this.toggleCollapse(i):null}.bind(this)}
+              <span className={`schema-node-title ${this.state.collapsed[i] ? "collapsed" : "open"} ${this.props.disableSubCollapse ? "fixed" : ""}`}
+                    onClick={()=> {this.toggleCollapse(i)}}
+                    onKeyPress={(e) => {e.charCode == 13 ? this.toggleCollapse(i):null}}
                     role="heading"
                     aria-level="3"
                     aria-hidden="true" tabIndex={0}>
@@ -626,6 +634,7 @@ class SchemaNode extends Component {
               <div className="schema-node-contents">
                 <JaggedArrayNode
                   schema={node}
+                  topToggleTitles={this.props.topToggleTitles}
                   contentLang={this.props.contentLang}
                   refPath={this.props.refPath + (node.default ? "" : ", " + node.title)}
                   currentlyVisibleRef={this.props.currentlyVisibleRef}
@@ -674,11 +683,12 @@ class JaggedArrayNode extends Component {
                 currentlyVisibleSectionRef={this.props.currentlyVisibleSectionRef}
               />);
     }
-    let topLevelHeader = this.props.topLevel && (this.props.schema?.depth <= 2 || this.props.topLevelHeader) ? (
+    const specialHeaderText = this.props.topLevelHeader || this.props.schema?.sectionNames[0] || "Chapters";
+    let topLevelHeader = !this.props.topToggleTitles.includes(specialHeaderText) && (this.props.topLevel && (this.props.schema?.depth <= 2 || this.props.topLevelHeader)) ? (
         <div className="specialNavSectionHeader">
           <ContentText text={{
-            en: this.props.topLevelHeader || this.props.schema?.sectionNames[0] || "Chapters",
-            he: Sefaria.hebrewTranslation(this.props.topLevelHeader || this.props.schema?.sectionNames[0] || "Chapters")
+            en: specialHeaderText,
+            he: Sefaria.hebrewTranslation(specialHeaderText)
           }}/>
         </div>
     ) : null;
@@ -778,7 +788,7 @@ class JaggedArrayNodeSection extends Component {
           heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
         }
       let ref  = (this.props.refPath + ":" + section).replace(":", " ") + this.refPathTerminal(contentCounts[i]);
-      let currentPlace = ref == this.props?.currentlyVisibleSectionRef || ref == this.props?.currentlyVisibleRef; //the second clause is for depth 1 texts
+      let currentPlace = ref == this.props?.currentlyVisibleSectionRef || ref == this.props?.currentlyVisibleRef || Sefaria.refContains(this.props?.currentlyVisibleSectionRef, ref); //the second clause is for depth 1 texts
       const linkClasses = classNames({"sectionLink": 1, "current": currentPlace}); 
       let link = (
         <a className={linkClasses} href={"/" + Sefaria.normRef(ref)} data-ref={ref} key={i}>
@@ -827,7 +837,7 @@ class ArrayMapNode extends Component {
           section = i+1;
           heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
         }
-        let currentPlace = ref == this.props?.currentlyVisibleSectionRef;
+        let currentPlace = ref == this.props?.currentlyVisibleSectionRef  || ref == this.props?.currentlyVisibleRef || Sefaria.refContains(ref, this.props?.currentlyVisibleRef);
         const linkClasses = classNames({"sectionLink": 1, "current": currentPlace}); 
         return (
           <a className={linkClasses} href={"/" + Sefaria.normRef(ref)} data-ref={ref} key={i}>

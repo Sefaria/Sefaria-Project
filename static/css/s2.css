@@ -252,7 +252,7 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
 .smallText .int-en,
 .smallText .int-he.enInHe {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: normal;
   color: #999;
 }
@@ -303,7 +303,7 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
 .smallText .int-he,
 .smallText .int-en.heInEn {
   font-family: "Heebo", sans-serif;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: normal;
   color: #999;
 }
@@ -1868,20 +1868,32 @@ div.interfaceLinks-row a {
   margin-bottom: 40px;
 }
 .topicPanel .readings .parasha-date {
+  font-style: italic;
+}
+.topicPanel .readings .parasha-date > span:first-child::after {
+  content: '•';
+  color: #999;
+  font-size: 15px;
+  margin: 0 5px;
 }
 .topicPanel .readings .sectionTitleText {
   margin-top: 15px;
 }
 .topicPanel .readings .sectionTitleText .int-en,
 .topicPanel .readings .sectionTitleText .int-he {
-  font-size: 13px;
+  font-size: 16px;
+  line-height: 18.75px;
+  text-transform: initial;
+}
+.topicPanel .readings .parasha .navSidebarLink {
+  margin-bottom: 0;
+}
+.topicPanel .readings .parasha .aliyot {
+  margin-inline-start: 25px;
 }
 .topicPanel .readings .haftarot {
   display: flex;
   flex-direction: column;
-}
-.topicPanel .readings .sectionTitleText:first-child {
-  margin-top: 20px;
 }
 .topicPanel .mainColumn {
   padding: 0 40px;
@@ -2946,6 +2958,19 @@ a.navBlockTitle:hover {
   padding: 0 6px;
   box-sizing: border-box;
 }
+.textTableOfContents .torahNavParshiot .sectionLink,
+.connectionsPanel .textTableOfContents .torahNavParshiot .sectionLink,
+.topicPanel .readings .sectionLink{
+  display: initial;
+  background-color: initial;
+  font-size: 14px;
+  margin: 0;
+  padding: 0 4px;
+  line-height: 30px;
+  color: var(--medium-grey);
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
 .connectionsPanel .textTableOfContents .sectionLink {
   background-color: #ffffff;
   color: #000000;
@@ -2953,6 +2978,9 @@ a.navBlockTitle:hover {
 .textTableOfContents .sectionLink.current{
   background-color: var(--sefaria-blue);
   color: #FFFFFF;
+}
+.textTableOfContents .torahNavParshiot .sectionLink.current{
+  color: var(--sefaria-blue);
 }
 .textTableOfContents .sectionName {
   display: none;
@@ -2995,6 +3023,10 @@ a.navBlockTitle:hover {
   margin-bottom: 10px;
   cursor: pointer;
 }
+.textTableOfContents .torahNavParshiot .schema-node-title {
+  font-size: 24px;
+  margin-bottom: 0;
+}
 .textTableOfContents .schema-node-toc {
   display: block;
 }
@@ -3003,8 +3035,7 @@ a.navBlockTitle:hover {
   color: var(--sefaria-blue);
   font-weight: bold;
 }
-
-.textTableOfContents .schema-node-toc:not(.linked)>.schema-node-title:after {
+.textTableOfContents .schema-node-toc:not(.linked)>.schema-node-title:not(.fixed):after {
   content: "\f105";
   display: inline-block;
   font-size: inherit;
@@ -3018,17 +3049,17 @@ a.navBlockTitle:hover {
   top: -2px;
   color: var(--medium-grey);
 }
-.textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title.open:after {
+.textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title.open:not(.fixed):after {
   content: "\f107";
 }
-.readerPanel.hebrew .textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title:after,
-.readerApp.interface-hebrew .noLangToggleInHebrew .textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title:after {
+.readerPanel.hebrew .textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title:not(.fixed):after,
+.readerApp.interface-hebrew .noLangToggleInHebrew .textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title:not(.fixed):after {
   content: "\f104";
   font-size: 122%;
   margin-inline-start: 9px;
 }
-.readerPanel.hebrew .textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title.open:after,
-.readerApp.interface-hebrew .noLangToggleInHebrew .textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title.open:after {
+.readerPanel.hebrew .textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title.open:not(.fixed):after,
+.readerApp.interface-hebrew .noLangToggleInHebrew .textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title.open:not(.fixed):after {
   content: "\f107";
 }
 .textTableOfContents .schema-node-contents {
@@ -3036,8 +3067,10 @@ a.navBlockTitle:hover {
   display: block;
   width: 100%;
 }
-.textTableOfContents .schema-node-contents > .tocLevel > .schema-node-toc:not(.janode),
-.torahNavParshiot .tocLevel .schema-node-toc{
+.textTableOfContents .torahNavParshiot .schema-node-contents {
+  margin-bottom: 0;
+}
+.textTableOfContents .schema-node-contents > .tocLevel > .schema-node-toc:not(.janode){
   margin-inline-start: 15px;
 }
 .textTableOfContents .schema-node-contents.closed {
@@ -3049,6 +3082,14 @@ a.navBlockTitle:hover {
 .textTableOfContents .tocLevel {
   display: block;
 }
+.textTableOfContents .torahNavParshiot .tocLevel {
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: space-between;
+}
+.textTableOfContents .torahNavParshiot .tocLevel .schema-node-toc {
+  flex: 1 1 50%;
+}
 .textTableOfContents > .tocLevel > .schema-node-toc {
   margin: 10px 0;
 }
@@ -3059,8 +3100,12 @@ a.navBlockTitle:hover {
   text-decoration: underline;
 }
 .textTableOfContents .specialNavSectionHeader {
-  font-size: 24px;
+  font-size: 16px;
+  line-height: 18.75px;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
   margin-bottom: 10px;
+  color: var(--dark-grey);
 }
 .textTableOfContents .torahNavParshiot{
   margin-top: 30px;
@@ -7927,11 +7972,6 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   display: inline-block;
   min-height: 50px;
   line-height: 50px;
-}
-.topicPanel .smallText .separator {
-  color: #999;
-  font-size: 20px;
-  margin: 0 3px;
 }
 .topicFilterBox {
   display: flex;
