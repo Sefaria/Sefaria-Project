@@ -298,15 +298,15 @@ CACHES = {
 
 
 GLOBAL_INTERRUPTING_MESSAGE = {
-    "name":       "15022022-purim-matching-modal",
-    "style":      "modal", # "modal" or "banner"
+    "name":       "20022022-matching-banner",
+    "style":      "banner", # "modal" or "banner"
     "repetition": 1,
     "is_fundraising": True,
     "condition":  {
         "returning_only": False,
         "english_only": False,
         "desktop_only": False,
-        "debug": False,
+        "debug": True,
     }
 }
 '''
