@@ -129,6 +129,7 @@ class ReaderPanel extends Component {
     if (this.state.mode === "TextAndConnections") {
       this.closeConnectionsInPanel();
     } else if (this.state.mode === "Text") {
+      Sefaria.track.event("Reader", "Open Connections Panel", ref);
       if (this.props.multiPanel) {
         this.conditionalSetState({showHighlight: showHighlight});
         this.props.onSegmentClick(ref);
@@ -161,11 +162,11 @@ class ReaderPanel extends Component {
       }
     }
   }
-  handleCitationClick(citationRef, textRef, replace) {
+  handleCitationClick(citationRef, textRef, replace, currVersions) {
     if (this.props.multiPanel) {
-      this.props.onCitationClick(citationRef, textRef, replace);
+      this.props.onCitationClick(citationRef, textRef, replace, currVersions);
     } else {
-      this.showBaseText(citationRef);
+      this.showBaseText(citationRef, replace, currVersions);
     }
   }
   handleTextListClick(ref, replaceHistory, currVersions) {
@@ -694,6 +695,7 @@ class ReaderPanel extends Component {
           interfaceLang={this.props.interfaceLang}
           contentLang={this.state.settings.language}
           title={this.currentBook()}
+          currentlyVisibleRef={this.state.currentlyVisibleRef}
           currVersions={this.state.currVersions}
           fullPanel={this.props.multiPanel}
           multiPanel={this.props.multiPanel}
@@ -1039,6 +1041,7 @@ class ReaderPanel extends Component {
           {hideReaderControls ? null :
           <ReaderControls
             showBaseText={this.showBaseText}
+            hasSidebar={this.state.hasSidebar}
             toggleSheetEditMode={this.toggleSheetEditMode}
             currentRef={this.state.currentlyVisibleRef}
             highlightedRefs={this.state.highlightedRefs}
@@ -1162,12 +1165,10 @@ class ReaderControls extends Component {
       displayVersionTitle: {},  // lang codes as keys and version title to display in header as values. prefers shortVersionTitle when available but falls back on versionTitle
     };
   }
-  isConnectionsPanelOpenHeuristic(){
-    return !!this.props.highlightedRefs.length
-  }
   openTextConnectionsPanel(e) {
     e.preventDefault();
-    if(!this.isConnectionsPanelOpenHeuristic()){ //Prevent click on title from opening connections panel if its already open
+    if(!this.props.hasSidebar){ //Prevent click on title from opening connections panel if its already open
+      Sefaria.track.event("Reader", "Open Connections Panel from Header", this.props.currentRef);
       this.props.onTextTitleClick(this.props.currentRef, false);
     }
   }
@@ -1177,7 +1178,8 @@ class ReaderControls extends Component {
   }
   shouldShowVersion(props) {
     props = props || this.props;
-    return props.settings.language === "english" || props.settings.language === "bilingual";
+    // maybe one day sheets will have versions (e.g Nachama) but for now, let's ignore that possibility
+    return !props.sheetID && (props.settings.language === "english" || props.settings.language === "bilingual");
   }
   setDisplayVersionTitle(version) {
     const en = version.shortVersionTitle || version.versionTitle;
@@ -1244,7 +1246,7 @@ class ReaderControls extends Component {
     let sectionString = "";
     let heSectionString = "";
     let categoryAttribution = null;
-    const oref = Sefaria.ref(this.props.currentRef);
+    const oref = Sefaria.getRefFromCache(this.props.currentRef);
 
     if (this.props.sheetID) {
       if (this.props.sheetTitle === null) {
@@ -1270,7 +1272,7 @@ class ReaderControls extends Component {
     let displayVersionTitle = this.props.settings.language === 'hebrew' ? this.state.displayVersionTitle.he : this.state.displayVersionTitle.en;
     if (categoryAttribution) { displayVersionTitle = `(${displayVersionTitle})`; }
     const url = this.props.sheetID ? "/sheets/" + this.props.sheetID : oref ? "/" + Sefaria.normRef(oref.book) : Sefaria.normRef(this.props.currentRef);
-    const readerTextTocClasses = classNames({readerTextToc: 1, attributed: !!categoryAttribution || this.shouldShowVersion(), connected: this.isConnectionsPanelOpenHeuristic()})
+    const readerTextTocClasses = classNames({readerTextToc: 1, attributed: !!categoryAttribution || this.shouldShowVersion(), connected: this.props.hasSidebar});
 
 
     let centerContent = connectionsHeader ?
@@ -1292,30 +1294,32 @@ class ReaderControls extends Component {
         <div className={"readerTextTocBox" + (this.props.sheetID ? " sheetBox" : "")} role="heading" aria-level="1" aria-live="polite">
           <div>
             <a href={url} aria-label={"Show Connection Panel contents for " + title} >
-              { this.props.sheetID ?
-              <img src={"/static/img/sheet.svg"} className="sheetTocIcon" alt="" /> : null}
-              { this.props.sheetID ?
-              <h1 style={{direction: Sefaria.hebrew.isHebrew(title) ? "rtl" : "ltr"}}>
-                {title}
-              </h1>
-              :
-              <h1>
-                <ContentText text={{en: title, he: heTitle}} defaultToInterfaceOnBilingual={true} />
-                <span className="sectionString">
-                  <ContentText text={{en: sectionString, he: heSectionString }} defaultToInterfaceOnBilingual={true} />
-                </span>
-              </h1>
-              }
+              <div className="readerControlsTitle">
+                { this.props.sheetID ?
+                <img src={"/static/img/sheet.svg"} className="sheetTocIcon" alt="" /> : null}
+                { this.props.sheetID ?
+                <h1 style={{direction: Sefaria.hebrew.isHebrew(title) ? "rtl" : "ltr"}}>
+                  {title}
+                </h1>
+                :
+                <h1>
+                  <ContentText text={{en: title, he: heTitle}} defaultToInterfaceOnBilingual={true} />
+                  <span className="sectionString">
+                    <ContentText text={{en: sectionString, he: heSectionString }} defaultToInterfaceOnBilingual={true} />
+                  </span>
+                </h1>
+                }
+              </div>
+              <div className="readerTextVersion">
+                {categoryAttribution ? <CategoryAttribution categories={oref.categories} linked={false} /> : null }
+                {
+                  this.shouldShowVersion() && displayVersionTitle ?
+                  <span className="readerTextVersion">
+                    <span className="en">{displayVersionTitle}</span>
+                  </span> : null
+                }
+              </div>
             </a>
-          </div>
-          <div onClick={this.stopPropagation}>
-            {categoryAttribution ? <CategoryAttribution categories={oref.categories} linked={false} /> : null }
-            {
-              this.shouldShowVersion() && displayVersionTitle ?
-              <span className="readerTextVersion">
-                <span className="en">{displayVersionTitle}</span>
-              </span> : null
-            }
           </div>
         </div>
       </div>;

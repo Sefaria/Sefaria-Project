@@ -211,7 +211,7 @@ steps:
   # Get all sandbox names, so that we can reconfigure the sandbox ingress
   # Requires kubectl
   # emits a file to v2/sandboxes/_sandboxes.txt
-  - name: gcr.io/${PROJECT_ID}/cloudbuild-getsandboxnames:v0.3
+  - name: gcr.io/${PROJECT_ID}/cloudbuild-getsandboxnames:v0.4
     id: get_sandbox_names
     dir: k8s-admin/v2/sandboxes/ingresses
     env:

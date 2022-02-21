@@ -38,7 +38,7 @@ lxml==4.6.1
 mailchimp==2.0.9
 google-auth==1.24.0
 google-auth-oauthlib==0.4.2
-p929==0.5
+p929==0.6.1
 pathos==0.2.6
 pillow==8.0.1
 psycopg2==2.8.6

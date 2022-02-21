@@ -164,7 +164,8 @@ class ITagNormalizer(AbstractNormalizer):
                 pass  # it's an inline commentator
         return all_itags, soup
 
-    def _find_itag_start(self, itag_text: str, s: str, search_start: int) -> int:
+    @staticmethod
+    def _find_itag_start(itag_text: str, s: str, search_start: int) -> int:
         """
         There can be minor differences in itag created by bs4
         Try to find start of itag regardless

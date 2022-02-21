@@ -28,7 +28,7 @@ hebrew display value
 ref
 """
 
-@graceful_exception(logger=logger, return_value=[])
+@graceful_exception(logger=logger, logLevel="warning", return_value=[])
 def daily_929(datetime_obj):
     #datetime should just be a date, like datetime.today()
     p = p929.Perek(datetime_obj.date())

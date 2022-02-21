@@ -5,7 +5,7 @@ Writes to MongoDB Collection: links
 
 import regex as re
 from bson.objectid import ObjectId
-from sefaria.model.text import AbstractTextRecord
+from sefaria.model.text import AbstractTextRecord, VersionSet
 from sefaria.system.exceptions import DuplicateRecordError, InputError, BookNameError
 from sefaria.system.database import db
 from . import abstract as abst
@@ -42,7 +42,9 @@ class Link(abst.AbstractMongoRecord):
         "inline_reference",  # dict with keys "data-commentator" and "data-order" to match an inline reference (itag)
         "charLevelData",     # list of length 2. Containing 2 dicts coresponding to the refs list, each dict consists of the following keys: ["startChar","endChar","versionTitle","language"]. *if one of the refs is a Pasuk the startChar and endChar keys are startWord and endWord. This attribute was created for the quotation finder
         "score",             # int. represents how "good"/accurate the link is. introduced for quotations finder
-        "inline_citation"    # bool acts as a flag for wrapped refs logic to run on the segments where this citation is inline.
+        "inline_citation",    # bool acts as a flag for wrapped refs logic to run on the segments where this citation is inline.
+        "versions",          # only for cases when type is `essay`: list of versionTitles corresponding to `refs`, where first versionTitle corresponds to Index of first ref, and each value is a dictionary of language and title of version
+        "displayedText"       # only for cases when type is `essay`: dictionary of en and he strings to be displayed
     ]
 
     def _normalize(self):
@@ -57,6 +59,19 @@ class Link(abst.AbstractMongoRecord):
 
     def _validate(self):
         assert super(Link, self)._validate()
+
+        if self.type == "essay":   # when type is 'essay', versionTitles should correspond to indices referred to in self.refs
+            assert hasattr(self, "versions") and hasattr(self, "displayedText"), "You must set versions and displayedText fields for type 'essay'."
+            assert "en" in self.displayedText[0] and "he" in self.displayedText[0] and "en" in self.displayedText[1] and "he" in self.displayedText[1], \
+                "displayedText field must be a list of dictionaries with 'he' and 'en' fields."
+            for ref, version in zip(self.refs, self.versions):
+                versionTitle = version["title"]
+                versionLanguage = version["language"] if "language" in version else None
+                index_title = text.Ref(ref).index.title
+                if versionTitle not in ["ALL", "NONE"]:
+                    assert VersionSet({"title": index_title, "versionTitle": versionTitle, "language": versionLanguage}).count() > 0, \
+                        f"No version found for book '{index_title}', with versionTitle '{versionTitle}', and language '{versionLanguage}'"
+
 
         if False in self.refs:
             return False
@@ -77,7 +92,12 @@ class Link(abst.AbstractMongoRecord):
             # Don't bother saving a connection that already exists, or that has a more precise link already
             if self.refs != sorted(self.refs) and hasattr(self, 'charLevelData'):
                 self.charLevelData.reverse()
+            orig_refs = self.refs
             self.refs = sorted(self.refs) #make sure ref order is deterministic
+            if orig_refs != self.refs and getattr(self, "versions", False) and getattr(self, "displayedText", False):
+                #if reversed self.refs, make sure to reverse self.versions and self.displayedText
+                self.versions = self.versions[::-1]
+                self.displayedText = self.displayedText[::-1]
             samelink = Link().load({"refs": self.refs})
 
             if samelink:
@@ -112,7 +132,6 @@ class Link(abst.AbstractMongoRecord):
                     # logger.debug("save_link: More specific link exists: " + link["refs"][1] + " and " + preciselink["refs"][1])
                     raise DuplicateRecordError("A more precise link already exists: {} - {}".format(preciselink.refs[0], preciselink.refs[1]))
                 # else: # this is a good new link
-
 
         if not getattr(self, "_skip_lang_check", False):
             self._set_available_langs()

@@ -16,7 +16,8 @@ import os
 import re
 import uuid
 
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from django.template.loader import render_to_string
 from django.shortcuts import render, redirect
 from django.http import Http404, QueryDict
@@ -1339,6 +1340,10 @@ def texts_api(request, tref):
         commentary = bool(int(request.GET.get("commentary", False)))
         pad        = bool(int(request.GET.get("pad", 1)))
         versionEn  = request.GET.get("ven", None)
+        firstAvailableRef = bool(int(request.GET.get("firstAvailableRef", False)))  # use first available ref, which may not be the same as oref
+        if firstAvailableRef:
+            temp_oref = oref.first_available_section_ref()
+            oref = temp_oref or oref  # don't overwrite oref if first available section ref fails
         if versionEn:
             versionEn = versionEn.replace("_", " ")
         versionHe  = request.GET.get("vhe", None)
@@ -3644,6 +3649,37 @@ def profile_sync_api(request):
         return jsonResponse(ret)
 
     return jsonResponse({"error": "Unsupported HTTP method."})
+
+
+@catch_error_as_json
+@api_view(["DELETE"])
+@permission_classes([IsAuthenticated])
+def delete_user_account_api(request):
+    # Deletes the user and emails sefaria staff for followup
+    from sefaria.utils.user import delete_user_account
+    from django.core.mail import EmailMultiAlternatives
+    
+    if not request.user.is_authenticated:
+        return jsonResponse({"error": _("You must be logged in to delete your account.")})
+    uid = request.user.id
+    user_email = request.user.email
+    email_subject = "User Account Deletion Followup"
+    email_msg = "User {} has requested deletion of his account".format(user_email)
+    reply_email = None
+    try:
+        delete_user_account(uid, False)
+        email_msg += "\n\n The request was completed automatically."
+        reply_email = user_email
+        response = jsonResponse({"status": "ok"})
+    except Exception as e: 
+        # There are on rare occasions ForeignKeyViolation exceptions due to records in gauth_credentialsmodel or gauth_flowmodel in the sql db not getting 
+        # removed properly
+        email_msg += "\n\n The request failed to complete automatically. The user has been directed to email in his request."
+        logger.error("User {} deletion failed. {}".format(uid, e))
+        response = jsonResponse({"error": "There was an error deleting the account", "user": user_email})
+        
+    EmailMultiAlternatives(email_subject, email_msg, from_email="Sefaria System <dev@sefaria.org>", to=["Sefaria <hello@sefaria.org>"], reply_to=[reply_email if reply_email else "hello@sefaria.org"]).send()
+    return response
 
 
 def get_url_params_user_history(request):

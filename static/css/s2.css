@@ -75,13 +75,18 @@ a, a:hover {
   font-weight: bold;
   unicode-range: U+0041-007A;
 }
+@font-face {
+  font-family: 'Noto Color Emoji'; 
+  src: url('/static/fonts/NotoColorEmoji.ttf');
+  unicode-range: U+1F1E6-1F1FF;
+}
 :root {
   /* font stacks */
   --english-sans-serif-font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   --hebrew-sans-serif-font-family: "Heebo", "Roboto", sans-serif;
 
   --english-serif-font-family: "HebrewInEnglish Serif Font", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
-  --hebrew-serif-font-family: "EnglishInHebrew Serif Font", "Taamey Frank", "adobe-garamond-pro", "Crimson Text", "Times New Roman", serif;
+  --hebrew-serif-font-family: "Noto Color Emoji", "EnglishInHebrew Serif Font", "Taamey Frank", "adobe-garamond-pro", "Crimson Text", "Times New Roman", serif;
 
   --serif-h1-font-size: 48px;
   --serif-h2-font-size: 30px;
@@ -107,6 +112,7 @@ a, a:hover {
   --lighter-grey: #EDEDEC;
   --lightest-grey: #FBFBFA;
   --commentary-blue: #4B71B7;
+  --essay-links-green: #3B5849;
   --tanakh-teal: #004E5F;
   --mishnah-blue: #5A99B7;
   --talmud-gold: #CCB479;
@@ -2931,12 +2937,14 @@ a.navBlockTitle:hover {
   padding: 0 6px;
   box-sizing: border-box;
 }
-
 .connectionsPanel .textTableOfContents .sectionLink {
   background-color: #ffffff;
   color: #000000;
 }
-
+.textTableOfContents .sectionLink.current{
+  background-color: var(--sefaria-blue);
+  color: #FFFFFF;
+}
 .textTableOfContents .sectionName {
   display: none;
 }
@@ -2981,7 +2989,13 @@ a.navBlockTitle:hover {
 .textTableOfContents .schema-node-toc {
   display: block;
 }
-.textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title:after {
+.textTableOfContents .schema-node-toc.linked.current,
+.textTableOfContents .schema-node-toc.linked.current .schema-node-title {
+  color: var(--sefaria-blue);
+  font-weight: bold;
+}
+
+.textTableOfContents .schema-node-toc:not(.linked)>.schema-node-title:after {
   content: "\f105";
   display: inline-block;
   font-size: inherit;
@@ -4133,6 +4147,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .readerControls .readerTextToc .readerTextTocBox a {
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.readerControls .readerTextToc .readerTextTocBox a .readerControlsTitle {
+  display: flex;
   align-items: center;
   justify-content: center;
 }
@@ -4316,6 +4336,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
+  max-width: 100%;
 }
 .readerControls .readerTextToc .readerTextVersion {
   font-size: 15px;
@@ -4568,12 +4589,15 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .interface-hebrew .readerPanel.english .textRange,
 .interface-hebrew .readerPanel.english .categoryFilterGroup,
 .interface-hebrew .readerPanel.bilingual .categoryFilterGroup,
+.interface-hebrew .readerPanel.english .essayGroup,
+.interface-hebrew .readerPanel.bilingual .essayGroup,
 .interface-hebrew .readerPanel.english .textTableOfContents,
 .interface-hebrew .readerPanel.bilingual .textTableOfContents {
   direction: ltr;
 }
 .interface-english .readerPanel.hebrew .textRange,
 .interface-english .readerPanel.hebrew .categoryFilterGroup,
+.interface-english .readerPanel.hebrew .essayGroup,
 .interface-english .readerPanel.hebrew .structToggles,
 .interface-english .readerPanel.hebrew .textTableOfContents,
 .interface-english .readerPanel.hebrew .connectionsPanel .toolsButton.more,
@@ -4638,14 +4662,31 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .basetext .segment {
   margin-bottom: 26px;
 }
-.hebrew.segmented .segment > .he,
+.segment .segmentText .poetry {
+  text-indent: -30px;
+  padding-inline-start: 30px;
+  display: inline-block;
+}
+
+.continuous .segment .segmentText .poetry {
+  text-indent: initial;
+  padding-inline-start: initial;
+  display: inline;
+  margin-inline-end: .5em;
+}
+
+.continuous .segment .segmentText br {
+  display: none;
+}
+
+/*.hebrew.segmented .segment > .he,
 .hebrew.segmented .segment > p > .he{
   display: block;
 }
 .hebrew.continuous .segment > .he,
 .hebrew.continuous .segment > p > .he{
   display: inline;
-}
+}*/
 .bilingual .segment > .he,
 .bilingual .segment > p > .he{
   display: block;
@@ -5356,6 +5397,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   -webkit-tap-hightlight-color: rgba(0,0,0,0); /* pulled from common.css; should apply more broadly? */
 }
 .categoryFilter:not(.withBooks) .filterInner:before{
+  min-width: 18px;
   width: 18px;
   height: 16px;
   content: '';
@@ -5430,6 +5472,32 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+.essayGroup a:hover {
+  text-decoration: none;
+}
+.essayGroup .filterText {
+  margin-inline-start: 15px;
+  margin-inline-end: auto;
+  text-align: left
+}
+.essayGroup .filterInner:before{
+  min-width: 18px;
+  width: 18px;
+  height: 16px;
+  content: '';
+  -webkit-mask: url("/static/img/connection-book.svg") no-repeat;
+  mask: url("/static/img/connection-book.svg") no-repeat;
+  -webkit-mask-size: cover;
+  mask-size: cover;
+  line-height: 25px;
+  /**transform: scale(0.95);*/
+  display: inline-block;
+  background-color: #3B5849;
+}
+.essayGroup .textFilter {
+  padding: 0 0 0 0;
+  margin: 19px 34px;
 }
 .categoryFilterGroup.withBooks {
   /*border-bottom: 1px solid #E5E5E5;*/
@@ -6261,8 +6329,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 
 .shareInputBox .shareInputButton:active {
   background-color: var(--light-grey);
-  border: 0;
-  margin-inline-start: 20px;
 }
 
 .shareSettingsBox {
@@ -10465,6 +10531,10 @@ body .homeFeedWrapper .content {
     margin: 0;
   }
 }
+.sideColumn .topicSideColumn {
+  margin-bottom: 20px;
+}
+
 .sideColumn .section {
   margin-bottom: 70px;
 }

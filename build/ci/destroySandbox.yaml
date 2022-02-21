@@ -58,7 +58,7 @@ steps:
   #####################
 
   # emits a file to v2/sandboxes/_sandboxes.txt
-  - name: gcr.io/${PROJECT_ID}/cloudbuild-getsandboxnames:v0.3
+  - name: gcr.io/${PROJECT_ID}/cloudbuild-getsandboxnames:v0.4
     id: get_sandbox_names
     dir: k8s-admin/v2/sandboxes/ingresses
     env:
@@ -84,7 +84,7 @@ steps:
   - name: "gcr.io/${PROJECT_ID}/cloudbuild-helm:v3.5.4"
     id: deploy_ingress
     dir: k8s-admin/v2
-    args: ["upgrade", "-i", "sandbox-ingress", "./charts/sandbox-ingress", "--namespace", "${_GKE_NAMESPACE}", "-f", "sandboxes/ingresses/_ingressValues.yaml", "--debug"]
+    args: ["upgrade", "-i", "wildcard-sandbox-ingress", "./charts/wildcard-sandbox-ingress", "--namespace", "${_GKE_NAMESPACE}", "-f", "sandboxes/ingresses/_ingressValues.yaml", "--debug"]
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=${_GKE_REGION}'
       - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'

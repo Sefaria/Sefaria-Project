@@ -15,6 +15,7 @@ import {
   RemoteLearningPage,
   SheetsLandingPage,
   PBSC2020LandingPage,
+  PBSC2021LandingPage,
   RambanLandingPage,
   EducatorsPage
 } from './StaticPages';
@@ -923,7 +924,7 @@ class ReaderApp extends Component {
       this.closePanel(n+1);
     }
   }
-  handleCitationClick(n, citationRef, textRef, replace) {
+  handleCitationClick(n, citationRef, textRef, replace, currVersions) {
     // Handle clicking on the citation `citationRef` which was found inside of `textRef` in panel `n`.
     // If `replace`, replace a following panel with this citation, otherwise open a new panel after.
     if (this.state.panels.length > n+1  &&
@@ -933,7 +934,7 @@ class ReaderApp extends Component {
     if (textRef) {
       this.setTextListHighlight(n, textRef);
     }
-    this.openPanelAt(n, citationRef, null, {scrollToHighlighted: !!replace});
+    this.openPanelAt(n, citationRef, currVersions, {scrollToHighlighted: !!replace});
   }
   openNamedEntityInNewPanel(n, textRef, namedEntityState) {
     //this.setTextListHighlight(n, [textRef]);
@@ -975,6 +976,14 @@ class ReaderApp extends Component {
     const href = el.getAttribute('href');
     if (!href) {
       return;
+    }
+    //on mobile just replace panel w/ any link
+    if (!this.props.multiPanel) {
+      const handled = this.openURL(href, true);
+      if (handled) {
+        e.preventDefault();
+      }
+      return
     }
     //All links within sheet content should open in a new panel
     const isSheet = !!(el.closest(".sheetItem"))
@@ -1216,8 +1225,8 @@ class ReaderApp extends Component {
     let panelLang;
     if (versionName && versionLanguage) {
       panel.currVersions[versionLanguage] = versionName;
-      if ((versionLanguage === "he" && !!panel.currVersions["en"]) ||
-          (versionLanguage === "en" && !!panel.currVersions["he"])) { // if both versionLanguages are set, try to show them both
+      if ((versionLanguage === "he" && panel.settings.language === 'english') ||
+          (versionLanguage === "en" && panel.settings.language === 'hebrew')) { // if lang of version isn't visible, display it
         panelLang = "bilingual";
       } else if (versionLanguage === "he") {
         panelLang = "hebrew";
@@ -1448,7 +1457,8 @@ class ReaderApp extends Component {
         connectionsPanel.recentFilters = [filter].concat(connectionsPanel.recentFilters);
       }
       connectionsPanel.filter = [filter];
-      connectionsPanel.connectionsMode = "TextList";
+      var filterAndSuffix = filter.split("|");
+      connectionsPanel.connectionsMode = filterAndSuffix.length == 2 && filterAndSuffix[1] == "Essay" ? "EssayList" : "TextList";
     } else {
       connectionsPanel.filter = [];
       connectionsPanel.connectionsMode = "ConnectionsList";
@@ -1774,7 +1784,7 @@ class ReaderApp extends Component {
   }
 
   getUserContext() {
-    const refs = this.state.panels.map(panel => panel.currentlyVisibleRef || panel.bookRef || panel.navigationCategories).flat();
+    const refs = this.state.panels.map(panel => panel.currentlyVisibleRef || panel.bookRef || panel.navigationCategories || panel.navigationTopic).flat();
     const books = refs.map(ref => Sefaria.parseRef(ref).book);
     const triggers = refs.map(ref => Sefaria.refCategories(ref))
           .concat(books)
@@ -2066,6 +2076,7 @@ export {
   SheetsLandingPage,
   ContestLandingPage,
   PBSC2020LandingPage,
+  PBSC2021LandingPage,
   RambanLandingPage,
   EducatorsPage
 };

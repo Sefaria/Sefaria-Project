@@ -233,6 +233,7 @@ const Strings = {
     "Public Domain": "בנחלת הכלל",
     "Copyright: JPS, 1985": "זכויות שמורות ל-JPS, 1985",
     "Location: ": "מיקום: ",
+    "Translations": "תרגומים",
 
     // Collections
     "Collections": "אסופות",
@@ -335,8 +336,9 @@ const Strings = {
     "Italian": "איטלקית",
     "Polish": "פולנית",
     "Russian": "רוסית",
-    "Esparanto": "אספרנטו",
-    "Persian": "פרסי",
+    "Esperanto": "אספרנטו",
+    "Persian": "פרסית",
+    "Ladino" : "לאדינו",
 
     "On": "הצג",
     "Off": "הסתר",
