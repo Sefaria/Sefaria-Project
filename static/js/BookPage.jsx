@@ -591,6 +591,7 @@ class SchemaNode extends Component {
                 <SchemaNode
                   schema={node}
                   refPath={this.props.refPath + ", " + node.title}
+                  topToggleTitles={this.props.topToggleTitles}
                   currentlyVisibleRef={this.props.currentlyVisibleRef}
                   currentlyVisibleSectionRef={this.props.currentlyVisibleSectionRef}/>
               </div>
@@ -710,7 +711,8 @@ class JaggedArrayNode extends Component {
 }
 JaggedArrayNode.propTypes = {
   schema:      PropTypes.object.isRequired,
-  refPath:     PropTypes.string.isRequired
+  refPath:     PropTypes.string.isRequired,
+  topToggleTitles: PropTypes.array
 };
 
 
