@@ -2981,6 +2981,7 @@ a.navBlockTitle:hover {
 }
 .textTableOfContents .torahNavParshiot .sectionLink.current{
   color: var(--sefaria-blue);
+  font-weight: bold;
 }
 .textTableOfContents .sectionName {
   display: none;
