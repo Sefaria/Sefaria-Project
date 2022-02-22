@@ -1056,7 +1056,7 @@ const SectionTypesBox = function({sections, canEdit, updateParent}) {
   const add = function() {
     updateParent(sections.concat("")); //tell parent new values
   }
-  const remove = function(i) {;
+  const remove = function(i) {
     updateParent(sections.slice(0, i+1)); //tell parent new values
   }
   const updateSelfAndParent = function() {
@@ -1165,7 +1165,7 @@ const TitleVariants = function({titles, update}) {
                     tags={titles}
                     onDelete={onTitleDelete}
                     placeholderText={Sefaria._("Add a title...")}
-                    delimiters={["Enter", "Tab", ","]}
+                    delimiters={["Enter", "Tab"]}
                     onAddition={onTitleAddition}
                     onValidate={onTitleValidate}
                   />
@@ -1175,10 +1175,7 @@ const TitleVariants = function({titles, update}) {
 
 const EditTextInfo = function({initTitle, close}) {
   const index = useRef(null);
-  if (!index.current) {
-    Sefaria.getIndexDetails(initTitle).then(data => index.current = data);
-    index.current = Sefaria.getIndexDetailsFromCache(initTitle);
-  }
+  index.current = Sefaria.getIndexDetailsFromCache(initTitle);
   const oldTitle = index.current.title; //save original title, in case english title gets edited
   const [enTitle, setEnTitle] = useState(index.current.title);
   const [heTitle, setHeTitle] = useState(index.current.heTitle);
@@ -1190,7 +1187,84 @@ const EditTextInfo = function({initTitle, close}) {
   const toggleInProgress = function() {
     setSavingStatus(savingStatus => !savingStatus);
   }
+  const validate = function () {
+    if (!enTitle) {
+      alert("Please give a text title or commentator name.");
+      return false;
+    }
 
+    if (!heTitle) {
+      alert("Please give a Hebrew text title.");
+      return false;
+    }
+
+    if (/[.\-\\\/]/.test(enTitle)) {
+      alert('Text titles may not contain periods, hyphens or slashes.');
+      return false;
+    }
+
+    if (/[0-9]/.test(enTitle)) {
+      alert('Text titles may not contain numbers. This form is for general information about a text as a whole, not specific citations.');
+      return false;
+    }
+
+    if (categories.length === 0) {
+      alert("Please choose a text category.");
+      return false;
+    }
+
+    for (let i = 0; i < categories.length; i++) {
+      if (/[.\-\\\/]/.test(categories[i])) {
+        alert('Categories may not contain periods, hyphens or slashes.');
+        return false;
+      }
+    }
+    if (Hebrew.containsHebrew(enTitle)) {
+      alert("Please enter a primary title in English. Use the Hebrew Title field to specify a title in Hebrew.");
+      return false;
+    }
+    return true;
+  }
+  const save = function() {
+    const enTitleVariantNames = titleVariants.map(i => i["name"]);
+    const heTitleVariantNames = heTitleVariants.map(i => i["name"]);
+    let postIndex = {}
+    postIndex.title = enTitle;
+    postIndex.heTitle = heTitle;
+    postIndex.titleVariants = enTitleVariantNames;
+    postIndex.heTitleVariants = heTitleVariantNames;
+    postIndex.categories = categories;
+    if (sections && sections.length > 0) {
+      postIndex.sectionNames = sections;
+    }
+    if (enTitle !== oldTitle) {
+      postIndex.oldTitle = oldTitle;
+    }
+    let postJSON = JSON.stringify(postIndex);
+    let title = enTitle.replace(/ /g, "_");
+    let url = "/api/v2/raw/index/" + title;
+    if ("oldTitle" in index.current) {
+      url += "?update=1";
+    }
+    toggleInProgress();
+    $.post(url,  {"json": postJSON}, function(data) {
+      if (data.error) {
+        toggleInProgress();
+        alert(data.error);
+      } else {
+        alert("Text information saved.");
+        window.location.href = "/admin/reset/"+index.current.title;
+      }
+      }).fail( function(xhr, textStatus, errorThrown) {
+        alert("Unfortunately, there may have been an error saving this text information.");
+        window.location.href = "/admin/reset/"+index.current.title;  // often this occurs when save occurs successfully but there is simply a timeout on cauldron so try resetting it
+      });
+  };
+  const validateThenSave = function () {
+    if (validate()) {
+      save();
+    }
+  }
   return (
       <div className="editTextInfo">
       <div className="static">
@@ -1204,12 +1278,11 @@ const EditTextInfo = function({initTitle, close}) {
               </h1>
               <div className="end">
                 <a onClick={(e) => close(e)} id="cancel" className="button small transparent control-elem">
-                  <span className="int-en">Cancel</span>
-                  <span className="int-he">ביטול</span>
+                  <InterfaceText>Cancel</InterfaceText>
                 </a>
-                <NewIndexSaveButton enTitle={enTitle} heTitle={heTitle} enTitleVariants={titleVariants}
-                                  oldTitle={oldTitle} heTitleVariants={heTitleVariants} categories={categories}
-                                  sectionNames={sections} toggleInProgress={toggleInProgress}/>
+                <div onClick={validateThenSave} id="saveAccountSettings" className="button small blue control-elem" tabIndex="0" role="button">
+                  <InterfaceText>Save</InterfaceText>
+                </div>
               </div>
             </div>
             <div className="section">
@@ -1250,94 +1323,7 @@ const EditTextInfo = function({initTitle, close}) {
 }
 
 
-const NewIndexSaveButton = function({enTitle, heTitle, enTitleVariants, heTitleVariants, categories, sectionNames, oldTitle, toggleInProgress}) {
-  let index = {};
-  enTitleVariants = enTitleVariants.map(i => i["name"]);
-  heTitleVariants = heTitleVariants.map(i => i["name"]);
-  const validate = function () {
-    if (!enTitle) {
-      alert("Please give a text title or commentator name.");
-      return false;
-    }
 
-    if (!heTitle) {
-      alert("Please give a Hebrew text title.");
-      return false;
-    }
-
-    if (/[.\-\\\/]/.test(enTitle)) {
-      alert('Text titles may not contain periods, hyphens or slashes.');
-      return false;
-    }
-
-    if (/[0-9]/.test(enTitle)) {
-      alert('Text titles may not contain numbers. This form is for general information about a text as a whole, not specific citations.');
-      return false;
-    }
-
-    if (categories.length === 0) {
-      alert("Please choose a text category.");
-      return false;
-    }
-
-    for (let i = 0; i < categories.length; i++) {
-      if (/[.\-\\\/]/.test(categories[i])) {
-        alert('Categories may not contain periods, hyphens or slashes.');
-        return false;
-      }
-    }
-    if (Hebrew.containsHebrew(enTitle)) {
-      alert("Please enter a primary title in English. Use the Hebrew Title field to specify a title in Hebrew.");
-      return false;
-    }
-    index["title"] = enTitle;
-    index["heTitle"] = heTitle;
-    index["titleVariants"] = enTitleVariants;
-    index["heTitleVariants"] = heTitleVariants;
-    index["categories"] = categories;
-    if (sectionNames && sectionNames.length > 0) {
-      index["sectionNames"] = sectionNames;
-    }
-    if (enTitle !== oldTitle) {
-      index["oldTitle"] = oldTitle;
-    }
-    return true;
-  }
-
-  const save = function() {
-    let postJSON = JSON.stringify(index);
-    let title = enTitle.replace(/ /g, "_");
-    let url = "/api/v2/raw/index/" + title;
-    if ("oldTitle" in index) {
-      url += "?update=1";
-    }
-    toggleInProgress();
-    $.post(url,  {"json": postJSON}, function(data) {
-      if (data.error) {
-        toggleInProgress();
-        alert(data.error);
-      } else {
-        alert("Text information saved.");
-        window.location.href = "/admin/reset/"+index["title"];
-      }
-      }).fail( function(xhr, textStatus, errorThrown) {
-        alert("Unfortunately, there may have been an error saving this text information.");
-        window.location.href = "/admin/reset/"+index["title"];  // often this occurs when save occurs successfully but there is simply a timeout on cauldron so try resetting it
-      });
-
-  };
-
-  const validateThenSave = function () {
-    if (validate()) {
-      save();
-    }
-  }
-
-  return <div onClick={validateThenSave} id="saveAccountSettings" className="button small blue control-elem" tabIndex="0" role="button">
-              <span className="int-en">Save</span>
-              <span className="int-he">שמירה</span>
-          </div>
-}
 
 
 class ReadMoreText extends Component {
