@@ -991,7 +991,7 @@ class RefResolver:
         title_trie = title_trie or self.get_ref_part_title_trie(lang)
         prev_ref_parts = prev_ref_parts or []
         matches = []
-        for i, part in enumerate(ref_parts):
+        for part in ref_parts:
             # no need to consider other types at root level
             if part.type != RefPartType.NAMED: continue
 
@@ -1000,7 +1000,7 @@ class RefResolver:
             if temp_title_trie is None: continue
             if LEAF_TRIE_ENTRY in temp_title_trie:
                 matches += [ResolvedRawRef(raw_ref, temp_prev_ref_parts, node, (node.nodes if isinstance(node, text.Index) else node).ref()) for node in temp_title_trie[LEAF_TRIE_ENTRY]]
-            temp_ref_parts = [ref_parts[j] for j in range(len(ref_parts)) if j != i]
+            temp_ref_parts = [temp_part for temp_part in ref_parts if temp_part != part]
             matches += self._get_unrefined_ref_part_matches_recursive(lang, raw_ref, temp_title_trie, ref_parts=temp_ref_parts, prev_ref_parts=temp_prev_ref_parts)
 
         return self._prune_unrefined_ref_part_matches(matches)
