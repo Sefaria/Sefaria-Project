@@ -358,8 +358,8 @@ class SearchResultList extends Component {
           );
           if (this.state.topics.length > 0) {
               let topics = this.state.topics.map(t => {
-                  const sources = <a href={t["url"]+"?tabs=sources"}><InterfaceText>Sources</InterfaceText></a>;
-                  const sheets = <a href={t["url"]+"?tabs=sheets"}><InterfaceText>Sheets</InterfaceText></a>;
+                  const sources = <a href={t["url"]+"?tab=sources"}><InterfaceText>Sources</InterfaceText></a>;
+                  const sheets = <a href={t["url"]+"?tab=sheets"}><InterfaceText>Sheets</InterfaceText></a>;
                   return <div className="searchTopic">
                             <div className="topicTitle">
                               <h1>
