@@ -8,12 +8,12 @@ import { Ad } from './Ad'
 
 const NavSidebar = ({modules}) => {
   return <div className="navSidebar sans-serif">
-    {modules.map((m, i) => 
-      <Modules 
-        type={m.type} 
-        props={m.props || {}} 
-        key={i} />
-    )}
+    {/*{modules.map((m, i) => */}
+    {/*  <Modules */}
+    {/*    type={m.type} */}
+    {/*    props={m.props || {}} */}
+    {/*    key={i} />*/}
+    {/*)}*/}
   </div>
 };
 
