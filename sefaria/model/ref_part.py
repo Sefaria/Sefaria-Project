@@ -216,12 +216,16 @@ class RawRefPart(TrieEntry):
             yield dh
 
 
-class TermContext(RawRefPart):
+class ContextPart(RawRefPart):
+    # currently used to easily differentiate TermContext and SectionContext from a vanilla RawRefPart
+    pass
+
+
+class TermContext(ContextPart):
     """
     Represents context backed by a NonUniqueTerm
     """
     key_is_id = True
-    is_context = True
 
     def __init__(self, term: NonUniqueTerm):
         super().__init__(RefPartType.NAMED, None)
@@ -244,12 +248,11 @@ class TermContext(RawRefPart):
         return hash(self.__repr__())
 
 
-class SectionContext(RawRefPart):
+class SectionContext(ContextPart):
     """
     Represents a section in a context ref
     Used for injecting section context into a match which is missing sections (e.g. 'Tosafot on Berakhot DH abcd' is missing a daf)
     """
-    is_context = True
 
     def __init__(self, addr_type: schema.AddressType, section_name: str, section_index: int, address: int) -> None:
         """
@@ -509,7 +512,7 @@ class ResolvedRawRef:
         matches = []
         # see NumberedTitledTreeNode.get_referenceable_child() for why we check if parent is None
         if part.type == RefPartType.NUMBERED and isinstance(node, schema.JaggedArrayNode) and node.parent is None:
-            if part.is_context:
+            if isinstance(part, SectionContext):
                 matches += self._get_refined_refs_for_numbered_context_part(part, refined_ref_parts, node)
             else:
                 matches += self._get_refined_refs_for_numbered_part(part, refined_ref_parts, node, lang)
@@ -530,15 +533,24 @@ class ResolvedRawRef:
         # TODO sham and directional cases
         return matches
     
-    def get_resolved_parts(self, include_context=True, include_explicit=True) -> List[RawRefPart]:
+    def get_resolved_parts(self, include: Iterable[type] = None, exclude: Iterable[type] = None) -> List[RawRefPart]:
+        """
+        Returns list of resolved_parts according to criteria `include` and `exclude`
+        If neither `include` nor `exclude` is passed, return all parts in `self.resolved_parts`
+        :param include: if not None, only include parts that are an instance of at least one class specified in `include`
+        :param exclude: if not None, exclude parts that are an instance of at least one class specified in `exclude`
+        """
         parts = []
         for part in self.resolved_parts:
-            if (part.is_context and include_context) or (not part.is_context and include_explicit):
-                parts += [part]
+            if include is not None and not any(isinstance(part, typ) for typ in include):
+                continue
+            if exclude is not None and any(isinstance(part, typ) for typ in exclude):
+                continue
+            parts += [part]
         return parts
 
-    def num_resolved(self, include_context=True, include_explicit=True) -> int:
-        return len(self.get_resolved_parts(include_context, include_explicit))
+    def num_resolved(self, include: Iterable[type] = None, exclude: Iterable[type] = None) -> int:
+        return len(self.get_resolved_parts(include, exclude))
 
     @property
     def order_key(self):
@@ -953,7 +965,7 @@ class RefResolver:
         longest_template = max(context_ref.index.nodes.get_match_templates(), key=lambda x: len(list(x.terms)))
         temp_ref_parts = raw_ref.parts_to_match + [TermContext(term) for term in longest_template.terms]
         temp_matches = self._get_unrefined_ref_part_matches_recursive(lang, raw_ref, ref_parts=temp_ref_parts)
-        matches += list(filter(lambda x: x.num_resolved(include_explicit=False), temp_matches))
+        matches += list(filter(lambda x: x.num_resolved(include={TermContext}), temp_matches))
         return matches
 
     def _get_unrefined_ref_part_matches_for_graph_context(self, lang: str, context_ref: Optional[text.Ref], raw_ref: RawRef) -> List[ResolvedRawRef]:
@@ -968,7 +980,7 @@ class RefResolver:
             if context_slug is None: continue
             term_context = TermContext(NonUniqueTerm.init(context_slug))
             temp_matches = self._get_unrefined_ref_part_matches_recursive(lang, raw_ref, ref_parts=raw_ref.parts_to_match + [term_context])
-            matches += list(filter(lambda x: x.num_resolved(include_context=False) and x.num_resolved(include_explicit=False), temp_matches))
+            matches += list(filter(lambda x: x.num_resolved(exclude={TermContext}) and x.num_resolved(include={TermContext}), temp_matches))
         return matches
 
     def _apply_context_swaps(self, lang: str, raw_ref: RawRef, context_swap_map: Dict[str, str]=None):
@@ -1063,7 +1075,7 @@ class RefResolver:
             sec_contexts = RefResolver._get_section_contexts(context_ref, ref_part_match.ref.index, common_index)
             matches += RefResolver._get_refined_ref_part_matches_recursive(lang, ref_part_match, ref_parts + sec_contexts)
         # remove matches which dont use context
-        matches = list(filter(lambda x: x.num_resolved(include_explicit=False) > 0, matches))
+        matches = list(filter(lambda x: x.num_resolved(include={SectionContext}), matches))
         return matches
 
     @staticmethod
@@ -1122,10 +1134,11 @@ class RefResolver:
 
         # remove context matches that don't match all ref parts to avoid false positives
         def filter_context_matches(match: ResolvedRawRef) -> bool:
-            # no context
-            if match.num_resolved(include_explicit=False) == 0: return True
-            resolved_explicit = set(match.get_resolved_parts(include_context=False))
-            to_match_explicit = {part for part in match.raw_ref.parts_to_match if not part.is_context}
+            if match.num_resolved(include={ContextPart}) == 0:
+                # no context
+                return True
+            resolved_explicit = set(match.get_resolved_parts(exclude={ContextPart}))
+            to_match_explicit = {part for part in match.raw_ref.parts_to_match if not isinstance(part, ContextPart)}
             return resolved_explicit == to_match_explicit
 
         max_resolved_refs = list(filter(filter_context_matches, max_resolved_refs))
