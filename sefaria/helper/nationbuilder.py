@@ -1,6 +1,7 @@
 from urllib.parse import unquote
 from rauth import OAuth2Service
 import time
+import json
 
 from sefaria.system.database import db #consider moving all of the nb stuff to a separate file
 from sefaria import settings as sls
@@ -34,20 +35,25 @@ def get_nationbuilder_connection():
 def nationbuilder_update_all_tags():
     session = get_nationbuilder_connection()
     for profile in db.profiles.find({}):
-        nationbuilder_update_person_tags(session, profile["id"], {
+        nationbuilder_update_person_tags(session, profile["nationbuilder_id"], json.dumps({
             "tagging": {
                 "tag": ["fake_tag_1", "fake_tag_2"]
             }
-        }, {})
+        }), json.dumps({
+            "tagging": {
+                "tag": ["fake_tag_1", "fake_tag_3"]
+            }
+        }))
         print(profile)
 
 def nationbuilder_update_person_tags(session, id, to_add, to_remove):
-    req_add = session.put(tag_person(id), data=to_add)
-    req_delete = session.delete(tag_person(id), data=to_remove)
+    headers = {'Content-type': 'application/json', 'Accept': 'application/json'}
+    req_add = session.put(tag_person(id), data=to_add, headers=headers)
+    req_delete = session.delete(tag_person(id), data=to_remove, headers=headers)
     print(req_add)
     print(req_delete)
 
-
+nationbuilder_update_all_tags()
 def nationbuilder_get_all(endpoint_func, args=[]):
     session = get_nationbuilder_connection()
     next_endpoint = endpoint_func(*args)
