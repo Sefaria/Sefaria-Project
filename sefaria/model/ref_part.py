@@ -552,6 +552,24 @@ class ResolvedRawRef:
     def num_resolved(self, include: Iterable[type] = None, exclude: Iterable[type] = None) -> int:
         return len(self.get_resolved_parts(include, exclude))
 
+    def get_node_children(self):
+        """
+        Get children of currently matched node to try to further refine match
+        TODO can we make this less spaghetti code-ish?
+        """
+        if self.node is None:
+            children = []
+        elif isinstance(self.node, schema.NumberedTitledTreeNode):
+            child = self.node.get_referenceable_child(self.ref)
+            children = [] if child is None else [child]
+        elif isinstance(self.node, schema.DiburHamatchilNode):
+            children = []
+        elif isinstance(self.node, text.Index):
+            children = self.node.referenceable_children()
+        else:
+            children = self.node.children
+        return children
+
     @property
     def order_key(self):
         """
@@ -1081,19 +1099,8 @@ class RefResolver:
     @staticmethod
     def _get_refined_ref_part_matches_recursive(lang: str, match: ResolvedRawRef, ref_parts: List[RawRefPart]) -> List[ResolvedRawRef]:
         fully_refined = []
+        children = match.get_node_children()
         for part in ref_parts:
-            # TODO dont recalculate children for the same match again and again
-            if match.node is None:
-                children = []
-            elif isinstance(match.node, schema.NumberedTitledTreeNode):
-                child = match.node.get_referenceable_child(match.ref)
-                children = [] if child is None else [child]
-            elif isinstance(match.node, schema.DiburHamatchilNode):
-                children = []
-            elif isinstance(match.node, text.Index):
-                children = match.node.referenceable_children()
-            else:
-                children = match.node.children
             for child in children:
                 temp_matches = match.get_refined_matches(part, child, lang)
                 for temp_match in temp_matches:
