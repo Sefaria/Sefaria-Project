@@ -2,13 +2,12 @@
 import json
 from datetime import datetime
 
-
 from django.http import HttpResponse, JsonResponse
 from django.core.mail import EmailMultiAlternatives
-from sefaria.helper.nationbuilder import get_nationbuilder_connection
 from functools import wraps
 
 from sefaria import settings as sls
+from sefaria.helper.nationbuilder import get_nationbuilder_connection
 
 def jsonResponse(data, callback=None, status=200):
     if callback:

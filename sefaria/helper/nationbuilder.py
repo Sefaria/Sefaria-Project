@@ -10,12 +10,43 @@ base_url = "https://"+sls.NATIONBUILDER_SLUG+".nationbuilder.com"
 def get_by_tag(tag_name):
     return f"/api/v1/tags/{tag_name}/people" 
 
-def nationbuilder_update_tags():
+def tag_person(id):
+    return f"/api/v1/people/{id}/taggings"
+
+def get_everyone():
+    return f"/api/v1/people?limit=100"
+
+def get_nationbuilder_connection():
+    access_token_url = "http://%s.nationbuilder.com/oauth/token" % sls.NATIONBUILDER_SLUG
+    authorize_url = "%s.nationbuilder.com/oauth/authorize" % sls.NATIONBUILDER_SLUG
+    service = OAuth2Service(
+        client_id = sls.NATIONBUILDER_CLIENT_ID,
+        client_secret = sls.NATIONBUILDER_CLIENT_SECRET,
+        name = "NationBuilder",
+        authorize_url = authorize_url,
+        access_token_url = access_token_url,
+        base_url = base_url
+    )
+    token = sls.NATIONBUILDER_TOKEN
+    session = service.get_session(token)
+    return session
+
+def nationbuilder_update_all_tags():
     session = get_nationbuilder_connection()
     for profile in db.profiles.find({}):
-        pass
+        nationbuilder_update_person_tags(session, profile["id"], {
+            "tagging": {
+                "tag": ["fake_tag_1", "fake_tag_2"]
+            }
+        }, {})
+        print(profile)
 
-# def nationbuilder_add_tags(session, id, to_add, to_remove):  
+def nationbuilder_update_person_tags(session, id, to_add, to_remove):
+    req_add = session.put(tag_person(id), data=to_add)
+    req_delete = session.delete(tag_person(id), data=to_remove)
+    print(req_add)
+    print(req_delete)
+
 
 def nationbuilder_get_all(endpoint_func, args=[]):
     session = get_nationbuilder_connection()
@@ -32,7 +63,10 @@ def nationbuilder_get_all(endpoint_func, args=[]):
                     time.sleep(10)
                 break
             except Exception as e:
+                time.sleep(5)
+                session = get_nationbuilder_connection()
                 print("Trying again to access and process {}. Attempts: {}. Exception: {}".format(next_endpoint, attempt+1, e))
+                print(next_endpoint)
         else:
             session.close()
             raise Exception("Error when attempting to connect to and process " + next_endpoint)
@@ -43,18 +77,3 @@ def update_user_flags(profile, flag, value):
     # updates our database user, not nb
     profile.update({flag: value})
     profile.save()
-
-def get_nationbuilder_connection():
-    access_token_url = "http://%s.nationbuilder.com/oauth/token" % sls.NATIONBUILDER_SLUG
-    authorize_url = "%s.nationbuilder.com/oauth/authorize" % sls.NATIONBUILDER_SLUG
-    service = OAuth2Service(
-        client_id = sls.NATIONBUILDER_CLIENT_ID,
-        client_secret = sls.NATIONBUILDER_CLIENT_SECRET,
-        name = "NationBuilder",
-        authorize_url = authorize_url,
-        access_token_url = access_token_url,
-        base_url = base_url
-    )
-    token = sls.NATIONBUILDER_TOKEN
-    session = service.get_session(token)
-    return session
