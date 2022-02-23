@@ -143,7 +143,6 @@ const Promotions = ({adType, rerender}) => {
             repetition={matchingAd.repetition}
             onClose={rerender} />
         } else {
-            console.log(matchingAds)
               const sidebarAds = matchingAds.map(ad => <SidebarAd matchingAd={ad} key={ad.campaignId} />);
               return (sidebarAds)
         }
@@ -154,7 +153,6 @@ const Promotions = ({adType, rerender}) => {
 }
 
 const SidebarAd = ({matchingAd}) => {
-    console.log(matchingAd)
     const classes = classNames({
         sidebarPromo: 1,
         blue: matchingAd.hasBlueBackground,
