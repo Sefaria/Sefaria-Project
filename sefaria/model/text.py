@@ -3465,14 +3465,17 @@ class Ref(object, metaclass=RefCacheType):
         if isinstance(self.index_node, JaggedArrayNode):
             r = self.padded_ref()
         elif isinstance(self.index_node, TitledTreeNode):
-            first_leaf = self.index_node.first_leaf()
-            if not first_leaf:
-                return None
-            try:
-                r = first_leaf.ref().padded_ref()
-            except Exception as e: #VirtualNodes dont have a .ref() function so fall back to VersionState
-                if self.is_book_level():
-                    return self.index.versionSet().array()[0].first_section_ref()
+            if self.is_segment_level():  # dont need to use first_leaf if we're already at segment level
+                r = self
+            else:
+                first_leaf = self.index_node.first_leaf()
+                if not first_leaf:
+                    return None
+                try:
+                    r = first_leaf.ref().padded_ref()
+                except Exception as e: #VirtualNodes dont have a .ref() function so fall back to VersionState
+                    if self.is_book_level():
+                        return self.index.versionSet().array()[0].first_section_ref()
         else:
             return None
 
