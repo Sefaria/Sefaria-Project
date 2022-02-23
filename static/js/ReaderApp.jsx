@@ -25,7 +25,7 @@ import {
   CookiesNotification,
   CommunityPagePreviewControls
 } from './Misc';
-import { Ad } from './Ad';
+import { Promotions } from './Promotions';
 import Component from 'react-class';
 import BeitMidrash, {BeitMidrashClosed} from './BeitMidrash';
 import  { io }  from 'socket.io-client';
@@ -1978,7 +1978,7 @@ class ReaderApp extends Component {
           messageHTML={Sefaria.interruptingMessage.html}
           style={Sefaria.interruptingMessage.style}
           repetition={Sefaria.interruptingMessage.repetition}
-          onClose={this.rerender} />) : <Ad rerender={this.rerender} adType="banner"/>;
+          onClose={this.rerender} />) : <Promotions rerender={this.rerender} adType="banner"/>;
     const sefariaModal = (
       <SignUpModal onClose={this.toggleSignUpModal} show={this.state.showSignUpModal} />
     );

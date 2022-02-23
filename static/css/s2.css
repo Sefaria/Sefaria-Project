@@ -2286,6 +2286,10 @@ a.navBlockTitle:hover {
   padding-right: 44px;
   padding-left: 44px;
 }
+.sidebarPromo:not(:first-child) {
+  margin-top: 34px;
+}
+
 .navSidebarModule .sidebarPromo {
   margin-right: -44px;
   margin-left: -44px;
