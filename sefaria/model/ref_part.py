@@ -89,7 +89,7 @@ class TrieEntry:
     """
     Base class for entries in RefPartTitleTrie
     """
-    is_id = False  # is key an ID which shouldn't be manipulated with string functions?
+    key_is_id = False  # is key an ID which shouldn't be manipulated with string functions?
 
     def key(self):
         return hash(self)
@@ -167,7 +167,7 @@ class RawRefPart(TrieEntry):
     Represents a unit of text used to find a match to a SchemaNode
     """
     is_context = False
-    is_id = False
+    key_is_id = False
     max_dh_continuation_len = 4  # max num tokens in potential_dh_continuation. more likely doesn't add more information
 
     def __init__(self, type: RefPartType, span: Optional[SpanOrToken], potential_dh_continuation: SpanOrToken = None) -> None:
@@ -220,7 +220,7 @@ class TermContext(RawRefPart):
     """
     Represents context backed by a NonUniqueTerm
     """
-    is_id = True
+    key_is_id = True
     is_context = True
 
     def __init__(self, term: NonUniqueTerm):
@@ -518,7 +518,7 @@ class ResolvedRawRef:
         elif (part.type == RefPartType.NAMED and isinstance(node, schema.TitledTreeNode) or
               part.type == RefPartType.NUMBERED and isinstance(node, schema.ArrayMapNode)) or \
         part.type == RefPartType.NUMBERED and isinstance(node, schema.SchemaNode): # for case of numbered alt structs or schema nodes that look numbered (e.g. perakim and parshiot of Sifra)
-            if node.ref_part_title_trie(lang).has_continuations(part.key(), key_is_id=part.is_id):
+            if node.ref_part_title_trie(lang).has_continuations(part.key(), key_is_id=part.key_is_id):
                 matches += [self.clone(resolved_parts=refined_ref_parts, node=node, ref=node.ref())]
         elif part.type == RefPartType.DH:
             if isinstance(node, schema.JaggedArrayNode):
