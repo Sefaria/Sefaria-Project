@@ -111,67 +111,61 @@ class SearchResultList extends Component {
         });
       }
     }
-    addRefTopic(topic) {
-        Sefaria.getIndexDetails(topic.key).then(book => {
-            let searchTopic = {
-                enDesc: book.enDesc,
-                heDesc: book.heDesc,
-                title: book.title,
-                heTitle: book.heTitle,
-                topicCat: book.categories[0],
-                heTopicCat: Sefaria.toc.filter(cat => cat.category === book.categories[0])[0].heCategory,
-                url: "/" + book.title
-            }
-            this.setState({topics: this.state.topics.concat([searchTopic])});
-        });
+    async addRefTopic(topic) {
+        const book = await Sefaria.getIndexDetails(topic.key);
+        return {
+            enDesc: book.enDesc,
+            heDesc: book.heDesc,
+            title: book.title,
+            heTitle: book.heTitle,
+            topicCat: book.categories[0],
+            heTopicCat: Sefaria.toc.filter(cat => cat.category === book.categories[0])[0].heCategory,
+            url: "/" + book.title
+        }
     }
     addTOCCategoryTopic(topic) {
         const topicKeyArr = topic.key.slice();
-        const lastCat = topicKeyArr.pop(topicKeyArr - 1);
+        const lastCat = topicKeyArr.pop(topicKeyArr - 1); //go up one level in order to get the bottom level's description
         const relevantCats = topicKeyArr.length === 0 ? Sefaria.toc : Sefaria.tocItemsByCategories(topicKeyArr);
         const relevantSubCat = relevantCats.filter(cat => "category" in cat && cat.category === lastCat)[0];
-        if (relevantSubCat) {
-            let searchTopic = {
-                url: "/texts/" + topic.key.join("/"),
-                topicCat: "Texts",
-                heTopicCat: Sefaria.hebrewTerm("Texts"),
-                enDesc: relevantSubCat.enDesc,
-                heDesc: relevantSubCat.heDesc,
-                title: relevantSubCat.category,
-                heTitle: relevantSubCat.heCategory
-            }
-            this.setState({topics: this.state.topics.concat([searchTopic])});
+        return {
+            url: "/texts/" + topic.key.join("/"),
+            topicCat: "Texts",
+            heTopicCat: Sefaria.hebrewTerm("Texts"),
+            enDesc: relevantSubCat.enDesc,
+            heDesc: relevantSubCat.heDesc,
+            title: relevantSubCat.category,
+            heTitle: relevantSubCat.heCategory
         }
     }
-    addGeneralTopic(topic) {
-        Sefaria.getTopic(topic.key, {annotate_time_period: true}).then(d => {
-            let searchTopic = {
-                title: d.primaryTitle["en"],
-                heTitle: d.primaryTitle["he"],
-                numSources: 0,
-                numSheets: 0
-            }
-            const typeObj = Sefaria.topicTocCategory(topic.key);
-            searchTopic.url = "/topics/" + topic.key;
-            if (!typeObj) {
-                searchTopic.topicCat = "Topics";
-                searchTopic.heTopicCat = Sefaria.hebrewTranslation("Topics");
-            } else {
-                searchTopic.topicCat = typeObj["en"];
-                searchTopic.heTopicCat = typeObj["he"];
-            }
-            if ("description" in d) {
-                searchTopic.enDesc = d.description["en"];
-                searchTopic.heDesc = d.description["he"];
-            }
-            if (d.tabs?.sources) {
-                searchTopic.numSources = d.tabs.sources.refs.length;
-            }
-            if (d.tabs?.sheets) {
-                searchTopic.numSheets = d.tabs.sheets.refs.length;
-            }
-            this.setState({topics: this.state.topics.concat([searchTopic])});
-        });
+    async addGeneralTopic(topic) {
+        const d = await Sefaria.getTopic(topic.key, {annotate_time_period: true});
+        let searchTopic = {
+            title: d.primaryTitle["en"],
+            heTitle: d.primaryTitle["he"],
+            numSources: 0,
+            numSheets: 0
+        }
+        const typeObj = Sefaria.topicTocCategory(topic.key);
+        searchTopic.url = "/topics/" + topic.key;
+        if (!typeObj) {
+            searchTopic.topicCat = "Topics";
+            searchTopic.heTopicCat = Sefaria.hebrewTranslation("Topics");
+        } else {
+            searchTopic.topicCat = typeObj["en"];
+            searchTopic.heTopicCat = typeObj["he"];
+        }
+        if ("description" in d) {
+            searchTopic.enDesc = d.description["en"];
+            searchTopic.heDesc = d.description["he"];
+        }
+        if (d.tabs?.sources) {
+            searchTopic.numSources = d.tabs.sources.refs.length;
+        }
+        if (d.tabs?.sheets) {
+            searchTopic.numSheets = d.tabs.sheets.refs.length;
+        }
+        return searchTopic;
     }
     async _executeTopicQuery() {
         const d = await Sefaria.getName(this.props.query)
@@ -180,17 +174,19 @@ class SearchResultList extends Component {
         if (hasAuthor) {
             topics = topics.filter(obj => obj.type !== "TocCategory");  //TocCategory is unhelpful if we have author
         }
-        topics.map(topic => {
+        let searchTopics = [];
+        topics.map(async topic => {
+            let searchTopic;
             if (topic.type === 'ref') {
-                this.addRefTopic(topic);
+                searchTopic = await this.addRefTopic(topic);
+            } else if (topic.type === 'TocCategory') {
+                searchTopic = this.addTOCCategoryTopic(topic);
+            } else {
+                searchTopic = await this.addGeneralTopic(topic);
             }
-            else if (topic.type === 'TocCategory') {
-                this.addTOCCategoryTopic(topic);
-            }
-            else {
-                this.addGeneralTopic(topic);
-            }
+            searchTopics.push(searchTopic);
         });
+        this.setState({topics: searchTopics});
     }
     updateRunningQuery(type, ajax) {
       this.state.runningQueries[type] = ajax;
@@ -443,7 +439,7 @@ class SearchResultList extends Component {
                 nFilters={searchState.appliedFilters.length} />}             
             </div>
             <div className="searchResultList">
-              { queryFullyLoaded || haveResults ? results.map(r => <div>{r}</div>) : null }
+              { queryFullyLoaded || haveResults ? results : null }
               { this.state.isQueryRunning[tab] ? loadingMessage : null }
             </div>
           </div>
