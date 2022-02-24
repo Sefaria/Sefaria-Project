@@ -117,7 +117,7 @@ const Promotions = ({adType, rerender}) => {
     }
 
     // TODO: refactor once old InterruptingMessage pattern is retired
-    function createBannerHtml() {
+    function createBannerHtml(matchingAd) {
         return `<div id="bannerTextBox">
 	<span class="${context.interfaceLang === "hebrew" ? "int-he" : "int-en" }" style="font-weight: bold">
         ${matchingAd.bodyText}
@@ -135,7 +135,8 @@ const Promotions = ({adType, rerender}) => {
     function styleAds() {
         if (adType === "banner") {
             const matchingAd = matchingAds[0] // Only allow a single banner
-            const bannerHtml = createBannerHtml();
+            if (!matchingAd) {return null}
+            const bannerHtml = createBannerHtml(matchingAd);
             return <InterruptingMessage
             messageName={matchingAd.campaignId}
             messageHTML={bannerHtml}
