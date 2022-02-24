@@ -797,6 +797,35 @@ class TermMatcher:
         return matches
 
 
+class IbidHistory:
+
+    def __init__(self, last_n_to_store: int = 3):
+        self.last_n_to_store = last_n_to_store
+        self._last_match: Optional[text.Ref] = None
+        self._last_titles: List[str] = []
+        self._title_ref_map: Dict[str, text.Ref] = {}
+
+    def _get_last_match(self) -> Optional[text.Ref]:
+        return
+
+    def _set_last_match(self, oref: text.Ref):
+        self._last_match = oref
+        title = oref.index.title
+        if title not in self._title_ref_map:
+            self._last_titles += [title]
+        self._title_ref_map[oref.index.title] = oref
+
+        # enforce last_n_to_store
+        if len(self._last_titles) > self.last_n_to_store:
+            oldest_title = self._last_titles.pop(0)
+            del self._title_ref_map[oldest_title]
+
+    last_match = property(_get_last_match, _set_last_match)
+
+    def get_match_by_title(self, title: str) -> Optional[text.Ref]:
+        return self._title_ref_map.get(title, None)
+
+
 class RefResolver:
 
     def __init__(self, raw_ref_model_by_lang: Dict[str, Language], raw_ref_part_model_by_lang: Dict[str, Language],
@@ -807,19 +836,32 @@ class RefResolver:
         self._ref_part_title_trie_by_lang = ref_part_title_trie_by_lang
         self._ref_part_title_graph = ref_part_title_graph
         self._term_matcher_by_lang = term_matcher_by_lang
+        self._ibid_history = IbidHistory()
 
-    def bulk_resolve_refs(self, lang: str, context_refs: List[Optional[text.Ref]], input: List[str], with_failures=False, verbose=False) -> List[List[ResolvedRawRef]]:
+    def reset_ibid_history(self):
+        self._ibid_history = IbidHistory()
+
+    def bulk_resolve_refs(self, lang: str, context_refs: List[Optional[text.Ref]], input: List[str], with_failures=False, verbose=False, reset_ibids_every_context_ref=True) -> List[List[ResolvedRawRef]]:
+        self.reset_ibid_history()
         all_raw_refs = self._bulk_get_raw_refs(lang, input)
         resolved = []
         iter = zip(context_refs, all_raw_refs)
         if verbose:
             iter = tqdm(iter, total=len(context_refs))
         for context_ref, raw_refs in iter:
+            if reset_ibids_every_context_ref:
+                self.reset_ibid_history()
             inner_resolved = []
             for raw_ref in raw_refs:
                 temp_resolved = self.resolve_raw_ref(lang, context_ref, raw_ref)
                 if len(temp_resolved) == 0 and with_failures:
                     inner_resolved += [ResolvedRawRef(raw_ref, [], None, None, context_ref=context_ref)]
+                if len(temp_resolved) != 1:
+                    # no result or ambiguous
+                    # can't be sure about future ibid inferences
+                    self.reset_ibid_history()
+                else:
+                    self._ibid_history.last_match = temp_resolved[0].ref
                 inner_resolved += temp_resolved
             resolved += [inner_resolved]
         return resolved
@@ -965,7 +1007,8 @@ class RefResolver:
         if len(matches) == 0:
             # TODO current assumption is only need to add context title if no matches. but it's possible this is necessary even if there were matches
             title_context_matches = self._get_unrefined_ref_part_matches_for_title_context(lang, context_ref, raw_ref)
-            matches = title_context_matches
+            ibid_title_context_matches = self._get_unrefined_ref_part_matches_for_title_context(lang, self._ibid_history.last_match, raw_ref)
+            matches = title_context_matches + ibid_title_context_matches
         return matches
 
     def _get_unrefined_ref_part_matches_for_title_context(self, lang: str, context_ref: Optional[text.Ref], raw_ref: RawRef) -> List[ResolvedRawRef]:
