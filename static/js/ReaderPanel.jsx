@@ -545,7 +545,7 @@ class ReaderPanel extends Component {
     if (this.state.settings.language == "bilingual") {
       return this.state.width > 500 ? this.state.settings.biLayout : "stacked";
     }
-    if (this.state.mode === "Connections") {return "segmented"}
+    if (["Connections", "TextAndConnections", "SheetAndConnections"].indexOf(this.state.mode) !== -1) {return "segmented"}
     const category = this.currentCategory();
     const option = (category && (category === "Tanakh" || category === "Talmud")) ? "layout" + category : "layoutDefault";
     return this.state.settings[option];
