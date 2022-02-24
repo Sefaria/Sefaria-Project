@@ -413,13 +413,6 @@ class ResolvedRawRef:
         """
         return ResolvedRawRef(**{**self.__dict__, **kwargs})
 
-    def get_unused_ref_parts_or_section_contexts(self, section_contexts: List[SectionContext]) -> Set[RawRefPart]:
-        """
-        Return ref parts or section contexts which haven't yet been used in this match
-        """
-        all_parts = set(self.raw_ref.raw_ref_parts + section_contexts)
-        return all_parts - set(self.resolved_parts)
-
     def has_prev_unused_numbered_ref_part(self, raw_ref_part: RawRefPart) -> bool:
         """
         Helper function to avoid matching AddressInteger sections out of order
