@@ -34,8 +34,10 @@ def duplicate_terms():
     t.delete()
     s.delete()
 
+
 def model(project_name: str) -> Language:
     return spacy.load(f'/home/nss/sefaria/data/research/prodigy/output/{project_name}/model-last')
+
 
 def create_raw_ref_params(lang, input_str, span_indexes, part_types):
     nlp = Hebrew() if lang == 'he' else library.get_ref_resolver().get_raw_ref_part_model(lang)
@@ -43,6 +45,7 @@ def create_raw_ref_params(lang, input_str, span_indexes, part_types):
     span = doc[0:]
     part_spans = [span[index] for index in span_indexes]
     return [RawRefPart(part_type, part_span) for part_type, part_span in zip(part_types, part_spans)], span
+
 
 def create_raw_ref_data(context_tref, lang, input_str, span_indexes, part_types):
     raw_ref = RawRef(*create_raw_ref_params(lang, input_str, span_indexes, part_types))
@@ -61,12 +64,14 @@ def test_referenceable_child():
     child = i.nodes.get_referenceable_child(Ref("Rashi on Berakhot 2a"))
     assert isinstance(child, DiburHamatchilNodeSet)
 
+
 def test_resolved_raw_ref_clone():
     index = library.get_index("Berakhot")
     raw_ref, context_ref, lang = create_raw_ref_data("Job 1", 'he', "בבלי ברכות דף ב", [0, 1, slice(2, 4)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED])
     rrr = ResolvedRawRef(raw_ref, [], index.nodes, Ref("Berakhot"))
     rrr_clone = rrr.clone(ref=Ref("Genesis"))
-    assert  rrr_clone.ref == Ref("Genesis")
+    assert rrr_clone.ref == Ref("Genesis")
+
 
 @pytest.mark.parametrize(('resolver_data', 'expected_trefs'), [
     # Numbered JAs
@@ -166,6 +171,7 @@ def test_full_pipeline_ref_resolver(context_tref, input_str, lang, expected_tref
         assert matched_oref == Ref(expected_tref)
     for match in resolved:
         assert input_str[slice(*match.raw_ref.char_indices)] == match.raw_ref.text
+
 
 @pytest.mark.parametrize(('input_addr_str', 'AddressClass','expected_sections'), [
     ['פ"ח', schema.AddressPerek, ([8, 88], [8, 88], [schema.AddressPerek, schema.AddressInteger])],
