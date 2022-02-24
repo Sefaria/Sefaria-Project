@@ -407,6 +407,13 @@ const Strings = {
     "My Notes": "הרשומות שלי",
     "Updates": "עדכונים",
     "Preferred Translation": "תרגום מועדף",
+    "Text Title": "כותר לועזי",
+    "Hebrew Title": "כותר עברי",
+    "Text Structure": "מבנה טקסט",
+    "Category": "קטגוריה",
+    "Alternate Hebrew Titles": "חלופות כותר עבריות",
+    "Alternate English Titles": "חלופות כותר לועזיות",
+    "Optional": "אופציונלי",
 
     //user stats
     "Torah Tracker" : "לימוד במספרים",
