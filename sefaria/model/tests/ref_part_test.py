@@ -47,10 +47,13 @@ def create_raw_ref_params(lang, input_str, span_indexes, part_types):
     return [RawRefPart(part_type, part_span) for part_type, part_span in zip(part_types, part_spans)], span
 
 
-def create_raw_ref_data(context_tref, lang, input_str, span_indexes, part_types):
+def create_raw_ref_data(context_tref, lang, input_str, span_indexes, part_types, prev_matches_trefs=None):
+    """
+    Just reflecting prev_matches_trefs here b/c pytest.parametrize cant handle optional parameters
+    """
     raw_ref = RawRef(*create_raw_ref_params(lang, input_str, span_indexes, part_types))
     context_oref = context_tref and Ref(context_tref)
-    return raw_ref, context_oref, lang
+    return raw_ref, context_oref, lang, prev_matches_trefs
 
 
 def test_duplicate_terms(duplicate_terms):
@@ -68,7 +71,7 @@ def test_referenceable_child():
 
 def test_resolved_raw_ref_clone():
     index = library.get_index("Berakhot")
-    raw_ref, context_ref, lang = create_raw_ref_data(None, 'he', "בבלי ברכות דף ב", [0, 1, slice(2, 4)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED])
+    raw_ref, context_ref, lang, _ = create_raw_ref_data(None, 'he', "בבלי ברכות דף ב", [0, 1, slice(2, 4)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED])
     rrr = ResolvedRawRef(raw_ref, [], index.nodes, Ref("Berakhot"))
     rrr_clone = rrr.clone(ref=Ref("Genesis"))
     assert rrr_clone.ref == Ref("Genesis")
@@ -114,7 +117,8 @@ crrd = create_raw_ref_data
     [crrd(None, 'he', 'בראשית יג:א-יד:ד', [0, 1, 3, 4, 5, 7], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED, RPT.NUMBERED]), ("Genesis 13:1-14:4",)],
     # Base text context
     [crrd("Rashi on Berakhot 2a", 'he', 'ובתוס\' כ"ז ע"ב ד"ה והלכתא', [slice(0, 2), slice(2, 4), slice(4, 6)], [RPT.NAMED, RPT.NUMBERED, RPT.DH]), ("Tosafot on Berakhot 27b:14:2",)],  # shared context child via graph context
-
+    # Ibid last match
+    [crrd(None, 'he', 'פרק ד', [slice(0, 2)], [RPT.NUMBERED], ["Genesis 1"]), ("Genesis 4",)],
     # YERUSHALMI EN
     [crrd("Jerusalem Talmud Shabbat 1:1", 'en', 'Bavli 2a', [0, 1], [RPT.NAMED, RPT.NUMBERED]), ("Shabbat 2a",)],
     [crrd("Jerusalem Talmud Shabbat 1:1", 'en', 'Berakhot 2:1', [0, 1, 3], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Jerusalem Talmud Berakhot 2:1",)],
@@ -146,7 +150,14 @@ crrd = create_raw_ref_data
 ])
 def test_resolve_raw_ref(resolver_data, expected_trefs):
     ref_resolver = library.get_ref_resolver()
-    raw_ref, context_ref, lang = resolver_data
+    ref_resolver.reset_ibid_history()  # reset from previous test runs
+    raw_ref, context_ref, lang, prev_matches_trefs = resolver_data
+    if prev_matches_trefs:
+        for prev_tref in prev_matches_trefs:
+            if prev_tref is None:
+                ref_resolver.reset_ibid_history()
+            else:
+                ref_resolver._ibid_history.last_match = Ref(prev_tref)
     print('Input:', raw_ref.text)
     matches = ref_resolver.resolve_raw_ref(lang, context_ref, raw_ref)
     matched_orefs = sorted([match.ref for match in matches], key=lambda x: x.normal())

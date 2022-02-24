@@ -806,7 +806,7 @@ class IbidHistory:
         self._title_ref_map: Dict[str, text.Ref] = {}
 
     def _get_last_match(self) -> Optional[text.Ref]:
-        return
+        return self._last_match
 
     def _set_last_match(self, oref: text.Ref):
         self._last_match = oref
