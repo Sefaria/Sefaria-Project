@@ -450,6 +450,9 @@ if DOWN_FOR_MAINTENANCE:
     urlpatterns = [
         url(r'^admin/reset/cache', sefaria_views.reset_cache),
         url(r'^admin/?', include(admin.site.urls)),
+        url(r'^healthz/?$', reader_views.application_health_api),  # this oddly is returning 'alive' when it's not.  is k8s jumping in the way?
+        url(r'^health-check/?$', reader_views.application_health_api),
+        url(r'^healthz-rollout/?$', reader_views.rollout_health_api),
     ]
     # Everything else gets maintenance message
     urlpatterns += [
