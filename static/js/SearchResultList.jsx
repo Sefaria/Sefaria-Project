@@ -36,7 +36,7 @@ const SearchTopic = (props) => {
                 <div className="topicDescSearchResult systemText">
                    <InterfaceText text={{en:props.topic["enDesc"], he:props.topic["heDesc"]}}/>
                 </div> : null}
-            {"numSources" in props.topic ?
+            {props.topic.numSources > 0 || props.topic.numSheets > 0 ?
                 <div className="topicSourcesSheets systemText">
                     <InterfaceText>{props.topic["numSources"]}</InterfaceText> {sources} ∙ <InterfaceText>{props.topic["numSheets"]}</InterfaceText> {sheets}
                 </div> : null}
@@ -144,10 +144,13 @@ class SearchResultList extends Component {
         }
     }
     addGeneralTopic(topic) {
-        let searchTopic = {}
         Sefaria.getTopic(topic.key, {annotate_time_period: true}).then(d => {
-            searchTopic.title = d.primaryTitle["en"];
-            searchTopic.heTitle = d.primaryTitle["he"];
+            let searchTopic = {
+                title: d.primaryTitle["en"],
+                heTitle: d.primaryTitle["he"],
+                numSources: 0,
+                numSheets: 0
+            }
             const typeObj = Sefaria.topicTocCategory(topic.key);
             searchTopic.url = "/topics/" + topic.key;
             if (!typeObj) {
@@ -163,6 +166,8 @@ class SearchResultList extends Component {
             }
             if (d.tabs?.sources) {
                 searchTopic.numSources = d.tabs.sources.refs.length;
+            }
+            if (d.tabs?.sheets) {
                 searchTopic.numSheets = d.tabs.sheets.refs.length;
             }
             this.setState({topics: this.state.topics.concat([searchTopic])});
