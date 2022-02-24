@@ -1960,7 +1960,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
     position: relative;
     margin-bottom: 4px;
 }
-#mobilePage .colorLine {
+.colorLine {
   width: 100%;
   height: 4px;
   z-index: 101;

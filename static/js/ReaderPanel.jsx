@@ -110,7 +110,7 @@ class ReaderPanel extends Component {
     // Because it's called in the constructor, assume state isnt necessarily defined and pass 
     // variables mode and menuOpen manually
     let contentLangOverride = originalLanguage;
-    if (["topics", "topicsAll", "story_editor", "calendars", "community" ].includes(menuOpen)) {
+    if (["topics", "allTopics", "story_editor", "calendars", "community", "collection" ].includes(menuOpen)) {
       // Always bilingual for English interface, always Hebrew for Hebrew interface
       contentLangOverride = (Sefaria.interfaceLang === "english") ? "bilingual" : "hebrew";
 
@@ -166,7 +166,7 @@ class ReaderPanel extends Component {
     if (this.props.multiPanel) {
       this.props.onCitationClick(citationRef, textRef, replace, currVersions);
     } else {
-      this.showBaseText(citationRef, currVersions);
+      this.showBaseText(citationRef, replace, currVersions);
     }
   }
   handleTextListClick(ref, replaceHistory, currVersions) {

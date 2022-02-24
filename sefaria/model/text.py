@@ -1024,6 +1024,7 @@ class AbstractTextRecord(object):
     text_attr = "chapter"
     ALLOWED_TAGS    = ("i", "b", "br", "u", "strong", "em", "big", "small", "img", "sup", "sub", "span", "a")
     ALLOWED_ATTRS   = {
+        'sup': ['class'],
         'span':['class', 'dir'],
         # There are three uses of i tags.
         # footnotes: uses content internal to <i> tag.
@@ -1031,7 +1032,7 @@ class AbstractTextRecord(object):
         # structure placement (e.g. page transitions): uses 'data-overlay', 'data-value'
         'i': ['data-overlay', 'data-value', 'data-commentator', 'data-order', 'class', 'data-label', 'dir'],
         'img': lambda name, value: name == 'src' and value.startswith("data:image/"),
-        'a': ['dir', 'class', 'href', 'data-ref'],
+        'a': ['dir', 'class', 'href', 'data-ref', "data-ven", "data-vhe"],
     }
 
     def word_count(self):
@@ -2811,7 +2812,14 @@ class Ref(object, metaclass=RefCacheType):
             base_wout_title = base.replace(title + " ", "")
             address_class.parse_range_end(self, parts, base_wout_title)
         elif len(parts) == 2: # Parse range end portion, if it exists
-            self._parse_range_end(re.split("[.:, ]+", parts[1]))
+            try:
+                second_part = Ref(parts[1])
+                assert second_part.book == self.book, "the two sides of the range have different books"
+                self.toSections = Ref(parts[1]).sections
+            except InputError:
+                self._parse_range_end(re.split("[.:, ]+", parts[1]))
+            except AssertionError:
+                raise InputError("the two sides of the range have different books: '{}'.".format(self.tref))
 
 
     def _parse_range_end(self, range_parts):
@@ -3457,14 +3465,17 @@ class Ref(object, metaclass=RefCacheType):
         if isinstance(self.index_node, JaggedArrayNode):
             r = self.padded_ref()
         elif isinstance(self.index_node, TitledTreeNode):
-            first_leaf = self.index_node.first_leaf()
-            if not first_leaf:
-                return None
-            try:
-                r = first_leaf.ref().padded_ref()
-            except Exception as e: #VirtualNodes dont have a .ref() function so fall back to VersionState
-                if self.is_book_level():
-                    return self.index.versionSet().array()[0].first_section_ref()
+            if self.is_segment_level():  # dont need to use first_leaf if we're already at segment level
+                r = self
+            else:
+                first_leaf = self.index_node.first_leaf()
+                if not first_leaf:
+                    return None
+                try:
+                    r = first_leaf.ref().padded_ref()
+                except Exception as e: #VirtualNodes dont have a .ref() function so fall back to VersionState
+                    if self.is_book_level():
+                        return self.index.versionSet().array()[0].first_section_ref()
         else:
             return None
 
