@@ -859,6 +859,7 @@ class RefResolver:
                 if len(temp_resolved) != 1:
                     # no result or ambiguous
                     # can't be sure about future ibid inferences
+                    # TODO can probably salvage parts of history if matches are ambiguous within one book
                     self.reset_ibid_history()
                 else:
                     self._ibid_history.last_match = temp_resolved[0].ref
