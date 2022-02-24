@@ -110,7 +110,7 @@ class ReaderPanel extends Component {
     // Because it's called in the constructor, assume state isnt necessarily defined and pass 
     // variables mode and menuOpen manually
     let contentLangOverride = originalLanguage;
-    if (["topics", "topicsAll", "story_editor", "calendars", "community" ].includes(menuOpen)) {
+    if (["topics", "allTopics", "story_editor", "calendars", "community", "collection" ].includes(menuOpen)) {
       // Always bilingual for English interface, always Hebrew for Hebrew interface
       contentLangOverride = (Sefaria.interfaceLang === "english") ? "bilingual" : "hebrew";
 
@@ -545,6 +545,8 @@ class ReaderPanel extends Component {
     if (this.state.settings.language == "bilingual") {
       return this.state.width > 500 ? this.state.settings.biLayout : "stacked";
     }
+    // dont allow continuous mode in sidebar since it's currently not possible to control layout from sidebar
+    if (this.state.mode === "Connections") {return "segmented"}
     const category = this.currentCategory();
     const option = (category && (category === "Tanakh" || category === "Talmud")) ? "layout" + category : "layoutDefault";
     return this.state.settings[option];

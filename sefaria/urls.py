@@ -107,7 +107,6 @@ urlpatterns += [
 
 # Texts Add / Edit / Translate
 urlpatterns += [
-    url(r'^edit/textinfo/(?P<title>.+)$', reader_views.edit_text_info),
     url(r'^add/textinfo/(?P<new_title>.+)$', reader_views.edit_text_info),
     url(r'^add/new/?$', reader_views.edit_text),
     url(r'^add/(?P<ref>.+)$', reader_views.edit_text),
@@ -144,8 +143,8 @@ urlpatterns += [
     url(r'^api/index/?$', reader_views.table_of_contents_api),
     url(r'^api/opensearch-suggestions/?$', reader_views.opensearch_suggestions_api),
     url(r'^api/index/titles/?$', reader_views.text_titles_api),
-    url(r'^api/v2/raw/index/(?P<title>.+)$', reader_views.index_api, {'v2': True, 'raw': True}),
-    url(r'^api/v2/index/(?P<title>.+)$', reader_views.index_api, {'v2': True}),
+    url(r'^api/v2/raw/index/(?P<title>.+)$', reader_views.index_api, {'raw': True}),
+    url(r'^api/v2/index/(?P<title>.+)$', reader_views.index_api),
     url(r'^api/index/(?P<title>.+)$', reader_views.index_api),
     url(r'^api/links/bare/(?P<book>.+)/(?P<cat>.+)$', reader_views.bare_link_api),
     url(r'^api/links/(?P<link_id_or_ref>.*)$', reader_views.links_api),
@@ -451,6 +450,9 @@ if DOWN_FOR_MAINTENANCE:
     urlpatterns = [
         url(r'^admin/reset/cache', sefaria_views.reset_cache),
         url(r'^admin/?', include(admin.site.urls)),
+        url(r'^healthz/?$', reader_views.application_health_api),  # this oddly is returning 'alive' when it's not.  is k8s jumping in the way?
+        url(r'^health-check/?$', reader_views.application_health_api),
+        url(r'^healthz-rollout/?$', reader_views.rollout_health_api),
     ]
     # Everything else gets maintenance message
     urlpatterns += [

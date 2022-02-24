@@ -42,7 +42,6 @@
     "postinstall": "patch-package"
   },
   "dependencies": {
-    "@mozilla/readability": "^0.4.1",
     "body-parser": "^1.15.1",
     "buffer": "^6.0.3",
     "cheerio": "^0.22.0",

@@ -46,7 +46,7 @@ from sefaria.system.multiserver.coordinator import server_coordinator
 
 
 class AbstractIndex(object):
-    def contents(self, v2=False, raw=False, **kwargs):
+    def contents(self, raw=False, **kwargs):
         pass
 
     def versionSet(self):
@@ -144,7 +144,7 @@ class AbstractIndex(object):
         Returns the `contents` dictionary with each node annotated with section lengths info
         from version_state.
         """
-        contents = self.contents(v2=True)
+        contents = self.contents()
         vstate   = self.versionState()
 
         def simplify_version_state(vstate_node):
@@ -242,22 +242,19 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
     def is_complex(self):
         return getattr(self, "nodes", None) and self.nodes.has_children()
 
-    def contents(self, v2=False, raw=False, force_complex=False, with_content_counts=False, with_related_topics=False, **kwargs):
+    def contents(self, raw=False, with_content_counts=False, with_related_topics=False, **kwargs):
         if raw:
             contents = super(Index, self).contents()
-        elif v2:
+        else:
             # adds a set of legacy fields like 'titleVariants', expands alt structures with preview, etc.
             contents = self.nodes.as_index_contents()
             if with_content_counts:
                 contents["schema"] = self.annotate_schema_with_content_counts(contents["schema"])
                 contents["firstSectionRef"] = Ref(self.title).first_available_section_ref().normal()
-        else:
-            contents = self.legacy_form(force_complex=force_complex)
 
-        if not raw:
             contents = self.expand_metadata_on_contents(contents)
-
         return contents
+
 
     def annotate_schema_with_content_counts(self, schema):
         """
@@ -323,40 +320,6 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             }
 
         return contents
-
-    def legacy_form(self, force_complex=False):
-        """
-        :param force_complex: Forces a complex Index record into legacy form
-        :return: Returns an Index object as a flat dictionary, in version one form.
-        :raise: Exception if the Index cannot be expressed in the old form
-        """
-        if not self.nodes.is_flat() and not force_complex:
-            raise InputError("Index record {} can not be converted to legacy API form".format(self.title))
-
-        d = {
-            "title": self.title,
-            "categories": self.categories[:],
-            "titleVariants": self.nodes.all_node_titles("en"),
-        }
-
-        if self.nodes.is_flat():
-            d["sectionNames"] = self.nodes.sectionNames[:]
-            d["heSectionNames"] = list(map(hebrew_term, self.nodes.sectionNames))
-            d["addressTypes"] = self.nodes.addressTypes[:]  # This isn't legacy, but it was needed for checkRef
-            d["textDepth"] = len(self.nodes.sectionNames)
-        if getattr(self, "order", None):
-            d["order"] = self.order[:]
-        if getattr(self.nodes, "lengths", None):
-            d["lengths"] = self.nodes.lengths[:]
-            d["length"] = self.nodes.lengths[0]
-        if self.nodes.primary_title("he"):
-            d["heTitle"] = self.nodes.primary_title("he")
-        if self.nodes.all_node_titles("he"):
-            d["heTitleVariants"] = self.nodes.all_node_titles("he")
-        else:
-            d["heTitleVariants"] = []
-
-        return d
 
     def _saveable_attrs(self):
         d = {k: getattr(self, k) for k in self._saveable_attr_keys() if hasattr(self, k)}
@@ -1028,6 +991,7 @@ class AbstractTextRecord(object):
     text_attr = "chapter"
     ALLOWED_TAGS    = ("i", "b", "br", "u", "strong", "em", "big", "small", "img", "sup", "sub", "span", "a")
     ALLOWED_ATTRS   = {
+        'sup': ['class'],
         'span':['class', 'dir'],
         # There are three uses of i tags.
         # footnotes: uses content internal to <i> tag.
@@ -2802,7 +2766,14 @@ class Ref(object, metaclass=RefCacheType):
             base_wout_title = base.replace(title + " ", "")
             address_class.parse_range_end(self, parts, base_wout_title)
         elif len(parts) == 2: # Parse range end portion, if it exists
-            self._parse_range_end(re.split("[.:, ]+", parts[1]))
+            try:
+                second_part = Ref(parts[1])
+                assert second_part.book == self.book, "the two sides of the range have different books"
+                self.toSections = Ref(parts[1]).sections
+            except InputError:
+                self._parse_range_end(re.split("[.:, ]+", parts[1]))
+            except AssertionError:
+                raise InputError("the two sides of the range have different books: '{}'.".format(self.tref))
 
 
     def _parse_range_end(self, range_parts):
@@ -3448,14 +3419,17 @@ class Ref(object, metaclass=RefCacheType):
         if isinstance(self.index_node, JaggedArrayNode):
             r = self.padded_ref()
         elif isinstance(self.index_node, TitledTreeNode):
-            first_leaf = self.index_node.first_leaf()
-            if not first_leaf:
-                return None
-            try:
-                r = first_leaf.ref().padded_ref()
-            except Exception as e: #VirtualNodes dont have a .ref() function so fall back to VersionState
-                if self.is_book_level():
-                    return self.index.versionSet().array()[0].first_section_ref()
+            if self.is_segment_level():  # dont need to use first_leaf if we're already at segment level
+                r = self
+            else:
+                first_leaf = self.index_node.first_leaf()
+                if not first_leaf:
+                    return None
+                try:
+                    r = first_leaf.ref().padded_ref()
+                except Exception as e: #VirtualNodes dont have a .ref() function so fall back to VersionState
+                    if self.is_book_level():
+                        return self.index.versionSet().array()[0].first_section_ref()
         else:
             return None
 
