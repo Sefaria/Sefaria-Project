@@ -252,7 +252,7 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
 .smallText .int-en,
 .smallText .int-he.enInHe {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: normal;
   color: #999;
 }
@@ -303,7 +303,7 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
 .smallText .int-he,
 .smallText .int-en.heInEn {
   font-family: "Heebo", sans-serif;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: normal;
   color: #999;
 }
@@ -1868,20 +1868,32 @@ div.interfaceLinks-row a {
   margin-bottom: 40px;
 }
 .topicPanel .readings .parasha-date {
+  font-style: italic;
+}
+.topicPanel .readings .parasha-date > span:first-child::after {
+  content: '•';
+  color: #999;
+  font-size: 15px;
+  margin: 0 5px;
 }
 .topicPanel .readings .sectionTitleText {
   margin-top: 15px;
 }
 .topicPanel .readings .sectionTitleText .int-en,
 .topicPanel .readings .sectionTitleText .int-he {
-  font-size: 13px;
+  font-size: 16px;
+  line-height: 18.75px;
+  text-transform: initial;
+}
+.topicPanel .readings .parasha .navSidebarLink {
+  margin-bottom: 0;
+}
+.topicPanel .readings .parasha .aliyot {
+  margin-inline-start: 25px;
 }
 .topicPanel .readings .haftarot {
   display: flex;
   flex-direction: column;
-}
-.topicPanel .readings .sectionTitleText:first-child {
-  margin-top: 20px;
 }
 .topicPanel .mainColumn {
   padding: 0 40px;
@@ -2274,6 +2286,10 @@ a.navBlockTitle:hover {
   padding-right: 44px;
   padding-left: 44px;
 }
+.sidebarPromo:not(:first-child) {
+  margin-top: 34px;
+}
+
 .navSidebarModule .sidebarPromo {
   margin-right: -44px;
   margin-left: -44px;
@@ -2793,9 +2809,15 @@ a.navBlockTitle:hover {
 .bookPage .moderatorSectionExpand:hover {
   text-decoration: underline;
 }
-.bookPage .moderatorSection .button {
+.interface-english .bookPage .moderatorSection .button {
   padding: 12px 16px;
-  font-size: 13px;
+  font-size: 16px;
+  margin: 0 0 0 10px;
+}
+.interface-hebrew .bookPage .moderatorSection .button {
+  padding: 12px 16px;
+  font-size: 16px;
+  margin: 0 10px 0 0;
 }
 .bookPage .moderatorSection .moderatorSectionMessage {
   margin-top: 20px;
@@ -2946,6 +2968,19 @@ a.navBlockTitle:hover {
   padding: 0 6px;
   box-sizing: border-box;
 }
+.textTableOfContents .torahNavParshiot .sectionLink,
+.connectionsPanel .textTableOfContents .torahNavParshiot .sectionLink,
+.topicPanel .readings .sectionLink{
+  display: initial;
+  background-color: initial;
+  font-size: 14px;
+  margin: 0;
+  padding: 0 4px;
+  line-height: 30px;
+  color: var(--medium-grey);
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
 .connectionsPanel .textTableOfContents .sectionLink {
   background-color: #ffffff;
   color: #000000;
@@ -2953,6 +2988,10 @@ a.navBlockTitle:hover {
 .textTableOfContents .sectionLink.current{
   background-color: var(--sefaria-blue);
   color: #FFFFFF;
+}
+.textTableOfContents .torahNavParshiot .sectionLink.current{
+  color: var(--sefaria-blue);
+  font-weight: bold;
 }
 .textTableOfContents .sectionName {
   display: none;
@@ -2995,6 +3034,10 @@ a.navBlockTitle:hover {
   margin-bottom: 10px;
   cursor: pointer;
 }
+.textTableOfContents .torahNavParshiot .schema-node-title {
+  font-size: 24px;
+  margin-bottom: 0;
+}
 .textTableOfContents .schema-node-toc {
   display: block;
 }
@@ -3003,8 +3046,7 @@ a.navBlockTitle:hover {
   color: var(--sefaria-blue);
   font-weight: bold;
 }
-
-.textTableOfContents .schema-node-toc:not(.linked)>.schema-node-title:after {
+.textTableOfContents .schema-node-toc:not(.linked)>.schema-node-title:not(.fixed):after {
   content: "\f105";
   display: inline-block;
   font-size: inherit;
@@ -3018,17 +3060,17 @@ a.navBlockTitle:hover {
   top: -2px;
   color: var(--medium-grey);
 }
-.textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title.open:after {
+.textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title.open:not(.fixed):after {
   content: "\f107";
 }
-.readerPanel.hebrew .textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title:after,
-.readerApp.interface-hebrew .noLangToggleInHebrew .textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title:after {
+.readerPanel.hebrew .textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title:not(.fixed):after,
+.readerApp.interface-hebrew .noLangToggleInHebrew .textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title:not(.fixed):after {
   content: "\f104";
   font-size: 122%;
   margin-inline-start: 9px;
 }
-.readerPanel.hebrew .textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title.open:after,
-.readerApp.interface-hebrew .noLangToggleInHebrew .textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title.open:after {
+.readerPanel.hebrew .textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title.open:not(.fixed):after,
+.readerApp.interface-hebrew .noLangToggleInHebrew .textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title.open:not(.fixed):after {
   content: "\f107";
 }
 .textTableOfContents .schema-node-contents {
@@ -3036,8 +3078,10 @@ a.navBlockTitle:hover {
   display: block;
   width: 100%;
 }
-.textTableOfContents .schema-node-contents > .tocLevel > .schema-node-toc:not(.janode),
-.torahNavParshiot .tocLevel .schema-node-toc{
+.textTableOfContents .torahNavParshiot .schema-node-contents {
+  margin-bottom: 0;
+}
+.textTableOfContents .schema-node-contents > .tocLevel > .schema-node-toc:not(.janode){
   margin-inline-start: 15px;
 }
 .textTableOfContents .schema-node-contents.closed {
@@ -3049,6 +3093,14 @@ a.navBlockTitle:hover {
 .textTableOfContents .tocLevel {
   display: block;
 }
+.textTableOfContents .torahNavParshiot .tocLevel {
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: space-between;
+}
+.textTableOfContents .torahNavParshiot .tocLevel .schema-node-toc {
+  flex: 1 1 50%;
+}
 .textTableOfContents > .tocLevel > .schema-node-toc {
   margin: 10px 0;
 }
@@ -3059,8 +3111,12 @@ a.navBlockTitle:hover {
   text-decoration: underline;
 }
 .textTableOfContents .specialNavSectionHeader {
-  font-size: 24px;
+  font-size: 16px;
+  line-height: 18.75px;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
   margin-bottom: 10px;
+  color: var(--dark-grey);
 }
 .textTableOfContents .torahNavParshiot{
   margin-top: 30px;
@@ -7932,11 +7988,6 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   min-height: 50px;
   line-height: 50px;
 }
-.topicPanel .smallText .separator {
-  color: #999;
-  font-size: 20px;
-  margin: 0 3px;
-}
 .topicFilterBox {
   display: flex;
   align-items: center;
@@ -10917,6 +10968,168 @@ body .homeFeedWrapper.userStats {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   background-color: #faf9f9;
 }
+
+.bookPage .editTextInfo {
+  top: 0px;
+  right: 0px;
+  left: 0px;
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  overflow: auto;
+  z-index: 1;
+  background-color:  var(--lighter-grey);
+
+}
+
+.bookPage .editTextInfo .static .inner {
+  padding: 5px 0 100px;
+}
+.bookPage .editTextInfo .static input {
+  cursor: auto;
+  color: #000000;
+}
+.bookPage .editTextInfo .static label {
+  margin-bottom: 15px;
+}
+.bookPage .editTextInfo #newIndex {
+  margin: 100px auto;
+  font-size: 16px;
+  font-weight: normal;
+  color: #000;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
+
+.bookPage .editTextInfo #newIndex .publishBox {
+  text-align: start;
+  background-color: #EDEDEC;
+  border-radius: 6px;
+  padding: 0 0 0 0;
+  margin: 0 0 0 0;
+  width: 660px;
+  max-width: 100%;
+}
+.bookPage .editTextInfo #newIndex .publishBox .react-tags__selected-tag-name {
+  --english-font: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  --hebrew-font: "Heebo", sans-serif;
+  font-size: 18px;
+  font-weight: normal;
+  color: #000;
+}
+#categoryChooserMenu {
+  overflow: hidden;
+  background: url("/static/img/arrow-down.png") 640px 20px/10px 10px no-repeat #ffffff;
+  width: 660px;
+  height: 50px;
+  margin: 0 0 10px 0;
+  border-radius: 7px;
+  box-shadow: 0px 1px 3px rgb(0 0 0 / 20%);
+  border: none;
+}
+#categoryChooserMenu select {
+  background: transparent;
+  font-size: 16px;
+  width: 680px;
+  border: none;
+  margin: 0 0 10px 0;
+  padding: 4px 25px 4px 10px;
+}
+
+#categoryChooserMenu img {
+  opacity: 0.43;
+  padding: 0 5px;
+  height: 10px;
+  width: 10px;
+}
+
+.bookPage .editTextInfo #newIndex .publishBox .react-tags__selected-tag {
+  margin: 0 12px 12px 0;
+  padding: 12px 14px;
+}
+
+.bookPage .editTextInfo #newIndex .publishBox input {
+  box-shadow: none;
+}
+
+.bookPage .editTextInfo #newIndex .publishBox .react-tags__search {
+  padding: 0 0 0 0;
+}
+
+.bookPage .editTextInfo #newIndex .optional {
+  font-size: 13px;
+  color: var(--light-grey);
+  font: var(--english-sans-serif-font-family);
+}
+
+.bookPage .editTextInfo #newIndex input {
+  padding: 4px 10px 4px 10px;
+  width: 640px;
+  height: 50px;
+  font-size: 16px;
+  margin: 0 0 10px 0;
+  max-width: 100%;
+}
+
+.bookPage .editTextInfo #newIndex #heTitle {
+  direction: rtl;
+}
+.interface-english .bookPage .editTextInfo .static label {
+  text-align: left;
+}
+.interface-hebrew .bookPage .editTextInfo .static label {
+  text-align: right
+}
+.bookPage .editTextInfo #newIndex .sectionType input{
+	width: 100px;
+	margin: 0 5px;
+	font-size: 16px;
+}
+
+.bookPage .editTextInfo #newIndex .remove {
+	color: white;
+	background: #bbb;
+	display: inline-block;
+	height: 18px;
+	width: 18px;
+	line-height: 18px;
+	border-radius: 6px;
+	text-align: center;
+	font-size: 14px;
+	font-family: sans-serif;
+	cursor: pointer;
+	vertical-align: 15%;
+}
+
+.bookPage .editTextInfo #newIndex .sectionType .remove {
+	margin: -5px 11px 0 -32px;
+}
+.bookPage .editTextInfo #newIndex a {
+    color: #666;
+}
+
+.bookPage .editTextInfo .nodeTemplate {
+	display: none;
+}
+@media screen and (max-width: 680px) {
+  #categoryChooserMenu {
+    background: url("/static/img/arrow-down.png") 300px 20px/10px 10px no-repeat #ffffff;
+    width: 320px;
+  }
+  .bookPage .editTextInfo .static .headerWithButtons h1 {
+    margin: 30px;
+  }
+  #categoryChooserMenu select {
+    width: 340px;
+  }
+  .bookPage .editTextInfo #newIndex input {
+    width: 300px;
+  }
+  .bookPage .editTextInfo #newIndex .publishBox {
+    width: 320px;
+  }
+}
+
 .collectionsModalBox {
   position: fixed;
   width: 100%;
@@ -10937,6 +11150,16 @@ body .homeFeedWrapper.userStats {
   border-radius: 8px;
   z-index: 1;
 }
+.bookPage .editTextInfo .collectionsWidget {
+  width: 580px;
+  box-shadow: 0 1px 8px rgba(0, 0, 0, .2);
+  height: 100px;
+  position: absolute;
+  padding: 50px 50px 0 50px;
+  text-align: center;
+  margin-top: 200px;
+}
+
 .collectionsWidgetTop {
   display: flex;
   padding: 15px 20px;

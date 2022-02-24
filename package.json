@@ -42,6 +42,7 @@
     "postinstall": "patch-package"
   },
   "dependencies": {
+    "@hebcal/core": "^3.33.2",
     "body-parser": "^1.15.1",
     "buffer": "^6.0.3",
     "cheerio": "^0.22.0",
