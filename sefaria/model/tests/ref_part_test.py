@@ -49,7 +49,8 @@ def create_raw_ref_params(lang, input_str, span_indexes, part_types):
 
 def create_raw_ref_data(context_tref, lang, input_str, span_indexes, part_types):
     raw_ref = RawRef(*create_raw_ref_params(lang, input_str, span_indexes, part_types))
-    return raw_ref, Ref(context_tref), lang
+    context_oref = context_tref and Ref(context_tref)
+    return raw_ref, context_oref, lang
 
 
 def test_duplicate_terms(duplicate_terms):
@@ -67,7 +68,7 @@ def test_referenceable_child():
 
 def test_resolved_raw_ref_clone():
     index = library.get_index("Berakhot")
-    raw_ref, context_ref, lang = create_raw_ref_data("Job 1", 'he', "בבלי ברכות דף ב", [0, 1, slice(2, 4)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED])
+    raw_ref, context_ref, lang = create_raw_ref_data(None, 'he', "בבלי ברכות דף ב", [0, 1, slice(2, 4)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED])
     rrr = ResolvedRawRef(raw_ref, [], index.nodes, Ref("Berakhot"))
     rrr_clone = rrr.clone(ref=Ref("Genesis"))
     assert rrr_clone.ref == Ref("Genesis")
@@ -75,39 +76,39 @@ def test_resolved_raw_ref_clone():
 
 @pytest.mark.parametrize(('resolver_data', 'expected_trefs'), [
     # Numbered JAs
-    [create_raw_ref_data("Job 1", 'he', "בבלי ברכות דף ב", [0, 1, slice(2, 4)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ("Berakhot 2",)],   # amud-less talmud
-    [create_raw_ref_data("Job 1", 'he', "ברכות דף ב", [0, slice(1, 3)], [RPT.NAMED, RPT.NUMBERED]), ("Berakhot 2",)],  # amud-less talmud
-    [create_raw_ref_data("Job 1", 'he', "בבלי שבת דף ב.", [0, 1, slice(2, 5)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ("Shabbat 2a",)],  # amud-ful talmud
-    [create_raw_ref_data("Job 1", 'he', "בבלי דף ב עמוד א במכות", [0, slice(1, 5), 5], [RPT.NAMED, RPT.NUMBERED, RPT.NAMED]), ("Makkot 2a",)],  # out of order with prefix on title
-    [create_raw_ref_data("Job 1", 'he', 'ספר בראשית פרק יג פסוק א', [slice(0, 2), slice(2, 4), slice(4, 6)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Genesis 13:1",)],
-    [create_raw_ref_data("Job 1", 'he', 'ספר בראשית פסוק א פרק יג', [slice(0, 2), slice(2, 4), slice(4, 6)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Genesis 13:1",)],  # sections out of order
+    [create_raw_ref_data(None, 'he', "בבלי ברכות דף ב", [0, 1, slice(2, 4)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ("Berakhot 2",)],   # amud-less talmud
+    [create_raw_ref_data(None, 'he', "ברכות דף ב", [0, slice(1, 3)], [RPT.NAMED, RPT.NUMBERED]), ("Berakhot 2",)],  # amud-less talmud
+    [create_raw_ref_data(None, 'he', "בבלי שבת דף ב.", [0, 1, slice(2, 5)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ("Shabbat 2a",)],  # amud-ful talmud
+    [create_raw_ref_data(None, 'he', "בבלי דף ב עמוד א במכות", [0, slice(1, 5), 5], [RPT.NAMED, RPT.NUMBERED, RPT.NAMED]), ("Makkot 2a",)],  # out of order with prefix on title
+    [create_raw_ref_data(None, 'he', 'ספר בראשית פרק יג פסוק א', [slice(0, 2), slice(2, 4), slice(4, 6)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Genesis 13:1",)],
+    [create_raw_ref_data(None, 'he', 'ספר בראשית פסוק א פרק יג', [slice(0, 2), slice(2, 4), slice(4, 6)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Genesis 13:1",)],  # sections out of order
 
-    [create_raw_ref_data("Job 1", 'he', "משנה ברכות פרק קמא", [0, 1, slice(2, 4)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ("Mishnah Berakhot 1",)],
-    [create_raw_ref_data("Job 1", 'he', "משנה ברכות פרק בתרא", [0, 1, slice(2, 4)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ("Mishnah Berakhot 9",)],
-    [create_raw_ref_data("Job 1", 'he', 'שמות א ב', [0, 1, 2], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Exodus 1:2",)],  # used to also match Exodus 2:1 b/c would allow mixing integer parts
+    [create_raw_ref_data(None, 'he', "משנה ברכות פרק קמא", [0, 1, slice(2, 4)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ("Mishnah Berakhot 1",)],
+    [create_raw_ref_data(None, 'he', "משנה ברכות פרק בתרא", [0, 1, slice(2, 4)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ("Mishnah Berakhot 9",)],
+    [create_raw_ref_data(None, 'he', 'שמות א ב', [0, 1, 2], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Exodus 1:2",)],  # used to also match Exodus 2:1 b/c would allow mixing integer parts
 
     # Named alt structs
-    [create_raw_ref_data("Job 1", 'he', "פרק אלו דברים בפסחים", [slice(0, 3), 3], [RPT.NAMED, RPT.NAMED]), ("Pesachim 65b:10-73b:16",)],  # talmud perek (that's ambiguous)
-    [create_raw_ref_data("Job 1", 'he', "פרק אלו דברים", [slice(0, 3)], [RPT.NAMED]), ("Pesachim 65b:10-73b:16", "Berakhot 51b:11-53b:33")],  # talmud perek without book that's ambiguous
-    [create_raw_ref_data("Job 1", 'he', "רש\"י פרק יום טוב בביצה", [0, slice(1, 4), 4], [RPT.NAMED, RPT.NAMED, RPT.NAMED]), ("Rashi on Beitzah 15b:1-23b:10",)],  # rashi perek
-    [create_raw_ref_data("Job 1", 'he', "רש\"י פרק מאימתי", [0, slice(1, 3)], [RPT.NAMED, RPT.NAMED]), ("Rashi on Berakhot 2a:1-13a:15",)],  # rashi perek
-    [create_raw_ref_data("Job 1", 'he', "רש\"י פרק כל כנויי נזירות בנזיר ד\"ה כל כינויי נזירות", [0, slice(1, 5), 5, slice(6, 10)], [RPT.NAMED, RPT.NAMED, RPT.NAMED, RPT.DH]), ("Rashi on Nazir 2a:1:1",)],  # rashi perek dibur hamatchil
+    [create_raw_ref_data(None, 'he', "פרק אלו דברים בפסחים", [slice(0, 3), 3], [RPT.NAMED, RPT.NAMED]), ("Pesachim 65b:10-73b:16",)],  # talmud perek (that's ambiguous)
+    [create_raw_ref_data(None, 'he', "פרק אלו דברים", [slice(0, 3)], [RPT.NAMED]), ("Pesachim 65b:10-73b:16", "Berakhot 51b:11-53b:33")],  # talmud perek without book that's ambiguous
+    [create_raw_ref_data(None, 'he', "רש\"י פרק יום טוב בביצה", [0, slice(1, 4), 4], [RPT.NAMED, RPT.NAMED, RPT.NAMED]), ("Rashi on Beitzah 15b:1-23b:10",)],  # rashi perek
+    [create_raw_ref_data(None, 'he', "רש\"י פרק מאימתי", [0, slice(1, 3)], [RPT.NAMED, RPT.NAMED]), ("Rashi on Berakhot 2a:1-13a:15",)],  # rashi perek
+    [create_raw_ref_data(None, 'he', "רש\"י פרק כל כנויי נזירות בנזיר ד\"ה כל כינויי נזירות", [0, slice(1, 5), 5, slice(6, 10)], [RPT.NAMED, RPT.NAMED, RPT.NAMED, RPT.DH]), ("Rashi on Nazir 2a:1:1",)],  # rashi perek dibur hamatchil
     # Numbered alt structs
-    pytest.param(create_raw_ref_data("Job 1", 'he', "פרק קמא בפסחים", [slice(0, 2), 2], [RPT.NUMBERED, RPT.NAMED]), ("Pesachim 2a:1-21a:7", "Mishnah Pesachim 1", "Tosefta Pesachim 1", "Tosefta Pesachim (Lieberman) 1", "Jerusalem Talmud Pesachim 1"), marks=pytest.mark.xfail(reason='need to add lengths to yerushalmi and tosefta lieberman')),  # numbered talmud perek
-    pytest.param(create_raw_ref_data("Job 1", 'he', 'פ"ק בפסחים', [0, 1], [RPT.NUMBERED, RPT.NAMED]), ("Pesachim 2a:1-21a:7", "Mishnah Pesachim 1", "Tosefta Pesachim 1", "Jerusalem Talmud Pesachim 1", "Tosefta Pesachim (Lieberman) 1"), marks=pytest.mark.xfail(reason='need to add lengths to yerushalmi and tosefta lieberman')),  # numbered talmud perek
-    [create_raw_ref_data("Job 1", 'he', "פרק ה בפסחים", [slice(0, 2), 2], [RPT.NUMBERED, RPT.NAMED]), ("Pesachim 58a:1-65b:9", "Mishnah Pesachim 5", "Tosefta Pesachim 5", "Jerusalem Talmud Pesachim 5", "Tosefta Pesachim (Lieberman) 5")],  # numbered talmud perek
-    pytest.param(create_raw_ref_data("Job 1", 'he', 'פ"ה בפסחים', [0, 1], [RPT.NUMBERED, RPT.NAMED]), ("Pesachim 58a:1-65b:9", "Mishnah Pesachim 5", "Pesachim 85", "Tosefta Pesachim 5", "Jerusalem Talmud Pesachim 5", "Tosefta Pesachim (Lieberman) 5"), marks=pytest.mark.xfail(reason='need to add lengths to yerushalmi and tosefta lieberman')),  # numbered talmud perek
-    [create_raw_ref_data("Job 1", 'he', "פרק בתרא בפסחים", [slice(0, 2), 2], [RPT.NUMBERED, RPT.NAMED]), ("Mishnah Pesachim 10", "Pesachim 99b:1-121b:3", "Tosefta Pesachim 10", "Jerusalem Talmud Pesachim 10", "Tosefta Pesachim (Lieberman) 10")],  # numbered talmud perek
-    [create_raw_ref_data("Job 1", 'he', '''מגמ' דרפ"ו דנדה''', [slice(0, 2), 2, 3], [RPT.NAMED, RPT.NUMBERED, RPT.NAMED]), ("Niddah 48a:11-54b:9",)],  # prefixes in front of perek name
+    pytest.param(create_raw_ref_data(None, 'he', "פרק קמא בפסחים", [slice(0, 2), 2], [RPT.NUMBERED, RPT.NAMED]), ("Pesachim 2a:1-21a:7", "Mishnah Pesachim 1", "Tosefta Pesachim 1", "Tosefta Pesachim (Lieberman) 1", "Jerusalem Talmud Pesachim 1"), marks=pytest.mark.xfail(reason='need to add lengths to yerushalmi and tosefta lieberman')),  # numbered talmud perek
+    pytest.param(create_raw_ref_data(None, 'he', 'פ"ק בפסחים', [0, 1], [RPT.NUMBERED, RPT.NAMED]), ("Pesachim 2a:1-21a:7", "Mishnah Pesachim 1", "Tosefta Pesachim 1", "Jerusalem Talmud Pesachim 1", "Tosefta Pesachim (Lieberman) 1"), marks=pytest.mark.xfail(reason='need to add lengths to yerushalmi and tosefta lieberman')),  # numbered talmud perek
+    [create_raw_ref_data(None, 'he', "פרק ה בפסחים", [slice(0, 2), 2], [RPT.NUMBERED, RPT.NAMED]), ("Pesachim 58a:1-65b:9", "Mishnah Pesachim 5", "Tosefta Pesachim 5", "Jerusalem Talmud Pesachim 5", "Tosefta Pesachim (Lieberman) 5")],  # numbered talmud perek
+    pytest.param(create_raw_ref_data(None, 'he', 'פ"ה בפסחים', [0, 1], [RPT.NUMBERED, RPT.NAMED]), ("Pesachim 58a:1-65b:9", "Mishnah Pesachim 5", "Pesachim 85", "Tosefta Pesachim 5", "Jerusalem Talmud Pesachim 5", "Tosefta Pesachim (Lieberman) 5"), marks=pytest.mark.xfail(reason='need to add lengths to yerushalmi and tosefta lieberman')),  # numbered talmud perek
+    [create_raw_ref_data(None, 'he', "פרק בתרא בפסחים", [slice(0, 2), 2], [RPT.NUMBERED, RPT.NAMED]), ("Mishnah Pesachim 10", "Pesachim 99b:1-121b:3", "Tosefta Pesachim 10", "Jerusalem Talmud Pesachim 10", "Tosefta Pesachim (Lieberman) 10")],  # numbered talmud perek
+    [create_raw_ref_data(None, 'he', '''מגמ' דרפ"ו דנדה''', [slice(0, 2), 2, 3], [RPT.NAMED, RPT.NUMBERED, RPT.NAMED]), ("Niddah 48a:11-54b:9",)],  # prefixes in front of perek name
     # Dibur hamatchils
-    [create_raw_ref_data("Job 1", 'he', "רש\"י יום טוב ד\"ה שמא יפשע", [0, slice(1, 3), slice(3, 6)], [RPT.NAMED, RPT.NAMED, RPT.DH]), ("Rashi on Beitzah 15b:8:1",)],
-    [create_raw_ref_data("Job 1", 'he', "רש\"י ביצה ד\"ה שמא יפשע", [0, 1, slice(2, 5)], [RPT.NAMED, RPT.NAMED, RPT.DH]), ("Rashi on Beitzah 15b:8:1",)],
-    [create_raw_ref_data("Job 1", 'he', "רש\"י יום טוב ד\"ה אלא ביבנה", [0, slice(1, 3), slice(3, 6)], [RPT.NAMED, RPT.NAMED, RPT.DH]), ("Rashi on Rosh Hashanah 29b:5:3",)],
-    [create_raw_ref_data("Job 1", 'he', 'שבועות דף כה ע"א תוד"ה חומר', [0, slice(1, 4), 4, 5], [RPT.NAMED, RPT.NUMBERED, RPT.NAMED, RPT.DH]), ("Tosafot on Shevuot 25a:11:1",)],
-    [create_raw_ref_data("Job 1", 'he', "רש\"י דף ב עמוד א בסוכה ד\"ה סוכה ורבי", [0, slice(1, 5), 5, slice(6, 9)], [RPT.NAMED, RPT.NUMBERED, RPT.NAMED, RPT.DH]), ("Rashi on Sukkah 2a:1:1",)], # rashi dibur hamatchil
+    [create_raw_ref_data(None, 'he', "רש\"י יום טוב ד\"ה שמא יפשע", [0, slice(1, 3), slice(3, 6)], [RPT.NAMED, RPT.NAMED, RPT.DH]), ("Rashi on Beitzah 15b:8:1",)],
+    [create_raw_ref_data(None, 'he', "רש\"י ביצה ד\"ה שמא יפשע", [0, 1, slice(2, 5)], [RPT.NAMED, RPT.NAMED, RPT.DH]), ("Rashi on Beitzah 15b:8:1",)],
+    [create_raw_ref_data(None, 'he', "רש\"י יום טוב ד\"ה אלא ביבנה", [0, slice(1, 3), slice(3, 6)], [RPT.NAMED, RPT.NAMED, RPT.DH]), ("Rashi on Rosh Hashanah 29b:5:3",)],
+    [create_raw_ref_data(None, 'he', 'שבועות דף כה ע"א תוד"ה חומר', [0, slice(1, 4), 4, 5], [RPT.NAMED, RPT.NUMBERED, RPT.NAMED, RPT.DH]), ("Tosafot on Shevuot 25a:11:1",)],
+    [create_raw_ref_data(None, 'he', "רש\"י דף ב עמוד א בסוכה ד\"ה סוכה ורבי", [0, slice(1, 5), 5, slice(6, 9)], [RPT.NAMED, RPT.NUMBERED, RPT.NAMED, RPT.DH]), ("Rashi on Sukkah 2a:1:1",)], # rashi dibur hamatchil
     # Ranged refs
-    [create_raw_ref_data("Job 1", 'he', 'ספר בראשית פרק יג פסוק א עד פרק יד פסוק ד', [slice(0, 2), slice(2, 4), slice(4, 6), 6, slice(7, 9), slice(9, 11)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED, RPT.NUMBERED]), ("Genesis 13:1-14:4",)],
-    [create_raw_ref_data("Job 1", 'he', 'בראשית יג:א-יד:ד', [0, 1, 3, 4, 5, 7], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED, RPT.NUMBERED]), ("Genesis 13:1-14:4",)],
+    [create_raw_ref_data(None, 'he', 'ספר בראשית פרק יג פסוק א עד פרק יד פסוק ד', [slice(0, 2), slice(2, 4), slice(4, 6), 6, slice(7, 9), slice(9, 11)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED, RPT.NUMBERED]), ("Genesis 13:1-14:4",)],
+    [create_raw_ref_data(None, 'he', 'בראשית יג:א-יד:ד', [0, 1, 3, 4, 5, 7], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED, RPT.NUMBERED]), ("Genesis 13:1-14:4",)],
     # Base text context
     [create_raw_ref_data("Rashi on Berakhot 2a", 'he', 'ובתוס\' כ"ז ע"ב ד"ה והלכתא', [slice(0, 2), slice(2, 4), slice(4, 6)], [RPT.NAMED, RPT.NUMBERED, RPT.DH]), ("Tosafot on Berakhot 27b:14:2",)],  # shared context child via graph context
 
@@ -138,7 +139,7 @@ def test_resolved_raw_ref_clone():
     [create_raw_ref_data("Gilyon HaShas on Berakhot 30a:2", 'he', '''ותוס' שם ד"ה תרי''', [slice(0, 2), 2, slice(3, 5)], [RPT.NAMED, RPT.IBID, RPT.DH]), ("Tosafot on Berakhot 17b:5:1",)],  # Ibid. TODO need to add context "Berakhot 17b"
 
     # specific books
-    [create_raw_ref_data("Job 1", 'he', 'טור אורח חיים סימן א', [0, slice(1, 3), slice(3, 5)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ("Tur, Orach Chaim 1", )],
+    [create_raw_ref_data(None, 'he', 'טור אורח חיים סימן א', [0, slice(1, 3), slice(3, 5)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ("Tur, Orach Chaim 1", )],
 ])
 def test_resolve_raw_ref(resolver_data, expected_trefs):
     ref_resolver = library.get_ref_resolver()
@@ -156,15 +157,16 @@ def test_resolve_raw_ref(resolver_data, expected_trefs):
 
 
 @pytest.mark.parametrize(('context_tref', 'input_str', 'lang', 'expected_trefs'), [
-    ["Job 1", """גמ' שמזונותן עליך. עיין ביצה דף טו ע"ב רש"י ד"ה שמא יפשע:""", 'he', ("Rashi on Beitzah 15b:8:1",)],
-    ["Job 1", """שם אלא ביתך ל"ל. ע' מנחות מד ע"א תד"ה טלית:""", 'he', ("Tosafot on Menachot 44a:12:1",)],
-    ["Job 1", """גמ' במה מחנכין. עי' מנחות דף עח ע"א תוס' ד"ה אחת:""", 'he',("Tosafot on Menachot 78a:10:1",)],
-    ["Job 1", """cf. Ex. 9:6,5""", 'en', ("Exodus 9:6", "Exodus 9:5")],
+    [None, """גמ' שמזונותן עליך. עיין ביצה דף טו ע"ב רש"י ד"ה שמא יפשע:""", 'he', ("Rashi on Beitzah 15b:8:1",)],
+    [None, """שם אלא ביתך ל"ל. ע' מנחות מד ע"א תד"ה טלית:""", 'he', ("Tosafot on Menachot 44a:12:1",)],
+    [None, """גמ' במה מחנכין. עי' מנחות דף עח ע"א תוס' ד"ה אחת:""", 'he',("Tosafot on Menachot 78a:10:1",)],
+    [None, """cf. Ex. 9:6,5""", 'en', ("Exodus 9:6", "Exodus 9:5")],
     ["Gilyon HaShas on Berakhot 25b:1", 'רש"י תמורה כח ע"ב ד"ה נעבד שהוא מותר. זה רש"י מאוד יפה.', 'he', ("Rashi on Temurah 28b:4:2",)],
 ])
 def test_full_pipeline_ref_resolver(context_tref, input_str, lang, expected_trefs):
     ref_resolver = library.get_ref_resolver()
-    resolved = ref_resolver.bulk_resolve_refs(lang, [Ref(context_tref)], [input_str])[0]
+    context_oref = context_tref and Ref(context_tref)
+    resolved = ref_resolver.bulk_resolve_refs(lang, [context_oref], [input_str])[0]
     assert len(resolved) == len(expected_trefs)
     resolved_orefs = sorted([match.ref for match in resolved], key=lambda x: x.normal())
     for expected_tref, matched_oref in zip(sorted(expected_trefs, key=lambda x: x), resolved_orefs):
