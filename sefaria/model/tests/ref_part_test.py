@@ -257,3 +257,24 @@ def test_address_matches_section_context():
     r = Ref("Berakhot")
     sec_con = SectionContext(schema.AddressType.to_class_by_address_type('Talmud'), 'Daf', 0, 34)
     assert r.index_node.address_matches_section_context(0, sec_con)
+
+
+@pytest.mark.parametrize(('last_n_to_store', 'trefs', 'expected_title_len'), [
+    [1, ('Job 1', 'Job 2', 'Job 3'), (1, 1, 1)],
+    [1, ('Job 1', 'Genesis 2', 'Exodus 3'), (1, 1, 1)],
+    [2, ('Job 1', 'Genesis 2', 'Exodus 3'), (1, 2, 2)],
+
+])
+def test_ibid_history(last_n_to_store, trefs, expected_title_len):
+    ibid = IbidHistory(last_n_to_store)
+    orefs = [Ref(tref) for tref in trefs]
+    for i, (oref, title_len) in enumerate(zip(orefs, expected_title_len)):
+        ibid.last_match = oref
+        end = i-len(orefs)+1
+        start = end-title_len
+        end = None if end == 0 else end
+        curr_refs = orefs[start:end]
+        assert ibid._last_titles == [r.index.title for r in curr_refs]
+        assert len(ibid._title_ref_map) == title_len
+        for curr_ref in curr_refs:
+            assert ibid._title_ref_map[curr_ref.index.title] == curr_ref
