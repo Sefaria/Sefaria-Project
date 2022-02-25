@@ -67,6 +67,7 @@ spec:
   selector:
     app: redis-{{ .Values.deployEnv }}
 ---
+{{- if eq .Values.sandbox "false" }}
 # TODO: This could be made global by matching on label `stackRole: redis` instead
 apiVersion: policy/v1beta1
 kind: PodDisruptionBudget
@@ -80,3 +81,4 @@ spec:
     matchLabels:
       app: redis-{{ .Values.deployEnv }}
 ...
+{{- end }}
