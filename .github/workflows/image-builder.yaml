@@ -26,7 +26,7 @@ jobs:
         uses: docker/metadata-action@v3
         with:
           images: |
-            ${{ secrets.DEV_PROJECT }}/sefaria-${{ matrix.app }}-${{ GITHUB_REF_NAME }}
+            ${{ secrets.DEV_PROJECT }}/sefaria-${{ matrix.app }}-${{ env.GITHUB_REF_NAME }}
           # generate Docker tags based on the following events/attributes
           tags: |
             type=ref,event=branch
@@ -66,7 +66,7 @@ jobs:
         uses: docker/metadata-action@v3
         with:
           images: |
-            ${{ secrets.DEV_PROJECT }}/sefaria-asset-${{ GITHUB_REF_NAME }}
+            ${{ secrets.DEV_PROJECT }}/sefaria-asset-${{ env.GITHUB_REF_NAME }}
           # generate Docker tags based on the following events/attributes
           tags: |
             type=ref,event=branch
@@ -85,7 +85,7 @@ jobs:
           context: .
           push: true
           build-args:
-            - SRC_IMG=gcr.io/${{ secrets.DEV_PROJECT }}/sefaria-web-${{ GITHUB_REF_NAME }}:${{ GITHUB_SHA }}
+            - SRC_IMG=gcr.io/${{ secrets.DEV_PROJECT }}/sefaria-web-${{ env.GITHUB_REF_NAME }}:${{ env.GITHUB_SHA }}
           file: build/nginx/Dockerfile
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
