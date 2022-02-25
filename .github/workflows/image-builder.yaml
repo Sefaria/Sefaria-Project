@@ -35,7 +35,7 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
             type=sha
-          flavour: |
+          flavor: |
             latest=true
       - name: build and push
         uses: docker/build-push-action@v2
@@ -75,7 +75,7 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
             type=sha
-          flavour: |
+          flavor: |
             latest=true
       - name: build and push
         uses: docker/build-push-action@v2
