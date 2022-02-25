@@ -1080,7 +1080,7 @@ class NumberedTitledTreeNode(TitledTreeNode):
         """
         from .ref_part import SectionContext
         assert isinstance(section_context, SectionContext)
-        if section_index != section_context.section_index: return False
+        if self.depth == 0: return False
         addr_type = AddressType.to_class_by_address_type(self.addressTypes[section_index])
         if addr_type.__class__ != section_context.addr_type.__class__: return False
         if self.sectionNames[section_index] != section_context.section_name: return False

@@ -242,22 +242,27 @@ def test_group_ranged_parts(raw_ref_params, expected_section_slices):
     assert raw_ref.raw_ref_parts == expected_raw_ref_parts
 
 
-@pytest.mark.parametrize(('context_tref', 'match_title', 'common_title', 'addr_str', 'sec_name', 'sec_index', 'address'), [
-    ['Gilyon HaShas on Berakhot 12b:1', 'Tosafot on Berakhot', 'Berakhot', 'Talmud', 'Daf', 0, 24]
+@pytest.mark.parametrize(('context_tref', 'match_title', 'common_title', 'expected_sec_cons'), [
+    ['Gilyon HaShas on Berakhot 12b:1', 'Tosafot on Berakhot', 'Berakhot', (('Talmud', 'Daf', 24),)],
+    ['Berakhot 2a:1', 'Berakhot', 'Berakhot', (('Talmud', 'Daf', 3),)]  # skip "Line" address which isn't referenceable
 ])
-def test_get_section_contexts(context_tref, match_title, common_title, addr_str, sec_name, sec_index, address):
+def test_get_section_contexts(context_tref, match_title, common_title, expected_sec_cons):
     context_ref = Ref(context_tref)
     match_index = library.get_index(match_title)
     common_index = library.get_index(common_title)
     section_contexts = RefResolver._get_section_contexts(context_ref, match_index, common_index)
-    assert len(section_contexts) == 1
-    print(section_contexts[0])
-    assert section_contexts[0] == SectionContext(schema.AddressType.to_class_by_address_type(addr_str), sec_name, sec_index, address)
+    if len(section_contexts) != len(expected_sec_cons):
+        print(f"Found {len(section_contexts)} sec cons instead of {len(expected_sec_cons)}")
+        for sec_con in section_contexts:
+            print("-", sec_con)
+    assert len(section_contexts) == len(expected_sec_cons)
+    for i, (addr_str, sec_name, address) in enumerate(expected_sec_cons):
+        assert section_contexts[i] == SectionContext(schema.AddressType.to_class_by_address_type(addr_str), sec_name, address)
 
 
 def test_address_matches_section_context():
     r = Ref("Berakhot")
-    sec_con = SectionContext(schema.AddressType.to_class_by_address_type('Talmud'), 'Daf', 0, 34)
+    sec_con = SectionContext(schema.AddressType.to_class_by_address_type('Talmud'), 'Daf', 34)
     assert r.index_node.address_matches_section_context(0, sec_con)
 
 

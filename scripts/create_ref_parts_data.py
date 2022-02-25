@@ -103,7 +103,7 @@ class RefPartModifier:
             }
         ]
         n.isSegmentLevelDiburHamatchil = True
-        n.referenceableSections = [True, False, True]
+        n.referenceableSections = [True, False, True] if n.depth == 3 else [True, True]  # assuming second address is always "Line"
         n.diburHamatchilRegexes = self.get_dh_regexes(index, comm_term_slug)
         if fast:
             self.fast_index_save(index)
@@ -186,6 +186,7 @@ class RefPartModifier:
                     "term_slugs": [index_term.slug],
                 }
             ]
+            index.nodes.referenceableSections = [True, False]
             # add perek terms
             perakim = index.get_alt_struct_nodes()
             for iperek, perek_node in enumerate(perakim):

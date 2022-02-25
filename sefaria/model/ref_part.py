@@ -252,19 +252,18 @@ class SectionContext(ContextPart):
     """
     Represents a section in a context ref
     Used for injecting section context into a match which is missing sections (e.g. 'Tosafot on Berakhot DH abcd' is missing a daf)
+    NOTE: used to used index of section to help validate. Doesn't work b/c we change sections list on the nodes as we refine them
     """
 
-    def __init__(self, addr_type: schema.AddressType, section_name: str, section_index: int, address: int) -> None:
+    def __init__(self, addr_type: schema.AddressType, section_name: str, address: int) -> None:
         """
         :param addr_type: AddressType of section
         :param section_name: Name of section
-        :param section_index: Index of section in node.sections
         :param address: Actual address, to be interpreted by `addr_type`
         """
         super().__init__(RefPartType.NUMBERED, None)
         self.addr_type = addr_type
         self.section_name = section_name
-        self.section_index = section_index
         self.address = address
 
     @property
@@ -276,10 +275,10 @@ class SectionContext(ContextPart):
 
     def __repr__(self):
         addr_name = self.addr_type.__class__.__name__
-        return f"{self.__class__.__name__}({addr_name}(0), '{self.section_name}', {self.section_index}, {self.address})"
+        return f"{self.__class__.__name__}({addr_name}(0), '{self.section_name}', {self.address})"
 
     def __hash__(self):
-        return hash(f"{self.addr_type.__class__}|{self.section_name}|{self.section_index}|{self.address}")
+        return hash(f"{self.addr_type.__class__}|{self.section_name}|{self.address}")
 
 
 class RangedRawRefParts(RawRefPart):
@@ -995,7 +994,6 @@ class RefResolver:
                         continue
             temp_resolved_list = self.refine_ref_part_matches(lang, context_ref, unrefined_matches, temp_raw_ref)
             for resolved in temp_resolved_list:
-                resolved.context_ref = context_ref
                 if len(temp_resolved_list) > 1:
                     resolved.ambiguous = True
             resolved_list += temp_resolved_list
@@ -1021,6 +1019,8 @@ class RefResolver:
         temp_ref_parts = raw_ref.parts_to_match + [TermContext(term) for term in longest_template.terms]
         temp_matches = self._get_unrefined_ref_part_matches_recursive(lang, raw_ref, ref_parts=temp_ref_parts)
         matches += list(filter(lambda x: x.num_resolved(include={TermContext}), temp_matches))
+        for match in matches:
+            match.context_ref = context_ref
         return matches
 
     def _get_unrefined_ref_part_matches_for_graph_context(self, lang: str, context_ref: Optional[text.Ref], raw_ref: RawRef) -> List[ResolvedRawRef]:
@@ -1036,6 +1036,8 @@ class RefResolver:
             term_context = TermContext(NonUniqueTerm.init(context_slug))
             temp_matches = self._get_unrefined_ref_part_matches_recursive(lang, raw_ref, ref_parts=raw_ref.parts_to_match + [term_context])
             matches += list(filter(lambda x: x.num_resolved(exclude={TermContext}) and x.num_resolved(include={TermContext}), temp_matches))
+            for match in matches:
+                match.context_ref = context_ref
         return matches
 
     def _apply_context_swaps(self, lang: str, raw_ref: RawRef, context_swap_map: Dict[str, str]=None):
@@ -1079,12 +1081,18 @@ class RefResolver:
 
         return self._prune_unrefined_ref_part_matches(matches)
 
-    def refine_ref_part_matches(self, lang: str, context_ref: Optional[text.Ref], ref_part_matches: List[ResolvedRawRef], raw_ref: RawRef) -> List[ResolvedRawRef]:
+    def refine_ref_part_matches(self, lang: str, book_context_ref: Optional[text.Ref], ref_part_matches: List[ResolvedRawRef], raw_ref: RawRef) -> List[ResolvedRawRef]:
         matches = []
         for unrefined_match in ref_part_matches:
             unused_parts = list(set(raw_ref.parts_to_match) - set(unrefined_match.resolved_parts))
             matches += self._get_refined_ref_part_matches_recursive(lang, unrefined_match, unused_parts)
-            matches += self._get_refined_ref_part_matches_for_section_context(lang, context_ref, unrefined_match, unused_parts)
+
+            # context
+            # if unrefined_match already used context, make sure it continues to use it
+            # otherwise, consider other possible context
+            context_ref_list = [book_context_ref, self._ibid_history.last_match] if unrefined_match.context_ref is None else [unrefined_match.context_ref]
+            for context_ref in context_ref_list:
+                matches += self._get_refined_ref_part_matches_for_section_context(lang, context_ref, unrefined_match, unused_parts)
         return self._prune_refined_ref_part_matches(matches)
 
     @staticmethod
@@ -1096,24 +1104,27 @@ class RefResolver:
         :param match_index: Index of current match we are trying to refine
         :param common_index: Index
         """
-        def get_section_set(index: text.Index) -> Set[Tuple[str, str]]:
+        def get_section_set(index: text.Index) -> Set[Tuple[str, str, bool]]:
             root_node = index.nodes.get_default_child() or index.nodes
             try:
-                return set(zip(root_node.addressTypes, root_node.sectionNames))
+                referenceable_sections = getattr(root_node, 'referenceableSections', [True] * len(root_node.addressTypes))
+                return set(zip(root_node.addressTypes, root_node.sectionNames, referenceable_sections))
             except AttributeError:
                 # complex text
                 return set()
         context_node = context_ref.index_node
-        context_sec_list = list(zip(context_node.addressTypes, context_node.sectionNames))
+        referenceable_sections = getattr(context_node, 'referenceableSections', [True]*len(context_node.addressTypes))
+        context_sec_list = list(zip(context_node.addressTypes, context_node.sectionNames, referenceable_sections))
         match_sec_set  = get_section_set(match_index)
         common_sec_set = get_section_set(common_index) & match_sec_set & set(context_sec_list)
         if len(common_sec_set) == 0: return []
         sec_contexts = []
         for isec, sec_tuple in enumerate(context_sec_list):
             if sec_tuple in common_sec_set and isec < len(context_ref.sections):
-                addr_type_str, sec_name = sec_tuple
+                addr_type_str, sec_name, referenceable = sec_tuple
+                if not referenceable: continue
                 addr_type = schema.AddressType.to_class_by_address_type(addr_type_str)
-                sec_contexts += [SectionContext(addr_type, sec_name, isec, context_ref.sections[isec])]
+                sec_contexts += [SectionContext(addr_type, sec_name, context_ref.sections[isec])]
         return sec_contexts
 
     @staticmethod
@@ -1122,10 +1133,10 @@ class RefResolver:
         Tries to infer sections from context ref and uses them to refine `ref_part_match`
         """
         if context_ref is None: return []
-        context_base_text_titles = set(getattr(context_ref.index, 'base_text_titles', []))
-        match_base_text_titles = set(getattr(ref_part_match.ref.index, 'base_text_titles', []))
+        context_titles = set(getattr(context_ref.index, 'base_text_titles', [])) | {context_ref.index.title}
+        match_titles = set(getattr(ref_part_match.ref.index, 'base_text_titles', [])) | {ref_part_match.ref.index.title}
         matches = []
-        for common_base_text in (context_base_text_titles & match_base_text_titles):
+        for common_base_text in (context_titles & match_titles):
             common_index = text.library.get_index(common_base_text)
             sec_contexts = RefResolver._get_section_contexts(context_ref, ref_part_match.ref.index, common_index)
             matches += RefResolver._get_refined_ref_part_matches_recursive(lang, ref_part_match, ref_parts + sec_contexts)
