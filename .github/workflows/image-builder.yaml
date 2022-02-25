@@ -84,8 +84,8 @@ jobs:
           cache-to: type=registry, ref=sefaria-asset/cache, mode=max
           context: .
           push: true
-          build-args:
-            - SRC_IMG=gcr.io/${{ secrets.DEV_PROJECT }}/sefaria-web-${{ env.GITHUB_REF_NAME }}:${{ env.GITHUB_SHA }}
+          build-args: |
+            SRC_IMG=gcr.io/${{ secrets.DEV_PROJECT }}/sefaria-web-${{ env.GITHUB_REF_NAME }}:${{ env.GITHUB_SHA }}
           file: build/nginx/Dockerfile
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
