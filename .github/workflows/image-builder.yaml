@@ -43,7 +43,7 @@ jobs:
           cache-to: type=registry, ref=sefaria-${{ matrix.app }}/cache, mode=max
           context: .
           push: true
-          file: build/${{ matrix.app }}/Dockerfile
+          file: ./build/${{ matrix.app }}/Dockerfile
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
   build-asset:
@@ -84,6 +84,6 @@ jobs:
           push: true
           build-args: |
             SRC_IMG=gcr.io/${{ secrets.DEV_PROJECT }}/sefaria-web-${{ steps.branch-name.outputs.current_branch }}:${{ env.GITHUB_SHA }}
-          file: build/nginx/Dockerfile
+          file: ./build/nginx/Dockerfile
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
