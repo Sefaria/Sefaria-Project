@@ -2,7 +2,7 @@ name: Image builder
 on:
   push:
     branches:
-      - *
+      - "*"
 
 jobs:
   build-generic:
