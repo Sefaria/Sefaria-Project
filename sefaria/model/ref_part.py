@@ -1107,7 +1107,7 @@ class RefResolver:
             context_ref_list = [book_context_ref, self._ibid_history.last_match] if unrefined_match.context_ref is None else [unrefined_match.context_ref]
             context_type_list = [ContextType.CURRENT_BOOK, ContextType.IBID] if unrefined_match.context_ref is None else [unrefined_match.context_type]
             for context_ref, context_type in zip(context_ref_list, context_type_list):
-                matches += self._get_refined_ref_part_matches_for_section_context(lang, context_ref, unrefined_match, unused_parts)
+                matches += self._get_refined_ref_part_matches_for_section_context(lang, context_ref, context_type, unrefined_match, unused_parts)
         return self._prune_refined_ref_part_matches(matches)
 
     @staticmethod
@@ -1143,7 +1143,7 @@ class RefResolver:
         return sec_contexts
 
     @staticmethod
-    def _get_refined_ref_part_matches_for_section_context(lang: str, context_ref: Optional[text.Ref], ref_part_match: ResolvedRawRef, ref_parts: List[RawRefPart]) -> List[ResolvedRawRef]:
+    def _get_refined_ref_part_matches_for_section_context(lang: str, context_ref: Optional[text.Ref], context_type: ContextType, ref_part_match: ResolvedRawRef, ref_parts: List[RawRefPart]) -> List[ResolvedRawRef]:
         """
         Tries to infer sections from context ref and uses them to refine `ref_part_match`
         """
@@ -1157,6 +1157,9 @@ class RefResolver:
             matches += RefResolver._get_refined_ref_part_matches_recursive(lang, ref_part_match, ref_parts + sec_contexts)
         # remove matches which dont use context
         matches = list(filter(lambda x: x.num_resolved(include={SectionContext}), matches))
+        for match in matches:
+            match.context_ref = context_ref
+            match.context_type = context_type
         return matches
 
     @staticmethod
