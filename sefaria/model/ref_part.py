@@ -840,21 +840,21 @@ class RefResolver:
     def reset_ibid_history(self):
         self._ibid_history = IbidHistory()
 
-    def bulk_resolve_refs(self, lang: str, context_refs: List[Optional[text.Ref]], input: List[str], with_failures=False, verbose=False, reset_ibids_every_context_ref=True) -> List[List[ResolvedRawRef]]:
+    def bulk_resolve_refs(self, lang: str, book_context_refs: List[Optional[text.Ref]], input: List[str], with_failures=False, verbose=False, reset_ibids_every_context_ref=True) -> List[List[ResolvedRawRef]]:
         self.reset_ibid_history()
         all_raw_refs = self._bulk_get_raw_refs(lang, input)
         resolved = []
-        iter = zip(context_refs, all_raw_refs)
+        iter = zip(book_context_refs, all_raw_refs)
         if verbose:
-            iter = tqdm(iter, total=len(context_refs))
-        for context_ref, raw_refs in iter:
+            iter = tqdm(iter, total=len(book_context_refs))
+        for book_context_ref, raw_refs in iter:
             if reset_ibids_every_context_ref:
                 self.reset_ibid_history()
             inner_resolved = []
             for raw_ref in raw_refs:
-                temp_resolved = self.resolve_raw_ref(lang, context_ref, raw_ref)
+                temp_resolved = self.resolve_raw_ref(lang, book_context_ref, raw_ref)
                 if len(temp_resolved) == 0 and with_failures:
-                    inner_resolved += [ResolvedRawRef(raw_ref, [], None, None, context_ref=context_ref)]
+                    inner_resolved += [ResolvedRawRef(raw_ref, [], None, None, context_ref=book_context_ref)]
                 if len(temp_resolved) != 1:
                     # no result or ambiguous
                     # can't be sure about future ibid inferences
@@ -970,18 +970,18 @@ class RefResolver:
                 curr_part_start = ipart+1
         return split_raw_refs
 
-    def resolve_raw_ref(self, lang: str, context_ref: Optional[text.Ref], raw_ref: RawRef) -> List['ResolvedRawRef']:
+    def resolve_raw_ref(self, lang: str, book_context_ref: Optional[text.Ref], raw_ref: RawRef) -> List['ResolvedRawRef']:
         split_raw_refs = self.split_non_cts_parts(raw_ref)
         resolved_list = []
         for i, temp_raw_ref in enumerate(split_raw_refs):
             is_non_cts = i > 0 and len(resolved_list) > 0
             if is_non_cts:
                 # TODO assumes context is only first resolved ref
-                context_ref = resolved_list[0].ref
-            context_swap_map = None if context_ref is None else getattr(context_ref.index.nodes,
+                book_context_ref = resolved_list[0].ref
+            context_swap_map = None if book_context_ref is None else getattr(book_context_ref.index.nodes,
                                                                         'ref_resolver_context_swaps', None)
             self._apply_context_swaps(lang, raw_ref, context_swap_map)
-            unrefined_matches = self.get_unrefined_ref_part_matches(lang, context_ref, temp_raw_ref)
+            unrefined_matches = self.get_unrefined_ref_part_matches(lang, book_context_ref, temp_raw_ref)
             if is_non_cts:
                 # filter unrefined matches to matches that resolved previously
                 resolved_titles = {r.ref.index.title for r in resolved_list}
@@ -989,23 +989,23 @@ class RefResolver:
                 # resolution will start at context_ref.sections - len(ref parts). rough heuristic
                 for match in unrefined_matches:
                     try:
-                        match.ref = match.ref.subref(context_ref.sections[:-len(temp_raw_ref.raw_ref_parts)])
+                        match.ref = match.ref.subref(book_context_ref.sections[:-len(temp_raw_ref.raw_ref_parts)])
                     except (InputError, AttributeError):
                         continue
-            temp_resolved_list = self.refine_ref_part_matches(lang, context_ref, unrefined_matches, temp_raw_ref)
+            temp_resolved_list = self.refine_ref_part_matches(lang, book_context_ref, unrefined_matches, temp_raw_ref)
             for resolved in temp_resolved_list:
                 if len(temp_resolved_list) > 1:
                     resolved.ambiguous = True
             resolved_list += temp_resolved_list
         return resolved_list
 
-    def get_unrefined_ref_part_matches(self, lang: str, context_ref: Optional[text.Ref], raw_ref: RawRef) -> List['ResolvedRawRef']:
+    def get_unrefined_ref_part_matches(self, lang: str, book_context_ref: Optional[text.Ref], raw_ref: RawRef) -> List['ResolvedRawRef']:
         context_free_matches = self._get_unrefined_ref_part_matches_recursive(lang, raw_ref, ref_parts=raw_ref.parts_to_match)
-        context_full_matches = self._get_unrefined_ref_part_matches_for_graph_context(lang, context_ref, raw_ref)
+        context_full_matches = self._get_unrefined_ref_part_matches_for_graph_context(lang, book_context_ref, raw_ref)
         matches = context_full_matches + context_free_matches
         if len(matches) == 0:
             # TODO current assumption is only need to add context title if no matches. but it's possible this is necessary even if there were matches
-            title_context_matches = self._get_unrefined_ref_part_matches_for_title_context(lang, context_ref, raw_ref)
+            title_context_matches = self._get_unrefined_ref_part_matches_for_title_context(lang, book_context_ref, raw_ref)
             ibid_title_context_matches = self._get_unrefined_ref_part_matches_for_title_context(lang, self._ibid_history.last_match, raw_ref)
             matches = title_context_matches + ibid_title_context_matches
         return matches
