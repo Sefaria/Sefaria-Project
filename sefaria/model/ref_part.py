@@ -83,6 +83,14 @@ class ContextType(Enum):
     IBID = "IBID"
 
 
+# maps ContextTypes that will always (I believe) map to certain RefPartTypes
+# they don't necessarily need to map to any RefPart but if they do, they will match these types
+CONTEXT_TO_REF_PART_TYPE = {
+    ContextType.CURRENT_BOOK: {RefPartType.RELATIVE},
+    ContextType.IBID: {RefPartType.IBID}
+}
+
+
 class TrieEntry:
     """
     Base class for entries in RefPartTitleTrie
@@ -1198,6 +1206,14 @@ class RefResolver:
                 return True
             resolved_explicit = set(match.get_resolved_parts(exclude={ContextPart}))
             to_match_explicit = {part for part in match.raw_ref.parts_to_match if not isinstance(part, ContextPart)}
+            if match.context_type in CONTEXT_TO_REF_PART_TYPE.keys():
+                # remove an equivalent number of context parts that were resolved from to_match_explicit to approximate comparison
+                num_parts_to_remove = match.num_resolved(include={ContextPart})
+                for _ in range(num_parts_to_remove):
+                    part = next((p for p in to_match_explicit if p.type in CONTEXT_TO_REF_PART_TYPE[match.context_type]), None)
+                    if part is None:
+                        break  # no more
+                    to_match_explicit.remove(part)
             return resolved_explicit == to_match_explicit
 
         max_resolved_refs = list(filter(filter_context_matches, max_resolved_refs))
