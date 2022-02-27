@@ -172,7 +172,6 @@ class RawRefPart(TrieEntry):
     Immutable part of a RawRef
     Represents a unit of text used to find a match to a SchemaNode
     """
-    is_context = False
     key_is_id = False
     max_dh_continuation_len = 4  # max num tokens in potential_dh_continuation. more likely doesn't add more information
 
@@ -220,6 +219,10 @@ class RawRefPart(TrieEntry):
                     yield f"{dh} {self.potential_dh_continuation[:i]}"
             # no matter what yield just the dh
             yield dh
+
+    @property
+    def is_context(self):
+        return isinstance(self, ContextPart)
 
 
 class ContextPart(RawRefPart):
@@ -1185,7 +1188,7 @@ class RefResolver:
     @staticmethod
     def _prune_refined_ref_part_matches(resolved_refs: List[ResolvedRawRef]) -> List[ResolvedRawRef]:
         """
-        So far simply returns all matches with the maximum number of resolved_parts
+        Applies some heuristics to remove false positives
         """
         if len(resolved_refs) == 0: return resolved_refs
         resolved_refs.sort(key=lambda x: x.order_key, reverse=True)
@@ -1204,10 +1207,20 @@ class RefResolver:
             if match.num_resolved(include={ContextPart}) == 0:
                 # no context
                 return True
+
+            # make sure no explicit sections matched before context sections
+            first_explicit_section = None
+            for part in match.get_resolved_parts():
+                if not first_explicit_section and part.type == RefPartType.NUMBERED and not part.is_context:
+                    first_explicit_section = part
+                elif first_explicit_section and part.is_context:
+                    return False
+
             resolved_explicit = set(match.get_resolved_parts(exclude={ContextPart}))
-            to_match_explicit = {part for part in match.raw_ref.parts_to_match if not isinstance(part, ContextPart)}
+            to_match_explicit = {part for part in match.raw_ref.parts_to_match if not part.is_context}
+
             if match.context_type in CONTEXT_TO_REF_PART_TYPE.keys():
-                # remove an equivalent number of context parts that were resolved from to_match_explicit to approximate comparison
+                # remove an equivalent number of context parts that were resolved from to_match_explicit to approximate comparison. this is a bit hacky but seems to work for all known cases so far.
                 num_parts_to_remove = match.num_resolved(include={ContextPart})
                 for _ in range(num_parts_to_remove):
                     part = next((p for p in to_match_explicit if p.type in CONTEXT_TO_REF_PART_TYPE[match.context_type]), None)
