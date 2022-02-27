@@ -75,14 +75,12 @@ class RefPartType(Enum):
         return getattr(cls, LABEL_TO_REF_PART_TYPE_ATTR[span_label])
 
 
-class ResolutionMethod(Enum):
+class ContextType(Enum):
     """
-    Possible methods for resolving refs
-    Used to mark ResolvedRawRefs
+    Types of context which can be used to help resolve refs
     """
-    GRAPH = "graph"
-    TITLE = "title"
-    NON_CTS = "non_cts"
+    CURRENT_BOOK = "CURRENT_BOOK"
+    IBID = "IBID"
 
 
 class TrieEntry:
@@ -398,13 +396,14 @@ class ResolvedRawRef:
     Partial or complete resolution of a RawRef
     """
 
-    def __init__(self, raw_ref: RawRef, resolved_parts: List[RawRefPart], node, ref: text.Ref, ambiguous=False, context_ref: text.Ref=None) -> None:
+    def __init__(self, raw_ref: RawRef, resolved_parts: List[RawRefPart], node, ref: text.Ref, ambiguous=False, context_ref: text.Ref = None, context_type: ContextType = None) -> None:
         self.raw_ref = raw_ref
         self.resolved_parts = resolved_parts
         self.node = node
         self.ref = ref
         self.ambiguous = ambiguous
         self.context_ref = context_ref
+        self.context_type = context_type
 
     def clone(self, **kwargs) -> 'ResolvedRawRef':
         """
@@ -1001,16 +1000,18 @@ class RefResolver:
 
     def get_unrefined_ref_part_matches(self, lang: str, book_context_ref: Optional[text.Ref], raw_ref: RawRef) -> List['ResolvedRawRef']:
         context_free_matches = self._get_unrefined_ref_part_matches_recursive(lang, raw_ref, ref_parts=raw_ref.parts_to_match)
-        context_full_matches = self._get_unrefined_ref_part_matches_for_graph_context(lang, book_context_ref, raw_ref)
+        context_full_matches = []
+        contexts = ((book_context_ref, ContextType.CURRENT_BOOK), (self._ibid_history.last_match, ContextType.IBID))
+        for context_ref, context_type in contexts:
+            context_full_matches += self._get_unrefined_ref_part_matches_for_graph_context(lang, context_ref, context_type, raw_ref)
         matches = context_full_matches + context_free_matches
         if len(matches) == 0:
             # TODO current assumption is only need to add context title if no matches. but it's possible this is necessary even if there were matches
-            title_context_matches = self._get_unrefined_ref_part_matches_for_title_context(lang, book_context_ref, raw_ref)
-            ibid_title_context_matches = self._get_unrefined_ref_part_matches_for_title_context(lang, self._ibid_history.last_match, raw_ref)
-            matches = title_context_matches + ibid_title_context_matches
+            for context_ref, context_type in contexts:
+                matches += self._get_unrefined_ref_part_matches_for_title_context(lang, context_ref, raw_ref, context_type)
         return matches
 
-    def _get_unrefined_ref_part_matches_for_title_context(self, lang: str, context_ref: Optional[text.Ref], raw_ref: RawRef) -> List[ResolvedRawRef]:
+    def _get_unrefined_ref_part_matches_for_title_context(self, lang: str, context_ref: Optional[text.Ref], raw_ref: RawRef, context_type: ContextType) -> List[ResolvedRawRef]:
         matches = []
         if context_ref is None:
             return matches
@@ -1021,9 +1022,10 @@ class RefResolver:
         matches += list(filter(lambda x: x.num_resolved(include={TermContext}), temp_matches))
         for match in matches:
             match.context_ref = context_ref
+            match.context_type = context_type
         return matches
 
-    def _get_unrefined_ref_part_matches_for_graph_context(self, lang: str, context_ref: Optional[text.Ref], raw_ref: RawRef) -> List[ResolvedRawRef]:
+    def _get_unrefined_ref_part_matches_for_graph_context(self, lang: str, context_ref: Optional[text.Ref], context_type: ContextType, raw_ref: RawRef) -> List[ResolvedRawRef]:
         matches = []
         if context_ref is None:
             return matches
@@ -1038,6 +1040,7 @@ class RefResolver:
             matches += list(filter(lambda x: x.num_resolved(exclude={TermContext}) and x.num_resolved(include={TermContext}), temp_matches))
             for match in matches:
                 match.context_ref = context_ref
+                match.context_type = context_type
         return matches
 
     def _apply_context_swaps(self, lang: str, raw_ref: RawRef, context_swap_map: Dict[str, str]=None):
@@ -1091,7 +1094,8 @@ class RefResolver:
             # if unrefined_match already used context, make sure it continues to use it
             # otherwise, consider other possible context
             context_ref_list = [book_context_ref, self._ibid_history.last_match] if unrefined_match.context_ref is None else [unrefined_match.context_ref]
-            for context_ref in context_ref_list:
+            context_type_list = [ContextType.CURRENT_BOOK, ContextType.IBID] if unrefined_match.context_ref is None else [unrefined_match.context_type]
+            for context_ref, context_type in zip(context_ref_list, context_type_list):
                 matches += self._get_refined_ref_part_matches_for_section_context(lang, context_ref, unrefined_match, unused_parts)
         return self._prune_refined_ref_part_matches(matches)
 
