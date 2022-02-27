@@ -129,9 +129,11 @@ crrd = create_raw_ref_data
     [crrd('Berakhot 2a', 'he', 'דף כ', [slice(0, 2)], [RPT.NUMBERED], ["Shabbat 2a"]), ("Berakhot 20", "Shabbat 20")],  # conflicting contexts
     [crrd('Berakhot 2a', 'he', 'שם דף כ', [0, slice(1, 3)], [RPT.IBID, RPT.NUMBERED], ["Shabbat 2a"]), ("Shabbat 20",)],  # conflicting contexts which can be resolved by explicit sham
     [crrd("Gilyon HaShas on Berakhot 30a:2", 'he', '''ותוס' שם ד"ה תרי''', [slice(0, 2), 2, slice(3, 5)], [RPT.NAMED, RPT.IBID, RPT.DH], ["Berakhot 17b"]), ("Tosafot on Berakhot 17b:5:1",)],  # Ibid.
+    [crrd("Mishnah Berakhot 1", 'he', 'שם שם ב', [0, 1, slice(2, 4)], [RPT.IBID, RPT.IBID, RPT.NUMBERED], ['Mishnah Shabbat 1:1']), ("Mishnah Shabbat 1:2",)],  # multiple shams. TODO failing because we're not enforcing order
 
     # Relative (e.g. Lekaman)
     [crrd("Gilyon HaShas on Berakhot 2a:2", 'he', '''תוס' לקמן ד ע"ב ד"ה דאר"י''', [slice(0, 2), 2, slice(3, 5), slice(5, 7)], [RPT.NAMED, RPT.RELATIVE, RPT.NUMBERED, RPT.DH]), ("Tosafot on Berakhot 4b:6:1",)],  # likaman + abbrev in DH
+    [crrd("Mishnah Berakhot 1", 'he', 'לקמן משנה א', [0, slice(1, 3)], [RPT.RELATIVE, RPT.NUMBERED], ['Mishnah Shabbat 1']), ("Mishnah Berakhot 1:1",)],  # competing relative and sham
 
     # YERUSHALMI EN
     [crrd("Jerusalem Talmud Shabbat 1:1", 'en', 'Bavli 2a', [0, 1], [RPT.NAMED, RPT.NUMBERED]), ("Shabbat 2a",)],
