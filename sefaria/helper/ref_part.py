@@ -9,7 +9,7 @@ def make_html(bulk_resolved: List[List[ResolvedRawRef]], output_filename, lang='
 
     def get_wrapped_text(mention, metadata):
         start = f'<span class="{metadata["true condition"]} tag">'
-        end = f'<span class="label">{metadata["label"]}</span></span>'
+        end = f'<span class="label">{metadata["label"]}</span><button class="inspect-btn" data-id="{metadata["i"]}" onclick="onInspectClick(this)">Inspect</button></span>'
         if metadata['ref'] is not None:
             ref = metadata["ref"]
             start += f'<a href="https://www.sefaria.org/{ref.url()}" target="_blank">'
@@ -27,7 +27,13 @@ def make_html(bulk_resolved: List[List[ResolvedRawRef]], output_filename, lang='
         .fp { background-color: pink; border: 5px lightgreen solid; }
         .fn { background-color: greenyellow; border: 5px pink solid; }
         .label { font-weight: bold; font-size: 75%; color: #666; padding-right: 5px; }
+        .inspect-btn { margin: 0 5px; }
         </style>
+        <script>
+          function onInspectClick(element) {
+            console.log(element.getAttribute("data-id"));
+          }
+        </script>
       </head>
       <body>
     """
@@ -39,10 +45,10 @@ def make_html(bulk_resolved: List[List[ResolvedRawRef]], output_filename, lang='
         input_text = temp_resolved_list[0].raw_ref.span.doc.text
         context_ref = temp_resolved_list[0].context_ref
 
-        for resolved in temp_resolved_list:
-            if resolved.ambiguous: continue  # TODO maybe just default to bavli here
+        for iresolved, resolved in enumerate(temp_resolved_list):
+            if resolved.ambiguous: continue
             start_char, end_char = resolved.raw_ref.char_indices
-            chars_to_wrap += [(start_char, end_char, {"label": "מקור", "true condition": "tp", "ref": resolved.ref})]
+            chars_to_wrap += [(start_char, end_char, {"label": "מקור", "true condition": "tp", "ref": resolved.ref, "i": iresolved})]
         wrapped_text = wrap_chars_with_overlaps(input_text, chars_to_wrap, get_wrapped_text)
         if context_ref is not None:
             html += f'<p class="ref">{context_ref.normal()}</p>'
