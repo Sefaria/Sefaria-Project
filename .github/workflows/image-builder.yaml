@@ -30,7 +30,7 @@ jobs:
         uses: docker/metadata-action@v3
         with:
           images: |
-            ${{ secrets.DEV_PROJECT }}/sefaria-${{ matrix.app }}-${{ steps.branch-name.outputs.current_branch }}
+            gcr.io/${{ secrets.DEV_PROJECT }}/sefaria-${{ matrix.app }}-${{ steps.branch-name.outputs.current_branch }}
           # generate Docker tags based on the following events/attributes
           tags: |
             type=ref,event=branch
@@ -70,7 +70,7 @@ jobs:
         uses: docker/metadata-action@v3
         with:
           images: |
-            ${{ secrets.DEV_PROJECT }}/sefaria-asset-${{ steps.branch-name.outputs.current_branch }}
+            gcr.io/${{ secrets.DEV_PROJECT }}/sefaria-asset-${{ steps.branch-name.outputs.current_branch }}
           # generate Docker tags based on the following events/attributes
           tags: |
             type=ref,event=branch
