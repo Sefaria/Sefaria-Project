@@ -13,6 +13,14 @@ def make_html(bulk_resolved: List[List[ResolvedRawRef]], output_filename, lang='
         """
         inspect_window = f'''
         <span id="inspect-window-{metadata['i']}" class="hidden inspect-window">
+            <b>Input:</b>
+            {mention}
+            </br>
+            <b>Context Ref</b>
+            <table>
+                <tr><td>Ref</td><td>{metadata['context_ref']}</td></tr>
+                <tr><td>Type</td><td>{metadata['context_type']}</td></tr>          
+            </table>
             <b>Input Ref Parts</b>
             <table>
                 <tr><td>Text</td><td>{'</td><td>'.join(metadata['orig_part_strs'])}</td></tr>
@@ -119,6 +127,8 @@ def make_html(bulk_resolved: List[List[ResolvedRawRef]], output_filename, lang='
                 "resolved_part_strs": [p.text for p in resolved.resolved_parts],
                 "resolved_part_types": [p.type.name for p in resolved.resolved_parts],
                 "resolved_part_classes": [p.__class__.__name__ for p in resolved.resolved_parts],
+                "context_ref": resolved.context_ref.normal() if resolved.context_ref else "N/A",
+                "context_type": resolved.context_type.name if resolved.context_type else "N/A",
             }
             chars_to_wrap += [(start_char, end_char, metadata)]
             iwrapped += 1
