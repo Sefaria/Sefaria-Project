@@ -77,6 +77,9 @@ jobs:
             type=sha
           flavor: |
             latest=true
+      - name: Set outputs
+        id: get-sha
+        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
       - name: build and push
         uses: docker/build-push-action@v2
         with:
@@ -85,7 +88,7 @@ jobs:
           context: .
           push: true
           build-args: |
-            SRC_IMG=gcr.io/${{ secrets.DEV_PROJECT }}/sefaria-web-${{ steps.branch-name.outputs.current_branch }}:${{ env.GITHUB_SHA }}
+            SRC_IMG=gcr.io/${{ secrets.DEV_PROJECT }}/sefaria-web-${{ steps.branch-name.outputs.current_branch }}:sha-${{ steps.get-sha.outputs.sha_short }}
           file: ./build/nginx/Dockerfile
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
