@@ -8,10 +8,28 @@ def make_html(bulk_resolved: List[List[ResolvedRawRef]], output_filename, lang='
     from sefaria.utils.util import wrap_chars_with_overlaps
 
     def get_wrapped_text(mention, metadata):
+        """
+
+        """
         inspect_window = f'''
         <span id="inspect-window-{metadata['i']}" class="hidden inspect-window">
-        YO!!!!
-        <button onclick="toggleWindow({metadata['i']})">Close</button>
+            <b>Input Ref Parts</b>
+            <table>
+                <tr><td>Text</td><td>{'</td><td>'.join(metadata['orig_part_strs'])}</td></tr>
+                <tr><td>Type</td><td>{'</td><td>'.join(metadata['orig_part_types'])}</td></tr>
+            </table>
+            <b>Final Ref Parts</b>
+            <table>
+                <tr><td>Text</td><td>{'</td><td>'.join(metadata['final_part_strs'])}</td></tr>
+                <tr><td>Type</td><td>{'</td><td>'.join(metadata['final_part_types'])}</td></tr>
+            </table>
+            <b>Resolved Parts</b>
+            <table>
+                <tr><td>Text</td><td>{'</td><td>'.join(metadata['resolved_part_strs'])}</td></tr>
+                <tr><td>Type</td><td>{'</td><td>'.join(metadata['resolved_part_types'])}</td></tr>
+                <tr><td>Class</td><td>{'</td><td>'.join(metadata['resolved_part_classes'])}</td></tr>
+            </table>
+            <button onclick="toggleWindow({metadata['i']})">Close</button>
         </span>
         '''
         start = f'<span class="{metadata["true condition"]} tag">'
@@ -35,6 +53,8 @@ def make_html(bulk_resolved: List[List[ResolvedRawRef]], output_filename, lang='
         .label { font-weight: bold; font-size: 75%; color: #666; padding-right: 5px; }
         .inspect-btn { margin: 0 5px; }
         .hidden { display: none; }
+        td { border: 1px solid black; padding: 5px }
+        table { margin-bottom: 20px; }
         .inspect-window {
             position: fixed;
             direction: ltr;
@@ -87,7 +107,20 @@ def make_html(bulk_resolved: List[List[ResolvedRawRef]], output_filename, lang='
         for resolved in temp_resolved_list:
             if resolved.ambiguous: continue
             start_char, end_char = resolved.raw_ref.char_indices
-            chars_to_wrap += [(start_char, end_char, {"label": "מקור", "true condition": "tp", "ref": resolved.ref, "i": iwrapped})]
+            metadata = {
+                "label": "מקור",
+                "true condition": "tp",
+                "ref": resolved.ref,
+                "i": iwrapped,
+                "orig_part_strs": [p.text for p in resolved.raw_ref.raw_ref_parts],
+                "orig_part_types": [p.type.name for p in resolved.raw_ref.raw_ref_parts],
+                "final_part_strs": [p.text for p in resolved.raw_ref.parts_to_match],
+                "final_part_types": [p.type.name for p in resolved.raw_ref.parts_to_match],
+                "resolved_part_strs": [p.text for p in resolved.resolved_parts],
+                "resolved_part_types": [p.type.name for p in resolved.resolved_parts],
+                "resolved_part_classes": [p.__class__.__name__ for p in resolved.resolved_parts],
+            }
+            chars_to_wrap += [(start_char, end_char, metadata)]
             iwrapped += 1
         wrapped_text = wrap_chars_with_overlaps(input_text, chars_to_wrap, get_wrapped_text)
         if context_ref is not None:
