@@ -12,7 +12,7 @@ def make_html(bulk_resolved: List[List[ResolvedRawRef]], output_filename, lang='
         end = f'<span class="label">{metadata["label"]}</span></span>'
         if metadata['ref'] is not None:
             ref = metadata["ref"]
-            start += f'<a href="https://www.sefaria.org/{ref.url()}">'
+            start += f'<a href="https://www.sefaria.org/{ref.url()}" target="_blank">'
             end = '</a>' + end
         return f'{start}{mention}{end}', len(start), len(end)
 
