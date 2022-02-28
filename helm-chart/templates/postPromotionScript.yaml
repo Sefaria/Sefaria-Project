@@ -1,0 +1,57 @@
+# Run a bash script defined in Sefaria-Project 
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: rollout-priming-{{ .Values.deployEnv }}
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+spec:
+  args:
+    - name: healthcheck-hostname
+  metrics:
+    - name: healthcheck-priming
+      provider:
+        job:
+          spec:
+            ttlSecondsAfterFinished: 3600
+            backoffLimit: 1
+            template:
+              spec:
+                containers:
+                  - name: primer
+                    image: "{{ .Values.web.containerImage }}:{{ .Values.releaseImageTag }}"
+                    command: [ "/app/build/startup/primeAll.bash" ]
+                    env: 
+                      - name: TARGET_HOSTNAME
+                        value: "{{`{{args.healthcheck-hostname}}`}}" # {{`...`}}
+                restartPolicy: Never
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: rollout-ready-{{ .Values.deployEnv }}
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+spec:
+  args:
+    - name: healthcheck-hostname
+  metrics:
+    - name: healthcheck-ready
+      provider:
+        job:
+          spec:
+            backoffLimit: 1
+            template:
+              spec:
+                containers:
+                  - name: primer
+                    image: "{{ .Values.web.containerImage }}:{{ .Values.releaseImageTag }}"
+                    command: [ "/app/build/startup/waitForRollout.bash" ]
+                    env: 
+                      - name: TARGET_HOSTNAME
+                        value: "{{`{{args.healthcheck-hostname}}`}}" # {{`...`}}
+                      - name: TIMEOUT
+                        value: "900"
+                restartPolicy: Never
+...

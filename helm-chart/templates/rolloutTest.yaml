@@ -1,0 +1,28 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: rollout-readiness-{{ .Values.deployEnv }}
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+spec:
+  args:
+    - name: deploy-env
+    - name: rollout-value
+  metrics:
+    - name: healthcheck-endpoint
+      interval: 30s
+      successCondition: "result == true"
+      # successCondition: "result == 'true'"
+      #failureLimit: 30 # 30s * 30 = 15 minutes
+      count: 50
+      consecutiveErrorLimit: 50
+      failureLimit: 50
+      inconclusiveLimit: 50
+      provider:
+        web:
+          # url: "{{`http://nginx-{{ args.deploy-env }}-{{ args.rollout-value }}/healthz-rollout`}}" # {{`...`}}
+          url: "{{`http://nginx-{{ args.deploy-env }}-{{ args.rollout-value }}.default.svc.cluster.local/healthz-rollout`}}"
+          timeoutSeconds: 20
+          jsonPath: "{$.allReady}"
+...

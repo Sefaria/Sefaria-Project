@@ -1,0 +1,231 @@
+---
+# apiVersion: apps/v1
+# kind: Deployment
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: {{ .Values.deployEnv }}-web
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+    app: web-{{ .Values.deployEnv }}
+    # releaseRevision: "{{ .Release.Revision }}"
+  annotations: 
+    rollout.argoproj.io/revision: "{{ .Release.Revision }}"
+spec:
+  strategy:
+    blueGreen:
+      activeService: web-{{ .Values.deployEnv }}
+      autoPromotionEnabled: true
+      prePromotionAnalysis:
+        templates:
+          # - templateName: rollout-readiness-{{ .Values.deployEnv }}
+          - templateName: rollout-ready-{{ .Values.deployEnv }}
+        args:
+          - name: healthcheck-hostname
+            value: "nginx-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+  selector:
+    matchLabels:
+      app: web-{{ .Values.deployEnv }}
+      # releaseRevision: "{{ .Release.Revision }}"
+  revisionHistoryLimit: 1
+  replicas: {{ .Values.web.replicaCount }}
+  progressDeadlineSeconds: 1200
+  template:
+    metadata:
+      labels:
+        app: web-{{ .Values.deployEnv }}
+        tier: application
+        deployEnv: "{{ .Values.deployEnv }}"
+        stackRole: django
+        releaseRevision: "{{ .Release.Revision }}"
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - mongo
+            topologyKey: kubernetes.io/hostname
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - "web-{{ .Values.deployEnv }}"
+            topologyKey: kubernetes.io/hostname
+        {{if eq .Values.sandbox "true"}}
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: preemptible
+                    operator: NotIn
+                    values:
+                      - "false"
+                      - ""
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: preemptible
+                    operator: In
+                    values:
+                      - "true"
+        {{end}}
+
+      containers:
+      - name: web
+        image: "{{ .Values.web.containerImage.imageRegistry }}:{{ .Values.web.containerImage.tag }}"
+        imagePullPolicy: Always
+        args: [ "python manage.py migrate && gunicorn sefaria.wsgi --access-logfile - --error-logfile - --timeout 300 --threads {{ .Values.web.resources.web.gunicornThreadCount }} --worker-tmp-dir /dev/shm -b 0.0.0.0:80" ]
+        env:
+          # WEB_CONCURRENCY is used for determining the number of server workers
+          - name: WEB_CONCURRENCY
+            value: "{{ .Values.web.resources.web.gunicornWorkerCount }}"
+          - name: randomstringtoforceredeployments
+            value: {{ randAlphaNum 8 }}
+          - name: GOOGLE_APPLICATION_CREDENTIALS
+            value: /app/logging-secret.json
+          - name: ENV_NAME
+            value: "{{ .Values.deployEnv }}"
+          - name: STACK_COMPONENT
+            value: web
+          - name: REDIS_HOST
+            value: "redis-{{ .Values.deployEnv }}"
+          - name: NODEJS_HOST
+            value: "node-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+          - name: VARNISH_HOST
+            value: "varnish-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+          - name: HELM_REVISION
+            value: "{{ .Release.Revision }}"
+        envFrom:
+          - secretRef:
+              name: {{ template "secrets.localSettings" . }}
+          - configMapRef:
+              name: local-settings-{{ .Values.deployEnv }}
+        ports:
+          - containerPort: 80
+            protocol: TCP
+        resources:
+          requests:
+            memory: {{ .Values.web.resources.web.request.memory }}
+            cpu: {{ .Values.web.resources.web.request.cpu }}
+          limits:
+            memory: {{ .Values.web.resources.web.limit.memory }}
+            cpu: {{ .Values.web.resources.web.limit.cpu }}
+        # turn off health checks for content sandboxes
+        {{ if ne .Values.contentSandbox "true" }}
+        # set failure thresholds
+        startupProbe:
+          httpGet:
+            path: /healthz-rollout
+            port: 80
+          failureThreshold: 40 # 40 attempts x 15 seconds = 10 minutes for the pod to successfully start
+          periodSeconds: 15
+          timeoutSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 80
+          # initialDelaySeconds: 120
+          periodSeconds: 60
+          timeoutSeconds: 60
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 80
+          # initialDelaySeconds: 120
+          periodSeconds: 60
+          timeoutSeconds: 60
+        {{ end }}
+        volumeMounts:
+        # https://stackoverflow.com/questions/53491603/kubernetes-volumemounts-a-file-not-a-directory
+        - mountPath: /app/sefaria/local_settings.py
+          name: local-settings
+          subPath: local_settings.py
+          readOnly: true
+        - mountPath: /varnish-secret
+          name: varnish-secret
+          readOnly: true
+        - mountPath: /school-lookup-data
+          name: school-lookup-data
+          readOnly: true
+        - mountPath: /client-secret
+          name: client-secret
+          readOnly: true
+        - mountPath: /google-cloud-secret
+          name: backup-manager-secret
+          readOnly: true
+        - mountPath: /app/logging-secret.json
+          name: logging-secret
+          subPath: logging-secret.json
+          readOnly: true
+        - name: gunicorn-config
+          mountPath: /app/gunicorn.conf.py
+          subPath: gunicorn.conf.py
+          readOnly: true
+      volumes:
+        - name:  local-settings
+          configMap:
+            name: local-settings-{{ .Values.deployEnv }}
+            items:
+              - key: local_settings.py
+                path: local_settings.py
+        - name: client-secret
+          secret:
+            secretName: {{ template "secrets.googleClient" . }} # needs to be checked if it's a reference object or the data object we created.
+        - name: backup-manager-secret  # used to access google cloud
+          secret:
+            secretName: {{ template "secrets.backupManager" . }}
+        - name: logging-secret
+          secret:
+            secretName: {{ template "secrets.logging" . }}
+        - name: varnish-secret
+          secret:
+            secretName: {{ template "secrets.varnish" . }}
+        - name: school-lookup-data
+          secret:
+            secretName: {{ template "secrets.schoolLookup" . }}
+        - name: gunicorn-config
+          configMap:
+            name: gunicorn-config-{{ .Values.deployEnv }}
+---
+# for use outside the stack
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-{{ .Values.deployEnv }}
+  labels:
+    app: web-{{ .Values.deployEnv }}
+    deployEnv: "{{ .Values.deployEnv }}"
+    stackRole: varnish
+spec:
+  ports:
+  - port: 80
+  selector:
+    app: "web-{{ .Values.deployEnv }}"
+
+# write comments TODO
+{{range $index, $value := untilStep (int (sub .Release.Revision .Values.previousServicesCount)) (int (add .Release.Revision 1)) 1}}
+{{if gt $value 0}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-{{ $.Values.deployEnv }}-{{ $value }}
+  labels:
+    app: web-{{ $.Values.deployEnv }}
+    deployEnv: "{{ $.Values.deployEnv }}"
+    stackRole: django
+spec:
+  ports:
+  - port: 80
+  selector:
+    app: "web-{{ $.Values.deployEnv }}"
+    releaseRevision: "{{ $value }}"
+{{end}}
+{{end}}
+...

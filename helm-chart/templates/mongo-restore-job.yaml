@@ -1,0 +1,55 @@
+# NB: This assumes an already-functioning mongo instance. 
+# Parameters:
+# MONGO_DUMP_PATH: URI of database dump
+# MONGO_HOST: Mongo hostname
+# SANDBOX_NAME: The name of the table created by this job
+# ENVIRONMENT: Deployment environment {prod, preprod, stage}
+---
+{{- if eq .Values.sandbox "true" }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: restore-mongo-{{ .Values.deployEnv }}
+  labels:
+    deployEnv: {{ .Values.deployEnv | quote }}
+  annotations: 
+    helm.sh/hook: pre-install
+    helm.sh/hook-delete-policy: hook-succeeded
+spec:
+  template:
+    spec:
+      volumes:
+        - name: shared-volume
+          emptyDir: {}
+        - name: gcloud-storage-secret
+          secret:
+            secretName: {{ template "secrets.backupManager" . }}
+      initContainers:
+        - name: mongo-backup-downloader-{{ .Values.deployEnv }}
+          image: google/cloud-sdk
+          volumeMounts:
+            - name: shared-volume
+              mountPath: /storage
+            - name: gcloud-storage-secret
+              mountPath: /conf
+          env:
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /conf/BackupManagerKey.json
+            - name: MONGO_SNAPSHOT_LOCATION
+              value: {{ template "mongoSnapshotLocation" . }}
+          command: ["bash"]
+          args: ["-c", "gcloud auth activate-service-account --key-file $GOOGLE_APPLICATION_CREDENTIALS && gsutil cp $MONGO_SNAPSHOT_LOCATION /storage/dump.tar.gz"]
+      containers:
+        - name: mongo-backup-restorer-{{ .Values.deployEnv }}
+          image: mongo:4.4
+          volumeMounts:
+            - name: shared-volume
+              mountPath: /storage
+          env:
+            - name: MONGO_HOST
+              value: {{ .Values.localSettings.MONGO_HOST | quote }}
+          command: ["bash"]
+          args: ["-c", "tar xzvf /storage/dump.tar.gz -C /storage && mongorestore --drop --host=$MONGO_HOST:27017 -v -d sefaria-{{ .Values.deployEnv }} --dir=/storage/dump/sefaria"]
+      restartPolicy: Never
+  ttlSecondsAfterFinished: 432000
+{{- end }}

@@ -1,0 +1,84 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "{{ .Values.deployEnv }}-redis"
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+spec:
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: redis-{{ .Values.deployEnv }}
+  revisionHistoryLimit: 0
+  replicas: {{ .Values.redis.replicaCount }}
+  template:
+    metadata:
+      labels:
+        app: redis-{{ .Values.deployEnv }}
+        tier: application
+        deployEnv: "{{ .Values.deployEnv }}"
+        stackRole: redis
+    spec:
+      {{if eq .Values.sandbox "true"}}
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: preemptible
+                    operator: NotIn
+                    values:
+                      - "false"
+                      - ""
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: preemptible
+                    operator: In
+                    values:
+                      - "true"
+      {{end}}
+      containers:
+      - name: redis
+        image: "{{ .Values.redis.containerImage.imageRegistry }}:{{ .Values.redis.containerImage.tag }}"
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 6379
+        resources:
+          requests:
+            memory: {{ .Values.redis.resources.request.memory }}
+            cpu: {{ .Values.redis.resources.request.cpu }}
+          limits:
+            memory: {{ .Values.redis.resources.limit.memory }}
+            cpu: {{ .Values.redis.resources.limit.cpu }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-{{ .Values.deployEnv }}
+  labels:
+    app: redis-{{ .Values.deployEnv }}
+spec:
+  ports:
+  - port: 6379
+  selector:
+    app: redis-{{ .Values.deployEnv }}
+---
+{{- if eq .Values.sandbox "false" }}
+# TODO: This could be made global by matching on label `stackRole: redis` instead
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: redis-disruption-budget-{{ .Values.deployEnv }}
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+spec:
+  maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: redis-{{ .Values.deployEnv }}
+...
+{{- end }}
