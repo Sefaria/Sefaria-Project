@@ -11,6 +11,7 @@ def make_html(bulk_resolved: List[List[ResolvedRawRef]], output_filename, lang='
         inspect_window = f'''
         <span id="inspect-window-{metadata['i']}" class="hidden inspect-window">
         YO!!!!
+        <button onclick="toggleWindow({metadata['i']})">Close</button>
         </span>
         '''
         start = f'<span class="{metadata["true condition"]} tag">'
@@ -34,15 +35,40 @@ def make_html(bulk_resolved: List[List[ResolvedRawRef]], output_filename, lang='
         .label { font-weight: bold; font-size: 75%; color: #666; padding-right: 5px; }
         .inspect-btn { margin: 0 5px; }
         .hidden { display: none; }
+        .inspect-window {
+            position: fixed;
+            direction: ltr;
+            top: 10px;
+            right: 10px;
+            background-color: #eee;
+            border: 3px solid black;
+            padding: 10px;
+        }
         </style>
         <script>
           function onInspectClick(element) {
+            closeAll();
             const i = element.getAttribute("data-id");
-            const curr_window = document.getElementById("inspect-window-" + i);
+            toggleWindow(i);
+          }
+          function toggleWindow(i) {
+           const curr_window = document.getElementById("inspect-window-" + i);
             if (curr_window.classList.contains("hidden")) {
                 curr_window.classList.remove("hidden");
             } else {
                 curr_window.classList.add("hidden");
+            }
+          }
+          function closeAll() {
+            let i = 0;
+            let curr_window = null;
+            while (true) {
+                curr_window = document.getElementById("inspect-window-" + i);
+                if (!curr_window) { break; }
+                if (!curr_window.classList.contains("hidden")) {
+                    curr_window.classList.add("hidden");
+                }
+                i++;
             }
           }
         </script>
@@ -57,10 +83,12 @@ def make_html(bulk_resolved: List[List[ResolvedRawRef]], output_filename, lang='
         input_text = temp_resolved_list[0].raw_ref.span.doc.text
         context_ref = temp_resolved_list[0].context_ref
 
-        for iresolved, resolved in enumerate(temp_resolved_list):
+        iwrapped = 0
+        for resolved in temp_resolved_list:
             if resolved.ambiguous: continue
             start_char, end_char = resolved.raw_ref.char_indices
-            chars_to_wrap += [(start_char, end_char, {"label": "מקור", "true condition": "tp", "ref": resolved.ref, "i": iresolved})]
+            chars_to_wrap += [(start_char, end_char, {"label": "מקור", "true condition": "tp", "ref": resolved.ref, "i": iwrapped})]
+            iwrapped += 1
         wrapped_text = wrap_chars_with_overlaps(input_text, chars_to_wrap, get_wrapped_text)
         if context_ref is not None:
             html += f'<p class="ref">{context_ref.normal()}</p>'
