@@ -1,20 +1,35 @@
-from sefaria.model.ref_part import ResolvedRawRef
+from sefaria.model.ref_part import ResolvedRawRef, AmbiguousResolvedRawRef
 from sefaria.model import text
-from typing import List
+from typing import List, Union
 from collections import defaultdict
 
 
-def make_html(bulk_resolved: List[List[ResolvedRawRef]], output_filename, lang='he'):
+def make_html(bulk_resolved: List[List[Union[ResolvedRawRef, AmbiguousResolvedRawRef]]], output_filename, lang='he'):
     from sefaria.utils.util import wrap_chars_with_overlaps
 
-    def get_wrapped_text(mention, metadata):
-        """
+    def get_resolved_metadata(resolved: ResolvedRawRef, i: int) -> dict:
+        return {
+            "i": i,
+            "ref": resolved.ref,
+            "orig_part_strs": [p.text for p in resolved.raw_ref.raw_ref_parts],
+            "orig_part_types": [p.type.name for p in resolved.raw_ref.raw_ref_parts],
+            "final_part_strs": [p.text for p in resolved.raw_ref.parts_to_match],
+            "final_part_types": [p.type.name for p in resolved.raw_ref.parts_to_match],
+            "resolved_part_strs": [p.text for p in resolved.resolved_parts],
+            "resolved_part_types": [p.type.name for p in resolved.resolved_parts],
+            "resolved_part_classes": [p.__class__.__name__ for p in resolved.resolved_parts],
+            "context_ref": resolved.context_ref.normal() if resolved.context_ref else "N/A",
+            "context_type": resolved.context_type.name if resolved.context_type else "N/A",
+        }
 
-        """
+    def get_inspect_html(metadata: dict, mention: str) -> str:
         inspect_window = f'''
         <span id="inspect-window-{metadata['i']}" class="hidden inspect-window">
             <b>Input:</b>
             {mention}
+            </br>
+            <b>Resolved Ref</b>
+            {metadata['ref'].normal() if metadata['ref'] else 'N/A'}
             </br>
             <b>Context Ref</b>
             <table>
@@ -40,10 +55,21 @@ def make_html(bulk_resolved: List[List[ResolvedRawRef]], output_filename, lang='
             <button onclick="toggleWindow({metadata['i']})">Close</button>
         </span>
         '''
+        return f"""
+        <button class="inspect-btn" onclick="onInspectClick({metadata['i']})">Inspect</button>
+        {inspect_window}
+        """
+
+    def get_wrapped_text(mention, metadata):
         start = f'<span class="{metadata["true condition"]} tag">'
-        end = f'<span class="label">{metadata["label"]}</span><button class="inspect-btn" data-id="{metadata["i"]}" onclick="onInspectClick(this)">Inspect</button>{inspect_window}</span>'
-        if metadata['ref'] is not None:
-            ref = metadata["ref"]
+        end = f'''
+        <span class="label">{metadata["label"]}</span>
+        {" ".join([get_inspect_html(inner_metadata, mention) for inner_metadata in metadata['data']])}
+        </span>
+        '''
+        d = metadata['data']
+        if len(d) == 1 and d[0]['ref'] is not None:
+            ref = d[0]['ref']
             start += f'<a href="https://www.sefaria.org/{ref.url()}" target="_blank">'
             end = '</a>' + end
         return f'{start}{mention}{end}', len(start), len(end)
@@ -56,6 +82,7 @@ def make_html(bulk_resolved: List[List[ResolvedRawRef]], output_filename, lang='
         .doc { line-height: 200%; border-bottom: 2px black solid; padding-bottom: 20px; }
         .tag { padding: 5px; }
         .tp { background-color: greenyellow; border: 5px lightgreen solid; }
+        .ambig { background-color: orange; border: 5px red solid; }
         .fp { background-color: pink; border: 5px lightgreen solid; }
         .fn { background-color: greenyellow; border: 5px pink solid; }
         .label { font-weight: bold; font-size: 75%; color: #666; padding-right: 5px; }
@@ -74,29 +101,24 @@ def make_html(bulk_resolved: List[List[ResolvedRawRef]], output_filename, lang='
         }
         </style>
         <script>
-          function onInspectClick(element) {
-            closeAll();
-            const i = element.getAttribute("data-id");
+          let currIOpen = null;
+          function onInspectClick(i) {
+            toggleWindow(currIOpen);
+            currIOpen = i;
             toggleWindow(i);
           }
           function toggleWindow(i) {
            const curr_window = document.getElementById("inspect-window-" + i);
+           if (!curr_window) {
+            console.log("Couldn't find window for ID", i);
+            return;
+            }
             if (curr_window.classList.contains("hidden")) {
+                currIOpen = i;
                 curr_window.classList.remove("hidden");
             } else {
+                currIOpen = null;
                 curr_window.classList.add("hidden");
-            }
-          }
-          function closeAll() {
-            let i = 0;
-            let curr_window = null;
-            while (true) {
-                curr_window = document.getElementById("inspect-window-" + i);
-                if (!curr_window) { break; }
-                if (!curr_window.classList.contains("hidden")) {
-                    curr_window.classList.add("hidden");
-                }
-                i++;
             }
           }
         </script>
@@ -113,25 +135,17 @@ def make_html(bulk_resolved: List[List[ResolvedRawRef]], output_filename, lang='
 
         iwrapped = 0
         for resolved in temp_resolved_list:
-            if resolved.ambiguous: continue
-            start_char, end_char = resolved.raw_ref.char_indices
+            rlist = resolved.resolved_raw_refs if resolved.is_ambiguous else [resolved]
+            start_char, end_char = rlist[0].raw_ref.char_indices
             metadata = {
                 "label": "מקור",
-                "true condition": "tp",
-                "ref": resolved.ref,
-                "i": iwrapped,
-                "orig_part_strs": [p.text for p in resolved.raw_ref.raw_ref_parts],
-                "orig_part_types": [p.type.name for p in resolved.raw_ref.raw_ref_parts],
-                "final_part_strs": [p.text for p in resolved.raw_ref.parts_to_match],
-                "final_part_types": [p.type.name for p in resolved.raw_ref.parts_to_match],
-                "resolved_part_strs": [p.text for p in resolved.resolved_parts],
-                "resolved_part_types": [p.type.name for p in resolved.resolved_parts],
-                "resolved_part_classes": [p.__class__.__name__ for p in resolved.resolved_parts],
-                "context_ref": resolved.context_ref.normal() if resolved.context_ref else "N/A",
-                "context_type": resolved.context_type.name if resolved.context_type else "N/A",
+                "true condition": "ambig" if resolved.is_ambiguous else "tp",
+                "data": [],
             }
+            for r in rlist:
+                metadata['data'] += [get_resolved_metadata(r, iwrapped)]
+                iwrapped += 1
             chars_to_wrap += [(start_char, end_char, metadata)]
-            iwrapped += 1
         wrapped_text = wrap_chars_with_overlaps(input_text, chars_to_wrap, get_wrapped_text)
         if context_ref is not None:
             html += f'<p class="ref">{context_ref.normal()}</p>'
