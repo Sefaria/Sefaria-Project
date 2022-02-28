@@ -28,7 +28,7 @@ def make_html(bulk_resolved: List[List[Union[ResolvedRawRef, AmbiguousResolvedRa
             <b>Input:</b>
             {mention}
             </br>
-            <b>Resolved Ref</b>
+            <b>Resolved Ref:</b>
             {metadata['ref'].normal() if metadata['ref'] else 'N/A'}
             </br>
             <b>Context Ref</b>
