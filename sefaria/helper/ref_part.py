@@ -8,8 +8,13 @@ def make_html(bulk_resolved: List[List[ResolvedRawRef]], output_filename, lang='
     from sefaria.utils.util import wrap_chars_with_overlaps
 
     def get_wrapped_text(mention, metadata):
+        inspect_window = f'''
+        <span id="inspect-window-{metadata['i']}" class="hidden inspect-window">
+        YO!!!!
+        </span>
+        '''
         start = f'<span class="{metadata["true condition"]} tag">'
-        end = f'<span class="label">{metadata["label"]}</span><button class="inspect-btn" data-id="{metadata["i"]}" onclick="onInspectClick(this)">Inspect</button></span>'
+        end = f'<span class="label">{metadata["label"]}</span><button class="inspect-btn" data-id="{metadata["i"]}" onclick="onInspectClick(this)">Inspect</button>{inspect_window}</span>'
         if metadata['ref'] is not None:
             ref = metadata["ref"]
             start += f'<a href="https://www.sefaria.org/{ref.url()}" target="_blank">'
@@ -28,10 +33,17 @@ def make_html(bulk_resolved: List[List[ResolvedRawRef]], output_filename, lang='
         .fn { background-color: greenyellow; border: 5px pink solid; }
         .label { font-weight: bold; font-size: 75%; color: #666; padding-right: 5px; }
         .inspect-btn { margin: 0 5px; }
+        .hidden { display: none; }
         </style>
         <script>
           function onInspectClick(element) {
-            console.log(element.getAttribute("data-id"));
+            const i = element.getAttribute("data-id");
+            const curr_window = document.getElementById("inspect-window-" + i);
+            if (curr_window.classList.contains("hidden")) {
+                curr_window.classList.remove("hidden");
+            } else {
+                curr_window.classList.add("hidden");
+            }
           }
         </script>
       </head>
