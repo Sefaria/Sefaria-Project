@@ -406,13 +406,13 @@ class ResolvedRawRef:
     """
     Partial or complete resolution of a RawRef
     """
+    is_ambiguous = False
 
-    def __init__(self, raw_ref: RawRef, resolved_parts: List[RawRefPart], node, ref: text.Ref, ambiguous=False, context_ref: text.Ref = None, context_type: ContextType = None) -> None:
+    def __init__(self, raw_ref: RawRef, resolved_parts: List[RawRefPart], node, ref: text.Ref, context_ref: text.Ref = None, context_type: ContextType = None) -> None:
         self.raw_ref = raw_ref
         self.resolved_parts = resolved_parts
         self.node = node
         self.ref = ref
-        self.ambiguous = ambiguous
         self.context_ref = context_ref
         self.context_type = context_type
 
@@ -578,6 +578,16 @@ class ResolvedRawRef:
         For sorting
         """
         return len(self.resolved_parts)
+
+
+class AmbiguousResolvedRawRef:
+    """
+    Container for multiple ambiguous ResolvedRawRefs
+    """
+    is_ambiguous = True
+
+    def __init__(self, resolved_raw_refs: List[ResolvedRawRef]):
+        self.resolved_raw_refs = resolved_raw_refs
 
 
 PREFIXES = {'ב', 'וב', 'ע', 'ו', 'ד', 'מ'}  # careful of Ayin prefix...
@@ -850,7 +860,7 @@ class RefResolver:
     def reset_ibid_history(self):
         self._ibid_history = IbidHistory()
 
-    def bulk_resolve_refs(self, lang: str, book_context_refs: List[Optional[text.Ref]], input: List[str], with_failures=False, verbose=False, reset_ibids_every_context_ref=True) -> List[List[ResolvedRawRef]]:
+    def bulk_resolve_refs(self, lang: str, book_context_refs: List[Optional[text.Ref]], input: List[str], with_failures=False, verbose=False, reset_ibids_every_context_ref=True) -> List[List[Union[ResolvedRawRef, AmbiguousResolvedRawRef]]]:
         self.reset_ibid_history()
         all_raw_refs = self._bulk_get_raw_refs(lang, input)
         resolved = []
@@ -865,13 +875,12 @@ class RefResolver:
                 temp_resolved = self.resolve_raw_ref(lang, book_context_ref, raw_ref)
                 if len(temp_resolved) == 0 and with_failures:
                     inner_resolved += [ResolvedRawRef(raw_ref, [], None, None, context_ref=book_context_ref)]
-                if len(temp_resolved) != 1:
-                    # no result or ambiguous
+                elif any(r.is_ambiguous for r in temp_resolved):
                     # can't be sure about future ibid inferences
                     # TODO can probably salvage parts of history if matches are ambiguous within one book
                     self.reset_ibid_history()
                 else:
-                    self._ibid_history.last_match = temp_resolved[0].ref
+                    self._ibid_history.last_match = temp_resolved[-1].ref
                 inner_resolved += temp_resolved
             resolved += [inner_resolved]
         return resolved
@@ -980,7 +989,7 @@ class RefResolver:
                 curr_part_start = ipart+1
         return split_raw_refs
 
-    def resolve_raw_ref(self, lang: str, book_context_ref: Optional[text.Ref], raw_ref: RawRef) -> List['ResolvedRawRef']:
+    def resolve_raw_ref(self, lang: str, book_context_ref: Optional[text.Ref], raw_ref: RawRef) -> List[Union[ResolvedRawRef, AmbiguousResolvedRawRef]]:
         split_raw_refs = self.split_non_cts_parts(raw_ref)
         resolved_list = []
         for i, temp_raw_ref in enumerate(split_raw_refs):
@@ -1003,10 +1012,10 @@ class RefResolver:
                     except (InputError, AttributeError):
                         continue
             temp_resolved_list = self.refine_ref_part_matches(lang, book_context_ref, unrefined_matches, temp_raw_ref)
-            for resolved in temp_resolved_list:
-                if len(temp_resolved_list) > 1:
-                    resolved.ambiguous = True
-            resolved_list += temp_resolved_list
+            if len(temp_resolved_list) > 1:
+                resolved_list += [AmbiguousResolvedRawRef(temp_resolved_list)]
+            else:
+                resolved_list += temp_resolved_list
         return resolved_list
 
     def get_unrefined_ref_part_matches(self, lang: str, book_context_ref: Optional[text.Ref], raw_ref: RawRef) -> List['ResolvedRawRef']:

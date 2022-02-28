@@ -1,4 +1,5 @@
 import pytest, re
+from functools import reduce
 from sefaria.model.text import Ref, library
 from sefaria.model.ref_part import *
 from sefaria.model.abstract import AbstractMongoRecord
@@ -174,7 +175,7 @@ def test_resolve_raw_ref(resolver_data, expected_trefs):
                 ref_resolver._ibid_history.last_match = Ref(prev_tref)
     print('Input:', raw_ref.text)
     matches = ref_resolver.resolve_raw_ref(lang, context_ref, raw_ref)
-    matched_orefs = sorted([match.ref for match in matches], key=lambda x: x.normal())
+    matched_orefs = sorted(reduce(lambda a, b: a + b, [[match.ref] if not match.is_ambiguous else [inner_match.ref for inner_match in match.resolved_raw_refs] for match in matches], []), key=lambda x: x.normal())
     if len(expected_trefs) != len(matched_orefs):
         print(f"Found {len(matched_orefs)} refs instead of {len(expected_trefs)}")
         for matched_oref in matched_orefs:

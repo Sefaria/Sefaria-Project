@@ -281,7 +281,7 @@ def wrap_refs(request):
     post = json.loads(request.body)
     resolver = library.get_ref_resolver()
     lang = 'he' if is_hebrew(post['text']) else 'en'
-    resolved = resolver.bulk_resolve_refs(lang, [None], [post['text']])
+    resolved = resolver.bulk_resolve_refs(lang, [None], [post['text']], with_failures=True)
 
     # currently just dumps result to HTML file
     make_html(resolved, f'data/linker_results/linker_result.html')
