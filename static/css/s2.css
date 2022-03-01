@@ -9134,31 +9134,15 @@ span.purim-emoji img{
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
 }
 
-.ControvesialAlert {
-  /*position: absolute;*/
-  width: 524px;
-  height: 93px;
-  left: 312px;
-  top: 152px;
-
-  /* English System Body */
-
-  font-style: normal;
-  font-weight: normal;
-  font-size: 16px;
-  line-height: 19px;
-
-  /* Dark Grey */
-
-  color: #666666;
-  /* Lighter Grey */
-
-  background: #EDEDEC;
-  /* Light Grey */
-
-  border: 1px solid #CCCCCC;
+.controversialAlert {
+  color: var(--dark-grey);
+  background: var(--lighter-grey);
+  border: 1px solid var(--light-grey);
   box-sizing: border-box;
   border-radius: 6px;
+  padding: 10px 20px;
+  margin: 22px 44px 0;
+  font-size: 16px;
 }
 .interface-hebrew .sheetContent .element-link .popup {
   direction: rtl;
