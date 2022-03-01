@@ -175,17 +175,17 @@ class SearchResultList extends Component {
             topics = topics.filter(obj => obj.type !== "TocCategory");  //TocCategory is unhelpful if we have author
         }
         let searchTopics = [];
-        topics.map(async topic => {
+        for (let t=0; t<topics.length; t++) {
             let searchTopic;
-            if (topic.type === 'ref') {
-                searchTopic = await this.addRefTopic(topic);
-            } else if (topic.type === 'TocCategory') {
-                searchTopic = this.addTOCCategoryTopic(topic);
+            if (topics[t].type === 'ref') {
+                searchTopic = await this.addRefTopic(topics[t]);
+            } else if (topics[t].type === 'TocCategory') {
+                searchTopic = this.addTOCCategoryTopic(topics[t]);
             } else {
-                searchTopic = await this.addGeneralTopic(topic);
+                searchTopic = await this.addGeneralTopic(topics[t]);
             }
             searchTopics.push(searchTopic);
-        });
+        }
         this.setState({topics: searchTopics});
     }
     updateRunningQuery(type, ajax) {
