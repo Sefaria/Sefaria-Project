@@ -174,7 +174,7 @@ class SearchResultList extends Component {
         if (hasAuthor) {
             topics = topics.filter(obj => obj.type !== "TocCategory");  //TocCategory is unhelpful if we have author
         }
-        let searchTopics = topics.map(async t => {
+        let searchTopics = await topics.map(async t => {
             if (t.type === 'ref') {
                 return await this.addRefTopic(t);
             } else if (t.type === 'TocCategory') {
