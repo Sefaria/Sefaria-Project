@@ -1,0 +1,131 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: monitor-{{ .Values.deployEnv }}-{{ .Release.Revision }}
+  labels:
+    app: monitor-{{ .Values.deployEnv }}
+    deployEnv: "{{ .Values.deployEnv }}"
+    stackRole: monitor
+spec:
+  ports:
+  - port: 80
+  selector:
+    app: monitor-{{ .Values.deployEnv }}
+    releaseRevision: "{{ .Release.Revision }}"
+---
+# Singleton deployment for the monitor.
+# No service needed
+# apiVersion: apps/v1
+# kind: Deployment
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: {{ .Values.deployEnv }}-monitor
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+  annotations: 
+    rollout.argoproj.io/revision: "{{ .Release.Revision }}"
+spec:
+  strategy:
+    blueGreen:
+      activeService: monitor-{{ .Values.deployEnv }}-{{ .Release.Revision }}
+      autoPromotionEnabled: true
+      prePromotionAnalysis:
+        templates:
+          # - templateName: rollout-readiness-{{ .Values.deployEnv }}
+          - templateName: rollout-ready-{{ .Values.deployEnv }}
+        args:
+          # - name: rollout-value
+          #   value: "{{ .Release.Revision }}"
+          # - name: deploy-env
+          #   value: "{{ .Values.deployEnv }}"
+          - name: healthcheck-hostname
+            value: "nginx-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+  selector:
+    matchLabels:
+      app: monitor-{{ .Values.deployEnv }}
+  replicas: {{ .Values.monitor.replicaCount }}
+  revisionHistoryLimit: 0
+  template:
+    metadata:
+      labels:
+        app: monitor-{{ .Values.deployEnv }}
+        tier: application-{{ .Values.deployEnv }}
+        deployEnv: {{ .Values.deployEnv | quote }}
+        stackRole: monitor
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app-{{ .Values.deployEnv }}
+                operator: In
+                values:
+                - mongo
+            topologyKey: kubernetes.io.hostname
+        {{- if eq .Values.sandbox "true" }}
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: preemptible
+                    operator: NotIn
+                    values:
+                      - "false"
+                      - ""
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: preemptible
+                    operator: In
+                    values:
+                      - "true"
+        {{- end }}
+      containers:
+      - name: monitor
+        image: "{{ .Values.monitor.containerImage.imageRegistry }}:{{ .Values.monitor.containerImage.tag }}"
+        imagePullPolicy: Always
+        args: [ "mkdir -p /log && touch /log/sefaria_book_errors.log && python multiserver-monitor.py" ]
+        env:
+          - name: randomstringtoforceredeployments
+            value: {{ randAlphaNum 8 }}
+          - name: REDIS_HOST
+            value: "redis-{{ .Values.deployEnv }}"
+          - name: NODEJS_HOST
+            value: "node-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+          - name: VARNISH_HOST
+            value: "varnish-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+        envFrom:
+          - secretRef:
+              name: {{ template "secrets.localSettings" . }}
+          - configMapRef:
+              name: local-settings-{{ .Values.deployEnv }}
+        resources:
+          requests:
+            memory: "{{ .Values.monitor.resources.request.memory }}"
+            cpu: "{{ .Values.monitor.resources.request.cpu }}"
+          limits:
+            memory: "{{ .Values.monitor.resources.limit.memory }}"
+            cpu: "{{ .Values.monitor.resources.limit.cpu }}"
+        volumeMounts:
+        - mountPath: /app/sefaria/local_settings.py
+          name: local-settings
+          readOnly: true
+          subPath: local_settings.py
+        - mountPath: /varnish-secret
+          name: varnish-secret
+          readOnly: true
+      volumes:
+        - name:  local-settings
+          configMap:
+            name: local-settings-{{ .Values.deployEnv }}
+            items:
+              - key: local_settings.py
+                path: local_settings.py
+        - name: varnish-secret
+          secret:
+            secretName: {{ template "secrets.varnish" . }}
+...

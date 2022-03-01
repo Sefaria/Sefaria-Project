@@ -1364,6 +1364,8 @@ div.interfaceLinks-row a {
 .readerPanel .he {
   direction: rtl;
   text-align: right;
+  unicode-bidi: initial;
+}
 }
 .interface-hebrew .readerPanel .en {
   direction: ltr;
