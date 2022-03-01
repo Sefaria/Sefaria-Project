@@ -1,0 +1,140 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: "varnish-{{ .Values.deployEnv }}"
+  labels:
+    app: varnish-{{ .Values.deployEnv }}
+    deployEnv: "{{ .Values.deployEnv }}"
+    stackRole: varnish
+spec:
+  ports:
+  - name: http
+    port: 8040
+  - name: admin
+    port: 6082
+  selector:
+    app: varnish-{{ .Values.deployEnv }}
+{{range $k, $v := untilStep (int (sub .Release.Revision .Values.previousServicesCount)) (int (add .Release.Revision 1)) 1}}
+{{if gt $v 0}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: "varnish-{{ $.Values.deployEnv }}-{{ $v }}"
+  labels:
+    app: varnish-{{ $.Values.deployEnv }}
+    deployEnv: "{{ $.Values.deployEnv }}"
+    stackRole: varnish
+spec:
+  ports:
+  - name: http
+    port: 8040
+  - name: admin
+    port: 6082
+  selector:
+    app: varnish-{{ $.Values.deployEnv }}
+    releaseRevision: "{{ $v }}"
+{{end}}
+{{end}}
+---
+# apiVersion: apps/v1
+# kind: Deployment
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: {{ .Values.deployEnv }}-varnish
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+  annotations: 
+    rollout.argoproj.io/revision: "{{ .Release.Revision }}"
+spec:
+  strategy:
+    blueGreen:
+      activeService: varnish-{{ .Values.deployEnv }}
+      autoPromotionEnabled: true
+      prePromotionAnalysis:
+        templates:
+          # - templateName: rollout-readiness-{{ .Values.deployEnv }}
+          - templateName: rollout-ready-{{ .Values.deployEnv }}
+        args:
+          # - name: rollout-value
+          #   value: "{{ .Release.Revision }}"
+          # - name: deploy-env
+          #   value: "{{ .Values.deployEnv }}"
+          - name: healthcheck-hostname
+            value: "nginx-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+  selector:
+    matchLabels:
+      app: varnish-{{ .Values.deployEnv }}
+      # releaseRevision: "{{ .Release.Revision }}"
+  revisionHistoryLimit: 0
+  replicas: {{ .Values.varnish.replicaCount }}
+  template:
+    metadata:
+      labels:
+        app: varnish-{{ .Values.deployEnv }}
+        tier: application-{{ .Values.deployEnv }}
+        deployEnv: "{{ .Values.deployEnv }}"
+        stackRole: varnish
+        releaseRevision: "{{ .Release.Revision }}"
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - mongo
+            topologyKey: kubernetes.io.hostname
+        {{- if eq .Values.sandbox "true" }}
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: preemptible
+                    operator: NotIn
+                    values:
+                      - "false"
+                      - ""
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: preemptible
+                    operator: In
+                    values:
+                      - "true"
+        {{- end }}
+
+      containers:
+      - name: varnish
+        image: "{{ .Values.varnish.containerImage.imageRegistry }}:{{ .Values.varnish.containerImage.tag }}"
+        imagePullPolicy: Always
+        command: ["bash", "-c"] 
+        # args: [ "envsubst < /etc/varnish/sefaria.template.vcl > /etc/varnish/sefaria.vcl && exec /usr/sbin/varnishd -j unix,user=varnish -F -f /etc/varnish/sefaria.vcl -a :8040 -T :6082 -S /varnish-secret/varnish-secret -s malloc,14440m -p nuke_limit=400" ]
+        args: [ "envsubst < /etc/varnish/sefaria.template.vcl > /etc/varnish/sefaria.vcl && exec /usr/sbin/varnishd -j unix,user=varnish -F -f /etc/varnish/sefaria.vcl -a :8040 -T :6082 -S /varnish-secret/varnish-secret -s malloc,{{ .Values.varnish.tuning.malloc }} -p nuke_limit={{ .Values.varnish.tuning.nuke_limit }} -p thread_pool_max={{ .Values.varnish.tuning.thread_pool_max }} -p first_byte_timeout={{ .Values.varnish.tuning.first_byte_timeout }} -p between_bytes_timeout={{ .Values.varnish.tuning.between_bytes_timeout }}" ]
+        ports:
+        - containerPort: 8040
+        - containerPort: 6082
+        resources:
+          requests:
+            memory: "{{ .Values.varnish.resources.request.memory }}"
+            cpu: "{{ .Values.varnish.resources.request.cpu }}"
+          limits:
+            memory: "{{ .Values.varnish.resources.limit.memory }}"
+            cpu: "{{ .Values.varnish.resources.limit.cpu }}"
+        volumeMounts:
+        - mountPath: /varnish-secret
+          name: varnish-secret
+          readOnly: true
+        env:
+          - name: BACKEND_HOST
+            value: "web-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+      volumes:
+        - name: varnish-secret
+          secret:
+            secretName: {{ template "secrets.varnish" . }}
+...

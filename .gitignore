@@ -1,3 +1,6 @@
+# Keys #
+*.key
+
 # Compiled source #
 ###################
 *.com
@@ -126,4 +129,3 @@ static/sheetrank.json
 
 # Miscellaneous #
 #################
-/dafChat/deploy/dafchat/valuesGeneration/_generatedHelmValues.yaml
