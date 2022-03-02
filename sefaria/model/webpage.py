@@ -145,15 +145,6 @@ class WebPage(abst.AbstractMongoRecord):
                     return site
         return None
 
-    def update_from_linker(self, updates, existing=False):
-        if existing and len(updates["title"]) == 0:
-            # in case we are updating an existing web page that has a title,
-            # we don't want to accidentally overwrite it with a blank title
-            updates["title"] = self.title
-        self.load_from_dict(updates)
-        self.linkerHits += 1
-        self.lastUpdated = datetime.now()
-        self.save()
 
     @staticmethod
     def add_or_update_from_linker(data):
@@ -161,11 +152,15 @@ class WebPage(abst.AbstractMongoRecord):
         Returns True is data was saved, False if data was determined to be exluded"""
         data["url"] = WebPage.normalize_url(data["url"])
         webpage = WebPage().load(data["url"])
-        data["refs"] = WebPage._normalize_refs(data["refs"]) # remove bad refs so pages with empty refs won't get saved
+        data["refs"] = WebPage._normalize_refs(data["refs"])  # remove bad refs so pages with empty refs won't get saved
+
         if webpage:
             existing = True
             if data["title"] == webpage.title and data["description"] == webpage.description and set(data["refs"]) == set(webpage.refs):
                 return "excluded"  # no new data
+            if data["title"] == "":
+                data["title"] = webpage.title  # dont save an empty title if title exists
+            webpage.load_from_dict(data)
         else:
             webpage = WebPage(data)
             existing = False
@@ -175,7 +170,9 @@ class WebPage(abst.AbstractMongoRecord):
                 webpage.delete()
             return "excluded"
 
-        webpage.update_from_linker(data, existing)
+        webpage.linkerHits += 1
+        webpage.lastUpdated = datetime.now()
+        webpage.save()
         return "saved"
 
     def client_contents(self):
