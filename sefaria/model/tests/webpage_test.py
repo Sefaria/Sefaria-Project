@@ -65,6 +65,11 @@ def test_add_and_update_good_url_from_linker(create_good_web_page):
 	assert WebPage().load({"url": data["url"]}).linkerHits == linker_hits + 1
 
 
+def test_add_and_update_with_same_data(create_good_web_page):
+	# create a page and then try to add_or_update it with same data and assert it fails
+	result, webpage, data = create_good_web_page["result"], create_good_web_page["webpage"], create_good_web_page["data"]
+	assert result == "saved"
+	assert WebPage().add_or_update_from_linker(data) == "excluded"
 
 
 def test_update_blank_title_from_linker(create_good_web_page):
