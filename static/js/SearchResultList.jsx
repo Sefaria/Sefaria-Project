@@ -167,6 +167,29 @@ class SearchResultList extends Component {
         }
         return searchTopic;
     }
+    async addCollection(collection) {
+        const d = await Sefaria.getCollection(collection.key);
+        let searchTopic = {
+            title: d.name,
+            heTitle: d.name,
+            numSources: 0,
+            numSheets: 0
+        }
+        searchTopic.url = "/collections/" + collection.key;
+        searchTopic.topicCat = "Collections";
+        searchTopic.heTopicCat = Sefaria.hebrewTranslation("Collections");
+        if ("description" in d) {
+            searchTopic.enDesc = d.description;
+            searchTopic.heDesc = d.description;
+        }
+        if (d.tabs?.sources) {
+            searchTopic.numSources = d.tabs.sources.refs.length;
+        }
+        if (d.tabs?.sheets) {
+            searchTopic.numSheets = d.tabs.sheets.refs.length;
+        }
+        return searchTopic;
+    }
     async _executeTopicQuery() {
         const d = await Sefaria.getName(this.props.query)
         let topics = d.completion_objects.filter(obj => obj.title.toUpperCase() === this.props.query.toUpperCase());
@@ -179,10 +202,13 @@ class SearchResultList extends Component {
                 return await this.addRefTopic(t);
             } else if (t.type === 'TocCategory') {
                 return this.addTOCCategoryTopic(t);
+            } else if (t.type === 'Collection') {
+                return await this.addCollection(t);
             } else {
                 return await this.addGeneralTopic(t);
             }
         }));
+        console.log(searchTopics);
         this.setState({topics: searchTopics});
     }
     updateRunningQuery(type, ajax) {
