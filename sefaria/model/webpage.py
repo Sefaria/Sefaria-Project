@@ -54,7 +54,6 @@ class WebPage(abst.AbstractMongoRecord):
     def _normalize(self):
         super(WebPage, self)._normalize()
         self.url = WebPage.normalize_url(self.url)
-        self.refs = WebPage._normalize_refs(self.refs)
         self.expandedRefs = text.Ref.expand_refs(self.refs)
 
     def _validate(self):
@@ -162,16 +161,14 @@ class WebPage(abst.AbstractMongoRecord):
         Returns True is data was saved, False if data was determined to be exluded"""
         data["url"] = WebPage.normalize_url(data["url"])
         webpage = WebPage().load(data["url"])
-
+        data["refs"] = WebPage._normalize_refs(data["refs"]) # remove bad refs so pages with empty refs won't get saved
         if webpage:
             existing = True
-            data["refs"] = WebPage._normalize_refs(data["refs"])
             if data["title"] == webpage.title and data["description"] == webpage.description and set(data["refs"]) == set(webpage.refs):
                 return "excluded"  # no new data
         else:
             webpage = WebPage(data)
             existing = False
-            webpage._normalize() # to remove bad refs, so pages with empty ref list aren't saved
 
         if webpage.should_be_excluded():
             if existing:
@@ -179,8 +176,6 @@ class WebPage(abst.AbstractMongoRecord):
             return "excluded"
 
         webpage.update_from_linker(data, existing)
-        if existing:
-            webpage.expandedRefs = text.Ref.expand_refs(webpage.refs)
         return "saved"
 
     def client_contents(self):
