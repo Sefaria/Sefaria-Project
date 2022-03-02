@@ -208,7 +208,6 @@ class SearchResultList extends Component {
                 return await this.addGeneralTopic(t);
             }
         }));
-        console.log(searchTopics);
         this.setState({topics: searchTopics});
     }
     updateRunningQuery(type, ajax) {
