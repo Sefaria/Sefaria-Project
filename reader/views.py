@@ -60,6 +60,7 @@ from sefaria.helper.search import get_query_obj
 from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, get_topics_for_book
 from sefaria.helper.community_page import get_community_page_items
 from sefaria.helper.file import get_resized_file
+from sefaria.image_generator import make_img_http_response
 import sefaria.tracker as tracker
 
 if USE_VARNISH:
@@ -1496,6 +1497,25 @@ def texts_api(request, tref):
         return jsonResponse({"status": "ok"})
 
     return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
+
+@catch_error_as_json
+@csrf_exempt
+def social_image_api(request, tref):
+    lang = request.GET.get("lang", "en")
+    version = request.GET.get("v", None)
+    if version:
+        version = version.replace("_", " ")
+
+    tf = TextFamily(Ref(tref), stripItags=True, lang=lang, version=version, context=0, commentary=False).contents()
+
+    he = tf["he"] if type(tf["he"]) is list else [tf["he"]]
+    en = tf["text"] if type(tf["text"]) is list else [tf["text"]]
+
+    text = en if lang == "en" else he
+    text = ' '.join(text)
+    res = make_img_http_response(text, tf["primary_category"], lang)
+
+    return res
 
 
 @catch_error_as_json
