@@ -5,7 +5,7 @@ trend.py
 """
 
 import time
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 
 from . import abstract as abst
 from . import user_profile
@@ -74,9 +74,14 @@ class DateRange(object):
         return cls("alltime", None, None)
 
     @classmethod
-    def this_hebrew_year(cls):
-        #todo: add try catch
+    def currently(cls):
         today = date.today()
+        year_in_days = timedelta(365)
+        return cls("currently", today - year_in_days, today)
+
+    @classmethod
+    def this_hebrew_year(cls):
+        today = date.today()                     
         this_gregorian_year_rh = cls.new_years_dict[today.year]
         try:
             if (this_gregorian_year_rh.date() > today):
@@ -140,7 +145,7 @@ class DateRange(object):
                 and (self.end is None or dt <= self.end))
 
 
-active_dateranges = [DateRange.alltime(), DateRange.this_hebrew_year()]
+active_dateranges = [DateRange.alltime(), DateRange.currently()]
 
 
 class Trend(abst.AbstractMongoRecord):
@@ -295,8 +300,10 @@ def setUserLanguageTraits():
             }).save()
 
 def setNationBuilderTraits():
-    # nationbuilder_updateTags()
     pass
+
+
+
 
 def getAllUsersLanguageUsage(daterange):
     '''
@@ -469,7 +476,6 @@ def user_stats_data(uid):
 
     return user_stats_dict
 
-
 # vv Needs thought / refactor vv
 class TrendFactory(object):
     """
@@ -484,7 +490,7 @@ class TrendFactory(object):
     for_user = False   # bool
     for_group = False  # bool
 
-
+    
     # to consider: Is a well defined period the way to go with these?
     def process_user(self, user_id, period):
         """
@@ -520,8 +526,6 @@ class EnglishToleranceFactory(TrendFactory):
     datatype = "float"   # int, float, str, bool, dict
     for_user = True
     for_group = False
-    
-
 
 class HebrewAbilityFactory(TrendFactory):
     name = "HebrewAbility"
