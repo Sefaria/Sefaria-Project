@@ -28,6 +28,26 @@ palette = {
     "System":    (24, 52, 93)
 }
 
+platforms = {
+    "facebook": {
+        "width": 1200,
+        "height": 630,
+        "padding": 120,
+        "font_size": 60,
+        "he_spacing": 5,
+        "logo_size": 200,
+    },
+    "twitter": {
+        "width": 1200,
+        "height": 600,
+        "padding": 120,
+        "font_size": 60,
+        "he_spacing": 5,
+        "logo_size": 200,
+    }
+
+}
+
 def smart_truncate(content, length=180, suffix='...'):
     if len(content) <= length:
         return content
@@ -54,35 +74,37 @@ def cleanup_and_format_text(text, language):
     return text
 
 
-def generate_image(text="", category="System", lang="he"):
+def generate_image(text="", category="System", lang="he", platform="twitter"):
     text_color = '#ffffff'
-    font = ImageFont.truetype(font='static/fonts/Amiri-Taamey-Frank-merged.ttf', size=42)
-    width = 800
-    height = 400
-    padding = int(width * .1)
+    font = ImageFont.truetype(font='static/fonts/Amiri-Taamey-Frank-merged.ttf', size=platforms[platform]["font_size"])
+    width = platforms[platform]["width"]
+    height = platforms[platform]["height"]
+    padding = platforms[platform]["padding"]
     img = Image.new('RGBA', (width, height), color=palette[category])
 
 
     if lang == "en":
         align = "left"
         watermark_url = "static/img/logo-white.png"
+        spacing = 0
 
     else:
         align = "right"
         watermark_url = "static/img/logo-hebrew-white.png"
+        spacing = platforms[platform]["he_spacing"]
 
     text = cleanup_and_format_text(text, lang)
     text = textwrap.fill(text=text, width= calc_letters_per_line(text, font, int(img.size[0]-padding)))
     text = get_display(text) # Applies BIDI algorithm to text so that letters aren't reversed in PIL.
 
     draw = ImageDraw.Draw(im=img)
-    draw.text(xy=(img.size[0] / 2, img.size[1] / 2), text=text, font=font, align=align, fill=text_color, anchor='mm')
+    draw.text(xy=(img.size[0] / 2, img.size[1] / 2), text=text, font=font, spacing=spacing, align=align, fill=text_color, anchor='mm')
 
     watermark = Image.open(watermark_url)
-    watermark.thumbnail((100,100))
+    watermark.thumbnail((platforms[platform]["logo_size"], platforms[platform]["logo_size"]))
     watermark_padded = Image.new('RGBA', (width, height))
     watermark_pos = int(img.size[0]-(padding/2) - watermark.size[0]) if lang == "en" else int(padding/2)
-    watermark_padded.paste(watermark, (watermark_pos, int(height-padding/2)))
+    watermark_padded.paste(watermark, (watermark_pos, int(height-watermark.size[1]- (padding/4))))
 
     img = Image.alpha_composite(img, watermark_padded)
 
@@ -90,7 +112,7 @@ def generate_image(text="", category="System", lang="he"):
     img.save(buf, format='png')
     return(buf.getvalue())
 
-def make_img_http_response(text, category, lang):
-    img = generate_image(text, category, lang)
+def make_img_http_response(text, category, lang, platform):
+    img = generate_image(text, category, lang, platform)
     res = HttpResponse(img, content_type="image/png")
     return res

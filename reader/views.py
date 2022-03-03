@@ -1503,6 +1503,8 @@ def texts_api(request, tref):
 def social_image_api(request, tref):
     lang = request.GET.get("lang", "en")
     version = request.GET.get("v", None)
+    platform = request.GET.get("platform", "twitter")
+
     if version:
         version = version.replace("_", " ")
 
@@ -1513,7 +1515,7 @@ def social_image_api(request, tref):
 
     text = en if lang == "en" else he
     text = ' '.join(text)
-    res = make_img_http_response(text, tf["primary_category"], lang)
+    res = make_img_http_response(text, tf["primary_category"], lang, platform)
 
     return res
 
