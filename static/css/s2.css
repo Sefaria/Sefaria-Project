@@ -3549,6 +3549,31 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   max-width: 665px;
 }
 
+.searchResultList .topicTitle .int-en, .searchResultList .topicTitle .int-he {
+  font-size: 24px;
+}
+
+.searchContent .searchResultList #searchTopics {
+  border-top: 1px solid #EDEDEC;
+  border-bottom: 1px solid #EDEDEC;
+  padding-top: 30px;
+  padding-bottom: 5px;
+  margin-bottom: 25px;
+}
+.searchResultList .searchTopic {
+  margin-bottom: 30px;
+}
+.searchResultList .searchTopic .topicDescSearchResult {
+  margin-top: 10px;
+}
+.searchResultList .searchTopic .topicSourcesSheets {
+  margin-top: 10px;
+}
+.searchResultList .searchTopic .topicSourcesSheets.systemText .int-en,
+.searchResultList .searchTopic .topicSourcesSheets.systemText .int-he {
+  color: #666666;
+}
+
 @media (min-width: 701px) {
   /* prevent width of left-pane from changing due to content size when filters applied */
   .searchContent .searchResultList {
@@ -4408,9 +4433,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .readerControls .readerTextToc .readerTextVersion {
   font-size: 15px;
   color: #999;
-}
-.readerControls .readerTextToc .readerTextVersion .en{
-  unicode-bidi: bidi-override;
 }
 .readerControls .readerTextToc .fa {
   color: #999;
