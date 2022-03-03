@@ -30,7 +30,7 @@ const SearchTopic = (props) => {
                             </div> ;
     }
     else if ("numSheets" in props.topic && props.topic.numSheets > 0) {
-        sheets = <a href={props.topic.url+"?tab=sheets"}><InterfaceText>Sheets</InterfaceText></a>;
+        sheets = <a href={props.topic.url}><InterfaceText>Sheets</InterfaceText></a>;
         sourcesSheetsDiv = <div className="topicSourcesSheets systemText">
                                 <InterfaceText>{props.topic.numSheets}</InterfaceText> {sheets}
                             </div> ;
