@@ -21,26 +21,36 @@ import {
 } from './Misc';
 
 const SearchTopic = (props) => {
-    const sources = <a href={props.topic["url"]+"?tab=sources"}><InterfaceText>Sources</InterfaceText></a>;
-    const sheets = <a href={props.topic["url"]+"?tab=sheets"}><InterfaceText>Sheets</InterfaceText></a>;
+    let sources, sheets, sourcesSheetsDiv;
+    if ("numSources" in props.topic && props.topic.numSources > 0 && "numSheets" in props.topic && props.topic.numSheets > 0) {
+        sources = <a href={props.topic.url + "?tab=sources"}><InterfaceText>Sources</InterfaceText></a>;
+        sheets = <a href={props.topic.url+"?tab=sheets"}><InterfaceText>Sheets</InterfaceText></a>;
+        sourcesSheetsDiv = <div className="topicSourcesSheets systemText">
+                                <InterfaceText>{props.topic.numSources}</InterfaceText> {sources} ∙ <InterfaceText>{props.topic.numSheets}</InterfaceText> {sheets}
+                            </div> ;
+    }
+    else if ("numSheets" in props.topic && props.topic.numSheets > 0) {
+        sheets = <a href={props.topic.url+"?tab=sheets"}><InterfaceText>Sheets</InterfaceText></a>;
+        sourcesSheetsDiv = <div className="topicSourcesSheets systemText">
+                                <InterfaceText>{props.topic.numSheets}</InterfaceText> {sheets}
+                            </div> ;
+    }
+
     return <div className="searchTopic">
-            <div className="topicTitle">
-              <h1>
-                  <a href={props.topic["url"]}><InterfaceText text={{en:props.topic["title"], he:props.topic["heTitle"]}}/></a>
-              </h1>
-            </div>
-            <div className="topicCategory sectionTitleText">
-                <InterfaceText text={{en:props.topic["topicCat"], he:props.topic["heTopicCat"]}}/>
-            </div>
-            {"enDesc" in props.topic ?
-                <div className="topicDescSearchResult systemText">
-                   <InterfaceText text={{en:props.topic["enDesc"], he:props.topic["heDesc"]}}/>
-                </div> : null}
-            {props.topic.numSources > 0 || props.topic.numSheets > 0 ?
-                <div className="topicSourcesSheets systemText">
-                    <InterfaceText>{props.topic["numSources"]}</InterfaceText> {sources} ∙ <InterfaceText>{props.topic["numSheets"]}</InterfaceText> {sheets}
-                </div> : null}
-            </div>
+                <div className="topicTitle">
+                  <h1>
+                      <a href={props.topic.url}><InterfaceText text={{en:props.topic.title, he:props.topic.heTitle}}/></a>
+                  </h1>
+                </div>
+                <div className="topicCategory sectionTitleText">
+                    <InterfaceText text={{en:props.topic.topicCat, he:props.topic.heTopicCat}}/>
+                </div>
+                {"enDesc" in props.topic ?
+                    <div className="topicDescSearchResult systemText">
+                       <InterfaceText text={{en:props.topic.enDesc, he:props.topic.heDesc}}/>
+                    </div> : null}
+                {"numSheets" in props.topic && props.topic.numSheets > 0 ? sourcesSheetsDiv : null}
+        </div>
 }
 
 class SearchResultList extends Component {
@@ -172,7 +182,6 @@ class SearchResultList extends Component {
         let searchTopic = {
             title: d.name,
             heTitle: d.name,
-            numSources: 0,
             numSheets: 0
         }
         searchTopic.url = "/collections/" + collection.key;
@@ -182,12 +191,7 @@ class SearchResultList extends Component {
             searchTopic.enDesc = d.description;
             searchTopic.heDesc = d.description;
         }
-        if (d.tabs?.sources) {
-            searchTopic.numSources = d.tabs.sources.refs.length;
-        }
-        if (d.tabs?.sheets) {
-            searchTopic.numSheets = d.tabs.sheets.refs.length;
-        }
+        searchTopic.numSheets = d.sheets.length;
         return searchTopic;
     }
     async _executeTopicQuery() {
