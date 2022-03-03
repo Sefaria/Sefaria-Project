@@ -1,0 +1,49 @@
+{{ if eq .Values.deployEnv "prod" }}
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: {{ .Values.deployEnv }}-metrics
+spec:
+  schedule: "0 1 * * *"
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        spec:
+          volumes:
+          - name: local-settings
+            configMap:
+              name: local-settings-{{ .Values.deployEnv }}
+              items:
+                - key: local_settings.py
+                  path: local_settings.py
+          - name: metrics
+            image: "{{ .Values.web.containerImage }}:{{ .Values.releaseImageTag }}"
+            env:
+            - name: REDIS_HOST
+              value: "redis-{{ .Values.deployEnv }}"
+            - name: NODEJS_HOST
+              value: "node-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+            - name: VARNISH_HOST
+              value: "varnish-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+            envFrom:
+              - secretRef:
+                name: {{ template "secrets.localSettings" . }}
+              - configMapRef:
+                name: local-settings-{{ .Values.deployEnv }}
+            volumeMounts:
+              - mountPath: /app/sefaria/local_settings.py
+                name: local-settings
+                subPath: local_settings.py
+                readOnly: true
+            command: ["bash"]
+            args: [
+              "-c",
+              "/app/run /app/scripts/metrics.py"
+            ]
+          restartPolicy: OnFailure
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 2
+...
+{{end}}
