@@ -4,7 +4,7 @@ import time
 import json
 
 from sefaria.system.database import db
-from sefaria.helper.trend_manager import CategoryTrendManager
+from sefaria.helper.trend_manager import CategoryTrendManager, SheetReaderManager
 from sefaria import settings as sls
 
 base_url = "https://"+sls.NATIONBUILDER_SLUG+".nationbuilder.com"
@@ -44,7 +44,7 @@ def get_tags_for_user(profile, trendManagers):
     for trendManager in trendManagers:
         info = trendManager.getPersonInfo(trends)
         if info['value'] == True:
-            to_add.append(info['key'])
+            to_add.append(info['name'])
         else:
             to_remove.append(info['name'])
     return to_add,to_remove
@@ -54,7 +54,7 @@ def get_tags_for_user(profile, trendManagers):
 def nationbuilder_update_all_tags():
     session = get_nationbuilder_connection()
     for profile in db.profiles.find({'id': 34822}):
-        trend_managers = [CategoryTrendManager("Halakha", 5), CategoryTrendManager("Tanakh", 5), CategoryTrendManager("Fake", 5)]
+        trend_managers = [CategoryTrendManager("Halakha"), CategoryTrendManager("Tanakh"), CategoryTrendManager("Fake"), SheetReaderManager()]
         tags_to_add, tags_to_remove = get_tags_for_user(profile, trend_managers)
         print(tags_to_add)
         print(tags_to_remove)
@@ -76,7 +76,7 @@ def nationbuilder_update_person_tags(session, id, to_add, to_remove):
     print(req_add)
     print(req_delete)
 
-# nationbuilder_update_all_tags()
+nationbuilder_update_all_tags()
 def nationbuilder_get_all(endpoint_func, args=[]):
     session = get_nationbuilder_connection()
     next_endpoint = endpoint_func(*args)
