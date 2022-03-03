@@ -3,7 +3,8 @@ from rauth import OAuth2Service
 import time
 import json
 
-from sefaria.system.database import db #consider moving all of the nb stuff to a separate file
+from sefaria.system.database import db
+from sefaria.helper.trend_manager import CategoryTrendManager
 from sefaria import settings as sls
 
 base_url = "https://"+sls.NATIONBUILDER_SLUG+".nationbuilder.com"
@@ -32,16 +33,38 @@ def get_nationbuilder_connection():
     session = service.get_session(token)
     return session
 
+def get_tags_for_user(profile, trendManagers):
+    trends = {}
+    for trend in db.trend.find({"uid": profile['id']}):
+        if not trends.get(trend["name"], False):
+            trends[trend["name"]] = {}
+        trends[trend["name"]][trend["period"]] = trend["value"]
+    to_add = []
+    to_remove = []
+    for trendManager in trendManagers:
+        info = trendManager.getPersonInfo(trends)
+        if info['value'] == True:
+            to_add.append(info['key'])
+        else:
+            to_remove.append(info['name'])
+    return to_add,to_remove
+
+
+
 def nationbuilder_update_all_tags():
     session = get_nationbuilder_connection()
-    for profile in db.profiles.find({}):
+    for profile in db.profiles.find({'id': 34822}):
+        trend_managers = [CategoryTrendManager("Halakha", 5), CategoryTrendManager("Tanakh", 5), CategoryTrendManager("Fake", 5)]
+        tags_to_add, tags_to_remove = get_tags_for_user(profile, trend_managers)
+        print(tags_to_add)
+        print(tags_to_remove)
         nationbuilder_update_person_tags(session, profile["nationbuilder_id"], json.dumps({
             "tagging": {
-                "tag": ["fake_tag_1", "fake_tag_2"]
+                "tag": tags_to_add
             }
         }), json.dumps({
             "tagging": {
-                "tag": ["fake_tag_1", "fake_tag_3"]
+                "tag": tags_to_remove
             }
         }))
         print(profile)
@@ -53,7 +76,7 @@ def nationbuilder_update_person_tags(session, id, to_add, to_remove):
     print(req_add)
     print(req_delete)
 
-nationbuilder_update_all_tags()
+# nationbuilder_update_all_tags()
 def nationbuilder_get_all(endpoint_func, args=[]):
     session = get_nationbuilder_connection()
     next_endpoint = endpoint_func(*args)
@@ -83,3 +106,4 @@ def update_user_flags(profile, flag, value):
     # updates our database user, not nb
     profile.update({flag: value})
     profile.save()
+
