@@ -65,7 +65,7 @@ class Sheet extends Component {
     else {
       content = (
             <SheetContent
-          controversialAlert={sheet.controversialAlert}
+          sheetNotice={sheet.sheetNotice}
           sources={sheet.sources}
           title={sheet.title}
           onRefClick={this.props.onRefClick}
@@ -296,7 +296,7 @@ class SheetContent extends Component {
 
     return (
       <div className="sheetContent">
-        {this.props.controversialAlert ? <ControversialAlert /> : null}
+        {this.props.sheetNotice ? <SheetNotice /> : null}
         <SheetMetaDataBox>
           <SheetTitle title={this.props.title} />
           
@@ -664,10 +664,10 @@ class SheetMedia extends Component {
   }
 }
 
-class ControversialAlert extends Component {
+class SheetNotice extends Component {
   render() {
     return (
-        <div className="controversialAlert sans-serif">
+        <div className="sheetNotice sans-serif">
           <InterfaceText>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam arcu felis, molestie sed mauris a, hendrerit vestibulum augue.</InterfaceText>
         </div>
     );
