@@ -75,7 +75,7 @@ class DateRange(object):
 
     @classmethod
     def currently(cls):
-        today = date.today()
+        today = datetime.today()
         year_in_days = timedelta(365)
         return cls("currently", today - year_in_days, today)
 
