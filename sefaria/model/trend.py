@@ -374,6 +374,18 @@ def getAllUsersCategories(daterange):
     results = db.user_history.aggregate(pipeline)
     return {d["_id"]: d for d in results}
 
+def getAllUsersSheetUsage(daterange, publishedOnly=False):
+    pipeline = [
+        {"$match": daterange.update_match({
+            "status": "public"
+        }  if publishedOnly else {}, field="dateModified")}, # is this correct
+        {"$group": {
+            "_id": "$owner",
+            "cnt": {"$sum": 1}}}     # Sheet records never have num_times_read greater than 1.
+    ]
+
+    results = db.sheets.aggregate(pipeline)
+    return {d["_id"]: d for d in results}
 
 def site_stats_data():
     from sefaria.model.category import TOP_CATEGORIES
