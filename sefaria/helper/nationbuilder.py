@@ -2,6 +2,7 @@ from urllib.parse import unquote
 from rauth import OAuth2Service
 import time
 import json
+from sefaria.site.categories import TOP_CATEGORIES
 
 from sefaria.system.database import db
 from sefaria.helper.trend_manager import CategoryTrendManager, SheetReaderManager
@@ -52,9 +53,26 @@ def get_tags_for_user(profile, trendManagers):
 
 
 def nationbuilder_update_all_tags():
+    TOP_CATEGORIES = [
+    "Tanakh",
+    "Mishnah",
+    "Talmud",
+    "Midrash",
+    "Halakhah",
+    "Kabbalah",
+    "Liturgy",
+    "Jewish Thought",
+    "Tosefta"
+    "Chasidut",
+    "Musar",
+    "Responsa",
+    "Second Temple",
+    "Reference",
+    ] # why won't this import from sefaria.model.categories??
     session = get_nationbuilder_connection()
-    for profile in db.profiles.find({'id': 34822}):
-        trend_managers = [CategoryTrendManager("Halakha"), CategoryTrendManager("Tanakh"), CategoryTrendManager("Fake"), SheetReaderManager()]
+    category_trend_managers = [CategoryTrendManager(category, period=period) for category in TOP_CATEGORIES for period in ["alltime", "currently"]] 
+    trend_managers = category_trend_managers + [SheetReaderManager()]
+    for profile in db.profiles.find():
         tags_to_add, tags_to_remove = get_tags_for_user(profile, trend_managers)
         print(tags_to_add)
         print(tags_to_remove)

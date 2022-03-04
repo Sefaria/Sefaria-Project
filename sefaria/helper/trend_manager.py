@@ -6,24 +6,20 @@ class TrendManager:
         self.valueThresholdMin = valueThresholdMin
 
     def getPersonInfo(self, trends):
+        person_info = {
+            "key": self.key,
+            "name": self.name+"_"+self.period,
+            "period": self.period
+        }
         try:
             if trends.get(self.key, {}).get(self.period) >= self.valueThresholdMin:
                 value = True
             else:
                 value = False
-            return {
-                "key": self.key,
-                "name": self.name,
-                "period": self.period,
-                "value": value
-            }
+            person_info["value"] = value
         except:
-            return {
-                "key": self.key,
-                "name": self.name,
-                "period": self.period,
-                "value": False
-            }
+            person_info["value"] = False
+        return person_info
 
 
 class CategoryTrendManager(TrendManager):
@@ -35,24 +31,5 @@ class CategoryTrendManager(TrendManager):
 class SheetReaderManager(TrendManager):
     def __init__(self, period="alltime"):
         TrendManager.__init__(self,"source_sheet_reader","SheetsRead",period)
-    
-    def getPersonInfo(self, trends):
-        try:
-            if trends.get(self.key, {}).get(self.period) >= self.valueThresholdMin:
-                value = True
-            else:
-                value = False
-            return {
-                "key": self.key,
-                "name": self.name,
-                "period": self.period,
-                "value": value
-            }
-        except:
-            return {
-                "key": self.key,
-                "name": self.name,
-                "period": self.period,
-                "value": False
-            }
+
 
