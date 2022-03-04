@@ -25,6 +25,9 @@ jobs:
       - name: Get branch name
         id: branch-name
         uses: tj-actions/branch-names@v5.1
+      - name: Get current date
+        id: date
+        run: echo "::set-output name=date::$(date +'%Y%m%d%H%M')"
       - name: Generate image metadata
         id: meta
         uses: docker/metadata-action@v3
@@ -34,6 +37,7 @@ jobs:
           # generate Docker tags based on the following events/attributes
           tags: |
             type=ref,event=branch
+            type=sha,enable=true,priority=100,prefix=sha-,suffix=-${{ steps.date.outputs.date }},format=short
             type=sha
           flavor: |
             latest=true
@@ -65,6 +69,9 @@ jobs:
       - name: Get branch name
         id: branch-name
         uses: tj-actions/branch-names@v5.1
+      - name: Get current date
+        id: date
+        run: echo "::set-output name=date::$(date +'%Y%m%d%H%M')"
       - name: Generate image metadata
         id: meta
         uses: docker/metadata-action@v3
@@ -74,6 +81,7 @@ jobs:
           # generate Docker tags based on the following events/attributes
           tags: |
             type=ref,event=branch
+            type=sha,enable=true,priority=100,prefix=sha-,suffix=-${{ steps.date.outputs.date }},format=short
             type=sha
           flavor: |
             latest=true
