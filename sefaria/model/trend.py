@@ -245,6 +245,34 @@ def setCategoryTraits():
                 "scope": "site"
             }).save()
 
+def setSheetTraits():
+    TrendSet({"name": "SheetsCreatedPublic"}).delete()
+    TrendSet({"name": "SheetsCreated"}).delete()
+
+    for daterange in active_dateranges:
+        all_users = getAllUsersSheetCreation(daterange)
+        all_users_published = getAllUsersSheetCreation(daterange, publishedOnly=True)
+        for uid, data in all_users.items():
+            Trend({
+                "name":         "SheetsCreated",
+                "value":        int(data["cnt"]),
+                "datatype":     "int",
+                "timestamp":    datetime.utcnow(),
+                "period":       daterange.key,
+                "scope":        "user",
+                "uid":          uid
+            }).save()
+        for uid, data in all_users_published.items():
+            Trend({
+                "name":         "SheetsCreatedPublic",
+                "value":        int(data["cnt"]),
+                "datatype":     "int",
+                "timestamp":    datetime.utcnow(),
+                "period":       daterange.key,
+                "scope":        "user",
+                "uid":          uid
+            }).save()
+
 
 def setUserLanguageTraits():
     TrendSet({"name": {"$in": ["EnglishTolerance", "HebrewAbility"]}}).delete()
@@ -374,7 +402,7 @@ def getAllUsersCategories(daterange):
     results = db.user_history.aggregate(pipeline)
     return {d["_id"]: d for d in results}
 
-def getAllUsersSheetUsage(daterange, publishedOnly=False):
+def getAllUsersSheetCreation(daterange, publishedOnly=False):
     pipeline = [
         {"$match": daterange.update_match({
             "status": "public"
@@ -383,7 +411,6 @@ def getAllUsersSheetUsage(daterange, publishedOnly=False):
             "_id": "$owner",
             "cnt": {"$sum": 1}}}     # Sheet records never have num_times_read greater than 1.
     ]
-
     results = db.sheets.aggregate(pipeline)
     return {d["_id"]: d for d in results}
 
