@@ -479,7 +479,7 @@ class ResolvedRawRef:
         return [self.clone(resolved_parts=refined_parts, node=node, ref=refined_ref)]
 
     def _get_refined_matches_for_ranged_sections(self, sections: List['RawRefPart'], refined_parts: List[RawRefPart], node, lang, fromSections: list=None):
-        resolved_raw_refs = [self.clone(resolved_parts=refined_parts, node=node, ref=node.ref())]
+        resolved_raw_refs = [self.clone(resolved_parts=refined_parts, node=node)]
         incomplete_resolved_raw_refs = []
         is_first_pass = True
         for section_part in sections:
