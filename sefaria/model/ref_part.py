@@ -874,8 +874,10 @@ class RefResolver:
             inner_resolved = []
             for raw_ref in raw_refs:
                 temp_resolved = self.resolve_raw_ref(lang, book_context_ref, raw_ref)
-                if len(temp_resolved) == 0 and with_failures:
-                    inner_resolved += [ResolvedRawRef(raw_ref, [], None, None, context_ref=book_context_ref)]
+                if len(temp_resolved) == 0:
+                    self.reset_ibid_history()
+                    if with_failures:
+                        inner_resolved += [ResolvedRawRef(raw_ref, [], None, None, context_ref=book_context_ref)]
                 elif any(r.is_ambiguous for r in temp_resolved):
                     # can't be sure about future ibid inferences
                     # TODO can probably salvage parts of history if matches are ambiguous within one book
