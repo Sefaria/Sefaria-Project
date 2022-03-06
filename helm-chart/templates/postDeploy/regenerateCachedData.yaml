@@ -1,0 +1,26 @@
+# ---
+# apiVersion: batch/v1
+# kind: Job
+# metadata:
+#   name: regenerate-cache
+#   annotations:
+#     helm.sh/hook: post-install
+#     helm.sh/hook: post-upgrade
+
+# spec:
+#   template:
+#     spec:
+#       volumes:
+#         - name: local-settings
+#           configMap:
+#             name: local-settings-{{ .Values.deployEnv }}
+#       containers:
+#         - name: regenerate
+#           image:  gcr.io/production-deployment/sefaria-web:{{ .Values.releaseImageTag }}
+#           volumeMounts:
+#             - name: local-settings
+#               mountPath: /settings
+#               readOnly: true
+#           args: [ touch /log/sefaria.log && cp /settings/local_settings.py /app/sefaria/local_settings.py && /app/run /app/scripts/regenerate_long_cached_data.py --all" ]
+#       restartPolicy: OnFailure
+# ...

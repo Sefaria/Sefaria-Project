@@ -1,0 +1,256 @@
+{{- if eq .Values.deployEnv "prod" }}
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: {{ .Values.deployEnv }}-mongobackup
+spec:
+  concurrencyPolicy: Replace
+  schedule: "0 0 * * *"
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        spec:
+          volumes:
+          - name: backup-manager-secret
+            secret:
+              secretName: {{ template "secrets.backupManager" . }}
+          - name: create-dumps-script
+            configMap:
+              name: create-dumps-{{ .Values.deployEnv }}
+          - name: upload-dumps-script
+            configMap:
+              name: upload-dumps-{{ .Values.deployEnv }}
+          - name: shared-volume
+            emptyDir: {}
+
+          affinity:
+            podAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+              - labelSelector:
+                  matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                    - mongo
+                topologyKey: kubernetes.io/hostname
+
+          initContainers:
+          - name: mongo-dumper
+            image:  mongo:4.4
+            volumeMounts:
+            - name: shared-volume
+              mountPath: /mongodumps/shared_volume
+            - name: create-dumps-script
+              mountPath: /scripts/create-dumps.sh
+              subPath: create-dumps.sh
+              readOnly: true
+            command: ["bash"]
+            args: ["-c", "/scripts/create-dumps.sh"]
+            resources:
+              limits:
+                memory: "500Mi"
+          containers:
+          - name: mongodump-uploader
+            image:  google/cloud-sdk
+            volumeMounts:
+            - name: shared-volume
+              mountPath: /mongodumps/shared_volume
+            - name: backup-manager-secret
+              mountPath: /conf
+            - name: upload-dumps-script
+              mountPath: /scripts/upload-dumps.sh
+              subPath: upload-dumps.sh
+              readOnly: true
+            env:
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /conf/BackupManagerKey.json
+            - name: SLACK_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "secrets.slackWebhook" . }}
+                  key: slack-webhook
+            command: ["bash"]
+            args: ["-c", "/scripts/upload-dumps.sh"]
+            resources:
+              limits:
+                memory: "500Mi"
+
+          restartPolicy: OnFailure
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 2
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: create-dumps-{{ .Values.deployEnv }}
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+data:
+  create-dumps.sh: |-
+    #!/usr/bin/env bash
+
+    DATADIR="/mongodumps/shared_volume"
+    echo "dumping"
+    until mongodump --host=mongo:27017 -vvv -d sefaria --collection history -o "${DATADIR}/dump"
+    do
+    echo "trying to dump history again"
+    sleep 2
+    done
+
+    until mongodump --host=mongo:27017 -v -d sefaria --collection texts -o "${DATADIR}/dump"
+    do
+    echo "trying to dump texts again"
+    sleep 2
+    done
+
+    until mongodump --host=mongo:27017 -v -d sefaria --collection links -o "${DATADIR}/dump"
+    do
+    echo "trying to dump links again"
+    sleep 2
+    done
+
+    until mongodump --host=mongo:27017 -v -d sefaria --collection sheets -o "${DATADIR}/dump"
+    do
+    echo "trying to dump sheets again"
+    sleep 2
+    done
+
+    until mongodump --host=mongo:27017 -v -d sefaria --excludeCollection=history --excludeCollection=texts --excludeCollection=sheets --excludeCollection=links --excludeCollection=user_history -o "${DATADIR}/dump"
+    do
+    echo "trying to dump other stuff again"
+    sleep 2
+    done
+
+    # exit and restart job if dump fails
+    #if [ $? -ne 0 ]
+    #then
+    #  exit 1
+    #fi
+
+    mkdir /tmp_storage
+
+    echo "building full private tar file"
+    tar cvzf "${DATADIR}/private_dump.tar.gz" -C "${DATADIR}" ./dump
+
+    rm "${DATADIR}/dump/sefaria/user_history.bson"
+    rm "${DATADIR}/dump/sefaria/user_history.metadata.json"
+
+    mv "${DATADIR}/dump/sefaria/history.bson" "/tmp_storage/history.bson"
+    mv "${DATADIR}/dump/sefaria/history.metadata.json" "/tmp_storage/history.metadata.json"
+
+    echo "building small private tar file"
+    tar cvzf "${DATADIR}/private_dump_small.tar.gz" -C "${DATADIR}" ./dump
+
+    echo "creating public dump"
+    until mongodump --host=mongo:27017 -d sefaria -v --collection texts --query '{"license": {"$not": {"$regex": "/^Copyright/i"}}}' -o "${DATADIR}/dump"
+    do
+    echo "trying to dump texts again"
+    sleep 2
+    done
+
+    #if [ $? -ne 0 ]
+    #then
+    #  exit 1
+    #fi
+
+    rm "${DATADIR}/dump/sefaria/apikeys.bson"
+    rm "${DATADIR}/dump/sefaria/apikeys.metadata.json"
+
+    rm "${DATADIR}/dump/sefaria/notes.bson"
+    rm "${DATADIR}/dump/sefaria/notes.metadata.json"
+
+    rm "${DATADIR}/dump/sefaria/layers.bson"
+    rm "${DATADIR}/dump/sefaria/layers.metadata.json"
+
+    rm "${DATADIR}/dump/sefaria/sheets.bson"
+    rm "${DATADIR}/dump/sefaria/sheets.metadata.json"
+
+    rm "${DATADIR}/dump/sefaria/locks.bson"
+    rm "${DATADIR}/dump/sefaria/locks.metadata.json"
+
+    rm "${DATADIR}/dump/sefaria/notifications.bson"
+    rm "${DATADIR}/dump/sefaria/notifications.metadata.json"
+
+    rm "${DATADIR}/dump/sefaria/profiles.bson"
+    rm "${DATADIR}/dump/sefaria/profiles.metadata.json"
+
+    rm "${DATADIR}/dump/sefaria/trend.bson"
+    rm "${DATADIR}/dump/sefaria/trend.metadata.json"
+
+    rm "${DATADIR}/dump/sefaria/user_story.bson"
+    rm "${DATADIR}/dump/sefaria/user_story.metadata.json"
+
+    rm "${DATADIR}/dump/sefaria/Copy_of_user_history.bson"
+    rm "${DATADIR}/dump/sefaria/Copy_of_user_history.metadata.json"
+
+    echo "building small public tar file"
+    tar cvzf "${DATADIR}/dump_small.tar.gz" -C "${DATADIR}" ./dump
+
+    mv "/tmp_storage/history.bson" "${DATADIR}/dump/sefaria/history.bson"
+    mv "/tmp_storage/history.metadata.json" "${DATADIR}/dump/sefaria/history.metadata.json"
+
+    echo "building full public tar file"
+    tar cvzf "${DATADIR}/dump.tar.gz" -C "${DATADIR}" ./dump
+
+    echo "upload shoud start"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: upload-dumps-{{ .Values.deployEnv }}
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+data:
+  upload-dumps.sh: |-
+    #!/usr/bin/env bash
+    gcloud auth activate-service-account --key-file ${GOOGLE_APPLICATION_CREDENTIALS}
+    cd "/mongodumps/shared_volume"
+    today="$(date +'%d.%m.%y')"
+    last_week="$(date --date='last week' +'%d.%m.%y')"
+
+    gsutil rm "gs://sefaria-mongo-backup/private_dump_${last_week}.tar.gz"
+    gsutil rm "gs://sefaria-mongo-backup/private_dump_small_${last_week}.tar.gz"
+
+    if [ -f "private_dump.tar.gz" ]; then
+    echo "uploading private dump"
+    gsutil cp private_dump.tar.gz "gs://sefaria-mongo-backup/private_dump_${today}.tar.gz"
+
+    if [ "$(date +'%d')" == "01" ]; then  #  Upload to Nearline storage on the first of every month
+        echo "Archiving to Nearline Storage"
+        gsutil cp private_dump.tar.gz "gs://sefaria-mongo-archive/private_dump_${today}.tar.gz"
+    fi
+    else
+    echo "Private dump missing"
+
+    fi
+
+    if [ -f "private_dump_small.tar.gz" ]; then
+    echo "uploading private small dump"
+    gsutil cp private_dump_small.tar.gz "gs://sefaria-mongo-backup/private_dump_small_${today}.tar.gz"
+    else
+    echo "small private dump missing"
+    fi
+
+    if [ -f "dump_small.tar.gz" ]; then
+    echo "uploading small public dump"
+    gsutil cp dump_small.tar.gz gs://sefaria-mongo-backup
+    gsutil acl ch -u AllUsers:R gs://sefaria-mongo-backup/dump_small.tar.gz
+    else
+    echo "small public dump missing"
+    fi
+
+    if [ -f "dump.tar.gz" ]; then
+    echo "Uploading Public Dump"
+    gsutil cp dump.tar.gz gs://sefaria-mongo-backup
+    gsutil acl ch -u AllUsers:R gs://sefaria-mongo-backup/dump.tar.gz
+    else
+    echo "public dump missing"
+    fi
+    curl -X POST --data-urlencode 'payload={"channel": "#engineering", "username": "Data Archiver", "text": "The MongoDB store was routinely dumped to cloud storage: '"$(date)"'", "icon_emoji": ":cloud:"}' ${SLACK_URL}
+
+
+...
+{{end}}

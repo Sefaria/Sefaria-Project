@@ -1,0 +1,672 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-conf-{{ .Values.deployEnv }}
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+data: 
+  nginx.template.conf: |- 
+    user www-data;
+    worker_processes 8;
+    error_log  /var/log/nginx/error.log warn;
+    pid        /var/run/nginx.pid;
+
+    # https://serverfault.com/questions/787919/optimal-value-for-nginx-worker-connections
+    events {
+      worker_connections 10240;
+    }
+
+    http {
+      # https://nginx.org/en/docs/varindex.html
+      log_format structured '{ "requestDuration": $request_time, "envName": "${ENV_NAME}", "stackComponent": "nginx", "host": "$hostname", "severity": "info", "httpRequest": { "requestMethod": "$request_method", "requestUrl": "$request_uri", "requestSize": $request_length, "status":  $status, "responseSize": $body_bytes_sent, "userAgent":  "$http_user_agent", "remoteIp": "$remote_addr", "referer": "$http_referer", "latency": ${request_time}s, "protocol": "$server_protocol" }, "remoteUser": "$remote_user", "timeLocal": "$time_local" }';
+      access_log /dev/stdout structured;
+      client_max_body_size 32M;
+
+      # TODO review this CORS setting
+      add_header 'Access-Control-Allow-Origin' '*';
+
+      upstream varnish_upstream {
+        server ${VARNISH_HOST}:8040;
+        keepalive 32;
+      }
+
+      # Requests hitting the root domains should be redirected to the 'www' subdomain
+      server {
+        listen 80;
+        listen [::]:80;
+        server_name sefaria.org sefaria.org.il;
+        return 301 https://www.$host$request_uri;
+      }
+
+      upstream elasticsearch_upstream {
+        server ${SEARCH_HOST}:9200;
+        keepalive 32;
+      }
+
+      server {
+        # TODO add `default` below
+        listen 80 default_server;
+        listen [::]:80;
+        # parameterize line below
+        # Look into security cost of simply serving every host
+        server_name _; # handle every hostname -- TODO List servers by name
+        resolver 8.8.8.8 8.8.4.4;
+
+        # Return error on forbidden methods
+        if ( $request_method !~ ^(GET|POST|HEAD|PUT|DELETE|OPTIONS)$ ) {
+          return 405;
+        }
+
+        # Redirect insecure requests to HTTPS
+        if ($http_x_forwarded_proto = "http") {
+            return 301 https://$host$request_uri;
+        }
+        
+        # protect all non-allowed elasticsearch paths
+        location ~ ^/api/search/(?!(text|sheet|merged|merged-c)(/_search|/_analyze)/?) {
+          return 403;
+        }
+
+        # allow urls which aren't caught by regex above
+        location /api/search/ {
+          rewrite ^/(?:api/search)/(.*)$ /$1 break;
+          proxy_set_header Content-Type application/json;  # es 6.0 requires this header
+          add_header 'Access-Control-Allow-Origin' '';
+          proxy_pass http://elasticsearch_upstream/;
+        }
+
+        location /nginx-health {
+          access_log off;
+          return 200 "healthy\n";
+        }
+
+        location /robots.txt {
+          access_log off;
+          autoindex on;
+          alias /app/robots.txt;
+        }
+
+        location /apple-app-site-association {
+          access_log off;
+          autoindex on;
+          default_type application/json;
+          return 200 '{"applinks": {"apps": [], "details": [{"appID": "2626EW4BML.org.sefaria.sefariaApp", "paths": ["*"]}]}}';
+        }
+
+        location /.well-known/apple-app-site-association {
+          access_log off;
+          autoindex on;
+          default_type application/json;
+          return 200 '{"applinks": {"apps": [], "details": [{"appID": "2626EW4BML.org.sefaria.sefariaApp", "paths": ["*"]}]}}';
+        }
+        
+        location / {
+            proxy_send_timeout  300;
+            proxy_read_timeout  300;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto https;
+            proxy_set_header X-Forwarded-Port 443;
+            proxy_pass http://varnish_upstream;
+        }
+
+        location /static/ {
+          access_log off;
+          alias /app/static/;
+          # root /app/static/;
+        }
+
+        location /static/sitemaps/ {
+          access_log off;
+          proxy_pass https://storage.googleapis.com/sefaria-sitemaps$request_uri;
+        }
+      } # server
+
+      types {
+        text/html                             html htm shtml;
+        text/css                              css;
+        text/xml                              xml rss;
+        image/gif                             gif;
+        image/jpeg                            jpeg jpg;
+        image/svg+xml                         svg;
+        application/x-javascript              js;
+        text/plain                            txt;
+        text/x-component                      htc;
+        text/mathml                           mml;
+        image/png                             png;
+        image/x-icon                          ico;
+        image/x-jng                           jng;
+        image/vnd.wap.wbmp                    wbmp;
+        application/java-archive              jar war ear;
+        application/mac-binhex40              hqx;
+        application/pdf                       pdf;
+        application/x-cocoa                   cco;
+        application/x-java-archive-diff       jardiff;
+        application/x-java-jnlp-file          jnlp;
+        application/x-makeself                run;
+        application/x-perl                    pl pm;
+        application/x-pilot                   prc pdb;
+        application/x-rar-compressed          rar;
+        application/x-redhat-package-manager  rpm;
+        application/x-sea                     sea;
+        application/x-shockwave-flash         swf;
+        application/x-stuffit                 sit;
+        application/x-tcl                     tcl tk;
+        application/x-x509-ca-cert            der pem crt;
+        application/x-xpinstall               xpi;
+        application/zip                       zip;
+        application/octet-stream              deb;
+        application/octet-stream              bin exe dll;
+        application/octet-stream              dmg;
+        application/octet-stream              eot;
+        application/octet-stream              iso img;
+        application/octet-stream              msi msp msm;
+        audio/mpeg                            mp3;
+        audio/x-realaudio                     ra;
+        video/mpeg                            mpeg mpg;
+        video/quicktime                       mov;
+        video/x-flv                           flv;
+        video/x-msvideo                       avi;
+        video/x-ms-wmv                        wmv;
+        video/x-ms-asf                        asx asf;
+        video/x-mng                           mng;
+      } # types
+    } # http
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gunicorn-config-{{ .Values.deployEnv }}
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+data: 
+  gunicorn.conf.py: |-
+    # args: [ "python manage.py migrate && gunicorn sefaria.wsgi --access-logfile - --error-logfile /log/gunicorn-error.log --timeout 300 --worker-class=gevent --worker-connection 2000 --worker-tmp-dir /dev/shm -b 0.0.0.0:80" ]
+    # Todo:
+    # - Add commandline arguments here
+    # - configure logging
+
+    import os
+    import structlog
+    import re
+
+    loglevel = "warning"
+
+    def combined_logformat(logger, name, event_dict):
+        if event_dict.get('logger') == "gunicorn.access":
+            message = event_dict['event']
+
+            parts = [
+                r'(?P<host>\S+)',  # host %h
+                r'\S+',  # indent %l (unused)
+                r'(?P<user>\S+)',  # user %u
+                r'\[(?P<time>.+)\]',  # time %t
+                r'"(?P<method>\S+)\s+(?P<path>\S+)\s+(?P<protocol>\S+)"',  # request "%r"
+                r'(?P<status>[0-9]+)',  # status %>s
+                r'(?P<size>\S+)',  # size %b (careful, can be '-')
+                r'"(?P<referer>.*)"',  # referer "%{Referer}i"
+                r'"(?P<agent>.*)"',  # user agent "%{User-agent}i"
+            ]
+            pattern = re.compile(r'\s+'.join(parts) + r'\s*\Z')
+            m = pattern.match(message)
+            res = m.groupdict()
+
+            res["httpRequest"] = {
+                "requestUrl": res["path"],
+                "requestMethod": res["method"]
+            }
+
+            del res["path"]
+            del res["method"]
+            del res["protocol"]
+
+            if res["user"] == "-":
+                res["user"] = None
+
+            res["status"] = int(res["status"])
+
+            if res["size"] == "-":
+                res["size"] = 0
+            else:
+                res["size"] = int(res["size"])
+
+            if res["referer"] == "-":
+                res["referer"] = None
+
+            event_dict.update(res)
+
+        return event_dict
+
+
+    # this is duplicated from sefaria.system.logging
+    def add_severity(logger, method_name, event_dict):
+        """
+
+        :param logger:
+        :param method_name:
+        :param event_dict:
+        :return:
+        """
+        event_dict["severity"] = method_name
+
+        return event_dict
+
+
+    # --- Structlog logging initialisation code
+    # Based on https://albersdevelopment.net/2019/08/15/using-structlog-with-gunicorn/
+
+    pre_chain = [
+        # Add the log level and a timestamp to the event_dict if the log entry
+        # is not from structlog.
+        structlog.processors.TimeStamper(fmt="iso"),
+        structlog.stdlib.add_logger_name,
+        add_severity,
+        combined_logformat
+    ]
+
+
+    logconfig_dict = {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "formatters": {
+            "json_formatter": {
+                "()": structlog.stdlib.ProcessorFormatter,
+                "processor": structlog.processors.JSONRenderer(),
+                "foreign_pre_chain": pre_chain,
+            }
+        },
+        "handlers": {
+            "error_console": {
+                "class": "logging.StreamHandler",
+                "formatter": "json_formatter",
+            },
+            "console": {
+                "class": "logging.StreamHandler",
+                "formatter": "json_formatter",
+            },
+        },
+    }
+
+    # #-------
+    # # Logging variables
+    # l_envName = os.getenv("ENV_NAME", "ENV_NAME not defined")
+    # l_stackComponent = os.getenv("STACK_COMPONENT", "STACK_COMPONENT not defined")
+    # # l_gitHash = os.getenv("Git")
+
+    # def add_infra_data(logger, method_name, event_dict):
+    #     additional_fields = {
+    #         'envName': l_envName, 
+    #         'randomMsg': "My Name is Lorenzo",
+    #         'stackComponent': l_stackComponent,
+    #         'loggingConfigLocation': 'gunicorn.conf'
+    #     }
+    #     event_dict.update(additional_fields) #fix this
+    #     return event_dict
+
+    # structlog.configure(
+    #     processors=[
+    #         structlog.stdlib.filter_by_level,
+    #         structlog.processors.TimeStamper(fmt="iso"),
+    #         structlog.stdlib.add_logger_name,
+    #         add_infra_data,
+    #         structlog.stdlib.add_log_level,
+    #         structlog.stdlib.PositionalArgumentsFormatter(),
+    #         structlog.processors.StackInfoRenderer(),
+    #         structlog.processors.format_exc_info,
+    #         structlog.processors.UnicodeDecoder(),
+    #         structlog.processors.ExceptionPrettyPrinter(),
+    #         structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
+    #     ],
+    #     context_class=structlog.threadlocal.wrap_dict(dict),
+    #     logger_factory=structlog.stdlib.LoggerFactory(),
+    #     wrapper_class=structlog.stdlib.BoundLogger,
+    #     cache_logger_on_first_use=True,
+    # )
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: robots-txt-{{ .Values.deployEnv }}
+  labels:
+    deployEnv: {{ .Values.deployEnv | quote }}
+data: 
+  robots.txt: |-
+{{- if eq .Values.deployEnv "prod" }}
+    User-agent: *
+    Disallow: /activity/
+    Disallow: /login?next=*
+    Disallow: /register?next=*
+{{- else }}
+    User-agent: *
+    Disallow: /
+{{- end }}
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: local-settings-{{ .Values.deployEnv }}
+  labels:
+    deployEnv: {{ .Values.deployEnv | quote }}
+data: 
+  DEBUG: "{{ .Values.localSettings.DEBUG }}"
+  DOMAIN_LANGUAGE: {{ .Values.localSettings.DOMAIN_LANGUAGE | toJson | quote }}
+  MONGO_HOST: {{ .Values.localSettings.MONGO_HOST | quote }}
+  APSCHEDULER_NAME: {{ tpl .Values.localSettings.APSCHEDULER_NAME . | quote }}
+  SEARCH_ADMIN: {{ .Values.localSettings.SEARCH_ADMIN | quote }}
+  TURN_SERVER: {{ .Values.localSettings.TURN_SERVER | quote }}
+  USE_CLOUDFLARE: "{{ .Values.localSettings.USE_CLOUDFLARE }}"
+  FRONT_END_URL: {{ .Values.localSettings.FRONT_END_URL | quote }}
+  OFFLINE: "{{ .Values.localSettings.OFFLINE }}"
+  DOWN_FOR_MAINTENANCE: "{{ .Values.localSettings.DOWN_FOR_MAINTENANCE }}"
+  MAINTENANCE_MESSAGE: {{ .Values.localSettings.MAINTENANCE_MESSAGE | quote }}
+  GLOBAL_WARNING: "{{ .Values.localSettings.GLOBAL_WARNING }}"
+  GLOBAL_WARNING_MESSAGE: {{ .Values.localSettings.GLOBAL_WARNING_MESSAGE | quote }}
+  local_settings.py: |-
+    from socket import gethostname, gethostbyname
+    from datetime import timedelta
+    try:
+        import structlog
+    except ImportError:
+        structlog = None
+    import sefaria.system.logging as sefaria_logging
+    import os
+    import re
+    import json
+
+    requiredEnvars = [
+        "REDIS_HOST",
+        "NODEJS_HOST",
+        "VARNISH_HOST",
+    ]
+
+    for envvar in requiredEnvars:
+        if envvar not in os.environ:
+            print(envvar + " is a required environment variable that is not present.")
+
+    # Define the external hosts
+    redisHost = os.getenv("REDIS_HOST")
+    nodejsHost = os.getenv("NODEJS_HOST")
+    varnishHost = os.getenv("VARNISH_HOST")
+
+    ALLOWED_HOSTS = ["*"]
+
+    DEBUG = os.getenv("DEBUG").lower() == "true"
+    OFFLINE = os.getenv("OFFLINE").lower() == "true"
+    DOWN_FOR_MAINTENANCE = os.getenv("DOWN_FOR_MAINTENANCE").lower() == "true"
+    MAINTENANCE_MESSAGE =  os.getenv("MAINTENANCE_MESSAGE")
+    GLOBAL_WARNING = os.getenv("GLOBAL_WARNING").lower() == "true"
+    GLOBAL_WARNING_MESSAGE = os.getenv("GLOBAL_WARNING_MESSAGE")
+
+    DOMAIN_LANGUAGES = json.loads(os.getenv("DOMAIN_LANGUAGE"))
+    ADMINS = (
+        ('Sefaria Developers', 'dev@sefaria.org'),
+    )
+
+    MANAGERS = ADMINS
+
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'sefaria_auth',
+            'USER': os.getenv("DATABASES_USER"),
+            'PASSWORD': os.getenv("DATABASES_PASS"),
+            'HOST': os.getenv("DATABASES_HOST"),
+            'PORT': os.getenv("DATABASES_PORT"),
+        }
+    }
+
+    CACHES = {
+        "shared": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": "redis://{}:6379/1".format(redisHost),
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+                "SERIALIZER": "sefaria.system.serializers.JSONSerializer",
+            },
+            "TIMEOUT": None,
+        },
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": "redis://{}:6379/0".format(redisHost),
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            },
+            "TIMEOUT": 60 * 60 * 24 * 30,
+        },
+    }
+
+    SESSION_CACHE_ALIAS = "default"
+    USER_AGENTS_CACHE = 'default'
+    SHARED_DATA_CACHE_ALIAS = 'shared'
+
+    SITE_PACKAGE = "sites.sefaria"
+
+    GEOIP_DATABASE = 'data/geoip/GeoLiteCity.dat'
+    GEOIPV6_DATABASE = 'data/geoip/GeoLiteCityv6.dat'
+
+    # Multiserver
+    MULTISERVER_ENABLED = True
+    MULTISERVER_REDIS_SERVER = redisHost
+    MULTISERVER_REDIS_PORT = 6379
+    MULTISERVER_REDIS_DB = 0
+    MULTISERVER_REDIS_EVENT_CHANNEL = "msync"   # Message queue on Redis
+    MULTISERVER_REDIS_CONFIRM_CHANNEL = "mconfirm"   # Message queue on Redis
+
+    # OAUTH these fields dont need to be filled in. they are only required for oauth2client to __init__ successfully
+    GOOGLE_OAUTH2_CLIENT_ID = os.getenv("GOOGLE_OAUTH2_CLIENT_ID")
+    GOOGLE_OAUTH2_CLIENT_SECRET = os.getenv("GOOGLE_OAUTH2_CLIENT_SECRET")
+    # This is the field that is actually used
+    GOOGLE_OAUTH2_CLIENT_SECRET_FILEPATH = "/client-secret/client_secrets.json"
+
+    SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+    SESSION_CACHE_ALIAS = "default"
+
+    SECRET_KEY = os.getenv("SECRET_KEY")
+
+    EMAIL_BACKEND = 'anymail.backends.mandrill.EmailBackend'
+    DEFAULT_FROM_EMAIL = "Sefaria <hello@sefaria.org>"
+    ANYMAIL = {
+        "MANDRILL_API_KEY": os.getenv("MANDRILL_API_KEY"),
+    }
+    SERVER_EMAIL = 'dev@sefaria.org'
+
+    MONGO_HOST = os.getenv("MONGO_HOST")
+    MONGO_PORT = 27017
+    {{- if eq .Values.sandbox "true" }}
+    SEFARIA_DB = os.getenv("SEFARIA_DB") + "-" + {{ .Values.deployEnv | quote }}
+    {{- else }}
+    SEFARIA_DB = os.getenv("SEFARIA_DB")
+    {{- end }}
+    SEFARIA_DB_USER = os.getenv("SEFARIA_DB_USER")
+    SEFARIA_DB_PASSWORD = os.getenv("SEFARIA_DB_PASSWORD")
+    APSCHEDULER_NAME = os.getenv("APSCHEDULER_NAME")
+
+    SEARCH_HOST = "/api/search"
+    SEARCH_ADMIN = os.getenv("SEARCH_ADMIN")
+    SEARCH_ADMIN_USER = os.getenv("SEARCH_ADMIN_USER")
+    SEARCH_ADMIN_PW = os.getenv("SEARCH_ADMIN_PW")
+    SEARCH_ADMIN_K8S = os.getenv("SEARCH_ADMIN_K8S")
+    SEARCH_INDEX_ON_SAVE = True
+    SEARCH_INDEX_NAME = "sefaria"
+    SEARCH_INDEX_NAME_TEXT = 'text'  # name of the ElasticSearch index to use
+    SEARCH_INDEX_NAME_SHEET = 'sheet'
+    SEARCH_INDEX_NAME_MERGED = 'merged'
+
+    # DafRoulette server
+    RTC_SERVER = 'rtc.sefaria.org'
+    TURN_SERVER = os.getenv("TURN_SERVER") #coturn.cauldron.sefaria.org
+    TURN_SECRET= os.getenv("TURN_SECRET")
+    TURN_USER = os.getenv("TURN_USER")
+
+    USE_NODE = True
+    NODE_HOST = "http://{}:3000".format(nodejsHost)
+    NODE_TIMEOUT = 5
+
+    SEFARIA_DATA_PATH = '/export' # used for exporting texts
+    SEFARIA_EXPORT_PATH = '/export'
+
+    SEFARIA_BOT_API_KEY = os.getenv("SEFARIA_BOT_API_KEY")
+
+    CLOUDFLARE_ZONE= os.getenv("CLOUDFLARE_ZONE")
+    CLOUDFLARE_EMAIL= os.getenv("CLOUDFLARE_EMAIL")
+    CLOUDFLARE_TOKEN= os.getenv("CLOUDFLARE_TOKEN")
+    USE_CLOUDFLARE= os.getenv("USE_CLOUDFLARE").lower() == "true"
+
+    GOOGLE_TAG_MANAGER_CODE = os.getenv("GOOGLE_TAG_MANAGER_CODE")
+    GOOGLE_ANALYTICS_CODE = os.getenv("GOOGLE_ANALYTICS_CODE")
+    GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
+    GOOGLE_APPLICATION_CREDENTIALS_FILEPATH = "/google-cloud-secret/BackupManagerKey.json"
+    MIXPANEL_CODE = os.getenv("MIXPANEL_CODE")
+
+    HOTJAR_ID = os.getenv("HOTJAR_ID")
+
+    AWS_ACCESS_KEY = os.getenv("AWS_ACCESS_KEY")
+    AWS_SECRET_KEY = os.getenv("AWS_SECRET_KEY")
+    S3_BUCKET = os.getenv("S3_BUCKET")
+
+    NATIONBUILDER = True
+    NATIONBUILDER_SLUG = "sefaria"
+    NATIONBUILDER_TOKEN = os.getenv("NATIONBUILDER_TOKEN")
+    NATIONBUILDER_CLIENT_ID = os.getenv("NATIONBUILDER_CLIENT_ID")
+    NATIONBUILDER_CLIENT_SECRET = os.getenv("NATIONBUILDER_CLIENT_SECRET")
+
+    DISABLE_INDEX_SAVE = False
+
+    # Turns off search autocomplete suggestions, which are reinitialized on every server reload
+    # which can be annoying for local development.
+    DISABLE_AUTOCOMPLETER = False
+
+    PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE = "/school-lookup-data/schools.tsv"
+
+
+    MAILCHIMP = True
+    MAILCHIMP_API_KEY = os.getenv("MAILCHIMP_API_KEY")
+    MAILCHIMP_ANNOUNCE_ID = os.getenv("MAILCHIMP_ANNOUNCE_ID")
+    MAILCHIMP_WEBHOOK_KEY = os.getenv("MAILCHIMP_WEBHOOK_KEY")
+
+    USE_VARNISH = True
+    FRONT_END_URL = os.getenv("FRONT_END_URL")
+    VARNISH_ADM_ADDR = "{}:6082".format(varnishHost)
+    VARNISH_HOST = varnishHost
+    VARNISH_FRNT_PORT = 8040
+    VARNISH_SECRET = "/varnish-secret/varnish-secret"
+    USE_VARNISH_ESI = False
+
+    RECAPTCHA_PUBLIC_KEY = os.getenv("RECAPTCHA_PUBLIC_KEY")
+    RECAPTCHA_PRIVATE_KEY = os.getenv("RECAPTCHA_PRIVATE_KEY")
+    NOCAPTCHA = True
+
+    # Simple JWT
+    SIMPLE_JWT = {
+        'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+        'REFRESH_TOKEN_LIFETIME': timedelta(days=90),
+        'ROTATE_REFRESH_TOKENS': True,
+        'SIGNING_KEY': os.getenv("SIMPLE_JWT_SIGNING_KEY"),
+    }
+
+    MOBILE_APP_KEY = os.getenv("MOBILE_APP_KEY")
+
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'formatters': {
+            "json_formatter": {
+                "()": structlog.stdlib.ProcessorFormatter,
+                "processor": structlog.processors.JSONRenderer(),
+            },
+        },
+        'handlers': {
+            'default': {
+                "class": "logging.StreamHandler",
+                "formatter": "json_formatter",
+            },
+        },
+        'loggers': {
+            '': {
+                'handlers': ['default'],
+                'propagate': False,
+            },
+            'django': {
+                'handlers': ['default'],
+                'propagate': False,
+            },
+            'django.request': {
+                'handlers': ['default'],
+                'propagate': False,
+            },
+        }
+    }
+
+    # TODO: Make the logging format more configurable based on specific objects being defined.
+    # LOGGING = {
+    #     'version': 1,
+    #     'disable_existing_loggers': False,
+    #     'formatters': {
+    #         "json_formatter": {
+    #             "()": structlog.stdlib.ProcessorFormatter,
+    #             "processor": structlog.processors.JSONRenderer(),
+    #         },
+    #         json.loads(os.getenv("LOGGING_FORMATTERS_STANDARD")),
+    #         json.loads(os.getenv("LOGGING_FORMATTERS_SIMPLE")),
+    #         json.loads(os.getenv("LOGGING_FORMATTERS_VERBOSE")),
+    #         json.loads(os.getenv("LOGGING_FORMATTERS_PLAIN_CONSOLE")),
+    #         json.loads(os.getenv("LOGGING_FORMATTERS_KEY_VALUE")),
+    #     },
+    #     'filters': {
+    #         json.loads(os.getenv("LOGGING_FILTERS_REQUIRE_DEBUG_FALSE")),
+    #         json.loads(os.getenv("LOGGING_FILTERS_EXCLUBE_ERRORS")),
+    #         json.loads(os.getenv("LOGGING_FILTERS_FILTER_BOOK_NAME_ERROR"))
+    #     },
+    #     'handlers': {
+    #         json.loads(os.getenv("LOGGING_HANDLERS_DEFAULT")),
+    #         json.loads(os.getenv("LOGGING_HANDLERS_REQUEST_HANDLER")),
+    #         json.loads(os.getenv("LOGGING_HANDLERS_CONSOLE")),
+    #         json.loads(os.getenv("LOGGING_HANDLERS_CONSOLE_STRUCT")),
+    #         json.loads(os.getenv("LOGGING_HANDLERS_JSON_FILE")),
+    #         json.loads(os.getenv("LOGGING_HANDLERS_FLAT_LINE_FILE")),
+    #         json.loads(os.getenv("LOGGING_HANDLERS_BOOK_NAME_ERRORS")),
+    #         json.loads(os.getenv("LOGGING_HANDLERS_NULL")),
+    #         json.loads(os.getenv("LOGGING_HANDLERS_MAIL_ADMINS")),
+    # 	    json.loads(os.getenv("LOGGING_HANDLERS_SLACK_ERROR")),
+    #         json.loads(os.getenv("LOGGING_HANDLERS_CLOUDFLARE_RESPONSE_HANDLER"))
+    #     },
+    #     'loggers': {
+    #         json.loads(os.getenv("LOGGING_LOGGERS_")),
+    #         json.loads(os.getenv("LOGGING_LOGGERS_CLOUDFLARE")),
+    #         json.loads(os.getenv("LOGGING_LOGGERS_DJANGO")),
+    #         json.loads(os.getenv("LOGGING_LOGGERS_DJANGO_REQUEST")),
+    #         json.loads(os.getenv("LOGGING_LOGGERS_DJANGO_STRUCTLOG")),
+    #         json.loads(os.getenv("LOGGING_LOGGERS_DJANGO_STRUCTLOG_DEMO_PROJECT")),
+    #     }
+    # }
+
+    GLOBAL_INTERRUPTING_MESSAGE = None
+
+    structlog.configure(
+        processors=[
+            structlog.stdlib.filter_by_level,
+            structlog.processors.TimeStamper(fmt="iso"),
+            structlog.stdlib.add_logger_name,
+            sefaria_logging.add_severity,
+            structlog.stdlib.PositionalArgumentsFormatter(),
+            structlog.processors.StackInfoRenderer(),
+            sefaria_logging.log_exception_info,
+            structlog.processors.UnicodeDecoder(),
+            sefaria_logging.decompose_request_info,
+            structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
+        ],
+        context_class=structlog.threadlocal.wrap_dict(dict),
+        logger_factory=structlog.stdlib.LoggerFactory(),
+        wrapper_class=structlog.stdlib.BoundLogger,
+        cache_logger_on_first_use=True,
+    )
+
+---
