@@ -122,7 +122,7 @@ class CollectionPage extends Component {
     filter = n(filter);
     
     //title and each topic in he and en
-    let filterableData  = [...sheet.topics.map(topic => [n(topic.en), n(topic.he), n(topic.asTyped)])].flat();
+    let filterableData  = sheet.topics.map(topic => [n(topic.en), n(topic.he), n(topic.asTyped)]).flat();
     filterableData.push(n(sheet.title.stripHtml()));
     
     //this may be confusing- in the exact case, "includes" is an array func and returns if any of the above match filter exactly, 
