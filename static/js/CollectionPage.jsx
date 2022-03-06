@@ -120,7 +120,11 @@ class CollectionPage extends Component {
     const exact = this.state.sheetFilterTopic == filter; 
     const n = text => text.toLowerCase();
     filter = n(filter);
-    let filterableData  = [...sheet.topics.map(topic => [n(topic.en), n(topic.he)]), n(sheet.title.stripHtml())]; //title and each topic in he and en
+    
+    //title and each topic in he and en
+    let filterableData  = [...sheet.topics.map(topic => [n(topic.en), n(topic.he), n(topic.asTyped)])].flat();
+    filterableData.push(n(sheet.title.stripHtml()));
+    
     //this may be confusing- in the exact case, "includes" is an array func and returns if any of the above match filter exactly, 
     // if not "includes" is a string func and is testing for a substring, meaning the filter is a partial match to any of the above. 
     return exact ? filterableData.includes(filter) : filterableData.some(element => element.includes(filter));
