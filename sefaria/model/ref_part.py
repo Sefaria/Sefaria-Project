@@ -491,7 +491,8 @@ class ResolvedRawRef:
                 is_first_pass = False
                 next_resolved_raw_refs = temp_resolved_raw_ref._get_refined_refs_for_numbered_part(section_part, refined_parts, temp_resolved_raw_ref.node, lang, fromSections)
                 resolved_raw_refs += next_resolved_raw_refs
-                if len(next_resolved_raw_refs) == 0:
+                if len(next_resolved_raw_refs) == 0 and False:
+                    # disabling incomplete ranged ref matches to avoid false positives
                     incomplete_resolved_raw_refs += [temp_resolved_raw_ref]
         return resolved_raw_refs, incomplete_resolved_raw_refs
 
@@ -1202,13 +1203,6 @@ class RefResolver:
         """
         Applies some heuristics to remove false positives
         """
-        if len(resolved_refs) == 0: return resolved_refs
-        resolved_refs.sort(key=lambda x: x.order_key, reverse=True)
-        top_order_key = resolved_refs[0].order_key
-        max_resolved_refs = []
-        for resolved_ref in resolved_refs:
-            if resolved_ref.order_key != top_order_key: break
-            max_resolved_refs += [resolved_ref]
 
         # remove matches that have empty refs
         # TODO removing for now b/c of yerushalmi project. doesn't seem necessary to happen here anyway.
@@ -1241,5 +1235,12 @@ class RefResolver:
                     to_match_explicit.remove(part)
             return resolved_explicit == to_match_explicit
 
-        max_resolved_refs = list(filter(filter_context_matches, max_resolved_refs))
+        resolved_refs = list(filter(filter_context_matches, resolved_refs))
+        if len(resolved_refs) == 0: return resolved_refs
+        resolved_refs.sort(key=lambda x: x.order_key, reverse=True)
+        top_order_key = resolved_refs[0].order_key
+        max_resolved_refs = []
+        for resolved_ref in resolved_refs:
+            if resolved_ref.order_key != top_order_key: break
+            max_resolved_refs += [resolved_ref]
         return max_resolved_refs
