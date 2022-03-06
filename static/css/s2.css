@@ -1370,6 +1370,9 @@ div.interfaceLinks-row a {
 .interface-hebrew .readerPanel .en {
   direction: ltr;
 }
+.interface-hebrew .readerPanel.bilingual .en {
+  direction: ltr;
+}
 .interface-hebrew .readerPanel .contentInner,
 .interface-hebrew .readerPanel .columnLayout,
 .interface-hebrew .readerControls,
