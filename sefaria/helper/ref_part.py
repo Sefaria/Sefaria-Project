@@ -58,8 +58,8 @@ def make_html(bulk_resolved: List[List[Union[ResolvedRawRef, AmbiguousResolvedRa
                 <tr><td>Type</td><td>{'</td><td>'.join(metadata['resolved_part_types'])}</td></tr>
                 <tr><td>Class</td><td>{'</td><td>'.join(metadata['resolved_part_classes'])}</td></tr>
             </table>
-            {f"""<b>Range Sections: </b>{', '.join(metadata['range_sections'])}</br>""" if metadata.get('range_sections', False) else ''}
-            {f"""<b>Range To Sections: </b>{', '.join(metadata['range_to_sections'])}</br>""" if metadata.get('range_to_sections', False) else ''}
+            {f"""<b>Range Sections: </b>{' | '.join(metadata['range_sections'])}</br>""" if metadata.get('range_sections', False) else ''}
+            {f"""<b>Range To Sections: </b>{' | '.join(metadata['range_to_sections'])}</br>""" if metadata.get('range_to_sections', False) else ''}
             <button onclick="toggleWindow({metadata['i']})">Close</button>
         </span>
         '''
