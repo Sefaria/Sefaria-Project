@@ -1,12 +1,19 @@
 import { Readability } from '@mozilla/readability';
+import DOMPurify from 'dompurify';
 const SEFARIA_BASE_URL = 'http://localhost:8000'
 
 const documentClone = document.cloneNode(true);
+for (let tableEl of documentClone.getElementsByTagName('table')) {
+    tableEl.remove();
+}
 const article = new Readability(documentClone).parse();
+const cleanedArticleHTML = DOMPurify.sanitize(article.content, { USE_PROFILES: { html: true } });
+const cleanedArticle = document.createElement("div");
+cleanedArticle.innerHTML = cleanedArticleHTML;
 
-console.log(article.textContent);
+console.log(cleanedArticle.textContent);
 const postData = {
-    text: article.textContent,
+    text: cleanedArticle.textContent,
     url: window.location.href,
     title: article.title,
 }
