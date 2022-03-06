@@ -119,6 +119,7 @@ crrd = create_raw_ref_data
     # Ranged refs
     [crrd(None, 'he', 'ספר בראשית פרק יג פסוק א עד פרק יד פסוק ד', [slice(0, 2), slice(2, 4), slice(4, 6), 6, slice(7, 9), slice(9, 11)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED, RPT.NUMBERED]), ("Genesis 13:1-14:4",)],
     [crrd(None, 'he', 'בראשית יג:א-יד:ד', [0, 1, 3, 4, 5, 7], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED, RPT.NUMBERED]), ("Genesis 13:1-14:4",)],
+    [crrd(None, 'he', 'דברים פרק יד פסוקים מ-מה', [0, slice(1, 3), slice(3, 5), 5, 6], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED]), ("Deuteronomy 14:40-45",)],
 
     # Base text context
     [crrd("Rashi on Berakhot 2a", 'he', 'ובתוס\' כ"ז ע"ב ד"ה והלכתא', [slice(0, 2), slice(2, 4), slice(4, 6)], [RPT.NAMED, RPT.NUMBERED, RPT.DH]), ("Tosafot on Berakhot 27b:14:2",)],  # shared context child via graph context
@@ -198,7 +199,11 @@ def test_full_pipeline_ref_resolver(context_tref, input_str, lang, expected_tref
     context_oref = context_tref and Ref(context_tref)
     resolved = ref_resolver.bulk_resolve_refs(lang, [context_oref], [input_str])[0]
     assert len(resolved) == len(expected_trefs)
-    resolved_orefs = sorted([match.ref for match in resolved], key=lambda x: x.normal())
+    resolved_orefs = sorted(reduce(lambda a, b: a + b, [[match.ref] if not match.is_ambiguous else [inner_match.ref for inner_match in match.resolved_raw_refs] for match in resolved], []), key=lambda x: x.normal())
+    if len(expected_trefs) != len(resolved_orefs):
+        print(f"Found {len(resolved_orefs)} refs instead of {len(expected_trefs)}")
+        for matched_oref in resolved_orefs:
+            print("-", matched_oref.normal())
     for expected_tref, matched_oref in zip(sorted(expected_trefs, key=lambda x: x), resolved_orefs):
         assert matched_oref == Ref(expected_tref)
     for match in resolved:
