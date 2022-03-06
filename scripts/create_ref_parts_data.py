@@ -410,8 +410,11 @@ class RefPartModifier:
                 num_term = self.perek_number_map[int(num_match.group(1))]
                 par_per_node.match_templates = [
                     {
-                        "term_slugs": [named_term_slug, num_term.slug]
-                    }
+                        "term_slugs": [named_term_slug, num_term.slug],
+                    },
+                    {
+                        "term_slugs": [num_term.slug],
+                    },
                 ]
 
         if fast:
