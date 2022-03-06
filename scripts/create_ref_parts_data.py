@@ -312,11 +312,10 @@ class RefPartModifier:
                 index.nodes.match_templates = [
                     {
                         "term_slugs": [base_term.slug, generic_term.slug],
-                    },
-                    {
-                        "term_slugs": [generic_term.slug],
                     }
                 ]
+                if cat == "Mishnah":
+                    index.nodes.match_templates += [{"term_slugs": [generic_term.slug]}]
                 if fast:
                     self.fast_index_save(index)
                 else:
