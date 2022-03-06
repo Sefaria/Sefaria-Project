@@ -1,4 +1,4 @@
-from sefaria.model.ref_part import ResolvedRawRef, AmbiguousResolvedRawRef
+from sefaria.model.ref_part import ResolvedRawRef, AmbiguousResolvedRawRef, TermContext, RefPartType
 from sefaria.model import text
 from typing import List, Union
 from collections import defaultdict
@@ -8,21 +8,27 @@ def make_html(bulk_resolved: List[List[Union[ResolvedRawRef, AmbiguousResolvedRa
     from sefaria.utils.util import wrap_chars_with_overlaps
 
     def get_resolved_metadata(resolved: ResolvedRawRef, i: int) -> dict:
-        return {
+        metadata =  {
             "i": i,
             "ref": resolved.ref,
             "orig_part_strs": [p.text for p in resolved.raw_ref.raw_ref_parts],
             "orig_part_types": [p.type.name for p in resolved.raw_ref.raw_ref_parts],
             "final_part_strs": [p.text for p in resolved.raw_ref.parts_to_match],
             "final_part_types": [p.type.name for p in resolved.raw_ref.parts_to_match],
-            "resolved_part_strs": [p.text for p in resolved.resolved_parts],
+            "resolved_part_strs": [p.term.slug if isinstance(p, TermContext) else p.text for p in resolved.resolved_parts],
             "resolved_part_types": [p.type.name for p in resolved.resolved_parts],
             "resolved_part_classes": [p.__class__.__name__ for p in resolved.resolved_parts],
             "context_ref": resolved.context_ref.normal() if resolved.context_ref else "N/A",
             "context_type": resolved.context_type.name if resolved.context_type else "N/A",
         }
+        if RefPartType.RANGE.name in metadata['resolved_part_types']:
+            range_part = next((p for p in resolved.resolved_parts if p.type == RefPartType.RANGE), None)
+            metadata['range_sections'] = [p.text for p in range_part.sections]
+            metadata['range_to_sections'] = [p.text for p in range_part.toSections]
+        return metadata
 
     def get_inspect_html(metadata: dict, mention: str) -> str:
+        show_final_ref_parts = metadata['orig_part_strs'] != metadata['final_part_strs']
         inspect_window = f'''
         <span id="inspect-window-{metadata['i']}" class="hidden inspect-window">
             <b>Input:</b>
@@ -41,17 +47,19 @@ def make_html(bulk_resolved: List[List[Union[ResolvedRawRef, AmbiguousResolvedRa
                 <tr><td>Text</td><td>{'</td><td>'.join(metadata['orig_part_strs'])}</td></tr>
                 <tr><td>Type</td><td>{'</td><td>'.join(metadata['orig_part_types'])}</td></tr>
             </table>
-            <b>Final Ref Parts</b>
+            {f"""<b>Final Ref Parts</b>
             <table>
                 <tr><td>Text</td><td>{'</td><td>'.join(metadata['final_part_strs'])}</td></tr>
                 <tr><td>Type</td><td>{'</td><td>'.join(metadata['final_part_types'])}</td></tr>
-            </table>
+            </table>""" if show_final_ref_parts else ''}
             <b>Resolved Parts</b>
             <table>
                 <tr><td>Text</td><td>{'</td><td>'.join(metadata['resolved_part_strs'])}</td></tr>
                 <tr><td>Type</td><td>{'</td><td>'.join(metadata['resolved_part_types'])}</td></tr>
                 <tr><td>Class</td><td>{'</td><td>'.join(metadata['resolved_part_classes'])}</td></tr>
             </table>
+            {f"""<b>Range Sections: </b>{', '.join(metadata['range_sections'])}</br>""" if metadata.get('range_sections', False) else ''}
+            {f"""<b>Range To Sections: </b>{', '.join(metadata['range_to_sections'])}</br>""" if metadata.get('range_to_sections', False) else ''}
             <button onclick="toggleWindow({metadata['i']})">Close</button>
         </span>
         '''
