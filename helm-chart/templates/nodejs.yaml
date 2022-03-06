@@ -1,0 +1,121 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: "node-{{ .Values.deployEnv }}"
+  labels:
+    app: node-{{ .Values.deployEnv }}
+    deployEnv: "{{ .Values.deployEnv }}"
+spec:
+  ports:
+  - port: 3000
+  selector:
+    app: node-{{ .Values.deployEnv }}
+
+{{range $k, $v := untilStep (int (sub .Release.Revision .Values.previousServicesCount)) (int (add .Release.Revision 1)) 1}}
+{{if gt $v 0}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: "node-{{ $.Values.deployEnv }}-{{ $v }}"
+  labels:
+    app: node-{{ $.Values.deployEnv }}
+    deployEnv: "{{ $.Values.deployEnv }}"
+spec:
+  ports:
+  - port: 3000
+  selector:
+    app: node-{{ $.Values.deployEnv }}
+    releaseRevision: "{{ $v }}"
+{{end}}
+{{end}}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: {{ .Values.deployEnv }}-node
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+  annotations: 
+    rollout.argoproj.io/revision: "{{ .Release.Revision }}"
+spec:
+  strategy:
+    blueGreen:
+      activeService: node-{{ .Values.deployEnv }}
+      autoPromotionEnabled: true
+      prePromotionAnalysis:
+        templates:
+          - templateName: rollout-ready-{{ .Values.deployEnv }}
+        args:
+          - name: healthcheck-hostname
+            value: "nginx-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+  selector:
+    matchLabels:
+      app: node-{{ .Values.deployEnv }}
+      # releaseRevision: "{{ .Release.Revision }}" # Variable pod selectors breaks Argo. Check filed issue
+  revisionHistoryLimit: 0
+  replicas: {{ .Values.nodejs.replicaCount }}
+  template:
+    metadata:
+      labels:
+        app: node-{{ .Values.deployEnv }}
+        tier: application-{{ .Values.deployEnv }}
+        deployEnv: "{{ .Values.deployEnv }}"
+        stackRole: nodejs
+        releaseRevision: "{{ .Release.Revision }}"
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - mongo
+            topologyKey: kubernetes.io.hostname
+        {{- if eq .Values.sandbox "true" }}
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: preemptible
+                    operator: NotIn
+                    values:
+                      - "false"
+                      - ""
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: preemptible
+                    operator: In
+                    values:
+                      - "true"
+        {{- end }}
+      containers:
+      - name: node
+        image: "{{ .Values.nodejs.containerImage.imageRegistry }}:{{ .Values.nodejs.containerImage.tag }}"
+        imagePullPolicy: Always
+        env:
+          - name: randomstringtoforceredeployments
+            value: {{ randAlphaNum 8 }}
+          - name: DJANGO_HOST
+            value: web-{{ .Values.deployEnv }}-{{ .Release.Revision }}
+          - name: DJANGO_PORT
+            value: "80"
+          - name: DEBUG
+            value: {{ if eq .Values.deployEnv "prod" }}"false"{{else}}"true"{{end}}
+          - name: REDIS_HOST
+            value: redis-{{ .Values.deployEnv }}
+        ports:
+        - containerPort: 3000
+        resources:
+          requests:
+            memory: "{{ .Values.nodejs.resources.request.memory }}"
+            cpu: "{{ .Values.nodejs.resources.request.cpu }}"
+          limits:
+            memory: "{{ .Values.nodejs.resources.limit.memory }}"
+            cpu: "{{ .Values.nodejs.resources.limit.cpu }}"
+  

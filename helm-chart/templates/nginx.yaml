@@ -1,0 +1,206 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-{{ .Values.deployEnv }}
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+    app: nginx-{{ .Values.deployEnv }}
+    sandbox: "{{ .Values.sandbox }}"
+    {{if eq .Values.sandbox "true"}}
+    sandbox-name: "{{ .Values.deployEnv }}"
+    {{end}}
+spec:
+  type: {{ if eq .Values.sandbox "true" }}ClusterIP{{ else }}NodePort{{end}}
+  ports:
+  - name: http
+    port: 80
+  - name: https
+    port: 443
+  selector:
+    app: nginx-{{ .Values.deployEnv }} # not strictly needed since this managed by Argo Rollout
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-{{ .Values.deployEnv }}-preview
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+    app: nginx-{{ .Values.deployEnv }}
+    sandbox: "{{ .Values.sandbox }}"
+    {{if eq .Values.sandbox "true"}}
+    sandbox-name: "{{ .Values.deployEnv }}"
+    argoPreview: "true"
+    {{end}}
+spec:
+  type: {{ if eq .Values.sandbox "true" }}ClusterIP{{ else }}NodePort{{end}}
+  ports:
+  - name: http
+    port: 80
+  - name: https
+    port: 443
+  selector:
+    app: nginx-{{ .Values.deployEnv }} # not strictly needed since this managed by Argo Rollout
+{{range $k, $v := untilStep (int (sub .Release.Revision .Values.previousServicesCount)) (int (add .Release.Revision 1)) 1}}
+{{if gt $v 0}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-{{ $.Values.deployEnv }}-{{ $v }}
+  labels:
+    deployEnv: "{{ $.Values.deployEnv }}"
+    app: nginx-{{ $.Values.deployEnv }}
+    sandbox: "{{ $.Values.sandbox }}"
+    releaseRevision: "{{ $v }}"
+    {{if eq $.Values.sandbox "true"}}
+    sandbox-name: "{{ $.Values.deployEnv }}"
+    {{end}}
+spec:
+  type: {{ if eq $.Values.sandbox "true" }}ClusterIP{{ else }}NodePort{{end}}
+  ports:
+  - name: http
+    port: 80
+  - name: https
+    port: 443
+  selector:
+    app: nginx-{{ $.Values.deployEnv }}
+    releaseRevision: "{{ $v }}"
+{{end}}
+{{end}}
+---
+# apiVersion: apps/v1
+# kind: Deployment
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: {{ .Values.deployEnv }}-nginx
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+  annotations: 
+    rollout.argoproj.io/revision: "{{ .Release.Revision }}"
+spec:
+  strategy:
+    blueGreen:
+      activeService: nginx-{{ .Values.deployEnv }}
+      previewService: nginx-{{ .Values.deployEnv }}-preview
+      autoPromotionEnabled: true
+      prePromotionAnalysis:
+        templates:
+          - templateName: rollout-ready-{{ .Values.deployEnv }}
+          - templateName: rollout-priming-{{ .Values.deployEnv }}
+        args:
+          - name: healthcheck-hostname
+            value: "nginx-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+  selector:
+    matchLabels:
+      app: nginx-{{ .Values.deployEnv }}
+      # releaseRevision: "{{ .Release.Revision }}" # Variable pod selectors breaks Argo. Check filed issue
+  replicas: {{ .Values.nginx.replicaCount }}
+  revisionHistoryLimit: 0
+  template:
+    metadata:
+      labels:
+        app: nginx-{{ .Values.deployEnv }}
+        tier: application
+        deployEnv: "{{ .Values.deployEnv }}"
+        stackRole: nginx
+        releaseRevision: "{{ .Release.Revision }}"
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - mongo
+            topologyKey: kubernetes.io.hostname
+        {{if eq .Values.sandbox "true"}}
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: preemptible
+                    operator: NotIn
+                    values:
+                      - "false"
+                      - ""
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: preemptible
+                    operator: In
+                    values:
+                      - "true"
+        {{end}}
+
+      containers:
+      - name: nginx
+        image: "{{ .Values.nginx.containerImage.imageRegistry }}:{{ .Values.nginx.containerImage.tag }}"
+        imagePullPolicy: Always
+        command: ["bash", "-c"]
+        # https://serverfault.com/questions/577370/how-can-i-use-environment-variables-in-nginx-conf
+        args: [ "envsubst '${ENV_NAME},${VARNISH_HOST},${SEARCH_HOST},${RELEASE_TAG}' < /conf/nginx.template.conf > /nginx.conf && exec nginx -c /nginx.conf -g 'daemon off;'" ]
+        ports:
+        - containerPort: 80
+        - containerPort: 443
+        # startupProbe:
+        #   httpGet:
+        #     path: /healthz-rollout
+        #     port: 80
+        #     failureThreshold: 30 # 15 minutes to start up
+        #     periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /nginx-health
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 30
+        resources:
+          requests:
+            memory: "{{ .Values.nginx.resources.request.memory }}"
+            cpu: "{{ .Values.nginx.resources.request.cpu }}"
+          limits:
+            memory: "{{ .Values.nginx.resources.limit.memory }}"
+            cpu: "{{ .Values.nginx.resources.limit.cpu }}"
+        volumeMounts:
+          - mountPath: /conf
+            name: nginx-conf
+            readOnly: true
+          - mountPath: /app/robots.txt
+            name: robots-txt
+            readOnly: true
+            subPath: robots.txt
+        env:
+          - name: ENV_NAME
+            value: "{{ .Values.deployEnv }}"
+          - name: RELEASE_TAG
+            value: "{{ .Release.Revision }}"
+          - name: randomstringtoforceredeployments
+            value: {{ randAlphaNum 8 }}
+          - name: VARNISH_HOST
+            value: "varnish-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+          # Eventually delete this conditional by bringing PROD into line
+          # and automatically generating the name, a la "search-{{ .Values.deployEnv }}"
+          - name: SEARCH_HOST
+            {{- if eq .Values.deployEnv "prod" }}
+            value: elasticsearch-data
+            {{- else if eq .Values.deployEnv "democracy" }}
+            value: search-democracy
+            {{- else if eq .Values.sandbox "true" }}
+            value: elasticsearch-data
+            {{- else }}
+            value: search-{{.Values.deployEnv}}
+            {{- end }}
+      volumes:
+        - name:  nginx-conf
+          configMap:
+            name: nginx-conf-{{ .Values.deployEnv }}
+        - name: robots-txt
+          configMap:
+            name: robots-txt-{{ .Values.deployEnv }}
+...
+      

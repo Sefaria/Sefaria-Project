@@ -1364,8 +1364,13 @@ div.interfaceLinks-row a {
 .readerPanel .he {
   direction: rtl;
   text-align: right;
+  unicode-bidi: initial;
+}
 }
 .interface-hebrew .readerPanel .en {
+  direction: ltr;
+}
+.interface-hebrew .readerPanel.bilingual .en {
   direction: ltr;
 }
 .interface-hebrew .readerPanel .contentInner,
@@ -2286,6 +2291,10 @@ a.navBlockTitle:hover {
   padding-right: 44px;
   padding-left: 44px;
 }
+.sidebarPromo:not(:first-child) {
+  margin-top: 34px;
+}
+
 .navSidebarModule .sidebarPromo {
   margin-right: -44px;
   margin-left: -44px;
@@ -2805,9 +2814,15 @@ a.navBlockTitle:hover {
 .bookPage .moderatorSectionExpand:hover {
   text-decoration: underline;
 }
-.bookPage .moderatorSection .button {
+.interface-english .bookPage .moderatorSection .button {
   padding: 12px 16px;
-  font-size: 13px;
+  font-size: 16px;
+  margin: 0 0 0 10px;
+}
+.interface-hebrew .bookPage .moderatorSection .button {
+  padding: 12px 16px;
+  font-size: 16px;
+  margin: 0 10px 0 0;
 }
 .bookPage .moderatorSection .moderatorSectionMessage {
   margin-top: 20px;
@@ -3535,6 +3550,31 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   max-width: 665px;
   padding-top: 25px;
   max-width: 665px;
+}
+
+.searchResultList .topicTitle .int-en, .searchResultList .topicTitle .int-he {
+  font-size: 24px;
+}
+
+.searchContent .searchResultList #searchTopics {
+  border-top: 1px solid #EDEDEC;
+  border-bottom: 1px solid #EDEDEC;
+  padding-top: 30px;
+  padding-bottom: 5px;
+  margin-bottom: 25px;
+}
+.searchResultList .searchTopic {
+  margin-bottom: 30px;
+}
+.searchResultList .searchTopic .topicDescSearchResult {
+  margin-top: 10px;
+}
+.searchResultList .searchTopic .topicSourcesSheets {
+  margin-top: 10px;
+}
+.searchResultList .searchTopic .topicSourcesSheets.systemText .int-en,
+.searchResultList .searchTopic .topicSourcesSheets.systemText .int-he {
+  color: #666666;
 }
 
 @media (min-width: 701px) {
@@ -4396,9 +4436,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .readerControls .readerTextToc .readerTextVersion {
   font-size: 15px;
   color: #999;
-}
-.readerControls .readerTextToc .readerTextVersion .en{
-  unicode-bidi: bidi-override;
 }
 .readerControls .readerTextToc .fa {
   color: #999;
@@ -9122,6 +9159,16 @@ span.purim-emoji img{
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
 }
 
+.sheetNotice {
+  color: var(--dark-grey);
+  background: var(--lighter-grey);
+  border: 1px solid var(--light-grey);
+  box-sizing: border-box;
+  border-radius: 6px;
+  padding: 10px 20px;
+  margin: 22px 44px 0;
+  font-size: 16px;
+}
 .interface-hebrew .sheetContent .element-link .popup {
   direction: rtl;
 }
@@ -10954,6 +11001,168 @@ body .homeFeedWrapper.userStats {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   background-color: #faf9f9;
 }
+
+.bookPage .editTextInfo {
+  top: 0px;
+  right: 0px;
+  left: 0px;
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  overflow: auto;
+  z-index: 1;
+  background-color:  var(--lighter-grey);
+
+}
+
+.bookPage .editTextInfo .static .inner {
+  padding: 5px 0 100px;
+}
+.bookPage .editTextInfo .static input {
+  cursor: auto;
+  color: #000000;
+}
+.bookPage .editTextInfo .static label {
+  margin-bottom: 15px;
+}
+.bookPage .editTextInfo #newIndex {
+  margin: 100px auto;
+  font-size: 16px;
+  font-weight: normal;
+  color: #000;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
+
+.bookPage .editTextInfo #newIndex .publishBox {
+  text-align: start;
+  background-color: #EDEDEC;
+  border-radius: 6px;
+  padding: 0 0 0 0;
+  margin: 0 0 0 0;
+  width: 660px;
+  max-width: 100%;
+}
+.bookPage .editTextInfo #newIndex .publishBox .react-tags__selected-tag-name {
+  --english-font: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  --hebrew-font: "Heebo", sans-serif;
+  font-size: 18px;
+  font-weight: normal;
+  color: #000;
+}
+#categoryChooserMenu {
+  overflow: hidden;
+  background: url("/static/img/arrow-down.png") 640px 20px/10px 10px no-repeat #ffffff;
+  width: 660px;
+  height: 50px;
+  margin: 0 0 10px 0;
+  border-radius: 7px;
+  box-shadow: 0px 1px 3px rgb(0 0 0 / 20%);
+  border: none;
+}
+#categoryChooserMenu select {
+  background: transparent;
+  font-size: 16px;
+  width: 680px;
+  border: none;
+  margin: 0 0 10px 0;
+  padding: 4px 25px 4px 10px;
+}
+
+#categoryChooserMenu img {
+  opacity: 0.43;
+  padding: 0 5px;
+  height: 10px;
+  width: 10px;
+}
+
+.bookPage .editTextInfo #newIndex .publishBox .react-tags__selected-tag {
+  margin: 0 12px 12px 0;
+  padding: 12px 14px;
+}
+
+.bookPage .editTextInfo #newIndex .publishBox input {
+  box-shadow: none;
+}
+
+.bookPage .editTextInfo #newIndex .publishBox .react-tags__search {
+  padding: 0 0 0 0;
+}
+
+.bookPage .editTextInfo #newIndex .optional {
+  font-size: 13px;
+  color: var(--light-grey);
+  font: var(--english-sans-serif-font-family);
+}
+
+.bookPage .editTextInfo #newIndex input {
+  padding: 4px 10px 4px 10px;
+  width: 640px;
+  height: 50px;
+  font-size: 16px;
+  margin: 0 0 10px 0;
+  max-width: 100%;
+}
+
+.bookPage .editTextInfo #newIndex #heTitle {
+  direction: rtl;
+}
+.interface-english .bookPage .editTextInfo .static label {
+  text-align: left;
+}
+.interface-hebrew .bookPage .editTextInfo .static label {
+  text-align: right
+}
+.bookPage .editTextInfo #newIndex .sectionType input{
+	width: 100px;
+	margin: 0 5px;
+	font-size: 16px;
+}
+
+.bookPage .editTextInfo #newIndex .remove {
+	color: white;
+	background: #bbb;
+	display: inline-block;
+	height: 18px;
+	width: 18px;
+	line-height: 18px;
+	border-radius: 6px;
+	text-align: center;
+	font-size: 14px;
+	font-family: sans-serif;
+	cursor: pointer;
+	vertical-align: 15%;
+}
+
+.bookPage .editTextInfo #newIndex .sectionType .remove {
+	margin: -5px 11px 0 -32px;
+}
+.bookPage .editTextInfo #newIndex a {
+    color: #666;
+}
+
+.bookPage .editTextInfo .nodeTemplate {
+	display: none;
+}
+@media screen and (max-width: 680px) {
+  #categoryChooserMenu {
+    background: url("/static/img/arrow-down.png") 300px 20px/10px 10px no-repeat #ffffff;
+    width: 320px;
+  }
+  .bookPage .editTextInfo .static .headerWithButtons h1 {
+    margin: 30px;
+  }
+  #categoryChooserMenu select {
+    width: 340px;
+  }
+  .bookPage .editTextInfo #newIndex input {
+    width: 300px;
+  }
+  .bookPage .editTextInfo #newIndex .publishBox {
+    width: 320px;
+  }
+}
+
 .collectionsModalBox {
   position: fixed;
   width: 100%;
@@ -10974,6 +11183,16 @@ body .homeFeedWrapper.userStats {
   border-radius: 8px;
   z-index: 1;
 }
+.bookPage .editTextInfo .collectionsWidget {
+  width: 580px;
+  box-shadow: 0 1px 8px rgba(0, 0, 0, .2);
+  height: 100px;
+  position: absolute;
+  padding: 50px 50px 0 50px;
+  text-align: center;
+  margin-top: 200px;
+}
+
 .collectionsWidgetTop {
   display: flex;
   padding: 15px 20px;
