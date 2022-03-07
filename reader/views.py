@@ -1500,6 +1500,7 @@ def social_image_api(request, tref):
     lang = request.GET.get("lang", "en")
     version = request.GET.get("v", None)
     platform = request.GET.get("platform", "twitter")
+    colored = request.GET.get("colored", None)
     ref = Ref(tref)
     ref_str = ref.normal() if lang == "en" else ref.he_normal()
 
@@ -1513,7 +1514,7 @@ def social_image_api(request, tref):
 
     text = en if lang == "en" else he
     text = ' '.join(text)
-    res = make_img_http_response(text, tf["primary_category"], ref_str, lang, platform)
+    res = make_img_http_response(text, tf["primary_category"], ref_str, lang, platform, colored)
 
     return res
 
