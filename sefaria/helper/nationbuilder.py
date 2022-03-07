@@ -34,7 +34,8 @@ def get_nationbuilder_connection():
     session = service.get_session(token)
     return session
 
-def get_tags_for_user(profile, trendManagers):
+def get_tags_for_user(profile, trendManagers): # TODO - split up?
+    # trends
     trends = {}
     for trend in db.trend.find({"uid": profile['id']}):
         if not trends.get(trend["name"], False):
@@ -48,6 +49,8 @@ def get_tags_for_user(profile, trendManagers):
             to_add.append(info['name'])
         else:
             to_remove.append(info['name'])
+    
+    # sheets
     return to_add,to_remove
 
 
@@ -72,7 +75,7 @@ def nationbuilder_update_all_tags():
     session = get_nationbuilder_connection()
     category_trend_managers = [CategoryTrendManager(category, period=period) for category in TOP_CATEGORIES for period in ["alltime", "currently"]] 
     trend_managers = category_trend_managers + [SheetReaderManager()]
-    for profile in db.profiles.find():
+    for profile in db.profiles.find({"nationbuilder_id": {"$exists": True}}):
         tags_to_add, tags_to_remove = get_tags_for_user(profile, trend_managers)
         print(tags_to_add)
         print(tags_to_remove)
