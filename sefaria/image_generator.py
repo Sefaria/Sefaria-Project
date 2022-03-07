@@ -32,7 +32,7 @@ platforms = {
     "facebook": {
         "width": 1200,
         "height": 630,
-        "padding": 120,
+        "padding": 260,
         "font_size": 60,
         "ref_font_size": 24,
         "he_spacing": 5,
@@ -40,7 +40,7 @@ platforms = {
     "twitter": {
         "width": 1200,
         "height": 600,
-        "padding": 120,
+        "padding": 260,
         "font_size": 60,
         "ref_font_size": 24,
         "he_spacing": 5,
@@ -55,9 +55,8 @@ def smart_truncate(content, length=180, suffix='...'):
         return ' '.join(content[:length+1].split(' ')[0:-1]) + suffix
 
 def calc_letters_per_line(text, font, img_width):
-    uniq_chars_in_text = list(set(text))
-    avg_char_width = sum(font.getsize(char)[0] for char in uniq_chars_in_text) / len(uniq_chars_in_text)
-    max_char_count = int( (img_width * 1) / avg_char_width )
+    avg_char_width = sum(font.getsize(char)[0] for char in text) / len(text)
+    max_char_count = int(img_width / avg_char_width )
     return max_char_count
 
 def cleanup_and_format_text(text, language):
@@ -81,7 +80,8 @@ def generate_image(text="", category="System", ref_str="", lang="he", platform="
     font = ImageFont.truetype(font='static/fonts/Amiri-Taamey-Frank-merged.ttf', size=platforms[platform]["font_size"])
     width = platforms[platform]["width"]
     height = platforms[platform]["height"]
-    padding = platforms[platform]["padding"]
+    padding_x = platforms[platform]["padding"]
+    padding_y = padding_x/2
     img = Image.new('RGBA', (width, height), color=bg_color)
 
 
@@ -100,7 +100,7 @@ def generate_image(text="", category="System", ref_str="", lang="he", platform="
         cat_border_pos = (img.size[0], 0, img.size[0], img.size[1])
 
     text = cleanup_and_format_text(text, lang)
-    text = textwrap.fill(text=text, width= calc_letters_per_line(text, font, int(img.size[0]-padding)))
+    text = textwrap.fill(text=text, width= calc_letters_per_line(text, font, int(img.size[0]-padding_x)))
     text = get_display(text) # Applies BIDI algorithm to text so that letters aren't reversed in PIL.
 
     draw = ImageDraw.Draw(im=img)
@@ -115,7 +115,7 @@ def generate_image(text="", category="System", ref_str="", lang="he", platform="
     draw.line((0, int(height*.1), img.size[0], int(height*.1)), fill="#CCCCCC", width=int(height*.0025))
 
     #write ref
-    draw.text(xy=(img.size[0] / 2, img.size[1]-padding/2), text=get_display(ref_str.upper()), font=ref_font, spacing=spacing, align=align, fill=text_color, anchor='mm')
+    draw.text(xy=(img.size[0] / 2, img.size[1]-padding_y/2), text=get_display(ref_str.upper()), font=ref_font, spacing=spacing, align=align, fill=text_color, anchor='mm')
 
     #add sefaria logo
     logo = Image.open(watermark_url)
