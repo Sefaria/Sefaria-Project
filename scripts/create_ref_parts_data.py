@@ -407,7 +407,9 @@ class RefPartModifier:
                 if num_match is None:
                     print(node_title, temp_title)
                     continue
-                num_term = self.perek_number_map[int(num_match.group(1))]
+                numeric_equivalent = int(num_match.group(1))
+                num_term = self.perek_number_map[numeric_equivalent]
+                par_per_node.numeric_equivalent = numeric_equivalent
                 par_per_node.match_templates = [
                     {
                         "term_slugs": [named_term_slug, num_term.slug],
@@ -540,7 +542,7 @@ class RefPartModifier:
         self.t(en='Gilyon HaShas', he='גליון הש"ס', ref_part_role='structural')
         self.t(en='Midrash Rabbah', he='מדרש רבה', alt_en=['Midrash Rabba', 'Midrash Rabah'], alt_he=['מדרש רבא'], ref_part_role='structural')  # TODO no good way to compose titles for midrash rabbah...
         self.t(en='Rabbah', he='רבה', alt_en=['Rabba', 'Rabah', 'Rab.', 'R.', 'Rab .', 'R .', 'rabba', 'r.', 'r .', 'rabbati'], alt_he=['רבא'], ref_part_role='structural')
-        self.t(en='Sifra', he='סיפרא', ref_part_role='structural')
+        self.t(en='Sifra', he='סיפרא', alt_he=['ספרא'], ref_part_role='structural')
         self.t(en='Ran', he='ר"ן', ref_part_role='structural')
         self.t(en='Perek', he='פרק', alt_en=["Pereq", 'Chapter'], ref_part_role='alt_title')
         self.t(en='Parasha', he='פרשה', alt_en=['Parashah', 'Parašah', 'Parsha', 'Paraša', 'Paršetah', 'Paršeta', 'Parsheta', 'Parshetah'], ref_part_role='alt_title')

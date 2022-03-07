@@ -156,7 +156,7 @@ crrd = create_raw_ref_data
     [crrd("Jerusalem Talmud Pesachim 1:1:3", 'en', 'Unknown book 2', [slice(0, 2), 1], [RPT.NAMED, RPT.NUMBERED]), tuple()],  # make sure title context doesn't match this
     [crrd("Jerusalem Talmud Pesachim 1:1:3", 'en', 'Tosafot Megillah 21b, s. v . כנגד', [0, 1, 2, slice(4, 9)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.DH]), ("Tosafot on Megillah 21b:7:1",)],  # make sure title context doesn't match this
     [crrd("Jerusalem Talmud Pesachim 1:1:3", 'en', 'Sifra Behar Parašah 6(5', [0, 1, slice(2, 4), 5], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Sifra, Behar, Section 6 5",)],
-    [crrd("Jerusalem Talmud Pesachim 1:1:3", 'en', 'Sifra Saw Parashah 2(9–10', [0, 1, slice(2, 8)], [RPT.NAMED, RPT.NAMED, RPT.NAMED]), ("Sifra, Tzav",)], # if raw ref gets broken into incorrect parts, make sure it handles it correctly
+    [crrd("Jerusalem Talmud Pesachim 1:1:3", 'en', 'Sifra Saw Parashah 2(9–10', [0, 1, slice(2, 8)], [RPT.NAMED, RPT.NAMED, RPT.NAMED]), tuple()],  # if raw ref gets broken into incorrect parts, make sure it handles it correctly
 
     # gilyon hashas
     [crrd("Gilyon HaShas on Berakhot 51b:1", 'he', '''תוספות ד"ה אין''', [0, slice(1, 3)], [RPT.NAMED, RPT.DH]), ("Tosafot on Berakhot 51b:8:1",)],  # commentator with implied book and daf from context commentator

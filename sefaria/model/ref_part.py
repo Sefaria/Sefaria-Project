@@ -422,14 +422,31 @@ class ResolvedRawRef:
         """
         return ResolvedRawRef(**{**self.__dict__, **kwargs})
 
-    def has_prev_unused_numbered_ref_part(self, raw_ref_part: RawRefPart) -> bool:
+    def has_prev_unused_numbered_ref_part(self, part: RawRefPart) -> bool:
         """
         Helper function to avoid matching AddressInteger sections out of order
         Returns True if there is a RawRefPart which immediately precedes `raw_ref_part` and is not yet included in this match
         """
-        prev_part = self.raw_ref.prev_num_parts_map.get(raw_ref_part, None)
+        prev_part = self.raw_ref.prev_num_parts_map.get(part, None)
         if prev_part is None: return False
         return prev_part not in set(self.resolved_parts)
+
+    def has_prev_unused_numbered_ref_part_for_node(self, part: RawRefPart, lang: str, node: schema.SchemaNode) -> bool:
+        """
+        For SchemaNodes or ArrayMapNodes that have numeric equivalents (e.g. an alt struct for perek)
+        make sure we are not matching AddressIntegers out of order. See self.has_prev_unused_numbered_ref_part()
+        """
+        if part.type != RefPartType.NUMBERED or \
+                not getattr(node, 'numeric_equivalent', False) or \
+                not self.has_prev_unused_numbered_ref_part(part):
+            return False
+        try:
+            possible_sections, possible_to_sections, addr_classes = schema.AddressInteger(0).get_all_possible_sections_from_string(lang, part.text)
+            for sec, toSec, addr_class in zip(possible_sections, possible_to_sections, addr_classes):
+                if sec != node.numeric_equivalent: continue
+                if addr_class == schema.AddressInteger: return True
+        except KeyError:
+            return False
 
     def _get_refined_matches_for_dh_part(self, raw_ref_part: RawRefPart, refined_parts: List[RawRefPart], node: schema.DiburHamatchilNodeSet):
         """
@@ -523,8 +540,8 @@ class ResolvedRawRef:
             matches += self._get_refined_matches_for_ranged_part(part, refined_ref_parts, node, lang)
         elif (part.type == RefPartType.NAMED and isinstance(node, schema.TitledTreeNode) or
               part.type == RefPartType.NUMBERED and isinstance(node, schema.ArrayMapNode)) or \
-        part.type == RefPartType.NUMBERED and isinstance(node, schema.SchemaNode): # for case of numbered alt structs or schema nodes that look numbered (e.g. perakim and parshiot of Sifra)
-            if node.ref_part_title_trie(lang).has_continuations(part.key(), key_is_id=part.key_is_id):
+              part.type == RefPartType.NUMBERED and isinstance(node, schema.SchemaNode): # for case of numbered alt structs or schema nodes that look numbered (e.g. perakim and parshiot of Sifra)
+            if node.ref_part_title_trie(lang).has_continuations(part.key(), key_is_id=part.key_is_id) and not self.has_prev_unused_numbered_ref_part_for_node(part, lang, node):
                 matches += [self.clone(resolved_parts=refined_ref_parts, node=node, ref=node.ref())]
         elif part.type == RefPartType.DH:
             if isinstance(node, schema.JaggedArrayNode):
@@ -1210,11 +1227,13 @@ class RefResolver:
         # TODO removing for now b/c of yerushalmi project. doesn't seem necessary to happen here anyway.
         # max_resolved_refs = list(filter(lambda x: not x.ref.is_empty(), max_resolved_refs))
 
-        # remove context matches that don't match all ref parts to avoid false positives
+        # remove matches that don't match all ref parts to avoid false positives
+        # used to only apply to context matches
         def filter_context_matches(match: ResolvedRawRef) -> bool:
             if match.num_resolved(include={ContextPart}) == 0:
                 # no context
-                return True
+                # return True
+                pass
 
             # make sure no explicit sections matched before context sections
             first_explicit_section = None
