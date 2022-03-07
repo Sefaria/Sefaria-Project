@@ -192,20 +192,22 @@ class RefPartModifier:
             for iperek, perek_node in enumerate(perakim):
                 perek_term = self.t(he=perek_node.get_primary_title('he'), ref_part_role='structural')  # TODO english titles are 'Chapter N'. Is that an issue?
                 is_last = iperek == len(perakim)-1
+                numeric_equivalent = min(iperek+1, 30)
+                perek_node.numeric_equivalent = numeric_equivalent
                 perek_node.match_templates = [
                     {
                         "term_slugs": [perek.slug, perek_term.slug],
                         "scope": "any"
                     },
                     {
-                        "term_slugs": [perek.slug, self.perek_number_map[min(iperek+1, 30)].slug]
+                        "term_slugs": [perek.slug, self.perek_number_map[numeric_equivalent].slug]
                     },
                     {
                         "term_slugs": [perek_term.slug],
                         "scope": "any"
                     },
                     {
-                        "term_slugs": [self.perek_number_map[min(iperek + 1, 30)].slug]
+                        "term_slugs": [self.perek_number_map[numeric_equivalent].slug]
                     },
                 ]
                 if is_last:
@@ -408,7 +410,7 @@ class RefPartModifier:
                     print(node_title, temp_title)
                     continue
                 numeric_equivalent = int(num_match.group(1))
-                num_term = self.perek_number_map[numeric_equivalent]
+                num_term = self.perek_number_map[numeric_equivalent]  # NOTE: these terms can be used for both parsha and perek nodes b/c they only contain a "פ" prefix.
                 par_per_node.numeric_equivalent = numeric_equivalent
                 par_per_node.match_templates = [
                     {
