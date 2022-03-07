@@ -1500,18 +1500,20 @@ def social_image_api(request, tref):
     lang = request.GET.get("lang", "en")
     version = request.GET.get("v", None)
     platform = request.GET.get("platform", "twitter")
+    ref = Ref(tref)
+    ref_str = ref.normal() if lang == "en" else ref.he_normal()
 
     if version:
         version = version.replace("_", " ")
 
-    tf = TextFamily(Ref(tref), stripItags=True, lang=lang, version=version, context=0, commentary=False).contents()
+    tf = TextFamily(ref, stripItags=True, lang=lang, version=version, context=0, commentary=False).contents()
 
     he = tf["he"] if type(tf["he"]) is list else [tf["he"]]
     en = tf["text"] if type(tf["text"]) is list else [tf["text"]]
 
     text = en if lang == "en" else he
     text = ' '.join(text)
-    res = make_img_http_response(text, tf["primary_category"], lang, platform)
+    res = make_img_http_response(text, tf["primary_category"], ref_str, lang, platform)
 
     return res
 

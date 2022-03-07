@@ -34,16 +34,16 @@ platforms = {
         "height": 630,
         "padding": 120,
         "font_size": 60,
+        "ref_font_size": 24,
         "he_spacing": 5,
-        "logo_size": 200,
     },
     "twitter": {
         "width": 1200,
         "height": 600,
         "padding": 120,
         "font_size": 60,
+        "ref_font_size": 24,
         "he_spacing": 5,
-        "logo_size": 200,
     }
 
 }
@@ -74,24 +74,30 @@ def cleanup_and_format_text(text, language):
     return text
 
 
-def generate_image(text="", category="System", lang="he", platform="twitter"):
-    text_color = '#ffffff'
+def generate_image(text="", category="System", ref_str="", lang="he", platform="twitter"):
+    text_color = '#666666' # dark-grey
+    bg_color = (251, 251, 249) # lightest-grey
+
     font = ImageFont.truetype(font='static/fonts/Amiri-Taamey-Frank-merged.ttf', size=platforms[platform]["font_size"])
     width = platforms[platform]["width"]
     height = platforms[platform]["height"]
     padding = platforms[platform]["padding"]
-    img = Image.new('RGBA', (width, height), color=palette[category])
+    img = Image.new('RGBA', (width, height), color=bg_color)
 
 
     if lang == "en":
         align = "left"
-        watermark_url = "static/img/logo-white.png"
+        watermark_url = "static/img/logo.png"
         spacing = 0
+        ref_font = ImageFont.truetype(font='static/fonts/Roboto-Regular.ttf', size=platforms[platform]["ref_font_size"])
+        cat_border_pos = (0, 0, 0, img.size[1])
 
     else:
         align = "right"
-        watermark_url = "static/img/logo-hebrew-white.png"
+        watermark_url = "static/img/logo-hebrew.png"
         spacing = platforms[platform]["he_spacing"]
+        ref_font = ImageFont.truetype(font='static/fonts/Heebo-Regular.ttf', size=platforms[platform]["ref_font_size"])
+        cat_border_pos = (img.size[0], 0, img.size[0], img.size[1])
 
     text = cleanup_and_format_text(text, lang)
     text = textwrap.fill(text=text, width= calc_letters_per_line(text, font, int(img.size[0]-padding)))
@@ -100,19 +106,30 @@ def generate_image(text="", category="System", lang="he", platform="twitter"):
     draw = ImageDraw.Draw(im=img)
     draw.text(xy=(img.size[0] / 2, img.size[1] / 2), text=text, font=font, spacing=spacing, align=align, fill=text_color, anchor='mm')
 
-    watermark = Image.open(watermark_url)
-    watermark.thumbnail((platforms[platform]["logo_size"], platforms[platform]["logo_size"]))
-    watermark_padded = Image.new('RGBA', (width, height))
-    watermark_pos = int(img.size[0]-(padding/2) - watermark.size[0]) if lang == "en" else int(padding/2)
-    watermark_padded.paste(watermark, (watermark_pos, int(height-watermark.size[1]- (padding/4))))
+    #category line
+    draw.line(cat_border_pos, fill=palette[category], width=int(width*.02))
 
-    img = Image.alpha_composite(img, watermark_padded)
+
+    #header white
+    draw.line((0, int(height*.05), img.size[0], int(height*.05)), fill=(255, 255, 255), width=int(height*.1))
+    draw.line((0, int(height*.1), img.size[0], int(height*.1)), fill="#CCCCCC", width=int(height*.0025))
+
+    #write ref
+    draw.text(xy=(img.size[0] / 2, img.size[1]-padding/2), text=get_display(ref_str.upper()), font=ref_font, spacing=spacing, align=align, fill=text_color, anchor='mm')
+
+    #add sefaria logo
+    logo = Image.open(watermark_url)
+    logo.thumbnail((width, int(height*.06)))
+    logo_padded = Image.new('RGBA', (width, height))
+    logo_padded.paste(logo, (int(width/2-logo.size[0]/2), int(height*.05-logo.size[1]/2)))
+
+    img = Image.alpha_composite(img, logo_padded)
 
     buf = io.BytesIO()
     img.save(buf, format='png')
     return(buf.getvalue())
 
-def make_img_http_response(text, category, lang, platform):
-    img = generate_image(text, category, lang, platform)
+def make_img_http_response(text, category, ref_str, lang, platform):
+    img = generate_image(text, category, ref_str, lang, platform)
     res = HttpResponse(img, content_type="image/png")
     return res
