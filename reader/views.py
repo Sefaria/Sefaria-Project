@@ -908,11 +908,7 @@ def collection_page(request, slug):
     props["collectionData"] = collection.contents(with_content=True, authenticated=authenticated)
     del props["collectionData"]["lastModified"]
 
-    propsJSON = json.dumps(props)
-    html = render_react_component("ReaderApp", propsJSON)
-    return render(request, 'base.html', {
-        "propsJSON": propsJSON,
-        "html": html,
+    return render_template(request, 'base.html', props, {
         "title": collection.name + " | " + _("Sefaria Collections"),
         "desc": props["collectionData"].get("description", ""),
         "noindex": not getattr(collection, "listed", False)
