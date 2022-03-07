@@ -185,7 +185,7 @@ def test_resolve_raw_ref(resolver_data, expected_trefs):
         print(f"Found {len(matched_orefs)} refs instead of {len(expected_trefs)}")
         for matched_oref in matched_orefs:
             print("-", matched_oref.normal())
-    assert len(expected_trefs) == len(matched_orefs)
+    assert len(matched_orefs) == len(expected_trefs)
     for expected_tref, matched_oref in zip(sorted(expected_trefs, key=lambda x: x), matched_orefs):
         assert matched_oref == Ref(expected_tref)
 
