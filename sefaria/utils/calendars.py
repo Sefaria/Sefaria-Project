@@ -373,7 +373,7 @@ def hok_leyisrael(datetime_obj, diaspora=True):
     return [{
         "title": {"en": "Chok LeYisrael", "he": 'חק לישראל'},
         "displayValue": {"en": parasha_term.name, "he": parasha_he},
-        "url": f'collections/חק-לישראל?tag={urllib.parse.quote(parasha_he)}',
+        "url": f'collections/חק-לישראל?tag={urllib.parse.quote(parasha_term.name)}',
         "order": 12,
         "category": 'Tanakh'
     }]
