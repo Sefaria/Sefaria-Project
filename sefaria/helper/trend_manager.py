@@ -32,4 +32,33 @@ class SheetReaderManager(TrendManager):
     def __init__(self, period="alltime"):
         TrendManager.__init__(self,"source_sheet_reader","SheetsRead",period)
 
+class SheetCreatorManager(TrendManager):
+    def __init__(self, period="alltime", public=False):
+        TrendManager.__init__(self,"source_sheet_creator","SheetsCreated",period)
+        self.public = public
+
+    def getPersonInfo(self, trends):
+        if(self.public == False):
+            return TrendManager.getPersonInfo(self, trends)
+        else:
+            person_info_public = {
+                "key": self.key+"Public",
+                "name": self.name+"_public_"+self.period,
+                "period": self.period,
+                "value": False
+            } if self.public else {}
+            if (self.public == True):
+                try:
+                    if trends.get(self.key+"Public", {}).get(self.period) >= 1:
+                        value = True
+                    else:
+                        value = False
+                    person_info_public["value"] = value
+                except:
+                    person_info_public["value"] = False
+            if(person_info_public["value"] == False):
+                return person_info_public 
+        
+            person_info_public["value"] = TrendManager.getPersonInfo(self,trends)["value"]
+            return person_info_public
 

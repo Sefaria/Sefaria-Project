@@ -206,7 +206,6 @@ def setUserSheetTraits():
                 "uid":          uid
             }).save()
 
-
 def setCategoryTraits():
     from sefaria.model.category import TOP_CATEGORIES
 
@@ -555,6 +554,7 @@ class TrendFactory(object):
 
 def setAllTrends():
     setUserSheetTraits()
+    setSheetTraits()
     setUserLanguageTraits()
     setCategoryTraits()
     setNationBuilderTraits()
