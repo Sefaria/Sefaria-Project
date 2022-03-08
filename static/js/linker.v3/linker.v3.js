@@ -23,4 +23,13 @@ fetch(`${SEFARIA_BASE_URL}/api/wrap-refs`, {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify(postData)
-}).then(() => alert("Linker results are ready!"))
+})
+.then(
+    (resp) => {
+        if (resp.ok) {
+            alert("Linker results are ready!");
+        } else {
+            resp.text().then(text => alert(`Linker ERROR ${text}`));
+        }
+    }
+)
