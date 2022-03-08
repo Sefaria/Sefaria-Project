@@ -716,12 +716,15 @@ class RefPartModifier:
 
         }
         title_map = defaultdict(set)
-        repls = ['Mishneh Torah,', 'Rambam,', 'רמב"ם,', 'משנה תורה,', 'רמב"ם', 'משנה תורה', 'רמב״ם,', 'רמב״ם']
-        repl_reg = fr'^({"|".join(re.escape(r) for r in repls)}) '
+        repls = ['Mishneh Torah,', 'Rambam,', 'רמב"ם,', 'משנה תורה,', 'רמב"ם', 'משנה תורה', 'רמב”ם,', 'רמב”ם', 'רמב״ם', 'רמב״ם,']
+        hil_repls = ['Hilchot', 'Hilkhot', 'Laws of', 'הלכות', "הל'"]
+        repl_reg = fr'^(({"|".join(re.escape(r) for r in repls)}) )?(({"|".join(re.escape(r) for r in hil_repls)}) )?'
 
         indexes = library.get_indexes_in_category("Mishneh Torah", full_records=True)
         for index in indexes:
-            title_map[(index.title.replace('Mishneh Torah, ', ''), index.get_title('he').replace('משנה תורה, ', ''))] |= {
+            en_primary = re.sub(repl_reg, '', index.title)
+            he_primary = re.sub(repl_reg, '', index.get_title('he'))
+            title_map[(en_primary, he_primary)] |= {
                 re.sub(r'<[^>]+>', '', re.sub(repl_reg, '', tit['text'])) for tit in index.nodes.title_group.titles}
 
         title_term_map = {}
