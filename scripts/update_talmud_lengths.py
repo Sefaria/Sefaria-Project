@@ -8,7 +8,7 @@ Commandeering this old script to update lengths on various texts
 """
 
 if __name__ == '__main__':
-    i = library.get_indexes_in_category("Yerushalmi", full_records=True)
+    i = library.get_indexes_in_category("Tosefta Lieberman", full_records=True)
     for ind in i:
         sn = StateNode(ind.title)
         ac = sn.get_available_counts("he")

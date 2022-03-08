@@ -302,6 +302,12 @@ class RefPartModifier:
                     generic_title = generic_title.replace(' (Lieberman)', '')
                 generic_title = title_swaps.get(generic_title, generic_title)
                 generic_term = self.shas_map[generic_title]
+
+                # update lengths
+                sn = StateNode(index.title)
+                ac = sn.get_available_counts("he")
+                index.nodes.lengths = ac[:]
+
                 if not generic_term:
                     print(generic_title)
                     continue
