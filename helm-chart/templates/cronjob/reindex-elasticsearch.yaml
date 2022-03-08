@@ -1,0 +1,71 @@
+{{ if eq .Values.deployEnv "prod" }}
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: {{ .Values.deployEnv }}-reindex-elastic-search
+spec:
+  schedule: "20 13 * * 0"
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        spec:
+          affinity:
+            podAntiAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+              - labelSelector:
+                  matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                    - mongo
+                topologyKey: kubernetes.io.hostname
+
+          volumes:
+          - name: local-settings
+            configMap:
+              name: local-settings-{{ .Values.deployEnv }}
+              items:
+                - key: local_settings.py
+                  path: local_settings.py
+          containers:
+          - name: reindex-elastic-search
+            image: "{{ .Values.web.containerImage }}:{{ .Values.releaseImageTag }}"
+            resources:
+              limits:
+                memory: 8Gi
+              requests:
+                memory: 7Gi
+            env:
+            - name: REDIS_HOST
+              value: "redis-{{ .Values.deployEnv }}"
+            - name: NODEJS_HOST
+              value: "node-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+            - name: VARNISH_HOST
+              value: "varnish-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+            - name: SLACK_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "secrets.slackWebhook" . }}
+                  key: slack-webhook
+            envFrom:
+              - secretRef:
+                name: {{ template "secrets.localSettings" . }}
+              - configMapRef:
+                name: local-settings-{{ .Values.deployEnv }}
+            volumeMounts:
+              - mountPath: /app/sefaria/local_settings.py
+                name: local-settings
+                subPath: local_settings.py
+                readOnly: true
+            command: ["bash"]
+            args: [
+              "-c",
+              "mkdir -p /log && touch /log/sefaria_book_errors.log && pip install numpy && /app/run /app/scripts/reindex_elasticsearch_cronjob.py"
+            ]
+          restartPolicy: Never
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 2
+...
+{{end}}

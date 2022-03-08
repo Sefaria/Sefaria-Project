@@ -1,0 +1,71 @@
+{{ if eq .Values.deployEnv "prod" }}
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: {{ .Values.deployEnv }}-sitemaps
+spec:
+  schedule: "0 5 * * *"
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        spec:
+          volumes:
+          - name: backup-manager-secret
+            secret:
+              secretName: {{ template "secrets.backupManager" . }}
+          - name: local-settings
+            configMap:
+              name: local-settings-{{ .Values.deployEnv }}
+              items:
+                - key: local_settings.py
+                  path: local_settings.py
+          - name: shared-volume
+            emptyDir: {}
+
+          initContainers:
+          - name: sitemap-generator
+            image: "{{ .Values.web.containerImage }}:{{ .Values.releaseImageTag }}"
+            env:
+            - name: REDIS_HOST
+              value: "redis-{{ .Values.deployEnv }}"
+            - name: NODEJS_HOST
+              value: "node-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+            - name: VARNISH_HOST
+              value: "varnish-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+            envFrom:
+              - secretRef:
+                name: {{ template "secrets.localSettings" . }}
+              - configMapRef:
+                name: local-settings-{{ .Values.deployEnv }}
+            volumeMounts:
+              - name: shared-volume
+                mountPath: /storage
+              - mountPath: /app/sefaria/local_settings.py
+                name: local-settings
+                subPath: local_settings.py
+                readOnly: true
+            command: ["bash"]
+            args: ["-c", "/app/run /app/scripts/generate_sitemaps.py -o /storage/"]
+
+          containers:
+          - name: file-uploader
+            image: google/cloud-sdk
+            volumeMounts:
+            - name: shared-volume
+              mountPath: /storage
+            - name: backup-manager-secret
+              mountPath: /conf
+            env:
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /conf/BackupManagerKey.json
+            command: ["bash"]
+            args: ["-c", "gcloud auth activate-service-account --key-file ${GOOGLE_APPLICATION_CREDENTIALS} &&
+             gsutil -m cp -r /storage/sitemaps gs://sefaria-sitemaps/static &&
+             gsutil -m acl -r ch -u AllUsers:R gs://sefaria-sitemaps/static/sitemaps/"]
+          restartPolicy: Never
+  successfulJobsHistoryLimit: 0
+  failedJobsHistoryLimit: 2
+...
+{{end}}

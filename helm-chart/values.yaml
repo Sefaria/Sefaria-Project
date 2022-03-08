@@ -1,0 +1,232 @@
+---
+# Need to pass $BUILD_ID to this key when applying the helm chart in CI. 
+# or 
+# Set the commit hash for a particular buiild to deploy built image for that commit ID. (NOTE: This would work only if the image is built for that commit ID.)
+releaseImageTag: 
+
+# Setting this to true will make this a sandbox environment. It'll set the following:
+# - nodeAffinity for the Monitor, Nodejs, Redis, Varnish, Web & Nginx pod to schedule opn node where preemptible=true
+# - Set appropriate labels to Nginx pod
+# - Requests images with the tag "sandbox-<releaseImageTag>"
+sandbox: "false"
+# Setting this to true setsup liveness, readiness & startup probes on the web pod. 
+contentSandbox: "false"
+
+# This value sets the name of the environment and it's associated objects. Some suggestions for the values are prod/dev/test
+deployEnv: "dev" 
+
+# Helps create services for nginx, nodeja, varnish and web pods with appropriate tags that help ArgoCD do blue green deployments.
+previousServicesCount: "3"
+
+mongoSnapshotLocation: # write the full path to the back up if you want to start the environment from a specific backup else leave blank.
+
+web:
+  containerImage: 
+    imageRegistry: gcr.io/production-deployment/sefaria-web # Full path of the image registry imclusive of the image name
+    tag: latest # Commit id of the repo for which the image build has been triggered.
+  replicaCount: 1
+  resources:
+    web:
+      gunicornWorkerCount: 1
+      gunicornThreadCount: 1
+      request:
+        memory: "3Gi"
+        cpu: "500m"
+      limit:
+        memory: "4Gi"
+        cpu: "1500m"
+    djangoLog:
+      request:
+        memory: "100Mi"
+        cpu: "50m"
+      limit:
+        memory: "150Mi"
+        cpu: "100m"
+  secrets:
+    googleClient:
+      # data: # for local testing purposes or CI pipeline use input a value
+      ref: # Reference to an existing secret in the cluster
+    logging:
+      ref: # Reference to an existing secret in the cluster
+      # data: # for local testing purposes or CI pipeline use input a value
+    schoolLookup:
+      ref: # Reference to an existing secret in the cluster
+      # data: # for local testing purposes or CI pipeline use input a value
+
+redis:
+  containerImage:
+    imageRegistry: redis # Full path of the image registry inclusive of the image name
+    tag: latest # Version of varnish that's required for the application.
+  replicaCount: 1
+  resources:
+    request:
+      memory: "250Mi"
+      cpu: "100m"
+    limit:
+      memory: "500Mi"
+      cpu: "120m"
+
+nodejs:
+  containerImage: 
+    imageRegistry: gcr.io/production-deployment/sefaria-node # Full path of the image registry inclusive of the image name
+    tag: latest # Commit id of the repo for which the image build has been triggered.
+  replicaCount: 1
+  resources:
+    request:
+      memory: "400Mi"
+      cpu: "200m"
+    limit:
+      memory: "600Mi"
+      cpu: "400m"
+
+varnish:
+  containerImage:
+    imageRegistry: gcr.io/production-deployment/sefaria-varnish # Full path of the image registry inclusive of the image name
+    tag: v6 # Version of varnish that's required for the application.
+  logging: {}
+  replicaCount: 1
+  resources:
+    request:
+      memory: "25Mi" # must be in megabibytes, because we pass it into the malloc definition
+      cpu: "10m"
+    limit:
+      memory: "300Mi"
+      cpu: "100m"
+  tuning:
+    # malloc should be ~75% of the memory request.
+    malloc: "250m"
+    nuke_limit: "400"
+    # Threading
+    # http://book.varnish-software.com/4.0/chapters/Tuning.html#details-of-threading-parameters
+    thread_pools: 2 # Default: 2
+    thread_pool_max: 5000 # Default: 5000; should be a function of resources.request.memory
+    thread_pool_min: 100 # Default: 100
+    # Timers
+    # http://book.varnish-software.com/4.0/chapters/Tuning.html#timers
+    first_byte_timeout: 90 # Default 60s
+    between_bytes_timeout: 90 # Default 60s
+  secrets:
+    varnish:
+      ref: # Reference to an existing secret in the cluster
+      # data: # for local testing purposes or CI pipeline use input a value 
+
+ingress:
+  hosts: # You can set path: serviceName: and port: for each host. By default they are set to '/*', 'nginx', '80' respectively for each. Do note that changing this means you'll have to change the nginx service as well.
+    - host: "{{ .Values.deployEnv }}.cauldron.sefaria.org"
+      path: /*
+      serviceName: nginx
+      port: 80
+  secrets:
+    # This TLS is referenced for Prod and Democracy deployments. Use the ref: or data: fields for either deployments.
+    originTls: 
+    # If you're using a refenrece to an existing secret then the data: section should be commented out and vice-versa.
+      ref: # Reference to an existing secret in the cluster "cauldron-wildcard-letsencrypt" is for sandboxes  #wildcard cert managed via infrastructure
+      # data: # for local testing purposes or CI pipeline use input a value 
+      #   cert:
+      #   key: 
+    # This TLS is referenced only for Prod deployments.
+    originIlTls: 
+    # If you're using a refenrece to an existing secret then the data: section should be commented out and vice-versa.
+      ref: # Reference to an existing secret in the cluster 
+      # data: # for local testing purposes or CI pipeline use input a value 
+      #   cert:
+      #   key: 
+
+nginx:
+  containerImage: 
+    imageRegistry: gcr.io/production-deployment/sefaria-asset # Full path of the image registry inclusive of the image name
+    tag: latest # Commit id of the repo for which the image build has been triggered.
+  replicaCount: 1
+  resources:
+    request:
+      memory: "200Mi"
+      cpu: "80m"
+    limit:
+      memory: "300Mi"
+      cpu: "150m"
+
+monitor:
+  containerImage: 
+    imageRegistry: gcr.io/production-deployment/sefaria-web # Full path of the image registry imclusive of the image name
+    tag: latest # Commit id of the repo for which the image build has been triggered.
+  replicaCount: 1
+  resources:
+    request:
+      memory: "300Mi"
+      cpu: "50m"
+    limit:
+      memory: "400Mi"
+      cpu: "100m" 
+
+secrets:
+  localSettings:
+  # If you're using a refenrece to an existing secret then the data: section should be commented out and vice-versa. 
+    ref: 
+    # Add the value of these variables in the data: field for local use only. 
+    # Also, it is understood that if you're adding one value you're adding variable values 
+    DATABASES_HOST:
+    DATABASES_PASS:
+    DATABASES_USER:
+    DATABASES_PORT:
+    GOOGLE_OAUTH2_CLIENT_ID:
+    GOOGLE_OAUTH2_CLIENT_SECRET:
+    SECRET_KEY:
+    MANDRILL_API_KEY:
+    SEFARIA_DB:
+    SEFARIA_DB_USER:
+    SEFARIA_DB_PASSWORD:
+    SEARCH_ADMIN_USER:
+    SEARCH_ADMIN_PW:
+    SEARCH_ADMIN_K8S:
+    TURN_SECRET:
+    TURN_USER:
+    SEFARIA_BOT_API_KEY:
+    CLOUDFLARE_ZONE:
+    CLOUDFLARE_EMAIL:
+    CLOUDFLARE_TOKEN:
+    GOOGLE_TAG_MANAGER_CODE:
+    GOOGLE_ANALYTICS_CODE:
+    GOOGLE_MAPS_API_KEY:
+    MIXPANEL_CODE:
+    HOTJAR_ID:
+    AWS_ACCESS_KEY:
+    AWS_SECRET_KEY:
+    S3_BUCKET:
+    NATIONBUILDER_TOKEN:
+    NATIONBUILDER_CLIENT_ID:
+    NATIONBUILDER_CLIENT_SECRET:
+    MAILCHIMP_API_KEY:
+    MAILCHIMP_ANNOUNCE_ID:
+    MAILCHIMP_WEBHOOK_KEY:
+    RECAPTCHA_PUBLIC_KEY:
+    RECAPTCHA_PRIVATE_KEY:
+    SIMPLE_JWT_SIGNING_KEY:
+    MOBILE_APP_KEY:
+  backupManager: 
+  # If you're using a refenrece to an existing secret then the data: section should be commented out and vice-versa.
+    ref:
+    # data: 
+    #   key:
+    #   serviceAccount:
+  slackWebhook: # This is used in mongobackup & reindex-elasticsearch cron jobs.
+  # If you're using a refenrece to an existing secret then the data: section should be commented out and vice-versa.
+    ref: 
+    # data: 
+
+localSettings:
+  DEBUG: False
+  DOMAIN_LANGUAGE: {}
+    # https://www.sefaria.org: english
+    # https://www.sefaria.org.il: hebrew
+  MONGO_HOST: "mongo"
+  APSCHEDULER_NAME: "apscheduler-{{ .Values.deployEnv }}"
+  SEARCH_ADMIN: "http://elasticsearch-data:9200"
+  TURN_SERVER: ''
+  USE_CLOUDFLARE: false
+  FRONT_END_URL: "http://www.sefaria.org" # "http://${ENV_NAME}.sandbox.sefaria.org"
+  OFFLINE: False
+  DOWN_FOR_MAINTENANCE: False
+  MAINTENANCE_MESSAGE: "Sefaria is down for scheduled maintenance. We expect to be back online within 15 minutes. Thank you for your patience."
+  GLOBAL_WARNING: False
+  GLOBAL_WARNING_MESSAGE: "Sefaria will be in <b>Read-Only</b> mode for scheduled maintenance from 4:45pm-6:45pm Pacific time. Edits will <b>not</b> be saved during that time."
+...
