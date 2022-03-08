@@ -55,18 +55,6 @@ spec:
             memory: {{ .Values.redis.resources.limit.memory }}
             cpu: {{ .Values.redis.resources.limit.cpu }}
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  name: redis-{{ .Values.deployEnv }}
-  labels:
-    app: redis-{{ .Values.deployEnv }}
-spec:
-  ports:
-  - port: 6379
-  selector:
-    app: redis-{{ .Values.deployEnv }}
----
 {{- if eq .Values.sandbox "false" }}
 # TODO: This could be made global by matching on label `stackRole: redis` instead
 apiVersion: policy/v1beta1
