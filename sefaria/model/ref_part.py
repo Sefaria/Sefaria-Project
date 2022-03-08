@@ -530,8 +530,11 @@ class ResolvedRawRef:
     def get_refined_matches(self, part: RawRefPart, node, lang: str) -> List['ResolvedRawRef']:
         refined_ref_parts = self.resolved_parts + [part]
         matches = []
+        if isinstance(node, schema.TitledTreeNode) and node.is_default() and node.parent is not None:
+            # default node automatically matches but doesnt append any new ref part to match
+            matches += [self.clone(resolved_parts=self.resolved_parts, node=node, ref=node.ref())]
         # see NumberedTitledTreeNode.get_referenceable_child() for why we check if parent is None
-        if part.type == RefPartType.NUMBERED and isinstance(node, schema.JaggedArrayNode) and node.parent is None:
+        elif part.type == RefPartType.NUMBERED and isinstance(node, schema.JaggedArrayNode) and node.parent is None:
             if isinstance(part, SectionContext):
                 matches += self._get_refined_refs_for_numbered_context_part(part, refined_ref_parts, node)
             else:
@@ -1199,7 +1202,7 @@ class RefResolver:
             for child in children:
                 temp_matches = match.get_refined_matches(part, child, lang)
                 for temp_match in temp_matches:
-                    temp_ref_parts = [temp_part for temp_part in ref_parts if temp_part != part]
+                    temp_ref_parts = list(set(ref_parts) - set(temp_match.resolved_parts))
                     fully_refined += RefResolver._get_refined_ref_part_matches_recursive(lang, temp_match, temp_ref_parts)
         if len(fully_refined) == 0:
             # original match is better than no matches
@@ -1225,7 +1228,7 @@ class RefResolver:
 
         # remove matches that have empty refs
         # TODO removing for now b/c of yerushalmi project. doesn't seem necessary to happen here anyway.
-        # max_resolved_refs = list(filter(lambda x: not x.ref.is_empty(), max_resolved_refs))
+        # resolved_refs = list(filter(lambda x: not x.ref.is_empty(), resolved_refs))
 
         # remove matches that don't match all ref parts to avoid false positives
         # used to only apply to context matches
@@ -1264,4 +1267,8 @@ class RefResolver:
         for resolved_ref in resolved_refs:
             if resolved_ref.order_key != top_order_key: break
             max_resolved_refs += [resolved_ref]
+
+        # make unique
+        max_resolved_refs = list({r.ref: r for r in max_resolved_refs}.values())
+
         return max_resolved_refs
