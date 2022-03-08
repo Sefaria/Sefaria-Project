@@ -29,7 +29,7 @@ fetch(`${SEFARIA_BASE_URL}/api/wrap-refs`, {
         if (resp.ok) {
             alert("Linker results are ready!");
         } else {
-            resp.text().then(text => alert(`Linker ERROR ${text}`));
+            resp.text().then(text => alert(text));
         }
     }
 )
