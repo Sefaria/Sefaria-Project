@@ -944,7 +944,7 @@ class RefResolver:
                 dh_cont = curr_doc[span_end:next_span_start]
         else:
             _, part_span_end = span_inds(part_span)
-            next_part_span_start = span_inds(part_span_list[ipart + 1])
+            next_part_span_start, _ = span_inds(part_span_list[ipart + 1])
             dh_cont = part_span.doc[part_span_end:next_part_span_start]
 
         return dh_cont
