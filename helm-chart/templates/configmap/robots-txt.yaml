@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: robots-txt-{{ .Values.deployEnv }}
+  labels:
+    deployEnv: {{ .Values.deployEnv | quote }}
+data: 
+  robots.txt: |-
+{{- if eq .Values.deployEnv "prod" }}
+    User-agent: *
+    Disallow: /activity/
+    Disallow: /login?next=*
+    Disallow: /register?next=*
+{{- else }}
+    User-agent: *
+    Disallow: /
+{{- end }}
