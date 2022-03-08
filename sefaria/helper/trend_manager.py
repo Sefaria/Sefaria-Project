@@ -62,3 +62,19 @@ class SheetCreatorManager(TrendManager):
             person_info_public["value"] = TrendManager.getPersonInfo(self,trends)["value"]
             return person_info_public
 
+class CustomTraitManager(TrendManager):
+    def __init__(self, customTraitName, customTraitKey, period="alltime"):
+        TrendManager.__init__(self,customTraitName,customTraitKey,period)
+    
+    def getPersonInfo(self, trends):
+        person_info = {
+            "key": self.key,
+            "name": self.name,
+            "period": self.period
+        }
+        try:
+            value = trends.get(self.key, {}).get(self.period)
+        except:
+            value = None
+        person_info["value"] = value
+        return person_info

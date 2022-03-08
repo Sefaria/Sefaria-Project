@@ -5,7 +5,7 @@ import json
 from sefaria.site.categories import TOP_CATEGORIES
 
 from sefaria.system.database import db
-from sefaria.helper.trend_manager import CategoryTrendManager, SheetReaderManager, SheetCreatorManager
+from sefaria.helper.trend_manager import CategoryTrendManager, SheetReaderManager, SheetCreatorManager, CustomTraitManager
 from sefaria import settings as sls
 
 base_url = "https://"+sls.NATIONBUILDER_SLUG+".nationbuilder.com"
@@ -76,7 +76,7 @@ def nationbuilder_update_all_tags():
     session = get_nationbuilder_connection()
     category_trend_managers = [CategoryTrendManager(category, period=period) for category in TOP_CATEGORIES for period in ["alltime", "currently"]] 
     trend_managers = category_trend_managers + [SheetReaderManager(), SheetCreatorManager(), SheetCreatorManager(public=True)]
-    custom_field_trend_managers = []
+    custom_field_trend_managers = [CustomTraitManager("hebrew_ability", "HebrewAbility")]
     for profile in db.profiles.find({"nationbuilder_id": {"$exists": True}}):
         tags_to_add, tags_to_remove, custom_tags_info = get_tags_for_user(profile, trend_managers,custom_field_trend_managers)
         print(tags_to_add)
@@ -138,3 +138,4 @@ def update_user_flags(profile, flag, value):
     profile.update({flag: value})
     profile.save()
 
+nationbuilder_update_all_tags()
