@@ -21,10 +21,15 @@ def make_html(bulk_resolved: List[List[Union[ResolvedRawRef, AmbiguousResolvedRa
             "context_ref": resolved.context_ref.normal() if resolved.context_ref else "N/A",
             "context_type": resolved.context_type.name if resolved.context_type else "N/A",
         }
-        if RefPartType.RANGE.name in metadata['resolved_part_types']:
-            range_part = next((p for p in resolved.resolved_parts if p.type == RefPartType.RANGE), None)
-            metadata['range_sections'] = [p.text for p in range_part.sections]
-            metadata['range_to_sections'] = [p.text for p in range_part.toSections]
+        if RefPartType.RANGE.name in metadata['final_part_types']:
+            range_part = next((p for p in resolved.raw_ref.parts_to_match if p.type == RefPartType.RANGE), None)
+            metadata['input_range_sections'] = [p.text for p in range_part.sections]
+            metadata['input_range_to_sections'] = [p.text for p in range_part.toSections]
+        # dont think this is necessary if we already have input range sections
+        # if RefPartType.RANGE.name in metadata['resolved_part_types']:
+        #     range_part = next((p for p in resolved.resolved_parts if p.type == RefPartType.RANGE), None)
+        #     metadata['resolved_range_sections'] = [p.text for p in range_part.sections]
+        #     metadata['resolved_range_to_sections'] = [p.text for p in range_part.toSections]
         return metadata
 
     def get_inspect_html(metadata: dict, mention: str) -> str:
@@ -52,14 +57,16 @@ def make_html(bulk_resolved: List[List[Union[ResolvedRawRef, AmbiguousResolvedRa
                 <tr><td>Text</td><td>{'</td><td>'.join(metadata['final_part_strs'])}</td></tr>
                 <tr><td>Type</td><td>{'</td><td>'.join(metadata['final_part_types'])}</td></tr>
             </table>""" if show_final_ref_parts else ''}
+            {f"""<b>Input Range Sections: </b>{' | '.join(metadata['input_range_sections'])}</br>""" if metadata.get('input_range_sections', False) else ''}
+            {f"""<b>Input Range To Sections: </b>{' | '.join(metadata['input_range_to_sections'])}</br>""" if metadata.get('input_range_to_sections', False) else ''}
             <b>Resolved Parts</b>
             <table>
                 <tr><td>Text</td><td>{'</td><td>'.join(metadata['resolved_part_strs'])}</td></tr>
                 <tr><td>Type</td><td>{'</td><td>'.join(metadata['resolved_part_types'])}</td></tr>
                 <tr><td>Class</td><td>{'</td><td>'.join(metadata['resolved_part_classes'])}</td></tr>
             </table>
-            {f"""<b>Range Sections: </b>{' | '.join(metadata['range_sections'])}</br>""" if metadata.get('range_sections', False) else ''}
-            {f"""<b>Range To Sections: </b>{' | '.join(metadata['range_to_sections'])}</br>""" if metadata.get('range_to_sections', False) else ''}
+            {f"""<b>Resolved Range Sections: </b>{' | '.join(metadata['resolved_range_sections'])}</br>""" if metadata.get('resolved_range_sections', False) else ''}
+            {f"""<b>Resolved Range To Sections: </b>{' | '.join(metadata['resolved_range_to_sections'])}</br>""" if metadata.get('resolved_range_to_sections', False) else ''}
             <button onclick="toggleWindow({metadata['i']})">Close</button>
         </span>
         '''
@@ -106,6 +113,8 @@ def make_html(bulk_resolved: List[List[Union[ResolvedRawRef, AmbiguousResolvedRa
             background-color: #eee;
             border: 3px solid black;
             padding: 10px;
+            overflow-y: auto;
+            height: calc(100% - 40px);
         }
         </style>
         <script>

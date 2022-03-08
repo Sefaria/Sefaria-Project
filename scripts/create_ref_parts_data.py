@@ -252,7 +252,6 @@ class RefPartModifier:
             else:
                 comm_index.save()
 
-
     def modify_tanakh(self, fast=False):
         sefer = NonUniqueTerm.init('sefer')
         parasha = NonUniqueTerm.init('parasha')
@@ -674,6 +673,7 @@ class RefPartModifier:
             "Tazria": ["Tazria‘", "Tazria`"],
             "Tzav": ["Saw"],
             "Achrei Mot": ["Ahare", "Aḥare Mot", "Ahare Mot"],
+            "Nitzavim": ["ניצבים", "פרשת ניצבים"],
         }
         indexes = library.get_indexes_in_category("Tanakh", full_records=True)
         tanakh_term_map = {}
@@ -702,7 +702,7 @@ class RefPartModifier:
                     titles = parsha_node.title_group.titles
                     titles += [{
                         "text": alt_title,
-                        "lang": "en"
+                        "lang": "he" if is_hebrew(alt_title) else "en"
                     } for alt_title in hard_coded_parsha_map.get(parsha_node.get_primary_title('en'), [])]
                     titles += [{
                         "text": alt_title_obj['text'].replace('.', ' .'),
