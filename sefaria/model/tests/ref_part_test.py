@@ -180,6 +180,7 @@ crrd = create_raw_ref_data
     [crrd(None, 'he', 'רמב"ן דברים יד כא', [slice(0, 3), 3, 4, 5], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Ramban on Deuteronomy 14:21",)],
     [crrd(None, 'he', 'הרמב"ם תרומות פ"א ה"ח', [slice(0, 3), 3, slice(4, 7), slice(7, 10)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Mishneh Torah, Heave Offerings 1:8",)],
     [crrd(None, 'he', 'בירושלמי שביעית פ"ו ה"א', [0, 1, slice(2, 5), slice(5, 8)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Jerusalem Talmud Sheviit 6:1",)],
+    [crrd(None, 'he', 'בגמרא בסנהדרין צז:-צח.', [slice(0, 2), slice(2, 4), 4, slice(5, 7)], [RPT.NAMED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED]), ("Sanhedrin 97b-98a",)],  # one big ref part that actually matches two separate terms + each part has prefix
 ])
 def test_resolve_raw_ref(resolver_data, expected_trefs):
     ref_resolver = library.get_ref_resolver()
