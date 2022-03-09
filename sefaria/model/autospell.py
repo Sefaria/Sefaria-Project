@@ -594,13 +594,13 @@ class NGramMatcher(object):
 
     def train_phrases(self, titles, normal_titles):
         for title, normal_title in zip(titles, normal_titles):
-            tokens = splitter.split(normal_title)
+            tokens = tuple(splitter.split(normal_title))
             self._tfidf_scorer.train_tokens(tokens)
             for token in tokens:
                 if not token:
                     continue
-                self.token_to_titles[token].append(title)
-        for k in list(self.token_to_titles.keys()):
+                self.token_to_titles[token].append((title, tokens))
+        for k in self.token_to_titles.keys():
             self.token_trie[k] = 1
 
     def _get_real_tokens_from_possible_n_grams(self, tokens):
@@ -612,10 +612,10 @@ class NGramMatcher(object):
         real_token_set = set(real_tokens)
         for token in real_token_set:
             possibilities = self.token_to_titles.get(token, [])
-            for title in possibilities:
-                possibilties_tokens_map[title].add(token)
-        for title, tokens in possibilties_tokens_map.items():
-            score = self._tfidf_scorer.score(tokens, self.normalizer(title), real_token_set - tokens)
+            for title__title_tokens in possibilities:
+                possibilties_tokens_map[title__title_tokens].add(token)
+        for (title, title_tokens), tokens in possibilties_tokens_map.items():
+            score = self._tfidf_scorer.score(tokens, title_tokens, real_token_set - tokens)
             possibilities__scores.append((title, score))
         return possibilities__scores
 
@@ -657,16 +657,14 @@ class TfidfScorer:
             self._token_idf_map[token] = idf
         self._missing_idf_value = math.log(self._total_documents)
 
-    def _score_token(self, query_token: str, doc_tokens: List[str]):
-        token_count = doc_tokens.count(query_token) or -1
-        tf = token_count / (1 + len(doc_tokens))
+    def _score_token(self, query_token: str, doc_tokens):
+        tf = 1 / (1 + len(doc_tokens))
         idf = self._token_idf_map.get(query_token, self._missing_idf_value)
         return tf * idf
 
-    def score(self, query_tokens: List[str], document: str, missed_tokens: List[str]):
-        doc_tokens = splitter.split(document)
+    def score(self, query_tokens, doc_tokens, missed_tokens):
         if len(doc_tokens) == len(query_tokens) and len(missed_tokens) == 0:
             return self.PERFECT_SCORE
         matched_score = sum(self._score_token(token, doc_tokens) for token in query_tokens)
         missed_score = sum(self._score_token(token, doc_tokens) for token in missed_tokens)
-        return matched_score + missed_score
+        return matched_score - missed_score
