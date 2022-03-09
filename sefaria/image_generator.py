@@ -137,11 +137,23 @@ def generate_image(text="", category="System", ref_str="", lang="he", platform="
         img = Image.alpha_composite(img, watermark_padded)
 
 
-    buf = io.BytesIO()
-    img.save(buf, format='png')
-    return(buf.getvalue())
+    return(img)
 
 def make_img_http_response(text, category, ref_str, lang, platform, colored):
-    img = generate_image(text, category, ref_str, lang, platform, colored)
-    res = HttpResponse(img, content_type="image/png")
+    try:
+        img = generate_image(text, category, ref_str, lang, platform, colored)
+    except:
+        height = platforms[platform]["height"]
+        width = platforms[platform]["width"]
+        img = Image.new('RGBA', (width, height), color="#18345D")
+        logo = Image.open("static/img/logo-white.png")
+        logo.thumbnail((400, 400))
+        logo_padded = Image.new('RGBA', (width, height))
+        logo_padded.paste(logo, (int(width/2-logo.size[0]/2), int(height/2-logo.size[1]/2)))
+        img = Image.alpha_composite(img, logo_padded)
+
+    buf = io.BytesIO()
+    img.save(buf, format='png')
+
+    res = HttpResponse(buf.getvalue(), content_type="image/png")
     return res

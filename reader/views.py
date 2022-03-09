@@ -1498,23 +1498,35 @@ def texts_api(request, tref):
 @csrf_exempt
 def social_image_api(request, tref):
     lang = request.GET.get("lang", "en")
+    if lang == "bi":
+        lang = "en"
     version = request.GET.get("v", None)
     platform = request.GET.get("platform", "twitter")
     colored = request.GET.get("colored", None)
-    ref = Ref(tref)
-    ref_str = ref.normal() if lang == "en" else ref.he_normal()
 
-    if version:
-        version = version.replace("_", " ")
+    try:
+        ref = Ref(tref)
+        ref_str = ref.normal() if lang == "en" else ref.he_normal()
 
-    tf = TextFamily(ref, stripItags=True, lang=lang, version=version, context=0, commentary=False).contents()
+        if version:
+            version = version.replace("_", " ")
 
-    he = tf["he"] if type(tf["he"]) is list else [tf["he"]]
-    en = tf["text"] if type(tf["text"]) is list else [tf["text"]]
+        tf = TextFamily(ref, stripItags=True, lang=lang, version=version, context=0, commentary=False).contents()
 
-    text = en if lang == "en" else he
-    text = ' '.join(text)
-    res = make_img_http_response(text, tf["primary_category"], ref_str, lang, platform, colored)
+        he = tf["he"] if type(tf["he"]) is list else [tf["he"]]
+        en = tf["text"] if type(tf["text"]) is list else [tf["text"]]
+
+        text = en if lang == "en" else he
+        text = ' '.join(text)
+        cat = tf["primary_category"]
+
+    except:
+        text = None
+        cat = None
+        ref_str = None
+
+
+    res = make_img_http_response(text, cat, ref_str, lang, platform, colored)
 
     return res
 
