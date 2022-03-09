@@ -609,21 +609,22 @@ class NGramMatcher(object):
     def _get_scored_titles(self, real_tokens):
         possibilities__scores = []
         possibilties_tokens_map = defaultdict(set)
-        for token in real_tokens:
+        real_token_set = set(real_tokens)
+        for token in real_token_set:
             possibilities = self.token_to_titles.get(token, [])
             for title in possibilities:
                 possibilties_tokens_map[title].add(token)
         for title, tokens in possibilties_tokens_map.items():
-            score = self._tfidf_scorer.score(tokens, self.normalizer(title), set(real_tokens) - tokens)
+            score = self._tfidf_scorer.score(tokens, self.normalizer(title), real_token_set - tokens)
             possibilities__scores.append((title, score))
         return possibilities__scores
 
     def _filtered_results(self, titles__scores):
         min_results = 3
         max_results = 10
-        score_threshold = 0.5
+        score_threshold = 0.5  # NOTE: score is no longer between 0 and 1. This threshold is somewhat arbitrary and may need adjusting.
         max_possibles = titles__scores[:max_results]
-        if titles__scores and titles__scores[0][1] == 1.0:
+        if titles__scores and titles__scores[0][1] == TfidfScorer.PERFECT_SCORE:
             return [titles__scores[0][0]]
 
         possibles_within_thresh = [tuple_obj for tuple_obj in titles__scores if tuple_obj[1] >= score_threshold]
@@ -638,6 +639,8 @@ class NGramMatcher(object):
 
 
 class TfidfScorer:
+
+    PERFECT_SCORE = 1e6
 
     def __init__(self):
         self._token_document_count_map = defaultdict(int)
@@ -654,8 +657,10 @@ class TfidfScorer:
         idf = math.log(self._total_documents / (1 + self._token_document_count_map[query_token]))
         return tf * idf
 
-    def score(self, query_tokens: Iterable[str], document: str, missed_tokens: Iterable[str]):
+    def score(self, query_tokens: List[str], document: str, missed_tokens: List[str]):
         doc_tokens = splitter.split(document)
+        if len(doc_tokens) == len(query_tokens) and len(missed_tokens) == 0:
+            return self.PERFECT_SCORE
         matched_score = sum(self._score_token(token, doc_tokens) for token in query_tokens)
         missed_score = sum(self._score_token(token, doc_tokens) for token in missed_tokens)
         return matched_score + missed_score
