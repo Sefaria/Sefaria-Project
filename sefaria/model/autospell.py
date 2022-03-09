@@ -643,18 +643,24 @@ class TfidfScorer:
     PERFECT_SCORE = 1e6
 
     def __init__(self):
-        self._token_document_count_map = defaultdict(int)
+        self._token_idf_map = {}
+        self._missing_idf_value = 0
         self._total_documents = 0
 
     def train_tokens(self, tokens: Iterable[str]) -> None:
         self._total_documents += 1
+        token_document_count_map = defaultdict(int)
         for token in set(tokens):
-            self._token_document_count_map[token] += 1
+            token_document_count_map[token] += 1
+        for token, count in token_document_count_map.items():
+            idf = math.log(self._total_documents / (1 + token_document_count_map[token]))
+            self._token_idf_map[token] = idf
+        self._missing_idf_value = math.log(self._total_documents)
 
     def _score_token(self, query_token: str, doc_tokens: List[str]):
         token_count = doc_tokens.count(query_token) or -1
         tf = token_count / (1 + len(doc_tokens))
-        idf = math.log(self._total_documents / (1 + self._token_document_count_map[query_token]))
+        idf = self._token_idf_map.get(query_token, self._missing_idf_value)
         return tf * idf
 
     def score(self, query_tokens: List[str], document: str, missed_tokens: List[str]):
