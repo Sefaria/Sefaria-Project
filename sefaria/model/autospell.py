@@ -606,7 +606,7 @@ class NGramMatcher(object):
     def _get_real_tokens_from_possible_n_grams(self, tokens):
         return list({k for token in tokens for k in self.token_trie.keys(token)})
 
-    def _get_scored_titles_uncollapsed(self, real_tokens):
+    def _get_scored_titles(self, real_tokens):
         possibilities__scores = []
         possibilties_tokens_map = defaultdict(set)
         for token in real_tokens:
@@ -614,24 +614,14 @@ class NGramMatcher(object):
             for title in possibilities:
                 possibilties_tokens_map[title].add(token)
         for title, tokens in possibilties_tokens_map.items():
-            score = self._tfidf_scorer.score(tokens, title)
+            score = self._tfidf_scorer.score(tokens, self.normalizer(title), set(real_tokens) - tokens)
             possibilities__scores.append((title, score))
         return possibilities__scores
-
-    def _combined_title_scores(self, titles__scores, num_tokens):
-        collapsed_title_to_score = defaultdict(int)
-        collapsed_title_to_occurence = defaultdict(int)
-        for title, score in titles__scores:
-            collapsed_title_to_score[title] += score
-            collapsed_title_to_occurence[title] += 1
-        for title in list(collapsed_title_to_score.keys()):
-            collapsed_title_to_score[title] *= collapsed_title_to_occurence[title] / float(num_tokens)
-        return collapsed_title_to_score
 
     def _filtered_results(self, titles__scores):
         min_results = 3
         max_results = 10
-        score_threshold = 0.4
+        score_threshold = 0.5
         max_possibles = titles__scores[:max_results]
         if titles__scores and titles__scores[0][1] == 1.0:
             return [titles__scores[0][0]]
@@ -642,9 +632,7 @@ class NGramMatcher(object):
 
     def guess_titles(self, tokens):
         real_tokens = self._get_real_tokens_from_possible_n_grams(tokens)
-        titles__scores = self._get_scored_titles_uncollapsed(real_tokens)
-        collapsed_titles_to_score = self._combined_title_scores(titles__scores, len(tokens))
-        titles__scores = list(collapsed_titles_to_score.items())
+        titles__scores = self._get_scored_titles(real_tokens)
         titles__scores.sort(key=lambda t: t[1], reverse=True)
         return self._filtered_results(titles__scores)
 
@@ -661,10 +649,13 @@ class TfidfScorer:
             self._token_document_count_map[token] += 1
 
     def _score_token(self, query_token: str, doc_tokens: List[str]):
-        tf = doc_tokens.count(query_token) / (1 + len(doc_tokens))
+        token_count = doc_tokens.count(query_token) or -1
+        tf = token_count / (1 + len(doc_tokens))
         idf = math.log(self._total_documents / (1 + self._token_document_count_map[query_token]))
         return tf * idf
 
-    def score(self, query_tokens: Iterable[str], document: str):
+    def score(self, query_tokens: Iterable[str], document: str, missed_tokens: Iterable[str]):
         doc_tokens = splitter.split(document)
-        return sum(self._score_token(token, doc_tokens) for token in query_tokens)
+        matched_score = sum(self._score_token(token, doc_tokens) for token in query_tokens)
+        missed_score = sum(self._score_token(token, doc_tokens) for token in missed_tokens)
+        return matched_score + missed_score
