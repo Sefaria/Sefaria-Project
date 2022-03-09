@@ -1,12 +1,14 @@
 import { Readability } from '@mozilla/readability';
 import DOMPurify from 'dompurify';
 const SEFARIA_BASE_URL = 'http://localhost:8000'
-// harding for now list of elements that get cut off with Readability
+
+// hard-coding for now list of elements that get cut off with Readability
 const SELECTOR_WHITE_LIST = {
     "etzion.org.il": ["p.footnote"],
     "torah.etzion.org.il": ["p.footnote"],
     "haretzion.linnovate.co.il": ["p.footonote"],
 };
+
 (function(ns) {
     function sanitizeElem(elem) {
         const cleaned = DOMPurify.sanitize(elem, { USE_PROFILES: { html: true } });
