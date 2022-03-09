@@ -5,7 +5,8 @@ http://norvig.com/spell-correct.html
 http://scottlobdell.me/2015/02/writing-autocomplete-engine-scratch-python/
 """
 from collections import defaultdict
-
+from typing import List, Iterable
+import math
 import datrie
 from unidecode import unidecode
 from django.contrib.auth.models import User
@@ -589,10 +590,12 @@ class NGramMatcher(object):
         self.normalizer = normalizer(lang)
         self.token_to_titles = defaultdict(list)
         self.token_trie = datrie.BaseTrie(letter_scope)
+        self._tfidf_scorer = TfidfScorer()
 
     def train_phrases(self, titles, normal_titles):
         for title, normal_title in zip(titles, normal_titles):
             tokens = splitter.split(normal_title)
+            self._tfidf_scorer.train_tokens(tokens)
             for token in tokens:
                 if not token:
                     continue
@@ -605,14 +608,14 @@ class NGramMatcher(object):
 
     def _get_scored_titles_uncollapsed(self, real_tokens):
         possibilities__scores = []
+        possibilties_tokens_map = defaultdict(set)
         for token in real_tokens:
-            try:
-                possibilities = self.token_to_titles[token]
-            except KeyError:
-                possibilities = []
+            possibilities = self.token_to_titles.get(token, [])
             for title in possibilities:
-                score = float(len(token)) / len(title.replace(" ", ""))   # How much of this title does this token account for
-                possibilities__scores.append((title, score))
+                possibilties_tokens_map[title].add(token)
+        for title, tokens in possibilties_tokens_map.items():
+            score = self._tfidf_scorer.score(tokens, title)
+            possibilities__scores.append((title, score))
         return possibilities__scores
 
     def _combined_title_scores(self, titles__scores, num_tokens):
@@ -644,3 +647,24 @@ class NGramMatcher(object):
         titles__scores = list(collapsed_titles_to_score.items())
         titles__scores.sort(key=lambda t: t[1], reverse=True)
         return self._filtered_results(titles__scores)
+
+
+class TfidfScorer:
+
+    def __init__(self):
+        self._token_document_count_map = defaultdict(int)
+        self._total_documents = 0
+
+    def train_tokens(self, tokens: Iterable[str]) -> None:
+        self._total_documents += 1
+        for token in set(tokens):
+            self._token_document_count_map[token] += 1
+
+    def _score_token(self, query_token: str, doc_tokens: List[str]):
+        tf = doc_tokens.count(query_token) / (1 + len(doc_tokens))
+        idf = math.log(self._total_documents / (1 + self._token_document_count_map[query_token]))
+        return tf * idf
+
+    def score(self, query_tokens: Iterable[str], document: str):
+        doc_tokens = splitter.split(document)
+        return sum(self._score_token(token, doc_tokens) for token in query_tokens)
