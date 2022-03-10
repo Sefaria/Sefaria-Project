@@ -658,7 +658,7 @@ class TfidfScorer:
         self._missing_idf_value = math.log(self._total_documents)
 
     def _score_token(self, query_token: str, doc_tokens):
-        tf = 1 / (1 + len(doc_tokens))
+        tf = 1 / (1 + len(doc_tokens))  # approximation of tf excluding # of times token appears in document. this seems like a small factor for AC and adds function calls.
         idf = self._token_idf_map.get(query_token, self._missing_idf_value)
         return tf * idf
 
