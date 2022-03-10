@@ -1500,7 +1500,7 @@ def social_image_api(request, tref):
     lang = request.GET.get("lang", "en")
     if lang == "bi":
         lang = "en"
-    version = request.GET.get("v", None)
+    version = request.GET.get("ven", None) if lang == "en" else request.GET.get("vhe", None)
     platform = request.GET.get("platform", "twitter")
     colored = request.GET.get("colored", None)
 
