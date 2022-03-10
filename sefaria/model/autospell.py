@@ -609,16 +609,16 @@ class NGramMatcher(object):
     def _get_scored_titles(self, real_token_map):
         total_ngrams = len(real_token_map)
         possibilities__scores = []
-        possibilties_tokens_map = defaultdict(int)
+        possibilties_score_map = defaultdict(int)
         title_ngram_map = defaultdict(set)  # map of ngram inputs that matched this title (through mapping of ngrams to real tokens)
         for ngram_token, real_tokens in real_token_map.items():
             for real_token in real_tokens:
                 possibilities = self.token_to_titles.get(real_token, [])
                 for (title, title_tokens) in possibilities:
-                    possibilties_tokens_map[title] += self._tfidf_scorer.score_token(real_token, title_tokens)
+                    possibilties_score_map[title] += self._tfidf_scorer.score_token(real_token, title_tokens)
                     title_ngram_map[title].add(ngram_token)
 
-        for title, matched_token_score in possibilties_tokens_map.items():
+        for title, matched_token_score in possibilties_score_map.items():
             matched_ngrams = title_ngram_map[title]
             score = matched_token_score - (total_ngrams - len(matched_ngrams))
             possibilities__scores.append((title, score))
