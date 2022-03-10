@@ -2544,7 +2544,7 @@ function aboutHtml(data) {
 		return html;
 	};
 
-	var html = '<h2><center>About this Text</center></h2>' +  aboutVersionHtml(heVersion) + aboutVersionHtml(enVersion);
+	var html = '<h2><center>About This Text</center></h2>' +  aboutVersionHtml(heVersion) + aboutVersionHtml(enVersion);
 
 	// Build a list of alternate versions
 	var versionsHtml = {};

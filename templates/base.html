@@ -65,6 +65,25 @@
 
     {% block head %}{% endblock %}
 
+    <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
+    <script>
+        WebFont.load({
+          google: {
+            families: ['Crimson Text:400,700'],
+            text: 'ăǎġḥḤḫḳḲŏŠšṭżūẓŻāīēḗîїìi̧ ̆̄'
+          },
+          typekit: {
+            id: 'aeg8div' // Adobe Garamond Pro
+          }
+        });
+        WebFont.load({
+          google: {
+            families: ['Roboto:300,400,700', 'Heebo:300,400,700:hebrew'] // The dotted h causes Heebo not to load.
+          }
+        });
+    </script>
+    <script src="https://www.gstatic.com/charts/loader.js"></script>
+
     <link rel="stylesheet" href="{% static 'css/common.css' %}">
     <link rel="stylesheet" href="{%  static 'font-awesome/css/font-awesome.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'css/keyboard.css' %}">
@@ -92,22 +111,22 @@
     <!-- End Google Tag Manager -->
     {% endif %}
 
-    <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
+
+    {% if HOTJAR_ID %}
+    <!-- Hotjar Tracking Code for https://www.sefaria.org -->
     <script>
-        WebFont.load({
-          google: {
-            families: ['Crimson Text:400,700'],
-            text: 'ăǎġḥḤḫḳḲŏṭżūŻāīēḗîìi̧ ̆̄'
-          },
-          typekit: {
-            id: 'aeg8div' // Adobe Garamond Pro
-          }
-        });
-        WebFont.load({
-          google: {
-            families: ['Roboto:300,400,700', 'Heebo:300,400,700:hebrew'] // The dotted h causes Heebo not to load.
-          }});
+        (function(h,o,t,j,a,r){
+            h.hj=h.hj||function(){(h.hj.q=h.hj.q||[]).push(arguments)};
+            h._hjSettings={hjid:{{ HOTJAR_ID }},hjsv:6};
+            a=o.getElementsByTagName('head')[0];
+            r=o.createElement('script');r.async=1;
+            r.src=t+h._hjSettings.hjid+j+h._hjSettings.hjsv;
+            a.appendChild(r);
+        })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
     </script>
+    {% endif %}
+
+
 </head>
 
 <body class="interface-{% if request.interfaceLang %}{{request.interfaceLang}}{% else %}english{% endif %}{% if EMBED %} embeded{% endif %} {% block bodyclasses %}{% endblock %}">
@@ -123,12 +142,24 @@
     <!-- React will complain about whitespace -->
     <div id="s2">{{ html }}</div>
     {% else %}
-    <div id="s2" class="headerOnly">{% if request.user.is_authenticated %}{{ logged_in_header }}{% else %}{{ logged_out_header }}{% endif %}</div>
+    <div id="s2" class="headerOnly">
+        {% if request.user_agent.is_mobile %}
+            {% if request.user.is_authenticated %}
+                {{ logged_in_mobile_header }}
+            {% else %}
+                {{ logged_out_mobile_header }}
+            {% endif %}
+        {% elif request.user.is_authenticated %}
+            {{ logged_in_header }}
+        {% else %}
+            {{ logged_out_header }}
+        {% endif %}
+    </div>
     {% endif %}
     {% endautoescape %}
 
     {% if not html %}
-    <div class="wrapper">
+    <div id="staticContentWrapper">
         <div id="content" class="interface-{{ request.interfaceLang }}">
             {% block content %}{% endblock %}
         </div>
@@ -169,6 +200,12 @@
         static_url:    {{ STATIC_PREFIX }},
       };
 
+      {% endautoescape %}
+    </script>
+
+    <script>
+      {% autoescape off %}
+        RTC_SERVER = "{{ RTC_SERVER }}"
       {% endautoescape %}
     </script>
 

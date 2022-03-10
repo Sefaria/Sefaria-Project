@@ -1,0 +1,15 @@
+{
+  "name": "notify",
+  "version": "0.1.0",
+  "description": "Build process notifications",
+  "main": "notifyEnd.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@octokit/action": "^3.8.1",
+    "@slack/webhook": "^6.0.0"
+  }
+}

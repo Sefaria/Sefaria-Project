@@ -1,4 +1,3 @@
-
 {% autoescape off %}
 //call with sefaria.link();
 
@@ -27,7 +26,7 @@
     /* see https://stackoverflow.com/questions/3561493/is-there-a-regexp-escape-function-in-javascript/3561711#3561711 */
     function escapeRegex(string) {return string.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');}
 
-    var base_url = '{% if DEBUG %}/{% else %}https://www.sefaria.org/{% endif %}';
+    var base_url = '{% if DEBUG %}http://localhost:8000/{% else %}https://www.sefaria.org/{% endif %}';
     var bookTitles = {{ book_titles }};
     var popUpElem;
     var heBox;
@@ -177,11 +176,14 @@
             '}'+
             '.interface-hebrew .sefaria-footer {' +
                 'direction: rtl;' +
-                'font-family: "Heebo", sans-serif' + 
+                'font-family: "Heebo", sans-serif' +
             '}'+
             '#sefaria-popup.short-screen .sefaria-text{'+
-                'overflow-y: scroll;' + 
+                'overflow-y: scroll;' +
                 'max-height: calc(100% - 117px);' +
+            '}'+
+            'span.sefaria-ref-wrapper{'+
+                'display: inline !important;' +
             '}';
 
         if (mode == "popup-click") {
@@ -217,12 +219,12 @@
             '</div>' +
             '<div class="sefaria-text" id="sefaria-linker-text" tabindex="0"></div>' +
 
-            '<div class="sefaria-footer">' + 
+            '<div class="sefaria-footer">' +
                 '<div class="sefaria-powered-by-box">' + poweredByText + ' <div id="sefaria-logo">&nbsp;</div></div>' +
-                (mode == "popup-click" ? 
+                (mode == "popup-click" ?
                 '<span class="sefaria-read-more-button">' +
                     '<a class = "sefaria-popup-ref" target="_blank" href = "">' + readMoreText + '</a>' +
-                '</span>' : "") + 
+                '</span>' : "") +
             '</div>';
 
         popUpElem.innerHTML = html;
@@ -300,16 +302,16 @@
             source.he = [].concat.apply([], source.he);
         }
 
-        for (i = 0; i < source.en.length; i++) {
+        for (i = 0; i < Math.max(source.en.length, source.he.length); i++) {
             var enBox = document.createElement('div');
             var heBox = document.createElement('div');
-            enBox.innerHTML = source.en[i];
-            heBox.innerHTML = source.he[i].replace(/[\u0591-\u05af\u05bd\u05bf\u05c0\u05c4\u05c5]/g, "");
+            enBox.innerHTML = source.en[i] || "";
+            heBox.innerHTML = (source.he[i] || "").replace(/[\u0591-\u05af\u05bd\u05bf\u05c0\u05c4\u05c5]/g, "");
             enBox.className = "en" + (!heBox.innerHTML ? " enOnly" : "");
             heBox.className = "he" + (!enBox.innerHTML ? " heOnly" : "");
             heBox.setAttribute("dir", "rtl");
-            textBox.appendChild(heBox);
-            textBox.appendChild(enBox);
+            if (heBox.innerHTML) { textBox.appendChild(heBox); }
+            if (enBox.innerHTML) { textBox.appendChild(enBox);}
         }
 
         enTitle.textContent = source.ref;
@@ -333,12 +335,12 @@
             popUpElem.classList.add("short-screen");
             popUpElem.style.height = (window.innerHeight * 0.9) + "px";
         }
-        if (window.innerHeight < popUpRect.bottom) { 
+        if (window.innerHeight < popUpRect.bottom) {
             // if popup drops off bottom screen, pull up
             var pos = ((window.innerHeight - popUpRect.height) - 10);
             popUpElem.style.top = (pos > 0) ? pos + "px" : "10px";
         }
-        if (window.innerWidth < popUpRect.right || popUpRect.left < 0) { 
+        if (window.innerWidth < popUpRect.right || popUpRect.left < 0) {
             // popup drops off the side screen, center it
             var pos = ((window.innerWidth - popUpRect.width) / 2);
             popUpElem.style.left = pos + "px";
@@ -401,10 +403,10 @@
         Object.assign(defaultOptions, options);
         Object.assign(ns, defaultOptions);
 
-        if (window.innerWidth < 700 && ns.hidePopupsOnMobile) { 
+        if (window.innerWidth < 700 && ns.hidePopupsOnMobile) {
             // If the screen is small, defautlt to link mode, unless override set
             ns.mode = "link";
-        }  
+        }
         setupPopup(ns, ns.mode);
 
         ns.matches = [];   // Matches that will be linked
@@ -427,13 +429,20 @@
     // Private API
     ns._getRegexesThenTexts = function(mode) {
         // Get regexes for each of the titles
-        atomic.get(base_url + "api/regexs/" + ns.matchedTitles.join("|") + '?' + 'parentheses='+(0+ns.parenthesesOnly))
+        atomic.get(base_url + "api/linker-data/" + ns.matchedTitles.join("|") + '?' + 'parentheses='+(0+ns.parenthesesOnly) + '&url='+document.location.href)
             .success(function (data, xhr) {
                 if ("error" in data) {
                     console.log(data["error"]);
                     delete data.error;
                 }
-                ns.regexes = data;
+                ns.regexes = data["regexes"];
+                if (ns.excludeFromTracking && ns.excludeFromTracking.length > 0 && data["exclude_from_tracking"].length > 0) {
+                    // append our exclusions to site's own exclusions
+                    ns.excludeFromTracking = data["exclude_from_tracking"] + ", " + ns.excludeFromTracking;
+                }
+                else if (data["exclude_from_tracking"].length > 0) {
+                    ns.excludeFromTracking = data["exclude_from_tracking"];
+                }
                 ns._wrapMatches();
                 ns._trackPage();
 
@@ -459,7 +468,10 @@
             const r = XRegExp(ns.regexes[book],"xgm");
             // find the references and push them into ns.matches
             for (let i = 0; i < ns.elems.length; i++) {
+                // portions are tricky. they represent portions of a regex match. it can happen that certain criteria match only the first portion and not later portions. these objects keep track of earlier portion data.
                 const portionHasMatched = {};
+                const portionExcludedFromLinking = {};
+                const portionExcludedFromTracking = {};
                 findAndReplaceDOMText(ns.elems[i], {
                     preset: 'prose',
                     find: r,
@@ -482,14 +494,17 @@
                         else {
                             // Walk up node tree to see if this context should be excluded from linking or tracking
                             let p = portion.node;
-                            let excludeFromLinking = false;
-                            let excludeFromTracking = false;
+                            // it is possible this node doesn't fit criteria to be excluded, but an earlier portion did.
+                            let excludeFromLinking = portionExcludedFromLinking[matchKey];
+                            let excludeFromTracking = portionExcludedFromTracking[matchKey];
                             while (p) {
                                 if (p.nodeName === 'A' || (ns.excludeFromLinking && p.matches && p.matches(ns.excludeFromLinking))) {
                                     excludeFromLinking = true;
+                                    portionExcludedFromLinking[matchKey] = true;
                                 }
                                 if (ns.excludeFromTracking && p.matches && p.matches(ns.excludeFromTracking)) {
                                     excludeFromTracking = true;
+                                    portionExcludedFromTracking[matchKey] = true;
                                 }
                                 if (excludeFromTracking && excludeFromLinking) {
                                     return portion.text;
@@ -518,8 +533,9 @@
                             // due to the fact that safari doesn't support lookbehinds, we need to include prefix group in match
                             // however, we don't want the prefix group to end up in the final a-tag
                             const node = document.createElement("span");
+                            node.className="sefaria-ref-wrapper";
                             node.textContent = preText;
-                            node.appendChild(atag);``
+                            node.appendChild(atag);
                             return node;
                         }
                     }).bind(null, book)
@@ -534,7 +550,7 @@
         const MAX_URL_LENGTH = 3800;
         const hostStr = base_url + 'api/bulktext/';
         var paramStr = '?useTextFamily=1';
-    
+
         if (typeof Promise == "undefined" || Promise.toString().indexOf("[native code]") == -1) {
             //promises not defined. fallback to one request
             atomic.get(base_url + "api/bulktext/" + ns.matches.join("|")+"?useTextFamily=1")
@@ -564,7 +580,7 @@
                 .error(function (data, xhr) { });
             });
         });
-    
+
         return Promise.all(promises).then(function (results) {
             var mergedResults = Object.assign.apply(null, results);
             ns._getTextsSuccess(mode, mergedResults);

@@ -103,7 +103,7 @@ class AddToSourceSheetBox extends Component {
         }
       } else if (this.props.srefs) { //regular use - this is currently the case when the component is loaded in the sidepanel or in the modal component via profiles and notes pages
         source.refs = this.props.srefs;
-        const { en, he } = this.props.currVersions; //the text we are adding may be non-default version
+        const { en, he } = this.props.currVersions ? this.props.currVersions : {"en": null, "he": null}; //the text we are adding may be non-default version
         if (he) { source["version-he"] = he; }
         if (en) { source["version-en"] = en; }
 
@@ -149,7 +149,7 @@ class AddToSourceSheetBox extends Component {
       "he" : Sefaria.joinRefList(this.props.srefs, "he"),
     } : null;
     if(this.props.nodeRef){ //this whole if clause is ust to make sure that when a sheet is in the main panel, a human readable citation regarding the sheet is shown in the sheet box.
-      const sheetID = this.props.nodeRef.split(".")[0];
+      const sheetID = parseInt(this.props.nodeRef.split(".")[0]);
       const nodeID = this.props.nodeRef.split(".")[1];
       const sheet = Sefaria.sheets.loadSheetByID(sheetID);
       const sheetTitle = sanitizeHtml(sheet.title, {
@@ -173,7 +173,7 @@ class AddToSourceSheetBox extends Component {
     if (this.state.showConfirm) {
       return (<ConfirmAddToSheet sheet={this.state.selectedSheet} srefs={this.props.srefs} nodeRef={this.props.nodeRef}/>);
     } else if (this.state.showLogin) {
-      return (<div className="addToSourceSheetBox sans">
+      return (<div className="addToSourceSheetBox sans-serif">
                 <LoginPrompt />
               </div>);
     }
@@ -189,7 +189,7 @@ class AddToSourceSheetBox extends Component {
     // Uses
     return (
       <div className="addToSourceSheetBox noselect">
-        <div className="addToSourceSheetBoxTitle">
+        <div className="addToSourceSheetBoxTitle sans-serif">
           <span className="int-en">Selected Citation</span>
           <span className="int-he">מקור להוספה</span>
         </div>
@@ -197,7 +197,7 @@ class AddToSourceSheetBox extends Component {
           <span className="en">{titleRef["en"]}</span>
           <span className="he">{titleRef["he"]}</span>
         </div>
-        <div className="addToSourceSheetBoxTitle">
+        <div className="addToSourceSheetBoxTitle sans-serif">
           <span className="int-en">Add to</span>
           <span className="int-he">יעד להוספה</span>
         </div>
@@ -290,7 +290,7 @@ class AddToSourceSheetWindow extends Component {
 
     return (<div className="addToSourceSheetModal">
       <div className="sourceSheetBoxTitle">
-        <img src="/static/img/circled-x.svg" className="closeButton" aria-hidden="true" alt="Close" onClick={this.close}/>
+        <img src="/static/icons/circled-x.svg" className="closeButton" aria-hidden="true" alt="Close" onClick={this.close}/>
         {Sefaria._uid ? null : <span>
             In order to add this source to a sheet, please <a href={"/login" + nextParam}>log in.</a>
         </span>}

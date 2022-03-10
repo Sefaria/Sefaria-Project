@@ -48,14 +48,14 @@
 
 	{% elif notification.type == "sheet like" %}
         <div>
-            <span class="int-en">{{ notification.content.liker|user_link }} likes your Source Sheet, {{ notification.content.sheet_id|sheet_link }}.</span>
+            <span class="int-en">{{ notification.content.liker|user_link }} likes your sheet, {{ notification.content.sheet_id|sheet_link }}.</span>
             <span class="int-he">{{ notification.content.liker|user_link }}  אהב/ה את דף המקורות {{ notification.content.sheet_id|sheet_link }} שלך.</span>
         </div>
 
 	{% elif notification.type == "sheet publish" %}
         <div>
-            <span class="int-en">{{ notification.content.publisher|user_link }} published a new Source Sheet, {{ notification.content.sheet_id|sheet_link }}.</span>
-            <span class="int-he">{{ notification.content.publisher|user_link }} פרסם/ה דף מקורות חדש, {{ notification.content.sheet_id|sheet_link }}.</span>
+            <span class="int-en">{{ notification.content.publisher|user_link }} published a new sheet <div class="sheetLink">{{ notification.content.sheet_id|sheet_link }}</div></span>
+            <span class="int-he">{{ notification.content.publisher|user_link }} פרסם/ה דף מקורות חדש <div class="sheetLink">{{ notification.content.sheet_id|sheet_link }}</div></span>
         </div>
 
 	{% elif notification.type == "follow" %}

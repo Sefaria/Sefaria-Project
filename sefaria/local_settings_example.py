@@ -4,6 +4,7 @@ from datetime import timedelta
 import structlog
 import sefaria.system.logging as sefaria_logging
 
+
 # These are things you need to change!
 
 ################ YOU ONLY NEED TO CHANGE "NAME" TO THE PATH OF YOUR SQLITE DATA FILE (If the db.sqlite file does not exist, simply create it) ########################################
@@ -119,6 +120,7 @@ MAINTENANCE_MESSAGE = ""
 GLOBAL_INTERRUPTING_MESSAGE = {
     "name":       "messageName",
     "repetition": 1,
+    "is_fundraising": True,
     "style":      "modal" # "modal" or "banner"
     "condition":  {"returning_only": True}
 }
@@ -151,16 +153,10 @@ SEFARIA_DB_PASSWORD = ''
 APSCHEDULER_NAME = "apscheduler"
 
 # ElasticSearch server
-SEARCH_HOST = "http://localhost:9200"
 SEARCH_ADMIN = "http://localhost:9200"
-SEARCH_ADMIN_USER = None  # if not None, use these credentials to access SEARCH_ADMIN
-SEARCH_ADMIN_PW = None
-SEARCH_ADMIN_K8S = "http://localhost:9200"
 SEARCH_INDEX_ON_SAVE = False  # Whether to send texts and source sheet to Search Host for indexing after save
-SEARCH_INDEX_NAME = 'sefaria'
 SEARCH_INDEX_NAME_TEXT = 'text'  # name of the ElasticSearch index to use
 SEARCH_INDEX_NAME_SHEET = 'sheet'
-SEARCH_INDEX_NAME_MERGED = 'merged'
 
 # Node Server
 USE_NODE = False
@@ -178,6 +174,8 @@ GOOGLE_TAG_MANAGER_CODE = 'you tag manager code here'
 GOOGLE_ANALYTICS_CODE = 'your google analytics code'
 GOOGLE_MAPS_API_KEY = None  # currently used for shavuot map
 MIXPANEL_CODE = 'you mixpanel code here'
+
+HOTJAR_ID = None
 
 AWS_ACCESS_KEY = None
 AWS_SECRET_KEY = None
@@ -202,6 +200,10 @@ USE_VARNISH_ESI = False
 
 # Prevent modification of Index records
 DISABLE_INDEX_SAVE = False
+
+# Turns off search autocomplete suggestions, which are reinitialized on every server reload
+# which can be annoying for local development. 
+DISABLE_AUTOCOMPLETER = False
 
 # Caching with Cloudflare
 CLOUDFLARE_ZONE = ""

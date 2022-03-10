@@ -144,7 +144,7 @@ Version
 .. autoclass:: VersionSet
 
 
-Index, and CommentaryIndex
+Index
 --------------------------
 
 .. autoclass:: Index
@@ -154,7 +154,5 @@ Index, and CommentaryIndex
 	.. autoattribute:: Index.optional_attrs
 
 .. autoclass:: IndexSet
-
-.. autoclass:: CommentaryIndex
 
 

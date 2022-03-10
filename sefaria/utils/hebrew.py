@@ -104,7 +104,7 @@ def heb_string_to_int(n):
 	764
 	'''
 
-	n = re.sub('[\u05F4"\u201d]', '', n)  # remove gershayim, double quote, or fancy double quote
+	n = re.sub('[\u05F4"\u201c\u201d\u200e]', '', n)  # remove gershayim, double quote, fancy double quote, LTR Control Character
 	return sum(map(heb_to_int, n))
 
 @memoized
@@ -399,6 +399,7 @@ def encode_hebrew_numeral(n, punctuation=True):
 
 	return ret
 
+
 @memoized
 def encode_hebrew_daf(daf):
 	"""
@@ -415,8 +416,8 @@ def strip_nikkud(rawString):
 
 #todo: rewrite to handle edge case of hebrew words in english texts, and latin characters in Hebrew text
 
-any_hebrew = regex.compile("\p{Hebrew}")
-any_english = regex.compile("[a-zA-Z]")
+any_hebrew = regex.compile(r"\p{Hebrew}")
+any_english = regex.compile(r"[a-zA-Z]")
 
 def is_hebrew(s:str, heb_only=False) -> bool:
 	if not heb_only and any_hebrew.search(s):

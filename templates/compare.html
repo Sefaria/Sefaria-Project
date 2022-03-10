@@ -106,15 +106,17 @@
         <input id="filter" type="button" onclick="add_filter()" value="Update">
     </div>
     <div id="DiffTable"/>
-    <script>
-        var DJANGO_VARS = {
-            static_url: {{ STATIC_PREFIX }}
-        };
-    </script>
-    <script src="/data.js"></script>
+    <script src="/data.{{ last_cached_short }}.js"></script>
+
     <script type="text/javascript">
     {% autoescape off %}
       var JSON_PROPS = {{ JSON_PROPS }}
+      var DJANGO_VARS = {
+            static_url: {{ STATIC_PREFIX }},
+            props:    {{ propsJSON|default:"null" }},
+
+        };
+
     {% endautoescape %}
     </script>
     <script src="{% static 'bundles/diffPage/diffPage.js' %}"></script>

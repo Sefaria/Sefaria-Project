@@ -12,12 +12,16 @@ substitutions:
   _IS_SANDBOX: "false" # must be a quoted string
   _MONGO_HOST: mongo
   _MONGO_DATABASE: "sefaria-vecino"
+  _MONGO_RESTORE_JOB: "restore-mongo-ASDF-foobar"
+  _RAND_SLUG: "foobar"
   _RESOURCE_ALLOCATION: small
   _POSTGRES_HOST: postgres
   _SANDBOX_SUBDOMAIN: cauldron
 
 options:
   machineType: N1_HIGHCPU_8
+
+timeout: 2200s
 
 steps:
   - name: "gcr.io/cloud-builders/git"
@@ -43,8 +47,42 @@ steps:
     id: sefaria_repo_git_hash
     wait_for: [ "sefaria_repo_clone" ]
 
+  # Restore Mongo
+  # This build step is defined at `v2/containers/mongo-restore
+  - name: gcr.io/${PROJECT_ID}/mongo-restore:latest
+    id: mongo_restore
+    entrypoint: "/restoreMongo.bash"
+    env:
+      # Restore Script Variables
+      - 'MONGO_HOST=${_MONGO_HOST}'
+      - 'SANDBOX_NAME=${_ENV_NAME}'
+      - 'MONGO_LOAD=${_MONGO_LOAD}' # If false, the job is a no-op
+      - 'MONGO_SNAPSHOT_LOCATION=${_MONGO_SNAPSHOT_LOCATION}'
+      - 'RAND_SLUG=${_RAND_SLUG}'
+      - 'CLUSTER_NAMESPACE=${_GKE_NAMESPACE}'
+      - 'ENVIRONMENT=sandbox'
+      # kubectl Variables
+      - 'CLOUDSDK_COMPUTE_ZONE=${_GKE_REGION}'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'
+      - 'KUBECTL_VERSION=1.18'
+      - 'KUBECONFIG=/root/.kube/config'
+    wait_for: [ "-" ]
+
+  # Wait for mongo job to finish
+  - name: gcr.io/cloud-builders/kubectl
+    id: wait_for_mongo_job
+    args: ['wait', '--for=condition=complete', '--timeout=1800s', 'job/${_MONGO_RESTORE_JOB}']
+    timeout: 1860s
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=${_GKE_REGION}'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'
+      - 'KUBECTL_VERSION=1.18'
+      - 'KUBECONFIG=/root/.kube/config'
+    wait_for:
+      - mongo_restore
+
   # Build artifacts
-  - name: gcr.io/kaniko-project/executor:latest
+  - name: gcr.io/kaniko-project/executor:v1.6.0
     args:
       - --destination=gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:$SHORT_SHA
       - --destination=gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:gha-${_ENV_NAME}
@@ -59,7 +97,7 @@ steps:
     wait_for:
       - sefaria_repo_clone
 
-  - name: gcr.io/kaniko-project/executor:latest
+  - name: gcr.io/kaniko-project/executor:v1.6.0
     args:
       - --destination=gcr.io/${PROJECT_ID}/sefaria-node-${_ENV_NAME}:$SHORT_SHA
       - --destination=gcr.io/${PROJECT_ID}/sefaria-node-${_ENV_NAME}:gha-${_ENV_NAME}
@@ -74,7 +112,7 @@ steps:
     wait_for:
       - sefaria_repo_clone
   
-  - name: gcr.io/kaniko-project/executor:latest
+  - name: gcr.io/kaniko-project/executor:v1.6.0
     args:
       - --destination=gcr.io/${PROJECT_ID}/sefaria-asset-${_ENV_NAME}:$SHORT_SHA
       - --destination=gcr.io/${PROJECT_ID}/sefaria-asset-${_ENV_NAME}:gha-${_ENV_NAME}
@@ -119,7 +157,7 @@ steps:
   
   # Copy localsettings into file
   # Later, combined this with the script above
-  - name: "gcr.io/production-deployment/cloudbuild-helm:v3.1.2"
+  - name: "gcr.io/production-deployment/cloudbuild-helm:v3.5.4"
     dir: k8s-admin/v2
     id: copy_localsettings_file
     entrypoint: cp
@@ -138,7 +176,7 @@ steps:
     
   # Copy robots.txt into file
   # Later, combined this with the script above
-  - name: "gcr.io/production-deployment/cloudbuild-helm:v3.1.2"
+  - name: "gcr.io/production-deployment/cloudbuild-helm:v3.5.4"
     dir: k8s-admin/v2
     id: copy_robots_file
     entrypoint: cp
@@ -146,17 +184,18 @@ steps:
     wait_for:
       - generate_robots_file
 
-  - name: "gcr.io/${PROJECT_ID}/cloudbuild-helm:v3.1.2"
+  - name: "gcr.io/${PROJECT_ID}/cloudbuild-helm:v3.5.4"
     id: deploy_sandbox
     dir: k8s-admin/v2
     args: ["upgrade", "-i", "sandbox-${_ENV_NAME}", "./charts/sefaria", "--namespace", "${_GKE_NAMESPACE}", "--set-string", "releaseImageTag=gha-${_ENV_NAME},deployEnv=${_ENV_NAME}", "-f", "app_settings/helm/_envValues.yaml", "-f", "app_settings/helm/_resourceValues.yaml", "--debug"]
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=${_GKE_REGION}'
       - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'
-      - 'KUBECTL_VERSION=1.15'
+      - 'KUBECTL_VERSION=1.18'
       - 'KUBECONFIG=/root/.kube/config'
     wait_for:
-      # - mongo_restore
+      - mongo_restore
+      - wait_for_mongo_job
       - web_container
       - nodejs_container
       - nginx_container
@@ -167,18 +206,18 @@ steps:
 
   # Manage the ingress
   # 1. Add the sandbox name to v2/sandboxes/sandboxes.txt
-  # 2. Create and apply ingress objecte with all routes
+  # 2. Create and apply ingress object with all routes
 
   # Get all sandbox names, so that we can reconfigure the sandbox ingress
   # Requires kubectl
   # emits a file to v2/sandboxes/_sandboxes.txt
-  - name: gcr.io/${PROJECT_ID}/cloudbuild-getsandboxnames:v0.2
+  - name: gcr.io/${PROJECT_ID}/cloudbuild-getsandboxnames:v0.4
     id: get_sandbox_names
     dir: k8s-admin/v2/sandboxes/ingresses
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=${_GKE_REGION}'
       - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'
-      - 'KUBECTL_VERSION=1.14'
+      - 'KUBECTL_VERSION=1.18'
       - 'KUBECONFIG=/root/.kube/config'
     wait_for: [ "deploy_sandbox" ]
 
@@ -193,14 +232,14 @@ steps:
       - 'SANDBOX=${_ENV_NAME}'
     wait_for: [ "get_sandbox_names" ]
 
-  - name: "gcr.io/${PROJECT_ID}/cloudbuild-helm:v3.1.2"
+  - name: "gcr.io/${PROJECT_ID}/cloudbuild-helm:v3.5.4"
     id: deploy_ingress
     dir: k8s-admin/v2
     args: ["upgrade", "-i", "wildcard-sandbox-ingress", "./charts/wildcard-sandbox-ingress", "--namespace", "${_GKE_NAMESPACE}", "-f", "sandboxes/ingresses/_ingressValues.yaml", "--debug"]
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=${_GKE_REGION}'
       - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'
-      - 'KUBECTL_VERSION=1.14'
+      - 'KUBECTL_VERSION=1.18'
       - 'KUBECONFIG=/root/.kube/config'
     wait_for:
       - generate_ingress_values_file

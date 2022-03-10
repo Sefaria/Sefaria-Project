@@ -4,38 +4,39 @@ import PropTypes  from 'prop-types';
 import {
     NBox,
     BlockLink,
+    ColorBarBox,
     SaveButton,
     SimpleInterfaceBlock,
     DangerousInterfaceBlock,
     SimpleContentBlock,
     FollowButton,
     SimpleLinkedBlock,
-    ProfileListing,
+    ProfileListing, ContentText,
 } from './Misc';
 
 
 const sheetPropType = PropTypes.shape({
-            publisher_id: PropTypes.number,
-            publisher_name: PropTypes.string,
-            publisher_url:  PropTypes.string,
-            publisher_image:PropTypes.string,
-            publisher_position: PropTypes.string,
-            publisher_organization: PropTypes.string,
-            publisher_followed: PropTypes.bool,
-            sheet_id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-            sheet_title: PropTypes.string,
-            sheet_summary: PropTypes.string,
-      });
+    publisher_id:           PropTypes.number,
+    publisher_name:         PropTypes.string,
+    publisher_url:          PropTypes.string,
+    publisher_image:        PropTypes.string,
+    publisher_position:     PropTypes.string,
+    publisher_organization: PropTypes.string,
+    publisher_followed:     PropTypes.bool,
+    sheet_id:               PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+    sheet_title:            PropTypes.string,
+    sheet_summary:          PropTypes.string,
+});
 const textPropType = PropTypes.shape({
-          "ref": PropTypes.string.isRequired,
-          "heRef": PropTypes.string.isRequired,
-          "en": PropTypes.string.isRequired,
-          "he": PropTypes.string.isRequired,
-      });
+    ref:   PropTypes.string.isRequired,
+    heRef: PropTypes.string.isRequired,
+    en:    PropTypes.string.isRequired,
+    he:    PropTypes.string.isRequired,
+});
 const bilingualPropType = PropTypes.shape({
-          en: PropTypes.string.isRequired,
-          he: PropTypes.string.isRequired,
-      });
+    en: PropTypes.string.isRequired,
+    he: PropTypes.string.isRequired,
+});
 
 // This is a pseudo Component.  It uses `storyForms` to determine the component to render.
 // It's important that it's capitalized, so that React treats it as a component.
@@ -91,6 +92,7 @@ FreeTextStory.propTypes = {
   toggleSignUpModal:  PropTypes.func
 };
 
+
 const NewIndexStory = (props) => {
   const title = props.data.index;
   const heTitle = Sefaria.hebrewTerm(title);
@@ -105,13 +107,14 @@ const NewIndexStory = (props) => {
         </SaveLine>
         <DangerousInterfaceBlock classes="storyBody contentText" en={props.data.en} he={props.data.he}/>
         {props.data.ref?<ColorBarBox tref={props.data.ref}>
-            <StoryBodyBlock en={props.data.text.en} he={props.data.text.he}/>
+            <StoryBodyBlock>
+                <ContentText html={{en:props.data.text.en, he:props.data.text.he}} />
+            </StoryBodyBlock>
         </ColorBarBox>:""}
         {props.data.ref?<ReadMoreLink url={"/" + Sefaria.normRef(props.data.ref)}/>:""}
     </StoryFrame>
   );
 };
-
 NewIndexStory.propTypes = {
   storyForm:    PropTypes.string.isRequired,
   timestamp:    PropTypes.number.isRequired,
@@ -126,6 +129,7 @@ NewIndexStory.propTypes = {
   interfaceLang:      PropTypes.string,
   toggleSignUpModal:  PropTypes.func
 };
+
 
 // Todo: merge the class above and below.  They're nearly identical.
 const NewVersionStory = (props) => {
@@ -142,13 +146,14 @@ const NewVersionStory = (props) => {
         </SaveLine>
         <DangerousInterfaceBlock classes="storyBody contentText" en={props.data.en} he={props.data.he}/>
         {props.data.ref?<ColorBarBox tref={props.data.ref}>
-            <StoryBodyBlock en={props.data.text.en} he={props.data.text.he}/>
+            <StoryBodyBlock>
+                <ContentText html={{en: props.data.text.en, he: props.data.text.he}} />
+            </StoryBodyBlock>
         </ColorBarBox>:""}
         {props.data.ref?<ReadMoreLink url={"/" + Sefaria.normRef(props.data.ref)}/>:""}
     </StoryFrame>
   );
 };
-
 NewVersionStory.propTypes = {
   storyForm:    PropTypes.string,
   timestamp:    PropTypes.number,
@@ -169,11 +174,10 @@ const AuthorStory = (props) => (
     <StoryFrame cls="authorStory" cardColor={Sefaria.palette.indexColor(props.data.example_work)}>
         <StoryTypeBlock en="Author" he="מחבר" />
         <NaturalTimeBlock timestamp={props.timestamp}/>
-        <StoryTitleBlock en={props.data.author_names.en} he={props.data.author_names.he} url={"/person/" + props.data.author_key} />
+        <StoryTitleBlock en={props.data.author_names.en} he={props.data.author_names.he} url={"/topics/" + props.data.author_key} />
         <DangerousInterfaceBlock classes="storyBody contentText" en={props.data.author_bios.en} he={props.data.author_bios.he}/>
     </StoryFrame>
 );
-
 AuthorStory.propTypes = {
   storyForm:    PropTypes.string,
   timestamp:    PropTypes.number,
@@ -283,7 +287,6 @@ const SheetListStory = (props) => {
     </StoryFrame>
   );
 };
-
 SheetListStory.propTypes = {
   storyForm:    PropTypes.string,
   timestamp:    PropTypes.number,
@@ -302,10 +305,9 @@ const PublishSheetStory = (props) => (
     <StoryFrame cls="publishSheetStory">
         <StoryTypeBlock en="New Sheet" he="דף מקורות חדש" />
         <NaturalTimeBlock timestamp={props.timestamp}/>
-        <SheetBlock sheet={props.data} toggleSignUpModal={props.toggleSignUpModal} isTitle={true}/>
+        <SheetBlock sheet={props.data} toggleSignUpModal={props.toggleSignUpModal}/>
     </StoryFrame>
 );
-
 PublishSheetStory.propTypes = {
   storyForm:    PropTypes.string,
   timestamp:    PropTypes.number,
@@ -328,13 +330,14 @@ const TextPassageStory = (props) => {
             <StoryTitleBlock en={props.data.title.en} he={props.data.title.he} url={url}/>
         </SaveLine>
         <ColorBarBox tref={props.data.ref}>
-            <StoryBodyBlock en={props.data.text.en} he={props.data.text.he}/>
+            <StoryBodyBlock>
+                <ContentText html={{en: props.data.text.en, he: props.data.text.he}} />
+            </StoryBodyBlock>
         </ColorBarBox>
         <ReadMoreLink url={url}/>
     </StoryFrame>
   );
 };
-
 TextPassageStory.propTypes = {
   storyForm:    PropTypes.string,
   timestamp:    PropTypes.number,
@@ -351,6 +354,7 @@ TextPassageStory.propTypes = {
   toggleSignUpModal:  PropTypes.func
 };
 
+
 const TopicTextsStory = (props) => (
     <StoryFrame cls="topicTextsStory">
         <StoryTypeBlock en="Topic" he="" />
@@ -359,7 +363,6 @@ const TopicTextsStory = (props) => (
         <StoryTextList texts={props.data.texts} toggleSignUpModal={props.toggleSignUpModal}/>
     </StoryFrame>
 );
-
 TopicTextsStory.propTypes = {
   storyForm:    PropTypes.string,
   timestamp:    PropTypes.number,
@@ -372,6 +375,7 @@ TopicTextsStory.propTypes = {
   toggleSignUpModal:  PropTypes.func
 };
 
+
 const MultiTextStory = (props) => (
     <StoryFrame cls="multiTextStory">
         <StoryTypeBlock en={props.data.lead.en} he={props.data.lead.he}/>
@@ -379,7 +383,6 @@ const MultiTextStory = (props) => (
         <StoryTextList texts={props.data.texts} toggleSignUpModal={props.toggleSignUpModal} />
     </StoryFrame>
 );
-
 MultiTextStory.propTypes = {
   storyForm:    PropTypes.string,
   timestamp:    PropTypes.number,
@@ -393,6 +396,7 @@ MultiTextStory.propTypes = {
   toggleSignUpModal:  PropTypes.func
 };
 
+
 const TopicListStory = (props) => (
     <StoryFrame cls="topicListStory">
         <StoryTypeBlock en={props.data.lead.en} he={props.data.lead.he}/>
@@ -403,7 +407,6 @@ const TopicListStory = (props) => (
         )}/>
     </StoryFrame>
 );
-
 TopicListStory.propTypes = {
   storyForm:    PropTypes.string,
   timestamp:    PropTypes.number,
@@ -436,32 +439,38 @@ StoryFrame.propTypes = {
 };
 
 
-const NaturalTimeBlock = ({timestamp}) => <SimpleInterfaceBlock
+const NaturalTimeBlock = ({timestamp}) => (
+    <SimpleInterfaceBlock
         classes = "topTailBlock smallText"
         en = {Sefaria.util.naturalTime(timestamp) + " ago"}
-        he = {"לפני " + Sefaria.util.naturalTime(timestamp)}
-    />;
+        he = {"לפני " + Sefaria.util.naturalTime(timestamp)} />
+);
 
 
-const SeeAllLink = ({url}) => <SimpleLinkedBlock classes="topTailBlock smallText" url={url} en="See All" he="ראה הכל"/>;
+const SeeAllLink = ({url}) => (
+    <SimpleLinkedBlock classes="topTailBlock smallText" url={url} en="See All" he="ראה הכל"/>
+);
 
 
-const StoryTypeBlock = ({en, he}) => <SimpleInterfaceBlock en={en} he={he} classes="storyTypeBlock sectionTitleText"/>;
+const StoryTypeBlock = ({en, he}) => (
+    <SimpleInterfaceBlock en={en} he={he} classes="storyTypeBlock sectionTitleText"/>
+);
 
 
 const StoryTitleBlock = ({url, he, en, children}) => {
-        const SBlock = url ? SimpleLinkedBlock : SimpleInterfaceBlock;
-        return <div className="storyTitleBlock">
-            <SBlock classes="storyTitle pageTitle" url={url} he={he} en={en}/>
-            {children}
-        </div>;
+    const SBlock = url ? SimpleLinkedBlock : SimpleInterfaceBlock;
+    return <div className="storyTitleBlock">
+        <SBlock classes="storyTitle" url={url} he={he} en={en}/>
+        {children}
+    </div>;
 };
 
 
-const ColorBarBox = ({tref, children}) =>  <div className="colorBarBox" style={{"borderColor": Sefaria.palette.refColor(tref)}}>{children}</div>;
-
-
-const StoryBodyBlock = ({en, he}) => <SimpleContentBlock classes="storyBody contentText" en={en} he={he}/>;
+const StoryBodyBlock = ({children}) => (
+    <SimpleContentBlock classes="storyBody">
+        {children}
+    </SimpleContentBlock>
+);
 
 
 const StoryTextList = ({texts, toggleSignUpModal}) => (
@@ -474,7 +483,9 @@ const StoryTextList = ({texts, toggleSignUpModal}) => (
 const StoryTextListItem = ({text, toggleSignUpModal}) => (
     <div className="storyTextListItem">
         <ColorBarBox tref={text.ref} >
-            <StoryBodyBlock en={text.en} he={text.he}/>
+            <StoryBodyBlock>
+                <ContentText html={{en: text.en, he: text.he}} />
+            </StoryBodyBlock>
         </ColorBarBox>
         <SaveLine dref={text.ref} toggleSignUpModal={toggleSignUpModal}>
             <SimpleLinkedBlock url={"/" + Sefaria.normRef(text.ref)} en={text.ref} he={text.heRef} classes="contentText citationLine"/>
@@ -495,17 +506,71 @@ StorySheetList.propTypes = {
 };
 
 
-const SheetBlock = ({sheet, compact, cozy, smallfonts, isTitle, toggleSignUpModal}) => {
-      const historyObject = {ref: "Sheet " + sheet.sheet_id,
-                  sheet_title: sheet.sheet_title,
-                  versions: {}};
+const TextPassage = ({text, afterSave, toggleSignUpModal}) => {
+  if (!text.ref) { return null; }
+  const versions = text.versions || {}
+  const url = "/" + Sefaria.normRef(text.ref) + 
+                    Object.keys(versions)
+                        .filter(vlang=>!!versions[vlang])
+                        .map(vlang=>`&v${vlang}=${versions[vlang]}`)
+                        .join("")
+                        .replace("&","?");
+  const heOnly = !text.en;
+  const enOnly = !text.he;
+  const overrideLanguage = (enOnly || heOnly) ? (heOnly ? "hebrew" : "english") : null;
 
-      return (<div className="storySheetListItem">
-        <SaveLine historyObject={historyObject} toggleSignUpModal={toggleSignUpModal}>
-            <SimpleLinkedBlock en={sheet.sheet_title} he={sheet.sheet_title} url={"/sheets/" + sheet.sheet_id} classes={"sheetTitle" + (smallfonts?" chapterText lowercase":" pageTitle") + (isTitle ? " storyTitle" : "")}/>
+  return (
+    <StoryFrame cls="textPassageStory">
+      <SaveLine 
+        dref={text.ref}
+        versions={versions}
+        toggleSignUpModal={toggleSignUpModal}
+        classes={"storyTitleWrapper"}
+        afterChildren={afterSave || null} >
+          <StoryTitleBlock en={text.ref} he={text.heRef} url={url}/>
+      </SaveLine>
+      <ColorBarBox tref={text.ref}>
+          <StoryBodyBlock>
+            <ContentText html={{en: text.en, he: text.he}} overrideLanguage={overrideLanguage} bilingualOrder={["he", "en"]} />
+          </StoryBodyBlock>
+      </ColorBarBox>
+    </StoryFrame>
+  );
+};
+TextPassage.propTypes = {
+  text: textPropType,
+  afterSave: PropTypes.object,
+  toggleSignUpModal:  PropTypes.func
+};
+
+
+const SheetBlock = ({sheet, compact, cozy, smallfonts, afterSave, toggleSignUpModal}) => {
+    const historyObject = {
+      ref: "Sheet " + sheet.sheet_id,
+      sheet_title: sheet.sheet_title,
+      sheet_owner: sheet.publisher_name,
+      versions: {}
+    };
+
+    return (
+      <StoryFrame cls={"storySheetListItem" + (smallfonts ? " small" : "")}>
+        <SaveLine
+            historyObject={historyObject}
+            afterChildren={afterSave || null}
+            toggleSignUpModal={toggleSignUpModal}>
+            <SimpleLinkedBlock 
+                en={sheet.sheet_title}
+                he={sheet.sheet_title}
+                url={"/sheets/" + sheet.sheet_id}
+                classes={"sheetTitle storyTitle"}/>
         </SaveLine>
-        {(sheet.sheet_summary && !(compact || cozy))?<SimpleInterfaceBlock classes={"storyBody" + (smallfonts?" smallText":" contentText")} en={sheet.sheet_summary} he={sheet.sheet_summary}/>:null}
-        {cozy?"":<ProfileListing
+
+        {(sheet.sheet_summary && !(compact || cozy)) ? 
+        <SimpleInterfaceBlock classes={"storyBody"} en={sheet.sheet_summary} he={sheet.sheet_summary}/>
+        : null}
+        
+        {cozy ? null :
+        <ProfileListing
           uid={sheet.publisher_id}
           url={sheet.publisher_url}
           image={sheet.publisher_image}
@@ -514,36 +579,45 @@ const SheetBlock = ({sheet, compact, cozy, smallfonts, isTitle, toggleSignUpModa
           smallfonts={smallfonts}
           position={sheet.publisher_position}
           organization={sheet.publisher_organization}
-          toggleSignUpModal={toggleSignUpModal}
-        />}
-      </div>);
+          toggleSignUpModal={toggleSignUpModal} />}
+      </StoryFrame>
+    );
 };
-SheetBlock.propTypes = {sheet: sheetPropType.isRequired};
+SheetBlock.propTypes = {
+    sheet: sheetPropType.isRequired,
+    afterSave: PropTypes.object,
+    toggleSignUpModal:  PropTypes.func
+};
 
 
-const SaveLine = (props) => (
-    <div className={"saveLine " + props.classes}>
+const SaveLine = ({classes, children, historyObject, dref, versions, hideSave, afterChildren, toggleSignUpModal}) => (
+    <div className={"saveLine " + (classes ? classes : "")}>
         <div className="beforeSave">
-            {props.children}
+            {children}
         </div>
+        {hideSave ? null :
         <SaveButton tooltip={true}
-            historyObject={props.historyObject || {ref: props.dref, versions: props.versions || {}}}
-            toggleSignUpModal={props.toggleSignUpModal}
-        />
-      { props.afterChildren ? props.afterChildren : null }
+            historyObject={historyObject || {ref: dref, versions: versions || {}}}
+            toggleSignUpModal={toggleSignUpModal}
+        />}
+      { afterChildren ? afterChildren : null }
     </div>
 );
-
 SaveLine.propTypes = {
   historyObject:        PropTypes.object,   // One or
   dref:                 PropTypes.string,   // the other
   toggleSignUpModal:    PropTypes.func,
   versions:             PropTypes.object,
   classes:              PropTypes.string,
+  hideSave:             PropTypes.bool,
   afterChildren:        PropTypes.object,
 };
 
-const ReadMoreLink = ({url}) => <SimpleLinkedBlock classes="learnMoreLink smallText" url={url} en="Read More ›" he="קרא עוד ›"/>;
+
+const ReadMoreLink = ({url}) => (
+    <SimpleLinkedBlock classes="learnMoreLink smallText" url={url} en="Read More ›" he="קרא עוד ›"/>
+);
+
 
 export {
   Story,
@@ -555,5 +629,6 @@ export {
   ColorBarBox,
   StoryBodyBlock,
   StoryFrame,
+  TextPassage,
   textPropType,
 };

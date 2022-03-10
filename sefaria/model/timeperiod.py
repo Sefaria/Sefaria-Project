@@ -211,12 +211,12 @@ class TimePeriod(abst.AbstractMongoRecord):
         return t or None
 
     def get_people_in_generation(self, include_doubles = True):
-        from . import person
+        from . import topic
         if self.type == "Generation":
             if include_doubles:
-                return person.PersonSet({"generation": {"$regex": self.symbol}})
+                return topic.Topic({"properties.generation.value": {"$regex": self.symbol}})
             else:
-                return person.PersonSet({"generation": self.symbol})
+                return topic.Topic({"properties.generation.value": self.symbol})
 
 class TimePeriodSet(abst.AbstractMongoSet):
     recordClass = TimePeriod

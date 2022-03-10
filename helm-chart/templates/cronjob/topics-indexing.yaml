@@ -1,0 +1,54 @@
+# https://sefaria.slack.com/archives/DNAHQ11V0/p1594892722002100
+{{ if eq .Values.deployEnv "prod" }}
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: {{ .Values.deployEnv }}-topics-indexing
+spec:
+  schedule: "0 0 * * 1"
+  jobTemplate: 
+    spec:
+      backoffLimit: 1
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: topics-indexer
+              image: "{{ .Values.web.containerImage }}:{{ .Values.releaseImageTag }}"
+              args: [ "yes | pip3 install numpy && touch /log/sefaria_book_errors.log && python3 /app/scripts/recalculate_secondary_topic_data.py" ]
+              env:
+              - name: REDIS_HOST
+                value: "redis-{{ .Values.deployEnv }}"
+              - name: NODEJS_HOST
+                value: "node-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+              - name: VARNISH_HOST
+                value: "varnish-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+              envFrom:
+                - secretRef:
+                  name: {{ template "secrets.localSettings" . }}
+                - configMapRef:
+                  name: local-settings-{{ .Values.deployEnv }}
+              volumeMounts:
+                - mountPath: /app/sefaria/local_settings.py
+                  name: local-settings
+                  subPath: local_settings.py
+                  readOnly: true
+              resources:
+                requests: 
+                  memory: "5Gi"
+                  cpu: "1000m"
+                limits: 
+                  memory: "8Gi"
+                  cpu: "1500m"
+          volumes:
+          - name: local-settings
+            configMap:
+              name: local-settings-{{ .Values.deployEnv }}
+              items:
+                - key: local_settings.py
+                  path: local_settings.py
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 2
+...
+{{end}}

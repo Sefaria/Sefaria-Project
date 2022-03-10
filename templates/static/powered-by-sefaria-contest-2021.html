@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Powered by Sefaria Contest 2021" %}{% endblock %}
+
+{% block description %}{% trans "Powered by Sefaria Contest 2021" %}{% endblock %}
+
+{% block css %}
+{% endblock %}
+
+
+{% block js %}
+<script>
+    {% autoescape off %}
+    DJANGO_VARS.containerId = 'contestPageInner';
+    DJANGO_VARS.reactComponentName = 'PBSC2021LandingPage';
+    {% endautoescape %}
+</script>
+{% endblock %}
+
+{% block content %}
+<div id="contestPage" class="staticPageFrame">
+  <div id="contestPageInner" class="staticPageInner">
+    <h1 id="appLoading">Loading...</h1>
+  </div>
+</div>
+{% endblock %}

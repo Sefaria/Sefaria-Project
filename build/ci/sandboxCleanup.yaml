@@ -13,7 +13,7 @@ steps:
     id: k8s-admin_clone
     wait_for: [ "-" ]
 
-  - name: "gcr.io/${PROJECT_ID}/cloudbuild-helm:v3.5.2"
+  - name: "gcr.io/${PROJECT_ID}/cloudbuild-helm:v3.5.4"
     id: deploy_sandbox
     dir: k8s-admin/v2
     entrypoint: bash
@@ -21,7 +21,7 @@ steps:
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=${_GKE_REGION}'
       - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'
-      - 'KUBECTL_VERSION=1.16'
+      - 'KUBECTL_VERSION=1.18'
       - 'KUBECONFIG=/root/.kube/config'
     wait_for: [ "k8s-admin_clone" ]
 ...

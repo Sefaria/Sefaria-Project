@@ -5,7 +5,7 @@ options:
   machineType: N1_HIGHCPU_8
 
 steps:
-  - name: gcr.io/kaniko-project/executor:latest
+  - name: gcr.io/kaniko-project/executor:v1.6.0
     args:
       - --destination=gcr.io/${PROJECT_ID}/web-test:build-cache
       - --destination=gcr.io/${PROJECT_ID}/web-test:latest
@@ -14,7 +14,7 @@ steps:
     id: web_container
     wait_for: [ "-" ]
 
-  - name: gcr.io/kaniko-project/executor:latest
+  - name: gcr.io/kaniko-project/executor:v1.6.0
     args:
       - --destination=gcr.io/$PROJECT_ID/node-test:build-cache
       - --destination=gcr.io/$PROJECT_ID/node-test:latest
@@ -24,7 +24,7 @@ steps:
     wait_for: [ "-" ]
 
   
-  - name: gcr.io/kaniko-project/executor:latest
+  - name: gcr.io/kaniko-project/executor:v1.6.0
     args:
       - --destination=gcr.io/$PROJECT_ID/nginx-test:build-cache
       - --destination=gcr.io/$PROJECT_ID/nginx-test:latest

@@ -2,13 +2,15 @@
 import json
 from rauth import OAuth2Service
 from datetime import datetime
+import time
+from urllib.parse import unquote
+
 
 from django.http import HttpResponse, JsonResponse
 from django.core.mail import EmailMultiAlternatives
 from functools import wraps
 
 from sefaria import settings as sls
-
 
 def jsonResponse(data, callback=None, status=200):
     if callback:
@@ -79,6 +81,32 @@ def subscribe_to_list(lists, email, first_name=None, last_name=None, direct_sign
 
     return r
 
+def get_by_tag(tag_name):
+    return f"/api/v1/tags/{tag_name}/people" 
+
+def nationbuilder_get_all(endpoint_func, args=[]):
+    session = get_nation_builder_connection()
+    base_url = "https://"+sls.NATIONBUILDER_SLUG+".nationbuilder.com"
+    next_endpoint = endpoint_func(*args)
+    while(next_endpoint):
+        for attempt in range(0,3):
+            try:
+                res = session.get(base_url + next_endpoint)
+                res_data = res.json()
+                for item in res_data['results']:
+                    yield item
+                next_endpoint = unquote(res_data['next']) if res_data['next'] else None
+                if (res.headers['x-ratelimit-remaining'] == '0'):
+                    time.sleep(10)
+                break
+            except Exception as e:
+                print("Trying again to access and process {}. Attempts: {}. Exception: {}".format(next_endpoint, attempt+1, e))
+        else:
+            session.close()
+            raise Exception("Error when attempting to connect to and process " + next_endpoint)
+        
+    session.close()
+    
 
 def get_nation_builder_connection():
     access_token_url = "http://%s.nationbuilder.com/oauth/token" % sls.NATIONBUILDER_SLUG

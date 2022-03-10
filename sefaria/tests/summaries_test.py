@@ -50,7 +50,7 @@ class Test_Toc(object):
     def verify_category_node_integrity(self, node):
         # search toc doesn't have 'enComplete' or 'heComplete' empty categories don't have 'contents'
         try:
-            assert set(node.keys()) <= {'category', 'heCategory', 'contents', 'enComplete', 'heComplete', 'order', "isPrimary","searchRoot"}
+            assert set(node.keys()) <= {'category', 'heCategory', 'enDesc', 'heDesc', 'enShortDesc', 'heShortDesc', 'contents', 'enComplete', 'heComplete', 'order', "isPrimary","searchRoot"}
             if getattr(node, 'contents', None):
                 assert {'category', 'heCategory', 'contents'} <= set(node.keys())
                 assert isinstance(node['contents'], list)
@@ -155,7 +155,7 @@ class Test_Toc(object):
         verify_title_existence_in_toc(indx.title, expected_toc_location=["Tanakh", "Acharonim on Tanakh", "Or HaChaim", "Torah"])
 
 
-        indx2 = model.Index().load({"title": "Sefer Kuzari"}) #Was Tanya, but Tanya has a hebrew title clash problem, momentarily.
+        indx2 = model.Index().load({"title": "Kuzari"})
         verify_existence_across_tocs(indx2.title, expected_toc_location=indx2.categories)
         indx2.nodes.add_title("Kuzari Test", "en")
         indx2.save()

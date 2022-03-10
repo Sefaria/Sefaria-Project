@@ -82,7 +82,7 @@ class GeneratedSheet():
 
 	def process_audio_url(self, url):
 		self.sheet["sources"].append({
-			"media": url
+			"media": "https://w.soundcloud.com/player/?url="+url if url.startswith("https://soundcloud.com/") else url
 		})
 
 	def process_topics(self, topics):

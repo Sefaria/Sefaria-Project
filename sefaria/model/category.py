@@ -112,6 +112,24 @@ class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject
             return False
         return True
 
+    @staticmethod
+    def get_shared_category(indexes: list):
+        """
+        Get lowest category which includes all indexes in `indexes`
+        :param list indexes: list of Index objects
+        :return: Category
+        """
+
+        from collections import defaultdict
+
+        cat_choice_dict = defaultdict(list)
+        for index in indexes:
+            for icat, cat in enumerate(index.categories):
+                cat_path = tuple(index.categories[:icat+1])
+                cat_choice_dict[(icat, cat_path)] += [index]
+        sorted_cat_options = sorted(cat_choice_dict.items(), key=lambda x: (len(x[1]), x[0][0]), reverse=True)
+        (_, cat_path), top_indexes = sorted_cat_options[0]
+        return Category().load({"path": list(cat_path)})
 
 class CategorySet(abstract.AbstractMongoSet):
     recordClass = Category
@@ -155,7 +173,7 @@ def toc_serial_to_objects(toc):
 
 
 class TocTree(object):
-    def __init__(self, lib=None):
+    def __init__(self, lib=None, mobile=False):
         """
         :param lib: Library object, in the process of being created
         """
@@ -186,7 +204,7 @@ class TocTree(object):
         for i in indx_set:
             if i.categories and i.categories[0] == "_unlisted":  # For the dummy sheet Index record
                 continue
-            node = self._make_index_node(i)
+            node = self._make_index_node(i, mobile=mobile)
             cat = self.lookup(i.categories)
             if not cat:
                 logger.warning("Failed to find category for {}".format(i.categories))
@@ -257,22 +275,21 @@ class TocTree(object):
                 cat.children.sort(key=_explicit_order_and_title)
             cat.children.sort(key=lambda node: 'zzz' + node.primary_title("en") if isinstance(node, TocCategory) and node.primary_title("en") in REVERSE_ORDER else 'a')
 
-    def _make_index_node(self, index, old_title=None):
+    def _make_index_node(self, index, old_title=None, mobile=False):
         d = index.toc_contents(include_first_section=False, include_flags=False)
 
         title = old_title or d["title"]
 
-        vs = self._vs_lookup.get(title, {})
-        d["firstSection"] = vs.get("first_section_ref", None)
-        d["heComplete"]   = vs.get("heComplete", False)
-        d["enComplete"]   = vs.get("enComplete", False)
-
+        if mobile:
+            vs = self._vs_lookup.get(title, {})
+            d["firstSection"] = vs.get("first_section_ref", None)
+        
         if "base_text_titles" in d and len(d["base_text_titles"]) > 0:
             d["refs_to_base_texts"] = {btitle:
                 self._first_comment_lookup.get(frozenset([btitle, title]), d["firstSection"])
                 for btitle in d["base_text_titles"]
                 }
-
+        
         return TocTextIndex(d, index_object=index)
 
     def _add_category(self, cat):
@@ -412,6 +429,8 @@ class TocCategory(TocNode):
                 self.isPrimary = True
             if getattr(self._category_object, "searchRoot", False):
                 self.searchRoot = self._category_object.searchRoot
+            for field in ("enDesc", "heDesc", "enShortDesc", "heShortDesc"):
+                setattr(self, field, getattr(self._category_object, field, ""))
         if self.primary_title() in CATEGORY_ORDER:
             # If this text is listed in ORDER, consider its position in ORDER as its order field.
             self.order = CATEGORY_ORDER.index(self.primary_title())
@@ -420,6 +439,10 @@ class TocCategory(TocNode):
         "order",
         "enComplete",
         "heComplete",
+        "enDesc",
+        "heDesc",
+        "enShortDesc",
+        "heShortDesc",
         "isPrimary",
         "searchRoot"
     ]
@@ -466,6 +489,8 @@ class TocTextIndex(TocNode):
         "primary_category",
         "heComplete",
         "enComplete",
+        "enShortDesc",
+        "heShortDesc",
         "collectiveTitle",
         "base_text_titles",
         "base_text_mapping",
@@ -474,7 +499,8 @@ class TocTextIndex(TocNode):
         "heCommentator",
         "refs_to_base_texts",
         "base_text_order",
-        "hidden"
+        "hidden",
+        "corpus",
     ]
     title_attrs = {
         "en": "title",
@@ -501,6 +527,8 @@ class TocCollectionNode(TocNode):
                 "slug": c_contents["slug"],
                 "title": c_contents["toc"]["collectiveTitle"]["en"] if "collectiveTitle" in c_contents["toc"] else c_contents["toc"]["title"],
                 "heTitle": c_contents["toc"]["collectiveTitle"]["he"] if "collectiveTitle" in c_contents["toc"] else c_contents["toc"]["heTitle"], 
+                "enShortDesc": c_contents["toc"].get("enShortDesc", ""),
+                "heShortDesc": c_contents["toc"].get("heShortDesc", ""),
                 "isCollection": True,
                 "enComplete": True,
                 "heComplete": True,
@@ -531,6 +559,8 @@ class TocCollectionNode(TocNode):
         "order",
         "heComplete",
         "enComplete",
+        "enShortDesc",
+        "heShortDesc",
     ]
 
     title_attrs = {

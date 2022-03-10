@@ -297,6 +297,10 @@ class Test_he_get_refs_in_text(object):
         wrapped = library.get_wrapped_refs_string(st, lang="he", citing_only=citing_only)
         assert wrapped == res
 
+    def test_ranged_talmud_wrap_refs(self):
+        st = "(סוכה מ\' א\' – ב\')"
+        wrapped = library.get_wrapped_refs_string(st, lang="he", citing_only=True)
+
 
 class Test_get_titles_in_text(object):
 
@@ -433,6 +437,10 @@ class Test_Library(object):
         n2 = library.get_schema_node("שמות", "he")
         assert node == n2
 
+    def test_get_indexes_in_corpus(self):
+        for corpus, count in [('Tanakh', 39), ('Mishnah', 63), ('Bavli', 37), ('Yerushalmi', 39)]:
+            assert len(library.get_indexes_in_corpus(corpus)) == count
+
 
 class Test_Term_Map(object):
     @classmethod
@@ -448,7 +456,7 @@ class Test_Term_Map(object):
     def test_cats_in_map(self):
         assert "Tanakh" in library.get_simple_term_mapping()
         assert "Commentary" in library.get_simple_term_mapping()
-
+ 
     @pytest.mark.deep
     def test_cache_and_reset_of_term_map(self):
         # Check that cache works

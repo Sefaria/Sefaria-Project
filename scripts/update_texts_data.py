@@ -39,7 +39,7 @@ data = response.content.decode("utf-8")
 cr = csv.reader(StringIO(data))
 
 
-rows = list(cr)[3:]
+rows = list(cr)[2:]
 indexes_handled = [row[0] for row in rows]
 
 unhandled = set([i.primary_title() for i in library.get_index_forest()]) - set(indexes_handled)
@@ -50,8 +50,9 @@ if len(unhandled) > 0:
     print("\n******************\n")
 
 for l in rows:
+    needs_save = False
     try:
-        i = library.get_index(l[0])
+        i = library.get_index(l[0].strip())
     except Exception as e:
         print("Count not load {}. {}".format(l[0], e))
         continue
@@ -59,11 +60,10 @@ for l in rows:
         current_authors = set(getattr(i, "authors", []) or [])
     except TypeError:
         current_authors = set()
-    sheet_authors = set([a.strip() for a in l[1].split(",") if Person().load({"key": a.strip()})])
-    needs_save = current_authors != sheet_authors
-    sheet_authors = list(sheet_authors)
-
-    setattr(i, "authors", sheet_authors)
+    sheet_authors = set([a.strip() for a in l[1].split(",") if AuthorTopic.is_author(a.strip())])
+    if sheet_authors != current_authors:
+        setattr(i, "authors", list(sheet_authors))
+        needs_save = True
     attrs = [("enDesc", l[2]),
         ("heDesc", l[3]),
         ("enShortDesc", l[4]),
@@ -83,21 +83,3 @@ for l in rows:
     if needs_save:
         print("o - {}".format(l[0]))
         i.save(override_dependencies=True)
-
-
-# clear out all earlier author data:
-"""
-db.index.update({}, {"$unset": {
-    "authors": 1,
-    "enDesc": 1,
-    "heDesc": 1,
-    "enShortDesc": 1,
-    "heShortDesc": 1,
-    "pubDate": 1,
-    "compDate": 1,
-    "compPlace": 1,
-    "pubPlace": 1,
-    "errorMargin": 1,
-    "era": 1,
-}}, multi=True)
-"""

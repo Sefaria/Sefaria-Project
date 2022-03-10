@@ -12,7 +12,7 @@ from django.contrib.auth.models import User
 from sefaria.model import *
 from sefaria.model.schema import SheetLibraryNode
 from sefaria.utils import hebrew
-from sefaria.system.database import db
+from sefaria.model.following import aggregate_profiles
 
 import structlog
 logger = structlog.get_logger(__name__)
@@ -29,7 +29,7 @@ letter_scope = "\u05b0\u05b1\u05b2\u05b3\u05b4\u05b5\u05b6\u05b7\u05b8\u05b9\u05
             + "\u05d0\u05d1\u05d2\u05d3\u05d4\u05d5\u05d6\u05d7\u05d8\u05d9\u05da\u05db\u05dc\u05dd\u05de\u05df" \
             + "\u05e0\u05e1\u05e2\u05e3\u05e4\u05e5\u05e6\u05e7\u05e8\u05e9\u05ea" \
             + "\u05f3\u05f4" \
-            + "\u200e\u200f\u2013\u201d\ufeff" \
+            + "\u200e\u200f\u2013\u201c\u201d\ufeff" \
             + " abcdefghijklmnopqrstuvwxyz1234567890[]`:;.-,*$()'&?/\""
 
 
@@ -47,7 +47,7 @@ class AutoCompleter(object):
     An AutoCompleter object provides completion services - it is the object in this module designed to be used by the Library.
     It instantiates objects that provide string completion according to different algorithms.
     """
-    def __init__(self, lang, lib, include_titles=True, include_people=False, include_categories=False,
+    def __init__(self, lang, lib, include_titles=True, include_categories=False,
                  include_parasha=False, include_lexicons=False, include_users=False, include_collections=False, include_topics=False, *args, **kwargs):
         """
 
@@ -96,41 +96,23 @@ class AutoCompleter(object):
             self.spell_checker.train_phrases(parasha_names)
             self.ngram_matcher.train_phrases(parasha_names, normal_parasha_names)
         if include_topics:
-            ts = TopicSet({"shouldDisplay":{"$ne":False}, "numSources":{"$gte":10}})
+            ts_gte10 = TopicSet({"shouldDisplay":{"$ne":False}, "numSources":{"$gte":10}, "subclass": {"$ne": "author"}})
+            authors = AuthorTopicSet()  # include all authors
+            ts = ts_gte10.array() + authors.array()
             tnames = [name for t in ts for name in t.get_titles(lang)]
             normal_topics_names = [self.normalizer(n) for n in tnames]
-            self.title_trie.add_titles_from_set(ts, "get_titles", "get_primary_title", "slug", 4 * PAD)
+
+            def sub_order_fn(t: Topic) -> int:
+                sub_order = PAD - getattr(t, 'numSources', 0) - 1
+                if isinstance(t, AuthorTopic):
+                    # give a bonus to authors so they don't get drowned out by topics
+                    sub_order -= 100
+                return sub_order
+            self.title_trie.add_titles_from_set(ts, "get_titles", "get_primary_title", "slug", 4 * PAD, sub_order_fn)
             self.spell_checker.train_phrases(tnames)
             self.ngram_matcher.train_phrases(tnames, normal_topics_names)
-        if include_people:
-            eras = ["GN", "RI", "AH", "CO"]
-            ps = PersonSet({"era": {"$in": eras}})
-            person_names = [n for p in ps for n in p.all_names(lang)]
-            normal_person_names = [self.normalizer(n) for n in person_names]
-            self.title_trie.add_titles_from_set(ps, "all_names", "primary_name", "key", 5 * PAD)
-            self.spell_checker.train_phrases(person_names)
-            self.ngram_matcher.train_phrases(person_names, normal_person_names)
         if include_users:
-            pipeline = [
-                {"$match": {
-                   "status": "public"}},
-                {"$sortByCount": "$owner"},
-                {"$lookup": {
-                    "from": "profiles",
-                    "localField": "_id",
-                    "foreignField": "id",
-                    "as": "user"}},
-                {"$unwind": {
-                    "path": "$user",
-                    "preserveNullAndEmptyArrays": True
-                }}
-            ]
-            results = db.sheets.aggregate(pipeline)
-            try:
-                profiles = {r["user"]["id"]: r for r in results}
-            except KeyError:
-                logger.error("Encountered sheet owner with no profile record.  No users will be shown in autocomplete.")
-                profiles = {}
+            profiles = aggregate_profiles()
             users = User.objects.in_bulk(profiles.keys())
             unames = []
             normal_user_names = []
@@ -356,6 +338,9 @@ class Completions(object):
         if self.limit and len(set(self._raw_completion_strings)) >= self.limit:
             return
 
+        # This string of characters deeper in the string
+        self._collect_candidates_later_in_string(do_autocorrect=False)
+
         if not self.do_autocorrect:
             return 
 
@@ -365,15 +350,25 @@ class Completions(object):
             [cs, co] = self.get_new_continuations_from_string(edit)
             self._raw_completion_strings += cs
             self._completion_objects += co
-            if self.limit and len(set(self._raw_completion_strings)) >= self.limit:
+            if self._is_past_limit():
                 return
 
+        # A minor variations of this string of characters deeper in the string
+        self._collect_candidates_later_in_string(do_autocorrect=True)
 
-        # This string of characters, or a minor variations thereof, deeper in the string
+        return
+
+    def _is_past_limit(self):
+        return self.limit and len(set(self._raw_completion_strings)) >= self.limit
+
+    def _collect_candidates_later_in_string(self, do_autocorrect=True):
+        if do_autocorrect:
+            tokens = self.auto_completer.spell_checker.correct_phrase(self.normal_string)
+        else:
+            tokens = splitter.split(self.normal_string)
+
         try:
-            for suggestion in self.auto_completer.ngram_matcher.guess_titles(
-                self.auto_completer.spell_checker.correct_phrase(self.normal_string)
-            ):
+            for suggestion in self.auto_completer.ngram_matcher.guess_titles(tokens):
                 k = normalizer(self.lang)(suggestion)
                 try:
                     all_v = self.auto_completer.title_trie[k]
@@ -383,10 +378,11 @@ class Completions(object):
                     if (v["type"], v["key"]) not in self.keys_covered:
                         self._completion_objects += [v]
                         self._raw_completion_strings += [v["title"]]
+                        self.keys_covered.add((v["type"], v["key"]))
+                        if self._is_past_limit():
+                            return
         except ValueError:
             pass
-
-        return
 
     def get_new_continuations_from_string(self, str):
         """
@@ -435,7 +431,7 @@ class Completions(object):
 
 
 class LexiconTrie(datrie.Trie):
-    dict_letter_scope = "\u05b0\u05b4\u05b5\u05b6\u05b7\u05b8\u05b9\u05bc\u05c1\u05d0\u05d1\u05d2\u05d3\u05d4\u05d5\u05d6\u05d7\u05d8\u05d9\u05da\u05db\u05dc\u05dd\u05de\u05df\u05e0\u05e1\u05e2\u05e3\u05e4\u05e5\u05e6\u05e7\u05e8\u05e9\u05ea\u05f3\u05f4\u200e\u200f\u2013\u201d\ufeff`' \""
+    dict_letter_scope = "\u05b0\u05b4\u05b5\u05b6\u05b7\u05b8\u05b9\u05bc\u05c1\u05d0\u05d1\u05d2\u05d3\u05d4\u05d5\u05d6\u05d7\u05d8\u05d9\u05da\u05db\u05dc\u05dd\u05de\u05df\u05e0\u05e1\u05e2\u05e3\u05e4\u05e5\u05e6\u05e7\u05e8\u05e9\u05ea\u05f3\u05f4\u200e\u200f\u2013\u201c\u201d\ufeff`' \""
 
     def __init__(self, lexicon_name):
         super(LexiconTrie, self).__init__(self.dict_letter_scope)
@@ -483,13 +479,14 @@ class TitleTrie(datrie.Trie):
                 "order": order
             }
 
-    def add_titles_from_set(self, recordset, all_names_method, primary_name_method, keyattr, order):
+    def add_titles_from_set(self, recordset, all_names_method, primary_name_method, keyattr, base_order, sub_order_fn=None):
         """
 
         :param recordset: Instance of a subclass of AbstractMongoSet, or a List of objects
         :param all_names_method: Name of method that will return list of titles, when passed lang
         :param primary_name_method: Name of method that will return primary title, when passed lang
         :param keyattr: Name of attribute that will give key to object
+        :param sub_order_fn: optional function which takes an AbstractMongoRecord as a parameter and returns an integer between 0 and PAD-1 inclusive. the lower the number, the higher ranked this object will be among objects of the same type.
         :return:
         """
         done = set()
@@ -497,7 +494,7 @@ class TitleTrie(datrie.Trie):
             key = getattr(obj, keyattr, None)
             if not key:
                 continue
-
+            sub_order = 0 if sub_order_fn is None else sub_order_fn(obj)
             title = getattr(obj, primary_name_method)(self.lang)
             if title:
                 norm_title = self.normalizer(title)
@@ -507,7 +504,7 @@ class TitleTrie(datrie.Trie):
                     "type": obj.__class__.__name__,
                     "key": tuple(key) if isinstance(key, list) else key,
                     "is_primary": True,
-                    "order": order
+                    "order": base_order + sub_order
                 }
 
             titles = getattr(obj, all_names_method)(self.lang)
@@ -521,7 +518,7 @@ class TitleTrie(datrie.Trie):
                     "type": obj.__class__.__name__,
                     "key": tuple(key) if isinstance(key, list) else key,
                     "is_primary": False,
-                    "order": order
+                    "order": base_order + sub_order
                 }
 
 

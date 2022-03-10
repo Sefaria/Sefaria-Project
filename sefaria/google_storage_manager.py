@@ -1,10 +1,21 @@
 from .settings import GOOGLE_APPLICATION_CREDENTIALS_FILEPATH
 from google.cloud import storage
-
+import re
 
 class GoogleStorageManager(object):
 
+    """
+    Wrapper class for interacting with Google Cloud storage via Google's API classes.
+    Please note that several Google exceptions (mostly subclasses of google.cloud.exceptions.GoogleAPICallError)
+    or Python Exceptions if used incorrectly may be raised and that calling functions should handle them.
+    https://googleapis.dev/python/google-api-core/latest/exceptions.html#google.api_core.exceptions.GoogleAPIError
+    https://googleapis.dev/python/storage/latest/client.html
+    https://googleapis.dev/python/storage/latest/buckets.html
+    """
+
     PROFILES_BUCKET = 'sefaria-profile-pictures'
+    UGC_SHEET_BUCKET = 'sheet-user-uploaded-media'
+
     BASE_URL = "https://storage.googleapis.com"
 
     @classmethod
@@ -34,6 +45,14 @@ class GoogleStorageManager(object):
         return cls.get_url(to_filename, bucket_name)
 
     @classmethod
+    def duplicate_file(cls, from_file, to_filename, bucket_name):
+        bucket = cls.get_bucket(bucket_name)
+        source_blob = bucket.blob(from_file)
+        blob_copy = bucket.copy_blob(source_blob, bucket, to_filename)
+        return cls.get_url(to_filename, bucket_name)
+
+
+    @classmethod
     def delete_filename(cls, filename, bucket_name):
         bucket = cls.get_bucket(bucket_name)
         blob = bucket.blob(filename)
@@ -49,3 +68,7 @@ class GoogleStorageManager(object):
     @classmethod
     def get_url(cls, filename, bucket_name):
         return "{}/{}/{}".format(cls.BASE_URL, bucket_name, filename)
+
+    @classmethod
+    def get_filename(cls, old_file_url):
+        return re.findall(r"/([^/]+)$", old_file_url)[0] if old_file_url.startswith(cls.BASE_URL) else None

@@ -278,7 +278,7 @@
                 <p class="stat">
                     <img class="statIcon" src="{% static 'img/progress-contributors.png' %}" alt="">
                     <span class="wordCount">{{ metrics.contributors|intcomma }}</span>
-                    <span class="stat-name sans">
+                    <span class="stat-name">
                         <span class="int-en">Contributors</span>
                         <span class="int-he">משתמשים שתרמו טקסטים</span>
                     </span>
@@ -287,7 +287,7 @@
                 <p class="stat">
                     <img class="statIcon" src="{% static 'img/progress-sheets.png' %}" alt="">
                     <span class="wordCount">{{ metrics.sheets|intcomma }}</span>
-                    <span class="stat-name sans">
+                    <span class="stat-name">
                         <span class="int-en">Source Sheets</span>
                         <span class="int-he">דפי מקורות</span>
                     </span>
@@ -296,7 +296,7 @@
                 <p class="stat">
                     <img class="statIcon" src="{% static 'img/progress-connections.png' %}" alt="">
                     <span class="wordCount">{{ metrics.links|intcomma }}</span>
-                    <span class="stat-name sans">
+                    <span class="stat-name">
                         <span class="int-en">Connections</span>
                         <span class="int-he">הפניות וקישורים</span>
                     </span>
@@ -305,7 +305,7 @@
                 <p class="stat">
                     <img class="statIcon" src="{% static 'img/progress-translation.png' %}" alt="">
                     <span class="wordCount">{{ metrics.transWords|intcomma }}</span>
-                    <span class="stat-name sans">
+                    <span class="stat-name">
                         <span class="int-en">Words of Translation</span>
                         <span class="int-he">מילים מתורגמות</span>
                     </span>
@@ -314,7 +314,7 @@
                 <p class="stat">
                     <img class="statIcon" src="{% static 'img/progress-words.png' %}" alt="">
                     <span class="wordCount">{{ metrics.heWords|add:metrics.transWords|intcomma }}</span>
-                    <span class="stat-name sans">
+                    <span class="stat-name">
                         <span class="int-en">Total Words</span>
                         <span class="int-he">מילים במאגר</span>
                     </span>

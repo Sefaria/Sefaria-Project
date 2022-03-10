@@ -4,7 +4,7 @@ import striptags from 'striptags';
 import humanizeDuration from 'humanize-duration';
 import sanitizeHtml from 'sanitize-html';
 import Sefaria  from './sefaria';
-
+import {HDate, months} from '@hebcal/core';
 
 var INBROWSER = (typeof document !== 'undefined');
 
@@ -31,9 +31,18 @@ class Util {
     }
     static localeDate(dateString) {
         // takes dateString (usually generated from Python datetime object) and returns a human readable string depending on interfaceLang
-        const locale = Sefaria.interfaceLang === 'english' ? 'en-US' : 'iw-IL';
-        const dateOptions = {year: 'numeric', month: 'short', day: 'numeric'};
-        return (new Date(dateString)).toLocaleDateString(locale, dateOptions).replace(',', '');  // remove comma from english date
+        const locale = Sefaria.interfaceLang === 'english' ? 'en-US' : 'he-Hebr-IL';
+        const dateOptions = {year: 'numeric', month: 'long', day: 'numeric'};
+        return (new Date(dateString)).toLocaleDateString(locale, dateOptions);  // remove comma from english date
+    }
+    static hebrewCalendarDateStr(dateObjStr){
+        //returns a fully qualified Hebrew calendar date from a Gregorian input. Can output in English or Hebrew
+        const hd = new HDate(new Date(dateObjStr));
+        //Up to this we could have gotten away with built in international date objects in js:
+        // By specifying dateOptions['calendar'] = 'hebrew'; as in the function above. 
+        //That would result in a hybrid hebrew date though, that still uses English numerals for day and year.
+        //So we use Hebcal's renderGematriya()
+        return Sefaria.interfaceLang === 'english' ? hd.render() : hd.renderGematriya();
     }
     static sign_up_user_testing() {
       // temporary function to be used in template 'user_testing_israel.html'
@@ -60,11 +69,16 @@ class Util {
     static naturalTimePlural(n, singular, plural) {
       return n <= 1 ? singular : plural;
     }
-    static naturalTime(timeStamp, lang) {
+    static naturalTime(timeStamp, {lang, short}={}) {
       // given epoch time stamp, return string of time delta between `timeStamp` and now
       const now = Util.epoch_time();
-      const language = lang ? lang : (Sefaria.interfaceLang === 'hebrew' ? 'he' : 'en');
-      return Util.sefariaHumanizeDuration(now - timeStamp, { language });
+      let language = lang ? lang : (Sefaria.interfaceLang === 'hebrew' ? 'he' : 'en');
+      let spacer = " ";
+      if(short){
+          language = language == "en" ? "shortEn" : "shortHe";
+          spacer = language == "shortEn" ? "" : " ";
+      }
+      return Util.sefariaHumanizeDuration(now - timeStamp, { "language": language, "spacer": spacer });
     }
     static object_equals(a, b) {
         // simple object equality assuming values are primitive. see here
@@ -152,7 +166,7 @@ class Util {
         var clean = sanitizeHtml(html, {
             allowedTags: ['blockquote', 'p', 'a', 'ul', 'ol',
                 'nl', 'li', 'b', 'i', 'strong', 'em', 'small', 'big', 'span', 'strike', 'hr', 'br', 'div',
-                'table', 'thead', 'caption', 'tbody', 'tr', 'th', 'td', 'pre', 'sup','u'],
+                'table', 'thead', 'caption', 'tbody', 'tr', 'th', 'td', 'pre', 'sup','u', 'h1'],
             allowedAttributes: {
                 a: ['href', 'name', 'target', 'class', 'data-ref'],
                 img: ['src'],
@@ -241,6 +255,20 @@ class Util {
         segments: a.pathname.replace(/^\//,'').split('/')
       };
     }
+
+    static parseHash(urlHash) {
+      let sections = urlHash.split("&");
+      let hashDict = {}
+      sections.forEach(x => {
+        const i = x.indexOf("=");
+        if (i !== -1) {
+          hashDict[x.slice(0,i)] = x.slice(i+1);
+        } else {
+          hashDict[x] = x;
+        }
+      })
+      return hashDict;
+    }
     static isValidEmailAddress(emailAddress) {
       var pattern = new RegExp(/^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?$/i);
       return pattern.test(emailAddress);
@@ -264,7 +292,6 @@ class Util {
         return str1.substring(0, index);
     }
     static setupPrototypes() {
-
 
         String.prototype.toProperCase = function() {
           // Treat anything after ", " as a new clause
@@ -319,6 +346,11 @@ class Util {
           return striptags(this.replace(/\u00a0/g, ' ').decodeHtmlEntities().replace(/<p>/g, ' <p>').replace(/(<br>|\n)+/g,' '));
         };
 
+        String.prototype.stripPunctuation = function() {
+          const regex = /[!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~]/g;
+          return this.replace(regex, '');
+        };
+
         String.prototype.escapeHtml = function() {
           return this.replace(/&/g,'&amp;')
                       .replace(/</g,'&lt;')
@@ -348,6 +380,13 @@ class Util {
                           .trim()
                           .replace(/^./, str => str.toUpperCase())
         };
+
+        String.prototype.camelize = function() {
+          return this.replace(/(?:^\w|[A-Z]|\b\w|\s+)/g, function(match, index) {
+            if (+match === 0) return ""; // or if (/\s+/.test(match)) for white spaces
+            return index === 0 ? match.toLowerCase() : match.toUpperCase();
+          });
+        }
 
         Array.prototype.compare = function(testArr) {
             if (this.length != testArr.length) return false;
@@ -442,6 +481,11 @@ class Util {
           };
         };
         */
+
+        Number.prototype.addCommas = function() {
+          return this.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); 
+        };
+        
         if (!Array.prototype.fill) {
           Object.defineProperty(Array.prototype, 'fill', {
             value: function(value) {
@@ -903,6 +947,29 @@ Util.sefariaHumanizeDuration = humanizeDuration.humanizer({
     m: 60,
     s: 1,
   },
+  languages: {
+    shortEn: {
+      y: () => "y",
+      mo: () => "mo",
+      w: () => "w",
+      d: () => "d",
+      h: () => "h",
+      m: () => "m",
+      s: () => "s",
+      ms: () => "ms",
+    },
+    shortHe: {
+      y: () => "ש'",
+      mo: () => "ח'",
+      w: () => "שב'",
+      d: () => "י'",
+      h: () => "שע'",
+      m: () => "דק'",
+      s: () => "שנ'",
+      ms: () => "מלש'",
+    },
+  },
 });
+
 
 export default Util;

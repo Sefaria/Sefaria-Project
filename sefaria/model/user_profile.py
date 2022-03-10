@@ -22,8 +22,9 @@ if not hasattr(sys, '_doc_build'):
     from anymail.exceptions import AnymailRecipientsRefused
 
 from . import abstract as abst
-from sefaria.model.following import FollowersSet, FolloweesSet
-from sefaria.model.text import Ref
+from sefaria.model.following import FollowersSet, FolloweesSet, general_follow_recommendations
+from sefaria.model.blocking import BlockersSet, BlockeesSet
+from sefaria.model.text import Ref, TextChunk
 from sefaria.system.database import db
 from sefaria.utils.util import epoch_time
 from django.utils import translation
@@ -64,7 +65,6 @@ class UserHistory(abst.AbstractMongoRecord):
 
     def __init__(self, attrs=None, load_existing=False, field_updates=None, update_last_place=False):
         """
-
         :param attrs:
         :param load_existing: True if you want to load an existing mongo record if it exists to avoid duplicates
         :param field_updates: dict of updates in case load_existing finds a record
@@ -132,6 +132,7 @@ class UserHistory(abst.AbstractMongoRecord):
             pass
 
     def contents(self, **kwargs):
+        from sefaria.sheets import get_sheet_listing_data
         d = super(UserHistory, self).contents(**kwargs)
         if kwargs.get("for_api", False):
             keys = {
@@ -150,6 +151,19 @@ class UserHistory(abst.AbstractMongoRecord):
             d = {
                 key: d.get(key, default) for key, default in list(keys.items())
             }
+        if kwargs.get("annotate", False):
+            try:
+                ref = Ref(d["ref"])
+                if ref.is_sheet():
+                    d.update(get_sheet_listing_data(d["sheet_id"]))
+                else:
+                    d["text"] = {
+                        "en": TextChunk(ref, "en").as_sized_string(),
+                        "he": TextChunk(ref, "he").as_sized_string()
+                    }
+            except Exception as e:
+                logger.warning("Failed to retrieve text for history Ref: {}".format(d['ref']))
+                return d
         return d
 
     def _sanitize(self):
@@ -183,7 +197,7 @@ class UserHistory(abst.AbstractMongoRecord):
         uh.delete()
 
     @staticmethod
-    def get_user_history(uid=None, oref=None, saved=None, secondary=None, last_place=None, sheets=None, serialized=False, limit=0):
+    def get_user_history(uid=None, oref=None, saved=None, secondary=None, last_place=None, sheets=None, serialized=False, annotate=False, limit=0, skip=0):
         query = {}
         if uid is not None:
             query["uid"] = uid
@@ -200,8 +214,8 @@ class UserHistory(abst.AbstractMongoRecord):
         if last_place is not None:
             query["last_place"] = last_place
         if serialized:
-            return [uh.contents(for_api=True) for uh in UserHistorySet(query, proj={"uid": 0, "server_time_stamp": 0}, sort=[("time_stamp", -1)], limit=limit)]
-        return UserHistorySet(query, sort=[("time_stamp", -1)], limit=limit)
+            return [uh.contents(for_api=True, annotate=annotate) for uh in UserHistorySet(query, proj={"uid": 0, "server_time_stamp": 0}, sort=[("time_stamp", -1)], limit=limit, skip=skip)]
+        return UserHistorySet(query, sort=[("time_stamp", -1)], limit=limit, skip=skip)
 
     @staticmethod
     def delete_user_history(uid, exclude_saved=True, exclude_last_place=False):
@@ -347,8 +361,11 @@ class UserProfile(object):
             "email_notifications": "daily",
             "interface_language": "english",
             "textual_custom" : "sephardi",
-            "reading_history" : True
+            "reading_history" : True,
+            "translation_language_preference": None,
         }
+        self.version_preferences_by_corpus = {}
+
         # dict that stores the last time an attr has been modified
         self.attr_time_stamps = {
             "settings": 0
@@ -362,12 +379,19 @@ class UserProfile(object):
         self.followers = FollowersSet(self.id)
         self.followees = FolloweesSet(self.id)
 
+        # Blocks
+        self.blockees = BlockeesSet(self.id)
+        self.blockers = BlockersSet(self.id)
+
         # Google API token
         self.gauth_token = None
 
         # new editor
         self.show_editor_toggle = False
         self.uses_new_editor = False
+
+        # Fundraising
+        self.is_sustainer = False
 
         # Update with saved profile doc in MongoDB
         profile = db.profiles.find_one({"id": id})
@@ -380,16 +404,6 @@ class UserProfile(object):
             self.assign_slug()
             self.interrupting_messages = []
             self.save()
-
-
-        # Profile Pic default to Gravatar
-        if len(self.profile_pic_url) == 0:
-            default_image           = "https://www.sefaria.org/static/img/profile-default.png"
-            gravatar_base           = "https://www.gravatar.com/avatar/" + hashlib.md5(self.email.lower().encode('utf-8')).hexdigest() + "?"
-            gravatar_url       = gravatar_base + urllib.parse.urlencode({'d':default_image, 's':str(250)})
-            gravatar_url_small = gravatar_base + urllib.parse.urlencode({'d':default_image, 's':str(80)})
-            self.profile_pic_url = gravatar_url
-            self.profile_pic_url_small = gravatar_url_small
 
     @property
     def full_name(self):
@@ -444,6 +458,11 @@ class UserProfile(object):
         """
         if not ignore_flags_on_init:
             self._set_flags_on_update(obj)
+        for dict_key in ("settings", "version_preferences_by_corpus"):
+            # merge these keys separately since they are themselves dicts. want to allow partial updates to be passed to update.
+            if dict_key in obj and dict_key in self.__dict__:
+                self.__dict__[dict_key].update(obj[dict_key])
+                obj[dict_key] = self.__dict__[dict_key]
         self.__dict__.update(obj)
 
         return self
@@ -454,6 +473,12 @@ class UserProfile(object):
             if v:
                 if k not in self.__dict__ or self.__dict__[k] == '' or self.__dict__[k] == []:
                     self.__dict__[k] = v
+
+    def update_version_preference(self, corpus, vtitle, lang):
+        """
+        Convenince method to keep update logic in one place
+        """
+        self.update({"version_preferences_by_corpus": {corpus: {"vtitle": vtitle, "lang": lang}}})
 
     def save(self):
         """
@@ -487,7 +512,7 @@ class UserProfile(object):
         or None if the profile is valid.
         """
         # Slug
-        if re.search("[^a-z0-9\-]", self.slug):
+        if re.search(r"[^a-z0-9\-]", self.slug):
             return "Profile URLs may only contain lowercase letters, numbers and hyphens."
 
         existing = db.profiles.find_one({"slug": self.slug, "_id": {"$ne": self._id}})
@@ -589,8 +614,7 @@ class UserProfile(object):
         else:  # history disabled do nothing.
             return None
 
-
-    def get_user_history(self, oref=None, saved=None, secondary=None, sheets=None, last_place=None, serialized=False, limit=0):
+    def get_history(self, oref=None, saved=None, secondary=None, sheets=None, last_place=None, serialized=False, annotate=False, limit=0, skip=0):
         """
         personal user history
         :param oref:
@@ -604,11 +628,20 @@ class UserProfile(object):
         """
         if not self.settings.get('reading_history', True) and not saved:
             return [] if serialized else None
-        return UserHistory.get_user_history(uid=self.id, oref=oref, saved=saved, secondary=secondary, sheets=sheets,
-                                            last_place=last_place, serialized=serialized, limit=limit)
+        return UserHistory.get_user_history(uid=self.id, oref=oref, saved=saved, secondary=secondary, sheets=sheets, last_place=last_place, serialized=serialized, annotate=annotate, limit=limit, skip=skip)
 
     def delete_user_history(self, exclude_saved=True, exclude_last_place=False):
         UserHistory.delete_user_history(uid=self.id, exclude_saved=exclude_saved, exclude_last_place=exclude_last_place)
+
+    def follow_recommendations(self, lang="english", n=4):
+        """
+        Returns a list of users recommended for `self` to follow.
+        """
+        from random import choices
+        options = general_follow_recommendations(lang=lang, n=100)
+        filtered_options = [u for u in options if not self.follows(u["uid"])]
+
+        return choices(filtered_options, k=n)
 
     def to_mongo_dict(self):
         """
@@ -630,8 +663,10 @@ class UserProfile(object):
             "youtube":               self.youtube,
             "pinned_sheets":         self.pinned_sheets,
             "settings":              self.settings,
+            "version_preferences_by_corpus": self.version_preferences_by_corpus,
             "attr_time_stamps":      self.attr_time_stamps,
             "interrupting_messages": getattr(self, "interrupting_messages", []),
+            "is_sustainer":          self.is_sustainer,
             "tag_order":             getattr(self, "tag_order", None),
             "last_sync_web":         self.last_sync_web,
             "profile_pic_url":       self.profile_pic_url,
@@ -646,8 +681,7 @@ class UserProfile(object):
         Return a json serializble dictionary this profile which includes fields used in profile API methods
         If basic is True, only return enough data to display a profile listing
         """
-        if basic:
-            return {
+        dictionary = {
                 "id": self.id,
                 "slug": self.slug,
                 "profile_pic_url": self.profile_pic_url,
@@ -655,12 +689,26 @@ class UserProfile(object):
                 "position": self.position,
                 "organization": self.organization
             }
-        dictionary = self.to_mongo_dict()
+        if basic:
+            return dictionary
         other_info = {
             "full_name":             self.full_name,
             "followers":             self.followers.uids,
             "followees":             self.followees.uids,
-            "profile_pic_url":       self.profile_pic_url
+            "profile_pic_url":       self.profile_pic_url,
+            "jewish_education":      self.jewish_education,
+            "bio":                   self.bio,
+            "website":               self.website,
+            "location":              self.location,
+            "public_email":          self.public_email,
+            "facebook":              self.facebook,
+            "twitter":               self.twitter,
+            "linkedin":              self.linkedin,
+            "youtube":               self.youtube,
+            "pinned_sheets":         self.pinned_sheets,
+            "show_editor_toggle":    self.show_editor_toggle,
+            "uses_new_editor":       self.uses_new_editor,
+            "is_sustainer":          self.is_sustainer,
         }
         dictionary.update(other_info)
         return dictionary
@@ -671,6 +719,48 @@ class UserProfile(object):
         Return a json serializable dictionary which includes all data to be saved in mongo (as opposed to postgres)
         """
         return json.dumps(self.to_mongo_dict())
+
+
+def detect_potential_spam_message_notifications():
+    # Get "message" type notifications where one user has sent many messages to multiple users.
+    spammers = db.notifications.aggregate(
+        [
+            {
+                "$match": {
+                    "read": False,
+                    "is_global": False,
+                    "type": "message"
+                }
+            },
+            {
+                "$group": {
+                    "_id": "$content.sender",
+                    "countmessages": {
+                        "$sum": 1
+                    },
+                    "uids": {
+                        "$addToSet": "$uid"
+                    }
+                }
+            },
+            {"$match": {"countmessages": {"$gt": 20}}},
+        ])
+    suspect_results = []
+    for spammer in spammers:
+        spammer_id = spammer["_id"]
+        if len(spammer["uids"]) >= 5:
+            suspect_results.append(spammer_id)
+            try:
+                spammer_account = User.objects.get(id=spammer_id)
+                spammer_account.is_active = False
+                spammer_account.save()
+            except:
+                continue
+
+        print(spammer["_id"])
+    # Mark all of these Notifications with these sender ids as suspicious so they dont get sent to the users
+    db.notifications.update_many({"content.sender": {"$in": suspect_results}}, {"$set": {"suspected_spam": True}})
+    return suspect_results
 
 
 def email_unread_notifications(timeframe):
@@ -684,6 +774,8 @@ def email_unread_notifications(timeframe):
     * 'all'    - send all notifications
     """
     from sefaria.model.notification import NotificationSet
+
+    detect_potential_spam_message_notifications()
 
     users = db.notifications.find({"read": False, "is_global": False}).distinct("uid")
 
@@ -711,7 +803,7 @@ def email_unread_notifications(timeframe):
         elif notifications.like_count() > 0:
             noun      = "likes" if notifications.like_count() > 1 else "like"
             subject   = "%d new %s on your Source Sheet" % (notifications.like_count(), noun)
-        from_email    = "Sefaria <hello@sefaria.org>"
+        from_email    = "Sefaria Notifications <notifications@sefaria.org>"
         to            = user.email
 
         msg = EmailMultiAlternatives(subject, message_html, from_email, [to])

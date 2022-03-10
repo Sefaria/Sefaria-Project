@@ -19,7 +19,7 @@ def epoch_time(since=None):
     return total_seconds(since - epoch)
 
 
-def graceful_exception(logger=None, return_value=[], exception_type=Exception):
+def graceful_exception(logger=None, logLevel="exception", return_value=[], exception_type=Exception):
     def argumented_decorator(func):
         @wraps(func)
         def decorated_function(*args, **kwargs):
@@ -27,7 +27,7 @@ def graceful_exception(logger=None, return_value=[], exception_type=Exception):
                 return func(*args, **kwargs)
             except exception_type as e:
                 if logger:
-                    logger.exception(str(e))
+                    logger.exception(str(e)) if logLevel == "exception" else logger.warning(str(e))
             return return_value
         return decorated_function
     return argumented_decorator
@@ -150,7 +150,7 @@ class MLStripper(HTMLParser):
         return ' '.join(self.fed)
 
 
-def strip_tags(html):
+def strip_tags(html, remove_new_lines=False):
     """
     Returns the text of html with tags stripped.
     Customized to insert a space between adjacent tags after stripping.
@@ -158,7 +158,10 @@ def strip_tags(html):
     html = html or ""
     s = MLStripper()
     s.feed(html)
-    return s.get_data().strip()
+    stripped = s.get_data().strip()
+    if remove_new_lines:
+        stripped = re.sub(r"\n+", " ", stripped)
+    return stripped
 
 
 def text_preview(en, he):
@@ -322,7 +325,7 @@ def titlecase(text):
     Words with capitalized letters in the middle (e.g. Tu B'Shvat, iTunes, etc) are left alone as well.
     """
 
-    SMALL = 'a|an|and|as|at|but|by|en|for|if|in|of|on|or|the|to|v\.?|via|vs\.?'
+    SMALL = r'a|an|and|as|at|but|by|en|for|if|in|of|on|or|the|to|v\.?|via|vs\.?'
     PUNCT = r"""!"#$%&'‘()*+,\-./:;?@[\\\]_`{|}~"""
     SMALL_WORDS = re.compile(r'^(%s)$' % SMALL, re.I)
     INLINE_PERIOD = re.compile(r'[a-z][.][a-z]', re.I)
@@ -502,3 +505,19 @@ def traverse_dict_tree(dict_tree: dict, key_list: list):
     for key in key_list:
         current_node = current_node[key]
     return current_node
+
+def get_lang_codes_for_territory(territory_code, min_pop_perc=0.2, official_status=False):
+    """
+    Wrapper for babel.languages.get_territory_language_info
+    Documentation here: https://github.com/python-babel/babel/blob/master/babel/languages.py#L45 (strange that this function isn't documented on their official site)
+
+    :param territory_code: two letter territory ISO code. If doesn't match anything babel recognizes, returns empty array
+    :param min_pop_perc: min population percentage of language usage in territory. stats are likely only mildly accurate but good enough
+    :param official_status: the status of the language in the territory. I think this can be 'official', 'de_facto_official', None, 'official_regional'. False means return all.
+    
+    returns array of ISO lang codes
+    """
+    from babel import languages
+    lang_dict = languages.get_territory_language_info(territory_code)
+    langs = [lang_code for lang_code, _ in filter(lambda x: x[1]['population_percent'] >= (min_pop_perc*100) and ((official_status == False) or x[1]['official_status'] == official_status), lang_dict.items())]
+    return langs

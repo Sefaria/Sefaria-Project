@@ -1,0 +1,27 @@
+{{- range $k, $v := untilStep (int (sub .Release.Revision .Values.previousServicesCount)) (int (add .Release.Revision 1)) 1}}
+{{- if gt $v 0}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-{{ $.Values.deployEnv }}-{{ $v }}
+  labels:
+    deployEnv: "{{ $.Values.deployEnv }}"
+    app: nginx-{{ $.Values.deployEnv }}
+    sandbox: "{{ $.Values.sandbox }}"
+    releaseRevision: "{{ $v }}"
+    {{- if eq $.Values.sandbox "true" }}
+    sandbox-name: "{{ $.Values.deployEnv }}"
+    {{- end }}
+spec:
+  type: {{ if eq $.Values.sandbox "true" }}ClusterIP{{ else }}NodePort{{ end }}
+  ports:
+  - name: http
+    port: 80
+  - name: https
+    port: 443
+  selector:
+    app: nginx-{{ $.Values.deployEnv }}
+    releaseRevision: "{{ $v }}"
+{{- end}}
+{{- end}}

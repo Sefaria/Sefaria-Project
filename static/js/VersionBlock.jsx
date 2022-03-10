@@ -5,6 +5,8 @@ import Sefaria from './sefaria/sefaria';
 import Util from './sefaria/util';
 import $ from './sefaria/sefariaJquery';
 import Component from 'react-class';
+import {LoadingMessage} from "./Misc";
+
 
 
 class VersionBlock extends Component {
@@ -19,6 +21,8 @@ class VersionBlock extends Component {
       "digitizedBySefaria",
       "status",
       "versionTitleInHebrew",
+      "shortVersionTitle",
+      "shortVersionTitleInHebrew",
       "versionNotesInHebrew",
       "purchaseInformationImage",
       "purchaseInformationURL",
@@ -48,6 +52,7 @@ class VersionBlock extends Component {
     e.preventDefault();
     if (this.props.openVersionInReader) {
       this.props.openVersionInReader(this.props.version.versionTitle, this.props.version.language);
+      Sefaria.setVersionPreference(this.props.currentRef, this.props.version.versionTitle, this.props.version.language);
     }
   }
   handleInputChange(event) {
@@ -75,7 +80,7 @@ class VersionBlock extends Component {
     }
     this.setState({"error": "Saving.  Page will reload on success."});
     $.ajax({
-      url: `/api/version/flags/${this.props.title}/${v.language}/${v.versionTitle}`,
+      url: `/api/version/flags/${v.title}/${v.language}/${v.versionTitle}`,
       dataType: 'json',
       type: 'POST',
       data: {json: JSON.stringify(payloadVersion)},
@@ -94,8 +99,7 @@ class VersionBlock extends Component {
   deleteVersion() {
     if (!confirm("Are you sure you want to delete this text version?")) { return; }
 
-    const title = this.props.title;
-    const url = "/api/texts/" + title + "/" + this.props.version.language + "/" + this.props.version.versionTitle;
+    const url = "/api/texts/" + this.props.version.title + "/" + this.props.version.language + "/" + this.props.version.versionTitle;
 
     $.ajax({
       url: url,
@@ -105,7 +109,7 @@ class VersionBlock extends Component {
           alert(data.error)
         } else {
           alert("Text Version Deleted.");
-          window.location = "/" + Sefaria.normRef(title);
+          window.location = "/" + Sefaria.normRef(this.props.version.title);
         }
       }
     }).fail(function() {
@@ -124,7 +128,7 @@ class VersionBlock extends Component {
   }
   openExtendedNotes(e){
     e.preventDefault();
-    this.props.viewExtendedNotes(this.props.title, this.props.version.language, this.props.version.versionTitle);
+    this.props.viewExtendedNotes(this.props.version.title, this.props.version.language, this.props.version.versionTitle);
   }
   makeVersionLink(versionParam) {
     //versionParam - either version language (e.g. 'en') in the case when you're making a link for versions in reader
@@ -135,9 +139,9 @@ class VersionBlock extends Component {
       return "#"; // there's no url for a merged version
     }
     const withParam = versionParam === 'side' ? "&with=Translation Open" : "";
-    const nonSelectedVersionParams = Object.keys(this.props.currVersions)
-                                      .filter(vlang=>!!this.props.currVersions[vlang] && (versionParam === 'side' || vlang !== this.props.version.language))  // in 'side' case, keep all version params
-                                      .map(vlang=>`&v${vlang}=${this.props.currVersions[vlang].replace(/\s/g,'_')}`)
+    const nonSelectedVersionParams = Object.entries(this.props.currObjectVersions)
+                                      .filter(([vlang, version])=>!!version &&!!version?.versionTitle && !version?.merged && (versionParam === 'side' || vlang !== this.props.version.language))  // in 'side' case, keep all version params
+                                      .map(([vlang, version])=>`&v${vlang}=${version.versionTitle.replace(/\s/g,'_')}`)
                                       .join("");
     const versionLink = nonSelectedVersionParams == "" ? null : `/${Sefaria.normRef(this.props.currentRef)}${nonSelectedVersionParams}&v${versionParam}=${this.props.version.versionTitle.replace(/\s/g,'_')}${withParam}`.replace("&","?");
     return versionLink;
@@ -161,7 +165,7 @@ class VersionBlock extends Component {
     }
   }
   makeLicenseLink(){
-    const license_map = this.props.getLicenseMap();
+    const license_map = Sefaria.getLicenseMap();
     return (this.props.version.license in license_map) ? license_map[this.props.version.license] : "#";
   }
   makeSelectVersionLanguage(){
@@ -169,16 +173,10 @@ class VersionBlock extends Component {
       "en": "Translation",
       "he" : "Version"
     }
-    let voc = langMap[this.props.version.language] || "Translation";
+    let voc = langMap[this.props.version.actualLanguage] || "Translation";
     return this.props.isCurrent ? Sefaria._("Current " + voc) : Sefaria._("Select "+ voc);
   }
-  makeDigitizedByLanguage(){
-    if(this.props.version.digitizedBySefaria){
-      return ["versions-box", "about-box"].includes(this.props.rendermode) ? Sefaria._("Sefaria") : Sefaria._("Digitized by Sefaria");
-    }else {
-      return "";
-    }
-  }
+
   hasExtendedNotes(){
     return !!(this.props.version.extendedNotes || this.props.version.extendedNotesHebrew);
   }
@@ -192,19 +190,21 @@ class VersionBlock extends Component {
     return !!this.props.version.purchaseInformationURL ? this.props.version.purchaseInformationURL : this.props.version.versionSource;
   }
   makeImageSrc(){
-    return (["versions-box", "about-box"].includes(this.props.rendermode) && !!this.props.version.purchaseInformationImage) ? this.props.version.purchaseInformationImage : "data:,";
+    return  !!this.props.version.purchaseInformationImage ? this.props.version.purchaseInformationImage : "data:,";
   }
 
   render() {
+    if(this.props.version.title == "Sheet") return null //why are we even getting here in such a case??;
     const v = this.props.version;
     const vtitle = this.makeVersionTitle();
     const vnotes = this.makeVersionNotes();
+    const showLanguagLabel = this.props.rendermode == "book-page";
 
     if (this.state.editing && Sefaria.is_moderator) {
       // Editing View
       let close_icon = (Sefaria.is_moderator)?<i className="fa fa-times-circle" aria-hidden="true" onClick={this.closeEditor}/>:"";
 
-      let licenses = Object.keys(this.props.getLicenseMap());
+      let licenses = Object.keys(Sefaria.getLicenseMap());
       licenses = licenses.includes(v.license) ? licenses : [v.license].concat(licenses);
 
       return (
@@ -218,6 +218,12 @@ class VersionBlock extends Component {
 
             <label htmlFor="versionTitleInHebrew" className="">Hebrew Version Title</label>
             <input id="versionTitleInHebrew" name="versionTitleInHebrew" className="" type="text" value={this.state.versionTitleInHebrew} onChange={this.handleInputChange} />
+
+            <label htmlFor="shortVersionTitle" className="">Short Version Title</label>
+            <input id="shortVersionTitle" name="shortVersionTitle" className="" type="text" value={this.state.shortVersionTitle} onChange={this.handleInputChange} />
+
+            <label htmlFor="shortVersionTitleInHebrew" className="">Short Hebrew Version Title</label>
+            <input id="shortVersionTitleInHebrew" name="shortVersionTitleInHebrew" className="" type="text" value={this.state.shortVersionTitleInHebrew} onChange={this.handleInputChange} />
 
             <label htmlFor="versionSource">Version Source</label>
             <input id="versionSource" name="versionSource" className="" type="text" value={this.state.versionSource} onChange={this.handleInputChange} />
@@ -259,30 +265,33 @@ class VersionBlock extends Component {
     }
     else {
       return (
-        <div className = "versionBlock">
-            <div className="versionTitle">
-              <a className={vtitle["className"]} href={this.makeVersionLink('side')} onClick={this.onVersionTitleClick}>
-                {vtitle["text"]}
-              </a>
-              <i className={`fa fa-pencil versionEditIcon ${(Sefaria.is_moderator && this.props.rendermode == "version-list") ? "enabled" : ""}`} aria-hidden="true" onClick={this.openEditor}/>
+        <div className="versionBlock">
+            <div className="versionBlockHeading">
+              <div className="versionTitle" role="heading">
+                  <a className={vtitle["className"]} href={this.makeVersionLink('side')} onClick={this.onVersionTitleClick}>
+                    {vtitle["text"]}
+                  </a>
+              </div>
+              <i className={`fa fa-pencil versionEditIcon ${(Sefaria.is_moderator && this.props.rendermode == "book-page") ? "enabled" : ""}`} aria-hidden="true" onClick={this.openEditor}/>
+              <div className="versionLanguage sans-serif">{showLanguagLabel ? Sefaria._(Sefaria.translateISOLanguageCode(v.actualLanguage)) : ""}</div>
             </div>
-            <div className="versionSelect">
+            <div className="versionSelect sans-serif">
               <a className={`selectButton ${this.props.isCurrent ? "currSelectButton": ""}`}
                    href={this.makeVersionLink(v.language)}
                    onClick={this.onSelectVersionClick}>
                   {this.makeSelectVersionLanguage()}
               </a>
             </div>
-            <div className={classNames(this.makeAttrClassNames({"versionNotes": 1}, "versionNotes", true))}>
+            <div className={classNames(this.makeAttrClassNames({"versionNotes": 1, "sans-serif": (this.props.rendermode == "book-page")}, "versionNotes", true))}>
               <span className="" dangerouslySetInnerHTML={ {__html: vnotes} } />
               <span className={`versionExtendedNotesLinks ${this.hasExtendedNotes() ? "": "n-a"}`}>
-                <a onClick={this.openExtendedNotes} href={`/${this.props.title}/${this.props.version.language}/${this.props.version.versionTitle}/notes`}>
+                <a onClick={this.openExtendedNotes} href={`/${this.props.version.title}/${this.props.version.language}/${this.props.version.versionTitle}/notes`}>
                   {Sefaria._("Read More")}
                 </a>
               </span>
             </div>
           { !v.merged ?
-            <div className="versionDetails">
+            <div className="versionDetails sans-serif">
               <div className="versionDetailsInformation">
                 <div className={classNames(this.makeAttrClassNames({"versionSource": 1, "versionDetailsElement": 1}, "versionSource"))}>
                   <span className="versionDetailsLabel">
@@ -295,9 +304,9 @@ class VersionBlock extends Component {
                 <div className={classNames(this.makeAttrClassNames({"versionDigitizedBySefaria": 1, "versionDetailsElement": 1}, "digitizedBySefaria"))}>
                   <span className="versionDetailsLabel">
                     {`${Sefaria._("Digitization")}: `}
-                  </span>
+                  < /span>
                   <a className="versionDetailsLink" href="/digitized-by-sefaria" target="_blank">
-                    {this.makeDigitizedByLanguage()}
+                    {Sefaria._("Sefaria")}
                   </a>
                 </div>
                 <div className={classNames(this.makeAttrClassNames({"versionLicense": 1, "versionDetailsElement": 1}, "license" ))}>
@@ -305,7 +314,7 @@ class VersionBlock extends Component {
                     {`${Sefaria._("License")}: `}
                   </span>
                   <a className="versionDetailsLink" href={this.makeLicenseLink()} target="_blank">
-                    {Sefaria._(v.license)}
+                    {Sefaria._(v?.license)}
                   </a>
                 </div>
                 <div className={classNames(this.makeAttrClassNames({"versionHistoryLink": 1, "versionDetailsElement": 1}, null))}>
@@ -334,21 +343,18 @@ class VersionBlock extends Component {
   }
 }
 VersionBlock.propTypes = {
-  title:           PropTypes.string,
-  version:         PropTypes.object.isRequired,
-  currVersions:    PropTypes.object.isRequired,
-  currentRef:      PropTypes.string,
-  firstSectionRef: PropTypes.string,
-  showHistory:     PropTypes.bool,
-  showNotes:       PropTypes.bool,
-  openVersionInSidebar: PropTypes.func,
-  openVersionInReader: PropTypes.func,
-  getLicenseMap:   PropTypes.func.isRequired,
-  isCurrent:       PropTypes.bool,
-  openVersion:     PropTypes.func,
-  viewExtendedNotes: PropTypes.func,
-  sidebarDisplay: PropTypes.bool,
-  rendermode:     PropTypes.string,
+  version:                PropTypes.object.isRequired,
+  currObjectVersions:     PropTypes.object.isRequired,
+  currentRef:             PropTypes.string,
+  firstSectionRef:        PropTypes.string,
+  showHistory:            PropTypes.bool,
+  showNotes:              PropTypes.bool,
+  openVersionInSidebar:   PropTypes.func,
+  openVersionInReader:    PropTypes.func,
+  isCurrent:              PropTypes.bool,
+  viewExtendedNotes:      PropTypes.func,
+  sidebarDisplay:         PropTypes.bool,
+  rendermode:             PropTypes.string,
 };
 VersionBlock.defaultProps = {
   showHistory: true,
@@ -356,4 +362,105 @@ VersionBlock.defaultProps = {
   sidebarDisplay: false
 };
 
-export default VersionBlock;
+class VersionsBlocksList extends Component{
+  constructor(props) {
+    super(props);
+    this.state = {
+      currentKeys: this.getCurrentVersionsKeys(this.props.currObjectVersions),
+    }
+  }
+  sortVersions(prioritize=null){
+    //sorts the languages of the available versions
+    const standard_langs = ["en", "he"];
+    //const activeLanguages = Object.values(this.props.currObjectVersions).map(({actualLanguage}) => actualLanguage);
+    return Object.keys(this.props.versionsByLanguages).sort(
+      (a, b) => {
+        if      (!!prioritize && a === prioritize)                {return -1;}
+        else if (!!prioritize && b === prioritize)                {return 1;}
+        /*else if (a in standard_langs && !(b in standard_langs))   {return -1;}
+        else if (b in standard_langs && !(a in standard_langs))   {return  1;}
+        else if (this.props.activeLanguages.includes(a))          {return -1;}
+        else if (this.props.activeLanguages.includes(b))          {return  1;}*/
+        else if (a < b)                                           {return -1;}
+        else if (b < a)                                           {return  1;}
+        else                                                      {return  0;}
+      }
+    );
+  }
+  componentDidMount() {
+    this.setState({currentKeys : this.getCurrentVersionsKeys(this.props.currObjectVersions)});
+  }
+  isVersionCurrent(version){
+    //make versions string key and check if that key is in the current keys array (hashing for morons)
+    let {actualLanguage, versionTitle} = version;
+    return this.state.currentKeys.includes(`${actualLanguage}|${versionTitle}`);
+  }
+  getCurrentVersionsKeys(currentVersions){
+    //make an array of strings that are keys of the current versions
+    let currs = Object.values(currentVersions).map((v) => !!v ? `${v.actualLanguage}|${v.versionTitle}` : "");
+    return currs
+  }
+  render(){
+      const sortedLanguages = this.sortVersions(this.props.sortPrioritizeLanugage);
+      if (!this.props.versionsByLanguages) {
+        return (
+          <div className="versionsBox">
+            <LoadingMessage />
+          </div>
+        );
+      }
+      return (
+        <div className="versionsBox">
+          {
+            sortedLanguages.map((lang) => (
+              <div key={lang}>
+                { this.props.showLanguageHeaders ?
+                  <div className="versionLanguage sans-serif">
+                    {Sefaria._(Sefaria.translateISOLanguageCode(lang))}<span className="enInHe connectionsCount">{` (${this.props.versionsByLanguages[lang].length})`}</span>
+                  </div>
+                    :
+                    null
+                }
+                {
+                  this.props.versionsByLanguages[lang].map((v) => (
+                    <VersionBlock
+                      rendermode="versions-box"
+                      sidebarDisplay={true}
+                      version={v}
+                      currObjectVersions={this.props.currObjectVersions}
+                      currentRef={this.props.currentRef}
+                      firstSectionRef={"firstSectionRef" in v ? v.firstSectionRef : null}
+                      key={`${this.isVersionCurrent(v) ? "current" : ""}|${v.versionTitle}|${v.actualLanguage}`}
+                      openVersionInReader={this.props.openVersionInReader}
+                      openVersionInSidebar={this.props.openVersionInSidebar}
+                      viewExtendedNotes={this.props.viewExtendedNotes}
+                      isCurrent={this.isVersionCurrent(v)}
+                    />
+                  ))
+                }
+              </div>
+            ))
+          }
+        </div>
+      );
+    }
+}
+VersionsBlocksList.propTypes={
+  versionsByLanguages: PropTypes.object.isRequired,
+  currObjectVersions: PropTypes.object,
+  displayCurrentVersions: PropTypes.bool,
+  sortPrioritizeLanugage: PropTypes.string,
+  currentRef: PropTypes.string,
+  openVersionInReader: PropTypes.func,
+  openVersionInSidebar: PropTypes.func,
+  viewExtendedNotes: PropTypes.func,
+  showLanguageHeaders: PropTypes.bool,
+};
+VersionsBlocksList.defaultProps = {
+  displayCurrentVersions: true,
+  showLanguageHeaders: true,
+};
+
+
+
+export {VersionBlock as default, VersionsBlocksList};

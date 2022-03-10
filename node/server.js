@@ -1,5 +1,7 @@
 // Initially copypasta'd from https://github.com/mhart/react-server-example
 // https://github.com/mhart/react-server-example/blob/master/server.js
+import "core-js/stable";
+import "regenerator-runtime/runtime";
 require('source-map-support').install();
 require('css-modules-require-hook')({  // so that node can handle require statements for css files
    generateScopedName: '[name]',
@@ -104,7 +106,7 @@ router.post('/ReaderApp/:cachekey', function(req, res) {
   };
   const props = JSON.parse(req.body.propsJSON);
   req.input_props = {               // For logging
-    initialRefs: props.initialRefs,
+    initialRefs: props.panels ? props.panels[0].refs : null,
     initialMenu: props.initialMenu,
     initialPath: props.initialPath,
   };

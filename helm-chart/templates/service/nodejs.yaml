@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: "node-{{ .Values.deployEnv }}"
+  labels:
+    app: node-{{ .Values.deployEnv }}
+    deployEnv: "{{ .Values.deployEnv }}"
+spec:
+  ports:
+  - port: 3000
+  selector:
+    app: node-{{ .Values.deployEnv }}

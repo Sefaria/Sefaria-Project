@@ -88,6 +88,7 @@ class MultiServerMonitor(MessagingNode):
 
         if not event_record:
             logger.error("Got confirmation of unknown event. {}".format(data))
+            return
 
         event_record["confirmed"] += 1
         event_record["confirmations"] += [data]

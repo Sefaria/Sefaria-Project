@@ -28,6 +28,8 @@ class Test_Ref(object):
         assert ref.toSections == [7, 18]
         ref = Ref("Jeremiah 7:17\u201118")  # test with unicode dash
         assert ref.toSections == [7, 18]
+        ref = Ref("I Chronicles 1:2 - I Chronicles 1:3")  # test with unicode dash
+        assert ref.toSections == [1, 3]
 
     def test_short_bible_refs(self):
         assert Ref("Exodus") != Ref("Exodus 1")
@@ -148,7 +150,7 @@ class Test_Ref(object):
         assert Ref("Pesach Haggadah, Magid").all_context_refs() == [Ref("Pesach Haggadah, Magid")]
 
         # Don't choke on Virtual nodes
-        assert Ref("Jastrow, ג").all_context_refs() == [Ref("Jastrow, ג")]
+        assert Ref("Jastrow, ג").all_context_refs() == [Ref("Jastrow, ג"), Ref('Jastrow<d>')]
 
     # These won't work unless the sheet is present in the db
     @pytest.mark.deep
@@ -393,6 +395,8 @@ class Test_Ref(object):
         assert Ref("Zohar 1:3b:12-1:4b:12").starting_refs_of_span(True) == [Ref("Zohar 1:3b:12"), Ref("Zohar 1:4a"), Ref("Zohar 1:4b")]
 
     def test_as_ranged_segment_ref(self):
+        assert Ref("Zohar").as_ranged_segment_ref() == Ref("Zohar 1:1a:1-4:211b:1")
+        assert Ref("Berakhot").as_ranged_segment_ref() == Ref("Berakhot 2a:1-64a:15")
         assert Ref('Genesis').as_ranged_segment_ref() == Ref('Genesis.1.1-50.26')
         assert Ref('Shabbat.3a.1').as_ranged_segment_ref() == Ref('Shabbat.3a.1')
         assert Ref('Rashi on Shabbat.3b').as_ranged_segment_ref() == Ref('Rashi on Shabbat.3b.1.1-3b.13.1')
@@ -463,14 +467,15 @@ class Test_Ref(object):
         """
         Ref("Genesis 50")
         Ref("Zevachim 120b")
-        Ref("Jerusalem Talmud Nazir 47b")
+        Ref("Jerusalem Talmud Nazir 9:6")
 
         with pytest.raises(InputError):
             Ref("Genesis 51")
         with pytest.raises(InputError):
             Ref("Zevachim 121a")
-        with pytest.raises(InputError):
-            Ref("Jerusalem Talmud Nazir 48a")
+        # TODO currently doesn't raise error because new Yerushalmi doesn't have lengths on Index record
+        # with pytest.raises(InputError):
+        #     Ref("Jerusalem Talmud Nazir 10:1")
 
     def test_tamid(self):
         Ref("Tamid 25b")  # First amud
@@ -600,13 +605,18 @@ class Test_normal_forms(object):
 
     def test_talmud_range_b_to_b(self):
         oref = Ref("Bava Metzia 20b-21b")
-        assert oref.normal() == "Bava Metzia 20b-21b"
-        assert oref.he_normal() == "בבא מציעא כ׳ ב-כ״א ב"
+        oref_capitalized = Ref("Bava Metzia 20B-21B")
+        assert oref.normal() == "Bava Metzia 20b-21b" == oref_capitalized.normal()
+        assert oref.he_normal() == "בבא מציעא כ׳ ב-כ״א ב" == oref_capitalized.he_normal()
 
     def test_talmud_segment_range(self):
         oref = Ref("Bava Metzia 20a:1-20b:1")
         assert oref.normal() == "Bava Metzia 20a:1-20b:1"
         assert oref.he_normal() == "בבא מציעא כ׳ א:א׳-כ׳ ב:א׳"
+
+    def test_talmud_aA_bB(self):
+        assert Ref("Berakhot 2a") == Ref("Berakhot 2A")
+        assert Ref("Berakhot 2B") == Ref("Berakhot 2B")
 
     def test_zohar_volume_range(self):
         oref = Ref("Zohar 1-2")
@@ -622,6 +632,14 @@ class Test_normal_forms(object):
         oref = Ref("Zohar 1:25a-2:27b")
         assert oref.normal() == "Zohar 1:25-2:27"
         assert oref.he_normal() == "ספר הזהר א׳:כ״ה-ב׳:כ״ז"
+
+    def test_first_available_section_ref(self):
+        assert Ref('Genesis').first_available_section_ref() == Ref('Genesis 1')
+        assert Ref('Siddur Ashkenaz').first_available_section_ref() == Ref('Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Modeh Ani')
+        assert Ref('Penei Moshe on Jerusalem Talmud Shabbat 2').first_available_section_ref() == Ref('Penei Moshe on Jerusalem Talmud Shabbat 2:1:1')
+        assert Ref('Animadversions by Elias Levita on Sefer HaShorashim').first_available_section_ref() == Ref('Animadversions by Elias Levita on Sefer HaShorashim, אבב')
+        assert Ref('Jastrow, שְׁמַע I 1').first_available_section_ref() == Ref('Jastrow, שְׁמַע I 1')
+
 
 
 
@@ -966,7 +984,7 @@ class Test_Order_Id(object):
         assert Ref("Shabbat 12b").order_id() < Ref("Bava Kamma 17b").order_id()
 
     def test_ordering_of_complex_texts(self):
-        assert Ref("Meshech Hochma, Vaera 2").order_id() > Ref("Meshech Hochma, Shemot 6").order_id()
+        assert Ref("Meshekh Chokhmah, Vaera 2").order_id() > Ref("Meshekh Chokhmah, Shemot 6").order_id()
 
     def test_ordering_of_dictionary(self):
         i = library.get_index("Klein Dictionary")

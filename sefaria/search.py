@@ -31,7 +31,7 @@ from sefaria.model.collection import CollectionSet
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 from sefaria.utils.util import strip_tags
-from .settings import SEARCH_ADMIN, SEARCH_INDEX_NAME_TEXT, SEARCH_INDEX_NAME_SHEET, SEARCH_INDEX_NAME_MERGED, STATICFILES_DIRS
+from .settings import SEARCH_ADMIN, SEARCH_INDEX_NAME_TEXT, SEARCH_INDEX_NAME_SHEET, STATICFILES_DIRS
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.utils.hebrew import strip_cantillation
 import sefaria.model.queue as qu
@@ -434,8 +434,8 @@ class TextIndexer(object):
                 vlist = cls.get_ref_version_list(r)
                 vpriorities = defaultdict(lambda: 0)
                 for i, v in enumerate(vlist):
-                    lang = v["language"]
-                    cls.version_priority_map[(title, v["versionTitle"], lang)] = (vpriorities[lang], mini_toc["categories"])
+                    lang = v.language
+                    cls.version_priority_map[(title, v.versionTitle, lang)] = (vpriorities[lang], mini_toc["categories"])
                     vpriorities[lang] += 1
 
         traverse(toc)
@@ -443,7 +443,7 @@ class TextIndexer(object):
     @staticmethod
     def get_ref_version_list(oref, tries=0):
         try:
-            return oref.version_list()
+            return oref.index.versionSet().array()
         except InputError as e:
             print(f"InputError: {oref.normal()}")
             return []
@@ -545,7 +545,7 @@ class TextIndexer(object):
             cls.best_time_period = None
         version_priority = 0
         for priority, v in enumerate(cls.get_ref_version_list(oref)):
-            if v['versionTitle'] == version_title:
+            if v.versionTitle == version_title:
                 version_priority = priority
         content = TextChunk(oref, lang, vtitle=version_title).ja().flatten_to_string()
         categories = cls.curr_index.categories
@@ -620,7 +620,7 @@ class TextIndexer(object):
             comp_start_date = 3000  # far in the future
 
         ref_data = RefData().load({"ref": tref})
-        pagesheetrank = ref_data.pagesheetrank if ref_data is not None else RefData.DEFAULT_PAGERANK * RefData.DEFAULT_SHEETRANK
+        pagesheetrank = ref_data.pagesheetrank if ref_data is not None else RefData.DEFAULT_PAGESHEETRANK
 
         return {
             "ref": tref,

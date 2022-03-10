@@ -109,7 +109,7 @@ def create_simple_text():
     index = Index({
         'schema': root.serialize(),
         'title': 'MigrateBook',
-        'categories': ['Other'],
+        'categories': ['Liturgy'],
     })
     index.save()
 

@@ -692,7 +692,7 @@ class JaggedTextArray(JaggedArray):
             return _cur
         if not len(_cur):
             return _cur
-        if isinstance(_cur[0], list):
+        if all([isinstance(sub_cur, list) for sub_cur in _cur if bool(sub_cur) and len(sub_cur) > 0]):  # sometimes there the JA is ["", [...more content here]]. need to check if all non-empty elements are arrays
             return [self.trim_ending_whitespace(part) for part in _cur]
         else: # depth 1
             final_index = len(_cur) - 1

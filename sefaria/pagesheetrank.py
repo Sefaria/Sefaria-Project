@@ -255,7 +255,10 @@ def init_pagerank_graph(ref_list=None):
     return graph, all_ref_cat_counts
 
 
-def pagerank_rank_ref_list(ref_list, normalize=False):
+def pagerank_rank_ref_list(ref_list, normalize=False, seg_ref_map=None):
+    """
+    :param seg_ref_map: dict with keys that are ranged refs and values are list of segment trefs. pass in order to save from recomputing within this function
+    """
     # make unique
     ref_list = [v for k, v in {r.normal(): r for r in ref_list}.items()]
     graph, all_ref_cat_counts = init_pagerank_graph(ref_list)
@@ -272,10 +275,11 @@ def pagerank_rank_ref_list(ref_list, normalize=False):
             if count < len(sorted_ranking) - 1:
                 pr = {r: temp_pr for r, temp_pr in sorted_ranking[count:]}
     # map pr values onto ref_list
-    ref_map = {r.normal(): [rr.normal() for rr in r.all_segment_refs()] for r in ref_list}
+    if seg_ref_map is None:
+        seg_ref_map = {r.normal(): [rr.normal() for rr in r.all_segment_refs()] for r in ref_list}
     # TODO do we always want to choose max segment PR over the range? maybe average is better?
     ref_list_with_pr = sorted([
-        (r, max([pr.get(rr, 0.0) for rr in ref_map[r.normal()]])) if len(ref_map[r.normal()]) > 0 else (r, 0.0) for r in
+        (r, max([pr.get(rr, 0.0) for rr in seg_ref_map[r.normal()]])) if len(seg_ref_map[r.normal()]) > 0 else (r, 0.0) for r in
         ref_list
     ], key=lambda x: x[1], reverse=True)
     return ref_list_with_pr

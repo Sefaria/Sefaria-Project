@@ -20,12 +20,12 @@ p {
 	}	
 }
 
-.wrapper {
+#staticContentWrapper {
 	min-height: 100%;
 	margin: 0 auto -152px; /* the bottom margin is the negative value of the footer's height */
 }
 
-.wrapper:after {
+#staticContentWrapper:after {
   content: "";
   display: block;
   height: 151px;

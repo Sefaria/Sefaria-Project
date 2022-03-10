@@ -15,7 +15,7 @@ body {
 .connectionsHeader,
 .collectionListingImageBox,
 .bookMetaDataBox,
-.cookieNotification,
+.cookiesNotification,
 #bannerMessage,
 #interruptingMessageBox
 details {
@@ -91,6 +91,9 @@ details {
 }
 .segment .segmentNumber {
   top: 0px !important;
+}
+.segment sup {
+  display: none;
 }
 #printFooter {
   display: block !important;

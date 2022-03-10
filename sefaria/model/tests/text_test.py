@@ -5,6 +5,7 @@ import pytest
 
 import sefaria.model as model
 from sefaria.system.exceptions import InputError
+from sefaria.system.testing import test_uid
 
 
 def teardown_module(module):
@@ -17,8 +18,14 @@ def teardown_module(module):
               "Test Del"]
 
     for title in titles:
-        model.IndexSet({"title": title}).delete()
-        model.VersionSet({"title": title}).delete()
+        try:
+            model.IndexSet({"title": title}).delete()
+        except Exception:
+            pass
+        try:
+            model.VersionSet({"title": title}).delete()
+        except Exception:
+            pass
 
 
 def test_dup_index_save():
@@ -338,7 +345,7 @@ def test_text_helpers():
     res = model.library.get_dependant_indices(book_title="Exodus")
     assert 'Ibn Ezra on Exodus' in res
     assert 'Ramban on Exodus' in res
-    assert 'Meshech Hochma' in res
+    assert 'Meshekh Chokhmah' in res
     assert 'Abarbanel on Torah' in res
     assert 'Targum Jonathan on Exodus' in res
     assert 'Onkelos Exodus' in res
@@ -350,7 +357,7 @@ def test_text_helpers():
     res = model.library.get_dependant_indices(book_title="Exodus", dependence_type='Commentary')
     assert 'Ibn Ezra on Exodus' in res
     assert 'Ramban on Exodus' in res
-    assert 'Meshech Hochma' in res
+    assert 'Meshekh Chokhmah' in res
     assert 'Abarbanel on Torah' in res
     assert 'Harchev Davar on Exodus' in res
 
@@ -364,7 +371,7 @@ def test_text_helpers():
     assert 'Ramban on Exodus' in res
 
     assert 'Harchev Davar on Exodus' not in res
-    assert 'Meshech Hochma' not in res
+    assert 'Meshekh Chokhmah' not in res
     assert 'Abarbanel on Torah' not in res
     assert 'Exodus' not in res
     assert 'Rashi on Genesis' not in res
@@ -544,8 +551,8 @@ def test_version_walk_thru_contents():
 
 
 class TestModifyVersion:
-    simpleIndexTitle = "Test ModifyVersion Simple"
-    complexIndexTitle = "Test ModifyVersion Complex"
+    simpleIndexTitle = "Test ModifyVersion Simple " + test_uid
+    complexIndexTitle = "Test ModifyVersion Complex " + test_uid
     vtitle = "Version TEST"
     vlang = "he"
 
@@ -619,10 +626,11 @@ class TestModifyVersion:
 
     @classmethod
     def teardown_class(cls):
-        cls.simpleIndex.delete()
-        cls.complexIndex.delete()
-        cls.simpleVersion.delete()
-        cls.complexVersion.delete()
+        for c in [cls.simpleIndex, cls.complexIndex, cls.simpleVersion, cls.complexVersion]:
+            try:
+                c.delete()
+            except Exception:
+                pass
 
     def test_sub_content_with_ref(self):
         self.simpleVersion.sub_content_with_ref(model.Ref(f"{self.simpleIndexTitle} 3:2"), "new text")
@@ -651,6 +659,29 @@ class TestModifyVersion:
 
         # reset
         self.simpleVersion.sub_content_with_ref(model.Ref(f"{self.simpleIndexTitle}"), [['1'], ['2'], ["original text", "2nd"]])
+
+    def test_sub_content_simple_setter(self):
+        self.simpleVersion.sub_content(self.simpleIndex.nodes.version_address(), value=[[], [], []])
+        for i in range(3):
+            assert self.simpleVersion.chapter[i] == []
+
+        self.simpleVersion.sub_content(self.simpleIndex.nodes.version_address(), [1], value=['yo1', 'yo2', 'yo3'])
+        assert self.simpleVersion.chapter[1] == ['yo1', 'yo2', 'yo3']
+
+        self.simpleVersion.sub_content(self.simpleIndex.nodes.version_address(), [0, 1], value='yo')
+        assert self.simpleVersion.chapter[0][1] == 'yo'
+
+        # reset
+        self.simpleVersion.sub_content_with_ref(model.Ref(f"{self.simpleIndexTitle}"), [['1'], ['2'], ["original text", "2nd"]])
+
+    def test_sub_content_complex_setter(self):
+        self.complexVersion.sub_content([], value={"Node 1": {"Node 2": [['wadup']], "Node 3": []}})
+        assert self.complexVersion.chapter['Node 1']['Node 2'] == [['wadup']]
+
+        self.complexVersion.sub_content(["Node 1"], value={"Node 2": [['yoyoyo']]})
+        assert self.complexVersion.chapter['Node 1']['Node 2'] == [['yoyoyo']]
+
+        self.complexVersion.sub_content_with_ref(model.Ref(f"{self.complexIndexTitle}"), {"Node 1": {"Node 2": [['yo'],['', 'blah'],["original text", "2nd"]]}, "Node 3": ['1', '2', '3', '4']})
 
     def test_get_top_level_jas_text_chunk(self):
         tc = model.Ref(self.simpleIndexTitle).text('he')

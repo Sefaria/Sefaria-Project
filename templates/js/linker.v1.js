@@ -236,14 +236,21 @@
         }
 
         // Get regexes for each of the titles
-        atomic.get(base_url + "api/regexs/" + matchedTitles.join("|"))
+        atomic.get(base_url + "api/linker-data/" + matchedTitles.join("|") + '?url='+document.location.href)
             .success(function (data, xhr) {
                 if ("error" in data) {
                     console.log(data["error"]);
                     delete data.error;
                 }
-                ns.regexes = data;
-                var books = Object.getOwnPropertyNames(data).sort(function(a, b) {
+                ns.regexes = data["regexes"];
+                if (ns.excludeFromTracking && ns.excludeFromTracking.length > 0 && data["exclude_from_tracking"].length > 0) {
+                    // append our exclusions to site's own exclusions
+                    ns.excludeFromTracking = data["exclude_from_tracking"] + ", " + ns.excludeFromTracking;
+                }
+                else if (data["exclude_from_tracking"].length > 0) {
+                    ns.excludeFromTracking = data["exclude_from_tracking"];
+                }
+                var books = Object.getOwnPropertyNames(data["regexes"]).sort(function(a, b) {
                   return b.length - a.length; // ASC -> a - b; DESC -> b - a
                 });
                 for (var k = 0; k < books.length; k++) {
@@ -251,7 +258,7 @@
                     const portionHasMatched = {};
 
                     // Run each regex over the document, and wrap results
-                    var r = XRegExp(data[book],"xgm");
+                    var r = XRegExp(data["regexes"][book],"xgm");
                     for (var i = 0; i < elems.length; i++) {
                         findAndReplaceDOMText(elems[i], {
                             preset: 'prose',
@@ -262,11 +269,11 @@
                                 const matchKey = match.startIndex + "|" + match.endIndex;
                                 let isFirstPortionInMatch = !portionHasMatched[matchKey];
                                 portionHasMatched[matchKey] = true;
-                                
+
                                 var matched_ref = match[1]
                                     .replace(/[\r\n\t ]+/g, " ") // Filter out multiple spaces
                                     .replace(/[(){}[\]]+/g, ""); // Filter out internal parenthesis todo: Don't break on parens in books names
-                                
+
                                 // Walk up node tree to see if this context should be excluded from linking or tracking
                                 let p = portion.node;
                                 let excludeFromLinking = false;
