@@ -609,26 +609,23 @@ class NGramMatcher(object):
     def _get_scored_titles(self, real_token_map):
         total_ngrams = len(real_token_map)
         possibilities__scores = []
-        possibilties_tokens_map = defaultdict(set)
+        possibilties_tokens_map = defaultdict(int)
         title_ngram_map = defaultdict(set)  # map of ngram inputs that matched this title (through mapping of ngrams to real tokens)
         for ngram_token, real_tokens in real_token_map.items():
             for real_token in real_tokens:
                 possibilities = self.token_to_titles.get(real_token, [])
-                for title__title_tokens in possibilities:
-                    possibilties_tokens_map[title__title_tokens].add(real_token)
-                    title_ngram_map[title__title_tokens].add(ngram_token)
+                for (title, title_tokens) in possibilities:
+                    possibilties_tokens_map[title] += self._tfidf_scorer.score_token(real_token, title_tokens)
+                    title_ngram_map[title].add(ngram_token)
 
-        for (title, title_tokens), real_tokens in possibilties_tokens_map.items():
-            matched_ngrams = title_ngram_map[(title, title_tokens)]
-            score = self._tfidf_scorer.score(real_tokens, title_tokens, matched_ngrams, total_ngrams)
+        for title, matched_token_score in possibilties_tokens_map.items():
+            matched_ngrams = title_ngram_map[title]
+            score = matched_token_score - (total_ngrams - len(matched_ngrams))
             possibilities__scores.append((title, score))
         return possibilities__scores
 
     def _filtered_results(self, titles__scores):
         score_threshold = 0.5  # NOTE: score is no longer between 0 and 1. This threshold is somewhat arbitrary and may need adjusting.
-        if titles__scores and titles__scores[0][1] == TfidfScorer.PERFECT_SCORE:
-            return [titles__scores[0][0]]
-
         return [tuple_obj[0] for tuple_obj in titles__scores if tuple_obj[1] >= score_threshold]
 
     def guess_titles(self, tokens):
@@ -639,8 +636,6 @@ class NGramMatcher(object):
 
 
 class TfidfScorer:
-
-    PERFECT_SCORE = 1e6
 
     def __init__(self):
         self._token_idf_map = {}
@@ -657,21 +652,8 @@ class TfidfScorer:
             self._token_idf_map[token] = idf
         self._missing_idf_value = math.log(self._total_documents)
 
-    def _score_token(self, query_token: str, doc_tokens):
+    def score_token(self, query_token: str, doc_tokens):
         tf = 1 / (1 + len(doc_tokens))  # approximation of tf excluding # of times token appears in document. this seems like a small factor for AC and adds function calls.
         idf = self._token_idf_map.get(query_token, self._missing_idf_value)
         return tf * idf
 
-    def score(self, real_tokens, doc_tokens, matched_ngrams, total_ngrams):
-        """
-        :param real_tokens: tokens after mapping of input ngrams to start of real tokens
-        :param doc_tokens: tokens of document that was matched
-        :param matched_ngrams: matched input ngrams
-        :param total_ngrams: total num ngrams in input string
-        """
-        nexact_matched = len(matched_ngrams & real_tokens)
-        missed_tokens = (total_ngrams - len(matched_ngrams))
-        if len(doc_tokens) == nexact_matched and missed_tokens == 0:
-            return self.PERFECT_SCORE
-        matched_score = sum(self._score_token(token, doc_tokens) for token in real_tokens)
-        return matched_score - missed_tokens
