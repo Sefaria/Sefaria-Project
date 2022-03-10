@@ -28,6 +28,7 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
     const [shouldUpdateChats, setShouldUpdateChats] = useState(false)
     const [userToBlock, setUserToBlock] = useState(null);
     const [currentActiveChatRoom, setCurrentActiveChatRoom] = useState(null);
+    const [videoCallPending,setVideoCallPending] = useState(false);
 
     const filterDedupeAndSortPeople = (people) => {
         const dedupedPeople = people.filter((person, index,self) => {
@@ -313,6 +314,8 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
                 activeChatRooms={activeChatRooms}
                 currentChatRoom={currentChatRoom}
                 startChat={startChat}
+                setVideoCallPending={setVideoCallPending}
+                videoCallPending={videoCallPending}
                 usersWithUnreadMsgs={usersWithUnreadMsgs}
                 handleCloseChat={handleCloseChat}
                 chavrutaCallInitiated={chavrutaCallInitiated}
@@ -355,6 +358,8 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
                         hideHideButton={true}
                         key={currentActiveChatRoom.roomId}
                         room={currentActiveChatRoom}
+                        videoCallPending={videoCallPending}
+                        setVideoCallPending={setVideoCallPending}
                         handleCloseChat={handleCloseChat}
                         chavrutaCallInitiated={chavrutaCallInitiated}
                         chavrutaRequestReceived={chavrutaRequestReceived}
@@ -378,7 +383,7 @@ const BeitMidrash = ({socket, beitMidrashId, currentlyReading}) => {
     )
 }
 
-const UserInBeitMidrash = ({user, userClasses, startChat, onBlockUser}) => {
+const UserInBeitMidrash = ({user, userClasses, startChat, onBlockUser, setVideoCallPending}) => {
   const [userDetailsOpen, setUserDetailsOpen] = useState(false);
   const userDetailsMenu = useRef();
 
@@ -387,6 +392,12 @@ const UserInBeitMidrash = ({user, userClasses, startChat, onBlockUser}) => {
         userDetailsMenu.current.focus();
       }
   }, [userDetailsOpen])
+
+  const startChatAndCall = (activeChatPartner, e=null) => {
+      setVideoCallPending(true)
+      startChat(user, e);
+
+  }
 
   return (
     <div className={classNames(userClasses)} key={user.uid} onClick={e => startChat(user, e)}>
@@ -406,6 +417,9 @@ const UserInBeitMidrash = ({user, userClasses, startChat, onBlockUser}) => {
               ref={userDetailsMenu}
               dir={Sefaria.interfaceLang === "hebrew" ? "rtl" : "ltr"}>
               <ul>
+                <li onClick={(e) => {startChat(user, e)}}><img src="/static/icons/speech-bubble.svg" aria-hidden="true"/><InterfaceText>Chat</InterfaceText></li>
+                <li onClick={(e) => {startChatAndCall(user, e)}}><img src="/static/img/chavruta.svg" aria-hidden="true"/><InterfaceText>Call</InterfaceText></li>
+
                 <li onClick={() => {window.open(`/profile/${user.slug}`)}}>
                     <img src="/static/icons/profile.svg" aria-hidden="true"/><InterfaceText>View Profile</InterfaceText></li>
                 <li>
@@ -460,7 +474,9 @@ const BeitMidrashHome = ({
                         shouldUpdateChats,
                         setShouldUpdateChats,
                         markRead,
-                        currentActiveChatRoom
+                        currentActiveChatRoom,
+                        setVideoCallPending,
+                        videoCallPending,
                         }) => {             
 
     return (<div className="beitMidrashHomeContainer">
@@ -482,6 +498,7 @@ const BeitMidrashHome = ({
                                     userClasses={userClasses}
                                     startChat={startChat}
                                     onBlockUser={onBlockUser}
+                                    setVideoCallPending={setVideoCallPending}
                                    />
                         } else {
                             return null
@@ -509,6 +526,8 @@ const BeitMidrashHome = ({
                         chavrutaRequestReceived={chavrutaRequestReceived}
                         activeChavruta={activeChavruta}
                         socket={socket}
+                        videoCallPending={videoCallPending}
+                        setVideoCallPending={setVideoCallPending}
                         shouldUpdateChats={shouldUpdateChats}
                         setShouldUpdateChats={setShouldUpdateChats}
                         markRead={markRead}
@@ -617,7 +636,9 @@ const ChatBox = ({room,
                 markRead,
                 hideHideButton,
                 onBlockUser,
-                onUnblockUser
+                onUnblockUser,
+                videoCallPending,
+                setVideoCallPending,
                  }) => {
 
     const [chatMessage, setChatMessage] = useState("");
@@ -644,6 +665,17 @@ const ChatBox = ({room,
             setShouldUpdateChats(false)
         }
     }, [shouldUpdateChats])
+
+    useEffect( () => {
+        /* n.b. This whole `videoCallPending` is a bit of a hack to quickly allow for more ease to return the chavruta
+         in sidebar functionality while we try to figure out if this entire thing is going to be mothballed or not. If
+         you have a better idea, please remove it. RMN (3/10/2022)
+        */
+        if (videoCallPending) {
+            handleStartCall(room["activeChatPartner"]["uid"]);
+            setVideoCallPending(false)
+        }
+    }, [videoCallPending])
 
     useEffect(()=>{
         if (storedChatMessages) {
