@@ -74,8 +74,8 @@ def cleanup_and_format_text(text, language):
 
 
 def generate_image(text="", category="System", ref_str="", lang="he", platform="twitter", colored=False):
-    text_color = '#fff' if colored else '#666666'# dark-grey
-    bg_color = palette[category] if colored else (251, 251, 249) # lightest-grey
+    text_color = '#fff'
+    bg_color = palette[category]
 
     font = ImageFont.truetype(font='static/fonts/Amiri-Taamey-Frank-merged.ttf', size=platforms[platform]["font_size"])
     width = platforms[platform]["width"]
@@ -87,14 +87,14 @@ def generate_image(text="", category="System", ref_str="", lang="he", platform="
 
     if lang == "en":
         align = "left"
-        logo_url = f"static/img/{'logo-white' if colored else 'logo' }.png"
+        logo_url = "static/img/logo.png"
         spacing = 0
         ref_font = ImageFont.truetype(font='static/fonts/Roboto-Regular.ttf', size=platforms[platform]["ref_font_size"])
         cat_border_pos = (0, 0, 0, img.size[1])
 
     else:
         align = "right"
-        logo_url = f"static/img/{'logo-hebrew-white' if colored else 'logo-hebrew' }.png"
+        logo_url = "static/img/logo-hebrew.png"
         spacing = platforms[platform]["he_spacing"]
         ref_font = ImageFont.truetype(font='static/fonts/Heebo-Regular.ttf', size=platforms[platform]["ref_font_size"])
         cat_border_pos = (img.size[0], 0, img.size[0], img.size[1])
@@ -107,34 +107,25 @@ def generate_image(text="", category="System", ref_str="", lang="he", platform="
     draw.text(xy=(img.size[0] / 2, img.size[1] / 2), text=text, font=font, spacing=spacing, align=align,
               fill=text_color, anchor='mm')
 
-    if not colored:
 
-        #category line
-        draw.line(cat_border_pos, fill=palette[category], width=int(width*.02))
+    #category line
+    draw.line(cat_border_pos, fill=palette[category], width=int(width*.02))
 
 
-        #header white
-        draw.line((0, int(height*.05), img.size[0], int(height*.05)), fill=(255, 255, 255), width=int(height*.1))
-        draw.line((0, int(height*.1), img.size[0], int(height*.1)), fill="#CCCCCC", width=int(height*.0025))
+    #header white
+    draw.line((0, int(height*.05), img.size[0], int(height*.05)), fill=(255, 255, 255), width=int(height*.1))
+    draw.line((0, int(height*.1), img.size[0], int(height*.1)), fill="#CCCCCC", width=int(height*.0025))
 
-        #write ref
-        draw.text(xy=(img.size[0] / 2, img.size[1]-padding_y/2), text=get_display(ref_str.upper()), font=ref_font, spacing=spacing, align=align, fill=text_color, anchor='mm')
+    #write ref
+    draw.text(xy=(img.size[0] / 2, img.size[1]-padding_y/2), text=get_display(ref_str.upper()), font=ref_font, spacing=spacing, align=align, fill=text_color, anchor='mm')
 
-        #add sefaria logo
-        logo = Image.open(logo_url)
-        logo.thumbnail((width, int(height*.06)))
-        logo_padded = Image.new('RGBA', (width, height))
-        logo_padded.paste(logo, (int(width/2-logo.size[0]/2), int(height*.05-logo.size[1]/2)))
+    #add sefaria logo
+    logo = Image.open(logo_url)
+    logo.thumbnail((width, int(height*.06)))
+    logo_padded = Image.new('RGBA', (width, height))
+    logo_padded.paste(logo, (int(width/2-logo.size[0]/2), int(height*.05-logo.size[1]/2)))
 
-        img = Image.alpha_composite(img, logo_padded)
-
-    else:
-        watermark = Image.open(logo_url)
-        watermark.thumbnail((200, 200))
-        watermark_padded = Image.new('RGBA', (width, height))
-        watermark_pos = int(img.size[0]-(padding_x/2) - watermark.size[0]) if lang == "en" else int(padding_x/2)
-        watermark_padded.paste(watermark, (watermark_pos, int(height-watermark.size[1]- (padding_y/4))))
-        img = Image.alpha_composite(img, watermark_padded)
+    img = Image.alpha_composite(img, logo_padded)
 
 
     return(img)
