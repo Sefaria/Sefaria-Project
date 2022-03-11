@@ -73,7 +73,7 @@ def cleanup_and_format_text(text, language):
     return text
 
 
-def generate_image(text="", category="System", ref_str="", lang="he", platform="twitter", colored=False):
+def generate_image(text="", category="System", ref_str="", lang="he", platform="twitter"):
     text_color = '#fff'
     bg_color = palette[category]
 
@@ -111,13 +111,20 @@ def generate_image(text="", category="System", ref_str="", lang="he", platform="
     #category line
     draw.line(cat_border_pos, fill=palette[category], width=int(width*.02))
 
-
     #header white
     draw.line((0, int(height*.05), img.size[0], int(height*.05)), fill=(255, 255, 255), width=int(height*.1))
     draw.line((0, int(height*.1), img.size[0], int(height*.1)), fill="#CCCCCC", width=int(height*.0025))
 
     #write ref
     draw.text(xy=(img.size[0] / 2, img.size[1]-padding_y/2), text=get_display(ref_str.upper()), font=ref_font, spacing=spacing, align=align, fill=text_color, anchor='mm')
+
+
+    #border
+    draw.line((0, 0, width, 0), fill="#666666", width=1)
+    draw.line((0, 0, 0, height), fill="#666666", width=1)
+    draw.line((width-1, 0, width-1, height), fill="#666666", width=1)
+    draw.line((0, height-1, width, height-1), fill="#666666", width=1)
+
 
     #add sefaria logo
     logo = Image.open(logo_url)
@@ -130,9 +137,9 @@ def generate_image(text="", category="System", ref_str="", lang="he", platform="
 
     return(img)
 
-def make_img_http_response(text, category, ref_str, lang, platform, colored):
+def make_img_http_response(text, category, ref_str, lang, platform):
     try:
-        img = generate_image(text, category, ref_str, lang, platform, colored)
+        img = generate_image(text, category, ref_str, lang, platform)
     except:
         height = platforms[platform]["height"]
         width = platforms[platform]["width"]
