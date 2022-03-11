@@ -504,7 +504,7 @@ const BeitMidrashHome = ({
                             return null
                         }
                     }) : <div className="noUsers">
-                            <InterfaceText>Share this link with your chavruta to start a video call with this text</InterfaceText>
+                            <InterfaceText>Share this link to invite people into your private beit midrash - where you can chat, video call, and follow each other's study paths.</InterfaceText>
                             <input
                                 id="chavrutaURL"
                                 type="text"
