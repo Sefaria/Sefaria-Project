@@ -9,7 +9,7 @@ metadata:
     deployEnv: "{{ .Values.deployEnv }}"
     app: web-{{ .Values.deployEnv }}
     # releaseRevision: "{{ .Release.Revision }}"
-  annotations: 
+  annotations:
     rollout.argoproj.io/revision: "{{ .Release.Revision }}"
 spec:
   strategy:
@@ -56,7 +56,7 @@ spec:
                 values:
                 - "web-{{ .Values.deployEnv }}"
             topologyKey: kubernetes.io/hostname
-        {{if eq .Values.sandbox "true"}}
+        {{- if eq .Values.sandbox "true" }}
         nodeAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
             - weight: 100
@@ -74,8 +74,7 @@ spec:
                     operator: In
                     values:
                       - "true"
-        {{end}}
-
+        {{- end }}
       containers:
       - name: web
         image: "{{ .Values.web.containerImage.imageRegistry }}:{{ .Values.web.containerImage.tag }}"
@@ -192,40 +191,3 @@ spec:
         - name: gunicorn-config
           configMap:
             name: gunicorn-config-{{ .Values.deployEnv }}
----
-# for use outside the stack
-apiVersion: v1
-kind: Service
-metadata:
-  name: web-{{ .Values.deployEnv }}
-  labels:
-    app: web-{{ .Values.deployEnv }}
-    deployEnv: "{{ .Values.deployEnv }}"
-    stackRole: varnish
-spec:
-  ports:
-  - port: 80
-  selector:
-    app: "web-{{ .Values.deployEnv }}"
-
-# write comments TODO
-{{range $index, $value := untilStep (int (sub .Release.Revision .Values.previousServicesCount)) (int (add .Release.Revision 1)) 1}}
-{{if gt $value 0}}
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: web-{{ $.Values.deployEnv }}-{{ $value }}
-  labels:
-    app: web-{{ $.Values.deployEnv }}
-    deployEnv: "{{ $.Values.deployEnv }}"
-    stackRole: django
-spec:
-  ports:
-  - port: 80
-  selector:
-    app: "web-{{ $.Values.deployEnv }}"
-    releaseRevision: "{{ $value }}"
-{{end}}
-{{end}}
-...

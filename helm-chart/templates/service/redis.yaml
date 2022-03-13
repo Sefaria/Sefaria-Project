@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-{{ .Values.deployEnv }}
+  labels:
+    app: redis-{{ .Values.deployEnv }}
+spec:
+  ports:
+  - port: 6379
+  selector:
+    app: redis-{{ .Values.deployEnv }}

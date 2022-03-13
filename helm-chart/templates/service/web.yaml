@@ -1,0 +1,14 @@
+# for use outside the stack
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-{{ .Values.deployEnv }}
+  labels:
+    app: web-{{ .Values.deployEnv }}
+    deployEnv: "{{ .Values.deployEnv }}"
+    stackRole: varnish
+spec:
+  ports:
+  - port: 80
+  selector:
+    app: "web-{{ .Values.deployEnv }}"
