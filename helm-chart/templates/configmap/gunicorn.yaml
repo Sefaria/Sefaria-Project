@@ -4,6 +4,7 @@ metadata:
   name: gunicorn-config-{{ .Values.deployEnv }}
   labels:
     deployEnv: "{{ .Values.deployEnv }}"
+    {{- include "sefaria.labels" . | nindent 4 }}
 data: 
   gunicorn.conf.py: |-
     # args: [ "python manage.py migrate && gunicorn sefaria.wsgi --access-logfile - --error-logfile /log/gunicorn-error.log --timeout 300 --worker-class=gevent --worker-connection 2000 --worker-tmp-dir /dev/shm -b 0.0.0.0:80" ]

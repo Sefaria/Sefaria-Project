@@ -5,12 +5,14 @@ metadata:
   name: "{{ .Values.deployEnv }}-redis"
   labels:
     deployEnv: "{{ .Values.deployEnv }}"
+    {{- include "sefaria.labels" . | nindent 4 }}
 spec:
   strategy:
     type: RollingUpdate
   selector:
     matchLabels:
       app: redis-{{ .Values.deployEnv }}
+      {{- include "sefaria.selectorLabels" . | nindent 6 }}
   revisionHistoryLimit: 0
   replicas: {{ .Values.redis.replicaCount }}
   template:
@@ -20,8 +22,9 @@ spec:
         tier: application
         deployEnv: "{{ .Values.deployEnv }}"
         stackRole: redis
+        {{- include "sefaria.labels" . | nindent 8 }}
     spec:
-      {{if eq .Values.sandbox "true"}}
+      {{- if eq .Values.sandbox "true" }}
       affinity:
         nodeAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -40,7 +43,7 @@ spec:
                     operator: In
                     values:
                       - "true"
-      {{end}}
+      {{- end }}
       containers:
       - name: redis
         image: "{{ .Values.redis.containerImage.imageRegistry }}:{{ .Values.redis.containerImage.tag }}"
@@ -63,10 +66,10 @@ metadata:
   name: redis-disruption-budget-{{ .Values.deployEnv }}
   labels:
     deployEnv: "{{ .Values.deployEnv }}"
+    {{- include "sefaria.labels" . | nindent 4 }}
 spec:
   maxUnavailable: 0
   selector:
     matchLabels:
       app: redis-{{ .Values.deployEnv }}
-...
 {{- end }}

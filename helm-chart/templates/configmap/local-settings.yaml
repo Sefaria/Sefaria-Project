@@ -4,6 +4,7 @@ metadata:
   name: local-settings-{{ .Values.deployEnv }}
   labels:
     deployEnv: {{ .Values.deployEnv | quote }}
+    {{- include "sefaria.labels" . | nindent 4 }}
 data: 
   DEBUG: "{{ .Values.localSettings.DEBUG }}"
   DOMAIN_LANGUAGE: {{ .Values.localSettings.DOMAIN_LANGUAGE | toJson | quote }}

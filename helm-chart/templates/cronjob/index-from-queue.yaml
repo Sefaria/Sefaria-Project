@@ -1,9 +1,11 @@
-{{ if eq .Values.deployEnv "prod" }}
+{{- if eq .Values.deployEnv "prod" }}
 ---
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
   name: {{ .Values.deployEnv }}-index-from-queue
+  labels:
+    {{- include "sefaria.labels" . | nindent 4 }}
 spec:
   schedule: "*/7 * * * *"
   concurrencyPolicy: Forbid
@@ -61,4 +63,4 @@ spec:
           restartPolicy: Never
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 2
-{{end}}
+{{- end }}
