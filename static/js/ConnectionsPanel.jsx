@@ -1822,7 +1822,9 @@ function ManuscriptImage(props) {
           : ''
       }
       <InterfaceText text={{ en: 'Source: ', he: 'מקור: ' }} />
-      <a href={manuscript.manuscript['source']} target="_blank">{manuscript.manuscript['source'].replace("https://", "")}</a>
+      <a className="versionDetailsLink" href={manuscript.manuscript['source']} target="_blank">
+        { Sefaria.util.parseUrl(manuscript.manuscript['source']).host.replace("www.", "") }
+      </a>
     </div>
 
 
