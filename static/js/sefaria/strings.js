@@ -442,7 +442,7 @@ const Strings = {
     "End Call": "ניתוק",
     "Learn with a Chavruta": "לימוד בחברותא",
     "Share this link to invite people into your private beit midrash - where you can chat, video call, and follow each other's study paths.": "שתפו את הקישור הזה כדי להזמין את חבריכם לבית המדרש:",
-    "Open Your Beit Midrash":"פתח בית המדרש שלך",
+    "Open Your Beit Midrash":"החלו לימוד בחבורה",
     "Chat":"לשוחח",
     "Call": "להתקשר",
     "Start Call": "התחלת שיחה",
