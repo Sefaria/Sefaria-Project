@@ -24,26 +24,9 @@ spec:
         stackRole: redis
         {{- include "sefaria.labels" . | nindent 8 }}
     spec:
-      {{- if eq .Values.sandbox "true" }}
       affinity:
         nodeAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-            - weight: 100
-              preference:
-                matchExpressions:
-                  - key: preemptible
-                    operator: NotIn
-                    values:
-                      - "false"
-                      - ""
-            - weight: 100
-              preference:
-                matchExpressions:
-                  - key: preemptible
-                    operator: In
-                    values:
-                      - "true"
-      {{- end }}
+          {{- include "sefaria.nodeAffinities" . | nindent 10 }}
       containers:
       - name: redis
         image: "{{ .Values.redis.containerImage.imageRegistry }}:{{ .Values.redis.containerImage.tag }}"
