@@ -143,3 +143,32 @@ Selector labels
 app.kubernetes.io/name: {{ include "sefaria.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
+
+{{/*
+Scheduling affinites applied to all pods
+*/}}
+{{- define "sefaria.nodeAffinities" }}
+requiredDuringSchedulingIgnoredDuringExecution:
+  nodeSelectorTerms:
+    - matchExpressions:
+        - key: database
+          operator: DoesNotExist
+{{- if eq .Values.sandbox "true" }}
+preferredDuringSchedulingIgnoredDuringExecution:
+  - weight: 100
+    preference:
+      matchExpressions:
+        - key: preemptible
+          operator: NotIn
+          values:
+            - "false"
+            - ""
+  - weight: 100
+    preference:
+      matchExpressions:
+        - key: preemptible
+          operator: In
+          values:
+            - "true"
+{{- end }}
+{{- end }}

@@ -46,25 +46,8 @@ spec:
                 values:
                 - mongo
             topologyKey: kubernetes.io.hostname
-        {{- if eq .Values.sandbox "true" }}
         nodeAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-            - weight: 100
-              preference:
-                matchExpressions:
-                  - key: preemptible
-                    operator: NotIn
-                    values:
-                      - "false"
-                      - ""
-            - weight: 100
-              preference:
-                matchExpressions:
-                  - key: preemptible
-                    operator: In
-                    values:
-                      - "true"
-        {{- end}}
+          {{- include "sefaria.nodeAffinities" . | nindent 10 }}
       containers:
       - name: nginx
         image: "{{ .Values.nginx.containerImage.imageRegistry }}:{{ .Values.nginx.containerImage.tag }}"
