@@ -350,7 +350,7 @@ class TextTableOfContents extends Component {
   scrollToCurrent(){
     const curr = document.querySelector(".current");
     if(curr){
-      Sefaria.util.scrollIntoViewIfNeeded(curr, true);
+      Sefaria.util.scrollIntoViewIfNeeded(curr, {block: "center"});
     }
   }
   getDefaultActiveTab(indexDetails){

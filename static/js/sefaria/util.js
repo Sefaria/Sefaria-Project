@@ -20,7 +20,7 @@ class Util {
         // Target is outside the viewport from the bottom
         if (target.getBoundingClientRect().bottom > window.innerHeight) {
             //  The bottom of the target will be aligned to the bottom of the visible area of the scrollable ancestor.
-            target.scrollIntoView(false);
+            target.scrollIntoView(scrollIntoViewOptions);
         }
     
         // Target is outside the view from the top
