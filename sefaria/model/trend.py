@@ -12,6 +12,7 @@ from . import user_profile
 from . import text
 
 from sefaria.system.database import db
+from sefaria.model import Ref
 
 import structlog
 logger = structlog.get_logger(__name__)
@@ -572,3 +573,21 @@ class HebrewAbilityFactory(TrendFactory):
     datatype = "float"   # int, float, str, bool, dict
     for_user = True
     for_group = False
+
+class DateRefRange(object):
+    def __init__(self, refRangeString, start, end):
+        """
+        hosts ref range and acceptable date parameters to help with determining whether a date/ref combination meets
+        criteria for following a schedule
+        :param start: datetime
+        :param end: datetime
+        """
+        self.start = start
+        self.end = end
+        self.refRange = Ref(refRangeString)
+
+    def refIsInRange(self, ref, timestamp):
+        if Ref(ref) in self.refRange.all_segment_refs() and self.start <= timestamp and self.end >= timestamp:
+            return True
+        else:
+            return False
