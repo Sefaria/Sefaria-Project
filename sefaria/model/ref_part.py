@@ -93,7 +93,7 @@ CONTEXT_TO_REF_PART_TYPE = {
 
 class TrieEntry:
     """
-    Base class for entries in RefPartTitleTrie
+    Base class for entries in MatchTemplateTrie
     """
     key_is_id = False  # is key an ID which shouldn't be manipulated with string functions?
 
@@ -105,7 +105,7 @@ class LeafTrieEntry:
     pass
 
 
-# static entry which represents a leaf entry in RefPartTitleTrie
+# static entry which represents a leaf entry in MatchTemplateTrie
 LEAF_TRIE_ENTRY = LeafTrieEntry()
 
 
@@ -625,7 +625,7 @@ def get_prefixless_inds(st: str) -> List[int]:
     return starti_list
 
 
-class RefPartTitleTrie:
+class MatchTemplateTrie:
     """
     Trie for titles. Keys are titles from match_templates on nodes.
     E.g. if there is match template with term slugs ["term1", "term2"], term1 has title "Term 1", term2 has title "Term 2"
@@ -690,7 +690,7 @@ class RefPartTitleTrie:
     def get(self, key, default=None):
         sub_trie = self._trie.get(key, default)
         if sub_trie is None: return
-        return RefPartTitleTrie(self.lang, sub_trie=sub_trie, scope=self.scope)
+        return MatchTemplateTrie(self.lang, sub_trie=sub_trie, scope=self.scope)
 
     def has_continuations(self, key: str, key_is_id=False) -> bool:
         """
@@ -706,7 +706,7 @@ class RefPartTitleTrie:
         for key in b:
             if key in a:
                 if isinstance(a[key], dict) and isinstance(b[key], dict):
-                    RefPartTitleTrie._merge_two_tries(a[key], b[key])
+                    MatchTemplateTrie._merge_two_tries(a[key], b[key])
                 elif a[key] == b[key]:
                     pass  # same leaf value
                 elif isinstance(a[key], list) and isinstance(b[key], list):
@@ -721,14 +721,14 @@ class RefPartTitleTrie:
     def _merge_n_tries(*tries):
         if len(tries) == 1:
             return tries[0]
-        return reduce(RefPartTitleTrie._merge_two_tries, tries)
+        return reduce(MatchTemplateTrie._merge_two_tries, tries)
 
     def get_continuations(self, key: str, default=None, key_is_id=False):
         continuations = self._get_continuations_recursive(key, key_is_id=key_is_id)
         if len(continuations) == 0:
             return default
         merged = self._merge_n_tries(*continuations)
-        return RefPartTitleTrie(self.lang, sub_trie=merged, scope=self.scope)
+        return MatchTemplateTrie(self.lang, sub_trie=merged, scope=self.scope)
 
     def _get_continuations_recursive(self, key: str, prev_sub_tries=None, key_is_id=False):
         is_first = prev_sub_tries is None
@@ -760,7 +760,7 @@ class RefPartTitleTrie:
             yield item
 
 
-class RefPartTitleGraph:
+class MatchTemplateGraph:
     """
     DAG which represents connections between terms in index titles
     where each connection is a pair of consecutive terms
@@ -869,7 +869,7 @@ class IbidHistory:
 class RefResolver:
 
     def __init__(self, raw_ref_model_by_lang: Dict[str, Language], raw_ref_part_model_by_lang: Dict[str, Language],
-                 ref_part_title_trie_by_lang: Dict[str, RefPartTitleTrie], ref_part_title_graph: RefPartTitleGraph,
+                 ref_part_title_trie_by_lang: Dict[str, MatchTemplateTrie], ref_part_title_graph: MatchTemplateGraph,
                  term_matcher_by_lang: Dict[str, TermMatcher]) -> None:
         self._raw_ref_model_by_lang = raw_ref_model_by_lang
         self._raw_ref_part_model_by_lang = raw_ref_part_model_by_lang
@@ -961,7 +961,7 @@ class RefResolver:
     def get_raw_ref_part_model(self, lang: str) -> Language:
         return self.__get_attr_by_lang(lang, self._raw_ref_part_model_by_lang, 'No Raw Ref Model')
 
-    def get_ref_part_title_trie(self, lang: str) -> RefPartTitleTrie:
+    def get_ref_part_title_trie(self, lang: str) -> MatchTemplateTrie:
         return self.__get_attr_by_lang(lang, self._ref_part_title_trie_by_lang, 'No Raw Ref Part Title Trie')
 
     def get_term_matcher(self, lang: str) -> TermMatcher:
@@ -1109,7 +1109,7 @@ class RefResolver:
             if not found_match: swapped_ref_parts += [part]
         raw_ref.parts_to_match = swapped_ref_parts
 
-    def _get_unrefined_ref_part_matches_recursive(self, lang: str, raw_ref: RawRef, title_trie: RefPartTitleTrie = None, ref_parts: list = None, prev_ref_parts: list = None) -> List[ResolvedRawRef]:
+    def _get_unrefined_ref_part_matches_recursive(self, lang: str, raw_ref: RawRef, title_trie: MatchTemplateTrie = None, ref_parts: list = None, prev_ref_parts: list = None) -> List[ResolvedRawRef]:
         title_trie = title_trie or self.get_ref_part_title_trie(lang)
         prev_ref_parts = prev_ref_parts or []
         matches = []

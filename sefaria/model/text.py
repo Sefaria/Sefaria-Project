@@ -5292,19 +5292,19 @@ class Library(object):
 
     def _build_ref_resolver(self):
         import spacy
-        from .ref_part import RefPartTitleTrie, RefPartTitleGraph, RefResolver, TermMatcher, NonUniqueTermSet
+        from .ref_part import MatchTemplateTrie, MatchTemplateGraph, RefResolver, TermMatcher, NonUniqueTermSet
         from sefaria.spacy_function_registry import inner_punct_tokenizer_factory  # used by spacy.load()
 
         root_nodes = list(filter(lambda n: getattr(n, 'match_templates', None) is not None, self.get_index_forest()))
         alone_nodes = reduce(lambda a, b: a + b.index.get_referenceable_alone_nodes(), root_nodes, [])
         non_unique_terms = NonUniqueTermSet()
-        ref_part_title_graph = RefPartTitleGraph(root_nodes)
+        ref_part_title_graph = MatchTemplateGraph(root_nodes)
         self._ref_resolver = RefResolver(
             {k: spacy.load(v) for k, v in RAW_REF_MODEL_BY_LANG_FILEPATH.items()},
             {k: spacy.load(v) for k, v in RAW_REF_PART_MODEL_BY_LANG_FILEPATH.items()},
             {
-                "en": RefPartTitleTrie('en', nodes=(root_nodes + alone_nodes), scope='alone'),
-                "he": RefPartTitleTrie('he', nodes=(root_nodes + alone_nodes), scope='alone')
+                "en": MatchTemplateTrie('en', nodes=(root_nodes + alone_nodes), scope='alone'),
+                "he": MatchTemplateTrie('he', nodes=(root_nodes + alone_nodes), scope='alone')
             },
             ref_part_title_graph,
             {

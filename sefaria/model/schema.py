@@ -788,8 +788,8 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
         return self.title_group.add_title(text, lang, primary, replace_primary, presentation)
 
     def ref_part_title_trie(self, lang: str):
-        from .ref_part import RefPartTitleTrie
-        return RefPartTitleTrie(lang, nodes=[self], scope='combined')
+        from .ref_part import MatchTemplateTrie
+        return MatchTemplateTrie(lang, nodes=[self], scope='combined')
 
     def validate(self):
         super(TitledTreeNode, self).validate()
