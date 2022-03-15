@@ -5,7 +5,8 @@ http://norvig.com/spell-correct.html
 http://scottlobdell.me/2015/02/writing-autocomplete-engine-scratch-python/
 """
 from collections import defaultdict
-
+from typing import List, Iterable
+import math
 import datrie
 from unidecode import unidecode
 from django.contrib.auth.models import User
@@ -589,58 +590,70 @@ class NGramMatcher(object):
         self.normalizer = normalizer(lang)
         self.token_to_titles = defaultdict(list)
         self.token_trie = datrie.BaseTrie(letter_scope)
+        self._tfidf_scorer = TfidfScorer()
 
     def train_phrases(self, titles, normal_titles):
         for title, normal_title in zip(titles, normal_titles):
-            tokens = splitter.split(normal_title)
+            tokens = tuple(splitter.split(normal_title))
+            self._tfidf_scorer.train_tokens(tokens)
             for token in tokens:
                 if not token:
                     continue
-                self.token_to_titles[token].append(title)
-        for k in list(self.token_to_titles.keys()):
+                self.token_to_titles[token].append((title, tokens))
+        for k in self.token_to_titles.keys():
             self.token_trie[k] = 1
 
     def _get_real_tokens_from_possible_n_grams(self, tokens):
-        return list({k for token in tokens for k in self.token_trie.keys(token)})
+        return {token: self.token_trie.keys(token) for token in tokens}
 
-    def _get_scored_titles_uncollapsed(self, real_tokens):
+    def _get_scored_titles(self, real_token_map):
+        total_ngrams = len(real_token_map)
         possibilities__scores = []
-        for token in real_tokens:
-            try:
-                possibilities = self.token_to_titles[token]
-            except KeyError:
-                possibilities = []
-            for title in possibilities:
-                score = float(len(token)) / len(title.replace(" ", ""))   # How much of this title does this token account for
-                possibilities__scores.append((title, score))
+        possibilties_score_map = defaultdict(int)
+        title_ngram_map = defaultdict(set)  # map of ngram inputs that matched this title (through mapping of ngrams to real tokens)
+        for ngram_token, real_tokens in real_token_map.items():
+            for real_token in real_tokens:
+                possibilities = self.token_to_titles.get(real_token, [])
+                for (title, title_tokens) in possibilities:
+                    possibilties_score_map[title] += self._tfidf_scorer.score_token(real_token, title_tokens)
+                    title_ngram_map[title].add(ngram_token)
+
+        for title, matched_token_score in possibilties_score_map.items():
+            matched_ngrams = title_ngram_map[title]
+            score = matched_token_score - (total_ngrams - len(matched_ngrams))
+            possibilities__scores.append((title, score))
         return possibilities__scores
 
-    def _combined_title_scores(self, titles__scores, num_tokens):
-        collapsed_title_to_score = defaultdict(int)
-        collapsed_title_to_occurence = defaultdict(int)
-        for title, score in titles__scores:
-            collapsed_title_to_score[title] += score
-            collapsed_title_to_occurence[title] += 1
-        for title in list(collapsed_title_to_score.keys()):
-            collapsed_title_to_score[title] *= collapsed_title_to_occurence[title] / float(num_tokens)
-        return collapsed_title_to_score
-
     def _filtered_results(self, titles__scores):
-        min_results = 3
-        max_results = 10
-        score_threshold = 0.4
-        max_possibles = titles__scores[:max_results]
-        if titles__scores and titles__scores[0][1] == 1.0:
-            return [titles__scores[0][0]]
-
-        possibles_within_thresh = [tuple_obj for tuple_obj in titles__scores if tuple_obj[1] >= score_threshold]
-        min_possibles = possibles_within_thresh if len(possibles_within_thresh) > min_results else max_possibles[:min_results]
-        return [tuple_obj[0] for tuple_obj in min_possibles]
+        score_threshold = 0.5  # NOTE: score is no longer between 0 and 1. This threshold is somewhat arbitrary and may need adjusting.
+        return [tuple_obj[0] for tuple_obj in titles__scores if tuple_obj[1] >= score_threshold]
 
     def guess_titles(self, tokens):
-        real_tokens = self._get_real_tokens_from_possible_n_grams(tokens)
-        titles__scores = self._get_scored_titles_uncollapsed(real_tokens)
-        collapsed_titles_to_score = self._combined_title_scores(titles__scores, len(tokens))
-        titles__scores = list(collapsed_titles_to_score.items())
+        real_token_map = self._get_real_tokens_from_possible_n_grams(tokens)
+        titles__scores = self._get_scored_titles(real_token_map)
         titles__scores.sort(key=lambda t: t[1], reverse=True)
         return self._filtered_results(titles__scores)
+
+
+class TfidfScorer:
+
+    def __init__(self):
+        self._token_idf_map = {}
+        self._missing_idf_value = 0
+        self._total_documents = 0
+
+    def train_tokens(self, tokens: Iterable[str]) -> None:
+        self._total_documents += 1
+        token_document_count_map = defaultdict(int)
+        for token in set(tokens):
+            token_document_count_map[token] += 1
+        for token, count in token_document_count_map.items():
+            idf = math.log(self._total_documents / (1 + token_document_count_map[token]))
+            self._token_idf_map[token] = idf
+        self._missing_idf_value = math.log(self._total_documents)
+
+    def score_token(self, query_token: str, doc_tokens):
+        tf = 1 / (1 + len(doc_tokens))  # approximation of tf excluding # of times token appears in document. this seems like a small factor for AC and adds function calls.
+        idf = self._token_idf_map.get(query_token, self._missing_idf_value)
+        return tf * idf
+

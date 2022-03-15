@@ -49,25 +49,8 @@ spec:
                 values:
                 - mongo
             topologyKey: kubernetes.io.hostname
-        {{- if eq .Values.sandbox "true" }}
         nodeAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-            - weight: 100
-              preference:
-                matchExpressions:
-                  - key: preemptible
-                    operator: NotIn
-                    values:
-                      - "false"
-                      - ""
-            - weight: 100
-              preference:
-                matchExpressions:
-                  - key: preemptible
-                    operator: In
-                    values:
-                      - "true"
-        {{- end }}
+          {{- include "sefaria.nodeAffinities" . | nindent 10 }}
       containers:
       - name: varnish
         image: "{{ .Values.varnish.containerImage.imageRegistry }}:{{ .Values.varnish.containerImage.tag }}"
@@ -78,13 +61,7 @@ spec:
         ports:
         - containerPort: 8040
         - containerPort: 6082
-        resources:
-          requests:
-            memory: "{{ .Values.varnish.resources.request.memory }}"
-            cpu: "{{ .Values.varnish.resources.request.cpu }}"
-          limits:
-            memory: "{{ .Values.varnish.resources.limit.memory }}"
-            cpu: "{{ .Values.varnish.resources.limit.cpu }}"
+        resources: {{ toYaml .Values.varnish.resources | nindent 10 }}
         volumeMounts:
         - mountPath: /varnish-secret
           name: varnish-secret

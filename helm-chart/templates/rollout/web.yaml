@@ -56,25 +56,8 @@ spec:
                 values:
                 - "web-{{ .Values.deployEnv }}"
             topologyKey: kubernetes.io/hostname
-        {{- if eq .Values.sandbox "true" }}
         nodeAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-            - weight: 100
-              preference:
-                matchExpressions:
-                  - key: preemptible
-                    operator: NotIn
-                    values:
-                      - "false"
-                      - ""
-            - weight: 100
-              preference:
-                matchExpressions:
-                  - key: preemptible
-                    operator: In
-                    values:
-                      - "true"
-        {{- end }}
+          {{- include "sefaria.nodeAffinities" . | nindent 10 }}
       containers:
       - name: web
         image: "{{ .Values.web.containerImage.imageRegistry }}:{{ .Values.web.containerImage.tag }}"
@@ -108,13 +91,7 @@ spec:
         ports:
           - containerPort: 80
             protocol: TCP
-        resources:
-          requests:
-            memory: {{ .Values.web.resources.web.request.memory }}
-            cpu: {{ .Values.web.resources.web.request.cpu }}
-          limits:
-            memory: {{ .Values.web.resources.web.limit.memory }}
-            cpu: {{ .Values.web.resources.web.limit.cpu }}
+        resources: {{ toYaml .Values.web.resources.web.resources | nindent 10 }}
         # turn off health checks for content sandboxes
         {{ if ne .Values.contentSandbox "true" }}
         # set failure thresholds

@@ -42,25 +42,8 @@ spec:
                 values:
                 - mongo
             topologyKey: kubernetes.io.hostname
-        {{- if eq .Values.sandbox "true" }}
         nodeAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-            - weight: 100
-              preference:
-                matchExpressions:
-                  - key: preemptible
-                    operator: NotIn
-                    values:
-                      - "false"
-                      - ""
-            - weight: 100
-              preference:
-                matchExpressions:
-                  - key: preemptible
-                    operator: In
-                    values:
-                      - "true"
-        {{- end }}
+          {{- include "sefaria.nodeAffinities" . | nindent 10 }}
       containers:
       - name: node
         image: "{{ .Values.nodejs.containerImage.imageRegistry }}:{{ .Values.nodejs.containerImage.tag }}"
@@ -73,15 +56,9 @@ spec:
           - name: DJANGO_PORT
             value: "80"
           - name: DEBUG
-            value: {{ if eq .Values.deployEnv "prod" }}"false"{{else}}"true"{{end}}
+            value: {{ if eq .Values.deployEnv "prod" }}"false"{{ else }}"true"{{ end }}
           - name: REDIS_HOST
             value: redis-{{ .Values.deployEnv }}
         ports:
         - containerPort: 3000
-        resources:
-          requests:
-            memory: "{{ .Values.nodejs.resources.request.memory }}"
-            cpu: "{{ .Values.nodejs.resources.request.cpu }}"
-          limits:
-            memory: "{{ .Values.nodejs.resources.limit.memory }}"
-            cpu: "{{ .Values.nodejs.resources.limit.cpu }}"
+        resources: {{ toYaml .Values.nodejs.resources | nindent 10 }}

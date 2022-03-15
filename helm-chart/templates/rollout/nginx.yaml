@@ -46,25 +46,8 @@ spec:
                 values:
                 - mongo
             topologyKey: kubernetes.io.hostname
-        {{- if eq .Values.sandbox "true" }}
         nodeAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-            - weight: 100
-              preference:
-                matchExpressions:
-                  - key: preemptible
-                    operator: NotIn
-                    values:
-                      - "false"
-                      - ""
-            - weight: 100
-              preference:
-                matchExpressions:
-                  - key: preemptible
-                    operator: In
-                    values:
-                      - "true"
-        {{- end}}
+          {{- include "sefaria.nodeAffinities" . | nindent 10 }}
       containers:
       - name: nginx
         image: "{{ .Values.nginx.containerImage.imageRegistry }}:{{ .Values.nginx.containerImage.tag }}"
@@ -87,13 +70,7 @@ spec:
             port: 80
           initialDelaySeconds: 10
           periodSeconds: 30
-        resources:
-          requests:
-            memory: "{{ .Values.nginx.resources.request.memory }}"
-            cpu: "{{ .Values.nginx.resources.request.cpu }}"
-          limits:
-            memory: "{{ .Values.nginx.resources.limit.memory }}"
-            cpu: "{{ .Values.nginx.resources.limit.cpu }}"
+        resources: {{ toYaml .Values.nginx.resources | nindent 10 }}
         volumeMounts:
           - mountPath: /conf
             name: nginx-conf
