@@ -294,7 +294,7 @@ class RangedRawRefParts(RawRefPart):
     """
     Container for ref parts that represent the sections and toSections of a ranged ref
     """
-    def __init__(self, sections: List['RawRefPart'], toSections: List['RawRefPart']):
+    def __init__(self, sections: List[RawRefPart], toSections: List[RawRefPart]):
         super().__init__(RefPartType.RANGE, self._get_full_span(sections, toSections))
         self.sections = sections
         self.toSections = toSections
