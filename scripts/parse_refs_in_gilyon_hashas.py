@@ -6,7 +6,7 @@ django.setup()
 import spacy, csv
 from spacy import Language
 from sefaria.model import *
-from sefaria.model.ref_part import ResolvedRawRef
+from sefaria.model.ref_part import ResolvedRef
 from tqdm import tqdm
 
 

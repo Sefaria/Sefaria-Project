@@ -8,7 +8,7 @@ from tqdm import tqdm
 from collections import defaultdict
 from sefaria.model import *
 from sefaria.system.exceptions import InputError, DuplicateRecordError
-from sefaria.model.ref_part import ResolvedRawRef, RefPartType
+from sefaria.model.ref_part import ResolvedRef, RefPartType
 from sefaria.helper.normalization import NormalizerComposer
 
 VTITLE = 'The Jerusalem Talmud, translation and commentary by Heinrich W. Guggenheimer. Berlin, De Gruyter, 1999-2015'
@@ -202,7 +202,7 @@ class YerushalmiCatcher:
                     pass
             return new_ref
 
-    def post_process_resolved_refs(self, resolved_refs: List[ResolvedRawRef], context_ref: Ref) -> List[ResolvedRawRef]:
+    def post_process_resolved_refs(self, resolved_refs: List[ResolvedRef], context_ref: Ref) -> List[ResolvedRef]:
         prev_resolved_ref = None
         verses_reg = r"^[vV](?:erses?| ?\.)"
         for resolved_ref in resolved_refs:

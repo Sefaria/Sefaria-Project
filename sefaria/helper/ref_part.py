@@ -1,13 +1,13 @@
-from sefaria.model.ref_part import ResolvedRawRef, AmbiguousResolvedRawRef, TermContext, RefPartType
+from sefaria.model.ref_part import ResolvedRef, AmbiguousResolvedRawRef, TermContext, RefPartType
 from sefaria.model import text
 from typing import List, Union
 from collections import defaultdict
 
 
-def make_html(bulk_resolved: List[List[Union[ResolvedRawRef, AmbiguousResolvedRawRef]]], output_filename, lang='he'):
+def make_html(bulk_resolved: List[List[Union[ResolvedRef, AmbiguousResolvedRawRef]]], output_filename, lang='he'):
     from sefaria.utils.util import wrap_chars_with_overlaps
 
-    def get_resolved_metadata(resolved: ResolvedRawRef, i: int) -> dict:
+    def get_resolved_metadata(resolved: ResolvedRef, i: int) -> dict:
         metadata =  {
             "i": i,
             "ref": resolved.ref,
