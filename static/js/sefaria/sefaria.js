@@ -2720,7 +2720,7 @@ Sefaria.unpackDataFromProps = function(props) {
       }
   }
 
-  //Sefaria.getBackgroundData();
+  Sefaria.getBackgroundData();
 };
 
 Sefaria.loadServerData = function(data){
