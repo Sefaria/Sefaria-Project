@@ -15,6 +15,9 @@ import sefaria.gauth.views as gauth_views
 import django.contrib.auth.views as django_auth_views
 
 from sefaria.site.urls import site_urlpatterns
+from strawberry.django.views import GraphQLView
+from sefaria.graphql import schema
+
 
 admin.autodiscover()
 handler500 = 'reader.views.custom_server_error'
@@ -176,6 +179,7 @@ urlpatterns += [
     url(r'^api/messages/?$', reader_views.messages_api),
     url(r'^api/manuscripts/(?P<tref>.+)', reader_views.manuscripts_for_source),
     url(r'^api/background-data', reader_views.background_data_api),
+    url("^api/graphql", GraphQLView.as_view(schema=schema)),
 
 ]
 
