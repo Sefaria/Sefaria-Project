@@ -335,13 +335,23 @@ class TextTableOfContents extends Component {
   }
   componentDidMount() {
     this.loadData();
+    this.scrollToCurrent();
   }
   loadData(){
     // Ensures data this text is in cache, rerenders after data load if needed
-    Sefaria.getIndexDetails(this.props.title).then(data => this.setState({
-      indexDetails: data,
-      tab: this.getDefaultActiveTab(data)
-    }));
+    Sefaria.getIndexDetails(this.props.title).then((data) => {
+      this.setState({
+        indexDetails: data,
+        tab: this.getDefaultActiveTab(data)
+       });
+      this.scrollToCurrent();
+    });
+  }
+  scrollToCurrent(){
+    const curr = document.querySelector(".current");
+    if(curr){
+      Sefaria.util.scrollIntoViewIfNeeded(curr, true);
+    }
   }
   getDefaultActiveTab(indexDetails){
     return ("default_struct" in indexDetails && indexDetails.default_struct in indexDetails?.alts) ? indexDetails.default_struct : "schema";
