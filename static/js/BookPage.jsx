@@ -887,7 +887,7 @@ class ArrayMapNode extends Component {
       let ref = "wholeRef" in schema ? Sefaria.splitSpanningRefNaive(schema.wholeRef)[0] : null;
       
       return schema.displayFixedTitleSubSections ? (
-          <a className="schema-node-toc" href={"/" + Sefaria.normRef(ref)} data-ref={path} key={path}>
+          <a className="schema-node-toc linked" href={"/" + Sefaria.normRef(ref)} data-ref={ref} key={path}>
             <span className="schema-node-title open fixed"
                   role="heading"
                   aria-level="3"
