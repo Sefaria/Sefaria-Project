@@ -138,4 +138,4 @@ def update_user_flags(profile, flag, value):
     profile.update({flag: value})
     profile.save()
 
-nationbuilder_update_all_tags()
+# nationbuilder_update_all_tags()
