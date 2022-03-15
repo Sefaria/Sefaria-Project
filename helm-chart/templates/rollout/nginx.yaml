@@ -70,13 +70,7 @@ spec:
             port: 80
           initialDelaySeconds: 10
           periodSeconds: 30
-        resources:
-          requests:
-            memory: "{{ .Values.nginx.resources.request.memory }}"
-            cpu: "{{ .Values.nginx.resources.request.cpu }}"
-          limits:
-            memory: "{{ .Values.nginx.resources.limit.memory }}"
-            cpu: "{{ .Values.nginx.resources.limit.cpu }}"
+        resources: {{ toYaml .Values.nginx.resources | nindent 10 }}
         volumeMounts:
           - mountPath: /conf
             name: nginx-conf
