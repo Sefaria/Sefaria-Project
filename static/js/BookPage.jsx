@@ -546,7 +546,7 @@ class SchemaNode extends Component {
     super(props);
     this.state = {
       // Collapse nodes below top level, and those that aren't default or makred includedSections
-      collapsed: "nodes" in props.schema ? props.schema.nodes.map(node => !(props.topLevel || props.disableSubCollapse || node.default || node.includeSections)) : []
+      collapsed: "nodes" in props.schema && !(props.topLevel || props.disableSubCollapse) ? props.schema.nodes.map(node => !(node.default || node.includeSections)) : []
     };
   }
   toggleCollapse(i) {
