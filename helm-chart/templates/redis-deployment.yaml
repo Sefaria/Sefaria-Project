@@ -39,4 +39,3 @@ spec:
           limits:
             memory: {{ .Values.redis.resources.limit.memory }}
             cpu: {{ .Values.redis.resources.limit.cpu }}
-
