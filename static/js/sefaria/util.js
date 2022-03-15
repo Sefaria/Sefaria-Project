@@ -15,6 +15,8 @@ class Util {
      * From: https://medium.com/@makk.bit/scroll-into-view-if-needed-10a96e0bdb61
      * @param {Object} target - DOM Element
      * @returns {undefined}
+     * See also: https://www.javascripttutorial.net/dom/css/check-if-an-element-is-visible-in-the-viewport/
+     * 
      */
     static scrollIntoViewIfNeeded(target, scrollIntoViewOptions) {
         // Target is outside the viewport from the bottom
