@@ -90,14 +90,14 @@ class Link(abst.AbstractMongoRecord):
     def _pre_save(self):
         if getattr(self, "_id", None) is None:
             # Don't bother saving a connection that already exists, or that has a more precise link already
-            if self.refs != sorted(self.refs) and hasattr(self, 'charLevelData'):
-                self.charLevelData.reverse()
-            orig_refs = self.refs
-            self.refs = sorted(self.refs) #make sure ref order is deterministic
-            if orig_refs != self.refs and getattr(self, "versions", False) and getattr(self, "displayedText", False):
-                #if reversed self.refs, make sure to reverse self.versions and self.displayedText
-                self.versions = self.versions[::-1]
-                self.displayedText = self.displayedText[::-1]
+            if self.refs != sorted(self.refs):
+                if hasattr(self, 'charLevelData'):
+                    self.charLevelData.reverse()
+                if getattr(self, "versions", False) and getattr(self, "displayedText", False):
+                    # if reversed self.refs, make sure to reverse self.versions and self.displayedText
+                    self.versions = self.versions[::-1]
+                    self.displayedText = self.displayedText[::-1]
+            self.refs = sorted(self.refs)  # make sure ref order is deterministic
             samelink = Link().load({"refs": self.refs})
 
             if samelink:
@@ -130,7 +130,11 @@ class Link(abst.AbstractMongoRecord):
 
                 if preciselink:
                     # logger.debug("save_link: More specific link exists: " + link["refs"][1] + " and " + preciselink["refs"][1])
-                    raise DuplicateRecordError("A more precise link already exists: {} - {}".format(preciselink.refs[0], preciselink.refs[1]))
+                    if getattr(self, "_override_preciselink", False):
+                        preciselink.delete()
+                        #and the new link will be posted (supposedly)
+                    else:
+                        raise DuplicateRecordError("A more precise link already exists: {} - {}".format(preciselink.refs[0], preciselink.refs[1]))
                 # else: # this is a good new link
 
         if not getattr(self, "_skip_lang_check", False):

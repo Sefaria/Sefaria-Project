@@ -1899,12 +1899,15 @@ def links_api(request, link_id_or_ref=None):
 
         j = json.loads(j)
         skip_check = request.GET.get("skip_lang_check", 0)
+        override_preciselink = request.GET.get("override_preciselink", 0)
         if isinstance(j, list):
             res = []
             for i in j:
                 try:
                     if skip_check:
                         i["_skip_lang_check"] = True
+                    if override_preciselink:
+                        i["_override_preciselink"] = True
                     retval = _internal_do_post(request, i, uid, **kwargs)
                     res.append({"status": "ok. Link: {} | {} Saved".format(retval["ref"], retval["anchorRef"])})
                 except Exception as e:
