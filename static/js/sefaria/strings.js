@@ -441,7 +441,10 @@ const Strings = {
     "is currently viewing": "מעיין בדף",
     "End Call": "ניתוק",
     "Learn with a Chavruta": "לימוד בחברותא",
-    "Share this link with your chavruta to start a video call with this text": "כדי להתחיל שיחת וידאו, שתפו עם החברותא שלכם את הקישור הבא:",
+    "Share this link to invite people into your private beit midrash - where you can chat, video call, and follow each other's study paths.": "שתפו את הקישור הזה כדי להזמין את חבריכם לבית המדרש:",
+    "Open Your Beit Midrash":"החלו לימוד בחבורה",
+    "Chat":"לשוחח",
+    "Call": "להתקשר",
     "Start Call": "התחלת שיחה",
     "No users online.": "אין כרגע לומדים מחוברים",
     "View Profile": "צפה בפרופיל",
@@ -513,6 +516,8 @@ const Strings = {
     "About Sefaria": "אודות ספריא",
     "Saved & History": "היסטורית קריאה ושמורים",
 
+    //Misc
+    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam arcu felis, molestie sed mauris a, hendrerit vestibulum augue." : "בראיט ולחת צורק מונחף, בגורמי מג׳מש. תרבנך וסתעד לכנו סתשם השמה – לתכי מורגם בורק? לתיג ישבעס",
   },
 
   _i18nInterfaceStringsWithContext: {

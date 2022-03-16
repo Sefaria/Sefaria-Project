@@ -115,12 +115,19 @@ class CollectionPage extends Component {
     }
   }
   filterSheets(filter, sheet) {
+    //generally speaking we want to filter also by partial match of a tag, but there are cases where we want to load only sheets that match a passed in tag. |
+    //one such case is someone clicked a tag in the pinned tags view for the collection. For example if someone wants פורים they shouldnt get סיפורים
+    const exact = this.state.sheetFilterTopic == filter; 
     const n = text => text.toLowerCase();
     filter = n(filter);
-    const filterText = [sheet.title.stripHtml(),
-                        sheet.topics.map(topic => topic.asTyped).join(" "),
-                        ].join(" ");
-    return n(filterText).indexOf(filter) > -1;
+    
+    //title and each topic in he and en
+    let filterableData  = sheet.topics.map(topic => [n(topic.en), n(topic.he), n(topic.asTyped)]).flat();
+    filterableData.push(n(sheet.title.stripHtml()));
+    
+    //this may be confusing- in the exact case, "includes" is an array func and returns if any of the above match filter exactly, 
+    // if not "includes" is a string func and is testing for a substring, meaning the filter is a partial match to any of the above. 
+    return exact ? filterableData.includes(filter) : filterableData.some(element => element.includes(filter));
   }
   renderSheet(sheet) {
     return (

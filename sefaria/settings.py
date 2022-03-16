@@ -296,9 +296,9 @@ CACHES = {
     }
 }
 
-
+'''
 GLOBAL_INTERRUPTING_MESSAGE = {
-    "name":       "27022022-matching-banner",
+    "name":       "14032022-matching-banner",
     "style":      "banner", # "modal" or "banner"
     "repetition": 1,
     "is_fundraising": True,
@@ -310,7 +310,7 @@ GLOBAL_INTERRUPTING_MESSAGE = {
     }
 }
 '''
-GLOBAL_INTERRUPTING_MESSAGE = None'''
+GLOBAL_INTERRUPTING_MESSAGE = None
 
 
 # Grab environment specific settings from a file which

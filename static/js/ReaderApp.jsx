@@ -1063,7 +1063,7 @@ class ReaderApp extends Component {
       this.openProfile(path.slice(9), params.get("tab"));
 
     } else if (path.match(/^\/collections\/.+/) && !path.endsWith("/settings") && !path.endsWith("/new")) {
-      this.openCollection(path.slice(13));
+      this.openCollection(path.slice(13), params.get("tag"));
 
     } else if (Sefaria.isRef(path.slice(1))) {
       const currVersions = {en: params.get("ven"), he: params.get("vhe")};
@@ -1624,8 +1624,8 @@ class ReaderApp extends Component {
       this.setSinglePanelState({ menuOpen: "profile", profile, profileTab: tab});
     });
   }
-  openCollection(slug) {
-    this.setSinglePanelState({menuOpen: "collection",  collectionSlug: slug});
+  openCollection(slug, tag) {
+    this.setSinglePanelState({menuOpen: "collection",  collectionSlug: slug, collectionTag: tag});
   }
   toggleMobileNavMenu() {
     this.setState({mobileNavMenuOpen: !this.state.mobileNavMenuOpen});

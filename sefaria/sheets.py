@@ -127,6 +127,7 @@ def get_sheet_for_panel(id=None):
 	sheet["ownerImageUrl"] = public_user_data(sheet["owner"])["imageUrl"]
 	sheet["sources"] = annotate_user_links(sheet["sources"])
 	sheet["topics"] = add_langs_to_topics(sheet.get("topics", []))
+	sheet["sheetNotice"] = present_sheet_notice(sheet.get("is_moderated", None))
 	if "displayedCollection" in sheet:
 		collection = Collection().load({"slug": sheet["displayedCollection"]})
 		if collection:
@@ -1253,8 +1254,14 @@ def get_sheet_categorization_info(find_without, skip_ids=[]):
 	}
 	return categorize_props
 
+
 def update_sheet_tags_categories(body, uid):
 	update_sheet_topics(body['sheetId'], body["tags"], [])
 	time = datetime.now().isoformat()
 	noTags = time if body.get("noTags", False) else False
 	db.sheets.update_one({"id": body['sheetId']}, {"$set": {"categories": body['categories'], "noTags": noTags}, "$push": {"moderators": {"uid": uid, "time": time}}})
+
+
+def present_sheet_notice(is_moderated):
+	"""This method is here in case one day we will want to differentiate based on other logic on moderation"""
+	return is_moderated

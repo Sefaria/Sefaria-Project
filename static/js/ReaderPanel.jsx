@@ -669,6 +669,7 @@ class ReaderPanel extends Component {
           scrollToHighlighted={this.state.scrollToHighlighted}
           onRefClick={this.handleCitationClick}
           onSegmentClick={this.handleSheetSegmentClick}
+          onCitationClick={this.handleCitationClick}
           openSheet={this.openSheet}
           hasSidebar={this.props.hasSidebar}
           setSelectedWords={this.setSelectedWords}

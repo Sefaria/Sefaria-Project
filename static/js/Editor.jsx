@@ -2729,7 +2729,7 @@ const SefariaEditor = (props) => {
 
 
     return (
-        <div ref={editorContainer}>
+        <div ref={editorContainer} onClick={props.handleClick}>
         {
           /* debugger */
 
