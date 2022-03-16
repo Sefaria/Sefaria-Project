@@ -20,39 +20,64 @@ import {
   LoadingMessage,
 } from './Misc';
 
-const SearchTopic = (props) => {
-    let sources, sheets, sourcesSheetsDiv;
-    if ("numSources" in props.topic && props.topic.numSources > 0 && "numSheets" in props.topic && props.topic.numSheets > 0) {
-        sources = <a href={props.topic.url + "?tab=sources"}><InterfaceText>Sources</InterfaceText></a>;
-        sheets = <a href={props.topic.url+"?tab=sheets"}><InterfaceText>Sheets</InterfaceText></a>;
-        sourcesSheetsDiv = <div className="topicSourcesSheets systemText">
-                                <InterfaceText>{props.topic.numSources}</InterfaceText> {sources} ∙ <InterfaceText>{props.topic.numSheets}</InterfaceText> {sheets}
-                            </div> ;
-    }
-    else if ("numSheets" in props.topic && props.topic.numSheets > 0) {
-        sheets = <a href={props.topic.url}><InterfaceText>Sheets</InterfaceText></a>;
-        sourcesSheetsDiv = <div className="topicSourcesSheets systemText">
-                                <InterfaceText>{props.topic.numSheets}</InterfaceText> {sheets}
-                            </div> ;
-    }
 
+
+
+
+const SourcesSheetsDiv = (props) => {
+    let sourcesSheetsCounts = [];
+    let sheetsURL, sourcesURL;
+    if (props?.numSources > 0 && props?.numSheets > 0) { // if there's both, we need to specify two different URLs
+        sheetsURL = props.url + "?tab=sheets";
+        sourcesURL = props.url + "?tab=sources";
+    }
+    else {
+        sheetsURL = props.url;
+        sourcesURL = props.url;
+    }
+    
+    if (props?.numSources > 0) {
+        const sourcesDiv = <span><a href={sourcesURL}><InterfaceText>{props.numSources}</InterfaceText> <InterfaceText>Sources</InterfaceText></a></span>;
+        sourcesSheetsCounts.push(sourcesDiv);
+    }
+    if (props?.numSheets > 0) {
+        const sheetsDiv = <span><a href={sheetsURL}><InterfaceText>{props.numSheets}</InterfaceText> <InterfaceText>Sheets</InterfaceText></a></span>;
+        sourcesSheetsCounts.push(sheetsDiv);
+    }
+    
+    if (sourcesSheetsCounts.length === 0) {
+        return null;
+    }
+    else {
+        return <div className="topicSourcesSheets systemText">{sourcesSheetsCounts.reduce((prev, curr) => [prev, " ∙ ",  curr])}</div>;
+    }
+}
+
+
+const SearchTopic = (props) => {
+    const sourcesSheetsDiv = <SourcesSheetsDiv url={props.topic.url} numSheets={props.topic.numSheets} numSources={props.topic.numSources}/>;
+    const topicTitle = <div className="topicTitle">
+                          <h1>
+                          <a href={props.topic.url}><InterfaceText text={{en:props.topic.title, he:props.topic.heTitle}}/></a>
+                          </h1>
+                        </div>;
+    const topicCategory = <div className="topicCategory sectionTitleText">
+                            <InterfaceText text={{en:props.topic.topicCat, he:props.topic.heTopicCat}}/>
+                          </div>;
     return <div className="searchTopic">
-                <div className="topicTitle">
-                  <h1>
-                      <a href={props.topic.url}><InterfaceText text={{en:props.topic.title, he:props.topic.heTitle}}/></a>
-                  </h1>
-                </div>
-                <div className="topicCategory sectionTitleText">
-                    <InterfaceText text={{en:props.topic.topicCat, he:props.topic.heTopicCat}}/>
-                </div>
+                {topicTitle}
+                {topicCategory}
                 {"enDesc" in props.topic ?
                     <div className="topicDescSearchResult systemText">
                        <InterfaceText text={{en:props.topic.enDesc, he:props.topic.heDesc}}/>
                     </div> : null}
-                {"numSheets" in props.topic && props.topic.numSheets > 0 ? sourcesSheetsDiv : null}
+                {sourcesSheetsDiv}
         </div>
 }
 
+
+
+    
 class SearchResultList extends Component {
     constructor(props) {
       super(props);
@@ -154,10 +179,10 @@ class SearchResultList extends Component {
             title: d.primaryTitle["en"],
             heTitle: d.primaryTitle["he"],
             numSources: 0,
-            numSheets: 0
+            numSheets: 0,
+            url: "/topics/" + topic.key
         }
         const typeObj = Sefaria.topicTocCategory(topic.key);
-        searchTopic.url = "/topics/" + topic.key;
         if (!typeObj) {
             searchTopic.topicCat = "Topics";
             searchTopic.heTopicCat = Sefaria.hebrewTranslation("Topics");
@@ -179,20 +204,16 @@ class SearchResultList extends Component {
     }
     async addCollection(collection) {
         const d = await Sefaria.getCollection(collection.key);
-        let searchTopic = {
+        return {
             title: d.name,
             heTitle: d.name,
-            numSheets: 0
+            url: "/collections/" + collection.key,
+            topicCat: "Collections",
+            heTopicCat: Sefaria.hebrewTranslation("Collections"),
+            enDesc: d.description,
+            heDesc: d.description,
+            numSheets: d.sheets.length
         }
-        searchTopic.url = "/collections/" + collection.key;
-        searchTopic.topicCat = "Collections";
-        searchTopic.heTopicCat = Sefaria.hebrewTranslation("Collections");
-        if ("description" in d) {
-            searchTopic.enDesc = d.description;
-            searchTopic.heDesc = d.description;
-        }
-        searchTopic.numSheets = d.sheets.length;
-        return searchTopic;
     }
     async _executeTopicQuery() {
         const d = await Sefaria.getName(this.props.query)
