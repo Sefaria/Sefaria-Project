@@ -1821,6 +1821,16 @@ function ManuscriptImage(props) {
           </span>
           : ''
       }
+      {
+        manuscript.manuscript['license']
+          ? <div className="manuscriptLicense">
+            <InterfaceText text={{ en: 'License: ', he: 'רשיון: ' }} />
+            <a className="manuscriptLicenseLink" href={Sefaria.getLicenseMap()[manuscript.manuscript['license']]} target="_blank">
+              {manuscript.manuscript['license']}
+            </a>
+          </div>
+          : ''
+      }
       <InterfaceText text={{ en: 'Source: ', he: 'מקור: ' }} />
       <a className="versionDetailsLink" href={manuscript.manuscript['source']} target="_blank">
         { Sefaria.util.parseUrl(manuscript.manuscript['source']).host.replace("www.", "") }
