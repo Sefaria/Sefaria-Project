@@ -598,16 +598,13 @@ class SchemaNode extends Component {
         let path;
         if (node.nodeType == "ArrayMapNode") {
           //ArrayMapNode content
-          return <ArrayMapNode schema={node} 
-                               showLinkOnTitle={this.props.disableSubCollapse}
-                               currentlyVisibleRef={this.props.currentlyVisibleRef} 
-                               currentlyVisibleSectionRef={this.props.currentlyVisibleSectionRef} 
-                               key={i}/>;
+          path = this.props.refPath + ", " + node.title;
+          return <ArrayMapNode schema={node} currentlyVisibleRef={this.props.currentlyVisibleRef}  currentlyVisibleSectionRef={this.props.currentlyVisibleSectionRef} key={path}/>;
         } else if ("nodes" in node) {
           // SchemaNode with children (nodes)
           path = this.props.refPath + ", " + node.title;
           return (
-            <div className="schema-node-toc" data-ref={path} key={i}>
+            <div className="schema-node-toc" data-ref={path} key={path}>
               <span className={`schema-node-title ${this.state.collapsed[i] ? "collapsed" : "open"} ${this.props.disableSubCollapse ? "fixed" : ""}`}
                     onClick={()=> {this.toggleCollapse(i)}}
                     onKeyPress={(e) => {e.charCode == 13 ? this.toggleCollapse(i):null}}
