@@ -575,19 +575,60 @@ class HebrewAbilityFactory(TrendFactory):
     for_group = False
 
 class DateRefRange(object):
-    def __init__(self, refRangeString, start, end):
+    def __init__(self, refRangeString, start, end, name):
         """
         hosts ref range and acceptable date parameters to help with determining whether a date/ref combination meets
         criteria for following a schedule
         :param start: datetime
         :param end: datetime
         """
-        self.start = start
-        self.end = end
+        self.dateRange = DateRange(name, start, end)
         self.refRange = Ref(refRangeString)
 
     def refIsInRange(self, ref, timestamp):
-        if Ref(ref) in self.refRange.all_segment_refs() and self.start <= timestamp and self.end >= timestamp:
+        if Ref(ref) in self.refRange.all_segment_refs() and self.dateRange.start <= timestamp and self.dateRange.end >= timestamp:
             return True
         else:
             return False
+
+class ScheduleManager(object):
+    def __init__(self, segmentHits, numberOfSegments, dateRangeEnd):
+        """
+        :param segmentHits: number of segment hits in the correct range that need to be met for user to be a schedule learner
+        :param numberOfSegments: number of segments to check
+        :param dateRangeEnd: date to work backwards from
+
+        """
+        self.segmentHits = segmentHits
+        self.dateRangeEnd = dateRangeEnd
+
+        pass
+
+    def getDateRefRanges(self):
+        """
+        retrieves necessary dateRefRanges for particular schedule to meet criteria
+        """
+        pass
+
+    # def 
+
+
+class ParashaScheduleManager(ScheduleManager):
+    def __init__(self, segmentHits=2, numberOfSegments=4, dateRangeEnd=None, diaspora=True):
+        ScheduleManager.__init__(self, segmentHits, numberOfSegments, dateRangeEnd)
+        self.diaspora = diaspora
+
+    def getDateRefRanges(self):
+        query = {}
+        if self.dateRangeEnd != None:
+            query["date"] = {
+                "$lte": self.dateRangeEnd
+            }
+        else:
+            query["date"] = datetime.today()
+        query["diaspora"]=self.diaspora
+            
+        results = db.parshiot.find({}).sort("date", -1)
+
+        for abc in results:
+            print(str(abc))
