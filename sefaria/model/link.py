@@ -132,6 +132,7 @@ class Link(abst.AbstractMongoRecord):
                     # logger.debug("save_link: More specific link exists: " + link["refs"][1] + " and " + preciselink["refs"][1])
                     if getattr(self, "_override_preciselink", False):
                         preciselink.delete()
+                        self.generated_by = self.generated_by+'_preciselink_override'
                         #and the new link will be posted (supposedly)
                     else:
                         raise DuplicateRecordError("A more precise link already exists: {} - {}".format(preciselink.refs[0], preciselink.refs[1]))
