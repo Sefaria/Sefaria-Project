@@ -5,27 +5,27 @@ import re
 from django.http import HttpResponse
 import io
 
-palette = {
-    "Commentary": (75, 113, 183),
-    "Tanakh": (0, 78, 95),
-    "Midrash":    (93, 149, 111),
-    "Mishnah": (90, 153, 183),
-    "Talmud":    (204, 180, 121),
-    "Halakhah":    (128, 47, 62),
-    "Kabbalah":    (89, 65, 118),
-    "Jewish Thought": (127, 133, 169),
-    "Liturgy":    (171, 78, 102),
-    "Tosefta":    (0, 130, 127),
-    "Chasidut":    (151, 179, 134),
-    "Musar":    (124, 65, 111),
-    "Responsa":    (203, 97, 88),
-    "Quoting Commentary": (203, 97, 88),
-    "Sheets":    (24, 52, 93),
-    "Sheet":    (24, 52, 93),
-    "Targum":    (59, 88, 73),
-    "Modern Commentary":    (184, 212, 211),
-    "Reference":    (212, 137, 108),
-    "System":    (24, 52, 93)
+palette = { # [(bg), (font)]
+    "Commentary": [(75, 113, 183), (255, 255, 255)],
+    "Tanakh": [(0, 78, 95), (255, 255, 255)],
+    "Midrash":    [(93, 149, 111), (255, 255, 255)],
+    "Mishnah": [(90, 153, 183), (0, 0, 0)],
+    "Talmud":    [(204, 180, 121), (0, 0, 0)],
+    "Halakhah":    [(128, 47, 62), (255, 255, 255)],
+    "Kabbalah":    [(89, 65, 118), (255, 255, 255)],
+    "Jewish Thought": [(127, 133, 169), (0, 0, 0)],
+    "Liturgy":    [(171, 78, 102), (255, 255, 255)],
+    "Tosefta":    [(0, 130, 127), (255, 255, 255)],
+    "Chasidut":    [(151, 179, 134), (0, 0, 0)],
+    "Musar":    [(124, 65, 111), (255, 255, 255)],
+    "Responsa":    [(203, 97, 88), (255, 255, 255)],
+    "Quoting Commentary": [(203, 97, 88), (255, 255, 255)],
+    "Sheets":    [(24, 52, 93), (255, 255, 255)],
+    "Sheet":    [(24, 52, 93), (255, 255, 255)],
+    "Targum":    [(59, 88, 73), (255, 255, 255)],
+    "Modern Commentary":    [(184, 212, 211), (255, 255, 255)],
+    "Reference":    [(212, 137, 108), (255, 255, 255)],
+    "System":    [(24, 52, 93), (255, 255, 255)]
 }
 
 platforms = {
@@ -74,8 +74,8 @@ def cleanup_and_format_text(text, language):
 
 
 def generate_image(text="", category="System", ref_str="", lang="he", platform="twitter"):
-    text_color = '#fff'
-    bg_color = palette[category]
+    text_color = palette[category][1]
+    bg_color = palette[category][0]
 
     font = ImageFont.truetype(font='static/fonts/Amiri-Taamey-Frank-merged.ttf', size=platforms[platform]["font_size"])
     width = platforms[platform]["width"]
@@ -109,7 +109,7 @@ def generate_image(text="", category="System", ref_str="", lang="he", platform="
 
 
     #category line
-    draw.line(cat_border_pos, fill=palette[category], width=int(width*.02))
+    draw.line(cat_border_pos, fill=palette[category][0], width=int(width*.02))
 
     #header white
     draw.line((0, int(height*.05), img.size[0], int(height*.05)), fill=(255, 255, 255), width=int(height*.1))
@@ -140,7 +140,8 @@ def generate_image(text="", category="System", ref_str="", lang="he", platform="
 def make_img_http_response(text, category, ref_str, lang, platform):
     try:
         img = generate_image(text, category, ref_str, lang, platform)
-    except:
+    except Exception as e:
+        print(e)
         height = platforms[platform]["height"]
         width = platforms[platform]["width"]
         img = Image.new('RGBA', (width, height), color="#18345D")
