@@ -632,6 +632,7 @@ class ParashaScheduleManager(ScheduleManager):
         ScheduleManager.__init__(self, segmentHits, numberOfSegments, dateRangeEnd, varianceForward, varianceBack)
         self.diaspora = diaspora
         self.daysToAdd = 6
+        self.getDateRefRanges() #is this bad practice?
 
     def getDateRefRanges(self):
         query = {}
@@ -639,13 +640,16 @@ class ParashaScheduleManager(ScheduleManager):
             "$lte": self.dateRangeEnd + timedelta(days=self.daysToAdd)
         }
         query["diaspora"]=self.diaspora
-        print(query)
         results = db.parshiot.find(query, limit=self.numberOfSegments).sort("date", -1)
         self.dateRefRanges = []
         for result in results:
             self.dateRefRanges.append(DateRefRange(result["ref"], result["date"] - self.varianceBack,  result["date"] + self.varianceBack, result["parasha"]))
-        for drr in self.dateRefRanges:
-            print(drr)
+        # for drr in self.dateRefRanges:
+        #     print(drr.dateRange.start)
+        #     print(drr.dateRange.end)
+        self.overallDateRange = DateRange("overall", self.dateRefRanges[-1].dateRange.start, self.dateRefRanges[0].dateRange.end)
+        # print(self.overallDateRange.start)
+        # print(self.overallDateRange.end)
 
     def getRelevantUserHistories(self):
         query = {}
