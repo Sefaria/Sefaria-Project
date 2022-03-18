@@ -608,8 +608,8 @@ class ScheduleManager(object):
         else:
             self.dateRangeEnd = dateRangeEnd
         self.numberOfSegments = numberOfSegments
-        self.varianceForward = varianceForward
-        self.varianceBack = varianceBack
+        self.varianceForward = timedelta(varianceForward)
+        self.varianceBack = timedelta(varianceBack)
         pass
 
     def getDateRefRanges(self):
@@ -619,13 +619,16 @@ class ScheduleManager(object):
         pass
 
     def getRelevantUserHistories(self):
+
         pass
 
     # def 
 
 
 class ParashaScheduleManager(ScheduleManager):
-    def __init__(self, segmentHits=2, numberOfSegments=4, dateRangeEnd=None, diaspora=True, varianceForward=7, varianceBack=7):
+    #TODO: deal with haftara
+    #TODO: make more efficient
+    def __init__(self, segmentHits=2, numberOfSegments=4, dateRangeEnd=None, diaspora=True, varianceForward=14, varianceBack=7):
         ScheduleManager.__init__(self, segmentHits, numberOfSegments, dateRangeEnd, varianceForward, varianceBack)
         self.diaspora = diaspora
         self.daysToAdd = 6
@@ -638,9 +641,15 @@ class ParashaScheduleManager(ScheduleManager):
         query["diaspora"]=self.diaspora
         print(query)
         results = db.parshiot.find(query, limit=self.numberOfSegments).sort("date", -1)
-
-        for abc in results:
-            print(str(abc))
+        self.dateRefRanges = []
+        for result in results:
+            self.dateRefRanges.append(DateRefRange(result["ref"], result["date"] - self.varianceBack,  result["date"] + self.varianceBack, result["parasha"]))
+        for drr in self.dateRefRanges:
+            print(drr)
 
     def getRelevantUserHistories(self):
+        query = {}
+        pass
+
+    def getUsersWhoAreLearningSchedule(self):
         pass
