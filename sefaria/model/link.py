@@ -102,7 +102,6 @@ class Link(abst.AbstractMongoRecord):
 
             if not samelink:
                 #check for samelink section level vs ranged ref
-                ranged0 = ranged1 = samelink_sec = None
                 oref0 = text.Ref(self.refs[0])
                 oref1 = text.Ref(self.refs[1])
                 if oref0.is_section_level() or oref0.is_range():
