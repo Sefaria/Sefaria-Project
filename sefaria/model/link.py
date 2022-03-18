@@ -100,10 +100,26 @@ class Link(abst.AbstractMongoRecord):
             self.refs = sorted(self.refs)  # make sure ref order is deterministic
             samelink = Link().load({"refs": self.refs})
 
+            if not samelink:
+                #check for samelink section level vs ranged ref
+                ranged0 = ranged1 = samelink_sec = None
+                oref0 = text.Ref(self.refs[0])
+                oref1 = text.Ref(self.refs[1])
+                if oref0.is_section_level() or oref0.is_range():
+                    ranged0 = text.Ref(f"{oref0.all_segment_refs()[0]}-{oref0.all_segment_refs()[-1]}").normal()
+                    section0 = oref0.sections[0]
+                    samelink = Link().load({"$or": [{"refs": ranged0, "refs": self.refs[1]}, {"refs": section0, "refs": self.refs[1]}]})
+                elif text.Ref(self.refs[1]).is_section_level() or oref1.is_range():  # this is an elif since it anyway overrides the samelink see note in 4 lines
+                    ranged1 = text.Ref(f"{oref1.all_segment_refs()[0]}-{oref1.all_segment_refs()[-1]}").normal()
+                    section1 = oref1.sections[0]
+                    samelink = Link().load({"$or": [{"refs": ranged1, "refs": self.refs[0]}, {"refs": section1, "refs": self.refs[0]}]})
+                #note: The above code neglects the case where both refs in the link are section or ranged and there is a ranged section link in the db with the opposite situation on both refs.
+
             if samelink:
                 if hasattr(self, 'score') and hasattr(self, 'charLevelData'):
                     samelink.score = self.score
                     samelink.charLevelData = self.charLevelData
+                    samelink.save()
                     raise DuplicateRecordError("Updated existing link with the new score and charLevelData data")
 
                 elif not self.auto and self.type and not samelink.type:
