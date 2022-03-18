@@ -592,16 +592,24 @@ class DateRefRange(object):
             return False
 
 class ScheduleManager(object):
-    def __init__(self, segmentHits, numberOfSegments, dateRangeEnd):
+    def __init__(self, segmentHits, numberOfSegments, dateRangeEnd, varianceForward, varianceBack):
         """
         :param segmentHits: number of segment hits in the correct range that need to be met for user to be a schedule learner
         :param numberOfSegments: number of segments to check
         :param dateRangeEnd: date to work backwards from
+        :param varianceForward: number of days after date we consider them as still learning the schedule item
+        :param varianceBack: number of days before date we consider them as still learning the schedule item
+
 
         """
         self.segmentHits = segmentHits
-        self.dateRangeEnd = dateRangeEnd
-
+        if dateRangeEnd == None:
+            self.dateRangeEnd = datetime.today()
+        else:
+            self.dateRangeEnd = dateRangeEnd
+        self.numberOfSegments = numberOfSegments
+        self.varianceForward = varianceForward
+        self.varianceBack = varianceBack
         pass
 
     def getDateRefRanges(self):
@@ -610,25 +618,29 @@ class ScheduleManager(object):
         """
         pass
 
+    def getRelevantUserHistories(self):
+        pass
+
     # def 
 
 
 class ParashaScheduleManager(ScheduleManager):
-    def __init__(self, segmentHits=2, numberOfSegments=4, dateRangeEnd=None, diaspora=True):
-        ScheduleManager.__init__(self, segmentHits, numberOfSegments, dateRangeEnd)
+    def __init__(self, segmentHits=2, numberOfSegments=4, dateRangeEnd=None, diaspora=True, varianceForward=7, varianceBack=7):
+        ScheduleManager.__init__(self, segmentHits, numberOfSegments, dateRangeEnd, varianceForward, varianceBack)
         self.diaspora = diaspora
+        self.daysToAdd = 6
 
     def getDateRefRanges(self):
         query = {}
-        if self.dateRangeEnd != None:
-            query["date"] = {
-                "$lte": self.dateRangeEnd
-            }
-        else:
-            query["date"] = datetime.today()
+        query["date"] = {
+            "$lte": self.dateRangeEnd + timedelta(days=self.daysToAdd)
+        }
         query["diaspora"]=self.diaspora
-            
-        results = db.parshiot.find({}).sort("date", -1)
+        print(query)
+        results = db.parshiot.find(query, limit=self.numberOfSegments).sort("date", -1)
 
         for abc in results:
             print(str(abc))
+
+    def getRelevantUserHistories(self):
+        pass
