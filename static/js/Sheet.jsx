@@ -55,6 +55,35 @@ class Sheet extends Component {
       }
     }
   }
+  handleClick(e) {
+    const target = e.target.closest('a')
+    if (target) {
+      let url;
+      try {
+        url = new URL(target.href);
+      } catch {
+        return false;
+      }
+      const path = url.pathname;
+      const params = url.searchParams;
+
+      if (path.match(/^\/sheets\/\d+/)) {
+        e.preventDefault()
+        console.log();
+        this.props.onCitationClick(`Sheet ${path.slice(8)}`, `Sheet ${this.props.sheetID}`, true)
+      }
+
+      else if (Sefaria.isRef(path.slice(1))) {
+        e.preventDefault()
+        const currVersions = {en: params.get("ven"), he: params.get("vhe")};
+        const options = {showHighlight: path.slice(1).indexOf("-") !== -1};   // showHighlight when ref is ranged
+        this.props.onCitationClick(path.slice(1), `Sheet ${this.props.sheetID}`, true, currVersions)
+      }
+
+    }
+  }
+
+
   render() {
     const sheet = this.getSheetFromCache();
     const classes = classNames({sheetsInPanel: 1});
@@ -69,6 +98,7 @@ class Sheet extends Component {
           sources={sheet.sources}
           title={sheet.title}
           onRefClick={this.props.onRefClick}
+          handleClick={this.handleClick}
           sheetSourceClick={this.props.onSegmentClick}
           highlightedNode={this.props.highlightedNode}
           highlightedRefsInSheet={this.props.highlightedRefsInSheet}
@@ -95,6 +125,7 @@ class Sheet extends Component {
           <SefariaEditor
             data={sheet}
             hasSidebar={this.props.hasSidebar}
+            handleClick={this.handleClick}
             multiPanel={this.props.multiPanel}
             sheetSourceClick={this.props.onSegmentClick}
             highlightedNode={this.props.highlightedNode}
@@ -324,7 +355,7 @@ class SheetContent extends Component {
         </SheetMetaDataBox>
 
         <div className="text">
-          <div className="textInner" onMouseUp={this.handleTextSelection}>
+          <div className="textInner" onMouseUp={this.handleTextSelection} onClick={this.props.handleClick}>
             {sources}
           </div>
         </div>

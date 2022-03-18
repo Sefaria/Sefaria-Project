@@ -25,6 +25,7 @@ class Manuscript(AbstractMongoRecord):
         'description',
         'he_description'
     ]
+    optional_attrs = ['license']
 
     def normalize_slug_field(self, slug_field: str) -> str:
         """
