@@ -1,43 +1,3 @@
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: "varnish-{{ .Values.deployEnv }}"
-  labels:
-    app: varnish-{{ .Values.deployEnv }}
-    deployEnv: "{{ .Values.deployEnv }}"
-    stackRole: varnish
-spec:
-  ports:
-  - name: http
-    port: 8040
-  - name: admin
-    port: 6082
-  selector:
-    app: varnish-{{ .Values.deployEnv }}
-{{range $k, $v := untilStep (int (sub .Release.Revision .Values.previousServicesCount)) (int (add .Release.Revision 1)) 1}}
-{{if gt $v 0}}
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: "varnish-{{ $.Values.deployEnv }}-{{ $v }}"
-  labels:
-    app: varnish-{{ $.Values.deployEnv }}
-    deployEnv: "{{ $.Values.deployEnv }}"
-    stackRole: varnish
-spec:
-  ports:
-  - name: http
-    port: 8040
-  - name: admin
-    port: 6082
-  selector:
-    app: varnish-{{ $.Values.deployEnv }}
-    releaseRevision: "{{ $v }}"
-{{end}}
-{{end}}
----
 # apiVersion: apps/v1
 # kind: Deployment
 apiVersion: argoproj.io/v1alpha1
@@ -89,43 +49,19 @@ spec:
                 values:
                 - mongo
             topologyKey: kubernetes.io.hostname
-        {{- if eq .Values.sandbox "true" }}
         nodeAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-            - weight: 100
-              preference:
-                matchExpressions:
-                  - key: preemptible
-                    operator: NotIn
-                    values:
-                      - "false"
-                      - ""
-            - weight: 100
-              preference:
-                matchExpressions:
-                  - key: preemptible
-                    operator: In
-                    values:
-                      - "true"
-        {{- end }}
-
+          {{- include "sefaria.nodeAffinities" . | nindent 10 }}
       containers:
       - name: varnish
         image: "{{ .Values.varnish.containerImage.imageRegistry }}:{{ .Values.varnish.containerImage.tag }}"
         imagePullPolicy: Always
-        command: ["bash", "-c"] 
+        command: ["bash", "-c"]
         # args: [ "envsubst < /etc/varnish/sefaria.template.vcl > /etc/varnish/sefaria.vcl && exec /usr/sbin/varnishd -j unix,user=varnish -F -f /etc/varnish/sefaria.vcl -a :8040 -T :6082 -S /varnish-secret/varnish-secret -s malloc,14440m -p nuke_limit=400" ]
         args: [ "envsubst < /etc/varnish/sefaria.template.vcl > /etc/varnish/sefaria.vcl && exec /usr/sbin/varnishd -j unix,user=varnish -F -f /etc/varnish/sefaria.vcl -a :8040 -T :6082 -S /varnish-secret/varnish-secret -s malloc,{{ .Values.varnish.tuning.malloc }} -p nuke_limit={{ .Values.varnish.tuning.nuke_limit }} -p thread_pool_max={{ .Values.varnish.tuning.thread_pool_max }} -p first_byte_timeout={{ .Values.varnish.tuning.first_byte_timeout }} -p between_bytes_timeout={{ .Values.varnish.tuning.between_bytes_timeout }}" ]
         ports:
         - containerPort: 8040
         - containerPort: 6082
-        resources:
-          requests:
-            memory: "{{ .Values.varnish.resources.request.memory }}"
-            cpu: "{{ .Values.varnish.resources.request.cpu }}"
-          limits:
-            memory: "{{ .Values.varnish.resources.limit.memory }}"
-            cpu: "{{ .Values.varnish.resources.limit.cpu }}"
+        resources: {{ toYaml .Values.varnish.resources | nindent 10 }}
         volumeMounts:
         - mountPath: /varnish-secret
           name: varnish-secret
@@ -137,4 +73,3 @@ spec:
         - name: varnish-secret
           secret:
             secretName: {{ template "secrets.varnish" . }}
-...

@@ -305,6 +305,11 @@ urlpatterns += [
     url(r'^random/?$',           reader_views.random_text_page),
 ]
 
+# Preview Images
+urlpatterns += [
+    url(r'^api/img-gen/(?P<tref>.+)$', reader_views.social_image_api),
+]
+
 # Chavruta URLs
 urlpatterns += [
     url(r'^beit-midrash/(?P<slug>[^.]+)$', reader_views.beit_midrash),

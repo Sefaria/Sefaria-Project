@@ -1,10 +1,12 @@
 # https://sefaria.slack.com/archives/DNAHQ11V0/p1594892722002100
-{{ if eq .Values.deployEnv "prod" }}
+{{- if eq .Values.deployEnv "prod" }}
 ---
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
   name: {{ .Values.deployEnv }}-topics-indexing
+  labels:
+    {{- include "sefaria.labels" . | nindent 4 }}
 spec:
   schedule: "0 0 * * 1"
   jobTemplate: 
@@ -50,5 +52,4 @@ spec:
                   path: local_settings.py
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 2
-...
-{{end}}
+{{- end }}

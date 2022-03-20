@@ -4,6 +4,7 @@ metadata:
   name: nginx-conf-{{ .Values.deployEnv }}
   labels:
     deployEnv: "{{ .Values.deployEnv }}"
+    {{- include "sefaria.labels" . | nindent 4 }}
 data: 
   nginx.template.conf: |- 
     user www-data;

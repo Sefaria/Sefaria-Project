@@ -60,3 +60,4 @@ unidecode==1.1.1
 user-agents==2.2.0
 babel
 spacy
+python-bidi

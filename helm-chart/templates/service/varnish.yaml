@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: "varnish-{{ .Values.deployEnv }}"
+  labels:
+    app: varnish-{{ .Values.deployEnv }}
+    deployEnv: "{{ .Values.deployEnv }}"
+    stackRole: varnish
+spec:
+  ports:
+  - name: http
+    port: 8040
+  - name: admin
+    port: 6082
+  selector:
+    app: varnish-{{ .Values.deployEnv }}
