@@ -1079,8 +1079,9 @@ class RefResolver:
         context_match_templates = list(context_ref.index.nodes.get_match_templates())
         raw_ref_term_slugs = [term.slug for term in self.get_term_matcher(lang).match_terms(raw_ref.raw_ref_parts)]
         context_parent = self._ref_part_title_graph.get_parent_for_children(context_match_templates, raw_ref_term_slugs)
-        context_child = self._ref_part_title_graph.get_shared_child(context_match_templates, raw_ref_term_slugs)
-        for context_slug in (context_parent, context_child):
+        # I dont think this is necessary anymore since this case is covered by title context
+        # context_child = self._ref_part_title_graph.get_shared_child(context_match_templates, raw_ref_term_slugs)
+        for context_slug in (context_parent,):
             if context_slug is None: continue
             term_context = TermContext(NonUniqueTerm.init(context_slug))
             temp_matches = self._get_unrefined_ref_part_matches_recursive(lang, raw_ref, ref_parts=raw_ref.parts_to_match + [term_context])
