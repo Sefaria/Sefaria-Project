@@ -6132,9 +6132,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   position: relative;
 }
 
-.textListTextRangeBox.typeQF .titleBox{
-  color: forestgreen;
-}
 .textListTextRangeBox .textRange{
   margin-bottom: 0;
   padding-bottom: 0;
