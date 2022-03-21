@@ -107,15 +107,15 @@ class Link(abst.AbstractMongoRecord):
                 section0 = oref0.section_ref()
                 section1 = oref1.section_ref()
                 if oref0.is_range() and oref0.all_segment_refs() == section0.all_segment_refs():
-                    samelink = Link.load({"$and": [{"refs": section0}, {"refs": self.refs[1]}]})
+                    samelink = Link().load({"$and": [{"refs": section0}, {"refs": self.refs[1]}]})
                 elif oref0.is_section_level():
                     ranged0 = text.Ref(f"{oref0.all_segment_refs()[0]}-{oref0.all_segment_refs()[-1]}")
-                    samelink = Link.load({"$and": [{"refs": ranged0}, {"refs": self.refs[1]}]})
+                    samelink = Link().load({"$and": [{"refs": ranged0.normal()}, {"refs": self.refs[1]}]})
                 elif oref1.is_range() and oref1.all_segment_refs() == section1.all_segment_refs(): # this is an elif since it anyway overrides the samelink see note in 4 lines
-                    samelink = Link.load({"$and": [{"refs": section1}, {"refs": self.refs[0]}]})
+                    samelink = Link().load({"$and": [{"refs": section1}, {"refs": self.refs[0]}]})
                 elif oref1.is_section_level():
                     ranged1 = text.Ref(f"{oref1.all_segment_refs()[0]}-{oref1.all_segment_refs()[-1]}")
-                    samelink = Link.load({"$and": [{"refs": ranged1}, {"refs": self.refs[0]}]})
+                    samelink = Link().load({"$and": [{"refs": ranged1.normal()}, {"refs": self.refs[0]}]})
                 #note: The above code neglects the case where both refs in the link are section or ranged and there is a ranged/section link in the db with the opposite situation on both refs.
 
             if samelink:
