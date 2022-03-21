@@ -583,10 +583,10 @@ class DateRefRange(object):
         :param end: datetime
         """
         self.dateRange = DateRange(name, start, end)
-        self.refRange = Ref(refRangeString)
+        self.ref = Ref(refRangeString)
 
     def refIsInRange(self, ref, timestamp):
-        if Ref(ref) in self.refRange.all_segment_refs() and self.dateRange.start <= timestamp and self.dateRange.end >= timestamp:
+        if Ref(ref) in self.ref.all_segment_refs() and self.dateRange.start <= timestamp and self.dateRange.end >= timestamp:
             return True
         else:
             return False
@@ -652,8 +652,14 @@ class ParashaScheduleManager(ScheduleManager):
         # print(self.overallDateRange.end)
 
     def getRelevantUserHistories(self):
-        query = {}
-        pass
+        query = [self.overallDateRange.update_match({
+            "is_sheet": False,
+            "book": self.dateRefRanges[0].ref.book
+        }), {"$sort": {"datetime": 1}}, {"$group": {"_id": {"uid": "$uid"}, 
+        "history": {"$push": {"ref": "$ref", "datetime": "$datetime", "uid": "$uid"}}}}]
+        print(query)
+        return db.user_history.find(query)
 
     def getUsersWhoAreLearningSchedule(self):
+        
         pass
