@@ -5171,7 +5171,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   color: var(--inline-link-blue);
 }
 .segment .he sup {
-  font-size: 0.5em;
+  font-size: 0.6em;
 }
 .segment sup:hover {
   text-decoration: underline;
@@ -5188,7 +5188,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .segment sup.itag {
   text-decoration: none;
   font-family: var(--hebrew-sans-serif-font-family);
-  font-size: 0.6em;
+  font-size: 0.5em;
   line-height: 1;
   color: var(--inline-link-blue);
 }
@@ -6130,6 +6130,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .textListTextRangeBox {
   position: relative;
+}
+
+.textListTextRangeBox.typeQF .titleBox{
+  color: forestgreen;
 }
 .textListTextRangeBox .textRange{
   margin-bottom: 0;
