@@ -11,7 +11,8 @@ import {
   InterfaceText,
   ContentText, EnglishText, HebrewText, LanguageToggleButton,
 } from './Misc';
-import React  from 'react';
+
+import React, { useState, useRef }  from 'react';
 import ReactDOM  from 'react-dom';
 import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
@@ -24,6 +25,10 @@ import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Component   from 'react-class';
 import {ContentLanguageContext} from './context';
+import Hebrew from './sefaria/hebrew.js';
+import ReactTags from 'react-tag-autocomplete';
+
+
 
 
 
@@ -110,6 +115,8 @@ class BookPage extends Component {
         versionNotes:           currentLanguage == "he" ? d.heVersionNotes : d.versionNotes,
         digitizedBySefaria:     currentLanguage == "he" ? d.heDigitizedBySefaria : d.digitizedBySefaria,
         versionTitleInHebrew: currentLanguage == "he" ? d.heVersionTitleInHebrew : d.VersionTitleInHebrew,
+        shortVersionTitle:    currentLanguage == "he" ? d.heShortVersionTitle : d.shortVersionTitle,
+        shortVersionTitleInHebrew: currentLanguage == "he" ? d.heShortVersionTitleInHebrew : d.shortVersionTitleInHebrew,
         versionNotesInHebrew: currentLanguage == "he" ? d.heVersionNotesInHebrew : d.VersionNotesInHebrew,
         extendedNotes:        currentLanguage == "he" ? d.heExtendedNotes : d.extendedNotes,
         extendedNotesHebrew:  currentLanguage == "he" ? d.extendedNotesHebrew : d.heExtendedNotesHebrew,
@@ -386,6 +393,7 @@ class TextTableOfContents extends Component {
               b.name == defaultStruct ? 1 : 0;
     }.bind(this));
     const showToggle = !(isDictionary || isTorah) && structTabOptions.length > 1;
+    const toggleNames = showToggle ? structTabOptions.map(x => x.text) : [];
     const toggle = (showToggle ?
                   <TabbedToggleSet
                     tabOptions={structTabOptions}
@@ -408,6 +416,7 @@ class TextTableOfContents extends Component {
             <>
               <SchemaNode
                 schema={this.state.indexDetails.schema}
+                topToggleTitles={toggleNames}
                 addressTypes={this.state.indexDetails.schema.addressTypes}
                 refPath={this.props.title}
                 topLevel={true}
@@ -418,10 +427,11 @@ class TextTableOfContents extends Component {
               <div className="torahNavParshiot">
                 <SchemaNode
                   schema={alts["Parasha"]}
-                  addressTypes={this.state.indexDetails.schema.addressTypes}
+                  addressTypes={alts["Parasha"]["nodes"][0]["addressTypes"]}
                   refPath={this.props.title}
                   topLevel={true}
                   topLevelHeader={"Torah Portions"}
+                  disableSubCollapse={true}
                   currentlyVisibleRef={this.props.currentlyVisibleRef}
                   currentlyVisibleSectionRef={this.props.currentlyVisibleSectionRef}
                 />
@@ -431,6 +441,7 @@ class TextTableOfContents extends Component {
         } else {
           content = <SchemaNode
                       schema={this.state.indexDetails.schema}
+                      topToggleTitles={toggleNames}
                       addressTypes={this.state.indexDetails.schema.addressTypes}
                       refPath={this.props.title}
                       topLevel={true}
@@ -525,10 +536,12 @@ class SchemaNode extends Component {
     super(props);
     this.state = {
       // Collapse nodes below top level, and those that aren't default or makred includedSections
-      collapsed: "nodes" in props.schema ? props.schema.nodes.map(node => !(props.topLevel || node.default || node.includeSections)) : []
+      collapsed: "nodes" in props.schema ? props.schema.nodes.map(node => !(props.topLevel || props.disableSubCollapse || node.default || node.includeSections)) : []
     };
   }
   toggleCollapse(i) {
+    if(this.props.disableSubCollapse) return;
+    
     this.state.collapsed[i] = !this.state.collapsed[i];
     this.setState({collapsed: this.state.collapsed});
   }
@@ -538,6 +551,7 @@ class SchemaNode extends Component {
         return (
           <JaggedArrayNode
             schema={this.props.schema}
+            topToggleTitles={this.props.topToggleTitles}
             refPath={this.props.refPath}
             topLevel={this.props.topLevel}
             topLevelHeader={this.props.topLevelHeader}
@@ -566,11 +580,12 @@ class SchemaNode extends Component {
         if ("nodes" in node || ("refs" in node && node.refs.length && includeSections)) {
           // SchemaNode with children (nodes) or ArrayMapNode with depth (refs)
           path = this.props.refPath + ", " + node.title;
+          const keyPressFunc = this.props.disableSubCollapse ? null : (e) => { this.toggleCollapse(i) }
           return (
             <div className="schema-node-toc" data-ref={path} key={i}>
-              <span className={`schema-node-title ${this.state.collapsed[i] ? "collapsed" : "open"}`}
-                    onClick={this.toggleCollapse.bind(null, i)}
-                    onKeyPress={function(e) {e.charCode == 13 ? this.toggleCollapse(i):null}.bind(this)}
+              <span className={`schema-node-title ${this.state.collapsed[i] ? "collapsed" : "open"} ${this.props.disableSubCollapse ? "fixed" : ""}`}
+                    onClick={()=> {this.toggleCollapse(i)}}
+                    onKeyPress={(e) => {e.charCode == 13 ? this.toggleCollapse(i):null}}
                     role="heading"
                     aria-level="3"
                     aria-hidden="true" tabIndex={0}>
@@ -581,6 +596,7 @@ class SchemaNode extends Component {
                 <SchemaNode
                   schema={node}
                   refPath={this.props.refPath + ", " + node.title}
+                  topToggleTitles={this.props.topToggleTitles}
                   currentlyVisibleRef={this.props.currentlyVisibleRef}
                   currentlyVisibleSectionRef={this.props.currentlyVisibleSectionRef}/>
               </div>
@@ -624,6 +640,7 @@ class SchemaNode extends Component {
               <div className="schema-node-contents">
                 <JaggedArrayNode
                   schema={node}
+                  topToggleTitles={this.props.topToggleTitles}
                   contentLang={this.props.contentLang}
                   refPath={this.props.refPath + (node.default ? "" : ", " + node.title)}
                   currentlyVisibleRef={this.props.currentlyVisibleRef}
@@ -672,11 +689,12 @@ class JaggedArrayNode extends Component {
                 currentlyVisibleSectionRef={this.props.currentlyVisibleSectionRef}
               />);
     }
-    let topLevelHeader = this.props.topLevel && (this.props.schema?.depth <= 2 || this.props.topLevelHeader) ? (
+    const specialHeaderText = this.props.topLevelHeader || this.props.schema?.sectionNames[0] || "Chapters";
+    let topLevelHeader = !this.props.topToggleTitles.includes(specialHeaderText) && (this.props.topLevel && (this.props.schema?.depth <= 2 || this.props.topLevelHeader)) ? (
         <div className="specialNavSectionHeader">
           <ContentText text={{
-            en: this.props.topLevelHeader || this.props.schema?.sectionNames[0] || "Chapters",
-            he: Sefaria.hebrewTranslation(this.props.topLevelHeader || this.props.schema?.sectionNames[0] || "Chapters")
+            en: specialHeaderText,
+            he: Sefaria.hebrewTranslation(specialHeaderText)
           }}/>
         </div>
     ) : null;
@@ -698,7 +716,8 @@ class JaggedArrayNode extends Component {
 }
 JaggedArrayNode.propTypes = {
   schema:      PropTypes.object.isRequired,
-  refPath:     PropTypes.string.isRequired
+  refPath:     PropTypes.string.isRequired,
+  topToggleTitles: PropTypes.array
 };
 
 
@@ -776,7 +795,7 @@ class JaggedArrayNodeSection extends Component {
           heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
         }
       let ref  = (this.props.refPath + ":" + section).replace(":", " ") + this.refPathTerminal(contentCounts[i]);
-      let currentPlace = ref == this.props?.currentlyVisibleSectionRef || ref == this.props?.currentlyVisibleRef; //the second clause is for depth 1 texts
+      let currentPlace = ref == this.props?.currentlyVisibleSectionRef || ref == this.props?.currentlyVisibleRef || Sefaria.refContains(this.props?.currentlyVisibleSectionRef, ref); //the second clause is for depth 1 texts
       const linkClasses = classNames({"sectionLink": 1, "current": currentPlace}); 
       let link = (
         <a className={linkClasses} href={"/" + Sefaria.normRef(ref)} data-ref={ref} key={i}>
@@ -825,7 +844,7 @@ class ArrayMapNode extends Component {
           section = i+1;
           heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
         }
-        let currentPlace = ref == this.props?.currentlyVisibleSectionRef;
+        let currentPlace = ref == this.props?.currentlyVisibleSectionRef  || ref == this.props?.currentlyVisibleRef || Sefaria.refContains(ref, this.props?.currentlyVisibleRef);
         const linkClasses = classNames({"sectionLink": 1, "current": currentPlace}); 
         return (
           <a className={linkClasses} href={"/" + Sefaria.normRef(ref)} data-ref={ref} key={i}>
@@ -961,6 +980,7 @@ class ModeratorButtons extends Component {
     this.state = {
       expanded: false,
       message: null,
+      editing: false,
     }
   }
   expand() {
@@ -969,8 +989,13 @@ class ModeratorButtons extends Component {
   collapse() {
     this.setState({expanded: false});
   }
-  editIndex() {
-    window.location = "/edit/textinfo/" + this.props.title;
+  editIndex(e) {
+    if (e.currentTarget.id === "edit") {
+      this.setState({editing: true});
+    }
+    else if(e.currentTarget.id === "cancel") {
+      this.setState({editing: false});
+    }
   }
   addSection() {
     window.location = "/add/" + this.props.title;
@@ -984,7 +1009,7 @@ class ModeratorButtons extends Component {
       return;
     }
 
-    const url = "/api/index/" + title;
+    const url = "/api/v2/index/" + title;
     $.ajax({
       url: url,
       type: "DELETE",
@@ -1007,9 +1032,13 @@ class ModeratorButtons extends Component {
                 <i className="fa fa-cog"></i>
               </div>);
     }
-    let editTextInfo = <div className="button white" onClick={this.editIndex}>
-                          <span><i className="fa fa-info-circle"></i> Edit Text Info</span>
-                        </div>;
+    let editTextInfo =    this.state.editing ? <EditTextInfo initTitle={this.props.title} close={this.editIndex}/>
+                          :
+                          <div className="button white" id="edit" onClick={(e) => this.editIndex(e)}>
+                            <span className="fa fa-info-circle"/> Edit Text Info
+                          </div>
+
+
     let addSection   = <div className="button white" onClick={this.addSection}>
                           <span><i className="fa fa-plus-circle"></i> Add Section</span>
                         </div>;
@@ -1032,6 +1061,281 @@ class ModeratorButtons extends Component {
 ModeratorButtons.propTypes = {
   title: PropTypes.string.isRequired,
 };
+
+
+const SectionTypesBox = function({sections, canEdit, updateParent}) {
+  const box = useRef(null);
+  const add = function() {
+    updateParent(sections.concat("")); //tell parent new values
+  }
+  const remove = function(i) {
+    updateParent(sections.slice(0, i+1)); //tell parent new values
+  }
+  const updateSelfAndParent = function() {
+    let newSections = Array.from(box.current.children).map(item => item.value);
+    updateParent(newSections);
+  }
+
+  return <div id="sBox" ref={box}>
+            {sections.map(function(section, i) {
+              if (i === 0) {
+                return <input onBlur={updateSelfAndParent} className={'sectionType'} defaultValue={section}/>;
+              }
+              else if (canEdit) {
+                return <span><input onBlur={updateSelfAndParent} className={'sectionType'} defaultValue={section}/><span className="remove" onClick={(i) => remove(i)}>X</span></span>;
+              }
+              else {
+                return <input onBlur={updateSelfAndParent} className={'sectionType'} defaultValue={section}/>;
+              }
+            })}
+            {canEdit ? <span className="add" onClick={add}>Add Section</span> : null}
+          </div>
+}
+
+
+const CategoryChooser = function({categories, update}) {
+  const categoryMenu = useRef();
+
+  const handleChange = function(e) {
+    let newCategories = [];
+    for (let i=0; i<categoryMenu.current.children.length; i++) {
+      let el = categoryMenu.current.children[i].children[0];
+      if (el.options[el.selectedIndex].value === "Choose a category" || (i > 0 && Sefaria.tocItemsByCategories(newCategories.slice(0, i+1)).length === 0)) {
+        //first test says dont include "Choose a category" and anything after it in categories.
+        //second test is if categories are ["Talmud", "Prophets"], set categories to ["Talmud"]
+        break;
+      }
+      newCategories.push(el.options[el.selectedIndex].value);
+    }
+    update(newCategories); //tell parent of new values
+  }
+
+  let menus = [];
+
+  //create a menu of first level categories
+  let options = Sefaria.toc.map(function(child, key) {
+    if (categories.length > 0 && categories[0] === child.category) {
+      return <option key={key} value={categories[0]} selected>{categories[0]}</option>;
+    }
+    else {
+      return <option key={key} value={child.category}>{child.category}</option>
+    }
+  });
+  menus.push(options);
+
+  //now add to menu second and/or third level categories found in categories
+  for (let i=0; i<categories.length; i++) {
+    let options = [];
+    let subcats = Sefaria.tocItemsByCategories(categories.slice(0, i+1));
+    for (let j=0; j<subcats.length; j++) {
+      if (subcats[j].hasOwnProperty("contents")) {
+        if (categories.length >= i && categories[i+1] === subcats[j].category) {
+          options.push(<option key={j} value={categories[i+1]} selected>{subcats[j].category}</option>);
+        }
+        else
+        {
+          options.push(<option key={j} value={subcats[j].category}>{subcats[j].category}</option>);
+        }
+      }
+    }
+    if (options.length > 0) {
+      menus.push(options);
+    }
+  }
+  return <div ref={categoryMenu}>
+          {menus.map((menu, index) =>
+            <div id="categoryChooserMenu">
+              <select key={`subcats-${index}`} id={`subcats-${index}`} onChange={handleChange}>
+              <option key="chooseCategory" value="Choose a category">Choose a category</option>
+              {menu}
+              </select>
+            </div>)}
+         </div>
+}
+
+
+const TitleVariants = function({titles, update}) {
+  const onTitleDelete = function(i) {
+    let newTitles = titles.filter(t => t !== titles[i]);
+    update(newTitles);
+  }
+  const onTitleAddition = function(title) {
+    let newTitles = [].concat(titles, title);
+    update(newTitles);
+  }
+  const onTitleValidate = function (title) {
+    const validTitle = titles.every((item) => item.name !== title.name);
+    if (!validTitle) {
+      alert(title+" already exists.");
+    }
+    return validTitle;
+  }
+
+  return <div className="publishBox">
+                <ReactTags
+                    allowNew={true}
+                    tags={titles}
+                    onDelete={onTitleDelete}
+                    placeholderText={Sefaria._("Add a title...")}
+                    delimiters={["Enter", "Tab"]}
+                    onAddition={onTitleAddition}
+                    onValidate={onTitleValidate}
+                  />
+         </div>
+}
+
+
+const EditTextInfo = function({initTitle, close}) {
+  const index = useRef(null);
+  index.current = Sefaria.getIndexDetailsFromCache(initTitle);
+  const oldTitle = index.current.title; //save original title, in case english title gets edited
+  const [enTitle, setEnTitle] = useState(index.current.title);
+  const [heTitle, setHeTitle] = useState(index.current.heTitle);
+  const [titleVariants, setTitleVariants] = useState(index.current.titleVariants.map((item, i) =>({["name"]: item, ["id"]: i})));
+  const [heTitleVariants, setHeTitleVariants] = useState(index.current.heTitleVariants.map((item, i) =>({["name"]: item, ["id"]: i})));
+  const [categories, setCategories] = useState(index.current.categories);
+  const [savingStatus, setSavingStatus] = useState(false);
+  const [sections, setSections] = useState(index.current.sectionNames);
+  const toggleInProgress = function() {
+    setSavingStatus(savingStatus => !savingStatus);
+  }
+  const validate = function () {
+    if (!enTitle) {
+      alert("Please give a text title or commentator name.");
+      return false;
+    }
+
+    if (!heTitle) {
+      alert("Please give a Hebrew text title.");
+      return false;
+    }
+
+    if (/[.\-\\\/]/.test(enTitle)) {
+      alert('Text titles may not contain periods, hyphens or slashes.');
+      return false;
+    }
+
+    if (/[0-9]/.test(enTitle)) {
+      alert('Text titles may not contain numbers. This form is for general information about a text as a whole, not specific citations.');
+      return false;
+    }
+
+    if (categories.length === 0) {
+      alert("Please choose a text category.");
+      return false;
+    }
+
+    for (let i = 0; i < categories.length; i++) {
+      if (/[.\-\\\/]/.test(categories[i])) {
+        alert('Categories may not contain periods, hyphens or slashes.');
+        return false;
+      }
+    }
+    if (Hebrew.containsHebrew(enTitle)) {
+      alert("Please enter a primary title in English. Use the Hebrew Title field to specify a title in Hebrew.");
+      return false;
+    }
+    return true;
+  }
+  const save = function() {
+    const enTitleVariantNames = titleVariants.map(i => i["name"]);
+    const heTitleVariantNames = heTitleVariants.map(i => i["name"]);
+    let postIndex = {}
+    postIndex.title = enTitle;
+    postIndex.heTitle = heTitle;
+    postIndex.titleVariants = enTitleVariantNames;
+    postIndex.heTitleVariants = heTitleVariantNames;
+    postIndex.categories = categories;
+    if (sections && sections.length > 0) {
+      postIndex.sectionNames = sections;
+    }
+    if (enTitle !== oldTitle) {
+      postIndex.oldTitle = oldTitle;
+    }
+    let postJSON = JSON.stringify(postIndex);
+    let title = enTitle.replace(/ /g, "_");
+    let url = "/api/v2/raw/index/" + title;
+    if ("oldTitle" in index.current) {
+      url += "?update=1";
+    }
+    toggleInProgress();
+    $.post(url,  {"json": postJSON}, function(data) {
+      if (data.error) {
+        toggleInProgress();
+        alert(data.error);
+      } else {
+        alert("Text information saved.");
+        window.location.href = "/admin/reset/"+index.current.title;
+      }
+      }).fail( function(xhr, textStatus, errorThrown) {
+        alert("Unfortunately, there may have been an error saving this text information.");
+        window.location.href = "/admin/reset/"+index.current.title;  // often this occurs when save occurs successfully but there is simply a timeout on cauldron so try resetting it
+      });
+  };
+  const validateThenSave = function () {
+    if (validate()) {
+      save();
+    }
+  }
+  return (
+      <div className="editTextInfo">
+      <div className="static">
+        <div className="inner">
+          {savingStatus ? <div class="collectionsWidget">Saving text information...<br/><br/>(processing title changes may take some time)</div> : null}
+          <div id="newIndex">
+            <div className="headerWithButtons">
+              <h1 className="pageTitle">
+                <span className="int-en">Index Editor</span>
+                <span className="int-he">עריכת מאפייני אינדקס</span>
+              </h1>
+              <div className="end">
+                <a onClick={(e) => close(e)} id="cancel" className="button small transparent control-elem">
+                  <InterfaceText>Cancel</InterfaceText>
+                </a>
+                <div onClick={validateThenSave} id="saveAccountSettings" className="button small blue control-elem" tabIndex="0" role="button">
+                  <InterfaceText>Save</InterfaceText>
+                </div>
+              </div>
+            </div>
+            <div className="section">
+                <label><InterfaceText>Text Title</InterfaceText></label>
+              <input id="textTitle" onBlur={(e) => setEnTitle(e.target.value)} defaultValue={enTitle}/>
+            </div>
+
+            <div className="section">
+              <label><InterfaceText>Hebrew Title</InterfaceText></label>
+              <input id="heTitle" onBlur={(e) => setHeTitle(e.target.value)} defaultValue={heTitle}/>
+            </div>
+
+            <div className="section">
+              <label><InterfaceText>Category</InterfaceText></label>
+              <CategoryChooser update={setCategories} categories={categories}/>
+            </div>
+            {index.current.hasOwnProperty("sectionNames") ?
+            <div className="section">
+              <div><label><InterfaceText>Text Structure</InterfaceText></label></div>
+              <SectionTypesBox updateParent={setSections} sections={sections} canEdit={index.current === {}}/>
+            </div> : null}
+
+            <div className="section">
+              <div><InterfaceText>Alternate English Titles</InterfaceText></div><label><span className="optional"><InterfaceText>Optional</InterfaceText></span></label>
+
+              <TitleVariants update={setTitleVariants} titles={titleVariants}/>
+            </div>
+
+            <div className="section">
+              <div><InterfaceText>Alternate Hebrew Titles</InterfaceText></div><label><span className="optional"><InterfaceText>Optional</InterfaceText></span></label>
+              <TitleVariants update={setHeTitleVariants} titles={heTitleVariants}/>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+  );
+}
+
+
+
 
 
 class ReadMoreText extends Component {

@@ -4,7 +4,7 @@ import PropTypes  from 'prop-types';
 import Sefaria  from './sefaria/sefaria';
 import {DonateLink, EnglishText, HebrewText, NewsletterSignUpForm} from './Misc'
 import {InterfaceText, ProfileListing, Dropdown} from './Misc';
-import { Ad } from './Ad'
+import { Promotions } from './Promotions'
 
 const NavSidebar = ({modules}) => {
   return <div className="navSidebar sans-serif">
@@ -81,7 +81,7 @@ const TitledText = ({enTitle, heTitle, enText, heText}) => {
 
 const Promo = () =>
     <Module>
-        <Ad adType="sidebar"/>
+        <Promotions adType="sidebar"/>
     </Module>
 ;
 

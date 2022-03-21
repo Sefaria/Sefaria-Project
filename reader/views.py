@@ -16,7 +16,8 @@ import os
 import re
 import uuid
 
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from django.template.loader import render_to_string
 from django.shortcuts import render, redirect
 from django.http import Http404, QueryDict
@@ -59,6 +60,7 @@ from sefaria.helper.search import get_query_obj
 from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, get_topics_for_book
 from sefaria.helper.community_page import get_community_page_items
 from sefaria.helper.file import get_resized_file
+from sefaria.image_generator import make_img_http_response
 import sefaria.tracker as tracker
 
 if USE_VARNISH:
@@ -189,6 +191,7 @@ def base_props(request):
             "profile_pic_url": profile.profile_pic_url,
             "is_history_enabled": profile.settings.get("reading_history", True),
             "translationLanguagePreference": request.translation_language_preference,
+            "versionPrefsByCorpus": request.version_preferences_by_corpus,
             "following": profile.followees.uids,
             "blocking": profile.blockees.uids,
             "calendars": get_todays_calendar_items(**_get_user_calendar_params(request)),
@@ -209,6 +212,7 @@ def base_props(request):
             "profile_pic_url": "",
             "is_history_enabled": True,
             "translationLanguagePreference": request.translation_language_preference,
+            "versionPrefsByCorpus": request.version_preferences_by_corpus,
             "following": [],
             "blocking": [],
             "calendars": get_todays_calendar_items(**_get_user_calendar_params(request)),
@@ -316,7 +320,7 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
     additionally setting `text` field with textual content.
     """
     if oref.is_book_level():
-        index_details = library.get_index(oref.normal()).contents(v2=True, with_content_counts=True)
+        index_details = library.get_index(oref.normal()).contents(with_content_counts=True)
         index_details["relatedTopics"] = get_topics_for_book(oref.normal(), annotate=True)
         if kwargs.get('extended notes', 0) and (versionEn is not None or versionHe is not None):
             currVersions = {"en": versionEn, "he": versionHe}
@@ -385,7 +389,7 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
             panel["text"] = text_family
 
             if oref.index.categories == ["Tanakh", "Torah"]:
-                panel["indexDetails"] = oref.index.contents(v2=True) # Included for Torah Parashah titles rendered in text
+                panel["indexDetails"] = oref.index.contents() # Included for Torah Parashah titles rendered in text
 
             if oref.is_segment_level() or oref.is_range(): # we don't want to highlight "Genesis 3" but we do want "Genesis 3:4" and "Genesis 3-5"
                 panel["highlightedRefs"] = [subref.normal() for subref in oref.range_list()]
@@ -515,6 +519,8 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
             raise Http404
         if versionHe and not Version().load({"versionTitle": versionHe, "language": "he"}):
             raise Http404
+        versionEn, versionHe = override_version_with_preference(oref, request, versionEn, versionHe)
+
         kwargs = {
             "panelDisplayLanguage": request.GET.get("lang", request.contentLang),
             'extended notes': int(request.GET.get("notes", 0)),
@@ -568,7 +574,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
                     versionEn = request.GET.get("v{}".format(i)).replace("_", " ") if request.GET.get("v{}".format(i)) else None
                 else: # he
                     versionHe = request.GET.get("v{}".format(i)).replace("_", " ") if request.GET.get("v{}".format(i)) else None
-
+            versionEn, versionHe = override_version_with_preference(oref, request, versionEn, versionHe)
             filter   = request.GET.get("w{}".format(i)).replace("_", " ").split("+") if request.GET.get("w{}".format(i)) else None
             filter   = [] if filter == ["all"] else filter
             versionFilter = [request.GET.get("vside").replace("_", " ")] if request.GET.get("vside") else []
@@ -767,6 +773,36 @@ def get_search_params(get_dict, i=None):
     }
 
 
+def get_version_preference_params(request):
+    raw_vpref = request.GET.get("versionPref", None)
+
+    if raw_vpref is None:
+        return None, None
+    assert raw_vpref.count("|") == 1
+    raw_vpref = raw_vpref.replace("_", " ")
+    vtitle_pref, vlang_pref = raw_vpref.split("|")
+    return vtitle_pref,  vlang_pref
+
+
+def get_version_preference_from_dict(oref, version_preferences_by_corpus):
+    corpus = oref.index.get_primary_corpus()
+    vpref_dict = version_preferences_by_corpus.get(corpus, None)
+    if vpref_dict is None:
+        return None, None
+    return vpref_dict['vtitle'], vpref_dict['lang']
+
+
+def override_version_with_preference(oref, request, versionEn, versionHe):
+    vtitlePref, vlangPref = get_version_preference_from_dict(oref, request.version_preferences_by_corpus)
+    if vtitlePref is not None and Version().load({"versionTitle": vtitlePref, "language": vlangPref, "title": oref.index.title}):
+        # vpref exists and the version exists for this text
+        if vlangPref == "en" and not versionEn:
+            versionEn = vtitlePref
+        elif vlangPref == "he" and not versionHe:
+            versionHe = vtitlePref
+    return versionEn, versionHe
+
+
 @ensure_csrf_cookie
 @sanitize_get_params
 def search(request):
@@ -872,11 +908,7 @@ def collection_page(request, slug):
     props["collectionData"] = collection.contents(with_content=True, authenticated=authenticated)
     del props["collectionData"]["lastModified"]
 
-    propsJSON = json.dumps(props)
-    html = render_react_component("ReaderApp", propsJSON)
-    return render(request, 'base.html', {
-        "propsJSON": propsJSON,
-        "html": html,
+    return render_template(request, 'base.html', props, {
         "title": collection.name + " | " + _("Sefaria Collections"),
         "desc": props["collectionData"].get("description", ""),
         "noindex": not getattr(collection, "listed", False)
@@ -1172,7 +1204,7 @@ def edit_text_info(request, title=None, new_title=None):
                 "title": "Permission Denied",
                 "content": "The Text Info for %s is locked.<br><br>Please email hello@sefaria.org if you believe edits are needed." % title
             })
-        indexJSON = json.dumps(i.contents(v2=True) if "toc" in request.GET else i.contents(force_complex=True))
+        indexJSON = json.dumps(i.contents() if "toc" in request.GET else i.contents())
         versions = VersionSet({"title": title})
         text_exists = versions.count() > 0
         new = False
@@ -1305,6 +1337,10 @@ def texts_api(request, tref):
         commentary = bool(int(request.GET.get("commentary", False)))
         pad        = bool(int(request.GET.get("pad", 1)))
         versionEn  = request.GET.get("ven", None)
+        firstAvailableRef = bool(int(request.GET.get("firstAvailableRef", False)))  # use first available ref, which may not be the same as oref
+        if firstAvailableRef:
+            temp_oref = oref.first_available_section_ref()
+            oref = temp_oref or oref  # don't overwrite oref if first available section ref fails
         if versionEn:
             versionEn = versionEn.replace("_", " ")
         versionHe  = request.GET.get("vhe", None)
@@ -1316,14 +1352,22 @@ def texts_api(request, tref):
         wrapNamedEntities = bool(int(request.GET.get("wrapNamedEntities", False)))
         stripItags = bool(int(request.GET.get("stripItags", False)))
         multiple = int(request.GET.get("multiple", 0))  # Either undefined, or a positive integer (indicating how many sections forward) or negative integer (indicating backward)
-        translationLanguagePreference = request.GET.get("transLangPref", None)
+        translationLanguagePreference = request.GET.get("transLangPref", None)  # as opposed to vlangPref, this refers to the actual lang of the text
+        try:
+            vtitlePref, vlangPref = get_version_preference_params(request)
+        except AssertionError:
+            return jsonResponse({"error": "version pref must contain a version title and version language separated by a pipe (|)"}, cb)
 
         def _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context, pad=pad,
-                      alts=alts, wrapLinks=wrapLinks, layer_name=layer_name, wrapNamedEntities=wrapNamedEntities, translationLanguagePreference=translationLanguagePreference):
+                      alts=alts, wrapLinks=wrapLinks, layer_name=layer_name, wrapNamedEntities=wrapNamedEntities):
             text_family_kwargs = dict(version=versionEn, lang="en", version2=versionHe, lang2="he",
                                       commentary=commentary, context=context, pad=pad, alts=alts,
                                       wrapLinks=wrapLinks, stripItags=stripItags, wrapNamedEntities=wrapNamedEntities,
                                       translationLanguagePreference=translationLanguagePreference)
+            vtitlePrefKey = "vtitlePreference"
+            if vlangPref == "he":
+                vtitlePrefKey += "2"  # 2 corresponds to lang2 which is constant (for some reason)
+            text_family_kwargs[vtitlePrefKey] = vtitlePref
             try:
                 text = TextFamily(oref, **text_family_kwargs).contents()
             except AttributeError as e:
@@ -1450,6 +1494,41 @@ def texts_api(request, tref):
 
     return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
 
+@catch_error_as_json
+@csrf_exempt
+def social_image_api(request, tref):
+    lang = request.GET.get("lang", "en")
+    if lang == "bi":
+        lang = "en"
+    version = request.GET.get("ven", None) if lang == "en" else request.GET.get("vhe", None)
+    platform = request.GET.get("platform", "twitter")
+
+    try:
+        ref = Ref(tref)
+        ref_str = ref.normal() if lang == "en" else ref.he_normal()
+
+        if version:
+            version = version.replace("_", " ")
+
+        tf = TextFamily(ref, stripItags=True, lang=lang, version=version, context=0, commentary=False).contents()
+
+        he = tf["he"] if type(tf["he"]) is list else [tf["he"]]
+        en = tf["text"] if type(tf["text"]) is list else [tf["text"]]
+
+        text = en if lang == "en" else he
+        text = ' '.join(text)
+        cat = tf["primary_category"]
+
+    except:
+        text = None
+        cat = None
+        ref_str = None
+
+
+    res = make_img_http_response(text, cat, ref_str, lang, platform)
+
+    return res
+
 
 @catch_error_as_json
 @csrf_exempt
@@ -1523,21 +1602,13 @@ def index_node_api(request, title):
 
 @catch_error_as_json
 @csrf_exempt
-def index_api(request, title, v2=False, raw=False):
+def index_api(request, title, raw=False):
     """
     API for manipulating text index records (aka "Text Info")
     """
     if request.method == "GET":
-        try:
-            with_content_counts = bool(request.GET.get("with_content_counts", False))
-            i = library.get_index(title).contents(v2=v2, raw=raw, with_content_counts=with_content_counts)
-        except InputError as e:
-            node = library.get_schema_node(title)  # If the request were for v1 and fails, this falls back to v2.
-            if not node:
-                raise e
-            if node.is_default():
-                node = node.parent
-            i = node.as_index_contents()
+        with_content_counts = bool(request.GET.get("with_content_counts", False))
+        i = library.get_index(title).contents(raw=raw, with_content_counts=with_content_counts)
 
         if request.GET.get("with_related_topics", False):
             i["relatedTopics"] = get_topics_for_book(title, annotate=True)
@@ -1563,7 +1634,7 @@ def index_api(request, title, v2=False, raw=False):
             apikey = db.apikeys.find_one({"key": key})
             if not apikey:
                 return jsonResponse({"error": "Unrecognized API key."})
-            return jsonResponse(func(apikey["uid"], Index, j, method="API", v2=v2, raw=raw, force_complex=True).contents(v2=v2, raw=raw, force_complex=True))
+            return jsonResponse(func(apikey["uid"], Index, j, method="API", raw=raw).contents(raw=raw))
         else:
             title = j.get("oldTitle", j.get("title"))
             try:
@@ -1576,7 +1647,7 @@ def index_api(request, title, v2=False, raw=False):
         @csrf_protect
         def protected_index_post(request):
             return jsonResponse(
-                func(request.user.id, Index, j, v2=v2, raw=raw, force_complex=True).contents(v2=v2, raw=raw, force_complex=True)
+                func(request.user.id, Index, j, raw=raw).contents(raw=raw)
             )
         return protected_index_post(request)
 
@@ -1775,7 +1846,7 @@ def text_preview_api(request, title):
     for text 'title'
     """
     oref = Ref(title)
-    response = oref.index.contents(v2=True)
+    response = oref.index.contents()
     response['node_title'] = oref.index_node.full_title()
 
     def get_preview(prev_oref):
@@ -2687,7 +2758,6 @@ def stories_api(request, gid=None):
             return protected_post(request)
         else:
             return jsonResponse({"error": "Unauthorized"})
-
 
 def addDynamicStories(stories, user, page):
     """
@@ -3602,6 +3672,37 @@ def profile_sync_api(request):
         return jsonResponse(ret)
 
     return jsonResponse({"error": "Unsupported HTTP method."})
+
+
+@catch_error_as_json
+@api_view(["DELETE"])
+@permission_classes([IsAuthenticated])
+def delete_user_account_api(request):
+    # Deletes the user and emails sefaria staff for followup
+    from sefaria.utils.user import delete_user_account
+    from django.core.mail import EmailMultiAlternatives
+    
+    if not request.user.is_authenticated:
+        return jsonResponse({"error": _("You must be logged in to delete your account.")})
+    uid = request.user.id
+    user_email = request.user.email
+    email_subject = "User Account Deletion Followup"
+    email_msg = "User {} has requested deletion of his account".format(user_email)
+    reply_email = None
+    try:
+        delete_user_account(uid, False)
+        email_msg += "\n\n The request was completed automatically."
+        reply_email = user_email
+        response = jsonResponse({"status": "ok"})
+    except Exception as e: 
+        # There are on rare occasions ForeignKeyViolation exceptions due to records in gauth_credentialsmodel or gauth_flowmodel in the sql db not getting 
+        # removed properly
+        email_msg += "\n\n The request failed to complete automatically. The user has been directed to email in his request."
+        logger.error("User {} deletion failed. {}".format(uid, e))
+        response = jsonResponse({"error": "There was an error deleting the account", "user": user_email})
+        
+    EmailMultiAlternatives(email_subject, email_msg, from_email="Sefaria System <dev@sefaria.org>", to=["Sefaria <hello@sefaria.org>"], reply_to=[reply_email if reply_email else "hello@sefaria.org"]).send()
+    return response
 
 
 def get_url_params_user_history(request):

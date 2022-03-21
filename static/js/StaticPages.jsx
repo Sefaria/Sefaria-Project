@@ -674,10 +674,13 @@ const EducatorsPage = () => (
   <StaticPage>
     <HeaderForEducatorsPage/>
     <GreyBox>
-      <H2Block en="Empower and Engage" he=""/>
+      <H2Block en="Empower and Engage" he="מסע של גילוי"/>
       <EnBlock padded={true}>
         <p>Empower your students with Sefaria’s free library of digital texts, in Hebrew and English translation, and use our teaching materials to spark creativity and foster independence. Learn new ways of teaching and engaging your students in the centuries-old conversation around Jewish texts, and join Sefaria’s Educator community.</p>
       </EnBlock>
+      <HeBlock padded={true}>
+        <p>            דמיינו את התלמידים שלכם  מטיילים במסדרונות ספריית ענק ושולפים ספרים עתיקים וחדשים בהם מתגלים דמויות, רעיונות ומחשבות מתוך העולם היהודי שנכתבו במשך 3000 שנה. בספריא החלום הופך למציאות. הובילו את התלמידים למסע של גילוי ולמידה בין המקורות של ארון הספרים היהודי.</p>
+      </HeBlock>
       <Spacer/>
     </GreyBox>
 
@@ -687,18 +690,18 @@ const EducatorsPage = () => (
       enText="Whether you’re a pro or a new user, Sefaria has resources to help you and your students learn and thrive. Join a Sefaria webinar, browse our tutorials, sign up for our Educator course, or request a custom workshop for your team or your students."
       enImg="/static/img/educators-landing-page/teaching-with-sefaria-library.png"
       enImgAlt="Professional Development"
-      heTitle="Professional Development"
-      heText="Whether you’re a pro or a new user, Sefaria has resources to help you and your students learn and thrive. Join a Sefaria webinar, browse our tutorials, sign up for our Educator course, or request a custom workshop for your team or your students."
-      heImg="/static/img/educators-landing-page/teaching-with-sefaria-library.png"
+      heTitle="איך להשתמש באתר?"
+      heText='נתחיל בהתחלה: "המדריך למשתמש בספריא" מורכב מיחידות מודרכות בהן נלמדות צעד אחר צעד האפשרויות השונות באתר ספריא. באסופה "ספריא לתלמידים" נמצאות הדרכות על השימוש באתר שמותאמות במיוחד עבור למידה עצמאית של תלמידים. כדי ללמוד ולהכיר חלק מסוים באתר תוכלו להשתמש באסופה של "שאלות נפוצות".'
+      heImg="/static/img/educators-landing-page/teaching-with-sefaria-library-heb.png"
       heImgAlt="Professional Development"
       borderColor={palette.colors.darkblue}
     />
 
     <ButtonRow white={true} enTitle="" heTitle="">
       { [
-          ["Online Educator Course", "", "https://sefaria.typeform.com/to/tJVexqpG"],
-          ["Lesson Plans on Sefaria", "", "/collections/pedagogy-on-sefaria-exemplary-lesson-plans"],
-          ["Schedule A Workshop", "", "https://sefaria.typeform.com/to/Pl3biam8"]
+          ["Online Educator Course", "מדריך למשתמש בספריא", "https://sefaria.typeform.com/to/tJVexqpG", "https://www.sefaria.org.il/sheets/361600?lang=he"],
+          ["Lesson Plans on Sefaria", "ספריא לתלמידים", "/collections/pedagogy-on-sefaria-exemplary-lesson-plans", "https://www.sefaria.org.il/collections/KGMlHrvA"],
+          ["Schedule A Workshop", "שאלות נפוצות", "https://sefaria.typeform.com/to/Pl3biam8", "https://www.sefaria.org.il/collections/%D7%A9%D7%90%D7%9C%D7%95%D7%AA-%D7%A0%D7%A4%D7%95%D7%A6%D7%95%D7%AA-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90"]
       ].map(i =>
           <SimpleButton
               white={true}
@@ -706,8 +709,8 @@ const EducatorsPage = () => (
               tall={true}
               newTab={true}
               href={i[2]}
-              he_href={i[2]}
-              he={i[0]}
+              he_href={i[3]}
+              he={i[1]}
               en={i[0]}
           />)
       }
@@ -718,9 +721,9 @@ const EducatorsPage = () => (
       enText="Stay up to date with the latest news and resources from Sefaria. Learn from other educators’ experiences teaching and using Sefaria’s resources, and get inspired to try new things in your work. Discover our adaptable lesson plans and resources, or find learning materials and activities ready-to-go for your classroom!"
       enImg="/static/img/educators-landing-page/megillah-activity.png"
       enImgAlt="Resources for Educators"
-      heTitle=""
-      heText=""
-      heImg="/static/img/educators-landing-page/megillah-activity.png"
+      heTitle="מערכי שיעור וחומרי הוראה"
+      heText="צוות החינוך של ספריא יצר ואסף עבורכם המורים, חומרי הוראה בעזרתם תוכלו להעשיר ולהעמיק את הלמידה. <br><br>לפניכם אסופה של מערכי שיעור בנושאים שונים, הצעה לתהליך של עבודת חקר באמצעות ספריא ורעיונות להערכה חלופית."
+      heImg="/static/img/educators-landing-page/369968.png"
       heImgAlt=""
       borderColor={palette.colors.gold}
       link=""
@@ -728,9 +731,9 @@ const EducatorsPage = () => (
 
     <ButtonRow white={true} enTitle="" heTitle="">
       { [
-          ["Past Educator Newsletters", "", "/collections/qZ0UWi5y"],
-          ["Sefaria in Action", "", "/sheets/311116?lang=bi"],
-          ["For Your Students", "", "/sheets/311291?lang=bi"]
+          ["Past Educator Newsletters", "10 רעיונות להערכה חלופית", "/collections/qZ0UWi5y", "https://www.sefaria.org.il/sheets/281661?lang=he"],
+          ["Sefaria in Action", "עבודת חקר: מסע בין מקורות", "/sheets/311116?lang=bi", "https://www.sefaria.org.il/collections/%D7%A2%D7%91%D7%95%D7%93%D7%AA-%D7%97%D7%A7%D7%A8-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90-%D7%9E%D7%A1%D7%A2-%D7%91%D7%99%D7%9F-%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA"],
+          ["For Your Students", "מערכי שיעור", "/sheets/311291?lang=bi", "https://www.sefaria.org.il/sheets/361593?lang=he"]
       ].map(i =>
           <SimpleButton
               white={true}
@@ -738,8 +741,8 @@ const EducatorsPage = () => (
               tall={true}
               newTab={true}
               href={i[2]}
-              he_href={i[2]}
-              he={i[0]}
+              he_href={i[3]}
+              he={i[1]}
               en={i[0]}
           />)
       }
@@ -749,18 +752,18 @@ const EducatorsPage = () => (
       enText="Browse our FAQ’s and learn more about how to use Sefaria’s tools to study and to teach. Sefaria’s Learning Team is always available to support you and your students or answer any questions you might have. If there are texts, translations, lesson plans, or student materials that would enhance your teaching, please share that with us as well."
       enImg="/static/img/educators-landing-page/tutorials-for-educators.png"
       enImgAlt="Sefaria for Educators How-Tos"
-      heTitle=""
-      heText=""
-      heImg="/static/img/educators-landing-page/tutorials-for-educators.png"
+      heTitle="גם את זה יש בספריא! אל תחמיצו!"
+      heText='מאגר ספריא הוא גדול ובתוכו אפשרויות לימוד רבות. מוזמנים לעיין באסופות מעניינות ושימושיות, להכיר את עמוד הקהילה והתכנים שבו וגם לגלות את "הסודות של ספריא"'
+      heImg="/static/img/educators-landing-page/228260.png"
       heImgAlt=""
       borderColor={palette.colors.red}
     />
 
     <ButtonRow white={true} enTitle="" heTitle="">
       { [
-          ["Educator FAQ", "", "/collections/tutorials-for-educators"],
-          ["Request New Resources", "", "https://sefaria.typeform.com/to/aaZmi4JD"],
-          ["Webinars for Educators", "", "/collections/qJLU68HQ"]
+          ["Educator FAQ", "אסופות מומלצות", "/collections/tutorials-for-educators","https://www.sefaria.org.il/sheets/360599?lang=he"],
+          ["Request New Resources", "עמוד הקהילה", "https://sefaria.typeform.com/to/aaZmi4JD","https://www.sefaria.org.il/community"],
+          ["Webinars for Educators", "הסודות של ספריא", "/collections/qJLU68HQ","https://www.sefaria.org.il/sheets/228260.2?lang=he"]
       ].map(i =>
           <SimpleButton
               white={true}
@@ -768,23 +771,29 @@ const EducatorsPage = () => (
               tall={true}
               newTab={true}
               href={i[2]}
-              he_href={i[2]}
-              he={i[0]}
+              he_href={i[3]}
+              he={i[1]}
               en={i[0]}
           />)
       }
     </ButtonRow>
 
     <GreyBox>
-      <H2Block en="Get in touch" he=""/>
+      <H2Block en="Get in touch" he="אנחנו רוצים לשמוע מכם"/>
       <EnBlock padded={true}>
           <p>Was your teaching enhanced by Sefaria? Did you have a “Sefaria moment” with your students? Share it with us! We love to hear how educators are using Sefaria in the field and we learn from the feedback we receive. We are also available to answer all of your Sefaria questions. Write to us at education@sefaria.org.</p>
       </EnBlock>
+      <HeBlock padded={true}>
+          <p>אנחנו לומדים רבות ממורים ותלמידים שמספרים לנו על ההתנסות שלהם עם ספריא. נשמח מאד אם תשתפו אותנו בחוויית הלימוד שלכם. אתם מוזמנים ליצור איתנו קשר כדי לתאם הדרכה למורים וגם לתלמידים,  לספר לנו על חוויית הלמידה עם ספריא ולהתייעץ איתנו בכל דבר ועניין</p>
+          <p>כתבו לנו לכתובת המייל hello@sefaria.org</p>
+
+      </HeBlock>
       <Spacer/>
     </GreyBox>
 
-    <H2Block en="What the educators have to say…" he=""/>
+    <H2Block en="What the educators have to say…" he="מורים ותלמידים ממליצים"/>
 
+    <EnBlock>
     <Section>
       <UserQuote
           heText=""
@@ -815,10 +824,39 @@ const EducatorsPage = () => (
         image="/static/img/educators-landing-page/Yael Goldfischer.png"
       />
     </Section>
+    </EnBlock>
+
+
+    <HeBlock>
+    <Section>
+      <UserQuote
+          heText='מצאתי ש-"ספריא" היא דרך טובה להמחיש לתלמידים את מה שהתגלה לנו והפעים אותנו, ומה שאנחנו לפעמים מתקשים להסביר להם: שהיהדות היא מארג שלם של הקשרים, שאינו מפסיק ליצור ולהתקיים. ב-"ספריא" ההקשרים האלה נראים לעין, מתגלים בקליק, ולוקחים את התלמיד/ה איתם למסע מסחרר שאינו נגמר: דבר מוביל לדבר, דבר קשור לדבר: פסוק לפרשנות, למדרש, לדף לימוד, לשיר עכשווי שבו מצוטט פסוק, שגם עליו יש מדרש, וכך הלאה וכך הלאה. "ספריא" היא המחשה של העושר הבלתי-נתפס של היצירה היהודית, והיא גם הזמנה לקחת בו חלק ולהוסיף את החוליה שלך לשלשלת הזהב.'
+          enText=""
+          enName=""
+          heName='יורם גלילי, מורה לתושב"ע, מנחה מורים במשרד החינוך ובתכנית בארי של מכון הרטמן'
+          image="/static/img/educators-landing-page/yoram-galil.png"
+      />
+      <UserQuote
+          enText=""
+          heText='עבורי ספריא הוא מרחב פעילות חינוכי רב ענפים, בית מדרש דיגיטלי שלם. משמש עבורי כספריה  ללימוד ולהכנת חומרי לימוד ודפי מקורות  לתלמידיי. עבור תלמידיי זה המקום שאליו נכנסים לחפש, לקרא ולבנות דפי מקורות אותם הם לומדים בחברותא ומלמדים את חבריהם.    דבר גדול הוא שתלמיד נכנס כל פעם להיכל, לספריה שלמה מחפש ומדפדף  ואגב כך  נחשף לעושר גדול - זה דבר חשוב מאין כמותו. כך  שלפעמים מחפשים אתונות ומוצאים מלוכה.'
+          enName=""
+          heName='איציק רבי, מורה ומדריך ארצי לתושב"ע ומשפט עברי בחינוך הממלכתי, מנחה להוראת תרבות יהודית ישראלית בתכנית בארי של מכון הרטמן'
+          image="/static/img/educators-landing-page/izhak-rabi.png"
+      />
+      <UserQuote
+        heText='אני משתמשת בספריא לא פעם כמורה - לעתים בהכנת השיעורים בעצמי , אבל בעיקר - ככלי מעשי עבור התלמידות: עבור גישה לפרשנים ומקורות שלא נגישים להן בכיתה או בבית, להדגמת הקישוריות בין סוגיות בגמרא לבין פסיקת ההלכה, להיכרות עם הדמויות המוזכרות במקורות חז"ל, ועוד. הכלי של דפי מקורות הוא נהדר כפרוייקט הערכה חלופית - תהליך של איתור חומרים, חשיבה על היחס ביניהם, והגעה לתוצר שיכול להיות מעניין גם לחברותיהן לכיתה וגם לציבור הרחב דרך האתר.'
+        enText=""
+        enName=""
+        heName='אביגיל גרוס-גלמן, מובילה רוחנית בתיכון "פלך" לבנות בזכרון יעקב'
+        image="/static/img/educators-landing-page/avigail-gross.png"
+      />
+    </Section>
+    </HeBlock>
+
 
     <div className="staticPageCallToActionFooter">
       <div className="staticPageBlockInner flexContainer">
-        <SimpleInterfaceBlock classes="callToActionText" en="Sign up for our mailing list to get updates in your inbox" he="Sign up for our mailing list to get updates in your inbox" />
+        <SimpleInterfaceBlock classes="callToActionText" en="Sign up for our mailing list to get updates in your inbox" he="קבלו עדכונים והפניות למקורות מעניינים" />
         <EducatorSubscribeButton/>
       </div>
     </div>
@@ -1214,6 +1252,213 @@ const PBSC2020LandingPage = () => (
     </StaticPage>
 );
 
+const PBSC2021LandingPage = () => (
+    <StaticPage>
+        <Header
+            enTitle="Powered by Sefaria Contest 2021"
+            enText="Explore the Projects"
+            enImg="/static/img/pbsc-2020-landing-page/codemockup3.png"
+            enImgAlt=""
+            heTitle="תחרות פיתוח התוכנה של ספריא 2021"
+            heText="גלו את המיזמים"
+            heImg="/static/img/pbsc-2020-landing-page/codemockup3.png"
+            heImgAlt=""
+        />
+
+        <GreyBox>
+            <H2Block en="Inviting Innovation" he="הזמנה לחידוש"/>
+            <EnBlock padded={true}>
+                <p>In an effort to seed the digital future of Jewish texts, the Powered by Sefaria Contest was launched in July 2020 — inviting the global Sefaria community to make use of our free and open digital dataset of Jewish texts, translations, and interconnections. Over the years, dozens of third parties have created apps, visualizations, and conducted research using our data or API, and we wanted to see what else our community could dream up. The second annual Powered by Sefaria Contest saw tremendous enthusiasm and welcomed many high quality submissions from Sefaria users around the world. <strong>Keep reading to learn more about the two winners and some innovative honorable mentions.</strong></p>
+            </EnBlock>
+            <HeBlock padded={true}>
+                <p>מתוך רצון לזרוע את זרעי העתיד הדיגיטלי של ארון הספרים היהודי, השקנו בשנת 2020 את תחרות פיתוח התוכנה של ספריא, ובה הזמנו את הקהילה הגלובלית של ספריא להשתמש במערך הנתונים הדיגיטלי הפתוח והחופשי של מקורות יהודיים, תרגומים וקישורים בין־טקסטואליים. לאורך השנים היינו עדים לעשרות מפתחי גוף שלישי שהשתמשו בנתונים או ב־API שלנו ליצירת יישומונים והדמיות ולצורכי מחקר, ורצינו לבדוק אילו רעיונות נוספים יש בקהילה שלנו. התחרות הפגישה אותנו עם התלהבות יוצאת מן הכלל ועם תוצרים באיכות גבוהה שקיבלנו ממשתמשי ספריא ברחבי העולם. המשיכו לקרוא כדי ללמוד על שני המנצחים ועל מיזמים נוספים שזכו בציון לשבח.</p>
+            </HeBlock>
+            <Spacer/>
+        </GreyBox>
+
+        <GreyBox light={true}>
+            <H2Block en="Grand Prize Winner" he="זוכה הפרס הכללי"/>
+        </GreyBox>
+
+        <Feature
+            enTitle="Sefaria Chavrusa"
+            enText="Gershon Binder<br/><br/>Sefaria Chavrusa is designed to increase accessibility by introducing a text-to-speech feature on Sefaria. Most text-to-speech options struggle with Hebrew; Sefaria Chavrusa is a solution for people who use screen readers, are unfamiliar with reading Hebrew, or just prefer hearing texts read aloud.  It also allows for customized voices with different accents including Chassidish, Litvish, and Israeli."
+            enImg="/static/img/pbsc-2021-landing-page/sefariachavrusa.png"
+            enImgAlt="Screenshot of Sefaria Chavrusa"
+            heTitle="או 'חברותא עם ספריא'"
+            heText="מאת גרשון בינדר<br><br>'חברותא עם ספריא' היא כלי שנועד להגביר את נגישותם של טקסטים בספריא על ידי השמעה קולית של טקסטים. כיום מרבית הכלים שהופכים טקסט לשמע מתקשים לעשות זאת בעברית, ועל כן 'חברותא עם ספריא' תסייע למשתמשים שנעזרים בקוראי מסך, למשתמשים שאינם מנוסים דיים בקריאת עברית או למשתמשים שפשוט מעדיפים לשמוע את המקורות בקול. המיזם מאפשר שימוש בקולות מותאמים אישית עם מבטאים לבחירה, כגון חסידי, אשכנזי או ישראלי."
+            heImg="/static/img/pbsc-2021-landing-page/sefariachavrusa.png"
+            heImgAlt="Screenshot of Sefaria Chavrusa"
+            borderColor={palette.colors.yellow}
+            link="https://www.youtube.com/watch?v=wnvw6H9BWDw&feature=youtu.be"
+        />
+
+        <GreyBox>
+            <H2Block en="Meet the Grand Prize Winner" he="פגשו את זוכה הפרס הכללי"/>
+            <EnBlock padded={true}>
+                <p>Originally from Huntington, Long Island, Gershon Binder is a senior at Lander College for Men working toward a degree in Computer Science. He is a graphic and web designer working with 3D rendering and Unreal Engine. He currently lives in Queens, New York.</p>
+            </EnBlock>
+            <HeBlock padded={true}>
+                <p>גרשון בינדר מהנטינגטון שבלונג איילנד במדינת ניו יורק הוא סטודנט למדעי המחשב בשנתו האחרונה בקולג' לנדר לגברים. בינדר הוא מעצב אתרים ומעצב גרפי ועובד עם מודלים תלת-ממדיים ועם מנוע Unreal. כיום מתגורר בקווינס שבניו יורק.</p>
+            </HeBlock>
+            <H2Block en="What Our Team Had to Say" he="מה יש לצוות שלנו להגיד על זה"/>
+            <Section noPadding={true}>
+                <UserQuote
+                    enText="“I was really impressed with the quality of the speech, even for unvowelized texts.  One of the things that we learned early at Sefaria is that making a text digital opens it up to people with low vision.  But the quality of Rabbinic Hebrew text-to-speech has always been poor, especially in comparison with English. This project gave me hope that we could provide low-sighted users a truly excellent spoken version of all of our texts.”"
+                    heText="התרשמתי מאוד מאיכות הדיבור, אפילו עבור טקסטים ללא ניקוד. אחד הדברים שגילינו בשלב מוקדם בספריא הוא שהפיכת טקסט לדיגיטלי מאפשרת ללקויי ראיה להינות מהטקסטים שלנו. הבעיה היא שהעברה של מקורות רבניים מטקסט כתוב לדיבור פוגעת באיכות של הטקסט. הפרויקט הזה נתן לי תקווה שנוכל לספק למשתמשים לקויי ראייה גרסה מדוברת מעולה באמת של כל הטקסטים שלנו."
+                    enName="Lev Israel, Chief Data Officer at Sefaria"
+                    heName='לב ישראל, מנהל נתונים ראשי, בספריא'
+                    image="/static/img/pbsc-2021-landing-page/lev.png"
+                />
+            </Section>
+
+        </GreyBox>
+
+        <GreyBox light={true}>
+            <H2Block en="Women in Tech Winner" he="זוכת פרס נשים מפתחות טכנולוגיה"/>
+        </GreyBox>
+
+        <Feature
+            enTitle="Torah Chanting Source Sheet Generator"
+            enText="By Valerie Monaco<br><br>The Torah Chanting Source Sheet Generator takes a range of Torah verses and provides a generated Sefaria sheet loaded with features for people learning how to chant, including trope identification and highlighting, trope cantillation tunes, and full verse chanting audio files."
+            enImg="/static/img/pbsc-2021-landing-page/torahchanting.png"
+            enImgAlt="Screenshot of Torah Chanting Source Sheet Generator"
+            heTitle="מחולל דפי מקורות לקריאה בתורה"
+            heText='מאת ולרי מונקו<br><br>"מחולל דפי המקורות לקריאה בתורה"  אוסף מגוון  פסוקים מן התורה כדי לחולל בעזרתם דף מקורות הכולל כלי עזר לקריאה בתורה – זיהוי והדגשה של טעמי המקרא, הדגמות שמע של טעמי המקרא וכן קובצי שמע של פסוקים מלאים.'
+            heImg="/static/img/pbsc-2021-landing-page/torahchanting.png"
+            heImgAlt="Screenshot of Torah Chanting Source Sheet Generator"
+            borderColor={palette.colors.raspberry}
+            link="https://www.torahchantinghelper.net/"
+        />
+
+        <GreyBox>
+            <H2Block en="Meet the Women in Tech Winner" he="פגשו את זוכת פרס נשים מפתחות טכנולוגיה"/>
+            <EnBlock padded={true}>
+                <p>The Torah Chanting Source Sheet Generator was created by Valerie Monaco, who officially converted to Judaism in 2013. In addition to being members at Rodef Shalom in Pittsburgh, PA, she and her wife are very involved with Congregation Bet Tikvah. Valerie works as a Senior Data Analyst for the City of Pittsburgh and has graduate degrees in psychology and human-computer interaction. As she was studying chanting, Valerie found it was difficult without a shared visual resource, and setting up a useful sheet “by hand” was time-consuming and had limitations. The Torah Chanting Source Sheet Generator eases the process of creating sheets to make it easier for people to spend their time learning.</p>
+            </EnBlock>
+            <HeBlock padded={true}>
+                <p>"מחולל דפי המקורות לקריאה בתורה" נוצר על ידי ולרי מונקו, שהתגיירה בשנת 2013. נוסף על חברותן בקהילת "רודף שלום" בפיטסבורג שבפנסילבניה, היא ובת זוגה הן גם שותפות נלהבות בקהילת "בית תקווה". ולרי היא אנליסטית דאטה בכירה בעיריית פיטסבורג ובעלת תואר ראשון בפסיכולוגיה ובקשרי אדם־מחשב. כאשר למדה לקרוא בתורה גילתה ולרי שקשה לעשות זאת ללא דף מקורות ויזואלי משותף, ושהכנת דף שימושי כזה באופן ידני תיארך זמן רב ויהיו לה מגבלות. "מחולל דפי המקורות לקריאה בתורה" מקל על תהליך יצירת דפי המקורות ומאפשר להקדיש יותר זמן ללימוד.</p>
+            </HeBlock>
+            <H2Block en="What Our Team Had to Say" he="מה יש לצוות שלנו להגיד על זה"/>
+            <Section noPadding={true}>
+                <UserQuote
+                    enText="“One of the most powerful things about Sefaria is how our tools and resources can be harnessed to provide access and ease of use for folks to grow into their Judaism and Torah learning whenever they're ready. As an adult b'nai mitzvah student Valerie knows this first hand, and her extension of our API and resources to create a tool that simplifies the process of learning Torah reading by automatically creating interactive trope exercises and highlighting trop phrases in a given selection of text is exactly the kind of project that would have been much more difficult to create without our open APIs and data.”"
+                    heText=""
+                    enName="Russel Neiss, Sr. Product Engineer at Sefaria"
+                    heName='רזיאל ניס, מהנדס מוצר בכיר, בספריא'
+                    image="/static/img/pbsc-2021-landing-page/russel.png"
+                />
+            </Section>
+        </GreyBox>
+
+        <GreyBox light={true}>
+            <H2Block en="Honorable Mentions" he="מיזמים שזכו בציון לשבח"/>
+        </GreyBox>
+
+        <Feature
+            enTitle="he_Toranit"
+            enText="By Zeev Pekar<br><br>Ivrit Toranit is a free spelling dictionary. It includes Hebrew from different eras,  as well as Western and Eastern Aramaic. The dictionary is designed to reduce the ‘mispellings’ wrongly detected by the modern Hebrew spell checkers when working with Torah literature."
+            enImg="/static/img/pbsc-2021-landing-page/he_toranit.png"
+            enImgAlt="he_Toranit screenshot"
+            heTitle="עברית תורנית"
+            heText='מאת זאב פקר<br><br>"עברית תורנית" היא מילון איות ללא תשלום הכולל עברית מתקופות שונות וכן ארמית מזרחית ומערבית. המילון נועד להפחית את "שגיאות הכתיב" שבודקי האיות, הפועלים על פי העברית המודרנית, מרבים למצוא ולהתריע עליהן בעת עבודה עם ספרות תורנית.'
+            heImg="/static/img/pbsc-2021-landing-page/he_toranit.png"
+            heImgAlt="he_Toranit screenshot"
+            borderColor={palette.colors.green}
+            link="https://gitlab.com/pninim.org/he_TORANIT"
+        />
+
+
+        <Feature
+            enTitle="ShenaimMikra - Text to Speech"
+            enText="By Abraham Saiovici<br><br>ShnaimMikra Text-to-Speech is an application that pulls in the weekly Parsha along with the Rashis and synthesizes the text into speech, providing a way of hearing the Parsha on the go. Handy for long commutes!"
+            enImg="/static/img/pbsc-2021-landing-page/shenaim mikra.png"
+            enImgAlt="ShenaimMikra - Text to Speech"
+            heTitle="שניימקרא – טקסט לשמע"
+            heText='מאת אברהם סיוביצ’י<br><br>"שניימקרא – טקסט לשמע" הוא יישומון השולף את פרשת השבוע עם פרשנות רש"י מסנתז את הטקסט לשמע ומאפשר לשמוע את הפרשה "בלכתך בדרך". שימושי מאוד לנסיעות ארוכות לעבודה!'
+            heImg="/static/img/pbsc-2021-landing-page/shenaim mikra.png"
+            heImgAlt="שניימקרא – טקסט לשמע"
+            borderColor={palette.colors.paleblue}
+            link="http://shnaim-mikra-abe.s3-website-us-east-1.amazonaws.com/"
+        />
+
+
+        <Feature
+            enTitle="Verse-Based Search"
+            enText="By Oren Mishali<br><br>An innovative tool that helps users search for sources by quotations. On selecting a set of verses, the site generates a list of texts that quote verses from the set. This tool provides an different way to quickly find relevant sources - sorting results by their relationship to a specific verse rather than topic or text"
+            enImg="/static/img/pbsc-2021-landing-page/verse search.png"
+            enImgAlt="Verse-Based Search"
+            heTitle="חיפוש מבוסס פסוקים"
+            heText='מאת אורן משעלי<br><br>"חיפוש מבוסס פסוקים" הוא כלי חדשני שעוזר למשתמשים לחפש מקורות על פי ציטוטים. באמצעות בחירה של סדרת פסוקים, האתר מחולל רשימה של טקסטים המצטטים פסוקים בסדרה. הכלי הזה מספק דרך חלופית למציאת מקורות רלוונטיים במהירות – הוא ממיין תוצאות על פי הקשר שלהם לפסוק מסוים במקום לפי הקשר שלהם לנושא או לטקסט.'
+            heImg="/static/img/pbsc-2021-landing-page/verse search.png"
+            heImgAlt="חיפוש מבוסס פסוקים"
+            borderColor={palette.colors.blue}
+            link="http://jbse.cs.technion.ac.il/#/show?uri=section-tanach-1-1"
+        />
+
+
+        <Feature
+            enTitle="Stories of the Zohar"
+            enText="By Yair Gardin<br><br>A digital resource of the stories of the sages that appear in the Zohar, allowing easy perusal of the stories. The site includes mapping of all the stories of the Zohar according to parshas and topics, as well as accompanying visuals and links to similar stories."
+            enImg="/static/img/pbsc-2021-landing-page/zohar stories.png"
+            enImgAlt="Daf Yomi Crossword"
+            heTitle="סיפורי הזוהר"
+            heText='מאת יאיר גרדין<br><br>זהו משאב דיגיטלי לסיפורי החכמים שבזוהר, המאפשר קריאה מעמיקה בקלות. האתר כולל מיפוי של כל סיפורי הזוהר על פי פרשות ונושאים, וכן הדמיות המלוות את הסיפורים וקישורים לסיפורים דומים. '
+            heImg="/static/img/pbsc-2021-landing-page/zohar stories.png"
+            heImgAlt="תשבץ דף יומי"
+            borderColor={palette.colors.orange}
+            link="https://www.zohar-stories.com/"
+        />
+
+
+        <CallToActionFooterWithButton
+            href="https://github.com/Sefaria/Sefaria-Project"
+            he_href="https://github.com/Sefaria/Sefaria-Project"
+            enText="Want to create something of your own?"
+            heText="רוצה ליצור משהו משלך?"
+            enButtonText="GitHub"
+            heButtonText="גיטהאב"
+        />
+
+        <ButtonRow white={true} enTitle="Explore the 2020 projects" heTitle="גלו את מיזמי 2020">
+            { [
+                ["Talmud Sidebar Extension", "תוסף סרגל הכלים של התלמוד", "https://chrome.google.com/webstore/detail/talmud-sidebar-extension/dmpiiciebnbekblfbcdeogjkbbmeeimi"],
+                ["Mizmor Shir", "מזמור שיר", "http://mizmor-shir.herokuapp.com/"],
+                ["Shulkhan", "שולחן", "http://josephtepperman.com/shulkhan.htm"],
+                ["Goof - Body parts in Tefillah", "גוף: איברי הגוף בתפילה", "https://goof.surge.sh/"],
+                ["Capish - Interactive Learning", "קאפיש: לימוד אינטראקטיבי", "https://capish.me/"],
+                ["Daf Yomi Crossword", "תשבץ דף יומי", "http://ee.cooper.edu/~goldfarb/daf"],
+                ["Sefer Similarity Map", "ספר– מפת דמיון בין טקסטים", "https://jhostyk.github.io/SeferSimilarityMap"],
+                ["Custom Mikraot Gedolot", "מקראות גדולות בהתאמה אישית", "http://ec2-3-129-165-55.us-east-2.compute.amazonaws.com:3002/"],
+                ["Sefaria Space: (Topic Museum + Text Mania)", "מרחב ספריא (מוזיאון נושאי + טָרֶפֶת טקסט)", "https://sefaria-space.web.app/"],
+                ["The Rabbinic Citation Network", "רשת ציטוטים של חכמי התלמוד", "http://www.rabbiniccitations.jewishstudies.digitalscholarship.brown.edu/blog/"],
+                ["T'Feeling", "פילינג", "https://tfeeling.netlify.app"],
+                ["CiteMakor", "המצ'טט", "https://twitter.com/CiteMakor"],
+                ["Gifaria", "גיפַריא", "https://tiger-tang.shinyapps.io/gifaria"],
+                ["The Taryag Mitzvos", "תרי\"ג מצוות", "https://thetaryag.com/"],
+                ["3D Tanach Family Tree", "אילן יוחסין תנ\"כי תלת ממדי", "http://www.basehasefer.com"],
+                ["Gematriaphone", "גימטריה קולית", "http://alexboxer.com/gematriaphone"],
+                ["sefaria-connections", "קשרי ספריא", "https://charlesloder.github.io/sefaria-connections"],
+                ["SefariAcrostic", "ספריאקרוסטיכון", "https://20gordone.github.io/SefariaContest"],
+
+            ].map(i =>
+                <SimpleButton
+                    white={true}
+                    rounded={false}
+                    tall={true}
+                    newTab={true}
+                    href={i[2]}
+                    he_href={i[2]}
+                    he={i[1]}
+                    en={i[0]}
+                />)
+            }
+        </ButtonRow>
+
+    </StaticPage>
+);
+
+
 
 const StaticPage = ({children, optionalClass=""}) => {
     var staticPageClass = "staticPage";
@@ -1297,7 +1542,7 @@ const EducatorSubscribeButton = () => {
           <span className="int-en">{email.length === 0 ? <a href="/register?educator=true&next=/educators">{enActionText.current}</a> : enActionText.current}<img src="/static/img/circled-arrow-right.svg"/></span>
         </div>
         <div onClick={handleClick} className={classNames({button:1, flexContainer:1, "int-he":1, white: true, tall: false, rounded:true})}>
-          <span className="int-he">{email.length === 0 ? <a href="/register?educator=true&next=/educators">{heActionText.current}</a> : heActionText.current}<img src="/static/img/circled-arrow-right.svg"/></span>
+          <span className="int-he">{email.length === 0 ? <a href="/register?educator=true&next=/educators">{heActionText.current}</a> : heActionText.current}<img src="/static/img/circled-arrow-left.svg"/></span>
         </div>
       </div>
       <div className={`signUpEducatorsMessage ${messageStyle}`}>{message}<br/></div>
@@ -1307,8 +1552,8 @@ const EducatorSubscribeButton = () => {
 const HeaderForEducatorsPage = () => {
   var enTitle="Teach with Sefaria"
   var enText="Discover the power of digital texts and tools in your classroom. Explore Sefaria’s many resources to enrich teaching and learning in your community."
-  var heText="Discover the power of digital texts and tools in your classroom. Explore Sefaria’s many resources to enrich teaching and learning in your community."
-  var heTitle="Teach with Sefaria"
+  var heText="גלו כיצד להעשיר את הלמידה וההוראה באמצעות מאגר מקורות דיגיטלי. באתר אפשרויות רבות ללומדים:  תוכלו למצוא מקורות, להיפגש עם מגוון של חומרי הוראה ולחזק את התלמידים שלכם כלומדים עצמאיים."
+  var heTitle="מלמדים עם ספריא"
 
   return <div className="staticPageHeader educators">
     <div className="staticPageBlockInner flexContainer">
@@ -1353,8 +1598,11 @@ const Header = ({enTitle, heTitle, enText, heText, enImg, heImg, enImgAlt, heImg
     </div>
 };
 
-const Section = ({children}) =>
-    <div className={"staticPageBlockInner staticPageSection"}>
+const Section = ({children, noPadding}) =>
+    <div className={classNames({
+        "staticPageBlockInner": 1,
+        "staticPageSection": !noPadding,
+    })}>
         {children}
     </div>;
 
@@ -1509,6 +1757,7 @@ export {
     RemoteLearningPage,
     SheetsLandingPage,
     PBSC2020LandingPage,
+    PBSC2021LandingPage,
     ContestLandingPage,
     RambanLandingPage,
     EducatorsPage

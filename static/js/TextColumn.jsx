@@ -360,6 +360,7 @@ class TextColumn extends Component {
         layoutWidth={this.props.layoutWidth}
         unsetTextHighlight={this.props.unsetTextHighlight}
         translationLanguagePreference={this.props.translationLanguagePreference}
+        setCurrVersions={this.props.setCurrVersions}
         key={ref} />);
     }.bind(this));
 

@@ -7,6 +7,7 @@ Uses MongoDB collections: dafyomi, parshiot
 import datetime
 import p929
 import re
+import urllib
 from django.utils import timezone
 
 import sefaria.model as model
@@ -14,6 +15,7 @@ from sefaria.system.database import db
 from sefaria.utils.util import graceful_exception
 from sefaria.utils.hebrew import encode_hebrew_numeral, hebrew_parasha_name
 from sefaria.site.site_settings import SITE_SETTINGS
+from sefaria.model.schema import Term
 
 import structlog
 logger = structlog.get_logger(__name__)
@@ -28,7 +30,7 @@ hebrew display value
 ref
 """
 
-@graceful_exception(logger=logger, return_value=[])
+@graceful_exception(logger=logger, logLevel="warning", return_value=[])
 def daily_929(datetime_obj):
     #datetime should just be a date, like datetime.today()
     p = p929.Perek(datetime_obj.date())
@@ -185,7 +187,7 @@ def tikkunei_yomi(datetime_obj):
         "displayValue": {"en": display_en, "he": display_he},
         "url": rf.url(),
         "ref": rf.normal(),
-        "order": 12,
+        "order": 13,
         "category": rf.index.get_primary_category()
     })
     return tikkunei_items
@@ -321,7 +323,6 @@ def get_parasha(datetime_obj, diaspora=True, parasha=None):
         query["parasha"] = re.compile('(?:(?<=^)|(?<=-)){}(?=-|$)'.format(parasha))
     p = db.parshiot.find(query, limit=1).sort([("date", 1)])
     p = next(p)
-
     return p
 
 
@@ -353,6 +354,30 @@ def parashat_hashavua_and_haftara(datetime_obj, diaspora=True, custom=None, para
     return parasha_items
 
 
+@graceful_exception(logger=logger, return_value=[])
+def hok_leyisrael(datetime_obj, diaspora=True):
+
+    def get_hok_parasha(datetime_obj, diaspora=diaspora):
+        parasha = get_parasha(datetime_obj, diaspora=diaspora)['parasha']
+        parasha = parasha.replace('Lech-Lecha', 'Lech Lecha')
+        parasha = parasha.split('-')[0]
+        if parasha == 'Shmini Atzeret':
+            parasha = "V'Zot HaBerachah"
+        parasha_term = Term().load({'category': 'Torah Portions', 'titles': {'$elemMatch': {'text': parasha}}})
+        if not parasha_term:
+            parasha_term = get_hok_parasha(datetime_obj + datetime.timedelta(7), diaspora=diaspora)
+        return parasha_term
+
+    parasha_term = get_hok_parasha(datetime_obj, diaspora=diaspora)
+    parasha_he = parasha_term.get_primary_title('he')
+    return [{
+        "title": {"en": "Chok LeYisrael", "he": 'חק לישראל'},
+        "displayValue": {"en": parasha_term.name, "he": parasha_he},
+        "url": f'collections/חק-לישראל?tag={urllib.parse.quote(parasha_term.name)}',
+        "order": 12,
+        "category": 'Tanakh'
+    }]
+
 def get_all_calendar_items(datetime_obj, diaspora=True, custom="sephardi"):
     if not SITE_SETTINGS["TORAH_SPECIFIC"]:
         return []
@@ -368,6 +393,7 @@ def get_all_calendar_items(datetime_obj, diaspora=True, custom="sephardi"):
     cal_items += arukh_hashulchan(datetime_obj)
     cal_items += tanakh_yomi(datetime_obj)
     cal_items += tikkunei_yomi(datetime_obj)
+    cal_items += hok_leyisrael(datetime_obj, diaspora=diaspora)
     cal_items = [item for item in cal_items if item]
     return cal_items
 

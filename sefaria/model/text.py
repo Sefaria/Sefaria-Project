@@ -46,7 +46,7 @@ from sefaria.system.multiserver.coordinator import server_coordinator
 
 
 class AbstractIndex(object):
-    def contents(self, v2=False, raw=False, **kwargs):
+    def contents(self, raw=False, **kwargs):
         pass
 
     def versionSet(self):
@@ -144,7 +144,7 @@ class AbstractIndex(object):
         Returns the `contents` dictionary with each node annotated with section lengths info
         from version_state.
         """
-        contents = self.contents(v2=True)
+        contents = self.contents()
         vstate   = self.versionState()
 
         def simplify_version_state(vstate_node):
@@ -211,7 +211,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         "is_cited",             # (bool) only indexes with this attribute set to True will be picked up as a citation in a text by default
         "lexiconName",          # (str) For dictionaries - the name used in the Lexicon collection
         "dedication",           # (dict) Dedication texts, keyed by language
-        "hidden"                # (bool) Default false.  If not present, Index is visible in all TOCs.  True value hides the text in the main TOC, but keeps it in the search toc.
+        "hidden",               # (bool) Default false.  If not present, Index is visible in all TOCs.  True value hides the text in the main TOC, but keeps it in the search toc.
+        "corpora",              # (list[str]) List of corpora that this index is included in. Currently these are just strings without validation. First element is used to group texts for determining version preference within a corpus.
     ]
 
     def __str__(self):
@@ -242,22 +243,19 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
     def is_complex(self):
         return getattr(self, "nodes", None) and self.nodes.has_children()
 
-    def contents(self, v2=False, raw=False, force_complex=False, with_content_counts=False, with_related_topics=False, **kwargs):
+    def contents(self, raw=False, with_content_counts=False, with_related_topics=False, **kwargs):
         if raw:
             contents = super(Index, self).contents()
-        elif v2:
+        else:
             # adds a set of legacy fields like 'titleVariants', expands alt structures with preview, etc.
             contents = self.nodes.as_index_contents()
             if with_content_counts:
                 contents["schema"] = self.annotate_schema_with_content_counts(contents["schema"])
                 contents["firstSectionRef"] = Ref(self.title).first_available_section_ref().normal()
-        else:
-            contents = self.legacy_form(force_complex=force_complex)
 
-        if not raw:
             contents = self.expand_metadata_on_contents(contents)
-
         return contents
+
 
     def annotate_schema_with_content_counts(self, schema):
         """
@@ -323,40 +321,6 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             }
 
         return contents
-
-    def legacy_form(self, force_complex=False):
-        """
-        :param force_complex: Forces a complex Index record into legacy form
-        :return: Returns an Index object as a flat dictionary, in version one form.
-        :raise: Exception if the Index cannot be expressed in the old form
-        """
-        if not self.nodes.is_flat() and not force_complex:
-            raise InputError("Index record {} can not be converted to legacy API form".format(self.title))
-
-        d = {
-            "title": self.title,
-            "categories": self.categories[:],
-            "titleVariants": self.nodes.all_node_titles("en"),
-        }
-
-        if self.nodes.is_flat():
-            d["sectionNames"] = self.nodes.sectionNames[:]
-            d["heSectionNames"] = list(map(hebrew_term, self.nodes.sectionNames))
-            d["addressTypes"] = self.nodes.addressTypes[:]  # This isn't legacy, but it was needed for checkRef
-            d["textDepth"] = len(self.nodes.sectionNames)
-        if getattr(self, "order", None):
-            d["order"] = self.order[:]
-        if getattr(self.nodes, "lengths", None):
-            d["lengths"] = self.nodes.lengths[:]
-            d["length"] = self.nodes.lengths[0]
-        if self.nodes.primary_title("he"):
-            d["heTitle"] = self.nodes.primary_title("he")
-        if self.nodes.all_node_titles("he"):
-            d["heTitleVariants"] = self.nodes.all_node_titles("he")
-        else:
-            d["heTitleVariants"] = []
-
-        return d
 
     def _saveable_attrs(self):
         d = {k: getattr(self, k) for k in self._saveable_attr_keys() if hasattr(self, k)}
@@ -845,6 +809,10 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         if getattr(self, "dependence", False):
             toc_contents_dict["dependence"] = self.dependence
 
+        if len(getattr(self, "corpora", [])) > 0:
+            # first elem in corpora is the main corpus
+            toc_contents_dict["corpus"] = self.corpora[0]
+
         if include_first_section:
             firstSection = Ref(self.title).first_available_section_ref()
             toc_contents_dict["firstSection"] = firstSection.normal() if firstSection else None
@@ -931,6 +899,14 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         else:
             return self.categories[0]
 
+    def get_primary_corpus(self):
+        """
+        Primary corpus used for setting version preference by
+        """
+        corpora = getattr(self, "corpora", [])
+        if len(corpora) > 0:
+            return corpora[0]
+
 
 class IndexSet(abst.AbstractMongoSet):
     """
@@ -1011,6 +987,7 @@ class AbstractTextRecord(object):
     text_attr = "chapter"
     ALLOWED_TAGS    = ("i", "b", "br", "u", "strong", "em", "big", "small", "img", "sup", "sub", "span", "a")
     ALLOWED_ATTRS   = {
+        'sup': ['class'],
         'span':['class', 'dir'],
         # There are three uses of i tags.
         # footnotes: uses content internal to <i> tag.
@@ -1018,7 +995,7 @@ class AbstractTextRecord(object):
         # structure placement (e.g. page transitions): uses 'data-overlay', 'data-value'
         'i': ['data-overlay', 'data-value', 'data-commentator', 'data-order', 'class', 'data-label', 'dir'],
         'img': lambda name, value: name == 'src' and value.startswith("data:image/"),
-        'a': ['dir', 'class', 'href', 'data-ref'],
+        'a': ['dir', 'class', 'href', 'data-ref', "data-ven", "data-vhe"],
     }
 
     def word_count(self):
@@ -1211,7 +1188,8 @@ class AbstractTextRecord(object):
         if isinstance(tag, Tag):
             is_inline_commentator = tag.name == "i" and len(tag.get('data-commentator', '')) > 0
             is_page_marker = tag.name == "i" and len(tag.get('data-overlay','')) > 0
-            return AbstractTextRecord._itag_is_footnote(tag) or is_inline_commentator or is_page_marker
+            is_tanakh_end_sup = tag.name == "sup" and tag.get('class') == ['endFootnote']  # footnotes like this occur in JPS english
+            return AbstractTextRecord._itag_is_footnote(tag) or is_inline_commentator or is_page_marker or is_tanakh_end_sup
         return False
 
     @staticmethod
@@ -1280,12 +1258,15 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         "priority",
         "license",
         "versionNotes",
+        "formatAsPoetry",
         "digitizedBySefaria",
         "method",
         "heversionSource",  # bad data?
         "versionUrl",  # bad data?
         "versionTitleInHebrew",  # stores the Hebrew translation of the versionTitle
         "versionNotesInHebrew",  # stores VersionNotes in Hebrew
+        "shortVersionTitle",
+        "shortVersionTitleInHebrew",
         "extendedNotes",
         "extendedNotesHebrew",
         "purchaseInformationImage",
@@ -2031,7 +2012,7 @@ class VirtualTextChunk(AbstractTextRecord):
         self.is_merged = False
         self.sources = []
 
-        if not self._oref.index_node.parent.supports_language(self.lang):
+        if self._oref.index_node.parent and not self._oref.index_node.parent.supports_language(self.lang):
             self.text = []
             self._versions = []
             return
@@ -2097,6 +2078,14 @@ class TextFamily(object):
             "en": "versionTitleInHebrew",
             "he": "heVersionTitleInHebrew",
         },
+        "shortVersionTitle": {
+            "en": "shortVersionTitle",
+            "he": "heShortVersionTitle",
+        },
+        "shortVersionTitleInHebrew": {
+            "en": "shortVersionTitleInHebrew",
+            "he": "heShortVersionTitleInHebrew",
+        },
         "versionSource": {
             "en": "versionSource",
             "he": "heVersionSource"
@@ -2131,13 +2120,18 @@ class TextFamily(object):
             "he": "heLicense",
             "default": "unknown"
         },
+        "formatAsPoetry": { # Setup for Fox translation. Perhaps we want in other places as well?
+            "he": "formatHeAsPoetry",
+            "en": "formatEnAsPoetry",
+            "default": False,
+        }
     }
     sourceMap = {
         "en": "sources",
         "he": "heSources"
     }
 
-    def __init__(self, oref, context=1, commentary=True, version=None, lang=None, version2=None, lang2=None, pad=True, alts=False, wrapLinks=False, stripItags=False, wrapNamedEntities=False, translationLanguagePreference=None):
+    def __init__(self, oref, context=1, commentary=True, version=None, lang=None, version2=None, lang2=None, pad=True, alts=False, wrapLinks=False, stripItags=False, wrapNamedEntities=False, translationLanguagePreference=None, vtitlePreference=None, vtitlePreference2=None):
         """
         :param oref:
         :param context:
@@ -2151,6 +2145,8 @@ class TextFamily(object):
         :param wrapLinks: whether to return the text requested with all internal citations marked up as html links <a>
         :param stripItags: whether to strip inline commentator tags and inline footnotes from text
         :param wrapNamedEntities: whether to return the text requested with all known named entities marked up as html links <a>.
+        :param vtitlePreference: Preference for a specific version. Ignored if `version` is passed.
+        :param vtitlePreference2: Ditto of vtitlePreference but for lang2
         :return:
         """
         if pad:
@@ -2184,11 +2180,12 @@ class TextFamily(object):
             if language == 'en': tc_kwargs['actual_lang'] = translationLanguagePreference
             if language in {lang, lang2}:
                 curr_version = version if language == lang else version2
-                c = TextChunk(vtitle=curr_version, **tc_kwargs)
+                curr_vtitle_pref = vtitlePreference if language == lang else vtitlePreference2
+                c = TextChunk(vtitle=(curr_version or curr_vtitle_pref), **tc_kwargs)
                 if len(c._versions) == 0:  # indicates `version` doesn't exist
-                    if tc_kwargs.get('actual_lang', False) and not curr_version:
+                    if (tc_kwargs.get('actual_lang', False) or curr_vtitle_pref) and not curr_version:
                         # actual_lang is only used if curr_version is not passed
-                        del tc_kwargs['actual_lang']
+                        tc_kwargs.pop('actual_lang', None)
                         c = TextChunk(vtitle=curr_version, **tc_kwargs)
                     elif curr_version:
                         self._nonExistantVersions[language] = curr_version
@@ -2778,7 +2775,14 @@ class Ref(object, metaclass=RefCacheType):
             base_wout_title = base.replace(title + " ", "")
             address_class.parse_range_end(self, parts, base_wout_title)
         elif len(parts) == 2: # Parse range end portion, if it exists
-            self._parse_range_end(re.split("[.:, ]+", parts[1]))
+            try:
+                second_part = Ref(parts[1])
+                assert second_part.book == self.book, "the two sides of the range have different books"
+                self.toSections = Ref(parts[1]).sections
+            except InputError:
+                self._parse_range_end(re.split("[.:, ]+", parts[1]))
+            except AssertionError:
+                raise InputError("the two sides of the range have different books: '{}'.".format(self.tref))
 
 
     def _parse_range_end(self, range_parts):
@@ -3423,17 +3427,18 @@ class Ref(object, metaclass=RefCacheType):
         # todo: This is now stored on the VersionState. Look for performance gains.
         if isinstance(self.index_node, JaggedArrayNode):
             r = self.padded_ref()
-        elif isinstance(self.index_node, SchemaNode):
-            first_leaf = self.index_node.first_leaf()
-            if not first_leaf:
-                return None
-            try:
-                r = first_leaf.ref().padded_ref()
-            except Exception as e: #VirtualNodes dont have a .ref() function so fall back to VersionState
-               if self.is_book_level():
-                   from .version_state import VersionState
-                   vs = VersionState(self.index, proj={"title": 1, "first_section_ref": 1})
-                   return Ref(vs.first_section_ref) if (vs is not None) else None
+        elif isinstance(self.index_node, TitledTreeNode):
+            if self.is_segment_level():  # dont need to use first_leaf if we're already at segment level
+                r = self
+            else:
+                first_leaf = self.index_node.first_leaf()
+                if not first_leaf:
+                    return None
+                try:
+                    r = first_leaf.ref().padded_ref()
+                except Exception as e: #VirtualNodes dont have a .ref() function so fall back to VersionState
+                    if self.is_book_level():
+                        return self.index.versionSet().array()[0].first_section_ref()
         else:
             return None
 
@@ -4315,7 +4320,7 @@ class Ref(object, metaclass=RefCacheType):
         """
         fields = ["title", "versionTitle", "versionSource", "language", "status", "license", "versionNotes",
                   "digitizedBySefaria", "priority", "versionTitleInHebrew", "versionNotesInHebrew", "extendedNotes",
-                  "extendedNotesHebrew", "purchaseInformationImage", "purchaseInformationURL"]
+                  "extendedNotesHebrew", "purchaseInformationImage", "purchaseInformationURL", "shortVersionTitle", "shortVersionTitleInHebrew"]
         versions = VersionSet(self.condition_query())
         version_list = []
         if self.is_book_level():
@@ -5402,6 +5407,12 @@ class Library(object):
         for icat, cat in enumerate(path):
             q[f'categories.{icat}'] = cat
 
+        return IndexSet(q) if full_records else IndexSet(q).distinct("title")
+
+    def get_indexes_in_corpus(self, corpus: str, include_dependant=False, full_records=False) -> Union[IndexSet, list]:
+        q = {'corpora': corpus}
+        if not include_dependant:
+            q['dependence'] = {'$in': [False, None]}
         return IndexSet(q) if full_records else IndexSet(q).distinct("title")
 
     def get_indices_by_collective_title(self, collective_title, full_records=False):

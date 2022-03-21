@@ -110,7 +110,7 @@ class ReaderPanel extends Component {
     // Because it's called in the constructor, assume state isnt necessarily defined and pass 
     // variables mode and menuOpen manually
     let contentLangOverride = originalLanguage;
-    if (["topics", "topicsAll", "story_editor", "calendars", "community" ].includes(menuOpen)) {
+    if (["topics", "allTopics", "story_editor", "calendars", "community", "collection" ].includes(menuOpen)) {
       // Always bilingual for English interface, always Hebrew for Hebrew interface
       contentLangOverride = (Sefaria.interfaceLang === "english") ? "bilingual" : "hebrew";
 
@@ -162,15 +162,18 @@ class ReaderPanel extends Component {
       }
     }
   }
-  handleCitationClick(citationRef, textRef, replace) {
+  handleCitationClick(citationRef, textRef, replace, currVersions) {
     if (this.props.multiPanel) {
-      this.props.onCitationClick(citationRef, textRef, replace);
+      this.props.onCitationClick(citationRef, textRef, replace, currVersions);
     } else {
-      this.showBaseText(citationRef);
+      this.showBaseText(citationRef, replace, currVersions);
     }
   }
   handleTextListClick(ref, replaceHistory, currVersions) {
     this.showBaseText(ref, replaceHistory, currVersions);
+  }
+  setCurrVersions(currVersions) {
+    this.conditionalSetState({ currVersions });
   }
   openConnectionsInPanel(ref, additionalState) {
     let refs = typeof ref == "string" ? [ref] : ref;
@@ -542,6 +545,8 @@ class ReaderPanel extends Component {
     if (this.state.settings.language == "bilingual") {
       return this.state.width > 500 ? this.state.settings.biLayout : "stacked";
     }
+    // dont allow continuous mode in sidebar since it's currently not possible to control layout from sidebar
+    if (this.state.mode === "Connections") {return "segmented"}
     const category = this.currentCategory();
     const option = (category && (category === "Tanakh" || category === "Talmud")) ? "layout" + category : "layoutDefault";
     return this.state.settings[option];
@@ -646,6 +651,7 @@ class ReaderPanel extends Component {
           textHighlights={this.state.textHighlights}
           unsetTextHighlight={this.props.unsetTextHighlight}
           translationLanguagePreference={this.props.translationLanguagePreference}
+          setCurrVersions={this.setCurrVersions}
           key={`${textColumnBookTitle ? textColumnBookTitle : "empty"}-TextColumn`} />
       );
     }
@@ -663,6 +669,7 @@ class ReaderPanel extends Component {
           scrollToHighlighted={this.state.scrollToHighlighted}
           onRefClick={this.handleCitationClick}
           onSegmentClick={this.handleSheetSegmentClick}
+          onCitationClick={this.handleCitationClick}
           openSheet={this.openSheet}
           hasSidebar={this.props.hasSidebar}
           setSelectedWords={this.setSelectedWords}
@@ -1157,7 +1164,9 @@ class ReaderControls extends Component {
   // contains controls for display, navigation etc.
   constructor(props) {
     super(props);
-    this.state = {};
+    this.state = {
+      displayVersionTitle: {},  // lang codes as keys and version title to display in header as values. prefers shortVersionTitle when available but falls back on versionTitle
+    };
   }
   openTextConnectionsPanel(e) {
     e.preventDefault();
@@ -1170,15 +1179,60 @@ class ReaderControls extends Component {
     e.preventDefault();
     this.props.onSheetTitleClick(0);
   }
+  shouldShowVersion(props) {
+    props = props || this.props;
+    // maybe one day sheets will have versions (e.g Nachama) but for now, let's ignore that possibility
+    return !props.sheetID && (props.settings.language === "english" || props.settings.language === "bilingual");
+  }
+  setDisplayVersionTitle(version) {
+    const en = version.shortVersionTitle || version.versionTitle;
+    this.setState({
+      displayVersionTitle: {
+        en,
+        he: version.shortVersionTitleInHebrew || en,
+      }
+    });
+  }
+  loadTranslations() {
+    /**
+     * Preload translation versions to get shortVersionTitle to display
+     */
+    if (!this.shouldShowVersion()) { return; }
+    Sefaria.getVersions(this.props.currentRef, false, ['he'], true).then(versionList => {
+      if (!this.props.currVersions.en) {
+        // default version. choose highest priority
+        if (versionList.length === 0) { return; }
+        versionList.sort((a, b) => b.priority - a.priority);
+        this.setDisplayVersionTitle(versionList[0]);
+        return;
+      }
+      for (let version of versionList) {
+        if (version.versionTitle === this.props.currVersions.en) {
+          this.setDisplayVersionTitle(version);
+          break;
+        }
+      }
+    });
+  }
   componentDidMount() {
     const title = this.props.currentRef;
     if (title) {
       // If we don't have this data yet, rerender when we do so we can set the Hebrew title
-      const getTextPromise = Sefaria.getText(title, {context: 1, translationLanguagePreference: this.props.translationLanguagePreference}).then(data => {
+      const versionPref = Sefaria.versionPreferences.getVersionPref(title);
+      const getTextPromise = Sefaria.getText(title, {context: 1, translationLanguagePreference: this.props.translationLanguagePreference, versionPref}).then(data => {
         if ("error" in data) { this.props.onError(data.error); }
         this.setState({runningQuery: null});   // Causes re-render
       });
       this.setState({runningQuery: Sefaria.makeCancelable(getTextPromise)});
+    }
+    this.loadTranslations();
+  }
+  componentDidUpdate(prevProps, prevState) {
+    if (
+      this.shouldShowVersion() !== this.shouldShowVersion(prevProps) ||
+      this.props.currVersions !== prevProps.currVersions
+    ) {
+      this.loadTranslations();
     }
   }
   componentWillUnmount() {
@@ -1218,10 +1272,10 @@ class ReaderControls extends Component {
     const mode              = this.props.currentMode();
     const hideHeader        = !this.props.multiPanel && mode === "Connections";
     const connectionsHeader = this.props.multiPanel && mode === "Connections";
-    const showVersion = this.props.currVersions.en && (this.props.settings.language === "english" || this.props.settings.language === "bilingual");
-    const versionTitle = this.props.currVersions.en ? this.props.currVersions.en.replace(/_/g," ") : "";
+    let displayVersionTitle = this.props.settings.language === 'hebrew' ? this.state.displayVersionTitle.he : this.state.displayVersionTitle.en;
+    if (categoryAttribution) { displayVersionTitle = `(${displayVersionTitle})`; }
     const url = this.props.sheetID ? "/sheets/" + this.props.sheetID : oref ? "/" + Sefaria.normRef(oref.book) : Sefaria.normRef(this.props.currentRef);
-    const readerTextTocClasses = classNames({readerTextToc: 1, attributed: !!categoryAttribution, connected: this.props.hasSidebar})
+    const readerTextTocClasses = classNames({readerTextToc: 1, attributed: !!categoryAttribution || this.shouldShowVersion(), connected: this.props.hasSidebar});
 
 
     let centerContent = connectionsHeader ?
@@ -1243,29 +1297,32 @@ class ReaderControls extends Component {
         <div className={"readerTextTocBox" + (this.props.sheetID ? " sheetBox" : "")} role="heading" aria-level="1" aria-live="polite">
           <div>
             <a href={url} aria-label={"Show Connection Panel contents for " + title} >
-              { this.props.sheetID ?
-              <img src={"/static/img/sheet.svg"} className="sheetTocIcon" alt="" /> : null}
-              { this.props.sheetID ?
-              <h1 style={{direction: Sefaria.hebrew.isHebrew(title) ? "rtl" : "ltr"}}>
-                {title}
-              </h1>
-              :
-              <h1>
-                <ContentText text={{en: title, he: heTitle}} defaultToInterfaceOnBilingual={true} />
-                <span className="sectionString">
-                  <ContentText text={{en: sectionString, he: heSectionString }} defaultToInterfaceOnBilingual={true} />
-                </span>
-              </h1>
-              }
-              { showVersion ?
-              <span className="readerTextVersion">
-                <span className="en">{versionTitle}</span>
-              </span> : null}
+              <div className="readerControlsTitle">
+                { this.props.sheetID ?
+                <img src={"/static/img/sheet.svg"} className="sheetTocIcon" alt="" /> : null}
+                { this.props.sheetID ?
+                <h1 style={{direction: Sefaria.hebrew.isHebrew(title) ? "rtl" : "ltr"}}>
+                  {title}
+                </h1>
+                :
+                <h1>
+                  <ContentText text={{en: title, he: heTitle}} defaultToInterfaceOnBilingual={true} />
+                  <span className="sectionString">
+                    <ContentText text={{en: sectionString, he: heSectionString }} defaultToInterfaceOnBilingual={true} />
+                  </span>
+                </h1>
+                }
+              </div>
+              <div className="readerTextVersion">
+                {categoryAttribution ? <CategoryAttribution categories={oref.categories} linked={false} /> : null }
+                {
+                  this.shouldShowVersion() && displayVersionTitle ?
+                  <span className="readerTextVersion">
+                    <span className="en">{displayVersionTitle}</span>
+                  </span> : null
+                }
+              </div>
             </a>
-          </div>
-          <div onClick={this.stopPropagation}>
-            {categoryAttribution ?
-            <CategoryAttribution categories={oref.categories} linked={false} /> : null }
           </div>
         </div>
       </div>;

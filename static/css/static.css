@@ -17,16 +17,6 @@
 .interface-hebrew .static .englishOnly {
   direction:ltr;
 }
-.static {
-  font-size: 16px;
-  background-color: #FBFBFA;
-}
-.static .inner {
-  width: 90%;
-  max-width: 660px;
-  margin: 0 auto;
-  padding: 140px 0 100px;
-}
 #register.static .inner {
   width: 302px;
 }
@@ -75,21 +65,6 @@
 .static p a {
   text-decoration: underline;
 }
-.static .section {
-  margin-bottom: 30px;
-}
-.static input {
-  padding: 20px 20px;
-  margin: 0;
-  cursor: pointer;
-  border-radius: 7px;
-  box-shadow: 0px 1px 3px rgba(0,0,0,0.2);
-  border: none;
-  color: #666;
-  font-size: 14px;
-  background-color: white;
-  -webkit-appearance: none;
-}
 .static a {
   color: #333;
 }
@@ -108,26 +83,6 @@
 }
 .static .refLink:hover {
   text-decoration: underline;
-}
-.static label {
-  color: #000;
-  font-size: 16px;
-  height: 18px;
-  margin-bottom: 5px;
-  position: relative;
-  display: block;
-}
-.static label .sub {
-  font-size: 12px;
-  color: #999;
-  letter-spacing: normal;
-  white-space: nowrap;
-}
-.static label .int-en .sub{
-  margin-left: 4px;
-}
-.static label .int-he .sub{
-  margin-right: 4px;
 }
 .static .page-title{
   margin-bottom: 50px;
@@ -724,7 +679,7 @@ p.registration-links a:hover{
 #donatePage ul li{
   list-style: none;
   font-size: 18px;
-  line-height: 27px
+  line-height: 27px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 /*.interface-hebrew #donatePage .faq p.question:before {
@@ -1113,7 +1068,7 @@ p.registration-links a:hover{
   padding: 15px;
   text-align: center;
   display: block;
-  width 100%;
+  width: 100%;
   margin: 10px;
   font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 13px;
@@ -1960,7 +1915,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
     position: relative;
     margin-bottom: 4px;
 }
-#mobilePage .colorLine {
+.colorLine {
   width: 100%;
   height: 4px;
   z-index: 101;
@@ -3000,7 +2955,7 @@ display: none;
   width: 18px;
   opacity: 0.2;
   position: absolute;
-  margin-left: 10px;
+  margin-inline-start: 10px;
 }
 .staticPage .simpleButtonWrapper.signUpEducators, .staticPage .staticPageHeaderTextBox .simpleButtonWrapper.signUpEducators {
   width: 100%;

@@ -102,6 +102,7 @@ const Strings = {
     "Add a source": "הוסף מקור",
     "Create a New Sheet": "יצירת דף מקורות",
     "Source Sheets": "דפי מקורות",
+    "Sheets": "דפי מקורות",
     "Start a New Source Sheet": "התחלת דף מקורות חדש",
     "Untitled Source Sheet" : "דף מקורות ללא שם",
     "Untitled": "ללא שם",
@@ -211,6 +212,7 @@ const Strings = {
     "Select Translation": "בחירת תרגום",
     "Merged from": "נוצר ממיזוג",
     "Source" : "מקור",
+    "Sources": "מקורות",
     "Digitization" : "דיגיטציה",
     "License" : "רשיון",
     "Revision History" : "היסטורית עריכה",
@@ -233,6 +235,7 @@ const Strings = {
     "Public Domain": "בנחלת הכלל",
     "Copyright: JPS, 1985": "זכויות שמורות ל-JPS, 1985",
     "Location: ": "מיקום: ",
+    "Translations": "תרגומים",
 
     // Collections
     "Collections": "אסופות",
@@ -335,8 +338,9 @@ const Strings = {
     "Italian": "איטלקית",
     "Polish": "פולנית",
     "Russian": "רוסית",
-    "Esparanto": "אספרנטו",
-    "Persian": "פרסי",
+    "Esperanto": "אספרנטו",
+    "Persian": "פרסית",
+    "Ladino" : "לאדינו",
 
     "On": "הצג",
     "Off": "הסתר",
@@ -405,6 +409,13 @@ const Strings = {
     "My Notes": "הרשומות שלי",
     "Updates": "עדכונים",
     "Preferred Translation": "תרגום מועדף",
+    "Text Title": "כותר לועזי",
+    "Hebrew Title": "כותר עברי",
+    "Text Structure": "מבנה טקסט",
+    "Category": "קטגוריה",
+    "Alternate Hebrew Titles": "חלופות כותר עבריות",
+    "Alternate English Titles": "חלופות כותר לועזיות",
+    "Optional": "אופציונלי",
 
     //user stats
     "Torah Tracker" : "לימוד במספרים",
@@ -430,7 +441,10 @@ const Strings = {
     "is currently viewing": "מעיין בדף",
     "End Call": "ניתוק",
     "Learn with a Chavruta": "לימוד בחברותא",
-    "Share this link with your chavruta to start a video call with this text": "כדי להתחיל שיחת וידאו, שתפו עם החברותא שלכם את הקישור הבא:",
+    "Share this link to invite people into your private beit midrash - where you can chat, video call, and follow each other's study paths.": "שתפו את הקישור הזה כדי להזמין את חבריכם לבית המדרש:",
+    "Open Your Beit Midrash":"החלו לימוד בחבורה",
+    "Chat":"לשוחח",
+    "Call": "להתקשר",
     "Start Call": "התחלת שיחה",
     "No users online.": "אין כרגע לומדים מחוברים",
     "View Profile": "צפה בפרופיל",
@@ -502,6 +516,8 @@ const Strings = {
     "About Sefaria": "אודות ספריא",
     "Saved & History": "היסטורית קריאה ושמורים",
 
+    //Misc
+    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam arcu felis, molestie sed mauris a, hendrerit vestibulum augue." : "בראיט ולחת צורק מונחף, בגורמי מג׳מש. תרבנך וסתעד לכנו סתשם השמה – לתכי מורגם בורק? לתיג ישבעס",
   },
 
   _i18nInterfaceStringsWithContext: {

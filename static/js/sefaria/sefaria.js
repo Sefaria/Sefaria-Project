@@ -1,3 +1,5 @@
+import VersionPreferences from "./VersionPreferences";
+
 var extend     = require('extend'),
     param      = require('querystring').stringify;
 import Search from './search';
@@ -378,6 +380,8 @@ Sefaria = extend(Sefaria, {
       wrapLinks:  ("wrapLinks" in settings) ? settings.wrapLinks : 1,
       wrapNamedEntities: ("wrapNamedEntities" in settings) ? settings.wrapNamedEntities : 1, 
       translationLanguagePreference: settings.translationLanguagePreference || null,
+      versionPref: settings.versionPref || null,
+      firstAvailableRef: settings.firstAvailableRef || 1,
     };
     return settings;
   },
@@ -475,40 +479,27 @@ Sefaria = extend(Sefaria, {
     }.bind(this));
     return null;
   },
-  translateISOLanguageCode(code, inMotherTongue) {
+  translateISOLanguageCode(code, native = false) {
     //takes two-letter ISO 639.2 code and returns full language name
-    const codeMap = {
-      "en": "English",
-      "he": "Hebrew",
-      "yi": "Yiddish",
-      "fi": "Finnish",
-      "pt": "Portuguese",
-      "es": "Spanish",
-      "fr": "French",
-      "de": "German",
-      "ar": "Arabic",
-      "it": "Italian",
-      "pl": "Polish",
-      "ru": "Russian",
-      "eo": "Esparanto",
-      "fa": "Farsi",
-    };
-    const motherTongueCodeMap = {
-      "en": "English",
-      "he": "עברית",
-      "yi": "יידיש",
-      "pt": "Português",
-      "es": "Español",
-      "fr": "Français",
-      "de": "Deutsch",
-      "ar": "عربى",
-      "it": "Italiano",
-      "pl": "Polskie",
-      "ru": "Pусский",
-      "eo": "Esperanto",
+    const ISOMap = {
+        "ar": {"name": "Arabic", "nativeName": "عربى"},
+        "de": {"name": "German", "nativeName": "Deutsch"},
+        "en": {"name": "English", "nativeName": "English"},
+        "eo": {"name": "Esperanto", "nativeName": "Esperanto"},
+        "es": {"name": "Spanish", "nativeName": "Español"},
+        "fa": {"name": "Persian", "nativeName": "فارسی"},
+        "fi": {"name": "Finnish", "nativeName": "suomen kieli"},
+        "fr": {"name": "French", "nativeName": "Français"},
+        "he": {"name": "Hebrew", "nativeName": "עברית"},
+        "it": {"name": "Italian", "nativeName": "Italiano"},
+        "lad": {"name": "Ladino", "nativeName": "Judeo-español"},
+        "pl": {"name": "Polish", "nativeName": "Polskie"},
+        "pt": {"name": "Portuguese", "nativeName": "Português"},
+        "ru": {"name": "Russian", "nativeName": "Pусский"},
+        "yi": {"name": "Yiddish", "nativeName": "יידיש"},
     }
-    if (inMotherTongue) { return motherTongueCodeMap[code.toLowerCase()] || code; }
-    return codeMap[code.toLowerCase()] || code;
+    const lookupVar = native ? "nativeName" : "name";
+    return ISOMap[code.toLowerCase()][lookupVar] || code; 
   },
   _versions: {},
   _translateVersions: {},
@@ -563,7 +554,7 @@ Sefaria = extend(Sefaria, {
       //let generalCount = 0;
       for (let v of versions) {
         //generalCount++;
-        const matches = v.versionTitle.match(new RegExp("\\[([a-z]{2})\\]$")); // two-letter ISO language code
+        const matches = v.versionTitle.match(new RegExp("\\[([a-z]{2,3})\\]$")); // two-letter ISO language code
         const lang = matches ? matches[1] : v.language;
         v.actualLanguage = lang; //add actual language onto the object. Hopefully its then available always.
         //Sort each language into its own bucket
@@ -586,6 +577,15 @@ Sefaria = extend(Sefaria, {
   },
   getTranslateVersionsKey: (vTitle, lang) => `${vTitle}|${lang}`,
   deconstructVersionsKey: (versionsKey) => versionsKey.split('|'),
+  setVersionPreference(sref, vtitle, lang) {
+    if (lang !== 'en') { return; }  // Currently only tracking preferences for translations
+    const title = Sefaria.parseRef(sref).index
+    const corpus = Sefaria.index(title).corpus;
+    Sefaria.versionPreferences = Sefaria.versionPreferences.update(corpus, vtitle, lang);
+
+    Sefaria.track.event("Reader", "Set Version Preference", `${corpus}|${vtitle}|${lang}`);
+    Sefaria.editProfileAPI({version_preferences_by_corpus: {[corpus]: {vtitle, lang}}})
+  },
   getLicenseMap: function() {
     const licenseMap = {
       "Public Domain": "https://en.wikipedia.org/wiki/Public_domain",
@@ -595,6 +595,10 @@ Sefaria = extend(Sefaria, {
       "CC-BY-NC": "https://creativecommons.org/licenses/by-nc/4.0/"
     }
     return licenseMap;
+  },
+  _getVersionPrefUrlParam(versionPref) {
+    const {vtitle, lang} = versionPref;
+    return `&versionPref=${encodeURIComponent(vtitle.replace(/ /g,"_"))}|${lang}`;
   },
   _textUrl: function(ref, settings) {
     // copy the parts of settings that are used as parameters, but not other
@@ -607,10 +611,12 @@ Sefaria = extend(Sefaria, {
       multiple:   settings.multiple,
       stripItags: settings.stripItags,
       transLangPref: settings.translationLanguagePreference,
+      firstAvailableRef: settings.firstAvailableRef,
     });
     let url = "/api/texts/" + Sefaria.normRef(ref);
     if (settings.enVersion) { url += "&ven=" + encodeURIComponent(settings.enVersion.replace(/ /g,"_")); }
     if (settings.heVersion) { url += "&vhe=" + encodeURIComponent(settings.heVersion.replace(/ /g,"_")); }
+    if (settings.versionPref) { url += Sefaria._getVersionPrefUrlParam(settings.versionPref); }
     url += "&" + params;
     return url.replace("&","?"); // make sure first param has a '?'
   },
@@ -622,6 +628,7 @@ Sefaria = extend(Sefaria, {
       if (settings.enVersion) { key += "&ven=" + settings.enVersion; }
       if (settings.heVersion) { key += "&vhe=" + settings.heVersion; }
       if (settings.translationLanguagePreference) { key += "&transLangPref=" + settings.translationLanguagePreference}
+      if (settings.versionPref) { key += Sefaria._getVersionPrefUrlParam(settings.versionPref); }
       key = settings.context ? key + "|CONTEXT" : key;
     }
     return key;
@@ -1087,7 +1094,7 @@ Sefaria = extend(Sefaria, {
     return links.length;
   },
   _filterLinks: function(links, filter) {
-    // Filters array `links` for only those thart match array `filter`.
+    // Filters array `links` for only those that match array `filter`.
     // If `filter` ends with "|Quoting" return Quoting Commentary only,
     // otherwise commentary `filters` will return only links with type `commentary`
     if (filter.length == 0) { return links; }
@@ -1095,6 +1102,7 @@ Sefaria = extend(Sefaria, {
     var filterAndSuffix = filter[0].split("|");
     filter              = [filterAndSuffix[0]];
     var isQuoting       = filterAndSuffix.length == 2 && filterAndSuffix[1] == "Quoting";
+    var isEssay         = filterAndSuffix.length == 2 && filterAndSuffix[1] == "Essay";
     var index           = Sefaria.index(filter);
     var isCommentary    = index && !isQuoting &&
                             (index.categories[0] == "Commentary" || index.primary_category == "Commentary");
@@ -1102,6 +1110,7 @@ Sefaria = extend(Sefaria, {
     return links.filter(function(link){
       if (isCommentary && link.category !== "Commentary") { return false; }
       if (isQuoting && link.category !== "Quoting Commentary") { return false; }
+      if (isEssay) { return link.type === "essay" && Sefaria.util.inArray(link.displayedText["en"], filter) !== -1; }
 
       return (Sefaria.util.inArray(link.category, filter) !== -1 ||
               Sefaria.util.inArray(link["collectiveTitle"]["en"], filter) !== -1 );
@@ -1117,6 +1126,36 @@ Sefaria = extend(Sefaria, {
     links.map((link) => {dedupedLinks[key(link)] = link});
     return Object.values(dedupedLinks);
   },
+  hasEssayLinks: function(ref) {
+      let links = [];
+      ref.map(function(r) {
+          const newlinks = Sefaria.getLinksFromCache(r);
+          links = links.concat(newlinks);
+      });
+      links = links.filter(l => l["type"] === "essay");
+      return links.length > 0;
+  },
+  essayLinks: function(ref, versions) {
+    let links = [];
+    ref.map(function(r) {
+      const newlinks = Sefaria.getLinksFromCache(r);
+      links = links.concat(newlinks);
+    });
+    links = this._dedupeLinks(links); // by aggregating links to each ref above, we can get duplicates of links to spanning refs
+    let essayLinks = [];
+    for (let i=0; i<links.length; i++) {
+      if (links[i]["type"] === "essay" && "displayedText" in links[i]) {
+        const linkLang = links[i]["anchorVersion"]["language"];
+        const currVersionTitle = versions[linkLang] ? versions[linkLang]["versionTitle"] : "NONE";
+        const linkVersionTitle = links[i]["anchorVersion"]["title"];
+        if (linkVersionTitle === "ALL" || (linkVersionTitle !== "NONE" && currVersionTitle === linkVersionTitle)) {
+          essayLinks.push(links[i]);
+        }
+      }
+    }
+    return essayLinks.sort((a, b) => Sefaria.refContains(a["sourceRef"], b["sourceRef"]));
+  }
+  ,
   _linkSummaries: {},
   linkSummary: function(ref, excludedSheet) {
     // Returns an ordered array summarizing the link counts by category and text
@@ -1213,6 +1252,9 @@ Sefaria = extend(Sefaria, {
     const summary = {};
     for (let i = 0; i < links.length; i++) {
       const link = links[i];
+      if (link["type"] === "essay") {
+        continue;
+      }
       // Count Category
       if (link.category in summary) {
         summary[link.category].count += 1;
@@ -1626,6 +1668,7 @@ _media: {},
           }
         }
       }, this);
+
 
       // Save the original data after the split data - lest a split version overwrite it.
       this._related[ref] = originalData;
@@ -2635,6 +2678,7 @@ Sefaria.unpackDataFromProps = function(props) {
   if (props.collectionListing) {
       Sefaria._collectionsList.list = props.collectionListing;
   }
+  Sefaria.versionPreferences = new VersionPreferences(props.versionPrefsByCorpus);
   Sefaria.util._initialPath = props.initialPath ? props.initialPath : "/";
   const dataPassedAsProps = [
       "_uid",

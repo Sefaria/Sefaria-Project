@@ -677,7 +677,7 @@ $(function() {
 					$el.empty().hide().closest(".sheetItem").removeClass("hasCustom");
 				}
 				// Substitute Divine names in Hebrew (source of bilingual outside) and outside
-				if ($el.hasClass("he") || $el.hasClass("outside")) {
+				if ($el.hasClass("he") || $el.hasClass("en") || $el.hasClass("outside")) {
 					if (sjs.current.options.divineNames !== "noSub") {
 						substituteDivineNamesInNode($el[0]);
 					}
@@ -2395,6 +2395,7 @@ function loadSource(data, $target, optionStr) {
 	// Populate the text, honoring options to only load Hebrew or English if present
 	optionStr = optionStr || null;
 	if (optionStr !== "Hebrew") {
+		enStr = substituteDivineNames(enStr);
 		$target.find(".text .en").first().html(enStr);
 	}
 	if (optionStr !== "English") {
@@ -3669,8 +3670,8 @@ function substituteDivineNamesInNode(node) {
 
 
 function substituteAllExistingDivineNames() {
-	// Substitute divine names in every hebrew text field or outside text field.
-	$(".he, .outside").each(function(index, node) {
+	// Substitute divine names in every hebrew or English text field or outside text field.
+	$(".he, .en, .outside").each(function(index, node) {
 		substituteDivineNamesInNode(node)
 	});
 }

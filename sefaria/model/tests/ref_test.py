@@ -28,6 +28,8 @@ class Test_Ref(object):
         assert ref.toSections == [7, 18]
         ref = Ref("Jeremiah 7:17\u201118")  # test with unicode dash
         assert ref.toSections == [7, 18]
+        ref = Ref("I Chronicles 1:2 - I Chronicles 1:3")  # test with unicode dash
+        assert ref.toSections == [1, 3]
 
     def test_short_bible_refs(self):
         assert Ref("Exodus") != Ref("Exodus 1")
@@ -630,6 +632,14 @@ class Test_normal_forms(object):
         oref = Ref("Zohar 1:25a-2:27b")
         assert oref.normal() == "Zohar 1:25-2:27"
         assert oref.he_normal() == "ספר הזהר א׳:כ״ה-ב׳:כ״ז"
+
+    def test_first_available_section_ref(self):
+        assert Ref('Genesis').first_available_section_ref() == Ref('Genesis 1')
+        assert Ref('Siddur Ashkenaz').first_available_section_ref() == Ref('Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Modeh Ani')
+        assert Ref('Penei Moshe on Jerusalem Talmud Shabbat 2').first_available_section_ref() == Ref('Penei Moshe on Jerusalem Talmud Shabbat 2:1:1')
+        assert Ref('Animadversions by Elias Levita on Sefer HaShorashim').first_available_section_ref() == Ref('Animadversions by Elias Levita on Sefer HaShorashim, אבב')
+        assert Ref('Jastrow, שְׁמַע I 1').first_available_section_ref() == Ref('Jastrow, שְׁמַע I 1')
+
 
 
 

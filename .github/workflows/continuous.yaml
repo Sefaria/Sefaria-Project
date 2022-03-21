@@ -1,7 +1,7 @@
 ---
 name: Continuous Suite
 on:
-  - push
+  - pull_request
 
 jobs:
   jest-tests:
@@ -181,8 +181,12 @@ jobs:
           # dependent on GITHUB_RUN_ID, which is implicitly passed in
           TEST_NAME: pytest
 
-      - name: Get Logs From Cluster and Exit
+      - name: Get Logs From Cluster and propogate test result
         run: "kubectl logs --tail=-1 -l ci-run=$GITHUB_RUN_ID,test-name=pytest; LASTLINE=`kubectl logs --tail=1 -l ci-run=$GITHUB_RUN_ID,test-name=pytest`; STAT=${LASTLINE: -1}; exit $STAT"
+
+      - name: Cleanup pyTest Pod
+        run: kubectl delete jobs -l ci-run=$GITHUB_RUN_ID,test-name=pytest
+        if: always()
 
   ending-notification:
     runs-on: ubuntu-latest

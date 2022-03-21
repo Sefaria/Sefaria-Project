@@ -206,7 +206,11 @@ export const deserialize = el => {
 
     if (TEXT_TAGS[nodeName]) {
       const attrs = TEXT_TAGS[nodeName](el);
-      return children.map(child => jsx('text', attrs, ((typeof child === "string" || Text.isText(child)) ? child : Node.string(child))))
+      return children.map(child => {
+          if (!child) {return null}
+          return jsx('text', attrs, ((typeof child === "string" || Text.isText(child)) ? child : Node.string(child)))
+          }
+      )
     }
 
     if (el.getAttribute("style")) {
@@ -2729,7 +2733,7 @@ const SefariaEditor = (props) => {
 
 
     return (
-        <div ref={editorContainer}>
+        <div ref={editorContainer} onClick={props.handleClick}>
         {
           /* debugger */
 

@@ -3,7 +3,7 @@ import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
 import { useIncrementalLoad } from './Hooks';
-import { Ad } from './Ad';
+import { Promotions } from './Promotions';
 import { NavSidebar } from './NavSidebar';
 import Footer from './Footer';
 import {
@@ -11,14 +11,14 @@ import {
   TextPassage,
 } from './Story';
 import {
-  TabView,
-  LoadingMessage,
-  Link,
-  ResponsiveNBox,
-  InterfaceText,
-  FilterableList,
-  ToolTipped,
-  SimpleLinkedBlock,
+    TabView,
+    LoadingMessage,
+    Link,
+    ResponsiveNBox,
+    InterfaceText,
+    FilterableList,
+    ToolTipped,
+    SimpleLinkedBlock,
 } from './Misc';
 
 
@@ -348,7 +348,7 @@ const useTabDisplayData = (translationLanguagePreference) => {
 
 const TopicPage = ({
   tab, topic, topicTitle, setTopic, setNavTopic, openTopics, multiPanel, showBaseText, navHome, 
-  toggleSignUpModal, openDisplaySettings, updateTopicsTab, openSearch, translationLanguagePreference,
+  toggleSignUpModal, openDisplaySettings, updateTopicsTab, openSearch, translationLanguagePreference, versionPref
 }) => {
     const defaultTopicData = {primaryTitle: topicTitle, tabs: {}, isLoading: true};
     const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(topic) || defaultTopicData);
@@ -356,7 +356,7 @@ const TopicPage = ({
     const [refsToFetchByTab, setRefsToFetchByTab] = useState({});
     const [parashaData, setParashaData] = useState(null);
     const [showFilterHeader, setShowFilterHeader] = useState(false);
-    const tabDisplayData = useTabDisplayData(translationLanguagePreference);
+    const tabDisplayData = useTabDisplayData(translationLanguagePreference, versionPref);
 
     const scrollableElement = useRef();
 
@@ -493,7 +493,7 @@ const TopicPage = ({
                       timePeriod={topicData.timePeriod}
                       properties={topicData.properties} />
                     : null }
-                    <Ad adType="sidebar"/>
+                    <Promotions adType="sidebar"/>
                 </div>
             </div>
             <Footer />
@@ -626,7 +626,7 @@ const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, set
     : null
   );
   return (
-    <div>
+    <div className={"topicSideColumn"}>
       { readingsComponent }
       { topicMetaData }
       { linksComponent }
@@ -671,22 +671,45 @@ const ReadingsComponent = ({ parashaData, tref }) => (
     </h2>
     <span className="smallText parasha-date">
       <InterfaceText text={{en:Sefaria.util.localeDate(parashaData.date), he:Sefaria.util.localeDate(parashaData.date)}} />
-      <span className="separator">·</span>
-      <InterfaceText text={parashaData.he_date} />
+      <InterfaceText text={{en:Sefaria.util.hebrewCalendarDateStr(parashaData.date), he:Sefaria.util.hebrewCalendarDateStr(parashaData.date)}} />
     </span>
-
-    <div className="sectionTitleText"><InterfaceText text={{en:"Torah", he:"תורה"}} /></div>
-    <a href={'/' + tref.url} className="contentText"><InterfaceText text={{en:tref.en, he:norm_hebrew_ref(tref.he)}} /></a>
-    <div className="sectionTitleText"><InterfaceText text={{en:"Haftarah", he:"הפטרה"}}/></div>
-    {parashaData.haftarah?<div className="haftarot">
+    <div className="parasha">
+        <div className="sectionTitleText"><InterfaceText text={{en:"Torah", he:"תורה"}} /></div>
+        <div className="navSidebarLink ref serif">
+            <img src="/static/icons/book.svg" className="navSidebarIcon" alt="book icon" />  
+            <a href={'/' + tref.url} className="contentText"><InterfaceText text={{en:tref.en, he:norm_hebrew_ref(tref.he)}} /></a>
+        </div>
+        <div className="aliyot"> 
         {
-          parashaData.haftarah.map(h => (
-            <a href={'/' + h.url} className="contentText" key={h.url}>
-              <InterfaceText text={{en:h.displayValue.en, he:norm_hebrew_ref(h.displayValue.he)}} />
-            </a>
-          ))
-        }
-    </div>:""}
+            parashaData.parasha?.extraDetails?.aliyot?.map((aliya, index) => {
+               let sectionNum = index+1;
+               let sectionStr = sectionNum <= 7 ? sectionNum : 'M';
+               let heSectionStr = sectionNum <= 7 ? Sefaria.hebrew.encodeHebrewNumeral(sectionNum) : 'מ';
+               return (
+                  <a className="sectionLink" href={"/" + Sefaria.normRef(aliya)} data-ref={aliya} key={aliya}>
+                    <InterfaceText text={{en:sectionStr, he:heSectionStr}}/>
+                  </a>
+                );    
+            }) ?? null
+        }  
+        </div>
+    </div>    
+    <div className="haftarah">
+        <div className="sectionTitleText"><InterfaceText text={{en:"Haftarah", he:"הפטרה"}}/></div>
+        {parashaData.haftarah ?
+            <div className="haftarot">
+            {
+              parashaData.haftarah.map(h => (
+                <div className="navSidebarLink ref serif">
+                    <img src="/static/icons/book.svg" className="navSidebarIcon" alt="book icon" />    
+                    <a href={'/' + h.url} className="contentText" key={h.url}>
+                      <InterfaceText text={{en:h.displayValue.en, he:norm_hebrew_ref(h.displayValue.he)}} />
+                    </a>
+                </div>
+              ))
+            }
+            </div> : ""}
+    </div>
   </div>
 );
 
