@@ -1,4 +1,3 @@
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -33,26 +32,4 @@ spec:
         imagePullPolicy: Always
         ports:
         - containerPort: 6379
-        resources:
-          requests:
-            memory: {{ .Values.redis.resources.request.memory }}
-            cpu: {{ .Values.redis.resources.request.cpu }}
-          limits:
-            memory: {{ .Values.redis.resources.limit.memory }}
-            cpu: {{ .Values.redis.resources.limit.cpu }}
----
-{{- if eq .Values.sandbox "false" }}
-# TODO: This could be made global by matching on label `stackRole: redis` instead
-apiVersion: policy/v1beta1
-kind: PodDisruptionBudget
-metadata:
-  name: redis-disruption-budget-{{ .Values.deployEnv }}
-  labels:
-    deployEnv: "{{ .Values.deployEnv }}"
-    {{- include "sefaria.labels" . | nindent 4 }}
-spec:
-  maxUnavailable: 0
-  selector:
-    matchLabels:
-      app: redis-{{ .Values.deployEnv }}
-{{- end }}
+        resources: {{ toYaml .Values.redis.resources | nindent 10 }}

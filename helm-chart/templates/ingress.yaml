@@ -28,30 +28,3 @@ spec:
                 port:
                   number: {{ .port | default "80" }}
     {{- end }}
----
-{{- if and .Values.ingress.secrets.originTls.data ( or ( eq .Values.deployEnv "prod" ) ( eq .Values.deployEnv "democracy" ) ) }}
-apiVersion: v1
-kind: Secret
-metadata:
-  name: origin-tls-{{ .Values.deployEnv }}
-  labels:
-    {{- include "sefaria.labels" . | nindent 4 }}
-type: kubernetes.io/tls
-data:
-  tls.crt: {{ .Values.ingress.secrets.originTls.data.cert | b64enc }}
-  tls.key: {{ .Values.ingress.secrets.originTls.data.key | b64enc }}
-{{- end }}
----
-{{- if and .Values.ingress.secrets.originIlTls.data ( eq .Values.deployEnv "prod" ) }}
-apiVersion: v1
-kind: Secret
-metadata:
-  name: origin-il-tls-{{ .Values.deployEnv }}
-  labels:
-    {{- include "sefaria.labels" . | nindent 4 }}
-type: kubernetes.io/tls
-data:
-  tls.crt: {{ .Values.ingress.secrets.originIlTls.data.cert | b64enc }}
-  tls.key: {{ .Values.ingress.secrets.originIlTls.data.key | b64enc }}
-{{- end }}
-

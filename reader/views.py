@@ -60,6 +60,7 @@ from sefaria.helper.search import get_query_obj
 from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, get_topics_for_book
 from sefaria.helper.community_page import get_community_page_items
 from sefaria.helper.file import get_resized_file
+from sefaria.image_generator import make_img_http_response
 import sefaria.tracker as tracker
 
 if USE_VARNISH:
@@ -1492,6 +1493,41 @@ def texts_api(request, tref):
         return jsonResponse({"status": "ok"})
 
     return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
+
+@catch_error_as_json
+@csrf_exempt
+def social_image_api(request, tref):
+    lang = request.GET.get("lang", "en")
+    if lang == "bi":
+        lang = "en"
+    version = request.GET.get("ven", None) if lang == "en" else request.GET.get("vhe", None)
+    platform = request.GET.get("platform", "twitter")
+
+    try:
+        ref = Ref(tref)
+        ref_str = ref.normal() if lang == "en" else ref.he_normal()
+
+        if version:
+            version = version.replace("_", " ")
+
+        tf = TextFamily(ref, stripItags=True, lang=lang, version=version, context=0, commentary=False).contents()
+
+        he = tf["he"] if type(tf["he"]) is list else [tf["he"]]
+        en = tf["text"] if type(tf["text"]) is list else [tf["text"]]
+
+        text = en if lang == "en" else he
+        text = ' '.join(text)
+        cat = tf["primary_category"]
+
+    except:
+        text = None
+        cat = None
+        ref_str = None
+
+
+    res = make_img_http_response(text, cat, ref_str, lang, platform)
+
+    return res
 
 
 @catch_error_as_json

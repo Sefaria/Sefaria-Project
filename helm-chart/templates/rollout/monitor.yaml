@@ -67,16 +67,14 @@ spec:
             value: "varnish-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
         envFrom:
           - secretRef:
-              name: {{ template "secrets.localSettings" . }}
+              name: {{ .Values.secrets.localSettings.ref }}
+              optional: true
+          - secretRef:
+              name: local-settings-secrets-{{ .Values.deployEnv }}
+              optional: true
           - configMapRef:
               name: local-settings-{{ .Values.deployEnv }}
-        resources:
-          requests:
-            memory: "{{ .Values.monitor.resources.request.memory }}"
-            cpu: "{{ .Values.monitor.resources.request.cpu }}"
-          limits:
-            memory: "{{ .Values.monitor.resources.limit.memory }}"
-            cpu: "{{ .Values.monitor.resources.limit.cpu }}"
+        resources: {{ toYaml .Values.monitor.resources | nindent 10 }}
         volumeMounts:
         - mountPath: /app/sefaria/local_settings.py
           name: local-settings

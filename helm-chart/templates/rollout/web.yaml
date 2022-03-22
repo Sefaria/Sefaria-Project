@@ -85,19 +85,17 @@ spec:
             value: "{{ .Release.Revision }}"
         envFrom:
           - secretRef:
-              name: {{ template "secrets.localSettings" . }}
+              name: {{ .Values.secrets.localSettings.ref }}
+              optional: true
+          - secretRef:
+              name: local-settings-secrets-{{ .Values.deployEnv }}
+              optional: true
           - configMapRef:
               name: local-settings-{{ .Values.deployEnv }}
         ports:
           - containerPort: 80
             protocol: TCP
-        resources:
-          requests:
-            memory: {{ .Values.web.resources.web.request.memory }}
-            cpu: {{ .Values.web.resources.web.request.cpu }}
-          limits:
-            memory: {{ .Values.web.resources.web.limit.memory }}
-            cpu: {{ .Values.web.resources.web.limit.cpu }}
+        resources: {{ toYaml .Values.web.resources.web.resources | nindent 10 }}
         # turn off health checks for content sandboxes
         {{ if ne .Values.contentSandbox "true" }}
         # set failure thresholds
