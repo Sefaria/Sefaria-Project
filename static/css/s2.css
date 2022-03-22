@@ -3105,6 +3105,7 @@ a.navBlockTitle:hover {
 }
 .textTableOfContents .torahNavParshiot .tocLevel .schema-node-toc {
   flex: 1 1 50%;
+  text-decoration: none;
 }
 .textTableOfContents > .tocLevel > .schema-node-toc {
   margin: 10px 0;

@@ -278,6 +278,10 @@ Sefaria = extend(Sefaria, {
     const oref = this.getRefFromCache(ref);
     return oref ? oref.sectionRef : null;
   },
+  splitSpanningRefNaive: function(ref){
+      if (ref.indexOf("-") == -1) { return ref; }
+      return ref.split("-");
+  },  
   splitRangingRef: function(ref) {
     // Returns an array of segment level refs which correspond to the ranging `ref`
     // e.g. "Genesis 1:1-2" -> ["Genesis 1:1", "Genesis 1:2"]
