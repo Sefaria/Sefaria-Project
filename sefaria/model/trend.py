@@ -631,10 +631,34 @@ class ScheduleManager(object):
         pass
 
     def getRelevantUserHistories(self):
-
         pass
 
-    # def 
+    def getUsersWhoAreLearningSchedule(self):
+        dateRefRangesTotal = len(self.dateRefRanges)
+        usersWhoAreLearningSchedule = []
+        usersWhoAreNotLearningSchedule = []
+        for user in self.getRelevantUserHistories():
+            index = 0
+            refsInRangeCount = 0
+            for history in user["history"]:
+                keepCheckingRefRange = True
+                while(index < dateRefRangesTotal and keepCheckingRefRange == True):
+                    inRange, keepCheckingRefAgainstBuckets = self.dateRefRanges[index].refIsInRange(history["ref"]["ref"], history["history"]["datetime"])
+                    if inRange:
+                        refsInRangeCount += 1
+                        if refsInRangeCount >= self.segmentHits:
+                            break
+                    if keepCheckingRefAgainstBuckets:
+                        index += 1
+                if refsInRangeCount >= self.segmentHits:
+                    usersWhoAreLearningSchedule.append(user["uid"])
+                    break
+                elif self.segmentHits - refsInRangeCount > dateRefRangesTotal - index:
+                    usersWhoAreNotLearningSchedule.append(user["uid"])
+                    break
+            else:
+                usersWhoAreNotLearningSchedule.append(user["uid"])
+        return usersWhoAreLearningSchedule, usersWhoAreNotLearningSchedule
 
 
 class ParashaScheduleManager(ScheduleManager):
@@ -673,29 +697,4 @@ class ParashaScheduleManager(ScheduleManager):
         return db.user_history.find(query)
 
     def getUsersWhoAreLearningSchedule(self):
-        dateRefRangesTotal = len(self.dateRefRanges)
-        usersWhoAreLearningSchedule = []
-        usersWhoAreNotLearningSchedule = []
-        for user in self.getRelevantUserHistories():
-            index = 0
-            refsInRangeCount = 0
-            for history in user["history"]:
-                keepCheckingRefRange = True
-                while(index < dateRefRangesTotal and keepCheckingRefRange == True):
-                    inRange, keepCheckingRefAgainstBuckets = self.dateRefRanges[index].refIsInRange(history["ref"]["ref"], history["history"]["datetime"])
-                    if inRange:
-                        refsInRangeCount += 1
-                        if refsInRangeCount >= self.segmentHits:
-                            break
-                    if keepCheckingRefAgainstBuckets:
-                        index += 1
-                if refsInRangeCount >= self.segmentHits:
-                    usersWhoAreLearningSchedule.append(user["uid"])
-                    break
-                elif self.segmentHits - refsInRangeCount > dateRefRangesTotal - index:
-                    usersWhoAreNotLearningSchedule.append(user["uid"])
-                    break
-            else:
-                usersWhoAreNotLearningSchedule.append(user["uid"])
-            print(user)
-        pass
+        ScheduleManager.getUsersWhoAreLearningSchedule()
