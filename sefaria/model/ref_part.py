@@ -1255,7 +1255,8 @@ class RefResolver:
             to_match_explicit = {part for part in match.raw_ref.parts_to_match if not part.is_context}
 
             if match.context_type in CONTEXT_TO_REF_PART_TYPE.keys():
-                # remove an equivalent number of context parts that were resolved from to_match_explicit to approximate comparison. this is a bit hacky but seems to work for all known cases so far.
+                # remove an equivalent number of context parts that were resolved from to_match_explicit to approximate
+                # comparison. this is a bit hacky but seems to work for all known cases so far.
                 num_parts_to_remove = match.num_resolved(include={ContextPart})
                 for _ in range(num_parts_to_remove):
                     part = next((p for p in to_match_explicit if p.type in CONTEXT_TO_REF_PART_TYPE[match.context_type]), None)
