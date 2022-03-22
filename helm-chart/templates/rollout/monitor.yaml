@@ -92,4 +92,4 @@ spec:
                 path: local_settings.py
         - name: varnish-secret
           secret:
-            secretName: {{ template "secrets.varnish" . }}
+            secretName: {{ template "sefaria.secrets.varnish" . }}

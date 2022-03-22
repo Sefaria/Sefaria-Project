@@ -13,7 +13,7 @@ metadata:
   labels:
     deployEnv: {{ .Values.deployEnv | quote }}
     {{- include "sefaria.labels" . | nindent 4 }}
-  annotations: 
+  annotations:
     helm.sh/hook: pre-install
     helm.sh/hook-delete-policy: hook-succeeded, hook-failed
     helm.sh/hook-weight: "10"
@@ -25,7 +25,7 @@ spec:
           emptyDir: {}
         - name: gcloud-storage-secret
           secret:
-            secretName: {{ template "secrets.backupManager" . }}
+            secretName: {{ template "sefaria.secrets.backupManager" . }}
         - name: script
           configMap:
             name: mongo-restore-{{ .Values.deployEnv }}
@@ -42,7 +42,7 @@ spec:
             - name: GOOGLE_APPLICATION_CREDENTIALS
               value: /conf/BackupManagerKey.json
             - name: MONGO_SNAPSHOT_LOCATION
-              value: {{ template "mongoSnapshotLocation" . }}
+              value: {{ template "sefaria.mongoSnapshotLocation" . }}
           command: ["bash"]
           args: ["-c", "gcloud auth activate-service-account --key-file $GOOGLE_APPLICATION_CREDENTIALS && gsutil cp $MONGO_SNAPSHOT_LOCATION /storage/dump.tar.gz"]
       containers:
