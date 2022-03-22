@@ -604,16 +604,15 @@ class DateRefRange(object):
         #     return False
 
 class ScheduleManager(object):
-    def __init__(self, segmentHits, numberOfSegments, dateRangeEnd, varianceForward, varianceBack):
+    def __init__(self, segmentHits, numberOfSegments, dateRangeEnd, varianceForward, varianceBack, name):
         """
         :param segmentHits: number of segment hits in the correct range that need to be met for user to be a schedule learner
         :param numberOfSegments: number of segments to check
         :param dateRangeEnd: date to work backwards from
         :param varianceForward: number of days after date we consider them as still learning the schedule item
         :param varianceBack: number of days before date we consider them as still learning the schedule item
-
-
         """
+        self.name = name
         self.segmentHits = segmentHits
         if dateRangeEnd == None:
             self.dateRangeEnd = datetime.today()
@@ -635,8 +634,8 @@ class ScheduleManager(object):
 
     def getUsersWhoAreLearningSchedule(self):
         dateRefRangesTotal = len(self.dateRefRanges)
-        usersWhoAreLearningSchedule = []
-        usersWhoAreNotLearningSchedule = []
+        # usersWhoAreLearningSchedule = []
+        # usersWhoAreNotLearningSchedule = []
         for user in self.getRelevantUserHistories():
             index = 0
             refsInRangeCount = 0
@@ -651,20 +650,29 @@ class ScheduleManager(object):
                     if keepCheckingRefAgainstBuckets:
                         index += 1
                 if refsInRangeCount >= self.segmentHits:
-                    usersWhoAreLearningSchedule.append(user["uid"])
+                    Trend({
+                        "name":         self.name,
+                        "value":        True,
+                        "datatype":     "boolean",
+                        "timestamp":    datetime.utcnow(),
+                        "period":       "currently",
+                        "scope":        "user",
+                        "uid":          user["uid"]
+                    }).save()
+                    # usersWhoAreLearningSchedule.append(user["uid"])
                     break
                 elif self.segmentHits - refsInRangeCount > dateRefRangesTotal - index:
-                    usersWhoAreNotLearningSchedule.append(user["uid"])
+                    # usersWhoAreNotLearningSchedule.append(user["uid"])
                     break
-            else:
-                usersWhoAreNotLearningSchedule.append(user["uid"])
-        return usersWhoAreLearningSchedule, usersWhoAreNotLearningSchedule
+            # else:
+                # usersWhoAreNotLearningSchedule.append(user["uid"])
+        # return usersWhoAreLearningSchedule, usersWhoAreNotLearningSchedule
 
 
 class ParashaScheduleManager(ScheduleManager):
     #TODO: deal with haftara
     #TODO: make more efficient
-    def __init__(self, segmentHits=2, numberOfSegments=4, dateRangeEnd=None, diaspora=True, varianceForward=14, varianceBack=7):
+    def __init__(self, segmentHits=2, numberOfSegments=4, dateRangeEnd=None, diaspora=True, varianceForward=14, varianceBack=7, name="ParashaLearner"):
         ScheduleManager.__init__(self, segmentHits, numberOfSegments, dateRangeEnd, varianceForward, varianceBack)
         self.diaspora = diaspora
         self.daysToAdd = 6
