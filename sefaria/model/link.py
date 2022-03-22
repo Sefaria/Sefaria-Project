@@ -90,20 +90,39 @@ class Link(abst.AbstractMongoRecord):
     def _pre_save(self):
         if getattr(self, "_id", None) is None:
             # Don't bother saving a connection that already exists, or that has a more precise link already
-            if self.refs != sorted(self.refs) and hasattr(self, 'charLevelData'):
-                self.charLevelData.reverse()
-            orig_refs = self.refs
-            self.refs = sorted(self.refs) #make sure ref order is deterministic
-            if orig_refs != self.refs and getattr(self, "versions", False) and getattr(self, "displayedText", False):
-                #if reversed self.refs, make sure to reverse self.versions and self.displayedText
-                self.versions = self.versions[::-1]
-                self.displayedText = self.displayedText[::-1]
+            if self.refs != sorted(self.refs):
+                if hasattr(self, 'charLevelData'):
+                    self.charLevelData.reverse()
+                if getattr(self, "versions", False) and getattr(self, "displayedText", False):
+                    # if reversed self.refs, make sure to reverse self.versions and self.displayedText
+                    self.versions = self.versions[::-1]
+                    self.displayedText = self.displayedText[::-1]
+            self.refs = sorted(self.refs)  # make sure ref order is deterministic
             samelink = Link().load({"refs": self.refs})
+
+            if not samelink:
+                #check for samelink section level vs ranged ref
+                oref0 = text.Ref(self.refs[0])
+                oref1 = text.Ref(self.refs[1])
+                section0 = oref0.section_ref()
+                section1 = oref1.section_ref()
+                if oref0.is_range() and oref0.all_segment_refs() == section0.all_segment_refs():
+                    samelink = Link().load({"$and": [{"refs": section0}, {"refs": self.refs[1]}]})
+                elif oref0.is_section_level():
+                    ranged0 = text.Ref(f"{oref0.all_segment_refs()[0]}-{oref0.all_segment_refs()[-1]}")
+                    samelink = Link().load({"$and": [{"refs": ranged0.normal()}, {"refs": self.refs[1]}]})
+                elif oref1.is_range() and oref1.all_segment_refs() == section1.all_segment_refs(): # this is an elif since it anyway overrides the samelink see note in 4 lines
+                    samelink = Link().load({"$and": [{"refs": section1}, {"refs": self.refs[0]}]})
+                elif oref1.is_section_level():
+                    ranged1 = text.Ref(f"{oref1.all_segment_refs()[0]}-{oref1.all_segment_refs()[-1]}")
+                    samelink = Link().load({"$and": [{"refs": ranged1.normal()}, {"refs": self.refs[0]}]})
+                #note: The above code neglects the case where both refs in the link are section or ranged and there is a ranged/section link in the db with the opposite situation on both refs.
 
             if samelink:
                 if hasattr(self, 'score') and hasattr(self, 'charLevelData'):
                     samelink.score = self.score
                     samelink.charLevelData = self.charLevelData
+                    samelink.save()
                     raise DuplicateRecordError("Updated existing link with the new score and charLevelData data")
 
                 elif not self.auto and self.type and not samelink.type:
@@ -130,7 +149,12 @@ class Link(abst.AbstractMongoRecord):
 
                 if preciselink:
                     # logger.debug("save_link: More specific link exists: " + link["refs"][1] + " and " + preciselink["refs"][1])
-                    raise DuplicateRecordError("A more precise link already exists: {} - {}".format(preciselink.refs[0], preciselink.refs[1]))
+                    if getattr(self, "_override_preciselink", False):
+                        preciselink.delete()
+                        self.generated_by = self.generated_by+'_preciselink_override'
+                        #and the new link will be posted (supposedly)
+                    else:
+                        raise DuplicateRecordError("A more precise link already exists: {} - {}".format(preciselink.refs[0], preciselink.refs[1]))
                 # else: # this is a good new link
 
         if not getattr(self, "_skip_lang_check", False):
