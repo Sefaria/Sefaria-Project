@@ -271,9 +271,7 @@ def linker_js(request, linker_version=None):
                       + model.library.citing_title_list("he"), ensure_ascii=False)
     }
 
-    response = render(request, linker_link, attrs, content_type = "text/javascript; charset=utf-8")
-    response["Cache-Control"] = 'max-age=3600'
-    return response
+    return render(request, linker_link, attrs, content_type = "text/javascript; charset=utf-8")
 
 
 def linker_data_api(request, titles):
