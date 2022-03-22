@@ -1,0 +1,25 @@
+{{- if eq .Values.sandbox "true" }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: destroy-mongo-{{ .Values.deployEnv }}
+  labels:
+    deployEnv: {{ .Values.deployEnv | quote }}
+  annotations: 
+    helm.sh/hook: post-delete
+    helm.sh/hook-delete-policy: hook-succeeded
+    helm.sh/hook-weight: "5"
+data: 
+  destroy-mongo.sh: |-  
+    #!/bin/bash
+    set -e
+    set -x
+
+    mongo --host MONGO_HOST sefaria-$SANDBOX_NAME <<EOF
+    db.dropDatabase();
+    EOF
+    
+    mongo --host MONGO_HOST apscheduler-$SANDBOX_NAME <<EOF
+    db.dropDatabase();
+    EOF
+{{- end }}
