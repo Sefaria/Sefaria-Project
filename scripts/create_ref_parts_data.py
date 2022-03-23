@@ -70,7 +70,7 @@ class RefPartModifier:
         return reg_map.get(index.title, reg_map.get(comm_term_slug))
 
 
-    def modify_talmud_commentaries(self, fast=False, create_dhs=False, add_alt_structs=False):
+    def modify_bavli_commentaries(self, fast=False, create_dhs=False, add_alt_structs=False):
         """
         index_only. true when you don't want to touch existing dh's in db
         """
@@ -165,10 +165,11 @@ class RefPartModifier:
             delattr(perek_node, 'isSegmentLevelDiburHamatchil')
             perek_node.match_templates = base_templates[iperek]
 
-    def modify_talmud(self, fast=False):
+    def modify_bavli(self, fast=False):
         perek = NonUniqueTerm.init('perek')
         bavli = NonUniqueTerm.init('bavli')
         gemara = NonUniqueTerm.init('gemara')
+        tractate = NonUniqueTerm.init('tractate')
         minor_tractates = {title for title in library.get_indexes_in_category("Minor Tractates")}
         indexes = library.get_indexes_in_category("Bavli", full_records=True)
         for index in tqdm(indexes, desc='talmud', total=indexes.count()):
@@ -181,6 +182,12 @@ class RefPartModifier:
                 },
                 {
                     "term_slugs": [gemara.slug, index_term.slug],
+                },
+                {
+                    "term_slugs": [bavli.slug, tractate.slug, index_term.slug],
+                },
+                {
+                    "term_slugs": [gemara.slug, tractate.slug, index_term.slug],
                 },
                 {
                     "term_slugs": [index_term.slug],
@@ -541,6 +548,7 @@ class RefPartModifier:
 
         self.t(en='Bavli', he='בבלי', alt_en=['Babylonian Talmud', 'B.T.', 'BT', 'Babli'], ref_part_role='structural')
         self.t(en="Gemara", he="גמרא", alt_he=["גמ'"], ref_part_role='structural')
+        self.t(en="Tractate", he="מסכת", alt_en=['Masekhet', 'Masechet', 'Masekhes', 'Maseches'], ref_part_role='alt_title')
         self.t(en='Rashi', he='רש"י', ref_part_role='structural')
         self.t(en='Mishnah', he='משנה', alt_en=['M.', 'M', 'Mishna', 'Mishnah', 'Mishnaiot'], ref_part_role='structural')
         self.t(en='Tosefta', he='תוספתא', alt_en=['Tosephta', 'T.', 'Tosef.', 'Tos.'], ref_part_role='structural')
@@ -770,10 +778,10 @@ class RefPartModifier:
         fast = True
         create_dhs = False
         add_comm_alt_structs = True
-        self.modify_talmud(fast)
+        self.modify_bavli(fast)
         self.modify_tanakh(fast)
         self.modify_rest_of_shas(fast)
-        self.modify_talmud_commentaries(fast, create_dhs, add_comm_alt_structs)  # on first run, rerun because ArrayMapNodes are cached
+        self.modify_bavli_commentaries(fast, create_dhs, add_comm_alt_structs)  # on first run, rerun because ArrayMapNodes are cached
         self.modify_midrash_rabbah(fast)
         self.modify_sifra(fast)
         self.modify_mishneh_torah(fast)

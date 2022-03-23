@@ -734,7 +734,6 @@ class MatchTemplateTrie:
         return MatchTemplateTrie(self.lang, sub_trie=merged, scope=self.scope)
 
     def _get_continuations_recursive(self, key: str, prev_sub_tries=None, key_is_id=False):
-        is_first = prev_sub_tries is None
         prev_sub_tries = prev_sub_tries or self._trie
         if key_is_id:
             # dont attempt to split key
@@ -742,7 +741,7 @@ class MatchTemplateTrie:
         next_sub_tries = []
         key = key.strip()
         starti_list = [0]
-        if self.lang == 'he' and is_first:
+        if self.lang == 'he':
             starti_list += get_prefixless_inds(key)
         for starti in starti_list:
             for endi in reversed(range(len(key)+1)):
