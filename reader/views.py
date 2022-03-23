@@ -685,11 +685,15 @@ def texts_category_list(request, cats):
         desc  = _("Texts that you've recently viewed on Sefaria.")
     else:
         cats = cats.split("/")
-        if len(cats) == 0 or library.get_toc_tree().lookup(cats) is None:
-            return texts_list(request)
+        tocObject = library.get_toc_tree().lookup(cats)
+        if len(cats) == 0 or tocObject is None:
+            return texts_list(request)      
         cat_string = ", ".join(cats) if request.interfaceLang == "english" else ", ".join([hebrew_term(cat) for cat in cats])
+        catDesc = getattr(tocObject, "enDesc", None) if request.interfaceLang == "english" else getattr(tocObject, "heDesc", None)
+        catShortDesc = getattr(tocObject, "enShortDesc", None) if request.interfaceLang == "english" else getattr(tocObject, "heShortDesc", None)
+        catDefaultDesc = _("Read %(categories)s texts online with commentaries and connections.") % {'categories': cat_string} 
         title = cat_string + _(" | Sefaria")
-        desc  = _("Read %(categories)s texts online with commentaries and connections.") % {'categories': cat_string}
+        desc  = catDesc if len(catDesc) else catShortDesc if len(catShortDesc) else catDefaultDesc
 
     props = {
         "initialMenu": "navigation",
