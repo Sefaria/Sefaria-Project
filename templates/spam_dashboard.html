@@ -71,7 +71,8 @@
                     <tbody>
                     {% for profile in profiles %}
                         <tr>
-                            <td><a href='/profile/{{ profile.slug }}' target='_blank'>{{ profile.slug }}</a></td>
+                            <td><a href='/profile/{{ profile.slug }}' target='_blank'>{{ profile.name }}</a></td>
+                            <td>{{ profile.email }}</td>
                             <td>{{ profile.bio }}</td>
                             <td>{{ profile.website }}</td>
                             <td><input type='checkbox' name='spam_profiles[]' value='{{ profile.id }}' form='spam_form'/></td>
