@@ -689,8 +689,8 @@ def texts_category_list(request, cats):
         if len(cats) == 0 or tocObject is None:
             return texts_list(request)      
         cat_string = ", ".join(cats) if request.interfaceLang == "english" else ", ".join([hebrew_term(cat) for cat in cats])
-        catDesc = getattr(tocObject, "enDesc", None) if request.interfaceLang == "english" else getattr(tocObject, "heDesc", None)
-        catShortDesc = getattr(tocObject, "enShortDesc", None) if request.interfaceLang == "english" else getattr(tocObject, "heShortDesc", None)
+        catDesc = getattr(tocObject, "enDesc", '') if request.interfaceLang == "english" else getattr(tocObject, "heDesc", '')
+        catShortDesc = getattr(tocObject, "enShortDesc", '') if request.interfaceLang == "english" else getattr(tocObject, "heShortDesc", '')
         catDefaultDesc = _("Read %(categories)s texts online with commentaries and connections.") % {'categories': cat_string} 
         title = cat_string + _(" | Sefaria")
         desc  = catDesc if len(catDesc) else catShortDesc if len(catShortDesc) else catDefaultDesc
