@@ -9,6 +9,7 @@ import {
   Note,
   FeedbackBox,
   ProfilePic,
+  DivineNameReplacer,
   ToolTipped, InterfaceText, ContentText, EnglishText, HebrewText,
 } from './Misc';
 
@@ -365,6 +366,7 @@ class ConnectionsPanel extends Component {
 
             {this.props.masterPanelMode === "Sheet" ? <SheetToolsList
               toggleSignUpModal={this.props.toggleSignUpModal}
+              setConnectionsMode={this.props.setConnectionsMode}
               masterPanelSheetId={this.props.masterPanelSheetId} /> : null}
             <ToolsList
               setConnectionsMode={this.props.setConnectionsMode}
@@ -675,6 +677,11 @@ class ConnectionsPanel extends Component {
         masterPanelSheetId={this.props.masterPanelSheetId}
         toggleSignUpModal={this.props.toggleSignUpModal}
       />
+    } else if (this.props.mode === "DivineName") {
+      content = <DivineNameReplacer
+          setDivineNameReplacement={this.props.setDivineNameReplacement}
+          divineNameReplacement={this.props.divineNameReplacement}
+      />
     }
 
     const marginless = ["Resources", "ConnectionsList", "Advanced Tools", "Share", "WebPages", "Topics", "manuscripts"].indexOf(this.props.mode) != -1;
@@ -816,7 +823,7 @@ const AboutSheetButtons = ({ setConnectionsMode, masterPanelSheetId }) => {
   </div>);
 }
 
-const SheetToolsList = ({ toggleSignUpModal, masterPanelSheetId }) => {
+const SheetToolsList = ({ toggleSignUpModal, masterPanelSheetId, setConnectionsMode }) => {
 
   // const [isOwner, setIsOwner] = useState(false);
   // const [isPublished, setIsPublished] = useState(false);
@@ -945,10 +952,13 @@ const SheetToolsList = ({ toggleSignUpModal, masterPanelSheetId }) => {
     {/* <ToolsButton en="Add to Collection" he="תרגומים" image="add-to-collection.svg" onClick={() => toggleCollectionsModal()} /> */}
     <ToolsButton en="Print" he="הדפסה" image="print.svg" onClick={() => window.print()} />
     <ToolsButton en={googleDriveText.en} he={googleDriveText.he} greyColor={!!googleDriveText.secondaryEn || googleDriveText.greyColor} secondaryEn={googleDriveText.secondaryEn} secondaryHe={googleDriveText.secondaryHe} image="googledrive.svg" onClick={() => googleDriveExport()} />
-    {/* todo: update export to google docs button so it works */}
-    {/* {showCollectionsModal ? <CollectionsModal
-                      sheetID={masterPanelSheetId}
-                      close={toggleCollectionsModal} />  : null} */}
+    {
+      Sefaria._uses_new_editor && Sefaria._uid && (
+            sheet.owner === Sefaria._uid ||
+            sheet.options.collaboration == "anyone-can-edit"
+        ) ?
+      <ToolsButton en="Divine Name" he="שמות קודש" image="tools-translate.svg" onClick={() => setConnectionsMode("DivineName")} /> : null}
+
   </div>
   )
 }

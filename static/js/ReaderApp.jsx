@@ -1445,6 +1445,9 @@ class ReaderApp extends Component {
     this.state.panels[n].scrollToHighlighted = false;
     this.setState({panels: this.state.panels});
     }
+  setDivineNameReplacement(mode) {
+    this.setState({divineNameReplacement: mode})
+  }
   setConnectionsFilter(n, filter, updateRecent) {
     // Set the filter for connections panel at `n`, carry data onto the panel's basetext as well.
     var connectionsPanel = this.state.panels[n];
@@ -1964,6 +1967,8 @@ class ReaderApp extends Component {
                       translationLanguagePreference={this.state.translationLanguagePreference}
                       setTranslationLanguagePreference={this.setTranslationLanguagePreference}
                       navigatePanel={navigatePanel}
+                      divineNameReplacement={this.state.divineNameReplacement}
+                      setDivineNameReplacement={this.setDivineNameReplacement}
                     />
                   </div>);
     }

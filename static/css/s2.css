@@ -6660,7 +6660,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   color: #666666;
   border-bottom: 1px solid #CCCCCC;
 }
-.connectionsPanel .chavruta p {
+.connectionsPanel .chavruta p,
+.connectionsPanel .divineNameReplacer p {
   font-size: 16px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   line-height: 19px;

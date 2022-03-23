@@ -1994,6 +1994,14 @@ class Dropdown extends Component {
       selected: null
     };
   }
+
+  componentDidMount() {
+    if (this.props.preselected) {
+      const selected = this.props.options.filter( o => (o.value == this.props.preselected));
+      this.select(selected[0])
+    }
+  }
+
   select(option) {
     this.setState({selected: option, optionsOpen: false});
     const event = {target: {name: this.props.name, value: option.value}}
@@ -2368,6 +2376,28 @@ const SheetMetaDataBox = (props) => (
   </div>
 );
 
+const DivineNameReplacer = ({setDivineNameReplacement, divineNameReplacement}) => {
+  return (
+      <div className="divineNameReplacer">
+        <p className="sans-serif"><InterfaceText>Select how you would like to display the divine name in this sheet:</InterfaceText></p>
+
+            <Dropdown
+              name="divinename"
+              options={[
+                        {value: "noSub",   label: Sefaria._("No Substitution")},
+                        {value: "yy",   label: 'יי'},
+                        {value: "h",      label:'ה\''},
+                        {value: "ykvk",    label: 'יקוק'},
+                      ]}
+              placeholder={Sefaria._("Select Type")}
+              onChange={(e) => setDivineNameReplacement((e.target.value))}
+              preselected={divineNameReplacement}
+            />
+      </div>
+  )
+
+}
+
 const Autocompleter = ({selectedRefCallback}) => {
   const [inputValue, setInputValue] = useState("");
   const [currentSuggestions, setCurrentSuggestions] = useState(null);
@@ -2653,4 +2683,5 @@ export {
   InterfaceLanguageMenu,
   Autocompleter,
   DonateLink,
+  DivineNameReplacer,
 };

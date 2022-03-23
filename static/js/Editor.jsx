@@ -333,6 +333,43 @@ export const serialize = (content) => {
     return children.join('')
 };
 
+const replaceDivineNames = (str, divineName) => {
+    // Regexes for identifying divine names with or without nikkud / trop
+    // Currently ignores אֵל & צְבָאוֹת & שדי
+    const divineRE  = /([\s.,\u05BE;:'"\-]|^)([ו]?[\u0591-\u05C7]*[משהוכלב]?[\u0591-\u05C7]*)(י[\u0591-\u05C7]*ה[\u0591-\u05C7]*ו[\u0591-\u05C7]*ה[\u0591-\u05C2\u05C4-\u05C7]*|יְיָ|יי|יקוק|ה\')(?=[/(/[<//.,;:׃'"\-\s]|$)/g;
+
+    // don't match אֲדֹנִי
+    const adoshemRE = /([\s.,\u05BE;:'"\-]|^)([ו]?[\u0591-\u05C7]*[משהוכלב]?[\u0591-\u05C7]*)(א[\u0591-\u05C7]*ד[\u0591-\u05C7]*נ[\u0591-\u05B3\u05B5-\u05C7]*י[\u0591-\u05B3\u05B5-\u05C2\u05C4-\u05C7]*|אדושם)(?=[<\[\(\s.,;:׃'"\-]|$)/g;
+
+    // only allow segol or tzere nikkud, so doesn't match אֲלֵהֶ֖ם or the like
+    const elokaiRE  = /([\s.,\u05BE;:'"\-]|^)([ו]?[\u0591-\u05C7]*[משהוכלב]?[\u0591-\u05C7]*)(א[\u0591-\u05AF\u05B1\u05B5\u05B6\u05BC-\u05C7]*ל[\u0591-\u05C7]*ו?[\u0591-\u05C7]*)([הק])([\u0591-\u05C7]*)((י[\u0591-\u05C2\u05C4-\u05C7]*)?[ךיוהםן][\u0591-\u05C2\u05C4-\u05C7]*|(י[\u0591-\u05C7]*)?נ[\u0591-\u05C7]*ו[\u0591-\u05C7]*|(י[\u0591-\u05C7]*)?כ[[\u0591-\u05C2\u05C4-\u05C7]*[םן])(?=[\s<\[\(.,;׃:'"\-]|$)/g;
+
+    const elokaRE   = /([\s.,\u05BE;:'"\-]|^)([ו]?[\u0591-\u05C7]*[משהוכלב]?[\u0591-\u05C7]*)(א[\u0591-\u05AF\u05B1\u05B5\u05B6\u05BC-\u05C7]*ל[\u0591-\u05C7]*ו[\u0591-\u05C7]*)([הק])([\u0591-\u05C2\u05C4-\u05C7]*)(?=[)(?=[\s<\[\(.,;:׃'"\-]|$)/g;
+
+    // const shadaiRE  = /([\s.,\u05BE;:'"\-]|^)([משהוכלב]?[\u0591-\u05C7]*)(ש[\u0591-\u05C7]*[דק][\u0591-\u05C7]*י[\u0591-\u05C7]*)(?=[\s.,;׃:'"\-]|$)/g;
+
+
+    const divineSubs = {
+                        "noSub": "יהוה",
+                        "yy": "יי",
+                        "ykvk": "יקוק",
+                        "h": "ה'"
+                    };
+
+
+
+
+    const adoshemSub = divineName=="noSub" ? "אדני" : "אדושם";
+    const elokaiSub = divineName=="noSub" ? "ה" : "ק";
+
+    const newStr = str.replace(divineRE, "$1$2"+ divineSubs[divineName])
+        .replace(adoshemRE, "$1$2"+ adoshemSub)
+        .replace(elokaiRE, "$1$2$3"+ elokaiSub +"$5$6")
+        .replace(elokaRE, "$1$2$3"+ elokaiSub +"$5");
+
+    return newStr
+
+}
 
 function renderSheetItem(source) {
     const sheetItemType = Object.keys(sheet_item_els).filter(key => Object.keys(source).includes(key))[0];
@@ -547,7 +584,7 @@ function isSourceEditable(e, editor) {
   return (isEditable)
 }
 
-const BoxedSheetElement = ({ attributes, children, element }) => {
+const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
   const parentEditor = useSlate();
 
   const sheetSourceEnEditor = useMemo(() => withLinks(withHistory(withReact(createEditor()))), [])
@@ -562,6 +599,24 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
   const selected = useSelected()
   const focused = useFocused()
   const cancelEvent = (event) => event.preventDefault()
+
+    useEffect(
+        () => {
+            const editors = [sheetSourceHeEditor, sheetSourceEnEditor]
+            for (const editor of editors) {
+                const nodes = (Editor.nodes(editor, {at: [], match: Text.isText}))
+                for (const [node, path] of nodes) {
+                    if (node.text) {
+                        const newStr = replaceDivineNames(node.text, divineName)
+                        if (newStr != node.text) {
+                            Transforms.insertText(editor, newStr, {at: path})
+                        }
+                    }
+                }
+            }
+        }, [divineName]
+    )
+
 
   const onHeChange = (value) => {
     sheetHeSourceSetValue(value)
@@ -984,12 +1039,12 @@ const Element = props => {
           );
         case 'SheetSource':
             return (
-              <BoxedSheetElement {...props} />
+              <BoxedSheetElement {...props} divineName={useSlate().divineNames} />
             );
 
         case 'SheetOutsideBiText':
             return (
-              <BoxedSheetElement {...props} {...attributes} />
+              <BoxedSheetElement {...props} {...attributes} divineName={useSlate().divineNames} />
             );
 
 
@@ -1641,7 +1696,6 @@ const withSefariaSheet = editor => {
         }
     }
 
-
     editor.onlyTextAndRefsInBoxedElements = (node, path) => {
         if (node.type === "he" || node.type === "en") {
             //only allow TextRef & SourceContentText in he or en
@@ -1946,7 +2000,6 @@ const Link = ({ attributes, children, element }) => {
   )
 
  }
-
 
 const withLinks = editor => {
     const { isInline } = editor
@@ -2384,6 +2437,22 @@ const SefariaEditor = (props) => {
         }, [readyForNormalize]
     )
 
+    useEffect(
+        () => {
+            const nodes = (Editor.nodes(editor, {at: [], match: Text.isText}))
+            for (const [node, path] of nodes) {
+                if (node.text) {
+                    const newStr = replaceDivineNames(node.text, props.divineNameReplacement)
+                    if (newStr != node.text) {
+                        Transforms.insertText(editor, newStr, { at: path })
+                    }
+                }
+            }
+            editor.divineNames = props.divineNameReplacement
+        },
+        [props.divineNameReplacement]
+    )
+
 
   useEffect(() => {
     if(!props.hasSidebar) {
@@ -2551,14 +2620,13 @@ const SefariaEditor = (props) => {
             promptedToPublish: doc.promptedToPublish,
             lastModified: lastModified,
             summary: doc.summary,
-            options: doc.options,
+            options: { ...doc.options, divineNames: props.divineNameReplacement },
             tags: doc.tags,
             displayedCollection: doc.displayedCollection,
             title: sheetTitle === "" ? "Untitled" : sheetTitle,
             sources: sources.filter(x => !!x),
             nextNode: doc.nextNode,
         };
-        // title: sheetTitle == "" ? "Untitled" : sheetTitle,
 
         return JSON.stringify(sheet);
 
