@@ -118,7 +118,7 @@ def nationbuilder_get_all(endpoint_func, args=[]):
                 for item in res_data['results']:
                     yield item
                 next_endpoint = unquote(res_data['next']) if res_data['next'] else None
-                if (res.headers['x-ratelimit-remaining'] == '0'):
+                if (res.headers['Nation-Ratelimit-Remaining'] == '0'):
                     time.sleep(10)
                 break
             except Exception as e:
