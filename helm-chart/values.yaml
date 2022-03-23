@@ -203,50 +203,50 @@ monitor:
 
 secrets:
   localSettings:
-    # If you're using a refenrece to an existing secret then the data: section
-    # should be commented out and vice-versa.
+    # A reference to a secret containing the local settings
     ref:
-    # Add the value of these variables in the data: field for local use only.
-    # Also, it is understood that if you're adding one value you're adding
-    # all variable values
-    DATABASES_HOST:
-    DATABASES_PASS:
-    DATABASES_USER:
-    DATABASES_PORT:
-    GOOGLE_OAUTH2_CLIENT_ID:
-    GOOGLE_OAUTH2_CLIENT_SECRET:
-    SECRET_KEY:
-    MANDRILL_API_KEY:
-    SEFARIA_DB:
-    SEFARIA_DB_USER:
-    SEFARIA_DB_PASSWORD:
-    SEARCH_ADMIN_USER:
-    SEARCH_ADMIN_PW:
-    SEARCH_ADMIN_K8S:
-    TURN_SECRET:
-    TURN_USER:
-    SEFARIA_BOT_API_KEY:
-    CLOUDFLARE_ZONE:
-    CLOUDFLARE_EMAIL:
-    CLOUDFLARE_TOKEN:
-    GOOGLE_TAG_MANAGER_CODE:
-    GOOGLE_ANALYTICS_CODE:
-    GOOGLE_MAPS_API_KEY:
-    MIXPANEL_CODE:
-    HOTJAR_ID:
-    AWS_ACCESS_KEY:
-    AWS_SECRET_KEY:
-    S3_BUCKET:
-    NATIONBUILDER_TOKEN:
-    NATIONBUILDER_CLIENT_ID:
-    NATIONBUILDER_CLIENT_SECRET:
-    MAILCHIMP_API_KEY:
-    MAILCHIMP_ANNOUNCE_ID:
-    MAILCHIMP_WEBHOOK_KEY:
-    RECAPTCHA_PUBLIC_KEY:
-    RECAPTCHA_PRIVATE_KEY:
-    SIMPLE_JWT_SIGNING_KEY:
-    MOBILE_APP_KEY:
+    # The data keys can be used to override values in the local settings secret.
+    # This is intended for local development use and CI, do not use this in
+    # production.
+    #data:
+    #  DATABASES_HOST:
+    #  DATABASES_PASS:
+    #  DATABASES_USER:
+    #  DATABASES_PORT:
+    #  GOOGLE_OAUTH2_CLIENT_ID:
+    #  GOOGLE_OAUTH2_CLIENT_SECRET:
+    #  SECRET_KEY:
+    #  MANDRILL_API_KEY:
+    #  SEFARIA_DB:
+    #  SEFARIA_DB_USER:
+    #  SEFARIA_DB_PASSWORD:
+    #  SEARCH_ADMIN_USER:
+    #  SEARCH_ADMIN_PW:
+    #  SEARCH_ADMIN_K8S:
+    #  TURN_SECRET:
+    #  TURN_USER:
+    #  SEFARIA_BOT_API_KEY:
+    #  CLOUDFLARE_ZONE:
+    #  CLOUDFLARE_EMAIL:
+    #  CLOUDFLARE_TOKEN:
+    #  GOOGLE_TAG_MANAGER_CODE:
+    #  GOOGLE_ANALYTICS_CODE:
+    #  GOOGLE_MAPS_API_KEY:
+    #  MIXPANEL_CODE:
+    #  HOTJAR_ID:
+    #  AWS_ACCESS_KEY:
+    #  AWS_SECRET_KEY:
+    #  S3_BUCKET:
+    #  NATIONBUILDER_TOKEN:
+    #  NATIONBUILDER_CLIENT_ID:
+    #  NATIONBUILDER_CLIENT_SECRET:
+    #  MAILCHIMP_API_KEY:
+    #  MAILCHIMP_ANNOUNCE_ID:
+    #  MAILCHIMP_WEBHOOK_KEY:
+    #  RECAPTCHA_PUBLIC_KEY:
+    #  RECAPTCHA_PRIVATE_KEY:
+    #  SIMPLE_JWT_SIGNING_KEY:
+    #  MOBILE_APP_KEY:
   backupManager:
     # If you're using a reference to an existing secret then the data: section
     # should be commented out and vice-versa.
@@ -256,7 +256,7 @@ secrets:
     #   serviceAccount:
   # This is used in mongobackup & reindex-elasticsearch cron jobs.
   slackWebhook:
-    # If you're using a refenrece to an existing secret then the data: section
+    # If you're using a reference to an existing secret then the data: section
     # should be commented out and vice-versa.
     ref:
     # data:

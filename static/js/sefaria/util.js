@@ -9,6 +9,28 @@ import {HDate, months} from '@hebcal/core';
 var INBROWSER = (typeof document !== 'undefined');
 
 class Util {
+    
+    /**
+     * Method to scroll into view port, if it's outside the viewport
+     * From: https://medium.com/@makk.bit/scroll-into-view-if-needed-10a96e0bdb61
+     * @param {Object} target - DOM Element
+     * @returns {undefined}
+     * See also: https://www.javascripttutorial.net/dom/css/check-if-an-element-is-visible-in-the-viewport/
+     * 
+     */
+    static scrollIntoViewIfNeeded(target, scrollIntoViewOptions) {
+        // Target is outside the viewport from the bottom
+        if (target.getBoundingClientRect().bottom > window.innerHeight) {
+            //  The bottom of the target will be aligned to the bottom of the visible area of the scrollable ancestor.
+            target.scrollIntoView(scrollIntoViewOptions);
+        }
+    
+        // Target is outside the view from the top
+        if (target.getBoundingClientRect().top < 0) {
+            // The top of the target will be aligned to the top of the visible area of the scrollable ancestor
+            target.scrollIntoView(scrollIntoViewOptions);
+        }
+    }
     static selectElementContents(el) {
       //source: https://stackoverflow.com/questions/4183401/can-you-set-and-or-change-the-user-s-text-selection-in-javascript
       if (window.getSelection && document.createRange) {

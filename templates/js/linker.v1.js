@@ -232,6 +232,7 @@
 
         if (matchedTitles.length == 0) {
             console.log("No book titles found to link to Sefaria.");
+            ns._trackPage();
             return;
         }
 
@@ -363,8 +364,6 @@
     };
 
     ns._trackPage = function() {
-        if (ns.trackedMatches.length == 0) { return; }
-
         var robots = document.head.querySelector("meta[name~=robots]");
         if (robots && robots.content.includes("noindex")) { return; }
 
