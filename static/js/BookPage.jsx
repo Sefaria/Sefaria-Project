@@ -335,13 +335,28 @@ class TextTableOfContents extends Component {
   }
   componentDidMount() {
     this.loadData();
+    this.scrollToCurrent();
   }
   loadData(){
     // Ensures data this text is in cache, rerenders after data load if needed
-    Sefaria.getIndexDetails(this.props.title).then(data => this.setState({
-      indexDetails: data,
-      tab: this.getDefaultActiveTab(data)
-    }));
+    Sefaria.getIndexDetails(this.props.title).then((data) => {
+      this.setState({
+        indexDetails: data,
+        tab: this.getDefaultActiveTab(data)
+       });
+      this.scrollToCurrent();
+    });
+  }
+  annotateTorahAltDisplayProperties(altStructSchema){
+    for (const node of altStructSchema.nodes) {
+      node["displayFixedTitleSubSections"] = true;
+    }
+  }
+  scrollToCurrent(){
+    const curr = document.querySelector(".current");
+    if(curr){
+      Sefaria.util.scrollIntoViewIfNeeded(curr, {block: "center"});
+    }
   }
   getDefaultActiveTab(indexDetails){
     return ("default_struct" in indexDetails && indexDetails.default_struct in indexDetails?.alts) ? indexDetails.default_struct : "schema";
@@ -371,6 +386,11 @@ class TextTableOfContents extends Component {
     const defaultStruct = this.getDefaultActiveTab(this.state.indexDetails);
     const excludedStructs = this.state.indexDetails?.exclude_structs || [];
     const alts = this.state.indexDetails?.alts || {};
+    if(isTorah){
+      //add a dummy prop (maybe later add to actual db) to indicate the special display case for this alt struct. 
+      // Showing both linked title and subsections
+      this.annotateTorahAltDisplayProperties(alts["Parasha"])
+    }
     let structTabOptions = [];
     if(!excludedStructs.includes("schema")){
       structTabOptions.push({
@@ -536,7 +556,7 @@ class SchemaNode extends Component {
     super(props);
     this.state = {
       // Collapse nodes below top level, and those that aren't default or makred includedSections
-      collapsed: "nodes" in props.schema ? props.schema.nodes.map(node => !(props.topLevel || props.disableSubCollapse || node.default || node.includeSections)) : []
+      collapsed: "nodes" in props.schema && !(props.topLevel || props.disableSubCollapse) ? props.schema.nodes.map(node => !(node.default || node.includeSections)) : []
     };
   }
   toggleCollapse(i) {
@@ -573,16 +593,18 @@ class SchemaNode extends Component {
         );
       }
 
-    } else {
+    } else { //we do have subcontent
       let content = this.props.schema.nodes.map(function(node, i) {
-        const includeSections = node?.includeSections ?? true; //either undefined or explicitly true
         let path;
-        if ("nodes" in node || ("refs" in node && node.refs.length && includeSections)) {
-          // SchemaNode with children (nodes) or ArrayMapNode with depth (refs)
+        if (node.nodeType == "ArrayMapNode") {
+          //ArrayMapNode content
           path = this.props.refPath + ", " + node.title;
-          const keyPressFunc = this.props.disableSubCollapse ? null : (e) => { this.toggleCollapse(i) }
+          return <ArrayMapNode schema={node} currentlyVisibleRef={this.props.currentlyVisibleRef}  currentlyVisibleSectionRef={this.props.currentlyVisibleSectionRef} key={path}/>;
+        } else if ("nodes" in node) {
+          // SchemaNode with children (nodes)
+          path = this.props.refPath + ", " + node.title;
           return (
-            <div className="schema-node-toc" data-ref={path} key={i}>
+            <div className="schema-node-toc" data-ref={path} key={path}>
               <span className={`schema-node-title ${this.state.collapsed[i] ? "collapsed" : "open"} ${this.props.disableSubCollapse ? "fixed" : ""}`}
                     onClick={()=> {this.toggleCollapse(i)}}
                     onKeyPress={(e) => {e.charCode == 13 ? this.toggleCollapse(i):null}}
@@ -602,9 +624,6 @@ class SchemaNode extends Component {
               </div>
               : null }
             </div>);
-        } else if (node.nodeType == "ArrayMapNode") {
-          // ArrayMapNode with only wholeRef
-          return <ArrayMapNode schema={node} currentlyVisibleRef={this.props.currentlyVisibleRef} currentlyVisibleSectionRef={this.props.currentlyVisibleSectionRef} key={i}/>;
         } else if (node.nodeType == "DictionaryNode") {
           return <DictionaryNode 
               schema={node} 
@@ -824,20 +843,28 @@ JaggedArrayNodeSection.propTypes = {
 class ArrayMapNode extends Component {
   constructor(props) {
     super(props);
+    this.state = {
+      collapsed: false
+    };
+  }
+  toggleCollapse() {
+    if(this.props.schema.displayFixedTitleSubSections) return;
+    this.setState({collapsed: !this.state.collapsed});
   }
   render() {
-    const includeSections = this.props.schema?.includeSections ?? true; //either undefined or explicitly true
-    if ("refs" in this.props.schema && this.props.schema.refs.length && includeSections) {
+    const schema = this.props.schema;
+    const includeSections = schema?.includeSections ?? true; //either undefined or explicitly true
+    if ("refs" in schema && schema.refs.length && includeSections) {
       let section, heSection;
-      let sectionLinks = this.props.schema.refs.map(function(ref, i) {
-        i += this.props.schema.offset || 0;
+      let sectionLinks = schema.refs.map(function(ref, i) {
+        i += schema.offset || 0;
         if (ref === "") {
           return null;
         }
-        if (this.props.schema.addressTypes[0] === "Talmud") {
+        if (schema.addressTypes[0] === "Talmud") {
           section = Sefaria.hebrew.intToDaf(i);
           heSection = Sefaria.hebrew.encodeHebrewDaf(section);
-        } else if (this.props.schema.addressTypes[0] === "Folio") {
+        } else if (schema.addressTypes[0] === "Folio") {
           section = Sefaria.hebrew.intToFolio(i);
           heSection = Sefaria.hebrew.encodeHebrewFolio(section);
         } else {
@@ -852,17 +879,44 @@ class ArrayMapNode extends Component {
           </a>
         );
       }.bind(this));
+      
+      let path = this.props.refPath + ", " + schema.title;
+      let ref = "wholeRef" in schema ? Sefaria.splitSpanningRefNaive(schema.wholeRef)[0] : null;
+      
+      return schema.displayFixedTitleSubSections ? (
+          <a className="schema-node-toc linked" href={"/" + Sefaria.normRef(ref)} data-ref={ref} key={path}>
+            <span className="schema-node-title open fixed"
+                  role="heading"
+                  aria-level="3"
+                  aria-hidden="true" tabIndex={0}>
+              <ContentText text={{en: schema.title, he: schema.heTitle}} />
+            </span>
+            <div className="schema-node-contents">{sectionLinks}</div>
+          </a>
+      ) : (
+          <div className="schema-node-toc" data-ref={path} key={path}>
+            <span className={`schema-node-title ${this.state.collapsed ? "collapsed" : "open"}`}
+                  onClick={()=> {this.toggleCollapse()}}
+                  onKeyPress={(e) => {e.charCode == 13 ? this.toggleCollapse():null}}
+                  role="heading"
+                  aria-level="3"
+                  aria-hidden="true" tabIndex={0}>
+              <ContentText text={{en: schema.title, he: schema.heTitle}} />
+            </span>
+            {!this.state.collapsed ?
+            <div className="schema-node-contents">{sectionLinks}</div>
+            : null }
+          </div>
+      );
 
-      return (<div>{sectionLinks}</div>);
-
-    } else {
+    } else { //just a single link for an alt struct section
       let currentPlace = this.props?.currentlyVisibleSectionRef && 
-          (this.props.schema.wholeRef == this.props?.currentlyVisibleRef || (Sefaria.refContains(this.props.schema.wholeRef, this.props?.currentlyVisibleRef)));
+          (schema.wholeRef == this.props?.currentlyVisibleRef || (Sefaria.refContains(schema.wholeRef, this.props?.currentlyVisibleRef)));
       const linkClasses = classNames({"schema-node-toc": 1, "linked":1, "current": currentPlace}); 
       return (
-        <a className={linkClasses} href={"/" + Sefaria.normRef(this.props.schema.wholeRef)} data-ref={this.props.schema.wholeRef}>
+        <a className={linkClasses} href={"/" + Sefaria.normRef(schema.wholeRef)} data-ref={schema.wholeRef}>
           <span className="schema-node-title" role="heading" aria-level="3">
-            <ContentText text={{en:this.props.schema.title, he:this.props.schema.heTitle}}/>
+            <ContentText text={{en:schema.title, he:schema.heTitle}}/>
           </span>
         </a>);
     }

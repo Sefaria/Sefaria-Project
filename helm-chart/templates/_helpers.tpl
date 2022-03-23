@@ -1,25 +1,3 @@
-{{/*
-Create the name of the local-settings secret
-*/}}
-{{/*{{- define "localSettings.env" }} 
-{{- range $key, $val := $.Values.localSettings }}
-          - name: {{ $key }}
-            valueFrom:
-              configMapKeyRef:
-                name: local-settings-{{ $.Values.deployEnv }}
-                key: {{ $key }}
-{{- end }}
-{{- end }}
-*/}}
-
-{{- define "secrets.localSettings" -}} 
-{{- if .Values.secrets.localSettings.ref }}
-{{- .Values.secrets.localSettings.ref }}
-{{- else -}}
-local-settings-secrets-{{ .Values.deployEnv }}
-{{- end }}
-{{- end }}
-
 {{- define "secrets.googleClient" }} 
 {{- if .Values.web.secrets.googleClient.ref -}}
 {{- .Values.web.secrets.googleClient.ref }}
