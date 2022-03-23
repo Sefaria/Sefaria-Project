@@ -18,7 +18,7 @@ def add_sustainer_nationbuilder_ids():
             nationbuilder_id = nationbuilder_user["person"]["id"] if "person" in nationbuilder_user else nationbuilder_user["id"]
             if User.objects.get(id=user_profile.id).is_active == False:
                 session = get_nationbuilder_connection()
-                session.delete(update_person(id))
+                session.delete(update_person(nationbuilder_id))
             elif user_profile.nationbuilder_id != nationbuilder_id:
                 user_profile.nationbuilder_id = nationbuilder_id
                 user_profile.save()
