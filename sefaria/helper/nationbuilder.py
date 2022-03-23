@@ -91,7 +91,6 @@ def nationbuilder_update_all_tags():
             }
         }))
         nationbuilder_update_person_custom_fields(session, profile["nationbuilder_id"], custom_tags_info)
-        print(profile)
 
 
 def nationbuilder_update_person_tags(session, id, to_add, to_remove):

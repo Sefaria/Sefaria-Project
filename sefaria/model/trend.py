@@ -327,11 +327,6 @@ def setUserLanguageTraits():
                 "uid":          uid
             }).save()
 
-def setNationBuilderTraits():
-    pass
-
-
-
 
 def getAllUsersLanguageUsage(daterange):
     '''
@@ -558,7 +553,6 @@ def setAllTrends():
     setSheetTraits()
     setUserLanguageTraits()
     setCategoryTraits()
-    setNationBuilderTraits()
 
 class EnglishToleranceFactory(TrendFactory):
     name = "EnglishTolerance"
