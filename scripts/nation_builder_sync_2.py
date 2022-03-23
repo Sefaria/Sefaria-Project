@@ -2,7 +2,8 @@ import django
 django.setup()
 from sefaria.model.user_profile import UserProfile
 from sefaria.system.database import db
-from sefaria.helper.nationbuilder import get_everyone, nationbuilder_get_all
+from sefaria.helper.nationbuilder import get_everyone, nationbuilder_get_all, get_nationbuilder_connection, update_person
+from django.contrib.auth.models import User
 
 def add_sustainer_nationbuilder_ids():
 # Add people in nationbuilder's ids
@@ -13,10 +14,12 @@ def add_sustainer_nationbuilder_ids():
     for nationbuilder_user in nationbuilder_get_all(get_everyone):
         
         user_profile = UserProfile(email=nationbuilder_user['email']) 
-
         if (user_profile.id != None): # has user profile
             nationbuilder_id = nationbuilder_user["person"]["id"] if "person" in nationbuilder_user else nationbuilder_user["id"]
-            if user_profile.nationbuilder_id != nationbuilder_id:
+            if User.objects.get(id=user_profile.id).is_active == False:
+                session = get_nationbuilder_connection()
+                session.delete(update_person(id))
+            elif user_profile.nationbuilder_id != nationbuilder_id:
                 user_profile.nationbuilder_id = nationbuilder_id
                 user_profile.save()
                 added_count += 1
