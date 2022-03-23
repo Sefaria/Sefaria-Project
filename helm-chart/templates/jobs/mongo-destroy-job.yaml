@@ -10,6 +10,7 @@ metadata:
   name: destroy-mongo-{{ .Values.deployEnv }}
   labels:
     deployEnv: {{ .Values.deployEnv | quote }}
+    {{- include "sefaria.labels" . | nindent 4 }}
   annotations: 
     helm.sh/hook: post-delete
     helm.sh/hook-delete-policy: hook-succeeded
