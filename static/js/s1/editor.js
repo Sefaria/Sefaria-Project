@@ -4189,7 +4189,7 @@ function saveText(text) {
 				if (window.location.href.includes("edit/")) {
 					window.location = window.location.href.replace("edit/", "");
 			    } else if (window.location.href.includes("add/")) {
-					window.location = window.location.href.replace("add/", "");
+					window.location = "/admin/reset/" + sjs.editing.indexTitle;
 				} else {
 					window.location = "/" + sjs.editing.indexTitle;
 				}
