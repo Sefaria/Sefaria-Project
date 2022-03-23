@@ -4,7 +4,7 @@ from typing import List, Union
 from collections import defaultdict
 
 
-def make_html(bulk_resolved: List[List[Union[ResolvedRef, AmbiguousResolvedRawRef]]], output_filename, lang='he'):
+def make_html(bulk_resolved_list: List[List[List[Union[ResolvedRef, AmbiguousResolvedRawRef]]]], output_filename, lang='he'):
     from sefaria.utils.util import wrap_chars_with_overlaps
 
     def get_resolved_metadata(resolved: ResolvedRef, i: int) -> dict:
@@ -142,33 +142,33 @@ def make_html(bulk_resolved: List[List[Union[ResolvedRef, AmbiguousResolvedRawRe
       </head>
       <body>
     """
+    iwrapped = 0
+    for bulk_resolved in bulk_resolved_list:
+        for temp_resolved_list in bulk_resolved:
+            chars_to_wrap = []
+            if len(temp_resolved_list) == 0: continue
 
-    for temp_resolved_list in bulk_resolved:
-        chars_to_wrap = []
-        if len(temp_resolved_list) == 0: continue
+            input_text = temp_resolved_list[0].raw_ref.span.doc.text
+            context_ref = temp_resolved_list[0].context_ref
 
-        input_text = temp_resolved_list[0].raw_ref.span.doc.text
-        context_ref = temp_resolved_list[0].context_ref
-
-        iwrapped = 0
-        for resolved in temp_resolved_list:
-            rlist = resolved.resolved_raw_refs if resolved.is_ambiguous else [resolved]
-            start_char, end_char = rlist[0].raw_ref.char_indices
-            metadata = {
-                "label": "מקור",
-                "true condition": "ambig" if resolved.is_ambiguous else "tp",
-                "data": [],
-            }
-            for r in rlist:
-                metadata['data'] += [get_resolved_metadata(r, iwrapped)]
-                iwrapped += 1
-            chars_to_wrap += [(start_char, end_char, metadata)]
-        wrapped_text = wrap_chars_with_overlaps(input_text, chars_to_wrap, get_wrapped_text)
-        if context_ref is not None:
-            html += f'<p class="ref">{context_ref.normal()}</p>'
-        html += f"""
-        <p dir="{'rtl' if lang == 'he' else 'ltr'}" class="doc">{wrapped_text}</p>
-        """
+            for resolved in temp_resolved_list:
+                rlist = resolved.resolved_raw_refs if resolved.is_ambiguous else [resolved]
+                start_char, end_char = rlist[0].raw_ref.char_indices
+                metadata = {
+                    "label": "מקור",
+                    "true condition": "ambig" if resolved.is_ambiguous else "tp",
+                    "data": [],
+                }
+                for r in rlist:
+                    metadata['data'] += [get_resolved_metadata(r, iwrapped)]
+                    iwrapped += 1
+                chars_to_wrap += [(start_char, end_char, metadata)]
+            wrapped_text = wrap_chars_with_overlaps(input_text, chars_to_wrap, get_wrapped_text)
+            if context_ref is not None:
+                html += f'<p class="ref">{context_ref.normal()}</p>'
+            html += f"""
+            <p dir="{'rtl' if lang == 'he' else 'ltr'}" class="doc">{wrapped_text}</p>
+            """
     html += """
       </body>
     </html>

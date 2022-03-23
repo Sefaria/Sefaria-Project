@@ -281,10 +281,12 @@ def wrap_refs(request):
     post = json.loads(request.body)
     resolver = library.get_ref_resolver()
     lang = 'he' if is_hebrew(post['text']) else 'en'
-    resolved = resolver.bulk_resolve_refs(lang, [None], [post['text']], with_failures=True)
+    resolved_title = resolver.bulk_resolve_refs(lang, [None], [post['title']])
+    context_ref = resolved_title[0][0].ref if (len(resolved_title[0]) == 1 and not resolved_title[0][0].is_ambiguous) else None
+    resolved = resolver.bulk_resolve_refs(lang, [context_ref], [post['text']], with_failures=True)
 
     # currently just dumps result to HTML file
-    make_html(resolved, f'data/linker_results/linker_result.html')
+    make_html([resolved_title, resolved], f'data/linker_results/linker_result.html')
     return jsonResponse({"status": "all cool"})
 
 
