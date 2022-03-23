@@ -1,12 +1,115 @@
----
-name: Continuous Suite
+name: Continuous
 on:
-  - pull_request
+  push:
+    branches:
+      - "*"
+  pull_request:
+    branches:
+      - "*"
 
 jobs:
+  build-generic:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        app: [ web, node ]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      - name: Login to GCR
+        uses: docker/login-action@v1
+        with:
+          registry: gcr.io
+          username: _json_key
+          password: ${{ secrets.DEV_CLOUDBUILD_SA_KEY }}
+      - name: Get branch name
+        id: branch-name
+        uses: tj-actions/branch-names@v5.1
+      - name: Get current date
+        id: date
+        run: echo "::set-output name=date::$(date +'%Y%m%d%H%M')"
+      - name: Generate image metadata
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: |
+            gcr.io/${{ secrets.DEV_PROJECT }}/sefaria-${{ matrix.app }}-${{ steps.branch-name.outputs.current_branch }}
+          # generate Docker tags based on the following events/attributes
+          tags: |
+            type=ref,event=branch
+            type=sha,enable=true,priority=100,prefix=sha-,suffix=-${{ steps.date.outputs.date }},format=short
+            type=sha
+          flavor: |
+            latest=true
+      - name: build and push
+        uses: docker/build-push-action@v2
+        with:
+          cache-from: type=registry, ref=sefaria-${{ matrix.app }}/cache
+          cache-to: type=registry, ref=sefaria-${{ matrix.app }}/cache, mode=max
+          context: .
+          push: true
+          file: ./build/${{ matrix.app }}/Dockerfile
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+  build-asset:
+    runs-on: ubuntu-latest
+    needs: build-generic
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      - name: Login to GCR
+        uses: docker/login-action@v1
+        with:
+          registry: gcr.io
+          username: _json_key
+          password: ${{ secrets.DEV_CLOUDBUILD_SA_KEY }}
+      - name: Get branch name
+        id: branch-name
+        uses: tj-actions/branch-names@v5.1
+      - name: Get current date
+        id: date
+        run: echo "::set-output name=date::$(date +'%Y%m%d%H%M')"
+      - name: Generate image metadata
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: |
+            gcr.io/${{ secrets.DEV_PROJECT }}/sefaria-asset-${{ steps.branch-name.outputs.current_branch }}
+          # generate Docker tags based on the following events/attributes
+          tags: |
+            type=ref,event=branch
+            type=sha,enable=true,priority=100,prefix=sha-,suffix=-${{ steps.date.outputs.date }},format=short
+            type=sha
+          flavor: |
+            latest=true
+      - name: Set outputs
+        id: get-sha
+        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+      - name: build and push
+        uses: docker/build-push-action@v2
+        with:
+          cache-from: type=registry, ref=sefaria-asset/cache
+          cache-to: type=registry, ref=sefaria-asset/cache, mode=max
+          context: .
+          push: true
+          build-args: |
+            SRC_IMG=gcr.io/${{ secrets.DEV_PROJECT }}/sefaria-web-${{ steps.branch-name.outputs.current_branch }}:sha-${{ steps.get-sha.outputs.sha_short }}
+          file: ./build/nginx/Dockerfile
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+#######
+# Below Tests only run on PR
+#######
   jest-tests:
     name: "Jest"   # This name is referenced when slacking status
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'pull_request' }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
@@ -23,41 +126,39 @@ jobs:
         if: ${{ always() }}
 
   sandbox-deploy:
+    if: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
+    needs: build-asset
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
-
-      - name: Setup Python 3.7
-        uses: actions/setup-python@v1
-        with: 
-          python-version: '3.7'
-
       - name: Authenticate GHA Runner to GCP
-        uses: google-github-actions/setup-gcloud@master
+        uses: google-github-actions/setup-gcloud@v0
         with:
           service_account_key: ${{ secrets.DEV_CLOUDBUILD_SA_KEY }}
           project_id: ${{ secrets.DEV_PROJECT }}
-
-      - name: Define GITHUB_SHA_SHORT
-        run: echo "GITHUB_SHA_SHORT=${GITHUB_SHA:0:6}" >> $GITHUB_ENV
-
-      - name: Submit Build Job to Cloud Build
-        # This should use the 'arbitrary commit' build script
-        run: ./build/ci/create-ci-sandbox.bash
+      - name: Get branch name
+        id: branch-name
+        uses: tj-actions/branch-names@v5.1
+      - name: Set outputs
+        id: get-sha
+        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+      - name: Set up yq
+        uses: frenck/action-setup-yq@v1.1.1
+      - name: setup helm
+        uses: azure/setup-helm@v1
+      - name: Authenticate GHA Runner To Target Cluster
+        run: gcloud container clusters get-credentials ${{secrets.DEV_GKE_CLUSTER}} --zone ${{secrets.DEV_GKE_REGION}} --project ${{secrets.DEV_GCP_PROJECT}}
+      - name: Deploy Sandbox
+        run: ./build/ci/helm-deploy.sh build/ci/values.yaml
         env:
-          GIT_COMMIT: "$GITHUB_SHA"
-          GKE_CLUSTER: "${{secrets.DEV_GKE_CLUSTER}}"
-          GKE_NAMESPACE: "${{secrets.DEV_SANDBOX_NAMESPACE}}"
-          GKE_REGION: "${{secrets.DEV_GKE_REGION}}"
-          MONGO_HOST: "${{secrets.DEV_MONGO_HOST}}"
-          POSTGRES_HOST: "${{secrets.DEV_POSTGRES_HOST}}"
-          SANDBOX_NAME: "${GITHUB_SHA}"
-          SANDBOX_SUBDOMAIN: "${{secrets.DEV_SANDBOX_SUBDOMAIN}}"
-          GCP_PROJECT: "${{secrets.DEV_GCP_PROJECT}}"
-          CONTAINER_IMAGE_TAG: "${{env.GITHUB_SHA_SHORT}}"
+          GIT_COMMIT: "${{ steps.get-sha.outputs.sha_short }}"
+          BRANCH_NAME: "${{ steps.branch-name.outputs.current_branch }}"
+          PROJECT_ID: "${{ secrets.DEV_PROJECT }}"
+          NAMESPACE: "${{secrets.DEV_SANDBOX_NAMESPACE}}"
 
   sandbox-ready:
+    if: ${{ github.event_name == 'pull_request' }}
     needs: sandbox-deploy
     runs-on: ubuntu-latest
     steps:
@@ -71,6 +172,7 @@ jobs:
           WAIT_DURATION: "3000"
 
   selenium-sauce:
+    if: ${{ github.event_name == 'pull_request' }}
     name: "Selenium"   # This name is referenced when slacking status
     needs: sandbox-ready
     runs-on: ubuntu-latest
@@ -82,49 +184,37 @@ jobs:
         uses: actions/setup-python@v1
         with: 
           python-version: '3.7'  
-
       # Set Up Connection to Dev Mongo
       # 1. Auth to cluster
       # 2. Open encrypted connection
-      - uses: google-github-actions/setup-gcloud@master
+      - uses: google-github-actions/setup-gcloud@v0
         with:
           service_account_key: ${{ secrets.DEV_CLOUDBUILD_SA_KEY }}
           project_id: ${{ secrets.DEV_PROJECT }}
-
       - name: Authenticate GHA Runner To Target Cluster
         run: gcloud container clusters get-credentials ${{secrets.DEV_GKE_CLUSTER}} --zone ${{secrets.DEV_GKE_REGION}} --project ${{secrets.DEV_GCP_PROJECT}}
-
       - name: Establish MongoDB Connection
         run: kubectl port-forward svc/mongo 27017:27017 &
-      
       - name: Await MongoDB Connection
         run: sleep 20
-
       - name: Confirm MongoDB Connection
         # The following command returns a success code if mongo is available,
         # and a failure code if it is not
         run: curl localhost:27017
-
       - name: Establish PostgreSQL Connection
         run: kubectl port-forward svc/postgres 5432:5432 &
-
       - name: Await MongoDB Connection
         run: sleep 20
-
       - name: Confirm PostgreSQL Connection
         # if the PostgreSQL server is available, curl will fail with a '52' exit code
         # if it is NOT available, it will fail with a '7' exit code
         # run: curl localhost:5432; if [ $? -eq "52" ]; then exit 0; else exit 1; fi
         run: exitCode=$(curl localhost:5432; echo $?); if [ $exitCode -eq 52 ]; then exit 0; else exit 1; fi
-
       - name: Define GITHUB_SHA_SHORT
         run: echo "GITHUB_SHA_SHORT=${GITHUB_SHA:0:6}" >> $GITHUB_ENV
-
-
       # END SETUP
       - name: Install Python Packages
         run: pip3 install -r ./requirements.txt
-
       - name: Run Test Suite
         run: env && python3 ./reader/browsertest/run_tests_on_github.py #  ; echo $?
         shell: bash
@@ -132,21 +222,21 @@ jobs:
           SAUCE_USERNAME: ${{ secrets.SAUCE_USERNAME }}
           SAUCE_ACCESS_KEY: ${{ secrets.SAUCE_ACCESS_KEY }}
           CI_RUN: "true"
-          CI_URL: https://${{env.GITHUB_SHA_SHORT}}.cauldron.sefaria.org
+          CI_URL: https://sandbox-${{env.GITHUB_SHA_SHORT}}.cauldron.sefaria.org
           SEFARIA_TEST_PASS: ${{ secrets.SEFARIA_APP_PASS }}
           SEFARIA_TEST_USER: ${{ secrets.SEFARIA_APP_USER }}
           PYTHONPATH: "."
           DJANGO_SETTINGS_MODULE: sefaria.settings
           MONGO_DB_NAME: sefaria-${{env.GITHUB_SHA_SHORT}}
-
       - name: Authenticate GHA Runner to GCP
-        uses: google-github-actions/setup-gcloud@master
+        uses: google-github-actions/setup-gcloud@v0
         with:
           service_account_key: ${{ secrets.GCS_BUILD_UPLOAD_KEY }}
           project_id: ${{ secrets.BUILD_UPLOAD_PROJECT }}
         if: ${{ always() }}
 
   pytest-job:
+    if: ${{ github.event_name == 'pull_request' }}
     name: "PyTest"  # This name is referenced when slacking status
     needs:
       - sandbox-ready
@@ -157,7 +247,7 @@ jobs:
       # Set Up Connection to Dev Mongo
       # 1. Auth to cluster
       # 2. Open encrypted connection
-      - uses: google-github-actions/setup-gcloud@master
+      - uses: google-github-actions/setup-gcloud@v0
         with:
           service_account_key: ${{ secrets.DEV_CLOUDBUILD_SA_KEY }}
           project_id: ${{ secrets.DEV_PROJECT }}
@@ -221,108 +311,24 @@ jobs:
     steps: 
       - name: Checkout
         uses: actions/checkout@v2
-
-      - uses: google-github-actions/setup-gcloud@master
+      - uses: google-github-actions/setup-gcloud@v0
         with:
           service_account_key: ${{ secrets.DEV_CLOUDBUILD_SA_KEY }}
           project_id: ${{ secrets.DEV_PROJECT }}
-
-      - name: Delete sandbox after tests are finished
-        run: ./build/ci/destroy-ci-sandbox.bash
+      - name: Set outputs
+        id: get-sha
+        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+      - name: setup helm
+        uses: azure/setup-helm@v1
+      - name: Authenticate GHA Runner To Target Cluster
+        run: gcloud container clusters get-credentials ${{secrets.DEV_GKE_CLUSTER}} --zone ${{secrets.DEV_GKE_REGION}} --project ${{secrets.DEV_GCP_PROJECT}}
+      - name: check helm
+        id: get-helm
+        run: echo "::set-output name=count::$(helm list -n $NAMESPACE | grep $NAME | wc -l)"
         env:
-          GKE_CLUSTER: "${{secrets.DEV_GKE_CLUSTER}}"
-          GCP_PROJECT: "${{secrets.DEV_GCP_PROJECT}}"
-          GKE_REGION: "${{secrets.DEV_GKE_REGION}}"
-          SANDBOX_SUBDOMAIN: "${{secrets.DEV_SANDBOX_SUBDOMAIN}}"
-          GKE_NAMESPACE: "${{secrets.DEV_SANDBOX_NAMESPACE}}"
-          MONGO_HOST: "${{secrets.DEV_MONGO_HOST}}"
+          NAMESPACE: ${{ secrets.DEV_SANDBOX_NAMESPACE }}
+          NAME: sandbox-${{ steps.get-sha.outputs.sha_short }}
+      - name: Uninstall 
+        run: helm delete sandbox-${{ steps.get-sha.outputs.sha_short }} -n ${{ secrets.DEV_SANDBOX_NAMESPACE }} --debug 
+        if: steps.get-helm.outputs.count > 0
 
-...
-
-#  selenium-allsuites-local:
-#    # Start off with local firefox
-#    name: "Selenium: Local"   # This name is referenced when slacking status
-#    needs: sandbox-ready
-#    runs-on: ubuntu-latest
-#    services:
-#      selenium:
-#        image: selenium/standalone-chrome:3.141.59
-#        ports: [ "4444:4444" ]
-#        volumes: ["/dev/shm:/dev/shm"]
-#    steps:
-#
-#      # BEGIN SETUP
-#      - name: Checkout Code
-#        uses: actions/checkout@v2
-#      - name: Set Up Python 3
-#        uses: actions/setup-python@v1
-#        with:
-#          python-version: '3.7'
-#
-#      # Set Up Connection to Dev Mongo
-#      # 1. Auth to cluster
-#      # 2. Open encrypted connection
-#      - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
-#        with:
-#          service_account_key: ${{ secrets.DEV_CLOUDBUILD_SA_KEY }}
-#          project_id: ${{ secrets.DEV_PROJECT }}
-#
-#      - name: Authenticate GHA Runner To Target Cluster
-#        run: gcloud container clusters get-credentials ${{secrets.DEV_GKE_CLUSTER}} --zone ${{secrets.DEV_GKE_REGION}} --project ${{secrets.DEV_GCP_PROJECT}}
-#
-#      - name: Establish MongoDB Connection
-#        run: kubectl port-forward svc/mongo 27017:27017 &
-#
-#      - name: Await MongoDB Connection
-#        run: sleep 20
-#
-#      - name: Confirm MongoDB Connection
-#        # The following command returns a success code if mongo is available,
-#        # and a failure code if it is not
-#        run: curl localhost:27017
-#
-#      - name: Establish PostgreSQL Connection
-#        run: kubectl port-forward svc/postgres 5432:5432 &
-#
-#      - name: Await MongoDB Connection
-#        run: sleep 20
-#
-#      - name: Confirm PostgreSQL Connection
-#        # if the PostgreSQL server is available, curl will fail with a '52' exit code
-#        # if it is NOT available, it will fail with a '7' exit code
-#        # run: curl localhost:5432; if [ $? -eq "52" ]; then exit 0; else exit 1; fi
-#        run: exitCode=$(curl localhost:5432; echo $?); if [ $exitCode -eq 52 ]; then exit 0; else exit 1; fi
-#
-#      - name: Define GITHUB_SHA_SHORT
-#        run: echo "GITHUB_SHA_SHORT=${GITHUB_SHA:0:6}" >> $GITHUB_ENV
-#
-#      # END SETUP
-#      - name: Install Python Packages
-#        run: pip3 install -r ./requirements.txt
-#
-#      - name: Run PageLoad Suite
-#        run: python3 ./reader/browsertest/run_local_sel.py  | tee /home/runner/selenium-allsuites-local.txt # --parallel ; echo $?
-#        shell: bash
-#        env:
-#          CI_RUN: "true"
-#          CI_URL: https://${{env.GITHUB_SHA_SHORT}}.cauldron.sefaria.org
-#          LOCAL_SELENIUM_URL: "http://localhost:4444/wd/hub"
-#          SEFARIA_TEST_PASS: ${{ secrets.SEFARIA_APP_PASS }}
-#          SEFARIA_TEST_USER: ${{ secrets.SEFARIA_APP_USER }}
-#          PYTHONPATH: "."
-#          DJANGO_SETTINGS_MODULE: sefaria.settings
-#
-#      - name: Authenticate GHA Runner to GCP
-#        uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
-#        with:
-#          service_account_key: ${{ secrets.GCS_BUILD_UPLOAD_KEY }}
-#          project_id: ${{ secrets.BUILD_UPLOAD_PROJECT }}
-#        if: ${{ always() }}
-#
-#      - name: Define BUILD_RESULT_SUBDIR
-#        run: echo "BUILD_RESULT_SUBDIR=${GITHUB_SHA:0:8}" >> $GITHUB_ENV
-#        if: ${{ always() }}
-#
-#      - name: Upload Build Results
-#        run: gsutil cp /home/runner/selenium-allsuites-local.txt gs://${{secrets.GCS_BUILD_UPLOAD_BUCKET}}/${{env.BUILD_RESULT_SUBDIR}}/selenium-allsuites-local.txt
-#        if: ${{ always() }}
