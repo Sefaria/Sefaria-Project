@@ -5619,7 +5619,7 @@ class Library(object):
         curr_address_index = len(sections) - 1  # start from the lowest depth matched in `sections` and go backwards
         for i in range(node.depth-1, -1, -1):
             toGname = "ar{}".format(i)
-            if gs.get(toGname) is not None:
+            if gs.get(toGname):
                 toSections.append(node._addressTypes[curr_address_index].toNumber(lang, gs.get(toGname), sections=sections[curr_address_index]))
                 curr_address_index -= 1
 
