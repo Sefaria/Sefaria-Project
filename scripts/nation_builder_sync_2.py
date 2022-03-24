@@ -10,16 +10,15 @@ def add_sustainer_nationbuilder_ids():
     added_count = 0
     no_profile_count = 0
     already_synced_count = 0
-
     for nationbuilder_user in nationbuilder_get_all(get_everyone):
         
         user_profile = UserProfile(email=nationbuilder_user['email']) 
         if (user_profile.id != None): # has user profile
             nationbuilder_id = nationbuilder_user["person"]["id"] if "person" in nationbuilder_user else nationbuilder_user["id"]
-            if User.objects.get(id=user_profile.id).is_active == False:
+            if User.objects.get(id=user_profile.id).is_active == False: # delete spam users
                 session = get_nationbuilder_connection()
                 session.delete(update_person(nationbuilder_id))
-            elif user_profile.nationbuilder_id != nationbuilder_id:
+            elif user_profile.nationbuilder_id != nationbuilder_id: # add nb id to mongo
                 user_profile.nationbuilder_id = nationbuilder_id
                 user_profile.save()
                 added_count += 1
