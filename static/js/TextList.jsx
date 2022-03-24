@@ -216,7 +216,7 @@ class TextList extends Component {
                                     key={i + link.anchorRef} />);
                         } else {
                           var hideTitle = link.category === "Commentary" && this.props.filter[0] !== "Commentary";
-                          const classes = classNames({ textListTextRangeBox: 1,  typeQF: link.type.startsWith('quotation_auto')});
+                          const classes = classNames({ textListTextRangeBox: 1,    typeQF: link.type.startsWith('quotation_auto'), typeQF2: link.type==='quotation_auto_mishna_good',});
                           return (<div className={classes} key={i + link.sourceRef}>
                                     <TextRange
                                       panelPosition ={this.props.panelPosition}
