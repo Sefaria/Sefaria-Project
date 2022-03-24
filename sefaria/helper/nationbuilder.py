@@ -22,6 +22,9 @@ def update_person(id):
 def get_everyone():
     return f"/api/v1/people?limit=100"
 
+def get_person_by_email(email):
+    return f"/api/v1/people/match?email={email}"
+
 def get_nationbuilder_connection():
     access_token_url = "http://%s.nationbuilder.com/oauth/token" % sls.NATIONBUILDER_SLUG
     authorize_url = "%s.nationbuilder.com/oauth/authorize" % sls.NATIONBUILDER_SLUG
