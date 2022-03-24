@@ -617,7 +617,7 @@ class ScheduleManager(object):
         self.varianceBack = timedelta(varianceBack)
         pass
 
-    def getDateRefRanges(self):
+    def createDateRefRanges(self):
         """
         retrieves necessary dateRefRanges for particular schedule to meet criteria
         """
@@ -634,9 +634,9 @@ class ScheduleManager(object):
             index = 0
             refsInRangeCount = 0
             for history in user["history"]:
-                keepCheckingRefRange = True
-                while(index < dateRefRangesTotal and keepCheckingRefRange == True):
-                    inRange, keepCheckingRefAgainstBuckets = self.dateRefRanges[index].refIsInRange(history["ref"]["ref"], history["history"]["datetime"])
+                keepCheckingRefAgainstBuckets = True
+                while(index < dateRefRangesTotal and keepCheckingRefAgainstBuckets == True):
+                    inRange, keepCheckingRefAgainstBuckets = self.dateRefRanges[index].refIsInRange(history["ref"], history["datetime"])
                     if inRange:
                         refsInRangeCount += 1
                         if refsInRangeCount >= self.segmentHits:
@@ -667,36 +667,41 @@ class ParashaScheduleManager(ScheduleManager):
     #TODO: deal with haftara
     #TODO: make more efficient
     def __init__(self, segmentHits=2, numberOfSegments=4, dateRangeEnd=None, diaspora=True, varianceForward=14, varianceBack=7, name="ParashaLearner"):
-        ScheduleManager.__init__(self, segmentHits, numberOfSegments, dateRangeEnd, varianceForward, varianceBack)
+        ScheduleManager.__init__(self, segmentHits, numberOfSegments, dateRangeEnd, varianceForward, varianceBack, name)
         self.diaspora = diaspora
         self.daysToAdd = 6
-        self.setDateRefRanges() #is this bad practice?
+        self.dateRefRanges = self.createDateRefRanges()
+        self.overallDateRange = DateRange("overall", self.dateRefRanges[-1].dateRange.start, self.dateRefRanges[0].dateRange.end)
 
-    def setDateRefRanges(self):
+    def createDateRefRanges(self):
+        """
+        Creates dateRefRanges for ParashaScheduleManager in reverse chronological order
+        """
         query = {}
         query["date"] = {
             "$lte": self.dateRangeEnd + timedelta(days=self.daysToAdd)
         }
         query["diaspora"]=self.diaspora
         results = db.parshiot.find(query, limit=self.numberOfSegments).sort("date", -1)
-        self.dateRefRanges = []
+        dateRefRanges = []
         for result in results:
-            self.dateRefRanges.append(DateRefRange(result["ref"], result["date"] - self.varianceBack,  result["date"] + self.varianceBack, result["parasha"]))
+            dateRefRanges.append(DateRefRange(result["ref"], result["date"] - self.varianceBack,  result["date"] + self.varianceBack, result["parasha"]))
+        return dateRefRanges
         # for drr in self.dateRefRanges:
         #     print(drr.dateRange.start)
         #     print(drr.dateRange.end)
-        self.overallDateRange = DateRange("overall", self.dateRefRanges[-1].dateRange.start, self.dateRefRanges[0].dateRange.end)
+       
         # print(self.overallDateRange.start)
         # print(self.overallDateRange.end)
 
     def getRelevantUserHistories(self):
-        query = [self.overallDateRange.update_match({
+        query = [{"$match": self.overallDateRange.update_match({
             "is_sheet": False,
             "book": self.dateRefRanges[0].ref.book
-        }), {"$sort": {"datetime": 1}}, {"$group": {"_id": {"uid": "$uid"}, 
+        })}, {"$sort": {"datetime": 1}}, {"$group": {"_id": {"uid": "$uid"}, 
         "history": {"$push": {"ref": "$ref", "datetime": "$datetime", "uid": "$uid"}}}}]
         print(query)
-        return db.user_history.find(query)
+        return db.user_history.aggregate(query)
 
     def getUsersWhoAreLearningSchedule(self):
-        ScheduleManager.getUsersWhoAreLearningSchedule()
+        ScheduleManager.getUsersWhoAreLearningSchedule(self)
