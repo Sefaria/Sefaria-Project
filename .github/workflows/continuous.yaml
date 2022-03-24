@@ -144,7 +144,7 @@ jobs:
         id: get-sha
         run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
       - name: Set up yq
-        uses: frenck/action-setup-yq@v1.1.1
+        uses: frenck/action-setup-yq@v1
       - name: setup helm
         uses: azure/setup-helm@v1
       - name: Authenticate GHA Runner To Target Cluster
