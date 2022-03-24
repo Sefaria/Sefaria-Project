@@ -67,7 +67,11 @@ spec:
             value: "varnish-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
         envFrom:
           - secretRef:
-              name: {{ template "secrets.localSettings" . }}
+              name: {{ .Values.secrets.localSettings.ref }}
+              optional: true
+          - secretRef:
+              name: local-settings-secrets-{{ .Values.deployEnv }}
+              optional: true
           - configMapRef:
               name: local-settings-{{ .Values.deployEnv }}
         resources: {{ toYaml .Values.monitor.resources | nindent 10 }}

@@ -12,6 +12,7 @@ metadata:
   name: restore-mongo-{{ .Values.deployEnv }}
   labels:
     deployEnv: {{ .Values.deployEnv | quote }}
+    {{- include "sefaria.labels" . | nindent 4 }}
   annotations: 
     helm.sh/hook: pre-install
     helm.sh/hook-delete-policy: hook-succeeded
