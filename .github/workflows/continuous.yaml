@@ -8,8 +8,21 @@ on:
       - "*"
 
 jobs:
+  duplication-check:
+    runs-on: ubuntu-latest
+    outputs:
+      inPR: steps.check.outputs.number
+    steps:
+      - name: Check if push is in PR
+        id: check
+        uses: 8BitJonny/gh-get-current-pr@1.4.0
+        with:
+          filterOutClosed: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
   build-generic:
     runs-on: ubuntu-latest
+    needs: duplication-check
+    if: ${{ github.event_name == 'pull_request' || ( github.event_name == 'push' && ! needs.duplication-check.outputs.inPR ) }}
     strategy:
       matrix:
         app: [ web, node ]
@@ -56,7 +69,10 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
   build-asset:
     runs-on: ubuntu-latest
-    needs: build-generic
+    needs: 
+      - duplication-check
+      - build-generic
+    if: ${{ github.event_name == 'pull_request' || ( github.event_name == 'push' && ! needs.duplication-check.outputs.inPR ) }}
     steps:
       - uses: actions/checkout@v2
       - name: Set up QEMU
