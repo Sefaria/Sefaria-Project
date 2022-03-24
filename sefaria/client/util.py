@@ -8,6 +8,8 @@ from functools import wraps
 
 from sefaria import settings as sls
 from sefaria.helper.nationbuilder import get_nationbuilder_connection
+from sefaria.model.user_profile import UserProfile
+
 
 def jsonResponse(data, callback=None, status=200):
     if callback:
@@ -74,6 +76,16 @@ def subscribe_to_list(lists, email, first_name=None, last_name=None, direct_sign
                     data=json.dumps(post),
                     params={'format': 'json'},
                     headers={'content-type': 'application/json'})
+    try: # add nationbuilder id to user profile
+        nationbuilder_user = r.json()
+        nationbuilder_id = nationbuilder_user["person"]["id"] if "person" in nationbuilder_user else nationbuilder_user["id"]
+        user_profile = UserProfile(email=email)
+        if user_profile.id != None and user_profile.nationbuilder_id != nationbuilder_id:
+            user_profile.nationbuilder_id = nationbuilder_id
+            user_profile.save()
+    except:
+        pass
+
     session.close()
 
     return r
