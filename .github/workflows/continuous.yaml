@@ -296,7 +296,7 @@ jobs:
 
   ending-notification:
     runs-on: ubuntu-latest
-    if: ${{ always() }}
+    if: ${{ always() && github.event_name == 'pull_request' }}
     needs:
 #      - selenium-allsuites-local
       - selenium-sauce
@@ -318,7 +318,7 @@ jobs:
 
   sandbox-cleanup:
     name: "Clean up CI Sandbox"
-    if: ${{ always() }}
+    if: ${{ always() && github.event_name == 'pull_request' }}
     needs: 
 #      - selenium-allsuites-local
       - selenium-sauce
