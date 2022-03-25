@@ -168,7 +168,7 @@ jobs:
         run: ./build/ci/helm-deploy.sh build/ci/values.yaml
         env:
           GIT_COMMIT: "${{ steps.get-sha.outputs.sha_short }}"
-          BRANCH_NAME: "${{ steps.branch-name.outputs.current_branch }}"
+          BRANCH: "${{ steps.branch-name.outputs.current_branch }}"
           PROJECT_ID: "${{ secrets.DEV_PROJECT }}"
           NAMESPACE: "${{secrets.DEV_SANDBOX_NAMESPACE}}"
   sandbox-ready:
