@@ -874,7 +874,7 @@ def profile_spam_dashboard(request):
                 {'website': {"$ne": ""}, 'bio': {"$ne": ""}, "id": {"$gt": earliest_new_user_id},
                       "reviewed": {"$ne": True}},
                 {'bio': {"$regex": regex}, "id": {"$gt": earliest_new_user_id}, "reviewed": {"$ne": True}},
-                {'slug': {"$regex": spam_keywords_regex}, "id": {"$gt": earliest_new_user_id}, "reviewed": {"$ne": True}, "book": {"$ne": "Sheet"}}
+                {'slug': {"$regex": spam_keywords_regex}, "id": {"$gt": earliest_new_user_id}, "reviewed": {"$ne": True}}
             ]
         })
 
@@ -883,7 +883,7 @@ def profile_spam_dashboard(request):
         profiles_list = []
 
         for user in users_to_check:
-            history_count = db.user_history.find({'uid': user['id']}).count()
+            history_count = db.user_history.find({'uid': user['id'], 'book': {'$ne': 'Sheet'}}).count()
             if history_count < 10:
                 profile = model.user_profile.UserProfile(id=user["id"])
 
