@@ -874,7 +874,7 @@ def profile_spam_dashboard(request):
                 {'website': {"$ne": ""}, 'bio': {"$ne": ""}, "id": {"$gt": earliest_new_user_id},
                       "reviewed": {"$ne": True}},
                 {'bio': {"$regex": regex}, "id": {"$gt": earliest_new_user_id}, "reviewed": {"$ne": True}},
-                {'slug': {"$regex": spam_keywords_regex}, "id": {"$gt": earliest_new_user_id}, "reviewed": {"$ne": True}}
+                {'slug': {"$regex": spam_keywords_regex}, "id": {"$gt": earliest_new_user_id}, "reviewed": {"$ne": True}, "book": {"$ne": "Sheet"}}
             ]
         })
 
