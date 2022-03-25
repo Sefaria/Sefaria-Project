@@ -7,6 +7,8 @@ trend.py
 import time
 from datetime import datetime, date, timedelta
 
+from py import process
+
 from . import abstract as abst
 from . import user_profile
 from . import text
@@ -583,14 +585,15 @@ class DateRefRange(object):
         """
         returns whether the ref criteria is met is filled and whether to continue checking refs against dateRefRange (bucket)
         """
+        processedRef = Ref(ref)
         if self.dateRange.start > timestamp:
             return False, True
         elif self.dateRange.end < timestamp:
             return False, False
-        elif Ref(ref) in self.ref.all_segment_refs():
-            return True, True
+        elif processedRef.span_size()>=1 and processedRef.overlaps(self.ref): # does this need to be more precise?
+                return True, True
         else:
-            return False, False
+            return False, False # in date range, not in ref range
 
         # if Ref(ref) in self.ref.all_segment_refs() and self.dateRange.start <= timestamp and self.dateRange.end >= timestamp:
         #     return True
@@ -647,11 +650,11 @@ class ScheduleManager(object):
                     Trend({
                         "name":         self.name,
                         "value":        True,
-                        "datatype":     "boolean",
+                        "datatype":     "bool",
                         "timestamp":    datetime.utcnow(),
                         "period":       "currently",
                         "scope":        "user",
-                        "uid":          user["uid"]
+                        "uid":          user["_id"]["uid"]
                     }).save()
                     # usersWhoAreLearningSchedule.append(user["uid"])
                     break
@@ -666,7 +669,7 @@ class ScheduleManager(object):
 class ParashaScheduleManager(ScheduleManager):
     #TODO: deal with haftara
     #TODO: make more efficient
-    def __init__(self, segmentHits=2, numberOfSegments=4, dateRangeEnd=None, diaspora=True, varianceForward=14, varianceBack=7, name="ParashaLearner"):
+    def __init__(self, segmentHits=1, numberOfSegments=4, dateRangeEnd=None, diaspora=True, varianceForward=14, varianceBack=7, name="ParashaLearner"):
         ScheduleManager.__init__(self, segmentHits, numberOfSegments, dateRangeEnd, varianceForward, varianceBack, name)
         self.diaspora = diaspora
         self.daysToAdd = 6
