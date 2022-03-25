@@ -140,7 +140,6 @@ jobs:
       - name: Handle Jest Test Results
         run: cat /home/runner/jestResults.json; STATUS=`jq ".numFailedTestSuites" /home/runner/jestResults.json`; exit $STATUS
         if: ${{ always() }}
-
   sandbox-deploy:
     if: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
@@ -172,7 +171,6 @@ jobs:
           BRANCH_NAME: "${{ steps.branch-name.outputs.current_branch }}"
           PROJECT_ID: "${{ secrets.DEV_PROJECT }}"
           NAMESPACE: "${{secrets.DEV_SANDBOX_NAMESPACE}}"
-
   sandbox-ready:
     if: ${{ github.event_name == 'pull_request' }}
     needs: sandbox-deploy
@@ -186,7 +184,6 @@ jobs:
         run: ./build/ci/waitForSandbox.bash
         env:
           WAIT_DURATION: "3000"
-
   selenium-sauce:
     if: ${{ github.event_name == 'pull_request' }}
     name: "Selenium"   # This name is referenced when slacking status
@@ -250,7 +247,6 @@ jobs:
           service_account_key: ${{ secrets.GCS_BUILD_UPLOAD_KEY }}
           project_id: ${{ secrets.BUILD_UPLOAD_PROJECT }}
         if: ${{ always() }}
-
   pytest-job:
     if: ${{ github.event_name == 'pull_request' }}
     name: "PyTest"  # This name is referenced when slacking status
@@ -279,26 +275,21 @@ jobs:
           DEPLOY_ENV: ${{env.GITHUB_SHA_SHORT}}
           WEB_IMAGE_NAME: gcr.io/${{secrets.DEV_PROJECT}}/sefaria-web-dev
           WEB_IMAGE_TAG: ${{env.GITHUB_SHA_SHORT}}
-
       - name: Wait For Job To Finish
         run: ./build/ci/waitForCIJob.bash
         timeout-minutes: 30
         env: 
           # dependent on GITHUB_RUN_ID, which is implicitly passed in
           TEST_NAME: pytest
-
       - name: Get Logs From Cluster and propogate test result
         run: "kubectl logs --tail=-1 -l ci-run=$GITHUB_RUN_ID,test-name=pytest; LASTLINE=`kubectl logs --tail=1 -l ci-run=$GITHUB_RUN_ID,test-name=pytest`; STAT=${LASTLINE: -1}; exit $STAT"
-
       - name: Cleanup pyTest Pod
         run: kubectl delete jobs -l ci-run=$GITHUB_RUN_ID,test-name=pytest
         if: always()
-
   ending-notification:
     runs-on: ubuntu-latest
     if: ${{ always() && github.event_name == 'pull_request' }}
     needs:
-#      - selenium-allsuites-local
       - selenium-sauce
       - pytest-job
     steps:
@@ -315,12 +306,10 @@ jobs:
           SLACK_TEST_FAILURE_WEBHOOK_URL: ${{secrets.SLACK_TEST_FAILURE_WEBHOOK_URL}}
           GITUSER_SLACK_MAP: ${{secrets.GITUSER_SLACK_MAP}}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
   sandbox-cleanup:
     name: "Clean up CI Sandbox"
     if: ${{ always() && github.event_name == 'pull_request' }}
     needs: 
-#      - selenium-allsuites-local
       - selenium-sauce
       - pytest-job
     runs-on: ubuntu-latest
@@ -347,4 +336,3 @@ jobs:
       - name: Uninstall 
         run: helm delete sandbox-${{ steps.get-sha.outputs.sha_short }} -n ${{ secrets.DEV_SANDBOX_NAMESPACE }} --debug 
         if: steps.get-helm.outputs.count > 0
-
