@@ -178,12 +178,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-
+      - name: Set outputs
+        id: get-sha
+        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
       - name: Wait for test sandbox to become available 
         # https://gist.github.com/rgl/f90ff293d56dbb0a1e0f7e7e89a81f42
         run: ./build/ci/waitForSandbox.bash
         env:
           WAIT_DURATION: "3000"
+          GIT_COMMIT: "${{ steps.get-sha.outputs.sha_short }}"
   selenium-sauce:
     if: ${{ github.event_name == 'pull_request' }}
     name: "Selenium"   # This name is referenced when slacking status
