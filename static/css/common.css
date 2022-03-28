@@ -709,3 +709,48 @@ a:active {
 .clearFix {
   clear: both;
 }
+.static {
+  font-size: 16px;
+  background-color: #FBFBFA;
+}
+.static .inner {
+  width: 90%;
+  max-width: 660px;
+  margin: 0 auto;
+  padding: 140px 0 100px;
+}
+.static .section {
+  margin-bottom: 30px;
+}
+.static input {
+  padding: 20px 20px;
+  margin: 0;
+  cursor: pointer;
+  border-radius: 7px;
+  box-shadow: 0px 1px 3px rgba(0,0,0,0.2);
+  border: none;
+  color: #666;
+  font-size: 14px;
+  background-color: white;
+  -webkit-appearance: none;
+}
+.static label {
+  color: #000;
+  font-size: 16px;
+  height: 18px;
+  margin-bottom: 5px;
+  position: relative;
+  display: block;
+}
+.static label .sub {
+  font-size: 12px;
+  color: #999;
+  letter-spacing: normal;
+  white-space: nowrap;
+}
+.static label .int-en .sub{
+  margin-left: 4px;
+}
+.static label .int-he .sub{
+  margin-right: 4px;
+}

@@ -8,8 +8,13 @@ class VersionPreferences {
     }
     getVersionPref(sref) {
         const title = Sefaria.parseRef(sref).index
-        const corpus = Sefaria.index(title).corpus;
-        return this._versionPrefsByCorpus[corpus];
+        try{
+            const corpus = Sefaria.index(title).corpus; //ref might have been a sheet sp no index at all, index may be null for other reasons or corpus field may not be present
+            return this._versionPrefsByCorpus[corpus];  
+        }catch (e){
+            return null;
+        }
+
     }
     update(corpus, vtitle, lang) {
         const prefsClone = Sefaria.util.clone(this._versionPrefsByCorpus);

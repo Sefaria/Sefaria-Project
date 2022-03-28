@@ -16,7 +16,7 @@ const CalendarsPage = ({multiPanel, initialWidth}) => {
   const calendars = reformatCalendars();
 
   const parashaCalendars = ["Parashat Hashavua", "Haftarah (A)", "Haftarah (S)", "Haftarah"];
-  const dailyCalendars   = ["Daf Yomi", "929", "Daily Mishnah", "Daily Rambam", "Daily Rambam (3 Chapters)", "Halakhah Yomit", "Arukh HaShulchan Yomi", "Tanakh Yomi", "Zohar for Elul"];
+  const dailyCalendars   = ["Daf Yomi", "929", "Daily Mishnah", "Daily Rambam", "Daily Rambam (3 Chapters)", "Halakhah Yomit", "Arukh HaShulchan Yomi", "Tanakh Yomi", "Zohar for Elul", "Chok LeYisrael"];
   const weeklyCalendars  = ["Daf a Week"];
 
   const makeListings = list => calendars.filter(c => list.indexOf(c.title.en) != -1)
@@ -79,7 +79,7 @@ const CalendarListing = ({calendar}) => {
         {calendar.refs.map(ref => (
         <div className="calendarRef" key={ref.url}>
           <img src="/static/icons/book.svg" className="navSidebarIcon" alt="book icon" />
-          <a href={`/${ref.url}`} className="">
+          <a href={`/${ref.url || calendar.url}`} className="">
             <InterfaceText text={ref.displayValue} />
           </a>
         </div>
@@ -182,6 +182,10 @@ const calendarDescriptions = {
   "Zohar for Elul": {
     en: "A 40 day learning schedule in which participants learn the Kabbalistic work \"Tikkunei Zohar\" over the course of the days between the First of the month of Elul and Yom Kippur.",
     he: "סדר יומי ללימוד הספר \"תיקוני הזהר\". הסדר נמשך 40 יום, בתקופה שבין ראש חודש אלול ויום הכיפורים.",
+  },
+  "Chok LeYisrael": {
+    en: "A book designed for daily study. Each day’s learning consists of biblical verses together with commentary, a chapter of Mishnah, and short passages of Talmud, Zohar, and of works of Halakhah and Musar.",
+    he: 'לימוד יומי הכולל פסוקי תנ״ך ופירושם, פרק משנה, קטע מהתלמוד, קטע מהזוהר, קטע מספר הלכה וקטע מספר מוסר.',
   }
 }
 

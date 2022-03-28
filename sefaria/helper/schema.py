@@ -562,7 +562,7 @@ def change_node_structure(ja_node, section_names, address_types=None, upsize_in_
     handle_dependant_indices(index.title)
 
 
-def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True, skip_history=False):
+def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda *args: True, skip_history=False):
     """
     Changes to indexes requires updating any and all data that reference that index. This routine will take a rewriter
      function and run it on every location that references the updated index.

@@ -4,10 +4,10 @@ import classNames from 'classnames';
 import { InterruptingMessage } from './Misc';
 import Sefaria from './sefaria/sefaria';
 
-const Ad = ({adType, rerender}) => {
+const Promotions = ({adType, rerender}) => {
     const [inAppAds, setInAppAds] = useState(Sefaria._inAppAds);
-    const [matchingAd, setMatchingAd] = useState(null);
-    const [prevMatchingAdId, setPrevMatchingAdId] = useState(null)
+    const [matchingAds, setMatchingAds] = useState(null);
+    const [prevMatchingAdIds, setPrevMatchingAdIds] = useState([])
     const context = useContext(AdContext);
     useEffect(() => {
         google.charts.load("current");
@@ -15,20 +15,23 @@ const Ad = ({adType, rerender}) => {
     }, []);
     useEffect(() => {
       if(inAppAds) {
-        const matchingAds = getCurrentMatchingAds();
-        if (matchingAds.length) {
-            setMatchingAd(matchingAds[0]);
-        } else {
-            setMatchingAd(null);
-        }
+        setMatchingAds(getCurrentMatchingAds());
       }
     }, [context, inAppAds]);
     useEffect(() => {
-        if(matchingAd && matchingAd.campaignId != prevMatchingAdId) {
-            Sefaria.track.promoView(matchingAd.campaignId, matchingAd.adType)
-            setPrevMatchingAdId(matchingAd.campaignId)
+        if (!matchingAds) {return}
+        const matchingAdIds = matchingAds.map(x => x.campaignId).sort();
+        const newIds = matchingAdIds.filter(value=> !(prevMatchingAdIds.includes(value)));
+
+        if (newIds.length > 0) {
+            for (const matchingAd of matchingAds) {
+                if (newIds.includes(matchingAd.campaignId)) {
+                    Sefaria.track.promoView(matchingAd.campaignId, matchingAd.adType)
+                }
+            }
+            setPrevMatchingAdIds(newIds)
         }
-    }, [matchingAd])
+    }, [matchingAds])
 
     function getAds() {
         const url = 
@@ -114,7 +117,7 @@ const Ad = ({adType, rerender}) => {
     }
 
     // TODO: refactor once old InterruptingMessage pattern is retired
-    function createBannerHtml() {
+    function createBannerHtml(matchingAd) {
         return `<div id="bannerTextBox">
 	<span class="${context.interfaceLang === "hebrew" ? "int-he" : "int-en" }" style="font-weight: bold">
         ${matchingAd.bodyText}
@@ -129,9 +132,11 @@ const Ad = ({adType, rerender}) => {
 </div>`
     }
 
-    function styleAd() {
+    function styleAds() {
         if (adType === "banner") {
-            const bannerHtml = createBannerHtml();
+            const matchingAd = matchingAds[0] // Only allow a single banner
+            if (!matchingAd) {return null}
+            const bannerHtml = createBannerHtml(matchingAd);
             return <InterruptingMessage
             messageName={matchingAd.campaignId}
             messageHTML={bannerHtml}
@@ -139,18 +144,20 @@ const Ad = ({adType, rerender}) => {
             repetition={matchingAd.repetition}
             onClose={rerender} />
         } else {
-        const classes = classNames({
-            sidebarPromo: 1,
-            blue: matchingAd.hasBlueBackground,
-        })
-        return <div className={classes}>
-            <h3>{matchingAd.title}</h3>
-            {matchingAd.buttonLocation === "below" ?
-                <><p>{matchingAd.bodyText}</p>{getButton()}</> :
-                <>{getButton()}<p>{matchingAd.bodyText}</p></>}
-        </div>
+              const sidebarAds = matchingAds.map(ad => <SidebarAd matchingAd={ad} key={ad.campaignId} />);
+              return (sidebarAds)
         }
     }
+
+    return matchingAds ? styleAds() : null
+
+}
+
+const SidebarAd = ({matchingAd}) => {
+    const classes = classNames({
+        sidebarPromo: 1,
+        blue: matchingAd.hasBlueBackground,
+    })
 
     function getButton() {
         return <a className={matchingAd.buttonStyle} href={matchingAd.buttonUrl} onClick={() => Sefaria.track.promoClick(matchingAd.campaignId, matchingAd.adType)}>
@@ -158,10 +165,14 @@ const Ad = ({adType, rerender}) => {
         {matchingAd.buttonText}</a>
     }
 
-    return matchingAd ? styleAd() : null
-
+    return <div className={classes}>
+        <h3>{matchingAd.title}</h3>
+        {matchingAd.buttonLocation === "below" ?
+            <><p>{matchingAd.bodyText}</p>{getButton()}</> :
+            <>{getButton()}<p>{matchingAd.bodyText}</p></>}
+    </div>
 }
 
 export {
-    Ad
+    Promotions
 }

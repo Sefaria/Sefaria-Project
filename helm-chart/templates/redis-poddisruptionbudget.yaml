@@ -1,0 +1,15 @@
+{{- if eq .Values.sandbox "false" }}
+# TODO: This could be made global by matching on label `stackRole: redis` instead
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: redis-disruption-budget-{{ .Values.deployEnv }}
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+    {{- include "sefaria.labels" . | nindent 4 }}
+spec:
+  maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: redis-{{ .Values.deployEnv }}
+{{- end }}
