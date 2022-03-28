@@ -226,8 +226,9 @@ jobs:
         # if it is NOT available, it will fail with a '7' exit code
         # run: curl localhost:5432; if [ $? -eq "52" ]; then exit 0; else exit 1; fi
         run: exitCode=$(curl localhost:5432; echo $?); if [ $exitCode -eq 52 ]; then exit 0; else exit 1; fi
-      - name: Define GITHUB_SHA_SHORT
-        run: echo "GITHUB_SHA_SHORT=${GITHUB_SHA:0:6}" >> $GITHUB_ENV
+      - name: Set outputs
+        id: get-sha
+        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
       # END SETUP
       - name: Install Python Packages
         run: pip3 install -r ./requirements.txt
@@ -238,12 +239,12 @@ jobs:
           SAUCE_USERNAME: ${{ secrets.SAUCE_USERNAME }}
           SAUCE_ACCESS_KEY: ${{ secrets.SAUCE_ACCESS_KEY }}
           CI_RUN: "true"
-          CI_URL: https://sandbox-${{env.GITHUB_SHA_SHORT}}.cauldron.sefaria.org
+          CI_URL: https://sandbox-${{ steps.get-sha.outputs.sha_short }}.cauldron.sefaria.org
           SEFARIA_TEST_PASS: ${{ secrets.SEFARIA_APP_PASS }}
           SEFARIA_TEST_USER: ${{ secrets.SEFARIA_APP_USER }}
           PYTHONPATH: "."
           DJANGO_SETTINGS_MODULE: sefaria.settings
-          MONGO_DB_NAME: sefaria-${{env.GITHUB_SHA_SHORT}}
+          MONGO_DB_NAME: sefaria-${{ steps.get-sha.outputs.sha_short }}
       - name: Authenticate GHA Runner to GCP
         uses: google-github-actions/setup-gcloud@v0
         with:
@@ -266,18 +267,18 @@ jobs:
         with:
           service_account_key: ${{ secrets.DEV_CLOUDBUILD_SA_KEY }}
           project_id: ${{ secrets.DEV_PROJECT }}
-
       - name: Authenticate GHA Runner To Target Cluster
         run: gcloud container clusters get-credentials ${{secrets.DEV_GKE_CLUSTER}} --zone ${{secrets.DEV_GKE_REGION}} --project ${{secrets.DEV_GCP_PROJECT}}
-      - name: Define GITHUB_SHA_SHORT
-        run: echo "GITHUB_SHA_SHORT=${GITHUB_SHA:0:6}" >> $GITHUB_ENV
+      - name: Set outputs
+        id: get-sha
+        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
       - name: Start Job
         run: envsubst '${GITHUB_RUN_ID},${DEPLOY_ENV},${WEB_IMAGE_NAME},${WEB_IMAGE_TAG},${TIMESTAMP}' < ./build/ci/pyTestPod.yaml | kubectl apply -f -
         env:
           # dependent on GITHUB_RUN_ID, which is implicitly passed in
-          DEPLOY_ENV: ${{env.GITHUB_SHA_SHORT}}
+          DEPLOY_ENV: ${{ steps.get-sha.outputs.sha_short }}
           WEB_IMAGE_NAME: gcr.io/${{secrets.DEV_PROJECT}}/sefaria-web-dev
-          WEB_IMAGE_TAG: ${{env.GITHUB_SHA_SHORT}}
+          WEB_IMAGE_TAG: ${{ steps.get-sha.outputs.sha_short }}
       - name: Wait For Job To Finish
         run: ./build/ci/waitForCIJob.bash
         timeout-minutes: 30

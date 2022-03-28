@@ -73,22 +73,22 @@ spec:
       volumes:
         - name:  local-settings
           secret:
-            secretName: local-settings-${DEPLOY_ENV}
+            secretName: local-settings
         - name: client-secret
           secret:
-            secretName: google-client-secret-${DEPLOY_ENV}
+            secretName: google-client-secret
         - name: backup-manager-secret  # used to access google cloud
           secret:
-            secretName: backup-manager-secret-${DEPLOY_ENV}
+            secretName: backup-manager-secret
         - name: logging-secret
           secret:
-            secretName: logging-secret-${DEPLOY_ENV}
+            secretName: logging-secret
         - name: varnish-secret
           secret:
-            secretName: varnish-secret-${DEPLOY_ENV}
+            secretName: varnish-secret
         - name:  school-lookup-data
           secret:
-            secretName: school-lookup-data-${DEPLOY_ENV}
+            secretName: school-lookup-data
         - name: logdir
           emptyDir: {}   
 ...
