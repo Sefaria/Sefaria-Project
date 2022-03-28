@@ -281,7 +281,7 @@ jobs:
           WEB_IMAGE_TAG: ${{ steps.get-sha.outputs.sha_short }}
       - name: Wait For Job To Finish
         run: ./build/ci/waitForCIJob.bash
-        timeout-minutes: 30
+        timeout-minutes: 60
         env: 
           # dependent on GITHUB_RUN_ID, which is implicitly passed in
           TEST_NAME: pytest
