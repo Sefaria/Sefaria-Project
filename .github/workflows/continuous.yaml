@@ -338,5 +338,5 @@ jobs:
           NAMESPACE: ${{ secrets.DEV_SANDBOX_NAMESPACE }}
           NAME: sandbox-${{ steps.get-sha.outputs.sha_short }}
       - name: Uninstall 
-        run: helm delete sandbox-${{ steps.get-sha.outputs.sha_short }} -n ${{ secrets.DEV_SANDBOX_NAMESPACE }} --debug 
+        run: helm delete sandbox-${{ steps.get-sha.outputs.sha_short }} -n ${{ secrets.DEV_SANDBOX_NAMESPACE }} --debug --timeout 10m0s 
         if: steps.get-helm.outputs.count > 0
