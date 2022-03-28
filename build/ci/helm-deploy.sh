@@ -19,5 +19,5 @@ yq e -i '.monitor.containerImage.tag = strenv(TAG)' $1
 yq e -i '.deployEnv = strenv(NAME)' $1
 yq e -i '.localSettings.FRONT_END_URL = "https://"+strenv(NAME)+".cauldron.sefarai.org"' $1
 
-helm upgrade -i $NAME ./helm-chart --namespace $NAMESPACE -f $1 --debug
+helm upgrade -i $NAME ./helm-chart --namespace $NAMESPACE -f $1 --debug --timeout=30m0s
 
