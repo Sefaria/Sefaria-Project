@@ -9,7 +9,9 @@ from sefaria.helper.nationbuilder import get_everyone, nationbuilder_get_all, ge
 from django.contrib.auth.models import User
 
 def add_nationbuilder_id_to_mongo():
-# Add people in nationbuilder's ids
+    """
+    Adds existing nationbuilder account ids to mongo profiles collection
+    """
     added_count = 0
     no_profile_count = 0
     already_synced_count = 0
@@ -42,6 +44,9 @@ def add_nationbuilder_id_to_mongo():
     print("already synced: {}".format(already_synced_count))
 
 def add_profiles_to_nationbuilder():
+    """
+    Adds mongo profiles without corresponding mongo account to nationbuilder
+    """
     session = get_nationbuilder_connection()
     for profile in db.profiles.find({"nationbuilder_id": { "$exists": False}}):
         user_profile = UserProfile(id=profile["id"])
@@ -69,3 +74,7 @@ def add_profiles_to_nationbuilder():
                 raise Exception("Error when attempting to create nb user")
 
 
+# TODO: handle changed emails? Think this through re: crm
+
+add_nationbuilder_id_to_mongo()
+add_profiles_to_nationbuilder()
