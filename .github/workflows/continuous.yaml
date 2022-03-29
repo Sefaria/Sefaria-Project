@@ -272,12 +272,15 @@ jobs:
       - name: Set outputs
         id: get-sha
         run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+      - name: Get branch name
+        id: branch-name
+        uses: tj-actions/branch-names@v5.1
       - name: Start Job
         run: envsubst '${GITHUB_RUN_ID},${DEPLOY_ENV},${WEB_IMAGE_NAME},${WEB_IMAGE_TAG},${TIMESTAMP}' < ./build/ci/pyTestPod.yaml | kubectl apply -f -
         env:
           # dependent on GITHUB_RUN_ID, which is implicitly passed in
           DEPLOY_ENV: ${{ steps.get-sha.outputs.sha_short }}
-          WEB_IMAGE_NAME: gcr.io/${{secrets.DEV_PROJECT}}/sefaria-web-dev
+          WEB_IMAGE_NAME: gcr.io/${{secrets.DEV_PROJECT}}/sefaria-web-${{ steps.branch-name.outputs.current_branch }}
           WEB_IMAGE_TAG: ${{ steps.get-sha.outputs.sha_short }}
       - name: Wait For Job To Finish
         run: ./build/ci/waitForCIJob.bash
