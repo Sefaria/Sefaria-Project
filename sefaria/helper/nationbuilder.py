@@ -143,4 +143,15 @@ def update_user_flags(profile, flag, value):
     profile.update({flag: value})
     profile.save()
 
+def delete_from_nationbuilder_if_spam(user_profile_id, nationbuilder_id):
+    session = get_nationbuilder_connection()
+    r = session.get(update_person(nationbuilder_id))
+    try:
+        tags = filter(lambda x: x.lower() not in ["announcements_general_hebrew", "announcements_general", "announcements_edu_hebrew", "announcements_edu", "signed_up_on_sefaria"], r.json()["person"]["tags"]) # tags that aren't auto signup
+        if len(tags) == 0:
+            session.delete(update_person(nationbuilder_id))
+        else:
+            print(f"{user_profile_id} not deleted -- has tags {','.join(tags)}")
+    except Exception as e:
+        print(f"Failed to delete {user_profile_id}. Error: {e}")
 # nationbuilder_update_all_tags()
