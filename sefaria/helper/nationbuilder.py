@@ -22,6 +22,9 @@ def update_person(id):
 def get_everyone():
     return f"/api/v1/people?limit=100"
 
+def create_person():
+    return "/api/v1/people"
+
 def get_person_by_email(email):
     return f"/api/v1/people/match?email={email}"
 
