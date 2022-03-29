@@ -35,6 +35,12 @@ spec:
               value: "node-${DEPLOY_ENV}"
             - name: VARNISH_HOST
               value: "varnish-${DEPLOY_ENV}"
+          envFrom:
+            - secretRef:
+                name: local-settings-secrets 
+                optional: true
+            - configMapRef:
+                name: "local-settings-${DEPLOY_ENV}"
           ports:
             - containerPort: 80
               protocol: TCP
@@ -45,50 +51,53 @@ spec:
             limits:
               memory: "3Gi"
               cpu: "1000m"
-
           volumeMounts:
-            # https://stackoverflow.com/questions/53491603/kubernetes-volumemounts-a-file-not-a-directory
-            - mountPath: /app/sefaria/local_settings.py
-              name: local-settings
-              subPath: local_settings.py
-              readOnly: true
-            - mountPath: /varnish-secret
-              name: varnish-secret
-              readOnly: true
-            - mountPath: /school-lookup-data
-              name: school-lookup-data
-              readOnly: true
-            - mountPath: /client-secret
-              name: client-secret
-              readOnly: true
-            - mountPath: /google-cloud-secret
-              name: backup-manager-secret
-              readOnly: true
-            - mountPath: /app/logging-secret.json
-              name: logging-secret
-              subPath: logging-secret.json
-              readOnly: true
-            - mountPath: /log
-              name: logdir  
+          - mountPath: /app/sefaria/local_settings.py
+            name: local-settings
+            subPath: local_settings.py
+            readOnly: true
+          - mountPath: /varnish-secret
+            name: varnish-secret
+            readOnly: true
+          - mountPath: /school-lookup-data
+            name: school-lookup-data
+            readOnly: true
+          - mountPath: /client-secret
+            name: client-secret
+            readOnly: true
+          - mountPath: /google-cloud-secret
+            name: backup-manager-secret
+            readOnly: true
+          - mountPath: /app/logging-secret.json
+            name: logging-secret
+            subPath: logging-secret.json
+            readOnly: true
+          - name: gunicorn-config
+            mountPath: /app/gunicorn.conf.py
+            subPath: gunicorn.conf.py
+            readOnly: true
       volumes:
         - name:  local-settings
-          secret:
-            secretName: local-settings
+          configMap:
+            name: "local-settings-${DEPLOY_ENV}"
+            items:
+              - key: local_settings.py
+                path: local_settings.py
         - name: client-secret
           secret:
-            secretName: google-client-secret
+            secretName: google-client-secret 
         - name: backup-manager-secret  # used to access google cloud
           secret:
-            secretName: backup-manager-secret
+            secretName: backup-manager 
         - name: logging-secret
           secret:
-            secretName: logging-secret
+            secretName: logging-secret 
         - name: varnish-secret
           secret:
-            secretName: varnish-secret
-        - name:  school-lookup-data
+            secretName: varnish-secret-helm
+        - name: school-lookup-data
           secret:
             secretName: school-lookup-data
-        - name: logdir
-          emptyDir: {}   
-...
+        - name: gunicorn-config
+          configMap:
+            name: "gunicorn-config-${DEPLOY_ENV}"
