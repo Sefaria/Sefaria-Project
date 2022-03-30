@@ -63,6 +63,9 @@ def get_tags_for_user(profile, trendManagers, custom_field_trend_managers=[]): #
 
 
 def nationbuilder_update_all_tags():
+    """
+    Update nationbuilder tags and custom fields based on trends
+    """
     TOP_CATEGORIES = [
     "Tanakh",
     "Mishnah",
