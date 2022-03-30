@@ -5,8 +5,12 @@ import json
 
 from sefaria.model.user_profile import UserProfile
 from sefaria.system.database import db
-from sefaria.helper.nationbuilder import get_everyone, nationbuilder_get_all, get_nationbuilder_connection, update_person, create_person
+from sefaria.helper.nationbuilder import delete_from_nationbuilder_if_spam, get_everyone, nationbuilder_get_all, get_nationbuilder_connection, update_person, create_person, delete_from_nationbuilder_if_spam
 from django.contrib.auth.models import User
+
+"""
+Run this script once to update mongo profiles with nationbuilder ids and remove existing spam profiles from nationbuilder
+"""
 
 def add_nationbuilder_id_to_mongo():
     """
@@ -20,16 +24,7 @@ def add_nationbuilder_id_to_mongo():
         if (user_profile.id != None): # has user profile
             nationbuilder_id = nationbuilder_user["person"]["id"] if "person" in nationbuilder_user else nationbuilder_user["id"]
             if User.objects.get(id=user_profile.id).is_active == False: # delete spam users
-                session = get_nationbuilder_connection()
-                r = session.get(update_person(nationbuilder_id))
-                try:
-                    tags = r.json()["person"]["tags"].filter(lambda x: x.lower() not in ["announcements_general_hebrew", "announcements_general", "announcements_edu_hebrew", "announcements_edu", "signed_up_on_sefaria"]) # tags that aren't auto signup
-                    if len(tags) == 0:
-                        session.delete(update_person(nationbuilder_id))
-                    else:
-                        print(f"{user_profile.id} not deleted -- has tags {','.join(tags)}")
-                except Exception as e:
-                    print(f"Failed to delete {user_profile.id}. Error: {e}")
+                delete_from_nationbuilder_if_spam(user_profile.id, nationbuilder_id)
             elif user_profile.nationbuilder_id != nationbuilder_id: # add nb id to mongo
                 user_profile.nationbuilder_id = nationbuilder_id
                 user_profile.save()
