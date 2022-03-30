@@ -4,7 +4,6 @@ from sefaria.system.database import db
 from sefaria.helper.nationbuilder import get_by_tag, nationbuilder_get_all, update_user_flags, get_everyone, nationbuilder_update_all_tags, get_nationbuilder_connection, update_person
 from sefaria.model.user_profile import UserProfile
 from sefaria.model.trend import setAllTrends
-from django.contrib.auth.models import User
 
 # Get list of current sustainers from profiles
 sustainers = {profile["id"]: profile for profile in db.profiles.find({"is_sustainer": True})}
