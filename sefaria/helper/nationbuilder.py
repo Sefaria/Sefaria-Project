@@ -147,7 +147,7 @@ def delete_from_nationbuilder_if_spam(user_profile_id, nationbuilder_id):
     session = get_nationbuilder_connection()
     r = session.get(update_person(nationbuilder_id))
     try:
-        tags = filter(lambda x: x.lower() not in ["announcements_general_hebrew", "announcements_general", "announcements_edu_hebrew", "announcements_edu", "signed_up_on_sefaria"], r.json()["person"]["tags"]) # tags that aren't auto signup
+        tags = [x for x in r.json()["person"]["tags"] if x.lower() not in ["announcements_general_hebrew", "announcements_general", "announcements_edu_hebrew", "announcements_edu", "signed_up_on_sefaria"]]
         if len(tags) == 0:
             session.delete(update_person(nationbuilder_id))
         else:
