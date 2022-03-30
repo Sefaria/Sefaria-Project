@@ -669,7 +669,7 @@ class ScheduleManager(object):
 class ParashaScheduleManager(ScheduleManager):
     #TODO: deal with haftara
     #TODO: make more efficient
-    def __init__(self, segmentHits=1, numberOfSegments=4, dateRangeEnd=None, diaspora=True, varianceForward=14, varianceBack=7, name="ParashaLearner"):
+    def __init__(self, segmentHits=2, numberOfSegments=4, dateRangeEnd=None, diaspora=True, varianceForward=14, varianceBack=7, name="ParashaLearner"):
         ScheduleManager.__init__(self, segmentHits, numberOfSegments, dateRangeEnd, varianceForward, varianceBack, name)
         self.diaspora = diaspora
         self.daysToAdd = 6
@@ -690,12 +690,6 @@ class ParashaScheduleManager(ScheduleManager):
         for result in results:
             dateRefRanges.append(DateRefRange(result["ref"], result["date"] - self.varianceBack,  result["date"] + self.varianceBack, result["parasha"]))
         return dateRefRanges
-        # for drr in self.dateRefRanges:
-        #     print(drr.dateRange.start)
-        #     print(drr.dateRange.end)
-       
-        # print(self.overallDateRange.start)
-        # print(self.overallDateRange.end)
 
     def getRelevantUserHistories(self):
         query = [{"$match": self.overallDateRange.update_match({
