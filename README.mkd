@@ -55,7 +55,7 @@ Create [a pyenv virtualenv](https://github.com/pyenv/pyenv-virtualenv#using-pyen
 
 In your Sefaria directory, run `pyenv local [venv-name]`. This will create a `.python-version` and write the version name provided to the file (e.g. `3.7.5/envs/sefaria-venv`). This should serve to activate the virtualenv whenever you are in the Sefaria directory. 
 
-*Note: If after following the installation and configuration instructions, running `python -V` still displays the system version, you may have to manually add the shims directory to your path.*
+*Note: If after following the installation and configuration instructions, running `python -V` still displays the system version, you may have to manually add the shims directory to your path.* If that does not correct the issue, you should check your bash init file (.zshrc, .bashrc or the like) for the line `eval "$(pyenv init -)"` (not inside an if statement) and change it to `eval "$(pyenv init --path)"` and restar the shell.
 
 *Note: If you are using an IDE like PyCharm, you can (and should) configure the interpreter options on your Sefaria-Project to point to the python executable of this virtualenv (e.g. `~/.pyenv/versions/3.7.5/envs/sefaria-venv/bin/python3.7`)*
 
@@ -72,6 +72,7 @@ Install [virtualenv](http://pypi.python.org/pypi/virtualenv) then enter these co
 Now you should see `(venv)` in front of your command prompt. The second command sets your shell to use the Python virtual environment that you've just created. This is something that you have to run everytime you open a new shell and want to run the Sefaria demo. You can always tell if you're in the virtual environment by checking if `(venv)` is at the beginning of your command prompt. 
     
 #### 3) Pip: 
+If you used pyenv, Pip should be available via the pyenv version of python. 
 ###### Unix 
 If you don't already have it in your Python installation, install [pip](https://pip.pypa.io/en/stable/installing/). Then use it to install the required Python packages.
 
@@ -81,15 +82,17 @@ Use instructions [here](http://www.tylerbutler.com/2012/05/how-to-install-python
 
 *Note: this step (and **most** of the following command line instructions) must be run from the Sefaria-Project root directory*
 
+Please *temporarily* comment out the line `psycopg2==2.8.6` in `requirements.txt.` and then run
+
 	pip install -r requirements.txt
 
-If you are not using virtualenv, you may have to run it with sudo: `sudo pip install -r requirements.txt`
+If you are *not* using virtualenv, you may have to run it with sudo: `sudo pip install -r requirements.txt`
 
-*Note: If you see an error about a missing 'python.h' file, you'll need to install the Python development libraries.*
+*Note: You'll probably need to install the Python development libraries as well:*
 
 ###### On Debian systems: 
 
-    sudo apt-get install python-dev libpq-dev
+    sudo apt-get install python-dev python3-dev libpq-dev
 
 ###### On Fedora systems:
 
@@ -103,7 +106,8 @@ export LDFLAGS="-L/usr/local/opt/openssl/lib"
 export CPPFLAGS="-I/usr/local/opt/openssl/include"
 ```
 
-After installing the Python development libraries or other dependencies, run `pip install -r requirements.txt` again.
+After installing the Python development libraries or other dependencies, run `pip install -r requirements.txt` again. 
+
 
 #### 4) Install gettext
 
@@ -142,13 +146,17 @@ Make sure that the server user has write access to it by using a command such as
 
 #### 7) Get Mongo running:
 
-If you don't already have it, [install MongoDB](http://docs.mongodb.org/manual/installation/). Our current data dump requires MongoDB version 2.6 or later. After installing Mongo, run the mongo daemon with:
+If you don't already have it, [install MongoDB](https://www.mongodb.com/docs/manual/administration/install-community/). Our current data dump requires MongoDB version 4.4 or later. After installing Mongo according to the instructions, you should have a mongo service automatically running in the background. 
 
-    sudo mongod
+Otherwise run the mongo daemon with:
+
+    mongod
+(only use sudo if necessary, it may result in a locked socket file being created that may prevent mongo from running later on)
     
 or user your os service manager to have it start on startup.
 
-Note, you need to make sure the default data directory is created or `sudo mongod` will fail. See [here](https://docs.mongodb.com/manual/tutorial/manage-mongodb-processes/#start-mongod-processes) for instructions on running `sudo mongod` for the first time.
+Mongo usually sets all the correct paths fr itself to run properly nowadays, but see [here](https://www.mongodb.com/docs/manual/tutorial/manage-mongodb-processes/#start-mongod-processes) for details on setting a specific path for it to store data in, 
+
 
 #### 8) Put some texts in your database:
 
@@ -218,7 +226,7 @@ to bundle once. To watch the javascript for changes and automatically rebuild, r
     
 #### Server-side rendering with Node:
 
-Sefaria uses React.js. To render HTML server-side, we use a Node.js server. For development, the site is fully functional without server-side rendering. For deploying in a production environemnet however server side HTML is very important for bots and SEO. 
+Sefaria uses React.js. To render HTML server-side, we use a Node.js server. For development, the site is fully functional without server-side rendering. For deploying in a production environment however server side HTML is very important for bots and SEO. 
 
 ##### Install Redis
 
