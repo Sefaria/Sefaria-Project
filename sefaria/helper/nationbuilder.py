@@ -5,7 +5,7 @@ import json
 from sefaria.site.categories import TOP_CATEGORIES
 
 from sefaria.system.database import db
-from sefaria.helper.trend_manager import CategoryTrendManager, SheetReaderManager, SheetCreatorManager, CustomTraitManager
+from sefaria.helper.trend_manager import CategoryTrendManager, SheetReaderManager, SheetCreatorManager, CustomTraitManager, ParashaLearnerManager
 from sefaria import settings as sls
 
 base_url = "https://"+sls.NATIONBUILDER_SLUG+".nationbuilder.com"
@@ -84,7 +84,7 @@ def nationbuilder_update_all_tags():
     ] # why won't this import from sefaria.model.categories??
     session = get_nationbuilder_connection()
     category_trend_managers = [CategoryTrendManager(category, period=period) for category in TOP_CATEGORIES for period in ["alltime", "currently"]] 
-    trend_managers = category_trend_managers + [SheetReaderManager(), SheetCreatorManager(), SheetCreatorManager(public=True)]
+    trend_managers = category_trend_managers + [SheetReaderManager(), SheetCreatorManager(), SheetCreatorManager(public=True), ParashaLearnerManager()]
     custom_field_trend_managers = [CustomTraitManager("hebrew_ability", "HebrewAbility")]
     for profile in db.profiles.find({"nationbuilder_id": {"$exists": True}}):
         tags_to_add, tags_to_remove, custom_tags_info = get_tags_for_user(profile, trend_managers,custom_field_trend_managers)
@@ -115,7 +115,6 @@ def nationbuilder_update_person_custom_fields(session, id, person_info_list):
     req_add = session.put(update_person(id), data=json.dumps({"person": person_data}), headers=headers)
     print(req_add)
 
-# nationbuilder_update_all_tags()
 def nationbuilder_get_all(endpoint_func, args=[]):
     session = get_nationbuilder_connection()
     next_endpoint = endpoint_func(*args)
@@ -157,4 +156,3 @@ def delete_from_nationbuilder_if_spam(user_profile_id, nationbuilder_id):
             print(f"{user_profile_id} not deleted -- has tags {','.join(tags)}")
     except Exception as e:
         print(f"Failed to delete {user_profile_id}. Error: {e}")
-# nationbuilder_update_all_tags()
