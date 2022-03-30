@@ -32,6 +32,26 @@ class SheetReaderManager(TrendManager):
     def __init__(self, period="alltime"):
         TrendManager.__init__(self,"source_sheet_reader","SheetsRead",period)
 
+class ParashaLearnerManager(TrendManager):
+    def __init__(self, period="currently"):
+        TrendManager.__init__(self,"parasha_learner", "ParashaLearner", period)
+
+    def getPersonInfo(self, trends):
+        person_info = {
+            "key": self.key,
+            "name": self.name+"_"+self.period,
+            "period": self.period
+        }
+        try:
+            if trends.get(self.key, {}).get(self.period):
+                value = True
+            else:
+                value = False
+            person_info["value"] = value
+        except:
+            person_info["value"] = False
+        return person_info
+
 class SheetCreatorManager(TrendManager):
     def __init__(self, period="alltime", public=False):
         TrendManager.__init__(self,"source_sheet_creator","SheetsCreated",period)
