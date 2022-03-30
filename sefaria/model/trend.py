@@ -247,6 +247,7 @@ def setCategoryTraits():
                 "scope": "site"
             }).save()
 
+
 def setSheetTraits():
     TrendSet({"name": "SheetsCreatedPublic"}).delete()
     TrendSet({"name": "SheetsCreated"}).delete()
@@ -550,12 +551,6 @@ class TrendFactory(object):
     def _process_users(self, users, period):
         pass
 
-def setAllTrends():
-    setUserSheetTraits()
-    setSheetTraits()
-    setUserLanguageTraits()
-    setCategoryTraits()
-
 class EnglishToleranceFactory(TrendFactory):
     name = "EnglishTolerance"
     desc = "Value between 0 and 1 - 1 Being clear English appreciation, 0 being clear English intolerance"
@@ -656,15 +651,9 @@ class ScheduleManager(object):
                         "scope":        "user",
                         "uid":          user["_id"]["uid"]
                     }).save()
-                    # usersWhoAreLearningSchedule.append(user["uid"])
                     break
                 elif self.segmentHits - refsInRangeCount > dateRefRangesTotal - index:
-                    # usersWhoAreNotLearningSchedule.append(user["uid"])
                     break
-            # else:
-                # usersWhoAreNotLearningSchedule.append(user["uid"])
-        # return usersWhoAreLearningSchedule, usersWhoAreNotLearningSchedule
-
 
 class ParashaScheduleManager(ScheduleManager):
     #TODO: deal with haftara
@@ -702,3 +691,15 @@ class ParashaScheduleManager(ScheduleManager):
 
     def getUsersWhoAreLearningSchedule(self):
         ScheduleManager.getUsersWhoAreLearningSchedule(self)
+
+def setScheduleTraits():
+    scheduleManagers = [ParashaScheduleManager()]
+    for scheduleManager in scheduleManagers:
+        scheduleManager.getUsersWhoAreLearningSchedule()
+
+def setAllTrends():
+    setUserSheetTraits()
+    setSheetTraits()
+    setUserLanguageTraits()
+    setCategoryTraits()
+    setScheduleTraits()
