@@ -1,9 +1,15 @@
 import django
 django.setup()
+import sys
 from sefaria.system.database import db
 from sefaria.helper.nationbuilder import get_by_tag, nationbuilder_get_all, update_user_flags, get_everyone, nationbuilder_update_all_tags, get_nationbuilder_connection, update_person
 from sefaria.model.user_profile import UserProfile
 from sefaria.model.trend import setAllTrends
+
+"""
+Flags:
+--trends-only - Only run trend updates, don't sync with nationbuilder
+"""
 
 # Get list of current sustainers from profiles
 sustainers = {profile["id"]: profile for profile in db.profiles.find({"is_sustainer": True})}
@@ -39,7 +45,14 @@ def sync_sustainers_to_mongo():
     print("no_profile: {}".format(no_profile_count))
     print("already synced: {}".format(already_synced_count))
 
+trends_only = False
+if len(sys.argv) - 1 == 1:
+    if sys.argv[1] == "--trends-only":
+        trends_only = True
 
-sync_sustainers_to_mongo()
-setAllTrends()
-nationbuilder_update_all_tags()
+if not trends_only:
+    sync_sustainers_to_mongo()
+    setAllTrends()
+    nationbuilder_update_all_tags()
+else:
+    setAllTrends()
