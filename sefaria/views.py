@@ -883,7 +883,7 @@ def profile_spam_dashboard(request):
         profiles_list = []
 
         for user in users_to_check:
-            history_count = db.user_history.find({'uid': user['id']}).count()
+            history_count = db.user_history.find({'uid': user['id'], 'book': {'$ne': 'Sheet'}}).count()
             if history_count < 10:
                 profile = model.user_profile.UserProfile(id=user["id"])
 
