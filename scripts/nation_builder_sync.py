@@ -9,6 +9,7 @@ from sefaria.model.trend import setAllTrends
 """
 Flags:
 --trends-only - Only run trend updates, don't sync with nationbuilder
+--mongo-only -- Only update Mongo; don't update Nationbuilder
 """
 
 # Get list of current sustainers from profiles
@@ -46,9 +47,15 @@ def sync_sustainers_to_mongo():
     print("already synced: {}".format(already_synced_count))
 
 trends_only = False
-if len(sys.argv) - 1 == 1:
-    if sys.argv[1] == "--trends-only":
+mongo_only = False
+i = 1
+while(i < len(sys.argv)):
+    if sys.argv[i] == "--trends-only":
         trends_only = True
+    elif sys.argv[i] == "--mongo-only":
+        mongo_only = True
+    i+=1
+    
 
 if not trends_only:
     sync_sustainers_to_mongo()

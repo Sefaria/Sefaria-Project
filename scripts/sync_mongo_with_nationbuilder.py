@@ -2,6 +2,7 @@ import django
 django.setup()
 import time
 import json
+import sys
 
 from sefaria.model.user_profile import UserProfile
 from sefaria.system.database import db
@@ -10,9 +11,10 @@ from django.contrib.auth.models import User
 
 """
 Run this script once to update mongo profiles with nationbuilder ids and remove existing spam profiles from nationbuilder
+--mongo-only -- Only update Mongo; don't update Nationbuilder (don't remove spam profiles)
 """
 
-def add_nationbuilder_id_to_mongo():
+def add_nationbuilder_id_to_mongo(mongo_only):
     """
     Adds existing nationbuilder account ids to mongo profiles collection
     """
@@ -24,7 +26,8 @@ def add_nationbuilder_id_to_mongo():
         if (user_profile.id != None): # has user profile
             nationbuilder_id = nationbuilder_user["person"]["id"] if "person" in nationbuilder_user else nationbuilder_user["id"]
             if User.objects.get(id=user_profile.id).is_active == False: # delete spam users
-                delete_from_nationbuilder_if_spam(user_profile.id, nationbuilder_id)
+                if not mongo_only:
+                    delete_from_nationbuilder_if_spam(user_profile.id, nationbuilder_id)
             elif user_profile.nationbuilder_id != nationbuilder_id: # add nb id to mongo
                 user_profile.nationbuilder_id = nationbuilder_id
                 user_profile.save()
@@ -70,6 +73,12 @@ def add_profiles_to_nationbuilder():
 
 
 # TODO: handle changed emails? Think this through re: crm
-
-add_nationbuilder_id_to_mongo()
+mongo_only = False
+i = 1
+while(i < len(sys.argv)):
+    if sys.argv[i] == "--mongo-only":
+        mongo_only = True
+    i+=1
+    
+add_nationbuilder_id_to_mongo(mongo_only)
 add_profiles_to_nationbuilder()
