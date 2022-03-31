@@ -79,6 +79,10 @@ while(i < len(sys.argv)):
     if sys.argv[i] == "--mongo-only":
         mongo_only = True
     i+=1
+
+# TODO comment out before mergin to master
+if mongo_only:
+    print("MONGO ONLY")
     
 add_nationbuilder_id_to_mongo(mongo_only)
 if not mongo_only:
