@@ -81,4 +81,5 @@ while(i < len(sys.argv)):
     i+=1
     
 add_nationbuilder_id_to_mongo(mongo_only)
-add_profiles_to_nationbuilder()
+if not mongo_only:
+    add_profiles_to_nationbuilder()
