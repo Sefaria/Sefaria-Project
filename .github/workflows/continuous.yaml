@@ -245,6 +245,7 @@ jobs:
           PYTHONPATH: "."
           DJANGO_SETTINGS_MODULE: sefaria.settings
           MONGO_DB_NAME: sefaria-${{ steps.get-sha.outputs.sha_short }}
+          GITHUB_SHA_SORT: ${{ steps.get-sha.outputs.sha_short }}
       - name: Authenticate GHA Runner to GCP
         uses: google-github-actions/setup-gcloud@v0
         with:
