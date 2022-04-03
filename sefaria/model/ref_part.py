@@ -1267,6 +1267,12 @@ class RefResolver:
 
         resolved_refs = list(filter(filter_context_matches, resolved_refs))
         if len(resolved_refs) == 0: return resolved_refs
+
+        # if any context-free match uses all input parts, dont need to try context
+        context_free_matches = list(filter(lambda m: m.context_ref is None and set(m.get_resolved_parts()) == set(m.raw_ref.parts_to_match), resolved_refs))
+        if len(context_free_matches) > 0:
+            resolved_refs = context_free_matches
+
         resolved_refs.sort(key=lambda x: x.order_key, reverse=True)
         top_order_key = resolved_refs[0].order_key
         max_resolved_refs = []

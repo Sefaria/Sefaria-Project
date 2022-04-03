@@ -4,7 +4,7 @@ from typing import List, Union
 from collections import defaultdict
 
 
-def make_html(bulk_resolved_list: List[List[List[Union[ResolvedRef, AmbiguousResolvedRawRef]]]], output_filename, lang='he'):
+def make_html(bulk_resolved_list: List[List[List[Union[ResolvedRef, AmbiguousResolvedRawRef]]]], texts: List[List[str]], output_filename, lang='he'):
     from sefaria.utils.util import wrap_chars_with_overlaps
 
     def get_resolved_metadata(resolved: ResolvedRef, i: int) -> dict:
@@ -143,14 +143,9 @@ def make_html(bulk_resolved_list: List[List[List[Union[ResolvedRef, AmbiguousRes
       <body>
     """
     iwrapped = 0
-    for bulk_resolved in bulk_resolved_list:
-        for temp_resolved_list in bulk_resolved:
+    for bulk_resolved, inner_texts in zip(bulk_resolved_list, texts):
+        for temp_resolved_list, input_text in zip(bulk_resolved, inner_texts):
             chars_to_wrap = []
-            if len(temp_resolved_list) == 0: continue
-
-            input_text = temp_resolved_list[0].raw_ref.span.doc.text
-            context_ref = temp_resolved_list[0].context_ref
-
             for resolved in temp_resolved_list:
                 rlist = resolved.resolved_raw_refs if resolved.is_ambiguous else [resolved]
                 start_char, end_char = rlist[0].raw_ref.char_indices
@@ -164,8 +159,6 @@ def make_html(bulk_resolved_list: List[List[List[Union[ResolvedRef, AmbiguousRes
                     iwrapped += 1
                 chars_to_wrap += [(start_char, end_char, metadata)]
             wrapped_text = wrap_chars_with_overlaps(input_text, chars_to_wrap, get_wrapped_text)
-            if context_ref is not None:
-                html += f'<p class="ref">{context_ref.normal()}</p>'
             html += f"""
             <p dir="{'rtl' if lang == 'he' else 'ltr'}" class="doc">{wrapped_text}</p>
             """

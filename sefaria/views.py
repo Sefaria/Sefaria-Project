@@ -286,7 +286,7 @@ def wrap_refs(request):
     resolved = resolver.bulk_resolve_refs(lang, [context_ref], [post['text']], with_failures=True)
 
     # currently just dumps result to HTML file
-    make_html([resolved_title, resolved], f'data/linker_results/linker_result.html')
+    make_html([resolved_title, resolved], [[post['title']], [post['text']]], f'data/linker_results/linker_result.html')
     return jsonResponse({"status": "all cool"})
 
 
