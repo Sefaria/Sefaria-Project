@@ -145,6 +145,7 @@ crrd = create_raw_ref_data
     [crrd(None, 'he', 'שם', [0], [RPT.IBID], ['Genesis 1:1']), ('Genesis 1:1',)],
     [crrd(None, 'he', 'פסוקים מ-מה', [slice(0, 2), 2, 3], [RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED], ['Deuteronomy 14']), ("Deuteronomy 14:40-45",)],
     [crrd(None, 'he', 'יג, א-ב', [0, 2, 3, 4], [RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED], ['Deuteronomy 1:20']), ("Deuteronomy 13:1-2",)],
+    [crrd(None, 'he', 'ברכות דף ב', [0, slice(1, 3)], [RPT.NAMED, RPT.NUMBERED], ['Rashi on Berakhot 3a']), ('Berakhot 2',)],  # dont use context when not needed
 
     # Relative (e.g. Lekaman)
     [crrd("Gilyon HaShas on Berakhot 2a:2", 'he', '''תוס' לקמן ד ע"ב ד"ה דאר"י''', [slice(0, 2), 2, slice(3, 7), slice(7, 13)], [RPT.NAMED, RPT.RELATIVE, RPT.NUMBERED, RPT.DH]), ("Tosafot on Berakhot 4b:6:1",)],  # likaman + abbrev in DH
@@ -181,6 +182,7 @@ crrd = create_raw_ref_data
     [crrd(None, 'he', 'הרמב"ם תרומות פ"א ה"ח', [slice(0, 3), 3, slice(4, 7), slice(7, 10)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Mishneh Torah, Heave Offerings 1:8",)],
     [crrd(None, 'he', 'בירושלמי שביעית פ"ו ה"א', [0, 1, slice(2, 5), slice(5, 8)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Jerusalem Talmud Sheviit 6:1",)],
     [crrd(None, 'he', 'בגמרא במסכת בסנהדרין צז:', [slice(0, 3), slice(3, 5)], [RPT.NAMED, RPT.NUMBERED]), ("Sanhedrin 97b",)],  # one big ref part that actually matches two separate terms + each part has prefix
+    # [crrd(None, 'he', 'בבראשית רבה בראשית ט', [])]
 ])
 def test_resolve_raw_ref(resolver_data, expected_trefs):
     ref_resolver = library.get_ref_resolver()

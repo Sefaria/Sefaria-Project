@@ -25,6 +25,7 @@ LABEL_TO_REF_PART_TYPE_ATTR = {
     "סימן-טווח": "RANGE_SYMBOL",
     "לקמן-להלן": "RELATIVE",
     "שם": "IBID",
+    "לא-רציף": "NON_CTS",
     # EN
     "title": 'NAMED',
     "number": "NUMBERED",
@@ -483,7 +484,7 @@ class ResolvedRef:
                     refined_ref = refined_ref.to(to_ref)
                 refined_refs += [refined_ref]
                 addr_classes_used += [addr_class]
-            except (InputError, AssertionError):
+            except (InputError, AssertionError, AttributeError):
                 continue
         return [self.clone(resolved_parts=refined_parts, node=node, ref=refined_ref) for refined_ref in refined_refs]
 

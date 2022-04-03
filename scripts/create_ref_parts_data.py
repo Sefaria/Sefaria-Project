@@ -190,6 +190,9 @@ class RefPartModifier:
                     "term_slugs": [gemara.slug, tractate.slug, index_term.slug],
                 },
                 {
+                    "term_slugs": [tractate.slug, index_term.slug],
+                },
+                {
                     "term_slugs": [index_term.slug],
                 }
             ]
@@ -329,7 +332,7 @@ class RefPartModifier:
                     }
                 ]
                 if cat == "Mishnah":
-                    index.nodes.match_templates += [{"term_slugs": [generic_term.slug]}]
+                    index.nodes.match_templates += [{"term_slugs": [generic_term.slug]}, {"term_slugs": ["tractate", generic_term.slug]}]
                 if fast:
                     self.fast_index_save(index)
                 else:
