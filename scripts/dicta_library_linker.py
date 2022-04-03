@@ -18,7 +18,7 @@ def run_on_page(path, tref):
 
     ref_resolver = library.get_ref_resolver()
     resolved = ref_resolver.bulk_resolve_refs("he", [None], [text])
-    make_html([resolved], [[text]], f"../data/linker_results/{tref}.html")
+    make_html([resolved], [[text]], f"../data/private/linker_results/{tref}.html")
 
 
 if __name__ == '__main__':
