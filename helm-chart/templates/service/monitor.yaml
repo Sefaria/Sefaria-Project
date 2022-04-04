@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: monitor-{{ .Values.deployEnv }}-{{ .Release.Revision }}
+  labels:
+    app: monitor-{{ .Values.deployEnv }}
+    deployEnv: "{{ .Values.deployEnv }}"
+    stackRole: monitor
+spec:
+  ports:
+  - port: 80
+  selector:
+    app: monitor-{{ .Values.deployEnv }}
+    releaseRevision: "{{ .Release.Revision }}"

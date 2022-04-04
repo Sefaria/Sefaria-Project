@@ -25,7 +25,7 @@ import {
   CookiesNotification,
   CommunityPagePreviewControls
 } from './Misc';
-import { Ad } from './Ad';
+import { Promotions } from './Promotions';
 import Component from 'react-class';
 import BeitMidrash, {BeitMidrashClosed} from './BeitMidrash';
 import  { io }  from 'socket.io-client';
@@ -1057,13 +1057,13 @@ class ReaderApp extends Component {
       this.openAllTopics(path.slice(12));
 
     } else if (path.match(/^\/topics\/[^\/]+/)) {
-      this.openTopic(path.slice(8));
+      this.openTopic(path.slice(8), params.get("tab"));
 
     } else if (path.match(/^\/profile\/.+/)) {
       this.openProfile(path.slice(9), params.get("tab"));
 
     } else if (path.match(/^\/collections\/.+/) && !path.endsWith("/settings") && !path.endsWith("/new")) {
-      this.openCollection(path.slice(13));
+      this.openCollection(path.slice(13), params.get("tag"));
 
     } else if (Sefaria.isRef(path.slice(1))) {
       const currVersions = {en: params.get("ven"), he: params.get("vhe")};
@@ -1225,7 +1225,7 @@ class ReaderApp extends Component {
     let panelLang;
     if (versionName && versionLanguage) {
       panel.currVersions[versionLanguage] = versionName;
-      if ((versionLanguage === "he" && panel.settings.language === 'english') ||
+      if ((!!panel.currVersions["he"] && !!panel.currVersions["en"]) || (versionLanguage === "he" && panel.settings.language === 'english') ||
           (versionLanguage === "en" && panel.settings.language === 'hebrew')) { // if lang of version isn't visible, display it
         panelLang = "bilingual";
       } else if (versionLanguage === "he") {
@@ -1599,9 +1599,12 @@ class ReaderApp extends Component {
     state = this.makePanelState(state);
     this.setState({panels: [state], headerMode: false});
   }
-  openTopic(slug) {
+  openTopic(slug, topicsTab) {
+    if (!topicsTab) {
+      topicsTab = "sources";
+    }
     Sefaria.getTopic(slug, {annotate_time_period: true}).then(topic => {
-      this.setSinglePanelState({ menuOpen: "topics", navigationTopic: slug, topicTitle: topic.primaryTitle });
+      this.setSinglePanelState({ menuOpen: "topics", navigationTopic: slug, topicTitle: topic.primaryTitle, topicsTab });
     });
   }
   openTopicCategory(slug) {
@@ -1621,8 +1624,8 @@ class ReaderApp extends Component {
       this.setSinglePanelState({ menuOpen: "profile", profile, profileTab: tab});
     });
   }
-  openCollection(slug) {
-    this.setSinglePanelState({menuOpen: "collection",  collectionSlug: slug});
+  openCollection(slug, tag) {
+    this.setSinglePanelState({menuOpen: "collection",  collectionSlug: slug, collectionTag: tag});
   }
   toggleMobileNavMenu() {
     this.setState({mobileNavMenuOpen: !this.state.mobileNavMenuOpen});
@@ -1978,7 +1981,7 @@ class ReaderApp extends Component {
           messageHTML={Sefaria.interruptingMessage.html}
           style={Sefaria.interruptingMessage.style}
           repetition={Sefaria.interruptingMessage.repetition}
-          onClose={this.rerender} />) : <Ad rerender={this.rerender} adType="banner"/>;
+          onClose={this.rerender} />) : <Promotions rerender={this.rerender} adType="banner"/>;
     const sefariaModal = (
       <SignUpModal onClose={this.toggleSignUpModal} show={this.state.showSignUpModal} />
     );

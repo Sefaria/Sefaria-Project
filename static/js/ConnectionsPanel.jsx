@@ -507,7 +507,7 @@ class ConnectionsPanel extends Component {
             </div>
           </div>
         </div>
-        <p>{Sefaria._("Share this link with your chavruta to start a video call with this text")}</p>
+        <p>{Sefaria._("Share this link to invite people into your private beit midrash - where you can chat, video call, and follow each other's study paths.")}</p>
         <p>
           <input
             id="chavrutaURL"
@@ -518,7 +518,7 @@ class ConnectionsPanel extends Component {
         </p>
 
         <p>
-          <a className="button fillWidth startChavrutaButton" href={"//" + chevrutaURL}><img src="/static/img/video.svg" />{Sefaria._("Start Call")}</a>
+          <a className="button fillWidth startChavrutaButton" href={"//" + chevrutaURL}><img src="/static/img/video.svg" />{Sefaria._("Open Your Beit Midrash")}</a>
         </p>
       </div>);
 
@@ -1821,8 +1821,21 @@ function ManuscriptImage(props) {
           </span>
           : ''
       }
+      {
+        manuscript.manuscript['license']
+          ? <div className="manuscriptLicense">
+              <InterfaceText>License</InterfaceText>
+              <InterfaceText>:</InterfaceText>
+              <a className="manuscriptLicenseLink" href={Sefaria.getLicenseMap()[manuscript.manuscript['license']]} target="_blank">
+                {Sefaria._(manuscript.manuscript['license'])}
+              </a>
+          </div>
+          : ''
+      }
       <InterfaceText text={{ en: 'Source: ', he: 'מקור: ' }} />
-      <a href={manuscript.manuscript['source']} target="_blank">{manuscript.manuscript['source'].replace("https://", "")}</a>
+      <a className="versionDetailsLink" href={manuscript.manuscript['source']} target="_blank">
+        { Sefaria.util.parseUrl(manuscript.manuscript['source']).host.replace("www.", "") }
+      </a>
     </div>
 
 

@@ -5,13 +5,16 @@ trend.py
 """
 
 import time
-from datetime import datetime
+from datetime import datetime, date, timedelta
+
+from py import process
 
 from . import abstract as abst
 from . import user_profile
 from . import text
 
 from sefaria.system.database import db
+from sefaria.model import Ref
 
 import structlog
 logger = structlog.get_logger(__name__)
@@ -48,6 +51,18 @@ def get_session_traits(request, uid=None):
 
 
 class DateRange(object):
+    new_years_dict = {
+        2020: datetime(2020, 9, 18),
+        2021: datetime(2021, 9, 6),
+        2022: datetime(2022, 9, 25),
+        2023: datetime(2023, 9, 15),
+        2024: datetime(2024, 10, 2),
+        2025: datetime(2025, 9, 22),
+        2026: datetime(2026, 9, 11),
+        2027: datetime(2027, 10, 1),
+        2028: datetime(2028, 9, 20)
+    }
+
     def __init__(self, key, start=None, end=None):
         """
         :param start: datetime or None, meaning open ended
@@ -62,12 +77,37 @@ class DateRange(object):
         return cls("alltime", None, None)
 
     @classmethod
-    def this_hebrew_year(cls):
-        #todo: improve me!
-        return cls("this_hebrew_year", datetime(2019, 9, 30), datetime(2020, 9, 18))
+    def currently(cls):
+        today = datetime.today()
+        year_in_days = timedelta(365)
+        return cls("currently", today - year_in_days, today)
 
-        # last year
-        #return cls("this_hebrew_year", datetime(2018, 9, 10), datetime(2019, 9, 29))
+    @classmethod
+    def this_hebrew_year(cls):
+        today = date.today()                     
+        this_gregorian_year_rh = cls.new_years_dict[today.year]
+        try:
+            if (this_gregorian_year_rh.date() > today):
+                return cls("this_hebrew_year", cls.new_years_dict[today.year-1], this_gregorian_year_rh)
+            else:
+                return cls("this_hebrew_year", this_gregorian_year_rh, cls.new_years_dict[today.year+1])
+        except:
+            latest_year = max(cls.new_years_dict.get.keys())
+            return cls("this_hebrew_year", cls.new_years_dict[latest_year-1], latest_year)
+
+    @classmethod
+    def previous_hebrew_year(cls):
+        #todo: add try catch
+        today = date.today()
+        this_gregorian_year_rh = cls.new_years_dict[today.year]
+        try:
+            if (this_gregorian_year_rh.date() > today):
+                return cls("previous_hebrew_year", cls.new_years_dict[today.year-2], cls.new_years_dict[today.year-1])
+            else:
+                return cls("previous_hebrew_year", cls.new_years_dict[today.year-1], this_gregorian_year_rh)
+        except:
+            latest_year = max(cls.new_years_dict.get.keys())
+            return cls("this_hebrew_year", cls.new_years_dict[latest_year-2], cls.new_years_dict[latest_year-2])
 
     def needs_clause(self):
         return self.start or self.end
@@ -108,7 +148,7 @@ class DateRange(object):
                 and (self.end is None or dt <= self.end))
 
 
-active_dateranges = [DateRange.alltime(), DateRange.this_hebrew_year()]
+active_dateranges = [DateRange.alltime(), DateRange.currently()]
 
 
 class Trend(abst.AbstractMongoRecord):
@@ -153,7 +193,6 @@ class Trend(abst.AbstractMongoRecord):
 class TrendSet(abst.AbstractMongoSet):
     recordClass = Trend
 
-
 def setUserSheetTraits():
     TrendSet({"name": "SheetsRead"}).delete()
 
@@ -169,7 +208,6 @@ def setUserSheetTraits():
                 "scope":        "user",
                 "uid":          uid
             }).save()
-
 
 def setCategoryTraits():
     from sefaria.model.category import TOP_CATEGORIES
@@ -207,6 +245,35 @@ def setCategoryTraits():
                 "timestamp": datetime.utcnow(),
                 "period": daterange.key,
                 "scope": "site"
+            }).save()
+
+
+def setSheetTraits():
+    TrendSet({"name": "SheetsCreatedPublic"}).delete()
+    TrendSet({"name": "SheetsCreated"}).delete()
+
+    for daterange in active_dateranges:
+        all_users = getAllUsersSheetCreation(daterange)
+        all_users_published = getAllUsersSheetCreation(daterange, publishedOnly=True)
+        for uid, data in all_users.items():
+            Trend({
+                "name":         "SheetsCreated",
+                "value":        int(data["cnt"]),
+                "datatype":     "int",
+                "timestamp":    datetime.utcnow(),
+                "period":       daterange.key,
+                "scope":        "user",
+                "uid":          uid
+            }).save()
+        for uid, data in all_users_published.items():
+            Trend({
+                "name":         "SheetsCreatedPublic",
+                "value":        int(data["cnt"]),
+                "datatype":     "int",
+                "timestamp":    datetime.utcnow(),
+                "period":       daterange.key,
+                "scope":        "user",
+                "uid":          uid
             }).save()
 
 
@@ -333,6 +400,17 @@ def getAllUsersCategories(daterange):
     results = db.user_history.aggregate(pipeline)
     return {d["_id"]: d for d in results}
 
+def getAllUsersSheetCreation(daterange, publishedOnly=False):
+    pipeline = [
+        {"$match": daterange.update_match({
+            "status": "public"
+        }  if publishedOnly else {}, field="dateModified")}, # is this correct
+        {"$group": {
+            "_id": "$owner",
+            "cnt": {"$sum": 1}}}     # Sheet records never have num_times_read greater than 1.
+    ]
+    results = db.sheets.aggregate(pipeline)
+    return {d["_id"]: d for d in results}
 
 def site_stats_data():
     from sefaria.model.category import TOP_CATEGORIES
@@ -435,7 +513,6 @@ def user_stats_data(uid):
 
     return user_stats_dict
 
-
 # vv Needs thought / refactor vv
 class TrendFactory(object):
     """
@@ -450,7 +527,7 @@ class TrendFactory(object):
     for_user = False   # bool
     for_group = False  # bool
 
-
+    
     # to consider: Is a well defined period the way to go with these?
     def process_user(self, user_id, period):
         """
@@ -474,7 +551,6 @@ class TrendFactory(object):
     def _process_users(self, users, period):
         pass
 
-
 class EnglishToleranceFactory(TrendFactory):
     name = "EnglishTolerance"
     desc = "Value between 0 and 1 - 1 Being clear English appreciation, 0 being clear English intolerance"
@@ -482,10 +558,148 @@ class EnglishToleranceFactory(TrendFactory):
     for_user = True
     for_group = False
 
-
 class HebrewAbilityFactory(TrendFactory):
     name = "HebrewAbility"
     desc = "Value between 0 and 1 - 1 Being clear Hebrew ability, 0 being clear inability"
     datatype = "float"   # int, float, str, bool, dict
     for_user = True
     for_group = False
+
+class DateRefRange(object):
+    def __init__(self, refRangeString, start, end, name):
+        """
+        hosts ref range and acceptable date parameters to help with determining whether a date/ref combination meets
+        criteria for following a schedule
+        :param start: datetime
+        :param end: datetime
+        """
+        self.dateRange = DateRange(name, start, end)
+        self.ref = Ref(refRangeString)
+
+    def refIsInRange(self, ref, timestamp):
+        """
+        returns whether the ref criteria is met is filled and whether to continue checking refs against dateRefRange (bucket)
+        """
+        processedRef = Ref(ref)
+        if self.dateRange.start > timestamp:
+            return False, True
+        elif self.dateRange.end < timestamp:
+            return False, False
+        elif processedRef.span_size()>=1 and processedRef.overlaps(self.ref): # does this need to be more precise?
+                return True, True
+        else:
+            return False, False # in date range, not in ref range
+
+        # if Ref(ref) in self.ref.all_segment_refs() and self.dateRange.start <= timestamp and self.dateRange.end >= timestamp:
+        #     return True
+        # else:
+        #     return False
+
+class ScheduleManager(object):
+    def __init__(self, segmentHits, numberOfSegments, dateRangeEnd, varianceForward, varianceBack, name):
+        """
+        :param segmentHits: number of segment hits in the correct range that need to be met for user to be a schedule learner
+        :param numberOfSegments: number of segments to check
+        :param dateRangeEnd: date to work backwards from
+        :param varianceForward: number of days after date we consider them as still learning the schedule item
+        :param varianceBack: number of days before date we consider them as still learning the schedule item
+        """
+        self.name = name
+        self.segmentHits = segmentHits
+        if dateRangeEnd == None:
+            self.dateRangeEnd = datetime.today()
+        else:
+            self.dateRangeEnd = dateRangeEnd
+        self.numberOfSegments = numberOfSegments
+        self.varianceForward = timedelta(varianceForward)
+        self.varianceBack = timedelta(varianceBack)
+        pass
+
+    def createDateRefRanges(self):
+        """
+        retrieves necessary dateRefRanges for particular schedule to meet criteria
+        """
+        pass
+
+    def getRelevantUserHistories(self):
+        pass
+
+    def getUsersWhoAreLearningSchedule(self):
+        dateRefRangesTotal = len(self.dateRefRanges)
+        # usersWhoAreLearningSchedule = []
+        # usersWhoAreNotLearningSchedule = []
+        for user in self.getRelevantUserHistories():
+            index = 0
+            refsInRangeCount = 0
+            for history in user["history"]:
+                keepCheckingRefAgainstBuckets = True
+                while(index < dateRefRangesTotal and keepCheckingRefAgainstBuckets == True):
+                    inRange, keepCheckingRefAgainstBuckets = self.dateRefRanges[index].refIsInRange(history["ref"], history["datetime"])
+                    if inRange:
+                        refsInRangeCount += 1
+                        if refsInRangeCount >= self.segmentHits:
+                            break
+                    if keepCheckingRefAgainstBuckets:
+                        index += 1
+                if refsInRangeCount >= self.segmentHits:
+                    Trend({
+                        "name":         self.name,
+                        "value":        True,
+                        "datatype":     "bool",
+                        "timestamp":    datetime.utcnow(),
+                        "period":       "currently",
+                        "scope":        "user",
+                        "uid":          user["_id"]["uid"]
+                    }).save()
+                    break
+                elif self.segmentHits - refsInRangeCount > dateRefRangesTotal - index:
+                    break
+
+class ParashaScheduleManager(ScheduleManager):
+    #TODO: deal with haftara
+    #TODO: make more efficient
+    def __init__(self, segmentHits=2, numberOfSegments=4, dateRangeEnd=None, diaspora=True, varianceForward=14, varianceBack=7, name="ParashaLearner"):
+        ScheduleManager.__init__(self, segmentHits, numberOfSegments, dateRangeEnd, varianceForward, varianceBack, name)
+        self.diaspora = diaspora
+        self.daysToAdd = 6
+        self.dateRefRanges = self.createDateRefRanges()
+        self.overallDateRange = DateRange("overall", self.dateRefRanges[-1].dateRange.start, self.dateRefRanges[0].dateRange.end)
+
+    def createDateRefRanges(self):
+        """
+        Creates dateRefRanges for ParashaScheduleManager in reverse chronological order
+        """
+        query = {}
+        query["date"] = {
+            "$lte": self.dateRangeEnd + timedelta(days=self.daysToAdd)
+        }
+        query["diaspora"]=self.diaspora
+        results = db.parshiot.find(query, limit=self.numberOfSegments).sort("date", -1)
+        dateRefRanges = []
+        for result in results:
+            dateRefRanges.append(DateRefRange(result["ref"], result["date"] - self.varianceBack,  result["date"] + self.varianceBack, result["parasha"]))
+        return dateRefRanges
+
+    def getRelevantUserHistories(self):
+        query = [{"$match": self.overallDateRange.update_match({
+            "is_sheet": False,
+            "book": self.dateRefRanges[0].ref.book
+        })}, {"$sort": {"datetime": 1}}, {"$group": {"_id": {"uid": "$uid"}, 
+        "history": {"$push": {"ref": "$ref", "datetime": "$datetime", "uid": "$uid"}}}}]
+        print(query)
+        return db.user_history.aggregate(query)
+
+    def getUsersWhoAreLearningSchedule(self):
+        ScheduleManager.getUsersWhoAreLearningSchedule(self)
+
+def setScheduleTraits():
+    scheduleManagers = [ParashaScheduleManager()]
+    for scheduleManager in scheduleManagers:
+        scheduleManager.getUsersWhoAreLearningSchedule()
+
+def setAllTrends():
+    setUserSheetTraits()
+    setSheetTraits()
+    setUserLanguageTraits()
+    setCategoryTraits()
+    setScheduleTraits()

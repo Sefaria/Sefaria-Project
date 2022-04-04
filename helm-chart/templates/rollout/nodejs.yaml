@@ -1,0 +1,64 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: {{ .Values.deployEnv }}-node
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+  annotations:
+    rollout.argoproj.io/revision: "{{ .Release.Revision }}"
+spec:
+  strategy:
+    blueGreen:
+      activeService: node-{{ .Values.deployEnv }}
+      autoPromotionEnabled: true
+      prePromotionAnalysis:
+        templates:
+          - templateName: rollout-ready-{{ .Values.deployEnv }}
+        args:
+          - name: healthcheck-hostname
+            value: "nginx-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+  selector:
+    matchLabels:
+      app: node-{{ .Values.deployEnv }}
+      # releaseRevision: "{{ .Release.Revision }}" # Variable pod selectors breaks Argo. Check filed issue
+  revisionHistoryLimit: 0
+  replicas: {{ .Values.nodejs.replicaCount }}
+  template:
+    metadata:
+      labels:
+        app: node-{{ .Values.deployEnv }}
+        tier: application-{{ .Values.deployEnv }}
+        deployEnv: "{{ .Values.deployEnv }}"
+        stackRole: nodejs
+        releaseRevision: "{{ .Release.Revision }}"
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - mongo
+            topologyKey: kubernetes.io.hostname
+        nodeAffinity:
+          {{- include "sefaria.nodeAffinities" . | nindent 10 }}
+      containers:
+      - name: node
+        image: "{{ .Values.nodejs.containerImage.imageRegistry }}:{{ .Values.nodejs.containerImage.tag }}"
+        imagePullPolicy: Always
+        env:
+          - name: randomstringtoforceredeployments
+            value: {{ randAlphaNum 8 }}
+          - name: DJANGO_HOST
+            value: web-{{ .Values.deployEnv }}-{{ .Release.Revision }}
+          - name: DJANGO_PORT
+            value: "80"
+          - name: DEBUG
+            value: {{ if eq .Values.deployEnv "prod" }}"false"{{ else }}"true"{{ end }}
+          - name: REDIS_HOST
+            value: redis-{{ .Values.deployEnv }}
+        ports:
+        - containerPort: 3000
+        resources: {{ toYaml .Values.nodejs.resources | nindent 10 }}

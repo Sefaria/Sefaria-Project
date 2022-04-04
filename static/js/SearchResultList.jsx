@@ -11,6 +11,7 @@ import SearchTextResult from './SearchTextResult';
 import SearchSheetResult from './SearchSheetResult';
 import SearchFilters from './SearchFilters';
 import SearchState from './sefaria/searchState';
+import Strings from "./sefaria/strings.js"
 import {
   DropdownModal,
   DropdownButton,
@@ -19,6 +20,28 @@ import {
   LoadingMessage,
 } from './Misc';
 
+const SearchTopic = (props) => {
+    const sources = <a href={props.topic["url"]+"?tab=sources"}><InterfaceText>Sources</InterfaceText></a>;
+    const sheets = <a href={props.topic["url"]+"?tab=sheets"}><InterfaceText>Sheets</InterfaceText></a>;
+    return <div className="searchTopic">
+            <div className="topicTitle">
+              <h1>
+                  <a href={props.topic["url"]}><InterfaceText text={{en:props.topic["title"], he:props.topic["heTitle"]}}/></a>
+              </h1>
+            </div>
+            <div className="topicCategory sectionTitleText">
+                <InterfaceText text={{en:props.topic["topicCat"], he:props.topic["heTopicCat"]}}/>
+            </div>
+            {"enDesc" in props.topic ?
+                <div className="topicDescSearchResult systemText">
+                   <InterfaceText text={{en:props.topic["enDesc"], he:props.topic["heDesc"]}}/>
+                </div> : null}
+            {props.topic.numSources > 0 || props.topic.numSheets > 0 ?
+                <div className="topicSourcesSheets systemText">
+                    <InterfaceText>{props.topic["numSources"]}</InterfaceText> {sources} ∙ <InterfaceText>{props.topic["numSheets"]}</InterfaceText> {sheets}
+                </div> : null}
+            </div>
+}
 
 class SearchResultList extends Component {
     constructor(props) {
@@ -33,6 +56,7 @@ class SearchResultList extends Component {
         pagesLoaded:    this._typeObjDefault(0),
         hits:           this._typeObjDefault([]),
         error:          false,
+        topics:         []
       }
 
       // Load search results from cache so they are available for immedate render
@@ -87,6 +111,80 @@ class SearchResultList extends Component {
         });
       }
     }
+    async addRefTopic(topic) {
+        const book = await Sefaria.getIndexDetails(topic.key);
+        return {
+            enDesc: book.enDesc,
+            heDesc: book.heDesc,
+            title: book.title,
+            heTitle: book.heTitle,
+            topicCat: book.categories[0],
+            heTopicCat: Sefaria.toc.filter(cat => cat.category === book.categories[0])[0].heCategory,
+            url: "/" + book.title
+        }
+    }
+    addTOCCategoryTopic(topic) {
+        const topicKeyArr = topic.key.slice();
+        const lastCat = topicKeyArr.pop(topicKeyArr - 1); //go up one level in order to get the bottom level's description
+        const relevantCats = topicKeyArr.length === 0 ? Sefaria.toc : Sefaria.tocItemsByCategories(topicKeyArr);
+        const relevantSubCat = relevantCats.filter(cat => "category" in cat && cat.category === lastCat)[0];
+        return {
+            url: "/texts/" + topic.key.join("/"),
+            topicCat: "Texts",
+            heTopicCat: Sefaria.hebrewTerm("Texts"),
+            enDesc: relevantSubCat.enDesc,
+            heDesc: relevantSubCat.heDesc,
+            title: relevantSubCat.category,
+            heTitle: relevantSubCat.heCategory
+        }
+    }
+    async addGeneralTopic(topic) {
+        const d = await Sefaria.getTopic(topic.key, {annotate_time_period: true});
+        let searchTopic = {
+            title: d.primaryTitle["en"],
+            heTitle: d.primaryTitle["he"],
+            numSources: 0,
+            numSheets: 0
+        }
+        const typeObj = Sefaria.topicTocCategory(topic.key);
+        searchTopic.url = "/topics/" + topic.key;
+        if (!typeObj) {
+            searchTopic.topicCat = "Topics";
+            searchTopic.heTopicCat = Sefaria.hebrewTranslation("Topics");
+        } else {
+            searchTopic.topicCat = typeObj["en"];
+            searchTopic.heTopicCat = typeObj["he"];
+        }
+        if ("description" in d) {
+            searchTopic.enDesc = d.description["en"];
+            searchTopic.heDesc = d.description["he"];
+        }
+        if (d.tabs?.sources) {
+            searchTopic.numSources = d.tabs.sources.refs.length;
+        }
+        if (d.tabs?.sheets) {
+            searchTopic.numSheets = d.tabs.sheets.refs.length;
+        }
+        return searchTopic;
+    }
+    async _executeTopicQuery() {
+        const d = await Sefaria.getName(this.props.query)
+        let topics = d.completion_objects.filter(obj => obj.title.toUpperCase() === this.props.query.toUpperCase());
+        const hasAuthor = topics.some(obj => obj.type === "AuthorTopic");
+        if (hasAuthor) {
+            topics = topics.filter(obj => obj.type !== "TocCategory");  //TocCategory is unhelpful if we have author
+        }
+        let searchTopics = await Promise.all(topics.map(async t => {
+            if (t.type === 'ref') {
+                return await this.addRefTopic(t);
+            } else if (t.type === 'TocCategory') {
+                return this.addTOCCategoryTopic(t);
+            } else {
+                return await this.addGeneralTopic(t);
+            }
+        }));
+        this.setState({topics: searchTopics});
+    }
     updateRunningQuery(type, ajax) {
       this.state.runningQueries[type] = ajax;
       this.state.isQueryRunning[type] = !!ajax;
@@ -137,6 +235,7 @@ class SearchResultList extends Component {
       return props[`${type}SearchState`];
     }
     _executeAllQueries(props) {
+      this._executeTopicQuery();
       this.types.forEach(t => this._executeQuery(props, t));
     }
     _getAggsToUpdate(filtersValid, aggregation_field_array, aggregation_field_lang_suffix_array, appliedFilterAggTypes, type) {
@@ -286,6 +385,19 @@ class SearchResultList extends Component {
               key={result._id}
               onResultClick={this.props.onResultClick} />
           );
+          if (this.state.topics.length > 0) {
+              let topics = this.state.topics.map(t => {
+                  return <SearchTopic topic={t}/>
+              });
+              if (results.length > 0) {
+                  topics = <div id="searchTopics">{topics}</div>
+                  results.splice(2, 0, topics);
+              }
+              else {
+                  results = topics;
+              }
+          }
+
 
         } else if (tab == "sheet") {
           results = this.state.hits.sheet.map(result =>

@@ -103,12 +103,12 @@ class AboutBox extends Component {
 
     let detailSection = null;
     if (d) {
-      let authorsEn, authorsHe;
+      let authorsElems = {};
       if (d.authors && d.authors.length) {
-        const authorArrayEn = d.authors.filter((elem) => !!elem.en);
-        const authorArrayHe = d.authors.filter((elem) => !!elem.he);
-        authorsEn = authorArrayEn.map(author => <a key={author.slug} href={"/topics/" + author.slug}>{author.en}</a> );
-        authorsHe = authorArrayHe.map(author => <a key={author.slug} href={"/topics/" + author.slug}>{author.he}</a> );
+        for (let lang of ['en', 'he']) {
+          const authorArray = d.authors.filter((elem) => !!elem[lang]);
+          authorsElems[lang] = authorArray.map((author, iauthor) => <span>{iauthor > 0 ? ", " : ""}<a key={author.slug} href={`/topics/${author.slug}`}>{author[lang]}</a></span> );
+        }
       }
       // use compPlaceString and compDateString if available. then use compPlace o/w use pubPlace o/w nothing
       let placeTextEn, placeTextHe;
@@ -154,14 +154,14 @@ class AboutBox extends Component {
           <span className="tocCategory">
               <ContentText text={{en:category, he:Sefaria.hebrewTerm(category)}}/>
           </span>
-          { authorsEn && authorsEn.length ?
+          { authorsElems?.en?.length ?
             <div className="aboutAuthor">
               <span className="aboutAuthorInner">
                   <span className="authorLabel">
                       <ContentText text={{en:"Author:", he: "מחבר:"}} />
                   </span>
                   <span className="authorName">
-                      <ContentText text={{en:authorsEn, he: authorsHe}} />
+                      <ContentText text={authorsElems} />
                   </span>
               </span>
             </div> : null
