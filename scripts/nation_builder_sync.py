@@ -13,13 +13,14 @@ Flags:
 """
 
 # Get list of current sustainers from profiles
-sustainers = {profile["id"]: profile for profile in db.profiles.find({"is_sustainer": True})}
-added_count = 0
-removed_count = 0
-no_profile_count = 0
-already_synced_count = 0
+
 
 def sync_sustainers_to_mongo():
+    sustainers = {profile["id"]: profile for profile in db.profiles.find({"is_sustainer": True})}
+    added_count = 0
+    removed_count = 0
+    no_profile_count = 0
+    already_synced_count = 0
     for nationbuilder_sustainer in nationbuilder_get_all(get_by_tag, ['sustainer_current_engineering']):
         
         nationbuilder_sustainer_profile = UserProfile(email=nationbuilder_sustainer['email']) 
