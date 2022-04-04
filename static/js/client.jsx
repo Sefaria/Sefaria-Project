@@ -19,6 +19,7 @@ $(function() {
   }
   if (DJANGO_VARS.inReaderApp) {
     // Rendering a full ReaderApp experience
+    console.dir(DJANGO_VARS);
     Sefaria.unpackDataFromProps(DJANGO_VARS.props);
     component = React.createElement(SefariaReact.ReaderApp, DJANGO_VARS.props);
 
