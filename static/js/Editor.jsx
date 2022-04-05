@@ -602,12 +602,13 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
 
     useEffect(
         () => {
+            const replacement = divineName || "noSub"
             const editors = [sheetSourceHeEditor, sheetSourceEnEditor]
             for (const editor of editors) {
                 const nodes = (Editor.nodes(editor, {at: [], match: Text.isText}))
                 for (const [node, path] of nodes) {
                     if (node.text) {
-                        const newStr = replaceDivineNames(node.text, divineName)
+                        const newStr = replaceDivineNames(node.text, replacement)
                         if (newStr != node.text) {
                             Transforms.insertText(editor, newStr, {at: path})
                         }
@@ -1016,7 +1017,7 @@ const AddInterface = ({ attributes, children, element }) => {
     )
 }
 
-const Element = props => {
+const Element = (props) => {
     const { attributes, children, element } = props;
     const sheetItemClasses = {
         sheetItem: 1,
@@ -2449,6 +2450,18 @@ const SefariaEditor = (props) => {
                 }
             }
             editor.divineNames = props.divineNameReplacement
+
+            //some edit to the editor is required to show the replacement
+            // -- this simply just moves the cursor to the top of the doc and then back to its previous spot
+            const temp_select = editor.selection
+
+            Transforms.select(editor, {
+              anchor: {path: [0, 0], offset: 0},
+              focus: {path: [0, 0], offset: 0},
+            });
+
+            Transforms.select(editor, temp_select)
+
         },
         [props.divineNameReplacement]
     )
