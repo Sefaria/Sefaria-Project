@@ -15,7 +15,7 @@ metadata:
     {{- include "sefaria.labels" . | nindent 4 }}
   annotations: 
     helm.sh/hook: pre-install
-    helm.sh/hook-delete-policy: hook-succeeded
+    helm.sh/hook-delete-policy: hook-succeeded, hook-failed
     helm.sh/hook-weight: "10"
 spec:
   template:
