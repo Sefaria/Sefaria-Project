@@ -1665,12 +1665,21 @@ const withSefariaSheet = editor => {
                 Transforms.insertNodes(editor, {type: 'spacer', children: [{text: ""}]}, {at: nextPath});
                 addedSpacer = true;
             }
-            if (prevNode.type !== "spacer" && prevNode.type !== "SheetOutsideText") {
+            if (prevNode.type !== "spacer") {
                 Transforms.insertNodes(editor, {type: 'spacer', children: [{text: ""}]}, {at: path});
                 addedSpacer = true;
             }
 
             return addedSpacer
+        }
+
+        else if (node.type === "SheetOutsideText") {
+            const nextNode = Node.get(editor, Path.next(path))
+
+            if (["SheetSource", "SheetOutsideBiText"].includes(nextNode.type)) {
+                Transforms.insertNodes(editor, {type: 'spacer', children: [{text: ""}]}, {at: Path.next(path)});
+                return true
+            }
         }
     };
 

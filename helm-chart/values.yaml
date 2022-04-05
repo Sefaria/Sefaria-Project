@@ -41,17 +41,17 @@ web:
       gunicornWorkerCount: 1
       gunicornThreadCount: 1
       resources:
-        request:
+        requests:
           memory: "3Gi"
           cpu: "500m"
-        limit:
+        limits:
           memory: "4Gi"
           cpu: "1500m"
     djangoLog:
-      request:
+      requests:
         memory: "100Mi"
         cpu: "50m"
-      limit:
+      limits:
         memory: "150Mi"
         cpu: "100m"
   secrets:
@@ -79,10 +79,10 @@ redis:
     tag: latest
   replicaCount: 1
   resources:
-    request:
+    requests:
       memory: "250Mi"
       cpu: "100m"
-    limit:
+    limits:
       memory: "500Mi"
       cpu: "120m"
 
@@ -94,10 +94,10 @@ nodejs:
     tag: latest
   replicaCount: 1
   resources:
-    request:
+    requests:
       memory: "400Mi"
       cpu: "200m"
-    limit:
+    limits:
       memory: "600Mi"
       cpu: "400m"
 
@@ -110,11 +110,11 @@ varnish:
   logging: {}
   replicaCount: 1
   resources:
-    request:
+    requests:
       # must be in megabibytes, because we pass it into the malloc definition
       memory: "25Mi"
       cpu: "10m"
-    limit:
+    limits:
       memory: "300Mi"
       cpu: "100m"
   tuning:
@@ -179,10 +179,10 @@ nginx:
     tag: latest
   replicaCount: 1
   resources:
-    request:
+    requests:
       memory: "200Mi"
       cpu: "80m"
-    limit:
+    limits:
       memory: "300Mi"
       cpu: "150m"
 
@@ -194,10 +194,10 @@ monitor:
     tag: latest
   replicaCount: 1
   resources:
-    request:
+    requests:
       memory: "300Mi"
       cpu: "50m"
-    limit:
+    limits:
       memory: "400Mi"
       cpu: "100m"
 
@@ -277,3 +277,4 @@ localSettings:
   MAINTENANCE_MESSAGE: "Sefaria is down for scheduled maintenance. We expect to be back online within 15 minutes. Thank you for your patience."
   GLOBAL_WARNING: False
   GLOBAL_WARNING_MESSAGE: "Sefaria will be in <b>Read-Only</b> mode for scheduled maintenance from 4:45pm-6:45pm Pacific time. Edits will <b>not</b> be saved during that time."
+  SITE_PACKAGE: "sites.sefaria"

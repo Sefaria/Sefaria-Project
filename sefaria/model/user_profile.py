@@ -385,6 +385,7 @@ class UserProfile(object):
 
         # Google API token
         self.gauth_token = None
+        self.nationbuilder_id = None
 
         # new editor
         self.show_editor_toggle = False
@@ -672,6 +673,7 @@ class UserProfile(object):
             "profile_pic_url":       self.profile_pic_url,
             "profile_pic_url_small": self.profile_pic_url_small,
             "gauth_token":           self.gauth_token,
+            "nationbuilder_id":      self.nationbuilder_id,
             "show_editor_toggle":    self.show_editor_toggle,
             "uses_new_editor":       self.uses_new_editor,
         }
