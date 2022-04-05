@@ -19,6 +19,7 @@ data:
   MAINTENANCE_MESSAGE: {{ .Values.localSettings.MAINTENANCE_MESSAGE | quote }}
   GLOBAL_WARNING: "{{ .Values.localSettings.GLOBAL_WARNING }}"
   GLOBAL_WARNING_MESSAGE: {{ .Values.localSettings.GLOBAL_WARNING_MESSAGE | quote }}
+  SITE_PACKAGE: "{{ .Values.localSettings.SITE_PACKAGE | quote }}"
   local_settings.py: |-
     from socket import gethostname, gethostbyname
     from datetime import timedelta
@@ -97,7 +98,7 @@ data:
     USER_AGENTS_CACHE = 'default'
     SHARED_DATA_CACHE_ALIAS = 'shared'
 
-    SITE_PACKAGE = "sites.sefaria"
+    SITE_PACKAGE = os.getenv("SITE_PACKAGE")
 
     GEOIP_DATABASE = 'data/geoip/GeoLiteCity.dat'
     GEOIPV6_DATABASE = 'data/geoip/GeoLiteCityv6.dat'
