@@ -2386,7 +2386,7 @@ const DivineNameReplacer = ({setDivineNameReplacement, divineNameReplacement}) =
               options={[
                         {value: "noSub",   label: Sefaria._("No Substitution")},
                         {value: "yy",   label: 'יי'},
-                        {value: "h",      label:'ה\''},
+                        {value: "h",      label:'ה׳'},
                         {value: "ykvk",    label: 'יקוק'},
                       ]}
               placeholder={Sefaria._("Select Type")}

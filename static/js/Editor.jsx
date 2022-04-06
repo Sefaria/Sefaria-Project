@@ -336,7 +336,7 @@ export const serialize = (content) => {
 const replaceDivineNames = (str, divineName) => {
     // Regexes for identifying divine names with or without nikkud / trop
     // Currently ignores אֵל & צְבָאוֹת & שדי
-    const divineRE  = /([\s.,\u05BE;:'"\-]|^)([ו]?[\u0591-\u05C7]*[משהוכלב]?[\u0591-\u05C7]*)(י[\u0591-\u05C7]*ה[\u0591-\u05C7]*ו[\u0591-\u05C7]*ה[\u0591-\u05C2\u05C4-\u05C7]*|יְיָ|יי|יקוק|ה\')(?=[/(/[<//.,;:׃'"\-\s]|$)/g;
+    const divineRE  = /([\s.,\u05BE;:'"\-]|^)([ו]?[\u0591-\u05C7]*[משהוכלב]?[\u0591-\u05C7]*)(י[\u0591-\u05C7]*ה[\u0591-\u05C7]*ו[\u0591-\u05C7]*ה[\u0591-\u05C2\u05C4-\u05C7]*|יְיָ|יי|יקוק|ה\'|ה׳)(?=[/(/[<//.,;:׃'"\-\s]|$)/g;
 
     // don't match אֲדֹנִי
     const adoshemRE = /([\s.,\u05BE;:'"\-]|^)([ו]?[\u0591-\u05C7]*[משהוכלב]?[\u0591-\u05C7]*)(א[\u0591-\u05C7]*ד[\u0591-\u05C7]*נ[\u0591-\u05B3\u05B5-\u05C7]*י[\u0591-\u05B3\u05B5-\u05C2\u05C4-\u05C7]*|אדושם)(?=[<\[\(\s.,;:׃'"\-]|$)/g;
@@ -353,7 +353,7 @@ const replaceDivineNames = (str, divineName) => {
                         "noSub": "יהוה",
                         "yy": "יי",
                         "ykvk": "יקוק",
-                        "h": "ה'"
+                        "h": "ה׳"
                     };
 
 
@@ -2460,7 +2460,7 @@ const SefariaEditor = (props) => {
             }
             editor.divineNames = props.divineNameReplacement
 
-            //some edit to the editor is required to show the replacement
+            // some edit to the editor is required to show the replacement and save
             // -- this simply just moves the cursor to the top of the doc and then back to its previous spot
             const temp_select = editor.selection
 
@@ -2470,6 +2470,7 @@ const SefariaEditor = (props) => {
             });
 
             Transforms.select(editor, temp_select)
+            saveDocument(currentDocument);
 
         },
         [props.divineNameReplacement]
@@ -2547,7 +2548,11 @@ const SefariaEditor = (props) => {
 
     function saveSheetContent(doc, lastModified) {
         const sheetTitle = editorContainer.current.querySelector(".sheetContent .sheetMetaDataBox .title") ? editorContainer.current.querySelector(".sheetContent .sheetMetaDataBox .title").textContent : "Untitled"
-        const sheetContent = doc.children.find(el => el.type == "SheetContent").children;
+        const docContent = doc.children.find(el => el.type == "SheetContent")
+        if (!docContent) {
+            return false
+        }
+        const sheetContent = docContent.children;
 
         const sources = sheetContent.map(item => {
             const sheetItem = item;
@@ -2657,6 +2662,9 @@ const SefariaEditor = (props) => {
 
     function saveDocument(doc) {
         const json = saveSheetContent(doc[0], lastModified);
+        if (!json) {
+            return
+        }
         // console.log('saving...');
 
         $.post("/api/sheets/", {"json": json}, res => {
