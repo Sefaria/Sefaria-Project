@@ -1957,8 +1957,9 @@ TwoOrThreeBox.defaultProps = {
 };
 
 
-const ResponsiveNBox = ({content, stretch, initialWidth}) => {
-
+const ResponsiveNBox = ({content, stretch, initialWidth, threshold2=500, threshold3=1500}) => {
+  //above threshold2, there will be 2 columns
+  //above threshold3, there will be 3 columns
   initialWidth = initialWidth || (window ? window.innerWidth : 1000);
   const [width, setWidth] = useState(initialWidth);
   const ref = useRef(null);
@@ -1973,8 +1974,6 @@ const ResponsiveNBox = ({content, stretch, initialWidth}) => {
 
   const deriveAndSetWidth = () => setWidth(ref.current ? ref.current.offsetWidth : initialWidth);
 
-  const threshold2 = 500; //above threshold2, there will be 2 columns
-  const threshold3 = 1500; //above threshold3, there will be 3 columns
   const n = (width > threshold3) ? 3 :
     (width > threshold2) ? 2 : 1;
 
