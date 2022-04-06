@@ -215,16 +215,17 @@ def setCategoryTraits():
     # User Traits
     for daterange in active_dateranges:
         site_data = {cat: 0 for cat in TOP_CATEGORIES}
+        for category in TOP_CATEGORIES:
+            all_users = getAllUsersCategories(daterange, category)
+            for uid, data in all_users.items():
+                val = data['cnt']
+                TrendSet({"period": daterange.key, "uid": uid, "name": read_in_category_key(category)}).delete()
 
-        all_users = getAllUsersCategories(daterange)
-        for uid, data in all_users.items():
-            TrendSet({"period": daterange.key, "uid": uid, "name": {"$in": list(map(read_in_category_key, TOP_CATEGORIES))}}).delete()
-
-            for cat, val in list(data["categories"].items()):
-                if cat not in TOP_CATEGORIES:
-                    continue
+                # for val in list(data["categories"].items()):
+                #     if cat not in TOP_CATEGORIES:
+                #         continue
                 Trend({
-                    "name":         read_in_category_key(cat),
+                    "name":         read_in_category_key(category),
                     "value":        val,
                     "datatype":     "int",
                     "timestamp":    datetime.utcnow(),
@@ -232,7 +233,7 @@ def setCategoryTraits():
                     "scope":        "user",
                     "uid":          uid
                 }).save()
-                site_data[cat] += val
+                site_data[category] += val
 
         # Site Traits
         TrendSet({"period": daterange.key, "scope": "site", "name": {"$in": list(map(read_in_category_key, TOP_CATEGORIES))}}).delete()
@@ -378,25 +379,16 @@ def getAllUsersSheetUsage(daterange):
     return {d["_id"]: d for d in results}
 
 
-def getAllUsersCategories(daterange):
+def getAllUsersCategories(daterange, category):
     pipeline = [
         {"$match": daterange.update_match({
             "secondary": False,
             "is_sheet": False,
-            "categories.0": {
-                "$exists": True
-            }})},
+            "categories.0": category
+        })},
         {"$group": {
-            "_id": {"uid": "$uid", "category": {"$arrayElemAt" : ["$categories", 0]}},
-             "cnt": { "$sum": {"$max": ["$num_times_read", 1]}}}},
-        {"$group": {
-            "_id": "$_id.uid",
-            "categories": {"$push": {"k": "$_id.category", "v": "$cnt"}},
-            "total": {"$sum": "$cnt"}}},
-        {"$project": {
-            "categories": {"$arrayToObject": "$categories"},
-            "total": "$total"}}
-    ]
+            "_id": "$uid",
+             "cnt": { "$sum": {"$max": ["$num_times_read", 1]}}}}]
     results = db.user_history.aggregate(pipeline)
     return {d["_id"]: d for d in results}
 
@@ -697,9 +689,20 @@ def setScheduleTraits():
     for scheduleManager in scheduleManagers:
         scheduleManager.getUsersWhoAreLearningSchedule()
 
-def setAllTrends():
-    setUserSheetTraits()
-    setSheetTraits()
-    setUserLanguageTraits()
-    setCategoryTraits()
-    setScheduleTraits()
+def setAllTrends(skip=[]):
+    print("setAllTrends")
+    if "userSheet" not in skip:
+        print("setUserSheetTraits")
+        setUserSheetTraits()
+    if "sheet" not in skip:
+        print("setSheetTraits")
+        setSheetTraits()
+    if "userLanguage" not in skip:
+        print("setUserLanguageTraits")
+        setUserLanguageTraits()
+    if "category" not in skip:
+        print("setCategoryTraits")
+        setCategoryTraits()
+    if "schedule" not in skip:
+        print("setScheduleTraits")
+        setScheduleTraits()
