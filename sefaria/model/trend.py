@@ -697,9 +697,14 @@ def setScheduleTraits():
     for scheduleManager in scheduleManagers:
         scheduleManager.getUsersWhoAreLearningSchedule()
 
-def setAllTrends():
-    setUserSheetTraits()
-    setSheetTraits()
-    setUserLanguageTraits()
-    setCategoryTraits()
-    setScheduleTraits()
+def setAllTrends(skip=[]):
+    if "userSheet" not in skip:
+        setUserSheetTraits()
+    if "sheet" not in skip:
+        setSheetTraits()
+    if "userLanguage" not in skip:
+        setUserLanguageTraits()
+    if "category" not in skip:
+        setCategoryTraits()
+    if "schedule" not in skip:
+        setScheduleTraits()

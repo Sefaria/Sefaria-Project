@@ -49,18 +49,21 @@ def sync_sustainers_to_mongo():
 
 trends_only = False
 mongo_only = False
+skip = []
 i = 1
 while(i < len(sys.argv)):
     if sys.argv[i] == "--trends-only":
         trends_only = True
     elif sys.argv[i] == "--mongo-only":
         mongo_only = True
+    elif sys.argv[i].startswith("--skip="):
+        skip = sys.argv[i][7:].split(",")
     i+=1
     
 
 if not trends_only:
     sync_sustainers_to_mongo()
-    setAllTrends()
+    setAllTrends(skip)
     nationbuilder_update_all_tags()
 else:
     setAllTrends()
