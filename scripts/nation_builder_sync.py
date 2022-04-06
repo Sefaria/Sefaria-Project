@@ -66,4 +66,4 @@ if not trends_only:
     setAllTrends(skip)
     nationbuilder_update_all_tags()
 else:
-    setAllTrends()
+    setAllTrends(skip)
