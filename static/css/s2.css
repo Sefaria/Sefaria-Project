@@ -4702,6 +4702,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin: 30px 0;
   background-color: inherit;
 }
+.sheetContent .text.editorContent {
+  padding: 30px 44px;
+  margin: 0;
+}
 .narrowColumn .basetext .text, .narrowColumn .sheetContent .text {
   padding: 0 26px;
 }
@@ -9495,7 +9499,7 @@ background-color: white;
 }
 .sheetContent .sheetItem .SheetSource.segment,
 .sheetContent .sheetItem .SheetOutsideBiText.segment {
-  margin-top: 30px;
+  margin-top: 2px;
   margin-bottom:30px;
 }
 .sheetContent .text.loading {
@@ -9679,7 +9683,7 @@ cursor: pointer;
   border-top: 2px solid var(--select-blue);
   border-bottom: 2px solid var(--select-blue);
   border-inline-end: 2px solid var(--select-blue);
-  margin-top: 28px;
+  margin-top: 0;
   margin-bottom: 28px;
   margin-inline-end: -2px;
   cursor: text;
@@ -9840,7 +9844,6 @@ cursor: pointer;
 
 .boxedSheetItem + .spacer {
   margin-top: -30px;
-  margin-bottom: -30px;
   transition: all .5s ease-in-out;
 }
 
