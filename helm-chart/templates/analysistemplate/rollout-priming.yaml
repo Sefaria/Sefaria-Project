@@ -18,7 +18,7 @@ spec:
               spec:
                 containers:
                   - name: primer
-                    image: "{{ .Values.web.containerImage }}:{{ .Values.releaseImageTag }}"
+                    image: "{{ .Values.web.containerImage.imageRegistry }}:{{ .Values.web.containerImage.tag }}"
                     command: [ "/app/build/startup/primeAll.bash" ]
                     env: 
                       - name: TARGET_HOSTNAME
