@@ -15,7 +15,8 @@ metadata:
     {{- include "sefaria.labels" . | nindent 4 }}
   annotations: 
     helm.sh/hook: pre-install
-    helm.sh/hook-delete-policy: hook-succeeded
+    helm.sh/hook-delete-policy: hook-succeeded, hook-failed
+    helm.sh/hook-weight: "10"
 spec:
   template:
     spec:
@@ -49,8 +50,16 @@ spec:
           env:
             - name: MONGO_HOST
               value: {{ .Values.localSettings.MONGO_HOST | quote }}
-          command: ["bash"]
-          args: ["-c", "tar xzvf /storage/dump.tar.gz -C /storage && mongorestore --drop --host=$MONGO_HOST:27017 -v -d sefaria-{{ .Values.deployEnv }} --dir=/storage/dump/sefaria"]
+          command: ["/script/restore-mongo.sh"]
+          volumeMounts:
+          - name: script
+            mountPath: /script
+        restartPolicy: Never
+        volumes:
+        - name: script
+          configMap:
+            name: mongo-restore-{{ .Values.deployEnv }}
+            defaultMode: 0755
       restartPolicy: Never
   ttlSecondsAfterFinished: 432000
 {{- end }}
