@@ -2777,7 +2777,7 @@ Sefaria.setup = function(data, props = null) {
     Sefaria._cacheFromToc(Sefaria.toc);
     Sefaria._cacheHebrewTerms(Sefaria.terms);
     Sefaria._cacheSiteInterfaceStrings();
-    console.log(`sending user logged in status to GA, uid as bool: ${!!Sefaria._uid} | analytics id: ${Sefaria._analytics_uid}`);
+    //console.log(`sending user logged in status to GA, uid as bool: ${!!Sefaria._uid} | analytics id: ${Sefaria._analytics_uid}`);
     Sefaria.track.setUserData(!!Sefaria._uid, Sefaria._analytics_uid);
     Sefaria.search = new Search(Sefaria.searchIndexText, Sefaria.searchIndexSheet);
 };
