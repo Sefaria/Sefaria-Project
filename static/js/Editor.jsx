@@ -1674,11 +1674,16 @@ const withSefariaSheet = editor => {
         }
 
         else if (node.type === "SheetOutsideText") {
-            const nextNode = Node.get(editor, Path.next(path))
+            try {
+                const nextNode = Node.get(editor, Path.next(path))
 
-            if (["SheetSource", "SheetOutsideBiText"].includes(nextNode.type)) {
-                Transforms.insertNodes(editor, {type: 'spacer', children: [{text: ""}]}, {at: Path.next(path)});
-                return true
+                if (["SheetSource", "SheetOutsideBiText"].includes(nextNode.type)) {
+                    Transforms.insertNodes(editor, {type: 'spacer', children: [{text: ""}]}, {at: Path.next(path)});
+                    return true
+                }
+            }
+            catch (e) {
+                return false
             }
         }
     };

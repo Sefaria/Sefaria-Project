@@ -1,1 +1,11 @@
-null
+{
+	"title": "Friend,",
+	"text": [
+		"Sefaria was created to support your Jewish learning experience. We rely on individual users like you to grow and maintain the library so you can keep learning.",
+		"If the Sefaria library has helped you, we hope you’ll consider donating so we can keep acquiring texts and improving the platform to enhance your experience. \n"
+    ],
+	"buttonLink": "https://sefaria.nationbuilder.com/supportsefaria_aeb",
+	"buttonText": "Donate",
+	"name": "07042022-passover-donate-modal-1",
+	"schemaVersion": 1
+}
