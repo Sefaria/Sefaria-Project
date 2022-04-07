@@ -106,14 +106,14 @@ def nationbuilder_update_person_tags(session, id, to_add, to_remove):
     headers = {'Content-type': 'application/json', 'Accept': 'application/json'}
     req_add = session.put(tag_person(id), data=to_add, headers=headers)
     req_delete = session.delete(tag_person(id), data=to_remove, headers=headers)
-    print(req_add)
-    print(req_delete)
+    print(req_add.json())
+    print(req_delete.json())
 
 def nationbuilder_update_person_custom_fields(session, id, person_info_list):
     headers = {'Content-type': 'application/json', 'Accept': 'application/json'}
     person_data = {person_info["name"]: person_info["value"] for person_info in person_info_list}
     req_add = session.put(update_person(id), data=json.dumps({"person": person_data}), headers=headers)
-    print(req_add)
+    print(req_add.json())
 
 def nationbuilder_get_all(endpoint_func, args=[]):
     session = get_nationbuilder_connection()
