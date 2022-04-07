@@ -7,9 +7,11 @@ from sefaria.model.user_profile import UserProfile
 from sefaria.model.trend import setAllTrends
 
 """
+Mutiple "only" flags can be run at once. If none are run, everything will be run.
 Flags:
 --trends-only - Only run trend updates, don't sync with nationbuilder
---mongo-only -- Only update Mongo; don't update Nationbuilder
+--tags-only -- Only run update tags on nationbuilder
+--sustainers-only -- Only sustainers from nationbuilder on mongo
 """
 
 # Get list of current sustainers from profiles
@@ -48,22 +50,28 @@ def sync_sustainers_to_mongo():
     print("already synced: {}".format(already_synced_count))
 
 trends_only = False
-mongo_only = False
+tags_only = False
+sustainers_only = False
 skip = []
 i = 1
 while(i < len(sys.argv)):
     if sys.argv[i] == "--trends-only":
         trends_only = True
-    elif sys.argv[i] == "--mongo-only":
-        mongo_only = True
+    elif sys.argv[i] == "--tags-only":
+        tags_only = True
+    elif sys.argv[i] == "--sustainers-only":
+        sustainers_only = True
     elif sys.argv[i].startswith("--skip="):
         skip = sys.argv[i][7:].split(",")
     i+=1
     
-
-if not trends_only:
+if sustainers_only:
+    sync_sustainers_to_mongo()
+if trends_only:
+    setAllTrends(skip)    
+if tags_only:
+    nationbuilder_update_all_tags()
+if not trends_only and not tags_only and not sustainers_only:
     sync_sustainers_to_mongo()
     setAllTrends(skip)
     nationbuilder_update_all_tags()
-else:
-    setAllTrends(skip)
