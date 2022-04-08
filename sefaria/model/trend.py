@@ -3,7 +3,7 @@
 """
 trend.py
 """
-
+import json
 import time
 from datetime import datetime, date, timedelta
 
@@ -299,6 +299,11 @@ def setUserLanguageTraits():
             else:
                 # percentage of visits registered w/ English content
                 value = (en + bi) / total
+
+            if value < 0 or value > 1:
+                print("UNEXPECTED value for EnglishTolerance: " + str(total))
+                print("UID " + str(uid) + " has en score " + str(en) + ". bi score: " + str(bi) + ". total: " + str(total))
+                print(json.dumps(data))
 
             Trend({
                 "name":         "EnglishTolerance",
