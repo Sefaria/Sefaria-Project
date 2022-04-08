@@ -1790,7 +1790,17 @@ class ReaderApp extends Component {
   }
 
   getUserContext() {
-    const refs = this.state.panels.map(panel => panel.currentlyVisibleRef || panel.bookRef || panel.navigationCategories || panel.navigationTopic).flat();
+    const returnNullIfEmpty = (value) => {
+      if(Array.isArray(value)) {
+        if(value.length === 0) {
+          return null;
+        } else {
+          return value;
+        }
+      }
+
+    }
+    const refs = this.state.panels.map(panel => panel.currentlyVisibleRef || panel.bookRef || returnNullIfEmpty(panel.navigationCategories) || panel.navigationTopic).flat();
     const books = refs.map(ref => Sefaria.parseRef(ref).book);
     const triggers = refs.map(ref => Sefaria.refCategories(ref))
           .concat(books)
