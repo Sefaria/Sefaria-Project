@@ -22,7 +22,7 @@ const UserStats = () => {
 
     const modes = ["Year to Date", "All Time"];
     const modekeys = {
-        "Year to Date": "this_hebrew_year",
+        "Year to Date": "currently",
         "All Time": "alltime"
     };
 
