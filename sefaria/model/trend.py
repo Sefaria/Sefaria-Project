@@ -302,7 +302,7 @@ def setUserLanguageTraits():
 
             if value < 0 or value > 1:
                 print("UNEXPECTED value for EnglishTolerance: " + str(total))
-                print("UID " + str(uid) + " has en score " + str(en) + ". bi score: " + str(bi) + ". total: " + str(total))
+                print(profile.email + " has en score " + str(en) + ". bi score: " + str(bi) + ". total: " + str(total))
                 print(json.dumps(data))
 
             Trend({
