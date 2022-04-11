@@ -1261,7 +1261,7 @@ const DonatePage = () => (
     </div>
     <div className="staticPageBlockInner flexContainer">
 
-        <ResponsiveNBox content={[
+        <ResponsiveNBox gap="30px" content={[
             <FeatureBox
                 enTitle="Make a One-Time Gift"
                 heTitle=""
@@ -1318,6 +1318,7 @@ const DonatePage = () => (
           <ResponsiveNBox
             threshold3={768}
             threshold2={500}
+            gap="10px"
             stretch={true}
             content={[
                 <HeaderWithColorAccentBlockAndText
@@ -1344,7 +1345,7 @@ const DonatePage = () => (
                     heTitle=""
                     enText="<p>Sefaria accepts donations from donor-advised funds; our <strong>EIN is 46-44064545</strong>. If you need additional information to make a DAF donation, please contact Rebecca Remis, Finance and Operations Manager, at <a href='mailto:donate@sefaria.org'>donate@sefaria.org</a>.</p>"
                     heText=""
-                    colorBar="#D4896C"
+                    colorBar="#CCB479"
                 />,
                 <HeaderWithColorAccentBlockAndText
                     enTitle="Additional Ways to Give"
@@ -1538,6 +1539,7 @@ const DonatePage = () => (
           <ResponsiveNBox
             threshold3={768}
             threshold2={500}
+            gap="10px"
             stretch={true}
             content={[
                 <div className="finStewardBox">

@@ -1915,7 +1915,7 @@ InterruptingMessage.propTypes = {
 };
 
 
-const NBox = ({ content, n, stretch }) => {
+const NBox = ({ content, n, stretch, gap=0  }) => {
   // Wrap a list of elements into an n-column flexbox
   // If `stretch`, extend the final row into any remaining empty columns
   let length = content.length;
@@ -1926,7 +1926,7 @@ const NBox = ({ content, n, stretch }) => {
   return (
     <div className="gridBox">
       {rows.map((row, i) => (
-      <div className="gridBoxRow" key={i}>
+      <div className="gridBoxRow" key={i} style={{"gap": gap, "margin-top": gap}}>
         {row.pad(stretch ? row.length : n, "").map((item, j) => (
           <div className={classNames({gridBoxItem: 1, placeholder: !item})} key={`gridItem|${j}`}>{item}</div>
         ))}
@@ -1957,7 +1957,7 @@ TwoOrThreeBox.defaultProps = {
 };
 
 
-const ResponsiveNBox = ({content, stretch, initialWidth, threshold2=500, threshold3=1500}) => {
+const ResponsiveNBox = ({content, stretch, initialWidth, threshold2=500, threshold3=1500, gap=0}) => {
   //above threshold2, there will be 2 columns
   //above threshold3, there will be 3 columns
   initialWidth = initialWidth || (window ? window.innerWidth : 1000);
@@ -1979,7 +1979,7 @@ const ResponsiveNBox = ({content, stretch, initialWidth, threshold2=500, thresho
 
   return (
     <div className="responsiveNBox" ref={ref}>
-      <NBox content={content} n={n} stretch={stretch} />
+      <NBox content={content} n={n} stretch={stretch} gap={gap}/>
     </div>
   );
 };
