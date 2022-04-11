@@ -1276,7 +1276,7 @@ const DonatePage = () => (
             <FeatureBox
                 enTitle="Become a Sustainer"
                 heTitle=""
-                enText="Multiply the power of your impact by signing up for a monthly donation with hundreds of other users, supporting a vision of <em>Torah for all</em>"
+                enText="Multiply the power of your impact by signing up for a monthly donation with hundreds of other users, supporting a vision of <em>Torah for all.</em>"
                 heText=""
                 enButtonText="Join the Sustainers"
                 heButtonText=""
@@ -1302,8 +1302,8 @@ const DonatePage = () => (
                 heText=""
                 enButtonText="Email Us to Learn More"
                 heButtonText=""
-                enButtonUrl="https://sefaria.nationbuilder.com/sustainers_b"
-                heButtonUrl="https://sefaria.nationbuilder.com/sustainers_b"
+                enButtonUrl="mailto:hannah@sefaria.org"
+                heButtonUrl="mailto:hannah@sefaria.org"
                 borderColor="#7C416F"
             />
 
@@ -1566,7 +1566,7 @@ const DonatePage = () => (
                         rounded={true}
                         tall={false}
                         newTab={true}
-                        href="https://www.sefaria.org/static/files/Sefaria%202019%20990%20-%20Public%20-%20Client%20Copy.PDF"
+                        href="https://www.sefaria.org/static/files/Sefaria_2020_990_Public.pdf"
                         he_href=""
                         he=""
                         en="See Here"
@@ -1955,7 +1955,7 @@ const HeaderForEducatorsPage = () => {
 };
 
 const HeaderForDonatePage = () => {
-  var enTitle="Your gift. Your impact"
+  var enTitle="Your gift. Your impact."
   var enText="When you give to Sefaria, you’re powering a living library of more than 3,000 years of Jewish texts. Donate today and support the future of Jewish learning, innovation, and conversation."
   var heText="גלו כיצד להעשיר את הלמידה וההוראה באמצעות מאגר מקורות דיגיטלי. באתר אפשרויות רבות ללומדים:  תוכלו למצוא מקורות, להיפגש עם מגוון של חומרי הוראה ולחזק את התלמידים שלכם כלומדים עצמאיים."
   var heTitle="מלמדים עם ספריא"
