@@ -106,8 +106,13 @@ def nationbuilder_update_person_tags(session, id, to_add, to_remove):
     headers = {'Content-type': 'application/json', 'Accept': 'application/json'}
     req_add = session.put(tag_person(id), data=to_add, headers=headers)
     req_delete = session.delete(tag_person(id), data=to_remove, headers=headers)
-    print(req_add.json())
-    print(req_delete.json())
+    try:
+        print(req_add.json())
+        print(req_delete.json())
+    except Exception as e:
+        print(e)
+        print(req_add)
+        print(req_delete)
 
 def nationbuilder_update_person_custom_fields(session, id, person_info_list):
     headers = {'Content-type': 'application/json', 'Accept': 'application/json'}
