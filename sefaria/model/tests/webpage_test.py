@@ -96,3 +96,19 @@ def test_add_search_URL():
 		 'refs': ['Psalms 1–41', 'Psalms 42–72', 'Psalms 73–89', 'Psalms 90–106', 'Psalms 107–150', 'Psalms 130:1',
 				  'Psalms 63:2-4', 'Psalms 42:2-4']}
 		assert WebPage.add_or_update_from_linker(linker_data) == "excluded"
+
+
+def test_page_wout_description():
+	data_good_url = {'url': 'http://blogs.timesofisrael.com/no-desc',
+					 'title': title_good_url,
+					 'refs': ["Haamek Davar on Genesis, Kidmat Ha'Emek 1", 'Shulchan Aruch, Orach Chaim 7:1']}
+
+	assert WebPage().add_or_update_from_linker(data_good_url) == "saved"
+
+	data_good_url = {'url': 'http://blogs.timesofisrael.com/no-desc',
+					 'title': title_good_url,
+					 'refs': ["Haamek Davar on Genesis, Kidmat Ha'Emek 1"]}
+
+	assert WebPage().add_or_update_from_linker(data_good_url) == "saved"
+
+	WebPage().load(data_good_url["url"]).delete()
