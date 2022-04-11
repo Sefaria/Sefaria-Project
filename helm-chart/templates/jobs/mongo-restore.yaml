@@ -51,13 +51,12 @@ spec:
           volumeMounts:
             - name: shared-volume
               mountPath: /storage
+            - name: script
+              mountPath: /script
           env:
             - name: MONGO_HOST
               value: {{ .Values.localSettings.MONGO_HOST | quote }}
           command: ["/script/restore-mongo.sh"]
-          volumeMounts:
-            - name: script
-              mountPath: /script
       restartPolicy: Never
   ttlSecondsAfterFinished: 432000
 {{- end }}
