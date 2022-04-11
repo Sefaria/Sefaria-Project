@@ -26,6 +26,10 @@ spec:
         - name: gcloud-storage-secret
           secret:
             secretName: {{ template "secrets.backupManager" . }}
+        - name: script
+          configMap:
+            name: mongo-restore-{{ .Values.deployEnv }}
+            defaultMode: 0755
       initContainers:
         - name: mongo-backup-downloader-{{ .Values.deployEnv }}
           image: google/cloud-sdk
@@ -52,14 +56,8 @@ spec:
               value: {{ .Values.localSettings.MONGO_HOST | quote }}
           command: ["/script/restore-mongo.sh"]
           volumeMounts:
-          - name: script
-            mountPath: /script
-        restartPolicy: Never
-        volumes:
-        - name: script
-          configMap:
-            name: mongo-restore-{{ .Values.deployEnv }}
-            defaultMode: 0755
+            - name: script
+              mountPath: /script
       restartPolicy: Never
   ttlSecondsAfterFinished: 432000
 {{- end }}
