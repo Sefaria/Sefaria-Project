@@ -156,7 +156,7 @@ class WebPage(abst.AbstractMongoRecord):
 
         if webpage:
             existing = True
-            if data["title"] == webpage.title and data["description"] == webpage.description and set(data["refs"]) == set(webpage.refs):
+            if data["title"] == webpage.title and data.get("description", "") == getattr(webpage, "description", "") and set(data["refs"]) == set(webpage.refs):
                 return "excluded"  # no new data
             if data["title"] == "":
                 data["title"] = webpage.title  # dont save an empty title if title exists
