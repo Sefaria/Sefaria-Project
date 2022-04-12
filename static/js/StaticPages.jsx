@@ -1310,6 +1310,7 @@ const DonatePage = () => (
         ]}
         />
     </div>
+    <Spacer/>
 
     <GreyBox>
       <H1Block en="Ways to Give" he="" serif={true}/>
@@ -1343,14 +1344,14 @@ const DonatePage = () => (
                 <HeaderWithColorAccentBlockAndText
                     enTitle="Donor-Advised Fund"
                     heTitle=""
-                    enText="<p>Sefaria accepts donations from donor-advised funds; our <strong>EIN is 46-44064545</strong>. If you need additional information to make a DAF donation, please contact Rebecca Remis, Finance and Operations Manager, at <a href='mailto:donate@sefaria.org'>donate@sefaria.org</a>.</p>"
+                    enText="<p>Sefaria accepts donations from donor-advised funds; our <strong>EIN is 46-44064545</strong>. If you need additional information to make a DAF donation, please contact Sefaria’s development team at <a href='mailto:donate@sefaria.org'>donate@sefaria.org</a>.</p>"
                     heText=""
                     colorBar="#CCB479"
                 />,
                 <HeaderWithColorAccentBlockAndText
                     enTitle="Additional Ways to Give"
                     heTitle=""
-                    enText="<p>Sefaria also accepts donations via <strong>wire transfer</strong>, <strong>stock</strong>, and <strong>Cryptocurrency</strong>. For more information, please email Rebecca Remis, Finance and Operations Manager at <a href='mailto:donate@sefaria.org'>donate@sefaria.org</a>. (For wire transfers, you can also <a href='https://sefaria.typeform.com/to/nxxyX62T'>click here</a> to get our account information)."
+                    enText="<p>Sefaria also accepts donations via <strong>wire transfer</strong>, <strong>stock</strong>, and <strong>Cryptocurrency</strong>. For more information, please email  Sefaria’s development team at <a href='mailto:donate@sefaria.org'>donate@sefaria.org</a>. (For wire transfers, you can also <a href='https://sefaria.typeform.com/to/nxxyX62T'>click here</a> to get our account information)."
                     heText=""
                     colorBar="#97B386"
                 />
