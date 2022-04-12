@@ -68,6 +68,11 @@
 .static a {
   color: #333;
 }
+
+.static .light {
+  color: white;
+}
+
 .static a.button, .static .button a, .static a .button {
   color: white;
   text-decoration: none;
@@ -2837,6 +2842,13 @@ display: none;
   padding: 70px 0 30px;
   background-position: 50% 0%;
 }
+.staticPage .staticPageHeader.donate {
+  background-image: url("/static/img/sofrut.png");
+  background-repeat: no-repeat;
+  background-size: cover;
+  padding: 70px 0 30px;
+  background-position: bottom right;
+}
 .staticPage .staticPageCallToActionFooter {
   background-color: #212E50;
   color: white;
@@ -2886,6 +2898,7 @@ display: none;
 .interface-hebrew .staticPage.englishOnly .staticPageHeader .staticPageHeaderTextBox {
   padding-right: 10px;
 }
+.staticPage .staticPageH1,
 .staticPage .staticPageH2 {
   padding: 55px 0 10px;
   margin: 0;
@@ -2896,6 +2909,73 @@ display: none;
   font-size: 30px;
   line-height: 35px;
   color: #666666;
+}
+.staticPage.donate .staticPageH2 span {
+  color: #000;
+}
+.staticPage.donate .HeaderWithColorAccentBlockAndText hr {
+  border: black 2px solid;
+  margin-top: 0;
+}
+.staticPage.donate .HeaderWithColorAccentBlockAndText h2 {
+  font-weight: normal;
+  font-size: 30px;
+  margin-bottom: 10px;
+}
+.staticPage.donate h2 {
+  font-size: 30px;
+  font-weight: 400;
+}
+.staticPage.donate details {
+  padding: 0 15px;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  border-top: 4px solid black;
+  margin: 8px 0;
+}
+.staticPage.donate details[open] {
+  padding-bottom: 15px;
+}
+.staticPage.donate details > summary::-webkit-details-marker {
+  display: none;
+}
+.staticPage.donate details > summary {
+  list-style: none;
+  padding: 15px 0;
+  text-align: center;
+  margin: 0 -15px;
+  cursor: pointer;
+}
+
+.staticPage.donate details[open] > summary {
+  padding-bottom: 0;
+}
+
+
+.staticPage.donate details > summary span {
+  border-bottom: 1px solid var(--light-grey);
+}
+
+.staticPage.donate .HeaderWithColorAccentBlockAndText a,
+.staticPage.donate .msgToSupporters a {
+  font-weight: bold;
+}
+.staticPage .staticPageH1 span {
+  font-style: normal;
+  font-weight: 500;
+  font-size: 42px;
+  color: #000;
+}
+.staticPage .msgToSupporters {
+  margin-top: -40px;
+  width: 100%;
+}
+.staticPage .msgToSupporters h1 {
+  font-weight: 500;
+  font-size: 42px;
+}
+
+.staticPage .center {
+  text-align: center;
 }
 .staticPage .staticPageSpacer {
 }
@@ -3045,12 +3125,40 @@ display: none;
   padding: 40px 0;
   background-color: #FBFBFA;
 }
+.staticPage .featureBox {
+  padding: 0 27px 20px;
+  background-color: #FBFBFA;
+  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+  border-radius: 0 0 6px 6px;
+  border-top: black 4px solid;
+  min-height: 230px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+
+.staticPage.donate .simpleButtonWrapper {
+  margin-top: 20px;
+  width: 100%;
+}
+.staticPage.donate .finStewardBox {
+  display: flex;
+  flex-direction: column;
+  height: 300px;
+  justify-content: space-between;
+}
+
+.staticPage.donate .finStewardBox h2 {
+  margin:0;
+}
+
 .staticPage .feature .featureHeader a {
   color: inherit;
 }
 .staticPage .feature .featureHeader a:hover h3 {
   text-decoration: underline;
 }
+.staticPage .featureBox .featureHeader h3,
 .staticPage .feature .featureHeader h3 {
   margin: 20px 0 20px 0;
   font-size: 30px;
@@ -3058,6 +3166,7 @@ display: none;
   font-weight: normal;
   display: inline-block;
 }
+.staticPage .featureBox .featureHeader h3 .int-en,
 .staticPage .feature .featureHeader h3 .int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;
 }

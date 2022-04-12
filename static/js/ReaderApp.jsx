@@ -17,7 +17,8 @@ import {
   PBSC2020LandingPage,
   PBSC2021LandingPage,
   RambanLandingPage,
-  EducatorsPage
+  EducatorsPage,
+  DonatePage
 } from './StaticPages';
 import {
   SignUpModal,
@@ -2096,5 +2097,6 @@ export {
   PBSC2020LandingPage,
   PBSC2021LandingPage,
   RambanLandingPage,
-  EducatorsPage
+  EducatorsPage,
+  DonatePage
 };
