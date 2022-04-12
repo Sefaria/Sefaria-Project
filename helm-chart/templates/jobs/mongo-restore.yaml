@@ -15,7 +15,8 @@ metadata:
     {{- include "sefaria.labels" . | nindent 4 }}
   annotations: 
     helm.sh/hook: pre-install
-    helm.sh/hook-delete-policy: hook-succeeded
+    helm.sh/hook-delete-policy: hook-succeeded, hook-failed
+    helm.sh/hook-weight: "10"
 spec:
   template:
     spec:
@@ -25,6 +26,10 @@ spec:
         - name: gcloud-storage-secret
           secret:
             secretName: {{ template "secrets.backupManager" . }}
+        - name: script
+          configMap:
+            name: mongo-restore-{{ .Values.deployEnv }}
+            defaultMode: 0755
       initContainers:
         - name: mongo-backup-downloader-{{ .Values.deployEnv }}
           image: google/cloud-sdk
@@ -46,11 +51,12 @@ spec:
           volumeMounts:
             - name: shared-volume
               mountPath: /storage
+            - name: script
+              mountPath: /script
           env:
             - name: MONGO_HOST
               value: {{ .Values.localSettings.MONGO_HOST | quote }}
-          command: ["bash"]
-          args: ["-c", "tar xzvf /storage/dump.tar.gz -C /storage && mongorestore --drop --host=$MONGO_HOST:27017 -v -d sefaria-{{ .Values.deployEnv }} --dir=/storage/dump/sefaria"]
+          command: ["/script/restore-mongo.sh"]
       restartPolicy: Never
   ttlSecondsAfterFinished: 432000
 {{- end }}

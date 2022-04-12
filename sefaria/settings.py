@@ -296,10 +296,10 @@ CACHES = {
     }
 }
 
-'''
+
 GLOBAL_INTERRUPTING_MESSAGE = {
-    "name":       "14032022-matching-banner",
-    "style":      "banner", # "modal" or "banner"
+    "name":       "07042022-passover-donate-modal",
+    "style":      "modal", # "modal" or "banner"
     "repetition": 1,
     "is_fundraising": True,
     "condition":  {
@@ -311,7 +311,7 @@ GLOBAL_INTERRUPTING_MESSAGE = {
 }
 '''
 GLOBAL_INTERRUPTING_MESSAGE = None
-
+'''
 
 # Grab environment specific settings from a file which
 # is left out of the repo.

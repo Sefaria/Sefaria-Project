@@ -43,6 +43,7 @@ static_pages = [
     "ramban-sponsorships",
     "contest",
     "design-system",
+    "annualreport2021"
 ]
 
 static_pages_by_lang = [

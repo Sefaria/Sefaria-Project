@@ -867,16 +867,21 @@ def profile_spam_dashboard(request):
 
         regex = r'.*(?!href=[\'"](\/|http(s)?:\/\/(www\.)?sefaria).+[\'"])(href).*'
 
-        spam_keywords_regex = r'(?i).*support.*|.*coin.*|.*helpline.*'
+        spam_keywords_regex = r'(?i).*support.*|.*coin.*|.*helpline.*|.*base.*'
 
         users_to_check = db.profiles.find(
-            {'$or': [
-                {'website': {"$ne": ""}, 'bio': {"$ne": ""}, "id": {"$gt": earliest_new_user_id},
-                      "reviewed": {"$ne": True}},
-                {'bio': {"$regex": regex}, "id": {"$gt": earliest_new_user_id}, "reviewed": {"$ne": True}},
-                {'slug': {"$regex": spam_keywords_regex}, "id": {"$gt": earliest_new_user_id}, "reviewed": {"$ne": True}}
+            {'$and': [
+                {"id": {"$gt": earliest_new_user_id}, "reviewed": {"$ne": True}, "settings.reading_history": {"$ne": False}},
+                {'$or': [
+                    {'website': {"$ne": ""}},
+                    {'facebook': {"$ne": ""}},
+                    {'twitter': {"$ne": ""}},
+                    {'youtube': {"$ne": ""}},
+                    {'linkedin': {"$ne": ""}},
+                    {'bio': {"$regex": regex}},
+                    {'slug': {"$regex": spam_keywords_regex}}
             ]
-        })
+        }]})
 
 
 
