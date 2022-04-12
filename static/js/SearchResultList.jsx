@@ -58,7 +58,7 @@ const SearchTopic = (props) => {
     const sourcesSheetsDiv = <SourcesSheetsDiv url={props.topic.url} numSheets={props.topic.numSheets} numSources={props.topic.numSources}/>;
     const topicTitle = <div className="topicTitle">
                           <h1>
-                          <a href={props.topic.url}><InterfaceText text={{en:props.topic.title, he:props.topic.heTitle}}/></a>
+                          <a href={props.topic.url} onClick={() => Sefaria.track.event("Search", "topic in search click", props.topic.analyticCat, props.topic.title)}><InterfaceText text={{en:props.topic.title, he:props.topic.heTitle}}/></a>
                           </h1>
                         </div>;
     const topicCategory = <div className="topicCategory sectionTitleText">
@@ -441,8 +441,8 @@ class SearchResultList extends Component {
           );
           if (this.state.topics.length > 0) {
               let topics = this.state.topics.map(t => {
-                  Sefaria.track.event("Search", "topic-in-search display", t.analyticCat, t.title);
-                  return <SearchTopic topic={t} onClick={() => Sefaria.track.event("Search", "topic-in-search display", t.analyticCat, t.title)}/>
+                  Sefaria.track.event("Search", "topic in search display", t.analyticCat, t.title);
+                  return <SearchTopic topic={t}/>
               });
               if (results.length > 0) {
                   topics = <div id="searchTopics">{topics}</div>
