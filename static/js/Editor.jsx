@@ -1269,10 +1269,7 @@ const withSefariaSheet = editor => {
     };
 
     editor.deleteForward = () => {
-
-        console.log(editor.selection)
         deleteForward(editor);
-
     }
 
     editor.deleteBackward = () => {
@@ -1786,6 +1783,25 @@ const insertMedia = (editor, mediaUrl) => {
   Transforms.move(editor);
 }
 
+
+function placed_segment_mapper(lang, segmented, includeNumbers, s) {
+
+    if (!s[lang]) {return ""}
+
+    let numStr = "";
+    if (includeNumbers) {
+        const num = (lang=="he") ? Sefaria.hebrew.encodeHebrewNumeral(s.number) : s.number;
+        numStr = "<small>(" + num + ")</small> ";
+    }
+    let str = "<span class='segment'>" + numStr + s[lang] + "</span> ";
+    if (segmented) {
+        str = "<p>" + str + "</p>";
+    }
+    str = str.replace(/(<br\/>)+/g, ' ')
+    return str;
+}
+
+
 const insertSource = (editor, ref) => {
     const path = editor.selection.anchor.path;
 
@@ -1795,8 +1811,19 @@ const insertSource = (editor, ref) => {
     const nodeBelow = getNodeBelow(path, editor)
 
     Sefaria.getText(ref, {stripItags: 1}).then(text => {
-        const enText = Array.isArray(text.text) ? `<p>${text.text.flat(Infinity).join("</p><p>")}</p>` : text.text;
-        const heText = Array.isArray(text.text) ? `<p>${text.he.flat(Infinity).join("</p><p>")}</p>` : text.he;
+        const segments = Sefaria.makeSegments(text);
+
+        let includeNumbers = $.inArray("Talmud", text.categories) == -1;
+        includeNumbers = text.indexTitle === "Pesach Haggadah" ? false : includeNumbers;
+        const segmented = !(text.categories[0] in {"Tanakh": 1, "Talmud": 1});
+
+        const enText = segments.map(placed_segment_mapper.bind(this, "en", segmented, includeNumbers))
+            .filter(Boolean)
+            .join("");
+        const heText = segments.map(placed_segment_mapper.bind(this, "he", segmented, includeNumbers))
+            .filter(Boolean)
+            .join("");
+
         let fragment = [{
                 type: "SheetSource",
                 node: editor.children[0].nextNode,
