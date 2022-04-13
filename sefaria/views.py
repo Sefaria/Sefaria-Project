@@ -275,7 +275,7 @@ def linker_js(request, linker_version=None):
 
 
 @api_view(["POST"])
-def wrap_refs(request):
+def find_refs_api(request):
     from sefaria.helper.ref_part import make_html
     from sefaria.utils.hebrew import is_hebrew
     post = json.loads(request.body)

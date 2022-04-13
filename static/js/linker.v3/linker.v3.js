@@ -46,7 +46,7 @@ const SELECTOR_WHITE_LIST = {
             title: readableObj.title,
         }
 
-        fetch(`${SEFARIA_BASE_URL}/api/wrap-refs`, {
+        fetch(`${SEFARIA_BASE_URL}/api/find-refs`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(postData)
