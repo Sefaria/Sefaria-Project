@@ -1,7 +1,7 @@
 ---
 apiVersion: v2
 name: sefaria
-version: v0.0.3
+version: v0.0.4
 
 icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
 home: https://sefaria.org
