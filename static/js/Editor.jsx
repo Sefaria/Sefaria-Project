@@ -1393,6 +1393,41 @@ const withSefariaSheet = editor => {
             deleteBackward(); // dance finale.
             Editor.normalize(editor, { force: true })
         }
+        else if (data.getData('text/plain').startsWith('http')) {
+            let url;
+            try {
+              url = new URL(data.getData('text/plain'));
+              if (url.hostname.indexOf("www.sefaria.org") === 0) {
+                  $.ajax({
+                      url: url,
+                      async: true,
+                      success: function (data) {
+                          const matches = data.match(/<title>(.*?)<\/title>/);
+                          if (!matches) {
+                              console.log('no matches')
+                              console.log(url)
+                              Transforms.insertText(editor, url.href)
+                              return
+                          }
+                          const link = editor.createLinkNode(url.href, matches[1])
+                          Transforms.insertNodes(editor, link);
+                      },
+                      error: function (e) {
+                          Transforms.insertText(editor, url.href)
+                      }
+                  });
+              }
+
+              else {
+                  insertData(data)
+              }
+
+            } catch {
+                  insertData(data)
+                  return false;
+            }
+        }
+
         else {
             insertData(data)
         }
@@ -2052,7 +2087,7 @@ const withLinks = editor => {
 
     editor.createLinkNode = (href, text) => ({
         type: "link",
-        href,
+        url: href,
         children: [{ text }]
     });
 
