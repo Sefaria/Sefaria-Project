@@ -2056,36 +2056,44 @@ class AddressType(object):
         return {name: number}
 
     @classmethod
-    def get_all_possible_sections_from_string(cls, lang, s, fromSections=None):
+    def get_all_possible_sections_from_string(cls, lang, s, fromSections=None, strip_prefixes=False):
         """
         For string `s`, parse to sections using all address types that `cls` inherits from
         Useful for parsing ambiguous sections, e.g. for AddressPerek פ"ח = 8 but for its superclass AddressInteger, it equals 88.
         :param fromSections: optional. in case of parsing toSections, these represent the sections. Used for parsing edge-case of toSections='b' which is relative to sections
+        :param strip_prefixes: optional. if true, consider possibilities when stripping potential prefixes
         """
+        from sefaria.utils.hebrew import get_prefixless_inds
+
         sections = []
         toSections = []
         addr_classes = []
-        for SuperClass in cls.__mro__:  # mro gives all super classes
-            if SuperClass == AddressType: break
-            addr = SuperClass(0)  # somewhat hacky. trying to get access to super class implementation of `regex` but actually only AddressTalmud implements this function. Other classes just overwrite class fields which modify regex's behavior. Simplest to just instantiate the appropriate address and use it.
-            section_str = None
-            if addr.is_special_case(s):
-                section_str = s
-            else:
-                regex_str = addr.regex(lang, strict=False, group_id='section') + "$"  # must match entire string
-                if regex_str is None: continue
-                reg = regex.compile(regex_str, regex.VERBOSE)
-                match = reg.match(s)
-                if match:
-                    section_str = match.group('section')
-            if section_str:
-                temp_sections = addr.to_numeric_possibilities(lang, section_str, fromSections=fromSections)
-                temp_toSections = temp_sections[:]
-                if hasattr(cls, "lacks_amud") and cls.lacks_amud(section_str, lang):
-                    temp_toSections = [sec+1 for sec in temp_toSections]
-                sections += temp_sections
-                toSections += temp_toSections
-                addr_classes += [SuperClass]*len(temp_sections)
+        starti_list = [0]
+        if strip_prefixes and lang == 'he':
+            starti_list += get_prefixless_inds(s)
+        for starti in starti_list:
+            curr_s = s[starti:]
+            for SuperClass in cls.__mro__:  # mro gives all super classes
+                if SuperClass == AddressType: break
+                addr = SuperClass(0)  # somewhat hacky. trying to get access to super class implementation of `regex` but actually only AddressTalmud implements this function. Other classes just overwrite class fields which modify regex's behavior. Simplest to just instantiate the appropriate address and use it.
+                section_str = None
+                if addr.is_special_case(curr_s):
+                    section_str = curr_s
+                else:
+                    regex_str = addr.regex(lang, strict=False, group_id='section') + "$"  # must match entire string
+                    if regex_str is None: continue
+                    reg = regex.compile(regex_str, regex.VERBOSE)
+                    match = reg.match(curr_s)
+                    if match:
+                        section_str = match.group('section')
+                if section_str:
+                    temp_sections = addr.to_numeric_possibilities(lang, section_str, fromSections=fromSections)
+                    temp_toSections = temp_sections[:]
+                    if hasattr(cls, "lacks_amud") and cls.lacks_amud(section_str, lang):
+                        temp_toSections = [sec+1 for sec in temp_toSections]
+                    sections += temp_sections
+                    toSections += temp_toSections
+                    addr_classes += [SuperClass]*len(temp_sections)
 
         if len(sections) > 0:
             # make sure section, toSection pairs are unique. prefer higher level address_types since these are more generic

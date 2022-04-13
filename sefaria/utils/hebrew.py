@@ -618,5 +618,18 @@ def hebrew_starts_with(he: str, other_he: str) -> False:
 # Hebrew Abbrev Matching END
 ########
 
+PREFIXES = {'ב', 'וב', 'ע', 'ו', 'ד', 'מ', 'ה', 'שב', 'ל'}  # careful of Ayin prefix...
+
+
+def get_prefixless_inds(st: str) -> List[int]:
+	"""
+	get possible indices of start of string `st` with prefixes stripped
+	"""
+	starti_list = []
+	for prefix in PREFIXES:
+		if not st.startswith(prefix): continue
+		starti_list += [len(prefix)]
+	return starti_list
+
 
 

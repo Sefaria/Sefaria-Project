@@ -442,7 +442,7 @@ class ResolvedRef:
                 not self.has_prev_unused_numbered_ref_part(part):
             return False
         try:
-            possible_sections, possible_to_sections, addr_classes = schema.AddressInteger(0).get_all_possible_sections_from_string(lang, part.text)
+            possible_sections, possible_to_sections, addr_classes = schema.AddressInteger(0).get_all_possible_sections_from_string(lang, part.text, strip_prefixes=True)
             for sec, toSec, addr_class in zip(possible_sections, possible_to_sections, addr_classes):
                 if sec != node.numeric_equivalent: continue
                 if addr_class == schema.AddressInteger: return True
@@ -463,7 +463,7 @@ class ResolvedRef:
         'ResolvedRef']:
         if node is None: return []
         try:
-            possible_sections, possible_to_sections, addr_classes = node.address_class(0).get_all_possible_sections_from_string(lang, raw_ref_part.text, fromSections)
+            possible_sections, possible_to_sections, addr_classes = node.address_class(0).get_all_possible_sections_from_string(lang, raw_ref_part.text, fromSections, strip_prefixes=True)
         except (IndexError, TypeError, KeyError):
             return []
         refined_refs = []
@@ -615,20 +615,6 @@ class AmbiguousResolvedRawRef:
         self.resolved_raw_refs = resolved_raw_refs
 
 
-PREFIXES = {'ב', 'וב', 'ע', 'ו', 'ד', 'מ', 'ה', 'שב', 'ל'}  # careful of Ayin prefix...
-
-
-def get_prefixless_inds(st: str) -> List[int]:
-    """
-    get possible indices of start of string `st` with prefixes stripped
-    """
-    starti_list = []
-    for prefix in PREFIXES:
-        if not st.startswith(prefix): continue
-        starti_list += [len(prefix)]
-    return starti_list
-
-
 class MatchTemplateTrie:
     """
     Trie for titles. Keys are titles from match_templates on nodes.
@@ -735,6 +721,8 @@ class MatchTemplateTrie:
         return MatchTemplateTrie(self.lang, sub_trie=merged, scope=self.scope)
 
     def _get_continuations_recursive(self, key: str, prev_sub_tries=None, key_is_id=False):
+        from sefaria.utils.hebrew import get_prefixless_inds
+
         prev_sub_tries = prev_sub_tries or self._trie
         if key_is_id:
             # dont attempt to split key
@@ -823,6 +811,8 @@ class TermMatcher:
                 self._str2term_map[title] += [term]
 
     def match_term(self, ref_part: RawRefPart) -> List[NonUniqueTerm]:
+        from sefaria.utils.hebrew import get_prefixless_inds
+
         matches = []
         if ref_part.type != RefPartType.NAMED: return matches
         starti_inds = [0]
