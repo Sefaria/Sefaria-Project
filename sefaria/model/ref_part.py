@@ -615,7 +615,7 @@ class AmbiguousResolvedRawRef:
         self.resolved_raw_refs = resolved_raw_refs
 
 
-PREFIXES = {'ב', 'וב', 'ע', 'ו', 'ד', 'מ', 'ה'}  # careful of Ayin prefix...
+PREFIXES = {'ב', 'וב', 'ע', 'ו', 'ד', 'מ', 'ה', 'שב', 'ל'}  # careful of Ayin prefix...
 
 
 def get_prefixless_inds(st: str) -> List[int]:

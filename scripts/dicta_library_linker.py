@@ -22,4 +22,4 @@ def run_on_page(path, tref):
 
 
 if __name__ == '__main__':
-    run_on_page("/Users/nss/Downloads", "Halakhah.Shulchan_Arukh.Commentary.Turei_Zahav.Turei_Zahav_on_Shulchan_Arukh_Orach_Chayim.1")
+    run_on_page("/Users/nss/Downloads", "avkatrochel-010")
