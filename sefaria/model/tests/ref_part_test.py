@@ -103,6 +103,7 @@ crrd = create_raw_ref_data
     [crrd(None, 'he', "משנה ברכות פרק קמא", [0, 1, slice(2, 4)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ("Mishnah Berakhot 1",)],
     [crrd(None, 'he', "משנה ברכות פרק בתרא", [0, 1, slice(2, 4)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ("Mishnah Berakhot 9",)],
     [crrd(None, 'he', 'שמות א ב', [0, 1, 2], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Exodus 1:2",)],  # used to also match Exodus 2:1 b/c would allow mixing integer parts
+    [crrd(None, 'he', 'ר"פ בתרא דמשנה ברכות', [slice(0, 4), slice(4, 6)], [RPT.NUMBERED, RPT.NAMED]), ("Mishnah Berakhot 9",)],
 
     # Named alt structs
     [crrd(None, 'he', "פרק אלו דברים בפסחים", [slice(0, 3), 3], [RPT.NAMED, RPT.NAMED]), ("Pesachim 65b:10-73b:16",)],  # talmud perek (that's ambiguous)
@@ -184,6 +185,7 @@ crrd = create_raw_ref_data
     [crrd(None, 'he', 'בירושלמי שביעית פ"ו ה"א', [0, 1, slice(2, 5), slice(5, 8)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Jerusalem Talmud Sheviit 6:1",)],
     [crrd(None, 'he', 'בגמרא במסכת בסנהדרין צז:', [slice(0, 3), slice(3, 5)], [RPT.NAMED, RPT.NUMBERED]), ("Sanhedrin 97b",)],  # one big ref part that actually matches two separate terms + each part has prefix
     [crrd(None, 'he', 'לפרשת וילך', [slice(0, 2)], [RPT.NAMED]), ("Deuteronomy 31:1-30",)],  # lamed prefix
+    [crrd(None, 'he', '''ברמב"ם פ"ח מהל' תרומות הי"א''', [slice(0, 3), slice(3, 6), slice(6, 9), slice(9, 12)], [RPT.NAMED, RPT.NUMBERED, RPT.NAMED, RPT.NUMBERED]), ("Mishneh Torah, Heave Offerings 8:11",)],
     # [crrd(None, 'he', 'בבראשית רבה בראשית ט', [])]
 ])
 def test_resolve_raw_ref(resolver_data, expected_trefs):

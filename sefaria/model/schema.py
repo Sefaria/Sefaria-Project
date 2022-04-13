@@ -2075,12 +2075,14 @@ class AddressType(object):
             curr_s = s[starti:]
             for SuperClass in cls.__mro__:  # mro gives all super classes
                 if SuperClass == AddressType: break
+                if SuperClass == AddressInteger and starti > 0: continue  # prefixes don't really make sense on AddressInteger (in my opinion)
                 addr = SuperClass(0)  # somewhat hacky. trying to get access to super class implementation of `regex` but actually only AddressTalmud implements this function. Other classes just overwrite class fields which modify regex's behavior. Simplest to just instantiate the appropriate address and use it.
                 section_str = None
                 if addr.is_special_case(curr_s):
                     section_str = curr_s
                 else:
-                    regex_str = addr.regex(lang, strict=False, group_id='section') + "$"  # must match entire string
+                    strict = SuperClass != AddressTalmud  # HACK: AddressTalmud doesn't inherit from AddressInteger so it relies on flexibility of not matching "Daf"
+                    regex_str = addr.regex(lang, strict=strict, group_id='section') + "$"  # must match entire string
                     if regex_str is None: continue
                     reg = regex.compile(regex_str, regex.VERBOSE)
                     match = reg.match(curr_s)
@@ -2536,7 +2538,8 @@ class AddressPerek(AddressInteger):
         "פרק קמא": [1, 141],
         "פירקא קמא": [1, 141],
         'פ"ק': [1, 100],  # this is inherently ambiguous (1 or 100)
-        "פרק בתרא": [-1]
+        "פרק בתרא": [-1],
+        'ר"פ בתרא': [-1],
     }
     section_patterns = {
         "en": r"""(?:(?:[Cc]h(apters?|\.)|[Pp]erek|s\.)?\s*)""",  # the internal ? is a hack to allow a non match, even if 'strict'
@@ -2598,7 +2601,7 @@ class AddressHalakhah(AddressInteger):
         "en": r"""(?:(?:[Hh]ala[ck]hah?)?\s*)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
         "he": r"""(?:\u05d1?
             (?:\u05d4\u05bb?\u05dc\u05b8?\u05db(?:\u05b8?\u05d4|\u05d5\u05b9?\u05ea)\s+)			# Halakhah spelled out, with a space after
-            |(?:\u05d4\u05dc?(?:["\u05f4'\u05f3\u2018\u2019](?:['\u05f3\u2018\u2019\u05db]|\s+)?))		# or Haeh and possible Lamed(for 'halakhah') maybe followed by a quote of some sort
+            |(?:\u05d4\u05dc?(?:["\u05f4'\u05f3\u2018\u2019](?:['\u05f3\u2018\u2019\u05db]|\s+)?)?)		# or Haeh and possible Lamed(for 'halakhah') maybe followed by a quote of some sort
         )"""
     }
 
