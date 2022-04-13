@@ -204,7 +204,7 @@ monitor:
 secrets:
   localSettings:
     # A reference to a secret containing the local settings
-    ref:
+    ref: local-settings-secret 
     # The data keys can be used to override values in the local settings secret.
     # This is intended for local development use and CI, do not use this in
     # production.
