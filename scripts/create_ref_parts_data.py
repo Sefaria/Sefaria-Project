@@ -507,6 +507,9 @@ class RefPartModifier:
                 {"term_slugs": ["shulchan-arukh", sa_term.slug]},
                 {"term_slugs": [sa_term.slug]},
             ]
+            if "Even HaEzer" in index.title:
+                # for some reason this one was missed in a previous pass
+                index.nodes.children[0].addressTypes[1] = "Seif"
             self.modify_base_text_commentaries(index.title, [{"term_slugs": [sa_term.slug]}], fast)
             if fast:
                 self.fast_index_save(index)
@@ -552,7 +555,7 @@ class RefPartModifier:
         self.t(en='Bavli', he='בבלי', alt_en=['Babylonian Talmud', 'B.T.', 'BT', 'Babli'], ref_part_role='structural')
         self.t(en="Gemara", he="גמרא", alt_he=["גמ'"], ref_part_role='structural')
         self.t(en="Tractate", he="מסכת", alt_en=['Masekhet', 'Masechet', 'Masekhes', 'Maseches'], ref_part_role='alt_title')
-        self.t(en='Rashi', he='רש"י', alt_en=['פירש"י'], ref_part_role='structural')
+        self.t(en='Rashi', he='רש"י', alt_he=['פירש"י'], ref_part_role='structural')
         self.t(en='Mishnah', he='משנה', alt_en=['M.', 'M', 'Mishna', 'Mishnah', 'Mishnaiot'], ref_part_role='structural')
         self.t(en='Tosefta', he='תוספתא', alt_en=['Tosephta', 'T.', 'Tosef.', 'Tos.'], ref_part_role='structural')
         self.t(en='Yerushalmi', he='ירושלמי', alt_en=['Jerusalem Talmud', 'J.T.', 'JT'],ref_part_role='structural')
