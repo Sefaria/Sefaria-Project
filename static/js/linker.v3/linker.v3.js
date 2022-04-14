@@ -73,6 +73,7 @@ const SELECTOR_WHITE_LIST = {
                     const atag = document.createElement("a");
                     atag.target = "_blank";
                     atag.className = "sefaria-ref";
+                    if (ns.debug) { atag.className += " sefaria-ref-debug"}
                     atag.href = `${SEFARIA_BASE_URL}/${linkObj.refs[0].url}`;
                     atag.setAttribute('data-ref', linkObj.refs[0].ref);
                     atag.setAttribute('aria-controls', 'sefaria-popup');
@@ -85,6 +86,7 @@ const SELECTOR_WHITE_LIST = {
     // public API
 
     ns.link = function({ debug }) {
+        ns.debug = debug;
         if (debug) { removeExistingSefariaLinks(); }
         const {text: readableText, readableObj} = getReadableText();
         const postData = {
