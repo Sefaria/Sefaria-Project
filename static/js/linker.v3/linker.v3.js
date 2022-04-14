@@ -12,11 +12,6 @@ const SELECTOR_WHITE_LIST = {
 };
 
 (function(ns) {
-    function escapeRegExp(string) {
-        // grrrr... https://github.com/tc39/proposal-regex-escaping/issues/37
-        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
-    }
-
     function sanitizeElem(elem) {
         const cleaned = DOMPurify.sanitize(elem, { USE_PROFILES: { html: true } });
         const cleanedElem = document.createElement("div");
@@ -59,7 +54,7 @@ const SELECTOR_WHITE_LIST = {
         for (let linkObj of resp.text) {
             findAndReplaceDOMText(document, {
                 preset: 'prose',
-                find: escapeRegExp(linkObj.text),
+                find: linkObj.text,
                 replace: function(portion, match) {
                     const atag = document.createElement("a");
                     atag.target = "_blank";
