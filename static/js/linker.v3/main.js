@@ -69,12 +69,45 @@ const SELECTOR_WHITE_LIST = {
         findAndReplaceDOMText(document, {
             preset: 'prose',
             find: text,
+            replace: function(portion, match) {
+                occurences.push([match.startIndex, match.endIndex]);
+                return portion.text;
+            }
         })
         return occurences;
     }
 
-    function wrapRef(linkObj) {
+    function getNumWordsAround(linkObj, normalizedText, numWordsAround) {
+        let { startChar, endChar } = linkObj;
+        for (let i = 0; i < numWordsAround; i++) {
+            if (normalizedText.charAt(endChar) === ' ') { endChar += 1; }
+            const tempEndChar = normalizedText.substring(endChar).indexOf(' ');
+            if (tempEndChar === -1) { break; }
+            endChar += tempEndChar + 1;
+        }
+        for (let i = 0; i < numWordsAround; i++) {
+            if (startChar > 0 && normalizedText.charAt(startChar-1) === ' ') { startChar -= 1; }
+            const tempStartChar = normalizedText.substring(0, startChar).lastIndexOf(' ');
+            if (tempStartChar === -1) { break; }
+            startChar = tempStartChar;
+        }
+        return normalizedText.substring(startChar, endChar);
+    }
+
+    function wrapRef(linkObj, normalizedText, maxNumWordsAround = 10) {
         if (!ns.debug && linkObj.linkFailed) { return; }
+        let occurences = [];
+        let numWordsAround = 0;
+        let searchText = linkObj.text;
+        while ((numWordsAround === 0 || occurences.length > 1) && numWordsAround <= maxNumWordsAround) {
+            occurences = findOccurences(searchText);
+            numWordsAround += 1;
+            searchText = getNumWordsAround(linkObj, normalizedText, numWordsAround);
+            console.log(numWordsAround, searchText);
+        }
+
+        // TODO: if numWordsAround > 0, search for searchText and then do an internal search for linkObj.text
+
         findAndReplaceDOMText(document, {
             preset: 'prose',
             find: linkObj.text,
@@ -103,7 +136,7 @@ const SELECTOR_WHITE_LIST = {
     function onFindRefs(resp) {
         alert("Linker results are ready!");
         for (let linkObj of resp.text) {
-            wrapRef(linkObj);
+            wrapRef(linkObj, ns.normalizedInputText);
         }
     }
     // public API
@@ -128,8 +161,9 @@ const SELECTOR_WHITE_LIST = {
         ns.popupManager = new PopupManager({ mode, interfaceLang, contentLang });
         ns.popupManager.setupPopup();
         const {text: readableText, readableObj} = getReadableText();
+        ns.normalizedInputText = readableText + getWhiteListText();
         const postData = {
-            text: readableText + getWhiteListText(),
+            text: ns.normalizedInputText,
             url: window.location.href,
             title: readableObj.title,
         }
