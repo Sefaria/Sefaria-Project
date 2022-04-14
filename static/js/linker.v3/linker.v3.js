@@ -52,10 +52,7 @@ const SELECTOR_WHITE_LIST = {
     }
 
     function removeExistingSefariaLinks() {
-        for (let el of document.querySelectorAll('a.sefaria-ref')) {
-            unwrap(el);
-        }
-        for (let el of document.querySelectorAll('span.sefaria-ref-wrapper')) {
+        for (let el of document.querySelectorAll('a.sefaria-ref, span.sefaria-ref-wrapper')) {
             unwrap(el);
         }
     }
