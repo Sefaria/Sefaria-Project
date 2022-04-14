@@ -35,11 +35,28 @@ const SELECTOR_WHITE_LIST = {
         return elem;
     }
 
+    function unwrap(el) {
+        /**
+         * from https://plainjs.com/javascript/manipulation/unwrap-a-dom-element-35/
+         * removes el and bumps up children to parent
+         * */
+        const parent = el.parentNode;
+        // move all children out of the element
+        while (el.firstChild) {
+            parent.insertBefore(el.firstChild, el);
+        }
+        // remove the empty element
+        parent.removeChild(el);
+        // merge consecutive text nodes
+        parent.normalize();
+    }
+
     function removeExistingSefariaLinks() {
         for (let el of document.querySelectorAll('a.sefaria-ref')) {
-            const tempEl = document.createElement('span');
-            tempEl.textContent = el.textContent;
-            el.parentNode.replaceChild(tempEl, el);
+            unwrap(el);
+        }
+        for (let el of document.querySelectorAll('span.sefaria-ref-wrapper')) {
+            unwrap(el);
         }
     }
 
