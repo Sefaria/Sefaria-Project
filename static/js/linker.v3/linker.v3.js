@@ -1,5 +1,7 @@
 import { Readability } from '@mozilla/readability';
 import DOMPurify from 'dompurify';
+import findAndReplaceDOMText from 'findAndReplaceDOMText';
+
 const SEFARIA_BASE_URL = 'http://localhost:8000'
 
 // hard-coding for now list of elements that get cut off with Readability
@@ -10,6 +12,11 @@ const SELECTOR_WHITE_LIST = {
 };
 
 (function(ns) {
+    function escapeRegExp(string) {
+        // grrrr... https://github.com/tc39/proposal-regex-escaping/issues/37
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+    }
+
     function sanitizeElem(elem) {
         const cleaned = DOMPurify.sanitize(elem, { USE_PROFILES: { html: true } });
         const cleanedElem = document.createElement("div");
@@ -49,6 +56,22 @@ const SELECTOR_WHITE_LIST = {
 
     function onFindRefs(resp) {
         alert("Linker results are ready!");
+        for (let linkObj of resp.text) {
+            findAndReplaceDOMText(document, {
+                preset: 'prose',
+                find: escapeRegExp(linkObj.text),
+                replace: function(portion, match) {
+                    const atag = document.createElement("a");
+                    atag.target = "_blank";
+                    atag.className = "sefaria-ref";
+                    atag.href = `${SEFARIA_BASE_URL}/${linkObj.refs[0].url}`;
+                    atag.setAttribute('data-ref', linkObj.refs[0].ref);
+                    atag.setAttribute('aria-controls', 'sefaria-popup');
+                    atag.textContent = portion.text;
+                    return atag;
+                }
+            });
+        }
     }
     // public API
 
@@ -69,7 +92,7 @@ const SELECTOR_WHITE_LIST = {
         .then(
             (resp) => {
                 if (resp.ok) {
-                    onFindRefs(resp);
+                    resp.json().then(onFindRefs);
                 } else {
                     resp.text().then(text => alert(text));
                 }
