@@ -175,7 +175,7 @@ def make_find_refs_response(resolved: List[List[Union[AmbiguousResolvedRef, Reso
     for inner_resolved in resolved:
         for resolved_ref in inner_resolved:
             resolved_refs = resolved_ref.resolved_raw_refs if resolved_ref.is_ambiguous else [resolved_ref]
-            start_char, end_char = resolved_ref.raw_ref
+            start_char, end_char = resolved_ref.raw_ref.char_indices
             text = resolved_ref.raw_ref.text
             yield {
                 "startChar": start_char,
