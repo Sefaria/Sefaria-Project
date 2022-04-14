@@ -1,6 +1,7 @@
 import { Readability } from '@mozilla/readability';
 import DOMPurify from 'dompurify';
 import findAndReplaceDOMText from 'findAndReplaceDOMText';
+import { PopupManager } from "./popup";
 
 const SEFARIA_BASE_URL = 'http://localhost:8000'
 
@@ -85,9 +86,24 @@ const SELECTOR_WHITE_LIST = {
     }
     // public API
 
-    ns.link = function({ debug }) {
+    ns.link = function({
+        mode = "popup-click",
+        selector = "body",           // CSS Selector
+        excludeFromLinking = null,    // CSS Selector
+        excludeFromTracking = null,   // CSS Selector
+        popupStyles = {},
+        interfaceLang = "english",
+        contentLang = "bilingual",
+        parenthesesOnly = false,
+        quotationOnly = false,
+        dynamic = false,
+        hidePopupsOnMobile = true,
+        debug = false,
+    }) {
         ns.debug = debug;
         if (debug) { removeExistingSefariaLinks(); }
+        ns.popupManager = new PopupManager({ mode, interfaceLang, contentLang });
+        ns.popupManager.setupPopup();
         const {text: readableText, readableObj} = getReadableText();
         const postData = {
             text: readableText + getWhiteListText(),

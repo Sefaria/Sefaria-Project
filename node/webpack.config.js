@@ -227,7 +227,7 @@ var categorizeSheetsConfig = config({
 
 var linkerV3Config = config({
     context: path.resolve('./static/js'),
-    entry: './linker.v3/linker.v3',
+    entry: './linker.v3/main',
     mode: 'development', // can be overriden via cli
     output: {
         path: path.resolve(buildDir + 'linker.v3'),
