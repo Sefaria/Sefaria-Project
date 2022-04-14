@@ -1,10 +1,10 @@
-from sefaria.model.ref_part import ResolvedRef, AmbiguousResolvedRawRef, TermContext, RefPartType
+from sefaria.model.ref_part import ResolvedRef, AmbiguousResolvedRef, TermContext, RefPartType
 from sefaria.model import text
 from typing import List, Union
 from collections import defaultdict
 
 
-def make_html(bulk_resolved_list: List[List[List[Union[ResolvedRef, AmbiguousResolvedRawRef]]]], texts: List[List[str]], output_filename, lang='he'):
+def make_html(bulk_resolved_list: List[List[List[Union[ResolvedRef, AmbiguousResolvedRef]]]], texts: List[List[str]], output_filename, lang='he'):
     from sefaria.utils.util import wrap_chars_with_overlaps
 
     def get_resolved_metadata(resolved: ResolvedRef, i: int) -> dict:
@@ -168,3 +168,24 @@ def make_html(bulk_resolved_list: List[List[List[Union[ResolvedRef, AmbiguousRes
     """
     with open(output_filename, "w") as fout:
         fout.write(html)
+
+
+def make_find_refs_response(resolved: List[List[Union[AmbiguousResolvedRef, ResolvedRef]]]):
+    response = []
+    for inner_resolved in resolved:
+        for resolved_ref in inner_resolved:
+            resolved_refs = resolved_ref.resolved_raw_refs if resolved_ref.is_ambiguous else [resolved_ref]
+            start_char, end_char = resolved_ref.raw_ref
+            text = resolved_ref.raw_ref.text
+            yield {
+                "startChar": start_char,
+                "endChar": end_char,
+                "text": text,
+                "refs": [
+                    {
+                        "ref": rr.ref and rr.ref.normal(),
+                        "url": rr.ref and rr.ref.url(),
+                    } for rr in resolved_refs
+                ]
+            }
+    return response

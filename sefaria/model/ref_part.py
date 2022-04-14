@@ -605,14 +605,17 @@ class ResolvedRef:
         return len(self.resolved_parts)
 
 
-class AmbiguousResolvedRawRef:
+class AmbiguousResolvedRef:
     """
-    Container for multiple ambiguous ResolvedRawRefs
+    Container for multiple ambiguous ResolvedRefs
     """
     is_ambiguous = True
 
-    def __init__(self, resolved_raw_refs: List[ResolvedRef]):
-        self.resolved_raw_refs = resolved_raw_refs
+    def __init__(self, resolved_refs: List[ResolvedRef]):
+        if len(resolved_refs) == 0:
+            raise InputError("Length of `resolved_refs` must be at least 1")
+        self.resolved_raw_refs = resolved_refs
+        self.raw_ref = resolved_refs[0].raw_ref  # assumption is all resolved_refs share same raw_ref. expose at top level
 
 
 class MatchTemplateTrie:
@@ -874,7 +877,7 @@ class RefResolver:
     def reset_ibid_history(self):
         self._ibid_history = IbidHistory()
 
-    def bulk_resolve_refs(self, lang: str, book_context_refs: List[Optional[text.Ref]], input: List[str], with_failures=False, verbose=False, reset_ibids_every_context_ref=True) -> List[List[Union[ResolvedRef, AmbiguousResolvedRawRef]]]:
+    def bulk_resolve_refs(self, lang: str, book_context_refs: List[Optional[text.Ref]], input: List[str], with_failures=False, verbose=False, reset_ibids_every_context_ref=True) -> List[List[Union[ResolvedRef, AmbiguousResolvedRef]]]:
         self.reset_ibid_history()
         all_raw_refs = self._bulk_get_raw_refs(lang, input)
         resolved = []
@@ -1005,7 +1008,7 @@ class RefResolver:
                 curr_part_start = ipart+1
         return split_raw_refs
 
-    def resolve_raw_ref(self, lang: str, book_context_ref: Optional[text.Ref], raw_ref: RawRef) -> List[Union[ResolvedRef, AmbiguousResolvedRawRef]]:
+    def resolve_raw_ref(self, lang: str, book_context_ref: Optional[text.Ref], raw_ref: RawRef) -> List[Union[ResolvedRef, AmbiguousResolvedRef]]:
         split_raw_refs = self.split_non_cts_parts(raw_ref)
         resolved_list = []
         for i, temp_raw_ref in enumerate(split_raw_refs):
@@ -1029,7 +1032,7 @@ class RefResolver:
                         continue
             temp_resolved_list = self.refine_ref_part_matches(lang, book_context_ref, unrefined_matches, temp_raw_ref)
             if len(temp_resolved_list) > 1:
-                resolved_list += [AmbiguousResolvedRawRef(temp_resolved_list)]
+                resolved_list += [AmbiguousResolvedRef(temp_resolved_list)]
             else:
                 resolved_list += temp_resolved_list
         return resolved_list

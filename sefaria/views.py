@@ -276,7 +276,7 @@ def linker_js(request, linker_version=None):
 
 @api_view(["POST"])
 def find_refs_api(request):
-    from sefaria.helper.ref_part import make_html
+    from sefaria.helper.ref_part import make_html, make_find_refs_response
     from sefaria.utils.hebrew import is_hebrew
     post = json.loads(request.body)
     resolver = library.get_ref_resolver()
@@ -287,7 +287,10 @@ def find_refs_api(request):
 
     # currently just dumps result to HTML file
     make_html([resolved_title, resolved], [[post['title']], [post['text']]], f'data/private/linker_results/linker_result.html')
-    return jsonResponse({"status": "all cool"})
+    return jsonResponse({
+        "title": list(make_find_refs_response(resolved_title)),
+        "text": list(make_find_refs_response(resolved)),
+    })
 
 
 def linker_data_api(request, titles):
