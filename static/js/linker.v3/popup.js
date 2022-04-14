@@ -159,6 +159,12 @@ export class PopupManager {
             '}'+
             'span.sefaria-ref-wrapper{'+
                 'display: inline !important;' +
+            '}'+
+            'a.sefaria-ref-debug{'+
+                'border: 3px solid green' +
+            '}'+
+            'a.sefaria-ref-debug.sefaria-link-failed{'+
+                'border: 3px solid red' +
             '}';
 
         if (this.mode == "popup-click") {

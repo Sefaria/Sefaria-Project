@@ -67,6 +67,7 @@ const SELECTOR_WHITE_LIST = {
     function onFindRefs(resp) {
         alert("Linker results are ready!");
         for (let linkObj of resp.text) {
+            if (!ns.debug && linkObj.linkFailed) { continue; }
             findAndReplaceDOMText(document, {
                 preset: 'prose',
                 find: linkObj.text,
@@ -74,7 +75,10 @@ const SELECTOR_WHITE_LIST = {
                     const atag = document.createElement("a");
                     atag.target = "_blank";
                     atag.className = "sefaria-ref";
-                    if (ns.debug) { atag.className += " sefaria-ref-debug"}
+                    if (ns.debug) {
+                        atag.className += " sefaria-ref-debug";
+                        if (linkObj.linkFailed) { atag.className += " sefaria-link-failed"; }
+                    }
                     atag.href = `${SEFARIA_BASE_URL}/${linkObj.refs[0].url}`;
                     atag.setAttribute('data-ref', linkObj.refs[0].ref);
                     atag.setAttribute('aria-controls', 'sefaria-popup');
@@ -101,7 +105,8 @@ const SELECTOR_WHITE_LIST = {
         debug = false,
     }) {
         ns.debug = debug;
-        if (debug) { removeExistingSefariaLinks(); }
+        // useful to remove sefaria links for now but I think when released we only want this to run in debug mode
+        if (debug || true) { removeExistingSefariaLinks(); }
         ns.popupManager = new PopupManager({ mode, interfaceLang, contentLang });
         ns.popupManager.setupPopup();
         const {text: readableText, readableObj} = getReadableText();
