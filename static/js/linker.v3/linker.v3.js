@@ -16,6 +16,7 @@ const SELECTOR_WHITE_LIST = {
         cleanedElem.innerHTML = cleaned;
         return cleanedElem.textContent;
     }
+
     function getWhiteListText() {
         const whiteListSelectors = SELECTOR_WHITE_LIST[window.location.hostname];
         if (!whiteListSelectors) { return ""; }
@@ -24,12 +25,14 @@ const SELECTOR_WHITE_LIST = {
             return prev + sanitizeElem(removeUnwantedElems(curr));
         }, "");
     }
+
     function removeUnwantedElems(elem) {
         for (let tableEl of elem.getElementsByTagName('table')) {
             tableEl.remove();
         }
         return elem;
     }
+
     function removeExistingSefariaLinks() {
         for (let el of document.querySelectorAll('a.sefaria-ref')) {
             const tempEl = document.createElement('span');
@@ -37,12 +40,16 @@ const SELECTOR_WHITE_LIST = {
             el.parentNode.replaceChild(tempEl, el);
         }
     }
+
     function getReadableText() {
         const documentClone = removeUnwantedElems(document.cloneNode(true));
         const readableObj = new Readability(documentClone).parse();
         return {text: sanitizeElem(readableObj.content), readableObj};
     }
 
+    function onFindRefs(resp) {
+        alert("Linker results are ready!");
+    }
     // public API
 
     ns.link = function({ debug }) {
@@ -62,7 +69,7 @@ const SELECTOR_WHITE_LIST = {
         .then(
             (resp) => {
                 if (resp.ok) {
-                    alert("Linker results are ready!");
+                    onFindRefs(resp);
                 } else {
                     resp.text().then(text => alert(text));
                 }
