@@ -30,6 +30,13 @@ const SELECTOR_WHITE_LIST = {
         }
         return elem;
     }
+    function removeExistingSefariaLinks() {
+        for (let el of document.querySelectorAll('a.sefaria-ref')) {
+            const tempEl = document.createElement('span');
+            tempEl.textContent = el.textContent;
+            el.parentNode.replaceChild(tempEl, el);
+        }
+    }
     function getReadableText() {
         const documentClone = removeUnwantedElems(document.cloneNode(true));
         const readableObj = new Readability(documentClone).parse();
@@ -38,7 +45,8 @@ const SELECTOR_WHITE_LIST = {
 
     // public API
 
-    ns.link = function() {
+    ns.link = function({ debug }) {
+        if (debug) { removeExistingSefariaLinks(); }
         const {text: readableText, readableObj} = getReadableText();
         const postData = {
             text: readableText + getWhiteListText(),
