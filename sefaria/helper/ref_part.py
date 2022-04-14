@@ -177,7 +177,7 @@ def make_find_refs_response(resolved: List[List[Union[AmbiguousResolvedRef, Reso
             resolved_refs = resolved_ref.resolved_raw_refs if resolved_ref.is_ambiguous else [resolved_ref]
             start_char, end_char = resolved_ref.raw_ref.char_indices
             text = resolved_ref.raw_ref.text
-            yield {
+            response += [{
                 "startChar": start_char,
                 "endChar": end_char,
                 "text": text,
@@ -187,5 +187,5 @@ def make_find_refs_response(resolved: List[List[Union[AmbiguousResolvedRef, Reso
                         "url": rr.ref and rr.ref.url(),
                     } for rr in resolved_refs
                 ]
-            }
+            }]
     return response

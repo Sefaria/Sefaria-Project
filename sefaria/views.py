@@ -288,8 +288,8 @@ def find_refs_api(request):
     # currently just dumps result to HTML file
     make_html([resolved_title, resolved], [[post['title']], [post['text']]], f'data/private/linker_results/linker_result.html')
     return jsonResponse({
-        "title": list(make_find_refs_response(resolved_title)),
-        "text": list(make_find_refs_response(resolved)),
+        "title": make_find_refs_response(resolved_title),
+        "text": make_find_refs_response(resolved),
     })
 
 
