@@ -20,12 +20,10 @@ metadata:
 spec:
   template:
     spec:
+      serviceAccount: {{ .Values.restore.ServiceAccount }}
       volumes:
         - name: shared-volume
           emptyDir: {}
-        - name: gcloud-storage-secret
-          secret:
-            secretName: {{ template "sefaria.secrets.backupManager" . }}
         - name: script
           configMap:
             name: mongo-restore-{{ .Values.deployEnv }}
@@ -39,12 +37,12 @@ spec:
             - name: gcloud-storage-secret
               mountPath: /conf
           env:
-            - name: GOOGLE_APPLICATION_CREDENTIALS
-              value: /conf/BackupManagerKey.json
-            - name: MONGO_SNAPSHOT_LOCATION
-              value: {{ template "sefaria.mongoSnapshotLocation" . }}
+            - name: BACKUP_BUCKET
+              value: {{ .Values.restore.bucket }}
+            - name: BACKUP_TARBALL
+              value: {{ template "tarballName" . }}
           command: ["bash"]
-          args: ["-c", "gcloud auth activate-service-account --key-file $GOOGLE_APPLICATION_CREDENTIALS && gsutil cp $MONGO_SNAPSHOT_LOCATION /storage/dump.tar.gz"]
+          args: ["-c", "gsutil cp gs://$BACKUP_BUCKET/$BACKUP_TARBALL /storage/dump.tar.gz"]
       containers:
         - name: mongo-backup-restorer-{{ .Values.deployEnv }}
           image: mongo:4.4

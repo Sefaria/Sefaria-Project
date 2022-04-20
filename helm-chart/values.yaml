@@ -27,7 +27,19 @@ previousServicesCount: "3"
 
 # write the full path to the back up if you want to start the environment from
 # a specific backup else leave blank.
-mongoSnapshotLocation:
+restore:
+  bucket: sefaria-mongo-backup
+  # tarball:
+  serviceAccount: database-backup-read
+
+# config to backup environment DB
+backup:
+  enabled: false
+  prefix: ""
+  public: true
+  bucket: sefaria-mongo-backup
+  archiveBucket: sefaria-mongo-archive
+  serviceAccount: database-backup-write
 
 web:
   containerImage:
