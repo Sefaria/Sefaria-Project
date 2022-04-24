@@ -298,8 +298,8 @@ CACHES = {
 
 
 GLOBAL_INTERRUPTING_MESSAGE = {
-    "name":       "07042022-passover-donate-modal",
-    "style":      "modal", # "modal" or "banner"
+    "name":       "13042022-passover-donate-banner",
+    "style":      "banner", # "modal" or "banner"
     "repetition": 1,
     "is_fundraising": True,
     "condition":  {

@@ -1269,10 +1269,7 @@ const withSefariaSheet = editor => {
     };
 
     editor.deleteForward = () => {
-
-        console.log(editor.selection)
         deleteForward(editor);
-
     }
 
     editor.deleteBackward = () => {
@@ -1396,6 +1393,41 @@ const withSefariaSheet = editor => {
             deleteBackward(); // dance finale.
             Editor.normalize(editor, { force: true })
         }
+        else if (data.getData('text/plain').startsWith('http')) {
+            let url;
+            try {
+              url = new URL(data.getData('text/plain'));
+              if (url.hostname.indexOf("www.sefaria.org") === 0) {
+                  $.ajax({
+                      url: url,
+                      async: true,
+                      success: function (data) {
+                          const matches = data.match(/<title>(.*?)<\/title>/);
+                          if (!matches) {
+                              console.log('no matches')
+                              console.log(url)
+                              Transforms.insertText(editor, url.href)
+                              return
+                          }
+                          const link = editor.createLinkNode(url.href, matches[1])
+                          Transforms.insertNodes(editor, link);
+                      },
+                      error: function (e) {
+                          Transforms.insertText(editor, url.href)
+                      }
+                  });
+              }
+
+              else {
+                  insertData(data)
+              }
+
+            } catch {
+                  insertData(data)
+                  return false;
+            }
+        }
+
         else {
             insertData(data)
         }
@@ -1786,6 +1818,25 @@ const insertMedia = (editor, mediaUrl) => {
   Transforms.move(editor);
 }
 
+
+function placed_segment_mapper(lang, segmented, includeNumbers, s) {
+
+    if (!s[lang]) {return ""}
+
+    let numStr = "";
+    if (includeNumbers) {
+        const num = (lang=="he") ? Sefaria.hebrew.encodeHebrewNumeral(s.number) : s.number;
+        numStr = "<small>(" + num + ")</small> ";
+    }
+    let str = "<span class='segment'>" + numStr + s[lang] + "</span> ";
+    if (segmented) {
+        str = "<p>" + str + "</p>";
+    }
+    str = str.replace(/(<br\/>)+/g, ' ')
+    return str;
+}
+
+
 const insertSource = (editor, ref) => {
     const path = editor.selection.anchor.path;
 
@@ -1795,8 +1846,19 @@ const insertSource = (editor, ref) => {
     const nodeBelow = getNodeBelow(path, editor)
 
     Sefaria.getText(ref, {stripItags: 1}).then(text => {
-        const enText = Array.isArray(text.text) ? `<p>${text.text.flat(Infinity).join("</p><p>")}</p>` : text.text;
-        const heText = Array.isArray(text.text) ? `<p>${text.he.flat(Infinity).join("</p><p>")}</p>` : text.he;
+        const segments = Sefaria.makeSegments(text);
+
+        let includeNumbers = $.inArray("Talmud", text.categories) == -1;
+        includeNumbers = text.indexTitle === "Pesach Haggadah" ? false : includeNumbers;
+        const segmented = !(text.categories[0] in {"Tanakh": 1, "Talmud": 1});
+
+        const enText = segments.map(placed_segment_mapper.bind(this, "en", segmented, includeNumbers))
+            .filter(Boolean)
+            .join("");
+        const heText = segments.map(placed_segment_mapper.bind(this, "he", segmented, includeNumbers))
+            .filter(Boolean)
+            .join("");
+
         let fragment = [{
                 type: "SheetSource",
                 node: editor.children[0].nextNode,
@@ -2025,7 +2087,7 @@ const withLinks = editor => {
 
     editor.createLinkNode = (href, text) => ({
         type: "link",
-        href,
+        url: href,
         children: [{ text }]
     });
 

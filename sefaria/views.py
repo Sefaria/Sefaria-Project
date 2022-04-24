@@ -871,7 +871,7 @@ def profile_spam_dashboard(request):
 
         users_to_check = db.profiles.find(
             {'$and': [
-                {"id": {"$gt": earliest_new_user_id}, "reviewed": {"$ne": True}},
+                {"id": {"$gt": earliest_new_user_id}, "reviewed": {"$ne": True}, "settings.reading_history": {"$ne": False}},
                 {'$or': [
                     {'website': {"$ne": ""}},
                     {'facebook': {"$ne": ""}},

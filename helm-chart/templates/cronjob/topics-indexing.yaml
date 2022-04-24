@@ -30,11 +30,11 @@ spec:
                 - secretRef:
                     name: {{ .Values.secrets.localSettings.ref }}
                     optional: true
+                - configMapRef:
+                  name: local-settings-{{ .Values.deployEnv }}
                 - secretRef:
                     name: local-settings-secrets-{{ .Values.deployEnv }}
                     optional: true
-                - configMapRef:
-                  name: local-settings-{{ .Values.deployEnv }}
               volumeMounts:
                 - mountPath: /app/sefaria/local_settings.py
                   name: local-settings
