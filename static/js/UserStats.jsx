@@ -18,11 +18,11 @@ const UserStats = () => {
     const [uid, setUid] = useState(null);
     const [user_data, setUserData] = useState({});
     const [site_data, setSiteData] = useState({});
-    const [active_mode, setMode] = useState("Year to Date");
+    const [active_mode, setMode] = useState("Previous Year");
 
-    const modes = ["Year to Date", "All Time"];
+    const modes = ["Previous Year", "All Time"];
     const modekeys = {
-        "Year to Date": "currently",
+        "Previous Year": "currently",
         "All Time": "alltime"
     };
 
