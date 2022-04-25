@@ -4488,6 +4488,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 #accountSettingsPage .toggleSet {
   display: flex;
 }
+#accountSettingsPage .additional-info {
+  color: var(--dark-grey);
+}
 .toggleSet.aliyotTorah, .toggleSet.punctuationTalmud, .toggleSet .toggle-set-label {
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--english-sans-serif-font-family);
