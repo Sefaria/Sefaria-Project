@@ -322,9 +322,8 @@ def setUserLanguageTraits():
 
             # all bi is .50,  Each he adds a bunch.  Each en takes away a bit.
             else:
-                ent = en/total
-                het = he/total * 5.0
-                value = 0.5 + het - ent
+                het = he/total
+                value = 1.1 * (het / (.1 + het))
 
             Trend({
                 "name":         "HebrewAbility",
