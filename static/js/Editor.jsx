@@ -1410,7 +1410,12 @@ const withSefariaSheet = editor => {
                               return
                           }
                           const link = editor.createLinkNode(url.href, matches[1])
+                          Transforms.insertText(editor, " ") // this is start of dance that's required to ensure that link gets inserted properly
+                          const initLoc = editor.selection
                           Transforms.insertNodes(editor, link);
+                          Transforms.select(editor, initLoc); // dance ii
+                          Transforms.move(editor, { distance: 1, unit: 'character', reverse: true }) // dance dance dance
+                          Transforms.delete(editor); // end of dance
                       },
                       error: function (e) {
                           Transforms.insertText(editor, url.href)
@@ -1419,12 +1424,12 @@ const withSefariaSheet = editor => {
               }
 
               else {
+                  console.log('not sef link')
                   insertData(data)
               }
 
             } catch {
                   insertData(data)
-                  return false;
             }
         }
 
@@ -1554,6 +1559,7 @@ const withSefariaSheet = editor => {
     editor.convertEmptyParagraphToSpacer = (node, path) => {
         if (node.type === "paragraph") {
             if (Node.string(node) === "" && node.children.length <= 1) {
+                console.log('spacer?')
                 Transforms.setNodes(editor, {type: "spacer"}, {at: path});
             }
         }
