@@ -156,19 +156,19 @@ spec:
                 path: local_settings.py
         - name: client-secret
           secret:
-            secretName: {{ template "secrets.googleClient" . }} # needs to be checked if it's a reference object or the data object we created.
+            secretName: {{ template "sefaria.secrets.googleClient" . }} # needs to be checked if it's a reference object or the data object we created.
         - name: backup-manager-secret  # used to access google cloud
           secret:
-            secretName: {{ template "secrets.backupManager" . }}
+            secretName: {{ template "sefaria.secrets.backupManager" . }}
         - name: logging-secret
           secret:
-            secretName: {{ template "secrets.logging" . }}
+            secretName: {{ template "sefaria.secrets.logging" . }}
         - name: varnish-secret
           secret:
-            secretName: {{ template "secrets.varnish" . }}
+            secretName: {{ template "sefaria.secrets.varnish" . }}
         - name: school-lookup-data
           secret:
-            secretName: {{ template "secrets.schoolLookup" . }}
+            secretName: {{ template "sefaria.secrets.schoolLookup" . }}
         - name: gunicorn-config
           configMap:
             name: gunicorn-config-{{ .Values.deployEnv }}

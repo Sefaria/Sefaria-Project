@@ -49,7 +49,7 @@ spec:
             - name: SLACK_URL
               valueFrom:
                 secretKeyRef:
-                  name: {{ template "secrets.slackWebhook" . }}
+                  name: {{ template "sefaria.secrets.slackWebhook" . }}
                   key: slack-webhook
             envFrom:
               - secretRef:

@@ -1,4 +1,4 @@
-{{- define "secrets.googleClient" }} 
+{{- define "sefaria.secrets.googleClient" }}
 {{- if .Values.web.secrets.googleClient.ref -}}
 {{- .Values.web.secrets.googleClient.ref }}
 {{- else -}}
@@ -6,15 +6,15 @@ google-client-secret-{{ .Values.deployEnv }}
 {{- end }}
 {{- end }}
 
-{{- define "secrets.backupManager" }} 
+{{- define "sefaria.secrets.backupManager" }}
 {{- if .Values.secrets.backupManager.ref -}}
 {{- .Values.secrets.backupManager.ref }}
-{{- else -}} 
-backup-manager-secret-{{ .Values.deployEnv }} 
+{{- else -}}
+backup-manager-secret-{{ .Values.deployEnv }}
 {{- end }}
 {{- end }}
 
-{{- define "secrets.logging" }} 
+{{- define "sefaria.secrets.logging" }}
 {{- if .Values.web.secrets.logging.ref -}}
 {{- .Values.web.secrets.logging.ref }}
 {{- else -}}
@@ -22,7 +22,7 @@ logging-secret-{{ .Values.deployEnv }}
 {{- end }}
 {{- end }}
 
-{{- define "secrets.varnish" }} 
+{{- define "sefaria.secrets.varnish" }}
 {{- if .Values.varnish.secrets.varnish.ref -}}
 {{- .Values.varnish.secrets.varnish.ref }}
 {{- else -}}
@@ -30,7 +30,7 @@ varnish-secret-{{ .Values.deployEnv }}
 {{- end }}
 {{- end }}
 
-{{- define "secrets.schoolLookup" }} 
+{{- define "sefaria.secrets.schoolLookup" }}
 {{- if .Values.web.secrets.schoolLookup.ref -}}
 {{- .Values.web.secrets.schoolLookup.ref }}
 {{- else -}}
@@ -38,7 +38,7 @@ school-lookup-data-{{ .Values.deployEnv }}
 {{- end }}
 {{- end }}
 
-{{- define "secrets.slackWebhook" }} 
+{{- define "sefaria.secrets.slackWebhook" }}
 {{- if .Values.secrets.slackWebhook.ref -}}
 {{- .Values.secrets.slackWebhook.ref }}
 {{- else -}}
@@ -46,7 +46,7 @@ slack-webhook-{{ .Values.deployEnv }}
 {{- end }}
 {{- end }}
 
-{{- define "secrets.originTls" }} 
+{{- define "sefaria.secrets.originTls" }}
 {{- if .Values.ingress.secrets.originTls.ref -}}
 {{- .Values.ingress.secrets.originTls.ref }}
 {{- else -}}
@@ -54,7 +54,7 @@ origin-tls-{{ .Values.deployEnv }}
 {{- end }}
 {{- end }}
 
-{{- define "secrets.originIlTls" }} 
+{{- define "sefaria.secrets.originIlTls" }}
 {{- if .Values.ingress.secrets.originIlTls.ref -}}
 {{- .Values.ingress.secrets.originIlTls.ref }}
 {{- else -}}
@@ -62,7 +62,7 @@ origin-il-tls-{{ .Values.deployEnv }}
 {{- end }}
 {{- end }}
 
-{{- define "mongoSnapshotLocation" }} 
+{{- define "sefaria.mongoSnapshotLocation" }}
 {{- if .Values.mongoSnapshotLocation -}}
 {{- .Values.mongoSnapshotLocation }}
 {{- else -}}
