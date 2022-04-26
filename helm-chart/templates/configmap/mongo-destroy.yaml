@@ -16,11 +16,11 @@ data:
     set -e
     set -x
 
-    mongo --host MONGO_HOST sefaria-$SANDBOX_NAME <<EOF
+    mongo --host $MONGO_HOST sefaria-$SANDBOX_NAME <<EOF
     db.dropDatabase();
     EOF
     
-    mongo --host MONGO_HOST apscheduler-$SANDBOX_NAME <<EOF
+    mongo --host $MONGO_HOST apscheduler-$SANDBOX_NAME <<EOF
     db.dropDatabase();
     EOF
 {{- end }}
