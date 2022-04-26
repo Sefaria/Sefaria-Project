@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import copy
+from typing import List
 
 import structlog
 from functools import reduce
@@ -721,7 +722,7 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
         return self._full_title[lang]
 
     # todo: replace with a direct call to self.default for speed
-    def is_default(self):
+    def is_default(self) -> bool:
         """
         Is this node a default node, meaning, do references to its parent cascade to this node?
         :return bool:
@@ -1958,7 +1959,7 @@ class AddressType(object):
         return {name: number}
 
     @classmethod
-    def toStr(cls, lang, i, **kwargs):
+    def toStr(cls, lang, i, **kwargs) -> str:
         if lang == "en":
             return str(i)
         elif lang == "he":
@@ -2054,7 +2055,7 @@ class AddressTalmud(AddressType):
             return ref._get_normal(lang)
 
     @classmethod
-    def parse_range_end(cls, ref, parts, base):
+    def parse_range_end(cls, ref, parts:List[str], base):
         """
         :param ref: Ref object (example: Zohar 1:2-3)
         :param parts: list of text of Ref; if Ref is a range, list will be of length 2; otherwise, length 1;
@@ -2126,7 +2127,7 @@ class AddressTalmud(AddressType):
             return True
         return False
 
-    def toNumber(self, lang, s, **kwargs):
+    def toNumber(self, lang, s, **kwargs) -> int:
         amud_b_list = ['b', 'B', 'ᵇ']
         if lang == "en":
             try:
