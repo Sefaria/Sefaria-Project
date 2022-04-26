@@ -173,7 +173,7 @@ This `dump` must be restored as a MongoDB database.
 
 From MongoDB version 4.4, mongorestore comes separately from the MongoDB server, so if you don't already have it, you'll also need to download and unzip the [Database Tools](https://www.mongodb.com/try/download/database-tools?tck=docs_databasetools). You may then need to add its \bin\ directory to your PATH environment variables.
 
-Once you have the unzipped `dump` and mangarestore ready; from the folder which contains `dump`, run:
+Once you have the unzipped `dump`; from the folder which contains `dump`, run:
 
     mongorestore --drop
 
