@@ -80,16 +80,15 @@ const SELECTOR_WHITE_LIST = {
     function getNumWordsAround(linkObj, normalizedText, numWordsAround) {
         let { startChar, endChar } = linkObj;
         for (let i = 0; i < numWordsAround; i++) {
-            if (normalizedText.charAt(endChar) === ' ') { endChar += 1; }
-            const tempEndChar = normalizedText.substring(endChar).indexOf(' ');
-            if (tempEndChar === -1) { break; }
-            endChar += tempEndChar + 1;
+            const nextWhiteSpace = normalizedText.substring(endChar).match(/.\s+/m);  // `.` so whitespace can't be at beginning of string
+            if (nextWhiteSpace === null) { break; }
+            endChar += nextWhiteSpace.index + nextWhiteSpace[0].length;
         }
         for (let i = 0; i < numWordsAround; i++) {
-            if (startChar > 0 && normalizedText.charAt(startChar-1) === ' ') { startChar -= 1; }
-            const tempStartChar = normalizedText.substring(0, startChar).lastIndexOf(' ');
-            if (tempStartChar === -1) { break; }
-            startChar = tempStartChar;
+            // more annoying to get last match...
+            const prevWhiteSpaceMatches = [...normalizedText.substring(0, startChar).matchAll(/\s+./gm)];
+            if (prevWhiteSpaceMatches.length === 0) { break; }
+            startChar = prevWhiteSpaceMatches[prevWhiteSpaceMatches.length - 1].index;
         }
         return normalizedText.substring(startChar, endChar);
     }
@@ -99,11 +98,16 @@ const SELECTOR_WHITE_LIST = {
         let occurences = [];
         let numWordsAround = 0;
         let searchText = linkObj.text;
-        while ((numWordsAround === 0 || occurences.length > 1) && numWordsAround <= maxNumWordsAround) {
+        while ((numWordsAround === 0 || occurences.length > 1) && numWordsAround < maxNumWordsAround) {
             occurences = findOccurences(searchText);
+            if (occurences.length === 1) { break; }
             numWordsAround += 1;
             searchText = getNumWordsAround(linkObj, normalizedText, numWordsAround);
-            console.log(numWordsAround, searchText);
+        }
+        if (numWordsAround > 0) {
+            console.log('----')
+            console.log(numWordsAround, linkObj.text);
+            console.log(searchText);
         }
 
         // TODO: if numWordsAround > 0, search for searchText and then do an internal search for linkObj.text
