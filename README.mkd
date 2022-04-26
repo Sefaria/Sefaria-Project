@@ -184,7 +184,7 @@ If you used the recommended dump, `dump_small.tar.gz`, create an empty collectio
 #### 9) Set up Django's local server
 
 Sefaria is using Google's reCAPTCHA to verify the user is not a bot. For a deployment, you should register and use your own reCAPTCHA keys (https://pypi.org/project/django-recaptcha/#installation).
-For local development, the default test keys would suffice. The warning can be surpassed by uncommenting the following in the local_settings.py file:
+For local development, the default test keys would suffice. The warning can be suppressed by uncommenting the following in the local_settings.py file:
 
     SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
 
