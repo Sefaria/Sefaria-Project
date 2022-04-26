@@ -189,7 +189,7 @@ def subscribe(request, email):
 @login_required
 def unlink_gauth(request):
     profile = UserProfile(id=request.user.id)
-    profile.update({"gauth_token": None})
+    profile.update({"gauth_token": None, "gauth_email": None})
     profile.save()
     return redirect(f"/profile/{profile.slug}")
 

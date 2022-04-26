@@ -1097,13 +1097,14 @@ def resolve_options_of_sources(sheet):
 
 
 
-@gauth_required(scope='https://www.googleapis.com/auth/drive.file', ajax=True)
+@gauth_required(scope=['https://www.googleapis.com/auth/drive.file', 'https://www.googleapis.com/auth/userinfo.email'], ajax=True)
 def export_to_drive(request, credential, sheet_id):
     """
     Export a sheet to Google Drive.
     """
     # Using credentials in google-api-python-client.
     service = build('drive', 'v3', credentials=credential, cache_discovery=False)
+    user_info_service = build('oauth2', 'v2', credentials=credential, cache_discovery=False)
 
     sheet = get_sheet(sheet_id)
     if 'error' in sheet:
@@ -1124,6 +1125,12 @@ def export_to_drive(request, credential, sheet_id):
     new_file = service.files().create(body=file_metadata,
                                       media_body=media,
                                       fields='webViewLink').execute()
+    
+    user_info = user_info_service.userinfo().get().execute()
+
+    profile = UserProfile(id=request.user.id)
+    profile.update({"gauth_email": user_info['email']})
+    profile.save()
 
     return jsonResponse(new_file)
 
