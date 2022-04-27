@@ -1097,7 +1097,7 @@ def resolve_options_of_sources(sheet):
 
 
 
-@gauth_required(scope=['openid', 'https://www.googleapis.com/auth/drive.file', 'https://www.googleapis.com/auth/userinfo.email'], ajax=True)
+@gauth_required(scope=['https://www.googleapis.com/auth/drive.file', 'https://www.googleapis.com/auth/userinfo.email'], ajax=True)
 def export_to_drive(request, credential, sheet_id):
     """
     Export a sheet to Google Drive.
@@ -1122,14 +1122,11 @@ def export_to_drive(request, credential, sheet_id):
         mimetype='text/html',
         resumable=True)
 
-    try:
-        new_file = service.files().create(body=file_metadata,
+    new_file = service.files().create(body=file_metadata,
                                         media_body=media,
                                         fields='webViewLink').execute()
         
-        user_info = user_info_service.userinfo().get().execute()
-    except:
-
+    user_info = user_info_service.userinfo().get().execute()
 
     profile = UserProfile(id=request.user.id)
     profile.update({"gauth_email": user_info['email']})
