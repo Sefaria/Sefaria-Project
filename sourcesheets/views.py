@@ -1097,7 +1097,7 @@ def resolve_options_of_sources(sheet):
 
 
 
-@gauth_required(scope=['https://www.googleapis.com/auth/drive.file', 'https://www.googleapis.com/auth/userinfo.email'], ajax=True)
+@gauth_required(scope=['openid', 'https://www.googleapis.com/auth/drive.file', 'https://www.googleapis.com/auth/userinfo.email'], ajax=True)
 def export_to_drive(request, credential, sheet_id):
     """
     Export a sheet to Google Drive.
