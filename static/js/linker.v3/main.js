@@ -77,20 +77,26 @@ const SELECTOR_WHITE_LIST = {
         return occurences;
     }
 
-    function getNumWordsAround(linkObj, normalizedText, numWordsAround) {
+    function getNextWhiteSpaceIndex(text) {
+        const match = text.match(/.\s+/m);  // `.` so whitespace can't be at beginning of string
+        if (match === null) { return -1; }
+        return match.index + match[0].length;
+    }
+
+    function getNthWhiteSpaceIndex(text, n, startIndex) {
+        for (let i = 0; i < n; i++) {
+            const nextIncrement = getNextWhiteSpaceIndex(text.substring(startIndex));
+            if (nextIncrement === -1) { break; }
+            startIndex += nextIncrement;
+        }
+        return startIndex;
+    }
+
+    function getNumWordsAround(linkObj, text, numWordsAround) {
         let { startChar, endChar } = linkObj;
-        for (let i = 0; i < numWordsAround; i++) {
-            const nextWhiteSpace = normalizedText.substring(endChar).match(/.\s+/m);  // `.` so whitespace can't be at beginning of string
-            if (nextWhiteSpace === null) { break; }
-            endChar += nextWhiteSpace.index + nextWhiteSpace[0].length;
-        }
-        for (let i = 0; i < numWordsAround; i++) {
-            // more annoying to get last match...
-            const prevWhiteSpaceMatches = [...normalizedText.substring(0, startChar).matchAll(/\s+./gm)];
-            if (prevWhiteSpaceMatches.length === 0) { break; }
-            startChar = prevWhiteSpaceMatches[prevWhiteSpaceMatches.length - 1].index;
-        }
-        return normalizedText.substring(startChar, endChar);
+        endChar = getNthWhiteSpaceIndex(text, numWordsAround, endChar);
+        startChar = text.length - getNthWhiteSpaceIndex(text.substr(1), numWordsAround, text.length - startChar);
+        return text.substring(startChar, endChar);
     }
 
     function wrapRef(linkObj, normalizedText, maxNumWordsAround = 10) {
@@ -111,7 +117,14 @@ const SELECTOR_WHITE_LIST = {
         }
 
         // TODO: if numWordsAround > 0, search for searchText and then do an internal search for linkObj.text
-
+        /*
+        strategy:
+        wrap linkObj.text in group in searchText. create RegExp object
+        if (portion.indexInMatch > match.group(0).start && (portion.indexInMatch + portion.text.length) <= match.group(0).end) {
+            portion only contains link. wrap portion in a-tag
+        } else {
+            portion contains some text that isn't link. wrap group 1 in a-tag and entire portion in span.
+         */
         findAndReplaceDOMText(document, {
             preset: 'prose',
             find: linkObj.text,
