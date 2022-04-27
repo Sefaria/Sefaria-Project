@@ -315,9 +315,9 @@ class ConnectionsPanel extends Component {
               masterPanelSheetId={this.props.masterPanelSheetId}
             /> :
             <div className="topToolsButtons">
-              <ToolsButton en="About this Text" he="אודות הטקסט" image="about-text.svg" onClick={() => this.props.setConnectionsMode("About")} />
-              <ToolsButton en="Table of Contents" he="תוכן העניינים" image="text-navigation.svg" onClick={() => this.props.setConnectionsMode("Navigation")} />
-              <ToolsButton en="Translations" he="תרגומים" image="translation.svg"  onClick={() => this.props.setConnectionsMode("Translations")} count={resourcesButtonCounts.translations} />
+              <ToolsButton en="About this Text" he="אודות הטקסט" image="about-text.svg" urlConnectionsMode="About" onClick={() => this.props.setConnectionsMode("About")} />
+              <ToolsButton en="Table of Contents" he="תוכן העניינים" image="text-navigation.svg" urlConnectionsMode="Navigation" onClick={() => this.props.setConnectionsMode("Navigation")} />
+              <ToolsButton en="Translations" he="תרגומים" image="translation.svg"  urlConnectionsMode="Translations" onClick={() => this.props.setConnectionsMode("Translations")} count={resourcesButtonCounts.translations} />
             </div>
           }
           {showConnectionSummary ?
@@ -348,8 +348,8 @@ class ConnectionsPanel extends Component {
                 // looked at
                 (this.props.masterPanelMode == "Sheet" && this.props.title !== "Sheet") ?
                     <>
-                      <ToolsButton en="About this Source" he="אודות מקור זה" image="about-text.svg" onClick={() => this.props.setConnectionsMode("About")} />
-                      <ToolsButton en="Translations" he="תרגומים" image="translation.svg" count={resourcesButtonCounts["translations"]} onClick={() => this.props.setConnectionsMode("Translations")} />
+                      <ToolsButton en="About this Source" he="אודות מקור זה" image="about-text.svg" urlConnectionsMode="About" onClick={() => this.props.setConnectionsMode("About")} />
+                      <ToolsButton en="Translations" he="תרגומים" image="translation.svg" count={resourcesButtonCounts["translations"]} urlConnectionsMode="Translations" onClick={() => this.props.setConnectionsMode("Translations")} />
                     </>
                   :
                   null
@@ -756,11 +756,11 @@ const ResourcesList = ({ masterPanelMode, setConnectionsMode, counts }) => {
   // A list of Resources in addition to connection
   return (
     <div className="toolButtonsList">
-      <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={counts["sheets"]} onClick={() => setConnectionsMode("Sheets")} />
-      <ToolsButton en="Web Pages" he="דפי אינטרנט" image="webpages.svg" count={counts["webpages"]} onClick={() => setConnectionsMode("WebPages")} />
-      <ToolsButton en="Topics" he="נושאים" image="hashtag-icon.svg" count={counts["topics"]} onClick={() => setConnectionsMode("Topics")} />
-      <ToolsButton en="Manuscripts" he="כתבי יד" image="manuscripts.svg" count={counts["manuscripts"]} onClick={() => setConnectionsMode("manuscripts")} />
-      <ToolsButton en="Torah Readings" he="קריאה בתורה" image="torahreadings.svg" count={counts["audio"]} onClick={() => setConnectionsMode("Torah Readings")} />
+      <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={counts["sheets"]} urlConnectionsMode="Sheets" onClick={() => setConnectionsMode("Sheets")} />
+      <ToolsButton en="Web Pages" he="דפי אינטרנט" image="webpages.svg" count={counts["webpages"]} urlConnectionsMode="WebPages" onClick={() => setConnectionsMode("WebPages")} />
+      <ToolsButton en="Topics" he="נושאים" image="hashtag-icon.svg" count={counts["topics"]} urlConnectionsMode="Topics" onClick={() => setConnectionsMode("Topics")} />
+      <ToolsButton en="Manuscripts" he="כתבי יד" image="manuscripts.svg" count={counts["manuscripts"]} urlConnectionsMode="manuscripts" onClick={() => setConnectionsMode("manuscripts")} />
+      <ToolsButton en="Torah Readings" he="קריאה בתורה" image="torahreadings.svg" count={counts["audio"]} urlConnectionsMode="Torah Readings" onClick={() => setConnectionsMode("Torah Readings")} />
     </div>
   );
 }
@@ -774,9 +774,9 @@ const ToolsList = ({ setConnectionsMode, toggleSignUpModal, openComparePanel, co
   return (
     <div className="toolButtonsList">
       <ToolsButton en="Add to Sheet" he="הוספה לדף מקורות" image="sheetsplus.svg" onClick={() => !Sefaria._uid ? toggleSignUpModal() : setConnectionsMode("Add To Sheet", { "addSource": "mainPanel" })} />
-      <ToolsButton en="Dictionaries" he="מילונים" image="dictionaries.svg" onClick={() => setConnectionsMode("Lexicon")} />
+      <ToolsButton en="Dictionaries" he="מילונים" image="dictionaries.svg" urlConnectionsMode="Lexicon" onClick={() => setConnectionsMode("Lexicon")} />
       {openComparePanel ? <ToolsButton en="Compare Text" he="טקסט להשוואה" image="compare-panel.svg" onClick={openComparePanel} /> : null}
-      <ToolsButton en="Notes" he="הערות" image="notes.svg" alwaysShow={true} count={counts["notes"]} onClick={() => !Sefaria._uid ? toggleSignUpModal() : setConnectionsMode("Notes")} />
+      <ToolsButton en="Notes" he="הערות" image="notes.svg" alwaysShow={true} count={counts["notes"]} urlConnectionsMode="Notes" onClick={() => !Sefaria._uid ? toggleSignUpModal() : setConnectionsMode("Notes")} />
       <ToolsButton en="Chavruta" he="חברותא" image="chavruta.svg" onClick={() => !Sefaria._uid ? toggleSignUpModal() : setConnectionsMode("Chavruta")} />
       {masterPanelMode !== "Sheet" ? <ToolsButton en="Share" he="שיתוף" image="share.svg" onClick={() => setConnectionsMode("Share")} /> : null}
       <ToolsButton en="Feedback" he="משוב" image="feedback.svg" onClick={() => setConnectionsMode("Feedback")} />
@@ -809,9 +809,9 @@ const AboutSheetButtons = ({ setConnectionsMode, masterPanelSheetId }) => {
 
   return (<div className="topToolsButtons">
     {isOwner ?
-        <ToolsButton en="Publish Settings" he="הגדרות פרסום" image="about-text.svg" onClick={() => setConnectionsMode("AboutSheet")} />
+        <ToolsButton en="Publish Settings" he="הגדרות פרסום" image="about-text.svg" urlConnectionsMode="AboutSheet" onClick={() => setConnectionsMode("AboutSheet")} />
         :
-        <ToolsButton en="About this Sheet" he="אודות דף המקורות" image="about-text.svg" onClick={() => setConnectionsMode("AboutSheet")} />
+        <ToolsButton en="About this Sheet" he="אודות דף המקורות" image="about-text.svg" urlConnectionsMode="AboutSheet" onClick={() => setConnectionsMode("AboutSheet")} />
     }
     {showEditButton  ?
         <ToolsButton en="Edit" he="עריכה" image="note.svg" onClick={() => {
@@ -969,7 +969,7 @@ class SheetNodeConnectionTools extends Component {
       {this.props.multiPanel ?
         <ToolsButton en="Other Text" he="טקסט נוסף" icon="search" onClick={this.props.openComparePanel} />
         : null}
-      <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={this.props.sheetsCount} onClick={() => this.props.setConnectionsMode("Sheets")} />
+      <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" urlConnectionsMode="Sheets" count={this.props.sheetsCount} onClick={() => this.props.setConnectionsMode("Sheets")} />
       <ToolsButton en="Feedback" he="משוב" icon="comment" onClick={() => this.props.setConnectionsMode("Feedback")} />
     </div>);
   }
@@ -1346,7 +1346,9 @@ AdvancedToolsList.propTypes = {
 };
 
 
-const ToolsButton = ({ en, he, icon, image, count = null, onClick, control = "interface", typeface = "system", alwaysShow = false, secondaryHe, secondaryEn, greyColor=false }) => {
+const ToolsButton = ({ en, he, onClick, urlConnectionsMode = null, icon, image, 
+                       count = null, control = "interface", typeface = "system", alwaysShow = false, 
+                       secondaryHe, secondaryEn, greyColor=false }) => {
   const clickHandler = (e) => {
     e.preventDefault();
     onClick();
@@ -1360,7 +1362,8 @@ const ToolsButton = ({ en, he, icon, image, count = null, onClick, control = "in
   } else if (image) {
     iconElem = (<img src={"/static/img/" + image} className="toolsButtonIcon" alt="" />);
   }
-  const url = Sefaria.util.replaceUrlParam("with", en);
+  //We only want to generate reloadable urls for states where we actually respond to said url. See ReaderApp.makeHistoryState()- sidebarModes.
+  const url = urlConnectionsMode ? Sefaria.util.replaceUrlParam("with", urlConnectionsMode) : null;
   const nameClass = en.camelize();
   const wrapperClasses = classNames({ toolsButton: 1, [nameClass]: 1, [control + "Control"]: 1, [typeface + "Typeface"]: 1, noselect: 1, greyColor: greyColor })
   return (
