@@ -38,12 +38,14 @@ class Sheet extends Component {
     this.props.openSheet(sheetRef, true); // Replace state now that data is loaded so History can include sheet title
     this.forceUpdate();
     this.preloadConnections();
+    this.updateDivineNameStateWithSheetValue()
   }
   ensureData() {
     if (!this.getSheetFromCache()) {
       this.getSheetFromAPI();
     } else {
       this.preloadConnections();
+      this.updateDivineNameStateWithSheetValue()
     }
   }
   preloadConnections() {
@@ -54,6 +56,10 @@ class Sheet extends Component {
         Sefaria.related(data.sources[i].ref, () => this.forceUpdate);
       }
     }
+  }
+  updateDivineNameStateWithSheetValue() {
+    const sheet = this.getSheetFromCache();
+    this.props.setDivineNameReplacement(sheet.options.divineNames)
   }
   handleClick(e) {
     const target = e.target.closest('a')
@@ -130,6 +136,8 @@ class Sheet extends Component {
             sheetSourceClick={this.props.onSegmentClick}
             highlightedNode={this.props.highlightedNode}
             highlightedRefsInSheet={this.props.highlightedRefsInSheet}
+            setDivineNameReplacement={this.props.setDivineNameReplacement}
+            divineNameReplacement={this.props.divineNameReplacement}
           />
         </div>
         : 
@@ -498,6 +506,16 @@ class SheetHeader extends Component {
 
 
 class SheetOutsideText extends Component {
+  shouldPassClick(e) {
+    const target = e.target.closest('a')
+    if (target) {
+      return
+    }
+    else{
+      this.props.sheetSourceClick(this.props.source)
+    }
+  }
+
   render() {
     const lang = Sefaria.hebrew.isHebrew(this.props.source.outsideText.stripHtml().replace(/\s+/g, ' ')) ? "he" : "en";
     const containerClasses = classNames("sheetItem",
@@ -509,7 +527,7 @@ class SheetOutsideText extends Component {
 
     return (
       <section className="SheetOutsideText">
-        <div className={containerClasses} data-node={this.props.source.node} onClick={this.props.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.props.sheetSourceClick(e):null}.bind(this)} >
+        <div className={containerClasses} data-node={this.props.source.node} onClick={(e) => this.shouldPassClick(e)} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.props.sheetSourceClick(e):null}.bind(this)} >
 
           <div className={lang}>{this.props.source.options && this.props.source.options.sourcePrefix && this.props.source.options.sourcePrefix != "" ? <sup className="sourcePrefix">{this.props.source.options.sourcePrefix}</sup> : null }
               <div className="sourceContentText" dangerouslySetInnerHTML={ {__html: Sefaria.util.cleanHTML(this.props.source.outsideText)} }></div>

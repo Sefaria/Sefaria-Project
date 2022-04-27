@@ -17,7 +17,8 @@ import {
   PBSC2020LandingPage,
   PBSC2021LandingPage,
   RambanLandingPage,
-  EducatorsPage
+  EducatorsPage,
+  DonatePage
 } from './StaticPages';
 import {
   SignUpModal,
@@ -1445,6 +1446,9 @@ class ReaderApp extends Component {
     this.state.panels[n].scrollToHighlighted = false;
     this.setState({panels: this.state.panels});
     }
+  setDivineNameReplacement(mode) {
+    this.setState({divineNameReplacement: mode})
+  }
   setConnectionsFilter(n, filter, updateRecent) {
     // Set the filter for connections panel at `n`, carry data onto the panel's basetext as well.
     var connectionsPanel = this.state.panels[n];
@@ -1787,7 +1791,17 @@ class ReaderApp extends Component {
   }
 
   getUserContext() {
-    const refs = this.state.panels.map(panel => panel.currentlyVisibleRef || panel.bookRef || panel.navigationCategories || panel.navigationTopic).flat();
+    const returnNullIfEmpty = (value) => {
+      if(Array.isArray(value)) {
+        if(value.length === 0) {
+          return null;
+        } else {
+          return value;
+        }
+      }
+
+    }
+    const refs = this.state.panels.map(panel => panel.currentlyVisibleRef || panel.bookRef || returnNullIfEmpty(panel.navigationCategories) || panel.navigationTopic).flat();
     const books = refs.map(ref => Sefaria.parseRef(ref).book);
     const triggers = refs.map(ref => Sefaria.refCategories(ref))
           .concat(books)
@@ -1796,6 +1810,7 @@ class ReaderApp extends Component {
           .filter(ref => !!ref);
     const deDupedTriggers = [...new Set(triggers.map(JSON.stringify))].map(JSON.parse);
     const context = {
+      isDebug: this.props._debug,
       isLoggedIn: Sefaria._uid,
       interfaceLang: Sefaria.interfaceLang,
       dt: Sefaria.util.epoch_time(new Date())*1000,
@@ -1964,6 +1979,8 @@ class ReaderApp extends Component {
                       translationLanguagePreference={this.state.translationLanguagePreference}
                       setTranslationLanguagePreference={this.setTranslationLanguagePreference}
                       navigatePanel={navigatePanel}
+                      divineNameReplacement={this.state.divineNameReplacement}
+                      setDivineNameReplacement={this.setDivineNameReplacement}
                     />
                   </div>);
     }
@@ -2081,5 +2098,6 @@ export {
   PBSC2020LandingPage,
   PBSC2021LandingPage,
   RambanLandingPage,
-  EducatorsPage
+  EducatorsPage,
+  DonatePage
 };

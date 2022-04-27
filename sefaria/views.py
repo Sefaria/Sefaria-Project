@@ -59,7 +59,7 @@ from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.sheets import get_sheet_categorization_info
 from reader.views import base_props, render_template 
-
+from sefaria.helper.nationbuilder import delete_from_nationbuilder_if_spam
 
 
 if USE_VARNISH:
@@ -886,22 +886,32 @@ def profile_spam_dashboard(request):
 
         regex = r'.*(?!href=[\'"](\/|http(s)?:\/\/(www\.)?sefaria).+[\'"])(href).*'
 
+        spam_keywords_regex = r'(?i).*support.*|.*coin.*|.*helpline.*|.*base.*'
+
         users_to_check = db.profiles.find(
-            {'$or': [
-                {'website': {"$ne": ""}, 'bio': {"$ne": ""}, "id": {"$gt": earliest_new_user_id},
-                      "reviewed": {"$ne": True}},
-                {'bio': {"$regex": regex}, "id": {"$gt": earliest_new_user_id}, "reviewed": {"$ne": True}}
+            {'$and': [
+                {"id": {"$gt": earliest_new_user_id}, "reviewed": {"$ne": True}, "settings.reading_history": {"$ne": False}},
+                {'$or': [
+                    {'website': {"$ne": ""}},
+                    {'facebook': {"$ne": ""}},
+                    {'twitter': {"$ne": ""}},
+                    {'youtube': {"$ne": ""}},
+                    {'linkedin': {"$ne": ""}},
+                    {'bio': {"$regex": regex}},
+                    {'slug': {"$regex": spam_keywords_regex}}
             ]
-        })
+        }]})
 
 
 
         profiles_list = []
 
         for user in users_to_check:
-            history_count = db.user_history.find({'uid': user['id']}).count()
+            history_count = db.user_history.find({'uid': user['id'], 'book': {'$ne': 'Sheet'}}).count()
             if history_count < 10:
-                profiles_list.append({"id": user["id"], "slug": user["slug"], "bio": strip_tags(user["bio"][0:250]), "website": user["website"][0:50]})
+                profile = model.user_profile.UserProfile(id=user["id"])
+
+                profiles_list.append({"name": f"{profile.first_name} {profile.last_name}", "email": profile.email, "id": user["id"], "slug": user["slug"], "bio": strip_tags(user["bio"][0:250]), "website": user["website"][0:50]})
 
         return render_template(request, 'spam_dashboard.html', None, {
             "title": "Potential Spam Profiles since %s" % date.strftime("%Y-%m-%d"),
@@ -918,6 +928,10 @@ def spam_dashboard(request):
 
 
     def purge_spammer_account_data(spammer_id):
+        # Delete from Nationbuilder
+        profile = db.profiles.find_one({"id": spammer_id})
+        if "nationbuilder_id" in profile:
+            delete_from_nationbuilder_if_spam(spammer_id, profile["nationbuilder_id"])
         # Delete Sheets
         db.sheets.delete_many({"owner": spammer_id})
         # Delete Notes
@@ -929,7 +943,6 @@ def spam_dashboard(request):
         db.following.delete_many({"followee": spammer_id})
         # Delete Profile
         db.profiles.delete_one({"id": spammer_id})
-
         # Set account inactive
         spammer_account = User.objects.get(id=spammer_id)
         spammer_account.is_active = False

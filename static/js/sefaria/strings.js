@@ -419,7 +419,7 @@ const Strings = {
 
     //user stats
     "Torah Tracker" : "לימוד במספרים",
-    "Year to Date": "בשנה הנוכחית",
+    "Previous Year": "לשנה האחרונה",
     "All Time": "כל הזמן",
     "Texts Read" : "ספרים שנקראו",
     "Sheets Read" : "דפי מקורות שנקראו",

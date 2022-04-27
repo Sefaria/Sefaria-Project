@@ -1,0 +1,21 @@
+{{- if eq .Values.sandbox "true" }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mongo-restore-{{ .Values.deployEnv }}
+  labels:
+    deployEnv: {{ .Values.deployEnv | quote }}
+    {{- include "sefaria.labels" . | nindent 4 }}
+  annotations: 
+    helm.sh/hook: pre-install
+    helm.sh/hook-delete-policy: hook-succeeded, hook-failed
+    helm.sh/hook-weight: "5"
+data: 
+  restore-mongo.sh: |-  
+    #!/bin/bash
+    set -e
+    set -x
+
+    tar xzvf /storage/dump.tar.gz -C /storage 
+    mongorestore --drop --host=$MONGO_HOST:27017 -v -d sefaria-{{ .Values.deployEnv }} --dir=/storage/dump/sefaria
+{{- end }}

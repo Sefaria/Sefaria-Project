@@ -333,6 +333,43 @@ export const serialize = (content) => {
     return children.join('')
 };
 
+const replaceDivineNames = (str, divineName) => {
+    // Regexes for identifying divine names with or without nikkud / trop
+    // Currently ignores אֵל & צְבָאוֹת & שדי
+    const divineRE  = /([\s.,\u05BE;:'"\-]|^)([ו]?[\u0591-\u05C7]*[משהוכלב]?[\u0591-\u05C7]*)(י[\u0591-\u05C7]*ה[\u0591-\u05C7]*ו[\u0591-\u05C7]*ה[\u0591-\u05C2\u05C4-\u05C7]*|יְיָ|יי|יקוק|ה\'|ה׳)(?=[/(/[<//.,;:׃'"\-\s]|$)/g;
+
+    // don't match אֲדֹנִי
+    const adoshemRE = /([\s.,\u05BE;:'"\-]|^)([ו]?[\u0591-\u05C7]*[משהוכלב]?[\u0591-\u05C7]*)(א[\u0591-\u05C7]*ד[\u0591-\u05C7]*נ[\u0591-\u05B3\u05B5-\u05C7]*י[\u0591-\u05B3\u05B5-\u05C2\u05C4-\u05C7]*|אדושם)(?=[<\[\(\s.,;:׃'"\-]|$)/g;
+
+    // only allow segol or tzere nikkud, so doesn't match אֲלֵהֶ֖ם or the like
+    const elokaiRE  = /([\s.,\u05BE;:'"\-]|^)([ו]?[\u0591-\u05C7]*[משהוכלב]?[\u0591-\u05C7]*)(א[\u0591-\u05AF\u05B1\u05B5\u05B6\u05BC-\u05C7]*ל[\u0591-\u05C7]*ו?[\u0591-\u05C7]*)([הק])([\u0591-\u05C7]*)((י[\u0591-\u05C2\u05C4-\u05C7]*)?[ךיוהםן][\u0591-\u05C2\u05C4-\u05C7]*|(י[\u0591-\u05C7]*)?נ[\u0591-\u05C7]*ו[\u0591-\u05C7]*|(י[\u0591-\u05C7]*)?כ[[\u0591-\u05C2\u05C4-\u05C7]*[םן])(?=[\s<\[\(.,;׃:'"\-]|$)/g;
+
+    const elokaRE   = /([\s.,\u05BE;:'"\-]|^)([ו]?[\u0591-\u05C7]*[משהוכלב]?[\u0591-\u05C7]*)(א[\u0591-\u05AF\u05B1\u05B5\u05B6\u05BC-\u05C7]*ל[\u0591-\u05C7]*ו[\u0591-\u05C7]*)([הק])([\u0591-\u05C2\u05C4-\u05C7]*)(?=[)(?=[\s<\[\(.,;:׃'"\-]|$)/g;
+
+    // const shadaiRE  = /([\s.,\u05BE;:'"\-]|^)([משהוכלב]?[\u0591-\u05C7]*)(ש[\u0591-\u05C7]*[דק][\u0591-\u05C7]*י[\u0591-\u05C7]*)(?=[\s.,;׃:'"\-]|$)/g;
+
+
+    const divineSubs = {
+                        "noSub": "יהוה",
+                        "yy": "יי",
+                        "ykvk": "יקוק",
+                        "h": "ה׳"
+                    };
+
+
+
+
+    const adoshemSub = divineName=="noSub" ? "אדני" : "אדושם";
+    const elokaiSub = divineName=="noSub" ? "ה" : "ק";
+
+    const newStr = str.replace(divineRE, "$1$2"+ divineSubs[divineName])
+        .replace(adoshemRE, "$1$2"+ adoshemSub)
+        .replace(elokaiRE, "$1$2$3"+ elokaiSub +"$5$6")
+        .replace(elokaRE, "$1$2$3"+ elokaiSub +"$5");
+
+    return newStr
+
+}
 
 function renderSheetItem(source) {
     const sheetItemType = Object.keys(sheet_item_els).filter(key => Object.keys(source).includes(key))[0];
@@ -547,7 +584,7 @@ function isSourceEditable(e, editor) {
   return (isEditable)
 }
 
-const BoxedSheetElement = ({ attributes, children, element }) => {
+const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
   const parentEditor = useSlate();
 
   const sheetSourceEnEditor = useMemo(() => withLinks(withHistory(withReact(createEditor()))), [])
@@ -562,6 +599,25 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
   const selected = useSelected()
   const focused = useFocused()
   const cancelEvent = (event) => event.preventDefault()
+
+    useEffect(
+        () => {
+            const replacement = divineName || "noSub"
+            const editors = [sheetSourceHeEditor, sheetSourceEnEditor]
+            for (const editor of editors) {
+                const nodes = (Editor.nodes(editor, {at: [], match: Text.isText}))
+                for (const [node, path] of nodes) {
+                    if (node.text) {
+                        const newStr = replaceDivineNames(node.text, replacement)
+                        if (newStr != node.text) {
+                            Transforms.insertText(editor, newStr, {at: path})
+                        }
+                    }
+                }
+            }
+        }, [divineName]
+    )
+
 
   const onHeChange = (value) => {
     sheetHeSourceSetValue(value)
@@ -961,7 +1017,7 @@ const AddInterface = ({ attributes, children, element }) => {
     )
 }
 
-const Element = props => {
+const Element = (props) => {
     const { attributes, children, element } = props;
     const sheetItemClasses = {
         sheetItem: 1,
@@ -984,12 +1040,12 @@ const Element = props => {
           );
         case 'SheetSource':
             return (
-              <BoxedSheetElement {...props} />
+              <BoxedSheetElement {...props} divineName={useSlate().divineNames} />
             );
 
         case 'SheetOutsideBiText':
             return (
-              <BoxedSheetElement {...props} {...attributes} />
+              <BoxedSheetElement {...props} {...attributes} divineName={useSlate().divineNames} />
             );
 
 
@@ -1213,10 +1269,7 @@ const withSefariaSheet = editor => {
     };
 
     editor.deleteForward = () => {
-
-        console.log(editor.selection)
         deleteForward(editor);
-
     }
 
     editor.deleteBackward = () => {
@@ -1340,6 +1393,46 @@ const withSefariaSheet = editor => {
             deleteBackward(); // dance finale.
             Editor.normalize(editor, { force: true })
         }
+        else if (data.getData('text/plain').startsWith('http')) {
+            let url;
+            try {
+              url = new URL(data.getData('text/plain'));
+              if (url.hostname.indexOf("www.sefaria.org") === 0) {
+                  $.ajax({
+                      url: url,
+                      async: true,
+                      success: function (data) {
+                          const matches = data.match(/<title>(.*?)<\/title>/);
+                          if (!matches) {
+                              console.log('no matches')
+                              console.log(url)
+                              Transforms.insertText(editor, url.href)
+                              return
+                          }
+                          const link = editor.createLinkNode(url.href, matches[1])
+                          Transforms.insertText(editor, " ") // this is start of dance that's required to ensure that link gets inserted properly
+                          const initLoc = editor.selection
+                          Transforms.insertNodes(editor, link);
+                          Transforms.select(editor, initLoc); // dance ii
+                          Transforms.move(editor, { distance: 1, unit: 'character', reverse: true }) // dance dance dance
+                          Transforms.delete(editor); // end of dance
+                      },
+                      error: function (e) {
+                          Transforms.insertText(editor, url.href)
+                      }
+                  });
+              }
+
+              else {
+                  console.log('not sef link')
+                  insertData(data)
+              }
+
+            } catch {
+                  insertData(data)
+            }
+        }
+
         else {
             insertData(data)
         }
@@ -1466,6 +1559,7 @@ const withSefariaSheet = editor => {
     editor.convertEmptyParagraphToSpacer = (node, path) => {
         if (node.type === "paragraph") {
             if (Node.string(node) === "" && node.children.length <= 1) {
+                console.log('spacer?')
                 Transforms.setNodes(editor, {type: "spacer"}, {at: path});
             }
         }
@@ -1609,12 +1703,26 @@ const withSefariaSheet = editor => {
                 Transforms.insertNodes(editor, {type: 'spacer', children: [{text: ""}]}, {at: nextPath});
                 addedSpacer = true;
             }
-            if (prevNode.type !== "spacer" && prevNode.type !== "SheetOutsideText") {
+            if (prevNode.type !== "spacer") {
                 Transforms.insertNodes(editor, {type: 'spacer', children: [{text: ""}]}, {at: path});
                 addedSpacer = true;
             }
 
             return addedSpacer
+        }
+
+        else if (node.type === "SheetOutsideText") {
+            try {
+                const nextNode = Node.get(editor, Path.next(path))
+
+                if (["SheetSource", "SheetOutsideBiText"].includes(nextNode.type)) {
+                    Transforms.insertNodes(editor, {type: 'spacer', children: [{text: ""}]}, {at: Path.next(path)});
+                    return true
+                }
+            }
+            catch (e) {
+                return false
+            }
         }
     };
 
@@ -1640,7 +1748,6 @@ const withSefariaSheet = editor => {
             }
         }
     }
-
 
     editor.onlyTextAndRefsInBoxedElements = (node, path) => {
         if (node.type === "he" || node.type === "en") {
@@ -1717,6 +1824,25 @@ const insertMedia = (editor, mediaUrl) => {
   Transforms.move(editor);
 }
 
+
+function placed_segment_mapper(lang, segmented, includeNumbers, s) {
+
+    if (!s[lang]) {return ""}
+
+    let numStr = "";
+    if (includeNumbers) {
+        const num = (lang=="he") ? Sefaria.hebrew.encodeHebrewNumeral(s.number) : s.number;
+        numStr = "<small>(" + num + ")</small> ";
+    }
+    let str = "<span class='segment'>" + numStr + s[lang] + "</span> ";
+    if (segmented) {
+        str = "<p>" + str + "</p>";
+    }
+    str = str.replace(/(<br\/>)+/g, ' ')
+    return str;
+}
+
+
 const insertSource = (editor, ref) => {
     const path = editor.selection.anchor.path;
 
@@ -1726,8 +1852,19 @@ const insertSource = (editor, ref) => {
     const nodeBelow = getNodeBelow(path, editor)
 
     Sefaria.getText(ref, {stripItags: 1}).then(text => {
-        const enText = Array.isArray(text.text) ? `<p>${text.text.flat(Infinity).join("</p><p>")}</p>` : text.text;
-        const heText = Array.isArray(text.text) ? `<p>${text.he.flat(Infinity).join("</p><p>")}</p>` : text.he;
+        const segments = Sefaria.makeSegments(text);
+
+        let includeNumbers = $.inArray("Talmud", text.categories) == -1;
+        includeNumbers = text.indexTitle === "Pesach Haggadah" ? false : includeNumbers;
+        const segmented = !(text.categories[0] in {"Tanakh": 1, "Talmud": 1});
+
+        const enText = segments.map(placed_segment_mapper.bind(this, "en", segmented, includeNumbers))
+            .filter(Boolean)
+            .join("");
+        const heText = segments.map(placed_segment_mapper.bind(this, "he", segmented, includeNumbers))
+            .filter(Boolean)
+            .join("");
+
         let fragment = [{
                 type: "SheetSource",
                 node: editor.children[0].nextNode,
@@ -1947,7 +2084,6 @@ const Link = ({ attributes, children, element }) => {
 
  }
 
-
 const withLinks = editor => {
     const { isInline } = editor
 
@@ -1957,7 +2093,7 @@ const withLinks = editor => {
 
     editor.createLinkNode = (href, text) => ({
         type: "link",
-        href,
+        url: href,
         children: [{ text }]
     });
 
@@ -2384,6 +2520,35 @@ const SefariaEditor = (props) => {
         }, [readyForNormalize]
     )
 
+    useEffect(
+        () => {
+            const nodes = (Editor.nodes(editor, {at: [], match: Text.isText}))
+            for (const [node, path] of nodes) {
+                if (node.text) {
+                    const newStr = replaceDivineNames(node.text, props.divineNameReplacement)
+                    if (newStr != node.text) {
+                        Transforms.insertText(editor, newStr, { at: path })
+                    }
+                }
+            }
+            editor.divineNames = props.divineNameReplacement
+
+            // some edit to the editor is required to show the replacement and save
+            // -- this simply just moves the cursor to the top of the doc and then back to its previous spot
+            const temp_select = editor.selection
+
+            Transforms.select(editor, {
+              anchor: {path: [0, 0], offset: 0},
+              focus: {path: [0, 0], offset: 0},
+            });
+
+            Transforms.select(editor, temp_select)
+            saveDocument(currentDocument);
+
+        },
+        [props.divineNameReplacement]
+    )
+
 
   useEffect(() => {
     if(!props.hasSidebar) {
@@ -2456,7 +2621,11 @@ const SefariaEditor = (props) => {
 
     function saveSheetContent(doc, lastModified) {
         const sheetTitle = editorContainer.current.querySelector(".sheetContent .sheetMetaDataBox .title") ? editorContainer.current.querySelector(".sheetContent .sheetMetaDataBox .title").textContent : "Untitled"
-        const sheetContent = doc.children.find(el => el.type == "SheetContent").children;
+        const docContent = doc.children.find(el => el.type == "SheetContent")
+        if (!docContent) {
+            return false
+        }
+        const sheetContent = docContent.children;
 
         const sources = sheetContent.map(item => {
             const sheetItem = item;
@@ -2551,14 +2720,13 @@ const SefariaEditor = (props) => {
             promptedToPublish: doc.promptedToPublish,
             lastModified: lastModified,
             summary: doc.summary,
-            options: doc.options,
+            options: { ...doc.options, divineNames: props.divineNameReplacement },
             tags: doc.tags,
             displayedCollection: doc.displayedCollection,
             title: sheetTitle === "" ? "Untitled" : sheetTitle,
             sources: sources.filter(x => !!x),
             nextNode: doc.nextNode,
         };
-        // title: sheetTitle == "" ? "Untitled" : sheetTitle,
 
         return JSON.stringify(sheet);
 
@@ -2567,6 +2735,9 @@ const SefariaEditor = (props) => {
 
     function saveDocument(doc) {
         const json = saveSheetContent(doc[0], lastModified);
+        if (!json) {
+            return
+        }
         // console.log('saving...');
 
         $.post("/api/sheets/", {"json": json}, res => {

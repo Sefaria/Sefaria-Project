@@ -674,6 +674,8 @@ class ReaderPanel extends Component {
           hasSidebar={this.props.hasSidebar}
           setSelectedWords={this.setSelectedWords}
           contentLang={this.state.settings.language}
+          setDivineNameReplacement={this.props.setDivineNameReplacement}
+          divineNameReplacement={this.props.divineNameReplacement}
         />
       );
     }
@@ -736,6 +738,8 @@ class ReaderPanel extends Component {
           checkIntentTimer={this.props.checkIntentTimer}
           navigatePanel={this.props.navigatePanel}
           translationLanguagePreference={this.props.translationLanguagePreference}
+          setDivineNameReplacement={this.props.setDivineNameReplacement}
+          divineNameReplacement={this.props.divineNameReplacement}
           key="connections" />
       );
     }
@@ -1148,6 +1152,7 @@ ReaderPanel.propTypes = {
   analyticsInitialized:        PropTypes.bool,
   setVersionFilter:            PropTypes.func,
   saveLastPlace:               PropTypes.func,
+  setDivineNameReplacement:    PropTypes.func,
   checkIntentTimer:            PropTypes.func,
   toggleSignUpModal:           PropTypes.func.isRequired,
   getHistoryRef:               PropTypes.func,

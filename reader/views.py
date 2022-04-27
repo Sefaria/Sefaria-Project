@@ -685,11 +685,15 @@ def texts_category_list(request, cats):
         desc  = _("Texts that you've recently viewed on Sefaria.")
     else:
         cats = cats.split("/")
-        if len(cats) == 0 or library.get_toc_tree().lookup(cats) is None:
-            return texts_list(request)
+        tocObject = library.get_toc_tree().lookup(cats)
+        if len(cats) == 0 or tocObject is None:
+            return texts_list(request)      
         cat_string = ", ".join(cats) if request.interfaceLang == "english" else ", ".join([hebrew_term(cat) for cat in cats])
+        catDesc = getattr(tocObject, "enDesc", '') if request.interfaceLang == "english" else getattr(tocObject, "heDesc", '')
+        catShortDesc = getattr(tocObject, "enShortDesc", '') if request.interfaceLang == "english" else getattr(tocObject, "heShortDesc", '')
+        catDefaultDesc = _("Read %(categories)s texts online with commentaries and connections.") % {'categories': cat_string} 
         title = cat_string + _(" | Sefaria")
-        desc  = _("Read %(categories)s texts online with commentaries and connections.") % {'categories': cat_string}
+        desc  = catDesc if len(catDesc) else catShortDesc if len(catShortDesc) else catDefaultDesc
 
     props = {
         "initialMenu": "navigation",
@@ -1935,12 +1939,15 @@ def links_api(request, link_id_or_ref=None):
 
         j = json.loads(j)
         skip_check = request.GET.get("skip_lang_check", 0)
+        override_preciselink = request.GET.get("override_preciselink", 0)
         if isinstance(j, list):
             res = []
             for i in j:
                 try:
                     if skip_check:
                         i["_skip_lang_check"] = True
+                    if override_preciselink:
+                        i["_override_preciselink"] = True
                     retval = _internal_do_post(request, i, uid, **kwargs)
                     res.append({"status": "ok. Link: {} | {} Saved".format(retval["ref"], retval["anchorRef"])})
                 except Exception as e:
