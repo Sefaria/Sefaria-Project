@@ -75,7 +75,7 @@ const SELECTOR_WHITE_LIST = {
                 }
                 return portion.text;
             }
-        })
+        });
         return occurences;
     }
 
@@ -104,9 +104,10 @@ const SELECTOR_WHITE_LIST = {
          */
         let { startChar, endChar } = linkObj;
         const newEndChar = getNthWhiteSpaceIndex(text, numWordsAround, endChar);
-        const newStartChar = text.length - getNthWhiteSpaceIndex(text.substr(1), numWordsAround, text.length - startChar);
+        const textRev = [...text].reverse().join("");
+        const newStartChar = text.length - getNthWhiteSpaceIndex(textRev, numWordsAround, text.length - startChar);
         return {
-            text: text.substring(newEndChar, newStartChar),
+            text: text.substring(newStartChar, newEndChar),
             startChar: startChar - newStartChar,
         };
     }
