@@ -141,6 +141,7 @@
                 <span class="int-en">Disconnect</span>
                 <span class="int-he">ניתוק מהחשבון</span>
             </button>
+            <span id="gauth-disconnect-messages"></span>
         </div>
     </div>
     <div id="gauth-email-disconnected" class="form-section" style="{% if profile.gauth_email %} display: none {% endif %}" >
@@ -220,8 +221,14 @@
                 $("#username-change-edit").toggle();
             });
             $("#disconnect-gauth-email").click(function () {
-                $("#gauth-email-change").toggle();
-                $("#gauth-email-disconnected").toggle();
+                $.get("/unlink-gauth?redirect=0", function(data) {
+					if ("error" in data) {
+						$("#gauth-email-disconnect-display #gauth-disconnect-messages").text(data.error);
+					} else {
+                        $("#gauth-email-change").toggle();
+                        $("#gauth-email-disconnected").toggle();
+					}
+				});
             });
 
             $("#update-email").click(function(){
