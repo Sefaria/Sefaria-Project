@@ -58,7 +58,7 @@ const SearchTopic = (props) => {
     const sourcesSheetsDiv = <SourcesSheetsDiv url={props.topic.url} numSheets={props.topic.numSheets} numSources={props.topic.numSources}/>;
     const topicTitle = <div className="topicTitle">
                           <h1>
-                          <a href={props.topic.url}><InterfaceText text={{en:props.topic.title, he:props.topic.heTitle}}/></a>
+                          <a href={props.topic.url} onClick={() => Sefaria.track.event("Search", "topic in search click", props.topic.analyticCat+"|"+props.topic.title)}><InterfaceText text={{en:props.topic.title, he:props.topic.heTitle}}/></a>
                           </h1>
                         </div>;
     const topicCategory = <div className="topicCategory sectionTitleText">
@@ -155,7 +155,8 @@ class SearchResultList extends Component {
             heTitle: book.heTitle,
             topicCat: book.categories[0],
             heTopicCat: Sefaria.toc.filter(cat => cat.category === book.categories[0])[0].heCategory,
-            url: "/" + book.title
+            url: "/" + book.title,
+            analyticCat: "Book"
         }
     }
     addTOCCategoryTopic(topic) {
@@ -164,6 +165,7 @@ class SearchResultList extends Component {
         const relevantCats = topicKeyArr.length === 0 ? Sefaria.toc : Sefaria.tocItemsByCategories(topicKeyArr);
         const relevantSubCat = relevantCats.filter(cat => "category" in cat && cat.category === lastCat)[0];
         return {
+            analyticCat: "Category",
             url: "/texts/" + topic.key.join("/"),
             topicCat: "Texts",
             heTopicCat: Sefaria.hebrewTerm("Texts"),
@@ -176,6 +178,7 @@ class SearchResultList extends Component {
     async addGeneralTopic(topic) {
         const d = await Sefaria.getTopic(topic.key, {annotate_time_period: true});
         let searchTopic = {
+            analyticCat: "Topic",
             title: d.primaryTitle["en"],
             heTitle: d.primaryTitle["he"],
             numSources: 0,
@@ -205,6 +208,7 @@ class SearchResultList extends Component {
     async addCollection(collection) {
         const d = await Sefaria.getCollection(collection.key);
         return {
+            analyticCat: "Collection",
             title: d.name,
             heTitle: d.name,
             url: "/collections/" + collection.key,
@@ -437,6 +441,7 @@ class SearchResultList extends Component {
           );
           if (this.state.topics.length > 0) {
               let topics = this.state.topics.map(t => {
+                  Sefaria.track.event("Search", "topic in search display", t.analyticCat+"|"+t.title);
                   return <SearchTopic topic={t}/>
               });
               if (results.length > 0) {
