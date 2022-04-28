@@ -134,10 +134,9 @@
         <label class="control-elem">
                 <span class="int-en">Google Account (Allows for exporting sheets to Google Drive)</span>
                 <span class="int-he">חשבון גוגל מקושר (מאפשר ייצוא דפי מקורות לגוגל דרייב)</span>
-                {{ user }}
         </label>
         <div id="gauth-email-disconnect-display" class="form-section">
-            <input id="gauth-email-display" type="text" disabled="disabled" value="{{ user.gauth_email }}" />
+            <input id="gauth-email-display" type="text" disabled="disabled" value="{{ profile.gauth_email }}" />
             <button id="disconnect-gauth-email" type="button" class="button blue fillWidth">
                 <span class="int-en">Disconnect</span>
                 <span class="int-he">ניתוק מהחשבון</span>
@@ -221,7 +220,6 @@
                 $("#username-change-edit").toggle();
             });
             $("#disconnect-gauth-email").click(function () {
-                console.log(user);
                 $("#gauth-email-change").toggle();
                 $("#gauth-email-disconnected").toggle();
             });
