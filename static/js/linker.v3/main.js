@@ -179,6 +179,8 @@ const SELECTOR_WHITE_LIST = {
                     return createATag(linkObj, linkObj.text);
                 } else if (portion.indexInMatch < linkEndChar && portionEndIndex > linkStartChar) {
                     // portion contains some non-link text
+                    // practically this case doesn't seem to come up because findOccurences effectively breaks up relevant matches into their own text nodes
+                    // there may be 1-off errors here since it hasn't been tested
                     const startTextNode = createTextNode(portion.text, 0, linkStartChar - portion.indexInMatch);
                     const endTextNode = createTextNode(portion.text, linkEndChar - portion.indexInMatch);
                     const linkText = portion.text.substring(linkStartChar - portion.indexInMatch, linkEndChar - portion.indexInMatch);
