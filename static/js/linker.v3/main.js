@@ -95,10 +95,37 @@ const SELECTOR_WHITE_LIST = {
     }
 
     function getNumWordsAround(linkObj, text, numWordsAround) {
+        /**
+         * gets text with `numWordsAround` number of words surrounding text in linkObj. Words are broken by any white space.
+         * returns: {
+         *     text: str with numWordsAround
+         *     startChar: int, start index of linkObj text within numWordsAround text
+         * }
+         */
         let { startChar, endChar } = linkObj;
-        endChar = getNthWhiteSpaceIndex(text, numWordsAround, endChar);
-        startChar = text.length - getNthWhiteSpaceIndex(text.substr(1), numWordsAround, text.length - startChar);
-        return text.substring(startChar, endChar);
+        const newEndChar = getNthWhiteSpaceIndex(text, numWordsAround, endChar);
+        const newStartChar = text.length - getNthWhiteSpaceIndex(text.substr(1), numWordsAround, text.length - startChar);
+        return {
+            text: text.substring(newEndChar, newStartChar),
+            startChar: startChar - newStartChar,
+        };
+    }
+
+    function escReg(string) {
+      return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+    }
+
+    function getSearchRegex(searchText, linkText, linkStartChar) {
+        /**
+         * searchText: unique search string that contains linkText
+         * linkText: text to be converted into a link
+         * linkStartChar: start char index of linkText within searchText
+         * returns: RegExp object with linkText wrapped in capturing group. properly handles regex escaping
+         */
+        const startText = escReg(searchText.substring(0, linkStartChar));
+        const linkEndChar = linkStartChar + linkText.length;
+        const endText = escReg(searchText.substring(linkEndChar));
+        return new RegExp(`${startText}(${escReg(linkText)})${endText}`, 'gm');
     }
 
     function wrapRef(linkObj, normalizedText, maxNumWordsAround = 10) {
@@ -106,16 +133,21 @@ const SELECTOR_WHITE_LIST = {
         let occurences = [];
         let numWordsAround = 0;
         let searchText = linkObj.text;
+        let linkStartChar = 0;  // start index of link text within searchText
         while ((numWordsAround === 0 || occurences.length > 1) && numWordsAround < maxNumWordsAround) {
             occurences = findOccurences(searchText);
             if (occurences.length === 1) { break; }
             numWordsAround += 1;
-            searchText = getNumWordsAround(linkObj, normalizedText, numWordsAround);
+            // see https://flaviocopes.com/javascript-destructure-object-to-existing-variable/
+            ({ text: searchText, startChar: linkStartChar } = getNumWordsAround(linkObj, normalizedText, numWordsAround));
         }
-        if (numWordsAround > 0) {
+        const searchRegex = getSearchRegex(searchText, linkObj.text, linkStartChar);
+        if (numWordsAround > 0 || true) {
             console.log('----')
-            console.log(numWordsAround, linkObj.text);
+            console.log(numWordsAround, linkObj.text, linkStartChar);
+            console.log(searchText.substring(linkStartChar));
             console.log(searchText);
+            console.log(searchRegex);
         }
 
         // TODO: if numWordsAround > 0, search for searchText and then do an internal search for linkObj.text
