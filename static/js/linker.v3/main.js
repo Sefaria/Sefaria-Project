@@ -156,13 +156,13 @@ const SELECTOR_WHITE_LIST = {
          * maxNumWordsAround: maximum number of words around linkObj.text to search to try to find its unique occurrence.
          */
         if (!ns.debug && linkObj.linkFailed) { return; }
-        let occurences = [];
+        let occurrences = [];
         let numWordsAround = 0;
         let searchText = linkObj.text;
         let linkStartChar = 0;  // start index of link text within searchText
-        while ((numWordsAround === 0 || occurences.length > 1) && numWordsAround < maxNumWordsAround) {
-            occurences = findOccurences(searchText);
-            if (occurences.length === 1) { break; }
+        while ((numWordsAround === 0 || occurrences.length > 1) && numWordsAround < maxNumWordsAround) {
+            occurrences = findOccurences(searchText);
+            if (occurrences.length === 1) { break; }
             numWordsAround += 1;
             // see https://flaviocopes.com/javascript-destructure-object-to-existing-variable/
             ({ text: searchText, startChar: linkStartChar } = getNumWordsAround(linkObj, normalizedText, numWordsAround));
