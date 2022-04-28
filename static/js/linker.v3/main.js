@@ -70,7 +70,9 @@ const SELECTOR_WHITE_LIST = {
             preset: 'prose',
             find: text,
             replace: function(portion, match) {
-                occurences.push([match.startIndex, match.endIndex]);
+                if (portion.index === 0) {
+                    occurences.push([match.startIndex, match.endIndex]);
+                }
                 return portion.text;
             }
         })
