@@ -111,24 +111,50 @@ const SELECTOR_WHITE_LIST = {
         };
     }
 
-    function escReg(string) {
-      return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+    function createATag(linkObj, text) {
+        const atag = document.createElement("a");
+        atag.target = "_blank";
+        atag.textContent = text;
+        atag.className = "sefaria-ref";
+        if (ns.debug) {
+            atag.className += " sefaria-ref-debug";
+            if (linkObj.linkFailed) {
+                atag.className += " sefaria-link-failed";
+            }
+        }
+
+        if (linkObj.linkFailed) { return atag; }  // debug and linkFailed
+
+        atag.href = `${SEFARIA_BASE_URL}/${linkObj.refs[0].url}`;
+        atag.setAttribute('data-ref', linkObj.refs[0].ref);
+        atag.setAttribute('aria-controls', 'sefaria-popup');
+        return atag;
     }
 
-    function getSearchRegex(searchText, linkText, linkStartChar) {
-        /**
-         * searchText: unique search string that contains linkText
-         * linkText: text to be converted into a link
-         * linkStartChar: start char index of linkText within searchText
-         * returns: RegExp object with linkText wrapped in capturing group. properly handles regex escaping
-         */
-        const startText = escReg(searchText.substring(0, linkStartChar));
-        const linkEndChar = linkStartChar + linkText.length;
-        const endText = escReg(searchText.substring(linkEndChar));
-        return new RegExp(`${startText}(${escReg(linkText)})${endText}`, 'gm');
+    function createWrapperTag(children = []) {
+        const wrapper = document.createElement("span");
+        wrapper.className="sefaria-ref-wrapper";
+        for (let child of children) {
+            if (!child) { continue; }
+            wrapper.appendChild(child);
+        }
+        return wrapper;
+    }
+
+    function createTextNode(text, start, end) {
+        const subtext = text.substring(start, end);
+        if (subtext.length === 0) { return; }
+        return document.createTextNode(subtext);
     }
 
     function wrapRef(linkObj, normalizedText, maxNumWordsAround = 10) {
+        /**
+         * wraps linkObj.text with an atag. In the case linkObj.text appears multiple times on the page,
+         * increases search scope to ensure we wrap the correct instance of linkObj.text
+         * linkObj: object representing a link, as returned by find-refs API
+         * normalizedText: normalized text of webpage (i.e. webpage text returned from Readability and then put through some normalization)
+         * maxNumWordsAround: maximum number of words around linkObj.text to search to try to find its unique occurrence.
+         */
         if (!ns.debug && linkObj.linkFailed) { return; }
         let occurences = [];
         let numWordsAround = 0;
@@ -141,45 +167,26 @@ const SELECTOR_WHITE_LIST = {
             // see https://flaviocopes.com/javascript-destructure-object-to-existing-variable/
             ({ text: searchText, startChar: linkStartChar } = getNumWordsAround(linkObj, normalizedText, numWordsAround));
         }
-        const searchRegex = getSearchRegex(searchText, linkObj.text, linkStartChar);
-        if (numWordsAround > 0 || true) {
-            console.log('----')
-            console.log(numWordsAround, linkObj.text, linkStartChar);
-            console.log(searchText.substring(linkStartChar));
-            console.log(searchText);
-            console.log(searchRegex);
-        }
-
-        // TODO: if numWordsAround > 0, search for searchText and then do an internal search for linkObj.text
-        /*
-        strategy:
-        wrap linkObj.text in group in searchText. create RegExp object
-        if (portion.indexInMatch > match.group(0).start && (portion.indexInMatch + portion.text.length) <= match.group(0).end) {
-            portion only contains link. wrap portion in a-tag
-        } else {
-            portion contains some text that isn't link. wrap group 1 in a-tag and entire portion in span.
-         */
         findAndReplaceDOMText(document, {
             preset: 'prose',
-            find: linkObj.text,
+            find: searchText,
             replace: function(portion, match) {
-                const atag = document.createElement("a");
-                atag.target = "_blank";
-                atag.textContent = portion.text;
-                atag.className = "sefaria-ref";
-                if (ns.debug) {
-                    atag.className += " sefaria-ref-debug";
-                    if (linkObj.linkFailed) {
-                        atag.className += " sefaria-link-failed";
-                    }
+                const portionEndIndex = portion.indexInMatch + portion.text.length;
+                const linkEndChar = linkStartChar + linkObj.text.length;
+                if (portion.indexInMatch >= linkStartChar && portionEndIndex <= linkEndChar) {
+                    // portion only contains link text
+                    return createATag(linkObj, linkObj.text);
+                } else if (portion.indexInMatch < linkEndChar && portionEndIndex > linkStartChar) {
+                    // portion contains some non-link text
+                    const startTextNode = createTextNode(portion.text, 0, linkStartChar - portion.indexInMatch);
+                    const endTextNode = createTextNode(portion.text, linkEndChar - portion.indexInMatch);
+                    const linkText = portion.text.substring(linkStartChar - portion.indexInMatch, linkEndChar - portion.indexInMatch);
+                    const atag = createATag(linkObj, linkText);
+                    return createWrapperTag([startTextNode, atag, endTextNode]);
+                } else {
+                    // all non-link text
+                    return portion.text;
                 }
-
-                if (linkObj.linkFailed) { return atag; }  // debug and linkFailed
-
-                atag.href = `${SEFARIA_BASE_URL}/${linkObj.refs[0].url}`;
-                atag.setAttribute('data-ref', linkObj.refs[0].ref);
-                atag.setAttribute('aria-controls', 'sefaria-popup');
-                return atag;
             }
         });
     }
