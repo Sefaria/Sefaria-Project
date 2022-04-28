@@ -441,7 +441,7 @@ class SearchResultList extends Component {
           );
           if (this.state.topics.length > 0) {
               let topics = this.state.topics.map(t => {
-                  Sefaria.track.event("Search", "topic in search display", t.analyticCat, t.title);
+                  Sefaria.track.event("Search", "topic in search display", t.title);
                   return <SearchTopic topic={t}/>
               });
               if (results.length > 0) {
