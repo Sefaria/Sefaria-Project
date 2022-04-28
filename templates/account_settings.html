@@ -130,20 +130,21 @@
             <span id="email-edit-errors"></span>
         </div>
     </div>
-    <div id="gauth-email-change" class="section">
+    <div id="gauth-email-change" class="section" style="{% if not profile.gauth_email %} display: none {% endif %}">
         <label class="control-elem">
                 <span class="int-en">Google Account (Allows for exporting sheets to Google Drive)</span>
                 <span class="int-he">חשבון גוגל מקושר (מאפשר ייצוא דפי מקורות לגוגל דרייב)</span>
+                {{ user }}
         </label>
         <div id="gauth-email-disconnect-display" class="form-section">
-            <input id="gauth-email-display" type="text" disabled="disabled" value="{{ user.email }}" />
+            <input id="gauth-email-display" type="text" disabled="disabled" value="{{ user.gauth_email }}" />
             <button id="disconnect-gauth-email" type="button" class="button blue fillWidth">
                 <span class="int-en">Disconnect</span>
                 <span class="int-he">ניתוק מהחשבון</span>
             </button>
         </div>
     </div>
-    <div id="gauth-email-disconnected" class="form-section" style="display: none">
+    <div id="gauth-email-disconnected" class="form-section" style="{% if profile.gauth_email %} display: none {% endif %}" >
             <div><span class="int-en">Your Google Account has been disconnected</span></div>
             <div class="additional-info"><span class="int-en">You can link to a new Google Account the next time you export a sheet</span></div>
         </div>
@@ -215,13 +216,12 @@
                     $("#saveAccountSettings").trigger("click");
                 }
             });
-
             $("#change-email").click(function () {
                 $("#username-change-display").toggle();
                 $("#username-change-edit").toggle();
             });
-
             $("#disconnect-gauth-email").click(function () {
+                console.log(user);
                 $("#gauth-email-change").toggle();
                 $("#gauth-email-disconnected").toggle();
             });
@@ -244,7 +244,6 @@
 					}
 				});
 			});
-
 		});
 	</script>
 {% endblock %}
