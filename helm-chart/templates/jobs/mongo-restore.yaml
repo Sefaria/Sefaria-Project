@@ -20,7 +20,7 @@ metadata:
 spec:
   template:
     spec:
-      serviceAccount: {{ .Values.restore.ServiceAccount }}
+      serviceAccount: {{ .Values.restore.serviceAccount }}
       volumes:
         - name: shared-volume
           emptyDir: {}
@@ -34,13 +34,11 @@ spec:
           volumeMounts:
             - name: shared-volume
               mountPath: /storage
-            - name: gcloud-storage-secret
-              mountPath: /conf
           env:
             - name: BACKUP_BUCKET
               value: {{ .Values.restore.bucket }}
             - name: BACKUP_TARBALL
-              value: {{ template "tarballName" . }}
+              value: {{ template "sefaria.tarballName" . }}
           command: ["bash"]
           args: ["-c", "gsutil cp gs://$BACKUP_BUCKET/$BACKUP_TARBALL /storage/dump.tar.gz"]
       containers:
