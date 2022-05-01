@@ -68,7 +68,7 @@ class Test_Mongo_Record_Models(object):
         test_slug = 'test'
 
         def get_slug(base, slug_field):
-            return abstract.AbstractMongoRecord.normalize_slug('{}{}'.format(base, slug_field))
+            return abstract.SluggedAbstractMongoRecord.normalize_slug('{}{}'.format(base, slug_field))
         attrs = {  # fill in requirements
             attr: None for attr in sub.required_attrs
         }

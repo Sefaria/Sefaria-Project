@@ -930,17 +930,17 @@ def recat_top_level():
 
 def renormalize_slugs():
     from tqdm import tqdm
-    from sefaria.model.abstract import AbstractMongoRecord
+    from sefaria.model.abstract import SluggedAbstractMongoRecord
     ts = TopicSet()
 
     for t in tqdm(ts, total=ts.count()):
         title = t.get_primary_title('en') if len(t.get_primary_title('en')) > 0 else t.get_primary_title('he')
-        if AbstractMongoRecord.normalize_slug(title) != t.slug:  # re.search(r'\d+$', t.slug) and
+        if SluggedAbstractMongoRecord.normalize_slug(title) != t.slug:  # re.search(r'\d+$', t.slug) and
             old_slug = t.slug
             new_alt_ids = getattr(t, 'alt_ids', {})
             new_alt_ids['_old_slug'] = old_slug
             setattr(t, 'alt_ids', new_alt_ids)
-            new_slug = AbstractMongoRecord.normalize_slug(title)
+            new_slug = SluggedAbstractMongoRecord.normalize_slug(title)
             t.slug = new_slug
             t.save()
             print('---')

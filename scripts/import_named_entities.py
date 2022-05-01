@@ -5,7 +5,7 @@ from pymongo import InsertOne
 from sefaria.model import *
 from collections import defaultdict
 from sefaria.system.database import db
-from sefaria.model.abstract import AbstractMongoRecord
+from sefaria.model.abstract import SluggedAbstractMongoRecord
 
 # RESEARCH_NAMED_ENTITY_LOC = "/home/nss/sefaria/data/research/knowledge_graph/named_entity_recognition"
 # DATASETS_NAMED_ENTITY_LOC = "/home/nss/sefaria/datasets/ner/sefaria"
@@ -61,7 +61,7 @@ def import_bonayich_into_topics():
         if slug is None:
             print("SLUG IS NONE", r)
         topic_json = {
-            "slug": AbstractMongoRecord.normalize_slug(slug),
+            "slug": SluggedAbstractMongoRecord.normalize_slug(slug),
             "titles": titles
         }
         try:

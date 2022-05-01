@@ -2,7 +2,7 @@ import pytest, re
 from functools import reduce
 from sefaria.model.text import Ref, library
 from sefaria.model.ref_part import *
-from sefaria.model.abstract import AbstractMongoRecord
+from sefaria.model.abstract import SluggedAbstractMongoRecord
 from sefaria.model.ref_part import RefPartType as RPT
 from sefaria.model.schema import DiburHamatchilNodeSet
 import spacy
@@ -69,8 +69,8 @@ def create_raw_ref_data(context_tref, lang, input_str, span_indexes, part_types,
 
 def test_duplicate_terms(duplicate_terms):
     t, s, initial_slug = duplicate_terms
-    assert t.slug == AbstractMongoRecord.normalize_slug(initial_slug)
-    assert s.slug == AbstractMongoRecord.normalize_slug(initial_slug) + "1"
+    assert t.slug == SluggedAbstractMongoRecord.normalize_slug(initial_slug)
+    assert s.slug == SluggedAbstractMongoRecord.normalize_slug(initial_slug) + "1"
 
 
 def test_referenceable_child():

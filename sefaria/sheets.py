@@ -1058,8 +1058,8 @@ def get_sheets_by_topic(topic, public=True, proj=None, limit=0, page=0):
 	Returns all sheets tagged with 'topic'
 	"""
 	# try to normalize for backwards compatibility
-	from sefaria.model.abstract import AbstractMongoRecord
-	topic = AbstractMongoRecord.normalize_slug(topic)
+	from sefaria.model.abstract import SluggedAbstractMongoRecord
+	topic = SluggedAbstractMongoRecord.normalize_slug(topic)
 	query = {"topics.slug": topic} if topic else {"topics": {"$exists": 0}}
 
 	if public:

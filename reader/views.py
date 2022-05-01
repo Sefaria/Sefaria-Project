@@ -2327,8 +2327,8 @@ def tag_category_api(request, path=None):
         if not path or path == "index":
             categories = TopicSet({"isTopLevelDisplay": True}, sort=[("displayOrder", 1)])
         else:
-            from sefaria.model.abstract import AbstractMongoRecord
-            slug = AbstractMongoRecord.normalize_slug(path)
+            from sefaria.model.abstract import SluggedAbstractMongoRecord
+            slug = SluggedAbstractMongoRecord.normalize_slug(path)
             topic = Topic.init(slug)
             if not topic:
                 categories = []
@@ -3148,8 +3148,8 @@ def topic_page(request, topic):
     topic_obj = Topic.init(topic)
     if topic_obj is None:
         # try to normalize
-        from sefaria.model.abstract import AbstractMongoRecord
-        topic_obj = Topic.init(AbstractMongoRecord.normalize_slug(topic))
+        from sefaria.model.abstract import SluggedAbstractMongoRecord
+        topic_obj = Topic.init(SluggedAbstractMongoRecord.normalize_slug(topic))
         if topic_obj is None:
             raise Http404
         topic = topic_obj.slug
