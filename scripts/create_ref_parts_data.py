@@ -227,10 +227,11 @@ class RefPartModifier:
                             "term_slugs": [self.perek_number_map['last'].slug]
                         }
                     ]
-            try:
-                delattr(index.nodes, 'checkFirst')
-            except KeyError:
-                pass
+            # too soon to delete this field though I would like to!
+            # try:
+            #     delattr(index.nodes, 'checkFirst')
+            # except KeyError:
+            #     pass
             if fast:
                 self.fast_index_save(index)
             else:
