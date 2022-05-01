@@ -115,6 +115,7 @@ class NonUniqueTerm(abst.SluggedAbstractMongoRecord, schema.AbstractTitledObject
     The successor of the old `Term` class
     Doesn't require titles to be globally unique
     """
+    cacheable = True
     collection = "non_unique_terms"
     required_attrs = [
         "slug",

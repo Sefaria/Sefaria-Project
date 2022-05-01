@@ -46,7 +46,7 @@ class Test_Mongo_Record_Models(object):
         m._validate()
 
     def test_normalize_slug(self):
-        a = abstract.AbstractMongoRecord
+        a = abstract.SluggedAbstractMongoRecord
 
         def test_slug(slug, final_slug):
             new_slug = a.normalize_slug(slug)
@@ -59,7 +59,7 @@ class Test_Mongo_Record_Models(object):
         test_slug('blah/blah', 'blah-blah')
         test_slug('blah == בלה', 'blah-בלה')
 
-    @pytest.mark.parametrize("sub", filter(lambda x: x.slug_fields is not None, abstract.get_record_classes()))
+    @pytest.mark.parametrize("sub", filter(lambda x: getattr(x, 'slug_fields', None) is not None, abstract.get_record_classes()))
     def test_normalize_slug_field(self, sub):
         """
 

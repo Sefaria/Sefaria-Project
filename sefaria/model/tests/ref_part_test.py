@@ -155,7 +155,7 @@ crrd = create_raw_ref_data
 
     # YERUSHALMI EN
     [crrd("Jerusalem Talmud Shabbat 1:1", 'en', 'Bavli 2a', [0, 1], [RPT.NAMED, RPT.NUMBERED]), ("Shabbat 2a",)],
-    [crrd("Jerusalem Talmud Shabbat 1:1", 'en', 'Berakhot 2:1', [0, 1, 3], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Jerusalem Talmud Berakhot 2:1",)],
+    pytest.param(crrd("Jerusalem Talmud Shabbat 1:1", 'en', 'Berakhot 2:1', [0, 1, 3], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Jerusalem Talmud Berakhot 2:1",), marks=pytest.mark.xfail(reason="Tricky case. We've decided to always prefer explicit or ibid citations so this case fails.")),
     [crrd("Jerusalem Talmud Shabbat 1:1", 'en', 'Bavli 2a/b', [0, 1, 2, 3], [RPT.NAMED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED]), ("Shabbat 2",)],
     [crrd("Jerusalem Talmud Shabbat 1:1", 'en', 'Halakha 2:3', [0, 1, 3], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Jerusalem Talmud Shabbat 2:3",)],
     [crrd("Jerusalem Talmud Shabbat 1:1", 'en', '2:3', [0, 2], [RPT.NUMBERED, RPT.NUMBERED]), ("Jerusalem Talmud Shabbat 2:3",)],
@@ -174,8 +174,7 @@ crrd = create_raw_ref_data
     # gilyon hashas
     [crrd("Gilyon HaShas on Berakhot 51b:1", 'he', '''תוספות ד"ה אין''', [0, slice(1, 5)], [RPT.NAMED, RPT.DH]), ("Tosafot on Berakhot 51b:8:1",)],  # commentator with implied book and daf from context commentator
     [crrd("Gilyon HaShas on Berakhot 21a:3", 'he', '''קדושין טו ע"ב תוס' ד"ה א"ק''', [0, slice(1, 5), slice(5, 7), slice(7, 13)], [RPT.NAMED, RPT.NUMBERED, RPT.NAMED, RPT.DH]), ("Tosafot on Kiddushin 15b:3:1", "Tosafot on Kiddushin 15b:4:1",)],  # abbrev in DH. ambiguous.
-    [crrd("Gilyon HaShas on Berakhot 21a:3", 'he', '''בב"מ פח ע"ב''', [0, slice(1, 3)], [RPT.NAMED, RPT.NUMBERED]), ("Bava Metzia 88b",)],  # TODO should this match Gilyon HaShas as well?
-    [crrd("Gilyon HaShas on Berakhot 48b:1", 'he', '''תשב"ץ ח"ב (ענין קסא''', [0, 1, slice(3, 5)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Sefer HaTashbetz, Part II 161",)],  # complex text
+    [crrd("Gilyon HaShas on Berakhot 21a:3", 'he', '''בב"מ פח ע"ב''', [slice(0, 3), slice(3, 7)], [RPT.NAMED, RPT.NUMBERED]), ("Bava Metzia 88b",)],  # TODO should this match Gilyon HaShas as well?
 
     # specific books
     [crrd(None, 'he', 'טור אורח חיים סימן א', [0, slice(1, 3), slice(3, 5)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ("Tur, Orach Chaim 1", )],
@@ -188,6 +187,7 @@ crrd = create_raw_ref_data
     [crrd(None, 'he', '''ברמב"ם פ"ח מהל' תרומות הי"א''', [slice(0, 3), slice(3, 6), slice(6, 9), slice(9, 12)], [RPT.NAMED, RPT.NUMBERED, RPT.NAMED, RPT.NUMBERED]), ("Mishneh Torah, Heave Offerings 8:11",)],
     [crrd(None, 'he', 'באה"ע סימן קנ"ה סי"ד', [slice(0, 3), slice(3, 7), slice(7, 10)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Shulchan Arukh, Even HaEzer 155:14",)],
     [crrd(None, 'he', '''פירש"י בקידושין דף פ' ע"א''', [slice(0, 3), 3, slice(4, 10)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ("Rashi on Kiddushin 80a",)],
+    pytest.param(crrd("Gilyon HaShas on Berakhot 48b:1", 'he', '''תשב"ץ ח"ב (ענין קסא''', [0, 1, slice(3, 5)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Sefer HaTashbetz, Part II 161",), marks=pytest.mark.xfail(reason="Dont support Sefer HaTashbetz yet")),  # complex text
     # [crrd(None, 'he', 'בבראשית רבה בראשית ט', [])]
 ])
 def test_resolve_raw_ref(resolver_data, expected_trefs):
