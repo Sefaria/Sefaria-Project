@@ -161,7 +161,7 @@ export class PopupManager {
                 'display: inline !important;' +
             '}'+
             'a.sefaria-ref-debug{'+
-                'border: 3px solid green' +
+                'border: 3px solid green;' +
             '}'+
             'a.sefaria-ref-debug.sefaria-link-failed{'+
                 'border: 3px solid red' +
@@ -230,7 +230,7 @@ export class PopupManager {
 
         this.popUpElem = document.body.appendChild(this.popUpElem);
 
-        let draggie = new Draggabilly(this.popUpElem, {handle: "#sefaria-linker-header"});
+        //let draggie = new Draggabilly(this.popUpElem, {handle: "#sefaria-linker-header"});
 
         this.linkerHeader = this.popUpElem.querySelector("#sefaria-linker-header");
         this.linkerFooter = this.popUpElem.querySelector(".sefaria-footer");
