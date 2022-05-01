@@ -65,24 +65,24 @@ const SELECTOR_WHITE_LIST = {
     }
 
     function findOccurences(text) {
-        const occurences = [];
+        const occurrences = [];
         findAndReplaceDOMText(document, {
             preset: 'prose',
             find: text,
             replace: function(portion, match) {
                 if (portion.index === 0) {
-                    occurences.push([match.startIndex, match.endIndex]);
+                    occurrences.push([match.startIndex, match.endIndex]);
                 }
                 return portion.text;
             }
         });
-        return occurences;
+        return occurrences;
     }
 
     function getNextWhiteSpaceIndex(text) {
-        const match = text.match(/.\s+/m);  // `.` so whitespace can't be at beginning of string
+        const match = text.match(/\S\s+/);  // `\S` so whitespace can't be at beginning of string
         if (match === null) { return -1; }
-        return match.index + match[0].length;
+        return match.index;
     }
 
     function getNthWhiteSpaceIndex(text, n, startIndex) {
@@ -105,9 +105,10 @@ const SELECTOR_WHITE_LIST = {
         let { startChar, endChar } = linkObj;
         const newEndChar = getNthWhiteSpaceIndex(text, numWordsAround, endChar);
         const textRev = [...text].reverse().join("");
-        const newStartChar = text.length - getNthWhiteSpaceIndex(textRev, numWordsAround, text.length - startChar);
+        const newStartChar = text.length - getNthWhiteSpaceIndex(textRev, numWordsAround, text.length - startChar) - 1;
+        const wordsAroundText = text.substring(newStartChar, newEndChar + 1);
         return {
-            text: text.substring(newStartChar, newEndChar),
+            text: wordsAroundText,
             startChar: startChar - newStartChar,
         };
     }
