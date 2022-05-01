@@ -1,5 +1,3 @@
- import csv
-
 import django, re
 django.setup()
 from tqdm import tqdm
