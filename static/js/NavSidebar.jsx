@@ -669,7 +669,12 @@ const DownloadVersions = ({sref}) => {
                 versions.map(v => ({
                     value: `${v.versionTitle}/${v.language}`,
                     label: `${Sefaria._v({he: v.versionTitleInHebrew ? v.versionTitleInHebrew : v.versionTitle, en: v.versionTitle})} (${Sefaria._(Sefaria.translateISOLanguageCode(v.actualLanguage))})`
-                }))
+                })).concat( // add merged versions for both primary langs "en" and "he" where applicable. (not yet possible for individual actual languages)
+                    versions.map(v => v.language).unique().map(lang => ({
+                        value: `merged/${lang}`,
+                        label: `${Sefaria._("Merged Version", "DownloadVersions")} (${Sefaria._(Sefaria.translateISOLanguageCode(lang))})`,
+                    }))
+                )
               }
               placeholder={Sefaria._( "Select Version", "DownloadVersions")}
               onChange={handleInputChange}

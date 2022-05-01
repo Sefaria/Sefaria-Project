@@ -555,7 +555,8 @@ const Strings = {
       "Select Format": "בחירת פורמט הורדה",
       "Text (with Tags)": "טקסט (עם תיוגים)",
       "Text (without Tags)": "טקסט (ללא תיוגים)",
-      "Select Version": "בחירת מהדורה/תרגום"
+      "Select Version": "בחירת מהדורה/תרגום",
+      "Merged Version": "גרסה משולבת"
     },
     "FilterableList": {
       "Alphabetical": "אלפביתי",
