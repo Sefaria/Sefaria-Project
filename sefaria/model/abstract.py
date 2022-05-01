@@ -20,14 +20,7 @@ from sefaria.system.exceptions import InputError
 logger = structlog.get_logger(__name__)
 
 
-class AbstractMongoRecordMeta(type):
-
-    def __init__(cls, name, parents, dct):
-        super().__init__(name, parents, dct)
-        cls._init_cache = {}  # cache for instances instantiated using cls.init()
-
-
-class AbstractMongoRecord(object, metaclass=AbstractMongoRecordMeta):
+class AbstractMongoRecord(object):
     """
     AbstractMongoRecord - superclass of classes representing mongo records.
     "collection" attribute is set on subclass
@@ -35,7 +28,6 @@ class AbstractMongoRecord(object, metaclass=AbstractMongoRecordMeta):
     collection = None  # name of MongoDB collection
     id_field = "_id"  # Mongo ID field
     criteria_field = "_id"  # Primary ID used to find existing records
-    slug_fields = None  # If record can be uniquely identified by slug, set this var with the slug fields
     criteria_override_field = None  # If a record type uses a different primary key (such as 'title' for Index records), and the presence of an override field in a save indicates that the primary attribute is changing ("oldTitle" in Index records) then this class attribute has that override field name used.
     required_attrs = []  # list of names of required attributes
     optional_attrs = []  # list of names of optional attributes
@@ -44,21 +36,6 @@ class AbstractMongoRecord(object, metaclass=AbstractMongoRecordMeta):
     history_noun = None  # Label for history records
     ALLOWED_TAGS = bleach.ALLOWED_TAGS + ["p", "br"]  # not sure why p/br isn't included. dont see any security risks
     ALLOWED_ATTRS = bleach.ALLOWED_ATTRIBUTES
-
-    @classmethod
-    def init(cls, slug: str) -> 'AbstractMongoRecord':
-        """
-        Convenience func to avoid using .load() when you're only passing a slug
-        Applicable only if class defines `slug_fields`
-        :param slug:
-        :return:
-        """
-        if len(cls.slug_fields) != 1:
-            raise Exception("Can only call init() if exactly one slug field is defined.")
-        if slug not in cls._init_cache:
-            instance = cls().load({cls.slug_fields[0]: slug})
-            cls._init_cache[slug] = instance
-        return cls._init_cache[slug]
 
     def __init__(self, attrs=None):
         if attrs is None:
@@ -221,27 +198,6 @@ class AbstractMongoRecord(object, metaclass=AbstractMongoRecordMeta):
             d["_id"] = str(self._id)
         return d
 
-    def normalize_slug_field(self, slug_field):
-        """
-        Set the slug (stored in self[slug_field]) using the first available number at the end if duplicates exist
-        """
-        slug = self.normalize_slug(getattr(self, slug_field))
-        dupe_count = 0
-        _id = getattr(self, '_id', None)  # _id is not necessarily set b/c record might not have been saved yet
-        temp_slug = slug
-        while getattr(db, self.collection).find_one({slug_field: temp_slug, "_id": {"$ne": _id}}):
-            dupe_count += 1
-            temp_slug = "{}{}".format(slug, dupe_count)
-        return temp_slug
-
-    @staticmethod
-    def normalize_slug(slug):
-        slug = slug.lower()
-        slug = re.sub(r"[ /]", "-", slug.strip())
-        slug = re.sub(r"[^a-z0-9()\-א-ת]", "", slug)  # parens are for disambiguation on topics
-        slug = re.sub(r"-+", "-", slug)
-        return slug
-
     def _set_pkeys(self):
         if self.track_pkeys:
             for pkey in self.pkeys:
@@ -289,9 +245,7 @@ class AbstractMongoRecord(object, metaclass=AbstractMongoRecordMeta):
         return True
 
     def _normalize(self):
-        if self.slug_fields is not None:
-            for slug_field in self.slug_fields:
-                setattr(self, slug_field, self.normalize_slug_field(slug_field))
+        pass
 
     def _pre_save(self):
         pass
@@ -410,6 +364,67 @@ class AbstractMongoSet(collections.abc.Iterable):
 
     def contents(self, **kwargs):
         return [r.contents(**kwargs) for r in self]
+
+
+class SluggedAbstractMongoRecordMeta(type):
+
+    def __init__(cls, name, parents, dct):
+        super().__init__(name, parents, dct)
+        cls._init_cache = {}  # cache for instances instantiated using cls.init()
+
+
+class SluggedAbstractMongoRecord(AbstractMongoRecord, metaclass=SluggedAbstractMongoRecordMeta):
+    """
+    Use instead of AbstractMongoRecord when model has unique slug field
+    """
+
+    slug_fields = None  # List[str]: Names of slug fields on model. Most commonly will be ["slug"] but there are cases where multiple slug fields are useful.
+    cacheable = False
+
+    @classmethod
+    def init(cls, slug: str) -> 'AbstractMongoRecord':
+        """
+        Convenience func to avoid using .load() when you're only passing a slug
+        Applicable only if class defines `slug_fields`
+        :param slug:
+        :return:
+        """
+        if len(cls.slug_fields) != 1:
+            raise Exception("Can only call init() if exactly one slug field is defined.")
+        if slug not in cls._init_cache or not cls.cacheable:
+            instance = cls().load({cls.slug_fields[0]: slug})
+            if cls.cacheable:
+                cls._init_cache[slug] = instance
+            else:
+                return instance
+        return cls._init_cache[slug]
+
+    def normalize_slug_field(self, slug_field):
+        """
+        Set the slug (stored in self[slug_field]) using the first available number at the end if duplicates exist
+        """
+        slug = self.normalize_slug(getattr(self, slug_field))
+        dupe_count = 0
+        _id = getattr(self, '_id', None)  # _id is not necessarily set b/c record might not have been saved yet
+        temp_slug = slug
+        while getattr(db, self.collection).find_one({slug_field: temp_slug, "_id": {"$ne": _id}}):
+            dupe_count += 1
+            temp_slug = "{}{}".format(slug, dupe_count)
+        return temp_slug
+
+    @staticmethod
+    def normalize_slug(slug):
+        slug = slug.lower()
+        slug = re.sub(r"[ /]", "-", slug.strip())
+        slug = re.sub(r"[^a-z0-9()\-א-ת]", "", slug)  # parens are for disambiguation on topics
+        slug = re.sub(r"-+", "-", slug)
+        return slug
+
+    def _normalize(self):
+        super()._normalize()
+        if self.slug_fields is not None:
+            for slug_field in self.slug_fields:
+                setattr(self, slug_field, self.normalize_slug_field(slug_field))
 
 
 def get_subclasses(c):

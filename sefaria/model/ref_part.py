@@ -110,7 +110,7 @@ class LeafTrieEntry:
 LEAF_TRIE_ENTRY = LeafTrieEntry()
 
 
-class NonUniqueTerm(abst.AbstractMongoRecord, schema.AbstractTitledObject):
+class NonUniqueTerm(abst.SluggedAbstractMongoRecord, schema.AbstractTitledObject):
     """
     The successor of the old `Term` class
     Doesn't require titles to be globally unique

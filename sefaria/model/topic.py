@@ -10,7 +10,7 @@ import regex as re
 logger = structlog.get_logger(__name__)
 
 
-class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
+class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
     collection = 'topics'
     history_noun = 'topic'
     slug_fields = ['slug']
@@ -741,7 +741,7 @@ class RefTopicLinkSet(abst.AbstractMongoSet):
         super().__init__(query=query, *args, **kwargs)
 
 
-class TopicLinkType(abst.AbstractMongoRecord):
+class TopicLinkType(abst.SluggedAbstractMongoRecord):
     collection = 'topic_link_types'
     slug_fields = ['slug', 'inverseSlug']
     required_attrs = [
@@ -787,7 +787,7 @@ class TopicLinkTypeSet(abst.AbstractMongoSet):
     recordClass = TopicLinkType
 
 
-class TopicDataSource(abst.AbstractMongoRecord):
+class TopicDataSource(abst.SluggedAbstractMongoRecord):
     collection = 'topic_data_sources'
     slug_fields = ['slug']
     required_attrs = [
