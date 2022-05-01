@@ -82,7 +82,7 @@ const SELECTOR_WHITE_LIST = {
     function getNextWhiteSpaceIndex(text) {
         const match = text.match(/\S\s+/);  // `\S` so whitespace can't be at beginning of string
         if (match === null) { return -1; }
-        return match.index;
+        return match.index + 1;
     }
 
     function getNthWhiteSpaceIndex(text, n, startIndex) {
@@ -105,8 +105,8 @@ const SELECTOR_WHITE_LIST = {
         let { startChar, endChar } = linkObj;
         const newEndChar = getNthWhiteSpaceIndex(text, numWordsAround, endChar);
         const textRev = [...text].reverse().join("");
-        const newStartChar = text.length - getNthWhiteSpaceIndex(textRev, numWordsAround, text.length - startChar) - 1;
-        const wordsAroundText = text.substring(newStartChar, newEndChar + 1);
+        const newStartChar = text.length - getNthWhiteSpaceIndex(textRev, numWordsAround, text.length - startChar);
+        const wordsAroundText = text.substring(newStartChar, newEndChar);
         return {
             text: wordsAroundText,
             startChar: startChar - newStartChar,
