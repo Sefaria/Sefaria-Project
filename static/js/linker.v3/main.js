@@ -158,6 +158,7 @@ const SELECTOR_WHITE_LIST = {
          * maxNumWordsAround: maximum number of words around linkObj.text to search to try to find its unique occurrence.
          */
         if (!ns.debug && linkObj.linkFailed) { return; }
+        document.normalize();
         let occurrences = [];
         let numWordsAround = 0;
         let searchText = linkObj.text;
@@ -177,7 +178,7 @@ const SELECTOR_WHITE_LIST = {
                 const linkEndChar = linkStartChar + linkObj.text.length;
                 if (portion.indexInMatch >= linkStartChar && portionEndIndex <= linkEndChar) {
                     // portion only contains link text
-                    return createATag(linkObj, linkObj.text);
+                    return createATag(linkObj, portion.text);
                 } else if (portion.indexInMatch < linkEndChar && portionEndIndex > linkStartChar) {
                     // portion contains some non-link text
                     // practically this case doesn't seem to come up because findOccurences effectively breaks up relevant matches into their own text nodes
