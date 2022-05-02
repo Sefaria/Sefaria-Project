@@ -37,7 +37,7 @@ const Promotions = ({adType, rerender}) => {
         const url = 
         'https://docs.google.com/spreadsheets/d/1UJw2Akyv3lbLqBoZaFVWhaAp-FUQ-YZfhprL_iNhhQc/edit#gid=0'
         const query = new google.visualization.Query(url);
-        query.setQuery('select A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P');
+        query.setQuery('select A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q');
         query.send(processSheetsData);
     }
 
@@ -52,6 +52,16 @@ const Promotions = ({adType, rerender}) => {
             return false;
         }
     }
+
+    function showGivenDebugMode(ad) {
+      if (!ad.debug) {
+        return true;
+      } else if (context.isDebug == true) {
+        return true;
+      } else {
+        return false
+      }
+    }
    
         
   function getCurrentMatchingAds() {
@@ -59,6 +69,7 @@ const Promotions = ({adType, rerender}) => {
     return inAppAds.filter(ad => {
       return (
         showToUser(ad) &&
+        showGivenDebugMode(ad) &&
         ad.trigger.interfaceLang === context.interfaceLang &&
         ad.adType === adType &&
         context.dt > ad.trigger.dt_start && context.dt < ad.trigger.dt_end &&
@@ -108,7 +119,8 @@ const Promotions = ({adType, rerender}) => {
                 dt_end: Date.parse(row[2]),
                 keywordTargets: keywordTargetsArray,
                 excludeKeywordTargets: excludeKeywordTargets
-              }
+              },
+              debug: parseInt(row[16])
             }
         )
       }

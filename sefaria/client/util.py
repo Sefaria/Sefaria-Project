@@ -1,16 +1,15 @@
 
 import json
-from rauth import OAuth2Service
 from datetime import datetime
-import time
-from urllib.parse import unquote
-
 
 from django.http import HttpResponse, JsonResponse
 from django.core.mail import EmailMultiAlternatives
 from functools import wraps
 
 from sefaria import settings as sls
+from sefaria.helper.nationbuilder import get_nationbuilder_connection
+# from sefaria.model.user_profile import UserProfile
+
 
 def jsonResponse(data, callback=None, status=200):
     if callback:
@@ -42,6 +41,7 @@ def jsonpResponse(data, callback, status=200):
 
 
 def subscribe_to_list(lists, email, first_name=None, last_name=None, direct_sign_up=False, bypass_nationbuilder=False):
+    from sefaria.model.user_profile import UserProfile
 
     if not sls.NATIONBUILDER:
         return
@@ -72,57 +72,24 @@ def subscribe_to_list(lists, email, first_name=None, last_name=None, direct_sign
     if last_name:
         post["person"]["last_name"] = last_name
 
-    session = get_nation_builder_connection()
+    session = get_nationbuilder_connection()
     r = session.put("https://"+sls.NATIONBUILDER_SLUG+".nationbuilder.com/api/v1/people/push",
                     data=json.dumps(post),
                     params={'format': 'json'},
                     headers={'content-type': 'application/json'})
+    try: # add nationbuilder id to user profile
+        nationbuilder_user = r.json()
+        nationbuilder_id = nationbuilder_user["person"]["id"] if "person" in nationbuilder_user else nationbuilder_user["id"]
+        user_profile = UserProfile(email=email)
+        if user_profile.id != None and user_profile.nationbuilder_id != nationbuilder_id:
+            user_profile.nationbuilder_id = nationbuilder_id
+            user_profile.save()
+    except:
+        pass
+
     session.close()
 
     return r
-
-def get_by_tag(tag_name):
-    return f"/api/v1/tags/{tag_name}/people" 
-
-def nationbuilder_get_all(endpoint_func, args=[]):
-    session = get_nation_builder_connection()
-    base_url = "https://"+sls.NATIONBUILDER_SLUG+".nationbuilder.com"
-    next_endpoint = endpoint_func(*args)
-    while(next_endpoint):
-        for attempt in range(0,3):
-            try:
-                res = session.get(base_url + next_endpoint)
-                res_data = res.json()
-                for item in res_data['results']:
-                    yield item
-                next_endpoint = unquote(res_data['next']) if res_data['next'] else None
-                if (res.headers['x-ratelimit-remaining'] == '0'):
-                    time.sleep(10)
-                break
-            except Exception as e:
-                print("Trying again to access and process {}. Attempts: {}. Exception: {}".format(next_endpoint, attempt+1, e))
-        else:
-            session.close()
-            raise Exception("Error when attempting to connect to and process " + next_endpoint)
-        
-    session.close()
-    
-
-def get_nation_builder_connection():
-    access_token_url = "http://%s.nationbuilder.com/oauth/token" % sls.NATIONBUILDER_SLUG
-    authorize_url = "%s.nationbuilder.com/oauth/authorize" % sls.NATIONBUILDER_SLUG
-    service = OAuth2Service(
-        client_id = sls.NATIONBUILDER_CLIENT_ID,
-        client_secret = sls.NATIONBUILDER_CLIENT_SECRET,
-        name = "NationBuilder",
-        authorize_url = authorize_url,
-        access_token_url = access_token_url,
-        base_url = "%s.nationbuilder.com" % sls.NATIONBUILDER_SLUG
-    )
-    token = sls.NATIONBUILDER_TOKEN
-    session = service.get_session(token)
-
-    return session
 
 def send_email(subject, message_html, from_email, to_email):
     msg = EmailMultiAlternatives(subject, message_html, "Sefaria <hello@sefaria.org>", [to_email], reply_to=[from_email])

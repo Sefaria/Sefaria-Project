@@ -17,7 +17,7 @@ spec:
           volumes:
           - name: backup-manager-secret
             secret:
-              secretName: {{ template "secrets.backupManager" . }}
+              secretName: {{ template "sefaria.secrets.backupManager" . }}
           - name: create-dumps-script
             configMap:
               name: create-dumps-{{ .Values.deployEnv }}
@@ -71,7 +71,7 @@ spec:
             - name: SLACK_URL
               valueFrom:
                 secretKeyRef:
-                  name: {{ template "secrets.slackWebhook" . }}
+                  name: {{ template "sefaria.secrets.slackWebhook" . }}
                   key: slack-webhook
             command: ["bash"]
             args: ["-c", "/scripts/upload-dumps.sh"]
