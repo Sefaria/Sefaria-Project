@@ -12,9 +12,9 @@ metadata:
     {{- end }}
 spec:
   tls:
-    - secretName: {{ template "secrets.originTls" . }}
+    - secretName: {{ template "sefaria.secrets.originTls" . }}
     {{- if eq .Values.deployEnv "prod" }}
-    - secretName: {{ template "secrets.originIlTls" . }}
+    - secretName: {{ template "sefaria.secrets.originIlTls" . }}
     {{- end }}
   rules:
     {{- range .Values.ingress.hosts }}

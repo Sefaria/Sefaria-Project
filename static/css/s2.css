@@ -6868,6 +6868,18 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .profile-page .logoutLink .int-he {
   font-family: "Heebo", sans-serif;
 }
+.notificationsTopContainer {
+  display: flex;
+  flex-direction: row;
+  margin-bottom: 30px;
+}
+.notificationsHeaderBox {
+  flex-grow: 1;
+  margin-bottom: 12px
+}
+.readerNavMenu .notificationsHeaderBox h1 {
+  margin: 4px 0 0 0;
+}
 .notificationsTitleIcon {
   position: relative;top: 2px;
 }

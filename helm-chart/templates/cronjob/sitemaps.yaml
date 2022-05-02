@@ -16,7 +16,7 @@ spec:
           volumes:
           - name: backup-manager-secret
             secret:
-              secretName: {{ template "secrets.backupManager" . }}
+              secretName: {{ template "sefaria.secrets.backupManager" . }}
           - name: local-settings
             configMap:
               name: local-settings-{{ .Values.deployEnv }}

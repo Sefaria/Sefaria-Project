@@ -419,7 +419,7 @@ const Strings = {
 
     //user stats
     "Torah Tracker" : "לימוד במספרים",
-    "Year to Date": "בשנה הנוכחית",
+    "Previous Year": "לשנה האחרונה",
     "All Time": "כל הזמן",
     "Texts Read" : "ספרים שנקראו",
     "Sheets Read" : "דפי מקורות שנקראו",
@@ -555,7 +555,8 @@ const Strings = {
       "Select Format": "בחירת פורמט הורדה",
       "Text (with Tags)": "טקסט (עם תיוגים)",
       "Text (without Tags)": "טקסט (ללא תיוגים)",
-      "Select Version": "בחירת מהדורה/תרגום"
+      "Select Version": "בחירת מהדורה/תרגום",
+      "Merged Version": "גרסה משולבת"
     },
     "FilterableList": {
       "Alphabetical": "אלפביתי",
