@@ -125,3 +125,20 @@ class Test_Link_Save(object):
         with pytest.raises(DuplicateRecordError) as e_info:
             link2.save()
         l1.delete()
+
+    def test_samelink_adding_score_and_charLevelData(self):
+        link1 = Link({"auto": True,
+                      "generated_by": "link_tester",
+                      "type": "quotation_auto_tanakh",
+                      "score": 44.8,
+                      "charLevelData": [{'startWord': 42,
+                              'endWord': 121,
+                              'versionTitle': 'Miqra according to the Masorah',
+                              'language': 'he'},
+                             {'startChar': 3,
+                              'endChar': 67,
+                              'versionTitle': 'The Metsudah siddur: a new linear siddur with English translation by Avrohom Davis, 1981',
+                              'language': 'he'}],
+                      "refs": ["Psalms 113:1-9", 'Siddur Ashkenaz, Festivals, Rosh Chodesh, Hallel, Psalm 113 1']})
+        with pytest.raises(DuplicateRecordError) as e_info:
+            link1.save()
