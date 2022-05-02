@@ -1009,7 +1009,7 @@ class ReaderApp extends Component {
       window.open(url, '_blank')
       return true;
     }
-    const path = url.pathname;
+    const path = decodeURI(url.pathname);
     const params = url.searchParams;
     const openPanel = replace ? this.openPanel : this.openPanelAtEnd;
     if (path === "/") {
@@ -1025,7 +1025,7 @@ class ReaderApp extends Component {
       this.showSaved();
 
     } else if (path.match(/\/texts\/.+/)) {
-      this.showLibrary(path.slice(7).split("/").map(decodeURI));
+      this.showLibrary(path.slice(7).split("/"));
 
     } else if (path === "/collections") {
       this.showCollections();
