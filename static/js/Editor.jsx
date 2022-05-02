@@ -1559,7 +1559,6 @@ const withSefariaSheet = editor => {
     editor.convertEmptyParagraphToSpacer = (node, path) => {
         if (node.type === "paragraph") {
             if (Node.string(node) === "" && node.children.length <= 1) {
-                console.log('spacer?')
                 Transforms.setNodes(editor, {type: "spacer"}, {at: path});
             }
         }
@@ -2444,15 +2443,15 @@ const BlockButton = ({format, icon}) => {
 
 const SefariaEditor = (props) => {
     const editorContainer = useRef();
-    const sheet = props.data;
+    const [sheet, setSheet] = useState(props.data);
     const initValue = [{type: "sheet", children: [{text: ""}]}];
     const renderElement = useCallback(props => <Element {...props} />, []);
     const [value, setValue] = useState(initValue);
     const [currentDocument, setCurrentDocument] = useState(initValue);
     const [unsavedChanges, setUnsavedChanges] = useState(false);
     const [lastModified, setlastModified] = useState(props.data.dateModified);
-    const [dropZone, setDropZone] = useState(null)
     const [canUseDOM, setCanUseDOM] = useState(false);
+    const [lastSelection, setLastSelection] = useState(null)
     const [readyForNormalize, setReadyForNormalize] = useState(false);
 
     useEffect(
@@ -2479,26 +2478,14 @@ const SefariaEditor = (props) => {
 
     useEffect(
         () => {
-            const removeStyles = editorContainer.current.querySelectorAll(".draggedOver");
-            for (let nodeToCheck of removeStyles) {
-                nodeToCheck.classList.remove("draggedOver", "draggedOverAfter", "draggedOverBefore")
-            }
-
-            if (dropZone) {
-                dropZone["node"].classList.add("draggedOver");
-                dropZone["node"].classList.add(dropZone["dropBefore"] ? "draggedOverAfter" : "draggedOverBefore");
-            }
-
-        }, [dropZone]
-    )
-
-
-    useEffect(
-        () => {
             /* normalize on load */
             setCanUseDOM(true)
-            setValue(transformSheetJsonToSlate(sheet))
-            setReadyForNormalize(true)
+
+
+            const channel = new BroadcastChannel('refresh-editor');
+            channel.addEventListener('message', event => {
+                reloadFromDb()
+            });
 
             //TODO: Check that we still need/want this temporary analytics tracking code
             try {hj('event', 'using_new_editor');} catch {console.error('hj failed')}
@@ -2507,15 +2494,24 @@ const SefariaEditor = (props) => {
 
     useEffect(
         () => {
+            setLastSelection(editor.selection)
+            setValue(transformSheetJsonToSlate(sheet))
+            editor.children = transformSheetJsonToSlate(sheet)
+            editor.onChange()
+            setReadyForNormalize(true)
+        }, [sheet]
+    )
+
+    useEffect(
+        () => {
             if (readyForNormalize) {
                 Editor.normalize(editor, {force: true});
-
-                //set cursor to top of doc
-                Transforms.select(editor, {
-                  anchor: {path: [0, 0], offset: 0},
-                  focus: {path: [0, 0], offset: 0},
-                });
-
+                setReadyForNormalize(false)
+            }
+            else {
+                //set cursor to previous location or top of doc
+                const newSelect = !!lastSelection ? lastSelection : {anchor: {path: [0, 0], offset: 0},focus: {path: [0, 0], offset: 0}}
+                Transforms.select(editor, newSelect);
             }
         }, [readyForNormalize]
     )
@@ -2872,6 +2868,13 @@ const SefariaEditor = (props) => {
 
     };
 
+    const reloadFromDb = () => {
+        console.log("Refreshing sheet from Db")
+        Sefaria.sheets.loadSheetByID(sheet.id, (data)=>{
+            setSheet(data)
+        }, true)
+    }
+
     const updateSidebar = (sheetNode, sheetRef) => {
       let source = {
           'node': sheetNode,
@@ -2915,7 +2918,6 @@ const SefariaEditor = (props) => {
         }
 
             <button className="editorSidebarToggle" onClick={(e)=>onEditorSidebarToggleClick(e) } aria-label="Click to open the sidebar" />
-
         <SheetMetaDataBox>
             <SheetTitle tabIndex={0} title={sheet.title} editable={true} blurCallback={() => saveDocument(currentDocument)}/>
             <SheetAuthorStatement
