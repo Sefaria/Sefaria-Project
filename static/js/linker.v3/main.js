@@ -30,8 +30,11 @@ const SELECTOR_WHITE_LIST = {
     }
 
     function removeUnwantedElems(elem) {
-        for (let tableEl of elem.getElementsByTagName('table')) {
-            tableEl.remove();
+        const unwantedTags = ['table', 'sup'];
+        for (let tag of unwantedTags) {
+            for (let unwantedElem of elem.getElementsByTagName(tag)) {
+                unwantedElem.remove();
+            }
         }
         return elem;
     }
@@ -58,9 +61,24 @@ const SELECTOR_WHITE_LIST = {
         }
     }
 
+    function readabilitySerializer(elem) {
+        let text = "";
+        const isNonCts = !!findAndReplaceDOMText.NON_CONTIGUOUS_PROSE_ELEMENTS[elem.nodeName.toLowerCase()];
+        if (isNonCts) { text += "\n"; }
+        if (elem.childNodes.length === 0) {
+            text = elem.innerHTML || elem.textContent;
+        }
+        for (let child of elem.childNodes) {
+            text += readabilitySerializer(child);
+        }
+        return text;
+    }
+
     function getReadableText() {
         const documentClone = removeUnwantedElems(document.cloneNode(true));
-        const readableObj = new Readability(documentClone).parse();
+        const readableObj = new Readability(documentClone, {
+            serializer: readabilitySerializer,
+        }).parse();
         return {text: sanitizeElem(readableObj.content), readableObj};
     }
 
