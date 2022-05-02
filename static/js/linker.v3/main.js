@@ -2,6 +2,7 @@ import { Readability } from '@mozilla/readability';
 import DOMPurify from 'dompurify';
 import findAndReplaceDOMText from 'findAndReplaceDOMText';
 import { PopupManager } from "./popup";
+import {LinkExcluder} from "./excluder";
 
 const SEFARIA_BASE_URL = 'http://localhost:8000'
 
@@ -82,7 +83,7 @@ const SELECTOR_WHITE_LIST = {
         return {text: sanitizeElem(readableObj.content), readableObj};
     }
 
-    function findOccurences(text) {
+    function findOccurrences(text) {
         const occurrences = [];
         findAndReplaceDOMText(document, {
             preset: 'prose',
@@ -181,8 +182,9 @@ const SELECTOR_WHITE_LIST = {
         let numWordsAround = 0;
         let searchText = linkObj.text;
         let linkStartChar = 0;  // start index of link text within searchText
+        const excluder = new LinkExcluder(ns.excludeFromLinking, ns.excludeFromTracking);
         while ((numWordsAround === 0 || occurrences.length > 1) && numWordsAround < maxNumWordsAround) {
-            occurrences = findOccurences(searchText);
+            occurrences = findOccurrences(searchText);
             if (occurrences.length === 1) { break; }
             numWordsAround += 1;
             // see https://flaviocopes.com/javascript-destructure-object-to-existing-variable/
@@ -195,6 +197,12 @@ const SELECTOR_WHITE_LIST = {
             preset: 'prose',
             find: searchText,
             replace: function(portion, match) {
+                // check if should be excluded from linking and/or tracking
+                const matchKey = match.startIndex + "|" + match.endIndex;
+                const [excludeFromLinking, excludeFromTracking] = excluder.shouldExclude(matchKey, portion.node);
+                if (excludeFromLinking) { return portion.text; }
+                if (!excludeFromTracking) { /* TODO ns.trackedMatches.push(matched_ref); */ }
+
                 const portionEndIndex = portion.indexInMatch + portion.text.length;
                 const linkEndChar = linkStartChar + linkObj.text.length;
                 if (portion.indexInMatch >= linkStartChar && portionEndIndex <= linkEndChar) {
@@ -202,7 +210,7 @@ const SELECTOR_WHITE_LIST = {
                     return createATag(linkObj, portion.text);
                 } else if (portion.indexInMatch < linkEndChar && portionEndIndex > linkStartChar) {
                     // portion contains some non-link text
-                    // practically this case doesn't seem to come up because findOccurences effectively breaks up relevant matches into their own text nodes
+                    // practically this case doesn't seem to come up because findOccurrences effectively breaks up relevant matches into their own text nodes
                     // there may be 1-off errors here since it hasn't been tested
                     const startTextNode = createTextNode(portion.text, 0, linkStartChar - portion.indexInMatch);
                     const endTextNode = createTextNode(portion.text, linkEndChar - portion.indexInMatch);
