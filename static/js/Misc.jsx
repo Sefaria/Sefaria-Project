@@ -2591,7 +2591,7 @@ const Autocompleter = ({selectedRefCallback}) => {
       /><span className="helperCompletionText sans-serif-in-hebrew">{helperPromptText}</span>
       {showAddButton ? <button className="button small" onClick={(e) => {
                     selectedRefCallback(inputValue)
-                }}>Add Source</button> : null}
+      }}><InterfaceText>Add Source</InterfaceText></button> : null}
 
       {currentSuggestions && currentSuggestions.length > 0 ?
           <div className="suggestionBoxContainer">
