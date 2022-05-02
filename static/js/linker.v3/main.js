@@ -170,6 +170,9 @@ const SELECTOR_WHITE_LIST = {
             // see https://flaviocopes.com/javascript-destructure-object-to-existing-variable/
             ({ text: searchText, startChar: linkStartChar } = getNumWordsAround(linkObj, normalizedText, numWordsAround));
         }
+        if (occurrences.length === 0) {
+            console.log("MISSED", numWordsAround, linkObj);
+        }
         findAndReplaceDOMText(document, {
             preset: 'prose',
             find: searchText,
