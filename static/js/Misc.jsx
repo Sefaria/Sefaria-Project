@@ -1926,7 +1926,7 @@ const NBox = ({ content, n, stretch, gap=0  }) => {
   return (
     <div className="gridBox">
       {rows.map((row, i) => (
-      <div className="gridBoxRow" key={i} style={{"gap": gap, "margin-top": gap}}>
+      <div className="gridBoxRow" key={i} style={{"gap": gap, "marginTop": gap}}>
         {row.pad(stretch ? row.length : n, "").map((item, j) => (
           <div className={classNames({gridBoxItem: 1, placeholder: !item})} key={`gridItem|${j}`}>{item}</div>
         ))}
@@ -2591,7 +2591,7 @@ const Autocompleter = ({selectedRefCallback}) => {
       /><span className="helperCompletionText sans-serif-in-hebrew">{helperPromptText}</span>
       {showAddButton ? <button className="button small" onClick={(e) => {
                     selectedRefCallback(inputValue)
-                }}>Add Source</button> : null}
+      }}><InterfaceText>Add Source</InterfaceText></button> : null}
 
       {currentSuggestions && currentSuggestions.length > 0 ?
           <div className="suggestionBoxContainer">

@@ -87,7 +87,7 @@ def aggregate_profiles(lang="english", limit=None):
     ]
     results = db.sheets.aggregate(pipeline)
     try:
-        profiles = {r["user"]["id"]: r for r in results}
+        profiles = {r["user"]["id"]: r for r in results if "user" in r}
     except KeyError:
         logger.error("Encountered sheet owner with no profile record.  No users will be recommended for following.")
         profiles = {}
@@ -125,6 +125,6 @@ def general_follow_recommendations(lang="english", n=4):
         creators = sorted(creators, key=lambda x: -x["sheetCount"])
 
     top_creators = creators[:1300]
-    recommendations = choices(top_creators, k=n)
+    recommendations = choices(top_creators, k=n) if len(top_creators) else []
 
     return recommendations
