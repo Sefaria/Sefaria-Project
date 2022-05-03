@@ -136,6 +136,7 @@ spec:
         - mountPath: /client-secret
           name: client-secret
           readOnly: true
+        #TODO: what is this used for?  Is it needed? There's no env var pointing to this location
         - mountPath: /google-cloud-secret
           name: backup-manager-secret
           readOnly: true
