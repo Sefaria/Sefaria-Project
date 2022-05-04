@@ -11,5 +11,7 @@ SITE_SETTINGS = {
 		"he": "ConText - The American Democracy Library",
 	},
 	"SUPPORTED_TRANSLATION_LANGUAGES": [],
-	"LIBRARY_MESSAGE": "Welcome to ConText, a project of the <a href='https://jackmillercenter.org/'>Jack Miller Center</a>..."
+	"LIBRARY_MESSAGE": "Welcome to ConText, a project of the <a href='https://jackmillercenter.org/'>Jack Miller Center</a>...",
+	"LOGO": "/static/img/jmc-logo.jpeg",
+	"HE_LOGO": "/static/img/jmc-logo.jpeg",
 }

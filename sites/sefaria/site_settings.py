@@ -11,4 +11,6 @@ SITE_SETTINGS = {
 		"he": "האוסף של ספריא",
 	},
 	"SUPPORTED_TRANSLATION_LANGUAGES": ['en', 'es', 'fr', 'de'],
+	"LOGO": "/static/img/logo.svg",
+	"HE_LOGO": "/static/img/logo-hebrew.png",
 }
