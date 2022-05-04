@@ -55,8 +55,6 @@ spec:
             volumeMounts:
             - name: shared-volume
               mountPath: /mongodumps/shared_volume
-            - name: backup-manager-secret
-              mountPath: /conf
             - name: upload-dumps-script
               mountPath: /scripts/upload-dumps.sh
               subPath: upload-dumps.sh
