@@ -44,6 +44,15 @@ spec:
           initContainers:
           - name: mongo-dumper
             image:  mongo:4.4
+            envFrom:
+              - secretRef:
+                  name: {{ .Values.secrets.localSettings.ref }}
+                  optional: true
+              - configMapRef:
+                  name: local-settings-{{ .Values.deployEnv }}
+              - secretRef:
+                  name: local-settings-secrets-{{ .Values.deployEnv }}
+                  optional: true
             volumeMounts:
             - name: shared-volume
               mountPath: /mongodumps/shared_volume

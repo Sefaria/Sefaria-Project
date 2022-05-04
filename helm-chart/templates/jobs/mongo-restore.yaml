@@ -52,6 +52,13 @@ spec:
           env:
             - name: MONGO_HOST
               value: {{ .Values.localSettings.MONGO_HOST | quote }}
+          envFrom:
+             - secretRef:
+                 name: {{ .Values.secrets.localSettings.ref }}
+                 optional: true
+             - secretRef:
+                 name: local-settings-secrets-{{ .Values.deployEnv }}
+                 optional: true
           command: ["/script/restore-mongo.sh"]
       restartPolicy: Never
   ttlSecondsAfterFinished: 432000
