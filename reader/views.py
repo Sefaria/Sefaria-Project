@@ -2960,13 +2960,18 @@ def notifications_read_api(request):
         notifications = request.POST.get("notifications")
         if not notifications:
             return jsonResponse({"error": "'notifications' post parameter missing."})
-        notifications = json.loads(notifications)
-        for id in notifications:
-            notification = Notification().load_by_id(id)
-            if notification.uid != request.user.id:
-                # Only allow expiring your own notifications
-                continue
-            notification.mark_read().save()
+        if notifications == "all":
+            notificationSet = NotificationSet().unread_for_user(request.user.id)
+            for notification in notificationSet:
+                notification.mark_read().save()
+        else:
+            notifications = json.loads(notifications)
+            for id in notifications:
+                notification = Notification().load_by_id(id)
+                if notification.uid != request.user.id:
+                    # Only allow expiring your own notifications
+                    continue
+                notification.mark_read().save()
 
         return jsonResponse({
                                 "status": "ok",
@@ -3848,7 +3853,7 @@ def community_page_data(request, language="english"):
     from sefaria.model.user_profile import UserProfile
 
     data = {
-        "community": get_community_page_items(language=language)
+        "community": get_community_page_items(language=language, diaspora=(request.interfaceLang != "hebrew"))
     }
     if request.user.is_authenticated:
         profile = UserProfile(user_obj=request.user)

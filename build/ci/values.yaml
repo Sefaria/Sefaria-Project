@@ -1,0 +1,69 @@
+sandbox: "true"
+contentSandbox: "true"
+deployEnv:  
+previousServicesCount: "1"
+web:
+  containerImage: 
+    imageRegistry: gcr.io/development-205018/sefaria-web-${BRANCH}
+    tag: 
+  secrets:
+    googleClient:
+      ref: google-client-secret
+    logging:
+      ref: logging-secret
+    schoolLookup:
+      ref: school-lookup-data
+redis:
+  containerImage:
+    imageRegistry: redis
+    tag: latest
+nodejs:
+  containerImage: 
+    imageRegistry: gcr.io/development-205018/sefaria-node-${BRANCH}
+    tag: 
+varnish:
+  containerImage:
+    imageRegistry: gcr.io/production-deployment/sefaria-varnish
+    tag: v6
+  secrets:
+    varnish:
+      ref: varnish-secret-helm
+ingress:
+  hosts: 
+    - host: "{{ .Values.deployEnv }}.cauldron.sefaria.org"
+      path: /*
+      serviceName: nginx
+      port: 80
+  secrets:
+    originTls: 
+      ref: cauldron-wildcard-letsencrypt
+nginx:
+  containerImage: 
+    imageRegistry: gcr.io/development-205018/sefaria-asset-${BRANCH}
+    tag: 
+monitor:
+  containerImage: 
+    imageRegistry: gcr.io/development-205018/sefaria-web-${BRANCH}
+    tag: 
+secrets:
+  localSettings: 
+    ref: local-settings-secrets
+  backupManager: 
+    ref: backup-manager
+  slackWebhook: 
+    ref: slack-webhook-helm
+localSettings:
+  DEBUG: false
+  DOMAIN_LANGUAGE: {}
+  MONGO_HOST: "mongo"
+  APSCHEDULER_NAME: "apscheduler-{{ .Values.deployEnv }}"
+  SEARCH_ADMIN: "http://elasticsearch-data:9200"
+  TURN_SERVER: ''
+  USE_CLOUDFLARE: false
+  FRONT_END_URL:  "http://${NAME}.cauldron.sefaria.org" 
+  OFFLINE: false
+  DOWN_FOR_MAINTENANCE: false
+  MAINTENANCE_MESSAGE: "Sefaria is down for scheduled maintenance. We expect to be back online within 15 minutes. Thank you for your patience."
+  GLOBAL_WARNING: false
+  GLOBAL_WARNING_MESSAGE: "Sefaria will be in <b>Read-Only</b> mode for scheduled maintenance from 4:45pm-6:45pm Pacific time. Edits will <b>not</b> be saved during that time."
+

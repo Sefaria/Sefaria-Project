@@ -695,6 +695,7 @@ class Util {
       return vars;
     }
     static replaceUrlParam(paramName, paramValue){
+      //TODO: This does not create the correct urls for multipanel views. It ends up just tacking on an extra "with" param on the end  
       var url = INBROWSER ? window.location.href : this._initialPath;
       if(paramValue == null)
           paramValue = '';
