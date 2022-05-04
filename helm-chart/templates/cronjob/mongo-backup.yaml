@@ -34,6 +34,11 @@ spec:
                     values:
                     - mongo
                 topologyKey: kubernetes.io/hostname
+          tolerations:
+            - key: schedule-on-database-vm
+              operator: "Equal"
+              value: "true"
+              effect: "NoSchedule"
           initContainers:
           - name: mongo-dumper
             image:  mongo:4.4
