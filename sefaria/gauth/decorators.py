@@ -31,13 +31,12 @@ def gauth_required(scope, ajax=False):
             profile = UserProfile(user_obj=request.user)
             credentials_dict = profile.gauth_token
 
-            if credentials_dict is None:
+            if credentials_dict is None or not set(scope).issubset(set(credentials_dict['scopes'])):
                 request.session['next_view'] = request.path
                 request.session['gauth_scope'] = scope
                 return (HttpResponse('Unauthorized', status=401)
-                        if ajax else redirect('gauth_index'))
-
-
+                    if ajax else redirect('gauth_index'))
+           
             credentials = google.oauth2.credentials.Credentials(
                 credentials_dict['token'],
                 refresh_token=credentials_dict['refresh_token'],
@@ -50,7 +49,6 @@ def gauth_required(scope, ajax=False):
 
             expiry = datetime.datetime.strptime(credentials_dict['expiry'], '%Y-%m-%d %H:%M:%S')
             credentials.expiry = expiry
-
             auth_request = google.auth.transport.requests.Request()
             if credentials.expired:
                 try:
