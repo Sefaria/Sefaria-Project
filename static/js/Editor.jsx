@@ -1269,10 +1269,7 @@ const withSefariaSheet = editor => {
     };
 
     editor.deleteForward = () => {
-
-        console.log(editor.selection)
         deleteForward(editor);
-
     }
 
     editor.deleteBackward = () => {
@@ -1396,6 +1393,46 @@ const withSefariaSheet = editor => {
             deleteBackward(); // dance finale.
             Editor.normalize(editor, { force: true })
         }
+        else if (data.getData('text/plain').startsWith('http')) {
+            let url;
+            try {
+              url = new URL(data.getData('text/plain'));
+              if (url.hostname.indexOf("www.sefaria.org") === 0) {
+                  $.ajax({
+                      url: url,
+                      async: true,
+                      success: function (data) {
+                          const matches = data.match(/<title>(.*?)<\/title>/);
+                          if (!matches) {
+                              console.log('no matches')
+                              console.log(url)
+                              Transforms.insertText(editor, url.href)
+                              return
+                          }
+                          const link = editor.createLinkNode(url.href, matches[1])
+                          Transforms.insertText(editor, " ") // this is start of dance that's required to ensure that link gets inserted properly
+                          const initLoc = editor.selection
+                          Transforms.insertNodes(editor, link);
+                          Transforms.select(editor, initLoc); // dance ii
+                          Transforms.move(editor, { distance: 1, unit: 'character', reverse: true }) // dance dance dance
+                          Transforms.delete(editor); // end of dance
+                      },
+                      error: function (e) {
+                          Transforms.insertText(editor, url.href)
+                      }
+                  });
+              }
+
+              else {
+                  console.log('not sef link')
+                  insertData(data)
+              }
+
+            } catch {
+                  insertData(data)
+            }
+        }
+
         else {
             insertData(data)
         }
@@ -1786,6 +1823,25 @@ const insertMedia = (editor, mediaUrl) => {
   Transforms.move(editor);
 }
 
+
+function placed_segment_mapper(lang, segmented, includeNumbers, s) {
+
+    if (!s[lang]) {return ""}
+
+    let numStr = "";
+    if (includeNumbers) {
+        const num = (lang=="he") ? Sefaria.hebrew.encodeHebrewNumeral(s.number) : s.number;
+        numStr = "<small>(" + num + ")</small> ";
+    }
+    let str = "<span class='segment'>" + numStr + s[lang] + "</span> ";
+    if (segmented) {
+        str = "<p>" + str + "</p>";
+    }
+    str = str.replace(/(<br\/>)+/g, ' ')
+    return str;
+}
+
+
 const insertSource = (editor, ref) => {
     const path = editor.selection.anchor.path;
 
@@ -1795,8 +1851,19 @@ const insertSource = (editor, ref) => {
     const nodeBelow = getNodeBelow(path, editor)
 
     Sefaria.getText(ref, {stripItags: 1}).then(text => {
-        const enText = Array.isArray(text.text) ? `<p>${text.text.flat(Infinity).join("</p><p>")}</p>` : text.text;
-        const heText = Array.isArray(text.text) ? `<p>${text.he.flat(Infinity).join("</p><p>")}</p>` : text.he;
+        const segments = Sefaria.makeSegments(text);
+
+        let includeNumbers = $.inArray("Talmud", text.categories) == -1;
+        includeNumbers = text.indexTitle === "Pesach Haggadah" ? false : includeNumbers;
+        const segmented = !(text.categories[0] in {"Tanakh": 1, "Talmud": 1});
+
+        const enText = segments.map(placed_segment_mapper.bind(this, "en", segmented, includeNumbers))
+            .filter(Boolean)
+            .join("");
+        const heText = segments.map(placed_segment_mapper.bind(this, "he", segmented, includeNumbers))
+            .filter(Boolean)
+            .join("");
+
         let fragment = [{
                 type: "SheetSource",
                 node: editor.children[0].nextNode,
@@ -2025,7 +2092,7 @@ const withLinks = editor => {
 
     editor.createLinkNode = (href, text) => ({
         type: "link",
-        href,
+        url: href,
         children: [{ text }]
     });
 
@@ -2376,15 +2443,15 @@ const BlockButton = ({format, icon}) => {
 
 const SefariaEditor = (props) => {
     const editorContainer = useRef();
-    const sheet = props.data;
+    const [sheet, setSheet] = useState(props.data);
     const initValue = [{type: "sheet", children: [{text: ""}]}];
     const renderElement = useCallback(props => <Element {...props} />, []);
     const [value, setValue] = useState(initValue);
     const [currentDocument, setCurrentDocument] = useState(initValue);
     const [unsavedChanges, setUnsavedChanges] = useState(false);
     const [lastModified, setlastModified] = useState(props.data.dateModified);
-    const [dropZone, setDropZone] = useState(null)
     const [canUseDOM, setCanUseDOM] = useState(false);
+    const [lastSelection, setLastSelection] = useState(null)
     const [readyForNormalize, setReadyForNormalize] = useState(false);
 
     useEffect(
@@ -2411,26 +2478,14 @@ const SefariaEditor = (props) => {
 
     useEffect(
         () => {
-            const removeStyles = editorContainer.current.querySelectorAll(".draggedOver");
-            for (let nodeToCheck of removeStyles) {
-                nodeToCheck.classList.remove("draggedOver", "draggedOverAfter", "draggedOverBefore")
-            }
-
-            if (dropZone) {
-                dropZone["node"].classList.add("draggedOver");
-                dropZone["node"].classList.add(dropZone["dropBefore"] ? "draggedOverAfter" : "draggedOverBefore");
-            }
-
-        }, [dropZone]
-    )
-
-
-    useEffect(
-        () => {
             /* normalize on load */
             setCanUseDOM(true)
-            setValue(transformSheetJsonToSlate(sheet))
-            setReadyForNormalize(true)
+
+
+            const channel = new BroadcastChannel('refresh-editor');
+            channel.addEventListener('message', event => {
+                reloadFromDb()
+            });
 
             //TODO: Check that we still need/want this temporary analytics tracking code
             try {hj('event', 'using_new_editor');} catch {console.error('hj failed')}
@@ -2439,15 +2494,24 @@ const SefariaEditor = (props) => {
 
     useEffect(
         () => {
+            setLastSelection(editor.selection)
+            setValue(transformSheetJsonToSlate(sheet))
+            editor.children = transformSheetJsonToSlate(sheet)
+            editor.onChange()
+            setReadyForNormalize(true)
+        }, [sheet]
+    )
+
+    useEffect(
+        () => {
             if (readyForNormalize) {
                 Editor.normalize(editor, {force: true});
-
-                //set cursor to top of doc
-                Transforms.select(editor, {
-                  anchor: {path: [0, 0], offset: 0},
-                  focus: {path: [0, 0], offset: 0},
-                });
-
+                setReadyForNormalize(false)
+            }
+            else {
+                //set cursor to previous location or top of doc
+                const newSelect = !!lastSelection ? lastSelection : {anchor: {path: [0, 0], offset: 0},focus: {path: [0, 0], offset: 0}}
+                Transforms.select(editor, newSelect);
             }
         }, [readyForNormalize]
     )
@@ -2804,6 +2868,13 @@ const SefariaEditor = (props) => {
 
     };
 
+    const reloadFromDb = () => {
+        console.log("Refreshing sheet from Db")
+        Sefaria.sheets.loadSheetByID(sheet.id, (data)=>{
+            setSheet(data)
+        }, true)
+    }
+
     const updateSidebar = (sheetNode, sheetRef) => {
       let source = {
           'node': sheetNode,
@@ -2847,7 +2918,6 @@ const SefariaEditor = (props) => {
         }
 
             <button className="editorSidebarToggle" onClick={(e)=>onEditorSidebarToggleClick(e) } aria-label="Click to open the sidebar" />
-
         <SheetMetaDataBox>
             <SheetTitle tabIndex={0} title={sheet.title} editable={true} blurCallback={() => saveDocument(currentDocument)}/>
             <SheetAuthorStatement

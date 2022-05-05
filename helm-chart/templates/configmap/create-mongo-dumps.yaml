@@ -1,4 +1,4 @@
-{{- if eq .Values.deployEnv "prod" }}
+{{- if eq .Values.backup.enabled true }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -62,6 +62,7 @@ data:
     echo "building small private tar file"
     tar cvzf "${DATADIR}/private_dump_small.tar.gz" -C "${DATADIR}" ./dump
 
+    {{- if .Values.backup.public }}
     echo "creating public dump"
     until mongodump --host=mongo:27017 -d sefaria -v --collection texts --query '{"license": {"$not": {"$regex": "/^Copyright/i"}}}' -o "${DATADIR}/dump"
     do
@@ -112,6 +113,7 @@ data:
 
     echo "building full public tar file"
     tar cvzf "${DATADIR}/dump.tar.gz" -C "${DATADIR}" ./dump
+    {{- end }}
 
     echo "upload shoud start"
 {{- end }}

@@ -1,4 +1,4 @@
-{{- if eq .Values.deployEnv "prod" }}
+{{- if eq .Values.backup.enabled true }}
 ---
 apiVersion: batch/v1beta1
 kind: CronJob
@@ -14,10 +14,8 @@ spec:
       backoffLimit: 1
       template:
         spec:
+          serviceAccount: {{ .Values.backup.serviceAccount }}
           volumes:
-          - name: backup-manager-secret
-            secret:
-              secretName: {{ template "secrets.backupManager" . }}
           - name: create-dumps-script
             configMap:
               name: create-dumps-{{ .Values.deployEnv }}
@@ -26,7 +24,6 @@ spec:
               name: upload-dumps-{{ .Values.deployEnv }}
           - name: shared-volume
             emptyDir: {}
-
           affinity:
             podAffinity:
               requiredDuringSchedulingIgnoredDuringExecution:
@@ -37,7 +34,11 @@ spec:
                     values:
                     - mongo
                 topologyKey: kubernetes.io/hostname
-
+          tolerations:
+            - key: schedule-on-database-vm
+              operator: "Equal"
+              value: "true"
+              effect: "NoSchedule"
           initContainers:
           - name: mongo-dumper
             image:  mongo:4.4
@@ -59,26 +60,27 @@ spec:
             volumeMounts:
             - name: shared-volume
               mountPath: /mongodumps/shared_volume
-            - name: backup-manager-secret
-              mountPath: /conf
             - name: upload-dumps-script
               mountPath: /scripts/upload-dumps.sh
               subPath: upload-dumps.sh
               readOnly: true
             env:
-            - name: GOOGLE_APPLICATION_CREDENTIALS
-              value: /conf/BackupManagerKey.json
+            - name: PREFIX
+              value: {{ .Values.backup.prefix }}
+            - name: BUCKET
+              value: {{ .Values.backup.bucket }}
+            - name: ARCHIVE_BUCKET
+              value: {{ .Values.backup.archiveBucket }}
             - name: SLACK_URL
               valueFrom:
                 secretKeyRef:
-                  name: {{ template "secrets.slackWebhook" . }}
+                  name: {{ template "sefaria.secrets.slackWebhook" . }}
                   key: slack-webhook
             command: ["bash"]
             args: ["-c", "/scripts/upload-dumps.sh"]
             resources:
               limits:
                 memory: "500Mi"
-
           restartPolicy: OnFailure
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 2

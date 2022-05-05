@@ -1915,7 +1915,7 @@ InterruptingMessage.propTypes = {
 };
 
 
-const NBox = ({ content, n, stretch }) => {
+const NBox = ({ content, n, stretch, gap=0  }) => {
   // Wrap a list of elements into an n-column flexbox
   // If `stretch`, extend the final row into any remaining empty columns
   let length = content.length;
@@ -1926,7 +1926,7 @@ const NBox = ({ content, n, stretch }) => {
   return (
     <div className="gridBox">
       {rows.map((row, i) => (
-      <div className="gridBoxRow" key={i}>
+      <div className="gridBoxRow" key={i} style={{"gap": gap, "marginTop": gap}}>
         {row.pad(stretch ? row.length : n, "").map((item, j) => (
           <div className={classNames({gridBoxItem: 1, placeholder: !item})} key={`gridItem|${j}`}>{item}</div>
         ))}
@@ -1957,8 +1957,9 @@ TwoOrThreeBox.defaultProps = {
 };
 
 
-const ResponsiveNBox = ({content, stretch, initialWidth}) => {
-
+const ResponsiveNBox = ({content, stretch, initialWidth, threshold2=500, threshold3=1500, gap=0}) => {
+  //above threshold2, there will be 2 columns
+  //above threshold3, there will be 3 columns
   initialWidth = initialWidth || (window ? window.innerWidth : 1000);
   const [width, setWidth] = useState(initialWidth);
   const ref = useRef(null);
@@ -1973,14 +1974,12 @@ const ResponsiveNBox = ({content, stretch, initialWidth}) => {
 
   const deriveAndSetWidth = () => setWidth(ref.current ? ref.current.offsetWidth : initialWidth);
 
-  const threshold2 = 500; //above threshold2, there will be 2 columns
-  const threshold3 = 1500; //above threshold3, there will be 3 columns
   const n = (width > threshold3) ? 3 :
     (width > threshold2) ? 2 : 1;
 
   return (
     <div className="responsiveNBox" ref={ref}>
-      <NBox content={content} n={n} stretch={stretch} />
+      <NBox content={content} n={n} stretch={stretch} gap={gap}/>
     </div>
   );
 };
@@ -2592,7 +2591,7 @@ const Autocompleter = ({selectedRefCallback}) => {
       /><span className="helperCompletionText sans-serif-in-hebrew">{helperPromptText}</span>
       {showAddButton ? <button className="button small" onClick={(e) => {
                     selectedRefCallback(inputValue)
-                }}>Add Source</button> : null}
+      }}><InterfaceText>Add Source</InterfaceText></button> : null}
 
       {currentSuggestions && currentSuggestions.length > 0 ?
           <div className="suggestionBoxContainer">

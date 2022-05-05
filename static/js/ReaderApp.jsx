@@ -17,7 +17,8 @@ import {
   PBSC2020LandingPage,
   PBSC2021LandingPage,
   RambanLandingPage,
-  EducatorsPage
+  EducatorsPage,
+  DonatePage
 } from './StaticPages';
 import {
   SignUpModal,
@@ -1008,7 +1009,7 @@ class ReaderApp extends Component {
       window.open(url, '_blank')
       return true;
     }
-    const path = url.pathname;
+    const path = decodeURI(url.pathname);
     const params = url.searchParams;
     const openPanel = replace ? this.openPanel : this.openPanelAtEnd;
     if (path === "/") {
@@ -1024,7 +1025,7 @@ class ReaderApp extends Component {
       this.showSaved();
 
     } else if (path.match(/\/texts\/.+/)) {
-      this.showLibrary(path.slice(7).split("/").map(decodeURI));
+      this.showLibrary(path.slice(7).split("/"));
 
     } else if (path === "/collections") {
       this.showCollections();
@@ -1809,6 +1810,7 @@ class ReaderApp extends Component {
           .filter(ref => !!ref);
     const deDupedTriggers = [...new Set(triggers.map(JSON.stringify))].map(JSON.parse);
     const context = {
+      isDebug: this.props._debug,
       isLoggedIn: Sefaria._uid,
       interfaceLang: Sefaria.interfaceLang,
       dt: Sefaria.util.epoch_time(new Date())*1000,
@@ -2096,5 +2098,6 @@ export {
   PBSC2020LandingPage,
   PBSC2021LandingPage,
   RambanLandingPage,
-  EducatorsPage
+  EducatorsPage,
+  DonatePage
 };
