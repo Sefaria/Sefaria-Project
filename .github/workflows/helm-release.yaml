@@ -1,0 +1,38 @@
+name: Create Helm Release
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: version for this release of the chart
+        required: true
+        type: string
+      appVersion:
+        description: App version for this release of the chart
+        required: true
+        type: string
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Download yq
+        run: |
+          wget -nv -nc -O yq https://github.com/mikefarah/yq/releases/download/v4.20.2/yq_linux_amd64
+          chmod +x yq
+      - name: Update chart version
+        run: ./yq -i e '.version = "${{ github.event.inputs.version }}"' Chart.yaml
+      - name: Update chart version
+        run: ./yq -i e '.appVersion = "${{ github.event.inputs.appVersion }}"' Chart.yaml
+      - name: Set up Helm
+        uses: azure/setup-helm@v1
+        with:
+          version: v3.8.0
+      - name: Run chart-releaser
+        uses: helm/chart-releaser-action@v1.4.0
+        with:
+          charts_dir: ./helm-chart
+        env:
+          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
