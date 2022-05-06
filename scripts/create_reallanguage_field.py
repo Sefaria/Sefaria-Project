@@ -28,7 +28,7 @@ for item in toCleanAndMerge:
         if test_run:
             print("update title " + item["versionTitle"] + " with " + cleanedTitle)
         else:
-            db.texts.find_one_and_update({"_id": item["_id"] }, {"versionTitle": cleanedTitle})
+            db.texts.find_one_and_update({"_id": item["_id"] }, {"$set": {"versionTitle": cleanedTitle}})
 
 # update realLanguage
 cursor = db.texts.find({"versionTitle": {"$regex": "\[[a-z]{2}\]$"}})
@@ -38,4 +38,4 @@ for item in cursor:
         if test_run:
             print("Update realLaanguage of " + item["versionTitle"])
         else:
-            db.texts.find_one_and_update({"_id": item["_id"] }, {"realLanguage": language.group(1)})
+            db.texts.find_one_and_update({"_id": item["_id"] }, {"$set": {"realLanguage": language.group(1)}})
