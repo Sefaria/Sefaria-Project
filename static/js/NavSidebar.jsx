@@ -30,6 +30,7 @@ const Modules = ({type, props}) => {
     "SupportSefaria":         SupportSefaria,
     "SponsorADay":            SponsorADay,
     "LearningSchedules":      LearningSchedules,
+    "Translations":           Translations,
     "WeeklyTorahPortion":     WeeklyTorahPortion,
     "DafYomi":                DafYomi,
     "AboutTopics":            AboutTopics,
@@ -90,14 +91,14 @@ const AboutSefaria = ({hideTitle}) => (
     {!hideTitle ?
     <ModuleTitle h1={true}>A Living Library of Torah</ModuleTitle> : null }
     <InterfaceText>
-        <EnglishText>
-            Sefaria is home to 3,000 years of Jewish texts. We are a non-profit organization offering free access to texts, translations,
-            and commentaries so that everyone can participate in the ongoing process of studying, interpreting, and creating Torah.
+      <EnglishText>
+          Sefaria is home to 3,000 years of Jewish texts. We are a non-profit organization offering free access to texts, translations,
+          and commentaries so that everyone can participate in the ongoing process of studying, interpreting, and creating Torah.
         </EnglishText>
         <HebrewText>
-            ספריא היא ביתם של 3,000 שנות ספרות יהודית.
-            אנו ארגון ללא מטרות רווח המציע גישה חופשית למקורות יהודיים, לתרגומים ולפרשנויות,
-            ומטרתנו לאפשר לכל אחד ואחת להשתתף בתהליך המתמשך של לימוד וחידוש בתורה.
+          ספריא היא ביתם של 3,000 שנות ספרות יהודית.
+          אנו ארגון ללא מטרות רווח המציע גישה חופשית למקורות יהודיים, לתרגומים ולפרשנויות,
+          ומטרתנו לאפשר לכל אחד ואחת להשתתף בתהליך המתמשך של לימוד וחידוש בתורה.
         </HebrewText>
     </InterfaceText>
     <a href="/about" className="inTextLink">
@@ -232,6 +233,23 @@ const AboutText = ({index, hideTitle}) => {
 };
 
 
+const TranslationLinks = () => {
+  const translations = ["English", "Francais", "Espanol"] // todo: get from sefaria.js
+  return (
+    <div className="navSidebarLink serif language">
+      {translations.map((item, i) => (
+        <span key={i}>
+          { i !== 0 ? <span className="bullet">{'\u2022'}</span> : null }
+          <a href={`/translations/${item}`}>
+            {item}
+          </a>
+        </span>
+      ))}
+      </div>
+  );
+};
+
+
 const ParashahLink = () => {
   const parashah = Sefaria.calendars.filter(c => c.title.en === "Parashat Hashavua")[0];
   return (
@@ -273,6 +291,21 @@ const DafLink = () => {
       </a>
     </div>
   );
+}
+
+const Translations = () => {
+  return (<Module>
+    <ModuleTitle>Translations</ModuleTitle>
+    <InterfaceText>
+      <EnglishText>
+        Access key works from the library in several languages.
+      </EnglishText>
+      <HebrewText>
+        תרגומים
+      </HebrewText>
+    </InterfaceText>
+    <TranslationLinks />
+  </Module>)
 }
 
 
