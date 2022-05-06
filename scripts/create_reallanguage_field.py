@@ -39,3 +39,12 @@ for item in cursor:
             print("Update realLaanguage of " + item["versionTitle"])
         else:
             db.texts.find_one_and_update({"_id": item["_id"] }, {"$set": {"realLanguage": language.group(1)}})
+
+enOrHe = db.texts.find({"versionTitle": {"$regex": r"^((?!\[[a-z]{2}\]).)*$"}})
+for item in enOrHe:
+    if item["language"] not in ["en", "he"]:
+        print("unexpected value " + item["language"])
+    if test_run:
+        print("Setting language to " + item["language"])
+    else:
+        db.texts.find_one_and_update({"_id": item["_id"] }, {"$set": {"realLanguage": item["language"]}})
