@@ -1644,6 +1644,16 @@ div.interfaceLinks-row a {
 .navSidebarLink.gray a {
   color: #666;
 }
+
+.navSidebarLink .bullet {
+  margin: 0 5px;
+}
+
+.navSidebarLink.language {
+  font-size: 18px;
+  margin-top: 16px;
+}
+
 .navSidebarLink.ref {
   font-size: 18px;
 }
