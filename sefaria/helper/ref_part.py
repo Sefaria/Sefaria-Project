@@ -1,6 +1,6 @@
 from sefaria.model.ref_part import ResolvedRef, AmbiguousResolvedRef, TermContext, RefPartType
 from sefaria.model import text
-from typing import List, Union
+from typing import List, Union, Optional
 from collections import defaultdict
 
 
@@ -170,24 +170,39 @@ def make_html(bulk_resolved_list: List[List[List[Union[ResolvedRef, AmbiguousRes
         fout.write(html)
 
 
-def make_find_refs_response(resolved: List[List[Union[AmbiguousResolvedRef, ResolvedRef]]]):
+def make_find_refs_response(resolved: List[List[Union[AmbiguousResolvedRef, ResolvedRef]]], with_text=False):
     response = []
-    for inner_resolved in resolved:
-        for resolved_ref in inner_resolved:
-            resolved_refs = resolved_ref.resolved_raw_refs if resolved_ref.is_ambiguous else [resolved_ref]
-            start_char, end_char = resolved_ref.raw_ref.char_indices
-            text = resolved_ref.raw_ref.text
-            link_failed = resolved_refs[0].ref is None
-            response += [{
-                "startChar": start_char,
-                "endChar": end_char,
-                "text": text,
-                "linkFailed": link_failed,
-                "refs": None if link_failed else [
-                    {
-                        "ref": rr.ref and rr.ref.normal(),
-                        "url": rr.ref and rr.ref.url(),
-                    } for rr in resolved_refs
-                ]
-            }]
+    resolved_ref_list = [resolved_ref for inner_resolved in resolved for resolved_ref in inner_resolved]
+    for resolved_ref in resolved_ref_list:
+        resolved_refs = resolved_ref.resolved_raw_refs if resolved_ref.is_ambiguous else [resolved_ref]
+        start_char, end_char = resolved_ref.raw_ref.char_indices
+        text = resolved_ref.raw_ref.text
+        link_failed = resolved_refs[0].ref is None
+        response += [{
+            "startChar": start_char,
+            "endChar": end_char,
+            "text": text,
+            "linkFailed": link_failed,
+            "refs": None if link_failed else [
+                make_ref_response_for_linker(rr.ref, with_text) for rr in resolved_refs
+            ]
+        }]
     return response
+
+
+def make_ref_response_for_linker(oref: text.Ref, with_text=False) -> dict:
+    res = {
+        'ref': oref.normal(),
+        'heRef': oref.he_normal(),
+        'url': oref.url(),
+        'primaryCategory': oref.primary_category,
+    }
+    if with_text:
+        text_fam = text.TextFamily(oref, commentary=0, context=0, pad=False, stripItags=True)
+        he = text_fam.he
+        en = text_fam.text
+        res.update({
+            'he': he,
+            'en': en,
+        })
+    return res
