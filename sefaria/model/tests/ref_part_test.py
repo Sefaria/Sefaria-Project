@@ -6,10 +6,11 @@ from sefaria.model.abstract import SluggedAbstractMongoRecord
 from sefaria.model.ref_part import RefPartType as RPT
 from sefaria.model.schema import DiburHamatchilNodeSet
 import spacy
-from spacy.lang.he import Hebrew
-from spacy.lang.en import English
 from spacy.language import Language
 from sefaria.model import schema
+
+
+ref_resolver = library.get_ref_resolver()
 
 
 @pytest.fixture(scope='module')
@@ -41,10 +42,8 @@ def model(project_name: str) -> Language:
 
 
 def create_raw_ref_params(lang, input_str, span_indexes, part_types):
-    from sefaria.spacy_function_registry import inner_punct_tokenizer_factory
-    nlp = Hebrew() if lang == 'he' else library.get_ref_resolver().get_raw_ref_part_model(lang)
-    nlp.tokenizer = inner_punct_tokenizer_factory()(nlp)
-    doc = nlp(input_str)
+    nlp = ref_resolver.get_raw_ref_part_model(lang)
+    doc = nlp.make_doc(input_str)
     span = doc[0:]
     try:
         part_spans = [span[index] for index in span_indexes]
@@ -86,6 +85,13 @@ def test_resolved_raw_ref_clone():
     rrr = ResolvedRef(raw_ref, [], index.nodes, Ref("Berakhot"))
     rrr_clone = rrr.clone(ref=Ref("Genesis"))
     assert rrr_clone.ref == Ref("Genesis")
+
+
+def print_spans(raw_ref: RawRef):
+    print('\nInput:', raw_ref.text)
+    print('Spans:')
+    for i, part in enumerate(raw_ref.raw_ref_parts):
+        print(f'{i}) {part.text}')
 
 
 crrd = create_raw_ref_data
@@ -161,7 +167,7 @@ crrd = create_raw_ref_data
     [crrd("Jerusalem Talmud Shabbat 1:1", 'en', '2:3', [0, 2], [RPT.NUMBERED, RPT.NUMBERED]), ("Jerusalem Talmud Shabbat 2:3",)],
     #[crrd("Jerusalem Talmud Shabbat 1:1", 'en', 'Chapter 2, Note 34', [slice(0, 2), slice(3, 5)], [RPT.NUMBERED, RPT.NUMBERED]), ("Jerusalem Talmud Shabbat 2:1:4",)],
     #[crrd("Jerusalem Talmud Shabbat 1:1", 'en', 'Yalqut Psalms 116', [0, 1, 2], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ("Yalkut Shimoni on Nach 874:1-875:4",)],
-    [crrd("Jerusalem Talmud Sheviit 1:1:3", 'en', 'Tosephta Ševi‘it 1:1', [0, 1, 2, 4], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Tosefta Sheviit 1:1", "Tosefta Sheviit (Lieberman) 1:1")],
+    [crrd("Jerusalem Talmud Sheviit 1:1:3", 'en', 'Tosephta Ševi‘it 1:1', [0, slice(1, 4), 4, 6], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Tosefta Sheviit 1:1", "Tosefta Sheviit (Lieberman) 1:1")],
     [crrd("Jerusalem Talmud Taanit 1:1:3", 'en', 'Babli 28b,31a', [0, 1, 2, 3], [RPT.NAMED, RPT.NUMBERED, RPT.NON_CTS, RPT.NUMBERED]), ("Taanit 28b", "Taanit 31a")],  # non-cts with talmud
     [crrd("Jerusalem Talmud Taanit 1:1:3", 'en', 'Exodus 21:1,3,22:5', [0, 1, 3, 4, 5, 6, 7, 9], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.NON_CTS, RPT.NUMBERED, RPT.NON_CTS, RPT.NUMBERED, RPT.NUMBERED]), ("Exodus 21:1", "Exodus 21:3", "Exodus 22:5")],  # non-cts with tanakh
     pytest.param(crrd("Jerusalem Talmud Taanit 1:1:3", 'en', 'Roš Haššanah 4, Notes 42–43', [slice(0, 2), 2, slice(4, 6), 6, 7], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED]), ("Jerusalem Talmud Rosh Hashanah 4",), marks=pytest.mark.xfail(reason="currently dont support partial ranged ref match. this fails since Notes is not a valid address type of JT")),
@@ -191,7 +197,6 @@ crrd = create_raw_ref_data
     # [crrd(None, 'he', 'בבראשית רבה בראשית ט', [])]
 ])
 def test_resolve_raw_ref(resolver_data, expected_trefs):
-    ref_resolver = library.get_ref_resolver()
     ref_resolver.reset_ibid_history()  # reset from previous test runs
     raw_ref, context_ref, lang, prev_matches_trefs = resolver_data
     if prev_matches_trefs:
@@ -200,10 +205,7 @@ def test_resolve_raw_ref(resolver_data, expected_trefs):
                 ref_resolver.reset_ibid_history()
             else:
                 ref_resolver._ibid_history.last_match = Ref(prev_tref)
-    print('\nInput:', raw_ref.text)
-    print('Spans:')
-    for i, part in enumerate(raw_ref.raw_ref_parts):
-        print(f'{i}) {part.text}')
+    print_spans(raw_ref)
     matches = ref_resolver.resolve_raw_ref(lang, context_ref, raw_ref)
     matched_orefs = sorted(reduce(lambda a, b: a + b, [[match.ref] if not match.is_ambiguous else [inner_match.ref for inner_match in match.resolved_raw_refs] for match in matches], []), key=lambda x: x.normal())
     if len(expected_trefs) != len(matched_orefs):
@@ -223,7 +225,6 @@ def test_resolve_raw_ref(resolver_data, expected_trefs):
     ["Gilyon HaShas on Berakhot 25b:1", 'רש"י תמורה כח ע"ב ד"ה נעבד שהוא מותר. זה רש"י מאוד יפה.', 'he', ("Rashi on Temurah 28b:4:2",)],
 ])
 def test_full_pipeline_ref_resolver(context_tref, input_str, lang, expected_trefs):
-    ref_resolver = library.get_ref_resolver()
     context_oref = context_tref and Ref(context_tref)
     resolved = ref_resolver.bulk_resolve_refs(lang, [context_oref], [input_str])[0]
     assert len(resolved) == len(expected_trefs)
@@ -332,3 +333,39 @@ def test_ibid_history(last_n_to_store, trefs, expected_title_len):
         assert len(ibid._title_ref_map) == title_len
         for curr_ref in curr_refs:
             assert ibid._title_ref_map[curr_ref.index.title] == curr_ref
+
+
+@pytest.mark.parametrize(('crrd_params',), [
+    [(None, 'he', '''ויקרא י, י”ב''', [0, 1, slice(3, 6)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED])],  # no change in inds
+    [(None, 'he', '''ויקרא י, <b> י”ב </b>''', [0, 1, slice(6, 9)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED])],
+
+])
+def test_map_new_indices(crrd_params):
+    # unnorm data
+    lang = crrd_params[1]
+    text = crrd_params[2]
+    doc = ref_resolver.get_raw_ref_model(lang).make_doc(text)
+    raw_ref, _, _, _ = crrd(*crrd_params)
+    indices = raw_ref.char_indices
+    part_indices = [p.char_indices for p in raw_ref.raw_ref_parts]
+    print_spans(raw_ref)
+
+    # norm data
+    n = ref_resolver._normalizer
+    norm_text = n.normalize(text, lang=lang)
+    norm_doc = ref_resolver.get_raw_ref_model(lang).make_doc(norm_text)
+    mapping = n.get_mapping_after_normalization(text, reverse=True, lang=lang)
+    norm_part_indices = n.convert_normalized_indices_to_unnormalized_indices(part_indices, mapping, reverse=True)
+    norm_part_spans = [norm_doc.char_span(s, e) for (s, e) in norm_part_indices]
+    norm_part_token_inds = [span.i if isinstance(span, spacy.tokens.Token) else slice(span.start, span.end) for span in norm_part_spans]
+    norm_crrd_params = list(crrd_params)
+    norm_crrd_params[2] = norm_text
+    norm_crrd_params[3] = norm_part_token_inds
+    norm_raw_ref, _, _, _ = crrd(*norm_crrd_params)
+
+    # test
+    assert norm_raw_ref.text == norm_text.strip()
+    norm_raw_ref.map_new_indices(doc, indices, part_indices)
+    assert norm_raw_ref.text == raw_ref.text
+    for norm_part, part in zip(norm_raw_ref.raw_ref_parts, raw_ref.raw_ref_parts):
+        assert norm_part.text == part.text

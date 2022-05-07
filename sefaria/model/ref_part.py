@@ -226,6 +226,24 @@ class RawRefPart(TrieEntry):
     def is_context(self):
         return isinstance(self, ContextPart)
 
+    @property
+    def char_indices(self) -> Tuple[int, int]:
+        """
+        Return start and end char indices of underlying text
+        """
+        return span_char_inds(self.span)
+
+    def realign_to_new_raw_ref(self, old_raw_ref_span: SpanOrToken, new_raw_ref_span: SpanOrToken):
+        """
+        If span of raw_ref backing this ref_part changes, use this to align self.span to new raw_ref span
+        """
+        new_raw_ref_doc = new_raw_ref_span.as_doc()
+        part_start, part_end = span_inds(self.span)
+        old_raw_start, _ = span_inds(old_raw_ref_span)
+        new_raw_start, _ = span_inds(new_raw_ref_span)
+        offset = new_raw_start - old_raw_start
+        self.span = new_raw_ref_doc[part_start-offset:part_end-offset]
+
 
 class ContextPart(RawRefPart):
     # currently used to easily differentiate TermContext and SectionContext from a vanilla RawRefPart
@@ -385,7 +403,7 @@ class RawRef:
 
         offset_i = span_inds(self.span)[0]
         subspan = self.span.doc[offset_i+start_token_i:offset_i+end_token_i]
-        # unfortunately, the two models were trained using different tokenizers leading to potential differences in token indexes
+        # potentially possible that tokenization of raw ref spans is not identical to that of ref parts. check to make sure.
         assert subspan.text == parts[0].span.doc[start_token_i:end_token_i].text, f"{subspan.text} != {parts[0].span.doc[start_token_i:end_token_i].text}"
         return subspan
 
@@ -402,6 +420,17 @@ class RawRef:
         Return start and end char indices of underlying text
         """
         return span_char_inds(self.span)
+
+    def map_new_indices(self, new_doc: spacy.tokens.Doc, new_indices: Tuple[int, int], new_part_indices: List[Tuple[int, int]]) -> None:
+        """
+        Remap self.span and all spans of parts to new indices
+        """
+        self.span = new_doc.char_span(*new_indices)
+        if self.span is None: raise InputError(f"${new_indices} don't match token boundaries. Using 'expand' alignment mode text is '{new_doc.char_span(*new_indices, alignment_mode='expand')}'")
+        doc_span = self.span.as_doc()
+        for part, temp_part_indices in zip(self.raw_ref_parts, new_part_indices):
+            part.span = doc_span.char_span(*[i-new_indices[0] for i in temp_part_indices])
+            if part.span is None: raise InputError(f"{temp_part_indices} doesn't match token boundaries for part {part}. Using 'expand' alignment mode text is '{new_doc.char_span(*temp_part_indices, alignment_mode='expand')}'")
 
 
 class ResolvedRef:
@@ -868,6 +897,8 @@ class RefResolver:
     def __init__(self, raw_ref_model_by_lang: Dict[str, Language], raw_ref_part_model_by_lang: Dict[str, Language],
                  ref_part_title_trie_by_lang: Dict[str, MatchTemplateTrie], ref_part_title_graph: MatchTemplateGraph,
                  term_matcher_by_lang: Dict[str, TermMatcher]) -> None:
+        from sefaria.helper.normalization import NormalizerByLang, NormalizerComposer
+
         self._raw_ref_model_by_lang = raw_ref_model_by_lang
         self._raw_ref_part_model_by_lang = raw_ref_part_model_by_lang
         self._ref_part_title_trie_by_lang = ref_part_title_trie_by_lang
@@ -875,12 +906,43 @@ class RefResolver:
         self._term_matcher_by_lang = term_matcher_by_lang
         self._ibid_history = IbidHistory()
 
+        # see ML Repo library_exporter.py:TextWalker.__init__() which uses same normalization
+        # important that normalization is equivalent to normalization done at training time
+        base_normalizer_steps = ['unidecode', 'html', 'double-space']
+        self._normalizer = NormalizerByLang({
+            'en': NormalizerComposer(base_normalizer_steps),
+            'he': NormalizerComposer(base_normalizer_steps + ['maqaf', 'cantillation']),
+        })
+
     def reset_ibid_history(self):
         self._ibid_history = IbidHistory()
 
+    def _normalize_input(self, lang: str, input: List[str]):
+        """
+        Normalize input text to match normalization that happened at training time
+        """
+        return [self._normalizer.normalize(s, lang=lang) for s in input]
+
+    def _map_normal_output_to_original_input(self, lang: str, input: List[str], resolved: List[List[Union[ResolvedRef, AmbiguousResolvedRef]]]) -> None:
+        """
+        Ref resolution ran on normalized input. Remap resolved refs to original (non-normalized) input
+        """
+        for temp_input, temp_resolved in zip(input, resolved):
+            unnorm_doc = self.get_raw_ref_model(lang).make_doc(temp_input)
+            mapping = self._normalizer.get_mapping_after_normalization(temp_input, lang=lang)
+            conv = self._normalizer.convert_normalized_indices_to_unnormalized_indices  # this function name is waaay too long
+            norm_inds = [rr.raw_ref.char_indices for rr in temp_resolved]
+            unnorm_inds = conv(norm_inds, mapping)
+            unnorm_part_inds = []
+            for (rr, (norm_raw_ref_start, _)) in zip(temp_resolved, norm_inds):
+                unnorm_part_inds += [conv([[norm_raw_ref_start + i for i in part.char_indices] for part in rr.raw_ref.raw_ref_parts], mapping)]
+            for resolved_ref, temp_unnorm_inds, temp_unnorm_part_inds in zip(temp_resolved, unnorm_inds, unnorm_part_inds):
+                resolved_ref.raw_ref.map_new_indices(unnorm_doc, temp_unnorm_inds, temp_unnorm_part_inds)
+
     def bulk_resolve_refs(self, lang: str, book_context_refs: List[Optional[text.Ref]], input: List[str], with_failures=False, verbose=False, reset_ibids_every_context_ref=True) -> List[List[Union[ResolvedRef, AmbiguousResolvedRef]]]:
         self.reset_ibid_history()
-        all_raw_refs = self._bulk_get_raw_refs(lang, input)
+        normalized_input = self._normalize_input(lang, input)
+        all_raw_refs = self._bulk_get_raw_refs(lang, normalized_input)
         resolved = []
         iter = zip(book_context_refs, all_raw_refs)
         if verbose:
@@ -903,6 +965,7 @@ class RefResolver:
                     self._ibid_history.last_match = temp_resolved[-1].ref
                 inner_resolved += temp_resolved
             resolved += [inner_resolved]
+        self._map_normal_output_to_original_input(lang, input, resolved)
         return resolved
 
     def _bulk_get_raw_refs(self, lang: str, input: List[str]) -> List[List[RawRef]]:
@@ -1002,7 +1065,9 @@ class RefResolver:
                 curr_part_end = ipart  # exclude curr part which is NON_CTS
                 if ipart == len(raw_ref.raw_ref_parts) - 1: curr_part_end = ipart + 1  # include curr part
                 try:
-                    split_raw_refs += [RawRef(curr_parts, raw_ref.subspan(slice(curr_part_start, curr_part_end)))]
+                    raw_ref_span = raw_ref.subspan(slice(curr_part_start, curr_part_end))
+                    [p.realign_to_new_raw_ref(raw_ref.span, raw_ref_span) for p in curr_parts]
+                    split_raw_refs += [RawRef(curr_parts, raw_ref_span)]
                 except AssertionError:
                     pass
                 curr_parts = []
