@@ -176,7 +176,7 @@ const SELECTOR_WHITE_LIST = {
          * normalizedText: normalized text of webpage (i.e. webpage text returned from Readability and then put through some normalization)
          * maxNumWordsAround: maximum number of words around linkObj.text to search to try to find its unique occurrence.
          */
-        if (!ns.debug && linkObj.linkFailed) { return; }
+        if (!ns.debug && (linkObj.linkFailed || linkObj.refs.length > 1)) { return; }
         document.normalize();
         let occurrences = [];
         let numWordsAround = 0;
