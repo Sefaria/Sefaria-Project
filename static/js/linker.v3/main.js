@@ -250,7 +250,7 @@ const SELECTOR_WHITE_LIST = {
         ns.debug = debug;
         // useful to remove sefaria links for now but I think when released we only want this to run in debug mode
         if (debug || true) { removeExistingSefariaLinks(); }
-        ns.popupManager = new PopupManager({ mode, interfaceLang, contentLang });
+        ns.popupManager = new PopupManager({ mode, interfaceLang, contentLang, popupStyles });
         ns.popupManager.setupPopup();
         const {text: readableText, readableObj} = getReadableText();
         ns.normalizedInputText = readableText + getWhiteListText();

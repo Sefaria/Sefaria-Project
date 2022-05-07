@@ -1,8 +1,11 @@
+import Draggabilly from 'draggabilly';
+
 export class PopupManager {
-    constructor({ mode, interfaceLang, contentLang }) {
+    constructor({ mode, interfaceLang, contentLang, popupStyles }) {
         this.mode = mode;
         this.interfaceLang = interfaceLang;
         this.contentLang = contentLang;
+        this.popupStyles = popupStyles;
         // no need to declare these but declaring so API is clear
         this.popUpElem = null;
         this.heTitle = null;
@@ -167,7 +170,7 @@ export class PopupManager {
                 'border: 3px solid red' +
             '}';
 
-        if (this.mode == "popup-click") {
+        if (this.mode === "popup-click") {
             html += '#sefaria-close {' +
                 '    font-family: "Crimson Text";' +
                 '    font-size: 36px;' +
@@ -230,7 +233,7 @@ export class PopupManager {
 
         this.popUpElem = document.body.appendChild(this.popUpElem);
 
-        //let draggie = new Draggabilly(this.popUpElem, {handle: "#sefaria-linker-header"});
+        let draggie = new Draggabilly(this.popUpElem, {handle: "#sefaria-linker-header"});
 
         this.linkerHeader = this.popUpElem.querySelector("#sefaria-linker-header");
         this.linkerFooter = this.popUpElem.querySelector(".sefaria-footer");
@@ -240,9 +243,9 @@ export class PopupManager {
         this.heElems = this.popUpElem.querySelectorAll(".he");
         this.enElems = this.popUpElem.querySelectorAll(".en");
 
-        if (this.mode == "popup-click") {
+        if (this.mode === "popup-click") {
             this.popUpElem.querySelector('#sefaria-close').addEventListener('click', this.hidePopup, false);
-            this.popUpElem.addEventListener('keydown', function (e) {
+            this.popUpElem.addEventListener('keydown', (e) => {
                 let key = e.which || e.keyCode;
                 if (key === 27) { // 27 is escape
                   this.hidePopup();
@@ -263,20 +266,21 @@ export class PopupManager {
 
         this.linkerHeader.style["border-top-color"] = category_colors[source["primary_category"]];
 
-        if (source.lang === "en") {
+        // TODO is this right?
+        if (this.contentLang !== "he") {
             // [].forEach.call(heElems, function(e) {e.style.display = "None"});
             this.heTitle.style.display = "None";
             [].forEach.call(this.enElems, function(e) {e.style.display = "Block"});
-        } else if (source.lang === "he") {
+        } else {
             [].forEach.call(this.heElems, function(e) {e.style.display = "Block"});
             [].forEach.call(this.enElems, function(e) {e.style.display = "None"});
         }
 
-        if(typeof(source.en) === "string") {
+        if (typeof(source.en) === "string") {
             source.en = [source.en]
             source.he = [source.he]
         }
-        if(typeof(source.en) === "object") {
+        if (typeof(source.en) === "object") {
             source.en = [].concat.apply([], source.en);
             source.he = [].concat.apply([], source.he);
         }
@@ -327,7 +331,7 @@ export class PopupManager {
         }
 
 
-        if (this.mode == "popup-click") {
+        if (this.mode === "popup-click") {
             [].forEach.call(this.popUpElem.querySelectorAll(".sefaria-popup-ref"), function(link) {link.setAttribute('href', e.href);});
             document.addEventListener("click", function (e) {
               let level = 0;
