@@ -100,7 +100,7 @@ const SELECTOR_WHITE_LIST = {
 
     function getNextWhiteSpaceIndex(text) {
         const match = text.match(/\S\s+/);  // `\S` so whitespace can't be at beginning of string
-        if (match === null || match[0].indexOf('\n') > -1) { return -1; }  // \n's are added in by Readability and therefore make it challenging to match against. stop when you hit one.
+        if (match === null || text.substring(0, match.index+1).indexOf('\n') > -1) { return -1; }  // \n's are added in by Readability and therefore make it challenging to match against. stop when you hit one.
         return match.index + 1;
     }
 
