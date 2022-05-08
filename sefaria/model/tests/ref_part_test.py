@@ -194,6 +194,7 @@ crrd = create_raw_ref_data
     [crrd(None, 'he', 'באה"ע סימן קנ"ה סי"ד', [slice(0, 3), slice(3, 7), slice(7, 10)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Shulchan Arukh, Even HaEzer 155:14",)],
     [crrd(None, 'he', '''פירש"י בקידושין דף פ' ע"א''', [slice(0, 3), 3, slice(4, 10)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ("Rashi on Kiddushin 80a",)],
     pytest.param(crrd("Gilyon HaShas on Berakhot 48b:1", 'he', '''תשב"ץ ח"ב (ענין קסא''', [0, 1, slice(3, 5)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Sefer HaTashbetz, Part II 161",), marks=pytest.mark.xfail(reason="Dont support Sefer HaTashbetz yet")),  # complex text
+    [crrd(None, 'he', '''יבמות לט ע״ב''', [0, slice(1, 5)], [RPT.NAMED, RPT.NUMBERED]), ["Yevamot 39b"]],
     # [crrd(None, 'he', 'בבראשית רבה בראשית ט', [])]
 ])
 def test_resolve_raw_ref(resolver_data, expected_trefs):
