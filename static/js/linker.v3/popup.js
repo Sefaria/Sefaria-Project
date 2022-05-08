@@ -169,6 +169,9 @@ export class PopupManager {
             '}'+
             'a.sefaria-ref-debug.sefaria-link-failed{'+
                 'border: 3px solid red' +
+            '}'+
+            'a.sefaria-ref-debug.sefaria-link-ambiguous{'+
+                'border: 3px solid orange;' +
             '}';
 
         if (this.mode === "popup-click") {

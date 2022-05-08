@@ -132,22 +132,21 @@ const SELECTOR_WHITE_LIST = {
         };
     }
 
-    function createATag(linkObj, text, url) {
+    function createATag(linkFailed, ref, text, url, isAmbiguous) {
         const atag = document.createElement("a");
         atag.target = "_blank";
         atag.textContent = text;
         atag.className = "sefaria-ref";
         if (ns.debug) {
             atag.className += " sefaria-ref-debug";
-            if (linkObj.linkFailed) {
-                atag.className += " sefaria-link-failed";
-            }
+            if (linkFailed) { atag.className += " sefaria-link-failed"; }
+            if (isAmbiguous) { atag.className += " sefaria-link-ambiguous"; }
         }
 
-        if (linkObj.linkFailed) { return atag; }  // debug and linkFailed
+        if (linkFailed) { return atag; }  // debug and linkFailed
 
         atag.href = `${SEFARIA_BASE_URL}/${url}`;
-        atag.setAttribute('data-ref', linkObj.refs[0]);
+        atag.setAttribute('data-ref', ref);
         atag.setAttribute('aria-controls', 'sefaria-popup');
         return atag;
     }
@@ -178,7 +177,7 @@ const SELECTOR_WHITE_LIST = {
          * maxNumWordsAround: maximum number of words around linkObj.text to search to try to find its unique occurrence.
          */
         if (!ns.debug && (linkObj.linkFailed || linkObj.refs.length > 1)) { return; }
-        const url = linkObj.refs && refData[linkObj.refs[0]].url;
+        const urls = linkObj.refs && linkObj.refs.map(ref => refData[ref].url);
         document.normalize();
         let occurrences = [];
         let numWordsAround = 0;
@@ -209,8 +208,20 @@ const SELECTOR_WHITE_LIST = {
                 const [excludeFromLinking, excludeFromTracking] = excluder.shouldExclude(matchKey, portion.node);
                 if (excludeFromLinking) { return portion.text; }
                 if (!excludeFromTracking) { /* TODO ns.trackedMatches.push(matched_ref); */ }
-
-                return createATag(linkObj, portion.text, url);
+                if (!urls) {
+                    return createATag(linkObj.linkFailed, null, portion.text, null);
+                } else if (urls.length === 1) {
+                    return createATag(linkObj.linkFailed, linkObj.refs[0], portion.text, urls[0]);
+                } else {
+                    const node = document.createElement("span");
+                    node.className="sefaria-ref-wrapper";
+                    for (let i = 0; i < urls.length; i++) {
+                        const text = i === 0 ? portion.text : `[${i}]`;
+                        const atag = createATag(linkObj.linkFailed, linkObj.refs[i], text, urls[i], true);
+                        node.appendChild(atag);
+                    }
+                    return node;
+                }
             }
         });
     }
