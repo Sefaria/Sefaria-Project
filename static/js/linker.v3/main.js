@@ -194,35 +194,23 @@ const SELECTOR_WHITE_LIST = {
         }
         if (occurrences.length === 0) {
             console.log("MISSED", numWordsAround, linkObj);
+            return;
         }
+        const globalLinkStart = linkStartChar + occurrences[0][0];
         findAndReplaceDOMText(document, {
             preset: 'prose',
-            find: searchText,
+            find: linkObj.text,
             replace: function(portion, match) {
+                // check this is the unique match found above
+                if (match.startIndex !== globalLinkStart) { return portion.text; }
+
                 // check if should be excluded from linking and/or tracking
                 const matchKey = match.startIndex + "|" + match.endIndex;
                 const [excludeFromLinking, excludeFromTracking] = excluder.shouldExclude(matchKey, portion.node);
                 if (excludeFromLinking) { return portion.text; }
                 if (!excludeFromTracking) { /* TODO ns.trackedMatches.push(matched_ref); */ }
 
-                const portionEndIndex = portion.indexInMatch + portion.text.length;
-                const linkEndChar = linkStartChar + linkObj.text.length;
-                if (portion.indexInMatch >= linkStartChar && portionEndIndex <= linkEndChar) {
-                    // portion only contains link text
-                    return createATag(linkObj, portion.text, url);
-                } else if (portion.indexInMatch < linkEndChar && portionEndIndex > linkStartChar) {
-                    // portion contains some non-link text
-                    // practically this case doesn't seem to come up because findOccurrences effectively breaks up relevant matches into their own text nodes
-                    // there may be 1-off errors here since it hasn't been tested
-                    const startTextNode = createTextNode(portion.text, 0, linkStartChar - portion.indexInMatch);
-                    const endTextNode = createTextNode(portion.text, linkEndChar - portion.indexInMatch);
-                    const linkText = portion.text.substring(linkStartChar - portion.indexInMatch, linkEndChar - portion.indexInMatch);
-                    const atag = createATag(linkObj, linkText, url);
-                    return createWrapperTag([startTextNode, atag, endTextNode]);
-                } else {
-                    // all non-link text
-                    return portion.text;
-                }
+                return createATag(linkObj, portion.text, url);
             }
         });
     }
