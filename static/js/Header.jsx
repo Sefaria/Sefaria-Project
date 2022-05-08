@@ -50,8 +50,7 @@ class Header extends Component {
           <a className="home" href="/" >{logo}</a>
           <a href="/texts" className="textLink"><InterfaceText context="Header">Texts</InterfaceText></a>
           <a href="/topics" className="textLink"><InterfaceText>Topics</InterfaceText></a>
-          <a href="/community" className="textLink"><InterfaceText>Community</InterfaceText></a>
-          <DonateLink classes={"textLink donate"} link={"header"} source={"Header"}><InterfaceText>Donate</InterfaceText></DonateLink>
+          <a href="/topics/category/authors" className="textLink"><InterfaceText>Authors</InterfaceText></a>
         </div>
 
         <div className="headerLinksSection">
