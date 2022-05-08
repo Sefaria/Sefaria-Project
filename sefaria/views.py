@@ -189,9 +189,16 @@ def subscribe(request, email):
 @login_required
 def unlink_gauth(request):
     profile = UserProfile(id=request.user.id)
-    profile.update({"gauth_token": None})
-    profile.save()
-    return redirect(f"/profile/{profile.slug}")
+    try:
+        profile.update({"gauth_token": None, "gauth_email": None})
+        profile.save()
+        redir = bool(int(request.GET.get("redirect", True)))
+        if redir:
+            return redirect(f"/profile/{profile.slug}")
+        else:
+            return jsonResponse({"status": "ok"})
+    except: 
+        return jsonResponse({"error": "Failed to delete Google account"})
 
 
 def generate_feedback(request):
