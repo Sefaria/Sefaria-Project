@@ -132,7 +132,7 @@ const SELECTOR_WHITE_LIST = {
         };
     }
 
-    function createATag(linkObj, text) {
+    function createATag(linkObj, text, url) {
         const atag = document.createElement("a");
         atag.target = "_blank";
         atag.textContent = text;
@@ -146,8 +146,8 @@ const SELECTOR_WHITE_LIST = {
 
         if (linkObj.linkFailed) { return atag; }  // debug and linkFailed
 
-        atag.href = `${SEFARIA_BASE_URL}/${linkObj.refs[0].url}`;
-        atag.setAttribute('data-ref', linkObj.refs[0].ref);
+        atag.href = `${SEFARIA_BASE_URL}/${url}`;
+        atag.setAttribute('data-ref', linkObj.refs[0]);
         atag.setAttribute('aria-controls', 'sefaria-popup');
         return atag;
     }
@@ -168,15 +168,17 @@ const SELECTOR_WHITE_LIST = {
         return document.createTextNode(subtext);
     }
 
-    function wrapRef(linkObj, normalizedText, maxNumWordsAround = 10) {
+    function wrapRef(linkObj, normalizedText, refData, maxNumWordsAround = 10) {
         /**
          * wraps linkObj.text with an atag. In the case linkObj.text appears multiple times on the page,
          * increases search scope to ensure we wrap the correct instance of linkObj.text
          * linkObj: object representing a link, as returned by find-refs API
          * normalizedText: normalized text of webpage (i.e. webpage text returned from Readability and then put through some normalization)
+         * refData: refData field as returned from find-refs API
          * maxNumWordsAround: maximum number of words around linkObj.text to search to try to find its unique occurrence.
          */
         if (!ns.debug && (linkObj.linkFailed || linkObj.refs.length > 1)) { return; }
+        const url = linkObj.refs && refData[linkObj.refs[0]].url;
         document.normalize();
         let occurrences = [];
         let numWordsAround = 0;
@@ -207,7 +209,7 @@ const SELECTOR_WHITE_LIST = {
                 const linkEndChar = linkStartChar + linkObj.text.length;
                 if (portion.indexInMatch >= linkStartChar && portionEndIndex <= linkEndChar) {
                     // portion only contains link text
-                    return createATag(linkObj, portion.text);
+                    return createATag(linkObj, portion.text, url);
                 } else if (portion.indexInMatch < linkEndChar && portionEndIndex > linkStartChar) {
                     // portion contains some non-link text
                     // practically this case doesn't seem to come up because findOccurrences effectively breaks up relevant matches into their own text nodes
@@ -215,7 +217,7 @@ const SELECTOR_WHITE_LIST = {
                     const startTextNode = createTextNode(portion.text, 0, linkStartChar - portion.indexInMatch);
                     const endTextNode = createTextNode(portion.text, linkEndChar - portion.indexInMatch);
                     const linkText = portion.text.substring(linkStartChar - portion.indexInMatch, linkEndChar - portion.indexInMatch);
-                    const atag = createATag(linkObj, linkText);
+                    const atag = createATag(linkObj, linkText, url);
                     return createWrapperTag([startTextNode, atag, endTextNode]);
                 } else {
                     // all non-link text
@@ -227,12 +229,12 @@ const SELECTOR_WHITE_LIST = {
 
     function onFindRefs(resp) {
         alert("Linker results are ready!");
-        for (let linkObj of resp.text) {
-            wrapRef(linkObj, ns.normalizedInputText);
+        for (let linkObj of resp.text.results) {
+            wrapRef(linkObj, ns.normalizedInputText, resp.text.refData);
         }
     }
 
-    function bindRefClickHandlers() {
+    function bindRefClickHandlers(refData) {
         // Bind a click event and a mouseover event to each link
         [].forEach.call(document.querySelectorAll('.sefaria-ref'),(e) => {
             var source = ns.sources[e.getAttribute('data-ref')];

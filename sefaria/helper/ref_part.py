@@ -171,28 +171,36 @@ def make_html(bulk_resolved_list: List[List[List[Union[ResolvedRef, AmbiguousRes
 
 
 def make_find_refs_response(resolved: List[List[Union[AmbiguousResolvedRef, ResolvedRef]]], with_text=False):
-    response = []
+    ref_results = []
+    ref_data = {}
     resolved_ref_list = [resolved_ref for inner_resolved in resolved for resolved_ref in inner_resolved]
     for resolved_ref in resolved_ref_list:
         resolved_refs = resolved_ref.resolved_raw_refs if resolved_ref.is_ambiguous else [resolved_ref]
         start_char, end_char = resolved_ref.raw_ref.char_indices
         text = resolved_ref.raw_ref.text
         link_failed = resolved_refs[0].ref is None
-        response += [{
+        ref_results += [{
             "startChar": start_char,
             "endChar": end_char,
             "text": text,
             "linkFailed": link_failed,
-            "refs": None if link_failed else [
-                make_ref_response_for_linker(rr.ref, with_text) for rr in resolved_refs
-            ]
+            "refs": None if link_failed else [rr.ref.normal() for rr in resolved_refs]
         }]
+        for rr in resolved_refs:
+            if rr.ref is None: continue
+            tref = rr.ref.normal()
+            if tref in ref_data: continue
+            ref_data[tref] = make_ref_response_for_linker(rr.ref, with_text)
+
+    response = {
+        "results": ref_results,
+        "refData": ref_data
+    }
     return response
 
 
 def make_ref_response_for_linker(oref: text.Ref, with_text=False) -> dict:
     res = {
-        'ref': oref.normal(),
         'heRef': oref.he_normal(),
         'url': oref.url(),
         'primaryCategory': oref.primary_category,
