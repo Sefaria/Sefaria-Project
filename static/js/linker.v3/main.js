@@ -231,6 +231,29 @@ const SELECTOR_WHITE_LIST = {
             wrapRef(linkObj, ns.normalizedInputText);
         }
     }
+
+    function bindRefClickHandlers() {
+        // Bind a click event and a mouseover event to each link
+        [].forEach.call(document.querySelectorAll('.sefaria-ref'),(e) => {
+            var source = ns.sources[e.getAttribute('data-ref')];
+            var utm_source = window.location.hostname ? window.location.hostname.replace(/^www\./, "") : "(not%20set)";
+            e.setAttribute('href', base_url + source.url + "?lang=" + (source.lang == "en"?"he-en":"he") + "&utm_source=" + utm_source + "&utm_medium=sefaria_linker");
+            if (mode == "popup-hover") {
+                e.addEventListener('mouseover', function(event) {
+                    showPopup(this, mode);
+                }, false);
+                e.addEventListener('mouseout', hidePopup, false);
+            } else if (mode == "popup-click") {
+                e.addEventListener('click', function(event) {
+                    showPopup(this, mode);
+                    event.preventDefault();
+                    event.stopPropagation();
+                    document.getElementById("sefaria-linker-text").focus();
+                }, false);
+            }
+        });
+    }
+
     // public API
 
     ns.link = function({
