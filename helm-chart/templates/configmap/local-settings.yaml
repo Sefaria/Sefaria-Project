@@ -225,6 +225,16 @@ data:
 
     MOBILE_APP_KEY = os.getenv("MOBILE_APP_KEY")
 
+    RAW_REF_MODEL_BY_LANG_FILEPATH = {
+        "en": None,
+        "he": None
+    }
+
+    RAW_REF_PART_MODEL_BY_LANG_FILEPATH = {
+        "en": None,
+        "he": None
+    }
+
     LOGGING = {
         'version': 1,
         'disable_existing_loggers': False,

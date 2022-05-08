@@ -386,6 +386,7 @@ class UserProfile(object):
         # Google API token
         self.gauth_token = None
         self.nationbuilder_id = None
+        self.gauth_email = None
 
         # new editor
         self.show_editor_toggle = False
@@ -640,6 +641,8 @@ class UserProfile(object):
         """
         from random import choices
         options = general_follow_recommendations(lang=lang, n=100)
+        if not len(options):
+            return []
         filtered_options = [u for u in options if not self.follows(u["uid"])]
 
         return choices(filtered_options, k=n)
@@ -674,6 +677,7 @@ class UserProfile(object):
             "profile_pic_url_small": self.profile_pic_url_small,
             "gauth_token":           self.gauth_token,
             "nationbuilder_id":      self.nationbuilder_id,
+            "gauth_email":           self.gauth_email,
             "show_editor_toggle":    self.show_editor_toggle,
             "uses_new_editor":       self.uses_new_editor,
         }

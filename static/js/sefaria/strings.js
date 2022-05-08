@@ -161,6 +161,7 @@ const Strings = {
     "No connections known for this source.": "למקור הזה אין קשרים ידועים",
     "Edit Source title" : "עריכת כותרת",
     "Add Source Below" : "הוספת מקור מתחת",
+    "Add Source": "הוספת מקור",
     "Add Comment": "הוספת תגובה",
     "Add All Connections": "הוספת כל המקורות הקשורים",
     "Reset Source Text": "איפוס טקסט מקור",
