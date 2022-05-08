@@ -232,27 +232,17 @@ const SELECTOR_WHITE_LIST = {
         for (let linkObj of resp.text.results) {
             wrapRef(linkObj, ns.normalizedInputText, resp.text.refData);
         }
+        bindRefClickHandlers(resp.text.refData);
     }
 
     function bindRefClickHandlers(refData) {
         // Bind a click event and a mouseover event to each link
-        [].forEach.call(document.querySelectorAll('.sefaria-ref'),(e) => {
-            var source = ns.sources[e.getAttribute('data-ref')];
-            var utm_source = window.location.hostname ? window.location.hostname.replace(/^www\./, "") : "(not%20set)";
-            e.setAttribute('href', base_url + source.url + "?lang=" + (source.lang == "en"?"he-en":"he") + "&utm_source=" + utm_source + "&utm_medium=sefaria_linker");
-            if (mode == "popup-hover") {
-                e.addEventListener('mouseover', function(event) {
-                    showPopup(this, mode);
-                }, false);
-                e.addEventListener('mouseout', hidePopup, false);
-            } else if (mode == "popup-click") {
-                e.addEventListener('click', function(event) {
-                    showPopup(this, mode);
-                    event.preventDefault();
-                    event.stopPropagation();
-                    document.getElementById("sefaria-linker-text").focus();
-                }, false);
-            }
+        [].forEach.call(document.querySelectorAll('.sefaria-ref'),(elem) => {
+            const ref = elem.getAttribute('data-ref');
+            if (!ref) { /* failed link */ return; }
+            const source = refData[ref];
+            source.ref = ref;
+            ns.popupManager.bindEventHandler(elem, SEFARIA_BASE_URL, source);
         });
     }
 

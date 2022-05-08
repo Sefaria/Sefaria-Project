@@ -257,14 +257,12 @@ export class PopupManager {
         }
     };
 
-    showPopup(e) {
+    showPopup(elem, {ref, heRef, en, he, primaryCategory}) {
         while (this.textBox.firstChild) {
             this.textBox.removeChild(this.textBox.firstChild);
         }
-        this.triggerLink = e;
-        let source = ns.sources[e.getAttribute('data-ref')];
-
-        this.linkerHeader.style["border-top-color"] = category_colors[source["primary_category"]];
+        this.triggerLink = elem;
+        this.linkerHeader.style["border-top-color"] = category_colors[primaryCategory];
 
         // TODO is this right?
         if (this.contentLang !== "he") {
@@ -276,20 +274,20 @@ export class PopupManager {
             [].forEach.call(this.enElems, function(e) {e.style.display = "None"});
         }
 
-        if (typeof(source.en) === "string") {
-            source.en = [source.en]
-            source.he = [source.he]
+        if (typeof(en) === "string") {
+            en = [en]
+            he = [he]
         }
-        if (typeof(source.en) === "object") {
-            source.en = [].concat.apply([], source.en);
-            source.he = [].concat.apply([], source.he);
+        if (typeof(en) === "object") {
+            en = [].concat.apply([], en);
+            he = [].concat.apply([], he);
         }
 
-        for (i = 0; i < Math.max(source.en.length, source.he.length); i++) {
+        for (let i = 0; i < Math.max(en.length, he.length); i++) {
             let enBox = document.createElement('div');
             let heBox = document.createElement('div');
-            enBox.innerHTML = source.en[i] || "";
-            heBox.innerHTML = (source.he[i] || "").replace(/[\u0591-\u05af\u05bd\u05bf\u05c0\u05c4\u05c5]/g, "");
+            enBox.innerHTML = en[i] || "";
+            heBox.innerHTML = (he[i] || "").replace(/[\u0591-\u05af\u05bd\u05bf\u05c0\u05c4\u05c5]/g, "");
             enBox.className = "en" + (!heBox.innerHTML ? " enOnly" : "");
             heBox.className = "he" + (!enBox.innerHTML ? " heOnly" : "");
             heBox.setAttribute("dir", "rtl");
@@ -297,10 +295,10 @@ export class PopupManager {
             if (enBox.innerHTML) { this.textBox.appendChild(enBox);}
         }
 
-        this.enTitle.textContent = source.ref;
-        this.heTitle.textContent = source.heRef;
+        this.enTitle.textContent = ref;
+        this.heTitle.textContent = heRef;
 
-        let rect = e.getBoundingClientRect();
+        let rect = elem.getBoundingClientRect();
         this.popUpElem.style.top = (rect.top > 100)?rect.top - 50 + "px":rect.top + 30 + "px";
         if (rect.left < window.innerWidth / 2) {
             this.popUpElem.style.left = rect.right + 10 + "px";
@@ -332,7 +330,7 @@ export class PopupManager {
 
 
         if (this.mode === "popup-click") {
-            [].forEach.call(this.popUpElem.querySelectorAll(".sefaria-popup-ref"), function(link) {link.setAttribute('href', e.href);});
+            [].forEach.call(this.popUpElem.querySelectorAll(".sefaria-popup-ref"), function(link) {link.setAttribute('href', elem.href);});
             document.addEventListener("click", function (e) {
               let level = 0;
               for (let element = e.target; element; element = element.parentNode) {
@@ -362,5 +360,23 @@ export class PopupManager {
         this.popUpElem.style.display = "none";
         this.popUpElem.classList.remove("short-screen");
         this.popUpElem.style.height = "auto";
+    }
+
+    bindEventHandler(elem, baseUrl, source) {
+        const utmSource = window.location.hostname ? window.location.hostname.replace(/^www\./, "") : "(not%20set)";
+        const urlLang = this.contentLang.substring(0, 2);
+        const url = `${baseUrl}/${source.url}?lang=${urlLang}&utm_source=${utmSource}&utm_medium=sefaria_linker`;
+        elem.setAttribute('href', url);
+        if (this.mode === "popup-hover") {
+            elem.addEventListener('mouseover', (event) => { this.showPopup(elem, source); }, false);
+            elem.addEventListener('mouseout', this.hidePopup, false);
+        } else if (this.mode === "popup-click") {
+            elem.addEventListener('click', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                this.showPopup(elem, source);
+                document.getElementById("sefaria-linker-text").focus();
+            }, false);
+        }
     }
 }
