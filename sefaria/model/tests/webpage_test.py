@@ -111,4 +111,10 @@ def test_page_wout_description():
 
 	assert WebPage().add_or_update_from_linker(data_good_url) == "saved"
 
+	data_good_url = {'url': 'http://blogs.timesofisrael.com/no-desc',
+					 'title': title_good_url,
+					 'refs': ["Haamek Davar on Genesis, Kidmat Ha'Emek 1"]}
+
+	assert WebPage().add_or_update_from_linker(data_good_url) == "excluded"
+
 	WebPage().load(data_good_url["url"]).delete()
