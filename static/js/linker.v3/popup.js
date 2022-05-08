@@ -13,6 +13,7 @@ export class PopupManager {
         this.heElems = null;
         this.enElems = null;
         this.triggerLink = null;
+        this.hidePopup = this.hidePopup.bind(this);
     }
 
     setupPopup() {
