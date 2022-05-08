@@ -956,13 +956,18 @@ class ReaderApp extends Component {
     if (e.isDefaultPrevented()) {
       return;
     }
+    // Dont trigger if user is attempting to open a link with a modifier key (new tab, new window)
+    if(e.metaKey || e.shiftKey || e.ctrlKey){ //the ctrl/cmd, shift and alt/options keys in Windows and MacOS
+      console.dir({"metaKey": e.metaKey, "shiftKey": e.shiftKey, "ctrlKey": e.ctrlKey});
+      return;
+    }
     // Don't trigger from v1 Sheet Builder which has conflicting CSS
     if (typeof sjs !== "undefined") {
       return;
     }
     // https://github.com/STRML/react-router-component/blob/master/lib/CaptureClicks.js
     // Get the <a> element.
-    var el = e.target;
+    let el = e.target;
     while (el && el.nodeName !== 'A') {
       el = el.parentNode;
     }
