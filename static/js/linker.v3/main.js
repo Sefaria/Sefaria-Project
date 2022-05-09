@@ -11,6 +11,7 @@ const SELECTOR_WHITE_LIST = {
     "etzion.org.il": ["p.footnote"],
     "torah.etzion.org.il": ["p.footnote"],
     "haretzion.linnovate.co.il": ["p.footonote"],
+    "www.mayim.org.il": [".footnotes.wpb_column"],
 };
 
 (function(ns) {
@@ -21,12 +22,14 @@ const SELECTOR_WHITE_LIST = {
         return cleanedElem.textContent;
     }
 
-    function getWhiteListText() {
+    function getWhiteListText(currText) {
         const whiteListSelectors = SELECTOR_WHITE_LIST[window.location.hostname];
         if (!whiteListSelectors) { return ""; }
         const whiteListElems = document.querySelectorAll(whiteListSelectors.join(", "));
         return [].reduce.call(whiteListElems, (prev, curr) => {
-            return prev + sanitizeElem(removeUnwantedElems(curr));
+            const currCleaned = sanitizeElem(removeUnwantedElems(curr));
+            if (currText.indexOf(currCleaned) > -1) { return prev; }  // assumption is this text was already included by Readability so no need to include again
+            return prev + currCleaned;
         }, "");
     }
 
@@ -122,6 +125,9 @@ const SELECTOR_WHITE_LIST = {
          * }
          */
         let { startChar, endChar } = linkObj;
+        if (numWordsAround === 0) {
+            return { text: linkObj.text, startChar: 0 };
+        }
         const newEndChar = getNthWhiteSpaceIndex(text, numWordsAround, endChar);
         const textRev = [...text].reverse().join("");
         const newStartChar = text.length - getNthWhiteSpaceIndex(textRev, numWordsAround, text.length - startChar);
@@ -151,23 +157,29 @@ const SELECTOR_WHITE_LIST = {
         return atag;
     }
 
-    function createWrapperTag(children = []) {
-        const wrapper = document.createElement("span");
-        wrapper.className="sefaria-ref-wrapper";
-        for (let child of children) {
-            if (!child) { continue; }
-            wrapper.appendChild(child);
+    function createATagWithDebugInfo(urls, linkObj, text) {
+        /**
+         * if urls is null or len 1, return a tag
+         * else, return a span with n a tags to represent an ambiguous reference.
+         * urls should only be more than len 1 in debug mode
+         */
+        if (!urls) {
+            return createATag(linkObj.linkFailed, null, text, null);
+        } else if (urls.length === 1) {
+            return createATag(linkObj.linkFailed, linkObj.refs[0], text, urls[0]);
+        } else {
+            const node = document.createElement("span");
+            node.className="sefaria-ref-wrapper";
+            for (let i = 0; i < urls.length; i++) {
+                const tempText = i === 0 ? portion.text : `[${i}]`;
+                const atag = createATag(linkObj.linkFailed, linkObj.refs[i], tempText, urls[i], true);
+                node.appendChild(atag);
+            }
+            return node;
         }
-        return wrapper;
     }
 
-    function createTextNode(text, start, end) {
-        const subtext = text.substring(start, end);
-        if (subtext.length === 0) { return; }
-        return document.createTextNode(subtext);
-    }
-
-    function wrapRef(linkObj, normalizedText, refData, maxNumWordsAround = 10) {
+    function wrapRef(linkObj, normalizedText, refData, maxNumWordsAround = 10, maxSearchLength = 30) {
         /**
          * wraps linkObj.text with an atag. In the case linkObj.text appears multiple times on the page,
          * increases search scope to ensure we wrap the correct instance of linkObj.text
@@ -175,6 +187,7 @@ const SELECTOR_WHITE_LIST = {
          * normalizedText: normalized text of webpage (i.e. webpage text returned from Readability and then put through some normalization)
          * refData: refData field as returned from find-refs API
          * maxNumWordsAround: maximum number of words around linkObj.text to search to try to find its unique occurrence.
+         * maxSearchLength: if searchText is beyond this length, we assume the string uniquely identifies the citation. Even if there are multiple occurrences, we assume they can be wrapped with the same citation.
          */
         if (!ns.debug && (linkObj.linkFailed || linkObj.refs.length > 1)) { return; }
         const urls = linkObj.refs && linkObj.refs.map(ref => refData[ref].url);
@@ -185,53 +198,43 @@ const SELECTOR_WHITE_LIST = {
         let linkStartChar = 0;  // start index of link text within searchText
         const excluder = new LinkExcluder(ns.excludeFromLinking, ns.excludeFromTracking);
         while ((numWordsAround === 0 || occurrences.length > 1) && numWordsAround < maxNumWordsAround) {
-            occurrences = findOccurrences(searchText);
-            if (occurrences.length === 1) { break; }
-            numWordsAround += 1;
             // see https://flaviocopes.com/javascript-destructure-object-to-existing-variable/
             ({ text: searchText, startChar: linkStartChar } = getNumWordsAround(linkObj, normalizedText, numWordsAround));
+            occurrences = findOccurrences(searchText);
+            numWordsAround += 1;
+            if (searchText.length >= maxSearchLength) { break; }
         }
-        if (occurrences.length === 0) {
-            console.log("MISSED", numWordsAround, linkObj);
+        if (occurrences.length === 0 || (occurrences.length > 1 && searchText.length < maxSearchLength)) {
+            console.log("MISSED", numWordsAround, occurrences.length, linkObj);
             return;
         }
-        const globalLinkStart = linkStartChar + occurrences[0][0];
+        const globalLinkStarts = occurrences.map(([start, end]) => linkStartChar + start);
         findAndReplaceDOMText(document, {
             preset: 'prose',
             find: linkObj.text,
             replace: function(portion, match) {
                 // check this is the unique match found above
-                if (match.startIndex !== globalLinkStart) { return portion.text; }
+                if (globalLinkStarts.indexOf(match.startIndex) === -1) { return portion.text; }
 
                 // check if should be excluded from linking and/or tracking
                 const matchKey = match.startIndex + "|" + match.endIndex;
                 const [excludeFromLinking, excludeFromTracking] = excluder.shouldExclude(matchKey, portion.node);
                 if (excludeFromLinking) { return portion.text; }
                 if (!excludeFromTracking) { /* TODO ns.trackedMatches.push(matched_ref); */ }
-                if (!urls) {
-                    return createATag(linkObj.linkFailed, null, portion.text, null);
-                } else if (urls.length === 1) {
-                    return createATag(linkObj.linkFailed, linkObj.refs[0], portion.text, urls[0]);
-                } else {
-                    const node = document.createElement("span");
-                    node.className="sefaria-ref-wrapper";
-                    for (let i = 0; i < urls.length; i++) {
-                        const text = i === 0 ? portion.text : `[${i}]`;
-                        const atag = createATag(linkObj.linkFailed, linkObj.refs[i], text, urls[i], true);
-                        node.appendChild(atag);
-                    }
-                    return node;
-                }
+                return createATagWithDebugInfo(urls, linkObj, portion.text);
             }
         });
     }
 
     function onFindRefs(resp) {
-        alert("Linker results are ready!");
+        const startTime = performance.now();
         for (let linkObj of resp.text.results) {
             wrapRef(linkObj, ns.normalizedInputText, resp.text.refData);
         }
         bindRefClickHandlers(resp.text.refData);
+        const endTime = performance.now()
+        alert(`Linker results are ready! Took ${endTime - startTime} ms to wrap. ${resp.text.results.length} citations wrapped`);
+
     }
 
     function bindRefClickHandlers(refData) {
@@ -267,7 +270,7 @@ const SELECTOR_WHITE_LIST = {
         ns.popupManager = new PopupManager({ mode, interfaceLang, contentLang, popupStyles });
         ns.popupManager.setupPopup();
         const {text: readableText, readableObj} = getReadableText();
-        ns.normalizedInputText = readableText + getWhiteListText();
+        ns.normalizedInputText = readableText + getWhiteListText(readableText);
         const postData = {
             text: ns.normalizedInputText,
             url: window.location.href,
