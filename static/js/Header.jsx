@@ -609,10 +609,11 @@ const ProfilePicMenu = ({len, url, name}) => {
               <div><a className="interfaceLinks-row" id="account-settings-link" href="/settings/account">
                 <InterfaceText>Account Settings</InterfaceText>
               </a></div>
-              <div className="interfaceLinks-row languages">
-                <a className={`${(Sefaria.interfaceLang == 'hebrew') ? 'active':''}`} href={`/interface/hebrew?next=${getCurrentPage()}`} id="select-hebrew-interface-link">עברית</a>
-                <a className={`${(Sefaria.interfaceLang == 'english') ? 'active':''}`} href={`/interface/english?next=${getCurrentPage()}`} id="select-english-interface-link">English</a>
-              </div>
+              {Sefaria._siteSettings.TORAH_SPECIFIC ?
+                <div className="interfaceLinks-row languages">
+                  <a className={`${(Sefaria.interfaceLang == 'hebrew') ? 'active':''}`} href={`/interface/hebrew?next=${getCurrentPage()}`} id="select-hebrew-interface-link">עברית</a>
+                  <a className={`${(Sefaria.interfaceLang == 'english') ? 'active':''}`} href={`/interface/english?next=${getCurrentPage()}`} id="select-english-interface-link">English</a>
+                </div> : null}
               <div><a className="interfaceLinks-row bottom" id="help-link" href="/help">
                 <InterfaceText>Help</InterfaceText>
               </a></div>
