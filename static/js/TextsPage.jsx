@@ -77,7 +77,7 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
       <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null }
     </div>
 
-  const about = compare || multiPanel ? null :
+  const about = compare || multiPanel || !Sefaria._siteSettings.TORAH_SPECIFIC ? null :
     <Modules type={"AboutSefaria"} props={{hideTitle: true}}/>;
 
   const dedication = Sefaria._siteSettings.TORAH_SPECIFIC && !compare ? <Dedication /> : null;

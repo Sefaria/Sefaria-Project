@@ -50,7 +50,12 @@ class Header extends Component {
           <a className="home" href="/" >{logo}</a>
           <a href="/texts" className="textLink"><InterfaceText context="Header">Texts</InterfaceText></a>
           <a href="/topics" className="textLink"><InterfaceText>Topics</InterfaceText></a>
-          <a href="/topics/category/authors" className="textLink"><InterfaceText>Authors</InterfaceText></a>
+          { Sefaria._siteSettings.TORAH_SPECIFIC ?
+            <a href="/community" className="textLink"><InterfaceText>Community</InterfaceText></a> : null}
+          { Sefaria._siteSettings.TORAH_SPECIFIC ?
+            <DonateLink classes={"textLink donate"} link={"header"} source={"Header"}><InterfaceText>Donate</InterfaceText></DonateLink> : null}
+          { !Sefaria._siteSettings.TORAH_SPECIFIC ?
+            <a href="/topics/category/authors" className="textLink"><InterfaceText>Authors</InterfaceText></a> : null}
         </div>
 
         <div className="headerLinksSection">
@@ -87,7 +92,7 @@ class Header extends Component {
           <a className="home" href="/texts" >{logo}</a> : null }
         </div>
 
-        {this.props.hasLanguageToggle ?
+        {this.props.hasLanguageToggle && Sefaria._siteSettings.TORAH_SPECIFIC ?
         <div className={this.props.firstPanelLanguage + " mobileHeaderLanguageToggle"}>
           <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} />
         </div> :
@@ -469,18 +474,28 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
         <img src="/static/icons/topic.svg" />
         <InterfaceText>Topics</InterfaceText>
       </a>
-      <a href="/community" onClick={close}>
-        <img src="/static/icons/community.svg" />
-        <InterfaceText>Community</InterfaceText>
-      </a>
-      <a href="/calendars" onClick={close}>
-        <img src="/static/icons/calendar.svg" />
-        <InterfaceText>Learning Schedules</InterfaceText>
-      </a>
-      <a href="/collections" onClick={close}>
-        <img src="/static/icons/collection.svg"/>
-        <InterfaceText>Collections</InterfaceText>
-      </a>
+      {Sefaria._siteSettings.TORAH_SPECIFIC ?
+          <>
+          <a href="/community" onClick={close}>
+            <img src="/static/icons/community.svg" />
+            <InterfaceText>Community</InterfaceText>
+          </a>
+          <a href="/calendars" onClick={close}>
+            <img src="/static/icons/calendar.svg" />
+            <InterfaceText>Learning Schedules</InterfaceText>
+          </a>
+          <a href="/collections" onClick={close}>
+            <img src="/static/icons/collection.svg"/>
+            <InterfaceText>Collections</InterfaceText>
+          </a>
+          </> : null}
+      {!Sefaria._siteSettings.TORAH_SPECIFIC ?
+          <>
+          <a href="/authors" onClick={close}>
+            <img src="/static/icons/community.svg" />
+            <InterfaceText>Authors</InterfaceText>
+          </a>
+          </> : null}
 
       <div className="mobileAccountLinks">
         {Sefaria._uid ?
@@ -504,7 +519,8 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
           <InterfaceText>About Sefaria</InterfaceText>
         </a>
 
-        <MobileInterfaceLanguageToggle />
+        {Sefaria._siteSettings.TORAH_SPECIFIC ?
+          <MobileInterfaceLanguageToggle /> : null}
 
         <a href="/help">
           <img src="/static/icons/help.svg" />
