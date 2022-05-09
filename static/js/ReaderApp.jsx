@@ -972,6 +972,7 @@ class ReaderApp extends Component {
     }
   }
   handleInAppClickWithModifiers(e){
+    //Make sure to respect ctrl/cmd etc modifier keys when a click on a link happens
     const linkTarget = this.getHTMLLinkParentOfEventTarget(e);
     if (linkTarget) { // We want the absolute target of the event to be a link tag, not the "currentTarget".
       // Dont trigger if user is attempting to open a link with a modifier key (new tab, new window)
@@ -983,6 +984,7 @@ class ReaderApp extends Component {
     }
   }
   handleInAppLinkClick(e) {
+    //Allow global navigation handling in app via link elements
     // If a default has been prevented, assume a custom handler is already in place
     if (e.isDefaultPrevented()) {
       return;
