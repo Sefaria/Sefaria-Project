@@ -212,8 +212,8 @@ class RawRefPart(TrieEntry):
         return '' if self.potential_dh_continuation is None else self.potential_dh_continuation.text
 
     def get_dh_text_to_match(self) -> Iterable[str]:
-        import re
-        m = re.match(r'^(?:(?:\u05d1)?(?:\u05d3"\u05d4|s ?\. ?v ?\.) )?(.+?)$', self.text)
+        import re2
+        m = re2.match(r'^(?:(?:\u05d1)?(?:\u05d3"\u05d4|s ?\. ?v ?\.) )?(.+?)$', self.text)
         if m is not None:
             dh = m.group(1)
             if self.potential_dh_continuation:
