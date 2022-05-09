@@ -277,33 +277,19 @@ class NormalizerComposer(AbstractNormalizer):
         return final_text_to_remove
 
     @staticmethod
-    def issubset(a: set, b: set, a_inds: tuple, b_inds: tuple) -> bool:
-        """
-        is a subset of b?
-        based on set.is_subset. however, if a is an empty set,
-        relies on a_inds to make sure the start/end inds (which are the same)
-        appear in b
-        """
-        if len(a) == 0:
-            return a_inds[0] in b
-        return a.issubset(b)
-
-    @staticmethod
     def merge_removal_inds(curr_removal_inds, new_removal_inds):
         if isinstance(new_removal_inds, tuple):
             new_removal_inds = [new_removal_inds]
         merged_inds = curr_removal_inds[:]
         for new_inds, new_repl in new_removal_inds:
-            new_inds_set = set(range(new_inds[0], new_inds[1]))
             inds_are_final = True
             for i, (curr_inds, curr_repl) in enumerate(curr_removal_inds):
-                curr_inds_set = set(range(curr_inds[0], curr_inds[1]))
-                if NormalizerComposer.issubset(curr_inds_set, new_inds_set, curr_inds, new_inds):
+                if curr_inds[0] >= new_inds[0] and curr_inds[1] <= new_inds[1]:  # are curr_inds subset of new_inds?
                     # if earlier inds are a subset of later inds, later inds override
                     merged_inds.remove((curr_inds, curr_repl))
-                elif len(curr_inds_set & new_inds_set) > 0:
+                elif new_inds[0] < curr_inds[1] or new_inds[1] > curr_inds[0]:
                     # if later inds overlap and earlier inds are not a subset, merge
-                    if new_inds_set.issubset(curr_inds_set):
+                    if new_inds[0] >= curr_inds[0] and new_inds[1] <= curr_inds[1]:
                         merged_repl = curr_repl[:new_inds[0] - curr_inds[0]] + new_repl + curr_repl[new_inds[1] -
                                                                                                 curr_inds[1]:]
                         merged_inds[i] = (curr_inds, merged_repl)
