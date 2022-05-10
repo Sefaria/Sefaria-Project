@@ -669,10 +669,8 @@ class MatchTemplateTrie:
             self._trie = sub_trie
 
     def __init_with_nodes(self, nodes):
-        from .schema import TitledTreeNode
         self._trie = {}
         for node in nodes:
-            assert isinstance(node, TitledTreeNode)
             is_index_level = getattr(node, 'index', False) and node == node.index.nodes
             for match_template in node.get_match_templates():
                 if not is_index_level and self.scope != 'any' and match_template.scope != 'any' and self.scope != match_template.scope: continue
