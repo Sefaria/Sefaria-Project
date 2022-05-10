@@ -4,11 +4,13 @@ import django
 
 django.setup()
 
-import roman
-import statistics
 import re
-import csv
 from sefaria.model import *
+
+
+# TODO - remove all text inside italics for quotes
+#      - check each of the segments in the Talmud range, is it majority not caps - then flag. Can still output the ranged ref
+#      -
 
 
 # The goal of this script is to identify broken links in the connections between
@@ -26,10 +28,16 @@ def get_ref_from_link(mishnah_talmud_link):
     return Ref(mishnah_ref), Ref(talmud_ref)
 
 
+def remove_quotes(text):
+    res = re.sub(r"(<i>.*?<\/i>)", '', text)
+    return res
+
+
 def get_german_text(talmud_ref):
     german_text = talmud_ref.text('en', vtitle='Talmud Bavli. German trans. by Lazarus Goldschmidt, 1929 [de]')
     german_text = german_text.text
     german_text = clean_text(german_text)
+    german_text = remove_quotes(german_text)
     return german_text
 
 
@@ -39,7 +47,7 @@ for link in ls:
     mishnah_ref, talmud_ref = get_ref_from_link(link)
     german_text = get_german_text(talmud_ref)
     percent_uppercase = (sum(1 for c in german_text if c.isupper()) / len(german_text)) * 100
-    flagged_bad_link = True if percent_uppercase <= 50 else False
+    flagged_bad_link = percent_uppercase <= 50
     cur_link_data = {'mishnah_tref': mishnah_ref.normal(),
                      'talmud_tref': talmud_ref.normal(),
                      'percent_uppercase': percent_uppercase,
@@ -48,7 +56,3 @@ for link in ls:
     data_list.append(cur_link_data)
     if percent_uppercase <= 50:
         print(cur_link_data)
-
-
-
-
