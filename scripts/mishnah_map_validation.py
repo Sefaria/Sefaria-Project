@@ -7,12 +7,6 @@ django.setup()
 import re
 from sefaria.model import *
 
-
-# TODO -
-#      - check each of the segments in the Talmud range, is it majority not caps - then flag. Can still output the ranged ref
-#      -
-
-
 # The goal of this script is to identify broken links in the connections between
 # the mishnah and talmud refs as found in the German text.
 def clean_text(german_text):
