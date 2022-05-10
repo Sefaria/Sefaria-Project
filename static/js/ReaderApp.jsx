@@ -1004,7 +1004,7 @@ class ReaderApp extends Component {
     if (linkTarget.target && linkTarget.target !== '_self') {
       return;
     }
-    const href = el.getAttribute('href');
+    const href = linkTarget.getAttribute('href');
     if (!href) {
       return;
     }
@@ -1017,7 +1017,7 @@ class ReaderApp extends Component {
       return
     }
     //All links within sheet content should open in a new panel
-    const isSheet = !!(el.closest(".sheetItem"))
+    const isSheet = !!(linkTarget.closest(".sheetItem"))
     const replacePanel = !(isSheet)
     const handled = this.openURL(href,replacePanel);
     if (handled) {
