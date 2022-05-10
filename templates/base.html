@@ -89,6 +89,9 @@
     <link rel="stylesheet" type="text/css" href="{% static 'css/keyboard.css' %}">
     <link rel="stylesheet" href="{%  static 'css/s2.css' %}">
     <link rel="stylesheet" href="{%  static 'css/s2-print.css' %}" media="print" />
+    {% if not SITE_SETTINGS.TORAH_SPECIFIC %}
+        <link rel="stylesheet" href="{%  static 'css/site.css' %}" media="print" />
+    {% endif %}
 
     {% block static_css %}
     {% if not html %}

@@ -1,76 +1,16 @@
 # Giant list ordering or categories
 # indentation and inclusion of duplicate categories (like "Seder Moed")
 # is for readability only. The table of contents will follow this structure.
-CATEGORY_ORDER = [
-    "Constitutional Texts",
-        "United States Constitution",
-        "The Bill of Rights",
-        "Amendments XI through XXVII",
-    "Founding Era",
-    "State Constitutions",
-    "Constitutional Precedents",
-        "Magna Carta",
-        "English Bill of Rights",
-        "Mayflower Compact",
-        "United States Declaration of Independence",
-    "Presidential Speeches",
-         'George Washington',
-         'John Adams',
-         'Thomas Jefferson',
-         'James Madison',
-         'James Monroe',
-         'John Quincy Adams',
-         'Andrew Jackson',
-         'Martin Van Buren',
-         'William Harrison',
-         'John Tyler',
-         'James K Polk',
-         'Zachary Taylor',
-         'Millard Fillmore',
-         'Franklin Pierce',
-         'James Buchanan',
-         'Abraham Lincoln',
-         'Andrew Johnson',
-         'Ulysses S Grant',
-         'Rutherford B Hayes',
-         'James A Garfield',
-         'Chester A Arthur',
-         'Grover Cleveland',
-         'Benjamin Harrison',
-         'Grover Cleveland',
-         'William McKinley',
-         'Theodore Roosevelt',
-         'William Taft',
-         'Woodrow Wilson',
-         'Warren G Harding',
-         'Calvin Coolidge',
-         'Herbert Hoover',
-         'Franklin D Roosevelt',
-         'Harry S Truman',
-         'Dwight D Eisenhower',
-         'John F Kennedy',
-         'Lyndon B Johnson',
-         'Richard M Nixon',
-         'Gerald Ford',
-         'Jimmy Carter',
-         'Ronald Reagan',
-         'George H W Bush',
-         'Bill Clinton',
-         'George W Bush',
-         'Barack Obama',
-         'Donald Trump',
-    "Case Law",
-    "Philosophy",
-]
-
+CATEGORY_ORDER = ['American Priors', 'Religious Tradition', 'Judeo Christian', 'Political Theory', 'Classical', 'Aristotle', 'Metaphysics', 'Nicomachean Ethics', 'Poetics', 'Plato', 'Alcibiades 1', 'Critias', 'Euthydemus', 'Alcibiades 2', 'Apology', 'Charmides', 'Cleitophon', 'Cratylus', 'Crito', 'Epinomis', 'Epistles', 'Euthyphro', 'Gorgias', 'Hipparchus', 'Hippias Major', 'Hippias Minor', 'Ion', 'Laches', 'Laws', 'Letters', 'Lovers', 'Lysis', 'Menexenus', 'Meno', 'Minos', 'Parmenides', 'Phaedo', 'Phaedrus', 'Philebus', 'Protagoras', 'Republic', 'Sophist', 'Statesman', 'Symposium', 'Theaetetus', 'Theages', 'Timaeus', 'Plutarch', "Plutarch's Lives", 'Machiavelli', 'The Prince', 'Sir Thomas More', 'Utopia', 'Englightenment', 'John Locke', 'Second Treatise of Government', 'Montesquieu', 'The Spirit of the Laws', 'Algernon Sidney', 'Discourses Concerning Government', 'Legal Precedents', 'English', 'Magna Carta', 'English Bill of Rights', 'American', 'Mayflower Compact', 'Articles of Confederation']
+CATEGORY_ORDER += ['Toward Independence', 'Colonial America', 'Colonial Charters', 'Sermons and Speeches', 'Pamphlets', 'Common Sense', 'Continental Congress', 'First and Second Congress', 'Congress of the Confederation', 'Declaring Independance', 'US Declaration of Independence']
+#put Forging these united states before constituting america because of james madison being in both category
+CATEGORY_ORDER += ['Forging these United States', 'Foreign and Domestic Policy', 'The Executive Branch', 'Presidential Speeches', 'George Washington', 'John Adams', 'Thomas Jefferson', 'James Madison', 'James Monroe', 'John Quincy Adams', 'Andrew Jackson', 'Martin Van Buren', 'William Harrison', 'John Tyler', 'James K Polk', 'Zachary Taylor', 'Millard Fillmore', 'Franklin Pierce', 'James Buchanan', 'Abraham Lincoln', 'Andrew Johnson', 'Ulysses S Grant', 'Rutherford B Hayes', 'James A Garfield', 'Chester A Arthur', 'Grover Cleveland', 'Benjamin Harrison', 'William McKinley', 'Theodore Roosevelt', 'William Taft', 'Woodrow Wilson', 'Warren G Harding', 'Calvin Coolidge', 'Herbert Hoover', 'Franklin D Roosevelt', 'Harry S Truman', 'Dwight D Eisenhower', 'John F Kennedy', 'Lyndon B Johnson', 'Richard M Nixon', 'Gerald Ford', 'Jimmy Carter', 'Ronald Reagan', 'George HW Bush', 'Bill Clinton', 'George W Bush', 'Barack Obama', 'Donald Trump', 'Joe Biden', 'The Legislative Branch', 'The Judiciary', 'Instituting the Institutions', 'Case Law', 'Baker v Carr', 'Brown v Board of Education of Topeka', 'Cohens v Virginia', 'Dred Scott v Sandford', 'Gideon v Wainwright', 'Marbury v Madison', 'McCulloch v Maryland', 'Miranda v Arizona', 'Plessy v Ferguson', 'Roe v Wade', 'Schenck v United States', 'United States v Nixon', 'The Military and National Security', 'Debates and Public Commentary']
+CATEGORY_ORDER += ['Constituting America', 'Articles of Confederation', 'United States Constitution', 'The US Bill of Rights', 'The Proposed Bill of Rights', 'Amendments XI through XXVII', 'Northwest Ordinance', 'Constitutional Convention', 'In Convention', 'Record of Proceedings in Convention', 'James Madison', "Madison's Notes on the Constitutional Convention", "Madison's Resolution for Amendments to the Constitution", "Farand's Records of the Constitutional Convention", 'Supplementary Records of Proceedings in Convention', 'Plans of Government Proposed at Convention', 'The Delegates to the Federal Convention, Their Credentials and Attendance', 'Further Records and Debates Concerning the US Constitution', 'The Federalist Papers', 'The Federalist Papers', 'Antifederalist and Profederalist Writings', 'Essays of Brutus I through XVI', 'Centinel I', 'Observations Leading to a Fair Examination of the System of government Proposed by the Late Convention (Letters from The Federal Farmer, I through VI)', 'Letters from the Federal Farmer XVI through XVII', 'Maryland (A Farmer, Essay V)', 'New York (Speeches by Melancton Smith)', 'Virginia (the Impartial Examiner, Essay I)', 'The Address and Reasons of Dissent of the Minority of the Convention of Pennsylvania to Their Constituents', 'Letters of Agrippa I through IX', 'Speeches of Patrick Henry in the Virginia State Ratifying Convention', 'State Ratification Debates', 'State Constitutions', 'Delaware Constitution 1776', 'Georgia Constitution 1777', 'Maryland Constitution', 'Massachusetts Constitution', 'New Hampshire Constitution 1776', 'New Jersey Constitution 1777', 'New York Constitution 1777', 'North Carolina Constitution 1776', 'Pennsylvania Constitution 1790', 'Pennsylvania Constitution September 28, 1776', 'South Carolina Constitution 1776', 'South Carolina Constitution 1778', 'Virginia Constitution', 'Commentaries on the US Constitutional Regime', 'Democracy in America', 'Commentaries on American Law (1826 through 30)', 'Commentaries on The Constitution of the United States, 1833', 'Lectures on Law']
 TOP_CATEGORIES = [
-   "Constitutional Texts",
-    "Founding Era",
-    "State Constitutions",
-    "Constitutional Precedents",
-    "Presidential Speeches",
-    "Case Law",
-    "Philosophy",
+   "American Priors",
+    "Toward Independence",
+    "Constituting America",
+    "Forging these United States"
 ]
 
 REVERSE_ORDER = [
