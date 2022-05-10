@@ -280,11 +280,17 @@ class NormalizerComposer(AbstractNormalizer):
     def merge_removal_inds(curr_removal_inds, new_removal_inds):
         if isinstance(new_removal_inds, tuple):
             new_removal_inds = [new_removal_inds]
+        curr_removal_inds.sort(key=lambda x: x[0])
+        new_removal_inds.sort(key=lambda x: x[0])
         merged_inds = curr_removal_inds[:]
+        last_curr = 0
         for new_inds, new_repl in new_removal_inds:
             inds_are_final = True
-            for i, (curr_inds, curr_repl) in enumerate(curr_removal_inds):
-                if curr_inds[0] >= new_inds[0] and curr_inds[1] <= new_inds[1]:  # are curr_inds subset of new_inds?
+            for i, (curr_inds, curr_repl) in enumerate(curr_removal_inds[last_curr:]):
+                if new_inds[1] <= curr_inds[0]:
+                    # curr_inds are past new_inds indicating rest of curr_inds will also be past. break early.
+                    break
+                elif curr_inds[0] >= new_inds[0] and curr_inds[1] <= new_inds[1]:  # are curr_inds subset of new_inds?
                     # if earlier inds are a subset of later inds, later inds override
                     merged_inds.remove((curr_inds, curr_repl))
                 elif new_inds[0] < curr_inds[1] or new_inds[1] > curr_inds[0]:
@@ -292,12 +298,14 @@ class NormalizerComposer(AbstractNormalizer):
                     if new_inds[0] >= curr_inds[0] and new_inds[1] <= curr_inds[1]:
                         merged_repl = curr_repl[:new_inds[0] - curr_inds[0]] + new_repl + curr_repl[new_inds[1] -
                                                                                                 curr_inds[1]:]
-                        merged_inds[i] = (curr_inds, merged_repl)
+                        merged_inds[i+last_curr] = (curr_inds, merged_repl)
                         inds_are_final = False
+                        last_curr += 1
                         break
                     else:
                         # overlap that's not a subset. more complicated merge that I don't want to deal with now
                         pass
+                last_curr += 1
             if inds_are_final:
                 merged_inds += [(new_inds, new_repl)]
         return merged_inds
