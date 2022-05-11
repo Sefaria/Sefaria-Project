@@ -35,25 +35,29 @@ def get_german_text(talmud_ref):
     return german_text
 
 
-def check_uppercase_percentage(talmud_ref, mishnah_ref):
+def check_uppercase_percentage(talmud_ref):
     german_text = get_german_text(talmud_ref)
     if german_text:
         percent_uppercase = (sum(1 for c in german_text if c.isupper()) / len(german_text)) * 100
     else:
         percent_uppercase = -1 # Not applicable
+    return percent_uppercase, german_text
+
+
+
+def generate_data_append_to_list(data_list, talmud_ref, mishnah_ref):
+    percent_uppercase, german_text = check_uppercase_percentage(talmud_ref)
     flagged_bad_link = percent_uppercase <= 50
     cur_link_data = {'mishnah_tref': mishnah_ref.normal(),
                      'talmud_tref': talmud_ref.normal(),
                      'percent_uppercase': percent_uppercase,
                      'german_text': german_text,
                      'flagged_bad_link': flagged_bad_link}
+    data_list.append(cur_link_data)
     if percent_uppercase <= 50:
         print(cur_link_data)
     return cur_link_data
 
-def generate_data_append_to_list(data_list, talmud_ref, mishnah_ref):
-    cur_data = check_uppercase_percentage(talmud_ref, mishnah_ref)
-    data_list.append(cur_data)
 
 # Phase One: Report on all lowercase heavy Talmud pieces
 def phase_one():
@@ -80,11 +84,42 @@ def phase_one():
 #     - Then a good db to use
 # - Then use this (filtered for mishnahs) and use it as base
 def phase_two():
+    # Step One - Validate if a 'good' database
     passage_set = PassageSet({'type': 'Mishnah'})
+    passage_list_mishnah_in_talmud_segments = []
+    count_segments_not_majority_uppercase = 0
     for each in passage_set:
-        print(each.ref_list)
+        for tref in each.ref_list:
+            passage_list_mishnah_in_talmud_segments.append(tref)
+            percent_uppercase = check_uppercase_percentage(Ref(tref))[0]
+            if percent_uppercase < 50:
+                print(f"{tref}: {percent_uppercase}% uppercase")
+                count_segments_not_majority_uppercase += 1
+    print(f"Of the {len(passage_list_mishnah_in_talmud_segments)} passage segments, {count_segments_not_majority_uppercase} are not uppercase")
+    # Checking link set
+    ls = LinkSet({"type": "mishnah in talmud"})
+    linkset_list_mishnah_in_talmud_segments = []
+    for link in ls:
+        mishnah_ref, talmud_ref = get_ref_from_link(link)
+        if talmud_ref.is_range():
+            for ref in talmud_ref.range_list():
+                linkset_list_mishnah_in_talmud_segments.append(ref)
+        else:
+            linkset_list_mishnah_in_talmud_segments.append(talmud_ref)
+
+    print(len(passage_list_mishnah_in_talmud_segments))
+    # Cross checking
+    missing_segments = []
+    for each_link_ref in linkset_list_mishnah_in_talmud_segments:
+        if each_link_ref.normal() not in passage_list_mishnah_in_talmud_segments:
+            missing_segments.append(each_link_ref)
+
+    print(f"There are {len(missing_segments)} unaccounted for segments of Mishnah in passages not in linkset")
+    for missing in missing_segments:
+        print(missing, end=", ")
+
 
 
 if __name__ == "__main__":
-    phase_one()
-    # phase_two()
+    # phase_one()
+    phase_two()
