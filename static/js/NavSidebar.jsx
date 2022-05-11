@@ -234,7 +234,6 @@ const AboutText = ({index, hideTitle}) => {
 
 
 const TranslationLinks = () => {
-  const translations = ["English", "Francais", "Espanol"] // todo: get from sefaria.js
   return (
     <div className="navSidebarLink serif language">
       {Object.keys(Sefaria.ISOMap).map((key, i) => (
