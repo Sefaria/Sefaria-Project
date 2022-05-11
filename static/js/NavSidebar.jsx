@@ -237,13 +237,13 @@ const TranslationLinks = () => {
   const translations = ["English", "Francais", "Espanol"] // todo: get from sefaria.js
   return (
     <div className="navSidebarLink serif language">
-      {translations.map((item, i) => (
-        <span key={i}>
-          { i !== 0 ? <span className="bullet">{'\u2022'}</span> : null }
-          <a href={`/translations/${item}`}>
-            {item}
+      {Object.keys(Sefaria.ISOMap).map((key, i) => (
+        <div key={i} className={i !== Object.keys(Sefaria.ISOMap).length - 1 ? "bullet languageItem" : "languageItem"}>
+          {/* { i !== 0 ? <span className="bullet">{'\u2022'}</span> : null } */}
+          <a href={`/translations/${key}`}>
+            {Sefaria.ISOMap[key]["nativeName"]}
           </a>
-        </span>
+        </div>
       ))}
       </div>
   );

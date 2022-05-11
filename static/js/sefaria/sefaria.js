@@ -483,27 +483,27 @@ Sefaria = extend(Sefaria, {
     }.bind(this));
     return null;
   },
+  ISOMap: {
+    "ar": {"name": "Arabic", "nativeName": "عربى"},
+    "de": {"name": "German", "nativeName": "Deutsch"},
+    "en": {"name": "English", "nativeName": "English"},
+    "eo": {"name": "Esperanto", "nativeName": "Esperanto"},
+    "es": {"name": "Spanish", "nativeName": "Español"},
+    "fa": {"name": "Persian", "nativeName": "فارسی"},
+    "fi": {"name": "Finnish", "nativeName": "suomen kieli"},
+    "fr": {"name": "French", "nativeName": "Français"},
+    "he": {"name": "Hebrew", "nativeName": "עברית"},
+    "it": {"name": "Italian", "nativeName": "Italiano"},
+    "lad": {"name": "Ladino", "nativeName": "Judeo-español"},
+    "pl": {"name": "Polish", "nativeName": "Polskie"},
+    "pt": {"name": "Portuguese", "nativeName": "Português"},
+    "ru": {"name": "Russian", "nativeName": "Pусский"},
+    "yi": {"name": "Yiddish", "nativeName": "יידיש"},
+  },
   translateISOLanguageCode(code, native = false) {
     //takes two-letter ISO 639.2 code and returns full language name
-    const ISOMap = {
-        "ar": {"name": "Arabic", "nativeName": "عربى"},
-        "de": {"name": "German", "nativeName": "Deutsch"},
-        "en": {"name": "English", "nativeName": "English"},
-        "eo": {"name": "Esperanto", "nativeName": "Esperanto"},
-        "es": {"name": "Spanish", "nativeName": "Español"},
-        "fa": {"name": "Persian", "nativeName": "فارسی"},
-        "fi": {"name": "Finnish", "nativeName": "suomen kieli"},
-        "fr": {"name": "French", "nativeName": "Français"},
-        "he": {"name": "Hebrew", "nativeName": "עברית"},
-        "it": {"name": "Italian", "nativeName": "Italiano"},
-        "lad": {"name": "Ladino", "nativeName": "Judeo-español"},
-        "pl": {"name": "Polish", "nativeName": "Polskie"},
-        "pt": {"name": "Portuguese", "nativeName": "Português"},
-        "ru": {"name": "Russian", "nativeName": "Pусский"},
-        "yi": {"name": "Yiddish", "nativeName": "יידיש"},
-    }
     const lookupVar = native ? "nativeName" : "name";
-    return ISOMap[code.toLowerCase()][lookupVar] || code; 
+    return Sefaria.ISOMap[code.toLowerCase()][lookupVar] || code; 
   },
   _versions: {},
   _translateVersions: {},

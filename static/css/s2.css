@@ -1645,13 +1645,21 @@ div.interfaceLinks-row a {
   color: #666;
 }
 
-.navSidebarLink .bullet {
+.navSidebarLink .bullet:after {
+  content: "\2022";
+  white-space:pre;
   margin: 0 5px;
+}
+
+.navSidebarLink .languageItem {
+  display: inline;
 }
 
 .navSidebarLink.language {
   font-size: 18px;
   margin-top: 16px;
+  display: flex;
+  flex-wrap:wrap;
 }
 
 .navSidebarLink.ref {
