@@ -565,7 +565,7 @@ class RefPartModifier:
         self.t(en='Sifra', he='סיפרא', alt_he=['ספרא'], ref_part_role='structural')
         self.t(en='Ran', he='ר"ן', ref_part_role='structural')
         self.t(en='Perek', he='פרק', alt_en=["Pereq", 'Chapter'], ref_part_role='alt_title')
-        self.t(en='Parasha', he='פרשה', alt_en=['Parashah', 'Parašah', 'Parsha', 'Paraša', 'Paršetah', 'Paršeta', 'Parsheta', 'Parshetah'], ref_part_role='alt_title')
+        self.t(en='Parasha', he='פרשה', alt_he=["פרשת"], alt_en=['Parashah', 'Parašah', 'Parsha', 'Paraša', 'Paršetah', 'Paršeta', 'Parsheta', 'Parshetah', 'Parashat', 'Parshat'], ref_part_role='alt_title')
         self.t(en='Sefer', he='ספר', ref_part_role='alt_title')
         self.t(en='Halakha', he='הלכה', alt_en=['Halakhah', 'Halacha', 'Halachah', 'Halakhot'], ref_part_role='context_swap')
         self.t(en='Mishneh Torah', he='משנה תורה', alt_en=["Mishnah Torah"], ref_part_role='structural')
@@ -686,7 +686,8 @@ class RefPartModifier:
             "Tazria": ["Tazria‘", "Tazria`"],
             "Tzav": ["Saw"],
             "Achrei Mot": ["Ahare", "Aḥare Mot", "Ahare Mot"],
-            "Nitzavim": ["ניצבים", "פרשת ניצבים"],
+            "Nitzavim": ["ניצבים"],
+            "Sh'lach": ["שלח לך"],
         }
         indexes = library.get_indexes_in_category("Tanakh", full_records=True)
         tanakh_term_map = {}
@@ -710,6 +711,8 @@ class RefPartModifier:
             tanakh_term_map[index.title] = index_term
 
             # parasha
+            parsha_title_term = NonUniqueTerm.init('parasha')
+            parsha_title_regex = "|".join(re.escape(title['text']) for title in parsha_title_term.titles)
             if index.categories[-1] == 'Torah':
                 for parsha_node in index.get_alt_struct_nodes():
                     titles = parsha_node.title_group.titles
@@ -721,6 +724,8 @@ class RefPartModifier:
                         "text": alt_title_obj['text'].replace('.', ' .'),
                         "lang": "en"
                     } for alt_title_obj in titles if re.search(r'\.$', alt_title_obj['text']) is not None]
+                    for title in titles:
+                        title['text'] = re.sub(fr"(?:{parsha_title_regex}) ", '', title['text'])
                     parsha_term = NonUniqueTerm({
                         "slug": parsha_node.get_primary_title('en'),
                         "titles": titles,
