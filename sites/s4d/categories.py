@@ -13,5 +13,5 @@ TOP_CATEGORIES = [
     "Forging these United States"
 ]
 
-# REVERSE_ORDER = [
-# ]
+REVERSE_ORDER = [
+]
