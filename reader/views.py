@@ -4407,6 +4407,18 @@ def apple_app_site_association(request):
         }
     })
 
+def android_asset_links_json(request):
+    return jsonResponse(
+        [{
+            "relation": ["delegate_permission/common.handle_all_urls"],
+            "target": {
+                "namespace": "android_app",
+                "package_name": "org.sefaria.sefaria",
+                "sha256_cert_fingerprints":
+                    ["FD:86:BA:99:63:C2:71:D9:5F:E6:0D:0B:0F:A1:67:EA:26:15:45:BE:0C:D0:DF:69:64:01:F3:AD:D0:EE:C6:87"]
+            }
+        }]
+    )
 
 def application_health_api(request):
     """

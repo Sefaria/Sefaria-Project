@@ -19,9 +19,11 @@ spec:
           - name: create-dumps-script
             configMap:
               name: create-dumps-{{ .Values.deployEnv }}
+              defaultMode: 0755
           - name: upload-dumps-script
             configMap:
               name: upload-dumps-{{ .Values.deployEnv }}
+              defaultMode: 0755
           - name: shared-volume
             emptyDir: {}
           affinity:
@@ -42,6 +44,15 @@ spec:
           initContainers:
           - name: mongo-dumper
             image:  mongo:4.4
+            envFrom:
+              - secretRef:
+                  name: {{ .Values.secrets.localSettings.ref }}
+                  optional: true
+              - configMapRef:
+                  name: local-settings-{{ .Values.deployEnv }}
+              - secretRef:
+                  name: local-settings-secrets-{{ .Values.deployEnv }}
+                  optional: true
             volumeMounts:
             - name: shared-volume
               mountPath: /mongodumps/shared_volume
