@@ -2416,6 +2416,12 @@ _media: {},
       return typeof ref === "string" ? parseInt(ref.split(" ")[1]) : parseInt(ref[0].split(" ")[1]);
     }
   },
+  _translations: {},
+  getTranslation: function(key) {
+    const url = Sefaria.apiHost + "/api/translations/" + key;
+    const store = this._collections;
+    return this._cachedApiPromise({url, key, store})
+  },
   _collections: {},
   getCollection: function(key) {
       const url = Sefaria.apiHost + "/api/collections/" + encodeURIComponent(key);
@@ -2672,6 +2678,9 @@ Sefaria.unpackDataFromProps = function(props) {
   }
   if (props.collectionData) {
     Sefaria._collections[props.initialCollectionSlug] = props.collectionData;
+  }
+  if (props.translationsData) {
+    Sefaria._translations[props.initialTranslationsSlug] = props.translationsData;
   }
   if (props.topicData) {
     Sefaria._topics[props.initialTopic] = Sefaria.processTopicsData(props.topicData);

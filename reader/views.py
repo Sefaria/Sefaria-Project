@@ -949,6 +949,33 @@ def groups_redirect(request, group):
 
 
 @sanitize_get_params
+def translations_page(request, slug):
+    """
+    Main page for collection named by `slug`
+    """
+    #  db.texts.aggregate([{"$match": {"realLanguage": lang}}, {"$group": {"_id": "$title"}}])
+    texts = db.texts.distinct("title", {"realLanguage": slug})
+    # collection = Collection().load({"$or": [{"slug": slug}, {"privateSlug": slug}]})
+    # if not collection:
+    #     raise Http404
+
+    # authenticated = request.user.is_authenticated and collection.is_member(request.user.id)
+    print(slug)
+    props = base_props(request)
+    props.update({
+        "initialMenu":     "translationsPage",
+        "initialTranslationsSlug": slug,
+    })
+    
+    props["translationsData"] = json.dumps([library.get_index(myText).contents() for myText in texts])
+    return render_template(request, 'base.html', props, {
+        "title": "Jewish Texts in" + " " + slug,
+        "desc": "loren ipsum",
+        "noindex": False
+    })
+
+
+@sanitize_get_params
 def menu_page(request, props=None, page="", title="", desc=""):
     """
     View for any App page that can described with the `menuOpen` param in React
@@ -4051,6 +4078,16 @@ def random_text_api(request):
     return response
 
 
+def translations_api(request, lang=None):
+    if lang:
+        texts = db.texts.aggregate([{"$match": {"realLanguage": lang}}, {"$group": {"_id": "$title"}}])
+        res = [abc for abc in texts]
+        # get index records? BUT -- for english there are 2k docs.
+    else:
+        texts = db.texts.distinct("title", {"realLanguage": lang})
+        res = json.dumps([library.get_index(myText).contents() for myText in texts])
+    return res
+    
 def random_by_topic_api(request):
     """
     Returns Texts API data for a random text taken from popular topic tags

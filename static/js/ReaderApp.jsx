@@ -71,6 +71,7 @@ class ReaderApp extends Component {
         collectionName:          props.initialCollectionName,
         collectionSlug:          props.initialCollectionSlug,
         collectionTag:           props.initialCollectionTag,
+        translationsSlug:        props.initialTranslationsSlug
       };
     }
 
@@ -142,6 +143,7 @@ class ReaderApp extends Component {
       collectionName:          state.collectionName          || null,
       collectionSlug:          state.collectionSlug          || null,
       collectionTag:           state.collectionTag           || null,
+      translationsSlug:        state.translationsSlug        || null,
       searchQuery:             state.searchQuery             || null,
       searchTab:               state.searchTab               || 'text',
       showHighlight:           state.showHighlight           || null,
@@ -527,6 +529,11 @@ class ReaderApp extends Component {
             hist.url = "collections";
             hist.mode = "collcetionsPublic";
             break;
+          case "translationsPage":
+            hist.url   = "translations/" + state.translationsSlug;
+            hist.title = "Jewish texts in " + Sefaria.ISOMap[state.translationsSlug]["name"]; // TODO he translation
+            hist.mode  = "translations";
+            break;    
           case "calendars":
             hist.title = Sefaria._("Learning Schedules") + " | " + Sefaria._(siteName);
             hist.url = "calendars";
