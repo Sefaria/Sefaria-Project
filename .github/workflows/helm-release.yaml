@@ -26,8 +26,8 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           filters: |
             charts:
-              - 'charts/ingress-nginx/Chart.yaml'
-              - 'charts/ingress-nginx/**/*'
+              - 'helm-chart/Chart.yaml'
+              - 'helm-chart/**/*'
 
   chart:
     name: Release Chart
