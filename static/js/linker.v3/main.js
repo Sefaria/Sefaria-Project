@@ -1,6 +1,6 @@
 import { Readability } from '@mozilla/readability';
 import DOMPurify from 'dompurify';
-import findAndReplaceDOMText from 'findAndReplaceDOMText';
+import findAndReplaceDOMText from 'findandreplacedomtext';
 import { PopupManager } from "./popup";
 import {LinkExcluder} from "./excluder";
 
