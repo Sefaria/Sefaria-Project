@@ -58,14 +58,14 @@ def check_uppercase_percentage(talmud_ref):
 
 def generate_data_append_to_list(data_list, talmud_ref, mishnah_ref):
     percent_uppercase, german_text = check_uppercase_percentage(talmud_ref)
-    flagged_bad_link = percent_uppercase <= 50
+    flagged_bad_link = 50 >= percent_uppercase > 0
     cur_link_data = {'mishnah_tref': mishnah_ref.normal(),
                      'talmud_tref': talmud_ref.normal(),
                      'percent_uppercase': percent_uppercase,
                      'german_text': german_text,
                      'flagged_bad_link': flagged_bad_link}
 
-    if percent_uppercase <= 50:
+    if 50 >= percent_uppercase > 0:
         cur_link_data['issue'] = 'Majority NOT uppercase'
     data_list.append(cur_link_data)
     return cur_link_data
