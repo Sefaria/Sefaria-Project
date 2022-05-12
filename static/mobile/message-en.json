@@ -1,1 +1,10 @@
-null
+{
+	"title": "",
+	"text": [
+		"In honor of Shavuot, we are counting towards the goal of recruiting 400 new Sefaria Sustainers. If you receive value from the library, please consider giving back with a monthly donation today." 
+    ],
+	"buttonLink": "https://sefaria.nationbuilder.com/sustainers_e",
+	"buttonText": "Become a Sustainer",
+	"name": "2022-05-10-shavuot-donate-banner-1",
+	"schemaVersion": 1
+}

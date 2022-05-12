@@ -297,9 +297,9 @@ CACHES = {
 }
 
 
-'''
+
 GLOBAL_INTERRUPTING_MESSAGE = {
-    "name":       "13042022-passover-donate-banner",
+    "name":       "2022-05-10-shavuot-donate-banner",
     "style":      "banner", # "modal" or "banner"
     "repetition": 1,
     "is_fundraising": True,
@@ -312,6 +312,8 @@ GLOBAL_INTERRUPTING_MESSAGE = {
 }
 '''
 GLOBAL_INTERRUPTING_MESSAGE = None
+'''
+
 
 
 # Grab environment specific settings from a file which
