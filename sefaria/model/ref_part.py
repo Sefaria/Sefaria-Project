@@ -13,8 +13,6 @@ from tqdm import tqdm
 from spacy.tokens import Span, Token
 from spacy.language import Language
 
-spacy.prefer_gpu()
-
 # keys correspond named entity labels in spacy models
 # values are properties in RefPartType
 LABEL_TO_REF_PART_TYPE_ATTR = {
@@ -1030,7 +1028,7 @@ class RefResolver:
         return doc.ents
 
     def _bulk_get_raw_ref_spans(self, lang: str, input: List[str], batch_size=150, **kwargs) -> Generator[List[Span], None, None]:
-        for doc in self.get_raw_ref_model(lang).pipe(input, batch_size=batch_size, **kwargs):
+        for doc in self.get_raw_ref_model(lang).pipe(input, batch_size=batch_size, disable=['tok2vec'], **kwargs):
             if kwargs.get('as_tuples', False):
                 doc, context = doc
                 yield doc.ents, context
@@ -1042,7 +1040,7 @@ class RefResolver:
         return doc.ents
 
     def _bulk_get_raw_ref_part_spans(self, lang: str, input: List[str], batch_size=None, **kwargs) -> Generator[List[Span], None, None]:
-        for doc in self.get_raw_ref_part_model(lang).pipe(input, batch_size=batch_size or len(input), **kwargs):
+        for doc in self.get_raw_ref_part_model(lang).pipe(input, batch_size=batch_size or len(input), disable=['tok2vec'], **kwargs):
             if kwargs.get('as_tuples', False):
                 doc, context = doc
                 yield doc.ents, context

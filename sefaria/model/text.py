@@ -5319,6 +5319,7 @@ class Library(object):
 
     def _build_ref_resolver(self):
         import spacy
+        spacy.prefer_gpu()
         from .ref_part import MatchTemplateTrie, MatchTemplateGraph, RefResolver, TermMatcher, NonUniqueTermSet
         from sefaria.spacy_function_registry import inner_punct_tokenizer_factory  # used by spacy.load()
 
