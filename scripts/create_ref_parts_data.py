@@ -109,7 +109,7 @@ class RefPartModifier:
             index.save()
 
     def add_dibur_hamatchils(self, index):
-        index = Index().load({"title": index.title})
+        index = Index().load({"title": index.title})  # reload index to make sure perek nodes are correct
         seg_perek_mapping = {}
         for perek_node in index.get_alt_struct_nodes():
             perek_ref = Ref(perek_node.wholeRef)
