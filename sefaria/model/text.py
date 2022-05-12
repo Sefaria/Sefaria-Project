@@ -1351,18 +1351,18 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
 
     def walk_thru_contents(self, action, item=None, tref=None, heTref=None, schema=None, addressTypes=None, terms_dict=None):
         """
-        * Note it's a recursive function
-        * Look up syntax for python code in docstrings
-
-        Walk through content of version and run `action` for each segment. Only required parameter to call is `action`
+        Recursively walk through content of version and run `action` for each segment. Only required parameter to call is `action`
         :param func action: (segment_str, tref, he_tref, version) => None
 
         action() is a callback function that can have any behavior you would like. It should return None.
         A common use case is to define action() to append segments to a nonlocal array, to get an entire text of a
-        version in a list. The 'magic' of walk_thru_contents is that this function will iterate through the segments
-        of the given version, and apply the action callback to each segment.
+        Version in a list. The 'magic' of walk_thru_contents is that this function will iterate through the segments
+        of the given Version, and apply the action() callback to each segment.
 
         Here's an example:
+
+        .. highlight:: python
+        .. code-block:: python
 
             all_text = []
 
@@ -1375,12 +1375,10 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
             if talmud_berakhot:
                 talmud_berakhot.walk_thru_contents(action)
 
-        The result will be all_text populated with all of the segments from Masekhet Berakhot.
+        ...
 
-        Obviously, there are much farther and wider use cases, involving defining your action() callback
-        to print segments if they meet certain conditions, to aggregate differently etc.
-        The beauty of this function, is that walk_thru_contents() will apply whatever callback action you supply it,
-        to every segment within the given version.
+        The result will be all_text populated with all segments from Masekhet Berakhot.
+
         """
         def get_primary_title(lang, titles):
             return [t for t in titles if t.get("primary") and t.get("lang", "") == lang][0]["text"]
