@@ -2418,8 +2418,8 @@ _media: {},
   },
   _translations: {},
   getTranslation: function(key) {
-    const url = Sefaria.apiHost + "/api/translations/" + key;
-    const store = this._collections;
+    const url = Sefaria.apiHost + "/api/texts/translations/" + key;
+    const store = this._translations;
     return this._cachedApiPromise({url, key, store})
   },
   _collections: {},

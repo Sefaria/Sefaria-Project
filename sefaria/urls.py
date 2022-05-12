@@ -137,7 +137,7 @@ urlpatterns += [
     url(r'^api/texts/version-status/?$', reader_views.version_status_api),
     url(r'^api/texts/parashat_hashavua$', reader_views.parashat_hashavua_api),
     url(r'^api/texts/translations/?$', reader_views.translations_api),
-    url(r'^api/texts/translations(?P<lang>.+)', reader_views.translations_api),
+    url(r'^api/texts/translations/(?P<lang>.+)', reader_views.translations_api),
     url(r'^api/texts/random?$', reader_views.random_text_api),
     url(r'^api/texts/random-by-topic/?$', reader_views.random_by_topic_api),
     url(r'^api/texts/modify-bulk/(?P<title>.+)$', reader_views.modify_bulk_text_api),

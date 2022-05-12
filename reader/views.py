@@ -953,21 +953,15 @@ def translations_page(request, slug):
     """
     Main page for collection named by `slug`
     """
-    #  db.texts.aggregate([{"$match": {"realLanguage": lang}}, {"$group": {"_id": "$title"}}])
-    texts = db.texts.distinct("title", {"realLanguage": slug})
-    # collection = Collection().load({"$or": [{"slug": slug}, {"privateSlug": slug}]})
-    # if not collection:
-    #     raise Http404
-
-    # authenticated = request.user.is_authenticated and collection.is_member(request.user.id)
-    print(slug)
     props = base_props(request)
     props.update({
-        "initialMenu":     "translationsPage",
-        "initialTranslationsSlug": slug,
+        "initialMenu":              "translationsPage",
+        "initialTranslationsSlug":   slug,
     })
+    # if returnTexts:
+    #     texts = db.texts.distinct("title", {"realLanguage": slug})
+    #     props["translationsData"] = [library.get_index(myText).contents() for myText in texts]
     
-    props["translationsData"] = [library.get_index(myText).contents() for myText in texts]
     return render_template(request, 'base.html', props, {
         "title": "Jewish Texts in" + " " + slug,
         "desc": "loren ipsum",
@@ -4078,15 +4072,10 @@ def random_text_api(request):
     return response
 
 
-def translations_api(request, lang=None):
-    if lang:
-        texts = db.texts.aggregate([{"$match": {"realLanguage": lang}}, {"$group": {"_id": "$title"}}])
-        res = [abc for abc in texts]
-        # get index records? BUT -- for english there are 2k docs.
-    else:
-        texts = db.texts.distinct("title", {"realLanguage": lang})
-        res = json.dumps([library.get_index(myText).contents() for myText in texts])
-    return res
+def translations_api(request, lang):
+    texts = db.texts.distinct("title", {"realLanguage": lang})
+    res = [library.get_index(myText).contents() for myText in texts]
+    return jsonResponse(res)
     
 def random_by_topic_api(request):
     """
