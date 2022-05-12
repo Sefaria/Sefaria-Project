@@ -83,10 +83,10 @@ class RefPartModifier:
             indexes = library.get_indexes_in_category_path(comm_cat_path, True, True)
             for index in tqdm(indexes, desc=comm_term_slug, total=indexes.count()):
                 self.add_new_fields_to_commentary_root_node(comm_ref_prefix, comm_term_slug, index, fast)
-                if create_dhs:
-                    self.add_dibur_hamatchils(comm_ref_prefix, index)
                 if add_alt_structs:
                     self.add_alt_structs_to_talmud_commentaries(comm_ref_prefix, comm_term_slug, index)
+                if create_dhs:
+                    self.add_dibur_hamatchils(index)
 
 
     def add_new_fields_to_commentary_root_node(self, comm_ref_prefix, comm_term_slug, index, fast=False):
@@ -108,19 +108,15 @@ class RefPartModifier:
         else:
             index.save()
 
-    def add_dibur_hamatchils(self, comm_ref_prefix, index):
-        base_index = library.get_index(index.base_text_titles[0])
+    def add_dibur_hamatchils(self, index):
+        index = Index().load({"title": index.title})
         seg_perek_mapping = {}
-        for perek_node in base_index.get_alt_struct_nodes():
+        for perek_node in index.get_alt_struct_nodes():
             perek_ref = Ref(perek_node.wholeRef)
             for seg_ref in perek_ref.all_segment_refs():
-                seg_perek_mapping[comm_ref_prefix + seg_ref.normal()] = comm_ref_prefix + perek_ref.normal()
+                seg_perek_mapping[seg_ref.normal()] = perek_ref.normal()
         for iseg, segment_ref in enumerate(index.all_segment_refs()):
-            perek_ref = seg_perek_mapping[segment_ref.section_ref().normal()]
-
-            # # TODO remove
-            # if iseg > 3 and perek_ref not in {"Rashi on Beitzah 15b:1-23b:10", "Rashi on Rosh Hashanah 29b:5-35a:13"}: continue
-
+            perek_ref = seg_perek_mapping[segment_ref.normal()]
             chunk = TextChunk(segment_ref, 'he')
             dh = self.get_dh(chunk.text, index.nodes.diburHamatchilRegexes, segment_ref)
             if dh is None:
@@ -781,7 +777,7 @@ class RefPartModifier:
 
     def modify_all(self):
         fast = True
-        create_dhs = False
+        create_dhs = True
         add_comm_alt_structs = True
         self.modify_bavli(fast)
         self.modify_tanakh(fast)
