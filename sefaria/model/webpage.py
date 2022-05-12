@@ -150,7 +150,6 @@ class WebPage(abst.AbstractMongoRecord):
     def add_or_update_from_linker(data):
         """Adds an entry for the WebPage represented by `data` or updates an existing entry with the same normalized URL
         Returns True is data was saved, False if data was determined to be exluded"""
-        print(data)
         data["url"] = WebPage.normalize_url(data["url"])
         webpage = WebPage().load(data["url"])
         data["refs"] = WebPage._normalize_refs(data["refs"])  # remove bad refs so pages with empty refs won't get saved
