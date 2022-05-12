@@ -1057,9 +1057,7 @@ class ConnectionsSummary extends Component {
         essaySummary = <div className={"essayGroup"}>{essaySummary}</div>;
       }
     }
-
     let connectionsSummary = summary.map(function (cat, i) {
-
       const books = this.props.contentLang === "hebrew"
         ? cat.books.concat().sort(Sefaria.linkSummaryBookSortHebrew.bind(null, baseCat))
         : cat.books;

@@ -1272,10 +1272,12 @@ Sefaria = extend(Sefaria, {
       if (link["collectiveTitle"]["en"] in category.books) {
         category.books[link["collectiveTitle"]["en"]].count += 1;
         category.books[link["collectiveTitle"]["en"]].hasEnglish = category.books[link["collectiveTitle"]["en"]].hasEnglish || link.sourceHasEn;
-
+        category.books[link["collectiveTitle"]["en"]].categoryList = Sefaria.index(link["index_title"]).categories
       } else {
         category.books[link["collectiveTitle"]["en"]] = {count: 1, hasEnglish: link.sourceHasEn};
+        category.books[link["collectiveTitle"]["en"]].categoryList = Sefaria.index(link["index_title"]).categories
       }
+      console.log("index_title:",link["index_title"])
     }
     // Add Zero counts for every commentator in this section not already in list
     const baseRef    = typeof ref == "string" ? ref : ref[0]; // TODO handle refs spanning sections
@@ -1291,6 +1293,7 @@ Sefaria = extend(Sefaria, {
           }
           if (!(l["collectiveTitle"]["en"] in summary["Commentary"].books)) {
             summary["Commentary"].books[l["collectiveTitle"]["en"]] = {count: 0};
+            summary["Commentary"].books[l["collectiveTitle"]["en"]].categoryList = Sefaria.index(l["index_title"]).categories
           }
         }
       }
@@ -1305,6 +1308,47 @@ Sefaria = extend(Sefaria, {
         bookData.book     = index.title;
         bookData.heBook   = index.heTitle;
         bookData.category = category;
+        bookData.enShortDesc = index.enShortDesc || index.enDesc;
+        bookData.heShortDesc = index.heShortDesc;
+        console.log(book, bookData.book, bookData.categoryList)
+        if (book == "Abarbanel") {
+            debugger;
+        }
+        bookData.categoryList = index.categories[0] == ['Commentary'] ? bookData.categoryList : index.categories;
+        if (typeof bookData.categoryList === 'undefined') {
+            bookData.categoryList = null;
+                }
+        else {
+            bookData.categoryListNew = []
+            for (let i = 0; i < bookData.categoryList.length; i++) {
+                if (bookData.categoryList[i] === bookData.book || bookData.book.split(" ")[0] === bookData.categoryList[i] || bookData.book.split(" ")[0] === bookData.categoryList[i].split(" ")[0]) {
+                    break;
+                } else {
+                  bookData.categoryListNew.push(bookData.categoryList[i]);
+                }
+            }
+            bookData.categoryList = bookData.categoryListNew
+            // bookData.enShortDesc = Sefaria.tocItemsByCategories(bookData.categoryList).map((e)=>(e.category || e.title === bookData.book ? e.enShortDesc: null))
+        }
+        if (bookData.categoryList && !bookData.enShortDesc) {
+            const catlist = Sefaria.tocItemsByCategories(bookData.categoryList)
+            let catmap = catlist.map((e) => [e.category || e.collectiveTitle || e.title, e.enShortDesc, e.heShortDesc])
+            let d = {}
+            catmap.map((e) => {if (e) {d[e[0]]=[e[1], e[2]]}})
+            // console.log("Sefaria.index(bookData.book) ", Sefaria.index(bookData.book).collectiveTitle)
+            let descs = d[bookData.book]? d[bookData.book]: null;
+            bookData.enShortDesc = descs && descs[0]? descs[0]: null;
+            bookData.heShortDesc = descs && descs[1]? descs[1]: null;
+                    // debugger;
+        }
+        console.log("book ", bookData.book, "bookData Array",bookData.categoryList, bookData.enShortDesc, bookData.heShortDesc)
+
+//           Sefaria.tocItemsByCategories([
+//     "Tanakh",
+//     "Rishonim on Tanakh"
+// ]).map((e)=>[typeof e.category === 'undefined'? e.title : e.category, e.enShortDesc])
+//           pred.map((e) => d[e[0]] = e[1])
+
         return bookData;
       });
       // Sort the books in the category
