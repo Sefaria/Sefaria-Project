@@ -967,7 +967,7 @@ def translations_page(request, slug):
         "initialTranslationsSlug": slug,
     })
     
-    props["translationsData"] = json.dumps([library.get_index(myText).contents() for myText in texts])
+    props["translationsData"] = [library.get_index(myText).contents() for myText in texts]
     return render_template(request, 'base.html', props, {
         "title": "Jewish Texts in" + " " + slug,
         "desc": "loren ipsum",
