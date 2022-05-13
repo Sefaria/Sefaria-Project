@@ -10,7 +10,7 @@ import regex as re
 logger = structlog.get_logger(__name__)
 
 
-class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
+class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
     collection = 'topics'
     history_noun = 'topic'
     slug_fields = ['slug']
@@ -40,16 +40,6 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
         'description_published',  # bool to keep track of which descriptions we've vetted
         'isAmbiguous',  # True if topic primary title can refer to multiple other topics
     ]
-
-    @classmethod
-    def init(cls, slug:str) -> 'Topic':
-        """
-        Convenience func to avoid using .load() when you're only passing a slug
-        Can return a subclass of Topic based on `subclass` field
-        :param slug:
-        :return:
-        """
-        return cls().load({'slug': slug})
 
     def load(self, query, proj=None):
         if self.__class__ != Topic:
@@ -751,7 +741,7 @@ class RefTopicLinkSet(abst.AbstractMongoSet):
         super().__init__(query=query, *args, **kwargs)
 
 
-class TopicLinkType(abst.AbstractMongoRecord):
+class TopicLinkType(abst.SluggedAbstractMongoRecord):
     collection = 'topic_link_types'
     slug_fields = ['slug', 'inverseSlug']
     required_attrs = [
@@ -797,7 +787,7 @@ class TopicLinkTypeSet(abst.AbstractMongoSet):
     recordClass = TopicLinkType
 
 
-class TopicDataSource(abst.AbstractMongoRecord):
+class TopicDataSource(abst.SluggedAbstractMongoRecord):
     collection = 'topic_data_sources'
     slug_fields = ['slug']
     required_attrs = [

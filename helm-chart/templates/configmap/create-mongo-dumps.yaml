@@ -10,33 +10,40 @@ data:
   create-dumps.sh: |-
     #!/usr/bin/env bash
 
+    {{- if eq .Values.sandbox "true" }}
+    DATABASE="${SEFARIA_DB}-{{ .Values.deployEnv | quote }}"
+    {{- else }}
+    DATABASE="${SEFARIA_DB}"
+    {{- end }}
+
+
     DATADIR="/mongodumps/shared_volume"
     echo "dumping"
-    until mongodump --host=mongo:27017 -vvv -d sefaria --collection history -o "${DATADIR}/dump"
+    until mongodump --host=mongo:27017 -vvv -d $DATABASE --collection history -o "${DATADIR}/dump"
     do
     echo "trying to dump history again"
     sleep 2
     done
 
-    until mongodump --host=mongo:27017 -v -d sefaria --collection texts -o "${DATADIR}/dump"
+    until mongodump --host=mongo:27017 -v -d $DATABASE --collection texts -o "${DATADIR}/dump"
     do
     echo "trying to dump texts again"
     sleep 2
     done
 
-    until mongodump --host=mongo:27017 -v -d sefaria --collection links -o "${DATADIR}/dump"
+    until mongodump --host=mongo:27017 -v -d $DATABASE --collection links -o "${DATADIR}/dump"
     do
     echo "trying to dump links again"
     sleep 2
     done
 
-    until mongodump --host=mongo:27017 -v -d sefaria --collection sheets -o "${DATADIR}/dump"
+    until mongodump --host=mongo:27017 -v -d $DATABASE --collection sheets -o "${DATADIR}/dump"
     do
     echo "trying to dump sheets again"
     sleep 2
     done
 
-    until mongodump --host=mongo:27017 -v -d sefaria --excludeCollection=history --excludeCollection=texts --excludeCollection=sheets --excludeCollection=links --excludeCollection=user_history -o "${DATADIR}/dump"
+    until mongodump --host=mongo:27017 -v -d $DATABASE --excludeCollection=history --excludeCollection=texts --excludeCollection=sheets --excludeCollection=links --excludeCollection=user_history -o "${DATADIR}/dump"
     do
     echo "trying to dump other stuff again"
     sleep 2
