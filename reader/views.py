@@ -951,17 +951,13 @@ def groups_redirect(request, group):
 @sanitize_get_params
 def translations_page(request, slug):
     """
-    Main page for collection named by `slug`
+    Main page for translations
     """
     props = base_props(request)
     props.update({
         "initialMenu":              "translationsPage",
         "initialTranslationsSlug":   slug,
     })
-    # if returnTexts:
-    #     texts = db.texts.distinct("title", {"realLanguage": slug})
-    #     props["translationsData"] = [library.get_index(myText).contents() for myText in texts]
-    
     return render_template(request, 'base.html', props, {
         "title": "Jewish Texts in" + " " + slug,
         "desc": "loren ipsum",
@@ -4074,7 +4070,18 @@ def random_text_api(request):
 
 def translations_api(request, lang):
     texts = db.texts.distinct("title", {"realLanguage": lang})
-    res = [library.get_index(myText).contents() for myText in texts]
+    res = {}
+    for myIndex in [library.get_index(myText).contents() for myText in texts]:
+        depth = 2
+        ind = 0
+        cur = res
+        while ind < depth and ind < len(myIndex["categories"]):
+            if myIndex["categories"][ind] not in cur:
+                cur[myIndex["categories"][ind]] = {}
+            cur = cur[myIndex["categories"][ind]]
+            ind += 1
+        cur[myIndex["title"]] = myIndex
+    #res = [library.get_index(myText).contents() for myText in texts]
     return jsonResponse(res)
     
 def random_by_topic_api(request):
