@@ -1073,6 +1073,9 @@ class ReaderApp extends Component {
     } else if (path.match(/^\/collections\/.+/) && !path.endsWith("/settings") && !path.endsWith("/new")) {
       this.openCollection(path.slice(13), params.get("tag"));
 
+    } else if (path.match(/^\/translations\/.+/)) {
+      let slug = path.slice(14);
+      this.openTranslationsPage(slug);
     } else if (Sefaria.isRef(path.slice(1))) {
       const currVersions = {en: params.get("ven"), he: params.get("vhe")};
       const options = {showHighlight: path.slice(1).indexOf("-") !== -1};   // showHighlight when ref is ranged
@@ -1637,6 +1640,9 @@ class ReaderApp extends Component {
   }
   openCollection(slug, tag) {
     this.setSinglePanelState({menuOpen: "collection",  collectionSlug: slug, collectionTag: tag});
+  }
+  openTranslationsPage(slug) {
+    this.setSinglePanelState({menuOpen: "translationsPage", translationsSlug: slug})
   }
   toggleMobileNavMenu() {
     this.setState({mobileNavMenuOpen: !this.state.mobileNavMenuOpen});
