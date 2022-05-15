@@ -451,6 +451,13 @@ class ResolvedRef:
         """
         return ResolvedRef(**{**self.__dict__, **kwargs})
 
+    def merge_parts(self, other: 'ResolvedRef') -> None:
+        # TODO does it make sense to merge context parts?
+        # TODO seems like a rare case but if it would happen it would likely mess up validation that context parts need to preceed non-context parts
+        for part in other.resolved_parts:
+            if part in self.resolved_parts: continue
+            self.resolved_parts += [part]
+
     def has_prev_unused_numbered_ref_part(self, part: RawRefPart) -> bool:
         """
         Helper function to avoid matching AddressInteger sections out of order
@@ -485,7 +492,7 @@ class ResolvedRef:
         """
         best_matches = node.best_fuzzy_matches(raw_ref_part)
         # TODO modify self with final dh
-        return [self.clone(resolved_parts=refined_parts, node=max_node, ref=text.Ref(max_node.ref)) for _, max_node, _ in best_matches]
+        return [self.clone(resolved_parts=refined_parts.copy(), node=max_node, ref=text.Ref(max_node.ref)) for _, max_node, _ in best_matches]
 
     def _get_refined_refs_for_numbered_part(self, raw_ref_part: RawRefPart, refined_parts: List[RawRefPart], node, lang, fromSections: List[RawRefPart]=None) -> List[
         'ResolvedRef']:
@@ -1291,6 +1298,8 @@ class RefResolver:
         # TODO removing for now b/c of yerushalmi project. doesn't seem necessary to happen here anyway.
         # resolved_refs = list(filter(lambda x: not x.ref.is_empty(), resolved_refs))
 
+        resolved_refs = RefResolver._merge_subset_matches(resolved_refs)
+
         # remove matches that don't match all ref parts to avoid false positives
         # used to only apply to context matches
         def filter_context_matches(match: ResolvedRef) -> bool:
@@ -1340,3 +1349,37 @@ class RefResolver:
         max_resolved_refs = list({r.ref: r for r in max_resolved_refs}.values())
 
         return max_resolved_refs
+
+    @staticmethod
+    def _merge_subset_matches(resolved_refs: List[ResolvedRef]) -> List[ResolvedRef]:
+        """
+        Merge matches where one ref is contained in another ref
+        E.g. if matchA.ref == Ref("Genesis 1") and matchB.ref == Ref("Genesis 1:1"), matchA will be deleted and its parts will be appended to matchB's parts
+        """
+        resolved_refs.sort(key=lambda x: x.ref and x.ref.order_id())
+        merged_resolved_refs = []
+        next_merged = False
+        for imatch, match in enumerate(resolved_refs[:-1]):
+            if match.is_ambiguous or match.ref is None or next_merged:
+                merged_resolved_refs += [match]
+                next_merged = False
+                continue
+            next_match = resolved_refs[imatch+1]
+            if match.ref.index.title != next_match.ref.index.title:
+                # optimization, the easiest case to check for
+                merged_resolved_refs += [match]
+            elif match.ref.contains(next_match.ref):
+                next_match.merge_parts(match)
+            elif next_match.ref.contains(match.ref):
+                # unfortunately Ref.order_id() doesn't consistently put larger refs before smaller ones
+                # e.g. Tosafot on Berakhot 2 precedes Tosafot on Berakhot Chapter 1...
+                # check if next match actually contains this match
+                match.merge_parts(next_match)
+                merged_resolved_refs += [match]
+                next_merged = True
+            else:
+                merged_resolved_refs += [match]
+        if len(resolved_refs) > 0:
+            # never dealt with last resolved_ref
+            merged_resolved_refs += [resolved_refs[-1]]
+        return merged_resolved_refs
