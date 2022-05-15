@@ -1,6 +1,17 @@
-.headerInner .headerNavSection {
-  display: flex;
-  justify-content: flex-start;
+.headerInner .headerNavSection span, .navTitle span, .category span {
   font-family: "FreightSans Pro";
-
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 20.96px;
+  color: #666666;
 }
+
+
+div.navBlock span {
+  font-family: "Adobe Caslon Pro";
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 29px;
+  color: #000000;
+}
+
