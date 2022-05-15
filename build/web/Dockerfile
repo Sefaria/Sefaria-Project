@@ -1,4 +1,4 @@
-FROM gcr.io/production-deployment/base-web:latest
+FROM gcr.io/production-deployment/base-web:v3.7.0
 
 WORKDIR /app/
 # Copied separately to allow for caching of the `pip install` build step
