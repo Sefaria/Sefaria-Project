@@ -187,7 +187,7 @@ class WebPage(abst.AbstractMongoRecord):
         return d
 
     def clean_client_contents(self, d):
-        d["title"]       = self.clean_title(d["title"], d["_site_data"], d["site_name"])
+        d["title"]       = self.clean_title(d["title"], d.get("_site_data", ""), d.get("site_name", ""))
         d["description"] = WebPage.clean_description(d["description"])
         return d
 
