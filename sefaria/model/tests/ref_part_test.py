@@ -139,7 +139,7 @@ crrd = create_raw_ref_data
     [crrd(None, 'he', 'דברים פרק יד פסוקים מ-מה', [0, slice(1, 3), slice(3, 5), 5, 6], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED]), ("Deuteronomy 14:40-45",)],
 
     # Base text context
-    [crrd("Rashi on Berakhot 2a", 'he', 'ובתוס\' כ"ז ע"ב ד"ה והלכתא', [slice(0, 2), slice(2, 8), slice(8, 12)], [RPT.NAMED, RPT.NUMBERED, RPT.DH]), ("Tosafot on Berakhot 27b:14:2",)],  # shared context child via graph context
+    [crrd("Rashi on Berakhot 2a", 'he', 'ובתוס\' דכ"ז ע"ב ד"ה והלכתא', [slice(0, 2), slice(2, 8), slice(8, 12)], [RPT.NAMED, RPT.NUMBERED, RPT.DH]), ("Tosafot on Berakhot 27b:14:2",)],  # shared context child via graph context
 
     # Ibid
     [crrd(None, 'he', 'פרק ד', [slice(0, 2)], [RPT.NUMBERED], ["Genesis 1"]), ("Genesis 4",)],
