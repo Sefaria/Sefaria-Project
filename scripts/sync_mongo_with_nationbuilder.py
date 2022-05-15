@@ -81,24 +81,25 @@ def add_profiles_to_nationbuilder():
                 raise Exception("Error when attempting to create nb user")
 
 
-# TODO: handle changed emails? Think this through re: crm
-mongo_only = False
-i = 1
-while(i < len(sys.argv)):
-    if sys.argv[i] == "--mongo-only":
-        mongo_only = True
-    elif sys.argv[i] == "--sync-only":
-        nonexistent_nb_id_only = True
-    i+=1
+# # TODO: handle changed emails? Think this through re: crm
+# mongo_only = False
+# nonexistent_nb_id_only = False
+# i = 1
+# while(i < len(sys.argv)):
+#     if sys.argv[i] == "--mongo-only":
+#         mongo_only = True
+#     elif sys.argv[i] == "--sync-only":
+#         nonexistent_nb_id_only = True
+#     i+=1
 
-# TODO comment out before mergin to master
-if mongo_only:
-    print("MONGO ONLY")
+# # TODO comment out before mergin to master
+# if mongo_only:
+#     print("MONGO ONLY")
     
-if nonexistent_nb_id_only:
-    print("Add nonexistend nb id Only")
-    add_profiles_to_nationbuilder()
-else:
-    add_nationbuilder_id_to_mongo(mongo_only)
-    if not mongo_only:
-        add_profiles_to_nationbuilder()
+# if nonexistent_nb_id_only:
+#     print("Add nonexistend nb id Only")
+#     add_profiles_to_nationbuilder()
+# else:
+#     add_nationbuilder_id_to_mongo(mongo_only)
+#     if not mongo_only:
+#         add_profiles_to_nationbuilder()

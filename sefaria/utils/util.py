@@ -521,3 +521,22 @@ def get_lang_codes_for_territory(territory_code, min_pop_perc=0.2, official_stat
     lang_dict = languages.get_territory_language_info(territory_code)
     langs = [lang_code for lang_code, _ in filter(lambda x: x[1]['population_percent'] >= (min_pop_perc*100) and ((official_status == False) or x[1]['official_status'] == official_status), lang_dict.items())]
     return langs
+
+
+def wrap_chars_with_overlaps(s, chars_to_wrap, get_wrapped_text, return_chars_to_wrap=False):
+    chars_to_wrap.sort(key=lambda x: (x[0],x[0]-x[1]))
+    for i, (start, end, metadata) in enumerate(chars_to_wrap):
+        wrapped_text, start_added, end_added = get_wrapped_text(s[start:end], metadata)
+        s = s[:start] + wrapped_text + s[end:]
+        chars_to_wrap[i] = (start, end + start_added + end_added, metadata)
+        for j, (start2, end2, metadata2) in enumerate(chars_to_wrap[i+1:]):
+            if start2 >= end:
+                start2 += end_added
+            start2 += start_added
+            if end2 > end:
+                end2 += end_added
+            end2 += start_added
+            chars_to_wrap[i+j+1] = (start2, end2, metadata2)
+    if return_chars_to_wrap:
+        return s, chars_to_wrap
+    return s
