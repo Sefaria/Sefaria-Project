@@ -5,6 +5,7 @@ from sefaria.system.database import db
 from sefaria.helper.nationbuilder import get_by_tag, nationbuilder_get_all, update_user_flags, get_everyone, nationbuilder_update_all_tags, get_nationbuilder_connection, update_person
 from sefaria.model.user_profile import UserProfile
 from sefaria.model.trend import setAllTrends
+from scripts.sync_mongo_with_nationbuilder import add_profiles_to_nationbuilder, add_nationbuilder_id_to_mongo
 
 """
 Mutiple "only" flags can be run at once. If none are run, everything will be run.
@@ -73,5 +74,7 @@ if tags_only:
     nationbuilder_update_all_tags()
 if not trends_only and not tags_only and not sustainers_only:
     sync_sustainers_to_mongo()
+    add_nationbuilder_id_to_mongo(False)
+    add_profiles_to_nationbuilder()
     setAllTrends(skip)
     nationbuilder_update_all_tags()

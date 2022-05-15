@@ -281,6 +281,26 @@ def linker_js(request, linker_version=None):
     return render(request, linker_link, attrs, content_type = "text/javascript; charset=utf-8")
 
 
+@api_view(["POST"])
+def find_refs_api(request):
+    from sefaria.helper.ref_part import make_html, make_find_refs_response
+    from sefaria.utils.hebrew import is_hebrew
+    with_text = bool(int(request.GET.get("with_text", False)))
+    post = json.loads(request.body)
+    resolver = library.get_ref_resolver()
+    lang = 'he' if is_hebrew(post['text']) else 'en'
+    resolved_title = resolver.bulk_resolve_refs(lang, [None], [post['title']])
+    context_ref = resolved_title[0][0].ref if (len(resolved_title[0]) == 1 and not resolved_title[0][0].is_ambiguous) else None
+    resolved = resolver.bulk_resolve_refs(lang, [context_ref], [post['text']], with_failures=True)
+
+    # currently just dumps result to HTML file
+    make_html([resolved_title, resolved], [[post['title']], [post['text']]], f'data/private/linker_results/linker_result.html')
+    return jsonResponse({
+        "title": make_find_refs_response(resolved_title, with_text),
+        "text": make_find_refs_response(resolved, with_text),
+    })
+
+
 def linker_data_api(request, titles):
     if request.method == "GET":
         cb = request.GET.get("callback", None)

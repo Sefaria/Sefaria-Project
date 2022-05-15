@@ -11,7 +11,7 @@ jobs:
   duplication-check:
     runs-on: ubuntu-latest
     outputs:
-      inPR: steps.check.outputs.number
+      inPR: ${{ steps.check.outputs.number != '' }}
     steps:
       - name: Check if push is in PR
         id: check
@@ -22,7 +22,7 @@ jobs:
   build-generic:
     runs-on: ubuntu-latest
     needs: duplication-check
-    if: ${{ github.event_name == 'pull_request' || ( github.event_name == 'push' && ! needs.duplication-check.outputs.inPR ) }}
+    if: ${{ github.event_name == 'pull_request' || ( github.event_name == 'push' && needs.duplication-check.outputs.inPR == 'false' ) }}
     strategy:
       matrix:
         app: [ web, node ]
@@ -72,7 +72,7 @@ jobs:
     needs: 
       - duplication-check
       - build-generic
-    if: ${{ github.event_name == 'pull_request' || ( github.event_name == 'push' && ! needs.duplication-check.outputs.inPR ) }}
+    if: ${{ github.event_name == 'pull_request' || ( github.event_name == 'push' && needs.duplication-check.outputs.inPR == 'false' ) }}
     steps:
       - uses: actions/checkout@v2
       - name: Set up QEMU

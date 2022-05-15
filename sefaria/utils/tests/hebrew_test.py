@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from sefaria.utils import hebrew as h
-
+import pytest
 
 def setup_module(module):
     global e
@@ -90,3 +90,33 @@ class TestGematria():
 
     def test_punctuation(self):
         assert h.gematria("אבגדהוזחטיכלמנסעפקרשת") == h.gematria("אב[]גדהוז{}()?!ח..,,טיכלמנס    - -עפקרשת")
+
+
+@pytest.mark.parametrize(('hebrew', 'other_hebrew', 'should_match'), [
+    ("אבג דהוז חטיכ", "אבג דהוז חטיכ", True),    # same
+    ("אבג דהוז חטיכ", "אבג דהוז", True),         # same other shorter
+    ("אבג דהוז", "אבג דהוז חטיכ", False),        # same other longer
+    ("אמר רבי יהודה", "אמר ר״י", True),          # same other abbrev
+    ("אמר ר״י", "אמר רבי יהודה", True),          # same orig abbrev
+    ("הבית כנסת פתוח", "הביכ״נ פתוח רק", False),  # same other longer abbrev
+    ("אע״ג שרבי שמעול בן גמליאל שמר שבית שאשרעש לגכשג", "אף על גב שרשב״ג שמר שבשאש״ל", True),    # multiple abbrevs
+    ("אע״ג שרבי שמעול בן גמליאל שמר שבית שארעש לגכשג", "אף על גב שרשב״ג שמר שבשאש״ל", False),    # diff multiple abbrevs
+])
+def test_hebrew_starts_with(hebrew, other_hebrew, should_match):
+    assert h.hebrew_starts_with(hebrew, other_hebrew) == should_match
+
+
+@pytest.mark.parametrize(('abbr', 'unabbr', 'match'), [
+    ("אעג", "אף על גב", "אף על גב"),
+    pytest.param("אפעג", "אף על גב", "אף על גב", marks=pytest.mark.xfail(reason="cannot handle non-sofit letters in abbrev matching sofit in unabbr")),
+    ("כארגלב", "כגשג ארשלקן גל בדגש", "כגשג ארשלקן גל בדגש"),
+    ("כאגלב", "כגשג ארשלקן גל בדגש", "כגשג ארשלקן גל בדגש"),
+    ("כאב", "כגשג ארשלקן גל בדגש", None),
+    ("כאר", "כגשג ארשלקן גל בדגש", "כגשג ארשלקן"),
+])
+def test_get_abbr(abbr, unabbr, match):
+    unabbr_words = unabbr.split()
+    test_match = h.get_abbr(abbr, unabbr_words)
+    if match is not None:
+        match = match.split()
+    assert test_match == match
