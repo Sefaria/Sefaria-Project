@@ -1,0 +1,6 @@
+.headerInner .headerNavSection {
+  display: flex;
+  justify-content: flex-start;
+  font-family: "FreightSans Pro";
+
+}
