@@ -56,19 +56,37 @@ def check_uppercase_percentage(talmud_ref):
     return percent_uppercase, german_text
 
 
-def generate_data_append_to_list(data_list, talmud_ref, mishnah_ref):
+def generate_data_append_to_list(data_list, talmud_ref, mishnah_ref, checking):
     percent_uppercase, german_text = check_uppercase_percentage(talmud_ref)
-    flagged_bad_link = 50 >= percent_uppercase > 0
-    cur_link_data = {'mishnah_tref': mishnah_ref.normal(),
+    mishnah_tref = "N.A" if isinstance(mishnah_ref, str) else mishnah_ref.normal()
+    cur_link_data = {'mishnah_tref': mishnah_tref,
                      'talmud_tref': talmud_ref.normal(),
-                     'percent_uppercase': percent_uppercase,
-                     'german_text': german_text,
-                     'flagged_bad_link': flagged_bad_link}
+                     'german_text': german_text}
 
-    if 50 >= percent_uppercase > 0:
-        cur_link_data['issue'] = 'Majority NOT uppercase'
-    data_list.append(cur_link_data)
+    if checking=='false-positive':
+        if 50 >= percent_uppercase > 0:
+            cur_link_data['issue'] = 'False positive'
+            data_list.append(cur_link_data)
+
+    elif checking == 'false-negative':
+        if percent_uppercase >= 50 and len(cur_link_data['german_text']) > 50:
+            cur_link_data['issue'] = 'False negative'
+            data_list.append(cur_link_data)
+
     return cur_link_data
+
+
+def get_list_link_talmud_segments():
+    ls = LinkSet({"type": "mishnah in talmud"})
+    linkset_list_mishnah_in_talmud_segments = []
+    for link in ls:
+        mishnah_ref, talmud_ref = get_ref_from_link(link)
+        if talmud_ref.is_range():
+            for ref in talmud_ref.range_list():
+                linkset_list_mishnah_in_talmud_segments.append(ref.normal())
+        else:
+            linkset_list_mishnah_in_talmud_segments.append(talmud_ref.normal())
+    return set(linkset_list_mishnah_in_talmud_segments)
 
 
 # Phase One: Report on all lowercase heavy Talmud pieces
@@ -79,9 +97,9 @@ def phase_one():
         mishnah_ref, talmud_ref = get_ref_from_link(link)
         if talmud_ref.is_range():
             for ref in talmud_ref.range_list():
-                generate_data_append_to_list(data_list, ref, mishnah_ref)
+                generate_data_append_to_list(data_list, ref, mishnah_ref, checking='false-positive')
         else:
-            generate_data_append_to_list(data_list, talmud_ref, mishnah_ref)
+            generate_data_append_to_list(data_list, talmud_ref, mishnah_ref, checking='false-positive')
 
     # CSV
     # TODO - condense w filter?
@@ -89,8 +107,8 @@ def phase_one():
     for each in data_list:
         if 'issue' in each:
             csv_list.append(each)
-    generate_csv(csv_list, ['mishnah_tref', 'talmud_tref', 'percent_uppercase', 'german_text', 'flagged_bad_link', 'issue'], 'links_issues')
 
+    return csv_list
 
 
     # Phase Two - Cross check
@@ -104,44 +122,40 @@ def phase_one():
 #     - If each talmud ref is majority capital
 #     - Then a good db to use
 # - Then use this (filtered for mishnahs) and use it as base
-def phase_two():
-    # Step One - Validate if a 'good' database
-    passage_set = PassageSet({'type': 'Mishnah'})
-    passage_list_mishnah_in_talmud_segments = []
-    passage_csv_list =[]
-    count_segments_not_majority_uppercase = 0
-    for each in passage_set:
-        for tref in each.ref_list:
-            passage_list_mishnah_in_talmud_segments.append(tref)
-            percent_uppercase = check_uppercase_percentage(Ref(tref))[0]
-            if percent_uppercase < 50:
-                count_segments_not_majority_uppercase += 1
-                passage_csv_list.append({'talmud_ref': tref, 'issue': 'Majority NOT uppercase'})
-    generate_csv(passage_csv_list, ['talmud_ref', 'issue'], 'passage_issues')
+def phase_two(csv_list):
+    print("inside p2")
 
-    print(
-        f"Of the {len(passage_list_mishnah_in_talmud_segments)} passage segments, {count_segments_not_majority_uppercase} are not uppercase")
-    # Checking link set
-    ls = LinkSet({"type": "mishnah in talmud"})
-    linkset_list_mishnah_in_talmud_segments = []
-    for link in ls:
-        mishnah_ref, talmud_ref = get_ref_from_link(link)
-        if talmud_ref.is_range():
-            for ref in talmud_ref.range_list():
-                linkset_list_mishnah_in_talmud_segments.append(ref)
-        else:
-            linkset_list_mishnah_in_talmud_segments.append(talmud_ref)
+    linkset_segments = get_list_link_talmud_segments()
 
-    # Cross checking
-    missing_segments = []
-    for each_link_ref in linkset_list_mishnah_in_talmud_segments:
-        if each_link_ref.normal() not in passage_list_mishnah_in_talmud_segments:
-            missing_segments.append({'missing_link_ref': each_link_ref})
+    print('got ls')
+    # action - check if tref is in mishnah map. If it is, ignore.
+    # Else, check if text of segment is maj. all caps. If it is, flag as false negative.
+    def action(segment_str, tref, he_tref, version):
+        if tref not in linkset_segments:
+            generate_data_append_to_list(csv_list, Ref(tref), 'replace with mishnah ref', checking='false-negative')
 
-    print(f"There are {len(missing_segments)} unaccounted for segments of Mishnah in passages not in linkset")
-    generate_csv(missing_segments, ['missing_link_ref'], 'missing_link_refs_in_passages')
+    bavli_indices = library.get_indexes_in_category("Bavli", full_records=True)
+
+    print('got indices, getting version')
+    count = 0
+    for index in bavli_indices:
+        german_talmud = Version().load(
+            {"title": index.title, "versionTitle": 'Talmud Bavli. German trans. by Lazarus Goldschmidt, 1929 [de]'})
+        if german_talmud:
+            german_talmud.walk_thru_contents(action)
+            count +=1
+            print(f'walking thru contents {count} times')
+
+
+    return csv_list
+
 
 
 if __name__ == "__main__":
-    phase_one()
-    phase_two()
+    csv_list = phase_one()
+    print("p1 complete")
+    csv_list = phase_two(csv_list)
+    print("p2 complete")
+    csv_list.sort(key=lambda x: Ref(x["talmud_tref"]).order_id())
+    generate_csv(csv_list, ['mishnah_tref', 'talmud_tref', 'german_text', 'issue'], 'main_issues')
+
