@@ -194,7 +194,7 @@ class WebPage(abst.AbstractMongoRecord):
 
     @staticmethod
     def clean_title(title, site_data, site_name):
-        if site_data == {}:
+        if site_data == {} or site_data is None:
             return title
         title = str(title)
         title = title.replace("&amp;", "&")
