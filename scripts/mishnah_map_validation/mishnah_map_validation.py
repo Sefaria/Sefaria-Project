@@ -102,7 +102,6 @@ def phase_one():
             generate_data_append_to_list(data_list, talmud_ref, mishnah_ref, checking='false-positive')
 
     # CSV
-    # TODO - condense w filter?
     csv_list = []
     for each in data_list:
         if 'issue' in each:
@@ -110,24 +109,11 @@ def phase_one():
 
     return csv_list
 
-
-    # Phase Two - Cross check
-# - Next step for mapping
-#     -  Passage collection
-#     - Not really used in prod at all
-#     - Sugya less relevant, Mishnah more relevant
-#         -
-# - Validate collection
-#     - Check each Mishnah’s segment
-#     - If each talmud ref is majority capital
-#     - Then a good db to use
-# - Then use this (filtered for mishnahs) and use it as base
+# Cross check against all of Talmud
 def phase_two(csv_list):
-    print("inside p2")
 
     linkset_segments = get_list_link_talmud_segments()
 
-    print('got ls')
     # action - check if tref is in mishnah map. If it is, ignore.
     # Else, check if text of segment is maj. all caps. If it is, flag as false negative.
     def action(segment_str, tref, he_tref, version):
@@ -136,7 +122,6 @@ def phase_two(csv_list):
 
     bavli_indices = library.get_indexes_in_category("Bavli", full_records=True)
 
-    print('got indices, getting version')
     count = 0
     for index in bavli_indices:
         german_talmud = Version().load(
@@ -144,18 +129,13 @@ def phase_two(csv_list):
         if german_talmud:
             german_talmud.walk_thru_contents(action)
             count +=1
-            print(f'walking thru contents {count} times')
-
 
     return csv_list
 
 
-
 if __name__ == "__main__":
     csv_list = phase_one()
-    print("p1 complete")
     csv_list = phase_two(csv_list)
-    print("p2 complete")
     csv_list.sort(key=lambda x: Ref(x["talmud_tref"]).order_id())
     generate_csv(csv_list, ['mishnah_tref', 'talmud_tref', 'german_text', 'issue'], 'main_issues')
 
