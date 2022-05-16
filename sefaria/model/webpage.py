@@ -153,12 +153,10 @@ class WebPage(abst.AbstractMongoRecord):
         data["url"] = WebPage.normalize_url(data["url"])
         webpage = WebPage().load(data["url"])
         data["refs"] = WebPage._normalize_refs(data["refs"])  # remove bad refs so pages with empty refs won't get saved
-        data["title"] = WebPage.clean_title(data["title"], getattr(webpage, "_site_data", {}), getattr(webpage, "site_name", ""))
-        data["description"] = WebPage.clean_description(data.get("description", ""))
 
         if webpage:
             existing = True
-            if set(data["refs"]) == set(webpage.refs) and data["title"] == webpage.title and data["description"] == getattr(webpage, "description", ""):
+            if data["title"] == webpage.title and data["description"] == webpage.description and set(data["refs"]) == set(webpage.refs):
                 return "excluded"  # no new data
             if data["title"] == "":
                 data["title"] = webpage.title  # dont save an empty title if title exists
@@ -187,21 +185,20 @@ class WebPage(abst.AbstractMongoRecord):
         return d
 
     def clean_client_contents(self, d):
-        d["title"]       = self.clean_title(d["title"], d.get("_site_data", {}), d.get("site_name", ""))
-        d["description"] = WebPage.clean_description(d.get("description", ""))
+        d["title"]       = self.clean_title()
+        d["description"] = self.clean_description()
         return d
 
-    @staticmethod
-    def clean_title(title, site_data, site_name):
-        if site_data == {}:
-            return title
-        title = str(title)
+    def clean_title(self):
+        if not self._site_data:
+            return self.title
+        title = str(self.title)
         title = title.replace("&amp;", "&")
-        brands = [site_name] + site_data.get("title_branding", [])
+        brands = [self.site_name] + self._site_data.get("title_branding", [])
         separators = [("-", ' '), ("|", ' '), ("—", ' '), ("–", ' '), ("»", ' '), ("•", ' '), (":", ''), ("⋆", ' ')]
         for separator, padding in separators:
             for brand in brands:
-                if site_data.get("initial_title_branding", False):
+                if self._site_data.get("initial_title_branding", False):
                     brand_str = f"{brand}{padding}{separator} "
                     if title.startswith(brand_str):
                         title = title[len(brand_str):]
@@ -210,10 +207,12 @@ class WebPage(abst.AbstractMongoRecord):
                     if title.endswith(brand_str):
                         title = title[:-len(brand_str)]
 
-        return title
+        return title if len(title) else self._site_data["name"]
 
-    @staticmethod
-    def clean_description(description):
+    def clean_description(self):
+        description = getattr(self, "description", "")
+        if description is None:
+            return ""
         for uhoh_string in ["*/", "*******"]:
             if description.find(uhoh_string) != -1:
                 return None

@@ -1028,7 +1028,7 @@ class RefResolver:
         return doc.ents
 
     def _bulk_get_raw_ref_spans(self, lang: str, input: List[str], batch_size=150, **kwargs) -> Generator[List[Span], None, None]:
-        for doc in self.get_raw_ref_model(lang).pipe(input, batch_size=batch_size, disable=['tok2vec'], **kwargs):
+        for doc in self.get_raw_ref_model(lang).pipe(input, batch_size=batch_size, **kwargs):
             if kwargs.get('as_tuples', False):
                 doc, context = doc
                 yield doc.ents, context
@@ -1040,7 +1040,7 @@ class RefResolver:
         return doc.ents
 
     def _bulk_get_raw_ref_part_spans(self, lang: str, input: List[str], batch_size=None, **kwargs) -> Generator[List[Span], None, None]:
-        for doc in self.get_raw_ref_part_model(lang).pipe(input, batch_size=batch_size or len(input), disable=['tok2vec'], **kwargs):
+        for doc in self.get_raw_ref_part_model(lang).pipe(input, batch_size=batch_size or len(input), **kwargs):
             if kwargs.get('as_tuples', False):
                 doc, context = doc
                 yield doc.ents, context
@@ -1115,10 +1115,11 @@ class RefResolver:
 
     def _get_unrefined_ref_part_matches_for_title_context(self, lang: str, context_ref: Optional[text.Ref], raw_ref: RawRef, context_type: ContextType) -> List[ResolvedRef]:
         matches = []
-        if context_ref is None:
-            return matches
+        if context_ref is None: return matches
+        match_templates = list(context_ref.index.nodes.get_match_templates())
+        if len(match_templates) == 0: return matches
         # assumption is longest template will be uniquest. is there a reason to consider other templates?
-        longest_template = max(context_ref.index.nodes.get_match_templates(), key=lambda x: len(list(x.terms)))
+        longest_template = max(match_templates, key=lambda x: len(list(x.terms)))
         temp_ref_parts = raw_ref.parts_to_match + [TermContext(term) for term in longest_template.terms]
         temp_matches = self._get_unrefined_ref_part_matches_recursive(lang, raw_ref, ref_parts=temp_ref_parts)
         matches += list(filter(lambda x: x.num_resolved(include={TermContext}), temp_matches))

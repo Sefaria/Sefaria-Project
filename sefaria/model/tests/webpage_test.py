@@ -16,17 +16,6 @@ def create_good_web_page():
 	yield {"result": result, "webpage": webpage, "data": data_good_url}
 	WebPage().load({"url": data_good_url["url"]}).delete()
 
-@pytest.fixture(scope='module')
-def create_web_page_wout_desc():
-	data_good_url = {'url': 'http://blogs.timesofisrael.com/dvar-torah4',
-									 'title': title_good_url+" without description",
-									 'refs': ["Haamek Davar on Genesis, Kidmat Ha'Emek 2", 'Genesis 3']}
-
-	result = WebPage().add_or_update_from_linker(data_good_url)
-	webpage = WebPage().load({"url": data_good_url["url"]})
-	yield {"result": result, "webpage": webpage, "data": data_good_url}
-	webpage.delete()
-
 def test_add_bad_domain_from_linker():
 	#localhost:8000 should not be added to the linker, so make sure attempting to do so fails
 
@@ -85,9 +74,15 @@ def test_add_and_update_with_same_data(create_good_web_page):
 
 def test_update_blank_title_from_linker(create_good_web_page):
 	result, webpage, data = create_good_web_page["result"], create_good_web_page["webpage"], create_good_web_page["data"]
+	print(webpage.contents())
 	assert result == "saved"
+
 	data["title"] = ""
+
+
+
 	assert WebPage().add_or_update_from_linker(data) == "saved"
+	print(WebPage().load({"url": data["url"]}).contents())
 	assert WebPage().load({"url": data["url"]}).title == title_good_url
 
 
@@ -101,14 +96,3 @@ def test_add_search_URL():
 		 'refs': ['Psalms 1–41', 'Psalms 42–72', 'Psalms 73–89', 'Psalms 90–106', 'Psalms 107–150', 'Psalms 130:1',
 				  'Psalms 63:2-4', 'Psalms 42:2-4']}
 		assert WebPage.add_or_update_from_linker(linker_data) == "excluded"
-
-
-def test_page_wout_description(create_web_page_wout_desc):
-	result, webpage, data = create_web_page_wout_desc["result"], create_web_page_wout_desc["webpage"], create_web_page_wout_desc["data"]
-	assert result == "saved"
-
-	data["refs"] = ["Exodus 3:3"]
-	assert WebPage().add_or_update_from_linker(data) == "saved"
-
-	assert WebPage().add_or_update_from_linker(data) == "excluded"
-

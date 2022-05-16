@@ -1967,6 +1967,7 @@ class AddressType(object):
         'he': None,
         'en': None
     }
+    reish_samekh_reg = "(?:\u05e1(?:\u05d9\u05e9\\s+)?|\u05e8(?:\u05d5\u05e3\\s+)?)?"  # matches letters reish or samekh or words reish or sof. these are common prefixes for many address types
 
     def __init__(self, order, length=None):
         self.order = order
@@ -2168,9 +2169,9 @@ class AddressTalmud(AddressType):
     """
     section_patterns = {
         "en": r"""(?:(?:[Ff]olios?|[Dd]af|[Pp](ages?|s?\.))?\s*)""",  # the internal ? is a hack to allow a non match, even if 'strict'
-        "he": "(\u05d1?\u05d3\u05b7?\u05bc?[\u05e3\u05e4\u05f3\u2018\u2019'\"״]\\s+)"			# Daf, spelled with peh, peh sofit, geresh, gereshayim,  or single or doublequote
+        "he": "((\u05d1?\u05d3\u05b7?\u05bc?[\u05e3\u05e4\u05f3\u2018\u2019'\"״]\\s+)|(?:\u05e1|\u05e8)?\u05d3\"?)"			# (Daf, spelled with peh, peh sofit, geresh, gereshayim,  or single or doublequote) OR daled prefix
     }
-    he_pattern = '''(?:(?:\u05e1|\u05e8)?\u05e2(?:"|\u05f4|”|''|\u05de\u05d5\u05d3\\s))?([\u05d0\u05d1])['\u05f3\u2018\u2019]?''' #+ (optional: (optional: samekh or reish for sof/reish) Ayin for amud) + [alef or bet] + (optional: single quote of any type (really only makes sense if there's no Ayin beforehand))
+    he_pattern = f'''(?:{AddressType.reish_samekh_reg}\u05e2(?:"|\u05f4|”|''|\u05de\u05d5\u05d3\\s))?([\u05d0\u05d1])['\u05f3\u2018\u2019]?''' #+ (optional: (optional: samekh or reish for sof/reish) Ayin for amud) + [alef or bet] + (optional: single quote of any type (really only makes sense if there's no Ayin beforehand))
     amud_patterns = {
         "en": "[ABabᵃᵇ]",
         "he": '''([.:]|[,\\s]+{})'''.format(he_pattern)  # Either (1) period / colon (2) some separator + he_pattern
@@ -2540,10 +2541,11 @@ class AddressPerek(AddressInteger):
         'פ"ק': [1, 100],  # this is inherently ambiguous (1 or 100)
         "פרק בתרא": [-1],
         'ר"פ בתרא': [-1],
+        'ס"פ בתרא': [-1],
     }
     section_patterns = {
         "en": r"""(?:(?:[Cc]h(apters?|\.)|[Pp]erek|s\.)?\s*)""",  # the internal ? is a hack to allow a non match, even if 'strict'
-        "he": r"""(?:\u05d1?\u05e4(?:"|\u05f4|''|'\s)                  # Peh (for 'perek') maybe followed by a quote of some sort
+        "he": fr"""(?:\u05d1?{AddressType.reish_samekh_reg}\u05e4(?:"|\u05f4|''|'\s)                  # Peh (for 'perek') maybe followed by a quote of some sort
         |\u05e4\u05bc?\u05b6?\u05e8\u05b6?\u05e7(?:\u05d9\u05b4?\u05dd)?\s*                  # or 'perek(ym)' spelled out, followed by space
         )"""
     }
