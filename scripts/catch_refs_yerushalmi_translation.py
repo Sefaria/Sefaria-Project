@@ -290,7 +290,7 @@ class YerushalmiCatcher:
                     if span_end is not None:
                         subspan_slice = slice(0, span_end)
                         subspan = raw_ref.subspan(subspan_slice)
-                        new_raw_ref = RawRef(raw_ref.raw_ref_parts[subspan_slice], subspan)
+                        new_raw_ref = RawRef('en', raw_ref.raw_ref_parts[subspan_slice], subspan)
                         temp_resolved_refs = self.resolver.resolve_raw_ref('en', context_ref, new_raw_ref)
                         for temp_resolved_ref in temp_resolved_refs:
                             temp_ref = temp_resolved_ref.ref

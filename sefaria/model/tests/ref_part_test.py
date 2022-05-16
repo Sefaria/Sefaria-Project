@@ -54,7 +54,7 @@ def create_raw_ref_params(lang, input_str, span_indexes, part_types):
         for i, subspan in enumerate(span):
             print(f'{i}) {subspan.text}')
         raise e
-    return [RawRefPart(part_type, part_span) for part_type, part_span in zip(part_types, part_spans)], span
+    return lang, [RawRefPart(part_type, part_span) for part_type, part_span in zip(part_types, part_spans)], span
 
 
 def create_raw_ref_data(context_tref, lang, input_str, span_indexes, part_types, prev_matches_trefs=None):
@@ -200,7 +200,7 @@ crrd = create_raw_ref_data
     [crrd(None, 'he', '''פירש"י בקידושין דף פ' ע"א''', [slice(0, 3), 3, slice(4, 10)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ("Rashi on Kiddushin 80a",)],
     pytest.param(crrd("Gilyon HaShas on Berakhot 48b:1", 'he', '''תשב"ץ ח"ב (ענין קסא''', [0, 1, slice(3, 5)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Sefer HaTashbetz, Part II 161",), marks=pytest.mark.xfail(reason="Dont support Sefer HaTashbetz yet")),  # complex text
     [crrd(None, 'he', '''יבמות לט ע״ב''', [0, slice(1, 5)], [RPT.NAMED, RPT.NUMBERED]), ["Yevamot 39b"]],
-    [crrd(None, 'he', ''''נדרים דף כג עמוד ב''', [0, slice(1, 3), slice(3, 5)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Nedarim 23b"]],
+    [crrd(None, 'he', '''נדרים דף כג עמוד ב''', [0, slice(1, 3), slice(3, 5)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Nedarim 23b"]],
     [crrd(None, 'he', 'פרשת שלח לך', [slice(0, 3)], [RPT.NAMED]), ['Parashat Shelach']],
     # [crrd(None, 'he', 'בבראשית רבה בראשית ט', [])]
 ])
@@ -273,8 +273,8 @@ def test_get_all_possible_sections_from_string(input_addr_str, AddressClass, exp
     [create_raw_ref_params('he', 'ספר בראשית פרק יג פסוק א עד פרק יד פסוק ד', [slice(0, 2), slice(2, 4), slice(4, 6), 6, slice(7, 9), slice(9, 11)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED, RPT.NUMBERED]), (slice(1,3), slice(4,6))],  # verbose range
 ])
 def test_group_ranged_parts(raw_ref_params, expected_section_slices):
-    raw_ref_parts, span = raw_ref_params
-    raw_ref = RawRef(raw_ref_parts, span)
+    lang, raw_ref_parts, span = raw_ref_params
+    raw_ref = RawRef(lang, raw_ref_parts, span)
     exp_sec_slice, exp2sec_slice = expected_section_slices
     if exp_sec_slice is None:
         expected_raw_ref_parts = raw_ref_parts
@@ -295,7 +295,7 @@ def test_group_ranged_parts(raw_ref_params, expected_section_slices):
         end_token_i = end_span.end if isinstance(end_span, Span) else (end_span.i+1)
         full_span = start_span.doc[start_token_i:end_token_i]
         assert ranged_raw_ref_parts.span.text == full_span.text
-    assert raw_ref.raw_ref_parts == expected_raw_ref_parts
+    assert expected_raw_ref_parts == raw_ref.raw_ref_parts
 
 
 @pytest.mark.parametrize(('context_tref', 'match_title', 'common_title', 'expected_sec_cons'), [

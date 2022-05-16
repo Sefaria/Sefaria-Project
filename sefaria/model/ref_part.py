@@ -242,6 +242,19 @@ class RawRefPart(TrieEntry):
         offset = new_raw_start - old_raw_start
         self.span = new_raw_ref_doc[part_start-offset:part_end-offset]
 
+    def merge(self, other: 'RawRefPart') -> None:
+        """
+        Merge spans of two RawRefParts.
+        Assumes other has same type as self
+        """
+        assert other.type == self.type
+        self_start, self_end = span_inds(self.span)
+        other_start, other_end = span_inds(other.span)
+        if other_start < self_start:
+            other.merge(self)
+            return
+        self.span = self.span.doc[self_start:other_end]
+
 
 class ContextPart(RawRefPart):
     # currently used to easily differentiate TermContext and SectionContext from a vanilla RawRefPart
@@ -339,11 +352,35 @@ class RawRef:
     Span of text which may represent one or more Refs
     Contains RawRefParts
     """
-    def __init__(self, raw_ref_parts: list, span: SpanOrToken) -> None:
-        self.raw_ref_parts = self._group_ranged_parts(raw_ref_parts)
+    def __init__(self, lang: str, raw_ref_parts: list, span: SpanOrToken) -> None:
+        self.raw_ref_parts = self._merge_daf_amud_parts(lang, self._group_ranged_parts(raw_ref_parts))
         self.parts_to_match = self.raw_ref_parts  # actual parts that will be matched. different when their are context swaps
         self.prev_num_parts_map = self._get_prev_num_parts_map(self.raw_ref_parts)
         self.span = span
+
+    @staticmethod
+    def _merge_daf_amud_parts(lang: str, raw_ref_parts: List['RawRefPart']) -> List['RawRefPart']:
+        """
+        Preprocessing function to merge together Daf and Amud parts if they mistakenly are recognized as separate
+        """
+        merged_parts = raw_ref_parts.copy()
+        inds_to_del = []
+        for ipart, part in enumerate(raw_ref_parts[:-1]):
+            if part.type != RefPartType.NUMBERED: continue
+            addr_talmud = schema.AddressTalmud(0)
+            _, _, addr_classes = addr_talmud.get_all_possible_sections_from_string(lang, part.text, strip_prefixes=True)
+            if schema.AddressTalmud not in addr_classes: continue
+            _, _, addr_classes = schema.AddressInteger(0).get_all_possible_sections_from_string(lang, part.text, strip_prefixes=True)
+            if schema.AddressInteger in addr_classes: continue  # Don't consider if also matches AddressInteger. This is too ambiguous
+            next_part = raw_ref_parts[ipart+1]
+            proposed_text = f"{part.text} {next_part.text}"
+            _, _, addr_classes = addr_talmud.get_all_possible_sections_from_string(lang, proposed_text, strip_prefixes=True)
+            if schema.AddressTalmud not in addr_classes: continue  # Only consider if still matches AddressTalmud with merged text
+            part.merge(next_part)
+            inds_to_del += [ipart + 1]
+        for i in reversed(inds_to_del):
+            del merged_parts[i]
+        return merged_parts
 
     @staticmethod
     def _group_ranged_parts(raw_ref_parts: List['RawRefPart']) -> List['RawRefPart']:
@@ -991,7 +1028,7 @@ class RefResolver:
                     if part_type == RefPartType.DH:
                         dh_cont = self._get_dh_continuation(ispan, ipart, raw_ref_spans, part_span_list, span, part_span)
                     raw_ref_parts += [RawRefPart(part_type, part_span, dh_cont)]
-                raw_refs += [RawRef(raw_ref_parts, span)]
+                raw_refs += [RawRef(lang, raw_ref_parts, span)]
             all_raw_refs += [raw_refs]
         return all_raw_refs
     
@@ -1055,7 +1092,7 @@ class RefResolver:
                 yield doc.ents
 
     @staticmethod
-    def split_non_cts_parts(raw_ref: RawRef) -> List[RawRef]:
+    def split_non_cts_parts(lang, raw_ref: RawRef) -> List[RawRef]:
         if not any(part.type == RefPartType.NON_CTS for part in raw_ref.raw_ref_parts): return [raw_ref]
         split_raw_refs = []
         curr_parts = []
@@ -1070,7 +1107,7 @@ class RefResolver:
                 try:
                     raw_ref_span = raw_ref.subspan(slice(curr_part_start, curr_part_end))
                     [p.realign_to_new_raw_ref(raw_ref.span, raw_ref_span) for p in curr_parts]
-                    split_raw_refs += [RawRef(curr_parts, raw_ref_span)]
+                    split_raw_refs += [RawRef(lang, curr_parts, raw_ref_span)]
                 except AssertionError:
                     pass
                 curr_parts = []
@@ -1078,7 +1115,7 @@ class RefResolver:
         return split_raw_refs
 
     def resolve_raw_ref(self, lang: str, book_context_ref: Optional[text.Ref], raw_ref: RawRef) -> List[Union[ResolvedRef, AmbiguousResolvedRef]]:
-        split_raw_refs = self.split_non_cts_parts(raw_ref)
+        split_raw_refs = self.split_non_cts_parts(lang, raw_ref)
         resolved_list = []
         for i, temp_raw_ref in enumerate(split_raw_refs):
             is_non_cts = i > 0 and len(resolved_list) > 0
