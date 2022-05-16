@@ -5,7 +5,7 @@
 # SANDBOX_NAME: The name of the table created by this job
 # ENVIRONMENT: Deployment environment {prod, preprod, stage}
 ---
-{{- if eq .Values.sandbox "true" }}
+{{- if and (eq .Values.sandbox "true") .Values.restore.enabled }}
 apiVersion: batch/v1
 kind: Job
 metadata:
