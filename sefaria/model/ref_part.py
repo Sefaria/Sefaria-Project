@@ -489,11 +489,13 @@ class ResolvedRef:
         return ResolvedRef(**{**self.__dict__, **kwargs})
 
     def merge_parts(self, other: 'ResolvedRef') -> None:
-        # TODO does it make sense to merge context parts?
-        # TODO seems like a rare case but if it would happen it would likely mess up validation that context parts need to preceed non-context parts
         for part in other.resolved_parts:
             if part in self.resolved_parts: continue
-            self.resolved_parts += [part]
+            if part.is_context:
+                # preprend context parts so they pass validation that context parts need to preceed non-context parts
+                self.resolved_parts = [part] + self.resolved_parts
+            else:
+                self.resolved_parts += [part]
 
     def has_prev_unused_numbered_ref_part(self, part: RawRefPart) -> bool:
         """
