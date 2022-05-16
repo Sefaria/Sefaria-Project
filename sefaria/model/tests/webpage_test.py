@@ -114,7 +114,7 @@ def test_page_wout_description(create_web_page_wout_desc):
 	result, webpage, data = create_web_page_wout_desc["result"], create_web_page_wout_desc["webpage"], create_web_page_wout_desc["data"]
 	assert result == "saved"
 
-	data["refs"] = ["Exodus 3:3"]
+	data["description"] = "here is a desc"
 	assert WebPage().add_or_update_from_linker(data) == "saved"
 
 	assert WebPage().add_or_update_from_linker(data) == "excluded"
