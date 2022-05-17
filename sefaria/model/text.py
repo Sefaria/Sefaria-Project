@@ -4853,7 +4853,6 @@ class Library(object):
         #        TOC - tree of nodes that rep the toc as we see on Sefaria homepage
         #        Also building a topic toc, Prayer - etc, that one.
         #        Building TOC and table TOC, and building equivalent JSON structures. (optimization for APIs)
-        #        Remove all recursive -
         if not skip_toc_tree:
             self._toc_tree = self.get_toc_tree(rebuild=True)
         self._toc = self.get_toc(rebuild=True)
@@ -4957,7 +4956,7 @@ class Library(object):
 
     def get_topic_toc_json_recursive(self, topic=None, explored=None, with_descriptions=False):
         """
-        Returns JSON representation of Topics TOC using recursion
+        Returns JSON representation of Topics TOC
         """
         from .topic import Topic, TopicSet, IntraTopicLinkSet
         explored = explored or set()
@@ -5060,7 +5059,7 @@ class Library(object):
 
     def get_topic_link_type(self, link_type):
         """
-        Recursively returns topic link types if not already present
+        Returns topic link types if not already present
         @param: link_type
         """
         from .topic import TopicLinkTypeSet
@@ -5073,7 +5072,7 @@ class Library(object):
 
     def get_topic_data_source(self, data_source):
         """
-        Recursively returns topic data sources dictionary keyed by slugs if not already present
+        Returns topic data sources dictionary keyed by slugs if not already present
         @param: data_source
         """
         from .topic import TopicDataSourceSet
