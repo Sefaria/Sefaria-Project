@@ -51,6 +51,7 @@ from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_
 from sefaria.utils.util import short_to_long_lang_code
 from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, SEARCH_ADMIN, RTC_SERVER, MULTISERVER_REDIS_SERVER, MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, DISABLE_AUTOCOMPLETER
 from sefaria.site.site_settings import SITE_SETTINGS
+from sefaria.site.categories import CATEGORY_ORDER
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
 from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DictionaryEntryNotFoundError
@@ -4069,18 +4070,21 @@ def random_text_api(request):
 
 
 def translations_api(request, lang):
-    texts = db.texts.distinct("title", {"actualLanguage": lang})
+    texts = [library.get_index(myText).contents() for myText in db.texts.distinct("title", {"actualLanguage": lang})]
     res = {}
-    for myIndex in [library.get_index(myText).contents() for myText in texts]:
+    for myIndex in texts:
         depth = 2
         ind = 0
         cur = res
+        while len(myIndex["categories"]) < depth:
+            myIndex["categories"] = myIndex["categories"] + ["Uncategorized"]
         while ind < depth and ind < len(myIndex["categories"]):
             if myIndex["categories"][ind] not in cur:
-                cur[myIndex["categories"][ind]] = {}
+                cur[myIndex["categories"][ind]] = [] if ind == depth - 1 else {}
             cur = cur[myIndex["categories"][ind]]
             ind += 1
-        cur[myIndex["title"]] = myIndex
+        cur.append(myIndex)
+        #cur[myIndex["title"]] = myIndex
     #res = [library.get_index(myText).contents() for myText in texts]
     return jsonResponse(res)
     
