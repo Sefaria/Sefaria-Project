@@ -18,7 +18,21 @@ const TranslationsPage = ({translationsSlug}) => {
           <div className="sidebarLayout">
             <div className="contentInner">
               <h1 className="sans-serif"><InterfaceText>{"About Texts in " + Sefaria.ISOMap[translationsSlug]["name"]}</InterfaceText></h1>
-              {translations ? Object.keys(translations).map(x => {
+              {translations ?  Object.keys(translations).map(corpus => {
+                return (<div>
+                  <h2>{corpus}</h2>
+                  {Sefaria.tocObjectByCategories([corpus]).contents.filter(x => Object.keys(translations[corpus]).includes(x.category)).map(x => {
+                    return (<><h4>{x.category}</h4>
+                    <div>
+                      {translations[corpus][x.category].sort((a, b) => a['order'][0] - b['order'][0]).map(y => {
+                        return y.title
+                      })}
+                    </div>
+                    </>)
+                  })}
+                </div>)
+              }) : null}
+              {/* {translations ? Object.keys(translations).map(x => {
                 return (<div><h3>{x}</h3>
                 {Object.keys(translations[x]).map((y, i0) => {
                   if("title" in translations[x][y]) {
@@ -30,7 +44,7 @@ const TranslationsPage = ({translationsSlug}) => {
                   }
                 })}
                 </div>)
-            }) : null}  
+            }) : null}   */}
                    </div>
             <NavSidebar modules={sidebarModules} />
           </div>
