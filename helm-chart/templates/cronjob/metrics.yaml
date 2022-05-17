@@ -13,13 +13,6 @@ spec:
       backoffLimit: 1
       template:
         spec:
-          volumes:
-          - name: local-settings
-            configMap:
-              name: local-settings-{{ .Values.deployEnv }}
-              items:
-                - key: local_settings.py
-                  path: local_settings.py
           - name: metrics
             image: "{{ .Values.web.containerImage }}:{{ .Values.releaseImageTag }}"
             env:
@@ -49,6 +42,13 @@ spec:
               "/app/run /app/scripts/metrics.py"
             ]
           restartPolicy: OnFailure
+          volumes:
+          - name: local-settings
+            configMap:
+              name: local-settings-file-{{ .Values.deployEnv }}
+              items:
+                - key: local_settings.py
+                  path: local_settings.py
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 2
 {{- end }}
