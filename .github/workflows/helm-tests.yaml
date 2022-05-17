@@ -1,11 +1,14 @@
+name: Helm
+
 on:
   pull_request:
     paths:
       - "helm-chart/**"
+      - ".github/workflows/helm-tests.yaml"
 
 jobs:
-  helm-tests:
-    name: "Helm Tests"
+  lint:
+    name: "Lint"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
