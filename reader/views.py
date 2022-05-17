@@ -4069,7 +4069,7 @@ def random_text_api(request):
 
 
 def translations_api(request, lang):
-    texts = db.texts.distinct("title", {"realLanguage": lang})
+    texts = db.texts.distinct("title", {"actualLanguage": lang})
     res = {}
     for myIndex in [library.get_index(myText).contents() for myText in texts]:
         depth = 2

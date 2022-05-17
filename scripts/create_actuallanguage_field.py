@@ -30,7 +30,7 @@ for item in toCleanAndMerge:
         else:
             db.texts.find_one_and_update({"_id": item["_id"] }, {"$set": {"versionTitle": cleanedTitle}})
 
-# update realLanguage
+# update actualLanguage
 cursor = db.texts.find({"versionTitle": {"$regex": "\[[a-z]{2}\]$"}})
 for item in cursor:
     language = re.search(r"\[([a-z]{2})\]$", item["versionTitle"])
@@ -38,7 +38,7 @@ for item in cursor:
         if test_run:
             print("Update realLaanguage of " + item["versionTitle"])
         else:
-            db.texts.find_one_and_update({"_id": item["_id"] }, {"$set": {"realLanguage": language.group(1)}})
+            db.texts.find_one_and_update({"_id": item["_id"] }, {"$set": {"actualLanguage": language.group(1)}})
 
 enOrHe = db.texts.find({"versionTitle": {"$regex": r"^((?!\[[a-z]{2}\]).)*$"}})
 for item in enOrHe:
@@ -47,4 +47,4 @@ for item in enOrHe:
     if test_run:
         print("Setting language to " + item["language"])
     else:
-        db.texts.find_one_and_update({"_id": item["_id"] }, {"$set": {"realLanguage": item["language"]}})
+        db.texts.find_one_and_update({"_id": item["_id"] }, {"$set": {"actualLanguage": item["language"]}})
