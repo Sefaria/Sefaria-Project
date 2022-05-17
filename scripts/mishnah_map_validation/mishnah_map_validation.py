@@ -5,8 +5,9 @@ import django
 django.setup()
 
 import re
-from sefaria.model import *
 import csv
+from sefaria.model import *
+from sefaria.model.schema import AddressTalmud
 
 
 # The goal of this script is to identify broken links in the connections between
@@ -133,9 +134,45 @@ def phase_two(csv_list):
     return csv_list
 
 
+def convert_to_daf(daf_index):
+    addr = AddressTalmud(0)
+    return addr.toStr('en', daf_index)
+
+
+def generate_map_from_links():
+    ls = LinkSet({"type": "mishnah in talmud"})
+    csv_list = []
+    for link in ls:
+        cur_row = {}
+        mishnah_ref, talmud_ref = get_ref_from_link(link)
+        cur_row['Book'] = mishnah_ref.index.title
+        cur_row['Mishnah Chapter'] = mishnah_ref.sections[0]
+        cur_row['Start Mishnah'] = mishnah_ref.sections[1]
+        cur_row['End Mishnah'] = mishnah_ref.toSections[1]
+        cur_row['Start Daf'] = convert_to_daf(talmud_ref.sections[0])
+        cur_row['Start Line'] = talmud_ref.sections[1]
+        cur_row['End Daf'] = convert_to_daf(talmud_ref.toSections[0])
+        cur_row['End Line'] = talmud_ref.toSections[1]
+        csv_list.append(cur_row)
+
+    generate_csv(csv_list, ['Book',
+                            'Mishnah Chapter',
+                            'Start Mishnah',
+                            'End Mishnah',
+                            'Start Daf',
+                            'Start Line',
+                            'End Daf',
+                            'End Line'], 'links_mappings_new')
+
+
+
+
+
 if __name__ == "__main__":
-    csv_list = phase_one()
-    csv_list = phase_two(csv_list)
-    csv_list.sort(key=lambda x: Ref(x["talmud_tref"]).order_id())
-    generate_csv(csv_list, ['mishnah_tref', 'talmud_tref', 'german_text', 'issue'], 'main_issues')
+    # csv_list = phase_one()
+    # csv_list = phase_two(csv_list)
+    # csv_list.sort(key=lambda x: Ref(x["talmud_tref"]).order_id())
+    #
+
+    generate_map_from_links()
 
