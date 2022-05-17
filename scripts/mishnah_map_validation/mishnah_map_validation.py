@@ -155,6 +155,8 @@ def generate_map_from_links():
         cur_row['End Line'] = talmud_ref.toSections[1]
         csv_list.append(cur_row)
 
+    csv_list.sort(key=lambda x: Ref(f"{x['Book']} {x['Mishnah Chapter']}:{x['Start Mishnah']}").order_id())
+
     generate_csv(csv_list, ['Book',
                             'Mishnah Chapter',
                             'Start Mishnah',
