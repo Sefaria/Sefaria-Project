@@ -1,11 +1,14 @@
+name: Helm
+
 on:
   pull_request:
     paths:
       - "helm-chart/**"
+      - ".github/workflows/helm-tests.yaml"
 
 jobs:
-  helm-tests:
-    name: "Helm Tests"
+  lint:
+    name: "Lint"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -23,4 +26,4 @@ jobs:
         with:
           version: v3.5.1
       - name: Lint chart
-        run: ct lint --charts helm-chart
+        run: ct lint --charts helm-chart/sefaria-project

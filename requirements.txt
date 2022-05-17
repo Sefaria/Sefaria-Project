@@ -59,4 +59,5 @@ unicodecsv==0.14.1
 unidecode==1.1.1
 user-agents==2.2.0
 babel
+spacy==3.2.3
 python-bidi

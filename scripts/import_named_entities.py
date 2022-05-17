@@ -5,7 +5,7 @@ from pymongo import InsertOne
 from sefaria.model import *
 from collections import defaultdict
 from sefaria.system.database import db
-from sefaria.model.abstract import AbstractMongoRecord
+from sefaria.model.abstract import SluggedAbstractMongoRecord
 
 # RESEARCH_NAMED_ENTITY_LOC = "/home/nss/sefaria/data/research/knowledge_graph/named_entity_recognition"
 # DATASETS_NAMED_ENTITY_LOC = "/home/nss/sefaria/datasets/ner/sefaria"
@@ -61,7 +61,7 @@ def import_bonayich_into_topics():
         if slug is None:
             print("SLUG IS NONE", r)
         topic_json = {
-            "slug": AbstractMongoRecord.normalize_slug(slug),
+            "slug": SluggedAbstractMongoRecord.normalize_slug(slug),
             "titles": titles
         }
         try:
@@ -180,6 +180,7 @@ def add_ambiguous_topics():
 
     bon_rabbis = TopicSet({"alt_ids.bonayich": {"$exists": True}})
     bon_set = {t.slug for t in bon_rabbis}
+    all_slug_set = {t.slug for t in TopicSet()}
 
     topic_link_type_dict = {
         "slug" : "possibility-for", 
@@ -207,7 +208,7 @@ def add_ambiguous_topics():
     all_mentions = get_raw_mentions()
     unique_ambiguities = defaultdict(set)
     for m in all_mentions:
-        m["id_matches"] = list(filter(lambda slug: (slug not in bon_set) and (not slug.startswith("BONAYICH:")), m["id_matches"]))
+        m["id_matches"] = list(filter(lambda slug: (slug not in bon_set) and (not slug.startswith("BONAYICH:")) and (slug in all_slug_set), m["id_matches"]))
         if len(m['id_matches']) < 2:
             continue
         unique_ambiguities[tuple(m['id_matches'])].add(m['mention'])
@@ -336,7 +337,7 @@ def delete_bonayich_rabbis_from_topics():
 
 def get_raw_mentions():
     all_mentions = []
-    with open(f"{DATASETS_NAMED_ENTITY_LOC}/ner_output_talmud.json", "r") as fin:
+    with open(f"{DATASETS_NAMED_ENTITY_LOC}/ner_output_yerushalmi.json", "r") as fin:
         all_mentions += json.load(fin)
     with open(f"{DATASETS_NAMED_ENTITY_LOC}/ner_output_mishnah.json", "r") as fin:
         all_mentions += json.load(fin)
@@ -368,4 +369,12 @@ kubectl cp /home/nss/sefaria/datasets/ner/sefaria/new_rabbis.json $POD:/app/data
 kubectl cp "/home/nss/sefaria/datasets/ner/sefaria/Fix Rabi and Rav Errors - rav_rabbi_errors.csv" $POD:/app/data
 kubectl cp /home/nss/sefaria/datasets/ner/sefaria/new_alt_titles.json $POD:/app/data
 kubectl cp /home/nss/sefaria/datasets/ner/sefaria/swap_rabbis.json $POD:/app/data
+
+for yerushalmi launch
+kubectl cp "/home/nss/Downloads/Yerushalmi People Deduplication - English Titles.csv" $POD:/app/data
+kubectl cp "/home/nss/Downloads/Yerushalmi People Deduplication - Hebrew Titles.csv" $POD:/app/data
+kubectl cp "/home/nss/Downloads/Yerushalmi People Deduplication - New Titles for Existing Topics.csv" $POD:/app/data
+kubectl cp /home/nss/sefaria/datasets/ner/michael-sperling/sperling_en_and_he.csv $POD:/app/data
+kubectl cp /home/nss/sefaria/data/research/knowledge_graph/named_entity_recognition/sperling_named_entities.json $POD:/app/data
+kubectl cp /home/nss/sefaria/data/research/knowledge_graph/named_entity_recognition/import_yerushalmi_rabbis.py $POD:/app/scripts
 """

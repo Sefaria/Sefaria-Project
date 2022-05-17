@@ -4488,6 +4488,17 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 #accountSettingsPage .toggleSet {
   display: flex;
 }
+#accountSettingsPage .additional-info {
+  color: var(--dark-grey);
+}
+#accountSettingsPage .saveCancel {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 30px;
+}
+#accountSettingsPage #saveAccountSettings {
+  flex-basis: 100%;
+}
 .toggleSet.aliyotTorah, .toggleSet.punctuationTalmud, .toggleSet .toggle-set-label {
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--english-sans-serif-font-family);
