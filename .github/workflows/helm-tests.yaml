@@ -26,4 +26,4 @@ jobs:
         with:
           version: v3.5.1
       - name: Lint chart
-        run: ct lint --charts helm-chart
+        run: ct lint --charts helm-chart/sefaria-project
