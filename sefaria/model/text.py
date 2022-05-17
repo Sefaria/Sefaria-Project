@@ -1384,7 +1384,7 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
     def walk_thru_contents(self, action, item=None, tref=None, heTref=None, schema=None, addressTypes=None,
                            terms_dict=None):
         """
-        Recursively walk through content of version and run `action` for each segment. Only required parameter to call is `action`
+        Walk through content of version and run `action` for each segment. Only required parameter to call is `action`
         :param func action: (segment_str, tref, he_tref, version) => None
 
         action() is a callback function that can have any behavior you would like. It should return None.
@@ -4848,6 +4848,12 @@ class Library(object):
         Rebuilds the Table of Contents
         @param: skip_toc_tree boolean
         """
+        # TODO note - what object is a toc (check), this will build the whatever class
+        #        that represents the toc. Done at startup time. Mention the class name.
+        #        TOC - tree of nodes that rep the toc as we see on Sefaria homepage
+        #        Also building a topic toc, Prayer - etc, that one.
+        #        Building TOC and table TOC, and building equivalent JSON structures. (optimization for APIs)
+        #        Remove all recursive -
         if not skip_toc_tree:
             self._toc_tree = self.get_toc_tree(rebuild=True)
         self._toc = self.get_toc(rebuild=True)
