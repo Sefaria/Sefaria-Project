@@ -24,14 +24,6 @@ spec:
                     values:
                     - mongo
                 topologyKey: kubernetes.io.hostname
-
-          volumes:
-          - name: local-settings
-            configMap:
-              name: local-settings-{{ .Values.deployEnv }}
-              items:
-                - key: local_settings.py
-                  path: local_settings.py
           containers:
           - name: index-from-queue
             image: "{{ .Values.web.containerImage }}:{{ .Values.releaseImageTag }}"
@@ -65,6 +57,13 @@ spec:
               limits:
                 memory: "3Gi"
           restartPolicy: Never
+          volumes:
+          - name: local-settings
+            configMap:
+              name: local-settings-file-{{ .Values.deployEnv }}
+              items:
+                - key: local_settings.py
+                  path: local_settings.py
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 2
 {{- end }}
