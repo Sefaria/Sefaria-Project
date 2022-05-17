@@ -1067,7 +1067,7 @@ class NumberedTitledTreeNode(TitledTreeNode):
                 if list_attr not in serial: continue
                 serial[list_attr] = serial[list_attr][next_refereceable_depth:]
             if serial['depth'] <= 1 and getattr(self, 'isSegmentLevelDiburHamatchil', False):
-                return DiburHamatchilNodeSet({"container_refs": context_ref.normal()})
+                return DiburHamatchilNodeSet({"container_refs": context_ref.normal()}, hint="container_refs_1")
             if self.depth <= 1: return
         else:
             # If parent exists, this JAN is still attached to its original tree. Need to return the same node but detached to indicate this should be only interpreted as a JA and not a SchemaNode
@@ -1098,9 +1098,9 @@ class DiburHamatchilNode(abst.AbstractMongoRecord):
         "ref",
     ]
 
-    def fuzzy_match_score(self, raw_ref_part):
+    def fuzzy_match_score(self, lang, raw_ref_part):
         from sefaria.utils.hebrew import hebrew_starts_with
-        for dh in raw_ref_part.get_dh_text_to_match():
+        for dh in raw_ref_part.get_dh_text_to_match(lang):
             if hebrew_starts_with(self.dibur_hamatchil, dh):
                 return 1.0, dh
         return 0.0, None
@@ -1109,15 +1109,16 @@ class DiburHamatchilNode(abst.AbstractMongoRecord):
 class DiburHamatchilNodeSet(abst.AbstractMongoSet):
     recordClass = DiburHamatchilNode
 
-    def best_fuzzy_matches(self, raw_ref_part, score_leeway=0.01, threshold=0.9):
+    def best_fuzzy_matches(self, lang, raw_ref_part, score_leeway=0.01, threshold=0.9):
         """
+        :param lang: either 'he' or 'en'
         :param raw_ref_part: of type "DH" to match
         :param score_leeway: all scores within `score_leeway` of the highest score are returned
         :param threshold: scores below `threshold` aren't returned
         """
         best_list = [(0.0, None, '')]
         for node in self:
-            score, dh = node.fuzzy_match_score(raw_ref_part)
+            score, dh = node.fuzzy_match_score(lang, raw_ref_part)
             if dh is None: continue
             curr_score, _, curr_dh = best_list[-1]
             if (score, len(dh)) >= (curr_score, len(curr_dh)):

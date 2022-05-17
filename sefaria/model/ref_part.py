@@ -209,9 +209,10 @@ class RawRefPart(TrieEntry):
     def dh_cont_text(self):
         return '' if self.potential_dh_continuation is None else self.potential_dh_continuation.text
 
-    def get_dh_text_to_match(self) -> Iterable[str]:
+    def get_dh_text_to_match(self, lang) -> Iterable[str]:
         import re2
-        m = re2.match(r'^(?:(?:ב)?(?:ד"ה|s ?\. ?v ?\.) )?(.+?)$', self.text)
+        reg = r'^(?:ב?ד"ה )?(.+?)$' if lang == 'he' else r'^(?:s ?\. ?v ?\. )?(.+?)$'
+        m = re2.match(reg, self.text)
         if m is not None:
             dh = m.group(1)
             if self.potential_dh_continuation:
@@ -523,13 +524,13 @@ class ResolvedRef:
         except KeyError:
             return False
 
-    def _get_refined_matches_for_dh_part(self, raw_ref_part: RawRefPart, refined_parts: List[RawRefPart], node: schema.DiburHamatchilNodeSet):
+    def _get_refined_matches_for_dh_part(self, lang, raw_ref_part: RawRefPart, refined_parts: List[RawRefPart], node: schema.DiburHamatchilNodeSet):
         """
         Finds dibur hamatchil ref which best matches `raw_ref_part`
         Currently a very simplistic algorithm
         If there is a DH match, return the corresponding ResolvedRef
         """
-        best_matches = node.best_fuzzy_matches(raw_ref_part)
+        best_matches = node.best_fuzzy_matches(lang, raw_ref_part)
         # TODO modify self with final dh
         return [self.clone(resolved_parts=refined_parts.copy(), node=max_node, ref=text.Ref(max_node.ref)) for _, max_node, _ in best_matches]
 
@@ -630,7 +631,7 @@ class ResolvedRef:
                 # technically doesn't work if there is a referenceable child in between ja and dh node
                 node = node.get_referenceable_child(self.ref)
             if isinstance(node, schema.DiburHamatchilNodeSet):
-                matches += self._get_refined_matches_for_dh_part(part, refined_ref_parts, node)
+                matches += self._get_refined_matches_for_dh_part(lang, part, refined_ref_parts, node)
         # TODO sham and directional cases
         return matches
     
