@@ -5314,10 +5314,10 @@ class Library(object):
     def get_ref_resolver(self, rebuild=False):
         resolver = self._ref_resolver
         if not resolver or rebuild:
-            resolver = self._build_ref_resolver()
+            resolver = self.build_ref_resolver()
         return resolver
 
-    def _build_ref_resolver(self):
+    def build_ref_resolver(self):
         import spacy
         spacy.prefer_gpu()
         from .ref_part import MatchTemplateTrie, MatchTemplateGraph, RefResolver, TermMatcher, NonUniqueTermSet

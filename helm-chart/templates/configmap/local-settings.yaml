@@ -194,7 +194,7 @@ data:
     # Turns off search autocomplete suggestions, which are reinitialized on every server reload
     # which can be annoying for local development.
     DISABLE_AUTOCOMPLETER = False
-
+    ENABLE_LINKER = False
     PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE = "/school-lookup-data/schools.tsv"
 
 
