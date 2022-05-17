@@ -4845,14 +4845,14 @@ class Library(object):
 
     def rebuild_toc(self, skip_toc_tree=False):
         """
-        Rebuilds the Table of Contents
+        Rebuilds the Table of Contents Tree at startup time upon load of the Library class singleton.
+        The ToC is a tree of nodes that represents the ToC as seen on the Sefaria homepage.
+        This function also builds other critical data structures, such as the topics ToC.
+        While building these ToC data structures, this function also builds the equivalent JSON structures
+        as an API optimization.
+
         @param: skip_toc_tree boolean
         """
-        # TODO note - what object is a toc (check), this will build the whatever class
-        #        that represents the toc. Done at startup time. Mention the class name.
-        #        TOC - tree of nodes that rep the toc as we see on Sefaria homepage
-        #        Also building a topic toc, Prayer - etc, that one.
-        #        Building TOC and table TOC, and building equivalent JSON structures. (optimization for APIs)
         if not skip_toc_tree:
             self._toc_tree = self.get_toc_tree(rebuild=True)
         self._toc = self.get_toc(rebuild=True)
@@ -4891,8 +4891,7 @@ class Library(object):
 
     def get_toc(self, rebuild=False):
         """
-        Returns table of contents object from cache,
-        DB or by generating it, as needed.
+        Returns the ToC Tree from the cache, DB or by generating it, as needed.
         """
         if rebuild or not self._toc:
             if not rebuild:
@@ -4905,7 +4904,8 @@ class Library(object):
 
     def get_toc_json(self, rebuild=False):
         """
-        Returns JSON representation of TOC.
+        Returns as JSON representation of the ToC. This is generated on Library start up as an
+        optimization for the API, to allow retrieval of the data with a single call.
         """
         if rebuild or not self._toc_json:
             if not rebuild:
@@ -4930,7 +4930,7 @@ class Library(object):
 
     def get_topic_toc(self, rebuild=False):
         """
-        Returns dict representation of Topics TOC.
+        Returns dictionary representation of Topics ToC.
          """
         if rebuild or not self._topic_toc:
             if not rebuild:
@@ -4943,7 +4943,8 @@ class Library(object):
 
     def get_topic_toc_json(self, rebuild=False):
         """
-        Returns JSON representation of Topics TOC.
+        Returns JSON representation of Topics ToC.
+        @param: rebuild boolean
         """
         if rebuild or not self._topic_toc_json:
             if not rebuild:
@@ -4956,7 +4957,8 @@ class Library(object):
 
     def get_topic_toc_json_recursive(self, topic=None, explored=None, with_descriptions=False):
         """
-        Returns JSON representation of Topics TOC
+        Returns JSON representation of Topics ToC
+        @param: topic String, explored Set, with_descriptions boolean
         """
         from .topic import Topic, TopicSet, IntraTopicLinkSet
         explored = explored or set()
@@ -5017,6 +5019,10 @@ class Library(object):
         return topic_toc_category_mapping
 
     def get_topic_toc_category_mapping(self, rebuild=False) -> dict:
+        """
+        Returns the category mapping as a dictionary for the topics ToC. Loads on Library startup.
+        @param: rebuild boolean
+        """
         if rebuild or not self._topic_toc_category_mapping:
             if not rebuild:
                 self._topic_toc_category_mapping = scache.get_shared_cache_elem('topic_toc_category_mapping')
@@ -5060,7 +5066,7 @@ class Library(object):
     def get_topic_link_type(self, link_type):
         """
         Returns topic link types if not already present
-        @param: link_type
+        @param: link_type String
         """
         from .topic import TopicLinkTypeSet
         if not self._topic_link_types:
@@ -5085,7 +5091,8 @@ class Library(object):
 
     def get_collections_in_library(self):
         """
-        Calls itself on the _toc_tree attribute
+        Calls itself on the _toc_tree attribute to get all the collections in the Library upon
+        loading.
         """
         return self._toc_tree.get_collections_in_library()
 
@@ -5093,6 +5100,7 @@ class Library(object):
         """
         Builds full auto complete across people, topics, categories, parasha, users, and collections
         for each of the languages in the library.
+        Sets internal boolean to True upon successful completion to indicate auto completer is ready.
         """
         from .autospell import AutoCompleter
         self._full_auto_completer = {
@@ -5108,6 +5116,7 @@ class Library(object):
     def build_ref_auto_completer(self):
         """
         Builds the autocomplete for Refs across the languages in the library
+        Sets internal boolean to True upon successful completion to indicate Ref auto completer is ready.
         """
         from .autospell import AutoCompleter
         self._ref_auto_completer = {
@@ -5122,6 +5131,8 @@ class Library(object):
     def build_lexicon_auto_completers(self):
         """
         Sets lexicon autocomplete for each lexicon in LexiconSet using a LexiconTrie
+        Sets internal boolean to True upon successful completion to indicate auto completer is ready.
+
         """
         from .autospell import LexiconTrie
         from .lexicon import LexiconSet
@@ -5132,7 +5143,8 @@ class Library(object):
 
     def build_cross_lexicon_auto_completer(self):
         """
-        Builds the cross lexicon autocompleter excluding titles
+        Builds the cross lexicon auto completer excluding titles
+        Sets internal boolean to True upon successful completion to indicate auto completer is ready.
         """
         from .autospell import AutoCompleter
         self._cross_lexicon_auto_completer = AutoCompleter("he", library, include_titles=False, include_lexicons=True)
@@ -5140,8 +5152,8 @@ class Library(object):
 
     def cross_lexicon_auto_completer(self):
         """
-        Returns the cross lexicon autocompleter. If the autocompleter was not initially loaded,
-        it rebuilds before returning, giving warnings to the logger.
+        Returns the cross lexicon auto completer. If the auto completer was not initially loaded,
+        it rebuilds before returning, emitting warnings to the logger.
         """
         if self._cross_lexicon_auto_completer is None:
             logger.warning("Failed to load cross lexicon auto completer, rebuilding.")
@@ -5155,7 +5167,7 @@ class Library(object):
         is not present, it assumes the need to rebuild the lexicon_auto_completer and calls the build
         function with appropriate logger warnings before returning the desired result
 
-        @param: lexicon
+        @param: lexicon String
         """
         try:
             return self._lexicon_auto_completer[lexicon]
