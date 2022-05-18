@@ -1,0 +1,125 @@
+on:
+  push:
+    tags:
+      - 'v*'
+    tags-ignore:
+      - 'helm-chart-*'
+
+
+jobs:
+  # Note - build occurs again here, even though this image has been built in continuous.
+  # This is because in continuous, the images are pushed to the dev registry
+  # Logging in to dev and prod to push to both in continuous isn't really catered for
+  # Since the build strategy is now a push instead of a pull, all images could live in a single registry, at which point this action would use cache and effectively just perform a tag
+  build-generic:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        app: [ web, node ]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      - name: Login to GCR
+        uses: docker/login-action@v1
+        with:
+          registry: gcr.io
+          username: _json_key
+          password: ${{ secrets.PROD_GKE_SA_KEY }}
+      - name: Get current date
+        id: date
+        run: echo "::set-output name=date::$(date +'%Y%m%d%H%M')"
+      - name: Generate image metadata
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: |
+            gcr.io/${{ secrets.PROD_GKE_PROJECT }}/sefaria-${{ matrix.app }}
+          # generate Docker tags based on the following events/attributes
+          tags: |
+            type=ref,event=tag
+            type=sha,enable=true,priority=100,prefix=sha-,suffix=-${{ steps.date.outputs.date }},format=short
+            type=sha
+          flavor: |
+            latest=true
+      - name: build and push
+        uses: docker/build-push-action@v2
+        with:
+          cache-from: type=registry, ref=sefaria-${{ matrix.app }}/cache
+          cache-to: type=registry, ref=sefaria-${{ matrix.app }}/cache, mode=max
+          context: .
+          push: true
+          file: ./build/${{ matrix.app }}/Dockerfile
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+  build-asset:
+    runs-on: ubuntu-latest
+    needs: 
+      - duplication-check
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      - name: Login to GCR
+        uses: docker/login-action@v1
+        with:
+          registry: gcr.io
+          username: _json_key
+          password: ${{ secrets.PROD_GKE_SA_KEY }}
+      - name: Get current date
+        id: date
+        run: echo "::set-output name=date::$(date +'%Y%m%d%H%M')"
+      - name: Generate image metadata
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: |
+            gcr.io/${{ secrets.PROD_GKE_PROJECT }}/sefaria-asset
+          # generate Docker tags based on the following events/attributes
+          tags: |
+            type=ref,event=tag
+            type=sha,enable=true,priority=100,prefix=sha-,suffix=-${{ steps.date.outputs.date }},format=short
+            type=sha
+          flavor: |
+            latest=true
+      - name: build and push
+        uses: docker/build-push-action@v2
+        with:
+          cache-from: type=registry, ref=sefaria-asset/cache
+          cache-to: type=registry, ref=sefaria-asset/cache, mode=max
+          context: .
+          push: true
+          build-args: |
+            SRC_IMG=gcr.io/${{ secrets.PROD_GKE_PROJECT }}/sefaria-web:${{ github.ref }}
+          file: ./build/nginx/Dockerfile
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+  prod-deploy:
+    runs-on: ubuntu-latest
+    needs: build-asset
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: Authenticate GHA Runner to GCP
+        uses: google-github-actions/setup-gcloud@v0
+        with:
+          service_account_key: ${{ secrets.PROD_GKE_SA_KEY }}
+          project_id: ${{ secrets.PROD_GKE_PROJECT }}
+      - name: Set up yq
+        uses: frenck/action-setup-yq@v1
+      - name: setup helm
+        uses: azure/setup-helm@v1
+      - name: Authenticate GHA Runner To Target Cluster
+        run: gcloud container clusters get-credentials ${{secrets.PROD_GKE_CLUSTER}} --zone ${{secrets.PROD_GKE_REGION}} --project ${{secrets.PROD_GCP_PROJECT}}
+      - name: Deploy Sandbox
+        run: ./build/ci/production-helm-deploy.sh build/ci/production-values.yaml
+        env:
+          GIT_COMMIT: "${{ github.ref }}"
+          PROJECT_ID: "${{ secrets.PROD_GKE_PROJECT }}"
+          NAMESPACE: "${{secrets.PROD_NAMESPACE}}"
+          CHART_VERSION: v0.0.9
+

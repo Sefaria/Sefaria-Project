@@ -90,6 +90,7 @@ spec:
             value: "varnish-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
           # Eventually delete this conditional by bringing PROD into line
           # and automatically generating the name, a la "search-{{ .Values.deployEnv }}"
+          # TODO - short term move to values file
           - name: SEARCH_HOST
             {{- if eq .Values.deployEnv "prod" }}
             value: elasticsearch-data

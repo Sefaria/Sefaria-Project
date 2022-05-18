@@ -55,6 +55,7 @@ spec:
             value: web-{{ .Values.deployEnv }}-{{ .Release.Revision }}
           - name: DJANGO_PORT
             value: "80"
+          # TODO: this should be in values file
           - name: DEBUG
             value: {{ if eq .Values.deployEnv "prod" }}"false"{{ else }}"true"{{ end }}
           - name: REDIS_HOST
