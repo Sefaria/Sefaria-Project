@@ -108,6 +108,9 @@ nodejs:
     imageRegistry: gcr.io/production-deployment/sefaria-node
     # Commit id of the repo for which the image build has been triggered.
     tag: latest
+  # key-pair values to load into node pod environment.  Takes precedence over global localsettings
+  localsettings:
+  # APP: node
   replicaCount: 1
   resources:
     requests:
