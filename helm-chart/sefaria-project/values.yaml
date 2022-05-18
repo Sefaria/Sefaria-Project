@@ -196,6 +196,9 @@ nginx:
     imageRegistry: gcr.io/production-deployment/sefaria-asset
     # Commit id of the repo for which the image build has been triggered.
     tag: latest
+  # key-pair values to load into nginx pod environment.  Takes precedence over global localsettings
+  localsettings:
+  # APP: nginx
   replicaCount: 1
   resources:
     requests:
