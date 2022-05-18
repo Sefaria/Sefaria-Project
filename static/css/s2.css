@@ -1645,13 +1645,14 @@ div.interfaceLinks-row a {
   color: #666;
 }
 
-.navSidebarLink .bullet:after {
+.navSidebarLink .bullet:after,
+.translationsPage .bullet:after {
   content: "\2022";
   white-space:pre;
   margin: 0 5px;
 }
 
-.navSidebarLink .languageItem {
+.navSidebarLink .languageItem, .translationsPage .languageItem {
   display: inline;
 }
 
@@ -2075,6 +2076,11 @@ div.interfaceLinks-row a {
 .topicPanel .resourcesLink.blue .int-he {
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   margin-bottom: -3px;
+}
+.readerPanel .translationsPage h2 {
+  font-size: 24px;
+  text-transform: none;
+  color: #000;
 }
 h1 .languageToggle {
   text-align: center;

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import Sefaria from "./sefaria/sefaria";
-import {InterfaceText} from './Misc';
+import classNames  from 'classnames';
+import {InterfaceText, TabView} from './Misc';
 import { NavSidebar, Modules } from './NavSidebar';
 import Footer  from './Footer';
 
@@ -11,41 +12,42 @@ const TranslationsPage = ({translationsSlug}) => {
     let translation = Sefaria.getTranslation(translationsSlug).then(x => {
         setTranslations(x)
     });
+    const tabs = [{id: "texts", title: {en: "Texts", he: Sefaria._("Texts", "Header")}}];
     
     return (
         <div className="readerNavMenu noLangToggleInHebrew" key="0">
         <div className="content">
           <div className="sidebarLayout">
             <div className="contentInner">
-              <h1 className="sans-serif"><InterfaceText>{"About Texts in " + Sefaria.ISOMap[translationsSlug]["name"]}</InterfaceText></h1>
-              {translations ?  Object.keys(translations).map(corpus => {
-                return (<div>
+              <h1 className="serif pageTitle"><InterfaceText>{"About Texts in " + Sefaria.ISOMap[translationsSlug]["name"]}</InterfaceText></h1>
+              {<TabView
+                  currTabIndex={0}
+                  tabs={tabs}
+                  containerClasses={"largeTabs"}
+                  renderTab={t => (
+                            <div className={classNames({tab: 1, noselect: 1, filter: t.justifyright, open: t.justifyright && showFilterHeader})}>
+                              <InterfaceText text={t.title} />
+                              { t.icon ? <img src={t.icon} alt={`${t.title.en} icon`} /> : null }
+                            </div>
+                          )}
+                 
+                  ><> {translations ?  Object.keys(translations).map(corpus => {
+                return (<div className="translationsPage">
                   <h2>{corpus}</h2>
                   {Sefaria.tocObjectByCategories([corpus]).contents.filter(x => Object.keys(translations[corpus]).includes(x.category)).map(x => {
-                    return (<><h4>{x.category}</h4>
+                    return (<><h3>{x.category}</h3>
                     <div>
-                      {translations[corpus][x.category].sort((a, b) => a['order'][0] - b['order'][0]).map(y => {
-                        return y.title
+                      {translations[corpus][x.category].sort((a, b) => a['order'][0] - b['order'][0]).map((y, i) => {
+                        return (<div key={i} className={i !== translations[corpus][x.category].length - 1 ? "bullet languageItem" : "languageItem"}>{y.title}</div>)
                       })}
                     </div>
                     </>)
-                  })}
+                  })}                  
                 </div>)
               }) : null}
-              {/* {translations ? Object.keys(translations).map(x => {
-                return (<div><h3>{x}</h3>
-                {Object.keys(translations[x]).map((y, i0) => {
-                  if("title" in translations[x][y]) {
-                    return translations[x][y]["title"]
-                  } else {
-                    return Object.keys(translations[x][y]).map((z, i) =>
-                      {return (translations[x][y][z]["title"] + ", ")}
-                    )
-                  }
-                })}
-                </div>)
-            }) : null}   */}
-                   </div>
+              </>
+              </TabView>}
+              </div>
             <NavSidebar modules={sidebarModules} />
           </div>
           <Footer />
