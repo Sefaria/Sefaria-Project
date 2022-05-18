@@ -2260,6 +2260,16 @@ a.navBlockTitle:hover {
 .hebrew .navBlockDescription{
   line-height: 24px;
 }
+.sidebarDescription{
+  color: var(--dark-grey);
+  --english-font: var(--english-sans-serif-font-family);
+  font-size: var(--sans-serif-small-font-size);
+}
+
+.sidebarDescription.lowlight{
+  color: var(--light-grey);
+}
+
 .navBlockTitle .int-he, .navBlockDescription .int-he{
   font-size: 122%;
 }
