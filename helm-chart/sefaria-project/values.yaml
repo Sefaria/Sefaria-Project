@@ -203,6 +203,9 @@ nginx:
       cpu: "150m"
 
 monitor:
+  # key-pair values to load into monitor pod environment.  Takes precedence over global localsettings
+  localsettings:
+  # APP: monitor
   containerImage:
     # Full path of the image registry inclusive of the image name
     imageRegistry: gcr.io/production-deployment/sefaria-web
