@@ -43,6 +43,9 @@ backup:
   serviceAccount: database-backup-write
 
 web:
+  # key-pair values to load into web pod environment.  Takes precedence over global localsettings
+  localsettings:
+  # APP: web
   containerImage:
     # Full path of the image registry imclusive of the image name
     imageRegistry: gcr.io/production-deployment/sefaria-web
