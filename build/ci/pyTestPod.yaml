@@ -79,7 +79,7 @@ spec:
       volumes:
         - name:  local-settings
           configMap:
-            name: "local-settings-${DEPLOY_ENV}"
+            name: "local-settings-file-${DEPLOY_ENV}"
             items:
               - key: local_settings.py
                 path: local_settings.py
