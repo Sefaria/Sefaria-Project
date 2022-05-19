@@ -1,4 +1,4 @@
-{{- if eq .Values.deployEnv "prod" }}
+{{- if ne .Values.sandbox "true" }}
 ---
 apiVersion: batch/v1beta1
 kind: CronJob
