@@ -293,8 +293,8 @@ def find_refs_api(request):
     context_ref = resolved_title[0][0].ref if (len(resolved_title[0]) == 1 and not resolved_title[0][0].is_ambiguous) else None
     resolved = resolver.bulk_resolve_refs(lang, [context_ref], [post['text']], with_failures=True)
 
-    # currently just dumps result to HTML file
-    make_html([resolved_title, resolved], [[post['title']], [post['text']]], f'data/private/linker_results/linker_result.html')
+    # make_html([resolved_title, resolved], [[post['title']], [post['text']]], f'data/private/linker_results/linker_result.html')
+
     return jsonResponse({
         "title": make_find_refs_response(resolved_title, with_text),
         "text": make_find_refs_response(resolved, with_text),

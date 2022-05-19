@@ -8,6 +8,7 @@ from spacy import Language
 from sefaria.model import *
 from sefaria.model.ref_part import ResolvedRef
 from tqdm import tqdm
+from sefaria.helper.ref_part import make_html
 
 
 def parse_book(title: str, resolver: RefResolver) -> Iterable:
@@ -22,7 +23,7 @@ def parse_book(title: str, resolver: RefResolver) -> Iterable:
     version = VersionSet({"title": title, "language": "he"}).array()[0]
     version.walk_thru_contents(collect_input)
     resolved = resolver.bulk_resolve_refs('he', input_context_refs, input_text, with_failures=True, verbose=True)
-    return zip(input_context_refs, resolved)
+    return resolved, input_text, input_context_refs
 
 
 def save_resolved_refs(resolved, filename):
@@ -37,14 +38,15 @@ def save_resolved_refs(resolved, filename):
                 "Input Ref": input_ref.normal(),
                 "Found Citation": resolved_raw_ref.raw_ref.text,
             }
-            if resolved_raw_ref.ref is not None:
-                num_resolved += 1
-                row['Found Ref'] = resolved_raw_ref.ref.normal()
-            parts = resolved_raw_ref.raw_ref.raw_ref_parts
-            if len(parts) > max_parts:
-                max_parts = len(parts)
-            for i, p in enumerate(parts):
-                row[f"Part {i+1}"] = p.text
+            if not resolved_raw_ref.is_ambiguous:
+                if resolved_raw_ref.ref is not None:
+                    num_resolved += 1
+                    row['Found Ref'] = resolved_raw_ref.ref.normal()
+                parts = resolved_raw_ref.raw_ref.raw_ref_parts
+                if len(parts) > max_parts:
+                    max_parts = len(parts)
+                for i, p in enumerate(parts):
+                    row[f"Part {i+1}"] = p.text
             rows += [row]
     with open(f'../data/{filename}', 'w') as fout:
         c = csv.DictWriter(fout, ['Input Ref', 'Found Citation', 'Found Ref'] + [f'Part {i+1}' for i in range(max_parts)])
@@ -70,6 +72,7 @@ def parse_string(resolver):
 
 if __name__ == '__main__':
     resolver = library.get_ref_resolver()
-    # resolved = parse_book("Gilyon HaShas on Berakhot", resolver)
-    # save_resolved_refs(resolved)
-    parse_string(resolver)
+    resolved, input_text, context_refs = parse_book("Toratchesed", resolver)
+    save_resolved_refs(zip(context_refs, resolved), 'toratchesed.csv')
+    make_html([resolved], [input_text], "../data/toratchesed.html", 'he')
+    # parse_string(resolver)

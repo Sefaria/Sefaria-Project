@@ -560,7 +560,7 @@ class RefPartModifier:
         self.t(en='Rabbah', he='רבה', alt_en=['Rabba', 'Rabah', 'Rab.', 'R.', 'Rab .', 'R .', 'rabba', 'r.', 'r .', 'rabbati'], alt_he=['רבא'], ref_part_role='structural')
         self.t(en='Sifra', he='סיפרא', alt_he=['ספרא'], ref_part_role='structural')
         self.t(en='Ran', he='ר"ן', ref_part_role='structural')
-        self.t(en='Perek', he='פרק', alt_en=["Pereq", 'Chapter'], ref_part_role='alt_title')
+        self.t(en='Perek', he='פרק', alt_en=["Pereq", 'Chapter'], alt_he=['ס"פ', 'ר"פ'], ref_part_role='alt_title')
         self.t(en='Parasha', he='פרשה', alt_he=["פרשת"], alt_en=['Parashah', 'Parašah', 'Parsha', 'Paraša', 'Paršetah', 'Paršeta', 'Parsheta', 'Parshetah', 'Parashat', 'Parshat'], ref_part_role='alt_title')
         self.t(en='Sefer', he='ספר', ref_part_role='alt_title')
         self.t(en='Halakha', he='הלכה', alt_en=['Halakhah', 'Halacha', 'Halachah', 'Halakhot'], ref_part_role='context_swap')
@@ -782,7 +782,7 @@ class RefPartModifier:
 
     def modify_all(self):
         fast = True
-        create_dhs = True
+        create_dhs = False
         add_comm_alt_structs = True
         self.modify_bavli(fast)
         self.modify_tanakh(fast)

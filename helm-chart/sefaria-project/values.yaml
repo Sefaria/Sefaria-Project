@@ -28,6 +28,7 @@ previousServicesCount: "3"
 # write the full path to the back up if you want to start the environment from
 # a specific backup else leave blank.
 restore:
+  enabled: true
   bucket: sefaria-mongo-backup
   # tarball:
   serviceAccount: database-backup-read
@@ -54,11 +55,11 @@ web:
       gunicornThreadCount: 1
       resources:
         requests:
-          memory: "3Gi"
-          cpu: "500m"
+          memory: "1Gi"
+          cpu: "100m"
         limits:
-          memory: "4Gi"
-          cpu: "1500m"
+          memory: "3Gi"
+          cpu: "1000m"
     djangoLog:
       requests:
         memory: "100Mi"
@@ -107,10 +108,10 @@ nodejs:
   replicaCount: 1
   resources:
     requests:
-      memory: "400Mi"
-      cpu: "200m"
+      memory: "100Mi"
+      cpu: "100m"
     limits:
-      memory: "600Mi"
+      memory: "200Mi"
       cpu: "400m"
 
 varnish:

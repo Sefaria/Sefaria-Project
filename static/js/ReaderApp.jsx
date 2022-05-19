@@ -183,6 +183,11 @@ class ReaderApp extends Component {
       $("a").not($(ReactDOM.findDOMNode(this)).find("a"))
         .on("click", this.handleInAppLinkClick);
     }
+    //Add a default handler on all (link) clicks that is set to fire first 
+    // and check if we need to just ignore other handlers because someone is doing ctrl+click or something.
+    // (because its set to capture, or the event going down the dom stage, and the listener is the document element- it should fire before other handlers. Specifically
+    // handleInAppLinkClick that disables modifier keys such as cmd, alt, shift) 
+    document.addEventListener('click', this.handleInAppClickWithModifiers, {capture: true});
     // Save all initial panels to recently viewed
     this.state.panels.map(this.saveLastPlace);
 
@@ -951,7 +956,35 @@ class ReaderApp extends Component {
     // Handle clicking a search result in a compare panel, so that clicks don't clobber open panels
     this.replacePanel(n, ref, currVersions, options);
   }
+  getHTMLLinkParentOfEventTarget(event){
+    //get the lowest level parent element of an event target that is an HTML link tag. Or Null.
+    let target = event.target,
+    parent = target,
+    outmost = event.currentTarget;
+    while (parent) {
+      if(parent.nodeName == 'A'){
+        return parent
+      } 
+      else if (parent.parentNode === outmost) {
+        return null;
+      }
+      parent = parent.parentNode;
+    }
+  }
+  handleInAppClickWithModifiers(e){
+    //Make sure to respect ctrl/cmd etc modifier keys when a click on a link happens
+    const linkTarget = this.getHTMLLinkParentOfEventTarget(e);
+    if (linkTarget) { // We want the absolute target of the event to be a link tag, not the "currentTarget".
+      // Dont trigger if user is attempting to open a link with a modifier key (new tab, new window)
+      if (e.metaKey || e.shiftKey || e.ctrlKey || e.altKey) { //the ctrl/cmd, shift and alt/options keys in Windows and MacOS
+        // in this case we want to stop other handlers from running and just go to target href
+        e.stopImmediatePropagation();
+        return;
+      }
+    }
+  }
   handleInAppLinkClick(e) {
+    //Allow global navigation handling in app via link elements
     // If a default has been prevented, assume a custom handler is already in place
     if (e.isDefaultPrevented()) {
       return;
@@ -962,19 +995,16 @@ class ReaderApp extends Component {
     }
     // https://github.com/STRML/react-router-component/blob/master/lib/CaptureClicks.js
     // Get the <a> element.
-    var el = e.target;
-    while (el && el.nodeName !== 'A') {
-      el = el.parentNode;
-    }
+    const linkTarget = this.getHTMLLinkParentOfEventTarget(e);
     // Ignore clicks from non-a elements.
-    if (!el) {
+    if (!linkTarget) {
       return;
     }
     // Ignore the click if the element has a target.
-    if (el.target && el.target !== '_self') {
+    if (linkTarget.target && linkTarget.target !== '_self') {
       return;
     }
-    const href = el.getAttribute('href');
+    const href = linkTarget.getAttribute('href');
     if (!href) {
       return;
     }
@@ -987,7 +1017,7 @@ class ReaderApp extends Component {
       return
     }
     //All links within sheet content should open in a new panel
-    const isSheet = !!(el.closest(".sheetItem"))
+    const isSheet = !!(linkTarget.closest(".sheetItem"))
     const replacePanel = !(isSheet)
     const handled = this.openURL(href,replacePanel);
     if (handled) {

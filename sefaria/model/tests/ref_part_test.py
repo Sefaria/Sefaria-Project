@@ -54,7 +54,7 @@ def create_raw_ref_params(lang, input_str, span_indexes, part_types):
         for i, subspan in enumerate(span):
             print(f'{i}) {subspan.text}')
         raise e
-    return [RawRefPart(part_type, part_span) for part_type, part_span in zip(part_types, part_spans)], span
+    return lang, [RawRefPart(part_type, part_span) for part_type, part_span in zip(part_types, part_spans)], span
 
 
 def create_raw_ref_data(context_tref, lang, input_str, span_indexes, part_types, prev_matches_trefs=None):
@@ -110,6 +110,8 @@ crrd = create_raw_ref_data
     [crrd(None, 'he', "משנה ברכות פרק בתרא", [0, 1, slice(2, 4)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ("Mishnah Berakhot 9",)],
     [crrd(None, 'he', 'שמות א ב', [0, 1, 2], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Exodus 1:2",)],  # used to also match Exodus 2:1 b/c would allow mixing integer parts
     [crrd(None, 'he', 'ר"פ בתרא דמשנה ברכות', [slice(0, 4), slice(4, 6)], [RPT.NUMBERED, RPT.NAMED]), ("Mishnah Berakhot 9",)],
+    [crrd(None, 'he', 'רפ"ג דכלאים', [slice(0, 3), 3], [RPT.NUMBERED, RPT.NAMED]), ['Kilayim 3']],
+    [crrd(None, 'he', 'ספ"ג דכלאים', [slice(0, 3), 3], [RPT.NUMBERED, RPT.NAMED]), ['Kilayim 3']],
 
     # Named alt structs
     [crrd(None, 'he', "פרק אלו דברים בפסחים", [slice(0, 3), 3], [RPT.NAMED, RPT.NAMED]), ("Pesachim 65b:10-73b:16",)],  # talmud perek (that's ambiguous)
@@ -139,7 +141,7 @@ crrd = create_raw_ref_data
     [crrd(None, 'he', 'דברים פרק יד פסוקים מ-מה', [0, slice(1, 3), slice(3, 5), 5, 6], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED]), ("Deuteronomy 14:40-45",)],
 
     # Base text context
-    [crrd("Rashi on Berakhot 2a", 'he', 'ובתוס\' כ"ז ע"ב ד"ה והלכתא', [slice(0, 2), slice(2, 8), slice(8, 12)], [RPT.NAMED, RPT.NUMBERED, RPT.DH]), ("Tosafot on Berakhot 27b:14:2",)],  # shared context child via graph context
+    [crrd("Rashi on Berakhot 2a", 'he', 'ובתוס\' דכ"ז ע"ב ד"ה והלכתא', [slice(0, 2), slice(2, 8), slice(8, 12)], [RPT.NAMED, RPT.NUMBERED, RPT.DH]), ("Tosafot on Berakhot 27b:14:2",)],  # shared context child via graph context
 
     # Ibid
     [crrd(None, 'he', 'פרק ד', [slice(0, 2)], [RPT.NUMBERED], ["Genesis 1"]), ("Genesis 4",)],
@@ -158,6 +160,9 @@ crrd = create_raw_ref_data
     # Relative (e.g. Lekaman)
     [crrd("Gilyon HaShas on Berakhot 2a:2", 'he', '''תוס' לקמן ד ע"ב ד"ה דאר"י''', [slice(0, 2), 2, slice(3, 7), slice(7, 13)], [RPT.NAMED, RPT.RELATIVE, RPT.NUMBERED, RPT.DH]), ("Tosafot on Berakhot 4b:6:1",)],  # likaman + abbrev in DH
     [crrd("Mishnah Berakhot 1", 'he', 'לקמן משנה א', [0, slice(1, 3)], [RPT.RELATIVE, RPT.NUMBERED], ['Mishnah Shabbat 1']), ("Mishnah Berakhot 1:1",)],  # competing relative and sham
+
+    # Superfluous information
+    [crrd(None, 'he', 'תוספות פרק קמא דברכות (דף ב', [0, slice(1, 3), 3, slice(5, 7)], [RPT.NAMED, RPT.NUMBERED, RPT.NAMED, RPT.NUMBERED]), ['Tosafot on Berakhot 2']],
 
     # YERUSHALMI EN
     [crrd("Jerusalem Talmud Shabbat 1:1", 'en', 'Bavli 2a', [0, 1], [RPT.NAMED, RPT.NUMBERED]), ("Shabbat 2a",)],
@@ -195,7 +200,7 @@ crrd = create_raw_ref_data
     [crrd(None, 'he', '''פירש"י בקידושין דף פ' ע"א''', [slice(0, 3), 3, slice(4, 10)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ("Rashi on Kiddushin 80a",)],
     pytest.param(crrd("Gilyon HaShas on Berakhot 48b:1", 'he', '''תשב"ץ ח"ב (ענין קסא''', [0, 1, slice(3, 5)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Sefer HaTashbetz, Part II 161",), marks=pytest.mark.xfail(reason="Dont support Sefer HaTashbetz yet")),  # complex text
     [crrd(None, 'he', '''יבמות לט ע״ב''', [0, slice(1, 5)], [RPT.NAMED, RPT.NUMBERED]), ["Yevamot 39b"]],
-    [crrd(None, 'he', ''''נדרים דף כג עמוד ב''', [0, slice(1, 3), slice(3, 5)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Nedarim 23b"]],
+    [crrd(None, 'he', '''נדרים דף כג עמוד ב''', [0, slice(1, 3), slice(3, 5)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Nedarim 23b"]],
     [crrd(None, 'he', 'פרשת שלח לך', [slice(0, 3)], [RPT.NAMED]), ['Parashat Shelach']],
     # [crrd(None, 'he', 'בבראשית רבה בראשית ט', [])]
 ])
@@ -268,8 +273,8 @@ def test_get_all_possible_sections_from_string(input_addr_str, AddressClass, exp
     [create_raw_ref_params('he', 'ספר בראשית פרק יג פסוק א עד פרק יד פסוק ד', [slice(0, 2), slice(2, 4), slice(4, 6), 6, slice(7, 9), slice(9, 11)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED, RPT.NUMBERED]), (slice(1,3), slice(4,6))],  # verbose range
 ])
 def test_group_ranged_parts(raw_ref_params, expected_section_slices):
-    raw_ref_parts, span = raw_ref_params
-    raw_ref = RawRef(raw_ref_parts, span)
+    lang, raw_ref_parts, span = raw_ref_params
+    raw_ref = RawRef(lang, raw_ref_parts, span)
     exp_sec_slice, exp2sec_slice = expected_section_slices
     if exp_sec_slice is None:
         expected_raw_ref_parts = raw_ref_parts
@@ -290,7 +295,7 @@ def test_group_ranged_parts(raw_ref_params, expected_section_slices):
         end_token_i = end_span.end if isinstance(end_span, Span) else (end_span.i+1)
         full_span = start_span.doc[start_token_i:end_token_i]
         assert ranged_raw_ref_parts.span.text == full_span.text
-    assert raw_ref.raw_ref_parts == expected_raw_ref_parts
+    assert expected_raw_ref_parts == raw_ref.raw_ref_parts
 
 
 @pytest.mark.parametrize(('context_tref', 'match_title', 'common_title', 'expected_sec_cons'), [

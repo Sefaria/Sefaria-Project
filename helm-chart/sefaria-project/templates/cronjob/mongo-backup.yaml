@@ -15,17 +15,6 @@ spec:
       template:
         spec:
           serviceAccount: {{ .Values.backup.serviceAccount }}
-          volumes:
-          - name: create-dumps-script
-            configMap:
-              name: create-dumps-{{ .Values.deployEnv }}
-              defaultMode: 0755
-          - name: upload-dumps-script
-            configMap:
-              name: upload-dumps-{{ .Values.deployEnv }}
-              defaultMode: 0755
-          - name: shared-volume
-            emptyDir: {}
           affinity:
             podAffinity:
               requiredDuringSchedulingIgnoredDuringExecution:
@@ -93,6 +82,17 @@ spec:
               limits:
                 memory: "500Mi"
           restartPolicy: OnFailure
+          volumes:
+          - name: create-dumps-script
+            configMap:
+              name: create-dumps-{{ .Values.deployEnv }}
+              defaultMode: 0755
+          - name: upload-dumps-script
+            configMap:
+              name: upload-dumps-{{ .Values.deployEnv }}
+              defaultMode: 0755
+          - name: shared-volume
+            emptyDir: {}
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 2
 {{- end }}
