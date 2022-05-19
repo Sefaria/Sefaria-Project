@@ -8,7 +8,7 @@ metadata:
 data: 
   robots.txt: |-
     User-agent: *
-{{- eq .Values.sandbox "true" }}
+{{- if eq .Values.sandbox "true" }}
     Disallow: /
 {{- else }}
     Disallow: /activity/
