@@ -1,0 +1,13 @@
+plugins:
+  - - "@semantic-release/commit-analyzer"
+    - releaseRules:
+        - {release: patch}
+      parserOpts:
+        noteKeywords:
+          - MAJOR RELEASE
+  - "@semantic-release/release-notes-generator"
+  - - "@semantic-release/github"
+branches: [
+    {name: 'main'},
+  ]
+tagFormat: helm-chart-v${version}
