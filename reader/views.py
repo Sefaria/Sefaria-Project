@@ -4070,22 +4070,49 @@ def random_text_api(request):
 
 
 def translations_api(request, lang):
-    texts = [library.get_index(myText).contents() for myText in db.texts.distinct("title", {"actualLanguage": lang})]
+    import time
+    def getIndexContents(myText):
+        try:
+            return library.get_index(myText).contents()
+        except:
+            print(json.dumps(myText))
+            return None
+    t0 = time.time()
+    #texts = [getIndexContents(myText) for myText in db.texts.distinct("title", {"actualLanguage": lang})]
+    texts = db.texts.aggregate([{"$match": {"actualLanguage":lang}},
+    {"$lookup": {
+            "from": "index",
+            "localField": "title",
+            "foreignField": "title",
+            "as": "titles"
+        }}])
+    t1 = time.time()
+    print("List comprehension:")
+    print(f"{t1 - t0}")
     res = {}
     for myIndex in texts:
-        depth = 2
-        ind = 0
-        cur = res
-        while len(myIndex["categories"]) < depth:
-            myIndex["categories"] = myIndex["categories"] + ["Uncategorized"]
-        while ind < depth and ind < len(myIndex["categories"]):
-            if myIndex["categories"][ind] not in cur:
-                cur[myIndex["categories"][ind]] = [] if ind == depth - 1 else {}
-            cur = cur[myIndex["categories"][ind]]
-            ind += 1
-        cur.append(myIndex)
+        if len(myIndex["titles"]) > 0:
+            depth = 2
+            ind = 0
+            cur = res
+            categories = myIndex["titles"][0]["categories"]
+            while len(categories) < depth:
+                categories = categories + ["Uncategorized"]
+            while ind < depth and ind < len(categories):
+                if categories[ind] not in cur:
+                    cur[categories[ind]] = [] if ind == depth - 1 else {}
+                cur = cur[categories[ind]]
+                ind += 1
+            toAdd = {}
+            toAdd["title"] = myIndex["title"]
+            if "order" in myIndex["titles"][0]:
+                toAdd["order"] = myIndex["titles"][0]["order"]
+            cur.append(toAdd)
         #cur[myIndex["title"]] = myIndex
     #res = [library.get_index(myText).contents() for myText in texts]
+    t2 = time.time()
+    print("create dictionary")
+    print(f"{t2 - t1}")
     return jsonResponse(res)
     
 def random_by_topic_api(request):

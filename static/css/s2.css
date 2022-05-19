@@ -1644,13 +1644,12 @@ div.interfaceLinks-row a {
 .navSidebarLink.gray a {
   color: #666;
 }
-
-.navSidebarLink .bullet:after,
-.translationsPage .bullet:after {
+/* TODO: fix this */
+.navSidebarLink .bullet:after {
   content: "\2022";
   white-space:pre;
   margin: 0 5px;
-}
+} 
 
 .navSidebarLink .languageItem, .translationsPage .languageItem {
   display: inline;
@@ -2082,6 +2081,26 @@ div.interfaceLinks-row a {
   text-transform: none;
   color: #000;
 }
+.translationsPage details > ul {
+  padding: 0;
+}
+.translationsPage details > ul > li:after {
+  content: "\2022";
+  white-space:pre;
+  margin: 0 5px;
+}
+.translationsPage details > ul > li:last-child:after {
+  content: none;
+}
+.readerPanel .translationsPage details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.readerPanel .translationsPage  details > summary {
+  list-style: none;
+  cursor: pointer; 
+}
+
 h1 .languageToggle {
   text-align: center;
   position: absolute;
@@ -2175,7 +2194,8 @@ h1 .languageToggle .he {
   border-bottom: 2px solid #999;
   padding-bottom: 4px;
 }
-.readerPanel h2, .readerPanel h3 {
+.readerPanel h2, .readerPanel h3,
+.translationsPage details > summary {
   text-transform: uppercase;
   text-align: start;
   font-size: 15px;
