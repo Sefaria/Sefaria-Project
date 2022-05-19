@@ -956,7 +956,7 @@ class RefResolver:
         self._ref_part_title_graph = ref_part_title_graph
         self._term_matcher_by_lang = term_matcher_by_lang
         self._ibid_history = IbidHistory()
-        self._thoroughness = None
+        self._thoroughness = ResolutionThoroughness.NORMAL
 
         # see ML Repo library_exporter.py:TextWalker.__init__() which uses same normalization
         # important that normalization is equivalent to normalization done at training time
@@ -1000,7 +1000,7 @@ class RefResolver:
         @param with_failures:
         @param verbose:
         @param reset_ibids_every_context_ref:
-        @param thoroughness: how thorough should the search be. More thorough == slower. Currently "normal" will avoid searching for DH matches at book level
+        @param thoroughness: how thorough should the search be. More thorough == slower. Currently "normal" will avoid searching for DH matches at book level and avoid filtering empty refs
         @return:
         """
         self._thoroughness = thoroughness
@@ -1137,6 +1137,9 @@ class RefResolver:
                 curr_parts = []
                 curr_part_start = ipart+1
         return split_raw_refs
+
+    def set_thoroughness(self, thoroughness: ResolutionThoroughness) -> None:
+        self._thoroughness = thoroughness
 
     def resolve_raw_ref(self, lang: str, book_context_ref: Optional[text.Ref], raw_ref: RawRef) -> List[Union[ResolvedRef, AmbiguousResolvedRef]]:
         split_raw_refs = self.split_non_cts_parts(lang, raw_ref)
@@ -1351,16 +1354,10 @@ class RefResolver:
             pruned_matches += [max(match_list, key=lambda m: m.num_resolved())]
         return pruned_matches
 
-    @staticmethod
-    def _prune_refined_ref_part_matches(resolved_refs: List[ResolvedRef]) -> List[ResolvedRef]:
+    def _prune_refined_ref_part_matches(self, resolved_refs: List[ResolvedRef]) -> List[ResolvedRef]:
         """
         Applies some heuristics to remove false positives
         """
-
-        # remove matches that have empty refs
-        # TODO removing for now b/c of yerushalmi project. doesn't seem necessary to happen here anyway.
-        # resolved_refs = list(filter(lambda x: not x.ref.is_empty(), resolved_refs))
-
         resolved_refs = RefResolver._merge_subset_matches(resolved_refs)
 
         # remove matches that don't match all ref parts to avoid false positives
@@ -1410,7 +1407,9 @@ class RefResolver:
 
         # make unique
         max_resolved_refs = list({r.ref: r for r in max_resolved_refs}.values())
-
+        if self._thoroughness >= ResolutionThoroughness.HIGH:
+            # remove matches that have empty refs
+            max_resolved_refs = list(filter(lambda x: not x.ref.is_empty(), max_resolved_refs))
         return max_resolved_refs
 
     @staticmethod

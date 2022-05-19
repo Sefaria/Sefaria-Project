@@ -203,6 +203,9 @@ crrd = create_raw_ref_data
     [crrd(None, 'he', '''נדרים דף כג עמוד ב''', [0, slice(1, 3), slice(3, 5)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Nedarim 23b"]],
     [crrd(None, 'he', 'פרשת שלח לך', [slice(0, 3)], [RPT.NAMED]), ['Parashat Shelach']],
     [crrd(None, 'he', 'טור יורה דעה סימן א', [slice(0, 3), slice(3, 5)], [RPT.NAMED, RPT.NUMBERED]), ['Tur, Yoreh Deah 1']],
+    [crrd(None, 'he', 'תוספתא ברכות א:א', [0, 1, 2, 4], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ['Tosefta Berakhot 1:1', 'Tosefta Berakhot (Lieberman) 1:1']],  # tosefta ambiguity
+    [crrd(None, 'he', 'תוספתא ברכות א:טז', [0, 1, 2, 4], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ['Tosefta Berakhot 1:16']],  # tosefta ambiguity
+
     # [crrd(None, 'he', 'בבראשית רבה בראשית ט', [])]
 ])
 def test_resolve_raw_ref(resolver_data, expected_trefs):
@@ -215,6 +218,7 @@ def test_resolve_raw_ref(resolver_data, expected_trefs):
             else:
                 ref_resolver._ibid_history.last_match = Ref(prev_tref)
     print_spans(raw_ref)
+    ref_resolver.set_thoroughness(ResolutionThoroughness.HIGH)
     matches = ref_resolver.resolve_raw_ref(lang, context_ref, raw_ref)
     matched_orefs = sorted(reduce(lambda a, b: a + b, [[match.ref] if not match.is_ambiguous else [inner_match.ref for inner_match in match.resolved_raw_refs] for match in matches], []), key=lambda x: x.normal())
     if len(expected_trefs) != len(matched_orefs):
