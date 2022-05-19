@@ -13,7 +13,7 @@ metadata:
 spec:
   tls:
     - secretName: {{ template "sefaria.secrets.originTls" . }}
-    {{- if eq .Values.deployEnv "prod" }}
+    {{- if ( template "sefaria.secrets.originIlTls" . ) }}
     - secretName: {{ template "sefaria.secrets.originIlTls" . }}
     {{- end }}
   rules:
