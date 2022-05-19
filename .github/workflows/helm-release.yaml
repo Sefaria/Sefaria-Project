@@ -67,7 +67,7 @@ jobs:
       - name: Get appVersion
         id: appVersion
         run: |
-          echo '::set-output name=appVersion::$(git describe --match "v*" --abbrev=0 HEAD --tags)'
+          echo "::set-output name=appVersion::$(git describe --match 'v*' --abbrev=0 HEAD --tags)"
       - name: Download yq
         run: |
           wget -nv -nc -O yq https://github.com/mikefarah/yq/releases/download/v4.20.2/yq_linux_amd64
