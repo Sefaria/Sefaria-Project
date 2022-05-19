@@ -9,5 +9,6 @@ plugins:
   - - "@semantic-release/github"
 branches: [
     {name: 'main'},
+    {name: 'master'},
   ]
 tagFormat: helm-chart-v${version}
