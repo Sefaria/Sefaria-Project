@@ -1272,6 +1272,7 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         "purchaseInformationImage",
         "purchaseInformationURL",
         "hasManuallyWrappedRefs",  # true for texts where refs were manually wrapped in a-tags. no need to run linker at run-time.
+        "actualLanguage" # THIS DID NOT FIX THE PROBLEM
     ]
 
     def __str__(self):
