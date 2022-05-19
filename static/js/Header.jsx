@@ -304,6 +304,10 @@ class SearchBar extends Component {
     this.props.onNavigate && this.props.onNavigate();
   }
   submitSearch(query) {
+    analytics.logEvent("search", {
+      search_term: query
+    }
+    );
     Sefaria.getName(query)
       .then(d => {
         // If the query isn't recognized as a ref, but only for reasons of capitalization. Resubmit with recognizable caps.
