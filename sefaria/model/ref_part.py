@@ -273,7 +273,7 @@ class TermContext(ContextPart):
         self.term = term
 
     def key(self):
-        return self.__repr__()
+        return f"{self.__class__.__name__}({self.term.slug})"
 
     @property
     def text(self):
@@ -283,7 +283,7 @@ class TermContext(ContextPart):
         return self.__repr__()
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({repr(self.term)})"
+        return self.key()
 
     def __hash__(self):
         return hash(self.__repr__())
@@ -309,14 +309,14 @@ class SectionContext(ContextPart):
 
     @property
     def text(self):
-        return self.__str__()
-
-    def __str__(self):
-        return self.__repr__()
-
-    def __repr__(self):
         addr_name = self.addr_type.__class__.__name__
         return f"{self.__class__.__name__}({addr_name}(0), '{self.section_name}', {self.address})"
+
+    def __str__(self):
+        return self.text
+
+    def __repr__(self):
+        return self.text
 
     def __hash__(self):
         return hash(f"{self.addr_type.__class__}|{self.section_name}|{self.address}")
