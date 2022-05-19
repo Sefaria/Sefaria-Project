@@ -47,13 +47,6 @@ def test_add_bad_domain_from_linker():
 
 	assert WebPage().add_or_update_from_linker(data) == "excluded"
 
-	data = {'url': 'http://localhost:8000/static/test/linker_test.html',
-					'title': 'Linker Test Page',
-					'description': 'A Page We Do Not Want',
-					'refs': ["Haamek Davar on Genesis, Kidmat Ha'Emek 1", 'Shulchan Aruch, Orach Chaim 7:1']}
-
-	assert WebPage().add_or_update_from_linker(data) == "excluded"
-
 def test_add_no_refs_from_linker():
 	# blogs.timesofisrael.com/random should not be added to the linker, because it contains no refs
 	# even though it's a good URL
