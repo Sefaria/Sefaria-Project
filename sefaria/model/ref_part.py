@@ -1,7 +1,7 @@
 import dataclasses
 from collections import defaultdict
 from typing import List, Union, Dict, Optional, Tuple, Generator, Iterable, Set
-from enum import Enum
+from enum import Enum, IntEnum
 from functools import reduce
 from itertools import product
 from sefaria.system.exceptions import InputError
@@ -54,6 +54,11 @@ def span_char_inds(span: SpanOrToken) -> Tuple[int, int]:
     elif isinstance(span, Token):
         idx = span.idx
         return idx, idx + len(span)
+
+
+class ResolutionThoroughness(IntEnum):
+    NORMAL = 1
+    HIGH = 2
 
 
 class RefPartType(Enum):
@@ -475,13 +480,14 @@ class ResolvedRef:
     """
     is_ambiguous = False
 
-    def __init__(self, raw_ref: RawRef, resolved_parts: List[RawRefPart], node, ref: text.Ref, context_ref: text.Ref = None, context_type: ContextType = None) -> None:
+    def __init__(self, raw_ref: RawRef, resolved_parts: List[RawRefPart], node, ref: text.Ref, context_ref: text.Ref = None, context_type: ContextType = None, _thoroughness=ResolutionThoroughness.NORMAL) -> None:
         self.raw_ref = raw_ref
         self.resolved_parts = resolved_parts
         self.node = node
         self.ref = ref
         self.context_ref = context_ref
         self.context_type = context_type
+        self._thoroughness = _thoroughness
 
     def clone(self, **kwargs) -> 'ResolvedRef':
         """
@@ -530,6 +536,8 @@ class ResolvedRef:
         Currently a very simplistic algorithm
         If there is a DH match, return the corresponding ResolvedRef
         """
+        if self._thoroughness < ResolutionThoroughness.HIGH and self.ref.is_book_level():
+            return []
         best_matches = node.best_fuzzy_matches(lang, raw_ref_part)
         # TODO modify self with final dh
         return [self.clone(resolved_parts=refined_parts.copy(), node=max_node, ref=text.Ref(max_node.ref)) for _, max_node, _ in best_matches]
@@ -948,6 +956,7 @@ class RefResolver:
         self._ref_part_title_graph = ref_part_title_graph
         self._term_matcher_by_lang = term_matcher_by_lang
         self._ibid_history = IbidHistory()
+        self._thoroughness = None
 
         # see ML Repo library_exporter.py:TextWalker.__init__() which uses same normalization
         # important that normalization is equivalent to normalization done at training time
@@ -982,7 +991,19 @@ class RefResolver:
             for resolved_ref, temp_unnorm_inds, temp_unnorm_part_inds in zip(temp_resolved, unnorm_inds, unnorm_part_inds):
                 resolved_ref.raw_ref.map_new_indices(unnorm_doc, temp_unnorm_inds, temp_unnorm_part_inds)
 
-    def bulk_resolve_refs(self, lang: str, book_context_refs: List[Optional[text.Ref]], input: List[str], with_failures=False, verbose=False, reset_ibids_every_context_ref=True) -> List[List[Union[ResolvedRef, AmbiguousResolvedRef]]]:
+    def bulk_resolve_refs(self, lang: str, book_context_refs: List[Optional[text.Ref]], input: List[str], with_failures=False, verbose=False, reset_ibids_every_context_ref=True, thoroughness=ResolutionThoroughness.NORMAL) -> List[List[Union[ResolvedRef, AmbiguousResolvedRef]]]:
+        """
+        Main function for resolving refs in text. Given a list of texts, returns ResolvedRefs for each
+        @param lang:
+        @param book_context_refs:
+        @param input:
+        @param with_failures:
+        @param verbose:
+        @param reset_ibids_every_context_ref:
+        @param thoroughness: how thorough should the search be. More thorough == slower. Currently "normal" will avoid searching for DH matches at book level
+        @return:
+        """
+        self._thoroughness = thoroughness
         self.reset_ibid_history()
         normalized_input = self._normalize_input(lang, input)
         all_raw_refs = self._bulk_get_raw_refs(lang, normalized_input)
@@ -1229,7 +1250,9 @@ class RefResolver:
             temp_title_trie = title_trie.get_continuations(part.key())
             if temp_title_trie is None: continue
             if LEAF_TRIE_ENTRY in temp_title_trie:
-                matches += [ResolvedRef(raw_ref, temp_prev_ref_parts, node, (node.nodes if isinstance(node, text.Index) else node).ref()) for node in temp_title_trie[LEAF_TRIE_ENTRY]]
+                for node in temp_title_trie[LEAF_TRIE_ENTRY]:
+                    ref = (node.nodes if isinstance(node, text.Index) else node).ref()
+                    matches += [ResolvedRef(raw_ref, temp_prev_ref_parts, node, ref, _thoroughness=self._thoroughness)]
             temp_ref_parts = [temp_part for temp_part in ref_parts if temp_part != part]
             matches += self._get_unrefined_ref_part_matches_recursive(lang, raw_ref, temp_title_trie, ref_parts=temp_ref_parts, prev_ref_parts=temp_prev_ref_parts)
 
