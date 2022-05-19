@@ -20,3 +20,4 @@ data:
   GLOBAL_WARNING: "{{ .Values.localSettings.GLOBAL_WARNING }}"
   GLOBAL_WARNING_MESSAGE: {{ .Values.localSettings.GLOBAL_WARNING_MESSAGE | quote }}
   SITE_PACKAGE: {{ .Values.localSettings.SITE_PACKAGE | quote }}
+  SEARCH_HOST: {{ .Values.localSettings.SEARCH_HOST | quote }}
