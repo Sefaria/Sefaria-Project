@@ -26,23 +26,6 @@ jobs:
           filters: |
             charts:
               - 'helm-chart/**/*'
-  semantic-release:
-    runs-on: ubuntu-latest
-    needs:
-      - changes
-    if: |
-      (github.repository == 'sefaria/sefaria-project') && (needs.changes.outputs.charts == 'true')
-    outputs:
-      release-version: ${{ steps.semantic.outputs.release-version }}
-    steps:
-      - uses: actions/checkout@v3
-      - uses: cycjimmy/semantic-release-action@v3
-        id: semantic
-        with:
-          working_directory: ./helm-chart
-          dry-run: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   chart:
     name: Release Chart
     runs-on: ubuntu-latest
@@ -50,7 +33,6 @@ jobs:
       contents: write # needed to write releases
     needs:
       - changes
-      - semantic-release
     if: |
       (github.repository == 'sefaria/sefaria-project') && (needs.changes.outputs.charts == 'true')
     steps:
@@ -59,6 +41,13 @@ jobs:
         with:
           # Fetch entire history. Required for chart-releaser; see https://github.com/helm/chart-releaser-action/issues/13#issuecomment-602063896
           fetch-depth: 0
+      - uses: cycjimmy/semantic-release-action@v3
+        id: semantic
+        with:
+          working_directory: ./helm-chart
+          dry_run: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Setup
         shell: bash
         run: |
@@ -67,13 +56,13 @@ jobs:
       - name: Get appVersion
         id: appVersion
         run: |
-          echo '::set-output name=appVersion::$(git describe --match "v*" --abbrev=0 HEAD --tags)'
+          echo "::set-output name=appVersion::$(git describe --match 'v*' --abbrev=0 HEAD --tags)"
       - name: Download yq
         run: |
           wget -nv -nc -O yq https://github.com/mikefarah/yq/releases/download/v4.20.2/yq_linux_amd64
           chmod +x yq
       - name: Update chart version
-        run: ./yq -i e '.version = "${{ needs.semantic-release.outputs.release-version }}"' helm-chart/sefaria-project/Chart.yaml
+        run: ./yq -i e '.version = "${{ steps.semantic.outputs.new_release_version }}"' helm-chart/sefaria-project/Chart.yaml
       - name: Update chart appVersion
         run: ./yq -i e '.appVersion = "${{ steps.appVersion.outputs.appVersion }}"' helm-chart/sefaria-project/Chart.yaml
       - name: Helm Chart Releaser
