@@ -8,10 +8,10 @@ metadata:
 data: 
   robots.txt: |-
     User-agent: *
-{{- if eq .Values.deployEnv "prod" }}
+{{- if eq .Values.sandbox "true" }}
+    Disallow: /
+{{- else }}
     Disallow: /activity/
     Disallow: /login?next=*
     Disallow: /register?next=*
-{{- else }}
-    Disallow: /
 {{- end }}
