@@ -40,7 +40,7 @@ jobs:
         id: semantic
         with:
           working_directory: ./helm-chart
-          dry-run: true
+          dry_run: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   chart:
