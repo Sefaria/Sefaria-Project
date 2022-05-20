@@ -35,10 +35,10 @@ const TranslationsPage = ({translationsSlug}) => {
                 return (<div className="translationsPage">
                   <h2>{corpus}</h2>
                   {Sefaria.tocObjectByCategories([corpus]).contents.filter(x => Object.keys(translations[corpus]).includes(x.category)).map(x => {
-                    return (<details><summary>{x.category}</summary>
+                    return (<details open={translationsSlug !== "en"}><summary>{x.category}</summary>
                     <ul>
                       {translations[corpus][x.category]/*.sort((a, b) => a['order'][0] - b['order'][0])*/.map((y, i) => {
-                        return (<li key={i} className={i !== translations[corpus][x.category].length - 1 ? "bullet languageItem" : "languageItem"}>{y.title}</li>)
+                        return (<li key={i} className={i !== translations[corpus][x.category].length - 1 ? "bullet languageItem" : "languageItem"}><a href={`/${y.title}.1?with=Translations&${y.rtlLanguage === "en" ? "ven=" + y.versionTitle : "vhe=" + y.versionTitle}`}>{y.title}</a></li>)
                       })}
                     </ul>
                     </details>)

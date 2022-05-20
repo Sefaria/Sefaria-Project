@@ -4074,12 +4074,6 @@ def random_text_api(request):
 
 def translations_api(request, lang):
     import time
-    def getIndexContents(myText):
-        try:
-            return library.get_index(myText).contents()
-        except:
-            print(json.dumps(myText))
-            return None
     t0 = time.time()
     #texts = [getIndexContents(myText) for myText in db.texts.distinct("title", {"actualLanguage": lang})]
     texts = db.texts.aggregate([{"$match": {"actualLanguage":lang}},
@@ -4093,24 +4087,29 @@ def translations_api(request, lang):
     print("List comprehension:")
     print(f"{t1 - t0}")
     res = {}
+    titles = []
     for myIndex in texts:
-        if len(myIndex["titles"]) > 0:
-            depth = 2
-            ind = 0
-            cur = res
-            categories = myIndex["titles"][0]["categories"]
-            while len(categories) < depth:
-                categories = categories + ["Uncategorized"]
-            while ind < depth and ind < len(categories):
-                if categories[ind] not in cur:
-                    cur[categories[ind]] = [] if ind == depth - 1 else {}
-                cur = cur[categories[ind]]
-                ind += 1
-            toAdd = {}
-            toAdd["title"] = myIndex["title"]
-            if "order" in myIndex["titles"][0]:
-                toAdd["order"] = myIndex["titles"][0]["order"]
-            cur.append(toAdd)
+        if myIndex["title"] not in titles:
+            if len(myIndex["titles"]) > 0:
+                titles.append(myIndex["title"])
+                depth = 2
+                ind = 0
+                cur = res
+                categories = myIndex["titles"][0]["categories"]
+                while len(categories) < depth:
+                    categories = categories + ["Uncategorized"]
+                while ind < depth and ind < len(categories):
+                    if categories[ind] not in cur:
+                        cur[categories[ind]] = [] if ind == depth - 1 else {}
+                    cur = cur[categories[ind]]
+                    ind += 1
+                toAdd = {}
+                toAdd["title"] = myIndex["title"]
+                if "order" in myIndex["titles"][0]:
+                    toAdd["order"] = myIndex["titles"][0]["order"]
+                toAdd["versionTitle"] = myIndex["versionTitle"]
+                toAdd["rtlLanguage"] = myIndex["language"]
+                cur.append(toAdd)
         #cur[myIndex["title"]] = myIndex
     #res = [library.get_index(myText).contents() for myText in texts]
     t2 = time.time()
