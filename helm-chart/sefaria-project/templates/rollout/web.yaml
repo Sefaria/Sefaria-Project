@@ -92,6 +92,12 @@ spec:
           - secretRef:
               name: local-settings-secrets-{{ .Values.deployEnv }}
               optional: true
+          - configMapRef:
+              name: local-settings-web-{{ .Values.deployEnv }}
+              optional: true
+          - secretRef:
+              name: local-settings-web-secrets-{{ .Values.deployEnv }}
+              optional: true
         ports:
           - containerPort: 80
             protocol: TCP

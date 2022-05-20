@@ -43,6 +43,9 @@ backup:
   serviceAccount: database-backup-write
 
 web:
+  # key-pair values to load into web pod environment.  Takes precedence over global localsettings
+  localsettings:
+  # APP: web
   containerImage:
     # Full path of the image registry imclusive of the image name
     imageRegistry: gcr.io/production-deployment/sefaria-web
@@ -105,6 +108,9 @@ nodejs:
     imageRegistry: gcr.io/production-deployment/sefaria-node
     # Commit id of the repo for which the image build has been triggered.
     tag: latest
+  # key-pair values to load into node pod environment.  Takes precedence over global localsettings
+  localsettings:
+  # APP: node
   replicaCount: 1
   resources:
     requests:
@@ -190,6 +196,9 @@ nginx:
     imageRegistry: gcr.io/production-deployment/sefaria-asset
     # Commit id of the repo for which the image build has been triggered.
     tag: latest
+  # key-pair values to load into nginx pod environment.  Takes precedence over global localsettings
+  localsettings:
+  # APP: nginx
   replicaCount: 1
   resources:
     requests:
@@ -200,6 +209,9 @@ nginx:
       cpu: "150m"
 
 monitor:
+  # key-pair values to load into monitor pod environment.  Takes precedence over global localsettings
+  localsettings:
+  # APP: monitor
   containerImage:
     # Full path of the image registry inclusive of the image name
     imageRegistry: gcr.io/production-deployment/sefaria-web

@@ -100,6 +100,13 @@ spec:
             {{- else }}
             value: search-{{.Values.deployEnv}}
             {{- end }}
+        envFrom:
+          - configMapRef:
+              name: local-settings-nginx-{{ .Values.deployEnv }}
+              optional: true
+          - secretRef:
+              name: local-settings-nginx-secrets-{{ .Values.deployEnv }}
+              optional: true
       volumes:
         - name:  nginx-conf
           configMap:
