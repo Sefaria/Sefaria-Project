@@ -13,7 +13,13 @@ const TranslationsPage = ({translationsSlug}) => {
         setTranslations(x)
     });
     const tabs = [{id: "texts", title: {en: "Texts", he: Sefaria._("Texts", "Header")}}];
-    
+    const sortFx = (a, b) => {
+      if(a["order"] && b["order"]) {
+        return a['order'][0] - b['order'][0];
+      } else {
+        return 0;
+      }
+    }
     return (
         <div className="readerNavMenu noLangToggleInHebrew" key="0">
         <div className="content">
@@ -32,13 +38,13 @@ const TranslationsPage = ({translationsSlug}) => {
                           )}
                  
                   ><> {translations ?  Object.keys(translations).map(corpus => {
-                return (<div className="translationsPage">
+                return (<div key={corpus} className="translationsPage">
                   <h2>{corpus}</h2>
                   {Sefaria.tocObjectByCategories([corpus]).contents.filter(x => Object.keys(translations[corpus]).includes(x.category)).map(x => {
-                    return (<details open={translationsSlug !== "en"}><summary>{x.category}</summary>
+                    return (<details key={x.category} open={translationsSlug !== "en"}><summary>{x.category}</summary>
                     <ul>
-                      {translations[corpus][x.category]/*.sort((a, b) => a['order'][0] - b['order'][0])*/.map((y, i) => {
-                        return (<li key={i} className={i !== translations[corpus][x.category].length - 1 ? "bullet languageItem" : "languageItem"}><a href={`/${y.title}.1?with=Translations&${y.rtlLanguage === "en" ? "ven=" + y.versionTitle : "vhe=" + y.versionTitle}`}>{y.title}</a></li>)
+                      {translations[corpus][x.category].sort(sortFx).map((y, i) => {
+                        return (<li key={i+y.title} className={i !== translations[corpus][x.category].length - 1 ? "bullet languageItem" : "languageItem"}><a href={`/${y.title}.1?with=Translations&${y.rtlLanguage === "en" ? "ven=" + y.versionTitle : "vhe=" + y.versionTitle}`}>{y.title}</a></li>)
                       })}
                     </ul>
                     </details>)
