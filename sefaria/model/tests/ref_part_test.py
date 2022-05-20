@@ -9,7 +9,7 @@ import spacy
 from spacy.language import Language
 from sefaria.model import schema
 
-
+pytestmark = pytest.mark.linker
 ref_resolver = library.get_ref_resolver()
 
 
