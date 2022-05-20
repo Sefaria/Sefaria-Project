@@ -49,7 +49,7 @@ from sefaria.utils.util import text_preview
 from sefaria.utils.hebrew import hebrew_term, is_hebrew
 from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha, get_todays_parasha
 from sefaria.utils.util import short_to_long_lang_code
-from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, SEARCH_ADMIN, RTC_SERVER, MULTISERVER_REDIS_SERVER, MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, DISABLE_AUTOCOMPLETER
+from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, SEARCH_ADMIN, RTC_SERVER, MULTISERVER_REDIS_SERVER, MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, DISABLE_AUTOCOMPLETER, ENABLE_LINKER
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.site.categories import CATEGORY_ORDER
 from sefaria.system.multiserver.coordinator import server_coordinator
@@ -92,6 +92,9 @@ if not DISABLE_AUTOCOMPLETER:
     logger.info("Initializing Cross Lexicon Auto Completer")
     library.build_cross_lexicon_auto_completer()
 
+if ENABLE_LINKER:
+    logger.info("Initializing Linker")
+    library.build_ref_resolver()
 
 if server_coordinator:
     server_coordinator.connect()
@@ -2345,8 +2348,8 @@ def tag_category_api(request, path=None):
         if not path or path == "index":
             categories = TopicSet({"isTopLevelDisplay": True}, sort=[("displayOrder", 1)])
         else:
-            from sefaria.model.abstract import AbstractMongoRecord
-            slug = AbstractMongoRecord.normalize_slug(path)
+            from sefaria.model.abstract import SluggedAbstractMongoRecord
+            slug = SluggedAbstractMongoRecord.normalize_slug(path)
             topic = Topic.init(slug)
             if not topic:
                 categories = []
@@ -3166,8 +3169,8 @@ def topic_page(request, topic):
     topic_obj = Topic.init(topic)
     if topic_obj is None:
         # try to normalize
-        from sefaria.model.abstract import AbstractMongoRecord
-        topic_obj = Topic.init(AbstractMongoRecord.normalize_slug(topic))
+        from sefaria.model.abstract import SluggedAbstractMongoRecord
+        topic_obj = Topic.init(SluggedAbstractMongoRecord.normalize_slug(topic))
         if topic_obj is None:
             raise Http404
         topic = topic_obj.slug
@@ -4471,6 +4474,18 @@ def apple_app_site_association(request):
         }
     })
 
+def android_asset_links_json(request):
+    return jsonResponse(
+        [{
+            "relation": ["delegate_permission/common.handle_all_urls"],
+            "target": {
+                "namespace": "android_app",
+                "package_name": "org.sefaria.sefaria",
+                "sha256_cert_fingerprints":
+                    ["FD:86:BA:99:63:C2:71:D9:5F:E6:0D:0B:0F:A1:67:EA:26:15:45:BE:0C:D0:DF:69:64:01:F3:AD:D0:EE:C6:87"]
+            }
+        }]
+    )
 
 def application_health_api(request):
     """

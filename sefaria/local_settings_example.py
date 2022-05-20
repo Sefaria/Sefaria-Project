@@ -205,6 +205,9 @@ DISABLE_INDEX_SAVE = False
 # which can be annoying for local development. 
 DISABLE_AUTOCOMPLETER = False
 
+# Turns on loading of machine learning models to run linker
+ENABLE_LINKER = False
+
 # Caching with Cloudflare
 CLOUDFLARE_ZONE = ""
 CLOUDFLARE_EMAIL = ""
@@ -229,6 +232,15 @@ GOOGLE_APPLICATION_CREDENTIALS_FILEPATH = ""
 GEOIP_DATABASE = 'data/geoip/GeoLiteCity.dat'
 GEOIPV6_DATABASE = 'data/geoip/GeoLiteCityv6.dat'
 
+RAW_REF_MODEL_BY_LANG_FILEPATH = {
+    "en": None,
+    "he": None
+}
+
+RAW_REF_PART_MODEL_BY_LANG_FILEPATH = {
+    "en": None,
+    "he": None
+}
 
 # Simple JWT
 SIMPLE_JWT = {

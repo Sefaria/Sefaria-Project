@@ -11,7 +11,7 @@ from collections import defaultdict
 from sefaria.system.database import db
 from sefaria.model import *
 from sefaria.system.exceptions import DuplicateRecordError
-from sefaria.model.abstract import AbstractMongoRecord
+from sefaria.model.abstract import SluggedAbstractMongoRecord
 
 """
 0 key
@@ -66,8 +66,8 @@ has_slug_issues = False
 for l in rows:
     slug = l[0].encode('utf8').decode()
     primary_title = l[1].strip() if len(l[1].strip()) > 0 else l[3].strip()
-    if re.search(fr'^{re.escape(AbstractMongoRecord.normalize_slug(primary_title))}\d*$', slug) is None:
-        print(f"ERROR: slug '{slug}' does not match primary title '{primary_title}'. Expected slug '{AbstractMongoRecord.normalize_slug(primary_title)}'")
+    if re.search(fr'^{re.escape(SluggedAbstractMongoRecord.normalize_slug(primary_title))}\d*$', slug) is None:
+        print(f"ERROR: slug '{slug}' does not match primary title '{primary_title}'. Expected slug '{SluggedAbstractMongoRecord.normalize_slug(primary_title)}'")
         has_slug_issues = True
     if len(l[9]) == 0:
         print(f"ERROR: slug '{slug}' must have column 'Halachic Era' filled in.")
@@ -82,8 +82,8 @@ for slug, count in internal_slug_count.items():
     if non_author is not None:
         print(f"ERROR: slug {slug} exists as a non-author. Please update slug in sheet to be globally unique.")
         has_slug_issues = True
-    if AbstractMongoRecord.normalize_slug(slug) != slug:
-        print(f"ERROR: slug '{slug}' does not match slugified version which is '{AbstractMongoRecord.normalize_slug(slug)}'. Please slugify in the sheet.")
+    if SluggedAbstractMongoRecord.normalize_slug(slug) != slug:
+        print(f"ERROR: slug '{slug}' does not match slugified version which is '{SluggedAbstractMongoRecord.normalize_slug(slug)}'. Please slugify in the sheet.")
         has_slug_issues = True
 if has_slug_issues:
     raise Exception("Issues found. See above errors.")

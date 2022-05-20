@@ -1,0 +1,65 @@
+# NB: This assumes an already-functioning mongo instance. 
+# Parameters:
+# MONGO_DUMP_PATH: URI of database dump
+# MONGO_HOST: Mongo hostname
+# SANDBOX_NAME: The name of the table created by this job
+# ENVIRONMENT: Deployment environment {prod, preprod, stage}
+---
+{{- if and (eq .Values.sandbox "true") .Values.restore.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: restore-mongo-{{ .Values.deployEnv }}
+  labels:
+    deployEnv: {{ .Values.deployEnv | quote }}
+    {{- include "sefaria.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/hook: pre-install
+    helm.sh/hook-delete-policy: hook-succeeded, hook-failed
+    helm.sh/hook-weight: "10"
+spec:
+  template:
+    spec:
+      serviceAccount: {{ .Values.restore.serviceAccount }}
+      volumes:
+        - name: shared-volume
+          emptyDir: {}
+        - name: script
+          configMap:
+            name: mongo-restore-{{ .Values.deployEnv }}
+            defaultMode: 0755
+      initContainers:
+        - name: mongo-backup-downloader-{{ .Values.deployEnv }}
+          image: google/cloud-sdk
+          volumeMounts:
+            - name: shared-volume
+              mountPath: /storage
+          env:
+            - name: BACKUP_BUCKET
+              value: {{ .Values.restore.bucket }}
+            - name: BACKUP_TARBALL
+              value: {{ template "sefaria.tarballName" . }}
+          command: ["bash"]
+          args: ["-c", "gsutil cp gs://$BACKUP_BUCKET/$BACKUP_TARBALL /storage/dump.tar.gz"]
+      containers:
+        - name: mongo-backup-restorer-{{ .Values.deployEnv }}
+          image: mongo:4.4
+          volumeMounts:
+            - name: shared-volume
+              mountPath: /storage
+            - name: script
+              mountPath: /script
+          env:
+            - name: MONGO_HOST
+              value: {{ .Values.localSettings.MONGO_HOST | quote }}
+          envFrom:
+             - secretRef:
+                 name: {{ .Values.secrets.localSettings.ref }}
+                 optional: true
+             - secretRef:
+                 name: local-settings-secrets-{{ .Values.deployEnv }}
+                 optional: true
+          command: ["/script/restore-mongo.sh"]
+      restartPolicy: Never
+  ttlSecondsAfterFinished: 432000
+{{- end }}
