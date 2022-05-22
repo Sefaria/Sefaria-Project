@@ -17,7 +17,8 @@ import {
   PBSC2020LandingPage,
   PBSC2021LandingPage,
   RambanLandingPage,
-  EducatorsPage
+  EducatorsPage,
+  DonatePage
 } from './StaticPages';
 import {
   SignUpModal,
@@ -25,7 +26,7 @@ import {
   CookiesNotification,
   CommunityPagePreviewControls
 } from './Misc';
-import { Ad } from './Ad';
+import { Promotions } from './Promotions';
 import Component from 'react-class';
 import BeitMidrash, {BeitMidrashClosed} from './BeitMidrash';
 import  { io }  from 'socket.io-client';
@@ -182,6 +183,11 @@ class ReaderApp extends Component {
       $("a").not($(ReactDOM.findDOMNode(this)).find("a"))
         .on("click", this.handleInAppLinkClick);
     }
+    //Add a default handler on all (link) clicks that is set to fire first 
+    // and check if we need to just ignore other handlers because someone is doing ctrl+click or something.
+    // (because its set to capture, or the event going down the dom stage, and the listener is the document element- it should fire before other handlers. Specifically
+    // handleInAppLinkClick that disables modifier keys such as cmd, alt, shift) 
+    document.addEventListener('click', this.handleInAppClickWithModifiers, {capture: true});
     // Save all initial panels to recently viewed
     this.state.panels.map(this.saveLastPlace);
 
@@ -950,7 +956,35 @@ class ReaderApp extends Component {
     // Handle clicking a search result in a compare panel, so that clicks don't clobber open panels
     this.replacePanel(n, ref, currVersions, options);
   }
+  getHTMLLinkParentOfEventTarget(event){
+    //get the lowest level parent element of an event target that is an HTML link tag. Or Null.
+    let target = event.target,
+    parent = target,
+    outmost = event.currentTarget;
+    while (parent) {
+      if(parent.nodeName == 'A'){
+        return parent
+      } 
+      else if (parent.parentNode === outmost) {
+        return null;
+      }
+      parent = parent.parentNode;
+    }
+  }
+  handleInAppClickWithModifiers(e){
+    //Make sure to respect ctrl/cmd etc modifier keys when a click on a link happens
+    const linkTarget = this.getHTMLLinkParentOfEventTarget(e);
+    if (linkTarget) { // We want the absolute target of the event to be a link tag, not the "currentTarget".
+      // Dont trigger if user is attempting to open a link with a modifier key (new tab, new window)
+      if (e.metaKey || e.shiftKey || e.ctrlKey || e.altKey) { //the ctrl/cmd, shift and alt/options keys in Windows and MacOS
+        // in this case we want to stop other handlers from running and just go to target href
+        e.stopImmediatePropagation();
+        return;
+      }
+    }
+  }
   handleInAppLinkClick(e) {
+    //Allow global navigation handling in app via link elements
     // If a default has been prevented, assume a custom handler is already in place
     if (e.isDefaultPrevented()) {
       return;
@@ -961,19 +995,16 @@ class ReaderApp extends Component {
     }
     // https://github.com/STRML/react-router-component/blob/master/lib/CaptureClicks.js
     // Get the <a> element.
-    var el = e.target;
-    while (el && el.nodeName !== 'A') {
-      el = el.parentNode;
-    }
+    const linkTarget = this.getHTMLLinkParentOfEventTarget(e);
     // Ignore clicks from non-a elements.
-    if (!el) {
+    if (!linkTarget) {
       return;
     }
     // Ignore the click if the element has a target.
-    if (el.target && el.target !== '_self') {
+    if (linkTarget.target && linkTarget.target !== '_self') {
       return;
     }
-    const href = el.getAttribute('href');
+    const href = linkTarget.getAttribute('href');
     if (!href) {
       return;
     }
@@ -986,7 +1017,7 @@ class ReaderApp extends Component {
       return
     }
     //All links within sheet content should open in a new panel
-    const isSheet = !!(el.closest(".sheetItem"))
+    const isSheet = !!(linkTarget.closest(".sheetItem"))
     const replacePanel = !(isSheet)
     const handled = this.openURL(href,replacePanel);
     if (handled) {
@@ -1008,7 +1039,7 @@ class ReaderApp extends Component {
       window.open(url, '_blank')
       return true;
     }
-    const path = url.pathname;
+    const path = decodeURI(url.pathname);
     const params = url.searchParams;
     const openPanel = replace ? this.openPanel : this.openPanelAtEnd;
     if (path === "/") {
@@ -1024,7 +1055,7 @@ class ReaderApp extends Component {
       this.showSaved();
 
     } else if (path.match(/\/texts\/.+/)) {
-      this.showLibrary(path.slice(7).split("/").map(decodeURI));
+      this.showLibrary(path.slice(7).split("/"));
 
     } else if (path === "/collections") {
       this.showCollections();
@@ -1057,13 +1088,13 @@ class ReaderApp extends Component {
       this.openAllTopics(path.slice(12));
 
     } else if (path.match(/^\/topics\/[^\/]+/)) {
-      this.openTopic(path.slice(8));
+      this.openTopic(path.slice(8), params.get("tab"));
 
     } else if (path.match(/^\/profile\/.+/)) {
       this.openProfile(path.slice(9), params.get("tab"));
 
     } else if (path.match(/^\/collections\/.+/) && !path.endsWith("/settings") && !path.endsWith("/new")) {
-      this.openCollection(path.slice(13));
+      this.openCollection(path.slice(13), params.get("tag"));
 
     } else if (Sefaria.isRef(path.slice(1))) {
       const currVersions = {en: params.get("ven"), he: params.get("vhe")};
@@ -1225,7 +1256,7 @@ class ReaderApp extends Component {
     let panelLang;
     if (versionName && versionLanguage) {
       panel.currVersions[versionLanguage] = versionName;
-      if ((versionLanguage === "he" && panel.settings.language === 'english') ||
+      if ((!!panel.currVersions["he"] && !!panel.currVersions["en"]) || (versionLanguage === "he" && panel.settings.language === 'english') ||
           (versionLanguage === "en" && panel.settings.language === 'hebrew')) { // if lang of version isn't visible, display it
         panelLang = "bilingual";
       } else if (versionLanguage === "he") {
@@ -1445,6 +1476,9 @@ class ReaderApp extends Component {
     this.state.panels[n].scrollToHighlighted = false;
     this.setState({panels: this.state.panels});
     }
+  setDivineNameReplacement(mode) {
+    this.setState({divineNameReplacement: mode})
+  }
   setConnectionsFilter(n, filter, updateRecent) {
     // Set the filter for connections panel at `n`, carry data onto the panel's basetext as well.
     var connectionsPanel = this.state.panels[n];
@@ -1599,9 +1633,12 @@ class ReaderApp extends Component {
     state = this.makePanelState(state);
     this.setState({panels: [state], headerMode: false});
   }
-  openTopic(slug) {
+  openTopic(slug, topicsTab) {
+    if (!topicsTab) {
+      topicsTab = "sources";
+    }
     Sefaria.getTopic(slug, {annotate_time_period: true}).then(topic => {
-      this.setSinglePanelState({ menuOpen: "topics", navigationTopic: slug, topicTitle: topic.primaryTitle });
+      this.setSinglePanelState({ menuOpen: "topics", navigationTopic: slug, topicTitle: topic.primaryTitle, topicsTab });
     });
   }
   openTopicCategory(slug) {
@@ -1621,8 +1658,8 @@ class ReaderApp extends Component {
       this.setSinglePanelState({ menuOpen: "profile", profile, profileTab: tab});
     });
   }
-  openCollection(slug) {
-    this.setSinglePanelState({menuOpen: "collection",  collectionSlug: slug});
+  openCollection(slug, tag) {
+    this.setSinglePanelState({menuOpen: "collection",  collectionSlug: slug, collectionTag: tag});
   }
   toggleMobileNavMenu() {
     this.setState({mobileNavMenuOpen: !this.state.mobileNavMenuOpen});
@@ -1784,7 +1821,17 @@ class ReaderApp extends Component {
   }
 
   getUserContext() {
-    const refs = this.state.panels.map(panel => panel.currentlyVisibleRef || panel.bookRef || panel.navigationCategories || panel.navigationTopic).flat();
+    const returnNullIfEmpty = (value) => {
+      if(Array.isArray(value)) {
+        if(value.length === 0) {
+          return null;
+        } else {
+          return value;
+        }
+      }
+
+    }
+    const refs = this.state.panels.map(panel => panel.currentlyVisibleRef || panel.bookRef || returnNullIfEmpty(panel.navigationCategories) || panel.navigationTopic).flat();
     const books = refs.map(ref => Sefaria.parseRef(ref).book);
     const triggers = refs.map(ref => Sefaria.refCategories(ref))
           .concat(books)
@@ -1793,6 +1840,7 @@ class ReaderApp extends Component {
           .filter(ref => !!ref);
     const deDupedTriggers = [...new Set(triggers.map(JSON.stringify))].map(JSON.parse);
     const context = {
+      isDebug: this.props._debug,
       isLoggedIn: Sefaria._uid,
       interfaceLang: Sefaria.interfaceLang,
       dt: Sefaria.util.epoch_time(new Date())*1000,
@@ -1961,6 +2009,8 @@ class ReaderApp extends Component {
                       translationLanguagePreference={this.state.translationLanguagePreference}
                       setTranslationLanguagePreference={this.setTranslationLanguagePreference}
                       navigatePanel={navigatePanel}
+                      divineNameReplacement={this.state.divineNameReplacement}
+                      setDivineNameReplacement={this.setDivineNameReplacement}
                     />
                   </div>);
     }
@@ -1978,7 +2028,7 @@ class ReaderApp extends Component {
           messageHTML={Sefaria.interruptingMessage.html}
           style={Sefaria.interruptingMessage.style}
           repetition={Sefaria.interruptingMessage.repetition}
-          onClose={this.rerender} />) : <Ad rerender={this.rerender} adType="banner"/>;
+          onClose={this.rerender} />) : <Promotions rerender={this.rerender} adType="banner"/>;
     const sefariaModal = (
       <SignUpModal onClose={this.toggleSignUpModal} show={this.state.showSignUpModal} />
     );
@@ -2078,5 +2128,6 @@ export {
   PBSC2020LandingPage,
   PBSC2021LandingPage,
   RambanLandingPage,
-  EducatorsPage
+  EducatorsPage,
+  DonatePage
 };

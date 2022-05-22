@@ -35,7 +35,7 @@ from sefaria.system.exceptions import InputError, BookNameError, PartialRefInput
 from sefaria.utils.hebrew import is_hebrew, hebrew_term
 from sefaria.utils.util import list_depth
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
-from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH, MULTISERVER_ENABLED
+from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH, MULTISERVER_ENABLED, RAW_REF_MODEL_BY_LANG_FILEPATH, RAW_REF_PART_MODEL_BY_LANG_FILEPATH
 from sefaria.system.multiserver.coordinator import server_coordinator
 
 """
@@ -46,7 +46,7 @@ from sefaria.system.multiserver.coordinator import server_coordinator
 
 
 class AbstractIndex(object):
-    def contents(self, v2=False, raw=False, **kwargs):
+    def contents(self, raw=False, **kwargs):
         pass
 
     def versionSet(self):
@@ -144,7 +144,7 @@ class AbstractIndex(object):
         Returns the `contents` dictionary with each node annotated with section lengths info
         from version_state.
         """
-        contents = self.contents(v2=True)
+        contents = self.contents()
         vstate   = self.versionState()
 
         def simplify_version_state(vstate_node):
@@ -243,22 +243,19 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
     def is_complex(self):
         return getattr(self, "nodes", None) and self.nodes.has_children()
 
-    def contents(self, v2=False, raw=False, force_complex=False, with_content_counts=False, with_related_topics=False, **kwargs):
+    def contents(self, raw=False, with_content_counts=False, with_related_topics=False, **kwargs):
         if raw:
             contents = super(Index, self).contents()
-        elif v2:
+        else:
             # adds a set of legacy fields like 'titleVariants', expands alt structures with preview, etc.
             contents = self.nodes.as_index_contents()
             if with_content_counts:
                 contents["schema"] = self.annotate_schema_with_content_counts(contents["schema"])
                 contents["firstSectionRef"] = Ref(self.title).first_available_section_ref().normal()
-        else:
-            contents = self.legacy_form(force_complex=force_complex)
 
-        if not raw:
             contents = self.expand_metadata_on_contents(contents)
-
         return contents
+
 
     def annotate_schema_with_content_counts(self, schema):
         """
@@ -324,40 +321,6 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             }
 
         return contents
-
-    def legacy_form(self, force_complex=False):
-        """
-        :param force_complex: Forces a complex Index record into legacy form
-        :return: Returns an Index object as a flat dictionary, in version one form.
-        :raise: Exception if the Index cannot be expressed in the old form
-        """
-        if not self.nodes.is_flat() and not force_complex:
-            raise InputError("Index record {} can not be converted to legacy API form".format(self.title))
-
-        d = {
-            "title": self.title,
-            "categories": self.categories[:],
-            "titleVariants": self.nodes.all_node_titles("en"),
-        }
-
-        if self.nodes.is_flat():
-            d["sectionNames"] = self.nodes.sectionNames[:]
-            d["heSectionNames"] = list(map(hebrew_term, self.nodes.sectionNames))
-            d["addressTypes"] = self.nodes.addressTypes[:]  # This isn't legacy, but it was needed for checkRef
-            d["textDepth"] = len(self.nodes.sectionNames)
-        if getattr(self, "order", None):
-            d["order"] = self.order[:]
-        if getattr(self.nodes, "lengths", None):
-            d["lengths"] = self.nodes.lengths[:]
-            d["length"] = self.nodes.lengths[0]
-        if self.nodes.primary_title("he"):
-            d["heTitle"] = self.nodes.primary_title("he")
-        if self.nodes.all_node_titles("he"):
-            d["heTitleVariants"] = self.nodes.all_node_titles("he")
-        else:
-            d["heTitleVariants"] = []
-
-        return d
 
     def _saveable_attrs(self):
         d = {k: getattr(self, k) for k in self._saveable_attr_keys() if hasattr(self, k)}
@@ -944,6 +907,23 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         if len(corpora) > 0:
             return corpora[0]
 
+    def referenceable_children(self):
+        # parallel to TreeNodes's `children`. Allows full traversal of an index's nodes
+        default_children = self.nodes.children
+        if len(default_children) == 0:
+            default_children = [self.nodes]
+        return default_children + self.get_alt_struct_nodes()
+
+    def get_referenceable_alone_nodes(self):
+        alone_nodes = []
+        alone_scopes = {'any', 'alone'}
+        for child in self.referenceable_children():
+            if any(template.scope in alone_scopes for template in child.get_match_templates()):
+                alone_nodes += [child]
+            # TODO used to be hard-coded to include grandchildren as well. Can't be recursive unless we add this to SchemaNode as well.
+            # alone_nodes += child.get_referenceable_alone_nodes()
+        return alone_nodes
+
 
 class IndexSet(abst.AbstractMongoSet):
     """
@@ -1024,6 +1004,7 @@ class AbstractTextRecord(object):
     text_attr = "chapter"
     ALLOWED_TAGS    = ("i", "b", "br", "u", "strong", "em", "big", "small", "img", "sup", "sub", "span", "a")
     ALLOWED_ATTRS   = {
+        'sup': ['class'],
         'span':['class', 'dir'],
         # There are three uses of i tags.
         # footnotes: uses content internal to <i> tag.
@@ -1224,7 +1205,7 @@ class AbstractTextRecord(object):
         if isinstance(tag, Tag):
             is_inline_commentator = tag.name == "i" and len(tag.get('data-commentator', '')) > 0
             is_page_marker = tag.name == "i" and len(tag.get('data-overlay','')) > 0
-            is_tanakh_end_sup = tag.name == "sup" and tag.get('class') == ['endFootnote']  # footnotes like this occur in JPS english
+            is_tanakh_end_sup = tag.name == "sup" and 'endFootnote' in tag.get('class', [])  # footnotes like this occur in JPS english
             return AbstractTextRecord._itag_is_footnote(tag) or is_inline_commentator or is_page_marker or is_tanakh_end_sup
         return False
 
@@ -2816,7 +2797,14 @@ class Ref(object, metaclass=RefCacheType):
             base_wout_title = base.replace(title + " ", "")
             address_class.parse_range_end(self, parts, base_wout_title)
         elif len(parts) == 2: # Parse range end portion, if it exists
-            self._parse_range_end(re.split("[.:, ]+", parts[1]))
+            try:
+                second_part = Ref(parts[1])
+                assert second_part.book == self.book, "the two sides of the range have different books"
+                self.toSections = Ref(parts[1]).sections
+            except InputError:
+                self._parse_range_end(re.split("[.:, ]+", parts[1]))
+            except AssertionError:
+                raise InputError("the two sides of the range have different books: '{}'.".format(self.tref))
 
 
     def _parse_range_end(self, range_parts):
@@ -3462,14 +3450,17 @@ class Ref(object, metaclass=RefCacheType):
         if isinstance(self.index_node, JaggedArrayNode):
             r = self.padded_ref()
         elif isinstance(self.index_node, TitledTreeNode):
-            first_leaf = self.index_node.first_leaf()
-            if not first_leaf:
-                return None
-            try:
-                r = first_leaf.ref().padded_ref()
-            except Exception as e: #VirtualNodes dont have a .ref() function so fall back to VersionState
-                if self.is_book_level():
-                    return self.index.versionSet().array()[0].first_section_ref()
+            if self.is_segment_level():  # dont need to use first_leaf if we're already at segment level
+                r = self
+            else:
+                first_leaf = self.index_node.first_leaf()
+                if not first_leaf:
+                    return None
+                try:
+                    r = first_leaf.ref().padded_ref()
+                except Exception as e: #VirtualNodes dont have a .ref() function so fall back to VersionState
+                    if self.is_book_level():
+                        return self.index.versionSet().array()[0].first_section_ref()
         else:
             return None
 
@@ -3621,15 +3612,25 @@ class Ref(object, metaclass=RefCacheType):
         """
         Returns a more specific reference than the current Ref
 
-        :param subsection: int or list - the subsection(s) of the current Ref
+        :param subsections: int or list - the subsections of the current Ref.
+        If a section in subsections is negative, will calculate the last section for that depth. NOTE: this requires access to state_ja so this is a bit slower.
         :return: :class:`Ref`
         """
         if isinstance(subsections, int):
             subsections = [subsections]
-        assert self.index_node.depth >= len(self.sections) + len(subsections), "Tried to get subref of bottom level ref: {}".format(self.normal())
+        new_depth = len(self.sections) + len(subsections)
+        assert self.index_node.depth >= new_depth, "Tried to get subref of bottom level ref: {}".format(self.normal())
         assert not self.is_range(), "Tried to get subref of ranged ref".format(self.normal())
 
         d = self._core_dict()
+
+        if any([sec < 0 for sec in subsections]):
+            # only load state_ja when a negative index exists
+            ja = self.get_state_ja()
+            ja_inds = [sec - 1 for sec in self.sections + subsections]
+            for i, sec in enumerate(subsections):
+                if sec >= 0: continue
+                subsections[i] = ja.sub_array_length(ja_inds[:len(self.sections) + i]) + sec + 1
         d["sections"] += subsections
         d["toSections"] += subsections
         return Ref(_obj=d)
@@ -4693,6 +4694,7 @@ class Library(object):
         self._simple_term_mapping = {}
         self._full_term_mapping = {}
         self._simple_term_mapping_json = None
+        self._ref_resolver = None
 
         # Topics
         self._topic_mapping = {}
@@ -5314,7 +5316,37 @@ class Library(object):
         self._topic_mapping = {t.slug: {"en": t.get_primary_title("en"), "he": t.get_primary_title("he")} for t in TopicSet()}
         return self._topic_mapping
 
-    #todo: only used in bio scripts
+    def get_ref_resolver(self, rebuild=False):
+        resolver = self._ref_resolver
+        if not resolver or rebuild:
+            resolver = self.build_ref_resolver()
+        return resolver
+
+    def build_ref_resolver(self):
+        import spacy
+        spacy.prefer_gpu()
+        from .ref_part import MatchTemplateTrie, MatchTemplateGraph, RefResolver, TermMatcher, NonUniqueTermSet
+        from sefaria.spacy_function_registry import inner_punct_tokenizer_factory  # used by spacy.load()
+
+        root_nodes = list(filter(lambda n: getattr(n, 'match_templates', None) is not None, self.get_index_forest()))
+        alone_nodes = reduce(lambda a, b: a + b.index.get_referenceable_alone_nodes(), root_nodes, [])
+        non_unique_terms = NonUniqueTermSet()
+        ref_part_title_graph = MatchTemplateGraph(root_nodes)
+        self._ref_resolver = RefResolver(
+            {k: spacy.load(v) for k, v in RAW_REF_MODEL_BY_LANG_FILEPATH.items() if v is not None},
+            {k: spacy.load(v) for k, v in RAW_REF_PART_MODEL_BY_LANG_FILEPATH.items() if v is not None},
+            {
+                "en": MatchTemplateTrie('en', nodes=(root_nodes + alone_nodes), scope='alone'),
+                "he": MatchTemplateTrie('he', nodes=(root_nodes + alone_nodes), scope='alone')
+            },
+            ref_part_title_graph,
+            {
+                "en": TermMatcher('en', non_unique_terms),
+                "he": TermMatcher('he', non_unique_terms),
+            }
+        )
+        return self._ref_resolver
+
     def get_index_forest(self):
         """
         :return: list of root Index nodes.
@@ -5650,7 +5682,7 @@ class Library(object):
         curr_address_index = len(sections) - 1  # start from the lowest depth matched in `sections` and go backwards
         for i in range(node.depth-1, -1, -1):
             toGname = "ar{}".format(i)
-            if gs.get(toGname) is not None:
+            if gs.get(toGname):
                 toSections.append(node._addressTypes[curr_address_index].toNumber(lang, gs.get(toGname), sections=sections[curr_address_index]))
                 curr_address_index -= 1
 
@@ -5663,7 +5695,8 @@ class Library(object):
             while len(toSections) < len(sections):
                 toSections.append(sections[len(sections) - len(toSections) - 1])
             toSections.reverse()
-
+        # return seems to ignore all previous logic...
+        # leaving this function in case errors that were thrown in above logic act as validation?
         return Ref(ref_match.group())
 
     def _build_ref_from_string(self, title=None, st=None, lang="en"):

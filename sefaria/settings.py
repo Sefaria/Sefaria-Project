@@ -296,14 +296,15 @@ CACHES = {
     }
 }
 
-'''
+
+
 GLOBAL_INTERRUPTING_MESSAGE = {
-    "name":       "09012022-user-testing-modal",
+    "name":       "2022-05-15-shavuot-donate-modal",
     "style":      "modal", # "modal" or "banner"
     "repetition": 1,
-    "is_fundraising": False,
+    "is_fundraising": True,
     "condition":  {
-        "returning_only": True,
+        "returning_only": False,
         "english_only": False,
         "desktop_only": False,
         "debug": False,
@@ -311,6 +312,8 @@ GLOBAL_INTERRUPTING_MESSAGE = {
 }
 '''
 GLOBAL_INTERRUPTING_MESSAGE = None
+'''
+
 
 
 # Grab environment specific settings from a file which

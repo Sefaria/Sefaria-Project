@@ -107,22 +107,22 @@ def make_text(doc, strip_html=False):
             cnode = version.content_node(node)
             if strip_html:
                 cnode = version.remove_html_and_make_presentable(cnode)
-            content += flatten(cnode, node.sectionNames)
+            content += flatten(cnode, node.sectionNames, node.addressTypes)
             return content
         else:
             return "\n\n%s" % node.primary_title(doc["language"])
 
-    def flatten(text, sectionNames):
+    def flatten(text, sectionNames, addressTypes):
         text = text or ""
-        if len(sectionNames) == 1:
+        if len(addressTypes) == 1:
             text = [t if t else "" for t in text]
             # Bandaid for mismatch between text structure, join recursively if text
             # elements are lists instead of strings.
             return "\n".join([t if isinstance(t, str) else "\n".join(t) for t in text])
         flat = ""
         for i in range(len(text)):
-            section = section_to_daf(i + 1) if sectionNames[0] == "Daf" else str(i + 1)
-            flat += "\n\n%s %s\n\n%s" % (sectionNames[0], section, flatten(text[i], sectionNames[1:]))
+            section = section_to_daf(i + 1) if addressTypes[0] == "Talmud" else str(i + 1)
+            flat += "\n\n%s %s\n\n%s" % (sectionNames[0], section, flatten(text[i], sectionNames[1:], addressTypes[1:]))
 
         return flat
 
@@ -460,7 +460,7 @@ def export_schemas():
 
         with open(path + title + ".json", "w") as f:
             try:
-                f.write(make_json(i.contents(v2=True)))
+                f.write(make_json(i.contents()))
 
             except InputError as e:
                 print("InputError: %s" % e)

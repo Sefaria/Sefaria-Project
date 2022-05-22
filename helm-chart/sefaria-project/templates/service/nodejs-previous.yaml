@@ -1,0 +1,18 @@
+{{- range $k, $v := untilStep (int (sub .Release.Revision .Values.previousServicesCount)) (int (add .Release.Revision 1)) 1 }}
+{{- if gt $v 0 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: "node-{{ $.Values.deployEnv }}-{{ $v }}"
+  labels:
+    app: node-{{ $.Values.deployEnv }}
+    deployEnv: "{{ $.Values.deployEnv }}"
+spec:
+  ports:
+  - port: 3000
+  selector:
+    app: node-{{ $.Values.deployEnv }}
+    releaseRevision: "{{ $v }}"
+{{- end }}
+{{- end }}

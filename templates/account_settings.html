@@ -5,22 +5,11 @@
 
 <div id="accountSettingsPage" class="static biReady">
 	<div class="inner">
-	<div class="headerWithButtons">
-        <div class="start"></div>
+	<div>
         <h1>
             <span class="int-en">Account Settings</span>
             <span class="int-he">הגדרות חשבון</span>
         </h1>
-        <div class="end">
-            <a class="button small transparent control-elem" href="/my/profile">
-                <span class="int-en">Cancel</span>
-                <span class="int-he">ביטול</span>
-            </a>
-            <div id="saveAccountSettings" class="button small blue control-elem" tabindex="0" role="button" >
-                <span class="int-en">Save</span>
-                <span class="int-he">שמירה</span>
-            </div>
-        </div>
     </div>
 	<div id="emailNotifications" class="section">
 		<label class="control-elem">
@@ -117,7 +106,7 @@
                 <span class="int-en">Change Email</span>
                 <span class="int-he">החלפת כתובת דוא"ל</span>
             </button>
-            <span id="email-edit-ok"></span>
+            <span id="email-edit-ok" style="display:none"></span>
         </div>
         <div id="username-change-edit" class="form-section" style="display: none">
             <input id="email" type="text" placeholder="{% trans "New Email" %}" autocomplete="off" />
@@ -128,6 +117,41 @@
                 <span class="int-he">עדכון כתובת דוא"ל</span>
             </button>
             <span id="email-edit-errors"></span>
+        </div>
+    </div>
+    <div id="gauth-email-change" class="section" style="{% if not profile.gauth_email %} display: none {% endif %}">
+        <label class="control-elem">
+                <span class="int-en">Google Account (Allows for exporting sheets to Google Drive)</span>
+                <span class="int-he">חשבון גוגל מקושר (מאפשר ייצוא דפי מקורות לגוגל דרייב)</span>
+        </label>
+        <div id="gauth-email-disconnect-display" class="form-section">
+            <input id="gauth-email-display" type="text" disabled="disabled" value="{{ profile.gauth_email }}" />
+            <button id="disconnect-gauth-email" type="button" class="button blue fillWidth">
+                <span class="int-en">Disconnect</span>
+                <span class="int-he">ניתוק מהחשבון</span>
+            </button>
+            <span id="gauth-disconnect-messages"></span>
+        </div>
+    </div>
+    <div id="gauth-email-disconnected" class="form-section" style="{% if profile.gauth_email %} display: none {% endif %}" >
+            <div>
+                <span class="int-en">Your Google Account has been disconnected</span>
+                <span class="int-he">חשבון הגוגל שלכם נותק בהצלחה</span>
+            </div>
+            <div class="additional-info">
+                <span class="int-en">You can link to a new Google Account the next time you export a sheet</span>
+                <span class="int-he">תוכלו להתחבר מחדש לחשבון גוגל בפעם הבאה שתייצאו לשם דף מקורות</span>
+            </div>
+        </div>
+        <div class="saveCancel">
+            <div id="saveAccountSettings" class="button blue control-elem" tabindex="0" role="button" >
+                <span class="int-en">Save</span>
+                <span class="int-he">שמירה</span>
+            </div>
+            <a class="button transparent control-elem" href="/my/profile">
+                <span class="int-en">Cancel</span>
+                <span class="int-he">ביטול</span>
+            </a>
         </div>
     </div>
 	</div>
@@ -197,10 +221,19 @@
                     $("#saveAccountSettings").trigger("click");
                 }
             });
-
             $("#change-email").click(function () {
                 $("#username-change-display").toggle();
                 $("#username-change-edit").toggle();
+            });
+            $("#disconnect-gauth-email").click(function () {
+                $.get("/unlink-gauth?redirect=0", function(data) {
+					if ("error" in data) {
+						$("#gauth-email-disconnect-display #gauth-disconnect-messages").text(data.error);
+					} else {
+                        $("#gauth-email-change").toggle();
+                        $("#gauth-email-disconnected").toggle();
+					}
+				});
             });
 
             $("#update-email").click(function(){
@@ -213,6 +246,7 @@
 					if ("error" in data) {
 						$("#username-change-edit #email-edit-errors").text(data.error);
 					} else {
+                        $("#username-change-display #email-edit-ok").show();
 					    $("#username-change-display #email-edit-ok").text(Sefaria._("Email was successfully changed!")).show();
                         $("#username-change-display #email-display").val(user_details["email"]);
                         $("#username-change-display").toggle();
@@ -220,7 +254,6 @@
 					}
 				});
 			});
-
 		});
 	</script>
 {% endblock %}

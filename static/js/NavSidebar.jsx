@@ -4,7 +4,7 @@ import PropTypes  from 'prop-types';
 import Sefaria  from './sefaria/sefaria';
 import {DonateLink, EnglishText, HebrewText, NewsletterSignUpForm} from './Misc'
 import {InterfaceText, ProfileListing, Dropdown} from './Misc';
-import { Ad } from './Ad'
+import { Promotions } from './Promotions'
 
 const NavSidebar = ({modules}) => {
   return <div className="navSidebar sans-serif">
@@ -81,7 +81,7 @@ const TitledText = ({enTitle, heTitle, enText, heText}) => {
 
 const Promo = () =>
     <Module>
-        <Ad adType="sidebar"/>
+        <Promotions adType="sidebar"/>
     </Module>
 ;
 
@@ -669,7 +669,12 @@ const DownloadVersions = ({sref}) => {
                 versions.map(v => ({
                     value: `${v.versionTitle}/${v.language}`,
                     label: `${Sefaria._v({he: v.versionTitleInHebrew ? v.versionTitleInHebrew : v.versionTitle, en: v.versionTitle})} (${Sefaria._(Sefaria.translateISOLanguageCode(v.actualLanguage))})`
-                }))
+                })).concat( // add merged versions for both primary langs "en" and "he" where applicable. (not yet possible for individual actual languages)
+                    versions.map(v => v.language).unique().map(lang => ({
+                        value: `merged/${lang}`,
+                        label: `${Sefaria._("Merged Version", "DownloadVersions")} (${Sefaria._(Sefaria.translateISOLanguageCode(lang))})`,
+                    }))
+                )
               }
               placeholder={Sefaria._( "Select Version", "DownloadVersions")}
               onChange={handleInputChange}

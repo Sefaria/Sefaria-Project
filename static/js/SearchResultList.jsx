@@ -11,6 +11,7 @@ import SearchTextResult from './SearchTextResult';
 import SearchSheetResult from './SearchSheetResult';
 import SearchFilters from './SearchFilters';
 import SearchState from './sefaria/searchState';
+import Strings from "./sefaria/strings.js"
 import {
   DropdownModal,
   DropdownButton,
@@ -20,6 +21,63 @@ import {
 } from './Misc';
 
 
+
+
+
+const SourcesSheetsDiv = (props) => {
+    let sourcesSheetsCounts = [];
+    let sheetsURL, sourcesURL;
+    if (props?.numSources > 0 && props?.numSheets > 0) { // if there's both, we need to specify two different URLs
+        sheetsURL = props.url + "?tab=sheets";
+        sourcesURL = props.url + "?tab=sources";
+    }
+    else {
+        sheetsURL = props.url;
+        sourcesURL = props.url;
+    }
+    
+    if (props?.numSources > 0) {
+        const sourcesDiv = <span><a href={sourcesURL}><InterfaceText>{props.numSources}</InterfaceText> <InterfaceText>Sources</InterfaceText></a></span>;
+        sourcesSheetsCounts.push(sourcesDiv);
+    }
+    if (props?.numSheets > 0) {
+        const sheetsDiv = <span><a href={sheetsURL}><InterfaceText>{props.numSheets}</InterfaceText> <InterfaceText>Sheets</InterfaceText></a></span>;
+        sourcesSheetsCounts.push(sheetsDiv);
+    }
+    
+    if (sourcesSheetsCounts.length === 0) {
+        return null;
+    }
+    else {
+        return <div className="topicSourcesSheets systemText">{sourcesSheetsCounts.reduce((prev, curr) => [prev, " ∙ ",  curr])}</div>;
+    }
+}
+
+
+const SearchTopic = (props) => {
+    const sourcesSheetsDiv = <SourcesSheetsDiv url={props.topic.url} numSheets={props.topic.numSheets} numSources={props.topic.numSources}/>;
+    const topicTitle = <div className="topicTitle">
+                          <h1>
+                          <a href={props.topic.url} onClick={() => Sefaria.track.event("Search", "topic in search click", props.topic.analyticCat+"|"+props.topic.title)}><InterfaceText text={{en:props.topic.title, he:props.topic.heTitle}}/></a>
+                          </h1>
+                        </div>;
+    const topicCategory = <div className="topicCategory sectionTitleText">
+                            <InterfaceText text={{en:props.topic.topicCat, he:props.topic.heTopicCat}}/>
+                          </div>;
+    return <div className="searchTopic">
+                {topicTitle}
+                {topicCategory}
+                {"enDesc" in props.topic ?
+                    <div className="topicDescSearchResult systemText">
+                       <InterfaceText text={{en:props.topic.enDesc, he:props.topic.heDesc}}/>
+                    </div> : null}
+                {sourcesSheetsDiv}
+        </div>
+}
+
+
+
+    
 class SearchResultList extends Component {
     constructor(props) {
       super(props);
@@ -33,6 +91,7 @@ class SearchResultList extends Component {
         pagesLoaded:    this._typeObjDefault(0),
         hits:           this._typeObjDefault([]),
         error:          false,
+        topics:         []
       }
 
       // Load search results from cache so they are available for immedate render
@@ -87,6 +146,99 @@ class SearchResultList extends Component {
         });
       }
     }
+    async addRefTopic(topic) {
+        const book = await Sefaria.getIndexDetails(topic.key);
+        return {
+            enDesc: book.enDesc,
+            heDesc: book.heDesc,
+            title: book.title,
+            heTitle: book.heTitle,
+            topicCat: book.categories[0],
+            heTopicCat: Sefaria.toc.filter(cat => cat.category === book.categories[0])[0].heCategory,
+            url: "/" + book.title,
+            analyticCat: "Book"
+        }
+    }
+    addTOCCategoryTopic(topic) {
+        const topicKeyArr = topic.key.slice();
+        const lastCat = topicKeyArr.pop(topicKeyArr - 1); //go up one level in order to get the bottom level's description
+        const relevantCats = topicKeyArr.length === 0 ? Sefaria.toc : Sefaria.tocItemsByCategories(topicKeyArr);
+        const relevantSubCat = relevantCats.filter(cat => "category" in cat && cat.category === lastCat)[0];
+        return {
+            analyticCat: "Category",
+            url: "/texts/" + topic.key.join("/"),
+            topicCat: "Texts",
+            heTopicCat: Sefaria.hebrewTerm("Texts"),
+            enDesc: relevantSubCat.enDesc,
+            heDesc: relevantSubCat.heDesc,
+            title: relevantSubCat.category,
+            heTitle: relevantSubCat.heCategory
+        }
+    }
+    async addGeneralTopic(topic) {
+        const d = await Sefaria.getTopic(topic.key, {annotate_time_period: true});
+        let searchTopic = {
+            analyticCat: "Topic",
+            title: d.primaryTitle["en"],
+            heTitle: d.primaryTitle["he"],
+            numSources: 0,
+            numSheets: 0,
+            url: "/topics/" + topic.key
+        }
+        const typeObj = Sefaria.topicTocCategory(topic.key);
+        if (!typeObj) {
+            searchTopic.topicCat = "Topics";
+            searchTopic.heTopicCat = Sefaria.hebrewTranslation("Topics");
+        } else {
+            searchTopic.topicCat = typeObj["en"];
+            searchTopic.heTopicCat = typeObj["he"];
+        }
+        if ("description" in d) {
+            searchTopic.enDesc = d.description["en"];
+            searchTopic.heDesc = d.description["he"];
+        }
+        if (d.tabs?.sources) {
+            searchTopic.numSources = d.tabs.sources.refs.length;
+        }
+        if (d.tabs?.sheets) {
+            searchTopic.numSheets = d.tabs.sheets.refs.length;
+        }
+        return searchTopic;
+    }
+    async addCollection(collection) {
+        const d = await Sefaria.getCollection(collection.key);
+        return {
+            analyticCat: "Collection",
+            title: d.name,
+            heTitle: d.name,
+            url: "/collections/" + collection.key,
+            topicCat: "Collections",
+            heTopicCat: Sefaria.hebrewTranslation("Collections"),
+            enDesc: d.description,
+            heDesc: d.description,
+            numSheets: d.sheets.length
+        }
+    }
+    async _executeTopicQuery() {
+        const d = await Sefaria.getName(this.props.query)
+        let topics = d.completion_objects.filter(obj => obj.title.toUpperCase() === this.props.query.toUpperCase());
+        const hasAuthor = topics.some(obj => obj.type === "AuthorTopic");
+        if (hasAuthor) {
+            topics = topics.filter(obj => obj.type !== "TocCategory");  //TocCategory is unhelpful if we have author
+        }
+        let searchTopics = await Promise.all(topics.map(async t => {
+            if (t.type === 'ref') {
+                return await this.addRefTopic(t);
+            } else if (t.type === 'TocCategory') {
+                return this.addTOCCategoryTopic(t);
+            } else if (t.type === 'Collection') {
+                return await this.addCollection(t);
+            } else {
+                return await this.addGeneralTopic(t);
+            }
+        }));
+        this.setState({topics: searchTopics});
+    }
     updateRunningQuery(type, ajax) {
       this.state.runningQueries[type] = ajax;
       this.state.isQueryRunning[type] = !!ajax;
@@ -137,6 +289,7 @@ class SearchResultList extends Component {
       return props[`${type}SearchState`];
     }
     _executeAllQueries(props) {
+      this._executeTopicQuery();
       this.types.forEach(t => this._executeQuery(props, t));
     }
     _getAggsToUpdate(filtersValid, aggregation_field_array, aggregation_field_lang_suffix_array, appliedFilterAggTypes, type) {
@@ -286,6 +439,20 @@ class SearchResultList extends Component {
               key={result._id}
               onResultClick={this.props.onResultClick} />
           );
+          if (this.state.topics.length > 0) {
+              let topics = this.state.topics.map(t => {
+                  Sefaria.track.event("Search", "topic in search display", t.analyticCat+"|"+t.title);
+                  return <SearchTopic topic={t}/>
+              });
+              if (results.length > 0) {
+                  topics = <div id="searchTopics">{topics}</div>
+                  results.splice(2, 0, topics);
+              }
+              else {
+                  results = topics;
+              }
+          }
+
 
         } else if (tab == "sheet") {
           results = this.state.hits.sheet.map(result =>

@@ -4,10 +4,33 @@ import striptags from 'striptags';
 import humanizeDuration from 'humanize-duration';
 import sanitizeHtml from 'sanitize-html';
 import Sefaria  from './sefaria';
+import {HDate, months} from '@hebcal/core';
 
 var INBROWSER = (typeof document !== 'undefined');
 
 class Util {
+    
+    /**
+     * Method to scroll into view port, if it's outside the viewport
+     * From: https://medium.com/@makk.bit/scroll-into-view-if-needed-10a96e0bdb61
+     * @param {Object} target - DOM Element
+     * @returns {undefined}
+     * See also: https://www.javascripttutorial.net/dom/css/check-if-an-element-is-visible-in-the-viewport/
+     * 
+     */
+    static scrollIntoViewIfNeeded(target, scrollIntoViewOptions) {
+        // Target is outside the viewport from the bottom
+        if (target.getBoundingClientRect().bottom > window.innerHeight) {
+            //  The bottom of the target will be aligned to the bottom of the visible area of the scrollable ancestor.
+            target.scrollIntoView(scrollIntoViewOptions);
+        }
+    
+        // Target is outside the view from the top
+        if (target.getBoundingClientRect().top < 0) {
+            // The top of the target will be aligned to the top of the visible area of the scrollable ancestor
+            target.scrollIntoView(scrollIntoViewOptions);
+        }
+    }
     static selectElementContents(el) {
       //source: https://stackoverflow.com/questions/4183401/can-you-set-and-or-change-the-user-s-text-selection-in-javascript
       if (window.getSelection && document.createRange) {
@@ -30,9 +53,18 @@ class Util {
     }
     static localeDate(dateString) {
         // takes dateString (usually generated from Python datetime object) and returns a human readable string depending on interfaceLang
-        const locale = Sefaria.interfaceLang === 'english' ? 'en-US' : 'iw-IL';
-        const dateOptions = {year: 'numeric', month: 'short', day: 'numeric'};
-        return (new Date(dateString)).toLocaleDateString(locale, dateOptions).replace(',', '');  // remove comma from english date
+        const locale = Sefaria.interfaceLang === 'english' ? 'en-US' : 'he-Hebr-IL';
+        const dateOptions = {year: 'numeric', month: 'long', day: 'numeric'};
+        return (new Date(dateString)).toLocaleDateString(locale, dateOptions);  // remove comma from english date
+    }
+    static hebrewCalendarDateStr(dateObjStr){
+        //returns a fully qualified Hebrew calendar date from a Gregorian input. Can output in English or Hebrew
+        const hd = new HDate(new Date(dateObjStr));
+        //Up to this we could have gotten away with built in international date objects in js:
+        // By specifying dateOptions['calendar'] = 'hebrew'; as in the function above. 
+        //That would result in a hybrid hebrew date though, that still uses English numerals for day and year.
+        //So we use Hebcal's renderGematriya()
+        return Sefaria.interfaceLang === 'english' ? hd.render() : hd.renderGematriya();
     }
     static sign_up_user_testing() {
       // temporary function to be used in template 'user_testing_israel.html'
@@ -663,6 +695,7 @@ class Util {
       return vars;
     }
     static replaceUrlParam(paramName, paramValue){
+      //TODO: This does not create the correct urls for multipanel views. It ends up just tacking on an extra "with" param on the end  
       var url = INBROWSER ? window.location.href : this._initialPath;
       if(paramValue == null)
           paramValue = '';

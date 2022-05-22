@@ -102,6 +102,7 @@ const Strings = {
     "Add a source": "הוסף מקור",
     "Create a New Sheet": "יצירת דף מקורות",
     "Source Sheets": "דפי מקורות",
+    "Sheets": "דפי מקורות",
     "Start a New Source Sheet": "התחלת דף מקורות חדש",
     "Untitled Source Sheet" : "דף מקורות ללא שם",
     "Untitled": "ללא שם",
@@ -160,6 +161,7 @@ const Strings = {
     "No connections known for this source.": "למקור הזה אין קשרים ידועים",
     "Edit Source title" : "עריכת כותרת",
     "Add Source Below" : "הוספת מקור מתחת",
+    "Add Source": "הוספת מקור",
     "Add Comment": "הוספת תגובה",
     "Add All Connections": "הוספת כל המקורות הקשורים",
     "Reset Source Text": "איפוס טקסט מקור",
@@ -211,6 +213,7 @@ const Strings = {
     "Select Translation": "בחירת תרגום",
     "Merged from": "נוצר ממיזוג",
     "Source" : "מקור",
+    "Sources": "מקורות",
     "Digitization" : "דיגיטציה",
     "License" : "רשיון",
     "Revision History" : "היסטורית עריכה",
@@ -407,10 +410,17 @@ const Strings = {
     "My Notes": "הרשומות שלי",
     "Updates": "עדכונים",
     "Preferred Translation": "תרגום מועדף",
+    "Text Title": "כותר לועזי",
+    "Hebrew Title": "כותר עברי",
+    "Text Structure": "מבנה טקסט",
+    "Category": "קטגוריה",
+    "Alternate Hebrew Titles": "חלופות כותר עבריות",
+    "Alternate English Titles": "חלופות כותר לועזיות",
+    "Optional": "אופציונלי",
 
     //user stats
     "Torah Tracker" : "לימוד במספרים",
-    "Year to Date": "בשנה הנוכחית",
+    "Previous Year": "לשנה האחרונה",
     "All Time": "כל הזמן",
     "Texts Read" : "ספרים שנקראו",
     "Sheets Read" : "דפי מקורות שנקראו",
@@ -432,7 +442,10 @@ const Strings = {
     "is currently viewing": "מעיין בדף",
     "End Call": "ניתוק",
     "Learn with a Chavruta": "לימוד בחברותא",
-    "Share this link with your chavruta to start a video call with this text": "כדי להתחיל שיחת וידאו, שתפו עם החברותא שלכם את הקישור הבא:",
+    "Share this link to invite people into your private beit midrash - where you can chat, video call, and follow each other's study paths.": "שתפו את הקישור הזה כדי להזמין את חבריכם לבית המדרש:",
+    "Open Your Beit Midrash":"החלו לימוד בחבורה",
+    "Chat":"לשוחח",
+    "Call": "להתקשר",
     "Start Call": "התחלת שיחה",
     "No users online.": "אין כרגע לומדים מחוברים",
     "View Profile": "צפה בפרופיל",
@@ -504,6 +517,8 @@ const Strings = {
     "About Sefaria": "אודות ספריא",
     "Saved & History": "היסטורית קריאה ושמורים",
 
+    //Misc
+    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam arcu felis, molestie sed mauris a, hendrerit vestibulum augue." : "בראיט ולחת צורק מונחף, בגורמי מג׳מש. תרבנך וסתעד לכנו סתשם השמה – לתכי מורגם בורק? לתיג ישבעס",
   },
 
   _i18nInterfaceStringsWithContext: {
@@ -541,7 +556,8 @@ const Strings = {
       "Select Format": "בחירת פורמט הורדה",
       "Text (with Tags)": "טקסט (עם תיוגים)",
       "Text (without Tags)": "טקסט (ללא תיוגים)",
-      "Select Version": "בחירת מהדורה/תרגום"
+      "Select Version": "בחירת מהדורה/תרגום",
+      "Merged Version": "גרסה משולבת"
     },
     "FilterableList": {
       "Alphabetical": "אלפביתי",

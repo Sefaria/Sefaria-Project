@@ -3,7 +3,7 @@
 
 from sefaria.system.exceptions import InputError, DuplicateRecordError, ManuscriptError
 from sefaria.system.database import db
-from sefaria.model.abstract import AbstractMongoRecord, AbstractMongoSet
+from sefaria.model.abstract import AbstractMongoRecord, AbstractMongoSet, SluggedAbstractMongoRecord
 from sefaria.model.text import Ref
 import structlog
 logger = structlog.get_logger(__name__)
@@ -12,7 +12,7 @@ logger = structlog.get_logger(__name__)
 
 
 
-class Manuscript(AbstractMongoRecord):
+class Manuscript(SluggedAbstractMongoRecord):
     pkeys = ['slug']
     track_pkeys = True
 
@@ -25,6 +25,7 @@ class Manuscript(AbstractMongoRecord):
         'description',
         'he_description'
     ]
+    optional_attrs = ['license']
 
     def normalize_slug_field(self, slug_field: str) -> str:
         """

@@ -3,7 +3,8 @@ import {
     SimpleInterfaceBlock,
     NewsletterSignUpForm,
     TwoOrThreeBox,
-    ResponsiveNBox
+    ResponsiveNBox,
+    NBox, InterfaceText,
 } from './Misc';
 import palette from './sefaria/palette';
 import classNames from 'classnames';
@@ -1252,6 +1253,355 @@ const PBSC2020LandingPage = () => (
     </StaticPage>
 );
 
+const DonatePage = () => (
+  <StaticPage optionalClass="donate">
+    <HeaderForDonatePage/>
+    <div className="center">
+        <H1Block en="How to make a difference:" he="מסע של גילוי"/>
+    </div>
+    <div className="staticPageBlockInner flexContainer">
+
+        <ResponsiveNBox gap="30px" content={[
+            <FeatureBox
+                enTitle="Make a One-Time Gift"
+                heTitle=""
+                enText="Whether you give $1.80, $18, or $1,800, every gift made to Sefaria supports the future of Torah."
+                heText=""
+                enButtonText="Donate Now"
+                heButtonText=""
+                enButtonUrl="https://sefaria.nationbuilder.com/supportsefaria"
+                heButtonUrl="https://sefaria.nationbuilder.com/supportsefaria"
+                borderColor="#004E5F"
+            />,
+            <FeatureBox
+                enTitle="Become a Sustainer"
+                heTitle=""
+                enText="Multiply the power of your impact by signing up for a monthly donation with hundreds of other users, supporting a vision of <em>Torah for all.</em>"
+                heText=""
+                enButtonText="Join the Sustainers"
+                heButtonText=""
+                enButtonUrl="https://sefaria.nationbuilder.com/sustainers_b"
+                heButtonUrl="https://sefaria.nationbuilder.com/sustainers_b"
+                borderColor="#97B386"
+            />,
+            <FeatureBox
+                enTitle="Sponsor a Day of Learning"
+                heTitle=""
+                enText="Fuel a day of study on Sefaria by celebrating a special occasion, commemorating a yahrzeit, or honoring a legacy — with a gift of $360 or more."
+                heText=""
+                enButtonText="Sponsor a Day of Learning"
+                heButtonText=""
+                enButtonUrl="https://sefaria.nationbuilder.com/sponsor"
+                heButtonUrl="https://sefaria.nationbuilder.com/sponsor"
+                borderColor="#4B71B7"
+            />,
+            <FeatureBox
+                enTitle="Sponsor a Text"
+                heTitle=""
+                enText="There are many opportunities to sponsor a text or translation in Sefaria's ever growing library and receive a personal dedication. "
+                heText=""
+                enButtonText="Email Us to Learn More"
+                heButtonText=""
+                enButtonUrl="mailto:hannah@sefaria.org"
+                heButtonUrl="mailto:hannah@sefaria.org"
+                borderColor="#7C416F"
+            />
+
+        ]}
+        />
+    </div>
+    <Spacer/>
+
+    <GreyBox>
+      <H1Block en="Ways to Give" he="" serif={true}/>
+      <div className="staticPageBlockInner flexContainer">
+
+          <ResponsiveNBox
+            threshold3={768}
+            threshold2={500}
+            gap="10px"
+            stretch={true}
+            content={[
+                <HeaderWithColorAccentBlockAndText
+                    enTitle="Donate Online"
+                    heTitle=""
+                    enText="<p>Make a donation by <strong>credit card</strong> on our <a href='https://sefaria.nationbuilder.com/supportsefaria'>main donation page</a>. All credit card transactions are secured by Stripe.</p>
+                    <p>If you prefer to use <strong>PayPal</strong> or are donating from outside the United States, please make your gift <a href='https://sefaria.nationbuilder.com/'>using this page</a>.</p>"
+                    heText=""
+                    colorBar="#AB4E66"
+                />,
+                <HeaderWithColorAccentBlockAndText
+                    enTitle="Donate by Mail"
+                    heTitle=""
+                    enText="<p><strong>Personal checks</strong> should be made payable to “Sefaria” and mailed to:</p>
+                            <p>Sefaria<br/>
+                            228 Park Avenue South<br/>
+                            Suite 79262<br/>
+                            New York, NY 10003-1502</p>"
+                    heText=""
+                    colorBar="#D4896C"
+                />,
+                <HeaderWithColorAccentBlockAndText
+                    enTitle="Donor-Advised Fund"
+                    heTitle=""
+                    enText="<p>Sefaria accepts donations from donor-advised funds; our <strong>EIN is 46-44064545</strong>. If you need additional information to make a DAF donation, please contact Sefaria’s development team at <a href='mailto:donate@sefaria.org'>donate@sefaria.org</a>.</p>"
+                    heText=""
+                    colorBar="#CCB479"
+                />,
+                <HeaderWithColorAccentBlockAndText
+                    enTitle="Additional Ways to Give"
+                    heTitle=""
+                    enText="<p>Sefaria also accepts donations via <strong>wire transfer</strong>, <strong>stock</strong>, and <strong>Cryptocurrency</strong>. For more information, please email  Sefaria’s development team at <a href='mailto:donate@sefaria.org'>donate@sefaria.org</a>. (For wire transfers, you can also <a href='https://sefaria.typeform.com/to/nxxyX62T'>click here</a> to get our account information)."
+                    heText=""
+                    colorBar="#97B386"
+                />
+
+
+            ]}
+          />
+      </div>
+      <Spacer/>
+    </GreyBox>
+
+    <div className="staticPageCallToActionFooter">
+      <div className="staticPageBlockInner flexContainer light">
+          <div className="msgToSupporters">
+            <h1 className="serif center">
+                A Message to Our Supporters
+            </h1>
+
+              <p>Due to the ongoing pandemic, we encourage donors to use our <a href="https://sefaria.nationbuilder.com/supportsefaria">online donation page</a> or make a <a href="https://sefaria.typeform.com/to/nxxyX62T">wire transfer</a>, rather than sending a gift by mail. Supporters can also make an electronic gift of stock by emailing us at <a href='mailto:donate@sefaria.org'>donate@sefaria.org</a>. </p>
+              <p>We apologize for any delay in check processing or in the receipt of gift acknowledgment letters in the mail due to the current situation and our remote office status. Donors who make their gift online will continue to receive acknowledgments immediately via email.</p>
+              <p>To all of you: thank you for your continued generosity and support.</p>
+
+
+          </div>
+      </div>
+    </div>
+
+    <H1Block en="Get Your questions answered." he="" serif={true}/>
+    <div className="staticPageBlockInner">
+
+        <h2 className="serif">
+            <span className="int-en">Your Gift to Sefaria</span>
+        </h2>
+        <Accordian
+            enTitle="Can I make my gift in honor or memory of someone?"
+            heTitle=""
+            enText="<p>Yes! If you’re donating online, check the box for “This gift is a tribute” right after entering your address and phone number. You can make a gift in honor or in memory of someone, and someone from the Sefaria team will send a personal message to your honoree letting them know of your generosity.</p>"
+            heText=""
+            colorBar="#B8D4D3"
+        />
+
+        <Accordian
+            enTitle="Where does my gift go? How does Sefaria use the donations it receives?"
+            heTitle=""
+            enText="<p>Generally, gifts made to Sefaria are considered “unrestricted,” meaning that our staff allocates funds where they’re needed most. This includes everything from the text and learning you see on your screen to the technology support that keeps us online to the time and energy of the Sefaria team.</p>
+                    <p><a href='https://www.guidestar.org/profile/46-4406454'>Sefaria has a Platinum rating on GuideStar</a> and we’re devoted to making sure we’re transparent and open with our donors. For a closer look at our financials, <a href='https://www.sefaria.org/static/files/Sefaria%202019%20990%20-%20Public%20-%20Client%20Copy.PDF'>download the most recent Sefaria 990</a>.</p>"
+            heText=""
+            colorBar="#B8D4D3"
+        />
+
+        <Accordian
+            enTitle="Can I make a gift to support a specific program or initiative?"
+            heTitle=""
+            enText="<p>Our online giving page does not support restricted gifts. You can sponsor a day of learning <a href='https://sefaria.nationbuilder.com/sponsor'>here</a>. If you would like to sponsor a text or support a specific Sefaria program, please email Hannah Goldberger, Development Manager, at <a href='mailto:hannah@sefaria.org'>hannah@sefaria.org</a> for more information.</p>"
+            heText=""
+            colorBar="#B8D4D3"
+        />
+
+        <Accordian
+            enTitle="I want to sponsor a day of learning or a new text. How do I know what’s available and where my message will appear?"
+            heTitle=""
+            enText="<p>To learn more about available sponsorship dates and texts on Sefaria, send an email to Samantha Shokin, Grant Writer and Development Associate, at <a href='mailto:samantha@sefaria.org'>samantha@sefaria.org</a>, with “Sponsorship” in your subject line. We’ll aim to get back to you within two business days.</p>
+            <p>Sponsorships can be made in honor, memory, or celebration of a person, group, occasion, or anything else that matters to you. </p>
+            <p>Dedications for a day, week, or month of learning will appear on Sefaria’s homepage throughout the duration of the sponsorship period beginning the evening of the date you choose. <a href='https://docs.google.com/spreadsheets/d/1CUVb18QKbRcgBvBzH-x9R_Stx-_o5YkE9bi7oYBTlRw/edit#gid=0'>Available dates can be viewed in this calendar</a>. To convert a Hebrew date to the English calendar, we recommend <a href='https://www.hebcal.com/converter/'>HebCal’s date converter</a>.</p>"
+            heText=""
+            colorBar="#B8D4D3"
+        />
+
+
+        <h2 className="serif">
+            <span className="int-en">Giving Logistics</span>
+        </h2>
+
+        <Accordian
+            enTitle="Is my donation tax-deductible?"
+            heTitle=""
+            enText="<p>Sefaria is a registered 501(c)(3) in the United States, and all donations are fully tax-deductible under the extent of the law. We are not able to issue tax receipts to donors outside the United States.</p>"
+            heText=""
+            colorBar="#7F85A9"
+        />
+
+        <Accordian
+            enTitle="Why aren’t you tax-exempt outside of the United States?"
+            heTitle=""
+            enText="<p>At this time, Sefaria only meets eligibility requirements for tax-exempt status in the United States.</p>"
+            heText=""
+            colorBar="#7F85A9"
+        />
+
+        <Accordian
+            enTitle="Can I still donate from outside the USA?"
+            heTitle=""
+            enText="<p>Yes! Donors outside of the USA may make a gift online by <a href='https://sefaria.nationbuilder.com/supportsefaria'>credit card</a> or through <a href='https://sefaria.nationbuilder.com/'>PayPal</a>, or by making a <a href='https://sefaria.typeform.com/to/nxxyX62T'>wire transfer</a>.</p>"
+            heText=""
+            colorBar="#7F85A9"
+        />
+
+        <Accordian
+            enTitle="Will I get a gift receipt?"
+            heTitle=""
+            enText="<p>Yes! If you make your gift online, you will receive an email acknowledgment that includes all the information necessary for use as a tax receipt. If you make your gift by mail, you will receive a printed acknowledgment within two months of the receipt of your donation. If you don’t receive your gift receipt within that time, please let us know at <a href='mailto:donate@sefaria.org'>donate@sefaria.org</a> and we will issue a replacement.</p>"
+            heText=""
+            colorBar="#7F85A9"
+        />
+
+        <Accordian
+            enTitle="I want to donate through a donor-advised fund, federation, or foundation. What do I need to send you?"
+            heTitle=""
+            enText="<p>Donations from these types of institutions can be made through any of the payment methods listed in the Ways to Give section above. If you are donating from a foundation, federation, or donor-advised fund, please include any relevant gift acknowledgment information or preferences along with your gift. <strong>Sefaria's EIN is 46-44064545</strong>.</p>
+                    <p>If you are sending your donation by mail, please include this information in a cover letter accompanying your check; if you are donating through a wire transfer or other electronic method, please send an email with this information to <a href='mailto:donate@sefaria.org'>donate@sefaria.org</a>. This ensures we have all the necessary information to send your gift acknowledgment and tax receipt.</p>"
+            heText=""
+            colorBar="#7F85A9"
+        />
+
+        <Accordian
+            enTitle="I think my employer will match my gift. How can I find out?"
+            heTitle=""
+            enText="<p>The best way to find out if your employer matches donations made to eligible nonprofits is to ask directly at your place of work. <a href='https://www.charitynavigator.org/index.cfm?bay=content.view&cpid=1799'>You can also search for your employer on Charity Navigator</a>.</p>"
+            heText=""
+            colorBar="#7F85A9"
+        />
+
+        <Accordian
+            enTitle="My gift is going to be matched by someone else. Will you send them an acknowledgment as well?"
+            heTitle=""
+            enText="<p>Typically, matching gifts are directly acknowledged through the third-party processor. If you would like to request a thank you letter from the Sefaria team for the individual or organization matching your gift, please send us an email at <a href='mailto:donate@sefaria.org'>donate@sefaria.org</a>. </p>"
+            heText=""
+            colorBar="#7F85A9"
+        />
+
+
+        <h2 className="serif">
+            <span className="int-en">Help and Support</span>
+        </h2>
+
+        <Accordian
+            enTitle="I’m having trouble making my donation."
+            heTitle=""
+            enText="<p>If you’re having difficulty donating online, we want to help! Please email us at <a href='mailto:donate@sefaria.org'>donate@sefaria.org</a> with a detailed description of the issue you’re experiencing, and we will get back to you within two business days. The more information you provide in your email, the more we will be able to help resolve the situation. We appreciate your patience and generosity.</p>"
+            heText=""
+            colorBar="#5A99B7"
+        />
+
+        <Accordian
+            enTitle="I made a one-time or monthly donation in error."
+            heTitle=""
+            enText="<p>To cancel and/or request a refund for a donation, please email Rebecca Remis, Finance and Operations Manager, at <a href='mailto:donate@sefaria.org'>donate@sefaria.org</a>, with relevant donation information. </p>"
+            heText=""
+            colorBar="#5A99B7"
+        />
+
+        <Accordian
+            enTitle="I never received a gift receipt / I need a new gift receipt."
+            heTitle=""
+            enText="<p>If you’re looking for a missing e-receipt, we first recommend checking your spam folder for any emails received from hello@sefaria.org. If you’re unable to find your gift receipt or you need a new copy of a mailed gift receipt, please email us at <a href='mailto:donate@sefaria.org'>donate@sefaria.org</a>. </p>"
+            heText=""
+            colorBar="#5A99B7"
+        />
+
+        <Accordian
+            enTitle="I want to cancel my monthly donation."
+            heTitle=""
+            enText="<p>We’re sorry to see you go! To cancel your sustaining donation, please contact Rebecca Remis, Finance and Operations Manager, at <a href='mailto:donate@sefaria.org'>donate@sefaria.org</a>, or by phone at <a href='tel:+13477730077'>(347) 773-0077</a></p>"
+            heText=""
+            colorBar="#5A99B7"
+        />
+
+        <Accordian
+            enTitle="I want to change my monthly donation by updating the amount or changing my credit card."
+            heTitle=""
+            enText="<p>For security purposes, Sefaria is unable to update your donation information directly. Please email <a href='mailto:donate@sefaria.org'>donate@sefaria.org</a> to cancel your current recurring donation, and then create a new recurring gift.</p>"
+            heText=""
+            colorBar="#5A99B7"
+        />
+
+    </div>
+    <Spacer/>
+
+    <div className="staticPageCallToActionFooter">
+      <div className="staticPageBlockInner flexContainer light">
+          <div className="msgToSupporters">
+            <h2 className="serif">
+            Sefaria takes pride in its financial stewardship as a fully transparent, 501(c)(3) charitable organization. Sefaria’s EIN is 46-4406454.
+            </h2>
+
+          <ResponsiveNBox
+            threshold3={768}
+            threshold2={500}
+            gap="10px"
+            stretch={true}
+            content={[
+                <div className="finStewardBox">
+                    <h2 className="serif">GuideStar Platinum</h2>
+                    <p>Sefaria is proud to have received a Platinum Seal of Transparency from Guidestar, which indicates that we have proven a commitment to sharing our goals, strategies, and key metrics towards achieving our mission and vision.</p>
+                    <SimpleButton
+                        white={true}
+                        rounded={true}
+                        tall={false}
+                        newTab={true}
+                        href="https://www.guidestar.org/profile/46-4406454"
+                        he_href=""
+                        he=""
+                        en="Learn More"
+                    />
+
+                </div>,
+
+                <div className="finStewardBox">
+                    <h2 className="serif">Sefaria’s 990 </h2>
+                    <p>Nonprofit organizations are required to file a Form 990 each year that provides the public with information about our revenue, expenditures, and other key financial data. We are committed to making sure our 990 is always easily accessible. </p>
+                    <SimpleButton
+                        white={true}
+                        rounded={true}
+                        tall={false}
+                        newTab={true}
+                        href="https://www.sefaria.org/static/files/Sefaria_2020_990_Public.pdf"
+                        he_href=""
+                        he=""
+                        en="See Here"
+                    />
+
+                </div>,
+
+                <div className="finStewardBox">
+                    <h2 className="serif">Annual Report </h2>
+                    <p>Each year, our annual report gives an up-to-date account of our achievements, challenges, innovations, and benchmarks. The annual report also includes messages and stories from our leadership, team members, and supporters like you.</p>
+                    <SimpleButton
+                        white={true}
+                        rounded={true}
+                        tall={false}
+                        newTab={true}
+                        href="https://www.sefaria.org/static/files/Sefaria%202020%20Annual%20Report.pdf"
+                        he_href=""
+                        he=""
+                        en="Read Here"
+                    />
+
+                </div>
+            ]}
+            />
+
+
+          </div>
+      </div>
+    </div>
+
+
+  </StaticPage>
+);
+
 const PBSC2021LandingPage = () => (
     <StaticPage>
         <Header
@@ -1360,7 +1710,7 @@ const PBSC2021LandingPage = () => (
             enText="By Zeev Pekar<br><br>Ivrit Toranit is a free spelling dictionary. It includes Hebrew from different eras,  as well as Western and Eastern Aramaic. The dictionary is designed to reduce the ‘mispellings’ wrongly detected by the modern Hebrew spell checkers when working with Torah literature."
             enImg="/static/img/pbsc-2021-landing-page/he_toranit.png"
             enImgAlt="he_Toranit screenshot"
-            heTitle="התורנית"
+            heTitle="עברית תורנית"
             heText='מאת זאב פקר<br><br>"עברית תורנית" היא מילון איות ללא תשלום הכולל עברית מתקופות שונות וכן ארמית מזרחית ומערבית. המילון נועד להפחית את "שגיאות הכתיב" שבודקי האיות, הפועלים על פי העברית המודרנית, מרבים למצוא ולהתריע עליהן בעת עבודה עם ספרות תורנית.'
             heImg="/static/img/pbsc-2021-landing-page/he_toranit.png"
             heImgAlt="he_Toranit screenshot"
@@ -1399,11 +1749,11 @@ const PBSC2021LandingPage = () => (
 
         <Feature
             enTitle="Stories of the Zohar"
-            enText="By Shir Yochanan<br><br>A digital resource of the stories of the sages that appear in the Zohar, allowing easy perusal of the stories. The site includes mapping of all the stories of the Zohar according to parshas and topics, as well as accompanying visuals and links to similar stories."
+            enText="By Yair Gardin<br><br>A digital resource of the stories of the sages that appear in the Zohar, allowing easy perusal of the stories. The site includes mapping of all the stories of the Zohar according to parshas and topics, as well as accompanying visuals and links to similar stories."
             enImg="/static/img/pbsc-2021-landing-page/zohar stories.png"
             enImgAlt="Daf Yomi Crossword"
             heTitle="סיפורי הזוהר"
-            heText='מאת שיר יוחנן<br><br>זהו משאב דיגיטלי לסיפורי החכמים שבזוהר, המאפשר קריאה מעמיקה בקלות. האתר כולל מיפוי של כל סיפורי הזוהר על פי פרשות ונושאים, וכן הדמיות המלוות את הסיפורים וקישורים לסיפורים דומים. '
+            heText='מאת יאיר גרדין<br><br>זהו משאב דיגיטלי לסיפורי החכמים שבזוהר, המאפשר קריאה מעמיקה בקלות. האתר כולל מיפוי של כל סיפורי הזוהר על פי פרשות ונושאים, וכן הדמיות המלוות את הסיפורים וקישורים לסיפורים דומים. '
             heImg="/static/img/pbsc-2021-landing-page/zohar stories.png"
             heImgAlt="תשבץ דף יומי"
             borderColor={palette.colors.orange}
@@ -1458,6 +1808,16 @@ const PBSC2021LandingPage = () => (
     </StaticPage>
 );
 
+const Accordian = ({enTitle, heTitle, enText, heText, colorBar}) => (
+     <details style={{borderColor: colorBar}}>
+      <summary>
+          <span className="int-en">{enTitle}</span>
+          <span className="int-he">{heTitle}</span>
+      </summary>
+      <div className="int-en" dangerouslySetInnerHTML={{__html:enText}} />
+      <div className="int-he" dangerouslySetInnerHTML={{__html:heText}} />
+     </details>
+)
 
 
 const StaticPage = ({children, optionalClass=""}) => {
@@ -1478,12 +1838,38 @@ const EnBlock = ({children, padded}) => <div className={"int-en" + (padded ? " s
 
 const GreyBox = ({children, light}) => <div className={light ? "lightgreyBackground" : "greyBackground"}>{children}</div>;
 
-const H2Block = ({en, he, classes}) =>
+const H1Block = ({en, he}) =>
   <div className="staticPageBlockInner">
-    <h2 className="staticPageH2">
+    <h1 className="staticPageH1 serif">
+        <SimpleInterfaceBlock en={en} he={he} />
+    </h1>
+  </div>;
+
+
+const H2Block = ({en, he, classes, serif}) =>
+  <div className="staticPageBlockInner">
+    <h2 className={serif ? "staticPageH2 serif" : "staticPageH2"}>
         <SimpleInterfaceBlock en={en} he={he} />
     </h2>
   </div>;
+
+const HeaderWithColorAccentBlockAndText = ({enTitle, heTitle, enText, heText, colorBar}) => (
+    <div className="HeaderWithColorAccentBlockAndText">
+        <h2 className="serif">
+            <span className="int-en">{enTitle}</span>
+            <span className="int-he">{heTitle}</span>
+        </h2>
+
+        <hr style={{borderColor: colorBar}} />
+
+        <div className="int-en" dangerouslySetInnerHTML={{__html:enText}} />
+        <div className="int-he" dangerouslySetInnerHTML={{__html:heText}} />
+
+    </div>
+)
+
+
+
 
 const EducatorSubscribeButton = () => {
   const email = Sefaria._email;
@@ -1568,6 +1954,26 @@ const HeaderForEducatorsPage = () => {
     </div>
   </div>
 };
+
+const HeaderForDonatePage = () => {
+  var enTitle="Your gift. Your impact."
+  var enText="When you give to Sefaria, you’re powering a living library of more than 3,000 years of Jewish texts. Donate today and support the future of Jewish learning, innovation, and conversation."
+  var heText="גלו כיצד להעשיר את הלמידה וההוראה באמצעות מאגר מקורות דיגיטלי. באתר אפשרויות רבות ללומדים:  תוכלו למצוא מקורות, להיפגש עם מגוון של חומרי הוראה ולחזק את התלמידים שלכם כלומדים עצמאיים."
+  var heTitle="מלמדים עם ספריא"
+
+  return <div className="staticPageHeader donate">
+    <div className="staticPageBlockInner flexContainer">
+      <div className="staticPageHeaderTextBox donate">
+        <h1>
+          <span className="int-en">{enTitle}</span>
+          <span className="int-he">{heTitle}</span>
+        </h1>
+        <SimpleInterfaceBlock classes="staticPageHeaderText" he={heText} en={enText}/>
+      </div>
+    </div>
+  </div>
+};
+
 
 const Header = ({enTitle, heTitle, enText, heText, enImg, heImg, enImgAlt, heImgAlt, enActionURL, enActionText, heActionURL, heActionText}) => {
     var staticPageHeaderClass = "staticPageHeader";
@@ -1681,6 +2087,30 @@ const ImageWithText = ({enText, heText, enImg, heImg, enImgAlt, heImgAlt}) => (
     </div>
 );
 
+const FeatureBox = ({enTitle, heTitle, enText, heText, enButtonText, heButtonText, enButtonUrl, heButtonUrl, borderColor}) => (
+    <div className="featureBox" style={{borderColor: borderColor}}>
+        <div className="featureHeader">
+            <h3>
+                <span className="int-en">{enTitle}</span>
+                <span className="int-he">{heTitle}</span>
+            </h3>
+        </div>
+        <div className="int-en" dangerouslySetInnerHTML={{__html:enText}} />
+        <div className="int-he" dangerouslySetInnerHTML={{__html:heText}} />
+
+        <SimpleButton
+            white={false}
+            rounded={true}
+            tall={false}
+            href={enButtonUrl}
+            he_href={heButtonUrl}
+            he={heButtonText}
+            en={enButtonText}
+        />
+
+    </div>
+)
+
 const Feature = ({enTitle, heTitle, enText, heText, enImg, heImg, enImgAlt, heImgAlt, borderColor, link}) => (
     <div className="feature">
         <div className="staticPageBlockInner flexContainer">
@@ -1760,5 +2190,6 @@ export {
     PBSC2021LandingPage,
     ContestLandingPage,
     RambanLandingPage,
-    EducatorsPage
+    EducatorsPage,
+    DonatePage
 }

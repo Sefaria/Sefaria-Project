@@ -46,14 +46,14 @@ class WebPage(abst.AbstractMongoRecord):
     def _init_defaults(self):
         self.linkerHits = 0
 
-    def _normalize_refs(self):
-        self.refs = {text.Ref(ref).normal() for ref in self.refs if text.Ref.is_ref(ref) and not text.Ref(ref).is_empty()}
-        self.refs = list(self.refs)
+    @staticmethod
+    def _normalize_refs(refs):
+        refs = {text.Ref(ref).normal() for ref in refs if text.Ref.is_ref(ref) and not text.Ref(ref).is_empty()}
+        return list(refs)
 
     def _normalize(self):
         super(WebPage, self)._normalize()
         self.url = WebPage.normalize_url(self.url)
-        self._normalize_refs()
         self.expandedRefs = text.Ref.expand_refs(self.refs)
 
     def _validate(self):
@@ -111,19 +111,20 @@ class WebPage(abst.AbstractMongoRecord):
             from sefaria.system.database import db
             db.webpages_long_urls.insert_one(self.contents())
             return True
-        url_regex = WebPage.excluded_pages_url_regex()
+        url_regex = WebPage.excluded_pages_url_regex(self.domain)
         title_regex = WebPage.excluded_pages_title_regex()
         return bool(re.search(url_regex, self.url) or re.search(title_regex, self.title))
 
     @staticmethod
-    def excluded_pages_url_regex():
+    def excluded_pages_url_regex(looking_for_domain=None):
         bad_urls = []
         sites = get_website_cache()
         for site in sites:
-            bad_urls += site.get("bad_urls", [])
-            for domain in site["domains"]:
-                if site["is_whitelisted"]:
-                    bad_urls += [re.escape(domain)+"/search?", re.escape(domain)+"/search[/]?$"]
+            if looking_for_domain is None or looking_for_domain in site["domains"]:
+                bad_urls += site.get("bad_urls", [])
+                for domain_in_site in site["domains"]:
+                    if site["is_whitelisted"]:
+                        bad_urls += [re.escape(domain_in_site)+"/search.*?$"]
         return "({})".format("|".join(bad_urls))
 
     @staticmethod
@@ -144,15 +145,6 @@ class WebPage(abst.AbstractMongoRecord):
                     return site
         return None
 
-    def update_from_linker(self, updates, existing=False):
-        if existing and len(updates["title"]) == 0:
-            # in case we are updating an existing web page that has a title,
-            # we don't want to accidentally overwrite it with a blank title
-            updates["title"] = self.title
-        self.load_from_dict(updates)
-        self.linkerHits += 1
-        self.lastUpdated = datetime.now()
-        self.save()
 
     @staticmethod
     def add_or_update_from_linker(data):
@@ -160,17 +152,30 @@ class WebPage(abst.AbstractMongoRecord):
         Returns True is data was saved, False if data was determined to be exluded"""
         data["url"] = WebPage.normalize_url(data["url"])
         webpage = WebPage().load(data["url"])
+        data["refs"] = WebPage._normalize_refs(data["refs"])  # remove bad refs so pages with empty refs won't get saved
+        data["title"] = WebPage.clean_title(data["title"], getattr(webpage, "_site_data", {}),
+                                            getattr(webpage, "site_name", ""))
+        data["description"] = WebPage.clean_description(data.get("description", ""))
+
         if webpage:
             existing = True
+            if data["title"] == webpage.title and data["description"] == getattr(webpage, "description", "") and set(data["refs"]) == set(webpage.refs):
+                return "excluded"  # no new data
+            if data["title"] == "":
+                data["title"] = webpage.title  # dont save an empty title if title exists
+            webpage.load_from_dict(data)
         else:
             webpage = WebPage(data)
             existing = False
-        webpage._normalize() # to remove bad refs, so pages with empty ref list aren't saved
+
         if webpage.should_be_excluded():
             if existing:
                 webpage.delete()
             return "excluded"
-        webpage.update_from_linker(data, existing)
+
+        webpage.linkerHits += 1
+        webpage.lastUpdated = datetime.now()
+        webpage.save()
         return "saved"
 
     def client_contents(self):
@@ -183,20 +188,21 @@ class WebPage(abst.AbstractMongoRecord):
         return d
 
     def clean_client_contents(self, d):
-        d["title"]       = self.clean_title()
-        d["description"] = self.clean_description()
+        d["title"]       = WebPage.clean_title(d["title"], d.get("_site_data", {}), d.get("site_name", ""))
+        d["description"] = WebPage.clean_description(d.get("description", ""))
         return d
 
-    def clean_title(self):
-        if not self._site_data:
-            return self.title
-        title = str(self.title)
+    @staticmethod
+    def clean_title(title, site_data, site_name):
+        if site_data == {} or site_data is None:
+            return title
+        title = str(title)
         title = title.replace("&amp;", "&")
-        brands = [self.site_name] + self._site_data.get("title_branding", [])
+        brands = [site_name] + site_data.get("title_branding", [])
         separators = [("-", ' '), ("|", ' '), ("—", ' '), ("–", ' '), ("»", ' '), ("•", ' '), (":", ''), ("⋆", ' ')]
         for separator, padding in separators:
             for brand in brands:
-                if self._site_data.get("initial_title_branding", False):
+                if site_data.get("initial_title_branding", False):
                     brand_str = f"{brand}{padding}{separator} "
                     if title.startswith(brand_str):
                         title = title[len(brand_str):]
@@ -205,10 +211,12 @@ class WebPage(abst.AbstractMongoRecord):
                     if title.endswith(brand_str):
                         title = title[:-len(brand_str)]
 
-        return title if len(title) else self._site_data["name"]
+        return title
 
-    def clean_description(self):
-        description = getattr(self, "description", "")
+    @staticmethod
+    def clean_description(description):
+        if description is None:
+            return ""
         for uhoh_string in ["*/", "*******"]:
             if description.find(uhoh_string) != -1:
                 return None

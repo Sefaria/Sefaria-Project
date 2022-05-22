@@ -28,6 +28,8 @@ class Test_Ref(object):
         assert ref.toSections == [7, 18]
         ref = Ref("Jeremiah 7:17\u201118")  # test with unicode dash
         assert ref.toSections == [7, 18]
+        ref = Ref("I Chronicles 1:2 - I Chronicles 1:3")  # test with unicode dash
+        assert ref.toSections == [1, 3]
 
     def test_short_bible_refs(self):
         assert Ref("Exodus") != Ref("Exodus 1")
@@ -424,6 +426,16 @@ class Test_Ref(object):
         assert Ref("Rashi on Exodus 5").subref([5,5]) == Ref("Rashi on Exodus 5:5:5")
         assert Ref("Rashi on Exodus").subref([5,5,5]) == Ref("Rashi on Exodus 5:5:5")
 
+    def test_negative_subref(self):
+        assert Ref("Exodus").subref(-1) == Ref("Exodus 40")
+        assert Ref("Exodus").subref(-3).subref(-4) == Ref("Exodus 38:28")
+        assert Ref("Rashi on Exodus").subref(-5) == Ref("Rashi on Exodus 36")
+        assert Ref("Rashi on Exodus 5").subref(-1) == Ref("Rashi on Exodus 5:23")
+        assert Ref("Rashi on Exodus 5:7").subref(-2) == Ref("Rashi on Exodus 5:7:3")
+
+        assert Ref("Exodus").subref([5, -1]) == Ref("Exodus 5:23")
+        assert Ref("Rashi on Exodus 5").subref([5, -1]) == Ref("Rashi on Exodus 5:5:1")
+
     def test_all_subrefs(self):
         assert Ref("Genesis").all_subrefs()[49] == Ref("Genesis 50")
         assert Ref("Genesis 40").all_subrefs()[22] == Ref("Genesis 40:23")
@@ -636,6 +648,7 @@ class Test_normal_forms(object):
         assert Ref('Siddur Ashkenaz').first_available_section_ref() == Ref('Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Modeh Ani')
         assert Ref('Penei Moshe on Jerusalem Talmud Shabbat 2').first_available_section_ref() == Ref('Penei Moshe on Jerusalem Talmud Shabbat 2:1:1')
         assert Ref('Animadversions by Elias Levita on Sefer HaShorashim').first_available_section_ref() == Ref('Animadversions by Elias Levita on Sefer HaShorashim, אבב')
+        assert Ref('Jastrow, שְׁמַע I 1').first_available_section_ref() == Ref('Jastrow, שְׁמַע I 1')
 
 
 
