@@ -4,7 +4,6 @@ import django
 
 django.setup()
 
-import re
 import csv
 from sefaria.model import *
 from sefaria.model.schema import AddressTalmud
@@ -18,9 +17,9 @@ def clean_text(german_text):
     text_array = re.sub(r"\[|\]|\{|\}|<small>|<\/small>", "", german_text)
     return text_array
 
+
 # This function generates a CSV given a list of dicts
 def generate_csv(dict_list, headers, file_name):
-
     with open(f'mishnah_map_validation/{file_name}.csv', 'w') as file:
         c = csv.DictWriter(file, fieldnames=headers)
         c.writeheader()
@@ -64,7 +63,7 @@ def generate_data_append_to_list(data_list, talmud_ref, mishnah_ref, checking):
                      'talmud_tref': talmud_ref.normal(),
                      'german_text': german_text}
 
-    if checking=='false-positive':
+    if checking == 'false-positive':
         if 50 >= percent_uppercase > 0:
             cur_link_data['issue'] = 'False positive'
             data_list.append(cur_link_data)
@@ -110,9 +109,9 @@ def phase_one():
 
     return csv_list
 
+
 # Cross check against all of Talmud
 def phase_two(csv_list):
-
     linkset_segments = get_list_link_talmud_segments()
 
     # action - check if tref is in mishnah map. If it is, ignore.
@@ -129,7 +128,7 @@ def phase_two(csv_list):
             {"title": index.title, "versionTitle": 'Talmud Bavli. German trans. by Lazarus Goldschmidt, 1929 [de]'})
         if german_talmud:
             german_talmud.walk_thru_contents(action)
-            count +=1
+            count += 1
 
     return csv_list
 
@@ -167,9 +166,6 @@ def generate_map_from_links():
                             'End Line'], 'links_mappings_new')
 
 
-
-
-
 if __name__ == "__main__":
     # csv_list = phase_one()
     # csv_list = phase_two(csv_list)
@@ -177,4 +173,3 @@ if __name__ == "__main__":
     #
 
     generate_map_from_links()
-
