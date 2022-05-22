@@ -8,8 +8,11 @@ from sefaria.model.schema import DiburHamatchilNodeSet
 import spacy
 from spacy.language import Language
 from sefaria.model import schema
+from sefaria.settings import ENABLE_LINKER
 
-pytestmark = pytest.mark.linker
+if not ENABLE_LINKER:
+    pytest.skip("Linker not enabled", allow_module_level=True)
+
 ref_resolver = library.get_ref_resolver()
 
 
