@@ -8,10 +8,22 @@ import csv
 import re
 from sefaria.model import *
 
+
+# This function generates a CSV given a list of dicts
+def generate_csv(dict_list, headers, file_name):
+    with open(f'{file_name}.csv', 'w+') as file:
+        c = csv.DictWriter(file, fieldnames=headers)
+        c.writeheader()
+        c.writerows(dict_list)
+
+    print(f"File writing of {file_name} complete")
+
+
 ls = LinkSet({"type": "mishnah in talmud"})
 
 # Delete the existing LinkSet()
 LinkSet({"type": "mishnah in talmud"}).delete()
+errors_csv = []
 
 
 # For each row in CSV - create a link
@@ -22,33 +34,51 @@ def create_link(row):
     ref_list = []
 
     mishnah_name = row[0]
-    mishnah_ref = f"{row[1]}:{row[2]}"
-    ref_list.append(f"{mishnah_name} {mishnah_ref}")
+    if row[2] == row[3]:
+        mishnah_ref = f"{mishnah_name} {row[1]}:{row[2]}"
+    else:
+        mishnah_ref = f"{mishnah_name} {row[1]}:{row[2]}-{row[3]}"
 
-    talmud_name = re.sub('Mishnah', '', mishnah_name)
+    ref_list.append(mishnah_ref)
+
+    talmud_name = re.sub('Mishnah ', '', mishnah_name)
     talmud_start_daf = row[4]
     talmud_start_line = row[5]
     talmud_end_daf = row[6]
     talmud_end_line = row[7]
+    talmud_ref = ''
 
     # If the ref goes through two dapim
     if talmud_start_daf != talmud_end_daf:
-        ref_list.append(f"{talmud_name} {talmud_start_daf}:{talmud_start_line}-{talmud_end_daf}:{talmud_end_line}")
+        talmud_ref = f"{talmud_name} {talmud_start_daf}:{talmud_start_line}-{talmud_end_daf}:{talmud_end_line}"
 
     # if the ref is on one daf, multiple lines
     elif talmud_start_line != talmud_end_line:
-        ref_list.append(f"{talmud_name} {talmud_start_daf}:{talmud_start_line}-{talmud_end_line}")
+        talmud_ref = f"{talmud_name} {talmud_start_daf}:{talmud_start_line}-{talmud_end_line}"
 
     # if the ref is to one Talmud line
     else:
-        ref_list.append(f"{talmud_name} {talmud_start_daf}:{talmud_start_line}")
+        talmud_ref = f"{talmud_name} {talmud_start_daf}:{talmud_start_line}"
+
+    ref_list.append(talmud_ref)
 
     link_param_dict['refs'] = ref_list
-    print(link_param_dict)
+    # print(link_param_dict)
     try:
         Link(link_param_dict).save()
-    except:
-        print('Already exists?')
+    except Exception as e:
+        ref_list = [mishnah_ref, talmud_ref]
+        ref_list.sort()
+        ls = Link().load({"refs": ref_list})
+        if ls:
+            if ls.type == 'mesorat hashas' or ls.type == 'related':
+                ls.update(query={"refs": ref_list}, attrs={'type': 'mishnah in talmud'})
+        else:
+            print("EXCEPTION - ")
+            print(e)
+            error_dict = {'ref1 (trying to save)': ref_list[0], 'ref2 (trying to save)': ref_list[1],
+                          'exception message': str(e)}
+            errors_csv.append(error_dict)
 
 
 # Ingest the corrected CSV
@@ -58,3 +88,8 @@ with open('correct_links.csv', newline='') as csvfile:
     next(csv_reader)
     for row in csv_reader:
         create_link(row)
+
+# generate the errors csv
+generate_csv(dict_list=errors_csv,
+             headers=['ref1 (trying to save)', 'ref2 (trying to save)', 'exception message'],
+             file_name='errors')
