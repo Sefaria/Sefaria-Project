@@ -1205,7 +1205,7 @@ class AbstractTextRecord(object):
         if isinstance(tag, Tag):
             is_inline_commentator = tag.name == "i" and len(tag.get('data-commentator', '')) > 0
             is_page_marker = tag.name == "i" and len(tag.get('data-overlay','')) > 0
-            is_tanakh_end_sup = tag.name == "sup" and tag.get('class') == ['endFootnote']  # footnotes like this occur in JPS english
+            is_tanakh_end_sup = tag.name == "sup" and 'endFootnote' in tag.get('class', [])  # footnotes like this occur in JPS english
             return AbstractTextRecord._itag_is_footnote(tag) or is_inline_commentator or is_page_marker or is_tanakh_end_sup
         return False
 
