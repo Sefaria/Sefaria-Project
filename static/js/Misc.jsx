@@ -2623,6 +2623,23 @@ const Autocompleter = ({selectedRefCallback}) => {
     )
 }
 
+const AdminToolHeader = function({en, he, validate, close}) {
+  return    <div className="headerWithButtons">
+              <h1 className="pageTitle">
+                <span className="int-en">{en}</span>
+                <span className="int-he">{he}</span>
+              </h1>
+              <div className="end">
+                <a onClick={(e) => close(e)} id="cancel" className="button small transparent control-elem">
+                  <InterfaceText>Cancel</InterfaceText>
+                </a>
+                <div onClick={validate} id="saveAccountSettings" className="button small blue control-elem" tabIndex="0" role="button">
+                  <InterfaceText>Save</InterfaceText>
+                </div>
+              </div>
+            </div>
+}
+
 export {
   SimpleInterfaceBlock,
   DangerousInterfaceBlock,
@@ -2683,4 +2700,5 @@ export {
   Autocompleter,
   DonateLink,
   DivineNameReplacer,
+  AdminToolHeader
 };

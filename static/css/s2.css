@@ -6471,6 +6471,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-align: center;
   margin: 0;
 }
+.button.small.topic {
+  color: #000000;
+  background-color: var(--lighter-grey);
+}
 .addToSourceSheetBox .button.small {
   width: 37%;
   box-sizing: border-box;

@@ -20,7 +20,7 @@ import {
     ToolTipped,
     SimpleLinkedBlock,
 } from './Misc';
-
+import EditTopics from "./TopicsPage";
 
 /*
 *** Helper functions
@@ -278,10 +278,13 @@ const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDis
   const category = !!topicData ? Sefaria.topicTocCategory(topicData.slug) : null;
   return (
     <div>
-        <div className="topicTitle pageTitle">
+        <div className="navTitle tight">
           <h1>
             <InterfaceText text={{en:en, he:he}}/>
           </h1>
+          <a href={`/api/topics/edit/${en}`} id="editTopic" className="button small topic" role="button">
+              <InterfaceText className="topicTitle pageTitle">Edit Topic</InterfaceText>
+          </a>
         </div>
        {!topicData && !isCat ?<LoadingMessage/> : null}
        {!isCat && category ?

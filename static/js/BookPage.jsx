@@ -10,6 +10,7 @@ import {
   TabView,
   InterfaceText,
   ContentText, EnglishText, HebrewText, LanguageToggleButton,
+  AdminToolHeader
 } from './Misc';
 
 import React, { useState, useRef }  from 'react';
@@ -1335,22 +1336,9 @@ const EditTextInfo = function({initTitle, close}) {
       <div className="editTextInfo">
       <div className="static">
         <div className="inner">
-          {savingStatus ? <div class="collectionsWidget">Saving text information...<br/><br/>(processing title changes may take some time)</div> : null}
+          {savingStatus ? <div className="collectionsWidget">Saving text information...<br/><br/>(processing title changes may take some time)</div> : null}
           <div id="newIndex">
-            <div className="headerWithButtons">
-              <h1 className="pageTitle">
-                <span className="int-en">Index Editor</span>
-                <span className="int-he">עריכת מאפייני אינדקס</span>
-              </h1>
-              <div className="end">
-                <a onClick={(e) => close(e)} id="cancel" className="button small transparent control-elem">
-                  <InterfaceText>Cancel</InterfaceText>
-                </a>
-                <div onClick={validateThenSave} id="saveAccountSettings" className="button small blue control-elem" tabIndex="0" role="button">
-                  <InterfaceText>Save</InterfaceText>
-                </div>
-              </div>
-            </div>
+            <AdminToolHeader en={"Index Editor"} he={"עריכת מאפייני אינדקס"} close={close} validate={validateThenSave}/>
             <div className="section">
                 <label><InterfaceText>Text Title</InterfaceText></label>
               <input id="textTitle" onBlur={(e) => setEnTitle(e.target.value)} defaultValue={enTitle}/>

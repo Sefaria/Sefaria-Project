@@ -255,6 +255,8 @@ urlpatterns += [
     url(r'^api/topics/(?P<topic>.+)$', reader_views.topics_api),
     url(r'^api/bulktopics$', reader_views.bulk_topic_api),
     url(r'^api/recommend/topics(/(?P<ref_list>.+))?', reader_views.recommend_topics_api),
+    url(r'^api/topics/new', reader_views.add_new_topic),
+    url(r'^api/topic/delete/(<?P<topic>.+)$', reader_views.delete_topic)
 ]
 
 # History API

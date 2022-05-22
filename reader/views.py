@@ -3194,17 +3194,20 @@ def topics_list_api(request):
 @catch_error_as_json
 def topics_api(request, topic, v2=False):
     """
-    API to get data for a particular topic.
+    API to get data or edit data for an existing topic
     """
-    with_links = bool(int(request.GET.get("with_links", False)))
-    annotate_links = bool(int(request.GET.get("annotate_links", False)))
-    group_related = bool(int(request.GET.get("group_related", False)))
-    with_refs = bool(int(request.GET.get("with_refs", False)))
-    annotate_time_period = bool(int(request.GET.get("annotate_time_period", False)))
-    with_indexes = bool(int(request.GET.get("with_indexes", False)))
-    ref_link_type_filters = set(filter(lambda x: len(x) > 0, request.GET.get("ref_link_type_filters", "").split("|")))
-    response = get_topic(v2, topic, with_links, annotate_links, with_refs, group_related, annotate_time_period, ref_link_type_filters, with_indexes)
-    return jsonResponse(response, callback=request.GET.get("callback", None))
+    if request.method == "GET":
+        with_links = bool(int(request.GET.get("with_links", False)))
+        annotate_links = bool(int(request.GET.get("annotate_links", False)))
+        group_related = bool(int(request.GET.get("group_related", False)))
+        with_refs = bool(int(request.GET.get("with_refs", False)))
+        annotate_time_period = bool(int(request.GET.get("annotate_time_period", False)))
+        with_indexes = bool(int(request.GET.get("with_indexes", False)))
+        ref_link_type_filters = set(filter(lambda x: len(x) > 0, request.GET.get("ref_link_type_filters", "").split("|")))
+        response = get_topic(v2, topic, with_links, annotate_links, with_refs, group_related, annotate_time_period, ref_link_type_filters, with_indexes)
+        return jsonResponse(response, callback=request.GET.get("callback", None))
+    elif request.method == "POST":
+        pass
 
 
 @catch_error_as_json
@@ -4275,6 +4278,18 @@ def explore(request, topCat, bottomCat, book1, book2, lang=None):
 @staff_member_required
 def visualize_timeline(request):
     return render_template(request, 'timeline.html', None, {})
+
+
+@staff_member_required
+def add_new_topic(request):
+    if request.method == "GET":
+        return render_template(request, 'edit_topics.html', None, {})
+    elif request.method == "POST":
+        pass
+
+@staff_member_required
+def delete_topic(request):
+    pass
 
 
 def person_page_redirect(request, name):
