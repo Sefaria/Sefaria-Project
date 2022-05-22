@@ -69,11 +69,17 @@ spec:
           - secretRef:
               name: {{ .Values.secrets.localSettings.ref }}
               optional: true
+          - configMapRef:
+              name: local-settings-{{ .Values.deployEnv }}
           - secretRef:
               name: local-settings-secrets-{{ .Values.deployEnv }}
               optional: true
           - configMapRef:
-              name: local-settings-{{ .Values.deployEnv }}
+              name: local-settings-monitor-{{ .Values.deployEnv }}
+              optional: true
+          - secretRef:
+              name: local-settings-monitor-secrets-{{ .Values.deployEnv }}
+              optional: true
         resources: {{ toYaml .Values.monitor.resources | nindent 10 }}
         volumeMounts:
         - mountPath: /app/sefaria/local_settings.py

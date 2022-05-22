@@ -5328,8 +5328,8 @@ class Library(object):
         non_unique_terms = NonUniqueTermSet()
         ref_part_title_graph = MatchTemplateGraph(root_nodes)
         self._ref_resolver = RefResolver(
-            {k: spacy.load(v) for k, v in RAW_REF_MODEL_BY_LANG_FILEPATH.items()},
-            {k: spacy.load(v) for k, v in RAW_REF_PART_MODEL_BY_LANG_FILEPATH.items()},
+            {k: spacy.load(v) for k, v in RAW_REF_MODEL_BY_LANG_FILEPATH.items() if v is not None},
+            {k: spacy.load(v) for k, v in RAW_REF_PART_MODEL_BY_LANG_FILEPATH.items() if v is not None},
             {
                 "en": MatchTemplateTrie('en', nodes=(root_nodes + alone_nodes), scope='alone'),
                 "he": MatchTemplateTrie('he', nodes=(root_nodes + alone_nodes), scope='alone')
