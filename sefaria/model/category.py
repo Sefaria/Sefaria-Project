@@ -61,9 +61,10 @@ class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject
         assert self.lastPath == self.path[-1] == self.get_primary_title("en"), "Category name not matching" + " - " + self.lastPath + " / " + self.path[-1] + " / " + self.get_primary_title("en")
         assert not hasattr(self, 'order') or isinstance(self.order, int), 'Order should be an integer'
 
-        duplicate = Category().load({'path': self.path})
-        if duplicate:
-            raise DuplicateRecordError(f'Category with path {self.path} already exists')
+        if self.is_new():
+            duplicate = Category().load({'path': self.path})
+            if duplicate:
+                raise DuplicateRecordError(f'Category with path {self.path} already exists')
 
         if not self.sharedTitle and not self.get_titles_object():
             raise InputError("Category {} must have titles or a shared title".format(self))
