@@ -74,11 +74,12 @@ def create_link(row):
             if ls.type == 'mesorat hashas' or ls.type == 'related':
                 ls.update(query={"refs": ref_list}, attrs={'type': 'mishnah in talmud'})
         else:
-            print("EXCEPTION - ")
+            if "A more precise link" in str(e):
+                refs_error = re.findall(r"A more precise link already exists: (.*) - (.*)", str(e))[0]
+                error_dict = {'ref1 (trying to save)': ref_list[0], 'ref2 (trying to save)': ref_list[1],
+                              'ref1 (exists)': refs_error[0], 'ref2 (exists)': refs_error[1]}
+                errors_csv.append(error_dict)
             print(e)
-            error_dict = {'ref1 (trying to save)': ref_list[0], 'ref2 (trying to save)': ref_list[1],
-                          'exception message': str(e)}
-            errors_csv.append(error_dict)
 
 
 # Ingest the corrected CSV
@@ -91,5 +92,5 @@ with open('correct_links.csv', newline='') as csvfile:
 
 # generate the errors csv
 generate_csv(dict_list=errors_csv,
-             headers=['ref1 (trying to save)', 'ref2 (trying to save)', 'exception message'],
+             headers=['ref1 (trying to save)', 'ref2 (trying to save)', 'ref1 (exists)', 'ref2 (exists)'],
              file_name='errors')
