@@ -930,6 +930,12 @@ class ReaderApp extends Component {
       this.closePanel(n+1);
     }
   }
+  closeNamedEntityInConnectionPanel(n) {
+    if (this.state.panels.length > n+1  && this.state.panels[n+1].selectedNamedEntity) {
+      this.setPanelState(n+1, {connectionsMode: "Resources"});
+      this.clearNamedEntity(n+1);
+    }
+  }
   handleCitationClick(n, citationRef, textRef, replace, currVersions) {
     // Handle clicking on the citation `citationRef` which was found inside of `textRef` in panel `n`.
     // If `replace`, replace a following panel with this citation, otherwise open a new panel after.
@@ -1926,6 +1932,7 @@ class ReaderApp extends Component {
       var onCitationClick                = this.handleCitationClick.bind(null, i);
       var openNamedEntityInNewPanel      = this.openNamedEntityInNewPanel.bind(null, i);
       var onCloseConnectionClick         = this.closeConnectionPanel.bind(null,i);
+      var closeNamedEntityInConnectionPanel = this.closeNamedEntityInConnectionPanel.bind(null,i);
       var onSearchResultClick            = i > 0 ? this.handleCompareSearchClick.bind(null, i) : this.handleNavigationClick;
       var unsetTextHighlight             = this.unsetTextHighlight.bind(null, i);
       var updateQuery                    = this.updateQuery.bind(null, i);
@@ -1968,6 +1975,7 @@ class ReaderApp extends Component {
                       onCitationClick={onCitationClick}
                       openNamedEntityInNewPanel={openNamedEntityInNewPanel}
                       closeConnectionPanel={onCloseConnectionClick}
+                      closeNamedEntityInConnectionPanel={closeNamedEntityInConnectionPanel}
                       onSearchResultClick={onSearchResultClick}
                       onNavigationClick={this.handleNavigationClick}
                       updateTopicsTab={updateTopicsTab}
