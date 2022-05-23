@@ -1328,7 +1328,7 @@ Sefaria = extend(Sefaria, {
             // bookData.enShortDesc = Sefaria.tocItemsByCategories(bookData.categoryList).map((e)=>(e.category || e.title === bookData.book ? e.enShortDesc: null))
         }
         if (bookData.categoryList && !bookData.enShortDesc) {
-            const desc = Sefaria.getDescriptions(bookData)
+            const desc = Sefaria.getDescriptions(bookData.book, bookData.categoryList)
             if (desc) {
                 bookData.enShortDesc = desc[0] || null;
                 bookData.heShortDesc = desc[1] || null;
@@ -1437,29 +1437,41 @@ Sefaria = extend(Sefaria, {
 
     return ref;
   },
-  getDescriptions: function(bookData) {
-      const catlist = Sefaria.tocItemsByCategories(bookData.categoryList)
+    _descDict: {}, // cache for the description dictionary
+      getDescriptions: function(keyName, categoryList) {
+      const catlist = Sefaria.tocItemsByCategories(categoryList)
         let catmap = catlist.map((e) => [e.category || e.title, e.enShortDesc, e.heShortDesc])
         let d = {}
         catmap.map((e) => {if (e) {d[e[0]]=[e[1], e[2]]}
         if (e[0].includes("on")) {
             d[e[0].split(" on")[0]] = [e[1], e[2]]
         }})
-        let descs = d[bookData.book] || d[Sefaria.index(bookData.book).collectiveTitle] || d[bookData.book.split(" on")[0]];
+        let descs = d[keyName] || d[Sefaria.index(keyName).collectiveTitle] || d[keyName.split(" on")[0]];
         let enShortDesc = descs && descs[0]? descs[0]: null;
         let heShortDesc = descs && descs[1]? descs[1]: null;
-        if (!enShortDesc || !heShortDesc) {
-            debugger;
-            Sefaria.getIndexDetails(bookData.book).then(ind => {
-                debugger;
-                bookData.enShortDesc = enShortDesc || ind.enShortDesc || ind.enDesc
-                bookData.heShortDesc = heShortDesc || ind.heShortDesc || ind.heDesc
-                console.log("in_promise", ind)
-                return [enShortDesc, heShortDesc];
-            })
-        }
-        else {return [enShortDesc, heShortDesc];}
+        // below is an option to pull data from the descriptions on the topics via authors names.
+        // if (!enShortDesc || !heShortDesc) {
+        //     debugger;
+        //     const e = Sefaria.topic_toc.filter(word => word.slug == "authors")[0].children.filter(e => e.slug.includes(keyName.toLowerCase()))
+        //     let edesc = e && e[0] && e[0].description ? e[0].description : null;
+        //     if (edesc) {
+        //         enShortDesc = enShortDesc || edesc.en
+        //         heShortDesc = heShortDesc || edesc.he
+        //     }
+        // }
+        return [enShortDesc, heShortDesc];
   },
+    getDescrptionDict: function(keyName, categoryList){
+        let desc = this._cachedApi([keyName, categoryList], this._descDict, null);
+        if (desc) {
+            return [desc[0], desc[1]]
+        }
+        else {
+            desc = getDescriptions(keyName, categoryList)
+            this._descDict[[keyName, categoryList]] = desc
+        }
+    },
+
     _notes: {},
   notes: function(ref, callback) {
     var notes = null;
