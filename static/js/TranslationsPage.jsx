@@ -20,6 +20,11 @@ const TranslationsPage = ({translationsSlug}) => {
         return 0;
       }
     }
+    const getTocObjectWithUncategorized = (corpus) => {
+     const tocContents = Sefaria.tocObjectByCategories([corpus]).contents;
+     tocContents.push({category: "Uncategorized"});
+     return tocContents
+    }
     return (
         <div className="readerNavMenu noLangToggleInHebrew" key="0">
         <div className="content">
@@ -40,7 +45,7 @@ const TranslationsPage = ({translationsSlug}) => {
                   ><> {translations ?  Object.keys(translations).map(corpus => {
                 return (<div key={corpus} className="translationsPage">
                   <h2>{corpus}</h2>
-                  {Sefaria.tocObjectByCategories([corpus]).contents.filter(x => Object.keys(translations[corpus]).includes(x.category)).map(x => {
+                  {getTocObjectWithUncategorized(corpus).filter(x => Object.keys(translations[corpus]).includes(x.category)).map(x => {
                     return (<details key={x.category} open={translationsSlug !== "en"}><summary>{x.category}</summary>
                     <ul>
                       {translations[corpus][x.category].sort(sortFx).map((y, i) => {
