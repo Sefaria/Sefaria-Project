@@ -2198,7 +2198,8 @@ _media: {},
       return a;
     }
     for (let sub_c of c.children) {
-      sub_c.parent = { en: c.en, he: c.he, slug: c.slug };
+      const childTitle = sub_c.en == "" ? sub_c.he : sub_c.en;
+      sub_c.parent = { en: c.en, he: c.he, slug: c.slug, childTitle: childTitle };
       Sefaria._initTopicTocCategoryReducer(a, sub_c);
     }
     return a;

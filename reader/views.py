@@ -4282,9 +4282,7 @@ def visualize_timeline(request):
 
 @staff_member_required
 def add_new_topic(request):
-    if request.method == "GET":
-        return render_template(request, 'edit_topics.html', None, {})
-    elif request.method == "POST":
+    if request.method == "POST":
         pass
 
 @staff_member_required

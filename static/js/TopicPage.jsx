@@ -19,8 +19,8 @@ import {
     FilterableList,
     ToolTipped,
     SimpleLinkedBlock,
+    TopicEditor
 } from './Misc';
-import EditTopics from "./TopicsPage";
 
 /*
 *** Helper functions
@@ -273,18 +273,33 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
 
 
 const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDisplaySettings, openSearch }) => {
+  const [addingTopics, setAddingTopics] = useState(false);
   const { en, he } = !!topicData && topicData.primaryTitle ? topicData.primaryTitle : {en: "Loading...", he: "טוען..."};
   const isTransliteration = !!topicData ? topicData.primaryTitleIsTransliteration : {en: false, he: false};
   const category = !!topicData ? Sefaria.topicTocCategory(topicData.slug) : null;
+  const toggleAddingTopics = function(e) {
+      if (e.currentTarget.id === "editTopic") {
+        setAddingTopics(true);
+      }
+      else if(e.currentTarget.id === "cancel") {
+        setAddingTopics(false);
+     }
+  }
+  if (Sefaria.is_moderator && addingTopics) {
+      return <TopicEditor en={en} he={he} desc={topicData["description"]["en"]} categories={category}/>;
+  }
+  const topicStatus = !Sefaria.is_moderator ? null :
+                            <div onClick={(e) => toggleAddingTopics(e)} id="editTopic" className="button small topic" role="button">
+                              <InterfaceText>Edit Topic</InterfaceText>
+                          </div>;
+
   return (
     <div>
         <div className="navTitle tight">
           <h1>
             <InterfaceText text={{en:en, he:he}}/>
           </h1>
-          <a href={`/api/topics/edit/${en}`} id="editTopic" className="button small topic" role="button">
-              <InterfaceText className="topicTitle pageTitle">Edit Topic</InterfaceText>
-          </a>
+            {topicStatus}
         </div>
        {!topicData && !isCat ?<LoadingMessage/> : null}
        {!isCat && category ?

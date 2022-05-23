@@ -2640,6 +2640,145 @@ const AdminToolHeader = function({en, he, validate, close}) {
             </div>
 }
 
+const CategoryChooser = function({categories, update}) {
+  const categoryMenu = useRef();
+
+  const handleChange = function(e) {
+    let newCategories = [];
+    for (let i=0; i<categoryMenu.current.children.length; i++) {
+      let el = categoryMenu.current.children[i].children[0];
+      if (el.options[el.selectedIndex].value === "Choose a category" || (i > 0 && Sefaria.tocItemsByCategories(newCategories.slice(0, i+1)).length === 0)) {
+        //first test says dont include "Choose a category" and anything after it in categories.
+        //second test is if categories are ["Talmud", "Prophets"], set categories to ["Talmud"]
+        break;
+      }
+      newCategories.push(el.options[el.selectedIndex].value);
+    }
+    update(newCategories); //tell parent of new values
+  }
+
+  let menus = [];
+
+  //create a menu of first level categories
+  let options = Sefaria.toc.map(function(child, key) {
+    if (categories.length > 0 && categories[0] === child.category) {
+      return <option key={key} value={categories[0]} selected>{categories[0]}</option>;
+    }
+    else {
+      return <option key={key} value={child.category}>{child.category}</option>
+    }
+  });
+  menus.push(options);
+
+  //now add to menu second and/or third level categories found in categories
+  for (let i=0; i<categories.length; i++) {
+    let options = [];
+    let subcats = Sefaria.tocItemsByCategories(categories.slice(0, i+1));
+    for (let j=0; j<subcats.length; j++) {
+      if (subcats[j].hasOwnProperty("contents")) {
+        if (categories.length >= i && categories[i+1] === subcats[j].category) {
+          options.push(<option key={j} value={categories[i+1]} selected>{subcats[j].category}</option>);
+        }
+        else
+        {
+          options.push(<option key={j} value={subcats[j].category}>{subcats[j].category}</option>);
+        }
+      }
+    }
+    if (options.length > 0) {
+      menus.push(options);
+    }
+  }
+  return <div ref={categoryMenu}>
+          {menus.map((menu, index) =>
+            <div id="categoryChooserMenu">
+              <select key={`subcats-${index}`} id={`subcats-${index}`} onChange={handleChange}>
+              <option key="chooseCategory" value="Choose a category">Choose a category</option>
+              {menu}
+              </select>
+            </div>)}
+         </div>
+}
+
+
+const TopicEditor = ({en="", he="", categories={}, desc=""}) => {
+    const [savingStatus, setSavingStatus] = useState(false);
+    const [slug, setSlug] = useState(categories["slug"]);
+    const [enCat, setEnCat] = useState([categories["en"]]);
+    const [description, setDescription] = useState(desc);
+    const [enTitle, setEnTitle] = useState(en);
+    const [heTitle, setHeTitle] = useState(he);
+    const origEnTitle = useRef(en);
+    const isNewText = useRef(origEnTitle.current === "");
+    if (!Sefaria._topicTocCategory) {
+      Sefaria._initTopicTocCategory();
+    }
+    const catMenu = Object.values(Sefaria._topicTocCategory).map(function(x, i) {
+      if (isNewText.current == false && enTitle == x["childTitle"]) {
+        return <option key={i} value={x["childTitle"]} selected>{x["childTitle"]}</option>
+      }
+      else {
+        return <option key={i} value={x["childTitle"]}>{x["childTitle"]}</option>
+      }
+    });
+
+    const validate = function () {
+        if (description.length === 0) {
+          return false;
+        }
+        save();
+    }
+    const save = function () {
+        toggleInProgress();
+        const url = isNewText ? "/api/topics/new" : `/api/topics/${slug}`;
+        $.post(url,  {"json": {"description": description, "title": enTitle, "category": enCat }}, function(data) {
+          if (data.error) {
+            toggleInProgress();
+            alert(data.error);
+          } else {
+            alert("Text information saved.");
+            window.location.href = "/admin/reset/cache";
+          }
+          }).fail( function(xhr, textStatus, errorThrown) {
+            alert("Unfortunately, there may have been an error saving this text information.");
+          });
+    }
+    const toggleInProgress = function() {
+      setSavingStatus(savingStatus => !savingStatus);
+    }
+    return <div className="editTextInfo">
+            <div className="static">
+                <div className="inner">
+                    {savingStatus ?
+                        <div className="collectionsWidget">Saving topic information...<br/><br/>(processing title changes
+                            may take some time)</div> : null}
+                    <div id="newIndex">
+                        <AdminToolHeader en="Topic Editor" he="Topic Editor" close={close} validate={validate}/>
+                        <div className="section">
+                            <label><InterfaceText>Topic Title</InterfaceText></label>
+                            <input id="topicTitle" onBlur={(e) => setEnTitle(e.target.value)} defaultValue={enTitle} placeholder="Add a title."/>
+                        </div>
+                        <div className="section">
+                          <label><InterfaceText>Category</InterfaceText></label>
+                          <div id="categoryChooserMenu">
+                              <select key="topicCats" id="topicCats" onChange={(e) => setEnCat(e.target.value)}>
+                                <option key="chooseCategory" value="Select a category">Choose a category</option>
+                                {catMenu}
+                              </select>
+                          </div>
+                        </div>
+                        <div className="section">
+                            <label><InterfaceText>Topic Description</InterfaceText></label>
+                            <textarea id="topicDesc" onBlur={(e) => setDescription(e.target.value)}
+                                   defaultValue={description} placeholder="Add a description."/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+     </div>
+}
+
+
 export {
   SimpleInterfaceBlock,
   DangerousInterfaceBlock,
@@ -2700,5 +2839,7 @@ export {
   Autocompleter,
   DonateLink,
   DivineNameReplacer,
-  AdminToolHeader
+  AdminToolHeader,
+  CategoryChooser,
+  TopicEditor
 };

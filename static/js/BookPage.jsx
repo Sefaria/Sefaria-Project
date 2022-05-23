@@ -10,7 +10,8 @@ import {
   TabView,
   InterfaceText,
   ContentText, EnglishText, HebrewText, LanguageToggleButton,
-  AdminToolHeader
+  AdminToolHeader,
+  CategoryChooser
 } from './Misc';
 
 import React, { useState, useRef }  from 'react';
@@ -1147,66 +1148,6 @@ const SectionTypesBox = function({sections, canEdit, updateParent}) {
           </div>
 }
 
-
-const CategoryChooser = function({categories, update}) {
-  const categoryMenu = useRef();
-
-  const handleChange = function(e) {
-    let newCategories = [];
-    for (let i=0; i<categoryMenu.current.children.length; i++) {
-      let el = categoryMenu.current.children[i].children[0];
-      if (el.options[el.selectedIndex].value === "Choose a category" || (i > 0 && Sefaria.tocItemsByCategories(newCategories.slice(0, i+1)).length === 0)) {
-        //first test says dont include "Choose a category" and anything after it in categories.
-        //second test is if categories are ["Talmud", "Prophets"], set categories to ["Talmud"]
-        break;
-      }
-      newCategories.push(el.options[el.selectedIndex].value);
-    }
-    update(newCategories); //tell parent of new values
-  }
-
-  let menus = [];
-
-  //create a menu of first level categories
-  let options = Sefaria.toc.map(function(child, key) {
-    if (categories.length > 0 && categories[0] === child.category) {
-      return <option key={key} value={categories[0]} selected>{categories[0]}</option>;
-    }
-    else {
-      return <option key={key} value={child.category}>{child.category}</option>
-    }
-  });
-  menus.push(options);
-
-  //now add to menu second and/or third level categories found in categories
-  for (let i=0; i<categories.length; i++) {
-    let options = [];
-    let subcats = Sefaria.tocItemsByCategories(categories.slice(0, i+1));
-    for (let j=0; j<subcats.length; j++) {
-      if (subcats[j].hasOwnProperty("contents")) {
-        if (categories.length >= i && categories[i+1] === subcats[j].category) {
-          options.push(<option key={j} value={categories[i+1]} selected>{subcats[j].category}</option>);
-        }
-        else
-        {
-          options.push(<option key={j} value={subcats[j].category}>{subcats[j].category}</option>);
-        }
-      }
-    }
-    if (options.length > 0) {
-      menus.push(options);
-    }
-  }
-  return <div ref={categoryMenu}>
-          {menus.map((menu, index) =>
-            <div id="categoryChooserMenu">
-              <select key={`subcats-${index}`} id={`subcats-${index}`} onChange={handleChange}>
-              <option key="chooseCategory" value="Choose a category">Choose a category</option>
-              {menu}
-              </select>
-            </div>)}
-         </div>
-}
 
 
 const TitleVariants = function({titles, update}) {
