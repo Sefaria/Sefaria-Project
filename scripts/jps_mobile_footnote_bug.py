@@ -6,9 +6,6 @@ from sefaria.model import *
 import re
 
 
-# german_text = talmud_ref.text('en', vtitle='Talmud Bavli. German trans. by Lazarus Goldschmidt, 1929 [de]')
-# Cross check against all of Talmud
-
 def find_all_footnote_errors():
     from sefaria.tracker import modify_bulk_text
     corrected_text = {}
