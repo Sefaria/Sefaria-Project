@@ -1602,6 +1602,17 @@ const DonatePage = () => (
   </StaticPage>
 );
 
+const PoweredByPage = () => (
+    <StaticPage>
+        <Header
+            enTitle="Powered by Sefaria"
+            enText="Did you know that Sefaria’s open data and API can be used by anyone to create new technological solutions for learning Torah? You can find it all for free in our GitHub repository!"
+            enActionURL="https://github.com/Sefaria"
+            enActionText="Create Something New"
+        />
+    </StaticPage>
+);
+
 const PBSC2021LandingPage = () => (
     <StaticPage>
         <Header
@@ -2188,6 +2199,7 @@ export {
     SheetsLandingPage,
     PBSC2020LandingPage,
     PBSC2021LandingPage,
+    PoweredByPage,
     ContestLandingPage,
     RambanLandingPage,
     EducatorsPage,

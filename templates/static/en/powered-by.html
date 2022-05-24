@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Donate to Sefaria" %}{% endblock %}
+
+{% block description %}{% trans "Support Sefaria by making a tax-deductible donation online or by check or wire transfer." %}{% endblock %}
+
+{% block css %}
+{% endblock %}
+
+
+{% block js %}
+<script>
+    {% autoescape off %}
+    DJANGO_VARS.containerId = 'PoweredByInner';
+    DJANGO_VARS.reactComponentName = 'PoweredByPage';
+    {% endautoescape %}
+</script>
+{% endblock %}
+
+{% block content %}
+<div id="PoweredByOuter" class="staticPageFrame">
+  <div id="PoweredByInner" class="staticPageInner">
+    <h1 id="appLoading">Loading...</h1>
+  </div>
+</div>
+{% endblock %}
+
+

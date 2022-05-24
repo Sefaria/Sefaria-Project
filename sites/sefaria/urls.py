@@ -50,6 +50,7 @@ static_pages_by_lang = [
     "about",
     "ways-to-give",
     "team",
+    "powered-by"
 ]
 
 
