@@ -1,12 +1,10 @@
 {
-	"title": "Friend,",
+	"title": "",
 	"text": [
-		"On Shavuot, we celebrate the beginning of the conversation that is Torah — and at Sefaria, we celebrate the conversation all year long.",
-		"Our library is always open and free for you to study and explore – and we need to get 400 new Sefaria Sustainers before Shavuot in order to continue growing our resources. Will you become a monthly donor right now?",
-		"Thank you."
+		"The Sefaria library makes more than 300 million words of Jewish texts available worldwide. In honor of Shavuot, please support the library that facilitates your learning by becoming a Sefaria Sustainer today."
     ],
 	"buttonLink": "https://sefaria.nationbuilder.com/sustainers_e",
-	"buttonText": "Become a Sustainer",
-	"name": "2022-05-15-shavuot-donate-modal-1",
+	"buttonText": "Sustain Sefaria",
+	"name": "2022-05-24-shavuot-donate-banner-1",
 	"schemaVersion": 1
 }
