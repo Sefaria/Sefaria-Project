@@ -2188,6 +2188,16 @@ _media: {},
     }
     return a;
   },
+  _initTopicTocTitleReducer: function(a,c) {
+    if (!c.children) { return a; }
+    a[c.en] = c.children;
+    for (let sub_c of c.children) {
+      console.log(sub_c.en);
+      console.log(c);
+      Sefaria._initTopicTocReducer(a, sub_c);
+    }
+    return a;
+  },
   _topicTocCategory: null,
   _initTopicTocCategory: function() {
     this._topicTocCategory = this.topic_toc.reduce(this._initTopicTocCategoryReducer, {});
@@ -2198,8 +2208,7 @@ _media: {},
       return a;
     }
     for (let sub_c of c.children) {
-      const childTitle = sub_c.en == "" ? sub_c.he : sub_c.en;
-      sub_c.parent = { en: c.en, he: c.he, slug: c.slug, childTitle: childTitle };
+      sub_c.parent = { en: c.en, he: c.he, slug: c.slug };
       Sefaria._initTopicTocCategoryReducer(a, sub_c);
     }
     return a;

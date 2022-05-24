@@ -3207,7 +3207,7 @@ def topics_api(request, topic, v2=False):
         response = get_topic(v2, topic, with_links, annotate_links, with_refs, group_related, annotate_time_period, ref_link_type_filters, with_indexes)
         return jsonResponse(response, callback=request.GET.get("callback", None))
     elif request.method == "POST":
-        pass
+        json.loads(request.POST["json"])
 
 
 @catch_error_as_json
@@ -4280,10 +4280,31 @@ def visualize_timeline(request):
     return render_template(request, 'timeline.html', None, {})
 
 
-@staff_member_required
-def add_new_topic(request):
+def add_new_topic_api(request):
     if request.method == "POST":
-        pass
+        topic_obj = json.loads(request.POST["json"])
+        new_t = Topic()
+        new_t.add_title(topic_obj["title"], 'en', True, True)
+        new_t.slug = Topic.normalize_slug(topic_obj["title"])
+
+        if topic_obj["category"] is None:
+            new_t.isTopLevelDisplay = True
+            new_t.categoryDescription = {}
+            new_t.categoryDescription["en"] = topic_obj["description"].get('en', '')
+            new_t.categoryDescription["he"] = topic_obj["description"].get('he', '')
+        else:
+            new_t.description = {}
+            new_t.description["en"] = topic_obj["description"].get('en', '')
+            new_t.description["he"] = topic_obj["description"].get('he', '')
+
+        # 3 options: category exists and has children, category is root
+        new_link = IntraTopicLink()
+        new_link.toTopic = topic_obj["category"] if topic_obj["category"] is not None else new_t.slug # topic links to itself if top-level
+        new_link.fromTopic = new_t.slug
+        new_link.linkType = "displays_under"
+        new_link.dataSource = "Topic Admin Tool"
+        new_t.save()
+
 
 @staff_member_required
 def delete_topic(request):

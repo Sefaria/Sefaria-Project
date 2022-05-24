@@ -2701,11 +2701,11 @@ const CategoryChooser = function({categories, update}) {
 }
 
 
-const TopicEditor = ({en="", he="", categories={}, desc=""}) => {
+const TopicEditor = ({en="", he="", categories={}, desc={}}) => {
     const [savingStatus, setSavingStatus] = useState(false);
     const [slug, setSlug] = useState(categories["slug"]);
-    const [enCat, setEnCat] = useState([categories["en"]]);
-    const [description, setDescription] = useState(desc);
+    const [enCat, setEnCat] = useState(categories["en"]);
+    const [description, setDescription] = useState(desc["en"]);
     const [enTitle, setEnTitle] = useState(en);
     const [heTitle, setHeTitle] = useState(he);
     const origEnTitle = useRef(en);
@@ -2713,34 +2713,46 @@ const TopicEditor = ({en="", he="", categories={}, desc=""}) => {
     if (!Sefaria._topicTocCategory) {
       Sefaria._initTopicTocCategory();
     }
-    const catMenu = Object.values(Sefaria._topicTocCategory).map(function(x, i) {
+    const existingCategories = Sefaria.topic_toc.reduce(Sefaria._initTopicTocTitleReducer, {});
+
+    const catMenu = Object.keys(Sefaria._topicTocPages).map(async function (x, i) {
+      const t = await Sefaria.getTopic(x);
       if (isNewText.current == false && enTitle == x["childTitle"]) {
         return <option key={i} value={x["childTitle"]} selected>{x["childTitle"]}</option>
-      }
-      else {
+      } else {
         return <option key={i} value={x["childTitle"]}>{x["childTitle"]}</option>
       }
     });
 
     const validate = function () {
-        if (description.length === 0) {
+        if (enTitle.length === 0) {
+          alert("Title must be provided.");
           return false;
+        }
+        if (origEnTitle != enTitle) { //if the title has been changed or the topic is new, check that there isn't one with same title
+          const existingTopics = Object.values(Sefaria._topicTocCategory).filter(x => x["childTitle"] == enTitle);
+          if (existingTopics.length > 0) {
+            alert(enTitle + " already exists.");
+            return false;
+          }
         }
         save();
     }
     const save = function () {
         toggleInProgress();
-        const url = isNewText ? "/api/topics/new" : `/api/topics/${slug}`;
-        $.post(url,  {"json": {"description": description, "title": enTitle, "category": enCat }}, function(data) {
+        const url = isNewText ? "/api/topic/new" : `/api/topics/${slug}`;
+        let data = {"description": {"en": description, "he": description}, "title": enTitle, "category": enCat};
+        const postJSON = JSON.stringify(data);
+        $.post(url,  {"json": postJSON}, function(data) {
           if (data.error) {
             toggleInProgress();
             alert(data.error);
           } else {
             alert("Text information saved.");
-            window.location.href = "/admin/reset/cache";
+            window.location.href = "/topics/"+slug;
           }
-          }).fail( function(xhr, textStatus, errorThrown) {
-            alert("Unfortunately, there may have been an error saving this text information.");
+          }).fail( function(xhr, status, errorThrown) {
+            alert("Unfortunately, there may have been an error saving this topic information: "+errorThrown);
           });
     }
     const toggleInProgress = function() {

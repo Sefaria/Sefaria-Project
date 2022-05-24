@@ -286,7 +286,8 @@ const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDis
      }
   }
   if (Sefaria.is_moderator && addingTopics) {
-      return <TopicEditor en={en} he={he} desc={topicData["description"]["en"]} categories={category}/>;
+      const desc = topicData?.description
+      return <TopicEditor en={en} he={he} desc={desc} categories={category}/>;
   }
   const topicStatus = !Sefaria.is_moderator ? null :
                             <div onClick={(e) => toggleAddingTopics(e)} id="editTopic" className="button small topic" role="button">
