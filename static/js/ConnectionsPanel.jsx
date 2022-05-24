@@ -845,9 +845,6 @@ const SheetToolsList = ({ toggleSignUpModal, masterPanelSheetId, setConnectionsM
   const [copiedSheetId, setCopiedSheetId] = useState(0);
   const sheet = Sefaria.sheets.loadSheetByID(masterPanelSheetId);
   const [showCollectionsModal, setShowCollectionsModal] = useState(false);
-  // if (urlHashObject === "exportToDrive") { // remove exportToDrive hash once it's used to trigger export
-  //   history.replaceState("", document.title, window.location.pathname + window.location.search); 
-  // }
 
   useEffect(() => {
     if (googleDriveText.en == googleDriveState.exporting.en) {
