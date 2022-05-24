@@ -1456,7 +1456,8 @@ class VersionSet(abst.AbstractMongoSet):
         if prioritized_vtitle:
             vindex = next((i for (i, v) in enumerate(versions) if v.versionTitle == prioritized_vtitle), None)
             if vindex is not None:
-                versions = [versions[vindex]] + [v for v in versions if v.versionTitle != prioritized_vtitle]
+                # move versions[vindex] to front of list
+                versions.insert(0, versions.pop(vindex))
         return merge_texts([v.content_node(node) for v in versions], [getattr(v, "versionTitle", None) for v in versions])
 
 
