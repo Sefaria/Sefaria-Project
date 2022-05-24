@@ -1610,6 +1610,94 @@ const PoweredByPage = () => (
             enActionURL="https://github.com/Sefaria"
             enActionText="Create Something New"
         />
+        <GreyBox>
+            <H2Block en="Open Source Torah" he=""/>
+            <EnBlock padded={true}>
+                <p>We do our best to ensure that the texts we put in our library come with a Creative Commons license, so the texts can be used and reused, for free. We also make all of our code available for open source use by other developers in any way they’d like. To date, there are more than X projects Powered by Sefaria, and X sites linked to the Sefaria library through our Linker API.</p>
+            </EnBlock>
+            <Spacer/>
+        </GreyBox>
+
+        <Feature
+            enTitle="AlHaTorah"
+            enText="AlHaTorah is a website with a broad range of tools for studying Tanakh, including study guides broken down by parashah, biblical art, and interactive modules. Among the available sources, AlHaTorah makes use of biblical commentaries from Sefaria’s library."
+            enImg="/static/img/powered-by-landing-page/alhatorah.org_.png"
+            enImgAlt="Screenshot of AlHaTorah"
+            borderColor={palette.colors.darkteal}
+            link="https://alhatorah.org/"
+        />
+        <Feature
+            enTitle="AllDaf"
+            enText="This app for learning Daf Yomi from the Orthodox Union provides users with personalized feeds that adapt to learners’ interests, supporting study of the Daf in a user-friendly and approachable format. The English text on AllDaf is sourced from Sefaria."
+            enImg="/static/img/powered-by-landing-page/alldaf.org_.png"
+            enImgAlt="Screenshot of AllDaf"
+            borderColor={palette.colors.yellow}
+            link="https://alldaf.org/"
+        />
+        <Feature
+            enTitle="Hadran"
+            enText="Founded in 2018 by a group of women studying Talmud together, Hadran aims to make the study of Talmud more accessible to Jewish women at all levels of learning. Among the resources they provide are guides to learning Daf Yomi, and these lessons use texts from Sefaria."
+            enImg="/static/img/powered-by-landing-page/hadran.org.il_daf_yevamot-63_.png"
+            enImgAlt="Screenshot of Hadran"
+            borderColor={palette.colors.green}
+            link="https://hadran.org.il/"
+        />
+        <Feature
+            enTitle="Dicta"
+            enText="Dicta is a non-profit research organization based in Israel that applies cutting-edge machine learning and natural language processing (the ability of a computer program to understand human language as it is spoken and written) to the analysis of Hebrew texts. Sefaria and Dicta often collaborate, sharing texts and splitting the costs of shared projects. Dicta offers a broad range of tools for free use by anyone, including the ability to add nikud (vocalization) to text as you type, intuitive Talmud and Bible search, and more."
+            enImg="/static/img/powered-by-landing-page/talmudsearch.dicta.org.il_.png"
+            enImgAlt="Screenshot of Dicta"
+            borderColor={palette.colors.lightblue}
+            link="https://dicta.org.il/"
+        />
+        <Feature
+            enTitle="Artscroll Smart Siddur"
+            enText="This app converts the popular ArtSchool Siddur into a fully digital format, including hyperlinks to secondary sources, translations, and commentary, as well as the ability to customize your siddur experience.  When you click on citations to non-ArtScroll books in the siddur's footnotes, they include texts from the Sefaria library."
+            enImg="/static/img/powered-by-landing-page/artscroll siddur.png"
+            enImgAlt="Screenshot of Artscroll Smart Siddur"
+            borderColor={palette.colors.red}
+            link="https://www.artscroll.com/Categories/DSD.html"
+        />
+        <GreyBox>
+            <H2Block en="Tell us about your projects!" he=""/>
+            <EnBlock padded={true}>
+                <p>Have you used Sefaria’s data to build an app, visualization, website, or other digital tool? Tell us about it! We’d love to see your project. You can also reach out to us with your questions about our open source data and API by writing to us at <a href="mailto:hello@sefaria.org">hello@sefaria.org</a>.</p>
+            </EnBlock>
+            <Spacer/>
+        </GreyBox>
+
+        <ButtonRow white={true} enTitle="Explore a few more projects" heTitle="">
+            {[["HaTanakh.com", "http://www.hatanakh.com/"],
+                ["Koveah", "https://koveah.org/"],
+                ["Parasha Bytes", "https://parashabytes.zemon.name/bytes/"],
+                ["Shnayim Mikra", "http://www.shnayim.com/"],
+                ["Russel Neiss' Micrography", "https://github.com/rneiss/micrography"],
+                ["Sefaria Wordpress Plugin", "https://github.com/JoshMB/sefaria-wp-plugin"],
+                ["Mizmor Shir", "http://mizmor-shir.herokuapp.com/"],
+                ["Capish - Interactive Learning", "https://capish.me/"],
+                ["Sefer Similarity Map", "https://jhostyk.github.io/SeferSimilarityMap/"],
+                ["Sefaria Space: (Topic Museum + Text Mania)", "https://sefaria-space.web.app/"],
+                ["T'Feeling", "https://tfeeling.netlify.app/"],
+                ["The Taryag Mitzvos", "https://thetaryag.com/"],
+                ["Visualizations of Sefaria", "https://guedalia.github.io/testab/test"],
+                ["Gematriaphone", "http://alexboxer.com/gematriaphone/"],
+                ["Yamim Noraim Machzor", "https://play.google.com/store/apps/details?id=com.machzoryamimnoraim"],
+                ["Sefaria Sidebar Extension", "https://github.com/DovOps/SefariaSidebarExtension/"],
+                ["Kindle Seforim", "https://kindleseforim.paritcher.com/"],
+                ["The Jewish Story Through Books", "https://joshcooper417.github.io/"]
+            ].map(i =>
+                <SimpleButton
+                    white={true}
+                    rounded={false}
+                    tall={true}
+                    newTab={true}
+                    href={i[1]}
+                    en={i[0]}
+                />)
+            }
+        </ButtonRow>
+
+
     </StaticPage>
 );
 
@@ -1781,7 +1869,7 @@ const PBSC2021LandingPage = () => (
             heButtonText="גיטהאב"
         />
 
-        <ButtonRow white={true} enTitle="Explore the 2020 projects" heTitle="גלו את מיזמי 2020">
+        <ButtonRow white={true} enTitle="Explore the 2021 projects" heTitle="גלו את מיזמי 2021">
             { [
                 ["Talmud Sidebar Extension", "תוסף סרגל הכלים של התלמוד", "https://chrome.google.com/webstore/detail/talmud-sidebar-extension/dmpiiciebnbekblfbcdeogjkbbmeeimi"],
                 ["Mizmor Shir", "מזמור שיר", "http://mizmor-shir.herokuapp.com/"],
