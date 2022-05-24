@@ -15,6 +15,7 @@ from . import text
 
 from sefaria.system.database import db
 from sefaria.model import Ref
+from sefaria.model.text import library
 
 import structlog
 logger = structlog.get_logger(__name__)
@@ -210,7 +211,7 @@ def setUserSheetTraits():
             }).save()
 
 def setCategoryTraits():
-    from sefaria.model.category import TOP_CATEGORIES
+    TOP_CATEGORIES = library.get_top_categories()
 
     # User Traits
     for daterange in active_dateranges:

@@ -2,7 +2,6 @@ from urllib.parse import unquote
 from rauth import OAuth2Service
 import time
 import json
-from sefaria.site.categories import TOP_CATEGORIES
 
 from sefaria.system.database import db
 from sefaria.helper.trend_manager import CategoryTrendManager, SheetReaderManager, SheetCreatorManager, CustomTraitManager, ParashaLearnerManager

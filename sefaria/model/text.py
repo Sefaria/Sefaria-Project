@@ -5901,6 +5901,10 @@ class Library(object):
         # Avoid allocation here since it will be called very frequently
         return self._toc_tree_is_ready and self._full_auto_completer_is_ready and self._ref_auto_completer_is_ready and self._lexicon_auto_completer_is_ready and self._cross_lexicon_auto_completer_is_ready
 
+    def get_top_categories(self, full_records=False):
+        from sefaria.model.category import CategorySet
+        return CategorySet({'depth': 1}) if full_records else CategorySet({'depth': 1}).distinct('path')
+
 library = Library()
 
 
