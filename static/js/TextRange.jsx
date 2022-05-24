@@ -154,7 +154,6 @@ class TextRange extends Component {
         he: heVTitle || this.props.currVersions.he,
       };
       if (!Sefaria.util.object_equals(this.props.currVersions, newVersions)) {
-        console.log("New Version not equal", newVersions, this.props.currVersions)
         this.props.setCurrVersions(newVersions);
       }
     }
