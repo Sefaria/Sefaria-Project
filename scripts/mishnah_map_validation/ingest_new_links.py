@@ -8,6 +8,8 @@ import csv
 import re
 from sefaria.model import *
 
+# TODO - clean up code with methods etc
+
 
 # This function generates a CSV given a list of dicts
 def generate_csv(dict_list, headers, file_name):
@@ -70,16 +72,12 @@ def create_link(row):
         ref_list = [mishnah_ref, talmud_ref]
         ref_list.sort()
         ls = Link().load({"refs": ref_list})
-        if ls:
-            if ls.type == 'mesorat hashas' or ls.type == 'related':
-                ls.update(query={"refs": ref_list}, attrs={'type': 'mishnah in talmud'})
-        else:
-            if "A more precise link" in str(e):
-                refs_error = re.findall(r"A more precise link already exists: (.*) - (.*)", str(e))[0]
-                error_dict = {'ref1 (trying to save)': ref_list[0], 'ref2 (trying to save)': ref_list[1],
-                              'ref1 (exists)': refs_error[0], 'ref2 (exists)': refs_error[1]}
-                errors_csv.append(error_dict)
-            print(e)
+        if ls and (ls.type == 'mesorat hashas' or ls.type == 'related'):
+            ls.update(query={"refs": ref_list}, attrs={'type': 'mishnah in talmud'})
+        elif "A more precise link" in str(e):
+            curlink = Link(link_param_dict)
+            curlink._override_preciselink = True
+            curlink.save()
 
 
 # Ingest the corrected CSV
