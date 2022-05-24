@@ -8,8 +8,6 @@ import csv
 import re
 from sefaria.model import *
 
-# TODO - clean up code with methods etc
-
 
 # This function generates a CSV given a list of dicts
 def generate_csv(dict_list, headers, file_name):
@@ -21,11 +19,9 @@ def generate_csv(dict_list, headers, file_name):
     print(f"File writing of {file_name} complete")
 
 
-ls = LinkSet({"type": "mishnah in talmud"})
-
-# Delete the existing LinkSet()
-LinkSet({"type": "mishnah in talmud"}).delete()
-errors_csv = []
+def delete_linkset(type):
+    # Delete the existing LinkSet()
+    LinkSet({"type": type}).delete()
 
 
 # For each row in CSV - create a link
@@ -80,15 +76,25 @@ def create_link(row):
             curlink.save()
 
 
-# Ingest the corrected CSV
-with open('correct_links.csv', newline='') as csvfile:
-    csv_reader = csv.reader(csvfile, delimiter=',')
-    # Skipping the headers
-    next(csv_reader)
-    for row in csv_reader:
-        create_link(row)
 
-# generate the errors csv
-generate_csv(dict_list=errors_csv,
-             headers=['ref1 (trying to save)', 'ref2 (trying to save)', 'ref1 (exists)', 'ref2 (exists)'],
-             file_name='errors')
+def ingest_new_links():
+    errors_csv = []
+    delete_linkset('mishnah in talmud')
+    print("Original linkset deleted")
+
+    # Ingest the corrected CSV
+    with open('correct_links.csv', newline='') as csvfile:
+        csv_reader = csv.reader(csvfile, delimiter=',')
+        # Skipping the headers
+        next(csv_reader)
+        for row in csv_reader:
+            create_link(row)
+    print("All new links created")
+
+    # generate the errors csv
+    generate_csv(dict_list=errors_csv,
+                 headers=['ref1 (trying to save)', 'ref2 (trying to save)', 'ref1 (exists)', 'ref2 (exists)'],
+                 file_name='errors')
+
+
+ingest_new_links()
