@@ -845,8 +845,8 @@ const SheetToolsList = ({ toggleSignUpModal, masterPanelSheetId, setConnectionsM
   const [copiedSheetId, setCopiedSheetId] = useState(0);
   const sheet = Sefaria.sheets.loadSheetByID(masterPanelSheetId);
   const [showCollectionsModal, setShowCollectionsModal] = useState(false);
-  history.pushState("", document.title, window.location.pathname
-                                                       + window.location.search); // remove hash once state updated
+  // history.pushState("", document.title, window.location.pathname
+  //                                                     + window.location.search); // remove hash once state updated
   // useEffect(() => {
   //   const sheet = Sefaria.sheets.loadSheetByID(masterPanelSheetId)
   //   setIsOwner(sheet.owner === Sefaria._uid);
