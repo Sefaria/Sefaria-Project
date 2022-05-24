@@ -1581,7 +1581,7 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
                 self.text = self._original_text = self.trim_text(v.content_node(self._oref.index_node))
         elif lang:
             if actual_lang is not None:
-                self._choose_version_by_lang(oref, lang, exclude_copyrighted, actual_lang, vtitle)
+                self._choose_version_by_lang(oref, lang, exclude_copyrighted, actual_lang, prioritized_vtitle=vtitle)
             else:
                 self._choose_version_by_lang(oref, lang, exclude_copyrighted, prioritized_vtitle=vtitle)
         else:
