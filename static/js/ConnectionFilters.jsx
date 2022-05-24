@@ -21,6 +21,7 @@ class CategoryFilter extends Component {
   }
   render() {
     const filterSuffix = this.props.category  == "Quoting Commentary" ? "Quoting" : null;
+    const textMissingDescription = null; //"missing description"
     const textFilters = this.props.showBooks ? this.props.books.map(function(book, i) {
       return (<TextFilter
                 srefs={this.props.srefs}
@@ -34,8 +35,8 @@ class CategoryFilter extends Component {
                 updateRecent={true}
                 filterSuffix={filterSuffix}
                 setFilter={this.props.setFilter}
-                description={book.enShortDesc ? book.enShortDesc:"missing description"}
-                heDescription={book.heShortDesc ? book.heShortDesc:"missing description"}
+                description={book.enShortDesc ? book.enShortDesc: textMissingDescription}
+                heDescription={book.heShortDesc ? book.heShortDesc: textMissingDescription}
                 on={Sefaria.util.inArray(book.book, this.props.filter) !== -1} />);
     }.bind(this)) : null;
 
@@ -106,7 +107,7 @@ class TextFilter extends Component {
     const heName = "heDisplayText" in this.props ? this.props["heDisplayText"] : this.props.heBook;
     const enDesc = this.props.description
     const heDesc = this.props.heDescription
-    const showDescription = showCount;//!this.props.hideCounts;
+    const showDescription = true; //showCount;//
     return (
       <a href={url} onClick={this.handleClick}>
         <div data-name={enBook} className={classes} style={style} >
