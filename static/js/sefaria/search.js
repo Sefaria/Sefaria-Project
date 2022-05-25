@@ -71,6 +71,15 @@ class Search {
         });
 
     }
+    reformatDictaRef(ref) {
+        let hebrewRef = ref.match(/תנ"ך\/נביאים\/ספר (.*)\/פרק (.*)\/פסוק (.*)/);
+        const perek = hebrewRef && hebrewRef[2].length === 1 ? `${hebrewRef[2]}'` : hebrewRef[2].split('').join('"');
+        const pasuk = hebrewRef && hebrewRef[3].length === 1 ? `${hebrewRef[3]}'`: hebrewRef[3].split('').join('"');
+        const sefer = hebrewRef && hebrewRef[1]
+        hebrewRef = `${sefer} ${perek}:${pasuk}`;
+        console.log('Hebrew ref', hebrewRef);
+        return hebrewRef
+    }
     dictaQuery(args, isQueryStart, wrapper) {
         function ammendArgsForDicta(standardArgs, lastSeen) {
             let filters = (standardArgs.applied_filters) ? standardArgs.applied_filters.map(book => {
@@ -130,7 +139,6 @@ class Search {
                 const bookTitle = bookData[2].replace(/_/g, ' ');
                 const bookLoc = bookData.slice(3, 5).join(':');
                 const version = "Tanach with Ta'amei Hamikra";
-                const hebrewPathNoSlash = hit.hebrewPath.replace(/\//g,' ');
                 adaptedHits.push({
                     _source: {
                         type: 'text',
@@ -138,7 +146,7 @@ class Search {
                         version: version,
                         path: categories,
                         ref: `${bookTitle} ${bookLoc}`,
-                        heRef: hebrewPathNoSlash,
+                        heRef: this.reformatDictaRef(hit.hebrewPath),
                         pagesheetrank: (hit.pagerank) ? hit.pagerank : 0,
                     },
                     highlight: {naive_lemmatizer: [hit.highlight[0].text]},
