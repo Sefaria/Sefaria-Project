@@ -1613,7 +1613,7 @@ const PoweredByPage = () => (
         <GreyBox>
             <H2Block en="Open Source Torah" he=""/>
             <EnBlock padded={true}>
-                <p>We do our best to ensure that the texts we put in our library come with a Creative Commons license, so the texts can be used and reused, for free. We also make all of our code available for open source use by other developers in any way they’d like. To date, there are more than X projects Powered by Sefaria, and X sites linked to the Sefaria library through our Linker API.</p>
+                <p>We do our best to ensure that the texts we put in our library come with a Creative Commons license, so the texts can be used and reused, for free. We also make all of our code available for open source use by other developers in any way they’d like. To date, there are more than 70 projects Powered by Sefaria, and nearly 100 sites linked to the Sefaria library through our Linker API.</p>
             </EnBlock>
             <Spacer/>
         </GreyBox>
