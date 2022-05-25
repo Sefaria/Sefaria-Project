@@ -4,7 +4,7 @@ import structlog
 logger = structlog.get_logger(__name__)
 
 from sefaria.system.database import db
-from sefaria.system.exceptions import BookNameError, InputError
+from sefaria.system.exceptions import BookNameError, InputError, DuplicateRecordError
 from sefaria.site.categories import REVERSE_ORDER, CATEGORY_ORDER, TOP_CATEGORIES
 from . import abstract as abstract
 from . import schema as schema
@@ -28,6 +28,7 @@ class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject
         "sharedTitle",
         "isPrimary",
         "searchRoot",
+        "order"
     ]
 
     def __str__(self):
@@ -58,6 +59,12 @@ class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject
     def _validate(self):
         super(Category, self)._validate()
         assert self.lastPath == self.path[-1] == self.get_primary_title("en"), "Category name not matching" + " - " + self.lastPath + " / " + self.path[-1] + " / " + self.get_primary_title("en")
+        assert not hasattr(self, 'order') or isinstance(self.order, int), 'Order should be an integer'
+
+        if self.is_new():
+            duplicate = Category().load({'path': self.path})
+            if duplicate:
+                raise DuplicateRecordError(f'Category with path {self.path} already exists')
 
         if not self.sharedTitle and not self.get_titles_object():
             raise InputError("Category {} must have titles or a shared title".format(self))
