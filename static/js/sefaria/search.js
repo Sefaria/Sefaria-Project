@@ -130,6 +130,7 @@ class Search {
                 const bookTitle = bookData[2].replace(/_/g, ' ');
                 const bookLoc = bookData.slice(3, 5).join(':');
                 const version = "Tanach with Ta'amei Hamikra";
+                const hebrewPathNoSlash = hit.hebrewPath.replace(/\//g,' ');
                 adaptedHits.push({
                     _source: {
                         type: 'text',
@@ -137,7 +138,7 @@ class Search {
                         version: version,
                         path: categories,
                         ref: `${bookTitle} ${bookLoc}`,
-                        heRef: hit.hebrewPath,
+                        heRef: hebrewPathNoSlash,
                         pagesheetrank: (hit.pagerank) ? hit.pagerank : 0,
                     },
                     highlight: {naive_lemmatizer: [hit.highlight[0].text]},
