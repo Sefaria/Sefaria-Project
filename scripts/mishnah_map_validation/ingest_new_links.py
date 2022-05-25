@@ -78,7 +78,6 @@ def create_link(row):
             curlink.save()
 
 
-
 def ingest_new_links():
     errors_csv = []
     delete_linkset('mishnah in talmud')
