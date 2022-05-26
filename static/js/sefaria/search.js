@@ -72,13 +72,13 @@ class Search {
 
     }
     reformatDictaRef(ref) {
-        let hebrewRef = ref.match(/תנ"ך\/נביאים\/ספר (.*)\/פרק (.*)\/פסוק (.*)/);
-        const perek = hebrewRef && hebrewRef[2].length === 1 ? `${hebrewRef[2]}'` : hebrewRef[2].split('').join('"');
-        const pasuk = hebrewRef && hebrewRef[3].length === 1 ? `${hebrewRef[3]}'`: hebrewRef[3].split('').join('"');
-        const sefer = hebrewRef && hebrewRef[1]
+        let hebrewRef = ref.match(/תנ"ך\/.*\/ספר (.*)\/פרק (.*)\/פסוק (.*)/);
+        const sefer = hebrewRef[1];
+        const perek = hebrewRef[2].length === 1 ? `${hebrewRef[2]}'` : hebrewRef[2].split('').join('"');
+        const pasuk = hebrewRef[3].length === 1 ? `${hebrewRef[3]}'`: hebrewRef[3].split('').join('"');
         hebrewRef = `${sefer} ${perek}:${pasuk}`;
         console.log('Hebrew ref', hebrewRef);
-        return hebrewRef
+        return hebrewRef;
     }
     dictaQuery(args, isQueryStart, wrapper) {
         function ammendArgsForDicta(standardArgs, lastSeen) {
