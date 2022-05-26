@@ -469,10 +469,10 @@ TextRange.defaultProps = {
 
 
 class TextSegment extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {lastClickXY: false}
-  }
+  // constructor(props) {
+  //   super(props);
+  //   this.state = {lastClickXY: false}
+  // }
   shouldComponentUpdate(nextProps) {
     if (this.props.highlight !== nextProps.highlight)           { return true; }
     if (this.props.showHighlight !== nextProps.showHighlight)   { return true; }
@@ -491,6 +491,14 @@ class TextSegment extends Component {
       this.props.unsetTextHighlight();
     }
   }
+
+  calculatePositionWithinElement(event){
+    const rect = event.target.getBoundingClientRect();
+    const x = event.clientX - rect.left; //x position within the element.
+    const y = event.clientY - rect.top;  //y position within the element.
+    return [x,y]
+  }
+
   handleClick(event) {
     // grab refLink from target or parent (sometimes there is an <i> within refLink forcing us to look for the parent)
     const refLink = $(event.target).hasClass("refLink") ? $(event.target) : ($(event.target.parentElement).hasClass("refLink") ? $(event.target.parentElement) : null);
@@ -522,19 +530,13 @@ class TextSegment extends Component {
       this.props.onSegmentClick(this.props.sref);
       Sefaria.track.event("Reader", "Text Segment Click", this.props.sref);
     }
-    const rect = event.target.getBoundingClientRect();
-    const x = event.clientX - rect.left; //x position within the element.
-    const y = event.clientY - rect.top;  //y position within the element.
-    this.setState({lastClickXY:[x,y]})
+    const pos = this.calculatePositionWithinElement(event)
+    this.setState({lastClickXY:pos})
   }
   handleDoubleClick(event) {
     if (event.detail > 1) {
-      const rect = event.target.getBoundingClientRect();
-      const x = event.clientX - rect.left; //x position within the element.
-      const y = event.clientY - rect.top;  //y position within the element.
-      console.log(x, y);
-      console.log(this.state.lastClickXY)
-      if (!(this.state.lastClickXY[0] == x && this.state.lastClickXY[1] == y)) {
+    const pos = this.calculatePositionWithinElement(event)
+      if (this.state.lastClickXY != pos){
         event.preventDefault();
       }
     }
