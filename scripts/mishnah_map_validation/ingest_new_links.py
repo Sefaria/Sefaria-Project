@@ -23,9 +23,6 @@ def delete_linkset(type):
     # Delete the existing LinkSet()
     LinkSet({"type": type}).delete()
 
-    # Delete problematic un-typed link
-    LinkSet({"ref": ['Bava Batra 84b:5-6', 'Mishnah Bava Batra 5:7']}).delete()
-
 
 # For each row in CSV - create a link
 def create_link(row):
@@ -70,7 +67,7 @@ def create_link(row):
         ref_list = [mishnah_ref, talmud_ref]
         ref_list.sort()
         ls = Link().load({"refs": ref_list})
-        if ls and (ls.type == 'mesorat hashas' or ls.type == 'related'):
+        if ls and (ls.type == 'mesorat hashas' or ls.type == 'related' or ls.refs==['Bava Batra 84b:5-6', 'Mishnah Bava Batra 5:7']):
             ls.update(query={"refs": ref_list}, attrs={'type': 'mishnah in talmud'})
         elif "A more precise link" in str(e):
             curlink = Link(link_param_dict)
