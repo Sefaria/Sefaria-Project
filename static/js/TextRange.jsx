@@ -469,6 +469,10 @@ TextRange.defaultProps = {
 
 
 class TextSegment extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {lastClickXY: false}
+  }
   shouldComponentUpdate(nextProps) {
     if (this.props.highlight !== nextProps.highlight)           { return true; }
     if (this.props.showHighlight !== nextProps.showHighlight)   { return true; }
@@ -517,6 +521,22 @@ class TextSegment extends Component {
     } else if (this.props.onSegmentClick) {
       this.props.onSegmentClick(this.props.sref);
       Sefaria.track.event("Reader", "Text Segment Click", this.props.sref);
+    }
+    const rect = event.target.getBoundingClientRect();
+    const x = event.clientX - rect.left; //x position within the element.
+    const y = event.clientY - rect.top;  //y position within the element.
+    this.setState({lastClickXY:[x,y]})
+  }
+  handleDoubleClick(event) {
+    if (event.detail > 1) {
+      const rect = event.target.getBoundingClientRect();
+      const x = event.clientX - rect.left; //x position within the element.
+      const y = event.clientY - rect.top;  //y position within the element.
+      console.log(x, y);
+      console.log(this.state.lastClickXY)
+      if (!(this.state.lastClickXY[0] == x && this.state.lastClickXY[1] == y)) {
+        event.preventDefault();
+      }
     }
   }
   handleKeyPress(event) {
@@ -627,7 +647,7 @@ class TextSegment extends Component {
     }
     return (
       <div tabIndex="0"
-           className={classes} onClick={this.handleClick} onKeyPress={this.handleKeyPress}
+           className={classes} onClick={this.handleClick} onKeyPress={this.handleKeyPress} onMouseDown={this.handleDoubleClick}
            data-ref={this.props.sref} aria-controls={"panel-"+(this.props.panelPosition+1)}
            aria-label={"Click to see links to "+this.props.sref}>
         {segmentNumber}
