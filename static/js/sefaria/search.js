@@ -71,6 +71,12 @@ class Search {
         });
 
     }
+    /**
+     * Function to reformat the Hebrew Ref from the Dicta convention - תנ״ר/נביאים/ספר זכריה/פרק א/פסוק א
+     * to the Sefaria Hebrew Ref convention (the results of Ref('Zechariah 1.1').he_normal())
+     * @param {*} ref - the incoming Dicta Ref
+     * @returns cleanedHebrewRef - according to Sefaria conventions
+     */
     reformatDictaRef(ref) {
         const hebrewRef = ref.match(/תנ"ך\/.*\/ספר (.*)\/פרק (.*)\/פסוק (.*)/);
         const sefer = hebrewRef[1];
