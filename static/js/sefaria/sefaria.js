@@ -2192,9 +2192,7 @@ _media: {},
     if (!c.children) { return a; }
     a[c.en] = c.children;
     for (let sub_c of c.children) {
-      console.log(sub_c.en);
-      console.log(c);
-      Sefaria._initTopicTocReducer(a, sub_c);
+      Sefaria._initTopicTocTitleReducer(a, sub_c);
     }
     return a;
   },

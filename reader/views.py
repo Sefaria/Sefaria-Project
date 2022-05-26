@@ -3191,6 +3191,37 @@ def topics_list_api(request):
     return response
 
 
+@staff_member_required
+def add_new_topic_api(request):
+    if request.method == "POST":
+        data = json.loads(request.POST["json"])
+        slug = Topic.normalize_slug(data["title"])
+        t = Topic().load({"slug": slug})
+        if t is None:
+            t = Topic()
+            t.add_title(data["title"], 'en', True, True)
+            t.add_title(data["title"], 'he', True, True)
+            t.slug = slug
+
+        Topic.change_description(t, data)
+
+        new_link = IntraTopicLink()
+        new_link.toTopic = Topic.normalize_slug(data["category"]) if data["category"] is not None else t.slug # topic links to itself if top-level which is determined by topic_obj["category"] being None
+        new_link.fromTopic = t.slug
+        new_link.linkType = "displays-under"
+        new_link.dataSource = "topic-admin-tool"
+        new_link.save()
+
+        @csrf_protect
+        def protected_index_post(request):
+            return jsonResponse(t.contents())
+        return protected_index_post(request)
+
+
+@staff_member_required
+def delete_topic(request):
+    pass
+
 @catch_error_as_json
 def topics_api(request, topic, v2=False):
     """
@@ -3207,8 +3238,41 @@ def topics_api(request, topic, v2=False):
         response = get_topic(v2, topic, with_links, annotate_links, with_refs, group_related, annotate_time_period, ref_link_type_filters, with_indexes)
         return jsonResponse(response, callback=request.GET.get("callback", None))
     elif request.method == "POST":
-        json.loads(request.POST["json"])
+        if not request.user.is_staff:
+            return render_template(request, 'static/generic.html', None, {
+                "title": "Permission Denied",
+                "content": "Adding topics is locked.<br><br>Please email hello@sefaria.org if you believe edits are needed."
+            })
+        topic_data = json.loads(request.POST["json"])
+        topic_obj = Topic().load({"$and": [{"titles.text": topic_data["origTitle"]}, {"titles.primary": True}]})
+        if topic_data["origTitle"] != topic_data["title"]:
+            topic_obj.add_title(topic_data["title"], 'en', True, True)
+            topic_obj.add_title(topic_data["title"][::-1], 'he', True, True)
+            origSlug = topic_obj.slug
+            topic_obj.slug = Topic.normalize_slug(topic_data["title"])
+            topic_obj.save()
+            for link in TopicLinkSetHelper.find({"$or": [{"toTopic": origSlug}, {"fromTopic": origSlug}]}):
+                attr = 'toTopic' if link.toTopic == topic_data["origTitle"] else 'fromTopic'
+                setattr(link, attr, topic_data["title"])
+                link.save()
 
+        if topic_data["origDescription"] != topic_data["description"]:
+            Topic.change_description(topic_obj, topic_data)
+            topic_obj.save()
+
+        if topic_data["origCategory"] != topic_data["category"]:
+            origLink = IntraTopicLink().load({"fromTopic": Topic.normalize_slug(topic_data["origTitle"]),
+                                              "toTopic": Topic.normalize_slug(topic_data["origCategory"])})
+            origLink.fromTopic = Topic.normalize_slug(topic_data["title"])
+            origLink.toTopic = Topic.normalize_slug(topic_data["category"]) if topic_data["category"] is not None else origLink.fromTopic # root level topics link to themselves
+            origLink.linkType = "displays-under"
+            origLink.dataSource = "Topic Admin Tool"
+            origLink.save()
+
+        @csrf_protect
+        def protected_index_post(request):
+            return jsonResponse(topic_obj.contents())
+        return protected_index_post(request)
 
 @catch_error_as_json
 def topic_graph_api(request, topic):
@@ -4278,37 +4342,6 @@ def explore(request, topCat, bottomCat, book1, book2, lang=None):
 @staff_member_required
 def visualize_timeline(request):
     return render_template(request, 'timeline.html', None, {})
-
-
-def add_new_topic_api(request):
-    if request.method == "POST":
-        topic_obj = json.loads(request.POST["json"])
-        new_t = Topic()
-        new_t.add_title(topic_obj["title"], 'en', True, True)
-        new_t.slug = Topic.normalize_slug(topic_obj["title"])
-
-        if topic_obj["category"] is None:
-            new_t.isTopLevelDisplay = True
-            new_t.categoryDescription = {}
-            new_t.categoryDescription["en"] = topic_obj["description"].get('en', '')
-            new_t.categoryDescription["he"] = topic_obj["description"].get('he', '')
-        else:
-            new_t.description = {}
-            new_t.description["en"] = topic_obj["description"].get('en', '')
-            new_t.description["he"] = topic_obj["description"].get('he', '')
-
-        # 3 options: category exists and has children, category is root
-        new_link = IntraTopicLink()
-        new_link.toTopic = topic_obj["category"] if topic_obj["category"] is not None else new_t.slug # topic links to itself if top-level
-        new_link.fromTopic = new_t.slug
-        new_link.linkType = "displays_under"
-        new_link.dataSource = "Topic Admin Tool"
-        new_t.save()
-
-
-@staff_member_required
-def delete_topic(request):
-    pass
 
 
 def person_page_redirect(request, name):

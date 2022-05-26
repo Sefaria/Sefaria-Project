@@ -2709,30 +2709,33 @@ const TopicEditor = ({en="", he="", categories={}, desc={}}) => {
     const [enTitle, setEnTitle] = useState(en);
     const [heTitle, setHeTitle] = useState(he);
     const origEnTitle = useRef(en);
-    const isNewText = useRef(origEnTitle.current === "");
-    if (!Sefaria._topicTocCategory) {
-      Sefaria._initTopicTocCategory();
-    }
-    const existingCategories = Sefaria.topic_toc.reduce(Sefaria._initTopicTocTitleReducer, {});
+    const origEnCat = useRef(categories["en"]);
+    const origDescription = useRef(desc);
+    const isNewTopic = useRef(origEnTitle.current === "");
 
-    const catMenu = Object.keys(Sefaria._topicTocPages).map(async function (x, i) {
-      const t = await Sefaria.getTopic(x);
-      if (isNewText.current == false && enTitle == x["childTitle"]) {
-        return <option key={i} value={x["childTitle"]} selected>{x["childTitle"]}</option>
+    const existingCategories = useRef(Sefaria.topic_toc.reduce(Sefaria._initTopicTocTitleReducer, {}));
+
+    const catMenu = Object.keys(existingCategories.current).map(function (t, i) {
+      if (isNewTopic.current == false && enTitle == t) {
+        return <option key={i} value={t} selected>{t}</option>
       } else {
-        return <option key={i} value={x["childTitle"]}>{x["childTitle"]}</option>
+        return <option key={i} value={t}>{t}</option>
       }
     });
 
-    const validate = function () {
+    const validate = async function () {
         if (enTitle.length === 0) {
           alert("Title must be provided.");
           return false;
         }
-        if (origEnTitle != enTitle) { //if the title has been changed or the topic is new, check that there isn't one with same title
-          const existingTopics = Object.values(Sefaria._topicTocCategory).filter(x => x["childTitle"] == enTitle);
-          if (existingTopics.length > 0) {
-            alert(enTitle + " already exists.");
+        if (!isNewTopic.current && origEnTitle != enTitle) {
+          //if the title has been changed, check that there isn't one with new title
+          //allow new topics because if there is a topic that isn't in the topic TOC,
+          //there needs to be some way of moving it into the topic TOC
+          const names = await Sefaria.getName(enTitle);
+          const matches = names.completion_objects.filter(obj => obj.title === enTitle && obj.type.indexOf("Topic") >= 0);
+          if (matches.length > 0) {
+            alert("Topic "+enTitle+" already exists.");
             return false;
           }
         }
@@ -2740,8 +2743,18 @@ const TopicEditor = ({en="", he="", categories={}, desc={}}) => {
     }
     const save = function () {
         toggleInProgress();
-        const url = isNewText ? "/api/topic/new" : `/api/topics/${slug}`;
+        let url = "";
         let data = {"description": {"en": description, "he": description}, "title": enTitle, "category": enCat};
+        if (isNewTopic.current) {
+          url = "/api/topic/new";
+        }
+        else {
+          url = `/api/topics/${slug}`;
+          data["origCategory"] = origEnCat.current;
+          data["origDescription"] = origDescription.current;
+          data["origTitle"] = origEnTitle.current;
+        }
+
         const postJSON = JSON.stringify(data);
         $.post(url,  {"json": postJSON}, function(data) {
           if (data.error) {

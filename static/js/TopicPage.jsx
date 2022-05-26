@@ -286,7 +286,7 @@ const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDis
      }
   }
   if (Sefaria.is_moderator && addingTopics) {
-      const desc = topicData?.description
+      const desc = topicData?.description || topicData?.categoryDescription;
       return <TopicEditor en={en} he={he} desc={desc} categories={category}/>;
   }
   const topicStatus = !Sefaria.is_moderator ? null :

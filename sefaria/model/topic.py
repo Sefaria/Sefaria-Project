@@ -102,6 +102,19 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
             new_topic.get_types(types, new_path, search_slug_set)
         return types
 
+    @staticmethod
+    def change_description(topic, data):
+        if data["category"] is None:
+            topic.isTopLevelDisplay = True
+            topic.categoryDescription = {}
+            topic.categoryDescription["en"] = data["description"].get('en', '')
+            topic.categoryDescription["he"] = data["description"].get('he', '')
+        else:
+            topic.isTopLevelDisplay = False
+            topic.description = {}
+            topic.description["en"] = data["description"].get('en', '')
+            topic.description["he"] = data["description"].get('he', '')
+
     def topics_by_link_type_recursively(self, **kwargs):
         topics, _ = self.topics_and_links_by_link_type_recursively(**kwargs)
         return topics
