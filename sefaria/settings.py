@@ -299,7 +299,7 @@ CACHES = {
 
 
 GLOBAL_INTERRUPTING_MESSAGE = {
-    "name":       "2022-05-10-shavuot-donate-banner",
+    "name":       "2022-05-24-shavuot-donate-banner",
     "style":      "banner", # "modal" or "banner"
     "repetition": 1,
     "is_fundraising": True,

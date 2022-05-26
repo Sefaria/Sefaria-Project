@@ -205,6 +205,9 @@ DISABLE_INDEX_SAVE = False
 # which can be annoying for local development. 
 DISABLE_AUTOCOMPLETER = False
 
+# Turns on loading of machine learning models to run linker
+ENABLE_LINKER = False
+
 # Caching with Cloudflare
 CLOUDFLARE_ZONE = ""
 CLOUDFLARE_EMAIL = ""

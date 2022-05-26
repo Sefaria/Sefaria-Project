@@ -391,7 +391,7 @@ class SluggedAbstractMongoRecord(AbstractMongoRecord, metaclass=SluggedAbstractM
         """
         if len(cls.slug_fields) != 1:
             raise Exception("Can only call init() if exactly one slug field is defined.")
-        if slug not in cls._init_cache or not cls.cacheable:
+        if not cls.cacheable or slug not in cls._init_cache:
             instance = cls().load({cls.slug_fields[0]: slug})
             if cls.cacheable:
                 cls._init_cache[slug] = instance

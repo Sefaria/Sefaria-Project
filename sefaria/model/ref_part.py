@@ -1,7 +1,7 @@
 import dataclasses
 from collections import defaultdict
 from typing import List, Union, Dict, Optional, Tuple, Generator, Iterable, Set
-from enum import Enum
+from enum import Enum, IntEnum
 from functools import reduce
 from itertools import product
 from sefaria.system.exceptions import InputError
@@ -12,8 +12,6 @@ import spacy
 from tqdm import tqdm
 from spacy.tokens import Span, Token
 from spacy.language import Language
-
-spacy.prefer_gpu()
 
 # keys correspond named entity labels in spacy models
 # values are properties in RefPartType
@@ -56,6 +54,11 @@ def span_char_inds(span: SpanOrToken) -> Tuple[int, int]:
     elif isinstance(span, Token):
         idx = span.idx
         return idx, idx + len(span)
+
+
+class ResolutionThoroughness(IntEnum):
+    NORMAL = 1
+    HIGH = 2
 
 
 class RefPartType(Enum):
@@ -211,9 +214,10 @@ class RawRefPart(TrieEntry):
     def dh_cont_text(self):
         return '' if self.potential_dh_continuation is None else self.potential_dh_continuation.text
 
-    def get_dh_text_to_match(self) -> Iterable[str]:
+    def get_dh_text_to_match(self, lang) -> Iterable[str]:
         import re2
-        m = re2.match(r'^(?:(?:ב)?(?:ד"ה|s ?\. ?v ?\.) )?(.+?)$', self.text)
+        reg = r'^(?:ב?ד"ה )?(.+?)$' if lang == 'he' else r'^(?:s ?\. ?v ?\. )?(.+?)$'
+        m = re2.match(reg, self.text)
         if m is not None:
             dh = m.group(1)
             if self.potential_dh_continuation:
@@ -244,6 +248,19 @@ class RawRefPart(TrieEntry):
         offset = new_raw_start - old_raw_start
         self.span = new_raw_ref_doc[part_start-offset:part_end-offset]
 
+    def merge(self, other: 'RawRefPart') -> None:
+        """
+        Merge spans of two RawRefParts.
+        Assumes other has same type as self
+        """
+        assert other.type == self.type
+        self_start, self_end = span_inds(self.span)
+        other_start, other_end = span_inds(other.span)
+        if other_start < self_start:
+            other.merge(self)
+            return
+        self.span = self.span.doc[self_start:other_end]
+
 
 class ContextPart(RawRefPart):
     # currently used to easily differentiate TermContext and SectionContext from a vanilla RawRefPart
@@ -261,7 +278,7 @@ class TermContext(ContextPart):
         self.term = term
 
     def key(self):
-        return self.__repr__()
+        return f"{self.__class__.__name__}({self.term.slug})"
 
     @property
     def text(self):
@@ -271,7 +288,7 @@ class TermContext(ContextPart):
         return self.__repr__()
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({repr(self.term)})"
+        return self.key()
 
     def __hash__(self):
         return hash(self.__repr__())
@@ -297,14 +314,14 @@ class SectionContext(ContextPart):
 
     @property
     def text(self):
-        return self.__str__()
-
-    def __str__(self):
-        return self.__repr__()
-
-    def __repr__(self):
         addr_name = self.addr_type.__class__.__name__
         return f"{self.__class__.__name__}({addr_name}(0), '{self.section_name}', {self.address})"
+
+    def __str__(self):
+        return self.text
+
+    def __repr__(self):
+        return self.text
 
     def __hash__(self):
         return hash(f"{self.addr_type.__class__}|{self.section_name}|{self.address}")
@@ -341,11 +358,35 @@ class RawRef:
     Span of text which may represent one or more Refs
     Contains RawRefParts
     """
-    def __init__(self, raw_ref_parts: list, span: SpanOrToken) -> None:
-        self.raw_ref_parts = self._group_ranged_parts(raw_ref_parts)
+    def __init__(self, lang: str, raw_ref_parts: list, span: SpanOrToken) -> None:
+        self.raw_ref_parts = self._merge_daf_amud_parts(lang, self._group_ranged_parts(raw_ref_parts))
         self.parts_to_match = self.raw_ref_parts  # actual parts that will be matched. different when their are context swaps
         self.prev_num_parts_map = self._get_prev_num_parts_map(self.raw_ref_parts)
         self.span = span
+
+    @staticmethod
+    def _merge_daf_amud_parts(lang: str, raw_ref_parts: List['RawRefPart']) -> List['RawRefPart']:
+        """
+        Preprocessing function to merge together Daf and Amud parts if they mistakenly are recognized as separate
+        """
+        merged_parts = raw_ref_parts.copy()
+        inds_to_del = []
+        for ipart, part in enumerate(raw_ref_parts[:-1]):
+            if part.type != RefPartType.NUMBERED: continue
+            addr_talmud = schema.AddressTalmud(0)
+            _, _, addr_classes = addr_talmud.get_all_possible_sections_from_string(lang, part.text, strip_prefixes=True)
+            if schema.AddressTalmud not in addr_classes: continue
+            _, _, addr_classes = schema.AddressInteger(0).get_all_possible_sections_from_string(lang, part.text, strip_prefixes=True)
+            if schema.AddressInteger in addr_classes: continue  # Don't consider if also matches AddressInteger. This is too ambiguous
+            next_part = raw_ref_parts[ipart+1]
+            proposed_text = f"{part.text} {next_part.text}"
+            _, _, addr_classes = addr_talmud.get_all_possible_sections_from_string(lang, proposed_text, strip_prefixes=True)
+            if schema.AddressTalmud not in addr_classes: continue  # Only consider if still matches AddressTalmud with merged text
+            part.merge(next_part)
+            inds_to_del += [ipart + 1]
+        for i in reversed(inds_to_del):
+            del merged_parts[i]
+        return merged_parts
 
     @staticmethod
     def _group_ranged_parts(raw_ref_parts: List['RawRefPart']) -> List['RawRefPart']:
@@ -439,19 +480,29 @@ class ResolvedRef:
     """
     is_ambiguous = False
 
-    def __init__(self, raw_ref: RawRef, resolved_parts: List[RawRefPart], node, ref: text.Ref, context_ref: text.Ref = None, context_type: ContextType = None) -> None:
+    def __init__(self, raw_ref: RawRef, resolved_parts: List[RawRefPart], node, ref: text.Ref, context_ref: text.Ref = None, context_type: ContextType = None, _thoroughness=ResolutionThoroughness.NORMAL) -> None:
         self.raw_ref = raw_ref
         self.resolved_parts = resolved_parts
         self.node = node
         self.ref = ref
         self.context_ref = context_ref
         self.context_type = context_type
+        self._thoroughness = _thoroughness
 
     def clone(self, **kwargs) -> 'ResolvedRef':
         """
         Return new ResolvedRef with all the same data except modifications specified in kwargs
         """
         return ResolvedRef(**{**self.__dict__, **kwargs})
+
+    def merge_parts(self, other: 'ResolvedRef') -> None:
+        for part in other.resolved_parts:
+            if part in self.resolved_parts: continue
+            if part.is_context:
+                # preprend context parts so they pass validation that context parts need to preceed non-context parts
+                self.resolved_parts = [part] + self.resolved_parts
+            else:
+                self.resolved_parts += [part]
 
     def has_prev_unused_numbered_ref_part(self, part: RawRefPart) -> bool:
         """
@@ -479,15 +530,17 @@ class ResolvedRef:
         except KeyError:
             return False
 
-    def _get_refined_matches_for_dh_part(self, raw_ref_part: RawRefPart, refined_parts: List[RawRefPart], node: schema.DiburHamatchilNodeSet):
+    def _get_refined_matches_for_dh_part(self, lang, raw_ref_part: RawRefPart, refined_parts: List[RawRefPart], node: schema.DiburHamatchilNodeSet):
         """
         Finds dibur hamatchil ref which best matches `raw_ref_part`
         Currently a very simplistic algorithm
         If there is a DH match, return the corresponding ResolvedRef
         """
-        best_matches = node.best_fuzzy_matches(raw_ref_part)
+        if self._thoroughness < ResolutionThoroughness.HIGH and self.ref.is_book_level():
+            return []
+        best_matches = node.best_fuzzy_matches(lang, raw_ref_part)
         # TODO modify self with final dh
-        return [self.clone(resolved_parts=refined_parts, node=max_node, ref=text.Ref(max_node.ref)) for _, max_node, _ in best_matches]
+        return [self.clone(resolved_parts=refined_parts.copy(), node=max_node, ref=text.Ref(max_node.ref)) for _, max_node, _ in best_matches]
 
     def _get_refined_refs_for_numbered_part(self, raw_ref_part: RawRefPart, refined_parts: List[RawRefPart], node, lang, fromSections: List[RawRefPart]=None) -> List[
         'ResolvedRef']:
@@ -586,7 +639,7 @@ class ResolvedRef:
                 # technically doesn't work if there is a referenceable child in between ja and dh node
                 node = node.get_referenceable_child(self.ref)
             if isinstance(node, schema.DiburHamatchilNodeSet):
-                matches += self._get_refined_matches_for_dh_part(part, refined_ref_parts, node)
+                matches += self._get_refined_matches_for_dh_part(lang, part, refined_ref_parts, node)
         # TODO sham and directional cases
         return matches
     
@@ -903,6 +956,7 @@ class RefResolver:
         self._ref_part_title_graph = ref_part_title_graph
         self._term_matcher_by_lang = term_matcher_by_lang
         self._ibid_history = IbidHistory()
+        self._thoroughness = ResolutionThoroughness.NORMAL
 
         # see ML Repo library_exporter.py:TextWalker.__init__() which uses same normalization
         # important that normalization is equivalent to normalization done at training time
@@ -937,7 +991,19 @@ class RefResolver:
             for resolved_ref, temp_unnorm_inds, temp_unnorm_part_inds in zip(temp_resolved, unnorm_inds, unnorm_part_inds):
                 resolved_ref.raw_ref.map_new_indices(unnorm_doc, temp_unnorm_inds, temp_unnorm_part_inds)
 
-    def bulk_resolve_refs(self, lang: str, book_context_refs: List[Optional[text.Ref]], input: List[str], with_failures=False, verbose=False, reset_ibids_every_context_ref=True) -> List[List[Union[ResolvedRef, AmbiguousResolvedRef]]]:
+    def bulk_resolve_refs(self, lang: str, book_context_refs: List[Optional[text.Ref]], input: List[str], with_failures=False, verbose=False, reset_ibids_every_context_ref=True, thoroughness=ResolutionThoroughness.NORMAL) -> List[List[Union[ResolvedRef, AmbiguousResolvedRef]]]:
+        """
+        Main function for resolving refs in text. Given a list of texts, returns ResolvedRefs for each
+        @param lang:
+        @param book_context_refs:
+        @param input:
+        @param with_failures:
+        @param verbose:
+        @param reset_ibids_every_context_ref:
+        @param thoroughness: how thorough should the search be. More thorough == slower. Currently "normal" will avoid searching for DH matches at book level and avoid filtering empty refs
+        @return:
+        """
+        self._thoroughness = thoroughness
         self.reset_ibid_history()
         normalized_input = self._normalize_input(lang, input)
         all_raw_refs = self._bulk_get_raw_refs(lang, normalized_input)
@@ -986,7 +1052,7 @@ class RefResolver:
                     if part_type == RefPartType.DH:
                         dh_cont = self._get_dh_continuation(ispan, ipart, raw_ref_spans, part_span_list, span, part_span)
                     raw_ref_parts += [RawRefPart(part_type, part_span, dh_cont)]
-                raw_refs += [RawRef(raw_ref_parts, span)]
+                raw_refs += [RawRef(lang, raw_ref_parts, span)]
             all_raw_refs += [raw_refs]
         return all_raw_refs
     
@@ -1050,7 +1116,7 @@ class RefResolver:
                 yield doc.ents
 
     @staticmethod
-    def split_non_cts_parts(raw_ref: RawRef) -> List[RawRef]:
+    def split_non_cts_parts(lang, raw_ref: RawRef) -> List[RawRef]:
         if not any(part.type == RefPartType.NON_CTS for part in raw_ref.raw_ref_parts): return [raw_ref]
         split_raw_refs = []
         curr_parts = []
@@ -1065,15 +1131,18 @@ class RefResolver:
                 try:
                     raw_ref_span = raw_ref.subspan(slice(curr_part_start, curr_part_end))
                     [p.realign_to_new_raw_ref(raw_ref.span, raw_ref_span) for p in curr_parts]
-                    split_raw_refs += [RawRef(curr_parts, raw_ref_span)]
+                    split_raw_refs += [RawRef(lang, curr_parts, raw_ref_span)]
                 except AssertionError:
                     pass
                 curr_parts = []
                 curr_part_start = ipart+1
         return split_raw_refs
 
+    def set_thoroughness(self, thoroughness: ResolutionThoroughness) -> None:
+        self._thoroughness = thoroughness
+
     def resolve_raw_ref(self, lang: str, book_context_ref: Optional[text.Ref], raw_ref: RawRef) -> List[Union[ResolvedRef, AmbiguousResolvedRef]]:
-        split_raw_refs = self.split_non_cts_parts(raw_ref)
+        split_raw_refs = self.split_non_cts_parts(lang, raw_ref)
         resolved_list = []
         for i, temp_raw_ref in enumerate(split_raw_refs):
             is_non_cts = i > 0 and len(resolved_list) > 0
@@ -1117,10 +1186,11 @@ class RefResolver:
 
     def _get_unrefined_ref_part_matches_for_title_context(self, lang: str, context_ref: Optional[text.Ref], raw_ref: RawRef, context_type: ContextType) -> List[ResolvedRef]:
         matches = []
-        if context_ref is None:
-            return matches
+        if context_ref is None: return matches
+        match_templates = list(context_ref.index.nodes.get_match_templates())
+        if len(match_templates) == 0: return matches
         # assumption is longest template will be uniquest. is there a reason to consider other templates?
-        longest_template = max(context_ref.index.nodes.get_match_templates(), key=lambda x: len(list(x.terms)))
+        longest_template = max(match_templates, key=lambda x: len(list(x.terms)))
         temp_ref_parts = raw_ref.parts_to_match + [TermContext(term) for term in longest_template.terms]
         temp_matches = self._get_unrefined_ref_part_matches_recursive(lang, raw_ref, ref_parts=temp_ref_parts)
         matches += list(filter(lambda x: x.num_resolved(include={TermContext}), temp_matches))
@@ -1183,7 +1253,9 @@ class RefResolver:
             temp_title_trie = title_trie.get_continuations(part.key())
             if temp_title_trie is None: continue
             if LEAF_TRIE_ENTRY in temp_title_trie:
-                matches += [ResolvedRef(raw_ref, temp_prev_ref_parts, node, (node.nodes if isinstance(node, text.Index) else node).ref()) for node in temp_title_trie[LEAF_TRIE_ENTRY]]
+                for node in temp_title_trie[LEAF_TRIE_ENTRY]:
+                    ref = (node.nodes if isinstance(node, text.Index) else node).ref()
+                    matches += [ResolvedRef(raw_ref, temp_prev_ref_parts, node, ref, _thoroughness=self._thoroughness)]
             temp_ref_parts = [temp_part for temp_part in ref_parts if temp_part != part]
             matches += self._get_unrefined_ref_part_matches_recursive(lang, raw_ref, temp_title_trie, ref_parts=temp_ref_parts, prev_ref_parts=temp_prev_ref_parts)
 
@@ -1282,15 +1354,11 @@ class RefResolver:
             pruned_matches += [max(match_list, key=lambda m: m.num_resolved())]
         return pruned_matches
 
-    @staticmethod
-    def _prune_refined_ref_part_matches(resolved_refs: List[ResolvedRef]) -> List[ResolvedRef]:
+    def _prune_refined_ref_part_matches(self, resolved_refs: List[ResolvedRef]) -> List[ResolvedRef]:
         """
         Applies some heuristics to remove false positives
         """
-
-        # remove matches that have empty refs
-        # TODO removing for now b/c of yerushalmi project. doesn't seem necessary to happen here anyway.
-        # resolved_refs = list(filter(lambda x: not x.ref.is_empty(), resolved_refs))
+        resolved_refs = RefResolver._merge_subset_matches(resolved_refs)
 
         # remove matches that don't match all ref parts to avoid false positives
         # used to only apply to context matches
@@ -1339,5 +1407,41 @@ class RefResolver:
 
         # make unique
         max_resolved_refs = list({r.ref: r for r in max_resolved_refs}.values())
-
+        if self._thoroughness >= ResolutionThoroughness.HIGH:
+            # remove matches that have empty refs
+            max_resolved_refs = list(filter(lambda x: not x.ref.is_empty(), max_resolved_refs))
         return max_resolved_refs
+
+    @staticmethod
+    def _merge_subset_matches(resolved_refs: List[ResolvedRef]) -> List[ResolvedRef]:
+        """
+        Merge matches where one ref is contained in another ref
+        E.g. if matchA.ref == Ref("Genesis 1") and matchB.ref == Ref("Genesis 1:1"), matchA will be deleted and its parts will be appended to matchB's parts
+        """
+        resolved_refs.sort(key=lambda x: x.ref and x.ref.order_id())
+        merged_resolved_refs = []
+        next_merged = False
+        for imatch, match in enumerate(resolved_refs[:-1]):
+            if match.is_ambiguous or match.ref is None or next_merged:
+                merged_resolved_refs += [match]
+                next_merged = False
+                continue
+            next_match = resolved_refs[imatch+1]
+            if match.ref.index.title != next_match.ref.index.title:
+                # optimization, the easiest case to check for
+                merged_resolved_refs += [match]
+            elif match.ref.contains(next_match.ref):
+                next_match.merge_parts(match)
+            elif next_match.ref.contains(match.ref):
+                # unfortunately Ref.order_id() doesn't consistently put larger refs before smaller ones
+                # e.g. Tosafot on Berakhot 2 precedes Tosafot on Berakhot Chapter 1...
+                # check if next match actually contains this match
+                match.merge_parts(next_match)
+                merged_resolved_refs += [match]
+                next_merged = True
+            else:
+                merged_resolved_refs += [match]
+        if len(resolved_refs) > 0:
+            # never dealt with last resolved_ref
+            merged_resolved_refs += [resolved_refs[-1]]
+        return merged_resolved_refs

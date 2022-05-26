@@ -59,6 +59,13 @@ spec:
             value: {{ if eq .Values.deployEnv "prod" }}"false"{{ else }}"true"{{ end }}
           - name: REDIS_HOST
             value: redis-{{ .Values.deployEnv }}
+        envFrom:
+          - configMapRef:
+              name: local-settings-node-{{ .Values.deployEnv }}
+              optional: true
+          - secretRef:
+              name: local-settings-node-secrets-{{ .Values.deployEnv }}
+              optional: true
         ports:
         - containerPort: 3000
         resources: {{ toYaml .Values.nodejs.resources | nindent 10 }}

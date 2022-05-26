@@ -1,0 +1,13 @@
+{{- if .Values.web.localsettings }}
+{{- if gt (len .Values.web.localsettings) 0 }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: local-settings-web-{{ .Values.deployEnv }}
+  labels:
+    deployEnv: {{ .Values.deployEnv | quote }}
+    {{- include "sefaria.labels" . | nindent 4 }}
+data: 
+    {{ .Values.web.localsettings | toYaml | nindent 2 }}
+{{- end }}
+{{- end }}

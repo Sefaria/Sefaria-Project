@@ -1067,7 +1067,7 @@ class NumberedTitledTreeNode(TitledTreeNode):
                 if list_attr not in serial: continue
                 serial[list_attr] = serial[list_attr][next_refereceable_depth:]
             if serial['depth'] <= 1 and getattr(self, 'isSegmentLevelDiburHamatchil', False):
-                return DiburHamatchilNodeSet({"container_refs": context_ref.normal()})
+                return DiburHamatchilNodeSet({"container_refs": context_ref.normal()}, hint="container_refs_1")
             if self.depth <= 1: return
         else:
             # If parent exists, this JAN is still attached to its original tree. Need to return the same node but detached to indicate this should be only interpreted as a JA and not a SchemaNode
@@ -1098,9 +1098,9 @@ class DiburHamatchilNode(abst.AbstractMongoRecord):
         "ref",
     ]
 
-    def fuzzy_match_score(self, raw_ref_part):
+    def fuzzy_match_score(self, lang, raw_ref_part):
         from sefaria.utils.hebrew import hebrew_starts_with
-        for dh in raw_ref_part.get_dh_text_to_match():
+        for dh in raw_ref_part.get_dh_text_to_match(lang):
             if hebrew_starts_with(self.dibur_hamatchil, dh):
                 return 1.0, dh
         return 0.0, None
@@ -1109,15 +1109,16 @@ class DiburHamatchilNode(abst.AbstractMongoRecord):
 class DiburHamatchilNodeSet(abst.AbstractMongoSet):
     recordClass = DiburHamatchilNode
 
-    def best_fuzzy_matches(self, raw_ref_part, score_leeway=0.01, threshold=0.9):
+    def best_fuzzy_matches(self, lang, raw_ref_part, score_leeway=0.01, threshold=0.9):
         """
+        :param lang: either 'he' or 'en'
         :param raw_ref_part: of type "DH" to match
         :param score_leeway: all scores within `score_leeway` of the highest score are returned
         :param threshold: scores below `threshold` aren't returned
         """
         best_list = [(0.0, None, '')]
         for node in self:
-            score, dh = node.fuzzy_match_score(raw_ref_part)
+            score, dh = node.fuzzy_match_score(lang, raw_ref_part)
             if dh is None: continue
             curr_score, _, curr_dh = best_list[-1]
             if (score, len(dh)) >= (curr_score, len(curr_dh)):
@@ -1967,6 +1968,7 @@ class AddressType(object):
         'he': None,
         'en': None
     }
+    reish_samekh_reg = "(?:\u05e1(?:\u05d9\u05e9\\s+)?|\u05e8(?:\u05d5\u05e3\\s+)?)?"  # matches letters reish or samekh or words reish or sof. these are common prefixes for many address types
 
     def __init__(self, order, length=None):
         self.order = order
@@ -2168,9 +2170,9 @@ class AddressTalmud(AddressType):
     """
     section_patterns = {
         "en": r"""(?:(?:[Ff]olios?|[Dd]af|[Pp](ages?|s?\.))?\s*)""",  # the internal ? is a hack to allow a non match, even if 'strict'
-        "he": "(\u05d1?\u05d3\u05b7?\u05bc?[\u05e3\u05e4\u05f3\u2018\u2019'\"״]\\s+)"			# Daf, spelled with peh, peh sofit, geresh, gereshayim,  or single or doublequote
+        "he": "((\u05d1?\u05d3\u05b7?\u05bc?[\u05e3\u05e4\u05f3\u2018\u2019'\"״]\\s+)|(?:\u05e1|\u05e8)?\u05d3\"?)"			# (Daf, spelled with peh, peh sofit, geresh, gereshayim,  or single or doublequote) OR daled prefix
     }
-    he_pattern = '''(?:(?:\u05e1|\u05e8)?\u05e2(?:"|\u05f4|”|''|\u05de\u05d5\u05d3\\s))?([\u05d0\u05d1])['\u05f3\u2018\u2019]?''' #+ (optional: (optional: samekh or reish for sof/reish) Ayin for amud) + [alef or bet] + (optional: single quote of any type (really only makes sense if there's no Ayin beforehand))
+    he_pattern = f'''(?:{AddressType.reish_samekh_reg}\u05e2(?:"|\u05f4|”|''|\u05de\u05d5\u05d3\\s))?([\u05d0\u05d1])['\u05f3\u2018\u2019]?''' #+ (optional: (optional: samekh or reish for sof/reish) Ayin for amud) + [alef or bet] + (optional: single quote of any type (really only makes sense if there's no Ayin beforehand))
     amud_patterns = {
         "en": "[ABabᵃᵇ]",
         "he": '''([.:]|[,\\s]+{})'''.format(he_pattern)  # Either (1) period / colon (2) some separator + he_pattern
@@ -2540,10 +2542,11 @@ class AddressPerek(AddressInteger):
         'פ"ק': [1, 100],  # this is inherently ambiguous (1 or 100)
         "פרק בתרא": [-1],
         'ר"פ בתרא': [-1],
+        'ס"פ בתרא': [-1],
     }
     section_patterns = {
         "en": r"""(?:(?:[Cc]h(apters?|\.)|[Pp]erek|s\.)?\s*)""",  # the internal ? is a hack to allow a non match, even if 'strict'
-        "he": r"""(?:\u05d1?\u05e4(?:"|\u05f4|''|'\s)                  # Peh (for 'perek') maybe followed by a quote of some sort
+        "he": fr"""(?:\u05d1?{AddressType.reish_samekh_reg}\u05e4(?:"|\u05f4|''|'\s)                  # Peh (for 'perek') maybe followed by a quote of some sort
         |\u05e4\u05bc?\u05b6?\u05e8\u05b6?\u05e7(?:\u05d9\u05b4?\u05dd)?\s*                  # or 'perek(ym)' spelled out, followed by space
         )"""
     }
