@@ -46,7 +46,7 @@ class ReaderApp extends Component {
         menuOpen:                props.initialMenu,
         searchQuery:             props.initialQuery,
         searchTab:               props.initialSearchTab,
-        topicsTab:               props.initialTopicsTab,
+        // topicsTab:               props.initialTopicsTab,
         tab:                     props.initialTab,
         textSearchState: new SearchState({
           type: 'text',
@@ -146,7 +146,7 @@ class ReaderApp extends Component {
       searchQuery:             state.searchQuery             || null,
       searchTab:               state.searchTab               || 'text',
       showHighlight:           state.showHighlight           || null,
-      topicsTab:               state.topicsTab               || 'sources',
+      //topicsTab:               state.topicsTab               || 'sources',
       textSearchState:         state.textSearchState         || new SearchState({ type: 'text' }),
       sheetSearchState:        state.sheetSearchState        || new SearchState({ type: 'sheet' }),
       compare:                 state.compare                 || false,
@@ -381,7 +381,7 @@ class ReaderApp extends Component {
           (prev.currVersions.he !== next.currVersions.he) ||
           (prev.searchQuery != next.searchQuery) ||
           (prev.searchTab != next.searchTab) ||
-          (prev.topicsTab != next.topicsTab) ||
+          //(prev.topicsTab != next.topicsTab) ||
           //(prev.profileTab !== next.profileTab) ||
           (prev.tab !== next.tab)
           (prev.collectionName !== next.collectionName) ||
@@ -495,7 +495,7 @@ class ReaderApp extends Component {
             break;
           case "topics":
             if (state.navigationTopic) {
-              hist.url = `topics/${state.navigationTopic}?tab=${state.topicsTab}`;
+              hist.url = `topics/${state.navigationTopic}`;
               hist.title = `${state.topicTitle[shortLang]} | ${ Sefaria._("Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.")}`;
               hist.mode  = "topic";
             } else if (state.navigationTopicCategory) {
@@ -1186,9 +1186,9 @@ class ReaderApp extends Component {
       [searchStateName]: searchState.update({ sortType })
     });
   }
-  updateTopicsTab(n, topicsTab) {
-    this.setPanelState(n, { topicsTab });
-  }
+  // updateTopicsTab(n, topicsTab) {
+  //   this.setPanelState(n, { topicsTab });
+  // }
   setPanelState(n, state, replaceHistory) {
     this.replaceHistory  = Boolean(replaceHistory);
     //console.log(`setPanel State ${n}, replace: ` + this.replaceHistory);
@@ -1642,12 +1642,12 @@ class ReaderApp extends Component {
     state = this.makePanelState(state);
     this.setState({panels: [state], headerMode: false});
   }
-  openTopic(slug, topicsTab) {
-    if (!topicsTab) {
-      topicsTab = "sources";
-    }
+  openTopic(slug/*, topicsTab*/) {
+    // if (!topicsTab) {
+    //   topicsTab = "sources";
+    // }
     Sefaria.getTopic(slug, {annotate_time_period: true}).then(topic => {
-      this.setSinglePanelState({ menuOpen: "topics", navigationTopic: slug, topicTitle: topic.primaryTitle, topicsTab });
+      this.setSinglePanelState({ menuOpen: "topics", navigationTopic: slug, topicTitle: topic.primaryTitle, /*topicsTab*/ });
     });
   }
   openTopicCategory(slug) {
@@ -1943,7 +1943,7 @@ class ReaderApp extends Component {
       var updateSearchFilter             = this.updateSearchFilter.bind(null, i);
       var updateSearchOptionField        = this.updateSearchOptionField.bind(null, i);
       var updateSearchOptionSort         = this.updateSearchOptionSort.bind(null, i);
-      var updateTopicsTab                = this.updateTopicsTab.bind(null, i);
+      //var updateTopicsTab                = this.updateTopicsTab.bind(null, i);
       var onOpenConnectionsClick         = this.openTextListAt.bind(null, i+1);
       var setTextListHighlight           = this.setTextListHighlight.bind(null, i);
       var setSelectedWords               = this.setSelectedWords.bind(null, i);
@@ -1979,7 +1979,7 @@ class ReaderApp extends Component {
                       closeConnectionPanel={onCloseConnectionClick}
                       onSearchResultClick={onSearchResultClick}
                       onNavigationClick={this.handleNavigationClick}
-                      updateTopicsTab={updateTopicsTab}
+                      //updateTopicsTab={updateTopicsTab}
                       onOpenConnectionsClick={onOpenConnectionsClick}
                       openComparePanel={openComparePanel}
                       setTextListHighlight={setTextListHighlight}

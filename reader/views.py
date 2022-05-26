@@ -3159,7 +3159,7 @@ def topic_page(request, topic):
     props = {
         "initialMenu": "topics",
         "initialTopic": topic,
-        "initialTopicsTab": urllib.parse.unquote(request.GET.get('tab', 'sources')),
+        "initialTab": urllib.parse.unquote(request.GET.get('tab', 'sources')),
         "initialTopicTitle": {
             "en": topic_obj.get_primary_title('en'),
             "he": topic_obj.get_primary_title('he')

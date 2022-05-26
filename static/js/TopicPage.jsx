@@ -348,7 +348,7 @@ const useTabDisplayData = (translationLanguagePreference) => {
 
 const TopicPage = ({
   tab, topic, topicTitle, setTopic, setNavTopic, openTopics, multiPanel, showBaseText, navHome, 
-  toggleSignUpModal, openDisplaySettings, updateTopicsTab, openSearch, translationLanguagePreference, versionPref
+  toggleSignUpModal, openDisplaySettings, setTab, openSearch, translationLanguagePreference, versionPref
 }) => {
     const defaultTopicData = {primaryTitle: topicTitle, tabs: {}, isLoading: true};
     const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(topic) || defaultTopicData);
@@ -429,7 +429,8 @@ const TopicPage = ({
     }
     useEffect(() => {
       if (!!displayTabs[tabIndex]) {
-        updateTopicsTab(displayTabs[tabIndex].id);
+        //updateTopicsTab(displayTabs[tabIndex].id);
+        setTab(displayTabs[tabIndex].id);
       }
     }, [tabIndex]);
 
@@ -442,7 +443,8 @@ const TopicPage = ({
                     {(!topicData.isLoading && displayTabs.length) ?
                        <TabView
                           currTabIndex={tabIndex}
-                          setTab={(tabIndex, tempTabs) => { updateTopicsTab(tempTabs[tabIndex].id); }}
+                          setTab={setTab}
+                          //setTab={(tabIndex, tempTabs) => { updateTopicsTab(tempTabs[tabIndex].id); }}
                           tabs={displayTabs}
                           renderTab={t => (
                             <div className={classNames({tab: 1, noselect: 1, filter: t.justifyright, open: t.justifyright && showFilterHeader})}>
@@ -501,12 +503,13 @@ const TopicPage = ({
       </div>;
 };
 TopicPage.propTypes = {
-  tab:                 PropTypes.string.isRequired,
+  tab:                 PropTypes.string,
   topic:               PropTypes.string.isRequired,
   setTopic:            PropTypes.func.isRequired,
   setNavTopic:         PropTypes.func.isRequired,
   openTopics:          PropTypes.func.isRequired,
-  updateTopicsTab:     PropTypes.func.isRequired,
+  setTab:              PropTypes.func.isRequired,
+  //updateTopicsTab:     PropTypes.func.isRequired,
   multiPanel:          PropTypes.bool,
   showBaseText:        PropTypes.func,
   navHome:             PropTypes.func,
