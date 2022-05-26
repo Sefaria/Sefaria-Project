@@ -1610,6 +1610,7 @@ const PoweredByPage = () => (
             heText="Did you know that Sefaria’s open data and API can be used by anyone to create new technological solutions for learning Torah? You can find it all for free in our GitHub repository!"
             enActionURL="https://github.com/Sefaria"
             enActionText="Create Something New"
+            newTab={true}
         />
         <GreyBox>
             <H2Block en="Open Source Torah" he="Open Source Torah"/>
@@ -1618,7 +1619,9 @@ const PoweredByPage = () => (
             </EnBlock>
             <Spacer/>
         </GreyBox>
-        <H2Block en="Projects Powered by Sefaria" he="Projects Powered by Sefaria"/>
+        <GreyBox light={true}>
+            <H2Block en="Projects Powered by Sefaria" he="Projects Powered by Sefaria"/>
+        </GreyBox>
         <Feature
             enTitle="AlHaTorah"
             enText="AlHaTorah is a website with a broad range of tools for studying Tanakh, including study guides broken down by parashah, biblical art, and interactive modules. Among the available sources, AlHaTorah makes use of biblical commentaries from Sefaria’s library."
@@ -1667,9 +1670,7 @@ const PoweredByPage = () => (
             <Spacer/>
         </GreyBox>
 
-        <H2Block en="Explore a few more projects" he="Explore a few more projects"/>
-
-        <ButtonRow white={true} enTitle="Explore a few more projects" heTitle="">
+        <ButtonRow white={true} enTitle="Explore a few more projects" heTitle="Explore a few more projects">
             {[["HaTanakh.com", "http://www.hatanakh.com/"],
                 ["Koveah", "https://koveah.org/"],
                 ["Parasha Bytes", "https://parashabytes.zemon.name/bytes/"],
@@ -2077,7 +2078,7 @@ const HeaderForDonatePage = () => {
 };
 
 
-const Header = ({enTitle, heTitle, enText, heText, enImg, heImg, enImgAlt, heImgAlt, enActionURL, enActionText, heActionURL, heActionText}) => {
+const Header = ({enTitle, heTitle, enText, heText, enImg, heImg, enImgAlt, heImgAlt, enActionURL, enActionText, heActionURL, heActionText, newTab}) => {
     var staticPageHeaderClass = "staticPageHeader";
     var imgComponent = "";
     if (enImg === "" && heImg === "") {
@@ -2097,7 +2098,7 @@ const Header = ({enTitle, heTitle, enText, heText, enImg, heImg, enImgAlt, heImg
                 <SimpleInterfaceBlock classes="staticPageHeaderText" he={heText} en={enText}/>
                 {enActionURL ?
                     <SimpleButton en={enActionText} he={heActionText} href={enActionURL} he_href={heActionURL}
-                                  white={true}/> : null}
+                                  white={true} newTab={newTab}/> : null}
             </div>
             <div className="staticPageHeaderImg">
                 {imgComponent}
