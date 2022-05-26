@@ -1607,17 +1607,18 @@ const PoweredByPage = () => (
         <Header
             enTitle="Powered by Sefaria"
             enText="Did you know that Sefaria’s open data and API can be used by anyone to create new technological solutions for learning Torah? You can find it all for free in our GitHub repository!"
+            heText="Did you know that Sefaria’s open data and API can be used by anyone to create new technological solutions for learning Torah? You can find it all for free in our GitHub repository!"
             enActionURL="https://github.com/Sefaria"
             enActionText="Create Something New"
         />
         <GreyBox>
-            <H2Block en="Open Source Torah" he=""/>
+            <H2Block en="Open Source Torah" he="Open Source Torah"/>
             <EnBlock padded={true}>
                 <p>We do our best to ensure that the texts we put in our library come with a Creative Commons license, so the texts can be used and reused, for free. We also make all of our code available for open source use by other developers in any way they’d like. To date, there are more than 70 projects Powered by Sefaria, and nearly 100 sites linked to the Sefaria library through our Linker API.</p>
             </EnBlock>
             <Spacer/>
         </GreyBox>
-
+        <H2Block en="Projects Powered by Sefaria" he="Projects Powered by Sefaria"/>
         <Feature
             enTitle="AlHaTorah"
             enText="AlHaTorah is a website with a broad range of tools for studying Tanakh, including study guides broken down by parashah, biblical art, and interactive modules. Among the available sources, AlHaTorah makes use of biblical commentaries from Sefaria’s library."
@@ -1659,12 +1660,14 @@ const PoweredByPage = () => (
             link="https://www.artscroll.com/Categories/DSD.html"
         />
         <GreyBox>
-            <H2Block en="Tell us about your projects!" he=""/>
+            <H2Block en="Tell us about your projects!" he="Tell us about your projects!"/>
             <EnBlock padded={true}>
                 <p>Have you used Sefaria’s data to build an app, visualization, website, or other digital tool? Tell us about it! We’d love to see your project. You can also reach out to us with your questions about our open source data and API by writing to us at <a href="mailto:hello@sefaria.org">hello@sefaria.org</a>.</p>
             </EnBlock>
             <Spacer/>
         </GreyBox>
+
+        <H2Block en="Explore a few more projects" he="Explore a few more projects"/>
 
         <ButtonRow white={true} enTitle="Explore a few more projects" heTitle="">
             {[["HaTanakh.com", "http://www.hatanakh.com/"],
