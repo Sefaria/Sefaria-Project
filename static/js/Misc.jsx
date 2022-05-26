@@ -2701,7 +2701,7 @@ const CategoryChooser = function({categories, update}) {
 }
 
 
-const TopicEditor = ({en="", he="", categories={}, desc={}}) => {
+const TopicEditor = ({en="", he="", categories={}, desc={}, close}) => {
     const [savingStatus, setSavingStatus] = useState(false);
     const [slug, setSlug] = useState(categories["slug"]);
     const [enCat, setEnCat] = useState(categories["en"]);
@@ -2716,7 +2716,7 @@ const TopicEditor = ({en="", he="", categories={}, desc={}}) => {
     const existingCategories = useRef(Sefaria.topic_toc.reduce(Sefaria._initTopicTocTitleReducer, {}));
 
     const catMenu = Object.keys(existingCategories.current).map(function (t, i) {
-      if (isNewTopic.current == false && enTitle == t) {
+      if (isNewTopic.current == false && enCat == t) {
         return <option key={i} value={t} selected>{t}</option>
       } else {
         return <option key={i} value={t}>{t}</option>
@@ -2728,7 +2728,7 @@ const TopicEditor = ({en="", he="", categories={}, desc={}}) => {
           alert("Title must be provided.");
           return false;
         }
-        if (!isNewTopic.current && origEnTitle != enTitle) {
+        if (!isNewTopic.current && origEnTitle.current != enTitle) {
           //if the title has been changed, check that there isn't one with new title
           //allow new topics because if there is a topic that isn't in the topic TOC,
           //there needs to be some way of moving it into the topic TOC
@@ -2762,7 +2762,7 @@ const TopicEditor = ({en="", he="", categories={}, desc={}}) => {
             alert(data.error);
           } else {
             alert("Text information saved.");
-            window.location.href = "/topics/"+slug;
+            window.location.href = "/topics/";
           }
           }).fail( function(xhr, status, errorThrown) {
             alert("Unfortunately, there may have been an error saving this topic information: "+errorThrown);

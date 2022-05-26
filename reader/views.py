@@ -3209,7 +3209,7 @@ def add_new_topic_api(request):
         new_link.toTopic = Topic.normalize_slug(data["category"]) if data["category"] is not None else t.slug # topic links to itself if top-level which is determined by topic_obj["category"] being None
         new_link.fromTopic = t.slug
         new_link.linkType = "displays-under"
-        new_link.dataSource = "topic-admin-tool"
+        new_link.dataSource = "sefaria"
         new_link.save()
 
         @csrf_protect
@@ -3245,29 +3245,39 @@ def topics_api(request, topic, v2=False):
             })
         topic_data = json.loads(request.POST["json"])
         topic_obj = Topic().load({"$and": [{"titles.text": topic_data["origTitle"]}, {"titles.primary": True}]})
+        origSlug = topic_obj.slug
+        newSlug = Topic.normalize_slug(topic_data["title"])
+        if topic_data["origCategory"] != topic_data["category"]:
+            origLink = IntraTopicLink().load({"fromTopic": origSlug,
+                                              "toTopic": Topic.normalize_slug(topic_data["origCategory"])})
+            origLink.fromTopic = newSlug
+            origLink.toTopic = Topic.normalize_slug(topic_data["category"]) if topic_data["category"] is not None else origLink.fromTopic  # root level topics link to themselves
+            origLink.linkType = "displays-under"
+            origLink.dataSource = "sefaria"
+            origLink.save()
+
         if topic_data["origTitle"] != topic_data["title"]:
             topic_obj.add_title(topic_data["title"], 'en', True, True)
             topic_obj.add_title(topic_data["title"][::-1], 'he', True, True)
-            origSlug = topic_obj.slug
-            topic_obj.slug = Topic.normalize_slug(topic_data["title"])
+            topic_obj.slug = newSlug
             topic_obj.save()
             for link in TopicLinkSetHelper.find({"$or": [{"toTopic": origSlug}, {"fromTopic": origSlug}]}):
-                attr = 'toTopic' if link.toTopic == topic_data["origTitle"] else 'fromTopic'
-                setattr(link, attr, topic_data["title"])
-                link.save()
+                if isinstance(link, RefTopicLink):
+                    attr = "toTopic"
+                else:
+                    attr = 'toTopic' if link.toTopic == topic_data["origTitle"] else 'fromTopic'
+                setattr(link, attr, topic_obj.slug)
+                try:
+                    link.save()
+                except Exception as e:
+                    print(e)
+                    print(link.contents())
 
         if topic_data["origDescription"] != topic_data["description"]:
             Topic.change_description(topic_obj, topic_data)
             topic_obj.save()
 
-        if topic_data["origCategory"] != topic_data["category"]:
-            origLink = IntraTopicLink().load({"fromTopic": Topic.normalize_slug(topic_data["origTitle"]),
-                                              "toTopic": Topic.normalize_slug(topic_data["origCategory"])})
-            origLink.fromTopic = Topic.normalize_slug(topic_data["title"])
-            origLink.toTopic = Topic.normalize_slug(topic_data["category"]) if topic_data["category"] is not None else origLink.fromTopic # root level topics link to themselves
-            origLink.linkType = "displays-under"
-            origLink.dataSource = "Topic Admin Tool"
-            origLink.save()
+
 
         @csrf_protect
         def protected_index_post(request):
