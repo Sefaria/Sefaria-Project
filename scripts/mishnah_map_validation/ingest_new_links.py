@@ -9,8 +9,6 @@ import re
 from sefaria.model import *
 
 
-# Todo - Add Mishnah Bava Batra,5,7,7,84b,5,84b,6
-
 # This function generates a CSV given a list of dicts
 def generate_csv(dict_list, headers, file_name):
     with open(f'{file_name}.csv', 'w+') as file:
@@ -24,6 +22,9 @@ def generate_csv(dict_list, headers, file_name):
 def delete_linkset(type):
     # Delete the existing LinkSet()
     LinkSet({"type": type}).delete()
+
+    # Delete problematic un-typed link
+    LinkSet({"ref": ['Bava Batra 84b:5-6', 'Mishnah Bava Batra 5:7']}).delete()
 
 
 # For each row in CSV - create a link
@@ -46,7 +47,6 @@ def create_link(row):
     talmud_start_line = row[5]
     talmud_end_daf = row[6]
     talmud_end_line = row[7]
-    talmud_ref = ''
 
     # If the ref goes through two dapim
     if talmud_start_daf != talmud_end_daf:
@@ -90,12 +90,15 @@ def ingest_new_links():
         next(csv_reader)
         for row in csv_reader:
             create_link(row)
+
+    # Missing Bava Batra
+    # create_link(["Mishnah Bava Batra", "5", "7", "7", "84b", "5", "84b", "6"])
     print("All new links created")
 
     # generate the errors csv
-    generate_csv(dict_list=errors_csv,
-                 headers=['ref1 (trying to save)', 'ref2 (trying to save)', 'ref1 (exists)', 'ref2 (exists)'],
-                 file_name='errors')
+    # generate_csv(dict_list=errors_csv,
+    #              headers=['ref1 (trying to save)', 'ref2 (trying to save)', 'ref1 (exists)', 'ref2 (exists)'],
+    #              file_name='errors')
 
 
 ingest_new_links()
