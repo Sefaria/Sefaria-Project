@@ -566,7 +566,9 @@ class TabView extends Component {
       onClickArray[tabIndex]();
     } else {
       this.openTab(tabIndex);
-      setTab && setTab(tabIndex, tabs);
+      const tab = this.props.tabs[tabIndex];
+      setTab && setTab(tab.id);
+      //setTab && setTab(tabIndex, tabs);
     }
   }
   renderTab(tab, index) {

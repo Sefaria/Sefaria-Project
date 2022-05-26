@@ -3481,7 +3481,7 @@ def user_profile(request, username):
     props = {
         "initialMenu":  "profile",
         "initialProfile": requested_profile.to_api_dict(),
-        "initialProfileTab": tab,
+        "initialTab": tab,
     }
     title = _("%(full_name)s on Sefaria") % {"full_name": requested_profile.full_name}
     desc = _('%(full_name)s is on Sefaria. Follow to view their public source sheets, notes and translations.') % {"full_name": requested_profile.full_name}

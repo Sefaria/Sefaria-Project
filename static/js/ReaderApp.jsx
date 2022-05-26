@@ -47,6 +47,7 @@ class ReaderApp extends Component {
         searchQuery:             props.initialQuery,
         searchTab:               props.initialSearchTab,
         topicsTab:               props.initialTopicsTab,
+        tab:                     props.initialTab,
         textSearchState: new SearchState({
           type: 'text',
           appliedFilters:        props.initialTextSearchFilters,
@@ -67,7 +68,7 @@ class ReaderApp extends Component {
         navigationTopicLetter:   props.initialNavigationTopicLetter,
         topicTitle:              props.initialTopicTitle,
         profile:                 props.initialProfile,
-        profileTab:              props.initialProfileTab,
+        // profileTab:              props.initialProfileTab,
         collectionName:          props.initialCollectionName,
         collectionSlug:          props.initialCollectionSlug,
         collectionTag:           props.initialCollectionTag,
@@ -159,7 +160,8 @@ class ReaderApp extends Component {
       selectedNamedEntityText: state.selectedNamedEntityText || null,
       textHighlights:          state.textHighlights          || null,
       profile:                 state.profile                 || null,
-      profileTab:              state.profileTab              || "sheets",
+      //profileTab:              state.profileTab              || "sheets",
+      tab:                     state.tab                     || null,
       beitMidrashId:           state.beitMidrashId           || null,
     };
     // if version is not set for the language you're in, see if you can retrieve it from cache
@@ -380,7 +382,8 @@ class ReaderApp extends Component {
           (prev.searchQuery != next.searchQuery) ||
           (prev.searchTab != next.searchTab) ||
           (prev.topicsTab != next.topicsTab) ||
-          (prev.profileTab !== next.profileTab) ||
+          //(prev.profileTab !== next.profileTab) ||
+          (prev.tab !== next.tab)
           (prev.collectionName !== next.collectionName) ||
           (prev.collectionTag !== next.collectionTag) ||
           (!prevTextSearchState.isEqual({ other: nextTextSearchState, fields: ["appliedFilters", "field", "sortType"]})) ||
@@ -432,7 +435,13 @@ class ReaderApp extends Component {
     // List of modes that the ConnectionsPanel may have which can be represented in a URL. 
     const sidebarModes = new Set(["Sheets", "Notes", "Translations", "Translation Open",
       "About", "AboutSheet", "Navigation", "WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon"]);
-
+    const addTab = (url) => {
+      if (state.tab) {
+        return url.includes("?") ?  url + `&tab=${state.tab}` : url + `?tab=${state.tab}`;
+      } else {
+        return url;
+      }
+    }
     for (var i = 0; i < states.length; i++) {
       // Walk through each panel, create a history object as though for this panel alone
       states[i] = this.clonePanel(states[i], true);
@@ -511,7 +520,7 @@ class ReaderApp extends Component {
             break;
           case "profile":
             hist.title = `${state.profile.full_name} ${Sefaria._("on Sefaria")}`;
-            hist.url   = `profile/${state.profile.slug}?tab=${state.profileTab}`;
+            hist.url   = `profile/${state.profile.slug}`;
             hist.mode = "profile";
             break;
           case "notifications":
@@ -572,7 +581,7 @@ class ReaderApp extends Component {
             hist.url = "beit-midrash";
             hist.mode = "beit-midrash";
         }
-
+        hist.url = addTab(hist.url)
       } else if (state.mode === "Text") {
         var highlighted = state.highlightedRefs.length ? Sefaria.normRefList(state.highlightedRefs) : null;
 

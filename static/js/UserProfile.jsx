@@ -330,10 +330,10 @@ class UserProfile extends Component {
       </div>
     );
   }
-  onTabChange(tabIndex) {
-    const tab = this.state.tabs[tabIndex];
-    this.props.setProfileTab(tab.id);
-  }
+  // onTabChange(tabIndex) {
+  //   const tab = this.state.tabs[tabIndex];
+  //   this.props.setProfileTab(tab.id);
+  // }
   message(e) {
     e.preventDefault();
     if (!Sefaria._uid) { this.props.toggleSignUpModal(); return; }
@@ -344,11 +344,11 @@ class UserProfile extends Component {
   }
   openFollowers(e) {
     e.preventDefault();
-    this.props.setProfileTab("followers");
+    this.props.setTab("followers");
   }
   openFollowing(e) {
     e.preventDefault();
-    this.props.setProfileTab("following");
+    this.props.setTab("following");
   }
 
   render() {
@@ -372,7 +372,7 @@ class UserProfile extends Component {
                   tabs={this.state.tabs}
                   renderTab={this.renderTab}
                   currTabIndex={this.state.tabIndex}
-                  setTab={this.onTabChange}
+                  setTab={this.props.setTab}
                 >
                   <FilterableList
                     key="sheet"

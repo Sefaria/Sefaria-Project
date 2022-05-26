@@ -502,10 +502,14 @@ class ReaderPanel extends Component {
       currentlyVisibleRef: ref,
     });
   }
-  setProfileTab(tab) {
+  setTab(tab) {
     this.replaceHistory = true;
-    this.conditionalSetState({profileTab: tab});
+    this.conditionalSetState({tab: tab})
   }
+  // setProfileTab(tab) {
+  //   this.replaceHistory = true;
+  //   this.conditionalSetState({profileTab: tab});
+  // }
   currentMode() {
     return this.state.mode;
   }
@@ -1011,8 +1015,10 @@ class ReaderPanel extends Component {
       menu = (
         <UserProfile
           profile={this.state.profile}
-          tab={this.state.profileTab}
-          setProfileTab={this.setProfileTab}
+          tab={this.state.tab}
+          setTab={this.setTab}
+          // tab={this.state.profileTab}
+          // setProfileTab={this.setProfileTab}
           toggleSignUpModal={this.props.toggleSignUpModal}
           multiPanel={this.props.multiPanel}
           navHome={this.openMenu.bind(null, "navigation")} />
