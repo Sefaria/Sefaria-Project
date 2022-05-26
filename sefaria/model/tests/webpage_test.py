@@ -28,6 +28,15 @@ def create_web_page_wout_desc():
 	yield {"result": result, "webpage": webpage, "data": data_good_url}
 	webpage.delete()
 
+
+@pytest.fixture(scope='module')
+def create_web_page_wout_site():
+	data = {'url': 'http://notarealsite.org/123', 'title': "This is a good title", "refs": ["Genesis 2"]}
+	result = WebPage().add_or_update_from_linker(data)
+	webpage = WebPage().load({'url': data['url']})
+	yield {'result': result, 'webpage': webpage, 'data': data}
+	webpage.delete()
+
 def test_add_bad_domain_from_linker():
 	#localhost:8000 should not be added to the linker, so make sure attempting to do so fails
 
@@ -60,6 +69,11 @@ def test_add_bad_title_from_linker():
 
 	assert WebPage().add_or_update_from_linker(data) == "excluded"
 
+
+def test_add_webpage_without_website(create_web_page_wout_site):
+	# this should be possible even though no corresponding domain exists in a WebSite object
+	result, webpage, data = create_web_page_wout_site["result"], create_web_page_wout_site["webpage"], create_web_page_wout_site["data"]
+	assert result == "saved"
 
 
 def test_add_and_update_good_url_from_linker(create_good_web_page):
