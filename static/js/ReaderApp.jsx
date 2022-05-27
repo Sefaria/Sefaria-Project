@@ -381,8 +381,6 @@ class ReaderApp extends Component {
           (prev.currVersions.he !== next.currVersions.he) ||
           (prev.searchQuery != next.searchQuery) ||
           (prev.searchTab != next.searchTab) ||
-          //(prev.topicsTab != next.topicsTab) ||
-          //(prev.profileTab !== next.profileTab) ||
           (prev.tab !== next.tab)
           (prev.collectionName !== next.collectionName) ||
           (prev.collectionTag !== next.collectionTag) ||
@@ -436,7 +434,7 @@ class ReaderApp extends Component {
     const sidebarModes = new Set(["Sheets", "Notes", "Translations", "Translation Open",
       "About", "AboutSheet", "Navigation", "WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon"]);
     const addTab = (url) => {
-      if (state.tab) {
+      if (state.tab && state.menuOpen !== "search") { // TODO: also include search tabs in refactor
         return url.includes("?") ?  url + `&tab=${state.tab}` : url + `?tab=${state.tab}`;
       } else {
         return url;
@@ -531,7 +529,7 @@ class ReaderApp extends Component {
           case "collection":
             hist.url   = "collections/" + state.collectionSlug;
             if (states[i].collectionTag) {
-              hist.url  += "?tag=" + state.collectionTag.replace("#","%23");
+              hist.url  /*+= "?tag=" + state.collectionTag.replace("#","%23")*/;
             }
             hist.title = (state.collectionName ? state.collectionName + " | " : "") + Sefaria._(siteName + " Collections");
             hist.mode  = "collection";
@@ -1979,7 +1977,6 @@ class ReaderApp extends Component {
                       closeConnectionPanel={onCloseConnectionClick}
                       onSearchResultClick={onSearchResultClick}
                       onNavigationClick={this.handleNavigationClick}
-                      //updateTopicsTab={updateTopicsTab}
                       onOpenConnectionsClick={onOpenConnectionsClick}
                       openComparePanel={openComparePanel}
                       setTextListHighlight={setTextListHighlight}
