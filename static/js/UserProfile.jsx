@@ -44,13 +44,10 @@ class UserProfile extends Component {
     if (showBio) {
       tabs.push({ id: "about", text: Sefaria._("About"), icon: "/static/icons/info.svg" });
     }
-    //let tabIndex = tabs.findIndex(t => t.id == props.tab);
-    //tabIndex = tabIndex == -1 ? 0 : tabIndex;
     return {
       showNotes,
       showBio,
       tabs,
-      //tabIndex,
     };
   }
   _getMessageModalRef(ref) { this._messageModalRef = ref; }
@@ -330,10 +327,6 @@ class UserProfile extends Component {
       </div>
     );
   }
-  // onTabChange(tabIndex) {
-  //   const tab = this.state.tabs[tabIndex];
-  //   this.props.setProfileTab(tab.id);
-  // }
   message(e) {
     e.preventDefault();
     if (!Sefaria._uid) { this.props.toggleSignUpModal(); return; }
@@ -372,7 +365,6 @@ class UserProfile extends Component {
                   currTabName={this.props.tab}
                   tabs={this.state.tabs}
                   renderTab={this.renderTab}
-                  //currTabIndex={this.state.tabIndex}
                   setTab={this.props.setTab}
                 >
                   <FilterableList

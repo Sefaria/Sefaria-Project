@@ -34,15 +34,10 @@ class CollectionPage extends Component {
       tab: props.tab,
       showFilterHeader: !!props.tag,
       sheetFilterTopic: props.tag || '',
-      tabIndex: !!props.tag ? 1 : 0,
       collectionData: collectionData,
     };
  
     this.scrollableRef = React.createRef();
-
-    /*
-    this.props.setCollectionTag(topic);
-    */
   }
   componentDidMount() {
     this.loadData();
@@ -52,10 +47,6 @@ class CollectionPage extends Component {
       this.setState({collectionData: null});
       this.loadData();
     }
-    // if (this.props.tab != prevProps.tab) {
-    //   this.setState({tabIndex})
-    // }
-
     if (prevState.sheetFilterTopic !== this.state.sheetFilterTopic && $(".content").scrollTop() > 260) {
       $(".content").scrollTop(0);
     }
@@ -71,7 +62,7 @@ class CollectionPage extends Component {
     this.setState({collectionData: Sefaria._collections[this.props.slug]});
   }
   setFilter(filter) {
-    this.setState({tabIndex: 1, sheetFilterTopic: filter, showFilterHeader: true});
+    this.setState({sheetFilterTopic: filter, showFilterHeader: true});
   }
   memberList() {
     var collection = this.state.collectionData;
@@ -238,13 +229,6 @@ class CollectionPage extends Component {
           justifyright: true
         }
       );
-      // const setTab = (tabIndex) => {
-      //   if (tabIndex === tabs.length - 1) {
-      //     this.setState({showFilterHeader: !this.state.showFilterHeader});
-      //   } else {
-      //     this.setState({tabIndex, showFilterHeader: false, sheetFilterTopic: ""});
-      //   }
-      // };
       const renderTab = t => (
         <div className={classNames({tab: 1, noselect: 1, filter: t.justifyright, open: t.justifyright && this.state.showFilterHeader})}>
           <InterfaceText text={t.title} />
@@ -264,7 +248,6 @@ class CollectionPage extends Component {
             currTabName={this.props.tab}
             renderTab={renderTab}
             containerClasses={"largeTabs"}
-            //currTabIndex={this.state.tabIndex}
             setTab={this.props.setTab} >
 
             {!hasContentsTab ? null :
