@@ -2701,27 +2701,32 @@ const CategoryChooser = function({categories, update}) {
 }
 
 
-const TopicEditor = ({en="", he="", categories={}, desc={}, close}) => {
+const TopicEditor = ({en="", he="", category="Top Level", slug="", desc={}, close}) => {
     const [savingStatus, setSavingStatus] = useState(false);
-    const [slug, setSlug] = useState(categories["slug"]);
-    const [enCat, setEnCat] = useState(categories["en"]);
+    const origSlug = useRef(slug);
+    const [enCat, setEnCat] = useState(category);
     const [description, setDescription] = useState(desc["en"]);
     const [enTitle, setEnTitle] = useState(en);
     const [heTitle, setHeTitle] = useState(he);
     const origEnTitle = useRef(en);
-    const origEnCat = useRef(categories["en"]);
+    const origEnCat = useRef(category);
     const origDescription = useRef(desc);
     const isNewTopic = useRef(origEnTitle.current === "");
 
     const existingCategories = useRef(Sefaria.topic_toc.reduce(Sefaria._initTopicTocTitleReducer, {}));
 
-    const catMenu = Object.keys(existingCategories.current).map(function (t, i) {
+    let rootSelected = true;
+    let catMenu = Object.keys(existingCategories.current).map(function (t, i) {
       if (isNewTopic.current == false && enCat == t) {
+        rootSelected = false;
         return <option key={i} value={t} selected>{t}</option>
       } else {
         return <option key={i} value={t}>{t}</option>
       }
     });
+    const rootOption = rootSelected ? <option key="chooseCategory" value="Top Level" selected>Choose a category</option> :
+                                      <option key="chooseCategory" value="Top Level">Choose a category</option>;
+    catMenu.splice(0, 0, rootOption);
 
     const validate = async function () {
         if (enTitle.length === 0) {
@@ -2749,7 +2754,7 @@ const TopicEditor = ({en="", he="", categories={}, desc={}, close}) => {
           url = "/api/topic/new";
         }
         else {
-          url = `/api/topics/${slug}`;
+          url = `/api/topics/${origSlug.current}`;
           data["origCategory"] = origEnCat.current;
           data["origDescription"] = origDescription.current;
           data["origTitle"] = origEnTitle.current;
@@ -2762,7 +2767,7 @@ const TopicEditor = ({en="", he="", categories={}, desc={}, close}) => {
             alert(data.error);
           } else {
             alert("Text information saved.");
-            window.location.href = "/topics/";
+            window.location.href = "/topics/"+data["slug"];
           }
           }).fail( function(xhr, status, errorThrown) {
             alert("Unfortunately, there may have been an error saving this topic information: "+errorThrown);
@@ -2787,7 +2792,6 @@ const TopicEditor = ({en="", he="", categories={}, desc={}, close}) => {
                           <label><InterfaceText>Category</InterfaceText></label>
                           <div id="categoryChooserMenu">
                               <select key="topicCats" id="topicCats" onChange={(e) => setEnCat(e.target.value)}>
-                                <option key="chooseCategory" value="Select a category">Choose a category</option>
                                 {catMenu}
                               </select>
                           </div>

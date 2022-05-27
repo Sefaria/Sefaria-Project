@@ -104,7 +104,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
 
     @staticmethod
     def change_description(topic, data):
-        if data["category"] is None:
+        if data["category"] == "Top Level":
             topic.isTopLevelDisplay = True
             topic.categoryDescription = {}
             topic.categoryDescription["en"] = data["description"].get('en', '')

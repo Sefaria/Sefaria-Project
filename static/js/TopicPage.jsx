@@ -287,7 +287,8 @@ const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDis
   }
   if (Sefaria.is_moderator && addingTopics) {
       const desc = topicData?.description || topicData?.categoryDescription;
-      return <TopicEditor en={en} he={he} desc={desc} categories={category} close={(e) => toggleAddingTopics(e)}/>;
+      const initCat = category ? category["en"] : (topicData.isTopLevelDisplay ? "Top Level" : "");
+      return <TopicEditor en={en} he={he} desc={desc} category={initCat} slug={topicData["slug"]} close={(e) => toggleAddingTopics(e)}/>;
   }
   const topicStatus = !Sefaria.is_moderator ? null :
                             <div onClick={(e) => toggleAddingTopics(e)} id="editTopic" className="button small topic" role="button">
