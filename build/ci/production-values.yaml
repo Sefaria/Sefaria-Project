@@ -54,7 +54,11 @@ secrets:
     ref: slack-webhook-helm
 localSettings:
   DEBUG: false
-  DOMAIN_LANGUAGE: {}
+  OFFLINE: "False"
+  DOMAIN_LANGUAGE: {
+    "https://www.sefaria.org": "english",
+    "https://www.sefaria.org.il": "hebrew",
+  }
   MONGO_HOST: "mongo"
   APSCHEDULER_NAME: "apscheduler-{{ .Values.deployEnv }}"
   SEARCH_ADMIN: "http://elasticsearch-data:9200"
@@ -66,4 +70,6 @@ localSettings:
   MAINTENANCE_MESSAGE: "Sefaria is down for scheduled maintenance. We expect to be back online within 15 minutes. Thank you for your patience."
   GLOBAL_WARNING: false
   GLOBAL_WARNING_MESSAGE: "Sefaria will be in <b>Read-Only</b> mode for scheduled maintenance from 4:45pm-6:45pm Pacific time. Edits will <b>not</b> be saved during that time."
+  SITE_PACKAGE: "sites.sefaria"
+  SEARCH_HOST: elasticsearch.data  
 
