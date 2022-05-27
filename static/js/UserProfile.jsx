@@ -44,13 +44,13 @@ class UserProfile extends Component {
     if (showBio) {
       tabs.push({ id: "about", text: Sefaria._("About"), icon: "/static/icons/info.svg" });
     }
-    let tabIndex = tabs.findIndex(t => t.id == props.tab);
-    tabIndex = tabIndex == -1 ? 0 : tabIndex;
+    //let tabIndex = tabs.findIndex(t => t.id == props.tab);
+    //tabIndex = tabIndex == -1 ? 0 : tabIndex;
     return {
       showNotes,
       showBio,
       tabs,
-      tabIndex,
+      //tabIndex,
     };
   }
   _getMessageModalRef(ref) { this._messageModalRef = ref; }
@@ -369,9 +369,10 @@ class UserProfile extends Component {
                 />
                 <TabView
                   ref={this._getTabViewRef}
+                  currTabName={this.props.tab}
                   tabs={this.state.tabs}
                   renderTab={this.renderTab}
-                  currTabIndex={this.state.tabIndex}
+                  //currTabIndex={this.state.tabIndex}
                   setTab={this.props.setTab}
                 >
                   <FilterableList

@@ -909,7 +909,7 @@ def collection_page(request, slug):
         "initialMenu":     "collection",
         "initialCollectionName": collection.name,
         "initialCollectionSlug": collection.slug,
-        "initialCollectionTag":  request.GET.get("tag", None)
+        "initialTab":  request.GET.get("tag", None)
     })
 
     props["collectionData"] = collection.contents(with_content=True, authenticated=authenticated)

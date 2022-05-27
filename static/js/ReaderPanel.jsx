@@ -502,8 +502,8 @@ class ReaderPanel extends Component {
       currentlyVisibleRef: ref,
     });
   }
-  setTab(tab) {
-    this.replaceHistory = true;
+  setTab(tab, replaceHistory=false) {
+    this.replaceHistory = replaceHistory;
     this.conditionalSetState({tab: tab})
   }
   // setProfileTab(tab) {
@@ -787,6 +787,8 @@ class ReaderPanel extends Component {
 
     } else if (this.state.menuOpen === "text toc") {
       menu = (<BookPage
+                    tab={this.state.tab}
+                    setTab={this.setTab}
                     mode={this.state.menuOpen}
                     multiPanel={this.props.multiPanel}
                     close={this.closeMenus}
@@ -810,6 +812,8 @@ class ReaderPanel extends Component {
         });
       };
       menu = (<BookPage
+                    tab={this.state.tab}
+                    setTab={this.setTab}
                     mode={this.state.menuOpen}
                     multiPanel={this.props.multiPanel}
                     close={this.closeMenus}
@@ -830,6 +834,8 @@ class ReaderPanel extends Component {
 
     } else if (this.state.menuOpen === "extended notes" && this.state.mode !== "Connections") {
       menu = (<BookPage
+                    tab={this.state.tab}
+                    setTab={this.setTab}
                     mode={this.state.menuOpen}
                     interfaceLang={this.props.interfaceLang}
                     close={this.closeMenus}
@@ -947,6 +953,8 @@ class ReaderPanel extends Component {
       menu = (
         <CollectionPage
           name={this.state.collectionName}
+          setTab={this.setTab}
+          tab={this.state.tab}
           slug={this.state.collectionSlug}
           tag={this.state.collectionTag}
           setCollectionTag={this.setCollectionTag}

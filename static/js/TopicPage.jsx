@@ -423,16 +423,13 @@ const TopicPage = ({
       });
       onClickFilterIndex = displayTabs.length - 1;      
     }
-    let tabIndex = displayTabs.findIndex(t => t.id === tab);
-    if (tabIndex == -1 && displayTabs.length > 0) {
-      tabIndex = 0;
-    }
-    useEffect(() => {
-      if (!!displayTabs[tabIndex]) {
-        //updateTopicsTab(displayTabs[tabIndex].id);
-        setTab(displayTabs[tabIndex].id);
-      }
-    }, [tabIndex]);
+    // let tabIndex = displayTabs.findIndex(t => t.id === tab);
+    // if (tabIndex == -1 && displayTabs.length > 0) {
+    //   tabIndex = 0;
+    // }
+    // useEffect(() => {
+    //   setTab(displayTabs[tabIndex].id);
+    // }, [tab]);
 
     const classStr = classNames({topicPanel: 1, readerNavMenu: 1});
     return <div className={classStr}>
@@ -442,7 +439,8 @@ const TopicPage = ({
                     <TopicHeader topic={topic} topicData={topicData} multiPanel={multiPanel} setNavTopic={setNavTopic} openSearch={openSearch} openDisplaySettings={openDisplaySettings} />
                     {(!topicData.isLoading && displayTabs.length) ?
                        <TabView
-                          currTabIndex={tabIndex}
+                          //currTabIndex={tabIndex}
+                          currTabName={tab}
                           setTab={setTab}
                           //setTab={(tabIndex, tempTabs) => { updateTopicsTab(tempTabs[tabIndex].id); }}
                           tabs={displayTabs}
