@@ -469,10 +469,6 @@ TextRange.defaultProps = {
 
 
 class TextSegment extends Component {
-  // constructor(props) {
-  //   super(props);
-  //   this.state = {lastClickXY: false}
-  // }
   shouldComponentUpdate(nextProps) {
     if (this.props.highlight !== nextProps.highlight)           { return true; }
     if (this.props.showHighlight !== nextProps.showHighlight)   { return true; }
@@ -491,14 +487,12 @@ class TextSegment extends Component {
       this.props.unsetTextHighlight();
     }
   }
-
   calculatePositionWithinElement(event){
     const rect = event.target.getBoundingClientRect();
     const x = event.clientX - rect.left; //x position within the element.
     const y = event.clientY - rect.top;  //y position within the element.
     return [x,y]
   }
-
   handleClick(event) {
     // grab refLink from target or parent (sometimes there is an <i> within refLink forcing us to look for the parent)
     const refLink = $(event.target).hasClass("refLink") ? $(event.target) : ($(event.target.parentElement).hasClass("refLink") ? $(event.target.parentElement) : null);
@@ -536,6 +530,7 @@ class TextSegment extends Component {
   handleDoubleClick(event) {
     if (event.detail > 1) {
     const pos = this.calculatePositionWithinElement(event)
+      // might be problimatic if there is a slight move in the double-click shaky hands. can be fixed with an error of a few px on both axes.
       if (this.state.lastClickXY != pos){
         event.preventDefault();
       }
