@@ -5,6 +5,7 @@ import django
 django.setup()
 
 import csv
+import re
 from sefaria.model import *
 from sefaria.model.schema import AddressTalmud
 
@@ -168,7 +169,8 @@ def case_validation():
     csv_list = phase_one()
     csv_list = phase_two(csv_list)
     csv_list.sort(key=lambda x: Ref(x["talmud_tref"]).order_id())
+    generate_csv(csv_list, ['mishnah_tref', 'talmud_tref', 'german_text', 'issue'], "fn_fp_issues")
 
 if __name__ == "__main__":
-    # case_validation()
-    generate_map_from_links()
+    case_validation()
+    # generate_map_from_links()
