@@ -2704,6 +2704,7 @@ const CategoryChooser = function({categories, update}) {
 const TopicEditor = ({en="", he="", category="Top Level", slug="", desc={}, close}) => {
     const [savingStatus, setSavingStatus] = useState(false);
     const origSlug = useRef(slug);
+    const [newSlug, setNewSlug] = useState(slug);
     const [enCat, setEnCat] = useState(category);
     const [description, setDescription] = useState(desc["en"]);
     const [enTitle, setEnTitle] = useState(en);
@@ -2733,13 +2734,11 @@ const TopicEditor = ({en="", he="", category="Top Level", slug="", desc={}, clos
           alert("Title must be provided.");
           return false;
         }
-        if (!isNewTopic.current && origEnTitle.current != enTitle) {
+        if (origEnTitle.current !== enTitle) {
           //if the title has been changed, check that there isn't one with new title
-          //allow new topics because if there is a topic that isn't in the topic TOC,
-          //there needs to be some way of moving it into the topic TOC
-          const names = await Sefaria.getName(enTitle);
-          const matches = names.completion_objects.filter(obj => obj.title === enTitle && obj.type.indexOf("Topic") >= 0);
-          if (matches.length > 0) {
+          const names = await Sefaria.getName(enTitle); //await Sefaria.getTopic(newSlug);
+          const existingTopic = names.completion_objects.filter(x => x.title === enTitle && x.type.indexOf("Topic") >= 0);
+          if (existingTopic.length > 0) {
             alert("Topic "+enTitle+" already exists.");
             return false;
           }
@@ -2773,6 +2772,10 @@ const TopicEditor = ({en="", he="", category="Top Level", slug="", desc={}, clos
             alert("Unfortunately, there may have been an error saving this topic information: "+errorThrown);
           });
     }
+    const changeTitleAndSlug = function(e) {
+      setEnTitle(e.target.value);
+      setNewSlug(Sefaria.normalizeSlug(e.target.value));
+    }
     const toggleInProgress = function() {
       setSavingStatus(savingStatus => !savingStatus);
     }
@@ -2786,7 +2789,7 @@ const TopicEditor = ({en="", he="", category="Top Level", slug="", desc={}, clos
                         <AdminToolHeader en="Topic Editor" he="Topic Editor" close={close} validate={validate}/>
                         <div className="section">
                             <label><InterfaceText>Topic Title</InterfaceText></label>
-                            <input id="topicTitle" onBlur={(e) => setEnTitle(e.target.value)} defaultValue={enTitle} placeholder="Add a title."/>
+                            <input id="topicTitle" onBlur={(e) => changeTitleAndSlug(e)} defaultValue={enTitle} placeholder="Add a title."/>
                         </div>
                         <div className="section">
                           <label><InterfaceText>Category</InterfaceText></label>

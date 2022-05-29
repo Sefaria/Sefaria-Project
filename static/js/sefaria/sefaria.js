@@ -2123,6 +2123,13 @@ _media: {},
   _CAT_REF_LINK_TYPE_FILTER_MAP: {
     'authors': ['popular-writing-of'],
   },
+  normalizeSlug: function(slug) {
+    slug = slug.toLowerCase().trim();
+    slug = slug.replace(/[ /]/, "-");
+    slug = slug.replace(/[^a-z0-9()\-א-ת]/, "")
+    slug = slug.replace(/-+/, "-");
+    return slug;
+  },
   getTopic: function(slug, {with_links=true, annotate_links=true, with_refs=true, group_related=true, annotate_time_period=false, ref_link_type_filters=['about', 'popular-writing-of'], with_indexes=true}={}) {
     const cat = Sefaria.topicTocCategory(slug);
     // overwrite ref_link_type_filters with predefined list. currently used to hide "Sources" and "Sheets" on author pages.

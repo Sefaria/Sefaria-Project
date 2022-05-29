@@ -73,8 +73,8 @@ const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
       topicStatus = <TopicEditor close={(e) => toggleAddingTopics(e)}/>;
   }
   else if (Sefaria.is_moderator) {
-      topicStatus = <div onClick={(e) => toggleAddingTopics(e)} id="addTopic" className="button small topic" role="button">
-                      <InterfaceText>Add Topic</InterfaceText>
+      topicStatus = <div onClick={(e) => toggleAddingTopics(e)} id="addTopic" className="button extraSmall topic" role="button">
+                      <InterfaceText>Create a Topic</InterfaceText>
                   </div>
   }
   return (

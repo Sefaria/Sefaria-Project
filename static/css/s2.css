@@ -6471,7 +6471,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-align: center;
   margin: 0;
 }
-.button.small.topic {
+.button.extraSmall.topic {
   color: #000000;
   background-color: var(--lighter-grey);
 }
@@ -11138,7 +11138,9 @@ body .homeFeedWrapper.userStats {
   margin: 0 0 10px 0;
   padding: 4px 25px 4px 10px;
 }
-
+#categoryChooserMenu select option:first-child {
+  color: var(--lighter-grey);
+}
 #categoryChooserMenu img {
   opacity: 0.43;
   padding: 0 5px;
@@ -11166,7 +11168,7 @@ body .homeFeedWrapper.userStats {
 }
 
 .editTextInfo #newIndex input {
-  padding: 4px 10px 4px 15px;
+  padding: 4px 10px 4px 10px;
   width: 640px;
   height: 50px;
   font-size: 16px;
@@ -11176,7 +11178,7 @@ body .homeFeedWrapper.userStats {
 
 .editTextInfo #newIndex #topicDesc {
   height: 200px;
-  width: 100%;
+  width: 97%;
   box-shadow: 0px 1px 3px rgb(0 0 0 / 20%);
   border: none;
   border-radius: 7px;
