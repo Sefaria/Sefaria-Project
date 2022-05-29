@@ -20,7 +20,7 @@ def clean_text(german_text):
 
 # This function generates a CSV given a list of dicts
 def generate_csv(dict_list, headers, file_name):
-    with open(f'mishnah_map_validation/{file_name}.csv', 'w') as file:
+    with open(f'mishnah_map_validation/{file_name}.csv', 'w+') as file:
         c = csv.DictWriter(file, fieldnames=headers)
         c.writeheader()
         c.writerows(dict_list)
