@@ -601,10 +601,6 @@ Sefaria = extend(Sefaria, {
     }
     return licenseMap;
   },
-  _getVersionPrefUrlParam(versionPref) {
-    const {vtitle, lang} = versionPref;
-    return `&versionPref=${encodeURIComponent(vtitle.replace(/ /g,"_"))}|${lang}`;
-  },
   _textUrl: function(ref, settings) {
     // copy the parts of settings that are used as parameters, but not other
     const params = param({
@@ -639,7 +635,7 @@ Sefaria = extend(Sefaria, {
       if (settings.enVersion) { key += "&ven=" + settings.enVersion; }
       if (settings.heVersion) { key += "&vhe=" + settings.heVersion; }
       if (settings.translationLanguagePreference) { key += "&transLangPref=" + settings.translationLanguagePreference}
-      if (settings.versionPref) { key += Sefaria._getVersionPrefUrlParam(settings.versionPref); }
+      if (settings.fallbackOnDefaultVersion) { key += "|FALLBACK_ON_DEFAULT_VERSION"; }
       key = settings.context ? key + "|CONTEXT" : key;
     }
     return key;
