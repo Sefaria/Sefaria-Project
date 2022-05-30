@@ -616,14 +616,19 @@ Sefaria = extend(Sefaria, {
       fallbackOnDefaultVersion: settings.fallbackOnDefaultVersion,
     });
     let url = "/api/texts/" + Sefaria.normRef(ref);
+
+    if (settings.versionPref) {
+      // for every lang/vtitle pair in versionPref, update corresponding version url param if it doesn't already exist
+      for (let [vlang, vtitle] of Object.entries(settings.versionPref)) {
+        const versionPrefKey = `${vlang}Version`;
+        if (!settings[versionPrefKey]) {
+          settings[versionPrefKey] = vtitle;
+        }
+      }
+    }
     if (settings.enVersion) { url += "&ven=" + encodeURIComponent(settings.enVersion.replace(/ /g,"_")); }
     if (settings.heVersion) { url += "&vhe=" + encodeURIComponent(settings.heVersion.replace(/ /g,"_")); }
-    if (settings.versionPref) {
-        const versionPrefKey = `${settings.versionPref.lang}Version`;
-        if (!settings[versionPrefKey]) {
-            settings[versionPrefKey] = settings.versionPref.vtitle;
-        }
-    }
+
     url += "&" + params;
     return url.replace("&","?"); // make sure first param has a '?'
   },
