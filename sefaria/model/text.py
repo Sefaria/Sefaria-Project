@@ -4972,7 +4972,7 @@ class Library(object):
 
     def get_topic_link_type(self, link_type):
         """
-        Returns topic link types if not already present
+        Returns a TopicLinkType with a slug of link_type (parameter) if not already present
         @param: link_type String
         """
         from .topic import TopicLinkTypeSet
