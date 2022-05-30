@@ -4751,7 +4751,7 @@ class Library(object):
 
     def rebuild_toc(self, skip_toc_tree=False):
         """
-        Rebuilds the Table of Contents Tree at startup time upon load of the Library class singleton.
+        Rebuilds the TocTree at startup time upon load of the Library class singleton.
         The ToC is a tree of nodes that represents the ToC as seen on the Sefaria homepage.
         This function also builds other critical data structures, such as the topics ToC.
         While building these ToC data structures, this function also builds the equivalent JSON structures
