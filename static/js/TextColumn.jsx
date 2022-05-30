@@ -323,11 +323,7 @@ class TextColumn extends Component {
     // don't move around highlighted segment when scrolling a single panel,
     const shouldShowHighlight = this.props.hasSidebar || this.props.mode === "TextAndConnections";
     const ref = $segment.attr("data-ref");
-    if (shouldShowHighlight) {
-      this.props.setTextListHighlight(ref, true)
-    } else {
-      this.props.setTextListHighlight(ref, false)
-    }
+    this.props.setTextListHighlight(ref, shouldShowHighlight);
   }
   render() {
     let classes = classNames({textColumn: 1, connectionsOpen: this.props.mode === "TextAndConnections"});

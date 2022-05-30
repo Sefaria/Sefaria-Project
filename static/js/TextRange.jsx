@@ -498,6 +498,7 @@ class TextSegment extends Component {
     // grab refLink from target or parent (sometimes there is an <i> within refLink forcing us to look for the parent)
     const refLink = $(event.target).hasClass("refLink") ? $(event.target) : ($(event.target.parentElement).hasClass("refLink") ? $(event.target.parentElement) : null);
     const namedEntityLink = $(event.target).closest("a.namedEntityLink");
+    const footnoteLink = $(event.target).is("sup") || $(event.target).parents("sup").size();
     if (refLink) {
       //Click of citation
       event.preventDefault();
@@ -508,6 +509,9 @@ class TextSegment extends Component {
       this.props.onCitationClick(ref, this.props.sref, true, currVersions);
       event.stopPropagation();
       Sefaria.track.event("Reader", "Citation Link Click", ref);
+    } else if (footnoteLink) {
+      this.props.onFootnoteClick(event);
+      event.stopPropagation();
     } else if (namedEntityLink.length > 0) {
       //Click of named entity
       event.preventDefault();
@@ -518,9 +522,6 @@ class TextSegment extends Component {
       this.props.onNamedEntityClick(topicSlug, this.props.sref, namedEntityLink[0].innerText);
       event.stopPropagation();
       Sefaria.track.event("Reader", "Named Entity Link Click", topicSlug);
-    } else if ($(event.target).is("sup") || $(event.target).parents("sup").size()) {
-      this.props.onFootnoteClick(event);
-      event.stopPropagation();
     } else if (this.props.onSegmentClick) {
       this.props.onSegmentClick(this.props.sref);
       Sefaria.track.event("Reader", "Text Segment Click", this.props.sref);
