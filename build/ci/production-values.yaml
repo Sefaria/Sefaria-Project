@@ -3,21 +3,23 @@ contentSandbox: "false"
 deployEnv: production  
 previousServicesCount: "3"
 web:
+  replicaCount: 7
   containerImage: 
     imageRegistry:
     tag: 
   secrets:
     googleClient:
-      ref: google-client-secret
+      ref: google-client-secret-production
     logging:
-      ref: logging-secret
+      ref: logging-secret-production
     schoolLookup:
-      ref: school-lookup-data
+      ref: school-lookup-data-production
 redis:
   containerImage:
     imageRegistry: redis
     tag: latest
 nodejs:
+  replicaCount: 4
   containerImage: 
     imageRegistry:
     tag: 
@@ -27,7 +29,7 @@ varnish:
     tag: v6
   secrets:
     varnish:
-      ref: varnish-secret-helm
+      ref: varnish-secret-production
 ingress:
   hosts: 
     - host: "production-test.sefaria.org"
@@ -35,23 +37,28 @@ ingress:
       serviceName: nginx
       port: 80
   secrets:
+    # Assuming cloudflare here, will need to add certs in via infra if not
     originTls: 
-      ref: cauldron-wildcard-letsencrypt
+      ref: origin-tls-prod2
+    originIlTlsA:
+      ref: origin-il-tls-prod2 
 nginx:
+  replicaCount: 2
   containerImage: 
     imageRegistry:
     tag: 
 monitor:
+  replicaCount: 1
   containerImage: 
     imageRegistry:
     tag: 
 secrets:
   localSettings: 
-    ref: local-settings-secrets
+    ref: local-settings-secrets-production
   backupManager: 
-    ref: backup-manager
+    ref: backup-manager-secret-production
   slackWebhook: 
-    ref: slack-webhook-helm
+    ref: slack-webhook-production
 localSettings:
   DEBUG: false
   OFFLINE: "False"

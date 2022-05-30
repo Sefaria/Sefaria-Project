@@ -17,5 +17,5 @@ yq e -i '.nginx.containerImage.tag = strenv(TAG)' $1
 yq e -i '.monitor.containerImage.tag = strenv(TAG)' $1
 
 helm repo add sefaria-project https://sefaria.github.io/sefaria-project
-helm upgrade -i production sefaria-project/sefaria-project --version $CHART_VERSION --namespace $NAMESPACE -f $1 --debug --timeout=30m0s
+helm upgrade -i production sefaria-project/sefaria --version $CHART_VERSION --namespace $NAMESPACE -f $1 --debug --timeout=30m0s
 
