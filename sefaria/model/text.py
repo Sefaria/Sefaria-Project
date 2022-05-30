@@ -5034,7 +5034,7 @@ class Library(object):
 
     def build_lexicon_auto_completers(self):
         """
-        Sets lexicon autocomplete for each lexicon in LexiconSet using a LexiconTrie
+        Sets lexicon autocompleter for each lexicon in LexiconSet using a LexiconTrie
         Sets internal boolean to True upon successful completion to indicate auto completer is ready.
 
         """
