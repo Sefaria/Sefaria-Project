@@ -1370,6 +1370,32 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         """
         Walk through content of version and run `action` for each segment. Only required parameter to call is `action`
         :param func action: (segment_str, tref, he_tref, version) => None
+
+        action() is a callback function that can have any behavior you would like. It should return None.
+        A common use case is to define action() to append segments to a nonlocal array, to get an entire text of a
+        Version in a list. The 'magic' of walk_thru_contents is that this function will iterate through the segments
+        of the given Version, and apply the action() callback to each segment.
+
+        Here's an example:
+
+        .. highlight:: python
+        .. code-block:: python
+
+            all_text = []
+
+            def action(segment_str, tref, he_tref, version):
+                global all_text
+                all_text.append(segment_str)
+
+            talmud_berakhot = Version().load(
+                {"title": 'Berakhot', "versionTitle": 'William Davidson Edition - English'})
+            if talmud_berakhot:
+                talmud_berakhot.walk_thru_contents(action)
+
+        ...
+
+        The result will be all_text populated with all segments from Masekhet Berakhot.
+
         """
         def get_primary_title(lang, titles):
             return [t for t in titles if t.get("primary") and t.get("lang", "") == lang][0]["text"]
@@ -4707,7 +4733,9 @@ class Library(object):
             self.get_simple_term_mapping() #this will implicitly call self.build_term_mappings() but also make sure its cached.
 
     def _build_index_maps(self):
-        # Build index and title node dicts in an efficient way
+        """
+        Build index and title node dicts in an efficient way
+        """
 
         # self._index_title_commentary_maps if index_object.is_commentary() else self._index_title_maps
         # simple texts
@@ -4726,6 +4754,9 @@ class Library(object):
                 logger.error("Error in generating title node dictionary: {}".format(e))
 
     def _reset_index_derivative_objects(self, include_auto_complete=False):
+        """
+        Resets the objects which are derivatives of the index
+        """
         self._full_title_lists = {}
         self._full_title_list_jsons = {}
         self._title_regex_strings = {}
@@ -4747,6 +4778,15 @@ class Library(object):
             self.rebuild_toc()
 
     def rebuild_toc(self, skip_toc_tree=False):
+        """
+        Rebuilds the TocTree representation at startup time upon load of the Library class singleton.
+        The ToC is a tree of nodes that represents the ToC as seen on the Sefaria homepage.
+        This function also builds other critical data structures, such as the topics ToC.
+        While building these ToC data structures, this function also builds the equivalent JSON structures
+        as an API optimization.
+
+        @param: skip_toc_tree boolean
+        """
         if not skip_toc_tree:
             self._toc_tree = self.get_toc_tree(rebuild=True)
         self._toc = self.get_toc(rebuild=True)
@@ -4785,8 +4825,7 @@ class Library(object):
 
     def get_toc(self, rebuild=False):
         """
-        Returns table of contents object from cache,
-        DB or by generating it, as needed.
+        Returns the ToC Tree from the cache, DB or by generating it, as needed.
         """
         if rebuild or not self._toc:
             if not rebuild:
@@ -4799,7 +4838,8 @@ class Library(object):
 
     def get_toc_json(self, rebuild=False):
         """
-        Returns JSON representation of TOC.
+        Returns as JSON representation of the ToC. This is generated on Library start up as an
+        optimization for the API, to allow retrieval of the data with a single call.
         """
         if rebuild or not self._toc_json:
             if not rebuild:
@@ -4812,7 +4852,9 @@ class Library(object):
 
     def get_toc_tree(self, rebuild=False, mobile=False):
         """
-        :param mobile: (Aug 30, 2021) Added as a patch after navigation redesign launch. Currently only adds 'firstSection' to toc for mobile export. This field is no longer required on prod but is still required on mobile until the navigation redesign happens there.
+        :param mobile: (Aug 30, 2021) Added as a patch after navigation redesign launch. Currently only adds
+        'firstSection' to toc for mobile export. This field is no longer required on prod but is still required
+        on mobile until the navigation redesign happens there.
         """
         if rebuild or not self._toc_tree:
             from sefaria.model.category import TocTree
@@ -4822,7 +4864,7 @@ class Library(object):
 
     def get_topic_toc(self, rebuild=False):
         """
-        Returns dict representation of Topics TOC.
+        Returns dictionary representation of Topics ToC.
          """
         if rebuild or not self._topic_toc:
             if not rebuild:
@@ -4835,7 +4877,8 @@ class Library(object):
 
     def get_topic_toc_json(self, rebuild=False):
         """
-        Returns JSON representation of Topics TOC.
+        Returns JSON representation of Topics ToC.
+        @param: rebuild boolean
         """
         if rebuild or not self._topic_toc_json:
             if not rebuild:
@@ -4847,6 +4890,12 @@ class Library(object):
         return self._topic_toc_json
 
     def get_topic_toc_json_recursive(self, topic=None, explored=None, with_descriptions=False):
+        """
+        Returns JSON representation of Topics ToC
+        @param: topic Topic
+        @param: explored Set
+        @param: with_descriptions boolean
+        """
         from .topic import Topic, TopicSet, IntraTopicLinkSet
         explored = explored or set()
         if topic is None:
@@ -4888,7 +4937,8 @@ class Library(object):
 
     def build_topic_toc_category_mapping(self) -> dict:
         """
-        Maps every slug in topic toc to its parent slug. This is usually the top level category, but in the case of laws it is the second-level category
+        Maps every slug in topic toc to its parent slug. This is usually the top level category, but in
+        the case of laws it is the second-level category
         """
         topic_toc_category_mapping = {}
         topic_toc = self.get_topic_toc()
@@ -4904,6 +4954,10 @@ class Library(object):
         return topic_toc_category_mapping
 
     def get_topic_toc_category_mapping(self, rebuild=False) -> dict:
+        """
+        Returns the category mapping as a dictionary for the topics ToC. Loads on Library startup.
+        @param: rebuild boolean
+        """
         if rebuild or not self._topic_toc_category_mapping:
             if not rebuild:
                 self._topic_toc_category_mapping = scache.get_shared_cache_elem('topic_toc_category_mapping')
@@ -4945,6 +4999,10 @@ class Library(object):
         return [c.serialize(thin=True) for c in root.children]
 
     def get_topic_link_type(self, link_type):
+        """
+        Returns a TopicLinkType with a slug of link_type (parameter) if not already present
+        @param: link_type String
+        """
         from .topic import TopicLinkTypeSet
         if not self._topic_link_types:
             # pre-populate topic link types
@@ -4954,6 +5012,10 @@ class Library(object):
         return self._topic_link_types.get(link_type, None)
 
     def get_topic_data_source(self, data_source):
+        """
+        Returns a TopicDataSource with the data_source (parameter) slug if not already present
+        @param: data_source String
+        """
         from .topic import TopicDataSourceSet
         if not self._topic_data_sources:
             # pre-populate topic data sources
@@ -4963,9 +5025,18 @@ class Library(object):
         return self._topic_data_sources.get(data_source, None)
 
     def get_collections_in_library(self):
+        """
+        Calls itself on the _toc_tree attribute to get all the collections in the Library upon
+        loading.
+        """
         return self._toc_tree.get_collections_in_library()
 
     def build_full_auto_completer(self):
+        """
+        Builds full auto completer across people, topics, categories, parasha, users, and collections
+        for each of the languages in the library.
+        Sets internal boolean to True upon successful completion to indicate auto completer is ready.
+        """
         from .autospell import AutoCompleter
         self._full_auto_completer = {
             lang: AutoCompleter(lang, library, include_people=True, include_topics=True, include_categories=True, include_parasha=False, include_users=True, include_collections=True) for lang in self.langs
@@ -4976,6 +5047,10 @@ class Library(object):
         self._full_auto_completer_is_ready = True
 
     def build_ref_auto_completer(self):
+        """
+        Builds the autocomplete for Refs across the languages in the library
+        Sets internal boolean to True upon successful completion to indicate Ref auto completer is ready.
+        """
         from .autospell import AutoCompleter
         self._ref_auto_completer = {
             lang: AutoCompleter(lang, library, include_people=False, include_categories=False, include_parasha=False) for lang in self.langs
@@ -4986,6 +5061,11 @@ class Library(object):
         self._ref_auto_completer_is_ready = True
 
     def build_lexicon_auto_completers(self):
+        """
+        Sets lexicon autocompleter for each lexicon in LexiconSet using a LexiconTrie
+        Sets internal boolean to True upon successful completion to indicate auto completer is ready.
+
+        """
         from .autospell import LexiconTrie
         from .lexicon import LexiconSet
         self._lexicon_auto_completer = {
@@ -4994,11 +5074,19 @@ class Library(object):
         self._lexicon_auto_completer_is_ready = True
 
     def build_cross_lexicon_auto_completer(self):
+        """
+        Builds the cross lexicon auto completer excluding titles
+        Sets internal boolean to True upon successful completion to indicate auto completer is ready.
+        """
         from .autospell import AutoCompleter
         self._cross_lexicon_auto_completer = AutoCompleter("he", library, include_titles=False, include_lexicons=True)
         self._cross_lexicon_auto_completer_is_ready = True
 
     def cross_lexicon_auto_completer(self):
+        """
+        Returns the cross lexicon auto completer. If the auto completer was not initially loaded,
+        it rebuilds before returning, emitting warnings to the logger.
+        """
         if self._cross_lexicon_auto_completer is None:
             logger.warning("Failed to load cross lexicon auto completer, rebuilding.")
             self.build_cross_lexicon_auto_completer()  # I worry that these could pile up.
@@ -5006,6 +5094,13 @@ class Library(object):
         return self._cross_lexicon_auto_completer
 
     def lexicon_auto_completer(self, lexicon):
+        """
+        Returns the value of the lexicon auto completer map given a lexicon key. If the key
+        is not present, it assumes the need to rebuild the lexicon_auto_completer and calls the build
+        function with appropriate logger warnings before returning the desired result
+
+        @param: lexicon String
+        """
         try:
             return self._lexicon_auto_completer[lexicon]
         except KeyError:
