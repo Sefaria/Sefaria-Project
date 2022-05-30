@@ -2720,9 +2720,9 @@ const TopicEditor = ({en="", he="", category="Top Level", slug="", desc={}, clos
     let catMenu = Object.keys(existingCategories.current).map(function (t, i) {
       if (isNewTopic.current == false && enCat == t) {
         rootSelected = false;
-        return <option key={i} value={t} selected>{t}</option>
+        return <option key={i} value={t} selected>{t}</option>;
       } else {
-        return <option key={i} value={t}>{t}</option>
+        return <option key={i} value={t}>{t}</option>;
       }
     });
     const rootOption = rootSelected ? <option key="chooseCategory" value="Top Level" selected>Choose a category</option> :
@@ -2736,9 +2736,9 @@ const TopicEditor = ({en="", he="", category="Top Level", slug="", desc={}, clos
         }
         if (origEnTitle.current !== enTitle) {
           //if the title has been changed, check that there isn't one with new title
-          const names = await Sefaria.getName(enTitle); //await Sefaria.getTopic(newSlug);
-          const existingTopic = names.completion_objects.filter(x => x.title === enTitle && x.type.indexOf("Topic") >= 0);
-          if (existingTopic.length > 0) {
+          const existingTopic = await Sefaria.getTopic(newSlug);
+          //const existingTopic = names.completion_objects.filter(x => x.title === enTitle && x.type.indexOf("Topic") >= 0);
+          if ("slug" in existingTopic) {
             alert("Topic "+enTitle+" already exists.");
             return false;
           }

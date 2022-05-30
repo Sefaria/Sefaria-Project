@@ -104,16 +104,25 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
 
     @staticmethod
     def change_description(topic, data):
+        # used by add_new_topic_api and topics_api to change topic descriptions and associated properties
         if data["category"] == "Top Level":
             topic.isTopLevelDisplay = True
             topic.categoryDescription = {}
             topic.categoryDescription["en"] = data["description"].get('en', '')
             topic.categoryDescription["he"] = data["description"].get('he', '')
+            if getattr(topic, "description", False):
+                delattr(topic, "description")
+            if getattr(topic, "description_published", False):
+                delattr(topic, "description_published")
         else:
-            topic.isTopLevelDisplay = False
             topic.description = {}
             topic.description["en"] = data["description"].get('en', '')
             topic.description["he"] = data["description"].get('he', '')
+            topic.description_published = True
+            if getattr(topic, "categoryDescription", False):
+                delattr(topic, "categoryDescription")
+            if getattr(topic, "isTopLevelDisplay", False):
+                delattr(topic, "isTopLevelDisplay")
 
     def topics_by_link_type_recursively(self, **kwargs):
         topics, _ = self.topics_and_links_by_link_type_recursively(**kwargs)

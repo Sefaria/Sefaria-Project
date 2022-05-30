@@ -2125,9 +2125,9 @@ _media: {},
   },
   normalizeSlug: function(slug) {
     slug = slug.toLowerCase().trim();
-    slug = slug.replace(/[ /]/, "-");
-    slug = slug.replace(/[^a-z0-9()\-א-ת]/, "")
-    slug = slug.replace(/-+/, "-");
+    slug = slug.replaceAll(/[ /]/g, "-");
+    slug = slug.replaceAll(/[^a-z0-9()\-א-ת]/g, "")
+    slug = slug.replaceAll(/-+/g, "-");
     return slug;
   },
   getTopic: function(slug, {with_links=true, annotate_links=true, with_refs=true, group_related=true, annotate_time_period=false, ref_link_type_filters=['about', 'popular-writing-of'], with_indexes=true}={}) {

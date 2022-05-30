@@ -3247,12 +3247,15 @@ def topics_api(request, topic, v2=False):
                 "content": "Adding topics is locked.<br><br>Please email hello@sefaria.org if you believe edits are needed."
             })
         topic_data = json.loads(request.POST["json"])
+        changed_topic_obj = False
         topic_obj = Topic().load({"$and": [{"titles.text": topic_data["origTitle"]}, {"titles.primary": True}]})
+
         origSlug = topic_obj.slug
         newSlug = Topic.normalize_slug(topic_data["title"])
 
         if topic_data["origTitle"] != topic_data["title"]:
             # rename Topic
+            changed_topic_obj = True
             topic_obj.add_title(topic_data["title"], 'en', True, True)
             topic_obj.add_title(topic_data["title"][::-1], 'he', True, True)
             topic_obj.slug = newSlug
@@ -3263,6 +3266,7 @@ def topics_api(request, topic, v2=False):
             # if we move topic to top level, we delete the IntraTopicLink and if we move the topic from top level, we must create one
             # as top level topics don't need intratopiclinks
 
+            changed_topic_obj = True
             origLink = IntraTopicLink().load({"fromTopic": origSlug,
                                               "toTopic": Topic.normalize_slug(topic_data["origCategory"])})
             if topic_data["origCategory"] == "Top Level":
@@ -3279,7 +3283,7 @@ def topics_api(request, topic, v2=False):
                 origLink.save()
 
         if topic_data["origTitle"] != topic_data["title"]:
-            # rename all TopicLinks with newSlug
+            # rename all TopicLinks with origSlug to newSlug
             for link in TopicLinkSetHelper.find({"$or": [{"toTopic": origSlug}, {"fromTopic": origSlug}]}):
                 if isinstance(link, RefTopicLink):
                     attr = "toTopic"
@@ -3289,10 +3293,9 @@ def topics_api(request, topic, v2=False):
                 link.save()
 
         if topic_data["origDescription"] != topic_data["description"] or topic_data["category"] == "Top Level" or topic_data["origCategory"] == "Top Level":
+            changed_topic_obj = True
             Topic.change_description(topic_obj, topic_data)
             topic_obj.save()
-
-
 
         @csrf_protect
         def protected_index_post(request):

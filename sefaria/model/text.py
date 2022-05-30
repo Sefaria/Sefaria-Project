@@ -4872,7 +4872,7 @@ class Library(object):
                     topic_json['description'] = description
 
             explored.add(topic.slug)
-        if len(children) > 0 or topic is None:  # make sure root gets children no matter what
+        if len(children) > 0 or topic is None or getattr(topic, "isTopLevelDisplay", False):  # make sure root gets children no matter what
             topic_json['children'] = []
         for child in children:
             child_topic = Topic().load({'slug': child})
