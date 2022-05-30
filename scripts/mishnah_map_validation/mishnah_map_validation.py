@@ -172,5 +172,5 @@ def case_validation():
     generate_csv(csv_list, ['mishnah_tref', 'talmud_tref', 'german_text', 'issue'], "fn_fp_issues")
 
 if __name__ == "__main__":
-    case_validation()
-    # generate_map_from_links()
+    # case_validation()
+    generate_map_from_links()
