@@ -81,7 +81,7 @@ def ingest_new_links():
     print("Original linkset deleted")
 
     # Ingest the corrected CSV
-    with open('correct_links.csv', newline='') as csvfile:
+    with open('corrected_links.csv', newline='') as csvfile:
         csv_reader = csv.reader(csvfile, delimiter=',')
         # Skipping the headers
         next(csv_reader)
