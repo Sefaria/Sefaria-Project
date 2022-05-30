@@ -71,6 +71,20 @@ class Search {
         });
 
     }
+    /**
+     * Function to reformat the Hebrew Ref from the Dicta convention - תנ״ר/נביאים/ספר זכריה/פרק א/פסוק א
+     * to the Sefaria Hebrew Ref convention (the results of Ref('Zechariah 1.1').he_normal())
+     * @param {*} ref - the incoming Dicta Ref
+     * @returns cleanedHebrewRef - according to Sefaria conventions
+     */
+    reformatDictaRef(ref) {
+        const hebrewRef = ref.match(/תנ"ך\/.*\/ספר (.*)\/פרק (.*)\/פסוק (.*)/);
+        const sefer = hebrewRef[1];
+        const perek = hebrewRef[2].length === 1 ? `${hebrewRef[2]}'` : hebrewRef[2].split('').join('"');
+        const pasuk = hebrewRef[3].length === 1 ? `${hebrewRef[3]}'`: hebrewRef[3].split('').join('"');
+        const cleanedHebrewRef = `${sefer} ${perek}:${pasuk}`;
+        return cleanedHebrewRef;
+    }
     dictaQuery(args, isQueryStart, wrapper) {
         function ammendArgsForDicta(standardArgs, lastSeen) {
             let filters = (standardArgs.applied_filters) ? standardArgs.applied_filters.map(book => {
@@ -137,7 +151,7 @@ class Search {
                         version: version,
                         path: categories,
                         ref: `${bookTitle} ${bookLoc}`,
-                        heRef: hit.hebrewPath,
+                        heRef: this.reformatDictaRef(hit.hebrewPath),
                         pagesheetrank: (hit.pagerank) ? hit.pagerank : 0,
                     },
                     highlight: {naive_lemmatizer: [hit.highlight[0].text]},

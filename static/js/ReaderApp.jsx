@@ -16,6 +16,7 @@ import {
   SheetsLandingPage,
   PBSC2020LandingPage,
   PBSC2021LandingPage,
+  PoweredByPage,
   RambanLandingPage,
   EducatorsPage,
   DonatePage
@@ -2127,6 +2128,7 @@ export {
   ContestLandingPage,
   PBSC2020LandingPage,
   PBSC2021LandingPage,
+  PoweredByPage,
   RambanLandingPage,
   EducatorsPage,
   DonatePage
