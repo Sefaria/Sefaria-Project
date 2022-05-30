@@ -4864,7 +4864,9 @@ class Library(object):
     def get_topic_toc_json_recursive(self, topic=None, explored=None, with_descriptions=False):
         """
         Returns JSON representation of Topics ToC
-        @param: topic String, explored Set, with_descriptions boolean
+        @param: topic Topic
+        @param: explored Set
+        @param: with_descriptions boolean
         """
         from .topic import Topic, TopicSet, IntraTopicLinkSet
         explored = explored or set()
