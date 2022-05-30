@@ -3247,7 +3247,6 @@ def topics_api(request, topic, v2=False):
                 "content": "Adding topics is locked.<br><br>Please email hello@sefaria.org if you believe edits are needed."
             })
         topic_data = json.loads(request.POST["json"])
-        changed_topic_obj = False
         topic_obj = Topic().load({"$and": [{"titles.text": topic_data["origTitle"]}, {"titles.primary": True}]})
 
         origSlug = topic_obj.slug
@@ -3255,7 +3254,6 @@ def topics_api(request, topic, v2=False):
 
         if topic_data["origTitle"] != topic_data["title"]:
             # rename Topic
-            changed_topic_obj = True
             topic_obj.add_title(topic_data["title"], 'en', True, True)
             topic_obj.add_title(topic_data["title"][::-1], 'he', True, True)
             topic_obj.slug = newSlug
@@ -3266,7 +3264,6 @@ def topics_api(request, topic, v2=False):
             # if we move topic to top level, we delete the IntraTopicLink and if we move the topic from top level, we must create one
             # as top level topics don't need intratopiclinks
 
-            changed_topic_obj = True
             origLink = IntraTopicLink().load({"fromTopic": origSlug,
                                               "toTopic": Topic.normalize_slug(topic_data["origCategory"])})
             if topic_data["origCategory"] == "Top Level":
@@ -3275,12 +3272,25 @@ def topics_api(request, topic, v2=False):
 
             if topic_data["category"] == "Top Level":
                 origLink.delete()
+                if getattr(topic_obj, "numSources", 0):
+                    # if topic has sources and we dont create an IntraTopicLink, they wont be accessible from the topic TOC
+                    linkToItself = IntraTopicLink()
+                    linkToItself.fromTopic = newSlug
+                    linkToItself.toTopic = newSlug
+                    linkToItself.dataSource = "sefaria"
+                    linkToItself.linkType = "displays-under"
+                    linkToItself.save()
             else:
                 origLink.fromTopic = newSlug
                 origLink.toTopic = Topic.normalize_slug(topic_data["category"])
                 origLink.linkType = "displays-under"
                 origLink.dataSource = "sefaria"
                 origLink.save()
+
+            oldLink = IntraTopicLink().load({"fromTopic": origSlug,
+                                              "toTopic": Topic.normalize_slug(topic_data["origCategory"])})
+            if oldLink:
+                oldLink.delete()
 
         if topic_data["origTitle"] != topic_data["title"]:
             # rename all TopicLinks with origSlug to newSlug
@@ -3293,7 +3303,6 @@ def topics_api(request, topic, v2=False):
                 link.save()
 
         if topic_data["origDescription"] != topic_data["description"] or topic_data["category"] == "Top Level" or topic_data["origCategory"] == "Top Level":
-            changed_topic_obj = True
             Topic.change_description(topic_obj, topic_data)
             topic_obj.save()
 
