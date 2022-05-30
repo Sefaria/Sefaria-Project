@@ -17,8 +17,10 @@ class VersionPreferences {
 
     }
     update(corpus, vtitle, lang) {
+        if (!corpus) { return this._versionPrefsByCorpus; }
         const prefsClone = Sefaria.util.clone(this._versionPrefsByCorpus);
-        prefsClone[corpus] = { vtitle, lang };
+        if (!prefsClone[corpus]) { prefsClone[corpus] = {}; }
+        prefsClone[corpus][lang] = vtitle;
 
         return new VersionPreferences(prefsClone);
     }

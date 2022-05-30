@@ -780,22 +780,25 @@ def get_search_params(get_dict, i=None):
     }
 
 
-def get_version_preference_from_dict(oref, version_preferences_by_corpus):
+def get_version_preferences_from_dict(oref, version_preferences_by_corpus):
     corpus = oref.index.get_primary_corpus()
     vpref_dict = version_preferences_by_corpus.get(corpus, None)
     if vpref_dict is None:
-        return None, None
-    return vpref_dict['vtitle'], vpref_dict['lang']
+        return None
+    return vpref_dict
 
 
 def override_version_with_preference(oref, request, versionEn, versionHe):
-    vtitlePref, vlangPref = get_version_preference_from_dict(oref, request.version_preferences_by_corpus)
-    if vtitlePref is not None and Version().load({"versionTitle": vtitlePref, "language": vlangPref, "title": oref.index.title}):
-        # vpref exists and the version exists for this text
-        if vlangPref == "en" and not versionEn:
-            versionEn = vtitlePref
-        elif vlangPref == "he" and not versionHe:
-            versionHe = vtitlePref
+    vpref_dict = get_version_preferences_from_dict(oref, request.version_preferences_by_corpus)
+    if vpref_dict is None:
+        return versionEn, versionHe
+    for lang, vtitle in vpref_dict.items():
+        if Version().load({"versionTitle": vtitle, "language": lang, "title": oref.index.title}):
+            # vpref exists and the version exists for this text
+            if lang == "en" and not versionEn:
+                versionEn = vtitle
+            elif lang == "he" and not versionHe:
+                versionHe = vtitle
     return versionEn, versionHe
 
 

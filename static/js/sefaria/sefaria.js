@@ -589,7 +589,7 @@ Sefaria = extend(Sefaria, {
     Sefaria.versionPreferences = Sefaria.versionPreferences.update(corpus, vtitle, lang);
 
     Sefaria.track.event("Reader", "Set Version Preference", `${corpus}|${vtitle}|${lang}`);
-    Sefaria.editProfileAPI({version_preferences_by_corpus: {[corpus]: {vtitle, lang}}})
+    Sefaria.editProfileAPI({version_preferences_by_corpus: {[corpus]: {[lang]: vtitle}}})
   },
   getLicenseMap: function() {
     const licenseMap = {
