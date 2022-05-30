@@ -4985,8 +4985,8 @@ class Library(object):
 
     def get_topic_data_source(self, data_source):
         """
-        Returns topic data sources dictionary keyed by slugs if not already present
-        @param: data_source
+        Returns a TopicDataSource dictionary keyed the data_source (parameter) slug if not already present
+        @param: data_source String
         """
         from .topic import TopicDataSourceSet
         if not self._topic_data_sources:
