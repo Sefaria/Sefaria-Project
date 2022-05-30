@@ -5005,7 +5005,7 @@ class Library(object):
 
     def build_full_auto_completer(self):
         """
-        Builds full auto complete across people, topics, categories, parasha, users, and collections
+        Builds full auto completer across people, topics, categories, parasha, users, and collections
         for each of the languages in the library.
         Sets internal boolean to True upon successful completion to indicate auto completer is ready.
         """
