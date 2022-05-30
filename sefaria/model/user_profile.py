@@ -456,7 +456,7 @@ class UserProfile(object):
 
     def update(self, obj, ignore_flags_on_init=False):
         """
-        Update this object with the fields in dictionry 'obj'
+        Update this object with the fields in dictionary 'obj'
         """
         if not ignore_flags_on_init:
             self._set_flags_on_update(obj)
