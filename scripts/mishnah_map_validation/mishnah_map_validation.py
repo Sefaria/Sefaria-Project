@@ -9,6 +9,7 @@ import re
 from sefaria.model import *
 from sefaria.model.schema import AddressTalmud
 
+
 # The goal of this script is to identify broken links in the connections between
 # the mishnah and talmud refs as found in the German text.
 def clean_text(german_text):
@@ -165,12 +166,17 @@ def generate_map_from_links():
                             'End Daf',
                             'End Line'], 'links_mappings_new')
 
-def case_validation():
+
+def false_pos_false_neg_check():
     csv_list = phase_one()
     csv_list = phase_two(csv_list)
     csv_list.sort(key=lambda x: Ref(x["talmud_tref"]).order_id())
     generate_csv(csv_list, ['mishnah_tref', 'talmud_tref', 'german_text', 'issue'], "fn_fp_issues")
 
+
 if __name__ == "__main__":
-    case_validation()
+    # runs the FN / FP test
+    false_pos_false_neg_check()
+
+    # Generates a map for QA
     # generate_map_from_links()
