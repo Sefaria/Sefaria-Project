@@ -287,21 +287,18 @@ const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDis
   }
   if (Sefaria.is_moderator && addingTopics) {
       const desc = topicData?.description || topicData?.categoryDescription;
-      let initCat = "";
+      let initCatSlug = "";
       if (category) {
-          initCat = category["en"]; //vast majority of topics will be handled here
-      }
-      else if (topicData.isTopLevelDisplay) {
-          initCat = "Top Level";
+          initCatSlug = category["slug"];
       }
       else if ("displays-under" in topicData?.links) {
           // this case handles categories that are not top level but have children under them
           const displayUnderLinks = topicData?.links["displays-under"]?.links;
           if (displayUnderLinks && displayUnderLinks.length === 1) {
-              initCat = displayUnderLinks[0].title.en;
+              initCatSlug = displayUnderLinks[0].topic;
           }
       }
-      return <TopicEditor en={en} he={he} desc={desc} category={initCat} slug={topicData["slug"]} close={(e) => toggleAddingTopics(e)}/>;
+      return <TopicEditor en={en} he={he} desc={desc} slug={topicData["slug"]} categorySlug={initCatSlug} close={(e) => toggleAddingTopics(e)}/>;
   }
   const topicStatus = !Sefaria.is_moderator ? null :
                             <div onClick={(e) => toggleAddingTopics(e)} id="editTopic" className="button extraSmall topic" role="button">

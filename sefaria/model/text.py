@@ -4871,8 +4871,10 @@ class Library(object):
                 if description is not None and getattr(topic, "description_published", False):
                     topic_json['description'] = description
 
+            unexplored_top_level = getattr(topic, "isTopLevelDisplay", False) and getattr(topic, "slug", None) not in explored
             explored.add(topic.slug)
-        if len(children) > 0 or topic is None or getattr(topic, "isTopLevelDisplay", False):  # make sure root gets children no matter what
+        if len(children) > 0 or topic is None or unexplored_top_level:
+            # make sure root gets children no matter what and make sure that unexplored top-level topics get children no matter what
             topic_json['children'] = []
         for child in children:
             child_topic = Topic().load({'slug': child})

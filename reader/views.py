@@ -3195,25 +3195,23 @@ def topics_list_api(request):
 def add_new_topic_api(request):
     if request.method == "POST":
         data = json.loads(request.POST["json"])
-        slug = Topic.normalize_slug(data["title"])
-        t = Topic().load({"slug": slug})
-        assert t is None
-        t = Topic()
+        t = Topic({'slug': ""})
         t.add_title(data["title"], 'en', True, True)
-        t.add_title(data["title"][::-1], 'he', True, True)
-        t.slug = slug
+        t.isTopLevelDisplay = data["category"] == ""
+        if t.isTopLevelDisplay: # top level topics wont display properly with no children so needs to set shouldDisplay flag
+            t.shouldDisplay = True
+        t.set_slug_to_primary_title()
 
-        Topic.change_description(t, data)
-
-        t.save()
-
-        if data["category"] != "Top Level":
+        if data["category"] != "":  # not Top Level so create an IntraTopicLink to category
             new_link = IntraTopicLink()
-            new_link.toTopic = Topic.normalize_slug(data["category"])
+            new_link.toTopic = data["category"]
             new_link.fromTopic = t.slug
             new_link.linkType = "displays-under"
             new_link.dataSource = "sefaria"
             new_link.save()
+
+        t.change_description(data["description"])
+        t.save()
 
         @csrf_protect
         def protected_index_post(request):
@@ -3247,64 +3245,62 @@ def topics_api(request, topic, v2=False):
                 "content": "Adding topics is locked.<br><br>Please email hello@sefaria.org if you believe edits are needed."
             })
         topic_data = json.loads(request.POST["json"])
-        topic_obj = Topic().load({"$and": [{"titles.text": topic_data["origTitle"]}, {"titles.primary": True}]})
-
-        origSlug = topic_obj.slug
-        newSlug = Topic.normalize_slug(topic_data["title"])
+        topic_obj = Topic().load({'slug': topic_data["origSlug"]})
 
         if topic_data["origTitle"] != topic_data["title"]:
             # rename Topic
             topic_obj.add_title(topic_data["title"], 'en', True, True)
-            topic_obj.add_title(topic_data["title"][::-1], 'he', True, True)
-            topic_obj.slug = newSlug
-            topic_obj.save()
+            topic_obj.set_slug_to_primary_title()
 
         if topic_data["origCategory"] != topic_data["category"]:
             # change IntraTopicLink from old category to new category and set newSlug if it changed
             # if we move topic to top level, we delete the IntraTopicLink and if we move the topic from top level, we must create one
             # as top level topics don't need intratopiclinks
 
-            origLink = IntraTopicLink().load({"fromTopic": origSlug,
-                                              "toTopic": Topic.normalize_slug(topic_data["origCategory"])})
-            if topic_data["origCategory"] == "Top Level":
+            origLink = IntraTopicLink().load({"fromTopic": topic_obj.slug,
+                                              "toTopic": topic_data["origCategory"],
+                                              "linkType": "displays-under"})
+            if topic_data["origCategory"] == "":
                 assert origLink is None
                 origLink = IntraTopicLink()
 
-            if topic_data["category"] == "Top Level":
-                origLink.delete()
-                if getattr(topic_obj, "numSources", 0):
-                    # if topic has sources and we dont create an IntraTopicLink, they wont be accessible from the topic TOC
+            if topic_data["category"] == "":
+                # a top-level topic won't display properly if it doesn't have children so need to set shouldDisplay flag
+                child = IntraTopicLink().load({"linkType": "displays-under", "toTopic": topic_obj.slug})
+                if child is None:
+                    topic_obj.shouldDisplay = True
+                    topic_obj.save()
+
+                origLink.delete() # get rid of link to previous category
+
+                # if topic has sources and we dont create an IntraTopicLink to itself, they wont be accessible from the topic TOC
+                if getattr(topic_obj, "numSources", 0) > 0:
                     linkToItself = IntraTopicLink()
-                    linkToItself.fromTopic = newSlug
-                    linkToItself.toTopic = newSlug
+                    linkToItself.fromTopic = topic_obj.slug
+                    linkToItself.toTopic = topic_obj.slug
                     linkToItself.dataSource = "sefaria"
                     linkToItself.linkType = "displays-under"
                     linkToItself.save()
             else:
-                origLink.fromTopic = newSlug
-                origLink.toTopic = Topic.normalize_slug(topic_data["category"])
+                origLink.fromTopic = topic_obj.slug
+                origLink.toTopic = topic_data["category"]
                 origLink.linkType = "displays-under"
                 origLink.dataSource = "sefaria"
                 origLink.save()
 
-            oldLink = IntraTopicLink().load({"fromTopic": origSlug,
-                                              "toTopic": Topic.normalize_slug(topic_data["origCategory"])})
-            if oldLink:
-                oldLink.delete()
+        needs_save = False      # will get set to True if isTopLevelDisplay or description is changed
 
-        if topic_data["origTitle"] != topic_data["title"]:
-            # rename all TopicLinks with origSlug to newSlug
-            for link in TopicLinkSetHelper.find({"$or": [{"toTopic": origSlug}, {"fromTopic": origSlug}]}):
-                if isinstance(link, RefTopicLink):
-                    attr = "toTopic"
-                else:
-                    attr = 'toTopic' if link.toTopic == origSlug else 'fromTopic'
-                setattr(link, attr, topic_obj.slug)
-                link.save()
+        if (topic_data["category"] == "") != getattr(topic_obj, "isTopLevelDisplay", False):    # True when topic moved to top level or moved from top level
+            needs_save = True
+            topic_obj.isTopLevelDisplay = topic_data["category"] == ""
 
-        if topic_data["origDescription"] != topic_data["description"] or topic_data["category"] == "Top Level" or topic_data["origCategory"] == "Top Level":
-            Topic.change_description(topic_obj, topic_data)
+        if topic_data["origDescription"] != topic_data["description"]:
+            topic_obj.change_description(topic_data["description"])
+            needs_save = True
+
+        if needs_save:
             topic_obj.save()
+
 
         @csrf_protect
         def protected_index_post(request):

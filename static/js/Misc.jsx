@@ -2701,62 +2701,54 @@ const CategoryChooser = function({categories, update}) {
 }
 
 
-const TopicEditor = ({en="", he="", category="Top Level", slug="", desc={}, close}) => {
+const TopicEditor = ({en="", he="", slug="", desc={}, categorySlug="", close}) => {
     const [savingStatus, setSavingStatus] = useState(false);
-    const origSlug = useRef(slug);
-    const [newSlug, setNewSlug] = useState(slug);
-    const [enCat, setEnCat] = useState(category);
+    const [catSlug, setCatSlug] = useState(categorySlug);
     const [description, setDescription] = useState(desc["en"]);
     const [enTitle, setEnTitle] = useState(en);
     const [heTitle, setHeTitle] = useState(he);
     const origEnTitle = useRef(en);
-    const origEnCat = useRef(category);
+    const origSlug = useRef(slug);
+    const origCatSlug = useRef(categorySlug);
     const origDescription = useRef(desc);
     const isNewTopic = useRef(origEnTitle.current === "");
 
-    const existingCategories = useRef(Sefaria.topic_toc.reduce(Sefaria._initTopicTocTitleReducer, {}));
+    const existingCategories = useRef(Sefaria.topic_toc.reduce(Sefaria._initTopicTocSlugToTitle, {}));
 
     let rootSelected = true;
-    let catMenu = Object.keys(existingCategories.current).map(function (t, i) {
-      if (isNewTopic.current == false && enCat == t) {
+    let catMenu = Object.keys(existingCategories.current).map(function (tempSlug, i) {
+      const tempTitle = existingCategories.current[tempSlug];
+      if (catSlug === tempSlug) {
         rootSelected = false;
-        return <option key={i} value={t} selected>{t}</option>;
+        return <option key={i} value={tempSlug} selected>{tempTitle}</option>;
       } else {
-        return <option key={i} value={t}>{t}</option>;
+        return <option key={i} value={tempSlug}>{tempTitle}</option>;
       }
     });
-    const rootOption = rootSelected ? <option key="chooseCategory" value="Top Level" selected>Choose a category</option> :
-                                      <option key="chooseCategory" value="Top Level">Choose a category</option>;
-    catMenu.splice(0, 0, rootOption);
+    const rootOption = rootSelected ? <option key="chooseCategory" value="" selected>Choose a category</option> :
+                                      <option key="chooseCategory" value="">Choose a category</option>;
+    catMenu.splice(0, 0, rootOption) ;
 
     const validate = async function () {
         if (enTitle.length === 0) {
           alert("Title must be provided.");
           return false;
         }
-        if (origEnTitle.current !== enTitle) {
-          //if the title has been changed, check that there isn't one with new title
-          const existingTopic = await Sefaria.getTopic(newSlug);
-          //const existingTopic = names.completion_objects.filter(x => x.title === enTitle && x.type.indexOf("Topic") >= 0);
-          if ("slug" in existingTopic) {
-            alert("Topic "+enTitle+" already exists.");
-            return false;
-          }
-        }
         save();
     }
     const save = function () {
         toggleInProgress();
         let url = "";
-        let data = {"description": {"en": description, "he": description}, "title": enTitle, "category": enCat};
+        let data = {"description": {"en": description, "he": description}, "title": enTitle, "category": catSlug};
         if (isNewTopic.current) {
           url = "/api/topic/new";
         }
         else {
           url = `/api/topics/${origSlug.current}`;
-          data["origCategory"] = origEnCat.current;
+          data["origCategory"] = origCatSlug.current;
           data["origDescription"] = origDescription.current;
           data["origTitle"] = origEnTitle.current;
+          data["origSlug"] = origSlug.current;
         }
 
         const postJSON = JSON.stringify(data);
@@ -2772,10 +2764,6 @@ const TopicEditor = ({en="", he="", category="Top Level", slug="", desc={}, clos
             alert("Unfortunately, there may have been an error saving this topic information: "+errorThrown);
           });
     }
-    const changeTitleAndSlug = function(e) {
-      setEnTitle(e.target.value);
-      setNewSlug(Sefaria.normalizeSlug(e.target.value));
-    }
     const toggleInProgress = function() {
       setSavingStatus(savingStatus => !savingStatus);
     }
@@ -2789,12 +2777,12 @@ const TopicEditor = ({en="", he="", category="Top Level", slug="", desc={}, clos
                         <AdminToolHeader en="Topic Editor" he="Topic Editor" close={close} validate={validate}/>
                         <div className="section">
                             <label><InterfaceText>Topic Title</InterfaceText></label>
-                            <input id="topicTitle" onBlur={(e) => changeTitleAndSlug(e)} defaultValue={enTitle} placeholder="Add a title."/>
+                            <input id="topicTitle" onBlur={(e) => setEnTitle(e.target.value)} defaultValue={enTitle} placeholder="Add a title."/>
                         </div>
                         <div className="section">
                           <label><InterfaceText>Category</InterfaceText></label>
                           <div id="categoryChooserMenu">
-                              <select key="topicCats" id="topicCats" onChange={(e) => setEnCat(e.target.value)}>
+                              <select key="topicCats" id="topicCats" onChange={(e) => setCatSlug(e.target.value)}>
                                 {catMenu}
                               </select>
                           </div>

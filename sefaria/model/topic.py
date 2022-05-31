@@ -102,27 +102,24 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
             new_topic.get_types(types, new_path, search_slug_set)
         return types
 
-    @staticmethod
-    def change_description(topic, data):
+    def change_description(self, desc):
         # used by add_new_topic_api and topics_api to change topic descriptions and associated properties
-        if data["category"] == "Top Level":
-            topic.isTopLevelDisplay = True
-            topic.categoryDescription = {}
-            topic.categoryDescription["en"] = data["description"].get('en', '')
-            topic.categoryDescription["he"] = data["description"].get('he', '')
-            if getattr(topic, "description", False):
-                delattr(topic, "description")
-            if getattr(topic, "description_published", False):
-                delattr(topic, "description_published")
+        # 'desc' is a dictionary with 'en' and/or 'he' fields
+        if getattr(self, "isTopLevelDisplay", False):
+            self.categoryDescription = {}
+            self.categoryDescription["en"] = desc.get('en', '')
+            self.categoryDescription["he"] = desc.get('he', '')
+            if getattr(self, "description", False):
+                delattr(self, "description")
+            if getattr(self, "description_published", False):
+                delattr(self, "description_published")
         else:
-            topic.description = {}
-            topic.description["en"] = data["description"].get('en', '')
-            topic.description["he"] = data["description"].get('he', '')
-            topic.description_published = True
-            if getattr(topic, "categoryDescription", False):
-                delattr(topic, "categoryDescription")
-            if getattr(topic, "isTopLevelDisplay", False):
-                delattr(topic, "isTopLevelDisplay")
+            self.description = {}
+            self.description["en"] = desc.get('en', '')
+            self.description["he"] = desc.get('he', '')
+            self.description_published = True
+            if getattr(self, "categoryDescription", False):
+                delattr(self, "categoryDescription")
 
     def topics_by_link_type_recursively(self, **kwargs):
         topics, _ = self.topics_and_links_by_link_type_recursively(**kwargs)
@@ -195,6 +192,8 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         """
         has_desc = False
         for temp_desc in getattr(self, 'description', {}).values():
+            has_desc = has_desc or (isinstance(temp_desc, str) and len(temp_desc) > 0)
+        for temp_desc in getattr(self, 'categoryDescription', {}).values():
             has_desc = has_desc or (isinstance(temp_desc, str) and len(temp_desc) > 0)
         return has_desc
 
