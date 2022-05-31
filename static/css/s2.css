@@ -6474,8 +6474,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .button.extraSmall.topic {
   color: #000000;
   background-color: var(--lighter-grey);
-  height: 50px;
-  padding: 10px 8px;
 }
 .addToSourceSheetBox .button.small {
   width: 37%;
