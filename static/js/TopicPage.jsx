@@ -565,7 +565,8 @@ const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, set
       })),
     })
   }
-  const readingsComponent = (parashaData && parashaData.length && tref) ? (
+  const hasReadings = parashaData && (!Array.isArray(parashaData) || parashaData.length > 0) && tref;
+  const readingsComponent = hasReadings ? (
     <ReadingsComponent parashaData={parashaData} tref={tref} />
   ) : null;
   const topicMetaData = <TopicMetaData timePeriod={timePeriod} properties={properties} />;
