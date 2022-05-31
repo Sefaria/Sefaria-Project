@@ -93,6 +93,9 @@ class ReaderApp extends Component {
       if (panel.mode.endsWith("AndConnections")) {
         panel.highlightedRefs = panel.refs;
       }
+      if (panel.menuOpen === "book toc") { // TODO figure out how to delete this
+        panel.tab = props.initialTab // why is book toc initial menu false?
+      }
       return panel;
     }).map(panel => this.makePanelState(panel));
 

@@ -603,6 +603,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
     props = {
         "headerMode":                     False,
         "initialPanels":                  panels,
+        "initialTab":                     request.GET.get("tab", None),
         "initialPanelCap":                len(panels),
         "initialQuery":                   None,
         "initialNavigationCategories":    None,
