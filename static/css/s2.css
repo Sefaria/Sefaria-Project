@@ -5011,11 +5011,13 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-align: center;
   -webkit-text-size-adjust: 100%;
   user-select: none;
+  -webkit-user-select: none;
 }
 .segmentNumber .segmentNumberInner,
 .linkCount .linkCountDot {
   display: inline-block;
   user-select: none;
+  -webkit-user-select: none;
 }
 .bilingual .segmentNumber .segmentNumberInner,
 .bilingual .linkCount .linkCountDot,
