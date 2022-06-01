@@ -356,7 +356,7 @@ class TextColumn extends Component {
         layoutWidth={this.props.layoutWidth}
         unsetTextHighlight={this.props.unsetTextHighlight}
         translationLanguagePreference={this.props.translationLanguagePreference}
-        setCurrVersions={this.props.setCurrVersions}
+        updateCurrVersionsToMatchAPIResult={this.props.updateCurrVersionsToMatchAPIResult}
         key={ref} />);
     }.bind(this));
 

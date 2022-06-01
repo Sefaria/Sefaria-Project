@@ -128,7 +128,7 @@ class TextRange extends Component {
       return;
     }
 
-    this._updateCurrVersions(data.versionTitle, data.heVersionTitle);
+    this._updateCurrVersions(data.ref, data.versionTitle, data.heVersionTitle);
 
     // If this is a ref to a super-section, rewrite it to first available section
     if (this.props.basetext && data.textDepth - data.sections.length > 1 && data.firstAvailableSectionRef) {
@@ -145,18 +145,16 @@ class TextRange extends Component {
       }.bind(this));
     }
   }
-  _updateCurrVersions(enVTitle, heVTitle) {
+  _updateCurrVersions(sref, enVTitle, heVTitle) {
     // make sure currVersions matches versions returned, due to translationLanguagePreference and versionPreferences
-    if (this.props.setCurrVersions) {
-      // vtitles can be null when merged. dont overwrite in this case
-      const newVersions = {
-        en: enVTitle || this.props.currVersions.en,
-        he: heVTitle || this.props.currVersions.he,
-      };
-      if (!Sefaria.util.object_equals(this.props.currVersions, newVersions)) {
-        this.props.setCurrVersions(newVersions);
-      }
-    }
+    if (!this.props.updateCurrVersionsToMatchAPIResult) { return; }
+
+    // vtitles can be null when merged. dont overwrite in this case
+    const newVersions = {
+      en: enVTitle || this.props.currVersions.en,
+      he: heVTitle || this.props.currVersions.he,
+    };
+    this.props.updateCurrVersionsToMatchAPIResult(sref, newVersions);
   }
   _prefetchLinksAndNotes(data) {
     let sectionRefs = data.isSpanning ? data.spanningRefs : [data.sectionRef];

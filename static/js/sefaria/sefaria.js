@@ -621,7 +621,7 @@ Sefaria = extend(Sefaria, {
       // for every lang/vtitle pair in versionPref, update corresponding version url param if it doesn't already exist
       for (let [vlang, vtitle] of Object.entries(settings.versionPref)) {
         const versionPrefKey = `${vlang}Version`;
-        if (!settings[versionPrefKey]) {
+        if (typeof settings[versionPrefKey] === 'undefined') {
           settings[versionPrefKey] = vtitle;
         }
       }
