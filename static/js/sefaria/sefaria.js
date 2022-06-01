@@ -377,8 +377,8 @@ Sefaria = extend(Sefaria, {
       commentary: settings.commentary || 0,
       context:    settings.context    || 0,
       pad:        settings.pad        || 0,
-      enVersion:  settings.enVersion  || null,
-      heVersion:  settings.heVersion  || null,
+      enVersion:  settings.enVersion  || undefined,
+      heVersion:  settings.heVersion  || undefined,
       multiple:   settings.multiple   || 0,
       stripItags: settings.stripItags || 0,
       wrapLinks:  ("wrapLinks" in settings) ? settings.wrapLinks : 1,
@@ -621,7 +621,7 @@ Sefaria = extend(Sefaria, {
       // for every lang/vtitle pair in versionPref, update corresponding version url param if it doesn't already exist
       for (let [vlang, vtitle] of Object.entries(settings.versionPref)) {
         const versionPrefKey = `${vlang}Version`;
-        if (typeof settings[versionPrefKey] === 'undefined') {
+        if (typeof(settings[versionPrefKey]) === 'undefined') {
           settings[versionPrefKey] = vtitle;
         }
       }
