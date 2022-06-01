@@ -17,7 +17,10 @@ body {
 .bookMetaDataBox,
 .cookiesNotification,
 #bannerMessage,
-#interruptingMessageBox
+#interruptingMessageBox,
+.editorSidebarToggle,
+.editorAddInterface,
+.readerOptionsPanel,
 details {
   display: none !important;
 }
@@ -114,6 +117,15 @@ details {
   display: block;
 
 }
+
+.sheetItem .SheetSource.selected.segment, .sheetItem .SheetOutsideBiText.selected.segment {
+  border-top: none;
+  border-bottom: none;
+  border-inline-end: none;
+  margin-top: 2px;
+  margin-bottom: 30px;
+}
+
 @page {
   size: auto;
   margin: 0.7in 0.5in;

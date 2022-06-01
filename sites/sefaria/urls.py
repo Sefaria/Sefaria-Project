@@ -43,13 +43,14 @@ static_pages = [
     "ramban-sponsorships",
     "contest",
     "design-system",
-    "annualreport2021"
+    "annualreport2021",
+    "powered-by"
 ]
 
 static_pages_by_lang = [
     "about",
     "ways-to-give",
-    "team",
+    "team"
 ]
 
 

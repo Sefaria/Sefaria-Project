@@ -112,8 +112,10 @@ class WebPage(abst.AbstractMongoRecord):
             db.webpages_long_urls.insert_one(self.contents())
             return True
         url_regex = WebPage.excluded_pages_url_regex(self.domain)
+        url_match = re.search(url_regex, self.url) if url_regex is not None else False
+        #url_regex is None when bad_urls is empty, so we should not exclude this domain
         title_regex = WebPage.excluded_pages_title_regex()
-        return bool(re.search(url_regex, self.url) or re.search(title_regex, self.title))
+        return bool(url_match) or re.search(title_regex, self.title)
 
     @staticmethod
     def excluded_pages_url_regex(looking_for_domain=None):
@@ -125,7 +127,11 @@ class WebPage(abst.AbstractMongoRecord):
                 for domain_in_site in site["domains"]:
                     if site["is_whitelisted"]:
                         bad_urls += [re.escape(domain_in_site)+"/search.*?$"]
-        return "({})".format("|".join(bad_urls))
+
+        if len(bad_urls) is 0:
+            return None
+        else:
+            return "({})".format("|".join(bad_urls))
 
     @staticmethod
     def excluded_pages_title_regex():

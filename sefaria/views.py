@@ -1174,6 +1174,25 @@ def text_upload_api(request):
     message = "Successfully imported {} versions".format(len(files))
     return jsonResponse({"status": "ok", "message": message})
 
+
+@staff_member_required
+def update_authors_from_sheet(request):
+    from sefaria.helper.descriptions import update_authors_data
+    res_text = update_authors_data()
+    return HttpResponse("\n".join(res_text), content_type="text/plain")
+
+@staff_member_required
+def update_categories_from_sheet(request):
+    from sefaria.helper.descriptions import update_categories_data
+    res_text = update_categories_data()
+    return HttpResponse("\n".join(res_text), content_type="text/plain")
+
+@staff_member_required
+def update_texts_from_sheet(request):
+    from sefaria.helper.descriptions import update_texts_data
+    res_text = update_texts_data()
+    return HttpResponse("\n".join(res_text), content_type="text/plain")
+
 @staff_member_required
 def modtools_upload_workflowy(request):
     from sefaria.helper.text import WorkflowyParser

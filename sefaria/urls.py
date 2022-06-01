@@ -417,6 +417,9 @@ urlpatterns += [
     url(r'^admin/versions-csv', sefaria_views.versions_csv),
     url(r'^admin/index-sheets-by-timestamp', sefaria_views.index_sheets_by_timestamp),
     url(r'^admin/community-preview', reader_views.community_preview),
+    url(r'^admin/descriptions/authors/update', sefaria_views.update_authors_from_sheet),
+    url(r'^admin/descriptions/categories/update', sefaria_views.update_categories_from_sheet),
+    url(r'^admin/descriptions/texts/update', sefaria_views.update_texts_from_sheet),
     url(r'^admin/?', include(admin.site.urls)),
 ]
 
