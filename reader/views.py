@@ -645,7 +645,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
     else:
         sheet = panels[0].get("sheet",{})
         sheet["title"] = unescape(sheet["title"])
-        title = strip_tags(sheet["title"]) + " | " + _("Sefaria")
+        title = strip_tags(sheet["title"]) + " | " + _(SITE_SETTINGS["SITE_NAME"])
         breadcrumb = sheet_crumbs(request, sheet)
         desc = unescape(sheet.get("summary", _("A source sheet created with Sefaria's Source Sheet Builder")))
         noindex = sheet.get("noindex", False) or sheet["status"] != "public"
@@ -685,7 +685,7 @@ def texts_category_list(request, cats):
 
     if cats == "recent":
         title = _("Recently Viewed")
-        desc  = _("Texts that you've recently viewed on Sefaria.")
+        desc  = _("Texts that you've recently viewed on {}.".format(SITE_SETTINGS["SITE_NAME"]))
     else:
         cats = cats.split("/")
         tocObject = library.get_toc_tree().lookup(cats)
@@ -695,7 +695,7 @@ def texts_category_list(request, cats):
         catDesc = getattr(tocObject, "enDesc", '') if request.interfaceLang == "english" else getattr(tocObject, "heDesc", '')
         catShortDesc = getattr(tocObject, "enShortDesc", '') if request.interfaceLang == "english" else getattr(tocObject, "heShortDesc", '')
         catDefaultDesc = _("Read %(categories)s texts online with commentaries and connections.") % {'categories': cat_string} 
-        title = cat_string + _(" | Sefaria")
+        title = cat_string + _(" | "+SITE_SETTINGS["SITE_NAME"])
         desc  = catDesc if len(catDesc) else catShortDesc if len(catShortDesc) else catDefaultDesc
 
     props = {
@@ -728,8 +728,12 @@ def topics_category_page(request, topicCategory):
     }
 
     short_lang = 'en' if request.interfaceLang == 'english' else 'he'
-    title = topic_obj.get_primary_title(short_lang) + " | " + _("Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.")
-    desc = _("Jewish texts and source sheets about %(topic)s from Torah, Talmud and other sources in Sefaria's library.") % {'topic': topic_obj.get_primary_title(short_lang)}
+    if SITE_SETTINGS["TORAH_SPECIFIC"]:
+        title = topic_obj.get_primary_title(short_lang) + " | " + _("Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.")
+        desc = _("Jewish texts and source sheets about %(topic)s from Torah, Talmud and other sources in Sefaria's library.") % {'topic': topic_obj.get_primary_title(short_lang)}
+    else:
+        title = topic_obj.get_primary_title(short_lang) + " | " + _("Texts & Source Sheets.")
+        desc = _("Texts and source sheets about %(topic)s") % {'topic': topic_obj.get_primary_title(short_lang)}
     
     return render_template(request, 'base.html', props, {
         "title": title,
@@ -978,8 +982,8 @@ def _get_user_calendar_params(request):
 
 
 def texts_list(request):
-    title = _("Sefaria: a Living Library of Jewish Texts Online")
-    desc  = _("The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more.")
+    title = _(SITE_SETTINGS["LONG_SITE_NAME"])
+    desc  = _(SITE_SETTINGS["LIBRARY_MESSAGE"])
     return menu_page(request, page="navigation", title=title, desc=desc)
 
 
@@ -992,7 +996,7 @@ def calendars(request):
 @login_required
 def saved(request):
     title = _("My Saved Content")
-    desc = _("See your saved content on Sefaria")
+    desc = _("See your saved content on {}".format(SITE_SETTINGS["SITE_NAME"]))
     profile = UserProfile(user_obj=request.user)
     props = {"saved": {"loaded": True, "items": profile.get_history(saved=True, secondary=False, serialized=True, annotate=True, limit=20)}}
     return menu_page(request, props, page="saved", title=title, desc=desc)
@@ -1006,13 +1010,13 @@ def user_history(request):
         uhistory = _get_anonymous_user_history(request)
     props = {"userHistory": {"loaded": True, "items": uhistory}}
     title = _("My User History")
-    desc = _("See your user history on Sefaria")
+    desc = _("See your user history on {}".format(SITE_SETTINGS["SITE_NAME"]))
     return menu_page(request, props, page="history", title=title, desc=desc)
 
 
 def updates(request):
-    title = _("New Additions to the Sefaria Library")
-    desc  = _("See texts, translations and connections that have been recently added to Sefaria.")
+    title = _("New Additions to the {} Library".format(SITE_SETTINGS["SITE_NAME"]))
+    desc  = _("See texts, translations and connections that have been recently added to {}".format(SITE_SETTINGS["SITE_NAME"]))
     return menu_page(request, page="updates", title=title, desc=desc)
 
 
@@ -1031,7 +1035,7 @@ def user_stats(request):
 @login_required
 def notifications(request):
     # Notifications content is not rendered server side
-    title = _("Sefaria Notifications")
+    title = _("{} Notifications".format(SITE_SETTINGS["SITE_NAME"]))
     notifications = UserProfile(user_obj=request.user).recent_notifications()
     props = {
         "notifications": notifications.client_contents(),
@@ -3168,8 +3172,16 @@ def topic_page(request, topic):
     }
 
     short_lang = 'en' if request.interfaceLang == 'english' else 'he'
-    title = topic_obj.get_primary_title(short_lang) + " | " + _("Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.")
-    desc = _("Jewish texts and source sheets about %(topic)s from Torah, Talmud and other sources in Sefaria's library.") % {'topic': topic_obj.get_primary_title(short_lang)}
+    if SITE_SETTINGS["TORAH_SPECIFIC"]:
+        header = _("Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.")
+        desc = _("Jewish texts and source sheets about %(topic)s from Torah, Talmud and other sources in Sefaria's library.") % {
+                   'topic': topic_obj.get_primary_title(short_lang)}
+    else:
+        header = _("Texts & Source Sheets")
+        desc = _("Texts and source sheets about %(topic)s") % {'topic': topic_obj.get_primary_title(short_lang)}
+
+    title = topic_obj.get_primary_title(short_lang) + " | " + header
+
     topic_desc = getattr(topic_obj, 'description', {}).get(short_lang, '')
     if topic_desc is not None:
         desc += " " + topic_desc
@@ -3583,8 +3595,8 @@ def user_profile(request, username):
         "initialProfile": requested_profile.to_api_dict(),
         "initialProfileTab": tab,
     }
-    title = _("%(full_name)s on Sefaria") % {"full_name": requested_profile.full_name}
-    desc = _('%(full_name)s is on Sefaria. Follow to view their public source sheets, notes and translations.') % {"full_name": requested_profile.full_name}
+    title = _("%(full_name)s on "+SITE_SETTINGS["SITE_NAME"]["en"]) % {"full_name": requested_profile.full_name}
+    desc = _('%(full_name)s is on '+SITE_SETTINGS["SITE_NAME"]["en"]+'. Follow to view their public source sheets, notes and translations.') % {"full_name": requested_profile.full_name}
     return render_template(request,'base.html', props, {
         "title":          title,
         "desc":           desc,
