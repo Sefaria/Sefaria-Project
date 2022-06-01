@@ -137,9 +137,8 @@ class VersionsTextList extends Component {
     return sectionRef;
   }
   render() {
-    let currSelectedVersions = {en: null, he: null};
     const [vTitle, language] = Sefaria.deconstructVersionsKey(this.props.vFilter[0]);
-    currSelectedVersions = {[language]: vTitle};
+    const currSelectedVersions = {[language]: vTitle};
     const onRangeClick = (sref) => {this.props.onRangeClick(sref, false, currSelectedVersions)};
     return !this.state.loaded || !this.props.vFilter.length ?
       (<LoadingMessage />) :

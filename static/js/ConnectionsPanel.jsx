@@ -44,7 +44,7 @@ class ConnectionsPanel extends Component {
     this._savedHistorySegments = new Set();
     this.state = {
       flashMessage: null,
-      currObjectVersions: { en: null, he: null },
+      currObjectVersions: {},
       mainVersionLanguage: props.masterPanelLanguage === "bilingual" ? "hebrew" : props.masterPanelLanguage,
       availableTranslations: [],
       linksLoaded: false, // has the list of refs been loaded
@@ -231,7 +231,7 @@ class ConnectionsPanel extends Component {
       }
       if (!data || data.error) {
         this.setState({
-          currObjectVersions: { en: null, he: null },
+          currObjectVersions: {},
           mainVersionLanguage: currentLanguage,
         });
         return
