@@ -2260,6 +2260,9 @@ a.navBlockTitle:hover {
 .hebrew .navBlockDescription{
   line-height: 24px;
 }
+.categoryFilter:not(.withBooks) .sidebarDescription{
+display: none;
+}
 .sidebarDescription{
   color: var(--dark-grey);
   --english-font: var(--english-sans-serif-font-family);
@@ -5623,7 +5626,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   border-top-color: var(--category-color);
 }
 .categoryFilterGroup.withBooks .categoryFilter{
-  text-transform: uppercase;
   margin: initial;
   margin-inline-end: 34px;
   margin-inline-start: 34px;

@@ -1328,7 +1328,7 @@ Sefaria = extend(Sefaria, {
             // bookData.enShortDesc = Sefaria.tocItemsByCategories(bookData.categoryList).map((e)=>(e.category || e.title === bookData.book ? e.enShortDesc: null))
         }
         if (bookData.categoryList && !bookData.enShortDesc) {
-            const desc = Sefaria.getDescriptions(bookData.book, bookData.categoryList)
+            const desc = Sefaria.getDescrptionDict(bookData.book, bookData.categoryList)
             if (desc) {
                 bookData.enShortDesc = desc[0] || null;
                 bookData.heShortDesc = desc[1] || null;
@@ -1439,6 +1439,9 @@ Sefaria = extend(Sefaria, {
   },
     _descDict: {}, // cache for the description dictionary
       getDescriptions: function(keyName, categoryList) {
+      if (categoryList.length === 0){
+          return null;
+      }
       const catlist = Sefaria.tocItemsByCategories(categoryList)
         let catmap = catlist.map((e) => [e.category || e.title, e.enShortDesc, e.heShortDesc])
         let d = {}
@@ -1463,12 +1466,21 @@ Sefaria = extend(Sefaria, {
   },
     getDescrptionDict: function(keyName, categoryList){
         let desc = this._cachedApi([keyName, categoryList], this._descDict, null);
+        if (Object.keys(this._descDict).length === 0){
+            //Init of the Dict with the Category level descriptions
+                this.toc.map(e=> {this._descDict[[e.category, []]] = [e.enShortDesc, e.heShortDesc]})
+                this._descDict[["Commentary", []]] = ["Interpretations and discussions surrounding Jewish texts, ranging from early medieval to contemporary.", null]
+        }
+        if (!desc && categoryList.length !== 0) {
+            desc = this.getDescriptions(keyName, categoryList)
+            this._descDict[[keyName, categoryList]] = desc
+        }
         if (desc) {
             return [desc[0], desc[1]]
         }
-        else {
-            desc = getDescriptions(keyName, categoryList)
-            this._descDict[[keyName, categoryList]] = desc
+        else
+        {
+            return [null, null];
         }
     },
 

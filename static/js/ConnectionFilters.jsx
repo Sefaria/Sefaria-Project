@@ -45,21 +45,27 @@ class CategoryFilter extends Component {
     let innerClasses = classNames({categoryFilter: 1, withBooks: this.props.showBooks, on: this.props.on});
     let handleClick  = this.handleClick;
     const url = (this.props.srefs && this.props.srefs.length > 0)?"/" + Sefaria.normRef(this.props.srefs[0]) + "?with=" + this.props.category:"";
+    const classesDesc = classNames({ sidebarDescription: 1, lowlight: this.props.count == 0});
     let outerClasses = classNames({categoryFilterGroup: 1, withBooks: this.props.showBooks});
+    const catDesc = Sefaria.getDescrptionDict(this.props.category, []);
+    const catEnDesc = catDesc[0];
+    const catHeDesc = catDesc[1];
     return (
       <div className={outerClasses} style={style}>
         <a href={url} onClick={handleClick}>
           <div className={innerClasses} data-name={this.props.category}>
             <span className="filterInner">
               <span className="filterText">
-                <ContentText text={{en: this.props.category, he: this.props.heCategory }} />
+                <ContentText text={{en:this.props.showBooks ? `All ${this.props.category}` : this.props.category, he:this.props.showBooks ? `כל הקישורים ל${this.props.heCategory}` : this.props.heCategory}} />
                 <span className="connectionsCount"> ({this.props.count})</span>
               </span>
               <span className="en">
                 {this.props.hasEnglish && Sefaria._siteSettings.TORAH_SPECIFIC ? <EnglishAvailableTag /> : null}
               </span>
             </span>
-          </div>
+          <div className={classesDesc}>{catEnDesc || catHeDesc ?
+                              <ContentText text={{en: catEnDesc, he: catHeDesc}} />
+                      : null }</div>          </div>
         </a>
         {textFilters}
       </div>
@@ -116,9 +122,9 @@ class TextFilter extends Component {
                   <span className="filterText">
                     <ContentText text={{en: name, he: heName }} />
                     {showCount ? <span className="connectionsCount">&nbsp;({this.props.count})</span> : null}
-                    {showDescription ?<span className={classesDesc}><br />{enDesc || heDesc ?
+                    {showDescription ?<div className={classesDesc}>{enDesc || heDesc ?
                               <ContentText text={{en: enDesc, he: heDesc}} />
-                      : null }</span> : null}
+                      : null }</div> : null}
                   </span>
                   <span className="en">
                     {this.props.hasEnglish && Sefaria._siteSettings.TORAH_SPECIFIC ? <EnglishAvailableTag /> : null}
