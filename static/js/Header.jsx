@@ -39,10 +39,10 @@ class Header extends Component {
     if (this.props.hidden && !this.props.mobileNavMenuOpen) {
       return null;
     }
-
+    const altText = `${Sefaria._siteSettings["SITE_NAME"]["en"]} Logo`;
     const logo = Sefaria.interfaceLang == "hebrew" ?
-      <img src={Sefaria._siteSettings.HE_LOGO} alt="Sefaria Logo"/> :
-      <img src={Sefaria._siteSettings.LOGO} alt="Sefaria Logo"/>;
+      <img src={Sefaria._siteSettings.HE_LOGO} alt={altText}/> :
+      <img src={Sefaria._siteSettings.LOGO} alt={altText}/>;
 
     const headerContent = (
       <>

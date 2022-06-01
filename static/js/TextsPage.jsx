@@ -82,7 +82,7 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
 
   const dedication = Sefaria._siteSettings.TORAH_SPECIFIC && !compare ? <Dedication /> : null;
 
-  const libraryMessage = Sefaria._siteSettings.LIBRARY_MESSAGE && !compare && not Sefaria._siteSettings.TORAH_SPECIFIC ?
+  const libraryMessage = Sefaria._siteSettings.LIBRARY_MESSAGE && !compare && !Sefaria._siteSettings.TORAH_SPECIFIC ?
     <div className="libraryMessage" dangerouslySetInnerHTML={ {__html: Sefaria._siteSettings.LIBRARY_MESSAGE} }></div>
     : null;
 

@@ -486,12 +486,13 @@ class ReaderApp extends Component {
             hist.mode  = "search";
             break;
           case "topics":
+            const msg = Sefaria._siteSettings.TORAH_SPECIFIC ? "Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources." : "Texts & Source Sheets";
             if (state.navigationTopic) {
               hist.url = `topics/${state.navigationTopic}?tab=${state.topicsTab}`;
-              hist.title = `${state.topicTitle[shortLang]} | ${ Sefaria._("Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.")}`;
+              hist.title = `${state.topicTitle[shortLang]} | ${ Sefaria._(msg)}`;
               hist.mode  = "topic";
             } else if (state.navigationTopicCategory) {
-              hist.title = state.navigationTopicTitle[shortLang] + " | " + Sefaria._("Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.");
+              hist.title = state.navigationTopicTitle[shortLang] + " | " + Sefaria._(msg);
               hist.url   =  "topics/category/" + state.navigationTopicCategory;
               hist.mode  = "topicCat";
             } else {
@@ -511,7 +512,7 @@ class ReaderApp extends Component {
             hist.mode  = "community";
             break;
           case "profile":
-            hist.title = `${state.profile.full_name} ${Sefaria._("on Sefaria")}`;
+            hist.title = `${state.profile.full_name} ${Sefaria._(` on ${Sefaria._siteSettings["SITE_NAME"]["en"]}`)}`;
             hist.url   = `profile/${state.profile.slug}?tab=${state.profileTab}`;
             hist.mode = "profile";
             break;
@@ -677,7 +678,7 @@ class ReaderApp extends Component {
     }
 
     // Now merge all history objects into one
-    var title =  histories.length ? histories[0].title : "Sefaria";
+    var title =  histories.length ? histories[0].title : Sefaria._siteSettings["SITE_NAME"]["en"];
 
     var url   = "/" + (histories.length ? histories[0].url : "");
     url += this._getUrlVersionsParams(histories[0].currVersions, 0);
