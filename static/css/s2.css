@@ -1644,12 +1644,24 @@ div.interfaceLinks-row a {
 .navSidebarLink.gray a {
   color: #666;
 }
-/* TODO: fix this */
-.navSidebarLink .bullet:after {
+
+.navSidebarLink > ul {
+  font-size: 18px;
+  margin-top: 16px;
+  display: flex;
+  flex-wrap:wrap;
+  padding: 0;
+  margin: 0;
+}
+.navSidebarLink > ul > li {
+  display: inline;
+}
+.navSidebarLink > ul > li:after {
   content: "\2022";
   white-space:pre;
   margin: 0 5px;
-} 
+}
+
 
 .navSidebarLink .languageItem, .translationsPage .languageItem {
   display: inline;

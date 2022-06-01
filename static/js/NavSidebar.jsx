@@ -234,16 +234,14 @@ const AboutText = ({index, hideTitle}) => {
 
 
 const TranslationLinks = () => {
+  const [languages, setLanguages] = useState(null);
+  useEffect(() => {$.getJSON("/api/texts/translations/").then(d => setLanguages(d));}, []);
+
   return (
     <div className="navSidebarLink serif language">
-      {Object.keys(Sefaria.ISOMap).map((key, i) => (
-        <div key={i} className={i !== Object.keys(Sefaria.ISOMap).length - 1 ? "bullet languageItem" : "languageItem"}>
-          {/* { i !== 0 ? <span className="bullet">{'\u2022'}</span> : null } */}
-          <a href={`/translations/${key}`}>
-            {Sefaria.ISOMap[key]["nativeName"]}
-          </a>
-        </div>
-      ))}
+      {languages ? <ul>{languages.map(key => <li><a href={`/translations/${key}`}>
+            {Sefaria.ISOMap[key] ? Sefaria.ISOMap[key]["nativeName"] : key}
+          </a></li>)}</ul> :  "Loading..." }
       </div>
   );
 };

@@ -4072,7 +4072,10 @@ def random_text_api(request):
     return response
 
 
-def translations_api(request, lang):
+def translations_api(request, lang=None):
+    if not lang:
+        res = db.texts.distinct("actualLanguage")
+        return jsonResponse(res)
     import time
     t0 = time.time()
     #texts = [getIndexContents(myText) for myText in db.texts.distinct("title", {"actualLanguage": lang})]
