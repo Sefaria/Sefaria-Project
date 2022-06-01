@@ -155,6 +155,16 @@ SIMPLE_JWT = {
 # using our API outside of the app. Mainly for registration
 MOBILE_APP_KEY = "MOBILE_APP_KEY"
 
+ENABLE_LINKER = False
+RAW_REF_MODEL_BY_LANG_FILEPATH = {
+    "en": None,
+    "he": None,
+}
+
+RAW_REF_PART_MODEL_BY_LANG_FILEPATH = {
+    "en": None,
+    "he": None,
+}
 
 LOGGING = {
     'version': 1,

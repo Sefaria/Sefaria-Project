@@ -1205,7 +1205,7 @@ class AbstractTextRecord(object):
         if isinstance(tag, Tag):
             is_inline_commentator = tag.name == "i" and len(tag.get('data-commentator', '')) > 0
             is_page_marker = tag.name == "i" and len(tag.get('data-overlay','')) > 0
-            is_tanakh_end_sup = tag.name == "sup" and tag.get('class') == ['endFootnote']  # footnotes like this occur in JPS english
+            is_tanakh_end_sup = tag.name == "sup" and 'endFootnote' in tag.get('class', [])  # footnotes like this occur in JPS english
             return AbstractTextRecord._itag_is_footnote(tag) or is_inline_commentator or is_page_marker or is_tanakh_end_sup
         return False
 
@@ -5329,8 +5329,8 @@ class Library(object):
         non_unique_terms = NonUniqueTermSet()
         ref_part_title_graph = MatchTemplateGraph(root_nodes)
         self._ref_resolver = RefResolver(
-            {k: spacy.load(v) for k, v in RAW_REF_MODEL_BY_LANG_FILEPATH.items()},
-            {k: spacy.load(v) for k, v in RAW_REF_PART_MODEL_BY_LANG_FILEPATH.items()},
+            {k: spacy.load(v) for k, v in RAW_REF_MODEL_BY_LANG_FILEPATH.items() if v is not None},
+            {k: spacy.load(v) for k, v in RAW_REF_PART_MODEL_BY_LANG_FILEPATH.items() if v is not None},
             {
                 "en": MatchTemplateTrie('en', nodes=(root_nodes + alone_nodes), scope='alone'),
                 "he": MatchTemplateTrie('he', nodes=(root_nodes + alone_nodes), scope='alone')
