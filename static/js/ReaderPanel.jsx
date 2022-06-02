@@ -1210,7 +1210,8 @@ class ReaderControls extends Component {
      */
     if (!this.shouldShowVersion()) { return; }
     Sefaria.getVersions(this.props.currentRef, false, ['he'], true).then(versionList => {
-      if (!this.props.currVersions.en) {
+      const enVTitle = this.props.currVersions.enAPIResult || this.props.currVersions.en;
+      if (!enVTitle) {
         // default version. choose highest priority
         if (versionList.length === 0) { return; }
         versionList.sort((a, b) => b.priority - a.priority);
@@ -1218,7 +1219,7 @@ class ReaderControls extends Component {
         return;
       }
       for (let version of versionList) {
-        if (version.versionTitle === this.props.currVersions.en) {
+        if (version.versionTitle === enVTitle) {
           this.setDisplayVersionTitle(version);
           break;
         }
