@@ -1655,7 +1655,7 @@ class ReaderApp extends Component {
   openProfile(slug, tab) {
     tab = tab || "sheets";
     Sefaria.profileAPI(slug).then(profile => {
-      this.setSinglePanelState({ menuOpen: "profile", profile, profileTab: tab});
+      this.setSinglePanelState({ menuOpen: "profile", profile, tab: tab});
     });
   }
   openCollection(slug, tag) {
