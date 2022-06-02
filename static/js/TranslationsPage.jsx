@@ -20,11 +20,6 @@ const TranslationsPage = ({translationsSlug}) => {
         return 0;
       }
     }
-    // const getTocObjectWithUncategorized = (corpus) => {
-    //  const tocContents = Sefaria.tocObjectByCategories([corpus]).contents;
-    //  tocContents.push({category: "Uncategorized"});
-    //  return tocContents
-    // }
     return (
         <div className="readerNavMenu noLangToggleInHebrew" key="0">
         <div className="content">

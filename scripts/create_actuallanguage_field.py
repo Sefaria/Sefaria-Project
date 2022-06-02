@@ -3,7 +3,6 @@ django.setup()
 import re
 import sys
 
-
 from sefaria.system.database import db
 from sefaria.helper.text import merge_text_versions
 
