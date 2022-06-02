@@ -1439,9 +1439,6 @@ Sefaria = extend(Sefaria, {
   },
     _descDict: {}, // cache for the description dictionary
       getDescriptions: function(keyName, categoryList) {
-      if (categoryList.length === 0){
-          return null;
-      }
       const catlist = Sefaria.tocItemsByCategories(categoryList)
         let catmap = catlist.map((e) => [e.category || e.title, e.enShortDesc, e.heShortDesc])
         let d = {}
@@ -1470,6 +1467,7 @@ Sefaria = extend(Sefaria, {
             //Init of the Dict with the Category level descriptions
                 this.toc.map(e=> {this._descDict[[e.category, []]] = [e.enShortDesc, e.heShortDesc]})
                 this._descDict[["Commentary", []]] = ["Interpretations and discussions surrounding Jewish texts, ranging from early medieval to contemporary.", null]
+                this._descDict[["Targum", []]] = this.getDescriptions("Targum", ["Tanakh"])
         }
         if (!desc && categoryList.length !== 0) {
             desc = this.getDescriptions(keyName, categoryList)
