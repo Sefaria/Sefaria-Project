@@ -172,22 +172,7 @@ class ReaderPanel extends Component {
   handleTextListClick(ref, replaceHistory, currVersions) {
     this.showBaseText(ref, replaceHistory, currVersions);
   }
-  async updateCurrVersionsToMatchAPIResult(sref, currVersions) {
-    /**
-     * Make sure currVersions reflects result of text API
-     * Don't set if a version is default b/c this will implicitly override version preferences in future API calls.
-     */
-    // remove default versions
-    for (let [lang, vtitle] of Object.entries(currVersions)) {
-      const versionList = await Sefaria.getVersions(sref, false, lang);
-      if (versionList.length === 0) { continue; }
-      versionList.sort((a, b) => b.priority - a.priority);
-      const defaultVTitle = versionList[0]['versionTitle'];
-      if (defaultVTitle === vtitle) {
-        currVersions[lang] = null;
-      }
-    }
-    if (Sefaria.util.object_equals(currVersions, this.state.currVersions)) { return; }
+  setCurrVersions(currVersions) {
     this.conditionalSetState({ currVersions });
   }
   openConnectionsInPanel(ref, additionalState) {
@@ -666,7 +651,7 @@ class ReaderPanel extends Component {
           textHighlights={this.state.textHighlights}
           unsetTextHighlight={this.props.unsetTextHighlight}
           translationLanguagePreference={this.props.translationLanguagePreference}
-          updateCurrVersionsToMatchAPIResult={this.updateCurrVersionsToMatchAPIResult}
+          setCurrVersions={this.setCurrVersions}
           key={`${textColumnBookTitle ? textColumnBookTitle : "empty"}-TextColumn`} />
       );
     }
