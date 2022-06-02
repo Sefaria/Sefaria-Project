@@ -147,16 +147,8 @@ class TextRange extends Component {
   }
   _updateCurrVersions(enVTitle, heVTitle) {
     // make sure currVersions matches versions returned, due to translationLanguagePreference and versionPreferences
-    if (this.props.setCurrVersions) {
-      // vtitles can be null when merged. dont overwrite in this case
-      const newVersions = {
-        en: enVTitle || this.props.currVersions.en,
-        he: heVTitle || this.props.currVersions.he,
-      };
-      if (!Sefaria.util.object_equals(this.props.currVersions, newVersions)) {
-        this.props.setCurrVersions(newVersions);
-      }
-    }
+    if (!this.props.updateCurrVersionsToMatchAPIResult) { return; }
+    this.props.updateCurrVersionsToMatchAPIResult(enVTitle, heVTitle);
   }
   _prefetchLinksAndNotes(data) {
     let sectionRefs = data.isSpanning ? data.spanningRefs : [data.sectionRef];

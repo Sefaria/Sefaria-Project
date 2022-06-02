@@ -172,7 +172,13 @@ class ReaderPanel extends Component {
   handleTextListClick(ref, replaceHistory, currVersions) {
     this.showBaseText(ref, replaceHistory, currVersions);
   }
-  setCurrVersions(currVersions) {
+  updateCurrVersionsToMatchAPIResult(enVTitle, heVTitle) {
+    const newVersions = {
+        ...this.state.currVersions,
+        enAPIResult: enVTitle,
+        heAPIResult: heVTitle,
+    };
+    if (Sefaria.util.object_equals(this.state.currVersions, newVersions)) { return; }
     this.conditionalSetState({ currVersions });
   }
   openConnectionsInPanel(ref, additionalState) {
@@ -651,7 +657,7 @@ class ReaderPanel extends Component {
           textHighlights={this.state.textHighlights}
           unsetTextHighlight={this.props.unsetTextHighlight}
           translationLanguagePreference={this.props.translationLanguagePreference}
-          setCurrVersions={this.setCurrVersions}
+          updateCurrVersionsToMatchAPIResult={this.updateCurrVersionsToMatchAPIResult}
           key={`${textColumnBookTitle ? textColumnBookTitle : "empty"}-TextColumn`} />
       );
     }
