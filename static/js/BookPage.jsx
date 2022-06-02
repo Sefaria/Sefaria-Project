@@ -41,7 +41,7 @@ class BookPage extends Component {
       versions: [],
       versionsLoaded: false,
       currentVersion: null,
-      currObjectVersions: {},
+      currObjectVersions: {en: null, he: null},
       indexDetails: Sefaria.getIndexDetailsFromCache(props.title),
       dlVersionTitle: null,
       dlVersionLanguage: null,
@@ -80,7 +80,7 @@ class BookPage extends Component {
   }
   makeFullCurrentVersionsObjects(versions){
     //build full versions of current object versions
-    let currObjectVersions = {};
+    let currObjectVersions = {en: null, he: null};
     for(let [lang,ver] of Object.entries(this.props.currVersions)){
       if(!!ver){
         let fullVer = versions.find(version => version.versionTitle == ver && version.language == lang);

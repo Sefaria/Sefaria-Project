@@ -1288,7 +1288,7 @@ class ReaderApp extends Component {
     }
     this.setState({panels: this.state.panels});
   }
-  navigatePanel(n, ref, currVersions={}) {
+  navigatePanel(n, ref, currVersions={en: null, he: null}) {
     // Sets the ref on panel `n` and cascades to any attached panels (Text + Connections)
     let panel = this.state.panels[n];
     // next few lines adapted from ReaderPanel.showBaseText()

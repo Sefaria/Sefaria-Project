@@ -230,7 +230,7 @@ class ReaderPanel extends Component {
       highlightedRefsInSheet
     });
   }
-  showBaseText(ref, replaceHistory, currVersions={}, filter=[]) {
+  showBaseText(ref, replaceHistory, currVersions={en: null, he: null}, filter=[]) {
     // Set the current primary text `ref`, which may be either a string or an array of strings.
     // `replaceHistory` - bool whether to replace browser history rather than push for this change
     if (!ref) { return; }
