@@ -20,11 +20,11 @@ const TranslationsPage = ({translationsSlug}) => {
         return 0;
       }
     }
-    const getTocObjectWithUncategorized = (corpus) => {
-     const tocContents = Sefaria.tocObjectByCategories([corpus]).contents;
-     tocContents.push({category: "Uncategorized"});
-     return tocContents
-    }
+    // const getTocObjectWithUncategorized = (corpus) => {
+    //  const tocContents = Sefaria.tocObjectByCategories([corpus]).contents;
+    //  tocContents.push({category: "Uncategorized"});
+    //  return tocContents
+    // }
     return (
         <div className="readerNavMenu noLangToggleInHebrew" key="0">
         <div className="content">
@@ -45,15 +45,26 @@ const TranslationsPage = ({translationsSlug}) => {
                   ><> {translations ?  Object.keys(translations).map(corpus => {
                 return (<div key={corpus} className="translationsPage">
                   <h2>{corpus}</h2>
-                  {getTocObjectWithUncategorized(corpus).filter(x => Object.keys(translations[corpus]).includes(x.category)).map(x => {
+                  {Sefaria.tocObjectByCategories([corpus]).contents.filter(x => Object.keys(translations[corpus]).includes(x.category)).map(x => {
                     return (<details key={x.category} open={translationsSlug !== "en"}><summary>{x.category}</summary>
                     <ul>
                       {translations[corpus][x.category].sort(sortFx).map((y, i) => {
-                        return (<li key={i+y.title} className={i !== translations[corpus][x.category].length - 1 ? "bullet languageItem" : "languageItem"}><a href={`/${y.title}.1?with=Translations&${y.rtlLanguage === "en" ? "ven=" + y.versionTitle : "vhe=" + y.versionTitle}`}>{y.title}</a></li>)
+                        return (<li key={i+y.title} className="bullet languageItem"><a href={`/${y.title}.1?${y.rtlLanguage === "en" ? "ven=" + y.versionTitle : "vhe=" + y.versionTitle}`}>{y.title}</a></li>)
                       })}
                     </ul>
                     </details>)
-                  })}                  
+                  })}
+                  {
+                    Object.keys(translations[corpus]).includes("Uncategorized") ? 
+                    <details open={translationsSlug !== "en"}><summary>Uncategorized</summary>
+                    <ul>
+                      {translations[corpus]["Uncategorized"].sort(sortFx).map((y, i) => {
+                        return (<li key={i+y.title} className="bullet languageItem"><a href={`/${y.title}.1?${y.rtlLanguage === "en" ? "ven=" + y.versionTitle : "vhe=" + y.versionTitle}`}>{y.title}</a></li>)
+                      })}
+                    </ul>
+                    </details>
+                    : null
+                  }       
                 </div>)
               }) : null}
               </>
