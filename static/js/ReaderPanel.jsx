@@ -506,10 +506,6 @@ class ReaderPanel extends Component {
     this.replaceHistory = replaceHistory;
     this.conditionalSetState({tab: tab})
   }
-  // setProfileTab(tab) {
-  //   this.replaceHistory = true;
-  //   this.conditionalSetState({profileTab: tab});
-  // }
   currentMode() {
     return this.state.mode;
   }
@@ -893,7 +889,6 @@ class ReaderPanel extends Component {
       } else if (this.state.navigationTopic) {
         menu = (
           <TopicPage
-            //tab={this.state.topicsTab}
             tab={this.state.tab}
             setTab={this.setTab}
             topic={this.state.navigationTopic}
@@ -910,7 +905,6 @@ class ReaderPanel extends Component {
             navHome={this.openMenu.bind(null, "navigation")}
             openDisplaySettings={this.openDisplaySettings}
             toggleSignUpModal={this.props.toggleSignUpModal}
-            //updateTopicsTab={this.props.updateTopicsTab}
             translationLanguagePreference={this.props.translationLanguagePreference}
             key={"TopicPage"}
           />
@@ -1027,8 +1021,6 @@ class ReaderPanel extends Component {
           profile={this.state.profile}
           tab={this.state.tab}
           setTab={this.setTab}
-          // tab={this.state.profileTab}
-          // setProfileTab={this.setProfileTab}
           toggleSignUpModal={this.props.toggleSignUpModal}
           multiPanel={this.props.multiPanel}
           navHome={this.openMenu.bind(null, "navigation")} />
@@ -1148,7 +1140,6 @@ ReaderPanel.propTypes = {
   unsetTextHighlight:          PropTypes.func,
   onQueryChange:               PropTypes.func,
   updateSearchTab:             PropTypes.func,
-  //updateTopicsTab:             PropTypes.func,
   updateSearchFilter:          PropTypes.func,
   updateSearchOptionField:     PropTypes.func,
   updateSearchOptionSort:      PropTypes.func,
