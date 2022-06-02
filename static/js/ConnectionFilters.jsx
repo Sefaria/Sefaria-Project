@@ -122,14 +122,14 @@ class TextFilter extends Component {
                   <span className="filterText">
                     <ContentText text={{en: name, he: heName }} />
                     {showCount ? <span className="connectionsCount">&nbsp;({this.props.count})</span> : null}
-                    {showDescription ?<div className={classesDesc}>{enDesc || heDesc ?
-                              <ContentText text={{en: enDesc, he: heDesc}} />
-                      : null }</div> : null}
                   </span>
                   <span className="en">
                     {this.props.hasEnglish && Sefaria._siteSettings.TORAH_SPECIFIC ? <EnglishAvailableTag /> : null}
                   </span>
                 </span>
+              {showDescription ?<div className={classesDesc}>{enDesc || heDesc ?
+                              <ContentText text={{en: enDesc, he: heDesc}} />
+                      : null }</div> : null}
             </div>
         </div>
       </a>
