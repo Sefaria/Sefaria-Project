@@ -4073,6 +4073,7 @@ def random_text_api(request):
 
 
 def translations_api(request, lang=None):
+    bundle_commentaries_langs = ["en", "he"]
     if not lang:
         res = db.texts.distinct("actualLanguage")
         return jsonResponse(res)
@@ -4094,11 +4095,12 @@ def translations_api(request, lang=None):
     for myIndex in texts:
         if myIndex["title"] not in titles:
             if len(myIndex["titles"]) > 0:
+                myIndexInfo = myIndex["titles"][0]
                 titles.append(myIndex["title"])
                 depth = 2
                 ind = 0
                 cur = res
-                categories = myIndex["titles"][0]["categories"]
+                categories = myIndexInfo["categories"]
                 while len(categories) < depth:
                     categories = categories + ["Uncategorized"]
                 while ind < depth and ind < len(categories):
@@ -4107,9 +4109,24 @@ def translations_api(request, lang=None):
                     cur = cur[categories[ind]]
                     ind += 1
                 toAdd = {}
-                toAdd["title"] = myIndex["title"]
+                if "dependence" in myIndexInfo and "collective_title" in myIndexInfo and myIndexInfo["dependence"] == "Commentary" and lang in bundle_commentaries_langs:
+                    if len(list(filter(lambda x: True if x["title"] == myIndexInfo["collective_title"] else False, cur))) > 0:
+                        continue
+                    else:
+                        try:
+                            toAdd["title"] = myIndexInfo["collective_title"]
+                            categories_to_add = categories[:categories.index(myIndexInfo["collective_title"])+1]
+                            toAdd["url"] = "/texts/" + "/".join(categories_to_add)
+                        except:
+                            print("failed to find author page for " + myIndexInfo["collective_title"] + ": " + myIndexInfo["title"])
+                            # these are also not showing up in TOC
+                            # TODO: fix assumptions?
+                            continue
+                else:
+                    toAdd["title"] = myIndex["title"]
+                    toAdd["url"] = f'/{myIndex["title"]}.1?{"ven=" + myIndex["versionTitle"] if myIndex["language"] == "en" else "vhe=" + myIndex["versionTItle"]}'
                 if "order" in myIndex["titles"][0]:
-                    toAdd["order"] = myIndex["titles"][0]["order"]
+                        toAdd["order"] = myIndex["titles"][0]["order"]
                 toAdd["versionTitle"] = myIndex["versionTitle"]
                 toAdd["rtlLanguage"] = myIndex["language"]
                 cur.append(toAdd)
