@@ -328,7 +328,7 @@ class TextColumn extends Component {
   render() {
     let classes = classNames({textColumn: 1, connectionsOpen: this.props.mode === "TextAndConnections"});
     const index = Sefaria.index(Sefaria.parseRef(this.props.srefs[0]).index);
-    const isDictionary = (index && index.categories[0] == "Reference");
+    const isDictionary = (index && index.categories[0] === "Reference");
     let content =  this.props.srefs.map(function(sref, k) {
       const isCurrentlyVisible = this.props.currentlyVisibleRef === Sefaria.getRefFromCache(sref).sectionRef;
       return (<TextRange
