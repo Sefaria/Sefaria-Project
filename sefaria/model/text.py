@@ -4972,15 +4972,15 @@ class Library(object):
         Returns TOC, modified  according to `Category.searchRoot` flags to correspond to the filters
         """
         from sefaria.model.category import TocTree, CategorySet, TocCategory
-        from sefaria.site.categories import CATEGORY_ORDER
         toctree = TocTree(self)     # Don't use the cached one.  We're going to rejigger it.
         root = toctree.get_root()
-
+        toc_roots = [x.lastPath for x in sorted(library.get_top_categories(full_records=True), key=lambda x: x.order)]
         reroots = CategorySet({"searchRoot": {"$exists": True}})
 
         # Get all the unique new roots, create nodes for them, and attach them to the tree
         new_root_titles = list({c.searchRoot for c in reroots})
-        new_root_titles.sort(key=lambda t: CATEGORY_ORDER.index(t.split()[0]))
+        # .split() to remove " Commentary"
+        new_root_titles.sort(key=lambda t: toc_roots.index(t.split()[0]))
         new_roots = {}
         for t in new_root_titles:
             tc = TocCategory()
