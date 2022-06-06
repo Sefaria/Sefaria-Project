@@ -297,7 +297,7 @@ CACHES = {
 }
 
 
-
+'''
 GLOBAL_INTERRUPTING_MESSAGE = {
     "name":       "2022-06-01-shavuot-donate-modal",
     "style":      "modal", # "modal" or "banner"
@@ -311,8 +311,9 @@ GLOBAL_INTERRUPTING_MESSAGE = {
     }
 }
 '''
+
 GLOBAL_INTERRUPTING_MESSAGE = None
-'''
+
 
 
 
