@@ -49,14 +49,23 @@ class Util {
       return vtitle.replace(/\s/g, '_').replace(/;/g, '%3B');
     }
     static getUrlVersionsParams(currVersions, i=0) {
+      currVersions = this.getCurrVersionsWithoutAPIResultFields(currVersions);
       if (currVersions) {
-        return Object.keys(currVersions)
-          .filter(vlang=>!!currVersions[vlang] && !vlang.endsWith("APIResult"))
-          .map(vlang=>`&v${vlang}${i > 1 ? i : ""}=${this.encodeVtitle(currVersions[vlang])}`)
+        return Object.entries(currVersions)
+          .filter(([vlang, vtitle]) => !!vtitle)
+          .map(([vlang, vtitle]) =>`&v${vlang}${i > 1 ? i : ""}=${this.encodeVtitle(vtitle)}`)
           .join("");
       } else {
         return "";
       }
+    }
+    static getCurrVersionsWithoutAPIResultFields(currVersions) {
+      if (!currVersions) { return currVersions; }
+      return Object.entries(currVersions).reduce((a, [vlang, vtitle]) => {
+        if (vlang.endsWith("APIResult")) { return a; }
+        a[vlang] = vtitle;
+        return a;
+      }, {});
     }
     static decodeVtitle(vtitle) {
       return vtitle.replace(/_/g, ' ').replace(/%3B/g, ';');

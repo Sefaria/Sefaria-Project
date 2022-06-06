@@ -1677,11 +1677,13 @@ class ReaderApp extends Component {
     } else {
       ref = (hasSidebar && panel.highlightedRefs && panel.highlightedRefs.length) ? Sefaria.normRef(panel.highlightedRefs) : (panel.currentlyVisibleRef || panel.refs.slice(-1)[0]);  // Will currentlyVisibleRef ever not be available?
     }
+    // strip APIResult fields from currVersions
+    const currVersions = Sefaria.util.getCurrVersionsWithoutAPIResultFields(panel.currVersions);
     const parsedRef = Sefaria.parseRef(ref);
     if (!ref) { debugger; }
     return {
       ref,
-      versions: panel.currVersions,
+      versions: currVersions,
       book: parsedRef.book,
       language: panel.settings.language,
       sheet_owner,
