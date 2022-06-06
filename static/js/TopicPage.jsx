@@ -273,8 +273,8 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
 
 
 const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDisplaySettings, openSearch }) => {
-  const [addingTopics, setAddingTopics] = useState(false);
   const { en, he } = !!topicData && topicData.primaryTitle ? topicData.primaryTitle : {en: "Loading...", he: "טוען..."};
+  const [addingTopics, setAddingTopics] = useState(false);
   const isTransliteration = !!topicData ? topicData.primaryTitleIsTransliteration : {en: false, he: false};
   const category = !!topicData ? Sefaria.topicTocCategory(topicData.slug) : null;
   const toggleAddingTopics = function(e) {
@@ -304,7 +304,6 @@ const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDis
                             <div onClick={(e) => toggleAddingTopics(e)} id="editTopic" className="button extraSmall topic" role="button">
                               <InterfaceText>Edit Topic</InterfaceText>
                           </div>;
-
   return (
     <div>
         <div className="navTitle tight">

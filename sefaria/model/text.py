@@ -4898,6 +4898,8 @@ class Library(object):
         """
         from .topic import Topic, TopicSet, IntraTopicLinkSet
         explored = explored or set()
+        unexplored_top_level = False    # example would be the first case of 'Holidays' encountered as it is top level,
+                                        # this variable will allow us to force all top level categories to have children
         if topic is None:
             ts = TopicSet({"isTopLevelDisplay": True})
             children = [t.slug for t in ts]

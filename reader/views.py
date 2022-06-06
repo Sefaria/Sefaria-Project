@@ -3321,7 +3321,6 @@ def topics_api(request, topic, v2=False):
         if needs_save:
             topic_obj.save()
 
-
         @csrf_protect
         def protected_index_post(request):
             return jsonResponse(topic_obj.contents())

@@ -11,7 +11,8 @@ import {
   InterfaceText,
   ContentText, EnglishText, HebrewText, LanguageToggleButton,
   AdminToolHeader,
-  CategoryChooser
+  CategoryChooser,
+  TitleVariants
 } from './Misc';
 
 import React, { useState, useRef }  from 'react';
@@ -1147,39 +1148,6 @@ const SectionTypesBox = function({sections, canEdit, updateParent}) {
             {canEdit ? <span className="add" onClick={add}>Add Section</span> : null}
           </div>
 }
-
-
-
-const TitleVariants = function({titles, update}) {
-  const onTitleDelete = function(i) {
-    let newTitles = titles.filter(t => t !== titles[i]);
-    update(newTitles);
-  }
-  const onTitleAddition = function(title) {
-    let newTitles = [].concat(titles, title);
-    update(newTitles);
-  }
-  const onTitleValidate = function (title) {
-    const validTitle = titles.every((item) => item.name !== title.name);
-    if (!validTitle) {
-      alert(title+" already exists.");
-    }
-    return validTitle;
-  }
-
-  return <div className="publishBox">
-                <ReactTags
-                    allowNew={true}
-                    tags={titles}
-                    onDelete={onTitleDelete}
-                    placeholderText={Sefaria._("Add a title...")}
-                    delimiters={["Enter", "Tab"]}
-                    onAddition={onTitleAddition}
-                    onValidate={onTitleValidate}
-                  />
-         </div>
-}
-
 
 const EditTextInfo = function({initTitle, close}) {
   const index = useRef(null);
