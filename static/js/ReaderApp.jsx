@@ -486,13 +486,13 @@ class ReaderApp extends Component {
             hist.mode  = "search";
             break;
           case "topics":
-            const msg = Sefaria._siteSettings.TORAH_SPECIFIC ? "Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources." : "Texts & Source Sheets";
+            const topicMsg = Sefaria._siteSettings.TORAH_SPECIFIC ? "Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources." : "Texts & Source Sheets";
             if (state.navigationTopic) {
               hist.url = `topics/${state.navigationTopic}?tab=${state.topicsTab}`;
-              hist.title = `${state.topicTitle[shortLang]} | ${ Sefaria._(msg)}`;
+              hist.title = `${state.topicTitle[shortLang]} | ${ Sefaria._(topicMsg)}`;
               hist.mode  = "topic";
             } else if (state.navigationTopicCategory) {
-              hist.title = state.navigationTopicTitle[shortLang] + " | " + Sefaria._(msg);
+              hist.title = state.navigationTopicTitle[shortLang] + " | " + Sefaria._(topicMsg);
               hist.url   =  "topics/category/" + state.navigationTopicCategory;
               hist.mode  = "topicCat";
             } else {
@@ -503,7 +503,8 @@ class ReaderApp extends Component {
             break;
           case "allTopics":
               hist.url   = "topics/all/" + state.navigationTopicLetter;
-              hist.title = Sefaria._("Explore Jewish Texts by Topic") + " - " + state.navigationTopicLetter + " | " + Sefaria._(siteName);
+              const allTopicMsg = Sefaria._siteSettings.TORAH_SPECIFIC ? "Explore Jewish Texts by Topic" : "Explore Texts by Topic";
+              hist.title = Sefaria._(allTopicMsg) + " - " + state.navigationTopicLetter + " | " + Sefaria._(siteName);
               hist.mode  = "topics";
             break;
           case "community":
@@ -512,7 +513,7 @@ class ReaderApp extends Component {
             hist.mode  = "community";
             break;
           case "profile":
-            hist.title = `${state.profile.full_name} ${Sefaria._(` on ${Sefaria._siteSettings["SITE_NAME"]["en"]}`)}`;
+            hist.title = `${state.profile.full_name} ${Sefaria._(` on ${siteName}`)}`;
             hist.url   = `profile/${state.profile.slug}?tab=${state.profileTab}`;
             hist.mode = "profile";
             break;
