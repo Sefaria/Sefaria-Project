@@ -1,7 +1,8 @@
 import {
-  InterfaceText,
-  ContentText,
-  ResponsiveNBox,
+    InterfaceText,
+    ContentText,
+    ResponsiveNBox, AdminToolHeader,
+    CategoryChooser, TopicEditor
 } from './Misc';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import PropTypes  from 'prop-types';
@@ -14,7 +15,15 @@ import Component from 'react-class';
 
 // The root topics page listing topic categories to browse
 const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
-
+  const [addingTopics, setAddingTopics] = useState(false);
+  const toggleAddingTopics = function(e) {
+      if (e.currentTarget.id === "addTopic") {
+        setAddingTopics(true);
+      }
+      else if(e.currentTarget.id === "cancel") {
+        setAddingTopics(false);
+     }
+  }
   let categoryListings = Sefaria.topic_toc.map(cat => {
     const openCat = e => {e.preventDefault(); setNavTopic(cat.slug, {en: cat.en, he: cat.he})};
     return (
@@ -55,15 +64,26 @@ const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
     {type: "GetTheApp"},
     {type: "SupportSefaria"},
   ];
-
+  let topicStatus = null;
+  if (Sefaria.is_moderator && addingTopics) {
+      topicStatus = <TopicEditor close={(e) => toggleAddingTopics(e)}/>;
+  }
+  else if (Sefaria.is_moderator) {
+      topicStatus = <div onClick={(e) => toggleAddingTopics(e)} id="addTopic" className="button extraSmall topic" role="button">
+                      <InterfaceText>Create a Topic</InterfaceText>
+                  </div>
+  }
   return (
     <div className="readerNavMenu noLangToggleInHebrew" key="0">
       <div className="content">
         <div className="sidebarLayout">
           <div className="contentInner">
-            <h1 className="sans-serif"><InterfaceText>Explore by Topic</InterfaceText></h1>
-            { about }
-            { categoryListings }
+              <div className="navTitle tight sans-serif">
+                <h1 className="sans-serif"><InterfaceText>Explore by Topic</InterfaceText></h1>
+                {topicStatus}
+              </div>
+              { about }
+              { categoryListings }
           </div>
           <NavSidebar modules={sidebarModules} />
         </div>

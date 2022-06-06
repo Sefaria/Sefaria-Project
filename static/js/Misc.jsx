@@ -12,6 +12,7 @@ import {ContentLanguageContext, AdContext} from './context';
 import ReactCrop from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import {Editor} from "slate";
+import ReactTags from "react-tag-autocomplete";
 
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
@@ -2368,6 +2369,213 @@ const CollectionStatement = ({name, slug, image, children}) => (
     </div>
 );
 
+const AdminToolHeader = function({en, he, validate, close}) {
+  return    <div className="headerWithButtons">
+              <h1 className="pageTitle">
+                <span className="int-en">{en}</span>
+                <span className="int-he">{he}</span>
+              </h1>
+              <div className="end">
+                <a onClick={(e) => close(e)} id="cancel" className="button small transparent control-elem">
+                  <InterfaceText>Cancel</InterfaceText>
+                </a>
+                <div onClick={validate} id="saveAccountSettings" className="button small blue control-elem" tabIndex="0" role="button">
+                  <InterfaceText>Save</InterfaceText>
+                </div>
+              </div>
+            </div>
+}
+
+
+
+const TopicEditor = ({en="", he="", slug="", desc={}, categorySlug="", close}) => {
+    const [savingStatus, setSavingStatus] = useState(false);
+    const [catSlug, setCatSlug] = useState(categorySlug);
+    const [description, setDescription] = useState(desc["en"]);
+    const [enTitle, setEnTitle] = useState(en);
+    const [heTitle, setHeTitle] = useState(he);
+    const origEnTitle = useRef(en);
+    const origSlug = useRef(slug);
+    const origCatSlug = useRef(categorySlug);
+    const origDescription = useRef(desc);
+    const isNewTopic = useRef(origEnTitle.current === "");
+
+    const existingCategories = useRef(Sefaria.topic_toc.reduce(Sefaria._initTopicTocSlugToTitle, {}));
+
+    let rootSelected = true;
+    let catMenu = Object.keys(existingCategories.current).map(function (tempSlug, i) {
+      const tempTitle = existingCategories.current[tempSlug];
+      if (catSlug === tempSlug) {
+        rootSelected = false;
+        return <option key={i} value={tempSlug} selected>{tempTitle}</option>;
+      } else {
+        return <option key={i} value={tempSlug}>{tempTitle}</option>;
+      }
+    });
+    const rootOption = rootSelected ? <option key="chooseCategory" value="" selected>Choose a category</option> :
+                                      <option key="chooseCategory" value="">Choose a category</option>;
+    catMenu.splice(0, 0, rootOption) ;
+
+    const validate = async function () {
+        if (enTitle.length === 0) {
+          alert("Title must be provided.");
+          return false;
+        }
+        save();
+    }
+    const save = function () {
+        toggleInProgress();
+        let url = "";
+        let data = {"description": {"en": description, "he": description}, "title": enTitle, "category": catSlug};
+        if (isNewTopic.current) {
+          url = "/api/topic/new";
+        }
+        else {
+          url = `/api/topics/${origSlug.current}`;
+          data["origCategory"] = origCatSlug.current;
+          data["origDescription"] = origDescription.current;
+          data["origTitle"] = origEnTitle.current;
+          data["origSlug"] = origSlug.current;
+        }
+
+        const postJSON = JSON.stringify(data);
+        $.post(url,  {"json": postJSON}, function(data) {
+          if (data.error) {
+            toggleInProgress();
+            alert(data.error);
+          } else {
+            alert("Text information saved.");
+            window.location.href = "/topics/"+data["slug"];
+          }
+          }).fail( function(xhr, status, errorThrown) {
+            alert("Unfortunately, there may have been an error saving this topic information: "+errorThrown);
+          });
+    }
+    const toggleInProgress = function() {
+      setSavingStatus(savingStatus => !savingStatus);
+    }
+    return <div className="editTextInfo">
+            <div className="static">
+                <div className="inner">
+                    {savingStatus ?
+                        <div className="collectionsWidget">Saving topic information...<br/><br/>(processing title changes
+                            may take some time)</div> : null}
+                    <div id="newIndex">
+                        <AdminToolHeader en="Topic Editor" he="Topic Editor" close={close} validate={validate}/>
+                        <div className="section">
+                            <label><InterfaceText>Topic Title</InterfaceText></label>
+                            <input id="topicTitle" onBlur={(e) => setEnTitle(e.target.value)} defaultValue={enTitle} placeholder="Add a title."/>
+                        </div>
+                        <div className="section">
+                          <label><InterfaceText>Category</InterfaceText></label>
+                          <div id="categoryChooserMenu">
+                              <select key="topicCats" id="topicCats" onChange={(e) => setCatSlug(e.target.value)}>
+                                {catMenu}
+                              </select>
+                          </div>
+                        </div>
+                        <div className="section">
+                            <label><InterfaceText>Topic Description</InterfaceText></label>
+                            <textarea id="topicDesc" onBlur={(e) => setDescription(e.target.value)}
+                                   defaultValue={description} placeholder="Add a description."/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+     </div>
+}
+
+
+const CategoryChooser = function({categories, update}) {
+  const categoryMenu = useRef();
+
+  const handleChange = function(e) {
+    let newCategories = [];
+    for (let i=0; i<categoryMenu.current.children.length; i++) {
+      let el = categoryMenu.current.children[i].children[0];
+      if (el.options[el.selectedIndex].value === "Choose a category" || (i > 0 && Sefaria.tocItemsByCategories(newCategories.slice(0, i+1)).length === 0)) {
+        //first test says dont include "Choose a category" and anything after it in categories.
+        //second test is if categories are ["Talmud", "Prophets"], set categories to ["Talmud"]
+        break;
+      }
+      newCategories.push(el.options[el.selectedIndex].value);
+    }
+    update(newCategories); //tell parent of new values
+  }
+
+  let menus = [];
+
+  //create a menu of first level categories
+  let options = Sefaria.toc.map(function(child, key) {
+    if (categories.length > 0 && categories[0] === child.category) {
+      return <option key={key} value={categories[0]} selected>{categories[0]}</option>;
+    }
+    else {
+      return <option key={key} value={child.category}>{child.category}</option>
+    }
+  });
+  menus.push(options);
+
+  //now add to menu second and/or third level categories found in categories
+  for (let i=0; i<categories.length; i++) {
+    let options = [];
+    let subcats = Sefaria.tocItemsByCategories(categories.slice(0, i+1));
+    for (let j=0; j<subcats.length; j++) {
+      if (subcats[j].hasOwnProperty("contents")) {
+        if (categories.length >= i && categories[i+1] === subcats[j].category) {
+          options.push(<option key={j} value={categories[i+1]} selected>{subcats[j].category}</option>);
+        }
+        else
+        {
+          options.push(<option key={j} value={subcats[j].category}>{subcats[j].category}</option>);
+        }
+      }
+    }
+    if (options.length > 0) {
+      menus.push(options);
+    }
+  }
+  return <div ref={categoryMenu}>
+          {menus.map((menu, index) =>
+            <div id="categoryChooserMenu">
+              <select key={`subcats-${index}`} id={`subcats-${index}`} onChange={handleChange}>
+              <option key="chooseCategory" value="Choose a category">Choose a category</option>
+              {menu}
+              </select>
+            </div>)}
+         </div>
+}
+
+
+const TitleVariants = function({titles, update}) {
+  const onTitleDelete = function(i) {
+    let newTitles = titles.filter(t => t !== titles[i]);
+    update(newTitles);
+  }
+  const onTitleAddition = function(title) {
+    let newTitles = [].concat(titles, title);
+    update(newTitles);
+  }
+  const onTitleValidate = function (title) {
+    const validTitle = titles.every((item) => item.name !== title.name);
+    if (!validTitle) {
+      alert(title+" already exists.");
+    }
+    return validTitle;
+  }
+
+  return <div className="publishBox">
+                <ReactTags
+                    allowNew={true}
+                    tags={titles}
+                    onDelete={onTitleDelete}
+                    placeholderText={Sefaria._("Add a title...")}
+                    delimiters={["Enter", "Tab"]}
+                    onAddition={onTitleAddition}
+                    onValidate={onTitleValidate}
+                  />
+         </div>
+}
 
 const SheetMetaDataBox = (props) => (
   <div className="sheetMetaDataBox">
@@ -2683,4 +2891,8 @@ export {
   Autocompleter,
   DonateLink,
   DivineNameReplacer,
+  AdminToolHeader,
+  CategoryChooser,
+  TopicEditor,
+  TitleVariants
 };

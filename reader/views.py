@@ -3191,20 +3191,121 @@ def topics_list_api(request):
     return response
 
 
+@staff_member_required
+def add_new_topic_api(request):
+    if request.method == "POST":
+        data = json.loads(request.POST["json"])
+        t = Topic({'slug': ""})
+        t.add_title(data["title"], 'en', True, True)
+        t.isTopLevelDisplay = data["category"] == ""
+        if t.isTopLevelDisplay: # top level topics wont display properly with no children so needs to set shouldDisplay flag
+            t.shouldDisplay = True
+        t.set_slug_to_primary_title()
+
+        if data["category"] != "":  # not Top Level so create an IntraTopicLink to category
+            new_link = IntraTopicLink()
+            new_link.toTopic = data["category"]
+            new_link.fromTopic = t.slug
+            new_link.linkType = "displays-under"
+            new_link.dataSource = "sefaria"
+            new_link.save()
+
+        t.change_description(data["description"])
+        t.save()
+
+        @csrf_protect
+        def protected_index_post(request):
+            return jsonResponse(t.contents())
+        return protected_index_post(request)
+
+
+@staff_member_required
+def delete_topic(request):
+    pass
+
 @catch_error_as_json
 def topics_api(request, topic, v2=False):
     """
-    API to get data for a particular topic.
+    API to get data or edit data for an existing topic
     """
-    with_links = bool(int(request.GET.get("with_links", False)))
-    annotate_links = bool(int(request.GET.get("annotate_links", False)))
-    group_related = bool(int(request.GET.get("group_related", False)))
-    with_refs = bool(int(request.GET.get("with_refs", False)))
-    annotate_time_period = bool(int(request.GET.get("annotate_time_period", False)))
-    with_indexes = bool(int(request.GET.get("with_indexes", False)))
-    ref_link_type_filters = set(filter(lambda x: len(x) > 0, request.GET.get("ref_link_type_filters", "").split("|")))
-    response = get_topic(v2, topic, with_links, annotate_links, with_refs, group_related, annotate_time_period, ref_link_type_filters, with_indexes)
-    return jsonResponse(response, callback=request.GET.get("callback", None))
+    if request.method == "GET":
+        with_links = bool(int(request.GET.get("with_links", False)))
+        annotate_links = bool(int(request.GET.get("annotate_links", False)))
+        group_related = bool(int(request.GET.get("group_related", False)))
+        with_refs = bool(int(request.GET.get("with_refs", False)))
+        annotate_time_period = bool(int(request.GET.get("annotate_time_period", False)))
+        with_indexes = bool(int(request.GET.get("with_indexes", False)))
+        ref_link_type_filters = set(filter(lambda x: len(x) > 0, request.GET.get("ref_link_type_filters", "").split("|")))
+        response = get_topic(v2, topic, with_links, annotate_links, with_refs, group_related, annotate_time_period, ref_link_type_filters, with_indexes)
+        return jsonResponse(response, callback=request.GET.get("callback", None))
+    elif request.method == "POST":
+        if not request.user.is_staff:
+            return render_template(request, 'static/generic.html', None, {
+                "title": "Permission Denied",
+                "content": "Adding topics is locked.<br><br>Please email hello@sefaria.org if you believe edits are needed."
+            })
+        topic_data = json.loads(request.POST["json"])
+        topic_obj = Topic().load({'slug': topic_data["origSlug"]})
+
+        if topic_data["origTitle"] != topic_data["title"]:
+            # rename Topic
+            topic_obj.add_title(topic_data["title"], 'en', True, True)
+            topic_obj.set_slug_to_primary_title()
+
+        if topic_data["origCategory"] != topic_data["category"]:
+            # change IntraTopicLink from old category to new category and set newSlug if it changed
+            # if we move topic to top level, we delete the IntraTopicLink and if we move the topic from top level, we must create one
+            # as top level topics don't need intratopiclinks
+
+            origLink = IntraTopicLink().load({"fromTopic": topic_obj.slug,
+                                              "toTopic": topic_data["origCategory"],
+                                              "linkType": "displays-under"})
+            if topic_data["origCategory"] == "":
+                assert origLink is None
+                origLink = IntraTopicLink()
+
+            if topic_data["category"] == "":
+                # a top-level topic won't display properly if it doesn't have children so need to set shouldDisplay flag
+                child = IntraTopicLink().load({"linkType": "displays-under", "toTopic": topic_obj.slug})
+                if child is None:
+                    topic_obj.shouldDisplay = True
+                    topic_obj.save()
+
+                origLink.delete() # get rid of link to previous category
+
+                # if topic has sources and we dont create an IntraTopicLink to itself, they wont be accessible from the topic TOC
+                if getattr(topic_obj, "numSources", 0) > 0:
+                    linkToItself = IntraTopicLink()
+                    linkToItself.fromTopic = topic_obj.slug
+                    linkToItself.toTopic = topic_obj.slug
+                    linkToItself.dataSource = "sefaria"
+                    linkToItself.linkType = "displays-under"
+                    linkToItself.save()
+            else:
+                origLink.fromTopic = topic_obj.slug
+                origLink.toTopic = topic_data["category"]
+                origLink.linkType = "displays-under"
+                origLink.dataSource = "sefaria"
+                origLink.save()
+
+        needs_save = False      # will get set to True if isTopLevelDisplay or description is changed
+
+        if (topic_data["category"] == "") != getattr(topic_obj, "isTopLevelDisplay", False):    # True when topic moved to top level or moved from top level
+            needs_save = True
+            topic_obj.isTopLevelDisplay = topic_data["category"] == ""
+
+        if topic_data["origDescription"] != topic_data["description"]:
+            topic_obj.change_description(topic_data["description"])
+            needs_save = True
+
+        if needs_save:
+            topic_obj.save()
+
+
+        @csrf_protect
+        def protected_index_post(request):
+            return jsonResponse(topic_obj.contents())
+        return protected_index_post(request)
 
 
 @catch_error_as_json

@@ -2188,6 +2188,14 @@ _media: {},
     }
     return a;
   },
+  _initTopicTocSlugToTitle: function(a,c) {
+    if (!c.children) { return a; }
+    a[c.slug] = c.en;
+    for (let sub_c of c.children) {
+      Sefaria._initTopicTocSlugToTitle(a, sub_c);
+    }
+    return a;
+  },
   _topicTocCategory: null,
   _initTopicTocCategory: function() {
     this._topicTocCategory = this.topic_toc.reduce(this._initTopicTocCategoryReducer, {});

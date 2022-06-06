@@ -19,6 +19,7 @@ import {
     FilterableList,
     ToolTipped,
     SimpleLinkedBlock,
+    TopicEditor
 } from './Misc';
 
 
@@ -274,14 +275,43 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
 
 const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDisplaySettings, openSearch }) => {
   const { en, he } = !!topicData && topicData.primaryTitle ? topicData.primaryTitle : {en: "Loading...", he: "טוען..."};
+  const [addingTopics, setAddingTopics] = useState(false);
   const isTransliteration = !!topicData ? topicData.primaryTitleIsTransliteration : {en: false, he: false};
   const category = !!topicData ? Sefaria.topicTocCategory(topicData.slug) : null;
+    const toggleAddingTopics = function(e) {
+      if (e.currentTarget.id === "editTopic") {
+        setAddingTopics(true);
+      }
+      else if(e.currentTarget.id === "cancel") {
+        setAddingTopics(false);
+     }
+  }
+  if (Sefaria.is_moderator && addingTopics) {
+      const desc = topicData?.description || topicData?.categoryDescription;
+      let initCatSlug = "";
+      if (category) {
+          initCatSlug = category["slug"];
+      }
+      else if ("displays-under" in topicData?.links) {
+          // this case handles categories that are not top level but have children under them
+          const displayUnderLinks = topicData?.links["displays-under"]?.links;
+          if (displayUnderLinks && displayUnderLinks.length === 1) {
+              initCatSlug = displayUnderLinks[0].topic;
+          }
+      }
+      return <TopicEditor en={en} he={he} desc={desc} slug={topicData["slug"]} categorySlug={initCatSlug} close={(e) => toggleAddingTopics(e)}/>;
+  }
+  const topicStatus = !Sefaria.is_moderator ? null :
+                            <div onClick={(e) => toggleAddingTopics(e)} id="editTopic" className="button extraSmall topic" role="button">
+                              <InterfaceText>Edit Topic</InterfaceText>
+                          </div>;
   return (
     <div>
-        <div className="topicTitle pageTitle">
+        <div className="navTitle tight">
           <h1>
             <InterfaceText text={{en:en, he:he}}/>
           </h1>
+            {topicStatus}
         </div>
        {!topicData && !isCat ?<LoadingMessage/> : null}
        {!isCat && category ?
