@@ -1249,42 +1249,45 @@ class ReaderApp extends Component {
       return true;
     }
   }
+  _getPanelLangOnVersionChange(panel, versionLanguage, isConnectionsPanel) {
+    let panelLang;
+    if (panel.settings.language === 'bilingual' ||
+        (!!panel.currVersions["he"] && !!panel.currVersions["en"]) ||
+        (versionLanguage === "he" && panel.settings.language === 'english') ||
+        (versionLanguage === "en" && panel.settings.language === 'hebrew')) {
+      // if lang of version isn't visible, display it
+      panelLang = "bilingual";
+    } else if (versionLanguage === "he") {
+      panelLang = "hebrew";
+    } else {
+      panelLang = "english";
+    }
+    if (isConnectionsPanel) {
+      panelLang = panelLang !== "bilingual" ? panelLang : (versionLanguage === "he" ? "hebrew" : "english");
+    }
+    return panelLang;
+  }
   selectVersion(n, versionName, versionLanguage) {
     // Set the version for panel `n`.
     var panel = this.state.panels[n];
     var oRef = Sefaria.ref(panel.refs[0]);
-    let panelLang;
     if (versionName && versionLanguage) {
       panel.currVersions[versionLanguage] = versionName;
-      if ((!!panel.currVersions["he"] && !!panel.currVersions["en"]) || (versionLanguage === "he" && panel.settings.language === 'english') ||
-          (versionLanguage === "en" && panel.settings.language === 'hebrew')) { // if lang of version isn't visible, display it
-        panelLang = "bilingual";
-      } else if (versionLanguage === "he") {
-        panelLang = "hebrew";
-      } else {
-        panelLang = "english";
-      }
-
       this.setCachedVersion(oRef.indexTitle, versionLanguage, versionName);
       Sefaria.track.event("Reader", "Choose Version", `${oRef.indexTitle} / ${versionName} / ${versionLanguage}`)
     } else {
       panel.currVersions[versionLanguage] = null;
       Sefaria.track.event("Reader", "Choose Version", `${oRef.indexTitle} / default version / ${panel.settings.language}`)
     }
-    if((this.state.panels.length > n+1) && this.state.panels[n+1].mode == "Connections"){
+    panel.settings.language = this._getPanelLangOnVersionChange(panel, versionLanguage, panel.mode === "Connections");
+    if((this.state.panels.length > n+1) && this.state.panels[n+1].mode === "Connections"){
       var connectionsPanel =  this.state.panels[n+1];
       connectionsPanel.currVersions = panel.currVersions;
-      if (panelLang) {
-        panel.settings.language = panelLang;
-        connectionsPanel.settings.language = panelLang !== "bilingual" ? panelLang : (versionLanguage === "he" ? "hebrew" : "english");
-      }
+      connectionsPanel.settings.language = this._getPanelLangOnVersionChange(connectionsPanel, versionLanguage, true);
     } else if (n-1 >= 0 && this.state.panels[n].mode === "Connections") {
       const masterPanel = this.state.panels[n-1];
       masterPanel.currVersions = panel.currVersions;
-      if (panelLang) {
-        panel.settings.language = panelLang !== "bilingual" ? panelLang : (versionLanguage === "he" ? "hebrew" : "english");
-        masterPanel.settings.language = panelLang;
-      }
+      masterPanel.settings.language = this._getPanelLangOnVersionChange(masterPanel, versionLanguage);
     }
     this.setState({panels: this.state.panels});
   }
