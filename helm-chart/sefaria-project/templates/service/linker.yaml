@@ -1,0 +1,16 @@
+{{- if .Values.linker.enabled }}
+# for use outside the stack
+apiVersion: v1
+kind: Service
+metadata:
+  name: linker-{{ .Values.deployEnv }}
+  labels:
+    app: linker-{{ .Values.deployEnv }}
+    deployEnv: "{{ .Values.deployEnv }}"
+    stackRole: varnish
+spec:
+  ports:
+  - port: 80
+  selector:
+    app: "linker-{{ .Values.deployEnv }}"
+{{- if .Values.linker.enabled }}
