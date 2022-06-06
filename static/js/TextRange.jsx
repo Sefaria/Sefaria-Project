@@ -109,6 +109,8 @@ class TextRange extends Component {
     if ((!data || "updateFromAPI" in data) && !this.textLoading) { // If we don't have data yet, call trigger an API call
       this.textLoading = true;
       Sefaria.getText(this.props.sref, settings).then(this.onTextLoad);
+    } else if (!!data && this.props.isCurrentlyVisible) {
+      this._updateCurrVersions(data.versionTitle, data.heVersionTitle);
     }
     return data;
   }

@@ -329,10 +329,12 @@ class TextColumn extends Component {
     let classes = classNames({textColumn: 1, connectionsOpen: this.props.mode === "TextAndConnections"});
     const index = Sefaria.index(Sefaria.parseRef(this.props.srefs[0]).index);
     const isDictionary = (index && index.categories[0] == "Reference");
-    let content =  this.props.srefs.map(function(ref, k) {
+    let content =  this.props.srefs.map(function(sref, k) {
+      const isCurrentlyVisible = this.props.currentlyVisibleRef === Sefaria.getRefFromCache(sref).sectionRef;
       return (<TextRange
         panelPosition ={this.props.panelPosition}
-        sref={ref}
+        sref={sref}
+        isCurrentlyVisible={isCurrentlyVisible}
         currVersions={this.props.currVersions}
         highlightedRefs={this.props.highlightedRefs}
         showHighlight={this.props.showHighlight}
@@ -357,7 +359,7 @@ class TextColumn extends Component {
         unsetTextHighlight={this.props.unsetTextHighlight}
         translationLanguagePreference={this.props.translationLanguagePreference}
         updateCurrVersionsToMatchAPIResult={this.props.updateCurrVersionsToMatchAPIResult}
-        key={ref} />);
+        key={sref} />);
     }.bind(this));
 
     let pre, post, bookTitle;
