@@ -179,7 +179,7 @@ class ReaderPanel extends Component {
         heAPIResult: heVTitle,
     };
     if (Sefaria.util.object_equals(this.state.currVersions, newVersions)) { return; }
-    this.conditionalSetState({ currVersions });
+    this.conditionalSetState({ newVersions });
   }
   openConnectionsInPanel(ref, additionalState) {
     let refs = typeof ref == "string" ? [ref] : ref;
