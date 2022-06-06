@@ -415,7 +415,7 @@ class ReaderApp extends Component {
   _getUrlVersionsParams(currVersions, i) {
     if (currVersions) {
       return Object.keys(currVersions)
-              .filter(vlang=>!!currVersions[vlang])
+              .filter(vlang=>!!currVersions[vlang] && !vlang.endsWith("APIResult"))
               .map(vlang=>`&v${vlang}${i > 1 ? i : ""}=${Sefaria.util.encodeVtitle(currVersions[vlang])}`)
               .join("");
     } else {
