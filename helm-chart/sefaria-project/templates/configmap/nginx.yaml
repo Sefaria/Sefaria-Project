@@ -122,6 +122,11 @@ data:
           access_log off;
           proxy_pass https://storage.googleapis.com/sefaria-sitemaps$request_uri;
         }
+
+        location /api/find-refs {
+          access_log off;
+          proxy_pass <LINKER_URL_HERE>;
+        }
       } # server
 
       types {
