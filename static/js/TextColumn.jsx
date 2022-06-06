@@ -330,7 +330,8 @@ class TextColumn extends Component {
     const index = Sefaria.index(Sefaria.parseRef(this.props.srefs[0]).index);
     const isDictionary = (index && index.categories[0] === "Reference");
     let content =  this.props.srefs.map((sref) => {
-      const isCurrentlyVisible = this.props.currentlyVisibleRef === Sefaria.getRefFromCache(sref).sectionRef;
+      const oref = Sefaria.getRefFromCache(sref);
+      const isCurrentlyVisible = oref && this.props.currentlyVisibleRef === oref.sectionRef;
       return (<TextRange
         panelPosition ={this.props.panelPosition}
         sref={sref}
