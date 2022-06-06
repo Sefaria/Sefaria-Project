@@ -60,6 +60,10 @@ class Util {
       }
     }
     static getCurrVersionsWithoutAPIResultFields(currVersions) {
+      /**
+       * currVersions can contain fields like `enAPIResult` and `heAPIResult`.
+       * returns an object without these fields
+       */
       if (!currVersions) { return currVersions; }
       return Object.entries(currVersions).reduce(
         (a, [vlang, vtitle]) => {
