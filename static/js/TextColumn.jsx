@@ -329,7 +329,7 @@ class TextColumn extends Component {
     let classes = classNames({textColumn: 1, connectionsOpen: this.props.mode === "TextAndConnections"});
     const index = Sefaria.index(Sefaria.parseRef(this.props.srefs[0]).index);
     const isDictionary = (index && index.categories[0] === "Reference");
-    let content =  this.props.srefs.map(function(sref, k) {
+    let content =  this.props.srefs.map((sref) => {
       const isCurrentlyVisible = this.props.currentlyVisibleRef === Sefaria.getRefFromCache(sref).sectionRef;
       return (<TextRange
         panelPosition ={this.props.panelPosition}
@@ -360,7 +360,7 @@ class TextColumn extends Component {
         translationLanguagePreference={this.props.translationLanguagePreference}
         updateCurrVersionsToMatchAPIResult={this.props.updateCurrVersionsToMatchAPIResult}
         key={sref} />);
-    }.bind(this));
+    });
 
     let pre, post, bookTitle;
     if (content.length) {
