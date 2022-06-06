@@ -48,6 +48,16 @@ class Util {
     static encodeVtitle(vtitle) {
       return vtitle.replace(/\s/g, '_').replace(/;/g, '%3B');
     }
+    static getUrlVersionsParams(currVersions, i=0) {
+      if (currVersions) {
+        return Object.keys(currVersions)
+          .filter(vlang=>!!currVersions[vlang] && !vlang.endsWith("APIResult"))
+          .map(vlang=>`&v${vlang}${i > 1 ? i : ""}=${this.encodeVtitle(currVersions[vlang])}`)
+          .join("");
+      } else {
+        return "";
+      }
+    }
     static decodeVtitle(vtitle) {
       return vtitle.replace(/_/g, ' ').replace(/%3B/g, ';');
     }

@@ -753,11 +753,7 @@ class TextBlockLink extends Component {
     if (isSheet) {
       url = `/sheets/${Sefaria.normRef(url_string).replace('Sheet.','')}`
     } else {
-      url = "/" + Sefaria.normRef(url_string) + Object.keys(currVersions)
-        .filter(vlang=>!!currVersions[vlang])
-        .map(vlang=>`&v${vlang}=${currVersions[vlang]}`)
-        .join("")
-        .replace("&","?");
+      url = "/" + Sefaria.normRef(url_string) + Sefaria.util.getUrlVersionsParams(currVersions).replace("&","?");
     }
 
     if (sideColor) {

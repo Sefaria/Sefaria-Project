@@ -412,16 +412,6 @@ class ReaderApp extends Component {
   clonePanel(panel, trimFilters) {
     return Sefaria.util.clone(panel, trimFilters);
   }
-  _getUrlVersionsParams(currVersions, i) {
-    if (currVersions) {
-      return Object.keys(currVersions)
-              .filter(vlang=>!!currVersions[vlang] && !vlang.endsWith("APIResult"))
-              .map(vlang=>`&v${vlang}${i > 1 ? i : ""}=${Sefaria.util.encodeVtitle(currVersions[vlang])}`)
-              .join("");
-    } else {
-      return "";
-    }
-  }
   makeHistoryState() {
     // Returns an object with state, title and url params for the current state
     var histories = [];
@@ -679,7 +669,7 @@ class ReaderApp extends Component {
     var title =  histories.length ? histories[0].title : "Sefaria";
 
     var url   = "/" + (histories.length ? histories[0].url : "");
-    url += this._getUrlVersionsParams(histories[0].currVersions, 0);
+    url += Sefaria.util.getUrlVersionsParams(histories[0].currVersions, 0);
     if (histories[0].mode === "TextAndConnections" || histories[0].mode === "SheetAndConnections") {
         url += "&with=" + histories[0].sources;
     }
@@ -697,7 +687,7 @@ class ReaderApp extends Component {
           var sheetAndCommentary = histories[i-1].mode === "Sheet" ? true : false;
           // short form for two panels text+commentary - e.g., /Genesis.1?with=Rashi
           hist.url  = sheetAndCommentary ? "/" + histories[0].url : "/" + histories[1].url; // Rewrite the URL
-          hist.url += this._getUrlVersionsParams(histories[0].currVersions, 0);
+          hist.url += Sefaria.util.getUrlVersionsParams(histories[0].currVersions, 0);
           if(histories[0].lang) {
             hist.url += "&lang=" + histories[0].lang;
           }
@@ -723,7 +713,7 @@ class ReaderApp extends Component {
           var replacer = "&p" + i + "=";
           hist.url    = hist.url.replace(RegExp(replacer + ".*"), "");
           hist.url   += replacer + histories[i].url;
-          hist.url += this._getUrlVersionsParams(histories[i-1].currVersions, i);
+          hist.url += Sefaria.util.getUrlVersionsParams(histories[i-1].currVersions, i);
           if(histories[i-1].lang) {
             hist.url += "&lang" + (i) + "=" + histories[i-1].lang;
           }
@@ -749,7 +739,7 @@ class ReaderApp extends Component {
         var next    = "&p=" + histories[i].url;
         next        = next.replace("?", "&").replace(/=/g, (i+1) + "=");
         hist.url   += next;
-        hist.url += this._getUrlVersionsParams(histories[i].currVersions, i+1);
+        hist.url += Sefaria.util.getUrlVersionsParams(histories[i].currVersions, i+1);
         hist.title += Sefaria._(" & ") + histories[i].title;
       }
       if(histories[i].lang) {
