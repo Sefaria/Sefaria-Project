@@ -61,11 +61,13 @@ class Util {
     }
     static getCurrVersionsWithoutAPIResultFields(currVersions) {
       if (!currVersions) { return currVersions; }
-      return Object.entries(currVersions).reduce((a, [vlang, vtitle]) => {
-        if (vlang.endsWith("APIResult")) { return a; }
-        a[vlang] = vtitle;
-        return a;
-      }, {});
+      return Object.entries(currVersions).reduce(
+        (a, [vlang, vtitle]) => {
+          if (vlang.endsWith("APIResult")) { return a; }
+          a[vlang] = vtitle;
+          return a;
+        }, {}
+      );
     }
     static decodeVtitle(vtitle) {
       return vtitle.replace(/_/g, ' ').replace(/%3B/g, ';');
