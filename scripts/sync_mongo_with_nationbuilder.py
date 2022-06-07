@@ -72,6 +72,7 @@ def add_profiles_to_nationbuilder():
                         nationbuilder_id = res_data["person"]["id"] if "person" in res_data else res_data["id"]
                         user_profile.nationbuilder_id = nationbuilder_id
                         user_profile.save()
+                    break
                 except Exception as e:
                     time.sleep(5)
                     session = get_nationbuilder_connection()
