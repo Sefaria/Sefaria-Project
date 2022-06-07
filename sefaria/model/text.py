@@ -2054,7 +2054,7 @@ class VirtualTextChunk(AbstractTextRecord):
 
     text_attr = "text"
 
-    def __init__(self, oref, lang="en", vtitle=None, exclude_copyrighted=False, actual_lang=None):
+    def __init__(self, oref, lang="en", vtitle=None, exclude_copyrighted=False, actual_lang=None, fallback_on_default_version=False):
 
         self._oref = oref
         self._ref_depth = len(self._oref.sections)
