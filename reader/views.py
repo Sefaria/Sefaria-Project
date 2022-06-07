@@ -2649,7 +2649,8 @@ def dictionary_completion_api(request, word, lexicon=None):
         rs, _ = ac.complete(word, LIMIT)
         result = [[r, ac.title_trie[ac.normalizer(r)][0]["key"]] for r in rs]
     else:
-        result = library.lexicon_auto_completer(lexicon).items(word)[:LIMIT]
+        matches = [(item[0], x) for item in library.lexicon_auto_completer(lexicon).items(word)[:LIMIT] for x in item[1]]
+        result = sorted(set(matches), key=lambda x: matches.index(x))  # dedup matches
     return jsonResponse(result)
 
 
