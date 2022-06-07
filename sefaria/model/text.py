@@ -1468,16 +1468,23 @@ class VersionSet(abst.AbstractMongoSet):
     def verse_count(self):
         return sum([v.verse_count() for v in self])
 
-    def merge(self, node=None):
+    def merge(self, node=None, prioritized_vtitle=None):
         """
         Returns merged result, but does not change underlying data
+        :param prioritized_vtitle: optional vtitle which should have top priority, even if it generally has lower priority
         """
         for v in self:
             if not getattr(v, "versionTitle", None):
                 logger.error("No version title for Version: {}".format(vars(v)))
         if node is None:
             return merge_texts([getattr(v, "chapter", []) for v in self], [getattr(v, "versionTitle", None) for v in self])
-        return merge_texts([v.content_node(node) for v in self], [getattr(v, "versionTitle", None) for v in self])
+        versions = self.array()
+        if prioritized_vtitle:
+            vindex = next((i for (i, v) in enumerate(versions) if v.versionTitle == prioritized_vtitle), None)
+            if vindex is not None:
+                # move versions[vindex] to front of list
+                versions.insert(0, versions.pop(vindex))
+        return merge_texts([v.content_node(node) for v in versions], [getattr(v, "versionTitle", None) for v in versions])
 
 
 # used in VersionSet.merge(), merge_text_versions(), and export.export_merged()
@@ -1561,7 +1568,7 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
 
     text_attr = "text"
 
-    def __init__(self, oref, lang="en", vtitle=None, exclude_copyrighted=False, actual_lang=None):
+    def __init__(self, oref, lang="en", vtitle=None, exclude_copyrighted=False, actual_lang=None, fallback_on_default_version=False):
         """
         :param oref:
         :type oref: Ref
@@ -1590,7 +1597,7 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
         self.full_version = None
         self.versionSource = None  # handling of source is hacky
 
-        if lang and vtitle:
+        if lang and vtitle and not fallback_on_default_version:
             self._saveable = True
             v = Version().load({"title": self._oref.index.title, "language": lang, "versionTitle": vtitle}, self._oref.part_projection())
             if exclude_copyrighted and v.is_copyrighted():
@@ -1600,13 +1607,15 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
                 self.text = self._original_text = self.trim_text(v.content_node(self._oref.index_node))
         elif lang:
             if actual_lang is not None:
-                self._choose_version_by_lang(oref, lang, exclude_copyrighted, actual_lang)
+                self._choose_version_by_lang(oref, lang, exclude_copyrighted, actual_lang, prioritized_vtitle=vtitle)
             else:
-                self._choose_version_by_lang(oref, lang, exclude_copyrighted)
+                self._choose_version_by_lang(oref, lang, exclude_copyrighted, prioritized_vtitle=vtitle)
         else:
             raise Exception("TextChunk requires a language.")
 
-    def _choose_version_by_lang(self, oref, lang: str, exclude_copyrighted: bool, actual_lang: str=None) -> None:
+    def _choose_version_by_lang(self, oref, lang: str, exclude_copyrighted: bool, actual_lang: str = None, prioritized_vtitle: str = None) -> None:
+        if prioritized_vtitle:
+            actual_lang = None
         vset = VersionSet(self._oref.condition_query(lang, actual_lang), proj=self._oref.part_projection())
         if len(vset) == 0:
             if VersionSet({"title": self._oref.index.title}).count() == 0:
@@ -1622,7 +1631,7 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
         else:  # multiple versions available, merge
             if exclude_copyrighted:
                 vset.remove(Version.is_copyrighted)
-            merged_text, sources = vset.merge(self._oref.index_node)  #todo: For commentaries, this merges the whole chapter.  It may show up as merged, even if our part is not merged.
+            merged_text, sources = vset.merge(self._oref.index_node, prioritized_vtitle=prioritized_vtitle)  #todo: For commentaries, this merges the whole chapter.  It may show up as merged, even if our part is not merged.
             self.text = self.trim_text(merged_text)
             if len(set(sources)) == 1:
                 for v in vset:
@@ -2045,7 +2054,7 @@ class VirtualTextChunk(AbstractTextRecord):
 
     text_attr = "text"
 
-    def __init__(self, oref, lang="en", vtitle=None, exclude_copyrighted=False, actual_lang=None):
+    def __init__(self, oref, lang="en", vtitle=None, exclude_copyrighted=False, actual_lang=None, fallback_on_default_version=False):
 
         self._oref = oref
         self._ref_depth = len(self._oref.sections)
@@ -2174,7 +2183,7 @@ class TextFamily(object):
         "he": "heSources"
     }
 
-    def __init__(self, oref, context=1, commentary=True, version=None, lang=None, version2=None, lang2=None, pad=True, alts=False, wrapLinks=False, stripItags=False, wrapNamedEntities=False, translationLanguagePreference=None, vtitlePreference=None, vtitlePreference2=None):
+    def __init__(self, oref, context=1, commentary=True, version=None, lang=None, version2=None, lang2=None, pad=True, alts=False, wrapLinks=False, stripItags=False, wrapNamedEntities=False, translationLanguagePreference=None, fallbackOnDefaultVersion=False):
         """
         :param oref:
         :param context:
@@ -2188,8 +2197,6 @@ class TextFamily(object):
         :param wrapLinks: whether to return the text requested with all internal citations marked up as html links <a>
         :param stripItags: whether to strip inline commentator tags and inline footnotes from text
         :param wrapNamedEntities: whether to return the text requested with all known named entities marked up as html links <a>.
-        :param vtitlePreference: Preference for a specific version. Ignored if `version` is passed.
-        :param vtitlePreference2: Ditto of vtitlePreference but for lang2
         :return:
         """
         if pad:
@@ -2219,14 +2226,13 @@ class TextFamily(object):
 
         # processes "en" and "he" TextChunks, and puts the text in self.text and self.he, respectively.
         for language, attr in list(self.text_attr_map.items()):
-            tc_kwargs = dict(oref=oref, lang=language)
+            tc_kwargs = dict(oref=oref, lang=language, fallback_on_default_version=fallbackOnDefaultVersion)
             if language == 'en': tc_kwargs['actual_lang'] = translationLanguagePreference
             if language in {lang, lang2}:
                 curr_version = version if language == lang else version2
-                curr_vtitle_pref = vtitlePreference if language == lang else vtitlePreference2
-                c = TextChunk(vtitle=(curr_version or curr_vtitle_pref), **tc_kwargs)
+                c = TextChunk(vtitle=curr_version, **tc_kwargs)
                 if len(c._versions) == 0:  # indicates `version` doesn't exist
-                    if (tc_kwargs.get('actual_lang', False) or curr_vtitle_pref) and not curr_version:
+                    if tc_kwargs.get('actual_lang', False) and not curr_version:
                         # actual_lang is only used if curr_version is not passed
                         tc_kwargs.pop('actual_lang', None)
                         c = TextChunk(vtitle=curr_version, **tc_kwargs)
@@ -4972,15 +4978,15 @@ class Library(object):
         Returns TOC, modified  according to `Category.searchRoot` flags to correspond to the filters
         """
         from sefaria.model.category import TocTree, CategorySet, TocCategory
-        from sefaria.site.categories import CATEGORY_ORDER
         toctree = TocTree(self)     # Don't use the cached one.  We're going to rejigger it.
         root = toctree.get_root()
-
+        toc_roots = [x.lastPath for x in sorted(library.get_top_categories(full_records=True), key=lambda x: x.order)]
         reroots = CategorySet({"searchRoot": {"$exists": True}})
 
         # Get all the unique new roots, create nodes for them, and attach them to the tree
         new_root_titles = list({c.searchRoot for c in reroots})
-        new_root_titles.sort(key=lambda t: CATEGORY_ORDER.index(t.split()[0]))
+        # .split() to remove " Commentary"
+        new_root_titles.sort(key=lambda t: toc_roots.index(t.split()[0]))
         new_roots = {}
         for t in new_root_titles:
             tc = TocCategory()
@@ -5996,9 +6002,11 @@ class Library(object):
         # Avoid allocation here since it will be called very frequently
         return self._toc_tree_is_ready and self._full_auto_completer_is_ready and self._ref_auto_completer_is_ready and self._lexicon_auto_completer_is_ready and self._cross_lexicon_auto_completer_is_ready
 
-    def get_top_categories(self, full_records=False):
+    @staticmethod
+    def get_top_categories(full_records=False):
         from sefaria.model.category import CategorySet
         return CategorySet({'depth': 1}) if full_records else CategorySet({'depth': 1}).distinct('path')
+
 
 library = Library()
 

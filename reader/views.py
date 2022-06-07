@@ -780,33 +780,25 @@ def get_search_params(get_dict, i=None):
     }
 
 
-def get_version_preference_params(request):
-    raw_vpref = request.GET.get("versionPref", None)
-
-    if raw_vpref is None:
-        return None, None
-    assert raw_vpref.count("|") == 1
-    raw_vpref = raw_vpref.replace("_", " ")
-    vtitle_pref, vlang_pref = raw_vpref.split("|")
-    return vtitle_pref,  vlang_pref
-
-
-def get_version_preference_from_dict(oref, version_preferences_by_corpus):
+def get_version_preferences_from_dict(oref, version_preferences_by_corpus):
     corpus = oref.index.get_primary_corpus()
     vpref_dict = version_preferences_by_corpus.get(corpus, None)
     if vpref_dict is None:
-        return None, None
-    return vpref_dict['vtitle'], vpref_dict['lang']
+        return None
+    return vpref_dict
 
 
 def override_version_with_preference(oref, request, versionEn, versionHe):
-    vtitlePref, vlangPref = get_version_preference_from_dict(oref, request.version_preferences_by_corpus)
-    if vtitlePref is not None and Version().load({"versionTitle": vtitlePref, "language": vlangPref, "title": oref.index.title}):
-        # vpref exists and the version exists for this text
-        if vlangPref == "en" and not versionEn:
-            versionEn = vtitlePref
-        elif vlangPref == "he" and not versionHe:
-            versionHe = vtitlePref
+    vpref_dict = get_version_preferences_from_dict(oref, request.version_preferences_by_corpus)
+    if vpref_dict is None:
+        return versionEn, versionHe
+    for lang, vtitle in vpref_dict.items():
+        if Version().load({"versionTitle": vtitle, "language": lang, "title": oref.index.title}):
+            # vpref exists and the version exists for this text
+            if lang == "en" and not versionEn:
+                versionEn = vtitle
+            elif lang == "he" and not versionHe:
+                versionHe = vtitle
     return versionEn, versionHe
 
 
@@ -1360,21 +1352,15 @@ def texts_api(request, tref):
         stripItags = bool(int(request.GET.get("stripItags", False)))
         multiple = int(request.GET.get("multiple", 0))  # Either undefined, or a positive integer (indicating how many sections forward) or negative integer (indicating backward)
         translationLanguagePreference = request.GET.get("transLangPref", None)  # as opposed to vlangPref, this refers to the actual lang of the text
-        try:
-            vtitlePref, vlangPref = get_version_preference_params(request)
-        except AssertionError:
-            return jsonResponse({"error": "version pref must contain a version title and version language separated by a pipe (|)"}, cb)
+        fallbackOnDefaultVersion = bool(int(request.GET.get("fallbackOnDefaultVersion", False)))
 
         def _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context, pad=pad,
                       alts=alts, wrapLinks=wrapLinks, layer_name=layer_name, wrapNamedEntities=wrapNamedEntities):
             text_family_kwargs = dict(version=versionEn, lang="en", version2=versionHe, lang2="he",
                                       commentary=commentary, context=context, pad=pad, alts=alts,
                                       wrapLinks=wrapLinks, stripItags=stripItags, wrapNamedEntities=wrapNamedEntities,
-                                      translationLanguagePreference=translationLanguagePreference)
-            vtitlePrefKey = "vtitlePreference"
-            if vlangPref == "he":
-                vtitlePrefKey += "2"  # 2 corresponds to lang2 which is constant (for some reason)
-            text_family_kwargs[vtitlePrefKey] = vtitlePref
+                                      translationLanguagePreference=translationLanguagePreference,
+                                      fallbackOnDefaultVersion=fallbackOnDefaultVersion)
             try:
                 text = TextFamily(oref, **text_family_kwargs).contents()
             except AttributeError as e:

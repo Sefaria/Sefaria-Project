@@ -323,20 +323,19 @@ class TextColumn extends Component {
     // don't move around highlighted segment when scrolling a single panel,
     const shouldShowHighlight = this.props.hasSidebar || this.props.mode === "TextAndConnections";
     const ref = $segment.attr("data-ref");
-    if (shouldShowHighlight) {
-      this.props.setTextListHighlight(ref, true)
-    } else {
-      this.props.setTextListHighlight(ref, false)
-    }
+    this.props.setTextListHighlight(ref, shouldShowHighlight);
   }
   render() {
     let classes = classNames({textColumn: 1, connectionsOpen: this.props.mode === "TextAndConnections"});
     const index = Sefaria.index(Sefaria.parseRef(this.props.srefs[0]).index);
-    const isDictionary = (index && index.categories[0] == "Reference");
-    let content =  this.props.srefs.map(function(ref, k) {
+    const isDictionary = (index && index.categories[0] === "Reference");
+    let content =  this.props.srefs.map((sref) => {
+      const oref = Sefaria.getRefFromCache(sref);
+      const isCurrentlyVisible = oref && this.props.currentlyVisibleRef === oref.sectionRef;
       return (<TextRange
         panelPosition ={this.props.panelPosition}
-        sref={ref}
+        sref={sref}
+        isCurrentlyVisible={isCurrentlyVisible}
         currVersions={this.props.currVersions}
         highlightedRefs={this.props.highlightedRefs}
         showHighlight={this.props.showHighlight}
@@ -360,9 +359,9 @@ class TextColumn extends Component {
         layoutWidth={this.props.layoutWidth}
         unsetTextHighlight={this.props.unsetTextHighlight}
         translationLanguagePreference={this.props.translationLanguagePreference}
-        setCurrVersions={this.props.setCurrVersions}
-        key={ref} />);
-    }.bind(this));
+        updateCurrVersionsToMatchAPIResult={this.props.updateCurrVersionsToMatchAPIResult}
+        key={sref} />);
+    });
 
     let pre, post, bookTitle;
     if (content.length) {

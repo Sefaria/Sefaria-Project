@@ -172,8 +172,14 @@ class ReaderPanel extends Component {
   handleTextListClick(ref, replaceHistory, currVersions) {
     this.showBaseText(ref, replaceHistory, currVersions);
   }
-  setCurrVersions(currVersions) {
-    this.conditionalSetState({ currVersions });
+  updateCurrVersionsToMatchAPIResult(enVTitle, heVTitle) {
+    const newVersions = {
+        ...this.state.currVersions,
+        enAPIResult: enVTitle,
+        heAPIResult: heVTitle,
+    };
+    if (Sefaria.util.object_equals(this.state.currVersions, newVersions)) { return; }
+    this.conditionalSetState({ currVersions: newVersions });
   }
   openConnectionsInPanel(ref, additionalState) {
     let refs = typeof ref == "string" ? [ref] : ref;
@@ -623,6 +629,7 @@ class ReaderPanel extends Component {
           srefs={this.state.refs.slice()}
           currVersions={this.state.currVersions}
           highlightedRefs={this.state.highlightedRefs}
+          currentlyVisibleRef={this.state.currentlyVisibleRef}
           showHighlight={showHighlight}
           basetext={true}
           bookTitle={textColumnBookTitle}
@@ -651,7 +658,7 @@ class ReaderPanel extends Component {
           textHighlights={this.state.textHighlights}
           unsetTextHighlight={this.props.unsetTextHighlight}
           translationLanguagePreference={this.props.translationLanguagePreference}
-          setCurrVersions={this.setCurrVersions}
+          updateCurrVersionsToMatchAPIResult={this.updateCurrVersionsToMatchAPIResult}
           key={`${textColumnBookTitle ? textColumnBookTitle : "empty"}-TextColumn`} />
       );
     }
@@ -1204,15 +1211,14 @@ class ReaderControls extends Component {
      */
     if (!this.shouldShowVersion()) { return; }
     Sefaria.getVersions(this.props.currentRef, false, ['he'], true).then(versionList => {
-      if (!this.props.currVersions.en) {
-        // default version. choose highest priority
-        if (versionList.length === 0) { return; }
-        versionList.sort((a, b) => b.priority - a.priority);
-        this.setDisplayVersionTitle(versionList[0]);
+      const enVTitle = this.props.currVersions.enAPIResult;
+      if (!enVTitle) {
+        // merged version from API
+        this.setDisplayVersionTitle({});
         return;
       }
       for (let version of versionList) {
-        if (version.versionTitle === this.props.currVersions.en) {
+        if (version.versionTitle === enVTitle) {
           this.setDisplayVersionTitle(version);
           break;
         }

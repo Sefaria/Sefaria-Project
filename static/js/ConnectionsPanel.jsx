@@ -845,17 +845,10 @@ const SheetToolsList = ({ toggleSignUpModal, masterPanelSheetId, setConnectionsM
   const [copiedSheetId, setCopiedSheetId] = useState(0);
   const sheet = Sefaria.sheets.loadSheetByID(masterPanelSheetId);
   const [showCollectionsModal, setShowCollectionsModal] = useState(false);
-  history.pushState("", document.title, window.location.pathname
-                                                       + window.location.search); // remove hash once state updated
-  // useEffect(() => {
-  //   const sheet = Sefaria.sheets.loadSheetByID(masterPanelSheetId)
-  //   setIsOwner(sheet.owner === Sefaria._uid);
-  //   setIsPublished(sheet.status === "public" ? true : false);
-  // }, []);
 
   useEffect(() => {
     if (googleDriveText.en == googleDriveState.exporting.en) {
-
+      history.replaceState("", document.title, window.location.pathname + window.location.search); // remove exportToDrive hash once it's used to trigger export
       $.ajax({
         type: "POST",
         url: "/api/sheets/" + sheet.id + "/export_to_drive",
