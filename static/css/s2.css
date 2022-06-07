@@ -1665,6 +1665,7 @@ div.interfaceLinks-row a {
 
 .navSidebarLink .languageItem, .translationsPage .languageItem {
   display: inline;
+  font-size: 18px;
 }
 
 .navSidebarLink.language {
@@ -2111,6 +2112,7 @@ div.interfaceLinks-row a {
 .readerPanel .translationsPage  details > summary {
   list-style: none;
   cursor: pointer; 
+  font-size: 18px;
 }
 
 h1 .languageToggle {
