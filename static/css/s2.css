@@ -2096,6 +2096,8 @@ div.interfaceLinks-row a {
 }
 .translationsPage details > ul {
   padding: 0;
+  display: flex;
+  flex-wrap: wrap;
 }
 .translationsPage details > ul > li:after {
   content: "\2022";
