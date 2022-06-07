@@ -8,7 +8,7 @@ import Footer  from './Footer';
 
 const TranslationsPage = ({translationsSlug}) => {
     const [translations, setTranslations] = useState(null);
-    let sidebarModules = [];
+    let sidebarModules = [{type: "AboutTranslatedText"}];
     let translation = Sefaria.getTranslation(translationsSlug).then(x => {
         setTranslations(x)
     });

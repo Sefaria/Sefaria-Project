@@ -43,6 +43,7 @@ const Modules = ({type, props}) => {
     "GetTheApp":              GetTheApp,
     "StayConnected":          StayConnected,
     "AboutLearningSchedules": AboutLearningSchedules,
+    "AboutTranslatedText":    AboutTranslatedText,
     "AboutCollections":       AboutCollections,
     "ExploreCollections":     ExploreCollections,
     "DownloadVersions":       DownloadVersions,
@@ -107,6 +108,23 @@ const AboutSefaria = ({hideTitle}) => (
           <HebrewText>לקריאה נוספת ›</HebrewText>
       </InterfaceText>
     </a>
+  </Module>
+);
+
+
+const AboutTranslatedText = ({}) => (
+  <Module>
+    <ModuleTitle h1={true}>About Translated Texts</ModuleTitle>
+    <InterfaceText>
+      <EnglishText>
+        Placeholder Language Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+        </EnglishText>
+        <HebrewText>
+          ספריא היא ביתם של 3,000 שנות ספרות יהודית.
+          אנו ארגון ללא מטרות רווח המציע גישה חופשית למקורות יהודיים, לתרגומים ולפרשנויות,
+          ומטרתנו לאפשר לכל אחד ואחת להשתתף בתהליך המתמשך של לימוד וחידוש בתורה.
+        </HebrewText>
+    </InterfaceText>
   </Module>
 );
 
