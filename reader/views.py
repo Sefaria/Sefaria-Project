@@ -4084,6 +4084,12 @@ def translations_api(request, lang=None):
             "localField": "title",
             "foreignField": "title",
             "as": "titles"
+        }},
+        {"$lookup": {
+            "from": "vstate",
+            "localField": "title",
+            "foreignField": "title",
+            "as": "vstate"
         }}])
     print("List comprehension:")
     res = {}
@@ -4092,11 +4098,19 @@ def translations_api(request, lang=None):
         if myIndex["title"] not in titles:
             if len(myIndex["titles"]) > 0:
                 myIndexInfo = myIndex["titles"][0]
+                vstate = myIndex["vstate"][0]
+                categories = myIndexInfo["categories"]
+                if "Reference" in categories:
+                    continue # don't list references (also they don't fit assumptions)
+                if lang == "en":
+                    if "enComplete" not in vstate["flags"]:
+                        continue
+                    if vstate["flags"]["enComplete"] == False:
+                        continue
                 titles.append(myIndex["title"])
                 depth = 2
                 ind = 0
                 cur = res
-                categories = myIndexInfo["categories"]
                 while len(categories) < depth:
                     categories = categories + ["Uncategorized"]
                 while ind < depth and ind < len(categories):
@@ -4122,8 +4136,11 @@ def translations_api(request, lang=None):
                     urlTitle = myIndexInfo["title"]
                     curNode = myIndexInfo["schema"]
                     while "nodes" in curNode:
-                        urlTitle = urlTitle + "%2C_" + myIndexInfo["schema"]["nodes"][0]["key"]
-                        curNode = curNode["nodes"][0]
+                        try:
+                            urlTitle = urlTitle + "%2C_" + myIndexInfo["schema"]["nodes"][0]["key"]
+                            curNode = curNode["nodes"][0]
+                        except:
+                            continue
                     toAdd["title"] = myIndexInfo["title"]
                     toAdd["url"] = f'/{urlTitle}.1?{"ven=" + myIndex["versionTitle"] if myIndex["language"] == "en" else "vhe=" + myIndex["versionTitle"]}'
                 if "order" in myIndex["titles"][0]:

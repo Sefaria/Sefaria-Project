@@ -143,6 +143,7 @@ def ensure_indices(active_db=None):
         ('manuscripts', ['slug'], {}),
         ('manuscripts', ['title'], {}),
         ('messages', [[("room_id", pymongo.ASCENDING), ("timestamp", pymongo.DESCENDING)]], {}),
+        ('vstate', ["title"], {}),
     ]
 
     for col, args, kwargs in indices:
