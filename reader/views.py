@@ -4125,7 +4125,7 @@ def translations_api(request, lang=None):
                         urlTitle = urlTitle + "%2C_" + myIndexInfo["schema"]["nodes"][0]["key"]
                         curNode = curNode["nodes"][0]
                     toAdd["title"] = myIndexInfo["title"]
-                    toAdd["url"] = f'/{urlTitle}.1?{"ven=" + myIndex["versionTitle"] if myIndex["language"] == "en" else "vhe=" + myIndex["versionTItle"]}'
+                    toAdd["url"] = f'/{urlTitle}.1?{"ven=" + myIndex["versionTitle"] if myIndex["language"] == "en" else "vhe=" + myIndex["versionTitle"]}'
                 if "order" in myIndex["titles"][0]:
                         toAdd["order"] = myIndex["titles"][0]["order"]
                 toAdd["versionTitle"] = myIndex["versionTitle"]
