@@ -549,13 +549,32 @@ FilterableList.propTypes = {
 class TabView extends Component {
   constructor(props) {
     super(props);
-    const { currTabIndex } = props;
+    const { currTabName } = props;
     this.state = {
-      currTabIndex: (typeof currTabIndex == 'undefined') ? 0 : currTabIndex,
+      currTabName: typeof currTabName === 'undefined' ? this.props.tabs[0].id : currTabName
     };
+  }
+  componentDidMount() {
+    if (this.props.currTabName === null) {
+      this.props.setTab(this.props.tabs[0].id, true)
+    }
   }
   openTab(index) {
     this.setState({currTabIndex: index});
+  }
+  getTabIndex() {
+    let tabIndex;
+    if (typeof this.props.currTabName === 'undefined') {
+      tabIndex = this.props.tabs.findIndex(tab => tab.id === this.state.currTabName ? true : false)
+    } else if (this.props.currTabName === null) {
+      tabIndex = 0;
+    } else {
+      tabIndex = this.props.tabs.findIndex(tab => tab.id === this.props.currTabName ? true : false)
+    }
+    if(tabIndex === -1) {
+      tabIndex = 0;
+    }
+    return tabIndex;
   }
   onClickTab(e) {
     let target = $(event.target);
@@ -566,11 +585,12 @@ class TabView extends Component {
       onClickArray[tabIndex]();
     } else {
       this.openTab(tabIndex);
-      setTab && setTab(tabIndex, tabs);
+      const tab = this.props.tabs[tabIndex];
+      setTab && setTab(tab.id);
     }
   }
   renderTab(tab, index) {
-    const { currTabIndex } = typeof this.props.currTabIndex == 'undefined' ? this.state : this.props;
+    const currTabIndex = this.getTabIndex();
     return (
       <div className={classNames({active: currTabIndex === index, justifyright: tab.justifyright})} key={tab.id} data-tab-index={index} onClick={this.onClickTab}>
         {this.props.renderTab(tab, index)}
@@ -578,7 +598,7 @@ class TabView extends Component {
     );
   }
   render() {
-    const { currTabIndex } = typeof this.props.currTabIndex == 'undefined' ? this.state : this.props;
+    const currTabIndex = this.getTabIndex();
     const classes = classNames({"tab-view": 1, [this.props.containerClasses]: 1});
     return (
       <div className={classes}>
@@ -593,7 +613,7 @@ class TabView extends Component {
 TabView.propTypes = {
   tabs:         PropTypes.array.isRequired,  // array of objects of any form. only requirement is each tab has a unique 'id' field. These objects will be passed to renderTab.
   renderTab:    PropTypes.func.isRequired,
-  currTabIndex: PropTypes.number,  // optional. If passed, TabView will be controlled from outside
+  currTabName:  PropTypes.string,  // optional. If passed, TabView will be controlled from outside
   setTab:       PropTypes.func,    // optional. If passed, TabView will be controlled from outside
   onClickArray: PropTypes.object,  // optional. If passed, TabView will be controlled from outside
 };

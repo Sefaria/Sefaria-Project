@@ -603,6 +603,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
     props = {
         "headerMode":                     False,
         "initialPanels":                  panels,
+        "initialTab":                     request.GET.get("tab", None),
         "initialPanelCap":                len(panels),
         "initialQuery":                   None,
         "initialNavigationCategories":    None,
@@ -901,7 +902,7 @@ def collection_page(request, slug):
         "initialMenu":     "collection",
         "initialCollectionName": collection.name,
         "initialCollectionSlug": collection.slug,
-        "initialCollectionTag":  request.GET.get("tag", None)
+        "initialTab":  request.GET.get("tab", None)
     })
 
     props["collectionData"] = collection.contents(with_content=True, authenticated=authenticated)
@@ -3145,7 +3146,7 @@ def topic_page(request, topic):
     props = {
         "initialMenu": "topics",
         "initialTopic": topic,
-        "initialTopicsTab": urllib.parse.unquote(request.GET.get('tab', 'sources')),
+        "initialTab": urllib.parse.unquote(request.GET.get('tab', 'sources')),
         "initialTopicTitle": {
             "en": topic_obj.get_primary_title('en'),
             "he": topic_obj.get_primary_title('he')
@@ -3467,7 +3468,7 @@ def user_profile(request, username):
     props = {
         "initialMenu":  "profile",
         "initialProfile": requested_profile.to_api_dict(),
-        "initialProfileTab": tab,
+        "initialTab": tab,
     }
     title = _("%(full_name)s on Sefaria") % {"full_name": requested_profile.full_name}
     desc = _('%(full_name)s is on Sefaria. Follow to view their public source sheets, notes and translations.') % {"full_name": requested_profile.full_name}
