@@ -60,14 +60,14 @@ def create_link(row):
     ref_list.append(talmud_ref)
 
     link_param_dict['refs'] = ref_list
-    # print(link_param_dict)
+
     try:
         Link(link_param_dict).save()
     except Exception as e:
         ref_list = [mishnah_ref, talmud_ref]
         ref_list.sort()
         ls = Link().load({"refs": ref_list})
-        if ls and (ls.type == 'mesorat hashas' or ls.type == 'related' or ls.refs==['Bava Batra 84b:5-6', 'Mishnah Bava Batra 5:7']):
+        if ls and (ls.type == 'mesorat hashas' or ls.type == 'related' or ls.refs == ['Bava Batra 84b:5-6', 'Mishnah Bava Batra 5:7']):
             ls.update(query={"refs": ref_list}, attrs={'type': 'mishnah in talmud'})
         elif "A more precise link" in str(e):
             curlink = Link(link_param_dict)
@@ -81,15 +81,13 @@ def ingest_new_links():
     print("Original linkset deleted")
 
     # Ingest the corrected CSV
-    with open('corrected_links.csv', newline='') as csvfile:
+    with open('../../data/Mishnah Map.csv', newline='') as csvfile:
         csv_reader = csv.reader(csvfile, delimiter=',')
         # Skipping the headers
         next(csv_reader)
         for row in csv_reader:
             create_link(row)
 
-    # Missing Bava Batra
-    # create_link(["Mishnah Bava Batra", "5", "7", "7", "84b", "5", "84b", "6"])
     print("All new links created")
 
     # generate the errors csv
