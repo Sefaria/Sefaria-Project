@@ -4078,8 +4078,6 @@ def translations_api(request, lang=None):
         res = db.texts.distinct("actualLanguage")
         return jsonResponse(res)
     import time
-    t0 = time.time()
-    #texts = [getIndexContents(myText) for myText in db.texts.distinct("title", {"actualLanguage": lang})]
     texts = db.texts.aggregate([{"$match": {"actualLanguage":lang}},
     {"$lookup": {
             "from": "index",
@@ -4087,9 +4085,7 @@ def translations_api(request, lang=None):
             "foreignField": "title",
             "as": "titles"
         }}])
-    t1 = time.time()
     print("List comprehension:")
-    print(f"{t1 - t0}")
     res = {}
     titles = []
     for myIndex in texts:
@@ -4123,18 +4119,19 @@ def translations_api(request, lang=None):
                             # TODO: fix assumptions?
                             continue
                 else:
-                    toAdd["title"] = myIndex["title"]
-                    toAdd["url"] = f'/{myIndex["title"]}.1?{"ven=" + myIndex["versionTitle"] if myIndex["language"] == "en" else "vhe=" + myIndex["versionTItle"]}'
+                    urlTitle = myIndexInfo["title"]
+                    curNode = myIndexInfo["schema"]
+                    while "nodes" in curNode:
+                        urlTitle = urlTitle + "%2C_" + myIndexInfo["schema"]["nodes"][0]["key"]
+                        curNode = myIndexInfo["schema"]["nodes"][0]
+                    toAdd["title"] = myIndexInfo["title"]
+                    toAdd["url"] = f'/{urlTitle}.1?{"ven=" + myIndex["versionTitle"] if myIndex["language"] == "en" else "vhe=" + myIndex["versionTItle"]}'
                 if "order" in myIndex["titles"][0]:
                         toAdd["order"] = myIndex["titles"][0]["order"]
                 toAdd["versionTitle"] = myIndex["versionTitle"]
                 toAdd["rtlLanguage"] = myIndex["language"]
                 cur.append(toAdd)
-        #cur[myIndex["title"]] = myIndex
-    #res = [library.get_index(myText).contents() for myText in texts]
-    t2 = time.time()
     print("create dictionary")
-    print(f"{t2 - t1}")
     return jsonResponse(res)
     
 def random_by_topic_api(request):
