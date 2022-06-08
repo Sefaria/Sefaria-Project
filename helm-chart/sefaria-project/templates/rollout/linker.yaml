@@ -89,9 +89,9 @@ spec:
           - name: DISABLE_AUTOCOMPLETER
             value: "True"
           - name: RAW_REF_MODEL_BY_LANG_FILEPATH
-            value: "{{ .Values.linker.model-paths | toJson }}"
+            value: "{{ .Values.linker.model_paths | toJson }}"
           - name: RAW_REF_PART_MODEL_BY_LANG_FILEPATH 
-            value: "{{ .Values.linker.part-model-paths | toJson }}"
+            value: "{{ .Values.linker.part_model_paths | toJson }}"
         envFrom:
           - secretRef:
               name: {{ .Values.secrets.localSettings.ref }}
@@ -188,4 +188,4 @@ spec:
         - name: gunicorn-config
           configMap:
             name: gunicorn-config-{{ .Values.deployEnv }}
-{{- endif }}
+{{- end }}

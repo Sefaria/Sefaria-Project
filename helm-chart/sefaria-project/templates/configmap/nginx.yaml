@@ -35,7 +35,7 @@ data:
       upstream linker_upstream {
         server ${LINKER_HOST}:80;
       }
-      {{- endif }}
+      {{- end }}
 
       # Requests hitting the root domains should be redirected to the 'www' subdomain
       server {
@@ -133,7 +133,7 @@ data:
         location /linker/ {
           proxy_pass http://linker_upstream;
         }
-        {{- endif }}
+        {{- end }}
       } # server
 
       types {

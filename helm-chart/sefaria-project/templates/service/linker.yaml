@@ -13,4 +13,4 @@ spec:
   - port: 80
   selector:
     app: "linker-{{ .Values.deployEnv }}"
-{{- if .Values.linker.enabled }}
+{{- end }}

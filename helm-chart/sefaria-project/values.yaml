@@ -90,10 +90,10 @@ web:
 linker:
   enabled: false
   # key-pair values to load into web pod environment.  Takes precedence over global localsettings
-  model-paths:
+  model_paths:
     en: foo
     he: foo
-  part-model-paths:
+  part_model_paths:
     en: foo
     he: foo
   localsettings:
