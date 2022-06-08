@@ -381,7 +381,7 @@ class ReaderApp extends Component {
           (prev.currVersions.he !== next.currVersions.he) ||
           (prev.searchQuery != next.searchQuery) ||
           (prev.searchTab != next.searchTab) ||
-          (prev.tab !== next.tab)
+          (prev.tab !== next.tab) ||
           (prev.collectionName !== next.collectionName) ||
           (prev.collectionTag !== next.collectionTag) ||
           (!prevTextSearchState.isEqual({ other: nextTextSearchState, fields: ["appliedFilters", "field", "sortType"]})) ||
