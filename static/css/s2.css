@@ -2266,7 +2266,9 @@ display: none;
 .sidebarDescription{
   color: var(--dark-grey);
   --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
   font-size: var(--sans-serif-small-font-size);
+  padding-top: 10px;
 }
 
 .sidebarDescription.lowlight{
