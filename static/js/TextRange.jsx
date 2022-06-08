@@ -488,6 +488,12 @@ class TextSegment extends Component {
       this.props.unsetTextHighlight();
     }
   }
+  calculatePositionWithinElement(event){
+    const rect = event.target.getBoundingClientRect();
+    const x = event.clientX - rect.left; //x position within the element.
+    const y = event.clientY - rect.top;  //y position within the element.
+    return [x,y]
+  }
   handleClick(event) {
     // grab refLink from target or parent (sometimes there is an <i> within refLink forcing us to look for the parent)
     const refLink = $(event.target).hasClass("refLink") ? $(event.target) : ($(event.target.parentElement).hasClass("refLink") ? $(event.target.parentElement) : null);
@@ -519,6 +525,17 @@ class TextSegment extends Component {
     } else if (this.props.onSegmentClick) {
       this.props.onSegmentClick(this.props.sref);
       Sefaria.track.event("Reader", "Text Segment Click", this.props.sref);
+    }
+    const pos = this.calculatePositionWithinElement(event)
+    this.setState({lastClickXY:pos})
+  }
+  handleDoubleClick(event) {
+    if (event.detail > 1) {
+    const pos = this.calculatePositionWithinElement(event)
+      // might be problimatic if there is a slight move in the double-click shaky hands. can be fixed with an error of a few px on both axes.
+      if (this.state.lastClickXY != pos){
+        event.preventDefault();
+      }
     }
   }
   handleKeyPress(event) {
@@ -629,7 +646,7 @@ class TextSegment extends Component {
     }
     return (
       <div tabIndex="0"
-           className={classes} onClick={this.handleClick} onKeyPress={this.handleKeyPress}
+           className={classes} onClick={this.handleClick} onKeyPress={this.handleKeyPress} onMouseDown={this.handleDoubleClick}
            data-ref={this.props.sref} aria-controls={"panel-"+(this.props.panelPosition+1)}
            aria-label={"Click to see links to "+this.props.sref}>
         {segmentNumber}

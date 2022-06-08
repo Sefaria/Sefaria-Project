@@ -47,7 +47,7 @@ class ReaderApp extends Component {
         menuOpen:                props.initialMenu,
         searchQuery:             props.initialQuery,
         searchTab:               props.initialSearchTab,
-        topicsTab:               props.initialTopicsTab,
+        tab:                     props.initialTab,
         textSearchState: new SearchState({
           type: 'text',
           appliedFilters:        props.initialTextSearchFilters,
@@ -68,7 +68,6 @@ class ReaderApp extends Component {
         navigationTopicLetter:   props.initialNavigationTopicLetter,
         topicTitle:              props.initialTopicTitle,
         profile:                 props.initialProfile,
-        profileTab:              props.initialProfileTab,
         collectionName:          props.initialCollectionName,
         collectionSlug:          props.initialCollectionSlug,
         collectionTag:           props.initialCollectionTag,
@@ -92,6 +91,9 @@ class ReaderApp extends Component {
 
       if (panel.mode.endsWith("AndConnections")) {
         panel.highlightedRefs = panel.refs;
+      }
+      if (panel.menuOpen === "book toc") { // TODO figure out how to delete this
+        panel.tab = props.initialTab // why is book toc initial menu false?
       }
       return panel;
     }).map(panel => this.makePanelState(panel));
@@ -146,7 +148,6 @@ class ReaderApp extends Component {
       searchQuery:             state.searchQuery             || null,
       searchTab:               state.searchTab               || 'text',
       showHighlight:           state.showHighlight           || null,
-      topicsTab:               state.topicsTab               || 'sources',
       textSearchState:         state.textSearchState         || new SearchState({ type: 'text' }),
       sheetSearchState:        state.sheetSearchState        || new SearchState({ type: 'sheet' }),
       compare:                 state.compare                 || false,
@@ -160,7 +161,7 @@ class ReaderApp extends Component {
       selectedNamedEntityText: state.selectedNamedEntityText || null,
       textHighlights:          state.textHighlights          || null,
       profile:                 state.profile                 || null,
-      profileTab:              state.profileTab              || "sheets",
+      tab:                     state.tab                     || null,
       beitMidrashId:           state.beitMidrashId           || null,
     };
     // if version is not set for the language you're in, see if you can retrieve it from cache
@@ -380,8 +381,7 @@ class ReaderApp extends Component {
           (prev.currVersions.he !== next.currVersions.he) ||
           (prev.searchQuery != next.searchQuery) ||
           (prev.searchTab != next.searchTab) ||
-          (prev.topicsTab != next.topicsTab) ||
-          (prev.profileTab !== next.profileTab) ||
+          (prev.tab !== next.tab) ||
           (prev.collectionName !== next.collectionName) ||
           (prev.collectionTag !== next.collectionTag) ||
           (!prevTextSearchState.isEqual({ other: nextTextSearchState, fields: ["appliedFilters", "field", "sortType"]})) ||
@@ -423,7 +423,13 @@ class ReaderApp extends Component {
     // List of modes that the ConnectionsPanel may have which can be represented in a URL. 
     const sidebarModes = new Set(["Sheets", "Notes", "Translations", "Translation Open",
       "About", "AboutSheet", "Navigation", "WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon"]);
-
+    const addTab = (url) => {
+      if (state.tab && state.menuOpen !== "search") {
+        return url.includes("?") ?  url + `&tab=${state.tab}` : url + `?tab=${state.tab}`;
+      } else {
+        return url;
+      }
+    }
     for (var i = 0; i < states.length; i++) {
       // Walk through each panel, create a history object as though for this panel alone
       states[i] = this.clonePanel(states[i], true);
@@ -477,7 +483,7 @@ class ReaderApp extends Component {
             break;
           case "topics":
             if (state.navigationTopic) {
-              hist.url = `topics/${state.navigationTopic}?tab=${state.topicsTab}`;
+              hist.url = `topics/${state.navigationTopic}`;
               hist.title = `${state.topicTitle[shortLang]} | ${ Sefaria._("Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.")}`;
               hist.mode  = "topic";
             } else if (state.navigationTopicCategory) {
@@ -502,7 +508,7 @@ class ReaderApp extends Component {
             break;
           case "profile":
             hist.title = `${state.profile.full_name} ${Sefaria._("on Sefaria")}`;
-            hist.url   = `profile/${state.profile.slug}?tab=${state.profileTab}`;
+            hist.url   = `profile/${state.profile.slug}`;
             hist.mode = "profile";
             break;
           case "notifications":
@@ -513,7 +519,7 @@ class ReaderApp extends Component {
           case "collection":
             hist.url   = "collections/" + state.collectionSlug;
             if (states[i].collectionTag) {
-              hist.url  += "?tag=" + state.collectionTag.replace("#","%23");
+              hist.url;
             }
             hist.title = (state.collectionName ? state.collectionName + " | " : "") + Sefaria._(siteName + " Collections");
             hist.mode  = "collection";
@@ -563,7 +569,7 @@ class ReaderApp extends Component {
             hist.url = "beit-midrash";
             hist.mode = "beit-midrash";
         }
-
+        hist.url = addTab(hist.url)
       } else if (state.mode === "Text") {
         var highlighted = state.highlightedRefs.length ? Sefaria.normRefList(state.highlightedRefs) : null;
 
@@ -921,6 +927,12 @@ class ReaderApp extends Component {
       this.closePanel(n+1);
     }
   }
+  closeNamedEntityInConnectionPanel(n) {
+    if (this.state.panels.length > n+1  && this.state.panels[n+1].selectedNamedEntity) {
+      this.setPanelState(n+1, {connectionsMode: "Resources"});
+      this.clearNamedEntity(n+1);
+    }
+  }
   handleCitationClick(n, citationRef, textRef, replace, currVersions) {
     // Handle clicking on the citation `citationRef` which was found inside of `textRef` in panel `n`.
     // If `replace`, replace a following panel with this citation, otherwise open a new panel after.
@@ -1167,9 +1179,6 @@ class ReaderApp extends Component {
     this.setPanelState(n, {
       [searchStateName]: searchState.update({ sortType })
     });
-  }
-  updateTopicsTab(n, topicsTab) {
-    this.setPanelState(n, { topicsTab });
   }
   setPanelState(n, state, replaceHistory) {
     this.replaceHistory  = Boolean(replaceHistory);
@@ -1627,12 +1636,9 @@ class ReaderApp extends Component {
     state = this.makePanelState(state);
     this.setState({panels: [state], headerMode: false});
   }
-  openTopic(slug, topicsTab) {
-    if (!topicsTab) {
-      topicsTab = "sources";
-    }
+  openTopic(slug) {
     Sefaria.getTopic(slug, {annotate_time_period: true}).then(topic => {
-      this.setSinglePanelState({ menuOpen: "topics", navigationTopic: slug, topicTitle: topic.primaryTitle, topicsTab });
+      this.setSinglePanelState({ menuOpen: "topics", navigationTopic: slug, topicTitle: topic.primaryTitle});
     });
   }
   openTopicCategory(slug) {
@@ -1649,7 +1655,7 @@ class ReaderApp extends Component {
   openProfile(slug, tab) {
     tab = tab || "sheets";
     Sefaria.profileAPI(slug).then(profile => {
-      this.setSinglePanelState({ menuOpen: "profile", profile, profileTab: tab});
+      this.setSinglePanelState({ menuOpen: "profile", profile, tab: tab});
     });
   }
   openCollection(slug, tag) {
@@ -1922,6 +1928,7 @@ class ReaderApp extends Component {
       var onCitationClick                = this.handleCitationClick.bind(null, i);
       var openNamedEntityInNewPanel      = this.openNamedEntityInNewPanel.bind(null, i);
       var onCloseConnectionClick         = this.closeConnectionPanel.bind(null,i);
+      var closeNamedEntityInConnectionPanel = this.closeNamedEntityInConnectionPanel.bind(null,i);
       var onSearchResultClick            = i > 0 ? this.handleCompareSearchClick.bind(null, i) : this.handleNavigationClick;
       var unsetTextHighlight             = this.unsetTextHighlight.bind(null, i);
       var updateQuery                    = this.updateQuery.bind(null, i);
@@ -1930,7 +1937,6 @@ class ReaderApp extends Component {
       var updateSearchFilter             = this.updateSearchFilter.bind(null, i);
       var updateSearchOptionField        = this.updateSearchOptionField.bind(null, i);
       var updateSearchOptionSort         = this.updateSearchOptionSort.bind(null, i);
-      var updateTopicsTab                = this.updateTopicsTab.bind(null, i);
       var onOpenConnectionsClick         = this.openTextListAt.bind(null, i+1);
       var setTextListHighlight           = this.setTextListHighlight.bind(null, i);
       var setSelectedWords               = this.setSelectedWords.bind(null, i);
@@ -1964,9 +1970,9 @@ class ReaderApp extends Component {
                       onCitationClick={onCitationClick}
                       openNamedEntityInNewPanel={openNamedEntityInNewPanel}
                       closeConnectionPanel={onCloseConnectionClick}
+                      closeNamedEntityInConnectionPanel={closeNamedEntityInConnectionPanel}
                       onSearchResultClick={onSearchResultClick}
                       onNavigationClick={this.handleNavigationClick}
-                      updateTopicsTab={updateTopicsTab}
                       onOpenConnectionsClick={onOpenConnectionsClick}
                       openComparePanel={openComparePanel}
                       setTextListHighlight={setTextListHighlight}

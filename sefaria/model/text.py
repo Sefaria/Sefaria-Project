@@ -4985,8 +4985,16 @@ class Library(object):
 
         # Get all the unique new roots, create nodes for them, and attach them to the tree
         new_root_titles = list({c.searchRoot for c in reroots})
-        # .split() to remove " Commentary"
-        new_root_titles.sort(key=lambda t: toc_roots.index(t.split()[0]))
+
+        def root_title_sorter(t):
+            # .split() to remove " Commentary"
+            sort_key = t.split()[0]
+            try:
+                return toc_roots.index(sort_key)
+            except ValueError:
+                return 10000
+
+        new_root_titles.sort(key=root_title_sorter)
         new_roots = {}
         for t in new_root_titles:
             tc = TocCategory()
