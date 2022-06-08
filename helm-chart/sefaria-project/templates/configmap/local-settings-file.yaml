@@ -179,8 +179,8 @@ data:
 
     # Turns off search autocomplete suggestions, which are reinitialized on every server reload
     # which can be annoying for local development.
-    DISABLE_AUTOCOMPLETER = bool(os.getenv("DISABLE_AUTOCOMPLETER", False))
-    ENABLE_LINKER = bool(os.getenv("ENABLE_LINKER", False))
+    DISABLE_AUTOCOMPLETER = os.getenv("DISABLE_AUTOCOMPLETER", "false").lower() == "true"
+    ENABLE_LINKER = os.getenv("ENABLE_LINKER", "false").lower() == "true"
     PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE = "/school-lookup-data/schools.tsv"
 
     MAILCHIMP = True
@@ -210,9 +210,9 @@ data:
 
     MOBILE_APP_KEY = os.getenv("MOBILE_APP_KEY")
 
-    RAW_REF_MODEL_BY_LANG_FILEPATH = json.loads(os.getenv("RAW_REF_MODEL_BY_LANG_FILEPATH", '{ "en": None, "he": None }'))
+    RAW_REF_MODEL_BY_LANG_FILEPATH = json.loads(os.getenv("RAW_REF_MODEL_BY_LANG_FILEPATH", '{ "en": null, "he": null }'))
 
-    RAW_REF_PART_MODEL_BY_LANG_FILEPATH = json.loads(os.getenv("RAW_REF_PART_MODEL_BY_LANG_FILEPATH", '{ "en": None, "he": None }'))
+    RAW_REF_PART_MODEL_BY_LANG_FILEPATH = json.loads(os.getenv("RAW_REF_PART_MODEL_BY_LANG_FILEPATH", '{ "en": null, "he": null }'))
 
     LOGGING = {
         'version': 1,
