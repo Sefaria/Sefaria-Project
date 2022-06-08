@@ -2392,7 +2392,8 @@ const TopicToCategorySlug = function(topic, category=null) {
     if (!category) {
         category = Sefaria.topicTocCategory(topic.slug);
     }
-    let initCatSlug = category ? category.slug : "";    //non-category topics won't be found using topicTocCategory, so all category topics initialized to empty string
+    let initCatSlug = category ? category.slug : "Main Menu";    //non-category topics won't be found using topicTocCategory,
+                                                                  // so all category topics initialized to "Main Menu"
     if ("displays-under" in topic?.links && "displays-above" in topic?.links) {
         // this case handles categories that are not top level but have children under them
         const displayUnderLinks = topic.links["displays-under"]?.links;
@@ -2417,8 +2418,8 @@ const TopicEditor = ({en="", he="", slug="", desc={}, categoryDesc="", categoryS
     const origCatDescription = useRef(categoryDesc);
     const isNewTopic = useRef(origEnTitle.current === "");
 
+    // populate category menu using Sefaria.topic_toc and insert "Choose a Category" and "Main Menu" at the top
     const existingCategories = useRef(Sefaria.topic_toc.reduce(Sefaria._initTopicTocSlugToTitle, {}));  //dictionary of slugs to topic titles
-
     let foundCatSlug = false;  //true if catSlug exists in existingCategories
     let catMenu = Object.keys(existingCategories.current).map(function (tempSlug, i) {
       const tempTitle = existingCategories.current[tempSlug];
@@ -2429,9 +2430,14 @@ const TopicEditor = ({en="", he="", slug="", desc={}, categoryDesc="", categoryS
         return <option key={i} value={tempSlug}>{tempTitle}</option>;
       }
     });
-    const choose = rootSelected ? <option key="chooseCategory" value="Choose a Category" selected>Choose a category</option> :
+    const chooseCategory = origCatSlug.current !== "Main Menu" && !foundCatSlug ?
+                                      <option key="chooseCategory" value="Choose a Category" selected>Choose a category</option> :
                                       <option key="chooseCategory" value="Choose a Category">Choose a category</option>;
-    catMenu.splice(0, 0, rootOption) ;
+    const mainMenu = origCatSlug.current === "Main Menu" && !foundCatSlug ?
+                                      <option key="mainMenu" value="Main Menu" selected>Main Menu</option> :
+                                      <option key="mainMenu" value="Main Menu">Main Menu</option>;
+    catMenu.splice(0, 0, chooseCategory);
+    catMenu.splice(1, 0, mainMenu);
 
     const validate = async function () {
         if (description === "Choose a Category") {
