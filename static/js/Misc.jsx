@@ -2387,36 +2387,57 @@ const AdminToolHeader = function({en, he, validate, close}) {
 }
 
 
-
-const TopicEditor = ({en="", he="", slug="", desc={}, categorySlug="", close}) => {
+const TopicToCategorySlug = function(topic, category=null) {
+    //helper function for TopicEditor
+    if (!category) {
+        category = Sefaria.topicTocCategory(topic.slug);
+    }
+    let initCatSlug = category ? category.slug : "";    //non-category topics won't be found using topicTocCategory, so all category topics initialized to empty string
+    if ("displays-under" in topic?.links && "displays-above" in topic?.links) {
+        // this case handles categories that are not top level but have children under them
+        const displayUnderLinks = topic.links["displays-under"]?.links;
+        if (displayUnderLinks && displayUnderLinks.length === 1) {
+            initCatSlug = displayUnderLinks[0].topic;
+        }
+    }
+    return initCatSlug;
+}
+const TopicEditor = ({en="", he="", slug="", desc={}, categoryDesc="", categorySlug="", close}) => {
     const [savingStatus, setSavingStatus] = useState(false);
     const [catSlug, setCatSlug] = useState(categorySlug);
     const [description, setDescription] = useState(desc["en"]);
+    const [catDescription, setCatDescription] = useState(categoryDesc);
     const [enTitle, setEnTitle] = useState(en);
     const [heTitle, setHeTitle] = useState(he);
+    const [isCategory, setIsCategory] = useState(false);
     const origEnTitle = useRef(en);
     const origSlug = useRef(slug);
     const origCatSlug = useRef(categorySlug);
     const origDescription = useRef(desc);
+    const origCatDescription = useRef(categoryDesc);
     const isNewTopic = useRef(origEnTitle.current === "");
 
-    const existingCategories = useRef(Sefaria.topic_toc.reduce(Sefaria._initTopicTocSlugToTitle, {}));
+    const existingCategories = useRef(Sefaria.topic_toc.reduce(Sefaria._initTopicTocSlugToTitle, {}));  //dictionary of slugs to topic titles
 
-    let rootSelected = true;
+    let foundCatSlug = false;  //true if catSlug exists in existingCategories
     let catMenu = Object.keys(existingCategories.current).map(function (tempSlug, i) {
       const tempTitle = existingCategories.current[tempSlug];
       if (catSlug === tempSlug) {
-        rootSelected = false;
+        foundCatSlug = true;
         return <option key={i} value={tempSlug} selected>{tempTitle}</option>;
       } else {
         return <option key={i} value={tempSlug}>{tempTitle}</option>;
       }
     });
-    const rootOption = rootSelected ? <option key="chooseCategory" value="" selected>Choose a category</option> :
-                                      <option key="chooseCategory" value="">Choose a category</option>;
+    const choose = rootSelected ? <option key="chooseCategory" value="Choose a Category" selected>Choose a category</option> :
+                                      <option key="chooseCategory" value="Choose a Category">Choose a category</option>;
     catMenu.splice(0, 0, rootOption) ;
 
     const validate = async function () {
+        if (description === "Choose a Category") {
+          alert("Please choose a category.");
+          return false;
+        }
         if (enTitle.length === 0) {
           alert("Title must be provided.");
           return false;
@@ -2429,6 +2450,9 @@ const TopicEditor = ({en="", he="", slug="", desc={}, categorySlug="", close}) =
         let data = {"description": {"en": description, "he": description}, "title": enTitle, "category": catSlug};
         if (isNewTopic.current) {
           url = "/api/topic/new";
+          if (isCategory) {
+            data["catDescription"] = catDescription;
+          }
         }
         else {
           url = `/api/topics/${origSlug.current}`;
@@ -2436,6 +2460,9 @@ const TopicEditor = ({en="", he="", slug="", desc={}, categorySlug="", close}) =
           data["origDescription"] = origDescription.current;
           data["origTitle"] = origEnTitle.current;
           data["origSlug"] = origSlug.current;
+          if (isCategory) {
+            data["origCatDescription"] = origCatDescription.current;
+          }
         }
 
         const postJSON = JSON.stringify(data);
@@ -2453,6 +2480,9 @@ const TopicEditor = ({en="", he="", slug="", desc={}, categorySlug="", close}) =
     }
     const toggleInProgress = function() {
       setSavingStatus(savingStatus => !savingStatus);
+    }
+    const delete_topic = function() {
+      console.log('hi');
     }
     return <div className="editTextInfo">
             <div className="static">
@@ -2479,6 +2509,14 @@ const TopicEditor = ({en="", he="", slug="", desc={}, categorySlug="", close}) =
                             <textarea id="topicDesc" onBlur={(e) => setDescription(e.target.value)}
                                    defaultValue={description} placeholder="Add a description."/>
                         </div>
+                       {isCategory ? <div className="section">
+                                      <label><InterfaceText>Short Description for Category Topic</InterfaceText></label>
+                                      <textarea id="topicDesc" onBlur={(e) => setCategoryDescription(e.target.value)}
+                                             defaultValue={catDescription} placeholder="Add a short description."/>
+                                  </div> : null}
+                        <div onClick={delete_topic} id="deleteTopic" className="button small deleteTopic" tabIndex="0" role="button">
+                            <InterfaceText>Delete Topic</InterfaceText>
+                       </div>
                     </div>
                 </div>
             </div>
@@ -2894,5 +2932,6 @@ export {
   AdminToolHeader,
   CategoryChooser,
   TopicEditor,
-  TitleVariants
+  TitleVariants,
+  TopicToCategorySlug
 };

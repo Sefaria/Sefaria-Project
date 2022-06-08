@@ -19,7 +19,8 @@ import {
     FilterableList,
     ToolTipped,
     SimpleLinkedBlock,
-    TopicEditor
+    TopicEditor,
+    TopicToCategorySlug
 } from './Misc';
 
 
@@ -174,7 +175,32 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
     
     const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(topic) || {primaryTitle: topicTitle});
     const [subtopics, setSubtopics] = useState(Sefaria.topicTocPage(topic));
-
+    const [addingTopics, setAddingTopics] = useState(false);
+    const topicEditorStatus = useRef(null);
+    if (Sefaria.is_moderator) {
+        if (!addingTopics) {
+            topicEditorStatus.current =
+                <div onClick={(e) => toggleAddingTopics(e)} id="editTopic" className="button extraSmall topic"
+                     role="button">
+                    <InterfaceText>Edit a Topic</InterfaceText>
+                </div>;
+        }
+        else if (addingTopics && "slug" in topicData) {
+            const initCatSlug = TopicToCategorySlug(topicData);
+            topicEditorStatus.current = <TopicEditor slug={topicData.slug} en={topicData.primaryTitle.en} he={topicData.primaryTitle.he}
+                         desc={topicData?.description || ""} categorySlug={initCatSlug}
+                         categoryDesc={topicData?.categoryDescription || ""}
+                         close={(e) => toggleAddingTopics(e)}/>;
+        }
+    }
+    const toggleAddingTopics = function(e) {
+      if (e.currentTarget.id === "editTopic") {
+        setAddingTopics(true);
+      }
+      else if(e.currentTarget.id === "cancel") {
+        setAddingTopics(false);
+     }
+    }
     useEffect(() => {
         Sefaria.getTopic(topic, {annotate_time_period: true}).then(setTopicData);
     }, [topic]);
@@ -259,7 +285,10 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
             <div className="content readerTocTopics">
                 <div className="sidebarLayout">
                   <div className="contentInner">
-                      <h1><InterfaceText text={{en: topicTitle.en, he: topicTitle.he}} /></h1>
+                      <div className="navTitle tight">
+                          <h1><InterfaceText text={{en: topicTitle.en, he: topicTitle.he}} /></h1>
+                          {topicEditorStatus.current}
+                      </div>
                       <div className="readerNavCategories">
                         <ResponsiveNBox content={topicBlocks} initialWidth={initialWidth} />
                       </div>
@@ -278,7 +307,7 @@ const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDis
   const [addingTopics, setAddingTopics] = useState(false);
   const isTransliteration = !!topicData ? topicData.primaryTitleIsTransliteration : {en: false, he: false};
   const category = !!topicData ? Sefaria.topicTocCategory(topicData.slug) : null;
-    const toggleAddingTopics = function(e) {
+  const toggleAddingTopics = function(e) {
       if (e.currentTarget.id === "editTopic") {
         setAddingTopics(true);
       }
@@ -286,25 +315,16 @@ const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDis
         setAddingTopics(false);
      }
   }
-  if (Sefaria.is_moderator && addingTopics) {
-      const desc = topicData?.description || topicData?.categoryDescription;
-      let initCatSlug = "";
-      if (category) {
-          initCatSlug = category["slug"];
-      }
-      else if ("displays-under" in topicData?.links) {
-          // this case handles categories that are not top level but have children under them
-          const displayUnderLinks = topicData?.links["displays-under"]?.links;
-          if (displayUnderLinks && displayUnderLinks.length === 1) {
-              initCatSlug = displayUnderLinks[0].topic;
-          }
-      }
-      return <TopicEditor en={en} he={he} desc={desc} slug={topicData["slug"]} categorySlug={initCatSlug} close={(e) => toggleAddingTopics(e)}/>;
+  if (Sefaria.is_moderator && addingTopics && !!topicData) {
+      const initCatSlug = TopicToCategorySlug(topicData, category);
+      return <TopicEditor en={en} he={he} desc={topicData?.description || ""}
+                          categoryDesc={topicData?.categoryDescription || ""}
+                          slug={topicData["slug"]} categorySlug={initCatSlug} close={(e) => toggleAddingTopics(e)}/>;
   }
-  const topicStatus = !Sefaria.is_moderator ? null :
+  const topicStatus = Sefaria.is_moderator && !!topicData ?
                             <div onClick={(e) => toggleAddingTopics(e)} id="editTopic" className="button extraSmall topic" role="button">
                               <InterfaceText>Edit Topic</InterfaceText>
-                          </div>;
+                            </div> : null;
   return (
     <div>
         <div className="navTitle tight">

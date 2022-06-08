@@ -7201,6 +7201,7 @@ a .button:hover {
   background-color: var(--lighter-grey);
   white-space: nowrap;
 }
+
 .button .buttonIcon {
   margin-inline-end: 7px;
   vertical-align: middle;
@@ -11133,6 +11134,11 @@ body .homeFeedWrapper.userStats {
   font-size: 16px;
   line-height: 18.75px;
   padding: 10px;
+}
+.button.small.deleteTopic {
+  color: var(--dark-grey);
+  float: right;
+  background-color: var(--lightest-grey);
 }
 #categoryChooserMenu {
   overflow: hidden;
