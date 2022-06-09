@@ -1662,10 +1662,6 @@ div.interfaceLinks-row a {
   margin: 0 5px;
 }
 
-.readerPanel .translationsPage h2 {
-  margin: 40px 0 34px 0;
-}
-
 .navSidebarLink .languageItem, .translationsPage .languageItem {
   display: inline;
   font-size: 18px;
@@ -2093,13 +2089,14 @@ div.interfaceLinks-row a {
   margin-bottom: -3px;
 }
 .readerPanel .translationsPage h2 {
+  margin: 40px 0 0 0;
   font-size: 24px;
   text-transform: none;
   color: #000;
 }
 .translationsPage details > ul {
   padding: 0;
-  margin: 22px 0;
+  margin: 20px 0;
   display: flex;
   flex-wrap: wrap;
 }
@@ -2220,7 +2217,7 @@ h1 .languageToggle .he {
   text-align: start;
   font-size: 15px;
   color: #666;
-  margin-bottom: 20px;
+  margin: 30px 0 0 0;
   font-weight: normal;
 }
 .readerNavSection h2, .topicsPanel h2 {
