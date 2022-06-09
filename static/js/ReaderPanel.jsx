@@ -191,6 +191,9 @@ class ReaderPanel extends Component {
     this.conditionalSetState(newState, this.replaceHistory);
   }
   onNamedEntityClick(slug, textRef, namedEntityText) {
+    // make sure text list is highlighted for segment with named entity
+    this.setTextListHighlight(textRef, true);
+
     // decide whether to open side panel in current panel or in new panel based on whether app is multipanel
     const namedEntityState = { connectionsMode: "Lexicon", selectedNamedEntity: slug, selectedNamedEntityText: namedEntityText };
     if (this.props.multiPanel) {
@@ -294,6 +297,9 @@ class ReaderPanel extends Component {
   setTextListHighlight(refs, showHighlight) {
     refs = typeof refs === "string" ? [refs] : refs;
     this.replaceHistory = true;
+    if (!Sefaria.util.object_equals(refs, this.state.highlightedRefs)) {
+      this.props.closeNamedEntityInConnectionPanel();
+    }
     this.conditionalSetState({highlightedRefs: refs, showHighlight: showHighlight});
     this.props.setTextListHighlight(refs);
   }
@@ -502,9 +508,9 @@ class ReaderPanel extends Component {
     //console.log("Setting panel width", this.width);
   }
   setCurrentlyVisibleRef(ref) {
-     this.replaceHistory = true;
-     //var ref = this.state.highlightedRefs.length ? Sefaria.normRef(this.state.highlightedRefs) : ref;
-     this.conditionalSetState({
+    this.replaceHistory = true;
+    //var ref = this.state.highlightedRefs.length ? Sefaria.normRef(this.state.highlightedRefs) : ref;
+    this.conditionalSetState({
       currentlyVisibleRef: ref,
     });
   }

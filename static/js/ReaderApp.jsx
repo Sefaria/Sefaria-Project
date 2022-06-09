@@ -381,7 +381,7 @@ class ReaderApp extends Component {
           (prev.currVersions.he !== next.currVersions.he) ||
           (prev.searchQuery != next.searchQuery) ||
           (prev.searchTab != next.searchTab) ||
-          (prev.tab !== next.tab)
+          (prev.tab !== next.tab) ||
           (prev.collectionName !== next.collectionName) ||
           (prev.collectionTag !== next.collectionTag) ||
           (!prevTextSearchState.isEqual({ other: nextTextSearchState, fields: ["appliedFilters", "field", "sortType"]})) ||
@@ -925,6 +925,12 @@ class ReaderApp extends Component {
   closeConnectionPanel(n) {
     if (this.state.panels.length > n+1  && this.state.panels[n+1].mode === "Connections") {
       this.closePanel(n+1);
+    }
+  }
+  closeNamedEntityInConnectionPanel(n) {
+    if (this.state.panels.length > n+1  && this.state.panels[n+1].selectedNamedEntity) {
+      this.setPanelState(n+1, {connectionsMode: "Resources"});
+      this.clearNamedEntity(n+1);
     }
   }
   handleCitationClick(n, citationRef, textRef, replace, currVersions) {
@@ -1922,6 +1928,7 @@ class ReaderApp extends Component {
       var onCitationClick                = this.handleCitationClick.bind(null, i);
       var openNamedEntityInNewPanel      = this.openNamedEntityInNewPanel.bind(null, i);
       var onCloseConnectionClick         = this.closeConnectionPanel.bind(null,i);
+      var closeNamedEntityInConnectionPanel = this.closeNamedEntityInConnectionPanel.bind(null,i);
       var onSearchResultClick            = i > 0 ? this.handleCompareSearchClick.bind(null, i) : this.handleNavigationClick;
       var unsetTextHighlight             = this.unsetTextHighlight.bind(null, i);
       var updateQuery                    = this.updateQuery.bind(null, i);
@@ -1963,6 +1970,7 @@ class ReaderApp extends Component {
                       onCitationClick={onCitationClick}
                       openNamedEntityInNewPanel={openNamedEntityInNewPanel}
                       closeConnectionPanel={onCloseConnectionClick}
+                      closeNamedEntityInConnectionPanel={closeNamedEntityInConnectionPanel}
                       onSearchResultClick={onSearchResultClick}
                       onNavigationClick={this.handleNavigationClick}
                       onOpenConnectionsClick={onOpenConnectionsClick}
