@@ -36,6 +36,7 @@ import Component from 'react-class';
 import { TextTableOfContents } from "./BookPage";
 import { CollectionsModal } from './CollectionsWidget';
 import { event } from 'jquery';
+import TopicSearch from "./TopicSearch";
 
 
 class ConnectionsPanel extends Component {
@@ -1169,6 +1170,7 @@ const TopicList = ({ srefs, interfaceLang, contentLang }) => {
   const topics = Sefaria.topicsByRef(srefs);
   return (
     <div className={`topicList ${contentLang === 'hebrew' ? 'topicsHe' : 'topicsEn'}`}>
+      <TopicSearch contextSelector=".topicList"/>
       {(!topics || !topics.length) ? (
         <div className="webpageList empty">
           <div className="loadingMessage sans-serif">

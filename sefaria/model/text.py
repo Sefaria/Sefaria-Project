@@ -5105,23 +5105,16 @@ class Library(object):
         self._topic_auto_completer = AutoCompleter("en", library, include_topics=True, min_topics=0)
         self._topic_auto_completer_is_ready = True
 
-
-    def topic_auto_completer(self, topic):
+    def topic_auto_completer(self):
         """
-        Returns the value of the topic auto completer map given a topic key. If the key
-        is not present, it assumes the need to rebuild the topic_auto_completer and calls the build
-        function with appropriate logger warnings before returning the desired result
-
-        @param: topic String
+        Returns the topic auto completer. If the auto completer was not initially loaded,
+        it rebuilds before returning, emitting warnings to the logger.
         """
-        try:
-            return self._topic_auto_completer[topic]
-        except KeyError:
-            logger.warning("Failed to load {} auto completer, rebuilding.".format(topic))
-            self.build_topic_auto_completers()  # I worry that these could pile up.
-            logger.warning("Built {} auto completer.".format(topic))
-            return self._topic_auto_completer[topic]
-
+        if self._topic_auto_completer is None:
+            logger.warning("Failed to load topic auto completer. rebuilding")
+            self.build_topic_auto_completer()
+            logger.warning("Built topic auto completer")
+        return self._topic_auto_completer
 
     def cross_lexicon_auto_completer(self):
         """

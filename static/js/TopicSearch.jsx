@@ -17,7 +17,6 @@ class TopicSearch extends Component {
     };
   }
   componentDidMount() {
-    this.attachKeyboard();
     this.initAutocomplete();
     this.checkIfChanged();
   }
@@ -39,13 +38,7 @@ class TopicSearch extends Component {
       return;
     }
     if (this.state.val != current) {
-      if (document.getElementById('keyboardInputMaster')) {
-        // If the keyboard is open, place autocomplete results below it
-        $(ReactDOM.findDOMNode(this)).find("input.search").autocomplete("option", "position", {my: "left+15 top+180", at: "left bottom",of: this.props.contextSelector + ' .TopicSearchBox'});
-      } else {
-        // Otherwise results are below input box
-        $(ReactDOM.findDOMNode(this)).find("input.search").autocomplete("option", "position", {my: "left top", at: "left bottom", of: this.props.contextSelector + ' .TopicSearchBox'});
-      }
+      $(ReactDOM.findDOMNode(this)).find("input.search").autocomplete("option", "position", {my: "left top", at: "left bottom", of: this.props.contextSelector + ' .TopicSearchBox'});
       $(ReactDOM.findDOMNode(this)).find("input.search").autocomplete("search");
     }
     this.setState({
@@ -56,12 +49,6 @@ class TopicSearch extends Component {
       )
     });
 
-  }
-  attachKeyboard() {
-    const inputElement = document.querySelector(this.props.contextSelector + ' .TopicSearchBox .keyboardInput');
-    if (inputElement && (!inputElement.VKI_attached)) {
-      VKI_attach(inputElement);
-    }
   }
   initAutocomplete() {
     $(ReactDOM.findDOMNode(this)).find("input.search").autocomplete({
@@ -81,7 +68,7 @@ class TopicSearch extends Component {
         this.checkIfChanged()
       }.bind(this),
       classes: {
-        "ui-autocomplete": "topic-toc-autocomplete"  
+        "ui-autocomplete": "topic-toc-autocomplete"
       },
       minLength: 1,
       focus: e => clearTimeout(this.state.timer),
@@ -93,12 +80,11 @@ class TopicSearch extends Component {
       }.bind(this),
 
       source: function(request, response) {
-        Sefaria.lexiconCompletion(
+        Sefaria.topicCompletion(
             request.term,
-            this.props.lexiconName,
             d => {
-              if (d.length > 0) {
-                response(d.map(function(e) { return {label: e[1], value: e[0]}}));
+              if (d[0].length > 0) {
+                response(d[0].map(function(e) { return {label: e, value: e}}));
               } else {
                 response([])
               }
@@ -107,32 +93,17 @@ class TopicSearch extends Component {
       }.bind(this)
     });
   }
-  handleSearchButtonClick(event) {
-    const query = $(ReactDOM.findDOMNode(this)).find(".search").val();
-    if (query) {
-      this.submitSearch(query, true);
-    }
-  }
   handleSearchKeyUp(event) {
     if (event.keyCode === 13) {
       const query = $(event.target).val();
       if (query) {
         $(ReactDOM.findDOMNode(this)).find("input.search").autocomplete("close");
-        this.submitSearch(query, true);
+        this.submitSearch(query);
       }
     }
   }
-  submitSearch(word, needsResolution) {
-    if (needsResolution) {
-      // Get the dotted form of this word, or the nearest match
-      Sefaria.lexiconCompletion(word, this.props.lexiconName,
-        d => {
-          const resolvedWord = (d.length > 0) ? d[0][1] : word;
-          this.displayWord(resolvedWord)
-          });
-    } else {
-      this.displayWord(word);
-    }
+  submitSearch(word) {
+    alert(Sefaria.topicCompletion(word));
   }
   render() {
     let inputClasses = classNames({search: 1, keyboardInput: Sefaria.interfaceLang == 'english'});
@@ -151,11 +122,6 @@ class TopicSearch extends Component {
   }
 }
 TopicSearch.propTypes = {
-  lexiconName:      PropTypes.string,    // req. for redirect to text - e.g. TOC case.
-  title:            PropTypes.string,    // req. for redirect to text - e.g. TOC case.
-  showBaseText:     PropTypes.func,      // req. for redirect to text - e.g. TOC case.
-  showWordList:     PropTypes.func,      // req. for sidebar case
-  currVersions:     PropTypes.object,    // req. for redirect to text - e.g. TOC case.
   contextSelector:  PropTypes.string.isRequired // CSS Selector for uniquely identifiable context that this is in.
 };
 

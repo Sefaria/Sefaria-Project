@@ -91,6 +91,9 @@ if not DISABLE_AUTOCOMPLETER:
     logger.info("Initializing Cross Lexicon Auto Completer")
     library.build_cross_lexicon_auto_completer()
 
+    logger.info("Initializing Topic Auto Completer")
+    library.build_topic_auto_completer()
+
 if ENABLE_LINKER:
     logger.info("Initializing Linker")
     library.build_ref_resolver()
@@ -2578,8 +2581,8 @@ def get_name_completions(name, limit, ref_only, topic_override=False):
 
 @catch_error_as_json
 def topic_completion_api(request, topic):
-
-    result = library.topic_auto_completer(topic)[:10]
+    LIMIT = int(request.GET.get("limit", 10))
+    result = library.topic_auto_completer().complete(topic, limit=LIMIT)
     return jsonResponse(result)
 
 
