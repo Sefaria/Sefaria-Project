@@ -45,9 +45,9 @@ class CategoryFilter extends Component {
     let innerClasses = classNames({categoryFilter: 1, withBooks: this.props.showBooks, on: this.props.on});
     let handleClick  = this.handleClick;
     const url = (this.props.srefs && this.props.srefs.length > 0)?"/" + Sefaria.normRef(this.props.srefs[0]) + "?with=" + this.props.category:"";
-    const classesDesc = classNames({ sidebarDescription: 1, lowlight: this.props.count == 0});
+    const classesDesc = classNames({ sidebarDescription: 1, lowlight: this.props.count == 0, title:1});
     let outerClasses = classNames({categoryFilterGroup: 1, withBooks: this.props.showBooks});
-    const catDesc = Sefaria.getDescrptionDict(this.props.category, []);
+    const catDesc = Sefaria.getDescriptionDict(this.props.category, []);
     const catEnDesc = catDesc[0];
     const catHeDesc = catDesc[1];
     return (

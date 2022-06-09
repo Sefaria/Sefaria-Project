@@ -1277,7 +1277,6 @@ Sefaria = extend(Sefaria, {
         category.books[link["collectiveTitle"]["en"]] = {count: 1, hasEnglish: link.sourceHasEn};
         category.books[link["collectiveTitle"]["en"]].categoryList = Sefaria.index(link["index_title"]).categories
       }
-      console.log("index_title:",link["index_title"])
     }
     // Add Zero counts for every commentator in this section not already in list
     const baseRef    = typeof ref == "string" ? ref : ref[0]; // TODO handle refs spanning sections
@@ -1310,7 +1309,6 @@ Sefaria = extend(Sefaria, {
         bookData.category = category;
         bookData.enShortDesc = index.enShortDesc || index.enDesc;
         bookData.heShortDesc = index.heShortDesc;
-        console.log(book, bookData.book, bookData.categoryList)
         bookData.categoryList = index.categories[0] == ['Commentary'] ? bookData.categoryList : index.categories;
         if (bookData.categoryList == "Quoting Commentary") {
             debugger;
@@ -1328,19 +1326,12 @@ Sefaria = extend(Sefaria, {
             // bookData.enShortDesc = Sefaria.tocItemsByCategories(bookData.categoryList).map((e)=>(e.category || e.title === bookData.book ? e.enShortDesc: null))
         }
         if (bookData.categoryList && !bookData.enShortDesc) {
-            const desc = Sefaria.getDescrptionDict(bookData.book, bookData.categoryList)
+            const desc = Sefaria.getDescriptionDict(bookData.book, bookData.categoryList)
             if (desc) {
                 bookData.enShortDesc = desc[0] || null;
                 bookData.heShortDesc = desc[1] || null;
             }
         }
-        console.log("book ", bookData.book, "bookData Array",bookData.categoryList, bookData.enShortDesc, bookData.heShortDesc)
-
-//           Sefaria.tocItemsByCategories([
-//     "Tanakh",
-//     "Rishonim on Tanakh"
-// ]).map((e)=>[typeof e.category === 'undefined'? e.title : e.category, e.enShortDesc])
-//           pred.map((e) => d[e[0]] = e[1])
 
         return bookData;
       });
@@ -1442,32 +1433,30 @@ Sefaria = extend(Sefaria, {
       const catlist = Sefaria.tocItemsByCategories(categoryList)
         let catmap = catlist.map((e) => [e.category || e.title, e.enShortDesc, e.heShortDesc])
         let d = {}
-        catmap.map((e) => {if (e) {d[e[0]]=[e[1], e[2]]}
-        if (e[0].includes("on")) {
-            d[e[0].split(" on")[0]] = [e[1], e[2]]
-        }})
+        catmap.map((e) => {
+            // return array of key: name of "book" value: list of both descriptions
+            if (e) {
+                d[e[0]]=[e[1], e[2]]
+            }
+            // special case for commentators that the book name is "on" eg. "Ramban on Genesis"
+            if (e[0].includes("on")) {
+                d[e[0].split(" on")[0]] = [e[1], e[2]]
+            }
+        })
         let descs = d[keyName] || d[Sefaria.index(keyName).collectiveTitle] || d[keyName.split(" on")[0]];
         let enShortDesc = descs && descs[0]? descs[0]: null;
         let heShortDesc = descs && descs[1]? descs[1]: null;
-        // below is an option to pull data from the descriptions on the topics via authors names.
-        // if (!enShortDesc || !heShortDesc) {
-        //     debugger;
-        //     const e = Sefaria.topic_toc.filter(word => word.slug == "authors")[0].children.filter(e => e.slug.includes(keyName.toLowerCase()))
-        //     let edesc = e && e[0] && e[0].description ? e[0].description : null;
-        //     if (edesc) {
-        //         enShortDesc = enShortDesc || edesc.en
-        //         heShortDesc = heShortDesc || edesc.he
-        //     }
-        // }
         return [enShortDesc, heShortDesc];
   },
-    getDescrptionDict: function(keyName, categoryList){
+    getDescriptionDict: function(keyName, categoryList){
         let desc = this._cachedApi([keyName, categoryList], this._descDict, null);
         if (Object.keys(this._descDict).length === 0){
             //Init of the Dict with the Category level descriptions
-                this.toc.map(e=> {this._descDict[[e.category, []]] = [e.enShortDesc, e.heShortDesc]})
-                this._descDict[["Commentary", []]] = ["Interpretations and discussions surrounding Jewish texts, ranging from early medieval to contemporary.", null]
-                this._descDict[["Targum", []]] = this.getDescriptions("Targum", ["Tanakh"])
+            Sefaria.toc.map(e=> {this._descDict[[e.category, []]] = [e.enShortDesc, e.heShortDesc]})
+            // todo: get this data out of code (into db?)
+            this._descDict[["Commentary", []]] = ["Interpretations and discussions surrounding Jewish texts, ranging from early medieval to contemporary.", null]
+            // special case of a category in sidebar that is a sub cat on the navigation toc pages
+            this._descDict[["Targum", []]] = this.getDescriptions("Targum", ["Tanakh"])
         }
         if (!desc && categoryList.length !== 0) {
             desc = this.getDescriptions(keyName, categoryList)
