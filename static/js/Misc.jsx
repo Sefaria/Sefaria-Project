@@ -576,23 +576,27 @@ class TabView extends Component {
     }
     return tabIndex;
   }
-  onClickTab(e) {
-    let target = $(event.target);
-    while (!target.attr("data-tab-index")) { target = target.parent(); }
-    const tabIndex = parseInt(target.attr("data-tab-index"));
-    const { onClickArray, setTab, tabs } = this.props;
-    if (onClickArray && onClickArray[tabIndex]) {
-      onClickArray[tabIndex]();
+  onClickTab(e, clickTabOverride) {
+    if (clickTabOverride) {
+      clickTabOverride()
     } else {
-      this.openTab(tabIndex);
-      const tab = this.props.tabs[tabIndex];
-      setTab && setTab(tab.id);
+      let target = $(event.target);
+      while (!target.attr("data-tab-index")) { target = target.parent(); }
+      const tabIndex = parseInt(target.attr("data-tab-index"));
+      const { onClickArray, setTab, tabs } = this.props;
+      if (onClickArray && onClickArray[tabIndex]) {
+        onClickArray[tabIndex]();
+      } else {
+        this.openTab(tabIndex);
+        const tab = this.props.tabs[tabIndex];
+        setTab && setTab(tab.id);
+      }
     }
   }
   renderTab(tab, index) {
     const currTabIndex = this.getTabIndex();
     return (
-      <div className={classNames({active: currTabIndex === index, justifyright: tab.justifyright})} key={tab.id} data-tab-index={index} onClick={this.onClickTab}>
+      <div className={classNames({active: currTabIndex === index, justifyright: tab.justifyright})} key={tab.id} data-tab-index={index} onClick={(e) => {this.onClickTab(e, tab.clickTabOverride)}}>
         {this.props.renderTab(tab, index)}
       </div>
     );
