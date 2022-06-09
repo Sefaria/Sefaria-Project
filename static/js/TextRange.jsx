@@ -109,6 +109,8 @@ class TextRange extends Component {
     if ((!data || "updateFromAPI" in data) && !this.textLoading) { // If we don't have data yet, call trigger an API call
       this.textLoading = true;
       Sefaria.getText(this.props.sref, settings).then(this.onTextLoad);
+    } else if (!!data && this.props.isCurrentlyVisible) {
+      this._updateCurrVersions(data.versionTitle, data.heVersionTitle);
     }
     return data;
   }
@@ -128,13 +130,7 @@ class TextRange extends Component {
       return;
     }
 
-    // make sure currVersions matches versions returned, due to translationLanguagePreference and versionPreferences
-    if (this.props.setCurrVersions) {
-      this.props.setCurrVersions({
-        en: data.versionTitle,
-        he: data.heVersionTitle,
-      });
-    }
+    this._updateCurrVersions(data.versionTitle, data.heVersionTitle);
 
     // If this is a ref to a super-section, rewrite it to first available section
     if (this.props.basetext && data.textDepth - data.sections.length > 1 && data.firstAvailableSectionRef) {
@@ -150,6 +146,11 @@ class TextRange extends Component {
         this.props.onTextLoad && this.props.onTextLoad(data.ref); // Don't call until the text is actually rendered
       }.bind(this));
     }
+  }
+  _updateCurrVersions(enVTitle, heVTitle) {
+    // make sure currVersions matches versions returned, due to translationLanguagePreference and versionPreferences
+    if (!this.props.updateCurrVersionsToMatchAPIResult) { return; }
+    this.props.updateCurrVersionsToMatchAPIResult(enVTitle, heVTitle);
   }
   _prefetchLinksAndNotes(data) {
     let sectionRefs = data.isSpanning ? data.spanningRefs : [data.sectionRef];
@@ -487,10 +488,17 @@ class TextSegment extends Component {
       this.props.unsetTextHighlight();
     }
   }
+  calculatePositionWithinElement(event){
+    const rect = event.target.getBoundingClientRect();
+    const x = event.clientX - rect.left; //x position within the element.
+    const y = event.clientY - rect.top;  //y position within the element.
+    return [x,y]
+  }
   handleClick(event) {
     // grab refLink from target or parent (sometimes there is an <i> within refLink forcing us to look for the parent)
     const refLink = $(event.target).hasClass("refLink") ? $(event.target) : ($(event.target.parentElement).hasClass("refLink") ? $(event.target.parentElement) : null);
     const namedEntityLink = $(event.target).closest("a.namedEntityLink");
+    const footnoteLink = $(event.target).is("sup") || $(event.target).parents("sup").size();
     if (refLink) {
       //Click of citation
       event.preventDefault();
@@ -501,6 +509,9 @@ class TextSegment extends Component {
       this.props.onCitationClick(ref, this.props.sref, true, currVersions);
       event.stopPropagation();
       Sefaria.track.event("Reader", "Citation Link Click", ref);
+    } else if (footnoteLink) {
+      this.props.onFootnoteClick(event);
+      event.stopPropagation();
     } else if (namedEntityLink.length > 0) {
       //Click of named entity
       event.preventDefault();
@@ -511,12 +522,20 @@ class TextSegment extends Component {
       this.props.onNamedEntityClick(topicSlug, this.props.sref, namedEntityLink[0].innerText);
       event.stopPropagation();
       Sefaria.track.event("Reader", "Named Entity Link Click", topicSlug);
-    } else if ($(event.target).is("sup") || $(event.target).parents("sup").size()) {
-      this.props.onFootnoteClick(event);
-      event.stopPropagation();
     } else if (this.props.onSegmentClick) {
       this.props.onSegmentClick(this.props.sref);
       Sefaria.track.event("Reader", "Text Segment Click", this.props.sref);
+    }
+    const pos = this.calculatePositionWithinElement(event)
+    this.setState({lastClickXY:pos})
+  }
+  handleDoubleClick(event) {
+    if (event.detail > 1) {
+    const pos = this.calculatePositionWithinElement(event)
+      // might be problimatic if there is a slight move in the double-click shaky hands. can be fixed with an error of a few px on both axes.
+      if (this.state.lastClickXY != pos){
+        event.preventDefault();
+      }
     }
   }
   handleKeyPress(event) {
@@ -627,7 +646,7 @@ class TextSegment extends Component {
     }
     return (
       <div tabIndex="0"
-           className={classes} onClick={this.handleClick} onKeyPress={this.handleKeyPress}
+           className={classes} onClick={this.handleClick} onKeyPress={this.handleKeyPress} onMouseDown={this.handleDoubleClick}
            data-ref={this.props.sref} aria-controls={"panel-"+(this.props.panelPosition+1)}
            aria-label={"Click to see links to "+this.props.sref}>
         {segmentNumber}

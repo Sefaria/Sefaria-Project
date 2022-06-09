@@ -182,14 +182,14 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
             topicEditorStatus.current =
                 <div onClick={(e) => toggleAddingTopics(e)} id="editTopic" className="button extraSmall topic"
                      role="button">
-                    <InterfaceText>Edit a Topic</InterfaceText>
+                    <InterfaceText>Edit Topic</InterfaceText>
                 </div>;
         }
         else if (addingTopics && "slug" in topicData) {
             const initCatSlug = TopicToCategorySlug(topicData);
-            topicEditorStatus.current = <TopicEditor slug={topicData.slug} en={topicData.primaryTitle.en} he={topicData.primaryTitle.he}
-                         desc={topicData?.description || ""} categorySlug={initCatSlug}
-                         categoryDesc={topicData?.categoryDescription || ""}
+            topicEditorStatus.current = <TopicEditor origSlug={topicData.slug} origEn={topicData.primaryTitle.en} origHe={topicData.primaryTitle.he}
+                         origDesc={topicData?.description || ""} origCategorySlug={initCatSlug}
+                         origCategoryDesc={topicData?.categoryDescription || ""}
                          close={(e) => toggleAddingTopics(e)}/>;
         }
     }
@@ -317,9 +317,9 @@ const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDis
   }
   if (Sefaria.is_moderator && addingTopics && !!topicData) {
       const initCatSlug = TopicToCategorySlug(topicData, category);
-      return <TopicEditor en={en} he={he} desc={topicData?.description || ""}
-                          categoryDesc={topicData?.categoryDescription || ""}
-                          slug={topicData["slug"]} categorySlug={initCatSlug} close={(e) => toggleAddingTopics(e)}/>;
+      return <TopicEditor origEn={en} origHe={he} origDesc={topicData?.description || ""}
+                          origCategoryDesc={topicData?.categoryDescription || ""}
+                          origSlug={topicData["slug"]} origCategorySlug={initCatSlug} close={(e) => toggleAddingTopics(e)}/>;
   }
   const topicStatus = Sefaria.is_moderator && !!topicData ?
                             <div onClick={(e) => toggleAddingTopics(e)} id="editTopic" className="button extraSmall topic" role="button">
@@ -398,7 +398,7 @@ const useTabDisplayData = (translationLanguagePreference) => {
 
 const TopicPage = ({
   tab, topic, topicTitle, setTopic, setNavTopic, openTopics, multiPanel, showBaseText, navHome, 
-  toggleSignUpModal, openDisplaySettings, updateTopicsTab, openSearch, translationLanguagePreference, versionPref
+  toggleSignUpModal, openDisplaySettings, setTab, openSearch, translationLanguagePreference, versionPref
 }) => {
     const defaultTopicData = {primaryTitle: topicTitle, tabs: {}, isLoading: true};
     const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(topic) || defaultTopicData);
@@ -473,16 +473,6 @@ const TopicPage = ({
       });
       onClickFilterIndex = displayTabs.length - 1;      
     }
-    let tabIndex = displayTabs.findIndex(t => t.id === tab);
-    if (tabIndex == -1 && displayTabs.length > 0) {
-      tabIndex = 0;
-    }
-    useEffect(() => {
-      if (!!displayTabs[tabIndex]) {
-        updateTopicsTab(displayTabs[tabIndex].id);
-      }
-    }, [tabIndex]);
-
     const classStr = classNames({topicPanel: 1, readerNavMenu: 1});
     return <div className={classStr}>
         <div className="content noOverflowX" ref={scrollableElement}>
@@ -491,8 +481,8 @@ const TopicPage = ({
                     <TopicHeader topic={topic} topicData={topicData} multiPanel={multiPanel} setNavTopic={setNavTopic} openSearch={openSearch} openDisplaySettings={openDisplaySettings} />
                     {(!topicData.isLoading && displayTabs.length) ?
                        <TabView
-                          currTabIndex={tabIndex}
-                          setTab={(tabIndex, tempTabs) => { updateTopicsTab(tempTabs[tabIndex].id); }}
+                          currTabName={tab}
+                          setTab={setTab}
                           tabs={displayTabs}
                           renderTab={t => (
                             <div className={classNames({tab: 1, noselect: 1, filter: t.justifyright, open: t.justifyright && showFilterHeader})}>
@@ -551,12 +541,12 @@ const TopicPage = ({
       </div>;
 };
 TopicPage.propTypes = {
-  tab:                 PropTypes.string.isRequired,
+  tab:                 PropTypes.string,
   topic:               PropTypes.string.isRequired,
   setTopic:            PropTypes.func.isRequired,
   setNavTopic:         PropTypes.func.isRequired,
   openTopics:          PropTypes.func.isRequired,
-  updateTopicsTab:     PropTypes.func.isRequired,
+  setTab:              PropTypes.func.isRequired,
   multiPanel:          PropTypes.bool,
   showBaseText:        PropTypes.func,
   navHome:             PropTypes.func,
@@ -625,7 +615,8 @@ const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, set
       })),
     })
   }
-  const readingsComponent = (parashaData && parashaData.length && tref) ? (
+  const hasReadings = parashaData && (!Array.isArray(parashaData) || parashaData.length > 0) && tref;
+  const readingsComponent = hasReadings ? (
     <ReadingsComponent parashaData={parashaData} tref={tref} />
   ) : null;
   const topicMetaData = <TopicMetaData timePeriod={timePeriod} properties={properties} />;

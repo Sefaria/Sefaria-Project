@@ -172,8 +172,14 @@ class ReaderPanel extends Component {
   handleTextListClick(ref, replaceHistory, currVersions) {
     this.showBaseText(ref, replaceHistory, currVersions);
   }
-  setCurrVersions(currVersions) {
-    this.conditionalSetState({ currVersions });
+  updateCurrVersionsToMatchAPIResult(enVTitle, heVTitle) {
+    const newVersions = {
+        ...this.state.currVersions,
+        enAPIResult: enVTitle,
+        heAPIResult: heVTitle,
+    };
+    if (Sefaria.util.object_equals(this.state.currVersions, newVersions)) { return; }
+    this.conditionalSetState({ currVersions: newVersions });
   }
   openConnectionsInPanel(ref, additionalState) {
     let refs = typeof ref == "string" ? [ref] : ref;
@@ -502,9 +508,9 @@ class ReaderPanel extends Component {
       currentlyVisibleRef: ref,
     });
   }
-  setProfileTab(tab) {
-    this.replaceHistory = true;
-    this.conditionalSetState({profileTab: tab});
+  setTab(tab, replaceHistory=false) {
+    this.replaceHistory = replaceHistory;
+    this.conditionalSetState({tab: tab})
   }
   currentMode() {
     return this.state.mode;
@@ -623,6 +629,7 @@ class ReaderPanel extends Component {
           srefs={this.state.refs.slice()}
           currVersions={this.state.currVersions}
           highlightedRefs={this.state.highlightedRefs}
+          currentlyVisibleRef={this.state.currentlyVisibleRef}
           showHighlight={showHighlight}
           basetext={true}
           bookTitle={textColumnBookTitle}
@@ -651,7 +658,7 @@ class ReaderPanel extends Component {
           textHighlights={this.state.textHighlights}
           unsetTextHighlight={this.props.unsetTextHighlight}
           translationLanguagePreference={this.props.translationLanguagePreference}
-          setCurrVersions={this.setCurrVersions}
+          updateCurrVersionsToMatchAPIResult={this.updateCurrVersionsToMatchAPIResult}
           key={`${textColumnBookTitle ? textColumnBookTitle : "empty"}-TextColumn`} />
       );
     }
@@ -783,6 +790,8 @@ class ReaderPanel extends Component {
 
     } else if (this.state.menuOpen === "text toc") {
       menu = (<BookPage
+                    tab={this.state.tab}
+                    setTab={this.setTab}
                     mode={this.state.menuOpen}
                     multiPanel={this.props.multiPanel}
                     close={this.closeMenus}
@@ -806,6 +815,8 @@ class ReaderPanel extends Component {
         });
       };
       menu = (<BookPage
+                    tab={this.state.tab}
+                    setTab={this.setTab}
                     mode={this.state.menuOpen}
                     multiPanel={this.props.multiPanel}
                     close={this.closeMenus}
@@ -826,6 +837,8 @@ class ReaderPanel extends Component {
 
     } else if (this.state.menuOpen === "extended notes" && this.state.mode !== "Connections") {
       menu = (<BookPage
+                    tab={this.state.tab}
+                    setTab={this.setTab}
                     mode={this.state.menuOpen}
                     interfaceLang={this.props.interfaceLang}
                     close={this.closeMenus}
@@ -883,7 +896,8 @@ class ReaderPanel extends Component {
       } else if (this.state.navigationTopic) {
         menu = (
           <TopicPage
-            tab={this.state.topicsTab}
+            tab={this.state.tab}
+            setTab={this.setTab}
             topic={this.state.navigationTopic}
             topicTitle={this.state.topicTitle}
             interfaceLang={this.props.interfaceLang}
@@ -898,7 +912,6 @@ class ReaderPanel extends Component {
             navHome={this.openMenu.bind(null, "navigation")}
             openDisplaySettings={this.openDisplaySettings}
             toggleSignUpModal={this.props.toggleSignUpModal}
-            updateTopicsTab={this.props.updateTopicsTab}
             translationLanguagePreference={this.props.translationLanguagePreference}
             key={"TopicPage"}
           />
@@ -941,6 +954,8 @@ class ReaderPanel extends Component {
       menu = (
         <CollectionPage
           name={this.state.collectionName}
+          setTab={this.setTab}
+          tab={this.state.tab}
           slug={this.state.collectionSlug}
           tag={this.state.collectionTag}
           setCollectionTag={this.setCollectionTag}
@@ -1011,8 +1026,8 @@ class ReaderPanel extends Component {
       menu = (
         <UserProfile
           profile={this.state.profile}
-          tab={this.state.profileTab}
-          setProfileTab={this.setProfileTab}
+          tab={this.state.tab}
+          setTab={this.setTab}
           toggleSignUpModal={this.props.toggleSignUpModal}
           multiPanel={this.props.multiPanel}
           navHome={this.openMenu.bind(null, "navigation")} />
@@ -1132,7 +1147,6 @@ ReaderPanel.propTypes = {
   unsetTextHighlight:          PropTypes.func,
   onQueryChange:               PropTypes.func,
   updateSearchTab:             PropTypes.func,
-  updateTopicsTab:             PropTypes.func,
   updateSearchFilter:          PropTypes.func,
   updateSearchOptionField:     PropTypes.func,
   updateSearchOptionSort:      PropTypes.func,
@@ -1204,15 +1218,14 @@ class ReaderControls extends Component {
      */
     if (!this.shouldShowVersion()) { return; }
     Sefaria.getVersions(this.props.currentRef, false, ['he'], true).then(versionList => {
-      if (!this.props.currVersions.en) {
-        // default version. choose highest priority
-        if (versionList.length === 0) { return; }
-        versionList.sort((a, b) => b.priority - a.priority);
-        this.setDisplayVersionTitle(versionList[0]);
+      const enVTitle = this.props.currVersions.enAPIResult;
+      if (!enVTitle) {
+        // merged version from API
+        this.setDisplayVersionTitle({});
         return;
       }
       for (let version of versionList) {
-        if (version.versionTitle === this.props.currVersions.en) {
+        if (version.versionTitle === enVTitle) {
           this.setDisplayVersionTitle(version);
           break;
         }

@@ -540,3 +540,20 @@ def wrap_chars_with_overlaps(s, chars_to_wrap, get_wrapped_text, return_chars_to
     if return_chars_to_wrap:
         return s, chars_to_wrap
     return s
+
+
+def deep_update(dict1, dict2):
+    """
+    Merges dict2 into dict1. Will recursively merge as deep as necessary. returns merged dict
+    @param dict1:
+    @param dict2:
+    @return: merged dict
+    """
+    from collections.abc import Mapping
+
+    for k, v in dict2.items():
+        if isinstance(v, Mapping):
+            dict1[k] = deep_update(dict1.get(k, {}), v)
+        else:
+            dict1[k] = v
+    return dict1

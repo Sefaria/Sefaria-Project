@@ -550,13 +550,32 @@ FilterableList.propTypes = {
 class TabView extends Component {
   constructor(props) {
     super(props);
-    const { currTabIndex } = props;
+    const { currTabName } = props;
     this.state = {
-      currTabIndex: (typeof currTabIndex == 'undefined') ? 0 : currTabIndex,
+      currTabName: typeof currTabName === 'undefined' ? this.props.tabs[0].id : currTabName
     };
+  }
+  componentDidMount() {
+    if (this.props.currTabName === null) {
+      this.props.setTab(this.props.tabs[0].id, true)
+    }
   }
   openTab(index) {
     this.setState({currTabIndex: index});
+  }
+  getTabIndex() {
+    let tabIndex;
+    if (typeof this.props.currTabName === 'undefined') {
+      tabIndex = this.props.tabs.findIndex(tab => tab.id === this.state.currTabName ? true : false)
+    } else if (this.props.currTabName === null) {
+      tabIndex = 0;
+    } else {
+      tabIndex = this.props.tabs.findIndex(tab => tab.id === this.props.currTabName ? true : false)
+    }
+    if(tabIndex === -1) {
+      tabIndex = 0;
+    }
+    return tabIndex;
   }
   onClickTab(e) {
     let target = $(event.target);
@@ -567,11 +586,12 @@ class TabView extends Component {
       onClickArray[tabIndex]();
     } else {
       this.openTab(tabIndex);
-      setTab && setTab(tabIndex, tabs);
+      const tab = this.props.tabs[tabIndex];
+      setTab && setTab(tab.id);
     }
   }
   renderTab(tab, index) {
-    const { currTabIndex } = typeof this.props.currTabIndex == 'undefined' ? this.state : this.props;
+    const currTabIndex = this.getTabIndex();
     return (
       <div className={classNames({active: currTabIndex === index, justifyright: tab.justifyright})} key={tab.id} data-tab-index={index} onClick={this.onClickTab}>
         {this.props.renderTab(tab, index)}
@@ -579,7 +599,7 @@ class TabView extends Component {
     );
   }
   render() {
-    const { currTabIndex } = typeof this.props.currTabIndex == 'undefined' ? this.state : this.props;
+    const currTabIndex = this.getTabIndex();
     const classes = classNames({"tab-view": 1, [this.props.containerClasses]: 1});
     return (
       <div className={classes}>
@@ -594,7 +614,7 @@ class TabView extends Component {
 TabView.propTypes = {
   tabs:         PropTypes.array.isRequired,  // array of objects of any form. only requirement is each tab has a unique 'id' field. These objects will be passed to renderTab.
   renderTab:    PropTypes.func.isRequired,
-  currTabIndex: PropTypes.number,  // optional. If passed, TabView will be controlled from outside
+  currTabName:  PropTypes.string,  // optional. If passed, TabView will be controlled from outside
   setTab:       PropTypes.func,    // optional. If passed, TabView will be controlled from outside
   onClickArray: PropTypes.object,  // optional. If passed, TabView will be controlled from outside
 };
@@ -754,11 +774,7 @@ class TextBlockLink extends Component {
     if (isSheet) {
       url = `/sheets/${Sefaria.normRef(url_string).replace('Sheet.','')}`
     } else {
-      url = "/" + Sefaria.normRef(url_string) + Object.keys(currVersions)
-        .filter(vlang=>!!currVersions[vlang])
-        .map(vlang=>`&v${vlang}=${currVersions[vlang]}`)
-        .join("")
-        .replace("&","?");
+      url = "/" + Sefaria.normRef(url_string) + Sefaria.util.getUrlVersionsParams(currVersions).replace("&","?");
     }
 
     if (sideColor) {
@@ -2403,44 +2419,30 @@ const TopicToCategorySlug = function(topic, category=null) {
     }
     return initCatSlug;
 }
-const TopicEditor = ({en="", he="", slug="", desc={}, categoryDesc="", categorySlug="", close}) => {
+const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc={}, origCategoryDesc="", origCategorySlug="", close}) => {
     const [savingStatus, setSavingStatus] = useState(false);
-    const [catSlug, setCatSlug] = useState(categorySlug);
-    const [description, setDescription] = useState(desc["en"]);
-    const [catDescription, setCatDescription] = useState(categoryDesc);
-    const [enTitle, setEnTitle] = useState(en);
-    const [heTitle, setHeTitle] = useState(he);
-    const [isCategory, setIsCategory] = useState(false);
-    const origEnTitle = useRef(en);
-    const origSlug = useRef(slug);
-    const origCatSlug = useRef(categorySlug);
-    const origDescription = useRef(desc);
-    const origCatDescription = useRef(categoryDesc);
-    const isNewTopic = useRef(origEnTitle.current === "");
+    const [catSlug, setCatSlug] = useState(origCategorySlug);
+    const [description, setDescription] = useState(origDesc["en"]);
+    const [catDescription, setCatDescription] = useState(origCategoryDesc["en"]);
+    const [enTitle, setEnTitle] = useState(origEn);
+    const [heTitle, setHeTitle] = useState(origHe);
+    const isNewTopic = useRef(origEn === "");
+    const [isCategory, setIsCategory] = useState(catSlug === "Main Menu");
 
-    // populate category menu using Sefaria.topic_toc and insert "Choose a Category" and "Main Menu" at the top
-    const existingCategories = useRef(Sefaria.topic_toc.reduce(Sefaria._initTopicTocSlugToTitle, {}));  //dictionary of slugs to topic titles
-    let foundCatSlug = false;  //true if catSlug exists in existingCategories
-    let catMenu = Object.keys(existingCategories.current).map(function (tempSlug, i) {
-      const tempTitle = existingCategories.current[tempSlug];
+    if (!Sefaria._topicSlugsToTitles) { Sefaria._initTopicSlugsToTitles();}
+    let slugsToTitles = {"": "Choose a Category", "Main Menu": "Main Menu"};
+    slugsToTitles = Object.assign(slugsToTitles, Sefaria._topicSlugsToTitles);
+    let catMenu = Object.keys(slugsToTitles).map(function (tempSlug, i) {
+      const tempTitle = slugsToTitles[tempSlug];
       if (catSlug === tempSlug) {
-        foundCatSlug = true;
         return <option key={i} value={tempSlug} selected>{tempTitle}</option>;
       } else {
         return <option key={i} value={tempSlug}>{tempTitle}</option>;
       }
     });
-    const chooseCategory = origCatSlug.current !== "Main Menu" && !foundCatSlug ?
-                                      <option key="chooseCategory" value="Choose a Category" selected>Choose a category</option> :
-                                      <option key="chooseCategory" value="Choose a Category">Choose a category</option>;
-    const mainMenu = origCatSlug.current === "Main Menu" && !foundCatSlug ?
-                                      <option key="mainMenu" value="Main Menu" selected>Main Menu</option> :
-                                      <option key="mainMenu" value="Main Menu">Main Menu</option>;
-    catMenu.splice(0, 0, chooseCategory);
-    catMenu.splice(1, 0, mainMenu);
 
     const validate = async function () {
-        if (description === "Choose a Category") {
+        if (catSlug === "") {
           alert("Please choose a category.");
           return false;
         }
@@ -2453,7 +2455,7 @@ const TopicEditor = ({en="", he="", slug="", desc={}, categoryDesc="", categoryS
     const save = function () {
         toggleInProgress();
         let url = "";
-        let data = {"description": {"en": description, "he": description}, "title": enTitle, "category": catSlug};
+        let data = {"description": description, "title": enTitle, "category": catSlug};
         if (isNewTopic.current) {
           url = "/api/topic/new";
           if (isCategory) {
@@ -2461,13 +2463,14 @@ const TopicEditor = ({en="", he="", slug="", desc={}, categoryDesc="", categoryS
           }
         }
         else {
-          url = `/api/topics/${origSlug.current}`;
-          data["origCategory"] = origCatSlug.current;
-          data["origDescription"] = origDescription.current;
-          data["origTitle"] = origEnTitle.current;
-          data["origSlug"] = origSlug.current;
+          url = `/api/topics/${origSlug}`;
+          data["origCategory"] = origCategorySlug;
+          data["origDescription"] = origDesc["en"];
+          data["origTitle"] = origEn;
+          data["origSlug"] = origSlug;
           if (isCategory) {
-            data["origCatDescription"] = origCatDescription.current;
+            data["catDescription"] = catDescription;
+            data["origCatDescription"] = origCategoryDesc["en"];
           }
         }
 
@@ -2487,8 +2490,25 @@ const TopicEditor = ({en="", he="", slug="", desc={}, categoryDesc="", categoryS
     const toggleInProgress = function() {
       setSavingStatus(savingStatus => !savingStatus);
     }
-    const delete_topic = function() {
-      console.log('hi');
+    const deleteTopic = function() {
+      $.ajax({
+        url: "/api/topic/delete/"+origSlug.current,
+        type: "DELETE",
+        success: function(data) {
+          if ("error" in data) {
+            alert(data.error);
+          } else {
+            alert("Topic Deleted.");
+            window.location = "/topics";
+          }
+        }
+      }).fail(function() {
+        alert("Something went wrong. Sorry!");
+      });
+    }
+    const handleCatChange = function(e) {
+      setCatSlug(e.target.value);
+      setIsCategory(e.target.value === "Main Menu");
     }
     return <div className="editTextInfo">
             <div className="static">
@@ -2505,7 +2525,7 @@ const TopicEditor = ({en="", he="", slug="", desc={}, categoryDesc="", categoryS
                         <div className="section">
                           <label><InterfaceText>Category</InterfaceText></label>
                           <div id="categoryChooserMenu">
-                              <select key="topicCats" id="topicCats" onChange={(e) => setCatSlug(e.target.value)}>
+                              <select key="topicCats" id="topicCats" onChange={handleCatChange}>
                                 {catMenu}
                               </select>
                           </div>
@@ -2516,13 +2536,13 @@ const TopicEditor = ({en="", he="", slug="", desc={}, categoryDesc="", categoryS
                                    defaultValue={description} placeholder="Add a description."/>
                         </div>
                        {isCategory ? <div className="section">
-                                      <label><InterfaceText>Short Description for Category Topic</InterfaceText></label>
-                                      <textarea id="topicDesc" onBlur={(e) => setCategoryDescription(e.target.value)}
+                                      <label><InterfaceText>Short Description for Topic Table of Contents</InterfaceText></label>
+                                      <textarea id="topicDesc" onBlur={(e) => setCatDescription(e.target.value)}
                                              defaultValue={catDescription} placeholder="Add a short description."/>
                                   </div> : null}
-                        <div onClick={delete_topic} id="deleteTopic" className="button small deleteTopic" tabIndex="0" role="button">
-                            <InterfaceText>Delete Topic</InterfaceText>
-                       </div>
+                      {!isNewTopic ? <div onClick={deleteTopic} id="deleteTopic" className="button small deleteTopic" tabIndex="0" role="button">
+                                      <InterfaceText>Delete Topic</InterfaceText>
+                                    </div> : null}
                     </div>
                 </div>
             </div>
