@@ -4084,7 +4084,7 @@ def translations_api(request, lang=None):
             "from": "index",
             "localField": "title",
             "foreignField": "title",
-            "as": "titles"
+            "as": "index"
         }}]
     if lang == "en":
         aggregation_query.append({"$lookup": {
@@ -4103,8 +4103,8 @@ def translations_api(request, lang=None):
     titles = []
     for myIndex in texts:
         if myIndex["title"] not in titles:
-            if len(myIndex["titles"]) > 0:
-                myIndexInfo = myIndex["titles"][0]
+            if len(myIndex["index"]) > 0:
+                myIndexInfo = myIndex["index"][0]
                 # vstate = myIndex["vstate"][0]
                 categories = myIndexInfo["categories"]
                 if "Reference" in categories:
@@ -4150,8 +4150,8 @@ def translations_api(request, lang=None):
                             continue
                     toAdd["title"] = myIndexInfo["title"]
                     toAdd["url"] = f'/{urlTitle}.1?{"ven=" + myIndex["versionTitle"] if myIndex["language"] == "en" else "vhe=" + myIndex["versionTitle"]}'
-                if "order" in myIndex["titles"][0]:
-                        toAdd["order"] = myIndex["titles"][0]["order"]
+                if "order" in myIndex["index"][0]:
+                        toAdd["order"] = myIndex["index"][0]["order"]
                 toAdd["versionTitle"] = myIndex["versionTitle"]
                 toAdd["rtlLanguage"] = myIndex["language"]
                 cur.append(toAdd)
