@@ -97,6 +97,8 @@ urlpatterns += [
     url(r'^topics/all/(?P<letter>.)$', reader_views.all_topics_page),    
     url(r'^topics/?$', reader_views.topics_page),
     url(r'^topics/(?P<topic>.+)$', reader_views.topic_page),
+    url(r'^api/ref_topic_links$', reader_views.ref_topic_links),
+    url(r'^api/topic/completion/(?P<topic>.+)', reader_views.topic_completion_api)
 ]
 
 # Calendar Redirects

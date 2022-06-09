@@ -4716,6 +4716,7 @@ class Library(object):
         self._ref_auto_completer = {}
         self._lexicon_auto_completer = {}
         self._cross_lexicon_auto_completer = None
+        self._topic_auto_completer = {}
 
         # Term Mapping
         self._simple_term_mapping = {}
@@ -4733,7 +4734,7 @@ class Library(object):
         self._ref_auto_completer_is_ready = False
         self._lexicon_auto_completer_is_ready = False
         self._cross_lexicon_auto_completer_is_ready = False
-
+        self._topic_auto_completer_is_ready = False
 
         if not hasattr(sys, '_doc_build'):  # Can't build cache without DB
             self.get_simple_term_mapping() #this will implicitly call self.build_term_mappings() but also make sure its cached.
@@ -5095,6 +5096,32 @@ class Library(object):
         from .autospell import AutoCompleter
         self._cross_lexicon_auto_completer = AutoCompleter("he", library, include_titles=False, include_lexicons=True)
         self._cross_lexicon_auto_completer_is_ready = True
+
+    def build_topic_auto_completer(self):
+        """
+        Builds the topic auto complete including topics with no sources
+        """
+        from .autospell import AutoCompleter
+        self._topic_auto_completer = AutoCompleter("en", library, include_topics=True, min_topics=0)
+        self._topic_auto_completer_is_ready = True
+
+
+    def topic_auto_completer(self, topic):
+        """
+        Returns the value of the topic auto completer map given a topic key. If the key
+        is not present, it assumes the need to rebuild the topic_auto_completer and calls the build
+        function with appropriate logger warnings before returning the desired result
+
+        @param: topic String
+        """
+        try:
+            return self._topic_auto_completer[topic]
+        except KeyError:
+            logger.warning("Failed to load {} auto completer, rebuilding.".format(topic))
+            self.build_topic_auto_completers()  # I worry that these could pile up.
+            logger.warning("Built {} auto completer.".format(topic))
+            return self._topic_auto_completer[topic]
+
 
     def cross_lexicon_auto_completer(self):
         """
@@ -6008,7 +6035,8 @@ class Library(object):
         # I will likely have to add fields to the object to be changed once
 
         # Avoid allocation here since it will be called very frequently
-        return self._toc_tree_is_ready and self._full_auto_completer_is_ready and self._ref_auto_completer_is_ready and self._lexicon_auto_completer_is_ready and self._cross_lexicon_auto_completer_is_ready
+        return self._toc_tree_is_ready and self._full_auto_completer_is_ready and self._ref_auto_completer_is_ready and\
+               self._lexicon_auto_completer_is_ready and self._cross_lexicon_auto_completer_is_ready and self._topic_auto_completer_is_ready
 
     @staticmethod
     def get_top_categories(full_records=False):

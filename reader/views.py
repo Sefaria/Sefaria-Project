@@ -711,6 +711,21 @@ def texts_category_list(request, cats):
     })
 
 
+def ref_topic_links(request, tref):
+    oref = Ref(tref)
+    if request.method == "GET":
+        linkSet = RefTopicLinkSet({"linkType": "about", "dataSource": "sefaria", "ref": oref.normal()}).array()
+        return jsonResponse({"links": linkSet})
+    elif request.method == "POST":
+        if not request.user.is_staff:
+            return jsonResponse({"error": "Only moderators can connect refs to topics."})
+        slug = request.POST.get("json")["slug"]
+        if Topic().load({"slug": slug}) is None:
+            return jsonResponse({"error": "Topic does not exist"})
+        RefTopicLink({"toTopic": slug, "linkType": "about", "dataSource": "sefaria", "ref": oref.normal()}).save()
+        return jsonResponse({"status": "ok"})
+
+
 @sanitize_get_params
 def topics_category_page(request, topicCategory):
     """
@@ -2559,6 +2574,13 @@ def get_name_completions(name, limit, ref_only, topic_override=False):
         "ref": ref,
         "topic": topic,
     }
+
+
+@catch_error_as_json
+def topic_completion_api(request, topic):
+
+    result = library.topic_auto_completer(topic)[:10]
+    return jsonResponse(result)
 
 
 @catch_error_as_json
