@@ -269,6 +269,8 @@ class BookPage extends Component {
 
                  <TabView
                   tabs={tabs}
+                  currTabName={this.props.tab}
+                  setTab={this.props.setTab}
                   renderTab={renderTab}
                   containerClasses={"largeTabs"}>
                    <TextTableOfContents

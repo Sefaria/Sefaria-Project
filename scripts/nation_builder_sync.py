@@ -53,6 +53,8 @@ def sync_sustainers_to_mongo():
 trends_only = False
 tags_only = False
 sustainers_only = False
+nonexistent_nb_id_only = False
+gt = 0
 skip = []
 i = 1
 while(i < len(sys.argv)):
@@ -64,6 +66,10 @@ while(i < len(sys.argv)):
         sustainers_only = True
     elif sys.argv[i].startswith("--skip="):
         skip = sys.argv[i][7:].split(",")
+    elif sys.argv[i] == "--sync-only":
+        nonexistent_nb_id_only = True
+    elif sys.argv[i] == "--gt=":
+        gt = int(sys.argv[i][5:])
     i+=1
     
 if sustainers_only:
@@ -72,7 +78,10 @@ if trends_only:
     setAllTrends(skip)    
 if tags_only:
     nationbuilder_update_all_tags()
-if not trends_only and not tags_only and not sustainers_only:
+if nonexistent_nb_id_only:
+    print("nb sync only")
+    add_profiles_to_nationbuilder(gt)
+if not trends_only and not tags_only and not sustainers_only and not nonexistent_nb_id_only:
     sync_sustainers_to_mongo()
     add_nationbuilder_id_to_mongo(False)
     add_profiles_to_nationbuilder()
