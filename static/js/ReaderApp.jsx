@@ -192,8 +192,6 @@ class ReaderApp extends Component {
     document.addEventListener('click', this.handleInAppClickWithModifiers, {capture: true});
     // Save all initial panels to recently viewed
     this.state.panels.map(this.saveLastPlace);
-
-    this.setBeitMidrashId()
   }
   componentWillUnmount() {
     window.removeEventListener("popstate", this.handlePopState);
@@ -242,19 +240,8 @@ class ReaderApp extends Component {
 
     this.setContainerMode();
     this.updateHistoryState(this.replaceHistory);
-    this.setBeitMidrashId(prevState)
   }
 
-  setBeitMidrashId (prevState) {
-    if (!this.state.inCustomBeitMidrash) {
-      for (let i=this.state.panels.length-1; i >= 0; i--) {
-        if (this.state.panels[i].bookRef && (!prevState || prevState.beitMidrashId !== this.state.panels[i].bookRef)) {
-          this.setState({beitMidrashId: this.state.panels[i].bookRef})
-          break
-        }
-      }
-    }
-  }
 
   handlePopState(event) {
     var state = event.state;
