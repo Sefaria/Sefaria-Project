@@ -2790,7 +2790,7 @@ const TopicEditor = ({en="", he="", slug="", desc={}, categorySlug="", close}) =
             alert(data.error);
           } else {
             alert("Text information saved.");
-            window.location.href = "/topics/"+data["slug"];
+            window.location.href = "/admin/reset/toc";
           }
           }).fail( function(xhr, status, errorThrown) {
             alert("Unfortunately, there may have been an error saving this topic information: "+errorThrown);

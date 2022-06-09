@@ -12,7 +12,9 @@ SITE_SETTINGS = {
 	},
 	"LONG_SITE_NAME": "ConText - The American Democracy Library",
 	"SUPPORTED_TRANSLATION_LANGUAGES": [],
-	"LIBRARY_MESSAGE": "Welcome to ConText, a project of the <a href='https://jackmillercenter.org/'>Jack Miller Center</a>...",
+	"LIBRARY_MESSAGE": '<a href="/United_States_Constitution" class="navBlockTitle"><span class="en" lang="en">United '
+					   'States Constitution</span></a><br/>Welcome to ConText, a project of the <a '
+					   'href="https://jackmillercenter.org/">Jack Miller Center</a>...',
 	"LOGO": "/static/img/jmc-logo.jpeg",
 	"HE_LOGO": "/static/img/jmc-logo.jpeg",
 }
