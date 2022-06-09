@@ -4095,6 +4095,8 @@ def translations_api(request, lang=None):
         }})
         aggregation_query.append({"$match": {"vstate.flags.enComplete": True}})
         aggregation_query.append({"$project": {"vstate": 0}})
+    aggregation_query.append({"$project": {"index.dependence": 1, "index.collective_title": 1, "index.title": 1, "index.schema": 1, "index.order": 1,
+    "versionTitle": 1, "language": 1, "title": 1, "index.categories": 1}})
     texts = db.texts.aggregate(aggregation_query)
     # t1 = time.time()
     # print("aggregation: ")
