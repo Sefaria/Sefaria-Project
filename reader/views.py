@@ -4077,36 +4077,43 @@ def translations_api(request, lang=None):
     if not lang:
         res = db.texts.distinct("actualLanguage")
         return jsonResponse(res)
-    import time
-    texts = db.texts.aggregate([{"$match": {"actualLanguage":lang}},
+    # import time
+    # t0 = time.time()
+    aggregation_query = [{"$match": {"actualLanguage":lang}},
     {"$lookup": {
             "from": "index",
             "localField": "title",
             "foreignField": "title",
             "as": "titles"
-        }},
-        {"$lookup": {
+        }}]
+    if lang == "en":
+        aggregation_query.append({"$lookup": {
             "from": "vstate",
             "localField": "title",
             "foreignField": "title",
             "as": "vstate"
-        }}])
-    print("List comprehension:")
+        }})
+        aggregation_query.append({"$match": {"vstate.flags.enComplete": True}})
+        aggregation_query.append({"$project": {"vstate": 0}})
+    texts = db.texts.aggregate(aggregation_query)
+    # t1 = time.time()
+    # print("aggregation: ")
+    # print(f"{t1 - t0}")
     res = {}
     titles = []
     for myIndex in texts:
         if myIndex["title"] not in titles:
             if len(myIndex["titles"]) > 0:
                 myIndexInfo = myIndex["titles"][0]
-                vstate = myIndex["vstate"][0]
+                # vstate = myIndex["vstate"][0]
                 categories = myIndexInfo["categories"]
                 if "Reference" in categories:
                     continue # don't list references (also they don't fit assumptions)
-                if lang == "en":
-                    if "enComplete" not in vstate["flags"]:
-                        continue
-                    if vstate["flags"]["enComplete"] == False:
-                        continue
+                # if lang == "en":
+                #     if "enComplete" not in vstate["flags"]:
+                #         continue
+                #     if vstate["flags"]["enComplete"] == False:
+                #         continue
                 titles.append(myIndex["title"])
                 depth = 2
                 ind = 0
@@ -4148,7 +4155,9 @@ def translations_api(request, lang=None):
                 toAdd["versionTitle"] = myIndex["versionTitle"]
                 toAdd["rtlLanguage"] = myIndex["language"]
                 cur.append(toAdd)
-    print("create dictionary")
+    # t2 = time.time()
+    # print("create dictionary")
+    # print(f"{t2 - t1}")
     return jsonResponse(res)
     
 def random_by_topic_api(request):

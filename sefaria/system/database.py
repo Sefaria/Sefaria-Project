@@ -69,6 +69,7 @@ def ensure_indices(active_db=None):
         ('history', ["title"],{}),
         ('index', ["title"],{}),
         ('index_queue', [[("lang", pymongo.ASCENDING), ("version", pymongo.ASCENDING), ("ref", pymongo.ASCENDING)]],{'unique': True}),
+        ('index', ["categories.0"], {}),
         # ('links', [[("refs.0",  1), ("refs.1", 1)]], {"unique": True}),
         ('links', [[("refs", pymongo.ASCENDING), ("generated_by", pymongo.ASCENDING)]],{}),
         ('links', ["refs.0"],{}),
@@ -144,6 +145,7 @@ def ensure_indices(active_db=None):
         ('manuscripts', ['title'], {}),
         ('messages', [[("room_id", pymongo.ASCENDING), ("timestamp", pymongo.DESCENDING)]], {}),
         ('vstate', ["title"], {}),
+        ('vstate', ["flags.enComplete"], {}),
     ]
 
     for col, args, kwargs in indices:
