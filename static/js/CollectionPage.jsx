@@ -63,6 +63,7 @@ class CollectionPage extends Component {
   }
   setFilter(filter) {
     this.setState({sheetFilterTopic: filter, showFilterHeader: true});
+    this.props.setTab("sheets");
   }
   memberList() {
     var collection = this.state.collectionData;
