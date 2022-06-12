@@ -496,13 +496,8 @@ class ReaderApp extends Component {
             hist.mode  = "community";
             break;
           case "profile":
-<<<<<<< HEAD
             hist.title = `${state.profile.full_name} ${Sefaria._(` on ${siteName}`)}`;
             hist.url   = `profile/${state.profile.slug}?tab=${state.profileTab}`;
-=======
-            hist.title = `${state.profile.full_name} ${Sefaria._("on Sefaria")}`;
-            hist.url   = `profile/${state.profile.slug}`;
->>>>>>> origin/master
             hist.mode = "profile";
             break;
           case "notifications":
