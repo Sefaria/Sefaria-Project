@@ -3204,7 +3204,7 @@ def add_new_topic_api(request):
         data = json.loads(request.POST["json"])
         t = Topic({'slug': ""})
         t.add_title(data["title"], 'en', True, True)
-        t.isTopLevelDisplay = data["category"] == ""
+        t.isTopLevelDisplay = data["category"] == "Main Menu"
         t.set_slug_to_primary_title()
 
         if data["category"] != "Main Menu":  # not Top Level so create an IntraTopicLink to category
