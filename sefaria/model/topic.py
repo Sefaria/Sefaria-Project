@@ -39,6 +39,8 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         'good_to_promote',
         'description_published',  # bool to keep track of which descriptions we've vetted
         'isAmbiguous',  # True if topic primary title can refer to multiple other topics
+        "data_source"  #any topic edited manually should display automatically in the TOC and this flag ensures this
+
     ]
 
     def load(self, query, proj=None):
@@ -179,7 +181,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         return len(search_slug_set.intersection(types)) > 0
 
     def should_display(self) -> bool:
-        return getattr(self, 'shouldDisplay', True) and (getattr(self, 'numSources', 0) > 0 or self.has_description())
+        return getattr(self, 'shouldDisplay', True) and (getattr(self, 'numSources', 0) > 0 or self.has_description() or getattr(self, "data_source", "") == "sefaria")
 
     def has_description(self) -> bool:
         """
