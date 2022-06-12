@@ -2139,7 +2139,7 @@ _media: {},
     const url = `${this.apiHost}/api/v2/topics/${slug}?with_links=${0+with_links}&annotate_links=${0+annotate_links}&with_refs=${0+with_refs}&group_related=${0+group_related}&annotate_time_period=${0+annotate_time_period}&ref_link_type_filters=${ref_link_type_filters.join('|')}&with_indexes=${0+with_indexes}`;
     return this._cachedApiPromise({
       url,
-      key: url,
+      key: slug,
       store: this._topics,
       processor: this.processTopicsData,
     });
@@ -2181,6 +2181,10 @@ _media: {},
   },
   getTopicFromCache: function(topic) {
     return this._topics[topic];
+  },
+  _topicSlugsToTitles: null,
+  _initTopicSlugsToTitles: function() {
+    this._topicSlugsToTitles = Sefaria.topic_toc.reduce(Sefaria._initTopicTocSlugToTitle, {});
   },
   _topicTocPages: null,
   _initTopicTocPages: function() {

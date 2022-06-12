@@ -3207,7 +3207,7 @@ def add_new_topic_api(request):
         t.isTopLevelDisplay = data["category"] == ""
         t.set_slug_to_primary_title()
 
-        if data["category"] != "":  # not Top Level so create an IntraTopicLink to category
+        if data["category"] != "Main Menu":  # not Top Level so create an IntraTopicLink to category
             new_link = IntraTopicLink()
             new_link.toTopic = data["category"]
             new_link.fromTopic = t.slug
@@ -3215,7 +3215,7 @@ def add_new_topic_api(request):
             new_link.dataSource = "sefaria"
             new_link.save()
 
-        t.change_description(data["description"])
+        t.change_description(data["description"], data.get("catDescription", ""))
         t.save()
 
         @csrf_protect
@@ -3225,8 +3225,13 @@ def add_new_topic_api(request):
 
 
 @staff_member_required
-def delete_topic(request):
-    pass
+def delete_topic(request, topic):
+    topic_obj = Topic().load({"slug": topic})
+    if topic_obj:
+        topic_obj.delete()
+        return jsonResponse({"status": "OK"})
+    else:
+        return jsonResponse({"error": "Topic {} doesn't exist".format(topic)})
 
 @catch_error_as_json
 def topics_api(request, topic, v2=False):
@@ -3265,11 +3270,11 @@ def topics_api(request, topic, v2=False):
             origLink = IntraTopicLink().load({"fromTopic": topic_obj.slug,
                                               "toTopic": topic_data["origCategory"],
                                               "linkType": "displays-under"})
-            if topic_data["origCategory"] == "":
+            if topic_data["origCategory"] == "Main Menu":
                 assert origLink is None
                 origLink = IntraTopicLink()
 
-            if topic_data["category"] == "":
+            if topic_data["category"] == "Main Menu":
                 # a top-level topic won't display properly if it doesn't have children so need to set shouldDisplay flag
                 child = IntraTopicLink().load({"linkType": "displays-under", "toTopic": topic_obj.slug})
                 if child is None:
@@ -3279,13 +3284,10 @@ def topics_api(request, topic, v2=False):
                 origLink.delete() # get rid of link to previous category
 
                 # if topic has sources and we dont create an IntraTopicLink to itself, they wont be accessible from the topic TOC
-                if getattr(topic_obj, "numSources", 0) > 0:
-                    linkToItself = IntraTopicLink()
-                    linkToItself.fromTopic = topic_obj.slug
-                    linkToItself.toTopic = topic_obj.slug
-                    linkToItself.dataSource = "sefaria"
-                    linkToItself.linkType = "displays-under"
-                    linkToItself.save()
+                linkToItself = {"fromTopic": topic_obj.slug, "toTopic": topic_obj.slug, "dataSource": "sefaria",
+                                "linkType": "displays-under"}
+                if getattr(topic_obj, "numSources", 0) > 0 and IntraTopicLink().load(linkToItself) is None:
+                    IntraTopicLink(linkToItself).save()
             else:
                 origLink.fromTopic = topic_obj.slug
                 origLink.toTopic = topic_data["category"]
@@ -3295,12 +3297,12 @@ def topics_api(request, topic, v2=False):
 
         needs_save = False      # will get set to True if isTopLevelDisplay or description is changed
 
-        if (topic_data["category"] == "") != getattr(topic_obj, "isTopLevelDisplay", False):    # True when topic moved to top level or moved from top level
+        if (topic_data["category"] == "Main Menu") != getattr(topic_obj, "isTopLevelDisplay", False):    # True when topic moved to top level or moved from top level
             needs_save = True
-            topic_obj.isTopLevelDisplay = topic_data["category"] == ""
+            topic_obj.isTopLevelDisplay = topic_data["category"] == "Main Menu"
 
-        if topic_data["origDescription"] != topic_data["description"]:
-            topic_obj.change_description(topic_data["description"])
+        if topic_data["origDescription"] != topic_data["description"] or topic_data.get("origCatDescription", "") != topic_data.get("catDescription", ""):
+            topic_obj.change_description(topic_data["description"], topic_data.get("catDescription", ""))
             needs_save = True
 
         if needs_save:

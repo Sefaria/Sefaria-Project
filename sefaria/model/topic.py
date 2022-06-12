@@ -102,21 +102,16 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
             new_topic.get_types(types, new_path, search_slug_set)
         return types
 
-    def change_description(self, desc):
-        # used by add_new_topic_api and topics_api to change topic descriptions and associated properties
-        # 'desc' is a dictionary with 'en' and/or 'he' fields
+    def change_description(self, desc, cat_desc):
+        self.description_published = True # because this function is used as part of the manual topic editor, we can assume 'description_published' should be True
         if getattr(self, "isTopLevelDisplay", False):
-            self.categoryDescription = {}
-            self.categoryDescription["en"] = desc.get('en', '')
-            self.categoryDescription["he"] = desc.get('he', '')
-            if getattr(self, "description", False):
-                delattr(self, "description")
-            if getattr(self, "description_published", False):
-                delattr(self, "description_published")
+            self.categoryDescription = getattr(self, "categoryDescription", {})
+            self.description = getattr(self, "description", {})
+            self.categoryDescription["en"] = cat_desc
+            self.description["en"] = desc
         else:
-            self.description = {}
-            self.description["en"] = desc.get('en', '')
-            self.description["he"] = desc.get('he', '')
+            self.description = getattr(self, "description", {})
+            self.description["en"] = desc
             self.description_published = True
             if getattr(self, "categoryDescription", False):
                 delattr(self, "categoryDescription")
