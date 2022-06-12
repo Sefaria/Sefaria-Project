@@ -3184,9 +3184,9 @@ def add_new_topic_api(request):
         data = json.loads(request.POST["json"])
         t = Topic({'slug': ""})
         t.add_title(data["title"], 'en', True, True)
-        t.isTopLevelDisplay = data["category"] == ""
-        if t.isTopLevelDisplay: # top level topics wont display properly with no children so needs to set shouldDisplay flag
-            t.shouldDisplay = True
+        t.isTopLevelDisplay = data["category"] == "Main Menu"
+        t.data_source = "sefaria"  # any topic edited manually should display automatically in the TOC and this flag ensures this
+
         t.set_slug_to_primary_title()
 
         if data["category"] != "Main Menu":  # not Top Level so create an IntraTopicLink to category
@@ -3238,6 +3238,7 @@ def topics_api(request, topic, v2=False):
             })
         topic_data = json.loads(request.POST["json"])
         topic_obj = Topic().load({'slug': topic_data["origSlug"]})
+        topic_obj.data_source = "sefaria"   #any topic edited manually should display automatically in the TOC and this flag ensures this
 
         if topic_data["origTitle"] != topic_data["title"]:
             # rename Topic
