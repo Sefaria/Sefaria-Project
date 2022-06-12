@@ -3218,8 +3218,6 @@ def add_new_topic_api(request):
         t = Topic({'slug': ""})
         t.add_title(data["title"], 'en', True, True)
         t.isTopLevelDisplay = data["category"] == ""
-        if t.isTopLevelDisplay: # top level topics wont display properly with no children so needs to set shouldDisplay flag
-            t.shouldDisplay = True
         t.set_slug_to_primary_title()
 
         if data["category"] != "":  # not Top Level so create an IntraTopicLink to category

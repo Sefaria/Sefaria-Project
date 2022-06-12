@@ -4908,7 +4908,7 @@ class Library(object):
             children = [] if topic.slug in explored else [l.fromTopic for l in IntraTopicLinkSet({"linkType": "displays-under", "toTopic": topic.slug})]
             topic_json = {
                 "slug": topic.slug,
-                "shouldDisplay": True if len(children) > 0 else topic.should_display(),
+                "shouldDisplay": True,
                 "en": topic.get_primary_title("en"),
                 "he": topic.get_primary_title("he"),
                 "displayOrder": getattr(topic, "displayOrder", 10000)
