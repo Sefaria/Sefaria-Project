@@ -19,6 +19,8 @@ import {
     FilterableList,
     ToolTipped,
     SimpleLinkedBlock,
+    TopicEditor,
+    TopicToCategorySlug
 } from './Misc';
 
 
@@ -173,7 +175,32 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
     
     const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(topic) || {primaryTitle: topicTitle});
     const [subtopics, setSubtopics] = useState(Sefaria.topicTocPage(topic));
-
+    const [addingTopics, setAddingTopics] = useState(false);
+    const topicEditorStatus = useRef(null);
+    if (Sefaria.is_moderator) {
+        if (!addingTopics) {
+            topicEditorStatus.current =
+                <div onClick={(e) => toggleAddingTopics(e)} id="editTopic" className="button extraSmall topic"
+                     role="button">
+                    <InterfaceText>Edit Topic</InterfaceText>
+                </div>;
+        }
+        else if (addingTopics && "slug" in topicData) {
+            const initCatSlug = TopicToCategorySlug(topicData);
+            topicEditorStatus.current = <TopicEditor origSlug={topicData.slug} origEn={topicData.primaryTitle.en} origHe={topicData.primaryTitle.he}
+                         origDesc={topicData?.description?.en || ""} origCategorySlug={initCatSlug}
+                         origCategoryDesc={topicData?.categoryDescription?.en || ""}
+                         close={(e) => toggleAddingTopics(e)}/>;
+        }
+    }
+    const toggleAddingTopics = function(e) {
+      if (e.currentTarget.id === "editTopic") {
+        setAddingTopics(true);
+      }
+      else if(e.currentTarget.id === "cancel") {
+        setAddingTopics(false);
+     }
+    }
     useEffect(() => {
         Sefaria.getTopic(topic, {annotate_time_period: true}).then(setTopicData);
     }, [topic]);
@@ -258,7 +285,10 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
             <div className="content readerTocTopics">
                 <div className="sidebarLayout">
                   <div className="contentInner">
-                      <h1><InterfaceText text={{en: topicTitle.en, he: topicTitle.he}} /></h1>
+                      <div className="navTitle tight">
+                          <h1><InterfaceText text={{en: topicTitle.en, he: topicTitle.he}} /></h1>
+                          {topicEditorStatus.current}
+                      </div>
                       <div className="readerNavCategories">
                         <ResponsiveNBox content={topicBlocks} initialWidth={initialWidth} />
                       </div>
@@ -274,14 +304,34 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
 
 const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDisplaySettings, openSearch }) => {
   const { en, he } = !!topicData && topicData.primaryTitle ? topicData.primaryTitle : {en: "Loading...", he: "טוען..."};
+  const [addingTopics, setAddingTopics] = useState(false);
   const isTransliteration = !!topicData ? topicData.primaryTitleIsTransliteration : {en: false, he: false};
   const category = !!topicData ? Sefaria.topicTocCategory(topicData.slug) : null;
+  const toggleAddingTopics = function(e) {
+      if (e.currentTarget.id === "editTopic") {
+        setAddingTopics(true);
+      }
+      else if(e.currentTarget.id === "cancel") {
+        setAddingTopics(false);
+     }
+  }
+  if (Sefaria.is_moderator && addingTopics && !!topicData) {
+      const initCatSlug = TopicToCategorySlug(topicData, category);
+      return <TopicEditor origEn={en} origHe={he} origDesc={topicData?.description?.en || ""}
+                          origCategoryDesc={topicData?.categoryDescription?.en || ""}
+                          origSlug={topicData["slug"]} origCategorySlug={initCatSlug} close={(e) => toggleAddingTopics(e)}/>;
+  }
+  const topicStatus = Sefaria.is_moderator && !!topicData ?
+                            <div onClick={(e) => toggleAddingTopics(e)} id="editTopic" className="button extraSmall topic" role="button">
+                              <InterfaceText>Edit Topic</InterfaceText>
+                            </div> : null;
   return (
     <div>
-        <div className="topicTitle pageTitle">
+        <div className="navTitle tight">
           <h1>
             <InterfaceText text={{en:en, he:he}}/>
           </h1>
+            {topicStatus}
         </div>
        {!topicData && !isCat ?<LoadingMessage/> : null}
        {!isCat && category ?

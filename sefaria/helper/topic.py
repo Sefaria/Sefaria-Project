@@ -17,6 +17,8 @@ logger = structlog.get_logger(__name__)
 
 def get_topic(v2, topic, with_links, annotate_links, with_refs, group_related, annotate_time_period, ref_link_type_filters, with_indexes):
     topic_obj = Topic.init(topic)
+    if topic_obj is None:
+        return {}
     response = topic_obj.contents(annotate_time_period=annotate_time_period)
     response['primaryTitle'] = {
         'en': topic_obj.get_primary_title('en'),

@@ -39,6 +39,8 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         'good_to_promote',
         'description_published',  # bool to keep track of which descriptions we've vetted
         'isAmbiguous',  # True if topic primary title can refer to multiple other topics
+        "data_source"  #any topic edited manually should display automatically in the TOC and this flag ensures this
+
     ]
 
     def load(self, query, proj=None):
@@ -101,6 +103,20 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
                 continue
             new_topic.get_types(types, new_path, search_slug_set)
         return types
+
+    def change_description(self, desc, cat_desc):
+        self.description_published = True # because this function is used as part of the manual topic editor, we can assume 'description_published' should be True
+        if getattr(self, "isTopLevelDisplay", False):
+            self.categoryDescription = getattr(self, "categoryDescription", {})
+            self.description = getattr(self, "description", {})
+            self.categoryDescription["en"] = cat_desc
+            self.description["en"] = desc
+        else:
+            self.description = getattr(self, "description", {})
+            self.description["en"] = desc
+            self.description_published = True
+            if getattr(self, "categoryDescription", False):
+                delattr(self, "categoryDescription")
 
     def topics_by_link_type_recursively(self, **kwargs):
         topics, _ = self.topics_and_links_by_link_type_recursively(**kwargs)
@@ -165,7 +181,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         return len(search_slug_set.intersection(types)) > 0
 
     def should_display(self) -> bool:
-        return getattr(self, 'shouldDisplay', True) and (getattr(self, 'numSources', 0) > 0 or self.has_description())
+        return getattr(self, 'shouldDisplay', True) and (getattr(self, 'numSources', 0) > 0 or self.has_description() or getattr(self, "data_source", "") == "sefaria")
 
     def has_description(self) -> bool:
         """
@@ -173,6 +189,8 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         """
         has_desc = False
         for temp_desc in getattr(self, 'description', {}).values():
+            has_desc = has_desc or (isinstance(temp_desc, str) and len(temp_desc) > 0)
+        for temp_desc in getattr(self, 'categoryDescription', {}).values():
             has_desc = has_desc or (isinstance(temp_desc, str) and len(temp_desc) > 0)
         return has_desc
 

@@ -10,6 +10,9 @@ import {
   TabView,
   InterfaceText,
   ContentText, EnglishText, HebrewText, LanguageToggleButton,
+  AdminToolHeader,
+  CategoryChooser,
+  TitleVariants
 } from './Misc';
 
 import React, { useState, useRef }  from 'react';
@@ -1149,97 +1152,6 @@ const SectionTypesBox = function({sections, canEdit, updateParent}) {
 }
 
 
-const CategoryChooser = function({categories, update}) {
-  const categoryMenu = useRef();
-
-  const handleChange = function(e) {
-    let newCategories = [];
-    for (let i=0; i<categoryMenu.current.children.length; i++) {
-      let el = categoryMenu.current.children[i].children[0];
-      if (el.options[el.selectedIndex].value === "Choose a category" || (i > 0 && Sefaria.tocItemsByCategories(newCategories.slice(0, i+1)).length === 0)) {
-        //first test says dont include "Choose a category" and anything after it in categories.
-        //second test is if categories are ["Talmud", "Prophets"], set categories to ["Talmud"]
-        break;
-      }
-      newCategories.push(el.options[el.selectedIndex].value);
-    }
-    update(newCategories); //tell parent of new values
-  }
-
-  let menus = [];
-
-  //create a menu of first level categories
-  let options = Sefaria.toc.map(function(child, key) {
-    if (categories.length > 0 && categories[0] === child.category) {
-      return <option key={key} value={categories[0]} selected>{categories[0]}</option>;
-    }
-    else {
-      return <option key={key} value={child.category}>{child.category}</option>
-    }
-  });
-  menus.push(options);
-
-  //now add to menu second and/or third level categories found in categories
-  for (let i=0; i<categories.length; i++) {
-    let options = [];
-    let subcats = Sefaria.tocItemsByCategories(categories.slice(0, i+1));
-    for (let j=0; j<subcats.length; j++) {
-      if (subcats[j].hasOwnProperty("contents")) {
-        if (categories.length >= i && categories[i+1] === subcats[j].category) {
-          options.push(<option key={j} value={categories[i+1]} selected>{subcats[j].category}</option>);
-        }
-        else
-        {
-          options.push(<option key={j} value={subcats[j].category}>{subcats[j].category}</option>);
-        }
-      }
-    }
-    if (options.length > 0) {
-      menus.push(options);
-    }
-  }
-  return <div ref={categoryMenu}>
-          {menus.map((menu, index) =>
-            <div id="categoryChooserMenu">
-              <select key={`subcats-${index}`} id={`subcats-${index}`} onChange={handleChange}>
-              <option key="chooseCategory" value="Choose a category">Choose a category</option>
-              {menu}
-              </select>
-            </div>)}
-         </div>
-}
-
-
-const TitleVariants = function({titles, update}) {
-  const onTitleDelete = function(i) {
-    let newTitles = titles.filter(t => t !== titles[i]);
-    update(newTitles);
-  }
-  const onTitleAddition = function(title) {
-    let newTitles = [].concat(titles, title);
-    update(newTitles);
-  }
-  const onTitleValidate = function (title) {
-    const validTitle = titles.every((item) => item.name !== title.name);
-    if (!validTitle) {
-      alert(title+" already exists.");
-    }
-    return validTitle;
-  }
-
-  return <div className="publishBox">
-                <ReactTags
-                    allowNew={true}
-                    tags={titles}
-                    onDelete={onTitleDelete}
-                    placeholderText={Sefaria._("Add a title...")}
-                    delimiters={["Enter", "Tab"]}
-                    onAddition={onTitleAddition}
-                    onValidate={onTitleValidate}
-                  />
-         </div>
-}
-
 
 const EditTextInfo = function({initTitle, close}) {
   const index = useRef(null);
@@ -1337,22 +1249,9 @@ const EditTextInfo = function({initTitle, close}) {
       <div className="editTextInfo">
       <div className="static">
         <div className="inner">
-          {savingStatus ? <div class="collectionsWidget">Saving text information...<br/><br/>(processing title changes may take some time)</div> : null}
+          {savingStatus ? <div className="collectionsWidget">Saving text information...<br/><br/>(processing title changes may take some time)</div> : null}
           <div id="newIndex">
-            <div className="headerWithButtons">
-              <h1 className="pageTitle">
-                <span className="int-en">Index Editor</span>
-                <span className="int-he">עריכת מאפייני אינדקס</span>
-              </h1>
-              <div className="end">
-                <a onClick={(e) => close(e)} id="cancel" className="button small transparent control-elem">
-                  <InterfaceText>Cancel</InterfaceText>
-                </a>
-                <div onClick={validateThenSave} id="saveAccountSettings" className="button small blue control-elem" tabIndex="0" role="button">
-                  <InterfaceText>Save</InterfaceText>
-                </div>
-              </div>
-            </div>
+            <AdminToolHeader en={"Index Editor"} he={"עריכת מאפייני אינדקס"} close={close} validate={validateThenSave}/>
             <div className="section">
                 <label><InterfaceText>Text Title</InterfaceText></label>
               <input id="textTitle" onBlur={(e) => setEnTitle(e.target.value)} defaultValue={enTitle}/>
