@@ -3207,8 +3207,13 @@ def add_new_topic_api(request):
 
 
 @staff_member_required
-def delete_topic(request):
-    pass
+def delete_topic(request, topic):
+    topic_obj = Topic().load({"slug": topic})
+    if topic_obj:
+        topic_obj.delete()
+        return jsonResponse({"status": "OK"})
+    else:
+        return jsonResponse({"error": "Topic {} doesn't exist".format(topic)})
 
 @catch_error_as_json
 def topics_api(request, topic, v2=False):
@@ -3263,7 +3268,7 @@ def topics_api(request, topic, v2=False):
                 # if topic has sources and we dont create an IntraTopicLink to itself, they wont be accessible from the topic TOC
                 linkToItself = {"fromTopic": topic_obj.slug, "toTopic": topic_obj.slug, "dataSource": "sefaria",
                                 "linkType": "displays-under"}
-                if getattr(topic_obj, "numSources", 0) > 0 and IntraTopicLink(linkToItself) is None:
+                if getattr(topic_obj, "numSources", 0) > 0 and IntraTopicLink().load(linkToItself) is None:
                     IntraTopicLink(linkToItself).save()
             else:
                 origLink.fromTopic = topic_obj.slug

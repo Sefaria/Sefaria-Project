@@ -2419,11 +2419,11 @@ const TopicToCategorySlug = function(topic, category=null) {
     }
     return initCatSlug;
 }
-const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc={}, origCategoryDesc="", origCategorySlug="", close}) => {
+const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc="", origCategoryDesc="", origCategorySlug="", close}) => {
     const [savingStatus, setSavingStatus] = useState(false);
     const [catSlug, setCatSlug] = useState(origCategorySlug);
-    const [description, setDescription] = useState(origDesc["en"]);
-    const [catDescription, setCatDescription] = useState(origCategoryDesc["en"]);
+    const [description, setDescription] = useState(origDesc);
+    const [catDescription, setCatDescription] = useState(origCategoryDesc);
     const [enTitle, setEnTitle] = useState(origEn);
     const [heTitle, setHeTitle] = useState(origHe);
     const isNewTopic = useRef(origEn === "");
@@ -2465,12 +2465,12 @@ const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc={}, origCatego
         else {
           url = `/api/topics/${origSlug}`;
           data["origCategory"] = origCategorySlug;
-          data["origDescription"] = origDesc["en"];
+          data["origDescription"] = origDesc;
           data["origTitle"] = origEn;
           data["origSlug"] = origSlug;
           if (isCategory) {
             data["catDescription"] = catDescription;
-            data["origCatDescription"] = origCategoryDesc["en"];
+            data["origCatDescription"] = origCategoryDesc;
           }
         }
 
@@ -2492,7 +2492,7 @@ const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc={}, origCatego
     }
     const deleteTopic = function() {
       $.ajax({
-        url: "/api/topic/delete/"+origSlug.current,
+        url: "/api/topic/delete/"+origSlug,
         type: "DELETE",
         success: function(data) {
           if ("error" in data) {
@@ -2540,7 +2540,7 @@ const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc={}, origCatego
                                       <textarea id="topicDesc" onBlur={(e) => setCatDescription(e.target.value)}
                                              defaultValue={catDescription} placeholder="Add a short description."/>
                                   </div> : null}
-                      {!isNewTopic ? <div onClick={deleteTopic} id="deleteTopic" className="button small deleteTopic" tabIndex="0" role="button">
+                      {!isNewTopic.current ? <div onClick={deleteTopic} id="deleteTopic" className="button small deleteTopic" tabIndex="0" role="button">
                                       <InterfaceText>Delete Topic</InterfaceText>
                                     </div> : null}
                     </div>

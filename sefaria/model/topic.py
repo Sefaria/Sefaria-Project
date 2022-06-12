@@ -103,12 +103,14 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         return types
 
     def change_description(self, desc, cat_desc):
+        self.description_published = True # because this function is used as part of the manual topic editor, we can assume 'description_published' should be True
         if getattr(self, "isTopLevelDisplay", False):
-            self.categoryDescription = {}
+            self.categoryDescription = getattr(self, "categoryDescription", {})
+            self.description = getattr(self, "description", {})
             self.categoryDescription["en"] = cat_desc
             self.description["en"] = desc
         else:
-            self.description = {}
+            self.description = getattr(self, "description", {})
             self.description["en"] = desc
             self.description_published = True
             if getattr(self, "categoryDescription", False):
