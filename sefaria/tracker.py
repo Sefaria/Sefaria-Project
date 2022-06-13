@@ -84,7 +84,8 @@ def modify_bulk_text(user: int, version: model.Version, text_map: dict, vsource=
         kwargs['skip_links'] = kwargs.get('skip_links', False) or getattr(version, 'hasManuallyWrappedRefs', False)
         # hard-code `count_after` to False here. It will be called later on the whole index once
         # (which is all that's necessary)
-        post_modify_text(user, kwargs.get("type"), oref, version.language, version.versionTitle, old_text, new_text, version._id, count_after=False, **kwargs)
+        kwargs['count_after'] = False
+        post_modify_text(user, kwargs.get("type"), oref, version.language, version.versionTitle, old_text, new_text, version._id, **kwargs)
 
     count_segments(version.get_index())
     return error_map
