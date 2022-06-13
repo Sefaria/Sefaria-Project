@@ -9,7 +9,7 @@ metadata:
 spec:
   tls:
     - secretName: {{ template "sefaria.secrets.originTls" . }}
-    {{- if ( template "sefaria.secrets.originIlTls" . ) }}
+    {{- if ne .Values.sandbox "true" }}
     - secretName: {{ template "sefaria.secrets.originIlTls" . }}
     {{- end }}
   rules:
