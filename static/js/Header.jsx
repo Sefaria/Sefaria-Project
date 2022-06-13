@@ -55,7 +55,7 @@ class Header extends Component {
           { Sefaria._siteSettings.TORAH_SPECIFIC ?
             <DonateLink classes={"textLink donate"} link={"header"} source={"Header"}><InterfaceText>Donate</InterfaceText></DonateLink> : null}
           { !Sefaria._siteSettings.TORAH_SPECIFIC ?
-            <a href="/topics/category/authors" className="textLink"><InterfaceText>Authors</InterfaceText></a> : null}
+            <a href="/topics/authors" className="textLink"><InterfaceText>Authors</InterfaceText></a> : null}
         </div>
 
         <div className="headerLinksSection">
