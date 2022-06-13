@@ -41,11 +41,17 @@ class CollectionPage extends Component {
   }
   componentDidMount() {
     this.loadData();
+    if (!!this.props.tag & !this.props.tab) {
+      this.props.setTab("sheets");
+    }
   }
   componentDidUpdate(prevProps, prevState) {
     if (this.props.slug !== prevProps.slug) {
       this.setState({collectionData: null});
       this.loadData();
+    }
+    if (this.props.tab != prevProps.tab) {
+      this.setState({tab: this.props.tab});
     }
     if (prevState.sheetFilterTopic !== this.state.sheetFilterTopic && $(".content").scrollTop() > 260) {
       $(".content").scrollTop(0);
@@ -249,7 +255,7 @@ class CollectionPage extends Component {
 
           <TabView
             tabs={tabs}
-            currTabName={this.props.tab}
+            currTabName={this.state.tab}
             renderTab={renderTab}
             containerClasses={"largeTabs"}
             setTab={this.props.setTab} >
