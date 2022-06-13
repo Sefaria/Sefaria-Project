@@ -1168,9 +1168,12 @@ const TopicList = ({ srefs, interfaceLang, contentLang }) => {
   // segment ref topicList can be undefined even if loaded
   // but section ref topicList is null when loading and array when loaded
   const [topics, setTopics] = useState(Sefaria.topicsByRef(srefs));
+  const updateTopics = function() {
+    setTopics(Sefaria.topicsByRef(srefs));
+  }
   return (
     <div className={`topicList ${contentLang === 'hebrew' ? 'topicsHe' : 'topicsEn'}`}>
-      <TopicSearch contextSelector=".topicList" srefs={srefs} updateSrefs={setTopics}/>
+      <TopicSearch contextSelector=".topicList" srefs={srefs} update={updateTopics}/>
       {(!topics || !topics.length) ? (
         <div className="webpageList empty">
           <div className="loadingMessage sans-serif">
@@ -1178,8 +1181,9 @@ const TopicList = ({ srefs, interfaceLang, contentLang }) => {
           </div>
         </div>
       ) : topics.map(
-        topic => (
+          (topic, i) => (
           <TopicListItem
+            isFirst={i === 0}
             key={topic.topic}
             topic={topic}
             interfaceLang={interfaceLang}
@@ -1191,14 +1195,15 @@ const TopicList = ({ srefs, interfaceLang, contentLang }) => {
   );
 }
 
-const TopicListItem = ({ topic, interfaceLang, srefs }) => {
+const TopicListItem = ({ isFirst, topic, interfaceLang, srefs }) => {
   let dataSourceText = '';
   const langKey = interfaceLang === 'english' ? 'en' : 'he';
   if (!!topic.dataSources && Object.values(topic.dataSources).length > 0) {
     dataSourceText = `${Sefaria._('This topic is connected to ')}"${Sefaria._r(srefs[0])}" ${Sefaria._('by')} ${Object.values(topic.dataSources).map(d => d[langKey]).join(' & ')}.`;
   }
+  const topicLinkClass = isFirst ? "topicButton isFirst" : "topicButton";
   return (
-    <a href={`/topics/${topic.topic}`} className="topicButton" target="_blank">
+      <a href={`/topics/${topic.topic}`} className={topicLinkClass} target="_blank">
       <span className="topicButtonTitle">
         <span className="contentText">
           <span className="en">{topic.title.en}</span>

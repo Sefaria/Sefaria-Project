@@ -3344,10 +3344,12 @@ def topic_ref_api(request, tref):
         if Topic().load({"slug": slug}) is None:
             return jsonResponse({"error": "Topic does not exist"})
 
-        ref_topic_link = RefTopicLink({"toTopic": slug, "linkType": "about", "dataSource": "sefaria", "ref": tref})
-        ref_topic_link.save()
-        response = {"topic": slug, "ref": tref}
-        return jsonResponse(response)
+        ref_topic_link = {"toTopic": slug, "linkType": "about", "dataSource": "sefaria", "ref": tref}
+        if RefTopicLink().load(ref_topic_link) is None:
+            ref_topic_link.save()
+            return get_topics_for_ref(tref, annotate=True)
+        else:
+            return {"error": "Topic link already exists"}
 
 
 _CAT_REF_LINK_TYPE_FILTER_MAP = {

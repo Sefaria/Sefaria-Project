@@ -5,6 +5,7 @@ import classNames  from 'classnames';
 import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
 import Component from 'react-class'
+import {InterfaceText} from "./Misc";
 
 class TopicSearch extends Component {
   constructor(props) {
@@ -74,7 +75,7 @@ class TopicSearch extends Component {
       focus: e => clearTimeout(this.state.timer),
       select: function( event, ui ) {
         if (ui.item.value == "__invalid") { return false; }
-        $(ReactDOM.findDOMNode(this)).find("input.search").val(ui.item.value);  // This will disappear when the next line executes, but the eye can sometimes catch it.
+        $(ReactDOM.findDOMNode(this)).find("input.search").val(ui.item.label);  // This will disappear when the next line executes, but the eye can sometimes catch it.
         this.submitSearch(ui.item.value);
         return false;
       }.bind(this),
@@ -110,24 +111,27 @@ class TopicSearch extends Component {
           alert(data.error);
         } else {
           this._refTopicLinks[this.props.srefs] = data;
-          this.props.updateSrefs(Sefaria.topicsByRef(this.props.srefs));
+          this.props.update();
         }
         }).fail( function(xhr, status, errorThrown) {
           alert("Unfortunately, there may have been an error saving this topic information: "+errorThrown);
         });
   }
   render() {
-    let inputClasses = classNames({search: 1, keyboardInput: Sefaria.interfaceLang == 'english'});
+    let inputClasses = classNames({search: 1});
 
     return (
         <div className = "searchBox TopicSearchBox ui-front">
           <input className={inputClasses}
             id="searchInput"
-            placeholder={Sefaria._("Search Topics")}
+            placeholder={Sefaria._("Search for Topics Here.")}
             onKeyUp={this.handleSearchKeyUp}
             maxLength={100}
-            title={Sefaria._("Search for Topics Here.")}
+            title={Sefaria._("Topic Search")}
           />
+          <div onClick={this.submitSearch} id="submitSearch" className="button small addTopic" tabIndex="0" role="button">
+            <InterfaceText>Add Topic</InterfaceText>
+          </div>
         </div>
     );
   }
@@ -135,7 +139,7 @@ class TopicSearch extends Component {
 TopicSearch.propTypes = {
   contextSelector:  PropTypes.string.isRequired, // CSS Selector for uniquely identifiable context that this is in.
   srefs: PropTypes.array.isRequired, //srefs of TopicList
-  updateSrefs: PropTypes.func.isRequired //used to add to srefs of TopicList
+  update: PropTypes.func.isRequired //used to add topic to TopicList
 };
 
 

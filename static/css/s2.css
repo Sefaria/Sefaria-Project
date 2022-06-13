@@ -6283,6 +6283,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding: 20px 34px;
   margin: initial;
 }
+.topicButton.isFirst {
+  border-top: none;
+}
 .topicButton:hover {
   text-decoration: none;
 }
@@ -8323,6 +8326,21 @@ div.aboutSheetMetadata span:not(:first-child)::before{
     position: initial;
     vertical-align: 0px;
 }
+.searchBox.TopicSearchBox {
+  margin: 30px 0px 20px 30px;
+}
+.searchBox.TopicSearchBox input {
+  padding: 15px;
+  box-sizing: border-box;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  border: none;
+  height: 40px;
+  width: 209px;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  border-radius: 6px;
+  font-size: 18px;
+}
+
 .header .searchBox .keyboardInputInitiator {
     display: none;
 }
@@ -11139,6 +11157,12 @@ body .homeFeedWrapper.userStats {
   color: var(--dark-grey);
   float: right;
   background-color: var(--lightest-grey);
+}
+.button.small.addTopic {
+  background-color: #212E50;
+  color: #FFFFFF;
+  float: right;
+  margin-right: 30px;
 }
 #categoryChooserMenu {
   overflow: hidden;
