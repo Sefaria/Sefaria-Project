@@ -75,7 +75,7 @@ class TopicSearch extends Component {
       select: function( event, ui ) {
         if (ui.item.value == "__invalid") { return false; }
         $(ReactDOM.findDOMNode(this)).find("input.search").val(ui.item.value);  // This will disappear when the next line executes, but the eye can sometimes catch it.
-        this.submitSearch(ui.item.label);
+        this.submitSearch(ui.item.value);
         return false;
       }.bind(this),
 
@@ -83,8 +83,8 @@ class TopicSearch extends Component {
         Sefaria.topicCompletion(
             request.term,
             d => {
-              if (d[0].length > 0) {
-                response(d[0].map(function(e) { return {label: e, value: e}}));
+              if (d[1].length > 0) {
+                response(d[1].map(function(e) { return {label: e.title, value: e.key}}));
               } else {
                 response([])
               }
@@ -102,8 +102,19 @@ class TopicSearch extends Component {
       }
     }
   }
-  submitSearch(word) {
-    alert(Sefaria.topicCompletion(word));
+  submitSearch(topic) {
+
+    const postJSON = JSON.stringify( {"topic": topic})
+    $.post("/api/ref-topic-links/"+Sefaria.normRef(this.props.srefs), {"json": postJSON}, function(data) {
+        if (data.error) {
+          alert(data.error);
+        } else {
+          this._refTopicLinks[this.props.srefs] = data;
+          this.props.updateSrefs(Sefaria.topicsByRef(this.props.srefs));
+        }
+        }).fail( function(xhr, status, errorThrown) {
+          alert("Unfortunately, there may have been an error saving this topic information: "+errorThrown);
+        });
   }
   render() {
     let inputClasses = classNames({search: 1, keyboardInput: Sefaria.interfaceLang == 'english'});
@@ -122,7 +133,9 @@ class TopicSearch extends Component {
   }
 }
 TopicSearch.propTypes = {
-  contextSelector:  PropTypes.string.isRequired // CSS Selector for uniquely identifiable context that this is in.
+  contextSelector:  PropTypes.string.isRequired, // CSS Selector for uniquely identifiable context that this is in.
+  srefs: PropTypes.array.isRequired, //srefs of TopicList
+  updateSrefs: PropTypes.func.isRequired //used to add to srefs of TopicList
 };
 
 

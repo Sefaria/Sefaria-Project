@@ -5107,7 +5107,7 @@ class Library(object):
         Builds the topic auto complete including topics with no sources
         """
         from .autospell import AutoCompleter
-        self._topic_auto_completer = AutoCompleter("en", library, include_topics=True, min_topics=0)
+        self._topic_auto_completer = AutoCompleter("en", library, include_topics=True, include_titles=False, min_topics=0)
         self._topic_auto_completer_is_ready = True
 
     def topic_auto_completer(self):

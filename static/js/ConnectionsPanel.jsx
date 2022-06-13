@@ -1167,10 +1167,10 @@ PublicSheetsList.propTypes = {
 const TopicList = ({ srefs, interfaceLang, contentLang }) => {
   // segment ref topicList can be undefined even if loaded
   // but section ref topicList is null when loading and array when loaded
-  const topics = Sefaria.topicsByRef(srefs);
+  const [topics, setTopics] = useState(Sefaria.topicsByRef(srefs));
   return (
     <div className={`topicList ${contentLang === 'hebrew' ? 'topicsHe' : 'topicsEn'}`}>
-      <TopicSearch contextSelector=".topicList"/>
+      <TopicSearch contextSelector=".topicList" srefs={srefs} updateSrefs={setTopics}/>
       {(!topics || !topics.length) ? (
         <div className="webpageList empty">
           <div className="loadingMessage sans-serif">
