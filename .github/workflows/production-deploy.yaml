@@ -120,5 +120,5 @@ jobs:
           GIT_COMMIT: "${{ github.ref }}"
           PROJECT_ID: "${{ secrets.PROD_GKE_PROJECT }}"
           NAMESPACE: "${{secrets.PROD_NAMESPACE}}"
-          CHART_VERSION: v0.0.11
+          CHART_VERSION: 0.0.12
 
