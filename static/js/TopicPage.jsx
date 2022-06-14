@@ -6,6 +6,7 @@ import { useIncrementalLoad } from './Hooks';
 import { Promotions } from './Promotions';
 import { NavSidebar } from './NavSidebar';
 import Footer from './Footer';
+import TopicEditor from './TopicEditor';
 import {
   SheetBlock,
   TextPassage,
@@ -19,7 +20,6 @@ import {
     FilterableList,
     ToolTipped,
     SimpleLinkedBlock,
-    TopicEditor,
     TopicToCategorySlug
 } from './Misc';
 

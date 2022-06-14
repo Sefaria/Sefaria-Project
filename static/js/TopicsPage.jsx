@@ -2,8 +2,9 @@ import {
     InterfaceText,
     ContentText,
     ResponsiveNBox, AdminToolHeader,
-    CategoryChooser, TopicEditor
+    CategoryChooser
 } from './Misc';
+import TopicEditor from './TopicEditor';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
