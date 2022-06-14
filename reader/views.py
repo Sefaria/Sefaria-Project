@@ -57,7 +57,7 @@ from sefaria.system.exceptions import InputError, PartialRefInputError, BookName
 from sefaria.system.cache import django_cache
 from sefaria.system.database import db
 from sefaria.helper.search import get_query_obj
-from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, get_topics_for_book
+from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, get_topics_for_book, ref_topic_link_prep, annotate_topic_link
 from sefaria.helper.community_page import get_community_page_items
 from sefaria.helper.file import get_resized_file
 from sefaria.image_generator import make_img_http_response
@@ -3341,13 +3341,17 @@ def topic_ref_api(request, tref):
             return jsonResponse({"error": "Only moderators can connect refs to topics."})
 
         slug = json.loads(request.POST.get("json")).get("topic", "")
-        if Topic().load({"slug": slug}) is None:
+        topic_obj = Topic().load({"slug": slug})
+        if topic_obj is None:
             return jsonResponse({"error": "Topic does not exist"})
 
         ref_topic_link = {"toTopic": slug, "linkType": "about", "dataSource": "sefaria", "ref": tref}
         if RefTopicLink().load(ref_topic_link) is None:
-            ref_topic_link.save()
-            return get_topics_for_ref(tref, annotate=True)
+            r = RefTopicLink(ref_topic_link)
+            r.save()
+            ref_topic_dict = ref_topic_link_prep(r.contents())
+            ref_topic_dict = annotate_topic_link(ref_topic_dict, {slug: topic_obj})
+            return jsonResponse(ref_topic_dict)
         else:
             return {"error": "Topic link already exists"}
 

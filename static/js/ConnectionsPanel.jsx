@@ -1173,7 +1173,7 @@ const TopicList = ({ srefs, interfaceLang, contentLang }) => {
   }
   return (
     <div className={`topicList ${contentLang === 'hebrew' ? 'topicsHe' : 'topicsEn'}`}>
-      <TopicSearch contextSelector=".topicList" srefs={srefs} update={updateTopics}/>
+      {Sefaria.is_moderator ? <TopicSearch contextSelector=".topicList" srefs={srefs} update={updateTopics}/> : null}
       {(!topics || !topics.length) ? (
         <div className="webpageList empty">
           <div className="loadingMessage sans-serif">

@@ -14,6 +14,7 @@ class TopicSearch extends Component {
     this.state = {
       val: "",
       timer: null,
+      slug: "",
       autocomplete: null
     };
   }
@@ -76,7 +77,7 @@ class TopicSearch extends Component {
       select: function( event, ui ) {
         if (ui.item.value == "__invalid") { return false; }
         $(ReactDOM.findDOMNode(this)).find("input.search").val(ui.item.label);  // This will disappear when the next line executes, but the eye can sometimes catch it.
-        this.submitSearch(ui.item.value);
+        this.setState({slug: ui.item.value});
         return false;
       }.bind(this),
 
@@ -99,19 +100,22 @@ class TopicSearch extends Component {
       const query = $(event.target).val();
       if (query) {
         $(ReactDOM.findDOMNode(this)).find("input.search").autocomplete("close");
-        this.submitSearch(query);
+        this.setState({slug: query});
+        this.submitSearch();
       }
     }
   }
-  submitSearch(topic) {
-
-    const postJSON = JSON.stringify( {"topic": topic})
+  submitSearch() {
+    const postJSON = JSON.stringify( {"topic": this.state.slug})
+    const srefs = this.props.srefs;
+    const update = this.props.update;
     $.post("/api/ref-topic-links/"+Sefaria.normRef(this.props.srefs), {"json": postJSON}, function(data) {
         if (data.error) {
           alert(data.error);
         } else {
-          this._refTopicLinks[this.props.srefs] = data;
-          this.props.update();
+          srefs.map(sref => Sefaria._refTopicLinks[sref].push(data));
+          Sefaria._refTopicLinks[Sefaria.sectionRef(Sefaria.normRef(srefs))].push(data);
+          update();
         }
         }).fail( function(xhr, status, errorThrown) {
           alert("Unfortunately, there may have been an error saving this topic information: "+errorThrown);

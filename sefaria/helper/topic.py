@@ -247,6 +247,17 @@ def recommend_topics(refs: list) -> list:
 
     return sorted(recommend_topics, key=lambda x: x["count"], reverse=True)
 
+def ref_topic_link_prep(link):
+    link['anchorRef'] = link['ref']
+    link['anchorRefExpanded'] = link['expandedRefs']
+    del link['ref']
+    del link['expandedRefs']
+    if link.get('dataSource', None):
+        data_source_slug = link['dataSource']
+        data_source = library.get_topic_data_source(data_source_slug)
+        link['dataSource'] = data_source.displayName
+        link['dataSource']['slug'] = data_source_slug
+    return link
 
 def get_topics_for_ref(tref, annotate=False):
     serialized = [l.contents() for l in Ref(tref).topiclinkset()]
@@ -257,16 +268,8 @@ def get_topics_for_ref(tref, annotate=False):
             link_topic_dict = {}
         serialized = list(filter(None, (annotate_topic_link(link, link_topic_dict) for link in serialized)))
     for link in serialized:
-        link['anchorRef'] = link['ref']
-        link['anchorRefExpanded'] = link['expandedRefs']
-        del link['ref']
-        del link['expandedRefs']
-        if link.get('dataSource', None):
-            data_source_slug = link['dataSource']
-            data_source = library.get_topic_data_source(data_source_slug)
-            link['dataSource'] = data_source.displayName
-            link['dataSource']['slug'] = data_source_slug
-    
+        ref_topic_link_prep(link)
+
     serialized.sort(key=cmp_to_key(sort_refs_by_relevance))
     return serialized
 
