@@ -1,4 +1,4 @@
-{{- if eq .Values.deployEnv "prod" }}
+{{- if ne .Values.sandbox "true" }}
 ---
 apiVersion: batch/v1beta1
 kind: CronJob
@@ -13,6 +13,7 @@ spec:
       backoffLimit: 1
       template:
         spec:
+          containers:
           - name: metrics
             image: "{{ .Values.web.containerImage }}:{{ .Values.releaseImageTag }}"
             env:

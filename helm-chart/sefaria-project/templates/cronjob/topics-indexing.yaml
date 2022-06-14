@@ -1,5 +1,5 @@
 # https://sefaria.slack.com/archives/DNAHQ11V0/p1594892722002100
-{{- if eq .Values.deployEnv "prod" }}
+{{- if ne .Values.sandbox "true" }}
 ---
 apiVersion: batch/v1beta1
 kind: CronJob
