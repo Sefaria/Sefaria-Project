@@ -3480,6 +3480,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item {
   cursor: pointer;
   display: block;
 }
+body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item:hover{
+  background: var(--lighter-grey);
+}
 body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus {
   text-decoration: underline;
 }
