@@ -257,9 +257,9 @@ const TranslationLinks = () => {
 
   return (
     <div className="navSidebarLink serif language">
-      {languages ? <ul>{languages.map(key => <li key={key}><a href={`/translations/${key}`}>
-            {Sefaria.ISOMap[key] ? Sefaria.ISOMap[key]["nativeName"] : key}
-          </a></li>)}</ul> :  "Loading..." }
+      {languages ? <ul>{languages.map(key => Sefaria.ISOMap[key] && key !== "he" ? <li key={key}><a href={`/translations/${key}`}>
+          {Sefaria.ISOMap[key]["nativeName"]}
+          </a></li> : null)} </ul> :  "Loading..." }
       </div>
   );
 };
