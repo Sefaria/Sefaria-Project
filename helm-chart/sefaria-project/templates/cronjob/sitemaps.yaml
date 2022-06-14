@@ -37,13 +37,13 @@ spec:
             - name: VARNISH_HOST
               value: "varnish-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
             envFrom:
-              - secretRef:
-                  name: {{ .Values.secrets.localSettings.ref }}
-                  optional: true
-              - secretRef:
-                  name: local-settings-secrets-{{ .Values.deployEnv }}
-                  optional: true
-              - configMapRef:
+            - secretRef:
+                name: {{ .Values.secrets.localSettings.ref }}
+                optional: true
+            - secretRef:
+                name: local-settings-secrets-{{ .Values.deployEnv }}
+                optional: true
+            - configMapRef:
                 name: local-settings-{{ .Values.deployEnv }}
             volumeMounts:
               - name: shared-volume
@@ -54,7 +54,6 @@ spec:
                 readOnly: true
             command: ["bash"]
             args: ["-c", "/app/run /app/scripts/generate_sitemaps.py -o /storage/"]
-
           containers:
           - name: file-uploader
             image: google/cloud-sdk
