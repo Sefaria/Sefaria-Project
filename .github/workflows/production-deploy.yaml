@@ -117,7 +117,7 @@ jobs:
       - name: Deploy Sandbox
         run: ./build/ci/production-helm-deploy.sh build/ci/production-values.yaml
         env:
-          GIT_COMMIT: "${{ github.ref }}"
+          GIT_COMMIT: "${{ github.ref_name }}"
           PROJECT_ID: "${{ secrets.PROD_GKE_PROJECT }}"
           NAMESPACE: "${{secrets.PROD_GKE_NAMESPACE}}"
           CHART_VERSION: 0.0.12
