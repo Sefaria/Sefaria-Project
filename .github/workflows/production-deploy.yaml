@@ -5,7 +5,6 @@ on:
     tags-ignore:
       - 'helm-chart-*'
 
-
 jobs:
   # Note - build occurs again here, even though this image has been built in continuous.
   # This is because in continuous, the images are pushed to the dev registry
@@ -121,5 +120,5 @@ jobs:
           GIT_COMMIT: "${{ github.ref }}"
           PROJECT_ID: "${{ secrets.PROD_GKE_PROJECT }}"
           NAMESPACE: "${{secrets.PROD_NAMESPACE}}"
-          CHART_VERSION: v0.0.9
+          CHART_VERSION: v0.0.11
 
