@@ -18,10 +18,13 @@ Any changes to the helm-charts folder that are merged to master will trigger the
 
 ## Version tag matching `^v.*` is applied to master 
 
-Google Cloud Build monitors the repository for updates to release version tags.  When one is detected, Cloud Build creates new images for node, web and asset, performs various bash based templating actions to generate a helm chart and then deploys the chart to the production cluster with a fixed values file.
-
 The intended method of applying a release version tag to the repository is by manually publishing a release via the github UI.
+
+Google Cloud Build monitors the repository for updates to release version tags.  When one is detected, Cloud Build creates new images for node, web and asset, performs various bash based templating actions to generate a helm chart and then deploys the chart to the production cluster with a fixed values file.
 
 | Note: the cloudbuild deployment is being deprecated and will be replaced by a github based pipeline that uses the in-repo chart
 
+When github detected a release verson tag is applied to the repository, it will trigger the production deploy pipeline.  This builds the node, web and asset images, and then pushes them to the production gcr registry.  It then performs a helm upgrade using a values file in `build/ci` and a specified chart version pullfrom the GH Pages Helm Registry.
+
+| Note: the github based deployment is still in testing and deploys a second 'test' prod-like instance.
 
