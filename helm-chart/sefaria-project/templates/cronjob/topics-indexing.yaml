@@ -27,14 +27,14 @@ spec:
               - name: VARNISH_HOST
                 value: "varnish-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
               envFrom:
-                - secretRef:
-                    name: {{ .Values.secrets.localSettings.ref }}
-                    optional: true
-                - configMapRef:
+              - secretRef:
+                  name: {{ .Values.secrets.localSettings.ref }}
+                  optional: true
+              - configMapRef:
                   name: local-settings-{{ .Values.deployEnv }}
-                - secretRef:
-                    name: local-settings-secrets-{{ .Values.deployEnv }}
-                    optional: true
+              - secretRef:
+                  name: local-settings-secrets-{{ .Values.deployEnv }}
+                  optional: true
               volumeMounts:
                 - mountPath: /app/sefaria/local_settings.py
                   name: local-settings
