@@ -93,7 +93,7 @@ jobs:
           context: .
           push: true
           build-args: |
-            SRC_IMG=gcr.io/${{ secrets.PROD_GKE_PROJECT }}/sefaria-web:${{ github.ref }}
+            SRC_IMG=gcr.io/${{ secrets.PROD_GKE_PROJECT }}/sefaria-web:${{ github.ref_name }}
           file: ./build/nginx/Dockerfile
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
