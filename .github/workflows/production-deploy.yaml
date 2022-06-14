@@ -109,7 +109,7 @@ jobs:
       - name: setup helm
         uses: azure/setup-helm@v1
       - name: Authenticate GHA Runner To Target Cluster
-        run: gcloud container clusters get-credentials ${{secrets.PROD_GKE_CLUSTER}} --zone ${{secrets.PROD_GKE_REGION}} --project ${{secrets.PROD_GCP_PROJECT}}
+        run: gcloud container clusters get-credentials ${{secrets.PROD_GKE_CLUSTER}} --zone ${{secrets.PROD_GKE_REGION}} --project ${{secrets.PROD_GKE_PROJECT}}
       - name: Deploy Sandbox
         run: ./build/ci/production-helm-deploy.sh build/ci/production-values.yaml
         env:
