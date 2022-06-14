@@ -2,8 +2,6 @@ on:
   push:
     tags:
       - 'v*'
-    tags-ignore:
-      - 'helm-chart-*'
 
 jobs:
   # Note - build occurs again here, even though this image has been built in continuous.
