@@ -1261,6 +1261,11 @@ p.registration-links a:hover{
 #jobsPage h2 {
   font-size: 22px;
 }
+#jobsPage .nothing{
+  margin-top: 40px;
+  margin-bottom: 40px;
+  font-weight: bold;
+}
 #jobsPage section.department h2{
   font-weight: 500;
   font-size: 22px;
