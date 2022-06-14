@@ -115,6 +115,6 @@ jobs:
         env:
           GIT_COMMIT: "${{ github.ref }}"
           PROJECT_ID: "${{ secrets.PROD_GKE_PROJECT }}"
-          NAMESPACE: "${{secrets.PROD_NAMESPACE}}"
+          NAMESPACE: "${{secrets.PROD_GKE_NAMESPACE}}"
           CHART_VERSION: 0.0.12
 
