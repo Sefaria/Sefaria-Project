@@ -25,7 +25,7 @@ except ImportError:
     logger.warning("Failed to load 're2'.  Falling back to 're' for regular expression parsing. See https://github.com/sefaria/Sefaria-Project/wiki/Regular-Expression-Engines")
     import re
 
-    letter_scope = "\u05b0\u05b1\u05b2\u05b3\u05b4\u05b5\u05b6\u05b7\u05b8\u05b9\u05ba\u05bb\u05bc\u05bd" \
+letter_scope = "\u05b0\u05b1\u05b2\u05b3\u05b4\u05b5\u05b6\u05b7\u05b8\u05b9\u05ba\u05bb\u05bc\u05bd" \
             + "\u05c1\u05c2" \
             + "\u05d0\u05d1\u05d2\u05d3\u05d4\u05d5\u05d6\u05d7\u05d8\u05d9\u05da\u05db\u05dc\u05dd\u05de\u05df" \
             + "\u05e0\u05e1\u05e2\u05e3\u05e4\u05e5\u05e6\u05e7\u05e8\u05e9\u05ea" \
@@ -437,7 +437,7 @@ class LexiconTrie(datrie.Trie):
         super(LexiconTrie, self).__init__(letter_scope)
 
         for entry in LexiconEntrySet({"parent_lexicon": lexicon_name}, sort=[("_id", -1)]):
-            self[hebrew.strip_nikkud(entry.headword)] = self.get(entry.headword, []) + [entry.headword]
+            self[hebrew.strip_nikkud(entry.headword)] = self.get(hebrew.strip_nikkud(entry.headword), []) + [entry.headword]
             for ahw in getattr(entry, "alt_headwords", []):
                 self[hebrew.strip_nikkud(ahw)] = self.get(hebrew.strip_nikkud(ahw), []) + [entry.headword]
 
