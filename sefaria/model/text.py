@@ -4757,7 +4757,7 @@ class Library(object):
         While building these ToC data structures, this function also builds the equivalent JSON structures
         as an API optimization.
 
-        @param: skip_toc_tree boolean
+        :param skip_toc_tree: Boolean
         """
         if not skip_toc_tree:
             self._toc_tree = self.get_toc_tree(rebuild=True)
@@ -4850,7 +4850,7 @@ class Library(object):
     def get_topic_toc_json(self, rebuild=False):
         """
         Returns JSON representation of Topics ToC.
-        @param: rebuild boolean
+        :param rebuild: Boolean
         """
         if rebuild or not self._topic_toc_json:
             if not rebuild:
@@ -4864,9 +4864,9 @@ class Library(object):
     def get_topic_toc_json_recursive(self, topic=None, explored=None, with_descriptions=False):
         """
         Returns JSON representation of Topics ToC
-        @param: topic Topic
-        @param: explored Set
-        @param: with_descriptions boolean
+        :param topic: Topic
+        :param explored: Set
+        :param with_descriptions: boolean
         """
         from .topic import Topic, TopicSet, IntraTopicLinkSet
         explored = explored or set()
@@ -4928,7 +4928,7 @@ class Library(object):
     def get_topic_toc_category_mapping(self, rebuild=False) -> dict:
         """
         Returns the category mapping as a dictionary for the topics ToC. Loads on Library startup.
-        @param: rebuild boolean
+        :param rebuild: Boolean
         """
         if rebuild or not self._topic_toc_category_mapping:
             if not rebuild:
@@ -4973,7 +4973,7 @@ class Library(object):
     def get_topic_link_type(self, link_type):
         """
         Returns a TopicLinkType with a slug of link_type (parameter) if not already present
-        @param: link_type String
+        :param link_type: String
         """
         from .topic import TopicLinkTypeSet
         if not self._topic_link_types:
@@ -4986,7 +4986,7 @@ class Library(object):
     def get_topic_data_source(self, data_source):
         """
         Returns a TopicDataSource with the data_source (parameter) slug if not already present
-        @param: data_source String
+        :param data_source: String
         """
         from .topic import TopicDataSourceSet
         if not self._topic_data_sources:
@@ -5071,7 +5071,7 @@ class Library(object):
         is not present, it assumes the need to rebuild the lexicon_auto_completer and calls the build
         function with appropriate logger warnings before returning the desired result
 
-        @param: lexicon String
+        :param lexicon: String
         """
         try:
             return self._lexicon_auto_completer[lexicon]
@@ -5325,6 +5325,11 @@ class Library(object):
         return term_dict
 
     def build_term_mappings(self):
+        """
+        Build simple and full term mappings
+        Full term mapping has the term name as the key, and the term as the value.
+        Simple term mapping has the term name as the key, and an English and Hebrew primary titles for the terms.
+        """
         self._simple_term_mapping = {}
         self._full_term_mapping = {}
         for term in TermSet():
@@ -5360,20 +5365,37 @@ class Library(object):
         return self._simple_term_mapping_json
 
     def get_term(self, term_name):
+        """
+        Returns the full term, if mapping not present, builds the full term mapping.
+        :param term_name: String
+        :returns: full term (Mongo Record)
+        """
         if not self._full_term_mapping:
             self.build_term_mappings()
         return self._full_term_mapping.get(term_name)
 
     def get_topic(self, slug):
+        """
+        Returns the corresponding topic for a given slug
+        :param slug: String
+        :returns: topic map for the given slug Dictionary
+        """
         return self._topic_mapping[slug]
 
     def get_topic_mapping(self, rebuild=False):
+        """
+        Returns the topic mapping if it exists, if not rebuilds it and returns
+        :param rebuild: Boolean (optional, default set to False)
+        """
         tm = self._topic_mapping
         if not tm or rebuild:
             tm = self._build_topic_mapping()
         return tm
 
     def _build_topic_mapping(self):
+        """
+        Builds the topic mapping
+        """
         from .topic import Topic, TopicSet
         self._topic_mapping = {t.slug: {"en": t.get_primary_title("en"), "he": t.get_primary_title("he")} for t in TopicSet()}
         return self._topic_mapping
@@ -5387,6 +5409,9 @@ class Library(object):
         return root_nodes
 
     def all_index_records(self):
+        """
+        Returns an array of all index records
+        """
         return [self._index_map[k] for k in list(self._index_title_maps["en"].keys())]
 
     def get_title_node_dict(self, lang="en"):
@@ -5453,6 +5478,11 @@ class Library(object):
         return title_list
 
     def get_text_titles_json(self, lang="en", rebuild=False):
+        """
+        Returns the json text title list
+        :param lang String (optional, default set to 'en')
+        :param rebuild Boolean (optional, default set to False)
+        """
         if rebuild or not self._full_title_list_jsons.get(lang):
             if not rebuild:
                 self._full_title_list_jsons[lang] = scache.get_shared_cache_elem('books_'+lang+'_json')
@@ -5466,6 +5496,9 @@ class Library(object):
         return self._full_title_list_jsons[lang]
 
     def reset_text_titles_cache(self):
+        """
+        Resets the text titles for all languages
+        """
         for lang in self.langs:
             scache.delete_shared_cache_elem('books_' + lang)
             scache.delete_shared_cache_elem('books_' + lang + '_json')
@@ -5864,6 +5897,12 @@ class Library(object):
         return d
 
     def simplify_toc(self, lang=None, toc_node=None, path=None):
+        """
+        Simplifies the table of contents (ToC)
+        :param lang: 'en' or 'he', default is None (optional)
+        :param toc_node: ToC Node, default is None (optional)
+        :param path: Node Path, default is None (optional)
+        """
         is_root = toc_node is None and path is None
         toc_node = toc_node if toc_node else self.get_toc()
         path = path if path else []
