@@ -87,11 +87,11 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
     : null;
 
   const sidebarModules = [
-    multiPanel ? {type: "AboutSefaria"} : {type: null},
-    {type: "Promo"},
+    multiPanel ? {type: "AboutContext"} : {type: null},
+/*    {type: "Promo"},
     {type: "LearningSchedules"},
     {type: "JoinTheCommunity"},
-    {type: "Resources"},
+    {type: "Resources"},*/
   ];
 
   const footer = compare ? null : <Footer />;
