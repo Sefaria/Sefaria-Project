@@ -4073,6 +4073,12 @@ def random_text_api(request):
 
 
 def translations_api(request, lang=None):
+    """
+    When a lang is provided, returns a dictionary of texts translated into that language,
+    organized by category & secondary category.
+    When a language is not provided, returns a list of distinct languages for which
+    translations exist in the database.
+    """
     bundle_commentaries_langs = ["en", "he"]
     if not lang:
         res = db.texts.distinct("actualLanguage")
