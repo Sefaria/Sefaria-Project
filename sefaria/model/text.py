@@ -1304,8 +1304,11 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         Old style database text record have a field called 'chapter'
         Version records in the wild have a field called 'text', and not always a field called 'chapter'
         """
+        if self["language"] not in ["en", "he"]:
+            raise InputError("Version language must be either 'en' or 'he'")
         if self.get_index() is None:
             raise InputError("Versions cannot be created for non existing Index records")
+        
         return True
 
     def _normalize(self):
