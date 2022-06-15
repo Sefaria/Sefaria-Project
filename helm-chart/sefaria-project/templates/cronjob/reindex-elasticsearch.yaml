@@ -25,7 +25,7 @@ spec:
                 topologyKey: kubernetes.io.hostname
           containers:
           - name: reindex-elastic-search
-            image: "{{ .Values.web.containerImage }}:{{ .Values.releaseImageTag }}"
+            image: "{{ .Values.web.containerImage.imageRegistry }}:{{ .Values.web.containerImage.tag }}"
             resources:
               limits:
                 memory: 8Gi

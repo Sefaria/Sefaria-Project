@@ -15,7 +15,7 @@ spec:
         spec:
           containers:
           - name: metrics
-            image: "{{ .Values.web.containerImage }}:{{ .Values.releaseImageTag }}"
+            image: "{{ .Values.web.containerImage.imageRegistry }}:{{ .Values.web.containerImage.tag }}"
             env:
             - name: REDIS_HOST
               value: "redis-{{ .Values.deployEnv }}"
