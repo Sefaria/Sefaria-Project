@@ -432,8 +432,7 @@ const getSidebarModules = (categories) => {
 
   const defaultModules = [
     {type: "Promo"},
-    {type: "Visualizations", props: {categories}},
-    {type: "SupportSefaria"},
+    {type: "SupportJMC"},
   ]; 
 
   return customModules.concat(defaultModules);
