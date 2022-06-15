@@ -5715,6 +5715,20 @@ class Library(object):
 
     # do we want to move this to the schema node? We'd still have to pass the title...
     def get_regex_string(self, title, lang, for_js=False, anchored=False, capture_title=False, parentheses=False):
+        """
+        Given a string with a Ref not in Sefaria format (i.e. "See Genesis 2 3" as opposed to "Genesis 2:3",
+        it returns a regex for the Ref.
+        If the language is 'en', it calls the full_regex() function which returns the regex, whereas for 'he' we
+        limit the search to content inside parenthesis to limit false positives (i.e. שבת לא תעשה could be caught by
+        mistake as Shabbat 31)
+
+        :param title: String
+        :param lang: 'en' or 'he'
+        :param for_js: Boolean (default set to False, optional)
+        :param anchored: Boolean (default set to False, optional)
+        :param capture_title: Boolean (default set to False, optional)
+        :param parentheses: Boolean (default set to False, optional)
+        """
         node = self.get_schema_node(title, lang)
         assert isinstance(node, JaggedArrayNode)  # Assumes that node is a JaggedArrayNode
 
@@ -5767,6 +5781,7 @@ class Library(object):
         """
         Build a Ref object given a title and a string.  The title is assumed to be at position 0 in the string.
         This is used primarily for English matching.  Hebrew matching is done with _build_all_refs_from_string()
+
         :param title: The title used in the text to refer to this Index node
         :param st: The source text for this reference
         :return: Ref
