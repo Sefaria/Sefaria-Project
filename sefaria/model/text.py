@@ -5922,6 +5922,12 @@ class Library(object):
         return re.sub(fr"{dummy_char}+", repl, dummy_text)
 
     def category_id_dict(self, toc=None, cat_head="", code_head=""):
+        """Returns a dict of unique category ids based on the ToC
+
+        :param toc: ToC object (optional, default is None)
+        :param cat_head: String, (optional, default is "" - an empty string)
+        :param code_head: String, (optional, default is "" - an empty string)
+        """
         if toc is None:
             if not self._category_id_dict:
                 self._category_id_dict = self.category_id_dict(self.get_toc())
