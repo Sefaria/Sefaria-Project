@@ -290,6 +290,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
     def expand_metadata_on_contents(self, contents):
         """
         Decorates contents with expanded meta data such as Hebrew author names, human readable date strings etc.
+
         :param contents: the initial dictionary of contents
         :return: a dictionary of contents with additional fields
         """
@@ -596,6 +597,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         If there is a quotation, fancy quotation, or gershayim in title, return two titles also with quotations.
         For example, if title is 'S"A', return a list of 'S”A' and
         'S״A'
+
         :param title: str
         :return: list
         """
@@ -874,6 +876,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
     def find_string(self, regex_str, cleaner=lambda x: x, strict=True, lang='he', vtitle=None):
         """
         See TextChunk.find_string
+
         :param regex_str:
         :param cleaner:
         :param strict:
@@ -886,6 +889,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
     def text_index_map(self, tokenizer=lambda x: re.split(r'\s+', x), strict=True, lang='he', vtitle=None):
         """
         See TextChunk.text_index_map
+
         :param tokenizer:
         :param strict:
         :param lang:
@@ -947,9 +951,10 @@ class AbstractSchemaContent(object):
 
     def sub_content(self, key_list=None, indx_list=None, value=None):
         """
-        Get's or sets values deep within the content of this version.
+        Gets or sets values deep within the content of this version.
         This returns the result by reference, NOT by value.
         http://stackoverflow.com/questions/27339165/slice-nested-list-at-variable-depth
+
         :param key_list: The node keys to traverse to get to the content node
         :param indx_list: The indexes of the subsection to get/set
         :param value: The value to set.  If present, the method acts as a setter.  If None, it acts as a getter.
@@ -1090,6 +1095,7 @@ class AbstractTextRecord(object):
         If a segment boundary occurs between min_char and max_char, split there.
         Otherwise, attempt to break on a period, semicolon, or comma between min_char and max_char.
         Otherwise, break on a space between min_char and max_char.
+
         :param min_char:
         :param max_char:
         :return:
@@ -1352,6 +1358,7 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
     def walk_thru_contents(self, action, item=None, tref=None, heTref=None, schema=None, addressTypes=None, terms_dict=None):
         """
         Walk through content of version and run `action` for each segment. Only required parameter to call is `action`
+
         :param func action: (segment_str, tref, he_tref, version) => None
 
         action() is a callback function that can have any behavior you would like. It should return None.
@@ -1653,6 +1660,7 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
         For editing in place (i.e. self.text[3] = "Some text"), it is necessary to set force_save to True. This is
         because by editing in place, both the self.text and the self._original_text fields will get changed,
         causing the save to abort.
+
         :param force_save: If set to True, will force a save even if no change was detected in the text.
         :return:
         """
@@ -1702,6 +1710,7 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
         Pads the passed content to the dimension of self._oref.
         Acts on the input variable 'content' in place
         Does not yet handle ranges
+
         :param content:
         :return:
         """
@@ -1865,6 +1874,7 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
         Trims a text loaded from Version record with self._oref.part_projection() to the specifications of self._oref
         This works on simple Refs and range refs of unlimited depth and complexity.
         (in place?)
+
         :param txt:
         :return: List|String depending on depth of Ref
         """
@@ -1962,6 +1972,7 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
     def find_string(self, regex_str, cleaner=lambda x: x, strict=True):
         """
         Regex search in TextChunk
+
         :param regex_str: regex string to search for
         :param cleaner: f(str)->str. function to clean a semgent before searching
         :param strict: if True, throws error if len(ind_list) != len(ref_list). o/w truncates longer array to length of shorter
@@ -1990,6 +2001,7 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
 
         tokenizer: f(str)->list(str) - function to split up text
         strict: if True, throws error if len(ind_list) != len(ref_list). o/w truncates longer array to length of shorter
+
         :param ret_ja: True if you want to return the flattened ja
         :return: (list,list) - index_list (0 based index of start word of each segment ref as compared with the text chunk ref), ref_list
         """
@@ -2448,6 +2460,7 @@ class RefCacheType(type):
     def remove_index_from_cache(cls, index_title):
         """
         Removes all refs to Index with title `index_title` from the Ref cache
+
         :param cls:
         :param index_title:
         :return:
@@ -3703,8 +3716,8 @@ class Ref(object, metaclass=RefCacheType):
 
     def context_ref(self, level=1):
         """
-        :return: :class:`Ref` that is more general than this :class:`Ref`.
         :param level: how many levels to 'zoom out' from the most specific possible :class:`Ref`
+        :return: :class:`Ref` that is more general than this :class:`Ref`.
 
         ::
 
@@ -4410,6 +4423,7 @@ class Ref(object, metaclass=RefCacheType):
         """
         Return the display form of the section value at depth `section_index`
         Does not support ranges
+
         :param section_index: 0 based
         :param lang:
         :param kwargs:
@@ -4425,6 +4439,7 @@ class Ref(object, metaclass=RefCacheType):
         """
         Return the display form of the last section
         Does not support ranges
+
         :param lang:
         :param kwargs:
             dotted=<bool> - Use dotted form for Hebrew talmud?,
@@ -4564,6 +4579,7 @@ class Ref(object, metaclass=RefCacheType):
     def get_all_anchor_refs(self, expanded_self, document_tref_list, document_tref_expanded):
         """
         Return all refs in document_ref_list that overlap with self. These are your anchor_refs. Useful for related API.
+
         :param list(str): expanded_self. precalculated list of segment trefs for self
         :param list(str): document_tref_list. list of trefs to from document in which you want to find archor refs
         :param list(Ref): document_tref_expanded. unique list of trefs that results from running Ref.expand_refs(document_tref_list)
@@ -4596,6 +4612,7 @@ class Ref(object, metaclass=RefCacheType):
     def expand_refs(refs):
         """
         Expands `refs` into list of unique segment refs. Usually used to preprocess database objects that reference refs
+
         :param refs: list of trefs to expand
         :return: list(trefs). unique segment refs derived from `refs`
         """
@@ -4850,6 +4867,7 @@ class Library(object):
     def get_topic_toc_json(self, rebuild=False):
         """
         Returns JSON representation of Topics ToC.
+
         :param rebuild: Boolean
         """
         if rebuild or not self._topic_toc_json:
@@ -4864,6 +4882,7 @@ class Library(object):
     def get_topic_toc_json_recursive(self, topic=None, explored=None, with_descriptions=False):
         """
         Returns JSON representation of Topics ToC
+
         :param topic: Topic
         :param explored: Set
         :param with_descriptions: boolean
@@ -4928,6 +4947,7 @@ class Library(object):
     def get_topic_toc_category_mapping(self, rebuild=False) -> dict:
         """
         Returns the category mapping as a dictionary for the topics ToC. Loads on Library startup.
+
         :param rebuild: Boolean
         """
         if rebuild or not self._topic_toc_category_mapping:
@@ -4973,6 +4993,7 @@ class Library(object):
     def get_topic_link_type(self, link_type):
         """
         Returns a TopicLinkType with a slug of link_type (parameter) if not already present
+
         :param link_type: String
         """
         from .topic import TopicLinkTypeSet
@@ -4986,6 +5007,7 @@ class Library(object):
     def get_topic_data_source(self, data_source):
         """
         Returns a TopicDataSource with the data_source (parameter) slug if not already present
+
         :param data_source: String
         """
         from .topic import TopicDataSourceSet
@@ -5170,6 +5192,7 @@ class Library(object):
         """
         Update library title dictionaries and caches with information from provided index.
         Index can be passed with primary title in `index_title` or as an object in `index_object`
+
         :param index_object: Index record
         :param rebuild: Perform a rebuild of derivative objects afterwards?  False only in cases of batch update.
         :return:
@@ -5195,6 +5218,7 @@ class Library(object):
     def remove_index_record_from_cache(self, index_object=None, old_title=None, rebuild = True):
         """
         Update provided index from library title dictionaries and caches
+
         :param index_object: In the local case - the index object to remove.  In the remote case, the name of the index object to remove.
         :param old_title: In the case of a title change - the old title of the Index record
         :param rebuild: Perform a rebuild of derivative objects afterwards?
@@ -5227,6 +5251,7 @@ class Library(object):
     def refresh_index_record_in_cache(self, index_object, old_title = None):
         """
         Update library title dictionaries and caches for provided index
+
         :param index_object: In the local case - the index object to remove.  In the remote case, the name of the index object to remove.
         :param old_title: In the case of a title change - the old title of the Index record
         :return:
@@ -5367,6 +5392,7 @@ class Library(object):
     def get_term(self, term_name):
         """
         Returns the full term, if mapping not present, builds the full term mapping.
+
         :param term_name: String
         :returns: full term (Mongo Record)
         """
@@ -5377,6 +5403,7 @@ class Library(object):
     def get_topic(self, slug):
         """
         Returns the corresponding topic for a given slug
+
         :param slug: String
         :returns: topic map for the given slug Dictionary
         """
@@ -5385,6 +5412,7 @@ class Library(object):
     def get_topic_mapping(self, rebuild=False):
         """
         Returns the topic mapping if it exists, if not rebuilds it and returns
+
         :param rebuild: Boolean (optional, default set to False)
         """
         tm = self._topic_mapping
@@ -5452,9 +5480,9 @@ class Library(object):
 
     def full_title_list(self, lang="en", with_terms=False):
         """
-        :return: list of strings of all possible titles
         :param lang: "he" or "en"
         :param with_terms: if True, includes shared titles ('terms')
+        :return: list of strings of all possible titles
         """
         key = lang
         key += "_terms" if with_terms else ""
@@ -5480,6 +5508,7 @@ class Library(object):
     def get_text_titles_json(self, lang="en", rebuild=False):
         """
         Returns the json text title list
+
         :param lang String (optional, default set to 'en')
         :param rebuild Boolean (optional, default set to False)
         """
@@ -5551,6 +5580,7 @@ class Library(object):
     def get_dependant_indices(self, book_title=None, dependence_type=None, structure_match=False, full_records=False):
         """
         Replacement for all get commentary title methods
+
         :param book_title: Title of the base text. If book_title is None, returns all matching dependent texts
         :param dependence_type: none, "Commentary" or "Targum" - generally used to get Commentary and leave out Targum.  If none, returns all indexes.
         :param structure_match: If True, returns records that follow the base text structure
@@ -5669,6 +5699,7 @@ class Library(object):
     def get_multi_title_regex_string(self, titles, lang, for_js=False, anchored=False):
         """
         Capture title has to be true.
+
         :param titles:
         :param lang:
         :param for_js:
@@ -5792,6 +5823,7 @@ class Library(object):
         """
         Build all Ref objects for title found in string.  By default, only match what is found between braces (as in Hebrew).
         This is used primarily for Hebrew matching.  English matching uses _build_ref_from_string()
+
         :param title: The title used in the text to refer to this Index node
         :param st: The source text for this reference
         :return: list of Refs
@@ -5831,6 +5863,7 @@ class Library(object):
     def _wrap_all_refs_in_string(self, title_node_dict=None, titles_regex=None, st=None, lang="he"):
         """
         Returns string with all references wrapped in <a> tags
+
         :param title: The title of the text to wrap ref links to
         :param st: The string to wrap
         :param lang:
@@ -5914,6 +5947,7 @@ class Library(object):
     def simplify_toc(self, lang=None, toc_node=None, path=None):
         """
         Simplifies the table of contents (ToC)
+
         :param lang: 'en' or 'he', default is None (optional)
         :param toc_node: ToC Node, default is None (optional)
         :param path: Node Path, default is None (optional)
