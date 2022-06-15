@@ -3848,7 +3848,7 @@ def community_page_data(request, language="english"):
     from sefaria.model.user_profile import UserProfile
 
     data = {
-        "community": get_community_page_items(language=language, diaspora=(request.interfaceLang != "hebrew"))
+        "community": get_community_page_items(language=language, diaspora=(language != "hebrew"))
     }
     if request.user.is_authenticated:
         profile = UserProfile(user_obj=request.user)
