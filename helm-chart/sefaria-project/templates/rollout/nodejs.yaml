@@ -21,7 +21,7 @@ spec:
     matchLabels:
       app: node-{{ .Values.deployEnv }}
       # releaseRevision: "{{ .Release.Revision }}" # Variable pod selectors breaks Argo. Check filed issue
-  revisionHistoryLimit: 0
+  revisionHistoryLimit: 2
   replicas: {{ .Values.nodejs.replicaCount }}
   template:
     metadata:

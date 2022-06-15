@@ -27,7 +27,7 @@ spec:
     matchLabels:
       app: web-{{ .Values.deployEnv }}
       # releaseRevision: "{{ .Release.Revision }}"
-  revisionHistoryLimit: 1
+  revisionHistoryLimit: 2
   replicas: {{ .Values.web.replicaCount }}
   progressDeadlineSeconds: 1200
   template:
