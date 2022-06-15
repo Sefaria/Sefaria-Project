@@ -1662,6 +1662,10 @@ div.interfaceLinks-row a {
   margin: 0 5px;
 }
 
+.navSidebarLink > ul > li:last-child:after {
+  content: none;
+}
+
 .navSidebarLink .languageItem, .translationsPage .languageItem {
   display: inline;
   font-size: 18px;
@@ -2105,7 +2109,7 @@ div.interfaceLinks-row a {
   white-space:pre;
   margin: 0 5px;
 }
-.translationsPage details > ul > li:last-child:after {
+.translationsPage details > ul > li:first-child:after {
   content: none;
 }
 .readerPanel .translationsPage details > summary::-webkit-details-marker {
