@@ -3186,6 +3186,7 @@ def add_new_topic_api(request):
         t.add_title(data["title"], 'en', True, True)
         t.isTopLevelDisplay = data["category"] == "Main Menu"
         t.data_source = "sefaria"  # any topic edited manually should display automatically in the TOC and this flag ensures this
+        t.numSources = 0
 
         t.set_slug_to_primary_title()
 
