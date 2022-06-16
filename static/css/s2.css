@@ -8344,8 +8344,11 @@ div.aboutSheetMetadata span:not(:first-child)::before{
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   border-radius: 6px;
   font-size: 18px;
+  color: #000000;
 }
-
+.searchBox.TopicSearchBox input.selected {
+  color: var(--commentary-blue);
+}
 .header .searchBox .keyboardInputInitiator {
     display: none;
 }

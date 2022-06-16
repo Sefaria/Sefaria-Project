@@ -5,7 +5,8 @@ import classNames  from 'classnames';
 import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
 import Component from 'react-class'
-import {InterfaceText, TopicEditor} from "./Misc";
+import {InterfaceText} from "./Misc";
+import TopicEditor from "./TopicEditor";
 
 
 class TopicSearch extends Component {
@@ -18,7 +19,8 @@ class TopicSearch extends Component {
       slug: "", //topic slug
       topics: [], //current list of autocomplete topics based on query
       autocomplete: null,
-      showTopicEditor: false
+      showTopicEditor: false,
+      selected: false
     };
   }
   componentDidMount() {
@@ -83,7 +85,7 @@ class TopicSearch extends Component {
       select: function( event, ui ) {
         if (ui.item.value == "__invalid") { return false; }
         $(ReactDOM.findDOMNode(this)).find("input.search").val(ui.item.label);  // This will disappear when the next line executes, but the eye can sometimes catch it.
-        this.setState({slug: ui.item.value, showTopicEditor: ui.item.val === ""});
+        this.setState({slug: ui.item.value, showTopicEditor: ui.item.value === "", selected: true});
         return false;
       }.bind(this),
 
@@ -98,8 +100,8 @@ class TopicSearch extends Component {
                         return {label: e.title, value: e.key}
                       });
                     }
-                    this.setState({topics: topics})
                     topics.push({"label": "Create new topic: "+this.state.label, "value": ""})
+                    this.setState({topics: topics, selected: false});
                     response(topics);
             }.bind(this)
         );
@@ -125,28 +127,43 @@ class TopicSearch extends Component {
   }
 
   post(slug) {
-      const postJSON = JSON.stringify({"topic": slug})
+      const postJSON = JSON.stringify({"topic": slug});
       const srefs = this.props.srefs;
       const update = this.props.update;
-      $.post("/api/ref-topic-links/" + Sefaria.normRef(this.props.srefs), {"json": postJSON}, function (data) {
+      const reset = this.reset;
+      $.post("/api/ref-topic-links/" + Sefaria.normRef(this.props.srefs), {"json": postJSON}, async function (data) {
         if (data.error) {
           alert(data.error);
         } else {
-          srefs.map(sref => Sefaria._refTopicLinks[sref].push(data));
-          Sefaria._refTopicLinks[Sefaria.sectionRef(Sefaria.normRef(srefs))].push(data);
+          const sectionRef = await Sefaria.getRef(Sefaria.normRef(srefs)).sectionRef;
+          srefs.map(sref => {
+            if (!Sefaria._refTopicLinks[sref]) {
+              Sefaria._refTopicLinks[sref] = []
+            }
+            Sefaria._refTopicLinks[sref].push(data)
+          });
+          if (!Sefaria._refTopicLinks[sectionRef]) {
+            Sefaria._refTopicLinks[sectionRef] = []
+          }
+          Sefaria._refTopicLinks[sectionRef].push(data);
           update();
           alert("Topic added.");
+          reset();
         }
       }).fail(function (xhr, status, errorThrown) {
         alert("Unfortunately, there may have been an error saving this topic information: " + errorThrown);
       });
   }
+  reset() {
+    $(ReactDOM.findDOMNode(this)).find("input.search").val("");
+    this.setState({showTopicEditor: false, label: "", selected: false, slug: "", topics: []});
+  }
   render() {
-    let inputClasses = classNames({search: 1});
+    let inputClasses = classNames({search: 1, selected: this.state.selected});
 
     return (
         <div className = "searchBox TopicSearchBox ui-front">
-          {this.state.showTopicEditor ? <TopicEditor close={(e) => toggleAddingTopics(e)} redirect=false/>}
+          {this.state.showTopicEditor ? <TopicEditor origEn={this.state.label} close={this.reset} redirect={false}/> : null}
           <input className={inputClasses}
             id="searchInput"
             placeholder={Sefaria._("Search for Topics Here.")}
