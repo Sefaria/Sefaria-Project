@@ -3,14 +3,14 @@ import Sefaria from "./sefaria/sefaria";
 import $ from "./sefaria/sefariaJquery";
 import {AdminToolHeader, InterfaceText} from "./Misc";
 
-const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc="", origCategoryDesc="", origCategorySlug="", close}) => {
+const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc="", origCategoryDesc="", origCategorySlug="", redirect=true, close}) => {
     const [savingStatus, setSavingStatus] = useState(false);
     const [catSlug, setCatSlug] = useState(origCategorySlug);
     const [description, setDescription] = useState(origDesc);
     const [catDescription, setCatDescription] = useState(origCategoryDesc);
     const [enTitle, setEnTitle] = useState(origEn);
     const [heTitle, setHeTitle] = useState(origHe);
-    const isNewTopic = useRef(origEn === "");
+    const isNewTopic = useRef(origSlug === "");
     const [isCategory, setIsCategory] = useState(catSlug === "Main Menu");
 
     if (!Sefaria._topicSlugsToTitles) { Sefaria._initTopicSlugsToTitles();}
@@ -64,13 +64,15 @@ const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc="", origCatego
             toggleInProgress();
             alert(data.error);
           } else {
-            alert("Text information saved.");
             const newSlug = data["slug"];
             $.get("/admin/reset/toc", function(data) {
                 if (data.error) {
                     alert(data.error);
-                } else {
+                } else if (redirect) {
                     window.location.href = "/topics/" + newSlug;
+                }
+                else {
+                    close();
                 }
             }).fail(function(xhr, status, errorThrown) {
                 alert("Please reset TOC manually: "+errorThrown);

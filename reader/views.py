@@ -57,7 +57,7 @@ from sefaria.system.exceptions import InputError, PartialRefInputError, BookName
 from sefaria.system.cache import django_cache
 from sefaria.system.database import db
 from sefaria.helper.search import get_query_obj
-from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, get_topics_for_book
+from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, get_topics_for_book, ref_topic_link_prep, annotate_topic_link
 from sefaria.helper.community_page import get_community_page_items
 from sefaria.helper.file import get_resized_file
 from sefaria.image_generator import make_img_http_response
@@ -90,6 +90,9 @@ if not DISABLE_AUTOCOMPLETER:
 
     logger.info("Initializing Cross Lexicon Auto Completer")
     library.build_cross_lexicon_auto_completer()
+
+    logger.info("Initializing Topic Auto Completer")
+    library.build_topic_auto_completer()
 
 if ENABLE_LINKER:
     logger.info("Initializing Linker")
@@ -2572,6 +2575,13 @@ def get_name_completions(name, limit, ref_only, topic_override=False):
 
 
 @catch_error_as_json
+def topic_completion_api(request, topic):
+    LIMIT = int(request.GET.get("limit", 10))
+    result = library.topic_auto_completer().complete(topic, limit=LIMIT)
+    return jsonResponse(result)
+
+
+@catch_error_as_json
 def name_api(request, name):
     if request.method != "GET":
         return jsonResponse({"error": "Unsupported HTTP method."})
@@ -3339,9 +3349,29 @@ def topic_ref_api(request, tref):
     """
     API to get RefTopicLinks
     """
-    annotate = bool(int(request.GET.get("annotate", False)))
-    response = get_topics_for_ref(tref, annotate)
-    return jsonResponse(response, callback=request.GET.get("callback", None))
+    if request.method == "GET":
+        annotate = bool(int(request.GET.get("annotate", False)))
+        response = get_topics_for_ref(tref, annotate)
+        return jsonResponse(response, callback=request.GET.get("callback", None))
+    elif request.method == "POST":
+        if not request.user.is_staff:
+            return jsonResponse({"error": "Only moderators can connect refs to topics."})
+
+        slug = json.loads(request.POST.get("json")).get("topic", "")
+        topic_obj = Topic().load({"slug": slug})
+        if topic_obj is None:
+            return jsonResponse({"error": "Topic does not exist"})
+
+        ref_topic_link = {"toTopic": slug, "linkType": "about", "dataSource": "sefaria", "ref": tref}
+        if RefTopicLink().load(ref_topic_link) is None:
+            r = RefTopicLink(ref_topic_link)
+            r.save()
+            ref_topic_dict = ref_topic_link_prep(r.contents())
+            ref_topic_dict = annotate_topic_link(ref_topic_dict, {slug: topic_obj})
+            return jsonResponse(ref_topic_dict)
+        else:
+            return {"error": "Topic link already exists"}
+
 
 _CAT_REF_LINK_TYPE_FILTER_MAP = {
     'authors': ['popular-writing-of'],

@@ -36,6 +36,7 @@ import Component from 'react-class';
 import { TextTableOfContents } from "./BookPage";
 import { CollectionsModal } from './CollectionsWidget';
 import { event } from 'jquery';
+import TopicSearch from "./TopicSearch";
 
 
 class ConnectionsPanel extends Component {
@@ -340,7 +341,7 @@ class ConnectionsPanel extends Component {
             :
             null
           }
-          {showResourceButtons ?
+          {showResourceButtons || Sefaria.is_moderator ?
             <ConnectionsPanelSection title={"Resources"}>
               {
                 //ironically we need the masterpanel mode to be sheet to indicate a sheet is loaded, but the
@@ -758,7 +759,7 @@ const ResourcesList = ({ masterPanelMode, setConnectionsMode, counts }) => {
     <div className="toolButtonsList">
       <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={counts["sheets"]} urlConnectionsMode="Sheets" onClick={() => setConnectionsMode("Sheets")} />
       {Sefaria._siteSettings.TORAH_SPECIFIC ? <ToolsButton en="Web Pages" he="דפי אינטרנט" image="webpages.svg" count={counts["webpages"]} urlConnectionsMode="WebPages" onClick={() => setConnectionsMode("WebPages")} /> : null}
-      <ToolsButton en="Topics" he="נושאים" image="hashtag-icon.svg" count={counts["topics"]} urlConnectionsMode="Topics" onClick={() => setConnectionsMode("Topics")} />
+      <ToolsButton en="Topics" he="נושאים" image="hashtag-icon.svg" count={counts["topics"]} urlConnectionsMode="Topics" onClick={() => setConnectionsMode("Topics")} alwaysShow={Sefaria.is_moderator} />
       {Sefaria._siteSettings.TORAH_SPECIFIC ? <ToolsButton en="Manuscripts" he="כתבי יד" image="manuscripts.svg" count={counts["manuscripts"]} urlConnectionsMode="manuscripts" onClick={() => setConnectionsMode("manuscripts")} /> : null}
       {Sefaria._siteSettings.TORAH_SPECIFIC ? <ToolsButton en="Torah Readings" he="קריאה בתורה" image="torahreadings.svg" count={counts["audio"]} urlConnectionsMode="Torah Readings" onClick={() => setConnectionsMode("Torah Readings")} /> : null}
     </div>
@@ -1166,9 +1167,13 @@ PublicSheetsList.propTypes = {
 const TopicList = ({ srefs, interfaceLang, contentLang }) => {
   // segment ref topicList can be undefined even if loaded
   // but section ref topicList is null when loading and array when loaded
-  const topics = Sefaria.topicsByRef(srefs);
+  const [topics, setTopics] = useState(Sefaria.topicsByRef(srefs));
+  const updateTopics = function() {
+    setTopics(Sefaria.topicsByRef(srefs));
+  }
   return (
     <div className={`topicList ${contentLang === 'hebrew' ? 'topicsHe' : 'topicsEn'}`}>
+      {Sefaria.is_moderator ? <TopicSearch contextSelector=".topicList" srefs={srefs} update={updateTopics}/> : null}
       {(!topics || !topics.length) ? (
         <div className="webpageList empty">
           <div className="loadingMessage sans-serif">
@@ -1176,8 +1181,9 @@ const TopicList = ({ srefs, interfaceLang, contentLang }) => {
           </div>
         </div>
       ) : topics.map(
-        topic => (
+          (topic, i) => (
           <TopicListItem
+            isFirst={i === 0}
             key={topic.topic}
             topic={topic}
             interfaceLang={interfaceLang}
@@ -1189,14 +1195,15 @@ const TopicList = ({ srefs, interfaceLang, contentLang }) => {
   );
 }
 
-const TopicListItem = ({ topic, interfaceLang, srefs }) => {
+const TopicListItem = ({ isFirst, topic, interfaceLang, srefs }) => {
   let dataSourceText = '';
   const langKey = interfaceLang === 'english' ? 'en' : 'he';
   if (!!topic.dataSources && Object.values(topic.dataSources).length > 0) {
     dataSourceText = `${Sefaria._('This topic is connected to ')}"${Sefaria._r(srefs[0])}" ${Sefaria._('by')} ${Object.values(topic.dataSources).map(d => d[langKey]).join(' & ')}.`;
   }
+  const topicLinkClass = isFirst ? "topicButton isFirst" : "topicButton";
   return (
-    <a href={`/topics/${topic.topic}`} className="topicButton" target="_blank">
+      <a href={`/topics/${topic.topic}`} className={topicLinkClass} target="_blank">
       <span className="topicButtonTitle">
         <span className="contentText">
           <span className="en">{topic.title.en}</span>
