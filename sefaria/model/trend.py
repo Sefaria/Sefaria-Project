@@ -15,6 +15,7 @@ from . import text
 
 from sefaria.system.database import db
 from sefaria.model import Ref
+from sefaria.model.text import library
 
 import structlog
 logger = structlog.get_logger(__name__)
@@ -210,12 +211,12 @@ def setUserSheetTraits():
             }).save()
 
 def setCategoryTraits():
-    from sefaria.model.category import TOP_CATEGORIES
+    top_categories = library.get_top_categories()
 
     # User Traits
     for daterange in active_dateranges:
-        site_data = {cat: 0 for cat in TOP_CATEGORIES}
-        for category in TOP_CATEGORIES:
+        site_data = {cat: 0 for cat in top_categories}
+        for category in top_categories:
             all_users = getAllUsersCategories(daterange, category)
             for uid, data in all_users.items():
                 val = data['cnt']
@@ -236,7 +237,7 @@ def setCategoryTraits():
                 site_data[category] += val
 
         # Site Traits
-        TrendSet({"period": daterange.key, "scope": "site", "name": {"$in": list(map(read_in_category_key, TOP_CATEGORIES))}}).delete()
+        TrendSet({"period": daterange.key, "scope": "site", "name": {"$in": list(map(read_in_category_key, top_categories))}}).delete()
 
         for cat, val in site_data.items():
             Trend({
@@ -409,13 +410,13 @@ def getAllUsersSheetCreation(daterange, publishedOnly=False):
     return {d["_id"]: d for d in results}
 
 def site_stats_data():
-    from sefaria.model.category import TOP_CATEGORIES
+    top_categories = library.get_top_categories()
 
     d = {}
     for daterange in active_dateranges:
         d[daterange.key] = {"categoriesRead": {reverse_read_in_category_key(t.name): t.value
                             for t in TrendSet({"scope": "site", "period": daterange.key,
-                                "name": {"$in": list(map(read_in_category_key, TOP_CATEGORIES))}
+                                "name": {"$in": list(map(read_in_category_key, top_categories))}
                             })}}
     return d
 
@@ -428,7 +429,6 @@ def user_stats_data(uid):
     :param end: datetime
     :return:
     """
-    from sefaria.model.category import TOP_CATEGORIES
     from sefaria.model.story import Story
     from sefaria.sheets import user_sheets
 
@@ -495,10 +495,11 @@ def user_stats_data(uid):
             sheet_dict.update(Story.publisher_metadata(sheet_dict["publisher_id"]))
 
         # Construct returned data
+        top_categories = library.get_top_categories()
         user_stats_dict[daterange.key] = {
             "sheetsRead": user_profile.UserHistorySet(daterange.update_match({"is_sheet": True, "secondary": False, "uid": uid})).hits(),
             "textsRead": user_profile.UserHistorySet(daterange.update_match({"is_sheet": False, "secondary": False, "uid": uid})).hits(),
-            "categoriesRead": {reverse_read_in_category_key(t.name): t.value for t in TrendSet({"uid":uid, "period": daterange.key, "name": {"$in": list(map(read_in_category_key, TOP_CATEGORIES))}})},
+            "categoriesRead": {reverse_read_in_category_key(t.name): t.value for t in TrendSet({"uid":uid, "period": daterange.key, "name": {"$in": list(map(read_in_category_key, top_categories))}})},
             "totalSheets": len(usheets),
             "publicSheets": len([s for s in usheets if s["status"] == "public"]),
             "popularSheets": most_popular_sheets,

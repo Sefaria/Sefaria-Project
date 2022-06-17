@@ -1,10 +1,13 @@
 {
-	"title": "",
+	"title": "Friends,",
 	"text": [
-		"The Sefaria library makes more than 300 million words of Jewish texts available worldwide. In honor of Shavuot, please support the library that facilitates your learning by becoming a Sefaria Sustainer today."
+		"We’re only 70 new Sustainers away from meeting our goal of 400 Sustainers by Shavuot! Thank you to all who have already signed up to make a monthly donation, and to all who support Sefaria in any way that they can.\n",\,
+		"Please become a Sustainer today to help Sefaria continue expanding access to the Jewish canon and transforming your learning experience. We need and value your support.\n",
+		"Chag Shavuot Sameach,\n",
+		"Team Sefaria \n"
     ],
 	"buttonLink": "https://sefaria.nationbuilder.com/sustainers_e",
-	"buttonText": "Sustain Sefaria",
-	"name": "2022-05-24-shavuot-donate-banner-1",
+	"buttonText": "Become a Sustainer",
+	"name": "2022-06-01-shavuot-donate-modal-1",
 	"schemaVersion": 1
 }

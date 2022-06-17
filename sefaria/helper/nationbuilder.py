@@ -2,7 +2,6 @@ from urllib.parse import unquote
 from rauth import OAuth2Service
 import time
 import json
-from sefaria.site.categories import TOP_CATEGORIES
 
 from sefaria.system.database import db
 from sefaria.helper.trend_manager import CategoryTrendManager, SheetReaderManager, SheetCreatorManager, CustomTraitManager, ParashaLearnerManager
@@ -84,7 +83,10 @@ def nationbuilder_update_all_tags():
     ] # why won't this import from sefaria.model.categories??
     session = get_nationbuilder_connection()
     category_trend_managers = [CategoryTrendManager(category, period=period) for category in TOP_CATEGORIES for period in ["alltime", "currently"]] 
-    trend_managers = category_trend_managers + [SheetReaderManager(), SheetCreatorManager(), SheetCreatorManager(public=True), ParashaLearnerManager()]
+    trend_managers = []
+    for period in ["currently", "alltime"]:
+        trend_managers += [SheetReaderManager(period=period), SheetCreatorManager(period=period), SheetCreatorManager(period=period, public=True), SheetCreatorManager(period=period, public=True, valueThresholdMin=3),  SheetCreatorManager(period=period,public=True), SheetCreatorManager(period=period,valueThresholdMin=10), ParashaLearnerManager(period=period)]
+    trend_managers += category_trend_managers
     custom_field_trend_managers = [CustomTraitManager("hebrew_ability", "HebrewAbility")]
     for profile in db.profiles.find({"nationbuilder_id": {"$exists": True}}):
         tags_to_add, tags_to_remove, custom_tags_info = get_tags_for_user(profile, trend_managers,custom_field_trend_managers)

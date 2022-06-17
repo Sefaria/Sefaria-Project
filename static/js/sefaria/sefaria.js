@@ -386,7 +386,17 @@ Sefaria = extend(Sefaria, {
       translationLanguagePreference: settings.translationLanguagePreference || null,
       versionPref: settings.versionPref || null,
       firstAvailableRef: settings.firstAvailableRef || 1,
+      fallbackOnDefaultVersion: settings.fallbackOnDefaultVersion || 1,
     };
+    if (settings.versionPref) {
+      // for every lang/vtitle pair in versionPref, update corresponding version url param if it doesn't already exist
+      for (let [vlang, vtitle] of Object.entries(settings.versionPref)) {
+        const versionPrefKey = `${vlang}Version`;
+        if (!settings[versionPrefKey]) {
+          settings[versionPrefKey] = vtitle;
+        }
+      }
+    }
     return settings;
   },
   getTextFromCache: function(ref, settings) {
@@ -588,7 +598,7 @@ Sefaria = extend(Sefaria, {
     Sefaria.versionPreferences = Sefaria.versionPreferences.update(corpus, vtitle, lang);
 
     Sefaria.track.event("Reader", "Set Version Preference", `${corpus}|${vtitle}|${lang}`);
-    Sefaria.editProfileAPI({version_preferences_by_corpus: {[corpus]: {vtitle, lang}}})
+    Sefaria.editProfileAPI({version_preferences_by_corpus: {[corpus]: {[lang]: vtitle}}})
   },
   getLicenseMap: function() {
     const licenseMap = {
@@ -599,10 +609,6 @@ Sefaria = extend(Sefaria, {
       "CC-BY-NC": "https://creativecommons.org/licenses/by-nc/4.0/"
     }
     return licenseMap;
-  },
-  _getVersionPrefUrlParam(versionPref) {
-    const {vtitle, lang} = versionPref;
-    return `&versionPref=${encodeURIComponent(vtitle.replace(/ /g,"_"))}|${lang}`;
   },
   _textUrl: function(ref, settings) {
     // copy the parts of settings that are used as parameters, but not other
@@ -616,11 +622,12 @@ Sefaria = extend(Sefaria, {
       stripItags: settings.stripItags,
       transLangPref: settings.translationLanguagePreference,
       firstAvailableRef: settings.firstAvailableRef,
+      fallbackOnDefaultVersion: settings.fallbackOnDefaultVersion,
     });
     let url = "/api/texts/" + Sefaria.normRef(ref);
     if (settings.enVersion) { url += "&ven=" + encodeURIComponent(settings.enVersion.replace(/ /g,"_")); }
     if (settings.heVersion) { url += "&vhe=" + encodeURIComponent(settings.heVersion.replace(/ /g,"_")); }
-    if (settings.versionPref) { url += Sefaria._getVersionPrefUrlParam(settings.versionPref); }
+
     url += "&" + params;
     return url.replace("&","?"); // make sure first param has a '?'
   },
@@ -632,7 +639,7 @@ Sefaria = extend(Sefaria, {
       if (settings.enVersion) { key += "&ven=" + settings.enVersion; }
       if (settings.heVersion) { key += "&vhe=" + settings.heVersion; }
       if (settings.translationLanguagePreference) { key += "&transLangPref=" + settings.translationLanguagePreference}
-      if (settings.versionPref) { key += Sefaria._getVersionPrefUrlParam(settings.versionPref); }
+      if (settings.fallbackOnDefaultVersion) { key += "|FALLBACK_ON_DEFAULT_VERSION"; }
       key = settings.context ? key + "|CONTEXT" : key;
     }
     return key;
@@ -996,7 +1003,7 @@ Sefaria = extend(Sefaria, {
     if (words.length <= 0) { return Promise.resolve([]); }
     words = words.normalize("NFC"); //make sure we normalize any errant unicode (vowels and diacritics that may appear to be equal but the underlying characters are out of order or different.
     const key = ref ? words + "|" + ref : words;
-    let url = Sefaria.apiHost + "/api/words/" + encodeURIComponent(words)+"?always_consonants=1&never_split=1" + (ref?("&lookup_ref="+ref):"");
+    let url = Sefaria.apiHost + "/api/words/" + encodeURIComponent(words)+"?always_consonants=1&never_split=1" + (ref?("&lookup_ref="+encodeURIComponent(ref)):"");
     return this._cachedApiPromise({url, key, store: this._lexiconLookups});
   },
   _links: {},

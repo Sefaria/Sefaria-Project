@@ -54,7 +54,7 @@ data:
             'ENGINE': 'django.db.backends.postgresql',
             'NAME': 'sefaria_auth',
             'USER': os.getenv("DATABASES_USER"),
-            'PASSWORD': os.getenv("DATABASES_PASS"),
+            'PASSWORD': os.getenv("DATABASES_PASSWORD"),
             'HOST': os.getenv("DATABASES_HOST"),
             'PORT': os.getenv("DATABASES_PORT"),
         }

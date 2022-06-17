@@ -95,6 +95,26 @@ class TextColumn extends Component {
     this.debouncedAdjustHighlightedAndVisible();
     this.adjustInfiniteScroll();
   }
+  calculatePositionWithinElement(event){
+    const rect = event.target.getBoundingClientRect();
+    const x = event.clientX - rect.left; //x position within the element.
+    const y = event.clientY - rect.top;  //y position within the element.
+    return [x,y]
+  }
+  handleClick(event) {
+    const pos = this.calculatePositionWithinElement(event)
+    this.setState({lastClickXY:pos})
+  }
+  handleDoubleClick(event) {
+    if (event.detail > 1) {
+    const pos = this.calculatePositionWithinElement(event)
+      // might be problematic if there is a slight move in the double-click shaky hands. can be fixed with an error of a few px on both axes.
+      if (this.state.lastClickXY[0] != pos[0] || this.state.lastClickXY[1] != pos[1]){
+        event.preventDefault();
+      }
+    }
+  }
+
   handleTextSelection() {
     const selection = window.getSelection();
     let refs = [];
@@ -323,20 +343,19 @@ class TextColumn extends Component {
     // don't move around highlighted segment when scrolling a single panel,
     const shouldShowHighlight = this.props.hasSidebar || this.props.mode === "TextAndConnections";
     const ref = $segment.attr("data-ref");
-    if (shouldShowHighlight) {
-      this.props.setTextListHighlight(ref, true)
-    } else {
-      this.props.setTextListHighlight(ref, false)
-    }
+    this.props.setTextListHighlight(ref, shouldShowHighlight);
   }
   render() {
     let classes = classNames({textColumn: 1, connectionsOpen: this.props.mode === "TextAndConnections"});
     const index = Sefaria.index(Sefaria.parseRef(this.props.srefs[0]).index);
-    const isDictionary = (index && index.categories[0] == "Reference");
-    let content =  this.props.srefs.map(function(ref, k) {
+    const isDictionary = (index && index.categories[0] === "Reference");
+    let content =  this.props.srefs.map((sref) => {
+      const oref = Sefaria.getRefFromCache(sref);
+      const isCurrentlyVisible = oref && this.props.currentlyVisibleRef === oref.sectionRef;
       return (<TextRange
         panelPosition ={this.props.panelPosition}
-        sref={ref}
+        sref={sref}
+        isCurrentlyVisible={isCurrentlyVisible}
         currVersions={this.props.currVersions}
         highlightedRefs={this.props.highlightedRefs}
         showHighlight={this.props.showHighlight}
@@ -360,9 +379,9 @@ class TextColumn extends Component {
         layoutWidth={this.props.layoutWidth}
         unsetTextHighlight={this.props.unsetTextHighlight}
         translationLanguagePreference={this.props.translationLanguagePreference}
-        setCurrVersions={this.props.setCurrVersions}
-        key={ref} />);
-    }.bind(this));
+        updateCurrVersionsToMatchAPIResult={this.props.updateCurrVersionsToMatchAPIResult}
+        key={sref} />);
+    });
 
     let pre, post, bookTitle;
     if (content.length) {
@@ -389,7 +408,7 @@ class TextColumn extends Component {
         <LoadingMessage message={" "} className="base next final" key={"next"}/>;
     }
 
-    return (<div className={classes} onMouseUp={this.handleTextSelection}>
+    return (<div className={classes} onMouseUp={this.handleTextSelection} onClick={this.handleClick} onMouseDown={this.handleDoubleClick}>
       {pre}
       {content}
       {post}

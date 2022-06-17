@@ -31,27 +31,28 @@ class CollectionPage extends Component {
     const collectionData = Sefaria.getCollectionFromCache(props.slug);
 
     this.state = {
+      tab: props.tab,
       showFilterHeader: !!props.tag,
       sheetFilterTopic: props.tag || '',
-      tabIndex: !!props.tag ? 1 : 0,
       collectionData: collectionData,
     };
  
     this.scrollableRef = React.createRef();
-
-    /*
-    this.props.setCollectionTag(topic);
-    */
   }
   componentDidMount() {
     this.loadData();
+    if (!!this.props.tag & !this.props.tab) {
+      this.props.setTab("sheets");
+    }
   }
   componentDidUpdate(prevProps, prevState) {
     if (this.props.slug !== prevProps.slug) {
       this.setState({collectionData: null});
       this.loadData();
     }
-
+    if (this.props.tab != prevProps.tab) {
+      this.setState({tab: this.props.tab});
+    }
     if (prevState.sheetFilterTopic !== this.state.sheetFilterTopic && $(".content").scrollTop() > 260) {
       $(".content").scrollTop(0);
     }
@@ -67,7 +68,8 @@ class CollectionPage extends Component {
     this.setState({collectionData: Sefaria._collections[this.props.slug]});
   }
   setFilter(filter) {
-    this.setState({tabIndex: 1, sheetFilterTopic: filter, showFilterHeader: true});
+    this.setState({sheetFilterTopic: filter, showFilterHeader: true});
+    this.props.setTab("sheets");
   }
   memberList() {
     var collection = this.state.collectionData;
@@ -231,16 +233,12 @@ class CollectionPage extends Component {
           id: 'filter',
           title: {en: "Filter", he: Sefaria._("Filter")},
           icon: `/static/icons/arrow-${this.state.showFilterHeader ? 'up' : 'down'}-bold.svg`,
-          justifyright: true
+          justifyright: true,
+          clickTabOverride: () => {
+            this.setState({showFilterHeader: !this.state.showFilterHeader});
+          }
         }
       );
-      const setTab = (tabIndex) => {
-        if (tabIndex === tabs.length - 1) {
-          this.setState({showFilterHeader: !this.state.showFilterHeader});
-        } else {
-          this.setState({tabIndex, showFilterHeader: false, sheetFilterTopic: ""});
-        }
-      };
       const renderTab = t => (
         <div className={classNames({tab: 1, noselect: 1, filter: t.justifyright, open: t.justifyright && this.state.showFilterHeader})}>
           <InterfaceText text={t.title} />
@@ -257,10 +255,10 @@ class CollectionPage extends Component {
 
           <TabView
             tabs={tabs}
+            currTabName={this.state.tab}
             renderTab={renderTab}
             containerClasses={"largeTabs"}
-            currTabIndex={this.state.tabIndex}
-            setTab={setTab} >
+            setTab={this.props.setTab} >
 
             {!hasContentsTab ? null :
             <CollectionContentsTab 
@@ -305,6 +303,8 @@ class CollectionPage extends Component {
   }
 }
 CollectionPage.propTypes = {
+  setTab:             PropTypes.func.isRequired,
+  tab:                PropTypes.string,
   name:               PropTypes.string,
   slug:               PropTypes.string,
   width:              PropTypes.number,

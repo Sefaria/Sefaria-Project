@@ -1,4 +1,4 @@
-{{- if eq .Values.deployEnv "prod" }}
+{{- if ne .Values.sandbox "true" }}
 ---
 apiVersion: batch/v1beta1
 kind: CronJob
@@ -15,7 +15,7 @@ spec:
         spec:
           containers:
           - name: daily-email-notifications
-            image: "{{ .Values.web.containerImage }}:{{ .Values.releaseImageTag }}"
+            image: "{{ .Values.web.containerImage.imageRegistry }}:{{ .Values.web.containerImage.tag }}"
             env:
             - name: REDIS_HOST
               value: "redis-{{ .Values.deployEnv }}"
@@ -24,13 +24,13 @@ spec:
             - name: VARNISH_HOST
               value: "varnish-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
             envFrom:
-              - secretRef:
-                  name: {{ .Values.secrets.localSettings.ref }}
-                  optional: true
-              - secretRef:
-                  name: local-settings-secrets-{{ .Values.deployEnv }}
-                  optional: true
-              - configMapRef:
+            - secretRef:
+                name: {{ .Values.secrets.localSettings.ref }}
+                optional: true
+            - secretRef:
+                name: local-settings-secrets-{{ .Values.deployEnv }}
+                optional: true
+            - configMapRef:
                 name: local-settings-{{ .Values.deployEnv }}
             volumeMounts:
               - mountPath: /app/sefaria/local_settings.py

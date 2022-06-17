@@ -53,8 +53,9 @@ class ParashaLearnerManager(TrendManager):
         return person_info
 
 class SheetCreatorManager(TrendManager):
-    def __init__(self, period="alltime", public=False):
-        TrendManager.__init__(self,"source_sheet_creator","SheetsCreated",period, valueThresholdMin=3)
+    def __init__(self, period="alltime", public=False, valueThresholdMin=3):
+        name = "source_sheet_creator_over_" + str(valueThresholdMin) + "_sheets"
+        TrendManager.__init__(self,name,"SheetsCreated",period, valueThresholdMin=valueThresholdMin)
         self.public = public
 
     def getPersonInfo(self, trends):
