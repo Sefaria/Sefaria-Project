@@ -131,7 +131,6 @@ def make_version(text_json, user_id):
         v = Version({
             "chapter": index_node.create_skeleton(),
             "title": index_title,
-            "versionTitle": version_title,
             "language": version_lang,  # Language
             "versionSource": text_json['versionSource'],  # Version Source
             "versionNotes": text_json.get('versionNotes', ''),  # Version Notes
