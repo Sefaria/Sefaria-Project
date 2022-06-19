@@ -11182,9 +11182,6 @@ body .homeFeedWrapper.userStats {
   box-shadow: 0px 1px 3px rgb(0 0 0 / 20%);
   border: none;
 }
-#categoryChooserMenu select option:first-child {
-  color: var(--lighter-grey);
-}
 #categoryChooserMenu select {
   background: transparent;
   font-size: 16px;
@@ -11193,7 +11190,28 @@ body .homeFeedWrapper.userStats {
   margin: 0 0 10px 0;
   padding: 4px 25px 4px 10px;
 }
+.searchBox .editTextInfo .collectionsWidget {
+  width: 280px;
+}
 
+.searchBox .editTextInfo #newIndex {
+  margin: 50px auto;
+}
+.searchBox #categoryChooserMenu {
+  width: 370px;
+  background: url("/static/img/arrow-down.png") 350px 20px/10px 10px no-repeat #ffffff;
+  max-width: 100%;
+}
+.searchBox #categoryChooserMenu select {
+  width: 390px;
+}
+.searchBox .editTextInfo #newIndex input {
+  width: 370px;
+}
+.searchBox .editTextInfo #newIndex #topicDesc {
+  width: 360px;
+  max-width: 97%;
+}
 #categoryChooserMenu img {
   opacity: 0.43;
   padding: 0 5px;
@@ -11269,7 +11287,24 @@ body .homeFeedWrapper.userStats {
 .editTextInfo .nodeTemplate {
 	display: none;
 }
+@media screen and (max-width: 880px) {
+  .searchBox #categoryChooserMenu {
+    width: 200px;
+    background: url("/static/img/arrow-down.png") 180px 20px/10px 10px no-repeat #ffffff;
+    max-width: 100%;
+  }
+  .searchBox #categoryChooserMenu select {
+    width: 220px;
+  }
+  .searchBox .editTextInfo #newIndex input {
+    width: 200px;
+  }
+  .searchBox .editTextInfo #newIndex #topicDesc {
+    width: 200px;
+  }
+}
 @media screen and (max-width: 680px) {
+
   #categoryChooserMenu {
     background: url("/static/img/arrow-down.png") 300px 20px/10px 10px no-repeat #ffffff;
     width: 320px;

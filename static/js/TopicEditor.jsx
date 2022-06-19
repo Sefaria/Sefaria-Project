@@ -3,7 +3,8 @@ import Sefaria from "./sefaria/sefaria";
 import $ from "./sefaria/sefariaJquery";
 import {AdminToolHeader, InterfaceText} from "./Misc";
 
-const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc="", origCategoryDesc="", origCategorySlug="", redirect=true, close}) => {
+const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc="", origCategoryDesc="",
+                         origCategorySlug="", redirect=(slug) => window.location.href = "/topics/" + slug, close}) => {
     const [savingStatus, setSavingStatus] = useState(false);
     const [catSlug, setCatSlug] = useState(origCategorySlug);
     const [description, setDescription] = useState(origDesc);
@@ -68,11 +69,8 @@ const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc="", origCatego
             $.get("/admin/reset/toc", function(data) {
                 if (data.error) {
                     alert(data.error);
-                } else if (redirect) {
-                    window.location.href = "/topics/" + newSlug;
-                }
-                else {
-                    close();
+                } else {
+                    redirect(newSlug);
                 }
             }).fail(function(xhr, status, errorThrown) {
                 alert("Please reset TOC manually: "+errorThrown);

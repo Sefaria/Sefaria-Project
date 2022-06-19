@@ -15,7 +15,6 @@ class TopicSearch extends Component {
 
     this.state = {
       label: "", // what the user sees in drop down menu. e.g. topic title
-      timer: null,
       slug: "", //topic slug
       topics: [], //current list of autocomplete topics based on query
       autocomplete: null,
@@ -25,38 +24,8 @@ class TopicSearch extends Component {
   }
   componentDidMount() {
     this.initAutocomplete();
-    this.checkIfChanged();
   }
-  /*
-  shouldComponentUpdate(nextProps, nextState) {
-    if (this.props.interfaceLang != nextProps.interfaceLang) { return true; }
-    return false;
-  } */
-  componentWillUnmount() {
-    clearTimeout(this.state.timer);
-  }
-  checkIfChanged() {
-    let current;
-    try {
-      current = $(ReactDOM.findDOMNode(this)).find("input.search").val();
-    }
-    catch(e) {
-      // The component is unmounted
-      return;
-    }
-    if (this.state.label != current) {
-      $(ReactDOM.findDOMNode(this)).find("input.search").autocomplete("option", "position", {my: "left top", at: "left bottom", of: this.props.contextSelector + ' .TopicSearchBox'});
-      $(ReactDOM.findDOMNode(this)).find("input.search").autocomplete("search");
-    }
-    this.setState({
-      label: current,
-      timer: setTimeout(
-          () => this.checkIfChanged(),
-          330
-      )
-    });
 
-  }
   initAutocomplete() {
     $(ReactDOM.findDOMNode(this)).find("input.search").autocomplete({
       position: {
@@ -71,36 +40,38 @@ class TopicSearch extends Component {
         const lastItem = menuItems[menuItems.length-1];
         $(lastItem).toggleClass("ui-menu-last-item");
       }.bind(this),
-      close: function(event) {
-        this.setState({
-          label: $(ReactDOM.findDOMNode(this)).find("input.search").val()
-        });
-        this.checkIfChanged();
-      }.bind(this),
       classes: {
         "ui-autocomplete": "topic-toc-autocomplete"
       },
       minLength: 1,
-      focus: e => clearTimeout(this.state.timer),
+      focus: function (event, ui) {
+        this.setState({label: ui.item.label});
+        $(ReactDOM.findDOMNode(this)).find("input.search").val(this.state.label);
+      }.bind(this),
       select: function( event, ui ) {
-        if (ui.item.value == "__invalid") { return false; }
-        $(ReactDOM.findDOMNode(this)).find("input.search").val(ui.item.label);  // This will disappear when the next line executes, but the eye can sometimes catch it.
-        this.setState({slug: ui.item.value, showTopicEditor: ui.item.value === "", selected: true});
+        if (ui.item.key == "__invalid") { return false; }
+        if (ui.item.key === "") {  //selected Create new topic
+          this.setState({slug: ui.item.key, label: ui.item.label.replace("Create new topic: ", ""), selected: true, showTopicEditor: true});
+        }
+        else {
+          this.setState({slug: ui.item.key, label: ui.item.label, selected: true, showTopicEditor: false});
+        }
+        $(ReactDOM.findDOMNode(this)).find("input.search").val(this.state.label);
         return false;
       }.bind(this),
 
       source: function(request, response) {
-        this.setState({slug: ""});
+        this.setState({slug: "", label: request.term});
         Sefaria.topicCompletion(
             request.term,
             function(d) {
                     let topics = [];
                     if (d[1].length > 0) {
                       topics = d[1].map(function (e) {
-                        return {label: e.title, value: e.key}
+                        return {label: e.title, value: e.title, key: e.key}
                       });
                     }
-                    topics.push({"label": "Create new topic: "+this.state.label, "value": ""})
+                    topics.push({"label": "Create new topic: "+request.term, "value": "", key: ""})
                     this.setState({topics: topics, selected: false});
                     response(topics);
             }.bind(this)
@@ -138,12 +109,12 @@ class TopicSearch extends Component {
           const sectionRef = await Sefaria.getRef(Sefaria.normRef(srefs)).sectionRef;
           srefs.map(sref => {
             if (!Sefaria._refTopicLinks[sref]) {
-              Sefaria._refTopicLinks[sref] = []
+              Sefaria._refTopicLinks[sref] = [];
             }
-            Sefaria._refTopicLinks[sref].push(data)
+            Sefaria._refTopicLinks[sref].push(data);
           });
           if (!Sefaria._refTopicLinks[sectionRef]) {
-            Sefaria._refTopicLinks[sectionRef] = []
+            Sefaria._refTopicLinks[sectionRef] = [];
           }
           Sefaria._refTopicLinks[sectionRef].push(data);
           update();
@@ -155,19 +126,18 @@ class TopicSearch extends Component {
       });
   }
   reset() {
-    $(ReactDOM.findDOMNode(this)).find("input.search").val("");
     this.setState({showTopicEditor: false, label: "", selected: false, slug: "", topics: []});
+    $(ReactDOM.findDOMNode(this)).find("input.search").val(this.state.label);
   }
   render() {
     let inputClasses = classNames({search: 1, selected: this.state.selected});
 
     return (
         <div className = "searchBox TopicSearchBox ui-front">
-          {this.state.showTopicEditor ? <TopicEditor origEn={this.state.label} close={this.reset} redirect={false}/> : null}
+          {this.state.showTopicEditor ? <TopicEditor origEn={this.state.label} close={this.reset} redirect={this.post}/> : null}
           <input className={inputClasses}
             id="searchInput"
             placeholder={Sefaria._("Search for Topics Here.")}
-            onKeyUp={this.handleSearchKeyUp}
             maxLength={100}
             title={Sefaria._("Topic Search")}
           />
