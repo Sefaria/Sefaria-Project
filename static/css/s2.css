@@ -11198,19 +11198,17 @@ body .homeFeedWrapper.userStats {
   margin: 50px auto;
 }
 .searchBox #categoryChooserMenu {
-  width: 370px;
-  background: url("/static/img/arrow-down.png") 350px 20px/10px 10px no-repeat #ffffff;
-  max-width: 100%;
+  width: 97%;
+  background: url("/static/img/arrow-down.png") 99% 20px/10px 10px no-repeat #ffffff;
 }
 .searchBox #categoryChooserMenu select {
-  width: 390px;
+  width: 100%;
 }
 .searchBox .editTextInfo #newIndex input {
-  width: 370px;
+  width: 97%;
 }
 .searchBox .editTextInfo #newIndex #topicDesc {
-  width: 360px;
-  max-width: 97%;
+  width: 92%;
 }
 #categoryChooserMenu img {
   opacity: 0.43;
