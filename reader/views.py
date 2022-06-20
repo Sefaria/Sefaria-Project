@@ -2639,9 +2639,10 @@ def dictionary_completion_api(request, word, lexicon=None):
     if lexicon is None:
         ac = library.cross_lexicon_auto_completer()
         rs, _ = ac.complete(word, LIMIT)
-        result = [[r, ac.title_trie[ac.normalizer(r)][0]["key"]] for r in rs]
+        result = [[r, r] for r in rs]  # ac.title_trie[ac.normalizer(r)][0]["key"] - this was when we wanted the first option with nikud
     else:
-        result = library.lexicon_auto_completer(lexicon).items(word)[:LIMIT]
+        matches = [(item[0], x) for item in library.lexicon_auto_completer(lexicon).items(word)[:LIMIT] for x in item[1]]
+        result = sorted(set(matches), key=lambda x: matches.index(x))  # dedup matches
     return jsonResponse(result)
 
 
