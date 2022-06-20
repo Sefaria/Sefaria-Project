@@ -286,7 +286,7 @@ const SELECTOR_WHITE_LIST = {
             (resp) => {
                 if (resp.ok) {
                     resp.json().then(onFindRefs);
-                } else {
+                } else if (debug) {
                     resp.text().then(text => alert(text));
                 }
             }
