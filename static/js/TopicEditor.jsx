@@ -6,8 +6,8 @@ import {AdminToolHeader, InterfaceText} from "./Misc";
 const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc="", origCategoryDesc="", origCategorySlug="", close}) => {
     const [savingStatus, setSavingStatus] = useState(false);
     const [catSlug, setCatSlug] = useState(origCategorySlug);
-    const [description, setDescription] = useState(origDesc);
-    const [catDescription, setCatDescription] = useState(origCategoryDesc);
+    const [description, setDescription] = useState(origDesc?.en);
+    const [catDescription, setCatDescription] = useState(origCategoryDesc?.en);
     const [enTitle, setEnTitle] = useState(origEn);
     const [heTitle, setHeTitle] = useState(origHe);
     const isNewTopic = useRef(origEn === "");
@@ -39,11 +39,11 @@ const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc="", origCatego
     const save = function () {
         toggleInProgress();
         let url = "";
-        let data = {"description": description, "title": enTitle, "category": catSlug};
+        let data = {"description": {"en": description, "he": description}, "title": enTitle, "category": catSlug};
         if (isNewTopic.current) {
           url = "/api/topic/new";
           if (isCategory) {
-            data["catDescription"] = catDescription;
+            data["catDescription"] = {"en": catDescription, "he": catDescription};
           }
         }
         else {
@@ -53,7 +53,7 @@ const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc="", origCatego
           data["origTitle"] = origEn;
           data["origSlug"] = origSlug;
           if (isCategory) {
-            data["catDescription"] = catDescription;
+            data["catDescription"] = {"en": catDescription, "he": catDescription};
             data["origCatDescription"] = origCategoryDesc;
           }
         }
@@ -64,7 +64,6 @@ const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc="", origCatego
             toggleInProgress();
             alert(data.error);
           } else {
-            alert("Text information saved.");
             const newSlug = data["slug"];
             $.get("/admin/reset/toc", function(data) {
                 if (data.error) {

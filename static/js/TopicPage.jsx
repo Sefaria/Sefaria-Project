@@ -188,8 +188,8 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
         else if (addingTopics && "slug" in topicData) {
             const initCatSlug = TopicToCategorySlug(topicData);
             topicEditorStatus.current = <TopicEditor origSlug={topicData.slug} origEn={topicData.primaryTitle.en} origHe={topicData.primaryTitle.he}
-                         origDesc={topicData?.description?.en || ""} origCategorySlug={initCatSlug}
-                         origCategoryDesc={topicData?.categoryDescription?.en || ""}
+                         origDesc={topicData?.description || ""} origCategorySlug={initCatSlug}
+                         origCategoryDesc={topicData?.categoryDescription || ""}
                          close={(e) => toggleAddingTopics(e)}/>;
         }
     }
@@ -317,8 +317,8 @@ const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDis
   }
   if (Sefaria.is_moderator && addingTopics && !!topicData) {
       const initCatSlug = TopicToCategorySlug(topicData, category);
-      return <TopicEditor origEn={en} origHe={he} origDesc={topicData?.description?.en || ""}
-                          origCategoryDesc={topicData?.categoryDescription?.en || ""}
+      return <TopicEditor origEn={en} origHe={he} origDesc={topicData?.description || ""}
+                          origCategoryDesc={topicData?.categoryDescription || ""}
                           origSlug={topicData["slug"]} origCategorySlug={initCatSlug} close={(e) => toggleAddingTopics(e)}/>;
   }
   const topicStatus = Sefaria.is_moderator && !!topicData ?
