@@ -1481,7 +1481,9 @@ Sefaria = extend(Sefaria, {
             this._descDict[["Quoting Commentary", []]] = ["References to this source within commentaries on other texts in the wider library.", "התייחסויות אל המקור הנוכחי במפרשים משניים."]
 
             // special case of a category in sidebar that is a sub cat on the navigation toc pages
-            this._descDict[["Targum", []]] = this.getDescriptions("Targum", ["Tanakh"])
+            if (Sefaria._siteSettings["TORAH_SPECIFIC"]) {
+                this._descDict[["Targum", []]] = this.getDescriptions("Targum", ["Tanakh"]);
+            }
         }
         if (!desc && categoryList.length !== 0) {
             desc = this.getDescriptions(keyName, categoryList)
