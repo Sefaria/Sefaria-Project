@@ -68,10 +68,10 @@ class TopicSearch extends Component {
                     let topics = [];
                     if (d[1].length > 0) {
                       topics = d[1].map(function (e) {
-                        return {label: e.title, value: e.title, key: e.key}
+                        return {label: e.title, key: e.key}
                       });
                     }
-                    topics.push({"label": "Create new topic: "+request.term, "value": "", key: ""})
+                    topics.push({"label": "Create new topic: "+request.term, key: ""})
                     this.setState({topics: topics, selected: false});
                     response(topics);
             }.bind(this)
@@ -85,7 +85,7 @@ class TopicSearch extends Component {
       let match = false;
       this.state.topics.map(topic => {
         if (topic.label.toLowerCase() === this.state.label.toLowerCase()) {
-          this.post(topic.value);
+          this.post(topic.key);
           match = true;
         }
       })
