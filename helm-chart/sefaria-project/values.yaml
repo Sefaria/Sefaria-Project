@@ -104,6 +104,7 @@ linker:
     # Commit id of the repo for which the image build has been triggered.
     tag: latest
   replicaCount: 1
+  serviceAccount: linker
   resources:
     web:
       gunicornWorkerCount: 1
