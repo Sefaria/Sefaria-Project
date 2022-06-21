@@ -549,36 +549,60 @@ FilterableList.propTypes = {
 class TabView extends Component {
   constructor(props) {
     super(props);
-    const { currTabIndex } = props;
+    const { currTabName } = props;
     this.state = {
-      currTabIndex: (typeof currTabIndex == 'undefined') ? 0 : currTabIndex,
+      currTabName: typeof currTabName === 'undefined' ? this.props.tabs[0].id : currTabName
     };
+  }
+  componentDidMount() {
+    if (this.props.currTabName === null) {
+      this.props.setTab(this.props.tabs[0].id, true)
+    }
   }
   openTab(index) {
     this.setState({currTabIndex: index});
   }
-  onClickTab(e) {
-    let target = $(event.target);
-    while (!target.attr("data-tab-index")) { target = target.parent(); }
-    const tabIndex = parseInt(target.attr("data-tab-index"));
-    const { onClickArray, setTab, tabs } = this.props;
-    if (onClickArray && onClickArray[tabIndex]) {
-      onClickArray[tabIndex]();
+  getTabIndex() {
+    let tabIndex;
+    if (typeof this.props.currTabName === 'undefined') {
+      tabIndex = this.props.tabs.findIndex(tab => tab.id === this.state.currTabName ? true : false)
+    } else if (this.props.currTabName === null) {
+      tabIndex = 0;
     } else {
-      this.openTab(tabIndex);
-      setTab && setTab(tabIndex, tabs);
+      tabIndex = this.props.tabs.findIndex(tab => tab.id === this.props.currTabName ? true : false)
+    }
+    if(tabIndex === -1) {
+      tabIndex = 0;
+    }
+    return tabIndex;
+  }
+  onClickTab(e, clickTabOverride) {
+    if (clickTabOverride) {
+      clickTabOverride()
+    } else {
+      let target = $(event.target);
+      while (!target.attr("data-tab-index")) { target = target.parent(); }
+      const tabIndex = parseInt(target.attr("data-tab-index"));
+      const { onClickArray, setTab, tabs } = this.props;
+      if (onClickArray && onClickArray[tabIndex]) {
+        onClickArray[tabIndex]();
+      } else {
+        this.openTab(tabIndex);
+        const tab = this.props.tabs[tabIndex];
+        setTab && setTab(tab.id);
+      }
     }
   }
   renderTab(tab, index) {
-    const { currTabIndex } = typeof this.props.currTabIndex == 'undefined' ? this.state : this.props;
+    const currTabIndex = this.getTabIndex();
     return (
-      <div className={classNames({active: currTabIndex === index, justifyright: tab.justifyright})} key={tab.id} data-tab-index={index} onClick={this.onClickTab}>
+      <div className={classNames({active: currTabIndex === index, justifyright: tab.justifyright})} key={tab.id} data-tab-index={index} onClick={(e) => {this.onClickTab(e, tab.clickTabOverride)}}>
         {this.props.renderTab(tab, index)}
       </div>
     );
   }
   render() {
-    const { currTabIndex } = typeof this.props.currTabIndex == 'undefined' ? this.state : this.props;
+    const currTabIndex = this.getTabIndex();
     const classes = classNames({"tab-view": 1, [this.props.containerClasses]: 1});
     return (
       <div className={classes}>
@@ -593,7 +617,7 @@ class TabView extends Component {
 TabView.propTypes = {
   tabs:         PropTypes.array.isRequired,  // array of objects of any form. only requirement is each tab has a unique 'id' field. These objects will be passed to renderTab.
   renderTab:    PropTypes.func.isRequired,
-  currTabIndex: PropTypes.number,  // optional. If passed, TabView will be controlled from outside
+  currTabName:  PropTypes.string,  // optional. If passed, TabView will be controlled from outside
   setTab:       PropTypes.func,    // optional. If passed, TabView will be controlled from outside
   onClickArray: PropTypes.object,  // optional. If passed, TabView will be controlled from outside
 };
@@ -753,11 +777,7 @@ class TextBlockLink extends Component {
     if (isSheet) {
       url = `/sheets/${Sefaria.normRef(url_string).replace('Sheet.','')}`
     } else {
-      url = "/" + Sefaria.normRef(url_string) + Object.keys(currVersions)
-        .filter(vlang=>!!currVersions[vlang])
-        .map(vlang=>`&v${vlang}=${currVersions[vlang]}`)
-        .join("")
-        .replace("&","?");
+      url = "/" + Sefaria.normRef(url_string) + Sefaria.util.getUrlVersionsParams(currVersions).replace("&","?");
     }
 
     if (sideColor) {
@@ -1915,7 +1935,7 @@ InterruptingMessage.propTypes = {
 };
 
 
-const NBox = ({ content, n, stretch }) => {
+const NBox = ({ content, n, stretch, gap=0  }) => {
   // Wrap a list of elements into an n-column flexbox
   // If `stretch`, extend the final row into any remaining empty columns
   let length = content.length;
@@ -1926,7 +1946,7 @@ const NBox = ({ content, n, stretch }) => {
   return (
     <div className="gridBox">
       {rows.map((row, i) => (
-      <div className="gridBoxRow" key={i}>
+      <div className="gridBoxRow" key={i} style={{"gap": gap, "marginTop": gap}}>
         {row.pad(stretch ? row.length : n, "").map((item, j) => (
           <div className={classNames({gridBoxItem: 1, placeholder: !item})} key={`gridItem|${j}`}>{item}</div>
         ))}
@@ -1957,8 +1977,9 @@ TwoOrThreeBox.defaultProps = {
 };
 
 
-const ResponsiveNBox = ({content, stretch, initialWidth}) => {
-
+const ResponsiveNBox = ({content, stretch, initialWidth, threshold2=500, threshold3=1500, gap=0}) => {
+  //above threshold2, there will be 2 columns
+  //above threshold3, there will be 3 columns
   initialWidth = initialWidth || (window ? window.innerWidth : 1000);
   const [width, setWidth] = useState(initialWidth);
   const ref = useRef(null);
@@ -1973,14 +1994,12 @@ const ResponsiveNBox = ({content, stretch, initialWidth}) => {
 
   const deriveAndSetWidth = () => setWidth(ref.current ? ref.current.offsetWidth : initialWidth);
 
-  const threshold2 = 500; //above threshold2, there will be 2 columns
-  const threshold3 = 1500; //above threshold3, there will be 3 columns
   const n = (width > threshold3) ? 3 :
     (width > threshold2) ? 2 : 1;
 
   return (
     <div className="responsiveNBox" ref={ref}>
-      <NBox content={content} n={n} stretch={stretch} />
+      <NBox content={content} n={n} stretch={stretch} gap={gap}/>
     </div>
   );
 };
@@ -1994,6 +2013,14 @@ class Dropdown extends Component {
       selected: null
     };
   }
+
+  componentDidMount() {
+    if (this.props.preselected) {
+      const selected = this.props.options.filter( o => (o.value == this.props.preselected));
+      this.select(selected[0])
+    }
+  }
+
   select(option) {
     this.setState({selected: option, optionsOpen: false});
     const event = {target: {name: this.props.name, value: option.value}}
@@ -2368,6 +2395,28 @@ const SheetMetaDataBox = (props) => (
   </div>
 );
 
+const DivineNameReplacer = ({setDivineNameReplacement, divineNameReplacement}) => {
+  return (
+      <div className="divineNameReplacer">
+        <p className="sans-serif"><InterfaceText>Select how you would like to display the divine name in this sheet:</InterfaceText></p>
+
+            <Dropdown
+              name="divinename"
+              options={[
+                        {value: "noSub",   label: Sefaria._("No Substitution")},
+                        {value: "yy",   label: 'יי'},
+                        {value: "h",      label:'ה׳'},
+                        {value: "ykvk",    label: 'יקוק'},
+                      ]}
+              placeholder={Sefaria._("Select Type")}
+              onChange={(e) => setDivineNameReplacement((e.target.value))}
+              preselected={divineNameReplacement}
+            />
+      </div>
+  )
+
+}
+
 const Autocompleter = ({selectedRefCallback}) => {
   const [inputValue, setInputValue] = useState("");
   const [currentSuggestions, setCurrentSuggestions] = useState(null);
@@ -2562,7 +2611,7 @@ const Autocompleter = ({selectedRefCallback}) => {
       /><span className="helperCompletionText sans-serif-in-hebrew">{helperPromptText}</span>
       {showAddButton ? <button className="button small" onClick={(e) => {
                     selectedRefCallback(inputValue)
-                }}>Add Source</button> : null}
+      }}><InterfaceText>Add Source</InterfaceText></button> : null}
 
       {currentSuggestions && currentSuggestions.length > 0 ?
           <div className="suggestionBoxContainer">
@@ -2653,4 +2702,5 @@ export {
   InterfaceLanguageMenu,
   Autocompleter,
   DonateLink,
+  DivineNameReplacer,
 };

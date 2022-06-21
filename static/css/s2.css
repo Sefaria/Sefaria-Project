@@ -4488,6 +4488,14 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 #accountSettingsPage .toggleSet {
   display: flex;
 }
+#accountSettingsPage .additional-info {
+  color: var(--dark-grey);
+}
+/* #accountSettingsPage .saveCancel {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 30px;
+} */
 .toggleSet.aliyotTorah, .toggleSet.punctuationTalmud, .toggleSet .toggle-set-label {
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--english-sans-serif-font-family);
@@ -4701,6 +4709,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding: 0 44px;
   margin: 30px 0;
   background-color: inherit;
+}
+.sheetContent .text.editorContent {
+  padding: 30px 44px;
+  margin: 0;
 }
 .narrowColumn .basetext .text, .narrowColumn .sheetContent .text {
   padding: 0 26px;
@@ -4996,11 +5008,13 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-align: center;
   -webkit-text-size-adjust: 100%;
   user-select: none;
+  -webkit-user-select: none;
 }
 .segmentNumber .segmentNumberInner,
 .linkCount .linkCountDot {
   display: inline-block;
   user-select: none;
+  -webkit-user-select: none;
 }
 .bilingual .segmentNumber .segmentNumberInner,
 .bilingual .linkCount .linkCountDot,
@@ -6662,7 +6676,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   color: #666666;
   border-bottom: 1px solid #CCCCCC;
 }
-.connectionsPanel .chavruta p {
+.connectionsPanel .chavruta p,
+.connectionsPanel .divineNameReplacer p {
   font-size: 16px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   line-height: 19px;
@@ -6862,6 +6877,18 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .profile-page .logoutLink .int-he {
   font-family: "Heebo", sans-serif;
+}
+.notificationsTopContainer {
+  display: flex;
+  flex-direction: row;
+  margin-bottom: 30px;
+}
+.notificationsHeaderBox {
+  flex-grow: 1;
+  margin-bottom: 12px
+}
+.readerNavMenu .notificationsHeaderBox h1 {
+  margin: 4px 0 0 0;
 }
 .notificationsTitleIcon {
   position: relative;top: 2px;
@@ -9494,7 +9521,7 @@ background-color: white;
 }
 .sheetContent .sheetItem .SheetSource.segment,
 .sheetContent .sheetItem .SheetOutsideBiText.segment {
-  margin-top: 30px;
+  margin-top: 2px;
   margin-bottom:30px;
 }
 .sheetContent .text.loading {
@@ -9678,7 +9705,7 @@ cursor: pointer;
   border-top: 2px solid var(--select-blue);
   border-bottom: 2px solid var(--select-blue);
   border-inline-end: 2px solid var(--select-blue);
-  margin-top: 28px;
+  margin-top: 0;
   margin-bottom: 28px;
   margin-inline-end: -2px;
   cursor: text;
@@ -9839,7 +9866,6 @@ cursor: pointer;
 
 .boxedSheetItem + .spacer {
   margin-top: -30px;
-  margin-bottom: -30px;
   transition: all .5s ease-in-out;
 }
 

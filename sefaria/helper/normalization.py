@@ -165,25 +165,35 @@ class ITagNormalizer(AbstractNormalizer):
         return all_itags, soup
 
     @staticmethod
-    def _find_tag_text_start(s: str, itag_text: str, prev_start: int) -> int:
-        start = None
-        end = len(itag_text)
-        decrement = 50
-        while start is None or (start == -1 and end > decrement):
-            start = s.find(itag_text[:end], prev_start)
-            end -= decrement
+    def _find_itag_start(itag_text: str, s: str, search_start: int) -> int:
+        """
+        There can be minor differences in itag created by bs4
+        Try to find start of itag regardless
+        """
+        start = -1
+        for end_char in range(len(itag_text), round(len(itag_text)/2), -10):
+            truncated_itag = itag_text[:end_char]
+            start = s.find(truncated_itag, search_start)
+            if start != -1:
+                break
         return start
 
-    def find_text_to_remove(self, s: str, **kwargs) -> list:
+    def find_text_to_remove(self, s:str, **kwargs) -> list:
+        lenient = kwargs.get('lenient', False)  # if lenient, fail gracefully when you can't find an itag
         all_itags, _ = ITagNormalizer._get_all_itags(s)
         next_start = 0
         text_to_remove = []
         for itag in all_itags:
             itag_text = itag.decode()
-            start = self._find_tag_text_start(s, itag_text, next_start)
+            start = self._find_itag_start(itag_text, s, next_start)
             end = start+len(itag_text)
             if start == -1:
-                raise Exception(f"Couldn't find itag with text '{itag_text}' in\n{s}\nnext_start = {next_start}")
+                exception_text = f"Couldn't find itag with text '{itag_text}' in\n{s}\nnext_start = {next_start}"
+                if lenient:
+                    print(exception_text)
+                    continue
+                else:
+                    raise Exception(exception_text)
             text_to_remove += [((start, end), self.repl)]
             next_start = start + 1
 
@@ -249,7 +259,7 @@ class NormalizerComposer(AbstractNormalizer):
         mappings = []
         snorm = s
         for step in self.steps:
-            temp_text_to_remove = step.find_text_to_remove(snorm)
+            temp_text_to_remove = step.find_text_to_remove(snorm, **kwargs)
             if len(temp_text_to_remove) == 0:
                 text_to_remove_inds, text_to_remove_repls = [], []
             else:
@@ -258,8 +268,8 @@ class NormalizerComposer(AbstractNormalizer):
                 text_to_remove_inds = step.convert_normalized_indices_to_unnormalized_indices(text_to_remove_inds, mapping)
             temp_text_to_remove = list(zip(text_to_remove_inds, text_to_remove_repls))
             all_text_to_remove += [temp_text_to_remove]
-            mappings += [step.get_mapping_after_normalization(snorm)]
-            snorm = step.normalize(snorm)
+            mappings += [step.get_mapping_after_normalization(snorm, **kwargs)]
+            snorm = step.normalize(snorm, **kwargs)
         # merge any overlapping ranges
         # later edits should override earlier ones
         final_text_to_remove = reduce(lambda a, b: self.merge_removal_inds(a, b), all_text_to_remove)
@@ -267,41 +277,35 @@ class NormalizerComposer(AbstractNormalizer):
         return final_text_to_remove
 
     @staticmethod
-    def issubset(a: set, b: set, a_inds: tuple, b_inds: tuple) -> bool:
-        """
-        is a subset of b?
-        based on set.is_subset. however, if a is an empty set,
-        relies on a_inds to make sure the start/end inds (which are the same)
-        appear in b
-        """
-        if len(a) == 0:
-            return a_inds[0] in b
-        return a.issubset(b)
-
-    @staticmethod
     def merge_removal_inds(curr_removal_inds, new_removal_inds):
         if isinstance(new_removal_inds, tuple):
             new_removal_inds = [new_removal_inds]
+        curr_removal_inds.sort(key=lambda x: x[0])
+        new_removal_inds.sort(key=lambda x: x[0])
         merged_inds = curr_removal_inds[:]
+        last_curr = 0
         for new_inds, new_repl in new_removal_inds:
-            new_inds_set = set(range(new_inds[0], new_inds[1]))
             inds_are_final = True
-            for i, (curr_inds, curr_repl) in enumerate(curr_removal_inds):
-                curr_inds_set = set(range(curr_inds[0], curr_inds[1]))
-                if NormalizerComposer.issubset(curr_inds_set, new_inds_set, curr_inds, new_inds):
+            for i, (curr_inds, curr_repl) in enumerate(curr_removal_inds[last_curr:]):
+                if new_inds[1] <= curr_inds[0]:
+                    # curr_inds are past new_inds indicating rest of curr_inds will also be past. break early.
+                    break
+                elif curr_inds[0] >= new_inds[0] and curr_inds[1] <= new_inds[1]:  # are curr_inds subset of new_inds?
                     # if earlier inds are a subset of later inds, later inds override
                     merged_inds.remove((curr_inds, curr_repl))
-                elif len(curr_inds_set & new_inds_set) > 0:
+                elif new_inds[0] < curr_inds[1] or new_inds[1] > curr_inds[0]:
                     # if later inds overlap and earlier inds are not a subset, merge
-                    if new_inds_set.issubset(curr_inds_set):
+                    if new_inds[0] >= curr_inds[0] and new_inds[1] <= curr_inds[1]:
                         merged_repl = curr_repl[:new_inds[0] - curr_inds[0]] + new_repl + curr_repl[new_inds[1] -
                                                                                                 curr_inds[1]:]
-                        merged_inds[i] = (curr_inds, merged_repl)
+                        merged_inds[i+last_curr] = (curr_inds, merged_repl)
                         inds_are_final = False
+                        last_curr += 1
                         break
                     else:
                         # overlap that's not a subset. more complicated merge that I don't want to deal with now
                         pass
+                last_curr += 1
             if inds_are_final:
                 merged_inds += [(new_inds, new_repl)]
         return merged_inds

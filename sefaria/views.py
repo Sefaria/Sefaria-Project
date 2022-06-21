@@ -59,7 +59,7 @@ from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.sheets import get_sheet_categorization_info
 from reader.views import base_props, render_template 
-
+from sefaria.helper.nationbuilder import delete_from_nationbuilder_if_spam
 
 
 if USE_VARNISH:
@@ -189,9 +189,16 @@ def subscribe(request, email):
 @login_required
 def unlink_gauth(request):
     profile = UserProfile(id=request.user.id)
-    profile.update({"gauth_token": None})
-    profile.save()
-    return redirect(f"/profile/{profile.slug}")
+    try:
+        profile.update({"gauth_token": None, "gauth_email": None})
+        profile.save()
+        redir = bool(int(request.GET.get("redirect", True)))
+        if redir:
+            return redirect(f"/profile/{profile.slug}")
+        else:
+            return jsonResponse({"status": "ok"})
+    except: 
+        return jsonResponse({"error": "Failed to delete Google account"})
 
 
 def generate_feedback(request):
@@ -272,6 +279,26 @@ def linker_js(request, linker_version=None):
     }
 
     return render(request, linker_link, attrs, content_type = "text/javascript; charset=utf-8")
+
+
+@api_view(["POST"])
+def find_refs_api(request):
+    from sefaria.helper.ref_part import make_html, make_find_refs_response
+    from sefaria.utils.hebrew import is_hebrew
+    with_text = bool(int(request.GET.get("with_text", False)))
+    post = json.loads(request.body)
+    resolver = library.get_ref_resolver()
+    lang = 'he' if is_hebrew(post['text']) else 'en'
+    resolved_title = resolver.bulk_resolve_refs(lang, [None], [post['title']])
+    context_ref = resolved_title[0][0].ref if (len(resolved_title[0]) == 1 and not resolved_title[0][0].is_ambiguous) else None
+    resolved = resolver.bulk_resolve_refs(lang, [context_ref], [post['text']], with_failures=True)
+
+    # make_html([resolved_title, resolved], [[post['title']], [post['text']]], f'data/private/linker_results/linker_result.html')
+
+    return jsonResponse({
+        "title": make_find_refs_response(resolved_title, with_text),
+        "text": make_find_refs_response(resolved, with_text),
+    })
 
 
 def linker_data_api(request, titles):
@@ -867,16 +894,21 @@ def profile_spam_dashboard(request):
 
         regex = r'.*(?!href=[\'"](\/|http(s)?:\/\/(www\.)?sefaria).+[\'"])(href).*'
 
-        spam_keywords_regex = r'(?i).*support.*|.*coin.*|.*helpline.*'
+        spam_keywords_regex = r'(?i).*support.*|.*coin.*|.*helpline.*|.*base.*'
 
         users_to_check = db.profiles.find(
-            {'$or': [
-                {'website': {"$ne": ""}, 'bio': {"$ne": ""}, "id": {"$gt": earliest_new_user_id},
-                      "reviewed": {"$ne": True}},
-                {'bio': {"$regex": regex}, "id": {"$gt": earliest_new_user_id}, "reviewed": {"$ne": True}},
-                {'slug': {"$regex": spam_keywords_regex}, "id": {"$gt": earliest_new_user_id}, "reviewed": {"$ne": True}}
+            {'$and': [
+                {"id": {"$gt": earliest_new_user_id}, "reviewed": {"$ne": True}, "settings.reading_history": {"$ne": False}},
+                {'$or': [
+                    {'website': {"$ne": ""}},
+                    {'facebook': {"$ne": ""}},
+                    {'twitter': {"$ne": ""}},
+                    {'youtube': {"$ne": ""}},
+                    {'linkedin': {"$ne": ""}},
+                    {'bio': {"$regex": regex}},
+                    {'slug': {"$regex": spam_keywords_regex}}
             ]
-        })
+        }]})
 
 
 
@@ -904,6 +936,10 @@ def spam_dashboard(request):
 
 
     def purge_spammer_account_data(spammer_id):
+        # Delete from Nationbuilder
+        profile = db.profiles.find_one({"id": spammer_id})
+        if "nationbuilder_id" in profile:
+            delete_from_nationbuilder_if_spam(spammer_id, profile["nationbuilder_id"])
         # Delete Sheets
         db.sheets.delete_many({"owner": spammer_id})
         # Delete Notes
@@ -915,7 +951,6 @@ def spam_dashboard(request):
         db.following.delete_many({"followee": spammer_id})
         # Delete Profile
         db.profiles.delete_one({"id": spammer_id})
-
         # Set account inactive
         spammer_account = User.objects.get(id=spammer_id)
         spammer_account.is_active = False
@@ -1138,6 +1173,25 @@ def text_upload_api(request):
 
     message = "Successfully imported {} versions".format(len(files))
     return jsonResponse({"status": "ok", "message": message})
+
+
+@staff_member_required
+def update_authors_from_sheet(request):
+    from sefaria.helper.descriptions import update_authors_data
+    res_text = update_authors_data()
+    return HttpResponse("\n".join(res_text), content_type="text/plain")
+
+@staff_member_required
+def update_categories_from_sheet(request):
+    from sefaria.helper.descriptions import update_categories_data
+    res_text = update_categories_data()
+    return HttpResponse("\n".join(res_text), content_type="text/plain")
+
+@staff_member_required
+def update_texts_from_sheet(request):
+    from sefaria.helper.descriptions import update_texts_data
+    res_text = update_texts_data()
+    return HttpResponse("\n".join(res_text), content_type="text/plain")
 
 @staff_member_required
 def modtools_upload_workflowy(request):

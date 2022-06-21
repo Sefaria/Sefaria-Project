@@ -49,7 +49,7 @@ from sefaria.utils.util import text_preview
 from sefaria.utils.hebrew import hebrew_term, is_hebrew
 from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha, get_todays_parasha
 from sefaria.utils.util import short_to_long_lang_code
-from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, SEARCH_ADMIN, RTC_SERVER, MULTISERVER_REDIS_SERVER, MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, DISABLE_AUTOCOMPLETER
+from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, SEARCH_ADMIN, RTC_SERVER, MULTISERVER_REDIS_SERVER, MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, DISABLE_AUTOCOMPLETER, ENABLE_LINKER
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
@@ -91,6 +91,9 @@ if not DISABLE_AUTOCOMPLETER:
     logger.info("Initializing Cross Lexicon Auto Completer")
     library.build_cross_lexicon_auto_completer()
 
+if ENABLE_LINKER:
+    logger.info("Initializing Linker")
+    library.build_ref_resolver()
 
 if server_coordinator:
     server_coordinator.connect()
@@ -600,6 +603,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
     props = {
         "headerMode":                     False,
         "initialPanels":                  panels,
+        "initialTab":                     request.GET.get("tab", None),
         "initialPanelCap":                len(panels),
         "initialQuery":                   None,
         "initialNavigationCategories":    None,
@@ -685,11 +689,15 @@ def texts_category_list(request, cats):
         desc  = _("Texts that you've recently viewed on Sefaria.")
     else:
         cats = cats.split("/")
-        if len(cats) == 0 or library.get_toc_tree().lookup(cats) is None:
-            return texts_list(request)
+        tocObject = library.get_toc_tree().lookup(cats)
+        if len(cats) == 0 or tocObject is None:
+            return texts_list(request)      
         cat_string = ", ".join(cats) if request.interfaceLang == "english" else ", ".join([hebrew_term(cat) for cat in cats])
+        catDesc = getattr(tocObject, "enDesc", '') if request.interfaceLang == "english" else getattr(tocObject, "heDesc", '')
+        catShortDesc = getattr(tocObject, "enShortDesc", '') if request.interfaceLang == "english" else getattr(tocObject, "heShortDesc", '')
+        catDefaultDesc = _("Read %(categories)s texts online with commentaries and connections.") % {'categories': cat_string} 
         title = cat_string + _(" | Sefaria")
-        desc  = _("Read %(categories)s texts online with commentaries and connections.") % {'categories': cat_string}
+        desc  = catDesc if len(catDesc) else catShortDesc if len(catShortDesc) else catDefaultDesc
 
     props = {
         "initialMenu": "navigation",
@@ -773,33 +781,25 @@ def get_search_params(get_dict, i=None):
     }
 
 
-def get_version_preference_params(request):
-    raw_vpref = request.GET.get("versionPref", None)
-
-    if raw_vpref is None:
-        return None, None
-    assert raw_vpref.count("|") == 1
-    raw_vpref = raw_vpref.replace("_", " ")
-    vtitle_pref, vlang_pref = raw_vpref.split("|")
-    return vtitle_pref,  vlang_pref
-
-
-def get_version_preference_from_dict(oref, version_preferences_by_corpus):
+def get_version_preferences_from_dict(oref, version_preferences_by_corpus):
     corpus = oref.index.get_primary_corpus()
     vpref_dict = version_preferences_by_corpus.get(corpus, None)
     if vpref_dict is None:
-        return None, None
-    return vpref_dict['vtitle'], vpref_dict['lang']
+        return None
+    return vpref_dict
 
 
 def override_version_with_preference(oref, request, versionEn, versionHe):
-    vtitlePref, vlangPref = get_version_preference_from_dict(oref, request.version_preferences_by_corpus)
-    if vtitlePref is not None and Version().load({"versionTitle": vtitlePref, "language": vlangPref, "title": oref.index.title}):
-        # vpref exists and the version exists for this text
-        if vlangPref == "en" and not versionEn:
-            versionEn = vtitlePref
-        elif vlangPref == "he" and not versionHe:
-            versionHe = vtitlePref
+    vpref_dict = get_version_preferences_from_dict(oref, request.version_preferences_by_corpus)
+    if vpref_dict is None:
+        return versionEn, versionHe
+    for lang, vtitle in vpref_dict.items():
+        if Version().load({"versionTitle": vtitle, "language": lang, "title": oref.index.title}):
+            # vpref exists and the version exists for this text
+            if lang == "en" and not versionEn:
+                versionEn = vtitle
+            elif lang == "he" and not versionHe:
+                versionHe = vtitle
     return versionEn, versionHe
 
 
@@ -902,7 +902,7 @@ def collection_page(request, slug):
         "initialMenu":     "collection",
         "initialCollectionName": collection.name,
         "initialCollectionSlug": collection.slug,
-        "initialCollectionTag":  request.GET.get("tag", None)
+        "initialTab":  request.GET.get("tab", None)
     })
 
     props["collectionData"] = collection.contents(with_content=True, authenticated=authenticated)
@@ -1353,21 +1353,15 @@ def texts_api(request, tref):
         stripItags = bool(int(request.GET.get("stripItags", False)))
         multiple = int(request.GET.get("multiple", 0))  # Either undefined, or a positive integer (indicating how many sections forward) or negative integer (indicating backward)
         translationLanguagePreference = request.GET.get("transLangPref", None)  # as opposed to vlangPref, this refers to the actual lang of the text
-        try:
-            vtitlePref, vlangPref = get_version_preference_params(request)
-        except AssertionError:
-            return jsonResponse({"error": "version pref must contain a version title and version language separated by a pipe (|)"}, cb)
+        fallbackOnDefaultVersion = bool(int(request.GET.get("fallbackOnDefaultVersion", False)))
 
         def _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context, pad=pad,
                       alts=alts, wrapLinks=wrapLinks, layer_name=layer_name, wrapNamedEntities=wrapNamedEntities):
             text_family_kwargs = dict(version=versionEn, lang="en", version2=versionHe, lang2="he",
                                       commentary=commentary, context=context, pad=pad, alts=alts,
                                       wrapLinks=wrapLinks, stripItags=stripItags, wrapNamedEntities=wrapNamedEntities,
-                                      translationLanguagePreference=translationLanguagePreference)
-            vtitlePrefKey = "vtitlePreference"
-            if vlangPref == "he":
-                vtitlePrefKey += "2"  # 2 corresponds to lang2 which is constant (for some reason)
-            text_family_kwargs[vtitlePrefKey] = vtitlePref
+                                      translationLanguagePreference=translationLanguagePreference,
+                                      fallbackOnDefaultVersion=fallbackOnDefaultVersion)
             try:
                 text = TextFamily(oref, **text_family_kwargs).contents()
             except AttributeError as e:
@@ -2323,8 +2317,8 @@ def tag_category_api(request, path=None):
         if not path or path == "index":
             categories = TopicSet({"isTopLevelDisplay": True}, sort=[("displayOrder", 1)])
         else:
-            from sefaria.model.abstract import AbstractMongoRecord
-            slug = AbstractMongoRecord.normalize_slug(path)
+            from sefaria.model.abstract import SluggedAbstractMongoRecord
+            slug = SluggedAbstractMongoRecord.normalize_slug(path)
             topic = Topic.init(slug)
             if not topic:
                 categories = []
@@ -2956,13 +2950,18 @@ def notifications_read_api(request):
         notifications = request.POST.get("notifications")
         if not notifications:
             return jsonResponse({"error": "'notifications' post parameter missing."})
-        notifications = json.loads(notifications)
-        for id in notifications:
-            notification = Notification().load_by_id(id)
-            if notification.uid != request.user.id:
-                # Only allow expiring your own notifications
-                continue
-            notification.mark_read().save()
+        if notifications == "all":
+            notificationSet = NotificationSet().unread_for_user(request.user.id)
+            for notification in notificationSet:
+                notification.mark_read().save()
+        else:
+            notifications = json.loads(notifications)
+            for id in notifications:
+                notification = Notification().load_by_id(id)
+                if notification.uid != request.user.id:
+                    # Only allow expiring your own notifications
+                    continue
+                notification.mark_read().save()
 
         return jsonResponse({
                                 "status": "ok",
@@ -3139,15 +3138,15 @@ def topic_page(request, topic):
     topic_obj = Topic.init(topic)
     if topic_obj is None:
         # try to normalize
-        from sefaria.model.abstract import AbstractMongoRecord
-        topic_obj = Topic.init(AbstractMongoRecord.normalize_slug(topic))
+        from sefaria.model.abstract import SluggedAbstractMongoRecord
+        topic_obj = Topic.init(SluggedAbstractMongoRecord.normalize_slug(topic))
         if topic_obj is None:
             raise Http404
         topic = topic_obj.slug
     props = {
         "initialMenu": "topics",
         "initialTopic": topic,
-        "initialTopicsTab": urllib.parse.unquote(request.GET.get('tab', 'sources')),
+        "initialTab": urllib.parse.unquote(request.GET.get('tab', 'sources')),
         "initialTopicTitle": {
             "en": topic_obj.get_primary_title('en'),
             "he": topic_obj.get_primary_title('he')
@@ -3469,7 +3468,7 @@ def user_profile(request, username):
     props = {
         "initialMenu":  "profile",
         "initialProfile": requested_profile.to_api_dict(),
-        "initialProfileTab": tab,
+        "initialTab": tab,
     }
     title = _("%(full_name)s on Sefaria") % {"full_name": requested_profile.full_name}
     desc = _('%(full_name)s is on Sefaria. Follow to view their public source sheets, notes and translations.') % {"full_name": requested_profile.full_name}
@@ -3844,7 +3843,7 @@ def community_page_data(request, language="english"):
     from sefaria.model.user_profile import UserProfile
 
     data = {
-        "community": get_community_page_items(language=language)
+        "community": get_community_page_items(language=language, diaspora=(request.interfaceLang != "hebrew"))
     }
     if request.user.is_authenticated:
         profile = UserProfile(user_obj=request.user)
@@ -4398,6 +4397,18 @@ def apple_app_site_association(request):
         }
     })
 
+def android_asset_links_json(request):
+    return jsonResponse(
+        [{
+            "relation": ["delegate_permission/common.handle_all_urls"],
+            "target": {
+                "namespace": "android_app",
+                "package_name": "org.sefaria.sefaria",
+                "sha256_cert_fingerprints":
+                    ["FD:86:BA:99:63:C2:71:D9:5F:E6:0D:0B:0F:A1:67:EA:26:15:45:BE:0C:D0:DF:69:64:01:F3:AD:D0:EE:C6:87"]
+            }
+        }]
+    )
 
 def application_health_api(request):
     """

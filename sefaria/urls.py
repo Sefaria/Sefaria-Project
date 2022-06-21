@@ -354,6 +354,7 @@ urlpatterns += [
 # Linker js, text upload & download
 urlpatterns += [
     url(r'^linker\.?v?([0-9]+)?\.js$', sefaria_views.linker_js),
+    url(r'^api/find-refs$', sefaria_views.find_refs_api),
     url(r'^api/regexs/(?P<titles>.+)$', sefaria_views.title_regex_api),
     url(r'^api/linker-data/(?P<titles>.+)$', sefaria_views.linker_data_api),
     url(r'^api/bulktext/(?P<refs>.+)$', sefaria_views.bulktext_api),
@@ -416,6 +417,9 @@ urlpatterns += [
     url(r'^admin/versions-csv', sefaria_views.versions_csv),
     url(r'^admin/index-sheets-by-timestamp', sefaria_views.index_sheets_by_timestamp),
     url(r'^admin/community-preview', reader_views.community_preview),
+    url(r'^admin/descriptions/authors/update', sefaria_views.update_authors_from_sheet),
+    url(r'^admin/descriptions/categories/update', sefaria_views.update_categories_from_sheet),
+    url(r'^admin/descriptions/texts/update', sefaria_views.update_texts_from_sheet),
     url(r'^admin/?', include(admin.site.urls)),
 ]
 

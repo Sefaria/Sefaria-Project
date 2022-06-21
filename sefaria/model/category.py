@@ -4,8 +4,7 @@ import structlog
 logger = structlog.get_logger(__name__)
 
 from sefaria.system.database import db
-from sefaria.system.exceptions import BookNameError, InputError
-from sefaria.site.categories import REVERSE_ORDER, CATEGORY_ORDER, TOP_CATEGORIES
+from sefaria.system.exceptions import BookNameError, InputError, DuplicateRecordError
 from . import abstract as abstract
 from . import schema as schema
 from . import text as text
@@ -28,6 +27,7 @@ class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject
         "sharedTitle",
         "isPrimary",
         "searchRoot",
+        "order"
     ]
 
     def __str__(self):
@@ -58,6 +58,12 @@ class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject
     def _validate(self):
         super(Category, self)._validate()
         assert self.lastPath == self.path[-1] == self.get_primary_title("en"), "Category name not matching" + " - " + self.lastPath + " / " + self.path[-1] + " / " + self.get_primary_title("en")
+        assert not hasattr(self, 'order') or isinstance(self.order, int), 'Order should be an integer'
+
+        if self.is_new():
+            duplicate = Category().load({'path': self.path})
+            if duplicate:
+                raise DuplicateRecordError(f'Category with path {self.path} already exists')
 
         if not self.sharedTitle and not self.get_titles_object():
             raise InputError("Category {} must have titles or a shared title".format(self))
@@ -246,34 +252,24 @@ class TocTree(object):
     def _sort(self):
         def _explicit_order_and_title(node):
             """
-            Return sort key as tuple:  (isString, value)
+            Return sort key as tuple:  (value, value)
             :param node:
             :return:
             """
-            title = node.primary_title("en")
 
-            # First sort by global order list below
+            # First sort by order attr
             try:
-                return (False, CATEGORY_ORDER.index(title))
+                return (node.order < 0, node.order) #negative order should be least
 
-            # Sort top level Commentary categories just below their base category
-            except ValueError:
-                if isinstance(node, TocCategory):
-                    temp_cat_name = title.replace(" Commentaries", "")
-                    if temp_cat_name in TOP_CATEGORIES:
-                        return (False, CATEGORY_ORDER.index(temp_cat_name) + 0.5)
-
-                # Sort by an explicit `order` field if present
-                # otherwise into an alphabetical list
-                res = getattr(node, "order", title)
-                return (isinstance(res, str), res)
+            # Sort objects w/o order attr by title
+            except AttributeError:
+                return (0.5, node.get_primary_title())
 
         for cat in self.all_category_nodes():  # iterate all categories
             if all([hasattr(ca, "base_text_order") for ca in cat.children]):
                 cat.children.sort(key=lambda c: c.base_text_order)
             else:
                 cat.children.sort(key=_explicit_order_and_title)
-            cat.children.sort(key=lambda node: 'zzz' + node.primary_title("en") if isinstance(node, TocCategory) and node.primary_title("en") in REVERSE_ORDER else 'a')
 
     def _make_index_node(self, index, old_title=None, mobile=False):
         d = index.toc_contents(include_first_section=False, include_flags=False)
@@ -431,9 +427,8 @@ class TocCategory(TocNode):
                 self.searchRoot = self._category_object.searchRoot
             for field in ("enDesc", "heDesc", "enShortDesc", "heShortDesc"):
                 setattr(self, field, getattr(self._category_object, field, ""))
-        if self.primary_title() in CATEGORY_ORDER:
-            # If this text is listed in ORDER, consider its position in ORDER as its order field.
-            self.order = CATEGORY_ORDER.index(self.primary_title())
+        if hasattr(self._category_object, 'order'):
+            self.order = self._category_object.order
 
     optional_param_keys = [
         "order",
@@ -474,9 +469,8 @@ class TocTextIndex(TocNode):
     def __init__(self, serial=None, **kwargs):
         self._index_object = kwargs.pop("index_object", None)
         super(TocTextIndex, self).__init__(serial, **kwargs)
-        if self.primary_title() in CATEGORY_ORDER:
-            # If this text is listed in ORDER, consider its position in ORDER as its order field.
-            self.order = CATEGORY_ORDER.index(self.primary_title())
+        if hasattr(self._index_object, 'order'):
+            self.order = self._index_object.order[0]
 
     def get_index_object(self):
         return self._index_object

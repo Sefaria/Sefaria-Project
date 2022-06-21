@@ -142,6 +142,8 @@ class AddToSourceSheetBox extends Component {
     }
     Sefaria.sheets.updateUserSheets(this.state.selectedSheet, Sefaria._uid, true);
     this.setState({showConfirm: true});
+    const channel = new BroadcastChannel('refresh-editor');
+    channel.postMessage("refresh");
   }
   makeTitleRef(){
     const refTitles = (this.props.srefs.length > 0 && (!this.props.srefs[0].startsWith("Sheet"))) ? {

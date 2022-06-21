@@ -385,6 +385,8 @@ class UserProfile(object):
 
         # Google API token
         self.gauth_token = None
+        self.nationbuilder_id = None
+        self.gauth_email = None
 
         # new editor
         self.show_editor_toggle = False
@@ -454,15 +456,16 @@ class UserProfile(object):
 
     def update(self, obj, ignore_flags_on_init=False):
         """
-        Update this object with the fields in dictionry 'obj'
+        Update this object with the fields in dictionary 'obj'
         """
         if not ignore_flags_on_init:
             self._set_flags_on_update(obj)
         for dict_key in ("settings", "version_preferences_by_corpus"):
-            # merge these keys separately since they are themselves dicts. want to allow partial updates to be passed to update.
+            # merge these keys separately since they are themselves dicts.
+            # want to allow partial updates to be passed to update.
+            from sefaria.utils.util import deep_update
             if dict_key in obj and dict_key in self.__dict__:
-                self.__dict__[dict_key].update(obj[dict_key])
-                obj[dict_key] = self.__dict__[dict_key]
+                obj[dict_key] = deep_update(self.__dict__[dict_key], obj[dict_key])
         self.__dict__.update(obj)
 
         return self
@@ -476,9 +479,10 @@ class UserProfile(object):
 
     def update_version_preference(self, corpus, vtitle, lang):
         """
-        Convenince method to keep update logic in one place
+        Convenience method to keep update logic in one place
         """
-        self.update({"version_preferences_by_corpus": {corpus: {"vtitle": vtitle, "lang": lang}}})
+
+        self.update({"version_preferences_by_corpus": {corpus: {lang: vtitle}}})
 
     def save(self):
         """
@@ -639,6 +643,8 @@ class UserProfile(object):
         """
         from random import choices
         options = general_follow_recommendations(lang=lang, n=100)
+        if not len(options):
+            return []
         filtered_options = [u for u in options if not self.follows(u["uid"])]
 
         return choices(filtered_options, k=n)
@@ -672,6 +678,8 @@ class UserProfile(object):
             "profile_pic_url":       self.profile_pic_url,
             "profile_pic_url_small": self.profile_pic_url_small,
             "gauth_token":           self.gauth_token,
+            "nationbuilder_id":      self.nationbuilder_id,
+            "gauth_email":           self.gauth_email,
             "show_editor_toggle":    self.show_editor_toggle,
             "uses_new_editor":       self.uses_new_editor,
         }

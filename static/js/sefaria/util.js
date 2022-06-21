@@ -48,6 +48,31 @@ class Util {
     static encodeVtitle(vtitle) {
       return vtitle.replace(/\s/g, '_').replace(/;/g, '%3B');
     }
+    static getUrlVersionsParams(currVersions, i=0) {
+      currVersions = this.getCurrVersionsWithoutAPIResultFields(currVersions);
+      if (currVersions) {
+        return Object.entries(currVersions)
+          .filter(([vlang, vtitle]) => !!vtitle)
+          .map(([vlang, vtitle]) =>`&v${vlang}${i > 1 ? i : ""}=${this.encodeVtitle(vtitle)}`)
+          .join("");
+      } else {
+        return "";
+      }
+    }
+    static getCurrVersionsWithoutAPIResultFields(currVersions) {
+      /**
+       * currVersions can contain fields like `enAPIResult` and `heAPIResult`.
+       * returns an object without these fields
+       */
+      if (!currVersions) { return currVersions; }
+      return Object.entries(currVersions).reduce(
+        (a, [vlang, vtitle]) => {
+          if (vlang.endsWith("APIResult")) { return a; }
+          a[vlang] = vtitle;
+          return a;
+        }, {}
+      );
+    }
     static decodeVtitle(vtitle) {
       return vtitle.replace(/_/g, ' ').replace(/%3B/g, ';');
     }
@@ -695,6 +720,7 @@ class Util {
       return vars;
     }
     static replaceUrlParam(paramName, paramValue){
+      //TODO: This does not create the correct urls for multipanel views. It ends up just tacking on an extra "with" param on the end  
       var url = INBROWSER ? window.location.href : this._initialPath;
       if(paramValue == null)
           paramValue = '';

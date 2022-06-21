@@ -348,7 +348,7 @@ const useTabDisplayData = (translationLanguagePreference) => {
 
 const TopicPage = ({
   tab, topic, topicTitle, setTopic, setNavTopic, openTopics, multiPanel, showBaseText, navHome, 
-  toggleSignUpModal, openDisplaySettings, updateTopicsTab, openSearch, translationLanguagePreference, versionPref
+  toggleSignUpModal, openDisplaySettings, setTab, openSearch, translationLanguagePreference, versionPref
 }) => {
     const defaultTopicData = {primaryTitle: topicTitle, tabs: {}, isLoading: true};
     const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(topic) || defaultTopicData);
@@ -423,16 +423,6 @@ const TopicPage = ({
       });
       onClickFilterIndex = displayTabs.length - 1;      
     }
-    let tabIndex = displayTabs.findIndex(t => t.id === tab);
-    if (tabIndex == -1 && displayTabs.length > 0) {
-      tabIndex = 0;
-    }
-    useEffect(() => {
-      if (!!displayTabs[tabIndex]) {
-        updateTopicsTab(displayTabs[tabIndex].id);
-      }
-    }, [tabIndex]);
-
     const classStr = classNames({topicPanel: 1, readerNavMenu: 1});
     return <div className={classStr}>
         <div className="content noOverflowX" ref={scrollableElement}>
@@ -441,8 +431,8 @@ const TopicPage = ({
                     <TopicHeader topic={topic} topicData={topicData} multiPanel={multiPanel} setNavTopic={setNavTopic} openSearch={openSearch} openDisplaySettings={openDisplaySettings} />
                     {(!topicData.isLoading && displayTabs.length) ?
                        <TabView
-                          currTabIndex={tabIndex}
-                          setTab={(tabIndex, tempTabs) => { updateTopicsTab(tempTabs[tabIndex].id); }}
+                          currTabName={tab}
+                          setTab={setTab}
                           tabs={displayTabs}
                           renderTab={t => (
                             <div className={classNames({tab: 1, noselect: 1, filter: t.justifyright, open: t.justifyright && showFilterHeader})}>
@@ -501,12 +491,12 @@ const TopicPage = ({
       </div>;
 };
 TopicPage.propTypes = {
-  tab:                 PropTypes.string.isRequired,
+  tab:                 PropTypes.string,
   topic:               PropTypes.string.isRequired,
   setTopic:            PropTypes.func.isRequired,
   setNavTopic:         PropTypes.func.isRequired,
   openTopics:          PropTypes.func.isRequired,
-  updateTopicsTab:     PropTypes.func.isRequired,
+  setTab:              PropTypes.func.isRequired,
   multiPanel:          PropTypes.bool,
   showBaseText:        PropTypes.func,
   navHome:             PropTypes.func,
@@ -575,7 +565,8 @@ const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, set
       })),
     })
   }
-  const readingsComponent = (parashaData && tref) ? (
+  const hasReadings = parashaData && (!Array.isArray(parashaData) || parashaData.length > 0) && tref;
+  const readingsComponent = hasReadings ? (
     <ReadingsComponent parashaData={parashaData} tref={tref} />
   ) : null;
   const topicMetaData = <TopicMetaData timePeriod={timePeriod} properties={properties} />;

@@ -794,7 +794,7 @@ def get_top_topic(sheet):
         return t["slug"], score
 
     if len(topics) == 1:
-        max_topic_slug = topics[0]
+        max_topic_slug = topics[0].get("slug")
     elif len(topics) > 1:
         topic_dict = defaultdict(lambda: [(0, 0), 0])
         for t in topics:

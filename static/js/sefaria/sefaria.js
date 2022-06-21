@@ -386,7 +386,17 @@ Sefaria = extend(Sefaria, {
       translationLanguagePreference: settings.translationLanguagePreference || null,
       versionPref: settings.versionPref || null,
       firstAvailableRef: settings.firstAvailableRef || 1,
+      fallbackOnDefaultVersion: settings.fallbackOnDefaultVersion || 1,
     };
+    if (settings.versionPref) {
+      // for every lang/vtitle pair in versionPref, update corresponding version url param if it doesn't already exist
+      for (let [vlang, vtitle] of Object.entries(settings.versionPref)) {
+        const versionPrefKey = `${vlang}Version`;
+        if (!settings[versionPrefKey]) {
+          settings[versionPrefKey] = vtitle;
+        }
+      }
+    }
     return settings;
   },
   getTextFromCache: function(ref, settings) {
@@ -588,7 +598,7 @@ Sefaria = extend(Sefaria, {
     Sefaria.versionPreferences = Sefaria.versionPreferences.update(corpus, vtitle, lang);
 
     Sefaria.track.event("Reader", "Set Version Preference", `${corpus}|${vtitle}|${lang}`);
-    Sefaria.editProfileAPI({version_preferences_by_corpus: {[corpus]: {vtitle, lang}}})
+    Sefaria.editProfileAPI({version_preferences_by_corpus: {[corpus]: {[lang]: vtitle}}})
   },
   getLicenseMap: function() {
     const licenseMap = {
@@ -599,10 +609,6 @@ Sefaria = extend(Sefaria, {
       "CC-BY-NC": "https://creativecommons.org/licenses/by-nc/4.0/"
     }
     return licenseMap;
-  },
-  _getVersionPrefUrlParam(versionPref) {
-    const {vtitle, lang} = versionPref;
-    return `&versionPref=${encodeURIComponent(vtitle.replace(/ /g,"_"))}|${lang}`;
   },
   _textUrl: function(ref, settings) {
     // copy the parts of settings that are used as parameters, but not other
@@ -616,11 +622,12 @@ Sefaria = extend(Sefaria, {
       stripItags: settings.stripItags,
       transLangPref: settings.translationLanguagePreference,
       firstAvailableRef: settings.firstAvailableRef,
+      fallbackOnDefaultVersion: settings.fallbackOnDefaultVersion,
     });
     let url = "/api/texts/" + Sefaria.normRef(ref);
     if (settings.enVersion) { url += "&ven=" + encodeURIComponent(settings.enVersion.replace(/ /g,"_")); }
     if (settings.heVersion) { url += "&vhe=" + encodeURIComponent(settings.heVersion.replace(/ /g,"_")); }
-    if (settings.versionPref) { url += Sefaria._getVersionPrefUrlParam(settings.versionPref); }
+
     url += "&" + params;
     return url.replace("&","?"); // make sure first param has a '?'
   },
@@ -632,7 +639,7 @@ Sefaria = extend(Sefaria, {
       if (settings.enVersion) { key += "&ven=" + settings.enVersion; }
       if (settings.heVersion) { key += "&vhe=" + settings.heVersion; }
       if (settings.translationLanguagePreference) { key += "&transLangPref=" + settings.translationLanguagePreference}
-      if (settings.versionPref) { key += Sefaria._getVersionPrefUrlParam(settings.versionPref); }
+      if (settings.fallbackOnDefaultVersion) { key += "|FALLBACK_ON_DEFAULT_VERSION"; }
       key = settings.context ? key + "|CONTEXT" : key;
     }
     return key;
@@ -996,7 +1003,7 @@ Sefaria = extend(Sefaria, {
     if (words.length <= 0) { return Promise.resolve([]); }
     words = words.normalize("NFC"); //make sure we normalize any errant unicode (vowels and diacritics that may appear to be equal but the underlying characters are out of order or different.
     const key = ref ? words + "|" + ref : words;
-    let url = Sefaria.apiHost + "/api/words/" + encodeURIComponent(words)+"?always_consonants=1&never_split=1" + (ref?("&lookup_ref="+ref):"");
+    let url = Sefaria.apiHost + "/api/words/" + encodeURIComponent(words)+"?always_consonants=1&never_split=1" + (ref?("&lookup_ref="+encodeURIComponent(ref)):"");
     return this._cachedApiPromise({url, key, store: this._lexiconLookups});
   },
   _links: {},
@@ -2643,7 +2650,7 @@ _media: {},
 });
 
 Sefaria.unpackDataFromProps = function(props) {
-  // Populate local cache with various data passed as a rider on props.
+  // Populate local cache with various data passed as props.
   const initialPanels = props.initialPanels || [];
   for (let i = 0; i < initialPanels.length; i++) {
       let panel = initialPanels[i];
@@ -2684,7 +2691,17 @@ Sefaria.unpackDataFromProps = function(props) {
   }
   Sefaria.versionPreferences = new VersionPreferences(props.versionPrefsByCorpus);
   Sefaria.util._initialPath = props.initialPath ? props.initialPath : "/";
-  const dataPassedAsProps = [
+  Sefaria.unpackBaseProps(props);
+
+  Sefaria.getBackgroundData();
+};
+
+Sefaria.unpackBaseProps = function(props){
+    //TODO: verify these are all base props!!! 
+      if (typeof props === 'undefined') {
+          return;
+      }  
+      const dataPassedAsProps = [
       "_uid",
       "_email",
       "_uses_new_editor",
@@ -2719,9 +2736,7 @@ Sefaria.unpackDataFromProps = function(props) {
         Sefaria[element] = props[element];
       }
   }
-
-  Sefaria.getBackgroundData();
-};
+}
 
 Sefaria.loadServerData = function(data){
     // data parameter is optional. in the event it isn't passed, we assume that DJANGO_DATA_VARS exists as a global var
@@ -2754,8 +2769,10 @@ Sefaria.palette.refColor = ref => Sefaria.palette.indexColor(Sefaria.parseRef(re
 
 Sefaria = extend(Sefaria, Strings);
 
-Sefaria.setup = function(data) {
+Sefaria.setup = function(data, props = null) {
     Sefaria.loadServerData(data);
+    let baseProps = props !=null ? props : (typeof DJANGO_VARS === "undefined" ? undefined : DJANGO_VARS.props);
+    Sefaria.unpackBaseProps(baseProps);
     Sefaria.util.setupPrototypes();
     Sefaria.util.setupMisc();
     var cookie = Sefaria.util.handleUserCookie(Sefaria._uid);
@@ -2767,6 +2784,7 @@ Sefaria.setup = function(data) {
     Sefaria._cacheFromToc(Sefaria.toc);
     Sefaria._cacheHebrewTerms(Sefaria.terms);
     Sefaria._cacheSiteInterfaceStrings();
+    //console.log(`sending user logged in status to GA, uid as bool: ${!!Sefaria._uid} | analytics id: ${Sefaria._analytics_uid}`);
     Sefaria.track.setUserData(!!Sefaria._uid, Sefaria._analytics_uid);
     Sefaria.search = new Search(Sefaria.searchIndexText, Sefaria.searchIndexSheet);
 };

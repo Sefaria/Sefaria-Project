@@ -20,29 +20,64 @@ import {
   LoadingMessage,
 } from './Misc';
 
-const SearchTopic = (props) => {
-    const sources = <a href={props.topic["url"]+"?tab=sources"}><InterfaceText>Sources</InterfaceText></a>;
-    const sheets = <a href={props.topic["url"]+"?tab=sheets"}><InterfaceText>Sheets</InterfaceText></a>;
-    return <div className="searchTopic">
-            <div className="topicTitle">
-              <h1>
-                  <a href={props.topic["url"]}><InterfaceText text={{en:props.topic["title"], he:props.topic["heTitle"]}}/></a>
-              </h1>
-            </div>
-            <div className="topicCategory sectionTitleText">
-                <InterfaceText text={{en:props.topic["topicCat"], he:props.topic["heTopicCat"]}}/>
-            </div>
-            {"enDesc" in props.topic ?
-                <div className="topicDescSearchResult systemText">
-                   <InterfaceText text={{en:props.topic["enDesc"], he:props.topic["heDesc"]}}/>
-                </div> : null}
-            {props.topic.numSources > 0 || props.topic.numSheets > 0 ?
-                <div className="topicSourcesSheets systemText">
-                    <InterfaceText>{props.topic["numSources"]}</InterfaceText> {sources} ∙ <InterfaceText>{props.topic["numSheets"]}</InterfaceText> {sheets}
-                </div> : null}
-            </div>
+
+
+
+
+const SourcesSheetsDiv = (props) => {
+    let sourcesSheetsCounts = [];
+    let sheetsURL, sourcesURL;
+    if (props?.numSources > 0 && props?.numSheets > 0) { // if there's both, we need to specify two different URLs
+        sheetsURL = props.url + "?tab=sheets";
+        sourcesURL = props.url + "?tab=sources";
+    }
+    else {
+        sheetsURL = props.url;
+        sourcesURL = props.url;
+    }
+    
+    if (props?.numSources > 0) {
+        const sourcesDiv = <span><a href={sourcesURL}><InterfaceText>{props.numSources}</InterfaceText> <InterfaceText>Sources</InterfaceText></a></span>;
+        sourcesSheetsCounts.push(sourcesDiv);
+    }
+    if (props?.numSheets > 0) {
+        const sheetsDiv = <span><a href={sheetsURL}><InterfaceText>{props.numSheets}</InterfaceText> <InterfaceText>Sheets</InterfaceText></a></span>;
+        sourcesSheetsCounts.push(sheetsDiv);
+    }
+    
+    if (sourcesSheetsCounts.length === 0) {
+        return null;
+    }
+    else {
+        return <div className="topicSourcesSheets systemText">{sourcesSheetsCounts.reduce((prev, curr) => [prev, " ∙ ",  curr])}</div>;
+    }
 }
 
+
+const SearchTopic = (props) => {
+    const sourcesSheetsDiv = <SourcesSheetsDiv url={props.topic.url} numSheets={props.topic.numSheets} numSources={props.topic.numSources}/>;
+    const topicTitle = <div className="topicTitle">
+                          <h1>
+                          <a href={props.topic.url} onClick={() => Sefaria.track.event("Search", "topic in search click", props.topic.analyticCat+"|"+props.topic.title)}><InterfaceText text={{en:props.topic.title, he:props.topic.heTitle}}/></a>
+                          </h1>
+                        </div>;
+    const topicCategory = <div className="topicCategory sectionTitleText">
+                            <InterfaceText text={{en:props.topic.topicCat, he:props.topic.heTopicCat}}/>
+                          </div>;
+    return <div className="searchTopic">
+                {topicTitle}
+                {topicCategory}
+                {"enDesc" in props.topic ?
+                    <div className="topicDescSearchResult systemText">
+                       <InterfaceText text={{en:props.topic.enDesc, he:props.topic.heDesc}}/>
+                    </div> : null}
+                {sourcesSheetsDiv}
+        </div>
+}
+
+
+
+    
 class SearchResultList extends Component {
     constructor(props) {
       super(props);
@@ -120,7 +155,8 @@ class SearchResultList extends Component {
             heTitle: book.heTitle,
             topicCat: book.categories[0],
             heTopicCat: Sefaria.toc.filter(cat => cat.category === book.categories[0])[0].heCategory,
-            url: "/" + book.title
+            url: "/" + book.title,
+            analyticCat: "Book"
         }
     }
     addTOCCategoryTopic(topic) {
@@ -129,6 +165,7 @@ class SearchResultList extends Component {
         const relevantCats = topicKeyArr.length === 0 ? Sefaria.toc : Sefaria.tocItemsByCategories(topicKeyArr);
         const relevantSubCat = relevantCats.filter(cat => "category" in cat && cat.category === lastCat)[0];
         return {
+            analyticCat: "Category",
             url: "/texts/" + topic.key.join("/"),
             topicCat: "Texts",
             heTopicCat: Sefaria.hebrewTerm("Texts"),
@@ -141,13 +178,14 @@ class SearchResultList extends Component {
     async addGeneralTopic(topic) {
         const d = await Sefaria.getTopic(topic.key, {annotate_time_period: true});
         let searchTopic = {
+            analyticCat: "Topic",
             title: d.primaryTitle["en"],
             heTitle: d.primaryTitle["he"],
             numSources: 0,
-            numSheets: 0
+            numSheets: 0,
+            url: "/topics/" + topic.key
         }
         const typeObj = Sefaria.topicTocCategory(topic.key);
-        searchTopic.url = "/topics/" + topic.key;
         if (!typeObj) {
             searchTopic.topicCat = "Topics";
             searchTopic.heTopicCat = Sefaria.hebrewTranslation("Topics");
@@ -167,6 +205,20 @@ class SearchResultList extends Component {
         }
         return searchTopic;
     }
+    async addCollection(collection) {
+        const d = await Sefaria.getCollection(collection.key);
+        return {
+            analyticCat: "Collection",
+            title: d.name,
+            heTitle: d.name,
+            url: "/collections/" + collection.key,
+            topicCat: "Collections",
+            heTopicCat: Sefaria.hebrewTranslation("Collections"),
+            enDesc: d.description,
+            heDesc: d.description,
+            numSheets: d.sheets.length
+        }
+    }
     async _executeTopicQuery() {
         const d = await Sefaria.getName(this.props.query)
         let topics = d.completion_objects.filter(obj => obj.title.toUpperCase() === this.props.query.toUpperCase());
@@ -179,6 +231,8 @@ class SearchResultList extends Component {
                 return await this.addRefTopic(t);
             } else if (t.type === 'TocCategory') {
                 return this.addTOCCategoryTopic(t);
+            } else if (t.type === 'Collection') {
+                return await this.addCollection(t);
             } else {
                 return await this.addGeneralTopic(t);
             }
@@ -387,6 +441,7 @@ class SearchResultList extends Component {
           );
           if (this.state.topics.length > 0) {
               let topics = this.state.topics.map(t => {
+                  Sefaria.track.event("Search", "topic in search display", t.analyticCat+"|"+t.title);
                   return <SearchTopic topic={t}/>
               });
               if (results.length > 0) {

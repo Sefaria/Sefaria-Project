@@ -1,6 +1,6 @@
 import pytest
 from sefaria.model import *
-from sefaria.model.webpage import WebPage
+from sefaria.model.webpage import WebPage, get_webpages_for_ref
 
 title_good_url = "Dvar Torah"
 
@@ -15,6 +15,27 @@ def create_good_web_page():
 	webpage = WebPage().load({"url": data_good_url["url"]})
 	yield {"result": result, "webpage": webpage, "data": data_good_url}
 	WebPage().load({"url": data_good_url["url"]}).delete()
+
+
+@pytest.fixture(scope='module')
+def create_web_page_wout_desc():
+	data_good_url = {'url': 'http://blogs.timesofisrael.com/dvar-torah4',
+									 'title': title_good_url+" without description",
+									 'refs': ["Haamek Davar on Genesis, Kidmat Ha'Emek 2", 'Genesis 3']}
+
+	result = WebPage().add_or_update_from_linker(data_good_url)
+	webpage = WebPage().load({"url": data_good_url["url"]})
+	yield {"result": result, "webpage": webpage, "data": data_good_url}
+	webpage.delete()
+
+
+@pytest.fixture(scope='module')
+def create_web_page_wout_site():
+	data = {'url': 'http://notarealsite.org/123', 'title': "This is a good title", "refs": ["Genesis 2"]}
+	result = WebPage().add_or_update_from_linker(data)
+	webpage = WebPage().load({'url': data['url']})
+	yield {'result': result, 'webpage': webpage, 'data': data}
+	webpage.delete()
 
 def test_add_bad_domain_from_linker():
 	#localhost:8000 should not be added to the linker, so make sure attempting to do so fails
@@ -48,6 +69,11 @@ def test_add_bad_title_from_linker():
 
 	assert WebPage().add_or_update_from_linker(data) == "excluded"
 
+
+def test_add_webpage_without_website(create_web_page_wout_site):
+	# this should be possible even though no corresponding domain exists in a WebSite object
+	result, webpage, data = create_web_page_wout_site["result"], create_web_page_wout_site["webpage"], create_web_page_wout_site["data"]
+	assert result == "saved"
 
 
 def test_add_and_update_good_url_from_linker(create_good_web_page):
@@ -96,3 +122,20 @@ def test_add_search_URL():
 		 'refs': ['Psalms 1–41', 'Psalms 42–72', 'Psalms 73–89', 'Psalms 90–106', 'Psalms 107–150', 'Psalms 130:1',
 				  'Psalms 63:2-4', 'Psalms 42:2-4']}
 		assert WebPage.add_or_update_from_linker(linker_data) == "excluded"
+
+
+def test_page_wout_description(create_web_page_wout_desc):
+	result, webpage, data = create_web_page_wout_desc["result"], create_web_page_wout_desc["webpage"], create_web_page_wout_desc["data"]
+	assert result == "saved"
+
+	data["description"] = "here is a desc"
+	assert WebPage().add_or_update_from_linker(data) == "saved"
+
+	assert WebPage().add_or_update_from_linker(data) == "excluded"
+
+
+def test_get_webpages_for_ref():
+	results = get_webpages_for_ref("Rashi on Genesis 1:1")
+	assert "title" in results[0]
+	assert "url" in results[0]
+	assert "refs" in results[0]

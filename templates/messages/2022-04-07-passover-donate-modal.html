@@ -1,0 +1,98 @@
+{% load i18n %}
+<style>
+    #highHolidayDonation {
+        width: 410px;
+        max-height: 100%;
+        max-width: 100%;
+    }
+    .interface-english #highHolidayDonation {
+        text-align: left;
+    }
+    .interface-hebrew #highHolidayDonation {
+        text-align: right;
+        direction: rtl;
+    }
+    #highHolidayDonation p {
+        color: #555;
+    }
+    .interface-hebrew p.int-en {
+        display: none;
+    }
+    #highHolidayDonation p .int-en {
+        font-family: "adobe-garamond-pro", Georgia, serif;
+    }
+    #highHolidayDonation p .int-he {
+        font-family: "adobe-garamond-pro", Georgia, serif;
+        /* font-family: "Heebo", sans-serif; */
+    }
+    #highHolidayDonation p.sub {
+        color: #999;
+        font-size: 12px;
+        font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
+    }
+    #highHolidayDonation p {
+        margin-top: 0;
+    }
+    #highHolidayDonation .button {
+        margin-bottom: 20px;
+    }
+    #highHolidayDonation img {
+        max-width: 100%;
+    }
+    #highHolidayDonation .buttons{
+        text-align: right;
+    }
+    .leader {
+        font-weight: bold;
+    }
+    .center{
+        text-align: center;
+    }
+    #email-input-wrapper {
+        display: flex;
+        align-items: flex-start;
+        flex-direction: column;
+    }
+    .newsletterInput#email-input {
+        width: 300px;
+        padding: 10px;
+        margin-bottom: 20px;
+        border-radius: 7px;
+        border: 1px solid #EEE;
+        color: #333;
+    }
+
+</style>
+<div id="highHolidayDonation">
+
+    <p>
+        <span class="int-en">Friend,</span>
+        <span class="int-he">חברים,</span>
+    </p>
+
+    <p>
+        <span class="int-en">
+            Sefaria was created to support your Jewish learning experience. 
+            We rely on individual users like you to grow and maintain the library so you can keep learning.
+        </span>
+        <span class="int-he">
+             הספריה הזו נוצרה כדי לתמוך בחויית הלמידה שלכם עם ארון הספרים היהודי.
+            אנחנו סומכים על משתמשים כמוכם על מנת להצמיח ולקיים את הספריה כדי שתוכלו להמשיך ללמוד.
+        </span>
+    </p>
+
+    <p>
+        <span class="int-en">If the Sefaria library has helped you, we hope you’ll consider donating so we can keep acquiring texts and improving the platform to enhance your experience.</span>
+        <span class="int-he">אם הספריה של ספריא עזרה לכם, אנחנו מקווים שתשקלו לתרום כדי שנוכל להמשיך לרכוש טקסטים ולשפר את  הפלטפורמה וכך להעצים את חוייתכם. </span>
+    </p>
+    <div class="buttons">
+        <a class="button int-en" target="_blank" href="https://sefaria.nationbuilder.com/supportsefaria_web">
+            <span class="int-en">Donate</span>
+        </a>
+        <a class="button int-he" target="_blank" href="https://sefaria.nationbuilder.com/il_whb">
+            <span class="int-he">לתרומה</span>
+        </a>
+    </div>
+
+
+</div>

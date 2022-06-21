@@ -22,8 +22,8 @@ def regenerate_version_status_tree():
 
 
 def regenerate_bare_links_api(cat1, cat2):
-    cat1idxs = library.get_indexes_in_category(cat1)
-    cat2idxs = library.get_indexes_in_category(cat2)
+    cat1idxs = library.get_indexes_in_corpus(cat1) or library.get_indexes_in_category(cat1)
+    cat2idxs = library.get_indexes_in_corpus(cat2) or library.get_indexes_in_category(cat2)
     for c1idx in cat1idxs:
         print("bare_link_api:, Book: {}, Category: {}".format(c1idx, cat2))
         django_cache(action="set", cache_prefix='bare_link_api')(get_book_link_collection)(book=c1idx, cat=cat2)
