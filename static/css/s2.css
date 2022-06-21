@@ -11285,22 +11285,6 @@ body .homeFeedWrapper.userStats {
 .editTextInfo .nodeTemplate {
 	display: none;
 }
-@media screen and (max-width: 880px) {
-  .searchBox #categoryChooserMenu {
-    width: 200px;
-    background: url("/static/img/arrow-down.png") 180px 20px/10px 10px no-repeat #ffffff;
-    max-width: 100%;
-  }
-  .searchBox #categoryChooserMenu select {
-    width: 220px;
-  }
-  .searchBox .editTextInfo #newIndex input {
-    width: 200px;
-  }
-  .searchBox .editTextInfo #newIndex #topicDesc {
-    width: 200px;
-  }
-}
 @media screen and (max-width: 680px) {
 
   #categoryChooserMenu {
