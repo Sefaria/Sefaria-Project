@@ -19,7 +19,7 @@ spec:
               secretName: {{ template "sefaria.secrets.backupManager" . }}
           - name: local-settings
             configMap:
-              name: local-settings-{{ .Values.deployEnv }}
+              name: local-settings-file-{{ .Values.deployEnv }}
               items:
                 - key: local_settings.py
                   path: local_settings.py
