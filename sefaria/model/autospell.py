@@ -439,7 +439,7 @@ class LexiconTrie(datrie.Trie):
 
         for entry in LexiconEntrySet({"parent_lexicon": lexicon_name}, sort=[("_id", -1)]):
             self[hebrew.strip_nikkud(entry.headword)] = entry.headword
-            for ahw in getattr(entry, "alt_headwords", []):
+            for ahw in entry.get_alt_headwords():
                 self[hebrew.strip_nikkud(ahw)] = entry.headword
 
 

@@ -207,6 +207,9 @@ class DictionaryEntry(LexiconEntry):
             new_content += next_line
         return [new_content]
 
+    def get_alt_headwords(self):
+        return getattr(self, "alt_headwords", [])
+
 
 class StrongsDictionaryEntry(DictionaryEntry):
     required_attrs = DictionaryEntry.required_attrs + ["content", "strong_number"]
@@ -270,15 +273,16 @@ class BDBEntry(DictionaryEntry):
     optional_attrs = ['strong_numbers', 'next_hw', 'prev_hw', 'peculiar', 'all_cited', 'ordinal', 'brackets', 'headword_appendix', 'alt_headwords', 'root', 'occurences']
 
     def headword_string(self):
-        hw = f'<span dir="rtl">{self.headword}</span>'
+        hw = f'<span dir="rtl">{re.sub("[⁰¹²³⁴⁵⁶⁷⁸⁹]*", "", self.headword)}</span>'
         if hasattr(self, 'occurences'):
-            hw += f'<sub>{self.occurences}</sub>'
+            hw += f'</big><sub>{self.occurences}</sub><big>'
         if hasattr(self, 'alt_headwords'):
             alts = []
             for alt in self.alt_headwords:
-                a = f'<span dir="rtl">{alt["wprd"]}</span>'
+                a = f'<span dir="rtl">{alt["word"]}</span>'
                 if 'occurences' in alt:
-                    a += f'<sub>{a["occurences"]}</sub>'
+                    a += f'</big><sub>{alt["occurences"]}</sub><big>'
+                alts.append(a)
         if hasattr(self, 'brackets') and self.brackets == 'all':
             if hasattr(self, 'headword_appendix'):
                 hw = f'[{hw}{self.headword_appendix}]' #if there's a space, it'll be part of headword_appendix
@@ -298,7 +302,12 @@ class BDBEntry(DictionaryEntry):
             hw = f'† {hw}'
         if hasattr(self, 'peculiar'):
             hw = f'‡ {hw}'
+        hw = re.sub('<big></big>', '', hw)
         return hw
+
+    def get_alt_headwords(self):
+        alts = getattr(self, "alt_headwords", [])
+        return [a['word'] for a in alts]
 
 class LexiconEntrySubClassMapping(object):
     lexicon_class_map = {
@@ -310,9 +319,7 @@ class LexiconEntrySubClassMapping(object):
         'Sefer HaShorashim': HebrewDictionaryEntry,
         'Animadversions by Elias Levita on Sefer HaShorashim': HebrewDictionaryEntry,
         'BDB Dictionary': BDBEntry,
-        'BDB Aramaic Dictionary': BDBEntry,
-        'TEMP': BDBEntry,
-        'TEMP aramaic': BDBEntry
+        'BDB Aramaic Dictionary': BDBEntry
     }
 
     @classmethod
