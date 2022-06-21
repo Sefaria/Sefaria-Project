@@ -1,0 +1,82 @@
+sandbox: "false"
+contentSandbox: "false"
+deployEnv: production  
+previousServicesCount: "3"
+web:
+  replicaCount: 7
+  containerImage: 
+    imageRegistry:
+    tag: 
+  secrets:
+    googleClient:
+      ref: google-client-secret-production
+    logging:
+      ref: logging-secret-production
+    schoolLookup:
+      ref: school-lookup-data-production
+redis:
+  containerImage:
+    imageRegistry: redis
+    tag: latest
+nodejs:
+  replicaCount: 4
+  containerImage: 
+    imageRegistry:
+    tag: 
+varnish:
+  containerImage:
+    imageRegistry: gcr.io/production-deployment/sefaria-varnish
+    tag: v6
+  secrets:
+    varnish:
+      ref: varnish-secret-production
+ingress:
+  hosts: 
+    - host: "production-test.sefaria.org"
+      path: /*
+      serviceName: nginx
+      port: 80
+  secrets:
+    # Assuming cloudflare here, will need to add certs in via infra if not
+    originTls: 
+      ref: origin-tls-prod2
+    originIlTlsA:
+      ref: origin-il-tls-prod2 
+nginx:
+  replicaCount: 2
+  containerImage: 
+    imageRegistry:
+    tag: 
+monitor:
+  replicaCount: 1
+  containerImage: 
+    imageRegistry:
+    tag: 
+secrets:
+  localSettings: 
+    ref: local-settings-secrets-production
+  backupManager: 
+    ref: backup-manager-secret-production
+  slackWebhook: 
+    ref: slack-webhook-production
+localSettings:
+  DEBUG: false
+  OFFLINE: "False"
+  DOMAIN_LANGUAGE: {
+    "https://www.sefaria.org": "english",
+    "https://www.sefaria.org.il": "hebrew",
+  }
+  MONGO_HOST: "mongo"
+  APSCHEDULER_NAME: "apscheduler-{{ .Values.deployEnv }}"
+  SEARCH_ADMIN: "http://elasticsearch-data:9200"
+  TURN_SERVER: ''
+  USE_CLOUDFLARE: false
+  FRONT_END_URL:  "http://production-test.sefaria.org" 
+  OFFLINE: false
+  DOWN_FOR_MAINTENANCE: false
+  MAINTENANCE_MESSAGE: "Sefaria is down for scheduled maintenance. We expect to be back online within 15 minutes. Thank you for your patience."
+  GLOBAL_WARNING: false
+  GLOBAL_WARNING_MESSAGE: "Sefaria will be in <b>Read-Only</b> mode for scheduled maintenance from 4:45pm-6:45pm Pacific time. Edits will <b>not</b> be saved during that time."
+  SITE_PACKAGE: "sites.sefaria"
+  SEARCH_HOST: elasticsearch.data  
+

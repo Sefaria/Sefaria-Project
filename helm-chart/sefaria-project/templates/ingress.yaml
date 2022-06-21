@@ -5,15 +5,11 @@ metadata:
   labels:
     {{- include "sefaria.labels" . | nindent 4 }}
   annotations:
-    {{- if eq .Values.sandbox "true" }}
     kubernetes.io/ingress.class: nginx-ingress
-    {{- else }}
-    kubernetes.io/ingress.global-static-ip-name: "sefaria-{{ .Values.deployEnv }}"
-    {{- end }}
 spec:
   tls:
     - secretName: {{ template "sefaria.secrets.originTls" . }}
-    {{- if eq .Values.deployEnv "prod" }}
+    {{- if ne .Values.sandbox "true" }}
     - secretName: {{ template "sefaria.secrets.originIlTls" . }}
     {{- end }}
   rules:

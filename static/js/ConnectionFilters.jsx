@@ -21,8 +21,9 @@ class CategoryFilter extends Component {
   }
   render() {
     const filterSuffix = this.props.category  == "Quoting Commentary" ? "Quoting" : null;
+    const textMissingDescription = null; //"missing description"
     const textFilters = this.props.showBooks ? this.props.books.map(function(book, i) {
-     return (<TextFilter
+      return (<TextFilter
                 srefs={this.props.srefs}
                 key={i}
                 book={book.book}
@@ -34,6 +35,8 @@ class CategoryFilter extends Component {
                 updateRecent={true}
                 filterSuffix={filterSuffix}
                 setFilter={this.props.setFilter}
+                description={book.enShortDesc ? book.enShortDesc: textMissingDescription}
+                heDescription={book.heShortDesc ? book.heShortDesc: textMissingDescription}
                 on={Sefaria.util.inArray(book.book, this.props.filter) !== -1} />);
     }.bind(this)) : null;
 
@@ -42,21 +45,27 @@ class CategoryFilter extends Component {
     let innerClasses = classNames({categoryFilter: 1, withBooks: this.props.showBooks, on: this.props.on});
     let handleClick  = this.handleClick;
     const url = (this.props.srefs && this.props.srefs.length > 0)?"/" + Sefaria.normRef(this.props.srefs[0]) + "?with=" + this.props.category:"";
+    const classesDesc = classNames({ sidebarDescription: 1, lowlight: this.props.count == 0, title:1});
     let outerClasses = classNames({categoryFilterGroup: 1, withBooks: this.props.showBooks});
+    const catDesc = Sefaria.getDescriptionDict(this.props.category, []);
+    const catEnDesc = catDesc[0];
+    const catHeDesc = catDesc[1];
     return (
       <div className={outerClasses} style={style}>
         <a href={url} onClick={handleClick}>
           <div className={innerClasses} data-name={this.props.category}>
             <span className="filterInner">
               <span className="filterText">
-                <ContentText text={{en: this.props.category, he: this.props.heCategory }} />
+                <ContentText text={{en:this.props.showBooks ? `All ${this.props.category}` : this.props.category, he:this.props.showBooks ? `כל הקישורים ל${this.props.heCategory}` : this.props.heCategory}} />
                 <span className="connectionsCount"> ({this.props.count})</span>
               </span>
               <span className="en">
                 {this.props.hasEnglish && Sefaria._siteSettings.TORAH_SPECIFIC ? <EnglishAvailableTag /> : null}
               </span>
             </span>
-          </div>
+          <div className={classesDesc}>{catEnDesc || catHeDesc ?
+                              <ContentText text={{en: catEnDesc, he: catHeDesc}} />
+                      : null }</div>          </div>
         </a>
         {textFilters}
       </div>
@@ -93,6 +102,7 @@ class TextFilter extends Component {
   }
   render() {
     const classes = classNames({textFilter: 1, on: this.props.on, lowlight: this.props.count == 0});
+    const classesDesc = classNames({ sidebarDescription: 1, lowlight: this.props.count == 0});
     const color = this.props.filterSuffix === "Essay" ? "var(--essay-links-green)" : Sefaria.palette.categoryColor(this.props.category);
     const style = {"--category-color": color};
     const enBook = this.props.book == this.props.category ? this.props.book.toUpperCase() : this.props.book;
@@ -101,6 +111,9 @@ class TextFilter extends Component {
     const upperClass = classNames({uppercase: this.props.book === this.props.category});
     const name = "enDisplayText" in this.props ? this.props["enDisplayText"] : enBook;
     const heName = "heDisplayText" in this.props ? this.props["heDisplayText"] : this.props.heBook;
+    const enDesc = this.props.description
+    const heDesc = this.props.heDescription
+    const showDescription = true; //showCount;//
     return (
       <a href={url} onClick={this.handleClick}>
         <div data-name={enBook} className={classes} style={style} >
@@ -114,6 +127,9 @@ class TextFilter extends Component {
                     {this.props.hasEnglish && Sefaria._siteSettings.TORAH_SPECIFIC ? <EnglishAvailableTag /> : null}
                   </span>
                 </span>
+              {showDescription ?<div className={classesDesc}>{enDesc || heDesc ?
+                              <ContentText text={{en: enDesc, he: heDesc}} />
+                      : null }</div> : null}
             </div>
         </div>
       </a>

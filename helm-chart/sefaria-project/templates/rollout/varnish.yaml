@@ -28,7 +28,7 @@ spec:
     matchLabels:
       app: varnish-{{ .Values.deployEnv }}
       # releaseRevision: "{{ .Release.Revision }}"
-  revisionHistoryLimit: 0
+  revisionHistoryLimit: 2
   replicas: {{ .Values.varnish.replicaCount }}
   template:
     metadata:

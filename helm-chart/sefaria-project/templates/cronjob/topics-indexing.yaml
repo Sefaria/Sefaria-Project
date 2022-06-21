@@ -1,5 +1,5 @@
 # https://sefaria.slack.com/archives/DNAHQ11V0/p1594892722002100
-{{- if eq .Values.deployEnv "prod" }}
+{{- if ne .Values.sandbox "true" }}
 ---
 apiVersion: batch/v1beta1
 kind: CronJob
@@ -17,7 +17,7 @@ spec:
           restartPolicy: OnFailure
           containers:
             - name: topics-indexer
-              image: "{{ .Values.web.containerImage }}:{{ .Values.releaseImageTag }}"
+              image: "{{ .Values.web.containerImage.imageRegistry }}:{{ .Values.web.containerImage.tag }}"
               args: [ "yes | pip3 install numpy && touch /log/sefaria_book_errors.log && python3 /app/scripts/recalculate_secondary_topic_data.py" ]
               env:
               - name: REDIS_HOST
@@ -27,14 +27,14 @@ spec:
               - name: VARNISH_HOST
                 value: "varnish-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
               envFrom:
-                - secretRef:
-                    name: {{ .Values.secrets.localSettings.ref }}
-                    optional: true
-                - configMapRef:
+              - secretRef:
+                  name: {{ .Values.secrets.localSettings.ref }}
+                  optional: true
+              - configMapRef:
                   name: local-settings-{{ .Values.deployEnv }}
-                - secretRef:
-                    name: local-settings-secrets-{{ .Values.deployEnv }}
-                    optional: true
+              - secretRef:
+                  name: local-settings-secrets-{{ .Values.deployEnv }}
+                  optional: true
               volumeMounts:
                 - mountPath: /app/sefaria/local_settings.py
                   name: local-settings
