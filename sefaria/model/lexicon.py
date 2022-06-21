@@ -111,7 +111,15 @@ class LexiconEntry(abst.AbstractMongoRecord):
         "orig_word",
         "orig_ref",
         "catane_number",
-        "rid"
+        "rid",
+        "strong_numbers",
+        'peculiar',
+        'all_cited',
+        'ordinal',
+        'brackets',
+        'headword_appendix',
+        'root',
+        'occurences'
     ]
     ALLOWED_TAGS    = ("i", "b", "br", "u", "strong", "em", "big", "small", "img", "sup", "span", "a")
     ALLOWED_ATTRS   = {
@@ -257,6 +265,40 @@ class KleinDictionaryEntry(DictionaryEntry):
             text += sense.get(field, '') + ' '
         return text[:-1]
 
+class BDBEntry(DictionaryEntry):
+    required_attrs = DictionaryEntry.required_attrs + ["content", "rid", 'quotes']
+    optional_attrs = ['strong_numbers', 'next_hw', 'prev_hw', 'peculiar', 'all_cited', 'ordinal', 'brackets', 'headword_appendix', 'alt_headwords', 'root', 'occurences']
+
+    def headword_string(self):
+        hw = f'<span dir="rtl">{self.headword}</span>'
+        if hasattr(self, 'occurences'):
+            hw += f'<sub>{self.occurences}</sub>'
+        if hasattr(self, 'alt_headwords'):
+            alts = []
+            for alt in self.alt_headwords:
+                a = f'<span dir="rtl">{alt["wprd"]}</span>'
+                if 'occurences' in alt:
+                    a += f'<sub>{a["occurences"]}</sub>'
+        if hasattr(self, 'brackets') and self.brackets == 'all':
+            if hasattr(self, 'headword_appendix'):
+                hw = f'[{hw}{self.headword_appendix}]' #if there's a space, it'll be part of headword_appendix
+            else:
+                hw = ", ".join([hw] + alts)
+        else:
+            if hasattr(self, 'brackets') and self.brackets == 'first_word':
+                hw = f'[{hw}]'
+            if hasattr(self, 'alt_headwords'):
+                hw = ", ".join([hw] + alts)
+        hw = f'<big>{hw}</big>'
+        if hasattr(self, 'root'):
+            hw = f'<big>{hw}</big>'
+        if hasattr(self, 'ordinal'):
+            hw = f'{self.ordinal} {hw}'
+        if hasattr(self, 'all_cited'):
+            hw = f'† {hw}'
+        if hasattr(self, 'peculiar'):
+            hw = f'‡ {hw}'
+        return hw
 
 class LexiconEntrySubClassMapping(object):
     lexicon_class_map = {
@@ -266,7 +308,11 @@ class LexiconEntrySubClassMapping(object):
         "Jastrow Unabbreviated" : JastrowDictionaryEntry,
         'Klein Dictionary': KleinDictionaryEntry,
         'Sefer HaShorashim': HebrewDictionaryEntry,
-        'Animadversions by Elias Levita on Sefer HaShorashim': HebrewDictionaryEntry
+        'Animadversions by Elias Levita on Sefer HaShorashim': HebrewDictionaryEntry,
+        'BDB Dictionary': BDBEntry,
+        'BDB Aramaic Dictionary': BDBEntry,
+        'TEMP': BDBEntry,
+        'TEMP aramaic': BDBEntry
     }
 
     @classmethod
