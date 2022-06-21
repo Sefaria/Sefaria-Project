@@ -77,21 +77,21 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
       <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null }
     </div>
 
-  const about = compare || multiPanel ? null :
+  const about = compare || multiPanel || !Sefaria._siteSettings.TORAH_SPECIFIC ? null :
     <Modules type={"AboutSefaria"} props={{hideTitle: true}}/>;
 
   const dedication = Sefaria._siteSettings.TORAH_SPECIFIC && !compare ? <Dedication /> : null;
 
-  const libraryMessage = Sefaria._siteSettings.LIBRARY_MESSAGE && !compare ? 
+  const libraryMessage = Sefaria._siteSettings.LIBRARY_MESSAGE && !compare && !Sefaria._siteSettings.TORAH_SPECIFIC ?
     <div className="libraryMessage" dangerouslySetInnerHTML={ {__html: Sefaria._siteSettings.LIBRARY_MESSAGE} }></div>
     : null;
 
   const sidebarModules = [
-    multiPanel ? {type: "AboutSefaria"} : {type: null},
-    {type: "Promo"},
+    multiPanel ? {type: "AboutContext"} : {type: null},
+/*    {type: "Promo"},
     {type: "LearningSchedules"},
     {type: "JoinTheCommunity"},
-    {type: "Resources"},
+    {type: "Resources"},*/
   ];
 
   const footer = compare ? null : <Footer />;

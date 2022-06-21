@@ -23,7 +23,6 @@ import {
     TopicToCategorySlug
 } from './Misc';
 
-
 /*
 *** Helper functions
 */

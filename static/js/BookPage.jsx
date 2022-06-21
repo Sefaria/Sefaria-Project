@@ -1151,8 +1151,6 @@ const SectionTypesBox = function({sections, canEdit, updateParent}) {
           </div>
 }
 
-
-
 const EditTextInfo = function({initTitle, close}) {
   const index = useRef(null);
   index.current = Sefaria.getIndexDetailsFromCache(initTitle);

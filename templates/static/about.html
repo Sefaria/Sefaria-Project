@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "About Sefaria" %}{% endblock %}
+
+{% block description %}{% trans "Sefaria is a non-profit organization dedicated to building the future of Jewish learning in an open and participatory way." %}{% endblock %}
+
+{% block css %}
+    #top #languageToggle {
+        display: inline;
+    }
+    #top #languageToggle #bilingual {
+        display: none;
+    }
+    #aboutPage a {
+        text-decoration: underline;
+    }
+{% endblock %}
+
+{% block content %}
+<main id="aboutPage" class="biReady container static">
+    <div id="aboutCover"></div>
+    <div class="inner">
+        <header id="aboutHeader" class="sans-serif-in-hebrew">
+            <h1 id="aboutTitle">
+                <span class="int-en">About ConText</span>
+            </h1>
+            <div id="aboutTitleSub">
+                <span class="int-en">A Living Library of the American Tradition</span>
+            </div>
+        </header>
+        <section class="about section">
+
+            <p class="first">
+                <span>We the People. With three simple words, the American founders changed the course of world history by entrusting the future of our country directly to the people. But with great power comes great responsibility. The success of the American experiment depends on an informed, engaged, and united American people.</span>
+            </p>
+            <p><span>
+                ConText is a collaborative project between the Jack Miller Center and Sefaria. Both nonprofit organizations share a firm commitment to improve public knowledge of America’s founding principles and history. Our free tool is designed to use the best of 21st century technology to revive the ideas, texts, and traditions that laid the foundation for our free society.
+            </span></p>
+
+        </section>
+        <header>
+          <h1>
+            <span>Vision</span>
+          </h1>
+        </header>
+        <section class="section">
+
+            <p>
+                <span>
+                    Our vision is for an informed and engaged citizenry. In the words of James Madison, Father of the American Constitution, “Knowledge will forever govern ignorance; and a people who means to be their own governors must arm themselves with the power knowledge gives”.
+                </span>
+            </p>
+            <p>
+                <span>
+                ConText provides a platform for users to read texts, search concepts, and engage others in conversation. As our name suggests, our goal is to provide historical and philosophical context to modern political debates. In the age of internet misinformation, ConText brings Americans straight to the source.
+                </span>
+            </p>
+        </section>
+    </div>
+</main>
+{% endblock %}

@@ -30,9 +30,8 @@ const CalendarsPage = ({multiPanel, initialWidth}) => {
     <Modules type={"AboutLearningSchedules"} />
 
   const sidebarModules = [
-    multiPanel ? {type: "AboutLearningSchedules"} : {type: null},
     {type: "StayConnected"},
-    {type: "SupportSefaria"},
+    {type: "SupportJMC"},
     {type: "Promo"},
   ];
 

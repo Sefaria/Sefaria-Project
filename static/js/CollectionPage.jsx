@@ -226,7 +226,10 @@ class CollectionPage extends Component {
           id: 'filter',
           title: {en: "Filter", he: Sefaria._("Filter")},
           icon: `/static/icons/arrow-${this.state.showFilterHeader ? 'up' : 'down'}-bold.svg`,
-          justifyright: true
+          justifyright: true,
+          clickTabOverride: () => {
+            this.setState({showFilterHeader: !this.state.showFilterHeader});
+          }
         }
       );
       const renderTab = t => (

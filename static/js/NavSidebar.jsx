@@ -8,10 +8,10 @@ import { Promotions } from './Promotions'
 
 const NavSidebar = ({modules}) => {
   return <div className="navSidebar sans-serif">
-    {modules.map((m, i) => 
-      <Modules 
-        type={m.type} 
-        props={m.props || {}} 
+    {modules.map((m, i) =>
+      <Modules
+        type={m.type}
+        props={m.props || {}}
         key={i} />
     )}
   </div>
@@ -22,12 +22,14 @@ const Modules = ({type, props}) => {
   // Choose the appropriate module component to render by `type`
   const moduleTypes = {
     "AboutSefaria":           AboutSefaria,
+    "AboutContext":           AboutContext,
     "Promo":                  Promo,
     "Resources":              Resources,
     "TheJewishLibrary":       TheJewishLibrary,
     "AboutTextCategory":      AboutTextCategory,
     "AboutText":              AboutText,
     "SupportSefaria":         SupportSefaria,
+    "SupportJMC":             SupportJMC,
     "SponsorADay":            SponsorADay,
     "LearningSchedules":      LearningSchedules,
     "WeeklyTorahPortion":     WeeklyTorahPortion,
@@ -85,6 +87,24 @@ const Promo = () =>
     </Module>
 ;
 
+const AboutContext = ({hideTitle}) => (
+    <Module>
+        {!hideTitle ?
+            <ModuleTitle h1={true}>A Living Library of the American Tradition</ModuleTitle> : null }
+        <p>
+            <span>
+                ConText is home to the core texts in the American political tradition. We provide free access to texts, translations, and commentaries so that everyone can participate in the ongoing process of studying, interpreting, and creating American political history.
+            </span>
+        </p>
+        <p>
+            <span>
+                ConText is a project of the Jack Miller Center and powered by Sefaria. We are a nonprofit organization committed to improving public knowledge and preserving the American experiment.
+            </span>
+            <a href="/about" className="inTextLink">Learn More ›</a>
+        </p>
+    </Module>
+);
+
 const AboutSefaria = ({hideTitle}) => (
   <Module>
     {!hideTitle ?
@@ -134,6 +154,17 @@ const TheJewishLibrary = ({hideTitle}) => (
   </Module>
 );
 
+const SupportJMC = ({blue}) => (
+    <Module blue={blue}>
+        <ModuleTitle>Support ConText</ModuleTitle>
+        <InterfaceText>ConText is an open source, non-profit project. Support us by making a tax-deductible donation.</InterfaceText>
+        <br />
+        <DonateLink classes={"button small" + (blue ? " white" : "")} source={"NavSidebar / SupportJMC"}>
+            <img src="/static/img/heart.png" alt="donation icon" />
+            <InterfaceText>Make a Donation</InterfaceText>
+        </DonateLink>
+    </Module>
+);
 
 const SupportSefaria = ({blue}) => (
   <Module blue={blue}>
@@ -398,7 +429,7 @@ const AboutTopics = ({hideTitle}) => (
   <Module>
     {hideTitle ? null :
     <ModuleTitle>About Topics</ModuleTitle> }
-    <InterfaceText>Topics bring you straight to selections of texts and user created source sheets about thousands of subjects. Sources that appear are drawn from existing indices of Jewish texts (like Aspaklaria) and from the sources our users include on their public source sheets.</InterfaceText>
+    <InterfaceText>Topics bring you straight to selections of texts and user created source sheets about thousands of subjects.</InterfaceText>
   </Module>
 );
 

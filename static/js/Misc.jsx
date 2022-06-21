@@ -566,34 +566,38 @@ class TabView extends Component {
   getTabIndex() {
     let tabIndex;
     if (typeof this.props.currTabName === 'undefined') {
-      tabIndex = this.props.tabs.findIndex(tab => tab.id === this.state.currTabName ? true : false)
+      tabIndex = this.props.tabs.findIndex(tab => tab.id === this.state.currTabName)
     } else if (this.props.currTabName === null) {
       tabIndex = 0;
     } else {
-      tabIndex = this.props.tabs.findIndex(tab => tab.id === this.props.currTabName ? true : false)
+      tabIndex = this.props.tabs.findIndex(tab => tab.id === this.props.currTabName)
     }
     if(tabIndex === -1) {
       tabIndex = 0;
     }
     return tabIndex;
   }
-  onClickTab(e) {
-    let target = $(event.target);
-    while (!target.attr("data-tab-index")) { target = target.parent(); }
-    const tabIndex = parseInt(target.attr("data-tab-index"));
-    const { onClickArray, setTab, tabs } = this.props;
-    if (onClickArray && onClickArray[tabIndex]) {
-      onClickArray[tabIndex]();
+  onClickTab(e, clickTabOverride) {
+    if (clickTabOverride) {
+      clickTabOverride()
     } else {
-      this.openTab(tabIndex);
-      const tab = this.props.tabs[tabIndex];
-      setTab && setTab(tab.id);
+      let target = $(event.target);
+      while (!target.attr("data-tab-index")) { target = target.parent(); }
+      const tabIndex = parseInt(target.attr("data-tab-index"));
+      const { onClickArray, setTab, tabs } = this.props;
+      if (onClickArray && onClickArray[tabIndex]) {
+        onClickArray[tabIndex]();
+      } else {
+        this.openTab(tabIndex);
+        const tab = this.props.tabs[tabIndex];
+        setTab && setTab(tab.id);
+      }
     }
   }
   renderTab(tab, index) {
     const currTabIndex = this.getTabIndex();
     return (
-      <div className={classNames({active: currTabIndex === index, justifyright: tab.justifyright})} key={tab.id} data-tab-index={index} onClick={this.onClickTab}>
+      <div className={classNames({active: currTabIndex === index, justifyright: tab.justifyright})} key={tab.id} data-tab-index={index} onClick={(e) => {this.onClickTab(e, tab.clickTabOverride)}}>
         {this.props.renderTab(tab, index)}
       </div>
     );
@@ -2402,7 +2406,6 @@ const AdminToolHeader = function({en, he, validate, close}) {
             </div>
 }
 
-
 const TopicToCategorySlug = function(topic, category=null) {
     //helper function for TopicEditor
     if (!category) {
@@ -2766,6 +2769,7 @@ const Autocompleter = ({selectedRefCallback}) => {
     </div>
     )
 }
+
 
 export {
   SimpleInterfaceBlock,

@@ -39,19 +39,23 @@ class Header extends Component {
     if (this.props.hidden && !this.props.mobileNavMenuOpen) {
       return null;
     }
+    const altText = `${Sefaria._siteSettings["SITE_NAME"]["en"]} Logo`;
     const logo = Sefaria.interfaceLang == "hebrew" ?
-      <img src="/static/img/logo-hebrew.png" alt="Sefaria Logo"/> :
-      <img src="/static/img/logo.svg" alt="Sefaria Logo"/>;
+      <img src={Sefaria._siteSettings.HE_LOGO} alt={altText}/> :
+      <img src={Sefaria._siteSettings.LOGO} alt={altText}/>;
 
     const headerContent = (
       <>
         <div className="headerNavSection">
-          { Sefaria._siteSettings.TORAH_SPECIFIC ?
-          <a className="home" href="/" >{logo}</a> : null }
+          <a className="home" href="/" >{logo}</a>
           <a href="/texts" className="textLink"><InterfaceText context="Header">Texts</InterfaceText></a>
           <a href="/topics" className="textLink"><InterfaceText>Topics</InterfaceText></a>
-          <a href="/community" className="textLink"><InterfaceText>Community</InterfaceText></a>
-          <DonateLink classes={"textLink donate"} link={"header"} source={"Header"}><InterfaceText>Donate</InterfaceText></DonateLink>
+          { Sefaria._siteSettings.TORAH_SPECIFIC ?
+            <a href="/community" className="textLink"><InterfaceText>Community</InterfaceText></a> : null}
+          { Sefaria._siteSettings.TORAH_SPECIFIC ?
+            <DonateLink classes={"textLink donate"} link={"header"} source={"Header"}><InterfaceText>Donate</InterfaceText></DonateLink> : null}
+          { !Sefaria._siteSettings.TORAH_SPECIFIC ?
+            <a href="/topics/authors" className="textLink"><InterfaceText>Authors</InterfaceText></a> : null}
         </div>
 
         <div className="headerLinksSection">
@@ -88,7 +92,7 @@ class Header extends Component {
           <a className="home" href="/texts" >{logo}</a> : null }
         </div>
 
-        {this.props.hasLanguageToggle ?
+        {this.props.hasLanguageToggle && Sefaria._siteSettings.TORAH_SPECIFIC ?
         <div className={this.props.firstPanelLanguage + " mobileHeaderLanguageToggle"}>
           <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} />
         </div> :
@@ -470,18 +474,28 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
         <img src="/static/icons/topic.svg" />
         <InterfaceText>Topics</InterfaceText>
       </a>
-      <a href="/community" onClick={close}>
-        <img src="/static/icons/community.svg" />
-        <InterfaceText>Community</InterfaceText>
-      </a>
-      <a href="/calendars" onClick={close}>
-        <img src="/static/icons/calendar.svg" />
-        <InterfaceText>Learning Schedules</InterfaceText>
-      </a>
-      <a href="/collections" onClick={close}>
-        <img src="/static/icons/collection.svg"/>
-        <InterfaceText>Collections</InterfaceText>
-      </a>
+      {Sefaria._siteSettings.TORAH_SPECIFIC ?
+          <>
+          <a href="/community" onClick={close}>
+            <img src="/static/icons/community.svg" />
+            <InterfaceText>Community</InterfaceText>
+          </a>
+          <a href="/calendars" onClick={close}>
+            <img src="/static/icons/calendar.svg" />
+            <InterfaceText>Learning Schedules</InterfaceText>
+          </a>
+          <a href="/collections" onClick={close}>
+            <img src="/static/icons/collection.svg"/>
+            <InterfaceText>Collections</InterfaceText>
+          </a>
+          </> : null}
+      {!Sefaria._siteSettings.TORAH_SPECIFIC ?
+          <>
+          <a href="/authors" onClick={close}>
+            <img src="/static/icons/community.svg" />
+            <InterfaceText>Authors</InterfaceText>
+          </a>
+          </> : null}
 
       <div className="mobileAccountLinks">
         {Sefaria._uid ?
@@ -505,7 +519,8 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
           <InterfaceText>About Sefaria</InterfaceText>
         </a>
 
-        <MobileInterfaceLanguageToggle />
+        {Sefaria._siteSettings.TORAH_SPECIFIC ?
+          <MobileInterfaceLanguageToggle /> : null}
 
         <a href="/help">
           <img src="/static/icons/help.svg" />
@@ -594,10 +609,11 @@ const ProfilePicMenu = ({len, url, name}) => {
               <div><a className="interfaceLinks-row" id="account-settings-link" href="/settings/account">
                 <InterfaceText>Account Settings</InterfaceText>
               </a></div>
-              <div className="interfaceLinks-row languages">
-                <a className={`${(Sefaria.interfaceLang == 'hebrew') ? 'active':''}`} href={`/interface/hebrew?next=${getCurrentPage()}`} id="select-hebrew-interface-link">עברית</a>
-                <a className={`${(Sefaria.interfaceLang == 'english') ? 'active':''}`} href={`/interface/english?next=${getCurrentPage()}`} id="select-english-interface-link">English</a>
-              </div>
+              {Sefaria._siteSettings.TORAH_SPECIFIC ?
+                <div className="interfaceLinks-row languages">
+                  <a className={`${(Sefaria.interfaceLang == 'hebrew') ? 'active':''}`} href={`/interface/hebrew?next=${getCurrentPage()}`} id="select-hebrew-interface-link">עברית</a>
+                  <a className={`${(Sefaria.interfaceLang == 'english') ? 'active':''}`} href={`/interface/english?next=${getCurrentPage()}`} id="select-english-interface-link">English</a>
+                </div> : null}
               <div><a className="interfaceLinks-row bottom" id="help-link" href="/help">
                 <InterfaceText>Help</InterfaceText>
               </a></div>

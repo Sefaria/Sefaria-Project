@@ -1002,7 +1002,7 @@ class AbstractTextRecord(object):
     """
     """
     text_attr = "chapter"
-    ALLOWED_TAGS    = ("i", "b", "br", "u", "strong", "em", "big", "small", "img", "sup", "sub", "span", "a")
+    ALLOWED_TAGS    = ("i", "b", "br", "u", "strong", "em", "big", "small", "img", "sup", "sub", "span", "a", "table", "td", "th", "tr", "tbody", "thead", "ul", "li")
     ALLOWED_ATTRS   = {
         'sup': ['class'],
         'span':['class', 'dir'],
@@ -4929,8 +4929,7 @@ class Library(object):
                 if description is not None and getattr(topic, "description_published", False):
                     topic_json['description'] = description
 
-            unexplored_top_level = getattr(topic, "isTopLevelDisplay", False) and getattr(topic, "slug",
-                                                                                          None) not in explored
+            unexplored_top_level = getattr(topic, "isTopLevelDisplay", False) and getattr(topic, "slug", None) not in explored
             explored.add(topic.slug)
         if len(children) > 0 or topic is None or unexplored_top_level:
             # make sure root gets children no matter what and make sure that unexplored top-level topics get children no matter what
@@ -5059,7 +5058,8 @@ class Library(object):
         """
         from .autospell import AutoCompleter
         self._full_auto_completer = {
-            lang: AutoCompleter(lang, library, include_people=True, include_topics=True, include_categories=True, include_parasha=False, include_users=True, include_collections=True) for lang in self.langs
+            lang: AutoCompleter(lang, library, include_people=True, include_topics=True, include_categories=True,
+                                include_parasha=False, include_users=True, include_collections=True, min_topics=1) for lang in self.langs
         }
 
         for lang in self.langs:
