@@ -1,3 +1,4 @@
+import spacy
 from sefaria.model.ref_part import ResolvedRef, AmbiguousResolvedRef, TermContext, RefPartType
 from sefaria.model import text
 from typing import List, Union, Optional
@@ -214,3 +215,10 @@ def make_ref_response_for_linker(oref: text.Ref, with_text=False) -> dict:
             'en': en,
         })
     return res
+
+
+def load_spacy_model(path: str) -> spacy.Language:
+    if path.startswith("gs://"):
+        pass
+    else:
+        return spacy.load(path)
