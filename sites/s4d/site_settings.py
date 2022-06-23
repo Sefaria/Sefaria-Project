@@ -12,9 +12,8 @@ SITE_SETTINGS = {
 	},
 	"LONG_SITE_NAME": "ConText - The American Democracy Library",
 	"SUPPORTED_TRANSLATION_LANGUAGES": [],
-	"LIBRARY_MESSAGE": '<a href="/United_States_Constitution" class="navBlockTitle"><span class="en" lang="en">United '
-					   'States Constitution</span></a><br/>Welcome to ConText, a project of the <a '
-					   'href="https://jackmillercenter.org/">Jack Miller Center</a>...',
+	"LIBRARY_MESSAGE": 'ConText is home to the core texts in the American political tradition. We provide free access to texts, translations, and commentaries so that everyone can participate in the ongoing process of studying, interpreting, and creating American political history.',
 	"LOGO": "/static/img/jmc-logo.jpeg",
 	"HE_LOGO": "/static/img/jmc-logo.jpeg",
 }
+

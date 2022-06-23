@@ -103,10 +103,11 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
       <div className="content">
         <div className="sidebarLayout">
           <div className="contentInner">
+            { libraryMessage }
             { title }
             { about }
             { dedication }
-            { libraryMessage }
+              <a href="/United_States_Constitution" className="navBlockTitle" style={{paddingBottom: "24px"}}><span className="en" lang="en">United States Constitution</span></a>
             { categoryListings }
           </div>
           {!compare ? <NavSidebar modules={sidebarModules} /> : null}

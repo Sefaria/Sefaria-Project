@@ -93,11 +93,6 @@ const AboutContext = ({hideTitle}) => (
             <ModuleTitle h1={true}>A Living Library of the American Tradition</ModuleTitle> : null }
         <p>
             <span>
-                ConText is home to the core texts in the American political tradition. We provide free access to texts, translations, and commentaries so that everyone can participate in the ongoing process of studying, interpreting, and creating American political history.
-            </span>
-        </p>
-        <p>
-            <span>
                 ConText is a project of the Jack Miller Center and powered by Sefaria. We are a nonprofit organization committed to improving public knowledge and preserving the American experiment.
             </span>
             <a href="/about" className="inTextLink">Learn More ›</a>
