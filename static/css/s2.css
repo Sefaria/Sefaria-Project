@@ -101,6 +101,12 @@ a, a:hover {
   --sans-serif-small-font-size: 14px;
 
   /* colors */
+  --priors-darkblue:  #133059;
+  --independence-maroon:    #733122;
+  --constituting-green:     #509B70;
+  --forging-slate:     #7491B1;
+  --coming-war-orange: #C87448;
+  --civil-war-red:       #A9373C;
   --inline-link-blue: #4871bf;
   --sefaria-blue: #18345D;
   --highlight-blue: #DDEEFF;
