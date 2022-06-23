@@ -2,6 +2,13 @@ sandbox: "false"
 contentSandbox: "false"
 deployEnv: production  
 previousServicesCount: "3"
+backup:
+  enabled: true
+  prefix: ""
+  public: true
+  bucket: sefaria-mongo-backup
+  archiveBucket: sefaria-mongo-archive
+  serviceAccount: database-backup-write
 web:
   replicaCount: 7
   containerImage: 
