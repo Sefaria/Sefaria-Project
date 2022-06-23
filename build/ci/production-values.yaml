@@ -21,15 +21,40 @@ web:
       ref: logging-secret-production
     schoolLookup:
       ref: school-lookup-data-production
+  resources:
+    web:
+      gunicornWorkerCount: 5
+      gunicornThreadCount: 5
+      resources:
+        requests:
+          memory: "10Gi"
+          cpu: "1500m"
+        limits:
+          memory: "11Gi"
+          cpu: "2"
 redis:
   containerImage:
     imageRegistry: redis
     tag: latest
+  resources:
+    requests:
+      memory: "500Mi"
+      cpu: "100m"
+    limits:
+      memory: "1500Mi"
+      cpu: "200m"
 nodejs:
   replicaCount: 4
   containerImage: 
     imageRegistry:
     tag: 
+  resources:
+    requests:
+      memory: "1Gi"
+      cpu: "1"
+    limits:
+      memory: "1500Mi"
+      cpu: "1500m"
 varnish:
   containerImage:
     imageRegistry: gcr.io/production-deployment/sefaria-varnish
@@ -37,6 +62,13 @@ varnish:
   secrets:
     varnish:
       ref: varnish-secret-production
+  resources:
+    requests:
+      memory: "16Gi"
+      cpu: "1"
+    limits:
+      memory: "18Gi"
+      cpu: "1500m"
 ingress:
   hosts: 
     - host: "production-test.sefaria.org"
@@ -44,7 +76,6 @@ ingress:
       serviceName: nginx
       port: 80
   secrets:
-    # Assuming cloudflare here, will need to add certs in via infra if not
     originTls: 
       ref: origin-tls-prod2
     originIlTlsA:
@@ -54,6 +85,13 @@ nginx:
   containerImage: 
     imageRegistry:
     tag: 
+  resources:
+    requests:
+      memory: "200Mi"
+      cpu: "100m"
+    limits:
+      memory: "300Mi"
+      cpu: "150m"
 monitor:
   replicaCount: 1
   containerImage: 
