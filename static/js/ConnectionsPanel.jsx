@@ -563,6 +563,7 @@ class ConnectionsPanel extends Component {
     } else if (this.props.mode === "Topics") {
       content = (
         <TopicList
+          masterPanelMode={this.props.masterPanelMode}
           contentLang={this.props.contentLang}
           srefs={this.props.srefs}
           interfaceLang={this.props.interfaceLang}
@@ -1164,7 +1165,7 @@ PublicSheetsList.propTypes = {
 };
 
 
-const TopicList = ({ srefs, interfaceLang, contentLang }) => {
+const TopicList = ({ masterPanelMode, srefs, interfaceLang, contentLang }) => {
   // segment ref topicList can be undefined even if loaded
   // but section ref topicList is null when loading and array when loaded
   const [topics, setTopics] = useState(Sefaria.topicsByRef(srefs));
@@ -1173,7 +1174,7 @@ const TopicList = ({ srefs, interfaceLang, contentLang }) => {
   }
   return (
     <div className={`topicList ${contentLang === 'hebrew' ? 'topicsHe' : 'topicsEn'}`}>
-      {Sefaria.is_moderator ? <TopicSearch contextSelector=".topicList" srefs={srefs} update={updateTopics}/> : null}
+      {Sefaria.is_moderator && masterPanelMode === "Text" ? <TopicSearch contextSelector=".topicList" srefs={srefs} update={updateTopics}/> : null}
       {(!topics || !topics.length) ? (
         <div className="webpageList empty">
           <div className="loadingMessage sans-serif">
