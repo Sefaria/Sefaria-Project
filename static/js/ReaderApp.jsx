@@ -1585,7 +1585,7 @@ class ReaderApp extends Component {
     let state = {menuOpen: "navigation", navigationCategories: categories, "mode": "Menu"};
     state = this.makePanelState(state);
     if (!Sefaria._siteSettings.TORAH_SPECIFIC) {
-      this.state.panels[0].settings.language = "english";
+      state.settings.language = "english";
     }
     this.setSinglePanelState(state);
   }

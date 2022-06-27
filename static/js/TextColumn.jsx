@@ -405,7 +405,7 @@ class TextColumn extends Component {
       
       post = hasNext && this.state.showScrollPlaceholders ? 
         <LoadingMessage className="base next" key={"next"}/> :
-        <LoadingMessage message={" "} className="base next final" key={"next"}/>;
+        <LoadingMessage message={" "} heMessage={" "} className="base next final" key={"next"}/>;
     }
 
     return (<div className={classes} onMouseUp={this.handleTextSelection} onClick={this.handleClick} onMouseDown={this.handleDoubleClick}>
