@@ -398,7 +398,7 @@ def get_link_counts(cat1, cat2):
     """
     titles = []
     for c in [cat1, cat2]:
-        ts = text.library.get_indexes_in_category(c)
+        ts = text.library.get_indexes_in_corpus(c) or text.library.get_indexes_in_category(c)
         if len(ts) == 0:
             try:
                 text.library.get_index(c)
@@ -445,7 +445,7 @@ def get_category_category_linkset(cat1, cat2):
 
     for i, cat in enumerate([cat1, cat2]):
         queries += [{"$and": [{"categories": cat}, {'dependence': {'$in': [False, None]}}]}]
-        titles += [text.library.get_indexes_in_category(cat)]
+        titles += [text.library.get_indexes_in_corpus(cat) or text.library.get_indexes_in_category(cat)]
         if len(titles[i]) == 0:
             raise IndexError("No results for {}".format(queries[i]))
 
@@ -470,7 +470,7 @@ def get_book_category_linkset(book, cat):
     :param cat: String
     :return:
     """
-    titles = text.library.get_indexes_in_category(cat)
+    titles = text.library.get_indexes_in_corpus(cat) or text.library.get_indexes_in_category(cat)
     if len(titles) == 0:
         try:
             text.library.get_index(cat)

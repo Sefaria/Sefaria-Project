@@ -1279,9 +1279,10 @@ Sefaria = extend(Sefaria, {
       if (link["collectiveTitle"]["en"] in category.books) {
         category.books[link["collectiveTitle"]["en"]].count += 1;
         category.books[link["collectiveTitle"]["en"]].hasEnglish = category.books[link["collectiveTitle"]["en"]].hasEnglish || link.sourceHasEn;
-
+        category.books[link["collectiveTitle"]["en"]].categoryList = Sefaria.index(link["index_title"]).categories
       } else {
         category.books[link["collectiveTitle"]["en"]] = {count: 1, hasEnglish: link.sourceHasEn};
+        category.books[link["collectiveTitle"]["en"]].categoryList = Sefaria.index(link["index_title"]).categories
       }
     }
     // Add Zero counts for every commentator in this section not already in list
@@ -1298,6 +1299,7 @@ Sefaria = extend(Sefaria, {
           }
           if (!(l["collectiveTitle"]["en"] in summary["Commentary"].books)) {
             summary["Commentary"].books[l["collectiveTitle"]["en"]] = {count: 0};
+            summary["Commentary"].books[l["collectiveTitle"]["en"]].categoryList = Sefaria.index(l["index_title"]).categories
           }
         }
       }
@@ -1312,6 +1314,32 @@ Sefaria = extend(Sefaria, {
         bookData.book     = index.title;
         bookData.heBook   = index.heTitle;
         bookData.category = category;
+        bookData.enShortDesc = index.enShortDesc || index.enDesc;
+        bookData.heShortDesc = index.heShortDesc;
+        bookData.categoryList = index.categories[0] == ['Commentary'] ? bookData.categoryList : index.categories;
+        if (bookData.categoryList == "Quoting Commentary") {
+            debugger;
+                }
+        else {
+            bookData.categoryListNew = []
+            for (let i = 0; i < bookData.categoryList.length; i++) {
+                if (bookData.categoryList[i] === bookData.book || bookData.book.split(" ")[0] === bookData.categoryList[i] || bookData.book.split(" ")[0] === bookData.categoryList[i].split(" ")[0]) {
+                    break;
+                } else {
+                  bookData.categoryListNew.push(bookData.categoryList[i]);
+                }
+            }
+            bookData.categoryList = bookData.categoryListNew
+            // bookData.enShortDesc = Sefaria.tocItemsByCategories(bookData.categoryList).map((e)=>(e.category || e.title === bookData.book ? e.enShortDesc: null))
+        }
+        if (bookData.categoryList && !bookData.enShortDesc) {
+            const desc = Sefaria.getDescriptionDict(bookData.book, bookData.categoryList)
+            if (desc) {
+                bookData.enShortDesc = desc[0] || null;
+                bookData.heShortDesc = desc[1] || null;
+            }
+        }
+
         return bookData;
       });
       // Sort the books in the category
@@ -1407,7 +1435,52 @@ Sefaria = extend(Sefaria, {
 
     return ref;
   },
-  _notes: {},
+    _descDict: {}, // cache for the description dictionary
+      getDescriptions: function(keyName, categoryList) {
+      const catlist = Sefaria.tocItemsByCategories(categoryList)
+        let catmap = catlist.map((e) => [e.category || e.title, e.enShortDesc, e.heShortDesc])
+        let d = {}
+        catmap.map((e) => {
+            // return array of key: name of "book" value: list of both descriptions
+            if (e) {
+                d[e[0]]=[e[1], e[2]]
+            }
+            // special case for commentators that the book name is "on" eg. "Ramban on Genesis"
+            if (e[0].includes("on")) {
+                d[e[0].split(" on")[0]] = [e[1], e[2]]
+            }
+        })
+        let descs = d[keyName] || d[Sefaria.index(keyName).collectiveTitle] || d[keyName.split(" on")[0]];
+        let enShortDesc = descs && descs[0]? descs[0]: null;
+        let heShortDesc = descs && descs[1]? descs[1]: null;
+        return [enShortDesc, heShortDesc];
+  },
+    getDescriptionDict: function(keyName, categoryList){
+        let desc = this._cachedApi([keyName, categoryList], this._descDict, null);
+        if (Object.keys(this._descDict).length === 0){
+            //Init of the Dict with the Category level descriptions
+            Sefaria.toc.map(e=> {this._descDict[[e.category, []]] = [e.enShortDesc, e.heShortDesc]})
+            // todo: get this data out of code (into db?)
+            this._descDict[["Commentary", []]] = ["Interpretations and discussions surrounding Jewish texts, ranging from early medieval to contemporary.", "פירושים ודיונים סביב טקסטים תורניים, מימי הביניים ועד ימינו."]
+            this._descDict[["Quoting Commentary", []]] = ["References to this source within commentaries on other texts in the wider library.", "התייחסויות אל המקור הנוכחי במפרשים משניים."]
+
+            // special case of a category in sidebar that is a sub cat on the navigation toc pages
+            this._descDict[["Targum", []]] = this.getDescriptions("Targum", ["Tanakh"])
+        }
+        if (!desc && categoryList.length !== 0) {
+            desc = this.getDescriptions(keyName, categoryList)
+            this._descDict[[keyName, categoryList]] = desc
+        }
+        if (desc) {
+            return [desc[0], desc[1]]
+        }
+        else
+        {
+            return [null, null];
+        }
+    },
+
+    _notes: {},
   notes: function(ref, callback) {
     var notes = null;
     if (typeof ref == "string") {
@@ -2466,7 +2539,7 @@ _media: {},
     return Sefaria._userCollectionsForSheet[sheetID];
   },
   getBackgroundData() {
-    return Sefaria._ApiPromise("/api/background-data?interfaceLang=" + Sefaria.interfaceLang)
+    return Sefaria._ApiPromise("/api/background-data?locale=" + Sefaria.interfaceLang)
       .then(data => { Sefaria = extend(Sefaria, data); });
   },
   calendarRef: function(calendarTitle) {
