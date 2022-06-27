@@ -117,9 +117,9 @@ class LexiconEntry(abst.AbstractMongoRecord):
         'all_cited',
         'ordinal',
         'brackets',
-        'headword_appendix',
+        'headword_suffix',
         'root',
-        'occurences'
+        'occurrences'
     ]
     ALLOWED_TAGS    = ("i", "b", "br", "u", "strong", "em", "big", "small", "img", "sup", "span", "a")
     ALLOWED_ATTRS   = {
@@ -269,23 +269,23 @@ class KleinDictionaryEntry(DictionaryEntry):
         return text[:-1]
 
 class BDBEntry(DictionaryEntry):
-    required_attrs = DictionaryEntry.required_attrs + ["content", "rid", 'quotes']
-    optional_attrs = ['strong_numbers', 'next_hw', 'prev_hw', 'peculiar', 'all_cited', 'ordinal', 'brackets', 'headword_appendix', 'alt_headwords', 'root', 'occurences']
+    required_attrs = DictionaryEntry.required_attrs + ["content", "rid"]
+    optional_attrs = ['strong_numbers', 'next_hw', 'prev_hw', 'peculiar', 'all_cited', 'ordinal', 'brackets', 'headword_suffix', 'alt_headwords', 'root', 'occurrences', 'quotes']
 
     def headword_string(self):
         hw = f'<span dir="rtl">{re.sub("[⁰¹²³⁴⁵⁶⁷⁸⁹]*", "", self.headword)}</span>'
-        if hasattr(self, 'occurences'):
-            hw += f'</big><sub>{self.occurences}</sub><big>'
+        if hasattr(self, 'occurrences'):
+            hw += f'</big><sub>{self.occurrences}</sub><big>' #the sub shouldn't be in big
         if hasattr(self, 'alt_headwords'):
             alts = []
             for alt in self.alt_headwords:
                 a = f'<span dir="rtl">{alt["word"]}</span>'
-                if 'occurences' in alt:
-                    a += f'</big><sub>{alt["occurences"]}</sub><big>'
+                if 'occurrences' in alt:
+                    a += f'</big><sub>{alt["occurrences"]}</sub><big>' #the sub shouldn't be in big
                 alts.append(a)
-        if hasattr(self, 'brackets') and self.brackets == 'all':
-            if hasattr(self, 'headword_appendix'):
-                hw = f'[{hw}{self.headword_appendix}]' #if there's a space, it'll be part of headword_appendix
+        if getattr(self, 'brackets', '') == 'all':
+            if hasattr(self, 'headword_suffix'):
+                hw = f'[{hw}{self.headword_suffix}]' #if there's a space, it'll be part of headword_suffix
             else:
                 hw = ", ".join([hw] + alts)
         else:
