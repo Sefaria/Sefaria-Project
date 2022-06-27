@@ -1,6 +1,8 @@
+from .settings import GOOGLE_APPLICATION_CREDENTIALS_FILEPATH
 from google.cloud import storage
 import re
 from io import BytesIO
+
 
 class GoogleStorageManager(object):
 
@@ -21,7 +23,7 @@ class GoogleStorageManager(object):
     @classmethod
     def get_bucket(cls, bucket_name):
         if getattr(cls, 'client', None) is None:
-            cls.client = storage.Client()
+            cls.client = storage.Client.from_service_account_json(GOOGLE_APPLICATION_CREDENTIALS_FILEPATH)
         bucket = cls.client.get_bucket(bucket_name)
         return bucket
 
