@@ -1,6 +1,8 @@
 from .settings import GOOGLE_APPLICATION_CREDENTIALS_FILEPATH
 from google.cloud import storage
 import re
+from io import BytesIO
+
 
 class GoogleStorageManager(object):
 
@@ -66,9 +68,24 @@ class GoogleStorageManager(object):
         return blob.exists()
 
     @classmethod
+    def get_filename(cls, filename, bucket_name):
+        """
+        Downloads `filename` and returns a file-like object with the data
+        @param filename: name of file in `bucket_name`
+        @param bucket_name: name of bucket
+        @return: file-like object with the data
+        """
+        bucket = cls.get_bucket(bucket_name)
+        blob = bucket.blob(filename)
+        in_memory_file = BytesIO()
+        blob.download_to_file(in_memory_file)
+        in_memory_file.seek(0)
+        return in_memory_file
+
+    @classmethod
     def get_url(cls, filename, bucket_name):
         return "{}/{}/{}".format(cls.BASE_URL, bucket_name, filename)
 
     @classmethod
-    def get_filename(cls, old_file_url):
+    def get_filename_from_url(cls, old_file_url):
         return re.findall(r"/([^/]+)$", old_file_url)[0] if old_file_url.startswith(cls.BASE_URL) else None
