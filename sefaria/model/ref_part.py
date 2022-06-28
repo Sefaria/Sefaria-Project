@@ -1293,6 +1293,12 @@ class RefResolver:
             except AttributeError:
                 # complex text
                 return set()
+
+        if context_ref.is_range():
+            # SectionContext doesn't seem to make sense for ranged refs (It works incidentally when context is parsha
+            # and input is "See beginning of parsha pasuk 1" but not sure we want to plan for that case)
+            return []
+
         context_node = context_ref.index_node
         referenceable_sections = getattr(context_node, 'referenceableSections', [True]*len(context_node.addressTypes))
         context_sec_list = list(zip(context_node.addressTypes, context_node.sectionNames, referenceable_sections))
