@@ -686,6 +686,8 @@ class ResolvedRef:
         For sorting
         """
         return len(self.resolved_parts)
+        # alternate sorting criteria that seems better but makes tests fail
+        # return self.num_resolved(exclude={ContextPart}), -self.num_resolved(include={ContextPart})
 
 
 class AmbiguousResolvedRef:
@@ -1175,8 +1177,9 @@ class RefResolver:
         context_free_matches = self._get_unrefined_ref_part_matches_recursive(lang, raw_ref, ref_parts=raw_ref.parts_to_match)
         context_full_matches = []
         contexts = ((book_context_ref, ContextType.CURRENT_BOOK), (self._ibid_history.last_match, ContextType.IBID))
-        for context_ref, context_type in contexts:
-            context_full_matches += self._get_unrefined_ref_part_matches_for_graph_context(lang, context_ref, context_type, raw_ref)
+        # NOTE: removing graph context for now since I can't think of a case when it's helpful
+        # for context_ref, context_type in contexts:
+        #     context_full_matches += self._get_unrefined_ref_part_matches_for_graph_context(lang, context_ref, context_type, raw_ref)
         matches = context_full_matches + context_free_matches
         if len(matches) == 0:
             # TODO current assumption is only need to add context title if no matches. but it's possible this is necessary even if there were matches
