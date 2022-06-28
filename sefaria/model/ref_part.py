@@ -567,7 +567,7 @@ class ResolvedRef:
                     refined_ref = refined_ref.to(to_ref)
                 refined_refs += [refined_ref]
                 addr_classes_used += [addr_class]
-            except (InputError, AssertionError, AttributeError):
+            except (InputError, IndexError, AssertionError, AttributeError):
                 continue
         return [self.clone(resolved_parts=refined_parts, node=node, ref=refined_ref) for refined_ref in refined_refs]
 
@@ -577,7 +577,7 @@ class ResolvedRef:
             return []
         try:
             refined_ref = self.ref.subref(sec_context.address)
-        except (IndexError, AssertionError):
+        except (InputError, IndexError, AssertionError, AttributeError):
             return []
         return [self.clone(resolved_parts=refined_parts, node=node, ref=refined_ref)]
 
