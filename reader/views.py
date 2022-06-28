@@ -3057,7 +3057,8 @@ def background_data_api(request):
     API that bundles data which we want the client to prefetch, 
     but should not block initial pageload.
     """
-    language = request.GET.get("interfaceLang", request.interfaceLang)
+    language = request.GET.get("locale", 'english')
+    # This is an API, its excluded from interfacelang middleware. There's no point in defaulting to request.interfaceLang here as its always 'english'. 
 
     data = {}
     data.update(community_page_data(request, language=language))
@@ -3849,7 +3850,7 @@ def community_page_data(request, language="english"):
     from sefaria.model.user_profile import UserProfile
 
     data = {
-        "community": get_community_page_items(language=language, diaspora=(request.interfaceLang != "hebrew"))
+        "community": get_community_page_items(language=language, diaspora=(language != "hebrew"))
     }
     if request.user.is_authenticated:
         profile = UserProfile(user_obj=request.user)

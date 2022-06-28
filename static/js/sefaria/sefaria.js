@@ -2539,7 +2539,7 @@ _media: {},
     return Sefaria._userCollectionsForSheet[sheetID];
   },
   getBackgroundData() {
-    return Sefaria._ApiPromise("/api/background-data?interfaceLang=" + Sefaria.interfaceLang)
+    return Sefaria._ApiPromise("/api/background-data?locale=" + Sefaria.interfaceLang)
       .then(data => { Sefaria = extend(Sefaria, data); });
   },
   calendarRef: function(calendarTitle) {

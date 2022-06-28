@@ -223,7 +223,7 @@ class Search {
         });
     }
     isDictaQuery(args) {
-        return RegExp(/^[^a-zA-Z]*$/).test(args.query); // If English appears in query, search in Sefaria only
+        return Sefaria.hebrew.isHebrew(args.query);
     }
     sortedJSON(obj) {
         // Returns JSON with keys sorted consistently, suitable for a cache key
