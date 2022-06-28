@@ -2994,7 +2994,9 @@ class Ref(object, metaclass=RefCacheType):
     def all_segment_refs(self):
         """
         A function that returns all lowest level refs under this ref. 
-        TODO: This function was never adapted to serve for complex refs and only works for Refs that are themselves "section level" 
+        TODO: This function was never adapted to serve for complex refs and only works for Refs that are themselves "section level". More specifically it only works for 
+        `supported_classes` and fails otherwise 
+        
         Note: There is a similar function present on class sefaria.model.text.AbstractIndex
         :return: list of all segment level refs under this Ref.  
         """
