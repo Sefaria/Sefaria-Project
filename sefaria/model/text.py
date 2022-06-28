@@ -2992,6 +2992,12 @@ class Ref(object, metaclass=RefCacheType):
                     break
 
     def all_segment_refs(self):
+        """
+        A function that returns all lowest level refs under this ref. 
+        TODO: This function was never adapted to serve for complex refs and only works for Refs that are themselves "section level" 
+        Note: There is a similar function present on class sefaria.model.text.AbstractIndex
+        :return: list of all segment level refs under this Ref.  
+        """
         supported_classes = (JaggedArrayNode, DictionaryEntryNode, SheetNode)
         assert self.index_node is not None
         if not isinstance(self.index_node, supported_classes):
