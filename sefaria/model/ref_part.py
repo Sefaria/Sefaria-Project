@@ -499,7 +499,7 @@ class ResolvedRef:
         for part in other.resolved_parts:
             if part in self.resolved_parts: continue
             if part.is_context:
-                # preprend context parts so they pass validation that context parts need to preceed non-context parts
+                # prepend context parts, so they pass validation that context parts need to precede non-context parts
                 self.resolved_parts = [part] + self.resolved_parts
             else:
                 self.resolved_parts += [part]
@@ -1427,8 +1427,8 @@ class RefResolver:
                 next_merged = False
                 continue
             next_match = resolved_refs[imatch+1]
-            if match.ref.index.title != next_match.ref.index.title:
-                # optimization, the easiest case to check for
+            if match.ref.index.title != next_match.ref.index.title or match.ref == next_match.ref:
+                # optimization, the easiest cases to check for
                 merged_resolved_refs += [match]
             elif match.ref.contains(next_match.ref):
                 next_match.merge_parts(match)
