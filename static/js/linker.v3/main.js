@@ -171,7 +171,7 @@ const SELECTOR_WHITE_LIST = {
             const node = document.createElement("span");
             node.className="sefaria-ref-wrapper";
             for (let i = 0; i < urls.length; i++) {
-                const tempText = i === 0 ? portion.text : `[${i}]`;
+                const tempText = i === 0 ? text : `[${i}]`;
                 const atag = createATag(linkObj.linkFailed, linkObj.refs[i], tempText, urls[i], true);
                 node.appendChild(atag);
             }
