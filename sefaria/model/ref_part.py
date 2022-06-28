@@ -685,9 +685,10 @@ class ResolvedRef:
         """
         For sorting
         """
-        return len(self.resolved_parts)
-        # alternate sorting criteria that seems better but makes tests fail
-        # return self.num_resolved(exclude={ContextPart}), -self.num_resolved(include={ContextPart})
+        # return len(self.resolved_parts)
+        # alternate sorting criteria that seems better than the above
+        matches_context_book = bool(self.context_ref) and self.ref.index.title == self.context_ref.index.title
+        return self.num_resolved(exclude={ContextPart}), int(matches_context_book), self.num_resolved(include={ContextPart})
 
 
 class AmbiguousResolvedRef:
