@@ -1,0 +1,127 @@
+sandbox: "false"
+contentSandbox: "false"
+deployEnv: production  
+previousServicesCount: "3"
+backup:
+  enabled: true
+  prefix: ""
+  public: true
+  bucket: sefaria-mongo-backup
+  archiveBucket: sefaria-mongo-archive
+  serviceAccount: database-backup-write
+web:
+  replicaCount: 7
+  containerImage: 
+    imageRegistry:
+    tag: 
+  secrets:
+    googleClient:
+      ref: google-client-secret-production
+    logging:
+      ref: logging-secret-production
+    schoolLookup:
+      ref: school-lookup-data-production
+  resources:
+    web:
+      gunicornWorkerCount: 5
+      gunicornThreadCount: 5
+      resources:
+        requests:
+          memory: "10Gi"
+          cpu: "1500m"
+        limits:
+          memory: "11Gi"
+          cpu: "2"
+redis:
+  containerImage:
+    imageRegistry: redis
+    tag: latest
+  resources:
+    requests:
+      memory: "500Mi"
+      cpu: "100m"
+    limits:
+      memory: "1500Mi"
+      cpu: "200m"
+nodejs:
+  replicaCount: 4
+  containerImage: 
+    imageRegistry:
+    tag: 
+  resources:
+    requests:
+      memory: "1Gi"
+      cpu: "1"
+    limits:
+      memory: "1500Mi"
+      cpu: "1500m"
+varnish:
+  containerImage:
+    imageRegistry: gcr.io/production-deployment/sefaria-varnish
+    tag: v6
+  secrets:
+    varnish:
+      ref: varnish-secret-production
+  resources:
+    requests:
+      memory: "16Gi"
+      cpu: "1"
+    limits:
+      memory: "18Gi"
+      cpu: "1500m"
+ingress:
+  hosts: 
+    - host: "production-test.sefaria.org"
+      path: /*
+      serviceName: nginx
+      port: 80
+  secrets:
+    originTls: 
+      ref: origin-tls-prod2
+    originIlTlsA:
+      ref: origin-il-tls-prod2 
+nginx:
+  replicaCount: 2
+  containerImage: 
+    imageRegistry:
+    tag: 
+  resources:
+    requests:
+      memory: "200Mi"
+      cpu: "100m"
+    limits:
+      memory: "300Mi"
+      cpu: "150m"
+monitor:
+  replicaCount: 1
+  containerImage: 
+    imageRegistry:
+    tag: 
+secrets:
+  localSettings: 
+    ref: local-settings-secrets-production
+  backupManager: 
+    ref: backup-manager-secret-production
+  slackWebhook: 
+    ref: slack-webhook-production
+localSettings:
+  DEBUG: false
+  OFFLINE: "False"
+  DOMAIN_LANGUAGE: {
+    "https://www.sefaria.org": "english",
+    "https://www.sefaria.org.il": "hebrew",
+  }
+  MONGO_HOST: "mongo"
+  APSCHEDULER_NAME: "apscheduler-{{ .Values.deployEnv }}"
+  SEARCH_ADMIN: "http://elasticsearch-data:9200"
+  TURN_SERVER: ''
+  USE_CLOUDFLARE: false
+  FRONT_END_URL:  "http://production-test.sefaria.org" 
+  OFFLINE: false
+  DOWN_FOR_MAINTENANCE: false
+  MAINTENANCE_MESSAGE: "Sefaria is down for scheduled maintenance. We expect to be back online within 15 minutes. Thank you for your patience."
+  GLOBAL_WARNING: false
+  GLOBAL_WARNING_MESSAGE: "Sefaria will be in <b>Read-Only</b> mode for scheduled maintenance from 4:45pm-6:45pm Pacific time. Edits will <b>not</b> be saved during that time."
+  SITE_PACKAGE: "sites.sefaria"
+  SEARCH_HOST: elasticsearch.data  
+

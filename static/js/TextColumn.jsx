@@ -95,6 +95,26 @@ class TextColumn extends Component {
     this.debouncedAdjustHighlightedAndVisible();
     this.adjustInfiniteScroll();
   }
+  calculatePositionWithinElement(event){
+    const rect = event.target.getBoundingClientRect();
+    const x = event.clientX - rect.left; //x position within the element.
+    const y = event.clientY - rect.top;  //y position within the element.
+    return [x,y]
+  }
+  handleClick(event) {
+    const pos = this.calculatePositionWithinElement(event)
+    this.setState({lastClickXY:pos})
+  }
+  handleDoubleClick(event) {
+    if (event.detail > 1) {
+    const pos = this.calculatePositionWithinElement(event)
+      // might be problematic if there is a slight move in the double-click shaky hands. can be fixed with an error of a few px on both axes.
+      if (this.state.lastClickXY[0] != pos[0] || this.state.lastClickXY[1] != pos[1]){
+        event.preventDefault();
+      }
+    }
+  }
+
   handleTextSelection() {
     const selection = window.getSelection();
     let refs = [];
@@ -385,10 +405,10 @@ class TextColumn extends Component {
       
       post = hasNext && this.state.showScrollPlaceholders ? 
         <LoadingMessage className="base next" key={"next"}/> :
-        <LoadingMessage message={" "} className="base next final" key={"next"}/>;
+        <LoadingMessage message={" "} heMessage={" "} className="base next final" key={"next"}/>;
     }
 
-    return (<div className={classes} onMouseUp={this.handleTextSelection}>
+    return (<div className={classes} onMouseUp={this.handleTextSelection} onClick={this.handleClick} onMouseDown={this.handleDoubleClick}>
       {pre}
       {content}
       {post}

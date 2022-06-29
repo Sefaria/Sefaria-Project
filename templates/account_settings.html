@@ -5,11 +5,22 @@
 
 <div id="accountSettingsPage" class="static biReady">
 	<div class="inner">
-	<div>
+	<div class="headerWithButtons">
+        <div class="start"></div>
         <h1>
             <span class="int-en">Account Settings</span>
             <span class="int-he">הגדרות חשבון</span>
         </h1>
+        <div class="end">
+            <a class="button small transparent control-elem" href="/my/profile">
+                <span class="int-en">Cancel</span>
+                <span class="int-he">ביטול</span>
+            </a>
+            <div id="saveAccountSettings" class="button small blue control-elem" tabindex="0" role="button" >
+                <span class="int-en">Save</span>
+                <span class="int-he">שמירה</span>
+            </div>
+        </div>
     </div>
 	<div id="emailNotifications" class="section">
 		<label class="control-elem">
@@ -144,11 +155,11 @@
             </div>
         </div>
         <div class="saveCancel">
-            <div id="saveAccountSettings" class="button blue control-elem" tabindex="0" role="button" >
+            <div id="saveAccountSettings" class="button small blue control-elem" tabindex="0" role="button" >
                 <span class="int-en">Save</span>
                 <span class="int-he">שמירה</span>
             </div>
-            <a class="button transparent control-elem" href="/my/profile">
+            <a class="button transparent small control-elem" href="/my/profile">
                 <span class="int-en">Cancel</span>
                 <span class="int-he">ביטול</span>
             </a>

@@ -54,7 +54,7 @@ data:
             'ENGINE': 'django.db.backends.postgresql',
             'NAME': 'sefaria_auth',
             'USER': os.getenv("DATABASES_USER"),
-            'PASSWORD': os.getenv("DATABASES_PASS"),
+            'PASSWORD': os.getenv("DATABASES_PASSWORD"),
             'HOST': os.getenv("DATABASES_HOST"),
             'PORT': os.getenv("DATABASES_PORT"),
         }
@@ -179,10 +179,9 @@ data:
 
     # Turns off search autocomplete suggestions, which are reinitialized on every server reload
     # which can be annoying for local development.
-    DISABLE_AUTOCOMPLETER = False
-    ENABLE_LINKER = False
+    DISABLE_AUTOCOMPLETER = os.getenv("DISABLE_AUTOCOMPLETER", "false").lower() == "true"
+    ENABLE_LINKER = os.getenv("ENABLE_LINKER", "false").lower() == "true"
     PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE = "/school-lookup-data/schools.tsv"
-
 
     MAILCHIMP = True
     MAILCHIMP_API_KEY = os.getenv("MAILCHIMP_API_KEY")
@@ -211,15 +210,9 @@ data:
 
     MOBILE_APP_KEY = os.getenv("MOBILE_APP_KEY")
 
-    RAW_REF_MODEL_BY_LANG_FILEPATH = {
-        "en": None,
-        "he": None
-    }
+    RAW_REF_MODEL_BY_LANG_FILEPATH = json.loads(os.getenv("RAW_REF_MODEL_BY_LANG_FILEPATH", '{ "en": null, "he": null }'))
 
-    RAW_REF_PART_MODEL_BY_LANG_FILEPATH = {
-        "en": None,
-        "he": None
-    }
+    RAW_REF_PART_MODEL_BY_LANG_FILEPATH = json.loads(os.getenv("RAW_REF_PART_MODEL_BY_LANG_FILEPATH", '{ "en": null, "he": null }'))
 
     LOGGING = {
         'version': 1,

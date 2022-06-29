@@ -11,4 +11,4 @@ branches: [
     {name: 'main'},
     {name: 'master'},
   ]
-tagFormat: helm-chart-v${version}
+tagFormat: helm-chart-${version}
