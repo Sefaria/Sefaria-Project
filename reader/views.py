@@ -3356,6 +3356,9 @@ def topic_ref_api(request, tref):
         if RefTopicLink().load(ref_topic_link) is None:
             r = RefTopicLink(ref_topic_link)
             r.save()
+            num_sources = getattr(topic_obj, "numSources", 0)
+            topic_obj.numSources = num_sources + 1
+            topic_obj.save()
             ref_topic_dict = ref_topic_link_prep(r.contents())
             ref_topic_dict = annotate_topic_link(ref_topic_dict, {slug: topic_obj})
             return jsonResponse(ref_topic_dict)
