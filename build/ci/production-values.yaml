@@ -71,7 +71,7 @@ varnish:
       cpu: "1500m"
 ingress:
   hosts: 
-    - host: "production-test.sefaria.org"
+    - host: "sefaria.org"
       path: /*
       serviceName: nginx
       port: 80
@@ -116,7 +116,7 @@ localSettings:
   SEARCH_ADMIN: "http://elasticsearch-data:9200"
   TURN_SERVER: ''
   USE_CLOUDFLARE: false
-  FRONT_END_URL:  "http://production-test.sefaria.org" 
+  FRONT_END_URL:  "http://sefaria.org" 
   OFFLINE: false
   DOWN_FOR_MAINTENANCE: false
   MAINTENANCE_MESSAGE: "Sefaria is down for scheduled maintenance. We expect to be back online within 15 minutes. Thank you for your patience."

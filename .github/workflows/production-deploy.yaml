@@ -3,7 +3,7 @@ name: Deploy Production
 on:
   push:
     tags:
-      - 't*'
+      - 'v*'
 
 jobs:
   # Note - build occurs again here, even though this image has been built in continuous.
