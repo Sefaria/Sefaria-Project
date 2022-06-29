@@ -21,7 +21,7 @@ spec:
     matchLabels:
       app: node-{{ .Values.deployEnv }}
       # releaseRevision: "{{ .Release.Revision }}" # Variable pod selectors breaks Argo. Check filed issue
-  revisionHistoryLimit: 0
+  revisionHistoryLimit: 2
   replicas: {{ .Values.nodejs.replicaCount }}
   template:
     metadata:
@@ -56,9 +56,16 @@ spec:
           - name: DJANGO_PORT
             value: "80"
           - name: DEBUG
-            value: {{ if eq .Values.deployEnv "prod" }}"false"{{ else }}"true"{{ end }}
+            value: {{ if eq .Values.sandbox "true" }}"true"{{ else }}"false"{{ end }}
           - name: REDIS_HOST
             value: redis-{{ .Values.deployEnv }}
+        envFrom:
+          - configMapRef:
+              name: local-settings-node-{{ .Values.deployEnv }}
+              optional: true
+          - secretRef:
+              name: local-settings-node-secrets-{{ .Values.deployEnv }}
+              optional: true
         ports:
         - containerPort: 3000
         resources: {{ toYaml .Values.nodejs.resources | nindent 10 }}

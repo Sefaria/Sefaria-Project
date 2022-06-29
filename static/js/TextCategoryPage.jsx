@@ -393,8 +393,9 @@ const hebrewContentSort = (enCats) => {
     }
     heCats.sort(function(a, b) {
       if ("order" in a || "order" in b) {
-        const aOrder = "order" in a ? a.order : 9999;
-        const bOrder = "order" in b ? b.order : 9999;
+          //positive order first, then no order, negative order last
+        const aOrder = "order" in a ? -1/a.order : 0;
+        const bOrder = "order" in b ? -1/b.order : 0;
         return aOrder > bOrder ? 1 : -1;
 
       } else if (("category" in a) !== ("category" in b)) {

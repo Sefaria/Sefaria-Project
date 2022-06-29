@@ -52,7 +52,7 @@ def save_resolved_refs(resolved, filename):
         c = csv.DictWriter(fout, ['Input Ref', 'Found Citation', 'Found Ref'] + [f'Part {i+1}' for i in range(max_parts)])
         c.writeheader()
         c.writerows(rows)
-    print(f"Percent Resolved: {num_resolved}/{total} ({round(num_resolved/total*100, 2)}%)")
+    print(f"Percent Resolved: {num_resolved}/{total if total > 0 else 1} ({round(num_resolved/total*100, 2)}%)")
 
 
 def parse_string(resolver):
@@ -72,7 +72,7 @@ def parse_string(resolver):
 
 if __name__ == '__main__':
     resolver = library.get_ref_resolver()
-    resolved, input_text, context_refs = parse_book("Toratchesed", resolver)
-    save_resolved_refs(zip(context_refs, resolved), 'toratchesed.csv')
-    make_html([resolved], [input_text], "../data/toratchesed.html", 'he')
+    resolved, input_text, context_refs = parse_book("Divreirivot", resolver)
+    save_resolved_refs(zip(context_refs, resolved), 'divreirivot.csv')
+    make_html([resolved], [input_text], "../data/divreirivot.html", 'he')
     # parse_string(resolver)

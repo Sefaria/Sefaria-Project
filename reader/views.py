@@ -603,6 +603,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
     props = {
         "headerMode":                     False,
         "initialPanels":                  panels,
+        "initialTab":                     request.GET.get("tab", None),
         "initialPanelCap":                len(panels),
         "initialQuery":                   None,
         "initialNavigationCategories":    None,
@@ -780,33 +781,25 @@ def get_search_params(get_dict, i=None):
     }
 
 
-def get_version_preference_params(request):
-    raw_vpref = request.GET.get("versionPref", None)
-
-    if raw_vpref is None:
-        return None, None
-    assert raw_vpref.count("|") == 1
-    raw_vpref = raw_vpref.replace("_", " ")
-    vtitle_pref, vlang_pref = raw_vpref.split("|")
-    return vtitle_pref,  vlang_pref
-
-
-def get_version_preference_from_dict(oref, version_preferences_by_corpus):
+def get_version_preferences_from_dict(oref, version_preferences_by_corpus):
     corpus = oref.index.get_primary_corpus()
     vpref_dict = version_preferences_by_corpus.get(corpus, None)
     if vpref_dict is None:
-        return None, None
-    return vpref_dict['vtitle'], vpref_dict['lang']
+        return None
+    return vpref_dict
 
 
 def override_version_with_preference(oref, request, versionEn, versionHe):
-    vtitlePref, vlangPref = get_version_preference_from_dict(oref, request.version_preferences_by_corpus)
-    if vtitlePref is not None and Version().load({"versionTitle": vtitlePref, "language": vlangPref, "title": oref.index.title}):
-        # vpref exists and the version exists for this text
-        if vlangPref == "en" and not versionEn:
-            versionEn = vtitlePref
-        elif vlangPref == "he" and not versionHe:
-            versionHe = vtitlePref
+    vpref_dict = get_version_preferences_from_dict(oref, request.version_preferences_by_corpus)
+    if vpref_dict is None:
+        return versionEn, versionHe
+    for lang, vtitle in vpref_dict.items():
+        if Version().load({"versionTitle": vtitle, "language": lang, "title": oref.index.title}):
+            # vpref exists and the version exists for this text
+            if lang == "en" and not versionEn:
+                versionEn = vtitle
+            elif lang == "he" and not versionHe:
+                versionHe = vtitle
     return versionEn, versionHe
 
 
@@ -909,7 +902,8 @@ def collection_page(request, slug):
         "initialMenu":     "collection",
         "initialCollectionName": collection.name,
         "initialCollectionSlug": collection.slug,
-        "initialCollectionTag":  request.GET.get("tag", None)
+        "initialCollectionTag": request.GET.get("tag", None),
+        "initialTab":  request.GET.get("tab", None)
     })
 
     props["collectionData"] = collection.contents(with_content=True, authenticated=authenticated)
@@ -1360,21 +1354,15 @@ def texts_api(request, tref):
         stripItags = bool(int(request.GET.get("stripItags", False)))
         multiple = int(request.GET.get("multiple", 0))  # Either undefined, or a positive integer (indicating how many sections forward) or negative integer (indicating backward)
         translationLanguagePreference = request.GET.get("transLangPref", None)  # as opposed to vlangPref, this refers to the actual lang of the text
-        try:
-            vtitlePref, vlangPref = get_version_preference_params(request)
-        except AssertionError:
-            return jsonResponse({"error": "version pref must contain a version title and version language separated by a pipe (|)"}, cb)
+        fallbackOnDefaultVersion = bool(int(request.GET.get("fallbackOnDefaultVersion", False)))
 
         def _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context, pad=pad,
                       alts=alts, wrapLinks=wrapLinks, layer_name=layer_name, wrapNamedEntities=wrapNamedEntities):
             text_family_kwargs = dict(version=versionEn, lang="en", version2=versionHe, lang2="he",
                                       commentary=commentary, context=context, pad=pad, alts=alts,
                                       wrapLinks=wrapLinks, stripItags=stripItags, wrapNamedEntities=wrapNamedEntities,
-                                      translationLanguagePreference=translationLanguagePreference)
-            vtitlePrefKey = "vtitlePreference"
-            if vlangPref == "he":
-                vtitlePrefKey += "2"  # 2 corresponds to lang2 which is constant (for some reason)
-            text_family_kwargs[vtitlePrefKey] = vtitlePref
+                                      translationLanguagePreference=translationLanguagePreference,
+                                      fallbackOnDefaultVersion=fallbackOnDefaultVersion)
             try:
                 text = TextFamily(oref, **text_family_kwargs).contents()
             except AttributeError as e:
@@ -1758,8 +1746,11 @@ def shape_api(request, title):
 	}
     For complex texts or categories, returns a list of dicts.
     :param title: A valid node title or a path to a category, separated by /.
+
+    "depth" parameter is DEPRECATED. I don't believe it's used but if so, below is the old documenation for it
     The "depth" parameter in the query string indicates how many levels in the category tree to descend.  Default is 2.
     If depth == 0, descends to end of tree
+
     The "dependents" parameter, if true, includes dependent texts.  By default, they are filtered out.
     """
     from sefaria.model.category import TocCollectionNode
@@ -1826,20 +1817,21 @@ def shape_api(request, title):
 
         # Category
         else:
-            cat = library.get_toc_tree().lookup(title.split("/"))
+            cat_list = title.split("/")
+            depth = request.GET.get("depth", 2)
+            include_dependents = request.GET.get("dependents", False)
+            indexes = []
+            if len(cat_list) == 1:
+                # try as corpus
+                indexes = library.get_indexes_in_corpus(cat_list[0], include_dependant=include_dependents, full_records=True)
+            if len(indexes) == 0:
+                cat = library.get_toc_tree().lookup(cat_list)  # just used for validating that the cat exists
+                if not cat:
+                    res = {"error": "No index or category found to match {}".format(title)}
+                    return jsonResponse(res, callback=request.GET.get("callback", None))
+                indexes = library.get_indexes_in_category_path(cat_list, include_dependant=include_dependents, full_records=True)
 
-            if not cat:
-                res = {"error": "No index or category found to match {}".format(title)}
-            else:
-                depth = request.GET.get("depth", 2)
-                include_dependents = request.GET.get("dependents", False)
-
-                leaves = cat.get_leaf_nodes() if depth == 0 else [n for n in cat.get_leaf_nodes_to_depth(depth)]
-                leaves = [n for n in leaves if not isinstance(n, TocCollectionNode)]
-                if not include_dependents:
-                    leaves = [n for n in leaves if not getattr(n, "dependence", None)]
-
-                res = [_simple_shape(jan) for toc_index in leaves for jan in toc_index.get_index_object().nodes.get_leaf_nodes()]
+            res = [_simple_shape(jan) for index in indexes for jan in index.nodes.get_leaf_nodes()]
 
         res = _collapse_book_leaf_shapes(res)
         return jsonResponse(res, callback=request.GET.get("callback", None))
@@ -2647,9 +2639,10 @@ def dictionary_completion_api(request, word, lexicon=None):
     if lexicon is None:
         ac = library.cross_lexicon_auto_completer()
         rs, _ = ac.complete(word, LIMIT)
-        result = [[r, ac.title_trie[ac.normalizer(r)][0]["key"]] for r in rs]
+        result = [[r, r] for r in rs]  # ac.title_trie[ac.normalizer(r)][0]["key"] - this was when we wanted the first option with nikud
     else:
-        result = library.lexicon_auto_completer(lexicon).items(word)[:LIMIT]
+        matches = [(item[0], x) for item in library.lexicon_auto_completer(lexicon).items(word)[:LIMIT] for x in item[1]]
+        result = sorted(set(matches), key=lambda x: matches.index(x))  # dedup matches
     return jsonResponse(result)
 
 
@@ -3064,7 +3057,8 @@ def background_data_api(request):
     API that bundles data which we want the client to prefetch, 
     but should not block initial pageload.
     """
-    language = request.GET.get("interfaceLang", request.interfaceLang)
+    language = request.GET.get("locale", 'english')
+    # This is an API, its excluded from interfacelang middleware. There's no point in defaulting to request.interfaceLang here as its always 'english'. 
 
     data = {}
     data.update(community_page_data(request, language=language))
@@ -3159,7 +3153,7 @@ def topic_page(request, topic):
     props = {
         "initialMenu": "topics",
         "initialTopic": topic,
-        "initialTopicsTab": urllib.parse.unquote(request.GET.get('tab', 'sources')),
+        "initialTab": urllib.parse.unquote(request.GET.get('tab', 'sources')),
         "initialTopicTitle": {
             "en": topic_obj.get_primary_title('en'),
             "he": topic_obj.get_primary_title('he')
@@ -3481,7 +3475,7 @@ def user_profile(request, username):
     props = {
         "initialMenu":  "profile",
         "initialProfile": requested_profile.to_api_dict(),
-        "initialProfileTab": tab,
+        "initialTab": tab,
     }
     title = _("%(full_name)s on Sefaria") % {"full_name": requested_profile.full_name}
     desc = _('%(full_name)s is on Sefaria. Follow to view their public source sheets, notes and translations.') % {"full_name": requested_profile.full_name}
@@ -3586,8 +3580,8 @@ def profile_upload_photo(request):
         profile = UserProfile(id=request.user.id)
         bucket_name = GoogleStorageManager.PROFILES_BUCKET
         image = Image.open(request.FILES['file'])
-        old_big_pic_filename = GoogleStorageManager.get_filename(profile.profile_pic_url)
-        old_small_pic_filename = GoogleStorageManager.get_filename(profile.profile_pic_url_small)
+        old_big_pic_filename = GoogleStorageManager.get_filename_from_url(profile.profile_pic_url)
+        old_small_pic_filename = GoogleStorageManager.get_filename_from_url(profile.profile_pic_url_small)
 
         big_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (250, 250)), "{}-{}.png".format(profile.slug, now), bucket_name, old_big_pic_filename)
         small_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (80, 80)), "{}-{}-small.png".format(profile.slug, now), bucket_name, old_small_pic_filename)
@@ -3856,7 +3850,7 @@ def community_page_data(request, language="english"):
     from sefaria.model.user_profile import UserProfile
 
     data = {
-        "community": get_community_page_items(language=language, diaspora=(request.interfaceLang != "hebrew"))
+        "community": get_community_page_items(language=language, diaspora=(language != "hebrew"))
     }
     if request.user.is_authenticated:
         profile = UserProfile(user_obj=request.user)
@@ -4205,14 +4199,14 @@ def explore(request, topCat, bottomCat, book1, book2, lang=None):
         "Bavli": {
             "title": "Talmud",
             "heTitle": "התלמוד",
-            "shapeParam": "Talmud/Bavli",
+            "shapeParam": "Bavli",
             "linkCountParam": "Bavli",
             "talmudAddressed": True,
         },
         "Yerushalmi": {
             "title": "Jerusalem Talmud",
             "heTitle": "התלמוד ירושלמי",
-            "shapeParam": "Talmud/Yerushalmi",
+            "shapeParam": "Yerushalmi",
             "linkCountParam": "Yerushalmi",
             "talmudAddressed": True,
         },

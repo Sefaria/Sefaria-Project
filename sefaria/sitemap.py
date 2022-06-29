@@ -76,9 +76,9 @@ class SefariaSiteMapGenerator(object):
         
         segment_level_categories = ("Tanakh", "Mishnah")
         for cat in segment_level_categories:
-            books = library.get_indexes_in_category(cat)
+            books = library.get_indexes_in_corpus(cat, full_records=True)
             for book in books:
-                refs += Ref(book).all_segment_refs()
+                refs += book.all_segment_refs()
 
         urls = [self._hostname + "/" + oref.url() for oref in refs]
 
@@ -192,7 +192,6 @@ class SefariaSiteMapGenerator(object):
         self.generate_sheets_sitemap()
         self.generate_texts_toc_sitemap()
         self.generate_categories_sitemap()
-        self.generate_people_sitemap()
         self.generate_texts_sitemaps()
         self.generate_topics_sitemap()
 

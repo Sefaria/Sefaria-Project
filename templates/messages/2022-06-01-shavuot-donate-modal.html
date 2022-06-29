@@ -1,0 +1,118 @@
+{% load i18n %}
+<style>
+    #highHolidayDonation {
+        width: 410px;
+        max-height: 100%;
+        max-width: 100%;
+    }
+    .interface-english #highHolidayDonation {
+        text-align: left;
+    }
+    .interface-hebrew #highHolidayDonation {
+        text-align: right;
+        direction: rtl;
+    }
+    #highHolidayDonation p {
+        color: #555;
+    }
+    .interface-hebrew p.int-en {
+        display: none;
+    }
+    #highHolidayDonation p .int-en {
+        font-family: "adobe-garamond-pro", Georgia, serif;
+    }
+    #highHolidayDonation p .int-he {
+        font-family: "adobe-garamond-pro", Georgia, serif;
+        /* font-family: "Heebo", sans-serif; */
+    }
+    #highHolidayDonation p.sub {
+        color: #999;
+        font-size: 12px;
+        font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
+    }
+    #highHolidayDonation p {
+        margin-top: 0;
+    }
+    #highHolidayDonation .button {
+        margin-bottom: 20px;
+    }
+    #highHolidayDonation img {
+        max-width: 100%;
+    }
+    #highHolidayDonation .buttons{
+        text-align: right;
+    }
+    .leader {
+        font-weight: bold;
+    }
+    .center{
+        text-align: center;
+    }
+    #email-input-wrapper {
+        display: flex;
+        align-items: flex-start;
+        flex-direction: column;
+    }
+    .newsletterInput#email-input {
+        width: 300px;
+        padding: 10px;
+        margin-bottom: 20px;
+        border-radius: 7px;
+        border: 1px solid #EEE;
+        color: #333;
+    }
+
+</style>
+<div id="highHolidayDonation" style="font-weight: bold">
+
+    <p>
+        <span class="int-en">Friends,</span>
+        <span class="int-he">חברים וחברות,</span>
+    </p>
+
+    <p>
+        <span class="int-en">
+            We’re only 70 new Sustainers away from meeting our goal of 400 Sustainers by Shavuot! 
+            Thank you to all who have already signed up to make a monthly donation, and to all who support Sefaria in any way that they can.
+        </span>
+        <span class="int-he">
+            חסרים לנו רק 70 ידידים חדשים כדי להגיע ליעד!
+            תודה רבה לכל מי שכבר התחייבו לתרומה חודשית ועל כל תמיכה בספריא.
+        </span>
+    </p>
+    <p>
+        <span class="int-en">
+            Please become a Sustainer today to help Sefaria continue expanding access to the Jewish canon and transforming your learning experience. 
+            We need and value your support.
+        </span>
+        <span class="int-he">
+            התחייבות שלכם לתרומה חודשית תעזור מאוד לספריא להמשיך להנגיש את ארון הספרים היהודי לכולם ולחזק את חוויית הלמידה שלכם. אנחנו זקוקים לתמיכתכם.
+        </span>
+    </p>
+    <p>
+        <span class="int-en">
+           Chag Shavuot Sameach,
+        </span>
+        <span class="int-he">
+           חג שבועות שמח,
+        </span>
+    </p>
+    <p>
+        <span class="int-en">
+           Team Sefaria
+        </span>
+        <span class="int-he">
+            צוות ספריא
+        </span>
+    </p>
+    <div class="buttons">
+        <a class="button int-en" target="_blank" href="https://sefaria.nationbuilder.com/sustainers_e">
+            <span class="int-en">Become a Sustainer</span>
+        </a>
+        <a class="button int-he" target="_blank" href="https://sefaria.nationbuilder.com/sustainers_e">
+            <span class="int-he">להצטרפות לתרומה חודשית</span>
+        </a>
+    </div>
+
+
+</div>

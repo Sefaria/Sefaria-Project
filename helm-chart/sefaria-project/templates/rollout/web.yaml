@@ -27,7 +27,7 @@ spec:
     matchLabels:
       app: web-{{ .Values.deployEnv }}
       # releaseRevision: "{{ .Release.Revision }}"
-  revisionHistoryLimit: 1
+  revisionHistoryLimit: 2
   replicas: {{ .Values.web.replicaCount }}
   progressDeadlineSeconds: 1200
   template:
@@ -91,6 +91,12 @@ spec:
               name: local-settings-{{ .Values.deployEnv }}
           - secretRef:
               name: local-settings-secrets-{{ .Values.deployEnv }}
+              optional: true
+          - configMapRef:
+              name: local-settings-web-{{ .Values.deployEnv }}
+              optional: true
+          - secretRef:
+              name: local-settings-web-secrets-{{ .Values.deployEnv }}
               optional: true
         ports:
           - containerPort: 80
