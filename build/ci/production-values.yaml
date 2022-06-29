@@ -106,7 +106,7 @@ ingress:
   secrets:
     originTls: 
       ref: origin-tls-prod2
-    originIlTlsA:
+    originIlTls:
       ref: origin-il-tls-prod2 
 nginx:
   replicaCount: 2
