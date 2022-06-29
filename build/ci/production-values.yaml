@@ -75,6 +75,34 @@ ingress:
       path: /*
       serviceName: nginx
       port: 80
+    - host: "sefaria.org.il"
+      path: /*
+      serviceName: nginx
+      port: 80
+    - host: "www.sefaria.org"
+      path: /*
+      serviceName: nginx
+      port: 80
+    - host: "www.sefaria.org.il"
+      path: /*
+      serviceName: nginx
+      port: 80
+    - host: "prod.sefaria.org"
+      path: /*
+      serviceName: nginx
+      port: 80
+    - host: "prod.sefaria.org.il"
+      path: /*
+      serviceName: nginx
+      port: 80
+    - host: "rollout.sefaria.org"
+      path: /*
+      serviceName: nginx
+      port: 80
+    - host: "rollout.sefaria.org.il"
+      path: /*
+      serviceName: nginx
+      port: 80
   secrets:
     originTls: 
       ref: origin-tls-prod2
