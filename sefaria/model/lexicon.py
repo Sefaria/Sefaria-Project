@@ -276,8 +276,8 @@ class BDBEntry(DictionaryEntry):
         hw = f'<span dir="rtl">{re.sub("[⁰¹²³⁴⁵⁶⁷⁸⁹]*", "", self.headword)}</span>'
         if hasattr(self, 'occurrences'):
             hw += f'</big><sub>{self.occurrences}</sub><big>' #the sub shouldn't be in big
+        alts = []
         if hasattr(self, 'alt_headwords'):
-            alts = []
             for alt in self.alt_headwords:
                 a = f'<span dir="rtl">{alt["word"]}</span>'
                 if 'occurrences' in alt:
