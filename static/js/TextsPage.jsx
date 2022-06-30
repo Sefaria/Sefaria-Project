@@ -86,6 +86,7 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
     <div className="libraryMessage" dangerouslySetInnerHTML={ {__html: Sefaria._siteSettings.LIBRARY_MESSAGE} }></div>
     : null;
 
+  const constitution = compare ? null : <a href="/United_States_Constitution" className="navBlockTitle" style={{paddingBottom: "24px"}}><span className="en" lang="en">United States Constitution</span></a>;
   const sidebarModules = [
     multiPanel ? {type: "AboutContext"} : {type: null},
 /*    {type: "Promo"},
@@ -107,7 +108,7 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
             { title }
             { about }
             { dedication }
-              <a href="/United_States_Constitution" className="navBlockTitle" style={{paddingBottom: "24px"}}><span className="en" lang="en">United States Constitution</span></a>
+            { constitution }
             { categoryListings }
           </div>
           {!compare ? <NavSidebar modules={sidebarModules} /> : null}
