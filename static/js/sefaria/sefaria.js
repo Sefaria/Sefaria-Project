@@ -2853,7 +2853,8 @@ Sefaria.setup = function(data, props = null) {
     Sefaria._analytics_uid = Sefaria._uid;
     Sefaria._makeBooksDict();
     Sefaria.virtualBooksDict = {"Jastrow": 1, "Klein Dictionary": 1, "Jastrow Unabbreviated": 1,
-    'Sefer HaShorashim': 1, 'Animadversions by Elias Levita on Sefer HaShorashim': 1};  //Todo: Wire this up to the server
+    'Sefer HaShorashim': 1, 'Animadversions by Elias Levita on Sefer HaShorashim': 1,
+    'BDB': 1, 'BDB Aramaic': 1};  //Todo: Wire this up to the server
     Sefaria._cacheFromToc(Sefaria.toc);
     Sefaria._cacheHebrewTerms(Sefaria.terms);
     Sefaria._cacheSiteInterfaceStrings();
