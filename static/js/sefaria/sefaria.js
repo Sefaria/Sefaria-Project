@@ -1259,12 +1259,14 @@ Sefaria = extend(Sefaria, {
     }
 
     links = excludedSheet ? this._filterSheetFromLinks(links, excludedSheet) : links;
-
     const summary = {};
     for (let i = 0; i < links.length; i++) {
       const link = links[i];
       if (link["type"] === "essay") {
         continue;
+      }
+      if (link.score && link.score <=40) {
+          console.log("in sefaria.js", link.score)
       }
       // Count Category
       if (link.category in summary) {

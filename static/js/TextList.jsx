@@ -216,8 +216,9 @@ class TextList extends Component {
                                     key={i + link.anchorRef} />);
                         } else {
                           var hideTitle = link.category === "Commentary" && this.props.filter[0] !== "Commentary";
-                          const classes = classNames({ textListTextRangeBox: 1,  typeQF: link.type.startsWith('quotation_auto')});
-                          return (<div className={classes} key={i + link.sourceRef}>
+                          const classes = classNames({ textListTextRangeBox: 1,  typeQF: link.type.startsWith('quotation_auto'), scoreColor: link.score >= 62});
+                          console.log("print score", link.score)//, categoryFilter.getElementById("sliderRange"))
+                          return (<div className={classes} key={i + link.sourceRef} data-linkscore={link.score}>
                                     <TextRange
                                       panelPosition ={this.props.panelPosition}
                                       sref={link.sourceRef}
