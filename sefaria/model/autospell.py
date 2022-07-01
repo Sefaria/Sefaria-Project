@@ -79,7 +79,7 @@ class AutoCompleter(object):
             tnd_items = [(t, d) for t, d in list(title_node_dict.items()) if not isinstance(d, SheetLibraryNode)]
             titles = [t for t, d in tnd_items]
             normal_titles = [self.normalizer(t) for t, d in tnd_items]
-            self.title_trie.add_titles_from_title_node_dict(tnd_items, normal_titles, 1 * PAD)
+            self.title_trie.add_titles_from_title_node_dict(tnd_items, normal_titles, 5 * PAD)
             self.spell_checker.train_phrases(normal_titles)
             self.ngram_matcher.train_phrases(titles, normal_titles)
         if include_categories:
@@ -97,7 +97,7 @@ class AutoCompleter(object):
             self.spell_checker.train_phrases(parasha_names)
             self.ngram_matcher.train_phrases(parasha_names, normal_parasha_names)
         if include_topics:
-            ts_gte10 = TopicSet({"shouldDisplay":{"$ne":False}, "numSources":{"$gte":10}, "subclass": {"$ne": "author"}})
+            ts_gte10 = TopicSet({"shouldDisplay": {"$ne": False}, "numSources": {"$gte": 10}, "subclass": {"$ne": "author"}})
             authors = AuthorTopicSet()  # include all authors
             ts = ts_gte10.array() + authors.array()
             tnames = [name for t in ts for name in t.get_titles(lang)]
