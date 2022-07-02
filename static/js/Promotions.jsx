@@ -9,6 +9,9 @@ const Promotions = ({adType, rerender}) => {
     const [matchingAds, setMatchingAds] = useState(null);
     const [prevMatchingAdIds, setPrevMatchingAdIds] = useState([])
     const context = useContext(AdContext);
+    if(!google) {
+      return null
+    }
     useEffect(() => {
         google.charts.load("current");
         google.charts.setOnLoadCallback(getAds)

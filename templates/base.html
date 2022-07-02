@@ -65,6 +65,8 @@
 
     {% block head %}{% endblock %}
 
+    {% if not OFFLINE %}
+
     <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
     <script>
         WebFont.load({
@@ -83,6 +85,11 @@
         });
     </script>
     <script src="https://www.gstatic.com/charts/loader.js"></script>
+    {% else %}
+
+    <script>const google = false;</script>
+
+    {% endif %}
 
     <link rel="stylesheet" href="{% static 'css/common.css' %}">
     <link rel="stylesheet" href="{%  static 'font-awesome/css/font-awesome.css' %}">

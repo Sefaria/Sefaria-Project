@@ -160,7 +160,7 @@ const Dedication = () => {
     }
 
     useEffect( () => {
-        if (!dedicationData) {
+        if (!dedicationData && google) {
             google.charts.load('current');
             google.charts.setOnLoadCallback(get_google_sheet_data);
         }
