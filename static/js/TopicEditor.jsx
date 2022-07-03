@@ -7,8 +7,8 @@ const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc="", origCatego
                          origCategorySlug="", redirect=(slug) => window.location.href = "/topics/" + slug, close}) => {
     const [savingStatus, setSavingStatus] = useState(false);
     const [catSlug, setCatSlug] = useState(origCategorySlug);
-    const [description, setDescription] = useState(origDesc);
-    const [catDescription, setCatDescription] = useState(origCategoryDesc);
+    const [description, setDescription] = useState(origDesc?.en);
+    const [catDescription, setCatDescription] = useState(origCategoryDesc?.en);
     const [enTitle, setEnTitle] = useState(origEn);
     const [heTitle, setHeTitle] = useState(origHe);
     const isNewTopic = useRef(origSlug === "");
@@ -40,11 +40,11 @@ const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc="", origCatego
     const save = function () {
         toggleInProgress();
         let url = "";
-        let data = {"description": description, "title": enTitle, "category": catSlug};
+        let data = {"description": {"en": description, "he": description}, "title": enTitle, "category": catSlug};
         if (isNewTopic.current) {
           url = "/api/topic/new";
           if (isCategory) {
-            data["catDescription"] = catDescription;
+            data["catDescription"] = {"en": catDescription, "he": catDescription};
           }
         }
         else {
@@ -54,7 +54,7 @@ const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc="", origCatego
           data["origTitle"] = origEn;
           data["origSlug"] = origSlug;
           if (isCategory) {
-            data["catDescription"] = catDescription;
+            data["catDescription"] = {"en": catDescription, "he": catDescription};
             data["origCatDescription"] = origCategoryDesc;
           }
         }

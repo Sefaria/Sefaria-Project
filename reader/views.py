@@ -3199,25 +3199,17 @@ def topics_list_api(request):
 def add_new_topic_api(request):
     if request.method == "POST":
         data = json.loads(request.POST["json"])
-        t = Topic({'slug': ""})
+        t = Topic({'slug': "", "isTopLevelDisplay": data["category"] == "Main Menu", "data_source": "sefaria", "numSources": 0})
         t.add_title(data["title"], 'en', True, True)
-        t.isTopLevelDisplay = data["category"] == "Main Menu"
-        t.data_source = "sefaria"  # any topic edited manually should display automatically in the TOC and this flag ensures this
-
         t.set_slug_to_primary_title()
 
         if data["category"] != "Main Menu":  # not Top Level so create an IntraTopicLink to category
-            new_link = IntraTopicLink()
-            new_link.toTopic = data["category"]
-            new_link.fromTopic = t.slug
-            new_link.linkType = "displays-under"
-            new_link.dataSource = "sefaria"
+            new_link = IntraTopicLink({"toTopic": data["category"], "fromTopic": t.slug, "linkType": "displays-under", "dataSource": "sefaria"})
             new_link.save()
 
         t.change_description(data["description"], data.get("catDescription", ""))
         t.save()
 
-        @csrf_protect
         def protected_index_post(request):
             return jsonResponse(t.contents())
         return protected_index_post(request)
@@ -3225,12 +3217,15 @@ def add_new_topic_api(request):
 
 @staff_member_required
 def delete_topic(request, topic):
-    topic_obj = Topic().load({"slug": topic})
-    if topic_obj:
-        topic_obj.delete()
-        return jsonResponse({"status": "OK"})
+    if request.method == "DELETE":
+        topic_obj = Topic().load({"slug": topic})
+        if topic_obj:
+            topic_obj.delete()
+            return jsonResponse({"status": "OK"})
+        else:
+            return jsonResponse({"error": "Topic {} doesn't exist".format(topic)})
     else:
-        return jsonResponse({"error": "Topic {} doesn't exist".format(topic)})
+        return jsonResponse({"error": "This API only accepts DELETE requests."})
 
 @catch_error_as_json
 def topics_api(request, topic, v2=False):
@@ -3249,10 +3244,7 @@ def topics_api(request, topic, v2=False):
         return jsonResponse(response, callback=request.GET.get("callback", None))
     elif request.method == "POST":
         if not request.user.is_staff:
-            return render_template(request, 'static/generic.html', None, {
-                "title": "Permission Denied",
-                "content": "Adding topics is locked.<br><br>Please email hello@sefaria.org if you believe edits are needed."
-            })
+            return jsonResponse({"error": "Adding topics is locked.<br><br>Please email hello@sefaria.org if you believe edits are needed."})
         topic_data = json.loads(request.POST["json"])
         topic_obj = Topic().load({'slug': topic_data["origSlug"]})
         topic_obj.data_source = "sefaria"   #any topic edited manually should display automatically in the TOC and this flag ensures this
@@ -3308,8 +3300,6 @@ def topics_api(request, topic, v2=False):
         if needs_save:
             topic_obj.save()
 
-
-        @csrf_protect
         def protected_index_post(request):
             return jsonResponse(topic_obj.contents())
         return protected_index_post(request)
