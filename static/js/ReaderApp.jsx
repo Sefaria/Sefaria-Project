@@ -192,8 +192,6 @@ class ReaderApp extends Component {
     document.addEventListener('click', this.handleInAppClickWithModifiers, {capture: true});
     // Save all initial panels to recently viewed
     this.state.panels.map(this.saveLastPlace);
-
-    this.setBeitMidrashId()
   }
   componentWillUnmount() {
     window.removeEventListener("popstate", this.handlePopState);
@@ -242,19 +240,8 @@ class ReaderApp extends Component {
 
     this.setContainerMode();
     this.updateHistoryState(this.replaceHistory);
-    this.setBeitMidrashId(prevState)
   }
 
-  setBeitMidrashId (prevState) {
-    if (!this.state.inCustomBeitMidrash) {
-      for (let i=this.state.panels.length-1; i >= 0; i--) {
-        if (this.state.panels[i].bookRef && (!prevState || prevState.beitMidrashId !== this.state.panels[i].bookRef)) {
-          this.setState({beitMidrashId: this.state.panels[i].bookRef})
-          break
-        }
-      }
-    }
-  }
 
   handlePopState(event) {
     var state = event.state;
@@ -425,7 +412,7 @@ class ReaderApp extends Component {
       "About", "AboutSheet", "Navigation", "WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon"]);
     const addTab = (url) => {
       if (state.tab && state.menuOpen !== "search") {
-        return url.includes("?") ?  url + `&tab=${state.tab}` : url + `?tab=${state.tab}`;
+        return  url + `&tab=${state.tab}`
       } else {
         return url;
       }
@@ -519,7 +506,7 @@ class ReaderApp extends Component {
           case "collection":
             hist.url   = "collections/" + state.collectionSlug;
             if (states[i].collectionTag) {
-              hist.url;
+              hist.url += "&tag=" + state.collectionTag.replace("#","%23");
             }
             hist.title = (state.collectionName ? state.collectionName + " | " : "") + Sefaria._(siteName + " Collections");
             hist.mode  = "collection";
@@ -1588,7 +1575,7 @@ class ReaderApp extends Component {
     let state = {menuOpen: "navigation", navigationCategories: categories, "mode": "Menu"};
     state = this.makePanelState(state);
     if (!Sefaria._siteSettings.TORAH_SPECIFIC) {
-      this.state.panels[0].settings.language = "english";
+      state.settings.language = "english";
     }
     this.setSinglePanelState(state);
   }

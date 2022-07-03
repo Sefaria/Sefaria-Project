@@ -902,6 +902,7 @@ def collection_page(request, slug):
         "initialMenu":     "collection",
         "initialCollectionName": collection.name,
         "initialCollectionSlug": collection.slug,
+        "initialCollectionTag": request.GET.get("tag", None),
         "initialTab":  request.GET.get("tab", None)
     })
 
@@ -1745,8 +1746,11 @@ def shape_api(request, title):
 	}
     For complex texts or categories, returns a list of dicts.
     :param title: A valid node title or a path to a category, separated by /.
+
+    "depth" parameter is DEPRECATED. I don't believe it's used but if so, below is the old documenation for it
     The "depth" parameter in the query string indicates how many levels in the category tree to descend.  Default is 2.
     If depth == 0, descends to end of tree
+
     The "dependents" parameter, if true, includes dependent texts.  By default, they are filtered out.
     """
     from sefaria.model.category import TocCollectionNode
@@ -1813,20 +1817,21 @@ def shape_api(request, title):
 
         # Category
         else:
-            cat = library.get_toc_tree().lookup(title.split("/"))
+            cat_list = title.split("/")
+            depth = request.GET.get("depth", 2)
+            include_dependents = request.GET.get("dependents", False)
+            indexes = []
+            if len(cat_list) == 1:
+                # try as corpus
+                indexes = library.get_indexes_in_corpus(cat_list[0], include_dependant=include_dependents, full_records=True)
+            if len(indexes) == 0:
+                cat = library.get_toc_tree().lookup(cat_list)  # just used for validating that the cat exists
+                if not cat:
+                    res = {"error": "No index or category found to match {}".format(title)}
+                    return jsonResponse(res, callback=request.GET.get("callback", None))
+                indexes = library.get_indexes_in_category_path(cat_list, include_dependant=include_dependents, full_records=True)
 
-            if not cat:
-                res = {"error": "No index or category found to match {}".format(title)}
-            else:
-                depth = request.GET.get("depth", 2)
-                include_dependents = request.GET.get("dependents", False)
-
-                leaves = cat.get_leaf_nodes() if depth == 0 else [n for n in cat.get_leaf_nodes_to_depth(depth)]
-                leaves = [n for n in leaves if not isinstance(n, TocCollectionNode)]
-                if not include_dependents:
-                    leaves = [n for n in leaves if not getattr(n, "dependence", None)]
-
-                res = [_simple_shape(jan) for toc_index in leaves for jan in toc_index.get_index_object().nodes.get_leaf_nodes()]
+            res = [_simple_shape(jan) for index in indexes for jan in index.nodes.get_leaf_nodes()]
 
         res = _collapse_book_leaf_shapes(res)
         return jsonResponse(res, callback=request.GET.get("callback", None))
@@ -2634,9 +2639,10 @@ def dictionary_completion_api(request, word, lexicon=None):
     if lexicon is None:
         ac = library.cross_lexicon_auto_completer()
         rs, _ = ac.complete(word, LIMIT)
-        result = [[r, ac.title_trie[ac.normalizer(r)][0]["key"]] for r in rs]
+        result = [[r, r] for r in rs]  # ac.title_trie[ac.normalizer(r)][0]["key"] - this was when we wanted the first option with nikud
     else:
-        result = library.lexicon_auto_completer(lexicon).items(word)[:LIMIT]
+        matches = [(item[0], x) for item in library.lexicon_auto_completer(lexicon).items(word)[:LIMIT] for x in item[1]]
+        result = sorted(set(matches), key=lambda x: matches.index(x))  # dedup matches
     return jsonResponse(result)
 
 
@@ -3051,7 +3057,8 @@ def background_data_api(request):
     API that bundles data which we want the client to prefetch, 
     but should not block initial pageload.
     """
-    language = request.GET.get("interfaceLang", request.interfaceLang)
+    language = request.GET.get("locale", 'english')
+    # This is an API, its excluded from interfacelang middleware. There's no point in defaulting to request.interfaceLang here as its always 'english'. 
 
     data = {}
     data.update(community_page_data(request, language=language))
@@ -3667,8 +3674,8 @@ def profile_upload_photo(request):
         profile = UserProfile(id=request.user.id)
         bucket_name = GoogleStorageManager.PROFILES_BUCKET
         image = Image.open(request.FILES['file'])
-        old_big_pic_filename = GoogleStorageManager.get_filename(profile.profile_pic_url)
-        old_small_pic_filename = GoogleStorageManager.get_filename(profile.profile_pic_url_small)
+        old_big_pic_filename = GoogleStorageManager.get_filename_from_url(profile.profile_pic_url)
+        old_small_pic_filename = GoogleStorageManager.get_filename_from_url(profile.profile_pic_url_small)
 
         big_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (250, 250)), "{}-{}.png".format(profile.slug, now), bucket_name, old_big_pic_filename)
         small_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (80, 80)), "{}-{}-small.png".format(profile.slug, now), bucket_name, old_small_pic_filename)
@@ -3937,7 +3944,7 @@ def community_page_data(request, language="english"):
     from sefaria.model.user_profile import UserProfile
 
     data = {
-        "community": get_community_page_items(language=language, diaspora=(request.interfaceLang != "hebrew"))
+        "community": get_community_page_items(language=language, diaspora=(language != "hebrew"))
     }
     if request.user.is_authenticated:
         profile = UserProfile(user_obj=request.user)
@@ -4286,14 +4293,14 @@ def explore(request, topCat, bottomCat, book1, book2, lang=None):
         "Bavli": {
             "title": "Talmud",
             "heTitle": "התלמוד",
-            "shapeParam": "Talmud/Bavli",
+            "shapeParam": "Bavli",
             "linkCountParam": "Bavli",
             "talmudAddressed": True,
         },
         "Yerushalmi": {
             "title": "Jerusalem Talmud",
             "heTitle": "התלמוד ירושלמי",
-            "shapeParam": "Talmud/Yerushalmi",
+            "shapeParam": "Yerushalmi",
             "linkCountParam": "Yerushalmi",
             "talmudAddressed": True,
         },

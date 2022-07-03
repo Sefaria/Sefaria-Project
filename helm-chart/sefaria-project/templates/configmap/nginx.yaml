@@ -31,6 +31,12 @@ data:
         keepalive 32;
       }
 
+      {{- if .Values.linker.enabled }}
+      upstream linker_upstream {
+        server ${LINKER_HOST}:80;
+      }
+      {{- end }}
+
       # Requests hitting the root domains should be redirected to the 'www' subdomain
       server {
         listen 80;
@@ -122,6 +128,12 @@ data:
           access_log off;
           proxy_pass https://storage.googleapis.com/sefaria-sitemaps$request_uri;
         }
+
+        {{- if .Values.linker.enabled }}
+        location /linker/ {
+          proxy_pass http://linker_upstream;
+        }
+        {{- end }}
       } # server
 
       types {

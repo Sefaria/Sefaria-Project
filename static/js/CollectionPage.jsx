@@ -41,11 +41,17 @@ class CollectionPage extends Component {
   }
   componentDidMount() {
     this.loadData();
+    if (!!this.props.tag & !this.props.tab) {
+      this.props.setTab("sheets");
+    }
   }
   componentDidUpdate(prevProps, prevState) {
     if (this.props.slug !== prevProps.slug) {
       this.setState({collectionData: null});
       this.loadData();
+    }
+    if (this.props.tab != prevProps.tab) {
+      this.setState({tab: this.props.tab});
     }
     if (prevState.sheetFilterTopic !== this.state.sheetFilterTopic && $(".content").scrollTop() > 260) {
       $(".content").scrollTop(0);
@@ -63,6 +69,7 @@ class CollectionPage extends Component {
   }
   setFilter(filter) {
     this.setState({sheetFilterTopic: filter, showFilterHeader: true});
+    this.props.setTab("sheets");
   }
   memberList() {
     var collection = this.state.collectionData;
@@ -226,7 +233,10 @@ class CollectionPage extends Component {
           id: 'filter',
           title: {en: "Filter", he: Sefaria._("Filter")},
           icon: `/static/icons/arrow-${this.state.showFilterHeader ? 'up' : 'down'}-bold.svg`,
-          justifyright: true
+          justifyright: true,
+          clickTabOverride: () => {
+            this.setState({showFilterHeader: !this.state.showFilterHeader});
+          }
         }
       );
       const renderTab = t => (
@@ -245,7 +255,7 @@ class CollectionPage extends Component {
 
           <TabView
             tabs={tabs}
-            currTabName={this.props.tab}
+            currTabName={this.state.tab}
             renderTab={renderTab}
             containerClasses={"largeTabs"}
             setTab={this.props.setTab} >

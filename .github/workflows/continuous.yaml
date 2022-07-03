@@ -165,7 +165,7 @@ jobs:
       - name: Authenticate GHA Runner To Target Cluster
         run: gcloud container clusters get-credentials ${{secrets.DEV_GKE_CLUSTER}} --zone ${{secrets.DEV_GKE_REGION}} --project ${{secrets.DEV_GCP_PROJECT}}
       - name: Deploy Sandbox
-        run: ./build/ci/helm-deploy.sh build/ci/values.yaml
+        run: ./build/ci/sandbox-helm-deploy.sh build/ci/values.yaml
         env:
           GIT_COMMIT: "${{ steps.get-sha.outputs.sha_short }}"
           BRANCH: "${{ steps.branch-name.outputs.current_branch }}"
