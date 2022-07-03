@@ -2412,7 +2412,7 @@ const TopicToCategorySlug = function(topic, category=null) {
     if (!category) {
         category = Sefaria.topicTocCategory(topic.slug);
     }
-    let initCatSlug = category ? category.slug : "Main Menu";    //non-category topics won't be found using topicTocCategory,
+    let initCatSlug = category ? category.slug : "Main Menu";    //category topics won't be found using topicTocCategory,
                                                                   // so all category topics initialized to "Main Menu"
     if ("displays-under" in topic?.links && "displays-above" in topic?.links) {
         // this case handles categories that are not top level but have children under them
