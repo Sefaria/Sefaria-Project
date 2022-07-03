@@ -48,7 +48,7 @@ class ReaderPanel extends Component {
 
     let state = this.clonePanel(props.initialState);
     state["initialAnalyticsTracked"] = false;
-    state.width = this.props.multiPanel ? 1000 : 500; // Assume we're in a small panel not using multipanel 
+    state.width = this.props.multiPanel ? 1000 : 500; // Assume we're in a small panel not using multipanel
     this.state = state;
     this.sheetRef = React.createRef();
     this.readerContentRef = React.createRef();
@@ -107,7 +107,7 @@ class ReaderPanel extends Component {
   }
   getContentLanguageOverride(originalLanguage, mode, menuOpen) {
     // Determines the actual content language used inside this ReaderPanel.
-    // Because it's called in the constructor, assume state isnt necessarily defined and pass 
+    // Because it's called in the constructor, assume state isnt necessarily defined and pass
     // variables mode and menuOpen manually
     let contentLangOverride = originalLanguage;
     if (["topics", "allTopics", "story_editor", "calendars", "community", "collection" ].includes(menuOpen)) {
@@ -948,7 +948,7 @@ class ReaderPanel extends Component {
           openDisplaySettings={this.openDisplaySettings}
           key={"TopicPageAll"} />
       );
-      
+
     } else if (this.state.menuOpen === "notifications") {
       menu = (
         <NotificationsPanel
@@ -975,7 +975,7 @@ class ReaderPanel extends Component {
           initialWidth={this.state.width}
           interfaceLang={this.props.interfaceLang} />
       );
-      
+
     } else if (this.state.menuOpen === "collectionsPublic") {
       menu = (
         <PublicCollectionsPage
@@ -1041,7 +1041,7 @@ class ReaderPanel extends Component {
 
     } else if (this.state.menuOpen === "calendars") {
       menu = (
-        <CalendarsPage 
+        <CalendarsPage
           multiPanel={this.props.multiPanel}
           initialWidth={this.state.width} />
       );
@@ -1451,7 +1451,7 @@ const TranslationLanguagePreferenceSuggestionBanner = ({ setTranslationLanguageP
               <InterfaceText>
                   <EnglishText> Thanks! We'll show you {lang} translations first when we have them. </EnglishText>
                   <HebrewText>תודה! כשנוכל, נציג לכם תרגומים בשפה ה<span className="bold">{Sefaria._(lang)}</span> כאשר אלו יהיו זמינים. </HebrewText>
-              </InterfaceText>              
+              </InterfaceText>
             </div>
           ) : (
             <div className="transLangPrefCentered">
@@ -1601,7 +1601,7 @@ class ReaderDisplayOptionsMenu extends Component {
           options={aliyahOptions}
           setOption={this.props.setOption}
           currentValue={this.props.settings.aliyotTorah} />) : null;
-    
+
     let vowelsOptions = [
       {name: "all", content: "<span class='he'>אָ֑</span>", role: "radio", ariaLabel: Sefaria._("Show Vowels and Cantillation")},
       {name: "partial", content: "<span class='he'>אָ</span>", role: "radio", ariaLabel: Sefaria._("Show only vowel points")},

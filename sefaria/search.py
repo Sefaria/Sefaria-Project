@@ -394,6 +394,24 @@ def put_sheet_mapping(index_name):
     }
     index_client.put_mapping(doc_type='sheet', body=sheet_mapping, index=index_name)
 
+def get_search_categories(oref, categories):
+    toc_tree = library.get_toc_tree()
+    cats = oref.index.categories
+
+    indexed_categories = categories  # the default
+
+    # get the full path of every cat along the way.
+    # starting w/ the longest,
+    # check if they're root swapped.
+    paths = [cats[:i] for i in range(len(cats), 0, -1)]
+    for path in paths:
+        cnode = toc_tree.lookup(path)
+        if getattr(cnode, "searchRoot", None) is not None:
+            # Use the specified searchRoot, with the rest of the category path appended.
+            indexed_categories = [cnode.searchRoot] + cats[len(path) - 1:]
+            break
+    return indexed_categories
+
 
 class TextIndexer(object):
 
@@ -597,21 +615,8 @@ class TextIndexer(object):
             return False
 
         oref = Ref(tref)
-        toc_tree = library.get_toc_tree()
-        cats = oref.index.categories
 
-        indexed_categories = categories  # the default
-
-        # get the full path of every cat along the way.
-        # starting w/ the longest,
-        # check if they're root swapped.
-        paths = [cats[:i] for i in range(len(cats), 0, -1)]
-        for path in paths:
-            cnode = toc_tree.lookup(path)
-            if getattr(cnode, "searchRoot", None) is not None:
-                # Use the specified searchRoot, with the rest of the category path appended.
-                indexed_categories = [cnode.searchRoot] + cats[len(path) - 1:]
-                break
+        indexed_categories = get_search_categories(oref, categories)
 
         tp = cls.best_time_period
         if tp is not None:

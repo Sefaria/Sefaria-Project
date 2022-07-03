@@ -76,7 +76,7 @@ a, a:hover {
   unicode-range: U+0041-007A;
 }
 @font-face {
-  font-family: 'Noto Color Emoji'; 
+  font-family: 'Noto Color Emoji';
   src: url('/static/fonts/NotoColorEmoji.ttf');
   unicode-range: U+1F1E6-1F1FF;
 }
@@ -1828,6 +1828,54 @@ div.interfaceLinks-row a {
   align-items: center;
   justify-content: flex-start;
 }
+
+.sidebarSearch .searchBox {
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  padding: 0;
+  text-align: inherit;
+  background: var(--lighter-grey);
+  border-radius: 250px;
+  width: 100%;
+  height: 30px;
+}
+
+.sidebarSearch .searchBox input {
+  background: transparent;
+  outline: none;
+  border: none;
+  box-shadow: none;
+  font-size: var(--serif-body-font-size);
+  width: 100%;
+}
+.sidebarSearch .searchTopMatter,
+.sidebarSearch .searchTopic {
+  display: none;
+}
+.sidebarSearch .result-title {
+  padding: 14px 0 14px 0;
+  font-size: var(--serif-body-font-size);
+  border-top: 1px solid var(--lighter-grey);
+  margin-top: 14px;
+  color: var(--dark-grey);
+}
+
+.sidebarSearch .similar-results {
+  margin-inline-start: 30px;
+}
+
+.sidebarSearch .snippet.he,
+.sidebarSearch .snippet.en {
+  font-size: var(--serif-body-font-size);
+  display: block;
+}
+
+.sidebarSearch .colorBarBox {
+  border-inline-start: none;
+  padding-inline-start: 0;
+}
+
 .readerNavTop .searchBox .readerNavMenuSearchButton {
   margin: 0 5px 0 10px;
 }
@@ -3953,7 +4001,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .result {
   padding-bottom: 20px;
 }
-.searchContent .result a:hover {
+.searchContent .result a:hover,
+.sidebarSearch .result a:hover {
   text-decoration: none;
 }
 .searchContent .similar-results {
@@ -4015,7 +4064,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .similar-results .result .result-title {
   padding: 0 0 5px;
 }
-.searchContent .result .version {
+.searchContent .result .version,
+.sidebarSearch .result .version {
   color: #999;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 13px;
@@ -4026,7 +4076,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .result .version .ownerMetadata {
   margin-inline-start: 10px;
 }
-.searchContent .result .similar-trigger-box {
+.searchContent .result .similar-trigger-box,
+.sidebarSearch .result .similar-trigger-box {
   color: #999;
   font-weight: lighter;
   --english-font: var(--english-sans-serif-font-family);

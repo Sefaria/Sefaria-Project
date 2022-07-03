@@ -57,6 +57,7 @@ from sefaria.system.exceptions import InputError, PartialRefInputError, BookName
 from sefaria.system.cache import django_cache
 from sefaria.system.database import db
 from sefaria.helper.search import get_query_obj
+from sefaria.search import get_search_categories
 from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, get_topics_for_book
 from sefaria.helper.community_page import get_community_page_items
 from sefaria.helper.file import get_resized_file
@@ -691,11 +692,11 @@ def texts_category_list(request, cats):
         cats = cats.split("/")
         tocObject = library.get_toc_tree().lookup(cats)
         if len(cats) == 0 or tocObject is None:
-            return texts_list(request)      
+            return texts_list(request)
         cat_string = ", ".join(cats) if request.interfaceLang == "english" else ", ".join([hebrew_term(cat) for cat in cats])
         catDesc = getattr(tocObject, "enDesc", '') if request.interfaceLang == "english" else getattr(tocObject, "heDesc", '')
         catShortDesc = getattr(tocObject, "enShortDesc", '') if request.interfaceLang == "english" else getattr(tocObject, "heShortDesc", '')
-        catDefaultDesc = _("Read %(categories)s texts online with commentaries and connections.") % {'categories': cat_string} 
+        catDefaultDesc = _("Read %(categories)s texts online with commentaries and connections.") % {'categories': cat_string}
         title = cat_string + _(" | Sefaria")
         desc  = catDesc if len(catDesc) else catShortDesc if len(catShortDesc) else catDefaultDesc
 
@@ -731,7 +732,7 @@ def topics_category_page(request, topicCategory):
     short_lang = 'en' if request.interfaceLang == 'english' else 'he'
     title = topic_obj.get_primary_title(short_lang) + " | " + _("Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.")
     desc = _("Jewish texts and source sheets about %(topic)s from Torah, Talmud and other sources in Sefaria's library.") % {'topic': topic_obj.get_primary_title(short_lang)}
-    
+
     return render_template(request, 'base.html', props, {
         "title": title,
         "desc":  desc,
@@ -3036,7 +3037,7 @@ def block_api(request, action, uid):
     """
     API for following and unfollowing another user.
     """
-    
+
     if request.method != "POST":
         return jsonResponse({"error": "Unsupported HTTP method."}, status=405)
 
@@ -3054,11 +3055,11 @@ def block_api(request, action, uid):
 
 def background_data_api(request):
     """
-    API that bundles data which we want the client to prefetch, 
+    API that bundles data which we want the client to prefetch,
     but should not block initial pageload.
     """
     language = request.GET.get("locale", 'english')
-    # This is an API, its excluded from interfacelang middleware. There's no point in defaulting to request.interfaceLang here as its always 'english'. 
+    # This is an API, its excluded from interfacelang middleware. There's no point in defaulting to request.interfaceLang here as its always 'english'.
 
     data = {}
     data.update(community_page_data(request, language=language))
@@ -3235,7 +3236,7 @@ _CAT_REF_LINK_TYPE_FILTER_MAP = {
 def _topic_data(topic):
     cat = library.get_topic_toc_category_mapping().get(topic, None)
     ref_link_type_filters = _CAT_REF_LINK_TYPE_FILTER_MAP.get(cat, ['about', 'popular-writing-of'])
-    response = get_topic(True, topic, with_links=True, annotate_links=True, with_refs=True, group_related=True, annotate_time_period=False, ref_link_type_filters=ref_link_type_filters, with_indexes=True) 
+    response = get_topic(True, topic, with_links=True, annotate_links=True, with_refs=True, group_related=True, annotate_time_period=False, ref_link_type_filters=ref_link_type_filters, with_indexes=True)
     return response
 
 
@@ -3437,8 +3438,8 @@ def chat_message_api(request):
 
 
         message = Message({"room_id": room_id,
-                        "sender_id": messageJSON["senderId"], 
-                        "timestamp": messageJSON["timestamp"], 
+                        "sender_id": messageJSON["senderId"],
+                        "timestamp": messageJSON["timestamp"],
                         "message": messageJSON["messageContent"]})
         message.save()
         return jsonResponse({"status": "ok"})
@@ -3690,7 +3691,7 @@ def delete_user_account_api(request):
     # Deletes the user and emails sefaria staff for followup
     from sefaria.utils.user import delete_user_account
     from django.core.mail import EmailMultiAlternatives
-    
+
     if not request.user.is_authenticated:
         return jsonResponse({"error": _("You must be logged in to delete your account.")})
     uid = request.user.id
@@ -3703,13 +3704,13 @@ def delete_user_account_api(request):
         email_msg += "\n\n The request was completed automatically."
         reply_email = user_email
         response = jsonResponse({"status": "ok"})
-    except Exception as e: 
-        # There are on rare occasions ForeignKeyViolation exceptions due to records in gauth_credentialsmodel or gauth_flowmodel in the sql db not getting 
+    except Exception as e:
+        # There are on rare occasions ForeignKeyViolation exceptions due to records in gauth_credentialsmodel or gauth_flowmodel in the sql db not getting
         # removed properly
         email_msg += "\n\n The request failed to complete automatically. The user has been directed to email in his request."
         logger.error("User {} deletion failed. {}".format(uid, e))
         response = jsonResponse({"error": "There was an error deleting the account", "user": user_email})
-        
+
     EmailMultiAlternatives(email_subject, email_msg, from_email="Sefaria System <dev@sefaria.org>", to=["Sefaria <hello@sefaria.org>"], reply_to=[reply_email if reply_email else "hello@sefaria.org"]).send()
     return response
 
@@ -3785,7 +3786,7 @@ def my_profile(request):
     url = "/profile/%s" % UserProfile(id=request.user.id).slug
     if "tab" in request.GET:
         url += "?tab=" + request.GET.get("tab")
-    return redirect(url) 
+    return redirect(url)
 
 
 def interrupting_messages_read_api(request, message):
@@ -3822,7 +3823,7 @@ def account_settings(request):
     return render_template(request,'account_settings.html', None, {
         'user': request.user,
         'profile': profile,
-        'lang_names_and_codes': zip([Locale(lang).languages[lang].capitalize() for lang in SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES']], SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES']), 
+        'lang_names_and_codes': zip([Locale(lang).languages[lang].capitalize() for lang in SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES']], SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES']),
         'translation_language_preference': (profile is not None and profile.settings.get("translation_language_preference", None)) or request.COOKIES.get("translation_language_preference", None)
     })
 
@@ -3838,7 +3839,7 @@ def home(request):
 def community_page(request, props={}):
     """
     Community Page
-    """    
+    """
     title = _("From the Community: Today on Sefaria")
     desc  = _("New and featured source sheets, divrei torah, articles, sermons and more created by members of the Sefaria community.")
     data  = community_page_data(request, language=request.interfaceLang)
@@ -3893,7 +3894,7 @@ def community_reset(request):
 
 def new_home_redirect(request):
     """ Redirect old /new-home urls to / """
-    return redirect("/")    
+    return redirect("/")
 
 
 @ensure_csrf_cookie
@@ -4148,6 +4149,16 @@ def search_wrapper_api(request):
         return jsonResponse({"error": "Error with connection to Elasticsearch. Total shards: {}, Shards successful: {}, Timed out: {}".format(response._shards.total, response._shards.successful, response.timed_out)}, callback=request.GET.get("callback", None))
     return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
 
+@csrf_exempt
+def search_path_filter(request, book_title):
+    oref = Ref(book_title)
+
+    categories = oref.index.categories
+    indexed_categories = get_search_categories(oref, categories)
+    path = "/".join(indexed_categories+[book_title])
+    return jsonResponse(path)
+
+
 
 @ensure_csrf_cookie
 def serve_static(request, page):
@@ -4283,7 +4294,7 @@ def person_page_redirect(request, name):
 
 def person_index_redirect(request):
     return redirect(iri_to_uri('/topics/category/authors'), permanent=True)
-    
+
 
 def talmud_person_index_redirect(request):
     return redirect(iri_to_uri('/topics/category/talmudic-figures'), permanent=True)

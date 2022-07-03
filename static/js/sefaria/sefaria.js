@@ -239,13 +239,13 @@ Sefaria = extend(Sefaria, {
     //need to convert to ints, add ancestors for complex and copy logic from server
 
     if ("error" in oRef1 || "error" in oRef2) { return null; }
-    
+
     //We need numerical representations of the sections, and not to trip up on talmud sections
     if (oRef2.index !== oRef2.index || oRef1.book !== oRef2.book) { return false; }
-    const [oRef1sections, oRef1toSections, oRef2sections, oRef2toSections] = [oRef1.sections, oRef1.toSections, oRef2.sections, oRef2.toSections].map(arr => 
+    const [oRef1sections, oRef1toSections, oRef2sections, oRef2toSections] = [oRef1.sections, oRef1.toSections, oRef2.sections, oRef2.toSections].map(arr =>
         arr.map(x => x.match(/\d+[ab]/) ? Sefaria.hebrew.dafToInt(x) : parseInt(x))
     )
-      
+
     const sectionsLen = Math.min(oRef1sections.length, oRef2sections.length);
     //duplicated from server side logic to finally fix
     for (let i = 0; i < sectionsLen; i++) {
@@ -281,7 +281,7 @@ Sefaria = extend(Sefaria, {
   splitSpanningRefNaive: function(ref){
       if (ref.indexOf("-") == -1) { return ref; }
       return ref.split("-");
-  },  
+  },
   splitRangingRef: function(ref) {
     // Returns an array of segment level refs which correspond to the ranging `ref`
     // e.g. "Genesis 1:1-2" -> ["Genesis 1:1", "Genesis 1:2"]
@@ -382,7 +382,7 @@ Sefaria = extend(Sefaria, {
       multiple:   settings.multiple   || 0,
       stripItags: settings.stripItags || 0,
       wrapLinks:  ("wrapLinks" in settings) ? settings.wrapLinks : 1,
-      wrapNamedEntities: ("wrapNamedEntities" in settings) ? settings.wrapNamedEntities : 1, 
+      wrapNamedEntities: ("wrapNamedEntities" in settings) ? settings.wrapNamedEntities : 1,
       translationLanguagePreference: settings.translationLanguagePreference || null,
       versionPref: settings.versionPref || null,
       firstAvailableRef: settings.firstAvailableRef || 1,
@@ -513,7 +513,7 @@ Sefaria = extend(Sefaria, {
         "yi": {"name": "Yiddish", "nativeName": "יידיש"},
     }
     const lookupVar = native ? "nativeName" : "name";
-    return ISOMap[code.toLowerCase()][lookupVar] || code; 
+    return ISOMap[code.toLowerCase()][lookupVar] || code;
   },
   _versions: {},
   _translateVersions: {},
@@ -2102,7 +2102,7 @@ _media: {},
   userHistory: {loaded: false, items: []},
   saveUserHistory: function(history_item) {
     // history_item contains:
-    // `ref`, `book`, `versions`, `sheet_title`, `sheet_owner`` 
+    // `ref`, `book`, `versions`, `sheet_title`, `sheet_owner``
     // optionally: `secondary`, `he_ref`, `language`
     if(!Sefaria.is_history_enabled || !history_item) {
         return;
@@ -2177,11 +2177,11 @@ _media: {},
     // Returns promise for all topics list.
     if (this._topicList) { return Promise.resolve(this._topicList); }
     return this._ApiPromise(Sefaria.apiHost + "/api/topics?limit=0")
-        .then(d => { 
+        .then(d => {
           for (let topic of d) {
             topic.normTitles = topic.titles.map(title => title.text.toLowerCase());
           }
-          this._topicList = d; 
+          this._topicList = d;
           return d;
         });
   },
@@ -2197,6 +2197,14 @@ _media: {},
       url:   `${this.apiHost}/api/calendars/next-read/${parasha}`,
       key:   parasha,
       store: this._parashaNextRead,
+    });
+  },
+  _bookSearchPathFilter: {},
+  bookSearchPathFilterAPI: title => {
+    return Sefaria._cachedApiPromise({
+      url:   Sefaria.apiHost + "/api/search-path-filter/" + title,
+      key:   title,
+      store: Sefaria._bookSearchPathFilter
     });
   },
   _topics: {},
@@ -2231,7 +2239,7 @@ _media: {},
           let { title } = linkTypeObj;
           if (tabKey == 'sheets') {
             title = {en: 'Sheets', he: Sefaria._('Sheets')};
-          } 
+          }
           if (tabKey == 'sources') {
             title = {en: 'Sources', he: Sefaria._('Sources')};
           }
@@ -2373,7 +2381,7 @@ _media: {},
               this._userSheets[key].unshift(sheet);
             } else if (updateInPlace) {
               this._userSheets[key][sheetIndex] = sheet;
-            } else {  
+            } else {
               this._userSheets[key].unshift(sheet);
             }
           } else {
@@ -2605,7 +2613,6 @@ _media: {},
       }
   },
   _: function(inputStr, context=null){
-    if (!inputStr.toLowerCase) debugger;
     if(Sefaria.interfaceLang != "english"){
       return Sefaria.translation(Sefaria.interfaceLang, inputStr, context);
     } else {
@@ -2770,10 +2777,10 @@ Sefaria.unpackDataFromProps = function(props) {
 };
 
 Sefaria.unpackBaseProps = function(props){
-    //TODO: verify these are all base props!!! 
+    //TODO: verify these are all base props!!!
       if (typeof props === 'undefined') {
           return;
-      }  
+      }
       const dataPassedAsProps = [
       "_uid",
       "_email",
