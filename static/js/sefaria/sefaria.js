@@ -2259,13 +2259,12 @@ _media: {},
   _initTopicSlugsToTitles: function() {
     this._topicSlugsToTitles = Sefaria.topic_toc.reduce(Sefaria._initTopicTocSlugToTitleReducer, {});
   },
-  slugToTitle: function() {
+  slugsToTitles: function() {
     //initializes _topicSlugsToTitles for Topic Editor tool and adds necessary "Choose a Category" and "Main Menu" for
     //proper use of the Topic Editor tool
     if (!Sefaria._topicSlugsToTitles) { Sefaria._initTopicSlugsToTitles();}
-    let slugsToTitles = {"": "Choose a Category", "Main Menu": "Main Menu"};
-    slugsToTitles = Object.assign(slugsToTitles, Sefaria._topicSlugsToTitles);
-    return slugsToTitles;
+    let specialCases = {"": "Choose a Category", "Main Menu": "Main Menu"};
+    return Object.assign(specialCases, Sefaria._topicSlugsToTitles);
   },
   _topicTocPages: null,
   _initTopicTocPages: function() {

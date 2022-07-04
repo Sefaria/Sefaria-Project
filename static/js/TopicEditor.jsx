@@ -32,7 +32,7 @@ const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc="", origCatego
     const isNewTopic = origEn === "";
     const [isCategory, setIsCategory] = useState(catSlug === "Main Menu");
 
-    const slugsToTitles = Sefaria.slugToTitle();
+    const slugsToTitles = Sefaria.slugsToTitles();
     let catMenu = Object.keys(slugsToTitles).map(function (tempSlug, i) {
       const tempTitle = slugsToTitles[tempSlug];
       return <option key={i} value={tempSlug} selected={catSlug === tempSlug}>{tempTitle}</option>;
