@@ -4,7 +4,7 @@ import {
     ResponsiveNBox, AdminToolHeader,
     CategoryChooser
 } from './Misc';
-import TopicEditor from './TopicEditor';
+import {TopicEditor, TopicEditorButton, useTopicToggle} from './TopicEditor';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
@@ -16,15 +16,7 @@ import Component from 'react-class';
 
 // The root topics page listing topic categories to browse
 const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
-  const [addingTopics, setAddingTopics] = useState(false);
-  const toggleAddingTopics = function(e) {
-      if (e.currentTarget.id === "addTopic") {
-        setAddingTopics(true);
-      }
-      else if(e.currentTarget.id === "cancel") {
-        setAddingTopics(false);
-     }
-  }
+  const [addingTopics, toggleAddingTopics] = useTopicToggle();
   let categoryListings = Sefaria.topic_toc.map(cat => {
     const openCat = e => {e.preventDefault(); setNavTopic(cat.slug, {en: cat.en, he: cat.he})};
     return (
@@ -67,12 +59,10 @@ const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
   ];
   let topicStatus = null;
   if (Sefaria.is_moderator && addingTopics) {
-      topicStatus = <TopicEditor close={(e) => toggleAddingTopics(e)}/>;
+      topicStatus = <TopicEditor close={toggleAddingTopics}/>;
   }
   else if (Sefaria.is_moderator) {
-      topicStatus = <div onClick={(e) => toggleAddingTopics(e)} id="addTopic" className="button extraSmall topic" role="button">
-                      <InterfaceText>Create a Topic</InterfaceText>
-                  </div>
+      topicStatus = <TopicEditorButton text="Create a Topic" toggleAddingTopics={toggleAddingTopics}/>;
   }
   return (
     <div className="readerNavMenu noLangToggleInHebrew" key="0">

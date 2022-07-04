@@ -2257,7 +2257,15 @@ _media: {},
   },
   _topicSlugsToTitles: null,
   _initTopicSlugsToTitles: function() {
-    this._topicSlugsToTitles = Sefaria.topic_toc.reduce(Sefaria._initTopicTocSlugToTitle, {});
+    this._topicSlugsToTitles = Sefaria.topic_toc.reduce(Sefaria._initTopicTocSlugToTitleReducer, {});
+  },
+  slugToTitle: function() {
+    //initializes _topicSlugsToTitles for Topic Editor tool and adds necessary "Choose a Category" and "Main Menu" for
+    //proper use of the Topic Editor tool
+    if (!Sefaria._topicSlugsToTitles) { Sefaria._initTopicSlugsToTitles();}
+    let slugsToTitles = {"": "Choose a Category", "Main Menu": "Main Menu"};
+    slugsToTitles = Object.assign(slugsToTitles, Sefaria._topicSlugsToTitles);
+    return slugsToTitles;
   },
   _topicTocPages: null,
   _initTopicTocPages: function() {
@@ -2272,11 +2280,11 @@ _media: {},
     }
     return a;
   },
-  _initTopicTocSlugToTitle: function(a,c) {
+  _initTopicTocSlugToTitleReducer: function(a,c) {
     if (!c.children) { return a; }
     a[c.slug] = c.en;
     for (let sub_c of c.children) {
-      Sefaria._initTopicTocSlugToTitle(a, sub_c);
+      Sefaria._initTopicTocSlugToTitleReducer(a, sub_c);
     }
     return a;
   },

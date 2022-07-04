@@ -2390,13 +2390,16 @@ const CollectionStatement = ({name, slug, image, children}) => (
 );
 
 const AdminToolHeader = function({en, he, validate, close}) {
+  /*
+  Save and Cancel buttons with a header using the 'en'/'he' text.  Save button calls 'validate' and cancel button calls 'close'.
+   */
   return    <div className="headerWithButtons">
               <h1 className="pageTitle">
                 <span className="int-en">{en}</span>
                 <span className="int-he">{he}</span>
               </h1>
               <div className="end">
-                <a onClick={(e) => close(e)} id="cancel" className="button small transparent control-elem">
+                <a onClick={close} id="cancel" className="button small transparent control-elem">
                   <InterfaceText>Cancel</InterfaceText>
                 </a>
                 <div onClick={validate} id="saveAccountSettings" className="button small blue control-elem" tabIndex="0" role="button">
@@ -2407,26 +2410,11 @@ const AdminToolHeader = function({en, he, validate, close}) {
 }
 
 
-const TopicToCategorySlug = function(topic, category=null) {
-    //helper function for TopicEditor
-    if (!category) {
-        category = Sefaria.topicTocCategory(topic.slug);
-    }
-    let initCatSlug = category ? category.slug : "Main Menu";    //category topics won't be found using topicTocCategory,
-                                                                  // so all category topics initialized to "Main Menu"
-    if ("displays-under" in topic?.links && "displays-above" in topic?.links) {
-        // this case handles categories that are not top level but have children under them
-        const displayUnderLinks = topic.links["displays-under"]?.links;
-        if (displayUnderLinks && displayUnderLinks.length === 1) {
-            initCatSlug = displayUnderLinks[0].topic;
-        }
-    }
-    return initCatSlug;
-}
-
-
-
 const CategoryChooser = function({categories, update}) {
+  /*
+  Allows user to start from the top of the TOC and select a precise path through the category TOC using option menus.
+  'categories' is initial list of categories specifying a path and 'update' is called with new categories after the user changes selection
+   */
   const categoryMenu = useRef();
 
   const handleChange = function(e) {
@@ -2488,6 +2476,10 @@ const CategoryChooser = function({categories, update}) {
 
 
 const TitleVariants = function({titles, update}) {
+  /*
+  Wrapper for ReactTags component.  `titles` is initial list of strings to populate ReactTags component
+  and `update` is method to call after deleting or adding to titles
+   */
   const onTitleDelete = function(i) {
     let newTitles = titles.filter(t => t !== titles[i]);
     update(newTitles);
@@ -2833,6 +2825,5 @@ export {
   DivineNameReplacer,
   AdminToolHeader,
   CategoryChooser,
-  TitleVariants,
-  TopicToCategorySlug
+  TitleVariants
 };
