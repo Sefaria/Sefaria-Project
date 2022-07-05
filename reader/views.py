@@ -51,7 +51,6 @@ from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_
 from sefaria.utils.util import short_to_long_lang_code
 from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, SEARCH_ADMIN, RTC_SERVER, MULTISERVER_REDIS_SERVER, MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, DISABLE_AUTOCOMPLETER, ENABLE_LINKER
 from sefaria.site.site_settings import SITE_SETTINGS
-from sefaria.site.categories import CATEGORY_ORDER
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
 from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DictionaryEntryNotFoundError
