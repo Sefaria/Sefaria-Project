@@ -5194,25 +5194,27 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-family: "Heebo", sans-serif;
 }
 /* Footnotes */
-.segment sup.footnote-marker {
+.segment sup {
   margin-left: .2em;
   margin-right: .2em;
   text-decoration: none;
   font-family: var(--hebrew-sans-serif-font-family);
   font-size: 0.6em;
   line-height: 1;
+}
+.segment sup.footnote-marker {
   color: var(--inline-link-blue);
 }
-.segment .he sup.footnote-marker {
+.segment .he sup {
   font-size: 0.6em;
 }
 .segment sup.footnote-marker:hover {
   text-decoration: underline;
 }
-.sheetContent .segment sup.footnote-marker:hover {
+.sheetContent .segment sup:hover {
   text-decoration: none;
 }
-.segment sup.footnote-marker::before {
+.segment sup::before {
   padding: 12px 12px;
   content: "";
   margin-inline-start: -7px;
