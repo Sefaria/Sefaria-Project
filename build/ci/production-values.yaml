@@ -2,6 +2,8 @@ sandbox: "false"
 contentSandbox: "false"
 deployEnv: production  
 previousServicesCount: "3"
+restore:
+  enabled: false
 backup:
   enabled: true
   prefix: ""
@@ -10,10 +12,21 @@ backup:
   archiveBucket: sefaria-mongo-archive
   serviceAccount: database-backup-write
 web:
-  replicaCount: 7
   containerImage: 
     imageRegistry:
     tag: 
+  replicaCount: 7
+  resources:
+    web:
+      gunicornWorkerCount: 5
+      gunicornThreadCount: 5
+      resources:
+        requests:
+          memory: "10Gi"
+          cpu: "1500m"
+        limits:
+          memory: "11Gi"
+          cpu: "2"
   secrets:
     googleClient:
       ref: google-client-secret-production
@@ -25,40 +38,113 @@ redis:
   containerImage:
     imageRegistry: redis
     tag: latest
+  resources:
+    requests:
+      memory: "500Mi"
+      cpu: "100m"
+    limits:
+      memory: "1500Mi"
+      cpu: "200m"
 nodejs:
-  replicaCount: 4
   containerImage: 
     imageRegistry:
     tag: 
+  replicaCount: 4
+  resources:
+    requests:
+      memory: "1Gi"
+      cpu: "1"
+    limits:
+      memory: "1500Mi"
+      cpu: "1500m"
 varnish:
   containerImage:
     imageRegistry: gcr.io/production-deployment/sefaria-varnish
     tag: v6
+  logging: {}
+  replicaCount: 1
+  resources:
+    requests:
+      memory: "16Gi"
+      cpu: "1"
+    limits:
+      memory: "18Gi"
+      cpu: "1500m"
+  tuning:
+    malloc: "14440m"
+    nuke_limit: "400"
+    thread_pools: 2
+    thread_pool_max: 5000
+    thread_pool_min: 100
+    first_byte_timeout: 60  # Default 60s
+    between_bytes_timeout: 60  # Default 60s
   secrets:
     varnish:
       ref: varnish-secret-production
 ingress:
   hosts: 
-    - host: "production-test.sefaria.org"
+    - host: "sefaria.org"
+      path: /*
+      serviceName: nginx
+      port: 80
+    - host: "sefaria.org.il"
+      path: /*
+      serviceName: nginx
+      port: 80
+    - host: "www.sefaria.org"
+      path: /*
+      serviceName: nginx
+      port: 80
+    - host: "www.sefaria.org.il"
+      path: /*
+      serviceName: nginx
+      port: 80
+    - host: "prod.sefaria.org"
+      path: /*
+      serviceName: nginx
+      port: 80
+    - host: "prod.sefaria.org.il"
+      path: /*
+      serviceName: nginx
+      port: 80
+    - host: "rollout.sefaria.org"
+      path: /*
+      serviceName: nginx
+      port: 80
+    - host: "rollout.sefaria.org.il"
       path: /*
       serviceName: nginx
       port: 80
   secrets:
-    # Assuming cloudflare here, will need to add certs in via infra if not
     originTls: 
       ref: origin-tls-prod2
-    originIlTlsA:
+    originIlTls:
       ref: origin-il-tls-prod2 
 nginx:
+  containerImage: 
+    imageRegistry:
+    tag: 
+  SEARCH_HOST: elasticsearch-data
   replicaCount: 2
-  containerImage: 
-    imageRegistry:
-    tag: 
+  resources:
+    requests:
+      memory: "200Mi"
+      cpu: "100m"
+    limits:
+      memory: "300Mi"
+      cpu: "150m"
 monitor:
-  replicaCount: 1
   containerImage: 
     imageRegistry:
     tag: 
+  replicaCount: 1
+  resources:
+    requests:
+      memory: "300Mi"
+      cpu: "50m"
+    limits:
+      memory: "400Mi"
+      cpu: "100m"
 secrets:
   localSettings: 
     ref: local-settings-secrets-production
@@ -78,7 +164,7 @@ localSettings:
   SEARCH_ADMIN: "http://elasticsearch-data:9200"
   TURN_SERVER: ''
   USE_CLOUDFLARE: false
-  FRONT_END_URL:  "http://production-test.sefaria.org" 
+  FRONT_END_URL:  "http://www.sefaria.org" 
   OFFLINE: false
   DOWN_FOR_MAINTENANCE: false
   MAINTENANCE_MESSAGE: "Sefaria is down for scheduled maintenance. We expect to be back online within 15 minutes. Thank you for your patience."

@@ -3,7 +3,7 @@ name: Deploy Production
 on:
   push:
     tags:
-      - 't*'
+      - 'v*'
 
 jobs:
   # Note - build occurs again here, even though this image has been built in continuous.
@@ -120,5 +120,5 @@ jobs:
           GIT_COMMIT: "${{ github.ref_name }}"
           PROJECT_ID: "${{ secrets.PROD_GKE_PROJECT }}"
           NAMESPACE: "${{secrets.PROD_GKE_NAMESPACE}}"
-          CHART_VERSION: 0.0.15
+          CHART_VERSION: 0.0.19
 
