@@ -4110,11 +4110,6 @@ def translations_api(request, lang=None):
                 categories = myIndexInfo["categories"]
                 if "Reference" in categories:
                     continue # don't list references (also they don't fit assumptions)
-                # if lang == "en":
-                #     if "enComplete" not in vstate["flags"]:
-                #         continue
-                #     if vstate["flags"]["enComplete"] == False:
-                #         continue
                 titles.append(myIndex["title"])
                 depth = 2
                 ind = 0
