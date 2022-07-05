@@ -5202,7 +5202,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 0.6em;
   line-height: 1;
 }
-.segment sup.footnote-marker {
+.segment sup.footnote-marker,
+.segment sup.endFootnote{
   color: var(--inline-link-blue);
 }
 .segment .he sup {
