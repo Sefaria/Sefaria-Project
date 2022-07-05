@@ -5194,7 +5194,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-family: "Heebo", sans-serif;
 }
 /* Footnotes */
-.segment sup {
+.segment sup.footnote-marker {
   margin-left: .2em;
   margin-right: .2em;
   text-decoration: none;
@@ -5203,16 +5203,16 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   line-height: 1;
   color: var(--inline-link-blue);
 }
-.segment .he sup {
+.segment .he sup.footnote-marker {
   font-size: 0.6em;
 }
-.segment sup:hover {
+.segment sup.footnote-marker:hover {
   text-decoration: underline;
 }
-.sheetContent .segment sup:hover {
+.sheetContent .segment sup.footnote-marker:hover {
   text-decoration: none;
 }
-.segment sup::before {
+.segment sup.footnote-marker::before {
   padding: 12px 12px;
   content: "";
   margin-inline-start: -7px;
