@@ -258,7 +258,7 @@ class Notification(abst.AbstractMongoRecord):
         keys = {
             "message":        "sender",
             "sheet like":     "liker",
-            "sheet publish":  "publisher", 
+            "sheet publish":  "publisher",
             "follow":         "follower",
             "collection add": "adder",
             "discuss":        "adder",
@@ -266,7 +266,7 @@ class Notification(abst.AbstractMongoRecord):
         return self.content[keys[self.type]]
 
     def client_contents(self):
-        """ 
+        """
         Returns contents of notification in format usable by client, including needed merged
         data from profiles, sheets, etc
         """
@@ -291,8 +291,13 @@ class Notification(abst.AbstractMongoRecord):
             n["content"]["summary"] = sheet_data["summary"]
 
         def annotate_collection(n, collection_slug):
-            c = Collection().load({"slug": collection_slug})
-            n["content"]["collection_name"] = c.name
+            try:
+               c = Collection().load({"slug": collection_slug})
+               n["content"]["collection_name"] = c.name
+            except:
+               c = Collection().load({"privateSlug": collection_slug})
+               n["content"]["collection_name"] = c.name
+
 
         if n["type"] == "sheet like":
             annotate_sheet(n, n["content"]["sheet_id"])
@@ -359,7 +364,7 @@ class NotificationSet(abst.AbstractMongoSet):
         return self
 
     def mark_read(self, via="site"):
-        """Marks all notifications in this set as read""" 
+        """Marks all notifications in this set as read"""
         for notification in self:
             notification.mark_read(via=via).save()
 
@@ -399,7 +404,7 @@ def process_sheet_deletion_in_notifications(sheet_id):
     """
     When a sheet is deleted remove it from any collections.
     Note: this function is not tied through dependencies.py (since Sheet mongo model isn't generlly used),
-    but is called directly from sheet deletion view in sourcesheets/views.py. 
+    but is called directly from sheet deletion view in sourcesheets/views.py.
     """
     ns = NotificationSet({"content.sheet_id": sheet_id})
     ns.delete()

@@ -2325,6 +2325,21 @@ a.navBlockTitle:hover {
 .hebrew .navBlockDescription{
   line-height: 24px;
 }
+.categoryFilter:not(.withBooks) .sidebarDescription{
+display: none;
+}
+.sidebarDescription{
+  color: var(--dark-grey);
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: var(--sans-serif-small-font-size);
+  padding-top: 10px;
+}
+
+.sidebarDescription.lowlight{
+  color: var(--light-grey);
+}
+
 .navBlockTitle .int-he, .navBlockDescription .int-he{
   font-size: 122%;
 }
@@ -3544,6 +3559,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item {
   color: black;
   cursor: pointer;
   display: block;
+}
+body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item:hover{
+  background: var(--lighter-grey);
 }
 body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus {
   text-decoration: underline;
@@ -5677,7 +5695,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   border-top-color: var(--category-color);
 }
 .categoryFilterGroup.withBooks .categoryFilter{
-  text-transform: uppercase;
   margin: initial;
   margin-inline-end: 34px;
   margin-inline-start: 34px;

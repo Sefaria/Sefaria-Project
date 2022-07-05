@@ -111,9 +111,17 @@ class LexiconEntry(abst.AbstractMongoRecord):
         "orig_word",
         "orig_ref",
         "catane_number",
-        "rid"
+        "rid",
+        "strong_numbers",
+        'peculiar',
+        'all_cited',
+        'ordinal',
+        'brackets',
+        'headword_suffix',
+        'root',
+        'occurrences'
     ]
-    ALLOWED_TAGS    = ("i", "b", "br", "u", "strong", "em", "big", "small", "img", "sup", "span", "a")
+    ALLOWED_TAGS    = ("i", "b", "br", "u", "strong", "em", "big", "small", "img", "sup", "sub", "span", "a")
     ALLOWED_ATTRS   = {
         'span':['class', 'dir'],
         'i': ['data-commentator', 'data-order', 'class', 'data-label', 'dir'],
@@ -199,6 +207,9 @@ class DictionaryEntry(LexiconEntry):
             new_content += next_line
         return [new_content]
 
+    def get_alt_headwords(self):
+        return getattr(self, "alt_headwords", [])
+
 
 class StrongsDictionaryEntry(DictionaryEntry):
     required_attrs = DictionaryEntry.required_attrs + ["content", "strong_number"]
@@ -257,6 +268,46 @@ class KleinDictionaryEntry(DictionaryEntry):
             text += sense.get(field, '') + ' '
         return text[:-1]
 
+class BDBEntry(DictionaryEntry):
+    required_attrs = DictionaryEntry.required_attrs + ["content", "rid"]
+    optional_attrs = ['strong_numbers', 'next_hw', 'prev_hw', 'peculiar', 'all_cited', 'ordinal', 'brackets', 'headword_suffix', 'alt_headwords', 'root', 'occurrences', 'quotes']
+
+    def headword_string(self):
+        hw = f'<span dir="rtl">{re.sub("[⁰¹²³⁴⁵⁶⁷⁸⁹]*", "", self.headword)}</span>'
+        if hasattr(self, 'occurrences'):
+            hw += f'</big><sub>{self.occurrences}</sub><big>' #the sub shouldn't be in big
+        alts = []
+        if hasattr(self, 'alt_headwords'):
+            for alt in self.alt_headwords:
+                a = f'<span dir="rtl">{alt["word"]}</span>'
+                if 'occurrences' in alt:
+                    a += f'</big><sub>{alt["occurrences"]}</sub><big>' #the sub shouldn't be in big
+                alts.append(a)
+        if getattr(self, 'brackets', '') == 'all':
+            if hasattr(self, 'headword_suffix'):
+                hw = f'[{hw}{self.headword_suffix}]' #if there's a space, it'll be part of headword_suffix
+            else:
+                hw = ", ".join([hw] + alts)
+        else:
+            if hasattr(self, 'brackets') and self.brackets == 'first_word':
+                hw = f'[{hw}]'
+            if hasattr(self, 'alt_headwords'):
+                hw = ", ".join([hw] + alts)
+        hw = f'<big>{hw}</big>'
+        if hasattr(self, 'root'):
+            hw = f'<big>{hw}</big>'
+        if hasattr(self, 'ordinal'):
+            hw = f'{self.ordinal} {hw}'
+        if hasattr(self, 'all_cited'):
+            hw = f'† {hw}'
+        if hasattr(self, 'peculiar'):
+            hw = f'‡ {hw}'
+        hw = re.sub('<big></big>', '', hw)
+        return hw
+
+    def get_alt_headwords(self):
+        alts = getattr(self, "alt_headwords", [])
+        return [a['word'] for a in alts]
 
 class LexiconEntrySubClassMapping(object):
     lexicon_class_map = {
@@ -266,7 +317,9 @@ class LexiconEntrySubClassMapping(object):
         "Jastrow Unabbreviated" : JastrowDictionaryEntry,
         'Klein Dictionary': KleinDictionaryEntry,
         'Sefer HaShorashim': HebrewDictionaryEntry,
-        'Animadversions by Elias Levita on Sefer HaShorashim': HebrewDictionaryEntry
+        'Animadversions by Elias Levita on Sefer HaShorashim': HebrewDictionaryEntry,
+        'BDB Dictionary': BDBEntry,
+        'BDB Aramaic Dictionary': BDBEntry
     }
 
     @classmethod
