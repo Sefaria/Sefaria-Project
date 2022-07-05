@@ -88,14 +88,14 @@ web:
       ref:
 
 linker:
-  enabled: true
+  enabled: false
   # key-pair values to load into web pod environment.  Takes precedence over global localsettings
   model_paths:
-    en: foo
-    he: "gs://sefaria-ml-models/ref_model.tar.gz"
+    # en: path
+    # he: path
   part_model_paths:
-    en: foo
-    he: "gs://sefaria-ml-models/subref_model.tar.gz"
+    # en: path
+    # he: path
   localsettings:
   # APP: web
   containerImage:
