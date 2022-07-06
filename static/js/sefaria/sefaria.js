@@ -1476,12 +1476,12 @@ Sefaria = extend(Sefaria, {
         if (Object.keys(this._descDict).length === 0){
             //Init of the Dict with the Category level descriptions
             Sefaria.toc.map(e=> {this._descDict[[e.category, []]] = [e.enShortDesc, e.heShortDesc]})
-            // todo: get this data out of code (into db?)
-            this._descDict[["Commentary", []]] = ["Interpretations and discussions surrounding Jewish texts, ranging from early medieval to contemporary.", "פירושים ודיונים סביב טקסטים תורניים, מימי הביניים ועד ימינו."]
-            this._descDict[["Quoting Commentary", []]] = ["References to this source within commentaries on other texts in the wider library.", "התייחסויות אל המקור הנוכחי במפרשים משניים."]
 
             // special case of a category in sidebar that is a sub cat on the navigation toc pages
             if (Sefaria._siteSettings["TORAH_SPECIFIC"]) {
+                // todo: get this data out of code (into db?)
+                this._descDict[["Commentary", []]] = ["Interpretations and discussions surrounding Jewish texts, ranging from early medieval to contemporary.", "פירושים ודיונים סביב טקסטים תורניים, מימי הביניים ועד ימינו."]
+                this._descDict[["Quoting Commentary", []]] = ["References to this source within commentaries on other texts in the wider library.", "התייחסויות אל המקור הנוכחי במפרשים משניים."]
                 this._descDict[["Targum", []]] = this.getDescriptions("Targum", ["Tanakh"]);
             }
         }
