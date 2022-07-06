@@ -498,7 +498,7 @@ Sefaria = extend(Sefaria, {
     "de": {"name": "German", "nativeName": "Deutsch", "showTranslations": 1},
     "en": {"name": "English", "nativeName": "English", "showTranslations": 1},
     "eo": {"name": "Esperanto", "nativeName": "Esperanto", "showTranslations": 1},
-    "es": {"name": "Spanish", "nativeName": "Español", "showTranslations": 1},
+    "es": {"name": "Spanish", "nativeName": "Español", "showTranslations": 1, /* "title": "Insert Title Here" */},
     "fa": {"name": "Persian", "nativeName": "فارسی", "showTranslations": 1},
     "fi": {"name": "Finnish", "nativeName": "suomen kieli", "showTranslations": 1},
     "fr": {"name": "French", "nativeName": "Français", "showTranslations": 1},

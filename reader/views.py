@@ -950,13 +950,31 @@ def translations_page(request, slug):
     """
     Main page for translations
     """
+    title_dictionary = {
+        "ar": {"name": "Arabic", "nativeName": "عربى"},
+        # "de": {"name": "German", "nativeName": "Deutsch",  "title": "Insert Title Here"},
+        "de": {"name": "German", "nativeName": "Deutsch",  "title": "Insert Title Here"},
+        "en": {"name": "English", "nativeName": "English"},
+        "eo": {"name": "Esperanto", "nativeName": "Esperanto"},
+        "es": {"name": "Spanish", "nativeName": "Español"},
+        "fa": {"name": "Persian", "nativeName": "فارسی"},
+        "fi": {"name": "Finnish", "nativeName": "suomen kieli"},
+        "fr": {"name": "French", "nativeName": "Français"},
+        "he": {"name": "Hebrew", "nativeName": "עברית"},
+        "it": {"name": "Italian", "nativeName": "Italiano"},
+        "lad": {"name": "Ladino", "nativeName": "Judeo-español"},
+        "pl": {"name": "Polish", "nativeName": "Polskie"},
+        "pt": {"name": "Portuguese", "nativeName": "Português"},
+        "ru": {"name": "Russian", "nativeName": "Pусский"},
+        "yi": {"name": "Yiddish", "nativeName": "יידיש"},
+    }
     props = base_props(request)
     props.update({
         "initialMenu":              "translationsPage",
         "initialTranslationsSlug":   slug,
     })
     return render_template(request, 'base.html', props, {
-        "title": "Jewish Texts in" + " " + slug,
+        "title": title_dictionary[slug]["title"] if "title" in title_dictionary[slug] else "Jewish Texts in " + title_dictionary[slug]["name"] if slug in title_dictionary else "Jewish Texts in" + " " + slug,
         "desc": "loren ipsum",
         "noindex": False
     })
