@@ -952,7 +952,7 @@ def translations_page(request, slug):
     """
     title_dictionary = {
         "ar": {"name": "Arabic", "nativeName": "عربى"},
-        # "de": {"name": "German", "nativeName": "Deutsch",  "title": "Insert Title Here"},
+        # "de": {"name": "German", "nativeName": "Deutsch", "title": "Insert Title Here", "desc": "Insert Desc Here"},
         "de": {"name": "German", "nativeName": "Deutsch",  "title": "Insert Title Here"},
         "en": {"name": "English", "nativeName": "English"},
         "eo": {"name": "Esperanto", "nativeName": "Esperanto"},
@@ -975,7 +975,7 @@ def translations_page(request, slug):
     })
     return render_template(request, 'base.html', props, {
         "title": title_dictionary[slug]["title"] if "title" in title_dictionary[slug] else "Jewish Texts in " + title_dictionary[slug]["name"] if slug in title_dictionary else "Jewish Texts in" + " " + slug,
-        "desc": "loren ipsum",
+        "desc": title_dictionary[slug]["desc"] if "desc" in title_dictionary[slug] else "Jewish Texts in " + title_dictionary[slug]["name"] if slug in title_dictionary else "Jewish Texts in" + " " + slug, #TODO: Add copy
         "noindex": False
     })
 
