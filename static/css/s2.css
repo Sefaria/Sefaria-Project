@@ -6132,8 +6132,13 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .textListTextRangeBox.typeQF .titleBox{
   color: forestgreen;
 }
-.textListTextRangeBox.scoreColor .titleBox{
-  color: pink;
+.textListTextRangeBox.scoreColor {
+    display: none;
+}
+.qflinkScore {
+  font-size: var(--sans-serif-small-font-size);
+  color: black;
+  padding: 12px;
 }
 .textRange.lowlight .numberLabel {
   color: #999;

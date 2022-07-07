@@ -419,6 +419,7 @@ class TextRange extends Component {
         (<div className="title">
           <div className="titleBox" role="heading" aria-level="2">
             <ContentText text={{en: title, he: heTitle}} defaultToInterfaceOnBilingual={true}/>
+            <span className="qflinkScore">{this.props.qflinkScore}</span>
           </div>
           {this.props.titleButtons ? <div className="buttons" onClick={e => e.stopPropagation()}>{this.props.titleButtons}</div> : null }
         </div>)}
@@ -463,6 +464,7 @@ TextRange.propTypes = {
   inlineReference:        PropTypes.object,
   textHighlights:         PropTypes.array,
   translationLanguagePreference: PropTypes.string,
+  qflinkScore:            PropTypes.number
 };
 TextRange.defaultProps = {
   currVersions: {en:null,he:null},

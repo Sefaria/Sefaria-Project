@@ -1,5 +1,4 @@
-import React, {useState} from 'react';
-// import Slider from 'react-input-slider';
+import React from 'react';
 import Sefaria from './sefaria/sefaria';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
@@ -20,30 +19,6 @@ class CategoryFilter extends Component {
       if (Sefaria.site) { Sefaria.track.event("Reader", "Connections Category Click", this.props.category); }
     }
   }
-  getSliderScore() {
-        // var rangeslider = document.getElementById("sliderRange");
-        // var output = document.getElementById("demo");
-        // output.innerHTML = rangeslider.value;
-        //
-        // rangeslider.oninput = function() {
-        //   output.innerHTML = this.value;
-        // }
-    return (
-        <div>
-          <input type="range" min="1" max="100" defaultValue="22" className="myslider" id="sliderRange"/>
-        </div>
-            )
-        // const [state, setState] = useState({x: 10})
-        // return (<div>
-        //       ({state.x})
-        //       <Slider axis="xy" x={state.x} onChange={setState} />
-        //       <Slider
-        //         axis="x"
-        //         x={state.x}
-        //         onChange={({ x }) => setState(state => ({ ...state, x }))}
-        //       />
-        //     </div>)
-      }
   render() {
     const filterSuffix = this.props.category  == "Quoting Commentary" ? "Quoting" : null;
     const textMissingDescription = null; //"missing description"
@@ -69,8 +44,6 @@ class CategoryFilter extends Component {
     const style       = {"--category-color":color}
     let innerClasses = classNames({categoryFilter: 1, withBooks: this.props.showBooks, on: this.props.on});
     let handleClick  = this.handleClick;
-    let score = this.getSliderScore()
-    debugger; //  console.log(document.getElementById("sliderRange").value)
     const url = (this.props.srefs && this.props.srefs.length > 0)?"/" + Sefaria.normRef(this.props.srefs[0]) + "?with=" + this.props.category:"";
     const classesDesc = classNames({ sidebarDescription: 1, lowlight: this.props.count == 0, title:1});
     let outerClasses = classNames({categoryFilterGroup: 1, withBooks: this.props.showBooks});
@@ -79,7 +52,6 @@ class CategoryFilter extends Component {
     const catHeDesc = catDesc[1];
     return (
       <div className={outerClasses} style={style}>
-        {score}
         <a href={url} onClick={handleClick}>
           <div className={innerClasses} data-name={this.props.category}>
             <span className="filterInner">

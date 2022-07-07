@@ -1,7 +1,11 @@
 import {
   SheetListing,
   LoadingMessage,
-  SimpleLinkedBlock, InterfaceText, EnglishText, HebrewText
+  SimpleLinkedBlock,
+  InterfaceText,
+  EnglishText,
+  HebrewText,
+  LinkScore
 } from './Misc';
 import {
   RecentFilterSet,
@@ -21,6 +25,7 @@ class TextList extends Component {
       linksLoaded: false, // has the list of refs been loaded
       textLoaded:  false, // has the text of those refs been loaded
       waitForText: true,  // should we delay rendering texts until preload is finished
+      sliderLinkScore: 25
     }
   }
   componentDidMount() {
@@ -190,6 +195,9 @@ class TextList extends Component {
 
     return links;
   }
+  updateLinkScore(score) {
+    this.setState({sliderLinkScore: score})
+  }
   render() {
     var refs               = this.props.srefs;
     var oref               = Sefaria.ref(refs[0]);
@@ -216,8 +224,7 @@ class TextList extends Component {
                                     key={i + link.anchorRef} />);
                         } else {
                           var hideTitle = link.category === "Commentary" && this.props.filter[0] !== "Commentary";
-                          const classes = classNames({ textListTextRangeBox: 1,  typeQF: link.type.startsWith('quotation_auto'), scoreColor: link.score >= 62});
-                          console.log("print score", link.score)//, categoryFilter.getElementById("sliderRange"))
+                          const classes = classNames({ textListTextRangeBox: 1,  typeQF: link.type.startsWith('quotation_auto'), scoreColor: link.score < this.state.sliderLinkScore});
                           return (<div className={classes} key={i + link.sourceRef} data-linkscore={link.score}>
                                     <TextRange
                                       panelPosition ={this.props.panelPosition}
@@ -229,6 +236,7 @@ class TextList extends Component {
                                       inlineReference={link.inline_reference || null}
                                       onCitationClick={this.props.onCitationClick}
                                       translationLanguagePreference={this.props.translationLanguagePreference}
+                                      qflinkScore = {link.score}
                                     />
                                     <ConnectionButtons>
                                       <OpenConnectionTabButton srefs={[link.sourceRef]} openInTabCallback={this.props.onTextClick}/>
@@ -253,6 +261,7 @@ class TextList extends Component {
             setFilter={this.props.setFilter}
             showAllFilters={this.showAllFilters} />
             : null }
+          <LinkScore score={this.state.sliderLinkScore} changeScoreCallback={(score)=>this.updateLinkScore(score)}/>
           { content }
         </div>);
   }

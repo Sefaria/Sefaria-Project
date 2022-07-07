@@ -2643,6 +2643,14 @@ const Autocompleter = ({selectedRefCallback}) => {
     )
 }
 
+const LinkScore = ({score, changeScoreCallback}) => {
+  return (<div>
+          <input type="range" min="0" max="100" defaultValue={score} className="myslider" id="sliderRange" onChange={(e) => {changeScoreCallback(e.target.value)}}/>
+          <span className="qflinkScore">{score}</span>
+          </div>
+  )
+  }
+
 export {
   SimpleInterfaceBlock,
   DangerousInterfaceBlock,
@@ -2703,4 +2711,5 @@ export {
   Autocompleter,
   DonateLink,
   DivineNameReplacer,
+  LinkScore,
 };
