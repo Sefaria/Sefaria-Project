@@ -1,3 +1,4 @@
+{{- if not .Values.varnish.managed }}
 apiVersion: v1
 kind: Service
 metadata:
@@ -14,3 +15,4 @@ spec:
     port: 6082
   selector:
     app: varnish-{{ .Values.deployEnv }}
+{{- end }}

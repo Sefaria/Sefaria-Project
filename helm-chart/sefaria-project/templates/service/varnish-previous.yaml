@@ -1,3 +1,4 @@
+{{- if not .Values.varnish.managed }}
 {{- range $k, $v := untilStep (int (sub .Release.Revision .Values.previousServicesCount)) (int (add .Release.Revision 1)) 1 }}
 {{- if gt $v 0 }}
 ---
@@ -18,5 +19,6 @@ spec:
   selector:
     app: varnish-{{ $.Values.deployEnv }}
     releaseRevision: "{{ $v }}"
+{{- end }}
 {{- end }}
 {{- end }}

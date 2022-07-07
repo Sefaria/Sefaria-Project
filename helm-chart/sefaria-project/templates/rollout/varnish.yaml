@@ -1,5 +1,4 @@
-# apiVersion: apps/v1
-# kind: Deployment
+{{- if not .Values.varnish.managed }}
 apiVersion: argoproj.io/v1alpha1
 kind: Rollout
 metadata:
@@ -73,3 +72,4 @@ spec:
         - name: varnish-secret
           secret:
             secretName: {{ template "sefaria.secrets.varnish" . }}
+{{- end }}
