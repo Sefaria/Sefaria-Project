@@ -7,7 +7,7 @@ metadata:
   labels:
     app: linker-{{ .Values.deployEnv }}
     deployEnv: "{{ .Values.deployEnv }}"
-    stackRole: varnish
+    stackRole: linker
 spec:
   ports:
   - port: 80
