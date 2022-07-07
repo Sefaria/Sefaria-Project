@@ -39,8 +39,12 @@ jobs:
           username: _json_key
           password: ${{ secrets.DEV_CLOUDBUILD_SA_KEY }}
       - name: Get branch name
-        id: branch-name
+        id: branch-raw
         uses: tj-actions/branch-names@v5.1
+      - name: Format branch name
+        id: branch-name
+        run: |
+          echo "::set-output name=current_branch::"$(echo ${{ steps.branch-raw.outputs.current_branch }} | awk '{print tolower($0)}' | sed 's/[^a-z0-9\.\-]//g')
       - name: Get current date
         id: date
         run: echo "::set-output name=date::$(date +'%Y%m%d%H%M')"
@@ -86,8 +90,12 @@ jobs:
           username: _json_key
           password: ${{ secrets.DEV_CLOUDBUILD_SA_KEY }}
       - name: Get branch name
-        id: branch-name
+        id: branch-raw
         uses: tj-actions/branch-names@v5.1
+      - name: Format branch name
+        id: branch-name
+        run: |
+          echo "::set-output name=current_branch::"$(echo ${{ steps.branch-raw.outputs.current_branch }} | awk '{print tolower($0)}' | sed 's/[^a-z0-9\.\-]//g')
       - name: Get current date
         id: date
         run: echo "::set-output name=date::$(date +'%Y%m%d%H%M')"
@@ -153,8 +161,12 @@ jobs:
           service_account_key: ${{ secrets.DEV_CLOUDBUILD_SA_KEY }}
           project_id: ${{ secrets.DEV_PROJECT }}
       - name: Get branch name
-        id: branch-name
+        id: branch-raw
         uses: tj-actions/branch-names@v5.1
+      - name: Format branch name
+        id: branch-name
+        run: |
+          echo "::set-output name=current_branch::"$(echo ${{ steps.branch-raw.outputs.current_branch }} | awk '{print tolower($0)}' | sed 's/[^a-z0-9\.\-]//g')
       - name: Set outputs
         id: get-sha
         run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
@@ -274,8 +286,12 @@ jobs:
         id: get-sha
         run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
       - name: Get branch name
-        id: branch-name
+        id: branch-raw
         uses: tj-actions/branch-names@v5.1
+      - name: Format branch name
+        id: branch-name
+        run: |
+          echo "::set-output name=current_branch::"$(echo ${{ steps.branch-raw.outputs.current_branch }} | awk '{print tolower($0)}' | sed 's/[^a-z0-9\.\-]//g')
       - name: Start Job
         run: envsubst '${GITHUB_RUN_ID},${DEPLOY_ENV},${WEB_IMAGE_NAME},${WEB_IMAGE_TAG},${TIMESTAMP}' < ./build/ci/pyTestPod.yaml | kubectl apply -f -
         env:
