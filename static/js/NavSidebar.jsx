@@ -115,7 +115,7 @@ const AboutSefaria = ({hideTitle}) => (
 const AboutTranslatedText = ({translationsSlug}) => {
 
   const translationLookup = {
-    "fr": {title: "french title", body: "french translation lorem ipsum blah blah"}
+    // "fr": {title: "french title", body: "french translation lorem ipsum blah blah"}
   }
   return (
   <Module>
