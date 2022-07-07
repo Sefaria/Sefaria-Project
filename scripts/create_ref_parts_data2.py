@@ -43,7 +43,8 @@ class ReusableTermManager:
         self.alt_title_to_term = {}
         self.old_term_map = {}
 
-    def create_term(self, **kwargs):
+    @staticmethod
+    def create_term(**kwargs):
         """
 
         @param kwargs:
@@ -68,14 +69,51 @@ class ReusableTermManager:
         term.save()
         return term
 
-    def create_term_from_titled_obj(self, obj, ref_part_role, new_alt_title_map=None, title_modifier=None, title_adder=None):
-        new_alt_title_map = new_alt_title_map or {}
+    @staticmethod
+    def create_term_from_titled_obj(obj, ref_part_role, new_alt_titles=None, title_modifier=None, title_adder=None):
+        """
+        Create a NonUniqueTerm from 'titled object' (see explanation of `obj` param)
+        Accepts params to modify or add new alt titles
+        @param obj: either of instance `TitleGroup` or has an attribute `title_group` (e.g. a `Term` has this field)
+        @param ref_part_role: See docs for attribute `ref_part_role` on NonUniqueTerm class
+        @param new_alt_titles: list[str]. optional list of alt titles to add. will auto-detect language of title.
+        @param title_modifier: function(lang, str) -> str. given lang and current alt title, replaces alt title with return value. Useful for removing common prefixes such as "Parshat" or "Mesechet"
+        @param title_adder: function(lang, str) -> str. given lang and current alt title, returns new alt title. If returns None, no alt title is added for given title. Useful for creating variations on existing alt titles.
+        @return: new NonUniqueTerm
+
+        Example:
+
+        .. highlight:: python
+        .. code-block:: python
+
+            # make NonUniqueTerm based on index node of "Genesis"
+            # remove leading "Sefer " from all alt titles
+            # add new titles that replace "sh" with "š"
+
+            def title_modifier(lang, title):
+                if lang == "en":
+                    return re.sub(r"^Sefer ", "", title)
+                return title
+
+            def title_adder(lang, title):
+                if "sh" in title:
+                    return title.repalce("sh", "š")
+
+            index = library.get_index("Genesis")
+            gen_term = ReusableTermManager.create_term_from_titled_obj(
+                index.nodes, "structural", ["Bˋershis", "Breišis"],
+                title_modifier, title_adder
+            )
+
+        ...
+
+        """
+        new_alt_titles = new_alt_titles or []
         title_group = obj if isinstance(obj, TitleGroup) else obj.title_group
         en_title = title_group.primary_title('en')
         he_title = title_group.primary_title('he')
         alt_en_titles = [title for title in title_group.all_titles('en') if title != en_title]
         alt_he_titles = [title for title in title_group.all_titles('he') if title != he_title]
-        new_alt_titles = new_alt_title_map.get(en_title, [])
         for new_alt in new_alt_titles:
             if is_hebrew(new_alt):
                 alt_he_titles += [new_alt]
@@ -89,7 +127,7 @@ class ReusableTermManager:
                         alt_title_list += [new_alt]
             if title_modifier:
                 alt_title_list[:] = [title_modifier(lang, t) for t in alt_title_list]
-        return self.create_term(en=en_title, he=he_title, alt_en=alt_en_titles, alt_he=alt_he_titles, ref_part_role=ref_part_role)
+        return ReusableTermManager.create_term(en=en_title, he=he_title, alt_en=alt_en_titles, alt_he=alt_he_titles, ref_part_role=ref_part_role)
 
     def create_numeric_perek_terms(self):
         from sefaria.utils.hebrew import encode_hebrew_numeral
@@ -280,10 +318,12 @@ class ReusableTermManager:
         tanakh_term_map = {}
         parsha_term_map = {}
         for index in tqdm(indexes, desc='tanakh', total=indexes.count()):
-            self.create_term_from_titled_obj(index.nodes, "structural", hard_coded_tanakh_map, title_adder=tanakh_title_adder)
+            hard_coded_alt_titles = hard_coded_tanakh_map.get(index.title)
+            self.create_term_from_titled_obj(index.nodes, "structural", hard_coded_alt_titles, title_adder=tanakh_title_adder)
 
         for term in TermSet({"scheme": "Parasha"}):
-            self.create_term_from_titled_obj(term, "structural", hard_coded_parsha_map, title_adder=tanakh_title_adder, title_modifier=parsha_title_modifier)
+            hard_coded_alt_titles = hard_coded_parsha_map.get(term.name)
+            self.create_term_from_titled_obj(term, "structural", hard_coded_alt_titles, title_adder=tanakh_title_adder, title_modifier=parsha_title_modifier)
         return tanakh_term_map, parsha_term_map
 
     def create_mt_terms(self):
