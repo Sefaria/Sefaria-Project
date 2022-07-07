@@ -90,6 +90,10 @@ spec:
             value: "varnish-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
           - name: SEARCH_HOST
             value: "{{ .Values.nginx.SEARCH_HOST }}"
+          {{- if .Values.linker.enabled }}
+          - name: LINKER_HOST
+            value: "linker-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+          {{- end }}
         envFrom:
           - configMapRef:
               name: local-settings-nginx-{{ .Values.deployEnv }}
