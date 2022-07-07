@@ -83,7 +83,7 @@ def process_register_form(request, auth_method='session'):
             new_user = form.save()
             user = authenticate(email=form.cleaned_data['email'],
                                 password=form.cleaned_data['password1'])
-            p = UserProfile(id=user.id)
+            p = UserProfile(id=user.id, user_registration=True)
             p.assign_slug()
             p.join_invited_collections()
             if hasattr(request, "interfaceLang"):
