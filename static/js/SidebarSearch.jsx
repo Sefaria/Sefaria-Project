@@ -64,7 +64,7 @@ const SidebarSearch = ({ title, updateAppliedOptionSort }) => {
   // const searchBoxClasses = classNames({searchBox: 1, searchFocused: this.state.searchFocused});
   const searchBoxClasses = classNames({searchBox: 1});
 
-  const handleSearchButtonClick = (event) => {
+  const handleSearchButtonClick = () => {
     setSearchFilterPathForBook('')
     setQuery(document.getElementById('searchQueryInput').value)
   }
@@ -78,6 +78,12 @@ const SidebarSearch = ({ title, updateAppliedOptionSort }) => {
         placeholder={Sefaria._("Search in this text")}
         id="searchQueryInput"
         maxLength={75}
+        onKeyUp={  (event) => {
+            if (event.keyCode === 13) {
+              handleSearchButtonClick()
+            }
+          }
+        }
         title={Sefaria._("Search in this text")} />
     </div>
 
