@@ -39,12 +39,12 @@ const TranslationsPage = ({translationsSlug}) => {
                  
                   ><> {translations ?  Object.keys(translations).map(corpus => {
                 return (<div key={corpus} className="translationsPage">
-                  <h2>{corpus}</h2>
+                  <h2><InterfaceText>{corpus}</InterfaceText></h2>
                   {Sefaria.tocObjectByCategories([corpus]).contents.filter(x => Object.keys(translations[corpus]).includes(x.category)).map(x => {
-                    return (<details key={x.category} open={translationsSlug !== "en"}><summary>{x.category}</summary>
+                    return (<details key={x.category} open={translationsSlug !== "en"}><summary><InterfaceText>{x.category}</InterfaceText></summary>
                     <ul>
                       {translations[corpus][x.category].sort(sortFx).map((y, i) => {
-                        return (<li key={i+y.title} className="bullet languageItem"><a href={y.url}>{y.title}</a></li>)
+                        return (<li key={i+y.title} className="bullet languageItem"><a href={y.url}><InterfaceText>{y.title}</InterfaceText></a></li>)
                       })}
                     </ul>
                     </details>)
