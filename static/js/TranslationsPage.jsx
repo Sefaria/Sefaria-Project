@@ -25,7 +25,7 @@ const TranslationsPage = ({translationsSlug}) => {
         <div className="content">
           <div className="sidebarLayout">
             <div className="contentInner">
-              <h1 className="serif pageTitle"><InterfaceText>{"Jewish Texts in " + Sefaria.ISOMap[translationsSlug]["name"]}</InterfaceText></h1>
+              <h1 className="serif pageTitle"><InterfaceText>{Sefaria.getHebrewTitle(translationsSlug)}</InterfaceText></h1>
               {<TabView
                   currTabIndex={0}
                   tabs={tabs}

@@ -520,7 +520,7 @@ class ReaderApp extends Component {
             break;
           case "translationsPage":
             hist.url   = "translations/" + state.translationsSlug;
-            hist.title = Sefaria.ISOMap[state.translationsSlug] ? Sefaria.ISOMap[state.translationsSlug]["title"] ?  Sefaria.ISOMap[state.translationsSlug]["title"] : "Jewish Texts in " + Sefaria.ISOMap[state.translationsSlug]["name"] : "Jewish texts in " + state.translationsSlug ; // TODO he translation
+            hist.title = Sefaria.getHebrewTitle(state.translationsSlug);
             hist.mode  = "translations";
             break;    
           case "calendars":

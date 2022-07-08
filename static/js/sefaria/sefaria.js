@@ -495,25 +495,28 @@ Sefaria = extend(Sefaria, {
   },
   ISOMap: {
     "ar": {"name": "Arabic", "nativeName": "عربى", "showTranslations": 0},
-    "de": {"name": "German", "nativeName": "Deutsch", "showTranslations": 1},
-    "en": {"name": "English", "nativeName": "English", "showTranslations": 1},
-    "eo": {"name": "Esperanto", "nativeName": "Esperanto", "showTranslations": 1},
-    "es": {"name": "Spanish", "nativeName": "Español", "showTranslations": 1, /* "title": "Insert Title Here" */},
-    "fa": {"name": "Persian", "nativeName": "فارسی", "showTranslations": 1},
-    "fi": {"name": "Finnish", "nativeName": "suomen kieli", "showTranslations": 1},
-    "fr": {"name": "French", "nativeName": "Français", "showTranslations": 1},
-    "he": {"name": "Hebrew", "nativeName": "עברית", "showTranslations": 0},
-    "it": {"name": "Italian", "nativeName": "Italiano", "showTranslations": 1},
+    "de": {"name": "German", "nativeName": "Deutsch", "showTranslations": 1, "title": "Jüdische Texte in Deutscher Sprache"},
+    "en": {"name": "English", "nativeName": "English", "showTranslations": 1, "title": "Jewish Texts in English"},
+    "eo": {"name": "Esperanto", "nativeName": "Esperanto", "showTranslations": 1, "title": "Judaj Tekstoj en Esperanto"},
+    "es": {"name": "Spanish", "nativeName": "Español", "showTranslations": 1, "title": "Textos Judíos en Español"},
+    "fa": {"name": "Persian", "nativeName": "فارسی", "showTranslations": 1, "title": "متون یهودی به زبان فارسی"},
+    "fi": {"name": "Finnish", "nativeName": "suomen kieli", "showTranslations": 1, "title": "Juutalaiset tekstit suomeksi"},
+    "fr": {"name": "French", "nativeName": "Français", "showTranslations": 1, "title": "Textes Juifs en Français"},
+    "he": {"name": "Hebrew", "nativeName": "עברית", "showTranslations": 0, "title": "ספריה בעברית"},
+    "it": {"name": "Italian", "nativeName": "Italiano", "showTranslations": 1, "title": "Testi ebraici in italiano"},
     "lad": {"name": "Ladino", "nativeName": "Judeo-español", "showTranslations": 0},
-    "pl": {"name": "Polish", "nativeName": "Polskie", "showTranslations": 1},
-    "pt": {"name": "Portuguese", "nativeName": "Português", "showTranslations": 1},
-    "ru": {"name": "Russian", "nativeName": "Pусский", "showTranslations": 1},
-    "yi": {"name": "Yiddish", "nativeName": "יידיש", "showTranslations": 1},
+    "pl": {"name": "Polish", "nativeName": "Polskie", "showTranslations": 1, "title": "Teksty żydowskie w języku polskim"},
+    "pt": {"name": "Portuguese", "nativeName": "Português", "showTranslations": 1, "title": "Textos judaicos em portugues"},
+    "ru": {"name": "Russian", "nativeName": "Pусский", "showTranslations": 1, "title": "Еврейские тексты на русском языке"},
+    "yi": {"name": "Yiddish", "nativeName": "יידיש", "showTranslations": 1, "title": "יידישע טעקסטן אויף יידיש"},
   },
   translateISOLanguageCode(code, native = false) {
     //takes two-letter ISO 639.2 code and returns full language name
     const lookupVar = native ? "nativeName" : "name";
     return Sefaria.ISOMap[code.toLowerCase()][lookupVar] || code; 
+  },
+  getHebrewTitle: function(slug) {
+    return Sefaria.ISOMap[slug] ? Sefaria.ISOMap[slug]["title"] ?  Sefaria.ISOMap[slug]["title"] : "Jewish Texts in " + Sefaria.ISOMap[slug]["name"] : "Jewish texts in " + slug ; 
   },
   _versions: {},
   _translateVersions: {},
