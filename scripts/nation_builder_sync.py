@@ -84,6 +84,5 @@ if nonexistent_nb_id_only:
 if not trends_only and not tags_only and not sustainers_only and not nonexistent_nb_id_only:
     sync_sustainers_to_mongo()
     add_nationbuilder_id_to_mongo(False)
-    add_profiles_to_nationbuilder()
     setAllTrends(skip)
     nationbuilder_update_all_tags()
