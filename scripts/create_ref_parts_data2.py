@@ -315,8 +315,6 @@ class ReusableTermManager:
             return re.sub(fr"(?:{parsha_title_regex}) ", '', title)
 
         indexes = library.get_indexes_in_corpus("Tanakh", full_records=True)
-        tanakh_term_map = {}
-        parsha_term_map = {}
         for index in tqdm(indexes, desc='tanakh', total=indexes.count()):
             hard_coded_alt_titles = hard_coded_tanakh_map.get(index.title)
             self.create_term_from_titled_obj(index.nodes, "structural", hard_coded_alt_titles, title_adder=tanakh_title_adder)
@@ -324,56 +322,43 @@ class ReusableTermManager:
         for term in TermSet({"scheme": "Parasha"}):
             hard_coded_alt_titles = hard_coded_parsha_map.get(term.name)
             self.create_term_from_titled_obj(term, "structural", hard_coded_alt_titles, title_adder=tanakh_title_adder, title_modifier=parsha_title_modifier)
-        return tanakh_term_map, parsha_term_map
 
     def create_mt_terms(self):
-        hard_coded_title_map = {
+        hard_coded_title_map = {}
 
-        }
-        title_map = defaultdict(set)
         repls = ['Mishneh Torah,', 'Rambam,', 'רמב"ם,', 'משנה תורה,', 'רמב"ם', 'משנה תורה', 'רמב”ם,', 'רמב”ם', 'רמב״ם', 'רמב״ם,']
         hil_repls = ['Hilchot', 'Hilkhot', 'Laws of', 'הלכות', "הל'"]
         repl_reg = fr'^(({"|".join(re.escape(r) for r in repls)}) )?(({"|".join(re.escape(r) for r in hil_repls)}) )?'
 
+        def title_modifier(lang, title):
+            nonlocal repl_reg
+            title = re.sub(r'<[^>]+>', '', title)
+            title = re.sub(repl_reg, '', title)
+            return title
+
         indexes = library.get_indexes_in_category("Mishneh Torah", full_records=True)
         for index in indexes:
-            en_primary = re.sub(repl_reg, '', index.title)
-            he_primary = re.sub(repl_reg, '', index.get_title('he'))
-            title_map[(en_primary, he_primary)] |= {
-                re.sub(r'<[^>]+>', '', re.sub(repl_reg, '', tit['text'])) for tit in index.nodes.title_group.titles}
-
-        title_term_map = {}
-        for (generic_title_en, generic_title_he), alt_titles in sorted(title_map.items(), key=lambda x: x[0]):
-            alt_he = [tit for tit in alt_titles if is_hebrew(tit) and tit != generic_title_he]
-            alt_en = [tit for tit in alt_titles if not is_hebrew(tit) and tit != generic_title_en]
-            alt_en += hard_coded_title_map.get(generic_title_en, [])
-            term = self.create_term(en=generic_title_en, he=generic_title_he, alt_en=alt_en, alt_he=alt_he,
-                                    ref_part_role='structural')
-            title_term_map[generic_title_en] = term
-        return title_term_map
+            temp_alt_titles = hard_coded_title_map.get(index.title)
+            self.create_term_from_titled_obj(index.nodes, 'structural', temp_alt_titles, title_modifier=title_modifier)
 
     def create_sa_terms(self):
         hard_coded_title_map = {
 
         }
-        title_map = defaultdict(set)
         repls = ['shulchan aruch', 'Shulchan Aruch', 'Shulchan Arukh', 'Shulḥan Arukh', 'Shulhan Arukh', 'S.A.', 'SA', 'שולחן ערוך', 'שו"ע', 'שלחן ערוך', 'שו”ע', 'שו״ע', 'Shulḥan Arukh']
         repl_reg = fr'^({"|".join(re.escape(r) for r in repls)}),? ?'
 
+        def title_modifier(lang, title):
+            nonlocal repl_reg
+            title = re.sub(r'<[^>]+>', '', title)
+            title = re.sub(repl_reg, '', title)
+            title = title.replace('סי\'', '').strip()
+            return title
+
         indexes = library.get_indexes_in_category("Shulchan Arukh", full_records=True)
         for index in indexes:
-            title_map[(index.title.replace('Shulchan Arukh, ', ''), index.get_title('he'))] |= {
-                re.sub(r'<[^>]+>', '', re.sub(repl_reg, '', tit['text'])).replace('סי\'', '').strip() for tit in index.nodes.title_group.titles}
-
-        title_term_map = {}
-        for (generic_title_en, generic_title_he), alt_titles in sorted(title_map.items(), key=lambda x: x[0]):
-            alt_he = [tit for tit in alt_titles if is_hebrew(tit) and tit != generic_title_he]
-            alt_en = [tit for tit in alt_titles if not is_hebrew(tit) and tit != generic_title_en]
-            alt_en += hard_coded_title_map.get(generic_title_en, [])
-            term = self.create_term(en=generic_title_en, he=generic_title_he, alt_en=alt_en, alt_he=alt_he,
-                                    ref_part_role='structural')
-            title_term_map[generic_title_en] = term
-        return title_term_map
+            temp_alt_titles = hard_coded_title_map.get(index.title)
+            self.create_term_from_titled_obj(index.nodes, 'structural', temp_alt_titles, title_modifier=title_modifier)
 
 
 def get_reusable_components():
