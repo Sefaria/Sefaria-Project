@@ -105,14 +105,15 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         return types
 
     def change_description(self, desc, cat_desc):
+        """
+        Sets description in all cases and sets categoryDescription if this is a top level topic
+        """
         self.description_published = True # because this function is used as part of the manual topic editor, we can assume 'description_published' should be True
-        self.description = getattr(self, "description", {})
         self.description = desc
         if getattr(self, "isTopLevelDisplay", False):
-            self.categoryDescription = getattr(self, "categoryDescription", {})
             self.categoryDescription = cat_desc
         elif getattr(self, "categoryDescription", False):
-                delattr(self, "categoryDescription")
+            delattr(self, "categoryDescription")
 
     def topics_by_link_type_recursively(self, **kwargs):
         topics, _ = self.topics_and_links_by_link_type_recursively(**kwargs)

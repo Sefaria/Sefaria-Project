@@ -3,30 +3,43 @@ import Sefaria from "./sefaria/sefaria";
 import $ from "./sefaria/sefariaJquery";
 import {AdminToolHeader, InterfaceText} from "./Misc";
 
-const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc="", origCategoryDesc="",
-                         origCategorySlug="", redirect=(slug) => window.location.href = "/topics/" + slug, close}) => {
+const TopicEditorButton = ({toggleAddingTopics, text}) => {
+    return <div onClick={toggleAddingTopics} id="editTopic" className="button extraSmall topic" role="button">
+        <InterfaceText>{text}</InterfaceText>
+    </div>;
+}
+
+function useTopicToggle() {
+  const [addingTopics, setAddingTopics] = useState(false);
+  const toggleAddingTopics = function(e) {
+      if (e.currentTarget.id === "editTopic") {
+        setAddingTopics(true);
+      }
+      else if(e.currentTarget.id === "cancel") {
+        setAddingTopics(false);
+     }
+  }
+  return [addingTopics, toggleAddingTopics];
+}
+
+const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc="", origCategoryDesc="", origCategorySlug="",
+                     redirect=(slug) => window.location.href = "/topics/" + slug, close}) => {
     const [savingStatus, setSavingStatus] = useState(false);
     const [catSlug, setCatSlug] = useState(origCategorySlug);
     const [description, setDescription] = useState(origDesc?.en);
     const [catDescription, setCatDescription] = useState(origCategoryDesc?.en);
     const [enTitle, setEnTitle] = useState(origEn);
     const [heTitle, setHeTitle] = useState(origHe);
-    const isNewTopic = useRef(origSlug === "");
+    const isNewTopic = origSlug === "";
     const [isCategory, setIsCategory] = useState(catSlug === "Main Menu");
 
-    if (!Sefaria._topicSlugsToTitles) { Sefaria._initTopicSlugsToTitles();}
-    let slugsToTitles = {"": "Choose a Category", "Main Menu": "Main Menu"};
-    slugsToTitles = Object.assign(slugsToTitles, Sefaria._topicSlugsToTitles);
+    const slugsToTitles = Sefaria.slugsToTitles();
     let catMenu = Object.keys(slugsToTitles).map(function (tempSlug, i) {
       const tempTitle = slugsToTitles[tempSlug];
-      if (catSlug === tempSlug) {
-        return <option key={i} value={tempSlug} selected>{tempTitle}</option>;
-      } else {
-        return <option key={i} value={tempSlug}>{tempTitle}</option>;
-      }
+      return <option key={i} value={tempSlug} selected={catSlug === tempSlug}>{tempTitle}</option>;
     });
 
-    const validate = async function () {
+    const validate = function () {
         if (catSlug === "") {
           alert("Please choose a category.");
           return false;
@@ -41,7 +54,7 @@ const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc="", origCatego
         toggleInProgress();
         let url = "";
         let data = {"description": {"en": description, "he": description}, "title": enTitle, "category": catSlug};
-        if (isNewTopic.current) {
+        if (isNewTopic) {
           url = "/api/topic/new";
           if (isCategory) {
             data["catDescription"] = {"en": catDescription, "he": catDescription};
@@ -103,6 +116,17 @@ const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc="", origCatego
       setCatSlug(e.target.value);
       setIsCategory(e.target.value === "Main Menu");
     }
+    const setValues = function(e) {
+        if (e.target.id === "topicTitle") {
+            setEnTitle(e.target.value);
+        }
+        else if (e.target.id === "topicDesc") {
+            setDescription(e.target.value);
+        }
+        else if (e.target.id === "topicCatDesc") {
+            setCatDescription(e.target.value);
+        }
+    }
     return <div className="editTextInfo">
             <div className="static">
                 <div className="inner">
@@ -113,7 +137,7 @@ const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc="", origCatego
                         <AdminToolHeader en="Topic Editor" he="Topic Editor" close={close} validate={validate}/>
                         <div className="section">
                             <label><InterfaceText>Topic Title</InterfaceText></label>
-                            <input id="topicTitle" onBlur={(e) => setEnTitle(e.target.value)} defaultValue={enTitle} placeholder="Add a title."/>
+                            <input id="topicTitle" onBlur={setValues} defaultValue={enTitle} placeholder="Add a title."/>
                         </div>
                         <div className="section">
                           <label><InterfaceText>Category</InterfaceText></label>
@@ -125,15 +149,15 @@ const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc="", origCatego
                         </div>
                         <div className="section">
                             <label><InterfaceText>Topic Description</InterfaceText></label>
-                            <textarea id="topicDesc" onBlur={(e) => setDescription(e.target.value)}
+                            <textarea id="topicDesc" onBlur={setValues}
                                    defaultValue={description} placeholder="Add a description."/>
                         </div>
                        {isCategory ? <div className="section">
                                       <label><InterfaceText>Short Description for Topic Table of Contents</InterfaceText></label>
-                                      <textarea id="topicDesc" onBlur={(e) => setCatDescription(e.target.value)}
+                                      <textarea id="topicCatDesc" onBlur={setValues}
                                              defaultValue={catDescription} placeholder="Add a short description."/>
                                   </div> : null}
-                      {!isNewTopic.current ? <div onClick={deleteTopic} id="deleteTopic" className="button small deleteTopic" tabIndex="0" role="button">
+                      {!isNewTopic ? <div onClick={deleteTopic} id="deleteTopic" className="button small deleteTopic" tabIndex="0" role="button">
                                       <InterfaceText>Delete Topic</InterfaceText>
                                     </div> : null}
                     </div>
@@ -142,4 +166,4 @@ const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc="", origCatego
      </div>
 }
 
-export default TopicEditor;
+export {TopicEditor, TopicEditorButton, useTopicToggle};

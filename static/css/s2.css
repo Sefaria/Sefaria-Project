@@ -11165,7 +11165,7 @@ body .homeFeedWrapper.userStats {
   font-weight: normal;
   color: #000;
 }
-.editTextInfo #newIndex #topicDesc {
+.editTextInfo #newIndex #topicDesc, .editTextInfo #newIndex #topicCatDesc {
   height: 200px;
   width: 97%;
   box-shadow: 0px 1px 3px rgb(0 0 0 / 20%);

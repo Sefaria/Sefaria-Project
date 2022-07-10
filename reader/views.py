@@ -3221,6 +3221,8 @@ def delete_topic(request, topic):
         topic_obj = Topic().load({"slug": topic})
         if topic_obj:
             topic_obj.delete()
+            RefTopicLinkSet({"toTopic": topic}).delete()
+            IntraTopicLinkSet({"$or": [{"toTopic": topic}, {"fromTopic": topic}]}).delete()
             return jsonResponse({"status": "OK"})
         else:
             return jsonResponse({"error": "Topic {} doesn't exist".format(topic)})
