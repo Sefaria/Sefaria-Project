@@ -370,10 +370,10 @@ def get_reusable_components():
 
 class LinkerIndexConverter:
 
-    def __init__(self, title, node_mutator, get_term_prefixes, title_alt_title_map, fast_unsafe_saving=False):
+    def __init__(self, title, title_is_category=False, node_mutator=None, get_term_prefixes=None, title_alt_title_map=None, fast_unsafe_saving=False):
         """
 
-        @param title: title of index to conver
+        @param title: title of index to convert
         @param node_mutator: function of form (node: SchemaNode, depth: int) -> None. Can add any necessary fields to `node`
         @param get_term_prefixes: function of form (node: SchemaNode, depth: int) -> List[List[NonUniqueTerm]].
         @param title_alt_title_map: mapping from primary node title to list of strings which are new alt titles.
@@ -385,8 +385,9 @@ class LinkerIndexConverter:
         self.fast_unsafe_saving = fast_unsafe_saving
 
     def convert(self):
-        self.index.nodes.traverse_to_string(self.node_visitor)
-        self.index.save()
+        if self.node_mutator:
+            self.index.nodes.traverse_to_string(self.node_visitor)
+        self.save_index()
 
     def save_index(self):
         if self.fast_unsafe_saving:
