@@ -370,7 +370,7 @@ def get_reusable_components():
 
 class LinkerIndexConverter:
 
-    def __init__(self, title, title_is_category=False, node_mutator=None, get_term_prefixes=None, title_alt_title_map=None, fast_unsafe_saving=False):
+    def __init__(self, title, node_mutator=None, get_term_prefixes=None, title_alt_title_map=None, fast_unsafe_saving=False):
         """
 
         @param title: title of index to convert
