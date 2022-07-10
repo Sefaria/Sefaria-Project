@@ -368,6 +368,22 @@ def get_reusable_components():
     """
 
 
+class LinkerCategoryConverter:
+    """
+    Manager which handles converting all indexes in a category or corpus.
+    """
+
+    def __init__(self, title, is_corpus=False, **linker_index_converter_kwargs):
+        index_getter = library.get_indexes_in_corpus if is_corpus else library.get_indexes_in_category
+        self.titles = index_getter(title)
+        self.linker_index_converter_kwargs = linker_index_converter_kwargs
+
+    def convert(self):
+        for title in self.titles:
+            index_converter = LinkerIndexConverter(title, **self.linker_index_converter_kwargs)
+            index_converter.convert()
+
+
 class LinkerIndexConverter:
 
     def __init__(self, title, node_mutator=None, get_term_prefixes=None, title_alt_title_map=None, fast_unsafe_saving=False):
