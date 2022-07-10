@@ -80,6 +80,11 @@ a, a:hover {
   src: url('/static/fonts/NotoColorEmoji.ttf');
   unicode-range: U+1F1E6-1F1FF;
 }
+@font-face {
+  font-family: 'Noto Sans Samaritan';
+  src: url('/static/fonts/NotoSansSamaritan-Regular.ttf');
+  unicode-range: U+0800-083F;
+}
 :root {
   /* font stacks */
   --english-sans-serif-font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
@@ -12298,7 +12303,9 @@ span.ref-link-color-3 {color: blue}
   width: 18px;
   margin-inline-start: 6px;
 }
-
+.samaritan{
+   font-family: 'Noto Sans Samaritan';
+}
 
 @-webkit-keyframes load5 {
 0%,100%{box-shadow:0 -2.6em 0 0 #ffffff,1.8em -1.8em 0 0 rgba(0,0,0,0.2),2.5em 0 0 0 rgba(0,0,0,0.2),1.75em 1.75em 0 0 rgba(0,0,0,0.2),0 2.5em 0 0 rgba(0,0,0,0.2),-1.8em 1.8em 0 0 rgba(0,0,0,0.2),-2.6em 0 0 0 rgba(0,0,0,0.5),-1.8em -1.8em 0 0 rgba(0,0,0,0.7)}
