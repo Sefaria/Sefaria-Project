@@ -19,7 +19,7 @@ data:
 
     http {
       # https://nginx.org/en/docs/varindex.html
-      log_format structured '{ "requestDuration": $request_time, "envName": "${ENV_NAME}", "stackComponent": "nginx", "host": "$hostname", "severity": "info", "httpRequest": { "requestMethod": "$request_method", "requestUrl": "$request_uri", "requestSize": $request_length, "status":  $status, "responseSize": $body_bytes_sent, "userAgent":  "$http_user_agent", "remoteIp": "$remote_addr", "referer": "$http_referer", "latency": ${request_time}s, "protocol": "$server_protocol" }, "remoteUser": "$remote_user", "timeLocal": "$time_local" }';
+      log_format structured '{ "requestDuration": $request_time, "envName": "${ENV_NAME}", "stackComponent": "nginx", "host": "$hostname", "severity": "info", "httpRequest": { "requestMethod": "$request_method", "requestUrl": "$request_uri", "requestSize": $request_length, "status":  $status, "responseSize": $body_bytes_sent, "userAgent":  "$http_user_agent", "remoteIp": "$remote_addr", "referer": "$http_referer", "latency": ${request_time}s, "protocol": "$server_protocol", "forwarded_http": "$http_x_forwarded_proto" }, "remoteUser": "$remote_user", "timeLocal": "$time_local" }';
       access_log /dev/stdout structured;
       client_max_body_size 32M;
 
