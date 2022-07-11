@@ -115,8 +115,8 @@ class SimpleMongoDBCache(BaseCache):
         else:
             expires = None
         coll = self._get_collection()
-        pickled = pickle.dumps(value, pickle.HIGHEST_PROTOCOL)
-        encoded = base64.encodestring(pickled).strip()
+        #pickled = pickle.dumps(value, pickle.HIGHEST_PROTOCOL)
+        #encoded = base64.encodestring(pickled).strip()
 
         if mode == 'add' and self.has_key(key):
             return False
@@ -155,8 +155,8 @@ class SimpleMongoDBCache(BaseCache):
         if not data:
             return default
 
-        unencoded = base64.decodestring(data['data'])
-        unpickled = pickle.loads(unencoded)
+        #unencoded = base64.decodestring(data['data'])
+        #unpickled = pickle.loads(unencoded)
 
         return unpickled
 
@@ -187,9 +187,9 @@ class SimpleMongoDBCache(BaseCache):
         }
         )
         for result in data:
-            unencoded = base64.decodestring(result['data'])
-            unpickled = pickle.loads(unencoded)
-            out[parsed_keys[result['key']]] = unpickled
+            #unencoded = base64.decodestring(result['data'])
+            #unpickled = pickle.loads(unencoded)
+            out[parsed_keys[result['key']]] = result
 
         return out
 
