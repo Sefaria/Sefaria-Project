@@ -3,6 +3,7 @@ import {InterfaceText, EnglishText, HebrewText} from "./Misc";
 import Sefaria from "./sefaria/sefaria";
 import SearchState from './sefaria/searchState';
 import SearchResultList  from './SearchResultList';
+import DictionarySearch  from './DictionarySearch';
 import classNames from 'classnames';
 
 import {
@@ -10,10 +11,11 @@ import {
 } from './Misc';
 
 
-const SidebarSearch = ({ title, updateAppliedOptionSort }) => {
-
+const SidebarSearch = ({ title, updateAppliedOptionSort, navigatePanel }) => {
+  const [lexiconName, setLexiconName] = useState(Sefaria.getIndexDetailsFromCache(title)?.lexiconName)
   const [searchFilterPathForBook, setSearchFilterPathForBook] = useState('');
   const [query, setQuery] = useState('');
+  const isDictionary = !!lexiconName;
   const [searchState, setSearchState] = useState(
           new SearchState({
                   type: 'text',
@@ -71,20 +73,33 @@ const SidebarSearch = ({ title, updateAppliedOptionSort }) => {
 
 
   return (
-    <div className="sidebarSearch content">
+    <div className="sidebarSearch content lexicon-content">
     <div className={searchBoxClasses}>
-      <SearchButton onClick={handleSearchButtonClick} />
-      <input className={inputClasses}
-        placeholder={Sefaria._("Search in this text")}
-        id="searchQueryInput"
-        maxLength={75}
-        onKeyUp={  (event) => {
-            if (event.keyCode === 13) {
-              handleSearchButtonClick()
+
+    { isDictionary ?
+       <DictionarySearch
+            lexiconName={lexiconName}
+            title={title}
+            navigatePanel={navigatePanel}
+            contextSelector=".lexicon-content"/>
+      :
+      <>
+        <SearchButton onClick={handleSearchButtonClick} />
+        <input className={inputClasses}
+          placeholder={Sefaria._("Search in this text")}
+          id="searchQueryInput"
+          maxLength={75}
+          onKeyUp={
+            (event) => {
+              if (event.keyCode === 13) {
+                handleSearchButtonClick()
+              }
             }
           }
-        }
-        title={Sefaria._("Search in this text")} />
+          title={Sefaria._("Search in this text")} />
+      </>
+      }
+
     </div>
 
 

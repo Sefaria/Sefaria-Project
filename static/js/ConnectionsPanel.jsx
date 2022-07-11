@@ -687,6 +687,7 @@ class ConnectionsPanel extends Component {
     } else if (this.props.mode === "SidebarSearch") {
     content = <SidebarSearch
                 title={this.props.title}
+                navigatePanel={this.props.navigatePanel}
               />
     }
 

@@ -1830,7 +1830,6 @@ div.interfaceLinks-row a {
 }
 
 .sidebarSearch .searchBox {
-  overflow: hidden;
   display: flex;
   align-items: center;
   padding: 0;
@@ -1839,6 +1838,7 @@ div.interfaceLinks-row a {
   border-radius: 250px;
   width: 100%;
   height: 30px;
+  margin-bottom: 0;
 }
 
 .sidebarSearch .searchBox input {
