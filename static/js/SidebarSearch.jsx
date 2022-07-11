@@ -114,6 +114,7 @@ const SidebarSearch = ({ title, updateAppliedOptionSort, navigatePanel }) => {
           updateTotalResults={n => console.log(n)}
           registerAvailableFilters={n => console.log(n)}
           updateAppliedOptionSort={updateAppliedOptionSort}
+          onResultClick={navigatePanel}
         /> :
 
         null
