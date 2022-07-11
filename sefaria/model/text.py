@@ -4726,6 +4726,9 @@ class Library(object):
         # Topics
         self._topic_mapping = {}
 
+        # Virtual books
+        self._virtual_books = []
+
         # Initialization Checks
         # These values are set to True once their initialization is complete
         self._toc_tree_is_ready = False
@@ -5605,6 +5608,11 @@ class Library(object):
             from sefaria.utils.util import get_all_subclass_attribute
             q['base_text_mapping'] = {'$in': get_all_subclass_attribute(AbstractStructureAutoLinker, "class_key")}
         return IndexSet(q) if full_records else IndexSet(q).distinct("title")
+
+    def get_virtual_books(self):
+        if not self._virtual_books:
+            self._virtual_books = [index.title for index in IndexSet({'lexiconName': {'$exists': True}})]
+        return self._virtual_books
 
     def get_titles_in_string(self, s, lang=None, citing_only=False):
         """
