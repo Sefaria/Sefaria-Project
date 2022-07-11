@@ -2,14 +2,14 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Values.deployEnv }}varnish-vcl
+  name: {{ .Values.deployEnv }}-varnish-vcl
   labels:
     deployEnv: "{{ .Values.deployEnv }}"
     {{- include "sefaria.labels" . | nindent 4 }}
 data:
-  entrypoint.vcl: |-
+  sefaria.vcl.tmpl: |-
     vcl 4.0;
-    
+
     sub vcl_recv {
         # We trust PURGE methods to be coming from within the cluster.
         # They are rejected on the nginx level

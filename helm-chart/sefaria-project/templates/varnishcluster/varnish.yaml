@@ -51,7 +51,7 @@ spec:
     resources: {{ toYaml $.Values.varnish.resources | nindent 6 }}
   vcl:
     configMapName: {{ $.Values.deployEnv }}-varnish-vcl
-    entrypointFileName: entrypoint.vcl
+    entrypointFileName: sefaria.vcl
   service:
     port: 8040
 {{- end }}
