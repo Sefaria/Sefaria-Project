@@ -398,11 +398,12 @@ class LinkerIndexConverter:
         """
         self.index = library.get_index(title)
         self.node_mutator = node_mutator
+        self.get_term_prefixes = get_term_prefixes
+        self.title_alt_title_map = title_alt_title_map
         self.fast_unsafe_saving = fast_unsafe_saving
 
     def convert(self):
-        if self.node_mutator:
-            self.index.nodes.traverse_to_string(self.node_visitor)
+        self.index.nodes.traverse_to_string(self.node_visitor)
         self.save_index()
 
     def save_index(self):
@@ -413,7 +414,11 @@ class LinkerIndexConverter:
             self.index.save()
 
     def node_visitor(self, node, depth):
-        self.node_mutator(node, depth)
+        if self.get_term_prefixes:
+            term_prefixes = self.get_term_prefixes(node, depth)
+
+        if self.node_mutator:
+            self.node_mutator(node, depth)
         return ""
 
 
