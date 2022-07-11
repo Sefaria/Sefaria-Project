@@ -151,6 +151,7 @@ class TextColumn extends Component {
     // TextRanges in the column may be initial rendered in "loading" state without data.
     // When the data loads we may need to change scroll position or render addition ranges.
     // console.log("handle text load: ", ref);
+    //console.log("handleTextLoad");
     if (this.$container.find(".basetext.loading").length) {
       // Don't mess with scroll positions until all sections of text have loaded,
       // prevent race conditions when mutliple section may load out of order.
@@ -173,11 +174,12 @@ class TextColumn extends Component {
       // position to keep what the user was looking at in place. 
       this.restoreScrollPositionAfterTopLoad();
     }
+    //call this at the end to make sure that also when a text api call returnsa and this callback is fired, that the text goes to the correct place
+    this.scrollToHighlighted();
   }
   setInitialScrollPosition() {    
     // Sets scroll initial scroll position when a text is loaded which is either down to
     // the highlighted segments, or is just down far enough to hide the scroll placeholder above.
-
     if (this.node.scrollHeight < this.node.clientHeight) { return; }
 
     if (this.$container.find(".segment.invisibleHighlight").length) {
@@ -195,6 +197,7 @@ class TextColumn extends Component {
   }
   scrollToHighlighted() {
     // Scroll to the first highlighted segment
+    //console.log("scrollToHighlighted");
     if (!this._isMounted) { return; }
     const $container   = this.$container;
     const $readerPanel = $container.closest(".readerPanel");
