@@ -130,7 +130,7 @@ data:
         }
 
         {{- if .Values.linker.enabled }}
-        location /api/find-refs/ {
+        location /api/find-refs {
           proxy_send_timeout  300;
           proxy_read_timeout  300;
           proxy_set_header Host $host;
