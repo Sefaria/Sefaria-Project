@@ -54,7 +54,7 @@ spec:
         imagePullPolicy: Always
         command: ["bash", "-c"]
         # https://serverfault.com/questions/577370/how-can-i-use-environment-variables-in-nginx-conf
-        args: [ "envsubst '${ENV_NAME},${VARNISH_HOST},${SEARCH_HOST},${RELEASE_TAG}' < /conf/nginx.template.conf > /nginx.conf && exec nginx -c /nginx.conf -g 'daemon off;'" ]
+        args: [ "envsubst '${ENV_NAME},${VARNISH_HOST},${SEARCH_HOST},${RELEASE_TAG}{{- if .Values.linker.enabled }},${LINKER_HOST}{{- end }}' < /conf/nginx.template.conf > /nginx.conf && exec nginx -c /nginx.conf -g 'daemon off;'" ]
         ports:
         - containerPort: 80
         - containerPort: 443

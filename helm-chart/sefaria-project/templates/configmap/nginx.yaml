@@ -130,7 +130,7 @@ data:
         }
 
         {{- if .Values.linker.enabled }}
-        location /linker/ {
+        location /api/find-refs/ {
           proxy_pass http://linker_upstream;
         }
         {{- end }}
