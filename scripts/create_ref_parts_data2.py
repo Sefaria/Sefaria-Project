@@ -474,8 +474,9 @@ class LinkerIndexConverter:
 
     def convert(self):
         self._traverse_nodes(self.index.nodes, self.node_visitor, is_alt_node=False)
-        for inode, node in enumerate(self.index.get_alt_struct_nodes()):
-            self.node_visitor(node, 1, inode, True)
+        alt_nodes = self.index.get_alt_struct_nodes()
+        for inode, node in enumerate(alt_nodes):
+            self.node_visitor(node, 1, inode, len(alt_nodes), True)
         self.save_index()
 
     def save_index(self):
@@ -532,7 +533,7 @@ class SpecificConverterManager:
                 gemara_slug = self.rtm.get_term_by_primary_title('base', 'Gemara').slug
                 tractate_slug = self.rtm.get_term_by_primary_title('base', 'Tractate').slug
                 title = node.get_primary_title('en')
-                title_slug = self.rtm.get_term_by_primary_title('bavli', title).slug
+                title_slug = self.rtm.get_term_by_primary_title('shas', title).slug
                 return [
                     MatchTemplate([bavli_slug, title_slug]),
                     MatchTemplate([gemara_slug, title_slug]),
@@ -613,5 +614,6 @@ class SpecificConverterManager:
 
 if __name__ == '__main__':
     converter_manager = SpecificConverterManager()
+    converter_manager.convert_bavli()
     converter_manager.convert_sifra()
 
