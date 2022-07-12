@@ -697,6 +697,42 @@ class SpecificConverterManager:
         converter = LinkerIndexConverter("Sifra", get_match_templates=get_match_templates, get_other_fields=get_other_fields)
         converter.convert()
 
+    def convert_midrash_rabbah(self):
+        tanakh_title_map = {
+            "Bereishit": "Genesis",
+            "Shemot": "Exodus",
+            "Vayikra": "Leviticus",
+            "Bamidbar": "Numbers",
+            "Devarim": "Deuteronomy",
+            "Eichah": "Lamentations",
+            "Kohelet": "Ecclesiastes",
+            "Shir HaShirim": "Song of Songs",
+        }
+
+        def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
+            nonlocal self, tanakh_title_map
+            if node.is_default(): return []
+            rabbah_slug = self.rtm.get_term_by_primary_title('base', 'Rabbah').slug
+            mid_rab_slug =  self.rtm.get_term_by_primary_title('base', 'Midrash Rabbah').slug
+            title = node.get_primary_title('en')
+            tanakh_title = title.replace(" Rabbah", "")
+            tanakh_title = tanakh_title_map.get(tanakh_title, tanakh_title)
+            try:
+                tanakh_slug = self.rtm.get_term_by_primary_title('tanakh', tanakh_title).slug
+            except:
+                # Petichta
+                term = self.rtm.get_term_by_primary_title('midrash rabbah', title)
+                if not term:
+                    # create it
+                    term = self.rtm.create_term_from_titled_obj(node, 'structural', context='midrash rabbah')
+                return [MatchTemplate([term.slug])]
+            return [
+                MatchTemplate([tanakh_slug, rabbah_slug]),
+                MatchTemplate([mid_rab_slug, tanakh_slug]),
+            ]
+        converter = LinkerCategoryConverter("Midrash Rabbah", get_match_templates=get_match_templates)
+        converter.convert()
+
 
 if __name__ == '__main__':
     converter_manager = SpecificConverterManager()
@@ -704,6 +740,8 @@ if __name__ == '__main__':
     converter_manager.convert_bavli()
     converter_manager.convert_rest_of_shas()
     converter_manager.convert_sifra()
+    converter_manager.convert_midrash_rabbah()
+
 
 """
 Still TODO
