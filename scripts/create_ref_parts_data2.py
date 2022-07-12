@@ -465,8 +465,15 @@ class LinkerIndexConverter:
         self.get_match_templates = get_match_templates
         self.fast_unsafe_saving = fast_unsafe_saving
 
+    @staticmethod
+    def _traverse_nodes(node, callback, depth=0, i=0, **kwargs):
+        callback(node, depth, i, **kwargs)
+        [LinkerIndexConverter._traverse_nodes(child, callback, depth + 1, j, **kwargs) for (j, child) in enumerate(node.children)]
+
     def convert(self):
-        self.index.nodes.traverse_to_string(self.node_visitor)
+        self._traverse_nodes(self.index.nodes, self.node_visitor, is_alt_node=False)
+        for inode, node in enumerate(self.index.get_alt_struct_nodes()):
+            self.node_visitor(node, 1, inode, True)
         self.save_index()
 
     def save_index(self):
@@ -476,20 +483,18 @@ class LinkerIndexConverter:
         else:
             self.index.save()
 
-    def node_visitor(self, node, depth):
+    def node_visitor(self, node, depth, i, is_alt_node):
         if self.get_match_templates:
-            templates = self.get_match_templates(node, depth)
+            templates = self.get_match_templates(node, depth, i, is_alt_node)
             node.match_templates = [template.serialize() for template in templates]
 
         if self.get_other_fields:
             other_field_keys = ['isSegmentLevelDiburHamatchil', 'referenceableSections', 'diburHamatchilRegexes', 'numeric_equivalent']
-            other_field_vals = self.get_other_fields(node, depth)
+            other_field_vals = self.get_other_fields(node, depth, i, is_alt_node)
             if other_field_vals is not None:
                 for key, val in zip(other_field_keys, other_field_vals):
                     if val is None: continue
                     setattr(node, key, val)
-        # need to return empty string for traverse_to_string()
-        return ""
 
 
 class SpecificConverterManager:
@@ -498,7 +503,7 @@ class SpecificConverterManager:
         self.rtm = get_reusable_components()
 
     def convert_bavli(self):
-        def get_match_templates(node, depth):
+        def get_match_templates(node, *args):
             nonlocal self
             bavli_slug = self.rtm.get_term_by_primary_title('base', 'Bavli').slug
             gemara_slug = self.rtm.get_term_by_primary_title('base', 'Gemara').slug
@@ -534,7 +539,7 @@ class SpecificConverterManager:
             "Mechilta d'Miluim": [],
         }
 
-        def get_match_templates(node, depth):
+        def get_match_templates(node, *args):
             nonlocal self
             title = node.get_primary_title('en')
             parsha_title = parsha_map.get(title, title)
@@ -569,7 +574,7 @@ class SpecificConverterManager:
                     MatchTemplate([num_term.slug])
                 ]
 
-        def get_other_fields(node, depth):
+        def get_other_fields(node, depth, *args):
             if depth != 2: return
             title = node.get_primary_title('en')
             num_match = re.search(' (\d+)$', title)
