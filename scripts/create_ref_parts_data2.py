@@ -5,6 +5,7 @@ from sefaria.model import *
 from sefaria.system.database import db
 from collections import defaultdict
 from sefaria.utils.hebrew import is_hebrew
+from sefaria.model.ref_part import MatchTemplate
 from sefaria.model.abstract import AbstractMongoRecord
 from sefaria.model.schema import DiburHamatchilNode, DiburHamatchilNodeSet, TitleGroup
 
@@ -61,7 +62,10 @@ Documentation of new fields which can be added to SchemaNodes
         Each regex should either not match OR return match with result in group 1
         Example
             For Rashi on Berakhot, diburHamatchilRegexes = ['^(.+?)[\-–]', '\.(.+?)$', "^(?:(?:מתני'|גמ')\s?)?(.+)$"]
-
+    - numeric_equivalent
+        int
+        Used for SchemaNodes that should be referenceable by number as well
+        E.g. Sifra has many nodes like "Chapter 1" that are SchemaNodes but should be referenceable by gematria        
 
 """
 
@@ -70,7 +74,7 @@ class ReusableTermManager:
 
     def __init__(self):
         self.context_and_primary_title_to_term = {}
-        self.alt_title_to_term = {}
+        self.num_to_perek_term_map = {}
         self.old_term_map = {}
         self.reg_map = {
             "rashi": ['^(.+?)[\-–]', '\.(.+?)$', "^(?:(?:מתני'|גמ')\s?)?(.+)$"],
@@ -87,6 +91,9 @@ class ReusableTermManager:
 
     def get_term_by_old_term_name(self, old_term_name):
         return self.old_term_map.get(old_term_name)
+
+    def get_perek_term_by_num(self, perek_num):
+        return self.num_to_perek_term_map.get(perek_num)
 
     def create_term(self, **kwargs):
         """
@@ -166,11 +173,9 @@ class ReusableTermManager:
             else:
                 alt_en_titles += [new_alt]
         for alt_title_list, lang in zip((alt_en_titles, alt_he_titles), ('en', 'he')):
-            for alt_title in alt_title_list:
-                if title_adder:
-                    new_alt = title_adder(lang, alt_title)
-                    if new_alt:
-                        alt_title_list += [new_alt]
+            if title_adder:
+                new_alt_titles = [title_adder(lang, alt_title) for alt_title in alt_title_list]
+                alt_title_list += list(filter(None, new_alt_titles))
             if title_modifier:
                 alt_title_list[:] = [title_modifier(lang, t) for t in alt_title_list]
         term = self.create_term(en=en_title, he=he_title, context=context, alt_en=alt_en_titles, alt_he=alt_he_titles, ref_part_role=ref_part_role)
@@ -183,7 +188,6 @@ class ReusableTermManager:
         ord_en = ['First', 'Second', 'Third', 'Fourth', 'Fifth', 'Sixth', 'Seventh', 'Eighth', 'Ninth', 'Tenth', 'Eleventh', 'Twelfth', 'Thirteenth', 'Fourteenth', 'Fifteenth', 'Sixteenth', 'Seventeenth', 'Eighteenth', 'Nineteenth', 'Twentieth', 'Twenty First', 'Twenty Second', 'Twenty Third', 'Twenty Fourth', 'Twenty Fifth', 'Twenty Sixth', 'Twenty Seventh', 'Twenty Eighth', 'Twenty Ninth', 'Thirtieth']
         ordinals = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'ששי', 'שביעי', 'שמיני', 'תשיעי', 'עשירי']
         cardinals = ['אחד', 'שניים', 'שלוש', 'ארבע', 'חמש', 'שש', 'שבע', 'שמנה', 'תשע', 'עשר', 'אחד עשרה', 'שניים עשרה', 'שלוש עשרה', 'ארבע עשרה', 'חמש עשרה', 'שש עשרה', 'שבע עשרה', 'שמונה עשרה', 'תשע עשרה', 'עשרים', 'עשרים ואחד', 'עשרים ושניים', 'עשרים ושלוש', 'עשרים וארבע', 'עשרים וחמש', 'עשרים ושש', 'עשרים ושבע', 'עשרים ושמונה', 'עשרים ותשע', 'שלושים']
-        term_map = {}
         for i in range(1, 31):
             gemat = encode_hebrew_numeral(i, punctuation=False)
             gemat_punc = encode_hebrew_numeral(i)
@@ -207,9 +211,8 @@ class ReusableTermManager:
                 ]
             primary_he = ordinals[i-1] if i < len(ordinals) else cardinals[i-1]
             term = self.create_term(context="numeric perek", en=ord_en[i - 1], he=primary_he, alt_he=alt_he, alt_en=alt_en, ref_part_role='structural')
-            term_map[i] = term
-        term_map['last'] = self.create_term(context="numeric perek", en='last', he='בתרא', ref_part_role='structural')
-        return term_map
+            self.num_to_perek_term_map[i] = term
+        self.num_to_perek_term_map['last'] = self.create_term(context="numeric perek", en='last', he='בתרא', ref_part_role='structural')
 
     def create_base_non_unique_terms(self):
         self.create_term(context="base", en='Bavli', he='בבלי', alt_en=['Babylonian Talmud', 'B.T.', 'BT', 'Babli'], ref_part_role='structural')
@@ -223,7 +226,6 @@ class ReusableTermManager:
         self.create_term(context="base", en='Gilyon HaShas', he='גליון הש"ס', ref_part_role='structural')
         self.create_term(context="base", en='Midrash Rabbah', he='מדרש רבה', alt_en=['Midrash Rabba', 'Midrash Rabah'], alt_he=['מדרש רבא'], ref_part_role='structural')  # TODO no good way to compose titles for midrash rabbah...
         self.create_term(context="base", en='Rabbah', he='רבה', alt_en=['Rabba', 'Rabah', 'Rab.', 'R.', 'Rab .', 'R .', 'rabba', 'r.', 'r .', 'rabbati'], alt_he=['רבא'], ref_part_role='structural')
-        self.create_term(context="base", en='Sifra', he='סיפרא', alt_he=['ספרא'], ref_part_role='structural')
         self.create_term(context="base", en='Ran', he='ר"ן', ref_part_role='structural')
         self.create_term(context="base", en='Perek', he='פרק', alt_en=["Pereq", 'Chapter'], alt_he=['ס"פ', 'ר"פ'], ref_part_role='alt_title')
         self.create_term(context="base", en='Parasha', he='פרשה', alt_he=["פרשת"], alt_en=['Parashah', 'Parašah', 'Parsha', 'Paraša', 'Paršetah', 'Paršeta', 'Parsheta', 'Parshetah', 'Parashat', 'Parshat'], ref_part_role='alt_title')
@@ -442,30 +444,25 @@ class LinkerCategoryConverter:
 
 class LinkerIndexConverter:
 
-    def __init__(self, title, reusable_term_manager, get_other_fields=None, get_match_templates=None, title_alt_title_map=None,
-                 title_modifier=None, title_adder=None, fast_unsafe_saving=False):
+    def __init__(self, title, get_other_fields=None, get_match_templates=None, fast_unsafe_saving=True):
         """
 
         @param title: title of index to convert
-        @param reusable_term_manager: ReusableTermManager used to assist in creating match templates
         @param get_other_fields: function of form
             (node: SchemaNode, depth: int, reusable_term_manager) -> Tuple[bool, List[bool], List[str]].
             Returns other fields that are sometimes necessary to modify:
                 - isSegmentLevelDiburHamatchil
                 - referenceableSections
                 - diburHamatchilRegexes
+                - numeric_equivalent
             Can return None for any of these
             See top of file for documentation for these fields
-        @param get_match_templates: function of form (node: SchemaNode, depth: int, reusable_term_manager) -> List[List[NonUniqueTerm]].
-        @param title_alt_title_map: mapping from primary node title to list of strings which are new alt titles.
-            If a node title exists in the mapping, a new term will be created from current alt titles + ones in mapping
+        @param get_match_templates: function of form (node: SchemaNode, depth: int, reusable_term_manager) -> List[MatchTemplate].
         @param fast_unsafe_saving: If true, skip Python dependency checks and save directly to Mongo (much faster but potentially unsafe)
         """
         self.index = library.get_index(title)
-        self.reusable_term_manager = reusable_term_manager
         self.get_other_fields = get_other_fields
         self.get_match_templates = get_match_templates
-        self.title_alt_title_map = title_alt_title_map
         self.fast_unsafe_saving = fast_unsafe_saving
 
     def convert(self):
@@ -481,20 +478,93 @@ class LinkerIndexConverter:
 
     def node_visitor(self, node, depth):
         if self.get_match_templates:
-            templates = self.get_match_templates(node, depth, self.reusable_term_manager)
-            node.match_templates = templates
+            templates = self.get_match_templates(node, depth)
+            node.match_templates = [template.serialize() for template in templates]
 
         if self.get_other_fields:
-            other_field_keys = ['isSegmentLevelDiburHamatchil', 'referenceableSections', 'diburHamatchilRegexes']
-            other_field_vals = self.get_other_fields(node, depth, self.reusable_term_manager)
-            for key, val in zip(other_field_keys, other_field_vals):
-                if val is None: continue
-                setattr(node, key, val)
+            other_field_keys = ['isSegmentLevelDiburHamatchil', 'referenceableSections', 'diburHamatchilRegexes', 'numeric_equivalent']
+            other_field_vals = self.get_other_fields(node, depth)
+            if other_field_vals is not None:
+                for key, val in zip(other_field_keys, other_field_vals):
+                    if val is None: continue
+                    setattr(node, key, val)
         # need to return empty string for traverse_to_string()
         return ""
 
 
+class SpecificConverterManager:
+
+    def __init__(self):
+        self.rtm = get_reusable_components()
+
+    def convert_sifra(self):
+        parsha_map = {
+            "Shemini": "Shmini",
+            "Acharei Mot": "Achrei Mot",
+        }
+        other_node_map = {
+            'Sifra': [],
+            "Braita d'Rabbi Yishmael": ["Introduction"],
+            "Vayikra Dibbura d'Nedavah": ["Wayyiqra 1", "Wayyiqra I"],
+            "Vayikra Dibbura d'Chovah": ["Wayyiqra 2", "Wayyiqra II"],
+            "Tazria Parashat Yoledet": [],
+            "Tazria Parashat Nega'im": [],
+            "Metzora Parashat Zavim": [],
+        }
+        other_perek_node_map = {
+            "Mechilta d'Miluim": [],
+        }
+
+        def get_match_templates(node, depth):
+            nonlocal self
+            title = node.get_primary_title('en')
+            parsha_title = parsha_map.get(title, title)
+            parsha_term = self.rtm.get_term_by_primary_title('tanakh', parsha_title)
+            if parsha_term:
+                return [MatchTemplate([parsha_term.slug])]
+            elif title in other_node_map:
+                alt_titles = other_node_map[title]
+                term = self.rtm.create_term_from_titled_obj(node, 'structural', new_alt_titles=alt_titles)
+                return [MatchTemplate([term.slug])]
+            else:
+                # second level node
+                named_term_slug = None
+                if 'Chapter' in title:
+                    named_term_slug = 'perek'
+                elif 'Section' in title:
+                    named_term_slug = 'parasha'
+                if named_term_slug is None:
+                    alt_titles = other_perek_node_map[re.search(r'^(.+) \d+$', title).group(1)]
+                    named_term = self.rtm.create_term_from_titled_obj(node, 'structural', new_alt_titles=alt_titles)
+                    named_term_slug = named_term.slug
+                num_match = re.search(' (\d+)$', title)
+                if num_match is None:
+                    print(node.ref(), 'no num_match for Sifra')
+                    return []
+                numeric_equivalent = int(num_match.group(1))
+                num_term = self.rtm.get_perek_term_by_num(numeric_equivalent)  # NOTE: these terms can be used for both parsha and perek nodes b/c they only contain a "פ" prefix.
+                node.numeric_equivalent = numeric_equivalent
+
+                return [
+                    MatchTemplate([named_term_slug, num_term.slug]),
+                    MatchTemplate([num_term.slug])
+                ]
+
+        def get_other_fields(node, depth):
+            if depth != 2: return
+            title = node.get_primary_title('en')
+            num_match = re.search(' (\d+)$', title)
+            if num_match is None:
+                print(node.ref(), 'no num_match for Sifra')
+                return
+            numeric_equivalent = int(num_match.group(1))
+            return None, None, None, numeric_equivalent
+
+        converter = LinkerIndexConverter("Sifra", get_match_templates=get_match_templates, get_other_fields=get_other_fields)
+        converter.convert()
+
+
 if __name__ == '__main__':
-    reusable_term_manager = get_reusable_components()
-    converter = LinkerIndexConverter("Sifra", reusable_term_manager=reusable_term_manager)
-    converter.convert()
+    converter_manager = SpecificConverterManager()
+    converter_manager.convert_sifra()
+
