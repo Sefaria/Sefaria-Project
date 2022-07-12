@@ -49,6 +49,7 @@ Documentation of new fields which can be added to SchemaNodes
         Only used for JaggedArrayNodes.
         List of bool. Should be same length as `depth`
         If a section is False in this list, it will not be referenceable.
+        If field isn't defined, assumed to be True for every section.
         E.g. The section level of Rashi on Berakhot is not referenced since it corresponds to paragraph number in our break-up of Talmud
         So for Rashi on Berakhot, referenceableSections = [True, False, True].
         This effectively means this text can be referenced as depth 2.
@@ -441,16 +442,20 @@ class LinkerCategoryConverter:
 
 class LinkerIndexConverter:
 
-    def __init__(self, title, reusable_term_manager, node_mutator=None, get_match_templates=None, title_alt_title_map=None,
+    def __init__(self, title, reusable_term_manager, get_other_fields=None, get_match_templates=None, title_alt_title_map=None,
                  title_modifier=None, title_adder=None, fast_unsafe_saving=False):
         """
 
         @param title: title of index to convert
         @param reusable_term_manager: ReusableTermManager used to assist in creating match templates
-        @param get_commentary_fields: function of form
+        @param get_other_fields: function of form
             (node: SchemaNode, depth: int, reusable_term_manager) -> Tuple[bool, List[bool], List[str]].
-            Returns fields which are relevant for commentaries
-            - isSegmentLevelDiburHamatchil
+            Returns other fields that are sometimes necessary to modify:
+                - isSegmentLevelDiburHamatchil
+                - referenceableSections
+                - diburHamatchilRegexes
+            Can return None for any of these
+            See top of file for documentation for these fields
         @param get_match_templates: function of form (node: SchemaNode, depth: int, reusable_term_manager) -> List[List[NonUniqueTerm]].
         @param title_alt_title_map: mapping from primary node title to list of strings which are new alt titles.
             If a node title exists in the mapping, a new term will be created from current alt titles + ones in mapping
@@ -458,7 +463,7 @@ class LinkerIndexConverter:
         """
         self.index = library.get_index(title)
         self.reusable_term_manager = reusable_term_manager
-        self.node_mutator = node_mutator
+        self.get_other_fields = get_other_fields
         self.get_match_templates = get_match_templates
         self.title_alt_title_map = title_alt_title_map
         self.fast_unsafe_saving = fast_unsafe_saving
@@ -479,8 +484,13 @@ class LinkerIndexConverter:
             templates = self.get_match_templates(node, depth, self.reusable_term_manager)
             node.match_templates = templates
 
-        if self.node_mutator:
-            self.node_mutator(node, depth, self.reusable_term_manager)
+        if self.get_other_fields:
+            other_field_keys = ['isSegmentLevelDiburHamatchil', 'referenceableSections', 'diburHamatchilRegexes']
+            other_field_vals = self.get_other_fields(node, depth, self.reusable_term_manager)
+            for key, val in zip(other_field_keys, other_field_vals):
+                if val is None: continue
+                setattr(node, key, val)
+        # need to return empty string for traverse_to_string()
         return ""
 
 
