@@ -468,9 +468,9 @@ class LinkerIndexConverter:
         self.fast_unsafe_saving = fast_unsafe_saving
 
     @staticmethod
-    def _traverse_nodes(node, callback, depth=0, isibling=0, num_siblings=0, **kwargs):
-        callback(node, depth, isibling, num_siblings, **kwargs)
-        [LinkerIndexConverter._traverse_nodes(child, callback, depth + 1, jsibling, len(node.children), **kwargs) for (jsibling, child) in enumerate(node.children)]
+    def _traverse_nodes(node, callback, depth=0, isibling=0, num_siblings=0, is_alt_node=False, **kwargs):
+        callback(node, depth, isibling, num_siblings, is_alt_node, **kwargs)
+        [LinkerIndexConverter._traverse_nodes(child, callback, depth + 1, jsibling, len(node.children), is_alt_node, **kwargs) for (jsibling, child) in enumerate(node.children)]
 
     def convert(self):
         self._traverse_nodes(self.index.nodes, self.node_visitor, is_alt_node=False)
@@ -485,14 +485,14 @@ class LinkerIndexConverter:
         else:
             self.index.save()
 
-    def node_visitor(self, node, depth, i, is_alt_node):
+    def node_visitor(self, node, depth, isibling, num_siblings, is_alt_node):
         if self.get_match_templates:
-            templates = self.get_match_templates(node, depth, i, is_alt_node)
+            templates = self.get_match_templates(node, depth, isibling, num_siblings, is_alt_node)
             node.match_templates = [template.serialize() for template in templates]
 
         if self.get_other_fields:
             other_field_keys = ['isSegmentLevelDiburHamatchil', 'referenceableSections', 'diburHamatchilRegexes', 'numeric_equivalent']
-            other_field_vals = self.get_other_fields(node, depth, i, is_alt_node)
+            other_field_vals = self.get_other_fields(node, depth, isibling, num_siblings, is_alt_node)
             if other_field_vals is not None:
                 for key, val in zip(other_field_keys, other_field_vals):
                     if val is None: continue
