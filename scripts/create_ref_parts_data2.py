@@ -489,7 +489,8 @@ class LinkerIndexConverter:
     def node_visitor(self, node, depth, isibling, num_siblings, is_alt_node):
         if self.get_match_templates:
             templates = self.get_match_templates(node, depth, isibling, num_siblings, is_alt_node)
-            node.match_templates = [template.serialize() for template in templates]
+            if templates is not None:
+                node.match_templates = [template.serialize() for template in templates]
 
         if self.get_other_fields:
             other_field_keys = ['isSegmentLevelDiburHamatchil', 'referenceableSections', 'diburHamatchilRegexes', 'numeric_equivalent']
@@ -505,6 +506,28 @@ class SpecificConverterManager:
     def __init__(self):
         self.rtm = get_reusable_components()
 
+    def convert_tanakh(self):
+        def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
+            nonlocal self
+            sefer_slug = self.rtm.get_term_by_primary_title('base', 'Sefer').slug
+            parasha_slug = self.rtm.get_term_by_primary_title('base', 'Parasha').slug
+            title = node.get_primary_title('en')
+            title_slug = self.rtm.get_term_by_primary_title('tanakh', title).slug
+            if is_alt_node and node.index.categories[-1] == "Torah":
+                return [
+                    MatchTemplate([parasha_slug, title_slug], scope='any'),
+                    MatchTemplate([title_slug], scope='any'),
+                ]
+            elif not is_alt_node:
+                return [
+                    MatchTemplate([sefer_slug, title_slug]),
+                    MatchTemplate([title_slug]),
+                ]
+            else:
+                return []
+        converter = LinkerCategoryConverter("Tanakh", is_corpus=True, get_match_templates=get_match_templates)
+        converter.convert()
+
     def convert_bavli(self):
         def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
             nonlocal self
@@ -515,7 +538,6 @@ class SpecificConverterManager:
                 numeric_equivalent = min(isibling+1, 30)
                 perek_num_term = self.rtm.get_perek_term_by_num(numeric_equivalent)
                 last_perek_num_term = self.rtm.get_perek_term_by_num('last')
-                node.numeric_equivalent = numeric_equivalent
                 match_templates = [
                     MatchTemplate([perek_slug, perek_term.slug], scope='any'),
                     MatchTemplate([perek_slug, perek_num_term.slug]),
@@ -542,7 +564,13 @@ class SpecificConverterManager:
                     MatchTemplate([tractate_slug, title_slug]),
                     MatchTemplate([title_slug]),
                 ]
-        converter = LinkerCategoryConverter("Bavli", is_corpus=True, get_match_templates=get_match_templates)
+
+        def get_other_fields(node, depth, isibling, num_siblings, is_alt_node):
+            if is_alt_node:
+                numeric_equivalent = min(isibling + 1, 30)
+                return None, None, None, numeric_equivalent
+
+        converter = LinkerCategoryConverter("Bavli", is_corpus=True, get_match_templates=get_match_templates, get_other_fields=get_other_fields)
         converter.convert()
 
     def convert_sifra(self):
