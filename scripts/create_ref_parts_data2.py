@@ -173,8 +173,6 @@ class ReusableTermManager:
         return term_map
 
     def create_base_non_unique_terms(self):
-        NonUniqueTermSet().delete()
-
         self.create_term(context="base", en='Bavli', he='בבלי', alt_en=['Babylonian Talmud', 'B.T.', 'BT', 'Babli'], ref_part_role='structural')
         self.create_term(context="base", en="Gemara", he="גמרא", alt_he=["גמ'"], ref_part_role='structural')
         self.create_term(context="base", en="Tractate", he="מסכת", alt_en=['Masekhet', 'Masechet', 'Masekhes', 'Maseches'], ref_part_role='alt_title')
@@ -376,6 +374,7 @@ def get_reusable_components() -> ReusableTermManager:
     Static method to build up datastructures that are necessary for every run of LinkerIndexConverter
     @return:
     """
+    NonUniqueTermSet().delete()  # reset non unique terms collection
     reusable_term_manager = ReusableTermManager()
     reusable_term_manager.create_base_non_unique_terms()
     reusable_term_manager.create_numeric_perek_terms()
