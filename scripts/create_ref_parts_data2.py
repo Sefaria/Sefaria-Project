@@ -497,6 +497,25 @@ class SpecificConverterManager:
     def __init__(self):
         self.rtm = get_reusable_components()
 
+    def convert_bavli(self):
+        def get_match_templates(node, depth):
+            nonlocal self
+            bavli_slug = self.rtm.get_term_by_primary_title('base', 'Bavli').slug
+            gemara_slug = self.rtm.get_term_by_primary_title('base', 'Gemara').slug
+            tractate_slug = self.rtm.get_term_by_primary_title('base', 'Tractate').slug
+            title = node.get_primary_title('en')
+            title_slug = self.rtm.get_term_by_primary_title('bavli', title).slug
+            return [
+                MatchTemplate([bavli_slug, title_slug]),
+                MatchTemplate([gemara_slug, title_slug]),
+                MatchTemplate([bavli_slug, tractate_slug, title_slug]),
+                MatchTemplate([gemara_slug, tractate_slug, title_slug]),
+                MatchTemplate([tractate_slug, title_slug]),
+                MatchTemplate([title_slug]),
+            ]
+        converter = LinkerCategoryConverter("Bavli", is_corpus=True, get_match_templates=get_match_templates)
+        converter.convert()
+
     def convert_sifra(self):
         parsha_map = {
             "Shemini": "Shmini",
