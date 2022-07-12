@@ -39,12 +39,17 @@ Also need to add alt structs, but that is potentially a different issue
 class ReusableTermManager:
 
     def __init__(self):
-        self.primary_title_to_term = {}
+        self.context_and_primary_title_to_term = {}
         self.alt_title_to_term = {}
         self.old_term_map = {}
 
-    @staticmethod
-    def create_term(**kwargs):
+    def get_term_by_primary_title(self, context, title):
+        return self.context_and_primary_title_to_term.get((context, title))
+
+    def get_term_by_old_term_name(self, old_term_name):
+        return self.old_term_map.get(old_term_name)
+
+    def create_term(self, **kwargs):
         """
 
         @param kwargs:
@@ -53,6 +58,7 @@ class ReusableTermManager:
             'alt_en'
             'alt_he'
             'ref_part_role'
+            'context'
         @return:
         """
         slug = kwargs.get('en', kwargs.get('he'))
@@ -67,14 +73,15 @@ class ReusableTermManager:
                 term.title_group.add_title(title, lang)
         term.ref_part_role = kwargs['ref_part_role']
         term.save()
+        self.context_and_primary_title_to_term[(kwargs.get('context'), term.get_primary_title('en'))] = term
         return term
 
-    @staticmethod
-    def create_term_from_titled_obj(obj, ref_part_role, new_alt_titles=None, title_modifier=None, title_adder=None):
+    def create_term_from_titled_obj(self, obj, ref_part_role, context=None, new_alt_titles=None, title_modifier=None, title_adder=None):
         """
         Create a NonUniqueTerm from 'titled object' (see explanation of `obj` param)
         Accepts params to modify or add new alt titles
         @param obj: either of instance `TitleGroup` or has an attribute `title_group` (e.g. a `Term` has this field)
+        @param context: Optional string (or any hashable object) to distinguish terms with the same primary title. For use with `get_term_by_primary_title()`
         @param ref_part_role: See docs for attribute `ref_part_role` on NonUniqueTerm class
         @param new_alt_titles: list[str]. optional list of alt titles to add. will auto-detect language of title.
         @param title_modifier: function(lang, str) -> str. given lang and current alt title, replaces alt title with return value. Useful for removing common prefixes such as "Parshat" or "Mesechet"
@@ -127,7 +134,10 @@ class ReusableTermManager:
                         alt_title_list += [new_alt]
             if title_modifier:
                 alt_title_list[:] = [title_modifier(lang, t) for t in alt_title_list]
-        return ReusableTermManager.create_term(en=en_title, he=he_title, alt_en=alt_en_titles, alt_he=alt_he_titles, ref_part_role=ref_part_role)
+        term = self.create_term(en=en_title, he=he_title, context=context, alt_en=alt_en_titles, alt_he=alt_he_titles, ref_part_role=ref_part_role)
+        if isinstance(obj, Term):
+            self.old_term_map[obj.name] = term
+        return term
 
     def create_numeric_perek_terms(self):
         from sefaria.utils.hebrew import encode_hebrew_numeral
@@ -157,38 +167,38 @@ class ReusableTermManager:
                     'פ"ק',
                 ]
             primary_he = ordinals[i-1] if i < len(ordinals) else cardinals[i-1]
-            term = self.create_term(en=ord_en[i - 1], he=primary_he, alt_he=alt_he, alt_en=alt_en, ref_part_role='structural')
+            term = self.create_term(context="numeric perek", en=ord_en[i - 1], he=primary_he, alt_he=alt_he, alt_en=alt_en, ref_part_role='structural')
             term_map[i] = term
-        term_map['last'] = self.create_term(en='last', he='בתרא', ref_part_role='structural')
+        term_map['last'] = self.create_term(context="numeric perek", en='last', he='בתרא', ref_part_role='structural')
         return term_map
 
     def create_base_non_unique_terms(self):
         NonUniqueTermSet().delete()
 
-        self.create_term(en='Bavli', he='בבלי', alt_en=['Babylonian Talmud', 'B.T.', 'BT', 'Babli'], ref_part_role='structural')
-        self.create_term(en="Gemara", he="גמרא", alt_he=["גמ'"], ref_part_role='structural')
-        self.create_term(en="Tractate", he="מסכת", alt_en=['Masekhet', 'Masechet', 'Masekhes', 'Maseches'], ref_part_role='alt_title')
-        self.create_term(en='Rashi', he='רש"י', alt_he=['פירש"י'], ref_part_role='structural')
-        self.create_term(en='Mishnah', he='משנה', alt_en=['M.', 'M', 'Mishna', 'Mishnah', 'Mishnaiot'], ref_part_role='structural')
-        self.create_term(en='Tosefta', he='תוספתא', alt_en=['Tosephta', 'T.', 'Tosef.', 'Tos.'], ref_part_role='structural')
-        self.create_term(en='Yerushalmi', he='ירושלמי', alt_en=['Jerusalem Talmud', 'J.T.', 'JT'], ref_part_role='structural')
-        self.create_term(en='Tosafot', he='תוספות', alt_he=["תוס'", 'תוד"ה', 'תד"ה', "תו'"], alt_en=['Tosaphot'], ref_part_role='structural')
-        self.create_term(en='Gilyon HaShas', he='גליון הש"ס', ref_part_role='structural')
-        self.create_term(en='Midrash Rabbah', he='מדרש רבה', alt_en=['Midrash Rabba', 'Midrash Rabah'], alt_he=['מדרש רבא'], ref_part_role='structural')  # TODO no good way to compose titles for midrash rabbah...
-        self.create_term(en='Rabbah', he='רבה', alt_en=['Rabba', 'Rabah', 'Rab.', 'R.', 'Rab .', 'R .', 'rabba', 'r.', 'r .', 'rabbati'], alt_he=['רבא'], ref_part_role='structural')
-        self.create_term(en='Sifra', he='סיפרא', alt_he=['ספרא'], ref_part_role='structural')
-        self.create_term(en='Ran', he='ר"ן', ref_part_role='structural')
-        self.create_term(en='Perek', he='פרק', alt_en=["Pereq", 'Chapter'], alt_he=['ס"פ', 'ר"פ'], ref_part_role='alt_title')
-        self.create_term(en='Parasha', he='פרשה', alt_he=["פרשת"], alt_en=['Parashah', 'Parašah', 'Parsha', 'Paraša', 'Paršetah', 'Paršeta', 'Parsheta', 'Parshetah', 'Parashat', 'Parshat'], ref_part_role='alt_title')
-        self.create_term(en='Sefer', he='ספר', ref_part_role='alt_title')
-        self.create_term(en='Halakha', he='הלכה', alt_en=['Halakhah', 'Halacha', 'Halachah', 'Halakhot'], ref_part_role='context_swap')
-        self.create_term(en='Mishneh Torah', he='משנה תורה', alt_en=["Mishnah Torah"], ref_part_role='structural')
-        self.create_term(en='Rambam', he='רמב"ם', ref_part_role='structural')
-        self.create_term(en='Shulchan Arukh', he='שולחן ערוך', alt_en=['shulchan aruch', 'Shulchan Aruch', 'Shulḥan Arukh', 'Shulhan Arukh', 'S.A.', 'SA', 'Shulḥan Arukh'], alt_he=['שו"ע', 'שלחן ערוך'], ref_part_role='structural')
-        self.create_term(en='Hilchot', he='הלכות', alt_en=['Laws of', 'Laws', 'Hilkhot', 'Hilhot'], alt_he=["הל'"], ref_part_role='alt_title')
-        self.create_term_from_titled_obj(Term().load({"name": "Parasha"}), ref_part_role='alt_title')
+        self.create_term(context="base", en='Bavli', he='בבלי', alt_en=['Babylonian Talmud', 'B.T.', 'BT', 'Babli'], ref_part_role='structural')
+        self.create_term(context="base", en="Gemara", he="גמרא", alt_he=["גמ'"], ref_part_role='structural')
+        self.create_term(context="base", en="Tractate", he="מסכת", alt_en=['Masekhet', 'Masechet', 'Masekhes', 'Maseches'], ref_part_role='alt_title')
+        self.create_term(context="base", en='Rashi', he='רש"י', alt_he=['פירש"י'], ref_part_role='structural')
+        self.create_term(context="base", en='Mishnah', he='משנה', alt_en=['M.', 'M', 'Mishna', 'Mishnah', 'Mishnaiot'], ref_part_role='structural')
+        self.create_term(context="base", en='Tosefta', he='תוספתא', alt_en=['Tosephta', 'T.', 'Tosef.', 'Tos.'], ref_part_role='structural')
+        self.create_term(context="base", en='Yerushalmi', he='ירושלמי', alt_en=['Jerusalem Talmud', 'J.T.', 'JT'], ref_part_role='structural')
+        self.create_term(context="base", en='Tosafot', he='תוספות', alt_he=["תוס'", 'תוד"ה', 'תד"ה', "תו'"], alt_en=['Tosaphot'], ref_part_role='structural')
+        self.create_term(context="base", en='Gilyon HaShas', he='גליון הש"ס', ref_part_role='structural')
+        self.create_term(context="base", en='Midrash Rabbah', he='מדרש רבה', alt_en=['Midrash Rabba', 'Midrash Rabah'], alt_he=['מדרש רבא'], ref_part_role='structural')  # TODO no good way to compose titles for midrash rabbah...
+        self.create_term(context="base", en='Rabbah', he='רבה', alt_en=['Rabba', 'Rabah', 'Rab.', 'R.', 'Rab .', 'R .', 'rabba', 'r.', 'r .', 'rabbati'], alt_he=['רבא'], ref_part_role='structural')
+        self.create_term(context="base", en='Sifra', he='סיפרא', alt_he=['ספרא'], ref_part_role='structural')
+        self.create_term(context="base", en='Ran', he='ר"ן', ref_part_role='structural')
+        self.create_term(context="base", en='Perek', he='פרק', alt_en=["Pereq", 'Chapter'], alt_he=['ס"פ', 'ר"פ'], ref_part_role='alt_title')
+        self.create_term(context="base", en='Parasha', he='פרשה', alt_he=["פרשת"], alt_en=['Parashah', 'Parašah', 'Parsha', 'Paraša', 'Paršetah', 'Paršeta', 'Parsheta', 'Parshetah', 'Parashat', 'Parshat'], ref_part_role='alt_title')
+        self.create_term(context="base", en='Sefer', he='ספר', ref_part_role='alt_title')
+        self.create_term(context="base", en='Halakha', he='הלכה', alt_en=['Halakhah', 'Halacha', 'Halachah', 'Halakhot'], ref_part_role='context_swap')
+        self.create_term(context="base", en='Mishneh Torah', he='משנה תורה', alt_en=["Mishnah Torah"], ref_part_role='structural')
+        self.create_term(context="base", en='Rambam', he='רמב"ם', ref_part_role='structural')
+        self.create_term(context="base", en='Shulchan Arukh', he='שולחן ערוך', alt_en=['shulchan aruch', 'Shulchan Aruch', 'Shulḥan Arukh', 'Shulhan Arukh', 'S.A.', 'SA', 'Shulḥan Arukh'], alt_he=['שו"ע', 'שלחן ערוך'], ref_part_role='structural')
+        self.create_term(context="base", en='Hilchot', he='הלכות', alt_en=['Laws of', 'Laws', 'Hilkhot', 'Hilhot'], alt_he=["הל'"], ref_part_role='alt_title')
+        self.create_term_from_titled_obj(Term().load({"name": "Parasha"}), context="base", ref_part_role='alt_title')
         for old_term in TermSet({"scheme": {"$in": ["toc_categories", "commentary_works"]}}):
-            new_term = self.create_term_from_titled_obj(old_term, ref_part_role='structural')
+            new_term = self.create_term_from_titled_obj(old_term, context="base", ref_part_role='structural')
             self.old_term_map[old_term.name] = new_term
         missing_old_term_names = [
             "Lechem Mishneh", "Mishneh LaMelech", "Melekhet Shelomoh", "Targum Jonathan", "Onkelos", "Targum Neofiti",
@@ -197,7 +207,7 @@ class ReusableTermManager:
             "Tiferet Yisrael"
         ]
         for name in missing_old_term_names:
-            new_term = self.create_term_from_titled_obj(Term().load({"name": name}), ref_part_role='structural')
+            new_term = self.create_term_from_titled_obj(Term().load({"name": name}), context="base", ref_part_role='structural')
             self.old_term_map[name] = new_term
 
     def create_shas_terms(self):
@@ -269,7 +279,7 @@ class ReusableTermManager:
             alt_he = [tit for tit in alt_titles if is_hebrew(tit) and tit != generic_title_he]
             alt_en = [tit for tit in alt_titles if not is_hebrew(tit) and tit != generic_title_en]
             alt_en += hard_coded_title_map.get(generic_title_en, [])
-            term = self.create_term(en=generic_title_en, he=generic_title_he, alt_en=alt_en, alt_he=alt_he, ref_part_role='structural')
+            term = self.create_term(context="shas", en=generic_title_en, he=generic_title_he, alt_en=alt_en, alt_he=alt_he, ref_part_role='structural')
             title_term_map[generic_title_en] = term
         return title_term_map
 
@@ -317,11 +327,11 @@ class ReusableTermManager:
         indexes = library.get_indexes_in_corpus("Tanakh", full_records=True)
         for index in tqdm(indexes, desc='tanakh', total=indexes.count()):
             hard_coded_alt_titles = hard_coded_tanakh_map.get(index.title)
-            self.create_term_from_titled_obj(index.nodes, "structural", hard_coded_alt_titles, title_adder=tanakh_title_adder)
+            self.create_term_from_titled_obj(index.nodes, "structural", "tanakh", hard_coded_alt_titles, title_adder=tanakh_title_adder)
 
         for term in TermSet({"scheme": "Parasha"}):
             hard_coded_alt_titles = hard_coded_parsha_map.get(term.name)
-            self.create_term_from_titled_obj(term, "structural", hard_coded_alt_titles, title_adder=tanakh_title_adder, title_modifier=parsha_title_modifier)
+            self.create_term_from_titled_obj(term, "structural", "tanakh", hard_coded_alt_titles, title_adder=tanakh_title_adder, title_modifier=parsha_title_modifier)
 
     def create_mt_terms(self):
         hard_coded_title_map = {}
@@ -339,7 +349,7 @@ class ReusableTermManager:
         indexes = library.get_indexes_in_category("Mishneh Torah", full_records=True)
         for index in indexes:
             temp_alt_titles = hard_coded_title_map.get(index.title)
-            self.create_term_from_titled_obj(index.nodes, 'structural', temp_alt_titles, title_modifier=title_modifier)
+            self.create_term_from_titled_obj(index.nodes, 'structural', "mishneh torah", temp_alt_titles, title_modifier=title_modifier)
 
     def create_sa_terms(self):
         hard_coded_title_map = {
@@ -358,14 +368,22 @@ class ReusableTermManager:
         indexes = library.get_indexes_in_category("Shulchan Arukh", full_records=True)
         for index in indexes:
             temp_alt_titles = hard_coded_title_map.get(index.title)
-            self.create_term_from_titled_obj(index.nodes, 'structural', temp_alt_titles, title_modifier=title_modifier)
+            self.create_term_from_titled_obj(index.nodes, 'structural', "shulchan arukh", temp_alt_titles, title_modifier=title_modifier)
 
 
-def get_reusable_components():
+def get_reusable_components() -> ReusableTermManager:
     """
     Static method to build up datastructures that are necessary for every run of LinkerIndexConverter
     @return:
     """
+    reusable_term_manager = ReusableTermManager()
+    reusable_term_manager.create_base_non_unique_terms()
+    reusable_term_manager.create_numeric_perek_terms()
+    reusable_term_manager.create_tanakh_terms()
+    reusable_term_manager.create_shas_terms()
+    reusable_term_manager.create_mt_terms()
+    reusable_term_manager.create_sa_terms()
+    return reusable_term_manager
 
 
 class LinkerCategoryConverter:
@@ -386,7 +404,8 @@ class LinkerCategoryConverter:
 
 class LinkerIndexConverter:
 
-    def __init__(self, title, node_mutator=None, get_term_prefixes=None, title_alt_title_map=None, fast_unsafe_saving=False):
+    def __init__(self, title, node_mutator=None, get_term_prefixes=None, title_alt_title_map=None,
+                 title_modifier=None, title_adder=None, fast_unsafe_saving=False):
         """
 
         @param title: title of index to convert
@@ -394,7 +413,7 @@ class LinkerIndexConverter:
         @param get_term_prefixes: function of form (node: SchemaNode, depth: int) -> List[List[NonUniqueTerm]].
         @param title_alt_title_map: mapping from primary node title to list of strings which are new alt titles.
             If a node title exists in the mapping, a new term will be created from current alt titles + ones in mapping
-        @param fast_unsafe_saving:
+        @param fast_unsafe_saving: If true, skip Python dependency checks and save directly to Mongo (much faster but potentially unsafe)
         """
         self.index = library.get_index(title)
         self.node_mutator = node_mutator
@@ -423,5 +442,5 @@ class LinkerIndexConverter:
 
 
 if __name__ == '__main__':
-    converter = LinkerIndexConverter("Orot")
+    converter = LinkerIndexConverter("Sifra")
     converter.convert()
