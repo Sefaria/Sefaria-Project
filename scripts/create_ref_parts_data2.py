@@ -26,6 +26,7 @@ Documentation of new fields which can be added to SchemaNodes
         Values for "scope":
             "combined": need to match at least one match template for every node above this node + one match template for this node
             "alone": only need to match one match template from this node. This is helpful when certain nodes can be referenced independent of the book's title (e.g. perek of Rashi)
+            "any": both "combined" and "alone"
         Example:
             Some match templates for the first perek of "Rashi on Berkahot" might be:
             (Note, the "alone" templates don't need to match the match_templates of the root node (i.e. ["rashi", "berakhot"])
@@ -449,7 +450,7 @@ class LinkerIndexConverter:
 
         @param title: title of index to convert
         @param get_other_fields: function of form
-            (node: SchemaNode, depth: int, reusable_term_manager) -> Tuple[bool, List[bool], List[str]].
+            (node: SchemaNode, depth: int, isibling: int, num_siblings: int, is_alt_node: bool) -> Tuple[bool, List[bool], List[str]].
             Returns other fields that are sometimes necessary to modify:
                 - isSegmentLevelDiburHamatchil
                 - referenceableSections
@@ -457,7 +458,8 @@ class LinkerIndexConverter:
                 - numeric_equivalent
             Can return None for any of these
             See top of file for documentation for these fields
-        @param get_match_templates: function of form (node: SchemaNode, depth: int, reusable_term_manager) -> List[MatchTemplate].
+        @param get_match_templates: function of form
+            (node: SchemaNode, depth: int, isibling: int, num_siblings: int, is_alt_node: bool) -> List[MatchTemplate].
         @param fast_unsafe_saving: If true, skip Python dependency checks and save directly to Mongo (much faster but potentially unsafe)
         """
         self.index = library.get_index(title)
@@ -466,9 +468,9 @@ class LinkerIndexConverter:
         self.fast_unsafe_saving = fast_unsafe_saving
 
     @staticmethod
-    def _traverse_nodes(node, callback, depth=0, i=0, **kwargs):
-        callback(node, depth, i, **kwargs)
-        [LinkerIndexConverter._traverse_nodes(child, callback, depth + 1, j, **kwargs) for (j, child) in enumerate(node.children)]
+    def _traverse_nodes(node, callback, depth=0, isibling=0, num_siblings=0, **kwargs):
+        callback(node, depth, isibling, num_siblings, **kwargs)
+        [LinkerIndexConverter._traverse_nodes(child, callback, depth + 1, jsibling, len(node.children), **kwargs) for (jsibling, child) in enumerate(node.children)]
 
     def convert(self):
         self._traverse_nodes(self.index.nodes, self.node_visitor, is_alt_node=False)
@@ -503,21 +505,42 @@ class SpecificConverterManager:
         self.rtm = get_reusable_components()
 
     def convert_bavli(self):
-        def get_match_templates(node, *args):
+        def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
             nonlocal self
-            bavli_slug = self.rtm.get_term_by_primary_title('base', 'Bavli').slug
-            gemara_slug = self.rtm.get_term_by_primary_title('base', 'Gemara').slug
-            tractate_slug = self.rtm.get_term_by_primary_title('base', 'Tractate').slug
-            title = node.get_primary_title('en')
-            title_slug = self.rtm.get_term_by_primary_title('bavli', title).slug
-            return [
-                MatchTemplate([bavli_slug, title_slug]),
-                MatchTemplate([gemara_slug, title_slug]),
-                MatchTemplate([bavli_slug, tractate_slug, title_slug]),
-                MatchTemplate([gemara_slug, tractate_slug, title_slug]),
-                MatchTemplate([tractate_slug, title_slug]),
-                MatchTemplate([title_slug]),
-            ]
+            if is_alt_node:
+                perek_slug = self.rtm.get_term_by_primary_title('base', 'Perek').slug  # TODO english titles are 'Chapter N'. Is that an issue?
+                perek_term = self.rtm.create_term_from_titled_obj(node, 'structural', 'shas perek')
+                is_last = isibling == num_siblings-1
+                numeric_equivalent = min(isibling+1, 30)
+                perek_num_term = self.rtm.get_perek_term_by_num(numeric_equivalent)
+                last_perek_num_term = self.rtm.get_perek_term_by_num('last')
+                node.numeric_equivalent = numeric_equivalent
+                match_templates = [
+                    MatchTemplate([perek_slug, perek_term.slug], scope='any'),
+                    MatchTemplate([perek_slug, perek_num_term.slug]),
+                    MatchTemplate([perek_term.slug], scope='any'),
+                    MatchTemplate([perek_num_term.slug])
+                ]
+                if is_last:
+                    match_templates += [
+                        MatchTemplate([perek_slug, last_perek_num_term.slug]),
+                        MatchTemplate([last_perek_num_term.slug]),
+                    ]
+                return match_templates
+            else:
+                bavli_slug = self.rtm.get_term_by_primary_title('base', 'Bavli').slug
+                gemara_slug = self.rtm.get_term_by_primary_title('base', 'Gemara').slug
+                tractate_slug = self.rtm.get_term_by_primary_title('base', 'Tractate').slug
+                title = node.get_primary_title('en')
+                title_slug = self.rtm.get_term_by_primary_title('bavli', title).slug
+                return [
+                    MatchTemplate([bavli_slug, title_slug]),
+                    MatchTemplate([gemara_slug, title_slug]),
+                    MatchTemplate([bavli_slug, tractate_slug, title_slug]),
+                    MatchTemplate([gemara_slug, tractate_slug, title_slug]),
+                    MatchTemplate([tractate_slug, title_slug]),
+                    MatchTemplate([title_slug]),
+                ]
         converter = LinkerCategoryConverter("Bavli", is_corpus=True, get_match_templates=get_match_templates)
         converter.convert()
 
