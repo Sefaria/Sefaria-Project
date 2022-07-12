@@ -450,12 +450,14 @@ class LinkerIndexConverter:
 
         @param title: title of index to convert
         @param get_other_fields: function of form
-            (node: SchemaNode, depth: int, isibling: int, num_siblings: int, is_alt_node: bool) -> Tuple[bool, List[bool], List[str]].
-            Returns other fields that are sometimes necessary to modify:
+            (node: SchemaNode, depth: int, isibling: int, num_siblings: int, is_alt_node: bool) -> dict.
+            Returns a dict where keys are other fields to modify. These can be any valid key on `node`
+            Some common examples are below. Many of them are documented at the top of this file.
                 - isSegmentLevelDiburHamatchil
                 - referenceableSections
                 - diburHamatchilRegexes
                 - numeric_equivalent
+                - ref_resolver_context_swaps
             Can return None for any of these
             See top of file for documentation for these fields
         @param get_match_templates: function of form
@@ -472,11 +474,18 @@ class LinkerIndexConverter:
         callback(node, depth, isibling, num_siblings, is_alt_node, **kwargs)
         [LinkerIndexConverter._traverse_nodes(child, callback, depth + 1, jsibling, len(node.children), is_alt_node, **kwargs) for (jsibling, child) in enumerate(node.children)]
 
+    def _update_lengths(self):
+        if self.index.is_complex(): return
+        sn = StateNode(self.index.title)
+        ac = sn.get_available_counts("he")
+        self.index.nodes.lengths = ac[:]
+
     def convert(self):
         self._traverse_nodes(self.index.nodes, self.node_visitor, is_alt_node=False)
         alt_nodes = self.index.get_alt_struct_nodes()
         for inode, node in enumerate(alt_nodes):
             self.node_visitor(node, 1, inode, len(alt_nodes), True)
+        self._update_lengths()  # update lengths for good measure
         self.save_index()
 
     def save_index(self):
@@ -493,10 +502,9 @@ class LinkerIndexConverter:
                 node.match_templates = [template.serialize() for template in templates]
 
         if self.get_other_fields:
-            other_field_keys = ['isSegmentLevelDiburHamatchil', 'referenceableSections', 'diburHamatchilRegexes', 'numeric_equivalent']
-            other_field_vals = self.get_other_fields(node, depth, isibling, num_siblings, is_alt_node)
-            if other_field_vals is not None:
-                for key, val in zip(other_field_keys, other_field_vals):
+            other_fields_dict = self.get_other_fields(node, depth, isibling, num_siblings, is_alt_node)
+            if other_fields_dict is not None:
+                for key, val in other_fields_dict.items():
                     if val is None: continue
                     setattr(node, key, val)
 
@@ -571,11 +579,58 @@ class SpecificConverterManager:
 
         def get_other_fields(node, depth, isibling, num_siblings, is_alt_node):
             if is_alt_node:
-                numeric_equivalent = min(isibling + 1, 30)
-                return None, None, None, numeric_equivalent
+                return {"numeric_equivalent": min(isibling + 1, 30)}
 
         converter = LinkerCategoryConverter("Bavli", is_corpus=True, get_match_templates=get_match_templates, get_other_fields=get_other_fields)
         converter.convert()
+
+    def convert_rest_of_shas(self):
+        title_swaps = {
+            "Moed Kattan": "Moed Katan",
+            "Oktsin": "Oktzin"
+        }
+
+        def get_generic_term(node):
+            nonlocal self, title_swaps
+            generic_title = re.sub(r"^(Mishnah|Tosefta|Jerusalem Talmud) ", "", node.get_primary_title('en'))
+            generic_title = re.sub(r" \(Lieberman\)$", "", generic_title)
+            generic_title = title_swaps.get(generic_title, generic_title)
+            generic_term = self.rtm.get_term_by_primary_title('shas', generic_title)
+            if not generic_term:
+                print(generic_title)
+            return generic_term
+
+        def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
+            nonlocal self
+            if is_alt_node: return []
+            cat = node.index.categories[0]
+            base_term = self.rtm.get_term_by_primary_title('base', cat)
+            tractate_slug = self.rtm.get_term_by_primary_title('base', 'Tractate').slug
+            generic_term = get_generic_term(node)
+            match_templates = [MatchTemplate([base_term.slug, generic_term.slug])]
+            if cat == "Mishnah":
+                match_templates += [
+                    MatchTemplate([generic_term.slug]),
+                    MatchTemplate([tractate_slug, generic_term.slug]),
+                ]
+            return match_templates
+
+        def get_other_fields(node, depth, isibling, num_siblings, is_alt_node):
+            if is_alt_node: return
+            cat = node.index.categories[0]
+            base_term = self.rtm.get_term_by_primary_title('base', cat)
+            generic_term = get_generic_term(node)
+            if cat == "Yerushalmi":
+                return {
+                    "addressTypes": ["Perek"] + node.addressTypes[1:],
+                    "ref_resolver_context_swaps": [base_term.slug, generic_term.slug],
+                    "referenceableSections": [True, True, False]
+                }
+
+        for corpus in ("Mishnah", "Tosefta", "Yerushalmi"):
+            is_corpus = corpus != "Tosefta"
+            converter = LinkerCategoryConverter(corpus, is_corpus=is_corpus, get_match_templates=get_match_templates, get_other_fields=get_other_fields)
+            converter.convert()
 
     def convert_sifra(self):
         parsha_map = {
@@ -637,8 +692,7 @@ class SpecificConverterManager:
             if num_match is None:
                 print(node.ref(), 'no num_match for Sifra')
                 return
-            numeric_equivalent = int(num_match.group(1))
-            return None, None, None, numeric_equivalent
+            return {"numeric_equivalent": int(num_match.group(1))}
 
         converter = LinkerIndexConverter("Sifra", get_match_templates=get_match_templates, get_other_fields=get_other_fields)
         converter.convert()
@@ -648,5 +702,11 @@ if __name__ == '__main__':
     converter_manager = SpecificConverterManager()
     converter_manager.convert_tanakh()
     converter_manager.convert_bavli()
+    converter_manager.convert_rest_of_shas()
     converter_manager.convert_sifra()
+
+"""
+Still TODO
+- update lengths for every index touched
+"""
 
