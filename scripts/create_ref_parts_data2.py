@@ -530,9 +530,9 @@ class SpecificConverterManager:
                 # second level node
                 named_term_slug = None
                 if 'Chapter' in title:
-                    named_term_slug = 'perek'
+                    named_term_slug = self.rtm.get_term_by_primary_title('base', 'Perek').slug
                 elif 'Section' in title:
-                    named_term_slug = 'parasha'
+                    named_term_slug = self.rtm.get_term_by_primary_title('base', 'Parasha').slug
                 if named_term_slug is None:
                     alt_titles = other_perek_node_map[re.search(r'^(.+) \d+$', title).group(1)]
                     named_term = self.rtm.create_term_from_titled_obj(node, 'structural', new_alt_titles=alt_titles)
