@@ -9,29 +9,58 @@ from sefaria.model.abstract import AbstractMongoRecord
 from sefaria.model.schema import DiburHamatchilNode, DiburHamatchilNodeSet, TitleGroup
 
 """
-Strategy
-- For each node can potentially define
-    - match_templates
-        - do we need a new term?
-            - does this term need special-cased alt titles?
-            - pass in dict mapping current primary titles to additional alt titles needed
-        - is title an existing term? (e.g. parsha)
-            - there are some reusable nodes that come up often.
-                should be able to use mapping of sharedTitle to term slug.
-                can detect possible missing sharedTitles
-                - parsha
-                - tanakh book
-                - talmud book
-                - MT book
-                - tur part (looks like this tends to not be sharedTitle)
-                
-        - can we break the current title into multiple parts?
-            - do some of the parts already exist as terms?
-            - most commonly [section name] [section number]
+Documentation of new fields which can be added to SchemaNodes
+    - match_templates: List[List[str]]
+        List of serialized MatchTemplate objects. See ref_part.MatchTemplate.serialize()
+        Each inner array is similar to an alt-title. The difference is each NonUniqueTerm can have its own independent alt-titles so it is more flexible.
+        Example:
+            Some match_templates for "Berakhot" might be
+            "match_templates" : [
+                { "term_slugs" : ["bavli", "berakhot"] }, 
+                { "term_slugs" : ["gemara", "berakhot"]}, 
+                { "term_slugs" : ["bavli", "tractate", "berakhot"] }
+            ]
+            
+        Match templates can include a key "scope". If not included, the default is "combined"
+        Values for "scope":
+            "combined": need to match at least one match template for every node above this node + one match template for this node
+            "alone": only need to match one match template from this node. This is helpful when certain nodes can be referenced independent of the book's title (e.g. perek of Rashi)
+        Example:
+            Some match templates for the first perek of "Rashi on Berkahot" might be:
+            (Note, the "alone" templates don't need to match the match_templates of the root node (i.e. ["rashi", "berakhot"])
+            "match_templates" : [
+                {
+                    "term_slugs" : ["rashi", "perek", "מאימתי"], 
+                    "scope" : "alone"
+                }, 
+                {
+                    "term_slugs" : ["perek", "מאימתי"]
+                }, 
+                {
+                    "term_slugs" : ["perek", "first"]
+                }
+            ]
     - isSegmentLevelDiburHamatchil
+        Only used for JaggedArrayNodes.
+        bool.
+        True means the segment level should be referenced by DH and not by number.
+        E.g. No one references Rashi on Genesis 2:1:1. They reference Rashi on Genesis 2:1 DH ויכל
     - referenceableSections
+        Only used for JaggedArrayNodes.
+        List of bool. Should be same length as `depth`
+        If a section is False in this list, it will not be referenceable.
+        E.g. The section level of Rashi on Berakhot is not referenced since it corresponds to paragraph number in our break-up of Talmud
+        So for Rashi on Berakhot, referenceableSections = [True, False, True].
+        This effectively means this text can be referenced as depth 2.
     - diburHamatchilRegexes
-Also need to add alt structs, but that is potentially a different issue
+        Only used for JaggedArrayNodes.
+        List[str]
+        Each string represents a regex.
+        Each regex will be run sequentially and final output will be the Dibur Hamatchil for that segment
+        Each regex should either not match OR return match with result in group 1
+        Example
+            For Rashi on Berakhot, diburHamatchilRegexes = ['^(.+?)[\-–]', '\.(.+?)$', "^(?:(?:מתני'|גמ')\s?)?(.+)$"]
+
 
 """
 
@@ -42,6 +71,15 @@ class ReusableTermManager:
         self.context_and_primary_title_to_term = {}
         self.alt_title_to_term = {}
         self.old_term_map = {}
+        self.reg_map = {
+            "rashi": ['^(.+?)[\-–]', '\.(.+?)$', "^(?:(?:מתני'|גמ')\s?)?(.+)$"],
+            "ran": ['^(.+?)[\-–]', "^(?:(?:מתני'|גמ')\s?)?(.+)$"],
+            "tosafot": ['^(.+?)[\-–\.]', "^(?:(?:מתני'|גמ')\s?)?(.+)$"],
+            "gilyon-hashas": ["^<b>(.+?)</b>"],
+        }
+
+    def get_dh_regexes(self, index, comm_term_slug):
+        return self.reg_map.get(index.title, self.reg_map.get(comm_term_slug))
 
     def get_term_by_primary_title(self, context, title):
         return self.context_and_primary_title_to_term.get((context, title))
@@ -403,20 +441,25 @@ class LinkerCategoryConverter:
 
 class LinkerIndexConverter:
 
-    def __init__(self, title, node_mutator=None, get_term_prefixes=None, title_alt_title_map=None,
+    def __init__(self, title, reusable_term_manager, node_mutator=None, get_match_templates=None, title_alt_title_map=None,
                  title_modifier=None, title_adder=None, fast_unsafe_saving=False):
         """
 
         @param title: title of index to convert
-        @param node_mutator: function of form (node: SchemaNode, depth: int) -> None. Can add any necessary fields to `node`
-        @param get_term_prefixes: function of form (node: SchemaNode, depth: int) -> List[List[NonUniqueTerm]].
+        @param reusable_term_manager: ReusableTermManager used to assist in creating match templates
+        @param get_commentary_fields: function of form
+            (node: SchemaNode, depth: int, reusable_term_manager) -> Tuple[bool, List[bool], List[str]].
+            Returns fields which are relevant for commentaries
+            - isSegmentLevelDiburHamatchil
+        @param get_match_templates: function of form (node: SchemaNode, depth: int, reusable_term_manager) -> List[List[NonUniqueTerm]].
         @param title_alt_title_map: mapping from primary node title to list of strings which are new alt titles.
             If a node title exists in the mapping, a new term will be created from current alt titles + ones in mapping
         @param fast_unsafe_saving: If true, skip Python dependency checks and save directly to Mongo (much faster but potentially unsafe)
         """
         self.index = library.get_index(title)
+        self.reusable_term_manager = reusable_term_manager
         self.node_mutator = node_mutator
-        self.get_term_prefixes = get_term_prefixes
+        self.get_match_templates = get_match_templates
         self.title_alt_title_map = title_alt_title_map
         self.fast_unsafe_saving = fast_unsafe_saving
 
@@ -432,14 +475,16 @@ class LinkerIndexConverter:
             self.index.save()
 
     def node_visitor(self, node, depth):
-        if self.get_term_prefixes:
-            term_prefixes = self.get_term_prefixes(node, depth)
+        if self.get_match_templates:
+            templates = self.get_match_templates(node, depth, self.reusable_term_manager)
+            node.match_templates = templates
 
         if self.node_mutator:
-            self.node_mutator(node, depth)
+            self.node_mutator(node, depth, self.reusable_term_manager)
         return ""
 
 
 if __name__ == '__main__':
-    converter = LinkerIndexConverter("Sifra")
+    reusable_term_manager = get_reusable_components()
+    converter = LinkerIndexConverter("Sifra", reusable_term_manager=reusable_term_manager)
     converter.convert()

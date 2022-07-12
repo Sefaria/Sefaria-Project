@@ -169,6 +169,14 @@ class MatchTemplate:
         for slug in self.term_slugs:
             yield NonUniqueTerm.init(slug)
 
+    def serialize(self) -> dict:
+        serial = {
+            "term_slugs": [t.slug for t in self.get_terms()],
+        }
+        if self.scope != 'combined':
+            serial['scope'] = self.scope
+        return serial
+
     terms = property(get_terms)
 
 
