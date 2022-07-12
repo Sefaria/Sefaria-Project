@@ -512,8 +512,12 @@ class SpecificConverterManager:
             sefer_slug = self.rtm.get_term_by_primary_title('base', 'Sefer').slug
             parasha_slug = self.rtm.get_term_by_primary_title('base', 'Parasha').slug
             title = node.get_primary_title('en')
-            title_slug = self.rtm.get_term_by_primary_title('tanakh', title).slug
-            if is_alt_node and node.index.categories[-1] == "Torah":
+            try:
+                title_slug = self.rtm.get_term_by_primary_title('tanakh', title).slug
+            except AttributeError:
+                # Psalms alt struct node
+                return []
+            if is_alt_node and node.ref().index.categories[-1] == "Torah":
                 return [
                     MatchTemplate([parasha_slug, title_slug], scope='any'),
                     MatchTemplate([title_slug], scope='any'),
@@ -642,6 +646,7 @@ class SpecificConverterManager:
 
 if __name__ == '__main__':
     converter_manager = SpecificConverterManager()
+    converter_manager.convert_tanakh()
     converter_manager.convert_bavli()
     converter_manager.convert_sifra()
 
