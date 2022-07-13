@@ -70,6 +70,8 @@ def ensure_indices(active_db=None):
         ('index', ["title"],{}),
         ('index_queue', [[("lang", pymongo.ASCENDING), ("version", pymongo.ASCENDING), ("ref", pymongo.ASCENDING)]],{'unique': True}),
         ('index', ["categories.0"], {}),
+        ('index', ["order.0"], {}),
+        ('index', ["order.1"], {}),
         # ('links', [[("refs.0",  1), ("refs.1", 1)]], {"unique": True}),
         ('links', [[("refs", pymongo.ASCENDING), ("generated_by", pymongo.ASCENDING)]],{}),
         ('links', ["refs.0"],{}),
