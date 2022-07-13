@@ -545,7 +545,10 @@ class LinkerIndexConverter:
                     if val is None: continue
                     setattr(node, key, val)
 
+
 RTM = get_reusable_components()
+
+
 class SpecificConverterManager:
     def convert_tanakh(self):
         def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
