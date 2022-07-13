@@ -175,7 +175,9 @@ def base_props(request):
     from sefaria.model.user_profile import UserProfile, UserWrapper
     from sefaria.site.site_settings import SITE_SETTINGS
     from sefaria.settings import DEBUG, GLOBAL_INTERRUPTING_MESSAGE, RTC_SERVER
-    logger.exception("base_props")
+
+    import traceback
+    logger.exception(f"base_props {traceback.print_stack()}")
     if hasattr(request, "init_shared_cache"):
         logger.warning("Shared cache disappeared while application was running")
         library.init_shared_cache(rebuild=True)
@@ -491,7 +493,8 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
     """
     Handles views of ReaderApp that involve texts, connections, and text table of contents in panels.
     """
-    logger.exception("text panels")
+    import traceback
+    logger.exception(f"text panels {traceback.print_stack()}")
     if sheet == None:
         try:
             primary_ref = oref = Ref(ref)
