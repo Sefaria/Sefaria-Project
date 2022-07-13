@@ -29,6 +29,7 @@ from django.db import transaction
 from django.views.decorators.debug import sensitive_post_parameters
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect, csrf_exempt
+from sefaria.system.decorators import catch_error_as_json
 from django.urls import resolve
 from django.urls.exceptions import Resolver404
 from rest_framework.decorators import api_view
@@ -281,6 +282,7 @@ def linker_js(request, linker_version=None):
     return render(request, linker_link, attrs, content_type = "text/javascript; charset=utf-8")
 
 
+@catch_error_as_json
 @csrf_exempt
 def find_refs_api(request):
     import traceback
