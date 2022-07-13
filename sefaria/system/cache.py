@@ -17,6 +17,7 @@ if not hasattr(sys, '_doc_build'):
     from django.core.cache import caches
 
 SHARED_DATA_CACHE_ALIAS = getattr(settings, 'SHARED_DATA_CACHE_ALIAS', DEFAULT_CACHE_ALIAS)
+LONG_TERM_CACHE_ALIAS = getattr(settings, 'LONG_TERM_CACHE_ALIAS', DEFAULT_CACHE_ALIAS)
 
 #functions from here: http://james.lin.net.nz/2011/09/08/python-decorator-caching-your-functions/
 #and here: https://github.com/rchrd2/django-cache-decorator
@@ -42,7 +43,7 @@ def cache_get_key(*args, **kwargs):
     return key
 
 
-def django_cache(action="get", timeout=None, cache_key='', cache_prefix=None, default_on_miss=False, default_on_miss_value=None, cache_type=None):
+def django_cache(action="get", timeout=None, cache_key='', cache_prefix=None, default_on_miss=False, default_on_miss_value=None, cache_type=None, decorate_data_with_key=False):
     """
     Easily add caching to a function in django
     """
