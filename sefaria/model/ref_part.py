@@ -177,6 +177,12 @@ class MatchTemplate:
             serial['scope'] = self.scope
         return serial
 
+    def clone(self, **kwargs) -> 'MatchTemplate':
+        """
+        Return new MatchTemplate with all the same data except modifications specified in kwargs
+        """
+        return MatchTemplate(**{**self.__dict__, **kwargs})
+
     terms = property(get_terms)
 
 

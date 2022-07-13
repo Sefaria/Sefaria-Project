@@ -449,6 +449,37 @@ class LinkerCategoryConverter:
             index_converter.convert()
 
 
+class LinkerCommentaryConverter:
+    
+    def __init__(self, base_text_title, base_match_templates, **linker_index_converter_kwargs):
+        self.titles = [index.title for index in IndexSet({"base_text_titles": base_text_title})]
+        self.linker_index_converter_kwargs = linker_index_converter_kwargs
+        self.linker_index_converter_kwargs['get_match_templates'] = self.get_match_templates
+        self.base_match_templates = base_match_templates
+
+    def get_match_templates(self, node, depth, isibling, num_siblings, is_alt_node):
+        if is_alt_node: return
+        title = node.get_primary_title('en')
+        try:
+            comm_term = RTM.get_term_by_old_term_name(node.collective_title)
+        except KeyError:
+            print(
+                f"\nMissing commentary term for '{node.collective_title}' used on index '{title}'")
+            return
+        except AttributeError:
+            print(f"No collective title for '{title}'")
+            return
+        match_templates = [template.clone() for template in self.base_match_templates]
+        for template in match_templates:
+            template.term_slugs = [comm_term.slug] + template.term_slugs
+        return match_templates
+
+    def convert(self):
+        for title in self.titles:
+            index_converter = LinkerIndexConverter(title, **self.linker_index_converter_kwargs)
+            index_converter.convert()
+
+
 class LinkerIndexConverter:
 
     def __init__(self, title, get_other_fields=None, get_match_templates=None, fast_unsafe_saving=True):
@@ -514,20 +545,16 @@ class LinkerIndexConverter:
                     if val is None: continue
                     setattr(node, key, val)
 
-
+RTM = get_reusable_components()
 class SpecificConverterManager:
-
-    def __init__(self):
-        self.rtm = get_reusable_components()
-
     def convert_tanakh(self):
         def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
-            nonlocal self
-            sefer_slug = self.rtm.get_term_by_primary_title('base', 'Sefer').slug
-            parasha_slug = self.rtm.get_term_by_primary_title('base', 'Parasha').slug
+
+            sefer_slug = RTM.get_term_by_primary_title('base', 'Sefer').slug
+            parasha_slug = RTM.get_term_by_primary_title('base', 'Parasha').slug
             title = node.get_primary_title('en')
             try:
-                title_slug = self.rtm.get_term_by_primary_title('tanakh', title).slug
+                title_slug = RTM.get_term_by_primary_title('tanakh', title).slug
             except AttributeError:
                 # Psalms alt struct node
                 return []
@@ -548,14 +575,14 @@ class SpecificConverterManager:
 
     def convert_bavli(self):
         def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
-            nonlocal self
+
             if is_alt_node:
-                perek_slug = self.rtm.get_term_by_primary_title('base', 'Perek').slug  # TODO english titles are 'Chapter N'. Is that an issue?
-                perek_term = self.rtm.create_term_from_titled_obj(node, 'structural', 'shas perek')
+                perek_slug = RTM.get_term_by_primary_title('base', 'Perek').slug  # TODO english titles are 'Chapter N'. Is that an issue?
+                perek_term = RTM.create_term_from_titled_obj(node, 'structural', 'shas perek')
                 is_last = isibling == num_siblings-1
                 numeric_equivalent = min(isibling+1, 30)
-                perek_num_term = self.rtm.get_perek_term_by_num(numeric_equivalent)
-                last_perek_num_term = self.rtm.get_perek_term_by_num('last')
+                perek_num_term = RTM.get_perek_term_by_num(numeric_equivalent)
+                last_perek_num_term = RTM.get_perek_term_by_num('last')
                 match_templates = [
                     MatchTemplate([perek_slug, perek_term.slug], scope='any'),
                     MatchTemplate([perek_slug, perek_num_term.slug]),
@@ -569,11 +596,11 @@ class SpecificConverterManager:
                     ]
                 return match_templates
             else:
-                bavli_slug = self.rtm.get_term_by_primary_title('base', 'Bavli').slug
-                gemara_slug = self.rtm.get_term_by_primary_title('base', 'Gemara').slug
-                tractate_slug = self.rtm.get_term_by_primary_title('base', 'Tractate').slug
+                bavli_slug = RTM.get_term_by_primary_title('base', 'Bavli').slug
+                gemara_slug = RTM.get_term_by_primary_title('base', 'Gemara').slug
+                tractate_slug = RTM.get_term_by_primary_title('base', 'Tractate').slug
                 title = node.get_primary_title('en')
-                title_slug = self.rtm.get_term_by_primary_title('shas', title).slug
+                title_slug = RTM.get_term_by_primary_title('shas', title).slug
                 return [
                     MatchTemplate([bavli_slug, title_slug]),
                     MatchTemplate([gemara_slug, title_slug]),
@@ -597,21 +624,21 @@ class SpecificConverterManager:
         }
 
         def get_generic_term(node):
-            nonlocal self, title_swaps
+            nonlocal title_swaps
             generic_title = re.sub(r"^(Mishnah|Tosefta|Jerusalem Talmud) ", "", node.get_primary_title('en'))
             generic_title = re.sub(r" \(Lieberman\)$", "", generic_title)
             generic_title = title_swaps.get(generic_title, generic_title)
-            generic_term = self.rtm.get_term_by_primary_title('shas', generic_title)
+            generic_term = RTM.get_term_by_primary_title('shas', generic_title)
             if not generic_term:
                 print(generic_title)
             return generic_term
 
         def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
-            nonlocal self
+
             if is_alt_node: return []
             cat = node.index.categories[0]
-            base_term = self.rtm.get_term_by_primary_title('base', cat)
-            tractate_slug = self.rtm.get_term_by_primary_title('base', 'Tractate').slug
+            base_term = RTM.get_term_by_primary_title('base', cat)
+            tractate_slug = RTM.get_term_by_primary_title('base', 'Tractate').slug
             generic_term = get_generic_term(node)
             match_templates = [MatchTemplate([base_term.slug, generic_term.slug])]
             if cat == "Mishnah":
@@ -624,7 +651,7 @@ class SpecificConverterManager:
         def get_other_fields(node, depth, isibling, num_siblings, is_alt_node):
             if is_alt_node: return
             cat = node.index.categories[0]
-            base_term = self.rtm.get_term_by_primary_title('base', cat)
+            base_term = RTM.get_term_by_primary_title('base', cat)
             generic_term = get_generic_term(node)
             if cat == "Yerushalmi":
                 return {
@@ -657,33 +684,33 @@ class SpecificConverterManager:
         }
 
         def get_match_templates(node, *args):
-            nonlocal self
+
             title = node.get_primary_title('en')
             parsha_title = parsha_map.get(title, title)
-            parsha_term = self.rtm.get_term_by_primary_title('tanakh', parsha_title)
+            parsha_term = RTM.get_term_by_primary_title('tanakh', parsha_title)
             if parsha_term:
                 return [MatchTemplate([parsha_term.slug])]
             elif title in other_node_map:
                 alt_titles = other_node_map[title]
-                term = self.rtm.create_term_from_titled_obj(node, 'structural', new_alt_titles=alt_titles)
+                term = RTM.create_term_from_titled_obj(node, 'structural', new_alt_titles=alt_titles)
                 return [MatchTemplate([term.slug])]
             else:
                 # second level node
                 named_term_slug = None
                 if 'Chapter' in title:
-                    named_term_slug = self.rtm.get_term_by_primary_title('base', 'Perek').slug
+                    named_term_slug = RTM.get_term_by_primary_title('base', 'Perek').slug
                 elif 'Section' in title:
-                    named_term_slug = self.rtm.get_term_by_primary_title('base', 'Parasha').slug
+                    named_term_slug = RTM.get_term_by_primary_title('base', 'Parasha').slug
                 if named_term_slug is None:
                     alt_titles = other_perek_node_map[re.search(r'^(.+) \d+$', title).group(1)]
-                    named_term = self.rtm.create_term_from_titled_obj(node, 'structural', new_alt_titles=alt_titles)
+                    named_term = RTM.create_term_from_titled_obj(node, 'structural', new_alt_titles=alt_titles)
                     named_term_slug = named_term.slug
                 num_match = re.search(' (\d+)$', title)
                 if num_match is None:
                     print(node.ref(), 'no num_match for Sifra')
                     return []
                 numeric_equivalent = int(num_match.group(1))
-                num_term = self.rtm.get_perek_term_by_num(numeric_equivalent)  # NOTE: these terms can be used for both parsha and perek nodes b/c they only contain a "פ" prefix.
+                num_term = RTM.get_perek_term_by_num(numeric_equivalent)  # NOTE: these terms can be used for both parsha and perek nodes b/c they only contain a "פ" prefix.
                 node.numeric_equivalent = numeric_equivalent
 
                 return [
@@ -716,21 +743,21 @@ class SpecificConverterManager:
         }
 
         def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
-            nonlocal self, tanakh_title_map
+            nonlocal tanakh_title_map
             if node.is_default(): return []
-            rabbah_slug = self.rtm.get_term_by_primary_title('base', 'Rabbah').slug
-            mid_rab_slug =  self.rtm.get_term_by_primary_title('base', 'Midrash Rabbah').slug
+            rabbah_slug = RTM.get_term_by_primary_title('base', 'Rabbah').slug
+            mid_rab_slug =  RTM.get_term_by_primary_title('base', 'Midrash Rabbah').slug
             title = node.get_primary_title('en')
             tanakh_title = title.replace(" Rabbah", "")
             tanakh_title = tanakh_title_map.get(tanakh_title, tanakh_title)
             try:
-                tanakh_slug = self.rtm.get_term_by_primary_title('tanakh', tanakh_title).slug
+                tanakh_slug = RTM.get_term_by_primary_title('tanakh', tanakh_title).slug
             except:
                 # Petichta
-                term = self.rtm.get_term_by_primary_title('midrash rabbah', title)
+                term = RTM.get_term_by_primary_title('midrash rabbah', title)
                 if not term:
                     # create it
-                    term = self.rtm.create_term_from_titled_obj(node, 'structural', context='midrash rabbah')
+                    term = RTM.create_term_from_titled_obj(node, 'structural', context='midrash rabbah')
                 return [MatchTemplate([term.slug])]
             return [
                 MatchTemplate([tanakh_slug, rabbah_slug]),
@@ -741,14 +768,14 @@ class SpecificConverterManager:
 
     def convert_mishneh_torah(self):
         def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
-            nonlocal self
+
             title = node.get_primary_title('en')
             term_key = title.replace("Mishneh Torah, ", "")
-            mt_slug = self.rtm.get_term_by_primary_title('base', 'Mishneh Torah').slug
-            ram_slug = self.rtm.get_term_by_primary_title('base', 'Rambam').slug
-            hilchot_slug = self.rtm.get_term_by_primary_title('base', 'Hilchot').slug
+            mt_slug = RTM.get_term_by_primary_title('base', 'Mishneh Torah').slug
+            ram_slug = RTM.get_term_by_primary_title('base', 'Rambam').slug
+            hilchot_slug = RTM.get_term_by_primary_title('base', 'Hilchot').slug
             try:
-                title_slug = self.rtm.get_term_by_primary_title('mishneh torah', term_key).slug
+                title_slug = RTM.get_term_by_primary_title('mishneh torah', term_key).slug
             except:
                 print(term_key)
                 return []
@@ -764,32 +791,31 @@ class SpecificConverterManager:
 
     def convert_tur(self):
         def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
-            nonlocal self
+
             sa_title_swaps = {
                 "Orach Chaim": "Orach Chayim",
                 "Yoreh Deah": "Yoreh De'ah"
             }
             title = node.get_primary_title('en')
             if depth == 1:
-                title_slug = self.rtm.create_term_from_titled_obj(node, 'structural', 'tur').slug
+                title_slug = RTM.create_term_from_titled_obj(node, 'structural', 'tur').slug
             else:
                 title = sa_title_swaps.get(title, title)
-                title_slug = self.rtm.get_term_by_primary_title('shulchan arukh', title).slug
+                title_slug = RTM.get_term_by_primary_title('shulchan arukh', title).slug
             return [MatchTemplate([title_slug])]
         converter = LinkerIndexConverter('Tur', get_match_templates=get_match_templates)
         converter.convert()
 
     def convert_shulchan_arukh(self):
         def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
-            nonlocal self
             if is_alt_node: return []
             title = node.get_primary_title('en')
-            sa_slug = self.rtm.get_term_by_primary_title('base', 'Shulchan Arukh').slug
+            sa_slug = RTM.get_term_by_primary_title('base', 'Shulchan Arukh').slug
             term_key = title.replace("Shulchan Arukh, ", "")
             try:
-                title_slug = self.rtm.get_term_by_primary_title('shulchan arukh', term_key).slug
+                title_slug = RTM.get_term_by_primary_title('shulchan arukh', term_key).slug
             except:
-                title_slug = self.rtm.create_term_from_titled_obj(node, 'structural', 'shulchan arukh').slug
+                title_slug = RTM.create_term_from_titled_obj(node, 'structural', 'shulchan arukh').slug
                 return [MatchTemplate([title_slug])]
             return [
                 MatchTemplate([sa_slug, title_slug]),
@@ -797,7 +823,7 @@ class SpecificConverterManager:
             ]
 
         def get_other_fields(node, depth, isibling, num_siblings, is_alt_node):
-            nonlocal self
+
             if is_alt_node: return
             if depth == 2 and node.is_default():
                 # for some reason this one was missed in a previous pass
@@ -825,7 +851,6 @@ Still TODO
     MT
     Tanakh
     Bavli
-    Tur
     SA
 """
 
