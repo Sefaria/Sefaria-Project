@@ -244,7 +244,11 @@ class ReusableTermManager:
         self.create_term(context="base", en='Hilchot', he='הלכות', alt_en=['Laws of', 'Laws', 'Hilkhot', 'Hilhot'], alt_he=["הל'"], ref_part_role='alt_title')
         self.create_term_from_titled_obj(Term().load({"name": "Parasha"}), context="base", ref_part_role='alt_title')
         for old_term in TermSet({"scheme": {"$in": ["toc_categories", "commentary_works"]}}):
-            new_term = self.create_term_from_titled_obj(old_term, context="base", ref_part_role='structural')
+            existing_term = self.get_term_by_primary_title('base', old_term.get_primary_title('en'))
+            if existing_term is None:
+                new_term = self.create_term_from_titled_obj(old_term, context="base", ref_part_role='structural')
+            else:
+                new_term = existing_term
             self.old_term_map[old_term.name] = new_term
         missing_old_term_names = [
             "Lechem Mishneh", "Mishneh LaMelech", "Melekhet Shelomoh", "Targum Jonathan", "Onkelos", "Targum Neofiti",
@@ -458,16 +462,19 @@ class LinkerCommentaryConverter:
         self.base_match_templates = base_match_templates
 
     def get_match_templates(self, node, depth, isibling, num_siblings, is_alt_node):
-        if is_alt_node: return
+        if is_alt_node or depth > 0: return
         title = node.get_primary_title('en')
         try:
-            comm_term = RTM.get_term_by_old_term_name(node.collective_title)
+            comm_term = RTM.get_term_by_old_term_name(node.index.collective_title)
         except KeyError:
             print(
-                f"\nMissing commentary term for '{node.collective_title}' used on index '{title}'")
+                f"\nMissing commentary term for '{node.index.collective_title}' used on index '{title}'")
             return
         except AttributeError:
             print(f"No collective title for '{title}'")
+            return
+        if comm_term is None:
+            print(f"Term is None {title}")
             return
         match_templates = [template.clone() for template in self.base_match_templates]
         for template in match_templates:
@@ -482,7 +489,7 @@ class LinkerCommentaryConverter:
 
 class LinkerIndexConverter:
 
-    def __init__(self, title, get_other_fields=None, get_match_templates=None, fast_unsafe_saving=True):
+    def __init__(self, title, get_other_fields=None, get_match_templates=None, fast_unsafe_saving=True, get_base_match_templates=None):
         """
 
         @param title: title of index to convert
@@ -507,6 +514,7 @@ class LinkerIndexConverter:
         self.index = library.get_index(title)
         self.get_other_fields = get_other_fields
         self.get_match_templates = get_match_templates
+        self.get_base_match_templates = get_base_match_templates
         self.fast_unsafe_saving = fast_unsafe_saving
 
     @staticmethod
@@ -526,6 +534,10 @@ class LinkerIndexConverter:
         for inode, node in enumerate(alt_nodes):
             self.node_visitor(node, 1, inode, len(alt_nodes), True)
         self._update_lengths()  # update lengths for good measure
+        if self.get_base_match_templates:
+            base_match_templates = self.get_base_match_templates(self.index)
+            comm_converter = LinkerCommentaryConverter(self.index.title, base_match_templates)
+            comm_converter.convert()
         self.save_index()
 
     def save_index(self):
@@ -576,7 +588,12 @@ class SpecificConverterManager:
                 ]
             else:
                 return []
-        converter = LinkerCategoryConverter("Tanakh", is_corpus=True, get_match_templates=get_match_templates)
+
+        def get_base_match_templates(index):
+            title_slug = RTM.get_term_by_primary_title('tanakh', index.title).slug
+            return [MatchTemplate([title_slug])]
+
+        converter = LinkerCategoryConverter("Tanakh", is_corpus=True, get_match_templates=get_match_templates, get_base_match_templates=get_base_match_templates)
         converter.convert()
 
     def convert_bavli(self):
