@@ -497,8 +497,11 @@ class LinkerIndexConverter:
                 - ref_resolver_context_swaps
             Can return None for any of these
             See top of file for documentation for these fields
-        @param get_match_templates: function of form
-            (node: SchemaNode, depth: int, isibling: int, num_siblings: int, is_alt_node: bool) -> List[MatchTemplate].
+        @param get_match_templates:
+            function of form
+                (node: SchemaNode, depth: int, isibling: int, num_siblings: int, is_alt_node: bool) -> List[MatchTemplate].
+            Callback that is run on every node in index including alt struct nodes. Receives callback params as specified above.
+            Needs to return a list of MatchTemplate objects corresponding to that node.
         @param fast_unsafe_saving: If true, skip Python dependency checks and save directly to Mongo (much faster but potentially unsafe)
         """
         self.index = library.get_index(title)
