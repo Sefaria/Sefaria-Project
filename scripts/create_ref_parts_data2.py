@@ -11,7 +11,7 @@ from sefaria.model.schema import DiburHamatchilNode, DiburHamatchilNodeSet, Titl
 
 """
 Documentation of new fields which can be added to SchemaNodes
-    - match_templates: List[List[str]]
+    - match_templates: List[MatchTemplate]
         List of serialized MatchTemplate objects. See ref_part.MatchTemplate.serialize()
         Each inner array is similar to an alt-title. The difference is each NonUniqueTerm can have its own independent alt-titles so it is more flexible.
         Example:
@@ -127,7 +127,7 @@ class ReusableTermManager:
         """
         Create a NonUniqueTerm from 'titled object' (see explanation of `obj` param)
         Accepts params to modify or add new alt titles
-        @param obj: either of instance `TitleGroup` or has an attribute `title_group` (e.g. a `Term` has this field)
+        @param obj: either of instance `TitleGroup` or has an attribute `title_group` (e.g. a `Term` or `SchemaNode` has this field)
         @param context: Optional string (or any hashable object) to distinguish terms with the same primary title. For use with `get_term_by_primary_title()`
         @param ref_part_role: See docs for attribute `ref_part_role` on NonUniqueTerm class
         @param new_alt_titles: list[str]. optional list of alt titles to add. will auto-detect language of title.
