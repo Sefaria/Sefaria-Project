@@ -733,6 +733,24 @@ class SpecificConverterManager:
         converter = LinkerCategoryConverter("Midrash Rabbah", get_match_templates=get_match_templates)
         converter.convert()
 
+    def convert_mishneh_torah(self):
+        def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
+            nonlocal self
+            title = node.get_primary_title('en')
+            term_key = title.replace("Mishneh Torah, ", "")
+            mt_slug = self.rtm.get_term_by_primary_title('base', 'Mishneh Torah').slug
+            ram_slug = self.rtm.get_term_by_primary_title('base', 'Rambam').slug
+            hilchot_slug = self.rtm.get_term_by_primary_title('base', 'Hilchot').slug
+            title_slug = self.rtm.get_term_by_primary_title('mishneh torah', term_key).slug
+            return [
+                MatchTemplate([mt_slug, hilchot_slug, title_slug]),
+                MatchTemplate([mt_slug, title_slug]),
+                MatchTemplate([ram_slug, hilchot_slug, title_slug]),
+                MatchTemplate([ram_slug, title_slug]),
+                MatchTemplate([hilchot_slug, title_slug]),
+            ]
+        converter = LinkerCategoryConverter("Mishneh Torah", get_match_templates=get_match_templates)
+
 
 if __name__ == '__main__':
     converter_manager = SpecificConverterManager()
@@ -741,10 +759,16 @@ if __name__ == '__main__':
     converter_manager.convert_rest_of_shas()
     converter_manager.convert_sifra()
     converter_manager.convert_midrash_rabbah()
+    converter_manager.convert_mishneh_torah()
 
 
 """
 Still TODO
-- update lengths for every index touched
+- base commentaries for
+    MT
+    Tanakh
+    Bavli
+    Tur
+    SA
 """
 
