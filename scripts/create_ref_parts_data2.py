@@ -467,14 +467,14 @@ class LinkerCommentaryConverter:
         try:
             comm_term = RTM.get_term_by_old_term_name(node.index.collective_title)
         except KeyError:
-            print(
-                f"\nMissing commentary term for '{node.index.collective_title}' used on index '{title}'")
+            #print(
+            #    f"\nMissing commentary term for '{node.index.collective_title}' used on index '{title}'")
             return
         except AttributeError:
-            print(f"No collective title for '{title}'")
+            #print(f"No collective title for '{title}'")
             return
         if comm_term is None:
-            print(f"Term is None {title}")
+            #print(f"Term is None {title}")
             return
         match_templates = [template.clone() for template in self.base_match_templates]
         for template in match_templates:
