@@ -762,6 +762,51 @@ class SpecificConverterManager:
         converter = LinkerCategoryConverter("Mishneh Torah", get_match_templates=get_match_templates)
         converter.convert()
 
+    def convert_tur(self):
+        def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
+            nonlocal self
+            sa_title_swaps = {
+                "Orach Chaim": "Orach Chayim",
+                "Yoreh Deah": "Yoreh De'ah"
+            }
+            title = node.get_primary_title('en')
+            if depth == 1:
+                title_slug = self.rtm.create_term_from_titled_obj(node, 'structural', 'tur').slug
+            else:
+                title = sa_title_swaps.get(title, title)
+                title_slug = self.rtm.get_term_by_primary_title('shulchan arukh', title).slug
+            return [MatchTemplate([title_slug])]
+        converter = LinkerIndexConverter('Tur', get_match_templates=get_match_templates)
+        converter.convert()
+
+    def convert_shulchan_arukh(self):
+        def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
+            nonlocal self
+            if is_alt_node: return []
+            title = node.get_primary_title('en')
+            sa_slug = self.rtm.get_term_by_primary_title('base', 'Shulchan Arukh').slug
+            term_key = title.replace("Shulchan Arukh, ", "")
+            try:
+                title_slug = self.rtm.get_term_by_primary_title('shulchan arukh', term_key).slug
+            except:
+                title_slug = self.rtm.create_term_from_titled_obj(node, 'structural', 'shulchan arukh').slug
+                return [MatchTemplate([title_slug])]
+            return [
+                MatchTemplate([sa_slug, title_slug]),
+                MatchTemplate([title_slug])
+            ]
+
+        def get_other_fields(node, depth, isibling, num_siblings, is_alt_node):
+            nonlocal self
+            if is_alt_node: return
+            if depth == 2 and node.is_default():
+                # for some reason this one was missed in a previous pass
+                new_addr_types = node.addressTypes[:]
+                new_addr_types[1] = "Seif"
+                return {"addressTypes": new_addr_types}
+        converter = LinkerCategoryConverter('Shulchan Arukh', get_match_templates=get_match_templates, get_other_fields=get_other_fields)
+        converter.convert()
+
 
 if __name__ == '__main__':
     converter_manager = SpecificConverterManager()
@@ -771,6 +816,7 @@ if __name__ == '__main__':
     converter_manager.convert_sifra()
     converter_manager.convert_midrash_rabbah()
     converter_manager.convert_mishneh_torah()
+    converter_manager.convert_shulchan_arukh()
 
 
 """
