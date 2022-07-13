@@ -281,6 +281,7 @@ def linker_js(request, linker_version=None):
     return render(request, linker_link, attrs, content_type = "text/javascript; charset=utf-8")
 
 
+@csrf_exempt
 def find_refs_api(request):
     import traceback
     logger.exception(f"find_refs_api start {traceback.print_stack()}")
