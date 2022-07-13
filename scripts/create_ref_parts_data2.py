@@ -168,17 +168,23 @@ class ReusableTermManager:
         he_title = title_group.primary_title('he')
         alt_en_titles = [title for title in title_group.all_titles('en') if title != en_title]
         alt_he_titles = [title for title in title_group.all_titles('he') if title != he_title]
+        if title_modifier:
+            en_title = title_modifier('en', en_title)
+            he_title = title_modifier('he', he_title)
         for new_alt in new_alt_titles:
             if is_hebrew(new_alt):
                 alt_he_titles += [new_alt]
             else:
                 alt_en_titles += [new_alt]
-        for alt_title_list, lang in zip((alt_en_titles, alt_he_titles), ('en', 'he')):
+        for alt_title_list, lang in zip((alt_en_titles + [en_title], alt_he_titles + [he_title]), ('en', 'he')):
             if title_adder:
                 new_alt_titles = [title_adder(lang, alt_title) for alt_title in alt_title_list]
                 alt_title_list += list(filter(None, new_alt_titles))
             if title_modifier:
                 alt_title_list[:] = [title_modifier(lang, t) for t in alt_title_list]
+        # make unique
+        alt_en_titles = list(set(alt_en_titles))
+        alt_he_titles = list(set(alt_he_titles))
         term = self.create_term(en=en_title, he=he_title, context=context, alt_en=alt_en_titles, alt_he=alt_he_titles, ref_part_role=ref_part_role)
         if isinstance(obj, Term):
             self.old_term_map[obj.name] = term
@@ -741,7 +747,11 @@ class SpecificConverterManager:
             mt_slug = self.rtm.get_term_by_primary_title('base', 'Mishneh Torah').slug
             ram_slug = self.rtm.get_term_by_primary_title('base', 'Rambam').slug
             hilchot_slug = self.rtm.get_term_by_primary_title('base', 'Hilchot').slug
-            title_slug = self.rtm.get_term_by_primary_title('mishneh torah', term_key).slug
+            try:
+                title_slug = self.rtm.get_term_by_primary_title('mishneh torah', term_key).slug
+            except:
+                print(term_key)
+                return []
             return [
                 MatchTemplate([mt_slug, hilchot_slug, title_slug]),
                 MatchTemplate([mt_slug, title_slug]),
@@ -750,6 +760,7 @@ class SpecificConverterManager:
                 MatchTemplate([hilchot_slug, title_slug]),
             ]
         converter = LinkerCategoryConverter("Mishneh Torah", get_match_templates=get_match_templates)
+        converter.convert()
 
 
 if __name__ == '__main__':
