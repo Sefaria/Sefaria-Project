@@ -809,7 +809,16 @@ class SpecificConverterManager:
                 MatchTemplate([ram_slug, title_slug]),
                 MatchTemplate([hilchot_slug, title_slug]),
             ]
-        converter = LinkerCategoryConverter("Mishneh Torah", get_match_templates=get_match_templates)
+
+        def get_base_match_templates(index):
+            hilchot_slug = RTM.get_term_by_primary_title('base', 'Hilchot').slug
+            term_key = index.title.replace("Mishneh Torah, ", "")
+            title_slug = RTM.get_term_by_primary_title('mishneh torah', term_key).slug
+            return [
+                MatchTemplate([hilchot_slug, title_slug]),
+                MatchTemplate([title_slug]),
+            ]
+        converter = LinkerCategoryConverter("Mishneh Torah", get_match_templates=get_match_templates, get_base_match_templates=get_base_match_templates)
         converter.convert()
 
     def convert_tur(self):
@@ -853,7 +862,14 @@ class SpecificConverterManager:
                 new_addr_types = node.addressTypes[:]
                 new_addr_types[1] = "Seif"
                 return {"addressTypes": new_addr_types}
-        converter = LinkerCategoryConverter('Shulchan Arukh', get_match_templates=get_match_templates, get_other_fields=get_other_fields)
+
+        def get_base_match_templates(index):
+            term_key = index.title.replace("Shulchan Arukh, ", "")
+            title_slug = RTM.get_term_by_primary_title('shulchan arukh', term_key).slug
+            return [
+                MatchTemplate([title_slug]),
+            ]
+        converter = LinkerCategoryConverter('Shulchan Arukh', get_match_templates=get_match_templates, get_other_fields=get_other_fields, get_base_match_templates=get_base_match_templates)
         converter.convert()
 
 
