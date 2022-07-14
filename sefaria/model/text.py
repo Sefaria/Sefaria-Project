@@ -1289,6 +1289,7 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         "purchaseInformationImage",
         "purchaseInformationURL",
         "hasManuallyWrappedRefs",  # true for texts where refs were manually wrapped in a-tags. no need to run linker at run-time.
+        "actualLanguage",
     ]
 
     def __str__(self):
@@ -1303,11 +1304,27 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         Old style database text record have a field called 'chapter'
         Version records in the wild have a field called 'text', and not always a field called 'chapter'
         """
+        languageCodeRe = re.search(r"\[([a-z]{2})\]$", getattr(self, "versionTitle", None))
+        if languageCodeRe and languageCodeRe.group(1) != getattr(self,"actualLanguage",None):
+            raise InputError("Version actualLanguage does not match bracketed language")
+        if getattr(self,"language", None) not in ["en", "he"]:
+            raise InputError("Version language must be either 'en' or 'he'")
         if self.get_index() is None:
             raise InputError("Versions cannot be created for non existing Index records")
+        
         return True
 
     def _normalize(self):
+        # add actualLanguage -- TODO: migration to get rid of bracket notation completely
+        actualLanguage = getattr(self, "actualLanguage", None) 
+        versionTitle = getattr(self, "versionTitle", None) 
+        if not actualLanguage and versionTitle:
+            languageCode = re.search(r"\[([a-z]{2})\]$", versionTitle)
+            if languageCode and languageCode.group(1):
+                self.actualLanguage = languageCode.group(1)
+            else:
+                self.actualLanguage = self.language
+
         if getattr(self, "priority", None):
             try:
                 self.priority = float(self.priority)
