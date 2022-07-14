@@ -53,7 +53,7 @@ Sefaria = extend(Sefaria, {
       let book, index, nums;
       for (let i = first.length; i >= 0; i--) {
           book   = first.slice(0, i);
-          if (book in Sefaria.virtualBooksDict) {
+          if (Sefaria.virtualBooks.includes(book)) {
               // todo: This assumes that this is a depth one integer indexed node
               const numberMatch = first.match(/([\d ]+)$/);
               if (numberMatch) {
@@ -2871,9 +2871,6 @@ Sefaria.setup = function(data, props = null) {
     // And store current uid in analytics id
     Sefaria._analytics_uid = Sefaria._uid;
     Sefaria._makeBooksDict();
-    Sefaria.virtualBooksDict = {"Jastrow": 1, "Klein Dictionary": 1, "Jastrow Unabbreviated": 1,
-    'Sefer HaShorashim': 1, 'Animadversions by Elias Levita on Sefer HaShorashim': 1,
-    'BDB': 1, 'BDB Aramaic': 1};  //Todo: Wire this up to the server
     Sefaria._cacheFromToc(Sefaria.toc);
     Sefaria._cacheHebrewTerms(Sefaria.terms);
     Sefaria._cacheSiteInterfaceStrings();
