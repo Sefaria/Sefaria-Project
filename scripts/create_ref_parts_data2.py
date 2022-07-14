@@ -489,7 +489,7 @@ class LinkerCommentaryConverter:
 
 class LinkerIndexConverter:
 
-    def __init__(self, title, get_other_fields=None, get_match_templates=None, fast_unsafe_saving=True, get_base_match_templates=None):
+    def __init__(self, title, get_other_fields=None, get_match_templates=None, fast_unsafe_saving=True, get_commentary_match_templates=None):
         """
 
         @param title: title of index to convert
@@ -514,7 +514,7 @@ class LinkerIndexConverter:
         self.index = library.get_index(title)
         self.get_other_fields = get_other_fields
         self.get_match_templates = get_match_templates
-        self.get_base_match_templates = get_base_match_templates
+        self.get_commentary_match_templates = get_commentary_match_templates
         self.fast_unsafe_saving = fast_unsafe_saving
 
     @staticmethod
@@ -534,8 +534,8 @@ class LinkerIndexConverter:
         for inode, node in enumerate(alt_nodes):
             self.node_visitor(node, 1, inode, len(alt_nodes), True)
         self._update_lengths()  # update lengths for good measure
-        if self.get_base_match_templates:
-            base_match_templates = self.get_base_match_templates(self.index)
+        if self.get_commentary_match_templates:
+            base_match_templates = self.get_commentary_match_templates(self.index)
             comm_converter = LinkerCommentaryConverter(self.index.title, base_match_templates)
             comm_converter.convert()
         self.save_index()
@@ -589,11 +589,11 @@ class SpecificConverterManager:
             else:
                 return []
 
-        def get_base_match_templates(index):
+        def get_commentary_match_templates(index):
             title_slug = RTM.get_term_by_primary_title('tanakh', index.title).slug
             return [MatchTemplate([title_slug])]
 
-        converter = LinkerCategoryConverter("Tanakh", is_corpus=True, get_match_templates=get_match_templates, get_base_match_templates=get_base_match_templates)
+        converter = LinkerCategoryConverter("Tanakh", is_corpus=True, get_match_templates=get_match_templates, get_commentary_match_templates=get_commentary_match_templates)
         converter.convert()
 
     def convert_bavli(self):
@@ -636,8 +636,11 @@ class SpecificConverterManager:
         def get_other_fields(node, depth, isibling, num_siblings, is_alt_node):
             if is_alt_node:
                 return {"numeric_equivalent": min(isibling + 1, 30)}
-
-        converter = LinkerCategoryConverter("Bavli", is_corpus=True, get_match_templates=get_match_templates, get_other_fields=get_other_fields)
+        
+        def get_commentary_match_templates(index):
+            pass
+        
+        converter = LinkerCategoryConverter("Bavli", is_corpus=True, get_match_templates=get_match_templates, get_other_fields=get_other_fields, get_commentary_match_templates=get_commentary_match_templates)
         converter.convert()
 
     def convert_rest_of_shas(self):
@@ -810,7 +813,7 @@ class SpecificConverterManager:
                 MatchTemplate([hilchot_slug, title_slug]),
             ]
 
-        def get_base_match_templates(index):
+        def get_commentary_match_templates(index):
             hilchot_slug = RTM.get_term_by_primary_title('base', 'Hilchot').slug
             term_key = index.title.replace("Mishneh Torah, ", "")
             title_slug = RTM.get_term_by_primary_title('mishneh torah', term_key).slug
@@ -818,7 +821,7 @@ class SpecificConverterManager:
                 MatchTemplate([hilchot_slug, title_slug]),
                 MatchTemplate([title_slug]),
             ]
-        converter = LinkerCategoryConverter("Mishneh Torah", get_match_templates=get_match_templates, get_base_match_templates=get_base_match_templates)
+        converter = LinkerCategoryConverter("Mishneh Torah", get_match_templates=get_match_templates, get_commentary_match_templates=get_commentary_match_templates)
         converter.convert()
 
     def convert_tur(self):
@@ -863,13 +866,13 @@ class SpecificConverterManager:
                 new_addr_types[1] = "Seif"
                 return {"addressTypes": new_addr_types}
 
-        def get_base_match_templates(index):
+        def get_commentary_match_templates(index):
             term_key = index.title.replace("Shulchan Arukh, ", "")
             title_slug = RTM.get_term_by_primary_title('shulchan arukh', term_key).slug
             return [
                 MatchTemplate([title_slug]),
             ]
-        converter = LinkerCategoryConverter('Shulchan Arukh', get_match_templates=get_match_templates, get_other_fields=get_other_fields, get_base_match_templates=get_base_match_templates)
+        converter = LinkerCategoryConverter('Shulchan Arukh', get_match_templates=get_match_templates, get_other_fields=get_other_fields, get_commentary_match_templates=get_commentary_match_templates)
         converter.convert()
 
 
