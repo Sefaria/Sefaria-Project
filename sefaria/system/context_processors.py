@@ -100,7 +100,6 @@ def large_data(request):
         "topic_toc_json": library.get_topic_toc_json(),
         "titles_json": library.get_text_titles_json(),
         "terms_json": library.get_simple_term_mapping_json(),
-        'virtual_books': library.get_virtual_books()
     }
 
 
