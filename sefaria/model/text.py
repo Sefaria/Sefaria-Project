@@ -4751,6 +4751,9 @@ class Library(object):
         # Topics
         self._topic_mapping = {}
 
+        # Virtual books
+        self._virtual_books = []
+
         # Initialization Checks
         # These values are set to True once their initialization is complete
         self._toc_tree_is_ready = False
@@ -4929,6 +4932,8 @@ class Library(object):
         """
         from .topic import Topic, TopicSet, IntraTopicLinkSet
         explored = explored or set()
+        unexplored_top_level = False    # example would be the first case of 'Holidays' encountered as it is top level,
+                                        # this variable will allow us to force all top level categories to have children
         if topic is None:
             ts = TopicSet({"isTopLevelDisplay": True})
             children = [t.slug for t in ts]
@@ -4951,8 +4956,11 @@ class Library(object):
                 if description is not None and getattr(topic, "description_published", False):
                     topic_json['description'] = description
 
+            unexplored_top_level = getattr(topic, "isTopLevelDisplay", False) and getattr(topic, "slug",
+                                                                                          None) not in explored
             explored.add(topic.slug)
-        if len(children) > 0 or topic is None:  # make sure root gets children no matter what
+        if len(children) > 0 or topic is None or unexplored_top_level:
+            # make sure root gets children no matter what and make sure that unexplored top-level topics get children no matter what
             topic_json['children'] = []
         for child in children:
             child_topic = Topic().load({'slug': child})
@@ -5630,6 +5638,11 @@ class Library(object):
             from sefaria.utils.util import get_all_subclass_attribute
             q['base_text_mapping'] = {'$in': get_all_subclass_attribute(AbstractStructureAutoLinker, "class_key")}
         return IndexSet(q) if full_records else IndexSet(q).distinct("title")
+
+    def get_virtual_books(self):
+        if not self._virtual_books:
+            self._virtual_books = [index.title for index in IndexSet({'lexiconName': {'$exists': True}})]
+        return self._virtual_books
 
     def get_titles_in_string(self, s, lang=None, citing_only=False):
         """

@@ -53,7 +53,7 @@ Sefaria = extend(Sefaria, {
       let book, index, nums;
       for (let i = first.length; i >= 0; i--) {
           book   = first.slice(0, i);
-          if (book in Sefaria.virtualBooksDict) {
+          if (Sefaria.virtualBooks.includes(book)) {
               // todo: This assumes that this is a depth one integer indexed node
               const numberMatch = first.match(/([\d ]+)$/);
               if (numberMatch) {
@@ -2215,7 +2215,7 @@ _media: {},
     const url = `${this.apiHost}/api/v2/topics/${slug}?with_links=${0+with_links}&annotate_links=${0+annotate_links}&with_refs=${0+with_refs}&group_related=${0+group_related}&annotate_time_period=${0+annotate_time_period}&ref_link_type_filters=${ref_link_type_filters.join('|')}&with_indexes=${0+with_indexes}`;
     return this._cachedApiPromise({
       url,
-      key: url,
+      key: slug,
       store: this._topics,
       processor: this.processTopicsData,
     });
@@ -2258,6 +2258,17 @@ _media: {},
   getTopicFromCache: function(topic) {
     return this._topics[topic];
   },
+  _topicSlugsToTitles: null,
+  _initTopicSlugsToTitles: function() {
+    this._topicSlugsToTitles = Sefaria.topic_toc.reduce(Sefaria._initTopicTocSlugToTitleReducer, {});
+  },
+  slugsToTitles: function() {
+    //initializes _topicSlugsToTitles for Topic Editor tool and adds necessary "Choose a Category" and "Main Menu" for
+    //proper use of the Topic Editor tool
+    if (!Sefaria._topicSlugsToTitles) { Sefaria._initTopicSlugsToTitles();}
+    let specialCases = {"": "Choose a Category", "Main Menu": "Main Menu"};
+    return Object.assign(specialCases, Sefaria._topicSlugsToTitles);
+  },
   _topicTocPages: null,
   _initTopicTocPages: function() {
     this._topicTocPages = this.topic_toc.reduce(this._initTopicTocReducer, {});
@@ -2268,6 +2279,14 @@ _media: {},
     a[Sefaria._topicTocPageKey(c.slug)] = c.children;
     for (let sub_c of c.children) {
       Sefaria._initTopicTocReducer(a, sub_c);
+    }
+    return a;
+  },
+  _initTopicTocSlugToTitleReducer: function(a,c) {
+    if (!c.children) { return a; }
+    a[c.slug] = c.en;
+    for (let sub_c of c.children) {
+      Sefaria._initTopicTocSlugToTitleReducer(a, sub_c);
     }
     return a;
   },
@@ -2864,9 +2883,6 @@ Sefaria.setup = function(data, props = null) {
     // And store current uid in analytics id
     Sefaria._analytics_uid = Sefaria._uid;
     Sefaria._makeBooksDict();
-    Sefaria.virtualBooksDict = {"Jastrow": 1, "Klein Dictionary": 1, "Jastrow Unabbreviated": 1,
-    'Sefer HaShorashim': 1, 'Animadversions by Elias Levita on Sefer HaShorashim': 1,
-    'BDB': 1, 'BDB Aramaic': 1};  //Todo: Wire this up to the server
     Sefaria._cacheFromToc(Sefaria.toc);
     Sefaria._cacheHebrewTerms(Sefaria.terms);
     Sefaria._cacheSiteInterfaceStrings();

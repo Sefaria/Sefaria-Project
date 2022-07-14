@@ -5266,12 +5266,15 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-family: var(--hebrew-sans-serif-font-family);
   font-size: 0.6em;
   line-height: 1;
+}
+.segment sup.footnote-marker,
+.segment sup.endFootnote{
   color: var(--inline-link-blue);
 }
 .segment .he sup {
   font-size: 0.6em;
 }
-.segment sup:hover {
+.segment sup.footnote-marker:hover {
   text-decoration: underline;
 }
 .sheetContent .segment sup:hover {
@@ -7275,6 +7278,12 @@ a .button:hover {
   line-height: 20px;
   letter-spacing: normal;
 }
+.button.extraSmall.topic {
+  color: #000000;
+  background-color: var(--lighter-grey);
+  white-space: nowrap;
+}
+
 .button .buttonIcon {
   margin-inline-end: 7px;
   vertical-align: middle;
@@ -11149,7 +11158,7 @@ body .homeFeedWrapper.userStats {
   background-color: #faf9f9;
 }
 
-.bookPage .editTextInfo {
+.editTextInfo {
   top: 0px;
   right: 0px;
   left: 0px;
@@ -11162,17 +11171,18 @@ body .homeFeedWrapper.userStats {
 
 }
 
-.bookPage .editTextInfo .static .inner {
+
+.editTextInfo .static .inner {
   padding: 5px 0 100px;
 }
-.bookPage .editTextInfo .static input {
+.editTextInfo .static input {
   cursor: auto;
   color: #000000;
 }
-.bookPage .editTextInfo .static label {
+.editTextInfo .static label {
   margin-bottom: 15px;
 }
-.bookPage .editTextInfo #newIndex {
+.editTextInfo #newIndex {
   margin: 100px auto;
   font-size: 16px;
   font-weight: normal;
@@ -11181,7 +11191,7 @@ body .homeFeedWrapper.userStats {
   --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
 
-.bookPage .editTextInfo #newIndex .publishBox {
+.editTextInfo #newIndex .publishBox {
   text-align: start;
   background-color: #EDEDEC;
   border-radius: 6px;
@@ -11190,12 +11200,27 @@ body .homeFeedWrapper.userStats {
   width: 660px;
   max-width: 100%;
 }
-.bookPage .editTextInfo #newIndex .publishBox .react-tags__selected-tag-name {
+.editTextInfo #newIndex .publishBox .react-tags__selected-tag-name {
   --english-font: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   --hebrew-font: "Heebo", sans-serif;
   font-size: 18px;
   font-weight: normal;
   color: #000;
+}
+.editTextInfo #newIndex #topicDesc, .editTextInfo #newIndex #topicCatDesc {
+  height: 200px;
+  width: 97%;
+  box-shadow: 0px 1px 3px rgb(0 0 0 / 20%);
+  border: none;
+  border-radius: 7px;
+  font-size: 16px;
+  line-height: 18.75px;
+  padding: 10px;
+}
+.button.small.deleteTopic {
+  color: var(--dark-grey);
+  float: right;
+  background-color: var(--lightest-grey);
 }
 #categoryChooserMenu {
   overflow: hidden;
@@ -11206,6 +11231,9 @@ body .homeFeedWrapper.userStats {
   border-radius: 7px;
   box-shadow: 0px 1px 3px rgb(0 0 0 / 20%);
   border: none;
+}
+#categoryChooserMenu select option:first-child {
+  color: var(--lighter-grey);
 }
 #categoryChooserMenu select {
   background: transparent;
@@ -11223,26 +11251,26 @@ body .homeFeedWrapper.userStats {
   width: 10px;
 }
 
-.bookPage .editTextInfo #newIndex .publishBox .react-tags__selected-tag {
+.editTextInfo #newIndex .publishBox .react-tags__selected-tag {
   margin: 0 12px 12px 0;
   padding: 12px 14px;
 }
 
-.bookPage .editTextInfo #newIndex .publishBox input {
+.editTextInfo #newIndex .publishBox input {
   box-shadow: none;
 }
 
-.bookPage .editTextInfo #newIndex .publishBox .react-tags__search {
+.editTextInfo #newIndex .publishBox .react-tags__search {
   padding: 0 0 0 0;
 }
 
-.bookPage .editTextInfo #newIndex .optional {
+.editTextInfo #newIndex .optional {
   font-size: 13px;
   color: var(--light-grey);
   font: var(--english-sans-serif-font-family);
 }
 
-.bookPage .editTextInfo #newIndex input {
+.editTextInfo #newIndex input {
   padding: 4px 10px 4px 10px;
   width: 640px;
   height: 50px;
@@ -11251,22 +11279,22 @@ body .homeFeedWrapper.userStats {
   max-width: 100%;
 }
 
-.bookPage .editTextInfo #newIndex #heTitle {
+.editTextInfo #newIndex #heTitle {
   direction: rtl;
 }
-.interface-english .bookPage .editTextInfo .static label {
+.interface-english .editTextInfo .static label {
   text-align: left;
 }
-.interface-hebrew .bookPage .editTextInfo .static label {
+.interface-hebrew .editTextInfo .static label {
   text-align: right
 }
-.bookPage .editTextInfo #newIndex .sectionType input{
+.editTextInfo #newIndex .sectionType input{
 	width: 100px;
 	margin: 0 5px;
 	font-size: 16px;
 }
 
-.bookPage .editTextInfo #newIndex .remove {
+.editTextInfo #newIndex .remove {
 	color: white;
 	background: #bbb;
 	display: inline-block;
@@ -11281,14 +11309,14 @@ body .homeFeedWrapper.userStats {
 	vertical-align: 15%;
 }
 
-.bookPage .editTextInfo #newIndex .sectionType .remove {
+.editTextInfo #newIndex .sectionType .remove {
 	margin: -5px 11px 0 -32px;
 }
-.bookPage .editTextInfo #newIndex a {
+.editTextInfo #newIndex a {
     color: #666;
 }
 
-.bookPage .editTextInfo .nodeTemplate {
+.editTextInfo .nodeTemplate {
 	display: none;
 }
 @media screen and (max-width: 680px) {
@@ -11296,16 +11324,16 @@ body .homeFeedWrapper.userStats {
     background: url("/static/img/arrow-down.png") 300px 20px/10px 10px no-repeat #ffffff;
     width: 320px;
   }
-  .bookPage .editTextInfo .static .headerWithButtons h1 {
+  .editTextInfo .static .headerWithButtons h1 {
     margin: 30px;
   }
   #categoryChooserMenu select {
     width: 340px;
   }
-  .bookPage .editTextInfo #newIndex input {
+  .editTextInfo #newIndex input {
     width: 300px;
   }
-  .bookPage .editTextInfo #newIndex .publishBox {
+  .editTextInfo #newIndex .publishBox {
     width: 320px;
   }
 }
@@ -11330,7 +11358,7 @@ body .homeFeedWrapper.userStats {
   border-radius: 8px;
   z-index: 1;
 }
-.bookPage .editTextInfo .collectionsWidget {
+.editTextInfo .collectionsWidget {
   width: 580px;
   box-shadow: 0 1px 8px rgba(0, 0, 0, .2);
   height: 100px;
@@ -12360,7 +12388,9 @@ span.ref-link-color-3 {color: blue}
   width: 18px;
   margin-inline-start: 6px;
 }
-
+.samaritan{
+   font-family: 'Noto Sans Samaritan';
+}
 
 @-webkit-keyframes load5 {
 0%,100%{box-shadow:0 -2.6em 0 0 #ffffff,1.8em -1.8em 0 0 rgba(0,0,0,0.2),2.5em 0 0 0 rgba(0,0,0,0.2),1.75em 1.75em 0 0 rgba(0,0,0,0.2),0 2.5em 0 0 rgba(0,0,0,0.2),-1.8em 1.8em 0 0 rgba(0,0,0,0.2),-2.6em 0 0 0 rgba(0,0,0,0.5),-1.8em -1.8em 0 0 rgba(0,0,0,0.7)}
