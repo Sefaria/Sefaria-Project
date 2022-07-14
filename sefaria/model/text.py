@@ -1263,7 +1263,6 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         "title",    # FK to Index.title
         "versionSource",
         "versionTitle",
-        "actualLanguage",
         "chapter"  # required.  change to "content"?
     ]
 
@@ -1290,6 +1289,7 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         "purchaseInformationImage",
         "purchaseInformationURL",
         "hasManuallyWrappedRefs",  # true for texts where refs were manually wrapped in a-tags. no need to run linker at run-time.
+        "actualLanguage",
     ]
 
     def __str__(self):
