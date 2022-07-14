@@ -996,21 +996,6 @@ Sefaria = extend(Sefaria, {
       });
   },
   _topicCompletions: {},
-  topicCompletion: function(word, callback) {
-     word = word.trim();
-     if (word in this._topicCompletions) {
-         callback(this._topicCompletions[word]);
-         return null;
-     }
-     return $.ajax({
-        dataType: "json",
-        url: Sefaria.apiHost + "/api/topic/completion/" + word,
-        success: function(data) {
-              callback(data);
-              this._topicCompletions[word] = data;
-          }.bind(this)
-     });
-  },
   _lexiconLookups: {},
   getLexiconWords: function(words, ref) {
     // Returns Promise which resolve to a list of lexicon entries for the given words

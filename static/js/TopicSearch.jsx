@@ -62,9 +62,8 @@ class TopicSearch extends Component {
 
       source: function(request, response) {
         this.setState({slug: "", label: request.term});
-        Sefaria.topicCompletion(
-            request.term,
-            function(d) {
+        const word = request.term.trim();
+        const callback = function(d) {
                     let topics = [];
                     if (d[1].length > 0) {
                       topics = d[1].map(function (e) {
@@ -74,8 +73,8 @@ class TopicSearch extends Component {
                     topics.push({"label": "Create new topic: "+request.term, key: ""})
                     this.setState({topics: topics, selected: false});
                     response(topics);
-            }.bind(this)
-        );
+            }.bind(this);
+        Sefaria._cachedApiPromise(Sefaria.apiHost + "/api/topic/completion/" + word, word, Sefaria._topicCompletions, callback)
       }.bind(this)
     });
   }

@@ -2571,8 +2571,8 @@ def get_name_completions(name, limit, ref_only, topic_override=False):
 
 @catch_error_as_json
 def topic_completion_api(request, topic):
-    LIMIT = int(request.GET.get("limit", 10))
-    result = library.topic_auto_completer().complete(topic, limit=LIMIT)
+    limit = int(request.GET.get("limit", 10))
+    result = library.topic_auto_completer().complete(topic, limit=limit)
     return jsonResponse(result)
 
 
@@ -3221,8 +3221,6 @@ def delete_topic(request, topic):
         topic_obj = Topic().load({"slug": topic})
         if topic_obj:
             topic_obj.delete()
-            RefTopicLinkSet({"toTopic": topic}).delete()
-            IntraTopicLinkSet({"$or": [{"toTopic": topic}, {"fromTopic": topic}]}).delete()
             return jsonResponse({"status": "OK"})
         else:
             return jsonResponse({"error": "Topic {} doesn't exist".format(topic)})
@@ -3339,7 +3337,7 @@ def topic_ref_api(request, tref):
         if not request.user.is_staff:
             return jsonResponse({"error": "Only moderators can connect refs to topics."})
 
-        slug = json.loads(request.POST.get("json")).get("topic", "")
+        slug = json.loads(request.POST.get("json")).get("topic", None)
         topic_obj = Topic().load({"slug": slug})
         if topic_obj is None:
             return jsonResponse({"error": "Topic does not exist"})
