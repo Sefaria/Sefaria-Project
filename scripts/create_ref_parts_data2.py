@@ -489,7 +489,7 @@ class LinkerCommentaryConverter:
 
 class LinkerIndexConverter:
 
-    def __init__(self, title, get_other_fields=None, get_match_templates=None, fast_unsafe_saving=True, get_commentary_match_templates=None):
+    def __init__(self, title, get_other_fields=None, get_match_templates=None, fast_unsafe_saving=True, get_commentary_match_templates=None, get_commentary_other_fields=None):
         """
 
         @param title: title of index to convert
@@ -509,12 +509,23 @@ class LinkerIndexConverter:
                 (node: SchemaNode, depth: int, isibling: int, num_siblings: int, is_alt_node: bool) -> List[MatchTemplate].
             Callback that is run on every node in index including alt struct nodes. Receives callback params as specified above.
             Needs to return a list of MatchTemplate objects corresponding to that node.
+        @param get_commentary_match_templates:
+            function of form
+                (index: Index) -> List[MatchTemplate]
+            Callback that is run on every commentary index of this base text.
+            Return value is equivalent to that of `get_match_templates()`
+        @param get_commentary_other_fields:
+            function of form
+                (index: Index) -> dict
+            Callback that is run on every commentary index of this base text.
+            Return value is equivalent to that of `get_other_fields()`
         @param fast_unsafe_saving: If true, skip Python dependency checks and save directly to Mongo (much faster but potentially unsafe)
         """
         self.index = library.get_index(title)
         self.get_other_fields = get_other_fields
         self.get_match_templates = get_match_templates
         self.get_commentary_match_templates = get_commentary_match_templates
+        self.get_commentary_other_fields = get_commentary_other_fields
         self.fast_unsafe_saving = fast_unsafe_saving
 
     @staticmethod
