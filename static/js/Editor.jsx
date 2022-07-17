@@ -895,14 +895,28 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
     }
 
     else if (inputType == "source") {
+        const isSectionOrSegment = (res) => {
+            return !!(res.is_section || res.is_segment);
+        }
+        const getSuggestions = async (input) => {
+            const results = await Sefaria.getName(input, true, 20);
+            const { completion_objects, ...rest } = results;
+            return [completion_objects, rest];
+        }
         return (
             <Autocompleter
                 selectedRefCallback={selectedRefCallback}
-            />
-        )
+                getSuggestions={getSuggestions}
+                showSuggestionsFx={(d) => !isSectionOrSegment(d)}
+                showPreviewFx={(d) => isSectionOrSegment(d)}
+                showAddressCompletionsFx={(d) => d.is_book}
+                showAddButtonFx={(d) => isSectionOrSegment(d)}
+                searchForStr="Search for a Text or Commentator."
+                borderColorFx={Sefaria.palette.refColor}
+            />)
     }
 
-        else {return(null)}
+    else {return(null)}
 
 }
 

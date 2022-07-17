@@ -5,94 +5,45 @@ import classNames  from 'classnames';
 import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
 import Component from 'react-class'
-import {InterfaceText} from "./Misc";
+import {Autocompleter, InterfaceText} from "./Misc";
 import {TopicEditor} from "./TopicEditor";
 
 
 class TopicSearch extends Component {
   constructor(props) {
     super(props);
-
     this.state = {
-      label: "", // what the user sees in drop down menu. e.g. topic title
-      slug: "", //topic slug
-      topics: [], //current list of autocomplete topics based on query
-      autocomplete: null,
       showTopicEditor: false,
       selected: false
     };
   }
-  componentDidMount() {
-    this.initAutocomplete();
+
+  async getSuggestions(input) {
+    const word = input.trim();
+    const callback = (d) => {
+        let topics = [];
+        if (d[1].length > 0) {
+          topics = d[1].map(function (e) {
+                return {title: e.title, key: e.key}
+              });
+            }
+        topics.push({title: "Create new topic: "+word, key: ""})
+        return topics;
+     };
+    const result = await Sefaria._cachedApiPromise({url: Sefaria.apiHost + "/api/topic/completion/" + word, key: word,
+                              store: Sefaria._topicCompletions, processor: callback});
+    return [result, {}];
   }
-
-  initAutocomplete() {
-    $(ReactDOM.findDOMNode(this)).find("input.search").autocomplete({
-      position: {
-        my: "left top",
-        at: "left bottom",
-        of: this.props.contextSelector + ' .TopicSearchBox'
-      },
-      open: function(e) {
-        const searchBoxWidth = $(this.props.contextSelector + " .TopicSearchBox").width();
-        $(this.props.contextSelector + " .topic-toc-autocomplete").width(searchBoxWidth);
-        const menuItems = ReactDOM.findDOMNode(this).getElementsByClassName("ui-menu-item");
-        const lastItem = menuItems[menuItems.length-1];
-        $(lastItem).toggleClass("ui-menu-last-item");
-      }.bind(this),
-      classes: {
-        "ui-autocomplete": "topic-toc-autocomplete"
-      },
-      minLength: 1,
-      focus: function (event, ui) {
-        this.setState({label: ui.item.label});
-        $(ReactDOM.findDOMNode(this)).find("input.search").val(this.state.label);
-      }.bind(this),
-      select: function( event, ui ) {
-        if (ui.item.key == "__invalid") { return false; }
-        if (ui.item.key === "") {  //selected Create new topic
-          this.setState({slug: ui.item.key, label: ui.item.label.replace("Create new topic: ", ""), selected: true, showTopicEditor: true});
-        }
-        else {
-          this.setState({slug: ui.item.key, label: ui.item.label, selected: true, showTopicEditor: false});
-        }
-        $(ReactDOM.findDOMNode(this)).find("input.search").val(this.state.label);
-        return false;
-      }.bind(this),
-
-      source: function(request, response) {
-        this.setState({slug: "", label: request.term});
-        const word = request.term.trim();
-        const callback = function(d) {
-                    let topics = [];
-                    if (d[1].length > 0) {
-                      topics = d[1].map(function (e) {
-                        return {label: e.title, key: e.key}
-                      });
-                    }
-                    topics.push({"label": "Create new topic: "+request.term, key: ""})
-                    this.setState({topics: topics, selected: false});
-                    response(topics);
-            }.bind(this);
-        Sefaria._cachedApiPromise(Sefaria.apiHost + "/api/topic/completion/" + word, word, Sefaria._topicCompletions, callback)
-      }.bind(this)
-    });
-  }
-
-  validate() {
-    if (this.state.slug === "") {
-      let match = false;
-      this.state.topics.map(topic => {
-        if (topic.label.toLowerCase() === this.state.label.toLowerCase()) {
-          this.post(topic.key);
-          match = true;
-        }
-      })
-      if (!match) {
-        alert("Please select an option through the dropdown menu.");
+  validate(input, suggestions) {
+    let match = false;
+    suggestions.map(topic => {
+      if (topic.name.toLowerCase() === input.toLowerCase()) {
+        this.post(topic.key);
+        match = true;
       }
-    } else {
-      this.post(this.state.slug);
+    })
+    if (!match) {
+      alert("Please select an option through the dropdown menu.");
     }
   }
 
@@ -118,32 +69,33 @@ class TopicSearch extends Component {
           Sefaria._refTopicLinks[sectionRef].push(data);
           update();
           alert("Topic added.");
-          reset();
         }
       }).fail(function (xhr, status, errorThrown) {
         alert("Unfortunately, there may have been an error saving this topic information: " + errorThrown);
       });
   }
-  reset() {
-    this.setState({showTopicEditor: false, label: "", selected: false, slug: "", topics: []});
-    $(ReactDOM.findDOMNode(this)).find("input.search").val(this.state.label);
+
+  showAddButtonFxFilter = (d, input, completion_objects) => {
+    const results = completion_objects.some(x => {return input === x.title; });
+    return !!results;
+  }
+  onClickSuggestions = (title) => {
+    if (title.startsWith("Create new topic:")) {
+      this.setState({showTopicEditor: true});
+    }
   }
   render() {
-    let inputClasses = classNames({search: 1, selected: this.state.selected});
-
     return (
-        <div className = "searchBox TopicSearchBox ui-front">
-          {this.state.showTopicEditor ? <TopicEditor origEn={this.state.label} close={this.reset} redirect={this.post}/> : null}
-          <input className={inputClasses}
-            id="searchInput"
-            placeholder={Sefaria._("Search for Topics Here.")}
-            maxLength={100}
-            title={Sefaria._("Topic Search")}
-          />
-          <div onClick={this.validate} id="submit" className="button small addTopic" tabIndex="0" role="button">
-            <InterfaceText>Add Topic</InterfaceText>
-          </div>
-        </div>
+        <Autocompleter selectedRefCallback={this.validate}
+                 getSuggestions={this.getSuggestions}
+                 onClickSuggestion={this.onClickSuggestions}
+                showSuggestionsFx={(d) => {return true;}}
+                showPreviewFx={(d) => {return false;}}
+                showAddressCompletionsFx={(d) => {return false;}}
+                showAddButtonFx={(d) => {return true;}}
+                 borderColorFx={(d) => "#ffffff"}
+                 limit={11}
+                searchForStr="Search for a Text or Commentator."/>
     );
   }
 }
