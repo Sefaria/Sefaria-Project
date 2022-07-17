@@ -243,6 +243,7 @@ class ReusableTermManager:
         self.create_term(context="base", en='Rambam', he='רמב"ם', ref_part_role='structural')
         self.create_term(context="base", en='Shulchan Arukh', he='שולחן ערוך', alt_en=['shulchan aruch', 'Shulchan Aruch', 'Shulḥan Arukh', 'Shulhan Arukh', 'S.A.', 'SA', 'Shulḥan Arukh'], alt_he=['שו"ע', 'שלחן ערוך'], ref_part_role='structural')
         self.create_term(context="base", en='Hilchot', he='הלכות', alt_en=['Laws of', 'Laws', 'Hilkhot', 'Hilhot'], alt_he=["הל'"], ref_part_role='alt_title')
+        self.create_term(context='base', en='Zohar', he='זהר', alt_he=['זוהר', 'זוה"ק', 'זה"ק'], ref_part_role='structural')
         self.create_term_from_titled_obj(Term().load({"name": "Parasha"}), context="base", ref_part_role='alt_title')
         for old_term in TermSet({"scheme": {"$in": ["toc_categories", "commentary_works"]}}):
             existing_term = self.get_term_by_primary_title('base', old_term.get_primary_title('en'))
@@ -443,9 +444,9 @@ class LinkerCategoryConverter:
     Manager which handles converting all indexes in a category or corpus.
     """
 
-    def __init__(self, title, is_corpus=False, **linker_index_converter_kwargs):
+    def __init__(self, title, is_corpus=False, is_index=False, **linker_index_converter_kwargs):
         index_getter = library.get_indexes_in_corpus if is_corpus else library.get_indexes_in_category
-        self.titles = index_getter(title)
+        self.titles = [title] if is_index else index_getter(title)
         self.linker_index_converter_kwargs = linker_index_converter_kwargs
 
     def convert(self):
@@ -896,6 +897,47 @@ class SpecificConverterManager:
                                             get_other_fields=get_other_fields, get_commentary_match_template_suffixes=get_commentary_match_template_suffixes)
         converter.convert()
 
+    def convert_zohar(self):
+        def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
+            sefer_slug = RTM.get_term_by_primary_title('base', 'Sefer').slug
+            parasha_slug = RTM.get_term_by_primary_title('base', 'Parasha').slug
+            title_slug = RTM.get_term_by_primary_title('base', 'Zohar').slug
+            if is_alt_node and node.ref().normal().startswith('Zohar 1:1a'):
+                return #i'm not sure how to handle this
+            elif is_alt_node: #TODO - we need to change the code to catch the daf after parashah
+                title = node.get_primary_title('en')
+                if title == 'Haman':
+                    title = 'Beshalach' #I didn't find direct references to parashat haman in the literature
+                if title == 'HaIdra Zuta Kadisha':
+                    title_slug = RTM.create_term(en='Idra Zuta', alt_en=['HaIdra zuta'], he='אדרא זוטא', alt_he=['אידרא זוטא', 'אד"ז'], ref_part_role='structural').slug
+                    haazinue_slug = RTM.get_term_by_primary_title('tanakh', "Ha'Azinu").slug
+                    return {
+                        MatchTemplate([haazinue_slug]),
+                        MatchTemplate([haazinue_slug, title_slug]),
+                        MatchTemplate([title_slug, haazinue_slug], scope='any'),
+                        MatchTemplate([title_slug], scope='any')
+                    }
+                title_slug = RTM.get_term_by_primary_title('tanakh', title).slug
+                return [
+                    MatchTemplate([parasha_slug, title_slug]),
+                    MatchTemplate([title_slug])
+                ]
+            else:
+                return [
+                    MatchTemplate([sefer_slug, title_slug]),
+                    MatchTemplate([title_slug])
+                ]
+            #Zohar has many sub books, but we don't reflect it (maybe it will change in the future), so I'm not sure what to do.
+            #Maybe we have to add them as one term for cacthing refs like זוהר בראשית סתרי תורה כג. ?
+
+        def get_other_fields(node, depth, isibling, num_siblings, is_alt_node):
+            if not is_alt_node: return {
+                    "referenceableSections": [True, True, False]
+                }
+
+        converter = LinkerCategoryConverter('Zohar', is_index=True, get_match_templates=get_match_templates,
+                                            get_other_fields=get_other_fields)
+        converter.convert()
 
 if __name__ == '__main__':
     converter_manager = SpecificConverterManager()
@@ -906,6 +948,7 @@ if __name__ == '__main__':
     converter_manager.convert_midrash_rabbah()
     converter_manager.convert_mishneh_torah()
     converter_manager.convert_shulchan_arukh()
+    converter_manager.convert_zohar()
 
 
 """
