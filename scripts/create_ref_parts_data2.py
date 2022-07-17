@@ -939,17 +939,88 @@ class SpecificConverterManager:
                                             get_other_fields=get_other_fields)
         converter.convert()
 
+    def convert_zohar_chadash(self):
+        #mostly referred by paged, but we don't have them.
+        def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
+            title = node.get_primary_title('en')
+            if title == 'Zohar Chadash':
+                title_slug = RTM.create_term_from_titled_obj(node, 'structural', 'zohar chadash').slug
+                return [MatchTemplate([title_slug])]
+            try:
+                title_slug = RTM.get_term_by_primary_title('tanakh', title).slug
+            except:
+                if 'Rut' in title:
+                    title_slug = RTM.get_term_by_primary_title('tanakh', 'Ruth').slug
+                elif 'Eichah' in title:
+                    title_slug = RTM.get_term_by_primary_title('tanakh', 'Lamentations').slug
+                else:
+                    return
+            if 'פרשת' in node.get_primary_title('he'):
+                parasha_slug = RTM.get_term_by_primary_title('base', 'Parasha').slug
+                return [
+                    MatchTemplate([parasha_slug, title_slug]),
+                    MatchTemplate([title_slug])
+                ]
+            else:
+                return [
+                    MatchTemplate([title_slug])
+                ]
+
+        def get_other_fields(node, depth, isibling, num_siblings, is_alt_node):
+            if not node.get_primary_title('en') == 'Zohar Chadash':
+                return {
+                    "referenceableSections": [False]
+                }
+
+        converter = LinkerCategoryConverter('Zohar Chadash', is_index=True, get_match_templates=get_match_templates,
+                                            get_other_fields=get_other_fields)
+        converter.convert()
+
+    def convert_minor_tractates(self):
+        def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
+            alts = {
+                    "Avot D'Rabbi Natan": ['Avot DeRabbi Natan', 'Avot of Rabbi Natan', 'Avot DeRabbi Nathan', 'Avot of Rabbi Nathan',
+                                           "Avot D'Rabbi Nathan", 'AdRN', "אבות דר' נתן", 'אדר"נ'],
+                    'Tractate Derekh Eretz Zutta': ['ד"א זוטא'],
+                    'Tractate Derekh Eretz Rabbah': ['DER', 'ד"א רבה'],
+                    'Tzitzit': ['Ṣiṣiṯ', 'Tzitzis'],
+                    "Semachot": ['Avel Rabbati', 'Semachos']
+                    }
+            title = node.get_primary_title('en')
+            if not title:
+                return
+            if 'Introduction' in title:
+                return #masechet semachot has intro which I think we can skip
+            elif 'Section on Peace' in title:
+                title_slug = RTM.create_term(en='Section on Peace', alt_en=['Perek HaShalom', 'Perek ha-Shalom'], he='פרק השלום',
+                                             alt_he=["פר' השלום", "פ' השלום"], ref_part_role='structural').slug
+                return [MatchTemplate([title_slug], scope='any')]
+            alt = alts[title] if title in alts else None
+            title_slug = RTM.create_term_from_titled_obj(node, context='base', ref_part_role='structural', new_alt_titles=alt,
+                                                         title_modifier=lambda _, x: re.sub('(?:Treat\.|Tractate|Masechet|מסכת) ', '', x)).slug
+            tractate_slug = RTM.get_term_by_primary_title('base', 'Tractate').slug
+            return [
+                MatchTemplate([title_slug]),
+                MatchTemplate([tractate_slug, title_slug])
+            ]
+
+        converter = LinkerCategoryConverter('Minor Tractates', get_match_templates=get_match_templates)
+        converter.convert()
+
+
 if __name__ == '__main__':
     converter_manager = SpecificConverterManager()
-    converter_manager.convert_tanakh()
-    converter_manager.convert_bavli()
-    converter_manager.convert_rest_of_shas()
-    converter_manager.convert_sifra()
-    converter_manager.convert_midrash_rabbah()
-    converter_manager.convert_mishneh_torah()
-    converter_manager.convert_shulchan_arukh()
-    converter_manager.convert_zohar()
+    # converter_manager.convert_tanakh()
+    # converter_manager.convert_bavli()
+    # converter_manager.convert_rest_of_shas()
+    # converter_manager.convert_sifra()
+    # converter_manager.convert_midrash_rabbah()
+    # converter_manager.convert_mishneh_torah()
+    # converter_manager.convert_shulchan_arukh()
 
+    converter_manager.convert_zohar()
+    converter_manager.convert_zohar_chadash()
+    converter_manager.convert_minor_tractates()
 
 """
 Still TODO
