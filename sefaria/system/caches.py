@@ -6,6 +6,8 @@
 #  Alireza Savand <alireza.savand@gmail.com>, (c) 2013, 2014, 2015
 #  Olivier Hoareau <olivier.p.hoareau@gmail.com>, (c) 2018
 
+# Adapted from https://github.com/Olivier-OH/django-cache-with-mongodb
+
 from __future__ import unicode_literals, print_function
 
 try:
