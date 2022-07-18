@@ -747,7 +747,11 @@ class MatchTemplateTrie:
                 curr_dict_queue = [self._trie]
                 for term in match_template.terms:
                     if term is None:
-                        print(f"{node.ref()} has match_templates that reference slugs that don't exist. Check match_templates and fix.")
+                        try:
+                            node_ref = node.ref()
+                        except:
+                            node_ref = node.get_primary_title('en')
+                        print(f"{node_ref} has match_templates that reference slugs that don't exist. Check match_templates and fix.")
                         continue
                     len_curr_dict_queue = len(curr_dict_queue)
                     for _ in range(len_curr_dict_queue):
