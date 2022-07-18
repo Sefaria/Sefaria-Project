@@ -1008,6 +1008,7 @@ class SpecificConverterManager:
         converter.convert()
 
     def convert_sefer_hachinukh(self):
+        #chinukh has two different mitzvot order. I think ours is the common
         def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
             if node.is_root():
                 title_slug = RTM.create_term_from_titled_obj(node, context='base', ref_part_role='structural',
@@ -1035,7 +1036,33 @@ class SpecificConverterManager:
                                             get_other_fields=get_other_fields)
         converter.convert()
 
+    def convert_mechilta_dry(self):
+        #mekhita dry is also refered by parasha which we don't have (what we call here parasha is masekhta)
+        #do we want to add alt_structs for parashah? or can we refer parasha by chapter and pasuk?
 
+        def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
+            if not is_alt_node:
+                title_slug = RTM.create_term_from_titled_obj(node, context="base", ref_part_role='structural',
+                                                             new_alt_titles=["מכילתא דר' ישמעאל", 'מכדר"י', 'מכילתא שמות', 'מדר"י', 'Mekhilta of Rabbi Ishmael', 'Mekhilta de-Rabbi Ishmael', 'MRI']).slug
+                return [
+                MatchTemplate([title_slug])
+                ]
+            else:
+                title_slug = RTM.create_term_from_titled_obj(node, ref_part_role='structural').slug
+                return [
+                MatchTemplate([title_slug])
+                ]
+
+        def get_other_fields(node, depth, isibling, num_siblings, is_alt_node):
+            if not is_alt_node:
+                return {
+                    "referenceableSections": [True, True, False],
+                    'addressTypes': ['Perek', 'Pasuk', 'Integer'] #TODO mitzvah term. it can be also siman. also there is no addressType for this
+                }
+
+        converter = LinkerCategoryConverter("Mekhilta d'Rabbi Yishmael", is_index=True, get_match_templates=get_match_templates,
+                                            get_other_fields=get_other_fields)
+        converter.convert()
 
 if __name__ == '__main__':
     converter_manager = SpecificConverterManager()
@@ -1051,6 +1078,7 @@ if __name__ == '__main__':
     # converter_manager.convert_zohar_chadash()
     # converter_manager.convert_minor_tractates()
     converter_manager.convert_sefer_hachinukh()
+    converter_manager.convert_mechilta_dry()
 
 """
 Still TODO
