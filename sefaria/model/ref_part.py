@@ -746,6 +746,9 @@ class MatchTemplateTrie:
                 if not is_index_level and self.scope != 'any' and match_template.scope != 'any' and self.scope != match_template.scope: continue
                 curr_dict_queue = [self._trie]
                 for term in match_template.terms:
+                    if term is None:
+                        print(f"{node.index} has node {node.get_primary_title('en')} with match_templates that reference slugs that don't exist. Check match_templates and fix.")
+                        continue
                     len_curr_dict_queue = len(curr_dict_queue)
                     for _ in range(len_curr_dict_queue):
                         curr_dict = curr_dict_queue.pop(0)
