@@ -1007,6 +1007,35 @@ class SpecificConverterManager:
         converter = LinkerCategoryConverter('Minor Tractates', get_match_templates=get_match_templates)
         converter.convert()
 
+    def convert_sefer_hachinukh(self):
+        def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
+            if node.is_root():
+                title_slug = RTM.create_term_from_titled_obj(node, context='base', ref_part_role='structural',
+                                                               title_modifier=lambda _, x: re.sub('(?:Sefer|ספר) ', '', x)).slug
+                return [
+                MatchTemplate([title_slug]),
+                MatchTemplate([RTM.get_term_by_primary_title('base', 'Sefer').slug, title_slug])
+                ]
+            if is_alt_node: #TODO - we need to change the code to catch the daf after parashah
+                title = node.get_primary_title('en')
+                title_slug = RTM.get_term_by_primary_title('tanakh', title).slug
+                return [
+                MatchTemplate([title_slug]),
+                MatchTemplate([RTM.get_term_by_primary_title('base', 'Parasha').slug, title_slug])
+                ]
+
+        def get_other_fields(node, depth, isibling, num_siblings, is_alt_node):
+            if node.is_default():
+                return {
+                    "referenceableSections": [True, False],
+                    'addressTypes': ['Siman', 'Integer'] #TODO mitzvah term. it can be also siman. also there is no addressType for this
+                }
+
+        converter = LinkerCategoryConverter('Sefer HaChinukh', is_index=True, get_match_templates=get_match_templates,
+                                            get_other_fields=get_other_fields)
+        converter.convert()
+
+
 
 if __name__ == '__main__':
     converter_manager = SpecificConverterManager()
@@ -1018,9 +1047,10 @@ if __name__ == '__main__':
     # converter_manager.convert_mishneh_torah()
     # converter_manager.convert_shulchan_arukh()
 
-    converter_manager.convert_zohar()
-    converter_manager.convert_zohar_chadash()
-    converter_manager.convert_minor_tractates()
+    # converter_manager.convert_zohar()
+    # converter_manager.convert_zohar_chadash()
+    # converter_manager.convert_minor_tractates()
+    converter_manager.convert_sefer_hachinukh()
 
 """
 Still TODO
