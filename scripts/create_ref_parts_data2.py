@@ -243,6 +243,7 @@ class ReusableTermManager:
         self.create_term(context="base", en='Rambam', he='רמב"ם', ref_part_role='structural')
         self.create_term(context="base", en='Shulchan Arukh', he='שולחן ערוך', alt_en=['shulchan aruch', 'Shulchan Aruch', 'Shulḥan Arukh', 'Shulhan Arukh', 'S.A.', 'SA', 'Shulḥan Arukh'], alt_he=['שו"ע', 'שלחן ערוך'], ref_part_role='structural')
         self.create_term(context="base", en='Hilchot', he='הלכות', alt_en=['Laws of', 'Laws', 'Hilkhot', 'Hilhot'], alt_he=["הל'"], ref_part_role='alt_title')
+        self.create_term(context='base', en='Zohar', he='זהר', alt_he=['זוהר', 'זוה"ק', 'זה"ק'], ref_part_role='structural')
         self.create_term_from_titled_obj(Term().load({"name": "Parasha"}), context="base", ref_part_role='alt_title')
         for old_term in TermSet({"scheme": {"$in": ["toc_categories", "commentary_works"]}}):
             existing_term = self.get_term_by_primary_title('base', old_term.get_primary_title('en'))
@@ -443,9 +444,9 @@ class LinkerCategoryConverter:
     Manager which handles converting all indexes in a category or corpus.
     """
 
-    def __init__(self, title, is_corpus=False, **linker_index_converter_kwargs):
+    def __init__(self, title, is_corpus=False, is_index=False, **linker_index_converter_kwargs):
         index_getter = library.get_indexes_in_corpus if is_corpus else library.get_indexes_in_category
-        self.titles = index_getter(title)
+        self.titles = [title] if is_index else index_getter(title)
         self.linker_index_converter_kwargs = linker_index_converter_kwargs
 
     def convert(self):
@@ -896,17 +897,188 @@ class SpecificConverterManager:
                                             get_other_fields=get_other_fields, get_commentary_match_template_suffixes=get_commentary_match_template_suffixes)
         converter.convert()
 
+    def convert_zohar(self):
+        def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
+            sefer_slug = RTM.get_term_by_primary_title('base', 'Sefer').slug
+            parasha_slug = RTM.get_term_by_primary_title('base', 'Parasha').slug
+            title_slug = RTM.get_term_by_primary_title('base', 'Zohar').slug
+            if is_alt_node and node.ref().normal().startswith('Zohar 1:1a'):
+                return #i'm not sure how to handle this
+            elif is_alt_node: #TODO - we need to change the code to catch the daf after parashah
+                title = node.get_primary_title('en')
+                if title == 'Haman':
+                    title = 'Beshalach' #I didn't find direct references to parashat haman in the literature
+                if title == 'HaIdra Zuta Kadisha':
+                    title_slug = RTM.create_term(en='Idra Zuta', alt_en=['HaIdra zuta'], he='אדרא זוטא', alt_he=['אידרא זוטא', 'אד"ז'], ref_part_role='structural').slug
+                    haazinue_slug = RTM.get_term_by_primary_title('tanakh', "Ha'Azinu").slug
+                    return {
+                        MatchTemplate([haazinue_slug]),
+                        MatchTemplate([haazinue_slug, title_slug]),
+                        MatchTemplate([title_slug, haazinue_slug], scope='any'),
+                        MatchTemplate([title_slug], scope='any')
+                    }
+                title_slug = RTM.get_term_by_primary_title('tanakh', title).slug
+                return [
+                    MatchTemplate([parasha_slug, title_slug]),
+                    MatchTemplate([title_slug])
+                ]
+            else:
+                return [
+                    MatchTemplate([sefer_slug, title_slug]),
+                    MatchTemplate([title_slug])
+                ]
+            #Zohar has many sub books, but we don't reflect it (maybe it will change in the future), so I'm not sure what to do.
+            #Maybe we have to add them as one term for cacthing refs like זוהר בראשית סתרי תורה כג. ?
+
+        def get_other_fields(node, depth, isibling, num_siblings, is_alt_node):
+            if not is_alt_node: return {
+                    "referenceableSections": [True, True, False]
+                }
+
+        converter = LinkerCategoryConverter('Zohar', is_index=True, get_match_templates=get_match_templates,
+                                            get_other_fields=get_other_fields)
+        converter.convert()
+
+    def convert_zohar_chadash(self):
+        #mostly referred by paged, but we don't have them.
+        def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
+            title = node.get_primary_title('en')
+            if title == 'Zohar Chadash':
+                title_slug = RTM.create_term_from_titled_obj(node, 'structural', 'zohar chadash').slug
+                return [MatchTemplate([title_slug])]
+            try:
+                title_slug = RTM.get_term_by_primary_title('tanakh', title).slug
+            except:
+                if 'Rut' in title:
+                    title_slug = RTM.get_term_by_primary_title('tanakh', 'Ruth').slug
+                elif 'Eichah' in title:
+                    title_slug = RTM.get_term_by_primary_title('tanakh', 'Lamentations').slug
+                else:
+                    return
+            if 'פרשת' in node.get_primary_title('he'):
+                parasha_slug = RTM.get_term_by_primary_title('base', 'Parasha').slug
+                return [
+                    MatchTemplate([parasha_slug, title_slug]),
+                    MatchTemplate([title_slug])
+                ]
+            else:
+                return [
+                    MatchTemplate([title_slug])
+                ]
+
+        def get_other_fields(node, depth, isibling, num_siblings, is_alt_node):
+            if not node.get_primary_title('en') == 'Zohar Chadash':
+                return {
+                    "referenceableSections": [False]
+                }
+
+        converter = LinkerCategoryConverter('Zohar Chadash', is_index=True, get_match_templates=get_match_templates,
+                                            get_other_fields=get_other_fields)
+        converter.convert()
+
+    def convert_minor_tractates(self):
+        def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
+            alts = {
+                    "Avot D'Rabbi Natan": ['Avot DeRabbi Natan', 'Avot of Rabbi Natan', 'Avot DeRabbi Nathan', 'Avot of Rabbi Nathan',
+                                           "Avot D'Rabbi Nathan", 'AdRN', "אבות דר' נתן", 'אדר"נ'],
+                    'Tractate Derekh Eretz Zutta': ['ד"א זוטא'],
+                    'Tractate Derekh Eretz Rabbah': ['DER', 'ד"א רבה'],
+                    'Tzitzit': ['Ṣiṣiṯ', 'Tzitzis'],
+                    "Semachot": ['Avel Rabbati', 'Semachos']
+                    }
+            title = node.get_primary_title('en')
+            if not title:
+                return
+            if 'Introduction' in title:
+                return #masechet semachot has intro which I think we can skip
+            elif 'Section on Peace' in title:
+                title_slug = RTM.create_term(en='Section on Peace', alt_en=['Perek HaShalom', 'Perek ha-Shalom'], he='פרק השלום',
+                                             alt_he=["פר' השלום", "פ' השלום"], ref_part_role='structural').slug
+                return [MatchTemplate([title_slug], scope='any')]
+            alt = alts[title] if title in alts else None
+            title_slug = RTM.create_term_from_titled_obj(node, context='base', ref_part_role='structural', new_alt_titles=alt,
+                                                         title_modifier=lambda _, x: re.sub('(?:Treat\.|Tractate|Masechet|מסכת) ', '', x)).slug
+            tractate_slug = RTM.get_term_by_primary_title('base', 'Tractate').slug
+            return [
+                MatchTemplate([title_slug]),
+                MatchTemplate([tractate_slug, title_slug])
+            ]
+
+        converter = LinkerCategoryConverter('Minor Tractates', get_match_templates=get_match_templates)
+        converter.convert()
+
+    def convert_sefer_hachinukh(self):
+        #chinukh has two different mitzvot order. I think ours is the common
+        def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
+            if node.is_root():
+                title_slug = RTM.create_term_from_titled_obj(node, context='base', ref_part_role='structural',
+                                                               title_modifier=lambda _, x: re.sub('(?:Sefer|ספר) ', '', x)).slug
+                return [
+                MatchTemplate([title_slug]),
+                MatchTemplate([RTM.get_term_by_primary_title('base', 'Sefer').slug, title_slug])
+                ]
+            if is_alt_node: #TODO - we need to change the code to catch the daf after parashah
+                title = node.get_primary_title('en')
+                title_slug = RTM.get_term_by_primary_title('tanakh', title).slug
+                return [
+                MatchTemplate([title_slug]),
+                MatchTemplate([RTM.get_term_by_primary_title('base', 'Parasha').slug, title_slug])
+                ]
+
+        def get_other_fields(node, depth, isibling, num_siblings, is_alt_node):
+            if node.is_default():
+                return {
+                    "referenceableSections": [True, False],
+                    'addressTypes': ['Siman', 'Integer'] #TODO mitzvah term. it can be also siman. also there is no addressType for this
+                }
+
+        converter = LinkerCategoryConverter('Sefer HaChinukh', is_index=True, get_match_templates=get_match_templates,
+                                            get_other_fields=get_other_fields)
+        converter.convert()
+
+    def convert_mechilta_dry(self):
+        #mekhita dry is also refered by parasha which we don't have (what we call here parasha is masekhta)
+        #do we want to add alt_structs for parashah? or can we refer parasha by chapter and pasuk?
+
+        def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
+            if not is_alt_node:
+                title_slug = RTM.create_term_from_titled_obj(node, context="base", ref_part_role='structural',
+                                                             new_alt_titles=["מכילתא דר' ישמעאל", 'מכדר"י', 'מכילתא שמות', 'מדר"י', 'Mekhilta of Rabbi Ishmael', 'Mekhilta de-Rabbi Ishmael', 'MRI']).slug
+                return [
+                MatchTemplate([title_slug])
+                ]
+            else:
+                title_slug = RTM.create_term_from_titled_obj(node, ref_part_role='structural').slug
+                return [
+                MatchTemplate([title_slug])
+                ]
+
+        def get_other_fields(node, depth, isibling, num_siblings, is_alt_node):
+            if not is_alt_node:
+                return {
+                    "referenceableSections": [True, True, False],
+                    'addressTypes': ['Perek', 'Pasuk', 'Integer'] #TODO mitzvah term. it can be also siman. also there is no addressType for this
+                }
+
+        converter = LinkerCategoryConverter("Mekhilta d'Rabbi Yishmael", is_index=True, get_match_templates=get_match_templates,
+                                            get_other_fields=get_other_fields)
+        converter.convert()
 
 if __name__ == '__main__':
     converter_manager = SpecificConverterManager()
-    converter_manager.convert_tanakh()
-    converter_manager.convert_bavli()
-    converter_manager.convert_rest_of_shas()
-    converter_manager.convert_sifra()
-    converter_manager.convert_midrash_rabbah()
-    converter_manager.convert_mishneh_torah()
-    converter_manager.convert_shulchan_arukh()
+    # converter_manager.convert_tanakh()
+    # converter_manager.convert_bavli()
+    # converter_manager.convert_rest_of_shas()
+    # converter_manager.convert_sifra()
+    # converter_manager.convert_midrash_rabbah()
+    # converter_manager.convert_mishneh_torah()
+    # converter_manager.convert_shulchan_arukh()
 
+    # converter_manager.convert_zohar()
+    # converter_manager.convert_zohar_chadash()
+    # converter_manager.convert_minor_tractates()
+    converter_manager.convert_sefer_hachinukh()
+    converter_manager.convert_mechilta_dry()
 
 """
 Still TODO
