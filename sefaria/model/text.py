@@ -4843,6 +4843,7 @@ class Library(object):
         self.get_text_titles_json(rebuild=rebuild)
         self.get_simple_term_mapping(rebuild=rebuild)
         self.get_simple_term_mapping_json(rebuild=rebuild)
+        self.get_virtual_books(rebuild=rebuild)
         if rebuild:
             scache.delete_shared_cache_elem("regenerating")
 
@@ -5639,9 +5640,18 @@ class Library(object):
             q['base_text_mapping'] = {'$in': get_all_subclass_attribute(AbstractStructureAutoLinker, "class_key")}
         return IndexSet(q) if full_records else IndexSet(q).distinct("title")
 
-    def get_virtual_books(self):
-        if not self._virtual_books:
-            self._virtual_books = [index.title for index in IndexSet({'lexiconName': {'$exists': True}})]
+    def get_virtual_books(self, rebuild=False):
+        if rebuild or not self._virtual_books:
+            if not rebuild:
+                self._virtual_books = scache.get_shared_cache_elem('virtualBooks')
+            if rebuild or not self._virtual_books:
+                self.build_virtual_books()
+                scache.set_shared_cache_elem('virtualBooks', self._virtual_books)
+                self.set_last_cached_time()
+        return self._virtual_books
+
+    def build_virtual_books(self):
+        self._virtual_books = [index.title for index in IndexSet({'lexiconName': {'$exists': True}})]
         return self._virtual_books
 
     def get_titles_in_string(self, s, lang=None, citing_only=False):
