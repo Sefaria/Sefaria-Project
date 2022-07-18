@@ -60,7 +60,7 @@
     "humanize-duration": "^3.27.0",
     "is-hotkey": "^0.1.6",
     "jquery": "^2.2.0",
-    "jquery-ui": "1.12.1",
+    "jquery-ui": "1.13.2",
     "jquery.cookie": "^1.4.1",
     "jquery.scrollto": "^2.1.2",
     "js-cookie": "^2.2.1",
