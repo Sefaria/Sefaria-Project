@@ -1017,7 +1017,7 @@ class SpecificConverterManager:
                 MatchTemplate([title_slug]),
                 MatchTemplate([RTM.get_term_by_primary_title('base', 'Sefer').slug, title_slug])
                 ]
-            if is_alt_node: #TODO - we need to change the code to catch the daf after parashah
+            if is_alt_node: #TODO - we need to change the code to catch the mittzah after parashah
                 title = node.get_primary_title('en')
                 title_slug = RTM.get_term_by_primary_title('tanakh', title).slug
                 return [
@@ -1057,7 +1057,7 @@ class SpecificConverterManager:
             if not is_alt_node:
                 return {
                     "referenceableSections": [True, True, False],
-                    'addressTypes': ['Perek', 'Pasuk', 'Integer'] #TODO mitzvah term. it can be also siman. also there is no addressType for this
+                    'addressTypes': ['Perek', 'Pasuk', 'Integer']
                 }
 
         converter = LinkerCategoryConverter("Mekhilta d'Rabbi Yishmael", is_index=True, get_match_templates=get_match_templates,
@@ -1066,17 +1066,17 @@ class SpecificConverterManager:
 
 if __name__ == '__main__':
     converter_manager = SpecificConverterManager()
-    # converter_manager.convert_tanakh()
-    # converter_manager.convert_bavli()
-    # converter_manager.convert_rest_of_shas()
-    # converter_manager.convert_sifra()
-    # converter_manager.convert_midrash_rabbah()
-    # converter_manager.convert_mishneh_torah()
-    # converter_manager.convert_shulchan_arukh()
+    converter_manager.convert_tanakh()
+    converter_manager.convert_bavli()
+    converter_manager.convert_rest_of_shas()
+    converter_manager.convert_sifra()
+    converter_manager.convert_midrash_rabbah()
+    converter_manager.convert_mishneh_torah()
+    converter_manager.convert_shulchan_arukh()
 
-    # converter_manager.convert_zohar()
-    # converter_manager.convert_zohar_chadash()
-    # converter_manager.convert_minor_tractates()
+    converter_manager.convert_zohar()
+    converter_manager.convert_zohar_chadash()
+    converter_manager.convert_minor_tractates()
     converter_manager.convert_sefer_hachinukh()
     converter_manager.convert_mechilta_dry()
 
