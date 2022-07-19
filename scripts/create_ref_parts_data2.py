@@ -540,7 +540,7 @@ class DiburHamatchilAdder:
             try:
                 perek_ref = Ref(perek_node.wholeRef)
             except:
-                print("perek ref failed", perek_node.wholeRef)
+                # print("perek ref failed", perek_node.wholeRef)
                 continue
             perek_refs += [perek_ref]
 
@@ -822,6 +822,8 @@ class SpecificConverterManager:
 
             if is_alt_node: return []
             cat = node.index.categories[0]
+            if cat == "Talmud":
+                cat = node.index.categories[1]
             base_term = RTM.get_term_by_primary_title('base', cat)
             tractate_slug = RTM.get_term_by_primary_title('base', 'Tractate').slug
             generic_term = get_generic_term(node)
@@ -836,12 +838,15 @@ class SpecificConverterManager:
         def get_other_fields(node, depth, isibling, num_siblings, is_alt_node):
             if is_alt_node: return
             cat = node.index.categories[0]
+            if cat == "Talmud":
+                cat = node.index.categories[1]
             base_term = RTM.get_term_by_primary_title('base', cat)
             generic_term = get_generic_term(node)
             if cat == "Yerushalmi":
+                halakha_slug = RTM.get_term_by_primary_title('base', 'Halakha').slug
                 return {
                     "addressTypes": ["Perek"] + node.addressTypes[1:],
-                    "ref_resolver_context_swaps": [base_term.slug, generic_term.slug],
+                    "ref_resolver_context_swaps": {halakha_slug: [base_term.slug, generic_term.slug]},
                     "referenceableSections": [True, True, False]
                 }
 
