@@ -549,9 +549,9 @@ class DiburHamatchilAdder:
 
 class LinkerIndexConverter:
 
-    def __init__(self, title, get_other_fields=None, get_match_templates=None, fast_unsafe_saving=True,
-                 get_commentary_match_templates=None, get_commentary_other_fields=None,
-                 get_commentary_match_template_suffixes=None):
+    def __init__(self, title, get_other_fields=None, get_match_templates=None, get_alt_structs=None,
+                 fast_unsafe_saving=True, get_commentary_match_templates=None, get_commentary_other_fields=None,
+                 get_commentary_match_template_suffixes=None, get_commentary_alt_structs=None):
         """
 
         @param title: title of index to convert
@@ -571,6 +571,10 @@ class LinkerIndexConverter:
                 (node: SchemaNode, depth: int, isibling: int, num_siblings: int, is_alt_node: bool) -> List[MatchTemplate].
             Callback that is run on every node in index including alt struct nodes. Receives callback params as specified above.
             Needs to return a list of MatchTemplate objects corresponding to that node.
+        @param get_alt_structs:
+            function of form
+                (index: Index) -> Dict[String, TitledTreeNode]
+            Returns a dict with keys being names of new alt struct and values being alt struct root nodes
         @param get_commentary_match_templates:
             function of form
                 (index: Index) -> List[MatchTemplate]
@@ -586,9 +590,11 @@ class LinkerIndexConverter:
         self.index = library.get_index(title)
         self.get_other_fields = get_other_fields
         self.get_match_templates = get_match_templates
+        self.get_alt_structs = get_alt_structs
         self.get_commentary_match_templates = get_commentary_match_templates
         self.get_commentary_other_fields = get_commentary_other_fields
         self.get_commentary_match_template_suffixes = get_commentary_match_template_suffixes
+        self.get_commentary_alt_structs = get_commentary_alt_structs
         self.fast_unsafe_saving = fast_unsafe_saving
 
     @staticmethod
@@ -606,6 +612,10 @@ class LinkerIndexConverter:
         self.index.nodes.lengths = [outer_shape] + ac[1:]
 
     def convert(self):
+        if self.get_alt_structs:
+            alt_struct_dict = self.get_alt_structs
+            for name, root in alt_struct_dict.items():
+                self.index.set_alt_structure(name, root)
         self._traverse_nodes(self.index.nodes, self.node_visitor, is_alt_node=False)
         alt_nodes = self.index.get_alt_struct_nodes()
         for inode, node in enumerate(alt_nodes):
@@ -614,9 +624,12 @@ class LinkerIndexConverter:
         if self.get_commentary_match_templates or self.get_commentary_match_template_suffixes or self.get_commentary_other_fields:
             temp_get_comm_fields = partial(self.get_commentary_other_fields, self.index)\
                 if self.get_commentary_other_fields else None
+            temp_get_alt_structs = partial(self.get_commentary_alt_structs, self.index)\
+                if self.get_commentary_alt_structs else None
             comm_converter = LinkerCommentaryConverter(self.index.title, self.get_commentary_match_template_suffixes,
                                                        get_match_templates=self.get_commentary_match_templates,
-                                                       get_other_fields=temp_get_comm_fields)
+                                                       get_other_fields=temp_get_comm_fields,
+                                                       get_alt_structs=temp_get_alt_structs)
             comm_converter.convert()
         self.save_index()
 
