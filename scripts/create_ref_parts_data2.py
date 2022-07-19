@@ -463,7 +463,7 @@ class LinkerCommentaryConverter:
                 return match_templates
 
         # otherwise, use default implementation
-        if is_alt_node or depth > 0: return
+        if is_alt_node or not node.is_root(): return
         try: comm_term = RTM.get_term_by_old_term_name(node.index.collective_title)
         except: return
         if comm_term is None: return
