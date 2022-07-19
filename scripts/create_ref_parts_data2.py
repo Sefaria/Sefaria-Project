@@ -78,15 +78,6 @@ class ReusableTermManager:
         self.context_and_primary_title_to_term = {}
         self.num_to_perek_term_map = {}
         self.old_term_map = {}
-        self.reg_map = {
-            "rashi": ['^(.+?)[\-–]', '\.(.+?)$', "^(?:(?:מתני'|גמ')\s?)?(.+)$"],
-            "ran": ['^(.+?)[\-–]', "^(?:(?:מתני'|גמ')\s?)?(.+)$"],
-            "tosafot": ['^(.+?)[\-–\.]', "^(?:(?:מתני'|גמ')\s?)?(.+)$"],
-            "gilyon-hashas": ["^<b>(.+?)</b>"],
-        }
-
-    def get_dh_regexes(self, index, comm_term_slug):
-        return self.reg_map.get(index.title, self.reg_map.get(comm_term_slug))
 
     def get_term_by_primary_title(self, context, title):
         return self.context_and_primary_title_to_term.get((context, title))
@@ -466,18 +457,18 @@ class LinkerCommentaryConverter:
         linker_index_converter_kwargs['get_match_templates'] = partial(self.get_match_templates_wrapper, base_index)
 
     def get_match_templates_wrapper(self, base_index, node, depth, isibling, num_siblings, is_alt_node):
-        match_templates = self.get_match_templates_inner(base_index, node, depth, isibling, num_siblings, is_alt_node)
-        if match_templates is not None:
-            return match_templates
+        if self.get_match_templates_inner:
+            match_templates = self.get_match_templates_inner(base_index, node, depth, isibling, num_siblings, is_alt_node)
+            if match_templates is not None:
+                return match_templates
 
         # otherwise, use default implementation
         if is_alt_node or depth > 0: return
         try: comm_term = RTM.get_term_by_old_term_name(node.index.collective_title)
         except: return
         if comm_term is None: return
+        if self.get_match_template_suffixes is None: return
 
-        if self.get_match_template_suffixes is None:
-            raise Exception(f"get_match_template_suffixes() cannot be None when get_match_templates() returns `None`. Title: {node.index.title}. Base Title: {base_index.title}")
         match_templates = [template.clone() for template in self.get_match_template_suffixes(base_index)]
         for template in match_templates:
             template.term_slugs = [comm_term.slug] + template.term_slugs
@@ -487,6 +478,60 @@ class LinkerCommentaryConverter:
         for title in self.titles:
             index_converter = LinkerIndexConverter(title, **self.linker_index_converter_kwargs)
             index_converter.convert()
+
+
+class DiburHamatchilAdder:
+
+    def __init__(self):
+        self.indexes_with_dibur_hamatchils = []
+        self.dh_reg_map = {
+            "Rashi": ['^(.+?)[\-–]', '\.(.+?)$', "^(?:(?:מתני'|גמ')\s?)?(.+)$"],
+            "Ran": ['^(.+?)[\-–]', "^(?:(?:מתני'|גמ')\s?)?(.+)$"],
+            "Tosafot": ['^(.+?)[\-–\.]', "^(?:(?:מתני'|גמ')\s?)?(.+)$"],
+            "Gilyon HaShas": ["^<b>(.+?)</b>"],
+        }
+
+    def get_dh_regexes(self, collective_title):
+        return self.dh_reg_map.get(collective_title)
+
+    def add_index(self, index):
+        self.indexes_with_dibur_hamatchils += [index]
+
+    @staticmethod
+    def get_dh(s, regexes, oref):
+        for reg in regexes:
+            match = re.search(reg, s)
+            if not match: continue
+            s = match.group(1)
+        s = s.strip()
+        return s
+
+    def add_dibur_hamatchil_to_index(self, index):
+        index = Index().load({"title": index.title})  # reload index to make sure perek nodes are correct
+        seg_perek_mapping = {}
+        for perek_node in index.get_alt_struct_nodes():
+            perek_ref = Ref(perek_node.wholeRef)
+            for seg_ref in perek_ref.all_segment_refs():
+                seg_perek_mapping[seg_ref.normal()] = perek_ref.normal()
+        for iseg, segment_ref in enumerate(index.all_segment_refs()):
+            perek_ref = seg_perek_mapping.get(segment_ref.normal())
+            chunk = TextChunk(segment_ref, 'he')
+            dh = self.get_dh(chunk.text, index.nodes.diburHamatchilRegexes, segment_ref)
+            if dh is None:
+                continue
+            container_refs = [segment_ref.top_section_ref().normal(), index.title]
+            if perek_ref:
+                container_refs += [perek_ref]
+            DiburHamatchilNode({
+                "dibur_hamatchil": dh,
+                "container_refs": container_refs,
+                "ref": segment_ref.normal()
+            }).save()
+
+    def add_all_dibur_hamatchils(self):
+        DiburHamatchilNodeSet().delete()
+        for index in tqdm(self.indexes_with_dibur_hamatchils, desc='add dibur hamatchils'):
+            self.add_dibur_hamatchil_to_index(index)
 
 
 class LinkerIndexConverter:
@@ -550,7 +595,7 @@ class LinkerIndexConverter:
         for inode, node in enumerate(alt_nodes):
             self.node_visitor(node, 1, inode, len(alt_nodes), True)
         self._update_lengths()  # update lengths for good measure
-        if self.get_commentary_match_templates:
+        if self.get_commentary_match_templates or self.get_commentary_match_template_suffixes or self.get_commentary_other_fields:
             temp_get_comm_fields = partial(self.get_commentary_other_fields, self.index)\
                 if self.get_commentary_other_fields else None
             comm_converter = LinkerCommentaryConverter(self.index.title, self.get_commentary_match_template_suffixes,
@@ -584,6 +629,10 @@ RTM = get_reusable_components()
 
 
 class SpecificConverterManager:
+
+    def __init__(self):
+        self.dibur_hamatchil_adder = DiburHamatchilAdder()
+
     def convert_tanakh(self):
         def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
 
@@ -657,10 +706,25 @@ class SpecificConverterManager:
             if is_alt_node:
                 return {"numeric_equivalent": min(isibling + 1, 30)}
         
-        def get_commentary_match_templates(base_index, node, depth, isibling, num_siblings, is_alt_node):
-            pass
-        
-        converter = LinkerCategoryConverter("Bavli", is_corpus=True, get_match_templates=get_match_templates, get_other_fields=get_other_fields)
+        def get_commentary_match_template_suffixes(base_index):
+            title_slug = RTM.get_term_by_primary_title('shas', base_index.title).slug
+            return [MatchTemplate([title_slug])]
+
+        def get_commentary_other_fields(base_index, node, depth, isibling, num_siblings, is_alt_node):
+            nonlocal self
+            if isinstance(node, JaggedArrayNode):
+                # assuming second address is always "Line"
+                referenceable_sections = [True, False, True] if node.depth == 3 else [True, True]
+                collective_title = getattr(node.index, 'collective_title', None)
+                dh_regexes = self.dibur_hamatchil_adder.get_dh_regexes(collective_title)
+                if dh_regexes:
+                    self.dibur_hamatchil_adder.add_index(node.index)
+                return {
+                    "isSegmentLevelDiburHamatchil": True,
+                    "referenceableSections": referenceable_sections,
+                    "diburHamatchilRegexes": dh_regexes,
+                }
+        converter = LinkerCategoryConverter("Bavli", is_corpus=True, get_match_templates=get_match_templates, get_other_fields=get_other_fields, get_commentary_match_template_suffixes=get_commentary_match_template_suffixes, get_commentary_other_fields=get_commentary_other_fields)
         converter.convert()
 
     def convert_rest_of_shas(self):
@@ -1064,10 +1128,11 @@ class SpecificConverterManager:
                                             get_other_fields=get_other_fields)
         converter.convert()
 
+
 if __name__ == '__main__':
     converter_manager = SpecificConverterManager()
     # converter_manager.convert_tanakh()
-    # converter_manager.convert_bavli()
+    converter_manager.convert_bavli()
     # converter_manager.convert_rest_of_shas()
     # converter_manager.convert_sifra()
     # converter_manager.convert_midrash_rabbah()
@@ -1077,8 +1142,9 @@ if __name__ == '__main__':
     # converter_manager.convert_zohar()
     # converter_manager.convert_zohar_chadash()
     # converter_manager.convert_minor_tractates()
-    converter_manager.convert_sefer_hachinukh()
-    converter_manager.convert_mechilta_dry()
+    # converter_manager.convert_sefer_hachinukh()
+    # converter_manager.convert_mechilta_dry()
+    converter_manager.dibur_hamatchil_adder.add_all_dibur_hamatchils()
 
 """
 Still TODO
