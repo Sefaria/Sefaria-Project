@@ -490,6 +490,7 @@ class DiburHamatchilAdder:
             "Tosafot": ['^(.+?)[\-–\.]', "^(?:(?:מתני'|גמ')\s?)?(.+)$"],
             "Gilyon HaShas": ["^<b>(.+?)</b>"],
         }
+        self._dhs_to_insert = []
 
     def get_dh_regexes(self, collective_title):
         return self.dh_reg_map.get(collective_title)
@@ -507,31 +508,43 @@ class DiburHamatchilAdder:
         return s
 
     def add_dibur_hamatchil_to_index(self, index):
+        def add_dh_for_seg(segment_text, en_tref, he_tref, version):
+            nonlocal seg_perek_mapping, self
+            try:
+                oref = Ref(en_tref)
+            except:
+                print("not a valid ref", en_tref)
+                return
+            perek_ref = seg_perek_mapping.get(en_tref)
+            dh = self.get_dh(segment_text, index.nodes.diburHamatchilRegexes, oref)
+            if dh is None: return
+            container_refs = [oref.top_section_ref().normal(), index.title]
+            if perek_ref:
+                container_refs += [perek_ref]
+            self._dhs_to_insert += [
+                {
+                    "dibur_hamatchil": dh,
+                    "container_refs": container_refs,
+                    "ref": en_tref
+                }
+            ]
+
         index = Index().load({"title": index.title})  # reload index to make sure perek nodes are correct
         seg_perek_mapping = {}
         for perek_node in index.get_alt_struct_nodes():
             perek_ref = Ref(perek_node.wholeRef)
             for seg_ref in perek_ref.all_segment_refs():
                 seg_perek_mapping[seg_ref.normal()] = perek_ref.normal()
-        for iseg, segment_ref in enumerate(index.all_segment_refs()):
-            perek_ref = seg_perek_mapping.get(segment_ref.normal())
-            chunk = TextChunk(segment_ref, 'he')
-            dh = self.get_dh(chunk.text, index.nodes.diburHamatchilRegexes, segment_ref)
-            if dh is None:
-                continue
-            container_refs = [segment_ref.top_section_ref().normal(), index.title]
-            if perek_ref:
-                container_refs += [perek_ref]
-            DiburHamatchilNode({
-                "dibur_hamatchil": dh,
-                "container_refs": container_refs,
-                "ref": segment_ref.normal()
-            }).save()
+
+        primary_version = index.versionSet().array()[0]
+        primary_version.walk_thru_contents(add_dh_for_seg)
 
     def add_all_dibur_hamatchils(self):
+        from pymongo import InsertOne
         DiburHamatchilNodeSet().delete()
         for index in tqdm(self.indexes_with_dibur_hamatchils, desc='add dibur hamatchils'):
             self.add_dibur_hamatchil_to_index(index)
+        db.dibur_hamatchils.bulk_write([InsertOne(d) for d in self._dhs_to_insert])
 
 
 class LinkerIndexConverter:
@@ -587,7 +600,10 @@ class LinkerIndexConverter:
         if self.index.is_complex(): return
         sn = StateNode(self.index.title)
         ac = sn.get_available_counts("he")
-        self.index.nodes.lengths = ac[:]
+        # really only outer shape is checked. including rest of shape even though it's technically only a count of what's available and skips empty sections
+        shape = sn.var('all', 'shape')
+        outer_shape = shape if isinstance(shape, int) else len(shape)
+        self.index.nodes.lengths = [outer_shape] + ac[1:]
 
     def convert(self):
         self._traverse_nodes(self.index.nodes, self.node_visitor, is_alt_node=False)
