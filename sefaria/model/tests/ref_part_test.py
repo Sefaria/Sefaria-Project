@@ -214,7 +214,7 @@ crrd = create_raw_ref_data
     [crrd(None, 'he', 'זהר א דף רפג:', [slice(0, 1), 1, slice(3, 5)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ['Zohar 1:283b']],
     [crrd(None, 'he', 'זהר חדש בראשית', [slice(0, 2), 2], [RPT.NAMED, RPT.NAMED]), ['Zohar Chadash, Bereshit']],
     [crrd(None, 'he', 'זהר ח"א דף כג', [0, 3, 5], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ['Zohar 1:23']],
-
+    [crrd(None, 'he', 'ספר החינוך, לך לך, ב', [slice(0, 2), slice(3, 5), 6], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ['Sefer HaChinukh 2']],
     # [crrd(None, 'he', 'בבראשית רבה בראשית ט', [])]
 ])
 def test_resolve_raw_ref(resolver_data, expected_trefs):
