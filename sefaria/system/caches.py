@@ -60,8 +60,8 @@ class SimpleMongoDBCache(BaseCache):
 
         if not 'timeout' in params and not 'TIMEOUT' in params:
             params['TIMEOUT'] = None
-        if not 'max_entries' in params and not 'MAX_ENTRIES' in options:
-            options['MAX_ENTRIES'] = -1
+        if not 'max_entries' in params and not 'MAX_ENTRIES' in params:
+            params['MAX_ENTRIES'] = -1
 
         BaseCache.__init__(self, params)
 
@@ -80,17 +80,17 @@ class SimpleMongoDBCache(BaseCache):
             self.default_timeout = None
 
         if self.default_timeout is not None and self._max_entries is not None:
-            raise ImproperlyConfigured('MongoDBCache shall be configured either with TIMEOUT or MAX_ENTRIES, not both.')
+            raise ImproperlyConfigured('SimpleMongoDBCache shall be configured either with TIMEOUT or MAX_ENTRIES, not both.')
 
         if self.default_timeout is None and self._max_entries is None:
-            raise ImproperlyConfigured('MongoDBCache shall be configured with TIMEOUT or MAX_ENTRIES. Specify one or the other.')
+            raise ImproperlyConfigured('SimpleMongoDBCache shall be configured with TIMEOUT or MAX_ENTRIES. Specify one or the other.')
 
     def make_key(self, key, version=None):
         """
         Additional regexp to remove $ and . characters,
         as they cause special behaviour in mongodb
         """
-        key = super(MongoDBCache, self).make_key(key, version)
+        key = super(SimpleMongoDBCache, self).make_key(key, version)
 
         return re.sub(r'\$|\.', '_', key)
 
@@ -117,8 +117,6 @@ class SimpleMongoDBCache(BaseCache):
         else:
             expires = None
         coll = self._get_collection()
-        #pickled = pickle.dumps(value, pickle.HIGHEST_PROTOCOL)
-        #encoded = base64.encodestring(pickled).strip()
 
         if mode == 'add' and self.has_key(key):
             return False
@@ -126,7 +124,7 @@ class SimpleMongoDBCache(BaseCache):
         try:
             coll.update_one(
                 {'key': key},
-                {'$set': {'data': encoded, 'expires': expires, 'last_change': now}},
+                {'$set': {'data': value, 'expires': expires, 'last_change': now}},
                 upsert=True,
             )
         # TODO: check threadsafety!
@@ -157,10 +155,7 @@ class SimpleMongoDBCache(BaseCache):
         if not data:
             return default
 
-        #unencoded = base64.decodestring(data['data'])
-        #unpickled = pickle.loads(unencoded)
-
-        return unpickled
+        return data['data']
 
     @reconnect()
     def get_many(self, keys, version=None):
@@ -189,9 +184,7 @@ class SimpleMongoDBCache(BaseCache):
         }
         )
         for result in data:
-            #unencoded = base64.decodestring(result['data'])
-            #unpickled = pickle.loads(unencoded)
-            out[parsed_keys[result['key']]] = result
+            out[parsed_keys[result['key']]] = result['data']
 
         return out
 
