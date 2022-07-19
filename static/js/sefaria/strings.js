@@ -237,6 +237,7 @@ const Strings = {
     "Copyright: JPS, 1985": "זכויות שמורות ל-JPS, 1985",
     "Location: ": "מיקום: ",
     "Translations": "תרגומים",
+    "Uncategorized": "לא מסווג",
 
     // Collections
     "Collections": "אסופות",

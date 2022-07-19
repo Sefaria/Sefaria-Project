@@ -946,6 +946,42 @@ def groups_redirect(request, group):
 
 
 @sanitize_get_params
+def translations_page(request, slug):
+    """
+    Main page for translations
+    """
+    title_dictionary = {
+        #"ar": {"name": "Arabic", "nativeName": "عربى"},
+        "de": {"name": "German", "nativeName": "Deutsch", "title": "Jüdische Texte in Deutscher Sprache", "desc": "Die größte kostenlose Bibliothek jüdischer Texte, die online auf Hebräisch, Deutsch und Englisch gelesen werden kann, einschließlich Tora, Tanach, Talmud, Mischna, Midrasch, Kommentare und mehr."},
+        "en": {"name": "English", "nativeName": "English", "title": "Jewish Texts in English", "desc": "The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more."},
+        "eo": {"name": "Esperanto", "nativeName": "Esperanto", "title": "Judaj Tekstoj en Esperanto", "desc": "La plej granda senpaga biblioteko de judaj tekstoj legebla interrete en la hebrea, Esperanto kaj la angla inkluzive de Torao, Tanaĥo, Talmudo, Miŝnao, Midraŝo, komentaĵoj kaj pli."},
+        "es": {"name": "Spanish", "nativeName": "Español", "title": "Textos Judíos en Español", "desc": "La biblioteca gratuita más grande de textos judíos disponibles para leer en línea en hebreo, español e inglés, incluyendo Torá, Tanaj, Talmud, Mishná, Midrash, comentarios y más."},
+        "fa": {"name": "Persian", "nativeName": "فارسی", "title": "متون یهودی به زبان فارسی", "desc": "بزرگترین کتابخانه رایگان متون یهودی در دسترس برای خواندن آنلاین به زبان های عبری، فارسی و انگلیسی از جمله تورات، تناخ، تلمود، میشنا، میدراش، تفسیرها و غیره."},
+        "fi": {"name": "Finnish", "nativeName": "suomen kieli", "title": "Juutalaiset tekstit suomeksi", "desc":"Suurin ilmainen kirjasto juutalaisia tekstejä luettavaksi verkossa hepreaksi, suomeksi ja englanniksi, mukaan lukien Toora, Tanakh, Talmud, Mishna, Midrash, kommentit ja paljon muuta."},
+        "fr": {"name": "French", "nativeName": "Français", "title": "Textes juifs en français", "desc": "La plus grande bibliothèque gratuite de textes juifs disponibles à lire en ligne en hébreu, français et anglais, y compris Torah, Tanakh, Talmud, Mishnah, Midrash, commentaires et plus encore."},
+        "he": {"name": "Hebrew", "nativeName": "עברית", "title": "ספריה בעברית", "desc": "הספרייה החינמית הגדולה ביותר של טקסטים יהודיים הזמינים לקריאה מקוונת בעברית ובאנגלית, לרבות תורה, תנח, תלמוד, משנה, מדרש, פירושים ועוד."},
+        "it": {"name": "Italian", "nativeName": "Italiano", "title": "Testi ebraici in italiano", "desc": "La più grande libreria gratuita di testi ebraici disponibile per la lettura online in ebraico, italiano e inglese, inclusi Torah, Tanakh, Talmud, Mishnah, Midrash, commenti e altro ancora." },
+        #"lad": {"name": "Ladino", "nativeName": "Judeo-español"},
+        "pl": {"name": "Polish", "nativeName": "Polskie", "title": "Teksty żydowskie w języku polskim", "desc": "Największa bezpłatna biblioteka tekstów żydowskich dostępna do czytania online w języku hebrajskim, polskim i angielskim, w tym Tora, Tanach, Talmud, Miszna, Midrasz, komentarze i wiele innych."},
+        "pt": {"name": "Portuguese", "nativeName": "Português", "title": "Textos judaicos em portugues", "desc": "A maior biblioteca gratuita de textos judaicos disponível para leitura online em hebraico, português e inglês, incluindo Torá, Tanakh, Talmud, Mishnah, Midrash, comentários e muito mais."},
+        "ru": {"name": "Russian", "nativeName": "Pусский", "title": "Еврейские тексты на русском языке", "desc": "Самая большая бесплатная библиотека еврейских текстов, доступных для чтения онлайн на иврите, русском и английском языках, включая Тору, Танах, Талмуд, Мишну, Мидраш, комментарии и многое другое."},
+        "yi": {"name": "Yiddish", "nativeName": "יידיש", "title": "יידישע טעקסטן אויף יידיש", "desc": "די גרעסטע פרייע ביבליאָטעק פון יידישע טעקסטן צו לייענען אָנליין אין לשון קדוש ,יידיש און ענגליש. תורה, תנך, תלמוד, משנה, מדרש, פירושים און אזוי אנדערע."},
+    }
+    if slug not in title_dictionary:
+        raise Http404
+    props = base_props(request)
+    props.update({
+        "initialMenu":              "translationsPage",
+        "initialTranslationsSlug":   slug,
+    })
+    return render_template(request, 'base.html', props, {
+        "title": title_dictionary[slug]["title"] if "title" in title_dictionary[slug] else "Jewish Texts in " + title_dictionary[slug]["name"] if slug in title_dictionary else "Jewish Texts in" + " " + slug,
+        "desc": title_dictionary[slug]["desc"] if "desc" in title_dictionary[slug] else "The largest free library of Jewish texts available to read online in Hebrew, " + title_dictionary[slug]["name"] +", and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more.",
+        "noindex": False
+    })
+
+
+@sanitize_get_params
 def menu_page(request, props=None, page="", title="", desc=""):
     """
     View for any App page that can described with the `menuOpen` param in React
@@ -4142,6 +4178,98 @@ def random_text_api(request):
     return response
 
 
+def translations_api(request, lang=None):
+    """
+    When a lang is provided, returns a dictionary of texts translated into that language,
+    organized by category & secondary category.
+    When a language is not provided, returns a list of distinct languages for which
+    translations exist in the database.
+    """
+    bundle_commentaries_langs = ["en", "he"]
+    if not lang:
+        res = db.texts.distinct("actualLanguage")
+        return jsonResponse(res)
+    # import time
+    # t0 = time.time()
+    aggregation_query = [{"$match": {"actualLanguage":lang}},
+    {"$lookup": {
+            "from": "index",
+            "localField": "title",
+            "foreignField": "title",
+            "as": "index"
+        }}]
+    if lang == "en":
+        aggregation_query.append({"$lookup": {
+            "from": "vstate",
+            "localField": "title",
+            "foreignField": "title",
+            "as": "vstate"
+        }})
+        aggregation_query.append({"$match": {"vstate.flags.enComplete": True}})
+        aggregation_query.append({"$project": {"vstate": 0}})
+    aggregation_query.append({"$project": {"index.dependence": 1, "index.order": 1, "index.collective_title": 1, "index.title": 1, "index.schema": 1, "index.order": 1,
+    "versionTitle": 1, "language": 1, "title": 1, "index.categories": 1, "priority": 1}})
+    aggregation_query.append({"$sort": {"index.order.0": 1, "index.order.1": 1, "priority": -1}})
+    texts = db.texts.aggregate(aggregation_query)
+    # t1 = time.time()
+    # print("aggregation: ")
+    # print(f"{t1 - t0}")
+    res = {}
+    titles = []
+    for myIndex in texts:
+        if myIndex["title"] not in titles:
+            if len(myIndex["index"]) > 0:
+                myIndexInfo = myIndex["index"][0]
+                # vstate = myIndex["vstate"][0]
+                categories = myIndexInfo["categories"]
+                if "Reference" in categories:
+                    continue # don't list references (also they don't fit assumptions)
+                titles.append(myIndex["title"])
+                depth = 2
+                ind = 0
+                cur = res
+                while len(categories) < depth:
+                    categories = categories + ["Uncategorized"]
+                while ind < depth and ind < len(categories):
+                    if categories[ind] not in cur:
+                        cur[categories[ind]] = [] if ind == depth - 1 else {}
+                    cur = cur[categories[ind]]
+                    ind += 1
+                toAdd = {}
+                if "dependence" in myIndexInfo and "collective_title" in myIndexInfo and myIndexInfo["dependence"] == "Commentary" and lang in bundle_commentaries_langs:
+                    if len(list(filter(lambda x: True if x["title"] == myIndexInfo["collective_title"] else False, cur))) > 0:
+                        continue
+                    else:
+                        try:
+                            toAdd["title"] = myIndexInfo["collective_title"]
+                            categories_to_add = categories[:categories.index(myIndexInfo["collective_title"])+1]
+                            toAdd["url"] = "/texts/" + "/".join(categories_to_add)
+                        except:
+                            print("failed to find author page for " + myIndexInfo["collective_title"] + ": " + myIndexInfo["title"])
+                            # these are also not showing up in TOC
+                            # TODO: fix assumptions?
+                            continue
+                else:
+                    urlTitle = myIndexInfo["title"]
+                    curNode = myIndexInfo["schema"]
+                    while "nodes" in curNode:
+                        try:
+                            urlTitle = urlTitle + "%2C_" + myIndexInfo["schema"]["nodes"][0]["key"]
+                            curNode = curNode["nodes"][0]
+                        except:
+                            continue
+                    toAdd["title"] = myIndexInfo["title"]
+                    toAdd["url"] = f'/{urlTitle}.1?{"ven=" + myIndex["versionTitle"] if myIndex["language"] == "en" else "vhe=" + myIndex["versionTitle"]}'
+                if "order" in myIndex["index"][0]:
+                        toAdd["order"] = myIndex["index"][0]["order"]
+                toAdd["versionTitle"] = myIndex["versionTitle"]
+                toAdd["rtlLanguage"] = myIndex["language"]
+                cur.append(toAdd)
+    # t2 = time.time()
+    # print("create dictionary")
+    # print(f"{t2 - t1}")
+    return jsonResponse(res)
+    
 def random_by_topic_api(request):
     """
     Returns Texts API data for a random text taken from popular topic tags
