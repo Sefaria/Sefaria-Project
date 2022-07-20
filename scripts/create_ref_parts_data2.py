@@ -742,7 +742,8 @@ class SpecificConverterManager:
         def get_other_fields(node, depth, isibling, num_siblings, is_alt_node):
             if is_alt_node:
                 return {"numeric_equivalent": min(isibling + 1, 30)}
-        
+            else:
+                return {"referenceableSections": [True, False]}
         def get_commentary_match_template_suffixes(base_index):
             title_slug = RTM.get_term_by_primary_title('shas', base_index.title).slug
             return [MatchTemplate([title_slug])]
