@@ -1458,7 +1458,7 @@ class RefResolver:
                 next_merged = False
                 continue
             next_match = resolved_refs[imatch+1]
-            if match.ref.index.title != next_match.ref.index.title or match.ref == next_match.ref:
+            if match.ref.index.title != next_match.ref.index.title:
                 # optimization, the easiest cases to check for
                 merged_resolved_refs += [match]
             elif match.ref.contains(next_match.ref):
