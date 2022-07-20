@@ -463,7 +463,7 @@ class LinkerCommentaryConverter:
                 return match_templates
 
         # otherwise, use default implementation
-        if is_alt_node or depth > 0: return
+        if is_alt_node or not node.is_root(): return
         try: comm_term = RTM.get_term_by_old_term_name(node.index.collective_title)
         except: return
         if comm_term is None: return
@@ -509,18 +509,23 @@ class DiburHamatchilAdder:
 
     def add_dibur_hamatchil_to_index(self, index):
         def add_dh_for_seg(segment_text, en_tref, he_tref, version):
-            nonlocal seg_perek_mapping, self
+            nonlocal perek_refs, self
             try:
                 oref = Ref(en_tref)
             except:
                 print("not a valid ref", en_tref)
                 return
-            perek_ref = seg_perek_mapping.get(en_tref)
             dh = self.get_dh(segment_text, index.nodes.diburHamatchilRegexes, oref)
             if dh is None: return
             container_refs = [oref.top_section_ref().normal(), index.title]
+            perek_ref = None
+            for temp_perek_ref in perek_refs:
+                assert isinstance(temp_perek_ref, Ref)
+                if temp_perek_ref.contains(oref):
+                    perek_ref = temp_perek_ref
+                    break
             if perek_ref:
-                container_refs += [perek_ref]
+                container_refs += [perek_ref.normal()]
             self._dhs_to_insert += [
                 {
                     "dibur_hamatchil": dh,
@@ -530,13 +535,16 @@ class DiburHamatchilAdder:
             ]
 
         index = Index().load({"title": index.title})  # reload index to make sure perek nodes are correct
-        seg_perek_mapping = {}
+        perek_refs = []
         for perek_node in index.get_alt_struct_nodes():
-            perek_ref = Ref(perek_node.wholeRef)
-            for seg_ref in perek_ref.all_segment_refs():
-                seg_perek_mapping[seg_ref.normal()] = perek_ref.normal()
+            try:
+                perek_ref = Ref(perek_node.wholeRef)
+            except:
+                # print("perek ref failed", perek_node.wholeRef)
+                continue
+            perek_refs += [perek_ref]
 
-        primary_version = index.versionSet().array()[0]
+        primary_version = VersionSet({"title": index.title, "language": "he"}).array()[0]
         primary_version.walk_thru_contents(add_dh_for_seg)
 
     def add_all_dibur_hamatchils(self):
@@ -613,9 +621,10 @@ class LinkerIndexConverter:
 
     def convert(self):
         if self.get_alt_structs:
-            alt_struct_dict = self.get_alt_structs
-            for name, root in alt_struct_dict.items():
-                self.index.set_alt_structure(name, root)
+            alt_struct_dict = self.get_alt_structs(self.index)
+            if alt_struct_dict:
+                for name, root in alt_struct_dict.items():
+                    self.index.set_alt_structure(name, root)
         self._traverse_nodes(self.index.nodes, self.node_visitor, is_alt_node=False)
         alt_nodes = self.index.get_alt_struct_nodes()
         for inode, node in enumerate(alt_nodes):
@@ -753,7 +762,44 @@ class SpecificConverterManager:
                     "referenceableSections": referenceable_sections,
                     "diburHamatchilRegexes": dh_regexes,
                 }
-        converter = LinkerCategoryConverter("Bavli", is_corpus=True, get_match_templates=get_match_templates, get_other_fields=get_other_fields, get_commentary_match_template_suffixes=get_commentary_match_template_suffixes, get_commentary_other_fields=get_commentary_other_fields)
+
+        def get_commentary_alt_structs(base_index, index):
+            collective_title = getattr(index, 'collective_title', None)
+            if collective_title not in {'Rashi', 'Tosafot'}:
+                # TODO generalize to work with other commenatries
+                # TODO main issue is figuring out the `wholeRef`
+                return
+            collective_slug = RTM.get_term_by_primary_title('base', collective_title).slug
+            alt_struct = base_index.get_alt_structures()['Chapters'].copy()
+            base_templates = []
+            for perek_node in alt_struct.children:
+                perek_node.wholeRef = f"{collective_title} on {perek_node.wholeRef}"
+                perek_node.isSegmentLevelDiburHamatchil = True
+                base_templates += [perek_node.match_templates[:]]
+                alone_templates = []
+                combined_templates = []
+                for template in perek_node.match_templates:
+                    temp_template = template.copy()
+                    temp_template['term_slugs'] = [collective_slug] + template['term_slugs']
+                    temp_template['scope'] = 'alone'
+                    alone_templates += [temp_template]
+                for template in perek_node.match_templates:
+                    # remove 'any' scope which doesn't apply to commentary perakim
+                    temp_template = template.copy()
+                    try:
+                        del temp_template['scope']
+                    except KeyError:
+                        pass
+                    combined_templates += [temp_template]
+                perek_node.match_templates = alone_templates + combined_templates
+            return {
+                "Chapters": alt_struct,
+            }
+        converter = LinkerCategoryConverter("Bavli", is_corpus=True, get_match_templates=get_match_templates,
+                                            get_other_fields=get_other_fields,
+                                            get_commentary_match_template_suffixes=get_commentary_match_template_suffixes,
+                                            get_commentary_other_fields=get_commentary_other_fields,
+                                            get_commentary_alt_structs=get_commentary_alt_structs)
         converter.convert()
 
     def convert_rest_of_shas(self):
@@ -776,6 +822,8 @@ class SpecificConverterManager:
 
             if is_alt_node: return []
             cat = node.index.categories[0]
+            if cat == "Talmud":
+                cat = node.index.categories[1]
             base_term = RTM.get_term_by_primary_title('base', cat)
             tractate_slug = RTM.get_term_by_primary_title('base', 'Tractate').slug
             generic_term = get_generic_term(node)
@@ -790,12 +838,15 @@ class SpecificConverterManager:
         def get_other_fields(node, depth, isibling, num_siblings, is_alt_node):
             if is_alt_node: return
             cat = node.index.categories[0]
+            if cat == "Talmud":
+                cat = node.index.categories[1]
             base_term = RTM.get_term_by_primary_title('base', cat)
             generic_term = get_generic_term(node)
             if cat == "Yerushalmi":
+                halakha_slug = RTM.get_term_by_primary_title('base', 'Halakha').slug
                 return {
                     "addressTypes": ["Perek"] + node.addressTypes[1:],
-                    "ref_resolver_context_swaps": [base_term.slug, generic_term.slug],
+                    "ref_resolver_context_swaps": {halakha_slug: [base_term.slug, generic_term.slug]},
                     "referenceableSections": [True, True, False]
                 }
 
