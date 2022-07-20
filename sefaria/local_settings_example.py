@@ -49,6 +49,17 @@ ADMINS = (
 )
 PINNED_IPCOUNTRY = "IL" #change if you want parashat hashavua to be diaspora.
 
+REPLICA_SET_NAME = None # If the below is a list, this should be set to something other than None. 
+# This can be either a string of one mongo host server or a list of `host:port` string pairs. So either e.g "localhost" of ["localhost:27017","localhost2:27017" ]
+MONGO_HOST = "localhost"
+MONGO_PORT = 27017 # Not used if the above is a list
+# Name of the MongoDB database to use.
+SEFARIA_DB = 'sefaria' # Change if you named your db something else
+SEFARIA_DB_USER = '' # Leave user and password blank if not using Mongo Auth
+SEFARIA_DB_PASSWORD = ''
+APSCHEDULER_NAME = "apscheduler"
+
+
 """ These are some examples of possible caches. more here: https://docs.djangoproject.com/en/1.11/topics/cache/"""
 CACHES = {
     "shared": {
@@ -143,14 +154,6 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 #    "MANDRILL_API_KEY": "your api key",
 # }
 
-MONGO_HOST = "localhost"
-MONGO_PORT = 27017
-# Name of the MongoDB database to use.
-SEFARIA_DB = 'sefaria'
-# Leave user and password blank if not using Mongo Auth
-SEFARIA_DB_USER = ''
-SEFARIA_DB_PASSWORD = ''
-APSCHEDULER_NAME = "apscheduler"
 
 # ElasticSearch server
 SEARCH_ADMIN = "http://localhost:9200"

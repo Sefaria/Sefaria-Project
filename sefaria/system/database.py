@@ -3,25 +3,40 @@ database.py -- connection to MongoDB
 The system attribute _called_from_test is set in the py.test conftest.py file
 """
 import sys
-from sefaria.settings import *
 import pymongo
+import urllib.parse
 from pymongo.errors import OperationFailure
+
+from sefaria.settings import *
 
 if hasattr(sys, '_doc_build'):
     db = ""
 else:
     # TEST_DB = SEFARIA_DB + "_test"
-    TEST_DB = SEFARIA_DB 
-    client = pymongo.MongoClient(MONGO_HOST, MONGO_PORT)
+    TEST_DB = SEFARIA_DB
 
+    if isinstance(MONGO_HOST, list): # if we have a list of mongo servers, we need to connect with URI notation and also escape user/pass
+        replicaSetName = '?replicaSet={}'.format(REPLICA_SET_NAME) if REPLICA_SET_NAME else '' # Existing replica sets need to be names during connection
+        mongoHostsString = ",".join(MONGO_HOST) # We join the host:port list as a comma separated string
+        if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
+            username = urllib.parse.quote_plus(SEFARIA_DB_USER)
+            password = urllib.parse.quote_plus(SEFARIA_DB_PASSWORD)
+            connection_uri = 'mongodb://{0}:{1}@{2}/{3}'.format(username, password, mongoHostsString, replicaSetName)
+        else:
+            connection_uri = 'mongodb://{0}/{1}'.format(mongoHostsString, replicaSetName)
+        # Now connect to the mongo server
+        client = pymongo.MongoClient(connection_uri)
+    else:
+        if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
+            client = pymongo.MongoClient(MONGO_HOST, MONGO_PORT, username=SEFARIA_DB_USER, password=SEFARIA_DB_PASSWORD, replicaSet=REPLICA_SET_NAME)
+        else:
+            client = pymongo.MongoClient(MONGO_HOST, MONGO_PORT, replicaSet=REPLICA_SET_NAME)
+
+    # Now set the db variable to point to the Sefaria database in the server
     if not hasattr(sys, '_called_from_test'):
         db = client[SEFARIA_DB]
-        if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
-            db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
     else:
         db = client[TEST_DB] 
-        if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
-            db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
 
 
 def get_test_db():
