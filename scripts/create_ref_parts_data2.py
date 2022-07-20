@@ -1216,7 +1216,7 @@ class SpecificConverterManager:
                 elif node.get_primary_title('en') == 'Tanna Debei Eliyahu Rabbah':
                     new = ['תנא דבי אליהו', 'סדר אליהו', 'סדר אליהו רבה', 'סדר אליהו רבא']
                 elif node.get_primary_title('en') == 'Tanna debei Eliyahu Zuta':
-                    new = ['סדר אליהו זוטא', 'תנדב"א זוטא']
+                    new = ['סדר אליהו זוטא', 'תנדב"א זוטא' , 'תנד"א זוטא']
                 title_slug = RTM.create_term_from_titled_obj(node, context="base", ref_part_role='structural', new_alt_titles=new).slug
                 return [
                     MatchTemplate([title_slug])
