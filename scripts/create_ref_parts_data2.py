@@ -1008,7 +1008,7 @@ class SpecificConverterManager:
 
     def convert_shulchan_arukh(self):
         def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
-            if is_alt_node: return []
+            if is_alt_node or node.is_default(): return
             title = node.get_primary_title('en')
             sa_slug = RTM.get_term_by_primary_title('base', 'Shulchan Arukh').slug
             term_key = title.replace("Shulchan Arukh, ", "")
@@ -1025,7 +1025,7 @@ class SpecificConverterManager:
         def get_other_fields(node, depth, isibling, num_siblings, is_alt_node):
 
             if is_alt_node: return
-            if depth == 2 and node.is_default():
+            if depth == 1 and node.is_default():
                 # for some reason this one was missed in a previous pass
                 new_addr_types = node.addressTypes[:]
                 new_addr_types[1] = "Seif"
