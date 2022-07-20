@@ -802,8 +802,9 @@ class MatchTemplateTrie:
         Does trie have continuations for `key`?
         :param key: key to look up in trie. may need to be split into multiple keys to find a continuation.
         :param key_is_id: True if key is ID that cannot be split into smaller keys (e.g. slug).
+        TODO currently not allowing partial matches here but theoretically possible
         """
-        conts, _ = self.get_continuations(key, default=None, key_is_id=key_is_id)
+        conts, _ = self.get_continuations(key, default=None, key_is_id=key_is_id, allow_partial=False)
         return conts is not None
 
     @staticmethod
@@ -829,14 +830,14 @@ class MatchTemplateTrie:
             return tries[0]
         return reduce(MatchTemplateTrie._merge_two_tries, tries)
 
-    def get_continuations(self, key: str, default=None, key_is_id=False):
-        continuations, partial_key_end = self._get_continuations_recursive(key, key_is_id=key_is_id)
+    def get_continuations(self, key: str, default=None, key_is_id=False, allow_partial=False):
+        continuations, partial_key_end = self._get_continuations_recursive(key, key_is_id=key_is_id, allow_partial=allow_partial)
         if len(continuations) == 0:
             return default, None
         merged = self._merge_n_tries(*continuations)
         return MatchTemplateTrie(self.lang, sub_trie=merged, scope=self.scope), partial_key_end
 
-    def _get_continuations_recursive(self, key: str, prev_sub_tries=None, key_is_id=False, has_partial_matches=False):
+    def _get_continuations_recursive(self, key: str, prev_sub_tries=None, key_is_id=False, has_partial_matches=False, allow_partial=False):
         from sefaria.utils.hebrew import get_prefixless_inds
 
         prev_sub_tries = prev_sub_tries or self._trie
@@ -861,9 +862,9 @@ class MatchTemplateTrie:
                 next_sub_tries += temp_sub_tries
                 partial_key_end = partial_key_end or temp_partial_key_end
 
-        # if has_partial_matches and len(next_sub_tries) == 0:
-        #     # partial match without any complete matches
-        #     return prev_sub_tries, key
+        if has_partial_matches and len(next_sub_tries) == 0 and allow_partial:
+            # partial match without any complete matches
+            return prev_sub_tries, key
         return next_sub_tries, partial_key_end
 
     def __contains__(self, key):
@@ -1291,7 +1292,7 @@ class RefResolver:
             if part.type != RefPartType.NAMED: continue
 
             temp_prev_ref_parts = prev_ref_parts + [part]
-            temp_title_trie, partial_key_end = title_trie.get_continuations(part.key())
+            temp_title_trie, partial_key_end = title_trie.get_continuations(part.key(), allow_partial=True)
             if temp_title_trie is None: continue
             if partial_key_end is not None:
                 temp_raw_ref = raw_ref.split_part(part, partial_key_end)
