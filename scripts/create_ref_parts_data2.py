@@ -997,7 +997,7 @@ class SpecificConverterManager:
                 "Yoreh Deah": "Yoreh De'ah"
             }
             title = node.get_primary_title('en')
-            if depth == 1:
+            if depth == 0:
                 title_slug = RTM.create_term_from_titled_obj(node, 'structural', 'tur').slug
             else:
                 title = sa_title_swaps.get(title, title)
@@ -1217,6 +1217,7 @@ if __name__ == '__main__':
     converter_manager.convert_sifra()
     converter_manager.convert_midrash_rabbah()
     converter_manager.convert_mishneh_torah()
+    converter_manager.convert_tur()
     converter_manager.convert_shulchan_arukh()
 
     converter_manager.convert_zohar()
