@@ -213,7 +213,6 @@ crrd = create_raw_ref_data
     [crrd(None, 'he', 'זוה"ק ח"א דף פג:', [slice(0, 3), slice(5,6), slice(7,9)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ['Zohar 1:83b']],
     [crrd(None, 'he', 'זוהר שמות י.', [0, 1, slice(2, 4)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ['Zohar 2:10a']],
     [crrd(None, 'he', 'זהר חדש בראשית', [slice(0, 2), 2], [RPT.NAMED, RPT.NAMED]), ['Zohar Chadash, Bereshit']],
-<<<<<<< HEAD
     [crrd(None, 'he', 'מסכת סופרים ב, ג', [0, 1, 2, 4], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ['Tractate Soferim 2:3']],
     [crrd(None, 'he', 'אדר"נ ב, ג', [slice(0, 3), 3, 5], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Avot D'Rabbi Natan 2:3"]],
     [crrd(None, 'he', 'פרק השלום ג', [slice(0, 2), 2], [RPT.NAMED, RPT.NUMBERED]), ["Tractate Derekh Eretz Zuta, Section on Peace 3"]],
@@ -226,9 +225,6 @@ crrd = create_raw_ref_data
     [crrd(None, 'he', 'מכילתא שמות כא ג', [slice(0, 2), 2, 3], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Mekhilta d'Rabbi Yishmael 21:3"]],
     [crrd(None, 'he', 'מכילתא שמות כא ג', [0, 1, 2, 3], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Mekhilta d'Rabbi Yishmael 21:3"]],
     [crrd(None, 'he', 'מכילתא כא ג', [0, 1, 2], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Mekhilta d'Rabbi Yishmael 21:3"]],
-
-    [crrd(None, 'he', 'זהר ח"א דף כג', [0, 3, 5], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ['Zohar 1:23']],
-    [crrd(None, 'he', 'ספר החינוך, לך לך, ב', [slice(0, 2), slice(3, 5), 6], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ['Sefer HaChinukh 2']],
     # [crrd(None, 'he', 'בבראשית רבה בראשית ט', [])]
 ])
 def test_resolve_raw_ref(resolver_data, expected_trefs):

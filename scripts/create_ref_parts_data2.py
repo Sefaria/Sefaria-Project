@@ -1208,6 +1208,43 @@ class SpecificConverterManager:
                                             get_other_fields=get_other_fields)
         converter.convert()
 
+    def convert_pdre_and_tde(self):
+        def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
+            if node.is_root():
+                if node.get_primary_title('en') == 'Pirkei DeRabbi Eliezer':
+                    new = ['פדר"א', "פרקי ר' אליעזר הגדול", "פרקי ר' אליעזר", "ברייתא דר' אליעזר", 'ברייתא דרבי אליעזר', 'ברייתת רבי אליעזר', "ברייתת ר' אליעזר"]
+                elif node.get_primary_title('en') == 'Tanna Debei Eliyahu Rabbah':
+                    new = ['תנא דבי אליהו', 'סדר אליהו', 'סדר אליהו רבה', 'סדר אליהו רבא']
+                elif node.get_primary_title('en') == 'Tanna debei Eliyahu Zuta':
+                    new = ['סדר אליהו זוטא', 'תנדב"א זוטא']
+                title_slug = RTM.create_term_from_titled_obj(node, context="base", ref_part_role='structural', new_alt_titles=new).slug
+                return [
+                    MatchTemplate([title_slug])
+                ]
+
+        def get_other_fields(node, depth, isibling, num_siblings, is_alt_node):
+            if node.is_default():
+                return {
+                    "referenceableSections": [True, False],
+                    'addressTypes': ['Perek', 'Integer']
+                }
+            if node.is_root() and node.get_primary_title != 'Tanna debei Eliyahu Zuta':
+                return {
+                    "referenceableSections": [True, False],
+                }
+
+        converter = LinkerCategoryConverter("Pirkei DeRabbi Eliezer", is_index=True, get_match_templates=get_match_templates,
+                                            get_other_fields=get_other_fields)
+        converter.convert()
+        converter = LinkerCategoryConverter("Tanna Debei Eliyahu Rabbah", is_index=True, get_match_templates=get_match_templates,
+                                            get_other_fields=get_other_fields)
+        converter.convert()
+        converter = LinkerCategoryConverter("Tanna debei Eliyahu Zuta", is_index=True, get_match_templates=get_match_templates,
+                                            get_other_fields=get_other_fields)
+        converter.convert()
+
+
+
 
 if __name__ == '__main__':
     converter_manager = SpecificConverterManager()
@@ -1225,6 +1262,7 @@ if __name__ == '__main__':
     converter_manager.convert_sefer_hachinukh()
     converter_manager.convert_mechilta_dry()
     converter_manager.dibur_hamatchil_adder.add_all_dibur_hamatchils()
+    converter_manager.convert_pdre_and_tde()
 
 """
 Still TODO
