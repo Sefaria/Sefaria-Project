@@ -226,6 +226,12 @@ crrd = create_raw_ref_data
     [crrd(None, 'he', 'מכילתא שמות כא ג', [0, 1, 2, 3], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Mekhilta d'Rabbi Yishmael 21:3"]],
     [crrd(None, 'he', 'מכילתא כא ג', [0, 1, 2], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Mekhilta d'Rabbi Yishmael 21:3"]],
     # [crrd(None, 'he', 'בבראשית רבה בראשית ט', [])]
+
+    #yishai's tests - hpoing it will prevent git conflicts
+    [crrd(None, 'he', 'פדר"א פרק כג', [slice(0,3), 3, 4], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ["Pirkei DeRabbi Eliezer 23"]],
+    [crrd(None, 'he', 'סדר אליהו פ"י', [slice(0, 2), 2, 4], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ["Tanna Debei Eliyahu Rabbah 10"]],
+    [crrd(None, 'he', 'תנד"א זוטא יא', [slice(0, 4), 4], [RPT.NAMED, RPT.NUMBERED]), ["Tanna Debei Eliyahu Zuta 11"]],
+
 ])
 def test_resolve_raw_ref(resolver_data, expected_trefs):
     ref_resolver.reset_ibid_history()  # reset from previous test runs

@@ -227,7 +227,7 @@ class ReusableTermManager:
         self.create_term(context="base", en='Rabbah', he='רבה', alt_en=['Rabba', 'Rabah', 'Rab.', 'R.', 'Rab .', 'R .', 'rabba', 'r.', 'r .', 'rabbati'], alt_he=['רבא'], ref_part_role='structural')
         self.create_term(context="base", en='Ran', he='ר"ן', ref_part_role='structural')
         self.create_term(context="base", en='Perek', he='פרק', alt_en=["Pereq", 'Chapter'], alt_he=['ס"פ', 'ר"פ'], ref_part_role='alt_title')
-        self.create_term(context="base", en='Parasha', he='פרשה', alt_he=["פרשת"], alt_en=['Parashah', 'Parašah', 'Parsha', 'Paraša', 'Paršetah', 'Paršeta', 'Parsheta', 'Parshetah', 'Parashat', 'Parshat'], ref_part_role='alt_title')
+        self.create_term(context="base", en='Parasha', he='פרשה', alt_he=["פרשת"], alt_en=['Parshah', 'Parashah', 'Parašah', 'Parsha', 'Paraša', 'Paršetah', 'Paršeta', 'Parsheta', 'Parshetah', 'Parashat', 'Parshat'], ref_part_role='alt_title')
         self.create_term(context="base", en='Sefer', he='ספר', ref_part_role='alt_title')
         self.create_term(context="base", en='Halakha', he='הלכה', alt_en=['Halakhah', 'Halacha', 'Halachah', 'Halakhot'], ref_part_role='context_swap')
         self.create_term(context="base", en='Mishneh Torah', he='משנה תורה', alt_en=["Mishnah Torah"], ref_part_role='structural')
@@ -235,7 +235,6 @@ class ReusableTermManager:
         self.create_term(context="base", en='Shulchan Arukh', he='שולחן ערוך', alt_en=['shulchan aruch', 'Shulchan Aruch', 'Shulḥan Arukh', 'Shulhan Arukh', 'S.A.', 'SA', 'Shulḥan Arukh'], alt_he=['שו"ע', 'שלחן ערוך'], ref_part_role='structural')
         self.create_term(context="base", en='Hilchot', he='הלכות', alt_en=['Laws of', 'Laws', 'Hilkhot', 'Hilhot'], alt_he=["הל'"], ref_part_role='alt_title')
         self.create_term(context='base', en='Zohar', he='זהר', alt_he=['זוהר', 'זוה"ק', 'זה"ק'], ref_part_role='structural')
-        self.create_term_from_titled_obj(Term().load({"name": "Parasha"}), context="base", ref_part_role='alt_title')
         for old_term in TermSet({"scheme": {"$in": ["toc_categories", "commentary_works"]}}):
             existing_term = self.get_term_by_primary_title('base', old_term.get_primary_title('en'))
             if existing_term is None:
@@ -743,7 +742,8 @@ class SpecificConverterManager:
         def get_other_fields(node, depth, isibling, num_siblings, is_alt_node):
             if is_alt_node:
                 return {"numeric_equivalent": min(isibling + 1, 30)}
-        
+            else:
+                return {"referenceableSections": [True, False]}
         def get_commentary_match_template_suffixes(base_index):
             title_slug = RTM.get_term_by_primary_title('shas', base_index.title).slug
             return [MatchTemplate([title_slug])]
@@ -997,7 +997,7 @@ class SpecificConverterManager:
                 "Yoreh Deah": "Yoreh De'ah"
             }
             title = node.get_primary_title('en')
-            if depth == 1:
+            if depth == 0:
                 title_slug = RTM.create_term_from_titled_obj(node, 'structural', 'tur').slug
             else:
                 title = sa_title_swaps.get(title, title)
@@ -1008,7 +1008,7 @@ class SpecificConverterManager:
 
     def convert_shulchan_arukh(self):
         def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
-            if is_alt_node: return []
+            if is_alt_node or node.is_default(): return
             title = node.get_primary_title('en')
             sa_slug = RTM.get_term_by_primary_title('base', 'Shulchan Arukh').slug
             term_key = title.replace("Shulchan Arukh, ", "")
@@ -1025,7 +1025,7 @@ class SpecificConverterManager:
         def get_other_fields(node, depth, isibling, num_siblings, is_alt_node):
 
             if is_alt_node: return
-            if depth == 2 and node.is_default():
+            if depth == 1 and node.is_default():
                 # for some reason this one was missed in a previous pass
                 new_addr_types = node.addressTypes[:]
                 new_addr_types[1] = "Seif"
@@ -1254,6 +1254,7 @@ if __name__ == '__main__':
     converter_manager.convert_sifra()
     converter_manager.convert_midrash_rabbah()
     converter_manager.convert_mishneh_torah()
+    converter_manager.convert_tur()
     converter_manager.convert_shulchan_arukh()
 
     converter_manager.convert_zohar()
