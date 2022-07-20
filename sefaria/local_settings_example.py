@@ -49,7 +49,7 @@ ADMINS = (
 )
 PINNED_IPCOUNTRY = "IL" #change if you want parashat hashavua to be diaspora.
 
-REPLICA_SET_NAME = None # If the below is a list, this should be set to something other than None. 
+MONGO_REPLICASET_NAME = None # If the below is a list, this should be set to something other than None. 
 # This can be either a string of one mongo host server or a list of `host:port` string pairs. So either e.g "localhost" of ["localhost:27017","localhost2:27017" ]
 MONGO_HOST = "localhost"
 MONGO_PORT = 27017 # Not used if the above is a list

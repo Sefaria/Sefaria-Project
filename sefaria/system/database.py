@@ -16,7 +16,7 @@ else:
     TEST_DB = SEFARIA_DB
 
     if isinstance(MONGO_HOST, list): # if we have a list of mongo servers, we need to connect with URI notation and also escape user/pass
-        replicaSetName = '?replicaSet={}'.format(REPLICA_SET_NAME) if REPLICA_SET_NAME else '' # Existing replica sets need to be names during connection
+        replicaSetName = '?replicaSet={}'.format(MONGO_REPLICASET_NAME) if MONGO_REPLICASET_NAME else '' # Existing replica sets need to be names during connection
         mongoHostsString = ",".join(MONGO_HOST) # We join the host:port list as a comma separated string
         if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
             username = urllib.parse.quote_plus(SEFARIA_DB_USER)
@@ -28,9 +28,9 @@ else:
         client = pymongo.MongoClient(connection_uri)
     else:
         if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
-            client = pymongo.MongoClient(MONGO_HOST, MONGO_PORT, username=SEFARIA_DB_USER, password=SEFARIA_DB_PASSWORD, replicaSet=REPLICA_SET_NAME)
+            client = pymongo.MongoClient(MONGO_HOST, MONGO_PORT, username=SEFARIA_DB_USER, password=SEFARIA_DB_PASSWORD, replicaSet=MONGO_REPLICASET_NAME)
         else:
-            client = pymongo.MongoClient(MONGO_HOST, MONGO_PORT, replicaSet=REPLICA_SET_NAME)
+            client = pymongo.MongoClient(MONGO_HOST, MONGO_PORT, replicaSet=MONGO_REPLICASET_NAME)
 
     # Now set the db variable to point to the Sefaria database in the server
     if not hasattr(sys, '_called_from_test'):
