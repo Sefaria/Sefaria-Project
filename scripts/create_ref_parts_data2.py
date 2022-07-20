@@ -1074,10 +1074,10 @@ class SpecificConverterManager:
             alts = {
                     "Avot D'Rabbi Natan": ['Avot DeRabbi Natan', 'Avot of Rabbi Natan', 'Avot DeRabbi Nathan', 'Avot of Rabbi Nathan',
                                            "Avot D'Rabbi Nathan", 'AdRN', "אבות דר' נתן", 'אדר"נ'],
-                    'Tractate Derekh Eretz Zutta': ['ד"א זוטא'],
+                    'Tractate Derekh Eretz Zuta': ['ד"א זוטא'],
                     'Tractate Derekh Eretz Rabbah': ['DER', 'ד"א רבה'],
-                    'Tzitzit': ['Ṣiṣiṯ', 'Tzitzis'],
-                    "Semachot": ['Avel Rabbati', 'Semachos']
+                    'Tractate Tzitzit': ['Ṣiṣiṯ', 'Tzitzis'],
+                    "Tractate Semachot": ['Avel Rabbati', 'Semachos']
                     }
             title = node.get_primary_title('en')
             if not title:
