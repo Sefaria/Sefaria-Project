@@ -56,7 +56,7 @@ const TranslationsPage = ({translationsSlug}) => {
                     <details open={translationsSlug !== "en"}><summary><InterfaceText>Uncategorized</InterfaceText></summary>
                     <ul>
                       {translations[corpus]["Uncategorized"].sort(sortFx).map((y, i) => {
-                        return (<li key={i+y.title} className="bullet languageItem"><a href={`/${y.title}.1?${y.rtlLanguage === "en" ? "ven=" + y.versionTitle : "vhe=" + y.versionTitle}`}>{y.title}</a></li>)
+                        return (<li key={i+y.title} className="bullet languageItem"><a href={y.url}>{y.title}</a></li>)
                       })}
                     </ul>
                     </details>
