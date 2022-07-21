@@ -37,7 +37,9 @@ const TranslationsPage = ({translationsSlug}) => {
                             </div>
                           )}
                  
-                  ><> {translations ?  Object.keys(translations).map(corpus => {
+                  ><> {translations ?  Sefaria.toc.filter(w => Object.keys(translations).includes(w.category))
+                  .map(w => w.category)
+                  .map(corpus => {
                 return (<div key={corpus} className="translationsPage">
                   <h2><InterfaceText>{corpus}</InterfaceText></h2>
                   {Sefaria.tocObjectByCategories([corpus]).contents.filter(x => Object.keys(translations[corpus]).includes(x.category)).map(x => {
