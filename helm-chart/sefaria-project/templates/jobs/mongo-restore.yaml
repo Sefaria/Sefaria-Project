@@ -1,9 +1,6 @@
 # NB: This assumes an already-functioning mongo instance. 
-# Parameters:
-# MONGO_DUMP_PATH: URI of database dump
-# MONGO_HOST: Mongo hostname
-# SANDBOX_NAME: The name of the table created by this job
-# ENVIRONMENT: Deployment environment {prod, preprod, stage}
+# Connection to Mongo should exist in .Values.secrets.mongo.ref'd secret
+#
 ---
 {{- if and (eq .Values.sandbox "true") .Values.restore.enabled }}
 apiVersion: batch/v1
@@ -49,16 +46,13 @@ spec:
               mountPath: /storage
             - name: script
               mountPath: /script
-          env:
-            - name: MONGO_HOST
-              value: {{ .Values.localSettings.MONGO_HOST | quote }}
           envFrom:
-             - secretRef:
-                 name: {{ .Values.secrets.localSettings.ref }}
-                 optional: true
-             - secretRef:
-                 name: local-settings-secrets-{{ .Values.deployEnv }}
-                 optional: true
+          - secretRef:
+              name: {{ .Values.secrets.localSettings.ref }}
+              optional: true
+          - secretRef:
+              name: local-settings-secrets-{{ .Values.deployEnv }}
+              optional: true
           command: ["/script/restore-mongo.sh"]
       restartPolicy: Never
   ttlSecondsAfterFinished: 432000
