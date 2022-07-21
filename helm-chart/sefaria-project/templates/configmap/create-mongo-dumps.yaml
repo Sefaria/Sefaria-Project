@@ -16,34 +16,64 @@ data:
     DATABASE="${SEFARIA_DB}"
     {{- end }}
 
+    if [[ -z "$MONGO_HOST" ]]; then
+      echo "Mongo Host not specified"
+      exit 1
+    fi
+
+    # cast json-string host list intended for local settings into a raw URI string
+    # Since host can be a replicaset with multiple hosts/ports, this string should contain both
+    if [[ $MONGO_HOST =~ "," ]]; then
+      apt-get update && apt-get install curl
+      curl -sLo jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
+      chmod +x jq
+      MONGO_HOST=$(echo $MONGO_HOST | ./jq -r '. | @tsv' - | sed 's/\t/,/g')
+    fi
+
+    URI="mongodb://"
+
+    if [[ ! -z MONGO_USER ]]; then
+      URI="${URI}${MONGO_USER}"
+      if [[ ! -z MONGO_PASSWORD ]]; then
+          URI="${URI}:${MONGO_PASSWORD}"
+      fi
+      URI="${URI}@"
+    fi
+
+    URI="${URI}${MONGO_HOST}/?ssl=false&authSource=admin"
+
+    if [[ ! -z "MONGO_REPLICASET" ]]; then
+      URI="${URI}&replicaSet=${MONGO_REPLICASET}"
+    fi
+    
 
     DATADIR="/mongodumps/shared_volume"
     echo "dumping"
-    until mongodump --host=mongo:27017 -vvv -d $DATABASE --collection history -o "${DATADIR}/dump"
+    until mongodump --uri="$URI" -vvv -d $DATABASE --collection history -o "${DATADIR}/dump"
     do
     echo "trying to dump history again"
     sleep 2
     done
 
-    until mongodump --host=mongo:27017 -v -d $DATABASE --collection texts -o "${DATADIR}/dump"
+    until mongodump --uri="$URI" -v -d $DATABASE --collection texts -o "${DATADIR}/dump"
     do
     echo "trying to dump texts again"
     sleep 2
     done
 
-    until mongodump --host=mongo:27017 -v -d $DATABASE --collection links -o "${DATADIR}/dump"
+    until mongodump --uri="$URI" -v -d $DATABASE --collection links -o "${DATADIR}/dump"
     do
     echo "trying to dump links again"
     sleep 2
     done
 
-    until mongodump --host=mongo:27017 -v -d $DATABASE --collection sheets -o "${DATADIR}/dump"
+    until mongodump --uri="$URI" -v -d $DATABASE --collection sheets -o "${DATADIR}/dump"
     do
     echo "trying to dump sheets again"
     sleep 2
     done
 
-    until mongodump --host=mongo:27017 -v -d $DATABASE --excludeCollection=history --excludeCollection=texts --excludeCollection=sheets --excludeCollection=links --excludeCollection=user_history -o "${DATADIR}/dump"
+    until mongodump --uri="$URI" -v -d $DATABASE --excludeCollection=history --excludeCollection=texts --excludeCollection=sheets --excludeCollection=links --excludeCollection=user_history -o "${DATADIR}/dump"
     do
     echo "trying to dump other stuff again"
     sleep 2
@@ -71,7 +101,7 @@ data:
 
     {{- if .Values.backup.mongo.public }}
     echo "creating public dump"
-    until mongodump --host=mongo:27017 -d sefaria -v --collection texts --query '{"license": {"$not": {"$regex": "/^Copyright/i"}}}' -o "${DATADIR}/dump"
+    until mongodump --uri="$URI" -d sefaria -v --collection texts --query '{"license": {"$not": {"$regex": "/^Copyright/i"}}}' -o "${DATADIR}/dump"
     do
     echo "trying to dump texts again"
     sleep 2

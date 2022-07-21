@@ -16,11 +16,45 @@ data:
     set -e
     set -x
 
-    mongo --host $MONGO_HOST sefaria-$SANDBOX_NAME <<EOF
+    if [[ -z "$MONGO_HOST" ]]; then
+      echo "Mongo Host not specified"
+      exit 1
+    fi
+
+    # cast json-string host list intended for local settings into a raw URI string
+    # Since host can be a replicaset with multiple hosts/ports, this string should contain both
+    if [[ $MONGO_HOST =~ "," ]]; then
+      apt-get update && apt-get install curl
+      curl -sLo jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
+      chmod +x jq
+      MONGO_HOST=$(echo $MONGO_HOST | ./jq -r '. | @tsv' - | sed 's/\t/,/g')
+    fi
+
+    URI="mongodb://"
+
+    if [[ ! -z SEFARIA_DB_USER ]]; then
+      URI="${URI}${SEFARIA_DB_USER}"
+      if [[ ! -z SEFARIA_DB_PASSWORD ]]; then
+          URI="${URI}:${SEFARIA_DB_PASSWORD}"
+      fi
+      URI="${URI}@"
+    fi
+    {{- if eq .Values.sandbox "true" }}
+    SEFARIA_DB="${SEFARIA_DB}-{{ .Values.deployEnv | quote }}"
+    {{- end}}
+
+    URI="${URI}${MONGO_HOST}/?ssl=false&authSource=admin"
+
+    if [[ ! -z "MONGO_REPLICASET" ]]; then
+    URI="${URI}&replicaSet=${MONGO_REPLICASET}"
+    fi
+
+
+    mongo --uri "$URI" SEFARIA_DB <<EOF
     db.dropDatabase();
     EOF
-
-    mongo --host $MONGO_HOST apscheduler-$SANDBOX_NAME <<EOF
+    
+    mongo --uri "$URI" apscheduler-{{ .Values.deployEnv }} <<EOF
     db.dropDatabase();
     EOF
 {{- end }}
