@@ -309,6 +309,40 @@ class BDBEntry(DictionaryEntry):
         alts = getattr(self, "alt_headwords", [])
         return [a['word'] for a in alts]
 
+    def get_sense(self, sense):
+        string = ''
+        if 'all_cited' in sense:
+            string += '†'
+        if 'form' in sense:
+            string += f'<strong>{sense["form"]}</strong> '
+        if 'num' in sense:
+            string += f'<strong>{sense["num"]}</strong> '
+        if 'definition' in sense:
+            return string + sense['definition']
+        else:
+            senses = []
+            for s in sense['senses']:
+                subsenses = self.get_sense(s)
+                if type(subsenses) == list:
+                    senses += subsenses
+                else:
+                    senses.append(subsenses)
+            senses[0] = string + senses[0]
+            return senses
+
+    def as_strings(self, with_headword=True):
+        strings = []
+        for sense in self.content['senses']:
+            sense = self.get_sense(sense)
+            if type(sense) == list:
+                strings += sense
+            else:
+                strings.append(sense)
+        if with_headword:
+            strings[0] = self.headword_string() + ' ' + strings[0]
+        return strings
+
+
 class LexiconEntrySubClassMapping(object):
     lexicon_class_map = {
         'BDB Augmented Strong': StrongsDictionaryEntry,

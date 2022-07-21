@@ -31,6 +31,7 @@ import StoryEditor  from './StoryEditor';
 import UserStats  from './UserStats';
 import ModeratorToolsPanel  from './ModeratorToolsPanel';
 import PublicCollectionsPage from './PublicCollectionsPage';
+import TranslationsPage from './TranslationsPage';
 import {
   CloseButton,
   MenuButton,
@@ -983,7 +984,12 @@ class ReaderPanel extends Component {
           initialWidth={this.state.width} />
       );
 
-    } else if (this.state.menuOpen === "community") {
+    } else if (this.state.menuOpen === "translationsPage") {
+      menu = <TranslationsPage
+        translationsSlug={this.state.translationsSlug}
+      />
+    }
+    else if (this.state.menuOpen === "community") {
       menu = (
         <CommunityPage
           multiPanel={this.props.multiPanel}

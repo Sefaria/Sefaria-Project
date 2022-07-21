@@ -200,16 +200,11 @@ def source_text(source):
     """
     Recursive function to translate a source dictionary into text.
     """
-    content = [
-        source.get("customTitle", ""),
-        source.get("ref", ""),
-        source.get("text", {"he": ""}).get("he", ""),
-        source.get("text", {"en": ""}).get("en", ""),
-        source.get("comment", ""),
-        source.get("outside", ""),
-        ]
-    content = [strip_tags(c) for c in content]
-    text = " ".join(content)
+    str_fields = ["customTitle", "ref", "comment", "outsideText"]
+    dict_fields = ["text", "outsideBiText"]
+    content = [source.get(field, "") for field in str_fields]
+    content += [val for field in dict_fields for val in source.get(field, {}).values()]
+    text = " ".join([strip_tags(c) for c in content])
 
     if "subsources" in source:
         for s in source["subsources"]:
