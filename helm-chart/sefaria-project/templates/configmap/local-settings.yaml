@@ -8,7 +8,6 @@ metadata:
 data: 
   DEBUG: "{{ .Values.localSettings.DEBUG }}"
   DOMAIN_LANGUAGE: {{ .Values.localSettings.DOMAIN_LANGUAGE | toJson | quote }}
-  MONGO_HOST: {{ .Values.localSettings.MONGO_HOST | quote }}
   APSCHEDULER_NAME: {{ tpl .Values.localSettings.APSCHEDULER_NAME . | quote }}
   SEARCH_ADMIN: {{ .Values.localSettings.SEARCH_ADMIN | quote }}
   TURN_SERVER: {{ .Values.localSettings.TURN_SERVER | quote }}
