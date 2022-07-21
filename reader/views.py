@@ -4338,27 +4338,26 @@ def translations_api(request, lang=None):
         return jsonResponse(res)
     # import time
     # t0 = time.time()
-    aggregation_query = [{"$match": {"actualLanguage": lang}},
-                         {"$lookup": {
-                             "from": "index",
-                             "localField": "title",
-                             "foreignField": "title",
-                             "as": "index"
-                         }}]
+    aggregation_query = [{"$match": {"actualLanguage": lang}}, {"$lookup": {
+        "from": "index",
+        "localField": "title",
+        "foreignField": "title",
+        "as": "index"
+    }}, {"$lookup": {
+        "from": "vstate",
+        "localField": "title",
+        "foreignField": "title",
+        "as": "vstate"
+    }}]
     if lang == "en":
-        aggregation_query.append({"$lookup": {
-            "from": "vstate",
-            "localField": "title",
-            "foreignField": "title",
-            "as": "vstate"
-        }})
         aggregation_query.append({"$match": {"vstate.flags.enComplete": True}})
-        aggregation_query.append({"$project": {"vstate": 0}})
-    aggregation_query.append({"$project": {"index.dependence": 1, "index.order": 1, "index.collective_title": 1,
-                                           "index.title": 1, "index.schema": 1, "index.order": 1,
-                                           "versionTitle": 1, "language": 1, "title": 1, "index.categories": 1,
-                                           "priority": 1}})
-    aggregation_query.append({"$sort": {"index.order.0": 1, "index.order.1": 1, "priority": -1}})
+
+    aggregation_query.extend([{"$project": {"index.dependence": 1, "index.order": 1, "index.collective_title": 1,
+                                            "index.title": 1, "index.order": 1,
+                                            "versionTitle": 1, "language": 1, "title": 1, "index.categories": 1,
+                                            "priority": 1, "vstate.first_section_ref": 1}},
+                              {"$sort": {"index.order.0": 1, "index.order.1": 1, "priority": -1}}])
+
     texts = db.texts.aggregate(aggregation_query)
     # t1 = time.time()
     # print("aggregation: ")
@@ -4369,7 +4368,6 @@ def translations_api(request, lang=None):
         if my_index["title"] not in titles:
             if len(my_index["index"]) > 0:
                 my_index_info = my_index["index"][0]
-                # vstate = myIndex["vstate"][0]
                 categories = my_index_info["categories"]
                 if "Reference" in categories:
                     continue  # don't list references (also they don't fit assumptions)
@@ -4402,16 +4400,9 @@ def translations_api(request, lang=None):
                             # TODO: fix assumptions?
                             continue
                 else:
-                    url_title = my_index_info["title"]
-                    cur_node = my_index_info["schema"]
-                    while "nodes" in cur_node:
-                        try:
-                            url_title = url_title + "%2C_" + my_index_info["schema"]["nodes"][0]["key"]
-                            cur_node = cur_node["nodes"][0]
-                        except:
-                            continue
                     to_add["title"] = my_index_info["title"]
-                    to_add["url"] = f'/{url_title}.1?{"ven=" + my_index["versionTitle"] if my_index["language"] == "en" else "vhe=" + my_index["versionTitle"]}'
+                    to_add["url"] = f'/{my_index["vstate"][0]["first_section_ref"].replace(":", ".")}?{"ven=" + my_index["versionTitle"] if my_index["language"] == "en" else "vhe=" + my_index["versionTitle"]}'
+
                 if "order" in my_index["index"][0]:
                     to_add["order"] = my_index["index"][0]["order"]
                 to_add["versionTitle"] = my_index["versionTitle"]
