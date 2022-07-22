@@ -856,10 +856,12 @@ class MatchTemplateTrie:
         return reduce(MatchTemplateTrie._merge_two_tries, tries)
 
     def get_continuations(self, key: str, default=None, key_is_id=False, allow_partial=False):
-        continuations, partial_key_end = self._get_continuations_recursive(key, key_is_id=key_is_id, allow_partial=allow_partial)
+        continuations, partial_key_end_list = self._get_continuations_recursive(key, key_is_id=key_is_id, allow_partial=allow_partial)
         if len(continuations) == 0:
             return default, None
         merged = self._merge_n_tries(*continuations)
+        # TODO unclear how to 'merge' partial_key_end_list. Currently will only work if there's one continuation
+        partial_key_end = partial_key_end_list[0] if len(partial_key_end_list) == 1 else None
         return MatchTemplateTrie(self.lang, sub_trie=merged, scope=self.scope), partial_key_end
 
     def _get_continuations_recursive(self, key: str, prev_sub_tries=None, key_is_id=False, has_partial_matches=False, allow_partial=False):
@@ -872,7 +874,7 @@ class MatchTemplateTrie:
             next_sub_tries = [prev_sub_tries[key]] if key in prev_sub_tries else []
             return next_sub_tries, None
         next_sub_tries = []
-        partial_key_end = None
+        partial_key_end_list = []
         key = key.strip()
         starti_list = [0]
         if self.lang == 'he':
@@ -884,15 +886,16 @@ class MatchTemplateTrie:
                 if sub_key not in prev_sub_tries: continue
                 if endi == len(key):
                     next_sub_tries += [prev_sub_tries[sub_key]]
+                    partial_key_end_list += [None]
                     continue
-                temp_sub_tries, temp_partial_key_end = self._get_continuations_recursive(key[endi:], prev_sub_tries[sub_key], has_partial_matches=True, allow_partial=allow_partial)
+                temp_sub_tries, temp_partial_key_end_list = self._get_continuations_recursive(key[endi:], prev_sub_tries[sub_key], has_partial_matches=True, allow_partial=allow_partial)
                 next_sub_tries += temp_sub_tries
-                partial_key_end = partial_key_end or temp_partial_key_end
+                partial_key_end_list += temp_partial_key_end_list
 
         if has_partial_matches and len(next_sub_tries) == 0 and allow_partial and isinstance(prev_sub_tries, dict):
             # partial match without any complete matches
-            return [prev_sub_tries], key
-        return next_sub_tries, partial_key_end
+            return [prev_sub_tries], [key]
+        return next_sub_tries, partial_key_end_list
 
     def __contains__(self, key):
         return key in self._trie
