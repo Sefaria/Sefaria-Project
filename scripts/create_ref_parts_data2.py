@@ -991,7 +991,7 @@ class SpecificConverterManager:
 
     def convert_tur(self):
         def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
-
+            if is_alt_node: return
             sa_title_swaps = {
                 "Orach Chaim": "Orach Chayim",
                 "Yoreh Deah": "Yoreh De'ah"
