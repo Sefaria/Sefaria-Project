@@ -366,10 +366,20 @@ class RawRef(abst.Cloneable):
     Span of text which may represent one or more Refs
     Contains RawRefParts
     """
-    def __init__(self, lang: str, raw_ref_parts: list, span: SpanOrToken) -> None:
+    def __init__(self, lang: str, raw_ref_parts: list, span: SpanOrToken, **clonable_kwargs) -> None:
+        """
+
+        @param lang:
+        @param raw_ref_parts:
+        @param span:
+        @param clonable_kwargs: kwargs when running Clonable.clone()
+        """
+        self.lang = lang
         self.raw_ref_parts = self._merge_daf_amud_parts(lang, self._group_ranged_parts(raw_ref_parts))
         self.parts_to_match = self.raw_ref_parts  # actual parts that will be matched. different when their are context swaps
         self.prev_num_parts_map = self._get_prev_num_parts_map(self.raw_ref_parts)
+        for k, v in clonable_kwargs.items():
+            setattr(self, k, v)
         self.span = span
 
     @staticmethod
@@ -456,7 +466,7 @@ class RawRef(abst.Cloneable):
         assert subspan.text == parts[0].span.doc[start_token_i:end_token_i].text, f"{subspan.text} != {parts[0].span.doc[start_token_i:end_token_i].text}"
         return subspan
 
-    def split_part(self, part: RawRefPart, str_end) -> 'RawRef':
+    def split_part(self, part: RawRefPart, str_end) -> Tuple['RawRef', RawRefPart, RawRefPart]:
         """
         split `part` into two parts based on strings in `str_split`
         Return new RawRef with split parts (doesn't modify self)
@@ -465,15 +475,30 @@ class RawRef(abst.Cloneable):
         @param str_end: end string
         @return: new RawRef with split parts
         """
-        pivot = len(part.text) - len(str_end) + part.span.start_char
+        start_char, end_char = span_char_inds(part.span)
+        pivot = len(part.text) - len(str_end) + start_char
         aspan = part.span.doc.char_span(0, pivot, alignment_mode='contract')
-        bspan = part.span.doc.char_span(pivot, part.span.end_char, alignment_mode='contract')
+        bspan = part.span.doc.char_span(pivot, end_char, alignment_mode='contract')
+        if aspan is None or bspan is None:
+            raise InputError(f"Couldn't break on token boundaries for strings '{self.text[0:pivot]}' and '{self.text[pivot:end_char]}'")
         apart = part.clone(span=aspan)
         bpart = part.clone(span=bspan)
-        orig_part_index = self.raw_ref_parts.index(part)
-        new_parts = self.raw_ref_parts[:]
-        new_parts[orig_part_index:orig_part_index+1] = [apart, bpart]
-        return self.clone(raw_ref_parts=new_parts)
+
+        # splice raw_ref_parts
+        try:
+            orig_part_index = self.raw_ref_parts.index(part)
+            new_parts = self.raw_ref_parts[:]
+            new_parts[orig_part_index:orig_part_index+1] = [apart, bpart]
+        except ValueError:
+            new_parts = self.raw_ref_parts
+        # splice parts_to_match
+        try:
+            orig_part_index = self.parts_to_match.index(part)
+            new_parts_to_match = self.parts_to_match[:]
+            new_parts_to_match[orig_part_index:orig_part_index+1] = [apart, bpart]
+        except ValueError:
+            new_parts_to_match = self.parts_to_match
+        return self.clone(raw_ref_parts=new_parts, parts_to_match=new_parts_to_match), apart, bpart
 
     @property
     def text(self):
@@ -839,6 +864,7 @@ class MatchTemplateTrie:
 
     def _get_continuations_recursive(self, key: str, prev_sub_tries=None, key_is_id=False, has_partial_matches=False, allow_partial=False):
         from sefaria.utils.hebrew import get_prefixless_inds
+        import re
 
         prev_sub_tries = prev_sub_tries or self._trie
         if key_is_id:
@@ -852,19 +878,20 @@ class MatchTemplateTrie:
         if self.lang == 'he':
             starti_list += get_prefixless_inds(key)
         for starti in starti_list:
-            for endi in reversed(range(len(key)+1)):
+            for match in reversed(list(re.finditer(r'(\s+|$)', key[starti:]))):
+                endi = match.start() + starti
                 sub_key = key[starti:endi]
                 if sub_key not in prev_sub_tries: continue
                 if endi == len(key):
                     next_sub_tries += [prev_sub_tries[sub_key]]
                     continue
-                temp_sub_tries, temp_partial_key_end = self._get_continuations_recursive(key[endi:], prev_sub_tries[sub_key], has_partial_matches=True)
+                temp_sub_tries, temp_partial_key_end = self._get_continuations_recursive(key[endi:], prev_sub_tries[sub_key], has_partial_matches=True, allow_partial=allow_partial)
                 next_sub_tries += temp_sub_tries
                 partial_key_end = partial_key_end or temp_partial_key_end
 
-        if has_partial_matches and len(next_sub_tries) == 0 and allow_partial:
+        if has_partial_matches and len(next_sub_tries) == 0 and allow_partial and isinstance(prev_sub_tries, dict):
             # partial match without any complete matches
-            return prev_sub_tries, key
+            return [prev_sub_tries], key
         return next_sub_tries, partial_key_end
 
     def __contains__(self, key):
@@ -1291,14 +1318,23 @@ class RefResolver:
             # no need to consider other types at root level
             if part.type != RefPartType.NAMED: continue
 
-            temp_prev_ref_parts = prev_ref_parts + [part]
             temp_title_trie, partial_key_end = title_trie.get_continuations(part.key(), allow_partial=True)
             if temp_title_trie is None: continue
-            if partial_key_end is not None:
-                temp_raw_ref = raw_ref.split_part(part, partial_key_end)
+            if partial_key_end is None:
+                matched_part = part
+            else:
+                try:
+                    temp_raw_ref, apart, bpart = raw_ref.split_part(part, partial_key_end)
+                    matched_part = apart
+                except InputError:
+                    matched_part = part  # fallback on original part
+            temp_prev_ref_parts = prev_ref_parts + [matched_part]
             if LEAF_TRIE_ENTRY in temp_title_trie:
                 for node in temp_title_trie[LEAF_TRIE_ENTRY]:
-                    ref = (node.nodes if isinstance(node, text.Index) else node).ref()
+                    try:
+                        ref = (node.nodes if isinstance(node, text.Index) else node).ref()
+                    except InputError:
+                        continue
                     matches += [ResolvedRef(temp_raw_ref, temp_prev_ref_parts, node, ref, _thoroughness=self._thoroughness)]
             temp_ref_parts = [temp_part for temp_part in ref_parts if temp_part != part]
             matches += self._get_unrefined_ref_part_matches_recursive(lang, temp_raw_ref, temp_title_trie, ref_parts=temp_ref_parts, prev_ref_parts=temp_prev_ref_parts)
