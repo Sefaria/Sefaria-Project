@@ -1213,6 +1213,9 @@ div.interfaceLinks-row a {
   width: 18px;
   opacity: 0.4;
 }
+.sidebarSearch .readerNavMenuSearchButton img {
+  margin-top: 12px;
+}
 .header .headerNavContent {
   position: absolute;
   height: 100%;
@@ -1862,7 +1865,11 @@ div.interfaceLinks-row a {
   align-items: center;
   justify-content: flex-start;
 }
-
+.interface-hebrew .sidebarSearch .searchBox,
+.interface-hebrew .sidebarSearch .version,
+.interface-hebrew .sidebarSearch .result-title {
+  direction: rtl;
+}
 .sidebarSearch .searchBox {
   display: flex;
   align-items: center;
@@ -2166,7 +2173,7 @@ div.interfaceLinks-row a {
 
 .readerPanel .translationsPage  details > summary {
   list-style: none;
-  cursor: pointer; 
+  cursor: pointer;
   font-size: 18px;
 }
 
@@ -3573,7 +3580,11 @@ select {
   margin-inline-end: 5px;
 }
 .searchBox.dictionarySearchBox .keyboardInputInitiator {
+  margin-bottom: 2px;
   border: none;
+}
+.interface-hebrew .searchBox.dictionarySearchBox .keyboardInputInitiator {
+  display: none;
 }
 .dictionarySearchBox input {
   font-size: 17px;

@@ -22,7 +22,7 @@ const SidebarSearch = ({ title, updateAppliedOptionSort, navigatePanel }) => {
                   appliedFilters:        [searchFilterPathForBook],
                   field:                 "naive_lemmatizer",
                   appliedFilterAggTypes: ["path"],
-                  sortType:              "relevance",
+                  sortType:              "chronological",
           })
       )
 
@@ -43,7 +43,7 @@ const SidebarSearch = ({ title, updateAppliedOptionSort, navigatePanel }) => {
                 appliedFilters:        [searchFilterPathForBook],
                 field:                 "naive_lemmatizer",
                 appliedFilterAggTypes: ["path"],
-                sortType:              "relevance",
+                sortType:              "chronological",
                 filtersValid: true,
         })
       )
@@ -67,8 +67,11 @@ const SidebarSearch = ({ title, updateAppliedOptionSort, navigatePanel }) => {
   const searchBoxClasses = classNames({searchBox: 1});
 
   const handleSearchButtonClick = () => {
-    setSearchFilterPathForBook('')
-    setQuery(document.getElementById('searchQueryInput').value)
+    const searchBoxValue = document.getElementById('searchQueryInput').value
+    if (searchBoxValue !== query) {
+      setSearchFilterPathForBook('')
+      setQuery(document.getElementById('searchQueryInput').value)
+    }
   }
 
 
