@@ -991,7 +991,9 @@ class SpecificConverterManager:
 
     def convert_tur(self):
         def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
-            if is_alt_node: return
+            if is_alt_node:
+                title_slug = RTM.create_term_from_titled_obj(node, 'structural', 'shulchan arukh').slug
+                return [MatchTemplate([title_slug])]
             sa_title_swaps = {
                 "Orach Chaim": "Orach Chayim",
                 "Yoreh Deah": "Yoreh De'ah"
