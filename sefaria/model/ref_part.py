@@ -470,7 +470,7 @@ class RawRef(abst.Cloneable):
         """
         split `part` into two parts based on strings in `str_split`
         Return new RawRef with split parts (doesn't modify self)
-        Will fail if the strings in str_split don't fail on token boundaries
+        Will raise InputError if the strings in str_split don't fall on token boundaries
         @param part: original part to be split
         @param str_end: end string
         @return: new RawRef with split parts
