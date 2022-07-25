@@ -493,27 +493,30 @@ Sefaria = extend(Sefaria, {
     }.bind(this));
     return null;
   },
+  ISOMap: {
+    "ar": {"name": "Arabic", "nativeName": "عربى", "showTranslations": 0},
+    "de": {"name": "German", "nativeName": "Deutsch", "showTranslations": 1, "title": "Jüdische Texte in Deutscher Sprache"},
+    "en": {"name": "English", "nativeName": "English", "showTranslations": 1, "title": "Jewish Texts in English"},
+    "eo": {"name": "Esperanto", "nativeName": "Esperanto", "showTranslations": 1, "title": "Judaj Tekstoj en Esperanto"},
+    "es": {"name": "Spanish", "nativeName": "Español", "showTranslations": 1, "title": "Textos Judíos en Español"},
+    "fa": {"name": "Persian", "nativeName": "فارسی", "showTranslations": 1, "title": "متون یهودی به زبان فارسی"},
+    "fi": {"name": "Finnish", "nativeName": "suomen kieli", "showTranslations": 1, "title": "Juutalaiset tekstit suomeksi"},
+    "fr": {"name": "French", "nativeName": "Français", "showTranslations": 1, "title": "Textes juifs en français"},
+    "he": {"name": "Hebrew", "nativeName": "עברית", "showTranslations": 0, "title": "ספריה בעברית"},
+    "it": {"name": "Italian", "nativeName": "Italiano", "showTranslations": 1, "title": "Testi ebraici in italiano"},
+    "lad": {"name": "Ladino", "nativeName": "Judeo-español", "showTranslations": 0},
+    "pl": {"name": "Polish", "nativeName": "Polskie", "showTranslations": 1, "title": "Teksty żydowskie w języku polskim"},
+    "pt": {"name": "Portuguese", "nativeName": "Português", "showTranslations": 1, "title": "Textos judaicos em portugues"},
+    "ru": {"name": "Russian", "nativeName": "Pусский", "showTranslations": 1, "title": "Еврейские тексты на русском языке"},
+    "yi": {"name": "Yiddish", "nativeName": "יידיש", "showTranslations": 1, "title": "יידישע טעקסטן אויף יידיש"},
+  },
   translateISOLanguageCode(code, native = false) {
     //takes two-letter ISO 639.2 code and returns full language name
-    const ISOMap = {
-        "ar": {"name": "Arabic", "nativeName": "عربى"},
-        "de": {"name": "German", "nativeName": "Deutsch"},
-        "en": {"name": "English", "nativeName": "English"},
-        "eo": {"name": "Esperanto", "nativeName": "Esperanto"},
-        "es": {"name": "Spanish", "nativeName": "Español"},
-        "fa": {"name": "Persian", "nativeName": "فارسی"},
-        "fi": {"name": "Finnish", "nativeName": "suomen kieli"},
-        "fr": {"name": "French", "nativeName": "Français"},
-        "he": {"name": "Hebrew", "nativeName": "עברית"},
-        "it": {"name": "Italian", "nativeName": "Italiano"},
-        "lad": {"name": "Ladino", "nativeName": "Judeo-español"},
-        "pl": {"name": "Polish", "nativeName": "Polskie"},
-        "pt": {"name": "Portuguese", "nativeName": "Português"},
-        "ru": {"name": "Russian", "nativeName": "Pусский"},
-        "yi": {"name": "Yiddish", "nativeName": "יידיש"},
-    }
     const lookupVar = native ? "nativeName" : "name";
-    return ISOMap[code.toLowerCase()][lookupVar] || code; 
+    return Sefaria.ISOMap[code.toLowerCase()][lookupVar] || code; 
+  },
+  getHebrewTitle: function(slug) {
+    return Sefaria.ISOMap[slug] ? Sefaria.ISOMap[slug]["title"] ?  Sefaria.ISOMap[slug]["title"] : "Jewish Texts in " + Sefaria.ISOMap[slug]["name"] : "Jewish texts in " + slug ; 
   },
   _versions: {},
   _translateVersions: {},
@@ -2515,6 +2518,12 @@ _media: {},
       return typeof ref === "string" ? parseInt(ref.split(" ")[1]) : parseInt(ref[0].split(" ")[1]);
     }
   },
+  _translations: {},
+  getTranslation: function(key) {
+    const url = Sefaria.apiHost + "/api/texts/translations/" + key;
+    const store = this._translations;
+    return this._cachedApiPromise({url, key, store})
+  },
   _collections: {},
   getCollection: function(key) {
       const url = Sefaria.apiHost + "/api/collections/" + encodeURIComponent(key);
@@ -2771,6 +2780,9 @@ Sefaria.unpackDataFromProps = function(props) {
   }
   if (props.collectionData) {
     Sefaria._collections[props.initialCollectionSlug] = props.collectionData;
+  }
+  if (props.translationsData) {
+    Sefaria._translations[props.initialTranslationsSlug] = props.translationsData;
   }
   if (props.topicData) {
     Sefaria._topics[props.initialTopic] = Sefaria.processTopicsData(props.topicData);
