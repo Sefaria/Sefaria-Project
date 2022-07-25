@@ -907,12 +907,13 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
             <Autocompleter
                 selectedRefCallback={selectedRefCallback}
                 getSuggestions={getSuggestions}
-                showSuggestionsFx={(d) => !isSectionOrSegment(d)}
-                showPreviewFx={(d) => isSectionOrSegment(d)}
-                showAddressCompletionsFx={(d) => d.is_book}
-                showAddButtonFx={(d) => isSectionOrSegment(d)}
-                searchForStr="Search for a Text or Commentator."
-                borderColorFx={Sefaria.palette.refColor}
+                showSuggestionsFunc={(d) => !isSectionOrSegment(d)}
+                showPreviewFunc={(d) => isSectionOrSegment(d)}
+                showAddressCompletionsFunc={(d) => d.is_book}
+                showAddButtonFunc={(d) => isSectionOrSegment(d)}
+                inputPlaceholder="Search for a Text or Commentator."
+                divTitle="Add a source from Sefaria's library."
+                borderColorFunc={Sefaria.palette.refColor}
             />)
     }
 

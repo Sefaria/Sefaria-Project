@@ -14,7 +14,7 @@ class TopicSearch extends Component {
     super(props);
     this.state = {
       showTopicEditor: false,
-      selected: false
+      value: ""
     };
   }
 
@@ -75,27 +75,34 @@ class TopicSearch extends Component {
       });
   }
 
-  showAddButtonFxFilter = (d, input, completion_objects) => {
+  showAddButtonFuncFilter = (d, input, completion_objects) => {
     const results = completion_objects.some(x => {return input === x.title; });
     return !!results;
   }
-  onClickSuggestions = (title) => {
+  onClickSuggestionFunc = (title) => {
     if (title.startsWith("Create new topic:")) {
-      this.setState({showTopicEditor: true});
+      this.setState({showTopicEditor: true, value: title});
     }
   }
   render() {
     return (
+        <div>{this.state.showTopicEditor ? <TopicEditor origEn={this.state.value} close={this.setState({showTopicEditor: false, value: ""})} redirect={this.post}/> : null}
         <Autocompleter selectedRefCallback={this.validate}
                  getSuggestions={this.getSuggestions}
-                 onClickSuggestion={this.onClickSuggestions}
-                showSuggestionsFx={(d) => {return true;}}
-                showPreviewFx={(d) => {return false;}}
-                showAddressCompletionsFx={(d) => {return false;}}
-                showAddButtonFx={(d) => {return true;}}
-                 borderColorFx={(d) => "#ffffff"}
+                 onClickSuggestionFunc={this.onClickSuggestionFunc}
+                showSuggestionsFunc={(d) => {return true;}}
+                showPreviewFunc={(d) => {return false;}}
+                showAddressCompletionsFunc={(d) => {return false;}}
+                showAddButtonFunc={(d) => {return true;}}
+                 borderColorFunc={(d) => "#ffffff"}
                  limit={11}
-                searchForStr="Search for a Text or Commentator."/>
+                inputPlaceholder="Search for a Text or Commentator."
+                buttonTitle="Add Topic"
+                showSuggestionsOnSelect={false}
+                colorIfSelected="#4B71B7"
+                inputStyle={"topicSearch"}
+        />
+        </div>
     );
   }
 }

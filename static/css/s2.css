@@ -9427,6 +9427,9 @@ background-color: white;
   height: 30px;
   position: absolute;
 }
+.addInterfaceInput .topicSearch {
+  margin: 30px 0px 20px 30px;
+}
 
 .addInterfaceInput .textPreviewSegment {
   display: inline;
@@ -9505,6 +9508,9 @@ background-color: white;
   margin-inline-end: 20px;
   background: url("/static/icons/iconmonstr-magnifier-2-240.svg") no-repeat scroll left 7px top 7px;
   background-color: var(--lighter-grey);
+}
+.addInterfaceInput .topicSearch {
+  margin: 30px 0px 20px 30px;
 }
 .addInterfaceInput.mediaInput input {
   background: url("/static/icons/link_grey.svg") no-repeat scroll left 7px top 7px;
