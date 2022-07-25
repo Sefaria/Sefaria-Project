@@ -286,7 +286,6 @@ class SearchResultList extends Component {
       if (!props.query) {
           return;
       }
-      console.log(props[`${type}SearchState`])
       return props[`${type}SearchState`];
     }
     _executeAllQueries(props) {

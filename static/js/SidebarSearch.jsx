@@ -76,7 +76,7 @@ const SidebarSearch = ({ title, updateAppliedOptionSort, navigatePanel }) => {
 
 
   return (
-    <div className="sidebarSearch content lexicon-content">
+    <div className="sidebarSearch lexicon-content">
     <div className={searchBoxClasses}>
 
     { isDictionary ?

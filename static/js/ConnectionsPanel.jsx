@@ -710,7 +710,7 @@ class ConnectionsPanel extends Component {
             closePanel={this.props.closePanel}
             toggleLanguage={this.props.toggleLanguage}
             interfaceLang={this.props.interfaceLang} />}
-        <div className="texts">
+        <div className="texts content">
           <div className="contentInner">{content}</div>
         </div>
       </div>);
