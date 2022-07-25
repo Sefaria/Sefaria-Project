@@ -4192,40 +4192,40 @@ def translations_api(request, lang=None):
         return jsonResponse(res)
     # import time
     # t0 = time.time()
-    aggregation_query = [{"$match": {"actualLanguage":lang}},
-    {"$lookup": {
-            "from": "index",
-            "localField": "title",
-            "foreignField": "title",
-            "as": "index"
-        }}]
+    aggregation_query = [{"$match": {"actualLanguage": lang}}, {"$lookup": {
+        "from": "index",
+        "localField": "title",
+        "foreignField": "title",
+        "as": "index"
+    }}, {"$lookup": {
+        "from": "vstate",
+        "localField": "title",
+        "foreignField": "title",
+        "as": "vstate"
+    }}]
     if lang == "en":
-        aggregation_query.append({"$lookup": {
-            "from": "vstate",
-            "localField": "title",
-            "foreignField": "title",
-            "as": "vstate"
-        }})
         aggregation_query.append({"$match": {"vstate.flags.enComplete": True}})
-        aggregation_query.append({"$project": {"vstate": 0}})
-    aggregation_query.append({"$project": {"index.dependence": 1, "index.order": 1, "index.collective_title": 1, "index.title": 1, "index.schema": 1, "index.order": 1,
-    "versionTitle": 1, "language": 1, "title": 1, "index.categories": 1, "priority": 1}})
-    aggregation_query.append({"$sort": {"index.order.0": 1, "index.order.1": 1, "priority": -1}})
+
+    aggregation_query.extend([{"$project": {"index.dependence": 1, "index.order": 1, "index.collective_title": 1,
+                                            "index.title": 1, "index.order": 1,
+                                            "versionTitle": 1, "language": 1, "title": 1, "index.categories": 1,
+                                            "priority": 1, "vstate.first_section_ref": 1}},
+                              {"$sort": {"index.order.0": 1, "index.order.1": 1, "priority": -1}}])
+
     texts = db.texts.aggregate(aggregation_query)
     # t1 = time.time()
     # print("aggregation: ")
     # print(f"{t1 - t0}")
     res = {}
     titles = []
-    for myIndex in texts:
-        if myIndex["title"] not in titles:
-            if len(myIndex["index"]) > 0:
-                myIndexInfo = myIndex["index"][0]
-                # vstate = myIndex["vstate"][0]
-                categories = myIndexInfo["categories"]
+    for my_index in texts:
+        if my_index["title"] not in titles:
+            if len(my_index["index"]) > 0:
+                my_index_info = my_index["index"][0]
+                categories = my_index_info["categories"]
                 if "Reference" in categories:
-                    continue # don't list references (also they don't fit assumptions)
-                titles.append(myIndex["title"])
+                    continue  # don't list references (also they don't fit assumptions)
+                titles.append(my_index["title"])
                 depth = 2
                 ind = 0
                 cur = res
@@ -4236,41 +4236,38 @@ def translations_api(request, lang=None):
                         cur[categories[ind]] = [] if ind == depth - 1 else {}
                     cur = cur[categories[ind]]
                     ind += 1
-                toAdd = {}
-                if "dependence" in myIndexInfo and "collective_title" in myIndexInfo and myIndexInfo["dependence"] == "Commentary" and lang in bundle_commentaries_langs:
-                    if len(list(filter(lambda x: True if x["title"] == myIndexInfo["collective_title"] else False, cur))) > 0:
+                to_add = {}
+                if "dependence" in my_index_info and "collective_title" in my_index_info \
+                        and my_index_info["dependence"] == "Commentary" and lang in bundle_commentaries_langs:
+                    if len(list(filter(lambda x: True if x["title"] == my_index_info["collective_title"] else False,
+                                       cur))) > 0:
                         continue
                     else:
                         try:
-                            toAdd["title"] = myIndexInfo["collective_title"]
-                            categories_to_add = categories[:categories.index(myIndexInfo["collective_title"])+1]
-                            toAdd["url"] = "/texts/" + "/".join(categories_to_add)
+                            to_add["title"] = my_index_info["collective_title"]
+                            categories_to_add = categories[:categories.index(my_index_info["collective_title"]) + 1]
+                            to_add["url"] = "/texts/" + "/".join(categories_to_add)
                         except:
-                            print("failed to find author page for " + myIndexInfo["collective_title"] + ": " + myIndexInfo["title"])
+                            print("failed to find author page for " + my_index_info["collective_title"] + ": " +
+                                  my_index_info["title"])
                             # these are also not showing up in TOC
                             # TODO: fix assumptions?
                             continue
                 else:
-                    urlTitle = myIndexInfo["title"]
-                    curNode = myIndexInfo["schema"]
-                    while "nodes" in curNode:
-                        try:
-                            urlTitle = urlTitle + "%2C_" + myIndexInfo["schema"]["nodes"][0]["key"]
-                            curNode = curNode["nodes"][0]
-                        except:
-                            continue
-                    toAdd["title"] = myIndexInfo["title"]
-                    toAdd["url"] = f'/{urlTitle}.1?{"ven=" + myIndex["versionTitle"] if myIndex["language"] == "en" else "vhe=" + myIndex["versionTitle"]}'
-                if "order" in myIndex["index"][0]:
-                        toAdd["order"] = myIndex["index"][0]["order"]
-                toAdd["versionTitle"] = myIndex["versionTitle"]
-                toAdd["rtlLanguage"] = myIndex["language"]
-                cur.append(toAdd)
+                    to_add["title"] = my_index_info["title"]
+                    to_add["url"] = f'/{my_index["vstate"][0]["first_section_ref"].replace(":", ".")}?{"ven=" + my_index["versionTitle"] if my_index["language"] == "en" else "vhe=" + my_index["versionTitle"]}'
+
+                if "order" in my_index["index"][0]:
+                    to_add["order"] = my_index["index"][0]["order"]
+                to_add["versionTitle"] = my_index["versionTitle"]
+                to_add["rtlLanguage"] = my_index["language"]
+                cur.append(to_add)
     # t2 = time.time()
     # print("create dictionary")
     # print(f"{t2 - t1}")
     return jsonResponse(res)
-    
+
+
 def random_by_topic_api(request):
     """
     Returns Texts API data for a random text taken from popular topic tags
