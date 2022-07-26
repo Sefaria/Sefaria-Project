@@ -9427,9 +9427,6 @@ background-color: white;
   height: 30px;
   position: absolute;
 }
-.addInterfaceInput .topicSearch {
-  margin: 30px 0px 20px 30px;
-}
 
 .addInterfaceInput .textPreviewSegment {
   display: inline;
@@ -9511,6 +9508,7 @@ background-color: white;
 }
 .addInterfaceInput .topicSearch {
   margin: 30px 0px 20px 30px;
+  max-width: 200px;
 }
 .addInterfaceInput.mediaInput input {
   background: url("/static/icons/link_grey.svg") no-repeat scroll left 7px top 7px;

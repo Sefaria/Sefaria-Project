@@ -2540,8 +2540,8 @@ const Autocompleter = ({selectedRefCallback, getSuggestions, borderColorFunc,
                          showSuggestionsFunc, showAddressCompletionsFunc, showPreviewFunc,
                          showAddButtonFunc, filterResultsFunc, onClickSuggestionFunc,
                           inputPlaceholder, buttonTitle, limit,
-                         inputStyle="serif", colorIfSelected = "#000000",
-                         showSuggestionsOnSelect=true, }) => {
+                         inputStyle="serif", buttonStyle="", colorIfSelected = "#000000",
+                         showSuggestionsOnSelect=true }) => {
   const [inputValue, setInputValue] = useState("");
   const [currentSuggestions, setCurrentSuggestions] = useState(null);
   const [previewText, setPreviewText] = useState(null);
@@ -2553,6 +2553,10 @@ const Autocompleter = ({selectedRefCallback, getSuggestions, borderColorFunc,
   const inputEl = useRef(null);
   const defaultColor = "#000000";
   const defaultAutocompleteLimit = 5;
+  let buttonClassNames = classNames({button: 1, small: 1});
+  if (buttonStyle.length > 0) {
+    buttonClassNames += " " + buttonStyle;
+  }
 
 
   const getWidthOfInput = () => {
@@ -2751,7 +2755,7 @@ const Autocompleter = ({selectedRefCallback, getSuggestions, borderColorFunc,
           size={inputValue.length}
           style={{color: selected ? colorIfSelected : defaultColor}}
       /><span className="helperCompletionText sans-serif-in-hebrew">{helperPromptText}</span>
-      {showAddButton ? <button className={ classNames({button: 1, small: 1} onClick={(e) => {
+      {showAddButton ? <button className={buttonClassNames} onClick={(e) => {
                     selectedRefCallback(inputValue, currentSuggestions)
                 }}>{buttonTitle}</button> : null}
 

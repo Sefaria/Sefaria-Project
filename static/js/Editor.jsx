@@ -912,7 +912,7 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
                 showAddressCompletionsFunc={(d) => d.is_book}
                 showAddButtonFunc={(d) => isSectionOrSegment(d)}
                 inputPlaceholder="Search for a Text or Commentator."
-                divTitle="Add a source from Sefaria's library."
+                buttonTitle="Add Source"
                 borderColorFunc={Sefaria.palette.refColor}
             />)
     }
