@@ -312,7 +312,7 @@ def old_versions_redirect(request, tref, lang, version):
 
 def get_connections_mode(filter):
     # List of sidebar modes that can function inside a URL parameter to open the sidebar in that state.
-    sidebarModes = ("Sheets", "Notes", "About", "AboutSheet", "Navigation", "Translations", "Translation Open","WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon")
+    sidebarModes = ("Sheets", "Notes", "About", "AboutSheet", "Navigation", "Translations", "Translation Open","WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon", "SidebarSearch")
     if filter[0] in sidebarModes:
         return filter[0], True
     else:
@@ -373,6 +373,7 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
         panelDisplayLanguage = kwargs.get("connectionsPanelDisplayLanguage", None) if mode == "Connections" else kwargs.get("panelDisplayLanguage", None)
         aliyotOverride = kwargs.get("aliyotOverride")
         panel["selectedWords"] = kwargs.get("selectedWords", None)
+        panel["sidebarSearchQuery"] = kwargs.get("sidebarSearchQuery", None)
         panel["selectedNamedEntity"] = kwargs.get("selectedNamedEntity", None)
         panel["selectedNamedEntityText"] = kwargs.get("selectedNamedEntityText", None)
         if panelDisplayLanguage:
@@ -538,6 +539,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         if request.GET.get("aliyot", None):
             kwargs["aliyotOverride"] = "aliyotOn" if int(request.GET.get("aliyot")) == 1 else "aliyotOff"
         kwargs["selectedWords"] = request.GET.get("lookup", None)
+        kwargs["sidebarSearchQuery"] = request.GET.get("sbsq", None)
         kwargs["selectedNamedEntity"] = request.GET.get("namedEntity", None)
         kwargs["selectedNamedEntityText"] = request.GET.get("namedEntityText", None)
         panels += make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_panel, **kwargs)
@@ -590,6 +592,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
             if request.GET.get("aliyot{}".format(i), None):
                 kwargs["aliyotOverride"] = "aliyotOn" if int(request.GET.get("aliyot{}".format(i))) == 1 else "aliyotOff"
             kwargs["selectedWords"] = request.GET.get(f"lookup{i}", None)
+            kwargs["sidebarSearchQuery"] = request.GET.get(f"sbsq{i}", None)
             kwargs["selectedNamedEntity"] = request.GET.get(f"namedEntity{i}", None)
             kwargs["selectedNamedEntityText"] = request.GET.get(f"namedEntityText{i}", None)
             if (versionEn and not Version().load({"versionTitle": versionEn, "language": "en"})) or \

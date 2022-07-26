@@ -11,10 +11,10 @@ import {
 } from './Misc';
 
 
-const SidebarSearch = ({ title, updateAppliedOptionSort, navigatePanel }) => {
+const SidebarSearch = ({ title, updateAppliedOptionSort, navigatePanel, sidebarSearchQuery, setSidebarSearchQuery }) => {
   const [lexiconName, setLexiconName] = useState(Sefaria.getIndexDetailsFromCache(title)?.lexiconName)
   const [searchFilterPathForBook, setSearchFilterPathForBook] = useState('');
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(sidebarSearchQuery || '');
   const isDictionary = !!lexiconName;
   const [searchState, setSearchState] = useState(
           new SearchState({
@@ -28,12 +28,14 @@ const SidebarSearch = ({ title, updateAppliedOptionSort, navigatePanel }) => {
 
   useEffect(() => {
       attachKeyboard();
+      document.getElementById('searchQueryInput').value = query
   }, []);
 
   useEffect(() => {
       Sefaria.bookSearchPathFilterAPI(title).then((path) => {
         setSearchFilterPathForBook(path)
       })
+      setSidebarSearchQuery(query)
   }, [query])
 
   useEffect(() => {

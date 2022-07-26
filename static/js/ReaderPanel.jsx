@@ -738,10 +738,12 @@ class ReaderPanel extends Component {
           openComparePanel={this.props.openComparePanel}
           closePanel={this.props.closePanel}
           selectedWords={this.state.selectedWords}
+          sidebarSearchQuery={this.state.sidebarSearchQuery}
           selectedNamedEntity={this.state.selectedNamedEntity}
           selectedNamedEntityText={this.state.selectedNamedEntityText}
           clearSelectedWords={this.clearSelectedWords}
           clearNamedEntity={this.props.clearNamedEntity}
+          setSidebarSearchQuery={this.props.setSidebarSearchQuery}
           masterPanelLanguage={this.props.masterPanelLanguage}
           masterPanelMode={this.props.initialState.mode === "SheetAndConnections" && this.props.multiPanel === false ? "Sheet" : this.props.masterPanelMode}
           masterPanelSheetId={this.props.initialState.mode === "SheetAndConnections" && this.props.multiPanel === false ? this.props.initialState.sheetID : this.props.masterPanelSheetId}
