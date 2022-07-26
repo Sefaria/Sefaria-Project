@@ -288,7 +288,7 @@ data:
     #     }
     # }
 
-    GLOBAL_INTERRUPTING_MESSAGE = None
+    # GLOBAL_INTERRUPTING_MESSAGE = None
 
     structlog.configure(
         processors=[
