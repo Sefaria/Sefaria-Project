@@ -24,7 +24,7 @@ class TextColumn extends Component {
     this.scrollPlaceholderMargin = 30;
     this.highlightThreshhold = props.multiPanel ? 140 : 70;
     return;
-  }  
+  }
   componentDidMount() {
     this._isMounted          = true;
     this.node                = ReactDOM.findDOMNode(this)
@@ -52,15 +52,15 @@ class TextColumn extends Component {
       this.scrollToHighlighted();
 
     } else if (this.state.showScrollPlaceholders && !prevState.showScrollPlaceholders && !this.initialScrollTopSet) {
-      // After scroll placeholders are first rendered, scroll down so top placeholder 
+      // After scroll placeholders are first rendered, scroll down so top placeholder
       // is out of view and scrolling up is possible.
       // console.log("scrolling for ScrollPlaceholders first render")
       this.setInitialScrollPosition();
 
-    } else if (this.props.srefs.length == 1 && 
-        Sefaria.util.inArray(this.props.srefs[0], prevProps.srefs) == -1 && 
+    } else if (this.props.srefs.length == 1 &&
+        Sefaria.util.inArray(this.props.srefs[0], prevProps.srefs) == -1 &&
         !prevProps.srefs.some(r => Sefaria.refContains(this.props.srefs[0], r))) {
-      // If we are switching to a single ref not in the current TextColumn, 
+      // If we are switching to a single ref not in the current TextColumn,
       // treat it as a fresh open.
       // console.log("setting initialScroll for brand new ref")
       this.setInitialScrollPosition();
@@ -69,7 +69,7 @@ class TextColumn extends Component {
       // When the width of the text column changes, keep highlighted text in place
       // console.log("restore scroll by percentage for layout Width Change")
       this.restoreScrollPositionByPercentage();
-    
+
     } else if (prevProps.srefs.length === this.props.srefs.length &&
       !prevProps.srefs.compare(this.props.srefs)) {
       // When the highlighted segment has changed, scroll to it.
@@ -148,6 +148,8 @@ class TextColumn extends Component {
     }
   }
   handleTextLoad(ref) {
+
+    console.log('handling text load')
     // TextRanges in the column may be initial rendered in "loading" state without data.
     // When the data loads we may need to change scroll position or render addition ranges.
     // console.log("handle text load: ", ref);
@@ -169,12 +171,19 @@ class TextColumn extends Component {
     this.adjustInfiniteScroll(true);
 
     if (this.loadingContentAtTop) {
-      // If the text that was just loaded was at the top of the page, restore the scroll 
-      // position to keep what the user was looking at in place. 
+      // If the text that was just loaded was at the top of the page, restore the scroll
+      // position to keep what the user was looking at in place.
       this.restoreScrollPositionAfterTopLoad();
     }
+
+    const $texts  = this.$container.find(".basetext")
+
+    if ($texts.length == 1) {
+      this.scrollToHighlighted();
+    }
+
   }
-  setInitialScrollPosition() {    
+  setInitialScrollPosition() {
     // Sets scroll initial scroll position when a text is loaded which is either down to
     // the highlighted segments, or is just down far enough to hide the scroll placeholder above.
 
@@ -186,7 +195,7 @@ class TextColumn extends Component {
 
     } else {
       // When a text is first loaded, scroll it down a small amount so that it is
-      // possible to scroll up and trigginer infinites scroll up. This also hides 
+      // possible to scroll up and trigginer infinites scroll up. This also hides
       // "Loading..." div which sit above the text.
       const top = this.scrollPlaceholderHeight;
       // console.log("set Initial Scroll Postion: ", top);
@@ -222,7 +231,7 @@ class TextColumn extends Component {
     const adjust = this.scrollPlaceholderHeight + this.scrollPlaceholderMargin;
     const top = targetTop + (2*this.node.scrollTop) - adjust;
     this.setScrollTop(top);
-    // console.log("scroll to restore after infinite up: " + top)  
+    // console.log("scroll to restore after infinite up: " + top)
   }
   restoreScrollPositionByPercentage() {
     // After the layout width of the column changes, restore the scroll to the same percentage
@@ -233,7 +242,7 @@ class TextColumn extends Component {
     this.setScrollTop(target);
   }
   setScrollTop(top) {
-    // Set the scroll top of the column, including the flag to prevent extra handling 
+    // Set the scroll top of the column, including the flag to prevent extra handling
     // of scroll event.
     this.justScrolled = true;
     this.node.scrollTop = top;
@@ -391,19 +400,19 @@ class TextColumn extends Component {
       const hasPrev = first && first.prev;
       const noPrev  = first && !first.prev; // first is loaded, so we actually know there's nothing prev
       const hasNext = last && last.next;
-  
-      bookTitle = noPrev ? 
+
+      bookTitle = noPrev ?
         <div className="bookMetaDataBox" key="bookTitle">
           <div className="title" role="heading" aria-level="1">
             <ContentText text={{en: this.props.bookTitle, he: this.props.heBookTitle}} defaultToInterfaceOnBilingual={true} />
           </div>
         </div> : null;
 
-      pre = this.state.showScrollPlaceholders ? 
+      pre = this.state.showScrollPlaceholders ?
         (noPrev ? bookTitle :
         <LoadingMessage className="base prev" key={"prev"}/>) : null;
-      
-      post = hasNext && this.state.showScrollPlaceholders ? 
+
+      post = hasNext && this.state.showScrollPlaceholders ?
         <LoadingMessage className="base next" key={"next"}/> :
         <LoadingMessage message={" "} heMessage={" "} className="base next final" key={"next"}/>;
     }

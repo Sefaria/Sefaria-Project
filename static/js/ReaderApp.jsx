@@ -969,7 +969,16 @@ class ReaderApp extends Component {
     this.replacePanel(n, ref, currVersions, options);
   }
   handleSidebarSearchClick(n, ref, currVersions, options) {
-    this.replacePanel(n-1, ref, currVersions, options);
+    const refs = typeof ref == "string" ? [ref] : ref;
+    const new_opts = {
+                      scrollToHighlighted: true,
+                      refs: refs,
+                      highlightedRefs: refs,
+                      showHighlight: true,
+                      currentlyVisibleRef: refs,
+                    }
+    console.log(new_opts)
+    this.replacePanel(n-1, ref, currVersions, new_opts);
 }
   getHTMLLinkParentOfEventTarget(event){
     //get the lowest level parent element of an event target that is an HTML link tag. Or Null.

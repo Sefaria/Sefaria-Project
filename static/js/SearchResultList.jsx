@@ -312,8 +312,6 @@ class SearchResultList extends Component {
 
       let args = this._getQueryArgs(props, type);
 
-      console.log(args)
-
       // If there are no available filters yet, don't apply filters.  Split into two queries:
       // 1) Get all potential filters and counts
       // 2) Apply filters (Triggered from componentWillReceiveProps)
@@ -370,7 +368,6 @@ class SearchResultList extends Component {
       props = props || this.props;
 
       const searchState = this._getSearchState(type, props);
-      console.log(searchState)
       const { field, fieldExact, sortType, filtersValid, appliedFilters, appliedFilterAggTypes } = searchState;
       const request_applied = filtersValid && appliedFilters;
       const { aggregation_field_array,  aggregation_field_lang_suffix_array } = SearchState.metadataByType[type];
