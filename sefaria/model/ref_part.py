@@ -895,6 +895,9 @@ class MatchTemplateTrie:
         if has_partial_matches and len(next_sub_tries) == 0 and allow_partial and isinstance(prev_sub_tries, dict):
             # partial match without any complete matches
             return [prev_sub_tries], [key]
+        if len(partial_key_end_list) > 1:
+            # currently we don't consider partial keys if there's more than one match
+            next_sub_tries, partial_key_end_list = zip(*filter(lambda x: x[1] is None, zip(next_sub_tries, partial_key_end_list)))
         return next_sub_tries, partial_key_end_list
 
     def __contains__(self, key):
