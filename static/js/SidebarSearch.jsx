@@ -11,7 +11,7 @@ import {
 } from './Misc';
 
 
-const SidebarSearch = ({ title, updateAppliedOptionSort, navigatePanel, sidebarSearchQuery, setSidebarSearchQuery }) => {
+const SidebarSearch = ({ title, updateAppliedOptionSort, navigatePanel, sidebarSearchQuery, setSidebarSearchQuery, onSidebarSearchClick }) => {
   const [lexiconName, setLexiconName] = useState(Sefaria.getIndexDetailsFromCache(title)?.lexiconName)
   const [searchFilterPathForBook, setSearchFilterPathForBook] = useState('');
   const [query, setQuery] = useState(sidebarSearchQuery || '');
@@ -119,7 +119,7 @@ const SidebarSearch = ({ title, updateAppliedOptionSort, navigatePanel, sidebarS
           updateTotalResults={n => console.log(n)}
           registerAvailableFilters={n => console.log(n)}
           updateAppliedOptionSort={updateAppliedOptionSort}
-          onResultClick={navigatePanel}
+          onResultClick={onSidebarSearchClick}
         /> :
 
         null

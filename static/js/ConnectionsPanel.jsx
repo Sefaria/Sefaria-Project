@@ -690,6 +690,7 @@ class ConnectionsPanel extends Component {
                 navigatePanel={this.props.navigatePanel}
                 sidebarSearchQuery={this.props.sidebarSearchQuery}
                 setSidebarSearchQuery={this.props.setSidebarSearchQuery}
+                onSidebarSearchClick={this.props.onSidebarSearchClick}
               />
     }
 

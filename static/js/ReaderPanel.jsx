@@ -739,6 +739,7 @@ class ReaderPanel extends Component {
           closePanel={this.props.closePanel}
           selectedWords={this.state.selectedWords}
           sidebarSearchQuery={this.state.sidebarSearchQuery}
+          onSidebarSearchClick={this.props.onSidebarSearchClick}
           selectedNamedEntity={this.state.selectedNamedEntity}
           selectedNamedEntityText={this.state.selectedNamedEntityText}
           clearSelectedWords={this.clearSelectedWords}

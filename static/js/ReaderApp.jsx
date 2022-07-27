@@ -968,6 +968,9 @@ class ReaderApp extends Component {
     // Handle clicking a search result in a compare panel, so that clicks don't clobber open panels
     this.replacePanel(n, ref, currVersions, options);
   }
+  handleSidebarSearchClick(n, ref, currVersions, options) {
+    this.replacePanel(n-1, ref, currVersions, options);
+}
   getHTMLLinkParentOfEventTarget(event){
     //get the lowest level parent element of an event target that is an HTML link tag. Or Null.
     let target = event.target,
@@ -1945,6 +1948,7 @@ class ReaderApp extends Component {
       var onCloseConnectionClick         = this.closeConnectionPanel.bind(null,i);
       var closeNamedEntityInConnectionPanel = this.closeNamedEntityInConnectionPanel.bind(null,i);
       var onSearchResultClick            = i > 0 ? this.handleCompareSearchClick.bind(null, i) : this.handleNavigationClick;
+      var onSidebarSearchClick           = this.handleSidebarSearchClick.bind(null, i);
       var unsetTextHighlight             = this.unsetTextHighlight.bind(null, i);
       var updateQuery                    = this.updateQuery.bind(null, i);
       var updateSearchTab                = this.updateSearchTab.bind(null, i);
@@ -1988,6 +1992,7 @@ class ReaderApp extends Component {
                       closeConnectionPanel={onCloseConnectionClick}
                       closeNamedEntityInConnectionPanel={closeNamedEntityInConnectionPanel}
                       onSearchResultClick={onSearchResultClick}
+                      onSidebarSearchClick={onSidebarSearchClick}
                       onNavigationClick={this.handleNavigationClick}
                       onOpenConnectionsClick={onOpenConnectionsClick}
                       openComparePanel={openComparePanel}
