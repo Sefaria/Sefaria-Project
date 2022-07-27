@@ -1210,6 +1210,25 @@ class SpecificConverterManager:
                                             get_other_fields=get_other_fields)
         converter.convert()
 
+    def convert_mechilta_drshbi(self):
+        def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
+            if node.is_root():
+                title_slug = RTM.create_term_from_titled_obj(node, context="base", ref_part_role='structural', new_alt_titles=["מכילתא דר' שמעון", "מגילתא דר' שמעון בן יוחאי", "מכילתא דר' שמעון בר יוחאי", 'Mekhilta of Rabbi Shimon Ben Yochai', "Mekhilta de-Rabbi Shim'on ben Yoḥai"]).slug
+                return [
+                    MatchTemplate([title_slug])
+                ]
+
+        def get_other_fields(node, depth, isibling, num_siblings, is_alt_node):
+            if node.is_default():
+                return {
+                    "referenceableSections": [True, False],
+                }
+
+        converter = LinkerCategoryConverter("Mekhilta DeRabbi Shimon Ben Yochai", is_index=True, get_match_templates=get_match_templates,
+                                            get_other_fields=get_other_fields)
+        converter.convert()
+
+
     def convert_pdre_and_tde(self):
         def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
             if node.is_root():
@@ -1266,6 +1285,7 @@ if __name__ == '__main__':
     converter_manager.convert_mechilta_dry()
     converter_manager.dibur_hamatchil_adder.add_all_dibur_hamatchils()
     converter_manager.convert_pdre_and_tde()
+    converter_manager.convert_mechilta_drshbi()
 
 """
 Still TODO
