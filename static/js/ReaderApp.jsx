@@ -592,6 +592,7 @@ class ReaderApp extends Component {
           hist.versionFilter = state.versionFilter[0];
         }
         if (state.connectionsMode ==="SidebarSearch") {
+            state.refs = states[i-1].refs
             if (state.sidebarSearchQuery) {
               hist.sidebarSearchQuery = state.sidebarSearchQuery
             }
