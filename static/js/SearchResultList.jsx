@@ -336,7 +336,7 @@ class SearchResultList extends Component {
                 });
                 const filter_label = (request_applied && request_applied.length > 0) ? (' - ' + request_applied.join('|')) : '';
                 const query_label = props.query + filter_label;
-                Sefaria.track.event("Search", `Query: ${type}`, query_label, data.hits.total);
+                Sefaria.track.event("Search", `${this.props.searchInBook? "SidebarSearch ": ""}Query: ${type}`, query_label, data.hits.total);
               }
 
               if (data.aggregations) {
@@ -437,6 +437,7 @@ class SearchResultList extends Component {
               data={result}
               query={this.props.query}
               key={result._id}
+              searchInBook={this.props.searchInBook}
               onResultClick={this.props.onResultClick} />
           );
           if (this.state.topics.length > 0) {
