@@ -141,7 +141,6 @@ class DictionarySearch extends Component {
       this.props.showWordList(word);
     } else if (this.props.navigatePanel || this.props.showBaseText) {
       const ref = this.props.title + ", " + word;
-      console.log(ref)
       Sefaria.getText(ref).then(data => {
         // Check that this ref exists first before trying to open a panel
         if ("error" in data) {

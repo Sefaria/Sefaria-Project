@@ -149,7 +149,6 @@ class TextColumn extends Component {
   }
   handleTextLoad(ref) {
 
-    console.log('handling text load')
     // TextRanges in the column may be initial rendered in "loading" state without data.
     // When the data loads we may need to change scroll position or render addition ranges.
     // console.log("handle text load: ", ref);

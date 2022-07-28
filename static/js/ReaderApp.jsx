@@ -978,7 +978,6 @@ class ReaderApp extends Component {
                       showHighlight: true,
                       currentlyVisibleRef: refs,
                     }
-    console.log(new_opts)
     this.replacePanel(n-1, ref, currVersions, new_opts);
 }
   getHTMLLinkParentOfEventTarget(event){
