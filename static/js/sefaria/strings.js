@@ -90,6 +90,7 @@ const Strings = {
     "Options": "אפשרויות",
     "Exact Matches Only": "התאמה מדויקת למילות החיפוש",
     "Search Texts": "חפש מקורות",
+    "Search in this text": "חפש בטקסט",
 
     // Sheets
     "Sheet": "דף מקורות",

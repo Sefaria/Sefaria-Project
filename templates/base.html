@@ -15,7 +15,7 @@
     {% endif %}
 
     <link rel="search" type="application/opensearchdescription+xml" title="Sefaria Search" href="{% static 'files/opensearch.xml' %}" />
-    
+
     {% if SITE_SETTINGS.TORAH_SPECIFIC %}
     <link rel="alternate" href="https://www.sefaria.org{{ request.path }}" hreflang="en" />
     <link rel="alternate" href="https://www.sefaria.org.il{{ request.path }}" hreflang="he" />
@@ -140,7 +140,7 @@
     <!-- Google Tag Manager (noscript) -->
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id={{ GOOGLE_TAG_MANAGER_CODE }}"
     height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-    <!-- End Google Tag Manager (noscript) --> 
+    <!-- End Google Tag Manager (noscript) -->
     {% endif %}
 
     {% autoescape off %}
