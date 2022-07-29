@@ -35,7 +35,7 @@ const SourcesSheetsDiv = (props) => {
         sheetsURL = props.url;
         sourcesURL = props.url;
     }
-    
+
     if (props?.numSources > 0) {
         const sourcesDiv = <span><a href={sourcesURL}><InterfaceText>{props.numSources}</InterfaceText> <InterfaceText>Sources</InterfaceText></a></span>;
         sourcesSheetsCounts.push(sourcesDiv);
@@ -44,7 +44,7 @@ const SourcesSheetsDiv = (props) => {
         const sheetsDiv = <span><a href={sheetsURL}><InterfaceText>{props.numSheets}</InterfaceText> <InterfaceText>Sheets</InterfaceText></a></span>;
         sourcesSheetsCounts.push(sheetsDiv);
     }
-    
+
     if (sourcesSheetsCounts.length === 0) {
         return null;
     }
@@ -77,11 +77,11 @@ const SearchTopic = (props) => {
 
 
 
-    
+
 class SearchResultList extends Component {
     constructor(props) {
       super(props);
-      this.types = ['text', 'sheet'];
+      this.types = this.props.types || ['text', 'sheet'];
       this.querySize = {"text": 50, "sheet": 20};
       this.state = {
         runningQueries: this._typeObjDefault(null),
@@ -99,8 +99,8 @@ class SearchResultList extends Component {
         const args = this._getQueryArgs(props, t);
         let cachedQuery = Sefaria.search.getCachedQuery(args);
         while (cachedQuery) {
-          // Load all pages of results that are available in cache, so if page X was 
-          // previously loaded it will be returned. 
+          // Load all pages of results that are available in cache, so if page X was
+          // previously loaded it will be returned.
           //console.log("Loaded cached query for")
           //console.log(args);
           this.state.hits[t] = this.state.hits[t].concat(cachedQuery.hits.hits);
@@ -293,11 +293,11 @@ class SearchResultList extends Component {
       this.types.forEach(t => this._executeQuery(props, t));
     }
     _getAggsToUpdate(filtersValid, aggregation_field_array, aggregation_field_lang_suffix_array, appliedFilterAggTypes, type) {
-      // Returns a list of aggregations type which we should request from the server. 
+      // Returns a list of aggregations type which we should request from the server.
 
       // If there is only on possible filter (i.e. path for text) and filters are valid, no need to request again for any filter interactions
       if (filtersValid && aggregation_field_array.length === 1) { return []; }
-      
+
       return Sefaria.util
         .zip(aggregation_field_array, aggregation_field_lang_suffix_array)
         .map(([agg, suffix_map]) => `${agg}${suffix_map ? suffix_map[Sefaria.interfaceLang] : ''}`); // add suffix based on interfaceLang to filter, if present in suffix_map
@@ -336,7 +336,7 @@ class SearchResultList extends Component {
                 });
                 const filter_label = (request_applied && request_applied.length > 0) ? (' - ' + request_applied.join('|')) : '';
                 const query_label = props.query + filter_label;
-                Sefaria.track.event("Search", `Query: ${type}`, query_label, data.hits.total); 
+                Sefaria.track.event("Search", `${this.props.searchInBook? "SidebarSearch ": ""}Query: ${type}`, query_label, data.hits.total);
               }
 
               if (data.aggregations) {
@@ -346,10 +346,10 @@ class SearchResultList extends Component {
                 for (let aggregation of args.aggregationsToUpdate) {
                   if (!!data.aggregations[aggregation]) {
                     const { buckets } = data.aggregations[aggregation];
-                    const { 
-                      availableFilters: tempAvailable, 
-                      registry: tempRegistry, 
-                      orphans: tempOrphans 
+                    const {
+                      availableFilters: tempAvailable,
+                      registry: tempRegistry,
+                      orphans: tempOrphans
                     } = Sefaria.search[build_and_apply_filters](buckets, appliedFilters, appliedFilterAggTypes, aggregation);
                     availableFilters.push(...tempAvailable);  // array concat
                     registry = extend(registry, tempRegistry);
@@ -437,6 +437,7 @@ class SearchResultList extends Component {
               data={result}
               query={this.props.query}
               key={result._id}
+              searchInBook={this.props.searchInBook}
               onResultClick={this.props.onResultClick} />
           );
           if (this.state.topics.length > 0) {
@@ -474,13 +475,15 @@ class SearchResultList extends Component {
         return (
           <div>
             <div className="searchTopMatter">
+              {!this.props.searchInBook ?
               <SearchTabs
                 clickTextButton={this.showTexts}
                 clickSheetButton={this.showSheets}
                 textTotal={this.state.totals["text"]}
                 sheetTotal={this.state.totals["sheet"]}
-                currentTab={tab} />
-              {Sefaria.multiPanel && !this.props.compare ? 
+                currentTab={tab} /> : null
+              }
+              {Sefaria.multiPanel && !this.props.compare ?
               <SearchSortBox
                 type={tab}
                 updateAppliedOptionSort={this.props.updateAppliedOptionSort}
@@ -488,7 +491,7 @@ class SearchResultList extends Component {
               :
               <SearchFilterButton
                 openMobileFilters={this.props.openMobileFilters}
-                nFilters={searchState.appliedFilters.length} />}             
+                nFilters={searchState.appliedFilters.length} />}
             </div>
             <div className="searchResultList">
               { queryFullyLoaded || haveResults ? results : null }
