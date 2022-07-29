@@ -1269,6 +1269,29 @@ class SpecificConverterManager:
         converter.convert()
 
 
+    def convert_arukh_hashulchan(self):
+        def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
+            if is_alt_node:
+                title_slug = RTM.create_term_from_titled_obj(node, 'structural', 'arukh hashulchan').slug
+                return [MatchTemplate([title_slug])]
+            sa_title_swaps = {
+                "Orach Chaim": "Orach Chayim",
+                "Yoreh Deah": "Yoreh De'ah"
+            }
+            title = node.get_primary_title('en')
+            if depth == 0:
+                title_slug = RTM.create_term_from_titled_obj(node, 'structural', 'arukh hashulchan').slug
+            else:
+                title = sa_title_swaps.get(title, title)
+                title_term = RTM.get_term_by_primary_title('shulchan arukh', title)
+                if title_term is None:
+                    title_slug = RTM.create_term_from_titled_obj(node, 'structural', 'arukh hashulchan').slug
+                else:
+                    title_slug = title_term.slug
+            return [MatchTemplate([title_slug])]
+
+        converter = LinkerIndexConverter('Arukh HaShulchan', get_match_templates=get_match_templates)
+        converter.convert()
 
 
 if __name__ == '__main__':
@@ -1281,6 +1304,7 @@ if __name__ == '__main__':
     converter_manager.convert_mishneh_torah()
     converter_manager.convert_tur()
     converter_manager.convert_shulchan_arukh()
+    converter_manager.convert_arukh_hashulchan()
 
     converter_manager.convert_zohar()
     converter_manager.convert_zohar_chadash()
