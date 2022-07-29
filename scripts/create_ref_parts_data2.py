@@ -1003,7 +1003,11 @@ class SpecificConverterManager:
                 title_slug = RTM.create_term_from_titled_obj(node, 'structural', 'tur').slug
             else:
                 title = sa_title_swaps.get(title, title)
-                title_slug = RTM.get_term_by_primary_title('shulchan arukh', title).slug
+                title_term = RTM.get_term_by_primary_title('shulchan arukh', title)
+                if title_term is None:
+                    title_slug = RTM.create_term_from_titled_obj(node, 'structural', 'tur').slug
+                else:
+                    title_slug = title_term.slug
             return [MatchTemplate([title_slug])]
         converter = LinkerIndexConverter('Tur', get_match_templates=get_match_templates)
         converter.convert()
