@@ -233,6 +233,13 @@ crrd = create_raw_ref_data
     [crrd(None, 'he', 'תנד"א זוטא יא', [slice(0, 4), 4], [RPT.NAMED, RPT.NUMBERED]), ["Tanna debei Eliyahu Zuta 11"]],
     [crrd(None, 'he', 'מכילתא דרשב"י פרק יב', [slice(0, 4), slice(4, 6)], [RPT.NAMED, RPT.NUMBERED]), ["Mekhilta DeRabbi Shimon Ben Yochai 12"]],
 
+    [crrd(None, 'he', "ספרי במדבר קמב", [slice(0, 2), 2], [RPT.NAMED, RPT.NUMBERED]), ["Sifrei Bamidbar 142"]],
+    [crrd(None, 'he', "ספרי במדבר פיס' קמב", [slice(0, 2), slice(2, 5)], [RPT.NAMED, RPT.NUMBERED]), ["Sifrei Bamidbar 142"]],
+    [crrd(None, 'he', 'ספרי דברים פיסקא צט', [slice(0, 2), slice(2, 4)], [RPT.NAMED, RPT.NUMBERED]), ["Sifrei Devarim 99"]],
+    [crrd(None, 'he', 'ספרי במדבר פסקא יז', [slice(0, 2), slice(2, 4)], [RPT.NAMED, RPT.NUMBERED]), ["Sifrei Bamidbar 17"]],
+    [crrd(None, 'he', 'ספרי במדבר פרשת בהעלותך פיסקא עח', [slice(0, 2), slice(2, 4), slice(4, 6)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Sifrei Bamidbar 78"]],
+    [crrd(None, 'he', "ספרי דברים וזאת הברכה סי' שמד", [slice(0, 2), slice(2, 4), slice(4, 6)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Sifrei Devarim 344"]],
+
 ])
 def test_resolve_raw_ref(resolver_data, expected_trefs):
     ref_resolver.reset_ibid_history()  # reset from previous test runs
