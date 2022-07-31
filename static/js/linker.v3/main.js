@@ -237,12 +237,16 @@ const SELECTOR_WHITE_LIST = {
 
     }
 
+    function reportCitation(citationText, event, ...rest) {
+        console.log("Report", citationText);
+    }
+
     function bindRefClickHandlers(refData) {
         // Bind a click event and a mouseover event to each link
         [].forEach.call(document.querySelectorAll('.sefaria-ref'),(elem) => {
             const ref = elem.getAttribute('data-ref');
-            if (!ref) { /* failed link */ return; }
-            const source = refData[ref];
+            if (!ref && !ns.debug) { /* failed link */ return; }
+            const source = refData[ref] || {};
             source.ref = ref;
             ns.popupManager.bindEventHandler(elem, SEFARIA_BASE_URL, source);
         });
@@ -267,7 +271,7 @@ const SELECTOR_WHITE_LIST = {
         ns.debug = debug;
         // useful to remove sefaria links for now but I think when released we only want this to run in debug mode
         if (debug || true) { removeExistingSefariaLinks(); }
-        ns.popupManager = new PopupManager({ mode, interfaceLang, contentLang, popupStyles });
+        ns.popupManager = new PopupManager({ mode, interfaceLang, contentLang, popupStyles, debug, reportCitation });
         ns.popupManager.setupPopup();
         const {text: readableText, readableObj} = getReadableText();
         ns.normalizedInputText = readableText + getWhiteListText(readableText);

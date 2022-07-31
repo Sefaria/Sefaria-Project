@@ -1,11 +1,13 @@
 import Draggabilly from 'draggabilly';
 
 export class PopupManager {
-    constructor({ mode, interfaceLang, contentLang, popupStyles }) {
+    constructor({ mode, interfaceLang, contentLang, popupStyles, debug, reportCitation }) {
         this.mode = mode;
         this.interfaceLang = interfaceLang;
         this.contentLang = contentLang;
         this.popupStyles = popupStyles;
+        this.debug = debug;
+        this.reportCitation = reportCitation;
         // no need to declare these but declaring so API is clear
         this.popUpElem = null;
         this.heTitle = null;
@@ -213,6 +215,10 @@ export class PopupManager {
                 '<span class="sefaria-read-more-button">' +
                     '<a class = "sefaria-popup-ref" target="_blank" href = "">' + readMoreText + '</a>' +
                 '</span>' : "") +
+                (this.debug ?
+                    '<span class="sefaria-read-more-button" id="sefaria-report-btn"><a>Report</a></span>'
+                    : ''
+                ) +
             '</div>';
 
         this.popUpElem.innerHTML = html;
@@ -345,6 +351,11 @@ export class PopupManager {
               }
               this.hidePopup();
             }.bind(this));
+        }
+
+        if (this.debug) {
+            const reportBtn = document.querySelector('#sefaria-report-btn');
+            reportBtn.addEventListener('click', this.reportCitation.bind(null, "YO " + ref), false);
         }
 
         let scrollbarOffset = this.popUpElem.clientWidth - this.textBox.clientWidth;
