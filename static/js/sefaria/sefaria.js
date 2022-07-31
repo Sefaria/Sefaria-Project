@@ -53,7 +53,7 @@ Sefaria = extend(Sefaria, {
       let book, index, nums;
       for (let i = first.length; i >= 0; i--) {
           book   = first.slice(0, i);
-          if (book in Sefaria.virtualBooksDict) {
+          if (Sefaria.virtualBooks.includes(book)) {
               // todo: This assumes that this is a depth one integer indexed node
               const numberMatch = first.match(/([\d ]+)$/);
               if (numberMatch) {
@@ -239,13 +239,13 @@ Sefaria = extend(Sefaria, {
     //need to convert to ints, add ancestors for complex and copy logic from server
 
     if ("error" in oRef1 || "error" in oRef2) { return null; }
-    
+
     //We need numerical representations of the sections, and not to trip up on talmud sections
     if (oRef2.index !== oRef2.index || oRef1.book !== oRef2.book) { return false; }
-    const [oRef1sections, oRef1toSections, oRef2sections, oRef2toSections] = [oRef1.sections, oRef1.toSections, oRef2.sections, oRef2.toSections].map(arr => 
+    const [oRef1sections, oRef1toSections, oRef2sections, oRef2toSections] = [oRef1.sections, oRef1.toSections, oRef2.sections, oRef2.toSections].map(arr =>
         arr.map(x => x.match(/\d+[ab]/) ? Sefaria.hebrew.dafToInt(x) : parseInt(x))
     )
-      
+
     const sectionsLen = Math.min(oRef1sections.length, oRef2sections.length);
     //duplicated from server side logic to finally fix
     for (let i = 0; i < sectionsLen; i++) {
@@ -281,7 +281,7 @@ Sefaria = extend(Sefaria, {
   splitSpanningRefNaive: function(ref){
       if (ref.indexOf("-") == -1) { return ref; }
       return ref.split("-");
-  },  
+  },
   splitRangingRef: function(ref) {
     // Returns an array of segment level refs which correspond to the ranging `ref`
     // e.g. "Genesis 1:1-2" -> ["Genesis 1:1", "Genesis 1:2"]
@@ -382,7 +382,7 @@ Sefaria = extend(Sefaria, {
       multiple:   settings.multiple   || 0,
       stripItags: settings.stripItags || 0,
       wrapLinks:  ("wrapLinks" in settings) ? settings.wrapLinks : 1,
-      wrapNamedEntities: ("wrapNamedEntities" in settings) ? settings.wrapNamedEntities : 1, 
+      wrapNamedEntities: ("wrapNamedEntities" in settings) ? settings.wrapNamedEntities : 1,
       translationLanguagePreference: settings.translationLanguagePreference || null,
       versionPref: settings.versionPref || null,
       firstAvailableRef: settings.firstAvailableRef || 1,
@@ -493,27 +493,30 @@ Sefaria = extend(Sefaria, {
     }.bind(this));
     return null;
   },
+  ISOMap: {
+    "ar": {"name": "Arabic", "nativeName": "عربى", "showTranslations": 0},
+    "de": {"name": "German", "nativeName": "Deutsch", "showTranslations": 1, "title": "Jüdische Texte in Deutscher Sprache"},
+    "en": {"name": "English", "nativeName": "English", "showTranslations": 1, "title": "Jewish Texts in English"},
+    "eo": {"name": "Esperanto", "nativeName": "Esperanto", "showTranslations": 1, "title": "Judaj Tekstoj en Esperanto"},
+    "es": {"name": "Spanish", "nativeName": "Español", "showTranslations": 1, "title": "Textos Judíos en Español"},
+    "fa": {"name": "Persian", "nativeName": "فارسی", "showTranslations": 1, "title": "متون یهودی به زبان فارسی"},
+    "fi": {"name": "Finnish", "nativeName": "suomen kieli", "showTranslations": 1, "title": "Juutalaiset tekstit suomeksi"},
+    "fr": {"name": "French", "nativeName": "Français", "showTranslations": 1, "title": "Textes juifs en français"},
+    "he": {"name": "Hebrew", "nativeName": "עברית", "showTranslations": 0, "title": "ספריה בעברית"},
+    "it": {"name": "Italian", "nativeName": "Italiano", "showTranslations": 1, "title": "Testi ebraici in italiano"},
+    "lad": {"name": "Ladino", "nativeName": "Judeo-español", "showTranslations": 0},
+    "pl": {"name": "Polish", "nativeName": "Polskie", "showTranslations": 1, "title": "Teksty żydowskie w języku polskim"},
+    "pt": {"name": "Portuguese", "nativeName": "Português", "showTranslations": 1, "title": "Textos judaicos em portugues"},
+    "ru": {"name": "Russian", "nativeName": "Pусский", "showTranslations": 1, "title": "Еврейские тексты на русском языке"},
+    "yi": {"name": "Yiddish", "nativeName": "יידיש", "showTranslations": 1, "title": "יידישע טעקסטן אויף יידיש"},
+  },
   translateISOLanguageCode(code, native = false) {
     //takes two-letter ISO 639.2 code and returns full language name
-    const ISOMap = {
-        "ar": {"name": "Arabic", "nativeName": "عربى"},
-        "de": {"name": "German", "nativeName": "Deutsch"},
-        "en": {"name": "English", "nativeName": "English"},
-        "eo": {"name": "Esperanto", "nativeName": "Esperanto"},
-        "es": {"name": "Spanish", "nativeName": "Español"},
-        "fa": {"name": "Persian", "nativeName": "فارسی"},
-        "fi": {"name": "Finnish", "nativeName": "suomen kieli"},
-        "fr": {"name": "French", "nativeName": "Français"},
-        "he": {"name": "Hebrew", "nativeName": "עברית"},
-        "it": {"name": "Italian", "nativeName": "Italiano"},
-        "lad": {"name": "Ladino", "nativeName": "Judeo-español"},
-        "pl": {"name": "Polish", "nativeName": "Polskie"},
-        "pt": {"name": "Portuguese", "nativeName": "Português"},
-        "ru": {"name": "Russian", "nativeName": "Pусский"},
-        "yi": {"name": "Yiddish", "nativeName": "יידיש"},
-    }
     const lookupVar = native ? "nativeName" : "name";
-    return ISOMap[code.toLowerCase()][lookupVar] || code; 
+    return Sefaria.ISOMap[code.toLowerCase()][lookupVar] || code; 
+  },
+  getHebrewTitle: function(slug) {
+    return Sefaria.ISOMap[slug] ? Sefaria.ISOMap[slug]["title"] ?  Sefaria.ISOMap[slug]["title"] : "Jewish Texts in " + Sefaria.ISOMap[slug]["name"] : "Jewish texts in " + slug ;
   },
   _versions: {},
   _translateVersions: {},
@@ -2102,7 +2105,7 @@ _media: {},
   userHistory: {loaded: false, items: []},
   saveUserHistory: function(history_item) {
     // history_item contains:
-    // `ref`, `book`, `versions`, `sheet_title`, `sheet_owner`` 
+    // `ref`, `book`, `versions`, `sheet_title`, `sheet_owner``
     // optionally: `secondary`, `he_ref`, `language`
     if(!Sefaria.is_history_enabled || !history_item) {
         return;
@@ -2177,11 +2180,11 @@ _media: {},
     // Returns promise for all topics list.
     if (this._topicList) { return Promise.resolve(this._topicList); }
     return this._ApiPromise(Sefaria.apiHost + "/api/topics?limit=0")
-        .then(d => { 
+        .then(d => {
           for (let topic of d) {
             topic.normTitles = topic.titles.map(title => title.text.toLowerCase());
           }
-          this._topicList = d; 
+          this._topicList = d;
           return d;
         });
   },
@@ -2197,6 +2200,14 @@ _media: {},
       url:   `${this.apiHost}/api/calendars/next-read/${parasha}`,
       key:   parasha,
       store: this._parashaNextRead,
+    });
+  },
+  _bookSearchPathFilter: {},
+  bookSearchPathFilterAPI: title => {
+    return Sefaria._cachedApiPromise({
+      url:   Sefaria.apiHost + "/api/search-path-filter/" + title,
+      key:   title,
+      store: Sefaria._bookSearchPathFilter
     });
   },
   _topics: {},
@@ -2231,7 +2242,7 @@ _media: {},
           let { title } = linkTypeObj;
           if (tabKey == 'sheets') {
             title = {en: 'Sheets', he: Sefaria._('Sheets')};
-          } 
+          }
           if (tabKey == 'sources') {
             title = {en: 'Sources', he: Sefaria._('Sources')};
           }
@@ -2392,7 +2403,7 @@ _media: {},
               this._userSheets[key].unshift(sheet);
             } else if (updateInPlace) {
               this._userSheets[key][sheetIndex] = sheet;
-            } else {  
+            } else {
               this._userSheets[key].unshift(sheet);
             }
           } else {
@@ -2515,6 +2526,12 @@ _media: {},
       return typeof ref === "string" ? parseInt(ref.split(" ")[1]) : parseInt(ref[0].split(" ")[1]);
     }
   },
+  _translations: {},
+  getTranslation: function(key) {
+    const url = Sefaria.apiHost + "/api/texts/translations/" + key;
+    const store = this._translations;
+    return this._cachedApiPromise({url, key, store})
+  },
   _collections: {},
   getCollection: function(key) {
       const url = Sefaria.apiHost + "/api/collections/" + encodeURIComponent(key);
@@ -2624,7 +2641,6 @@ _media: {},
       }
   },
   _: function(inputStr, context=null){
-    if (!inputStr.toLowerCase) debugger;
     if(Sefaria.interfaceLang != "english"){
       return Sefaria.translation(Sefaria.interfaceLang, inputStr, context);
     } else {
@@ -2772,6 +2788,9 @@ Sefaria.unpackDataFromProps = function(props) {
   if (props.collectionData) {
     Sefaria._collections[props.initialCollectionSlug] = props.collectionData;
   }
+  if (props.translationsData) {
+    Sefaria._translations[props.initialTranslationsSlug] = props.translationsData;
+  }
   if (props.topicData) {
     Sefaria._topics[props.initialTopic] = Sefaria.processTopicsData(props.topicData);
   }
@@ -2789,10 +2808,10 @@ Sefaria.unpackDataFromProps = function(props) {
 };
 
 Sefaria.unpackBaseProps = function(props){
-    //TODO: verify these are all base props!!! 
+    //TODO: verify these are all base props!!!
       if (typeof props === 'undefined') {
           return;
-      }  
+      }
       const dataPassedAsProps = [
       "_uid",
       "_email",
@@ -2871,9 +2890,6 @@ Sefaria.setup = function(data, props = null) {
     // And store current uid in analytics id
     Sefaria._analytics_uid = Sefaria._uid;
     Sefaria._makeBooksDict();
-    Sefaria.virtualBooksDict = {"Jastrow": 1, "Klein Dictionary": 1, "Jastrow Unabbreviated": 1,
-    'Sefer HaShorashim': 1, 'Animadversions by Elias Levita on Sefer HaShorashim': 1,
-    'BDB': 1, 'BDB Aramaic': 1};  //Todo: Wire this up to the server
     Sefaria._cacheFromToc(Sefaria.toc);
     Sefaria._cacheHebrewTerms(Sefaria.terms);
     Sefaria._cacheSiteInterfaceStrings();

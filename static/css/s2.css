@@ -76,7 +76,7 @@ a, a:hover {
   unicode-range: U+0041-007A;
 }
 @font-face {
-  font-family: 'Noto Color Emoji'; 
+  font-family: 'Noto Color Emoji';
   src: url('/static/fonts/NotoColorEmoji.ttf');
   unicode-range: U+1F1E6-1F1FF;
 }
@@ -1213,6 +1213,9 @@ div.interfaceLinks-row a {
   width: 18px;
   opacity: 0.4;
 }
+.sidebarSearch .readerNavMenuSearchButton img {
+  margin-top: 12px;
+}
 .header .headerNavContent {
   position: absolute;
   height: 100%;
@@ -1644,6 +1647,40 @@ div.interfaceLinks-row a {
 .navSidebarLink.gray a {
   color: #666;
 }
+
+.navSidebarLink > ul {
+  font-size: 18px;
+  margin-top: 16px;
+  display: flex;
+  flex-wrap:wrap;
+  padding: 0;
+  margin: 0;
+}
+.navSidebarLink > ul > li {
+  display: inline;
+}
+.navSidebarLink > ul > li:after {
+  content: "\2022";
+  white-space:pre;
+  margin: 0 5px;
+}
+
+.navSidebarLink > ul > li:last-child:after {
+  content: none;
+}
+
+.navSidebarLink .languageItem, .translationsPage .languageItem {
+  display: inline;
+  font-size: 18px;
+}
+
+.navSidebarLink.language {
+  font-size: 18px;
+  margin-top: 16px;
+  display: flex;
+  flex-wrap:wrap;
+}
+
 .navSidebarLink.ref {
   font-size: 18px;
 }
@@ -1828,6 +1865,58 @@ div.interfaceLinks-row a {
   align-items: center;
   justify-content: flex-start;
 }
+.interface-hebrew .sidebarSearch .searchBox,
+.interface-hebrew .sidebarSearch .version,
+.interface-hebrew .sidebarSearch .result-title {
+  direction: rtl;
+}
+.sidebarSearch .searchBox {
+  display: flex;
+  align-items: center;
+  padding: 0;
+  text-align: inherit;
+  background: var(--lighter-grey);
+  border-radius: 250px;
+  width: 100%;
+  height: 30px;
+  margin-bottom: 0;
+}
+
+.sidebarSearch .searchBox input {
+  background: transparent;
+  outline: none;
+  border: none;
+  box-shadow: none;
+  font-size: var(--serif-body-font-size);
+  width: 100%;
+}
+.sidebarSearch .searchTopMatter,
+.sidebarSearch .searchTopic {
+  display: none;
+}
+.sidebarSearch .result-title {
+  padding: 14px 0 14px 0;
+  font-size: var(--serif-body-font-size);
+  border-top: 1px solid var(--lighter-grey);
+  margin-top: 14px;
+  color: var(--dark-grey);
+}
+
+.sidebarSearch .similar-results {
+  margin-inline-start: 30px;
+}
+
+.sidebarSearch .snippet.he,
+.sidebarSearch .snippet.en {
+  font-size: var(--serif-body-font-size);
+  display: block;
+}
+
+.sidebarSearch .colorBarBox {
+  border-inline-start: none;
+  padding-inline-start: 0;
+}
+
 .readerNavTop .searchBox .readerNavMenuSearchButton {
   margin: 0 5px 0 10px;
 }
@@ -2058,6 +2147,36 @@ div.interfaceLinks-row a {
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   margin-bottom: -3px;
 }
+.readerPanel .translationsPage h2 {
+  margin: 40px 0 0 0;
+  font-size: 24px;
+  text-transform: none;
+  color: #000;
+}
+.translationsPage details > ul {
+  padding: 0;
+  margin: 20px 0;
+  display: flex;
+  flex-wrap: wrap;
+}
+.translationsPage details > ul > li:after {
+  content: "\2022";
+  white-space:pre;
+  margin: 0 5px;
+}
+.translationsPage details > ul > li:last-child:after {
+  content: none;
+}
+.readerPanel .translationsPage details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.readerPanel .translationsPage  details > summary {
+  list-style: none;
+  cursor: pointer;
+  font-size: 18px;
+}
+
 h1 .languageToggle {
   text-align: center;
   position: absolute;
@@ -2151,12 +2270,13 @@ h1 .languageToggle .he {
   border-bottom: 2px solid #999;
   padding-bottom: 4px;
 }
-.readerPanel h2, .readerPanel h3 {
+.readerPanel h2, .readerPanel h3,
+.translationsPage details > summary {
   text-transform: uppercase;
   text-align: start;
   font-size: 15px;
   color: #666;
-  margin-bottom: 20px;
+  margin: 30px 0 0 0;
   font-weight: normal;
 }
 .readerNavSection h2, .topicsPanel h2 {
@@ -3460,7 +3580,11 @@ select {
   margin-inline-end: 5px;
 }
 .searchBox.dictionarySearchBox .keyboardInputInitiator {
+  margin-bottom: 2px;
   border: none;
+}
+.interface-hebrew .searchBox.dictionarySearchBox .keyboardInputInitiator {
+  display: none;
 }
 .dictionarySearchBox input {
   font-size: 17px;
@@ -3953,7 +4077,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .result {
   padding-bottom: 20px;
 }
-.searchContent .result a:hover {
+.searchContent .result a:hover,
+.sidebarSearch .result a:hover {
   text-decoration: none;
 }
 .searchContent .similar-results {
@@ -4015,7 +4140,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .similar-results .result .result-title {
   padding: 0 0 5px;
 }
-.searchContent .result .version {
+.searchContent .result .version,
+.sidebarSearch .result .version {
   color: #999;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 13px;
@@ -4026,7 +4152,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .result .version .ownerMetadata {
   margin-inline-start: 10px;
 }
-.searchContent .result .similar-trigger-box {
+.searchContent .result .similar-trigger-box,
+.sidebarSearch .result .similar-trigger-box {
   color: #999;
   font-weight: lighter;
   --english-font: var(--english-sans-serif-font-family);

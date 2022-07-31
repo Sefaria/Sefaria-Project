@@ -872,7 +872,7 @@ class MatchTemplateTrie:
         if key_is_id:
             # dont attempt to split key
             next_sub_tries = [prev_sub_tries[key]] if key in prev_sub_tries else []
-            return next_sub_tries, None
+            return next_sub_tries, []
         next_sub_tries = []
         partial_key_end_list = []
         key = key.strip()
@@ -1261,11 +1261,9 @@ class RefResolver:
     def _get_unrefined_ref_part_matches_for_title_context(self, lang: str, context_ref: Optional[text.Ref], raw_ref: RawRef, context_type: ContextType) -> List[ResolvedRef]:
         matches = []
         if context_ref is None: return matches
-        match_templates = list(context_ref.index.nodes.get_match_templates())
-        if len(match_templates) == 0: return matches
-        # assumption is longest template will be uniquest. is there a reason to consider other templates?
-        longest_template = max(match_templates, key=lambda x: len(list(x.terms)))
-        temp_ref_parts = raw_ref.parts_to_match + [TermContext(term) for term in longest_template.terms]
+        term_contexts = self._get_term_contexts(context_ref.index.nodes)
+        if len(term_contexts) == 0: return matches
+        temp_ref_parts = raw_ref.parts_to_match + term_contexts
         temp_matches = self._get_unrefined_ref_part_matches_recursive(lang, raw_ref, ref_parts=temp_ref_parts)
         matches += list(filter(lambda x: x.num_resolved(include={TermContext}), temp_matches))
         for match in matches:
@@ -1401,6 +1399,28 @@ class RefResolver:
         return sec_contexts
 
     @staticmethod
+    def _get_all_term_contexts(node: schema.SchemaNode, include_root=False) -> List[TermContext]:
+        """
+        Return all TermContexts extracted from `node` and all parent nodes until root
+        @param node:
+        @return:
+        """
+        term_contexts = []
+        curr_node = node
+        while curr_node is not None and (include_root or not curr_node.is_root()):
+            term_contexts += RefResolver._get_term_contexts(curr_node)
+            curr_node = curr_node.parent
+        return term_contexts
+
+    @staticmethod
+    def _get_term_contexts(node: schema.SchemaNode) -> List[TermContext]:
+        match_templates = list(node.get_match_templates())
+        if len(match_templates) == 0: return []
+        # assumption is longest template will be uniquest. is there a reason to consider other templates?
+        longest_template = max(match_templates, key=lambda x: len(list(x.terms)))
+        return [TermContext(term) for term in longest_template.terms]
+
+    @staticmethod
     def _get_refined_ref_part_matches_for_section_context(lang: str, context_ref: Optional[text.Ref], context_type: ContextType, ref_part_match: ResolvedRef, ref_parts: List[RawRefPart]) -> List[ResolvedRef]:
         """
         Tries to infer sections from context ref and uses them to refine `ref_part_match`
@@ -1412,9 +1432,10 @@ class RefResolver:
         for common_base_text in (context_titles & match_titles):
             common_index = text.library.get_index(common_base_text)
             sec_contexts = RefResolver._get_section_contexts(context_ref, ref_part_match.ref.index, common_index)
-            matches += RefResolver._get_refined_ref_part_matches_recursive(lang, ref_part_match, ref_parts + sec_contexts)
+            term_contexts = RefResolver._get_all_term_contexts(context_ref.index_node, include_root=False)
+            matches += RefResolver._get_refined_ref_part_matches_recursive(lang, ref_part_match, ref_parts + sec_contexts + term_contexts)
         # remove matches which dont use context
-        matches = list(filter(lambda x: x.num_resolved(include={SectionContext}), matches))
+        matches = list(filter(lambda x: x.num_resolved(include={ContextPart}), matches))
         for match in matches:
             match.context_ref = context_ref
             match.context_type = context_type

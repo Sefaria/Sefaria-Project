@@ -1289,6 +1289,7 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         "purchaseInformationImage",
         "purchaseInformationURL",
         "hasManuallyWrappedRefs",  # true for texts where refs were manually wrapped in a-tags. no need to run linker at run-time.
+        "actualLanguage",
     ]
 
     def __str__(self):
@@ -1303,11 +1304,27 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         Old style database text record have a field called 'chapter'
         Version records in the wild have a field called 'text', and not always a field called 'chapter'
         """
+        languageCodeRe = re.search(r"\[([a-z]{2})\]$", getattr(self, "versionTitle", None))
+        if languageCodeRe and languageCodeRe.group(1) != getattr(self,"actualLanguage",None):
+            raise InputError("Version actualLanguage does not match bracketed language")
+        if getattr(self,"language", None) not in ["en", "he"]:
+            raise InputError("Version language must be either 'en' or 'he'")
         if self.get_index() is None:
             raise InputError("Versions cannot be created for non existing Index records")
+        
         return True
 
     def _normalize(self):
+        # add actualLanguage -- TODO: migration to get rid of bracket notation completely
+        actualLanguage = getattr(self, "actualLanguage", None) 
+        versionTitle = getattr(self, "versionTitle", None) 
+        if not actualLanguage and versionTitle:
+            languageCode = re.search(r"\[([a-z]{2})\]$", versionTitle)
+            if languageCode and languageCode.group(1):
+                self.actualLanguage = languageCode.group(1)
+            else:
+                self.actualLanguage = self.language
+
         if getattr(self, "priority", None):
             try:
                 self.priority = float(self.priority)
@@ -4734,6 +4751,9 @@ class Library(object):
         # Topics
         self._topic_mapping = {}
 
+        # Virtual books
+        self._virtual_books = []
+
         # Initialization Checks
         # These values are set to True once their initialization is complete
         self._toc_tree_is_ready = False
@@ -4823,6 +4843,7 @@ class Library(object):
         self.get_text_titles_json(rebuild=rebuild)
         self.get_simple_term_mapping(rebuild=rebuild)
         self.get_simple_term_mapping_json(rebuild=rebuild)
+        self.get_virtual_books(rebuild=rebuild)
         if rebuild:
             scache.delete_shared_cache_elem("regenerating")
 
@@ -5618,6 +5639,20 @@ class Library(object):
             from sefaria.utils.util import get_all_subclass_attribute
             q['base_text_mapping'] = {'$in': get_all_subclass_attribute(AbstractStructureAutoLinker, "class_key")}
         return IndexSet(q) if full_records else IndexSet(q).distinct("title")
+
+    def get_virtual_books(self, rebuild=False):
+        if rebuild or not self._virtual_books:
+            if not rebuild:
+                self._virtual_books = scache.get_shared_cache_elem('virtualBooks')
+            if rebuild or not self._virtual_books:
+                self.build_virtual_books()
+                scache.set_shared_cache_elem('virtualBooks', self._virtual_books)
+                self.set_last_cached_time()
+        return self._virtual_books
+
+    def build_virtual_books(self):
+        self._virtual_books = [index.title for index in IndexSet({'lexiconName': {'$exists': True}})]
+        return self._virtual_books
 
     def get_titles_in_string(self, s, lang=None, citing_only=False):
         """
