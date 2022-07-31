@@ -266,7 +266,7 @@ export class PopupManager {
             this.textBox.removeChild(this.textBox.firstChild);
         }
         this.triggerLink = elem;
-        this.linkerHeader.style["border-top-color"] = category_colors[primaryCategory];
+        this.linkerHeader.style["border-top-color"] = this.category_colors[primaryCategory];
 
         // TODO is this right?
         if (this.contentLang !== "he") {
