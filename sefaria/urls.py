@@ -98,6 +98,8 @@ urlpatterns += [
     url(r'^topics/all/(?P<letter>.)$', reader_views.all_topics_page),    
     url(r'^topics/?$', reader_views.topics_page),
     url(r'^topics/(?P<topic>.+)$', reader_views.topic_page),
+    url(r'^api/ref_topic_links$', reader_views.topic_ref_api),
+    url(r'^api/topic/completion/(?P<topic>.+)', reader_views.topic_completion_api)
 ]
 
 # Calendar Redirects
@@ -256,11 +258,13 @@ urlpatterns += [
     url(r'^api/topics-graph/(?P<topic>.+)$', reader_views.topic_graph_api),
     url(r'^api/ref-topic-links/(?P<tref>.+)$', reader_views.topic_ref_api),
     url(r'^api/v2/topics/(?P<topic>.+)$', reader_views.topics_api, {'v2': True}),
+    url(r'^api/topic/new$', reader_views.add_new_topic_api),
     url(r'^api/topics/(?P<topic>.+)$', reader_views.topics_api),
     url(r'^api/topic/new$', reader_views.add_new_topic_api),
     url(r'^api/topic/delete/(?P<topic>.+)$', reader_views.delete_topic),
     url(r'^api/bulktopics$', reader_views.bulk_topic_api),
     url(r'^api/recommend/topics(/(?P<ref_list>.+))?', reader_views.recommend_topics_api),
+    url(r'^api/topic/delete/(<?P<topic>.+)$', reader_views.delete_topic)
 ]
 
 # History API

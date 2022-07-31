@@ -101,6 +101,12 @@ a, a:hover {
   --sans-serif-small-font-size: 14px;
 
   /* colors */
+  --priors-darkblue:  #133059;
+  --independence-maroon:    #733122;
+  --constituting-green:     #509B70;
+  --forging-slate:     #7491B1;
+  --coming-war-orange: #C87448;
+  --civil-war-red:       #A9373C;
   --inline-link-blue: #4871bf;
   --sefaria-blue: #18345D;
   --highlight-blue: #DDEEFF;
@@ -1241,6 +1247,11 @@ div.interfaceLinks-row a {
   z-index: 1000 !important;
 }
 .ui-autocomplete .ui-menu-item {
+  display: flex;
+  padding: 6px 12px;
+}
+.ui-autocomplete .ui-menu-last-item {
+  border-top:  1px solid var(--lighter-grey);
   display: flex;
   padding: 6px 12px;
 }
@@ -6427,6 +6438,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding: 20px 34px;
   margin: initial;
 }
+.topicButton.isFirst {
+  border-top: none;
+}
 .topicButton:hover {
   text-decoration: none;
 }
@@ -6616,6 +6630,11 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   width: 100%;
   text-align: center;
   margin: 0;
+}
+.button.extraSmall.topic {
+  color: #000000;
+  background-color: var(--lighter-grey);
+  white-space: nowrap;
 }
 .addToSourceSheetBox .button.small {
   width: 37%;
@@ -8466,6 +8485,24 @@ div.aboutSheetMetadata span:not(:first-child)::before{
     padding: 4px 7px 2px;
     position: initial;
     vertical-align: 0px;
+}
+.searchBox.TopicSearchBox {
+  margin: 30px 0px 20px 30px;
+}
+.searchBox.TopicSearchBox input {
+  padding: 15px;
+  box-sizing: border-box;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  border: none;
+  height: 40px;
+  width: 209px;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  border-radius: 6px;
+  font-size: 18px;
+  color: #000000;
+}
+.searchBox.TopicSearchBox input.selected {
+  color: var(--commentary-blue);
 }
 .header .searchBox .keyboardInputInitiator {
     display: none;
@@ -11233,7 +11270,6 @@ body .homeFeedWrapper.userStats {
 
 }
 
-
 .editTextInfo .static .inner {
   padding: 5px 0 100px;
 }
@@ -11284,6 +11320,12 @@ body .homeFeedWrapper.userStats {
   float: right;
   background-color: var(--lightest-grey);
 }
+.button.small.addTopic {
+  background-color: #212E50;
+  color: #FFFFFF;
+  float: right;
+  margin-right: 30px;
+}
 #categoryChooserMenu {
   overflow: hidden;
   background: url("/static/img/arrow-down.png") 640px 20px/10px 10px no-repeat #ffffff;
@@ -11294,9 +11336,6 @@ body .homeFeedWrapper.userStats {
   box-shadow: 0px 1px 3px rgb(0 0 0 / 20%);
   border: none;
 }
-#categoryChooserMenu select option:first-child {
-  color: var(--lighter-grey);
-}
 #categoryChooserMenu select {
   background: transparent;
   font-size: 16px;
@@ -11305,7 +11344,26 @@ body .homeFeedWrapper.userStats {
   margin: 0 0 10px 0;
   padding: 4px 25px 4px 10px;
 }
+.searchBox .editTextInfo .collectionsWidget {
+  width: 280px;
+}
 
+.searchBox .editTextInfo #newIndex {
+  margin: 50px auto;
+}
+.searchBox #categoryChooserMenu {
+  width: 97%;
+  background: url("/static/img/arrow-down.png") 99% 20px/10px 10px no-repeat #ffffff;
+}
+.searchBox #categoryChooserMenu select {
+  width: 100%;
+}
+.searchBox .editTextInfo #newIndex input {
+  width: 97%;
+}
+.searchBox .editTextInfo #newIndex #topicDesc {
+  width: 92%;
+}
 #categoryChooserMenu img {
   opacity: 0.43;
   padding: 0 5px;
@@ -11340,7 +11398,6 @@ body .homeFeedWrapper.userStats {
   margin: 0 0 10px 0;
   max-width: 100%;
 }
-
 .editTextInfo #newIndex #heTitle {
   direction: rtl;
 }
@@ -11382,6 +11439,7 @@ body .homeFeedWrapper.userStats {
 	display: none;
 }
 @media screen and (max-width: 680px) {
+
   #categoryChooserMenu {
     background: url("/static/img/arrow-down.png") 300px 20px/10px 10px no-repeat #ffffff;
     width: 320px;

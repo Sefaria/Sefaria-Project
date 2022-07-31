@@ -566,11 +566,11 @@ class TabView extends Component {
   getTabIndex() {
     let tabIndex;
     if (typeof this.props.currTabName === 'undefined') {
-      tabIndex = this.props.tabs.findIndex(tab => tab.id === this.state.currTabName ? true : false)
+      tabIndex = this.props.tabs.findIndex(tab => tab.id === this.state.currTabName)
     } else if (this.props.currTabName === null) {
       tabIndex = 0;
     } else {
-      tabIndex = this.props.tabs.findIndex(tab => tab.id === this.props.currTabName ? true : false)
+      tabIndex = this.props.tabs.findIndex(tab => tab.id === this.props.currTabName)
     }
     if(tabIndex === -1) {
       tabIndex = 0;
@@ -2288,7 +2288,7 @@ class CookiesNotification extends Component {
       <div className="cookiesNotification">
 
           <span className="int-en">
-            <span>We use cookies to give you the best experience possible on our site. Click OK to continue using Sefaria. <a href="/privacy-policy">Learn More</a>.</span>
+            <span>We use cookies to give you the best experience possible on our site. Click OK to continue using {Sefaria._siteSettings.SITE_NAME.en}. <a href="/privacy-policy">Learn More</a>.</span>
             <span className='int-en button small white' onClick={this.setCookie}>OK</span>
           </span>
           <span className="int-he">
@@ -2408,7 +2408,6 @@ const AdminToolHeader = function({en, he, validate, close}) {
               </div>
             </div>
 }
-
 
 const CategoryChooser = function({categories, update}) {
   /*
@@ -2762,6 +2761,7 @@ const Autocompleter = ({selectedRefCallback}) => {
     </div>
     )
 }
+
 
 export {
   SimpleInterfaceBlock,

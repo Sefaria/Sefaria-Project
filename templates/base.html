@@ -14,15 +14,20 @@
         <meta name="robots" content="noindex, nofollow">
     {% endif %}
 
-    <link rel="search" type="application/opensearchdescription+xml" title="Sefaria Search" href="{% static 'files/opensearch.xml' %}" />
 
     {% if SITE_SETTINGS.TORAH_SPECIFIC %}
-    <link rel="alternate" href="https://www.sefaria.org{{ request.path }}" hreflang="en" />
-    <link rel="alternate" href="https://www.sefaria.org.il{{ request.path }}" hreflang="he" />
+        <link rel="search" type="application/opensearchdescription+xml" title="Sefaria Search" href="{% static 'files/opensearch.xml' %}" />
+    {% else %}
+        <link rel="search" type="application/opensearchdescription+xml" title="Search" href="{% static 'files/opensearch.xml' %}" />
+    {% endif %}
+    
+    {% if SITE_SETTINGS.TORAH_SPECIFIC %}
+        <link rel="alternate" href="https://www.sefaria.org{{ request.path }}" hreflang="en" />
+        <link rel="alternate" href="https://www.sefaria.org.il{{ request.path }}" hreflang="he" />
     {% endif %}
 
     {% if canonical_url %}
-    <link rel="canonical" href="{{canonical_url}}" />
+        <link rel="canonical" href="{{canonical_url}}" />
     {% endif %}
 
     {% block ogtype %}
@@ -40,7 +45,10 @@
     <meta property="og:url" content="https://{{ request.get_host }}{{ request.get_full_path }}" />
 
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@sefariaproject" />
+    {% if SITE_SETTINGS.TORAH_SPECIFIC %}
+        <meta name="twitter:site" content="@sefariaproject" />
+    {% endif %}
+
     <meta name="twitter:title" content="{{title|striptags}}" />
     <meta name="twitter:description" content="{% block soc_description %}{{ desc|striptags }}{% endblock %}" />
     <meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}/api/img-gen{{ request.path }}?lang={{request.GET.lang}}&platform=twitter&ven={{request.GET.ven}}&vhe={{request.GET.vhe}}" />
@@ -95,6 +103,9 @@
     <link rel="stylesheet" type="text/css" href="{% static 'css/keyboard.css' %}">
     <link rel="stylesheet" href="{%  static 'css/s2.css' %}">
     <link rel="stylesheet" href="{%  static 'css/s2-print.css' %}" media="print" />
+    {% if not SITE_SETTINGS.TORAH_SPECIFIC %}
+        <link rel="stylesheet" href="{%  static 'css/site.css' %}">
+    {% endif %}
 
     {% block static_css %}
     {% if not html %}

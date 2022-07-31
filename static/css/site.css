@@ -1,0 +1,24 @@
+.headerInner .headerNavSection span, .navTitle span {
+  font-family: "FreightSans Pro", sans-serif;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 20.96px;
+  color: #666666;
+}
+
+.navTitle h1 span {
+  font-size: 22px;
+}
+
+a.navBlockTitle {
+  font-family: "Adobe Caslon Pro", serif;
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 29px;
+  color: #000000;
+}
+
+tr {
+  font-size: 16px;
+}
+

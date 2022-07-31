@@ -77,22 +77,24 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
       <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null }
     </div>
 
-  const about = compare || multiPanel ? null :
+  const about = compare || multiPanel || !Sefaria._siteSettings.TORAH_SPECIFIC ? null :
     <Modules type={"AboutSefaria"} props={{hideTitle: true}}/>;
 
   const dedication = Sefaria._siteSettings.TORAH_SPECIFIC && !compare ? <Dedication /> : null;
 
-  const libraryMessage = Sefaria._siteSettings.LIBRARY_MESSAGE && !compare ?
+
+  const libraryMessage = Sefaria._siteSettings.LIBRARY_MESSAGE && !compare && !Sefaria._siteSettings.TORAH_SPECIFIC ?
     <div className="libraryMessage" dangerouslySetInnerHTML={ {__html: Sefaria._siteSettings.LIBRARY_MESSAGE} }></div>
     : null;
 
+  const constitution = compare ? null : <a href="/United_States_Constitution" className="navBlockTitle" style={{paddingBottom: "24px"}}><span className="en" lang="en">United States Constitution</span></a>;
   const sidebarModules = [
-    multiPanel ? {type: "AboutSefaria"} : {type: null},
-    {type: "Promo"},
-    {type: "Translations"},
+    multiPanel ? {type: "AboutContext"} : {type: null},
+/*    {type: "Promo"},
+>>>>>>> s4d
     {type: "LearningSchedules"},
     {type: "JoinTheCommunity"},
-    {type: "Resources"},
+    {type: "Resources"},*/
   ];
 
   const footer = compare ? null : <Footer />;
@@ -104,10 +106,11 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
       <div className="content">
         <div className="sidebarLayout">
           <div className="contentInner">
+            { libraryMessage }
             { title }
             { about }
             { dedication }
-            { libraryMessage }
+            { constitution }
             { categoryListings }
           </div>
           {!compare ? <NavSidebar modules={sidebarModules} /> : null}

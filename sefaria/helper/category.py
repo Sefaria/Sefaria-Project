@@ -134,7 +134,11 @@ def create_category(path, en=None, he=None, searchRoot=None):
     :param searchRoot: (String, optional) If this is present, then in the context of search filters, this category will appear under `searchRoot`.
     :return: (model.Category) the new category object
     """
-    c = Category()
+    existing_c = Category().load({"path": path})
+    if existing_c:
+        print("Already exists")
+        return existing_c
+    new_c = Category()
     if not Term().load({"name": path[-1]}):
         if en is None or he is None:
             raise Exception("Need term names for {}".format(path[-1]))
@@ -144,14 +148,14 @@ def create_category(path, en=None, he=None, searchRoot=None):
         term.add_primary_titles(en, he)
         term.scheme = "toc_categories"
         term.save()
-    c.add_shared_term(path[-1])
-    c.path = path
-    c.lastPath = path[-1]
+    new_c.add_shared_term(path[-1])
+    new_c.path = path
+    new_c.lastPath = path[-1]
     if searchRoot is not None:
-        c.searchRoot = searchRoot
-    print("Creating - {}".format(" / ".join(c.path)))
-    c.save(override_dependencies=True)
-    return c
+        new_c.searchRoot = searchRoot
+    print("Creating - {}".format(" / ".join(new_c.path)))
+    new_c.save(override_dependencies=True)
+    return new_c
 
 
 def get_category_paths(path):

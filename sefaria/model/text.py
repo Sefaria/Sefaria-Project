@@ -1002,7 +1002,7 @@ class AbstractTextRecord(object):
     """
     """
     text_attr = "chapter"
-    ALLOWED_TAGS    = ("i", "b", "br", "u", "strong", "em", "big", "small", "img", "sup", "sub", "span", "a")
+    ALLOWED_TAGS    = ("i", "b", "br", "u", "strong", "pre", "em", "big", "small", "img", "sup", "sub", "span", "a", "table", "td", "th", "tr", "tbody", "thead", "ul", "li")
     ALLOWED_ATTRS   = {
         'sup': ['class'],
         'span':['class', 'dir'],
@@ -4741,6 +4741,7 @@ class Library(object):
         self._ref_auto_completer = {}
         self._lexicon_auto_completer = {}
         self._cross_lexicon_auto_completer = None
+        self._topic_auto_completer = {}
 
         # Term Mapping
         self._simple_term_mapping = {}
@@ -4761,7 +4762,7 @@ class Library(object):
         self._ref_auto_completer_is_ready = False
         self._lexicon_auto_completer_is_ready = False
         self._cross_lexicon_auto_completer_is_ready = False
-
+        self._topic_auto_completer_is_ready = False
 
         if not hasattr(sys, '_doc_build'):  # Can't build cache without DB
             self.get_simple_term_mapping() #this will implicitly call self.build_term_mappings() but also make sure its cached.
@@ -4957,8 +4958,7 @@ class Library(object):
                 if description is not None and getattr(topic, "description_published", False):
                     topic_json['description'] = description
 
-            unexplored_top_level = getattr(topic, "isTopLevelDisplay", False) and getattr(topic, "slug",
-                                                                                          None) not in explored
+            unexplored_top_level = getattr(topic, "isTopLevelDisplay", False) and getattr(topic, "slug", None) not in explored
             explored.add(topic.slug)
         if len(children) > 0 or topic is None or unexplored_top_level:
             # make sure root gets children no matter what and make sure that unexplored top-level topics get children no matter what
@@ -5087,7 +5087,8 @@ class Library(object):
         """
         from .autospell import AutoCompleter
         self._full_auto_completer = {
-            lang: AutoCompleter(lang, library, include_people=True, include_topics=True, include_categories=True, include_parasha=False, include_users=True, include_collections=True) for lang in self.langs
+            lang: AutoCompleter(lang, library, include_people=True, include_topics=True, include_categories=True,
+                                include_parasha=False, include_users=True, include_collections=True, min_topics=1) for lang in self.langs
         }
 
         for lang in self.langs:
@@ -5129,6 +5130,25 @@ class Library(object):
         from .autospell import AutoCompleter
         self._cross_lexicon_auto_completer = AutoCompleter("he", library, include_titles=False, include_lexicons=True)
         self._cross_lexicon_auto_completer_is_ready = True
+
+    def build_topic_auto_completer(self):
+        """
+        Builds the topic auto complete including topics with no sources
+        """
+        from .autospell import AutoCompleter
+        self._topic_auto_completer = AutoCompleter("en", library, include_topics=True, include_titles=False, min_topics=0)
+        self._topic_auto_completer_is_ready = True
+
+    def topic_auto_completer(self):
+        """
+        Returns the topic auto completer. If the auto completer was not initially loaded,
+        it rebuilds before returning, emitting warnings to the logger.
+        """
+        if self._topic_auto_completer is None:
+            logger.warning("Failed to load topic auto completer. rebuilding")
+            self.build_topic_auto_completer()
+            logger.warning("Built topic auto completer")
+        return self._topic_auto_completer
 
     def cross_lexicon_auto_completer(self):
         """
@@ -6054,7 +6074,8 @@ class Library(object):
         # I will likely have to add fields to the object to be changed once
 
         # Avoid allocation here since it will be called very frequently
-        return self._toc_tree_is_ready and self._full_auto_completer_is_ready and self._ref_auto_completer_is_ready and self._lexicon_auto_completer_is_ready and self._cross_lexicon_auto_completer_is_ready
+        return self._toc_tree_is_ready and self._full_auto_completer_is_ready and self._ref_auto_completer_is_ready and\
+               self._lexicon_auto_completer_is_ready and self._cross_lexicon_auto_completer_is_ready and self._topic_auto_completer_is_ready
 
     @staticmethod
     def get_top_categories(full_records=False):

@@ -37,6 +37,7 @@ import Component from 'react-class';
 import { TextTableOfContents } from "./BookPage";
 import { CollectionsModal } from './CollectionsWidget';
 import { event } from 'jquery';
+import TopicSearch from "./TopicSearch";
 
 
 class ConnectionsPanel extends Component {
@@ -342,7 +343,7 @@ class ConnectionsPanel extends Component {
             :
             null
           }
-          {showResourceButtons ?
+          {showResourceButtons || Sefaria.is_moderator ?
             <ConnectionsPanelSection title={"Resources"}>
               {
                 //ironically we need the masterpanel mode to be sheet to indicate a sheet is loaded, but the
@@ -564,6 +565,7 @@ class ConnectionsPanel extends Component {
     } else if (this.props.mode === "Topics") {
       content = (
         <TopicList
+          masterPanelMode={this.props.masterPanelMode}
           contentLang={this.props.contentLang}
           srefs={this.props.srefs}
           interfaceLang={this.props.interfaceLang}
@@ -767,10 +769,10 @@ const ResourcesList = ({ masterPanelMode, setConnectionsMode, counts }) => {
   return (
     <div className="toolButtonsList">
       <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={counts["sheets"]} urlConnectionsMode="Sheets" onClick={() => setConnectionsMode("Sheets")} />
-      <ToolsButton en="Web Pages" he="דפי אינטרנט" image="webpages.svg" count={counts["webpages"]} urlConnectionsMode="WebPages" onClick={() => setConnectionsMode("WebPages")} />
-      <ToolsButton en="Topics" he="נושאים" image="hashtag-icon.svg" count={counts["topics"]} urlConnectionsMode="Topics" onClick={() => setConnectionsMode("Topics")} />
-      <ToolsButton en="Manuscripts" he="כתבי יד" image="manuscripts.svg" count={counts["manuscripts"]} urlConnectionsMode="manuscripts" onClick={() => setConnectionsMode("manuscripts")} />
-      <ToolsButton en="Torah Readings" he="קריאה בתורה" image="torahreadings.svg" count={counts["audio"]} urlConnectionsMode="Torah Readings" onClick={() => setConnectionsMode("Torah Readings")} />
+      {Sefaria._siteSettings.TORAH_SPECIFIC ? <ToolsButton en="Web Pages" he="דפי אינטרנט" image="webpages.svg" count={counts["webpages"]} urlConnectionsMode="WebPages" onClick={() => setConnectionsMode("WebPages")} /> : null}
+      <ToolsButton en="Topics" he="נושאים" image="hashtag-icon.svg" count={counts["topics"]} urlConnectionsMode="Topics" onClick={() => setConnectionsMode("Topics")} alwaysShow={Sefaria.is_moderator} />
+      {Sefaria._siteSettings.TORAH_SPECIFIC ? <ToolsButton en="Manuscripts" he="כתבי יד" image="manuscripts.svg" count={counts["manuscripts"]} urlConnectionsMode="manuscripts" onClick={() => setConnectionsMode("manuscripts")} /> : null}
+      {Sefaria._siteSettings.TORAH_SPECIFIC ? <ToolsButton en="Torah Readings" he="קריאה בתורה" image="torahreadings.svg" count={counts["audio"]} urlConnectionsMode="Torah Readings" onClick={() => setConnectionsMode("Torah Readings")} /> : null}
     </div>
   );
 }
@@ -784,10 +786,10 @@ const ToolsList = ({ setConnectionsMode, toggleSignUpModal, openComparePanel, co
   return (
     <div className="toolButtonsList">
       <ToolsButton en="Add to Sheet" he="הוספה לדף מקורות" image="sheetsplus.svg" onClick={() => !Sefaria._uid ? toggleSignUpModal() : setConnectionsMode("Add To Sheet", { "addSource": "mainPanel" })} />
-      <ToolsButton en="Dictionaries" he="מילונים" image="dictionaries.svg" urlConnectionsMode="Lexicon" onClick={() => setConnectionsMode("Lexicon")} />
+      {Sefaria._siteSettings.TORAH_SPECIFIC ? <ToolsButton en="Dictionaries" he="מילונים" image="dictionaries.svg" urlConnectionsMode="Lexicon" onClick={() => setConnectionsMode("Lexicon")} /> : null}
       {openComparePanel ? <ToolsButton en="Compare Text" he="טקסט להשוואה" image="compare-panel.svg" onClick={openComparePanel} /> : null}
       <ToolsButton en="Notes" he="הערות" image="notes.svg" alwaysShow={true} count={counts["notes"]} urlConnectionsMode="Notes" onClick={() => !Sefaria._uid ? toggleSignUpModal() : setConnectionsMode("Notes")} />
-      <ToolsButton en="Chavruta" he="חברותא" image="chavruta.svg" onClick={() => !Sefaria._uid ? toggleSignUpModal() : setConnectionsMode("Chavruta")} />
+      {Sefaria._siteSettings.TORAH_SPECIFIC ? <ToolsButton en="Chavruta" he="חברותא" image="chavruta.svg" onClick={() => !Sefaria._uid ? toggleSignUpModal() : setConnectionsMode("Chavruta")} /> : null}
       {masterPanelMode !== "Sheet" ? <ToolsButton en="Share" he="שיתוף" image="share.svg" onClick={() => setConnectionsMode("Share")} /> : null}
       <ToolsButton en="Feedback" he="משוב" image="feedback.svg" onClick={() => setConnectionsMode("Feedback")} />
       <ToolsButton en="Advanced" he="כלים מתקדמים" image="advancedtools.svg" onClick={() => setConnectionsMode("Advanced Tools")} />
@@ -1171,12 +1173,16 @@ PublicSheetsList.propTypes = {
 };
 
 
-const TopicList = ({ srefs, interfaceLang, contentLang }) => {
+const TopicList = ({ masterPanelMode, srefs, interfaceLang, contentLang }) => {
   // segment ref topicList can be undefined even if loaded
   // but section ref topicList is null when loading and array when loaded
-  const topics = Sefaria.topicsByRef(srefs);
+  const [topics, setTopics] = useState(Sefaria.topicsByRef(srefs));
+  const updateTopics = function() {
+    setTopics(Sefaria.topicsByRef(srefs));
+  }
   return (
     <div className={`topicList ${contentLang === 'hebrew' ? 'topicsHe' : 'topicsEn'}`}>
+      {Sefaria.is_moderator && masterPanelMode === "Text" ? <TopicSearch contextSelector=".topicList" srefs={srefs} update={updateTopics}/> : null}
       {(!topics || !topics.length) ? (
         <div className="webpageList empty">
           <div className="loadingMessage sans-serif">
@@ -1184,8 +1190,9 @@ const TopicList = ({ srefs, interfaceLang, contentLang }) => {
           </div>
         </div>
       ) : topics.map(
-        topic => (
+          (topic, i) => (
           <TopicListItem
+            isFirst={i === 0}
             key={topic.topic}
             topic={topic}
             interfaceLang={interfaceLang}
@@ -1197,14 +1204,15 @@ const TopicList = ({ srefs, interfaceLang, contentLang }) => {
   );
 }
 
-const TopicListItem = ({ topic, interfaceLang, srefs }) => {
+const TopicListItem = ({ isFirst, topic, interfaceLang, srefs }) => {
   let dataSourceText = '';
   const langKey = interfaceLang === 'english' ? 'en' : 'he';
   if (!!topic.dataSources && Object.values(topic.dataSources).length > 0) {
     dataSourceText = `${Sefaria._('This topic is connected to ')}"${Sefaria._r(srefs[0])}" ${Sefaria._('by')} ${Object.values(topic.dataSources).map(d => d[langKey]).join(' & ')}.`;
   }
+  const topicLinkClass = isFirst ? "topicButton isFirst" : "topicButton";
   return (
-    <a href={`/topics/${topic.topic}`} className="topicButton" target="_blank">
+      <a href={`/topics/${topic.topic}`} className={topicLinkClass} target="_blank">
       <span className="topicButtonTitle">
         <span className="contentText">
           <span className="en">{topic.title.en}</span>

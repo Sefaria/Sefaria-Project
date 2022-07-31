@@ -82,7 +82,7 @@ const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc="", origCatego
                 if (data.error) {
                     alert(data.error);
                 } else {
-                    window.location.href = "/topics/" + newSlug;
+                    redirect(newSlug);
                 }
             }).fail(function(xhr, status, errorThrown) {
                 alert("Please reset TOC manually: "+errorThrown);
