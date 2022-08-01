@@ -282,6 +282,10 @@ def linker_js(request, linker_version=None):
 
 
 @api_view(["POST"])
+def find_refs_report_api(request):
+    pass
+
+@api_view(["POST"])
 def find_refs_api(request):
     import traceback
     logger.exception(f"find_refs_api start {traceback.print_stack()}")
