@@ -298,6 +298,8 @@ def find_refs_api(request):
     from sefaria.helper.ref_part import make_html, make_find_refs_response
     from sefaria.utils.hebrew import is_hebrew
     with_text = bool(int(request.GET.get("with_text", False)))
+    debug = bool(int(request.GET.get("debug", False)))
+
     post = json.loads(request.body)
     resolver = library.get_ref_resolver()
     lang = 'he' if is_hebrew(post['text']) else 'en'
@@ -307,8 +309,8 @@ def find_refs_api(request):
     # make_html([resolved_title, resolved], [[post['title']], [post['text']]], f'data/private/linker_results/linker_result.html')
 
     return jsonResponse({
-        "title": make_find_refs_response(resolved_title, with_text),
-        "text": make_find_refs_response(resolved, with_text),
+        "title": make_find_refs_response(resolved_title, with_text, debug),
+        "text": make_find_refs_response(resolved, with_text, debug),
     })
 
 

@@ -319,7 +319,7 @@ const SELECTOR_WHITE_LIST = {
             title: readableObj.title,
         }
 
-        fetch(`${SEFARIA_BASE_URL}/api/find-refs?with_text=1`, {
+        fetch(`${SEFARIA_BASE_URL}/api/find-refs?with_text=1&debug=${0+ns.debug}`, {
             method: 'POST',
             body: JSON.stringify(postData)
         })

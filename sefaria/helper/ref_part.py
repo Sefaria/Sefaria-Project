@@ -171,7 +171,7 @@ def make_html(bulk_resolved_list: List[List[List[Union[ResolvedRef, AmbiguousRes
         fout.write(html)
 
 
-def make_find_refs_response(resolved: List[List[Union[AmbiguousResolvedRef, ResolvedRef]]], with_text=False):
+def make_find_refs_response(resolved: List[List[Union[AmbiguousResolvedRef, ResolvedRef]]], with_text=False, debug=False):
     ref_results = []
     ref_data = {}
     resolved_ref_list = [resolved_ref for inner_resolved in resolved for resolved_ref in inner_resolved]
@@ -191,7 +191,7 @@ def make_find_refs_response(resolved: List[List[Union[AmbiguousResolvedRef, Reso
             if rr.ref is None: continue
             tref = rr.ref.normal()
             if tref in ref_data: continue
-            ref_data[tref] = make_ref_response_for_linker(rr.ref, with_text)
+            ref_data[tref] = make_ref_response_for_linker(rr, with_text)
 
     response = {
         "results": ref_results,
@@ -200,7 +200,8 @@ def make_find_refs_response(resolved: List[List[Union[AmbiguousResolvedRef, Reso
     return response
 
 
-def make_ref_response_for_linker(oref: text.Ref, with_text=False) -> dict:
+def make_ref_response_for_linker(resolved_ref: ResolvedRef, with_text=False, debug=False) -> dict:
+    oref = resolved_ref.ref
     res = {
         'heRef': oref.he_normal(),
         'url': oref.url(),
@@ -214,6 +215,8 @@ def make_ref_response_for_linker(oref: text.Ref, with_text=False) -> dict:
             'he': he,
             'en': en,
         })
+    if debug:
+        pass
     return res
 
 
