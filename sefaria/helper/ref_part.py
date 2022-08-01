@@ -194,7 +194,7 @@ def make_find_refs_response(resolved: List[List[Union[AmbiguousResolvedRef, Reso
             if tref in ref_data: continue
             ref_data[tref] = make_ref_response_for_linker(rr.ref, with_text)
         if debug:
-            debug_data += [make_debug_response_for_linker(rr) for rr in resolved_refs]
+            debug_data += [[make_debug_response_for_linker(rr) for rr in resolved_refs]]
 
     response = {
         "results": ref_results,
@@ -205,7 +205,7 @@ def make_find_refs_response(resolved: List[List[Union[AmbiguousResolvedRef, Reso
     return response
 
 
-def make_ref_response_for_linker(oref: text.Ref, with_text=False, debug=False) -> dict:
+def make_ref_response_for_linker(oref: text.Ref, with_text=False) -> dict:
     res = {
         'heRef': oref.he_normal(),
         'url': oref.url(),
