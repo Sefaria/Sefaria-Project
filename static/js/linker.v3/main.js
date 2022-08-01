@@ -4,7 +4,8 @@ import findAndReplaceDOMText from 'findandreplacedomtext';
 import { PopupManager } from "./popup";
 import {LinkExcluder} from "./excluder";
 
-const SEFARIA_BASE_URL = 'https://linker.cauldron.sefaria.org'
+const SEFARIA_BASE_URL = 'http://localhost:8000';
+// const SEFARIA_BASE_URL = 'https://linker.cauldron.sefaria.org';
 
 // hard-coding for now list of elements that get cut off with Readability
 const SELECTOR_WHITE_LIST = {
@@ -260,9 +261,22 @@ const SELECTOR_WHITE_LIST = {
 
     function reportCitation(elem, event, ...rest) {
         const [prevContext, nextContext] = getTextAroundElem(elem, 20);
-        console.log("Prev", prevContext);
-        console.log("Report", elem.textContent);
-        console.log("next", nextContext);
+        const postData = {
+            prevContext, nextContext, citation: elem.textContent
+        };
+        fetch(`${SEFARIA_BASE_URL}/api/find-refs/report`, {
+            method: 'POST',
+            body: JSON.stringify(postData)
+        })
+        .then(
+            (resp) => {
+                if (resp.ok) {
+                    resp.json();
+                } else {
+                    resp.text().then(text => alert(text));
+                }
+            }
+        );
     }
 
     function bindRefClickHandlers(refData) {
