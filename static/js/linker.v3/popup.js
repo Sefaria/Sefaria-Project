@@ -355,7 +355,12 @@ export class PopupManager {
 
         if (this.debug) {
             const reportBtn = document.querySelector('#sefaria-report-btn');
-            reportBtn.addEventListener('click', this.reportCitation.bind(null, "YO " + ref), false);
+
+            // remove old event listener
+            reportBtn.removeEventListener('click', this.currReportCitation, false);
+
+            this.currReportCitation = this.reportCitation.bind(null, elem);
+            reportBtn.addEventListener('click', this.currReportCitation, false);
         }
 
         let scrollbarOffset = this.popUpElem.clientWidth - this.textBox.clientWidth;

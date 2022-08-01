@@ -33,6 +33,27 @@ const SELECTOR_WHITE_LIST = {
         }, "");
     }
 
+    function getTextAroundElemInDir(elem, nchars, isPrev) {
+        let context = "";
+        if (!elem || nchars <= 0) { return context; }
+        let sibling = elem;
+        while (context.length < nchars) {
+            sibling = isPrev ? sibling.previousSibling : sibling.nextSibling;
+            const tempContext = (sibling === null) ?
+                getTextAroundElemInDir(elem.parentNode, nchars - context.length, isPrev) :
+                sibling.textContent;
+            context = isPrev ? (tempContext + context) : context + tempContext;
+        }
+
+        return isPrev ? context.slice(-nchars) : context.slice(0, nchars);
+    }
+
+    function getTextAroundElem(elem, nchars) {
+        const prev = getTextAroundElemInDir(elem, nchars, true);
+        const next = getTextAroundElemInDir(elem, nchars, false);
+        return [prev, next];
+    }
+
     function removeUnwantedElems(elem) {
         const unwantedTags = ['table', 'sup'];
         for (let tag of unwantedTags) {
@@ -237,8 +258,11 @@ const SELECTOR_WHITE_LIST = {
 
     }
 
-    function reportCitation(citationText, event, ...rest) {
-        console.log("Report", citationText);
+    function reportCitation(elem, event, ...rest) {
+        const [prevContext, nextContext] = getTextAroundElem(elem, 20);
+        console.log("Prev", prevContext);
+        console.log("Report", elem.textContent);
+        console.log("next", nextContext);
     }
 
     function bindRefClickHandlers(refData) {
