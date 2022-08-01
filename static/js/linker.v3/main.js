@@ -160,7 +160,7 @@ const SELECTOR_WHITE_LIST = {
         };
     }
 
-    function createATag(linkFailed, ref, text, url, isAmbiguous) {
+    function createATag(linkFailed, ref, text, url, isAmbiguous, iLinkObj) {
         const atag = document.createElement("a");
         atag.target = "_blank";
         atag.textContent = text;
@@ -175,39 +175,41 @@ const SELECTOR_WHITE_LIST = {
 
         atag.href = `${SEFARIA_BASE_URL}/${url}`;
         atag.setAttribute('data-ref', ref);
+        atag.setAttribute('data-result-index', iLinkObj);
         atag.setAttribute('aria-controls', 'sefaria-popup');
         return atag;
     }
 
-    function createATagWithDebugInfo(urls, linkObj, text) {
+    function createATagWithDebugInfo(urls, linkObj, text, iLinkObj) {
         /**
          * if urls is null or len 1, return a tag
          * else, return a span with n a tags to represent an ambiguous reference.
          * urls should only be more than len 1 in debug mode
          */
         if (!urls) {
-            return createATag(linkObj.linkFailed, null, text, null);
+            return createATag(linkObj.linkFailed, null, text, null, false, iLinkObj);
         } else if (urls.length === 1) {
-            return createATag(linkObj.linkFailed, linkObj.refs[0], text, urls[0]);
+            return createATag(linkObj.linkFailed, linkObj.refs[0], text, urls[0], false, iLinkObj);
         } else {
             const node = document.createElement("span");
             node.className="sefaria-ref-wrapper";
             for (let i = 0; i < urls.length; i++) {
                 const tempText = i === 0 ? text : `[${i}]`;
-                const atag = createATag(linkObj.linkFailed, linkObj.refs[i], tempText, urls[i], true);
+                const atag = createATag(linkObj.linkFailed, linkObj.refs[i], tempText, urls[i], true, iLinkObj);
                 node.appendChild(atag);
             }
             return node;
         }
     }
 
-    function wrapRef(linkObj, normalizedText, refData, maxNumWordsAround = 10, maxSearchLength = 30) {
+    function wrapRef(linkObj, normalizedText, refData, iLinkObj, maxNumWordsAround = 10, maxSearchLength = 30) {
         /**
          * wraps linkObj.text with an atag. In the case linkObj.text appears multiple times on the page,
          * increases search scope to ensure we wrap the correct instance of linkObj.text
          * linkObj: object representing a link, as returned by find-refs API
          * normalizedText: normalized text of webpage (i.e. webpage text returned from Readability and then put through some normalization)
          * refData: refData field as returned from find-refs API
+         * iLinkObj: index of linkObj in results list
          * maxNumWordsAround: maximum number of words around linkObj.text to search to try to find its unique occurrence.
          * maxSearchLength: if searchText is beyond this length, we assume the string uniquely identifies the citation. Even if there are multiple occurrences, we assume they can be wrapped with the same citation.
          */
@@ -243,16 +245,17 @@ const SELECTOR_WHITE_LIST = {
                 const [excludeFromLinking, excludeFromTracking] = excluder.shouldExclude(matchKey, portion.node);
                 if (excludeFromLinking) { return portion.text; }
                 if (!excludeFromTracking) { /* TODO ns.trackedMatches.push(matched_ref); */ }
-                return createATagWithDebugInfo(urls, linkObj, portion.text);
+                return createATagWithDebugInfo(urls, linkObj, portion.text, iLinkObj);
             }
         });
     }
 
     function onFindRefs(resp) {
         const startTime = performance.now();
-        for (let linkObj of resp.text.results) {
-            wrapRef(linkObj, ns.normalizedInputText, resp.text.refData);
-        }
+        ns.debugData = resp.text.debugData;
+        resp.text.results.map((linkObj, iLinkObj) => {
+            wrapRef(linkObj, ns.normalizedInputText, resp.text.refData, iLinkObj);
+        });
         bindRefClickHandlers(resp.text.refData);
         const endTime = performance.now()
         alert(`Linker results are ready! Took ${endTime - startTime} ms to wrap. ${resp.text.results.length} citations wrapped`);
@@ -261,8 +264,10 @@ const SELECTOR_WHITE_LIST = {
 
     function reportCitation(elem, event, ...rest) {
         const [prevContext, nextContext] = getTextAroundElem(elem, 20);
+        const iLinkObj = elem.getAttribute('data-result-index');
         const postData = {
-            prevContext, nextContext, citation: elem.textContent
+            prevContext, nextContext, citation: elem.textContent,
+            debugData: ns.debugData[iLinkObj],
         };
         fetch(`${SEFARIA_BASE_URL}/api/find-refs/report`, {
             method: 'POST',

@@ -288,7 +288,8 @@ def find_refs_report_api(request):
     db.linker_feedback.insert_one({
         "prevContext": post['prevContext'],
         "citation": post['citation'],
-        "nextContext": post['nextContext']
+        "nextContext": post['nextContext'],
+        "debugData": post['debugData'],
     })
     return jsonResponse({'ok': True})
 
