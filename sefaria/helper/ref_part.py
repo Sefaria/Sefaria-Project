@@ -202,6 +202,7 @@ def make_find_refs_response(resolved: List[List[Union[AmbiguousResolvedRef, Reso
     }
     if debug:
         response['debugData'] = debug_data
+
     return response
 
 
