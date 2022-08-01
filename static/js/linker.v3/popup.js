@@ -267,7 +267,7 @@ export class PopupManager {
         }
     };
 
-    showPopup(elem, {ref, heRef, en, he, primaryCategory}) {
+    showPopup(elem, {ref, heRef, en=[], he=[], primaryCategory}) {
         while (this.textBox.firstChild) {
             this.textBox.removeChild(this.textBox.firstChild);
         }
