@@ -858,7 +858,13 @@ const EducatorsPage = () => (
     <div className="staticPageCallToActionFooter">
       <div className="staticPageBlockInner flexContainer">
         <SimpleInterfaceBlock classes="callToActionText" en="Sign up for our mailing list to get updates in your inbox" he="קבלו עדכונים והפניות למקורות מעניינים" />
-        <EducatorSubscribeButton/>
+        <SubscribeButton
+                     enAction={"Sign up to get updates"}
+                     heAction={"הירשמו לקבלת הניוזלטר"}
+                     heLists={"Announcements_General_Hebrew|Announcements_Edu_Hebrew"}
+                     enLists={"Announcements_General|Announcements_Edu"}
+                     redirectURL={"/register?educator=true&next=/educators"}
+        />
       </div>
     </div>
 
@@ -1971,67 +1977,65 @@ const HeaderWithColorAccentBlockAndText = ({enTitle, heTitle, enText, heText, co
     </div>
 )
 
-
-
-
-const EducatorSubscribeButton = () => {
+const SubscribeButton = ({enAction, heAction, heLists, enLists, redirectURL}) => {
   const email = Sefaria._email;
   const [message, setMessage] = useState("");
   const [messageStyle, setMessageStyle] = useState("");
-  const heActionText = useRef("הירשמו לקבלת הניוזלטר");
-  const enActionText = useRef("Get the Newsletter");
+  const heActionText = useRef(heAction);
+  const enActionText = useRef(enAction);
 
   if (email.length === 0) {
     enActionText.current = "Sign up to get updates";
     heActionText.current = "הירשמו לקבלת עדכונים";
   }
+
   const handleClick = () => {
-    if (Sefaria.util.isValidEmailAddress(email)) {
-      setMessage("Subscribing...");
-      setMessageStyle("italics");
-      var lists = Sefaria.interfaceLang == "hebrew" ?
-              "Announcements_General_Hebrew|Announcements_Edu_Hebrew"
-              : "Announcements_General|Announcements_Edu"
-      const request = new Request(
-          "/api/subscribe/" + email,
-          {headers: {'X-CSRFToken': Cookies.get('csrftoken')}}
-      );
-      fetch(request, {
-        method: 'POST',
-        mode: 'same-origin',
-        credentials: 'same-origin',
-        body: {"lists": lists},
-      }).then(response => {
-        if (!response.ok) {
-          response.text().then(resp_text => {
-            setMessage(resp_text)
-            setMessageStyle("");
+      if (Sefaria.util.isValidEmailAddress(email)) {
+          setMessage("Subscribing...");
+          setMessageStyle("italics");
+          const lists = Sefaria.interfaceLang == "hebrew" ? heLists : enLists
+
+          console.log(lists)
+
+          const request = new Request(
+              "/api/subscribe/" + email,
+              {headers: {'X-CSRFToken': Cookies.get('csrftoken')}}
+          );
+          fetch(request, {
+              method: 'POST',
+              mode: 'same-origin',
+              credentials: 'same-origin',
+              body: {"lists": lists},
+          }).then(response => {
+              if (!response.ok) {
+                  response.text().then(resp_text => {
+                      setMessage(resp_text)
+                      setMessageStyle("");
+                  });
+              } else {
+                  response.json().then(resp_json => {
+                      if (resp_json.hasOwnProperty("status") && resp_json["status"] == "ok") {
+                          setMessage("Subscribed! Welcome to our list.");
+                          setMessageStyle("");
+                      } else if (resp_json.hasOwnProperty("error")) {
+                          setMessage(resp_json["error"]);
+                          setMessageStyle("");
+                      }
+                  });
+              }
+          }).catch(error => {
+              setMessage(error.message);
           });
-        } else {
-          response.json().then(resp_json => {
-            if (resp_json.hasOwnProperty("status") && resp_json["status"] == "ok") {
-              setMessage("Subscribed! Welcome to our list.");
-              setMessageStyle("");
-            }
-            else if (resp_json.hasOwnProperty("error")) {
-              setMessage(resp_json["error"]);
-              setMessageStyle("");
-            }
-          });
-        }
-      }).catch(error => {
-        setMessage(error.message);
-      });
-    }
+      }
   }
 
   return <span>
       <div className="simpleButtonWrapper signUpEducators">
         <div onClick={handleClick} className={classNames({button:1, flexContainer:1, "int-en":1, white: true, tall: false, rounded:true})}>
-          <span className="int-en">{email.length === 0 ? <a href="/register?educator=true&next=/educators">{enActionText.current}</a> : enActionText.current}<img src="/static/img/circled-arrow-right.svg"/></span>
+          <span className="int-en">{email.length === 0 ? <a href={redirectURL}>{enActionText.current}</a> : enActionText.current}<img src="/static/img/circled-arrow-right.svg"/></span>
         </div>
         <div onClick={handleClick} className={classNames({button:1, flexContainer:1, "int-he":1, white: true, tall: false, rounded:true})}>
-          <span className="int-he">{email.length === 0 ? <a href="/register?educator=true&next=/educators">{heActionText.current}</a> : heActionText.current}<img src="/static/img/circled-arrow-left.svg"/></span>
+          <span className="int-he">{email.length === 0 ? <a href={redirectURL}>{heActionText.current}</a> : heActionText.current}<img src="/static/img/circled-arrow-left.svg"/></span>
         </div>
       </div>
       <div className={`signUpEducatorsMessage ${messageStyle}`}>{message}<br/></div>
@@ -2052,7 +2056,13 @@ const HeaderForEducatorsPage = () => {
           <span className="int-he">{heTitle}</span>
         </h1>
         <SimpleInterfaceBlock classes="staticPageHeaderText" he={heText} en={enText}/>
-        <EducatorSubscribeButton/>
+        <SubscribeButton
+             enAction={"Sign up to get updates"}
+             heAction={"הירשמו לקבלת הניוזלטר"}
+             heLists={"Announcements_General_Hebrew|Announcements_Edu_Hebrew"}
+             enLists={"Announcements_General|Announcements_Edu"}
+             redirectURL={"/register?educator=true&next=/educators"}
+            />
       </div>
     </div>
   </div>
