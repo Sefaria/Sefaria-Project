@@ -264,10 +264,12 @@ const SELECTOR_WHITE_LIST = {
     }
 
     function reportCitation(elem, event, ...rest) {
+        const reason = prompt("What is wrong with this citation?");
         const [prevContext, nextContext] = getTextAroundElem(elem, 20);
         const iLinkObj = elem.getAttribute('data-result-index');
         const postData = {
-            prevContext, nextContext, citation: elem.textContent,
+            prevContext, nextContext, reason,
+            citation: elem.textContent,
             debugData: ns.debugData[iLinkObj],
             url: window.location.href,
         };
