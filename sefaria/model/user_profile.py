@@ -12,6 +12,8 @@ from random import randint
 from sefaria.system.exceptions import InputError, SheetNotFoundError
 from functools import reduce
 
+from sefaria.utils.user import delete_user_account
+
 if not hasattr(sys, '_doc_build'):
     from django.contrib.auth.models import User, Group, AnonymousUser
     from emailusernames.utils import get_user, user_exists
@@ -305,7 +307,10 @@ class UserWrapper(object):
 
 
 class UserProfile(object):
-    def __init__(self, user_obj=None, id=None, slug=None, email=None):
+    def __init__(self, user_obj=None, id=None, slug=None, email=None, user_registration=False):
+        """
+        :param user_registration: pass during user registration so as to not create an extra profile record as init side effect
+        """
         #TODO: Can we optimize the init to be able to load a profile without a call to user db?
         # say in a case where we already have an id and just want some fields from the profile object
         if slug:  # Load profile by slug, if passed
@@ -397,9 +402,12 @@ class UserProfile(object):
 
         # Update with saved profile doc in MongoDB
         profile = db.profiles.find_one({"id": id})
-        if profile:
+        if profile: # overwrite if fake profile in db
+            # TODO: think about how we want to handle the postgres database not being synced
+            # with the mongo database. This is an existing issue; a 'new user' will be populated with 'old user'
+            # data from a nonexistent user (in postgres)
             self.update(profile, ignore_flags_on_init=True)
-        elif self.exists():
+        elif self.exists() and not user_registration:
             # If we encounter a user that has a Django user record but not a profile document
             # create a profile for them. This allows two enviornments to share a user database,
             # while maintaining separate profiles (e.g. Sefaria and S4D).

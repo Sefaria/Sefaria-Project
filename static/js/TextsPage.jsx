@@ -13,7 +13,7 @@ import {
   NBox,
   ResponsiveNBox,
   LanguageToggleButton,
-  InterfaceText, 
+  InterfaceText,
   ContentText,
 } from './Misc';
 
@@ -38,7 +38,7 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
       </div>
     );
   }
-  
+
   // Root Library Menu
   let categoryListings = Sefaria.toc.map(cat => {
     const style = {"borderColor": Sefaria.palette.categoryColor(cat.category)};
@@ -55,13 +55,13 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
       </div>
     );
   });
-  
+
   categoryListings = (
     <div className="readerNavCategories">
       <ResponsiveNBox content={categoryListings} initialWidth={initialWidth} />
     </div>);
 
-  const comparePanelHeader = compare ? 
+  const comparePanelHeader = compare ?
     <ComparePanelHeader
       search={true}
       onBack={onCompareBack}
@@ -69,7 +69,7 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
       openSearch={openSearch}
     /> : null;
 
-  const title = compare ? null : 
+  const title = compare ? null :
     <div className="navTitle tight sans-serif">
       <h1><InterfaceText>Browse the Library</InterfaceText></h1>
 
@@ -82,13 +82,14 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
 
   const dedication = Sefaria._siteSettings.TORAH_SPECIFIC && !compare ? <Dedication /> : null;
 
-  const libraryMessage = Sefaria._siteSettings.LIBRARY_MESSAGE && !compare ? 
+  const libraryMessage = Sefaria._siteSettings.LIBRARY_MESSAGE && !compare ?
     <div className="libraryMessage" dangerouslySetInnerHTML={ {__html: Sefaria._siteSettings.LIBRARY_MESSAGE} }></div>
     : null;
 
   const sidebarModules = [
     multiPanel ? {type: "AboutSefaria"} : {type: null},
     {type: "Promo"},
+    {type: "Translations"},
     {type: "LearningSchedules"},
     {type: "JoinTheCommunity"},
     {type: "Resources"},
