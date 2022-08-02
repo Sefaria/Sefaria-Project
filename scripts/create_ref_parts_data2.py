@@ -1303,6 +1303,13 @@ class SpecificConverterManager:
                                             get_other_fields=get_other_fields)
             converter.convert()
 
+    def convert_yalkut(self): #in the middle of work
+        def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
+            if node.is_root():
+                title_slug = RTM.create_term_from_titled_obj(node, context="base", ref_part_role='structural',
+                                                         new_alt_titles=['Yalkut Shimoni', 'Yalkut', 'ילקוט שמעוני', 'יל״ש', 'יל״ש', 'ילקוט']).slug
+                return [MatchTemplate([title_slug])]
+
 
     def convert_arukh_hashulchan(self):
         def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
@@ -1350,6 +1357,7 @@ if __name__ == '__main__':
     converter_manager.convert_pdre_and_tde()
     converter_manager.convert_mechilta_drshbi()
     converter_manager.convert_sifrei()
+    converter_manager.convert_pesikta()
 
 """
 Still TODO
