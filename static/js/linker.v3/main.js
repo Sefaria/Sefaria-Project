@@ -269,6 +269,7 @@ const SELECTOR_WHITE_LIST = {
         const postData = {
             prevContext, nextContext, citation: elem.textContent,
             debugData: ns.debugData[iLinkObj],
+            url: window.location.href,
         };
         fetch(`${SEFARIA_BASE_URL}/api/find-refs/report`, {
             method: 'POST',

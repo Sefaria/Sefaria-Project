@@ -285,12 +285,7 @@ def linker_js(request, linker_version=None):
 def find_refs_report_api(request):
     from sefaria.system.database import db
     post = json.loads(request.body)
-    db.linker_feedback.insert_one({
-        "prevContext": post['prevContext'],
-        "citation": post['citation'],
-        "nextContext": post['nextContext'],
-        "debugData": post['debugData'],
-    })
+    db.linker_feedback.insert_one(post)
     return jsonResponse({'ok': True})
 
 
