@@ -171,11 +171,12 @@ const SELECTOR_WHITE_LIST = {
             if (isAmbiguous) { atag.className += " sefaria-link-ambiguous"; }
         }
 
+        atag.setAttribute('data-result-index', iLinkObj);
+
         if (linkFailed) { return atag; }  // debug and linkFailed
 
         atag.href = `${SEFARIA_BASE_URL}/${url}`;
         atag.setAttribute('data-ref', ref);
-        atag.setAttribute('data-result-index', iLinkObj);
         atag.setAttribute('aria-controls', 'sefaria-popup');
         return atag;
     }
