@@ -106,7 +106,6 @@ class SimpleMongoDBCache(BaseCache):
 
         return self._base_set('set', key, value, timeout)
 
-    @reconnect()
     def _base_set(self, mode, key, value, timeout=DEFAULT_TIMEOUT):
         if timeout is DEFAULT_TIMEOUT:
             timeout = self.default_timeout
@@ -133,7 +132,6 @@ class SimpleMongoDBCache(BaseCache):
         else:
             return True
 
-    @reconnect()
     def get(self, key, default=None, version=None):
         coll = self._get_collection()
         key = self.make_key(key, version)
@@ -157,7 +155,6 @@ class SimpleMongoDBCache(BaseCache):
 
         return data['data']
 
-    @reconnect()
     def get_many(self, keys, version=None):
         coll = self._get_collection()
         now = datetime.utcnow()
@@ -188,7 +185,6 @@ class SimpleMongoDBCache(BaseCache):
 
         return out
 
-    @reconnect()
     def delete(self, key, version=None):
         key = self.make_key(key, version)
         self.validate_key(key)
@@ -198,7 +194,6 @@ class SimpleMongoDBCache(BaseCache):
         else:
             coll.update_one({'key': key}, {'$set': {'expires': timezone.now()}})
 
-    @reconnect()
     def has_key(self, key, version=None):
         coll = self._get_collection()
         key = self.make_key(key, version)
@@ -219,7 +214,6 @@ class SimpleMongoDBCache(BaseCache):
 
         return data.count() > 0
 
-    @reconnect()
     def clear(self):
         coll = self._get_collection()
         collstats = self._db.command("collstats", self._collection_name)
