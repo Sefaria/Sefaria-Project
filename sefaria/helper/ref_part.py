@@ -171,9 +171,10 @@ def make_html(bulk_resolved_list: List[List[List[Union[ResolvedRef, AmbiguousRes
         fout.write(html)
 
 
-def make_find_refs_response(resolved: List[List[Union[AmbiguousResolvedRef, ResolvedRef]]], with_text=False):
+def make_find_refs_response(resolved: List[List[Union[AmbiguousResolvedRef, ResolvedRef]]], with_text=False, debug=False):
     ref_results = []
     ref_data = {}
+    debug_data = []
     resolved_ref_list = [resolved_ref for inner_resolved in resolved for resolved_ref in inner_resolved]
     for resolved_ref in resolved_ref_list:
         resolved_refs = resolved_ref.resolved_raw_refs if resolved_ref.is_ambiguous else [resolved_ref]
@@ -192,11 +193,16 @@ def make_find_refs_response(resolved: List[List[Union[AmbiguousResolvedRef, Reso
             tref = rr.ref.normal()
             if tref in ref_data: continue
             ref_data[tref] = make_ref_response_for_linker(rr.ref, with_text)
+        if debug:
+            debug_data += [[make_debug_response_for_linker(rr) for rr in resolved_refs]]
 
     response = {
         "results": ref_results,
         "refData": ref_data
     }
+    if debug:
+        response['debugData'] = debug_data
+
     return response
 
 
@@ -214,7 +220,29 @@ def make_ref_response_for_linker(oref: text.Ref, with_text=False) -> dict:
             'he': he,
             'en': en,
         })
+
     return res
+
+
+def make_debug_response_for_linker(resolved_ref: ResolvedRef) -> dict:
+    debug_data = {
+        "orig_part_strs": [p.text for p in resolved_ref.raw_ref.raw_ref_parts],
+        "orig_part_types": [p.type.name for p in resolved_ref.raw_ref.raw_ref_parts],
+        "final_part_strs": [p.text for p in resolved_ref.raw_ref.parts_to_match],
+        "final_part_types": [p.type.name for p in resolved_ref.raw_ref.parts_to_match],
+        "resolved_part_strs": [p.term.slug if isinstance(p, TermContext) else p.text for p in resolved_ref.resolved_parts],
+        "resolved_part_types": [p.type.name for p in resolved_ref.resolved_parts],
+        "resolved_part_classes": [p.__class__.__name__ for p in resolved_ref.resolved_parts],
+        "context_ref": resolved_ref.context_ref.normal() if resolved_ref.context_ref else None,
+        "context_type": resolved_ref.context_type.name if resolved_ref.context_type else None,
+    }
+    if RefPartType.RANGE.name in debug_data['final_part_types']:
+        range_part = next((p for p in resolved_ref.raw_ref.parts_to_match if p.type == RefPartType.RANGE), None)
+        debug_data.update({
+            'input_range_sections': [p.text for p in range_part.sections],
+            'input_range_to_sections': [p.text for p in range_part.toSections]
+        })
+    return debug_data
 
 
 def load_spacy_model(path: str) -> spacy.Language:

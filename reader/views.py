@@ -177,8 +177,6 @@ def base_props(request):
     from sefaria.site.site_settings import SITE_SETTINGS
     from sefaria.settings import DEBUG, GLOBAL_INTERRUPTING_MESSAGE, RTC_SERVER
 
-    import traceback
-    logger.exception(f"base_props {traceback.print_stack()}")
     if hasattr(request, "init_shared_cache"):
         logger.warning("Shared cache disappeared while application was running")
         library.init_shared_cache(rebuild=True)

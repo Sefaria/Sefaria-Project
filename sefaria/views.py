@@ -282,25 +282,31 @@ def linker_js(request, linker_version=None):
 
 
 @api_view(["POST"])
+def find_refs_report_api(request):
+    from sefaria.system.database import db
+    post = json.loads(request.body)
+    db.linker_feedback.insert_one(post)
+    return jsonResponse({'ok': True})
+
+
+@api_view(["POST"])
 def find_refs_api(request):
-    import traceback
-    logger.exception(f"find_refs_api start {traceback.print_stack()}")
     from sefaria.helper.ref_part import make_html, make_find_refs_response
     from sefaria.utils.hebrew import is_hebrew
     with_text = bool(int(request.GET.get("with_text", False)))
+    debug = bool(int(request.GET.get("debug", False)))
+
     post = json.loads(request.body)
     resolver = library.get_ref_resolver()
-    logger.warning(f"find_refs_api post {post}")
     lang = 'he' if is_hebrew(post['text']) else 'en'
     resolved_title = resolver.bulk_resolve_refs(lang, [None], [post['title']])
     context_ref = resolved_title[0][0].ref if (len(resolved_title[0]) == 1 and not resolved_title[0][0].is_ambiguous) else None
     resolved = resolver.bulk_resolve_refs(lang, [context_ref], [post['text']], with_failures=True)
-    logger.warning(f"find_refs_api resolved {resolved}")
     # make_html([resolved_title, resolved], [[post['title']], [post['text']]], f'data/private/linker_results/linker_result.html')
 
     return jsonResponse({
-        "title": make_find_refs_response(resolved_title, with_text),
-        "text": make_find_refs_response(resolved, with_text),
+        "title": make_find_refs_response(resolved_title, with_text, debug),
+        "text": make_find_refs_response(resolved, with_text, debug),
     })
 
 
