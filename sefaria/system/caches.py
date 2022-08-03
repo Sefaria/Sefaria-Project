@@ -24,6 +24,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.utils import timezone
 from django.core.cache.backends.base import BaseCache, DEFAULT_TIMEOUT
 from pymongo.errors import OperationFailure, ExecutionTimeout
+from sefaria.system.database import db
 
 
 def get_host_and_port(location):
@@ -229,11 +230,7 @@ class SimpleMongoDBCache(BaseCache):
         return self._coll
 
     def _initialize_collection(self):
-        if self._username is not None:
-            self.connection = pymongo.MongoClient('mongodb://{0}:{1}@{2}:{3}/{4}'.format(self._username, self._password, self._host, self._port, self._database))
-        else:
-            self.connection = pymongo.MongoClient('mongodb://{0}:{1}/'.format(self._host, self._port))
-        self._db = self.connection[self._database]
+        self._db = db
         if self._collection_name not in self._db.collection_names():
             options = {}
             if self._max_entries is not None:
