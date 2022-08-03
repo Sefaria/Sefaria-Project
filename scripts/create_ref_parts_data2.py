@@ -1309,7 +1309,66 @@ class SpecificConverterManager:
                 title_slug = RTM.create_term_from_titled_obj(node, context="base", ref_part_role='structural',
                                                          new_alt_titles=['Yalkut Shimoni', 'Yalkut', 'ילקוט שמעוני', 'יל״ש', 'יל״ש', 'ילקוט']).slug
                 return [MatchTemplate([title_slug])]
+            elif node.depth == 0 or 'Nach' in node.wholeRef:
+                title = node.get_primary_title('en')
+                title = title.replace('Bereishit', 'Bereshit')
+                title_slug = RTM.get_term_by_primary_title('tanakh', title).slug
+                context_slug = RTM.get_term_by_primary_title('base', 'Parasha').slug if node.depth == 0 else RTM.get_term_by_primary_title('base', 'Sefer').slug
+                return [
+                    MatchTemplate([title_slug]),
+                    MatchTemplate([context_slug, title_slug])
+                ]
 
+        def get_other_fields(node, depth, isibling, num_siblings, is_alt_node):
+            if not node.is_root() and 'Nach' in node.wholeRef:
+                return {"referenceableSections": [False],}
+
+        for book in ["Yalkut Shimoni on Nach", "Yalkut Shimoni on Torah"]:
+            converter = LinkerCategoryConverter(book, is_index=True, get_match_templates=get_match_templates,
+                                            get_other_fields=get_other_fields)
+            converter.convert()
+
+    def convert_midrash_tehilim_and_mishlei(self):
+        def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
+            title_slug = RTM.create_term_from_titled_obj(node, context="base", ref_part_role='structural').slug
+            return [MatchTemplate([title_slug])]
+
+        def get_other_fields(node, depth, isibling, num_siblings, is_alt_node):
+            return {"referenceableSections": [True, False],
+                    'addressTypes': ['Perek', 'Integer']}
+
+        for book in ["Midrash Mishlei", "Midrash Tehillim"]:
+            converter = LinkerCategoryConverter(book, is_index=True, get_match_templates=get_match_templates,
+                                            get_other_fields=get_other_fields)
+            converter.convert()
+
+    def convert_tanchuma(self):
+        def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
+            if node.is_root():
+                new = ['ילמדנו'] if node.key == 'Midrash Tanchuma' else []
+                title_slug = RTM.create_term_from_titled_obj(node, context="base", ref_part_role='structural', new_alt_titles=new).slug
+                return [MatchTemplate([title_slug])]
+            title = node.get_primary_title('en')
+            parashah_slug = RTM.get_term_by_primary_title('base', 'Parasha').slug
+            try:
+                title_slug = RTM.get_term_by_primary_title('tanakh', title).slug
+            except:
+                pass
+                # print(title)
+            else:
+                return [
+                    MatchTemplate([title_slug]),
+                    MatchTemplate([parashah_slug, title_slug])
+                ]
+
+        def get_other_fields(node, depth, isibling, num_siblings, is_alt_node):
+            if not node.is_root() and node.get_primary_title('en') not in ['Foreword', 'Introduction']:
+                return {"referenceableSections": [True, False],}
+
+        for book in ["Midrash Tanchuma", "Midrash Tanchuma Buber"]:
+            converter = LinkerCategoryConverter(book, is_index=True, get_match_templates=get_match_templates,
+                                            get_other_fields=get_other_fields)
+            converter.convert()
 
     def convert_arukh_hashulchan(self):
         def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
@@ -1358,6 +1417,9 @@ if __name__ == '__main__':
     converter_manager.convert_mechilta_drshbi()
     converter_manager.convert_sifrei()
     converter_manager.convert_pesikta()
+    converter_manager.convert_yalkut()
+    converter_manager.convert_midrash_tehilim_and_mishlei()
+    converter_manager.convert_tanchuma()
 
 """
 Still TODO

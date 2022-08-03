@@ -242,6 +242,14 @@ crrd = create_raw_ref_data
     [crrd(None, 'he', "ספרי דברים וזאת הברכה סי' שמד", [slice(0, 2), slice(2, 4), slice(4, 6)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Sifrei Devarim 344"]],
     [crrd(None, 'he', 'פסיקתא דר"כ ג', [slice(0, 4), 4], [RPT.NAMED, RPT.NUMBERED]), ["Pesikta D'Rav Kahanna 3"]],
     [crrd(None, 'he', "פסיקתא רבתי טו", [slice(0, 2), 2], [RPT.NAMED, RPT.NUMBERED]), ["Pesikta Rabbati 15"]],
+    [crrd(None, 'he', "ילקוט שמעוני כג", [slice(0, 2), 2], [RPT.NAMED, RPT.NUMBERED]), ["Yalkut Shimoni on Torah 23"]],
+    [crrd(None, 'he', "ילקוט שמעוני בראשית רמז כג", [slice(0, 2), 2, 3], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ["Yalkut Shimoni on Torah 23"]],
+    [crrd(None, 'he', 'ילקוט שמעוני על נ"ך רמז כג', [slice(0, 6), 6], [RPT.NAMED, RPT.NUMBERED]), ["Yalkut Shimoni on Nach 23"]],
+    [crrd(None, 'he', 'ילקוט שמעוני יהושע כג', [slice(0, 2), 2, 3], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ["Yalkut Shimoni on Nach 23"]],
+    [crrd(None, 'he', 'מדרש תהילים כג', [slice(0, 2), 2], [RPT.NAMED, RPT.NUMBERED]), ["Midrash Tehillim 23"]],
+    [crrd(None, 'he', 'מדרש משלי פרק כג', [slice(0, 2), slice(2, 4)], [RPT.NAMED, RPT.NUMBERED]), ["Midrash Mishlei 23"]],
+    [crrd(None, 'he', 'תנחומא בראשית יג', [0, 1, 2], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ["Midrash Tanchuma, Bereshit 13"]],
+    [crrd(None, 'he', 'תנחומא בובר בראשית יג', [slice(0,2), 2, 3], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ["Midrash Tanchuma Buber, Bereshit 13"]],
 
 ])
 def test_resolve_raw_ref(resolver_data, expected_trefs):
