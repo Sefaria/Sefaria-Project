@@ -2536,22 +2536,17 @@ const DivineNameReplacer = ({setDivineNameReplacement, divineNameReplacement}) =
   )
 
 }
-const Autocompleter = ({selectedRefCallback, getSuggestions, borderColorFunc,
-                         showSuggestionsFunc, showAddressCompletionsFunc, showPreviewFunc,
-                         showAddButtonFunc, filterResultsFunc, onClickSuggestionFunc,
-                          inputPlaceholder, buttonTitle, limit,
-                         inputStyle="serif", colorIfSelected = "#000000",
-                         showSuggestionsOnSelect=true, }) => {
+const Autocompleter = ({selectedRefCallback, getSuggestions, borderColorFx,
+                         showSuggestionsFx, showAddressCompletionsFx, showPreviewFx,
+                         showAddButtonFx, filterResultsFx, onClickSuggestion, limit }) => {
   const [inputValue, setInputValue] = useState("");
   const [currentSuggestions, setCurrentSuggestions] = useState(null);
   const [previewText, setPreviewText] = useState(null);
   const [helperPromptText, setHelperPromptText] = useState(null);
   const [showAddButton, setShowAddButton] = useState(false);
   const [showCurrentSuggestions, setShowCurrentSuggestions] = useState(true);
-  const [selected, setSelected] = useState(false);
   const suggestionEl = useRef(null);
   const inputEl = useRef(null);
-  const defaultColor = "#000000";
   const defaultAutocompleteLimit = 5;
 
 
@@ -2598,11 +2593,11 @@ const Autocompleter = ({selectedRefCallback, getSuggestions, borderColorFunc,
       return
     }
     let [completion_objects, d] = await getSuggestions(input);
-    if (showSuggestionsFunc(d, input)) {
+    if (showSuggestionsFx(d, input)) {
       const suggestions = completion_objects
         .filter(completion_obj => {
-          if (filterResultsFunc) {
-            return filterResultsFunc(completion_obj);
+          if (filterResultsFx) {
+            return filterResultsFx(completion_obj);
           } else {
             return true;
           }
@@ -2611,7 +2606,7 @@ const Autocompleter = ({selectedRefCallback, getSuggestions, borderColorFunc,
           name: suggestion.title,
           key: suggestion.key,
           type: suggestion.type,
-          border_color: borderColorFunc(suggestion.key)
+          border_color: borderColorFx(suggestion.key)
         }))
         .slice(0, limit ? limit : defaultAutocompleteLimit);
 
@@ -2621,20 +2616,20 @@ const Autocompleter = ({selectedRefCallback, getSuggestions, borderColorFunc,
     }
 
     //We want to show address completions when book exists but not once we start typing further
-    if (showAddressCompletionsFunc && showAddressCompletionsFunc(d) && isNaN(input.trim().slice(-1))) {
+    if (showAddressCompletionsFx && showAddressCompletionsFx(d) && isNaN(input.trim().slice(-1))) {
       setHelperPromptText(<InterfaceText text={{ en: d.addressExamples[0], he: d.heAddressExamples[0] }} />)
       document.querySelector('.addInterfaceInput input+span.helperCompletionText').style.insetInlineStart = `${getWidthOfInput()}px`;
     } else {
       setHelperPromptText(null)
     }
 
-    if (showPreviewFunc && showPreviewFunc(d)) {
+    if (showPreviewFx && showPreviewFx(d)) {
       generatePreviewText(input);
     } else {
       setPreviewText(null)
     }
 
-    if (showAddButtonFunc(d, input)) {
+    if (showAddButtonFx(d, input)) {
       setShowAddButton(true);
     } else {
       setShowAddButton(false);
@@ -2647,30 +2642,24 @@ const Autocompleter = ({selectedRefCallback, getSuggestions, borderColorFunc,
   }
 
   const onChange = (input) => {
-    setSelected(false);
-    setShowCurrentSuggestions(true);
     processSuggestions(input);
-    resizeInputIfNeeded();
+    resizeInputIfNeeded()
   }
 
-  const handleOnClickSuggestion = (title) => {
-      setInputValue(title);
-      setShowCurrentSuggestions(showSuggestionsOnSelect);
-      processSuggestions(title);
-      if (onClickSuggestionFunc) {
-        onClickSuggestionFunc(title);
-      }
-      setSelected(true);
-      resizeInputIfNeeded();
-      inputEl.current.focus();
-  }
 
   const Suggestion = ({title, color}) => {
     return(<option
               className="suggestion"
               onClick={(e)=>{
                   e.stopPropagation()
-                  handleOnClickSuggestion(title)
+                  setInputValue(title)
+                  setShowCurrentSuggestions(false)
+                  processSuggestions(title)
+                  if (onClickSuggestion) {
+                    onClickSuggestion(title)
+                  }
+                  resizeInputIfNeeded()
+                  inputEl.current.focus()
                 }
               }
               style={{"borderInlineStartColor": color}}
@@ -2731,29 +2720,32 @@ const Autocompleter = ({selectedRefCallback, getSuggestions, borderColorFunc,
   }
 
    const checkEnterOnSelect = (e) => {
+      console.log(e.key)
       if (e.key === 'Enter') {
-          handleOnClickSuggestion(e.target.value);
+        setInputValue(e.target.value);
+        processSuggestions(e.target.value);
+        onClickSuggestion(e.target.value);
+        inputEl.current.focus();
       }
     }
 
 
   return(
-    <div className="addInterfaceInput" onClick={(e) => {e.stopPropagation()}} title={Sefaria._(buttonTitle)}>
+    <div className="addInterfaceInput" onClick={(e) => {e.stopPropagation()}} title="Add a source from Sefaria's library">
       <input
           type="text"
-          placeholder={Sefaria._(inputPlaceholder)}
-          className={inputStyle}
+          placeholder={Sefaria._("Search for a text...")}
+          className="serif"
           onKeyDown={(e) => onKeyDown(e)}
           onClick={(e) => {e.stopPropagation()}}
           onChange={(e) => onChange(e.target.value)}
           value={inputValue}
           ref={inputEl}
           size={inputValue.length}
-          style={{color: selected ? colorIfSelected : defaultColor}}
       /><span className="helperCompletionText sans-serif-in-hebrew">{helperPromptText}</span>
-      {showAddButton ? <button className={ classNames({button: 1, small: 1} onClick={(e) => {
+      {showAddButton ? <button className="button small" onClick={(e) => {
                     selectedRefCallback(inputValue, currentSuggestions)
-                }}>{buttonTitle}</button> : null}
+                }}>Add Source</button> : null}
 
       {showCurrentSuggestions && currentSuggestions && currentSuggestions.length > 0 ?
           <div className="suggestionBoxContainer">
