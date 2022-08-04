@@ -22,14 +22,16 @@ function useTopicToggle() {
   return [addingTopics, toggleAddingTopics];
 }
 
-const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc="", origCategoryDesc="", origCategorySlug="", close}) => {
+
+const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc="", origCategoryDesc="", origCategorySlug="",
+                     redirect=(slug) => window.location.href = "/topics/" + slug, close}) => {
     const [savingStatus, setSavingStatus] = useState(false);
     const [catSlug, setCatSlug] = useState(origCategorySlug);
     const [description, setDescription] = useState(origDesc?.en);
     const [catDescription, setCatDescription] = useState(origCategoryDesc?.en);
     const [enTitle, setEnTitle] = useState(origEn);
     const [heTitle, setHeTitle] = useState(origHe);
-    const isNewTopic = origEn === "";
+    const isNewTopic = origSlug === "";
     const [isCategory, setIsCategory] = useState(catSlug === "Main Menu");
 
     const slugsToTitles = Sefaria.slugsToTitles();

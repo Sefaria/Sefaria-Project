@@ -2622,8 +2622,8 @@ def get_name_completions(name, limit, ref_only, topic_override=False):
 
 @catch_error_as_json
 def topic_completion_api(request, topic):
-    LIMIT = int(request.GET.get("limit", 10))
-    result = library.topic_auto_completer().complete(topic, limit=LIMIT)
+    limit = int(request.GET.get("limit", 10))
+    result = library.topic_auto_completer().complete(topic, limit=limit)
     return jsonResponse(result)
 
 
@@ -3397,7 +3397,7 @@ def topic_ref_api(request, tref):
         if not request.user.is_staff:
             return jsonResponse({"error": "Only moderators can connect refs to topics."})
 
-        slug = json.loads(request.POST.get("json")).get("topic", "")
+        slug = json.loads(request.POST.get("json")).get("topic", None)
         topic_obj = Topic().load({"slug": slug})
         if topic_obj is None:
             return jsonResponse({"error": "Topic does not exist"})
@@ -3406,6 +3406,9 @@ def topic_ref_api(request, tref):
         if RefTopicLink().load(ref_topic_link) is None:
             r = RefTopicLink(ref_topic_link)
             r.save()
+            num_sources = getattr(topic_obj, "numSources", 0)
+            topic_obj.numSources = num_sources + 1
+            topic_obj.save()
             ref_topic_dict = ref_topic_link_prep(r.contents())
             ref_topic_dict = annotate_topic_link(ref_topic_dict, {slug: topic_obj})
             return jsonResponse(ref_topic_dict)

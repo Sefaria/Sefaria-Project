@@ -6,7 +6,7 @@ import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
 import Component from 'react-class'
 import {InterfaceText} from "./Misc";
-import TopicEditor from "./TopicEditor";
+import {TopicEditor} from "./TopicEditor";
 
 
 class TopicSearch extends Component {
@@ -62,9 +62,8 @@ class TopicSearch extends Component {
 
       source: function(request, response) {
         this.setState({slug: "", label: request.term});
-        Sefaria.topicCompletion(
-            request.term,
-            function(d) {
+        const word = request.term.trim();
+        const callback = function(d) {
                     let topics = [];
                     if (d[1].length > 0) {
                       topics = d[1].map(function (e) {
@@ -74,8 +73,8 @@ class TopicSearch extends Component {
                     topics.push({"label": "Create new topic: "+request.term, key: ""})
                     this.setState({topics: topics, selected: false});
                     response(topics);
-            }.bind(this)
-        );
+            }.bind(this);
+        Sefaria._cachedApiPromise({url: Sefaria.apiHost + "/api/topic/completion/" + word, key: word, store: Sefaria._topicCompletions, processor: callback})
       }.bind(this)
     });
   }
