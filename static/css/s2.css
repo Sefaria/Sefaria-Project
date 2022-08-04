@@ -2153,18 +2153,21 @@ div.interfaceLinks-row a {
   text-transform: none;
   color: #000;
 }
-.translationsPage details > ul {
+.translationsPage details > ul,
+.translationsPage > ul {
   padding: 0;
   margin: 20px 0;
   display: flex;
   flex-wrap: wrap;
 }
-.translationsPage details > ul > li:after {
+.translationsPage details > ul > li:after,
+.translationsPage > ul > li:after {
   content: "\2022";
   white-space:pre;
   margin: 0 5px;
 }
-.translationsPage details > ul > li:last-child:after {
+.translationsPage details > ul > li:last-child:after,
+.translationsPage > ul > li:last-child:after{
   content: none;
 }
 .readerPanel .translationsPage details > summary::-webkit-details-marker {
