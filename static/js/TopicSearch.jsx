@@ -100,8 +100,7 @@ class TopicSearch extends Component {
                 buttonTitle="Add Topic"
                 showSuggestionsOnSelect={false}
                 colorIfSelected="#4B71B7"
-                inputStyle="topicSearch"
-               buttonStyle="topicSearch"
+                inputStyle={"topicSearch"}
         />
         </div>
     );
