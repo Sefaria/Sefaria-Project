@@ -224,6 +224,7 @@ class ReusableTermManager:
         self.create_term(context="base", en='Tosafot', he='תוספות', alt_he=["תוס'", 'תוד"ה', 'תד"ה', "תו'"], alt_en=['Tosaphot'], ref_part_role='structural')
         self.create_term(context="base", en='Gilyon HaShas', he='גליון הש"ס', ref_part_role='structural')
         self.create_term(context="base", en='Midrash Rabbah', he='מדרש רבה', alt_en=['Midrash Rabba', 'Midrash Rabah'], alt_he=['מדרש רבא'], ref_part_role='structural')  # TODO no good way to compose titles for midrash rabbah...
+        self.create_term(context="base", en='Midrash', he='מדרש', ref_part_role='structural')
         self.create_term(context="base", en='Rabbah', he='רבה', alt_en=['Rabba', 'Rabah', 'Rab.', 'R.', 'Rab .', 'R .', 'rabba', 'r.', 'r .', 'rabbati'], alt_he=['רבא'], ref_part_role='structural')
         self.create_term(context="base", en='Ran', he='ר"ן', ref_part_role='structural')
         self.create_term(context="base", en='Perek', he='פרק', alt_en=["Pereq", 'Chapter'], alt_he=['ס"פ', 'ר"פ'], ref_part_role='alt_title')
@@ -260,9 +261,9 @@ class ReusableTermManager:
             "Avodah Zarah": ["Avodah zarah", "ˋAvodah zarah"],
             "Beitzah": ["Yom Tov", "Besah", "Beẓah", "Bezah"],
             "Berakhot": ["Berkahot"],
-            "Bava Batra": ["Bava batra", "Baba batra", "Bava bathra"],
-            "Bava Kamma": ["Bava kamma", "Bava kama", "Baba kamma", "Baba kama", "Bava qama", "Baba qama", "Bava Qama", "Baba Qama", "Bava qamma", "Bava Qamma"],
-            "Bava Metzia": ["Bava mesi`a", "Baba Mesi‘a", "Baba mesi`a", "Bava Mesi‘a", "Bava mesi‘a", "Bava mesiaˋ", "Baba meẓi‘a"],
+            "Bava Batra": ["Bava batra", "Baba batra", "Bava bathra", "בבא-בתרא"],
+            "Bava Kamma": ["Bava kamma", "Bava kama", "Baba kamma", "Baba kama", "Bava qama", "Baba qama", "Bava Qama", "Baba Qama", "Bava qamma", "Bava Qamma", "בבא-קמא"],
+            "Bava Metzia": ["Bava mesi`a", "Baba Mesi‘a", "Baba mesi`a", "Bava Mesi‘a", "Bava mesi‘a", "Bava mesiaˋ", "Baba meẓi‘a", "בבא-מציעא"],
             "Chullin": ["Hulin"],
             "Demai": ["Demay"],
             "Eduyot": ["Idiut"],
@@ -318,9 +319,9 @@ class ReusableTermManager:
             title_map[(index.title.replace('Tosefta ', ''), index.get_title('he').replace('תוספתא ', ''))] |= {re.sub(r'<[^>]+>', '', re.sub(repl_reg, '', tit['text'])) for tit in index.nodes.title_group.titles}
         title_term_map = {}
         for (generic_title_en, generic_title_he), alt_titles in sorted(title_map.items(), key=lambda x: x[0]):
+            alt_titles |= set(hard_coded_title_map.get(generic_title_en, []))
             alt_he = [tit for tit in alt_titles if is_hebrew(tit) and tit != generic_title_he]
             alt_en = [tit for tit in alt_titles if not is_hebrew(tit) and tit != generic_title_en]
-            alt_en += hard_coded_title_map.get(generic_title_en, [])
             term = self.create_term(context="shas", en=generic_title_en, he=generic_title_he, alt_en=alt_en, alt_he=alt_he, ref_part_role='structural')
             title_term_map[generic_title_en] = term
         return title_term_map
@@ -936,7 +937,8 @@ class SpecificConverterManager:
             nonlocal tanakh_title_map
             if node.is_default(): return []
             rabbah_slug = RTM.get_term_by_primary_title('base', 'Rabbah').slug
-            mid_rab_slug =  RTM.get_term_by_primary_title('base', 'Midrash Rabbah').slug
+            mid_slug = RTM.get_term_by_primary_title('base', 'Midrash').slug
+            mid_rab_slug = RTM.get_term_by_primary_title('base', 'Midrash Rabbah').slug
             title = node.get_primary_title('en')
             tanakh_title = title.replace(" Rabbah", "")
             tanakh_title = tanakh_title_map.get(tanakh_title, tanakh_title)
@@ -951,6 +953,7 @@ class SpecificConverterManager:
                 return [MatchTemplate([term.slug])]
             return [
                 MatchTemplate([tanakh_slug, rabbah_slug]),
+                MatchTemplate([mid_slug, tanakh_slug, rabbah_slug]),
                 MatchTemplate([mid_rab_slug, tanakh_slug]),
             ]
         converter = LinkerCategoryConverter("Midrash Rabbah", get_match_templates=get_match_templates)

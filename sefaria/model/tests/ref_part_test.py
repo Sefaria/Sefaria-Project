@@ -226,6 +226,7 @@ crrd = create_raw_ref_data
     [crrd(None, 'he', 'מכילתא שמות כא ג', [slice(0, 2), 2, 3], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Mekhilta d'Rabbi Yishmael 21:3"]],
     [crrd(None, 'he', 'מכילתא שמות כא ג', [0, 1, 2, 3], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Mekhilta d'Rabbi Yishmael 21:3"]],
     [crrd(None, 'he', 'מכילתא כא ג', [0, 1, 2], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Mekhilta d'Rabbi Yishmael 21:3"]],
+    [crrd(None, 'he', 'במדרש שמות רבה י"א ג', [0, slice(1, 3), slice(3, 6), 6], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Shemot Rabbah 11:3"]],
     # [crrd(None, 'he', 'בבראשית רבה בראשית ט', [])]
 
     #yishai's tests - hpoing it will prevent git conflicts
