@@ -1126,6 +1126,32 @@ class SpecificConverterManager:
                                             get_other_fields=get_other_fields)
         converter.convert()
 
+    def convert_tikkunei_zohar(self):
+        def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
+            if node.is_root():
+                title_slug = RTM.create_term_from_titled_obj(node, context="base", ref_part_role='structural',
+                                                         new_alt_titles=['תקונים', 'תיקונים', 'ת"ז']).slug
+            elif node.get_primary_title('en') == 'Introduction to Tikkunei HaZohar':
+                title_slug = RTM.create_term_from_titled_obj(node, context="base", ref_part_role='structural',
+                                                         new_alt_titles=['הקדמה', 'הקדמה', 'Introduction']).slug
+            elif node.get_primary_title('en') == 'Second Introduction to Tikkunei HaZohar':
+                title_slug = RTM.create_term_from_titled_obj(node, context="base", ref_part_role='structural',
+                                                         new_alt_titles=['הקדמה שנייה', 'הקדמה אחרת', 'Second Introduction']).slug
+            elif node.get_primary_title('en') == 'Additional Tikkunim':
+                title_slug = RTM.create_term_from_titled_obj(node, context="base", ref_part_role='structural').slug
+            else:
+                return
+            return [MatchTemplate([title_slug])]
+
+        def get_other_fields(node, depth, isibling, num_siblings, is_alt_node):
+            if node.is_root():
+                return {"referenceableSections": [True, False]}
+
+        converter = LinkerCategoryConverter('Tikkunei Zohar', is_index=True, get_match_templates=get_match_templates,
+                                            get_other_fields=get_other_fields)
+        converter.convert()
+
+
     def convert_minor_tractates(self):
         def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
             alts = {
@@ -1314,9 +1340,12 @@ class SpecificConverterManager:
                 title = title.replace('Bereishit', 'Bereshit')
                 title_slug = RTM.get_term_by_primary_title('tanakh', title).slug
                 context_slug = RTM.get_term_by_primary_title('base', 'Parasha').slug if node.depth == 0 else RTM.get_term_by_primary_title('base', 'Sefer').slug
+                yalkut_slug = RTM.get_term_by_primary_title('base', 'Yalkut Shimoni on Nach').slug
                 return [
                     MatchTemplate([title_slug]),
-                    MatchTemplate([context_slug, title_slug])
+                    MatchTemplate([context_slug, title_slug]),
+                    MatchTemplate([yalkut_slug, title_slug], scope='alone'),
+                    MatchTemplate([yalkut_slug, context_slug, title_slug], scope='alone')
                 ]
 
         def get_other_fields(node, depth, isibling, num_siblings, is_alt_node):
@@ -1370,6 +1399,43 @@ class SpecificConverterManager:
                                             get_other_fields=get_other_fields)
             converter.convert()
 
+    def convert_seder_olam(self):
+        def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
+            if node.is_root():
+                title_slug = RTM.create_term_from_titled_obj(node, context="base", ref_part_role='structural', new_alt_titles=['ס"ע']).slug
+                return [MatchTemplate([title_slug])]
+
+        def get_other_fields(node, depth, isibling, num_siblings, is_alt_node):
+            if node.is_default():
+                return {"referenceableSections": [True, False]}
+
+        converter = LinkerCategoryConverter('Seder Olam Rabbah', is_index=True, get_match_templates=get_match_templates,
+                                        get_other_fields=get_other_fields)
+        converter.convert()
+
+    def convert_maccabees(self):
+        def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
+            h, e = ('ב', 'II') if 'II' in node.get_primary_title('en') else ('א', 'I')
+            heb = ['מקבים', 'מכבים', 'חשמונאים']
+            heb = [f'{x} {h}' for x in heb] + [f'מק"{h}']
+            eng = []
+            for en in ['Maccabees', 'Hashmonaem', 'Macc.']:
+                for n in [e, len(e)]:
+                    eng += [f'{n} {en}', f'{en} {e}']
+            title_slug = RTM.create_term(en='I Maccabees', alt_en=eng, he='מקבים א', alt_he=heb, ref_part_role='structural').slug
+            return [
+                MatchTemplate([title_slug]),
+                MatchTemplate([RTM.get_term_by_primary_title('base', 'Sefer').slug, title_slug])
+            ]
+
+        def get_other_fields(node, depth, isibling, num_siblings, is_alt_node):
+            return {"addressTypes": ['Perek', 'Pasuk']}
+
+        for i in ["I", "II"]:
+            converter = LinkerCategoryConverter(f'The Book of Maccabees {i}', is_index=True, get_match_templates=get_match_templates,
+                                            get_other_fields=get_other_fields)
+            converter.convert()
+
     def convert_arukh_hashulchan(self):
         def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
             if is_alt_node:
@@ -1420,6 +1486,9 @@ if __name__ == '__main__':
     converter_manager.convert_yalkut()
     converter_manager.convert_midrash_tehilim_and_mishlei()
     converter_manager.convert_tanchuma()
+    converter_manager.convert_tikkunei_zohar()
+    converter_manager.convert_seder_olam()
+    converter_manager.convert_maccabees()
 
 """
 Still TODO

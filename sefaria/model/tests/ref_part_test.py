@@ -250,6 +250,14 @@ crrd = create_raw_ref_data
     [crrd(None, 'he', 'מדרש משלי פרק כג', [slice(0, 2), slice(2, 4)], [RPT.NAMED, RPT.NUMBERED]), ["Midrash Mishlei 23"]],
     [crrd(None, 'he', 'תנחומא בראשית יג', [0, 1, 2], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ["Midrash Tanchuma, Bereshit 13"]],
     [crrd(None, 'he', 'תנחומא בובר בראשית יג', [slice(0,2), 2, 3], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ["Midrash Tanchuma Buber, Bereshit 13"]],
+    [crrd(None, 'he', 'תקוני זוהר כג ע"ב', [slice(0, 2), slice(2, 6)], [RPT.NAMED, RPT.NUMBERED]), ["Tikkunei Zohar 23b"]],
+    [crrd(None, 'he', 'תקו"ז ט', [slice(0, 3), 3], [RPT.NAMED, RPT.NUMBERED]),["Tikkunei Zohar 24a:7-24b:1"]],
+    [crrd(None, 'he', 'ת"ז תיקון ט', [slice(0, 3), slice(3, 5)], [RPT.NAMED, RPT.NUMBERED]), ["Tikkunei Zohar 24a:7-24b:1"]],
+    [crrd(None, 'he', 'תקו"ז ט כד ע"ב', [slice(0, 3), 3, slice(4, 8)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Tikkunei Zohar 24b:1"]],
+    [crrd(None, 'he', 'הקדמה לתקו"ז', [0, slice(1, 4)], [RPT.NAMED, RPT.NAMED]), ["Tikkunei Zohar 1a:1-16b:4"]],
+    [crrd(None, 'he', 'ס"ע פי"א', [slice(0, 3), slice(3, 6)], [RPT.NAMED, RPT.NUMBERED]), ["Seder Olam Rabbah 11"]],
+    [crrd(None, 'he', 'מק"א ג ד', [slice(0, 3), 3, 4], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["The Book of Maccabees I 3:4"]],
+    [crrd(None, 'he', 'ספר חשמונאים ב ו ב', [slice(0, 3), 3, 4], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["The Book of Maccabees II 6:2"]],
 
 ])
 def test_resolve_raw_ref(resolver_data, expected_trefs):
