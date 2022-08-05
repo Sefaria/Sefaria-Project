@@ -56,6 +56,20 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
     );
   });
 
+  if (!compare) {
+      categoryListings.unshift(
+          <div className="navBlock">
+              <a href="/United_States_Constitution" className="navBlockTitle">
+                  <span className="en" lang="en">United States Constitution</span>
+              </a>
+          </div>,
+          <div className="navBlock">
+              <a href="/US_Declaration_of_Independence" className="navBlockTitle">
+                  <span className="en" lang="en">Declaration of Independence</span>
+              </a>
+          </div>
+      )
+  }
   categoryListings = (
     <div className="readerNavCategories">
       <ResponsiveNBox content={categoryListings} initialWidth={initialWidth} />
@@ -87,7 +101,6 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
     <div className="libraryMessage" dangerouslySetInnerHTML={ {__html: Sefaria._siteSettings.LIBRARY_MESSAGE} }></div>
     : null;
 
-  const constitution = compare ? null : <a href="/United_States_Constitution" className="navBlockTitle" style={{paddingBottom: "24px"}}><span className="en" lang="en">United States Constitution</span></a>;
   const sidebarModules = [
     multiPanel ? {type: "AboutContext"} : {type: null},
 /*    {type: "Promo"},
@@ -110,7 +123,6 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
             { title }
             { about }
             { dedication }
-            { constitution }
             { categoryListings }
           </div>
           {!compare ? <NavSidebar modules={sidebarModules} /> : null}
