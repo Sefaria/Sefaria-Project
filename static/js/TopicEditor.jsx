@@ -82,12 +82,19 @@ const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc="", origCatego
             const newSlug = data["slug"];
             $.get("/admin/reset/toc", function(data) {
                 if (data.error) {
-                    alert(data.error);
+                    alert("Please go to URL /admin/reset/toc. "+data.error);
                 } else {
+                    $.get("/admin/reset/ac", function(data) {
+                        if (data.error) {
+                            alert("Please go to URL /admin/reset/ac. "+data.error);
+                        }
+                        }).fail(function(xhr, status, errorThrown) {
+                            alert("Please go to URL /admin/reset/ac. "+errorThrown);
+                        });
                     redirect(newSlug);
                 }
             }).fail(function(xhr, status, errorThrown) {
-                alert("Please reset TOC manually: "+errorThrown);
+                alert("Please go to URL /admin/reset/toc. "+errorThrown);
               });
             }
           }).fail( function(xhr, status, errorThrown) {
