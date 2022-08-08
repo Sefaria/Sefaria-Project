@@ -896,7 +896,7 @@ const RabbisPage = () => (
       { [
           ["Schedule A Workshop", "שאלות נפוצות", "https://www.sefaria.org/sheets/370615?lang=bi", "https://www.sefaria.org.il/collections/%D7%A9%D7%90%D7%9C%D7%95%D7%AA-%D7%A0%D7%A4%D7%95%D7%A6%D7%95%D7%AA-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90"],
           ["Innovating with a Digital Library", "", "https://www.sefaria.org/sheets/415628?lang=bi", ""],
-          ["Innovating with a Digital Library", "", "https://www.sefaria.org/sheets/415628?lang=bi", ""]
+          ["Collections: A Home for Sermons and Classes", "", "https://www.sefaria.org/sheets/370836?lang=bi", ""]
       ].map(i =>
           <SimpleButton
               white={true}
@@ -913,7 +913,7 @@ const RabbisPage = () => (
 
      <Feature
       enTitle="Resources for Rabbis"
-      enText="Stay up to date with the latest news and resources from Sefaria. Learn from other rabbis’ experiences teaching and using Sefaria’s resources, and get inspired to try something new in your work."
+      enText="Stay up to date with the latest news and resources from Sefaria. Find relevant texts and sheets for thousands of topics, use and share Sefaria’s Chavruta feature for your own chavruta study, and get inspired to try something new in your work"
       enImg="/static/img/rabbis-landing-page/Sermon landing page screenshot.png"
       enImgAlt="Resources for Rabbis"
       borderColor={palette.colors.gold}
@@ -922,9 +922,9 @@ const RabbisPage = () => (
 
     <ButtonRow white={true} enTitle="" heTitle="">
       { [
-          ["Past Rabbi Newsletters", "", "/collections/qZ0UWi5y", ""],
-          ["Examples from the Field", "", "/sheets/311116?lang=bi", ""],
-          ["Lifecycles/Holidays", "", "/sheets/311291?lang=bi", ""]
+          ["Past Rabbi Newsletters", "", "https://www.sefaria.org/collections/T-5hbqOq?tab=sheets", ""],
+          ["Topics Tutorials", "", "https://www.sefaria.org/sheets/231377?lang=bi", ""],
+          ["Studying With a Partner: A Chavruta Tutorial", "", "https://www.sefaria.org/sheets/263246?lang=bi", ""]
       ].map(i =>
           <SimpleButton
               white={true}
