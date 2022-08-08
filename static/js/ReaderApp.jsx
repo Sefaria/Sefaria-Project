@@ -1551,7 +1551,7 @@ class ReaderApp extends Component {
   }
   setSelectedWords(n, words){
     //console.log(this.state.panels[n].refs);
-    var next = this.state.panels[n+1];
+    const next = this.state.panels[n+1];
     if (next && !next.menuOpen) {
       this.state.panels[n+1].selectedWords = words;
       this.setState({panels: this.state.panels});
