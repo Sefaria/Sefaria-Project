@@ -128,8 +128,8 @@ class SimpleMongoDBCache(BaseCache):
                 upsert=True,
             )
         # TODO: check threadsafety!
-        except (OperationFailure, ExecutionTimeout):
-            return False
+        except (OperationFailure, ExecutionTimeout) as e:
+            raise e
         else:
             return True
 
