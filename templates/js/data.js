@@ -10,6 +10,7 @@ var DJANGO_DATA_VARS = {
   books:                {{ titles_json }},
   searchIndexText:     '{{ SEARCH_INDEX_NAME_TEXT }}',
   searchIndexSheet:    '{{ SEARCH_INDEX_NAME_SHEET }}',
+  virtualBooks:     {{virtual_books}}
 };
 {% endautoescape %}
 

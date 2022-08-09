@@ -223,7 +223,7 @@ class AddToSourceSheetBox extends Component {
         </div>
         <div className="button noselect fillWidth" onClick={this.props.nodeRef ? this.copyNodeToSourceSheet : this.addToSourceSheet}>
           <span className="int-en noselect">Add to Sheet</span>
-          <span className="int-he noselect">הוסף לדף המקורות</span>
+          <span className="int-he noselect">הוספה לדף המקורות</span>
         </div>
       </div>);
   }

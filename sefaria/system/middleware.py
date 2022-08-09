@@ -51,6 +51,9 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
         if any([request.path.startswith(start) for start in excluded]):
             request.interfaceLang = "english"
             request.contentLang = "bilingual"
+            request.translation_language_preference = None
+            request.version_preferences_by_corpus = {}
+            request.translation_language_preference_suggestion = None
             return # Save looking up a UserProfile, or redirecting when not needed
 
         profile = UserProfile(id=request.user.id) if request.user.is_authenticated else None

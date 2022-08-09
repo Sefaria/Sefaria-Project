@@ -57,6 +57,7 @@ from sefaria.system.exceptions import InputError, PartialRefInputError, BookName
 from sefaria.system.cache import django_cache
 from sefaria.system.database import db
 from sefaria.helper.search import get_query_obj
+from sefaria.search import get_search_categories
 from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, get_topics_for_book
 from sefaria.helper.community_page import get_community_page_items
 from sefaria.helper.file import get_resized_file
@@ -311,7 +312,7 @@ def old_versions_redirect(request, tref, lang, version):
 
 def get_connections_mode(filter):
     # List of sidebar modes that can function inside a URL parameter to open the sidebar in that state.
-    sidebarModes = ("Sheets", "Notes", "About", "AboutSheet", "Navigation", "Translations", "Translation Open","WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon")
+    sidebarModes = ("Sheets", "Notes", "About", "AboutSheet", "Navigation", "Translations", "Translation Open","WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon", "SidebarSearch")
     if filter[0] in sidebarModes:
         return filter[0], True
     else:
@@ -372,6 +373,7 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
         panelDisplayLanguage = kwargs.get("connectionsPanelDisplayLanguage", None) if mode == "Connections" else kwargs.get("panelDisplayLanguage", None)
         aliyotOverride = kwargs.get("aliyotOverride")
         panel["selectedWords"] = kwargs.get("selectedWords", None)
+        panel["sidebarSearchQuery"] = kwargs.get("sidebarSearchQuery", None)
         panel["selectedNamedEntity"] = kwargs.get("selectedNamedEntity", None)
         panel["selectedNamedEntityText"] = kwargs.get("selectedNamedEntityText", None)
         if panelDisplayLanguage:
@@ -537,6 +539,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         if request.GET.get("aliyot", None):
             kwargs["aliyotOverride"] = "aliyotOn" if int(request.GET.get("aliyot")) == 1 else "aliyotOff"
         kwargs["selectedWords"] = request.GET.get("lookup", None)
+        kwargs["sidebarSearchQuery"] = request.GET.get("sbsq", None)
         kwargs["selectedNamedEntity"] = request.GET.get("namedEntity", None)
         kwargs["selectedNamedEntityText"] = request.GET.get("namedEntityText", None)
         panels += make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_panel, **kwargs)
@@ -589,6 +592,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
             if request.GET.get("aliyot{}".format(i), None):
                 kwargs["aliyotOverride"] = "aliyotOn" if int(request.GET.get("aliyot{}".format(i))) == 1 else "aliyotOff"
             kwargs["selectedWords"] = request.GET.get(f"lookup{i}", None)
+            kwargs["sidebarSearchQuery"] = request.GET.get(f"sbsq{i}", None)
             kwargs["selectedNamedEntity"] = request.GET.get(f"namedEntity{i}", None)
             kwargs["selectedNamedEntityText"] = request.GET.get(f"namedEntityText{i}", None)
             if (versionEn and not Version().load({"versionTitle": versionEn, "language": "en"})) or \
@@ -691,11 +695,11 @@ def texts_category_list(request, cats):
         cats = cats.split("/")
         tocObject = library.get_toc_tree().lookup(cats)
         if len(cats) == 0 or tocObject is None:
-            return texts_list(request)      
+            return texts_list(request)
         cat_string = ", ".join(cats) if request.interfaceLang == "english" else ", ".join([hebrew_term(cat) for cat in cats])
         catDesc = getattr(tocObject, "enDesc", '') if request.interfaceLang == "english" else getattr(tocObject, "heDesc", '')
         catShortDesc = getattr(tocObject, "enShortDesc", '') if request.interfaceLang == "english" else getattr(tocObject, "heShortDesc", '')
-        catDefaultDesc = _("Read %(categories)s texts online with commentaries and connections.") % {'categories': cat_string} 
+        catDefaultDesc = _("Read %(categories)s texts online with commentaries and connections.") % {'categories': cat_string}
         title = cat_string + _(" | Sefaria")
         desc  = catDesc if len(catDesc) else catShortDesc if len(catShortDesc) else catDefaultDesc
 
@@ -731,7 +735,7 @@ def topics_category_page(request, topicCategory):
     short_lang = 'en' if request.interfaceLang == 'english' else 'he'
     title = topic_obj.get_primary_title(short_lang) + " | " + _("Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.")
     desc = _("Jewish texts and source sheets about %(topic)s from Torah, Talmud and other sources in Sefaria's library.") % {'topic': topic_obj.get_primary_title(short_lang)}
-    
+
     return render_template(request, 'base.html', props, {
         "title": title,
         "desc":  desc,
@@ -943,6 +947,42 @@ def groups_redirect(request, group):
     param = "?tag={}".format(request.GET["tag"]) if "tag" in request.GET else ""
     url = "/collections/{}{}".format(collection.slug, param)
     return redirect(url)
+
+
+@sanitize_get_params
+def translations_page(request, slug):
+    """
+    Main page for translations
+    """
+    title_dictionary = {
+        #"ar": {"name": "Arabic", "nativeName": "عربى"},
+        "de": {"name": "German", "nativeName": "Deutsch", "title": "Jüdische Texte in Deutscher Sprache", "desc": "Die größte kostenlose Bibliothek jüdischer Texte, die online auf Hebräisch, Deutsch und Englisch gelesen werden kann, einschließlich Tora, Tanach, Talmud, Mischna, Midrasch, Kommentare und mehr."},
+        "en": {"name": "English", "nativeName": "English", "title": "Jewish Texts in English", "desc": "The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more."},
+        "eo": {"name": "Esperanto", "nativeName": "Esperanto", "title": "Judaj Tekstoj en Esperanto", "desc": "La plej granda senpaga biblioteko de judaj tekstoj legebla interrete en la hebrea, Esperanto kaj la angla inkluzive de Torao, Tanaĥo, Talmudo, Miŝnao, Midraŝo, komentaĵoj kaj pli."},
+        "es": {"name": "Spanish", "nativeName": "Español", "title": "Textos Judíos en Español", "desc": "La biblioteca gratuita más grande de textos judíos disponibles para leer en línea en hebreo, español e inglés, incluyendo Torá, Tanaj, Talmud, Mishná, Midrash, comentarios y más."},
+        "fa": {"name": "Persian", "nativeName": "فارسی", "title": "متون یهودی به زبان فارسی", "desc": "بزرگترین کتابخانه رایگان متون یهودی در دسترس برای خواندن آنلاین به زبان های عبری، فارسی و انگلیسی از جمله تورات، تناخ، تلمود، میشنا، میدراش، تفسیرها و غیره."},
+        "fi": {"name": "Finnish", "nativeName": "suomen kieli", "title": "Juutalaiset tekstit suomeksi", "desc":"Suurin ilmainen kirjasto juutalaisia tekstejä luettavaksi verkossa hepreaksi, suomeksi ja englanniksi, mukaan lukien Toora, Tanakh, Talmud, Mishna, Midrash, kommentit ja paljon muuta."},
+        "fr": {"name": "French", "nativeName": "Français", "title": "Textes juifs en français", "desc": "La plus grande bibliothèque gratuite de textes juifs disponibles à lire en ligne en hébreu, français et anglais, y compris Torah, Tanakh, Talmud, Mishnah, Midrash, commentaires et plus encore."},
+        "he": {"name": "Hebrew", "nativeName": "עברית", "title": "ספריה בעברית", "desc": "הספרייה החינמית הגדולה ביותר של טקסטים יהודיים הזמינים לקריאה מקוונת בעברית ובאנגלית, לרבות תורה, תנח, תלמוד, משנה, מדרש, פירושים ועוד."},
+        "it": {"name": "Italian", "nativeName": "Italiano", "title": "Testi ebraici in italiano", "desc": "La più grande libreria gratuita di testi ebraici disponibile per la lettura online in ebraico, italiano e inglese, inclusi Torah, Tanakh, Talmud, Mishnah, Midrash, commenti e altro ancora." },
+        #"lad": {"name": "Ladino", "nativeName": "Judeo-español"},
+        "pl": {"name": "Polish", "nativeName": "Polskie", "title": "Teksty żydowskie w języku polskim", "desc": "Największa bezpłatna biblioteka tekstów żydowskich dostępna do czytania online w języku hebrajskim, polskim i angielskim, w tym Tora, Tanach, Talmud, Miszna, Midrasz, komentarze i wiele innych."},
+        "pt": {"name": "Portuguese", "nativeName": "Português", "title": "Textos judaicos em portugues", "desc": "A maior biblioteca gratuita de textos judaicos disponível para leitura online em hebraico, português e inglês, incluindo Torá, Tanakh, Talmud, Mishnah, Midrash, comentários e muito mais."},
+        "ru": {"name": "Russian", "nativeName": "Pусский", "title": "Еврейские тексты на русском языке", "desc": "Самая большая бесплатная библиотека еврейских текстов, доступных для чтения онлайн на иврите, русском и английском языках, включая Тору, Танах, Талмуд, Мишну, Мидраш, комментарии и многое другое."},
+        "yi": {"name": "Yiddish", "nativeName": "יידיש", "title": "יידישע טעקסטן אויף יידיש", "desc": "די גרעסטע פרייע ביבליאָטעק פון יידישע טעקסטן צו לייענען אָנליין אין לשון קדוש ,יידיש און ענגליש. תורה, תנך, תלמוד, משנה, מדרש, פירושים און אזוי אנדערע."},
+    }
+    if slug not in title_dictionary:
+        raise Http404
+    props = base_props(request)
+    props.update({
+        "initialMenu":              "translationsPage",
+        "initialTranslationsSlug":   slug,
+    })
+    return render_template(request, 'base.html', props, {
+        "title": title_dictionary[slug]["title"] if "title" in title_dictionary[slug] else "Jewish Texts in " + title_dictionary[slug]["name"] if slug in title_dictionary else "Jewish Texts in" + " " + slug,
+        "desc": title_dictionary[slug]["desc"] if "desc" in title_dictionary[slug] else "The largest free library of Jewish texts available to read online in Hebrew, " + title_dictionary[slug]["name"] +", and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more.",
+        "noindex": False
+    })
 
 
 @sanitize_get_params
@@ -3036,7 +3076,7 @@ def block_api(request, action, uid):
     """
     API for following and unfollowing another user.
     """
-    
+
     if request.method != "POST":
         return jsonResponse({"error": "Unsupported HTTP method."}, status=405)
 
@@ -3054,11 +3094,11 @@ def block_api(request, action, uid):
 
 def background_data_api(request):
     """
-    API that bundles data which we want the client to prefetch, 
+    API that bundles data which we want the client to prefetch,
     but should not block initial pageload.
     """
     language = request.GET.get("locale", 'english')
-    # This is an API, its excluded from interfacelang middleware. There's no point in defaulting to request.interfaceLang here as its always 'english'. 
+    # This is an API, its excluded from interfacelang middleware. There's no point in defaulting to request.interfaceLang here as its always 'english'.
 
     data = {}
     data.update(community_page_data(request, language=language))
@@ -3185,20 +3225,114 @@ def topics_list_api(request):
     return response
 
 
+@staff_member_required
+def add_new_topic_api(request):
+    if request.method == "POST":
+        data = json.loads(request.POST["json"])
+        t = Topic({'slug': "", "isTopLevelDisplay": data["category"] == "Main Menu", "data_source": "sefaria", "numSources": 0})
+        t.add_title(data["title"], 'en', True, True)
+        t.set_slug_to_primary_title()
+
+        if data["category"] != "Main Menu":  # not Top Level so create an IntraTopicLink to category
+            new_link = IntraTopicLink({"toTopic": data["category"], "fromTopic": t.slug, "linkType": "displays-under", "dataSource": "sefaria"})
+            new_link.save()
+
+        t.change_description(data["description"], data.get("catDescription", ""))
+        t.save()
+
+        def protected_index_post(request):
+            return jsonResponse(t.contents())
+        return protected_index_post(request)
+
+
+@staff_member_required
+def delete_topic(request, topic):
+    if request.method == "DELETE":
+        topic_obj = Topic().load({"slug": topic})
+        if topic_obj:
+            topic_obj.delete()
+            return jsonResponse({"status": "OK"})
+        else:
+            return jsonResponse({"error": "Topic {} doesn't exist".format(topic)})
+    else:
+        return jsonResponse({"error": "This API only accepts DELETE requests."})
+
 @catch_error_as_json
 def topics_api(request, topic, v2=False):
     """
-    API to get data for a particular topic.
+    API to get data or edit data for an existing topic
     """
-    with_links = bool(int(request.GET.get("with_links", False)))
-    annotate_links = bool(int(request.GET.get("annotate_links", False)))
-    group_related = bool(int(request.GET.get("group_related", False)))
-    with_refs = bool(int(request.GET.get("with_refs", False)))
-    annotate_time_period = bool(int(request.GET.get("annotate_time_period", False)))
-    with_indexes = bool(int(request.GET.get("with_indexes", False)))
-    ref_link_type_filters = set(filter(lambda x: len(x) > 0, request.GET.get("ref_link_type_filters", "").split("|")))
-    response = get_topic(v2, topic, with_links, annotate_links, with_refs, group_related, annotate_time_period, ref_link_type_filters, with_indexes)
-    return jsonResponse(response, callback=request.GET.get("callback", None))
+    if request.method == "GET":
+        with_links = bool(int(request.GET.get("with_links", False)))
+        annotate_links = bool(int(request.GET.get("annotate_links", False)))
+        group_related = bool(int(request.GET.get("group_related", False)))
+        with_refs = bool(int(request.GET.get("with_refs", False)))
+        annotate_time_period = bool(int(request.GET.get("annotate_time_period", False)))
+        with_indexes = bool(int(request.GET.get("with_indexes", False)))
+        ref_link_type_filters = set(filter(lambda x: len(x) > 0, request.GET.get("ref_link_type_filters", "").split("|")))
+        response = get_topic(v2, topic, with_links, annotate_links, with_refs, group_related, annotate_time_period, ref_link_type_filters, with_indexes)
+        return jsonResponse(response, callback=request.GET.get("callback", None))
+    elif request.method == "POST":
+        if not request.user.is_staff:
+            return jsonResponse({"error": "Adding topics is locked.<br><br>Please email hello@sefaria.org if you believe edits are needed."})
+        topic_data = json.loads(request.POST["json"])
+        topic_obj = Topic().load({'slug': topic_data["origSlug"]})
+        topic_obj.data_source = "sefaria"   #any topic edited manually should display automatically in the TOC and this flag ensures this
+
+        if topic_data["origTitle"] != topic_data["title"]:
+            # rename Topic
+            topic_obj.add_title(topic_data["title"], 'en', True, True)
+            topic_obj.set_slug_to_primary_title()
+
+        if topic_data["origCategory"] != topic_data["category"]:
+            # change IntraTopicLink from old category to new category and set newSlug if it changed
+            # if we move topic to top level, we delete the IntraTopicLink and if we move the topic from top level, we must create one
+            # as top level topics don't need intratopiclinks
+
+            origLink = IntraTopicLink().load({"fromTopic": topic_obj.slug,
+                                              "toTopic": topic_data["origCategory"],
+                                              "linkType": "displays-under"})
+            if topic_data["origCategory"] == "Main Menu":
+                assert origLink is None
+                origLink = IntraTopicLink()
+
+            if topic_data["category"] == "Main Menu":
+                # a top-level topic won't display properly if it doesn't have children so need to set shouldDisplay flag
+                child = IntraTopicLink().load({"linkType": "displays-under", "toTopic": topic_obj.slug})
+                if child is None:
+                    topic_obj.shouldDisplay = True
+                    topic_obj.save()
+
+                origLink.delete() # get rid of link to previous category
+
+                # if topic has sources and we dont create an IntraTopicLink to itself, they wont be accessible from the topic TOC
+                linkToItself = {"fromTopic": topic_obj.slug, "toTopic": topic_obj.slug, "dataSource": "sefaria",
+                                "linkType": "displays-under"}
+                if getattr(topic_obj, "numSources", 0) > 0 and IntraTopicLink().load(linkToItself) is None:
+                    IntraTopicLink(linkToItself).save()
+            else:
+                origLink.fromTopic = topic_obj.slug
+                origLink.toTopic = topic_data["category"]
+                origLink.linkType = "displays-under"
+                origLink.dataSource = "sefaria"
+                origLink.save()
+
+        needs_save = False      # will get set to True if isTopLevelDisplay or description is changed
+
+        if (topic_data["category"] == "Main Menu") != getattr(topic_obj, "isTopLevelDisplay", False):    # True when topic moved to top level or moved from top level
+            needs_save = True
+            topic_obj.isTopLevelDisplay = topic_data["category"] == "Main Menu"
+
+        if topic_data["origDescription"] != topic_data["description"] or topic_data.get("origCatDescription", "") != topic_data.get("catDescription", ""):
+            topic_obj.change_description(topic_data["description"], topic_data.get("catDescription", ""))
+            needs_save = True
+
+        if needs_save:
+            topic_obj.save()
+
+        def protected_index_post(request):
+            return jsonResponse(topic_obj.contents())
+        return protected_index_post(request)
 
 
 @catch_error_as_json
@@ -3235,7 +3369,7 @@ _CAT_REF_LINK_TYPE_FILTER_MAP = {
 def _topic_data(topic):
     cat = library.get_topic_toc_category_mapping().get(topic, None)
     ref_link_type_filters = _CAT_REF_LINK_TYPE_FILTER_MAP.get(cat, ['about', 'popular-writing-of'])
-    response = get_topic(True, topic, with_links=True, annotate_links=True, with_refs=True, group_related=True, annotate_time_period=False, ref_link_type_filters=ref_link_type_filters, with_indexes=True) 
+    response = get_topic(True, topic, with_links=True, annotate_links=True, with_refs=True, group_related=True, annotate_time_period=False, ref_link_type_filters=ref_link_type_filters, with_indexes=True)
     return response
 
 
@@ -3437,8 +3571,8 @@ def chat_message_api(request):
 
 
         message = Message({"room_id": room_id,
-                        "sender_id": messageJSON["senderId"], 
-                        "timestamp": messageJSON["timestamp"], 
+                        "sender_id": messageJSON["senderId"],
+                        "timestamp": messageJSON["timestamp"],
                         "message": messageJSON["messageContent"]})
         message.save()
         return jsonResponse({"status": "ok"})
@@ -3690,7 +3824,7 @@ def delete_user_account_api(request):
     # Deletes the user and emails sefaria staff for followup
     from sefaria.utils.user import delete_user_account
     from django.core.mail import EmailMultiAlternatives
-    
+
     if not request.user.is_authenticated:
         return jsonResponse({"error": _("You must be logged in to delete your account.")})
     uid = request.user.id
@@ -3703,13 +3837,13 @@ def delete_user_account_api(request):
         email_msg += "\n\n The request was completed automatically."
         reply_email = user_email
         response = jsonResponse({"status": "ok"})
-    except Exception as e: 
-        # There are on rare occasions ForeignKeyViolation exceptions due to records in gauth_credentialsmodel or gauth_flowmodel in the sql db not getting 
+    except Exception as e:
+        # There are on rare occasions ForeignKeyViolation exceptions due to records in gauth_credentialsmodel or gauth_flowmodel in the sql db not getting
         # removed properly
         email_msg += "\n\n The request failed to complete automatically. The user has been directed to email in his request."
         logger.error("User {} deletion failed. {}".format(uid, e))
         response = jsonResponse({"error": "There was an error deleting the account", "user": user_email})
-        
+
     EmailMultiAlternatives(email_subject, email_msg, from_email="Sefaria System <dev@sefaria.org>", to=["Sefaria <hello@sefaria.org>"], reply_to=[reply_email if reply_email else "hello@sefaria.org"]).send()
     return response
 
@@ -3785,7 +3919,7 @@ def my_profile(request):
     url = "/profile/%s" % UserProfile(id=request.user.id).slug
     if "tab" in request.GET:
         url += "?tab=" + request.GET.get("tab")
-    return redirect(url) 
+    return redirect(url)
 
 
 def interrupting_messages_read_api(request, message):
@@ -3822,7 +3956,7 @@ def account_settings(request):
     return render_template(request,'account_settings.html', None, {
         'user': request.user,
         'profile': profile,
-        'lang_names_and_codes': zip([Locale(lang).languages[lang].capitalize() for lang in SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES']], SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES']), 
+        'lang_names_and_codes': zip([Locale(lang).languages[lang].capitalize() for lang in SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES']], SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES']),
         'translation_language_preference': (profile is not None and profile.settings.get("translation_language_preference", None)) or request.COOKIES.get("translation_language_preference", None)
     })
 
@@ -3838,7 +3972,7 @@ def home(request):
 def community_page(request, props={}):
     """
     Community Page
-    """    
+    """
     title = _("From the Community: Today on Sefaria")
     desc  = _("New and featured source sheets, divrei torah, articles, sermons and more created by members of the Sefaria community.")
     data  = community_page_data(request, language=request.interfaceLang)
@@ -3893,7 +4027,7 @@ def community_reset(request):
 
 def new_home_redirect(request):
     """ Redirect old /new-home urls to / """
-    return redirect("/")    
+    return redirect("/")
 
 
 @ensure_csrf_cookie
@@ -4048,6 +4182,95 @@ def random_text_api(request):
     return response
 
 
+def translations_api(request, lang=None):
+    """
+    When a lang is provided, returns a dictionary of texts translated into that language,
+    organized by category & secondary category.
+    When a language is not provided, returns a list of distinct languages for which
+    translations exist in the database.
+    """
+    bundle_commentaries_langs = ["en", "he"]
+    if not lang:
+        res = db.texts.distinct("actualLanguage")
+        return jsonResponse(res)
+    # import time
+    # t0 = time.time()
+    aggregation_query = [{"$match": {"actualLanguage": lang}}, {"$lookup": {
+        "from": "index",
+        "localField": "title",
+        "foreignField": "title",
+        "as": "index"
+    }}, {"$lookup": {
+        "from": "vstate",
+        "localField": "title",
+        "foreignField": "title",
+        "as": "vstate"
+    }}]
+    if lang == "en":
+        aggregation_query.append({"$match": {"vstate.flags.enComplete": True}})
+
+    aggregation_query.extend([{"$project": {"index.dependence": 1, "index.order": 1, "index.collective_title": 1,
+                                            "index.title": 1, "index.order": 1,
+                                            "versionTitle": 1, "language": 1, "title": 1, "index.categories": 1,
+                                            "priority": 1, "vstate.first_section_ref": 1}},
+                              {"$sort": {"index.order.0": 1, "index.order.1": 1, "priority": -1}}])
+
+    texts = db.texts.aggregate(aggregation_query)
+    # t1 = time.time()
+    # print("aggregation: ")
+    # print(f"{t1 - t0}")
+    res = {}
+    titles = []
+    for my_index in texts:
+        if my_index["title"] not in titles:
+            if len(my_index["index"]) > 0:
+                my_index_info = my_index["index"][0]
+                categories = my_index_info["categories"]
+                if "Reference" in categories:
+                    continue  # don't list references (also they don't fit assumptions)
+                titles.append(my_index["title"])
+                depth = 2
+                ind = 0
+                cur = res
+                while len(categories) < depth:
+                    categories = categories + ["Uncategorized"]
+                while ind < depth and ind < len(categories):
+                    if categories[ind] not in cur:
+                        cur[categories[ind]] = [] if ind == depth - 1 else {}
+                    cur = cur[categories[ind]]
+                    ind += 1
+                to_add = {}
+                if "dependence" in my_index_info and "collective_title" in my_index_info \
+                        and my_index_info["dependence"] == "Commentary" and lang in bundle_commentaries_langs:
+                    if len(list(filter(lambda x: True if x["title"] == my_index_info["collective_title"] else False,
+                                       cur))) > 0:
+                        continue
+                    else:
+                        try:
+                            to_add["title"] = my_index_info["collective_title"]
+                            categories_to_add = categories[:categories.index(my_index_info["collective_title"]) + 1]
+                            to_add["url"] = "/texts/" + "/".join(categories_to_add)
+                        except:
+                            print("failed to find author page for " + my_index_info["collective_title"] + ": " +
+                                  my_index_info["title"])
+                            # these are also not showing up in TOC
+                            # TODO: fix assumptions?
+                            continue
+                else:
+                    to_add["title"] = my_index_info["title"]
+                    to_add["url"] = f'/{my_index["vstate"][0]["first_section_ref"].replace(":", ".")}?{"ven=" + my_index["versionTitle"] if my_index["language"] == "en" else "vhe=" + my_index["versionTitle"]}&lang=bi'
+
+                if "order" in my_index["index"][0]:
+                    to_add["order"] = my_index["index"][0]["order"]
+                to_add["versionTitle"] = my_index["versionTitle"]
+                to_add["rtlLanguage"] = my_index["language"]
+                cur.append(to_add)
+    # t2 = time.time()
+    # print("create dictionary")
+    # print(f"{t2 - t1}")
+    return jsonResponse(res)
+
+
 def random_by_topic_api(request):
     """
     Returns Texts API data for a random text taken from popular topic tags
@@ -4147,6 +4370,16 @@ def search_wrapper_api(request):
             return jsonResponse(response.to_dict(), callback=request.GET.get("callback", None))
         return jsonResponse({"error": "Error with connection to Elasticsearch. Total shards: {}, Shards successful: {}, Timed out: {}".format(response._shards.total, response._shards.successful, response.timed_out)}, callback=request.GET.get("callback", None))
     return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
+
+@csrf_exempt
+def search_path_filter(request, book_title):
+    oref = Ref(book_title)
+
+    categories = oref.index.categories
+    indexed_categories = get_search_categories(oref, categories)
+    path = "/".join(indexed_categories+[book_title])
+    return jsonResponse(path)
+
 
 
 @ensure_csrf_cookie
@@ -4283,7 +4516,7 @@ def person_page_redirect(request, name):
 
 def person_index_redirect(request):
     return redirect(iri_to_uri('/topics/category/authors'), permanent=True)
-    
+
 
 def talmud_person_index_redirect(request):
     return redirect(iri_to_uri('/topics/category/talmudic-figures'), permanent=True)
