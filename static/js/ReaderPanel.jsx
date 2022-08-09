@@ -53,8 +53,6 @@ class ReaderPanel extends Component {
     this.state = state;
     this.sheetRef = React.createRef();
     this.readerContentRef = React.createRef();
-
-    return;
   }
   componentDidMount() {
     window.addEventListener("resize", this.setWidth);
@@ -231,13 +229,13 @@ class ReaderPanel extends Component {
     if (!ref) { return; }
     this.replaceHistory = Boolean(replaceHistory);
     // console.log("showBaseText", ref, replaceHistory);
-    if (this.state.mode == "Connections" && this.props.masterPanelLanguage == "bilingual") {
+    if (this.state.mode === "Connections" && this.props.masterPanelLanguage === "bilingual") {
       // Connections panels are forced to be mono-lingual. When opening a text from a connections panel,
       // allow it to return to bilingual.
       this.state.settings.language = "bilingual";
     }
     let refs, currentlyVisibleRef, highlightedRefs;
-    if (ref.constructor == Array) {
+    if (ref.constructor === Array) {
       // When called with an array, set highlight for the whole spanning range
       refs = ref;
       currentlyVisibleRef = Sefaria.humanRef(ref);

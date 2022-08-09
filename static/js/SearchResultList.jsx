@@ -125,7 +125,7 @@ class SearchResultList extends Component {
         $(ReactDOM.findDOMNode(this)).closest(".content").off("scroll.infiniteScroll", this.handleScroll);
     }
     componentWillReceiveProps(newProps) {
-      if(this.props.query != newProps.query) {
+      if(this.props.query !== newProps.query) {
         this.setState({
           totals: this._typeObjDefault(0),
           hits: this._typeObjDefault([]),
