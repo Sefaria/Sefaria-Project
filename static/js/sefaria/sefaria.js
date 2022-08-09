@@ -25,6 +25,9 @@ if (typeof window !== 'undefined') {
     window.Sefaria = Sefaria; // allow access to `Sefaria` from console
 }
 
+window.dataLayer = window.dataLayer || [];
+window.dataLayer.push({event: "login", userId: Sefaria._id});
+
 Sefaria = extend(Sefaria, {
   _parseRef: {}, // cache for results of local ref parsing
   parseRef: function(q) {
