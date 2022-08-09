@@ -62,14 +62,14 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
     </div>);
 
   let topTexts = compare ? null : [
-          <div className="navBlock withColorLine" style={{"borderColor": Sefaria.palette.categoryColor("Constituting America")}}>
-              <a href="/United_States_Constitution" className="navBlockTitle">
-                  <span className="en" lang="en">United States Constitution</span>
-              </a>
-          </div>,
           <div className="navBlock withColorLine" style={{"borderColor": Sefaria.palette.categoryColor("Toward Independence")}}>
               <a href="/US_Declaration_of_Independence" className="navBlockTitle">
                   <span className="en" lang="en">Declaration of Independence</span>
+              </a>
+          </div>,
+          <div className="navBlock withColorLine" style={{"borderColor": Sefaria.palette.categoryColor("Constituting America")}}>
+              <a href="/United_States_Constitution" className="navBlockTitle">
+                  <span className="en" lang="en">United States Constitution</span>
               </a>
           </div>
       ];
@@ -81,7 +81,7 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
 
   const topTitle = compare ? null :
         <div className="navTitle tight sans-serif">
-            <h1><InterfaceText>Read the Primary Texts</InterfaceText></h1>
+            <h1><InterfaceText>Explore the Foundational Documents</InterfaceText></h1>
         </div>;
 
   const comparePanelHeader = compare ?
