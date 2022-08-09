@@ -4913,6 +4913,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .segment .segmentText{
   display: inline;
 }
+.segment .segmentText table, th, td {
+  border: 1px solid;
+}
 .segment > .he,
 .segment > .en,
 .segment > p > .he,
