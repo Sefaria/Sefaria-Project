@@ -1463,6 +1463,68 @@ class SpecificConverterManager:
         converter = LinkerIndexConverter('Arukh HaShulchan', get_match_templates=get_match_templates)
         converter.convert()
 
+    def convert_lkiutei(self):
+        def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
+            new = ['לקוטי מוהר"ן'] if node.is_root() else ['תניינא'] if node.get_primary_title('en') == 'Part II' else []
+            if not node.is_default():
+                title_slug = RTM.create_term_from_titled_obj(node, context="base", ref_part_role='structural', new_alt_titles=new).slug
+                return [MatchTemplate([title_slug])]
+
+        def get_other_fields(node, depth, isibling, num_siblings, is_alt_node):
+            if not node.is_root():
+                return {"referenceableSections": [True] * (node.depth-1) + [False]}
+
+        converter = LinkerCategoryConverter('Likutei Moharan', is_index=True, get_match_templates=get_match_templates,
+                                        get_other_fields=get_other_fields)
+        converter.convert()
+
+    def convert_yeztirah(self):
+        def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
+            book_slug = RTM.get_term_by_primary_title('base', 'Sefer').slug
+            title_slug = RTM.create_term(en='Yetzirah', alt_en=['Formation', "Y’tsirah"], he='יצירה', ref_part_role='structural').slug
+            if 'Gra' in node.get_primary_title('en'):
+                gra_slug = RTM.create_term(en='Gra', alt_en=['Vilna Gaon'], he='גר"א', ref_part_role='structural').slug
+                return [MatchTemplate([title_slug, gra_slug]),
+                        MatchTemplate([book_slug, title_slug, gra_slug])]
+            else:
+                return [MatchTemplate([title_slug]), MatchTemplate([book_slug, title_slug])]
+
+        for book in ['Sefer Yetzirah Gra Version', 'Sefer Yetzirah']:
+            converter = LinkerCategoryConverter(book, is_index=True, get_match_templates=get_match_templates)
+            converter.convert()
+
+    def convert_likutei_halakhot(self):
+        def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
+            if node.is_root():
+                return [MatchTemplate([RTM.create_term_from_titled_obj(node, context="base", ref_part_role='structural', new_alt_titles=['לקוטי הלכות']).slug])]
+            if node.has_children():
+                sa_title_swaps = {
+                    "Orach Chaim": "Orach Chayim",
+                    "Yoreh Deah": "Yoreh De'ah"
+                }
+                title = node.get_primary_title('en')
+                title = sa_title_swaps.get(title, title)
+                return [MatchTemplate([RTM.get_term_by_primary_title('shulchan arukh', title).slug])]
+            if node.depth == 1:
+                return [MatchTemplate([RTM.get_term_by_primary_title('base', 'Introduction').slug])]
+            else:
+                index_slug = RTM.get_term_by_primary_title('base', 'Likutei Halakhot').slug
+                title_slug = RTM.create_term_from_titled_obj(node, context="base", ref_part_role='structural').slug
+                return [
+                    MatchTemplate([index_slug, title_slug], scope='alone'),
+                    MatchTemplate([title_slug]),
+                ]
+
+        def get_other_fields(node, depth, isibling, num_siblings, is_alt_node):
+            if not node.has_children():
+                d = {"referenceableSections": [True] * (node.depth-1) + [False]}
+                if node.depth == 3:
+                    d['addressTypes'] = ['Halakhah', 'Siman', 'Integer']
+                return d
+
+        converter = LinkerCategoryConverter('Likutei Halakhot', is_index=True, get_match_templates=get_match_templates,
+                                        get_other_fields=get_other_fields)
+        converter.convert()
 
 if __name__ == '__main__':
     converter_manager = SpecificConverterManager()
@@ -1492,6 +1554,9 @@ if __name__ == '__main__':
     converter_manager.convert_tikkunei_zohar()
     converter_manager.convert_seder_olam()
     converter_manager.convert_maccabees()
+    converter_manager.convert_lkiutei()
+    converter_manager.convert_yeztirah()
+    converter_manager.convert_likutei_halakhot()
 
 """
 Still TODO
