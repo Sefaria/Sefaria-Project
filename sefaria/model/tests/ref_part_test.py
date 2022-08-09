@@ -259,6 +259,13 @@ crrd = create_raw_ref_data
     [crrd(None, 'he', 'ס"ע פי"א', [slice(0, 3), slice(3, 6)], [RPT.NAMED, RPT.NUMBERED]), ["Seder Olam Rabbah 11"]],
     [crrd(None, 'he', 'מק"א ג ד', [slice(0, 3), 3, 4], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["The Book of Maccabees I 3:4"]],
     [crrd(None, 'he', 'ספר חשמונאים ב ו ב', [slice(0, 3), 3, 4], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["The Book of Maccabees II 6:2"]],
+    [crrd(None, 'he', 'ליקוטי מוהר"ן כג ב', [slice(0,4), 4, 5], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Likutei Moharan 23:2"]],
+    [crrd(None, 'he', 'ליקוטי מוהר"ן תורה כג אות ב', [slice(0, 4), slice(4, 6), slice(6, 8)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Likutei Moharan 23:2"]],
+    [crrd(None, 'he', 'ליקוטי מוהר"ן תניינא ד ב', [slice(0,4), 4, 5, 6], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Likutei Moharan, Part II 4:2"]],
+    [crrd(None, 'he', 'ספר יצירה פ"א מ"א', [0, 1, slice(2, 5), slice(5, 8)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Sefer Yetzirah 1:1"]],
+    [crrd(None, 'he', 'ספר יצירה נוסח הגר"א ב ב', [0, 1, slice(3, 6), 6, 7], [RPT.NAMED, RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Sefer Yetzirah Gra Version 2:2"]],
+    [crrd(None, 'he', 'לקוטי הלכות או"ח הלכות ציצית ב א', [slice(0, 2), slice(2, 5), slice(5, 7), 7, 8], [RPT.NAMED, RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Likutei Halakhot, Orach Chaim, Laws of Fringes 2:1"]],
+    [crrd(None, 'he', 'לקוטי הלכות הלכות מעקה ושמירת הנפש', [slice(0, 2), slice(2, 6)], [RPT.NAMED, RPT.NAMED]), ["Likutei Halakhot, Choshen Mishpat, Laws of Roof Rails and Preservation of Life"]],
 
 ])
 def test_resolve_raw_ref(resolver_data, expected_trefs):
