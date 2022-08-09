@@ -240,7 +240,7 @@ crrd = create_raw_ref_data
     [crrd(None, 'he', 'ספרי דברים פיסקא צט', [slice(0, 2), slice(2, 4)], [RPT.NAMED, RPT.NUMBERED]), ["Sifrei Devarim 99"]],
     [crrd(None, 'he', 'ספרי במדבר פסקא יז', [slice(0, 2), slice(2, 4)], [RPT.NAMED, RPT.NUMBERED]), ["Sifrei Bamidbar 17"]],
     [crrd(None, 'he', 'ספרי במדבר פרשת בהעלותך פיסקא עח', [slice(0, 2), slice(2, 4), slice(4, 6)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Sifrei Bamidbar 78"]],
-    [crrd(None, 'he', "ספרי דברים וזאת הברכה סי' שמד", [slice(0, 2), slice(2, 4), slice(4, 6)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Sifrei Devarim 344"]],
+    [crrd(None, 'he', "ספרי דברים וזאת הברכה סי' שמד", [slice(0, 2), slice(2, 4), slice(4, 7)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Sifrei Devarim 344"]],
     [crrd(None, 'he', 'פסיקתא דר"כ ג', [slice(0, 4), 4], [RPT.NAMED, RPT.NUMBERED]), ["Pesikta D'Rav Kahanna 3"]],
     [crrd(None, 'he', "פסיקתא רבתי טו", [slice(0, 2), 2], [RPT.NAMED, RPT.NUMBERED]), ["Pesikta Rabbati 15"]],
     [crrd(None, 'he', "ילקוט שמעוני כג", [slice(0, 2), 2], [RPT.NAMED, RPT.NUMBERED]), ["Yalkut Shimoni on Torah 23"]],

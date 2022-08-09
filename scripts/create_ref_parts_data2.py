@@ -1279,7 +1279,7 @@ class SpecificConverterManager:
                 pass
 
         def get_other_fields(node, depth, isibling, num_siblings, is_alt_node):
-            if node.is_default():
+            if node.is_root():
                 return {
                     'addressTypes': ['Siman', 'Integer'],
                     "referenceableSections": [True, False],
