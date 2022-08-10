@@ -10,7 +10,10 @@ from sefaria import settings as sls
 base_url = "https://"+sls.NATIONBUILDER_SLUG+".nationbuilder.com"
 
 def get_by_tag(tag_name):
-    return f"/api/v1/tags/{tag_name}/people" 
+    return f"/api/v1/tags/{tag_name}/people"
+
+def get_all_tags():
+    return "/api/v1/tags"
 
 def tag_person(id):
     return f"/api/v1/people/{id}/taggings"
@@ -82,7 +85,7 @@ def nationbuilder_update_all_tags():
     "Reference",
     ] # why won't this import from sefaria.model.categories??
     session = get_nationbuilder_connection()
-    category_trend_managers = [CategoryTrendManager(category, period=period) for category in TOP_CATEGORIES for period in ["alltime", "currently"]] 
+    category_trend_managers = [CategoryTrendManager(category, period=period) for category in TOP_CATEGORIES for period in ["alltime", "currently"]]
     trend_managers = []
     for period in ["currently", "alltime"]:
         trend_managers += [SheetReaderManager(period=period), SheetCreatorManager(period=period), SheetCreatorManager(period=period, public=True), SheetCreatorManager(period=period, public=True, valueThresholdMin=3),  SheetCreatorManager(period=period,public=True), SheetCreatorManager(period=period,valueThresholdMin=10), ParashaLearnerManager(period=period)]
@@ -134,8 +137,9 @@ def nationbuilder_get_all(endpoint_func, args=[]):
                 for item in res_data['results']:
                     yield item
                 next_endpoint = unquote(res_data['next']) if res_data['next'] else None
-                if (res.headers['Nation-Ratelimit-Remaining'] == '0'):
+                if 'nation-ratelimit-remaining' in res.headers and res.headers['nation-ratelimit-remaining'] == '0':
                     time.sleep(10)
+                    print('sleeping')
                 break
             except Exception as e:
                 time.sleep(5)
@@ -145,10 +149,10 @@ def nationbuilder_get_all(endpoint_func, args=[]):
         else:
             session.close()
             raise Exception("Error when attempting to connect to and process " + next_endpoint)
-        
+
     session.close()
 
-def update_user_flags(profile, flag, value): 
+def update_user_flags(profile, flag, value):
     # updates our database user, not nb
     profile.update({flag: value})
     profile.save()

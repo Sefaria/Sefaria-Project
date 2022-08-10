@@ -297,10 +297,10 @@ CACHES = {
 }
 
 
-'''
+
 GLOBAL_INTERRUPTING_MESSAGE = {
-    "name":       "2022-06-01-shavuot-donate-modal",
-    "style":      "modal", # "modal" or "banner"
+    "name": "2022-07-25-Ab-testing-modal-1A",
+    "style":      "modal",  # "modal" or "banner"
     "repetition": 1,
     "is_fundraising": True,
     "condition":  {
@@ -310,7 +310,6 @@ GLOBAL_INTERRUPTING_MESSAGE = {
         "debug": False,
     }
 }
-'''
 
 GLOBAL_INTERRUPTING_MESSAGE = None
 
@@ -319,7 +318,7 @@ GLOBAL_INTERRUPTING_MESSAGE = None
 
 # Grab environment specific settings from a file which
 # is left out of the repo.
-try: 
+try:
     if os.getenv("CI_RUN"):
         from sefaria.local_settings_ci import *
     else:

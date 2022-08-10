@@ -58,8 +58,31 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
 
   categoryListings = (
     <div className="readerNavCategories">
-      <ResponsiveNBox content={categoryListings} initialWidth={initialWidth} />
+        <ResponsiveNBox content={categoryListings} initialWidth={initialWidth} />
     </div>);
+
+  let topTexts = compare ? null : [
+          <div className="navBlock withColorLine" style={{"borderColor": Sefaria.palette.categoryColor("Toward Independence")}}>
+              <a href="/US_Declaration_of_Independence" className="navBlockTitle">
+                  <span className="en" lang="en">Declaration of Independence</span>
+              </a>
+          </div>,
+          <div className="navBlock withColorLine" style={{"borderColor": Sefaria.palette.categoryColor("Constituting America")}}>
+              <a href="/United_States_Constitution" className="navBlockTitle">
+                  <span className="en" lang="en">United States Constitution</span>
+              </a>
+          </div>
+      ];
+
+  topTexts = compare ? null :
+          <div className="readerNavCategories">
+              <ResponsiveNBox content={topTexts} initialWidth={initialWidth} />
+          </div>;
+
+  const topTitle = compare ? null :
+        <div className="navTitle tight sans-serif">
+            <h1><InterfaceText>Explore the Foundational Documents</InterfaceText></h1>
+        </div>;
 
   const comparePanelHeader = compare ?
     <ComparePanelHeader
@@ -82,12 +105,10 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
 
   const dedication = Sefaria._siteSettings.TORAH_SPECIFIC && !compare ? <Dedication /> : null;
 
-
   const libraryMessage = Sefaria._siteSettings.LIBRARY_MESSAGE && !compare && !Sefaria._siteSettings.TORAH_SPECIFIC ?
     <div className="libraryMessage" dangerouslySetInnerHTML={ {__html: Sefaria._siteSettings.LIBRARY_MESSAGE} }></div>
     : null;
 
-  const constitution = compare ? null : <a href="/United_States_Constitution" className="navBlockTitle" style={{paddingBottom: "24px"}}><span className="en" lang="en">United States Constitution</span></a>;
   const sidebarModules = [
     multiPanel ? {type: "AboutContext"} : {type: null},
 /*    {type: "Promo"},
@@ -107,10 +128,11 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
         <div className="sidebarLayout">
           <div className="contentInner">
             { libraryMessage }
+            { topTitle }
+            { dedication }
+            { topTexts }
             { title }
             { about }
-            { dedication }
-            { constitution }
             { categoryListings }
           </div>
           {!compare ? <NavSidebar modules={sidebarModules} /> : null}

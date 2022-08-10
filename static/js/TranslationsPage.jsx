@@ -8,10 +8,26 @@ import Footer  from './Footer';
 
 const TranslationsPage = ({translationsSlug}) => {
     const [translations, setTranslations] = useState(null);
+    const [uncategorized, setUncategorized] = useState({});
+    const [prioritized, setPrioritized] = useState({});
     let sidebarModules = [{type: "AboutTranslatedText", props: {translationsSlug: translationsSlug}}];
     let translation = Sefaria.getTranslation(translationsSlug).then(x => {
         setTranslations(x)
     });
+    useEffect(() => {
+        setPrioritized(translations ? Object.keys(translations).reduce((uncategorized, key) => {
+                uncategorized[key] = translations[key]['Uncategorized'] ? translations[key]['Uncategorized']
+                    .filter(translation => Sefaria.tocItemsByCategories([key])
+                        .map(x => x.title).includes(translation.title)) : null;
+                return uncategorized;
+            },{}) : {})
+        setUncategorized(translations ? Object.keys(translations).reduce((uncategorized, key) => {
+                uncategorized[key] = translations[key]['Uncategorized'] ? translations[key]['Uncategorized']
+                    .filter(translation => !Sefaria.tocItemsByCategories([key])
+                        .map(x => x.title).includes(translation.title)) : null;
+                return uncategorized;
+            },{}) : {})
+    }, [translations])
     const tabs = [{id: "texts", title: {en: "Texts", he: Sefaria._("Texts", "Header")}}];
     const sortFx = (a, b) => {
       if(a["order"] && b["order"]) {
@@ -42,6 +58,12 @@ const TranslationsPage = ({translationsSlug}) => {
                   .map(corpus => {
                 return (<div key={corpus} className="translationsPage">
                   <h2><InterfaceText>{corpus}</InterfaceText></h2>
+                    {prioritized[corpus] ?
+                        <ul>
+                            {prioritized[corpus].sort(sortFx).map(x => <li key={x.title} className="bullet languageItem">
+                                <a href={x.url}><InterfaceText>{x.title}</InterfaceText></a></li>)}
+                        </ul> :
+                        null }
                   {Sefaria.tocObjectByCategories([corpus]).contents.filter(x => Object.keys(translations[corpus]).includes(x.category)).map(x => {
                     return (<details key={x.category} open={translationsSlug !== "en"}><summary><InterfaceText>{x.category}</InterfaceText></summary>
                     <ul>
@@ -52,10 +74,10 @@ const TranslationsPage = ({translationsSlug}) => {
                     </details>)
                   })}
                   {
-                    Object.keys(translations[corpus]).includes("Uncategorized") ? 
+                    uncategorized[corpus] && uncategorized[corpus].length > 0?
                     <details open={translationsSlug !== "en"}><summary><InterfaceText>Uncategorized</InterfaceText></summary>
                     <ul>
-                      {translations[corpus]["Uncategorized"].sort(sortFx).map((y, i) => {
+                      {uncategorized[corpus].sort(sortFx).map((y, i) => {
                         return (<li key={i+y.title} className="bullet languageItem"><a href={y.url}>{y.title}</a></li>)
                       })}
                     </ul>
