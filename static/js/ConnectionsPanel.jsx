@@ -96,7 +96,6 @@ class ConnectionsPanel extends Component {
     if (prevProps.mode !== this.props.mode || prevProps.connectionsCategory !== this.props.connectionsCategory) {
       this.removeScrollListener();
 
-      debugger;
       if (this.props.scrollPosition) {
         $(".content").scrollTop(this.props.scrollPosition)
             .trigger("scroll");
@@ -122,7 +121,6 @@ class ConnectionsPanel extends Component {
       this.props.setScrollPosition(this.props.connectionsCategory, $(event.target).scrollTop());
     }
     else if (this.props.mode === "WebPages") {
-      debugger;
       this.props.setScrollPosition(this.props.mode, $(event.target).scrollTop());
     }
     else if (this.props.mode === "TextList") {
