@@ -915,13 +915,15 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         return default_children + self.get_alt_struct_nodes()
 
     def get_referenceable_alone_nodes(self):
+        """
+        Return list of nodes on Index where each node has at least one match template with scope "alone"
+        @return: List of TitledTreeNodes
+        """
         alone_nodes = []
-        alone_scopes = {'any', 'alone'}
         for child in self.referenceable_children():
-            if any(template.scope in alone_scopes for template in child.get_match_templates()):
+            if child.has_scope_alone_match_template():
                 alone_nodes += [child]
-            # TODO used to be hard-coded to include grandchildren as well. Can't be recursive unless we add this to SchemaNode as well.
-            # alone_nodes += child.get_referenceable_alone_nodes()
+            alone_nodes += child.get_referenceable_alone_nodes()
         return alone_nodes
 
 

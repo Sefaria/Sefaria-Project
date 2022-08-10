@@ -633,6 +633,7 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
     after_title_delimiter_re = r"(?:[,.:\s]|(?:to|\u05d5?\u05d1?(?:\u05e1\u05d5\u05e3|\u05e8\u05d9\u05e9)))+"  # should be an arg?  \r\n are for html matches
     after_address_delimiter_ref = r"[,.:\s]+"
     title_separators = [", "]
+    MATCH_TEMPLATE_ALONE_SCOPES = {'any', 'alone'}
 
     def __init__(self, serial=None, **kwargs):
         super(TitledTreeNode, self).__init__(serial, **kwargs)
@@ -847,6 +848,25 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
         from .ref_part import MatchTemplate
         for raw_match_template in getattr(self, 'match_templates', []):
             yield MatchTemplate(**raw_match_template)
+
+    def has_scope_alone_match_template(self):
+        """
+        @return: True if `self` has any match template that has scope = "alone" OR scope = "any"
+        """
+        return any(template.scope in self.MATCH_TEMPLATE_ALONE_SCOPES for template in self.get_match_templates())
+
+    def get_referenceable_alone_nodes(self):
+        """
+        Currently almost exact copy of function with same name in Index
+        See docstring there
+        @return:
+        """
+        alone_nodes = []
+        for child in self.children:
+            if child.has_scope_alone_match_template():
+                alone_nodes += [child]
+            alone_nodes += child.get_referenceable_alone_nodes()
+        return alone_nodes
 
     """ String Representations """
     def __str__(self):
