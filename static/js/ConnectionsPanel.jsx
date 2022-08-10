@@ -120,7 +120,7 @@ class ConnectionsPanel extends Component {
     if (this.props.mode === "ConnectionsList") {
       this.props.setScrollPosition(this.props.connectionsCategory, $(event.target).scrollTop());
     }
-    else if (this.props.mode === "WebPages") {
+    else if (this.props.mode === "WebPages" || this.props.mode === "Sheets") {
       this.props.setScrollPosition(this.props.mode, $(event.target).scrollTop());
     }
     else if (this.props.mode === "TextList") {
