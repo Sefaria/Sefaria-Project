@@ -63,6 +63,7 @@ class ConnectionsPanel extends Component {
     this.debouncedCheckVisibleSegments = Sefaria.util.debounce(this.checkVisibleSegments, 100);
     this.addScrollListener();
   }
+
   componentWillUnmount() {
     this._isMounted = false;
     this.removeScrollListener();
@@ -92,11 +93,19 @@ class ConnectionsPanel extends Component {
       this.getCurrentVersions();
     }
 
-    if (prevProps.mode !== 'TextList' && this.props.mode === 'TextList') {
+    if (prevProps.mode !== this.props.mode || prevProps.connectionsCategory !== this.props.connectionsCategory) {
       this.removeScrollListener();
+
+      debugger;
+      if (this.props.scrollPosition) {
+        $(".content").scrollTop(this.props.scrollPosition)
+            .trigger("scroll");
+      }
+
       this.addScrollListener();
     }
   }
+
   addScrollListener() {
     this.$scrollView = $(".connectionsPanel .texts");
     if (this.$scrollView[0]) {
@@ -109,7 +118,16 @@ class ConnectionsPanel extends Component {
     }
   }
   handleScroll(event) {
-    this.debouncedCheckVisibleSegments();
+    if (this.props.mode === "ConnectionsList") {
+      this.props.setScrollPosition(this.props.connectionsCategory, $(event.target).scrollTop());
+    }
+    else if (this.props.mode === "WebPages") {
+      debugger;
+      this.props.setScrollPosition(this.props.mode, $(event.target).scrollTop());
+    }
+    else if (this.props.mode === "TextList") {
+      this.debouncedCheckVisibleSegments();
+    }
   }
   checkVisibleSegments() {
     if (!this._isMounted || !this.props.filter || !this.props.filter.length) { return; }
@@ -759,6 +777,8 @@ ConnectionsPanel.propTypes = {
   clearSelectedWords: PropTypes.func.isRequired,
   clearNamedEntity: PropTypes.func.isRequired,
   translationLanguagePreference: PropTypes.string,
+  scrollPosition: PropTypes.number,
+  setScrollPosition: PropTypes.func.isRequired,
 };
 
 

@@ -167,7 +167,8 @@ class ReaderApp extends Component {
       profile:                 state.profile                 || null,
       tab:                     state.tab                     || null,
       beitMidrashId:           state.beitMidrashId           || null,
-      webPagesFilter:          state.webPagesFilter          || null
+      webPagesFilter:          state.webPagesFilter          || null,
+      scrollPositions:         state.scrollPositions  || {},
     };
     // if version is not set for the language you're in, see if you can retrieve it from cache
     if (this.state && panel.refs.length && ((panel.settings.language === "hebrew" && !panel.currVersions.he) || (panel.settings.language !== "hebrew" && !panel.currVersions.en ))) {
@@ -1521,8 +1522,8 @@ class ReaderApp extends Component {
   }
   setConnectionsFilter(n, filter, updateRecent) {
     // Set the filter for connections panel at `n`, carry data onto the panel's basetext as well.
-    var connectionsPanel = this.state.panels[n];
-    var basePanel        = this.state.panels[n-1];
+    const connectionsPanel = this.state.panels[n];
+    const basePanel        = this.state.panels[n-1];
     if (filter) {
       if (updateRecent) {
         if (Sefaria.util.inArray(filter, connectionsPanel.recentFilters) !== -1) {
@@ -1542,6 +1543,13 @@ class ReaderApp extends Component {
       basePanel.recentFilters = connectionsPanel.recentFilters;
     }
     this.setState({panels: this.state.panels});
+  }
+  setScrollPosition(n, filter, pos) {
+    const connectionsPanel = this.state.panels[n];
+    if (filter && pos) {
+      connectionsPanel.scrollPositions[filter] = pos;
+      this.setState({panels: this.state.panels});
+    }
   }
   setVersionFilter(n, filter) {
     var connectionsPanel = this.state.panels[n];
@@ -1988,6 +1996,7 @@ class ReaderApp extends Component {
       var closePanel                     = panel.compare ? this.convertToTextList.bind(null, i) : this.closePanel.bind(null, i);
       var setPanelState                  = this.setPanelState.bind(null, i);
       var setConnectionsFilter           = this.setConnectionsFilter.bind(this, i);
+      var setScrollPosition              = this.setScrollPosition.bind(this, i);
       var setVersionFilter               = this.setVersionFilter.bind(this, i);
       var selectVersion                  = this.selectVersion.bind(null, i);
       var viewExtendedNotes              = this.viewExtendedNotes.bind(this, i);
@@ -2020,6 +2029,7 @@ class ReaderApp extends Component {
                       openComparePanel={openComparePanel}
                       setTextListHighlight={setTextListHighlight}
                       setConnectionsFilter={setConnectionsFilter}
+                      setScrollPosition={setScrollPosition}
                       setVersionFilter={setVersionFilter}
                       setSelectedWords={setSelectedWords}
                       selectVersion={selectVersion}

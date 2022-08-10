@@ -718,6 +718,8 @@ class ReaderPanel extends Component {
           allOpenRefs={this.props.allOpenRefs}
           canEditText={canEditText}
           setFilter={this.setFilter}
+          scrollPosition={this.state.scrollPositions[this.state.filter[0]] || 0}
+          setScrollPosition={this.props.setScrollPosition}
           toggleSignUpModal={this.props.toggleSignUpModal}
           setConnectionsMode={this.setConnectionsMode}
           setConnectionsCategory={this.setConnectionsCategory}
@@ -1145,6 +1147,7 @@ ReaderPanel.propTypes = {
   closePanel:                  PropTypes.func,
   closeMenus:                  PropTypes.func,
   setConnectionsFilter:        PropTypes.func,
+  setScrollPosition:           PropTypes.func,
   setDefaultOption:            PropTypes.func,
   selectVersion:               PropTypes.func,
   viewExtendedNotes:           PropTypes.func,
