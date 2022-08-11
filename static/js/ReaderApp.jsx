@@ -1350,7 +1350,7 @@ class ReaderApp extends Component {
     this.setState({panels: this.state.panels});
   }
   viewExtendedNotes(n, method, title, versionLanguage, versionName) {
-    var panel = this.state.panels[n];
+    const panel = this.state.panels[n];
     panel.bookRef = title;
     panel.currVersions = {'en': null, 'he': null}; // ensure only 1 version is set
     panel.currVersions[versionLanguage] = versionName;
@@ -1363,7 +1363,7 @@ class ReaderApp extends Component {
     this.setState({panels: this.state.panels});
   }
   backFromExtendedNotes(n, bookRef, currVersions){
-    var panel = this.state.panels[n];
+    const panel = this.state.panels[n];
     panel.menuOpen = panel.currentlyVisibleRef ? "text toc" : "book toc";
     panel.bookRef = bookRef;
     panel.currVersions = currVersions;
@@ -1411,16 +1411,17 @@ class ReaderApp extends Component {
         ...options
       });
     } else {  // Text
+      let refs, currentlyVisibleRef, highlightedRefs;
       if (ref.constructor === Array) {
         // When called with an array, set highlight for the whole spanning range of the array
-        var refs = ref;
-        var currentlyVisibleRef = Sefaria.normRef(ref);
-        var splitArray = refs.map(ref => Sefaria.splitRangingRef(ref));
-        var highlightedRefs = [].concat.apply([], splitArray);
+        refs = ref;
+        currentlyVisibleRef = Sefaria.normRef(ref);
+        const splitArray = refs.map(ref => Sefaria.splitRangingRef(ref));
+        highlightedRefs = [].concat.apply([], splitArray);
       } else {
-        var refs = [ref];
-        var currentlyVisibleRef = ref;
-        var highlightedRefs = [];
+        refs = [ref];
+        currentlyVisibleRef = ref;
+        highlightedRefs = [];
       }
       //console.log("Higlighted refs:", highlightedRefs)
       panel = this.makePanelState({
@@ -1477,7 +1478,7 @@ class ReaderApp extends Component {
     panel.menuOpen          = null;
     panel.mode              = panel.mode || "Connections";
     panel.settings          = panel.settings ? panel.settings : Sefaria.util.clone(this.getDefaultPanelSettings());
-    panel.settings.language = panel.settings.language == "hebrew" ? "hebrew" : "english"; // Don't let connections panels be bilingual
+    panel.settings.language = panel.settings.language === "hebrew" ? "hebrew" : "english"; // Don't let connections panels be bilingual
     if(parentPanel) {
       panel.filter = parentPanel.filter;
       panel.versionFilter = parentPanel.versionFilter;
