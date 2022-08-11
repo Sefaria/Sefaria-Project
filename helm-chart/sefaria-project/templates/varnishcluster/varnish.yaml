@@ -1,14 +1,12 @@
 # Depends on varnish operator being installed: https://ibm.github.io/varnish-operator/
 # Mutually exclusive with the varnish rollout - use that if the varnish controller is not installed
 {{- if .Values.varnish.managed }}
-{{- range $k, $v := untilStep (int (sub .Release.Revision .Values.previousServicesCount)) (int (add .Release.Revision 1)) 1 }}
-{{- if gt $v 0 }}
 apiVersion: caching.ibm.com/v1alpha1
 kind: VarnishCluster
 metadata:
   labels:
     operator: varnish
-  name: {{ $.Values.deployEnv }}-varnish-{{ $v }}
+  name: {{ .Values.deployEnv }}-varnish
 spec:
   affinity:
     podAntiAffinity:
@@ -24,8 +22,7 @@ spec:
       {{- include "sefaria.nodeAffinities" $ | nindent 6 }}
   backend:
     selector:
-      app: "web-{{ $.Values.deployEnv }}"
-      releaseRevision: "{{ $v }}"
+      app: "web-{{ Values.deployEnv }}"
     port: 80 
   monitoring:
     {{- toYaml $.Values.varnish.monitoring | nindent 4 }}
@@ -39,21 +36,17 @@ spec:
       key: varnish-secret
     args:
       - "-s"
-      - "malloc,{{ $.Values.varnish.tuning.malloc }}"
+      - "malloc,{{ Values.varnish.tuning.malloc }}"
       - "-p"
-      - "nuke_limit={{ $.Values.varnish.tuning.nuke_limit }}"
+      - "nuke_limit={{ Values.varnish.tuning.nuke_limit }}"
       - "-p"
-      - "thread_pool_max={{ $.Values.varnish.tuning.thread_pool_max }}"
+      - "thread_pool_max={{ Values.varnish.tuning.thread_pool_max }}"
       - "-p"
-      - "first_byte_timeout={{ $.Values.varnish.tuning.first_byte_timeout }}"
+      - "first_byte_timeout={{ Values.varnish.tuning.first_byte_timeout }}"
       - "-p"
-      - "between_bytes_timeout={{ $.Values.varnish.tuning.between_bytes_timeout }}" 
-    resources: {{ toYaml $.Values.varnish.resources | nindent 6 }}
+      - "between_bytes_timeout={{ Values.varnish.tuning.between_bytes_timeout }}" 
+    resources: {{ toYaml Values.varnish.resources | nindent 6 }}
   vcl:
-    configMapName: {{ $.Values.deployEnv }}-varnish-vcl
+    configMapName: {{ Values.deployEnv }}-varnish-vcl
     entrypointFileName: sefaria.vcl
-  service:
-    port: 8040
-{{- end }}
-{{- end }}
 {{- end }}

@@ -23,6 +23,16 @@ spec:
         args:
           - name: healthcheck-hostname
             value: "nginx-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+      postPromotionAnalysis:
+        templates:
+          # - templateName: rollout-readiness-{{ .Values.deployEnv }}
+          - templateName: varnish-check-{{ .Values.deployEnv }}
+        args:
+          - name: varnish-hostname
+            value: "varnish-{{ .Values.deployEnv }}"
+          - name: api-hostname
+            value: "web-{{ $.Values.deployEnv }}"
+
   selector:
     matchLabels:
       app: web-{{ .Values.deployEnv }}

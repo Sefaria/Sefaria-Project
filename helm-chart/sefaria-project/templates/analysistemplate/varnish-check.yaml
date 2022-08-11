@@ -1,0 +1,35 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: varnish-check-{{ .Values.deployEnv }}
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+spec:
+  args:
+    - name: healthcheck-hostname
+  metrics:
+    - name: healthcheck-ready
+      provider:
+        job:
+          spec:
+            volumes:
+            - name:  varnish-check
+              configMap:
+                name: varnish-check-{{ .Values.deployEnv }}
+                defaultMode: 0755
+            backoffLimit: 1
+            template:
+              spec:
+                containers:
+                  - name: varnish-checker
+                    image: "{{ .Values.web.containerImage.imageRegistry }}:{{ .Values.web.containerImage.tag }}"
+                    command: [ "/script/varnish-check.sh" ]
+                    env:
+                      - name: VARNISH_HOST
+                        value: "{{`{{args.varnish-hostname}}`}}" # {{`...`}}
+                      - name: NEW_HOST
+                        value: "{{`{{args.api-hostname}}`}}" # {{`...`}}
+                    volumeMounts:
+                    - name: varnish-check
+                      mountPath: /script
+                restartPolicy: Never

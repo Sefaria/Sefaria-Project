@@ -87,7 +87,7 @@ spec:
           - name: randomstringtoforceredeployments
             value: {{ randAlphaNum 8 }}
           - name: VARNISH_HOST
-            value: "varnish-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+            value: "{{ .Values.deployEnv }}-varnish"
           - name: SEARCH_HOST
             value: "{{ .Values.nginx.SEARCH_HOST }}"
           {{- if .Values.linker.enabled }}

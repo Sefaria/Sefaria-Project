@@ -1,0 +1,21 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  creationTimestamp: null
+  name: varnish-check-{{ .Values.deployEnv }}
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+    {{- include "sefaria.labels" . | nindent 4 }}
+data:
+  varnish-check.sh: |
+    #!/bin/bash
+    
+    python /app/scripts/testVarnishFreshness.py
+
+    if [[ $? ]]; then
+      curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+      chmod +x kubectl
+      kubectl rollout restart statefulset {{ .Values.deployEnv }}-varnish
+    fi
+
+    exit 0
