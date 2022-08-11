@@ -113,6 +113,8 @@ class LexiconEntry(abst.AbstractMongoRecord):
         "catane_number",
         "rid",
         "strong_numbers",
+        "GK",
+        "TWOT",
         'peculiar',
         'all_cited',
         'ordinal',
@@ -270,7 +272,7 @@ class KleinDictionaryEntry(DictionaryEntry):
 
 class BDBEntry(DictionaryEntry):
     required_attrs = DictionaryEntry.required_attrs + ["content", "rid"]
-    optional_attrs = ['strong_numbers', 'next_hw', 'prev_hw', 'peculiar', 'all_cited', 'ordinal', 'brackets', 'headword_suffix', 'alt_headwords', 'root', 'occurrences', 'quotes']
+    optional_attrs = ['strong_numbers', 'next_hw', 'prev_hw', 'peculiar', 'all_cited', 'ordinal', 'brackets', 'headword_suffix', 'alt_headwords', 'root', 'occurrences', 'quotes', 'GK', 'TWOT']
 
     def headword_string(self):
         hw = f'<span dir="rtl">{re.sub("[⁰¹²³⁴⁵⁶⁷⁸⁹]*", "", self.headword)}</span>'
