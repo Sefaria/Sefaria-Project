@@ -49,7 +49,7 @@ from sefaria.utils.util import text_preview
 from sefaria.utils.hebrew import hebrew_term, is_hebrew
 from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha, get_todays_parasha
 from sefaria.utils.util import short_to_long_lang_code
-from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, SEARCH_ADMIN, RTC_SERVER, MULTISERVER_REDIS_SERVER, MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, DISABLE_AUTOCOMPLETER, ENABLE_LINKER
+from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, SEARCH_ADMIN, SEARCH_CERT_FILE, SEARCH_PASSWORD, MULTISERVER_REDIS_SERVER, MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, DISABLE_AUTOCOMPLETER, ENABLE_LINKER
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
@@ -4415,7 +4415,11 @@ def search_wrapper_api(request):
         else:
             j = request.body  # using content-type: application/json
         j = json.loads(j)
-        es_client = Elasticsearch(SEARCH_ADMIN)
+        es_client = es_client = Elasticsearch(
+            SEARCH_ADMIN,
+            ca_certs=SEARCH_CERT_FILE,
+            basic_auth=("elastic", SEARCH_PASSWORD)
+        )
         search_obj = Search(using=es_client, index=j.get("type")).params(request_timeout=5)
         search_obj = get_query_obj(search_obj=search_obj, **{k: v for k, v in list(j.items())})
         response = search_obj.execute()
