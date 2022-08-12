@@ -1,24 +1,3 @@
-{#<head>#}
-{#    <script>#}
-{#        const subscribeToNbList = (email) => {#}
-{#            if (Sefaria.util.isValidEmailAddress(email)) {#}
-{#                const lists = Sefaria.interfaceLang == "hebrew" ?  "ANNOUNCEMENTS_General_Hebrew" : "ANNOUNCEMENTS_General"#}
-{#                const request = new Request(#}
-{#                    "/api/subscribe/" + email,#}
-{#                    {headers: {'X-CSRFToken': Cookies.get('csrftoken')}}#}
-{#                );#}
-{#                fetch(request, {#}
-{#                    method: 'POST',#}
-{#                    mode: 'same-origin',#}
-{#                    credentials: 'same-origin',#}
-{#                    body: {"lists": lists},#}
-{#                });#}
-{#            } else {#}
-{#            console.log("else")#}
-{#            }#}
-{#        }#}
-{#    </script>#}
-{#</head>#}
 <style>
     :root {
         /* colors */
@@ -33,7 +12,7 @@
         background-color: var(--sefaria-blue);
     }
     #interruptingMessageContentBox.hasColorLine{
-  border: none;
+        border: none;
     }
     #highHolidayDonation {
         width: 410px;
@@ -47,25 +26,11 @@
         text-align: right;
         direction: rtl;
     }
-    #highHolidayDonation p {
-        font-family: "adobe-garamond-pro", Georgia, serif;
-        color: White;
-    }
-
-    #highHolidayDonation h1 {
-        font-family: "adobe-garamond-pro", serif;
-        color: White;
-
-    }
 
     .interface-hebrew p.int-en {
         display: none;
     }
-    #highHolidayDonation p .int-en {
-        size: 43px;
-        font-style: italic;
 
-    }
     #highHolidayDonation p .int-he {
         size: 43px;
         font-family: "Heebo", sans-serif;
@@ -76,8 +41,20 @@
         font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
         font-style: normal;
     }
+
     #highHolidayDonation p {
+        --english-font: "adobe-garamond-pro", Georgia, serif;
+        color: White;
+        font-style: normal;
         margin-top: 0;
+        size: 43px;
+
+    }
+
+    #highHolidayDonation h1 {
+        --english-font: "adobe-garamond-pro", Georgia, serif;
+        color: White;
+
     }
     #highHolidayDonation .button {
         margin-bottom: 20px;
@@ -107,21 +84,21 @@
         border: 1px solid #EEE;
         color: #333;
         font-style: italic;
-
     }
 
 </style>
+
     <div id="highHolidayDonation">
 
         <h1>
             <span class="int-en">Ready to keep Learning?</span>
-            <span class="int-he">רוצים לעזור לנו לשפר את אתר האינטרנט ואת האפליקציה של ספריא?</span>
+            <span class="int-he">רוצים להמשיך וללמוד?</span>
         </h1>
 
         <p>
                 <span class="int-en">Subscribe to Sefaria’s newsletter to get reading recommendations, new text updates, library tips, webinar invites and more delivered to your inbox.
                 </span>
-                <span class="int-he">הירשמו לשיחת וידאו קצרה עם ספריא.</span>
+                <span class="int-he">הירשמו לרשימת התפוצה שלנו לשמוע</span>
         </p>
 
         <div id="email-input-wrapper">
@@ -130,7 +107,7 @@
               class="newsletterInput"
               placeholder="Email:"
             />
-            <a class="button white" onclick="Sefaria.util.sign_up_user_testing()">
+            <a class="int-en button small white" onclick="Sefaria.util.subscribeToNbList()">
                 <span class="int-en">Submit</span>
                 <span class="int-he">הרשמה</span>
             </a>
