@@ -10,7 +10,7 @@ const SEFARIA_BASE_URL = 'https://linker.cauldron.sefaria.org';
 // hard-coding for now list of elements that get cut off with Readability
 const SELECTOR_WHITE_LIST = {
     "etzion.org.il": ["p.footnote"],
-    "torah.etzion.org.il": ["p.footnote"],
+    "torah.etzion.org.il": ["p.footnote", "#maintext"],
     "haretzion.linnovate.co.il": ["p.footonote"],
     "www.mayim.org.il": [".footnotes.wpb_column"],
 };
