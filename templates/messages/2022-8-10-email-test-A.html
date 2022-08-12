@@ -1,0 +1,138 @@
+{#<head>#}
+{#    <script>#}
+{#        const subscribeToNbList = (email) => {#}
+{#            if (Sefaria.util.isValidEmailAddress(email)) {#}
+{#                const lists = Sefaria.interfaceLang == "hebrew" ?  "ANNOUNCEMENTS_General_Hebrew" : "ANNOUNCEMENTS_General"#}
+{#                const request = new Request(#}
+{#                    "/api/subscribe/" + email,#}
+{#                    {headers: {'X-CSRFToken': Cookies.get('csrftoken')}}#}
+{#                );#}
+{#                fetch(request, {#}
+{#                    method: 'POST',#}
+{#                    mode: 'same-origin',#}
+{#                    credentials: 'same-origin',#}
+{#                    body: {"lists": lists},#}
+{#                });#}
+{#            } else {#}
+{#            console.log("else")#}
+{#            }#}
+{#        }#}
+{#    </script>#}
+{#</head>#}
+<style>
+    :root {
+        /* colors */
+        --sefaria-blue: #18345D;
+    }
+
+    #interruptingMessageContentBox {
+      background-color: var(--sefaria-blue);
+    }
+    #interruptingMessage {
+        padding: 18px 0px;
+        background-color: var(--sefaria-blue);
+    }
+    #interruptingMessageContentBox.hasColorLine{
+  border: none;
+    }
+    #highHolidayDonation {
+        width: 410px;
+        max-height: 100%;
+        max-width: 100%;
+    }
+    .interface-english #highHolidayDonation {
+        text-align: left;
+    }
+    .interface-hebrew #highHolidayDonation {
+        text-align: right;
+        direction: rtl;
+    }
+    #highHolidayDonation p {
+        font-family: "adobe-garamond-pro", Georgia, serif;
+        color: White;
+    }
+
+    #highHolidayDonation h1 {
+        font-family: "adobe-garamond-pro", serif;
+        color: White;
+
+    }
+
+    .interface-hebrew p.int-en {
+        display: none;
+    }
+    #highHolidayDonation p .int-en {
+        size: 43px;
+        font-style: italic;
+
+    }
+    #highHolidayDonation p .int-he {
+        size: 43px;
+        font-family: "Heebo", sans-serif;
+    }
+    #highHolidayDonation p.sub {
+        color: white;
+        font-size: 43px;
+        font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
+        font-style: normal;
+    }
+    #highHolidayDonation p {
+        margin-top: 0;
+    }
+    #highHolidayDonation .button {
+        margin-bottom: 20px;
+    }
+    #highHolidayDonation img {
+        max-width: 100%;
+    }
+    #highHolidayDonation .buttons{
+        text-align: right;
+    }
+    .leader {
+        font-weight: bold;
+    }
+    .center{
+        text-align: center;
+    }
+    email-input-wrapper {
+        display: flex;
+        align-items: flex-start;
+        flex-direction: column;
+    }
+    .newsletterInput#email-input {
+        width: 200px;
+        padding: 10px;
+        margin-bottom: 20px;
+        border-radius: 7px;
+        border: 1px solid #EEE;
+        color: #333;
+        font-style: italic;
+
+    }
+
+</style>
+    <div id="highHolidayDonation">
+
+        <h1>
+            <span class="int-en">Ready to keep Learning?</span>
+            <span class="int-he">רוצים לעזור לנו לשפר את אתר האינטרנט ואת האפליקציה של ספריא?</span>
+        </h1>
+
+        <p>
+                <span class="int-en">Subscribe to Sefaria’s newsletter to get reading recommendations, new text updates, library tips, webinar invites and more delivered to your inbox.
+                </span>
+                <span class="int-he">הירשמו לשיחת וידאו קצרה עם ספריא.</span>
+        </p>
+
+        <div id="email-input-wrapper">
+            <input
+              id="email-input"
+              class="newsletterInput"
+              placeholder="Email:"
+            />
+            <a class="button white" onclick="Sefaria.util.sign_up_user_testing()">
+                <span class="int-en">Submit</span>
+                <span class="int-he">הרשמה</span>
+            </a>
+        </div>
+    </div>

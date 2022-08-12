@@ -1920,6 +1920,7 @@ class InterruptingMessage extends Component {
             <div id="interruptingMessageContentBox" className="hasColorLine">
               <div id="interruptingMessageClose" onClick={this.close}>×</div>
               <div id="interruptingMessageContent" dangerouslySetInnerHTML={ {__html: this.props.messageHTML} }></div>
+              <div className="colorLine"></div>
             </div>
           </div>
         </div>;

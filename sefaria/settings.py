@@ -299,7 +299,7 @@ CACHES = {
 
 
 GLOBAL_INTERRUPTING_MESSAGE = {
-    "name": "2022-07-25-Ab-testing-modal-1A",
+    "name": "2022-8-10-email-test-A",
     "style":      "modal",  # "modal" or "banner"
     "repetition": 1,
     "is_fundraising": True,
@@ -311,7 +311,7 @@ GLOBAL_INTERRUPTING_MESSAGE = {
     }
 }
 
-GLOBAL_INTERRUPTING_MESSAGE = None
+# GLOBAL_INTERRUPTING_MESSAGE = None
 
 
 
