@@ -59,11 +59,6 @@ class SimpleMongoDBCache(BaseCache):
     def __init__(self, location, params):
         options = params.get('OPTIONS', {})
 
-        if not 'timeout' in params and not 'TIMEOUT' in params:
-            params['TIMEOUT'] = None
-        if not 'max_entries' in params and not 'MAX_ENTRIES' in params:
-            params['MAX_ENTRIES'] = -1
-
         BaseCache.__init__(self, params)
 
         self._host, self._port = get_host_and_port(location)
@@ -74,17 +69,8 @@ class SimpleMongoDBCache(BaseCache):
 
         self._collection_name = options.get('COLLECTION', None) or 'django_cache'
 
-        if self._max_entries is not None and self._max_entries <= 0:
-            self._max_entries = None
-
         if self.default_timeout is not None and self.default_timeout <= 0:
             self.default_timeout = None
-
-        if self.default_timeout is not None and self._max_entries is not None:
-            raise ImproperlyConfigured('SimpleMongoDBCache shall be configured either with TIMEOUT or MAX_ENTRIES, not both.')
-
-        if self.default_timeout is None and self._max_entries is None:
-            raise ImproperlyConfigured('SimpleMongoDBCache shall be configured with TIMEOUT or MAX_ENTRIES. Specify one or the other.')
 
     def make_key(self, key, version=None):
         """
@@ -233,9 +219,6 @@ class SimpleMongoDBCache(BaseCache):
         self._db = db
         if self._collection_name not in self._db.collection_names():
             options = {}
-            if self._max_entries is not None:
-                # Create a capped collection
-                options.update({'capped': True, 'size': self._max_entries})
 
             self._db.create_collection(self._collection_name, **options)
             collection = self._db[self._collection_name]
@@ -246,8 +229,8 @@ class SimpleMongoDBCache(BaseCache):
                     [("expires", pymongo.DESCENDING), ],
                     expireAfterSeconds=0,
                 )
-
-            # Create an index on "key"/"expires" fields
-            collection.create_index([('key', pymongo.ASCENDING), ('expires', pymongo.ASCENDING), ])
-
+                # Create an index on "key"/"expires" fields
+                collection.create_index([('key', pymongo.ASCENDING), ('expires', pymongo.ASCENDING), ])
+             collection.create_index([("key", pymongo.ASCENDING)], background=True)
+            
         self._coll = self._db[self._collection_name]
