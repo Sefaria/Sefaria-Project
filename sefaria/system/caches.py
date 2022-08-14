@@ -64,8 +64,8 @@ class SimpleMongoDBCache(BaseCache):
         self._host, self._port = get_host_and_port(location)
 
         self._database = options.get('DATABASE', None)
-        self._username = options.get('USERNAME') or None
-        self._password = options.get('PASSWORD') or None
+        #self._username = options.get('USERNAME') or None
+        #self._password = options.get('PASSWORD') or None
 
         self._collection_name = options.get('COLLECTION', None) or 'django_cache'
 
