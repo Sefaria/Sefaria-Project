@@ -231,6 +231,5 @@ class SimpleMongoDBCache(BaseCache):
                 )
                 # Create an index on "key"/"expires" fields
                 collection.create_index([('key', pymongo.ASCENDING), ('expires', pymongo.ASCENDING), ])
-             collection.create_index([("key", pymongo.ASCENDING)], background=True)
-            
+            collection.create_index([("key", pymongo.ASCENDING)], background=True)
         self._coll = self._db[self._collection_name]
