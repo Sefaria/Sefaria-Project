@@ -2814,6 +2814,11 @@ display: none;
   padding-top: 80px;
   padding-bottom: 80px;
 }
+#EducatorsInner .staticPage .blockVerticalPadding,
+#RabbisInner .staticPage .blockVerticalPadding {
+  background-color: #FBFBFA;
+}
+
 .staticPage .flexContainer {
   display: flex;
   flex-direction: row;

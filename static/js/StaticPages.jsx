@@ -913,7 +913,7 @@ const RabbisPage = () => (
 
      <Feature
       enTitle="Resources for Rabbis"
-      enText="Stay up to date with the latest news and resources from Sefaria. Find relevant texts and sheets for thousands of topics, use and share Sefaria’s Chavruta feature for your own chavruta study, and get inspired to try something new in your work"
+      enText="Stay up to date with the latest news and resources from Sefaria. Find relevant texts and sheets for thousands of topics, use and share Sefaria’s Chavruta feature for your own chavruta study, and get inspired to try something new in your work."
       enImg="/static/img/rabbis-landing-page/Sermon landing page screenshot.png"
       enImgAlt="Resources for Rabbis"
       borderColor={palette.colors.gold}
@@ -923,7 +923,7 @@ const RabbisPage = () => (
     <ButtonRow white={true} enTitle="" heTitle="">
       { [
           ["Past Rabbi Newsletters", "", "https://www.sefaria.org/collections/T-5hbqOq?tab=sheets", ""],
-          ["Topics Tutorials", "", "https://www.sefaria.org/sheets/231377?lang=bi", ""],
+          ["Topic Tutorials", "", "https://www.sefaria.org/sheets/231377?lang=bi", ""],
           ["Studying With a Partner: A Chavruta Tutorial", "", "https://www.sefaria.org/sheets/263246?lang=bi", ""]
       ].map(i =>
           <SimpleButton
