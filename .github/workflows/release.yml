@@ -8,10 +8,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: codfish/semantic-release-action@v2
         with:
-          plugins:
-            - '@semantic-release/commit-analyzer'
-            - '@semantic-release/release-notes-generator'
-            - '@semantic-release/github'
-            - '@semantic-release/git'
+          plugins: |
+            ['@semantic-release/commit-analyzer', '@semantic-release/release-notes-generator', '@semantic-release/github', '@semantic-release/git']
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
