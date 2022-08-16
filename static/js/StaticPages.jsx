@@ -923,7 +923,7 @@ const RabbisPage = () => (
     <ButtonRow white={true} enTitle="" heTitle="">
       { [
           ["Past Rabbi Newsletters", "", "https://www.sefaria.org/collections/T-5hbqOq?tab=sheets", ""],
-          ["Topic Tutorials", "", "https://www.sefaria.org/sheets/231377?lang=bi", ""],
+          ["Topics Tutorial", "", "https://www.sefaria.org/sheets/231377?lang=bi", ""],
           ["Studying With a Partner: A Chavruta Tutorial", "", "https://www.sefaria.org/sheets/263246?lang=bi", ""]
       ].map(i =>
           <SimpleButton
