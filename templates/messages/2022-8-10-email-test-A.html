@@ -92,24 +92,35 @@
 
         <h1>
             <span class="int-en">Ready to keep Learning?</span>
-            <span class="int-he">רוצים להמשיך וללמוד?</span>
+            <span class="int-he">רוצים להמשיך ללמוד?</span>
         </h1>
 
         <p>
                 <span class="int-en">Subscribe to Sefaria’s newsletter to get reading recommendations, new text updates, library tips, webinar invites and more delivered to your inbox.
                 </span>
-                <span class="int-he">הירשמו לרשימת התפוצה שלנו לשמוע</span>
+                <span class="int-he">הצטרפו לרשימת התפוצה של ספריא וקבלו את כל העדכונים החשובים: החל מכותרים חדשים במאגר, דרך המלצות קריאה, טיפים לשימוש בספריא ועוד המון ערך.
+                </span>
         </p>
 
-        <div id="email-input-wrapper">
-            <input
-              id="email-input"
-              class="newsletterInput"
-              placeholder="Email:"
-            />
-            <a class="int-en button small white" onclick="Sefaria.util.subscribeToNbList()">
+        <div className="email-input-wrapper">
+            <span class="int-en">
+                <input
+                  id="email-input"
+                  class="newsletterInput"
+                  placeholder=Email:
+                />
+            </span>
+            <span class="int-he">
+                <input
+                  id="email-input"
+                  class="newsletterInput"
+                  placeholder="כתובת דוא״ל:"
+                />
+            </span>
+
+            <a class="button small white" onclick=Sefaria.util.subscribeToNbList(document.querySelector('#email-input').value) onkeyup=Sefaria.util.subscribeToNbList(document.querySelector('#email-input').value)>
                 <span class="int-en">Submit</span>
-                <span class="int-he">הרשמה</span>
+                <span class="int-he">רשמו אותי</span>
             </a>
         </div>
     </div>
