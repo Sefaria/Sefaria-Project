@@ -6,11 +6,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-        with:
-          ssh-key: "${{ secrets.DEPLOY_KEY }}"
       - uses: codfish/semantic-release-action@v2
         with:
           plugins: |
-            ['@semantic-release/commit-analyzer', '@semantic-release/release-notes-generator', '@semantic-release/github']
+            [
+              ['@semantic-release/commit-analyzer', {
+                "preset": "conventionalcommits"
+              }],
+              ['@semantic-release/release-notes-generator', {
+                "preset": "conventionalcommits",
+                "writerOpts": {
+                  "footerPartial": "Released by ${{ github.actor }}"
+                }
+              }],
+              ['@semantic-release/github', {
+                "successComment": false
+              }]
+            ]
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: deploy-production
+        uses: ./.github/workflows/production-deploy.yaml
