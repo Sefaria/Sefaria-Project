@@ -57,7 +57,7 @@
 
     }
     #highHolidayDonation .button {
-        margin-bottom: 20px;
+        margin: 0px 6px 20px 6px;
     }
     #highHolidayDonation img {
         max-width: 100%;
@@ -108,13 +108,15 @@
                   id="email-input"
                   class="newsletterInput"
                   placeholder=Email:
-                />
+                  onkeyup=Sefaria.util.subscribeToNbList(document.querySelector('#email-input').value)
+                  />
             </span>
             <span class="int-he">
                 <input
                   id="email-input"
                   class="newsletterInput"
                   placeholder="כתובת דוא״ל:"
+                  onkeyup=Sefaria.util.subscribeToNbList(document.querySelector('#email-input').value)
                 />
             </span>
 
