@@ -154,8 +154,9 @@ APSCHEDULER_NAME = "apscheduler"
 
 # ElasticSearch server
 SEARCH_ADMIN = ""
+SEARCH_ADMIN_USER= ""
+SEARCH_ADMIN_PW = ""
 SEARCH_PASSWORD = ""
-SEARCH_CERT_FILE = ""
 SEARCH_INDEX_ON_SAVE = False  # Whether to send texts and source sheet to Search Host for indexing after save
 SEARCH_INDEX_NAME_TEXT = 'text'  # name of the ElasticSearch index to use
 SEARCH_INDEX_NAME_SHEET = 'sheet'

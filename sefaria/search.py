@@ -31,15 +31,15 @@ from sefaria.model.collection import CollectionSet
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 from sefaria.utils.util import strip_tags
-from .settings import SEARCH_ADMIN, SEARCH_INDEX_NAME_TEXT, SEARCH_INDEX_NAME_SHEET, SEARCH_PASSWORD, SEARCH_CERT_FILE
+from .settings import SEARCH_ADMIN, SEARCH_INDEX_NAME_TEXT, SEARCH_INDEX_NAME_SHEET, SEARCH_ADMIN_PW, SEARCH_ADMIN_USER,
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.utils.hebrew import strip_cantillation
 import sefaria.model.queue as qu
 
 es_client = Elasticsearch(
     SEARCH_ADMIN,
-    ca_certs=SEARCH_CERT_FILE,
-    basic_auth=("elastic", SEARCH_PASSWORD)
+    verify_certs=False,
+    basic_auth=(SEARCH_ADMIN_USER, SEARCH_ADMIN_PW)
 )
 index_client = IndicesClient(es_client)
 
