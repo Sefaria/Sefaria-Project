@@ -119,7 +119,7 @@ class Util {
             const lists = Sefaria.interfaceLang == "hebrew" ?  "ANNOUNCEMENTS_General_Hebrew" : "ANNOUNCEMENTS_General"
             const request = new Request(
                 "/api/subscribe/" + email,
-                // {headers: {'X-CSRFToken': Cookies.get('csrftoken')}}
+                {headers: {'X-CSRFToken': Cookies.get('csrftoken')}}
             );
             fetch(request, {
                 method: 'POST',
