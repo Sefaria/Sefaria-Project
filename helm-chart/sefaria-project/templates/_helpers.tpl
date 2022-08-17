@@ -46,15 +46,6 @@ slack-webhook-{{ .Values.deployEnv }}
 {{- end }}
 {{- end }}
 
-{{- define "sefaria.secrets.elasticCertificate" }}
-{{- if .Values.secrets.elasticCertificate.ref -}}
-{{- .Values.secrets.elasticCertificate.ref }}
-{{- else -}}
-elastic-certificate-{{ .Values.deployEnv }}
-{{- end }}
-{{- end }}
-
-
 {{- define "sefaria.secrets.originTls" }}
 {{- if .Values.ingress.secrets.originTls.ref -}}
 {{- .Values.ingress.secrets.originTls.ref }}
