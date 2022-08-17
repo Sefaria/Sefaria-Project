@@ -37,9 +37,8 @@ from sefaria.utils.hebrew import strip_cantillation
 import sefaria.model.queue as qu
 
 es_client = Elasticsearch(
-    SEARCH_ADMIN,
+    f"{SEARCH_ADMIN_USER}:{SEARCH_ADMIN_PW}@{SEARCH_ADMIN}",
     verify_certs=False,
-    basic_auth=(SEARCH_ADMIN_USER, SEARCH_ADMIN_PW)
 )
 index_client = IndicesClient(es_client)
 
