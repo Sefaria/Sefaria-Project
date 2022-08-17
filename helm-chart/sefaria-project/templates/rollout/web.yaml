@@ -166,7 +166,7 @@ spec:
                 path: local_settings.py
         - name: elastic-cert
           secret:
-            secretName: {{ template "sefaria.secrets.elasticCertificate" . }} # needs to be checked if it's a reference object or the data object we created.
+            secretName: {{ template "sefaria.secrets.elasticCertificate" . }} 
             optional: true
         - name: client-secret
           secret:
