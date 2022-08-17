@@ -27,14 +27,20 @@ def regenerate_bare_links_api(cat1, cat2):
     for c1idx in cat1idxs:
         print("bare_link_api:, Book: {}, Category: {}".format(c1idx, cat2))
         django_cache(action="set", cache_type="persistent", cache_prefix='bare_link_api', decorate_data_with_key=True)(get_book_link_collection)(book=c1idx, cat=cat2)
+        if USE_VARNISH:
+            purge_url("{}/api/links/bare/{}/{}".format(c1idx, cat2))
     for c2idx in cat2idxs:
         print("bare_link_api:, Book: {}, Category: {}".format(c2idx, cat1))
         django_cache(action="set", cache_type="persistent", cache_prefix='bare_link_api', decorate_data_with_key=True)(get_book_link_collection)(book=c2idx, cat=cat1)
+        if USE_VARNISH:
+            purge_url("{}/api/links/bare/{}/{}".format(c2idx, cat1))
 
 
 def regenerate_link_count_api(cat1, cat2):
     print("link_count_api:, Category1: {}, Category2: {}".format(cat1, cat2))
     django_cache(action="set", cache_type="persistent", cache_prefix='link_count_api', decorate_data_with_key=True)(get_link_counts)(cat1=cat1, cat2=cat2)
+    if USE_VARNISH:
+        purge_url("{}/api/counts/links/{}/{}".format(cat1, cat2))
 
 
 def regenerate_all_used():
