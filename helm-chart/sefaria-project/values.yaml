@@ -86,11 +86,6 @@ web:
       # data:
       # Reference to an existing secret in the cluster
       ref:
-    elasticCertificate:
-      # for local testing purposes or CI pipeline use input a value
-      # data:
-      # Reference to an existing secret in the cluster
-      ref:
 
 linker:
   enabled: false
