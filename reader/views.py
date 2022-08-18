@@ -4416,8 +4416,7 @@ def search_wrapper_api(request):
             j = request.body  # using content-type: application/json
         j = json.loads(j)
         es_client = Elasticsearch(
-            f"https://{SEARCH_ADMIN_USER}:{SEARCH_ADMIN_PW}@{SEARCH_ADMIN}",
-            verify_certs=False,
+            f"http://{SEARCH_ADMIN_USER}:{SEARCH_ADMIN_PW}@{SEARCH_ADMIN}"
         )
         search_obj = Search(using=es_client, index=j.get("type")).params(request_timeout=5)
         search_obj = get_query_obj(search_obj=search_obj, **{k: v for k, v in list(j.items())})
