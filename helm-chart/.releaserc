@@ -6,9 +6,10 @@ plugins:
         noteKeywords:
           - MAJOR RELEASE
   - "@semantic-release/release-notes-generator"
-  - - "@semantic-release/github"
+#  - - "@semantic-release/github"
 branches: [
     {name: 'main'},
     {name: 'master'},
+    {name: '**', prerelease: true}
   ]
 tagFormat: helm-chart-${version}
