@@ -80,7 +80,10 @@
         display: none;
     }
 
-    .newsletterInput#email-input {
+    .interface-hebrew .email-input-wrapper.int-en {
+
+    }
+    .newsletterInput#email-input-en,.newsletterInput#email-input-he{
         width: 200px;
         padding: 10px;
         margin-bottom: 20px;
@@ -109,22 +112,22 @@
         <div className="email-input-wrapper">
             <span class="int-en">
                 <input
-                  id="email-input"
+                  id="email-input-en"
                   class="newsletterInput"
                   placeholder=Email:
-                  onkeyup=Sefaria.util.subscribeToNbList(document.querySelector('#email-input').value)
+                  onkeyup=Sefaria.util.subscribeToNbList(document.querySelector('#email-input-en').value)
                   />
             </span>
             <span class="int-he">
                 <input
-                  id="email-input"
+                  id="email-input-he"
                   class="newsletterInput"
                   placeholder="כתובת דוא״ל:"
-                  onkeyup=Sefaria.util.subscribeToNbList(document.querySelector('#email-input').value)
+                  onkeyup=Sefaria.util.subscribeToNbList(document.querySelector('#email-input-he').value)
                 />
             </span>
 
-            <a class="button small white" onclick=Sefaria.util.subscribeToNbList(document.querySelector('#email-input').value) onkeyup=Sefaria.util.subscribeToNbList(document.querySelector('#email-input').value)>
+            <a class="button small white" onclick=Sefaria.util.subscribeToNbList(document.querySelector('#email-input-en,#email-input-he').value)>
                 <span class="int-en">Submit</span>
                 <span class="int-he">רשמו אותי</span>
             </a>
