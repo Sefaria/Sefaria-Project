@@ -8,7 +8,6 @@ plugins:
   - "@semantic-release/release-notes-generator"
 #  - - "@semantic-release/github"
 branches: [
-    {name: 'main'},
     {name: 'master'},
     {name: '**', prerelease: true}
   ]
