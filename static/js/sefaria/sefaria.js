@@ -1337,6 +1337,7 @@ Sefaria = extend(Sefaria, {
             // bookData.enShortDesc = Sefaria.tocItemsByCategories(bookData.categoryList).map((e)=>(e.category || e.title === bookData.book ? e.enShortDesc: null))
         }
         if (bookData.categoryList && !bookData.enShortDesc) {
+            console.log(bookData);
             const desc = Sefaria.getDescriptionDict(bookData.book, bookData.categoryList)
             if (desc) {
                 bookData.enShortDesc = desc[0] || null;
