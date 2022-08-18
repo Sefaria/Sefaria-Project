@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_call: {}
 
 jobs:
   # Note - build occurs again here, even though this image has been built in continuous.

@@ -36,10 +36,12 @@ class TextColumn extends Component {
     this.setState({showScrollPlaceholders: true});
 
     this.node.addEventListener("scroll", this.handleScroll);
+    document.addEventListener('selectionchange', this.handleTextSelection);
   }
   componentWillUnmount() {
     this._isMounted = false;
     this.node.removeEventListener("scroll", this.handleScroll);
+    document.removeEventListener('selectionchange', this.handleTextSelection);
   }
   componentDidUpdate(prevProps, prevState) {
     const layoutWidth = this.$container.find(".textInner").width();
@@ -116,6 +118,8 @@ class TextColumn extends Component {
   }
 
   handleTextSelection() {
+    //Please note that because this function is triggered by an event listener on the document object, that will always be the event target 
+    // (should someone choose to add reference to the event itself in the future in this function) and not a more specific element.
     const selection = window.getSelection();
     let refs = [];
     if (selection.type === "Range") {
@@ -416,7 +420,7 @@ class TextColumn extends Component {
         <LoadingMessage message={" "} heMessage={" "} className="base next final" key={"next"}/>;
     }
 
-    return (<div className={classes} onMouseUp={this.handleTextSelection} onClick={this.handleClick} onMouseDown={this.handleDoubleClick}>
+    return (<div className={classes} onClick={this.handleClick} onMouseDown={this.handleDoubleClick}>
       {pre}
       {content}
       {post}
