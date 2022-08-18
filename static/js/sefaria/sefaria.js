@@ -1337,8 +1337,6 @@ Sefaria = extend(Sefaria, {
             // bookData.enShortDesc = Sefaria.tocItemsByCategories(bookData.categoryList).map((e)=>(e.category || e.title === bookData.book ? e.enShortDesc: null))
         }
         if (bookData.categoryList && !bookData.enShortDesc) {
-            console.log("bookData");
-            console.log(bookData);
             const desc = Sefaria.getDescriptionDict(bookData.book, bookData.categoryList)
             if (desc) {
                 bookData.enShortDesc = desc[0] || null;
@@ -1456,6 +1454,7 @@ Sefaria = extend(Sefaria, {
                 d[e[0].split(" on")[0]] = [e[1], e[2]]
             }
         })
+        console.log([keyName, categoryList, d]);
         let descs = d[keyName] || d[Sefaria.index(keyName).collectiveTitle] || d[keyName.split(" on")[0]];
         let enShortDesc = descs && descs[0]? descs[0]: null;
         let heShortDesc = descs && descs[1]? descs[1]: null;
