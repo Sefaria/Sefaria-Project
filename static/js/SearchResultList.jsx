@@ -522,7 +522,9 @@ const SearchTabs = ({clickTextButton, clickSheetButton, textTotal, sheetTotal, c
 
 
 const SearchTab = ({label, total, onClick, active}) => {
-  total = total.addCommas()
+  // todo: addCommas not resolving.  Why?
+  // total = total.addCommas()
+
   const classes = classNames({"search-dropdown-button": 1, active});
 
   return (
