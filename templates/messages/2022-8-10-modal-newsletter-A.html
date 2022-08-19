@@ -14,6 +14,12 @@
     #interruptingMessageContentBox.hasColorLine{
         border: none;
     }
+    .colorLine {
+          width: 100%;
+          height: 4px;
+          z-index: 101;
+          background: linear-gradient(90deg, var(--tanakh-teal) 0% 10%, var(--mishnah-blue) 10% 20%, var(--talmud-gold) 20% 30%, var(--midrash-green) 30% 40%, var(--halakhah-red) 40% 50%, var(--kabbalah-purple) 50% 60%, var(--liturgy-rose) 60% 70%, var(--philosophy-purple) 70% 80%, var(--taanitic-green) 80% 90%, var(--chasidut-green) 90% 100%)
+    }
     #highHolidayDonation {
         width: 410px;
         max-height: 100%;
@@ -90,7 +96,7 @@
         border-radius: 7px;
         border: 1px solid #EEE;
         color: #333;
-        font-style: italic;
+        font-style: normal;
     }
 
 </style>
@@ -115,7 +121,7 @@
                   id="email-input-en"
                   class="newsletterInput"
                   placeholder=Email:
-                  onkeyup=Sefaria.util.subscribeToNbList(document.querySelector('#email-input-en').value)
+{#                  onkeyup=Sefaria.util.subscribeToNbList(document.querySelector('#email-input-en').value)#}
                   />
             </span>
             <span class="int-he">
@@ -123,13 +129,13 @@
                   id="email-input-he"
                   class="newsletterInput"
                   placeholder="כתובת דוא״ל:"
-                  onkeyup=Sefaria.util.subscribeToNbList(document.querySelector('#email-input-he').value)
                 />
+{#                  <NewsletterSignUpForm />#}
             </span>
 
-            <a class="button small white" onclick=Sefaria.util.subscribeToNbList(document.querySelector('#email-input-en,#email-input-he').value)>
+            <button class="button small white" onclick=Sefaria.util.subscribeToNbList(document.querySelector('#email-input-en,#email-input-he').value) >
                 <span class="int-en">Submit</span>
                 <span class="int-he">רשמו אותי</span>
-            </a>
+            </button>
         </div>
     </div>
