@@ -80,6 +80,11 @@ a, a:hover {
   src: url('/static/fonts/NotoColorEmoji.ttf');
   unicode-range: U+1F1E6-1F1FF;
 }
+@font-face {
+  font-family: 'Meltho';
+  src: url('/static/fonts/SyrCOMBatnan.otf');
+  unicode-range: U+0700-074F;
+}
 :root {
   /* font stacks */
   --english-sans-serif-font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
@@ -12300,6 +12305,11 @@ span.ref-link-color-3 {color: blue}
 }
 .samaritan{
    font-family: 'Noto Sans Samaritan';
+   direction: rtl;
+}
+.sertoSyriac{
+   font-family: 'Meltho';
+   direction: rtl;
 }
 
 @-webkit-keyframes load5 {
