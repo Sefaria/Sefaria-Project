@@ -276,7 +276,7 @@ class BDBEntry(DictionaryEntry):
 
     def headword_string(self):
         hw = f'<span dir="rtl">{re.sub("[⁰¹²³⁴⁵⁶⁷⁸⁹]*", "", self.headword)}</span>'
-        if hasattr(self, 'occurrences'):
+        if hasattr(self, 'occurrences') and not hasattr(self, 'headword_suffix'):
             hw += f'</big><sub>{self.occurrences}</sub><big>' #the sub shouldn't be in big
         alts = []
         if hasattr(self, 'alt_headwords'):
@@ -288,6 +288,8 @@ class BDBEntry(DictionaryEntry):
         if getattr(self, 'brackets', '') == 'all':
             if hasattr(self, 'headword_suffix'):
                 hw = f'[{hw}{self.headword_suffix}]' #if there's a space, it'll be part of headword_suffix
+                if hasattr(self, 'occurrences'):
+                    hw += f'</big><sub>{self.occurrences}</sub><big>'
             else:
                 hw = ", ".join([hw] + alts)
         else:
@@ -297,7 +299,7 @@ class BDBEntry(DictionaryEntry):
                 hw = ", ".join([hw] + alts)
         hw = f'<big>{hw}</big>'
         if hasattr(self, 'root'):
-            hw = f'<big>{hw}</big>'
+            hw = re.sub('(</?big>)', r'\1\1', hw)
         if hasattr(self, 'ordinal'):
             hw = f'{self.ordinal} {hw}'
         if hasattr(self, 'all_cited'):
