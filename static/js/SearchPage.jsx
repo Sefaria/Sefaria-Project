@@ -48,7 +48,7 @@ class SearchPage extends Component {
                 </h1>
                 {this.state.totalResults ?
                 <div className="searchResultCount sans-serif">
-                  <InterfaceText>{this.state.totalResults.toLocaleString()}</InterfaceText>&nbsp;
+                  <InterfaceText>{this.state.totalResults.addCommas()}</InterfaceText>&nbsp;
                   <InterfaceText>Results</InterfaceText>
                 </div>
                 : null }

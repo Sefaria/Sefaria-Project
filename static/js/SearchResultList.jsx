@@ -245,7 +245,7 @@ class SearchResultList extends Component {
       this.setState(this.state);
     }
     totalResults() {
-      return this.types.reduce((accum, type) => (this.state.totals[type] + accum), 0);
+      return this.types.reduce((accum, type) => (this.state.totals[type].value + accum), 0);
     }
     updateTotalResults() {
       this.props.updateTotalResults(this.totalResults());
@@ -515,14 +515,14 @@ SearchResultList.propTypes = {
 
 const SearchTabs = ({clickTextButton, clickSheetButton, textTotal, sheetTotal, currentTab}) => (
   <div className="type-buttons sans-serif">
-    <SearchTab label={"Sources"} total={textTotal} onClick={clickTextButton} active={currentTab === "text"} />
-    <SearchTab label={"Sheets"} total={sheetTotal} onClick={clickSheetButton} active={currentTab === "sheet"} />
+    <SearchTab label={"Sources"} total={textTotal.value} onClick={clickTextButton} active={currentTab === "text"} />
+    <SearchTab label={"Sheets"} total={sheetTotal.value} onClick={clickSheetButton} active={currentTab === "sheet"} />
   </div>
 );
 
 
 const SearchTab = ({label, total, onClick, active}) => {
-  total = total.toLocaleString()
+  total = total.addCommas()
 
   const classes = classNames({"search-dropdown-button": 1, active});
 
