@@ -1,0 +1,135 @@
+<style>
+    :root {
+        /* colors */
+        --sefaria-blue: #18345D;
+    }
+
+    #interruptingMessageContentBox {
+      background-color: var(--sefaria-blue);
+    }
+    #interruptingMessage {
+        padding: 50px 0px;
+        background-color: var(--sefaria-blue);
+    }
+    #interruptingMessageContentBox.hasColorLine{
+        border: none;
+    }
+    .colorLine {
+          width: 100%;
+          height: 4px;
+          z-index: 101;
+          background: linear-gradient(90deg, var(--tanakh-teal) 0% 10%, var(--mishnah-blue) 10% 20%, var(--talmud-gold) 20% 30%, var(--midrash-green) 30% 40%, var(--halakhah-red) 40% 50%, var(--kabbalah-purple) 50% 60%, var(--liturgy-rose) 60% 70%, var(--philosophy-purple) 70% 80%, var(--taanitic-green) 80% 90%, var(--chasidut-green) 90% 100%)
+    }
+    #highHolidayDonation {
+        width: 410px;
+        max-height: 100%;
+        max-width: 100%;
+    }
+    {#.interface-english #highHolidayDonation {#}
+    {#    text-align: left;#}
+    {#}#}
+    .interface-hebrew #highHolidayDonation {
+        {#text-align: right;#}
+        direction: rtl;
+    }
+
+    .interface-hebrew p.int-en {
+        display: none;
+    }
+
+    #highHolidayDonation p .int-he {
+        font-size: 25px;
+        font-family: "Heebo", sans-serif;
+    }
+    #highHolidayDonation p.sub {
+        color: white;
+        font-size: 25px;
+        font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
+        font-style: normal;
+        margin-left: 20px;
+        margin-right: 20px;
+    }
+
+    #highHolidayDonation p {
+        --english-font: "adobe-garamond-pro", Georgia, serif;
+        color: White;
+        font-style: normal;
+        margin-top: 0;
+        font-size: 25px;
+
+    }
+
+    #highHolidayDonation h1 {
+        --english-font: "adobe-garamond-pro", Georgia, serif;
+        color: White;
+
+    }
+    #highHolidayDonation .button {
+        margin: 0px 6px 20px 6px;
+    }
+    #highHolidayDonation img {
+        max-width: 100%;
+    }
+    #highHolidayDonation .buttons{
+        text-align: right;
+    }
+    .leader {
+        font-weight: bold;
+    }
+    .center{
+        text-align: center;
+    }
+    email-input-wrapper {
+        display: flex;
+        align-items: flex-start;
+        flex-direction: column;
+    }
+    .interface-hebrew .email-input-wrapper.int-en {
+        display: none;
+    }
+
+    .interface-hebrew .email-input-wrapper.int-en {
+
+    }
+    .newsletterInput#email-input-en,.newsletterInput#email-input-he{
+        width: 200px;
+        padding: 10px;
+        margin-bottom: 20px;
+        border-radius: 7px;
+        border: 1px solid #EEE;
+        color: #333;
+        font-style: normal;
+    }
+
+</style>
+
+    <div id="highHolidayDonation">
+        <p>
+                <span class="int-en">Be the first to know about new texts, library features, and webinars.</span>
+                <span class="int-he">לא תאמינו מה קורה בספריא! הירשמו והיו הראשונים לדעת על כל מה שחדש אצלנו במאגר - ובכלל
+                </span>
+        </p>
+
+        <div className="email-input-wrapper">
+            <span class="int-en">
+                <input
+                  id="email-input-en"
+                  class="newsletterInput"
+                  placeholder=Email:
+                  />
+            </span>
+            <span class="int-he">
+                <input
+                  id="email-input-he"
+                  class="newsletterInput"
+                  placeholder="כתובת דוא״ל:"
+                />
+{#                  <NewsletterSignUpForm />#}
+            </span>
+
+            <button class="button small white" onclick=Sefaria.util.subscribeToNbList(document.querySelector('#email-input-en,#email-input-he').value) >
+                <span class="int-en">Submit</span>
+                <span class="int-he">רשמו אותי</span>
+            </button>
+        </div>
+    </div>
