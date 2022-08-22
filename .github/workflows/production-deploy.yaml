@@ -22,7 +22,7 @@ jobs:
     steps:
       - id: check
         run: |
-          if [[ "${{ github.events.inputs.version }}" == "" ]]; then
+          if [[ "${{ inputs.version }}" == "" ]]; then
             echo "::set-output name=ref::${{ github.ref_name }}" 
           else
             echo "::set-output name=ref::${{ github.events.inputs.version }}" 
@@ -80,6 +80,8 @@ jobs:
       - workflow-check
     steps:
       - uses: actions/checkout@v2
+        with:
+          ref: ${{ needs.workflow-check.outputs.ref }}
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
       - name: Set up Docker Buildx
@@ -126,6 +128,8 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
+        with:
+          ref: ${{ needs.workflow-check.outputs.ref }}
       - name: Authenticate GHA Runner to GCP
         uses: google-github-actions/setup-gcloud@v0
         with:
