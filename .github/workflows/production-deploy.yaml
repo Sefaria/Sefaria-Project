@@ -22,7 +22,7 @@ jobs:
     steps:
       - id: check
         run: |
-          if [[ ${{ github.events.inputs.version }} == '' ]]; then
+          if [[ "${{ github.events.inputs.version }}" == "" ]]; then
             echo "::set-output name=ref::${{ github.ref_name }}" 
           else
             echo "::set-output name=ref::${{ github.events.inputs.version }}" 
