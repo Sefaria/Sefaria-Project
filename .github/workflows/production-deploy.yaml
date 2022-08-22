@@ -4,7 +4,11 @@ on:
   push:
     tags:
       - 'v*'
-  workflow_call: {}
+  workflow_call:
+    inputs:
+      version:
+        type: string
+        required: true
 
 jobs:
   # Note - build occurs again here, even though this image has been built in continuous.
@@ -18,6 +22,8 @@ jobs:
         app: [ web, node ]
     steps:
       - uses: actions/checkout@v2
+        with:
+          ref: "${{ if github.events.inputs.version == '' && github.ref_name || github.events.inputs.version }}"
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
       - name: Set up Docker Buildx
@@ -94,7 +100,7 @@ jobs:
           context: .
           push: true
           build-args: |
-            SRC_IMG=gcr.io/${{ secrets.PROD_GKE_PROJECT }}/sefaria-web:${{ github.ref_name }}
+            SRC_IMG=gcr.io/${{ secrets.PROD_GKE_PROJECT }}/sefaria-web:${{ if github.events.inputs.version == '' && github.ref_name || github.events.inputs.version }}
           file: ./build/nginx/Dockerfile
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -118,7 +124,7 @@ jobs:
       - name: Deploy Sandbox
         run: ./build/ci/production-helm-deploy.sh build/ci/production-values.yaml
         env:
-          GIT_COMMIT: "${{ github.ref_name }}"
+          GIT_COMMIT: "${{ if github.events.inputs.version == '' && github.ref_name || github.events.inputs.version }}"
           PROJECT_ID: "${{ secrets.PROD_GKE_PROJECT }}"
           NAMESPACE: "${{secrets.PROD_GKE_NAMESPACE}}"
           CHART_VERSION: 0.0.27
