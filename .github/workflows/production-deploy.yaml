@@ -16,6 +16,7 @@ jobs:
   # Logging in to dev and prod to push to both in continuous isn't really catered for
   # Since the build strategy is now a push instead of a pull, all images could live in a single registry, at which point this action would use cache and effectively just perform a tag
   workflow-check:
+    runs-on: ubuntu-latest
     outputs:
       ref: ${{ steps.check.outputs.ref }}
     steps:
