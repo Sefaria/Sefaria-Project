@@ -29,3 +29,5 @@ jobs:
   deploy:
     needs: semantic-release
     uses: ./.github/workflows/production-deploy.yaml
+    secrets: inherit
+
