@@ -34,5 +34,5 @@ jobs:
     uses: ./.github/workflows/production-deploy.yaml
     secrets: inherit
     with:
-      version: ${{ jobs.semantic-release.outputs.version }}
+      version: ${{ needs.semantic-release.outputs.version }}
 
