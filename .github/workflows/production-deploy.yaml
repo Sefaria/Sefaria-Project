@@ -25,7 +25,7 @@ jobs:
           if [[ "${{ inputs.version }}" == "" ]]; then
             echo "::set-output name=ref::${{ github.ref_name }}" 
           else
-            echo "::set-output name=ref::${{ github.events.inputs.version }}" 
+            echo "::set-output name=ref::${{ inputs.version }}" 
           fi
   build-generic:
     needs: workflow-check
