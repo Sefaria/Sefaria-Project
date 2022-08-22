@@ -455,7 +455,7 @@ class SearchResultList extends Component {
           }
 
 
-        } else if (tab == "sheet") {
+        } else if (tab === "sheet") {
           results = this.state.hits.sheet.map(result =>
             <SearchSheetResult
               data={result}
@@ -479,8 +479,8 @@ class SearchResultList extends Component {
               <SearchTabs
                 clickTextButton={this.showTexts}
                 clickSheetButton={this.showSheets}
-                textTotal={this.state.totals["text"]}
-                sheetTotal={this.state.totals["sheet"]}
+                textTotal={this.state.totals["text"].value}
+                sheetTotal={this.state.totals["sheet"].value}
                 currentTab={tab} /> : null
               }
               {Sefaria.multiPanel && !this.props.compare ?
@@ -515,14 +515,14 @@ SearchResultList.propTypes = {
 
 const SearchTabs = ({clickTextButton, clickSheetButton, textTotal, sheetTotal, currentTab}) => (
   <div className="type-buttons sans-serif">
-    <SearchTab label={"Sources"} total={textTotal.value} onClick={clickTextButton} active={currentTab === "text"} />
-    <SearchTab label={"Sheets"} total={sheetTotal.value} onClick={clickSheetButton} active={currentTab === "sheet"} />
+    <SearchTab label={"Sources"} total={textTotal} onClick={clickTextButton} active={currentTab === "text"} />
+    <SearchTab label={"Sheets"} total={sheetTotal} onClick={clickSheetButton} active={currentTab === "sheet"} />
   </div>
 );
 
 
 const SearchTab = ({label, total, onClick, active}) => {
-  total = total.addCommas()
+  total = total.toLocaleString()
 
   const classes = classNames({"search-dropdown-button": 1, active});
 
