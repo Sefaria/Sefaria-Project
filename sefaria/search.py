@@ -251,7 +251,7 @@ def create_index(index_name, type):
         }
     }
     print('Creating index {}'.format(index_name))
-    index_client.create(index=index_name, body=settings)
+    index_client.create(index=index_name, settings=settings)
 
     if type == 'text':
         put_text_mapping(index_name)
