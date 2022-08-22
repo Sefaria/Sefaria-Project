@@ -5,7 +5,7 @@ jobs:
   semantic-release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - run: npm install conventional-changelog-conventionalcommits
       - uses: codfish/semantic-release-action@v2
         with:
@@ -26,5 +26,6 @@ jobs:
             ]
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: deploy-production
-        uses: ./.github/workflows/production-deploy.yaml
+  deploy:
+    needs: semantic-release
+    uses: ./.github/workflows/production-deploy.yaml
