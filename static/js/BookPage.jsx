@@ -1181,11 +1181,6 @@ const EditTextInfo = function({initTitle, close}) {
       return false;
     }
 
-    if (/[0-9]/.test(enTitle)) {
-      alert('Text titles may not contain numbers. This form is for general information about a text as a whole, not specific citations.');
-      return false;
-    }
-
     if (categories.length === 0) {
       alert("Please choose a text category.");
       return false;
