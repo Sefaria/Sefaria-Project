@@ -85,13 +85,22 @@ a, a:hover {
   src: url('/static/fonts/SyrCOMBatnan.otf');
   unicode-range: U+0700-074F;
 }
+@font-face {
+  font-family: 'Noto Sans Samaritan';
+  unicode-range: U+0800-083F;
+}
+@font-face {
+  /*Greek*/
+  font-family: 'Cardo';
+  unicode-range: U+0370-03FF, U+1D00-1D7F, U+1D80-1DBF, U+1F00-1FFF, U+2100-214F, U+AB30-AB6F, U+10140-1018F, U+10190-101CF, U+1D200-1D24F;
+}
 :root {
   /* font stacks */
   --english-sans-serif-font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   --hebrew-sans-serif-font-family: "Heebo", "Roboto", sans-serif;
 
-  --english-serif-font-family: "HebrewInEnglish Serif Font", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
-  --hebrew-serif-font-family: "Noto Color Emoji", "EnglishInHebrew Serif Font", "Taamey Frank", "adobe-garamond-pro", "Crimson Text", "Times New Roman", serif;
+  --english-serif-font-family: "HebrewInEnglish Serif Font", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", "Cardo", serif;
+  --hebrew-serif-font-family: "Noto Color Emoji", "EnglishInHebrew Serif Font", "Taamey Frank", "adobe-garamond-pro", "Crimson Text", "Times New Roman", "Meltho", "Noto Sans Samaritan", serif;
 
   --serif-h1-font-size: 48px;
   --serif-h2-font-size: 30px;
@@ -12302,14 +12311,6 @@ span.ref-link-color-3 {color: blue}
   height: 18px;
   width: 18px;
   margin-inline-start: 6px;
-}
-.samaritan{
-   font-family: 'Noto Sans Samaritan';
-   direction: rtl;
-}
-.sertoSyriac{
-   font-family: 'Meltho';
-   direction: rtl;
 }
 
 @-webkit-keyframes load5 {
