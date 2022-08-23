@@ -61,7 +61,7 @@ jobs:
             type=ref,event=tag
             type=sha,enable=true,priority=100,prefix=sha-,suffix=-${{ steps.date.outputs.date }},format=short
             type=sha
-            type=semver,pattern={{version}},value=${{needs.workflow-check.outputs.ref}}
+            type=semver,pattern={{raw}},value=${{needs.workflow-check.outputs.ref}}
           flavor: |
             latest=true
       - name: build and push
@@ -107,7 +107,7 @@ jobs:
             type=ref,event=tag
             type=sha,enable=true,priority=100,prefix=sha-,suffix=-${{ steps.date.outputs.date }},format=short
             type=sha
-            type=semver,pattern={{version}},value=${{needs.workflow-check.outputs.ref}}
+            type=semver,pattern={{raw}},value=${{needs.workflow-check.outputs.ref}}
           flavor: |
             latest=true
       - name: build and push
