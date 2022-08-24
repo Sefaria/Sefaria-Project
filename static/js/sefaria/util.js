@@ -113,30 +113,6 @@ class Util {
         const postData = {json: JSON.stringify(feedback)};
         $.post('/api/send_feedback', postData);
     }
-     static subscribeToNbList(email) {
-        console.log(email, Sefaria.util.isValidEmailAddress(email))
-        if (Sefaria.util.isValidEmailAddress(email)) {
-            const lists = Sefaria.interfaceLang == "hebrew" ?  "ANNOUNCEMENTS_General_Hebrew" : "ANNOUNCEMENTS_General"
-            $.post("/api/subscribe/" + email + "?lists=" + lists, function(data) {
-                if ("error" in data) {
-                    console.log(data.error);
-                } else {
-                    console.log("Subscribed! Welcome to our list.");
-                }
-            }).error(data => console.log("Sorry, there was an error."));
-            // const request = new Request(
-            //     "/api/subscribe/" + email,
-            //     // {headers: {'X-CSRFToken': Cookies.get('csrftoken')}}
-            //
-            // );
-            // fetch(request, {
-            //     method: 'POST',
-            //     body: {"lists": lists},
-            // });
-        } else {
-        console.log("not vaild email address")
-        }
-    }
     static naturalTimePlural(n, singular, plural) {
       return n <= 1 ? singular : plural;
     }
