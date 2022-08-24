@@ -31,13 +31,13 @@ from sefaria.model.collection import CollectionSet
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 from sefaria.utils.util import strip_tags
-from .settings import SEARCH_ADMIN, SEARCH_INDEX_NAME_TEXT, SEARCH_INDEX_NAME_SHEET, SEARCH_ADMIN_PW, SEARCH_ADMIN_USER
+from sefaria.helper.search import get_es_server_url
+from .settings import SEARCH_INDEX_NAME_TEXT, SEARCH_INDEX_NAME_SHEET
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.utils.hebrew import strip_cantillation
 import sefaria.model.queue as qu
 
-es_url = f"http://{f'{SEARCH_ADMIN_USER}:{SEARCH_ADMIN_PW}@' if SEARCH_ADMIN_USER else ''}{SEARCH_ADMIN}"
-es_client = Elasticsearch(es_url)
+es_client = Elasticsearch(get_es_server_url(admin=True))
 index_client = IndicesClient(es_client)
 
 tracer = structlog.get_logger(__name__)

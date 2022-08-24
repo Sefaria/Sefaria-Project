@@ -144,3 +144,18 @@ def make_filter(type, agg_type, agg_key):
         return Regexp(path=reg)
     elif type == "sheet":
         return Term(**{agg_type: agg_key})
+
+
+def get_es_server_url(admin=False):
+    from sefaria.settings import SEARCH_ADMIN, SEARCH_ADMIN_PW, SEARCH_ADMIN_USER, SEARCH_NON_ADMIN
+    base_url = SEARCH_ADMIN if admin else SEARCH_NON_ADMIN
+    if SEARCH_ADMIN_USER:
+        match = re.search(r'^(https?://)(.*)$', base_url)
+        if match:
+            http, base_url = match.group(1), match.group(2)
+        else:
+            http, base_url = "http", base_url
+        es_url = f"{http}{SEARCH_ADMIN_USER}:{SEARCH_ADMIN_PW}@{base_url}"
+    else:
+        es_url = base_url
+    return es_url
