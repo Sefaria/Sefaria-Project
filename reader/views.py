@@ -4201,13 +4201,15 @@ def dummy_search_api(request):
 
 @csrf_exempt
 def search_wrapper_api(request):
+    from sefaria.helper.search import get_elasticsearch_client
+
     if request.method == "POST":
         if "json" in request.POST:
             j = request.POST.get("json")  # using form-urlencoded
         else:
             j = request.body  # using content-type: application/json
         j = json.loads(j)
-        es_client = Elasticsearch(SEARCH_ADMIN)
+        es_client = get_elasticsearch_client(admin=False)
         search_obj = Search(using=es_client, index=j.get("type")).params(request_timeout=5)
         search_obj = get_query_obj(search_obj=search_obj, **j)
         response = search_obj.execute()
