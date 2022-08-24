@@ -94,6 +94,7 @@ def make_text_doc_id(ref, version, lang):
         version = str(unicode_number(version))
 
     id = "%s (%s [%s])" % (ref, version, lang)
+    id = id[-512:]  # in case ID is very long, cut off beginning. Assumption is end will be unique given version title and lang.
     return id
 
 
