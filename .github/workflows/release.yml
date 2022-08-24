@@ -4,9 +4,13 @@ on:
 jobs:
   semantic-release:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.semantic.outputs.release-version }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+      - run: npm install conventional-changelog-conventionalcommits
       - uses: codfish/semantic-release-action@v2
+        id: semantic
         with:
           plugins: |
             [
@@ -25,5 +29,15 @@ jobs:
             ]
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: deploy-production
-        uses: ./.github/workflows/production-deploy.yaml
+  verify:
+    runs-on: ubuntu-latest
+    needs: semantic-release
+    steps:
+      - run: echo ${{ needs.semantic-release.outputs.version }}
+  deploy:
+    needs: semantic-release
+    uses: ./.github/workflows/production-deploy.yaml
+    secrets: inherit
+    with:
+      version: ${{ needs.semantic-release.outputs.version }}
+
