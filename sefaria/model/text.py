@@ -6056,15 +6056,13 @@ class Library(object):
         # Avoid allocation here since it will be called very frequently
         is_initialized = self._toc_tree_is_ready and self._full_auto_completer_is_ready and self._ref_auto_completer_is_ready and self._lexicon_auto_completer_is_ready and self._cross_lexicon_auto_completer_is_ready
         if not is_initialized:
-            logger.warning(f"""
-            Application not fully initialized.
-            Current state:
-            - toc_tree_is_ready: {self._toc_tree_is_ready}
-            - full_auto_completer_is_ready: {self._full_auto_completer_is_ready}
-            - ref_auto_completer_is_ready: {self._ref_auto_completer_is_ready}
-            - lexicon_auto_completer_is_ready: {self._lexicon_auto_completer_is_ready}
-            - cross_lexicon_auto_completer_is_ready: {self._cross_lexicon_auto_completer_is_ready}
-            """)
+            logger.warning({"message": "Application not fully initialized", "Current State": {
+                "toc_tree_is_ready": self._toc_tree_is_ready,
+                "full_auto_completer_is_ready": self._full_auto_completer_is_ready,
+                "ref_auto_completer_is_ready": self._ref_auto_completer_is_ready,
+                "lexicon_auto_completer_is_ready": self._lexicon_auto_completer_is_ready,
+                "cross_lexicon_auto_completer_is_ready": self._cross_lexicon_auto_completer_is_ready,
+            }})
         return is_initialized
 
     @staticmethod
