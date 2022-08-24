@@ -154,7 +154,7 @@ def get_es_server_url(admin=False):
         if match:
             http, base_url = match.group(1), match.group(2)
         else:
-            http, base_url = "http", base_url
+            http, base_url = "http://", base_url
         es_url = f"{http}{SEARCH_ADMIN_USER}:{SEARCH_ADMIN_PW}@{base_url}"
     else:
         es_url = base_url
