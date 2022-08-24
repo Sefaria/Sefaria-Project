@@ -315,8 +315,8 @@ def put_text_mapping(index_name):
             },
             "naive_lemmatizer": {
                 'type': 'text',
-                'analyzer': 'sefaria-naive-lemmatizer',
-                'search_analyzer': 'sefaria-naive-lemmatizer-less-prefixes',
+                'analyzer': 'my_standard',  # 'sefaria-naive-lemmatizer',
+                'search_analyzer': 'my_standard',  # 'sefaria-naive-lemmatizer-less-prefixes',
                 'fields': {
                     'exact': {
                         'type': 'text',
