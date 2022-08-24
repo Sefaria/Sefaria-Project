@@ -4695,7 +4695,8 @@ def rollout_health_api(request):
         try:
             redis_client = redis.StrictRedis(host=MULTISERVER_REDIS_SERVER, port=MULTISERVER_REDIS_PORT, db=MULTISERVER_REDIS_DB, decode_responses=True, encoding="utf-8")
             return redis_client.ping() == True
-        except:
+        except Exception as e:
+            logger.warn(f"Failed redis healthcheck. Error: {e}")
             return False
 
     def isMultiserverReachable():
@@ -4707,7 +4708,7 @@ def rollout_health_api(request):
             statusCode = urllib.request.urlopen(url).status
             return statusCode == 200
         except Exception as e:
-            logger.warn(e)
+            logger.warn(f"Failed node healthcheck. Error: {e}")
             return False
 
     allReady = isRedisReachable() and isMultiserverReachable() and isNodeJsReachable()
