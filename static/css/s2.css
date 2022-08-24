@@ -92,14 +92,15 @@ a, a:hover {
 @font-face {
   /*Greek*/
   font-family: 'Cardo';
-  unicode-range: U+0370-03FF, U+1D00-1D7F, U+1D80-1DBF, U+1F00-1FFF, U+2100-214F, U+AB30-AB6F, U+10140-1018F, U+10190-101CF, U+1D200-1D24F;
+    src: url('/static/fonts/SyrCOMBatnan_license.txt');
+  unicode-range: U+300-36F, U+0370-03FF, U+1D00-1D7F, U+1DBF, U+1F00-1FFF, U+2126, U+AB65, U+10140-1018F, U+101A0, U+1D200-1D24F;
 }
 :root {
   /* font stacks */
   --english-sans-serif-font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   --hebrew-sans-serif-font-family: "Heebo", "Roboto", sans-serif;
 
-  --english-serif-font-family: "Meltho", "Noto Sans Samaritan", "Cardo", "HebrewInEnglish Serif Font", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+  --english-serif-font-family: "Cardo", "Meltho", "Noto Sans Samaritan", "HebrewInEnglish Serif Font", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   --hebrew-serif-font-family: "Cardo", "Noto Color Emoji", "EnglishInHebrew Serif Font", "Taamey Frank", "adobe-garamond-pro", "Crimson Text", "Times New Roman", serif;
 
   --serif-h1-font-size: 48px;
