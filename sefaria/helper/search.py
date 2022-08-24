@@ -147,8 +147,8 @@ def make_filter(type, agg_type, agg_key):
 
 
 def get_es_server_url(admin=False):
-    from sefaria.settings import SEARCH_ADMIN, SEARCH_ADMIN_PW, SEARCH_ADMIN_USER, SEARCH_NON_ADMIN
-    base_url = SEARCH_ADMIN if admin else SEARCH_NON_ADMIN
+    from sefaria.settings import SEARCH_ADMIN, SEARCH_ADMIN_PW, SEARCH_ADMIN_USER
+    base_url = SEARCH_ADMIN  # if admin else SEARCH_NON_ADMIN  #  should have option for SEARCH_NON_ADMIN but need to add to local settings
     if SEARCH_ADMIN_USER:
         match = re.search(r'^(https?://)(.*)$', base_url)
         if match:
