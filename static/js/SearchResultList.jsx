@@ -522,7 +522,7 @@ const SearchTabs = ({clickTextButton, clickSheetButton, textTotal, sheetTotal, c
 
 
 const SearchTab = ({label, total, onClick, active}) => {
-  total = total.toLocaleString()
+  total = total ? total.toLocaleString() : 0;
 
   const classes = classNames({"search-dropdown-button": 1, active});
 
