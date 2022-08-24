@@ -20,7 +20,6 @@ from collections import defaultdict
 import time as pytime
 logger = structlog.get_logger(__name__)
 
-from elasticsearch import Elasticsearch
 from elasticsearch.client import IndicesClient
 from elasticsearch.helpers import bulk
 from elasticsearch.exceptions import NotFoundError
@@ -31,12 +30,13 @@ from sefaria.model.collection import CollectionSet
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 from sefaria.utils.util import strip_tags
-from .settings import SEARCH_ADMIN, SEARCH_INDEX_NAME_TEXT, SEARCH_INDEX_NAME_SHEET, STATICFILES_DIRS
+from .settings import SEARCH_INDEX_NAME_TEXT, SEARCH_INDEX_NAME_SHEET
+from sefaria.helper.search import get_elasticsearch_client
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.utils.hebrew import strip_cantillation
 import sefaria.model.queue as qu
 
-es_client = Elasticsearch(SEARCH_ADMIN)
+es_client = get_elasticsearch_client(admin=True)
 index_client = IndicesClient(es_client)
 
 tracer = structlog.get_logger(__name__)
