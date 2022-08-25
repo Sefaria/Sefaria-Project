@@ -93,7 +93,7 @@ a, a:hover {
   /*Greek*/
   font-family: 'Cardo';
     src: url('/static/fonts/SyrCOMBatnan_license.txt');
-  unicode-range: U+300-36F, U+0370-03FF, U+1D00-1D7F, U+1DBF, U+1F00-1FFF, U+2126, U+AB65, U+10140-1018F, U+101A0, U+1D200-1D24F;
+  unicode-range: U+0300-036F, U+0370-03FF, U+1D00-1D7F, U+1DBF, U+1F00-1FFF, U+2126, U+AB65, U+10140-1018F, U+101A0, U+1D200-1D24F;
 }
 :root {
   /* font stacks */
