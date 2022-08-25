@@ -1,3 +1,4 @@
+tagFormat: helm-chart-${version}
 plugins:
   - - "@semantic-release/commit-analyzer"
     - releaseRules:
@@ -9,6 +10,5 @@ plugins:
 #  - - "@semantic-release/github"
 branches: [
     {name: 'master'},
-    {name: '**', prerelease: true}
+    {name: 'helm-release-channels', prerelease: true}
   ]
-tagFormat: helm-chart-${version}
