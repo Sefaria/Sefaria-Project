@@ -897,7 +897,10 @@ class MatchTemplateTrie:
             return [prev_sub_tries], [key]
         if len(partial_key_end_list) > 1:
             # currently we don't consider partial keys if there's more than one match
-            next_sub_tries, partial_key_end_list = zip(*filter(lambda x: x[1] is None, zip(next_sub_tries, partial_key_end_list)))
+            full_key_matches = list(filter(lambda x: x[1] is None, zip(next_sub_tries, partial_key_end_list)))
+            if len(full_key_matches) == 0:
+                return [], []
+            next_sub_tries, partial_key_end_list = zip(*full_key_matches)
         return next_sub_tries, partial_key_end_list
 
     def __contains__(self, key):
