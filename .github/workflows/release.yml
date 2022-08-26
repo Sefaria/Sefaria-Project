@@ -15,13 +15,44 @@ jobs:
           plugins: |
             [
               ['@semantic-release/commit-analyzer', {
-                "preset": "conventionalcommits"
+                "preset": "conventionalcommits",
+                "presetConfig": {
+                  "types": [
+                    {"type": "feat", "section": "Features"},
+                    {"type": "fix", "section": "Bug Fixes"},
+                    {"type": "chore", "hidden": true},
+                    {"type": "docs", "hidden": true},
+                    {"type": "style", "hidden": true},
+                    {"type": "refactor", "hidden": true},
+                    {"type": "perf", "hidden": true},
+                    {"type": "test", "hidden": true},
+                    {"type": "static", "section": "Static Content"}
+                  ]
+                },
+                "releaseRules": [
+                  {"type": "static", "release": "patch"},
+                  {"type": "chore", "release": "patch"}
+                ]
               }],
               ['@semantic-release/release-notes-generator', {
                 "preset": "conventionalcommits",
-                "writerOpts": {
-                  "footerPartial": "Released by ${{ github.actor }}"
-                }
+                "presetConfig": {
+                  "types": [
+                    {"type": "feat", "section": "Features"},
+                    {"type": "fix", "section": "Bug Fixes"},
+                    {"type": "chore", "hidden": true},
+                    {"type": "docs", "hidden": true},
+                    {"type": "style", "hidden": true},
+                    {"type": "refactor", "hidden": true},
+                    {"type": "perf", "hidden": true},
+                    {"type": "test", "hidden": true},
+                    {"type": "static", "section": "Static Content"}
+                  ]
+                },
+                "releaseRules": [
+                  {"type": "static", "release": "patch"},
+                  {"type": "chore", "release": "patch"}
+                ]
               }],
               ['@semantic-release/github', {
                 "successComment": false
