@@ -292,7 +292,7 @@ def update_texts_data():
     cr = csv.reader(StringIO(data))
 
     rows = list(cr)[2:]
-    indexes_handled = [row[0] for row in rows]
+    indexes_handled = [row[0].strip() for row in rows]
 
     unhandled = set([i.primary_title() for i in library.get_index_forest()]) - set(indexes_handled)
     if len(unhandled) > 0:

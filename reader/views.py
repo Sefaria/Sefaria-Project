@@ -49,7 +49,8 @@ from sefaria.utils.util import text_preview
 from sefaria.utils.hebrew import hebrew_term, is_hebrew
 from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha, get_todays_parasha
 from sefaria.utils.util import short_to_long_lang_code
-from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, SEARCH_ADMIN, RTC_SERVER, MULTISERVER_REDIS_SERVER, MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, DISABLE_AUTOCOMPLETER, ENABLE_LINKER
+from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, SEARCH_ADMIN, RTC_SERVER, MULTISERVER_REDIS_SERVER, \
+    MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, DISABLE_AUTOCOMPLETER, ENABLE_LINKER
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
@@ -4258,7 +4259,7 @@ def translations_api(request, lang=None):
                             continue
                 else:
                     to_add["title"] = my_index_info["title"]
-                    to_add["url"] = f'/{my_index["vstate"][0]["first_section_ref"].replace(":", ".")}?{"ven=" + my_index["versionTitle"] if my_index["language"] == "en" else "vhe=" + my_index["versionTitle"]}'
+                    to_add["url"] = f'/{my_index["vstate"][0]["first_section_ref"].replace(":", ".")}?{"ven=" + my_index["versionTitle"] if my_index["language"] == "en" else "vhe=" + my_index["versionTitle"]}&lang=bi'
 
                 if "order" in my_index["index"][0]:
                     to_add["order"] = my_index["index"][0]["order"]
@@ -4396,6 +4397,16 @@ def serve_static_by_lang(request, page):
     """
     return render_template(request,'static/{}/{}.html'.format(request.LANGUAGE_CODE, page), None, {})
 
+
+def annual_report(request, report_year):
+    pdfs = {
+        '2020': STATIC_URL + 'files/Sefaria 2020 Annual Report.pdf',
+        '2021': 'https://indd.adobe.com/embed/98a016a2-c4d1-4f06-97fa-ed8876de88cf?startpage=1&allowFullscreen=true',
+    }
+    if report_year not in pdfs:
+        raise Http404
+    # Renders a simple template, does not extend base.html
+    return render(request, template_name='static/annualreport.html', context={'reportYear': report_year, 'pdfURL': pdfs[report_year]})
 
 
 @ensure_csrf_cookie
@@ -4684,7 +4695,8 @@ def rollout_health_api(request):
         try:
             redis_client = redis.StrictRedis(host=MULTISERVER_REDIS_SERVER, port=MULTISERVER_REDIS_PORT, db=MULTISERVER_REDIS_DB, decode_responses=True, encoding="utf-8")
             return redis_client.ping() == True
-        except:
+        except Exception as e:
+            logger.warn(f"Failed redis healthcheck. Error: {e}")
             return False
 
     def isMultiserverReachable():
@@ -4696,7 +4708,7 @@ def rollout_health_api(request):
             statusCode = urllib.request.urlopen(url).status
             return statusCode == 200
         except Exception as e:
-            logger.warn(e)
+            logger.warn(f"Failed node healthcheck. Error: {e}")
             return False
 
     allReady = isRedisReachable() and isMultiserverReachable() and isNodeJsReachable()

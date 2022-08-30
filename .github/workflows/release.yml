@@ -1,0 +1,74 @@
+name: Release to Production
+on:
+  workflow_dispatch: {}
+jobs:
+  semantic-release:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.semantic.outputs.release-version }}
+    steps:
+      - uses: actions/checkout@v3
+      - run: npm install conventional-changelog-conventionalcommits
+      - uses: codfish/semantic-release-action@v2
+        id: semantic
+        with:
+          plugins: |
+            [
+              ['@semantic-release/commit-analyzer', {
+                "preset": "conventionalcommits",
+                "presetConfig": {
+                  "types": [
+                    {"type": "feat", "section": "Features"},
+                    {"type": "fix", "section": "Bug Fixes"},
+                    {"type": "chore", "hidden": true},
+                    {"type": "docs", "hidden": true},
+                    {"type": "style", "hidden": true},
+                    {"type": "refactor", "hidden": true},
+                    {"type": "perf", "hidden": true},
+                    {"type": "test", "hidden": true},
+                    {"type": "static", "section": "Static Content"}
+                  ]
+                },
+                "releaseRules": [
+                  {"type": "static", "release": "patch"},
+                  {"type": "chore", "release": "patch"}
+                ]
+              }],
+              ['@semantic-release/release-notes-generator', {
+                "preset": "conventionalcommits",
+                "presetConfig": {
+                  "types": [
+                    {"type": "feat", "section": "Features"},
+                    {"type": "fix", "section": "Bug Fixes"},
+                    {"type": "chore", "hidden": true},
+                    {"type": "docs", "hidden": true},
+                    {"type": "style", "hidden": true},
+                    {"type": "refactor", "hidden": true},
+                    {"type": "perf", "hidden": true},
+                    {"type": "test", "hidden": true},
+                    {"type": "static", "section": "Static Content"}
+                  ]
+                },
+                "releaseRules": [
+                  {"type": "static", "release": "patch"},
+                  {"type": "chore", "release": "patch"}
+                ]
+              }],
+              ['@semantic-release/github', {
+                "successComment": false
+              }]
+            ]
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  verify:
+    runs-on: ubuntu-latest
+    needs: semantic-release
+    steps:
+      - run: echo ${{ needs.semantic-release.outputs.version }}
+  deploy:
+    needs: semantic-release
+    uses: ./.github/workflows/production-deploy.yaml
+    secrets: inherit
+    with:
+      version: ${{ needs.semantic-release.outputs.version }}
+

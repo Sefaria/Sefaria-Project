@@ -1043,12 +1043,13 @@ class ReaderApp extends Component {
     //All links within sheet content should open in a new panel
     const isSheet = !!(linkTarget.closest(".sheetItem"))
     const replacePanel = !(isSheet)
-    const handled = this.openURL(href,replacePanel);
+    const isTranslationsPage = !!(linkTarget.closest(".translationsPage"));
+    const handled = this.openURL(href,replacePanel, isTranslationsPage);
     if (handled) {
       e.preventDefault();
     }
   }
-  openURL(href, replace=true) {
+  openURL(href, replace=true, overrideContentLang=false) {
     // Attempts to open `href` in app, return true if successful.
     href = href.startsWith("/") ? "https://www.sefaria.org" + href : href;
     let url;
@@ -1065,6 +1066,11 @@ class ReaderApp extends Component {
     }
     const path = decodeURI(url.pathname);
     const params = url.searchParams;
+    if(overrideContentLang && params.get('lang')) {
+      let lang = params.get("lang")
+      lang = lang === "bi" ? "bilingual" : lang === "en" ? "english" : "hebrew";
+      this.setDefaultOption("language", lang)
+    }
     const openPanel = replace ? this.openPanel : this.openPanelAtEnd;
     if (path === "/") {
       this.showLibrary();
@@ -1551,7 +1557,7 @@ class ReaderApp extends Component {
   }
   setSelectedWords(n, words){
     //console.log(this.state.panels[n].refs);
-    var next = this.state.panels[n+1];
+    const next = this.state.panels[n+1];
     if (next && !next.menuOpen) {
       this.state.panels[n+1].selectedWords = words;
       this.setState({panels: this.state.panels});
