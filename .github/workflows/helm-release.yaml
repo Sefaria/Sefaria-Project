@@ -63,7 +63,12 @@ jobs:
           wget -nv -nc -O yq https://github.com/mikefarah/yq/releases/download/v4.20.2/yq_linux_amd64
           chmod +x yq
       - name: Update chart version
-        run: ./yq -i e '.version = "${{ steps.semantic.outputs.new_release_version }}"' helm-chart/sefaria-project/Chart.yaml
+        run: |
+          if [[ "${{ steps.semantic.outputs.new_release_channel}}" == "" ]]; then
+            ./yq -i e '.version = "${{ steps.semantic.outputs.new_release_version }}"' helm-chart/sefaria-project/Chart.yaml
+          else
+            ./yq -i e '.version = "${{ steps.semantic.outputs.new_release_version }}@${{ steps.semantic.outputs.new_release_channel }}"' helm-chart/sefaria-project/Chart.yaml
+          fi
       - name: Update chart appVersion
         run: ./yq -i e '.appVersion = "${{ steps.appVersion.outputs.appVersion }}"' helm-chart/sefaria-project/Chart.yaml
       - name: Helm Chart Releaser
