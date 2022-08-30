@@ -192,7 +192,7 @@ varnish:
       memory: "30Mi"
       cpu: "10m"
     limits:
-      memory: "350Mi"
+      memory: "360Mi"
       cpu: "100m"
   tuning:
     # malloc should be ~75% of the memory request.
