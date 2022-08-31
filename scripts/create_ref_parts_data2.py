@@ -273,7 +273,7 @@ class ReusableTermManager:
             "Kelim Metzia": ["Kelim Bava meṣiaˋ", "Kelim mesi`a", "Kelim Bava Meṣiaˋ"],
             "Kiddushin": ["Qiddušin", "Qiddusin"],
             "Keritut": ["Kritut", "Kritot", "Keritot"],
-            "Kilayim": ["Kilaim", "Kil’aim", "Kil`aim"],
+            "Kilayim": ["Kilaim", "Kil’aim", "Kil`aim", "כלאיים"],
             "Maaserot": ["Maserot", "Maˋserot", "Maasrot", "Maˋsrot"],
             "Makhshirin": ["Makhširin"],
             "Makkot": ["Makkot", "Makot"],
