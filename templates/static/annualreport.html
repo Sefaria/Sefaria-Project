@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Sefaria Annual Report 2021</title>
+    <title>Sefaria Annual Report {{ reportYear }}</title>
     <meta charset="utf-8"/>
     <style type="text/css">
         body, html
@@ -16,6 +16,6 @@
     </style>
 </head>
 <body>
-    <iframe style="border: 1px solid #777;" src="https://indd.adobe.com/embed/98a016a2-c4d1-4f06-97fa-ed8876de88cf?startpage=1&allowFullscreen=true" width="100%" height="100%" frameborder="0" allowfullscreen=""></iframe>
+    <iframe style="border: 1px solid #777;" src="{{ pdfURL }}" width="100%" height="100%" frameborder="0" allowfullscreen=""></iframe>
 </body>
 </html>

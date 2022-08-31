@@ -1583,7 +1583,7 @@ const DonatePage = () => (
                         rounded={true}
                         tall={false}
                         newTab={true}
-                        href="https://www.sefaria.org/static/files/Sefaria%202020%20Annual%20Report.pdf"
+                        href="/annualreport/2021"
                         he_href=""
                         he=""
                         en="Read Here"
