@@ -493,8 +493,6 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
     """
     Handles views of ReaderApp that involve texts, connections, and text table of contents in panels.
     """
-    import traceback
-    logger.exception(f"text panels {traceback.print_stack()}")
     if sheet == None:
         try:
             primary_ref = oref = Ref(ref)
