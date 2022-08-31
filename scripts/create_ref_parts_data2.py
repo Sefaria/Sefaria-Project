@@ -346,15 +346,15 @@ class ReusableTermManager:
             "Malachi": ["Maleachi"],
         }
         hard_coded_parsha_map = {
-            "Metzora": ["Mesora‘", "Mesora"],
-            "Kedoshim": ["Qedošim"],
-            "Vayikra": ["Wayyiqra"],
-            "Bechukotai": ["Behuqqotai"],
-            "Tazria": ["Tazria‘", "Tazria`"],
-            "Tzav": ["Saw"],
             "Achrei Mot": ["Ahare", "Aḥare Mot", "Ahare Mot"],
+            "Bechukotai": ["Behuqqotai"],
+            "Kedoshim": ["Qedošim"],
+            "Metzora": ["Mesora‘", "Mesora"],
             "Nitzavim": ["ניצבים"],
             "Sh'lach": ["שלח לך"],
+            "Tazria": ["Tazria‘", "Tazria`"],
+            "Tzav": ["Saw"],
+            "Vayikra": ["Wayyiqra"],
         }
 
         def tanakh_title_adder(lang, title):
