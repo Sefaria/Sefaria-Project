@@ -1531,6 +1531,7 @@ class SpecificConverterManager:
                                         get_other_fields=get_other_fields)
         converter.convert()
 
+
 if __name__ == '__main__':
     converter_manager = SpecificConverterManager()
     converter_manager.convert_tanakh()
