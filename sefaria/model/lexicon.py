@@ -315,12 +315,22 @@ class BDBEntry(DictionaryEntry):
 
     def get_sense(self, sense):
         string = ''
+        if 'note' in sense:
+            string = '<em>Note.</em>'
+        if 'pre_num' in sense:
+            string += f"{sense['pre_num']} "
         if 'all_cited' in sense:
             string += '†'
         if 'form' in sense:
-            string += f'<strong>{sense["form"]}</strong> '
-        if 'num' in sense:
-            string += f'<strong>{sense["num"]}</strong> '
+            if 'note' in sense:
+                string += f' {sense["num"]}'
+            else:
+                string += f'<strong>{sense["form"]}</strong>'
+        elif 'num' in sense:
+            string += f'<strong>{sense["num"]}</strong>'
+        if 'occurrences' in sense:
+            string += f'<sub>{sense["occurrences"]}</sub>'
+        string += ' '
         if 'definition' in sense:
             return string + sense['definition']
         else:
