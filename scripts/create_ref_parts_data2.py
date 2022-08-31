@@ -834,6 +834,10 @@ class SpecificConverterManager:
                     MatchTemplate([generic_term.slug]),
                     MatchTemplate([tractate_slug, generic_term.slug]),
                 ]
+            elif cat == "Yerushalmi":
+                match_templates += [
+                    MatchTemplate([base_term.slug, tractate_slug, generic_term.slug])
+                ]
             return match_templates
 
         def get_other_fields(node, depth, isibling, num_siblings, is_alt_node):
