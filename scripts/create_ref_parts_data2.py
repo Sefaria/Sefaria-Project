@@ -351,6 +351,7 @@ class ReusableTermManager:
             "Kedoshim": ["Qedošim"],
             "Metzora": ["Mesora‘", "Mesora"],
             "Nitzavim": ["ניצבים"],
+            "Shemot": ["ואלה שמות", "אלה שמות"],
             "Sh'lach": ["שלח לך"],
             "Tazria": ["Tazria‘", "Tazria`"],
             "Tzav": ["Saw"],
