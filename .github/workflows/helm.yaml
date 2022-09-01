@@ -28,36 +28,15 @@ jobs:
       - name: Lint chart
         run: ct lint --charts helm-chart/sefaria-project
 
-  changes:
-    permissions:
-      contents: read  # for dorny/paths-filter to fetch a list of changed files
-      pull-requests: read  # for dorny/paths-filter to read pull requests
-    runs-on: ubuntu-latest
-    if: |
-      (github.repository == 'sefaria/sefaria-project')
-    outputs:
-      charts: ${{ steps.filter.outputs.charts }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - uses: dorny/paths-filter@v2
-        id: filter
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          filters: |
-            charts:
-              - 'helm-chart/**/*'
-
   chart:
     name: Release Chart
     runs-on: ubuntu-latest
     permissions:
       contents: write # needed to write releases
     needs:
-      - changes
       - lint
     if: |
-      (github.repository == 'sefaria/sefaria-project') && (needs.changes.outputs.charts == 'true')
+      (github.repository == 'sefaria/sefaria-project')
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -89,12 +68,10 @@ jobs:
         run: ./yq -i e '.version = "${{ steps.semantic.outputs.new_release_version }}"' helm-chart/sefaria-project/Chart.yaml
       - name: Update chart appVersion
         run: ./yq -i e '.appVersion = "${{ steps.appVersion.outputs.appVersion }}"' helm-chart/sefaria-project/Chart.yaml
-      - name: Upload Chart to release
-        r
       - name: Helm Chart Releaser
         uses: helm/chart-releaser-action@v1.4.0
         env:
-          CR_SKIP_EXISTING: "false"
+          CR_SKIP_EXISTING: "true"
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
           CR_RELEASE_NAME_TEMPLATE: "helm-chart-{{ .Version }}"
         with:
