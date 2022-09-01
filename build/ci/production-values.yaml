@@ -34,6 +34,11 @@ web:
       ref: logging-secret-production
     schoolLookup:
       ref: school-lookup-data-production
+linker:
+  enabled: true
+  containerImage:
+    imageRegistry:
+    tag:
 redis:
   containerImage:
     imageRegistry: redis
