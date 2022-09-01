@@ -1,7 +1,7 @@
 name: Helm
 
 on:
-  pull_request:
+  push:
     paths:
       - "helm-chart/**"
       - ".github/workflows/helm.yaml"
