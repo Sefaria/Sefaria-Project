@@ -191,6 +191,12 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
             has_desc = has_desc or (isinstance(temp_desc, str) and len(temp_desc) > 0)
         return has_desc
 
+    def is_location(self) -> bool:
+        """
+        returns true if location data is found in properties
+        """
+        return self.get_property("geo").values
+
     def set_slug_to_primary_title(self) -> None:
         new_slug = self.get_primary_title('en')
         if len(new_slug) == 0:

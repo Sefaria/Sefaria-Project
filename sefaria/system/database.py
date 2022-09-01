@@ -112,6 +112,7 @@ def ensure_indices(active_db=None):
         ('texts', [[("versionTitle", pymongo.ASCENDING), ("langauge", pymongo.ASCENDING)]],{}),
         ('texts', ["actualLanguage"], {}),
         ('topics', ["titles.text"], {}),
+        ('topics', [[("properties.geo.value.location", pymongo.GEOSPHERE)]], {}),
         ('topic_links', ["class"], {}),
         ('topic_links', ["expandedRefs"], {}),
         ('topic_links', ["toTopic"], {}),
@@ -148,6 +149,7 @@ def ensure_indices(active_db=None):
         ('messages', [[("room_id", pymongo.ASCENDING), ("timestamp", pymongo.DESCENDING)]], {}),
         ('vstate', ["title"], {}),
         ('vstate', ["flags.enComplete"], {}),
+
     ]
 
     for col, args, kwargs in indices:

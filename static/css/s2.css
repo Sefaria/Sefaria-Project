@@ -11893,7 +11893,9 @@ span.ref-link-color-3 {color: blue}
   -ms-transform: translateZ(0);
   transform: translateZ(0);
 }
-
+.slippyMap {
+  height: 180px;
+}
 .beitMidrashContainer {
   background: #333333;
   color: white;

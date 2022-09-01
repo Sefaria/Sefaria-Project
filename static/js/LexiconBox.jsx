@@ -2,6 +2,7 @@ import {
   LoadingMessage,
   ToolTipped,
 } from './Misc';
+import SlippyMap from "./SlippyMap";
 import React  from 'react';
 import Sefaria  from './sefaria/sefaria';
 import DictionarySearch  from './DictionarySearch';
@@ -122,10 +123,13 @@ class LexiconBox extends Component {
           let dataSourceText = "";
           if (this.props.srefs[0].indexOf("Jerusalem Talmud") !== -1) {
             dataSourceText = `${Sefaria._('This topic is connected to ')}"${Sefaria._r(this.props.srefs[0])}" ${Sefaria._('by')} ${Sefaria._('Sefaria')}.`;
-          } else {
+          } else if ("geo" in this.state.namedEntity.properties) {
+            dataSourceText = `${Sefaria._('This topic is connected to ')}"${Sefaria._r(this.props.srefs[0])}" ${Sefaria._('based on research from')} ${Sefaria._(this.state.namedEntity.properties.geo.dataSource)}.`;
+          }
+          else {
             dataSourceText = `${Sefaria._('This topic is connected to ')}"${Sefaria._r(this.props.srefs[0])}" ${Sefaria._('based on')} ${Sefaria._('research of Dr. Michael Sperling')}.`;
           }
-          
+
           const neArray = this.state.namedEntity.possibilities || [this.state.namedEntity]; 
           const namedEntityContent = neArray.map(ne => (<div key={ne.slug} className="named-entity-wrapper">
             <div className="named-entity-title-bar">
@@ -149,6 +153,11 @@ class LexiconBox extends Component {
                     <span className="int-he">{ne.timePeriod.yearRange.he}</span>
                   </div>
                 </div>
+              ) : null
+            }
+            {
+              ne.properties.geo ? (
+                  <SlippyMap />
               ) : null
             }
             <div className="contentText named-entity-description">

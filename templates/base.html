@@ -95,6 +95,7 @@
     <link rel="stylesheet" type="text/css" href="{% static 'css/keyboard.css' %}">
     <link rel="stylesheet" href="{%  static 'css/s2.css' %}">
     <link rel="stylesheet" href="{%  static 'css/s2-print.css' %}" media="print" />
+    <link rel="stylesheet" href="{%  static 'css/ol.css' %}">
 
     {% block static_css %}
     {% if not html %}
@@ -105,7 +106,6 @@
     <style>
         {% block css %}{% endblock %}
     </style>
-
 
     {% if GOOGLE_TAG_MANAGER_CODE %}
     <!-- anti-flicker snippet (recommended)  -->
