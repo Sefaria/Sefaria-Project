@@ -68,11 +68,10 @@ jobs:
         run: ./yq -i e '.version = "${{ steps.semantic.outputs.new_release_version }}"' helm-chart/sefaria-project/Chart.yaml
       - name: Update chart appVersion
         run: ./yq -i e '.appVersion = "${{ steps.appVersion.outputs.appVersion }}"' helm-chart/sefaria-project/Chart.yaml
-      - name: Helm Chart Releaser
-        uses: helm/chart-releaser-action@v1.4.0
-        env:
-          CR_SKIP_EXISTING: "true"
-          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-          CR_RELEASE_NAME_TEMPLATE: "helm-chart-{{ .Version }}"
+      - name: Publish Helm charts
+        uses: stefanprodan/helm-gh-pages@master
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          chart_version: {{ steps.semantic.outputs.new_release_version }}
+          app_version: {{ steps.appVersion.outputs.appVersion }}
           charts_dir: helm-chart
