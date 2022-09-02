@@ -216,6 +216,7 @@ class ReusableTermManager:
     def create_base_non_unique_terms(self):
         self.create_term(context="base", en='Bavli', he='בבלי', alt_en=['Babylonian Talmud', 'B.T.', 'BT', 'Babli'], ref_part_role='structural')
         self.create_term(context="base", en="Gemara", he="גמרא", alt_he=["גמ'"], ref_part_role='structural')
+        self.create_term(context="base", en="Talmud", he="תלמוד", ref_part_role='structural')
         self.create_term(context="base", en="Tractate", he="מסכת", alt_en=['Masekhet', 'Masechet', 'Masekhes', 'Maseches'], ref_part_role='alt_title')
         self.create_term(context="base", en='Rashi', he='רש"י', alt_he=['פירש"י'], ref_part_role='structural')
         self.create_term(context="base", en='Mishnah', he='משנה', alt_en=['M.', 'M', 'Mishna', 'Mishnah', 'Mishnaiot'], ref_part_role='structural')
@@ -729,10 +730,13 @@ class SpecificConverterManager:
             else:
                 bavli_slug = RTM.get_term_by_primary_title('base', 'Bavli').slug
                 gemara_slug = RTM.get_term_by_primary_title('base', 'Gemara').slug
+                talmud_slug = RTM.get_term_by_primary_title('base', 'Talmud').slug
                 tractate_slug = RTM.get_term_by_primary_title('base', 'Tractate').slug
                 title = node.get_primary_title('en')
                 title_slug = RTM.get_term_by_primary_title('shas', title).slug
                 return [
+                    MatchTemplate([talmud_slug, bavli_slug, title_slug]),
+                    MatchTemplate([talmud_slug, bavli_slug, tractate_slug, title_slug]),
                     MatchTemplate([bavli_slug, title_slug]),
                     MatchTemplate([gemara_slug, title_slug]),
                     MatchTemplate([bavli_slug, tractate_slug, title_slug]),
@@ -836,8 +840,11 @@ class SpecificConverterManager:
                     MatchTemplate([tractate_slug, generic_term.slug]),
                 ]
             elif cat == "Yerushalmi":
+                talmud_slug = RTM.get_term_by_primary_title('base', 'Talmud').slug
                 match_templates += [
-                    MatchTemplate([base_term.slug, tractate_slug, generic_term.slug])
+                    MatchTemplate([base_term.slug, tractate_slug, generic_term.slug]),
+                    MatchTemplate([talmud_slug, base_term.slug, tractate_slug, generic_term.slug]),
+                    MatchTemplate([talmud_slug, base_term.slug, generic_term.slug]),
                 ]
             return match_templates
 

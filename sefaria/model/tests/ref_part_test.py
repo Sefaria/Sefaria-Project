@@ -267,7 +267,7 @@ crrd = create_raw_ref_data
     [crrd(None, 'he', 'ספר יצירה נוסח הגר"א ב ב', [0, 1, slice(3, 6), 6, 7], [RPT.NAMED, RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Sefer Yetzirah Gra Version 2:2"]],
     [crrd(None, 'he', 'לקוטי הלכות או"ח הלכות ציצית ב א', [slice(0, 2), slice(2, 5), slice(5, 7), 7, 8], [RPT.NAMED, RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Likutei Halakhot, Orach Chaim, Laws of Fringes 2:1"]],
     [crrd(None, 'he', 'לקוטי הלכות הלכות מעקה ושמירת הנפש', [slice(0, 2), slice(2, 6)], [RPT.NAMED, RPT.NAMED]), ["Likutei Halakhot, Choshen Mishpat, Laws of Roof Rails and Preservation of Life"]],
-
+    [crrd(None, 'he', "בתלמוד ירושלמי כתובות פ\"א ה\"ב", [slice(0, 2), 2, slice(3, 6), slice(6, 9)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Jerusalem Talmud Ketubot 1:2"]],
 ])
 def test_resolve_raw_ref(resolver_data, expected_trefs):
     ref_resolver.reset_ibid_history()  # reset from previous test runs
