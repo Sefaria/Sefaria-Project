@@ -72,6 +72,6 @@ jobs:
         uses: stefanprodan/helm-gh-pages@master
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          chart_version: {{ steps.semantic.outputs.new_release_version }}
-          app_version: {{ steps.appVersion.outputs.appVersion }}
+          chart_version: ${{ steps.semantic.outputs.new_release_version }}
+          app_version: ${{ steps.appVersion.outputs.appVersion }}
           charts_dir: helm-chart
