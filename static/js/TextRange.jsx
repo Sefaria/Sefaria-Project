@@ -553,6 +553,7 @@ class TextSegment extends Component {
     return $newElement.html();
   }
   wrapWordsInGenericHTMLRegex(text) {
+    text = text.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');  //escape text
     const arbitraryHTMLTagsRegex = '(?:<\/?[^>]+>){0,}';
     return text.replace(/(\S+)/g, `${arbitraryHTMLTagsRegex}$1${arbitraryHTMLTagsRegex}`);
   }
@@ -580,6 +581,7 @@ class TextSegment extends Component {
       he = this.formatItag("he", he);
       en = this.formatItag("en", en);
     }
+    console.log(this.props.sref);
     he = this.addHighlights(he);
     en = this.addHighlights(en);
 
