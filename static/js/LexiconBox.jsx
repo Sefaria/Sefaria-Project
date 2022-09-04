@@ -157,7 +157,9 @@ class LexiconBox extends Component {
             }
             {
               ne.properties.geo ? (
-                  <SlippyMap />
+                  <SlippyMap
+                    geo={ne.properties.geo}
+                  />
               ) : null
             }
             <div className="contentText named-entity-description">
