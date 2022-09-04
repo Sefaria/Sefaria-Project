@@ -877,7 +877,8 @@ class MatchTemplateTrie:
         partial_key_end_list = []
         key = key.strip()
         starti_list = [0]
-        if self.lang == 'he':
+        if self.lang == 'he' and len(key) >= 4:
+            # In AddressType.get_all_possible_sections_from_string(), we prevent stripping of prefixes from AddressInteger. No simple way to do that with terms that take the place of AddressInteger (e.g. Bavli Perek). len() check is a heuristic.
             starti_list += get_prefixless_inds(key)
         for starti in starti_list:
             for match in reversed(list(re.finditer(r'(\s+|$)', key[starti:]))):
