@@ -1268,10 +1268,11 @@ class RefResolver:
         if len(term_contexts) == 0: return matches
         temp_ref_parts = raw_ref.parts_to_match + term_contexts
         temp_matches = self._get_unrefined_ref_part_matches_recursive(lang, raw_ref, ref_parts=temp_ref_parts)
-        matches += list(filter(lambda x: x.num_resolved(include={TermContext}), temp_matches))
-        for match in matches:
+        for match in temp_matches:
+            if match.num_resolved(include={TermContext}) == 0: continue
             match.context_ref = context_ref
             match.context_type = context_type
+            matches += [match]
         return matches
 
     def _get_unrefined_ref_part_matches_for_graph_context(self, lang: str, context_ref: Optional[text.Ref], context_type: ContextType, raw_ref: RawRef) -> List[ResolvedRef]:
