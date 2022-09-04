@@ -357,6 +357,7 @@ class ReusableTermManager:
             "Tazria": ["Tazria‘", "Tazria`"],
             "Tzav": ["Saw"],
             "Vayikra": ["Wayyiqra"],
+            "Ki Teitzei": ["כי-תצא"],
         }
 
         def tanakh_title_adder(lang, title):
