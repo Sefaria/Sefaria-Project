@@ -548,7 +548,9 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         panels += make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_panel, **kwargs)
 
     elif sheet == True:
-        panels += make_sheet_panel_dict(ref, filter, **{"panelDisplayLanguage": request.GET.get("lang",request.contentLang), "referer": request.path})
+        kwargs = {"referer": request.path}
+        kwargs["panelDisplayLanguage"] = "en" if not SITE_SETTINGS["TORAH_SPECIFIC"] else request.GET.get("lang", request.contentLang)
+        panels += make_sheet_panel_dict(ref, filter, **kwargs)
 
     # Handle any panels after 1 which are identified with params like `p2`, `v2`, `l2`.
     i = 2

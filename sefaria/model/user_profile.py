@@ -394,8 +394,8 @@ class UserProfile(object):
         self.gauth_email = None
 
         # new editor
-        self.show_editor_toggle = False
-        self.uses_new_editor = False
+        self.show_editor_toggle = True
+        self.uses_new_editor = True
 
         # Fundraising
         self.is_sustainer = False
@@ -688,8 +688,8 @@ class UserProfile(object):
             "gauth_token":           self.gauth_token,
             "nationbuilder_id":      self.nationbuilder_id,
             "gauth_email":           self.gauth_email,
-            "show_editor_toggle":    self.show_editor_toggle,
-            "uses_new_editor":       self.uses_new_editor,
+            "show_editor_toggle":    True,
+            "uses_new_editor":       True,
         }
 
     def to_api_dict(self, basic=False):
@@ -722,8 +722,8 @@ class UserProfile(object):
             "linkedin":              self.linkedin,
             "youtube":               self.youtube,
             "pinned_sheets":         self.pinned_sheets,
-            "show_editor_toggle":    self.show_editor_toggle,
-            "uses_new_editor":       self.uses_new_editor,
+            "show_editor_toggle":    True,
+            "uses_new_editor":       True,
             "is_sustainer":          self.is_sustainer,
         }
         dictionary.update(other_info)

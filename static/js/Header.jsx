@@ -257,7 +257,9 @@ class SearchBar extends Component {
   focusSearch(e) {
     const parent = document.getElementById('searchBox');
     this.setState({searchFocused: true});
-    this.showVirtualKeyboardIcon(true);
+    if (Sefaria._siteSettings.TORAH_SPECIFIC) {
+      this.showVirtualKeyboardIcon(true);
+    }
   }
   blurSearch(e) {
     // check that you're actually focusing in on element outside of searchBox
@@ -614,9 +616,9 @@ const ProfilePicMenu = ({len, url, name}) => {
                   <a className={`${(Sefaria.interfaceLang == 'hebrew') ? 'active':''}`} href={`/interface/hebrew?next=${getCurrentPage()}`} id="select-hebrew-interface-link">עברית</a>
                   <a className={`${(Sefaria.interfaceLang == 'english') ? 'active':''}`} href={`/interface/english?next=${getCurrentPage()}`} id="select-english-interface-link">English</a>
                 </div> : null}
-              <div><a className="interfaceLinks-row bottom" id="help-link" href="/help">
-                <InterfaceText>Help</InterfaceText>
-              </a></div>
+              {Sefaria._siteSettings.TORAH_SPECIFIC ? <div><a className="interfaceLinks-row bottom" id="help-link" href="/help">
+                                                      <InterfaceText>Help</InterfaceText>
+                                                      </a></div> : null}
             </div>
             <hr className="interfaceLinks-hr"/>
             <div><a className="interfaceLinks-row logout" id="logout-link" href="/logout">
