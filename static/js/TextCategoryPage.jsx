@@ -142,7 +142,7 @@ const TextCategoryContents = ({category, contents, categories, setCategories, op
           const onClick = e => {
             if (openTextTOC) {
               e.preventDefault();
-              openTextTOC(item.title);
+              openTextTOC(chItem.title);
             }
           };
           content.push(
