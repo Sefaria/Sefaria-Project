@@ -224,7 +224,7 @@ crrd = create_raw_ref_data
     pytest.param(crrd(None, 'he', 'החינוך, כי תבא, עשה תר"ו', [0, slice(2, 4), 5, slice(6, 9)], [RPT.NAMED, RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ['Sefer HaChinukh 3'], marks=pytest.mark.xfail(reason="Don't support Aseh as address type yet")),
     [crrd(None, 'he', 'מכילתא מסכתא דעמלק', [0, slice(1, 3)], [RPT.NAMED, RPT.NAMED]), ["Mekhilta d'Rabbi Yishmael 17:8-18:27"]],
     [crrd(None, 'he', 'מכילתא שמות כא ג', [slice(0, 2), 2, 3], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Mekhilta d'Rabbi Yishmael 21:3"]],
-    # [crrd(None, 'he', 'מכילתא שמות כא ג', [0, 1, 2, 3], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Mekhilta d'Rabbi Yishmael 21:3"]],
+    [crrd(None, 'he', 'מכילתא שמות כא ג', [0, 1, 2, 3], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Mekhilta d'Rabbi Yishmael 21:3"]],
     [crrd(None, 'he', 'מכילתא כא ג', [0, 1, 2], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Mekhilta d'Rabbi Yishmael 21:3"]],
     [crrd(None, 'he', 'במדרש שמות רבה י"א ג', [0, slice(1, 3), slice(3, 6), 6], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Shemot Rabbah 11:3"]],
     [crrd(None, 'he', 'ובפרשת ואלה שמות', [slice(0, 3)], [RPT.NAMED]), ["Exodus 1:1-6:1"]],

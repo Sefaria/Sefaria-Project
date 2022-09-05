@@ -1235,9 +1235,10 @@ class SpecificConverterManager:
         def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
             if not is_alt_node:
                 title_slug = RTM.create_term_from_titled_obj(node, context="base", ref_part_role='structural',
-                                                             new_alt_titles=["מכילתא דר' ישמעאל", 'מכדר"י', 'מכילתא שמות', 'מדר"י', 'Mekhilta of Rabbi Ishmael', 'Mekhilta de-Rabbi Ishmael', 'MRI']).slug
+                                                             new_alt_titles=["מכילתא דר' ישמעאל", 'מכדר"י', 'מדר"י', 'Mekhilta of Rabbi Ishmael', 'Mekhilta de-Rabbi Ishmael', 'MRI']).slug
                 return [
-                MatchTemplate([title_slug])
+                    MatchTemplate([title_slug]),
+                    MatchTemplate([title_slug, RTM.get_term_by_primary_title('tanakh', 'Exodus').slug])
                 ]
             else:
                 title_slug = RTM.create_term_from_titled_obj(node, ref_part_role='structural').slug
