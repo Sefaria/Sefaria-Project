@@ -3,31 +3,35 @@
 Custom Sefaria Tags for Django Templates
 """
 import json
-import re
-import dateutil.parser
-import urllib.request, urllib.parse, urllib.error
 import math
-from urllib.parse import urlparse
+import re
+import urllib.error
+import urllib.parse
+import urllib.request
 from datetime import datetime
+from urllib.parse import urlparse
+
+import dateutil.parser
 from django import template
-from django.template.defaultfilters import stringfilter
-from django.utils.safestring import mark_safe
+from django.contrib.sites.models import Site
 from django.core.serializers import serialize
 from django.db.models.query import QuerySet
-from django.contrib.sites.models import Site
+from django.template.defaultfilters import stringfilter
+from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext as _
 
-from sefaria.sheets import get_sheet
-from sefaria.model.user_profile import user_link as ulink, user_name as uname, public_user_data
-from sefaria.model.text import Version
-from sefaria.model.collection import Collection
-from sefaria.utils.util import strip_tags as strip_tags_func
-from sefaria.utils.hebrew import hebrew_plural, hebrew_term, hebrew_parasha_name
-from sefaria.utils.hebrew import hebrew_term as translate_hebrew_term
-
-import sefaria.model.text
 import sefaria.model as m
-
+import sefaria.model.text
+from sefaria.model.collection import Collection
+from sefaria.model.text import Version
+from sefaria.model.user_profile import public_user_data
+from sefaria.model.user_profile import user_link as ulink
+from sefaria.model.user_profile import user_name as uname
+from sefaria.sheets import get_sheet
+from sefaria.utils.hebrew import hebrew_parasha_name, hebrew_plural
+from sefaria.utils.hebrew import hebrew_term
+from sefaria.utils.hebrew import hebrew_term as translate_hebrew_term
+from sefaria.utils.util import strip_tags as strip_tags_func
 
 register = template.Library()
 
@@ -137,7 +141,7 @@ def text_toc_link(indx):
 	"""
 	Return an <a> tag linking to the text TOC for the Index
 	"""
-	from sefaria.model.text import library, AbstractIndex
+	from sefaria.model.text import AbstractIndex, library
 	if not isinstance(indx, AbstractIndex):
 		indx = library.get_index(indx)
 

@@ -8,11 +8,13 @@ transform into a text for each topic (depth 2).
 - Rewrites history
 """
 
-import sys
 import os
 import re
+import sys
 from pprint import pprint
+
 import pymongo
+
 p = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, p)
 sys.path.insert(0, p + "/sefaria")

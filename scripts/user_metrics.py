@@ -1,16 +1,19 @@
 # -*- coding: utf-8 -*-
 import os
+
 import django
+
 django.setup()
 
 from django.contrib.auth.models import User
+
 from sefaria.model import UserProfile
 from sefaria.system.database import db
 
 os.system('pip install pandas')
-import pandas as pd
 import datetime
 
+import pandas as pd
 
 
 def account_creation():

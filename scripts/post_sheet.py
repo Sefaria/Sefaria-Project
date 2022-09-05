@@ -2,10 +2,11 @@
 """
 Post a sheet form the local enviornment to a remote enviornment, using an API Key.
 """
-import sys
 import json
-import urllib.request, urllib.parse, urllib.error
-import urllib.request, urllib.error, urllib.parse
+import sys
+import urllib.error
+import urllib.parse
+import urllib.request
 
 from sefaria.sheets import get_sheet
 

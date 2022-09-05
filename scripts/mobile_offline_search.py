@@ -1,28 +1,27 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/python2.6
 import django
+
 django.setup()
 
-from sefaria.model import library
-from sefaria.model import Ref
+import array
+import binascii
+import json
+import math
+import os
+import re
+import sqlite3
+import struct
+import sys
+import time
+from collections import defaultdict
+from datetime import datetime as dt
+from pprint import pprint
 
+from sefaria.model import Ref, library
 from sefaria.model.text import TextChunk
 from sefaria.search import TextIndexer
 from sefaria.system.exceptions import InputError
-from pprint import pprint
-import json
-from collections import defaultdict
-from datetime import datetime as dt
-import re
-import sys
-import sqlite3
-import os
-import array
-import time
-import math
-
-import binascii
-import struct
 
 LANGS = ('en', 'he')
 

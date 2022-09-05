@@ -1,8 +1,10 @@
 import django
+
 django.setup()
 
-from sefaria.system.database import db
 import csv
+
+from sefaria.system.database import db
 
 distinctLanguages = db.texts.distinct("actualLanguage")
 with open("language_metrics_report.csv", "a") as fout:

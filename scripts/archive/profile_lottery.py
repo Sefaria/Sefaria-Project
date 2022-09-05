@@ -1,12 +1,14 @@
-from random import randrange
-from pprint import pprint
-import urllib.request, urllib.parse, urllib.error
 import hashlib
+import urllib.error
+import urllib.parse
+import urllib.request
+from pprint import pprint
+from random import randrange
 
 from django.contrib.auth.models import User
 
-from sefaria.system.database import db
 from sefaria.model.user_profile import UserProfile
+from sefaria.system.database import db
 
 contenders = db.profiles.find({"bio": {"$ne": ""}, "jewish_education": {"$ne": []}})
 points = {}

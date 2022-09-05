@@ -5,36 +5,42 @@ search.py - full-text search for Sefaria using ElasticSearch
 Writes to MongoDB Collection: index_queue
 """
 import os
-from datetime import datetime, timedelta
 import re
+from datetime import datetime, timedelta
+
 import bleach
 import pymongo
 
 # To allow these files to be run directly from command line (w/o Django shell)
 os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 
-import structlog
 import logging
-from logging import NullHandler
-from collections import defaultdict
 import time as pytime
+from collections import defaultdict
+from logging import NullHandler
+
+import structlog
+
 logger = structlog.get_logger(__name__)
 
 from elasticsearch import Elasticsearch
 from elasticsearch.client import IndicesClient
-from elasticsearch.helpers import bulk
 from elasticsearch.exceptions import NotFoundError
+from elasticsearch.helpers import bulk
+
+import sefaria.model.queue as qu
 from sefaria.model import *
-from sefaria.model.text import AbstractIndex
-from sefaria.model.user_profile import user_link, public_user_data
 from sefaria.model.collection import CollectionSet
+from sefaria.model.text import AbstractIndex
+from sefaria.model.user_profile import public_user_data, user_link
+from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
-from sefaria.utils.util import strip_tags
-from .settings import SEARCH_ADMIN, SEARCH_INDEX_NAME_TEXT, SEARCH_INDEX_NAME_SHEET, STATICFILES_DIRS
-from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.utils.hebrew import strip_cantillation
-import sefaria.model.queue as qu
+from sefaria.utils.util import strip_tags
+
+from .settings import (SEARCH_ADMIN, SEARCH_INDEX_NAME_SHEET,
+                       SEARCH_INDEX_NAME_TEXT, STATICFILES_DIRS)
 
 es_client = Elasticsearch(SEARCH_ADMIN)
 index_client = IndicesClient(es_client)

@@ -1,7 +1,9 @@
 __author__ = 'stevenkaplan'
+import csv
+
 from sefaria.model import *
 from sefaria.system.exceptions import *
-import csv
+
 
 class DoubleLinks:
     def __init__(self):

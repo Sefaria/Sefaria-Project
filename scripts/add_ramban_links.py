@@ -1,13 +1,20 @@
+import csv
+import json
+import re
 from collections import defaultdict
-import django, csv, json, re
+
+import django
+
 django.setup()
 from collections import defaultdict
-from tqdm import tqdm
-from itertools import product
 from functools import reduce
+from itertools import product
+
+from tqdm import tqdm
+
+from sefaria.helper.link import add_links_from_text
 from sefaria.model import *
 from sefaria.system.exceptions import InputError
-from sefaria.helper.link import add_links_from_text
 
 vtitles = ['On Your Way', 'On Your Way New', 'On Your Way New', 'On Your Way New', 'On Your Way new']
 books = ['Genesis', 'Exodus', 'Leviticus', 'Numbers', 'Deuteronomy']

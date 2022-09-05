@@ -6,10 +6,11 @@
 #		(and tanach name)
 """
 
-import sys
 import os
 import re
+import sys
 from pprint import pprint
+
 import pymongo
 
 p = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

@@ -6,6 +6,7 @@ django.setup()
 
 import csv
 import re
+
 from sefaria.model import *
 from sefaria.model.schema import AddressTalmud
 

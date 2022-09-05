@@ -1,7 +1,9 @@
-import django
-from datetime import datetime
 import time
+from datetime import datetime
+
+import django
 from pymongo.errors import AutoReconnect
+
 django.setup()
 from sefaria.model import *
 from sefaria.system.database import db

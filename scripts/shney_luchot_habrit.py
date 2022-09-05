@@ -1,10 +1,14 @@
 import csv
 import difflib
-from sefaria.system.database import db
+
 import django
+
+from sefaria.system.database import db
+
 django.setup()
 from sefaria.model import *
 from sefaria.system.exceptions import InputError
+
 
 def create_ref_map(refs_map, file):
     with open(file) as f:

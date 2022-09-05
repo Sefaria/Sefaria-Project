@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 
-import pytest
-from sefaria.model import *
 from functools import reduce
+
+import pytest
+
+from sefaria.model import *
 
 
 def setup_module(module):

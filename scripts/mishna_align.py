@@ -7,14 +7,17 @@ The text of different editions of the Mishnah can have significant differences. 
  versions and ultimately align and correct all commentaries so that they match the Vilna edition.
 """
 
-import os
-import sys
 import codecs
+import os
 import re
+import sys
+
 import diff_match_patch
+
 p = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, p)
 from sefaria.local_settings import *
+
 os.environ['DJANGO_SETTINGS_MODULE'] = 'sefaria.settings'
 from sefaria.model import *
 

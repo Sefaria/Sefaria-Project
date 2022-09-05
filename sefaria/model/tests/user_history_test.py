@@ -1,6 +1,8 @@
 import pytest
+
 from sefaria.model.user_profile import UserHistory, UserHistorySet
 from sefaria.system.exceptions import InputError
+
 
 def make_uh(uid=0, ref="Genesis 1:1", he_ref="בראשית א:א", versions=None, time_stamp=0, server_time_stamp=0, last_place=False, book="Genesis", saved=False, secondary=False):
     versions = versions or {

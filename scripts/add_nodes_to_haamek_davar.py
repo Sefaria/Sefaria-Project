@@ -2,6 +2,7 @@
 
 __author__ = 'stevenkaplan'
 from sefaria.helper.schema import *
+
 torah_titles = library.get_indexes_in_category("Torah")
 he_torah_titles = [library.get_index(x).get_title("he") for x in torah_titles]
 haamek_titles = ["Haamek Davar on {}".format(x) for x in torah_titles]

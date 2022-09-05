@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 
-from sefaria.model import *
-from sefaria.model.schema import *
-from convert_to_complex_text import *
-from completely_delete_index_and_related import *
-
-import json
 import argparse
 import csv
+import json
 
+from completely_delete_index_and_related import *
+from convert_to_complex_text import *
+
+from sefaria.model import *
+from sefaria.model.schema import *
 
 
 def build_schema_from_mapping(title, mappings):

@@ -1,18 +1,19 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/python2.6
 
-import sys
-import pymongo
-import os
 import locale
+import os
+import sys
 from datetime import datetime
+
+import pymongo
 from model import StateNode
 
 path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, path)
 sys.path.insert(0, path + "/sefaria")
-from sefaria.settings import *
 from sefaria.counts import *
+from sefaria.settings import *
 
 connection = pymongo.Connection()
 db = connection[SEFARIA_DB]

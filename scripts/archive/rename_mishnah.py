@@ -3,17 +3,16 @@
 Change spelling of "Mishna" to "Mishnah" in all text names and categories.
 """
 
-import sys
 import os
+import sys
 
 import pymongo
-
 
 p = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, p)
 sys.path.insert(0, p + "/sefaria")
-from sefaria.texts import *
 from sefaria.clean import *
+from sefaria.texts import *
 
 connection = pymongo.Connection()
 db = connection[SEFARIA_DB]

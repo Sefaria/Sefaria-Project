@@ -1,16 +1,19 @@
 # -*- coding: utf-8 -*-
 
 import django
+
 django.setup()
 import argparse
-import os
 import json
-import urllib.request, urllib.parse, urllib.error
-import urllib.request, urllib.error, urllib.parse
+import os
+import urllib.error
+import urllib.parse
+import urllib.request
+
 import requests
 
+from sefaria.datatype.jagged_array import JaggedArray, JaggedTextArray
 from sefaria.model import *
-from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
 
 try:
     from sefaria.local_settings import SEFARIA_BOT_API_KEY

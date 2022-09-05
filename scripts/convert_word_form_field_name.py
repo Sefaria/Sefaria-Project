@@ -3,7 +3,6 @@
 
 from sefaria.model import *
 
-
 word_forms = WordFormSet({'lookups.lexicon': {'$exists': True}})
 
 for wf in word_forms:

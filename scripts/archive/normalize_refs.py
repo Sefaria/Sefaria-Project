@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/python2.6
 
-import sys
-import pymongo
 import os
+import sys
+
+import pymongo
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from config import *
 from datetime import datetime
+
+from config import *
+
 from sefaria import *
 
 connection = pymongo.Connection()

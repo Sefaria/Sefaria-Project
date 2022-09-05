@@ -1,17 +1,20 @@
-import hashlib
-import urllib.request, urllib.parse, urllib.error
-import re
-import bleach
-import sys
-import json
 import csv
+import hashlib
+import json
+import re
+import sys
+import urllib.error
+import urllib.parse
+import urllib.request
 from datetime import datetime
-from django.utils.translation import ugettext as _, ungettext_lazy
+from functools import reduce
 from random import randint
 
-from sefaria.system.exceptions import InputError, SheetNotFoundError
-from functools import reduce
+import bleach
+from django.utils.translation import ugettext as _
+from django.utils.translation import ungettext_lazy
 
+from sefaria.system.exceptions import InputError, SheetNotFoundError
 from sefaria.utils.user import delete_user_account
 
 if not hasattr(sys, '_doc_build'):
@@ -23,15 +26,18 @@ if not hasattr(sys, '_doc_build'):
     from django.core.exceptions import ValidationError
     from anymail.exceptions import AnymailRecipientsRefused
 
-from . import abstract as abst
-from sefaria.model.following import FollowersSet, FolloweesSet, general_follow_recommendations
-from sefaria.model.blocking import BlockersSet, BlockeesSet
+import structlog
+from django.utils import translation
+
+from sefaria.model.blocking import BlockeesSet, BlockersSet
+from sefaria.model.following import (FolloweesSet, FollowersSet,
+                                     general_follow_recommendations)
 from sefaria.model.text import Ref, TextChunk
 from sefaria.system.database import db
 from sefaria.utils.util import epoch_time
-from django.utils import translation
 
-import structlog
+from . import abstract as abst
+
 logger = structlog.get_logger(__name__)
 
 
@@ -430,9 +436,10 @@ class UserProfile(object):
 
     @staticmethod
     def transformOldRecents(uid, recents):
-        from dateutil import parser
-        from sefaria.system.exceptions import InputError
         import pytz
+        from dateutil import parser
+
+        from sefaria.system.exceptions import InputError
         default_epoch_time = epoch_time(
             datetime(2017, 12, 1))  # the Sefaria epoch. approx time since we added time stamps to recent items
 

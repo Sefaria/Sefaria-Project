@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
+import argparse
 import csv
 from datetime import datetime
-import argparse
+
 import sefaria.model as model
 from sefaria.system.database import db
-
-
 
 
 def parse_daily_mishnah(filename):

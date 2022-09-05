@@ -1,8 +1,12 @@
 import django
+
 django.setup()
-from sefaria.model import *
+import csv
+import getopt
 import re
-import sys, getopt, csv
+import sys
+
+from sefaria.model import *
 from sefaria.system.database import db
 
 
@@ -83,7 +87,9 @@ def get_args(argv):
 
 def do_demerge(fnames, cols, slug_dict_list):
     import csv
+
     from bson.objectid import ObjectId
+
     # cols = ['Moon or Month?', 'Prophet or Amora?']
     # slugs = [{'moon': 'the-moon-(לבנה)', 'month': 'months'}, {'amora': 'shmuel-(amora)', 'prophet': 'shmuel-(prophet)'}]
     for slug_dict, col, fname in zip(slug_dict_list, cols, fnames):

@@ -1,14 +1,19 @@
 # -*- coding: utf-8 -*-
 
-from typing import List, Iterable
+from typing import Iterable, List
+
 import django
+
 django.setup()
-import spacy, csv
+import csv
+
+import spacy
 from spacy import Language
+from tqdm import tqdm
+
+from sefaria.helper.ref_part import make_html
 from sefaria.model import *
 from sefaria.model.ref_part import ResolvedRef
-from tqdm import tqdm
-from sefaria.helper.ref_part import make_html
 
 
 def parse_book(title: str, resolver: RefResolver) -> Iterable:

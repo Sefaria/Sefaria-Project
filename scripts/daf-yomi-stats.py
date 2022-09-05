@@ -1,11 +1,12 @@
 # encoding=utf-8
 import django
+
 django.setup()
 
 import csv
 from datetime import datetime, timedelta
-from sefaria.system.database import db
 
+from sefaria.system.database import db
 
 # Process Daf Yomi data dumped from Analytics.
 # Record format: BookName, Ref, Date, Users, Sessions

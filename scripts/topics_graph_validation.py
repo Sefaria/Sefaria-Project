@@ -1,10 +1,13 @@
 import django
+
 django.setup()
-from sefaria.model import *
-from tqdm import tqdm
-from sefaria.system.exceptions import DuplicateRecordError, InputError
-import regex as re
 import json
+
+import regex as re
+from tqdm import tqdm
+
+from sefaria.model import *
+from sefaria.system.exceptions import DuplicateRecordError, InputError
 
 # This script runs over the collections related to Topics:
 # and validates that the data is logical with the model and consistent

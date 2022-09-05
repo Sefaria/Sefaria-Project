@@ -1,7 +1,9 @@
 __author__ = 'stevenkaplan'
-from sefaria.model import *
 import csv
 import sys
+
+from sefaria.model import *
+
 
 class MetaDataCommentary:
     def __init__(self, comm_title, lang):

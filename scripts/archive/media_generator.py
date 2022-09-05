@@ -1,10 +1,11 @@
 #Sefaria
 #coding: utf-8
-import requests
 import json
 import pprint
 import re
 import time
+
+import requests
 
 
 class Queue(object):

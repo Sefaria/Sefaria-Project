@@ -1,18 +1,16 @@
 # -*- coding: utf-8 -*-
 
-import sys
-import os
 import csv
+import os
+import sys
 
 path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, path)
 sys.path.insert(0, path + "/sefaria")
 
-from sefaria import texts
-from sefaria import summaries
-from sefaria.system.database import db
 import sefaria.tracker as tracker
-
+from sefaria import summaries, texts
+from sefaria.system.database import db
 
 filename = '../tmp/Sefaria Text Map - Talmud.csv'
 action   = sys.argv[1] if len(sys.argv) > 1 else None

@@ -3,9 +3,9 @@
 Remove all links to Berakhot
 Remove text of 
 """
-import sys
-import os
 import csv
+import os
+import sys
 from pprint import pprint
 
 p = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -14,7 +14,6 @@ sys.path.insert(0, p + "/sefaria")
 os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 
 from sefaria.system.database import db
-
 
 keepers = []
 titles = db.index.find({"categories.1": {"$in": ["Torah", "Writings", "Prophets"]}}).distinct("title")

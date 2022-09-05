@@ -1,15 +1,18 @@
 # -*- coding: utf-8 -*-
 import argparse
+
 import django
+
 django.setup()
-from sefaria.system.database import db
 from sefaria.model import *
-from sefaria.system.cache import django_cache
 from sefaria.model.link import get_book_link_collection, get_link_counts
 from sefaria.settings import USE_VARNISH
+from sefaria.system.cache import django_cache
+from sefaria.system.database import db
+
 if USE_VARNISH:
-    from sefaria.system.varnish.common import purge_url
     from sefaria.settings import FRONT_END_URL
+    from sefaria.system.varnish.common import purge_url
 
 
 def regenerate_version_status_tree():

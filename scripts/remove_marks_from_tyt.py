@@ -1,6 +1,7 @@
 import re
-from sefaria.model.text import IndexSet
+
 from sefaria.helper.text import modify_text_by_function
+from sefaria.model.text import IndexSet
 
 
 def out_brace(raw_string):

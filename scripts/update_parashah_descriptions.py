@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
 import django
+
 django.setup()
 
 import csv
-import requests
 from io import StringIO
+
+import requests
 
 from sefaria.model import *
 from sefaria.system.database import db
-
 
 url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR6TNzK9oshIl0J6ah6pfoGdsmGdoHQSuiyN6VoFsJeIJkaz2fGQFeL6hlaESJYMEAU0ntmfuveQoeK/pub?gid=1889171650&single=true&output=csv'
 response = requests.get(url)

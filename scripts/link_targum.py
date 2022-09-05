@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from optparse import OptionParser
+
 from sefaria.model import *
 
 cats = ["Tanakh", "Targum"]

@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
 import argparse
+
 import django
+
 django.setup()
-from sefaria.model import *
 from sefaria.clean import *
-
-
+from sefaria.model import *
 
 """ The main function, runs when called from the CLI"""
 if __name__ == '__main__':

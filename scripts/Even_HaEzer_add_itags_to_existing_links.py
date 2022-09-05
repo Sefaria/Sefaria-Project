@@ -1,11 +1,15 @@
 # encoding=utf-8
 
 import sys
+
 import django
+
 django.setup()
-from sefaria.model import *
-from bs4 import BeautifulSoup
 from collections import OrderedDict
+
+from bs4 import BeautifulSoup
+
+from sefaria.model import *
 
 c1 = Category().load({'path':  ["Halakhah", "Shulchan Arukh", "Commentary", "Beit Shmuel"]})
 c2 = Category().load({'path':  ["Halakhah", "Shulchan Arukh", "Commentary", "Chelkat Mechokek"]})

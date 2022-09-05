@@ -1,7 +1,9 @@
-from .settings import GOOGLE_APPLICATION_CREDENTIALS_FILEPATH
-from google.cloud import storage
 import re
 from io import BytesIO
+
+from google.cloud import storage
+
+from .settings import GOOGLE_APPLICATION_CREDENTIALS_FILEPATH
 
 
 class GoogleStorageManager(object):

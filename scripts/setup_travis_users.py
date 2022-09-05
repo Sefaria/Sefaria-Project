@@ -1,7 +1,10 @@
 import os
+
 import django
+
 django.setup()
 from django.contrib.auth.models import User
+
 from sefaria.model import UserProfile
 
 users = User.objects.all()

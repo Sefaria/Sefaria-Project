@@ -1,11 +1,12 @@
 import django
+
 django.setup()
-import os
 import json
+import os
+
 from sefaria.model import *
 from sefaria.system import exceptions
 from sefaria.system.database import db
-
 
 db.media.drop()
 

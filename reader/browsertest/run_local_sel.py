@@ -2,13 +2,14 @@
 __package__ = "reader.browsertest"
 
 import sys
-from selenium import webdriver
 from optparse import OptionParser
-import django
-django.setup()
-from .framework import Trial
-from . import basic_tests
 
+import django
+from selenium import webdriver
+
+django.setup()
+from . import basic_tests
+from .framework import Trial
 from .framework.config import LOCAL_SELENIUM_CAPS
 
 if __name__ == '__main__':

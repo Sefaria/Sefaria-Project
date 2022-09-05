@@ -4,16 +4,19 @@ __package__ = "reader.browsertest"
 
 
 import sys
-from selenium import webdriver
 from optparse import OptionParser
 
 import django
+from selenium import webdriver
+
 django.setup()
 
-from .framework import Trial
-from . import basic_tests    # This is in fact needed - to register subclasses Trial, etc.
-import sys
 import os
+import sys
+
+from . import \
+    basic_tests  # This is in fact needed - to register subclasses Trial, etc.
+from .framework import Trial
 
 build = os.getenv("GITHUB_SHA_SHORT", "deadbeef")
 

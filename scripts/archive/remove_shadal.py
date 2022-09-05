@@ -4,20 +4,18 @@ Remove texts and of Shadal that may be under copyright,
 also remove any links to texts that we know longer have.
 """
 
-import sys
 import os
+import sys
 from copy import deepcopy
-
-
 from pprint import pprint
 
 path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, path)
 sys.path.insert(0, path + "/sefaria")
 
-from sefaria.database import db
 from sefaria import counts
 from sefaria.clean import remove_old_counts
+from sefaria.database import db
 from sefaria.texts import parse_ref
 
 titles = set()

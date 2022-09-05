@@ -1,17 +1,18 @@
 # -*- coding: utf-8 -*-
 import django
+
 django.setup()
 
-import re
 import csv
-import requests
+import re
 from io import StringIO
 from pprint import pprint
+
+import requests
 
 from sefaria.model import *
 from sefaria.sheets import save_sheet
 from sefaria.system.database import db
-
 
 url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSL8vy0MbanOBqSQIW_h73uolEFphleIL08OvpJwhQuCH82cUyjTcyoOH817anHRVYQYnMDxXy16kf1/pub?gid=0&single=true&output=csv'
 response = requests.get(url)

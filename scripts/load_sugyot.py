@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
-import os
 import csv
+import os
+
 import django
+
 django.setup()
 from sefaria.model import *
-
 
 PassageSet().delete()
 

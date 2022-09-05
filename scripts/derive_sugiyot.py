@@ -1,9 +1,11 @@
 # encoding=utf-8
 import django
+
 django.setup()
 
 import csv
 from optparse import OptionParser
+
 from sefaria.model import *
 
 

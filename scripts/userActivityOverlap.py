@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 import django
+
 django.setup()
 
 import itertools
-from sefaria.system.database import db
 
+from sefaria.system.database import db
 
 # get all active users
 

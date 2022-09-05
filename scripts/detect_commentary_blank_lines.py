@@ -1,8 +1,8 @@
 import argparse
+
+from sefaria.helper.link import *
 from sefaria.model import *
 from sefaria.system.database import db
-from sefaria.helper.link import *
-
 
 commentary_texts = library.get_commentary_versions()
 

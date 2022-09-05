@@ -30,8 +30,10 @@ It will be easiest to just hardcode the segment numbers that contain the footnot
 """
 
 import re
-from sefaria.model import *
+
 import requests
+
+from sefaria.model import *
 
 
 def run_on_books(cb, *args, **kwargs):

@@ -2,9 +2,8 @@
 """
 Creates Haggadah source sheets. 
 """
-from sefaria.sheets import db, make_sheet_from_text
 from sefaria.profiling import prof
-
+from sefaria.sheets import db, make_sheet_from_text
 
 commentaries = [
     "Ephod Bad",

@@ -1,11 +1,13 @@
 # This Python file uses the following encoding: utf-8
 import django
+
 django.setup()
-import re
 import collections
+import re
+from pprint import pprint
+
 from sefaria.model import *
 
-from pprint import pprint
 
 def flatten(l):
    for el in l:

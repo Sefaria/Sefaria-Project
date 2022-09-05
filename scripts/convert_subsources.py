@@ -4,10 +4,8 @@ Convert subsources to regular sources with an indentation level.
 
 Needs to be run multiple times for subsources nested within subsources. 9i.e. no recursion built in.
 """
-import sys
 import os
-
-
+import sys
 
 path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, path)

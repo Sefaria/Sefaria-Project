@@ -2,9 +2,9 @@
 
 
 from sefaria.model import *
-from sefaria.system.database import db
 from sefaria.model.category import toc_serial_to_objects
 from sefaria.summaries import update_table_of_contents
+from sefaria.system.database import db
 
 
 def visit_structure(treenode, callback, order=None, **kwargs):

@@ -8,10 +8,12 @@
 #			add_links_from_text
 """
 
-import sys
 import os
+import sys
+
 import pymongo
 from helper.link import add_links_from_text
+
 from sefaria.utils.talmud import section_to_daf
 
 p = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

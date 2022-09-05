@@ -1,11 +1,13 @@
 # encoding=utf-8
 
-import re
-import copy
 import argparse
-from sefaria.model import *
-from bs4 import BeautifulSoup, Tag, NavigableString
+import copy
+import re
+
+from bs4 import BeautifulSoup, NavigableString, Tag
+
 from sefaria.helper.link import rebuild_links_from_text
+from sefaria.model import *
 
 mesechtot = ["Berakhot", "Shabbat", "Eruvin", "Pesachim", "Beitzah", "Chagigah", "Gittin", "Ketubot", "Kiddushin",
              "Megillah", "Moed Katan", "Nazir", "Nedarim", "Rosh Hashanah", "Sotah", "Sukkah", "Taanit", "Yevamot",

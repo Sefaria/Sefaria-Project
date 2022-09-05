@@ -1,16 +1,20 @@
 # -*- coding: utf-8 -*-
 
 import django
+
 django.setup()
 import argparse
+from datetime import datetime
+
 from sefaria.system.cloudflare import SefariaCloudflareManager
 from sefaria.utils.util import get_directory_content
-from datetime import datetime
+
 try:
     from sefaria.settings import USE_CLOUDFLARE
 except ImportError as e:
     USE_CLOUDFLARE=False
 import structlog
+
 logger = structlog.getLogger('cloudflare')
 
 

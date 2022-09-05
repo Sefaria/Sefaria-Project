@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 import django
+
 django.setup()
 
-import sys
-import os
 import csv
 import operator
-
-from sefaria.model import *
-
-from django.contrib.auth.models import User
+import os
+import sys
 from pprint import pprint
 
+from django.contrib.auth.models import User
+
+from sefaria.model import *
 
 added_users = []
 total_users = 0

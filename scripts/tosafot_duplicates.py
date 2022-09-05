@@ -1,7 +1,10 @@
 __author__ = 'stevenkaplan'
+import os
+
 from sefaria.model import *
 from sefaria.model.schema import AddressTalmud
-import os
+
+
 def print_out_refs(daf, line, segment, prev_daf, prev_line, prev_segment):
     second = "{} {}:{}:{}".format(title, AddressTalmud.toStr("en", daf+1), line+1, segment+1)
     first = "{} {}:{}:{}".format(title, AddressTalmud.toStr("en", prev_daf+1), prev_line+1, prev_segment+1)

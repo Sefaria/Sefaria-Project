@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 import django
+
 django.setup()
 
-from sefaria.model import *
-
 import unicodecsv as csv
+
+from sefaria.model import *
 
 holidays_filename = './Topic Descriptions - Holidays.tsv'
 parshiot_filename = './Topic Descriptions - Parshiyot.tsv'

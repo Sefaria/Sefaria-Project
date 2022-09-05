@@ -1,6 +1,8 @@
 import django
+
 django.setup()
 import argparse
+
 from sefaria.settings import STATICFILES_DIRS
 from sefaria.sitemap import SefariaSiteMapGenerator
 

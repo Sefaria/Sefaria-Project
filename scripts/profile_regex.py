@@ -1,6 +1,5 @@
 import timeit
 
-
 prep = """import regex
 import re
 import re2

@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from sefaria.model import *
 from datetime import datetime
+
+from sefaria.model import *
 
 NotificationSet().update({"is_global": False})
 

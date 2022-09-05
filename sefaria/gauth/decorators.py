@@ -1,17 +1,16 @@
-from functools import wraps
 import datetime
+from functools import wraps
 
+import google.auth
+import google.oauth2
+import google_auth_oauthlib.flow
+import structlog
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import redirect
 
 from sefaria.model.user_profile import UserProfile
 
-import google.auth
-import google.oauth2
-import google_auth_oauthlib.flow
-
-import structlog
 logger = structlog.get_logger(__name__)
 
 def gauth_required(scope, ajax=False):

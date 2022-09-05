@@ -2,9 +2,9 @@
 
 from django.conf.urls import url
 from django.http import HttpResponseRedirect
+
 import reader.views as reader_views
 from sefaria.settings import STATIC_URL
-
 
 static_pages = [
     "strategy",

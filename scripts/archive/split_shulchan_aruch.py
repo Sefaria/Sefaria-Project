@@ -7,17 +7,18 @@ transform into a text for each Chelek (depth 2).
 - Rewrites history
 """
 
-import sys
 import os
 import re
+import sys
 from pprint import pprint
+
 import pymongo
 
 p = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, p)
 sys.path.insert(0, p + "/sefaria")
-from sefaria.texts import *
 from sefaria.counts import *
+from sefaria.texts import *
 
 connection = pymongo.Connection()
 db = connection[SEFARIA_DB]

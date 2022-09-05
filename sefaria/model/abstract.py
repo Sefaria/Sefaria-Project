@@ -4,18 +4,20 @@
 abstract.py - abstract classes for Sefaria models
 """
 import collections
-import structlog
 import copy
-import bleach
 import re
 
-#Should we import "from abc import ABCMeta, abstractmethod" and make these explicity abstract?
-#
-
+import bleach
+import structlog
 from bson.objectid import ObjectId
 
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
+
+#Should we import "from abc import ABCMeta, abstractmethod" and make these explicity abstract?
+#
+
+
 
 logger = structlog.get_logger(__name__)
 

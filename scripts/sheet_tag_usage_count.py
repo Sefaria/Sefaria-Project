@@ -1,11 +1,11 @@
 import django
+
 django.setup()
 
 import csv
+
 from sefaria.model import *
 from sefaria.system.database import db
-
-
 
 sheet_tag_usage_count = [["tag","count"]]
 

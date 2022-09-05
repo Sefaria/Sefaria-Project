@@ -4,10 +4,12 @@
 __package__ = "reader.browsertest"
 
 import django
+
 django.setup()
-from .framework import Trial
-from . import basic_tests
 import sys
+
+from . import basic_tests
+from .framework import Trial
 
 test = sys.argv[1]
 klass = getattr(basic_tests, test)

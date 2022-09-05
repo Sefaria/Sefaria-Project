@@ -1,10 +1,11 @@
 import django
+
 django.setup()
 import re
 import sys
 
-from sefaria.system.database import db
 from sefaria.helper.text import merge_text_versions
+from sefaria.system.database import db
 
 i = 1
 test_run = False

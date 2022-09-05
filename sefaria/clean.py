@@ -5,8 +5,8 @@ from copy import deepcopy
 
 import sefaria.model as model
 from sefaria.system.database import db
-from sefaria.utils.util import rtrim_jagged_string_array
 from sefaria.system.exceptions import BookNameError
+from sefaria.utils.util import rtrim_jagged_string_array
 
 
 def remove_refs_with_false():

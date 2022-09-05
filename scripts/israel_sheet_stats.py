@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 from collections import defaultdict
 
-from sefaria.system.database import db
 from sefaria.model import *
+from sefaria.system.database import db
 
 sheets = db.sheets.find({ "dateCreated": { "$gte": "2017-07-17T00:00:00.00" } })
 

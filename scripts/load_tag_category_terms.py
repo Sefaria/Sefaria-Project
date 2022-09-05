@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 import django
+
 django.setup()
 
 from sefaria import model
-
 
 tag_categories = ['Art', 'Authors', 'Tanakh', 'Calendar', 'Education', 'Folklore', 'Food', 'Geography', 'History', 'Holidays', 'Israel', 'Language', 'Law', 'Literature', 'Medicine', 'Philosophy', 'Prayer', 'Religion', 'Ritual Objects', 'Science', 'Society', 'Texts', 'Torah Portions']
 he_tag_categories = ['אמנות', 'אישים', 'תנ"ך', 'מעגל השנה', 'חינוך', 'הווי ומסורת', 'מזון', 'גיאוגרפיה', 'היסטוריה', 'מועדי ישראל', 'ישראל', 'לשון', 'חוקים', 'ספרות', 'רפואה', 'פילוסופיה', 'תפילה', 'הדתות', 'מצוה ומנהג', 'מדע', 'קהילה וחברה', 'טקסטים', 'פרשיות התורה']

@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 
 import django
+
 django.setup()
+
+import csv
 
 from sefaria.model import *
 from sefaria.system.database import db
-
-import csv
 
 sheets = db.sheets.find({"status": "public"})
 

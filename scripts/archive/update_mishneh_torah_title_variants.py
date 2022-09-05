@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
-import sys
-import os
 import json
-import pymongo
+import os
+import sys
 from pprint import pprint
+
+import pymongo
+
 p = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, p)
 from sefaria.settings import *

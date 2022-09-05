@@ -1,9 +1,8 @@
 import sefaria.model as model
-from sefaria.system.database import db
 from sefaria.clean import remove_old_counts
 from sefaria.counts import update_counts
 from sefaria.summaries import update_summaries
-
+from sefaria.system.database import db
 
 torah = ['Genesis', 'Exodus', 'Leviticus', 'Numbers', 'Deuteronomy']
 

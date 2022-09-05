@@ -8,8 +8,9 @@
 #			add_links_from_text
 """
 
-import sys
 import os
+import sys
+
 from sefaria.helper.link import add_links_from_text
 from sefaria.utils.talmud import section_to_daf
 

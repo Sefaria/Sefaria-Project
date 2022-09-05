@@ -1,6 +1,7 @@
+import csv
+
 from sefaria.model import *
 from sefaria.model.schema import AddressTalmud
-import csv
 
 ls = LinkSet({"type":'mishnah in talmud'})
 ds = []

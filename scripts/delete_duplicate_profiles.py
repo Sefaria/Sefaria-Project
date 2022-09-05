@@ -1,5 +1,6 @@
-from sefaria.system.database import db
 from collections import defaultdict
+
+from sefaria.system.database import db
 
 id_map = defaultdict(list)
 for p in db.profiles.find({}):

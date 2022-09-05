@@ -3,8 +3,6 @@
 from sefaria.model import *
 from sefaria.tracker import add
 
-
-
 root = SchemaNode()
 root.add_title("Orot", "en", primary=True)
 root.add_title("אורות", "he", primary=True)

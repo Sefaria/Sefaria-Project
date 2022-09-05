@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
-from sefaria.model import *
 import csv
 import json
 
 import regex as re
+
+from sefaria.model import *
+
 
 def remove_punctuation(text):
     return re.sub(r"\p{P}(?<!-)", "", text)

@@ -2,13 +2,15 @@
 __package__ = "reader.browsertest"
 
 import sys
-from selenium import webdriver
-from appium import webdriver as appiumWebdriver
 from optparse import OptionParser
+
 import django
+from appium import webdriver as appiumWebdriver
+from selenium import webdriver
+
 django.setup()
-from .framework import Trial
 from . import basic_tests
+from .framework import Trial
 
 
 def _get_appium_webdriver(caps):

@@ -2,7 +2,6 @@
 
 import re
 
-
 input_rows = []
 filename = 'log/sefaria.log'
 l_regex = re.compile(r'Wrap Ref Warning: Ref:\((.*)\)', re.UNICODE)

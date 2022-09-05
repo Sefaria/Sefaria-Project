@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
+import pprint
+
 from sefaria.model import *
 from sefaria.system.database import db
 from sefaria.utils.hebrew import hebrew_parasha_name, is_hebrew
-import pprint
-
-
 
 calendar_items = db.parshiot.find({})
 missing_names = set()

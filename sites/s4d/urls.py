@@ -1,7 +1,7 @@
 from django.conf.urls import url
 from django.http import HttpResponseRedirect
-import reader.views as reader_views
 
+import reader.views as reader_views
 
 static_pages = [];
 

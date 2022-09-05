@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
-from sefaria.model import *
-from sefaria.helper.text import *
-from sefaria.helper.link import *
+import argparse
 import re
 
-import argparse
+from sefaria.helper.link import *
+from sefaria.helper.text import *
+from sefaria.model import *
 
 """
 normal Index delete takes care of:

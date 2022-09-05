@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 import csv
 from collections import defaultdict
+from html.parser import HTMLParser
+
 from sefaria.model import Term, TermSet
-from sefaria.utils.util import titlecase
 from sefaria.sheets import change_tag
 from sefaria.system.database import db
-from html.parser import HTMLParser
+from sefaria.utils.util import titlecase
+
 h = HTMLParser()
 
 # Assumption: first term loaded can grab primary title

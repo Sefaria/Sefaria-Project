@@ -1,9 +1,11 @@
 # encoding=utf-8
 import django
+
 django.setup()
 
-from sefaria.model import *
 from sefaria.helper.schema import change_node_structure
+from sefaria.model import *
+
 
 def change_mishneh_torah():
     '''

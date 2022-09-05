@@ -1,8 +1,10 @@
 # Look for places where dates have been stored in Mongo as ISO strings, replace them with Date objects.
 
-import dateutil.parser
-import sys
 import os
+import sys
+
+import dateutil.parser
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from sefaria.texts import *

@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 import django
+
 django.setup()
 
 from collections import defaultdict
 
-from sefaria.system.database import db
 from sefaria.model import *
+from sefaria.system.database import db
 
 authors          = defaultdict(int)
 public_authors   = defaultdict(int)

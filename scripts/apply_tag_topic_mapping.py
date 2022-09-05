@@ -1,12 +1,16 @@
 import json
+
 import django
+
 django.setup()
 from collections import defaultdict
-from sefaria.model import *
-from sefaria.system.database import db
+
 from pymongo import UpdateOne
 
+from sefaria.model import *
+from sefaria.system.database import db
 from sefaria.utils.hebrew import is_hebrew
+
 with open('data/sheet_mapping.json', 'r') as fin:
     tag_topic = json.load(fin)
 

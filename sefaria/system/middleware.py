@@ -1,20 +1,21 @@
-import sys 
-import tempfile
 import cProfile
 import pstats
+import sys
+import tempfile
 from io import StringIO
 
 from django.conf import settings
-from django.utils import translation
-from django.shortcuts import redirect
 from django.http import HttpResponse
+from django.shortcuts import redirect
+from django.utils import translation
+from django.utils.deprecation import MiddlewareMixin
 
+from sefaria.model.user_profile import UserProfile
 from sefaria.settings import *
 from sefaria.site.site_settings import SITE_SETTINGS
-from sefaria.model.user_profile import UserProfile
-from sefaria.utils.util import short_to_long_lang_code, get_lang_codes_for_territory
 from sefaria.system.cache import get_shared_cache_elem, set_shared_cache_elem
-from django.utils.deprecation import MiddlewareMixin
+from sefaria.utils.util import (get_lang_codes_for_territory,
+                                short_to_long_lang_code)
 
 
 class SharedCacheMiddleware(MiddlewareMixin):

@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 
 import argparse
-
-from sefaria.model import *
-from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
-from sefaria.utils.talmud import daf_to_section
 import copy
+
+from sefaria.datatype.jagged_array import JaggedArray, JaggedTextArray
+from sefaria.model import *
+from sefaria.utils.talmud import daf_to_section
+
 
 def pad_moved_ja(ja, padding_values):
     #pads the jagged array with the skeleton of the empty places up to this point in the ref

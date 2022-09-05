@@ -1,13 +1,23 @@
-import django, csv, json, re
+import csv
+import json
+import re
+
+import django
+
 django.setup()
-from tqdm import tqdm
 from collections import defaultdict
+
 from pymongo.errors import AutoReconnect
+from tqdm import tqdm
+
+from sefaria.helper.topic import (add_num_sources_to_topics,
+                                  generate_all_topic_links_from_sheets,
+                                  update_intra_topic_link_orders,
+                                  update_ref_topic_link_orders)
 from sefaria.model import *
-from sefaria.utils.util import titlecase
 from sefaria.system.database import db
-from sefaria.helper.topic import generate_all_topic_links_from_sheets, update_ref_topic_link_orders, update_intra_topic_link_orders, add_num_sources_to_topics
 from sefaria.system.exceptions import DuplicateRecordError
+from sefaria.utils.util import titlecase
 
 # with open("data/final_ref_topic_links.csv", 'r') as fin:
 #     cin = csv.DictReader(fin)
@@ -930,6 +940,7 @@ def recat_top_level():
 
 def renormalize_slugs():
     from tqdm import tqdm
+
     from sefaria.model.abstract import SluggedAbstractMongoRecord
     ts = TopicSet()
 
@@ -1425,9 +1436,11 @@ if __name__ == '__main__':
 
 def yo():
     import re
-    from tqdm import tqdm
-    from sefaria.system.database import db
+
     from pymongo import UpdateOne
+    from tqdm import tqdm
+
+    from sefaria.system.database import db
 
     rtls = RefTopicLinkSet({"is_sheet": True})
     sheet_cache = {}
@@ -1449,9 +1462,10 @@ def yo():
 
 
 def yoyo():
-    from sefaria.system.database import db
-    from tqdm import tqdm
     from pymongo import UpdateOne
+    from tqdm import tqdm
+
+    from sefaria.system.database import db
 
     ts = TopicSet()
     updates = {}
@@ -1488,8 +1502,11 @@ def yoyo():
 
 
 def sup():
+    import json
+    import re
+
     from tqdm import tqdm
-    import re, json
+
     from sefaria.system.database import db
     is_hebrew = re.compile('[א-ת]')
     query = {"topics.asTyped": is_hebrew}
@@ -1519,9 +1536,10 @@ def sup():
 
 
 def supyo():
-    from tqdm import tqdm
-    from sefaria.system.database import db
     from pymongo import DeleteOne
+    from tqdm import tqdm
+
+    from sefaria.system.database import db
 
     deletes = set()
     sheet_links = RefTopicLinkSet({"is_sheet": True})
@@ -1570,8 +1588,10 @@ def make_desc_csv():
 
 
 def add_good_to_promote():
-    from tqdm import tqdm
     from collections import defaultdict
+
+    from tqdm import tqdm
+
     from sefaria.system.database import db
 
     terms = TermSet({"good_to_promote": True})

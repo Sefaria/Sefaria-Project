@@ -1,13 +1,15 @@
 import json
 import uuid
 
+import structlog
 from django.core.exceptions import MiddlewareNotUsed
 
-from sefaria.settings import MULTISERVER_ENABLED, MULTISERVER_REDIS_EVENT_CHANNEL, MULTISERVER_REDIS_CONFIRM_CHANNEL
+from sefaria.settings import (MULTISERVER_ENABLED,
+                              MULTISERVER_REDIS_CONFIRM_CHANNEL,
+                              MULTISERVER_REDIS_EVENT_CHANNEL)
 
 from .messaging import MessagingNode
 
-import structlog
 logger = structlog.get_logger(__name__)
 
 
@@ -39,8 +41,8 @@ class ServerCoordinator(MessagingNode):
         }
         msg_data = json.dumps(payload)
 
-        import socket
         import os
+        import socket
         logger.info("publish_event from {}:{} - {}".format(socket.gethostname(), os.getpid(), msg_data))
         try:
             self.redis_client.publish(MULTISERVER_REDIS_EVENT_CHANNEL, msg_data)
@@ -103,13 +105,13 @@ class ServerCoordinator(MessagingNode):
 
 
         # A list of all of the objects that be referenced
-        from sefaria.model import library
-        import sefaria.system.cache as scache
-        import sefaria.model.text as text
-        from sefaria.system.cache import in_memory_cache
-
-        import socket
         import os
+        import socket
+
+        import sefaria.model.text as text
+        import sefaria.system.cache as scache
+        from sefaria.model import library
+        from sefaria.system.cache import in_memory_cache
         host = socket.gethostname()
         pid = os.getpid()
 

@@ -1,17 +1,19 @@
 import dataclasses
 from collections import defaultdict
-from typing import List, Union, Dict, Optional, Tuple, Generator, Iterable, Set
 from enum import Enum, IntEnum
 from functools import reduce
 from itertools import product
-from sefaria.system.exceptions import InputError
-from . import abstract as abst
-from . import text
-from . import schema
+from typing import Dict, Generator, Iterable, List, Optional, Set, Tuple, Union
+
 import spacy
-from tqdm import tqdm
-from spacy.tokens import Span, Token
 from spacy.language import Language
+from spacy.tokens import Span, Token
+from tqdm import tqdm
+
+from sefaria.system.exceptions import InputError
+
+from . import abstract as abst
+from . import schema, text
 
 # keys correspond named entity labels in spacy models
 # values are properties in RefPartType
@@ -948,7 +950,8 @@ class RefResolver:
     def __init__(self, raw_ref_model_by_lang: Dict[str, Language], raw_ref_part_model_by_lang: Dict[str, Language],
                  ref_part_title_trie_by_lang: Dict[str, MatchTemplateTrie], ref_part_title_graph: MatchTemplateGraph,
                  term_matcher_by_lang: Dict[str, TermMatcher]) -> None:
-        from sefaria.helper.normalization import NormalizerByLang, NormalizerComposer
+        from sefaria.helper.normalization import (NormalizerByLang,
+                                                  NormalizerComposer)
 
         self._raw_ref_model_by_lang = raw_ref_model_by_lang
         self._raw_ref_part_model_by_lang = raw_ref_part_model_by_lang

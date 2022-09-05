@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 __author__ = 'stevenkaplan'
-from sefaria.model import *
 from sefaria.helper.schema import *
+from sefaria.model import *
 
 if __name__ == "__main__":
     texts = ["Esther Rabbah", "Ruth Rabbah", "Eichah Rabbah"]

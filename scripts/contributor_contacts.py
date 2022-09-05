@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/python2.6
 
-import sys
 import os
+import sys
+
 import pymongo
 
 from sefaria.model import *
 from sefaria.settings import *
 from sefaria.system.database import db
-
 
 out = ""
 

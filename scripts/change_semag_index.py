@@ -1,6 +1,6 @@
 __author__ = 'stevenkaplan'
-from sefaria.model import *
 from sefaria.helper.schema import *
+from sefaria.model import *
 
 
 def change_title(title):

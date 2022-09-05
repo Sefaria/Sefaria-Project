@@ -4,10 +4,13 @@ Writes to MongoDB Collection: word_form, lexicon_entry
 """
 import re
 import unicodedata
-from . import abstract as abst
+
 from sefaria.datatype.jagged_array import JaggedTextArray
 from sefaria.system.exceptions import InputError
-from sefaria.utils.hebrew import is_hebrew, strip_cantillation, has_cantillation
+from sefaria.utils.hebrew import (has_cantillation, is_hebrew,
+                                  strip_cantillation)
+
+from . import abstract as abst
 
 
 class WordForm(abst.AbstractMongoRecord):

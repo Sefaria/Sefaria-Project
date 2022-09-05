@@ -1,11 +1,15 @@
 import django
+
 django.setup()
-from sefaria.model.webpage import *
-import cProfile, pstats
-import requests
-import json
 import argparse
+import cProfile
+import json
+import pstats
+
+import requests
+
 from sefaria.model import *
+from sefaria.model.webpage import *
 
 TRELLO_KEY = TRELLO_TOKEN = -1
 def run_job(test=True, board_id="", idList_mapping={}, members_mapping={}):

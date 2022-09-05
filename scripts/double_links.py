@@ -2,10 +2,12 @@ __author__ = 'stevenkaplan'
 
 # Takes ones argument - the primary name of an Index
 
-from sefaria.model import *
-from sefaria.system.exceptions import *
 import csv
 import sys
+
+from sefaria.model import *
+from sefaria.system.exceptions import *
+
 
 class DoubleLinks:
     def __init__(self):

@@ -2,7 +2,6 @@
 
 from sefaria.model import *
 
-
 mh = library.get_index('Meshech Hochma')
 ay = library.get_index('Akeidat Yitzchak')
 sl = library.get_index('Shney Luchot HaBrit')

@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import json
+
 import django
+
 django.setup()
 
 from sefaria.model import *

@@ -1,5 +1,6 @@
-from sefaria.model import *
 from sefaria.helper.schema import *
+from sefaria.model import *
+
 if __name__ == "__main__":
     index = library.get_index("Pesach Haggadah Edot Hamizrah")
     node = index.nodes.children[-1]

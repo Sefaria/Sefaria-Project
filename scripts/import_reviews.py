@@ -1,18 +1,17 @@
 # -*- coding: utf-8 -*-
 
-import sys
-import os
 import csv
-
-from datetime import datetime, date, timedelta
+import os
+import sys
+from datetime import date, datetime, timedelta
 
 path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, path)
 sys.path.insert(0, path + "/sefaria")
 
-from sefaria.system.database import db
-from sefaria.reviews import validate_review
 from sefaria.model import *
+from sefaria.reviews import validate_review
+from sefaria.system.database import db
 
 filename = sys.argv[1]
 

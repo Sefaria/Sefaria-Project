@@ -7,16 +7,17 @@ first argument :: filename.opml
 -v :: saves any text stored in opml as notes to a single version
 """
 import django
+
 django.setup()
 import argparse
 import pprint
+
 try:
     import xml.etree.cElementTree as ET
 except ImportError:
     import xml.etree.ElementTree as ET
+
 from sefaria.helper.text import WorkflowyParser
-
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

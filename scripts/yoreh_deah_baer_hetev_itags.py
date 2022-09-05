@@ -1,10 +1,14 @@
 # encoding=utf-8
 
 import django
+
 django.setup()
-from sefaria.model import *
-from bs4 import BeautifulSoup
 from collections import OrderedDict
+
+from bs4 import BeautifulSoup
+
+from sefaria.model import *
+
 
 def itag_finder(tag):
     commentator = "Ba'er Hetev"

@@ -1,9 +1,11 @@
 # NOTE not in dependencies.py. to install run `pip install langdetect`
-from langdetect import detect
+from functools import reduce
+
 import bleach
 import unicodecsv as csv
+from langdetect import detect
+
 from sefaria.model import *
-from functools import reduce
 
 non_english = []
 versions = VersionSet()

@@ -1,21 +1,22 @@
 # encoding = utf-8
 
-import sys
-import requests
 import argparse
-from json import JSONDecodeError
-import unicodecsv as csv
-from io import StringIO
+import sys
 from functools import partial
+from io import StringIO
+from json import JSONDecodeError
+
+import django
+import requests
+import unicodecsv as csv
 #from multiprocessing import Pool
 from pathos.multiprocessing import ProcessingPool as Pool
 
-import django
 django.setup()
+from sefaria.model import *
 from sefaria.system.exceptions import InputError
 # from sefaria.export import import_versions_from_stream
 from sefaria.tracker import modify_text
-from sefaria.model import *
 
 
 def version_url(server: str, book_title: str, version_title: str, lang: str) -> str:

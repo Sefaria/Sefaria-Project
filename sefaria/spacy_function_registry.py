@@ -1,5 +1,8 @@
-import spacy, re
+import re
+
+import spacy
 from spacy.tokenizer import Tokenizer
+
 
 @spacy.registry.tokenizers("inner_punct_tokenizer")
 def inner_punct_tokenizer_factory():

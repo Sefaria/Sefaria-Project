@@ -2,9 +2,11 @@
 
 # using the pre-calculated file, 'sheet_ref_disambiguated.csv', replaces refs with updated refs
 
-import unicodecsv
-import django
 from collections import defaultdict
+
+import django
+import unicodecsv
+
 django.setup()
 from sefaria.model import *
 from sefaria.system.database import db

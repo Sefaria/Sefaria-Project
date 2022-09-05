@@ -1,9 +1,11 @@
 #encoding=utf-8
 import django
+
 django.setup()
+from sefaria.helper.schema import refresh_version_state
 from sefaria.model import *
 from sefaria.system.exceptions import InputError
-from sefaria.helper.schema import refresh_version_state
+
 
 def create_terms(titles, he_titles):
     for title, he_title in zip(titles, he_titles):

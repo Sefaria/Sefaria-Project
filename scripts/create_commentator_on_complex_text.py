@@ -2,7 +2,6 @@
 
 import argparse
 
-
 """ The main function, runs when called from the CLI"""
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -15,7 +14,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
     print(args)
     try:
-        from sefaria.helper.text import create_commentator_and_commentary_version
+        from sefaria.helper.text import \
+            create_commentator_and_commentary_version
         from sefaria.model import library
         create_commentator_and_commentary_version(args.commentator_name, args.existing_book, args.language, args.version_title,
                                                   args.version_source, args.he_commentator_name)

@@ -1,7 +1,8 @@
 import re
-from typing import Dict, List, Callable
-from functools import reduce, lru_cache
 from bisect import bisect_right
+from functools import lru_cache, reduce
+from typing import Callable, Dict, List
+
 from bs4 import BeautifulSoup, Tag
 
 """

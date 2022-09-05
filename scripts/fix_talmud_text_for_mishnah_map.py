@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
-import unicodecsv as csv
 import re
 from itertools import groupby
 
-from sefaria.model import *
+import unicodecsv as csv
+
 from sefaria.helper.splice import SegmentSplicer
-
-
+from sefaria.model import *
 
 live = True
 writeMishnahMapChanges = True

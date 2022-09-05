@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
+import json
+
 from sefaria.model import *
 from sefaria.model.schema import *
-import json
 
 root = SchemaNode()
 root.add_title("Pesach Haggadah", "en", primary=True)

@@ -2,8 +2,10 @@
 
 import argparse
 import re
-from fuzzywuzzy import process, fuzz
+
+from fuzzywuzzy import fuzz, process
 from fuzzywuzzy import utils as fuzzyutils
+
 from sefaria.model import *
 
 url_base = 'http://www.sefaria.org/'

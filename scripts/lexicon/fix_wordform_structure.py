@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from sefaria.model import *
 
-
 word_forms = WordFormSet({})
 
 for form in word_forms:

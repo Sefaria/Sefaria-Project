@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
 import django
+
 django.setup()
 
 import csv
-import requests
 from io import StringIO
+
+import requests
 
 from sefaria.model import *
 from sefaria.system.database import db
-
 
 """
 0  Primary English Title

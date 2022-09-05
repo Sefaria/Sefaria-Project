@@ -6,8 +6,9 @@ refs. The objective of this script is to migrate the simple depth 1 ArrayMapNode
 alt-struct with multiple ArrayMapNodes, one for each chapter
 """
 
-from sefaria.model import *
 import csv
+
+from sefaria.model import *
 
 
 def construct_names_dict():

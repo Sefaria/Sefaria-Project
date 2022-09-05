@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 
 import django
+
 django.setup()
 import pytest
 import regex as re
-from sefaria.utils.hebrew import is_hebrew
-import sefaria.model as m
 
+import sefaria.model as m
+from sefaria.utils.hebrew import is_hebrew
 
 
 class In(object):

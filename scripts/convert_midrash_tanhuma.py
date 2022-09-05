@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 __author__ = 'stevenkaplan'
-from sefaria.model import *
 import csv
 import sys
+
+from sefaria.model import *
+
 sys.path.append("./scripts")
 from convert_to_complex_text import *
+
 from sefaria.system.exceptions import InputError
 
 en_he_parshiot = []

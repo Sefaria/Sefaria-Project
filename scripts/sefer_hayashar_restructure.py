@@ -1,6 +1,7 @@
 #encoding=utf-8
-from sefaria.model import *
 from sefaria.helper.schema import *
+from sefaria.model import *
+
 en_chapters = ["INTRODUCTION",
                 "CHAPTER I The Mystery of the Creation of the World",
 

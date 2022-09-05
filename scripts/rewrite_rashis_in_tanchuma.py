@@ -1,13 +1,13 @@
 __author__ = 'stevenkaplan'
 
-from sefaria.model import *
-from sefaria.helper.text import *
-from sefaria.tracker import *
-from sefaria.helper.schema import *
-import csv
 import codecs
+import csv
 import io
 
+from sefaria.helper.schema import *
+from sefaria.helper.text import *
+from sefaria.model import *
+from sefaria.tracker import *
 
 
 class UnicodeWriter:

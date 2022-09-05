@@ -2,13 +2,12 @@
 
 import csv
 import re
-
 from optparse import OptionParser
-from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
+
 from sklearn.decomposition import NMF, LatentDirichletAllocation
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 
 from sefaria.model import *
-
 
 n_topics = 10
 n_top_words = 20

@@ -1,7 +1,8 @@
 # encoding=utf-8
 
-from sefaria.model import *
 from bs4 import BeautifulSoup
+
+from sefaria.model import *
 
 """
 Grab all indices in category Masechtot Ketanot

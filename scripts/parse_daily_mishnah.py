@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
-import csv
-from datetime import datetime
-from copy import deepcopy
 import argparse
+import csv
 import glob
+import re
+from copy import deepcopy
+from datetime import datetime
+
 import sefaria.model as model
 from sefaria.system.database import db
-import re
 
 index_name_errors = {}
 cross_index_span_errors = {}

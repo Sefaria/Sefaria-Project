@@ -1,15 +1,18 @@
 # -*- coding: utf-8 -*-
 
 import argparse
-import sys
-import json
 import csv
-import re
-import os, errno
+import errno
+import json
+import os
 import os.path
+import re
+import sys
+
 import requests
 
 from sefaria.model import *
+
 
 class LaazRashiParser(object):
     bible_data_file = 'data/tmp/Laaz-Rashi-Bible.txt'

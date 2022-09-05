@@ -8,21 +8,25 @@ import sys
 # Tells sefaria.system.database to use a test db
 sys._called_from_test = True
 
+import json
 from copy import deepcopy
 from pprint import pprint
-import json
 
+from django.contrib.auth.models import User
 from django.test import TestCase
 from django.test.client import Client
-from django.contrib.auth.models import User
+
+import sefaria.system.cache as scache
+import sefaria.utils.testing_utils as tutils
+from sefaria.model import (Category, HistorySet, Index, IndexSet, LinkSet,
+                           NoteSet, Ref, TextChunk, UserHistory,
+                           UserHistorySet, VersionSet, VersionState,
+                           VersionStateSet, library)
+from sefaria.system.database import db
+
 # import selenium
 
-import sefaria.utils.testing_utils as tutils
 
-from sefaria.model import library, Index, IndexSet, VersionSet, LinkSet, NoteSet, HistorySet, Ref, VersionState, \
-    VersionStateSet, TextChunk, Category, UserHistory, UserHistorySet
-from sefaria.system.database import db
-import sefaria.system.cache as scache
 
 c = Client()
 

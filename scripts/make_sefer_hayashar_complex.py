@@ -2,6 +2,7 @@
 __author__ = 'stevenkaplan'
 from sefaria.helper.schema import *
 
+
 def create_schema():
     root = SchemaNode()
     root.add_primary_titles("Sefer HaYashar", "ספר הישר")

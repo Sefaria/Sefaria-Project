@@ -1,6 +1,8 @@
 import django
+
 django.setup()
 from sefaria.model import *
+
 
 def iterateNodes(indices, searchTerm=""):
     for index in indices:

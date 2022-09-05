@@ -1,17 +1,16 @@
 # -*- coding: utf-8 -*-
 import django
+
 django.setup()
 
-import csv
-import re
-import hashlib
 import argparse
+import csv
+import hashlib
+import re
 
-
-
-from sefaria.model import *
-from sefaria.helper.file import scrape_image, thumbnail_image_file
 from sefaria.google_storage_manager import GoogleStorageManager
+from sefaria.helper.file import scrape_image, thumbnail_image_file
+from sefaria.model import *
 from sefaria.system.cache import cache_get_key
 
 VERSION_IMAGE_BUCKET = "sefaria-physical-editions"

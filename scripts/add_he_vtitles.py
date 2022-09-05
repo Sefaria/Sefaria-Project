@@ -1,7 +1,9 @@
 # encoding=utf-8
 
 import os
+
 import unicodecsv
+
 from sefaria.model import *
 from sefaria.system import exceptions
 

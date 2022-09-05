@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import csv
+
 import django
+
 django.setup()
 
 

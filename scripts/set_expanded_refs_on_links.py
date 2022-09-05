@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import django
+
 django.setup()
 
-from sefaria.system.database import db
 from sefaria.model.link import LinkSet
-
+from sefaria.system.database import db
 
 db.links.create_index("expandedRefs0")
 db.links.create_index("expandedRefs1")

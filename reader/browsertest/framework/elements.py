@@ -1,30 +1,38 @@
 
 # -*- coding: utf-8 -*-
 
-from .config import TEMPER, SAUCE_CORE_CAPS, SAUCE_MAX_THREADS, LOCAL_URL, LOCAL_SELENIUM_CAPS
-from sefaria.model import *
-from pathos.multiprocessing import ProcessingPool as Pool
-import os
 import inspect
-import traceback
+import os
 import sys
-
+import time  # import stand library below name collision in sefaria.model
+import traceback
 import urllib.parse
+
+from appium import webdriver as appium_webdriver
+from pathos.multiprocessing import ProcessingPool as Pool
+from selenium import webdriver
+from selenium.common.exceptions import (ElementClickInterceptedException,
+                                        NoAlertPresentException,
+                                        NoSuchElementException,
+                                        StaleElementReferenceException,
+                                        TimeoutException, WebDriverException)
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.expected_conditions import (
+    _find_element, element_to_be_clickable, presence_of_element_located,
+    title_contains, visibility_of_any_elements_located,
+    visibility_of_element_located)
+from selenium.webdriver.support.ui import WebDriverWait
 from urllib3.exceptions import MaxRetryError
 
-from selenium import webdriver
-from appium import webdriver as appium_webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support.expected_conditions import title_contains, presence_of_element_located, \
-    element_to_be_clickable, _find_element, visibility_of_element_located, visibility_of_any_elements_located
-from selenium.webdriver.common.keys import Keys
-from selenium.common.exceptions import NoSuchElementException, NoAlertPresentException, TimeoutException, WebDriverException, \
-    ElementClickInterceptedException, StaleElementReferenceException
+from sefaria.model import *
+
+from .config import (LOCAL_SELENIUM_CAPS, LOCAL_URL, SAUCE_CORE_CAPS,
+                     SAUCE_MAX_THREADS, TEMPER)
+
 # http://selenium-python.readthedocs.io/waits.html
 # http://selenium-python.readthedocs.io/api.html#module-selenium.webdriver.support.expected_conditions
 
-import time # import stand library below name collision in sefaria.model
 
 
 class AbstractTest(object):

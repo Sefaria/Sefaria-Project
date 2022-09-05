@@ -1,11 +1,12 @@
 # encoding=utf-8
 import django
+
 django.setup()
 
-from sefaria.model import *
 from datetime import datetime
-from sefaria.system.database import db, ensure_indices
 
+from sefaria.model import *
+from sefaria.system.database import db, ensure_indices
 
 db.drop_collection("shared_story")
 db.drop_collection("user_story")

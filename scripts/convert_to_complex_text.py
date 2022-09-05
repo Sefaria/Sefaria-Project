@@ -1,16 +1,14 @@
 # -*- coding: utf-8 -*-
 
+import argparse
+import csv
+import json
+
+from sefaria.datatype.jagged_array import *
+from sefaria.helper.link import *
 from sefaria.model import *
 from sefaria.model.schema import *
 from sefaria.utils.util import list_depth
-from sefaria.datatype.jagged_array import *
-from sefaria.helper.link import *
-
-import json
-import argparse
-import csv
-
-
 
 
 def migrate_to_complex_structure(title, schema, mappings):

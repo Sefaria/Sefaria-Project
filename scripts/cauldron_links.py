@@ -1,8 +1,9 @@
-import json
-import requests
 import argparse
-from tqdm import tqdm
+import json
 import os.path
+
+import requests
+from tqdm import tqdm
 
 
 def delete_link(id_or_ref, server="", API_KEY="", VERBOSE=False):

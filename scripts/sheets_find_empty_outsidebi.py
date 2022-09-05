@@ -1,13 +1,15 @@
 import django
+
 django.setup()
 
+
+from datetime import datetime, timedelta
+from html.parser import HTMLParser
+from io import StringIO
 
 from sefaria.model import *
 from sefaria.system.database import db
 
-from io import StringIO
-from html.parser import HTMLParser
-from datetime import datetime, timedelta
 
 class MLStripper(HTMLParser):
     def __init__(self):

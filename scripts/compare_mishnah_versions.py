@@ -1,12 +1,13 @@
 # coding=utf-8
 import argparse
-import sys
-import os, errno
+import errno
+import os
 import re
+import sys
 
-from sefaria.model import *
-from sefaria.helper.text import *
 from sefaria.helper.link import *
+from sefaria.helper.text import *
+from sefaria.model import *
 
 strip_cantillation_vowel_regex = re.compile(r"[\u0591-\u05bd\u05bf-\u05c5\u05c7]", re.UNICODE)
 

@@ -1,13 +1,15 @@
-from datetime import datetime
-import requests
-import traceback
 import os
+import traceback
+from datetime import datetime
+
 import django
+import requests
+
 django.setup()
-from sefaria.model import *
-from sefaria.search import index_all
 from sefaria.local_settings import SEFARIA_BOT_API_KEY
+from sefaria.model import *
 from sefaria.pagesheetrank import update_pagesheetrank
+from sefaria.search import index_all
 
 """
 Source sheets added after last_sheet_timestamp will be missing from the index process. We want to manually index all

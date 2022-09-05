@@ -1,12 +1,18 @@
-import django, re
+import re
+
+import django
+
 django.setup()
-from tqdm import tqdm
-from sefaria.model import *
-from sefaria.system.database import db
 from collections import defaultdict
-from sefaria.utils.hebrew import is_hebrew
+
+from tqdm import tqdm
+
+from sefaria.model import *
 from sefaria.model.abstract import AbstractMongoRecord
-from sefaria.model.schema import DiburHamatchilNode, DiburHamatchilNodeSet, TitleGroup
+from sefaria.model.schema import (DiburHamatchilNode, DiburHamatchilNodeSet,
+                                  TitleGroup)
+from sefaria.system.database import db
+from sefaria.utils.hebrew import is_hebrew
 
 
 class RefPartModifier:

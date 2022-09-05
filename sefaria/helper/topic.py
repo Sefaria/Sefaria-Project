@@ -1,16 +1,17 @@
 import re
-from tqdm import tqdm
-from pymongo import UpdateOne, InsertOne
-from typing import Optional, Union
 from collections import defaultdict
 from functools import cmp_to_key
-from sefaria.model import *
-from sefaria.system.exceptions import InputError
-from sefaria.model.topic import TopicLinkHelper
-from sefaria.system.database import db
-from sefaria.system.cache import django_cache
+from typing import Optional, Union
 
 import structlog
+from pymongo import InsertOne, UpdateOne
+from tqdm import tqdm
+
+from sefaria.model import *
+from sefaria.model.topic import TopicLinkHelper
+from sefaria.system.cache import django_cache
+from sefaria.system.database import db
+from sefaria.system.exceptions import InputError
 
 logger = structlog.get_logger(__name__)
 
@@ -296,9 +297,10 @@ def generate_all_topic_links_from_sheets(topic=None):
     """
     Processes all public source sheets to create topic links.
     """
-    from sefaria.recommendation_engine import RecommendationEngine
-    from statistics import mean, stdev
     import math
+    from statistics import mean, stdev
+
+    from sefaria.recommendation_engine import RecommendationEngine
 
     OWNER_THRESH = 3
     TFIDF_CUTOFF = 0.15
@@ -583,8 +585,9 @@ def calculate_mean_tfidf(ref_topic_links):
 
 
 def calculate_pagerank_scores(ref_topic_map):
-    from sefaria.pagesheetrank import pagerank_rank_ref_list
     from statistics import mean
+
+    from sefaria.pagesheetrank import pagerank_rank_ref_list
     pr_map = {}
     pr_seg_map = {}  # keys are (topic, seg_tref). used for sheet relevance
     for topic, ref_list in tqdm(ref_topic_map.items(), desc='calculate pr'):

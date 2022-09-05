@@ -1,18 +1,18 @@
 # -*- coding: utf-8 -*-
-import urllib.request, urllib.parse, urllib.error
-import urllib.request, urllib.error, urllib.parse
-from urllib.error import URLError, HTTPError
-import json 
-import pdb
-import os
-import sys
-import re
-
-from sefaria.model import *
-from sefaria.helper.text import *
-import csv
 import argparse
+import csv
+import json
+import os
 import pdb
+import re
+import sys
+import urllib.error
+import urllib.parse
+import urllib.request
+from urllib.error import HTTPError, URLError
+
+from sefaria.helper.text import *
+from sefaria.model import *
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser()

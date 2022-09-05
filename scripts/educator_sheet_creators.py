@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
-from datetime import datetime, timedelta
-import csv
 import argparse
+import csv
 import re
+from datetime import datetime, timedelta
+
 import django
+
 django.setup()
 
-from sefaria.system.database import db
 from sefaria.model import *
+from sefaria.system.database import db
 
 
 def write_sheet_makers_csv(query={}):

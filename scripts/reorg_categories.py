@@ -2,9 +2,10 @@
 import django
 
 django.setup()
-from sefaria.model import *
-from sefaria.helper.category import move_index_into, move_category_into, create_category, rename_category
+from sefaria.helper.category import (create_category, move_category_into,
+                                     move_index_into, rename_category)
 from sefaria.helper.schema import change_term_hebrew
+from sefaria.model import *
 from sefaria.system.exceptions import InputError
 
 # Change Hebrew primaries for categories

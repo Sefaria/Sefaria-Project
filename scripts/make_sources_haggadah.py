@@ -3,9 +3,8 @@
 Creates Haggadah source sheets with all earlier texts.
 """
 from sefaria.model import *
-from sefaria.sheets import db, make_sheet_from_text
 from sefaria.profiling import prof
-
+from sefaria.sheets import db, make_sheet_from_text
 
 categories = [
     "Talmud",

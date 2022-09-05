@@ -2,14 +2,16 @@
 #!/usr/bin/python2.6
 
 import django
+
 django.setup()
-import sys
-import os
-import csv
-from datetime import datetime
-from copy import deepcopy
 import argparse
+import csv
 import glob
+import os
+import sys
+from copy import deepcopy
+from datetime import datetime
+
 import sefaria.model as model
 from sefaria.system.database import db
 

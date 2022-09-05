@@ -1,6 +1,7 @@
 from sefaria.model import *
 from sefaria.recommendation_engine import RecommendationEngine
 
+
 class TestClustering:
 
     def test_simple(self):

@@ -6,12 +6,14 @@ With not arguments, cycles through all Indexes
 """
 
 
-import regex as re
 import pprint
 import sys
 
-from sefaria.model import *
+import regex as re
+
 import sefaria.model.dependencies
+from sefaria.model import *
+
 pp = pprint.PrettyPrinter(indent=4)
 
 

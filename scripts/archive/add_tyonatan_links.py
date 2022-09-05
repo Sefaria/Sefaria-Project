@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
 
-import sys
 import os
+import sys
+
 p = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, p)
 sys.path.insert(0, p + "/sefaria")
 
 import pymongo
 
-from sefaria.texts import get_text, generate_refs_list
 from sefaria.settings import *
+from sefaria.texts import generate_refs_list, get_text
 
 connection = pymongo.Connection()
 db = connection[SEFARIA_DB]

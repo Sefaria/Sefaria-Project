@@ -1,8 +1,8 @@
 # encoding=utf-8
 
 
-from sefaria.model import *
 from sefaria.helper.schema import change_node_title
+from sefaria.model import *
 
 
 def get_all_node_titles(index):

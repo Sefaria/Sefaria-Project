@@ -1,15 +1,22 @@
-import django, csv, json, re
-from typing import List, Optional, Union, Tuple
+import csv
+import json
+import re
+from typing import List, Optional, Tuple, Union
+
+import django
+
 django.setup()
-from lxml import etree
+from collections import defaultdict
 from io import StringIO
+
+from lxml import etree
 from lxml.etree import XMLSyntaxError
 from tqdm import tqdm
-from collections import defaultdict
-from sefaria.model import *
-from sefaria.system.exceptions import InputError, DuplicateRecordError
-from sefaria.model.ref_part import ResolvedRef, RefPartType
+
 from sefaria.helper.normalization import NormalizerComposer
+from sefaria.model import *
+from sefaria.model.ref_part import RefPartType, ResolvedRef
+from sefaria.system.exceptions import DuplicateRecordError, InputError
 
 VTITLE = 'The Jerusalem Talmud, translation and commentary by Heinrich W. Guggenheimer. Berlin, De Gruyter, 1999-2015'
 

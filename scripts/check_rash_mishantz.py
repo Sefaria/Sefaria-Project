@@ -1,7 +1,6 @@
 from sefaria.model import *
 from sefaria.system.exceptions import BookNameError
 
-
 if __name__ == "__main__":
     def func(title):
         try:

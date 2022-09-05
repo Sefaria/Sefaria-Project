@@ -5,11 +5,12 @@
 
 
 import django
+
 django.setup()
 
 from sefaria.model import *
-from sefaria.system.database import db
 from sefaria.sheets import bleach_text
+from sefaria.system.database import db
 
 sheets = db.sheets.find()
 

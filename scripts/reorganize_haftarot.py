@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 import django
+
 django.setup()
 import argparse
+
 import sefaria.model as model
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
-
 
 try:
     import xml.etree.cElementTree as ET

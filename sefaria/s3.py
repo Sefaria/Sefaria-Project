@@ -1,9 +1,9 @@
-import boto3
-import uuid
-import os
 import datetime
+import os
+import uuid
 from tempfile import NamedTemporaryFile
 
+import boto3
 
 from sefaria.settings import AWS_ACCESS_KEY, AWS_SECRET_KEY, S3_BUCKET
 from sefaria.system.database import db

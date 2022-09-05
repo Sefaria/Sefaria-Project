@@ -1,6 +1,7 @@
 # encoding = utf-8
 
 import re
+
 from sefaria.model import *
 
 index_list = []

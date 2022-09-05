@@ -1,19 +1,24 @@
 # -*- coding: utf-8 -*-
 import django
+
 django.setup()
 
 
-import re
-import os, errno
+import errno
+import os
 import os.path
-import requests
+import re
 import unicodedata
+
+import requests
+
 try:
     import xml.etree.cElementTree as ET
 except ImportError:
     import xml.etree.ElementTree as ET
 
 from sefaria.model import *
+
 
 class WLCStrongParser(object):
     data_dir = 'data/tmp/hebmorphwlc'

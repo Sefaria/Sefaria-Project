@@ -1,50 +1,47 @@
 # -*- coding: utf-8 -*-
 import json
-import httplib2
-from urllib3.exceptions import NewConnectionError
-from urllib.parse import unquote
-from elasticsearch.exceptions import AuthorizationException
 from datetime import datetime
-from io import StringIO, BytesIO
-from django.contrib.admin.views.decorators import staff_member_required
+from io import BytesIO, StringIO
+from urllib.parse import unquote
 
+import httplib2
 import structlog
+from django.contrib.admin.views.decorators import staff_member_required
+from elasticsearch.exceptions import AuthorizationException
+from urllib3.exceptions import NewConnectionError
+
 logger = structlog.get_logger(__name__)
 
-from django.template.loader import render_to_string
-from django.shortcuts import render, redirect
-from django.http import Http404
-
-from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_protect
+from bs4 import BeautifulSoup
 from django.contrib.auth.decorators import login_required
-
 # noinspection PyUnresolvedReferences
 from django.contrib.auth.models import User
-from rest_framework.decorators import api_view
-
+from django.http import Http404
+from django.shortcuts import redirect, render
+from django.template.loader import render_to_string
+from django.views.decorators.csrf import (csrf_exempt, csrf_protect,
+                                          ensure_csrf_cookie)
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload
-from sefaria.google_storage_manager import GoogleStorageManager
-
-from sefaria.client.util import jsonResponse, HttpResponse
-from sefaria.model import *
-from sefaria.sheets import *
-from sefaria.model.user_profile import *
-from sefaria.model.notification import process_sheet_deletion_in_notifications
-from sefaria.model.collection import Collection, CollectionSet, process_sheet_deletion_in_collections
-from sefaria.system.decorators import catch_error_as_json
-from sefaria.utils.util import strip_tags
-
-from reader.views import render_template, catchall
-from sefaria.sheets import clean_source, bleach_text
-from bs4 import BeautifulSoup
+from rest_framework.decorators import api_view
 
 # sefaria.model.dependencies makes sure that model listeners are loaded.
 # noinspection PyUnresolvedReferences
 import sefaria.model.dependencies
-
-
+from reader.views import catchall, render_template
+from sefaria.client.util import HttpResponse, jsonResponse
 from sefaria.gauth.decorators import gauth_required
+from sefaria.google_storage_manager import GoogleStorageManager
+from sefaria.model import *
+from sefaria.model.collection import (Collection, CollectionSet,
+                                      process_sheet_deletion_in_collections)
+from sefaria.model.notification import process_sheet_deletion_in_notifications
+from sefaria.model.user_profile import *
+from sefaria.sheets import *
+from sefaria.sheets import bleach_text, clean_source
+from sefaria.system.decorators import catch_error_as_json
+from sefaria.utils.util import strip_tags
+
 
 def annotate_user_links(sources):
     """
@@ -1140,11 +1137,12 @@ def upload_sheet_media(request):
     if not request.user.is_authenticated:
         return jsonResponse({"error": _("You must be logged in to access this api.")})
     if request.method == "POST":
-        from PIL import Image
-        from io import BytesIO
-        import uuid
         import base64
         import imghdr
+        import uuid
+        from io import BytesIO
+
+        from PIL import Image
 
         bucket_name = GoogleStorageManager.UGC_SHEET_BUCKET
         max_img_size = [1024, 1024]
@@ -1170,7 +1168,8 @@ def upload_sheet_media(request):
 @staff_member_required
 @api_view(["PUT"])
 def next_untagged(request):
-    from sefaria.sheets import update_sheet_tags_categories, get_sheet_categorization_info
+    from sefaria.sheets import (get_sheet_categorization_info,
+                                update_sheet_tags_categories)
     body_unicode = request.body.decode('utf-8')
     body = json.loads(body_unicode)
     if("sheetId" in body):
@@ -1181,7 +1180,8 @@ def next_untagged(request):
 @staff_member_required
 @api_view(["PUT"])
 def next_uncategorized(request):
-    from sefaria.sheets import update_sheet_tags_categories, get_sheet_categorization_info
+    from sefaria.sheets import (get_sheet_categorization_info,
+                                update_sheet_tags_categories)
     body_unicode = request.body.decode('utf-8')
     body = json.loads(body_unicode)
     if("sheetId" in body):

@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
-from PIL import Image
 from io import BytesIO
-import requests
 
+import requests
 import structlog
+from PIL import Image
+
 logger = structlog.get_logger(__name__)
 
 

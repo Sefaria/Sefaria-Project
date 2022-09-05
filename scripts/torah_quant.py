@@ -2,8 +2,8 @@
 import csv
 
 from sefaria.model import *
-from sefaria.utils.hebrew import gematria
 from sefaria.settings import STATICFILES_DIRS
+from sefaria.utils.hebrew import gematria
 
 torah = IndexSet({"categories": "Torah"})
 parshiot = []

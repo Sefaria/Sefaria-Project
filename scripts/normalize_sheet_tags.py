@@ -2,17 +2,17 @@
 """
 Normalizes backlog of source sheet tags so that there are no dupes.
 """
-import sys
 import os
 import re
+import sys
 from collections import defaultdict
 
 path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, path)
 sys.path.insert(0, path + "/sefaria")
 
-from sefaria.utils.util import titlecase
 from sefaria.system.database import db
+from sefaria.utils.util import titlecase
 
 
 def normalize_tags(query={}, test=True):

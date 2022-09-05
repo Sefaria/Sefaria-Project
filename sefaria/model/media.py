@@ -1,15 +1,17 @@
 # coding=utf-8
-from urllib.parse import urlparse
-import regex as re
-from datetime import datetime
 from collections import defaultdict
+from datetime import datetime
+from urllib.parse import urlparse
+
+import regex as re
+import structlog
+
+from sefaria.model.text import Ref
+from sefaria.system.database import db
 
 from . import abstract as abst
 from . import text
-from sefaria.system.database import db
-from sefaria.model.text import Ref
 
-import structlog
 logger = structlog.get_logger(__name__)
 
 

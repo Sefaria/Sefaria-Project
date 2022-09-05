@@ -1,21 +1,24 @@
 # encoding=utf-8
+import pprint
 import re
-
-from sefaria.model import *
-from sefaria.system.database import db
-from sefaria.datatype.jagged_array import JaggedTextArray
-from diff_match_patch import diff_match_patch
 from functools import reduce
-from sefaria.system.exceptions import InputError
 
 import regex as re
-import pprint
+from diff_match_patch import diff_match_patch
+
+from sefaria.datatype.jagged_array import JaggedTextArray
+from sefaria.model import *
+from sefaria.system.database import db
+from sefaria.system.exceptions import InputError
+
 try:
     import xml.etree.cElementTree as ET
 except ImportError:
     import xml.etree.ElementTree as ET
+
 from sefaria.model import *
 from sefaria.utils.hebrew import is_hebrew
+
 
 def add_spelling(category, old, new, lang="en"):
     """
@@ -360,6 +363,7 @@ def make_versions_csv():
 def get_core_link_stats():
     import csv
     import io
+
     from sefaria.model.link import get_category_category_linkset
     output = io.BytesIO()
     writer = csv.writer(output)
@@ -550,6 +554,7 @@ def word_frequency_for_text(title, lang="en"):
     """
     import string
     from collections import defaultdict
+
     from sefaria.export import make_text, prepare_merged_text_for_export
     from sefaria.utils.util import strip_tags 
     text = make_text(prepare_merged_text_for_export(title, lang=lang))

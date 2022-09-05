@@ -1,8 +1,11 @@
-import spacy
-from sefaria.model.ref_part import ResolvedRef, AmbiguousResolvedRef, TermContext, RefPartType
-from sefaria.model import text
-from typing import List, Union, Optional
 from collections import defaultdict
+from typing import List, Optional, Union
+
+import spacy
+
+from sefaria.model import text
+from sefaria.model.ref_part import (AmbiguousResolvedRef, RefPartType,
+                                    ResolvedRef, TermContext)
 
 
 def make_html(bulk_resolved_list: List[List[List[Union[ResolvedRef, AmbiguousResolvedRef]]]], texts: List[List[str]], output_filename, lang='he'):
@@ -218,10 +221,13 @@ def make_ref_response_for_linker(oref: text.Ref, with_text=False) -> dict:
 
 
 def load_spacy_model(path: str) -> spacy.Language:
-    import re, tarfile
+    import re
+    import tarfile
     from tempfile import TemporaryDirectory
+
     from sefaria.google_storage_manager import GoogleStorageManager
-    from sefaria.spacy_function_registry import inner_punct_tokenizer_factory  # this looks unused, but spacy.load() expects this function to be in scope
+    from sefaria.spacy_function_registry import \
+        inner_punct_tokenizer_factory  # this looks unused, but spacy.load() expects this function to be in scope
 
     spacy.prefer_gpu()
     if path.startswith("gs://"):

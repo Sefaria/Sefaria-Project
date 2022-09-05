@@ -1,10 +1,12 @@
 
 import geojson
-from . import abstract as abst
-from . import schema
+import structlog
+
 from sefaria.system.exceptions import InputError
 
-import structlog
+from . import abstract as abst
+from . import schema
+
 logger = structlog.get_logger(__name__)
 
 class Place(abst.AbstractMongoRecord):

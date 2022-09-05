@@ -1,21 +1,23 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/python2.6
 
-import sys
-import pymongo
 import csv
 import os
+import sys
+
+import pymongo
+
 os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 
 from datetime import datetime
+
 path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, path)
 sys.path.insert(0, path + "/sefaria")
 
 from django.contrib.auth.models import User
-
-from settings import *
 from history import make_leaderboard_condition
+from settings import *
 
 connection = pymongo.Connection()
 db = connection[SEFARIA_DB]

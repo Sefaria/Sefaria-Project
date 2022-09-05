@@ -3,18 +3,22 @@ arg[1]: id to start at
 """
 
 import django
-django.setup()
-from sefaria.utils.util import epoch_time
-from sefaria.helper.file import get_resized_file
-import urllib.parse, urllib.request, urllib.error
-from PIL import Image
-import hashlib
-from sefaria.google_storage_manager import GoogleStorageManager
-from sefaria.system.database import db
-from sefaria.model.user_profile import UserProfile
-from google.cloud.exceptions import GoogleCloudError
-import sys
 
+django.setup()
+import hashlib
+import sys
+import urllib.error
+import urllib.parse
+import urllib.request
+
+from google.cloud.exceptions import GoogleCloudError
+from PIL import Image
+
+from sefaria.google_storage_manager import GoogleStorageManager
+from sefaria.helper.file import get_resized_file
+from sefaria.model.user_profile import UserProfile
+from sefaria.system.database import db
+from sefaria.utils.util import epoch_time
 
 count = 0
 try:

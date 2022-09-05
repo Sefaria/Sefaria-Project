@@ -1,11 +1,13 @@
 import django
+
 django.setup()
 
-from sefaria.settings import MULTISERVER_ENABLED
+import structlog
 
+from sefaria.settings import MULTISERVER_ENABLED
 from sefaria.system.multiserver.monitor import MultiServerMonitor
 from sefaria.system.scheduler.scheduler import run_background_scheduler
-import structlog
+
 logger = structlog.get_logger(__name__)
 
 

@@ -1,19 +1,23 @@
 # -*- coding: utf-8 -*-
 
 import argparse
-import sys
-import json
 import csv
-import re
-import os, errno
+import errno
+import json
+import os
 import os.path
+import re
+import sys
+
 import requests
+
 try:
     import xml.etree.cElementTree as ET
 except ImportError:
     import xml.etree.ElementTree as ET
 
 from sefaria.model import *
+
 
 class WLCStrongParser(object):
     data_dir = 'data/tmp/hebmorphwlc'

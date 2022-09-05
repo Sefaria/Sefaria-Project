@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
-import sefaria.datatype.jagged_array as ja
 import pytest
+
+import sefaria.datatype.jagged_array as ja
 
 
 def setup_module(module):

@@ -3,11 +3,14 @@
 __package__ = "reader.browsertest"
 
 import django
+
 django.setup()
 
-from .framework import Trial
-from . import basic_tests    # This is in fact needed - to register subclasses Trial, etc.
 import sys
+
+from . import \
+    basic_tests  # This is in fact needed - to register subclasses Trial, etc.
+from .framework import Trial
 
 build = sys.argv[1]
 

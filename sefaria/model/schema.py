@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 import copy
+from functools import reduce
 
 import structlog
-from functools import reduce
+
 logger = structlog.get_logger(__name__)
 
 try:
@@ -13,12 +14,19 @@ except ImportError:
     import re
 
 import regex
-from . import abstract as abst
-from sefaria.system.database import db
+
 from sefaria.model.lexicon import LexiconEntrySet
-from sefaria.system.exceptions import InputError, IndexSchemaError, DictionaryEntryNotFoundError, SheetNotFoundError
-from sefaria.utils.hebrew import decode_hebrew_numeral, encode_small_hebrew_numeral, encode_hebrew_numeral, encode_hebrew_daf, hebrew_term, sanitize
+from sefaria.system.database import db
+from sefaria.system.exceptions import (DictionaryEntryNotFoundError,
+                                       IndexSchemaError, InputError,
+                                       SheetNotFoundError)
+from sefaria.utils.hebrew import (decode_hebrew_numeral, encode_hebrew_daf,
+                                  encode_hebrew_numeral,
+                                  encode_small_hebrew_numeral, hebrew_term,
+                                  sanitize)
 from sefaria.utils.talmud import daf_to_section
+
+from . import abstract as abst
 
 """
                 -----------------------------------------
@@ -1173,8 +1181,9 @@ class ArrayMapNode(NumberedTitledTreeNode):
 
     # Move this over to Ref and cache it?
     def expand_ref(self, tref, he_text_ja = None, en_text_ja = None):
-        from . import text
         from sefaria.utils.util import text_preview
+
+        from . import text
 
         oref = text.Ref(tref)
         if oref.is_spanning():
@@ -1390,8 +1399,7 @@ class SchemaNode(TitledTreeNode):
         if self.children:
             return self.ref()
 
-        from . import version_state
-        from . import text
+        from . import text, version_state
 
         sn = version_state.StateNode(snode=self)
         sections = [i + 1 for i in sn.ja("all").last_index(self.depth - 1)]
@@ -1715,7 +1723,7 @@ class DictionaryNode(VirtualNode):
         """
         super(DictionaryNode, self).__init__(serial, **kwargs)
 
-        from .lexicon import LexiconEntrySubClassMapping, Lexicon
+        from .lexicon import Lexicon, LexiconEntrySubClassMapping
 
         self.lexicon = Lexicon().load({"name": self.lexiconName})
 

@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from sefaria.model import *
 import json
 import pprint
+
+from sefaria.model import *
 
 pset = {}
 

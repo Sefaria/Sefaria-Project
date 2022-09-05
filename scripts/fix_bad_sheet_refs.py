@@ -2,9 +2,11 @@
 
 import os
 import re
-import sys
 import sqlite3
+import sys
+
 import django
+
 django.setup()
 from sefaria.model import *
 from sefaria.system.database import db

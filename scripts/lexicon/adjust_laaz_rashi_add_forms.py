@@ -2,11 +2,12 @@
 
 import argparse
 import re
-import unicodecsv as csv
-from fuzzywuzzy import process, fuzz
-from fuzzywuzzy import utils as fuzzyutils
-from sefaria.model import *
 
+import unicodecsv as csv
+from fuzzywuzzy import fuzz, process
+from fuzzywuzzy import utils as fuzzyutils
+
+from sefaria.model import *
 
 with open("data/tmp/laaz-rashi-adjust.csv", 'wb+') as outfile:
     result_csv = csv.reader(outfile, delimiter='@')

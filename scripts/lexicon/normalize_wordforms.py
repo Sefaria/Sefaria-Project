@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 
 import unicodedata
+
 import django
+
 django.setup()
 
 from sefaria.model import *
-
 
 print("Normalizing Word Forms")
 

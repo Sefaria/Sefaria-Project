@@ -1,9 +1,10 @@
 # coding=utf-8
+import re
+
 import pytest
 
 from sefaria.model import *
 from sefaria.system.exceptions import InputError
-import re
 from sefaria.utils.util import list_depth
 
 

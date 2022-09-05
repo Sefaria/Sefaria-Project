@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 
-import sys
-import urllib.request, urllib.parse, urllib.error
-import urllib.request, urllib.error, urllib.parse
-from urllib.error import URLError, HTTPError
 import json
+import sys
+import urllib.error
+import urllib.parse
+import urllib.request
+from urllib.error import HTTPError, URLError
 
 sys.path.append("C:\\Users\\Izzy\\git\\Sefaria-Project")
 from sefaria.model import *

@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
-import sys
 import os
+import sys
+
 import unicodecsv as csv
 
 from sefaria.model import UserProfile
 from sefaria.sheets import sheet_list
 from sefaria.system.database import db
 from sefaria.utils.util import strip_tags
-
 
 with open("data/private/nationbuilder-people-export-2017-09-01-1120.csv", 'r') as csv_in:
   reader = csv.reader(csv_in)

@@ -1,10 +1,12 @@
 import math
 
-from . import abstract as abst
-from . import text
+import structlog
+
 from sefaria.system.exceptions import InputError
 
-import structlog
+from . import abstract as abst
+from . import text
+
 logger = structlog.get_logger(__name__)
 
 

@@ -1,6 +1,6 @@
 import sefaria.model as model
-from sefaria.system.database import db
 from sefaria.clean import remove_old_counts
+from sefaria.system.database import db
 
 # Move the history books
 

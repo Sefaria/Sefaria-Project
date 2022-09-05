@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
-from datetime import datetime, timedelta
 from collections import defaultdict
+from datetime import datetime, timedelta
 
 from sefaria.history import make_leaderboard
 from sefaria.system.database import db
+
 
 def update_top_contributors(days=None):
     """

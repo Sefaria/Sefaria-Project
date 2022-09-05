@@ -1,4 +1,6 @@
 from cauldron_links import *
+
+
 def load_text(title, path):
     if os.path.exists(path):
         return json.load(open(path, 'r'))

@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 
 import django
+
 django.setup()
 import pytest
-from sefaria.system.exceptions import InputError
 
 import sefaria.model as m
+from sefaria.system.exceptions import InputError
 
 #todo: simplify this file
 

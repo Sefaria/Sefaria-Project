@@ -1,6 +1,6 @@
-import sys
-import os
 import csv
+import os
+import sys
 
 from django.contrib.auth.models import User
 

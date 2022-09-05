@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
+from sefaria.clean import remove_old_counts
 from sefaria.model import *
 from sefaria.system.database import db
-from sefaria.clean import remove_old_counts
 
 #Clear out counts
 remove_old_counts()

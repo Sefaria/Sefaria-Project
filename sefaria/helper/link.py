@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 
 import structlog
+
 logger = structlog.get_logger(__name__)
 
+import sefaria.tracker as tracker
 from sefaria.model import *
 from sefaria.system.exceptions import DuplicateRecordError, InputError
-import sefaria.tracker as tracker
+
 try:
     from sefaria.settings import USE_VARNISH
 except ImportError:

@@ -1,7 +1,9 @@
 # coding=utf-8
+import structlog
+
 from . import abstract as abst
 from . import text
-import structlog
+
 logger = structlog.get_logger(__name__)
 
 

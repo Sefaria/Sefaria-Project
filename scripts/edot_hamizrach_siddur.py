@@ -1,5 +1,6 @@
-from sefaria.model import *
 from sefaria.helper.schema import *
+from sefaria.model import *
+
 if __name__ == "__main__":
     print("Removing duplicate Incense OFfering")
     index = library.get_index("Siddur Edot HaMizrach")

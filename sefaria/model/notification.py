@@ -5,20 +5,21 @@ notifications.py - handle user event notifications
 
 Writes to MongoDB Collection: notifications
 """
+import json
 import re
 from datetime import datetime
-import json
 
+import structlog
 from django.template.loader import render_to_string
+
+from sefaria.model.collection import Collection
+from sefaria.system.database import db
+from sefaria.system.exceptions import InputError
+from sefaria.utils.util import strip_tags
 
 from . import abstract as abst
 from . import user_profile
-from sefaria.model.collection import Collection
-from sefaria.utils.util import strip_tags
-from sefaria.system.database import db
-from sefaria.system.exceptions import InputError
 
-import structlog
 logger = structlog.get_logger(__name__)
 
 
@@ -60,7 +61,7 @@ class GlobalNotification(abst.AbstractMongoRecord):
             self.content["index"] = i.title
 
     def _validate(self):
-        from sefaria.model.text import library, Version
+        from sefaria.model.text import Version, library
         if self.type == "index":
             assert self.content.get("index")
             assert library.get_index(self.content.get("index"))

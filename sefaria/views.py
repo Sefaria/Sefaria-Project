@@ -1,81 +1,88 @@
 # -*- coding: utf-8 -*-
 import io
-import os
-import zipfile
 import json
+import os
 import re
-import bleach
-from datetime import datetime, timedelta
-from urllib.parse import urlparse
+import zipfile
 from collections import defaultdict
+from datetime import datetime, timedelta
 from random import choice
-from webpack_loader import utils as webpack_utils
+from urllib.parse import urlparse
 
-from django.utils.translation import ugettext as _
+import bleach
 from django.conf import settings
-from django.http import HttpResponse, HttpResponseRedirect, Http404
-from django.shortcuts import render, redirect
+from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth import REDIRECT_FIELD_NAME, authenticate
+from django.contrib.auth import login as auth_login
+from django.contrib.auth import logout as auth_logout
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.contrib.sites.shortcuts import get_current_site
+from django.db import transaction
+from django.http import Http404, HttpResponse, HttpResponseRedirect
+from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
 from django.template.response import TemplateResponse
-from django.utils.http import is_safe_url
-from django.utils.cache import patch_cache_control
-from django.contrib.auth import authenticate
-from django.contrib.auth import REDIRECT_FIELD_NAME, login as auth_login, logout as auth_logout
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from django.contrib.auth.decorators import login_required
-from django.contrib.sites.shortcuts import get_current_site
-from django.contrib.admin.views.decorators import staff_member_required
-from django.db import transaction
-from django.views.decorators.debug import sensitive_post_parameters
-from django.views.decorators.cache import never_cache
-from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from django.urls import resolve
 from django.urls.exceptions import Resolver404
+from django.utils.cache import patch_cache_control
+from django.utils.http import is_safe_url
+from django.utils.translation import ugettext as _
+from django.views.decorators.cache import never_cache
+from django.views.decorators.csrf import csrf_exempt, csrf_protect
+from django.views.decorators.debug import sensitive_post_parameters
 from rest_framework.decorators import api_view
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from webpack_loader import utils as webpack_utils
 
 import sefaria.model as model
 import sefaria.system.cache as scache
-from sefaria.system.cache import in_memory_cache
-from sefaria.client.util import jsonResponse, subscribe_to_list, send_email
-from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI
-from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, relative_to_abs_path, RTC_SERVER
-from sefaria.model.user_profile import UserProfile, user_link
-from sefaria.model.collection import CollectionSet
-from sefaria.export import export_all as start_export_all
+from reader.views import base_props, render_template
+from sefaria.clean import remove_old_counts
+from sefaria.client.util import jsonResponse, send_email, subscribe_to_list
 from sefaria.datatype.jagged_array import JaggedTextArray
-# noinspection PyUnresolvedReferences
-from sefaria.system.exceptions import InputError
+from sefaria.export import export_all as start_export_all
+from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI
+from sefaria.google_storage_manager import GoogleStorageManager
+from sefaria.helper.nationbuilder import delete_from_nationbuilder_if_spam
+from sefaria.helper.text import (dual_text_diff, get_core_link_stats,
+                                 get_library_stats, make_versions_csv)
+from sefaria.model import *
+from sefaria.model.collection import CollectionSet
+from sefaria.model.user_profile import UserProfile, user_link
+from sefaria.model.webpage import *
+from sefaria.search import \
+    index_sheets_by_timestamp as search_index_sheets_by_timestamp
+from sefaria.settings import (MAINTENANCE_MESSAGE, MULTISERVER_ENABLED,
+                              RTC_SERVER, USE_VARNISH, relative_to_abs_path)
+from sefaria.sheets import get_sheet_categorization_info
+from sefaria.system.cache import in_memory_cache
 from sefaria.system.database import db
 from sefaria.system.decorators import catch_error_as_http
+# noinspection PyUnresolvedReferences
+from sefaria.system.exceptions import InputError
+from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.utils.hebrew import is_hebrew, strip_nikkud
 from sefaria.utils.util import strip_tags
-from sefaria.helper.text import make_versions_csv, get_library_stats, get_core_link_stats, dual_text_diff
-from sefaria.clean import remove_old_counts
-from sefaria.search import index_sheets_by_timestamp as search_index_sheets_by_timestamp
-from sefaria.model import *
-from sefaria.model.webpage import *
-from sefaria.system.multiserver.coordinator import server_coordinator
-from sefaria.google_storage_manager import GoogleStorageManager
-from sefaria.sheets import get_sheet_categorization_info
-from reader.views import base_props, render_template 
-from sefaria.helper.nationbuilder import delete_from_nationbuilder_if_spam
-
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_index, invalidate_title, invalidate_ref, invalidate_counts, invalidate_all
 
 import structlog
+
 logger = structlog.get_logger(__name__)
 
 
 def process_register_form(request, auth_method='session'):
-    from sefaria.utils.util import epoch_time
-    from sefaria.helper.file import get_resized_file
     import hashlib
-    import urllib.parse, urllib.request
+    import urllib.parse
+    import urllib.request
+
     from google.cloud.exceptions import GoogleCloudError
     from PIL import Image
+
+    from sefaria.helper.file import get_resized_file
+    from sefaria.utils.util import epoch_time
     form = SefariaNewUserForm(request.POST) if auth_method == 'session' else SefariaNewUserFormAPI(request.POST)
     token_dict = None
     if form.is_valid():
@@ -283,7 +290,7 @@ def linker_js(request, linker_version=None):
 
 @api_view(["POST"])
 def find_refs_api(request):
-    from sefaria.helper.ref_part import make_html, make_find_refs_response
+    from sefaria.helper.ref_part import make_find_refs_response, make_html
     from sefaria.utils.hebrew import is_hebrew
     with_text = bool(int(request.GET.get("with_text", False)))
     post = json.loads(request.body)
@@ -466,8 +473,10 @@ def passages_api(request, refs):
 
 @login_required
 def file_upload(request, resize_image=True):
-    from PIL import Image
     from tempfile import NamedTemporaryFile
+
+    from PIL import Image
+
     from sefaria.s3 import HostedFile
     if request.method == "POST":
         MAX_FILE_MB = 2
@@ -548,6 +557,7 @@ def reset_cached_api(request, apiurl):
     :return:
     """
     from undecorated import undecorated
+
     # from importlib import import_module
     try:
         match = resolve("/api/{}".format(apiurl))
@@ -695,8 +705,10 @@ def delete_citation_links(request, title):
 @staff_member_required
 def cache_stats(request):
     import resource
-    from sefaria.utils.util import get_size
+
     from sefaria.model.user_profile import public_user_data_cache
+    from sefaria.utils.util import get_size
+
     # from sefaria.sheets import last_updated
     resp = {
         'ref_cache_size': f'{model.Ref.cache_size():,}',
@@ -744,6 +756,7 @@ def cause_error(request):
 @staff_member_required
 def account_stats(request):
     from django.contrib.auth.models import User
+
     from sefaria.stats import account_creation_stats
 
     html = account_creation_stats()
@@ -1042,6 +1055,7 @@ def core_link_stats(request):
 def run_tests(request):
     # This was never fully developed, methinks
     from subprocess import call
+
     from .settings import DEBUG
     if not DEBUG:
         return
@@ -1110,7 +1124,10 @@ def bulk_download_versions_api(request):
 
 
 def _get_text_version_file(format, title, lang, versionTitle):
-    from sefaria.export import text_is_copyright, make_json, make_text, prepare_merged_text_for_export, prepare_text_for_export, export_merged_csv, export_version_csv
+    from sefaria.export import (export_merged_csv, export_version_csv,
+                                make_json, make_text,
+                                prepare_merged_text_for_export,
+                                prepare_text_for_export, text_is_copyright)
 
     assert lang in ["en", "he"]
     assert format in ["json", "csv", "txt", "plain.txt"]

@@ -2,10 +2,10 @@
 
 import argparse
 import re
-from sefaria.model import *
-from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
-from sefaria.system.exceptions import BookNameError
 
+from sefaria.datatype.jagged_array import JaggedArray, JaggedTextArray
+from sefaria.model import *
+from sefaria.system.exceptions import BookNameError
 
 all_versions = VersionSet()
 #all_library_nodes = library.get_content_nodes(with_commentary=True)

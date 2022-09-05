@@ -1,12 +1,12 @@
-import sys
 import os
-import pymongo
+import sys
 
-from sefaria.settings import *
-from sefaria.system.database import db
-from sefaria.model.user_profile import UserProfile
+import pymongo
 from django.contrib.auth.models import User
 
+from sefaria.model.user_profile import UserProfile
+from sefaria.settings import *
+from sefaria.system.database import db
 
 out = ""
 

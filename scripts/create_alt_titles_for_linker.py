@@ -1,7 +1,9 @@
 import django
+
 django.setup()
-from sefaria.model import *
 import csv
+
+from sefaria.model import *
 
 alt_titles_dict = {}
 alt_titles_dict["Shulchan Arukh, Orach Chayim"] = [

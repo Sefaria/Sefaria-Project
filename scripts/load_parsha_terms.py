@@ -4,7 +4,6 @@ import csv
 
 import sefaria.model as model
 
-
 cfile = "../tmp/parsha.csv"
 
 ts = model.TermScheme()

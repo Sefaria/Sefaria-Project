@@ -5,6 +5,7 @@ profiling.py - tools for profiling performance.
 import cProfile
 import pstats
 
+
 def prof(cmd):
 	"""
 	Runs cmd and prints the profile sorted by cumulative time.

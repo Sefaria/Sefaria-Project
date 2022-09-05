@@ -1,6 +1,7 @@
-import re
-from sefaria.model import *
 import collections
+import re
+
+from sefaria.model import *
 
 # For each book of Tanach
 tanach_books = library.get_indexes_in_category("Torah") + library.get_indexes_in_category("Prophets") + library.get_indexes_in_category("Writings")

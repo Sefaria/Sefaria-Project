@@ -3,9 +3,9 @@
 Give every user a profile URL based on their name
 """
 
-import sys
 import os
 import re
+import sys
 
 p = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, p)
@@ -14,6 +14,7 @@ os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 
 
 from django.contrib.auth.models import User
+
 from sefaria.model.user_profile import UserProfile
 from sefaria.system.database import db
 

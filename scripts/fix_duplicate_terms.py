@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 
-from sefaria.model import *
+from collections import defaultdict
+
 from bson.objectid import ObjectId
 
+from sefaria.model import *
 from sefaria.system.database import db
-from collections import defaultdict
 
 """duplicates = db.term.aggregate(
     [

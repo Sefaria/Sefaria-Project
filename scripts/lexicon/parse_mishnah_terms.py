@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
+import csv
+
 from sefaria.model import *
 from sefaria.utils.hebrew import is_hebrew
-
-import csv
 
 
 def create_word_form(form, lang, lookup):

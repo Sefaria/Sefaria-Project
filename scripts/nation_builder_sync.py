@@ -1,11 +1,18 @@
 import django
+
 django.setup()
 import sys
-from sefaria.system.database import db
-from sefaria.helper.nationbuilder import get_by_tag, nationbuilder_get_all, update_user_flags, get_everyone, nationbuilder_update_all_tags, get_nationbuilder_connection, update_person
-from sefaria.model.user_profile import UserProfile
+
+from scripts.sync_mongo_with_nationbuilder import (
+    add_nationbuilder_id_to_mongo, add_profiles_to_nationbuilder)
+from sefaria.helper.nationbuilder import (get_by_tag, get_everyone,
+                                          get_nationbuilder_connection,
+                                          nationbuilder_get_all,
+                                          nationbuilder_update_all_tags,
+                                          update_person, update_user_flags)
 from sefaria.model.trend import setAllTrends
-from scripts.sync_mongo_with_nationbuilder import add_profiles_to_nationbuilder, add_nationbuilder_id_to_mongo
+from sefaria.model.user_profile import UserProfile
+from sefaria.system.database import db
 
 """
 Mutiple "only" flags can be run at once. If none are run, everything will be run.

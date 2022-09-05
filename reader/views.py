@@ -1,74 +1,96 @@
 # -*- coding: utf-8 -*-
-from datetime import datetime, timedelta
-from elasticsearch_dsl import Search
-from elasticsearch import Elasticsearch
-from random import choice
 import json
-import urllib.request, urllib.parse, urllib.error
-from bson.json_util import dumps
-import socket
-import bleach
-from collections import OrderedDict
-import pytz
-from html import unescape
-import redis
 import os
 import re
+import socket
+import urllib.error
+import urllib.parse
+import urllib.request
 import uuid
+from collections import OrderedDict
+from datetime import datetime, timedelta
+from html import unescape
+from random import choice
 
+import bleach
+import pytz
+import redis
+from bson.json_util import dumps
+from bson.objectid import ObjectId
+from django import http
+from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.http import Http404, QueryDict
+from django.shortcuts import redirect, render
+from django.template.loader import render_to_string
+from django.utils import timezone
+from django.utils.encoding import iri_to_uri
+from django.utils.html import strip_tags
+from django.utils.translation import ugettext as _
+from django.views.decorators.csrf import (csrf_exempt, csrf_protect,
+                                          ensure_csrf_cookie,
+                                          requires_csrf_token)
+from elasticsearch import Elasticsearch
+from elasticsearch_dsl import Search
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
-from django.template.loader import render_to_string
-from django.shortcuts import render, redirect
-from django.http import Http404, QueryDict
-from django.contrib.auth.decorators import login_required
-from django.contrib.admin.views.decorators import staff_member_required
-from django.utils.encoding import iri_to_uri
-from django.utils.translation import ugettext as _
-from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_protect, requires_csrf_token
-from django.contrib.auth.models import User
-from django import http
-from django.utils import timezone
-from django.utils.html import strip_tags
-from bson.objectid import ObjectId
 
-from sefaria.model import *
-from sefaria.google_storage_manager import GoogleStorageManager
-from sefaria.model.user_profile import UserProfile, user_link, user_started_text, public_user_data
-from sefaria.model.collection import CollectionSet
-from sefaria.model.webpage import get_webpages_for_ref
-from sefaria.model.media import get_media_for_ref
-from sefaria.model.schema import SheetLibraryNode
-from sefaria.model.following import general_follow_recommendations
-from sefaria.model.trend import user_stats_data, site_stats_data
-from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
+import sefaria.tracker as tracker
 from sefaria.client.util import jsonResponse
-from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, text_at_revision, record_version_deletion, record_index_deletion
-from sefaria.sheets import get_sheets_for_ref, get_sheet_for_panel, annotate_user_links, trending_topics
-from sefaria.utils.util import text_preview
-from sefaria.utils.hebrew import hebrew_term, is_hebrew
-from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha, get_todays_parasha
-from sefaria.utils.util import short_to_long_lang_code
-from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, SEARCH_ADMIN, RTC_SERVER, MULTISERVER_REDIS_SERVER, \
-    MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, DISABLE_AUTOCOMPLETER, ENABLE_LINKER
-from sefaria.site.site_settings import SITE_SETTINGS
-from sefaria.system.multiserver.coordinator import server_coordinator
-from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
-from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DictionaryEntryNotFoundError
-from sefaria.system.cache import django_cache
-from sefaria.system.database import db
-from sefaria.helper.search import get_query_obj
-from sefaria.search import get_search_categories
-from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, get_topics_for_book
+from sefaria.client.wrapper import (format_note_object_for_client,
+                                    format_object_for_client, get_links,
+                                    get_notes)
+from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.helper.community_page import get_community_page_items
 from sefaria.helper.file import get_resized_file
+from sefaria.helper.search import get_query_obj
+from sefaria.helper.topic import (get_all_topics, get_topic,
+                                  get_topics_for_book, get_topics_for_ref)
+from sefaria.history import (get_maximal_collapsed_activity,
+                             record_index_deletion, record_version_deletion,
+                             text_at_revision, text_history, top_contributors)
 from sefaria.image_generator import make_img_http_response
-import sefaria.tracker as tracker
+from sefaria.model import *
+from sefaria.model.collection import CollectionSet
+from sefaria.model.following import general_follow_recommendations
+from sefaria.model.media import get_media_for_ref
+from sefaria.model.schema import SheetLibraryNode
+from sefaria.model.trend import site_stats_data, user_stats_data
+from sefaria.model.user_profile import (UserProfile, public_user_data,
+                                        user_link, user_started_text)
+from sefaria.model.webpage import get_webpages_for_ref
+from sefaria.search import get_search_categories
+from sefaria.settings import (DISABLE_AUTOCOMPLETER, DOMAIN_LANGUAGES,
+                              ENABLE_LINKER, MULTISERVER_ENABLED,
+                              MULTISERVER_REDIS_DB, MULTISERVER_REDIS_PORT,
+                              MULTISERVER_REDIS_SERVER, NODE_HOST, RTC_SERVER,
+                              SEARCH_ADMIN, STATIC_URL, USE_NODE, USE_VARNISH)
+from sefaria.sheets import (annotate_user_links, get_sheet_for_panel,
+                            get_sheets_for_ref, trending_topics)
+from sefaria.site.site_settings import SITE_SETTINGS
+from sefaria.system.cache import django_cache
+from sefaria.system.database import db
+from sefaria.system.decorators import (catch_error_as_json,
+                                       json_response_decorator,
+                                       sanitize_get_params)
+from sefaria.system.exceptions import (BookNameError,
+                                       DictionaryEntryNotFoundError,
+                                       InputError, NoVersionFoundError,
+                                       PartialRefInputError)
+from sefaria.system.multiserver.coordinator import server_coordinator
+from sefaria.utils.calendars import (get_all_calendar_items,
+                                     get_keyed_calendar_items, get_parasha,
+                                     get_todays_calendar_items,
+                                     get_todays_parasha)
+from sefaria.utils.hebrew import hebrew_term, is_hebrew
+from sefaria.utils.util import short_to_long_lang_code, text_preview
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_ref, invalidate_linked
 
 import structlog
+
 logger = structlog.get_logger(__name__)
 
 #    #    #
@@ -175,8 +197,8 @@ def base_props(request):
     AND are able to be sent over the wire to the Node SSR server.
     """
     from sefaria.model.user_profile import UserProfile, UserWrapper
-    from sefaria.site.site_settings import SITE_SETTINGS
     from sefaria.settings import DEBUG, GLOBAL_INTERRUPTING_MESSAGE, RTC_SERVER
+    from sefaria.site.site_settings import SITE_SETTINGS
 
     if hasattr(request, "init_shared_cache"):
         logger.warning("Shared cache disappeared while application was running")
@@ -3707,8 +3729,10 @@ def profile_upload_photo(request):
     if not request.user.is_authenticated:
         return jsonResponse({"error": _("You must be logged in to update your profile photo.")})
     if request.method == "POST":
-        from PIL import Image
         from io import BytesIO
+
+        from PIL import Image
+
         from sefaria.utils.util import epoch_time
         now = epoch_time()
 
@@ -3823,8 +3847,9 @@ def profile_sync_api(request):
 @permission_classes([IsAuthenticated])
 def delete_user_account_api(request):
     # Deletes the user and emails sefaria staff for followup
-    from sefaria.utils.user import delete_user_account
     from django.core.mail import EmailMultiAlternatives
+
+    from sefaria.utils.user import delete_user_account
 
     if not request.user.is_authenticated:
         return jsonResponse({"error": _("You must be logged in to delete your account.")})

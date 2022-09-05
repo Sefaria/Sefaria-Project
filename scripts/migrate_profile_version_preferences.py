@@ -1,8 +1,11 @@
 import django
+
 django.setup()
 from collections import defaultdict
-from sefaria.system.database import db
+
 from pymongo import UpdateOne
+
+from sefaria.system.database import db
 
 if __name__ == '__main__':
     updates = []

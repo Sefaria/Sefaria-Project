@@ -1,11 +1,18 @@
+import csv
+import json
+import re
 from typing import Optional
-import django, re, csv, json
+
+import django
 from tqdm import tqdm
+
 django.setup()
-from sefaria.model import *
-from sefaria.system.exceptions import InputError
-from sefaria.model.person import Person, PersonSet, PersonRelationship, PersonRelationshipSet
 from collections import defaultdict
+
+from sefaria.model import *
+from sefaria.model.person import (Person, PersonRelationship,
+                                  PersonRelationshipSet, PersonSet)
+from sefaria.system.exceptions import InputError
 
 # BASE_PATH = "/Users/nss/Downloads"
 # BASE_PATH = "/home/nss/Downloads"
@@ -469,6 +476,7 @@ def percent_refs_translated(percent):
     
 def get_wikidata_entries():
     import time
+
     import requests
     good_guys = [t.alt_ids['wikidata'] for t in TopicSet({"alt_ids.wikidata": {"$exists": True}})]
     out = {"entities": {}}

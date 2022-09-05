@@ -1,11 +1,18 @@
-import django, csv, json, re
+import csv
+import json
+import re
+
+import django
+
 django.setup()
-from tqdm import tqdm
-from pymongo import InsertOne
-from sefaria.model import *
 from collections import defaultdict
-from sefaria.system.database import db
+
+from pymongo import InsertOne
+from tqdm import tqdm
+
+from sefaria.model import *
 from sefaria.model.abstract import SluggedAbstractMongoRecord
+from sefaria.system.database import db
 
 # RESEARCH_NAMED_ENTITY_LOC = "/home/nss/sefaria/data/research/knowledge_graph/named_entity_recognition"
 # DATASETS_NAMED_ENTITY_LOC = "/home/nss/sefaria/datasets/ner/sefaria"

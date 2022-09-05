@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 
-from sefaria.model import *
-import sefaria.tracker as tracker
-from sefaria.system.exceptions import DuplicateRecordError
+import re
 
 import unicodecsv as csv
-import re
+
+import sefaria.tracker as tracker
+from sefaria.model import *
+from sefaria.system.exceptions import DuplicateRecordError
 
 filename = '../data/Mishnah Map.csv'
 

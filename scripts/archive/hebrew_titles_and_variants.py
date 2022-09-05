@@ -6,17 +6,18 @@ For mishna that does not have a Gemara as well, add the simple name to heTitleVa
  
 """
 
-import sys
 import os
 import re
+import sys
 from pprint import pprint
+
 import pymongo
 
 p = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, p)
 sys.path.insert(0, p + "/sefaria")
-from sefaria.texts import *
 from sefaria.summaries import update_table_of_contents
+from sefaria.texts import *
 
 connection = pymongo.Connection()
 db = connection[SEFARIA_DB]

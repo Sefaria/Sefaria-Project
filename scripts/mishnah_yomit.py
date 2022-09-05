@@ -1,5 +1,6 @@
 #encoding=utf-8
 import django
+
 django.setup()
 from sefaria.model import *
 
@@ -52,6 +53,7 @@ for i, index in enumerate(indices):
 #delete old categories
 library.rebuild(include_toc=True)
 from sefaria.model.category import TocCategory
+
 c = Category().load({"path": ["Modern Works", "Mishnah Yomit"]})
 for toc_obj in c.get_toc_object().all_children():
     if isinstance(toc_obj, TocCategory):

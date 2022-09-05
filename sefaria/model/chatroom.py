@@ -5,6 +5,7 @@ Writes to MongoDB Collection: chatrooms
 
 from . import abstract as abst
 
+
 class Chatroom(abst.AbstractMongoRecord):
     """
     chats in Chavruta/Beit Midrash

@@ -1,8 +1,10 @@
 
 import django
+
 django.setup()
 import csv
 import json
+
 from sefaria.helper.nationbuilder import get_nationbuilder_connection
 
 session = get_nationbuilder_connection()

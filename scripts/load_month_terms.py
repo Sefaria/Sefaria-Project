@@ -2,7 +2,6 @@
 
 from sefaria import model
 
-
 months = ['Tishrei', 'Cheshvan', 'Kislev', 'Tevet', 'Shevat', 'Adar', 'Nisan', 'Iyar',
           'Sivan', 'Tammuz', 'Av', 'Elul']
 

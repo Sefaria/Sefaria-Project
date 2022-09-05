@@ -2,10 +2,12 @@
 
 import argparse
 import re
+
+from sefaria.datatype.jagged_array import JaggedArray, JaggedTextArray
 from sefaria.model import *
-from sefaria.utils.hebrew import decompose_presentation_forms_in_str, decompose_presentation_forms
-from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
 from sefaria.system.exceptions import BookNameError
+from sefaria.utils.hebrew import (decompose_presentation_forms,
+                                  decompose_presentation_forms_in_str)
 
 vs = VersionSet({'versionTitle': "Pentateuch with Rashi's commentary by M. Rosenbaum and A.M. Silbermann", 'language': "he"})
 assert vs.count() == 5

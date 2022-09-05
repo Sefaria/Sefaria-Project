@@ -1,5 +1,6 @@
 from sefaria.model import *
 
+
 def make_commentary2(commentator):
     indices = IndexSet({"title": {"$regex": "^%s on " % commentator}})
     for i in indices:

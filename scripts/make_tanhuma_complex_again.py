@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import csv
-import sys
 import os
+import sys
+
 os.environ['DJANGO_SETTINGS_MODULE'] = "sefaria.settings"
 from sefaria.system.database import db
 
@@ -9,6 +10,7 @@ __author__ = 'stevenkaplan'
 from sefaria.helper.schema import *
 from sefaria.model import *
 from sefaria.system.exceptions import InputError
+
 
 def map_(x, map_array):
     return map_array[x.sections[1]-1]

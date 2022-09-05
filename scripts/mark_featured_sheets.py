@@ -1,5 +1,6 @@
 # encoding=utf-8
 import django
+
 django.setup()
 
 from sefaria.system.database import db

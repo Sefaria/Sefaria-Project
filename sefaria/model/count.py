@@ -3,11 +3,13 @@ count.py
 Writes to MongoDB Collection: counts
 """
 import structlog
+
 logger = structlog.get_logger(__name__)
 
-from . import abstract as abst
 import sefaria.datatype.jagged_array as ja
 from sefaria.system.exceptions import BookNameError
+
+from . import abstract as abst
 
 
 class Count(abst.AbstractMongoRecord):

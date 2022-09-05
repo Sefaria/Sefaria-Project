@@ -4,14 +4,17 @@ Writes to MongoDB Collection: links
 """
 
 import regex as re
+import structlog
 from bson.objectid import ObjectId
+
 from sefaria.model.text import AbstractTextRecord, VersionSet
-from sefaria.system.exceptions import DuplicateRecordError, InputError, BookNameError
 from sefaria.system.database import db
+from sefaria.system.exceptions import (BookNameError, DuplicateRecordError,
+                                       InputError)
+
 from . import abstract as abst
 from . import text
 
-import structlog
 logger = structlog.get_logger(__name__)
 
 

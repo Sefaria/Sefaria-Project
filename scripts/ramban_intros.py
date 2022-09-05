@@ -1,6 +1,6 @@
 #encoding=utf-8
-from sefaria.model import *
 from sefaria.helper.schema import *
+from sefaria.model import *
 
 if __name__ == "__main__":
     parents = []
