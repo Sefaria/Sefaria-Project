@@ -89,13 +89,6 @@ def test_out_of_range_chunks():
     with pytest.raises(InputError):
         TextChunk(Ref("Shabbat 180"), "he")
 
-    # and where text does not have length (will fail and need to be updated once the text is given a length)
-    t = TextChunk(Ref("Bemidbar Rabbah 66"))
-    assert t.text == []
-
-    t = TextChunk(Ref("Bemidbar Rabbah 66.4"))
-    assert t.text == ""
-
 
 def test_range_chunk():
     chunks = [
