@@ -181,9 +181,9 @@ nodejs:
 varnish:
   containerImage:
     # Full path of the image registry inclusive of the image name
-    imageRegistry: gcr.io/production-deployment/sefaria-varnish
+    imageRegistry: ibmcom/varnish
     # Version of varnish that's required for the application.
-    tag: v6
+    tag: 0.28.1
   logging: {}
   replicaCount: 1
   resources:

@@ -1,0 +1,99 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.deployEnv }}-varnish-config
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+    {{- include "sefaria.labels" . | nindent 4 }}
+data:
+  sefaria.vcl.tmpl: |-
+    vcl 4.0;
+
+    backend default {
+        .host = "web-{{ .Values.deployEnv }}-{{ .Release.Revision }}";
+        .port = "80";
+        .first_byte_timeout = 900s;
+    }
+
+    sub vcl_recv {
+        # We trust PURGE methods to be coming from within the cluster.
+        # They are rejected on the nginx level
+        if (req.method == "PURGE") {
+          return (purge);
+        }
+
+        if (req.http.Host ~ "^staging") {
+            return (pass);
+        }
+        if (req.http.User-Agent ~ "MegaIndex") {
+            return(synth(403, "Your spider is not honoring our robots.txt crawl-delay.  Banning."));
+        }
+        if (req.http.User-Agent ~ "^Sogou") {
+    	return(synth(403, "Your spider has put too much load on our server.  Banning."));
+        }
+        if (req.http.User-Agent ~ "SemrushBot") {
+            return(synth(403, "Your spider has put too much load on our server.  Banning."));
+        }
+        if (req.http.User-Agent ~ "YandexBot") {
+            return(synth(403, "Your spider has put too much load on our server.  Banning."));
+        }
+
+        if ((req.method == "GET") && (
+            (req.url ~"^/api/texts" && req.url !~"^/api/texts/versions/" && req.url !~"^/api/texts/parashat_hashavua" && req.url !~"^/api/texts/random" && req.url !~"layer=")
+            || (req.url ~"^/api/links" && req.url !~"^/api/links/bare")
+            || (req.url ~"^/api/related" && req.url !~"private=1")
+            || req.url ~"^/api/preview"
+            || (req.url ~"^/api/counts" && req.url !~"^/api/counts/links/" && req.url !~"^/api/counts/words")
+    	    || req.url ~"^/api/index/.+"
+            || req.url ~"^/api/v2/index"
+            || req.url ~"^/api/v2/raw/index"
+    	    || req.url ~"^/api/regexs/"
+    	    || req.url ~"^/api/bulktext/"
+    	    || req.url ~"^/linker.js"
+    	    || req.url ~"^/api/stats/"
+        )) {
+            unset req.http.Cookie;
+            unset req.http.Accept-Language;
+        } else {
+            return (pass);
+        }
+    }
+
+    # Commenting server portion out out default vcl_hash.
+    # calls to sefaria.org and sefaria.org.il will be cached together.
+    sub vcl_hash {
+        hash_data(req.url);
+        # if (req.http.host) {
+        #    hash_data(req.http.host);
+        # } else {
+        #    hash_data(server.ip);
+        # }
+        return (lookup);
+    }
+
+    sub vcl_backend_response {
+        # Put URL on response object to help ban lurker - https://www.varnish-cache.org/docs/trunk/users-guide/purging.html#bans
+        set beresp.http.url = bereq.url;
+
+        # This conditional is default behavior for vcl_backend_response
+        if (beresp.ttl <= 0s ||
+            beresp.http.Set-Cookie ||
+            beresp.http.Surrogate-control ~ "no-store" ||
+            (!beresp.http.Surrogate-Control &&
+            beresp.http.Cache-Control ~ "no-cache|no-store|private") ||
+            beresp.http.Vary == "*") {
+            /*
+             * Mark as "Hit-For-Pass" for the next 2 minutes
+             */
+            set beresp.ttl = 120s;
+            set beresp.uncacheable = true;
+            return(deliver);
+        }
+
+        # cache everything for 1 day, ignoring any cache headers
+        set beresp.ttl = 1d;
+
+        # This will serve cached content for 10 days after expiry, while fetching the newer content
+        set beresp.grace = 10d;
+
+    }

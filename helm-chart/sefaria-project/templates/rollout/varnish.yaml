@@ -55,9 +55,25 @@ spec:
       - name: varnish
         image: "{{ .Values.varnish.containerImage.imageRegistry }}:{{ .Values.varnish.containerImage.tag }}"
         imagePullPolicy: Always
-        command: ["bash", "-c"]
         # args: [ "envsubst < /etc/varnish/sefaria.template.vcl > /etc/varnish/sefaria.vcl && exec /usr/sbin/varnishd -j unix,user=varnish -F -f /etc/varnish/sefaria.vcl -a :8040 -T :6082 -S /varnish-secret/varnish-secret -s malloc,14440m -p nuke_limit=400" ]
-        args: [ "envsubst < /etc/varnish/sefaria.template.vcl > /etc/varnish/sefaria.vcl && exec /usr/sbin/varnishd -j unix,user=varnish -F -f /etc/varnish/sefaria.vcl -a :8040 -T :6082 -S /varnish-secret/varnish-secret -s malloc,{{ .Values.varnish.tuning.malloc }} -p nuke_limit={{ .Values.varnish.tuning.nuke_limit }} -p thread_pool_max={{ .Values.varnish.tuning.thread_pool_max }} -p first_byte_timeout={{ .Values.varnish.tuning.first_byte_timeout }} -p between_bytes_timeout={{ .Values.varnish.tuning.between_bytes_timeout }}" ]
+        args:
+          - -F
+          - -f 
+          - /etc/varnish/sefaria.vcl
+          - -S
+          - /etc/varnish-secret/secret
+          - -T
+          - 0.0.0.0:6082
+          - -p
+          - between_bytes_timeout={{ .Values.varnish.tuning.between_bytes_timeout }}
+          - -p
+          - first_byte_timeout={{ .Values.varnish.tuning.first_byte_timeout }}
+          - -p
+          - nuke_limit={{ .Values.varnish.tuning.nuke_limit }}
+          - -p
+          - thread_pool_max={{ .Values.varnish.tuning.thread_pool_max }}
+          - -s
+          - malloc,{{ .Values.varnish.tuning.malloc }}
         ports:
         - containerPort: 8040
         - containerPort: 6082
@@ -66,10 +82,13 @@ spec:
         - mountPath: /varnish-secret
           name: varnish-secret
           readOnly: true
-        env:
-          - name: BACKEND_HOST
-            value: "web-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+        - mountPath: /etc/varnish/
+          name: varnish-config
+          readOnly: true
       volumes:
         - name: varnish-secret
           secret:
             secretName: {{ template "sefaria.secrets.varnish" . }}
+        - name:  varnish-config
+          configMap:
+            name: {{ .Values.deployEnv }}-varnish-config
