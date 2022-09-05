@@ -915,13 +915,15 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         return default_children + self.get_alt_struct_nodes()
 
     def get_referenceable_alone_nodes(self):
+        """
+        Return list of nodes on Index where each node has at least one match template with scope "alone"
+        @return: List of TitledTreeNodes
+        """
         alone_nodes = []
-        alone_scopes = {'any', 'alone'}
         for child in self.referenceable_children():
-            if any(template.scope in alone_scopes for template in child.get_match_templates()):
+            if child.has_scope_alone_match_template():
                 alone_nodes += [child]
-            # TODO used to be hard-coded to include grandchildren as well. Can't be recursive unless we add this to SchemaNode as well.
-            # alone_nodes += child.get_referenceable_alone_nodes()
+            alone_nodes += child.get_referenceable_alone_nodes()
         return alone_nodes
 
 
@@ -2613,16 +2615,13 @@ class Ref(object, metaclass=RefCacheType):
         self._range_index = None
 
     def _validate(self):
-        offset = 0
-        if self.is_bavli():
-            offset = 2
         checks = [self.sections, self.toSections]
         for check in checks:
             if 0 in check:
                 raise InputError("{} {} must be greater than 0".format(self.book, self.index_node.sectionNames[check.index(0)]))
             if getattr(self.index_node, "lengths", None) and len(check):
-                if check[0] > self.index_node.lengths[0] + offset:
-                    display_size = self.index_node.address_class(0).toStr("en", self.index_node.lengths[0] + offset)
+                if check[0] > self.index_node.lengths[0]:
+                    display_size = self.index_node.address_class(0).toStr("en", self.index_node.lengths[0])
                     raise InputError("{} ends at {} {}.".format(self.book, self.index_node.sectionNames[0], display_size))
 
         if len(self.sections) != len(self.toSections):
